@@ -91,6 +91,7 @@ export function DocsSidebarNav({ docs }: { docs: DocData[] }) {
         ) : (
           filteredCategories.map(({ category, items }, idx) => {
             const isExpanded = expandedCategories[category] !== false; // Default true
+            const hasActiveItem = items.some(item => pathname === `/docs/${item.slug}`);
             
             return (
               <div key={category} className="animate-in fade-in slide-in-from-bottom-2">
@@ -99,15 +100,25 @@ export function DocsSidebarNav({ docs }: { docs: DocData[] }) {
                   className="w-full flex items-center justify-between gap-2 mb-3 group/cat"
                 >
                   <div className="flex items-center gap-2">
-                    <div className="p-1 rounded-md bg-white/5 text-gray-400 group-hover/cat:text-neon-green transition-colors">
+                    <div className={`p-1 rounded-md transition-colors duration-150 ${
+                      hasActiveItem 
+                        ? 'bg-neon-green/10 text-neon-green' 
+                        : 'bg-white/5 text-gray-400 group-hover/cat:text-neon-green'
+                    }`}>
                       {getIconForIndex(idx)}
                     </div>
-                    <h3 className="font-semibold text-gray-400 text-[11px] tracking-[0.2em] uppercase truncate group-hover/cat:text-gray-200 transition-colors">
+                    <h3 className={`font-semibold text-[11px] tracking-[0.2em] uppercase truncate transition-colors duration-150 ${
+                      hasActiveItem 
+                        ? 'text-white font-bold' 
+                        : 'text-gray-400 group-hover/cat:text-gray-200'
+                    }`}>
                       {category}
                     </h3>
                   </div>
                   <ChevronRight 
-                    className={`w-3.5 h-3.5 text-gray-600 transition-transform duration-300 ${isExpanded ? 'rotate-90' : ''}`} 
+                    className={`w-3.5 h-3.5 transition-transform duration-150 ${
+                      hasActiveItem ? 'text-neon-green' : 'text-gray-600 group-hover/cat:text-gray-400'
+                    } ${isExpanded ? 'rotate-90' : ''}`} 
                   />
                 </button>
                 
@@ -117,7 +128,7 @@ export function DocsSidebarNav({ docs }: { docs: DocData[] }) {
                       initial={{ height: 0, opacity: 0 }}
                       animate={{ height: 'auto', opacity: 1 }}
                       exit={{ height: 0, opacity: 0 }}
-                      transition={{ duration: 0.25, ease: "easeInOut" }}
+                      transition={{ duration: 0.15, ease: "easeInOut" }}
                       className="space-y-0.5 overflow-hidden border-l border-white/5 ml-3 pl-2"
                     >
                       {items.map((doc) => {
@@ -127,16 +138,18 @@ export function DocsSidebarNav({ docs }: { docs: DocData[] }) {
                           <li key={doc.slug}>
                             <Link
                               href={`/docs/${doc.slug}`}
-                              className={`flex items-center text-[13px] py-2 px-3 rounded-r-lg transition-all duration-300 relative group overflow-hidden ${
+                              className={`flex items-center text-[13px] py-2 px-3 rounded-r-lg transition-all duration-150 relative group overflow-hidden ${
                                 isActive 
-                                  ? 'text-white font-bold bg-gradient-to-r from-neon-green/20 to-transparent' 
+                                  ? 'text-white font-semibold bg-gradient-to-r from-neon-green/15 to-transparent' 
                                   : 'text-gray-400 hover:text-gray-100 hover:bg-white/5'
                               }`}
                             >
-                              {isActive && (
-                                <div className="absolute left-0 top-0 bottom-0 w-[2px] bg-neon-green rounded-full shadow-[0_0_12px_rgba(0,255,0,1)]" />
+                              {isActive ? (
+                                <div className="absolute left-0 top-0 bottom-0 w-[2px] bg-neon-green rounded-full shadow-[0_0_12px_rgba(118,185,0,0.8)]" />
+                              ) : (
+                                <div className="absolute left-0 top-0 bottom-0 w-[2px] bg-white/20 scale-y-0 group-hover:scale-y-100 transition-transform duration-150 origin-center" />
                               )}
-                              <span className={`truncate tracking-wide relative z-10 transition-all duration-300 ${isActive ? 'drop-shadow-[0_0_8px_rgba(255,255,255,0.8)]' : ''}`}>{doc.title}</span>
+                              <span className={`truncate tracking-wide relative z-10 transition-colors duration-150 ${isActive ? 'text-neon-green' : ''}`}>{doc.title}</span>
                             </Link>
                           </li>
                         );

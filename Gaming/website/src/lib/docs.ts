@@ -15,6 +15,38 @@ export interface DocData {
   badgeColor?: string;
 }
 
+const DOCS_ORDER = [
+  "summary",
+  "changes_summary",
+  "design",
+  "process",
+  "agentic_logic",
+  "agents",
+  "nvidia_ai_guide",
+  "nvidia",
+  "fps",
+  "productroadmap",
+  "electronroadmap",
+  "aero_ai_full_prompt",
+  "patchesfile"
+];
+
+const METADATA_FALLBACKS: Record<string, { category?: string; title?: string; badge?: string; badgeColor?: string }> = {
+  "summary": { category: "Overview", title: "Project Summary", badge: "Core", badgeColor: "text-neon-green" },
+  "changes_summary": { category: "Overview", title: "Recent Updates" },
+  "design": { category: "Architecture", title: "System Architecture" },
+  "process": { category: "Architecture", title: "Process & Threading" },
+  "agentic_logic": { category: "Core Logic", title: "Agentic AI Controller" },
+  "agents": { category: "Core Logic", title: "AI Personalities" },
+  "nvidia_ai_guide": { category: "Integrations", title: "NVIDIA NIM Guide" },
+  "nvidia": { category: "Integrations", title: "NVIDIA Integration" },
+  "fps": { category: "Performance", title: "FPS & VRAM Optimization" },
+  "patchesfile": { category: "Reference", title: "Patches & Version History" },
+  "aero_ai_full_prompt": { category: "Reference", title: "Aero AI Prompt" },
+  "electronroadmap": { category: "Roadmaps", title: "Electron App Roadmap" },
+  "productroadmap": { category: "Roadmaps", title: "Product Roadmap" },
+};
+
 export function getAllDocs(): DocData[] {
   if (!fs.existsSync(docsDirectory)) return [];
 
@@ -30,12 +62,14 @@ export function getAllDocs(): DocData[] {
       // We will parse with gray-matter just in case they ever add yaml frontmatter,
       // but we will also try to extract the first heading as the title if frontmatter title is missing.
       const matterResult = matter(fileContents);
-      let title = matterResult.data.title;
-      let category = matterResult.data.category || "Documentation";
+      const fallback = METADATA_FALLBACKS[slug] || {};
+      
+      let title = matterResult.data.title || fallback.title;
+      let category = matterResult.data.category || fallback.category || "Documentation";
       let content = matterResult.content;
       let excerpt = matterResult.data.excerpt || "";
-      let badge = matterResult.data.badge || "";
-      let badgeColor = matterResult.data.badgeColor || "";
+      let badge = matterResult.data.badge || fallback.badge || "";
+      let badgeColor = matterResult.data.badgeColor || fallback.badgeColor || "";
 
       if (!title) {
         // Try to find the first H1
@@ -76,7 +110,14 @@ export function getAllDocs(): DocData[] {
       };
     });
 
-  return allDocs;
+  return allDocs.sort((a, b) => {
+    const idxA = DOCS_ORDER.indexOf(a.slug);
+    const idxB = DOCS_ORDER.indexOf(b.slug);
+    if (idxA === -1 && idxB === -1) return a.title.localeCompare(b.title);
+    if (idxA === -1) return 1;
+    if (idxB === -1) return -1;
+    return idxA - idxB;
+  });
 }
 
 export function getDocBySlug(slug: string): DocData | null {

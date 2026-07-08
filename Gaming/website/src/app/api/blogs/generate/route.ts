@@ -257,6 +257,13 @@ async function writeToSanity(
 }
 
 export async function POST(request: NextRequest) {
+  if (process.env.NODE_ENV === "production") {
+    const authHeader = request.headers.get("authorization");
+    if (!process.env.CRON_SECRET || authHeader !== `Bearer ${process.env.CRON_SECRET}`) {
+      return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+    }
+  }
+
   const apiKey = process.env.NVIDIA_API_KEY;
   if (!apiKey) {
     return NextResponse.json({ error: "NVIDIA_API_KEY not configured" }, { status: 500 });
@@ -387,7 +394,7 @@ export async function POST(request: NextRequest) {
         console.error("[BlogGen] Image generation/upload failed:", imgErr);
       }
 
-      const publishedAt = new Date(Date.now() + 2 * 60 * 60 * 1000).toISOString();
+      const publishedAt = new Date(Date.now() - 10 * 60 * 1000).toISOString(); // 10 minutes in the past for immediate visibility
       const saved = await writeToSanity(post, "Game News", publishedAt, imageAssetRef);
       results.push({ type: "Game News", slug: post.slug, saved });
     }
@@ -404,7 +411,10 @@ export async function POST(request: NextRequest) {
 // Allow GET for manual one-off trigger in dev
 export async function GET(request: NextRequest) {
   if (process.env.NODE_ENV === "production") {
-    return NextResponse.json({ error: "Use POST in production" }, { status: 405 });
+    const authHeader = request.headers.get("authorization");
+    if (!process.env.CRON_SECRET || authHeader !== `Bearer ${process.env.CRON_SECRET}`) {
+      return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+    }
   }
   return POST(request);
 }

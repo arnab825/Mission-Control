@@ -15,15 +15,15 @@ export default async function DocsLayout({
   const hasSanityContent = docs.length > 0;
 
   return (
-    <div className="min-h-screen text-gray-300 w-full relative pt-20 bg-[#0a0a0c]">
+    <div className="flex-1 w-full relative pt-20 bg-[#0a0a0c] text-gray-300 flex flex-col">
 
       {/* Ambient glow */}
       <div className="absolute top-1/4 left-0 w-[500px] h-[500px] bg-neon-green/4 blur-[180px] rounded-full pointer-events-none -z-10" />
 
-      <div className="max-w-[90rem] mx-auto px-4 sm:px-6 md:px-8 flex items-start">
+      <div className="max-w-[90rem] mx-auto px-4 sm:px-6 md:px-8 flex-1 flex items-start w-full">
 
         {/* ── Left Sidebar ─────────────────────────────────────────────── */}
-        <aside className="fixed hidden lg:flex flex-col w-64 pt-8 pb-24 top-20 h-[calc(100vh-5rem)] overflow-y-auto border-r border-white/8 pr-4 gap-6 scrollbar-thin">
+        <aside className="fixed hidden lg:flex flex-col w-64 pt-8 pb-10 top-20 h-[calc(100vh-5rem)] overflow-y-auto border-r border-white/8 pr-4 gap-6 scrollbar-thin">
 
           {/* Back link */}
           <Link
@@ -56,7 +56,7 @@ export default async function DocsLayout({
         </aside>
 
         {/* ── Main Content ─────────────────────────────────────────────── */}
-        <main className="w-full lg:pl-[17rem] pt-6 pb-24 pr-0 xl:pr-4 min-w-0">
+        <main className="w-full lg:pl-[17rem] pt-6 pb-10 pr-0 xl:pr-4 min-w-0 flex-1">
           {children}
         </main>
       </div>
