@@ -3,10 +3,10 @@ import { NextResponse } from "next/server";
 export async function GET() {
   try {
     const res = await fetch(
-      "https://api.github.com/repos/arnab825/AiAssistant/releases/latest",
+      "https://api.github.com/repos/arnab825/Mission-Control/releases/latest",
       {
         headers: {
-          "User-Agent": "AiAssistant-Website",
+          "User-Agent": "MissionControl-Website",
         },
         next: { revalidate: 300 }, // Cache for 5 minutes
       }

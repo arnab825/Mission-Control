@@ -1,5 +1,75 @@
 $ErrorActionPreference = 'Stop'
 
+function Upload-FileWithProgress {
+  param (
+    [string]$Uri,
+    [string]$FilePath,
+    [hashtable]$Headers,
+    [string]$ContentType
+  )
+
+  $fileInfo = Get-Item $FilePath
+  $totalBytes = $fileInfo.Length
+  $fileStream = [System.IO.File]::OpenRead($FilePath)
+  
+  $request = [System.Net.HttpWebRequest]::Create($Uri)
+  $request.Method = "POST"
+  $request.Timeout = 7200000 # 2 hours in ms
+  $request.ReadWriteTimeout = 7200000
+  $request.ContentLength = $totalBytes
+  $request.ContentType = $ContentType
+  $request.KeepAlive = $true
+  
+  foreach ($key in $Headers.Keys) {
+    if ($key -eq "Content-Type") { continue }
+    if ($key -eq "Accept") {
+      $request.Accept = $Headers[$key]
+      continue
+    }
+    $request.Headers.Add($key, $Headers[$key])
+  }
+
+  $requestStream = $request.GetRequestStream()
+  $buffer = New-Object byte[] 1048576 # 1MB buffer
+  $bytesRead = 0
+  $totalBytesSent = 0
+  $lastReportedPercent = 0
+
+  Write-Host "Starting upload of $($fileInfo.Name) ($([math]::round($totalBytes/1MB, 2)) MB)..."
+
+  $stopwatch = [System.Diagnostics.Stopwatch]::StartNew()
+
+  try {
+    while (($bytesRead = $fileStream.Read($buffer, 0, $buffer.Length)) -gt 0) {
+      $requestStream.Write($buffer, 0, $bytesRead)
+      $totalBytesSent += $bytesRead
+      
+      $percent = [math]::floor(($totalBytesSent / $totalBytes) * 100)
+      if ($percent -ge ($lastReportedPercent + 5)) {
+        $lastReportedPercent = $percent
+        $elapsedSec = $stopwatch.Elapsed.TotalSeconds
+        $speedMBs = if ($elapsedSec -gt 0) { ([math]::round(($totalBytesSent / 1MB) / $elapsedSec, 2)) } else { 0 }
+        Write-Host "Uploaded: $percent% ($([math]::round($totalBytesSent/1MB, 2)) / $([math]::round($totalBytes/1MB, 2)) MB) | Speed: $speedMBs MB/s"
+      }
+    }
+  } finally {
+    $fileStream.Close()
+    $requestStream.Close()
+  }
+
+  $response = $request.GetResponse()
+  $responseStream = $response.GetResponseStream()
+  $reader = New-Object System.IO.StreamReader($responseStream)
+  $responseBody = $reader.ReadToEnd()
+  
+  $reader.Close()
+  $responseStream.Close()
+  $response.Close()
+  
+  return $responseBody
+}
+
+
 $versionFile = Get-Content 'Gaming/backend/version.json' -Raw | ConvertFrom-Json
 $title = $versionFile.changelog[0].title
 $version = $versionFile.changelog[0].version
@@ -126,38 +196,39 @@ if (-not (Test-Path $targetInstaller)) {
   throw "Installer file not found at: $targetInstaller"
 }
 
-Write-Host "Uploading $targetInstaller via curl..."
+Write-Host "Uploading $targetInstaller via Upload-FileWithProgress..."
 $installerUrl = "${uploadBase}?name=MissionControl-Setup.exe"
-$curlArgs = @(
-  "-s", "-S",
-  "--ssl-no-revoke",
-  "-X", "POST",
-  "-H", "Authorization: Bearer $githubToken",
-  "-H", "Accept: application/vnd.github.v3+json",
-  "-H", "Content-Type: application/octet-stream",
-  "--data-binary", "@$targetInstaller",
-  $installerUrl
-)
-& curl.exe @curlArgs
-if ($LASTEXITCODE -ne 0) {
-  throw "curl failed to upload installer with exit code $LASTEXITCODE"
+$uploadHeaders = @{
+  Authorization = "Bearer $githubToken"
+  Accept = "application/vnd.github.v3+json"
+  "X-GitHub-Api-Version" = "2022-11-28"
+}
+try {
+  $uploadResponse = Upload-FileWithProgress -Uri $installerUrl -FilePath $targetInstaller -Headers $uploadHeaders -ContentType "application/octet-stream"
+  Write-Host "Installer uploaded successfully."
+} catch {
+  Write-Error "Failed to upload installer: $($_.Exception.Message)"
+  if ($_.Exception.Response) {
+    $stream = $_.Exception.Response.GetResponseStream()
+    $reader = New-Object System.IO.StreamReader($stream)
+    Write-Host "Response body: $($reader.ReadToEnd())"
+  }
+  throw
 }
 
-Write-Host "Uploading latest.yml via curl..."
+Write-Host "Uploading latest.yml via Invoke-RestMethod..."
 $ymlUrl = "${uploadBase}?name=latest.yml"
-$curlYmlArgs = @(
-  "-s", "-S",
-  "--ssl-no-revoke",
-  "-X", "POST",
-  "-H", "Authorization: Bearer $githubToken",
-  "-H", "Accept: application/vnd.github.v3+json",
-  "-H", "Content-Type: application/x-yaml",
-  "--data-binary", "@$latestYmlPath",
-  $ymlUrl
-)
-& curl.exe @curlYmlArgs
-if ($LASTEXITCODE -ne 0) {
-  throw "curl failed to upload latest.yml with exit code $LASTEXITCODE"
+try {
+  $uploadYmlResponse = Invoke-RestMethod -Uri $ymlUrl -Method Post -Headers $uploadHeaders -InFile $latestYmlPath -ContentType "application/x-yaml"
+  Write-Host "latest.yml uploaded successfully."
+} catch {
+  Write-Error "Failed to upload latest.yml: $($_.Exception.Message)"
+  if ($_.Exception.Response) {
+    $stream = $_.Exception.Response.GetResponseStream()
+    $reader = New-Object System.IO.StreamReader($stream)
+    Write-Host "Response body: $($reader.ReadToEnd())"
+  }
+  throw
 }
 
 Write-Host "Release published successfully."

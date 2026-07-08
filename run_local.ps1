@@ -1,5 +1,8 @@
 $ErrorActionPreference = 'Stop'
 
+# Store caller's directory and switch to script root to ensure paths resolve correctly
+Push-Location $PSScriptRoot
+
 # Ensure Woodpecker CLI is downloaded
 $cliDir = Join-Path $PSScriptRoot ".woodpecker/bin"
 $cliPath = Join-Path $cliDir "woodpecker-cli.exe"
@@ -33,7 +36,7 @@ if (-not $githubToken) {
 }
 
 # Ensure CI_REPO is set
-$env:CI_REPO = "arnab825/AiAssistant"
+$env:CI_REPO = "arnab825/Mission-Control"
 
 # Prompt for the tag version
 $tag = $env:CI_COMMIT_TAG
@@ -52,4 +55,5 @@ try {
 } finally {
   # Clear the commit tag environment variable so subsequent runs in the same PowerShell session will prompt again
   $env:CI_COMMIT_TAG = $null
+  Pop-Location
 }
