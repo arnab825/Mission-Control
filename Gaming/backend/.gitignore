@@ -1,0 +1,27 @@
+# Logs and outputs
+backend_out.log
+*.log
+py_err.txt
+py_out.txt
+
+# Virtual environment
+.venv/
+.python-version
+
+# Python cache files
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+
+# Local environment secrets
+.env*
+!.env.example
+
+# Pyinstaller packaging artifacts
+build/
+dist/
+*.spec
+version.json
+logo.ico
+MissionControl.spec

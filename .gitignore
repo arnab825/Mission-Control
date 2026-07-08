@@ -1,0 +1,111 @@
+# ═══════════════════════════════════════════════════════════════════
+#  Aero AI Gaming Assistant — Root .gitignore
+#
+#  RULE: If it contains real credentials, it stays off git.
+#  Collaborators get the .env.example files and fill in their own keys.
+# ═══════════════════════════════════════════════════════════════════
+
+# ── SECRETS — Never commit these ────────────────────────────────────
+.env
+.env.local
+.env.*.local
+.env.development
+.env.production
+.env.test
+# Allow .env.example — these are safe templates with NO real values
+!.env.example
+
+
+# ── Python caches ───────────────────────────────────────────────────
+**/__pycache__/
+*.pyc
+*.pyo
+*.pyd
+*.egg-info/
+*.egg
+.eggs/
+dist/
+build/
+*.dist-info/
+
+# ── Python virtual envs ─────────────────────────────────────────────
+.venv/
+venv/
+env/
+.python-version
+
+# ── Backend runtime / temp files ────────────────────────────────────
+Gaming/backend/backend_out.log
+Gaming/backend/*.log
+Gaming/backend/data/temp_audio/
+Gaming/backend/data/*.lock
+Gaming/backend/test_issues.db
+Gaming/backend/data/*.db
+Gaming/backend/data/*.db-shm
+Gaming/backend/data/*.db-wal
+Gaming/backend/data/ai_gaming_assistant.lock
+
+# ── ML model weights (large binary — share separately) ──────────────
+Gaming/backend/models/*.pt
+Gaming/backend/models/*.onnx
+Gaming/backend/models/*.engine
+
+# ── Node / Frontend ──────────────────────────────────────────────────
+node_modules/
+Gaming/frontend/node_modules/
+Gaming/frontend/dist/
+Gaming/frontend/dist-electron/
+Gaming/frontend/dist-ssr/
+*.local
+
+# ── Electron build outputs ───────────────────────────────────────────
+Gaming/frontend/out/
+Gaming/frontend/release/
+*.appx
+*.exe
+*.msi
+*.dmg
+*.deb
+*.rpm
+
+# ── Logs ─────────────────────────────────────────────────────────────
+logs/
+*.log
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+pnpm-debug.log*
+lerna-debug.log*
+
+# ── OS / Editor ───────────────────────────────────────────────────────
+.vscode/*
+!.vscode/extensions.json
+!.vscode/settings.json
+.idea/
+.DS_Store
+Thumbs.db
+*.suo
+*.ntvs*
+*.njsproj
+*.sln
+*.sw?
+desktop.ini
+
+# ── TypeScript build cache ────────────────────────────────────────────
+*.tsbuildinfo
+
+# ── uv / pip lock (optional — remove ! if you want to commit lock) ───
+# Gaming/backend/uv.lock
+
+# ── Doctor / report files ─────────────────────────────────────────────
+Gaming/frontend/doctor_report_*.txt
+
+# ── RAG / vector index (generated, not source) ───────────────────────
+Gaming/backend/ai_brain/rag_index/
+
+# ── Compiled Backend Binaries (generated build artifact) ─────────────
+Gaming/frontend/backend/MissionControl/
+
+# ── Woodpecker local CLI bin ──────────────────────────────────────────
+.woodpecker/bin/
+

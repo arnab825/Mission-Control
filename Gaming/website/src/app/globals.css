@@ -1,0 +1,191 @@
+@import "tailwindcss";
+@plugin "@tailwindcss/typography";
+
+@theme {
+  --color-neon-yellow: #bfff00;
+  --color-neon-green: #76b900;
+  --color-obsidian: #0a0a0c;
+  --color-graphite: #121216;
+  --font-sans: var(--font-inter);
+  --font-mono: var(--font-jetbrains-mono);
+  --font-display: var(--font-outfit);
+  --animate-terminal-scroll: terminal-scroll 8s ease-in-out infinite;
+}
+
+@layer base {
+  html {
+    scroll-behavior: smooth;
+    scroll-padding-top: 6rem;
+  }
+  body {
+    @apply bg-obsidian text-white antialiased overflow-x-hidden selection:bg-neon-green/30 selection:text-neon-green;
+  }
+}
+
+@layer utilities {
+  /* Futuristic Tactical Glassmorphism */
+  .glass {
+    background: rgba(10, 10, 12, 0.75);
+    backdrop-filter: blur(16px);
+    border: 1px solid rgba(255, 255, 255, 0.07);
+  }
+
+  .glass-panel {
+    background: linear-gradient(135deg, rgba(255, 255, 255, 0.04) 0%, rgba(255, 255, 255, 0.01) 100%);
+    backdrop-filter: blur(24px);
+    border: 1px solid rgba(255, 255, 255, 0.08);
+  }
+
+  .glass-card {
+    background: rgba(18, 18, 22, 0.6);
+    backdrop-filter: blur(20px);
+    border: 1px solid rgba(255, 255, 255, 0.08);
+    border-radius: 20px;
+  }
+
+  .glass-card-hover {
+    transition: all 0.35s cubic-bezier(0.16, 1, 0.3, 1);
+  }
+  .glass-card-hover:hover {
+    border-color: rgba(118, 185, 0, 0.4);
+    box-shadow: 0 0 35px rgba(118, 185, 0, 0.18), inset 0 0 15px rgba(118, 185, 0, 0.05);
+    transform: translateY(-2px);
+  }
+
+  .glass-accent {
+    background: rgba(118, 185, 0, 0.04);
+    backdrop-filter: blur(16px);
+    border: 1px solid rgba(118, 185, 0, 0.2);
+  }
+
+  /* Futuristic Glowing Elements */
+  .glow-green {
+    box-shadow: 0 0 30px rgba(118, 185, 0, 0.2);
+  }
+
+  .glow-green-lg {
+    box-shadow: 0 0 60px rgba(118, 185, 0, 0.35);
+  }
+
+  .glow-text-green {
+    text-shadow: 0 0 12px rgba(118, 185, 0, 0.6), 0 0 30px rgba(118, 185, 0, 0.3);
+  }
+
+  /* Cyber Grid & Telemetry Effects */
+  .cyber-grid {
+    background-size: 40px 40px;
+    background-image: 
+      linear-gradient(to right, rgba(255, 255, 255, 0.03) 1px, transparent 1px),
+      linear-gradient(to bottom, rgba(255, 255, 255, 0.03) 1px, transparent 1px);
+  }
+
+  .cyber-dots {
+    background-image: radial-gradient(circle at 2px 2px, rgba(118, 185, 0, 0.12) 1px, transparent 0);
+    background-size: 32px 32px;
+  }
+
+  .scanline-effect {
+    position: relative;
+    overflow: hidden;
+  }
+
+  .scanline-effect::after {
+    content: "";
+    position: absolute;
+    top: 0; left: 0; right: 0; bottom: 0;
+    background: linear-gradient(to bottom, transparent, rgba(118, 185, 0, 0.06), transparent);
+    height: 3px;
+    animation: scanline 5s linear infinite;
+    pointer-events: none;
+    z-index: 10;
+  }
+}
+
+@keyframes scanline {
+  0% { transform: translateY(-100%); }
+  100% { transform: translateY(100%); }
+}
+
+@keyframes pulse-slow {
+  0%, 100% { opacity: 0.4; transform: scale(1); }
+  50% { opacity: 0.7; transform: scale(1.03); }
+}
+
+.animate-pulse-slow {
+  animation: pulse-slow 6s ease-in-out infinite;
+}
+
+/* Custom Scrollbar */
+::-webkit-scrollbar {
+  width: 8px;
+  height: 8px;
+}
+::-webkit-scrollbar-track {
+  background: #0a0a0c;
+}
+::-webkit-scrollbar-thumb {
+  background: rgba(255, 255, 255, 0.15);
+  border-radius: 10px;
+  border: 2px solid #0a0a0c;
+}
+::-webkit-scrollbar-thumb:hover {
+  background: rgba(118, 185, 0, 0.6);
+  box-shadow: 0 0 10px rgba(118, 185, 0, 0.6);
+}
+
+html {
+  scrollbar-width: thin;
+  scrollbar-color: rgba(255, 255, 255, 0.15) #0a0a0c;
+}
+
+/* ──────────────────────────────────────────────────────────────────────────
+   prose Markdown / MDX Blog Styles Enhancements
+   ────────────────────────────────────────────────────────────────────────── */
+
+/* Highlight Introduction (first paragraph) of post */
+.prose > p:first-of-type {
+  @apply text-base sm:text-lg text-zinc-100 leading-relaxed font-sans mb-8 border-l-4 border-neon-green pl-5 py-2.5 bg-neon-green/3 rounded-r-xl shadow-sm border-t border-b border-r border-white/3;
+}
+
+/* Premium Table Structure Highlight */
+.prose table {
+  @apply w-full border-collapse my-8 text-left overflow-hidden border border-white/5 rounded-xl;
+  background: rgba(18, 18, 22, 0.3);
+  backdrop-filter: blur(8px);
+}
+.prose thead {
+  @apply bg-white/4 border-b border-white/10;
+}
+.prose th {
+  @apply py-3.5 px-4 font-display font-black text-white text-[10px] sm:text-xs uppercase tracking-widest border-b border-white/10;
+}
+.prose td {
+  @apply py-3.5 px-4 text-zinc-300 border-b border-white/4 text-xs sm:text-sm font-medium transition-colors;
+}
+.prose tr:last-child td {
+  @apply border-b-0;
+}
+.prose tr:hover td {
+  @apply text-white bg-neon-green/3;
+}
+
+/* blockquote styling */
+.prose blockquote {
+  @apply border-l-4 border-neon-yellow bg-neon-yellow/3 py-5 px-6 rounded-r-xl italic my-8 text-zinc-200 border-t border-b border-r border-white/3 shadow-inner;
+}
+
+/* Inline Code Enhancement */
+.prose code:not(pre code) {
+  @apply bg-white/5 text-neon-yellow px-2 py-0.5 rounded-md text-[11px] sm:text-xs border border-white/8 font-mono font-bold tracking-tight mx-0.5;
+}
+/* Hide default backticks added by tailwind typography */
+.prose code:not(pre code)::before,
+.prose code:not(pre code)::after {
+  content: "" !important;
+}
+
+/* Math rendering alignment spacing */
+.katex-display {
+  @apply py-4 my-6 overflow-x-auto overflow-y-hidden text-center;
+}
+

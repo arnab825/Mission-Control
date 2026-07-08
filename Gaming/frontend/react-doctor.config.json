@@ -1,0 +1,31 @@
+{
+  "rules": {
+    "react-doctor/no-event-handler": "off",
+    "react-doctor/no-derived-state": "off",
+    "react-doctor/no-adjust-state-on-prop-change": "off",
+    "react-doctor/no-chain-state-updates": "off",
+    "react-doctor/no-cascading-set-state": "off",
+    "react-doctor/no-prop-callback-in-effect": "off",
+    "react-doctor/no-pass-data-to-parent": "off",
+    "react-doctor/no-pass-live-state-to-parent": "off",
+    "react-doctor/no-effect-chain": "off",
+    "react-doctor/rerender-state-only-in-handlers": "off",
+    "react-doctor/no-array-index-key": "off",
+    "react-doctor/no-array-index-as-key": "off",
+    "react-doctor/click-events-have-key-events": "off",
+    "react-doctor/no-static-element-interactions": "off",
+    "react-doctor/no-giant-component": "off",
+    "react-doctor/prefer-useReducer": "off",
+    "react-doctor/exhaustive-deps": "off",
+    "react-doctor/use-lazy-motion": "off",
+    "react-doctor/design-no-three-period-ellipsis": "off",
+    "react-doctor/no-gray-on-colored-background": "off",
+    "react-doctor/no-inline-bounce-easing": "off",
+    "react-doctor/no-inline-prop-on-memo-component": "off",
+    "react-doctor/no-inline-exhaustive-style": "off",
+    "react-doctor/design-no-em-dash-in-jsx-text": "off",
+    "deslop/unused-dependency": "off",
+    "deslop/unused-dev-dependency": "off",
+    "deslop/unused-file": "off"
+  }
+}

@@ -1,0 +1,111 @@
+@import "tailwindcss";
+
+@theme {
+  --color-neon-yellow: #bfff00;
+  --color-neon-green: #76b900;
+  --color-obsidian: #0a0a0a;
+  --color-graphite: #1a1a1a;
+  --font-inter: "Inter", sans-serif;
+  --font-mono: "JetBrains Mono", monospace;
+}
+
+@layer base {
+  body {
+    @apply bg-transparent text-white font-inter antialiased overflow-hidden;
+  }
+}
+
+/* Glassmorphism Utilities */
+.glass {
+  background: rgba(10, 10, 10, 0.7);
+  backdrop-filter: blur(16px);
+  border: 1px solid rgba(255, 255, 255, 0.05);
+}
+
+.glass-panel {
+  background: linear-gradient(135deg, rgba(255, 255, 255, 0.03) 0%, rgba(255, 255, 255, 0.01) 100%);
+  backdrop-filter: blur(20px);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+}
+
+.glass-accent {
+  background: rgba(118, 185, 0, 0.03);
+  backdrop-filter: blur(12px);
+  border: 1px solid rgba(118, 185, 0, 0.15);
+}
+
+/* Futuristic Glows */
+.glow-green {
+  box-shadow: 0 0 25px rgba(118, 185, 0, 0.1);
+}
+
+.glow-text-teal {
+  text-shadow: 0 0 8px rgba(118, 185, 0, 0.5);
+}
+
+/* Animations */
+@keyframes scanline {
+  0% { transform: translateY(-100%); }
+  100% { transform: translateY(100%); }
+}
+
+.scanline-effect {
+  position: relative;
+  overflow: hidden;
+}
+
+.scanline-effect::after {
+  content: "";
+  position: absolute;
+  top: 0; left: 0; right: 0; bottom: 0;
+  background: linear-gradient(to bottom, transparent, rgba(118, 185, 0, 0.05), transparent);
+  height: 2px;
+  animation: scanline 4s linear infinite;
+  pointer-events: none;
+}
+
+@keyframes neural-pulse {
+  0% { opacity: 0.3; scale: 1; }
+  50% { opacity: 0.5; scale: 1.05; }
+  100% { opacity: 0.3; scale: 1; }
+}
+
+.neural-bg {
+  background-image: radial-gradient(circle at 2px 2px, rgba(255, 255, 255, 0.03) 1px, transparent 0);
+  background-size: 24px 24px;
+}
+
+/* Custom Scrollbar */
+::-webkit-scrollbar {
+  width: 4px;
+  height: 4px;
+}
+::-webkit-scrollbar-track {
+  background: transparent;
+}
+::-webkit-scrollbar-thumb {
+  background: rgba(255, 255, 255, 0.15);
+  border-radius: 10px;
+}
+::-webkit-scrollbar-thumb:hover {
+  background: rgba(118, 185, 0, 0.35);
+}
+
+@utility mask-fade-right {
+  mask-image: linear-gradient(to right, black 82%, transparent 100%);
+  -webkit-mask-image: linear-gradient(to right, black 82%, transparent 100%);
+}
+@utility mask-none {
+  mask-image: none;
+  -webkit-mask-image: none;
+}
+
+/* Hide scrollbar while preserving scroll functionality */
+.no-scrollbar::-webkit-scrollbar {
+  display: none;
+}
+.no-scrollbar {
+  -ms-overflow-style: none;
+  scrollbar-width: none;
+}
+

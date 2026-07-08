@@ -1,0 +1,9 @@
+{
+  "NEXT_PUBLIC_SANITY_PROJECT_ID": "xsjy6dgo",
+  "NEXT_PUBLIC_SANITY_DATASET": "production",
+  "SANITY_ORGANIZATION_ID": "oAQEfWWEJ",
+  "SANITY_API_TOKEN": "your_sanity_token_here",
+  "NVIDIA_API_KEY": "your_nvidia_api_key_here",
+  "NVIDIA_TEXT_API_KEY": "your_nvidia_text_api_key_here",
+  "HF_TOKEN": "your_hf_token_here"
+}

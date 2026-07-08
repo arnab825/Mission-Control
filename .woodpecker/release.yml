@@ -1,0 +1,64 @@
+when:
+  - event: tag
+    ref: refs/tags/v*
+
+steps:
+  setup:
+    image: powershell
+    commands:
+      - try { Set-MpPreference -DisableRealtimeMonitoring $true -ErrorAction Stop } catch { Write-Warning "Could not disable Windows Defender (requires Admin privileges)" }
+      - try { Set-MpPreference -ExclusionPath 'C:\Users\runneradmin\AppData\Local\electron-builder\Cache' -ErrorAction Stop } catch { Write-Warning "Could not add exclusion for electron-builder Cache" }
+      - try { if ($env:CI_WORKSPACE) { Set-MpPreference -ExclusionPath $env:CI_WORKSPACE -ErrorAction Stop } } catch { Write-Warning "Could not add exclusion for workspace" }
+
+  backend-deps:
+    image: powershell
+    commands:
+      - .woodpecker/scripts/install_backend.ps1
+
+  stamp-version:
+    image: powershell
+    commands:
+      - .woodpecker/scripts/stamp_version.ps1
+
+  compile-backend:
+    image: powershell
+    commands:
+      - .woodpecker/scripts/compile_backend.ps1
+      
+  configure-git:
+    image: powershell
+    commands:
+      - git config --global url."https://github.com/".insteadOf "ssh://git@github.com/"
+      - git config --global url."https://github.com/".insteadOf "git@github.com:"
+      
+  frontend-deps:
+    image: powershell
+    commands:
+      - Set-Location Gaming/frontend
+      - npm ci
+
+  move-backend:
+    image: powershell
+    commands:
+      - .woodpecker/scripts/move_backend.ps1
+      
+  package-electron:
+    image: powershell
+    commands:
+      - Set-Location Gaming/frontend
+      - npm run build
+      - npm run package
+      - node patch-nsis.mjs
+      
+  build-nsis:
+    image: powershell
+    commands:
+      - .woodpecker/scripts/build_nsis.ps1
+      
+  release:
+    image: powershell
+    environment:
+      GITHUB_TOKEN:
+        from_secret: github_token
+    commands:
+      - .woodpecker/scripts/publish_release.ps1

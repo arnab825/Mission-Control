@@ -1,0 +1,32 @@
+version: 2
+updates:
+  # 1. Desktop App (Electron frontend) npm dependencies
+  - package-ecosystem: "npm"
+    directory: "/Gaming/frontend"
+    schedule:
+      interval: "weekly"
+      day: "monday"
+      time: "09:00"
+      timezone: "Asia/Kolkata"
+    open-pull-requests-limit: 10
+
+  # 2. Next.js Website npm dependencies
+  - package-ecosystem: "npm"
+    directory: "/Gaming/website"
+    schedule:
+      interval: "weekly"
+      day: "monday"
+      time: "09:00"
+      timezone: "Asia/Kolkata"
+    open-pull-requests-limit: 10
+
+  # 3. Python Backend dependencies (requirements.txt / pyproject.toml)
+  - package-ecosystem: "pip"
+    directory: "/Gaming/backend"
+    schedule:
+      interval: "weekly"
+      day: "monday"
+      time: "09:00"
+      timezone: "Asia/Kolkata"
+    open-pull-requests-limit: 10
+
