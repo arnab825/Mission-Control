@@ -1,7 +1,7 @@
 import fs from "fs";
 import path from "path";
 import Link from "next/link";
-import { getSortedPostsData, formatDateToIST } from "@/lib/blog";
+import { getSortedPostsData, formatDateToIST, parseBlogDate } from "@/lib/blog";
 import { fetchGamingPosts, sanityClient } from "@/lib/sanity";
 import { createImageUrlBuilder } from "@sanity/image-url";
 import { Calendar, ArrowUpRight, Zap, BookOpen, Clock, Gamepad2, Bot, Radio } from "lucide-react";
@@ -45,11 +45,43 @@ export default async function BlogListing({
     logs = allLogs.filter((log: any) => new Date(log.date) <= now);
   } catch {}
 
-  // Mission Briefs from local MDX files
-  const mdxPosts = getSortedPostsData();
+  // Get all local MDX posts
+  const allMdxPosts = getSortedPostsData();
 
-  // Gaming Intel from Sanity
-  const gamingPosts = await fetchGamingPosts(activeCategory !== "all" ? activeCategory : undefined);
+  // Mission Briefs are local posts that are category "Mission Brief" or do not have a category
+  const mdxPosts = allMdxPosts.filter(
+    (p) => !p.category || p.category === "Mission Brief"
+  );
+
+  // Map local gaming posts from MDX to SanityGamingPost structure
+  const localGamingPosts = allMdxPosts.filter(
+    (p) => p.category && p.category !== "Mission Brief"
+  ).map((p) => ({
+    _id: p.id,
+    title: p.title,
+    slug: { current: p.id },
+    category: p.category,
+    excerpt: p.excerpt,
+    tags: p.tags,
+    author: p.author,
+    aiGenerated: p.aiGenerated,
+    publishedAt: p.date,
+    mainImage: undefined as any,
+    coverImage: p.coverImage,
+  }));
+
+  // Fetch from Sanity
+  const sanityGamingPosts = await fetchGamingPosts(activeCategory !== "all" ? activeCategory : undefined);
+
+  // Filter local posts by activeCategory if selected
+  const filteredLocalGaming = activeCategory !== "all"
+    ? localGamingPosts.filter((p) => p.category === activeCategory)
+    : localGamingPosts;
+
+  // Combine and sort by date descending using parseBlogDate
+  const gamingPosts = [...sanityGamingPosts, ...filteredLocalGaming].sort(
+    (a, b) => parseBlogDate(b.publishedAt).getTime() - parseBlogDate(a.publishedAt).getTime()
+  );
 
   return (
     <div className="min-h-screen pt-28 pb-24 px-4 sm:px-6 max-w-6xl mx-auto w-full relative z-10 bg-[#0a0a0c]">
@@ -187,7 +219,7 @@ export default async function BlogListing({
 
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
             {gamingPosts.map((post) => {
-              const cfg = CATEGORY_CONFIG[post.category] ?? {
+              const cfg = (post.category ? CATEGORY_CONFIG[post.category as keyof typeof CATEGORY_CONFIG] : null) ?? {
                 color: "text-neon-green",
                 icon: "📰",
                 hoverBorder: "hover:border-neon-green/40",
@@ -202,15 +234,15 @@ export default async function BlogListing({
                   >
                     <div className="absolute top-0 left-0 w-full h-[2px] bg-gradient-to-r from-amber-400 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
                     
-                    {post.mainImage && (
+                    {post.coverImage || post.mainImage ? (
                       <div className="w-full h-48 overflow-hidden relative border-b border-white/10">
                         <img
-                          src={urlFor(post.mainImage).url()}
+                          src={post.coverImage ? post.coverImage : urlFor(post.mainImage).url()}
                           alt={post.title}
                           className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
                         />
                       </div>
-                    )}
+                    ) : null}
 
                     <div className="p-8 flex-1 flex flex-col justify-between">
                       <div>
@@ -285,8 +317,8 @@ export default async function BlogListing({
       {/* ── Transmission Logs (version.json) ── */}
       {currentTab === "logs" && (
         <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-          {logs.map((post) => (
-            <Link href={`/blog/${post.version}`} key={post.version} className="block group">
+          {logs.map((post, idx) => (
+            <Link href={`/blog/${post.version}`} key={`${post.version}-${idx}`} className="block group">
               <article className="glass-card glass-card-hover p-8 border border-white/10 rounded-2xl relative overflow-hidden h-full flex flex-col justify-between shadow-[0_0_30px_rgba(0,0,0,0.5)]">
                 <div className="absolute top-0 left-0 w-full h-[2px] bg-gradient-to-r from-white to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
                 <div>

@@ -3,6 +3,7 @@ import { sanityWriteClient } from "@/lib/sanity";
 import { InferenceClient } from "@huggingface/inference";
 import fs from "fs";
 import path from "path";
+import { formatDateToIST } from "@/lib/blog";
 
 const GAMING_RSS_FEEDS = [
   { url: "http://feeds.ign.com/ign/all", label: "IGN", type: "gaming" },
@@ -92,9 +93,10 @@ function sanitizeMermaid(content: string): string {
 async function generateBlogPost(
   items: FeedItem[],
   postType: "Game News" | "GPU News" | "Game Revisit" | "Hardware Deep-Dive",
-  apiKey: string
+  apiKey: string,
+  targetDate: Date = new Date()
 ): Promise<{ slug: string; title: string; excerpt: string; tags: string[]; content: string } | null> {
-  const today = new Date().toISOString().split("T")[0];
+  const today = targetDate.toISOString().split("T")[0];
   const headlines = items
     .slice(0, 8)
     .map((i, idx) => `${idx + 1}. [${i.source}] ${i.title}\n   ${i.description}`)
@@ -256,7 +258,55 @@ async function writeToSanity(
   }
 }
 
+function writeToLocalMdx(
+  post: { slug: string; title: string; excerpt: string; tags: string[]; content: string },
+  postType: string,
+  publishedAt: string,
+  coverImage?: string
+) {
+  const contentDir = path.join(process.cwd(), "content/blog");
+  if (!fs.existsSync(contentDir)) {
+    fs.mkdirSync(contentDir, { recursive: true });
+  }
+  const dateStr = formatDateToIST(publishedAt);
+  const mdxContent = `---
+title: "${post.title.replace(/"/g, '\\"')}"
+date: "${dateStr}"
+author: "Mission Control Intel"
+excerpt: "${post.excerpt.replace(/"/g, '\\"')}"
+category: "${postType}"
+tags: ${JSON.stringify(post.tags)}
+aiGenerated: true
+${coverImage ? `coverImage: "${coverImage}"` : ""}
+---
+
+${post.content}
+`;
+  const filePath = path.join(contentDir, `${post.slug}.mdx`);
+  fs.writeFileSync(filePath, mdxContent, "utf8");
+  fs.appendFileSync(path.join(process.cwd(), "generate.log"), `[BlogGen] Saved to local MDX: ${filePath}\n`);
+}
+
+async function generateImageWithPollinations(prompt: string): Promise<Buffer> {
+  const url = `https://image.pollinations.ai/prompt/${encodeURIComponent(prompt)}?nologo=true&width=1024&height=768&model=flux`;
+  const response = await fetch(url);
+  if (!response.ok) {
+    throw new Error(`Pollinations API failed: ${response.statusText}`);
+  }
+  const arrayBuffer = await response.arrayBuffer();
+  return Buffer.from(arrayBuffer);
+}
+
 export async function POST(request: NextRequest) {
+  const { searchParams } = new URL(request.url);
+  const customDateParam = searchParams.get("date");
+  let targetDate = new Date();
+  if (customDateParam) {
+    const parsed = new Date(customDateParam);
+    if (!isNaN(parsed.getTime())) {
+      targetDate = parsed;
+    }
+  }
   if (process.env.NODE_ENV === "production") {
     const authHeader = request.headers.get("authorization");
     if (!process.env.CRON_SECRET || authHeader !== `Bearer ${process.env.CRON_SECRET}`) {
@@ -322,12 +372,11 @@ export async function POST(request: NextRequest) {
   const results: { type: string; slug: string; saved: boolean }[] = [];
   const logFile = path.join(process.cwd(), "generate.log");
   
-  // Clean up all existing gaming posts from Sanity to start fresh
+  // Keep existing posts to support future scheduling and archival
   try {
-    await sanityWriteClient.delete({ query: '*[_type == "gamingPost"]' });
-    fs.writeFileSync(logFile, `[${new Date().toISOString()}] Deleted old posts. Blog generation started. Collected ${allItems.length} feed items.\n`);
+    fs.writeFileSync(logFile, `[${new Date().toISOString()}] Keeping old posts. Blog generation started. Collected ${allItems.length} feed items.\n`);
   } catch (err: any) {
-    fs.writeFileSync(logFile, `[${new Date().toISOString()}] Failed to delete old posts: ${err?.message || err}. Blog generation started.\n`);
+    fs.writeFileSync(logFile, `[${new Date().toISOString()}] Blog generation started.\n`);
   }
 
   // Initialize HuggingFace client
@@ -335,68 +384,116 @@ export async function POST(request: NextRequest) {
 
   // Generate and save GPU news post
   if (gpuItems.length >= 2) {
-    const post = await generateBlogPost(gpuItems, "GPU News", apiKey);
+    const post = await generateBlogPost(gpuItems, "GPU News", apiKey, targetDate);
     if (post) {
       let imageAssetRef = undefined;
+      let localCoverPath = undefined;
+      let imageBuffer: Buffer | undefined = undefined;
+
       try {
-        const imageBlob = await hfClient.textToImage({
-            provider: "hf-inference",
-            model: "black-forest-labs/FLUX.1-schnell",
-            inputs: `A highly detailed gaming or tech illustration for a blog post titled: ${post.title}. ${post.tags.join(', ')}`,
-            parameters: { num_inference_steps: 4 },
-        }, {
-            outputType: "blob"
-        });
+        try {
+          // Try Pollinations first since it's free and unlimited
+          imageBuffer = await generateImageWithPollinations(`${post.title}. Futuristic hardware, tech concept art, glowing neon accents, 8k resolution, cyberpunk style.`);
+        } catch (pollError) {
+          console.warn("Pollinations failed, falling back to HuggingFace:", pollError);
+          const imageBlob = await hfClient.textToImage({
+              provider: "hf-inference",
+              model: "black-forest-labs/FLUX.1-schnell",
+              inputs: `A highly detailed gaming or tech illustration for a blog post titled: ${post.title}. ${post.tags.join(', ')}`,
+              parameters: { num_inference_steps: 4 },
+          }, {
+              outputType: "blob"
+          });
+          imageBuffer = Buffer.from(await imageBlob.arrayBuffer());
+        }
         
-        // Convert Blob to Buffer for Sanity upload
-        const imageBuffer = Buffer.from(await imageBlob.arrayBuffer());
-        
-        // Upload to Sanity
-        const asset = await sanityWriteClient.assets.upload('image', imageBuffer, {
-          filename: `${post.slug}-cover.png`
-        });
-        imageAssetRef = asset._id;
+        // Save locally
+        const publicDir = path.join(process.cwd(), "public/images/blog");
+        if (!fs.existsSync(publicDir)) {
+          fs.mkdirSync(publicDir, { recursive: true });
+        }
+        const imagePath = path.join(publicDir, `${post.slug}.png`);
+        fs.writeFileSync(imagePath, imageBuffer);
+        localCoverPath = `/images/blog/${post.slug}.png`;
       } catch (imgErr: any) {
-        fs.appendFileSync(path.join(process.cwd(), "generate.log"), `[BlogGen] Image generation/upload failed: ${imgErr?.message || imgErr}\n`);
-        console.error("[BlogGen] Image generation/upload failed:", imgErr);
+        fs.appendFileSync(path.join(process.cwd(), "generate.log"), `[BlogGen] Local image generation/saving failed: ${imgErr?.message || imgErr}\n`);
+        console.error("[BlogGen] Local image generation/saving failed:", imgErr);
+        localCoverPath = "/images/gpu-placeholder.png";
       }
 
-      const publishedAt = new Date(Date.now() - 2 * 60 * 60 * 1000).toISOString();
+      // Try uploading to Sanity separately. If it fails, local image is still saved and rendered.
+      if (imageBuffer) {
+        try {
+          const asset = await sanityWriteClient.assets.upload('image', imageBuffer, {
+            filename: `${post.slug}-cover.png`
+          });
+          imageAssetRef = asset._id;
+        } catch (sanityErr: any) {
+          console.warn("[BlogGen] Sanity cover upload failed (expected if write-token missing):", sanityErr?.message || sanityErr);
+        }
+      }
+
+      const publishedAt = new Date(targetDate.getTime() - 2 * 60 * 60 * 1000).toISOString();
       const saved = await writeToSanity(post, "GPU News", publishedAt, imageAssetRef);
-      results.push({ type: "GPU News", slug: post.slug, saved });
+      writeToLocalMdx(post, "GPU News", publishedAt, localCoverPath);
+      results.push({ type: "GPU News", slug: post.slug, saved: true });
     }
   }
 
   // Generate and save game news roundup
   if (gameItems.length >= 2) {
-    const post = await generateBlogPost(gameItems, "Game News", apiKey);
+    const post = await generateBlogPost(gameItems, "Game News", apiKey, targetDate);
     if (post) {
       let imageAssetRef = undefined;
+      let localCoverPath = undefined;
+      let imageBuffer: Buffer | undefined = undefined;
+
       try {
-        const imageBlob = await hfClient.textToImage({
-            provider: "hf-inference",
-            model: "black-forest-labs/FLUX.1-schnell",
-            inputs: `A highly detailed gaming or tech illustration for a blog post titled: ${post.title}. ${post.tags.join(', ')}`,
-            parameters: { num_inference_steps: 4 },
-        }, {
-            outputType: "blob"
-        });
+        try {
+          // Try Pollinations first since it's free and unlimited
+          imageBuffer = await generateImageWithPollinations(`${post.title}. Stylized gaming concept art, high-tech HUD elements, colorful neon game design aesthetic, 8k resolution.`);
+        } catch (pollError) {
+          console.warn("Pollinations failed, falling back to HuggingFace:", pollError);
+          const imageBlob = await hfClient.textToImage({
+              provider: "hf-inference",
+              model: "black-forest-labs/FLUX.1-schnell",
+              inputs: `A highly detailed gaming or tech illustration for a blog post titled: ${post.title}. ${post.tags.join(', ')}`,
+              parameters: { num_inference_steps: 4 },
+          }, {
+              outputType: "blob"
+          });
+          imageBuffer = Buffer.from(await imageBlob.arrayBuffer());
+        }
         
-        // Convert Blob to Buffer for Sanity upload
-        const imageBuffer = Buffer.from(await imageBlob.arrayBuffer());
-        
-        // Upload to Sanity
-        const asset = await sanityWriteClient.assets.upload('image', imageBuffer, {
-          filename: `${post.slug}-cover.png`
-        });
-        imageAssetRef = asset._id;
+        // Save locally
+        const publicDir = path.join(process.cwd(), "public/images/blog");
+        if (!fs.existsSync(publicDir)) {
+          fs.mkdirSync(publicDir, { recursive: true });
+        }
+        const imagePath = path.join(publicDir, `${post.slug}.png`);
+        fs.writeFileSync(imagePath, imageBuffer);
+        localCoverPath = `/images/blog/${post.slug}.png`;
       } catch (imgErr) {
-        console.error("[BlogGen] Image generation/upload failed:", imgErr);
+        console.error("[BlogGen] Local image generation/saving failed:", imgErr);
+        localCoverPath = "/images/game-placeholder.png";
       }
 
-      const publishedAt = new Date(Date.now() - 10 * 60 * 1000).toISOString(); // 10 minutes in the past for immediate visibility
+      // Try uploading to Sanity separately. If it fails, local image is still saved and rendered.
+      if (imageBuffer) {
+        try {
+          const asset = await sanityWriteClient.assets.upload('image', imageBuffer, {
+            filename: `${post.slug}-cover.png`
+          });
+          imageAssetRef = asset._id;
+        } catch (sanityErr: any) {
+          console.warn("[BlogGen] Sanity cover upload failed (expected if write-token missing):", sanityErr?.message || sanityErr);
+        }
+      }
+
+      const publishedAt = new Date(targetDate.getTime() + 24 * 60 * 60 * 1000).toISOString(); // 24 hours (1 day) in the future for daily scheduling
       const saved = await writeToSanity(post, "Game News", publishedAt, imageAssetRef);
-      results.push({ type: "Game News", slug: post.slug, saved });
+      writeToLocalMdx(post, "Game News", publishedAt, localCoverPath);
+      results.push({ type: "Game News", slug: post.slug, saved: true });
     }
   }
 

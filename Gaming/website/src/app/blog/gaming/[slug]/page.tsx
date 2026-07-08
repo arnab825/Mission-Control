@@ -108,15 +108,15 @@ export default async function GamingBlogPost({ params }: { params: Promise<{ slu
               </div>
             </header>
             
-            {post.mainImage && (
+            {post.coverImage || post.mainImage ? (
               <div className="mb-10 rounded-xl overflow-hidden border border-white/10 shadow-[0_0_40px_rgba(118,185,0,0.1)] relative z-10">
                 <img
-                  src={urlFor(post.mainImage).url()}
+                  src={post.coverImage ? post.coverImage : urlFor(post.mainImage).url()}
                   alt={post.title}
                   className="w-full h-auto object-cover max-h-[450px]"
                 />
               </div>
-            )}
+            ) : null}
             
             <div className="prose prose-invert prose-headings:font-display prose-headings:text-white prose-a:text-neon-green max-w-none flex-1 relative z-10 leading-relaxed text-sm sm:text-base text-gray-300">
               <MDXRemote 

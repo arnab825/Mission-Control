@@ -1,4 +1,5 @@
 import { createClient } from 'next-sanity';
+import { getPostData, parseBlogDate } from './blog';
 
 export const sanityClient = createClient({
   projectId: process.env.NEXT_PUBLIC_SANITY_PROJECT_ID || 'dummy-project-id',
@@ -56,6 +57,7 @@ export interface SanityGamingPost {
   author?: string;
   aiGenerated?: boolean;
   publishedAt: string;
+  coverImage?: string;
 }
 
 export async function fetchGamingPosts(category?: string): Promise<SanityGamingPost[]> {
@@ -76,9 +78,33 @@ export async function fetchGamingPosts(category?: string): Promise<SanityGamingP
 export async function fetchGamingPostBySlug(slug: string): Promise<SanityGamingPost | null> {
   const query = `*[_type == "gamingPost" && slug.current == $slug && publishedAt <= now()][0]`;
   try {
-    return await sanityClient.fetch(query, { slug });
+    const post = await sanityClient.fetch(query, { slug });
+    if (post) return post;
   } catch (error) {
-    console.error("Failed to fetch gaming post", error);
-    return null;
+    console.error("Failed to fetch gaming post from Sanity", error);
   }
+
+  // Fallback to local MDX posts
+  try {
+    const localPost = getPostData(slug);
+    if (localPost && parseBlogDate(localPost.date) <= new Date()) {
+      return {
+        _id: localPost.id,
+        title: localPost.title,
+        slug: { current: localPost.id },
+        category: localPost.category || 'Game News',
+        excerpt: localPost.excerpt,
+        markdownBody: localPost.content,
+        tags: localPost.tags,
+        author: localPost.author,
+        aiGenerated: localPost.aiGenerated,
+        publishedAt: localPost.date,
+        coverImage: localPost.coverImage,
+      };
+    }
+  } catch (err) {
+    console.error("Failed to read local post fallback", err);
+  }
+
+  return null;
 }

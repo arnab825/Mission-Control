@@ -17,9 +17,9 @@ const nextConfig: NextConfig = {
   turbopack: {
     root: "..",
   },
-  env: {
-    ...publicEnv,
-  }
+  env: Object.fromEntries(
+    Object.entries(publicEnv).filter(([_, val]) => typeof val === "string" && !val.startsWith("your_"))
+  ) as Record<string, string>
 };
 
 export default nextConfig;
