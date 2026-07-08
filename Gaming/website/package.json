@@ -11,7 +11,7 @@
   "dependencies": {
     "@huggingface/inference": "^4.13.20",
     "@portabletext/react": "^6.2.0",
-    "@sanity/code-input": "^7.1.2",
+    "@sanity/code-input": "^7.2.6",
     "@sanity/image-url": "^2.1.1",
     "@studio-freight/react-lenis": "^0.0.47",
     "@types/react-syntax-highlighter": "^15.5.13",
