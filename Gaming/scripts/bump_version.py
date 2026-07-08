@@ -94,11 +94,46 @@ def main():
     data["version"] = new_ver
 
     save(data)
+    update_package_files(new_ver)
     update_patches_md(entry)
     print(f"   Previous: v{old_ver}")
     print(f"   New     : v{new_ver}")
     print(f"   Title   : {args.title}")
     print(f"   Changes : {len(args.changes)} items")
+
+
+def update_package_files(new_ver):
+    base_dir = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+    
+    # 1. Update frontend/package.json
+    frontend_pkg = os.path.join(base_dir, "frontend", "package.json")
+    if os.path.exists(frontend_pkg):
+        with open(frontend_pkg, "r", encoding="utf-8") as f:
+            content = f.read()
+        updated = re.sub(r'(?m)^(\s*"version"\s*:\s*)"[^"]+"', rf'\g<1>"{new_ver}"', content, count=1)
+        with open(frontend_pkg, "w", encoding="utf-8") as f:
+            f.write(updated)
+        print(f"frontend/package.json updated -> version = {new_ver}")
+
+    # 2. Update website/package.json
+    website_pkg = os.path.join(base_dir, "website", "package.json")
+    if os.path.exists(website_pkg):
+        with open(website_pkg, "r", encoding="utf-8") as f:
+            content = f.read()
+        updated = re.sub(r'(?m)^(\s*"version"\s*:\s*)"[^"]+"', rf'\g<1>"{new_ver}"', content, count=1)
+        with open(website_pkg, "w", encoding="utf-8") as f:
+            f.write(updated)
+        print(f"website/package.json updated -> version = {new_ver}")
+
+    # 3. Update backend/pyproject.toml
+    backend_toml = os.path.join(base_dir, "backend", "pyproject.toml")
+    if os.path.exists(backend_toml):
+        with open(backend_toml, "r", encoding="utf-8") as f:
+            content = f.read()
+        updated = re.sub(r'(?m)^version\s*=\s*"[^"]+"', f'version = "{new_ver}"', content, count=1)
+        with open(backend_toml, "w", encoding="utf-8") as f:
+            f.write(updated)
+        print(f"backend/pyproject.toml updated -> version = {new_ver}")
 
 
 def _sanitize(field_name: str, value: str) -> str:

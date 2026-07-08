@@ -2,6 +2,10 @@
 
 This document contains a detailed history of all patches and updates for the AI Gaming Assistant.
 
+### Patch: 2026-07-08 — v2.3.6: Sync package versions
+
+- Explicit package version auto-updater integration
+
 ### Patch: 2026-07-08 — v2.3.5: Robust auto-updater, LibreHardwareMonitor telemetry auto-run, tuned EMA temperature smoothing, and E2E local memory isolation
 
 - **Auto-Updater Reliability**: Added robust git/uv path resolution using `shutil.which` and pre-flight network connection verification via `git fetch`.
