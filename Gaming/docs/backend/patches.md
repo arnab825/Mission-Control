@@ -2,6 +2,14 @@
 
 This document contains a detailed history of all patches and updates for the AI Gaming Assistant.
 
+### Patch: 2026-07-09 — v1.0.2: Production Telemetry & Core Fixes
+
+- Fixed production telemetry by bundling LibreHardwareMonitor DLLs into PyInstaller build.
+- Fixed CPU temperature reporting by correcting WMI parsing alignment (preventing CPU frequency from being misread as temperature) and removing arbitrary TZ01/TZ02 zone exclusions.
+- Removed artificial CPU temperature estimation fallback to ensure only real hardware readings are reported.
+- Migrated website persistence from Sanity to MongoDB/Mongoose.
+- Fixed Mermaid diagram rendering issues in blog views.
+
 ### Patch: 2026-07-08 — v2.3.6: Sync package versions
 
 - Explicit package version auto-updater integration
