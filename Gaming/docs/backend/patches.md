@@ -2,6 +2,10 @@
 
 This document contains a detailed history of all patches and updates for the AI Gaming Assistant.
 
+### Patch: 2026-07-09 — v1.0.3: HUD Crash Fix
+
+- Fixed TypeError: Object has been destroyed in HUD window show/hide handlers.
+
 ### Patch: 2026-07-09 — v1.0.2: Production Telemetry & Core Fixes
 
 - Fixed production telemetry by bundling LibreHardwareMonitor DLLs into PyInstaller build.
