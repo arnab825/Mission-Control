@@ -2,7 +2,7 @@
     "name":  "mission-control",
     "productName":  "Mission Control",
     "private":  true,
-    "version":  "1.0.4",
+    "version":  "1.0.5",
     "description":  "Mission Control desktop app for gamers.",
     "author":  "Arnab Contributors \u003csupport@missioncontrol.app\u003e",
     "type":  "module",
@@ -108,7 +108,7 @@
                   "win":  {
                               "icon":  "public/favicon.ico",
                               "requestedExecutionLevel":  "requireAdministrator",
-                              "signAndEditExecutable":  false,
+                              "signExecutable":  false,
                               "signtoolOptions":  {
                                                       "sign":  "./sign-dummy.cjs"
                                                   }
