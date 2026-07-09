@@ -1,0 +1,421 @@
+﻿=== Motherboard: HP 8E5C ===
+=== Cpu: 13th Gen Intel Core i7-13620H ===
+  [Load] "CPU Core #1 Thread #1" = 16.67
+  [Load] "CPU Core #1 Thread #2" = 0
+  [Load] "CPU Core #2 Thread #1" = 66.67
+  [Load] "CPU Core #2 Thread #2" = 0
+  [Load] "CPU Core #3 Thread #1" = 66.67
+  [Load] "CPU Core #3 Thread #2" = 16.67
+  [Load] "CPU Core #4 Thread #1" = 50
+  [Load] "CPU Core #4 Thread #2" = 33.33
+  [Load] "CPU Core #5 Thread #1" = 33.33
+  [Load] "CPU Core #5 Thread #2" = 50
+  [Load] "CPU Core #6 Thread #1" = 33.33
+  [Load] "CPU Core #6 Thread #2" = 14.29
+  [Load] "CPU Core #7" = 66.67
+  [Load] "CPU Core #8" = 100
+  [Load] "CPU Core #9" = 83.33
+  [Load] "CPU Core #10" = 66.67
+  [Load] "CPU Total" = 43.6
+  [Load] "CPU Core Max" = 100
+  [Temperature] "Core Max" = 
+  [Temperature] "Core Average" = 
+  [Temperature] "P-Core #1" = 
+  [Temperature] "P-Core #2" = 
+  [Temperature] "P-Core #3" = 
+  [Temperature] "P-Core #4" = 
+  [Temperature] "P-Core #5" = 
+  [Temperature] "P-Core #6" = 
+  [Temperature] "E-Core #1" = 
+  [Temperature] "E-Core #2" = 
+  [Temperature] "E-Core #3" = 
+  [Temperature] "E-Core #4" = 
+  [Temperature] "CPU Package" = 
+  [Temperature] "P-Core #1 Distance to TjMax" = 
+  [Temperature] "P-Core #2 Distance to TjMax" = 
+  [Temperature] "P-Core #3 Distance to TjMax" = 
+  [Temperature] "P-Core #4 Distance to TjMax" = 
+  [Temperature] "P-Core #5 Distance to TjMax" = 
+  [Temperature] "P-Core #6 Distance to TjMax" = 
+  [Temperature] "E-Core #1 Distance to TjMax" = 
+  [Temperature] "E-Core #2 Distance to TjMax" = 
+  [Temperature] "E-Core #3 Distance to TjMax" = 
+  [Temperature] "E-Core #4 Distance to TjMax" = 
+  [Clock] "P-Core #1" = 
+  [Clock] "P-Core #2" = 
+  [Clock] "P-Core #3" = 
+  [Clock] "P-Core #4" = 
+  [Clock] "P-Core #5" = 
+  [Clock] "P-Core #6" = 
+  [Clock] "E-Core #1" = 
+  [Clock] "E-Core #2" = 
+  [Clock] "E-Core #3" = 
+  [Clock] "E-Core #4" = 
+  [Power] "CPU Package" = 0
+  [Power] "CPU Cores" = 0
+  [Power] "CPU Memory" = 0
+  [Power] "CPU Platform" = 0
+=== Memory: Virtual Memory ===
+  [Data] "Memory Used" = 30.446468
+  [Data] "Memory Available" = 13.191265
+  [Load] "Memory" = 69.770966
+=== Memory: Total Memory ===
+  [Data] "Memory Used" = 21.025597
+  [Data] "Memory Available" = 2.6121368
+  [Load] "Memory" = 88.949295
+=== GpuNvidia: NVIDIA GeForce RTX 5050 Laptop GPU ===
+  [Temperature] "GPU Core" = 48.8125
+  [Clock] "GPU Core" = 180
+  [Clock] "GPU Memory" = 405
+  [Load] "GPU Core" = 0
+  [Load] "GPU Memory Controller" = 0
+  [Load] "GPU Video Engine" = 0
+  [Load] "GPU Bus" = 10
+  [Voltage] "GPU Core Voltage" = 0.645
+  [SmallData] "D3D Dedicated Memory Used" = 190.0586
+  [SmallData] "D3D Shared Memory Used" = 76.25
+  [Load] "D3D 3D" = 0
+  [Load] "D3D Video Decode" = 0
+  [Load] "D3D Copy" = 0
+  [Load] "D3D Copy" = 0
+  [Load] "D3D Security" = 0
+  [Load] "D3D Video Encode" = 0
+  [Load] "D3D Optical Flow Accelerator 0" = 0
+  [Load] "D3D JPEG Decode 0" = 0
+  [Load] "D3D VR" = 0
+  [Load] "D3D Copy" = 0
+  [Load] "D3D Copy" = 0
+  [Load] "D3D Copy" = 0
+  [Load] "D3D Copy" = 0
+  [Temperature] "GPU Memory Junction" = 56
+  [SmallData] "GPU Memory Total" = 8151
+  [SmallData] "GPU Memory Free" = 7724
+  [SmallData] "GPU Memory Used" = 426
+  [Load] "GPU Memory" = 5.227551
+  [Power] "GPU Package" = 6.71
+  [Throughput] "GPU PCIe Rx" = 89088
+  [Throughput] "GPU PCIe Tx" = 1024
+=== GpuIntel: Intel(R) UHD Graphics ===
+  [Clock] "GPU Core" = 450
+  [Voltage] "GPU Core" = 0.232
+  [Power] "GPU Power" = 0
+  [SmallData] "D3D Shared Memory Total" = 12102.52
+  [SmallData] "D3D Shared Memory Free" = 10919.414
+  [SmallData] "D3D Shared Memory Used" = 1183.1016
+  [Load] "D3D 3D" = 36.565395
+  [Load] "D3D Video Decode" = 6.5236835
+  [Load] "D3D Copy" = 0
+  [Load] "D3D Video Processing" = 8.25678
+  [Load] "D3D " = 0
+  [Load] "D3D " = 0
+  [Load] "D3D " = 0
+  [Load] "D3D " = 0
+  [Load] "D3D " = 0
+  [Load] "D3D " = 0
+  [Load] "D3D Overlay" = 0
+  [Load] "D3D " = 0
+  [Load] "D3D " = 0
+=== Storage: SAMSUNG MZVL81T0HFLB-00BH1 ===
+  [Temperature] "Composite Temperature" = 46
+  [Temperature] "Temperature #1" = 56.850006
+  [Temperature] "Temperature #2" = 45.850006
+  [Temperature] "Warning Temperature" = 84
+  [Temperature] "Critical Temperature" = 84
+  [Level] "Life" = 99
+  [Data] "Data Read" = 13889
+  [Data] "Data Written" = 9957
+  [Factor] "Power On Count" = 158
+  [Factor] "Power On Hours" = 834
+  [Load] "Used Space" = 74.25041
+  [Data] "Free Space" = 263.7297
+  [Data] "Total Space" = 1024.2096
+  [Load] "Read Activity" = 4.4516716
+  [Load] "Write Activity" = 3.303112
+  [Load] "Total Activity" = 7.154552
+  [Throughput] "Read Rate" = 3189541.5
+  [Throughput] "Write Rate" = 410083.9
+  [Level] "Available Spare" = 100
+  [Level] "Available Spare Threshold" = 5
+  [Level] "Percentage Used" = 1
+=== Network: Bluetooth Network Connection ===
+  [Data] "Data Uploaded" = 0
+  [Data] "Data Downloaded" = 0
+  [Throughput] "Upload Speed" = 0
+  [Throughput] "Download Speed" = 0
+  [Load] "Network Utilization" = NaN
+=== Network: Ethernet ===
+  [Data] "Data Uploaded" = 0
+  [Data] "Data Downloaded" = 0
+  [Throughput] "Upload Speed" = 0
+  [Throughput] "Download Speed" = 0
+  [Load] "Network Utilization" = 0
+=== Network: Ethernet (Kernel Debugger) ===
+  [Data] "Data Uploaded" = 0
+  [Data] "Data Downloaded" = 0
+  [Throughput] "Upload Speed" = 0
+  [Throughput] "Download Speed" = 0
+  [Load] "Network Utilization" = NaN
+=== Network: Ethernet-QoS Packet Scheduler-0000 ===
+  [Data] "Data Uploaded" = 0
+  [Data] "Data Downloaded" = 0
+  [Throughput] "Upload Speed" = 0
+  [Throughput] "Download Speed" = 0
+  [Load] "Network Utilization" = 0
+=== Network: Ethernet-Realtek NDIS LightWeight Filter (NDIS 6.40)-0000 ===
+  [Data] "Data Uploaded" = 0
+  [Data] "Data Downloaded" = 0
+  [Throughput] "Upload Speed" = 0
+  [Throughput] "Download Speed" = 0
+  [Load] "Network Utilization" = 0
+=== Network: Ethernet-WFP 802.3 MAC Layer LightWeight Filter-0000 ===
+  [Data] "Data Uploaded" = 0
+  [Data] "Data Downloaded" = 0
+  [Throughput] "Upload Speed" = 0
+  [Throughput] "Download Speed" = 0
+  [Load] "Network Utilization" = 0
+=== Network: Ethernet-WFP Native MAC Layer LightWeight Filter-0000 ===
+  [Data] "Data Uploaded" = 0
+  [Data] "Data Downloaded" = 0
+  [Throughput] "Upload Speed" = 0
+  [Throughput] "Download Speed" = 0
+  [Load] "Network Utilization" = 0
+=== Network: Local Area Connection* 3 ===
+  [Data] "Data Uploaded" = 0
+  [Data] "Data Downloaded" = 0
+  [Throughput] "Upload Speed" = 0
+  [Throughput] "Download Speed" = 0
+  [Load] "Network Utilization" = 0
+=== Network: Local Area Connection* 3-QoS Packet Scheduler-0000 ===
+  [Data] "Data Uploaded" = 0
+  [Data] "Data Downloaded" = 0
+  [Throughput] "Upload Speed" = 0
+  [Throughput] "Download Speed" = 0
+  [Load] "Network Utilization" = 0
+=== Network: Local Area Connection* 3-Realtek NDIS LightWeight Filter (NDIS 6.40)-0000 ===
+  [Data] "Data Uploaded" = 0
+  [Data] "Data Downloaded" = 0
+  [Throughput] "Upload Speed" = 0
+  [Throughput] "Download Speed" = 0
+  [Load] "Network Utilization" = 0
+=== Network: Local Area Connection* 3-WFP Native MAC Layer LightWeight Filter-0000 ===
+  [Data] "Data Uploaded" = 0
+  [Data] "Data Downloaded" = 0
+  [Throughput] "Upload Speed" = 0
+  [Throughput] "Download Speed" = 0
+  [Load] "Network Utilization" = 0
+=== Network: Local Area Connection* 4 ===
+  [Data] "Data Uploaded" = 0
+  [Data] "Data Downloaded" = 0
+  [Throughput] "Upload Speed" = 0
+  [Throughput] "Download Speed" = 0
+  [Load] "Network Utilization" = 0
+=== Network: Local Area Connection* 4-QoS Packet Scheduler-0000 ===
+  [Data] "Data Uploaded" = 0
+  [Data] "Data Downloaded" = 0
+  [Throughput] "Upload Speed" = 0
+  [Throughput] "Download Speed" = 0
+  [Load] "Network Utilization" = 0
+=== Network: Local Area Connection* 4-Realtek NDIS LightWeight Filter (NDIS 6.40)-0000 ===
+  [Data] "Data Uploaded" = 0
+  [Data] "Data Downloaded" = 0
+  [Throughput] "Upload Speed" = 0
+  [Throughput] "Download Speed" = 0
+  [Load] "Network Utilization" = 0
+=== Network: Local Area Connection* 4-WFP Native MAC Layer LightWeight Filter-0000 ===
+  [Data] "Data Uploaded" = 0
+  [Data] "Data Downloaded" = 0
+  [Throughput] "Upload Speed" = 0
+  [Throughput] "Download Speed" = 0
+  [Load] "Network Utilization" = 0
+=== Network: Local Area Connection* 5 ===
+  [Data] "Data Uploaded" = 0
+  [Data] "Data Downloaded" = 0
+  [Throughput] "Upload Speed" = 0
+  [Throughput] "Download Speed" = 0
+  [Load] "Network Utilization" = 0
+=== Network: Local Area Connection* 5-QoS Packet Scheduler-0000 ===
+  [Data] "Data Uploaded" = 0
+  [Data] "Data Downloaded" = 0
+  [Throughput] "Upload Speed" = 0
+  [Throughput] "Download Speed" = 0
+  [Load] "Network Utilization" = 0
+=== Network: Local Area Connection* 5-Realtek NDIS LightWeight Filter (NDIS 6.40)-0000 ===
+  [Data] "Data Uploaded" = 0
+  [Data] "Data Downloaded" = 0
+  [Throughput] "Upload Speed" = 0
+  [Throughput] "Download Speed" = 0
+  [Load] "Network Utilization" = 0
+=== Network: Local Area Connection* 5-WFP Native MAC Layer LightWeight Filter-0000 ===
+  [Data] "Data Uploaded" = 0
+  [Data] "Data Downloaded" = 0
+  [Throughput] "Upload Speed" = 0
+  [Throughput] "Download Speed" = 0
+  [Load] "Network Utilization" = 0
+=== Network: Local Area Connection* 6 ===
+  [Data] "Data Uploaded" = 0
+  [Data] "Data Downloaded" = 0
+  [Throughput] "Upload Speed" = 0
+  [Throughput] "Download Speed" = 0
+  [Load] "Network Utilization" = 0
+=== Network: vEthernet (Default Switch) ===
+  [Data] "Data Uploaded" = 0.000101334415
+  [Data] "Data Downloaded" = 0
+  [Throughput] "Upload Speed" = 0
+  [Throughput] "Download Speed" = 0
+  [Load] "Network Utilization" = 0
+=== Network: vEthernet (Default Switch)-QoS Packet Scheduler-0000 ===
+  [Data] "Data Uploaded" = 0.000101334415
+  [Data] "Data Downloaded" = 0
+  [Throughput] "Upload Speed" = 0
+  [Throughput] "Download Speed" = 0
+  [Load] "Network Utilization" = 0
+=== Network: vEthernet (Default Switch)-Realtek NDIS LightWeight Filter (NDIS 6.40)-0000 ===
+  [Data] "Data Uploaded" = 0.000101334415
+  [Data] "Data Downloaded" = 0
+  [Throughput] "Upload Speed" = 0
+  [Throughput] "Download Speed" = 0
+  [Load] "Network Utilization" = 0
+=== Network: vEthernet (Default Switch)-WFP 802.3 MAC Layer LightWeight Filter-0000 ===
+  [Data] "Data Uploaded" = 0.000101334415
+  [Data] "Data Downloaded" = 0
+  [Throughput] "Upload Speed" = 0
+  [Throughput] "Download Speed" = 0
+  [Load] "Network Utilization" = 0
+=== Network: vEthernet (Default Switch)-WFP Native MAC Layer LightWeight Filter-0000 ===
+  [Data] "Data Uploaded" = 0.000101334415
+  [Data] "Data Downloaded" = 0
+  [Throughput] "Upload Speed" = 0
+  [Throughput] "Download Speed" = 0
+  [Load] "Network Utilization" = 0
+=== Network: vSwitch (Default Switch) ===
+  [Data] "Data Uploaded" = 0
+  [Data] "Data Downloaded" = 0
+  [Throughput] "Upload Speed" = 0
+  [Throughput] "Download Speed" = 0
+  [Load] "Network Utilization" = 0
+=== Network: vSwitch (Default Switch)-Hyper-V Virtual Switch Extension Filter-0000 ===
+  [Data] "Data Uploaded" = 0
+  [Data] "Data Downloaded" = 0
+  [Throughput] "Upload Speed" = 0
+  [Throughput] "Download Speed" = 0
+  [Load] "Network Utilization" = 0
+=== Network: Wi-Fi ===
+  [Data] "Data Uploaded" = 0.018824158
+  [Data] "Data Downloaded" = 0.045456957
+  [Throughput] "Upload Speed" = 59456.895
+  [Throughput] "Download Speed" = 1343347.5
+  [Load] "Network Utilization" = 2.589992
+=== Network: Wi-Fi 2 ===
+  [Data] "Data Uploaded" = 0
+  [Data] "Data Downloaded" = 0
+  [Throughput] "Upload Speed" = 0
+  [Throughput] "Download Speed" = 0
+  [Load] "Network Utilization" = 0
+=== Network: Wi-Fi 2-Native WiFi Filter Driver-0000 ===
+  [Data] "Data Uploaded" = 0
+  [Data] "Data Downloaded" = 0
+  [Throughput] "Upload Speed" = 0
+  [Throughput] "Download Speed" = 0
+  [Load] "Network Utilization" = 0
+=== Network: Wi-Fi 2-QoS Packet Scheduler-0000 ===
+  [Data] "Data Uploaded" = 0
+  [Data] "Data Downloaded" = 0
+  [Throughput] "Upload Speed" = 0
+  [Throughput] "Download Speed" = 0
+  [Load] "Network Utilization" = 0
+=== Network: Wi-Fi 2-Realtek NDIS LightWeight Filter (NDIS 6.40)-0000 ===
+  [Data] "Data Uploaded" = 0
+  [Data] "Data Downloaded" = 0
+  [Throughput] "Upload Speed" = 0
+  [Throughput] "Download Speed" = 0
+  [Load] "Network Utilization" = 0
+=== Network: Wi-Fi 2-WFP 802.3 MAC Layer LightWeight Filter-0000 ===
+  [Data] "Data Uploaded" = 0
+  [Data] "Data Downloaded" = 0
+  [Throughput] "Upload Speed" = 0
+  [Throughput] "Download Speed" = 0
+  [Load] "Network Utilization" = 0
+=== Network: Wi-Fi 2-WFP Native MAC Layer LightWeight Filter-0000 ===
+  [Data] "Data Uploaded" = 0
+  [Data] "Data Downloaded" = 0
+  [Throughput] "Upload Speed" = 0
+  [Throughput] "Download Speed" = 0
+  [Load] "Network Utilization" = 0
+=== Network: Wi-Fi 3 ===
+  [Data] "Data Uploaded" = 0
+  [Data] "Data Downloaded" = 0
+  [Throughput] "Upload Speed" = 0
+  [Throughput] "Download Speed" = 0
+  [Load] "Network Utilization" = 0
+=== Network: Wi-Fi 3-Native WiFi Filter Driver-0000 ===
+  [Data] "Data Uploaded" = 0
+  [Data] "Data Downloaded" = 0
+  [Throughput] "Upload Speed" = 0
+  [Throughput] "Download Speed" = 0
+  [Load] "Network Utilization" = 0
+=== Network: Wi-Fi 3-QoS Packet Scheduler-0000 ===
+  [Data] "Data Uploaded" = 0
+  [Data] "Data Downloaded" = 0
+  [Throughput] "Upload Speed" = 0
+  [Throughput] "Download Speed" = 0
+  [Load] "Network Utilization" = 0
+=== Network: Wi-Fi 3-Realtek NDIS LightWeight Filter (NDIS 6.40)-0000 ===
+  [Data] "Data Uploaded" = 0
+  [Data] "Data Downloaded" = 0
+  [Throughput] "Upload Speed" = 0
+  [Throughput] "Download Speed" = 0
+  [Load] "Network Utilization" = 0
+=== Network: Wi-Fi 3-WFP 802.3 MAC Layer LightWeight Filter-0000 ===
+  [Data] "Data Uploaded" = 0
+  [Data] "Data Downloaded" = 0
+  [Throughput] "Upload Speed" = 0
+  [Throughput] "Download Speed" = 0
+  [Load] "Network Utilization" = 0
+=== Network: Wi-Fi 3-WFP Native MAC Layer LightWeight Filter-0000 ===
+  [Data] "Data Uploaded" = 0
+  [Data] "Data Downloaded" = 0
+  [Throughput] "Upload Speed" = 0
+  [Throughput] "Download Speed" = 0
+  [Load] "Network Utilization" = 0
+=== Network: Wi-Fi 4 ===
+  [Data] "Data Uploaded" = 0
+  [Data] "Data Downloaded" = 0
+  [Throughput] "Upload Speed" = 0
+  [Throughput] "Download Speed" = 0
+  [Load] "Network Utilization" = NaN
+=== Network: Wi-Fi 5 ===
+  [Data] "Data Uploaded" = 0
+  [Data] "Data Downloaded" = 0
+  [Throughput] "Upload Speed" = 0
+  [Throughput] "Download Speed" = 0
+  [Load] "Network Utilization" = NaN
+=== Network: Wi-Fi-Native WiFi Filter Driver-0000 ===
+  [Data] "Data Uploaded" = 0.018824227
+  [Data] "Data Downloaded" = 0.045459367
+  [Throughput] "Upload Speed" = 60032.336
+  [Throughput] "Download Speed" = 1128932.2
+  [Load] "Network Utilization" = 2.1951804
+=== Network: Wi-Fi-QoS Packet Scheduler-0000 ===
+  [Data] "Data Uploaded" = 0.018824227
+  [Data] "Data Downloaded" = 0.045459367
+  [Throughput] "Upload Speed" = 59950.027
+  [Throughput] "Download Speed" = 1127384.4
+  [Load] "Network Utilization" = 2.1921706
+=== Network: Wi-Fi-Realtek NDIS LightWeight Filter (NDIS 6.40)-0000 ===
+  [Data] "Data Uploaded" = 0.018824227
+  [Data] "Data Downloaded" = 0.045459367
+  [Throughput] "Upload Speed" = 59922.83
+  [Throughput] "Download Speed" = 1126872.9
+  [Load] "Network Utilization" = 2.191176
+=== Network: Wi-Fi-WFP 802.3 MAC Layer LightWeight Filter-0000 ===
+  [Data] "Data Uploaded" = 0.018824227
+  [Data] "Data Downloaded" = 0.045459367
+  [Throughput] "Upload Speed" = 59900.75
+  [Throughput] "Download Speed" = 1126457.6
+  [Load] "Network Utilization" = 2.1903687
+=== Network: Wi-Fi-WFP Native MAC Layer LightWeight Filter-0000 ===
+  [Data] "Data Uploaded" = 0.018824227
+  [Data] "Data Downloaded" = 0.045459367
+  [Throughput] "Upload Speed" = 59874.09
+  [Throughput] "Download Speed" = 1125956.4
+  [Load] "Network Utilization" = 2.1893938

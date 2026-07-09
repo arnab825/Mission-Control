@@ -50,6 +50,7 @@ def _try_win_cpu_temp_native() -> float:
     try:
         import win32pdh  # type: ignore[reportMissingImports]
         counters_to_try = [
+            r"\Thermal Zone Information(_TZ.TZ01)\Temperature",
             r"\Thermal Zone Information(_TZ.THRM)\Temperature",
             r"\Thermal Zone Information(_TZ.TZ00)\Temperature",
             r"\Thermal Zone Information(_TZ.CPUZ)\Temperature",
@@ -172,7 +173,7 @@ def _try_win_cpu_temp_native() -> float:
                 'powershell -NoProfile -Command "'
                 'try { '
                 '  $zones = Get-CimInstance -ClassName Win32_PerfRawData_Counters_ThermalZoneInformation -ErrorAction Stop; '
-                '  if ($zones) { $zones | Where-Object { $_.Name -notmatch \'TZ01|TZ02|PCH|BAT|SEN\' } | ForEach-Object { Write-Output ($_.Temperature) } } '
+                '  if ($zones) { $zones | Where-Object { $_.Name -notmatch \'PCH|BAT|SEN\' } | ForEach-Object { Write-Output ($_.Temperature) } } '
                 '} catch { '
                 '  try { '
                 '    $c = Get-Counter -Counter (Get-Counter -ListSet \"Thermal Zone Information\" -ErrorAction Stop).PathsWithInstances[0] -ErrorAction Stop; '
@@ -841,21 +842,26 @@ class TelemetryThread(threading.Thread):
                                 si = subprocess.STARTUPINFO()
                                 si.dwFlags |= subprocess.STARTF_USESHOWWINDOW
                                 try:
-                                    # Query both ACPI temperature and max actual core frequency in one fast call
+                                    # Query both ACPI temperature and max actual core frequency in one fast call, prefixing to prevent parsing confusion
                                     out = subprocess.check_output(
-                                        'powershell -NoProfile -Command "Get-CimInstance -Namespace root/wmi -ClassName MSAcpi_ThermalZoneTemperature | Where-Object { $_.InstanceName -notmatch \'TZ01|TZ02|PCH|BAT|SEN\' } | Select-Object -ExpandProperty CurrentTemperature; Get-CimInstance -ClassName Win32_PerfFormattedData_Counters_ProcessorInformation | Measure-Object -Property ActualFrequency -Maximum | Select-Object -ExpandProperty Maximum"',
+                                        'powershell -NoProfile -Command "$t = Get-CimInstance -Namespace root/wmi -ClassName MSAcpi_ThermalZoneTemperature | Where-Object { $_.InstanceName -notmatch \'PCH|BAT|SEN\' } | Select-Object -ExpandProperty CurrentTemperature -ErrorAction SilentlyContinue; $f = Get-CimInstance -ClassName Win32_PerfFormattedData_Counters_ProcessorInformation | Measure-Object -Property ActualFrequency -Maximum | Select-Object -ExpandProperty Maximum -ErrorAction SilentlyContinue; Write-Output \\"TEMP:$t\\"; Write-Output \\"FREQ:$f\\""',
                                         shell=True, startupinfo=si, creationflags=0x08000000, timeout=2.0
                                     ).decode().strip().splitlines()
-                                    if len(out) >= 1 and out[0].strip().isdigit():
-                                        t = int(out[0].strip())
-                                        if t > 0:
-                                            temp_c = (t - 2732) / 10.0
-                                            if 0 < temp_c < 120:
-                                                self._cached_wmi_temp = temp_c
-                                    if len(out) >= 2 and out[1].strip().isdigit():
-                                        f = int(out[1].strip())
-                                        if f > 0:
-                                            self._cached_wmi_freq = f
+                                    wmi_temps = []
+                                    for line in out:
+                                        line = line.strip()
+                                        if line.startswith("TEMP:") and line[5:].strip().isdigit():
+                                            t = int(line[5:].strip())
+                                            if t > 0:
+                                                temp_c = (t - 2732) / 10.0
+                                                if 0 < temp_c < 120:
+                                                    wmi_temps.append(temp_c)
+                                        elif line.startswith("FREQ:") and line[5:].strip().isdigit():
+                                            f = int(line[5:].strip())
+                                            if f > 0:
+                                                self._cached_wmi_freq = f
+                                    if wmi_temps:
+                                        self._cached_wmi_temp = max(wmi_temps)
                                 except (subprocess.TimeoutExpired, subprocess.SubprocessError) as sub_err:
                                     logger.debug(f"Powershell WMI query failed/timed out: {sub_err}")
                                     # Slow down future polls on timeout
@@ -876,7 +882,7 @@ class TelemetryThread(threading.Thread):
                                                 val = line.split("CurrentTemperature=")[-1].strip()
                                                 if val.isdigit():
                                                     t = int(val)
-                                                    if t > 0 and not any(x in current_inst.upper() for x in ["TZ01", "TZ02", "PCH", "BAT", "SEN"]):
+                                                    if t > 0 and not any(x in current_inst.upper() for x in ["PCH", "BAT", "SEN"]):
                                                         temp_c = (t - 2732) / 10.0
                                                         if 0 < temp_c < 120:
                                                             self._cached_wmi_temp = temp_c
