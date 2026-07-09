@@ -1,5 +1,7 @@
 import { NextResponse } from "next/server";
 import { getSortedPostsData } from "@/lib/blog";
+import connectDB from "@/lib/mongodb";
+import GamingPost from "@/models/GamingPost";
 import fs from "fs";
 import path from "path";
 
@@ -46,11 +48,50 @@ export async function GET(request: Request) {
       return NextResponse.json({ results: [] });
     }
 
-    const results: any[] = [];
+    interface SearchResult {
+      title: string;
+      type: string;
+      url: string;
+      category: string;
+      description: string;
+    }
 
-    // 1. Search Blog Posts
+    const results: SearchResult[] = [];
+    const addedUrls = new Set<string>();
+
+    interface DBPostDoc {
+      title: string;
+      slug: string;
+      category?: string;
+      excerpt?: string;
+    }
+
+    // 1. Search MongoDB Gaming Posts
+    await connectDB();
+    const dbPosts = (await GamingPost.find({
+      $or: [
+        { title: { $regex: query, $options: "i" } },
+        { excerpt: { $regex: query, $options: "i" } },
+        { tags: { $regex: query, $options: "i" } }
+      ]
+    }).lean()) as unknown as DBPostDoc[];
+
+    dbPosts.forEach((post) => {
+      results.push({
+        title: post.title,
+        type: "blog",
+        url: `/blog/gaming/${post.slug}`,
+        category: post.category || "Gaming Intel",
+        description: post.excerpt || "Read full article...",
+      });
+      addedUrls.add(post.slug);
+    });
+
+    // 2. Search Local Blog Posts (Mission Briefs)
     const blogPosts = getSortedPostsData();
     blogPosts.forEach((post) => {
+      if (addedUrls.has(post.id)) return;
+
       if (
         post.title.toLowerCase().includes(query) ||
         post.excerpt?.toLowerCase().includes(query)
@@ -58,12 +99,20 @@ export async function GET(request: Request) {
         results.push({
           title: post.title,
           type: "blog",
-          url: `/blog/${post.id}`,
-          category: "Blog Briefs",
+          url: post.category && post.category !== "Mission Brief" ? `/blog/gaming/${post.id}` : `/blog/${post.id}`,
+          category: post.category || "Blog Briefs",
           description: post.excerpt || "Read full article...",
         });
+        addedUrls.add(post.id);
       }
     });
+
+    interface ChangelogItem {
+      version: string;
+      date: string;
+      title: string;
+      highlights?: string[];
+    }
 
     // 2. Search Changelogs / Transmission Logs
     const versionFile = path.join(process.cwd(), "../backend/version.json");
@@ -71,14 +120,14 @@ export async function GET(request: Request) {
       try {
         const rawData = fs.readFileSync(versionFile, "utf-8");
         const data = JSON.parse(rawData);
-        const allChangelogs = data.changelog || [];
+        const allChangelogs = (data.changelog || []) as ChangelogItem[];
         const now = new Date();
-        const changelogs = allChangelogs.filter((log: any) => new Date(log.date) <= now);
-        changelogs.forEach((log: any) => {
+        const changelogs = allChangelogs.filter((log) => new Date(log.date) <= now);
+        changelogs.forEach((log) => {
           if (
             log.title.toLowerCase().includes(query) ||
             log.version.toLowerCase().includes(query) ||
-            log.highlights?.some((h: string) => h.toLowerCase().includes(query))
+            log.highlights?.some((h) => h.toLowerCase().includes(query))
           ) {
             results.push({
               title: `v${log.version} - ${log.title}`,
@@ -112,10 +161,11 @@ export async function GET(request: Request) {
     });
 
     return NextResponse.json({ results });
-  } catch (error: any) {
+  } catch (error: unknown) {
     console.error("Search API failed:", error);
+    const message = error instanceof Error ? error.message : "Search query failed.";
     return NextResponse.json(
-      { error: "Search query failed.", details: error.message },
+      { error: "Search query failed.", details: message },
       { status: 500 }
     );
   }

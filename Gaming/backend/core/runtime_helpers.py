@@ -908,21 +908,7 @@ class TelemetryThread(threading.Thread):
 
                     # --- Smart Estimation Fallback if no sensor works or is blocked ---
                     if cpu_temp <= 0:
-                        g_temp = 0
-                        if gpu_metrics:
-                            g_temp = gpu_metrics.get("temperature") or gpu_metrics.get("gpu_temp") or 0
-                        if g_temp <= 0 and hasattr(self, "_last_gpu_temp") and self._last_gpu_temp > 0:
-                            g_temp = self._last_gpu_temp
-                        
-                        if g_temp > 0:
-                            self._last_gpu_temp = g_temp
-                            base_temp = max(35.0, g_temp - 3.0)
-                            est_temp = base_temp + (25.0 * (cpu_pct / 100.0))
-                            cpu_temp = round(est_temp, 1)
-                        else:
-                            base_temp = 40.0
-                            est_temp = base_temp + (35.0 * (cpu_pct / 100.0))
-                            cpu_temp = round(est_temp, 1)
+                        pass # Fallback simulation removed to prevent inaccurate reporting
 
                 # Smooth the temperature to prevent inaccurate spikes (thermal inertia simulation)
                 if cpu_temp > 0:

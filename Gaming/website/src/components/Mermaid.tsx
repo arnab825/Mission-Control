@@ -6,6 +6,19 @@ interface MermaidProps {
   chart: string;
 }
 
+function decodeHTMLEntities(html: string): string {
+  const map: Record<string, string> = {
+    '&amp;': '&',
+    '&lt;': '<',
+    '&gt;': '>',
+    '&quot;': '"',
+    '&#039;': "'",
+    '&#39;': "'",
+    '&apos;': "'"
+  };
+  return html.replace(/&amp;|&lt;|&gt;|&quot;|&#039;|&#39;|&apos;/g, (m) => map[m] || m);
+}
+
 export default function Mermaid({ chart }: MermaidProps) {
   const ref = useRef<HTMLDivElement>(null);
   const [svg, setSvg] = useState<string>("");
@@ -35,17 +48,17 @@ export default function Mermaid({ chart }: MermaidProps) {
 
         // Generate a random ID for the SVG
         const id = `mermaid-${Math.floor(Math.random() * 1000000)}`;
-        const cleanChart = chart.trim();
+        const cleanChart = decodeHTMLEntities(chart.trim());
         const { svg: renderedSvg } = await mermaid.render(id, cleanChart);
         
         if (isMounted) {
           setSvg(renderedSvg);
           setError(null);
         }
-      } catch (err: any) {
+      } catch (err: unknown) {
         console.error("Mermaid parsing error:", err);
         if (isMounted) {
-          setError(err.message || "Failed to parse Mermaid diagram");
+          setError(err instanceof Error ? err.message : "Failed to parse Mermaid diagram");
         }
       }
     };

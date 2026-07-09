@@ -2,14 +2,9 @@ import fs from "fs";
 import path from "path";
 import Link from "next/link";
 import { getSortedPostsData, formatDateToIST, parseBlogDate } from "@/lib/blog";
-import { fetchGamingPosts, sanityClient } from "@/lib/sanity";
-import { createImageUrlBuilder } from "@sanity/image-url";
-import { Calendar, ArrowUpRight, Zap, BookOpen, Clock, Gamepad2, Bot, Radio } from "lucide-react";
-
-const builder = createImageUrlBuilder(sanityClient);
-function urlFor(source: any) {
-  return builder.image(source);
-}
+import connectDB from "@/lib/mongodb";
+import GamingPost from "@/models/GamingPost";
+import { Calendar, ArrowUpRight, Zap, Clock, Gamepad2, Bot, Radio } from "lucide-react";
 
 const CATEGORY_CONFIG: Record<string, { color: string; icon: string; hoverBorder: string }> = {
   "Game News":          { color: "text-neon-green",   icon: "🎮", hoverBorder: "hover:border-neon-green/40 shadow-[0_0_25px_rgba(118, 185, 0,0.1)]" },
@@ -34,15 +29,22 @@ export default async function BlogListing({
       : "briefs";
   const activeCategory = resolvedParams?.category ?? "all";
 
+  interface ChangelogLog {
+    version: string;
+    date: string;
+    title: string;
+    highlights?: string[];
+  }
+
   // Changelog (local version.json)
   const versionFile = path.join(process.cwd(), "../backend/version.json");
-  let logs: any[] = [];
+  let logs: ChangelogLog[] = [];
   try {
     const rawData = fs.readFileSync(versionFile, "utf-8");
     const data = JSON.parse(rawData);
-    const allLogs = data.changelog || [];
+    const allLogs = (data.changelog || []) as ChangelogLog[];
     const now = new Date();
-    logs = allLogs.filter((log: any) => new Date(log.date) <= now);
+    logs = allLogs.filter((log) => new Date(log.date) <= now);
   } catch {}
 
   // Get all local MDX posts
@@ -53,7 +55,7 @@ export default async function BlogListing({
     (p) => !p.category || p.category === "Mission Brief"
   );
 
-  // Map local gaming posts from MDX to SanityGamingPost structure
+  // Map local gaming posts from MDX
   const localGamingPosts = allMdxPosts.filter(
     (p) => p.category && p.category !== "Mission Brief"
   ).map((p) => ({
@@ -66,22 +68,63 @@ export default async function BlogListing({
     author: p.author,
     aiGenerated: p.aiGenerated,
     publishedAt: p.date,
-    mainImage: undefined as any,
     coverImage: p.coverImage,
   }));
 
-  // Fetch from Sanity
-  const sanityGamingPosts = await fetchGamingPosts(activeCategory !== "all" ? activeCategory : undefined);
+  interface DBPost {
+    _id: { toString(): string };
+    title: string;
+    slug: string;
+    category: string;
+    excerpt: string;
+    tags?: string[];
+    author?: string;
+    aiGenerated?: boolean;
+    publishedAt: Date;
+    coverImage?: string;
+  }
+
+  // Fetch from MongoDB
+  await connectDB();
+  const query = activeCategory !== "all" ? { category: activeCategory } : {};
+  const dbPosts = (await GamingPost.find(query).sort({ publishedAt: -1 }).lean()) as unknown as DBPost[];
+
+  const mappedDbPosts = dbPosts.map((p) => ({
+    _id: p._id.toString(),
+    title: p.title,
+    slug: { current: p.slug },
+    category: p.category,
+    excerpt: p.excerpt,
+    tags: p.tags,
+    author: p.author,
+    aiGenerated: p.aiGenerated,
+    publishedAt: p.publishedAt.toISOString(),
+    coverImage: p.coverImage,
+  }));
 
   // Filter local posts by activeCategory if selected
   const filteredLocalGaming = activeCategory !== "all"
     ? localGamingPosts.filter((p) => p.category === activeCategory)
     : localGamingPosts;
 
-  // Combine and sort by date descending using parseBlogDate
-  const gamingPosts = [...sanityGamingPosts, ...filteredLocalGaming].sort(
+  // Combine and deduplicate by slug/id to prevent double rendering
+  const seenSlugs = new Set<string>();
+  const combined = [...mappedDbPosts, ...filteredLocalGaming];
+  const gamingPosts = [];
+  
+  for (const post of combined) {
+    const slug = post.slug?.current || post._id;
+    if (!seenSlugs.has(slug)) {
+      seenSlugs.add(slug);
+      gamingPosts.push(post);
+    }
+  }
+
+  // Sort by date descending using parseBlogDate
+  gamingPosts.sort(
     (a, b) => parseBlogDate(b.publishedAt).getTime() - parseBlogDate(a.publishedAt).getTime()
   );
+
 
   return (
     <div className="min-h-screen pt-28 pb-24 px-4 sm:px-6 max-w-6xl mx-auto w-full relative z-10 bg-[#0a0a0c]">
@@ -234,10 +277,10 @@ export default async function BlogListing({
                   >
                     <div className="absolute top-0 left-0 w-full h-[2px] bg-gradient-to-r from-amber-400 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
                     
-                    {post.coverImage || post.mainImage ? (
+                    {post.coverImage ? (
                       <div className="w-full h-48 overflow-hidden relative border-b border-white/10">
                         <img
-                          src={post.coverImage ? post.coverImage : urlFor(post.mainImage).url()}
+                          src={post.coverImage}
                           alt={post.title}
                           className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
                         />
@@ -273,7 +316,7 @@ export default async function BlogListing({
                         </p>
                         {post.tags && post.tags.length > 0 && (
                           <div className="flex flex-wrap gap-1.5 mb-4">
-                            {post.tags.slice(0, 4).map((tag) => (
+                            {post.tags.slice(0, 4).map((tag: string) => (
                               <span
                                 key={tag}
                                 className="text-[10px] font-mono uppercase tracking-wider px-2 py-0.5 rounded bg-white/5 border border-white/10 text-gray-400"

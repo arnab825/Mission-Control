@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
-import { sanityWriteClient } from "@/lib/sanity";
+import connectDB from "@/lib/mongodb";
+import GamingPost from "@/models/GamingPost";
 import { InferenceClient } from "@huggingface/inference";
 import fs from "fs";
 import path from "path";
@@ -62,14 +63,14 @@ function sanitizeMermaid(content: string): string {
   if (!content) return content;
   return content.replace(/```mermaid([\s\S]*?)```/g, (match, mermaidCode) => {
     let code = mermaidCode;
-    
+
     // 1. Fix flowchart arrows ending with |text|>
     code = code.replace(/-->\s*\|([^|]+)\|\s*>/g, "-->|$1| ");
     code = code.replace(/-->\s*\|([^|]+)\|>/g, "-->|$1| ");
-    
+
     // 2. Fix pie chart titles (remove colon)
     code = code.replace(/^\s*title:\s*(.*)$/gm, "    title $1");
-    
+
     // 3. Fix sequence diagram notes without placement (e.g. note "text")
     if (code.includes("sequenceDiagram")) {
       const actorRegex = /participant\s+(\w+)/g;
@@ -78,14 +79,14 @@ function sanitizeMermaid(content: string): string {
       while ((actorMatch = actorRegex.exec(code)) !== null) {
         actors.push(actorMatch[1]);
       }
-      
+
       const defaultActor = actors[0] || "System";
       const targetNoteActor = actors.length >= 2 ? `${actors[0]}, ${actors[1]}` : defaultActor;
-      
+
       code = code.replace(/^\s*note\s+["']([^"']+)["']/gm, `    Note over ${targetNoteActor}: $1`);
       code = code.replace(/^\s*Note\s+["']([^"']+)["']/gm, `    Note over ${targetNoteActor}: $1`);
     }
-    
+
     return "```mermaid" + code + "```";
   });
 }
@@ -200,60 +201,51 @@ slug: url-friendly-slug-${today}
     fs.appendFileSync(path.join(process.cwd(), "generate.log"), `[BlogGen] Successfully generated post: ${title}\n`);
     const sanitizedContent = sanitizeMermaid(content);
     return { slug, title, excerpt, tags, content: sanitizedContent };
-  } catch (err: any) {
-    fs.appendFileSync(path.join(process.cwd(), "generate.log"), `[BlogGen] Generation error: ${err?.message || err}\n`);
+  } catch (err: unknown) {
+    const errMsg = err instanceof Error ? err.message : String(err);
+    fs.appendFileSync(path.join(process.cwd(), "generate.log"), `[BlogGen] Generation error: ${errMsg}\n`);
     console.error("[BlogGen] Generation error:", err);
     return null;
   }
 }
 
-async function writeToSanity(
+async function writeToMongoDB(
   post: { slug: string; title: string; excerpt: string; tags: string[]; content: string },
   postType: "Game News" | "GPU News" | "Game Revisit" | "Hardware Deep-Dive",
   publishedAt: string,
-  imageAssetRef?: string
+  coverImage?: string
 ): Promise<boolean> {
   const logFilePath = path.join(process.cwd(), "generate.log");
   try {
+    await connectDB();
     // Check if a post with this slug already exists to avoid duplicates
-    const existing = await sanityWriteClient.fetch(
-      `*[_type == "gamingPost" && slug.current == $slug][0]._id`,
-      { slug: post.slug }
-    );
+    const existing = await GamingPost.findOne({ slug: post.slug });
     if (existing) {
-      fs.appendFileSync(logFilePath, `[BlogGen] Post already exists for slug in Sanity: ${post.slug}\n`);
+      fs.appendFileSync(logFilePath, `[BlogGen] Post already exists for slug in MongoDB: ${post.slug}\n`);
       console.log(`[BlogGen] Post already exists for slug: ${post.slug}`);
       return false;
     }
 
-    await sanityWriteClient.create({
-      _type: "gamingPost",
+    await GamingPost.create({
       title: post.title,
-      slug: { _type: "slug", current: post.slug },
+      slug: post.slug,
       category: postType,
       excerpt: post.excerpt,
       markdownBody: post.content,
       tags: post.tags,
       author: "Mission Control Intel",
       aiGenerated: true,
-      publishedAt: publishedAt,
-      ...(imageAssetRef && {
-        mainImage: {
-          _type: "image",
-          asset: {
-            _type: "reference",
-            _ref: imageAssetRef,
-          },
-        },
-      }),
+      publishedAt: new Date(publishedAt),
+      coverImage,
     });
 
-    fs.appendFileSync(logFilePath, `[BlogGen] Saved to Sanity successfully: ${post.slug}\n`);
-    console.log(`[BlogGen] Saved to Sanity: ${post.slug}`);
+    fs.appendFileSync(logFilePath, `[BlogGen] Saved to MongoDB successfully: ${post.slug}\n`);
+    console.log(`[BlogGen] Saved to MongoDB: ${post.slug}`);
     return true;
-  } catch (err: any) {
-    fs.appendFileSync(logFilePath, `[BlogGen] Sanity write error: ${err?.message || err}\n`);
-    console.error("[BlogGen] Sanity write error:", err);
+  } catch (err: unknown) {
+    const errMsg = err instanceof Error ? err.message : String(err);
+    fs.appendFileSync(logFilePath, `[BlogGen] MongoDB write error: ${errMsg}\n`);
+    console.error("[BlogGen] MongoDB write error:", err);
     return false;
   }
 }
@@ -318,9 +310,6 @@ export async function POST(request: NextRequest) {
   if (!apiKey) {
     return NextResponse.json({ error: "NVIDIA_API_KEY not configured" }, { status: 500 });
   }
-  if (!process.env.SANITY_API_TOKEN) {
-    return NextResponse.json({ error: "SANITY_API_TOKEN not configured. Generate an Editor token at sanity.io/manage." }, { status: 500 });
-  }
 
   // Fetch all RSS feeds in parallel
   const feedResults = await Promise.allSettled(
@@ -371,11 +360,11 @@ export async function POST(request: NextRequest) {
 
   const results: { type: string; slug: string; saved: boolean }[] = [];
   const logFile = path.join(process.cwd(), "generate.log");
-  
+
   // Keep existing posts to support future scheduling and archival
   try {
     fs.writeFileSync(logFile, `[${new Date().toISOString()}] Keeping old posts. Blog generation started. Collected ${allItems.length} feed items.\n`);
-  } catch (err: any) {
+  } catch {
     fs.writeFileSync(logFile, `[${new Date().toISOString()}] Blog generation started.\n`);
   }
 
@@ -386,7 +375,6 @@ export async function POST(request: NextRequest) {
   if (gpuItems.length >= 2) {
     const post = await generateBlogPost(gpuItems, "GPU News", apiKey, targetDate);
     if (post) {
-      let imageAssetRef = undefined;
       let localCoverPath = undefined;
       let imageBuffer: Buffer | undefined = undefined;
 
@@ -397,16 +385,16 @@ export async function POST(request: NextRequest) {
         } catch (pollError) {
           console.warn("Pollinations failed, falling back to HuggingFace:", pollError);
           const imageBlob = await hfClient.textToImage({
-              provider: "hf-inference",
-              model: "black-forest-labs/FLUX.1-schnell",
-              inputs: `A highly detailed gaming or tech illustration for a blog post titled: ${post.title}. ${post.tags.join(', ')}`,
-              parameters: { num_inference_steps: 4 },
+            provider: "hf-inference",
+            model: "black-forest-labs/FLUX.1-schnell",
+            inputs: `A highly detailed gaming or tech illustration for a blog post titled: ${post.title}. ${post.tags.join(', ')}`,
+            parameters: { num_inference_steps: 4 },
           }, {
-              outputType: "blob"
+            outputType: "blob"
           });
           imageBuffer = Buffer.from(await imageBlob.arrayBuffer());
         }
-        
+
         // Save locally
         const publicDir = path.join(process.cwd(), "public/images/blog");
         if (!fs.existsSync(publicDir)) {
@@ -415,28 +403,17 @@ export async function POST(request: NextRequest) {
         const imagePath = path.join(publicDir, `${post.slug}.png`);
         fs.writeFileSync(imagePath, imageBuffer);
         localCoverPath = `/images/blog/${post.slug}.png`;
-      } catch (imgErr: any) {
-        fs.appendFileSync(path.join(process.cwd(), "generate.log"), `[BlogGen] Local image generation/saving failed: ${imgErr?.message || imgErr}\n`);
+      } catch (imgErr: unknown) {
+        const errMsg = imgErr instanceof Error ? imgErr.message : String(imgErr);
+        fs.appendFileSync(path.join(process.cwd(), "generate.log"), `[BlogGen] Local image generation/saving failed: ${errMsg}\n`);
         console.error("[BlogGen] Local image generation/saving failed:", imgErr);
         localCoverPath = "/images/gpu-placeholder.png";
       }
 
-      // Try uploading to Sanity separately. If it fails, local image is still saved and rendered.
-      if (imageBuffer) {
-        try {
-          const asset = await sanityWriteClient.assets.upload('image', imageBuffer, {
-            filename: `${post.slug}-cover.png`
-          });
-          imageAssetRef = asset._id;
-        } catch (sanityErr: any) {
-          console.warn("[BlogGen] Sanity cover upload failed (expected if write-token missing):", sanityErr?.message || sanityErr);
-        }
-      }
-
       const publishedAt = new Date(targetDate.getTime() - 2 * 60 * 60 * 1000).toISOString();
-      const saved = await writeToSanity(post, "GPU News", publishedAt, imageAssetRef);
+      const saved = await writeToMongoDB(post, "GPU News", publishedAt, localCoverPath);
       writeToLocalMdx(post, "GPU News", publishedAt, localCoverPath);
-      results.push({ type: "GPU News", slug: post.slug, saved: true });
+      results.push({ type: "GPU News", slug: post.slug, saved });
     }
   }
 
@@ -444,7 +421,6 @@ export async function POST(request: NextRequest) {
   if (gameItems.length >= 2) {
     const post = await generateBlogPost(gameItems, "Game News", apiKey, targetDate);
     if (post) {
-      let imageAssetRef = undefined;
       let localCoverPath = undefined;
       let imageBuffer: Buffer | undefined = undefined;
 
@@ -455,16 +431,16 @@ export async function POST(request: NextRequest) {
         } catch (pollError) {
           console.warn("Pollinations failed, falling back to HuggingFace:", pollError);
           const imageBlob = await hfClient.textToImage({
-              provider: "hf-inference",
-              model: "black-forest-labs/FLUX.1-schnell",
-              inputs: `A highly detailed gaming or tech illustration for a blog post titled: ${post.title}. ${post.tags.join(', ')}`,
-              parameters: { num_inference_steps: 4 },
+            provider: "hf-inference",
+            model: "black-forest-labs/FLUX.1-schnell",
+            inputs: `A highly detailed gaming or tech illustration for a blog post titled: ${post.title}. ${post.tags.join(', ')}`,
+            parameters: { num_inference_steps: 4 },
           }, {
-              outputType: "blob"
+            outputType: "blob"
           });
           imageBuffer = Buffer.from(await imageBlob.arrayBuffer());
         }
-        
+
         // Save locally
         const publicDir = path.join(process.cwd(), "public/images/blog");
         if (!fs.existsSync(publicDir)) {
@@ -473,27 +449,15 @@ export async function POST(request: NextRequest) {
         const imagePath = path.join(publicDir, `${post.slug}.png`);
         fs.writeFileSync(imagePath, imageBuffer);
         localCoverPath = `/images/blog/${post.slug}.png`;
-      } catch (imgErr) {
+      } catch (imgErr: unknown) {
         console.error("[BlogGen] Local image generation/saving failed:", imgErr);
         localCoverPath = "/images/game-placeholder.png";
       }
 
-      // Try uploading to Sanity separately. If it fails, local image is still saved and rendered.
-      if (imageBuffer) {
-        try {
-          const asset = await sanityWriteClient.assets.upload('image', imageBuffer, {
-            filename: `${post.slug}-cover.png`
-          });
-          imageAssetRef = asset._id;
-        } catch (sanityErr: any) {
-          console.warn("[BlogGen] Sanity cover upload failed (expected if write-token missing):", sanityErr?.message || sanityErr);
-        }
-      }
-
       const publishedAt = new Date(targetDate.getTime() + 24 * 60 * 60 * 1000).toISOString(); // 24 hours (1 day) in the future for daily scheduling
-      const saved = await writeToSanity(post, "Game News", publishedAt, imageAssetRef);
+      const saved = await writeToMongoDB(post, "Game News", publishedAt, localCoverPath);
       writeToLocalMdx(post, "Game News", publishedAt, localCoverPath);
-      results.push({ type: "Game News", slug: post.slug, saved: true });
+      results.push({ type: "Game News", slug: post.slug, saved });
     }
   }
 

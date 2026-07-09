@@ -10,9 +10,6 @@
   },
   "dependencies": {
     "@huggingface/inference": "^4.13.20",
-    "@portabletext/react": "^6.2.0",
-    "@sanity/code-input": "^7.1.2",
-    "@sanity/image-url": "^2.1.1",
     "@studio-freight/react-lenis": "^0.0.47",
     "@types/react-syntax-highlighter": "^15.5.13",
     "clsx": "^2.1.1",
@@ -21,9 +18,9 @@
     "katex": "^0.17.0",
     "lucide-react": "^1.17.0",
     "mermaid": "^11.16.0",
+    "mongoose": "^9.7.4",
     "next": "16.2.7",
     "next-mdx-remote": "^6.0.0",
-    "next-sanity": "^13.0.11",
     "nodemailer": "^8.0.10",
     "react": "19.2.4",
     "react-dom": "19.2.4",
@@ -34,7 +31,6 @@
     "remark-gfm": "^4.0.1",
     "remark-html": "^16.0.1",
     "remark-math": "^6.0.0",
-    "sanity": "^5.30.0",
     "styled-components": "^6.4.2",
     "tailwind-merge": "^3.6.0"
   },

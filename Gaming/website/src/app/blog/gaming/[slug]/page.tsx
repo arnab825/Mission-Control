@@ -1,17 +1,12 @@
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import { MDXRemote } from "next-mdx-remote/rsc";
-import { fetchGamingPostBySlug, sanityClient } from "@/lib/sanity";
+import connectDB from "@/lib/mongodb";
+import GamingPost from "@/models/GamingPost";
 import { ArrowLeft, Calendar, Share2, Tag, Bot } from "lucide-react";
-import { createImageUrlBuilder } from "@sanity/image-url";
 import { headers } from "next/headers";
 import ShareButtons from "@/components/ShareButtons";
-import { formatDateToIST } from "@/lib/blog";
-
-const builder = createImageUrlBuilder(sanityClient);
-function urlFor(source: any) {
-  return builder.image(source);
-}
+import { formatDateToIST, getPostData } from "@/lib/blog";
 import Mermaid from "@/components/Mermaid";
 import remarkGfm from "remark-gfm";
 import remarkMath from "remark-math";
@@ -25,20 +20,71 @@ const CATEGORY_CONFIG: Record<string, { color: string; bg: string; border: strin
   "Hardware Deep-Dive": { color: "text-blue-400",    bg: "bg-blue-400/10",    border: "border-blue-400/20" },
 };
 
+interface MDXPreProps {
+  children?: React.ReactElement<{
+    className?: string;
+    children?: string;
+  }>;
+}
+
 const mdxComponents = {
-  pre: ({ children }: any) => {
+  pre: ({ children }: MDXPreProps) => {
     const codeProps = children?.props;
     if (codeProps && codeProps.className === "language-mermaid") {
-      return <Mermaid chart={codeProps.children} />;
+      return <Mermaid chart={codeProps.children || ""} />;
     }
     return <pre>{children}</pre>;
   }
 };
 
+interface GamingPostDisplay {
+  title: string;
+  category: string;
+  excerpt: string;
+  markdownBody: string;
+  tags: string[];
+  author: string;
+  aiGenerated: boolean;
+  publishedAt: string;
+  coverImage?: string;
+}
+
 export default async function GamingBlogPost({ params }: { params: Promise<{ slug: string }> }) {
   const { slug } = await params;
   
-  const post = await fetchGamingPostBySlug(slug);
+  await connectDB();
+  const dbPost = await GamingPost.findOne({ slug }).lean();
+
+  let post: GamingPostDisplay | null = null;
+  if (dbPost) {
+    post = {
+      title: dbPost.title,
+      category: dbPost.category,
+      excerpt: dbPost.excerpt,
+      markdownBody: dbPost.markdownBody,
+      tags: dbPost.tags,
+      author: dbPost.author,
+      aiGenerated: dbPost.aiGenerated,
+      publishedAt: dbPost.publishedAt.toISOString(),
+      coverImage: dbPost.coverImage,
+    };
+  } else {
+    // Fallback to local MDX file
+    const mdxPost = getPostData(slug);
+    if (mdxPost) {
+      post = {
+        title: mdxPost.title,
+        category: mdxPost.category || "Intel",
+        excerpt: mdxPost.excerpt || "",
+        markdownBody: mdxPost.content || "",
+        tags: mdxPost.tags || [],
+        author: mdxPost.author || "Mission Control Intel",
+        aiGenerated: mdxPost.aiGenerated || false,
+        publishedAt: mdxPost.date,
+        coverImage: mdxPost.coverImage,
+      };
+    }
+  }
 
   if (!post) {
     notFound();
@@ -108,10 +154,10 @@ export default async function GamingBlogPost({ params }: { params: Promise<{ slu
               </div>
             </header>
             
-            {post.coverImage || post.mainImage ? (
+            {post.coverImage ? (
               <div className="mb-10 rounded-xl overflow-hidden border border-white/10 shadow-[0_0_40px_rgba(118,185,0,0.1)] relative z-10">
                 <img
-                  src={post.coverImage ? post.coverImage : urlFor(post.mainImage).url()}
+                  src={post.coverImage}
                   alt={post.title}
                   className="w-full h-auto object-cover max-h-[450px]"
                 />
