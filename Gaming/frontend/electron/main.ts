@@ -1053,7 +1053,9 @@ function createHUDWindow(showOnReady: boolean = false) {
     if (win && !win.isDestroyed()) {
       win.webContents.send('hud-status', true);
     }
-    hudWin?.webContents.send('hud-status', true);
+    if (hudWin && !hudWin.isDestroyed()) {
+      hudWin.webContents.send('hud-status', true);
+    }
     if (cachedConfig) {
       const isLocked = cachedConfig.overlay?.lock_position === true;
       hudWin?.setIgnoreMouseEvents(isLocked, isLocked ? { forward: true } : undefined);
@@ -1068,7 +1070,9 @@ function createHUDWindow(showOnReady: boolean = false) {
     if (win && !win.isDestroyed()) {
       win.webContents.send('hud-status', false);
     }
-    hudWin?.webContents.send('hud-status', false);
+    if (hudWin && !hudWin.isDestroyed()) {
+      hudWin.webContents.send('hud-status', false);
+    }
   });
 
   registerContextMenu(hudWin)
