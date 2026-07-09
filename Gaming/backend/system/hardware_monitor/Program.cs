@@ -113,6 +113,9 @@ namespace HardwareMonitor
                                 // --- CPU Temperature ---
                                 if (sensor.SensorType == SensorType.Temperature && sensor.Value.HasValue && sensor.Value.Value > 0)
                                 {
+                                    if (nameLower.Contains("distance"))
+                                        continue;
+
                                     int prio = 0; // fallback: any CPU temperature sensor
                                     if (nameLower.Contains("package"))
                                         prio = 100; // best: "CPU Package" or "Package"

@@ -2237,11 +2237,11 @@
   "project": {
     "version": "1.0.0",
     "restore": {
-      "projectUniqueName": "C:\\GitHub\\AiAssistant\\Gaming\\backend\\system\\hardware_monitor\\HardwareMonitor.csproj",
+      "projectUniqueName": "C:\\GitHub\\Mission-Control\\Gaming\\backend\\system\\hardware_monitor\\HardwareMonitor.csproj",
       "projectName": "HardwareMonitor",
-      "projectPath": "C:\\GitHub\\AiAssistant\\Gaming\\backend\\system\\hardware_monitor\\HardwareMonitor.csproj",
+      "projectPath": "C:\\GitHub\\Mission-Control\\Gaming\\backend\\system\\hardware_monitor\\HardwareMonitor.csproj",
       "packagesPath": "C:\\Users\\basut\\.nuget\\packages\\",
-      "outputPath": "C:\\GitHub\\AiAssistant\\Gaming\\backend\\system\\hardware_monitor\\obj\\",
+      "outputPath": "C:\\GitHub\\Mission-Control\\Gaming\\backend\\system\\hardware_monitor\\obj\\",
       "projectStyle": "PackageReference",
       "fallbackFolders": [
         "C:\\Program Files (x86)\\Microsoft Visual Studio\\Shared\\NuGetPackages"

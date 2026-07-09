@@ -417,15 +417,16 @@ process.env.VITE_PUBLIC = app.isPackaged ? process.env.DIST : path.join(process.
 let win: BrowserWindow | null
 // 🚧 Use ['ENV_NAME'] avoid vite:define plugin - SystemJS vite plugin
 const VITE_DEV_SERVER_URL = process.env['VITE_DEV_SERVER_URL']
-let localServer: any = null
+let localServerPort = 0
 
-function startLocalServer(distPath: string, port: number) {
-  try {
-    const server = http.createServer((req, res) => {
-      let safeUrl = req.url?.split('?')[0] || '/'
-      if (safeUrl === '/') safeUrl = '/index.html'
+function startLocalServer(distPath: string): Promise<number> {
+  return new Promise((resolve) => {
+    try {
+      const server = http.createServer((req, res) => {
+        let safeUrl = req.url?.split('?')[0] || '/'
+        if (safeUrl === '/') safeUrl = '/index.html'
 
-      const filePath = path.join(distPath, safeUrl).replace(/\\/g, '/')
+        const filePath = path.join(distPath, safeUrl).replace(/\\/g, '/')
 
       fs.stat(filePath, (err, stats) => {
         if (err || !stats.isFile()) {
@@ -469,22 +470,23 @@ function startLocalServer(distPath: string, port: number) {
 
     server.on('error', (err: any) => {
       console.error('[Electron Server] Server error occurred:', err);
-      if (err.code === 'EADDRINUSE') {
-        console.warn(`[Electron Server] Port ${port} is already in use. A previous instance or another process might be holding it.`);
-      }
+      resolve(0);
     });
 
-    server.listen(port, '127.0.0.1', () => {
-      console.log(`[Electron] Production local server running at http://127.0.0.1:${port}`)
+    server.listen(0, '127.0.0.1', () => {
+      const addr = server.address();
+      const p = typeof addr === 'string' ? 0 : (addr ? addr.port : 0);
+      console.log(`[Electron] Production local server running at http://127.0.0.1:${p}`)
+      resolve(p);
     })
-    return server
   } catch (err) {
     console.error('[Electron] Failed to start local static server:', err)
-    return null
+    resolve(0)
   }
+  })
 }
 
-function createWindow() {
+async function createWindow() {
   win = new BrowserWindow({
     width: 1200,
     height: 800,
@@ -525,10 +527,18 @@ function createWindow() {
     // win.webContents.openDevTools()
   } else {
     // Start local server if not already started
-    if (!localServer) {
-      localServer = startLocalServer(process.env.DIST || '', 14280)
+    if (!localServerPort) {
+      localServerPort = await startLocalServer(process.env.DIST || '')
     }
-    win.loadURL('http://127.0.0.1:14280')
+    if (localServerPort > 0) {
+      win.loadURL(`http://127.0.0.1:${localServerPort}`).catch(err => {
+        console.error('[Electron] Failed to load local server URL:', err);
+        // Fallback retry
+        setTimeout(() => win?.loadURL(`http://127.0.0.1:${localServerPort}`), 1000);
+      });
+    } else {
+      console.error('[Electron] Local server port is 0, cannot load UI');
+    }
     // win.webContents.openDevTools()
   }
 }
@@ -988,7 +998,7 @@ function getInitialHUDPosition(layout?: string): { x: number; y: number; width: 
   }
 }
 
-function createHUDWindow(showOnReady: boolean = false) {
+async function createHUDWindow(showOnReady: boolean = false) {
   if (hudWin && !hudWin.isDestroyed()) {
     hudWin.showInactive();
     return;
@@ -1095,10 +1105,17 @@ function createHUDWindow(showOnReady: boolean = false) {
     hudWin.loadURL(`${process.env.VITE_DEV_SERVER_URL}#hud`);
   } else {
     // Start local server if not already started
-    if (!localServer) {
-      localServer = startLocalServer(process.env.DIST || '', 14280);
+    if (!localServerPort) {
+      localServerPort = await startLocalServer(process.env.DIST || '');
     }
-    hudWin.loadURL('http://127.0.0.1:14280/#hud');
+    if (localServerPort > 0) {
+      hudWin.loadURL(`http://127.0.0.1:${localServerPort}/#hud`).catch(err => {
+        console.error('[Electron] HUD Window failed to load:', err);
+        setTimeout(() => hudWin?.loadURL(`http://127.0.0.1:${localServerPort}/#hud`), 1000);
+      });
+    } else {
+      console.error('[Electron] Local server port is 0, cannot load HUD UI');
+    }
   }
 
   hudWin.webContents.on('did-fail-load', (_event, errorCode, errorDescription) => {
@@ -1553,7 +1570,7 @@ ipcMain.on('network-status-changed', (_event, isOnline: boolean) => {
 // Renders React overlay views completely off-screen in memory, feeding raw pixel buffers
 // straight into game rendering hooks or GPU texture overlays without spawning OS windows.
 let osrWin: BrowserWindow | null = null;
-function createOffscreenOverlay() {
+async function createOffscreenOverlay() {
   if (osrWin && !osrWin.isDestroyed()) return;
 
   const isDev = !app.isPackaged;
@@ -1576,10 +1593,17 @@ function createOffscreenOverlay() {
     osrWin.loadURL(`${process.env.VITE_DEV_SERVER_URL}#hud`);
   } else {
     // Start local server if not already started
-    if (!localServer) {
-      localServer = startLocalServer(process.env.DIST || '', 14280);
+    if (!localServerPort) {
+      localServerPort = await startLocalServer(process.env.DIST || '');
     }
-    osrWin.loadURL('http://127.0.0.1:14280/#hud');
+    if (localServerPort > 0) {
+      osrWin.loadURL(`http://127.0.0.1:${localServerPort}/#hud`).catch(err => {
+        console.error('[Electron] OSR Window failed to load:', err);
+        setTimeout(() => osrWin?.loadURL(`http://127.0.0.1:${localServerPort}/#hud`), 1000);
+      });
+    } else {
+      console.error('[Electron] Local server port is 0, cannot load OSR UI');
+    }
   }
 
   // Paint listener catches dirty regions and raw pixel bitmaps offscreen
