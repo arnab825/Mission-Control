@@ -2,6 +2,10 @@
 
 This document contains a detailed history of all patches and updates for the AI Gaming Assistant.
 
+### Patch: 2026-07-11 — v1.1.6: Fixed startup hardware detecting lag and dashboard stat card value visibility
+
+- Fixed startup hardware detecting lag and dashboard stat card value visibility
+
 ### Patch: 2026-07-11 — v1.1.5: Configured silent one-click installer and hid installation details
 
 - Configured silent one-click installer and hid installation details

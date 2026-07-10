@@ -578,8 +578,8 @@ class TelemetryThread(threading.Thread):
             pass
 
         def _deferred_discovery():
-            # Wait 15 seconds for startup phase to settle down
-            time.sleep(15.0)
+            # Wait 2 seconds for startup phase to settle down
+            time.sleep(2.0)
             if self.running and (self.p.running or getattr(self.p, "headless", False)):
                 self._discover_hardware()
 

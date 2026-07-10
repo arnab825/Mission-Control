@@ -97,7 +97,7 @@ const StatCard = React.memo<StatCardProps>(({ label, value, percent, subtext, ic
             </div>
             <span className="text-[10px] font-black text-zinc-500 uppercase tracking-widest truncate">{label}</span>
           </div>
-          <span className="text-xl lg:text-2xl font-black text-white tracking-tighter shrink-0">{value}%</span>
+          {(value !== undefined && value !== null && value !== '') && <span className="text-xl lg:text-2xl font-black text-white tracking-tighter shrink-0">{value}%</span>}
         </div>
 
         <div className="w-full h-1 bg-white/5 rounded-full overflow-hidden mb-4">
