@@ -1,4 +1,5 @@
-import React, { useState, useEffect, useMemo } from 'react';
+import * as React from 'react';
+import { useState, useEffect, useMemo } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { 
   Cpu, Zap, Box, Database, Search, Settings, ShieldCheck, 
