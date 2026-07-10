@@ -405,6 +405,8 @@ const GamesLibraryContent: React.FC<GamesPageProps> = ({ state, sendCommand, set
   const gamesRequestTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   // Tracks the auth state at which we last requested games, to fire a re-request when isSignedIn resolves
   const lastAuthStateRef = useRef<string>('');
+  // Tracks previous userId to detect provider switches (userId changes while still signed in)
+  const lastUserIdRef = useRef<string | null | undefined>(undefined);
 
   const handlePlatformChange = (p: string) => {
     setFilter(p);
@@ -490,10 +492,22 @@ const GamesLibraryContent: React.FC<GamesPageProps> = ({ state, sendCommand, set
     const isNewAuthState = lastAuthStateRef.current !== authKey;
     if (isNewAuthState) {
       lastAuthStateRef.current = authKey;
-      // Auth state changed (e.g. Clerk resolved) — reset loaded flag to trigger a fresh fetch
+      // Auth state changed — reset loaded flag to trigger a fresh fetch
       if (isSignedIn) {
         setGamesLoaded(false);
+        // If the userId itself changed (e.g. switching OAuth provider: Discord → Google),
+        // the scan that was running for the old user is now irrelevant. Reset scan UI
+        // immediately since !isSignedIn never fires during a provider switch.
+        const prevUserId = lastUserIdRef.current;
+        if (prevUserId !== undefined && prevUserId !== userId) {
+          setIsScanning(false);
+          setScanProgress(0);
+          setScanStatus('idle');
+          setScanLogs([]);
+          setGames([]);
+        }
       }
+      lastUserIdRef.current = userId;
     }
 
     if (isSignedIn && (s?.game_library !== undefined || gamesLoaded)) {

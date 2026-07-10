@@ -1708,7 +1708,12 @@ class GameScanner:
         except Exception: pass
 
     def _scan_uninstall_registry(self):
-        """Scan Windows 'Uninstall' registry keys for games from various publishers."""
+        """Scan Windows 'Uninstall' registry keys for games from various publishers.
+        
+        This is a supplementary scan — dedicated scanners (Steam, Epic, Ubisoft, etc.)
+        already provide exe_path. Here we only record install_path from publisher-matched
+        entries to avoid duplicating expensive disk I/O.
+        """
         paths = [
             (winreg.HKEY_LOCAL_MACHINE, r"SOFTWARE\Microsoft\Windows\CurrentVersion\Uninstall"),
             (winreg.HKEY_LOCAL_MACHINE, r"SOFTWARE\WOW6432Node\Microsoft\Windows\CurrentVersion\Uninstall"),
@@ -1732,37 +1737,34 @@ class GameScanner:
                                 try:
                                     name, _ = winreg.QueryValueEx(subkey, "DisplayName")
                                     publisher, _ = winreg.QueryValueEx(subkey, "Publisher")
-                                    path, _ = winreg.QueryValueEx(subkey, "InstallLocation")
+                                    install_path, _ = winreg.QueryValueEx(subkey, "InstallLocation")
                                     
-                                    if path and os.path.exists(path):
-                                        if any(pub in publisher for pub in publishers_to_watch):
-                                            # Avoid adding launchers as 'Local' games if already handled
-                                            if "Launcher" in name or "Connect" in name:
-                                                continue
-                                                
-                                            # Resolve exe_path
-                                            resolved_exe = None
-                                            try:
-                                                path_obj = Path(path)
-                                                exes = list(path_obj.glob("*.exe"))
-                                                if not exes:
-                                                    exes = list(path_obj.glob("bin/*.exe")) + list(path_obj.glob("binaries/Win64/*.exe"))
-                                                if exes:
-                                                    resolved_exe = self._select_best_exe(exes, name)
-                                            except Exception:
-                                                pass
+                                    if not install_path:
+                                        i += 1
+                                        continue
 
-                                            self.games.append({
-                                                "name": name,
-                                                "platform": "Local",
-                                                "id": subkey_name,
-                                                "install_path": path,
-                                                "exe_path": resolved_exe
-                                            })
-                                except Exception: pass
+                                    if any(pub in publisher for pub in publishers_to_watch):
+                                        # Skip launchers — already handled by dedicated scanners
+                                        name_lower = name.lower()
+                                        if any(kw in name_lower for kw in ["launcher", "connect", "redistributable", "runtime", "service"]):
+                                            i += 1
+                                            continue
+
+                                        self.games.append({
+                                            "name": name,
+                                            "platform": "Local",
+                                            "id": subkey_name,
+                                            "install_path": install_path,
+                                            "exe_path": None  # Resolved later by feature-detect pass if not deduped
+                                        })
+                                except Exception:
+                                    pass
                             i += 1
-                        except OSError: break
-            except Exception: pass
+                        except OSError:
+                            break
+            except Exception:
+                pass
+
     def _scan_desktop(self):
         """Scan for game shortcuts on the desktop."""
         try:

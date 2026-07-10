@@ -142,13 +142,31 @@ const Sidebar: React.FC<SidebarProps> = ({
               className="flex items-center justify-between p-2.5 rounded-xl bg-white/2 hover:bg-white/5 border border-white/4 hover:border-white/10 backdrop-blur-sm cursor-pointer transition-all"
             >
               <div className="flex items-center gap-2.5 min-w-0">
-                {user.imageUrl ? (
-                  <img src={user.imageUrl} className="w-8 h-8 rounded-lg border border-white/10 object-cover" alt="Avatar" />
-                ) : (
-                  <div className="w-8 h-8 rounded-lg bg-neon-green/10 border border-neon-green/20 flex items-center justify-center font-black text-xs text-neon-green">
-                    {user.firstName ? user.firstName[0] : 'U'}
-                  </div>
-                )}
+                {(() => {
+                  // Try Clerk's hosted image, then external account image (Google/Discord profile photo)
+                  const avatarUrl = user.imageUrl || user.externalAccounts?.[0]?.imageUrl;
+                  const initials = user.firstName?.[0] || user.username?.[0] || user.externalAccounts?.[0]?.username?.[0] || 'U';
+                  return avatarUrl ? (
+                    <img
+                      src={avatarUrl}
+                      className="w-8 h-8 rounded-lg border border-white/10 object-cover"
+                      alt="Avatar"
+                      onError={(e) => {
+                        // On load failure, hide the img and show the initials fallback
+                        const target = e.currentTarget as HTMLImageElement;
+                        target.style.display = 'none';
+                        const fallback = target.nextElementSibling as HTMLElement;
+                        if (fallback) fallback.style.display = 'flex';
+                      }}
+                    />
+                  ) : null;
+                })()}
+                <div
+                  className="w-8 h-8 rounded-lg bg-neon-green/10 border border-neon-green/20 flex items-center justify-center font-black text-xs text-neon-green"
+                  style={{ display: (user.imageUrl || user.externalAccounts?.[0]?.imageUrl) ? 'none' : 'flex' }}
+                >
+                  {user.firstName?.[0] || user.username?.[0] || user.externalAccounts?.[0]?.username?.[0] || 'U'}
+                </div>
                 <div className="min-w-0 flex flex-col">
                   <span className="text-[10px] font-black text-white truncate uppercase tracking-tight">
                     {(() => {
@@ -178,7 +196,9 @@ const Sidebar: React.FC<SidebarProps> = ({
                   e.preventDefault();
                   e.stopPropagation();
                   await signOut();
-                  window.location.href = '/';
+                  // Hard-reload to root so Clerk clears all session state and
+                  // the next sign-in gets a fresh avatar/profile load
+                  window.location.replace('/');
                 }}
                 className="p-2 hover:bg-red-500/10 border border-transparent hover:border-red-500/20 text-zinc-400 hover:text-red-400 rounded-lg transition-all"
                 title="Sign Out"
