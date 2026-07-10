@@ -2,6 +2,12 @@
 
 This document contains a detailed history of all patches and updates for the AI Gaming Assistant.
 
+### Patch: 2026-07-10 — v1.0.9: Fix SQL queries and NIM timeouts
+
+- Included queries, prompts, and RAG data in PyInstaller package
+- Added client-side request timeouts to prevent Gateway Timeout hangs
+- Synchronized NIM calls with threading locks to prevent circuit breaker race conditions
+
 ### Patch: 2026-07-09 — v1.0.4: Mem0 Package Fix
 
 - Bundle mem0 config submodules dynamically in PyInstaller specs.

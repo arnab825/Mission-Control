@@ -35,7 +35,7 @@ class FeedbackLoop:
 
         try:
             # We use a secondary LLM to evaluate the primary one
-            self.evaluator_llm = ChatNVIDIA(model=evaluator_model, api_key=nvidia_key, temperature=0.2)
+            self.evaluator_llm = ChatNVIDIA(model=evaluator_model, api_key=nvidia_key, temperature=0.2, timeout=30.0)
             
             self.parser = PydanticOutputParser(pydantic_object=EvaluationResult)
             

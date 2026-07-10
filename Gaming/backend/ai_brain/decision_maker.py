@@ -7,6 +7,7 @@ Integrates scene classification and story analysis for context-aware advice.
 import logging
 import os
 import sys
+import threading
 import time
 
 from ai_brain.prompts.persona_profiles import PERSONALITY_PROFILES
@@ -117,6 +118,7 @@ class GameBrain:
         self.mode = mode
         self.config = config or {}
         self.memory = memory
+        self._chat_lock = threading.Lock()
         
         # Connectivity state
         from system.hw_checker import check_internet
@@ -364,15 +366,15 @@ class GameBrain:
                     logger.warning(
                         "Using insecure TLS fallback for NVIDIA NIM on Windows due to OpenSSL runtime mismatch."
                     )
-                    chat_http = httpx.Client(verify=False, timeout=60.0)
-                    vision_http = httpx.Client(verify=False, timeout=60.0)
-                    self.client = OpenAI(base_url=base_url, api_key=api_key, http_client=chat_http, max_retries=0, timeout=60.0)
+                    chat_http = httpx.Client(verify=False, timeout=30.0)
+                    vision_http = httpx.Client(verify=False, timeout=30.0)
+                    self.client = OpenAI(base_url=base_url, api_key=api_key, http_client=chat_http, max_retries=0, timeout=30.0)
                     self.vision_client = OpenAI(
-                        base_url=vision_url, api_key=api_key, http_client=vision_http, max_retries=0, timeout=60.0
+                        base_url=vision_url, api_key=api_key, http_client=vision_http, max_retries=0, timeout=30.0
                     )
                 else:
-                    self.client = OpenAI(base_url=base_url, api_key=api_key, max_retries=0, timeout=60.0)
-                    self.vision_client = OpenAI(base_url=vision_url, api_key=api_key, max_retries=0, timeout=60.0)
+                    self.client = OpenAI(base_url=base_url, api_key=api_key, max_retries=0, timeout=30.0)
+                    self.vision_client = OpenAI(base_url=vision_url, api_key=api_key, max_retries=0, timeout=30.0)
                 logger.info(f"NVIDIA NIM clients initialized (Chat: {base_url}, Vision: {vision_url})")
             except Exception as e:
                 logger.error(f"Failed to initialize NVIDIA NIM clients: {e}")
@@ -1744,71 +1746,72 @@ class GameBrain:
         if not self.client:
             return None
 
-        # Circuit Breaker
-        now = time.time()
-        if self._chat_failures >= 3:
-            if now < self._chat_disabled_until:
+        with self._chat_lock:
+            # Circuit Breaker
+            now = time.time()
+            if self._chat_failures >= 3:
+                if now < self._chat_disabled_until:
+                    return None
+                else:
+                    self._chat_failures = 0
+
+            agent_cfg = self.config.get("ai_agent", {})
+            # Use override if provided, else fall back to config/defaults
+            if model_override:
+                model_id = model_override
+            else:
+                task = "strategic"  # Default for general chat
+                model_id = agent_cfg.get(f"{task}_model") or agent_cfg.get("model_id") or self.task_models.get(task)
+            
+            try:
+                # We use non-streaming here for simpler integration into the pipeline, 
+                # but we could adapt for streaming if needed in the UI.
+                if isinstance(prompt, list):
+                    messages = prompt
+                else:
+                    messages = []
+                    if system_instruction:
+                        messages.append({"role": "system", "content": system_instruction})
+                    messages.append({"role": "user", "content": prompt})
+
+                completion = self.client.chat.completions.create(
+                    model=model_id,
+                    messages=messages,
+                    temperature=temperature,
+                    top_p=0.7,
+                    max_tokens=4096,
+                    stream=stream,
+                    timeout=30.0
+                )
+                
+                self._chat_failures = 0 # Reset on success
+                if stream:
+                    def generate():
+                        for chunk in completion:
+                            if hasattr(chunk.choices[0], "delta") and getattr(chunk.choices[0].delta, "content", None):
+                                yield chunk.choices[0].delta.content
+                    return generate()
+                else:
+                    advice = completion.choices[0].message.content
+                    return advice
+                
+            except Exception as e:
+                error_text = str(e).lower()
+                logger.error(f"NVIDIA NIM Query failed: {e}")
+                
+                if "429" in error_text or "too many requests" in error_text:
+                    self._chat_failures += 1
+                    wait_time = 30 * self._chat_failures # Exponential-ish backoff
+                    self._chat_disabled_until = time.time() + wait_time
+                    logger.warning(f"NVIDIA NIM Rate Limited (429). Disabling for {wait_time}s.")
+                elif "403" in error_text or "401" in error_text or "authorization failed" in error_text:
+                    self.client = None
+                    logger.warning("Disabling NVIDIA NIM for this session after auth failure; falling back to local rules.")
+                else:
+                    self._chat_failures += 1
+                    if self._chat_failures >= 3:
+                        self._chat_disabled_until = time.time() + 60
                 return None
-            else:
-                self._chat_failures = 0
-
-        agent_cfg = self.config.get("ai_agent", {})
-        # Use override if provided, else fall back to config/defaults
-        if model_override:
-            model_id = model_override
-        else:
-            task = "strategic"  # Default for general chat
-            model_id = agent_cfg.get(f"{task}_model") or agent_cfg.get("model_id") or self.task_models.get(task)
-        
-        try:
-            # We use non-streaming here for simpler integration into the pipeline, 
-            # but we could adapt for streaming if needed in the UI.
-            if isinstance(prompt, list):
-                messages = prompt
-            else:
-                messages = []
-                if system_instruction:
-                    messages.append({"role": "system", "content": system_instruction})
-                messages.append({"role": "user", "content": prompt})
-
-            completion = self.client.chat.completions.create(
-                model=model_id,
-                messages=messages,
-                temperature=temperature,
-                top_p=0.7,
-                max_tokens=4096,
-                stream=stream,
-                timeout=60.0
-            )
-            
-            self._chat_failures = 0 # Reset on success
-            if stream:
-                def generate():
-                    for chunk in completion:
-                        if hasattr(chunk.choices[0], "delta") and getattr(chunk.choices[0].delta, "content", None):
-                            yield chunk.choices[0].delta.content
-                return generate()
-            else:
-                advice = completion.choices[0].message.content
-                return advice
-            
-        except Exception as e:
-            error_text = str(e).lower()
-            logger.error(f"NVIDIA NIM Query failed: {e}")
-            
-            if "429" in error_text or "too many requests" in error_text:
-                self._chat_failures += 1
-                wait_time = 30 * self._chat_failures # Exponential-ish backoff
-                self._chat_disabled_until = time.time() + wait_time
-                logger.warning(f"NVIDIA NIM Rate Limited (429). Disabling for {wait_time}s.")
-            elif "403" in error_text or "401" in error_text or "authorization failed" in error_text:
-                self.client = None
-                logger.warning("Disabling NVIDIA NIM for this session after auth failure; falling back to local rules.")
-            else:
-                self._chat_failures += 1
-                if self._chat_failures >= 3:
-                    self._chat_disabled_until = time.time() + 60
-            return None
 
     def _query_vision_nim(self, image_b64):
         """

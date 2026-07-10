@@ -107,10 +107,10 @@ class CoreOptimizationEngine:
                     logger.warning(
                         "Using insecure TLS fallback for NVIDIA NIM on Windows due to OpenSSL runtime mismatch."
                     )
-                    chat_http = httpx.Client(verify=False, timeout=60.0)
-                    self.client = OpenAI(base_url=base_url, api_key=api_key, http_client=chat_http, max_retries=0, timeout=60.0)
+                    chat_http = httpx.Client(verify=False, timeout=30.0)
+                    self.client = OpenAI(base_url=base_url, api_key=api_key, http_client=chat_http, max_retries=0, timeout=30.0)
                 else:
-                    self.client = OpenAI(base_url=base_url, api_key=api_key, max_retries=0, timeout=60.0)
+                    self.client = OpenAI(base_url=base_url, api_key=api_key, max_retries=0, timeout=30.0)
             except Exception as e:
                 logger.error(f"Failed to initialize NVIDIA NIM client for optimization: {e}")
                 self.client = None
@@ -189,7 +189,8 @@ class CoreOptimizationEngine:
                     {"role": "user", "content": user_prompt}
                 ],
                 temperature=0.3,
-                max_tokens=1000
+                max_tokens=1000,
+                timeout=30.0
             )
             return response.choices[0].message.content
         except Exception as e:
