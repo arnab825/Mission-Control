@@ -2,6 +2,10 @@
 
 This document contains a detailed history of all patches and updates for the AI Gaming Assistant.
 
+### Patch: 2026-07-11 — v1.2.0: Increased NVIDIA NIM timeout and resolved TypeScript build warnings
+
+- Increased NVIDIA NIM timeout and resolved TypeScript build warnings
+
 ### Patch: 2026-07-11 — v1.1.9: Removed all native Windows toast notifications to prevent Notification Center clutter
 
 - Removed all native Windows toast notifications to prevent Notification Center clutter

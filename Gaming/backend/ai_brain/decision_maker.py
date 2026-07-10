@@ -1781,7 +1781,7 @@ class GameBrain:
                     top_p=0.7,
                     max_tokens=4096,
                     stream=stream,
-                    timeout=30.0
+                    timeout=60.0
                 )
                 
                 self._chat_failures = 0 # Reset on success

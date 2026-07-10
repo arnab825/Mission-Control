@@ -1,4 +1,4 @@
-import { app, BrowserWindow, ipcMain, protocol, net, globalShortcut, shell, Notification, screen, dialog, Tray, Menu, nativeImage } from 'electron'
+import { app, BrowserWindow, ipcMain, protocol, net, globalShortcut, shell, screen, dialog, Tray, Menu, nativeImage } from 'electron'
 import { autoUpdater } from 'electron-updater'
 import path from 'node:path'
 import http from 'node:http'
@@ -272,7 +272,7 @@ function createTray() {
         label: 'Check for Updates', click: () => {
           if (app.isPackaged) {
             isManualUpdateCheck = true;
-            autoUpdater.checkForUpdates().catch((err: any) => {
+            autoUpdater.checkForUpdates().catch(() => {
               isManualUpdateCheck = false;
             });
           } else {
@@ -329,7 +329,7 @@ function startPythonBackend() {
   const isDev = !app.isPackaged
   const scriptPath = isDev
     ? path.join(_dirname, '..', '..', 'backend', 'main.py')
-    : path.join(process.resourcesPath, 'backend', 'main.py')
+    : path.join((process as any).resourcesPath, 'backend', 'main.py')
 
   const port = parseInt(process.env.VITE_BRIDGE_PORT || '8765', 10)
   const timeout = setTimeout(() => {
@@ -368,7 +368,7 @@ function startPythonBackend() {
       console.log(`[Electron] Dev mode — python: ${executablePath}`)
     } else {
       // Production: look for bundled standalone exe first
-      const bundledExe = path.join(process.resourcesPath, 'backend', 'MissionControl', 'MissionControl.exe')
+      const bundledExe = path.join((process as any).resourcesPath, 'backend', 'MissionControl', 'MissionControl.exe')
       if (fs.existsSync(bundledExe)) {
         executablePath = bundledExe
         console.log(`[Electron] Using bundled backend exe: ${bundledExe}`)
