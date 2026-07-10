@@ -82,27 +82,14 @@
                   "directories":  {
                                       "output":  "out/make"
                                   },
+                  "files": [
+                      "**/*",
+                      "!backend/**"
+                  ],
                   "extraResources":  [
                                          {
-                                             "from":  "../backend",
-                                             "to":  "backend",
-                                             "filter":  [
-                                                            "**/*",
-                                                            "!**/__pycache__/**",
-                                                            "!**/*.pyc",
-                                                            "!**/*.pyo",
-                                                            "!**/tests/**",
-                                                            "!**/.venv/**",
-                                                            "!**/build/**",
-                                                            "!**/dist/**",
-                                                            "!**/rag_data/**",
-                                                            "!**/scratch/**",
-                                                            "!**/*.spec"
-                                                        ]
-                                         },
-                                         {
-                                             "from":  "../backend/.env",
-                                             "to":  "backend/.env"
+                                             "from":  "backend",
+                                             "to":  "backend"
                                          }
                                      ],
                   "win":  {
