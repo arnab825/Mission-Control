@@ -2,7 +2,7 @@
     "name":  "mission-control",
     "productName":  "Mission Control",
     "private":  true,
-    "version":  "1.0.6",
+    "version":  "1.0.7",
     "description":  "Mission Control desktop app for gamers.",
     "author":  "Arnab Contributors \u003csupport@missioncontrol.app\u003e",
     "type":  "module",
@@ -82,10 +82,10 @@
                   "directories":  {
                                       "output":  "out/make"
                                   },
-                  "files": [
-                      "**/*",
-                      "!backend/**"
-                  ],
+                  "files":  [
+                                "**/*",
+                                "!backend/**"
+                            ],
                   "extraResources":  [
                                          {
                                              "from":  "backend",
