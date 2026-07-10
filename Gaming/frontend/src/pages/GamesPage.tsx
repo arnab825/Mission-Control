@@ -537,11 +537,14 @@ const GamesLibraryContent: React.FC<GamesPageProps> = ({ state, sendCommand, set
     };
   }, [state, userId, isSignedIn, gamesLoaded, sendCommand]); // eslint-disable-line react-hooks/exhaustive-deps
 
-  // Clear local library when the user signs out so stale cards don't persist
+  // Clear local library and abort any in-progress scan UI when the user signs out
   useEffect(() => {
     if (!isSignedIn) {
       setGames([]);
       setScanStatus('idle');
+      setScanProgress(0);
+      setIsScanning(false);
+      setScanLogs([]);
     }
   }, [isSignedIn]);
 
@@ -639,6 +642,11 @@ const GamesLibraryContent: React.FC<GamesPageProps> = ({ state, sendCommand, set
           ) : (
             <button aria-label="button" type="button"
               onClick={() => {
+                // Immediately reset scan UI so the Library doesn't stay stuck mid-scan
+                setIsScanning(false);
+                setScanProgress(0);
+                setScanStatus('idle');
+                setScanLogs([]);
                 sendCommand('logout_user', { userId });
                 signOut();
               }}

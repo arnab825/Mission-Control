@@ -151,12 +151,27 @@ const Sidebar: React.FC<SidebarProps> = ({
                 )}
                 <div className="min-w-0 flex flex-col">
                   <span className="text-[10px] font-black text-white truncate uppercase tracking-tight">
-                    {user.username || user.firstName || 'Node Connected'}
+                    {(() => {
+                      // Prefer Clerk username, then external account username (e.g. Discord tag), then first name
+                      if (user.username) return user.username;
+                      const extAccount = user.externalAccounts?.[0];
+                      if (extAccount?.username) return extAccount.username;
+                      if (user.firstName) return user.firstName;
+                      return 'Node Connected';
+                    })()}
                   </span>
                   <span className="text-[8px] text-zinc-500 truncate lowercase font-medium mt-0.5">
-                    {user.primaryEmailAddress?.emailAddress || 'clerk.user'}
+                    {(() => {
+                      const extAccount = user.externalAccounts?.[0];
+                      // For pure OAuth accounts, show provider label + identifier
+                      if (extAccount && !user.primaryEmailAddress) {
+                        return `via ${extAccount.provider?.replace('oauth_', '') || 'sso'}`;
+                      }
+                      return user.primaryEmailAddress?.emailAddress || extAccount?.emailAddress || 'clerk.user';
+                    })()}
                   </span>
                 </div>
+
               </div>
               <button aria-label="button" type="button"
                 onClick={async (e) => {

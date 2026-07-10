@@ -461,10 +461,18 @@ class GameScanner:
             # Advanced Name Normalization for Duplicate Detection
             # This handles cases like "Epic Games" vs "Epic Games Launcher" vs "EpicGames"
             import re
-            norm_name = re.sub(r'\[.*?\]', '', name_lower)
-            norm_name = re.sub(r'\(.*?\)', '', norm_name)
-            norm_name = norm_name.replace("launcher", "").replace("app", "").replace("desktop", "").replace("connect", "").replace("games", "").strip()
-            clean_name = "".join(filter(str.isalnum, norm_name)).lower()
+            
+            # Whitelisted launcher entries bypass word-stripping normalization to prevent
+            # "Ubisoft Connect" / "GOG Galaxy" / "EA Desktop" from colliding with each other
+            # (all would reduce to "ubisoft", "gog", "ea" respectively and overwrite one another).
+            if is_whitelisted:
+                clean_name = "".join(filter(str.isalnum, name_lower)).lower()
+            else:
+                norm_name = re.sub(r'\[.*?\]', '', name_lower)
+                norm_name = re.sub(r'\(.*?\)', '', norm_name)
+                norm_name = norm_name.replace("launcher", "").replace("app", "").replace("desktop", "").replace("connect", "").replace("games", "").strip()
+                clean_name = "".join(filter(str.isalnum, norm_name)).lower()
+
             
             # If the name becomes empty after normalization (unlikely for real games), use full clean name
             if not clean_name:
