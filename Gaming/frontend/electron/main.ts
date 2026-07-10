@@ -90,6 +90,7 @@ const _dirname = typeof __dirname !== 'undefined'
   : path.dirname(fileURLToPath(import.meta.url))
 let pythonProcess: ChildProcess | null = null
 let tray: Tray | null = null
+let isManualUpdateCheck = false;
 
 function isAdmin(): boolean {
   if (process.platform !== 'win32') return true;
@@ -224,8 +225,11 @@ function createTray() {
 
     tray = new Tray(trayIcon);
 
+    const appIcon = getWindowIcon();
+    const menuIcon = appIcon ? appIcon.resize({ width: 16, height: 16 }) : undefined;
+
     const contextMenu = Menu.buildFromTemplate([
-      { label: '🛸 Mission Control Gaming Assistant', enabled: false },
+      { label: 'Mission Control Gaming Assistant', enabled: false, icon: menuIcon },
       { type: 'separator' },
       {
         label: 'Show Dashboard', click: () => {
@@ -267,7 +271,20 @@ function createTray() {
       {
         label: 'Check for Updates', click: () => {
           if (app.isPackaged) {
-            autoUpdater.checkForUpdates();
+            isManualUpdateCheck = true;
+            new Notification({
+              title: 'Mission Control',
+              body: 'Checking for updates...',
+              icon: appIcon
+            }).show();
+            autoUpdater.checkForUpdates().catch((err: any) => {
+              isManualUpdateCheck = false;
+              new Notification({
+                title: 'Update Check Failed',
+                body: `Failed to check for updates: ${err.message || err}`,
+                icon: appIcon
+              }).show();
+            });
           } else {
             dialog.showMessageBox({
               type: 'info',
@@ -415,7 +432,9 @@ process.env.DIST = path.join(_dirname, '../dist').replace(/\\/g, '/')
 process.env.VITE_PUBLIC = app.isPackaged ? process.env.DIST : path.join(process.env.DIST, '../public').replace(/\\/g, '/')
 
 function getWindowIcon() {
-  const iconPath = path.join(process.env.VITE_PUBLIC || '', 'icon.png');
+  const isWindows = process.platform === 'win32';
+  const iconName = isWindows ? 'favicon.ico' : 'icon.png';
+  const iconPath = path.join(process.env.VITE_PUBLIC || '', iconName);
   if (fs.existsSync(iconPath)) {
     return nativeImage.createFromPath(iconPath);
   }
@@ -1469,16 +1488,40 @@ function setupAutoUpdater() {
       notes: typeof info.releaseNotes === 'string' ? info.releaseNotes : '',
       message: `Update v${info.version} available.`
     });
+    if (isManualUpdateCheck) {
+      new Notification({
+        title: 'Mission Control Update Available',
+        body: `A new version (v${info.version}) is available. Open the dashboard to install it!`,
+        icon: getWindowIcon()
+      }).show();
+      isManualUpdateCheck = false;
+    }
   });
 
   autoUpdater.on('update-not-available', () => {
     console.log('[AutoUpdater] No updates available.');
     sendToAllWindows('electron-update-status', { status: 'up-to-date', message: 'Application is up to date.' });
+    if (isManualUpdateCheck) {
+      new Notification({
+        title: 'Mission Control Up to Date',
+        body: 'You are running the latest version of Mission Control.',
+        icon: getWindowIcon()
+      }).show();
+      isManualUpdateCheck = false;
+    }
   });
 
   autoUpdater.on('error', (err) => {
     console.error('[AutoUpdater] Error:', err);
     sendToAllWindows('electron-update-status', { status: 'error', message: err.message });
+    if (isManualUpdateCheck) {
+      new Notification({
+        title: 'Update Check Failed',
+        body: `Error checking for updates: ${err.message || err}`,
+        icon: getWindowIcon()
+      }).show();
+      isManualUpdateCheck = false;
+    }
   });
 
   autoUpdater.on('download-progress', (progress) => {
@@ -1500,11 +1543,18 @@ function setupAutoUpdater() {
       notes: typeof info.releaseNotes === 'string' ? info.releaseNotes : '',
       message: `Update v${info.version} ready to install.`
     });
+    new Notification({
+      title: 'Mission Control Update Ready',
+      body: `Version v${info.version} has been downloaded. Restart the application to apply the patch.`,
+      icon: getWindowIcon()
+    }).show();
   });
 
   // ── IPC Commands from frontend ───────────────────────────────────────────
   ipcMain.on('check-electron-updates', () => {
+    isManualUpdateCheck = true;
     autoUpdater.checkForUpdates().catch((err: any) => {
+      isManualUpdateCheck = false;
       console.error('[AutoUpdater] checkForUpdates failed:', err);
       sendToAllWindows('electron-update-status', { status: 'error', message: err.message });
     });

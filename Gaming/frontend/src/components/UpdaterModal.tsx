@@ -204,7 +204,10 @@ export const UpdaterModal: React.FC<UpdaterModalProps> = ({
                   {nativeUpdate.notes && (
                     <div className="bg-black/40 border border-white/5 rounded-2xl p-4 space-y-2">
                       <h5 className="text-[8px] font-black text-neon-green uppercase tracking-widest">Wrapper Release Notes:</h5>
-                      <p className="text-[9px] text-zinc-500 leading-relaxed font-mono whitespace-pre-wrap">{nativeUpdate.notes}</p>
+                      <div 
+                        className="text-[9px] text-zinc-500 leading-relaxed font-mono [&_ul]:list-disc [&_ul]:pl-4 [&_ul]:space-y-1 [&_li]:mt-1"
+                        dangerouslySetInnerHTML={{ __html: nativeUpdate.notes }}
+                      />
                     </div>
                   )}
                 </div>
@@ -228,9 +231,10 @@ export const UpdaterModal: React.FC<UpdaterModalProps> = ({
                   {nativeUpdate.notes && (
                     <div className="bg-black/60 border border-white/5 rounded-2xl p-4 space-y-2 mt-2">
                       <h5 className="text-[8px] font-black text-neon-green uppercase tracking-widest">Patch Notes:</h5>
-                      <div className="text-[10px] text-zinc-300 leading-relaxed font-mono whitespace-pre-wrap max-h-32 overflow-y-auto custom-scrollbar">
-                        {nativeUpdate.notes}
-                      </div>
+                      <div 
+                        className="text-[10px] text-zinc-300 leading-relaxed font-mono max-h-32 overflow-y-auto custom-scrollbar [&_ul]:list-disc [&_ul]:pl-4 [&_ul]:space-y-1 [&_li]:mt-1"
+                        dangerouslySetInnerHTML={{ __html: nativeUpdate.notes }}
+                      />
                     </div>
                   )}
 
