@@ -1,6 +1,6 @@
 !macro customHeader
-  ShowInstDetails show
-  ShowUninstDetails show
+  ShowInstDetails nevershow
+  ShowUninstDetails nevershow
 !macroend
 
 !macro customInstall

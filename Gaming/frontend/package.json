@@ -2,7 +2,7 @@
     "name":  "mission-control",
     "productName":  "Mission Control",
     "private":  true,
-    "version":  "1.1.4",
+    "version":  "1.1.5",
     "description":  "Mission Control desktop app for gamers.",
     "author":  "Arnab Contributors \u003csupport@missioncontrol.app\u003e",
     "type":  "module",
@@ -69,8 +69,8 @@
                                   "repo":  "Mission-Control"
                               },
                   "nsis":  {
-                               "oneClick":  false,
-                               "allowToChangeInstallationDirectory":  true,
+                               "oneClick":  true,
+                               "allowToChangeInstallationDirectory":  false,
                                "perMachine":  true,
                                "packElevateHelper":  true,
                                "allowElevation":  true,
