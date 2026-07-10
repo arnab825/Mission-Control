@@ -118,3 +118,19 @@ If the version in `version.json` gets out of sync with your Git tags, you can ma
 ```powershell
 uv run python scripts/bump_version.py --set 0.4.0 --title "Reset" --changes "Manual reset"
 ```
+
+---
+
+## 🖥️ Application UI Demos
+
+Here are visual reference screenshots of the compiled **Mission Control** interface:
+
+### 1. Central System Dashboard
+Displays active telemetry indicators (CPU utilization, GPU load, RAM constraints, and Disk diagnostics) in a clean dark UI, alongside strategic agent event logs.
+
+![Central Dashboard](./images/dashboard_demo.png)
+
+### 2. Game Library Launcher
+Aggregates local system launchers (Xbox App, EA Desktop, Epic Games) in one centralized interface for easy deployment.
+
+![Library Launcher](./images/library_demo.png)
