@@ -414,6 +414,14 @@ function startPythonBackend() {
 process.env.DIST = path.join(_dirname, '../dist').replace(/\\/g, '/')
 process.env.VITE_PUBLIC = app.isPackaged ? process.env.DIST : path.join(process.env.DIST, '../public').replace(/\\/g, '/')
 
+function getWindowIcon() {
+  const iconPath = path.join(process.env.VITE_PUBLIC || '', 'icon.png');
+  if (fs.existsSync(iconPath)) {
+    return nativeImage.createFromPath(iconPath);
+  }
+  return undefined;
+}
+
 let win: BrowserWindow | null
 // 🚧 Use ['ENV_NAME'] avoid vite:define plugin - SystemJS vite plugin
 const VITE_DEV_SERVER_URL = process.env['VITE_DEV_SERVER_URL']
@@ -505,7 +513,7 @@ async function createWindow() {
     transparent: false, // Must be false for backgroundMaterial
     backgroundColor: '#0a0a0a',
     backgroundMaterial: 'mica', // Enable native Windows 11 Mica effect
-    icon: path.join(process.env.VITE_PUBLIC || '', 'icon.png'),
+    icon: getWindowIcon(),
     webPreferences: {
       preload: path.join(_dirname, 'preload.cjs'),
       nodeIntegration: false,
@@ -1053,7 +1061,7 @@ async function createHUDWindow(showOnReady: boolean = false) {
     minimizable: false,     // Prevents OS-level minimization
     skipTaskbar: true,
     type: 'toolbar',        // Native Win32 WS_EX_TOOLWINDOW — exempts from OS auto-minimizing in fullscreen
-    icon: path.join(process.env.VITE_PUBLIC || '', 'icon.png'),
+    icon: getWindowIcon(),
     webPreferences: {
       preload: path.join(_dirname, 'preload.cjs'),
       nodeIntegration: false,
@@ -1564,7 +1572,7 @@ async function createOffscreenOverlay() {
     width: 800,
     height: 600,
     show: false, // Must remain hidden for OSR
-    icon: path.join(process.env.VITE_PUBLIC || '', 'icon.png'),
+    icon: getWindowIcon(),
     webPreferences: {
       offscreen: true, // Key flag enabling offscreen mode
       preload: path.join(_dirname, 'preload.mjs'),
