@@ -419,7 +419,11 @@ let win: BrowserWindow | null
 const VITE_DEV_SERVER_URL = process.env['VITE_DEV_SERVER_URL']
 let localServerPort = 0
 
-function startLocalServer(distPath: string): Promise<number> {
+// Fixed port for the local UI server — must be stable across restarts so Clerk's
+// localStorage origin (http://127.0.0.1:43221) never changes and sessions persist.
+const FIXED_UI_PORT = 43221;
+
+function startLocalServer(distPath: string, port = FIXED_UI_PORT, retries = 3): Promise<number> {
   return new Promise((resolve) => {
     try {
       const server = http.createServer((req, res) => {
@@ -469,13 +473,19 @@ function startLocalServer(distPath: string): Promise<number> {
     })
 
     server.on('error', (err: any) => {
-      console.error('[Electron Server] Server error occurred:', err);
-      resolve(0);
+      if ((err as any).code === 'EADDRINUSE' && retries > 0) {
+        console.warn(`[Electron Server] Port ${port} in use, retrying on ${port + 1}...`);
+        server.close();
+        resolve(startLocalServer(distPath, port + 1, retries - 1));
+      } else {
+        console.error('[Electron Server] Server error occurred:', err);
+        resolve(0);
+      }
     });
 
-    server.listen(0, '127.0.0.1', () => {
+    server.listen(port, '127.0.0.1', () => {
       const addr = server.address();
-      const p = typeof addr === 'string' ? 0 : (addr ? addr.port : 0);
+      const p = typeof addr === 'string' ? port : (addr ? addr.port : 0);
       console.log(`[Electron] Production local server running at http://127.0.0.1:${p}`)
       resolve(p);
     })
@@ -1443,27 +1453,14 @@ function setupAutoUpdater() {
 
   autoUpdater.on('update-available', (info) => {
     console.log('[AutoUpdater] Update available:', info.version);
+    // Send status to React UI — the UpdaterModal handles the download prompt
+    // so no native dialog is shown here (that would race with and duplicate the UI).
     sendToAllWindows('electron-update-status', {
       status: 'available',
       version: info.version,
-      message: `Update v${info.version} available. Asking user...`
+      notes: typeof info.releaseNotes === 'string' ? info.releaseNotes : '',
+      message: `Update v${info.version} available.`
     });
-    
-    dialog.showMessageBox({
-      type: 'info',
-      title: 'Update Available',
-      message: `Mission Control v${info.version} is available. Would you like to download it now?`,
-      buttons: ['Download', 'Skip'],
-      defaultId: 0,
-      cancelId: 1
-    }).then((result) => {
-      if (result.response === 0) {
-        console.log('[AutoUpdater] User accepted download.');
-        autoUpdater.downloadUpdate();
-      } else {
-        console.log('[AutoUpdater] User skipped download.');
-      }
-    }).catch(err => console.error('[AutoUpdater] Dialog error:', err));
   });
 
   autoUpdater.on('update-not-available', () => {
@@ -1486,26 +1483,15 @@ function setupAutoUpdater() {
 
   autoUpdater.on('update-downloaded', (info) => {
     console.log('[AutoUpdater] Update downloaded:', info.version);
+    // Send status to React UI — the UpdaterModal's "Restart & Relaunch" button
+    // calls quit-and-install-update via IPC, so no native dialog needed here.
     sendToAllWindows('electron-update-status', {
       status: 'downloaded',
       version: info.version,
       date: info.releaseDate,
       notes: typeof info.releaseNotes === 'string' ? info.releaseNotes : '',
-      message: `Update v${info.version} downloaded — asking for restart.`
+      message: `Update v${info.version} ready to install.`
     });
-
-    dialog.showMessageBox({
-      type: 'question',
-      title: 'Update Ready',
-      message: `Mission Control v${info.version} has been downloaded. Restart the application to apply the updates?`,
-      buttons: ['Restart Now', 'Later'],
-      defaultId: 0,
-      cancelId: 1
-    }).then((result) => {
-      if (result.response === 0) {
-        autoUpdater.quitAndInstall();
-      }
-    }).catch(err => console.error('[AutoUpdater] Dialog error:', err));
   });
 
   // ── IPC Commands from frontend ───────────────────────────────────────────

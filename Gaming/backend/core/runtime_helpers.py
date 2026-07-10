@@ -916,29 +916,34 @@ class TelemetryThread(threading.Thread):
                     if cpu_temp <= 0:
                         pass # Fallback simulation removed to prevent inaccurate reporting
 
-                # Smooth the temperature to prevent inaccurate spikes (thermal inertia simulation)
+                # --- Source-aware temperature post-processing ---
+                # LHM (LibreHardwareMonitor) reads directly from the CPU package
+                # sensor and is already accurate — no smoothing needed.
+                # Fallback sources (WMI ACPI, psutil, native) can produce single-
+                # tick outlier spikes, so we apply a lightweight outlier clamp only
+                # when NOT coming from LHM.
+                lhm_provided_temp = lhm and lhm.get("cpu_temp", 0) > 0
+
                 if cpu_temp > 0:
-                    # Hard clamp: CPU Tjunction max is 100°C for most Intel/AMD; never display above that
+                    # Hard clamp: Tjunction max is 100°C for most Intel/AMD CPUs.
                     cpu_temp = min(cpu_temp, 100.0)
-                    if hasattr(self, "_last_cpu_temp") and self._last_cpu_temp > 0:
-                        # EMA alpha: smooth transition to simulate real thermal mass.
-                        # Use a conservative alpha (0.5) on heat-up to dampen sensor noise spikes,
-                        # and an even slower reaction (0.2) when cooling down.
-                        if cpu_temp > self._last_cpu_temp:
-                            alpha = 0.50
-                        else:
-                            alpha = 0.20
-                        
-                        smoothed = self._last_cpu_temp + alpha * (cpu_temp - self._last_cpu_temp)
-                        # Snap if close to prevent infinite Zeno's paradox
-                        if abs(cpu_temp - smoothed) < 0.1:
-                            smoothed = cpu_temp
-                            
-                        self._last_cpu_temp = smoothed
-                        cpu_temp = round(smoothed, 1)
-                    else:
-                        self._last_cpu_temp = cpu_temp
-                        cpu_temp = round(cpu_temp, 1)
+
+                    if not lhm_provided_temp:
+                        # Outlier guard for noisy fallback sensors: if the reading
+                        # jumps more than 15°C in a single tick AND the CPU is
+                        # lightly loaded (<50%), treat it as a sensor artifact and
+                        # clamp the incoming value before accepting it.
+                        last = getattr(self, "_last_cpu_temp", 0)
+                        if last > 0 and abs(cpu_temp - last) > 15 and cpu_pct < 50:
+                            logger.debug(
+                                f"[Telemetry] Outlier spike rejected: {cpu_temp:.1f}°C "
+                                f"(prev={last:.1f}°C, load={cpu_pct:.0f}%)"
+                            )
+                            cpu_temp = last + (15 if cpu_temp > last else -15)
+
+                    self._last_cpu_temp = cpu_temp
+                    cpu_temp = round(cpu_temp, 1)
+
 
                 # Fallback / estimated CPU power draw if LHM is not providing CPU power
                 if cpu_power_w <= 0:
