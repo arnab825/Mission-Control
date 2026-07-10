@@ -2,6 +2,13 @@
 
 This document contains a detailed history of all patches and updates for the AI Gaming Assistant.
 
+### Patch: 2026-07-10 — v1.1.0: Discord auth, sign-out fix, Ubisoft Connect detection
+
+- Discord OAuth display name now shows Discord tag and provider label in sidebar
+- Fixed Library page getting stuck in scan state after signing out
+- Fixed Ubisoft Connect launcher not appearing after fresh install
+- Fixed GOG Galaxy and EA Desktop deduplication normalization collision
+
 ### Patch: 2026-07-10 — v1.1.0: OAuth Display, Sign-Out Scan Reset, and Ubisoft Connect Fixes
 
 - Resolved Discord OAuth display issues by cascading user name lookup
