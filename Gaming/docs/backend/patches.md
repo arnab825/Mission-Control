@@ -2,6 +2,10 @@
 
 This document contains a detailed history of all patches and updates for the AI Gaming Assistant.
 
+### Patch: 2026-07-11 — v1.2.1: Namespace import style for electron to resolve is-not-a-module editor warning
+
+- Namespace import style for electron to resolve is-not-a-module editor warning
+
 ### Patch: 2026-07-11 — v1.2.0: Increased NVIDIA NIM timeout and resolved TypeScript build warnings
 
 - Increased NVIDIA NIM timeout and resolved TypeScript build warnings

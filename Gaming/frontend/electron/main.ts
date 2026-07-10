@@ -1,4 +1,5 @@
-import { app, BrowserWindow, ipcMain, protocol, net, globalShortcut, shell, screen, dialog, Tray, Menu, nativeImage } from 'electron'
+import * as electron from 'electron'
+const { app, BrowserWindow, ipcMain, protocol, net, globalShortcut, shell, screen, dialog, Tray, Menu, nativeImage } = electron
 import { autoUpdater } from 'electron-updater'
 import path from 'node:path'
 import http from 'node:http'
