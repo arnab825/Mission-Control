@@ -2,6 +2,18 @@
 
 This document contains a detailed history of all patches and updates for the AI Gaming Assistant.
 
+### Patch: 2026-07-11 — v1.2.3: Added whitespace trimming to build inputs and file search filters
+
+- Added whitespace trimming to build inputs and file search filters
+
+### Patch: 2026-07-11 — v1.2.2: Resolved TypeScript value-used-as-type compiler warnings in Electron wrapper
+
+- Resolved TypeScript value-used-as-type compiler warnings in Electron wrapper
+
+### Patch: 2026-07-11 — v1.2.2: Resolved TypeScript value-used-as-type compiler warnings in Electron wrapper
+
+- Resolved TypeScript value-used-as-type compiler warnings in Electron wrapper
+
 ### Patch: 2026-07-11 — v1.2.1: Namespace import style for electron to resolve is-not-a-module editor warning
 
 - Namespace import style for electron to resolve is-not-a-module editor warning

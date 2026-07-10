@@ -1,5 +1,9 @@
 import * as electron from 'electron'
 const { app, BrowserWindow, ipcMain, protocol, net, globalShortcut, shell, screen, dialog, Tray, Menu, nativeImage } = electron
+
+type BrowserWindow = electron.BrowserWindow
+type Tray = electron.Tray
+
 import { autoUpdater } from 'electron-updater'
 import path from 'node:path'
 import http from 'node:http'
