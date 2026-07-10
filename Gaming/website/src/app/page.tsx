@@ -173,7 +173,7 @@ export default function Home() {
   const faqs = [
     {
       q: "What hardware do I need to run Mission Control?",
-      a: "Mission Control requires an NVIDIA GTX or RTX series graphics card (GTX 1060 6GB minimum, RTX 3060+ recommended) because all neural AI models run locally on Tensor Cores to guarantee zero game latency."
+      a: "Mission Control requires an NVIDIA GTX or RTX series graphics card (GTX 1060 6GB minimum, RTX 2060+ recommended) because all neural AI models run locally on Tensor Cores to guarantee zero game latency."
     },
     {
       q: "Is Mission Control free and open source?",
@@ -779,7 +779,7 @@ export default function Home() {
                   <span className="text-white font-bold">OS:</span> Windows 11 64-bit
                 </li>
                 <li className="flex flex-col sm:flex-row sm:justify-between border-b border-white/10 pb-2.5 gap-1">
-                  <span className="text-white font-bold">GPU:</span> NVIDIA RTX 3060+ (8GB+ VRAM)
+                  <span className="text-white font-bold">GPU:</span> NVIDIA RTX 2060+ (6GB+ VRAM)
                 </li>
                 <li className="flex flex-col sm:flex-row sm:justify-between border-b border-white/10 pb-2.5 gap-1">
                   <span className="text-white font-bold">RAM:</span> 32 GB High-Speed RAM

@@ -5,7 +5,7 @@ export async function GET() {
     os: ["Windows 10", "Windows 11", "Ubuntu 22.04+", "Arch Linux"],
     gpu: {
       minimum: "NVIDIA GTX 1060 (6GB VRAM)",
-      recommended: "NVIDIA RTX 3060 (12GB VRAM) or better",
+      recommended: "NVIDIA RTX 2060 (6GB VRAM) or better",
       note: "Strictly requires NVIDIA hardware for TensorRT local inference."
     },
     ram: {
