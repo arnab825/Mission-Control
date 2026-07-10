@@ -2,6 +2,12 @@
 
 This document contains a detailed history of all patches and updates for the AI Gaming Assistant.
 
+### Patch: 2026-07-10 — v1.1.1: Avatar fix, provider-switch scan reset, uninstall registry speedup
+
+- Avatar now loads from Google/Discord CDN with onError initials fallback
+- Scan overlay no longer sticks when switching OAuth provider (Discord to Google)
+- Uninstall registry scan phase cut from 30s+ to under 1s by removing disk walks
+
 ### Patch: 2026-07-10 — v1.1.0: Discord auth, sign-out fix, Ubisoft Connect detection
 
 - Discord OAuth display name now shows Discord tag and provider label in sidebar
