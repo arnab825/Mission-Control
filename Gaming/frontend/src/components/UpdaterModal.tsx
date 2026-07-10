@@ -260,7 +260,7 @@ export const UpdaterModal: React.FC<UpdaterModalProps> = ({
               )}
 
               {!installState && nativeUpdate.status === 'downloading' && (
-                <div className="p-6 bg-neon-green/5 border border-neon-green/20 rounded-3xl space-y-4 shadow-[0_0_20px_rgba(118,185,0,0.1)] animate-pulse">
+                <div className="p-6 bg-neon-green/5 border border-neon-green/20 rounded-3xl space-y-4 shadow-[0_0_20px_rgba(118,185,0,0.1)]">
                   <div className="flex items-center justify-between gap-4">
                     <div className="space-y-1">
                       <div className="flex items-center gap-2">

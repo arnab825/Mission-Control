@@ -2,6 +2,10 @@
 
 This document contains a detailed history of all patches and updates for the AI Gaming Assistant.
 
+### Patch: 2026-07-11 — v1.1.4: Removed update download blink animation
+
+- Removed update download blink animation
+
 ### Patch: 2026-07-10 — v1.1.3: Fixed patch notes HTML rendering and tray header logo
 
 - Fixed patch notes HTML rendering and tray header logo
