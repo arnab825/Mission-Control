@@ -419,6 +419,8 @@ class GameScanner:
 
         unique_games = {}
         for g in self.games:
+            if "name" in g:
+                g["name"] = g["name"].strip()
             name_lower = g["name"].lower()
             
             # Universal Junk Filter (Applies to ALL platforms)
@@ -836,7 +838,7 @@ class GameScanner:
             cache_lookup = {}
             for cg in cached_games:
                 if cg.get("name") and cg.get("type"):
-                    name_lower = cg["name"].lower()
+                    name_lower = cg["name"].strip().lower()
                     cg_type = cg.get("type")
                     
                     # Bypass cached LAUNCHER classification if the name is not in the launcher whitelist (re-classify false-positives)
@@ -861,7 +863,7 @@ class GameScanner:
             # Filter games that need classification
             uncategorized_games = []
             for game in self.games:
-                name_lower = game["name"].lower()
+                name_lower = game["name"].strip().lower()
                 if name_lower in cache_lookup:
                     game["type"] = cache_lookup[name_lower]["type"]
                     game["genre"] = cache_lookup[name_lower]["genre"]
@@ -932,7 +934,7 @@ class GameScanner:
                         game["type"] = "SOFTWARE"
                         game["genre"] = "PRODUCTIVITY"
                         game["tags"] = []
-                    elif re.search(launcher_pattern, name_lower):
+                    elif name_lower in self.launcher_whitelist or name_lower in ["ea desktop", "epic games launcher", "epic games", "battle.net launcher", "ubisoft connect launcher", "rockstar games launcher"]:
                         game["type"] = "LAUNCHER"
                         game["genre"] = "PLATFORM"
                         game["tags"] = ["SYSTEM"]

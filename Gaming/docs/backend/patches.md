@@ -2,6 +2,10 @@
 
 This document contains a detailed history of all patches and updates for the AI Gaming Assistant.
 
+### Patch: 2026-07-11 — v1.1.7: Fixed game name trailing space caching and strict launcher fallback classification
+
+- Fixed game name trailing space caching and strict launcher fallback classification
+
 ### Patch: 2026-07-11 — v1.1.6: Fixed startup hardware detecting lag and dashboard stat card value visibility
 
 - Fixed startup hardware detecting lag and dashboard stat card value visibility
