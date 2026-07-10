@@ -922,14 +922,23 @@ class TelemetryThread(threading.Thread):
                     cpu_temp = min(cpu_temp, 100.0)
                     if hasattr(self, "_last_cpu_temp") and self._last_cpu_temp > 0:
                         # EMA alpha: smooth transition to simulate real thermal mass.
-                        # Use a conservative alpha (0.2) on heat-up to dampen sensor noise spikes,
-                        # and an even slower reaction (0.08) when cooling down.
+                        # Use a conservative alpha (0.5) on heat-up to dampen sensor noise spikes,
+                        # and an even slower reaction (0.2) when cooling down.
                         if cpu_temp > self._last_cpu_temp:
-                            alpha = 0.20
+                            alpha = 0.50
                         else:
-                            alpha = 0.08
-                        cpu_temp = round(self._last_cpu_temp + alpha * (cpu_temp - self._last_cpu_temp), 1)
-                    self._last_cpu_temp = cpu_temp
+                            alpha = 0.20
+                        
+                        smoothed = self._last_cpu_temp + alpha * (cpu_temp - self._last_cpu_temp)
+                        # Snap if close to prevent infinite Zeno's paradox
+                        if abs(cpu_temp - smoothed) < 0.1:
+                            smoothed = cpu_temp
+                            
+                        self._last_cpu_temp = smoothed
+                        cpu_temp = round(smoothed, 1)
+                    else:
+                        self._last_cpu_temp = cpu_temp
+                        cpu_temp = round(cpu_temp, 1)
 
                 # Fallback / estimated CPU power draw if LHM is not providing CPU power
                 if cpu_power_w <= 0:

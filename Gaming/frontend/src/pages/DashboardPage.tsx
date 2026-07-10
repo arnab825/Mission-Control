@@ -296,7 +296,7 @@ const DashboardPage: React.FC<DashboardPageProps> = ({ state, onCommand, onNavig
       <div className="flex flex-col lg:flex-row gap-6 lg:gap-8 items-stretch lg:flex-1 min-h-0 overflow-visible lg:overflow-hidden pb-4 lg:pb-0">
         
         {/* === BRANDED AI ASSISTANT PORTION (Left/Center) === */}
-        <div className="flex-1 flex flex-col min-h-[350px] lg:min-h-0 bg-white/[0.06] border border-white/15 rounded-3xl p-5 relative overflow-hidden shadow-[0_0_20px_rgba(118, 185, 0,0.05)]">
+        <div className="flex-1 flex flex-col min-h-[350px] lg:min-h-0 min-w-0 bg-white/[0.06] border border-white/15 rounded-3xl p-5 relative overflow-hidden shadow-[0_0_20px_rgba(118, 185, 0,0.05)]">
           
           {/* Header block with fully responsive layout to protect against squishing/truncation */}
           <div className="flex flex-col sm:flex-row lg:flex-col xl:flex-row justify-between lg:items-start xl:items-center gap-3 border-b border-white/5 pb-3 shrink-0">
@@ -348,7 +348,7 @@ const DashboardPage: React.FC<DashboardPageProps> = ({ state, onCommand, onNavig
           </div>
 
           {/* AI strategy chat-like logs feed (deduplicated) */}
-          <div className="flex-1 overflow-y-auto custom-scrollbar gap-y-2 pr-1 min-h-0 mt-3">
+          <div className="flex-1 flex flex-col overflow-y-auto custom-scrollbar gap-y-2 pr-1 min-h-0 mt-3">
             {filteredLogs.length === 0 ? (
               <div className="h-full flex flex-col items-center justify-center gap-3 text-zinc-600">
                 <BrainCircuit className="w-8 h-8 opacity-20 animate-pulse" />
@@ -408,7 +408,7 @@ const DashboardPage: React.FC<DashboardPageProps> = ({ state, onCommand, onNavig
                           <span className={`text-[9px] font-black uppercase tracking-widest border px-1.5 py-0.5 rounded-md ${pill}`}>{label}</span>
                           <span className="text-[9px] text-zinc-600 font-mono">{log.time}</span>
                         </div>
-                        <p className={`text-[11px] font-semibold leading-snug ${text}`}>{friendlyMsg(log.msg)}</p>
+                        <p className={`text-[11px] font-semibold leading-snug break-all whitespace-pre-wrap ${text}`}>{friendlyMsg(log.msg)}</p>
                       </div>
                     </motion.div>
                   );
