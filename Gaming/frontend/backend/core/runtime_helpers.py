@@ -42,25 +42,57 @@ def _try_win_cpu_temp_native() -> float:
 
     # --- Approach 0: AWCC WMI (Alienware Command Center) ---
     # AWCCWmiMethodFunction.Thermal_Information returns CPU temp in Celsius.
-    # arg2=260 (0x0104) is the 'CPU Internal Thermistor' live sensor.
     # This is pre-installed on all Alienware laptops and needs no kernel driver.
     try:
         si = subprocess.STARTUPINFO()
         si.dwFlags |= subprocess.STARTF_USESHOWWINDOW
-        awcc_script = (
+        diag_script = (
             '$awcc = Get-CimInstance -Namespace "root/WMI" -ClassName "AWCCWmiMethodFunction" -ErrorAction Stop; '
-            '$r = Invoke-CimMethod -InputObject $awcc -MethodName "Thermal_Information" -Arguments @{arg2=[uint32]260}; '
-            'Write-Host $r.argr'
+            '$res = @(); '
+            'foreach ($id in @(4, 260, 516, 772, 1028, 1284, 1540)) { '
+            '  try { '
+            '    $r = Invoke-CimMethod -InputObject $awcc -MethodName "Thermal_Information" -Arguments @{arg2=[uint32]$id} -ErrorAction Stop; '
+            '    $res += "$id=$($r.argr)" '
+            '  } catch {} '
+            '}; '
+            'Write-Host ($res -join ",")'
         )
-        out = subprocess.check_output(
-            ["powershell", "-NoProfile", "-Command", awcc_script],
-            startupinfo=si, creationflags=0x08000000, timeout=3.0
+        diag_out = subprocess.check_output(
+            ["powershell", "-NoProfile", "-Command", diag_script],
+            startupinfo=si, creationflags=0x08000000, timeout=2.0
         ).decode().strip()
-        if out.isdigit():
-            t = int(out)
-            # 0xFFFFFFFE / 0xFFFFFFFF are AWCC error codes; valid range is 0-120°C
-            if 0 < t < 120:
-                return float(t)
+        
+        if diag_out:
+            sensor_vals = {}
+            for pair in diag_out.split(","):
+                if "=" in pair:
+                    key, v = pair.split("=")
+                    if v.isdigit():
+                        sensor_vals[int(key)] = int(v)
+
+            # Choose the best CPU sensor:
+            cpu_sensor_id = 260
+            for possible_id in [4, 260, 516, 772, 1028, 1284, 1540]:
+                val = sensor_vals.get(possible_id, 0)
+                if 30 < val < 100:
+                    cpu_sensor_id = possible_id
+                    break
+
+            # Query the chosen sensor
+            awcc_script = (
+                '$awcc = Get-CimInstance -Namespace "root/WMI" -ClassName "AWCCWmiMethodFunction" -ErrorAction Stop; '
+                f'$r = Invoke-CimMethod -InputObject $awcc -MethodName "Thermal_Information" -Arguments @{{arg2=[uint32]{cpu_sensor_id}}}; '
+                'Write-Host $r.argr'
+            )
+            out = subprocess.check_output(
+                ["powershell", "-NoProfile", "-Command", awcc_script],
+                startupinfo=si, creationflags=0x08000000, timeout=2.0
+            ).decode().strip()
+            if out.isdigit():
+                t = int(out)
+                # 0xFFFFFFFE / 0xFFFFFFFF are AWCC error codes; valid range is 0-120°C
+                if 0 < t < 120:
+                    return float(t)
     except Exception:
         pass
 

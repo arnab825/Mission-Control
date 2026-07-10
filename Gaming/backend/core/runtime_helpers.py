@@ -93,11 +93,11 @@ def _try_win_cpu_temp_native() -> float:
             si = subprocess.STARTUPINFO()
             si.dwFlags |= subprocess.STARTF_USESHOWWINDOW
             
-            # Diagnostics: Query sensors 257 to 264 and write them to a log file so we can see which one matches the actual CPU temp.
+            # Diagnostics: Query correct bitpacked sensor IDs and write them to a log file so we can see which one matches the actual CPU temp.
             diag_script = (
                 '$awcc = Get-CimInstance -Namespace "root/WMI" -ClassName "AWCCWmiMethodFunction" -ErrorAction Stop; '
                 '$res = @(); '
-                'foreach ($id in 257..264) { '
+                'foreach ($id in @(4, 260, 516, 772, 1028, 1284, 1540)) { '
                 '  try { '
                 '    $r = Invoke-CimMethod -InputObject $awcc -MethodName "Thermal_Information" -Arguments @{arg2=[uint32]$id} -ErrorAction Stop; '
                 '    $res += "$id=$($r.argr)" '
@@ -136,10 +136,10 @@ def _try_win_cpu_temp_native() -> float:
 
                 # Choose the best CPU sensor:
                 # On Alienware, 260 is sometimes static 100 (thermal limit or disabled),
-                # while 257, 258, or 259 dynamically report temperatures.
-                # Let's pick the first sensor in 257..259 that returns a temperature between 30 and 99.
+                # while other sensors dynamically report temperatures.
+                # Let's pick the first sensor in our list that returns a temperature between 30 and 99.
                 cpu_sensor_id = 260
-                for possible_id in [257, 258, 259]:
+                for possible_id in [4, 260, 516, 772, 1028, 1284, 1540]:
                     val = sensor_vals.get(possible_id, 0)
                     if 30 < val < 100:
                         cpu_sensor_id = possible_id

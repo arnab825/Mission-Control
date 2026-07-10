@@ -2,6 +2,10 @@
 
 This document contains a detailed history of all patches and updates for the AI Gaming Assistant.
 
+### Patch: 2026-07-10 — v1.0.2: Fixed the bugs of AWCC senor and Fixed the library for making duplicate
+
+- Fixed the bugs of AWCC senor and Fixed the library for making duplicate
+
 ### Patch: 2026-07-10 — v1.1.1: Avatar fix, provider-switch scan reset, uninstall registry speedup
 
 - Avatar now loads from Google/Discord CDN with onError initials fallback

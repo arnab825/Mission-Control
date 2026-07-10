@@ -4,6 +4,15 @@ import logging
 from typing import Optional
 from pydantic import BaseModel, Field
 
+# Monkey-patch requests.Session.request to enforce a default timeout of 30 seconds
+import requests
+_orig_session_request = requests.Session.request
+def _patched_session_request(self, method, url, *args, **kwargs):
+    if 'timeout' not in kwargs or kwargs['timeout'] is None:
+        kwargs['timeout'] = 30.0
+    return _orig_session_request(self, method, url, *args, **kwargs)
+requests.Session.request = _patched_session_request
+
 from langchain_nvidia_ai_endpoints import ChatNVIDIA
 from langchain_core.prompts import ChatPromptTemplate
 from langchain_core.output_parsers import PydanticOutputParser

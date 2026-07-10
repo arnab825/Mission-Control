@@ -462,11 +462,14 @@ class GameScanner:
             # This handles cases like "Epic Games" vs "Epic Games Launcher" vs "EpicGames"
             import re
             
-            # Whitelisted launcher entries bypass word-stripping normalization to prevent
+            # Whitelisted launcher entries bypass word-stripping normalization initially to prevent
             # "Ubisoft Connect" / "GOG Galaxy" / "EA Desktop" from colliding with each other
             # (all would reduce to "ubisoft", "gog", "ea" respectively and overwrite one another).
+            # However, we perform a controlled strip on launcher-specific keywords to ensure variations like
+            # "Epic Games" vs "Epic Games Launcher" deduplicate cleanly.
             if is_whitelisted:
                 clean_name = "".join(filter(str.isalnum, name_lower)).lower()
+                clean_name = clean_name.replace("launcher", "").replace("app", "").replace("desktop", "").replace("connect", "").replace("games", "")
             else:
                 norm_name = re.sub(r'\[.*?\]', '', name_lower)
                 norm_name = re.sub(r'\(.*?\)', '', norm_name)
