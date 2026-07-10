@@ -366,6 +366,7 @@ def handle_bridge_update_commands(cmd_type: str, payload: dict, bridge_instance)
                         issues = json.loads(resp.read().decode("utf-8"))
                 except Exception as req_err:
                     # Fallback to local offline issues database if Next.js server is not running
+                    github_fallback_url = "https://raw.githubusercontent.com/arnab825/Mission-Control/main/Gaming/website/data/issues.json"
                     fallback_path = os.path.join(PROJECT_ROOT, "Gaming", "website", "data", "issues.json")
                     if os.path.exists(fallback_path):
                         with open(fallback_path, "r", encoding="utf-8") as f:

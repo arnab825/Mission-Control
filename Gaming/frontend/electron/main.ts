@@ -367,7 +367,7 @@ function startPythonBackend() {
         console.log(`[Electron] Using bundled backend exe: ${bundledExe}`)
       } else {
         // Fallback: raw python (developer machine without compiled binary)
-        const localVenv = 'C:/Users/DELL/Desktop/AiAssistant/Gaming/backend/.venv/Scripts/python.exe'
+        const localVenv = 'c:/GitHub/Mission-Control/Gaming/backend/.venv/Scripts/python.exe'
         executablePath = fs.existsSync(localVenv) ? localVenv : 'python'
         args = [scriptPath]
         console.log(`[Electron] Fallback — python: ${executablePath}`)

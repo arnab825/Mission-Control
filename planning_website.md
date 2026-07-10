@@ -19,7 +19,7 @@ This plan outlines the creation of a new marketing website (landing page) for yo
 
 ### 1. New Website Project Initialization
 
-We will create a new directory named `website` at the root of your project (`c:\Users\DELL\Desktop\AiAssistant\Gaming\website`).
+We will create a new directory named `website` at the root of your project (`Gaming/website`).
 
 #### [NEW] `website/` (Next.js Project)
 - Initialize a new Next.js application with Tailwind CSS and TypeScript.

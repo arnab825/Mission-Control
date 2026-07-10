@@ -6,7 +6,7 @@ This document outlines the step-by-step process for releasing a new version of t
 
 ## 🏁 Quick Release Workflow (Cheat Sheet)
 
-Always execute all commands from the **project root directory** (`AiAssistant`):
+Always execute all commands from the **project root directory** (`Mission-Control`):
 
 ### Step 1: Push & tag the code
 ```powershell
@@ -31,7 +31,7 @@ Before triggering a publish, ensure you have:
 3.  **Clean Workspace**: It's recommended to commit large binary changes separately before running the release script.
 
 ## 📦 Step 2: Run the Publish Script
-The `publish.ps1` script is your one-stop tool for all release types. Open PowerShell in the **project root directory** (`AiAssistant`) and choose a mode:
+The `publish.ps1` script is your one-stop tool for all release types. Open PowerShell in the **project root directory** (`Mission-Control`) and choose a mode:
 
 ### Mode A: Simple Patch (Recommended for quick fixes)
 If you just have a single fix or small update, use the simplified one-argument syntax. This automatically bumps the **patch** version.
@@ -68,7 +68,7 @@ When you trigger `.\run_local.ps1`, the pipeline executes the following sequence
    > [!NOTE]
    > Stamping is executed *before* backend compilation so that the correct version number is permanently compiled into the PyInstaller binary.
 3. **`compile-backend`**: Bundles the Python code into a standalone binary using PyInstaller.
-   * **Bundle Optimization**: To avoid compilation stutters, dynamic import errors (such as ChromaDB telemetry/posthog failures), and package bloat, the [MissionControl.spec](file:///c:/Users/DELL/Desktop/AiAssistant/Gaming/backend/MissionControl.spec) file dynamically walks ChromaDB to include all submodules while explicitly excluding unused vector adapters from `mem0` (like Weaviate, Pinecone, Milvus) and `chromadb` testing packages.
+   * **Bundle Optimization**: To avoid compilation stutters, dynamic import errors (such as ChromaDB telemetry/posthog failures), and package bloat, the [MissionControl.spec](file:///c:/GitHub/Mission-Control/Gaming/backend/MissionControl.spec) file dynamically walks ChromaDB to include all submodules while explicitly excluding unused vector adapters from `mem0` (like Weaviate, Pinecone, Milvus) and `chromadb` testing packages.
 4. **`move-backend`**: Copies `dist/MissionControl` to `Gaming/frontend/backend/MissionControl`.
 5. **`package-electron`**: Packages the Electron application containing the compiled backend.
 6. **`build-nsis`**: Generates the `MissionControl-Setup.exe` installer.
@@ -78,10 +78,10 @@ When you trigger `.\run_local.ps1`, the pipeline executes the following sequence
 
 ## ⚙️ C# Telemetry Helper (`HardwareMonitor`)
 
-The application queries hardware telemetries (temperature, frequency, power) on Windows via a native C# sub-process located at [Gaming/backend/system/hardware_monitor](file:///c:/Users/DELL/Desktop/AiAssistant/Gaming/backend/system/hardware_monitor).
+The application queries hardware telemetries (temperature, frequency, power) on Windows via a native C# sub-process located at [Gaming/backend/system/hardware_monitor](file:///c:/GitHub/Mission-Control/Gaming/backend/system/hardware_monitor).
 
 ### Rebuilding the DLL
-If you modify [Program.cs](file:///c:/Users/DELL/Desktop/AiAssistant/Gaming/backend/system/hardware_monitor/Program.cs):
+If you modify [Program.cs](file:///c:/GitHub/Mission-Control/Gaming/backend/system/hardware_monitor/Program.cs):
 1. Rebuild the Release binary from the project root:
    ```powershell
    cd Gaming/backend/system/hardware_monitor

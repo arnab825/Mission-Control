@@ -11,7 +11,7 @@ Implement auto-update capabilities for Windows and macOS clients using Electron'
 
 > [!TIP]
 > **Feed URL Service**:
-> We are using Electron's official, free update routing service: `https://update.electronjs.org/arnab825/AiAssistant`. This handles Squirrel.Windows and Squirrel.Mac release feeds seamlessly.
+> We are using Electron's official, free update routing service: `https://update.electronjs.org/arnab825/Mission-Control`. This handles Squirrel.Windows and Squirrel.Mac release feeds seamlessly.
 
 ## Open Questions
 
@@ -25,18 +25,18 @@ We will modify files across both the Electron main process, preload script, Type
 
 ### Electron Main & Preload Process
 
-#### [MODIFY] [main.ts](file:///c:/Users/DELL/Desktop/GameMode/Gaming/frontend/electron/main.ts)
+#### [MODIFY] [main.ts](file:///c:/GitHub/Mission-Control/Gaming/frontend/electron/main.ts)
 - Add Squirrel startup event handling at the very top of the script. This processes flags like `--squirrel-install`, `--squirrel-updated`, `--squirrel-uninstall`, and `--squirrel-obsolete` to create/remove shortcuts and gracefully exit.
 - Integrate `autoUpdater` from `electron`.
 - Add a robust `setupAutoUpdater()` function that performs feature/environment checks:
   - Only runs on `win32` or `darwin` and when `app.isPackaged` is true.
   - In development, gracefully registers stubs to return mock status updates without failing.
-- Configure Electron official feed URL: `https://update.electronjs.org/arnab825/AiAssistant/${process.platform}-${process.arch}/${app.getVersion()}`
+- Configure Electron official feed URL: `https://update.electronjs.org/arnab825/Mission-Control/${process.platform}-${process.arch}/${app.getVersion()}`
 - Wire up `autoUpdater` lifecycle events (`checking-for-update`, `update-available`, `update-not-available`, `error`, `update-downloaded`).
 - Expose IPC channels for triggering update checks (`check-electron-updates`) and triggering the installation/restart (`quit-and-install-update`).
 - Initialize autoUpdater inside `app.whenReady()`.
 
-#### [MODIFY] [preload.ts](file:///c:/Users/DELL/Desktop/GameMode/Gaming/frontend/electron/preload.ts)
+#### [MODIFY] [preload.ts](file:///c:/GitHub/Mission-Control/Gaming/frontend/electron/preload.ts)
 - Add `checkElectronUpdates`, `quitAndInstallElectronUpdate`, and `onElectronUpdateStatus` to the `electronAPI` context bridge.
 - Map global signatures for typed access.
 

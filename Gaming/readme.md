@@ -69,10 +69,10 @@ An advanced, real-time AI gaming assistant that provides tactical coaching, visi
 - **Privacy Settings**: Added privacy toggle controls to settings.
 
 #### `v1.3.8` — 2026-06-10 (DirectX Native Frame-Rate Engine & High-Fidelity HUD Telemetry)
-- **C++ DirectX FPS Engine**: Implemented low-level frame presentation queue queries inside the C++ native layer ([fps_counter.cpp](file:///C:/GitHub/AiAssistant/Gaming/backend/fps_counter.cpp) compiled to `fps_counter.dll`), capturing absolute instantaneous minimum and maximum FPS.
+- **C++ DirectX FPS Engine**: Implemented low-level frame presentation queue queries inside the C++ native layer ([fps_counter.cpp](file:///c:/GitHub/Mission-Control/Gaming/backend/fps_counter.cpp) compiled to `fps_counter.dll`), capturing absolute instantaneous minimum and maximum FPS.
 - **Precision Telemetry Stream**: Exposed absolute min/max FPS, 1% lows, average min/max FPS, real-time CPU/GPU wattage, CPU/GPU temperatures, and physical RAM/VRAM capacities over the WebSocket bridge without Rolling Average Python fallbacks.
-- **HUD Layout Standardization**: Standardized CPU Util and GPU Temp indicators across Standard, Compact, and Horizontal layouts in [HUD.tsx](file:///C:/GitHub/AiAssistant/Gaming/frontend/src/components/HUD.tsx), utilizing relative `em` scaling for perfect proportion adjustment and dynamic Electron `setBounds` window boundaries resizing in [main.ts](file:///C:/GitHub/AiAssistant/Gaming/frontend/electron/main.ts).
-- **Speech Recognition Deprecation Guard**: Silenced third-party standard library deprecation warnings (`aifc` and `audioop` slated for removal in Python 3.13) by wrapping imports in a localized `warnings.catch_warnings` block inside [voice_manager.py](file:///C:/GitHub/AiAssistant/Gaming/backend/voice/voice_manager.py).
+- **HUD Layout Standardization**: Standardized CPU Util and GPU Temp indicators across Standard, Compact, and Horizontal layouts in [HUD.tsx](file:///c:/GitHub/Mission-Control/Gaming/frontend/src/components/HUD.tsx), utilizing relative `em` scaling for perfect proportion adjustment and dynamic Electron `setBounds` window boundaries resizing in [main.ts](file:///c:/GitHub/Mission-Control/Gaming/frontend/electron/main.ts).
+- **Speech Recognition Deprecation Guard**: Silenced third-party standard library deprecation warnings (`aifc` and `audioop` slated for removal in Python 3.13) by wrapping imports in a localized `warnings.catch_warnings` block inside [voice_manager.py](file:///c:/GitHub/Mission-Control/Gaming/backend/voice/voice_manager.py).
 
 #### `v1.3.7` — 2026-05-30 (Asynchronous Search, Pure Telemetry & Active Cleaning)
 - **Asynchronous Gameplay Search**: Integrated a fully background asynchronous thread to fetch mission and strategy walkthroughs, eliminating core brain thread blocks and HUD stuttering.
@@ -397,7 +397,7 @@ To package, build the NSIS installer, and publish a new desktop app release to G
    ```powershell
    .\run_local.ps1
    ```
-3. Enter the tag version (e.g., `v2.0.0`) and enter your GitHub Personal Access Token (with **Contents: Read & write** access to `arnab825/AiAssistant`) when prompted.
+3. Enter the tag version (e.g., `v2.0.0`) and enter your GitHub Personal Access Token (with **Contents: Read & write** access to `arnab825/Mission-Control`) when prompted.
 
 ---
 

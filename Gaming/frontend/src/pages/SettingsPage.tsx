@@ -3742,9 +3742,9 @@ const SettingsPage: React.FC<{ state: TelemetryState | null, sendCommand: (type:
               <input
                 type="text"
                 readOnly
-                value={localConfig.system?.app_data_path || `${desktopPath}/AiAssistant/Gaming`}
+                value={localConfig.system?.app_data_path || `${desktopPath}/Mission-Control/Gaming`}
                 className="flex-1 bg-black/40 border border-white/10 rounded-xl py-2 px-3 text-[10px] font-mono text-neon-green focus:outline-none cursor-default truncate"
-                title={localConfig.system?.app_data_path || `${desktopPath}/AiAssistant/Gaming`}
+                title={localConfig.system?.app_data_path || `${desktopPath}/Mission-Control/Gaming`}
               />
               {(window as any).electronAPI?.selectDirectory && (
                 <button aria-label="button" type="button"

@@ -2,7 +2,7 @@ import fs from "fs";
 import path from "path";
 import matter from "gray-matter";
 
-// The docs directory is at the Gaming root (c:\GitHub\AiAssistant\Gaming\docs)
+// The docs directory is at the Gaming root (c:\GitHub\Mission-Control\Gaming\docs)
 const docsDirectory = path.join(process.cwd(), "..", "docs");
 
 export interface DocData {

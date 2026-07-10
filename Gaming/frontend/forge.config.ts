@@ -41,7 +41,7 @@ const config: ForgeConfig = {
       config: {
         options: {
           maintainer: 'Arnab Roy and Anirudha Basu Thakur <support@yourdomain.com>',
-          homepage: 'https://github.com/arnab825/AiAssistant'
+          homepage: 'https://github.com/arnab825/Mission-Control'
         }
       }
     },

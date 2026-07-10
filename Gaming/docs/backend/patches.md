@@ -203,10 +203,10 @@ This document contains a detailed history of all patches and updates for the AI 
 
 ### Patch: 2026-06-10 — v1.3.8: DirectX Native Frame-Rate Engine & High-Fidelity HUD Telemetry
 
-- **C++ DirectX FPS Engine**: Implemented low-level frame presentation queue queries inside the C++ native layer ([fps_counter.cpp](file:///C:/GitHub/AiAssistant/Gaming/backend/fps_counter.cpp) compiled to `fps_counter.dll`), capturing absolute instantaneous minimum and maximum FPS.
+- **C++ DirectX FPS Engine**: Implemented low-level frame presentation queue queries inside the C++ native layer ([fps_counter.cpp](file:///c:/GitHub/Mission-Control/Gaming/backend/fps_counter.cpp) compiled to `fps_counter.dll`), capturing absolute instantaneous minimum and maximum FPS.
 - **Precision Telemetry Stream**: Exposed absolute min/max FPS, 1% lows, average min/max FPS, real-time CPU/GPU wattage, CPU/GPU temperatures, and physical RAM/VRAM capacities over the WebSocket bridge without Rolling Average Python fallbacks.
-- **HUD Layout Standardization**: Standardized CPU Util and GPU Temp indicators across Standard, Compact, and Horizontal layouts in [HUD.tsx](file:///C:/GitHub/AiAssistant/Gaming/frontend/src/components/HUD.tsx), utilizing relative `em` scaling for perfect proportion adjustment and dynamic Electron `setBounds` window boundaries resizing in [main.ts](file:///C:/GitHub/AiAssistant/Gaming/frontend/electron/main.ts).
-- **Speech Recognition Deprecation Guard**: Silenced third-party standard library deprecation warnings (`aifc` and `audioop` slated for removal in Python 3.13) by wrapping imports in a localized `warnings.catch_warnings` block inside [voice_manager.py](file:///C:/GitHub/AiAssistant/Gaming/backend/voice/voice_manager.py).
+- **HUD Layout Standardization**: Standardized CPU Util and GPU Temp indicators across Standard, Compact, and Horizontal layouts in [HUD.tsx](file:///c:/GitHub/Mission-Control/Gaming/frontend/src/components/HUD.tsx), utilizing relative `em` scaling for perfect proportion adjustment and dynamic Electron `setBounds` window boundaries resizing in [main.ts](file:///c:/GitHub/Mission-Control/Gaming/frontend/electron/main.ts).
+- **Speech Recognition Deprecation Guard**: Silenced third-party standard library deprecation warnings (`aifc` and `audioop` slated for removal in Python 3.13) by wrapping imports in a localized `warnings.catch_warnings` block inside [voice_manager.py](file:///c:/GitHub/Mission-Control/Gaming/backend/voice/voice_manager.py).
 
 ### Patch: 2026-05-30 — v1.3.7: Asynchronous Search, Pure Telemetry & Active Cleaning
 

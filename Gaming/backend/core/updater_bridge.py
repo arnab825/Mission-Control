@@ -416,7 +416,7 @@ def handle_bridge_update_commands(cmd_type: str, payload: dict, bridge_instance)
                         issues = json.loads(resp.read().decode("utf-8"))
                 except Exception as req_err:
                     # Fallback to downloading raw issues.json from GitHub if local/Next.js server is offline
-                    github_fallback_url = "https://raw.githubusercontent.com/arnab825/AiAssistant/main/Gaming/website/data/issues.json"
+                    github_fallback_url = "https://raw.githubusercontent.com/arnab825/Mission-Control/main/Gaming/website/data/issues.json"
                     try:
                         github_req = urllib.request.Request(
                             github_fallback_url, headers={"User-Agent": "MissionControl-Launcher/1.0"}

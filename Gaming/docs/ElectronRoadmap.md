@@ -7,7 +7,7 @@ We have systematically integrated the items from this roadmap into the **Fronten
 *   **[x] 3) Progress bar:** Native `setProgressBar` hook exposed to React so long model downloads show progress on the taskbar.
 *   **[x] 4) Notification:** Integrated native notifications when games are active or VRAM exceeds threshold.
 *   **[x] 5) Multithreading Node.js:** High-frequency telemetry and CPU/GPU metrics moved to a background Node `Worker` thread to protect game FPS.
-*   **[x] 6) Advanced Reference:** Design documentation and architecture references established in [ProductRoadmap.md](file:///c:/Users/DELL/Desktop/AiAssistant/Gaming/ProductRoadmap.md).
+*   **[x] 6) Advanced Reference:** Design documentation and architecture references established in [ProductRoadmap.md](file:///c:/GitHub/Mission-Control/Gaming/docs/ProductRoadmap.md).
 *   **[x] 7) Signing Windows Builds:** Integrated Windows Authenticode signing hooks inside `forge.config.ts` leveraging certificate environment variables.
 *   **[x] 8) Menus - Context Menus, Tray menus, and Application Menus:** Completed! Custom native context menus configured on all app windows and transparent overlays; native clock taskbar tray menu active.
 *   **[x] 9) Native App drag and drop:** Integrated support for file/image drops in the AI Chat container.
@@ -17,5 +17,5 @@ We have systematically integrated the items from this roadmap into the **Fronten
 
 ---
 For reference: https://www.electronjs.org/docs/latest/
-Product Guide: [ProductRoadmap.md](file:///c:/Users/DELL/Desktop/AiAssistant/Gaming/ProductRoadmap.md)
-Walkthrough notes: [walkthrough.md](file:///C:/Users/DELL/.gemini/antigravity-ide/brain/11d4e212-4456-4ea6-9949-1d45049590c8/walkthrough.md)
+Product Guide: [ProductRoadmap.md](file:///c:/GitHub/Mission-Control/Gaming/docs/ProductRoadmap.md)
+Walkthrough notes: [walkthrough.md](./walkthrough.md)
