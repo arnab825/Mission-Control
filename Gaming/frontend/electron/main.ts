@@ -272,18 +272,8 @@ function createTray() {
         label: 'Check for Updates', click: () => {
           if (app.isPackaged) {
             isManualUpdateCheck = true;
-            new Notification({
-              title: 'Mission Control',
-              body: 'Checking for updates...',
-              icon: appIcon
-            }).show();
             autoUpdater.checkForUpdates().catch((err: any) => {
               isManualUpdateCheck = false;
-              new Notification({
-                title: 'Update Check Failed',
-                body: `Failed to check for updates: ${err.message || err}`,
-                icon: appIcon
-              }).show();
             });
           } else {
             dialog.showMessageBox({
@@ -1396,15 +1386,7 @@ ipcMain.on('game-focus-changed', (_event, isActive: boolean, isFocused: boolean,
           createHUDWindow(isFocused);
           console.log(`[Electron] Game active: ${currentGame} — auto-spawned HUD overlay window.`);
 
-          // Show a premium native OS Notification
-          if (Notification.isSupported()) {
-            const notification = new Notification({
-              title: '🛸 Mission Control Overlay Hooked',
-              body: `${currentGame} is active. Vision HUD tracking is online in borderless fullscreen.`,
-              silent: true // Silence Electron default to avoid audio conflict with winsound chime!
-            });
-            notification.show();
-          }
+// Auto-spawn HUD overlay window.
         }
       }
 
@@ -1489,11 +1471,6 @@ function setupAutoUpdater() {
       message: `Update v${info.version} available.`
     });
     if (isManualUpdateCheck) {
-      new Notification({
-        title: 'Mission Control Update Available',
-        body: `A new version (v${info.version}) is available. Open the dashboard to install it!`,
-        icon: getWindowIcon()
-      }).show();
       isManualUpdateCheck = false;
     }
   });
@@ -1502,11 +1479,6 @@ function setupAutoUpdater() {
     console.log('[AutoUpdater] No updates available.');
     sendToAllWindows('electron-update-status', { status: 'up-to-date', message: 'Application is up to date.' });
     if (isManualUpdateCheck) {
-      new Notification({
-        title: 'Mission Control Up to Date',
-        body: 'You are running the latest version of Mission Control.',
-        icon: getWindowIcon()
-      }).show();
       isManualUpdateCheck = false;
     }
   });
@@ -1515,11 +1487,6 @@ function setupAutoUpdater() {
     console.error('[AutoUpdater] Error:', err);
     sendToAllWindows('electron-update-status', { status: 'error', message: err.message });
     if (isManualUpdateCheck) {
-      new Notification({
-        title: 'Update Check Failed',
-        body: `Error checking for updates: ${err.message || err}`,
-        icon: getWindowIcon()
-      }).show();
       isManualUpdateCheck = false;
     }
   });
@@ -1543,11 +1510,6 @@ function setupAutoUpdater() {
       notes: typeof info.releaseNotes === 'string' ? info.releaseNotes : '',
       message: `Update v${info.version} ready to install.`
     });
-    new Notification({
-      title: 'Mission Control Update Ready',
-      body: `Version v${info.version} has been downloaded. Restart the application to apply the patch.`,
-      icon: getWindowIcon()
-    }).show();
   });
 
   // ── IPC Commands from frontend ───────────────────────────────────────────

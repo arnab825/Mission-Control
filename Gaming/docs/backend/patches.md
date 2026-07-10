@@ -2,6 +2,10 @@
 
 This document contains a detailed history of all patches and updates for the AI Gaming Assistant.
 
+### Patch: 2026-07-11 — v1.1.9: Removed all native Windows toast notifications to prevent Notification Center clutter
+
+- Removed all native Windows toast notifications to prevent Notification Center clutter
+
 ### Patch: 2026-07-11 — v1.1.8: Configured typeRoots in frontend tsconfigs to resolve VS Code editor type errors
 
 - Configured typeRoots in frontend tsconfigs to resolve VS Code editor type errors
