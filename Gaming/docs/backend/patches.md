@@ -2,6 +2,12 @@
 
 This document contains a detailed history of all patches and updates for the AI Gaming Assistant.
 
+### Patch: 2026-07-10 — v1.1.0: OAuth Display, Sign-Out Scan Reset, and Ubisoft Connect Fixes
+
+- Resolved Discord OAuth display issues by cascading user name lookup
+- Fixed Library scan UI getting stuck in scanning state upon user sign-out
+- Fixed duplicate detection normalization to prevent Ubisoft Connect launcher from being dropped
+
 ### Patch: 2026-07-10 — v1.0.9: Fix SQL queries and NIM timeouts
 
 - Included queries, prompts, and RAG data in PyInstaller package
