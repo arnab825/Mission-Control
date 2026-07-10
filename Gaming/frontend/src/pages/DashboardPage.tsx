@@ -348,7 +348,7 @@ const DashboardPage: React.FC<DashboardPageProps> = ({ state, onCommand, onNavig
           </div>
 
           {/* AI strategy chat-like logs feed (deduplicated) */}
-          <div className="flex-1 flex flex-col overflow-y-auto custom-scrollbar gap-y-2 pr-1 min-h-0 mt-3">
+          <div className="flex-1 overflow-y-auto custom-scrollbar space-y-2 pr-1 min-h-0 mt-3">
             {filteredLogs.length === 0 ? (
               <div className="h-full flex flex-col items-center justify-center gap-3 text-zinc-600">
                 <BrainCircuit className="w-8 h-8 opacity-20 animate-pulse" />
@@ -408,7 +408,7 @@ const DashboardPage: React.FC<DashboardPageProps> = ({ state, onCommand, onNavig
                           <span className={`text-[9px] font-black uppercase tracking-widest border px-1.5 py-0.5 rounded-md ${pill}`}>{label}</span>
                           <span className="text-[9px] text-zinc-600 font-mono">{log.time}</span>
                         </div>
-                        <p className={`text-[11px] font-semibold leading-snug break-all whitespace-pre-wrap ${text}`}>{friendlyMsg(log.msg)}</p>
+                        <p className={`text-[11px] font-semibold leading-snug break-all ${text}`}>{friendlyMsg(log.msg)}</p>
                       </div>
                     </motion.div>
                   );

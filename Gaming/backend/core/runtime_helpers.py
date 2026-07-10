@@ -917,11 +917,14 @@ class TelemetryThread(threading.Thread):
                         pass # Fallback simulation removed to prevent inaccurate reporting
 
                 # --- Source-aware temperature post-processing ---
-                # LHM (LibreHardwareMonitor) reads directly from the CPU package
-                # sensor and is already accurate — no smoothing needed.
-                # Fallback sources (WMI ACPI, psutil, native) can produce single-
-                # tick outlier spikes, so we apply a lightweight outlier clamp only
-                # when NOT coming from LHM.
+                # LHM reads "CPU Package" (prio 100 in Program.cs) — the hottest
+                # single core. This is correct but bounces 1-3°C each tick due to
+                # raw hardware sensor noise. A light symmetric EMA (alpha 0.5)
+                # smooths the jitter without introducing the previous stuck-high
+                # behavior (which was caused by an asymmetric alpha of 0.2 on
+                # cool-down, 5x slower than heat-up).
+                # Fallback sources (WMI ACPI, psutil, native) additionally get an
+                # outlier guard before the EMA step.
                 lhm_provided_temp = lhm and lhm.get("cpu_temp", 0) > 0
 
                 if cpu_temp > 0:
@@ -931,8 +934,7 @@ class TelemetryThread(threading.Thread):
                     if not lhm_provided_temp:
                         # Outlier guard for noisy fallback sensors: if the reading
                         # jumps more than 15°C in a single tick AND the CPU is
-                        # lightly loaded (<50%), treat it as a sensor artifact and
-                        # clamp the incoming value before accepting it.
+                        # lightly loaded (<50%), treat it as a sensor artifact.
                         last = getattr(self, "_last_cpu_temp", 0)
                         if last > 0 and abs(cpu_temp - last) > 15 and cpu_pct < 50:
                             logger.debug(
@@ -940,6 +942,14 @@ class TelemetryThread(threading.Thread):
                                 f"(prev={last:.1f}°C, load={cpu_pct:.0f}%)"
                             )
                             cpu_temp = last + (15 if cpu_temp > last else -15)
+
+                    # Light symmetric EMA — reduces 1-3°C sensor jitter.
+                    # alpha=0.5 means display moves 50% toward actual each tick,
+                    # reaching 90%+ of the real value within ~3-4 ticks (~3s).
+                    # Symmetric on heat-up and cool-down: no stuck-at-high lag.
+                    last = getattr(self, "_last_cpu_temp", 0)
+                    if last > 0:
+                        cpu_temp = last + 0.5 * (cpu_temp - last)
 
                     self._last_cpu_temp = cpu_temp
                     cpu_temp = round(cpu_temp, 1)
