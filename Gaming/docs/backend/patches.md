@@ -2,6 +2,10 @@
 
 This document contains a detailed history of all patches and updates for the AI Gaming Assistant.
 
+### Patch: 2026-07-10 — v1.1.2: Fixed AWCC sensor and library duplicate bugs
+
+- Fixed AWCC sensor and library duplicate bugs
+
 ### Patch: 2026-07-10 — v1.0.2: Fixed the bugs of AWCC senor and Fixed the library for making duplicate
 
 - Fixed the bugs of AWCC senor and Fixed the library for making duplicate
