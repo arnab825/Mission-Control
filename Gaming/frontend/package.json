@@ -2,7 +2,7 @@
     "name":  "mission-control",
     "productName":  "Mission Control",
     "private":  true,
-    "version":  "1.2.5",
+    "version":  "1.2.7",
     "description":  "Mission Control desktop app for gamers.",
     "author":  "Arnab Contributors \u003csupport@missioncontrol.app\u003e",
     "type":  "module",
@@ -93,18 +93,23 @@
                                              "to":  "MissionControl"
                                          }
                                      ],
-                  "win": {
-                      "icon": "public/favicon.ico",
-                      "requestedExecutionLevel": "requireAdministrator",
-                      "signExecutable": false,
-                      "legalTrademarks": "Mission Control™",
-                      "target": [
-                          { "target": "nsis", "arch": ["x64"] },
-                          { "target": "zip",  "arch": ["x64"] }
-                      ],
-                      "signtoolOptions": {
-                          "sign": "./sign-dummy.cjs"
-                      }
-                  }
+                  "win":  {
+                              "icon":  "public/favicon.ico",
+                              "requestedExecutionLevel":  "requireAdministrator",
+                              "target":  [
+                                             {
+                                                 "target":  "nsis",
+                                                 "arch":  [
+                                                              "x64"
+                                                          ]
+                                             },
+                                             {
+                                                 "target":  "zip",
+                                                 "arch":  [
+                                                              "x64"
+                                                          ]
+                                             }
+                                         ]
+                          }
               }
 }
