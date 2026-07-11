@@ -36,6 +36,19 @@ const Sidebar: React.FC<SidebarProps> = ({
   const { user, isSignedIn } = useUser();
   const { signOut } = useClerk();
   
+  // Find the exact external account the user just logged in with (saved in localStorage during sign in)
+  const activeProvider = localStorage.getItem('mission_control_active_provider');
+  let activeExternalAccount = user?.externalAccounts?.find(a => a.provider === activeProvider);
+  
+  // Fallback to the most recently updated if not found
+  if (!activeExternalAccount && user?.externalAccounts) {
+    activeExternalAccount = [...user.externalAccounts].sort((a, b) => {
+      const bTime = (b as any).updatedAt ? new Date((b as any).updatedAt).getTime() : 0;
+      const aTime = (a as any).updatedAt ? new Date((a as any).updatedAt).getTime() : 0;
+      return bTime - aTime;
+    })[0];
+  }
+  
   const navItems = [
     { id: 'dashboard', label: 'Dashboard', icon: Activity, color: 'text-neon-green' },
     { id: 'vision', label: 'Vision', icon: Monitor, color: 'text-neon-yellow' },
@@ -143,13 +156,7 @@ const Sidebar: React.FC<SidebarProps> = ({
             >
               <div className="flex items-center gap-2.5 min-w-0">
                 {(() => {
-                  const latestExternal = [...(user.externalAccounts || [])].sort((a, b) => {
-                    const bTime = (b as any).updatedAt ? new Date((b as any).updatedAt).getTime() : 0;
-                    const aTime = (a as any).updatedAt ? new Date((a as any).updatedAt).getTime() : 0;
-                    return bTime - aTime;
-                  })[0];
-                  
-                  const avatarUrl = latestExternal?.imageUrl || user.imageUrl;
+                  const avatarUrl = activeExternalAccount?.imageUrl || user.imageUrl;
                   return avatarUrl ? (
                     <img
                       src={avatarUrl}
@@ -173,13 +180,7 @@ const Sidebar: React.FC<SidebarProps> = ({
                 <div className="min-w-0 flex flex-col">
                   <span className="text-[10px] font-black text-white truncate uppercase tracking-tight">
                     {(() => {
-                      const latestExternal = [...(user.externalAccounts || [])].sort((a, b) => {
-                        const bTime = (b as any).updatedAt ? new Date((b as any).updatedAt).getTime() : 0;
-                        const aTime = (a as any).updatedAt ? new Date((a as any).updatedAt).getTime() : 0;
-                        return bTime - aTime;
-                      })[0];
-                      
-                      if (latestExternal?.username) return latestExternal.username;
+                      if (activeExternalAccount?.username) return activeExternalAccount.username;
                       if (user.username) return user.username;
                       if (user.firstName) return user.firstName;
                       return 'Node Connected';
@@ -187,16 +188,10 @@ const Sidebar: React.FC<SidebarProps> = ({
                   </span>
                   <span className="text-[8px] text-zinc-500 truncate lowercase font-medium mt-0.5">
                     {(() => {
-                      const latestExternal = [...(user.externalAccounts || [])].sort((a, b) => {
-                        const bTime = (b as any).updatedAt ? new Date((b as any).updatedAt).getTime() : 0;
-                        const aTime = (a as any).updatedAt ? new Date((a as any).updatedAt).getTime() : 0;
-                        return bTime - aTime;
-                      })[0];
-                      
-                      if (latestExternal && !user.primaryEmailAddress) {
-                        return `via ${latestExternal.provider?.replace('oauth_', '') || 'sso'}`;
+                      if (activeExternalAccount && !user.primaryEmailAddress) {
+                        return `via ${activeExternalAccount.provider?.replace('oauth_', '') || 'sso'}`;
                       }
-                      return user.primaryEmailAddress?.emailAddress || latestExternal?.emailAddress || 'clerk.user';
+                      return user.primaryEmailAddress?.emailAddress || activeExternalAccount?.emailAddress || 'clerk.user';
                     })()}
                   </span>
                 </div>

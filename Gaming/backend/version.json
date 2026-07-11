@@ -1,10 +1,10 @@
 {
-    "version":  "1.2.5",
+    "version":  "1.2.7",
     "release_date":  "2026-07-10",
     "update_check_url":  "https://raw.githubusercontent.com/arnab825/Mission-Control/main/Gaming/backend/version.json",
     "changelog":  [
                       {
-                          "version":  "1.2.5",
+                          "version":  "1.2.7",
                           "date":  "2026-07-11",
                           "title":  "Fixed HUD focus loss and games database path in window detector",
                           "highlights":  [

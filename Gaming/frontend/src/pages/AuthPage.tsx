@@ -21,6 +21,7 @@ const AuthPage: React.FC<AuthPageProps> = ({ onBackToLibrary }) => {
   const handleOAuth = async (strategy: 'oauth_google' | 'oauth_discord' | 'oauth_microsoft') => {
     if (!isSignInLoaded || !isSignUpLoaded) return;
     try {
+      localStorage.setItem('mission_control_active_provider', strategy);
       // Use absolute URLs so Clerk can whitelist them in the dashboard.
       // In Electron dev: http://localhost:5173/sso-callback
       const origin = window.location.origin;
