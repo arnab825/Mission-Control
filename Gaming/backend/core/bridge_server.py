@@ -249,9 +249,16 @@ class BridgeServer:
         """Add a log entry to the state buffer and broadcast it to connected clients."""
         if "logs" not in self._state:
             self._state["logs"] = []
-        self._state["logs"].append(log_entry)
-        if len(self._state["logs"]) > 500:
-            self._state["logs"] = self._state["logs"][-500:]
+            
+        logs = self._state["logs"]
+        if logs:
+            last_log = logs[-1]
+            if last_log.get("msg") == log_entry.get("msg") and last_log.get("time") == log_entry.get("time"):
+                return
+                
+        logs.append(log_entry)
+        if len(logs) > 500:
+            self._state["logs"] = logs[-500:]
         self.update_state({"logs": self._state["logs"]})
 
     def clear_logs(self):

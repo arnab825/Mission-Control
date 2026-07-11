@@ -72,8 +72,9 @@ class WindowDetector:
         "nzxt cam", "nvidia geforce experience", "geforce experience"
     ]
     
-    def __init__(self, poll_interval: float = 1.0):
+    def __init__(self, poll_interval: float = 1.0, app_data_path: Optional[str] = None):
         self.poll_interval = poll_interval
+        self.app_data_path = app_data_path
         self._running = False
         self._thread: Optional[threading.Thread] = None
         
@@ -239,7 +240,7 @@ class WindowDetector:
                 exe_path = ""
 
             # If the foreground window belongs to our own app, preserve the current state
-            our_procs = {"electron.exe", "aero-ai.exe", "python.exe", "py.exe"}
+            our_procs = {"electron.exe", "aero-ai.exe", "python.exe", "py.exe", "missioncontrol.exe", "mission control.exe"}
             if exe_name.lower() in our_procs and self._current_window:
                 return self._current_window
                 
@@ -273,8 +274,12 @@ class WindowDetector:
             import json
             import glob
             from pathlib import Path
-            # Use absolute path to the backend config directory and scan all user databases
-            config_dir = Path(__file__).parent.parent / "config"
+            # Use provided app_data_path or fallback to backend config directory
+            if self.app_data_path:
+                config_dir = Path(self.app_data_path)
+            else:
+                config_dir = Path(__file__).parent.parent / "config"
+                
             cache_files = glob.glob(str(config_dir / "games_db*.json"))
             for path_str in cache_files:
                 cache_file = Path(path_str)

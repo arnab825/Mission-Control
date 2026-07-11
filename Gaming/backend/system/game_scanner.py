@@ -518,10 +518,10 @@ class GameScanner:
         final_games = []
         
         # Sort games to prefer entries with "Launcher" in the name, then by shorter length
-        sorted_games = sorted(self.games, key=lambda g: ("Launcher" not in g.get("name", ""), len(g.get("name", ""))))
+        sorted_games = sorted(self.games, key=lambda g: ("Launcher" not in (g.get("name") or ""), len(g.get("name") or "")))
         for g in sorted_games:
-            is_launcher = g.get("platform") in launcher_platforms and g.get("name", "").lower().startswith(g.get("platform", "").lower())
-            if is_launcher:
+            # If the platform is a known launcher platform, we only ever keep ONE entry for that platform.
+            if g.get("platform") in launcher_platforms:
                 if g["platform"] not in seen_launchers:
                     seen_launchers.add(g["platform"])
                     final_games.append(g)

@@ -2,6 +2,10 @@
 
 This document contains a detailed history of all patches and updates for the AI Gaming Assistant.
 
+### Patch: 2026-07-11 — v1.2.5: Fixed HUD focus loss and games database path in window detector
+
+- Fixed HUD focus loss and games database path in window detector
+
 ### Patch: 2026-07-11 — v1.2.3: Added whitespace trimming to build inputs and file search filters
 
 - Added whitespace trimming to build inputs and file search filters

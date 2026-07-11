@@ -194,22 +194,9 @@ const DashboardPage: React.FC<DashboardPageProps> = ({ state, onCommand, onNavig
     { time: '00:00:00', type: 'INFO', msg: 'Neural Link operational. Awaiting backend synchronization.' }
   ];
 
-  // Active consecutive log duplicates filter ("there is two so make it one")
+  // Filter logs by type
   const filteredLogs = useMemo(() => {
-    const baseLogs = filter === 'ALL' ? rawLogs : rawLogs.filter((log: any) => log.type === filter);
-    const deduplicated: any[] = [];
-    let lastMsg = '';
-    let lastTime = '';
-    
-    for (const log of baseLogs) {
-      if (log.msg === lastMsg && log.time === lastTime) {
-        continue;
-      }
-      deduplicated.push(log);
-      lastMsg = log.msg;
-      lastTime = log.time;
-    }
-    return deduplicated;
+    return filter === 'ALL' ? rawLogs : rawLogs.filter((log: any) => log.type === filter);
   }, [rawLogs, filter]);
 
   useEffect(() => {
@@ -228,7 +215,7 @@ const DashboardPage: React.FC<DashboardPageProps> = ({ state, onCommand, onNavig
   };
 
   return (
-    <div className="flex-1 p-4 md:p-8 flex flex-col h-full overflow-y-auto gap-y-6 bg-transparent select-none min-h-0">
+    <div className="flex-1 p-4 md:p-8 flex flex-col h-full overflow-y-auto lg:overflow-hidden gap-y-6 bg-transparent select-none min-h-0">
       
       {/* Header section (shrink-0) */}
       <div className="flex justify-between items-center gap-4 shrink-0">
@@ -294,10 +281,10 @@ const DashboardPage: React.FC<DashboardPageProps> = ({ state, onCommand, onNavig
       </div>
 
       {/* Main Bottom Grid - Responsive stack (vertical on tablet/mobile, side-by-side on desktop) */}
-      <div className="flex flex-col lg:flex-row gap-6 lg:gap-8 items-stretch lg:flex-1 min-h-0 overflow-visible pb-4 lg:pb-0">
+      <div className="flex flex-col lg:flex-row gap-6 lg:gap-8 items-stretch lg:flex-1 min-h-0 overflow-visible lg:overflow-hidden pb-4 lg:pb-0">
         
         {/* === BRANDED AI ASSISTANT PORTION (Left/Center) === */}
-        <div className="flex-1 flex flex-col min-h-[350px] min-w-0 bg-white/[0.06] border border-white/15 rounded-3xl p-5 relative overflow-hidden shadow-[0_0_20px_rgba(118, 185, 0,0.05)]">
+        <div className="flex-1 flex flex-col min-h-[350px] lg:min-h-0 min-w-0 bg-white/[0.06] border border-white/15 rounded-3xl p-5 relative overflow-hidden shadow-[0_0_20px_rgba(118, 185, 0,0.05)]">
           
           {/* Header block with fully responsive layout to protect against squishing/truncation */}
           <div className="flex flex-col sm:flex-row lg:flex-col xl:flex-row justify-between lg:items-start xl:items-center gap-3 border-b border-white/5 pb-3 shrink-0">
@@ -421,7 +408,7 @@ const DashboardPage: React.FC<DashboardPageProps> = ({ state, onCommand, onNavig
         </div>
 
         {/* === TACTICAL CONTROLS & DIAGNOSTICS (Right) === */}
-        <div className="w-full lg:w-[340px] shrink-0 flex flex-col gap-4 min-h-[380px] lg:overflow-hidden pr-1">
+        <div className="w-full lg:w-[340px] shrink-0 flex flex-col gap-4 min-h-[380px] lg:min-h-0 lg:overflow-hidden pr-1">
           <div className="flex items-center shrink-0">
             <span className="text-[11px] font-black text-transparent bg-clip-text bg-gradient-to-r from-neon-green to-fuchsia-400 uppercase tracking-[0.25em] filter drop-shadow-[0_0_12px_rgba(118, 185, 0,0.8)]">Tactical Diagnostics</span>
           </div>
@@ -483,7 +470,7 @@ const DashboardPage: React.FC<DashboardPageProps> = ({ state, onCommand, onNavig
             </div>
 
             {/* Recharts AreaChart (flexes to fill exactly remaining vertical space) */}
-            <div className="flex-1 min-h-[160px] relative">
+            <div className="flex-1 min-h-[160px] lg:min-h-0 relative">
               <ResponsiveContainer width="100%" height="100%">
                 <AreaChart
                   data={history.GPU.map((_, i) => ({

@@ -2,7 +2,7 @@
     "name":  "mission-control",
     "productName":  "Mission Control",
     "private":  true,
-    "version":  "1.2.3",
+    "version":  "1.2.5",
     "description":  "Mission Control desktop app for gamers.",
     "author":  "Arnab Contributors \u003csupport@missioncontrol.app\u003e",
     "type":  "module",
@@ -90,7 +90,7 @@
                   "extraResources":  [
                                          {
                                              "from":  "../backend/dist/MissionControl",
-                                             "to":  "backend/MissionControl"
+                                             "to":  "MissionControl"
                                          }
                                      ],
                   "win": {
@@ -98,8 +98,6 @@
                       "requestedExecutionLevel": "requireAdministrator",
                       "signExecutable": false,
                       "legalTrademarks": "Mission Control™",
-                      "fileDescription": "Mission Control Gaming Optimization Assistant",
-                      "copyright": "Copyright © 2026 Mission Control Contributors",
                       "target": [
                           { "target": "nsis", "arch": ["x64"] },
                           { "target": "zip",  "arch": ["x64"] }
