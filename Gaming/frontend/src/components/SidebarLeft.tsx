@@ -34,30 +34,7 @@ const Sidebar: React.FC<SidebarProps> = ({
   onTriggerChangelogs
 }) => {
   const { user, isSignedIn } = useUser();
-  const { signOut, session } = useClerk();
-
-  // Determine which external account was used for the current session.
-  // Clerk merges all OAuth providers into one user object, so `user.imageUrl`
-  // and `user.username` reflect the *first* linked account (usually Google).
-  // To show the correct avatar/username for the *active* provider we look at
-  // the session's lastActiveToken factor or fall back to the most-recently-
-  // updated external account.
-  const activeProvider: string | undefined = (
-    session?.lastActiveToken as any
-  )?.jwt?.payload?.act?.sub
-    ? undefined // sub-claim present → just fall through to updatedAt sort
-    : undefined;
-
-  const activeExternalAccount = React.useMemo(() => {
-    if (!user?.externalAccounts?.length) return undefined;
-    // Sort by updatedAt descending — the most recently touched account
-    // corresponds to the provider used in this sign-in.
-    return [...user.externalAccounts].sort((a, b) => {
-      const ta = (a as any).updatedAt ? new Date((a as any).updatedAt).getTime() : 0;
-      const tb = (b as any).updatedAt ? new Date((b as any).updatedAt).getTime() : 0;
-      return tb - ta;
-    })[0];
-  }, [user?.externalAccounts]);
+  const { signOut } = useClerk();
   
   const navItems = [
     { id: 'dashboard', label: 'Dashboard', icon: Activity, color: 'text-neon-green' },
@@ -166,20 +143,19 @@ const Sidebar: React.FC<SidebarProps> = ({
             >
               <div className="flex items-center gap-2.5 min-w-0">
                 {(() => {
-                  // Use the active provider's avatar first, then fall back to
-                  // Clerk's hosted profile image (which may belong to a different
-                  // provider linked earlier).
-                  const avatarUrl =
-                    activeExternalAccount?.imageUrl ||
-                    user.imageUrl ||
-                    user.externalAccounts?.[0]?.imageUrl;
+                  const latestExternal = [...(user.externalAccounts || [])].sort((a, b) => {
+                    const bTime = (b as any).updatedAt ? new Date((b as any).updatedAt).getTime() : 0;
+                    const aTime = (a as any).updatedAt ? new Date((a as any).updatedAt).getTime() : 0;
+                    return bTime - aTime;
+                  })[0];
+                  
+                  const avatarUrl = latestExternal?.imageUrl || user.imageUrl;
                   return avatarUrl ? (
                     <img
                       src={avatarUrl}
                       className="w-8 h-8 rounded-lg border border-white/10 object-cover"
                       alt="Avatar"
                       onError={(e) => {
-                        // On load failure, hide the img and show the initials fallback
                         const target = e.currentTarget as HTMLImageElement;
                         target.style.display = 'none';
                         const fallback = target.nextElementSibling as HTMLElement;
@@ -190,28 +166,20 @@ const Sidebar: React.FC<SidebarProps> = ({
                 })()}
                 <div
                   className="w-8 h-8 rounded-lg bg-neon-green/10 border border-neon-green/20 flex items-center justify-center font-black text-xs text-neon-green"
-                  style={{
-                    display:
-                      activeExternalAccount?.imageUrl ||
-                      user.imageUrl ||
-                      user.externalAccounts?.[0]?.imageUrl
-                        ? 'none'
-                        : 'flex',
-                  }}
+                  style={{ display: (user.imageUrl || user.externalAccounts?.[0]?.imageUrl) ? 'none' : 'flex' }}
                 >
-                  {activeExternalAccount?.username?.[0] ||
-                    user.firstName?.[0] ||
-                    user.username?.[0] ||
-                    'U'}
+                  {user.firstName?.[0] || user.username?.[0] || user.externalAccounts?.[0]?.username?.[0] || 'U'}
                 </div>
                 <div className="min-w-0 flex flex-col">
                   <span className="text-[10px] font-black text-white truncate uppercase tracking-tight">
                     {(() => {
-                      // Show the username from the active provider's account
-                      // so that switching between Google and Discord shows the
-                      // correct name for the current session.
-                      if (activeExternalAccount?.username)
-                        return activeExternalAccount.username;
+                      const latestExternal = [...(user.externalAccounts || [])].sort((a, b) => {
+                        const bTime = (b as any).updatedAt ? new Date((b as any).updatedAt).getTime() : 0;
+                        const aTime = (a as any).updatedAt ? new Date((a as any).updatedAt).getTime() : 0;
+                        return bTime - aTime;
+                      })[0];
+                      
+                      if (latestExternal?.username) return latestExternal.username;
                       if (user.username) return user.username;
                       if (user.firstName) return user.firstName;
                       return 'Node Connected';
@@ -219,19 +187,16 @@ const Sidebar: React.FC<SidebarProps> = ({
                   </span>
                   <span className="text-[8px] text-zinc-500 truncate lowercase font-medium mt-0.5">
                     {(() => {
-                      // Always show which provider is active so the user knows
-                      // which account they are currently signed in with.
-                      if (activeExternalAccount) {
-                        const providerLabel =
-                          (activeExternalAccount as any).provider
-                            ?.replace('oauth_', '') || 'sso';
-                        return `via ${providerLabel}`;
+                      const latestExternal = [...(user.externalAccounts || [])].sort((a, b) => {
+                        const bTime = (b as any).updatedAt ? new Date((b as any).updatedAt).getTime() : 0;
+                        const aTime = (a as any).updatedAt ? new Date((a as any).updatedAt).getTime() : 0;
+                        return bTime - aTime;
+                      })[0];
+                      
+                      if (latestExternal && !user.primaryEmailAddress) {
+                        return `via ${latestExternal.provider?.replace('oauth_', '') || 'sso'}`;
                       }
-                      return (
-                        user.primaryEmailAddress?.emailAddress ||
-                        user.externalAccounts?.[0]?.emailAddress ||
-                        'clerk.user'
-                      );
+                      return user.primaryEmailAddress?.emailAddress || latestExternal?.emailAddress || 'clerk.user';
                     })()}
                   </span>
                 </div>
