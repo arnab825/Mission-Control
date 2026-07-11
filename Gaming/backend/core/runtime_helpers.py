@@ -805,9 +805,18 @@ class TelemetryThread(threading.Thread):
                 cpu_temp = 0
                 cpu_power_w = 0
 
-                # Try to use LibreHardwareMonitor first for CPU temp & power
+                # Try to use LibreHardwareMonitor first for CPU temp & power.
+                # Program.cs now emits cpu_temp_sensor with the name of the LHM
+                # sensor that was chosen (e.g. "CPU Package", "Tdie", "Core Max").
+                # Log it once at startup so it is visible in the console log.
                 if lhm and lhm.get("cpu_temp", 0) > 0:
                     cpu_temp = float(lhm["cpu_temp"])
+                    sensor_name = lhm.get("cpu_temp_sensor", "")
+                    if sensor_name and not getattr(self, "_lhm_sensor_logged", False):
+                        self._lhm_sensor_logged = True
+                        logger.info(
+                            f"[Telemetry] CPU temperature source: \"{sensor_name}\" = {cpu_temp}°C"
+                        )
                 if lhm and lhm.get("cpu_power_w", 0) > 0:
                     cpu_power_w = float(lhm["cpu_power_w"])
 
@@ -917,14 +926,16 @@ class TelemetryThread(threading.Thread):
                         pass # Fallback simulation removed to prevent inaccurate reporting
 
                 # --- Source-aware temperature post-processing ---
-                # LHM reads "CPU Package" (prio 100 in Program.cs) — the hottest
-                # single core. This is correct but bounces 1-3°C each tick due to
-                # raw hardware sensor noise. A light symmetric EMA (alpha 0.5)
-                # smooths the jitter without introducing the previous stuck-high
-                # behavior (which was caused by an asymmetric alpha of 0.2 on
-                # cool-down, 5x slower than heat-up).
-                # Fallback sources (WMI ACPI, psutil, native) additionally get an
-                # outlier guard before the EMA step.
+                # LHM priority ladder (Program.cs GetCpuTempPriority):
+                #   100 — "CPU Package" / "Package"   ← package-level die temp (preferred)
+                #    95 — "Tdie"                        ← AMD silicon die, no offset
+                #    90 — "Tctl" / "Tctl/Tdie"          ← AMD control temp
+                #    85 — CCD* (AMD chiplet die)
+                #    70 — generic CPU-named sensor
+                #     5 — "Core Max" / "Core Average"   ← per-core aggregates, NOT package
+                #     2 — "Core #N"                     ← individual cores, last resort
+                # Fallback sources (WMI ACPI, psutil, native) get an outlier guard
+                # before the EMA step below.
                 lhm_provided_temp = lhm and lhm.get("cpu_temp", 0) > 0
 
                 if cpu_temp > 0:

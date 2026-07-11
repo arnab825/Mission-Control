@@ -1,5 +1,5 @@
 import * as electron from 'electron'
-const { app, BrowserWindow, ipcMain, protocol, net, globalShortcut, shell, screen, dialog, Tray, Menu, nativeImage } = electron
+const { app, BrowserWindow, ipcMain, protocol, net, globalShortcut, shell, screen, dialog, Tray, Menu, nativeImage, Notification } = electron
 
 type BrowserWindow = electron.BrowserWindow
 type Tray = electron.Tray
@@ -84,6 +84,13 @@ if (!gotTheLock) {
   })
 }
 
+// Set Windows App User Model ID so:
+// (1) The taskbar always resolves to the correct pinned shortcut identity.
+// (2) Native Notification toasts are attributed to "Mission Control" in the
+//     action centre. Must be set before app.whenReady() and any BrowserWindow.
+if (process.platform === 'win32') {
+  app.setAppUserModelId('com.missioncontrol.app');
+}
 
 // Register asset scheme as privileged
 protocol.registerSchemesAsPrivileged([
@@ -96,6 +103,36 @@ const _dirname = typeof __dirname !== 'undefined'
 let pythonProcess: ChildProcess | null = null
 let tray: Tray | null = null
 let isManualUpdateCheck = false;
+
+// Fires a native Windows toast notification for update availability.
+// Non-blocking — the user decides when/whether to act on it.
+// The toast click opens the UpdaterModal in the renderer via IPC.
+// Requires app.setAppUserModelId() to have been called first (done above).
+function fireUpdateToast(version: string) {
+  if (!Notification.isSupported()) return;
+  try {
+    const toast = new Notification({
+      title: 'Mission Control Update Available',
+      body: `v${version} is ready to download. Click to review.`,
+      icon: path.join(process.env.VITE_PUBLIC || '', 'favicon.ico'),
+      urgency: 'normal',
+      timeoutType: 'default',
+    });
+    toast.on('click', () => {
+      // Bring the main window to focus and open the updater modal
+      if (win && !win.isDestroyed()) {
+        win.show();
+        win.focus();
+        win.webContents.send('open-updater-modal');
+      }
+    });
+    toast.show();
+    console.log(`[AutoUpdater] Native toast notification shown for v${version}.`);
+  } catch (err) {
+    console.error('[AutoUpdater] Failed to show toast notification:', err);
+  }
+}
+
 
 function isAdmin(): boolean {
   if (process.platform !== 'win32') return true;
@@ -232,12 +269,20 @@ function createTray() {
 
     const appIcon = getWindowIcon();
     const menuIcon = appIcon ? appIcon.resize({ width: 16, height: 16 }) : undefined;
+    
+    // Load generated tray icons
+    const publicDir = process.env.VITE_PUBLIC || '';
+    const iconDashboard = nativeImage.createFromPath(path.join(publicDir, 'tray', 'dashboard.png'));
+    const iconHud = nativeImage.createFromPath(path.join(publicDir, 'tray', 'hud.png'));
+    const iconStealth = nativeImage.createFromPath(path.join(publicDir, 'tray', 'stealth.png'));
+    const iconUpdate = nativeImage.createFromPath(path.join(publicDir, 'tray', 'update.png'));
+    const iconExit = nativeImage.createFromPath(path.join(publicDir, 'tray', 'exit.png'));
 
     const contextMenu = Menu.buildFromTemplate([
       { label: 'Mission Control Gaming Assistant', enabled: false, icon: menuIcon },
       { type: 'separator' },
       {
-        label: 'Show Dashboard', click: () => {
+        label: 'Show Dashboard', icon: iconDashboard, click: () => {
           if (win && !win.isDestroyed()) {
             win.show();
             win.focus();
@@ -247,13 +292,13 @@ function createTray() {
         }
       },
       {
-        label: 'Toggle HUD Overlay (Ctrl+Alt+H)', click: () => {
+        label: 'Toggle HUD Overlay (Ctrl+Alt+H)', icon: iconHud, click: () => {
           toggleHUDWindow();
         }
       },
       { type: 'separator' },
       {
-        label: 'Stealth Mode', type: 'checkbox', checked: getInitialStealthStatus(), click: (menuItem) => {
+        label: 'Stealth Mode', type: 'checkbox', icon: iconStealth, checked: getInitialStealthStatus(), click: (menuItem) => {
           if (win && !win.isDestroyed()) {
             win.setContentProtection(menuItem.checked);
           }
@@ -274,7 +319,7 @@ function createTray() {
         }
       },
       {
-        label: 'Check for Updates', click: () => {
+        label: 'Check for Updates', icon: iconUpdate, click: () => {
           if (app.isPackaged) {
             isManualUpdateCheck = true;
             autoUpdater.checkForUpdates().catch(() => {
@@ -291,7 +336,7 @@ function createTray() {
       },
       { type: 'separator' },
       {
-        label: 'Exit Mission Control', click: () => {
+        label: 'Exit Mission Control', icon: iconExit, click: () => {
           app.quit();
         }
       }
@@ -1475,6 +1520,11 @@ function setupAutoUpdater() {
       notes: typeof info.releaseNotes === 'string' ? info.releaseNotes : '',
       message: `Update v${info.version} available.`
     });
+    // Fire a native Windows toast only on automated startup checks.
+    // For manual checks the user already has the UpdaterModal open, so no toast needed.
+    if (!isManualUpdateCheck) {
+      fireUpdateToast(info.version);
+    }
     if (isManualUpdateCheck) {
       isManualUpdateCheck = false;
     }
@@ -1533,6 +1583,16 @@ function setupAutoUpdater() {
       autoUpdater.quitAndInstall();
     } catch (err: any) {
       console.error('[AutoUpdater] quitAndInstall failed:', err);
+    }
+  });
+
+  // Sent by fireUpdateToast click handler to open the UpdaterModal in React
+  ipcMain.removeAllListeners('open-updater-modal');
+  ipcMain.on('open-updater-modal', () => {
+    if (win && !win.isDestroyed()) {
+      win.show();
+      win.focus();
+      win.webContents.send('open-updater-modal');
     }
   });
 

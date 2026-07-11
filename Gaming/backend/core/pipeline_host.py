@@ -200,7 +200,33 @@ class GamingAssistantPipeline:
         if self.input_manager.connected_controllers:
             for c in self.input_manager.connected_controllers:
                 logger.info(f"  Controller: {c['name']} [{c['type']}]")
-        
+
+        # AWCC Detection (Task 9) — run in a daemon background thread so startup
+        # isn't delayed.  The result is stored in _game_state once detection
+        # finishes (always after __init__ completes because registry/process I/O
+        # takes >50 ms) and propagates to the frontend via the telemetry cycle.
+        _pipeline_ref = self  # capture reference; avoid closure over mutable 'self' var
+
+        def _run_awcc_detection():
+            try:
+                from system.awcc_detector import get_awcc_status
+                status = get_awcc_status()
+                # _state_lock is always initialised by this point (line ~306 of __init__
+                # runs synchronously; the detection I/O takes >50 ms).
+                with _pipeline_ref._state_lock:
+                    _pipeline_ref._game_state["awcc_status"] = status.to_dict()
+                if status.detected:
+                    logger.warning(
+                        "[AWCC] Alienware Command Center detected (%s). "
+                        "Restricted features: %s",
+                        status.detection_method, status.restricted_features,
+                    )
+            except Exception as e:
+                logger.debug("[AWCC] Detection error (non-fatal): %s", e)
+
+        awcc_thread = threading.Thread(target=_run_awcc_detection, daemon=True, name="awcc-detect")
+        awcc_thread.start()
+
         # NVIDIA GPU monitor & performance advisor
         self.gpu_monitor = None
         self.gpu_capabilities = None

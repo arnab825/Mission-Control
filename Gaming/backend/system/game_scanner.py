@@ -512,6 +512,22 @@ class GameScanner:
         # Filter out non-gaming software classified by AI
         self.games = [g for g in self.games if g.get("type") != "SOFTWARE"]
 
+        # Final pass: Ensure strictly ONE launcher entry per platform
+        launcher_platforms = ["Steam", "Epic Games", "EA Desktop", "Origin", "Ubisoft Connect", "Battle.net", "GOG Galaxy", "Rockstar Games", "Xbox"]
+        seen_launchers = set()
+        final_games = []
+        
+        # Sort games to prefer entries with "Launcher" in the name, then by shorter length
+        sorted_games = sorted(self.games, key=lambda g: ("Launcher" not in g.get("name", ""), len(g.get("name", ""))))
+        for g in sorted_games:
+            is_launcher = g.get("platform") in launcher_platforms and g.get("name", "").lower().startswith(g.get("platform", "").lower())
+            if is_launcher:
+                if g["platform"] not in seen_launchers:
+                    seen_launchers.add(g["platform"])
+                    final_games.append(g)
+            else:
+                final_games.append(g)
+        self.games = final_games
         # Enrich game features from PCGamingWiki (web-sourced, authoritative)
         if callable(progress_callback):
             progress_callback(96, "Fetching hardware features from PCGamingWiki...")

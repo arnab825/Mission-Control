@@ -16,6 +16,7 @@
                     "test:run":  "vitest run",
                     "package":  "electron-forge package",
                     "make":  "electron-forge make",
+                    "make:win":  "electron-builder --win nsis zip --x64",
                     "doctor":  "react-doctor",
                     "postinstall":  "node patch-nsis.mjs"
                 },
@@ -88,17 +89,24 @@
                             ],
                   "extraResources":  [
                                          {
-                                             "from":  "backend",
-                                             "to":  "backend"
+                                             "from":  "../backend/dist/MissionControl",
+                                             "to":  "backend/MissionControl"
                                          }
                                      ],
-                  "win":  {
-                              "icon":  "public/favicon.ico",
-                              "requestedExecutionLevel":  "requireAdministrator",
-                              "signExecutable":  false,
-                              "signtoolOptions":  {
-                                                      "sign":  "./sign-dummy.cjs"
-                                                  }
-                          }
+                  "win": {
+                      "icon": "public/favicon.ico",
+                      "requestedExecutionLevel": "requireAdministrator",
+                      "signExecutable": false,
+                      "legalTrademarks": "Mission Control™",
+                      "fileDescription": "Mission Control Gaming Optimization Assistant",
+                      "copyright": "Copyright © 2026 Mission Control Contributors",
+                      "target": [
+                          { "target": "nsis", "arch": ["x64"] },
+                          { "target": "zip",  "arch": ["x64"] }
+                      ],
+                      "signtoolOptions": {
+                          "sign": "./sign-dummy.cjs"
+                      }
+                  }
               }
 }

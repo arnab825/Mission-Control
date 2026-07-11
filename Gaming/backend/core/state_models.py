@@ -87,3 +87,7 @@ class TelemetryState(BaseModel):
     is_game_focused: bool = False
     game_fps: float = 0.0
     game_loading: bool = False
+    # AWCC detection status (Task 9)
+    # Populated on startup by the pipeline host; surfaced to the UI as a
+    # compatibility badge when Alienware Command Center is detected.
+    awcc_status: Optional[Dict[str, Any]] = None

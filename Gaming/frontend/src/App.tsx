@@ -86,6 +86,20 @@ const App: React.FC = () => {
     }
   }, []);
 
+  // Listen for the native Windows toast click signal.
+  // When the user clicks the "Mission Control Update Available" toast,
+  // main.ts sends 'open-updater-modal' via IPC which preload forwards here.
+  // We open the UpdaterModal non-disruptively instead of a blocking popup.
+  useEffect(() => {
+    const api = (window as any).electronAPI;
+    if (!api?.onOpenUpdaterModal) return;
+    const cleanup = api.onOpenUpdaterModal(() => {
+      setUpdaterTab('check');
+      setIsUpdaterOpen(true);
+    });
+    return cleanup;
+  }, []);
+
   const handleNavigate = (page: string, extra?: any) => {
     setActivePage(page);
     if (extra?.showAuth) {

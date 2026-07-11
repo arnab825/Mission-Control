@@ -2,10 +2,16 @@ import type { ForgeConfig } from '@electron-forge/shared-types';
 
 const config: ForgeConfig = {
   packagerConfig: {
+    appCopyright: `Copyright \u00a9 ${new Date().getFullYear()} Mission Control Contributors`,
     asar: true,
-    extraResource: ['backend', 'app-update.yml'],
+    extraResource: ['../backend/dist/MissionControl', 'app-update.yml'],
     icon: './public/favicon',
     win32metadata: {
+      CompanyName: 'Mission Control',
+      FileDescription: 'Mission Control Gaming Optimization Assistant',
+      ProductName: 'Mission Control',
+      OriginalFilename: 'Mission Control.exe',
+      InternalName: 'MissionControl',
       'requested-execution-level': 'requireAdministrator'
     },
     // Electron Roadmap Item 7: Signing Windows Builds (Authenticode)

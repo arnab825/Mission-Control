@@ -145,7 +145,6 @@ const Sidebar: React.FC<SidebarProps> = ({
                 {(() => {
                   // Try Clerk's hosted image, then external account image (Google/Discord profile photo)
                   const avatarUrl = user.imageUrl || user.externalAccounts?.[0]?.imageUrl;
-                  const initials = user.firstName?.[0] || user.username?.[0] || user.externalAccounts?.[0]?.username?.[0] || 'U';
                   return avatarUrl ? (
                     <img
                       src={avatarUrl}

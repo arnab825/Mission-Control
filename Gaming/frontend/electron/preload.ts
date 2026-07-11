@@ -42,5 +42,14 @@ contextBridge.exposeInMainWorld('electronAPI', {
     return () => {
       ipcRenderer.off('hud-moved', subscription)
     }
+  },
+  // Called when the native Windows toast notification is clicked (update available).
+  // Triggers the React UpdaterModal to open non-disruptively.
+  onOpenUpdaterModal: (callback: () => void) => {
+    const subscription = () => callback()
+    ipcRenderer.on('open-updater-modal', subscription)
+    return () => {
+      ipcRenderer.off('open-updater-modal', subscription)
+    }
   }
 })
