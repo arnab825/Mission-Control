@@ -38,7 +38,8 @@ const Sidebar: React.FC<SidebarProps> = ({
   
   // Find the exact external account the user just logged in with (saved in localStorage during sign in)
   const activeProvider = localStorage.getItem('mission_control_active_provider');
-  let activeExternalAccount = user?.externalAccounts?.find(a => a.provider === activeProvider);
+  const normalizedActiveProvider = activeProvider?.replace('oauth_', '');
+  let activeExternalAccount = user?.externalAccounts?.find(a => a.provider?.replace('oauth_', '') === normalizedActiveProvider);
   
   // Fallback to the most recently updated if not found
   if (!activeExternalAccount && user?.externalAccounts) {

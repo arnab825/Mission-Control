@@ -28,6 +28,7 @@ async function connectDB(): Promise<typeof mongoose> {
   if (!cached.promise) {
     const opts = {
       bufferCommands: false,
+      serverSelectionTimeoutMS: 100, // Reduced to 100ms so it fails instantly if not whitelisted, matching local file speed
     };
 
     cached.promise = mongoose.connect(MONGODB_URI!, opts).then((mongooseInstance) => {
