@@ -93,7 +93,7 @@ REM ── Compile ────────────────────�
 echo [BUILD] Compiling fps_counter.cpp ...
 echo.
 
-cl.exe /nologo /O2 /GL /Gy /EHsc /MD /LD ^
+cl.exe /nologo /O2 /GL /Gy /EHsc /MT /LD ^
     /DWIN32 /D_WINDOWS /DNDEBUG /D_USRDLL /DFPS_COUNTER_EXPORTS ^
     /W3 /WX- ^
     /Fo"fps_counter.obj" ^

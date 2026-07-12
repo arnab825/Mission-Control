@@ -18,7 +18,7 @@ const AuthPage: React.FC<AuthPageProps> = ({ onBackToLibrary }) => {
   const [error, setError] = useState('');
 
   // Handle OAuth Sign In/Up
-  const handleOAuth = async (strategy: 'oauth_google' | 'oauth_discord' | 'oauth_microsoft') => {
+  const handleOAuth = async (strategy: 'oauth_google' | 'oauth_discord') => {
     if (!isSignInLoaded || !isSignUpLoaded) return;
     try {
       localStorage.setItem('mission_control_active_provider', strategy);
@@ -31,7 +31,7 @@ const AuthPage: React.FC<AuthPageProps> = ({ onBackToLibrary }) => {
           redirectUrl: `${origin}/sso-callback`,
           redirectUrlComplete: `${origin}/`,
         };
-        if (strategy === 'oauth_google' || strategy === 'oauth_microsoft') {
+        if (strategy === 'oauth_google') {
           options.additionalData = { prompt: 'select_account' };
           options.customOAuthOptions = { prompt: 'select_account' };
         }
@@ -42,7 +42,7 @@ const AuthPage: React.FC<AuthPageProps> = ({ onBackToLibrary }) => {
           redirectUrl: `${origin}/sso-callback`,
           redirectUrlComplete: `${origin}/`,
         };
-        if (strategy === 'oauth_google' || strategy === 'oauth_microsoft') {
+        if (strategy === 'oauth_google') {
           options.additionalData = { prompt: 'select_account' };
           options.customOAuthOptions = { prompt: 'select_account' };
         }
@@ -207,7 +207,7 @@ const AuthPage: React.FC<AuthPageProps> = ({ onBackToLibrary }) => {
         </div>
 
         {/* SSO Buttons */}
-        <div className="grid grid-cols-3 gap-3">
+        <div className="grid grid-cols-2 gap-3">
           <button aria-label="button" type="button" onClick={() => handleOAuth('oauth_google')} className="flex items-center justify-center py-2.5 bg-white/5 border border-white/10 hover:bg-white/10 hover:border-white/20 rounded-xl transition-all group">
             <svg className="w-5 h-5 opacity-70 group-hover:opacity-100 transition-opacity" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
               <path fill="#ffffff" d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z" />
@@ -220,12 +220,6 @@ const AuthPage: React.FC<AuthPageProps> = ({ onBackToLibrary }) => {
           <button aria-label="button" type="button" onClick={() => handleOAuth('oauth_discord')} className="flex items-center justify-center py-2.5 bg-white/5 border border-white/10 hover:bg-[#5865F2]/20 hover:border-[#5865F2]/50 rounded-xl transition-all group">
             <svg className="w-5 h-5 opacity-70 group-hover:opacity-100 group-hover:fill-[#5865F2] transition-all" viewBox="0 0 24 24" fill="#ffffff" xmlns="http://www.w3.org/2000/svg">
               <path d="M19.27 5.33C17.94 4.71 16.5 4.26 15 4a.09.09 0 0 0-.07.03c-.18.33-.39.76-.53 1.09a16.09 16.09 0 0 0-4.8 0c-.14-.34-.35-.76-.54-1.09a.09.09 0 0 0-.07-.03c-1.5.26-2.93.71-4.27 1.33a.08.08 0 0 0-.05.05C2.79 11.53 1.74 17.58 2.3 23.53a.08.08 0 0 0 .04.06c1.8 1.33 3.53 2.13 5.23 2.68a.09.09 0 0 0 .09-.03c.4-.55.77-1.13 1.11-1.74a.09.09 0 0 0-.05-.12c-.59-.22-1.16-.48-1.71-.78a.09.09 0 0 1-.01-.15c.12-.09.24-.18.35-.28a.09.09 0 0 1 .09-.01c3.48 1.59 7.23 1.59 10.67 0a.09.09 0 0 1 .09.01c.11.09.23.19.36.28a.09.09 0 0 1-.01.15c-.56.3-1.13.56-1.73.78a.09.09 0 0 0-.04.12c.34.61.71 1.19 1.11 1.74a.09.09 0 0 0 .09.03c1.7-.55 3.44-1.35 5.24-2.68a.08.08 0 0 0 .03-.06c.64-6.8-.93-12.75-2.47-18.15a.08.08 0 0 0-.05-.05ZM8.5 17.47c-1.05 0-1.92-.96-1.92-2.13 0-1.18.85-2.14 1.92-2.14s1.94.97 1.92 2.14c0 1.17-.86 2.13-1.92 2.13Zm7 0c-1.05 0-1.92-.96-1.92-2.13 0-1.18.85-2.14 1.92-2.14s1.94.97 1.92 2.14c0 1.17-.86 2.13-1.92 2.13Z" />
-            </svg>
-          </button>
-
-          <button aria-label="button" type="button" onClick={() => handleOAuth('oauth_microsoft')} className="flex items-center justify-center py-2.5 bg-white/5 border border-white/10 hover:bg-[#00a4ef]/20 hover:border-[#00a4ef]/50 rounded-xl transition-all group">
-            <svg className="w-5 h-5 opacity-70 group-hover:opacity-100 transition-opacity" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-              <path d="M11.4 24H0V12.6h11.4V24ZM24 24H12.6V12.6H24V24ZM11.4 11.4H0V0h11.4v11.4ZM24 11.4H12.6V0H24v11.4Z" fill="#ffffff" className="group-hover:fill-[#00a4ef] transition-colors" />
             </svg>
           </button>
         </div>

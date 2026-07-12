@@ -163,7 +163,7 @@ const App: React.FC = () => {
 
   // Auto-trigger library scan and auto-enable E2E encryption for authenticated users on first login
   useEffect(() => {
-    if (isSignedIn && userId && connected && state?.config) {
+    if (!isHUDWindow && isSignedIn && userId && connected && state?.config) {
       const initKey = `has_initialized_v2_${userId}`;
       if (!localStorage.getItem(initKey)) {
         sendCommand('scan_games', { userId });

@@ -95,10 +95,19 @@ export const UpdaterModal: React.FC<UpdaterModalProps> = ({
   
   // Auto scroll terminal logs
   useEffect(() => {
-    if (logEndRef.current) {
-      logEndRef.current.scrollIntoView({ behavior: 'smooth' });
+    if (installState?.step) {
+      logEndRef.current?.scrollIntoView({ behavior: 'smooth' });
     }
   }, [installState?.step]);
+
+  useEffect(() => {
+    if (installState?.status === 'success') {
+      const timer = setTimeout(() => {
+        window.location.reload();
+      }, 2500);
+      return () => clearTimeout(timer);
+    }
+  }, [installState?.status]);
 
   if (!isOpen) return null;
 

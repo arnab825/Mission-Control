@@ -778,8 +778,9 @@ class TelemetryThread(threading.Thread):
                         gpu_metrics["gpu_util"] = float(lhm["gpu_pct"])
                         gpu_metrics["utilization"] = float(lhm["gpu_pct"])
                     if "gpu_power_w" in lhm and lhm["gpu_power_w"] is not None:
-                        gpu_metrics["power_draw_w"] = float(lhm["gpu_power_w"])
-                        gpu_metrics["power_draw"] = float(lhm["gpu_power_w"])
+                        if "power_draw_w" not in gpu_metrics:
+                            gpu_metrics["power_draw_w"] = float(lhm["gpu_power_w"])
+                            gpu_metrics["power_draw"] = float(lhm["gpu_power_w"])
                     if "gpu_vram_used" in lhm and lhm["gpu_vram_used"] is not None:
                         gpu_metrics["vram_used_mb"] = float(lhm["gpu_vram_used"])
                         gpu_metrics["vram_used"] = float(lhm["gpu_vram_used"])

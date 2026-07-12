@@ -126,20 +126,8 @@ def handle_bridge_update_commands(cmd_type: str, payload: dict, bridge_instance)
                         logger.warning(f"Failed to check updates via git: {git_err}")
 
                 remote = None
-                if not remote_ver:
-                    # Fallback to URL check
-                    url = local.get("update_check_url", "")
-                    if not url:
-                        bridge_instance.update_state(
-                            {
-                                "update_state": {
-                                    "status": "failed",
-                                    "reason": "No update URL configured.",
-                                }
-                            }
-                        )
-                        return
-
+                url = local.get("update_check_url", "")
+                if url:
                     import socket
                     socket.setdefaulttimeout(6.0)
                     req = urllib.request.Request(
@@ -148,38 +136,25 @@ def handle_bridge_update_commands(cmd_type: str, payload: dict, bridge_instance)
                     try:
                         with urllib.request.urlopen(req, timeout=6) as resp:
                             remote = json.loads(resp.read().decode("utf-8"))
-                            remote_ver = remote.get("version", "0.0.0")
+                            if not remote_ver:
+                                remote_ver = remote.get("version", "0.0.0")
                     except urllib.error.HTTPError as e:
-                        if e.code == 404:
-                            bridge_instance.update_state(
-                                {
-                                    "update_state": {
-                                        "status": "up_to_date",
-                                        "current_version": local_ver,
-                                    }
-                                }
-                            )
-                        else:
-                            bridge_instance.update_state(
-                                {
-                                    "update_state": {
-                                        "status": "failed",
-                                        "reason": f"Server error: HTTP {e.code}",
-                                    }
-                                }
-                            )
-                        return
+                        if not remote_ver:
+                            if e.code == 404:
+                                bridge_instance.update_state({"update_state": {"status": "up_to_date", "current_version": local_ver}})
+                            else:
+                                bridge_instance.update_state({"update_state": {"status": "failed", "reason": f"Server error: HTTP {e.code}"}})
+                            return
                     except Exception as e:
-                        err_str = str(e)
-                        reason = (
-                            "Update server took too long to respond. (Timeout)"
-                            if "timed out" in err_str.lower()
-                            else f"Network error: {err_str}"
-                        )
-                        bridge_instance.update_state(
-                            {"update_state": {"status": "failed", "reason": reason}}
-                        )
-                        return
+                        if not remote_ver:
+                            err_str = str(e)
+                            reason = "Update server took too long to respond. (Timeout)" if "timed out" in err_str.lower() else f"Network error: {err_str}"
+                            bridge_instance.update_state({"update_state": {"status": "failed", "reason": reason}})
+                            return
+                
+                if not remote_ver:
+                    bridge_instance.update_state({"update_state": {"status": "failed", "reason": "No update URL configured."}})
+                    return
 
                 if Version(remote_ver) > Version(local_ver):
                     remote_log = []

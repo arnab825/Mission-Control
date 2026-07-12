@@ -250,6 +250,8 @@ function registerContextMenu(window: BrowserWindow) {
   });
 }
 
+let updateTrayMenuRef: (() => void) | null = null;
+
 function createTray() {
   try {
     let iconPath = path.join(process.env.VITE_PUBLIC || '', 'favicon.ico');
@@ -272,78 +274,87 @@ function createTray() {
     
     // Load generated tray icons
     const publicDir = process.env.VITE_PUBLIC || '';
-    const iconDashboard = nativeImage.createFromPath(path.join(publicDir, 'tray', 'dashboard.png'));
-    const iconHud = nativeImage.createFromPath(path.join(publicDir, 'tray', 'hud.png'));
-    const iconStealth = nativeImage.createFromPath(path.join(publicDir, 'tray', 'stealth.png'));
-    const iconUpdate = nativeImage.createFromPath(path.join(publicDir, 'tray', 'update.png'));
-    const iconExit = nativeImage.createFromPath(path.join(publicDir, 'tray', 'exit.png'));
+    const iconDashboard = nativeImage.createFromPath(path.join(publicDir, 'tray', 'dashboard.png')).resize({ width: 16, height: 16 });
+    const iconHud = nativeImage.createFromPath(path.join(publicDir, 'tray', 'hud.png')).resize({ width: 16, height: 16 });
+    const iconStealth = nativeImage.createFromPath(path.join(publicDir, 'tray', 'stealth.png')).resize({ width: 16, height: 16 });
+    const iconUpdate = nativeImage.createFromPath(path.join(publicDir, 'tray', 'update.png')).resize({ width: 16, height: 16 });
+    const iconExit = nativeImage.createFromPath(path.join(publicDir, 'tray', 'exit.png')).resize({ width: 16, height: 16 });
 
-    const contextMenu = Menu.buildFromTemplate([
-      { label: 'Mission Control Gaming Assistant', enabled: false, icon: menuIcon },
-      { type: 'separator' },
-      {
-        label: 'Show Dashboard', icon: iconDashboard, click: () => {
-          if (win && !win.isDestroyed()) {
-            win.show();
-            win.focus();
-          } else {
-            createWindow();
-          }
-        }
-      },
-      {
-        label: 'Toggle HUD Overlay (Ctrl+Alt+H)', icon: iconHud, click: () => {
-          toggleHUDWindow();
-        }
-      },
-      { type: 'separator' },
-      {
-        label: 'Stealth Mode', type: 'checkbox', icon: iconStealth, checked: getInitialStealthStatus(), click: (menuItem) => {
-          if (win && !win.isDestroyed()) {
-            win.setContentProtection(menuItem.checked);
-          }
-          if (hudWin && !hudWin.isDestroyed()) {
-            hudWin.setContentProtection(menuItem.checked);
-          }
-          try {
-            if (fs.existsSync(CONFIG_PATH)) {
-              const data = fs.readFileSync(CONFIG_PATH, 'utf-8');
-              const parsed = JSON.parse(data);
-              if (!parsed.privacy) parsed.privacy = {};
-              parsed.privacy.stealth_hud = menuItem.checked;
-              fs.writeFileSync(CONFIG_PATH, JSON.stringify(parsed, null, 2));
+    function updateTrayMenu() {
+      const isStealthMode = getInitialStealthStatus();
+      const contextMenu = Menu.buildFromTemplate([
+        { label: 'Mission Control Gaming Assistant', enabled: false, icon: menuIcon },
+        { type: 'separator' },
+        {
+          label: 'Show Dashboard', icon: iconDashboard, click: () => {
+            if (win && !win.isDestroyed()) {
+              win.show();
+              win.focus();
+            } else {
+              createWindow();
             }
-          } catch (err) {
-            console.error('[Electron] Failed to sync stealth mode in config:', err);
+          }
+        },
+        {
+          label: 'Toggle HUD Overlay (Ctrl+Alt+H)', icon: iconHud, click: () => {
+            toggleHUDWindow();
+          }
+        },
+        { type: 'separator' },
+        {
+          label: `Stealth Mode: ${isStealthMode ? 'ON' : 'OFF'}`, icon: iconStealth, click: () => {
+            const nextStealthMode = !isStealthMode;
+            if (win && !win.isDestroyed()) {
+              win.setContentProtection(nextStealthMode);
+            }
+            if (hudWin && !hudWin.isDestroyed()) {
+              hudWin.setContentProtection(nextStealthMode);
+            }
+            try {
+              if (fs.existsSync(CONFIG_PATH)) {
+                const data = fs.readFileSync(CONFIG_PATH, 'utf-8');
+                const parsed = JSON.parse(data);
+                if (!parsed.privacy) parsed.privacy = {};
+                parsed.privacy.stealth_hud = nextStealthMode;
+                fs.writeFileSync(CONFIG_PATH, JSON.stringify(parsed, null, 2));
+              }
+            } catch (err) {
+              console.error('[Electron] Failed to sync stealth mode in config:', err);
+            }
+            updateTrayMenu();
+          }
+        },
+        {
+          label: 'Check for Updates', icon: iconUpdate, click: () => {
+            if (app.isPackaged) {
+              isManualUpdateCheck = true;
+              autoUpdater.checkForUpdates().catch(() => {
+                isManualUpdateCheck = false;
+              });
+            } else {
+              dialog.showMessageBox({
+                type: 'info',
+                title: 'Mission Control Update Check',
+                message: 'Native autoUpdater is only supported in packaged environments.'
+              });
+            }
+          }
+        },
+        { type: 'separator' },
+        {
+          label: 'Exit Mission Control', icon: iconExit, click: () => {
+            app.quit();
           }
         }
-      },
-      {
-        label: 'Check for Updates', icon: iconUpdate, click: () => {
-          if (app.isPackaged) {
-            isManualUpdateCheck = true;
-            autoUpdater.checkForUpdates().catch(() => {
-              isManualUpdateCheck = false;
-            });
-          } else {
-            dialog.showMessageBox({
-              type: 'info',
-              title: 'Mission Control Update Check',
-              message: 'Native autoUpdater is only supported in packaged environments.'
-            });
-          }
-        }
-      },
-      { type: 'separator' },
-      {
-        label: 'Exit Mission Control', icon: iconExit, click: () => {
-          app.quit();
-        }
-      }
-    ]);
+      ]);
+
+      tray.setContextMenu(contextMenu);
+    }
+
+    updateTrayMenuRef = updateTrayMenu;
+    updateTrayMenu();
 
     tray.setToolTip('Mission Control Gaming Assistant');
-    tray.setContextMenu(contextMenu);
 
     tray.on('double-click', () => {
       if (win && !win.isDestroyed()) {
@@ -917,6 +928,9 @@ ipcMain.handle('save-settings', async (_event, config) => {
       });
       console.log(`[Electron] Set openAtLogin to ${openAtLogin}`);
     }
+    if (updateTrayMenuRef) {
+      updateTrayMenuRef();
+    }
     return true;
   } catch (error) {
     console.error('Failed to save config:', error);
@@ -1374,6 +1388,9 @@ function updateHUDConfig(config: any) {
     win.setContentProtection(isStealth);
     lastMainStealth = isStealth;
     console.log(`[Electron] Main window stealth mode (content protection) set to: ${isStealth}`);
+  }
+  if (updateTrayMenuRef) {
+    updateTrayMenuRef();
   }
 }
 

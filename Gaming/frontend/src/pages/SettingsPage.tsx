@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useRef, useMemo } from 'react';
-import { useAuth, useUser } from '@clerk/clerk-react';
+import { useAuth, useUser, UserButton } from '@clerk/clerk-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import {
   Brain,
@@ -566,16 +566,6 @@ const OAUTH_PROVIDERS = [
     icon: (
       <svg className="w-4 h-4" viewBox="0 0 24 24" fill="currentColor" xmlns="http://www.w3.org/2000/svg">
         <path d="M19.27 5.33C17.94 4.71 16.5 4.26 15 4a.09.09 0 0 0-.07.03c-.18.33-.39.76-.53 1.09a16.09 16.09 0 0 0-4.8 0c-.14-.34-.35-.76-.54-1.09a.09.09 0 0 0-.07-.03c-1.5.26-2.93.71-4.27 1.33a.08.08 0 0 0-.05.05C2.79 11.53 1.74 17.58 2.3 23.53a.08.08 0 0 0 .04.06c1.8 1.33 3.53 2.13 5.23 2.68a.09.09 0 0 0 .09-.03c.4-.55.77-1.13 1.11-1.74a.09.09 0 0 0-.05-.12c-.59-.22-1.16-.48-1.71-.78a.09.09 0 0 1-.01-.15c.12-.09.24-.18.35-.28a.09.09 0 0 1 .09-.01c3.48 1.59 7.23 1.59 10.67 0a.09.09 0 0 1 .09.01c.11.09.23.19.36.28a.09.09 0 0 1-.01.15c-.56.3-1.13.56-1.73.78a.09.09 0 0 0-.04.12c.34.61.71 1.19 1.11 1.74a.09.09 0 0 0 .09.03c1.7-.55 3.44-1.35 5.24-2.68a.08.08 0 0 0 .03-.06c.64-6.8-.93-12.75-2.47-18.15a.08.08 0 0 0-.05-.05ZM8.5 17.47c-1.05 0-1.92-.96-1.92-2.13 0-1.18.85-2.14 1.92-2.14s1.94.97 1.92 2.14c0 1.17-.86 2.13-1.92 2.13Zm7 0c-1.05 0-1.92-.96-1.92-2.13 0-1.18.85-2.14 1.92-2.14s1.94.97 1.92 2.14c0 1.17-.86 2.13-1.92 2.13Z" />
-      </svg>
-    )
-  },
-  {
-    id: 'oauth_microsoft',
-    name: 'Microsoft',
-    color: 'from-[#00a4ef]/10 to-[#0078d4]/10 border-[#00a4ef]/30 hover:border-[#00a4ef]/50 text-[#00a4ef] hover:bg-[#00a4ef]/20',
-    icon: (
-      <svg className="w-4 h-4" viewBox="0 0 24 24" fill="currentColor" xmlns="http://www.w3.org/2000/svg">
-        <path d="M11.4 24H0V12.6h11.4V24ZM24 24H12.6V12.6H24V24ZM11.4 11.4H0V0h11.4v11.4ZM24 11.4H12.6V0H24v11.4Z" />
       </svg>
     )
   }
@@ -1168,7 +1158,7 @@ const SettingsPage: React.FC<{ state: TelemetryState | null, sendCommand: (type:
         strategy: strategy as any,
         redirectUrl: `${window.location.origin}/sso-callback`,
       };
-      if (strategy === 'oauth_google' || strategy === 'oauth_microsoft') {
+      if (strategy === 'oauth_google') {
         options.additionalData = { prompt: 'select_account' };
       }
       const extAccount = await user.createExternalAccount(options);
@@ -1675,17 +1665,7 @@ const SettingsPage: React.FC<{ state: TelemetryState | null, sendCommand: (type:
             {/* Identity block */}
             <div className="flex items-center justify-between gap-4 bg-white/5 border border-white/15 rounded-2xl p-4 shadow-[0_0_15px_rgba(118, 185, 0,0.03)]">
               <div className="flex items-center gap-4">
-                {user.imageUrl ? (
-                  <img
-                    src={user.imageUrl}
-                    alt="Avatar"
-                    className="w-12 h-12 rounded-2xl border border-white/10 object-cover shadow-[0_0_15px_rgba(255,255,255,0.05)]"
-                  />
-                ) : (
-                  <div className="w-12 h-12 rounded-2xl bg-neon-green/10 border border-neon-green/20 flex items-center justify-center text-neon-green font-black text-lg shadow-[0_0_15px_rgba(118, 185, 0,0.15)]">
-                    {(user.firstName?.[0] || user.emailAddresses?.[0]?.emailAddress?.[0] || '?').toUpperCase()}
-                  </div>
-                )}
+                <UserButton appearance={{ elements: { userButtonAvatarBox: "w-12 h-12 rounded-2xl border border-white/10 shadow-[0_0_15px_rgba(255,255,255,0.05)]", userButtonPopoverCard: "bg-black/90 border border-white/10 backdrop-blur-xl" } }} />
                 <div>
                   <div className="flex items-center gap-2">
                     <p className="text-xs font-black text-white uppercase tracking-wider">
@@ -1775,11 +1755,16 @@ const SettingsPage: React.FC<{ state: TelemetryState | null, sendCommand: (type:
 
             {/* Linked Identity Gateways */}
             <div className="border-t border-white/4 pt-6 space-y-4">
-              <div>
-                <p className="text-[10px] font-black text-neon-green uppercase tracking-widest mb-1">Identity & Authentication Gateways</p>
-                <p className="text-[10px] font-medium text-zinc-500 leading-relaxed">
-                  Link secondary multi-factor authentication providers to authenticate on other systems or sign in securely.
-                </p>
+              <div className="flex items-start justify-between gap-4 flex-wrap">
+                <div>
+                  <p className="text-[10px] font-black text-neon-green uppercase tracking-widest mb-1">Identity & Authentication Gateways</p>
+                  <p className="text-[10px] font-medium text-zinc-500 leading-relaxed">
+                    Link secondary multi-factor authentication providers to authenticate on other systems or sign in securely.
+                  </p>
+                </div>
+                <button aria-label="button" type="button" onClick={() => signOut()} className="px-4 py-2 bg-white/5 border border-white/10 hover:bg-white/10 text-white font-black text-[9px] uppercase tracking-widest rounded-xl transition-all whitespace-nowrap shrink-0">
+                  Switch Account
+                </button>
               </div>
 
               <div className="grid grid-cols-1 gap-3">

@@ -1269,7 +1269,10 @@ class GamingAssistantPipeline:
                         if avg_fps == 0.0:
                             avg_fps = self.frame_buffer.capture_fps
                         self._game_state["game_fps"] = avg_fps
-                        self._game_state["game_loading"] = self.frame_buffer.frame_count < 30 or avg_fps == 0.0
+                        f_count = self.frame_buffer.frame_count
+                        if f_count == 0:
+                            f_count = self.frame_buffer.capture_frame_count
+                        self._game_state["game_loading"] = f_count < 30 or avg_fps == 0.0
                         self._game_state["min_avg_fps"] = self.frame_buffer.min_avg_fps
                         self._game_state["max_avg_fps"] = self.frame_buffer.max_avg_fps
                         self._game_state["min_fps"] = self.frame_buffer.min_fps

@@ -10,6 +10,12 @@
 }
 
 @layer base {
+  html {
+    /* Smoothly scales base font-size from 12px up to 32px based on window size */
+    /* 1.48vmin perfectly maps 1080p to 16px, 1440p to 21.3px, and 4K to 32px */
+    font-size: clamp(12px, 1.48vmin, 32px);
+  }
+
   body {
     @apply bg-transparent text-white font-inter antialiased overflow-hidden;
   }
