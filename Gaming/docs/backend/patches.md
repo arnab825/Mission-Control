@@ -2,6 +2,10 @@
 
 This document contains a detailed history of all patches and updates for the AI Gaming Assistant.
 
+### Patch: 2026-07-12 — v1.3.4: Upgraded some minor changes
+
+- Upgraded some minor changes
+
 ### Patch: 2026-07-12 — v1.3.0: Fixed Microsoft Auth, CPU clock speed, and Release notes UI
 
 - Fixed Microsoft Auth, CPU clock speed, and Release notes UI
