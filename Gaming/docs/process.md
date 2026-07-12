@@ -18,9 +18,8 @@ Always execute all commands from the **project root directory** (`Mission-Contro
 ```powershell
 .\run_local.ps1
 ```
-* **Enter GITHUB_TOKEN** when prompted.
-* **Enter version tag to build** (e.g. `v2.1.2`). 
-* *Note: The tag environment variable is automatically cleared after the run, so you will always be prompted for a new tag on subsequent builds.*
+* **Enter GITHUB_TOKEN** when prompted (if not set).
+* *Note: The version tag is automatically detected from the project files. You no longer need to enter it manually.*
 
 ---
 
@@ -39,19 +38,26 @@ If you just have a single fix or small update, use the simplified one-argument s
 .\Gaming\scripts\publish.ps1 "Fixed WiFi SSID detection logic"
 ```
 
-### Mode B: Detailed Release
+### Mode B: GUI Release (Recommended for detailed releases)
+For an easier experience when writing long descriptions or multi-line changes, use the new interactive Windows Forms GUI:
+```powershell
+.\Gaming\scripts\gui_publish.ps1
+```
+This will open a window where you can fill in the Title, Type, Changes, and Image URL, then automatically pass them to the publish script.
+
+### Mode C: Detailed Release
 Use this mode for major updates where you want to list multiple features and specify the version bump type.
 ```powershell
 .\Gaming\scripts\publish.ps1 "Agentic AI Update" "Integrated NVIDIA NIM" "Added Racing genre support" -Type minor
 ```
 
-### Mode C: Visual Release (With Optional Image)
+### Mode D: Visual Release (With Optional Image)
 Include an image in your release notes by using the `-Image` parameter.
 ```powershell
 .\Gaming\scripts\publish.ps1 "New HUD Aesthetics" -Image "https://i.imgur.com/example.png"
 ```
 
-### Mode D: Manual Version Release (Override Auto-Bump)
+### Mode E: Manual Version Release (Override Auto-Bump)
 If you want to set an **exact, specific version number** (e.g., forcing a jump to `2.2.0` or resetting versions), use the `-Version` parameter:
 ```powershell
 .\Gaming\scripts\publish.ps1 "Forcing release version" -Version "2.2.0"

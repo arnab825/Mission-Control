@@ -38,10 +38,18 @@ if (-not $githubToken) {
 # Ensure CI_REPO is set
 $env:CI_REPO = "arnab825/Mission-Control"
 
-# Prompt for the tag version
+# Auto-detect the tag version from version.json
 $tag = $env:CI_COMMIT_TAG
 if (-not $tag) {
-  $tag = Read-Host -Prompt "Enter the version tag to build (e.g., v1.0.0)"
+  $versionPath = Join-Path $PSScriptRoot "Gaming\backend\version.json"
+  if (Test-Path $versionPath) {
+      $versionData = Get-Content $versionPath | ConvertFrom-Json
+      $tag = "v" + $versionData.version
+      Write-Host "Auto-detected version tag from version.json: $tag" -ForegroundColor Cyan
+  } else {
+      $tag = Read-Host -Prompt "Enter the version tag to build (e.g., v1.0.0)"
+  }
+  
   if (-not $tag) {
     Write-Error "A version tag (e.g. v1.0.0) is required."
   }
