@@ -33,7 +33,7 @@ dependencies = [
     "wmi>=1.5.1",
     "pywin32",
     "requests",
-    "psycopg2-binary>=2.9.9",
+    "psycopg2-binary>=2.9.12",
     "langchain",
     "langchain-community",
     "langchain-nvidia-ai-endpoints",

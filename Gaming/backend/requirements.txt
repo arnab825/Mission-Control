@@ -45,7 +45,7 @@ python-dotenv    # Environment variable management
 websockets>=16.0
 
 # Production Database (Supabase / PostgreSQL)
-psycopg2-binary>=2.9.9  # PostgreSQL adapter (binary wheel, no local Postgres required)
+psycopg2-binary>=2.9.12  # PostgreSQL adapter (binary wheel, no local Postgres required)
 
 # LangChain RAG & Vector Database
 langchain
