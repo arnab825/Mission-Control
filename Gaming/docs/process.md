@@ -39,11 +39,11 @@ If you just have a single fix or small update, use the simplified one-argument s
 ```
 
 ### Mode B: GUI Release (Recommended for detailed releases)
-For an easier experience when writing long descriptions or multi-line changes, use the new interactive Windows Forms GUI:
+For an easier experience when writing long descriptions or multi-line changes, use the modern, Mission Control-themed UI:
 ```powershell
 .\Gaming\scripts\gui_publish.ps1
 ```
-This will open a window where you can fill in the Title, Type, Changes, and Image URL, then automatically pass them to the publish script.
+This will open an Electron application where you can fill in the Title, Type, Changes, and Image URL. When you click Publish, it automatically triggers the release scripts under the hood.
 
 ### Mode C: Detailed Release
 Use this mode for major updates where you want to list multiple features and specify the version bump type.

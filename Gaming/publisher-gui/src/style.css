@@ -1,0 +1,71 @@
+@import "tailwindcss";
+
+@theme {
+  --color-neon-yellow: #bfff00;
+  --color-neon-green: #76b900;
+  --color-obsidian: #0a0a0c;
+  --color-graphite: #121216;
+}
+
+@layer base {
+  body {
+    @apply bg-obsidian text-white antialiased overflow-hidden selection:bg-neon-green/30 selection:text-neon-green;
+  }
+}
+
+@layer utilities {
+  .titlebar {
+    -webkit-app-region: drag;
+  }
+  .no-drag {
+    -webkit-app-region: no-drag;
+  }
+  .glass-panel {
+    background: linear-gradient(135deg, rgba(255, 255, 255, 0.04) 0%, rgba(255, 255, 255, 0.01) 100%);
+    backdrop-filter: blur(24px);
+    border: 1px solid rgba(255, 255, 255, 0.08);
+  }
+  .input-field {
+    @apply w-full bg-graphite border border-white/10 rounded-lg px-4 py-2.5 text-white placeholder-zinc-500 focus:outline-none focus:ring-1 focus:ring-neon-green focus:border-neon-green transition-all shadow-inner;
+  }
+}
+
+/* Custom Scrollbar */
+::-webkit-scrollbar {
+  width: 8px;
+  height: 8px;
+}
+::-webkit-scrollbar-track {
+  background: var(--color-obsidian);
+}
+::-webkit-scrollbar-thumb {
+  background: rgba(255, 255, 255, 0.15);
+  border-radius: 10px;
+  border: 1px solid var(--color-obsidian);
+}
+::-webkit-scrollbar-thumb:hover {
+  background: rgba(118, 185, 0, 0.6);
+}
+
+.btn-primary {
+  @apply bg-neon-green text-obsidian font-bold py-2 px-6 rounded-lg transition-all duration-200 active:scale-95 disabled:opacity-50 disabled:cursor-not-allowed hover:brightness-110;
+}
+
+.btn-secondary {
+  @apply bg-zinc-800 hover:bg-zinc-700 text-zinc-300 font-medium py-2 px-6 rounded-lg transition-all duration-200 active:scale-95 disabled:opacity-50 disabled:cursor-not-allowed;
+}
+
+/* Custom Scrollbar for Textarea */
+::-webkit-scrollbar {
+  width: 8px;
+}
+::-webkit-scrollbar-track {
+  background: transparent;
+}
+::-webkit-scrollbar-thumb {
+  background: #3f3f46;
+  border-radius: 4px;
+}
+::-webkit-scrollbar-thumb:hover {
+  background: #52525b;
+}
