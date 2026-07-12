@@ -420,30 +420,11 @@ class TelemetryThread(threading.Thread):
         # Persistent PDH query for real Disk Utilization on Windows
         self._disk_query = None
         self._disk_counter = None
-        if sys.platform == "win32" and _PSUTIL_AVAILABLE:
-            try:
-                import win32pdh
-                self._disk_query = win32pdh.OpenQuery()
-                self._disk_counter = win32pdh.AddCounter(self._disk_query, r"\PhysicalDisk(_Total)\% Disk Time")
-                win32pdh.CollectQueryData(self._disk_query)
-            except Exception as e:
-                logger.warning(f"Failed to initialize persistent disk PDH query: {e}")
-                self._disk_query = None
-                self._disk_counter = None
 
         # Persistent PDH query for real CPU performance percentage on Windows (works around static psutil.cpu_freq())
         self._cpu_query = None
         self._cpu_counter = None
-        if sys.platform == "win32" and _PSUTIL_AVAILABLE:
-            try:
-                import win32pdh
-                self._cpu_query = win32pdh.OpenQuery()
-                self._cpu_counter = win32pdh.AddCounter(self._cpu_query, r"\Processor Information(_Total)\% Processor Performance")
-                win32pdh.CollectQueryData(self._cpu_query)
-            except Exception as e:
-                logger.warning(f"Failed to initialize persistent CPU performance percentage PDH query: {e}")
-                self._cpu_query = None
-                self._cpu_counter = None
+
         self._cpu_base_freq = 2400
         self._cached_cpu_max_freq = 0
         self._cpu_max_freq_resolved = False
@@ -585,6 +566,27 @@ class TelemetryThread(threading.Thread):
 
         threading.Thread(target=_deferred_discovery, name="HWDiscovery", daemon=True).start()
 
+        # Initialize PDH queries inside the thread loop to prevent cross-thread handle exceptions
+        if sys.platform == "win32" and _PSUTIL_AVAILABLE:
+            try:
+                import win32pdh
+                self._disk_query = win32pdh.OpenQuery()
+                self._disk_counter = win32pdh.AddCounter(self._disk_query, r"\PhysicalDisk(_Total)\% Disk Time")
+                win32pdh.CollectQueryData(self._disk_query)
+            except Exception as e:
+                logger.debug(f"Failed to initialize persistent disk PDH query: {e}")
+                self._disk_query = None
+                self._disk_counter = None
+            try:
+                import win32pdh
+                self._cpu_query = win32pdh.OpenQuery()
+                self._cpu_counter = win32pdh.AddCounter(self._cpu_query, r"\Processor Information(_Total)\% Processor Performance")
+                win32pdh.CollectQueryData(self._cpu_query)
+            except Exception as e:
+                logger.debug(f"Failed to initialize persistent CPU performance percentage PDH query: {e}")
+                self._cpu_query = None
+                self._cpu_counter = None
+
         while self.running and (self.p.running or getattr(self.p, "headless", False)):
             try:
                 now = time.time()
@@ -679,22 +681,8 @@ class TelemetryThread(threading.Thread):
                 # CPU frequency (Current active frequency)
                 cpu_freq = 0
                 
-                # Prioritize LHM's hardware core clocks (MSR readings) first as they are direct hardware readings
-                if lhm and lhm.get("cpu_max_freq", 0) > 0:
-                    cpu_freq = int(float(lhm["cpu_max_freq"]))
-                elif lhm and lhm.get("cpu_freq", 0) > 0:
-                    cpu_freq = int(float(lhm["cpu_freq"]))
-                
-                # Fallback to psutil
-                if cpu_freq <= 0:
-                    try:
-                        cf = psutil.cpu_freq() if hasattr(psutil, "cpu_freq") else None
-                        cpu_freq = int(cf.current) if cf else 0
-                    except Exception:
-                        pass
-                
-                # Fallback to persistent PDH query
-                if cpu_freq <= 0 and sys.platform == "win32" and self._cpu_query and self._cpu_counter:
+                # Check persistent PDH query first on Windows for dynamic clock speed
+                if sys.platform == "win32" and self._cpu_query and self._cpu_counter:
                     try:
                         import win32pdh
                         win32pdh.CollectQueryData(self._cpu_query)
@@ -704,6 +692,21 @@ class TelemetryThread(threading.Thread):
                             cpu_freq = int(base_f * (val / 100.0))
                     except Exception as e:
                         logger.debug(f"PDH CPU frequency query failed: {e}")
+                
+                # Fallback to LHM's hardware core clocks (MSR readings) if PDH was not available or returned 0
+                if cpu_freq <= 0:
+                    if lhm and lhm.get("cpu_max_freq", 0) > 0:
+                        cpu_freq = int(float(lhm["cpu_max_freq"]))
+                    elif lhm and lhm.get("cpu_freq", 0) > 0:
+                        cpu_freq = int(float(lhm["cpu_freq"]))
+                
+                # Fallback to psutil
+                if cpu_freq <= 0 and sys.platform != "win32":
+                    try:
+                        cf = psutil.cpu_freq() if hasattr(psutil, "cpu_freq") else None
+                        cpu_freq = int(cf.current) if cf else 0
+                    except Exception:
+                        pass
                 
                 # Max Frequency (Denominator: Spec Max from DB)
                 cpu_max_freq = self._cached_cpu_max_freq
