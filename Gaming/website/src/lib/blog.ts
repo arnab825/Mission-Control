@@ -4,11 +4,15 @@ import matter from "gray-matter";
 
 const contentDirectory = path.join(process.cwd(), "content/blog");
 
-export function parseBlogDate(dateStr: string): Date {
+export function parseBlogDate(dateStr: any): Date {
   if (!dateStr) return new Date();
   
+  if (dateStr instanceof Date) return isNaN(dateStr.getTime()) ? new Date() : dateStr;
+  
+  let str = String(dateStr);
+  
   // Clean string and check for IST timezone
-  let cleanStr = dateStr.trim();
+  let cleanStr = str.trim();
   let isIST = false;
   if (cleanStr.toUpperCase().endsWith("IST")) {
     isIST = true;

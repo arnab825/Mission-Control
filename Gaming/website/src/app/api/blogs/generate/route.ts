@@ -68,7 +68,11 @@ function sanitizeMermaid(content: string): string {
     code = code.replace(/-->\s*\|([^|]+)\|\s*>/g, "-->|$1| ");
     code = code.replace(/-->\s*\|([^|]+)\|>/g, "-->|$1| ");
 
-    // 2. Fix pie chart titles (remove colon)
+    // 2. Fix flowchart arrows with spaces inside pipes
+    code = code.replace(/-->\s*\|\s+([^|]+?)\s+\|\s+/g, "-->|$1| ");
+    code = code.replace(/-->\s*\|\s+([^|]+?)\s+\|/g, "-->|$1| ");
+
+    // 3. Fix pie chart titles (remove colon)
     code = code.replace(/^\s*title:\s*(.*)$/gm, "    title $1");
 
     // 3. Fix sequence diagram notes without placement (e.g. note "text")
@@ -127,6 +131,7 @@ REQUIREMENTS & STANDARDS:
 
 3. MERMAID DIAGRAMS (MANDATORY IF USEFUL):
 - When useful, generate valid Mermaid diagrams (flowcharts, sequence diagrams, architecture diagrams, pie charts, etc.). Ensure they are syntactically correct and reflect the actual system or process.
+- For flowcharts, NEVER use spaces inside edge labels. Use '-->|text|' instead of '-->| text |'.
 
 4. DEVELOPER & GAMER FOCUS:
 - For development topics: Explain why something works, not just how. Include practical examples, copy-paste-ready commands, explain terminal utilities, mention installation methods, and discuss performance implications, architecture, debugging, and best practices.

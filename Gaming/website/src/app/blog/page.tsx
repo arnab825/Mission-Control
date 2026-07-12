@@ -249,7 +249,10 @@ async function GamingIntelData({ activeCategory, localGamingPosts }: { activeCat
   let dbPosts: DBPost[] = [];
   try {
     await connectDB();
-    const query = activeCategory !== "all" ? { category: activeCategory } : {};
+    const query: any = { publishedAt: { $lte: new Date() } };
+    if (activeCategory !== "all") {
+      query.category = activeCategory;
+    }
     dbPosts = (await GamingPost.find(query).sort({ publishedAt: -1 }).lean()) as unknown as DBPost[];
   } catch (error) {
     console.warn("MongoDB Connection Error: IP not whitelisted. Falling back to local posts.");

@@ -52,8 +52,13 @@ interface GamingPostDisplay {
 export default async function GamingBlogPost({ params }: { params: Promise<{ slug: string }> }) {
   const { slug } = await params;
   
-  await connectDB();
-  const dbPost = await GamingPost.findOne({ slug }).lean();
+  let dbPost = null;
+  try {
+    await connectDB();
+    dbPost = await GamingPost.findOne({ slug }).lean();
+  } catch (error) {
+    console.warn("MongoDB Connection Error: IP not whitelisted. Falling back to local post.");
+  }
 
   let post: GamingPostDisplay | null = null;
   if (dbPost) {
