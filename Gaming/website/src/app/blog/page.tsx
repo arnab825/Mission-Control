@@ -256,15 +256,15 @@ async function GamingIntelData({ activeCategory, localGamingPosts }: { activeCat
   }
 
   const mappedDbPosts = dbPosts.map((p) => ({
-    _id: p._id.toString(),
-    title: p.title,
-    slug: { current: p.slug },
-    category: p.category,
-    excerpt: p.excerpt,
-    tags: p.tags,
-    author: p.author,
-    aiGenerated: p.aiGenerated,
-    publishedAt: p.publishedAt.toISOString(),
+    _id: p._id?.toString() || Math.random().toString(),
+    title: p.title || 'Untitled Intel',
+    slug: { current: p.slug || 'unknown-slug' },
+    category: p.category || 'Mission Brief',
+    excerpt: p.excerpt || '',
+    tags: p.tags || [],
+    author: p.author || 'Mission Control',
+    aiGenerated: p.aiGenerated || false,
+    publishedAt: p.publishedAt ? new Date(p.publishedAt).toISOString() : new Date().toISOString(),
     coverImage: p.coverImage,
   }));
 
