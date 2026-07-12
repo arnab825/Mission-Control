@@ -590,8 +590,8 @@ class TelemetryThread(threading.Thread):
                     except Exception:
                         pass
                 
-                # Override with LibreHardwareMonitor if available
-                if lhm and lhm.get("cpu_freq", 0) > 0:
+                # Override with LibreHardwareMonitor if available, but prefer PDH dynamic clock if valid
+                if cpu_freq <= 0 and lhm and lhm.get("cpu_freq", 0) > 0:
                     cpu_freq = int(float(lhm["cpu_freq"]))
 
                 cpu_max_freq = self._cached_cpu_max_freq

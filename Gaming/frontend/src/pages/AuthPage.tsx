@@ -31,17 +31,22 @@ const AuthPage: React.FC<AuthPageProps> = ({ onBackToLibrary }) => {
           redirectUrl: `${origin}/sso-callback`,
           redirectUrlComplete: `${origin}/`,
         };
-        if (strategy === 'oauth_google') {
+        if (strategy === 'oauth_google' || strategy === 'oauth_microsoft') {
           options.additionalData = { prompt: 'select_account' };
           options.customOAuthOptions = { prompt: 'select_account' };
         }
         await signIn.authenticateWithRedirect(options);
       } else {
-        await signUp.authenticateWithRedirect({
+        const options: any = {
           strategy,
           redirectUrl: `${origin}/sso-callback`,
           redirectUrlComplete: `${origin}/`,
-        });
+        };
+        if (strategy === 'oauth_google' || strategy === 'oauth_microsoft') {
+          options.additionalData = { prompt: 'select_account' };
+          options.customOAuthOptions = { prompt: 'select_account' };
+        }
+        await signUp.authenticateWithRedirect(options);
       }
     } catch (err: any) {
       setError(err.errors?.[0]?.longMessage || 'OAuth connection failed.');

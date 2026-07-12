@@ -373,16 +373,20 @@ export const UpdaterModal: React.FC<UpdaterModalProps> = ({
 
                     <div className="bg-zinc-950 border border-white/5 rounded-2xl p-6 space-y-4">
                       {updateState.changelog && updateState.changelog.length > 0 ? (
-                        <div className="space-y-3">
-                          <h6 className="text-[10px] font-black text-zinc-300 uppercase tracking-wider">{updateState.changelog[0].title} ({updateState.changelog[0].date})</h6>
-                          <ul className="space-y-2">
-                            {updateState.changelog[0].highlights.map((change: string, idx: number) => (
-                              <li key={idx} className="flex gap-2.5 items-start text-[10px] text-zinc-400 font-medium leading-relaxed">
-                                <span className="w-1.5 h-1.5 rounded-full bg-neon-green/60 mt-1.5 shrink-0" />
-                                <span>{change}</span>
-                              </li>
-                            ))}
-                          </ul>
+                        <div className="space-y-6 max-h-60 overflow-y-auto custom-scrollbar pr-2">
+                          {updateState.changelog.map((log: any, index: number) => (
+                            <div key={index} className="space-y-3">
+                              <h6 className="text-[10px] font-black text-zinc-300 uppercase tracking-wider">{log.title} ({log.date}) - v{log.version}</h6>
+                              <ul className="space-y-2">
+                                {log.highlights.map((change: string, idx: number) => (
+                                  <li key={idx} className="flex gap-2.5 items-start text-[10px] text-zinc-400 font-medium leading-relaxed">
+                                    <span className="w-1.5 h-1.5 rounded-full bg-neon-green/60 mt-1.5 shrink-0" />
+                                    <span>{change}</span>
+                                  </li>
+                                ))}
+                              </ul>
+                            </div>
+                          ))}
                         </div>
                       ) : (
                         <p className="text-[10px] text-zinc-500 uppercase font-bold">No release documentation found.</p>

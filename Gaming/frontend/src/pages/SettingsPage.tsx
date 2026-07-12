@@ -1164,10 +1164,14 @@ const SettingsPage: React.FC<{ state: TelemetryState | null, sendCommand: (type:
     if (!user) return;
     setLinkingProvider(strategy);
     try {
-      const extAccount = await user.createExternalAccount({
+      const options: any = {
         strategy: strategy as any,
         redirectUrl: `${window.location.origin}/sso-callback`,
-      });
+      };
+      if (strategy === 'oauth_google' || strategy === 'oauth_microsoft') {
+        options.additionalData = { prompt: 'select_account' };
+      }
+      const extAccount = await user.createExternalAccount(options);
 
       const verification = (extAccount as any).verification;
       const redirectUrl = verification?.externalVerificationRedirectUrl;

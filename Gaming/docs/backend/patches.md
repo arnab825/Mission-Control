@@ -2,6 +2,10 @@
 
 This document contains a detailed history of all patches and updates for the AI Gaming Assistant.
 
+### Patch: 2026-07-12 — v1.3.0: Fixed Microsoft Auth, CPU clock speed, and Release notes UI
+
+- Fixed Microsoft Auth, CPU clock speed, and Release notes UI
+
 ### Patch: 2026-07-12 — v1.2.9: Optimized Electron memory footprint for 16GB RAM systems & Fixed Google Auth Fallback
 
 - Optimized Electron memory footprint for 16GB RAM systems & Fixed Google Auth Fallback
