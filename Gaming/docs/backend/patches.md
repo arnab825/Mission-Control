@@ -2,6 +2,10 @@
 
 This document contains a detailed history of all patches and updates for the AI Gaming Assistant.
 
+### Patch: 2026-07-12 — v1.2.8: Fixed Google sign-in username display issue
+
+- Fixed Google sign-in username display issue
+
 ### Patch: 2026-07-11 — v1.2.5: Fixed HUD focus loss and games database path in window detector
 
 - Fixed HUD focus loss and games database path in window detector

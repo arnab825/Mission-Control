@@ -173,16 +173,17 @@ const Sidebar: React.FC<SidebarProps> = ({
                 })()}
                 <div
                   className="w-8 h-8 rounded-lg bg-neon-green/10 border border-neon-green/20 flex items-center justify-center font-black text-xs text-neon-green"
-                  style={{ display: (user.imageUrl || user.externalAccounts?.[0]?.imageUrl) ? 'none' : 'flex' }}
+                  style={{ display: (activeExternalAccount?.imageUrl || user.imageUrl || user.externalAccounts?.[0]?.imageUrl) ? 'none' : 'flex' }}
                 >
-                  {user.firstName?.[0] || user.username?.[0] || user.externalAccounts?.[0]?.username?.[0] || 'U'}
+                  {activeExternalAccount?.username?.[0] || activeExternalAccount?.firstName?.[0] || user.firstName?.[0] || user.username?.[0] || user.externalAccounts?.[0]?.username?.[0] || 'U'}
                 </div>
                 <div className="min-w-0 flex flex-col">
                   <span className="text-[10px] font-black text-white truncate uppercase tracking-tight">
                     {(() => {
                       if (activeExternalAccount?.username) return activeExternalAccount.username;
+                      if (activeExternalAccount?.firstName) return `${activeExternalAccount.firstName} ${activeExternalAccount.lastName || ''}`.trim();
                       if (user.username) return user.username;
-                      if (user.firstName) return user.firstName;
+                      if (user.firstName) return `${user.firstName} ${user.lastName || ''}`.trim();
                       return 'Node Connected';
                     })()}
                   </span>
@@ -191,7 +192,7 @@ const Sidebar: React.FC<SidebarProps> = ({
                       if (activeExternalAccount && !user.primaryEmailAddress) {
                         return `via ${activeExternalAccount.provider?.replace('oauth_', '') || 'sso'}`;
                       }
-                      return user.primaryEmailAddress?.emailAddress || activeExternalAccount?.emailAddress || 'clerk.user';
+                      return activeExternalAccount?.emailAddress || user.primaryEmailAddress?.emailAddress || 'clerk.user';
                     })()}
                   </span>
                 </div>
