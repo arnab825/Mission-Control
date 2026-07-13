@@ -348,15 +348,15 @@ function createTray() {
         }
       ]);
 
-      tray.setContextMenu(contextMenu);
+      tray?.setContextMenu(contextMenu);
     }
 
     updateTrayMenuRef = updateTrayMenu;
     updateTrayMenu();
 
-    tray.setToolTip('Mission Control Gaming Assistant');
+    tray?.setToolTip('Mission Control Gaming Assistant');
 
-    tray.on('double-click', () => {
+    tray?.on('double-click', () => {
       if (win && !win.isDestroyed()) {
         win.show();
         win.focus();
