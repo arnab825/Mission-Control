@@ -49,6 +49,11 @@ interface GamingPostDisplay {
   coverImage?: string;
 }
 
+function cleanMarkdown(content: string): string {
+  if (!content) return "";
+  return content.replace(/```(?:markdown|md)\r?\n([\s\S]*?)\r?\n```/gi, "$1");
+}
+
 export default async function GamingBlogPost({ params }: { params: Promise<{ slug: string }> }) {
   const { slug } = await params;
   
@@ -171,8 +176,8 @@ export default async function GamingBlogPost({ params }: { params: Promise<{ slu
             
             <div className="prose prose-invert prose-headings:font-display prose-headings:text-white prose-a:text-neon-green max-w-none flex-1 relative z-10 leading-relaxed text-sm sm:text-base text-gray-300">
               <MDXRemote 
-                source={post.markdownBody || ""} 
-                components={mdxComponents} 
+                source={cleanMarkdown(post.markdownBody || "")} 
+                components={mdxComponents}  
                 options={{
                   mdxOptions: {
                     remarkPlugins: [remarkGfm, remarkMath],

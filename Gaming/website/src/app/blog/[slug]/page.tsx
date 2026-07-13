@@ -23,6 +23,12 @@ const mdxComponents = {
   }
 };
 
+function cleanMarkdown(content: string): string {
+  if (!content) return "";
+  return content.replace(/```(?:markdown|md)\r?\n([\s\S]*?)\r?\n```/gi, "$1");
+}
+
+
 export async function generateStaticParams() {
   const versionFile = path.join(process.cwd(), "../backend/version.json");
   let slugs: { slug: string }[] = [];
@@ -145,7 +151,7 @@ export default async function BlogPost({ params }: { params: Promise<{ slug: str
             <div className="prose prose-invert prose-headings:font-display prose-headings:text-white prose-a:text-neon-green max-w-none flex-1 relative z-10 leading-relaxed text-sm sm:text-base text-gray-300">
               {isMdx ? (
                 <MDXRemote
-                  source={mdxPost.content}
+                  source={cleanMarkdown(mdxPost.content || "")}
                   components={mdxComponents}
                   options={{
                     mdxOptions: {

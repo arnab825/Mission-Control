@@ -124,7 +124,9 @@ REQUIREMENTS & STANDARDS:
 1. MARKDOWN FORMATTING:
 - Use proper heading hierarchy (#, ##, ###, ####). Include 3-4 structured sections with ## headers.
 - Use GitHub-flavored Markdown. Ensure clean spacing and logical flow.
-- Include tables where appropriate, code blocks with language highlighting, blockquotes, lists, inline code, callouts, and emphasis.
+- Include tables where appropriate, code blocks with language highlighting (for actual programming code examples like JavaScript, Python, Bash, HTML, JSON, etc.), blockquotes, lists, inline code, callouts, and emphasis.
+- CRITICAL: NEVER wrap normal text, headings, or bulleted/numbered lists inside "\`\`\`markdown" or "\`\`\`md" code blocks. Standard markdown content must be written directly in the post body, not enclosed in code blocks.
+
 
 2. TECHNICAL ACCURACY:
 - Prioritize correct hardware specifications, realistic networking/latency/throughput calculations, accurate APIs, and correct mathematical reasoning.
@@ -206,7 +208,8 @@ slug: url-friendly-slug-${today}
       .filter(Boolean);
 
     fs.appendFileSync(path.join(process.cwd(), "generate.log"), `[BlogGen] Successfully generated post: ${title}\n`);
-    const sanitizedContent = sanitizeMermaid(content);
+    const cleanContent = content.replace(/```(?:markdown|md)\r?\n([\s\S]*?)\r?\n```/gi, "$1");
+    const sanitizedContent = sanitizeMermaid(cleanContent);
     return { slug, title, excerpt, tags, content: sanitizedContent };
   } catch (err: unknown) {
     const errMsg = err instanceof Error ? err.message : String(err);
