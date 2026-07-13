@@ -2,6 +2,10 @@
 
 This document contains a detailed history of all patches and updates for the AI Gaming Assistant.
 
+### Patch: 2026-07-13 — v1.3.7: Release v1.3.7: Fix frontend compilation and include missed UI updates
+
+- Release v1.3.7: Fix frontend compilation and include missed UI updates
+
 ### Patch: 2026-07-12 — v1.3.4: Upgraded some minor changes
 
 - Upgraded some minor changes
