@@ -123,8 +123,13 @@ static void WINAPI EventRecordCallback(PEVENT_RECORD pEventRecord)
     if (g_target_pid <= 0 || pEventRecord->EventHeader.ProcessId != static_cast<DWORD>(g_target_pid)) 
         return;
 
-    // DXGI Present_Start Event ID is 42
-    if (pEventRecord->EventHeader.EventDescriptor.Id == 42)
+    // DXGI Present_Start Event IDs:
+    // 42: Present_Start
+    // 46: Present1_Start
+    // 73: PresentMultiplaneOverlay_Start
+    // 78: PresentMultiplaneOverlay1_Start
+    DWORD eventId = pEventRecord->EventHeader.EventDescriptor.Id;
+    if (eventId == 42 || eventId == 46 || eventId == 73 || eventId == 78)
     {
         // ETW TimeStamp is in 100-nanosecond intervals (FILETIME)
         double now = static_cast<double>(pEventRecord->EventHeader.TimeStamp.QuadPart) / 10000000.0;
@@ -140,7 +145,6 @@ static void WINAPI EventRecordCallback(PEVENT_RECORD pEventRecord)
         }
 
         double dt = now - g_state.last_time;
-        g_state.last_time = now;
 
         // Ignore bogus intervals (< 0.1ms or > 5s)
         if (dt < 0.0001 || dt > 5.0)
@@ -148,6 +152,8 @@ static void WINAPI EventRecordCallback(PEVENT_RECORD pEventRecord)
             LeaveCriticalSection(&g_state.cs);
             return;
         }
+
+        g_state.last_time = now;
 
         g_state.avg_buf[g_state.avg_head] = dt;
         g_state.avg_head = (g_state.avg_head + 1) % AVG_WINDOW;

@@ -2,6 +2,11 @@
 
 This document contains a detailed history of all patches and updates for the AI Gaming Assistant.
 
+### Patch: 2026-07-13 — v1.3.9: Fix FPS disparity with OBS capture and improve ETW precision
+
+- Fixed FPS reporting disparity when OBS is recording by capturing all DXGI Present event APIs (42, 46, 73, 78)
+- Resolved ETW state corruption by ignoring bogus microscopic intervals without updating the last frame timestamp
+
 ### Patch: 2026-07-13 — v1.3.8: Release v1.3.8: Fix CPU package temperature and remove fake power math
 
 - Release v1.3.8: Fix CPU package temperature and remove fake power math
