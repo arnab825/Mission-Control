@@ -1,8 +1,22 @@
 {
-    "version":  "1.3.5",
+    "version":  "1.3.6",
     "release_date":  "2026-07-13",
     "update_check_url":  "https://raw.githubusercontent.com/arnab825/Mission-Control/main/Gaming/backend/version.json",
     "changelog":  [
+                      {
+                          "version":  "1.3.6",
+                          "date":  "2026-07-13",
+                          "title":  "Release v1.3.6: Fixed Updater caching, file locks, and applied all UI and GPU power fixes",
+                          "highlights":  [
+                                             "Fixed update caching by adding Cache-Control headers to local server and clearing Chromium session cache on startup",
+                                             "Synchronized backend process tree termination on exit to prevent installer file lock conflicts",
+                                             "Fixed GPU power draw reporting by capping it at TGP limit",
+                                             "Implemented continuous responsive DPI scaling (1080p, 1200p, 1440p, 1600p, 4K) using viewport-based clamp",
+                                             "Added immediate account switching button in Settings and removed Microsoft Auth",
+                                             "Aligned Stealth Mode and updated Check For Updates icon in System Tray",
+                                             "Bypassed game library rescan when opening HUD overlay"
+                                         ]
+                      },
                       {
                           "version":  "1.3.5",
                           "date":  "2026-07-13",

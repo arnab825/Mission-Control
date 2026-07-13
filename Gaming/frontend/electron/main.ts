@@ -1,5 +1,5 @@
 import * as electron from 'electron'
-const { app, BrowserWindow, ipcMain, protocol, net, globalShortcut, shell, screen, dialog, Tray, Menu, nativeImage, Notification } = electron
+const { app, BrowserWindow, ipcMain, protocol, net, globalShortcut, shell, screen, dialog, Tray, Menu, nativeImage, Notification, session } = electron
 
 type BrowserWindow = electron.BrowserWindow
 type Tray = electron.Tray
@@ -518,7 +518,10 @@ function startLocalServer(distPath: string, port = FIXED_UI_PORT, retries = 3): 
       fs.stat(filePath, (err, stats) => {
         if (err || !stats.isFile()) {
           const indexPath = path.join(distPath, 'index.html').replace(/\\/g, '/')
-          res.writeHead(200, { 'Content-Type': 'text/html' })
+          res.writeHead(200, { 
+            'Content-Type': 'text/html',
+            'Cache-Control': 'no-store, no-cache, must-revalidate, max-age=0'
+          })
           const stream = fs.createReadStream(indexPath)
           stream.on('error', (streamErr) => {
             console.error('[Electron Server] Error serving fallback index.html:', streamErr)
@@ -543,7 +546,8 @@ function startLocalServer(distPath: string, port = FIXED_UI_PORT, retries = 3): 
 
         res.writeHead(200, {
           'Content-Type': contentType,
-          'Access-Control-Allow-Origin': '*'
+          'Access-Control-Allow-Origin': '*',
+          'Cache-Control': 'no-store, no-cache, must-revalidate, max-age=0'
         })
         const stream = fs.createReadStream(filePath)
         stream.on('error', (streamErr) => {
@@ -666,6 +670,11 @@ app.on('certificate-error', (event, _webContents, url, _error, _certificate, cal
 });
 
 app.whenReady().then(() => {
+  // Clear Chromium cache on startup to ensure updated assets load immediately
+  session.defaultSession.clearCache().catch((err) => {
+    console.warn('[Electron] Failed to clear session cache:', err)
+  })
+
   // ── Elevation guard ────────────────────────────────────────────────────────
   // The backend requires admin privileges for hardware sensor access (WMI,
   // GPU temp, CPU frequency etc.). In a packaged build, if we are not already
@@ -760,13 +769,13 @@ app.on('before-quit', () => {
     console.log('[Electron] Killing Python backend process tree...')
     if (process.platform === 'win32') {
       try {
-        spawn('taskkill', ['/pid', pythonProcess.pid.toString(), '/f', '/t'], { windowsHide: true })
+        execSync(`taskkill /pid ${pythonProcess.pid} /f /t`, { windowsHide: true })
       } catch (err) {
         console.error('[Electron] Failed to taskkill Python process tree:', err)
-        pythonProcess.kill()
+        try { pythonProcess.kill() } catch (_) {}
       }
     } else {
-      pythonProcess.kill()
+      try { pythonProcess.kill() } catch (_) {}
     }
     pythonProcess = null
   }
