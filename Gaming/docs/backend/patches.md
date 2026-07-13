@@ -2,6 +2,10 @@
 
 This document contains a detailed history of all patches and updates for the AI Gaming Assistant.
 
+### Patch: 2026-07-13 — v1.3.8: Release v1.3.8: Fix CPU package temperature and remove fake power math
+
+- Release v1.3.8: Fix CPU package temperature and remove fake power math
+
 ### Patch: 2026-07-13 — v1.3.7: Release v1.3.7: Fix frontend compilation and include missed UI updates
 
 - Release v1.3.7: Fix frontend compilation and include missed UI updates

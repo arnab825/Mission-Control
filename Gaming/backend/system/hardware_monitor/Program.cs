@@ -430,14 +430,14 @@ namespace HardwareMonitor
             // "Core Max" — LHM virtual sensor = MAX(Core #0 .. Core #N).
             // This is the HOTTEST individual core, not the package temperature.
             // It reads higher than package on single-threaded bursts, causing the
-            // HUD to show inflated temperatures. Explicitly demote to near-last.
-            // Same for "Core Average" — an average of per-core readings.
+            // HUD to show inflated temperatures. Explicitly assign -1 to ignore them
+            // so we can fallback to WMI package sensors.
             if (nameLower.Contains("core max") || nameLower.Contains("core average"))
-                return 5;
+                return -1;
 
             // Individual cores (e.g. "Core #0", "Core(#3)") — last hardware resort
             if (nameLower.Contains("core #") || nameLower.Contains("core(#"))
-                return 2;
+                return -1;
 
             // Unknown — accept as absolute last resort
             return 0;

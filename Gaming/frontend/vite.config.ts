@@ -8,16 +8,23 @@ import electron from 'vite-plugin-electron/simple'
 const cleanElectronBuildPlugin = () => ({
   name: 'clean-electron-build',
   configResolved(config: any) {
-    const output = config.build?.rollupOptions?.output;
-    if (output) {
-      if (Array.isArray(output)) {
-        for (const out of output) {
-          delete out.inlineDynamicImports;
-          out.codeSplitting = false;
+    if (config.build) {
+      if (config.build.lib) {
+        config.build.lib.formats = ['cjs'];
+      }
+      const output = config.build.rolldownOptions?.output || config.build.rollupOptions?.output;
+      if (output) {
+        if (Array.isArray(output)) {
+          for (const out of output) {
+            out.format = 'cjs';
+            delete out.inlineDynamicImports;
+            out.codeSplitting = false;
+          }
+        } else {
+          output.format = 'cjs';
+          delete output.inlineDynamicImports;
+          output.codeSplitting = false;
         }
-      } else {
-        delete output.inlineDynamicImports;
-        output.codeSplitting = false;
       }
     }
   }
@@ -65,6 +72,13 @@ export default defineConfig({
               entry: 'electron/main.ts',
               formats: ['cjs']
             },
+            rolldownOptions: {
+              external: ['electron'],
+              output: {
+                entryFileNames: '[name].cjs',
+                format: 'cjs'
+              }
+            },
             rollupOptions: {
               external: ['electron'],
               output: {
@@ -80,6 +94,12 @@ export default defineConfig({
         vite: {
           plugins: [cleanElectronBuildPlugin()],
           build: {
+            rolldownOptions: {
+              output: {
+                entryFileNames: '[name].cjs',
+                format: 'cjs'
+              }
+            },
             rollupOptions: {
               output: {
                 entryFileNames: '[name].cjs',
