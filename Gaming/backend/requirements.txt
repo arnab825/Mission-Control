@@ -42,7 +42,7 @@ packaging        # Version parsing
 openai           # NVIDIA NIM / OpenAI API Client
 requests         # HTTP Requests for voice/game updates
 python-dotenv    # Environment variable management
-websockets>=16.0
+websockets>=16.1
 
 # Production Database (Supabase / PostgreSQL)
 psycopg2-binary>=2.9.9  # PostgreSQL adapter (binary wheel, no local Postgres required)
