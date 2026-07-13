@@ -6,6 +6,8 @@ import fs from "fs";
 import path from "path";
 import { formatDateToIST } from "@/lib/blog";
 
+export const maxDuration = 60; // Extend Vercel function timeout to 60 seconds (max for Hobby)
+
 const GAMING_RSS_FEEDS = [
   { url: "http://feeds.ign.com/ign/all", label: "IGN", type: "gaming" },
   { url: "https://kotaku.com/rss", label: "Kotaku", type: "gaming" },

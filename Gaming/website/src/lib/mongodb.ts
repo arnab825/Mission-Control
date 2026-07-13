@@ -28,7 +28,7 @@ async function connectDB(): Promise<typeof mongoose> {
   if (!cached.promise) {
     const opts = {
       bufferCommands: false,
-      serverSelectionTimeoutMS: 100, // Reduced to 100ms so it fails instantly if not whitelisted, matching local file speed
+      serverSelectionTimeoutMS: 5000, // Increased to 5000ms to prevent connection timeouts during Vercel serverless cold starts
     };
 
     cached.promise = mongoose.connect(MONGODB_URI!, opts).then((mongooseInstance) => {

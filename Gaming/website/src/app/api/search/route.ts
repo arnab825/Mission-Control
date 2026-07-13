@@ -67,25 +67,29 @@ export async function GET(request: Request) {
     }
 
     // 1. Search MongoDB Gaming Posts
-    await connectDB();
-    const dbPosts = (await GamingPost.find({
-      $or: [
-        { title: { $regex: query, $options: "i" } },
-        { excerpt: { $regex: query, $options: "i" } },
-        { tags: { $regex: query, $options: "i" } }
-      ]
-    }).lean()) as unknown as DBPostDoc[];
+    try {
+      await connectDB();
+      const dbPosts = (await GamingPost.find({
+        $or: [
+          { title: { $regex: query, $options: "i" } },
+          { excerpt: { $regex: query, $options: "i" } },
+          { tags: { $regex: query, $options: "i" } }
+        ]
+      }).lean()) as unknown as DBPostDoc[];
 
-    dbPosts.forEach((post) => {
-      results.push({
-        title: post.title,
-        type: "blog",
-        url: `/blog/gaming/${post.slug}`,
-        category: post.category || "Gaming Intel",
-        description: post.excerpt || "Read full article...",
+      dbPosts.forEach((post) => {
+        results.push({
+          title: post.title,
+          type: "blog",
+          url: `/blog/gaming/${post.slug}`,
+          category: post.category || "Gaming Intel",
+          description: post.excerpt || "Read full article...",
+        });
+        addedUrls.add(post.slug);
       });
-      addedUrls.add(post.slug);
-    });
+    } catch (error) {
+      console.warn("MongoDB Search Connection Error: IP not whitelisted. Falling back to local posts.");
+    }
 
     // 2. Search Local Blog Posts (Mission Briefs)
     const blogPosts = getSortedPostsData();
