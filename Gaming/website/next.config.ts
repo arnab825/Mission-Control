@@ -13,9 +13,12 @@ try {
   console.warn("Failed to load env-public.json:", e);
 }
 
+const rootDir = path.resolve(process.cwd(), "../..");
+
 const nextConfig: NextConfig = {
+  outputFileTracingRoot: rootDir,
   turbopack: {
-    root: "..",
+    root: rootDir,
   },
   env: Object.fromEntries(
     Object.entries(publicEnv).filter(([_, val]) => typeof val === "string" && !val.startsWith("your_"))
@@ -23,3 +26,4 @@ const nextConfig: NextConfig = {
 };
 
 export default nextConfig;
+
