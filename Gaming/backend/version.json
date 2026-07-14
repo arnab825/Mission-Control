@@ -1,10 +1,10 @@
 {
-    "version":  "1.4.4",
+    "version":  "1.4.5",
     "release_date":  "2026-07-13",
     "update_check_url":  "https://raw.githubusercontent.com/arnab825/Mission-Control/main/Gaming/backend/version.json",
     "changelog":  [
                       {
-                          "version":  "1.4.4",
+                          "version":  "1.4.5",
                           "date":  "2026-07-14",
                           "title":  "Resolve MEM0_API_KEY resolution and allow copy of specific terminal log lines",
                           "highlights":  [
