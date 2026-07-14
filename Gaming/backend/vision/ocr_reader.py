@@ -88,7 +88,7 @@ class OCRReader:
                 return False
 
             try:
-                gpu_flag = self.config.get("gpu", True)
+                gpu_flag = self.config.get("gpu", False)
                 try:
                     # Attempt to create the Reader with the configured GPU flag
                     reader = easyocr.Reader(self.languages, gpu=gpu_flag, verbose=False)
