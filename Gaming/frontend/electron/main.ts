@@ -275,17 +275,15 @@ function createTray() {
 
     const appIcon = getWindowIcon();
     const menuIcon = appIcon ? appIcon.resize({ width: 16, height: 16 }) : undefined;
-    
+
     // Load generated tray icons
     const publicDir = process.env.VITE_PUBLIC || '';
     const iconDashboard = nativeImage.createFromPath(path.join(publicDir, 'tray', 'dashboard.png')).resize({ width: 16, height: 16 });
     const iconHud = nativeImage.createFromPath(path.join(publicDir, 'tray', 'hud.png')).resize({ width: 16, height: 16 });
-    const iconStealth = nativeImage.createFromPath(path.join(publicDir, 'tray', 'stealth.png')).resize({ width: 16, height: 16 });
     const iconUpdate = nativeImage.createFromPath(path.join(publicDir, 'tray', 'update.png')).resize({ width: 16, height: 16 });
     const iconExit = nativeImage.createFromPath(path.join(publicDir, 'tray', 'exit.png')).resize({ width: 16, height: 16 });
 
     function updateTrayMenu() {
-      const isStealthMode = getInitialStealthStatus();
       const contextMenu = Menu.buildFromTemplate([
         { label: 'Mission Control Gaming Assistant', enabled: false, icon: menuIcon },
         { type: 'separator' },
@@ -302,30 +300,6 @@ function createTray() {
         {
           label: 'Toggle HUD Overlay (Ctrl+Alt+H)', icon: iconHud, click: () => {
             toggleHUDWindow();
-          }
-        },
-        { type: 'separator' },
-        {
-          label: `Stealth Mode: ${isStealthMode ? 'ON' : 'OFF'}`, icon: iconStealth, click: () => {
-            const nextStealthMode = !isStealthMode;
-            if (win && !win.isDestroyed()) {
-              win.setContentProtection(nextStealthMode);
-            }
-            if (hudWin && !hudWin.isDestroyed()) {
-              hudWin.setContentProtection(nextStealthMode);
-            }
-            try {
-              if (fs.existsSync(CONFIG_PATH)) {
-                const data = fs.readFileSync(CONFIG_PATH, 'utf-8');
-                const parsed = JSON.parse(data);
-                if (!parsed.privacy) parsed.privacy = {};
-                parsed.privacy.stealth_hud = nextStealthMode;
-                fs.writeFileSync(CONFIG_PATH, JSON.stringify(parsed, null, 2));
-              }
-            } catch (err) {
-              console.error('[Electron] Failed to sync stealth mode in config:', err);
-            }
-            updateTrayMenu();
           }
         },
         {
@@ -448,7 +422,7 @@ function startPythonBackend() {
       // Production: look for bundled standalone exe first
       const bundledExeBuilder = path.join((process as any).resourcesPath, 'backend', 'MissionControl', 'MissionControl.exe')
       const bundledExeForge = path.join((process as any).resourcesPath, 'MissionControl', 'MissionControl.exe')
-      
+
       if (fs.existsSync(bundledExeBuilder)) {
         executablePath = bundledExeBuilder
         console.log(`[Electron] Using bundled backend exe: ${bundledExeBuilder}`)
@@ -532,71 +506,71 @@ function startLocalServer(distPath: string, port = FIXED_UI_PORT, retries = 3): 
 
         const filePath = path.join(distPath, safeUrl).replace(/\\/g, '/')
 
-      fs.stat(filePath, (err, stats) => {
-        if (err || !stats.isFile()) {
-          const indexPath = path.join(distPath, 'index.html').replace(/\\/g, '/')
-          res.writeHead(200, { 
-            'Content-Type': 'text/html',
+        fs.stat(filePath, (err, stats) => {
+          if (err || !stats.isFile()) {
+            const indexPath = path.join(distPath, 'index.html').replace(/\\/g, '/')
+            res.writeHead(200, {
+              'Content-Type': 'text/html',
+              'Cache-Control': 'no-store, no-cache, must-revalidate, max-age=0'
+            })
+            const stream = fs.createReadStream(indexPath)
+            stream.on('error', (streamErr) => {
+              console.error('[Electron Server] Error serving fallback index.html:', streamErr)
+              res.writeHead(404, { 'Content-Type': 'text/plain' })
+              res.end('404 Not Found')
+            })
+            stream.pipe(res)
+            return
+          }
+
+          let contentType = 'text/plain'
+          const ext = path.extname(filePath).toLowerCase()
+          if (ext === '.html') contentType = 'text/html'
+          else if (ext === '.js' || ext === '.mjs') contentType = 'text/javascript'
+          else if (ext === '.css') contentType = 'text/css'
+          else if (ext === '.json') contentType = 'application/json'
+          else if (ext === '.png') contentType = 'image/png'
+          else if (ext === '.jpg' || ext === '.jpeg') contentType = 'image/jpeg'
+          else if (ext === '.gif') contentType = 'image/gif'
+          else if (ext === '.svg') contentType = 'image/svg+xml'
+          else if (ext === '.ico') contentType = 'image/x-icon'
+
+          res.writeHead(200, {
+            'Content-Type': contentType,
+            'Access-Control-Allow-Origin': '*',
             'Cache-Control': 'no-store, no-cache, must-revalidate, max-age=0'
           })
-          const stream = fs.createReadStream(indexPath)
+          const stream = fs.createReadStream(filePath)
           stream.on('error', (streamErr) => {
-            console.error('[Electron Server] Error serving fallback index.html:', streamErr)
-            res.writeHead(404, { 'Content-Type': 'text/plain' })
-            res.end('404 Not Found')
+            console.error('[Electron Server] Error serving file:', streamErr)
+            res.writeHead(500, { 'Content-Type': 'text/plain' })
+            res.end('500 Internal Server Error')
           })
           stream.pipe(res)
-          return
-        }
-
-        let contentType = 'text/plain'
-        const ext = path.extname(filePath).toLowerCase()
-        if (ext === '.html') contentType = 'text/html'
-        else if (ext === '.js' || ext === '.mjs') contentType = 'text/javascript'
-        else if (ext === '.css') contentType = 'text/css'
-        else if (ext === '.json') contentType = 'application/json'
-        else if (ext === '.png') contentType = 'image/png'
-        else if (ext === '.jpg' || ext === '.jpeg') contentType = 'image/jpeg'
-        else if (ext === '.gif') contentType = 'image/gif'
-        else if (ext === '.svg') contentType = 'image/svg+xml'
-        else if (ext === '.ico') contentType = 'image/x-icon'
-
-        res.writeHead(200, {
-          'Content-Type': contentType,
-          'Access-Control-Allow-Origin': '*',
-          'Cache-Control': 'no-store, no-cache, must-revalidate, max-age=0'
         })
-        const stream = fs.createReadStream(filePath)
-        stream.on('error', (streamErr) => {
-          console.error('[Electron Server] Error serving file:', streamErr)
-          res.writeHead(500, { 'Content-Type': 'text/plain' })
-          res.end('500 Internal Server Error')
-        })
-        stream.pipe(res)
       })
-    })
 
-    server.on('error', (err: any) => {
-      if ((err as any).code === 'EADDRINUSE' && retries > 0) {
-        console.warn(`[Electron Server] Port ${port} in use, retrying on ${port + 1}...`);
-        server.close();
-        resolve(startLocalServer(distPath, port + 1, retries - 1));
-      } else {
-        console.error('[Electron Server] Server error occurred:', err);
-        resolve(0);
-      }
-    });
+      server.on('error', (err: any) => {
+        if ((err as any).code === 'EADDRINUSE' && retries > 0) {
+          console.warn(`[Electron Server] Port ${port} in use, retrying on ${port + 1}...`);
+          server.close();
+          resolve(startLocalServer(distPath, port + 1, retries - 1));
+        } else {
+          console.error('[Electron Server] Server error occurred:', err);
+          resolve(0);
+        }
+      });
 
-    server.listen(port, '127.0.0.1', () => {
-      const addr = server.address();
-      const p = typeof addr === 'string' ? port : (addr ? addr.port : 0);
-      console.log(`[Electron] Production local server running at http://127.0.0.1:${p}`)
-      resolve(p);
-    })
-  } catch (err) {
-    console.error('[Electron] Failed to start local static server:', err)
-    resolve(0)
-  }
+      server.listen(port, '127.0.0.1', () => {
+        const addr = server.address();
+        const p = typeof addr === 'string' ? port : (addr ? addr.port : 0);
+        console.log(`[Electron] Production local server running at http://127.0.0.1:${p}`)
+        resolve(p);
+      })
+    } catch (err) {
+      console.error('[Electron] Failed to start local static server:', err)
+      resolve(0)
+    }
   })
 }
 
@@ -627,10 +601,6 @@ async function createWindow() {
   })
 
   registerContextMenu(win)
-
-  const isInitialStealth = getInitialStealthStatus();
-  win.setContentProtection(isInitialStealth);
-  console.log(`[Electron] Main window created with stealth mode = ${isInitialStealth}`);
 
   // Ensure CSS transparency allows Mica to show through.
   // We'll stick to CSS transparency combined with a frameless transparent window for now.
@@ -789,10 +759,10 @@ app.on('before-quit', () => {
         execSync(`taskkill /pid ${pythonProcess.pid} /f /t`, { windowsHide: true })
       } catch (err) {
         console.error('[Electron] Failed to taskkill Python process tree:', err)
-        try { pythonProcess.kill() } catch (_) {}
+        try { pythonProcess.kill() } catch (_) { }
       }
     } else {
-      try { pythonProcess.kill() } catch (_) {}
+      try { pythonProcess.kill() } catch (_) { }
     }
     pythonProcess = null
   }
@@ -911,19 +881,6 @@ ipcMain.handle('get-desktop-path', async () => {
 // === IPC Handlers for Settings Config ===
 const CONFIG_PATH = path.join(app.getPath('userData'), 'aero_config.json');
 
-function getInitialStealthStatus(): boolean {
-  try {
-    if (fs.existsSync(CONFIG_PATH)) {
-      const data = fs.readFileSync(CONFIG_PATH, 'utf-8');
-      const parsed = JSON.parse(data);
-      return parsed?.privacy?.stealth_hud === true;
-    }
-  } catch (err) {
-    console.error('[Electron] Error checking initial stealth status:', err);
-  }
-  return false;
-}
-
 ipcMain.handle('load-settings', async () => {
   try {
     let config: any = {};
@@ -1032,8 +989,6 @@ let hasUserDeclinedAdminThisSession = false;
 let isProgrammaticHUDMove = false;
 let hudAnimationInterval: NodeJS.Timeout | null = null;
 let lastHUDLocked: boolean | null = null;
-let lastHUDStealth: boolean | null = null;
-let lastMainStealth: boolean | null = null;
 
 // Track last known focus state to prevent spamming native Win32 window calls
 let lastGameFocusState = {
@@ -1209,10 +1164,6 @@ async function createHUDWindow(showOnReady: boolean = false) {
 
   registerContextMenu(hudWin)
 
-  const isHUDStealth = getInitialStealthStatus();
-  hudWin.setContentProtection(isHUDStealth);
-  console.log(`[Electron] HUD window created with stealth mode = ${isHUDStealth}`);
-
   // Elevated always-on-top level to 'screen-saver' to float above exclusive borderless fullscreen games
   hudWin.setAlwaysOnTop(true, 'screen-saver', 1);
 
@@ -1248,7 +1199,6 @@ async function createHUDWindow(showOnReady: boolean = false) {
     hudWin = null;
     isHUDVisible = false;
     lastHUDLocked = null;
-    lastHUDStealth = null;
     isHUDManuallyToggled = false;
     if (hudAnimationInterval) {
       clearInterval(hudAnimationInterval);
@@ -1403,18 +1353,6 @@ function updateHUDConfig(config: any) {
     positionHUDWindow(layout);
   }
 
-  // 4. Update Stealth Overlay (Content Protection)
-  const isStealth = config.privacy?.stealth_hud === true;
-  if (hudWin && !hudWin.isDestroyed() && lastHUDStealth !== isStealth) {
-    hudWin.setContentProtection(isStealth);
-    lastHUDStealth = isStealth;
-    console.log(`[Electron] HUD window stealth mode (content protection) set to: ${isStealth}`);
-  }
-  if (win && !win.isDestroyed() && lastMainStealth !== isStealth) {
-    win.setContentProtection(isStealth);
-    lastMainStealth = isStealth;
-    console.log(`[Electron] Main window stealth mode (content protection) set to: ${isStealth}`);
-  }
   if (updateTrayMenuRef) {
     updateTrayMenuRef();
   }
@@ -1484,7 +1422,7 @@ ipcMain.on('game-focus-changed', (_event, isActive: boolean, isFocused: boolean,
           createHUDWindow(isFocused);
           console.log(`[Electron] Game active: ${currentGame} — auto-spawned HUD overlay window.`);
 
-// Auto-spawn HUD overlay window.
+          // Auto-spawn HUD overlay window.
         }
       }
 

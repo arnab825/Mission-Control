@@ -191,13 +191,13 @@ const App: React.FC = () => {
   // before Clerk has resolved auth — this ensures we re-request once auth state settles.
   const lastLibraryRequestRef = React.useRef<string>('');
   useEffect(() => {
-    if (!connected) return;
+    if (!connected || isHUDWindow) return;
     // Build a stable key so we don't spam the same request
     const reqKey = `${isSignedIn ? '1' : '0'}_${userId || 'guest'}`;
     if (lastLibraryRequestRef.current === reqKey) return;
     lastLibraryRequestRef.current = reqKey;
     sendCommand('get_cached_games', { userId: userId || undefined, forceRefresh: false });
-  }, [userId, isSignedIn, connected, sendCommand]);
+  }, [userId, isSignedIn, connected, sendCommand, isHUDWindow]);
 
   // Synchronize game active focus shifts to Electron for automatic z-order assertion & HUD auto-spawn
   useEffect(() => {

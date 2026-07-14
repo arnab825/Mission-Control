@@ -2,6 +2,11 @@
 
 This document contains a detailed history of all patches and updates for the AI Gaming Assistant.
 
+### Patch: 2026-07-14 — v1.4.1: Fix HUD scan and remove Stealth Mode
+
+- Prevented HUD window from triggering get_cached_games to avoid backend auto-scan.
+- Removed Stealth Mode tray menu options, window protection logic, and settings panel.
+
 ### Patch: 2026-07-14 — v1.4.0: Responsive UI, tray events, env var loading, and Electron memory optimization
 
 - Enforced 256MB V8 heap limit & exposed GC to optimize Electron memory usage on 16GB RAM setups.

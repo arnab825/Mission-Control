@@ -1995,23 +1995,6 @@ const SettingsPage: React.FC<{ state: TelemetryState | null, sendCommand: (type:
               </div>
             </div>
 
-            {/* Stealth Overlay */}
-            <div className="bg-black/20 border border-white/5 rounded-2xl p-4 flex flex-col justify-between hover:border-white/10 transition-all">
-              <div className="flex justify-between items-start gap-4">
-                <div className="space-y-1">
-                  <p className="text-xs font-black text-white uppercase tracking-wider">Stealth Overlay</p>
-                  <p className="text-[10px] text-zinc-500 font-medium leading-relaxed">
-                    Hides the HUD from screenshots and screen recordings.
-                  </p>
-                </div>
-                <div role="button" tabIndex={0} onKeyDown={(e) => e.key === 'Enter' && e.currentTarget.click()}
-                  onClick={() => setLocalConfig({ ...localConfig, privacy: { ...localConfig.privacy, stealth_hud: !localConfig.privacy?.stealth_hud } })}
-                  className={`w-10 h-5 rounded-full relative p-0.5 cursor-pointer transition-colors shrink-0 ${localConfig.privacy?.stealth_hud ? 'bg-neon-yellow shadow-[0_0_10px_rgba(191, 255, 0,0.3)]' : 'bg-zinc-800'}`}
-                >
-                  <div className={`w-4 h-4 rounded-full absolute transition-all bg-black ${localConfig.privacy?.stealth_hud ? 'right-0.5' : 'left-0.5'}`} />
-                </div>
-              </div>
-            </div>
 
             {/* Secure Sandbox */}
             <div className="bg-black/20 border border-white/5 rounded-2xl p-4 flex flex-col justify-between hover:border-white/10 transition-all">

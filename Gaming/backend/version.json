@@ -1,8 +1,17 @@
 {
-  "version": "1.4.0",
+  "version": "1.4.1",
   "release_date": "2026-07-13",
   "update_check_url": "https://raw.githubusercontent.com/arnab825/Mission-Control/main/Gaming/backend/version.json",
   "changelog": [
+    {
+      "version": "1.4.1",
+      "date": "2026-07-14",
+      "title": "Fix HUD scan and remove Stealth Mode",
+      "highlights": [
+        "Prevented HUD window from triggering get_cached_games to avoid backend auto-scan.",
+        "Removed Stealth Mode tray menu options, window protection logic, and settings panel."
+      ]
+    },
     {
       "version": "1.4.0",
       "date": "2026-07-14",
