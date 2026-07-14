@@ -1,8 +1,16 @@
 {
-  "version": "1.4.7",
+  "version": "1.4.8",
   "release_date": "2026-07-14",
   "update_check_url": "https://raw.githubusercontent.com/arnab825/Mission-Control/main/Gaming/backend/version.json",
   "changelog": [
+    {
+      "version": "1.4.8",
+      "date": "2026-07-15",
+      "title": "Add CPU fallback to EasyOCR initialization on CUDA error",
+      "highlights": [
+        "Add CPU fallback to EasyOCR initialization on CUDA error"
+      ]
+    },
     {
       "version": "1.4.7",
       "date": "2026-07-14",

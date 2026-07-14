@@ -98,13 +98,13 @@ const App: React.FC = () => {
       setUpdaterTab('check');
       setActivePage('updates');
     });
-    const cleanup2 = api.onOpenChangelogsModal(() => {
+    const cleanup2 = api.onOpenChangelogsModal?.(() => {
       setUpdaterTab('changelogs');
       setActivePage('updates');
     });
     return () => {
       cleanup1();
-      cleanup2();
+      cleanup2?.();
     };
   }, []);
 

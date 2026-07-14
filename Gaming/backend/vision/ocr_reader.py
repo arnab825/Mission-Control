@@ -89,8 +89,18 @@ class OCRReader:
 
             try:
                 gpu_flag = self.config.get("gpu", True)
-                # Creating the Reader may allocate GPU memory — do it only once
-                reader = easyocr.Reader(self.languages, gpu=gpu_flag, verbose=False)
+                try:
+                    # Attempt to create the Reader with the configured GPU flag
+                    reader = easyocr.Reader(self.languages, gpu=gpu_flag, verbose=False)
+                except Exception as cuda_err:
+                    if gpu_flag:
+                        logger.warning(
+                            "Failed to initialize EasyOCR Reader with GPU: %s. Retrying with CPU fallback...",
+                            cuda_err
+                        )
+                        reader = easyocr.Reader(self.languages, gpu=False, verbose=False)
+                    else:
+                        raise cuda_err
                 self.backend = "easyocr"
                 self._reader = reader  # Assign it last once fully constructed
                 logger.info("OCR backend: EasyOCR initialized (lazy)")

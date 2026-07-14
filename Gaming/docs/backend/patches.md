@@ -2,6 +2,10 @@
 
 This document contains a detailed history of all patches and updates for the AI Gaming Assistant.
 
+### Patch: 2026-07-15 — v1.4.8: Add CPU fallback to EasyOCR initialization on CUDA error
+
+- Add CPU fallback to EasyOCR initialization on CUDA error
+
 ### Patch: 2026-07-14 — v1.4.7: Disable GPU sandbox globally on Windows to fix black screen
 
 - Disable GPU sandbox globally on Windows to fix black screen

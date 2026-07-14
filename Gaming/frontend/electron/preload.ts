@@ -51,5 +51,13 @@ contextBridge.exposeInMainWorld('electronAPI', {
     return () => {
       ipcRenderer.off('open-updater-modal', subscription)
     }
+  },
+  // Opens the Changelogs tab in the Updates page (e.g. triggered from version badge click).
+  onOpenChangelogsModal: (callback: () => void) => {
+    const subscription = () => callback()
+    ipcRenderer.on('open-changelogs-modal', subscription)
+    return () => {
+      ipcRenderer.off('open-changelogs-modal', subscription)
+    }
   }
 })
