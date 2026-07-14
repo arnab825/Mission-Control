@@ -203,7 +203,11 @@ const DashboardPage: React.FC<DashboardPageProps> = ({ state, onCommand, onNavig
 
   // Filter logs by type
   const filteredLogs = useMemo(() => {
-    return filter === 'ALL' ? rawLogs : rawLogs.filter((log: any) => log.type === filter);
+    if (filter === 'ALL') return rawLogs;
+    if (filter === 'WARN') {
+      return rawLogs.filter((log: any) => log.type === 'WARN' || log.type === 'WARNING');
+    }
+    return rawLogs.filter((log: any) => log.type === filter);
   }, [rawLogs, filter]);
 
   useEffect(() => {
