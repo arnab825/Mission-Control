@@ -78,8 +78,8 @@
                                "shortcutName":  "Mission Control",
                                "uninstallDisplayName":  "Mission Control",
                                "runAfterFinish":  true,
-                               "createDesktopShortcut": "always",
-                               "createStartMenuShortcut": true,
+                               "createDesktopShortcut":  "always",
+                               "createStartMenuShortcut":  true,
                                "license":  "electron/license.txt",
                                "include":  "electron/installer.nsh"
                            },

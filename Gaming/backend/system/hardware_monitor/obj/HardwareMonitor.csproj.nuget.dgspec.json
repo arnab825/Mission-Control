@@ -1,32 +1,25 @@
 {
   "format": 1,
   "restore": {
-    "C:\\GitHub\\Mission-Control\\Gaming\\backend\\system\\hardware_monitor\\HardwareMonitor.csproj": {}
+    "E:\\AiAssistant\\Gaming\\backend\\system\\hardware_monitor\\HardwareMonitor.csproj": {}
   },
   "projects": {
-    "C:\\GitHub\\Mission-Control\\Gaming\\backend\\system\\hardware_monitor\\HardwareMonitor.csproj": {
+    "E:\\AiAssistant\\Gaming\\backend\\system\\hardware_monitor\\HardwareMonitor.csproj": {
       "version": "1.0.0",
       "restore": {
-        "projectUniqueName": "C:\\GitHub\\Mission-Control\\Gaming\\backend\\system\\hardware_monitor\\HardwareMonitor.csproj",
+        "projectUniqueName": "E:\\AiAssistant\\Gaming\\backend\\system\\hardware_monitor\\HardwareMonitor.csproj",
         "projectName": "HardwareMonitor",
-        "projectPath": "C:\\GitHub\\Mission-Control\\Gaming\\backend\\system\\hardware_monitor\\HardwareMonitor.csproj",
-        "packagesPath": "C:\\Users\\basut\\.nuget\\packages\\",
-        "outputPath": "C:\\GitHub\\Mission-Control\\Gaming\\backend\\system\\hardware_monitor\\obj\\",
+        "projectPath": "E:\\AiAssistant\\Gaming\\backend\\system\\hardware_monitor\\HardwareMonitor.csproj",
+        "packagesPath": "C:\\Users\\DELL\\.nuget\\packages\\",
+        "outputPath": "E:\\AiAssistant\\Gaming\\backend\\system\\hardware_monitor\\obj\\",
         "projectStyle": "PackageReference",
-        "fallbackFolders": [
-          "C:\\Program Files (x86)\\Microsoft Visual Studio\\Shared\\NuGetPackages"
-        ],
         "configFilePaths": [
-          "C:\\Users\\basut\\AppData\\Roaming\\NuGet\\NuGet.Config",
-          "C:\\Program Files (x86)\\NuGet\\Config\\Microsoft.VisualStudio.FallbackLocation.config",
-          "C:\\Program Files (x86)\\NuGet\\Config\\Microsoft.VisualStudio.Offline.config"
+          "C:\\Users\\DELL\\AppData\\Roaming\\NuGet\\NuGet.Config"
         ],
         "originalTargetFrameworks": [
           "net10.0"
         ],
         "sources": {
-          "C:\\Program Files (x86)\\Microsoft SDKs\\NuGetPackages\\": {},
-          "C:\\Program Files\\dotnet\\library-packs": {},
           "https://api.nuget.org/v3/index.json": {}
         },
         "frameworks": {
