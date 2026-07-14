@@ -2,6 +2,10 @@
 
 This document contains a detailed history of all patches and updates for the AI Gaming Assistant.
 
+### Patch: 2026-07-14 — v1.4.4: Resolve MEM0_API_KEY resolution and allow copy of specific terminal log lines
+
+- Added fallback to load .env in memory.py, fixed config_loader tests, and added hover copy buttons to individual dashboard log lines.
+
 ### Patch: 2026-07-14 — v1.4.3: Restore CPU power estimation fallback
 
 - Restored CPU power estimation math when hardware sensor readings are unavailable so that CPU wattage shows up on the HUD.

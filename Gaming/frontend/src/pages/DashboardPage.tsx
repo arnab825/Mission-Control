@@ -3,7 +3,7 @@ import { useState, useEffect, useMemo } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { 
   Cpu, Zap, Box, Database, Search, Settings, ShieldCheck, 
-  AlertTriangle, XCircle, Bot, Info,TrendingUp, BrainCircuit
+  AlertTriangle, XCircle, Bot, Info,TrendingUp, BrainCircuit, Copy, Check
 } from 'lucide-react';
 import {
   AreaChart, Area, XAxis, YAxis, CartesianGrid, Tooltip,
@@ -155,6 +155,13 @@ const DashboardPage: React.FC<DashboardPageProps> = ({ state, onCommand, onNavig
 
   const [filter, setFilter] = useState<'ALL' | 'INFO' | 'WARN' | 'ERROR' | 'AGENT'>('ALL');
   const logEndRef = React.useRef<HTMLDivElement>(null);
+  const [copiedIndex, setCopiedIndex] = useState<number | null>(null);
+
+  const handleCopySpecific = (text: string, index: number) => {
+    navigator.clipboard.writeText(text);
+    setCopiedIndex(index);
+    setTimeout(() => setCopiedIndex(null), 1500);
+  };
 
   const isOptimized = (state as any)?.optimization_status?.active;
 
@@ -398,6 +405,23 @@ const DashboardPage: React.FC<DashboardPageProps> = ({ state, onCommand, onNavig
                         </div>
                         <p className={`text-[11px] font-semibold leading-snug break-all ${text}`}>{friendlyMsg(log.msg)}</p>
                       </div>
+
+                      {/* Copy Specific Log Button */}
+                      <button aria-label="Copy log" type="button"
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          handleCopySpecific(log.msg, i);
+                        }}
+                        style={{ opacity: copiedIndex === i ? 1 : undefined }}
+                        className={`opacity-0 group-hover:opacity-100 p-1.5 bg-white/5 hover:bg-white/10 border border-white/5 hover:border-white/10 rounded-lg transition-all shrink-0 self-center ${copiedIndex === i ? 'text-neon-green border-neon-green/30 bg-neon-green/5' : 'text-zinc-500 hover:text-white'}`}
+                        title="Copy log entry"
+                      >
+                        {copiedIndex === i ? (
+                          <Check className="w-3 h-3 text-neon-green" />
+                        ) : (
+                          <Copy className="w-3 h-3" />
+                        )}
+                      </button>
                     </motion.div>
                   );
                 })}

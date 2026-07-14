@@ -39,6 +39,23 @@ class GameMemory:
         self.save_path = save_path
         
         self.mem0_api_key = os.environ.get("MEM0_API_KEY")
+        if not self.mem0_api_key:
+            try:
+                from dotenv import load_dotenv
+                cur_dir = os.path.dirname(os.path.abspath(__file__))
+                backend_dir = os.path.dirname(cur_dir)
+                env_paths = [
+                    os.path.join(backend_dir, ".env"),
+                    os.path.join(os.path.dirname(backend_dir), ".env"),
+                ]
+                for p in env_paths:
+                    if os.path.exists(p):
+                        load_dotenv(p, override=True)
+                        break
+                self.mem0_api_key = os.environ.get("MEM0_API_KEY")
+            except ImportError:
+                pass
+
         if self.mem0_api_key:
             self.mem0_client = MemoryClient(api_key=self.mem0_api_key)
         else:

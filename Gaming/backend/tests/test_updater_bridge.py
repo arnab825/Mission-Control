@@ -48,8 +48,13 @@ class TestUpdaterBridge(unittest.TestCase):
         self.path_patcher = patch("core.updater_bridge.VERSION_FILE", self.temp_version_file)
         self.path_patcher.start()
 
+        # Patch PROJECT_ROOT path inside updater_bridge module to prevent git remote version calls
+        self.root_patcher = patch("core.updater_bridge.PROJECT_ROOT", self.temp_dir.name)
+        self.root_patcher.start()
+
     def tearDown(self):
         self.path_patcher.stop()
+        self.root_patcher.stop()
         self.temp_dir.cleanup()
 
     def test_find_git_root(self):

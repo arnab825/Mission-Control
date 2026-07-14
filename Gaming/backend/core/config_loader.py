@@ -113,10 +113,10 @@ def load_config(path: str | None = None) -> Dict[str, Any]:
     The loaded config is always returned with schema_version set to
     CURRENT_SCHEMA_VERSION after migration.
     """
-    persistent = get_persistent_settings_path()
+    persistent = path or get_persistent_settings_path()
 
     # If the persistent file doesn't exist, attempt one-time migration from old locations
-    if not os.path.exists(persistent):
+    if not path and not os.path.exists(persistent):
         _migrate_from_legacy(persistent)
 
     if os.path.exists(persistent):
@@ -152,7 +152,8 @@ def load_config(path: str | None = None) -> Dict[str, Any]:
         agent_cfg["nvidia_api_key"] = None
 
     # Write a settings.json mirror for tooling/external integrations (Task 5)
-    _write_json_mirror(config)
+    if not path:
+        _write_json_mirror(config)
 
     return config
 
@@ -164,7 +165,7 @@ def save_config(config_dict: Dict[str, Any], path: str | None = None) -> bool:
     all saves always go to the persistent location (Task 4).
     """
     try:
-        persistent = get_persistent_settings_path()
+        persistent = path or get_persistent_settings_path()
         os.makedirs(os.path.dirname(persistent), exist_ok=True)
 
         # Ensure schema_version is always written
@@ -176,7 +177,8 @@ def save_config(config_dict: Dict[str, Any], path: str | None = None) -> bool:
         logger.debug("[Config] Settings saved to %s", persistent)
 
         # Keep JSON mirror in sync (Task 5)
-        _write_json_mirror(config_dict)
+        if not path:
+            _write_json_mirror(config_dict)
 
         return True
     except Exception as e:
