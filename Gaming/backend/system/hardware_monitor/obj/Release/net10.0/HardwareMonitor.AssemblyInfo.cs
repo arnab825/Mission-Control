@@ -13,7 +13,7 @@ using System.Reflection;
 [assembly: System.Reflection.AssemblyCompanyAttribute("HardwareMonitor")]
 [assembly: System.Reflection.AssemblyConfigurationAttribute("Release")]
 [assembly: System.Reflection.AssemblyFileVersionAttribute("1.0.0.0")]
-[assembly: System.Reflection.AssemblyInformationalVersionAttribute("1.0.0+e78bca5be80f31c3eb546aba250c0eb624871dfa")]
+[assembly: System.Reflection.AssemblyInformationalVersionAttribute("1.0.0+4272b065dc8255b1cdd6a3a260396e91744d77f7")]
 [assembly: System.Reflection.AssemblyProductAttribute("HardwareMonitor")]
 [assembly: System.Reflection.AssemblyTitleAttribute("HardwareMonitor")]
 [assembly: System.Reflection.AssemblyVersionAttribute("1.0.0.0")]
