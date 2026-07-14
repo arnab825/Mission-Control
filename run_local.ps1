@@ -26,6 +26,24 @@ if (-not (Test-Path $cliPath)) {
 }
 
 # Ensure GITHUB_TOKEN is available
+if (-not $env:GITHUB_TOKEN) {
+  $envFiles = @(
+    (Join-Path $PSScriptRoot "Gaming\publisher-gui\.env"),
+    (Join-Path $PSScriptRoot "Gaming\backend\.env"),
+    (Join-Path $PSScriptRoot "Gaming\frontend\.env")
+  )
+  foreach ($file in $envFiles) {
+    if (Test-Path $file) {
+      $match = Get-Content $file | Select-String -Pattern '^GITHUB_TOKEN=(.*)$'
+      if ($match) {
+        $env:GITHUB_TOKEN = $match.Matches.Groups[1].Value.Trim()
+        Write-Host "Auto-loaded GITHUB_TOKEN from $file" -ForegroundColor Cyan
+        break
+      }
+    }
+  }
+}
+
 $githubToken = $env:GITHUB_TOKEN
 if (-not $githubToken) {
   $githubToken = Read-Host -Prompt "Enter your GitHub Personal Access Token (GITHUB_TOKEN)"

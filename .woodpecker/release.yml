@@ -35,7 +35,7 @@ steps:
     image: powershell
     commands:
       - Set-Location Gaming/frontend
-      - npm ci
+      - if (-not (Test-Path node_modules)) { npm ci } else { Write-Host "node_modules already exists, skipping npm ci for local speedup" }
 
   move-backend:
     image: powershell
