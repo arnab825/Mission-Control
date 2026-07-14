@@ -4,6 +4,12 @@
 !macroend
 
 !macro customInstall
+  ; Clean up duplicate user-specific shortcuts from previous installations (per-user layout)
+  SetShellVarContext current
+  Delete "$SMPROGRAMS\Mission Control.lnk"
+  Delete "$DESKTOP\Mission Control.lnk"
+  SetShellVarContext all
+
   DetailPrint "Writing registry keys..."
   ; App paths registry (Task 2 & 10) — AppUserModelID must match app.setAppUserModelId() in main.ts
   WriteRegStr HKLM "Software\MissionControl" "InstallPath" "$INSTDIR"

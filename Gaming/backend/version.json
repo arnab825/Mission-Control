@@ -1,8 +1,17 @@
 {
-    "version":  "1.4.5",
-    "release_date":  "2026-07-13",
+    "version":  "1.4.6",
+    "release_date":  "2026-07-14",
     "update_check_url":  "https://raw.githubusercontent.com/arnab825/Mission-Control/main/Gaming/backend/version.json",
     "changelog":  [
+                      {
+                          "version":  "1.4.6",
+                          "date":  "2026-07-14",
+                          "title":  "Fix black screen issue and duplicate Start Menu shortcuts",
+                          "highlights":  [
+                                             "Enabled GPU acceleration for transparent windows and Mica effects by replacing the global hardware acceleration disable with a selective GPU sandbox bypass on elevated instances.",
+                                             "Added automatic cleanup of duplicate user-level Start Menu and Desktop shortcuts left from previous installations during the installer run."
+                                         ]
+                      },
                       {
                           "version":  "1.4.5",
                           "date":  "2026-07-14",
