@@ -157,6 +157,38 @@ def handle_bridge_update_commands(cmd_type: str, payload: dict, bridge_instance)
                     return
 
                 if Version(remote_ver) > Version(local_ver):
+                    # Check if the installer is downloadable before declaring the update available
+                    owner_repo = "arnab825/Mission-Control"
+                    if url and "githubusercontent.com/" in url:
+                        parts = url.split("githubusercontent.com/")[-1].split("/")
+                        if len(parts) >= 2:
+                            owner_repo = f"{parts[0]}/{parts[1]}"
+                    installer_url = f"https://github.com/{owner_repo}/releases/download/v{remote_ver}/MissionControl-Setup.exe"
+                    
+                    try:
+                        req_verify = urllib.request.Request(
+                            installer_url, 
+                            method='HEAD',
+                            headers={"User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64)"}
+                        )
+                        # Short timeout: we just need to verify the headers redirect to S3 / release asset successfully
+                        with urllib.request.urlopen(req_verify, timeout=5) as resp_verify:
+                            logger.info(f"[UpdateCheck] Verified installer exists at: {installer_url}")
+                    except Exception as verify_err:
+                        logger.warning(
+                            f"[UpdateCheck] Update found (v{remote_ver}) but installer .exe was not yet downloadable at {installer_url}: {verify_err}"
+                        )
+                        # Suppress update and behave as if the user is up-to-date
+                        bridge_instance.update_state(
+                            {
+                                "update_state": {
+                                    "status": "up_to_date",
+                                    "current_version": local_ver,
+                                }
+                            }
+                        )
+                        return
+
                     remote_log = []
                     if remote and isinstance(remote, dict):
                         remote_log = list(remote.get("changelog", []))

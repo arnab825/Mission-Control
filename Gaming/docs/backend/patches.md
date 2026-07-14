@@ -2,6 +2,10 @@
 
 This document contains a detailed history of all patches and updates for the AI Gaming Assistant.
 
+### Patch: 2026-07-15 — v1.5.0: Redesign update system to resolve duplication and check installer availability
+
+- Redesign update system to resolve duplication and check installer availability
+
 ### Patch: 2026-07-15 — v1.4.9: Upgrade installer to standard interactive wizard and fix telemetry dependencies
 
 - Upgrade installer to standard interactive wizard and fix telemetry dependencies

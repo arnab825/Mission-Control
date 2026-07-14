@@ -19,6 +19,20 @@ interface UpdatesPageProps {
   defaultTab?: 'check' | 'changelogs';
 }
 
+const compareSemVer = (a: string, b: string): number => {
+  const cleanA = a.replace(/^v/, '');
+  const cleanB = b.replace(/^v/, '');
+  const pa = cleanA.split('.').map(Number);
+  const pb = cleanB.split('.').map(Number);
+  for (let i = 0; i < 3; i++) {
+    const na = pa[i] || 0;
+    const nb = pb[i] || 0;
+    if (na < nb) return -1;
+    if (na > nb) return 1;
+  }
+  return 0;
+};
+
 export const UpdatesPage: React.FC<UpdatesPageProps> = ({ 
   state, 
   sendCommand,
@@ -101,6 +115,19 @@ export const UpdatesPage: React.FC<UpdatesPageProps> = ({
   }, [installState?.status]);
 
   const currentVersion = state?.version || '---';
+
+  const getReleaseHighlightsForVersion = (version: string) => {
+    const cleanTarget = version.replace(/^v/, '');
+    if (updateState?.changelog) {
+      const match = updateState.changelog.find((log: any) => log.version.replace(/^v/, '') === cleanTarget);
+      if (match) return match;
+    }
+    if (changelogsData?.changelog) {
+      const match = changelogsData.changelog.find((log: any) => log.version.replace(/^v/, '') === cleanTarget);
+      if (match) return match;
+    }
+    return null;
+  };
 
   return (
     <div className="flex-1 flex flex-col h-full bg-zinc-950 overflow-hidden relative font-['Inter',system-ui,sans-serif]">
@@ -297,84 +324,94 @@ export const UpdatesPage: React.FC<UpdatesPageProps> = ({
                 </div>
               )}
 
-              {/* Scenario 2: Already Up to Date */}
-              {updateState?.status === 'up_to_date' && (
-                <div className="flex flex-col items-center justify-center py-12 gap-y-6">
-                  <div className="w-16 h-16 rounded-full bg-neon-yellow/10 border border-neon-yellow/20 flex items-center justify-center shadow-[0_0_20px_rgba(191, 255, 0,0.1)]">
-                    <CheckCircle2 className="w-8 h-8 text-neon-yellow" />
-                  </div>
-                  <div className="text-center space-y-2">
-                    <h4 className="text-xs font-black uppercase tracking-widest text-zinc-100">Platform Synchronized</h4>
-                    <p className="text-[10px] text-zinc-400 font-bold uppercase tracking-wider leading-relaxed">
-                      You are running the latest version <span className="text-neon-green font-mono">v{currentVersion}</span>.<br />
-                      All neural nodes and models are operating at peak efficiency.
-                    </p>
-                  </div>
-                  <div className="flex gap-3">
-                    <button aria-label="button" type="button"
-                      onClick={() => sendCommand('check_updates')}
-                      className="flex items-center gap-1.5 px-6 py-2 bg-neon-green text-black text-[9px] font-black uppercase tracking-widest rounded-xl hover:bg-neon-green/90 transition-all shadow-[0_0_15px_rgba(118, 185, 0,0.2)]"
-                    >
-                      <RefreshCw className="w-3 h-3" />
-                      Check Again
-                    </button>
-                  </div>
-                </div>
-              )}
-
-              {/* Scenario 3: Update Available */}
-              {updateState?.status === 'available' && !installState && (
+              {/* Scenario 2 & 3: Unified Update Available / Up to Date layout */}
+              {updateState && (updateState.status === 'available' || updateState.status === 'up_to_date') && !installState && (
                 <div className="space-y-6">
                   {/* Status header banner */}
-                  <div className="flex items-center justify-between p-6 bg-neon-green/5 border border-neon-green/20 rounded-2xl">
-                    <div className="space-y-1">
-                      <div className="flex items-center gap-2">
-                        <span className="px-2 py-0.5 rounded bg-neon-green/10 text-neon-green text-[8px] font-black tracking-widest uppercase">UPGRADE REQUIRED</span>
-                        <h4 className="text-xs font-black uppercase tracking-widest text-white">Upgrade Detected</h4>
+                  {updateState.status === 'available' ? (
+                    <div className="flex flex-col md:flex-row items-start md:items-center justify-between p-6 bg-neon-green/5 border border-neon-green/20 rounded-2xl gap-4">
+                      <div className="space-y-1">
+                        <div className="flex items-center gap-2">
+                          <span className="px-2 py-0.5 rounded bg-neon-green/10 text-neon-green text-[8px] font-black tracking-widest uppercase">UPGRADE AVAILABLE</span>
+                          <h4 className="text-xs font-black uppercase tracking-widest text-white">Upgrade Available</h4>
+                        </div>
+                        <p className="text-[10px] text-zinc-400 font-bold uppercase leading-relaxed">
+                          A new version (<span className="text-neon-green font-mono">v{updateState.latest_version}</span>) is available. Upgrade now to access the latest improvements.
+                        </p>
                       </div>
-                      <p className="text-[10px] text-zinc-400 font-bold uppercase">
-                        Mission Control is ready to scale from <span className="text-zinc-500 font-mono">{updateState.current_version}</span> to <span className="text-neon-green font-mono">{updateState.latest_version}</span>
-                      </p>
-                    </div>
 
-                    <button aria-label="button" type="button"
-                      onClick={() => sendCommand('install_update')}
-                      className="flex items-center gap-2 px-6 py-3 bg-neon-green hover:bg-neon-green text-black text-[9px] font-black uppercase tracking-widest rounded-xl shadow-[0_0_20px_rgba(118, 185, 0,0.3)] hover:shadow-[0_0_30px_rgba(118, 185, 0,0.5)] transition-all shrink-0"
-                    >
-                      <Download className="w-3.5 h-3.5" />
-                      Scale Platform
-                    </button>
+                      <button aria-label="button" type="button"
+                        onClick={() => sendCommand('install_update')}
+                        className="flex items-center gap-2 px-6 py-3 bg-neon-green hover:bg-neon-green text-black text-[9px] font-black uppercase tracking-widest rounded-xl shadow-[0_0_20px_rgba(118, 185, 0,0.3)] hover:shadow-[0_0_30px_rgba(118, 185, 0,0.5)] transition-all shrink-0 hover:scale-[1.02] cursor-pointer"
+                      >
+                        <Download className="w-3.5 h-3.5" />
+                        Upgrade Now
+                      </button>
+                    </div>
+                  ) : (
+                    <div className="flex flex-col md:flex-row items-start md:items-center justify-between p-6 bg-zinc-900/40 border border-white/5 rounded-2xl gap-4">
+                      <div className="space-y-1">
+                        <div className="flex items-center gap-2">
+                          <span className="px-2 py-0.5 rounded bg-white/5 text-zinc-400 text-[8px] font-black tracking-widest uppercase border border-white/5">PLATFORM CORE</span>
+                          <h4 className="text-xs font-black uppercase tracking-widest text-white">Mission Control is up to date</h4>
+                        </div>
+                        <p className="text-[10px] text-zinc-500 font-bold uppercase leading-relaxed">
+                          You're running the latest version (<span className="text-zinc-400 font-mono">v{currentVersion}</span>).
+                        </p>
+                      </div>
+
+                      <button aria-label="button" type="button"
+                        onClick={() => sendCommand('check_updates')}
+                        className="flex items-center gap-1.5 px-6 py-3 bg-white/5 hover:bg-white/10 text-white text-[9px] font-black uppercase tracking-widest rounded-xl transition-all cursor-pointer shrink-0"
+                      >
+                        <RefreshCw className="w-3.5 h-3.5 text-zinc-400" />
+                        Check Again
+                      </button>
+                    </div>
+                  )}
+
+                  {/* Version Comparison Section */}
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <div className="p-5 bg-zinc-900/20 border border-white/5 rounded-2xl flex flex-col justify-between space-y-2">
+                      <span className="text-[9px] font-black text-zinc-500 uppercase tracking-wider">Current Version</span>
+                      <span className="text-xl font-mono font-black text-white">v{currentVersion}</span>
+                    </div>
+                    <div className="p-5 bg-zinc-900/20 border border-white/5 rounded-2xl flex flex-col justify-between space-y-2">
+                      <span className="text-[9px] font-black text-zinc-500 uppercase tracking-wider">Latest Version</span>
+                      <span className="text-xl font-mono font-black text-neon-green">
+                        v{updateState.status === 'available' ? updateState.latest_version : currentVersion}
+                      </span>
+                    </div>
                   </div>
 
                   {/* Highlights section */}
-                  <div className="space-y-4">
-                    <h5 className="text-[10px] font-black text-neon-green uppercase tracking-widest flex items-center gap-1.5">
-                      <Sparkles className="w-3 h-3 text-neon-green" />
-                      Release Highlights (v{updateState.latest_version})
-                    </h5>
+                  {(() => {
+                    const targetVer = updateState.status === 'available' ? updateState.latest_version : currentVersion;
+                    const highlightsData = getReleaseHighlightsForVersion(targetVer);
+                    return (
+                      <div className="space-y-4">
+                        <h5 className="text-[10px] font-black text-neon-green uppercase tracking-widest flex items-center gap-1.5">
+                          <Sparkles className="w-3 h-3 text-neon-green" />
+                          Release Highlights (v{targetVer})
+                        </h5>
 
-                    <div className="bg-zinc-950 border border-white/5 rounded-2xl p-6 space-y-4">
-                      {updateState.changelog && updateState.changelog.length > 0 ? (
-                        <div className="space-y-6 max-h-60 overflow-y-auto custom-scrollbar pr-2">
-                          {updateState.changelog.map((log: any, index: number) => (
-                            <div key={index} className="space-y-3">
-                              <h6 className="text-[10px] font-black text-zinc-300 uppercase tracking-wider">{log.title} ({log.date}) - v{log.version}</h6>
-                              <ul className="space-y-2">
-                                {log.highlights.map((change: string, idx: number) => (
-                                  <li key={idx} className="flex gap-2.5 items-start text-[10px] text-zinc-400 font-medium leading-relaxed">
-                                    <span className="w-1.5 h-1.5 rounded-full bg-neon-green/60 mt-1.5 shrink-0" />
-                                    <span>{change}</span>
-                                  </li>
-                                ))}
-                              </ul>
-                            </div>
-                          ))}
+                        <div className="bg-zinc-950 border border-white/5 rounded-2xl p-6 space-y-4">
+                          {highlightsData && highlightsData.highlights?.length > 0 ? (
+                            <ul className="space-y-3 max-h-60 overflow-y-auto custom-scrollbar pr-2">
+                              {highlightsData.highlights.map((change: string, idx: number) => (
+                                <li key={idx} className="flex gap-2.5 items-start text-[10px] text-zinc-400 font-medium leading-relaxed">
+                                  <span className="w-1.5 h-1.5 rounded-full bg-neon-green/60 mt-1.5 shrink-0" />
+                                  <span>{change}</span>
+                                </li>
+                              ))}
+                            </ul>
+                          ) : (
+                            <p className="text-[10px] text-zinc-500 uppercase font-bold">No release documentation found for this version.</p>
+                          )}
                         </div>
-                      ) : (
-                        <p className="text-[10px] text-zinc-500 uppercase font-bold">No release documentation found.</p>
-                      )}
-                    </div>
-                  </div>
+                      </div>
+                    );
+                  })()}
                 </div>
               )}
 
@@ -560,64 +597,79 @@ export const UpdatesPage: React.FC<UpdatesPageProps> = ({
                 </div>
               ) : (
                 <div className="relative pl-6 border-l border-white/5 space-y-6">
-                  {changelogsData.changelog?.map((entry: any) => {
-                    const isExpanded = !!expandedVersions[entry.version];
-                    return (
-                      <div key={entry.version} className="relative space-y-2">
-                        {/* Timeline dot */}
-                        <div className={`absolute -left-7.75 top-2.5 w-2.5 h-2.5 rounded-full border border-[#08080c] ${
-                          isExpanded 
-                            ? 'bg-neon-green shadow-[0_0_8px_#76b900]' 
-                            : 'bg-zinc-700'
-                        }`} />
+                  {(() => {
+                    const activeHighlightsVer = updateState?.status === 'available' ? updateState.latest_version : currentVersion;
+                    const previousReleases = changelogsData.changelog?.filter((entry: any) => {
+                      return compareSemVer(entry.version, activeHighlightsVer) < 0;
+                    }) || [];
 
-                        {/* Collapsible Trigger Header */}
-                        <button aria-label="button" type="button"
-                          onClick={() => toggleVersion(entry.version)}
-                          className="w-full flex items-center justify-between gap-4 p-2 -mx-2 hover:bg-white/2 border border-transparent hover:border-white/5 rounded-xl transition-all text-left group"
-                        >
-                          <div className="flex items-center gap-3">
-                            {isExpanded ? (
-                              <ChevronDown className="w-3.5 h-3.5 text-neon-green" />
-                            ) : (
-                              <ChevronRight className="w-3.5 h-3.5 text-zinc-500 group-hover:text-zinc-300" />
-                            )}
-                            <div className="flex items-center gap-2">
-                              <h4 className={`text-xs font-black uppercase tracking-wider transition-colors ${
-                                isExpanded ? 'text-white' : 'text-zinc-400 group-hover:text-zinc-200'
-                              }`}>
-                                {entry.title}
-                              </h4>
-                              <span className={`px-2 py-0.5 rounded text-[8px] font-bold font-mono transition-colors ${
-                                isExpanded 
-                                  ? 'bg-neon-green/10 text-neon-green border border-neon-green/25' 
-                                  : 'bg-white/5 text-zinc-500 border border-white/5 group-hover:text-zinc-400'
-                              }`}>
-                                v{entry.version}
-                              </span>
+                    if (previousReleases.length === 0) {
+                      return (
+                        <div className="p-6 bg-zinc-900/10 border border-white/5 rounded-2xl text-center">
+                          <p className="text-[10px] text-zinc-500 uppercase font-bold">No previous releases in history.</p>
+                        </div>
+                      );
+                    }
+
+                    return previousReleases.map((entry: any) => {
+                      const isExpanded = !!expandedVersions[entry.version];
+                      return (
+                        <div key={entry.version} className="relative space-y-2">
+                          {/* Timeline dot */}
+                          <div className={`absolute -left-7.75 top-2.5 w-2.5 h-2.5 rounded-full border border-[#08080c] ${
+                            isExpanded 
+                              ? 'bg-neon-green shadow-[0_0_8px_#76b900]' 
+                              : 'bg-zinc-700'
+                          }`} />
+
+                          {/* Collapsible Trigger Header */}
+                          <button aria-label="button" type="button"
+                            onClick={() => toggleVersion(entry.version)}
+                            className="w-full flex items-center justify-between gap-4 p-2 -mx-2 hover:bg-white/2 border border-transparent hover:border-white/5 rounded-xl transition-all text-left group"
+                          >
+                            <div className="flex items-center gap-3">
+                              {isExpanded ? (
+                                <ChevronDown className="w-3.5 h-3.5 text-neon-green" />
+                              ) : (
+                                <ChevronRight className="w-3.5 h-3.5 text-zinc-500 group-hover:text-zinc-300" />
+                              )}
+                              <div className="flex items-center gap-2">
+                                <h4 className={`text-xs font-black uppercase tracking-wider transition-colors ${
+                                  isExpanded ? 'text-white' : 'text-zinc-400 group-hover:text-zinc-200'
+                                }`}>
+                                  {entry.title}
+                                </h4>
+                                <span className={`px-2 py-0.5 rounded text-[8px] font-bold font-mono transition-colors ${
+                                  isExpanded 
+                                    ? 'bg-neon-green/10 text-neon-green/90 border border-neon-green/25' 
+                                    : 'bg-white/5 text-zinc-500 border border-white/5 group-hover:text-zinc-400'
+                                }`}>
+                                  v{entry.version}
+                                </span>
+                              </div>
+                            </div>
+                            <span className="text-[9px] font-black text-zinc-500 uppercase tracking-widest">{entry.date}</span>
+                          </button>
+
+                          {/* Collapsible Details Content */}
+                          <div className={`overflow-hidden transition-all duration-300 ${
+                            isExpanded ? 'max-h-125 opacity-100' : 'max-h-0 opacity-0 pointer-events-none'
+                          }`}>
+                            <div className="bg-zinc-950/60 border border-white/3 rounded-2xl p-5 space-y-2 mt-1">
+                              <ul className="space-y-2">
+                                {entry.highlights?.map((change: string, idx: number) => (
+                                  <li key={idx} className="flex gap-2.5 items-start text-[10px] text-zinc-400 font-medium leading-relaxed">
+                                    <span className="w-1.5 h-1.5 rounded-full bg-neon-green/50 mt-1.5 shrink-0" />
+                                    <span>{change}</span>
+                                  </li>
+                                ))}
+                              </ul>
                             </div>
                           </div>
-                          <span className="text-[9px] font-black text-zinc-500 uppercase tracking-widest">{entry.date}</span>
-                        </button>
-
-                        {/* Collapsible Details Content */}
-                        <div className={`overflow-hidden transition-all duration-300 ${
-                          isExpanded ? 'max-h-125 opacity-100' : 'max-h-0 opacity-0 pointer-events-none'
-                        }`}>
-                          <div className="bg-zinc-950/60 border border-white/3 rounded-2xl p-5 space-y-2 mt-1">
-                            <ul className="space-y-2">
-                              {entry.highlights?.map((change: string, idx: number) => (
-                                <li key={idx} className="flex gap-2.5 items-start text-[10px] text-zinc-400 font-medium leading-relaxed">
-                                  <span className="w-1.5 h-1.5 rounded-full bg-neon-green/50 mt-1.5 shrink-0" />
-                                  <span>{change}</span>
-                                </li>
-                              ))}
-                            </ul>
-                          </div>
                         </div>
-                      </div>
-                    );
-                  })}
+                      );
+                    });
+                  })()}
                 </div>
               )}
             </div>
