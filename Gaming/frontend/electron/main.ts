@@ -14,16 +14,11 @@ import netSocket from 'node:net'
 import os from 'node:os'
 import { Worker } from 'node:worker_threads'
 
-// Disable GPU sandbox when running as administrator to prevent privilege-mismatch black screen issues,
+// Disable GPU sandbox on Windows to prevent GPU process crashes and black screen issues,
 // while keeping hardware acceleration enabled so transparent windows (splash) and Mica load correctly.
 if (process.platform === 'win32') {
-  try {
-    execSync('net session', { stdio: 'ignore' });
-    app.commandLine.appendSwitch('disable-gpu-sandbox');
-    console.log('[Electron] Elevated instance detected — disabled GPU sandbox.');
-  } catch (e) {
-    // Not running as administrator, no action needed
-  }
+  app.commandLine.appendSwitch('disable-gpu-sandbox');
+  console.log('[Electron] Windows platform detected — disabled GPU sandbox.');
 }
 
 // Optimize Memory for 16GB RAM constraints
