@@ -2,6 +2,10 @@
 
 This document contains a detailed history of all patches and updates for the AI Gaming Assistant.
 
+### Patch: 2026-07-14 — v1.4.7: Disable GPU sandbox globally on Windows to fix black screen
+
+- Disable GPU sandbox globally on Windows to fix black screen
+
 ### Patch: 2026-07-14 — v1.4.4: Resolve MEM0_API_KEY resolution and allow copy of specific terminal log lines
 
 - Added fallback to load .env in memory.py, fixed config_loader tests, and added hover copy buttons to individual dashboard log lines.
