@@ -11,7 +11,9 @@ foreach ($pkg in $strip) {
 $content | Set-Content requirements.txt
 
 # Create isolated virtual environment
-uv venv
+if (-not (Test-Path ".venv")) {
+  uv venv
+}
 
 # Install dependencies inside the venv
 uv pip install --link-mode=copy pyinstaller
