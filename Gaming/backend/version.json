@@ -1,8 +1,16 @@
 {
-  "version": "1.4.2",
+  "version": "1.4.3",
   "release_date": "2026-07-13",
   "update_check_url": "https://raw.githubusercontent.com/arnab825/Mission-Control/main/Gaming/backend/version.json",
   "changelog": [
+    {
+      "version": "1.4.3",
+      "date": "2026-07-14",
+      "title": "Restore CPU power estimation fallback",
+      "highlights": [
+        "Restored CPU power estimation math when hardware sensor readings are unavailable so that CPU wattage shows up on the HUD."
+      ]
+    },
     {
       "version": "1.4.2",
       "date": "2026-07-14",

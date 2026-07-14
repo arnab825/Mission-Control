@@ -972,7 +972,10 @@ class TelemetryThread(threading.Thread):
 
                 # Fallback / estimated CPU power draw if LHM is not providing CPU power
                 if cpu_power_w <= 0:
-                    cpu_power_w = 0
+                    # Estimate power based on CPU load (cpu_pct)
+                    # For a typical CPU (45W TDP, 115W PL2)
+                    # Idle is ~5W, load is ~45-90W depending on utilization
+                    cpu_power_w = 5.0 + (55.0 * (cpu_pct / 100.0))
 
                 with self.p._state_lock:
                     telemetry_update = {
