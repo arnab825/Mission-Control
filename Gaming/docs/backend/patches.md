@@ -2,6 +2,14 @@
 
 This document contains a detailed history of all patches and updates for the AI Gaming Assistant.
 
+### Patch: 2026-07-14 — v1.4.0: Responsive UI, tray events, env var loading, and Electron memory optimization
+
+- Enforced 256MB V8 heap limit & exposed GC to optimize Electron memory usage on 16GB RAM setups.
+- Added single-click system tray handler to toggle app visibility.
+- Ensured env variables override system environment to fix NVIDIA_API_KEY loading.
+- Removed scaling clamp from frontend CSS to fix zoomed-out responsive scaling.
+- Renamed 'Ack Engine' to 'Acknowledge' in Updater UI.
+
 ### Patch: 2026-07-13 — v1.3.9: Fix FPS disparity with OBS capture and improve ETW precision
 
 - Fixed FPS reporting disparity when OBS is recording by capturing all DXGI Present event APIs (42, 46, 73, 78)

@@ -50,12 +50,12 @@ env_search_paths.append(os.path.join(os.path.dirname(os.path.dirname(__file__)),
 env_loaded = False
 for path_to_try in env_search_paths:
     if os.path.exists(path_to_try):
-        load_dotenv(path_to_try)
+        load_dotenv(path_to_try, override=True)
         env_loaded = True
         break
 
 if not env_loaded:
-    load_dotenv()
+    load_dotenv(override=True)
 
 try:
     import psutil

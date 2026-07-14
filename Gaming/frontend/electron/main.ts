@@ -18,6 +18,10 @@ import { Worker } from 'node:worker_threads'
 // Fix black screen issue for elevated app instances
 app.disableHardwareAcceleration();
 
+// Optimize Memory for 16GB RAM constraints
+app.commandLine.appendSwitch('js-flags', '--max-old-space-size=256');
+app.commandLine.appendSwitch('js-flags', '--expose-gc');
+
 function handleSquirrelEvent(): boolean {
   if (process.argv.length === 1) {
     return false;
@@ -355,6 +359,19 @@ function createTray() {
     updateTrayMenu();
 
     tray?.setToolTip('Mission Control Gaming Assistant');
+
+    tray?.on('click', () => {
+      if (win && !win.isDestroyed()) {
+        if (win.isVisible()) {
+          win.hide();
+        } else {
+          win.show();
+          win.focus();
+        }
+      } else {
+        createWindow();
+      }
+    });
 
     tray?.on('double-click', () => {
       if (win && !win.isDestroyed()) {

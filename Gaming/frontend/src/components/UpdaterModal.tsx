@@ -343,7 +343,7 @@ export const UpdaterModal: React.FC<UpdaterModalProps> = ({
                       onClick={onClose}
                       className="px-6 py-2 bg-white/5 border border-white/10 hover:bg-white/10 text-white text-[9px] font-black uppercase tracking-widest rounded-xl transition-all"
                     >
-                      Ack Engine
+                      Acknowledge
                     </button>
                   </div>
                 </div>
