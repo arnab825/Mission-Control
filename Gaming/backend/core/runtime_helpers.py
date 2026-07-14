@@ -478,13 +478,18 @@ class TelemetryThread(threading.Thread):
         def start_lhm_helper():
             try:
                 exe_dir = os.path.dirname(sys.executable)
-                base_dir = os.path.dirname(exe_dir) if getattr(sys, "frozen", False) else os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+                is_frozen = getattr(sys, "frozen", False)
+                base_dir = os.path.dirname(exe_dir) if is_frozen else os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+                
+                # In frozen production builds, the "system" folder is bundled inside the PyInstaller root (exe_dir).
+                # In development, it's relative to the backend project root (base_dir).
+                search_root = exe_dir if is_frozen else base_dir
                 
                 lhm_paths = [
-                    os.path.join(base_dir, "system", "hardware_monitor", "bin", "Release", "net10.0", "HardwareMonitor.exe"),
-                    os.path.join(base_dir, "system", "hardware_monitor", "bin", "Debug", "net10.0", "HardwareMonitor.exe"),
-                    os.path.join(base_dir, "system", "hardware_monitor", "bin", "Release", "net10.0", "HardwareMonitor.dll"),
-                    os.path.join(base_dir, "system", "hardware_monitor", "bin", "Debug", "net10.0", "HardwareMonitor.dll"),
+                    os.path.join(search_root, "system", "hardware_monitor", "bin", "Release", "net10.0", "HardwareMonitor.exe"),
+                    os.path.join(search_root, "system", "hardware_monitor", "bin", "Debug", "net10.0", "HardwareMonitor.exe"),
+                    os.path.join(search_root, "system", "hardware_monitor", "bin", "Release", "net10.0", "HardwareMonitor.dll"),
+                    os.path.join(search_root, "system", "hardware_monitor", "bin", "Debug", "net10.0", "HardwareMonitor.dll"),
                     os.path.join(exe_dir, "HardwareMonitor.exe"),
                     os.path.join(exe_dir, "HardwareMonitor.dll"),
                 ]

@@ -3,6 +3,16 @@
   ShowUninstDetails nevershow
 !macroend
 
+; Define welcome page macro for assisted installer wizard
+!macro customWelcomePage
+  !insertmacro MUI_PAGE_WELCOME
+!macroend
+
+; Define welcome page macro for assisted uninstaller wizard
+!macro customUnWelcomePage
+  !insertmacro MUI_UNPAGE_WELCOME
+!macroend
+
 !macro customInstall
   ; Clean up duplicate user-specific shortcuts from previous installations (per-user layout)
   SetShellVarContext current
@@ -64,6 +74,15 @@
   nsExec::ExecToStack `"$SYSDIR\WindowsPowerShell\v1.0\powershell.exe" -NonInteractive -NoProfile -Command "$$p = [Environment]::GetEnvironmentVariable('Path', 'Machine'); $$newP = ($$p -split ';' | Where-Object { $$_ -ne '$INSTDIR' }) -join ';'; [Environment]::SetEnvironmentVariable('Path', $$newP, 'Machine')"`
   Pop $0
   Pop $1
+
+  ; Clean up dynamic files and subdirectories created during app execution
+  Delete "$INSTDIR\CONTENTS.txt"
+  RMDir /r "$INSTDIR\resources\MissionControl\rag_data"
+  RMDir /r "$INSTDIR\resources\MissionControl\__pycache__"
+  RMDir /r "$INSTDIR\resources\MissionControl"
+  RMDir /r "$INSTDIR\resources"
+  RMDir /r "$INSTDIR\locales"
+  RMDir /r "$INSTDIR"
 
   ; NOTE (Task 4): %APPDATA%\MissionControl\ is intentionally NOT deleted here.
   ; User settings, profiles, and AI memory are stored there and should be preserved

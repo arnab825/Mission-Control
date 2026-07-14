@@ -2,6 +2,10 @@
 
 This document contains a detailed history of all patches and updates for the AI Gaming Assistant.
 
+### Patch: 2026-07-15 — v1.4.9: Upgrade installer to standard interactive wizard and fix telemetry dependencies
+
+- Upgrade installer to standard interactive wizard and fix telemetry dependencies
+
 ### Patch: 2026-07-15 — v1.4.8: Add CPU fallback to EasyOCR initialization on CUDA error
 
 - Add CPU fallback to EasyOCR initialization on CUDA error

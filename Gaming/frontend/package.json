@@ -2,7 +2,7 @@
     "name":  "mission-control",
     "productName":  "Mission Control",
     "private":  true,
-    "version":  "1.4.8",
+    "version":  "1.4.9",
     "description":  "Mission Control desktop app for gamers.",
     "author":  "Arnab Contributors \u003csupport@missioncontrol.app\u003e",
     "type":  "module",
@@ -70,14 +70,17 @@
                                   "repo":  "Mission-Control"
                               },
                   "nsis":  {
-                               "oneClick":  true,
-                               "allowToChangeInstallationDirectory":  false,
+                               "oneClick":  false,
+                               "allowToChangeInstallationDirectory":  true,
                                "perMachine":  true,
                                "packElevateHelper":  true,
                                "allowElevation":  true,
                                "shortcutName":  "Mission Control",
                                "uninstallDisplayName":  "Mission Control",
                                "runAfterFinish":  true,
+                               "createDesktopShortcut": "always",
+                               "createStartMenuShortcut": true,
+                               "license":  "electron/license.txt",
                                "include":  "electron/installer.nsh"
                            },
                   "directories":  {
