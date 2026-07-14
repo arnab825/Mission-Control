@@ -415,7 +415,7 @@ export const UpdatesPage: React.FC<UpdatesPageProps> = ({
                 </div>
               )}
 
-              {/* Scenario 4: Installing Update (Shell output logs) */}
+              {/* Scenario 4: Installing Update */}
               {installState && (
                 <div className="space-y-6">
                   <div className="flex flex-col items-center justify-center p-6 bg-neon-green/5 border border-neon-green/10 rounded-2xl gap-y-4">
@@ -442,44 +442,10 @@ export const UpdatesPage: React.FC<UpdatesPageProps> = ({
                         {installState.status === 'failed' && 'Platform Compile Failed'}
                       </h4>
                       <p className="text-[10px] text-zinc-500 font-bold uppercase tracking-wider">
-                        {installState.status === 'installing' && 'Running automated Git Sync and dependency updates...'}
+                        {installState.status === 'installing' && (installState.step || 'Running automated Git Sync and dependency updates...')}
                         {installState.status === 'success' && 'Deploying nodes. Relaunching Python server...'}
-                        {installState.status === 'failed' && 'An error occurred during build processes.'}
+                        {installState.status === 'failed' && (installState.reason || 'An error occurred during build processes.')}
                       </p>
-                    </div>
-                  </div>
-
-                  {/* Shell / Terminal log area */}
-                  <div className="space-y-3">
-                    <h5 className="text-[10px] font-black text-zinc-400 uppercase tracking-widest flex items-center gap-1.5">
-                      <Terminal className="w-3.5 h-3.5 text-zinc-500" />
-                      Build Step Logs
-                    </h5>
-                    
-                    <div className="bg-black/80 rounded-2xl p-6 border border-white/5 font-mono text-[9px] text-neon-green/80 min-h-35 max-h-55 overflow-y-auto custom-scrollbar space-y-2">
-                      <div className="flex items-center gap-2 text-zinc-500">
-                        <span>[SYSTEM]</span>
-                        <span>Initializing build worker...</span>
-                      </div>
-                      <div className="flex gap-2">
-                        <span className="text-purple-400 shrink-0">[SHELL]</span>
-                        <span className="text-white font-black">{installState.step}</span>
-                      </div>
-                      
-                      {installState.status === 'failed' && (
-                        <div className="flex gap-2 text-red-400 bg-red-500/5 border border-red-500/15 rounded px-2.5 py-1.5 mt-2">
-                          <AlertTriangle className="w-3.5 h-3.5 shrink-0 mt-0.5" />
-                          <span>{installState.reason}</span>
-                        </div>
-                      )}
-
-                      {installState.status === 'success' && (
-                        <div className="text-neon-yellow font-bold animate-pulse mt-2">
-                          [SUCCESS] Kernel rebuild completed. Automatically restarting the main thread...
-                        </div>
-                      )}
-
-                      <div ref={logEndRef} />
                     </div>
                   </div>
                 </div>

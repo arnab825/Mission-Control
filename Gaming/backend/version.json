@@ -1,8 +1,16 @@
 {
-  "version": "1.5.1",
+  "version": "1.5.2",
   "release_date": "2026-07-14",
   "update_check_url": "https://raw.githubusercontent.com/arnab825/Mission-Control/main/Gaming/backend/version.json",
   "changelog": [
+    {
+      "version": "1.5.2",
+      "date": "2026-07-15",
+      "title": "Remove terminal logs from updates page",
+      "highlights": [
+        "Remove terminal logs from updates page"
+      ]
+    },
     {
       "version": "1.5.1",
       "date": "2026-07-15",

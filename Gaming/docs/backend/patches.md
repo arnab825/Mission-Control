@@ -2,6 +2,10 @@
 
 This document contains a detailed history of all patches and updates for the AI Gaming Assistant.
 
+### Patch: 2026-07-15 — v1.5.2: Remove terminal logs from updates page
+
+- Remove terminal logs from updates page
+
 ### Patch: 2026-07-15 — v1.5.1: Fix WARN log level filtering on Dashboard
 
 - Fix WARN log level filtering on Dashboard
