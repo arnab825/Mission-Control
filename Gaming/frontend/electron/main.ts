@@ -574,7 +574,30 @@ function startLocalServer(distPath: string, port = FIXED_UI_PORT, retries = 3): 
   })
 }
 
+let splash: BrowserWindow | null = null;
 async function createWindow() {
+  splash = new BrowserWindow({
+    width: 600,
+    height: 400,
+    transparent: true,
+    frame: false,
+    alwaysOnTop: true,
+    show: true,
+    icon: getWindowIcon(),
+    webPreferences: {
+      nodeIntegration: false,
+      contextIsolation: true,
+    },
+  });
+  
+  if (VITE_DEV_SERVER_URL) {
+    splash.loadURL(VITE_DEV_SERVER_URL + 'splash.html').catch(() => {
+      splash?.loadFile(path.join(_dirname, 'splash.html'));
+    });
+  } else {
+    splash.loadFile(path.join(_dirname, 'splash.html'));
+  }
+
   win = new BrowserWindow({
     width: 1200,
     height: 800,
@@ -597,7 +620,15 @@ async function createWindow() {
   });
 
   win.once('ready-to-show', () => {
-    win?.show()
+    if (splash) {
+      try { splash.close(); } catch(e) {}
+      splash = null;
+    }
+    win?.show();
+    // Force focus in case the installer or elevation hid the window
+    win?.setAlwaysOnTop(true);
+    win?.focus();
+    win?.setAlwaysOnTop(false);
   })
 
   registerContextMenu(win)
@@ -1566,6 +1597,16 @@ function setupAutoUpdater() {
   ipcMain.on('quit-and-install-update', () => {
     console.log('[AutoUpdater] Quitting and installing update...');
     try {
+      // Force kill python before NSIS tries to uninstall, preventing file lock crashes
+      if (pythonProcess && pythonProcess.pid) {
+        console.log('[AutoUpdater] Killing Python backend process tree before update...');
+        if (process.platform === 'win32') {
+          try { execSync(`taskkill /pid ${pythonProcess.pid} /f /t`, { windowsHide: true }) } catch (err) {}
+        } else {
+          try { pythonProcess.kill('SIGKILL') } catch (_) {}
+        }
+        pythonProcess = null;
+      }
       autoUpdater.quitAndInstall();
     } catch (err: any) {
       console.error('[AutoUpdater] quitAndInstall failed:', err);

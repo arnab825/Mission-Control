@@ -43,19 +43,24 @@ if getattr(sys, 'frozen', False):
 # 3. Parent directory of the script
 env_search_paths.append(os.path.join(os.path.dirname(os.path.dirname(__file__)), ".env"))
 
-# 4. Frontend folder check
-env_search_paths.append(os.path.join(os.path.dirname(os.path.dirname(__file__)), "frontend", ".env"))
+# 4. Project Root (two levels up from backend)
+env_search_paths.append(os.path.abspath(os.path.join(os.path.dirname(__file__), "..", "..", ".env")))
+
+# 5. AppData directory for packaged production installations
+env_search_paths.append(os.path.expandvars(r"%LOCALAPPDATA%\MissionControl\.env"))
 
 # Load the first one that exists
 env_loaded = False
 for path_to_try in env_search_paths:
     if os.path.exists(path_to_try):
         load_dotenv(path_to_try, override=True)
+        print(f"Loaded .env from: {path_to_try}")
         env_loaded = True
         break
 
 if not env_loaded:
     load_dotenv(override=True)
+    print("Warning: No .env file found in search paths, falling back to default load_dotenv().")
 
 try:
     import psutil

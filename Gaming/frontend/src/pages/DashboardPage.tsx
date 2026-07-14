@@ -353,10 +353,11 @@ const DashboardPage: React.FC<DashboardPageProps> = ({ state, onCommand, onNavig
               <AnimatePresence initial={false}>
                 {filteredLogs.map((log: any, i: number) => {
                   const cfg: Record<string, { icon: React.ElementType; pill: string; bar: string; text: string; label: string }> = {
-                    INFO: { icon: ShieldCheck, pill: 'bg-neon-yellow/15 text-neon-yellow border-neon-yellow/20', bar: 'bg-neon-yellow', text: 'text-zinc-200', label: 'System' },
-                    WARN: { icon: AlertTriangle, pill: 'bg-amber-500/15  text-amber-400  border-amber-500/20', bar: 'bg-amber-400', text: 'text-amber-100/90', label: 'Warning' },
-                    ERROR: { icon: XCircle, pill: 'bg-red-500/15    text-red-400    border-red-500/20', bar: 'bg-red-500', text: 'text-red-200/90', label: 'Critical' },
-                    AGENT: { icon: Bot, pill: 'bg-neon-green/15   text-neon-green   border-neon-green/20', bar: 'bg-neon-green', text: 'text-neon-green/90', label: 'AI Tactical' },
+                    INFO: { icon: ShieldCheck, pill: 'bg-neon-yellow/15 text-neon-yellow border-neon-yellow/20', bar: 'bg-neon-yellow', text: 'text-zinc-200', label: 'Info' },
+                    WARNING: { icon: AlertTriangle, pill: 'bg-amber-500/15  text-amber-400  border-amber-500/20', bar: 'bg-amber-400', text: 'text-amber-100/90', label: 'Warn' },
+                    WARN: { icon: AlertTriangle, pill: 'bg-amber-500/15  text-amber-400  border-amber-500/20', bar: 'bg-amber-400', text: 'text-amber-100/90', label: 'Warn' },
+                    ERROR: { icon: XCircle, pill: 'bg-red-500/15    text-red-400    border-red-500/20', bar: 'bg-red-500', text: 'text-red-200/90', label: 'Error' },
+                    AGENT: { icon: Bot, pill: 'bg-neon-green/15   text-neon-green   border-neon-green/20', bar: 'bg-neon-green', text: 'text-neon-green/90', label: 'Agent' },
                     DEBUG: { icon: Info, pill: 'bg-purple-500/15 text-purple-400 border-purple-500/20', bar: 'bg-purple-400', text: 'text-purple-100/80', label: 'Debug' },
                   };
                   const { icon: Icon, pill, bar, text, label } = cfg[log.type] ?? cfg['INFO'];

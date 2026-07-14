@@ -15,7 +15,7 @@ import AuthPage from './pages/AuthPage';
 import HUD from './components/HUD';
 import { useBridge } from './hooks/useBridge';
 import type { TelemetryState } from './types/telemetry';
-import { UpdaterModal } from './components/UpdaterModal';
+import { UpdatesPage } from './pages/UpdatesPage';
 import { Sparkles, ChevronDown, ToggleRight, ToggleLeft, Menu, Gamepad2 } from 'lucide-react';
 import { useAuth, useSignIn, useSignUp } from '@clerk/clerk-react';
 import { motion, AnimatePresence, MotionConfig } from 'framer-motion';
@@ -51,7 +51,6 @@ const App: React.FC = () => {
   const { isLoaded: isSignInLoaded, signIn } = useSignIn();
   const { isLoaded: isSignUpLoaded, signUp } = useSignUp();
 
-  const [isUpdaterOpen, setIsUpdaterOpen] = useState(false);
   const [updaterTab, setUpdaterTab] = useState<'check' | 'changelogs'>('check');
   const [isAgentic, setIsAgentic] = useState(false);
   const [personality, setPersonality] = useState('Tactical');
@@ -91,15 +90,22 @@ const App: React.FC = () => {
   // Listen for the native Windows toast click signal.
   // When the user clicks the "Mission Control Update Available" toast,
   // main.ts sends 'open-updater-modal' via IPC which preload forwards here.
-  // We open the UpdaterModal non-disruptively instead of a blocking popup.
+  // We open the UpdatesPage non-disruptively instead of a blocking popup.
   useEffect(() => {
     const api = (window as any).electronAPI;
     if (!api?.onOpenUpdaterModal) return;
-    const cleanup = api.onOpenUpdaterModal(() => {
+    const cleanup1 = api.onOpenUpdaterModal(() => {
       setUpdaterTab('check');
-      setIsUpdaterOpen(true);
+      setActivePage('updates');
     });
-    return cleanup;
+    const cleanup2 = api.onOpenChangelogsModal(() => {
+      setUpdaterTab('changelogs');
+      setActivePage('updates');
+    });
+    return () => {
+      cleanup1();
+      cleanup2();
+    };
   }, []);
 
   const handleNavigate = (page: string, extra?: any) => {
@@ -324,11 +330,11 @@ const App: React.FC = () => {
             state={state}
             onTriggerUpdateCheck={() => {
               setUpdaterTab('check');
-              setIsUpdaterOpen(true);
+              setActivePage('updates');
             }}
             onTriggerChangelogs={() => {
               setUpdaterTab('changelogs');
-              setIsUpdaterOpen(true);
+              setActivePage('updates');
             }}
           />
 
@@ -471,6 +477,15 @@ const App: React.FC = () => {
                     )}
                   </div>
                 )}
+                {visitedPages['updates'] && (
+                  <div className={`flex-1 flex flex-col relative ${activePage === 'updates' ? '' : 'hidden'}`}>
+                    <UpdatesPage
+                      state={activePage === 'updates' ? state : null}
+                      sendCommand={sendCommand}
+                      defaultTab={updaterTab}
+                    />
+                  </div>
+                )}
               </div>
 
             </div>
@@ -479,14 +494,7 @@ const App: React.FC = () => {
         </div>
 
 
-        {/* Platform Updater Modal Dialog */}
-        <UpdaterModal
-          isOpen={isUpdaterOpen}
-          onClose={() => setIsUpdaterOpen(false)}
-          state={state}
-          onSendCommand={sendCommand}
-          defaultTab={updaterTab}
-        />
+
 
         {/* Global Scanning Overlay */}
         <AnimatePresence>

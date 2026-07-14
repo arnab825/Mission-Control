@@ -58,6 +58,7 @@ const Sidebar: React.FC<SidebarProps> = ({
     { id: 'games', label: 'Library', icon: Gamepad2, color: 'text-purple-400' },
     { id: 'system', label: 'System', icon: Monitor, color: 'text-neon-yellow' },
     { id: 'readiness', label: 'Readiness', icon: ShieldCheck, color: 'text-orange-400' },
+    { id: 'updates', label: 'Updates', icon: RefreshCw, color: 'text-blue-400' },
     { id: 'settings', label: 'Settings', icon: Settings, color: 'text-zinc-400' },
   ];
 

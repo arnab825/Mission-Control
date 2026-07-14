@@ -1,6 +1,5 @@
 import React, { useEffect, useRef } from 'react';
 import { 
-  X, 
   Sparkles, 
   RefreshCw, 
   Download, 
@@ -14,19 +13,15 @@ import {
 } from 'lucide-react';
 import type { TelemetryState } from '../types/telemetry';
 
-interface UpdaterModalProps {
-  isOpen: boolean;
-  onClose: () => void;
+interface UpdatesPageProps {
   state: TelemetryState | null;
-  onSendCommand: (type: string, payload?: any) => void;
+  sendCommand: (type: string, payload?: any) => void;
   defaultTab?: 'check' | 'changelogs';
 }
 
-export const UpdaterModal: React.FC<UpdaterModalProps> = ({ 
-  isOpen, 
-  onClose, 
+export const UpdatesPage: React.FC<UpdatesPageProps> = ({ 
   state, 
-  onSendCommand,
+  sendCommand,
   defaultTab = 'check'
 }) => {
   const [activeTab, setActiveTab] = React.useState<'check' | 'changelogs'>(defaultTab);
@@ -42,21 +37,17 @@ export const UpdaterModal: React.FC<UpdaterModalProps> = ({
   }>({ status: 'idle' });
 
   useEffect(() => {
-    if (isOpen) {
-      setActiveTab(defaultTab);
-      if (defaultTab === 'check') {
-        onSendCommand('check_updates');
-        onSendCommand('check_patches');
-        window.electronAPI?.checkElectronUpdates?.();
-      } else if (defaultTab === 'changelogs') {
-        onSendCommand('get_changelogs');
-      }
+    setActiveTab(defaultTab);
+    if (defaultTab === 'check') {
+      sendCommand('check_updates');
+      sendCommand('check_patches');
+      window.electronAPI?.checkElectronUpdates?.();
+    } else if (defaultTab === 'changelogs') {
+      sendCommand('get_changelogs');
     }
-  }, [isOpen, defaultTab]);
+  }, [defaultTab]);
 
   useEffect(() => {
-    if (!isOpen) return;
-
     if (window.electronAPI?.onElectronUpdateStatus) {
       const cleanup = window.electronAPI.onElectronUpdateStatus((_event, data) => {
         console.log('[React NativeUpdate] Received event data:', data);
@@ -68,7 +59,7 @@ export const UpdaterModal: React.FC<UpdaterModalProps> = ({
         cleanup();
       };
     }
-  }, [isOpen]);
+  }, []);
 
   const updateState = state?.update_state;
   const installState = state?.update_install_state;
@@ -109,45 +100,33 @@ export const UpdaterModal: React.FC<UpdaterModalProps> = ({
     }
   }, [installState?.status]);
 
-  if (!isOpen) return null;
-
   const currentVersion = state?.version || '---';
 
   return (
-    <div className="fixed inset-0 bg-black/80 backdrop-blur-md z-100 flex items-center justify-center p-4">
-      {/* Premium Glassmorphic Card Container */}
-      <div className="relative w-full max-w-2xl bg-zinc-950/85 border border-white/10 rounded-4xl overflow-hidden shadow-[0_0_50px_rgba(255,255,255,0.05)] flex flex-col max-h-[85vh] transition-all">
-        
-        {/* Animated Background Highlights */}
-        <div className="absolute -top-40 -left-40 w-80 h-80 bg-neon-green/10 rounded-full blur-[100px] pointer-events-none" />
-        <div className="absolute -bottom-40 -right-40 w-80 h-80 bg-purple-500/10 rounded-full blur-[100px] pointer-events-none" />
+    <div className="flex-1 flex flex-col h-full bg-zinc-950 overflow-hidden relative font-['Inter',system-ui,sans-serif]">
+      {/* Animated Background Highlights */}
+      <div className="absolute -top-40 -left-40 w-80 h-80 bg-neon-green/10 rounded-full blur-[100px] pointer-events-none" />
+      <div className="absolute -bottom-40 -right-40 w-80 h-80 bg-purple-500/10 rounded-full blur-[100px] pointer-events-none" />
 
-        {/* Modal Header */}
-        <div className="relative z-10 flex items-center justify-between px-8 py-6 border-b border-white/5 bg-zinc-950/60">
-          <div className="flex items-center gap-3">
-            <div className="w-8 h-8 rounded-xl bg-neon-green/10 border border-neon-green/25 flex items-center justify-center glow-green">
-              <Cpu className="w-4 h-4 text-neon-green" />
-            </div>
-            <div>
-              <h3 className="text-sm font-black tracking-widest uppercase text-white">System Relauncher</h3>
-              <p className="text-[10px] font-bold text-zinc-500 uppercase tracking-wider">Mission Control Engine</p>
-            </div>
+      {/* Page Header */}
+      <div className="relative z-10 flex items-center justify-between px-8 py-6 border-b border-white/5 bg-zinc-950/60 shrink-0">
+        <div className="flex items-center gap-3">
+          <div className="w-8 h-8 rounded-xl bg-neon-green/10 border border-neon-green/25 flex items-center justify-center glow-green">
+            <Cpu className="w-4 h-4 text-neon-green" />
           </div>
-          
-          <button aria-label="button" type="button" 
-            onClick={onClose}
-            className="p-2 hover:bg-white/5 rounded-xl border border-transparent hover:border-white/5 text-zinc-400 hover:text-white transition-all"
-          >
-            <X className="w-4 h-4" />
-          </button>
+          <div>
+            <h3 className="text-sm font-black tracking-widest uppercase text-white">System Relauncher</h3>
+            <p className="text-[10px] font-bold text-zinc-500 uppercase tracking-wider">Mission Control Engine</p>
+          </div>
         </div>
+      </div>
 
         {/* Tab Navigation */}
-        <div className="relative z-10 flex border-b border-white/5 bg-zinc-950/40">
+        <div className="relative z-10 flex border-b border-white/5 bg-zinc-950/40 shrink-0">
           <button aria-label="button" type="button"
             onClick={() => {
               setActiveTab('check');
-              onSendCommand('check_updates');
+              sendCommand('check_updates');
             }}
             className={`flex-1 py-3 text-center text-[10px] font-black uppercase tracking-widest border-b-2 transition-all ${
               activeTab === 'check'
@@ -163,7 +142,7 @@ export const UpdaterModal: React.FC<UpdaterModalProps> = ({
           <button aria-label="button" type="button"
             onClick={() => {
               setActiveTab('changelogs');
-              onSendCommand('get_changelogs');
+              sendCommand('get_changelogs');
             }}
             className={`flex-1 py-3 text-center text-[10px] font-black uppercase tracking-widest border-b-2 transition-all ${
               activeTab === 'changelogs'
@@ -179,7 +158,7 @@ export const UpdaterModal: React.FC<UpdaterModalProps> = ({
         </div>
 
         {/* Scrollable Content Workspace */}
-        <div className="relative z-10 flex-1 overflow-y-auto p-8 custom-scrollbar">
+        <div className="relative z-10 flex-1 overflow-y-auto p-4 sm:p-8 custom-scrollbar">
           
           {/* TAB 1: Check & Install Status */}
           {activeTab === 'check' && (
@@ -333,17 +312,11 @@ export const UpdaterModal: React.FC<UpdaterModalProps> = ({
                   </div>
                   <div className="flex gap-3">
                     <button aria-label="button" type="button"
-                      onClick={() => onSendCommand('check_updates')}
+                      onClick={() => sendCommand('check_updates')}
                       className="flex items-center gap-1.5 px-6 py-2 bg-neon-green text-black text-[9px] font-black uppercase tracking-widest rounded-xl hover:bg-neon-green/90 transition-all shadow-[0_0_15px_rgba(118, 185, 0,0.2)]"
                     >
                       <RefreshCw className="w-3 h-3" />
                       Check Again
-                    </button>
-                    <button aria-label="button" type="button"
-                      onClick={onClose}
-                      className="px-6 py-2 bg-white/5 border border-white/10 hover:bg-white/10 text-white text-[9px] font-black uppercase tracking-widest rounded-xl transition-all"
-                    >
-                      Acknowledge
                     </button>
                   </div>
                 </div>
@@ -365,7 +338,7 @@ export const UpdaterModal: React.FC<UpdaterModalProps> = ({
                     </div>
 
                     <button aria-label="button" type="button"
-                      onClick={() => onSendCommand('install_update')}
+                      onClick={() => sendCommand('install_update')}
                       className="flex items-center gap-2 px-6 py-3 bg-neon-green hover:bg-neon-green text-black text-[9px] font-black uppercase tracking-widest rounded-xl shadow-[0_0_20px_rgba(118, 185, 0,0.3)] hover:shadow-[0_0_30px_rgba(118, 185, 0,0.5)] transition-all shrink-0"
                     >
                       <Download className="w-3.5 h-3.5" />
@@ -490,16 +463,10 @@ export const UpdaterModal: React.FC<UpdaterModalProps> = ({
                   
                   <div className="flex gap-3">
                     <button aria-label="button" type="button"
-                      onClick={() => onSendCommand('check_updates')}
+                      onClick={() => sendCommand('check_updates')}
                       className="px-6 py-2 bg-neon-green text-black text-[9px] font-black uppercase tracking-widest rounded-xl hover:bg-neon-green shadow-[0_0_15px_rgba(118, 185, 0,0.2)] transition-all"
                     >
                       Retry Link
-                    </button>
-                    <button aria-label="button" type="button"
-                      onClick={onClose}
-                      className="px-6 py-2 bg-white/5 border border-white/10 hover:bg-white/10 text-white text-[9px] font-black uppercase tracking-widest rounded-xl transition-all"
-                    >
-                      Dismiss
                     </button>
                   </div>
                 </div>
@@ -515,7 +482,7 @@ export const UpdaterModal: React.FC<UpdaterModalProps> = ({
                     </h5>
                     <button
                       type="button"
-                      onClick={() => onSendCommand('check_patches')}
+                      onClick={() => sendCommand('check_patches')}
                       className="px-2.5 py-1 rounded bg-neon-green/10 hover:bg-neon-green/20 text-neon-green text-[8px] font-black uppercase tracking-wider border border-neon-green/20 transition cursor-pointer"
                     >
                       Resync Telemetry
@@ -658,8 +625,8 @@ export const UpdaterModal: React.FC<UpdaterModalProps> = ({
 
         </div>
 
-        {/* Modal Footer */}
-        <div className="relative z-10 px-8 py-5 border-t border-white/5 bg-zinc-950/60 flex items-center justify-between text-[9px] font-black text-zinc-500 uppercase tracking-widest">
+        {/* Footer */}
+        <div className="relative z-10 px-8 py-5 border-t border-white/5 bg-zinc-950/60 flex items-center justify-between text-[9px] font-black text-zinc-500 uppercase tracking-widest shrink-0">
           <span className="flex items-center gap-1.5">
             <span className="w-1 h-1 rounded-full bg-neon-green shadow-[0_0_5px_#76b900] animate-pulse" />
             Active Node Node ID: {currentVersion}
@@ -667,7 +634,6 @@ export const UpdaterModal: React.FC<UpdaterModalProps> = ({
           <span className="text-[8px] font-bold text-zinc-600">Mission Control PLATFORM CORE</span>
         </div>
         
-      </div>
     </div>
   );
 };
