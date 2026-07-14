@@ -12,10 +12,12 @@ if ($LASTEXITCODE -ge 8) {
 
 # Copy developer's local .env file (if present) to the packaged backend folder so it gets bundled
 $localEnv = "Gaming/backend/.env"
-$packagedEnv = "Gaming/frontend/backend/.env"
 if (Test-Path $localEnv) {
   Write-Host "Bundling developer's local .env file..."
-  Copy-Item $localEnv $packagedEnv -Force
+  New-Item -ItemType Directory -Force -Path "Gaming/backend/dist/MissionControl" | Out-Null
+  New-Item -ItemType Directory -Force -Path "Gaming/frontend/backend/MissionControl" | Out-Null
+  Copy-Item $localEnv "Gaming/backend/dist/MissionControl/.env" -Force
+  Copy-Item $localEnv "Gaming/frontend/backend/MissionControl/.env" -Force
 }
 
 # Bundle issues.json as local fallback for offline telemetry checks
