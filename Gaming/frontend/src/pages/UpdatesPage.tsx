@@ -6,7 +6,6 @@ import {
   History, 
   CheckCircle2, 
   AlertTriangle,
-  Terminal,
   Cpu,
   ChevronDown,
   ChevronRight

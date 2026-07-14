@@ -481,9 +481,12 @@ class TelemetryThread(threading.Thread):
                 is_frozen = getattr(sys, "frozen", False)
                 base_dir = os.path.dirname(exe_dir) if is_frozen else os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
                 
-                # In frozen production builds, the "system" folder is bundled inside the PyInstaller root (exe_dir).
-                # In development, it's relative to the backend project root (base_dir).
-                search_root = exe_dir if is_frozen else base_dir
+                # In frozen production builds, PyInstaller bundles data under '_internal'
+                if is_frozen:
+                    internal_root = os.path.join(exe_dir, "_internal")
+                    search_root = internal_root if os.path.exists(internal_root) else exe_dir
+                else:
+                    search_root = base_dir
                 
                 lhm_paths = [
                     os.path.join(search_root, "system", "hardware_monitor", "bin", "Release", "net10.0", "HardwareMonitor.exe"),

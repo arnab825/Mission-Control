@@ -2,6 +2,10 @@
 
 This document contains a detailed history of all patches and updates for the AI Gaming Assistant.
 
+### Patch: 2026-07-15 — v1.5.3: Align C# telemetry search paths with PyInstaller internal directories
+
+- Align C# telemetry search paths with PyInstaller internal directories
+
 ### Patch: 2026-07-15 — v1.5.2: Remove terminal logs from updates page
 
 - Remove terminal logs from updates page
