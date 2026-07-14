@@ -658,6 +658,24 @@ const SettingsPage: React.FC<{ state: TelemetryState | null, sendCommand: (type:
   const { isSignedIn, userId, signOut } = useAuth();
   const { user } = useUser();
 
+  const handleSwitchAccount = async () => {
+    let targetProvider = 'oauth_google';
+    const activeProvider = localStorage.getItem('mission_control_active_provider');
+    if (activeProvider) {
+      targetProvider = activeProvider === 'oauth_google' ? 'oauth_discord' : 'oauth_google';
+    } else if (user) {
+      const isGoogle = user.externalAccounts.some((acc: any) => acc.provider === 'google');
+      targetProvider = isGoogle ? 'oauth_discord' : 'oauth_google';
+    }
+    
+    localStorage.removeItem('mission_control_active_provider');
+    
+    // Sign out and redirect to initiate OAuth for the target provider
+    signOut(() => {
+      window.location.replace(window.location.origin + `/?trigger_oauth=${targetProvider}`);
+    });
+  };
+
   const libraryStats = useMemo(() => {
     const library = (state as any)?.game_library || [];
     const stats = {
@@ -1762,7 +1780,7 @@ const SettingsPage: React.FC<{ state: TelemetryState | null, sendCommand: (type:
                     Link secondary multi-factor authentication providers to authenticate on other systems or sign in securely.
                   </p>
                 </div>
-                <button aria-label="button" type="button" onClick={() => signOut()} className="px-4 py-2 bg-white/5 border border-white/10 hover:bg-white/10 text-white font-black text-[9px] uppercase tracking-widest rounded-xl transition-all whitespace-nowrap shrink-0">
+                <button aria-label="button" type="button" onClick={handleSwitchAccount} className="px-4 py-2 bg-white/5 border border-white/10 hover:bg-white/10 text-white font-black text-[9px] uppercase tracking-widest rounded-xl transition-all whitespace-nowrap shrink-0">
                   Switch Account
                 </button>
               </div>

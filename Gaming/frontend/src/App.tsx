@@ -17,7 +17,7 @@ import { useBridge } from './hooks/useBridge';
 import type { TelemetryState } from './types/telemetry';
 import { UpdaterModal } from './components/UpdaterModal';
 import { Sparkles, ChevronDown, ToggleRight, ToggleLeft, Menu, Gamepad2 } from 'lucide-react';
-import { useAuth } from '@clerk/clerk-react';
+import { useAuth, useSignIn, useSignUp } from '@clerk/clerk-react';
 import { motion, AnimatePresence, MotionConfig } from 'framer-motion';
 
 interface AppTelemetryState extends TelemetryState {
@@ -48,6 +48,8 @@ const App: React.FC = () => {
   const [showHUD, setShowHUD] = useState(false);
   const { state, connected, sendCommand } = useBridge() as { state: AppTelemetryState | null; connected: boolean; sendCommand: (type: string, payload?: any) => void };
   const { isSignedIn, userId } = useAuth();
+  const { isLoaded: isSignInLoaded, signIn } = useSignIn();
+  const { isLoaded: isSignUpLoaded, signUp } = useSignUp();
 
   const [isUpdaterOpen, setIsUpdaterOpen] = useState(false);
   const [updaterTab, setUpdaterTab] = useState<'check' | 'changelogs'>('check');
@@ -149,6 +151,39 @@ const App: React.FC = () => {
       setPersonality(formatted);
     }
   }, [state?.config?.ai_agent?.personality]);
+
+  // Handle automatic OAuth trigger for Switching Accounts
+  useEffect(() => {
+    const params = new URLSearchParams(window.location.search);
+    const triggerOauth = params.get('trigger_oauth');
+    
+    if (triggerOauth && (triggerOauth === 'oauth_google' || triggerOauth === 'oauth_discord') && !isSignedIn) {
+      if (isSignInLoaded && isSignUpLoaded && signIn && signUp) {
+        // Clear the query parameters from the URL first to avoid infinite redirect loops
+        const cleanUrl = window.location.origin + window.location.pathname;
+        window.history.replaceState({}, '', cleanUrl);
+
+        // Store selected provider in localStorage
+        localStorage.setItem('mission_control_active_provider', triggerOauth);
+
+        const origin = window.location.origin;
+        const options: any = {
+          strategy: triggerOauth,
+          redirectUrl: `${origin}/sso-callback`,
+          redirectUrlComplete: `${origin}/`,
+        };
+        if (triggerOauth === 'oauth_google') {
+          options.additionalData = { prompt: 'select_account' };
+          options.customOAuthOptions = { prompt: 'select_account' };
+        }
+        
+        console.log(`[Clerk] Auto-triggering OAuth switch to: ${triggerOauth}`);
+        signIn.authenticateWithRedirect(options).catch(err => {
+          console.error('[Clerk] Auto OAuth trigger failed:', err);
+        });
+      }
+    }
+  }, [isSignedIn, isSignInLoaded, isSignUpLoaded, signIn, signUp, window.location.search]);
 
   // Listen for launch status updates to automatically navigate to the Library page (Games)
   useEffect(() => {

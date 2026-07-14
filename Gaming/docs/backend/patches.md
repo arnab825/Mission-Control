@@ -2,6 +2,10 @@
 
 This document contains a detailed history of all patches and updates for the AI Gaming Assistant.
 
+### Patch: 2026-07-14 — v1.4.2: Alternate Switch Account between Google and Discord
+
+- Configured Switch Account in Settings to sign out and auto-login with Google/Discord depending on the current provider.
+
 ### Patch: 2026-07-14 — v1.4.1: Fix HUD scan and remove Stealth Mode
 
 - Prevented HUD window from triggering get_cached_games to avoid backend auto-scan.
