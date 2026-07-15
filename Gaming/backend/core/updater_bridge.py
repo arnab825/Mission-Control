@@ -247,6 +247,19 @@ def handle_bridge_update_commands(cmd_type: str, payload: dict, bridge_instance)
         return True
 
     if cmd_type == "install_update":
+        # ── Bundled / frozen app should use the Electron native updater ──
+        is_frozen = getattr(sys, "frozen", False)
+        if is_frozen:
+            bridge_instance.update_state(
+                {
+                    "update_install_state": {
+                        "status": "use_native",
+                        "step": "This is a packaged build. Please use the native Desktop Upgrade above to update.",
+                    }
+                }
+            )
+            return True
+
         bridge_instance.update_state(
             {
                 "update_install_state": {
@@ -280,8 +293,10 @@ def handle_bridge_update_commands(cmd_type: str, payload: dict, bridge_instance)
                     }
                 )
 
+                # Use --depth=1 shallow fetch to avoid pulling full commit history
+                # This dramatically speeds up updates when jumping many versions (e.g. v1.1 → v1.5)
                 fetch_res = subprocess.run(
-                    [git_exe, "fetch", "origin"],
+                    [git_exe, "fetch", "--depth=1", "origin", "main"],
                     cwd=PROJECT_ROOT,
                     capture_output=True,
                     text=True,
@@ -304,13 +319,14 @@ def handle_bridge_update_commands(cmd_type: str, payload: dict, bridge_instance)
                     {
                         "update_install_state": {
                             "status": "installing",
-                            "step": "Pulling latest code from GitHub...",
+                            "step": "Applying latest changes...",
                         }
                     }
                 )
 
+                # Reset to the remote HEAD instead of pulling full history
                 result = subprocess.run(
-                    [git_exe, "pull", "--rebase"],
+                    [git_exe, "reset", "--hard", "origin/main"],
                     cwd=PROJECT_ROOT,
                     capture_output=True,
                     text=True,
@@ -323,7 +339,7 @@ def handle_bridge_update_commands(cmd_type: str, payload: dict, bridge_instance)
                         {
                             "update_install_state": {
                                 "status": "failed",
-                                "reason": f"git pull failed: {result.stderr.strip()[:100]}",
+                                "reason": f"git reset failed: {result.stderr.strip()[:100]}",
                             }
                         }
                     )

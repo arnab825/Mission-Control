@@ -432,19 +432,38 @@ export const UpdatesPage: React.FC<UpdatesPageProps> = ({
                         <AlertTriangle className="w-5 h-5 text-red-400" />
                       </div>
                     )}
+                    {installState.status === 'use_native' && (
+                      <div className="w-10 h-10 rounded-full bg-purple-500/10 border border-purple-500/20 flex items-center justify-center shrink-0">
+                        <Download className="w-5 h-5 text-purple-400" />
+                      </div>
+                    )}
                     
                     <div className="text-center space-y-1">
                       <h4 className="text-xs font-black uppercase tracking-widest text-zinc-200">
                         {installState.status === 'installing' && 'Rebuilding Kernel Nodes'}
                         {installState.status === 'success' && 'Rebuild Successful'}
                         {installState.status === 'failed' && 'Platform Compile Failed'}
+                        {installState.status === 'use_native' && 'Use Desktop Upgrade'}
                       </h4>
                       <p className="text-[10px] text-zinc-500 font-bold uppercase tracking-wider">
                         {installState.status === 'installing' && (installState.step || 'Running automated Git Sync and dependency updates...')}
                         {installState.status === 'success' && 'Deploying nodes. Relaunching Python server...'}
                         {installState.status === 'failed' && (installState.reason || 'An error occurred during build processes.')}
+                        {installState.status === 'use_native' && (installState.step || 'This is a packaged build. Use the native Desktop Upgrade button above to update.')}
                       </p>
                     </div>
+
+                    {installState.status === 'use_native' && (
+                      <button aria-label="button" type="button"
+                        onClick={() => {
+                          window.electronAPI?.checkElectronUpdates?.();
+                        }}
+                        className="flex items-center gap-2 px-6 py-3 bg-linear-to-r from-purple-500 to-neon-green hover:from-purple-400 hover:to-neon-green text-black text-[9px] font-black uppercase tracking-widest rounded-xl shadow-[0_0_20px_rgba(118,185,0,0.3)] transition-all hover:scale-[1.02] cursor-pointer mt-2"
+                      >
+                        <Download className="w-3.5 h-3.5" />
+                        Check Native Update
+                      </button>
+                    )}
                   </div>
                 </div>
               )}
