@@ -190,7 +190,7 @@ export const UpdatesPage: React.FC<UpdatesPageProps> = ({
             <div className="space-y-6">
               
               {/* Native Client Update Alert (Squirrel) */}
-              {!installState && nativeUpdate.status === 'downloaded' && (
+              {(!installState || installState.status === 'use_native') && nativeUpdate.status === 'downloaded' && (
                 <div className="p-6 bg-linear-to-r from-purple-500/10 to-neon-green/10 border border-neon-green/30 rounded-3xl space-y-4 shadow-[0_0_20px_rgba(118, 185, 0,0.15)] relative overflow-hidden">
                   <div className="absolute top-0 right-0 w-24 h-24 bg-neon-green/5 rounded-full blur-[60px] pointer-events-none" />
                   <div className="flex flex-col md:flex-row items-start md:items-center justify-between gap-4">
@@ -226,7 +226,7 @@ export const UpdatesPage: React.FC<UpdatesPageProps> = ({
                 </div>
               )}
 
-              {!installState && nativeUpdate.status === 'available' && (
+              {(!installState || installState.status === 'use_native') && nativeUpdate.status === 'available' && (
                 <div className="p-6 bg-linear-to-r from-neon-green/5 to-zinc-900/50 border border-neon-green/30 rounded-3xl space-y-4 shadow-[0_0_20px_rgba(118, 185, 0,0.1)]">
                   <div className="flex items-center justify-between">
                     <div className="space-y-1">
@@ -272,7 +272,7 @@ export const UpdatesPage: React.FC<UpdatesPageProps> = ({
                 </div>
               )}
 
-              {!installState && nativeUpdate.status === 'downloading' && (
+              {(!installState || installState.status === 'use_native') && nativeUpdate.status === 'downloading' && (
                 <div className="p-6 bg-neon-green/5 border border-neon-green/20 rounded-3xl space-y-4 shadow-[0_0_20px_rgba(118,185,0,0.1)]">
                   <div className="flex items-center justify-between gap-4">
                     <div className="space-y-1">
@@ -420,10 +420,11 @@ export const UpdatesPage: React.FC<UpdatesPageProps> = ({
                 </div>
               )}
 
-              {/* Scenario 4: Installing Update */}
               {installState && (
                 <div className="space-y-6">
-                  <div className="flex flex-col items-center justify-center p-6 bg-neon-green/5 border border-neon-green/10 rounded-2xl gap-y-4">
+                  {((installState.status !== 'use_native') ||
+                    (nativeUpdate.status !== 'downloading' && nativeUpdate.status !== 'downloaded' && nativeUpdate.status !== 'available')) && (
+                    <div className="flex flex-col items-center justify-center p-6 bg-neon-green/5 border border-neon-green/10 rounded-2xl gap-y-4">
                     {installState.status === 'installing' && (
                       <div className="w-10 h-10 rounded-full bg-neon-green/10 border border-neon-green/20 flex items-center justify-center shrink-0">
                         <RefreshCw className="w-5 h-5 text-neon-green animate-spin" />
