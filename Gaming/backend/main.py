@@ -22,9 +22,11 @@ warnings.filterwarnings("ignore", category=SyntaxWarning)
 warnings.filterwarnings("ignore", category=DeprecationWarning)
 warnings.filterwarnings("ignore", category=UserWarning)
 warnings.filterwarnings("ignore", category=DeprecationWarning, module="easyocr")
+warnings.filterwarnings("ignore", category=DeprecationWarning, module="rapidocr_onnxruntime")
 warnings.filterwarnings("ignore", category=DeprecationWarning, module="torch")
 warnings.filterwarnings("ignore", message=".*torch.ao.quantization.*")
 logging.getLogger("easyocr").setLevel(logging.ERROR)
+logging.getLogger("rapidocr_onnxruntime").setLevel(logging.ERROR)
 
 from dotenv import load_dotenv
 

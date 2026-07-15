@@ -359,7 +359,7 @@ const DETECTOR_BACKEND_OPTIONS = [
 
 const OCR_ENGINE_OPTIONS = [
   { value: 'auto', label: 'Auto-Detect' },
-  { value: 'easyocr', label: 'RapidOCR (Fast / ONNX)' },
+  { value: 'rapidocr', label: 'RapidOCR (Fast / ONNX)' },
   { value: 'tesseract', label: 'Tesseract (Legacy)' }
 ];
 
@@ -2161,7 +2161,7 @@ const SettingsPage: React.FC<{ state: TelemetryState | null, sendCommand: (type:
 
           <SettingsField label="OCR Engine" description="RapidOCR provides fast, lightweight recognition in complex story games.">
             <CustomSelect
-              value={localConfig.vision?.ocr?.backend || 'auto'}
+              value={localConfig.vision?.ocr?.backend === 'easyocr' ? 'rapidocr' : localConfig.vision?.ocr?.backend || 'auto'}
               onChange={(val) => setLocalConfig({ ...localConfig, vision: { ...localConfig.vision, ocr: { ...localConfig.vision.ocr, backend: val } } })}
               options={OCR_ENGINE_OPTIONS}
             />

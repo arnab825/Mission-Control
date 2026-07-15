@@ -2,6 +2,10 @@
 
 This document contains a detailed history of all patches and updates for the AI Gaming Assistant.
 
+### Patch: 2026-07-15 — v1.5.6: Fixed the OCR
+
+- Fixed the OCR
+
 ### Patch: 2026-07-15 — v1.5.5: Fix OCR Reader, TTS Thread stability, and Update Page UI
 
 - Fix OCR pre-warming error by calling _ensure_rapidocr_reader
