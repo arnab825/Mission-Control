@@ -20,9 +20,6 @@ class OCRReader:
     """
 
     def __init__(self, config=None):
-        self.config = config or {}
-        self.languages = self.config.get("languages", ["en"])
-        self.backend = self.config.get("backend", "auto")
         self._reader = None
         # Track whether we've attempted to import/initialize RapidOCR
         self._rapidocr_attempted = False
@@ -38,9 +35,24 @@ class OCRReader:
             "item":     [0.35, 0.40, 0.65, 0.60],  # Center — item pickup prompts
             "tooltip":  [0.6, 0.4, 0.95, 0.7],     # Right side — tooltips
         }
+
+        # Use setter to initialize config
+        self.config = config
+
+    @property
+    def config(self):
+        return self._config
+
+    @config.setter
+    def config(self, new_config):
+        self._config = new_config or {}
+        self.languages = self._config.get("languages", ["en"])
+        self.backend = self._config.get("backend", "auto")
+
         # Allow config overrides
-        custom_rois = self.config.get("rois", {})
-        self.roi_presets.update(custom_rois)
+        if hasattr(self, 'roi_presets'):
+            custom_rois = self._config.get("rois", {})
+            self.roi_presets.update(custom_rois)
 
         # Defer heavy backend initialization until first use
         self._init_backend()
