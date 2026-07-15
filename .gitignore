@@ -109,3 +109,7 @@ Gaming/frontend/backend/MissionControl/
 # ── Woodpecker local CLI bin ──────────────────────────────────────────
 .woodpecker/bin/
 
+# ── C# Build Outputs ──────────────────────────────────────────────────
+Gaming/backend/system/hardware_monitor/bin/
+Gaming/backend/system/hardware_monitor/obj/
+
