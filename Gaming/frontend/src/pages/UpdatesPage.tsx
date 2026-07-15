@@ -339,7 +339,14 @@ export const UpdatesPage: React.FC<UpdatesPageProps> = ({
                       </div>
 
                       <button aria-label="button" type="button"
-                        onClick={() => sendCommand('install_update')}
+                        onClick={() => {
+                          if (state?.is_frozen) {
+                            window.electronAPI?.downloadElectronUpdate?.();
+                            setNativeUpdate({ status: 'downloading', percent: 0 });
+                          } else {
+                            sendCommand('install_update');
+                          }
+                        }}
                         className="flex items-center gap-2 px-6 py-3 bg-neon-green hover:bg-neon-green text-black text-[9px] font-black uppercase tracking-widest rounded-xl shadow-[0_0_20px_rgba(118, 185, 0,0.3)] hover:shadow-[0_0_30px_rgba(118, 185, 0,0.5)] transition-all shrink-0 hover:scale-[1.02] cursor-pointer"
                       >
                         <Download className="w-3.5 h-3.5" />

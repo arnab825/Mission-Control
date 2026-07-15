@@ -419,8 +419,9 @@ Ready and monitoring. Launch your game to initiate automatic HUD lock.
         bridge.update_state({"config": config})
 
         try:
-            bridge.update_state({"version": local_ver})
-            logger.info("Version broadcasted: %s", local_ver)
+            is_frozen = getattr(sys, "frozen", False)
+            bridge.update_state({"version": local_ver, "is_frozen": is_frozen})
+            logger.info("Version broadcasted: %s (frozen: %s)", local_ver, is_frozen)
         except Exception:
             pass
 

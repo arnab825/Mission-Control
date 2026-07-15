@@ -117,6 +117,7 @@ export interface TelemetryState {
     model_active: string;
   };
   version?: string;
+  is_frozen?: boolean;
   update_state?: any;
   update_install_state?: any;
   changelogs?: any;
