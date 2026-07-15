@@ -1,7 +1,7 @@
 """
 OCR-based text detection for story/single-player games.
 Extracts dialogue, quest objectives, item names, and UI text from game frames.
-Uses EasyOCR for robust multi-language text detection when configured.
+Uses RapidOCR for robust multi-language text detection when configured.
 
 This module avoids importing heavy optional dependencies (`cv2`, `rapidocr`)
 at import time. Both OpenCV and RapidOCR are loaded lazily only when OCR is

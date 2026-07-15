@@ -94,8 +94,8 @@ class _SAPI5Speaker:
         return self._local.speaker
 
     def set_voice(self, token_id: str):
-        speaker = self._get_speaker()
         try:
+            speaker = self._get_speaker()
             voices = speaker.GetVoices()
             for i in range(voices.Count):
                 v = voices.Item(i)
@@ -140,34 +140,97 @@ class _PyTTSX3Speaker:
     """Fallback speaker using pyttsx3 if win32com/SAPI5 is unavailable or fails."""
     def __init__(self):
         self._engine = None
+        self._pending_properties = {}
+
+    def _ensure_engine(self):
+        if self._engine is None:
+            try:
+                import pyttsx3
+                self._engine = pyttsx3.init()
+                for prop, val in self._pending_properties.items():
+                    try: self._engine.setProperty(prop, val)
+                    except: pass
+                self._pending_properties.clear()
+            except Exception as e:
+                logger.error(f"Failed to initialize pyttsx3 engine: {e}")
+        return self._engine
+
+    def set_voice(self, token_id: str):
+        engine = self._ensure_engine()
+        if engine:
+            try:
+                voices = engine.getProperty('voices')
+                for v in voices:
+                    if token_id in v.id or (v.name and token_id.lower() in v.name.lower()):
+                        engine.setProperty('voice', v.id)
+                        return
+            except Exception as e:
+                logger.debug(f"pyttsx3 set_voice failed: {e}")
+        else:
+            self._pending_properties['voice'] = token_id
+
+    def set_rate(self, rate: int):
+        wpm = 200 + rate * 15
+        wpm = max(50, min(400, wpm))
+        engine = self._ensure_engine()
+        if engine:
+            try: engine.setProperty('rate', wpm)
+            except: pass
+        else:
+            self._pending_properties['rate'] = wpm
+
+    def set_volume(self, volume: int):
+        vol_float = max(0.0, min(1.0, volume / 100.0))
+        engine = self._ensure_engine()
+        if engine:
+            try: engine.setProperty('volume', vol_float)
+            except: pass
+        else:
+            self._pending_properties['volume'] = vol_float
+
+    def set_pitch(self, pitch: int):
+        pass
 
     def speak(self, text: str):
-        try:
-            import pyttsx3
-            if self._engine is None:
-                self._engine = pyttsx3.init()
-            self._engine.say(text)
-            self._engine.runAndWait()
-        except Exception as e:
-            logger.error(f"pyttsx3 speak failed: {e}")
+        engine = self._ensure_engine()
+        if engine:
+            try:
+                engine.say(text)
+                engine.runAndWait()
+            except Exception as e:
+                logger.error(f"pyttsx3 speak failed: {e}")
+        else:
+            logger.error("pyttsx3 engine is not available for speak")
 
     def stop(self):
-        try:
-            if self._engine:
-                self._engine.stop()
-        except Exception as e:
-            logger.debug(f"pyttsx3 stop failed: {e}")
+        engine = self._ensure_engine()
+        if engine:
+            try:
+                engine.stop()
+            except Exception as e:
+                logger.debug(f"pyttsx3 stop failed: {e}")
 
 
 class VoiceManager:
     def __init__(self, config=None):
+        self._speaker = None
         if _WIN32COM_OK:
-            self._speaker = _SAPI5Speaker()
-        elif _check_pyttsx3():
-            self._speaker = _PyTTSX3Speaker()
-            logger.info("Using pyttsx3 fallback speaker.")
-        else:
-            self._speaker = None
+            try:
+                import pythoncom
+                pythoncom.CoInitialize()
+                # Test SAPI.SpVoice Dispatch to verify SAPI5 is working
+                win32com.client.Dispatch("SAPI.SpVoice")
+                self._speaker = _SAPI5Speaker()
+            except Exception as e:
+                logger.warning(f"SAPI5 SpVoice Dispatch test failed: {e}. Falling back to pyttsx3.")
+        
+        if self._speaker is None:
+            if _check_pyttsx3():
+                self._speaker = _PyTTSX3Speaker()
+                logger.info("Using pyttsx3 fallback speaker.")
+            else:
+                self._speaker = None
+
         self._david_token: Optional[str] = None
         self._zira_token:  Optional[str] = None
         self._find_voice_tokens()
@@ -306,11 +369,14 @@ class VoiceManager:
             update = self._pending_update
             self._pending_update = None
         if update and self._speaker:
-            token, rate, vol, pitch = update
-            if token: self._speaker.set_voice(token)
-            self._speaker.set_rate(rate)
-            self._speaker.set_volume(vol)
-            self._speaker.set_pitch(pitch)
+            try:
+                token, rate, vol, pitch = update
+                if token: self._speaker.set_voice(token)
+                self._speaker.set_rate(rate)
+                self._speaker.set_volume(vol)
+                self._speaker.set_pitch(pitch)
+            except Exception as e:
+                logger.error(f"Failed to apply pending voice update: {e}")
 
     def start(self):
         if not self.enabled: return

@@ -218,11 +218,22 @@ def handle_bridge_update_commands(cmd_type: str, payload: dict, bridge_instance)
                         }
                     )
                 else:
+                    remote_log = []
+                    if remote and isinstance(remote, dict):
+                        remote_log = list(remote.get("changelog", []))
+                    local_log = list(local.get("changelog", []))
+                    
+                    seen = {e["version"] for e in remote_log}
+                    merged_changelog = list(remote_log) + [
+                        e for e in local_log if e["version"] not in seen
+                    ]
+                    
                     bridge_instance.update_state(
                         {
                             "update_state": {
                                 "status": "up_to_date",
                                 "current_version": local_ver,
+                                "changelog": merged_changelog,
                             }
                         }
                     )

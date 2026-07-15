@@ -307,16 +307,14 @@ function createTray() {
         },
         {
           label: 'Check for Updates', icon: iconUpdate, click: () => {
-            if (app.isPackaged) {
-              isManualUpdateCheck = true;
-              autoUpdater.checkForUpdates().catch(() => {
-                isManualUpdateCheck = false;
-              });
+            if (win && !win.isDestroyed()) {
+              win.show();
+              win.focus();
+              win.webContents.send('open-updater-modal');
             } else {
-              dialog.showMessageBox({
-                type: 'info',
-                title: 'Mission Control Update Check',
-                message: 'Native autoUpdater is only supported in packaged environments.'
+              createWindow();
+              win?.webContents.once('did-finish-load', () => {
+                win?.webContents.send('open-updater-modal');
               });
             }
           }

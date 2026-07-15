@@ -322,7 +322,7 @@ TAVILY_API_KEY=tvly-xxxxx   # Free at: https://app.tavily.com (1000/month)
 |---|---|
 | **AI Vision** | Pure TensorRT 10.x (YOLOv8 Engine) |
 | **Screen Capture** | dxcam (DXGI 120fps+) / d3dshot / MSS fallback |
-| **Text Detection** | EasyOCR / Tesseract (GPU-accelerated) |
+| **Text Detection** | RapidOCR / Tesseract (GPU/ONNX-accelerated) |
 | **Web Search** | Wikipedia + SteamSpy + DuckDuckGo + RAWG.io |
 | **Cloud AI** | NVIDIA NIM (Llama 3.1/3.2, Vision Models) |
 | **Voice STT** | Google Cloud / Sphinx (offline) |

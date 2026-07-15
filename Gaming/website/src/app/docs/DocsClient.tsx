@@ -443,7 +443,7 @@ export default function DocsClient({ docs }: { docs: DocData[] }) {
                           ["AI Vision", "Pure TensorRT 10.x (YOLOv8 Engine)"],
                           ["Screen Capture", "dxcam (DXGI 120fps+) / D3DShot / MSS fallback"],
                           ["Cloud AI", "NVIDIA NIM — Llama 3.1 8B / 3.2 11B Vision"],
-                          ["Text Detection", "EasyOCR / Tesseract (GPU-accelerated)"],
+                          ["Text Detection", "RapidOCR / Tesseract (GPU/ONNX-accelerated)"],
                           ["Web Search", "Wikipedia + SteamSpy + DuckDuckGo + RAWG.io"],
                           ["Voice STT", "Google Cloud Speech / Sphinx (offline)"],
                           ["Voice TTS", "ElevenLabs / Google Cloud TTS / SAPI5"],

@@ -2,6 +2,13 @@
 
 This document contains a detailed history of all patches and updates for the AI Gaming Assistant.
 
+### Patch: 2026-07-15 — v1.5.5: Fix OCR Reader, TTS Thread stability, and Update Page UI
+
+- Fix OCR pre-warming error by calling _ensure_rapidocr_reader
+- Update settings, documentation, and requirements to transition fully to RapidOCR
+- Fix TTS thread crashes in voice_manager by validating SAPI5 COM dispatch at startup and implementing config setters in PyTTSX3 fallback
+- Fix missing release highlights when up-to-date and system tray update check behavior when minimized
+
 ### Patch: 2026-07-15 — v1.5.4: DirectX 9 / Fullscreen FPS Fix and Publisher GUI Enhancements
 
 - Extended ETW C++ engine with D3D9 and DxgKrnl providers to enable FPS tracking in DX9 and Exclusive Fullscreen games.

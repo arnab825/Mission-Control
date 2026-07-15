@@ -12,7 +12,7 @@ pyyaml
 dxcam            # Recommended: fastest DXGI capture (~120fps+)
 
 # OCR for Story Mode
-easyocr          # GPU-accelerated OCR (recommended)
+rapidocr-onnxruntime # ONNX-based fast OCR
 # pytesseract    # Alternative OCR (requires Tesseract binary)
 
 # Controller Support

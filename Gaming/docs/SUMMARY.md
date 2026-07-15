@@ -11,7 +11,7 @@ The **Mission Control Gaming Assistant** is a high-performance, real-time agenti
 ### 1. 👁️ Vision Pipeline (The Eyes)
 - **Engine:** Pure TensorRT 10.x (YOLOv8). Sub-5ms inference, 0 MB PyTorch VRAM overhead.
 - **Capture:** dxcam (DXGI), D3DShot, or MSS fallback at 60–120fps.
-- **Capabilities:** Real-time object detection (enemies, items), EasyOCR (dialogue, quests), heuristic + ML scene classification.
+- **Capabilities:** Real-time object detection (enemies, items), RapidOCR (dialogue, quests), heuristic + ML scene classification.
 
 ### 2. 🧠 Decision Engine (The Brain)
 - **Modes:** Competitive, Story, Hybrid, Agent — each with scene-aware routing logic.

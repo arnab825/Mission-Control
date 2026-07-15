@@ -393,7 +393,7 @@ class GamingAssistantPipeline:
             try:
                 t0 = time.perf_counter()
                 logger.info("Pre-warming OCR reader model...")
-                self.ocr_reader._ensure_easyocr_reader()
+                self.ocr_reader._ensure_rapidocr_reader()
                 logger.info(f"OCR reader model pre-warmed in {time.perf_counter() - t0:.2f}s")
             except Exception as e:
                 logger.error(f"Error pre-warming OCR reader: {e}")
@@ -1258,7 +1258,7 @@ class GamingAssistantPipeline:
                             logger.info("Game inactive for > 30 seconds. Dynamically unloading YOLO detector model to free RAM/VRAM.")
                             self.yolo_detector.unload_model()
                         if self.ocr_reader and getattr(self.ocr_reader, '_reader', None) is not None:
-                            logger.info("Game inactive for > 30 seconds. Dynamically unloading EasyOCR reader model to free RAM/VRAM.")
+                            logger.info("Game inactive for > 30 seconds. Dynamically unloading RapidOCR reader model to free RAM/VRAM.")
                             self.ocr_reader.unload_model()
                 
                 with self._state_lock:
@@ -1489,7 +1489,7 @@ class GamingAssistantPipeline:
             if (self.ocr_reader and
                 self.game_mode in ("story", "hybrid") and
                 self._vision_frame_count % self.ocr_every_n == 0):
-                # Check VRAM headroom before loading EasyOCR
+                # Check VRAM headroom before loading RapidOCR
                 if self.ocr_reader._reader is not None or self._has_vram_headroom(required_mb=500):
                     run_ocr = True
                 else:

@@ -2,7 +2,7 @@
     "name":  "mission-control",
     "productName":  "Mission Control",
     "private":  true,
-    "version":  "1.5.4",
+    "version":  "1.5.5",
     "description":  "Mission Control desktop app for gamers.",
     "author":  "Arnab Contributors \u003csupport@missioncontrol.app\u003e",
     "type":  "module",
@@ -83,11 +83,11 @@
                                "license":  "electron/license.txt",
                                "include":  "electron/installer.nsh"
                            },
-                  "msi": {
-                               "oneClick": false,
-                               "perMachine": true,
-                               "runAfterFinish": true
-                           },
+                  "msi":  {
+                              "oneClick":  false,
+                              "perMachine":  true,
+                              "runAfterFinish":  true
+                          },
                   "directories":  {
                                       "output":  "out/make"
                                   },

@@ -53,7 +53,7 @@ The backend is a high-frequency telemetry scanner, visual object detector, and A
 ### A. Core Pipeline Host (`pipeline_host.py`)
 - **Threaded Pipeline Workers:** Segregates heavy compute tasks into separate daemon threads:
   1. **Capture Worker (60-120Hz):** Grabs display screen frames using `dxcam` (DirectX-accelerated capture) and pushes them to a synchronized `FrameBuffer`.
-  2. **Vision Worker (30Hz):** Pulls frames, runs object detection (YOLO engine / TensorRT), processes character dialogues and quests (EasyOCR), and performs scene classification.
+  2. **Vision Worker (30Hz):** Pulls frames, runs object detection (YOLO engine / TensorRT), processes character dialogues and quests (RapidOCR), and performs scene classification.
   3. **Brain Worker (10Hz):** Analyzes game telemetry and dispatches strategic prompts to NVIDIA NIM LLMs.
   4. **Telemetry Worker (1-2Hz):** Collects hardware metrics.
 - **Adaptive Throttling:** Intelligently throttles processing frequencies if the system is overloaded (GPU load > 92%, CPU temp > 85°C) or if the game window is minimized, protecting game frame parity.

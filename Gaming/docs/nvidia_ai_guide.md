@@ -166,16 +166,16 @@ NVIDIA has specific models for high-performance voice:
 ---
 
 ## 7. OCR for Story Games
-For single-player and story games, we use **EasyOCR** (GPU-accelerated) to read:
+For single-player and story games, we use **RapidOCR** (ONNX-accelerated) to read:
 - Dialogue and subtitle text
 - Quest objectives and waypoints
 - Item names and descriptions
 - Interaction prompts
 
 ```python
-import easyocr
-reader = easyocr.Reader(["en"], gpu=True)
-results = reader.readtext(frame_region)
+from rapidocr_onnxruntime import RapidOCR
+reader = RapidOCR()
+results, elapsed_time = reader(frame_region)
 ```
 
 ---
@@ -186,6 +186,6 @@ results = reader.readtext(frame_region)
 3. [ ] **cuDNN:** Download the [cuDNN library](https://developer.nvidia.com/cudnn) and add it to your PATH.
 4. [ ] **API Keys:** Sign up at [NVIDIA Build](https://build.nvidia.com/) for free cloud credits.
 5. [ ] **dxcam:** `uv pip install dxcam` for 60fps+ screen capture.
-6. [ ] **EasyOCR:** `uv pip install easyocr` for story mode text detection.
+6. [ ] **RapidOCR:** `uv pip install rapidocr-onnxruntime` for story mode text detection.
 7. [ ] **pynvml:** `uv pip install pynvml` for GPU monitoring.
 8. [ ] **pygame:** `uv pip install pygame` for controller support.
