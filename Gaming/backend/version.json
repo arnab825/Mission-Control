@@ -1,8 +1,16 @@
 {
-  "version": "1.6.0",
+  "version": "1.6.1",
   "release_date": "2026-07-14",
   "update_check_url": "https://raw.githubusercontent.com/arnab825/Mission-Control/main/Gaming/backend/version.json",
   "changelog": [
+    {
+      "version": "1.6.1",
+      "date": "2026-07-15",
+      "title": "Fix NSIS compile escape syntax in installer.nsh",
+      "highlights": [
+        "Fix NSIS compile escape syntax in installer.nsh"
+      ]
+    },
     {
       "version": "1.6.0",
       "date": "2026-07-15",
