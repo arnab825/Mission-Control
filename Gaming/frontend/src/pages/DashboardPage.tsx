@@ -547,29 +547,6 @@ const DashboardPage: React.FC<DashboardPageProps> = ({ state, onCommand, onNavig
               </ResponsiveContainer>
             </div>
           </div>
-
-          {/* Active Optimization Progress Details */}
-          {(state as any)?.optimization_status && (
-            <div className="bg-white/[0.03] border border-white/5 rounded-2xl p-3 space-y-2 text-[8px] font-bold text-zinc-500 uppercase tracking-widest shrink-0 max-h-24 overflow-y-auto custom-scrollbar">
-              <div className="flex items-center justify-between border-b border-white/5 pb-1">
-                <span>Optimization Status</span>
-                <span className={(state as any).optimization_status.active ? "text-neon-green font-black" : "text-zinc-600 font-black"}>
-                  {(state as any).optimization_status.active ? "OPTIMIZED" : "BALANCED"}
-                </span>
-              </div>
-              {(state as any).optimization_status.results?.map((res: string, idx: number) => (
-                <div key={idx} className="flex items-start gap-1.5 text-zinc-300 leading-tight normal-case">
-                  <div className={`w-1 h-1 rounded-full mt-1 shrink-0 ${(state as any).optimization_status.active ? "bg-neon-green shadow-[0_0_5px_#76b900]" : "bg-zinc-600"}`} />
-                  <span className="font-semibold text-[8px] text-zinc-400">{res}</span>
-                </div>
-              ))}
-              {(state as any).optimization_status.error && (
-                <div className="text-red-400 font-mono text-[8px] font-normal normal-case">
-                  Error: {(state as any).optimization_status.error}
-                </div>
-              )}
-            </div>
-          )}
         </div>
 
       </div>

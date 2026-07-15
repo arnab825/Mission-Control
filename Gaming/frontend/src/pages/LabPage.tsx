@@ -336,8 +336,8 @@ const LabPage: React.FC<{
         </div>
       </div>
 
-      {/* ── Game Mode Badge ── */}
-      <div>
+      {/* ── Game Mode Badge & Optimization Status ── */}
+      <div className="flex flex-col md:flex-row items-stretch md:items-center gap-4 shrink-0">
         <button aria-label="button" type="button"
           onClick={() => {
             if (isGameActive) {
@@ -346,7 +346,7 @@ const LabPage: React.FC<{
               sendCommand("optimize_system", { userId });
             }
           }}
-          className={`flex items-center gap-2 px-5 py-2.5 border rounded-2xl font-black text-xs uppercase tracking-widest transition-all ${
+          className={`flex items-center justify-center gap-2 px-5 py-2.5 border rounded-2xl font-black text-xs uppercase tracking-widest transition-all shrink-0 ${
             isGameActive
               ? "bg-orange-500 text-black border-orange-400"
               : "bg-orange-500/10 border-orange-500/30 text-orange-400 hover:bg-orange-500/20"
@@ -355,6 +355,29 @@ const LabPage: React.FC<{
           <Zap className={`w-4 h-4 ${isGameActive ? "fill-black" : "fill-current"}`} />
           {isGameActive ? "Game Mode: Active" : "Game Mode"}
         </button>
+
+        {/* Active Optimization Progress Details */}
+        {(state as any)?.optimization_status && (
+          <div className="flex-1 bg-white/[0.03] border border-white/5 rounded-2xl p-3 space-y-1.5 text-[8px] font-bold text-zinc-500 uppercase tracking-widest max-h-24 overflow-y-auto custom-scrollbar">
+            <div className="flex items-center justify-between border-b border-white/5 pb-1">
+              <span>Optimization Status</span>
+              <span className={(state as any).optimization_status.active ? "text-neon-green font-black" : "text-zinc-600 font-black"}>
+                {(state as any).optimization_status.active ? "OPTIMIZED" : "BALANCED"}
+              </span>
+            </div>
+            {(state as any).optimization_status.results?.map((res: string, idx: number) => (
+              <div key={idx} className="flex items-start gap-1.5 text-zinc-300 leading-tight normal-case">
+                <div className={`w-1.5 h-1.5 rounded-full mt-0.5 shrink-0 ${(state as any).optimization_status.active ? "bg-neon-green shadow-[0_0_5px_#76b900]" : "bg-zinc-600"}`} />
+                <span className="font-semibold text-[9px] text-zinc-400">{res}</span>
+              </div>
+            ))}
+            {(state as any).optimization_status.error && (
+              <div className="text-red-400 font-mono text-[9px] font-normal normal-case">
+                Error: {(state as any).optimization_status.error}
+              </div>
+            )}
+          </div>
+        )}
       </div>
 
       {/* ── Headroom Row ── */}
