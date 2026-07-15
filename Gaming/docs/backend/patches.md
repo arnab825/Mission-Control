@@ -2,6 +2,10 @@
 
 This document contains a detailed history of all patches and updates for the AI Gaming Assistant.
 
+### Patch: 2026-07-15 — v1.6.0: Fix duplicate start menu shortcuts and update overlay blocking
+
+- Fix duplicate start menu shortcuts and update overlay blocking
+
 ### Patch: 2026-07-15 — v1.5.9: Fixed the USE DESKTOP UPGRADE 
 
 - Fixed the USE DESKTOP UPGRADE 
