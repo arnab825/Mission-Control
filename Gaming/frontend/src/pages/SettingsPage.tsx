@@ -290,7 +290,7 @@ const CustomSelect: React.FC<{
     if (opt.group && opt.group !== currentGroup) {
       currentGroup = opt.group;
       renderedItems.push(
-        <div key={`group-${currentGroup}`} className="px-3 py-1.5 text-[9px] font-black text-zinc-500 uppercase tracking-widest bg-white/1er-b border-white/3 mt-2 first:mt-0 font-sans">
+        <div key={`group-${currentGroup}`} className="px-3 py-1.5 text-[9px] font-black text-zinc-500 uppercase tracking-widest bg-white/5 border-b border-white/10 mt-2 first:mt-0 font-sans">
           {currentGroup}
         </div>
       );
