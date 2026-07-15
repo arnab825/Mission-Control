@@ -422,6 +422,13 @@ Ready and monitoring. Launch your game to initiate automatic HUD lock.
         except Exception:
             pass
 
+        # Trigger initial telemetry glitch scan once on startup
+        try:
+            handle_bridge_update_commands("check_patches", {}, bridge)
+            logger.info("Triggered initial telemetry glitch scan on startup.")
+        except Exception as e:
+            logger.error(f"Failed to trigger initial telemetry glitch scan: {e}")
+
         pipeline = GamingAssistantPipeline(config)
         pw = None
         lib_watcher = None

@@ -53,7 +53,6 @@ export const UpdatesPage: React.FC<UpdatesPageProps> = ({
     setActiveTab(defaultTab);
     if (defaultTab === 'check') {
       sendCommand('check_updates');
-      sendCommand('check_patches');
       window.electronAPI?.checkElectronUpdates?.();
     } else if (defaultTab === 'changelogs') {
       sendCommand('get_changelogs');

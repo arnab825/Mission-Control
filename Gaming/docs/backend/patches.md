@@ -2,6 +2,12 @@
 
 This document contains a detailed history of all patches and updates for the AI Gaming Assistant.
 
+### Patch: 2026-07-15 — v1.5.4: DirectX 9 / Fullscreen FPS Fix and Publisher GUI Enhancements
+
+- Extended ETW C++ engine with D3D9 and DxgKrnl providers to enable FPS tracking in DX9 and Exclusive Fullscreen games.
+- Redesigned Publisher GUI with drag-and-drop image uploads, dynamic version previews, and document-aware auto-generation.
+- Added MSI and Portable ZIP installer download links to the website landing page.
+
 ### Patch: 2026-07-15 — v1.5.3: Align C# telemetry search paths with PyInstaller internal directories
 
 - Align C# telemetry search paths with PyInstaller internal directories

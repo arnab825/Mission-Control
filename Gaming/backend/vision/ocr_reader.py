@@ -3,8 +3,8 @@ OCR-based text detection for story/single-player games.
 Extracts dialogue, quest objectives, item names, and UI text from game frames.
 Uses EasyOCR for robust multi-language text detection when configured.
 
-This module avoids importing heavy optional dependencies (`cv2`, `easyocr`)
-at import time. Both OpenCV and EasyOCR are loaded lazily only when OCR is
+This module avoids importing heavy optional dependencies (`cv2`, `rapidocr`)
+at import time. Both OpenCV and RapidOCR are loaded lazily only when OCR is
 requested, so the application can start without them when OCR is disabled.
 """
 import numpy as np
@@ -24,8 +24,8 @@ class OCRReader:
         self.languages = self.config.get("languages", ["en"])
         self.backend = self.config.get("backend", "auto")
         self._reader = None
-        # Track whether we've attempted to import/initialize EasyOCR
-        self._easyocr_attempted = False
+        # Track whether we've attempted to import/initialize RapidOCR
+        self._rapidocr_attempted = False
         import threading
         self._init_lock = threading.Lock()
         self._loading = False
@@ -48,22 +48,22 @@ class OCRReader:
     def _init_backend(self):
         """Detect preferred OCR backend but defer heavy initialization.
 
-        If `backend` is `easyocr` or `auto` we will attempt to initialize
-        EasyOCR lazily when a read is first requested. Otherwise OCR is
+        If `backend` is `rapidocr` or `auto` we will attempt to initialize
+        RapidOCR lazily when a read is first requested. Otherwise OCR is
         disabled (`none`).
         """
-        if self.backend in ("easyocr", "auto"):
-            # Mark intention to use EasyOCR but don't import it now
-            self.backend = "easyocr"
-            logger.debug("OCR backend set to 'easyocr' (initialization deferred)")
+        if self.backend in ("rapidocr", "easyocr", "auto"):
+            # Mark intention to use RapidOCR but don't import it now
+            self.backend = "rapidocr"
+            logger.debug("OCR backend set to 'rapidocr' (initialization deferred)")
             return
 
         # Explicitly disabled or unknown backend
         self.backend = "none"
         logger.debug("OCR backend set to 'none'")
 
-    def _ensure_easyocr_reader(self):
-        """Lazily import and initialize EasyOCR Reader when needed.
+    def _ensure_rapidocr_reader(self):
+        """Lazily import and initialize RapidOCR Reader when needed.
 
         Returns True if the Reader is ready, False otherwise (and switches
         backend to 'none').
@@ -76,42 +76,31 @@ class OCRReader:
                 return True
 
             # Avoid repeating failed import attempts
-            if self._easyocr_attempted:
+            if self._rapidocr_attempted:
                 return False
-            self._easyocr_attempted = True
+            self._rapidocr_attempted = True
 
             try:
-                import easyocr
+                from rapidocr_onnxruntime import RapidOCR
             except Exception as e:
-                logger.warning("EasyOCR import failed: %s", e)
+                logger.warning("RapidOCR import failed: %s", e)
                 self.backend = "none"
                 return False
 
             try:
-                gpu_flag = self.config.get("gpu", False)
-                try:
-                    # Attempt to create the Reader with the configured GPU flag
-                    reader = easyocr.Reader(self.languages, gpu=gpu_flag, verbose=False)
-                except Exception as cuda_err:
-                    if gpu_flag:
-                        logger.warning(
-                            "Failed to initialize EasyOCR Reader with GPU: %s. Retrying with CPU fallback...",
-                            cuda_err
-                        )
-                        reader = easyocr.Reader(self.languages, gpu=False, verbose=False)
-                    else:
-                        raise cuda_err
-                self.backend = "easyocr"
+                # Initialize the RapidOCR engine
+                reader = RapidOCR()
+                self.backend = "rapidocr"
                 self._reader = reader  # Assign it last once fully constructed
-                logger.info("OCR backend: EasyOCR initialized (lazy)")
+                logger.info("OCR backend: RapidOCR initialized (lazy)")
                 return True
             except Exception as e:
-                logger.error(f"Failed to initialize EasyOCR Reader: {e}")
+                logger.error(f"Failed to initialize RapidOCR Reader: {e}")
                 self.backend = "none"
                 return False
 
-    def _ensure_easyocr_reader_async(self):
-        """Start EasyOCR Reader initialization in a background thread if not already loaded or loading."""
+    def _ensure_rapidocr_reader_async(self):
+        """Start RapidOCR Reader initialization in a background thread if not already loaded or loading."""
         if self._reader is not None:
             return
             
@@ -123,9 +112,9 @@ class OCRReader:
         import threading
         def bg_load():
             try:
-                self._ensure_easyocr_reader()
+                self._ensure_rapidocr_reader()
             except Exception as e:
-                logger.error(f"Background EasyOCR model loading failed: {e}")
+                logger.error(f"Background RapidOCR model loading failed: {e}")
             finally:
                 self._loading = False
                 
@@ -133,30 +122,20 @@ class OCRReader:
         thread.start()
 
     def unload_model(self):
-        """Unload the EasyOCR Reader from RAM/VRAM and clean up PyTorch/CUDA resources."""
+        """Unload the RapidOCR Reader from RAM and clean up resources."""
         if self._reader is None:
             return
 
-        logger.info("Unloading EasyOCR Reader model...")
+        logger.info("Unloading RapidOCR Reader model...")
         self._reader = None
-        self._easyocr_attempted = False
+        self._rapidocr_attempted = False
 
         # Aggressive garbage collection
         import gc
         gc.collect()
 
-        # Clear PyTorch CUDA Cache if loaded
-        import sys
-        if 'torch' in sys.modules:
-            try:
-                import torch
-                if torch.cuda.is_available():
-                    torch.cuda.empty_cache()
-                    torch.cuda.ipc_collect()
-            except Exception as e:
-                logger.debug(f"Error clearing CUDA cache from OCR reader: {e}")
-
         # Win32 Memory flush
+        import sys
         if sys.platform == "win32":
             try:
                 import ctypes
@@ -167,7 +146,7 @@ class OCRReader:
             except Exception as e:
                 pass
 
-        logger.info("EasyOCR Reader model unloaded successfully.")
+        logger.info("RapidOCR Reader model unloaded successfully.")
 
     def read_region(self, frame, roi_name=None, roi_coords=None, preprocess=True):
         """
@@ -182,10 +161,10 @@ class OCRReader:
         if self.backend == "none":
             return []
 
-        # If EasyOCR is the chosen backend, ensure the Reader is initialized lazily
-        if self.backend == "easyocr":
+        # If RapidOCR is the chosen backend, ensure the Reader is initialized lazily
+        if self.backend == "rapidocr":
             if self._reader is None:
-                self._ensure_easyocr_reader_async()
+                self._ensure_rapidocr_reader_async()
                 return []
 
         # Determine ROI
@@ -215,8 +194,8 @@ class OCRReader:
             cropped = self._preprocess(cropped)
 
         # Run OCR
-        if self.backend == "easyocr":
-            return self._read_easyocr(cropped, x1, y1)
+        if self.backend == "rapidocr":
+            return self._read_rapidocr(cropped, x1, y1)
 
         return []
 
@@ -339,7 +318,8 @@ class OCRReader:
         
         # Contrast Stretching (min-max normalization)
         p2, p98 = np.percentile(gray, (2, 98))
-        gray = np.clip((gray - p2) * 255.0 / (p98 - p2), 0, 255).astype(np.uint8)
+        if p98 > p2:
+            gray = np.clip((gray - p2) * 255.0 / (p98 - p2), 0, 255).astype(np.uint8)
 
         # 2. Noise reduction
         gray = cv2.GaussianBlur(gray, (3, 3), 0)
@@ -353,7 +333,7 @@ class OCRReader:
         
         # Check if we should invert (if text is darker than background)
         # In games, overlays are 90% bright text on dark. 
-        # We assume binary should have white text on black background for EasyOCR.
+        # We assume binary should have white text on black background for OCR.
         if np.mean(binary) > 127:
             binary = cv2.bitwise_not(binary)
 
@@ -363,29 +343,35 @@ class OCRReader:
 
         return binary
 
-    def _read_easyocr(self, img, offset_x=0, offset_y=0):
-        """Run EasyOCR on preprocessed image."""
+    def _read_rapidocr(self, img, offset_x=0, offset_y=0):
+        """Run RapidOCR on preprocessed image."""
         if self._reader is None:
-            logger.debug("EasyOCR Reader not initialized in _read_easyocr")
+            logger.debug("RapidOCR Reader not initialized in _read_rapidocr")
             return []
 
         try:
-            # Use workers=0 to avoid spawning background processes on Windows
-            raw = self._reader.readtext(img, detail=1, workers=0)
+            raw, _ = self._reader(img)
         except Exception as e:
-            logger.error("EasyOCR read failed: %s", e)
+            logger.error("RapidOCR read failed: %s", e)
             return []
 
         results = []
-        for (bbox, text, conf) in raw:
+        if not raw:
+            return results
+
+        for item in raw:
+            bbox = item[0]
+            text = item[1]
+            conf = item[2]
+
             if len(text.strip()) < 2:  # Skip single characters / noise
                 continue
-            # bbox is list of 4 points; take top-left and bottom-right
+            # bbox is list of 4 points [[x1,y1], [x2,y1], [x2,y2], [x1,y2]]
             tl = bbox[0]
             br = bbox[2]
             results.append({
                 "text": text.strip(),
-                "confidence": conf,
+                "confidence": float(conf),
                 "bbox": [
                     int(tl[0]) + offset_x, int(tl[1]) + offset_y,
                     int(br[0]) + offset_x, int(br[1]) + offset_y

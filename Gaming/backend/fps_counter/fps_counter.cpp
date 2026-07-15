@@ -30,6 +30,12 @@
 // DXGI Provider GUID {CA11C036-0102-4A2D-A6AD-F03CFED5D3C9}
 static const GUID DXGI_PROVIDER_GUID = { 0xCA11C036, 0x0102, 0x4A2D, { 0xA6, 0xAD, 0xF0, 0x3C, 0xFE, 0xD5, 0xD3, 0xC9 } };
 
+// D3D9 Provider GUID {783ACA0A-790E-4D7F-8451-AA850511C6B9}
+static const GUID D3D9_PROVIDER_GUID = { 0x783ACA0A, 0x790E, 0x4D7F, { 0x84, 0x51, 0xAA, 0x85, 0x05, 0x11, 0xC6, 0xB9 } };
+
+// DxgKrnl Provider GUID {802ec45a-1e99-4b83-9920-87c98277ba9d}
+static const GUID DXGKRNL_PROVIDER_GUID = { 0x802ec45a, 0x1e99, 0x4b83, { 0x99, 0x20, 0x87, 0xc9, 0x82, 0x77, 0xba, 0x9d } };
+
 // ── State ──────────────────────────────────────────────────────────────────
 struct FPSCounterState
 {
@@ -123,13 +129,21 @@ static void WINAPI EventRecordCallback(PEVENT_RECORD pEventRecord)
     if (g_target_pid <= 0 || pEventRecord->EventHeader.ProcessId != static_cast<DWORD>(g_target_pid)) 
         return;
 
-    // DXGI Present_Start Event IDs:
-    // 42: Present_Start
-    // 46: Present1_Start
-    // 73: PresentMultiplaneOverlay_Start
-    // 78: PresentMultiplaneOverlay1_Start
     DWORD eventId = pEventRecord->EventHeader.EventDescriptor.Id;
-    if (eventId == 42 || eventId == 46 || eventId == 73 || eventId == 78)
+    bool isPresent = false;
+
+    if (IsEqualGUID(pEventRecord->EventHeader.ProviderId, DXGI_PROVIDER_GUID)) {
+        // DXGI Present_Start Event IDs
+        if (eventId == 42 || eventId == 46 || eventId == 73 || eventId == 78) isPresent = true;
+    } else if (IsEqualGUID(pEventRecord->EventHeader.ProviderId, D3D9_PROVIDER_GUID)) {
+        // D3D9 Present Event ID
+        if (eventId == 1) isPresent = true;
+    } else if (IsEqualGUID(pEventRecord->EventHeader.ProviderId, DXGKRNL_PROVIDER_GUID)) {
+        // DxgKrnl Flip / Present Event IDs
+        if (eventId == 119 || eventId == 171 || eventId == 252) isPresent = true;
+    }
+
+    if (isPresent)
     {
         // ETW TimeStamp is in 100-nanosecond intervals (FILETIME)
         double now = static_cast<double>(pEventRecord->EventHeader.TimeStamp.QuadPart) / 10000000.0;
@@ -213,13 +227,18 @@ static unsigned __stdcall ETWTraceThread(void*)
         return 1;
     }
 
-    // Enable DXGI Provider
+    // Enable Providers
     status = EnableTraceEx2(
-        g_session_handle,
-        &DXGI_PROVIDER_GUID,
-        EVENT_CONTROL_CODE_ENABLE_PROVIDER,
-        TRACE_LEVEL_INFORMATION,
-        0, 0, 0, NULL
+        g_session_handle, &DXGI_PROVIDER_GUID, EVENT_CONTROL_CODE_ENABLE_PROVIDER,
+        TRACE_LEVEL_INFORMATION, 0, 0, 0, NULL
+    );
+    status = EnableTraceEx2(
+        g_session_handle, &D3D9_PROVIDER_GUID, EVENT_CONTROL_CODE_ENABLE_PROVIDER,
+        TRACE_LEVEL_INFORMATION, 0, 0, 0, NULL
+    );
+    status = EnableTraceEx2(
+        g_session_handle, &DXGKRNL_PROVIDER_GUID, EVENT_CONTROL_CODE_ENABLE_PROVIDER,
+        TRACE_LEVEL_INFORMATION, 0, 0, 0, NULL
     );
 
     EVENT_TRACE_LOGFILE trace_log = { 0 };

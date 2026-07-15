@@ -4,7 +4,7 @@ import { useState, useEffect } from "react";
 import Link from "next/link";
 import Script from "next/script";
 import { motion, AnimatePresence } from "framer-motion";
-import { WINDOWS_INSTALLER_URL } from "@/lib/download";
+import { WINDOWS_INSTALLER_URL, WINDOWS_MSI_URL, WINDOWS_ZIP_URL } from "@/lib/download";
 import { 
   Users, 
   Search, 
@@ -721,10 +721,19 @@ export default function Home() {
             </div>
             <a
               href={WINDOWS_INSTALLER_URL}
-              className="w-full bg-neon-green text-obsidian px-6 py-4 rounded-xl font-black text-sm uppercase tracking-wider hover:bg-white hover:shadow-[0_0_25px_rgba(118, 185, 0,0.6)] transition-all duration-300 flex items-center justify-center gap-2 font-mono shadow-[0_0_15px_rgba(118, 185, 0,0.3)] text-center"
+              className="w-full bg-neon-green text-obsidian px-6 py-4 rounded-xl font-black text-sm uppercase tracking-wider hover:bg-white hover:shadow-[0_0_25px_rgba(118, 185, 0,0.6)] transition-all duration-300 flex items-center justify-center gap-2 font-mono shadow-[0_0_15px_rgba(118, 185, 0,0.3)] text-center mb-4"
             >
               <Download className="w-4 h-4 shrink-0" /> Download for Windows
             </a>
+            <div className="flex justify-center gap-4 text-xs font-mono">
+              <a href={WINDOWS_MSI_URL} className="text-gray-400 hover:text-neon-green transition-colors flex items-center gap-1">
+                <Download className="w-3 h-3" /> MSI Installer
+              </a>
+              <span className="text-gray-600">|</span>
+              <a href={WINDOWS_ZIP_URL} className="text-gray-400 hover:text-neon-green transition-colors flex items-center gap-1">
+                <Download className="w-3 h-3" /> Portable ZIP
+              </a>
+            </div>
           </div>
 
           {/* Linux Package */}

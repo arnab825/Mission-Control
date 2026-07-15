@@ -1,6 +1,6 @@
 [project]
 name = "ai-gaming-assistant"
-version = "1.5.3"
+version = "1.5.4"
 requires-python = ">=3.11"
 dependencies = [
     "opencv-python",
@@ -9,13 +9,8 @@ dependencies = [
     "pyautogui",
     "pynput",
     "pyyaml",
-    "ultralytics",
     "dxcam",
-    "easyocr",
-    "torchao",
-    "torch",
-    "torchvision",
-    "torchaudio",
+    "rapidocr-onnxruntime",
     "pygame-ce",
     "nvidia-ml-py",
     "pyttsx3",
@@ -56,14 +51,8 @@ required-environments = [
 exclude-dependencies = ["opencv-python-headless"]
 
 [tool.uv.sources]
-torch = { index = "pytorch-cu121" }
-torchvision = { index = "pytorch-cu121" }
-torchaudio = { index = "pytorch-cu121" }
 
-[[tool.uv.index]]
-name = "pytorch-cu121"
-url = "https://download.pytorch.org/whl/cu121"
-explicit = true
+
 
 [tool.pytest.ini_options]
 testpaths = ["tests"]

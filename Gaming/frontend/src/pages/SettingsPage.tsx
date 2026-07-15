@@ -2088,7 +2088,7 @@ const SettingsPage: React.FC<{ state: TelemetryState | null, sendCommand: (type:
             />
           </SettingsField>
 
-          <SettingsField label="Cap FPS" description="Limit capture rate to save CPU/GPU resources. Disabled by default for uncapped performance.">
+          <SettingsField label="Cap Vision Pipeline FPS" description="Limit the screen capture and AI processing rate to save CPU/GPU overhead. Note: This does NOT limit your actual game FPS, only the assistant's capture loop.">
             <div className="flex flex-col gap-4 w-full">
               <div className="flex items-center justify-between">
                 <span className="text-[10px] text-zinc-400 font-bold uppercase tracking-wider">Enable FPS Cap</span>

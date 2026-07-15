@@ -2,7 +2,7 @@
     "name":  "mission-control",
     "productName":  "Mission Control",
     "private":  true,
-    "version":  "1.5.3",
+    "version":  "1.5.4",
     "description":  "Mission Control desktop app for gamers.",
     "author":  "Arnab Contributors \u003csupport@missioncontrol.app\u003e",
     "type":  "module",
@@ -16,7 +16,7 @@
                     "test:run":  "vitest run",
                     "package":  "electron-forge package",
                     "make":  "electron-forge make",
-                    "make:win":  "electron-builder --win nsis zip --x64",
+                    "make:win":  "electron-builder --win nsis msi zip --x64",
                     "doctor":  "react-doctor",
                     "postinstall":  "node patch-nsis.mjs"
                 },
@@ -83,6 +83,11 @@
                                "license":  "electron/license.txt",
                                "include":  "electron/installer.nsh"
                            },
+                  "msi": {
+                               "oneClick": false,
+                               "perMachine": true,
+                               "runAfterFinish": true
+                           },
                   "directories":  {
                                       "output":  "out/make"
                                   },
@@ -102,6 +107,12 @@
                               "target":  [
                                              {
                                                  "target":  "nsis",
+                                                 "arch":  [
+                                                              "x64"
+                                                          ]
+                                             },
+                                             {
+                                                 "target":  "msi",
                                                  "arch":  [
                                                               "x64"
                                                           ]

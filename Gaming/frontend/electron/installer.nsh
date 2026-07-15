@@ -1,6 +1,14 @@
 !macro customHeader
-  ShowInstDetails nevershow
-  ShowUninstDetails nevershow
+  ShowInstDetails show
+  ShowUninstDetails show
+!macroend
+
+!macro customInit
+  !include "WinVer.nsh"
+  ${If} ${AtMostWin8.1}
+    MessageBox MB_OK|MB_ICONSTOP "Mission Control requires Windows 10 or later to install."
+    Abort
+  ${EndIf}
 !macroend
 
 ; Define welcome page macro for assisted installer wizard

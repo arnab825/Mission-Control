@@ -1,0 +1,17 @@
+# Supabase Project Configuration
+project_id = "vekqkwwzzamwhitjodld"
+
+[api]
+enabled = true
+port = 54321
+schemas = ["public"]
+
+[db]
+port = 54322
+shadow_port = 54320
+
+[auth]
+enabled = true
+
+[storage]
+enabled = true

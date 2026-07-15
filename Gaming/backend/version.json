@@ -1,8 +1,18 @@
 {
-  "version": "1.5.3",
+  "version": "1.5.4",
   "release_date": "2026-07-14",
   "update_check_url": "https://raw.githubusercontent.com/arnab825/Mission-Control/main/Gaming/backend/version.json",
   "changelog": [
+    {
+      "version": "1.5.4",
+      "date": "2026-07-15",
+      "title": "DirectX 9 / Fullscreen FPS Fix and Publisher GUI Enhancements",
+      "highlights": [
+        "Extended ETW C++ engine with D3D9 and DxgKrnl providers to enable FPS tracking in DX9 and Exclusive Fullscreen games.",
+        "Redesigned Publisher GUI with drag-and-drop image uploads, dynamic version previews, and document-aware auto-generation.",
+        "Added MSI and Portable ZIP installer download links to the website landing page."
+      ]
+    },
     {
       "version": "1.5.3",
       "date": "2026-07-15",
