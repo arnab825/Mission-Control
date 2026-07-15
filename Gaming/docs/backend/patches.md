@@ -2,6 +2,10 @@
 
 This document contains a detailed history of all patches and updates for the AI Gaming Assistant.
 
+### Patch: 2026-07-15 — v1.6.2: Move Optimization Status block to Stability Lab next to Game Mode toggle
+
+- Move Optimization Status block to Stability Lab next to Game Mode toggle
+
 ### Patch: 2026-07-15 — v1.6.1: Fix NSIS compile escape syntax in installer.nsh
 
 - Fix NSIS compile escape syntax in installer.nsh
