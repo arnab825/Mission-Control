@@ -473,8 +473,9 @@ export const UpdatesPage: React.FC<UpdatesPageProps> = ({
                       </button>
                     )}
                   </div>
-                </div>
-              )}
+                )}
+              </div>
+            )}
 
               {/* Scenario 5: Check Failed */}
               {updateState?.status === 'failed' && !installState && (
