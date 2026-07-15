@@ -23,10 +23,11 @@
 
 !macro customInstall
   ; Clean up duplicate user-specific shortcuts from previous installations (per-user layout)
-  SetShellVarContext current
-  Delete "$SMPROGRAMS\Mission Control.lnk"
-  Delete "$DESKTOP\Mission Control.lnk"
-  SetShellVarContext all
+  ; Since the installer runs elevated as Admin, SetShellVarContext current resolves to the Admin profile.
+  ; We use PowerShell to clean up the shortcuts across all user directories under C:\Users.
+  nsExec::ExecToStack `"$SYSDIR\WindowsPowerShell\v1.0\powershell.exe" -NonInteractive -NoProfile -Command "Get-ChildItem -Path 'C:\Users' -Directory | ForEach-Object { $lnk1 = Join-Path $_.FullName 'AppData\Roaming\Microsoft\Windows\Start Menu\Programs\Mission Control.lnk'; if (Test-Path $lnk1) { Remove-Item $lnk1 -Force }; $lnk2 = Join-Path $_.FullName 'Desktop\Mission Control.lnk'; if (Test-Path $lnk2) { Remove-Item $lnk2 -Force } }"`
+  Pop $0
+  Pop $1
 
   DetailPrint "Writing registry keys..."
   ; App paths registry (Task 2 & 10) — AppUserModelID must match app.setAppUserModelId() in main.ts
