@@ -1,8 +1,16 @@
 {
-    "version":  "1.6.4",
+    "version":  "1.6.5",
     "release_date":  "2026-07-16",
     "update_check_url":  "https://raw.githubusercontent.com/arnab825/Mission-Control/main/Gaming/backend/version.json",
     "changelog":  [
+                      {
+                          "version":  "1.6.5",
+                          "date":  "2026-07-16",
+                          "title":  "Hotfix: Prevent ETW MPO double-counting with 1ms debounce",
+                          "highlights":  [
+                                             "Increased ETW event deduplication debounce to 1ms (1000 FPS cap) to completely ignore double-firing DXGI and MPO events within the same frame"
+                                         ]
+                      },
                       {
                           "version":  "1.6.4",
                           "date":  "2026-07-16",
