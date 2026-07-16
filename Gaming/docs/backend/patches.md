@@ -2,6 +2,10 @@
 
 This document contains a detailed history of all patches and updates for the AI Gaming Assistant.
 
+### Patch: 2026-07-17 — v1.6.6: Fix latest.yml UTF-8 BOM encoding for electron-updater support
+
+- Fix latest.yml UTF-8 BOM encoding for electron-updater support
+
 ### Patch: 2026-07-16 — v1.6.5: Fix packaging of rapidocr_onnxruntime ONNX models and config assets
 
 - Fix packaging of rapidocr_onnxruntime ONNX models and config assets
