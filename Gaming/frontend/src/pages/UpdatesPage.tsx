@@ -592,7 +592,7 @@ export const UpdatesPage: React.FC<UpdatesPageProps> = ({
                   {(() => {
                     const activeHighlightsVer = updateState?.status === 'available' ? updateState.latest_version : currentVersion;
                     const previousReleases = changelogsData.changelog?.filter((entry: any) => {
-                      return compareSemVer(entry.version, activeHighlightsVer) < 0;
+                      return compareSemVer(entry.version, activeHighlightsVer) <= 0;
                     }) || [];
 
                     if (previousReleases.length === 0) {
