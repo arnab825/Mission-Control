@@ -133,8 +133,8 @@ static void WINAPI EventRecordCallback(PEVENT_RECORD pEventRecord)
     bool isPresent = false;
 
     if (IsEqualGUID(pEventRecord->EventHeader.ProviderId, DXGI_PROVIDER_GUID)) {
-        // DXGI Present_Start Event ID
-        if (eventId == 42) isPresent = true;
+        // DXGI Present_Start Event IDs (includes Multiplane Overlay etc.)
+        if (eventId == 42 || eventId == 46 || eventId == 73 || eventId == 78) isPresent = true;
     } else if (IsEqualGUID(pEventRecord->EventHeader.ProviderId, D3D9_PROVIDER_GUID)) {
         // D3D9 Present Event ID
         if (eventId == 1) isPresent = true;

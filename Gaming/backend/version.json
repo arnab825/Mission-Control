@@ -1,8 +1,16 @@
 {
-    "version":  "1.6.3",
+    "version":  "1.6.4",
     "release_date":  "2026-07-16",
     "update_check_url":  "https://raw.githubusercontent.com/arnab825/Mission-Control/main/Gaming/backend/version.json",
     "changelog":  [
+                      {
+                          "version":  "1.6.4",
+                          "date":  "2026-07-16",
+                          "title":  "Hotfix: Restore MPO events for modern DX12 games",
+                          "highlights":  [
+                                             "Restored DXGI ETW events 46, 73, and 78 to fix N/A FPS readings in modern DX12 games utilizing Multiplane Overlays (MPO)"
+                                         ]
+                      },
                       {
                           "version":  "1.6.3",
                           "date":  "2026-07-16",
