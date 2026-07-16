@@ -2,6 +2,10 @@
 
 This document contains a detailed history of all patches and updates for the AI Gaming Assistant.
 
+### Patch: 2026-07-16 — v1.6.5: Fix packaging of rapidocr_onnxruntime ONNX models and config assets
+
+- Fix packaging of rapidocr_onnxruntime ONNX models and config assets
+
 ### Patch: 2026-07-15 — v1.6.2: Move Optimization Status block to Stability Lab next to Game Mode toggle
 
 - Move Optimization Status block to Stability Lab next to Game Mode toggle
