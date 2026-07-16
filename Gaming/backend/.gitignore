@@ -21,6 +21,4 @@ __pycache__/
 # Pyinstaller packaging artifacts
 build/
 dist/
-*.spec
 logo.ico
-MissionControl.spec
