@@ -125,7 +125,8 @@ $latestYmlLines = @(
   "releaseDate: '$releaseDate'"
 )
 $latestYmlPath = Join-Path $releaseDir 'latest.yml'
-($latestYmlLines -join "`n") | Set-Content $latestYmlPath -Encoding utf8
+$utf8NoBom = New-Object System.Text.UTF8Encoding($false)
+[System.IO.File]::WriteAllText($latestYmlPath, ($latestYmlLines -join "`r`n"), $utf8NoBom)
 
 $githubToken = $env:GITHUB_TOKEN
 if (-not $githubToken) {
