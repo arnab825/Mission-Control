@@ -10,7 +10,8 @@
                           "highlights":  [
                                              "Restored MPO events (IDs 46, 73, 78) to fix N/A FPS readings in modern DX12 games",
                                              "Implemented a 1ms event debounce to completely prevent double-counting of duplicate Present/MPO events",
-                                             "Added NVML fallback to enforced power limit to resolve anomalous 300+W GPU power reporting on laptops and specific cards"
+                                             "Added NVML fallback to enforced power limit to resolve anomalous 300+W GPU power reporting on laptops and specific cards",
+                                             "Changed CPU clock speed formatting in compact HUD from 'G' to 'GHz' to prevent confusion with RAM capacity"
                                          ]
                       },
                       {

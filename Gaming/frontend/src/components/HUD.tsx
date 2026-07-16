@@ -329,7 +329,7 @@ const HUD: React.FC<{ state: TelemetryState | null; sendCommand?: (cmd: string, 
 
                       <div className="flex justify-between items-center py-0.5">
                         <span className="text-[0.7em] font-black text-zinc-500 uppercase">CPU Core</span>
-                        <span className="text-[0.8em] font-bold text-white">{cpuTemp > 0 ? `${cpuTemp}°C` : 'N/A'} {cpuPwr > 0 ? `| ${cpuPwr}W` : ''} {cpuFreq > 0 ? `| ${(cpuFreq / 1000).toFixed(1)}G` : ''}</span>
+                        <span className="text-[0.8em] font-bold text-white">{cpuTemp > 0 ? `${cpuTemp}°C` : 'N/A'} {cpuPwr > 0 ? `| ${cpuPwr}W` : ''} {cpuFreq > 0 ? `| ${(cpuFreq / 1000).toFixed(1)}GHz` : ''}</span>
                       </div>
 
                       <div className="flex justify-between items-center py-0.5">
