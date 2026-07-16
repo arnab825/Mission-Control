@@ -157,9 +157,17 @@ static void WINAPI EventRecordCallback(PEVENT_RECORD pEventRecord)
 
         double dt = now - g_state.last_time;
 
-        // Ignore duplicate events from the same frame (< 1ms debounce, caps at 1000 FPS) or bogus >5s
-        if (dt < 0.001 || dt > 5.0)
+        // Ignore duplicate events from the same frame (< 1ms debounce)
+        if (dt < 0.001)
         {
+            LeaveCriticalSection(&g_state.cs);
+            return;
+        }
+
+        // Ignore bogus intervals (> 5s) but update last_time so we recover on the next frame
+        if (dt > 5.0)
+        {
+            g_state.last_time = now;
             LeaveCriticalSection(&g_state.cs);
             return;
         }

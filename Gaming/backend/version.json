@@ -11,7 +11,8 @@
                                              "Restored MPO events (IDs 46, 73, 78) to fix N/A FPS readings in modern DX12 games",
                                              "Implemented a 1ms event debounce to completely prevent double-counting of duplicate Present/MPO events",
                                              "Added NVML fallback to enforced power limit to resolve anomalous 300+W GPU power reporting on laptops and specific cards",
-                                             "Changed CPU clock speed formatting in compact HUD from 'G' to 'GHz' to prevent confusion with RAM capacity"
+                                             "Changed CPU clock speed formatting in compact HUD from \u0027G\u0027 to \u0027GHz\u0027 to prevent confusion with RAM capacity",
+                                             "Fixed a critical bug where the C++ ETW frame tracker would permanently freeze (causing stuck \u0027Calibrating\u0027 HUD state) after any 5s+ frame stall"
                                          ]
                       },
                       {
