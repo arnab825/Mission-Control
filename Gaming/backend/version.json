@@ -1,8 +1,16 @@
 {
-    "version":  "1.6.5",
+    "version":  "1.6.6",
     "release_date":  "2026-07-16",
     "update_check_url":  "https://raw.githubusercontent.com/arnab825/Mission-Control/main/Gaming/backend/version.json",
     "changelog":  [
+                      {
+                          "version":  "1.6.6",
+                          "date":  "2026-07-16",
+                          "title":  "Hotfix: Improve NVML GPU Power Limit Detection",
+                          "highlights":  [
+                                             "Added fallback to `nvmlDeviceGetEnforcedPowerLimit` when `nvmlDeviceGetPowerManagementLimit` fails, ensuring GPU power readings don't wildly exceed hardware TGP on laptops and specific desktop cards"
+                                         ]
+                      },
                       {
                           "version":  "1.6.5",
                           "date":  "2026-07-16",

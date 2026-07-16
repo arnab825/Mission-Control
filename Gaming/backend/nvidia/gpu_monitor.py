@@ -481,7 +481,11 @@ class GPUMonitor:
                     power = 0.0
 
                 try:
-                    raw_limit = pynvml.nvmlDeviceGetPowerManagementLimit(self._handle)
+                    try:
+                        raw_limit = pynvml.nvmlDeviceGetPowerManagementLimit(self._handle)
+                    except Exception:
+                        raw_limit = pynvml.nvmlDeviceGetEnforcedPowerLimit(self._handle)
+
                     power_limit = raw_limit / 1000.0
                     if power_limit > 1000.0:
                         power_limit = power_limit / 1000.0
@@ -498,7 +502,10 @@ class GPUMonitor:
 
             # Power limit
             try:
-                raw_limit = pynvml.nvmlDeviceGetPowerManagementLimit(self._handle)
+                try:
+                    raw_limit = pynvml.nvmlDeviceGetPowerManagementLimit(self._handle)
+                except Exception:
+                    raw_limit = pynvml.nvmlDeviceGetEnforcedPowerLimit(self._handle)
                 power_limit = raw_limit / 1000.0
                 if power_limit > 1000.0:
                     power_limit = power_limit / 1000.0
