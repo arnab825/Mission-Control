@@ -127,7 +127,7 @@ function fireUpdateToast(version: string) {
     });
     toast.on('click', () => {
       // Bring the main window to focus and open the updater modal
-      if (win && !win.isDestroyed()) {
+      if (win && !win.isDestroyed() && !win.webContents.isDestroyed()) {
         win.show();
         win.focus();
         win.webContents.send('open-updater-modal');
@@ -307,14 +307,16 @@ function createTray() {
         },
         {
           label: 'Check for Updates', icon: iconUpdate, click: () => {
-            if (win && !win.isDestroyed()) {
+            if (win && !win.isDestroyed() && !win.webContents.isDestroyed()) {
               win.show();
               win.focus();
               win.webContents.send('open-updater-modal');
             } else {
               createWindow();
               win?.webContents.once('did-finish-load', () => {
-                win?.webContents.send('open-updater-modal');
+                if (win && !win.isDestroyed() && !win.webContents.isDestroyed()) {
+                  win.webContents.send('open-updater-modal');
+                }
               });
             }
           }
@@ -1169,10 +1171,10 @@ async function createHUDWindow(showOnReady: boolean = false) {
 
   hudWin.on('show', () => {
     isHUDVisible = true;
-    if (win && !win.isDestroyed()) {
+    if (win && !win.isDestroyed() && !win.webContents.isDestroyed()) {
       win.webContents.send('hud-status', true);
     }
-    if (hudWin && !hudWin.isDestroyed()) {
+    if (hudWin && !hudWin.isDestroyed() && !hudWin.webContents.isDestroyed()) {
       hudWin.webContents.send('hud-status', true);
     }
     if (cachedConfig) {
@@ -1186,10 +1188,10 @@ async function createHUDWindow(showOnReady: boolean = false) {
 
   hudWin.on('hide', () => {
     isHUDVisible = false;
-    if (win && !win.isDestroyed()) {
+    if (win && !win.isDestroyed() && !win.webContents.isDestroyed()) {
       win.webContents.send('hud-status', false);
     }
-    if (hudWin && !hudWin.isDestroyed()) {
+    if (hudWin && !hudWin.isDestroyed() && !hudWin.webContents.isDestroyed()) {
       hudWin.webContents.send('hud-status', false);
     }
   });
@@ -1236,7 +1238,7 @@ async function createHUDWindow(showOnReady: boolean = false) {
       clearInterval(hudAnimationInterval);
       hudAnimationInterval = null;
     }
-    if (win && !win.isDestroyed()) {
+    if (win && !win.isDestroyed() && !win.webContents.isDestroyed()) {
       win.webContents.send('hud-status', false);
     }
   });
@@ -1249,7 +1251,7 @@ async function createHUDWindow(showOnReady: boolean = false) {
     moveTimeout = setTimeout(() => {
       if (hudWin && !hudWin.isDestroyed()) {
         const [x, y] = hudWin.getPosition();
-        if (win && !win.isDestroyed()) {
+        if (win && !win.isDestroyed() && !win.webContents.isDestroyed()) {
           win.webContents.send('hud-moved', { x, y });
         }
       }
@@ -1257,7 +1259,7 @@ async function createHUDWindow(showOnReady: boolean = false) {
   });
 
   hudWin.webContents.on('did-finish-load', () => {
-    if (win && !win.isDestroyed()) {
+    if (win && !win.isDestroyed() && !win.webContents.isDestroyed()) {
       win.webContents.send('hud-status', isHUDVisible);
     }
   });
@@ -1617,7 +1619,7 @@ function setupAutoUpdater() {
   // Sent by fireUpdateToast click handler to open the UpdaterModal in React
   ipcMain.removeAllListeners('open-updater-modal');
   ipcMain.on('open-updater-modal', () => {
-    if (win && !win.isDestroyed()) {
+    if (win && !win.isDestroyed() && !win.webContents.isDestroyed()) {
       win.show();
       win.focus();
       win.webContents.send('open-updater-modal');
@@ -1643,10 +1645,10 @@ function setupAutoUpdater() {
 }
 
 function sendToAllWindows(channel: string, data: any) {
-  if (win && !win.isDestroyed()) {
+  if (win && !win.isDestroyed() && !win.webContents.isDestroyed()) {
     win.webContents.send(channel, data);
   }
-  if (hudWin && !hudWin.isDestroyed()) {
+  if (hudWin && !hudWin.isDestroyed() && !hudWin.webContents.isDestroyed()) {
     hudWin.webContents.send(channel, data);
   }
 }
