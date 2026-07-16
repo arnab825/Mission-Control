@@ -1,8 +1,17 @@
 {
-    "version":  "1.6.2",
-    "release_date":  "2026-07-14",
+    "version":  "1.6.3",
+    "release_date":  "2026-07-16",
     "update_check_url":  "https://raw.githubusercontent.com/arnab825/Mission-Control/main/Gaming/backend/version.json",
     "changelog":  [
+                      {
+                          "version":  "1.6.3",
+                          "date":  "2026-07-16",
+                          "title":  "Fix HUD FPS tracking double-counting and remove misleading fallback",
+                          "highlights":  [
+                                             "Fix ETW frame timing double-counting by restricting DXGI events to Present_Start (eventId 42) and D3D9 to Present (eventId 1)",
+                                             "Remove misleading capture_fps fallback in HUD telemetry to prevent showing low capture rates when ETW/DXGI tracking is not active"
+                                         ]
+                      },
                       {
                           "version":  "1.6.2",
                           "date":  "2026-07-15",

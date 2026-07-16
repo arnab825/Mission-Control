@@ -105,7 +105,7 @@ const HUD: React.FC<{ state: TelemetryState | null; sendCommand?: (cmd: string, 
   const { fps, gpuUtil, gpuTemp, vramUsed, vramTot, cpuUtil, memPct, minFps, maxFps, onePctLow, gpuPwr, cpuTemp, cpuPwr, cpuFreq } = useMemo(() => {
     const gpuMetrics = (state?.gpu_metrics || {}) as any;
     return {
-      fps: Math.round(state?.fps || state?.capture_fps || state?.vision_fps || 0),
+      fps: state?.fps ? Math.round(state.fps) : null,
       gpuUtil: Math.round(gpuMetrics.utilization ?? gpuMetrics.gpu_util ?? 0),
       gpuTemp: Math.round(gpuMetrics.temp ?? gpuMetrics.temperature ?? 0),
       gpuPwr: Math.round(gpuMetrics.power_draw ?? gpuMetrics.power_draw_w ?? 0),
@@ -292,7 +292,7 @@ const HUD: React.FC<{ state: TelemetryState | null; sendCommand?: (cmd: string, 
                       <div className="flex justify-between items-center py-0.5">
                         <span className="text-[0.7em] font-black text-zinc-500 uppercase">FPS</span>
                         <div className="flex gap-1 items-center">
-                          <span className="text-[0.8em] font-bold text-white">{state?.is_game_active ? fps : 'N/A'}</span>
+                          <span className="text-[0.8em] font-bold text-white">{state?.is_game_active ? (fps ?? 'N/A') : 'N/A'}</span>
                           {state?.is_game_active && minFps !== null && maxFps !== null && (
                             <span className="text-[0.65em] font-bold text-zinc-400 px-1.5 py-0.5 bg-white/5 rounded" title="Average Min-Max FPS range">
                               [{minFps}-{maxFps}]
