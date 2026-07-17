@@ -1,8 +1,17 @@
 {
-    "version":  "1.6.8",
+    "version":  "1.6.9",
     "release_date":  "2026-07-17",
     "update_check_url":  "https://raw.githubusercontent.com/arnab825/Mission-Control/main/Gaming/backend/version.json",
     "changelog":  [
+                      {
+                          "version":  "1.6.9",
+                          "date":  "2026-07-17",
+                          "title":  "Fix permanently stuck HUD CALIBRATING state",
+                          "highlights":  [
+                                             "Fixed: game_loading flag now clears after 10 s even if the ETW FPS tracker returns no data (Vulkan, OpenGL, or elevated-permission failures)",
+                                             "Changed CALIBRATING condition from 'frame_count<30 OR fps==0' to 'frame_count<30 AND fps==0', preventing infinite stuck state"
+                                         ]
+                      },
                       {
                           "version":  "1.6.8",
                           "date":  "2026-07-17",

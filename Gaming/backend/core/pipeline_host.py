@@ -1271,7 +1271,16 @@ class GamingAssistantPipeline:
                         f_count = self.frame_buffer.frame_count
                         if f_count == 0:
                             f_count = self.frame_buffer.capture_frame_count
-                        self._game_state["game_loading"] = f_count < 30 or avg_fps == 0.0
+                        # Track when the game session first became active so we can impose an
+                        # ETW warmup timeout.  Without this, `avg_fps == 0.0` (e.g. Vulkan /
+                        # OpenGL games, or ETW permission failures) would permanently keep the
+                        # HUD stuck on the CALIBRATING splash screen.
+                        if not getattr(self, "_game_active_since", None):
+                            self._game_active_since = time.time()
+                        etw_warmup_expired = (time.time() - self._game_active_since) > 10.0
+                        # CALIBRATING = still in the early ramp-up window AND no FPS yet.
+                        # After 10 s we clear it unconditionally so the HUD always recovers.
+                        self._game_state["game_loading"] = (f_count < 30 and avg_fps == 0.0) and not etw_warmup_expired
                         self._game_state["min_avg_fps"] = self.frame_buffer.min_avg_fps
                         self._game_state["max_avg_fps"] = self.frame_buffer.max_avg_fps
                         self._game_state["min_fps"] = self.frame_buffer.min_fps
@@ -1281,6 +1290,8 @@ class GamingAssistantPipeline:
                     else:
                         self._game_state["game_fps"] = 0.0
                         self._game_state["game_loading"] = False
+                        # Reset the active-since timer so next game launch gets a fresh warmup window
+                        self._game_active_since = None
                         self._game_state["min_avg_fps"] = 0.0
                         self._game_state["max_avg_fps"] = 0.0
                         self._game_state["min_fps"] = 0.0
