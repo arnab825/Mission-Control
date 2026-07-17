@@ -70,8 +70,7 @@ for d in ['queries', 'vision', 'ai_brain', 'core', 'control',
         datas.append((d, dest))
 
 # Resolve rapidocr_onnxruntime files without importing (prevents build-time DLL load failures on CI runners)
-spec_dir = os.path.dirname(os.path.abspath(__file__))
-site_packages = os.path.join(spec_dir, '.venv', 'Lib', 'site-packages')
+site_packages = os.path.join(SPECPATH, '.venv', 'Lib', 'site-packages')
 
 rapidocr_datas = []
 rapidocr_imports = []

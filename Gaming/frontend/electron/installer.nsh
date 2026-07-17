@@ -25,7 +25,7 @@
   ; Clean up duplicate user-specific shortcuts from previous installations (per-user layout)
   ; Since the installer runs elevated as Admin, SetShellVarContext current resolves to the Admin profile.
   ; We use PowerShell to clean up the shortcuts across all user directories under C:\Users.
-  nsExec::ExecToStack `"$SYSDIR\WindowsPowerShell\v1.0\powershell.exe" -NonInteractive -NoProfile -Command "Get-ChildItem -Path 'C:\Users' -Directory | ForEach-Object { $$lnk1 = Join-Path $$_.FullName 'AppData\Roaming\Microsoft\Windows\Start Menu\Programs\Mission Control.lnk'; if (Test-Path $$lnk1) { Remove-Item $$lnk1 -Force }; $$lnk2 = Join-Path $$_.FullName 'Desktop\Mission Control.lnk'; if (Test-Path $$lnk2) { Remove-Item $$lnk2 -Force } }"`
+  nsExec::ExecToStack `"$SYSDIR\WindowsPowerShell\v1.0\powershell.exe" -NonInteractive -NoProfile -Command "Get-ChildItem -Path 'C:\Users' -Directory | Where-Object { $$_.Name -notin @('Public', 'Default', 'Default User', 'All Users') } | ForEach-Object { $$lnk1 = Join-Path $$_.FullName 'AppData\Roaming\Microsoft\Windows\Start Menu\Programs\Mission Control.lnk'; if (Test-Path $$lnk1) { Remove-Item $$lnk1 -Force }; $$lnk2 = Join-Path $$_.FullName 'Desktop\Mission Control.lnk'; if (Test-Path $$lnk2) { Remove-Item $$lnk2 -Force }; $$uninst = Join-Path $$_.FullName 'AppData\Local\Programs\mission-control\Uninstall Mission Control.exe'; if (Test-Path $$uninst) { Start-Process -FilePath $$uninst -ArgumentList '/S' -Wait -NoNewWindow } }"`
   Pop $0
   Pop $1
 
