@@ -1,8 +1,17 @@
 {
-    "version":  "1.6.10",
+    "version":  "1.6.11",
     "release_date":  "2026-07-17",
     "update_check_url":  "https://raw.githubusercontent.com/arnab825/Mission-Control/main/Gaming/backend/version.json",
     "changelog":  [
+                      {
+                          "version":  "1.6.11",
+                          "date":  "2026-07-17",
+                          "title":  "Fix FPS showing N/A for non-ETW games (e.g. Spider-Man 2)",
+                          "highlights":  [
+                                             "Restored capture-loop FPS as fallback when the ETW hardware tracker returns no data",
+                                             "Affects all games where DXGI Present ETW events are unavailable (fullscreen exclusive, Vulkan, OpenGL, or admin-permission issues)"
+                                         ]
+                      },
                       {
                           "version":  "1.6.10",
                           "date":  "2026-07-17",
@@ -19,7 +28,7 @@
                           "title":  "Fix permanently stuck HUD CALIBRATING state",
                           "highlights":  [
                                              "Fixed: game_loading flag now clears after 10 s even if the ETW FPS tracker returns no data (Vulkan, OpenGL, or elevated-permission failures)",
-                                             "Changed CALIBRATING condition from 'frame_count<30 OR fps==0' to 'frame_count<30 AND fps==0', preventing infinite stuck state"
+                                             "Changed CALIBRATING condition from \u0027frame_count\u003c30 OR fps==0\u0027 to \u0027frame_count\u003c30 AND fps==0\u0027, preventing infinite stuck state"
                                          ]
                       },
                       {
