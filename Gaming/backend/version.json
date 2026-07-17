@@ -1,8 +1,16 @@
 {
-    "version":  "1.7.0",
+    "version":  "1.7.1",
     "release_date":  "2026-07-17",
     "update_check_url":  "https://raw.githubusercontent.com/arnab825/Mission-Control/main/Gaming/backend/version.json",
     "changelog":  [
+                      {
+                          "version":  "1.7.1",
+                          "date":  "2026-07-17",
+                          "title":  "Fix HUD interaction usability and positioning deadlock",
+                          "highlights":  [
+                                             "Fixed UX deadlock where the HUD overlay would immediately hide itself upon Alt-Tabbing out of a game, preventing any mouse interaction, dragging, or closing when unlocked."
+                                         ]
+                      },
                       {
                           "version":  "1.7.0",
                           "date":  "2026-07-17",

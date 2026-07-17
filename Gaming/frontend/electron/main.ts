@@ -1471,13 +1471,14 @@ ipcMain.on('game-focus-changed', (_event, isActive: boolean, isFocused: boolean,
         setTimeout(assertZOrder, 200);
         console.log(`[Electron] Game focused: ${currentGame} — asserted HUD overlay z-order.`);
       } else {
-        if (!isHUDManuallyToggled) {
+        const isLocked = cachedConfig?.overlay?.lock_position === true;
+        if (!isHUDManuallyToggled && isLocked) {
           if (hudWin && !hudWin.isDestroyed()) {
             hudWin.hide();
           }
-          console.log(`[Electron] Game unfocused: ${currentGame} — hiding HUD overlay.`);
+          console.log(`[Electron] Game unfocused: ${currentGame} — hiding locked HUD overlay.`);
         } else {
-          console.log(`[Electron] Game unfocused: ${currentGame} — keeping manually toggled HUD overlay visible.`);
+          console.log(`[Electron] Game unfocused: ${currentGame} — keeping unlocked or manually-toggled HUD overlay visible for interaction.`);
         }
       }
     } else {
