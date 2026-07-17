@@ -75,6 +75,9 @@ class GameKnowledgeBase:
     _PROFILE_REFRESH_INTERVAL = 3600.0
     # LLM call timeout (seconds)
     _LLM_TIMEOUT = 15.0
+    # How long to wait before retrying after a failed fetch (5 minutes).
+    # Prevents an infinite retry storm when the LLM endpoint is unreachable.
+    _FETCH_RETRY_COOLDOWN = 300.0
 
     def __init__(self):
         self._active_game_key: Optional[str] = None
@@ -85,6 +88,8 @@ class GameKnowledgeBase:
         self._profile_generation_lock = threading.Lock()
         # In-flight generation guard
         self._generating: set = set()
+        # Failed fetch cooldown: game_key → timestamp of last failure
+        self._failed_fetches: Dict[str, float] = {}
         # Lazy NIM client
         self._nim_client = None
         self._nim_model: Optional[str] = None
@@ -187,6 +192,8 @@ class GameKnowledgeBase:
         Background thread entry point.
         Generates and caches a DynamicGameProfile for `game_name`.
         Guards against duplicate in-flight calls for the same key.
+        Failed fetches are subject to a cooldown so the pipeline cannot
+        cause an infinite retry storm on a dead/unreachable LLM endpoint.
         """
         game_key = self._make_game_key(game_name)
 
@@ -196,8 +203,13 @@ class GameKnowledgeBase:
             existing = self._dynamic_profiles.get(game_key)
             if existing and (time.time() - existing.generated_at) < self._PROFILE_REFRESH_INTERVAL:
                 return  # profile is still fresh
+            # Respect the failed-fetch cooldown
+            last_fail = self._failed_fetches.get(game_key, 0.0)
+            if (time.time() - last_fail) < self._FETCH_RETRY_COOLDOWN:
+                return  # still in cooldown after a previous failure
             self._generating.add(game_key)
 
+        fetch_succeeded = False
         try:
             self._inject_nim_client(config)
             data = self._fetch_keybinds_via_llm(game_name)
@@ -216,12 +228,15 @@ class GameKnowledgeBase:
                     if old:
                         profile.user_overrides = old.user_overrides
                     self._dynamic_profiles[game_key] = profile
+                    # Clear any stale failure record on success
+                    self._failed_fetches.pop(game_key, None)
                 total = sum(
                     len(v) for v in profile.keybinds.values() if isinstance(v, dict)
                 )
                 logger.info(
                     f"[GameKB] Profile stored for '{game_name}' ({total} keybinds)."
                 )
+                fetch_succeeded = True
             else:
                 logger.warning(
                     f"[GameKB] No LLM profile returned for '{game_name}'."
@@ -231,6 +246,13 @@ class GameKnowledgeBase:
         finally:
             with self._profile_generation_lock:
                 self._generating.discard(game_key)
+                if not fetch_succeeded:
+                    # Record failure timestamp so we respect the retry cooldown
+                    self._failed_fetches[game_key] = time.time()
+                    logger.debug(
+                        f"[GameKB] Fetch failed for '{game_name}' — "
+                        f"will retry in {self._FETCH_RETRY_COOLDOWN:.0f}s."
+                    )
 
     # ── Profile update API (called by ConfigWatcher and user-override layer) ─
 
@@ -344,12 +366,18 @@ class GameKnowledgeBase:
             or (time.time() - existing.generated_at) >= self._PROFILE_REFRESH_INTERVAL
         )
         if needs_refresh and config:
-            threading.Thread(
-                target=self._generate_game_profile_bg,
-                args=(self._active_game_name, config),
-                daemon=True,
-                name=f"GameKB-{resolved_key}",
-            ).start()
+            # Don't spawn a thread if a previous attempt failed and the cooldown
+            # hasn't expired yet — this prevents a retry storm at pipeline rate.
+            last_fail = self._failed_fetches.get(resolved_key, 0.0)
+            on_cooldown = (time.time() - last_fail) < self._FETCH_RETRY_COOLDOWN
+            in_flight = resolved_key in self._generating
+            if not on_cooldown and not in_flight:
+                threading.Thread(
+                    target=self._generate_game_profile_bg,
+                    args=(self._active_game_name, config),
+                    daemon=True,
+                    name=f"GameKB-{resolved_key}",
+                ).start()
 
         return resolved_key
 

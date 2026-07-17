@@ -1,8 +1,18 @@
 {
-    "version":  "1.6.9",
+    "version":  "1.6.10",
     "release_date":  "2026-07-17",
     "update_check_url":  "https://raw.githubusercontent.com/arnab825/Mission-Control/main/Gaming/backend/version.json",
     "changelog":  [
+                      {
+                          "version":  "1.6.10",
+                          "date":  "2026-07-17",
+                          "title":  "Fix GameKB infinite retry storm on LLM 404",
+                          "highlights":  [
+                                             "GameKB keybind fetch failures (404, timeout, etc.) now enforce a 5-minute per-game cooldown before retrying",
+                                             "Cooldown check added at both thread-spawn site (identify_game) and background worker to guarantee no storm",
+                                             "Successful fetches clear the failure record so retries resume normally after an endpoint recovers"
+                                         ]
+                      },
                       {
                           "version":  "1.6.9",
                           "date":  "2026-07-17",
