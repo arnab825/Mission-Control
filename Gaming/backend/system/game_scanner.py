@@ -431,6 +431,31 @@ class GameScanner:
                 if any(j in name_lower for j in self.junk_keywords):
                     continue
             
+            # If the platform is "Local", try to detect if it actually belongs to a launcher based on its path
+            if g.get("platform") == "Local":
+                path_to_check = str(g.get("install_path") or g.get("exe_path") or "").lower()
+                if path_to_check:
+                    if "steamapps" in path_to_check or "steamlibrary" in path_to_check or "program files\\steam" in path_to_check or "program files (x86)\\steam" in path_to_check:
+                        g["platform"] = "Steam"
+                    elif "epic games" in path_to_check or "program files\\epic games" in path_to_check or "program files (x86)\\epic games" in path_to_check:
+                        g["platform"] = "Epic Games"
+                    elif "ubisoft" in path_to_check:
+                        g["platform"] = "Ubisoft Connect"
+                    elif "battle.net" in path_to_check or "battlenet" in path_to_check:
+                        g["platform"] = "Battle.net"
+                    elif "ea desktop" in path_to_check or "origin" in path_to_check:
+                        g["platform"] = "EA Desktop"
+                    elif "rockstar games" in path_to_check:
+                        g["platform"] = "Rockstar Games"
+                    elif "amazon games" in path_to_check:
+                        g["platform"] = "Amazon Games"
+                    elif "gog games" in path_to_check:
+                        g["platform"] = "GOG Galaxy"
+                    elif "itch" in path_to_check:
+                        g["platform"] = "Itch.io"
+                    elif "humble games" in path_to_check:
+                        g["platform"] = "Humble Bundle"
+
             # Feature Detection - do this early for Local entries
             if "install_path" in g and g["install_path"]:
                 g["features"] = self._detect_features(g["install_path"])
@@ -488,6 +513,14 @@ class GameScanner:
             else:
                 # Prefer launcher-derived entries over Local duplicates
                 existing = unique_games[clean_name]
+                
+                # Merge missing metadata keys between duplicate entries (preserve paths, banners, icons)
+                for key in ["exe_path", "install_path", "icon", "local_banner"]:
+                    if not existing.get(key) and g.get(key):
+                        existing[key] = g[key]
+                    elif not g.get(key) and existing.get(key):
+                        g[key] = existing[key]
+
                 platforms_to_prefer = (
                     "Steam", "Epic Games", "GOG Galaxy", 
                     "Battle.net", "Ubisoft Connect", "Riot Games",

@@ -2,6 +2,12 @@
 
 This document contains a detailed history of all patches and updates for the AI Gaming Assistant.
 
+### Patch: 2026-07-17 — v1.6.7: Fix default version fallback and newly downloaded launcher games classification
+
+- Copy app-update.yml to packaged resources so native updates can resolve successfully
+- Automatically map newly scanned Local games to their correct platforms (Steam, Epic, EA Desktop, etc.) based on install/exe paths
+- Merge duplicate scanned game metadata keys to preserve direct paths alongside platform mappings
+
 ### Patch: 2026-07-17 — v1.6.6: Fix latest.yml UTF-8 BOM encoding for electron-updater support
 
 - Fix latest.yml UTF-8 BOM encoding for electron-updater support

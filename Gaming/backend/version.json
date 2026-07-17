@@ -1,8 +1,18 @@
 {
-  "version": "1.6.6",
-  "release_date": "2026-07-16",
+  "version": "1.6.7",
+  "release_date": "2026-07-17",
   "update_check_url": "https://raw.githubusercontent.com/arnab825/Mission-Control/main/Gaming/backend/version.json",
   "changelog": [
+    {
+      "version": "1.6.7",
+      "date": "2026-07-17",
+      "title": "Fix default version fallback and newly downloaded launcher games classification",
+      "highlights": [
+        "Copy app-update.yml to packaged resources so native updates can resolve successfully",
+        "Automatically map newly scanned Local games to their correct platforms (Steam, Epic, EA Desktop, etc.) based on install/exe paths",
+        "Merge duplicate scanned game metadata keys to preserve direct paths alongside platform mappings"
+      ]
+    },
     {
       "version": "1.6.6",
       "date": "2026-07-17",

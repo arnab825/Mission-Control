@@ -2,7 +2,7 @@
     "name":  "mission-control",
     "productName":  "Mission Control",
     "private":  true,
-    "version":  "1.6.6",
+    "version":  "1.6.7",
     "description":  "Mission Control desktop app for gamers.",
     "author":  "Arnab Contributors \u003csupport@missioncontrol.app\u003e",
     "type":  "module",
@@ -99,6 +99,10 @@
                                          {
                                              "from":  "../backend/dist/MissionControl",
                                              "to":  "MissionControl"
+                                         },
+                                         {
+                                             "from":  "app-update.yml",
+                                             "to":  "app-update.yml"
                                          }
                                      ],
                   "win":  {
