@@ -1,505 +1,513 @@
 {
-    "version": "1.7.1",
-    "release_date": "2026-07-17",
-    "update_check_url": "https://raw.githubusercontent.com/arnab825/Mission-Control/main/Gaming/backend/version.json",
-    "changelog": [
-        {
-            "version": "1.7.1",
-            "date": "2026-07-17",
-            "title": "Fix HUD interaction usability and positioning deadlock",
-            "highlights": [
-                "Fixed UX deadlock where the HUD overlay would immediately hide itself upon Alt-Tabbing out of a game, preventing any mouse interaction, dragging, or closing when unlocked."
-            ]
-        },
-        {
-            "version": "1.7.0",
-            "date": "2026-07-17",
-            "title": "Stability Update: HUD Calibration, FPS Fallback, and API Reliability",
-            "highlights": [
-                "Fixed permanently stuck HUD CALIBRATING state by changing the flag condition and introducing a 10s timeout.",
-                "Fixed FPS showing N/A in fullscreen and Vulkan/OpenGL games (e.g. Spider-Man 2) by fallback to capture-loop FPS.",
-                "Fixed GameKB infinite retry storm on LLM connection errors by enforcing a 5-minute per-game cooldown.",
-                "Fixed installer shortcut removal and ensured silent cleanup of legacy per-user scope installations."
-            ]
-        },
-        {
-            "version": "1.6.11",
-            "date": "2026-07-17",
-            "title": "Fix FPS showing N/A for non-ETW games (e.g. Spider-Man 2)",
-            "highlights": [
-                "Restored capture-loop FPS as fallback when the ETW hardware tracker returns no data",
-                "Affects all games where DXGI Present ETW events are unavailable (fullscreen exclusive, Vulkan, OpenGL, or admin-permission issues)"
-            ]
-        },
-        {
-            "version": "1.6.10",
-            "date": "2026-07-17",
-            "title": "Fix GameKB infinite retry storm on LLM 404",
-            "highlights": [
-                "GameKB keybind fetch failures (404, timeout, etc.) now enforce a 5-minute per-game cooldown before retrying",
-                "Cooldown check added at both thread-spawn site (identify_game) and background worker to guarantee no storm",
-                "Successful fetches clear the failure record so retries resume normally after an endpoint recovers"
-            ]
-        },
-        {
-            "version": "1.6.9",
-            "date": "2026-07-17",
-            "title": "Fix permanently stuck HUD CALIBRATING state",
-            "highlights": [
-                "Fixed: game_loading flag now clears after 10 s even if the ETW FPS tracker returns no data (Vulkan, OpenGL, or elevated-permission failures)",
-                "Changed CALIBRATING condition from \u0027frame_count\u003c30 OR fps==0\u0027 to \u0027frame_count\u003c30 AND fps==0\u0027, preventing infinite stuck state"
-            ]
-        },
-        {
-            "version": "1.6.8",
-            "date": "2026-07-17",
-            "title": "Fix missing shortcuts and uninstall legacy versions during upgrade",
-            "highlights": [
-                "Protect machine-wide desktop shortcuts from being deleted during cleanup",
-                "Automatically and silently uninstall legacy per-user installations during per-machine upgrades"
-            ]
-        },
-        {
-            "version": "1.6.7",
-            "date": "2026-07-17",
-            "title": "Fix default version fallback and newly downloaded launcher games classification",
-            "highlights": [
-                "Copy app-update.yml to packaged resources so native updates can resolve successfully",
-                "Automatically map newly scanned Local games to their correct platforms (Steam, Epic, EA Desktop, etc.) based on install/exe paths",
-                "Merge duplicate scanned game metadata keys to preserve direct paths alongside platform mappings"
-            ]
-        },
-        {
-            "version": "1.6.6",
-            "date": "2026-07-17",
-            "title": "Fix latest.yml UTF-8 BOM encoding for electron-updater support",
-            "highlights": [
-                "Fix latest.yml UTF-8 BOM encoding for electron-updater support"
-            ]
-        },
-        {
-            "version": "1.6.5",
-            "date": "2026-07-16",
-            "title": "Fix packaging of rapidocr_onnxruntime ONNX models and config assets",
-            "highlights": [
-                "Fix packaging of rapidocr_onnxruntime ONNX models and config assets"
-            ]
-        },
-        {
-            "version": "1.6.4",
-            "date": "2026-07-16",
-            "title": "Hotfix: HUD FPS tracking and GPU power draw improvements",
-            "highlights": [
-                "Restored MPO events (IDs 46, 73, 78) to fix N/A FPS readings in modern DX12 games",
-                "Implemented a 1ms event debounce to completely prevent double-counting of duplicate Present/MPO events",
-                "Added NVML fallback to enforced power limit to resolve anomalous 300+W GPU power reporting on laptops and specific cards",
-                "Changed CPU clock speed formatting in compact HUD from \u0027G\u0027 to \u0027GHz\u0027 to prevent confusion with RAM capacity",
-                "Fixed a critical bug where the C++ ETW frame tracker would permanently freeze (causing stuck \u0027Calibrating\u0027 HUD state) after any 5s+ frame stall"
-            ]
-        },
-        {
-            "version": "1.6.3",
-            "date": "2026-07-16",
-            "title": "Fix HUD FPS tracking double-counting and remove misleading fallback",
-            "highlights": [
-                "Fix ETW frame timing double-counting by restricting DXGI events to Present_Start (eventId 42) and D3D9 to Present (eventId 1)",
-                "Remove misleading capture_fps fallback in HUD telemetry to prevent showing low capture rates when ETW/DXGI tracking is not active"
-            ]
-        },
-        {
-            "version": "1.6.2",
-            "date": "2026-07-15",
-            "title": "Move Optimization Status block to Stability Lab next to Game Mode toggle",
-            "highlights": [
-                "Move Optimization Status block to Stability Lab next to Game Mode toggle"
-            ]
-        },
-        {
-            "version": "1.6.1",
-            "date": "2026-07-15",
-            "title": "Fix NSIS compile escape syntax in installer.nsh",
-            "highlights": [
-                "Fix NSIS compile escape syntax in installer.nsh"
-            ]
-        },
-        {
-            "version": "1.6.0",
-            "date": "2026-07-15",
-            "title": "Fix duplicate start menu shortcuts and update overlay blocking",
-            "highlights": [
-                "Fix duplicate start menu shortcuts and update overlay blocking"
-            ]
-        },
-        {
-            "version": "1.5.9",
-            "date": "2026-07-15",
-            "title": "Fixed the USE DESKTOP UPGRADE ",
-            "highlights": [
-                "Fixed the USE DESKTOP UPGRADE "
-            ]
-        },
-        {
-            "version": "1.5.8",
-            "date": "2026-07-15",
-            "title": "Fixed the Frozen Update. ",
-            "highlights": [
-                "Fixed the Frozen Update. "
-            ]
-        },
-        {
-            "version": "1.5.7",
-            "date": "2026-07-15",
-            "title": "Fixed the Frozen Update and making soe issue. ",
-            "highlights": [
-                "Fixed the Frozen Update and making soe issue. "
-            ]
-        },
-        {
-            "version": "1.5.6",
-            "date": "2026-07-15",
-            "title": "Fixed the OCR",
-            "highlights": [
-                "Fixed the OCR"
-            ]
-        },
-        {
-            "version": "1.5.5",
-            "date": "2026-07-15",
-            "title": "Fix OCR Reader, TTS Thread stability, and Update Page UI",
-            "highlights": [
-                "Fix OCR pre-warming error by calling _ensure_rapidocr_reader",
-                "Update settings, documentation, and requirements to transition fully to RapidOCR",
-                "Fix TTS thread crashes in voice_manager by validating SAPI5 COM dispatch at startup and implementing config setters in PyTTSX3 fallback",
-                "Fix missing release highlights when up-to-date and system tray update check behavior when minimized"
-            ]
-        },
-        {
-            "version": "1.5.4",
-            "date": "2026-07-15",
-            "title": "DirectX 9 / Fullscreen FPS Fix and Publisher GUI Enhancements",
-            "highlights": [
-                "Extended ETW C++ engine with D3D9 and DxgKrnl providers to enable FPS tracking in DX9 and Exclusive Fullscreen games.",
-                "Redesigned Publisher GUI with drag-and-drop image uploads, dynamic version previews, and document-aware auto-generation.",
-                "Added MSI and Portable ZIP installer download links to the website landing page."
-            ]
-        },
-        {
-            "version": "1.5.3",
-            "date": "2026-07-15",
-            "title": "Align C# telemetry search paths with PyInstaller internal directories",
-            "highlights": [
-                "Align C# telemetry search paths with PyInstaller internal directories"
-            ]
-        },
-        {
-            "version": "1.5.2",
-            "date": "2026-07-15",
-            "title": "Remove terminal logs from updates page",
-            "highlights": [
-                "Remove terminal logs from updates page"
-            ]
-        },
-        {
-            "version": "1.5.1",
-            "date": "2026-07-15",
-            "title": "Fix WARN log level filtering on Dashboard",
-            "highlights": [
-                "Fix WARN log level filtering on Dashboard"
-            ]
-        },
-        {
-            "version": "1.5.0",
-            "date": "2026-07-15",
-            "title": "Redesign update system to resolve duplication and check installer availability",
-            "highlights": [
-                "Redesign update system to resolve duplication and check installer availability"
-            ]
-        },
-        {
-            "version": "1.4.9",
-            "date": "2026-07-15",
-            "title": "Upgrade installer to standard interactive wizard and fix telemetry dependencies",
-            "highlights": [
-                "Upgrade installer to standard interactive wizard and fix telemetry dependencies"
-            ]
-        },
-        {
-            "version": "1.4.8",
-            "date": "2026-07-15",
-            "title": "Add CPU fallback to EasyOCR initialization on CUDA error",
-            "highlights": [
-                "Add CPU fallback to EasyOCR initialization on CUDA error"
-            ]
-        },
-        {
-            "version": "1.4.7",
-            "date": "2026-07-14",
-            "title": "Disable GPU sandbox globally on Windows to fix black screen",
-            "highlights": [
-                "Disable GPU sandbox globally on Windows to fix black screen"
-            ]
-        },
-        {
-            "version": "1.4.6",
-            "date": "2026-07-14",
-            "title": "Fix black screen issue and duplicate Start Menu shortcuts",
-            "highlights": [
-                "Enabled GPU acceleration for transparent windows and Mica effects by replacing the global hardware acceleration disable with a selective GPU sandbox bypass on elevated instances.",
-                "Added automatic cleanup of duplicate user-level Start Menu and Desktop shortcuts left from previous installations during the installer run."
-            ]
-        },
-        {
-            "version": "1.4.5",
-            "date": "2026-07-14",
-            "title": "Resolve MEM0_API_KEY resolution and allow copy of specific terminal log lines",
-            "highlights": [
-                "Added fallback to load .env in memory.py, fixed config_loader tests, and added hover copy buttons to individual dashboard log lines."
-            ]
-        },
-        {
-            "version": "1.4.3",
-            "date": "2026-07-14",
-            "title": "Restore CPU power estimation fallback",
-            "highlights": [
-                "Restored CPU power estimation math when hardware sensor readings are unavailable so that CPU wattage shows up on the HUD."
-            ]
-        },
-        {
-            "version": "1.4.2",
-            "date": "2026-07-14",
-            "title": "Alternate Switch Account between Google and Discord",
-            "highlights": [
-                "Configured Switch Account in Settings to sign out and auto-login with Google/Discord depending on the current provider."
-            ]
-        },
-        {
-            "version": "1.4.1",
-            "date": "2026-07-14",
-            "title": "Fix HUD scan and remove Stealth Mode",
-            "highlights": [
-                "Prevented HUD window from triggering get_cached_games to avoid backend auto-scan.",
-                "Removed Stealth Mode tray menu options, window protection logic, and settings panel."
-            ]
-        },
-        {
-            "version": "1.4.0",
-            "date": "2026-07-14",
-            "title": "Responsive UI, tray events, env var loading, and Electron memory optimization",
-            "highlights": [
-                "Enforced 256MB V8 heap limit \u0026 exposed GC to optimize Electron memory usage on 16GB RAM setups.",
-                "Added single-click system tray handler to toggle app visibility.",
-                "Ensured env variables override system environment to fix NVIDIA_API_KEY loading.",
-                "Removed scaling clamp from frontend CSS to fix zoomed-out responsive scaling.",
-                "Renamed \u0027Ack Engine\u0027 to \u0027Acknowledge\u0027 in Updater UI."
-            ]
-        },
-        {
-            "version": "1.3.9",
-            "date": "2026-07-13",
-            "title": "Fix FPS disparity with OBS capture and improve ETW precision",
-            "highlights": [
-                "Fixed FPS reporting disparity when OBS is recording by capturing all DXGI Present event APIs (42, 46, 73, 78)",
-                "Resolved ETW state corruption by ignoring bogus microscopic intervals without updating the last frame timestamp"
-            ]
-        },
-        {
-            "version": "1.3.8",
-            "date": "2026-07-13",
-            "title": "Release v1.3.8: Fix CPU package temperature and remove fake power math",
-            "highlights": [
-                "Fixed CPU package temperature readings by ignoring misleading Core Max and per-core temp sensors, enabling reliable WMI package fallback",
-                "Removed fake CPU power estimation math to prevent misleading HUD telemetry when hardware readings are unavailable"
-            ]
-        },
-        {
-            "version": "1.3.7",
-            "date": "2026-07-13",
-            "title": "Release v1.3.7: Fix frontend compilation and include missed UI updates",
-            "highlights": [
-                "Release v1.3.7: Fix frontend compilation and include missed UI updates"
-            ]
-        },
-        {
-            "version": "1.3.6",
-            "date": "2026-07-13",
-            "title": "Release v1.3.6: Fixed Updater caching, file locks, and applied all UI and GPU power fixes",
-            "highlights": [
-                "Fixed update caching by adding Cache-Control headers to local server and clearing Chromium session cache on startup",
-                "Synchronized backend process tree termination on exit to prevent installer file lock conflicts",
-                "Fixed GPU power draw reporting by capping it at TGP limit",
-                "Implemented continuous responsive DPI scaling (1080p, 1200p, 1440p, 1600p, 4K) using viewport-based clamp",
-                "Added immediate account switching button in Settings and removed Microsoft Auth",
-                "Aligned Stealth Mode and updated Check For Updates icon in System Tray",
-                "Bypassed game library rescan when opening HUD overlay"
-            ]
-        },
-        {
-            "version": "1.3.5",
-            "date": "2026-07-13",
-            "title": "Release v1.3.5: Final Authentication, Tray Icon, DPI Scaling, and GPU Power Fixes",
-            "highlights": [
-                "Fixed GPU power draw reporting by capping it at TGP limit",
-                "Implemented continuous responsive DPI scaling (1080p, 1200p, 1440p, 1600p, 4K) using viewport-based clamp",
-                "Added immediate account switching button in Settings and removed Microsoft Auth",
-                "Aligned Stealth Mode and updated Check For Updates icon in System Tray",
-                "Bypassed game library rescan when opening HUD overlay",
-                "Fixed updater modal hang by auto-reloading UI on successful update installation",
-                "Fixed CPU clock speed dynamic PDH query thread-safety"
-            ]
-        },
-        {
-            "version": "1.3.4",
-            "date": "2026-07-12",
-            "title": "Upgraded some minor changes",
-            "highlights": [
-                "Upgraded some minor changes"
-            ]
-        },
-        {
-            "version": "1.3.3",
-            "date": "2026-07-12",
-            "title": "Authentication updates, tray alignment, DPI scaling, and GPU power fixes",
-            "highlights": [
-                "Fixed GPU power draw reporting by capping it at TGP limit",
-                "Implemented continuous responsive DPI scaling (1080p, 1200p, 1440p, 1600p, 4K) using viewport-based clamp",
-                "Added immediate account switching button in Settings and removed Microsoft Auth",
-                "Aligned Stealth Mode and updated Check For Updates icon in System Tray",
-                "Bypassed game library rescan when opening HUD overlay",
-                "Fixed updater modal hang by auto-reloading UI on successful update installation",
-                "Fixed CPU clock speed dynamic PDH query thread-safety"
-            ]
-        },
-        {
-            "version": "1.3.0",
-            "date": "2026-07-12",
-            "title": "Fixed Microsoft Auth, CPU clock speed, and Release notes UI",
-            "highlights": [
-                "Fixed Microsoft Auth, CPU clock speed, and Release notes UI"
-            ]
-        },
-        {
-            "version": "1.2.9",
-            "date": "2026-07-12",
-            "title": "Optimized Electron memory footprint for 16GB RAM systems \u0026 Fixed Google Auth Fallback",
-            "highlights": [
-                "Optimized Electron memory footprint for 16GB RAM systems \u0026 Fixed Google Auth Fallback"
-            ]
-        },
-        {
-            "version": "1.2.8",
-            "date": "2026-07-12",
-            "title": "Fixed Google sign-in username display issue",
-            "highlights": [
-                "Fixed Google sign-in username display issue"
-            ]
-        },
-        {
-            "version": "1.2.7",
-            "date": "2026-07-11",
-            "title": "Fixed HUD focus loss and games database path in window detector",
-            "highlights": [
-                "Fixed HUD focus loss and games database path in window detector"
-            ]
-        },
-        {
-            "version": "1.2.4",
-            "date": "2026-07-10",
-            "title": "Avatar fix, provider-switch scan reset, uninstall registry speedup",
-            "highlights": [
-                "Avatar now loads from Google/Discord CDN with onError initials fallback",
-                "Scan overlay no longer sticks when switching OAuth provider (Discord to Google)",
-                "Uninstall registry scan phase cut from 30s+ to under 1s by removing disk walks"
-            ]
-        },
-        {
-            "version": "1.1.0",
-            "date": "2026-07-10",
-            "title": "Discord auth, sign-out fix, Ubisoft Connect detection",
-            "highlights": [
-                "Discord OAuth display name now shows Discord tag and provider label in sidebar",
-                "Fixed Library page getting stuck in scan state after signing out",
-                "Fixed Ubisoft Connect launcher not appearing after fresh install",
-                "Fixed GOG Galaxy and EA Desktop deduplication normalization collision"
-            ]
-        },
-        {
-            "version": "1.1.0",
-            "date": "2026-07-10",
-            "title": "OAuth Display, Sign-Out Scan Reset, and Ubisoft Connect Fixes",
-            "highlights": [
-                "Resolved Discord OAuth display issues by cascading user name lookup",
-                "Fixed Library scan UI getting stuck in scanning state upon user sign-out",
-                "Fixed duplicate detection normalization to prevent Ubisoft Connect launcher from being dropped"
-            ]
-        },
-        {
-            "version": "1.0.9",
-            "date": "2026-07-10",
-            "title": "Fix SQL queries and NIM timeouts",
-            "highlights": [
-                "Included queries, prompts, and RAG data in PyInstaller package",
-                "Added client-side request timeouts to prevent Gateway Timeout hangs",
-                "Synchronized NIM calls with threading locks to prevent circuit breaker race conditions"
-            ]
-        },
-        {
-            "version": "1.0.8",
-            "date": "2026-07-10",
-            "title": "Authentication, Update UI, and CPU Thermal Fixes",
-            "highlights": [
-                "Pinned local UI server to fixed port 43221 to ensure Clerk\u0027s authentication session persists across restarts.",
-                "Removed blocking native OS dialogs from the updater flow so that download progress is tracked live in the Updater Modal.",
-                "Switched CPU temperature smoothing to a symmetric EMA to eliminate stuck-at-high readings, and restored Dashboard log rendering."
-            ]
-        },
-        {
-            "version": "1.0.7",
-            "date": "2026-07-09",
-            "title": "Mem0 Package Fix",
-            "highlights": [
-                "Bundle mem0 config submodules dynamically in PyInstaller specs."
-            ]
-        },
-        {
-            "version": "1.0.3",
-            "date": "2026-07-09",
-            "title": "HUD Crash Fix",
-            "highlights": [
-                "Fixed TypeError: Object has been destroyed in HUD window show/hide handlers."
-            ]
-        },
-        {
-            "version": "1.0.2",
-            "date": "2026-07-09",
-            "title": "Production Telemetry \u0026 Core Fixes",
-            "highlights": [
-                "Fixed production telemetry by bundling LibreHardwareMonitor DLLs into PyInstaller build.",
-                "Fixed CPU temperature reporting by correcting WMI parsing alignment (preventing CPU frequency from being misread as temperature) and removing arbitrary TZ01/TZ02 zone exclusions.",
-                "Removed artificial CPU temperature estimation fallback to ensure only real hardware readings are reported.",
-                "Migrated website persistence from Sanity to MongoDB/Mongoose.",
-                "Fixed Mermaid diagram rendering issues in blog views."
-            ]
-        },
-        {
-            "version": "1.0.1",
-            "date": "2026-07-09",
-            "title": "Database Migration and App Cleanup",
-            "highlights": [
-                "Migrated backend database",
-                "Fixed mermaid rendering",
-                "Cleaned up patch notes"
-            ]
-        },
-        {
-            "version": "1.0.0",
-            "date": "2026-07-06",
-            "title": "Woodpecker CI/CD Integration",
-            "highlights": [
-                "Migrated CI/CD to Woodpecker CI",
-                "Added run_local.ps1 script",
-                "Fixed UTF-8 BOM issue in package.json",
-                "Fixed NameError: name \u0027logger\u0027 is not defined in updater_bridge.py"
-            ]
-        }
-    ]
+  "version": "1.7.2",
+  "release_date": "2026-07-17",
+  "update_check_url": "https://raw.githubusercontent.com/arnab825/Mission-Control/main/Gaming/backend/version.json",
+  "changelog": [
+    {
+      "version": "1.7.2",
+      "date": "2026-07-17",
+      "title": "Fix Misleading FPS Telemetry",
+      "highlights": [
+        "Removed capture_fps fallback in HUD telemetry to prevent showing low capture loop rates as game FPS when ETW tracking is unavailable."
+      ]
+    },
+    {
+      "version": "1.7.1",
+      "date": "2026-07-17",
+      "title": "Fix HUD interaction usability and positioning deadlock",
+      "highlights": [
+        "Fixed UX deadlock where the HUD overlay would immediately hide itself upon Alt-Tabbing out of a game, preventing any mouse interaction, dragging, or closing when unlocked."
+      ]
+    },
+    {
+      "version": "1.7.0",
+      "date": "2026-07-17",
+      "title": "Stability Update: HUD Calibration, FPS Fallback, and API Reliability",
+      "highlights": [
+        "Fixed permanently stuck HUD CALIBRATING state by changing the flag condition and introducing a 10s timeout.",
+        "Fixed FPS showing N/A in fullscreen and Vulkan/OpenGL games (e.g. Spider-Man 2) by fallback to capture-loop FPS.",
+        "Fixed GameKB infinite retry storm on LLM connection errors by enforcing a 5-minute per-game cooldown.",
+        "Fixed installer shortcut removal and ensured silent cleanup of legacy per-user scope installations."
+      ]
+    },
+    {
+      "version": "1.6.11",
+      "date": "2026-07-17",
+      "title": "Fix FPS showing N/A for non-ETW games (e.g. Spider-Man 2)",
+      "highlights": [
+        "Restored capture-loop FPS as fallback when the ETW hardware tracker returns no data",
+        "Affects all games where DXGI Present ETW events are unavailable (fullscreen exclusive, Vulkan, OpenGL, or admin-permission issues)"
+      ]
+    },
+    {
+      "version": "1.6.10",
+      "date": "2026-07-17",
+      "title": "Fix GameKB infinite retry storm on LLM 404",
+      "highlights": [
+        "GameKB keybind fetch failures (404, timeout, etc.) now enforce a 5-minute per-game cooldown before retrying",
+        "Cooldown check added at both thread-spawn site (identify_game) and background worker to guarantee no storm",
+        "Successful fetches clear the failure record so retries resume normally after an endpoint recovers"
+      ]
+    },
+    {
+      "version": "1.6.9",
+      "date": "2026-07-17",
+      "title": "Fix permanently stuck HUD CALIBRATING state",
+      "highlights": [
+        "Fixed: game_loading flag now clears after 10 s even if the ETW FPS tracker returns no data (Vulkan, OpenGL, or elevated-permission failures)",
+        "Changed CALIBRATING condition from 'frame_count<30 OR fps==0' to 'frame_count<30 AND fps==0', preventing infinite stuck state"
+      ]
+    },
+    {
+      "version": "1.6.8",
+      "date": "2026-07-17",
+      "title": "Fix missing shortcuts and uninstall legacy versions during upgrade",
+      "highlights": [
+        "Protect machine-wide desktop shortcuts from being deleted during cleanup",
+        "Automatically and silently uninstall legacy per-user installations during per-machine upgrades"
+      ]
+    },
+    {
+      "version": "1.6.7",
+      "date": "2026-07-17",
+      "title": "Fix default version fallback and newly downloaded launcher games classification",
+      "highlights": [
+        "Copy app-update.yml to packaged resources so native updates can resolve successfully",
+        "Automatically map newly scanned Local games to their correct platforms (Steam, Epic, EA Desktop, etc.) based on install/exe paths",
+        "Merge duplicate scanned game metadata keys to preserve direct paths alongside platform mappings"
+      ]
+    },
+    {
+      "version": "1.6.6",
+      "date": "2026-07-17",
+      "title": "Fix latest.yml UTF-8 BOM encoding for electron-updater support",
+      "highlights": [
+        "Fix latest.yml UTF-8 BOM encoding for electron-updater support"
+      ]
+    },
+    {
+      "version": "1.6.5",
+      "date": "2026-07-16",
+      "title": "Fix packaging of rapidocr_onnxruntime ONNX models and config assets",
+      "highlights": [
+        "Fix packaging of rapidocr_onnxruntime ONNX models and config assets"
+      ]
+    },
+    {
+      "version": "1.6.4",
+      "date": "2026-07-16",
+      "title": "Hotfix: HUD FPS tracking and GPU power draw improvements",
+      "highlights": [
+        "Restored MPO events (IDs 46, 73, 78) to fix N/A FPS readings in modern DX12 games",
+        "Implemented a 1ms event debounce to completely prevent double-counting of duplicate Present/MPO events",
+        "Added NVML fallback to enforced power limit to resolve anomalous 300+W GPU power reporting on laptops and specific cards",
+        "Changed CPU clock speed formatting in compact HUD from 'G' to 'GHz' to prevent confusion with RAM capacity",
+        "Fixed a critical bug where the C++ ETW frame tracker would permanently freeze (causing stuck 'Calibrating' HUD state) after any 5s+ frame stall"
+      ]
+    },
+    {
+      "version": "1.6.3",
+      "date": "2026-07-16",
+      "title": "Fix HUD FPS tracking double-counting and remove misleading fallback",
+      "highlights": [
+        "Fix ETW frame timing double-counting by restricting DXGI events to Present_Start (eventId 42) and D3D9 to Present (eventId 1)",
+        "Remove misleading capture_fps fallback in HUD telemetry to prevent showing low capture rates when ETW/DXGI tracking is not active"
+      ]
+    },
+    {
+      "version": "1.6.2",
+      "date": "2026-07-15",
+      "title": "Move Optimization Status block to Stability Lab next to Game Mode toggle",
+      "highlights": [
+        "Move Optimization Status block to Stability Lab next to Game Mode toggle"
+      ]
+    },
+    {
+      "version": "1.6.1",
+      "date": "2026-07-15",
+      "title": "Fix NSIS compile escape syntax in installer.nsh",
+      "highlights": [
+        "Fix NSIS compile escape syntax in installer.nsh"
+      ]
+    },
+    {
+      "version": "1.6.0",
+      "date": "2026-07-15",
+      "title": "Fix duplicate start menu shortcuts and update overlay blocking",
+      "highlights": [
+        "Fix duplicate start menu shortcuts and update overlay blocking"
+      ]
+    },
+    {
+      "version": "1.5.9",
+      "date": "2026-07-15",
+      "title": "Fixed the USE DESKTOP UPGRADE ",
+      "highlights": [
+        "Fixed the USE DESKTOP UPGRADE "
+      ]
+    },
+    {
+      "version": "1.5.8",
+      "date": "2026-07-15",
+      "title": "Fixed the Frozen Update. ",
+      "highlights": [
+        "Fixed the Frozen Update. "
+      ]
+    },
+    {
+      "version": "1.5.7",
+      "date": "2026-07-15",
+      "title": "Fixed the Frozen Update and making soe issue. ",
+      "highlights": [
+        "Fixed the Frozen Update and making soe issue. "
+      ]
+    },
+    {
+      "version": "1.5.6",
+      "date": "2026-07-15",
+      "title": "Fixed the OCR",
+      "highlights": [
+        "Fixed the OCR"
+      ]
+    },
+    {
+      "version": "1.5.5",
+      "date": "2026-07-15",
+      "title": "Fix OCR Reader, TTS Thread stability, and Update Page UI",
+      "highlights": [
+        "Fix OCR pre-warming error by calling _ensure_rapidocr_reader",
+        "Update settings, documentation, and requirements to transition fully to RapidOCR",
+        "Fix TTS thread crashes in voice_manager by validating SAPI5 COM dispatch at startup and implementing config setters in PyTTSX3 fallback",
+        "Fix missing release highlights when up-to-date and system tray update check behavior when minimized"
+      ]
+    },
+    {
+      "version": "1.5.4",
+      "date": "2026-07-15",
+      "title": "DirectX 9 / Fullscreen FPS Fix and Publisher GUI Enhancements",
+      "highlights": [
+        "Extended ETW C++ engine with D3D9 and DxgKrnl providers to enable FPS tracking in DX9 and Exclusive Fullscreen games.",
+        "Redesigned Publisher GUI with drag-and-drop image uploads, dynamic version previews, and document-aware auto-generation.",
+        "Added MSI and Portable ZIP installer download links to the website landing page."
+      ]
+    },
+    {
+      "version": "1.5.3",
+      "date": "2026-07-15",
+      "title": "Align C# telemetry search paths with PyInstaller internal directories",
+      "highlights": [
+        "Align C# telemetry search paths with PyInstaller internal directories"
+      ]
+    },
+    {
+      "version": "1.5.2",
+      "date": "2026-07-15",
+      "title": "Remove terminal logs from updates page",
+      "highlights": [
+        "Remove terminal logs from updates page"
+      ]
+    },
+    {
+      "version": "1.5.1",
+      "date": "2026-07-15",
+      "title": "Fix WARN log level filtering on Dashboard",
+      "highlights": [
+        "Fix WARN log level filtering on Dashboard"
+      ]
+    },
+    {
+      "version": "1.5.0",
+      "date": "2026-07-15",
+      "title": "Redesign update system to resolve duplication and check installer availability",
+      "highlights": [
+        "Redesign update system to resolve duplication and check installer availability"
+      ]
+    },
+    {
+      "version": "1.4.9",
+      "date": "2026-07-15",
+      "title": "Upgrade installer to standard interactive wizard and fix telemetry dependencies",
+      "highlights": [
+        "Upgrade installer to standard interactive wizard and fix telemetry dependencies"
+      ]
+    },
+    {
+      "version": "1.4.8",
+      "date": "2026-07-15",
+      "title": "Add CPU fallback to EasyOCR initialization on CUDA error",
+      "highlights": [
+        "Add CPU fallback to EasyOCR initialization on CUDA error"
+      ]
+    },
+    {
+      "version": "1.4.7",
+      "date": "2026-07-14",
+      "title": "Disable GPU sandbox globally on Windows to fix black screen",
+      "highlights": [
+        "Disable GPU sandbox globally on Windows to fix black screen"
+      ]
+    },
+    {
+      "version": "1.4.6",
+      "date": "2026-07-14",
+      "title": "Fix black screen issue and duplicate Start Menu shortcuts",
+      "highlights": [
+        "Enabled GPU acceleration for transparent windows and Mica effects by replacing the global hardware acceleration disable with a selective GPU sandbox bypass on elevated instances.",
+        "Added automatic cleanup of duplicate user-level Start Menu and Desktop shortcuts left from previous installations during the installer run."
+      ]
+    },
+    {
+      "version": "1.4.5",
+      "date": "2026-07-14",
+      "title": "Resolve MEM0_API_KEY resolution and allow copy of specific terminal log lines",
+      "highlights": [
+        "Added fallback to load .env in memory.py, fixed config_loader tests, and added hover copy buttons to individual dashboard log lines."
+      ]
+    },
+    {
+      "version": "1.4.3",
+      "date": "2026-07-14",
+      "title": "Restore CPU power estimation fallback",
+      "highlights": [
+        "Restored CPU power estimation math when hardware sensor readings are unavailable so that CPU wattage shows up on the HUD."
+      ]
+    },
+    {
+      "version": "1.4.2",
+      "date": "2026-07-14",
+      "title": "Alternate Switch Account between Google and Discord",
+      "highlights": [
+        "Configured Switch Account in Settings to sign out and auto-login with Google/Discord depending on the current provider."
+      ]
+    },
+    {
+      "version": "1.4.1",
+      "date": "2026-07-14",
+      "title": "Fix HUD scan and remove Stealth Mode",
+      "highlights": [
+        "Prevented HUD window from triggering get_cached_games to avoid backend auto-scan.",
+        "Removed Stealth Mode tray menu options, window protection logic, and settings panel."
+      ]
+    },
+    {
+      "version": "1.4.0",
+      "date": "2026-07-14",
+      "title": "Responsive UI, tray events, env var loading, and Electron memory optimization",
+      "highlights": [
+        "Enforced 256MB V8 heap limit & exposed GC to optimize Electron memory usage on 16GB RAM setups.",
+        "Added single-click system tray handler to toggle app visibility.",
+        "Ensured env variables override system environment to fix NVIDIA_API_KEY loading.",
+        "Removed scaling clamp from frontend CSS to fix zoomed-out responsive scaling.",
+        "Renamed 'Ack Engine' to 'Acknowledge' in Updater UI."
+      ]
+    },
+    {
+      "version": "1.3.9",
+      "date": "2026-07-13",
+      "title": "Fix FPS disparity with OBS capture and improve ETW precision",
+      "highlights": [
+        "Fixed FPS reporting disparity when OBS is recording by capturing all DXGI Present event APIs (42, 46, 73, 78)",
+        "Resolved ETW state corruption by ignoring bogus microscopic intervals without updating the last frame timestamp"
+      ]
+    },
+    {
+      "version": "1.3.8",
+      "date": "2026-07-13",
+      "title": "Release v1.3.8: Fix CPU package temperature and remove fake power math",
+      "highlights": [
+        "Fixed CPU package temperature readings by ignoring misleading Core Max and per-core temp sensors, enabling reliable WMI package fallback",
+        "Removed fake CPU power estimation math to prevent misleading HUD telemetry when hardware readings are unavailable"
+      ]
+    },
+    {
+      "version": "1.3.7",
+      "date": "2026-07-13",
+      "title": "Release v1.3.7: Fix frontend compilation and include missed UI updates",
+      "highlights": [
+        "Release v1.3.7: Fix frontend compilation and include missed UI updates"
+      ]
+    },
+    {
+      "version": "1.3.6",
+      "date": "2026-07-13",
+      "title": "Release v1.3.6: Fixed Updater caching, file locks, and applied all UI and GPU power fixes",
+      "highlights": [
+        "Fixed update caching by adding Cache-Control headers to local server and clearing Chromium session cache on startup",
+        "Synchronized backend process tree termination on exit to prevent installer file lock conflicts",
+        "Fixed GPU power draw reporting by capping it at TGP limit",
+        "Implemented continuous responsive DPI scaling (1080p, 1200p, 1440p, 1600p, 4K) using viewport-based clamp",
+        "Added immediate account switching button in Settings and removed Microsoft Auth",
+        "Aligned Stealth Mode and updated Check For Updates icon in System Tray",
+        "Bypassed game library rescan when opening HUD overlay"
+      ]
+    },
+    {
+      "version": "1.3.5",
+      "date": "2026-07-13",
+      "title": "Release v1.3.5: Final Authentication, Tray Icon, DPI Scaling, and GPU Power Fixes",
+      "highlights": [
+        "Fixed GPU power draw reporting by capping it at TGP limit",
+        "Implemented continuous responsive DPI scaling (1080p, 1200p, 1440p, 1600p, 4K) using viewport-based clamp",
+        "Added immediate account switching button in Settings and removed Microsoft Auth",
+        "Aligned Stealth Mode and updated Check For Updates icon in System Tray",
+        "Bypassed game library rescan when opening HUD overlay",
+        "Fixed updater modal hang by auto-reloading UI on successful update installation",
+        "Fixed CPU clock speed dynamic PDH query thread-safety"
+      ]
+    },
+    {
+      "version": "1.3.4",
+      "date": "2026-07-12",
+      "title": "Upgraded some minor changes",
+      "highlights": [
+        "Upgraded some minor changes"
+      ]
+    },
+    {
+      "version": "1.3.3",
+      "date": "2026-07-12",
+      "title": "Authentication updates, tray alignment, DPI scaling, and GPU power fixes",
+      "highlights": [
+        "Fixed GPU power draw reporting by capping it at TGP limit",
+        "Implemented continuous responsive DPI scaling (1080p, 1200p, 1440p, 1600p, 4K) using viewport-based clamp",
+        "Added immediate account switching button in Settings and removed Microsoft Auth",
+        "Aligned Stealth Mode and updated Check For Updates icon in System Tray",
+        "Bypassed game library rescan when opening HUD overlay",
+        "Fixed updater modal hang by auto-reloading UI on successful update installation",
+        "Fixed CPU clock speed dynamic PDH query thread-safety"
+      ]
+    },
+    {
+      "version": "1.3.0",
+      "date": "2026-07-12",
+      "title": "Fixed Microsoft Auth, CPU clock speed, and Release notes UI",
+      "highlights": [
+        "Fixed Microsoft Auth, CPU clock speed, and Release notes UI"
+      ]
+    },
+    {
+      "version": "1.2.9",
+      "date": "2026-07-12",
+      "title": "Optimized Electron memory footprint for 16GB RAM systems & Fixed Google Auth Fallback",
+      "highlights": [
+        "Optimized Electron memory footprint for 16GB RAM systems & Fixed Google Auth Fallback"
+      ]
+    },
+    {
+      "version": "1.2.8",
+      "date": "2026-07-12",
+      "title": "Fixed Google sign-in username display issue",
+      "highlights": [
+        "Fixed Google sign-in username display issue"
+      ]
+    },
+    {
+      "version": "1.2.7",
+      "date": "2026-07-11",
+      "title": "Fixed HUD focus loss and games database path in window detector",
+      "highlights": [
+        "Fixed HUD focus loss and games database path in window detector"
+      ]
+    },
+    {
+      "version": "1.2.4",
+      "date": "2026-07-10",
+      "title": "Avatar fix, provider-switch scan reset, uninstall registry speedup",
+      "highlights": [
+        "Avatar now loads from Google/Discord CDN with onError initials fallback",
+        "Scan overlay no longer sticks when switching OAuth provider (Discord to Google)",
+        "Uninstall registry scan phase cut from 30s+ to under 1s by removing disk walks"
+      ]
+    },
+    {
+      "version": "1.1.0",
+      "date": "2026-07-10",
+      "title": "Discord auth, sign-out fix, Ubisoft Connect detection",
+      "highlights": [
+        "Discord OAuth display name now shows Discord tag and provider label in sidebar",
+        "Fixed Library page getting stuck in scan state after signing out",
+        "Fixed Ubisoft Connect launcher not appearing after fresh install",
+        "Fixed GOG Galaxy and EA Desktop deduplication normalization collision"
+      ]
+    },
+    {
+      "version": "1.1.0",
+      "date": "2026-07-10",
+      "title": "OAuth Display, Sign-Out Scan Reset, and Ubisoft Connect Fixes",
+      "highlights": [
+        "Resolved Discord OAuth display issues by cascading user name lookup",
+        "Fixed Library scan UI getting stuck in scanning state upon user sign-out",
+        "Fixed duplicate detection normalization to prevent Ubisoft Connect launcher from being dropped"
+      ]
+    },
+    {
+      "version": "1.0.9",
+      "date": "2026-07-10",
+      "title": "Fix SQL queries and NIM timeouts",
+      "highlights": [
+        "Included queries, prompts, and RAG data in PyInstaller package",
+        "Added client-side request timeouts to prevent Gateway Timeout hangs",
+        "Synchronized NIM calls with threading locks to prevent circuit breaker race conditions"
+      ]
+    },
+    {
+      "version": "1.0.8",
+      "date": "2026-07-10",
+      "title": "Authentication, Update UI, and CPU Thermal Fixes",
+      "highlights": [
+        "Pinned local UI server to fixed port 43221 to ensure Clerk's authentication session persists across restarts.",
+        "Removed blocking native OS dialogs from the updater flow so that download progress is tracked live in the Updater Modal.",
+        "Switched CPU temperature smoothing to a symmetric EMA to eliminate stuck-at-high readings, and restored Dashboard log rendering."
+      ]
+    },
+    {
+      "version": "1.0.7",
+      "date": "2026-07-09",
+      "title": "Mem0 Package Fix",
+      "highlights": [
+        "Bundle mem0 config submodules dynamically in PyInstaller specs."
+      ]
+    },
+    {
+      "version": "1.0.3",
+      "date": "2026-07-09",
+      "title": "HUD Crash Fix",
+      "highlights": [
+        "Fixed TypeError: Object has been destroyed in HUD window show/hide handlers."
+      ]
+    },
+    {
+      "version": "1.0.2",
+      "date": "2026-07-09",
+      "title": "Production Telemetry & Core Fixes",
+      "highlights": [
+        "Fixed production telemetry by bundling LibreHardwareMonitor DLLs into PyInstaller build.",
+        "Fixed CPU temperature reporting by correcting WMI parsing alignment (preventing CPU frequency from being misread as temperature) and removing arbitrary TZ01/TZ02 zone exclusions.",
+        "Removed artificial CPU temperature estimation fallback to ensure only real hardware readings are reported.",
+        "Migrated website persistence from Sanity to MongoDB/Mongoose.",
+        "Fixed Mermaid diagram rendering issues in blog views."
+      ]
+    },
+    {
+      "version": "1.0.1",
+      "date": "2026-07-09",
+      "title": "Database Migration and App Cleanup",
+      "highlights": [
+        "Migrated backend database",
+        "Fixed mermaid rendering",
+        "Cleaned up patch notes"
+      ]
+    },
+    {
+      "version": "1.0.0",
+      "date": "2026-07-06",
+      "title": "Woodpecker CI/CD Integration",
+      "highlights": [
+        "Migrated CI/CD to Woodpecker CI",
+        "Added run_local.ps1 script",
+        "Fixed UTF-8 BOM issue in package.json",
+        "Fixed NameError: name 'logger' is not defined in updater_bridge.py"
+      ]
+    }
+  ]
 }
