@@ -1266,11 +1266,6 @@ class GamingAssistantPipeline:
                     self._game_state["vision_fps"] = fps_counter.fps if is_active else 0.0
                     if is_active:
                         avg_fps = self.frame_buffer.average_fps
-                        # If the C++ ETW tracker has no data (Vulkan, OpenGL, or games that
-                        # don't emit DXGI Present events), fall back to the capture-loop FPS
-                        # so the HUD always shows a real number instead of N/A.
-                        if avg_fps == 0.0:
-                            avg_fps = self.frame_buffer.capture_fps
                         self._game_state["game_fps"] = avg_fps
                         f_count = self.frame_buffer.frame_count
                         if f_count == 0:
