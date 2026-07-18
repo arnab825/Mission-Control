@@ -1,8 +1,17 @@
 {
-    "version":  "1.7.3",
+    "version":  "1.7.4",
     "release_date":  "2026-07-18",
     "update_check_url":  "https://raw.githubusercontent.com/arnab825/Mission-Control/main/Gaming/backend/version.json",
     "changelog":  [
+                      {
+                          "version":  "1.7.4",
+                          "date":  "2026-07-18",
+                          "title":  "Fix Splash Screen Startup Crash",
+                          "highlights":  [
+                                             "Bundled splash.html to dist-electron during build to resolve ERR_FILE_NOT_FOUND error on startup.",
+                                             "Added safe catch handlers on splash screen load functions to prevent unhandled promise rejections."
+                                         ]
+                      },
                       {
                           "version":  "1.7.3",
                           "date":  "2026-07-18",
