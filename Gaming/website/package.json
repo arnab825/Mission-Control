@@ -13,7 +13,7 @@
     "@studio-freight/react-lenis": "^0.0.47",
     "@types/react-syntax-highlighter": "^15.5.13",
     "clsx": "^2.1.1",
-    "framer-motion": "^12.40.0",
+    "framer-motion": "^12.42.2",
     "gray-matter": "^4.0.3",
     "katex": "^0.17.0",
     "lucide-react": "^1.17.0",
