@@ -123,6 +123,34 @@ static double compute_1pct_low_locked()
 
 // ── ETW Callbacks ──────────────────────────────────────────────────────────
 
+// Track whether DXGI user-mode events are firing so we can suppress DxgKrnl
+// events in windowed/borderless mode and avoid double-counting.
+// Uses a simple timestamp-based "was DXGI active recently?" heuristic.
+static volatile LONGLONG g_last_dxgi_event_time = 0; // in QPC ticks
+static volatile LONGLONG g_qpc_freq             = 0; // ticks per second
+
+static void EnsureQPCFreq()
+{
+    if (g_qpc_freq == 0)
+    {
+        LARGE_INTEGER freq;
+        QueryPerformanceFrequency(&freq);
+        InterlockedExchange64(&g_qpc_freq, freq.QuadPart);
+    }
+}
+
+// Returns true if a DXGI event has been seen within the last 500 ms.
+// If so, DxgKrnl events should be suppressed (windowed/borderless game).
+static bool IsDXGIActive()
+{
+    if (g_last_dxgi_event_time == 0) return false;
+    LARGE_INTEGER now;
+    QueryPerformanceCounter(&now);
+    LONGLONG freq = g_qpc_freq ? g_qpc_freq : 10000000LL;
+    // 500 ms threshold: if DXGI hasn't fired in 500 ms assume fullscreen
+    return (now.QuadPart - g_last_dxgi_event_time) < (freq / 2);
+}
+
 static void WINAPI EventRecordCallback(PEVENT_RECORD pEventRecord)
 {
     // Ensure we only process events for our target game
@@ -134,10 +162,37 @@ static void WINAPI EventRecordCallback(PEVENT_RECORD pEventRecord)
 
     if (IsEqualGUID(pEventRecord->EventHeader.ProviderId, DXGI_PROVIDER_GUID)) {
         // DXGI Present_Start Event IDs (includes Multiplane Overlay etc.)
-        if (eventId == 42 || eventId == 46 || eventId == 73 || eventId == 78) isPresent = true;
+        // These fire for windowed, borderless-windowed and some fullscreen flip modes.
+        if (eventId == 42 || eventId == 46 || eventId == 73 || eventId == 78) {
+            // Record that DXGI is active so DxgKrnl events are suppressed.
+            LARGE_INTEGER now;
+            QueryPerformanceCounter(&now);
+            InterlockedExchange64(&g_last_dxgi_event_time, now.QuadPart);
+            isPresent = true;
+        }
     } else if (IsEqualGUID(pEventRecord->EventHeader.ProviderId, D3D9_PROVIDER_GUID)) {
         // D3D9 Present Event ID
         if (eventId == 1) isPresent = true;
+    } else if (IsEqualGUID(pEventRecord->EventHeader.ProviderId, DXGKRNL_PROVIDER_GUID)) {
+        // Kernel-mode DxgKrnl events — these fire for ALL present paths including
+        // fullscreen exclusive mode where DXGI user-mode events are never emitted.
+        //
+        //  Event 168 — DxgKrnl_Flip (DXGKETW_FLIPCHAIN_UPDATED)
+        //              Fires when the GPU flips the swap chain to a new buffer.
+        //              This is the kernel-mode equivalent of IDXGISwapChain::Present
+        //              for fullscreen exclusive games (DX11 / DX12 / Vulkan-via-DX12).
+        //
+        //  Event 252 — DxgKrnl_FlipMPO (Multi-Plane Overlay flip)
+        //              Fires for DX12 / WDDM 2.x games that use hardware MPO planes
+        //              (e.g. games with HDR or hardware-composited UI layers).
+        //
+        // Guard: only consume DxgKrnl events when DXGI has been silent for ≥500 ms,
+        // meaning the game is in fullscreen exclusive mode. This prevents double-
+        // counting every frame in windowed/borderless-windowed games where both
+        // the DXGI user-mode and DxgKrnl kernel-mode events fire for the same Present.
+        if ((eventId == 168 || eventId == 252) && !IsDXGIActive()) {
+            isPresent = true;
+        }
     }
 
     if (isPresent)
@@ -157,14 +212,14 @@ static void WINAPI EventRecordCallback(PEVENT_RECORD pEventRecord)
 
         double dt = now - g_state.last_time;
 
-        // Ignore duplicate events from the same frame (< 1ms debounce)
+        // Ignore duplicate events from the same frame (<1ms debounce)
         if (dt < 0.001)
         {
             LeaveCriticalSection(&g_state.cs);
             return;
         }
 
-        // Ignore bogus intervals (> 5s) but update last_time so we recover on the next frame
+        // Ignore bogus intervals (>5s) but update last_time so we recover on the next frame
         if (dt > 5.0)
         {
             g_state.last_time = now;
@@ -201,6 +256,7 @@ static void WINAPI EventRecordCallback(PEVENT_RECORD pEventRecord)
         LeaveCriticalSection(&g_state.cs);
     }
 }
+
 
 // ── ETW Thread ─────────────────────────────────────────────────────────────
 
@@ -301,6 +357,7 @@ BOOL WINAPI DllMain(HINSTANCE, DWORD reason, LPVOID)
     if (reason == DLL_PROCESS_ATTACH)
     {
         InitializeCriticalSectionAndSpinCount(&g_state.cs, 1000);
+        EnsureQPCFreq();    // Cache QPC frequency before any events arrive
         StartETWThread(); // Start background ETW listener on DLL load
     }
     else if (reason == DLL_PROCESS_DETACH)
