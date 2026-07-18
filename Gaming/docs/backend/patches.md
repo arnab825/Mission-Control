@@ -2,6 +2,10 @@
 
 This document contains a detailed history of all patches and updates for the AI Gaming Assistant.
 
+### Patch: 2026-07-18 — v1.7.5: Update system tray check updates menu icon to match flat white style
+
+- Update system tray check updates menu icon to match flat white style
+
 ### Patch: 2026-07-17 — v1.6.8: Fix missing shortcuts and uninstall legacy versions during upgrade
 
 - Protect machine-wide desktop shortcuts from being deleted during cleanup
