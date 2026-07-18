@@ -141,16 +141,6 @@ const LabPage: React.FC<{
     if (isGameActive) {
       setStabilityHistory(prev => {
         let fps = state?.fps ?? 0;
-        let baseVal = 97.5;
-        if (fps > 5) {
-          baseVal = Math.max(0, Math.min(100, fps * 1.66));
-        }
-        
-        // If transitioning from idle (all zeros), pre-fill the buffer immediately
-        if (prev.every(v => v === 0)) {
-          return Array(10).fill(0).map(() => baseVal + (Math.random() - 0.5) * 1.6);
-        }
-
         let val: number;
         if (fps > 5) {
           // Real game is running, calculate from real FPS
@@ -162,7 +152,7 @@ const LabPage: React.FC<{
         return [...prev.slice(1), val];
       });
     } else {
-      setStabilityHistory(Array(10).fill(0));
+      setStabilityHistory(prev => [...prev.slice(1), 0]);
     }
     
     // Track temperature
