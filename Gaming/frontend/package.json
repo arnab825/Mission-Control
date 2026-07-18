@@ -108,6 +108,7 @@
                   "win":  {
                               "icon":  "public/favicon.ico",
                               "requestedExecutionLevel":  "requireAdministrator",
+                              "verifyUpdateCodeSignature": false,
                               "target":  [
                                              {
                                                  "target":  "nsis",

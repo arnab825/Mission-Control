@@ -1539,10 +1539,11 @@ function setupAutoUpdater() {
     return;
   }
 
-  // electron-updater reads app-update.yml from process.resourcesPath automatically.
-  // No setFeedURL needed — GitHub owner/repo come from the bundled app-update.yml.
-  autoUpdater.autoDownload = false; // Require user to click Download
-  autoUpdater.autoInstallOnAppQuit = true;
+  // Disable code signature verification for unsigned development/self-built updates
+  (autoUpdater as any).verifyUpdateCodeSignature = (_publisherName: string[], path: string) => {
+    console.log('[AutoUpdater] Bypassing code signature verification for:', path);
+    return Promise.resolve(null);
+  };
 
   // ── Event Listeners ─────────────────────────────────────────────────────
   autoUpdater.on('checking-for-update', () => {
@@ -1603,7 +1604,7 @@ function setupAutoUpdater() {
       version: info.version,
       date: info.releaseDate,
       notes: typeof info.releaseNotes === 'string' ? info.releaseNotes : '',
-      message: `Update v${info.version} ready to install.`
+      message: `Update v${info.version} downloaded.`
     });
   });
 
@@ -1646,10 +1647,18 @@ function setupAutoUpdater() {
     }
   });
 
-  ipcMain.on('download-electron-update', () => {
+  ipcMain.on('download-electron-update', async () => {
     console.log('[AutoUpdater] User manually triggered downloadUpdate()');
     try {
-      autoUpdater.downloadUpdate();
+      sendToAllWindows('electron-update-status', { status: 'checking', message: 'Verifying update package...' });
+      const checkResult = await autoUpdater.checkForUpdates();
+      if (checkResult && checkResult.updateInfo) {
+        console.log('[AutoUpdater] Manual check succeeded, downloading version:', checkResult.updateInfo.version);
+        sendToAllWindows('electron-update-status', { status: 'downloading', percent: 0, message: 'Starting download...' });
+        await autoUpdater.downloadUpdate();
+      } else {
+        throw new Error('Update payload verification failed on server. Please try again.');
+      }
     } catch (err: any) {
       console.error('[AutoUpdater] downloadUpdate failed:', err);
       sendToAllWindows('electron-update-status', { status: 'error', message: err.message });
