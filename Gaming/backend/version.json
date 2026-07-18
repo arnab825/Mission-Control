@@ -1,8 +1,16 @@
 {
-  "version": "1.7.4",
+  "version": "1.7.5",
   "release_date": "2026-07-18",
   "update_check_url": "https://raw.githubusercontent.com/arnab825/Mission-Control/main/Gaming/backend/version.json",
   "changelog": [
+    {
+      "version": "1.7.5",
+      "date": "2026-07-18",
+      "title": "Update system tray check updates menu icon to match flat white style",
+      "highlights": [
+        "Update system tray check updates menu icon to match flat white style"
+      ]
+    },
     {
       "version": "1.7.4",
       "date": "2026-07-18",
@@ -444,114 +452,6 @@
       "title": "Fixed Google sign-in username display issue",
       "highlights": [
         "Fixed Google sign-in username display issue"
-      ]
-    },
-    {
-      "version": "1.2.7",
-      "date": "2026-07-11",
-      "title": "Fixed HUD focus loss and games database path in window detector",
-      "highlights": [
-        "Fixed HUD focus loss and games database path in window detector"
-      ]
-    },
-    {
-      "version": "1.2.4",
-      "date": "2026-07-10",
-      "title": "Avatar fix, provider-switch scan reset, uninstall registry speedup",
-      "highlights": [
-        "Avatar now loads from Google/Discord CDN with onError initials fallback",
-        "Scan overlay no longer sticks when switching OAuth provider (Discord to Google)",
-        "Uninstall registry scan phase cut from 30s+ to under 1s by removing disk walks"
-      ]
-    },
-    {
-      "version": "1.1.0",
-      "date": "2026-07-10",
-      "title": "Discord auth, sign-out fix, Ubisoft Connect detection",
-      "highlights": [
-        "Discord OAuth display name now shows Discord tag and provider label in sidebar",
-        "Fixed Library page getting stuck in scan state after signing out",
-        "Fixed Ubisoft Connect launcher not appearing after fresh install",
-        "Fixed GOG Galaxy and EA Desktop deduplication normalization collision"
-      ]
-    },
-    {
-      "version": "1.1.0",
-      "date": "2026-07-10",
-      "title": "OAuth Display, Sign-Out Scan Reset, and Ubisoft Connect Fixes",
-      "highlights": [
-        "Resolved Discord OAuth display issues by cascading user name lookup",
-        "Fixed Library scan UI getting stuck in scanning state upon user sign-out",
-        "Fixed duplicate detection normalization to prevent Ubisoft Connect launcher from being dropped"
-      ]
-    },
-    {
-      "version": "1.0.9",
-      "date": "2026-07-10",
-      "title": "Fix SQL queries and NIM timeouts",
-      "highlights": [
-        "Included queries, prompts, and RAG data in PyInstaller package",
-        "Added client-side request timeouts to prevent Gateway Timeout hangs",
-        "Synchronized NIM calls with threading locks to prevent circuit breaker race conditions"
-      ]
-    },
-    {
-      "version": "1.0.8",
-      "date": "2026-07-10",
-      "title": "Authentication, Update UI, and CPU Thermal Fixes",
-      "highlights": [
-        "Pinned local UI server to fixed port 43221 to ensure Clerk's authentication session persists across restarts.",
-        "Removed blocking native OS dialogs from the updater flow so that download progress is tracked live in the Updater Modal.",
-        "Switched CPU temperature smoothing to a symmetric EMA to eliminate stuck-at-high readings, and restored Dashboard log rendering."
-      ]
-    },
-    {
-      "version": "1.0.7",
-      "date": "2026-07-09",
-      "title": "Mem0 Package Fix",
-      "highlights": [
-        "Bundle mem0 config submodules dynamically in PyInstaller specs."
-      ]
-    },
-    {
-      "version": "1.0.3",
-      "date": "2026-07-09",
-      "title": "HUD Crash Fix",
-      "highlights": [
-        "Fixed TypeError: Object has been destroyed in HUD window show/hide handlers."
-      ]
-    },
-    {
-      "version": "1.0.2",
-      "date": "2026-07-09",
-      "title": "Production Telemetry & Core Fixes",
-      "highlights": [
-        "Fixed production telemetry by bundling LibreHardwareMonitor DLLs into PyInstaller build.",
-        "Fixed CPU temperature reporting by correcting WMI parsing alignment (preventing CPU frequency from being misread as temperature) and removing arbitrary TZ01/TZ02 zone exclusions.",
-        "Removed artificial CPU temperature estimation fallback to ensure only real hardware readings are reported.",
-        "Migrated website persistence from Sanity to MongoDB/Mongoose.",
-        "Fixed Mermaid diagram rendering issues in blog views."
-      ]
-    },
-    {
-      "version": "1.0.1",
-      "date": "2026-07-09",
-      "title": "Database Migration and App Cleanup",
-      "highlights": [
-        "Migrated backend database",
-        "Fixed mermaid rendering",
-        "Cleaned up patch notes"
-      ]
-    },
-    {
-      "version": "1.0.0",
-      "date": "2026-07-06",
-      "title": "Woodpecker CI/CD Integration",
-      "highlights": [
-        "Migrated CI/CD to Woodpecker CI",
-        "Added run_local.ps1 script",
-        "Fixed UTF-8 BOM issue in package.json",
-        "Fixed NameError: name 'logger' is not defined in updater_bridge.py"
       ]
     }
   ]
