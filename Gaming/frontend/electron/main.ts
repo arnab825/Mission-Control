@@ -595,10 +595,14 @@ async function createWindow() {
   
   if (VITE_DEV_SERVER_URL) {
     splash.loadURL(VITE_DEV_SERVER_URL + 'splash.html').catch(() => {
-      splash?.loadFile(path.join(_dirname, 'splash.html'));
+      splash?.loadFile(path.join(_dirname, 'splash.html')).catch((err) => {
+        console.error('[Electron] Failed to load local splash.html fallback:', err);
+      });
     });
   } else {
-    splash.loadFile(path.join(_dirname, 'splash.html'));
+    splash.loadFile(path.join(_dirname, 'splash.html')).catch((err) => {
+      console.error('[Electron] Failed to load local splash.html:', err);
+    });
   }
 
   win = new BrowserWindow({
