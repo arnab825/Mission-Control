@@ -9,6 +9,7 @@ if (!MONGODB_URI) {
 interface MongooseCache {
   conn: typeof mongoose | null;
   promise: Promise<typeof mongoose> | null;
+  failed?: boolean;
 }
 
 declare global {
@@ -16,13 +17,17 @@ declare global {
 }
 
 if (!global.mongoose) {
-  global.mongoose = { conn: null, promise: null };
+  global.mongoose = { conn: null, promise: null, failed: false };
 }
 const cached = global.mongoose;
 
 async function connectDB(): Promise<typeof mongoose> {
   if (cached.conn) {
     return cached.conn;
+  }
+
+  if (cached.failed) {
+    throw new Error("MongoDB connection previously failed. Skipping to prevent blocking local development rendering.");
   }
 
   if (!cached.promise) {
@@ -40,6 +45,7 @@ async function connectDB(): Promise<typeof mongoose> {
     cached.conn = await cached.promise;
   } catch (e) {
     cached.promise = null;
+    cached.failed = true;
     throw e;
   }
 
