@@ -52,7 +52,7 @@
                             "lucide-react":  "^0.469.0",
                             "react":  "^19.2.6",
                             "react-doctor":  "^0.2.11",
-                            "react-dom":  "^19.2.6",
+                            "react-dom":  "^19.2.7",
                             "recharts":  "^2.15.0",
                             "tailwind-merge":  "^3.6.0",
                             "typescript":  "~6.0.2",
