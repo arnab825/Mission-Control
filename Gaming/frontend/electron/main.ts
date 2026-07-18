@@ -239,7 +239,9 @@ function registerContextMenu(window: BrowserWindow) {
       template.push({
         label: 'Inspect Element',
         click: () => {
-          window.webContents.inspectElement(params.x, params.y);
+          if (window && !window.isDestroyed() && !window.webContents.isDestroyed()) {
+            window.webContents.inspectElement(params.x, params.y);
+          }
         }
       });
     }
@@ -660,7 +662,11 @@ async function createWindow() {
       win.loadURL(`http://127.0.0.1:${localServerPort}`).catch(err => {
         console.error('[Electron] Failed to load local server URL:', err);
         // Fallback retry
-        setTimeout(() => win?.loadURL(`http://127.0.0.1:${localServerPort}`), 1000);
+        setTimeout(() => {
+          if (win && !win.isDestroyed()) {
+            win.loadURL(`http://127.0.0.1:${localServerPort}`).catch(() => {});
+          }
+        }, 1000);
       });
     } else {
       console.error('[Electron] Local server port is 0, cannot load UI');
@@ -1171,8 +1177,8 @@ async function createHUDWindow(showOnReady: boolean = false) {
   });
 
   hudWin.once('ready-to-show', () => {
-    if (showOnReady) {
-      hudWin?.showInactive();
+    if (showOnReady && hudWin && !hudWin.isDestroyed()) {
+      hudWin.showInactive();
     }
   });
 
@@ -1186,7 +1192,9 @@ async function createHUDWindow(showOnReady: boolean = false) {
     }
     if (cachedConfig) {
       const isLocked = cachedConfig.overlay?.lock_position === true;
-      hudWin?.setIgnoreMouseEvents(isLocked, isLocked ? { forward: true } : undefined);
+      if (hudWin && !hudWin.isDestroyed()) {
+        hudWin.setIgnoreMouseEvents(isLocked, isLocked ? { forward: true } : undefined);
+      }
       positionHUDWindow(cachedConfig.overlay?.layout || 'top-left');
     } else {
       positionHUDWindow('top-left');
@@ -1225,7 +1233,11 @@ async function createHUDWindow(showOnReady: boolean = false) {
     if (localServerPort > 0) {
       hudWin.loadURL(`http://127.0.0.1:${localServerPort}/#hud`).catch(err => {
         console.error('[Electron] HUD Window failed to load:', err);
-        setTimeout(() => hudWin?.loadURL(`http://127.0.0.1:${localServerPort}/#hud`), 1000);
+        setTimeout(() => {
+          if (hudWin && !hudWin.isDestroyed()) {
+            hudWin.loadURL(`http://127.0.0.1:${localServerPort}/#hud`).catch(() => {});
+          }
+        }, 1000);
       });
     } else {
       console.error('[Electron] Local server port is 0, cannot load HUD UI');
@@ -1708,7 +1720,11 @@ async function createOffscreenOverlay() {
     if (localServerPort > 0) {
       osrWin.loadURL(`http://127.0.0.1:${localServerPort}/#hud`).catch(err => {
         console.error('[Electron] OSR Window failed to load:', err);
-        setTimeout(() => osrWin?.loadURL(`http://127.0.0.1:${localServerPort}/#hud`), 1000);
+        setTimeout(() => {
+          if (osrWin && !osrWin.isDestroyed()) {
+            osrWin.loadURL(`http://127.0.0.1:${localServerPort}/#hud`).catch(() => {});
+          }
+        }, 1000);
       });
     } else {
       console.error('[Electron] Local server port is 0, cannot load OSR UI');
