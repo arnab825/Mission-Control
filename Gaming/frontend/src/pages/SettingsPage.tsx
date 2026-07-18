@@ -447,11 +447,11 @@ const PRESET_DETAILS = [
   },
   {
     key: 'off',
-    title: 'Stock / Power Save',
-    desc: 'Cool, quiet stock hardware operation (Eco mode).',
-    powerLimit: '80% GPU Power',
+    title: 'Standard',
+    desc: 'Standard game operation for non-RTX titles.',
+    powerLimit: 'Dynamic',
     powerPlan: 'Balanced Mode',
-    features: ['Stock GPU Direct Rendering', 'Reduced Power Draw', 'Quiet Fans', 'All Features Disabled'],
+    features: ['Direct Rendering', 'Balanced Thermals', 'Standard Preset'],
     icon: Shield
   },
   {
@@ -466,7 +466,7 @@ const PRESET_DETAILS = [
 ];
 
 const GPU_RTX_FEATURES = ['DLSS', 'FRAME_GEN', 'FRAME GEN', 'FG', 'PATH_TRACING', 'PATH TRACING', 'RAY_TRACING', 'RAY TRACING'];
-const GPU_NVIDIA_FEATURES = ['REFLEX', 'PHYSX', 'ANSEL'];
+const GPU_NVIDIA_FEATURES = ['REFLEX', 'PHYSX'];
 
 const getRecommendedPreset = (features: string[] = [], genre: string = '', gpuInfo: string | Record<string, any> = '') => {
   const g = genre.toLowerCase();
