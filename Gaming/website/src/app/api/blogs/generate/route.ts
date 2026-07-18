@@ -8,6 +8,26 @@ import { formatDateToIST } from "@/lib/blog";
 
 export const maxDuration = 60; // Extend Vercel function timeout to 60 seconds (max for Hobby)
 
+function safeWriteFileSync(filePath: string, content: string | Buffer, options?: any) {
+  try {
+    const dir = path.dirname(filePath);
+    if (!fs.existsSync(dir)) {
+      fs.mkdirSync(dir, { recursive: true });
+    }
+    fs.writeFileSync(filePath, content, options);
+  } catch (err) {
+    console.warn(`[SafeWrite] Failed to write file ${filePath}:`, err);
+  }
+}
+
+function safeAppendFileSync(filePath: string, content: string) {
+  try {
+    fs.appendFileSync(filePath, content);
+  } catch (err) {
+    console.warn(`[SafeWrite] Failed to append to file ${filePath}:`, err);
+  }
+}
+
 const GAMING_RSS_FEEDS = [
   { url: "http://feeds.ign.com/ign/all", label: "IGN", type: "gaming" },
   { url: "https://kotaku.com/rss", label: "Kotaku", type: "gaming" },
@@ -102,59 +122,68 @@ async function generateBlogPost(
   postType: "Game News" | "GPU News" | "Game Revisit" | "Hardware Deep-Dive",
   apiKey: string,
   targetDate: Date = new Date()
-): Promise<{ slug: string; title: string; excerpt: string; tags: string[]; content: string } | null> {
+): Promise<{ slug: string; title: string; excerpt: string; tags: string[]; content: string; imagePrompt?: string } | null> {
   const today = targetDate.toISOString().split("T")[0];
   const headlines = items
     .slice(0, 8)
     .map((i, idx) => `${idx + 1}. [${i.source}] ${i.title}\n   ${i.description}`)
     .join("\n\n");
 
-  const prompt = `You are a technical gaming journalist writing for a high-quality developer and gamer audience.
+  const prompt = `You are an expert gaming journalist, technical writer, and SEO specialist writing for a high-quality developer and gamer audience.
 
 Today is ${today}. Based on the following real headlines and news items, write a comprehensive blog post.
 
 HEADLINES:
 ${headlines}
 
-REQUIREMENTS & STANDARDS:
+ROLE & OBJECTIVE:
+Generate a highly engaging, accurate, and completely unique blog post about these news items, hardware, or updates.
+
+1. DYNAMIC CONTENT & VARIANCE:
+- NEVER reuse the same phrasing, structural hooks, or introductory sentences across different articles.
+- The post must have a distinct angle based entirely on the provided headlines.
+
+2. REQUIREMENTS & STANDARDS:
 - Post type: ${postType}
 - Tone: Sharp, technical, authoritative. Write as an experienced technology journalist, engineer, or game analyst—not as a generic AI. Avoid repetitive AI clichés and generic introductions. Blend technical depth with readability.
 - Length: 700-900 words. Start with a compelling introduction paragraph and include a brief ## Conclusion section.
 
-1. MARKDOWN FORMATTING:
+3. MARKDOWN FORMATTING:
 - Use proper heading hierarchy (#, ##, ###, ####). Include 3-4 structured sections with ## headers.
 - Use GitHub-flavored Markdown. Ensure clean spacing and logical flow.
 - Include tables where appropriate, code blocks with language highlighting (for actual programming code examples like JavaScript, Python, Bash, HTML, JSON, etc.), blockquotes, lists, inline code, callouts, and emphasis.
 - CRITICAL: NEVER wrap normal text, headings, or bulleted/numbered lists inside "\`\`\`markdown" or "\`\`\`md" code blocks. Standard markdown content must be written directly in the post body, not enclosed in code blocks.
 
-
-2. TECHNICAL ACCURACY:
+4. TECHNICAL ACCURACY:
 - Prioritize correct hardware specifications, realistic networking/latency/throughput calculations, accurate APIs, and correct mathematical reasoning.
 - Use proper LaTeX when formulas are necessary.
 - NO invented benchmarks or fabricated technical facts. Clearly indicate when something is uncertain rather than presenting speculation as fact.
 
-3. MERMAID DIAGRAMS (MANDATORY IF USEFUL):
+5. MERMAID DIAGRAMS (MANDATORY IF USEFUL):
 - When useful, generate valid Mermaid diagrams (flowcharts, sequence diagrams, architecture diagrams, pie charts, etc.). Ensure they are syntactically correct and reflect the actual system or process.
 - For flowcharts, NEVER use spaces inside edge labels. Use '-->|text|' instead of '-->| text |'.
 
-4. DEVELOPER & GAMER FOCUS:
+6. DEVELOPER & GAMER FOCUS:
 - For development topics: Explain why something works, not just how. Include practical examples, copy-paste-ready commands, explain terminal utilities, mention installation methods, and discuss performance implications, architecture, debugging, and best practices.
 - For gaming/hardware topics (${postType}): Discuss rendering pipelines, graphics APIs, frame pacing, CPU/GPU bottlenecks, VRAM usage, shaders, anti-cheat, engine behavior, optimization, and concrete benchmark context and performance numbers. Analyze game legacies and technical achievements without sensational claims.
 
-5. EXTERNAL LINK POLICY:
+7. EXTERNAL LINK POLICY:
 - Prefer official documentation, secure HTTPS links only, and authoritative sources (official docs, standards bodies, vendor docs). Avoid dubious sources.
 
-6. CONTENT RESTRICTIONS:
+8. CONTENT RESTRICTIONS:
 - Remain professional. Avoid explicit material or unsupported political commentary. Stay strictly focused on technology, software engineering, hardware, AI, gaming, and infrastructure.
 
-Return the generated post in markdown format with a frontmatter block enclosed by "---" at the very top. Do NOT wrap the entire response in a markdown code block.
+9. SCHEDULING & PARSING COMPLIANCE:
+- Return the output strictly in the requested markdown format with frontmatter at the very top.
+- Do not include any conversational filler (like "Here is your blog post:") outside of the frontmatter and content structure.
 
 FORMAT:
 ---
 title: [The blog title]
-excerpt: [One-sentence summary under 180 characters]
+meta_description: [A snappy, click-worthy summary of THIS specific article, written in the active voice. Must be exactly between 120-150 characters.]
 tags: [tag1, tag2, tag3, tag4]
-slug: url-friendly-slug-${today}
+slug: [Generate a unique, lowercase, hyphen-separated URL string based on the title, e.g. "intel-core-ultra-gaming-performance"]
+image_prompt: A high-resolution, close-up shot of [Specific Topic/Hardware/Character] with [Specific Lighting/Setting (e.g. cyberpunk neon lighting, moody ambient desk setup)], vibrant color grading, no text, photorealistic style.
 ---
 
 [Full markdown content goes here]`;
@@ -177,7 +206,7 @@ slug: url-friendly-slug-${today}
 
     if (!response.ok) {
       const errText = await response.text();
-      fs.appendFileSync(path.join(process.cwd(), "generate.log"), `[BlogGen] NIM API error: ${response.status} ${errText}\n`);
+      safeAppendFileSync(path.join(process.cwd(), "generate.log"), `[BlogGen] NIM API error: ${response.status} ${errText}\n`);
       console.error(`[BlogGen] NIM API error: ${response.status} ${errText}`);
       return null;
     }
@@ -189,7 +218,7 @@ slug: url-friendly-slug-${today}
     const frontmatterRegex = /^---\r?\n([\s\S]*?)\r?\n---\r?\n([\s\S]*)$/;
     const match = rawContent.match(frontmatterRegex);
     if (!match) {
-      fs.appendFileSync(path.join(process.cwd(), "generate.log"), `[BlogGen] Frontmatter mismatch. Raw content sample: ${rawContent.slice(0, 300)}\n`);
+      safeAppendFileSync(path.join(process.cwd(), "generate.log"), `[BlogGen] Frontmatter mismatch. Raw content sample: ${rawContent.slice(0, 300)}\n`);
       console.error("[BlogGen] Frontmatter match failed");
       return null;
     }
@@ -198,8 +227,15 @@ slug: url-friendly-slug-${today}
     const content = match[2].trim();
 
     const title = fmText.match(/^title:\s*(.*)$/m)?.[1]?.replace(/^["']|["']$/g, "").trim() ?? `${postType} — ${today}`;
-    const excerpt = fmText.match(/^excerpt:\s*(.*)$/m)?.[1]?.replace(/^["']|["']$/g, "").trim() ?? "";
-    const slug = fmText.match(/^slug:\s*(.*)$/m)?.[1]?.replace(/^["']|["']$/g, "").trim() ?? `${postType.toLowerCase().replace(/\s+/g, "-")}-${today}`;
+    const excerpt = (fmText.match(/^meta_description:\s*(.*)$/m)?.[1] ?? fmText.match(/^excerpt:\s*(.*)$/m)?.[1])?.replace(/^["']|["']$/g, "").trim() ?? "";
+    let slug = fmText.match(/^slug:\s*(.*)$/m)?.[1]?.replace(/^["']|["']$/g, "").trim() ?? `${postType.toLowerCase().replace(/\s+/g, "-")}-${today}`;
+    
+    // Ensure slug strictly ends with the YYYY-MM-DD date suffix to prevent duplication and collisions
+    if (!slug.endsWith(today)) {
+      slug = `${slug}-${today}`;
+    }
+
+    const imagePrompt = fmText.match(/^image_prompt:\s*(.*)$/m)?.[1]?.replace(/^["']|["']$/g, "").trim() ?? "";
     const tagsRaw = fmText.match(/^tags:\s*\[(.*?)\]/m)?.[1] ?? fmText.match(/^tags:\s*(.*)$/m)?.[1] ?? "";
     const tags = tagsRaw
       .replace(/[\[\]]/g, "")
@@ -207,13 +243,13 @@ slug: url-friendly-slug-${today}
       .map((t: string) => t.replace(/^["']|["']$/g, "").trim())
       .filter(Boolean);
 
-    fs.appendFileSync(path.join(process.cwd(), "generate.log"), `[BlogGen] Successfully generated post: ${title}\n`);
+    safeAppendFileSync(path.join(process.cwd(), "generate.log"), `[BlogGen] Successfully generated post: ${title}\n`);
     const cleanContent = content.replace(/```(?:markdown|md)\r?\n([\s\S]*?)\r?\n```/gi, "$1");
     const sanitizedContent = sanitizeMermaid(cleanContent);
-    return { slug, title, excerpt, tags, content: sanitizedContent };
+    return { slug, title, excerpt, tags, content: sanitizedContent, imagePrompt };
   } catch (err: unknown) {
     const errMsg = err instanceof Error ? err.message : String(err);
-    fs.appendFileSync(path.join(process.cwd(), "generate.log"), `[BlogGen] Generation error: ${errMsg}\n`);
+    safeAppendFileSync(path.join(process.cwd(), "generate.log"), `[BlogGen] Generation error: ${errMsg}\n`);
     console.error("[BlogGen] Generation error:", err);
     return null;
   }
@@ -231,7 +267,7 @@ async function writeToMongoDB(
     // Check if a post with this slug already exists to avoid duplicates
     const existing = await GamingPost.findOne({ slug: post.slug });
     if (existing) {
-      fs.appendFileSync(logFilePath, `[BlogGen] Post already exists for slug in MongoDB: ${post.slug}\n`);
+      safeAppendFileSync(logFilePath, `[BlogGen] Post already exists for slug in MongoDB: ${post.slug}\n`);
       console.log(`[BlogGen] Post already exists for slug: ${post.slug}`);
       return false;
     }
@@ -249,12 +285,12 @@ async function writeToMongoDB(
       coverImage,
     });
 
-    fs.appendFileSync(logFilePath, `[BlogGen] Saved to MongoDB successfully: ${post.slug}\n`);
+    safeAppendFileSync(logFilePath, `[BlogGen] Saved to MongoDB successfully: ${post.slug}\n`);
     console.log(`[BlogGen] Saved to MongoDB: ${post.slug}`);
     return true;
   } catch (err: unknown) {
     const errMsg = err instanceof Error ? err.message : String(err);
-    fs.appendFileSync(logFilePath, `[BlogGen] MongoDB write error: ${errMsg}\n`);
+    safeAppendFileSync(logFilePath, `[BlogGen] MongoDB write error: ${errMsg}\n`);
     console.error("[BlogGen] MongoDB write error:", err);
     return false;
   }
@@ -267,9 +303,6 @@ function writeToLocalMdx(
   coverImage?: string
 ) {
   const contentDir = path.join(process.cwd(), "content/blog");
-  if (!fs.existsSync(contentDir)) {
-    fs.mkdirSync(contentDir, { recursive: true });
-  }
   const dateStr = formatDateToIST(publishedAt);
   const mdxContent = `---
 title: "${post.title.replace(/"/g, '\\"')}"
@@ -285,8 +318,8 @@ ${coverImage ? `coverImage: "${coverImage}"` : ""}
 ${post.content}
 `;
   const filePath = path.join(contentDir, `${post.slug}.mdx`);
-  fs.writeFileSync(filePath, mdxContent, "utf8");
-  fs.appendFileSync(path.join(process.cwd(), "generate.log"), `[BlogGen] Saved to local MDX: ${filePath}\n`);
+  safeWriteFileSync(filePath, mdxContent, "utf8");
+  safeAppendFileSync(path.join(process.cwd(), "generate.log"), `[BlogGen] Saved to local MDX: ${filePath}\n`);
 }
 
 async function generateImageWithPollinations(prompt: string): Promise<Buffer> {
@@ -371,12 +404,8 @@ export async function POST(request: NextRequest) {
   const results: { type: string; slug: string; saved: boolean }[] = [];
   const logFile = path.join(process.cwd(), "generate.log");
 
-  // Keep existing posts to support future scheduling and archival
-  try {
-    fs.writeFileSync(logFile, `[${new Date().toISOString()}] Keeping old posts. Blog generation started. Collected ${allItems.length} feed items.\n`);
-  } catch {
-    fs.writeFileSync(logFile, `[${new Date().toISOString()}] Blog generation started.\n`);
-  }
+  // Keep existing posts to support future scheduling and archival safely
+  safeWriteFileSync(logFile, `[${new Date().toISOString()}] Keeping old posts. Blog generation started. Collected ${allItems.length} feed items.\n`);
 
   // Initialize HuggingFace client
   const hfClient = new InferenceClient(process.env.HF_TOKEN);
@@ -391,13 +420,14 @@ export async function POST(request: NextRequest) {
       try {
         try {
           // Try Pollinations first since it's free and unlimited
-          imageBuffer = await generateImageWithPollinations(`${post.title}. Futuristic hardware, tech concept art, glowing neon accents, 8k resolution, cyberpunk style.`);
+          const finalPrompt = post.imagePrompt || `${post.title}. Futuristic hardware, tech concept art, glowing neon accents, 8k resolution, cyberpunk style.`;
+          imageBuffer = await generateImageWithPollinations(finalPrompt);
         } catch (pollError) {
           console.warn("Pollinations failed, falling back to HuggingFace:", pollError);
           const imageBlob = await hfClient.textToImage({
             provider: "hf-inference",
             model: "black-forest-labs/FLUX.1-schnell",
-            inputs: `A highly detailed gaming or tech illustration for a blog post titled: ${post.title}. ${post.tags.join(', ')}`,
+            inputs: post.imagePrompt || `A highly detailed gaming or tech illustration for a blog post titled: ${post.title}. ${post.tags.join(', ')}`,
             parameters: { num_inference_steps: 4 },
           }, {
             outputType: "blob"
@@ -407,20 +437,22 @@ export async function POST(request: NextRequest) {
 
         // Save locally
         const publicDir = path.join(process.cwd(), "public/images/blog");
-        if (!fs.existsSync(publicDir)) {
-          fs.mkdirSync(publicDir, { recursive: true });
-        }
         const imagePath = path.join(publicDir, `${post.slug}.png`);
-        fs.writeFileSync(imagePath, imageBuffer);
+        safeWriteFileSync(imagePath, imageBuffer);
         localCoverPath = `/images/blog/${post.slug}.png`;
       } catch (imgErr: unknown) {
         const errMsg = imgErr instanceof Error ? imgErr.message : String(imgErr);
-        fs.appendFileSync(path.join(process.cwd(), "generate.log"), `[BlogGen] Local image generation/saving failed: ${errMsg}\n`);
+        safeAppendFileSync(path.join(process.cwd(), "generate.log"), `[BlogGen] Local image generation/saving failed: ${errMsg}\n`);
         console.error("[BlogGen] Local image generation/saving failed:", imgErr);
         localCoverPath = "/images/gpu-placeholder.png";
       }
 
-      const publishedAt = new Date(targetDate.getTime() - 2 * 60 * 60 * 1000).toISOString();
+      // Standardize publishedAt to exactly 09:00:00 UTC on the target date to avoid hours/minutes duplication drift
+      const yyyy = targetDate.getFullYear();
+      const mm = String(targetDate.getMonth() + 1).padStart(2, '0');
+      const dd = String(targetDate.getDate()).padStart(2, '0');
+      const publishedAt = `${yyyy}-${mm}-${dd}T09:00:00.000Z`;
+
       const saved = await writeToMongoDB(post, "GPU News", publishedAt, localCoverPath);
       writeToLocalMdx(post, "GPU News", publishedAt, localCoverPath);
       results.push({ type: "GPU News", slug: post.slug, saved });
@@ -437,13 +469,14 @@ export async function POST(request: NextRequest) {
       try {
         try {
           // Try Pollinations first since it's free and unlimited
-          imageBuffer = await generateImageWithPollinations(`${post.title}. Stylized gaming concept art, high-tech HUD elements, colorful neon game design aesthetic, 8k resolution.`);
+          const finalPrompt = post.imagePrompt || `${post.title}. Stylized gaming concept art, high-tech HUD elements, colorful neon game design aesthetic, 8k resolution.`;
+          imageBuffer = await generateImageWithPollinations(finalPrompt);
         } catch (pollError) {
           console.warn("Pollinations failed, falling back to HuggingFace:", pollError);
           const imageBlob = await hfClient.textToImage({
             provider: "hf-inference",
             model: "black-forest-labs/FLUX.1-schnell",
-            inputs: `A highly detailed gaming or tech illustration for a blog post titled: ${post.title}. ${post.tags.join(', ')}`,
+            inputs: post.imagePrompt || `A highly detailed gaming or tech illustration for a blog post titled: ${post.title}. ${post.tags.join(', ')}`,
             parameters: { num_inference_steps: 4 },
           }, {
             outputType: "blob"
@@ -453,18 +486,21 @@ export async function POST(request: NextRequest) {
 
         // Save locally
         const publicDir = path.join(process.cwd(), "public/images/blog");
-        if (!fs.existsSync(publicDir)) {
-          fs.mkdirSync(publicDir, { recursive: true });
-        }
         const imagePath = path.join(publicDir, `${post.slug}.png`);
-        fs.writeFileSync(imagePath, imageBuffer);
+        safeWriteFileSync(imagePath, imageBuffer);
         localCoverPath = `/images/blog/${post.slug}.png`;
       } catch (imgErr: unknown) {
         console.error("[BlogGen] Local image generation/saving failed:", imgErr);
         localCoverPath = "/images/game-placeholder.png";
       }
 
-      const publishedAt = new Date(targetDate.getTime() + 24 * 60 * 60 * 1000).toISOString(); // 24 hours (1 day) in the future for daily scheduling
+      // Standardize scheduled Game News to exactly 09:00:00 UTC tomorrow
+      const tomorrow = new Date(targetDate.getTime() + 24 * 60 * 60 * 1000);
+      const tyyyy = tomorrow.getFullYear();
+      const tmm = String(tomorrow.getMonth() + 1).padStart(2, '0');
+      const tdd = String(tomorrow.getDate()).padStart(2, '0');
+      const publishedAt = `${tyyyy}-${tmm}-${tdd}T09:00:00.000Z`;
+
       const saved = await writeToMongoDB(post, "Game News", publishedAt, localCoverPath);
       writeToLocalMdx(post, "Game News", publishedAt, localCoverPath);
       results.push({ type: "Game News", slug: post.slug, saved });
