@@ -627,6 +627,7 @@ async function createWindow() {
   });
 
   win.once('ready-to-show', () => {
+    console.log('[Electron] main window ready-to-show fired!');
     if (splash) {
       try { splash.close(); } catch(e) {}
       splash = null;
@@ -636,6 +637,9 @@ async function createWindow() {
     win?.setAlwaysOnTop(true);
     win?.focus();
     win?.setAlwaysOnTop(false);
+
+    // Start Python backend AFTER window is shown to avoid UAC prompt crashing the Electron DWM render context
+    startPythonBackend();
   })
 
   registerContextMenu(win)
@@ -770,7 +774,6 @@ app.whenReady().then(() => {
     console.error(`[Electron] Failed to register startup hotkey:`, err);
   }
 
-  startPythonBackend()
   initializeSystemStats()
   createTray()
   runTelemetryWorker()
