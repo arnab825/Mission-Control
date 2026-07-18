@@ -19,6 +19,33 @@ function decodeHTMLEntities(html: string): string {
   return html.replace(/&amp;|&lt;|&gt;|&quot;|&#039;|&#39;|&apos;/g, (m) => map[m] || m);
 }
 
+function sanitizeMermaidCode(code: string): string {
+  let cleaned = code;
+  
+  // 1. Fix flowchart arrows ending with |text|>
+  cleaned = cleaned.replace(/-->\s*\|([^|]+)\|\s*>/g, "-->|$1| ");
+  cleaned = cleaned.replace(/-->\s*\|([^|]+)\|>/g, "-->|$1| ");
+
+  // 2. Fix flowchart arrows with spaces inside pipes
+  cleaned = cleaned.replace(/-->\s*\|\s+([^|]+?)\s+\|\s+/g, "-->|$1| ");
+  cleaned = cleaned.replace(/-->\s*\|\s+([^|]+?)\s+\|/g, "-->|$1| ");
+
+  // 3. Fix unquoted node labels containing spaces/parentheses/brackets by quoting them
+  cleaned = cleaned.replace(/([A-Za-z0-9_]+)\[([^\]\n"]+)\]/g, '$1["$2"]');
+  cleaned = cleaned.replace(/([A-Za-z0-9_]+)\(([^)\n"]+)\)/g, '$1("$2")');
+  cleaned = cleaned.replace(/([A-Za-z0-9_]+)\{([^}\n"]+)\}/g, '$1{"$2"}');
+
+  // 4. Fix unclosed brackets/parentheses/braces (e.g., B[Supporting Talent)
+  cleaned = cleaned.replace(/([A-Za-z0-9_]+)\[([^\]\n"]+)(?=\s*(?:-->|---|==>|\n|$))/g, '$1["$2"]');
+  cleaned = cleaned.replace(/([A-Za-z0-9_]+)\(([^)\n"]+)(?=\s*(?:-->|---|==>|\n|$))/g, '$1("$2")');
+  cleaned = cleaned.replace(/([A-Za-z0-9_]+)\{([^}\n"]+)(?=\s*(?:-->|---|==>|\n|$))/g, '$1{"$2"}');
+
+  // 5. Fix pie chart titles (remove colon)
+  cleaned = cleaned.replace(/^\s*title:\s*(.*)$/gm, "    title $1");
+
+  return cleaned;
+}
+
 export default function Mermaid({ chart }: MermaidProps) {
   const ref = useRef<HTMLDivElement>(null);
   const [svg, setSvg] = useState<string>("");
@@ -48,7 +75,7 @@ export default function Mermaid({ chart }: MermaidProps) {
 
         // Generate a random ID for the SVG
         const id = `mermaid-${Math.floor(Math.random() * 1000000)}`;
-        const cleanChart = decodeHTMLEntities(chart.trim());
+        const cleanChart = sanitizeMermaidCode(decodeHTMLEntities(chart.trim()));
         const { svg: renderedSvg } = await mermaid.render(id, cleanChart);
         
         if (isMounted) {

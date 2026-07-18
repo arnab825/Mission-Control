@@ -3,7 +3,19 @@ import { POST } from "./route";
 
 
 async function run() {
-  const dates = ["2026-07-16", "2026-07-17", "2026-07-18"];
+  // Dynamically calculate the last 4 calendar days (including today) in YYYY-MM-DD format
+  const dates: string[] = [];
+  const today = new Date();
+  for (let i = 3; i >= 0; i--) {
+    const d = new Date(today.getTime() - i * 24 * 60 * 60 * 1000);
+    const yyyy = d.getFullYear();
+    const mm = String(d.getMonth() + 1).padStart(2, '0');
+    const dd = String(d.getDate()).padStart(2, '0');
+    dates.push(`${yyyy}-${mm}-${dd}`);
+  }
+
+  console.log(`[Trigger] Dynamically generated catch-up dates:`, dates);
+
   for (const date of dates) {
     console.log(`\n==================================================`);
     console.log(`[Trigger] Generating blog posts for date: ${date}`);
