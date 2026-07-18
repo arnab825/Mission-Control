@@ -342,6 +342,18 @@ export async function POST(request: NextRequest) {
       targetDate = parsed;
     }
   }
+
+  // Get the target date components in IST (Asia/Kolkata)
+  const formatter = new Intl.DateTimeFormat("en-US", {
+    timeZone: "Asia/Kolkata",
+    year: "numeric",
+    month: "numeric",
+    day: "numeric",
+  });
+  const parts = formatter.formatToParts(targetDate);
+  const istYear = Number(parts.find(p => p.type === 'year')?.value);
+  const istMonth = Number(parts.find(p => p.type === 'month')?.value);
+  const istDay = Number(parts.find(p => p.type === 'day')?.value);
   if (process.env.NODE_ENV === "production") {
     const authHeader = request.headers.get("authorization");
     if (!process.env.CRON_SECRET || authHeader !== `Bearer ${process.env.CRON_SECRET}`) {
@@ -447,11 +459,10 @@ export async function POST(request: NextRequest) {
         localCoverPath = "/images/gpu-placeholder.png";
       }
 
-      // Standardize publishedAt to exactly 09:00:00 UTC on the target date to avoid hours/minutes duplication drift
-      const yyyy = targetDate.getFullYear();
-      const mm = String(targetDate.getMonth() + 1).padStart(2, '0');
-      const dd = String(targetDate.getDate()).padStart(2, '0');
-      const publishedAt = `${yyyy}-${mm}-${dd}T09:00:00.000Z`;
+      // Normalize publication time to exactly 01:00 AM IST (19:30 UTC of previous day)
+      // This ensures that it is in the past relative to the 02:00 AM IST cron run, making it immediately visible.
+      const gpuDate = new Date(Date.UTC(istYear, istMonth - 1, istDay, 1, 0, 0, 0) - 5.5 * 60 * 60 * 1000);
+      const publishedAt = gpuDate.toISOString();
 
       const saved = await writeToMongoDB(post, "GPU News", publishedAt, localCoverPath);
       writeToLocalMdx(post, "GPU News", publishedAt, localCoverPath);
@@ -494,12 +505,9 @@ export async function POST(request: NextRequest) {
         localCoverPath = "/images/game-placeholder.png";
       }
 
-      // Standardize scheduled Game News to exactly 09:00:00 UTC tomorrow
-      const tomorrow = new Date(targetDate.getTime() + 24 * 60 * 60 * 1000);
-      const tyyyy = tomorrow.getFullYear();
-      const tmm = String(tomorrow.getMonth() + 1).padStart(2, '0');
-      const tdd = String(tomorrow.getDate()).padStart(2, '0');
-      const publishedAt = `${tyyyy}-${tmm}-${tdd}T09:00:00.000Z`;
+      // Game News is scheduled for exactly 01:00 AM IST on the day after the target day
+      const gameDate = new Date(Date.UTC(istYear, istMonth - 1, istDay + 1, 1, 0, 0, 0) - 5.5 * 60 * 60 * 1000);
+      const publishedAt = gameDate.toISOString();
 
       const saved = await writeToMongoDB(post, "Game News", publishedAt, localCoverPath);
       writeToLocalMdx(post, "Game News", publishedAt, localCoverPath);
