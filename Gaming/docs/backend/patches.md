@@ -2,6 +2,10 @@
 
 This document contains a detailed history of all patches and updates for the AI Gaming Assistant.
 
+### Patch: 2026-07-19 — v1.7.6: Bypass code signature verification for self-built updates and robustify download updater
+
+- Bypass code signature verification for self-built updates and robustify download updater
+
 ### Patch: 2026-07-18 — v1.7.5: Update system tray check updates menu icon to match flat white style
 
 - Update system tray check updates menu icon to match flat white style
