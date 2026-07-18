@@ -547,6 +547,7 @@ export async function POST(request: NextRequest) {
 export async function GET(request: NextRequest) {
   if (process.env.NODE_ENV === "production") {
     const authHeader = request.headers.get("authorization");
+    console.log(`[BlogGen Debug] CRON_SECRET loaded: ${!!process.env.CRON_SECRET}, Auth header present: ${!!authHeader}`);
     if (!process.env.CRON_SECRET || authHeader !== `Bearer ${process.env.CRON_SECRET}`) {
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
     }
