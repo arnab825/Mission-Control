@@ -4,6 +4,9 @@ import react from '@vitejs/plugin-react'
 import tailwindcss from '@tailwindcss/vite'
 import electron from 'vite-plugin-electron/simple'
 
+import fs from 'fs'
+import path from 'path'
+
 // Custom plugin to remove deprecated inlineDynamicImports and force codeSplitting: false
 const cleanElectronBuildPlugin = () => ({
   name: 'clean-electron-build',
@@ -26,6 +29,16 @@ const cleanElectronBuildPlugin = () => ({
           output.codeSplitting = false;
         }
       }
+    }
+  },
+  closeBundle() {
+    try {
+      const src = path.resolve('electron/splash.html');
+      const dest = path.resolve('dist-electron/splash.html');
+      fs.copyFileSync(src, dest);
+      console.log('✓ Copied splash.html to dist-electron');
+    } catch (err) {
+      console.error('Failed to copy splash.html:', err);
     }
   }
 })
