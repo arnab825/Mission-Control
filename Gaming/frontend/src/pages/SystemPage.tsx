@@ -1107,10 +1107,12 @@ const SystemPage: React.FC<SystemPageProps> = ({
                     value={(() => {
                       const draw = state?.gpu_metrics?.power_draw ?? state?.gpu_metrics?.power_draw_w;
                       const limit = state?.gpu_metrics?.power_limit ?? state?.gpu_metrics?.power_limit_w;
+                      const limitMax = state?.gpu_metrics?.power_limit_max ?? state?.gpu_metrics?.power_limit_max_w;
                       if (draw === undefined || draw === null) return '---';
                       const formattedDraw = Math.round(draw);
-                      const formattedLimit = limit ? ` / ${Math.round(limit)} W` : '';
-                      return `${formattedDraw} W${formattedLimit}`;
+                      const formattedLimit = limit ? ` / ${Math.round(limit)} W configured` : '';
+                      const formattedMax = (limitMax && limitMax > 0) ? ` (chassis: ${Math.round(limitMax)} W TGP)` : '';
+                      return `${formattedDraw} W${formattedLimit}${formattedMax}`;
                     })()} 
                   />
                   <SpecRow label="Temperature" value={(state?.gpu_metrics?.temp ?? state?.gpu_metrics?.temperature) ? `${Math.round(state?.gpu_metrics?.temp ?? state?.gpu_metrics?.temperature ?? 0)}°C` : '---'} />
