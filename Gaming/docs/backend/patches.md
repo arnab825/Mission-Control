@@ -2,6 +2,10 @@
 
 This document contains a detailed history of all patches and updates for the AI Gaming Assistant.
 
+### Patch: 2026-07-19 — v1.7.7: Precision TGP and CPU Thermal fallbacks
+
+- Precision TGP and CPU Thermal fallbacks
+
 ### Patch: 2026-07-19 — v1.7.6: Bypass code signature verification for self-built updates and robustify download updater
 
 - Bypass code signature verification for self-built updates and robustify download updater

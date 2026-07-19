@@ -4,10 +4,15 @@ An advanced, real-time AI gaming assistant that provides tactical coaching, visi
 
 ## 🔔 Current Release
 
-- **Version:** `v2.0.0` — 2026-07-06
-- **Highlights:** Woodpecker CI/CD Integration — Migrated the packaging, backend compilation, version stamping, and release publication pipelines from GitHub Actions to Woodpecker CI (runnable locally via PowerShell).
+- **Version:** `v1.7.7` — 2026-07-19
+- **Highlights:** Precision Hardware TGP Constraints & CPU Thermal Zone Decoding Fixes.
 
 ### 📜 Release Notes
+
+#### `v1.7.7` — 2026-07-19 (Precision Hardware TGP & CPU Thermal Zone Fixes)
+- **Chassis TGP Constraints**: Added support for querying physical manufacturer TGP limits (`power_limit_max_w` via `nvmlDeviceGetPowerManagementLimitConstraints()`) alongside user-configured NVML limits to display accurate power ceilings (e.g., 40W configured vs 80W chassis ceiling).
+- **CPU Thermal Zone Path Correcting**: Fixed PDH path instance names (e.g. `_TZ.TZ01` -> `\_TZ.TZ01`) enabling successful fallback to Windows Performance Counters when the native LHM kernel driver is blocked (e.g., by VBS).
+- **PDH Temperature Value Decoding**: Corrected raw Kelvin vs Kelvin*10 sensor output processing to prevent displaying faulty readings.
 
 #### `v2.0.0` — 2026-07-06 (Woodpecker CI/CD Integration)
 - **CI/CD Migration**: Switched the entire build and deploy workflow to Woodpecker CI/CD, enabling fully automated local builds and release publishing.

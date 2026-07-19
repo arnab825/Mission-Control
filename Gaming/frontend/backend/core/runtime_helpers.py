@@ -98,16 +98,25 @@ def _try_win_cpu_temp_native() -> float:
 
 
     # --- Approach 1: PDH Thermal Zone counters (fast, no subprocess) ---
+    # Instance names include a leading backslash: \_TZ.TZ01, \_TZ.THRM, etc.
+    # Try both counter types: "High Precision Temperature" (Kelvin*10, preferred)
+    # and "Temperature" (raw Kelvin, fallback).
     try:
         import win32pdh  # type: ignore[reportMissingImports]
+        # Ordered by likelihood: TZ01 is confirmed present on Alienware Aurora 16.
+        # Each entry is (instance_with_backslash, use_high_precision)
         counters_to_try = [
-            r"\Thermal Zone Information(_TZ.THRM)\Temperature",
-            r"\Thermal Zone Information(_TZ.TZ00)\Temperature",
-            r"\Thermal Zone Information(_TZ.TZ01)\Temperature",
-            r"\Thermal Zone Information(_TZ.CPUZ)\Temperature",
-            r"\Thermal Zone Information(_TZ.CPU0)\Temperature",
+            r"\Thermal Zone Information(\_TZ.TZ01)\High Precision Temperature",
+            r"\Thermal Zone Information(\_TZ.THRM)\High Precision Temperature",
+            r"\Thermal Zone Information(\_TZ.TZ00)\High Precision Temperature",
+            r"\Thermal Zone Information(\_TZ.CPUZ)\High Precision Temperature",
+            r"\Thermal Zone Information(\_TZ.CPU0)\High Precision Temperature",
+            r"\Thermal Zone Information(\_TZ.TZ01)\Temperature",
+            r"\Thermal Zone Information(\_TZ.THRM)\Temperature",
+            r"\Thermal Zone Information(\_TZ.TZ00)\Temperature",
         ]
         for counter_path in counters_to_try:
+            query = None
             try:
                 query = win32pdh.OpenQuery()
                 counter = win32pdh.AddCounter(query, counter_path)
@@ -116,26 +125,34 @@ def _try_win_cpu_temp_native() -> float:
                 win32pdh.CollectQueryData(query)
                 _, val = win32pdh.GetFormattedCounterValue(counter, win32pdh.PDH_FMT_DOUBLE)
                 win32pdh.CloseQuery(query)
-                # PDH returns Kelvin * 10 for thermal zones
-                if val > 2500:  # Kelvin * 10 (e.g. 3232 = 323.2K = 50.05°C)
+                query = None
+                # High Precision Temperature returns Kelvin * 10 (e.g. 3322 = 332.2K = 59.05°C)
+                # Temperature returns raw Kelvin (e.g. 332 = 58.85°C)
+                if val > 2500:  # Kelvin * 10
                     celsius = (val / 10.0) - 273.15
-                    if 0 < celsius < 120:
-                        return round(celsius, 1)
-                elif val > 200:  # Some drivers return direct Kelvin
+                elif val > 200:  # raw Kelvin
                     celsius = val - 273.15
-                    if 0 < celsius < 120:
-                        return round(celsius, 1)
+                else:
+                    continue
+                if 0 < celsius < 120:
+                    return round(celsius, 1)
             except Exception:
-                try:
-                    win32pdh.CloseQuery(query)
-                except Exception:
-                    pass
+                if query is not None:
+                    try:
+                        win32pdh.CloseQuery(query)
+                    except Exception:
+                        pass
     except ImportError:
         pass
     except Exception:
         pass
 
-    # --- Approach 2: PowerShell enumerate all thermal zone instances ---
+    # Win32_PerfRawData_Counters_ThermalZoneInformation.Temperature is raw Kelvin (e.g. 327 = 53.85°C).
+    # The Get-Counter fallback picks PathsWithInstances[0] which is "High Precision Temperature"
+    # returning Kelvin*10 (e.g. 3272 = 54.05°C).
+    # We distinguish the two by magnitude: >2500 = Kelvin*10, 200-2500 = raw Kelvin.
+    # NOTE: Cannot use string prefixes inside the powershell -Command "..." block because
+    # cmd.exe (shell=True) interprets embedded double-quotes as closing the outer string.
     try:
         import subprocess as _sp
         si = _sp.STARTUPINFO()
@@ -147,10 +164,10 @@ def _try_win_cpu_temp_native() -> float:
             '  if ($zones) { $zones | ForEach-Object { Write-Output ($_.Temperature) } } '
             '} catch { '
             '  try { '
-            '    $c = Get-Counter -Counter (Get-Counter -ListSet \"Thermal Zone Information\" -ErrorAction Stop).PathsWithInstances[0] -ErrorAction Stop; '
+            '    $c = Get-Counter -Counter (Get-Counter -ListSet \\\"Thermal Zone Information\\\" -ErrorAction Stop).PathsWithInstances[0] -ErrorAction Stop; '
             '    Write-Output ($c.CounterSamples[0].CookedValue) '
             '  } catch {} '
-            '}'  
+            '}'
             '"',
             shell=True, startupinfo=si, creationflags=0x08000000, timeout=3.0
         ).decode().strip().splitlines()
@@ -158,21 +175,27 @@ def _try_win_cpu_temp_native() -> float:
             line = line.strip()
             try:
                 val = float(line)
-                # Win32_PerfRawData returns Kelvin * 10
+                # Win32_PerfRawData.Temperature = raw Kelvin (~327 at 54°C)
+                # High Precision Temperature = Kelvin*10 (~3272 at 54°C)
+                # Distinguish by magnitude: anything >2500 must be Kelvin*10
                 if val > 2500:
                     celsius = (val / 10.0) - 273.15
-                    if 0 < celsius < 120:
-                        return round(celsius, 1)
                 elif val > 200:
+                    # Raw Kelvin — this is what Win32_PerfRawData actually returns
                     celsius = val - 273.15
-                    if 0 < celsius < 120:
-                        return round(celsius, 1)
+                else:
+                    continue
+                if 0 < celsius < 120:
+                    return round(celsius, 1)
             except ValueError:
                 pass
     except Exception:
         pass
 
-    # --- Approach 3: Read all PDH thermal zones dynamically ---
+
+    # --- Approach 3: Enumerate all PDH thermal zones dynamically ---
+    # Use EnumObjectItems to discover whatever zones the system exposes, then
+    # read the first valid one (not max — we want package, not hotspot).
     try:
         import win32pdh  # type: ignore[reportMissingImports]
         instances = win32pdh.EnumObjectItems(None, None, "Thermal Zone Information", win32pdh.PERF_DETAIL_WIZARD)
@@ -180,33 +203,34 @@ def _try_win_cpu_temp_native() -> float:
             query = win32pdh.OpenQuery()
             added = []
             for inst in instances[1][:5]:  # Check first 5 zones
-                try:
-                    path = f"\\Thermal Zone Information({inst})\\Temperature"
-                    ctr = win32pdh.AddCounter(query, path)
-                    added.append(ctr)
-                except Exception:
-                    pass
+                # Try High Precision Temperature first, fall back to Temperature
+                for counter_name in ["High Precision Temperature", "Temperature"]:
+                    try:
+                        path = f"\\Thermal Zone Information({inst})\\{counter_name}"
+                        ctr = win32pdh.AddCounter(query, path)
+                        added.append((ctr, counter_name))
+                        break
+                    except Exception:
+                        pass
             if added:
                 win32pdh.CollectQueryData(query)
                 import time as _time; _time.sleep(0.05)
                 win32pdh.CollectQueryData(query)
-                best = 0.0
-                for ctr in added:
+                for ctr, counter_name in added:
                     try:
                         _, val = win32pdh.GetFormattedCounterValue(ctr, win32pdh.PDH_FMT_DOUBLE)
                         if val > 2500:
-                            celsius = (val / 10.0) - 273.15
+                            celsius = (val / 10.0) - 273.15  # High Precision: Kelvin*10
                         elif val > 200:
-                            celsius = val - 273.15
+                            celsius = val - 273.15  # Temperature: raw Kelvin
                         else:
                             continue
                         if 0 < celsius < 120:
-                            best = max(best, celsius)
+                            win32pdh.CloseQuery(query)
+                            return round(celsius, 1)
                     except Exception:
                         pass
                 win32pdh.CloseQuery(query)
-                if best > 0:
-                    return round(best, 1)
     except Exception:
         pass
 
@@ -843,6 +867,7 @@ class TelemetryThread(threading.Thread):
                         "clock_mem": gm.get("clock_mem_mhz"),
                         "power_draw": gm.get("power_draw_w"),
                         "power_limit": gm.get("power_limit_w"),
+                        "power_limit_max": gm.get("power_limit_max_w"),
                         "driver_version": gm.get("driver_version"),
                         "fan_speed": gm.get("fan_speed"),
                     }

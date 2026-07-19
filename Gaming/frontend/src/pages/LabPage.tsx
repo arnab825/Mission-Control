@@ -274,12 +274,18 @@ const LabPage: React.FC<{
       powerLimitW = Math.max(powerLimitW, Math.ceil(powerDrawRaw * 1.25));
     }
 
+    const powerLimitMaxRaw = state?.gpu_metrics?.power_limit_max ?? state?.gpu_metrics?.power_limit_max_w;
+    const powerLimitMaxW = (powerLimitMaxRaw !== undefined && typeof powerLimitMaxRaw === 'number' && !isNaN(powerLimitMaxRaw) && powerLimitMaxRaw > 0)
+      ? powerLimitMaxRaw
+      : null;
+
     const powerPercent = Math.round((powerDraw / powerLimitW) * 100);
     const powerTarget = Math.min(100, powerPercent);
-    const powerLabel = `${powerDraw.toFixed(1)}W / ${powerLimitW.toFixed(0)}W (${powerPercent}%)`;
+    const tgpSuffix = powerLimitMaxW ? ` (${powerLimitMaxW.toFixed(0)}W TGP max)` : '';
+    const powerLabel = `${powerDraw.toFixed(1)}W / ${powerLimitW.toFixed(0)}W limit${tgpSuffix} (${powerPercent}%)`;
 
     return { powerTarget, powerLabel };
-  }, [state?.gpu_metrics?.power_draw, state?.gpu_metrics?.power_draw_w, state?.gpu_metrics?.power_limit, state?.gpu_metrics?.power_limit_w, isGameActive, coolingMode]);
+  }, [state?.gpu_metrics?.power_draw, state?.gpu_metrics?.power_draw_w, state?.gpu_metrics?.power_limit, state?.gpu_metrics?.power_limit_w, state?.gpu_metrics?.power_limit_max, state?.gpu_metrics?.power_limit_max_w, isGameActive, coolingMode]);
 
   // Memoize temperature calculation
   const { currentTemp, tempColor } = useMemo(() => {

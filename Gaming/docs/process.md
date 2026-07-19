@@ -98,7 +98,11 @@ If you modify [Program.cs](file:///c:/GitHub/Mission-Control/Gaming/backend/syst
 ### CPU Telemetry Logic
 * **Utilization**: Gathered via standard `psutil.cpu_percent` to match Windows Task Manager and AWCC exactly.
 * **Frequency**: Prioritizes direct CPU Core clocks (MSR readings) retrieved from the C# helper process.
-* **Temperature**: Prioritizes AMD `Tdie` over `Tctl` to bypass the artificial +20°C offset on AMD Ryzen CPUs.
+* **Temperature**: Prioritizes AMD `Tdie` over `Tctl` to bypass the artificial +20°C offset on AMD Ryzen CPUs. When the C# helper's driver is blocked (e.g. by VBS), it falls back to PDH thermal zone counters. High Precision (`High Precision Temperature` = Kelvin * 10) and raw Kelvin (`Temperature`) readings are supported and corrected. The paths are formatted as `\Thermal Zone Information(\_TZ.TZ01)\Temperature` to match the exact WMI instance namespaces.
+
+### GPU Telemetry Logic
+* **Configured Power Limit**: Gathered via `nvmlDeviceGetPowerManagementLimit()` to show the active user/preset limit.
+* **Chassis TGP Ceiling**: Gathered via `nvmlDeviceGetPowerManagementLimitConstraints()` (`max_limit`) to show the absolute hardware-enforced limit from the manufacturer.
 
 ---
 

@@ -122,7 +122,8 @@ class GPUMonitor:
             "temperature": 0,        # GPU temp (°C)
             "fan_speed": 0,          # Fan speed (%)
             "power_draw_w": 0.0,     # Current power draw (W)
-            "power_limit_w": 0.0,    # Power limit (W)
+            "power_limit_w": 0.0,    # Currently configured NVML power limit (W)
+            "power_limit_max_w": 0.0, # Hardware TGP ceiling / chassis max (W)
             "clock_gpu_mhz": 0,      # GPU clock (MHz)
             "clock_mem_mhz": 0,      # Memory clock (MHz)
             "pcie_gen": 0,           # PCIe generation
@@ -500,7 +501,7 @@ class GPUMonitor:
             except Exception as e:
                 self._handle_nvml_error(e)
 
-            # Power limit
+            # Power limit (currently configured NVML limit)
             try:
                 try:
                     raw_limit = pynvml.nvmlDeviceGetPowerManagementLimit(self._handle)
@@ -512,6 +513,18 @@ class GPUMonitor:
                 if power_limit > 1000.0:
                     power_limit = 0.0
                 self._metrics["power_limit_w"] = round(power_limit, 1)
+            except Exception as e:
+                self._handle_nvml_error(e)
+
+            # Hardware TGP ceiling — manufacturer chassis cap via limit constraints
+            try:
+                _min_raw, max_raw = pynvml.nvmlDeviceGetPowerManagementLimitConstraints(self._handle)
+                power_limit_max = max_raw / 1000.0
+                if power_limit_max > 1000.0:
+                    power_limit_max = power_limit_max / 1000.0
+                if power_limit_max > 1000.0:
+                    power_limit_max = 0.0
+                self._metrics["power_limit_max_w"] = round(power_limit_max, 1)
             except Exception as e:
                 self._handle_nvml_error(e)
             
