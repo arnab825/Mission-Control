@@ -32,7 +32,7 @@ image_prompt: A high-resolution, close-up shot of [Specific hardware/character] 
 
 ## 2.1 Standardized Publication Timing to Prevent Duplicates
 To avoid creating duplicate posts for the same day (e.g. if the generation script runs multiple times or cold-starts), the publication time must be completely deterministic and standardized:
-* All generated posts are standardized to exactly **09:00:00 UTC** (14:30:00 IST) on their respective publication date.
+* All generated posts are standardized to exactly **01:00 AM IST** (19:30 UTC of the previous day) on their respective publication date.
 * Slugs must strictly end with the date suffix (`-YYYY-MM-DD`) so database duplicate-key checks can immediately detect and skip redundant entries.
 
 ```

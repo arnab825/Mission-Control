@@ -20,7 +20,7 @@ An advanced, real-time AI gaming assistant that provides tactical coaching, visi
 - **EasyOCR Eager Quantization Upgrade**: Updated EasyOCR dependency calls to use the modern `torchao` eager-mode API, silencing deprecated `torch.ao.quantization` warnings.
 - **Motherboard UUID Lock & Encryption**: Enforced cryptographic Motherboard UUID locks for settings verification, and added local credential isolation policies.
 - **AI-Driven Gaming Intel Pipeline**: Programmed a Next.js API endpoint fetching real-time headlines from top feeds (IGN, AnandTech) to generate technical blog articles using NVIDIA NIM.
-- **MongoDB Atlas Sync & Cron**: Secured the pipeline with a `CRON_SECRET` auth handshake and scheduled a nightly Vercel cron (02:00 AM IST) that saves posts directly in MongoDB Atlas, protecting generated content from ephemeral Vercel environment wipes.
+- **MongoDB Atlas Sync & Cron**: Secured the pipeline with a `CRON_SECRET` auth handshake and scheduled a nightly Vercel cron (04:00 AM IST) that saves posts directly in MongoDB Atlas, protecting generated content from ephemeral Vercel environment wipes.
 
 #### `v1.4.8` — 2026-06-26 (Voice Mic Toggle & Consolidated Electron App Overlay)
 - **Consolidated Window Management**: Eliminated the redundant standalone `agent-popup` window overlay to streamline system overhead, consolidating all agent chat interface features into the primary Electron dashboard and HUD overlay.

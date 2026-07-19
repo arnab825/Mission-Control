@@ -383,7 +383,7 @@ This document contains a detailed history of all patches and updates for the AI 
 - **EasyOCR Eager Quantization Upgrade**: Updated EasyOCR dependency calls to use the modern `torchao` eager-mode API, silencing deprecated `torch.ao.quantization` warnings.
 - **Motherboard UUID Lock & Encryption**: Enforced cryptographic Motherboard UUID locks for settings verification, and added local credential isolation policies.
 - **AI-Driven Gaming Intel Pipeline**: Programmed a Next.js API endpoint fetching real-time headlines from top feeds (IGN, AnandTech) to generate technical blog articles using NVIDIA NIM.
-- **Sanity CMS Sync & Cron**: Secured the pipeline with a `CRON_SECRET` auth handshake and scheduled a nightly Vercel cron (02:00 AM IST) that saves posts directly in Sanity CMS, protecting generated content from ephemeral Vercel environment wipes.
+- **Sanity CMS Sync & Cron**: Secured the pipeline with a `CRON_SECRET` auth handshake and scheduled a nightly Vercel cron (04:00 AM IST) that saves posts directly in Sanity CMS, protecting generated content from ephemeral Vercel environment wipes.
 
 ### Patch: 2026-06-26 — v1.4.8: Voice Mic Toggle & Consolidated Electron App Overlay
 
