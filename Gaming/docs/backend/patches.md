@@ -2,6 +2,10 @@
 
 This document contains a detailed history of all patches and updates for the AI Gaming Assistant.
 
+### Patch: 2026-07-19 — v1.7.10: Check For Updates Logo Stylization
+
+- Updated Check For Updates tray icon to be white and borderless
+
 ### Patch: 2026-07-19 — v1.7.9: Remove Mission Briefs, update tray icon, and finalize TGP telemetry
 
 - Deleted Mission Briefs and associated local mdx briefs
