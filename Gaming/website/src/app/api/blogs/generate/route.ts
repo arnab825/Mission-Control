@@ -479,8 +479,8 @@ export async function POST(request: NextRequest) {
           localCoverPath = "/images/gpu-placeholder.png";
         }
 
-        // Normalize publication time to exactly 01:00 AM IST (19:30 UTC of previous day)
-        const gpuDate = new Date(Date.UTC(istYear, istMonth - 1, istDay, 1, 0, 0, 0) - 5.5 * 60 * 60 * 1000);
+        // Normalize publication time to exactly 08:00 AM IST (02:30 UTC of same day)
+        const gpuDate = new Date(Date.UTC(istYear, istMonth - 1, istDay, 8, 0, 0, 0) - 5.5 * 60 * 60 * 1000);
         const publishedAt = gpuDate.toISOString();
 
         const saved = await writeToMongoDB(post, "GPU News", publishedAt, localCoverPath);
@@ -524,8 +524,8 @@ export async function POST(request: NextRequest) {
           localCoverPath = "/images/game-placeholder.png";
         }
 
-        // Standardize scheduled Game News to exactly 01:00 AM IST on the target day
-        const gameDate = new Date(Date.UTC(istYear, istMonth - 1, istDay, 1, 0, 0, 0) - 5.5 * 60 * 60 * 1000);
+        // Standardize scheduled Game News to exactly 08:00 AM IST on the target day
+        const gameDate = new Date(Date.UTC(istYear, istMonth - 1, istDay, 8, 0, 0, 0) - 5.5 * 60 * 60 * 1000);
         const publishedAt = gameDate.toISOString();
 
         const saved = await writeToMongoDB(post, "Game News", publishedAt, localCoverPath);

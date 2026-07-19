@@ -50,7 +50,7 @@ Mission Control incorporates an automated, AI-driven gaming intelligence blog se
 
 - **AI Generation Route**: `/api/blogs/generate` fetches real-time updates from five major RSS feeds (IGN, Kotaku, Eurogamer, AnandTech, Tom's Hardware) and generates comprehensive technical articles using the NVIDIA NIM API (`meta/llama-3.1-70b-instruct`).
 - **Data Persistence**: To prevent data loss in Vercel's ephemeral serverless environments, generated articles are written directly to MongoDB Atlas instead of the local filesystem.
-- **Nightly Scheduling**: Configured via `vercel.json` to execute automatically every night at **02:00 AM IST (20:30 UTC)**. The endpoint is protected against unauthorized invocation using a custom `CRON_SECRET` bearer token handshake.
+- **Nightly Scheduling**: Configured via `vercel.json` to execute automatically every night at **04:00 AM IST (22:30 UTC)**. The endpoint is protected against unauthorized invocation using a custom `CRON_SECRET` bearer token handshake.
 - **Clean Schema Separation**: 
   - **Blogs**: Queried from MongoDB and shown under the *Gaming Intel* tab at `/blog` and `/blog/gaming/[slug]`.
   - **Documentation**: Loaded dynamically from local Markdown/MDX files in `/Gaming/docs` and rendered under `/docs` and `/docs/[slug]`.
