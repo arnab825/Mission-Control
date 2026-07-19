@@ -190,7 +190,7 @@ export default function Home() {
   ];
 
   return (
-    <div className="min-h-screen flex flex-col items-center justify-start w-full relative overflow-hidden pt-8 sm:pt-20 bg-transparent">
+    <div className="min-h-screen flex flex-col items-center justify-start w-full relative overflow-hidden pt-24 sm:pt-28 bg-transparent">
       
       {/* JSON-LD Schemas */}
       <Script id="faq-schema" type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(faqSchema) }} />
@@ -214,13 +214,13 @@ export default function Home() {
             className="lg:col-span-7 flex flex-col items-start text-left"
           >
             {/* Hero Brand Logo */}
-            <div className="flex items-center gap-4 mb-8">
-              <div className="w-20 h-20 sm:w-24 sm:h-24 rounded-2xl border border-neon-green/30 flex items-center justify-center bg-neon-green/5 overflow-hidden p-3 shadow-[0_0_25px_rgba(118, 185, 0,0.15)]">
+            <div className="flex items-center gap-3 sm:gap-4 mb-8">
+              <div className="w-14 h-14 sm:w-20 sm:h-20 rounded-2xl border border-neon-green/30 flex items-center justify-center bg-neon-green/5 overflow-hidden p-2 sm:p-3 shadow-[0_0_25px_rgba(118, 185, 0,0.15)] shrink-0">
                 <img src="/logo.png" alt="Mission Control Logo" className="w-full h-full object-contain" />
               </div>
-              <div>
-                <span className="text-[10px] font-mono font-bold text-neon-green uppercase tracking-widest block mb-0.5">THE NEXT-GEN GAME ASSISTANT</span>
-                <span className="text-lg font-black font-display text-white uppercase tracking-wider">MISSION CONTROL</span>
+              <div className="min-w-0">
+                <span className="text-[8px] sm:text-[10px] font-mono font-bold text-neon-green uppercase tracking-wider sm:tracking-widest block mb-0.5 truncate">THE NEXT-GEN GAME ASSISTANT</span>
+                <span className="text-base sm:text-lg font-black font-display text-white uppercase tracking-wider block">MISSION CONTROL</span>
               </div>
             </div>
 

@@ -253,8 +253,9 @@ image_prompt: A high-resolution, close-up shot of [Specific Topic/Hardware/Chara
       .map((t: string) => t.replace(/^["']|["']$/g, "").trim())
       .filter(Boolean);
 
-    safeAppendFileSync(path.join(process.cwd(), "generate.log"), `[BlogGen] Successfully generated post: ${title}\n`);
-    const cleanContent = content.replace(/```(?:markdown|md)\r?\n([\s\S]*?)\r?\n```/gi, "$1");
+    const cleanContent = content
+      .replace(/```(?:markdown|md)\r?\n([\s\S]*?)\r?\n```/gi, "$1")
+      .replace(/```table\r?\n([\s\S]*?)\r?\n```/gi, "$1");
     const sanitizedContent = sanitizeMermaid(cleanContent);
     return { slug, title, excerpt, tags, content: sanitizedContent, imagePrompt };
   } catch (err: unknown) {

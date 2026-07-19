@@ -3,29 +3,29 @@
 import { useState, useEffect } from "react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { 
-  Home, 
-  Cpu, 
-  BookOpen, 
-  Newspaper, 
-  Mail, 
-  Download, 
-  Shield, 
-  Search as SearchIcon, 
-  X, 
-  Users, 
-  ChevronDown, 
+import {
+  Home,
+  Cpu,
+  BookOpen,
+  Newspaper,
+  Mail,
+  Download,
+  Shield,
+  Search as SearchIcon,
+  X,
+  Users,
+  ChevronDown,
   ChevronRight,
-  Zap, 
-  Tv, 
-  Activity, 
-  Terminal, 
-  Settings, 
-  HelpCircle, 
-  ShieldCheck, 
-  AlertTriangle, 
-  Send, 
-  TrendingUp, 
+  Zap,
+  Tv,
+  Activity,
+  Terminal,
+  Settings,
+  HelpCircle,
+  ShieldCheck,
+  AlertTriangle,
+  Send,
+  TrendingUp,
   Database,
   Menu
 } from "lucide-react";
@@ -44,7 +44,7 @@ export default function Navbar() {
   const [isMobileSearchOpen, setIsMobileSearchOpen] = useState(false);
   const [showAllResults, setShowAllResults] = useState(false);
   const [expandedMobileSub, setExpandedMobileSub] = useState<string | null>(null);
-  
+
   type OS = "windows" | "linux" | "mac" | "other" | null;
   const [os, setOs] = useState<OS>(null);
 
@@ -147,13 +147,13 @@ export default function Navbar() {
         }`}
     >
       <div className="max-w-7xl mx-auto h-full px-4 sm:px-6 flex items-center justify-between relative">
-        
+
         {/* Brand Logo */}
-        <Link href="/" className="flex items-center gap-3 group z-10">
-          <div className="w-14 h-14 rounded-xl border border-neon-green/40 flex items-center justify-center bg-neon-green/10 group-hover:border-neon-green group-hover:shadow-[0_0_20px_rgba(118, 185, 0,0.6)] shadow-[0_0_10px_rgba(118, 185, 0,0.2)] transition-all duration-300 overflow-hidden p-1.5">
+        <Link href="/" className="flex items-center gap-2 sm:gap-3 group z-10">
+          <div className="w-10 h-10 sm:w-14 sm:h-14 rounded-xl border border-neon-green/40 flex items-center justify-center bg-neon-green/10 group-hover:border-neon-green group-hover:shadow-[0_0_20px_rgba(118, 185, 0,0.6)] shadow-[0_0_10px_rgba(118, 185, 0,0.2)] transition-all duration-300 overflow-hidden p-1.5 shrink-0">
             <img src="/logo.png" alt="Mission Control" className="w-full h-full object-contain" />
           </div>
-          <span className="text-lg sm:text-xl font-black font-display tracking-wider text-white group-hover:text-neon-green transition-colors duration-300">
+          <span className="text-sm min-[375px]:text-base sm:text-xl font-black font-display tracking-wider text-white group-hover:text-neon-green transition-colors duration-300 whitespace-nowrap">
             MISSION <span className="text-neon-green drop-shadow-[0_0_8px_rgba(118, 185, 0,0.5)]">CONTROL</span>
           </span>
         </Link>
@@ -175,7 +175,7 @@ export default function Navbar() {
                   <ChevronDown className="w-3 h-3 text-gray-500 group-hover:text-white transition-transform duration-300 group-hover:rotate-180" />
                   <span className={`absolute bottom-0 left-0 h-[2px] bg-neon-green shadow-[0_0_8px_rgba(118, 185, 0,0.8)] rounded transition-all duration-300 ${isActive ? "w-full" : "w-0 group-hover:w-full"}`} />
                 </Link>
-                
+
                 <div className="absolute top-full left-0 pt-2 w-56 opacity-0 scale-95 pointer-events-none group-hover:opacity-100 group-hover:scale-100 group-hover:pointer-events-auto transition-all duration-200 origin-top-left z-50">
                   <div className="bg-[#0d0e12] border border-white/10 rounded-2xl p-2 space-y-1 shadow-2xl">
                     {link.subLinks.map((sub) => {
@@ -212,9 +212,8 @@ export default function Navbar() {
                     <Link
                       key={link.name}
                       href={link.href}
-                      className={`flex items-center gap-2 px-3 py-2 rounded-xl text-[11px] font-mono tracking-wider uppercase transition-all ${
-                        isActive ? "bg-neon-green/10 text-neon-green font-bold" : "text-gray-400 hover:text-white hover:bg-white/[0.04]"
-                      }`}
+                      className={`flex items-center gap-2 px-3 py-2 rounded-xl text-[11px] font-mono tracking-wider uppercase transition-all ${isActive ? "bg-neon-green/10 text-neon-green font-bold" : "text-gray-400 hover:text-white hover:bg-white/[0.04]"
+                        }`}
                     >
                       <Icon className="w-3.5 h-3.5 text-neon-green/80" />
                       {link.name}
@@ -254,7 +253,7 @@ export default function Navbar() {
               </button>
             )}
           </div>
-          
+
           {/* Search Results Dropdown */}
           {isSearchFocused && (
             <div className="absolute top-11 left-0 w-80 bg-[#0d0e12] border border-white/10 rounded-2xl p-2 z-50 max-h-80 overflow-y-auto shadow-2xl">
@@ -357,7 +356,7 @@ export default function Navbar() {
         {/* Full-Width Mobile Search Overlay */}
         <AnimatePresence>
           {isMobileSearchOpen && (
-            <motion.div 
+            <motion.div
               initial={{ opacity: 0, y: -20 }}
               animate={{ opacity: 1, y: 0 }}
               exit={{ opacity: 0, y: -20 }}
@@ -434,7 +433,7 @@ export default function Navbar() {
             className="lg:hidden fixed top-20 left-0 w-full bg-[#0a0a0c]/98 backdrop-blur-2xl border-b border-neon-green/30 shadow-[0_20px_50px_rgba(0,0,0,0.9)] max-h-[calc(100vh-5rem)] overflow-y-auto z-40"
           >
             <div className="px-4 py-6 flex flex-col gap-3 font-mono">
-              
+
               {mobileNavLinks.map((link: any) => {
                 const isActive = pathname === link.href;
                 const Icon = link.icon;
@@ -447,9 +446,8 @@ export default function Navbar() {
                       <Link
                         href={link.href}
                         onClick={() => setIsOpen(false)}
-                        className={`flex items-center gap-3 text-sm font-bold uppercase tracking-wider ${
-                          isActive ? "text-neon-green glow-text-teal" : "text-white hover:text-neon-green"
-                        }`}
+                        className={`flex items-center gap-3 text-sm font-bold uppercase tracking-wider ${isActive ? "text-neon-green glow-text-teal" : "text-white hover:text-neon-green"
+                          }`}
                       >
                         <div className="w-8 h-8 rounded-xl bg-neon-green/10 border border-neon-green/30 flex items-center justify-center text-neon-green shrink-0">
                           <Icon className="w-4 h-4" />

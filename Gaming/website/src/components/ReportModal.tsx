@@ -252,21 +252,21 @@ export default function ReportModal({ isOpen, onClose, onSuccess }: ReportModalP
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/80 backdrop-blur-md">
-      <div className="relative w-full max-w-2xl max-h-[90vh] overflow-y-auto glass-panel glow-green rounded-xl border border-white/10 text-white flex flex-col p-6 scrollbar-thin">
+      <div className="relative w-full max-w-2xl max-h-[85vh] overflow-y-auto glass-panel glow-green rounded-xl border border-white/10 text-white p-6 scrollbar-thin">
         
         {/* Header */}
-        <div className="flex items-center justify-between pb-4 border-b border-white/10">
-          <div className="flex items-center gap-2">
-            <Zap className="w-5 h-5 text-neon-green animate-pulse" />
-            <h2 className="text-xl font-bold font-display uppercase tracking-wider text-neon-green">
+        <div className="flex items-start justify-between pb-4 border-b border-white/10 gap-4">
+          <div className="flex items-start gap-2 pt-0.5">
+            <Zap className="w-4 h-4 text-neon-green animate-pulse shrink-0 mt-0.5" />
+            <h2 className="text-sm min-[375px]:text-base sm:text-lg font-bold font-display uppercase tracking-wider text-neon-green leading-tight">
               Transmit Hardware Telemetry / Glitch Report
             </h2>
           </div>
           <button
             onClick={onClose}
-            className="p-1.5 rounded-lg bg-white/5 hover:bg-white/10 text-white/70 hover:text-white transition"
+            className="p-1.5 rounded-lg bg-white/5 hover:bg-white/10 text-white/70 hover:text-white transition shrink-0"
           >
-            <X className="w-5 h-5" />
+            <X className="w-4 h-4" />
           </button>
         </div>
 
@@ -278,7 +278,7 @@ export default function ReportModal({ isOpen, onClose, onSuccess }: ReportModalP
         )}
 
         {/* Form */}
-        <form onSubmit={handleSubmit} className="mt-4 space-y-4 flex-1">
+        <form onSubmit={handleSubmit} className="mt-4 space-y-4">
           {/* Grid fields */}
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             <div>

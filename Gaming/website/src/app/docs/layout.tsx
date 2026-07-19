@@ -2,6 +2,7 @@ import Link from "next/link";
 import { BookOpen, Terminal } from "lucide-react";
 import { getAllDocs } from "@/lib/docs";
 import { DocsSidebarNav } from "@/components/DocsSidebarNav";
+import MobileDocsSidebar from "@/components/MobileDocsSidebar";
 
 // ─── Static sidebar manifest (fallback when Sanity has no content) ────────────
 
@@ -20,10 +21,13 @@ export default async function DocsLayout({
       {/* Ambient glow */}
       <div className="absolute top-1/4 left-0 w-[500px] h-[500px] bg-neon-green/4 blur-[180px] rounded-full pointer-events-none -z-10" />
 
-      <div className="max-w-[90rem] mx-auto px-4 sm:px-6 md:px-8 flex-1 flex items-start w-full">
+      {/* Mobile Sidebar Navigation */}
+      <MobileDocsSidebar docs={docs} />
+
+      <div className="max-w-[90rem] mx-auto px-4 sm:px-6 md:px-8 flex-1 flex items-start w-full gap-8">
 
         {/* ── Left Sidebar ─────────────────────────────────────────────── */}
-        <aside className="fixed hidden lg:flex flex-col w-64 pt-8 pb-10 top-20 h-[calc(100vh-5rem)] overflow-y-auto border-r border-white/8 pr-4 gap-6 scrollbar-thin">
+        <aside className="sticky top-28 hidden lg:flex flex-col w-64 pt-8 pb-10 h-[calc(100vh-7rem)] overflow-y-auto border-r border-white/8 pr-4 gap-6 scrollbar-thin shrink-0">
 
           {/* Back link */}
           <Link
@@ -56,7 +60,7 @@ export default async function DocsLayout({
         </aside>
 
         {/* ── Main Content ─────────────────────────────────────────────── */}
-        <main className="w-full lg:pl-[17rem] pt-6 pb-10 pr-0 xl:pr-4 min-w-0 flex-1">
+        <main className="w-full pt-6 pb-10 pr-0 xl:pr-4 min-w-0 flex-1">
           {children}
         </main>
       </div>

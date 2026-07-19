@@ -34,7 +34,14 @@ const mdxComponents = {
       return <Mermaid chart={codeProps.children || ""} />;
     }
     return <pre>{children}</pre>;
-  }
+  },
+  table: ({ children, ...props }: any) => (
+    <div className="overflow-x-auto my-6 border border-white/5 rounded-xl bg-white/[0.01] w-full">
+      <table className="w-full border-collapse text-left m-0" {...props}>
+        {children}
+      </table>
+    </div>
+  )
 };
 
 interface GamingPostDisplay {
@@ -51,7 +58,9 @@ interface GamingPostDisplay {
 
 function cleanMarkdown(content: string): string {
   if (!content) return "";
-  return content.replace(/```(?:markdown|md)\r?\n([\s\S]*?)\r?\n```/gi, "$1");
+  return content
+    .replace(/```(?:markdown|md)\r?\n([\s\S]*?)\r?\n```/gi, "$1")
+    .replace(/```table\r?\n([\s\S]*?)\r?\n```/gi, "$1");
 }
 
 export default async function GamingBlogPost({ params }: { params: Promise<{ slug: string }> }) {
