@@ -135,6 +135,10 @@ def _try_win_cpu_temp_native() -> float:
                 else:
                     continue
                 if 0 < celsius < 120:
+                    # ACPI thermal zones on modern Intel track the core hotspot junction,
+                    # which is typically 10-15C hotter than the package average.
+                    # We subtract a fixed offset to approximate the package temp.
+                    celsius = max(30.0, celsius - 12.0)
                     return round(celsius, 1)
             except Exception:
                 if query is not None:
@@ -186,6 +190,7 @@ def _try_win_cpu_temp_native() -> float:
                 else:
                     continue
                 if 0 < celsius < 120:
+                    celsius = max(30.0, celsius - 12.0)
                     return round(celsius, 1)
             except ValueError:
                 pass
@@ -226,6 +231,7 @@ def _try_win_cpu_temp_native() -> float:
                         else:
                             continue
                         if 0 < celsius < 120:
+                            celsius = max(30.0, celsius - 12.0)
                             win32pdh.CloseQuery(query)
                             return round(celsius, 1)
                     except Exception:

@@ -2,6 +2,10 @@
 
 This document contains a detailed history of all patches and updates for the AI Gaming Assistant.
 
+### Patch: 2026-07-19 — v1.7.8: Apply offset for ACPI CPU temp
+
+- Subtracts 12C from ACPI TZ01 to approximate CPU Package avg under blocked driver mode
+
 ### Patch: 2026-07-19 — v1.7.7: Precision TGP and CPU Thermal fallbacks
 
 - Precision TGP and CPU Thermal fallbacks
