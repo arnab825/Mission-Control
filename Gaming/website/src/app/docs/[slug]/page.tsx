@@ -117,6 +117,13 @@ export default async function DocPage({ params }: { params: Promise<{ slug: stri
           <ReactMarkdown
             remarkPlugins={[remarkGfm]}
             components={{
+              table: ({ children, ...props }: any) => (
+                <div className="overflow-x-auto my-6 border border-white/5 rounded-xl bg-white/[0.01] w-full">
+                  <table className="w-full border-collapse text-left m-0" {...props}>
+                    {children}
+                  </table>
+                </div>
+              ),
               h2: ({ children, ...props }) => {
                 const text = getChildrenText(children);
                 const id = slugify(text);

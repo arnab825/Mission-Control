@@ -155,19 +155,19 @@ export default function Footer() {
             animate={{ opacity: 1, scale: 1, y: 0 }}
             exit={{ opacity: 0, scale: 0.9, y: 20 }}
             transition={{ type: "spring", damping: 25, stiffness: 300 }}
-            className="glass-panel w-full max-w-2xl max-h-[80vh] overflow-y-auto rounded-xl relative z-10 border-neon-green/30 shadow-[0_0_50px_rgba(118, 185, 0,0.1)] p-8"
+            className="glass-panel w-full max-w-2xl max-h-[80vh] overflow-y-auto rounded-xl relative z-10 border-neon-green/30 shadow-[0_0_50px_rgba(118, 185, 0,0.1)] p-5 sm:p-8"
           >
             <button
               onClick={() => setActiveModal(null)}
-              className="absolute top-6 right-6 text-gray-400 hover:text-neon-green transition-colors"
+              className="absolute top-4 right-4 sm:top-6 sm:right-6 text-gray-400 hover:text-neon-green transition-colors"
             >
               <svg className="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
               </svg>
             </button>
 
-            <h1 className="text-3xl font-bold font-display mb-2 text-white">{modalContent[activeModal].title}</h1>
-            <p className="text-sm text-neon-green mb-8 font-display">Last updated: {modalContent[activeModal].date}</p>
+            <h1 className="text-2xl sm:text-3xl font-bold font-display mb-2 text-white">{modalContent[activeModal].title}</h1>
+            <p className="text-sm text-neon-green mb-5 sm:mb-8 font-display">Last updated: {modalContent[activeModal].date}</p>
 
             <div className="prose prose-invert max-w-none font-sans">
               {modalContent[activeModal].content}
