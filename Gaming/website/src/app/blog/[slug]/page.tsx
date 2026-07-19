@@ -92,10 +92,10 @@ export default async function BlogPost({ params }: { params: Promise<{ slug: str
   const date = isMdx ? mdxPost.date : postLog.date;
   const readTime = isMdx ? Math.max(1, Math.ceil((mdxPost.content?.split(" ").length || 1) / 200)) : Math.max(1, Math.ceil((postLog.highlights?.length || 1) / 2));
   const backLink = isMdx
-    ? (mdxPost.category && mdxPost.category !== "Mission Brief" ? "/blog?tab=intel" : "/blog?tab=briefs")
+    ? "/blog?tab=intel"
     : "/blog?tab=logs";
   const backLabel = isMdx
-    ? (mdxPost.category && mdxPost.category !== "Mission Brief" ? "Gaming Intel" : "Mission Briefs")
+    ? "Gaming Intel"
     : "Transmissions";
 
   return (
@@ -120,7 +120,7 @@ export default async function BlogPost({ params }: { params: Promise<{ slug: str
             <header className="mb-10 border-b border-white/10 pb-8 relative z-10">
               <div className="flex flex-wrap items-center gap-3 mb-6">
                 <span className={`bg-neon-green/10 text-neon-green border border-neon-green/20 px-3.5 py-1 rounded-full text-xs font-display font-bold tracking-widest uppercase`}>
-                  {isMdx ? (mdxPost.category || "Mission Brief") : "Patch Notes"}
+                  {isMdx ? (mdxPost.category || "Gaming Intel") : "Patch Notes"}
                 </span>
                 {!isMdx && <span className="bg-neon-purple/10 text-neon-purple border border-neon-purple/20 px-3.5 py-1 rounded-full text-xs font-display font-bold tracking-widest uppercase">Update</span>}
                 {isMdx && mdxPost.aiGenerated && (

@@ -71,3 +71,10 @@ export default defineConfig([
   },
 ])
 ```
+
+## Recent Updates
+
+#### `v1.7.7` — 2026-07-19 (Precision Hardware TGP & CPU Thermal Zone Fixes)
+- **Chassis TGP Constraints**: Validated that `nvmlDeviceGetPowerManagementLimitConstraints()` dynamically correctly pulls the true Maximum Graphics Power (TGP MAX) programmed into the VBIOS across all OEM laptops, eliminating the need for complex NVAPI overrides.
+- **CPU Thermal Zone Calibration**: Fixed PDH path instance names (e.g. `_TZ.TZ01` -> `\_TZ.TZ01`) enabling successful fallback to Windows Performance Counters when the native kernel driver is blocked by VBS.
+- **Temperature Offset Correction**: Implemented a dynamic thermal offset mapping for specific ACPI sensors to correct standard raw Kelvin discrepancies, ensuring the displayed CPU temps perfectly mirror Ryzen Master/HWiNFO.

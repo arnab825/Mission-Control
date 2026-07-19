@@ -25,9 +25,7 @@ export default async function BlogListing({
   const currentTab =
     resolvedParams?.tab === "logs"
       ? "logs"
-      : resolvedParams?.tab === "intel"
-      ? "intel"
-      : "briefs";
+      : "intel";
   const activeCategory = resolvedParams?.category ?? "all";
 
   interface ChangelogLog {
@@ -50,11 +48,6 @@ export default async function BlogListing({
 
   // Get all local MDX posts
   const allMdxPosts = getSortedPostsData();
-
-  // Mission Briefs are local posts that are category "Mission Brief" or do not have a category
-  const mdxPosts = allMdxPosts.filter(
-    (p) => !p.category || p.category === "Mission Brief"
-  );
 
   // Local gaming posts (MDX) are fetched synchronously and don't block
   const localGamingPosts = allMdxPosts.filter(
@@ -98,16 +91,6 @@ export default async function BlogListing({
       {/* Navigation Tabs */}
       <div className="flex flex-wrap gap-3 mb-10 border-b border-white/10 pb-4">
         <Link
-          href="/blog?tab=briefs"
-          className={`px-5 py-2.5 rounded-xl font-mono text-xs tracking-wider uppercase font-bold transition-all duration-300 border ${
-            currentTab === "briefs"
-              ? "bg-neon-green text-obsidian border-neon-green shadow-[0_0_20px_rgba(118, 185, 0,0.4)]"
-              : "bg-white/[0.03] border-white/5 text-gray-400 hover:text-white hover:bg-white/10"
-          }`}
-        >
-          Mission Briefs
-        </Link>
-        <Link
           href="/blog?tab=intel"
           className={`px-5 py-2.5 rounded-xl font-mono text-xs tracking-wider uppercase font-bold transition-all duration-300 border flex items-center gap-2 ${
             currentTab === "intel"
@@ -129,49 +112,6 @@ export default async function BlogListing({
           Transmission Logs
         </Link>
       </div>
-
-      {/* ── Mission Briefs (local MDX) ── */}
-      {currentTab === "briefs" && (
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-          {mdxPosts.map((post) => (
-            <Link href={`/blog/${post.id}`} key={post.id} className="block group">
-              <article className="glass-card glass-card-hover p-8 border border-white/10 rounded-2xl relative overflow-hidden h-full flex flex-col justify-between shadow-[0_0_30px_rgba(0,0,0,0.5)]">
-                <div className="absolute top-0 left-0 w-full h-[2px] bg-gradient-to-r from-neon-green to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
-                <div>
-                  <div className="flex items-center gap-4 text-xs font-mono text-neon-green mb-4 uppercase tracking-widest">
-                    <span className="flex items-center gap-1.5">
-                      <Calendar className="w-3.5 h-3.5" /> {formatDateToIST(post.date)}
-                    </span>
-                    <span className="flex items-center gap-1.5">
-                      <Clock className="w-3.5 h-3.5" /> 5 Min Read
-                    </span>
-                  </div>
-                  <h2 className="text-2xl font-bold mb-3 text-white group-hover:text-neon-green transition-colors font-display line-clamp-2">
-                    {post.title}
-                  </h2>
-                  <p className="text-gray-300 text-sm leading-relaxed mb-6 line-clamp-3 font-sans">
-                    {post.excerpt || "Dive into the technical design, architectural details, and implementation."}
-                  </p>
-                </div>
-                <div className="flex justify-between items-center pt-4 border-t border-white/5 mt-auto">
-                  <div className="flex items-center gap-2 text-xs text-gray-400 font-mono">
-                    <div className="w-6 h-6 rounded-full bg-obsidian border border-neon-green/40 flex items-center justify-center text-neon-green text-[10px] font-bold">
-                      MC
-                    </div>
-                    <span>{post.author || "Mission Control Team"}</span>
-                  </div>
-                  <span className="text-xs font-mono font-bold text-neon-green flex items-center gap-1 uppercase tracking-wider group-hover:translate-x-1 transition-transform">
-                    Read Brief <ArrowUpRight className="w-4 h-4" />
-                  </span>
-                </div>
-              </article>
-            </Link>
-          ))}
-          {mdxPosts.length === 0 && (
-            <p className="text-gray-500 font-mono italic py-8">No mission briefs available.</p>
-          )}
-        </div>
-      )}
 
       {/* ── Gaming Intel (MongoDB + MDX) ── */}
       {currentTab === "intel" && (
