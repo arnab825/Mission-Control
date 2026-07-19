@@ -457,7 +457,7 @@ export default function ArchitecturePage() {
   const ActiveIcon = activeModuleData.icon;
 
   return (
-    <div className="min-h-screen pt-28 pb-24 px-4 sm:px-6 max-w-6xl mx-auto w-full relative z-10 bg-[#0a0a0c]">
+    <div className="min-h-screen pt-24 sm:pt-28 pb-24 px-4 sm:px-6 max-w-6xl mx-auto w-full relative z-10 bg-[#0a0a0c] overflow-x-hidden">
 
       {/* Cyber Grid & Ambient Radial Glows */}
       <div className="absolute inset-0 cyber-grid opacity-25 pointer-events-none -z-10" />
@@ -468,16 +468,16 @@ export default function ArchitecturePage() {
         initial={{ opacity: 0, y: 20 }}
         animate={{ opacity: 1, y: 0 }}
         transition={{ duration: 0.5 }}
-        className="text-center mb-16 max-w-3xl mx-auto"
+        className="text-center mb-10 sm:mb-16 max-w-3xl mx-auto"
       >
         <div className="inline-flex items-center gap-2 border border-neon-green/30 rounded-full px-4 py-1.5 bg-neon-green/10 mb-5 backdrop-blur-md">
           <Radio className="w-3.5 h-3.5 text-neon-green animate-pulse" />
           <span className="text-neon-green text-xs font-bold font-mono tracking-widest uppercase">HARDWARE & NEURAL PIPELINE</span>
         </div>
-        <h1 className="text-4xl sm:text-6xl font-black font-display tracking-tight mb-4 uppercase text-white">
+        <h1 className="text-3xl sm:text-6xl font-black font-display tracking-tight mb-4 uppercase text-white">
           SYSTEM <span className="text-neon-green glow-text-teal">ARCHITECTURE</span>
         </h1>
-        <p className="text-gray-400 text-sm sm:text-base leading-relaxed max-w-2xl mx-auto font-mono">
+        <p className="text-gray-400 text-xs sm:text-base leading-relaxed max-w-2xl mx-auto font-mono">
           Explore the low-level telemetry monitoring daemons, quantized neural compilers, and swapchain overlay presentation hooks that make up the Mission Control core.
         </p>
       </motion.div>
@@ -505,56 +505,92 @@ export default function ArchitecturePage() {
                     window.history.replaceState(null, "", `#${comp.id}`);
                   }
                 }}
-                className={`w-full text-left glass-card p-5 relative overflow-hidden border transition-all duration-300 cursor-pointer flex gap-4 ${isSelected
-                    ? "border-neon-green/50 bg-neon-green/[0.03] shadow-[0_0_25px_rgba(118, 185, 0, 0.15)]"
+                className={`w-full text-left glass-card p-5 relative overflow-hidden border transition-all duration-300 cursor-pointer flex flex-col ${isSelected
+                    ? "border-neon-green/50 bg-neon-green/[0.03] shadow-[0_0_25px_rgba(118,185,0,0.15)]"
                     : "border-white/10 bg-white/[0.02] hover:border-white/20 hover:bg-white/[0.04]"
                   }`}
               >
-                {/* Visual active indicator bar on the left */}
-                {isSelected && (
-                  <div className="absolute left-0 top-0 bottom-0 w-[3.5px] bg-neon-green shadow-[0_0_10px_#76b900] rounded-r" />
-                )}
+                {/* Top Row: Icon + Title info */}
+                <div className="flex gap-4 items-center w-full">
+                  {/* Visual active indicator bar on the left */}
+                  {isSelected && (
+                    <div className="absolute left-0 top-0 bottom-0 w-[3.5px] bg-neon-green shadow-[0_0_10px_#76b900] rounded-r" />
+                  )}
 
-                <div className={`w-11 h-11 rounded-xl flex items-center justify-center shrink-0 transition-all duration-300 ${isSelected
-                    ? "bg-neon-green text-obsidian shadow-[0_0_15px_rgba(118, 185, 0, 0.35)]"
-                    : "bg-white/5 text-gray-400"
-                  }`}>
-                  <CompIcon className="w-5.5 h-5.5" />
-                </div>
-
-                <div className="flex-1 min-w-0 pr-2">
-                  <div className="flex justify-between items-baseline mb-0.5">
-                    <span className={`text-xs font-mono font-bold uppercase tracking-wider ${isSelected ? "text-neon-green" : "text-gray-500"
-                      }`}>
-                      Layer {comp.num}
-                    </span>
-                    {isSelected && (
-                      <span className="flex items-center gap-1 text-[8px] font-mono font-bold bg-neon-green/15 text-neon-green border border-neon-green/30 rounded px-1.5 py-0.5 uppercase tracking-widest animate-pulse">
-                        <span className="w-1 h-1 rounded-full bg-neon-green" /> Running
-                      </span>
-                    )}
-                  </div>
-                  <h3 className={`text-base font-bold font-display uppercase tracking-wider truncate transition-colors duration-250 ${isSelected ? "text-white" : "text-gray-300 hover:text-white"
+                  <div className={`w-11 h-11 rounded-xl flex items-center justify-center shrink-0 transition-all duration-300 ${isSelected
+                      ? "bg-neon-green text-obsidian shadow-[0_0_15px_rgba(118, 185, 0, 0.35)]"
+                      : "bg-white/5 text-gray-400"
                     }`}>
-                    {comp.title}
-                  </h3>
-                  <p className="text-[11px] text-gray-400 font-mono truncate uppercase mt-0.5">
-                    {comp.subTitle}
-                  </p>
+                    <CompIcon className="w-5.5 h-5.5" />
+                  </div>
+
+                  <div className="flex-1 min-w-0 pr-2">
+                    <div className="flex justify-between items-baseline mb-0.5">
+                      <span className={`text-[10px] sm:text-xs font-mono font-bold uppercase tracking-wider ${isSelected ? "text-neon-green" : "text-gray-500"
+                        }`}>
+                        Layer {comp.num}
+                      </span>
+                      {isSelected && (
+                        <span className="flex items-center gap-1 text-[8px] font-mono font-bold bg-neon-green/15 text-neon-green border border-neon-green/30 rounded px-1.5 py-0.5 uppercase tracking-widest animate-pulse">
+                          <span className="w-1 h-1 rounded-full bg-neon-green" /> Running
+                        </span>
+                      )}
+                    </div>
+                    <h3 className={`text-sm sm:text-base font-bold font-display uppercase tracking-wider transition-colors duration-250 leading-tight text-white`}>
+                      {comp.title}
+                    </h3>
+                    <p className="text-[10px] sm:text-[11px] text-gray-400 font-mono uppercase mt-0.5 leading-snug">
+                      {comp.subTitle}
+                    </p>
+                  </div>
+
+                  {/* Background Large Number Overlay */}
+                  <div className={`absolute bottom-[-15px] right-2 text-6xl font-display font-black select-none pointer-events-none transition-colors duration-300 ${isSelected ? "text-neon-green/[0.03]" : "text-white/[0.01]"
+                    }`}>
+                    {comp.num}
+                  </div>
                 </div>
 
-                {/* Background Large Number Overlay */}
-                <div className={`absolute bottom-[-15px] right-2 text-6xl font-display font-black select-none pointer-events-none transition-colors duration-300 ${isSelected ? "text-neon-green/[0.03]" : "text-white/[0.01]"
-                  }`}>
-                  {comp.num}
-                </div>
+                {/* Mobile Inline Content Expansion: Visible only on < lg viewports when active */}
+                <AnimatePresence>
+                  {isSelected && (
+                    <motion.div
+                      initial={{ height: 0, opacity: 0 }}
+                      animate={{ height: "auto", opacity: 1 }}
+                      exit={{ height: 0, opacity: 0 }}
+                      transition={{ duration: 0.3, ease: "easeInOut" }}
+                      className="lg:hidden mt-4 pt-4 border-t border-white/5 space-y-4 text-left w-full cursor-default overflow-hidden"
+                      onClick={(e) => e.stopPropagation()} // Prevent collapse trigger when interacting inside
+                    >
+                      {/* Active Visualizer Panel */}
+                      <div className="w-full">
+                        {comp.visualizer}
+                      </div>
+
+                      {/* Description Text */}
+                      <p className="text-gray-300 text-xs sm:text-sm leading-relaxed font-sans normal-case tracking-normal">
+                        {comp.desc}
+                      </p>
+
+                      {/* Specs badges grid */}
+                      <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 pt-2">
+                        {comp.specs.map((spec, sIdx) => (
+                          <div key={sIdx} className="bg-obsidian/85 p-3 rounded-xl border border-white/5 font-mono">
+                            <div className="text-gray-500 text-[8px] uppercase tracking-wider mb-0.5">{spec.label}</div>
+                            <div className="text-neon-green font-bold text-xs">{spec.val}</div>
+                          </div>
+                        ))}
+                      </div>
+                    </motion.div>
+                  )}
+                </AnimatePresence>
               </button>
             );
           })}
         </div>
 
-        {/* Right Side: Telemetry HUD Visualizer Screen (7 Columns) */}
-        <div className="lg:col-span-7 lg:sticky lg:top-28 space-y-6">
+        {/* Right Side: Telemetry HUD Visualizer Screen (7 Columns) - Hidden on mobile, visible on desktop */}
+        <div className="hidden lg:block lg:col-span-7 lg:sticky lg:top-28 space-y-6">
           <div className="text-xs uppercase font-mono tracking-wider font-bold text-gray-500 mb-1 flex items-center gap-2 pl-1">
             <Sliders className="w-4 h-4 text-neon-green" /> Live Diagnostics Visualizer
           </div>

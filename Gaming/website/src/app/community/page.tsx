@@ -153,7 +153,7 @@ export default function CommunityPage() {
   };
 
   return (
-    <main className="flex-1 min-h-screen pt-28 pb-24 px-4 sm:px-6 lg:px-8 bg-[#0a0a0c] relative z-10">
+    <main className="flex-1 min-h-screen pt-28 pb-24 px-4 sm:px-6 lg:px-8 bg-[#0a0a0c] relative z-10 overflow-x-hidden">
       
       {/* Cyber Grid & Ambient Background */}
       <div className="absolute inset-0 cyber-grid opacity-25 pointer-events-none -z-10" />
@@ -171,10 +171,10 @@ export default function CommunityPage() {
           <div className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full bg-neon-green/10 border border-neon-green/30 text-neon-green text-xs font-bold font-mono tracking-widest uppercase backdrop-blur-md">
             <Radio className="w-3.5 h-3.5 text-neon-green animate-pulse" /> TELEMETRY & HOTFIX PIPELINE
           </div>
-          <h1 className="text-4xl sm:text-6xl font-black font-display uppercase tracking-tight text-white">
-            COMMUNITY <span className="text-neon-green glow-text-teal">GLITCH TRACKER</span>
+          <h1 className="text-2xl min-[375px]:text-3xl sm:text-6xl font-black font-display uppercase tracking-tight text-white">
+            COMMUNITY <br className="sm:hidden" /> <span className="text-neon-green glow-text-teal">GLITCH TRACKER</span>
           </h1>
-          <p className="max-w-2xl mx-auto text-base text-gray-400 leading-relaxed font-mono">
+          <p className="max-w-2xl mx-auto text-xs sm:text-base text-gray-400 leading-relaxed font-sans">
             Submit overlay glitches, hardware sensor mismatches, or system driver conflicts. Upvoted logs trigger automated telemetry hotfixes in active build pipelines.
           </p>
         </motion.div>
@@ -188,7 +188,7 @@ export default function CommunityPage() {
             { label: "Performance Drops", count: stats.performance, color: "border-amber-500/40 text-amber-400" }
           ].map((item, idx) => (
             <div key={idx} className="glass-card p-5 flex flex-col items-center justify-center text-center space-y-1 border">
-              <span className="text-[11px] uppercase font-mono font-bold text-gray-400 tracking-wider">
+              <span className="text-[9px] min-[375px]:text-[11px] uppercase font-mono font-bold text-gray-400 tracking-wider">
                 {item.label}
               </span>
               <span className={`text-3xl font-black font-mono ${item.color}`}>
@@ -223,13 +223,13 @@ export default function CommunityPage() {
           </div>
 
           {/* Sorting and Submit button */}
-          <div className="flex items-center gap-3 self-end sm:self-auto">
-            <div className="flex items-center gap-2 bg-obsidian/90 border border-white/10 rounded-xl px-3.5 py-2 text-xs font-mono text-gray-300">
+          <div className="flex flex-col min-[440px]:flex-row items-stretch min-[440px]:items-center gap-3 w-full sm:w-auto">
+            <div className="flex items-center gap-2 bg-obsidian/90 border border-white/10 rounded-xl px-3.5 py-2 text-xs font-mono text-gray-300 justify-center w-full min-[440px]:w-auto">
               <Filter className="w-3.5 h-3.5 text-neon-green" />
               <select
                 value={sortBy}
                 onChange={(e: any) => setSortBy(e.target.value)}
-                className="bg-transparent border-none focus:outline-none cursor-pointer text-white font-mono"
+                className="bg-transparent border-none focus:outline-none cursor-pointer text-white font-mono flex-1 min-[440px]:flex-none text-center"
               >
                 <option className="bg-obsidian text-white" value="votes">Most Voted Logs</option>
                 <option className="bg-obsidian text-white" value="latest">Latest Logged</option>
@@ -238,7 +238,7 @@ export default function CommunityPage() {
 
             <button
               onClick={() => setIsModalOpen(true)}
-              className="px-5 py-2.5 text-xs font-black uppercase tracking-wider rounded-xl bg-neon-green text-obsidian hover:bg-white hover:shadow-[0_0_20px_rgba(118, 185, 0,0.4)] transition-all duration-300 cursor-pointer font-mono flex items-center gap-1.5"
+              className="px-5 py-2.5 text-xs font-black uppercase tracking-wider rounded-xl bg-neon-green text-obsidian hover:bg-white hover:shadow-[0_0_20px_rgba(118, 185, 0, 0.4)] transition-all duration-300 cursor-pointer font-mono flex items-center justify-center gap-1.5 w-full min-[440px]:w-auto"
             >
               <Plus className="w-4 h-4" /> Log Telemetry Glitch
             </button>
@@ -254,8 +254,8 @@ export default function CommunityPage() {
         ) : processedIssues.length === 0 ? (
           <div className="text-center py-20 glass-card rounded-2xl border border-white/10 space-y-3">
             <AlertTriangle className="w-10 h-10 text-gray-500 mx-auto" />
-            <h3 className="text-lg font-bold text-white font-display uppercase">No telemetry reports match filters</h3>
-            <p className="text-sm text-gray-400 font-mono">Be the first operator to dispatch a hardware or rendering fault.</p>
+            <h3 className="text-sm min-[375px]:text-base sm:text-lg font-bold text-white font-display uppercase leading-tight px-4">No telemetry reports match filters</h3>
+            <p className="text-[11px] min-[375px]:text-xs sm:text-sm text-gray-400 font-mono px-4">Be the first operator to dispatch a hardware or rendering fault.</p>
           </div>
         ) : (
           <div className="space-y-4">

@@ -16,7 +16,7 @@ export default async function DocsLayout({
   const hasSanityContent = docs.length > 0;
 
   return (
-    <div className="flex-1 w-full relative pt-20 bg-[#0a0a0c] text-gray-300 flex flex-col">
+    <div className="flex-1 w-full relative pt-20 bg-[#0a0a0c] text-gray-300 flex flex-col overflow-x-hidden">
 
       {/* Ambient glow */}
       <div className="absolute top-1/4 left-0 w-[500px] h-[500px] bg-neon-green/4 blur-[180px] rounded-full pointer-events-none -z-10" />
