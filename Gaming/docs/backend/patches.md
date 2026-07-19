@@ -2,6 +2,12 @@
 
 This document contains a detailed history of all patches and updates for the AI Gaming Assistant.
 
+### Patch: 2026-07-19 — v1.7.9: Remove Mission Briefs, update tray icon, and finalize TGP telemetry
+
+- Deleted Mission Briefs and associated local mdx briefs
+- Updated Check For Updates tray icon to match Windows Update logo
+- Updated release notes readmes with precise TGP & CPU Offset documentation
+
 ### Patch: 2026-07-19 — v1.7.8: Apply offset for ACPI CPU temp
 
 - Subtracts 12C from ACPI TZ01 to approximate CPU Package avg under blocked driver mode

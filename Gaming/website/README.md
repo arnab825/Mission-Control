@@ -74,3 +74,10 @@ Vercel deploys your website on serverless functions that use dynamic IP addresse
 3. Click **Add IP Address** on the right side.
 4. Click **Allow Access From Anywhere** (which adds `0.0.0.0/0` to the whitelist, allowing connections from all IPs).
 5. Click **Confirm**.
+
+## Recent Updates
+
+#### `v1.7.7` — 2026-07-19 (Precision Hardware TGP & CPU Thermal Zone Fixes)
+- **Chassis TGP Constraints**: Validated that `nvmlDeviceGetPowerManagementLimitConstraints()` dynamically correctly pulls the true Maximum Graphics Power (TGP MAX) programmed into the VBIOS across all OEM laptops, eliminating the need for complex NVAPI overrides.
+- **CPU Thermal Zone Calibration**: Fixed PDH path instance names (e.g. `_TZ.TZ01` -> `\_TZ.TZ01`) enabling successful fallback to Windows Performance Counters when the native kernel driver is blocked by VBS.
+- **Temperature Offset Correction**: Implemented a dynamic thermal offset mapping for specific ACPI sensors to correct standard raw Kelvin discrepancies, ensuring the displayed CPU temps perfectly mirror Ryzen Master/HWiNFO.

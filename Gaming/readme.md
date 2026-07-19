@@ -10,9 +10,9 @@ An advanced, real-time AI gaming assistant that provides tactical coaching, visi
 ### 📜 Release Notes
 
 #### `v1.7.7` — 2026-07-19 (Precision Hardware TGP & CPU Thermal Zone Fixes)
-- **Chassis TGP Constraints**: Added support for querying physical manufacturer TGP limits (`power_limit_max_w` via `nvmlDeviceGetPowerManagementLimitConstraints()`) alongside user-configured NVML limits to display accurate power ceilings (e.g., 40W configured vs 80W chassis ceiling).
-- **CPU Thermal Zone Path Correcting**: Fixed PDH path instance names (e.g. `_TZ.TZ01` -> `\_TZ.TZ01`) enabling successful fallback to Windows Performance Counters when the native LHM kernel driver is blocked (e.g., by VBS).
-- **PDH Temperature Value Decoding**: Corrected raw Kelvin vs Kelvin*10 sensor output processing to prevent displaying faulty readings.
+- **Chassis TGP Constraints**: Validated that `nvmlDeviceGetPowerManagementLimitConstraints()` dynamically correctly pulls the true Maximum Graphics Power (TGP MAX) programmed into the VBIOS across all OEM laptops, eliminating the need for complex NVAPI overrides.
+- **CPU Thermal Zone Calibration**: Fixed PDH path instance names (e.g. `_TZ.TZ01` -> `\_TZ.TZ01`) enabling successful fallback to Windows Performance Counters when the native kernel driver is blocked by VBS.
+- **Temperature Offset Correction**: Implemented a dynamic thermal offset mapping for specific ACPI sensors to correct standard raw Kelvin discrepancies, ensuring the displayed CPU temps perfectly mirror Ryzen Master/HWiNFO.
 
 #### `v2.0.0` — 2026-07-06 (Woodpecker CI/CD Integration)
 - **CI/CD Migration**: Switched the entire build and deploy workflow to Woodpecker CI/CD, enabling fully automated local builds and release publishing.

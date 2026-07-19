@@ -91,7 +91,7 @@ export async function GET(request: Request) {
       console.warn("MongoDB Search Connection Error: IP not whitelisted. Falling back to local posts.");
     }
 
-    // 2. Search Local Blog Posts (Mission Briefs)
+    // 2. Search Local Blog Posts (MDX Gaming Intel)
     const blogPosts = getSortedPostsData();
     blogPosts.forEach((post) => {
       if (addedUrls.has(post.id)) return;
@@ -103,8 +103,8 @@ export async function GET(request: Request) {
         results.push({
           title: post.title,
           type: "blog",
-          url: post.category && post.category !== "Mission Brief" ? `/blog/gaming/${post.id}` : `/blog/${post.id}`,
-          category: post.category || "Blog Briefs",
+          url: `/blog/gaming/${post.id}`,
+          category: post.category || "Gaming Intel",
           description: post.excerpt || "Read full article...",
         });
         addedUrls.add(post.id);
