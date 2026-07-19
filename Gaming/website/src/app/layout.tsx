@@ -71,9 +71,9 @@ export default function RootLayout({
     <html
       lang="en"
       data-scroll-behavior="smooth"
-      className={`${inter.variable} ${jetbrainsMono.variable} ${outfit.variable} h-full antialiased dark`}
+      className={`${inter.variable} ${jetbrainsMono.variable} ${outfit.variable} h-full antialiased dark overflow-x-hidden`}
     >
-      <body className="min-h-full flex flex-col bg-obsidian text-foreground font-sans">
+      <body className="min-h-full flex flex-col bg-obsidian text-foreground font-sans overflow-x-hidden">
         <script
           type="application/ld+json"
           dangerouslySetInnerHTML={{

@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, useEffect } from "react";
+import { createPortal } from "react-dom";
 import { X, RefreshCw, Cpu, Monitor, Zap } from "lucide-react";
 
 interface ReportModalProps {
@@ -31,7 +32,10 @@ export default function ReportModal({ isOpen, onClose, onSuccess }: ReportModalP
   // Telemetry Sharing Setting
   const [includeTelemetry, setIncludeTelemetry] = useState(true);
 
+  const [mounted, setMounted] = useState(false);
+
   useEffect(() => {
+    setMounted(true);
     fetch("/api/version")
       .then((res) => res.json())
       .then((data) => {
@@ -42,7 +46,7 @@ export default function ReportModal({ isOpen, onClose, onSuccess }: ReportModalP
       .catch((err) => console.error("Error fetching version:", err));
   }, []);
 
-  if (!isOpen) return null;
+  if (!isOpen || !mounted) return null;
 
   // Dual-layer hardware auto-detection (Local WebSocket -> High-Performance WebGL)
   const autoDetectSpecs = () => {
@@ -250,8 +254,8 @@ export default function ReportModal({ isOpen, onClose, onSuccess }: ReportModalP
     }
   };
 
-  return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/80 backdrop-blur-md">
+  return createPortal(
+    <div className="fixed inset-0 z-[100] flex items-center justify-center p-4 bg-black/80 backdrop-blur-md">
       <div className="relative w-full max-w-2xl max-h-[85vh] overflow-y-auto glass-panel glow-green rounded-xl border border-white/10 text-white p-6 scrollbar-thin">
         
         {/* Header */}
@@ -380,16 +384,16 @@ export default function ReportModal({ isOpen, onClose, onSuccess }: ReportModalP
           {/* Telemetry section */}
           {includeTelemetry && (
             <div className="p-4 rounded-lg bg-white/5 border border-white/5 space-y-3">
-              <div className="flex items-center justify-between">
+              <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
                 <div className="flex items-center gap-1.5 text-xs uppercase font-bold text-neon-green tracking-wider">
-                  <Cpu className="w-4 h-4" /> Telemetry & System Specs
+                  <Cpu className="w-4 h-4 animate-pulse shrink-0" /> Telemetry & System Specs
                 </div>
                 <button
                   type="button"
                   onClick={autoDetectSpecs}
-                  className="flex items-center gap-1.5 px-2.5 py-1 rounded bg-neon-green/10 hover:bg-neon-green/20 text-neon-green text-xs font-semibold border border-neon-green/20 transition"
+                  className="flex items-center justify-center gap-1.5 px-3 py-1.5 sm:px-2.5 sm:py-1 rounded bg-neon-green/10 hover:bg-neon-green/20 text-neon-green text-xs font-semibold border border-neon-green/20 transition w-full sm:w-auto cursor-pointer"
                 >
-                  <RefreshCw className="w-3.5 h-3.5" /> Auto-Detect Specs
+                  <RefreshCw className="w-3.5 h-3.5 shrink-0" /> Auto-Detect Specs
                 </button>
               </div>
 
@@ -473,18 +477,18 @@ export default function ReportModal({ isOpen, onClose, onSuccess }: ReportModalP
       )}
 
           {/* Footer Actions */}
-          <div className="flex items-center justify-end gap-3 pt-4 border-t border-white/10">
+          <div className="flex flex-col-reverse sm:flex-row items-stretch sm:items-center justify-end gap-3 pt-4 border-t border-white/10">
             <button
               type="button"
               onClick={onClose}
-              className="px-4 py-2 text-sm font-semibold rounded-lg bg-white/5 hover:bg-white/10 transition"
+              className="w-full sm:w-auto px-4 py-2 text-sm font-semibold rounded-lg bg-white/5 hover:bg-white/10 transition text-center justify-center flex items-center"
             >
               Cancel
             </button>
             <button
               type="submit"
               disabled={loading}
-              className="flex items-center gap-2 px-5 py-2 text-sm font-semibold rounded-lg bg-neon-green text-obsidian shadow-lg hover:bg-white transition cursor-pointer disabled:opacity-50"
+              className="w-full sm:w-auto flex items-center justify-center gap-2 px-5 py-2 text-sm font-semibold rounded-lg bg-neon-green text-obsidian shadow-lg hover:bg-white transition cursor-pointer disabled:opacity-50"
             >
               {loading ? (
                 <>
@@ -497,6 +501,7 @@ export default function ReportModal({ isOpen, onClose, onSuccess }: ReportModalP
           </div>
         </form>
       </div>
-    </div>
+    </div>,
+    document.body
   );
 }
