@@ -48,12 +48,24 @@ export const UpdatesPage: React.FC<UpdatesPageProps> = ({
     message?: string;
     percent?: number;
   }>({ status: 'idle' });
+  const [isManualChecking, setIsManualChecking] = React.useState(false);
+  const [toastMessage, setToastMessage] = React.useState<string | null>(null);
 
   useEffect(() => {
     setActiveTab(defaultTab);
     if (defaultTab === 'check') {
       sendCommand('check_updates');
-      window.electronAPI?.checkElectronUpdates?.();
+      if (window.electronAPI?.getElectronUpdateState) {
+        window.electronAPI.getElectronUpdateState().then((savedState: any) => {
+          if (savedState && savedState.status && savedState.status !== 'idle' && savedState.status !== 'up-to-date') {
+            setNativeUpdate(savedState);
+          } else {
+            window.electronAPI?.checkElectronUpdates?.();
+          }
+        });
+      } else {
+        window.electronAPI?.checkElectronUpdates?.();
+      }
     } else if (defaultTab === 'changelogs') {
       sendCommand('get_changelogs');
     }
@@ -102,6 +114,30 @@ export const UpdatesPage: React.FC<UpdatesPageProps> = ({
       logEndRef.current?.scrollIntoView({ behavior: 'smooth' });
     }
   }, [installState?.step]);
+
+  useEffect(() => {
+    if (updateState) {
+      if (updateState.status === 'up_to_date' && isManualChecking) {
+        setToastMessage("Mission Control is already up to date!");
+        setIsManualChecking(false);
+      } else if (updateState.status === 'available' && isManualChecking) {
+        setToastMessage("New update is available for download!");
+        setIsManualChecking(false);
+      } else if (updateState.status === 'failed' && isManualChecking) {
+        setToastMessage("Update check failed: " + (updateState.reason || 'Network error'));
+        setIsManualChecking(false);
+      }
+    }
+  }, [updateState?.status]);
+
+  useEffect(() => {
+    if (toastMessage) {
+      const timer = setTimeout(() => {
+        setToastMessage(null);
+      }, 4000);
+      return () => clearTimeout(timer);
+    }
+  }, [toastMessage]);
 
   useEffect(() => {
     if (installState?.status === 'success') {
@@ -208,10 +244,15 @@ export const UpdatesPage: React.FC<UpdatesPageProps> = ({
 
                     <div className="flex items-center gap-3 shrink-0">
                       <button aria-label="button" type="button"
-                        onClick={() => window.electronAPI?.checkElectronUpdates?.()}
-                        className="px-5 py-3 bg-white/5 hover:bg-white/10 text-white text-[9px] font-black uppercase tracking-widest rounded-xl transition-all cursor-pointer hover:scale-[1.02]"
+                        disabled={isManualChecking}
+                        onClick={() => {
+                          setIsManualChecking(true);
+                          sendCommand('check_updates');
+                          window.electronAPI?.checkElectronUpdates?.();
+                        }}
+                        className="px-5 py-3 bg-white/5 hover:bg-white/10 text-white text-[9px] font-black uppercase tracking-widest rounded-xl transition-all cursor-pointer hover:scale-[1.02] disabled:opacity-50"
                       >
-                        Check Again
+                        {isManualChecking ? 'Checking...' : 'Check Again'}
                       </button>
                       <button aria-label="button" type="button"
                         onClick={() => window.electronAPI?.quitAndInstallElectronUpdate?.()}
@@ -372,7 +413,7 @@ export const UpdatesPage: React.FC<UpdatesPageProps> = ({
               )}
 
               {/* Scenario 1: Checking for updates */}
-              {(!updateState || updateState.status === 'checking') && (
+              {(!updateState || updateState.status === 'checking') && !isManualChecking && (
                 <div className="flex flex-col items-center justify-center py-12 gap-y-6">
                   <div className="relative">
                     {/* Ring Pulse scanner */}
@@ -453,14 +494,16 @@ export const UpdatesPage: React.FC<UpdatesPageProps> = ({
                       </div>
 
                       <button aria-label="button" type="button"
+                        disabled={isManualChecking}
                         onClick={() => {
+                          setIsManualChecking(true);
                           sendCommand('check_updates');
                           window.electronAPI?.checkElectronUpdates?.();
                         }}
-                        className="flex items-center gap-1.5 px-6 py-3 bg-white/5 hover:bg-white/10 text-white text-[9px] font-black uppercase tracking-widest rounded-xl transition-all cursor-pointer shrink-0"
+                        className="flex items-center gap-1.5 px-6 py-3 bg-white/5 hover:bg-white/10 text-white text-[9px] font-black uppercase tracking-widest rounded-xl transition-all cursor-pointer shrink-0 disabled:opacity-50"
                       >
-                        <RefreshCw className="w-3.5 h-3.5 text-zinc-400" />
-                        Check Again
+                        <RefreshCw className={`w-3.5 h-3.5 text-zinc-400 ${isManualChecking ? 'animate-spin' : ''}`} />
+                        {isManualChecking ? 'Checking...' : 'Check Again'}
                       </button>
                     </div>
                   )}
@@ -797,6 +840,20 @@ export const UpdatesPage: React.FC<UpdatesPageProps> = ({
           <span className="text-[8px] font-bold text-zinc-600">Mission Control PLATFORM CORE</span>
         </div>
         
+        {toastMessage && (
+          <div className="fixed bottom-6 right-6 z-50 flex items-center gap-3 px-5 py-4 bg-zinc-900/90 border border-neon-green/30 text-white rounded-2xl shadow-[0_4px_30px_rgba(118,185,0,0.15)] backdrop-blur-md animate-in fade-in slide-in-from-bottom-5 duration-300">
+            <div className="w-5 h-5 rounded-full bg-neon-green/10 flex items-center justify-center">
+              <CheckCircle2 className="w-3.5 h-3.5 text-neon-green" />
+            </div>
+            <span className="text-[10px] font-black uppercase tracking-wider">{toastMessage}</span>
+            <button 
+              onClick={() => setToastMessage(null)}
+              className="text-zinc-500 hover:text-white text-[10px] font-bold uppercase ml-2 tracking-widest"
+            >
+              Dismiss
+            </button>
+          </div>
+        )}
     </div>
   );
 };
