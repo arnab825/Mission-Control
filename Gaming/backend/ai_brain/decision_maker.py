@@ -1436,25 +1436,63 @@ class GameBrain:
             genre = "CLASSIC"
             tags = []
             
-            # 1. Determine genre/tags based on title keywords
-            if any(kw in title_lower for kw in ["combat", "strike", "war", "battle", "fight", "gun", "agent", "007", "shoot", "ops", "duty", "frontline"]):
-                genre = "ACTION"
-                tags.append("ACTION")
-            elif any(kw in title_lower for kw in ["rpg", "quest", "scroll", "fantasy", "sword", "witcher", "soul", "elden", "craft", "hero"]):
-                genre = "RPG"
-                tags.append("RPG")
-            elif any(kw in title_lower for kw in ["drive", "race", "speed", "rally", "car", "moto", "asphalt", "track"]):
-                genre = "RACING"
-                tags.append("RACING")
-            elif any(kw in title_lower for kw in ["soccer", "football", "fifa", "nba", "sport", "tennis", "golf", "f1"]):
-                genre = "SPORTS"
-                tags.append("SPORTS")
-            elif any(kw in title_lower for kw in ["build", "sim", "tycoon", "city", "farm", "manager"]):
-                genre = "SIMULATION"
-                tags.append("SIMULATION")
-            elif any(kw in title_lower for kw in ["survive", "dead", "zombie", "horror", "resident", "evil", "last"]):
-                genre = "SURVIVAL"
-                tags.append("SURVIVAL")
+            # Query RAWG (500k+ games database) first if available
+            if hasattr(self, "_web_search") and self._web_search:
+                try:
+                    res = self._web_search._search_rawg(game_title)
+                    if res and res.get("answer"):
+                        answer_str = res["answer"]
+                        if "Genres:" in answer_str:
+                            genres_part = answer_str.split("Genres:")[1].split("|")[0].strip()
+                            rawg_genres = [g.strip().lower() for g in genres_part.split(",")]
+                            for rg in rawg_genres:
+                                if "shooter" in rg or "fps" in rg:
+                                    genre = "FPS"
+                                    tags.append("ACTION")
+                                elif "action" in rg:
+                                    if genre == "CLASSIC":
+                                        genre = "ACTION"
+                                    tags.append("ACTION")
+                                elif "rpg" in rg or "role-playing" in rg:
+                                    genre = "RPG"
+                                    tags.append("RPG")
+                                elif "racing" in rg:
+                                    genre = "RACING"
+                                    tags.append("RACING")
+                                elif "sports" in rg or "sport" in rg:
+                                    genre = "SPORTS"
+                                    tags.append("SPORTS")
+                                elif "simulation" in rg:
+                                    genre = "SIMULATION"
+                                    tags.append("SIMULATION")
+                                elif "adventure" in rg:
+                                    if genre == "CLASSIC":
+                                        genre = "ADVENTURE"
+                                    tags.append("ADVENTURE")
+                except Exception as rawg_err:
+                    logger.debug(f"Failed to query RAWG in get_fallback_tags: {rawg_err}")
+
+            # Fallback on title keywords if RAWG scan didn't find anything or is offline
+            if genre == "CLASSIC" and not tags:
+                # 1. Determine genre/tags based on title keywords
+                if any(kw in title_lower for kw in ["combat", "strike", "war", "battle", "fight", "gun", "agent", "007", "shoot", "ops", "duty", "frontline"]):
+                    genre = "ACTION"
+                    tags.append("ACTION")
+                elif any(kw in title_lower for kw in ["rpg", "quest", "scroll", "fantasy", "sword", "witcher", "soul", "elden", "craft", "hero"]):
+                    genre = "RPG"
+                    tags.append("RPG")
+                elif any(kw in title_lower for kw in ["drive", "race", "speed", "rally", "car", "moto", "asphalt", "track"]):
+                    genre = "RACING"
+                    tags.append("RACING")
+                elif any(kw in title_lower for kw in ["soccer", "football", "fifa", "nba", "sport", "tennis", "golf", "f1"]):
+                    genre = "SPORTS"
+                    tags.append("SPORTS")
+                elif any(kw in title_lower for kw in ["build", "sim", "tycoon", "city", "farm", "manager"]):
+                    genre = "SIMULATION"
+                    tags.append("SIMULATION")
+                elif any(kw in title_lower for kw in ["survive", "dead", "zombie", "horror", "resident", "evil", "last"]):
+                    genre = "SURVIVAL"
+                    tags.append("SURVIVAL")
             
             # 2. Add game modes (Multiplayer vs Singleplayer)
             is_multiplayer = any(kw in title_lower for kw in ["online", "multiplayer", "arena", "co-op", "coop", "pvp", "mmo", "championship", "league"])
