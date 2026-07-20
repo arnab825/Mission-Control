@@ -181,7 +181,9 @@ Generate a highly engaging, accurate, and completely unique blog post about thes
 - Prefer official documentation, secure HTTPS links only, and authoritative sources (official docs, standards bodies, vendor docs). Avoid dubious sources.
 
 8. CONTENT RESTRICTIONS:
-- Remain professional. Avoid explicit material or unsupported political commentary. Stay strictly focused on technology, software engineering, hardware, AI, gaming, and infrastructure.
+- Remain professional. Do NOT include advertisements, sponsored placements, or promotional calls to action (e.g. "Buy now", "Click here to subscribe", "Check out their website").
+- Do NOT generate any harmful, unsafe, hateful, or 18+ / adult-related content.
+- Avoid explicit material or unsupported political commentary. Stay strictly focused on technology, software engineering, hardware, AI, gaming, and infrastructure.
 
 9. SCHEDULING & PARSING COMPLIANCE:
 - Return the output strictly in the requested markdown format with frontmatter at the very top.
@@ -439,64 +441,62 @@ export async function POST(request: NextRequest) {
   // Initialize HuggingFace client
   const hfClient = new InferenceClient(process.env.HF_TOKEN);
 
-  // Use days since epoch (in IST) to perfectly alternate 4 topics regardless of month lengths
-  const todayMillis = targetDate.getTime() + 5.5 * 60 * 60 * 1000;
-  const daysSinceEpoch = Math.floor(todayMillis / (1000 * 60 * 60 * 24));
-  
   const postTypes = ["GPU News", "Game News", "Hardware Deep-Dive", "Game Revisit"] as const;
-  const currentTopic = postTypes[daysSinceEpoch % 4];
-  const isHardware = (currentTopic === "GPU News" || currentTopic === "Hardware Deep-Dive");
-  const itemsToUse = isHardware ? gpuItems : gameItems;
+  
+  for (const currentTopic of postTypes) {
+    const isHardware = (currentTopic === "GPU News" || currentTopic === "Hardware Deep-Dive");
+    const itemsToUse = isHardware ? gpuItems : gameItems;
 
-  if (itemsToUse.length >= 2) {
-    const post = await generateBlogPost(itemsToUse, currentTopic, apiKey, targetDate);
-    if (post) {
-      let localCoverPath = undefined;
-      let imageBuffer: Buffer | undefined = undefined;
+    if (itemsToUse.length >= 2) {
+      const post = await generateBlogPost(itemsToUse, currentTopic, apiKey, targetDate);
+      if (post) {
+        let localCoverPath = undefined;
+        let imageBuffer: Buffer | undefined = undefined;
 
-      try {
         try {
-          // Try Pollinations first since it's free and unlimited
-          let defaultPrompt = "";
-          if (isHardware) {
-            defaultPrompt = `${post.title}. Futuristic hardware, tech concept art, glowing neon accents, 8k resolution, cyberpunk style.`;
-          } else {
-            defaultPrompt = `${post.title}. Stylized gaming concept art, high-tech HUD elements, colorful neon game design aesthetic, 8k resolution.`;
+          try {
+            // Try Pollinations first since it's free and unlimited
+            let defaultPrompt = "";
+            if (isHardware) {
+              defaultPrompt = `${post.title}. Futuristic hardware, tech concept art, glowing neon accents, 8k resolution, cyberpunk style.`;
+            } else {
+              defaultPrompt = `${post.title}. Stylized gaming concept art, high-tech HUD elements, colorful neon game design aesthetic, 8k resolution.`;
+            }
+            const finalPrompt = post.imagePrompt || defaultPrompt;
+            imageBuffer = await generateImageWithPollinations(finalPrompt);
+          } catch (pollError) {
+            console.warn("Pollinations failed, falling back to HuggingFace:", pollError);
+            const imageBlob = await hfClient.textToImage({
+              provider: "hf-inference",
+              model: "black-forest-labs/FLUX.1-schnell",
+              inputs: post.imagePrompt || `A highly detailed gaming or tech illustration for a blog post titled: ${post.title}. ${post.tags.join(', ')}`,
+              parameters: { num_inference_steps: 4 },
+            }, {
+              outputType: "blob"
+            });
+            imageBuffer = Buffer.from(await imageBlob.arrayBuffer());
           }
-          const finalPrompt = post.imagePrompt || defaultPrompt;
-          imageBuffer = await generateImageWithPollinations(finalPrompt);
-        } catch (pollError) {
-          console.warn("Pollinations failed, falling back to HuggingFace:", pollError);
-          const imageBlob = await hfClient.textToImage({
-            provider: "hf-inference",
-            model: "black-forest-labs/FLUX.1-schnell",
-            inputs: post.imagePrompt || `A highly detailed gaming or tech illustration for a blog post titled: ${post.title}. ${post.tags.join(', ')}`,
-            parameters: { num_inference_steps: 4 },
-          }, {
-            outputType: "blob"
-          });
-          imageBuffer = Buffer.from(await imageBlob.arrayBuffer());
+
+          // Save locally
+          const publicDir = path.join(process.cwd(), "public/images/blog");
+          const imagePath = path.join(publicDir, `${post.slug}.png`);
+          safeWriteFileSync(imagePath, imageBuffer);
+          localCoverPath = `/images/blog/${post.slug}.png`;
+        } catch (imgErr: unknown) {
+          const errMsg = imgErr instanceof Error ? imgErr.message : String(imgErr);
+          safeAppendFileSync(path.join(process.cwd(), "generate.log"), `[BlogGen] Local image generation/saving failed: ${errMsg}\n`);
+          console.error("[BlogGen] Local image generation/saving failed:", imgErr);
+          localCoverPath = isHardware ? "/images/gpu-placeholder.png" : "/images/game-placeholder.png";
         }
 
-        // Save locally
-        const publicDir = path.join(process.cwd(), "public/images/blog");
-        const imagePath = path.join(publicDir, `${post.slug}.png`);
-        safeWriteFileSync(imagePath, imageBuffer);
-        localCoverPath = `/images/blog/${post.slug}.png`;
-      } catch (imgErr: unknown) {
-        const errMsg = imgErr instanceof Error ? imgErr.message : String(imgErr);
-        safeAppendFileSync(path.join(process.cwd(), "generate.log"), `[BlogGen] Local image generation/saving failed: ${errMsg}\n`);
-        console.error("[BlogGen] Local image generation/saving failed:", imgErr);
-        localCoverPath = isHardware ? "/images/gpu-placeholder.png" : "/images/game-placeholder.png";
+        // Normalize publication time to exactly 08:00 AM IST (02:30 UTC of same day)
+        const postDate = new Date(Date.UTC(istYear, istMonth - 1, istDay, 8, 0, 0, 0) - 5.5 * 60 * 60 * 1000);
+        const publishedAt = postDate.toISOString();
+
+        const saved = await writeToMongoDB(post, currentTopic, publishedAt, localCoverPath);
+        writeToLocalMdx(post, currentTopic, publishedAt, localCoverPath);
+        results.push({ type: currentTopic, slug: post.slug, saved });
       }
-
-      // Normalize publication time to exactly 08:00 AM IST (02:30 UTC of same day)
-      const postDate = new Date(Date.UTC(istYear, istMonth - 1, istDay, 8, 0, 0, 0) - 5.5 * 60 * 60 * 1000);
-      const publishedAt = postDate.toISOString();
-
-      const saved = await writeToMongoDB(post, currentTopic, publishedAt, localCoverPath);
-      writeToLocalMdx(post, currentTopic, publishedAt, localCoverPath);
-      results.push({ type: currentTopic, slug: post.slug, saved });
     }
   }
 
