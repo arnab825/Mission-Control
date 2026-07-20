@@ -75,3 +75,7 @@ To avoid creating duplicate posts for the same day (e.g. if the generation scrip
 * **Banned Closers**:
   * *"...developers can build robust, high-performance systems ready for the next decade."*
   * *"...in an ever-evolving digital landscape."*
+* **Content Restrictions (No Bloat, No Ads, No Promotions)**:
+  * Articles must be strictly informational and analytical.
+  * Never include advertisements, sponsored placements, or promotional calls to action (e.g., "Buy now", "Click here to subscribe", "Check out their website").
+  * Cut out marketing fluff and bloated introductory paragraphs. Get straight to the technical facts and analysis.
