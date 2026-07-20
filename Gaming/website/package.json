@@ -23,7 +23,7 @@
     "next-mdx-remote": "^6.0.0",
     "nodemailer": "^9.0.3",
     "react": "19.2.7",
-    "react-dom": "19.2.4",
+    "react-dom": "19.2.7",
     "react-markdown": "^10.1.0",
     "react-syntax-highlighter": "^16.1.1",
     "rehype-katex": "^7.0.1",
