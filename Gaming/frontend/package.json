@@ -41,7 +41,7 @@
                             "electron-builder":  "^26.15.3",
                             "electron-forge-maker-nsis":  "^26.15.3",
                             "electron-updater":  "^6.8.9",
-                            "eslint":  "^10.3.0",
+                            "eslint":  "^10.7.0",
                             "eslint-plugin-react-hooks":  "^7.1.1",
                             "eslint-plugin-react-refresh":  "^0.5.2",
                             "framer-motion":  "^12.38.0",
