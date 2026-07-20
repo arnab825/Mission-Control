@@ -507,14 +507,14 @@ const getRecommendedPreset = (features: string[] = [], genre: string = '', gpuIn
 
   // If not RTX, fallback to latency or off
   if (!isRtxGpu) {
-    if (g.includes('shooter') || g.includes('esport') || g.includes('fight') || g.includes('multiplayer') || g.includes('competitive') || g.includes('action') || g.includes('racing')) {
+    if (g.includes('shooter') || g.includes('esport') || g.includes('fight') || g.includes('multiplayer') || g.includes('competitive') || g.includes('action') || g.includes('racing') || g.includes('fps')) {
       return PRESET_DETAILS.find(p => p.key === 'latency') || PRESET_DETAILS[2];
     }
     return PRESET_DETAILS.find(p => p.key === 'off') || PRESET_DETAILS[3];
   }
 
   // Esports / shooters always prefer Latency, even if DLSS/RT exist
-  if (g.includes('shooter') || g.includes('esport') || g.includes('fight') || g.includes('multiplayer') || g.includes('competitive')) {
+  if (g.includes('shooter') || g.includes('esport') || g.includes('fight') || g.includes('multiplayer') || g.includes('competitive') || g.includes('fps')) {
     return PRESET_DETAILS.find(p => p.key === 'latency') || PRESET_DETAILS[2];
   }
 
