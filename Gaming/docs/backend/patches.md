@@ -2,6 +2,10 @@
 
 This document contains a detailed history of all patches and updates for the AI Gaming Assistant.
 
+### Patch: 2026-07-21 — v1.9.1: Fix stale closure check again button stuck in checking
+
+- Fix stale closure check again button stuck in checking
+
 ### Patch: 2026-07-21 — v1.9.0: Remove Brave Search and add update pause/resume persistence
 
 - Remove Brave Search and add update pause/resume persistence

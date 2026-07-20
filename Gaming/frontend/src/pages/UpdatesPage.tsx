@@ -50,6 +50,7 @@ export const UpdatesPage: React.FC<UpdatesPageProps> = ({
   }>({ status: 'idle' });
   const [isManualChecking, setIsManualChecking] = React.useState(false);
   const [toastMessage, setToastMessage] = React.useState<string | null>(null);
+  const manualCheckStatusRef = useRef<'idle' | 'checking'>('idle');
 
   useEffect(() => {
     setActiveTab(defaultTab);
@@ -116,19 +117,40 @@ export const UpdatesPage: React.FC<UpdatesPageProps> = ({
   }, [installState?.step]);
 
   useEffect(() => {
-    if (updateState) {
-      if (updateState.status === 'up_to_date' && isManualChecking) {
-        setToastMessage("Mission Control is already up to date!");
-        setIsManualChecking(false);
-      } else if (updateState.status === 'available' && isManualChecking) {
-        setToastMessage("New update is available for download!");
-        setIsManualChecking(false);
-      } else if (updateState.status === 'failed' && isManualChecking) {
-        setToastMessage("Update check failed: " + (updateState.reason || 'Network error'));
-        setIsManualChecking(false);
+    if (isManualChecking) {
+      if (updateState?.status === 'checking') {
+        manualCheckStatusRef.current = 'checking';
+      }
+      if (manualCheckStatusRef.current === 'checking') {
+        if (updateState?.status === 'up_to_date') {
+          setToastMessage("Mission Control is already up to date!");
+          setIsManualChecking(false);
+          manualCheckStatusRef.current = 'idle';
+        } else if (updateState?.status === 'available') {
+          setToastMessage("New update is available for download!");
+          setIsManualChecking(false);
+          manualCheckStatusRef.current = 'idle';
+        } else if (updateState?.status === 'failed') {
+          setToastMessage("Update check failed: " + (updateState.reason || 'Network error'));
+          setIsManualChecking(false);
+          manualCheckStatusRef.current = 'idle';
+        }
       }
     }
-  }, [updateState?.status]);
+  }, [updateState?.status, isManualChecking]);
+
+  useEffect(() => {
+    if (isManualChecking) {
+      const timer = setTimeout(() => {
+        if (isManualChecking) {
+          setIsManualChecking(false);
+          manualCheckStatusRef.current = 'idle';
+          setToastMessage("Update check completed.");
+        }
+      }, 10000);
+      return () => clearTimeout(timer);
+    }
+  }, [isManualChecking]);
 
   useEffect(() => {
     if (toastMessage) {
@@ -246,6 +268,7 @@ export const UpdatesPage: React.FC<UpdatesPageProps> = ({
                       <button aria-label="button" type="button"
                         disabled={isManualChecking}
                         onClick={() => {
+                          manualCheckStatusRef.current = 'checking';
                           setIsManualChecking(true);
                           sendCommand('check_updates');
                           window.electronAPI?.checkElectronUpdates?.();
@@ -496,6 +519,7 @@ export const UpdatesPage: React.FC<UpdatesPageProps> = ({
                       <button aria-label="button" type="button"
                         disabled={isManualChecking}
                         onClick={() => {
+                          manualCheckStatusRef.current = 'checking';
                           setIsManualChecking(true);
                           sendCommand('check_updates');
                           window.electronAPI?.checkElectronUpdates?.();
