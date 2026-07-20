@@ -27,6 +27,7 @@ declare global {
       onHUDStatus?: (callback: (isVisible: boolean) => void) => () => void;
       cancelElectronUpdate?: () => void;
       rollbackElectronUpdate?: () => void;
+      getElectronUpdateState?: () => Promise<any>;
       onOpenDashboard?: (callback: () => void) => () => void;
     };
   }

@@ -2,6 +2,10 @@
 
 This document contains a detailed history of all patches and updates for the AI Gaming Assistant.
 
+### Patch: 2026-07-21 — v1.9.0: Remove Brave Search and add update pause/resume persistence
+
+- Remove Brave Search and add update pause/resume persistence
+
 ### Patch: 2026-07-20 — v1.8.9: Fix list index out of range in Brave search parsing
 
 - Fix list index out of range in Brave search parsing
