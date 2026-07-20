@@ -1439,7 +1439,7 @@ class GameBrain:
             # Query RAWG (500k+ games database) first if available
             if hasattr(self, "_web_search") and self._web_search:
                 try:
-                    res = self._web_search._search_rawg(game_title)
+                    res = self._web_search.search(game_title, task="game_info")
                     if res and res.get("answer"):
                         answer_str = res["answer"]
                         if "Genres:" in answer_str:
