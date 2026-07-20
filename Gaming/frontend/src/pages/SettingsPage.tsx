@@ -473,20 +473,31 @@ const getRecommendedPreset = (features: string[] = [], genre: string = '', gpuIn
 
   let isRtxGpu = false;
   let isHighEndRtx = false;
-  let is40Series = false;
-  let is50Series = false;
+  let is40SeriesOrNewer = false;
 
   if (typeof gpuInfo === 'object' && gpuInfo !== null) {
     isRtxGpu = gpuInfo.is_rtx ?? false;
     isHighEndRtx = isRtxGpu && (gpuInfo.tier === 'high');
-    is40Series = isRtxGpu && (gpuInfo.architecture === 'Ada Lovelace');
-    is50Series = isRtxGpu && (gpuInfo.architecture === 'Blackwell');
+    is40SeriesOrNewer = isRtxGpu && (gpuInfo.generation_number >= 40 || gpuInfo.architecture === 'Ada Lovelace' || gpuInfo.architecture === 'Blackwell' || (gpuInfo.architecture && !['Turing', 'Ampere'].includes(gpuInfo.architecture)));
   } else {
     const name = String(gpuInfo).toLowerCase();
     isRtxGpu = name.includes('rtx') || name.includes('quadro rtx') || name.includes('tesla') || name.includes('titan rtx');
-    isHighEndRtx = name.includes('5090') || name.includes('5080') || name.includes('5070') || name.includes('4090') || name.includes('4080') || name.includes('4070') || name.includes('3090') || name.includes('3080') || name.includes('4070 ti') || name.includes('3080 ti') || name.includes('super');
-    is40Series = name.includes('40') && isRtxGpu;
-    is50Series = name.includes('50') && isRtxGpu;
+    
+    const rtxMatch = name.match(/rtx\s+(\d{4})/);
+    if (rtxMatch) {
+      const modelNum = parseInt(rtxMatch[1], 10);
+      const series = Math.floor(modelNum / 100);
+      const tier = modelNum % 100;
+      if (tier >= 70) {
+        isHighEndRtx = true;
+      }
+      if (series >= 40) {
+        is40SeriesOrNewer = true;
+      }
+    } else {
+      isHighEndRtx = name.includes('5090') || name.includes('5080') || name.includes('5070') || name.includes('4090') || name.includes('4080') || name.includes('4070') || name.includes('3090') || name.includes('3080') || name.includes('4070 ti') || name.includes('3080 ti') || name.includes('super');
+      is40SeriesOrNewer = (name.includes('40') || name.includes('50') || name.includes('60') || name.includes('70')) && isRtxGpu;
+    }
   }
 
   const upperFeatures = features.map(f => f.toUpperCase());
@@ -526,9 +537,9 @@ const getRecommendedPreset = (features: string[] = [], genre: string = '', gpuIn
     }
   }
 
-  // Action / Racing / Fast paced -> prefers Performance if game supports FG and hardware is 40-series or 50-series
+  // Action / Racing / Fast paced -> prefers Performance if game supports FG and hardware is 40-series or 50-series or newer
   if (g.includes('action') || g.includes('racing') || g.includes('sport') || g.includes('survival') || g.includes('brawler')) {
-    if (hasFG && (is40Series || is50Series)) {
+    if (hasFG && is40SeriesOrNewer) {
       return PRESET_DETAILS.find(p => p.key === 'performance') || PRESET_DETAILS[1];
     } else if (hasDLSS) {
       return PRESET_DETAILS.find(p => p.key === 'balanced') || PRESET_DETAILS[1];
