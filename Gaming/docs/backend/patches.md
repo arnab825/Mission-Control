@@ -2,6 +2,10 @@
 
 This document contains a detailed history of all patches and updates for the AI Gaming Assistant.
 
+### Patch: 2026-07-20 — v1.8.8: Filter launcher icons in Settings table and fallback to Steam headers
+
+- Filter launcher icons in Settings table and fallback to Steam headers
+
 ### Patch: 2026-07-20 — v1.8.6: Use public WebSearchEngine search API for game fallback classification
 
 - Use public WebSearchEngine search API for game fallback classification

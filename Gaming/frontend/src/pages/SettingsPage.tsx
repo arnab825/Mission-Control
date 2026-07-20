@@ -2971,7 +2971,23 @@ const SettingsPage: React.FC<{ state: TelemetryState | null, sendCommand: (type:
                             <td className="p-3 pl-5 font-black text-white">
                               <div className="flex items-center gap-3">
                                 {(() => {
-                                  const iconUrl = game.icon && game.icon !== 'null'
+                                  const exeLower = (game.exe_path || '').toLowerCase();
+                                  const isLauncherExe = exeLower.includes('ubisoftconnect') ||
+                                    exeLower.includes('uplay') ||
+                                    exeLower.includes('steam.exe') ||
+                                    exeLower.includes('epicgameslauncher') ||
+                                    exeLower.includes('origin.exe') ||
+                                    exeLower.includes('galaxyclient');
+
+                                  const hasLauncherIcon = game.icon && (
+                                    game.icon.toLowerCase().includes('steam_launcher') ||
+                                    game.icon.toLowerCase().includes('fallback_ea_desktop') ||
+                                    game.icon.toLowerCase().includes('fallback_epic_games')
+                                  );
+
+                                  const useLocalIcon = game.icon && game.icon !== 'null' && !isLauncherExe && !hasLauncherIcon;
+
+                                  const iconUrl = useLocalIcon
                                     ? (game.icon.startsWith('http') ? game.icon : `asset:///${game.icon.replace(/\\/g, '/')}`)
                                     : game.local_banner && game.local_banner !== 'null'
                                       ? (game.local_banner.startsWith('http') ? game.local_banner : `asset:///${game.local_banner.replace(/\\/g, '/')}`)
