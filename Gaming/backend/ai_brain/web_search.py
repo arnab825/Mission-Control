@@ -662,7 +662,9 @@ class WebSearchEngine:
                 d = json.loads(data)
                 web_results = d.get("web", {}).get("results", [])
                 for item in web_results:
-                    desc = item.get("description", "") or item.get("extra_snippets", [""])[0]
+                    extra_snippets = item.get("extra_snippets", [])
+                    extra_snippet = extra_snippets[0] if isinstance(extra_snippets, list) and len(extra_snippets) > 0 else ""
+                    desc = item.get("description", "") or extra_snippet
                     results.append({"title": item.get("title", ""), "url": item.get("url", ""), "content": desc})
                 if results:
                     answer = results[0]["content"][:500]
