@@ -16,9 +16,12 @@
   html {
     scroll-behavior: smooth;
     scroll-padding-top: 6rem;
+    overflow-y: auto;
+    overflow-x: hidden;
   }
   body {
-    @apply bg-obsidian text-white antialiased overflow-x-hidden selection:bg-neon-green/30 selection:text-neon-green;
+    @apply bg-obsidian text-white antialiased selection:bg-neon-green/30 selection:text-neon-green;
+    overflow: visible;
   }
 }
 
