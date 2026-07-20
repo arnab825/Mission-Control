@@ -182,6 +182,7 @@ Generate a highly engaging, accurate, and completely unique blog post about thes
 
 8. CONTENT RESTRICTIONS:
 - Remain professional. Avoid explicit material or unsupported political commentary. Stay strictly focused on technology, software engineering, hardware, AI, gaming, and infrastructure.
+- NO ADS, NO BLOAT, NO PROMOTIONS: The article must be strictly informational and analytical. Do not include promotional language, sponsored placements, or calls to action (e.g. "Buy now", "Subscribe to our channel"). Cut out marketing fluff and bloated introductory paragraphs.
 
 9. SCHEDULING & PARSING COMPLIANCE:
 - Return the output strictly in the requested markdown format with frontmatter at the very top.
