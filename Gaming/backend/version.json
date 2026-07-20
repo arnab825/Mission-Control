@@ -1,8 +1,16 @@
 {
-  "version": "1.9.1",
+  "version": "1.9.2",
   "release_date": "2026-07-20",
   "update_check_url": "https://raw.githubusercontent.com/arnab825/Mission-Control/main/Gaming/backend/version.json",
   "changelog": [
+    {
+      "version": "1.9.2",
+      "date": "2026-07-21",
+      "title": "Add SQLite indices for near-instant chat history retrieval",
+      "highlights": [
+        "Add SQLite indices for near-instant chat history retrieval"
+      ]
+    },
     {
       "version": "1.9.1",
       "date": "2026-07-21",
@@ -429,14 +437,6 @@
       "title": "Upgrade installer to standard interactive wizard and fix telemetry dependencies",
       "highlights": [
         "Upgrade installer to standard interactive wizard and fix telemetry dependencies"
-      ]
-    },
-    {
-      "version": "1.4.8",
-      "date": "2026-07-15",
-      "title": "Add CPU fallback to EasyOCR initialization on CUDA error",
-      "highlights": [
-        "Add CPU fallback to EasyOCR initialization on CUDA error"
       ]
     }
   ]
