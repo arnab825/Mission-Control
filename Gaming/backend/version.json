@@ -1,8 +1,17 @@
 {
-    "version":  "1.8.1",
+    "version":  "1.8.2",
     "release_date":  "2026-07-20",
     "update_check_url":  "https://raw.githubusercontent.com/arnab825/Mission-Control/main/Gaming/backend/version.json",
     "changelog":  [
+                      {
+                          "version":  "1.8.2",
+                          "date":  "2026-07-20",
+                          "title":  "Subsequent Update Check Overrides",
+                          "highlights":  [
+                                             "Enabled check for newer system updates even when an update has already been downloaded and is waiting for client restart",
+                                             "Added Check Again trigger endpoints to both tab headings and relaunch prompts"
+                                         ]
+                      },
                       {
                           "version":  "1.8.1",
                           "date":  "2026-07-20",
