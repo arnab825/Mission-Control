@@ -102,9 +102,13 @@ const App: React.FC = () => {
       setUpdaterTab('changelogs');
       setActivePage('updates');
     });
+    const cleanup3 = api.onOpenDashboard?.(() => {
+      setActivePage('dashboard');
+    });
     return () => {
       cleanup1();
       cleanup2?.();
+      cleanup3?.();
     };
   }, []);
 

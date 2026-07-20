@@ -41,7 +41,7 @@ export const UpdatesPage: React.FC<UpdatesPageProps> = ({
   const [expandedVersions, setExpandedVersions] = React.useState<Record<string, boolean>>({});
   const logEndRef = useRef<HTMLDivElement>(null);
   const [nativeUpdate, setNativeUpdate] = React.useState<{
-    status: 'idle' | 'checking' | 'available' | 'downloading' | 'up-to-date' | 'downloaded' | 'error' | 'not-supported';
+    status: 'idle' | 'checking' | 'available' | 'downloading' | 'up-to-date' | 'downloaded' | 'error' | 'not-supported' | 'cancelled';
     version?: string;
     date?: string;
     notes?: string;
@@ -310,6 +310,63 @@ export const UpdatesPage: React.FC<UpdatesPageProps> = ({
                         style={{ width: `${nativeUpdate.percent || 0}%` }}
                       />
                     </div>
+                  </div>
+
+                  {/* Pause / Cancel Actions */}
+                  <div className="flex justify-end gap-3 pt-2">
+                    <button aria-label="Pause" type="button"
+                      onClick={() => {
+                        window.electronAPI?.cancelElectronUpdate?.();
+                        setNativeUpdate(prev => ({ ...prev, status: 'cancelled', message: 'Download paused by user.' }));
+                      }}
+                      className="px-6 py-2.5 bg-white/5 hover:bg-white/10 text-white text-[9px] font-black uppercase tracking-widest rounded-xl transition-all cursor-pointer font-bold"
+                    >
+                      Pause
+                    </button>
+                    <button aria-label="Cancel" type="button"
+                      onClick={() => {
+                        window.electronAPI?.cancelElectronUpdate?.();
+                        setNativeUpdate({ status: 'idle' });
+                      }}
+                      className="px-6 py-2.5 bg-red-500/10 hover:bg-red-500/20 border border-red-500/20 hover:border-red-500/30 text-red-400 text-[9px] font-black uppercase tracking-widest rounded-xl transition-all cursor-pointer font-bold"
+                    >
+                      Cancel
+                    </button>
+                  </div>
+                </div>
+              )}
+
+              {(!installState || installState.status === 'use_native') && nativeUpdate.status === 'cancelled' && (
+                <div className="p-6 bg-zinc-900/40 border border-white/5 rounded-3xl space-y-4 shadow-[0_0_20px_rgba(255,255,255,0.02)]">
+                  <div className="flex items-center justify-between gap-4">
+                    <div className="space-y-1">
+                      <div className="flex items-center gap-2">
+                        <span className="px-2 py-0.5 rounded bg-zinc-800 text-zinc-400 text-[8px] font-black tracking-widest uppercase border border-white/5">DOWNLOAD PAUSED</span>
+                      </div>
+                      <h4 className="text-xs font-black uppercase tracking-widest text-zinc-300">Update Download Paused</h4>
+                      <p className="text-[10px] text-zinc-500 font-bold uppercase">
+                        {nativeUpdate.message || 'Download was cancelled or paused by user.'}
+                      </p>
+                    </div>
+                  </div>
+
+                  <div className="flex items-center gap-3 pt-2">
+                    <button aria-label="Resume" type="button"
+                      onClick={() => {
+                        window.electronAPI?.downloadElectronUpdate?.();
+                        setNativeUpdate(prev => ({ ...prev, status: 'downloading' }));
+                      }}
+                      className="flex-1 flex items-center justify-center gap-2 px-6 py-3 bg-neon-green hover:bg-neon-green/90 text-black text-[9px] font-black uppercase tracking-widest rounded-xl transition-all hover:scale-[1.02] cursor-pointer font-bold"
+                    >
+                      <Download className="w-3.5 h-3.5" />
+                      Resume Download
+                    </button>
+                    <button aria-label="Clear" type="button"
+                      onClick={() => setNativeUpdate({ status: 'idle' })}
+                      className="px-6 py-3 bg-white/5 hover:bg-white/10 text-white text-[9px] font-black uppercase tracking-widest rounded-xl transition-all cursor-pointer font-bold"
+                    >
+                      Clear
+                    </button>
                   </div>
                 </div>
               )}
@@ -601,6 +658,35 @@ export const UpdatesPage: React.FC<UpdatesPageProps> = ({
                       )}
                     </div>
                   )}
+                </div>
+              )}
+
+              {/* System Recovery Section */}
+              {!installState && (
+                <div className="pt-6 border-t border-white/5 space-y-4">
+                  <h5 className="text-[10px] font-black text-red-400 uppercase tracking-widest flex items-center gap-1.5">
+                    <History className="w-3.5 h-3.5 text-red-400" />
+                    System Recovery & Rollback
+                  </h5>
+                  <div className="p-5 bg-red-500/5 border border-red-500/10 rounded-2xl flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+                    <div className="space-y-1">
+                      <h6 className="text-[10px] font-black text-zinc-200 uppercase tracking-wide">Offline Backup Restoration</h6>
+                      <p className="text-[9px] text-zinc-500 font-bold uppercase leading-relaxed">
+                        If a recent update introduced instability, restore the cached backup of your previous working installation.
+                      </p>
+                    </div>
+                    <button
+                      type="button"
+                      onClick={() => {
+                        if (window.confirm("Are you sure you want to rollback to the previous version? The app will close and restore your backup resources.")) {
+                          window.electronAPI?.rollbackElectronUpdate?.();
+                        }
+                      }}
+                      className="px-4 py-2.5 bg-red-500/10 hover:bg-red-500/20 text-red-400 text-[8px] font-black uppercase tracking-widest rounded-xl border border-red-500/20 hover:border-red-500/30 transition cursor-pointer shrink-0 font-bold"
+                    >
+                      Rollback Core Version
+                    </button>
+                  </div>
                 </div>
               )}
 

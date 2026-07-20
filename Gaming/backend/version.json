@@ -1,8 +1,19 @@
 {
-    "version":  "1.8.6",
+    "version":  "1.8.7",
     "release_date":  "2026-07-20",
     "update_check_url":  "https://raw.githubusercontent.com/arnab825/Mission-Control/main/Gaming/backend/version.json",
     "changelog":  [
+                      {
+                          "version":  "1.8.7",
+                          "date":  "2026-07-20",
+                          "title":  "Tray Redirects, Boost Mode Renaming, and Update Controls & Rollback UI",
+                          "highlights":  [
+                                             "Enabled tray Show Dashboard click/double-click events to automatically restore and redirect users to the Dashboard",
+                                             "Renamed user-facing 'Game Mode' labels and badges to 'Boost Mode' to align with backend optimization contexts",
+                                             "Added manual Pause and Cancel action buttons for active update downloads",
+                                             "Implemented a System Recovery & Rollback panel to trigger offline backup restoration natively"
+                                         ]
+                      },
                       {
                           "version":  "1.8.6",
                           "date":  "2026-07-20",
