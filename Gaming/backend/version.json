@@ -1,12 +1,21 @@
 {
-    "version":  "1.8.0",
+    "version":  "1.8.1",
     "release_date":  "2026-07-20",
     "update_check_url":  "https://raw.githubusercontent.com/arnab825/Mission-Control/main/Gaming/backend/version.json",
     "changelog":  [
                       {
+                          "version":  "1.8.1",
+                          "date":  "2026-07-20",
+                          "title":  "Configurable Auto-Update Control",
+                          "highlights":  [
+                                             "Added a configurable background auto-download switch for core system updates",
+                                             "Allows toggling auto-download on or off to choose when to initiate update downloads manually"
+                                         ]
+                      },
+                      {
                           "version":  "1.8.0",
                           "date":  "2026-07-20",
-                          "title":  "Updater Controls, Database Persistence & Website Mongoose Migration",
+                          "title":  "Updater Controls, Database Persistence \u0026 Website Mongoose Migration",
                           "highlights":  [
                                              "Implemented manual update cancellation and offline rollback backup/restoration mechanisms",
                                              "Migrated desktop SQLite agent memory to write into user APPDATA folder, fixing production persistence",

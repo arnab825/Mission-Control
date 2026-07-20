@@ -3784,6 +3784,31 @@ const SettingsPage: React.FC<{ state: TelemetryState | null, sendCommand: (type:
           </SettingsField>
 
           <SettingsField
+            label="Auto-Download System Updates"
+            description="Automatically download and cache wrapper upgrades in the background. If disabled, you will be notified of new versions and can download them manually."
+          >
+            <div className="flex items-center gap-3">
+              <span className={`text-[9px] font-black uppercase ${localConfig.system?.auto_download_updates !== false ? 'text-neon-green' : 'text-zinc-500'}`}>
+                {localConfig.system?.auto_download_updates !== false ? 'Enabled' : 'Disabled'}
+              </span>
+              <div role="button" tabIndex={0} onKeyDown={(e) => e.key === 'Enter' && e.currentTarget.click()}
+                onClick={() => {
+                  const newVal = localConfig.system?.auto_download_updates === false;
+                  const updatedSystem = { ...localConfig.system, auto_download_updates: newVal };
+                  setLocalConfig({ ...localConfig, system: updatedSystem });
+                  if ((window as any).electronAPI?.saveSettings) {
+                    (window as any).electronAPI.saveSettings({ ...localConfig, system: updatedSystem });
+                  }
+                  sendCommand('update_config', { system: updatedSystem });
+                }}
+                className={`w-12 h-6 rounded-full relative p-1 cursor-pointer transition-colors ${localConfig.system?.auto_download_updates !== false ? 'bg-neon-green' : 'bg-zinc-800'}`}
+              >
+                <div className={`w-4 h-4 rounded-full absolute transition-all ${localConfig.system?.auto_download_updates !== false ? 'bg-black right-1' : 'bg-black left-1'}`} />
+              </div>
+            </div>
+          </SettingsField>
+
+          <SettingsField
             label="Desktop Shortcut"
             description="Re-create or update the Mission Control shortcut on your Desktop."
           >
