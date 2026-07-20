@@ -1,8 +1,16 @@
 {
-  "version": "1.8.4",
+  "version": "1.8.5",
   "release_date": "2026-07-20",
   "update_check_url": "https://raw.githubusercontent.com/arnab825/Mission-Control/main/Gaming/backend/version.json",
   "changelog": [
+    {
+      "version": "1.8.5",
+      "date": "2026-07-20",
+      "title": "Support dynamic RAWG fallback database scan for 1 lakh+ games",
+      "highlights": [
+        "Support dynamic RAWG fallback database scan for 1 lakh+ games"
+      ]
+    },
     {
       "version": "1.8.4",
       "date": "2026-07-20",
@@ -428,18 +436,6 @@
       "highlights": [
         "Prevented HUD window from triggering get_cached_games to avoid backend auto-scan.",
         "Removed Stealth Mode tray menu options, window protection logic, and settings panel."
-      ]
-    },
-    {
-      "version": "1.4.0",
-      "date": "2026-07-14",
-      "title": "Responsive UI, tray events, env var loading, and Electron memory optimization",
-      "highlights": [
-        "Enforced 256MB V8 heap limit & exposed GC to optimize Electron memory usage on 16GB RAM setups.",
-        "Added single-click system tray handler to toggle app visibility.",
-        "Ensured env variables override system environment to fix NVIDIA_API_KEY loading.",
-        "Removed scaling clamp from frontend CSS to fix zoomed-out responsive scaling.",
-        "Renamed 'Ack Engine' to 'Acknowledge' in Updater UI."
       ]
     }
   ]
