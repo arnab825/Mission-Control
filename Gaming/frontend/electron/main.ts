@@ -983,6 +983,9 @@ ipcMain.handle('load-settings', async () => {
     if (config.system.open_at_login === undefined) {
       config.system.open_at_login = app.getLoginItemSettings().openAtLogin;
     }
+    if (config.system.auto_download_updates === undefined) {
+      config.system.auto_download_updates = true;
+    }
     return config;
   } catch (error) {
     console.error('Failed to load config:', error);
@@ -1001,6 +1004,10 @@ ipcMain.handle('save-settings', async (_event, config) => {
         args: []
       });
       console.log(`[Electron] Set openAtLogin to ${openAtLogin}`);
+      
+      const autoDownload = config.system.auto_download_updates !== false;
+      autoUpdater.autoDownload = autoDownload;
+      console.log(`[Electron] Set autoUpdater.autoDownload to ${autoDownload}`);
     }
     if (updateTrayMenuRef) {
       updateTrayMenuRef();
@@ -1586,6 +1593,22 @@ function setupAutoUpdater() {
     });
     return;
   }
+
+  // Load autoDownload setting from config on startup
+  let autoDownloadEnabled = true;
+  try {
+    if (fs.existsSync(CONFIG_PATH)) {
+      const data = fs.readFileSync(CONFIG_PATH, 'utf-8');
+      const config = JSON.parse(data);
+      if (config.system && config.system.auto_download_updates !== undefined) {
+        autoDownloadEnabled = !!config.system.auto_download_updates;
+      }
+    }
+  } catch (err) {
+    console.warn('[AutoUpdater] Failed to read auto_download_updates setting:', err);
+  }
+  autoUpdater.autoDownload = autoDownloadEnabled;
+  console.log(`[AutoUpdater] Initialized autoDownload to: ${autoUpdater.autoDownload}`);
 
   // Disable code signature verification for unsigned development/self-built updates
   (autoUpdater as any).verifyUpdateCodeSignature = (_publisherName: string[], path: string) => {
