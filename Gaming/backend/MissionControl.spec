@@ -24,26 +24,6 @@ try:
 except ImportError:
     mem0_imports = []
 
-try:
-    import chromadb
-    chromadb_imports = [
-        name for _, name, _ in pkgutil.walk_packages(chromadb.__path__, chromadb.__name__ + ".")
-        if 'test' not in name and 'property' not in name and 'stress' not in name
-    ]
-    # Manually search for namespace/implicit packages (directories without __init__.py) to ensure all submodules are bundled, excluding tests
-    chroma_path = os.path.dirname(chromadb.__file__)
-    for root, dirs, files in os.walk(chroma_path):
-        if any(x in root for x in ['test', 'property', 'stress']):
-            continue
-        for f in files:
-            if f.endswith('.py') and not f.startswith('__'):
-                rel = os.path.relpath(os.path.join(root, f), os.path.dirname(chroma_path))
-                mod = os.path.splitext(rel)[0].replace(os.path.sep, '.')
-                if mod not in chromadb_imports:
-                    chromadb_imports.append(mod)
-    chromadb_imports.append('chromadb')
-except ImportError:
-    chromadb_imports = []
 
 block_cipher = None
 
@@ -139,7 +119,7 @@ a = Analysis(
         'pyttsx3.drivers.sapi5',
         # ── PIL ─────────────────────────────────────────────────────────────
         'PIL._tkinter_finder',
-    ] + mem0_imports + chromadb_imports + rapidocr_imports,
+    ] + mem0_imports + rapidocr_imports,
     hookspath=[],
     hooksconfig={},
     runtime_hooks=[],

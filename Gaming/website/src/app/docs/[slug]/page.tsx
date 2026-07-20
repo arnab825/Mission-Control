@@ -10,7 +10,7 @@ import { TableOfContents } from "@/components/TableOfContents";
 import { CodeBlock } from "@/components/CodeBlock";
 
 export async function generateStaticParams() {
-  const docs = getAllDocs();
+  const docs = await getAllDocs();
   return docs.map((doc) => ({
     slug: doc.slug,
   }));
@@ -75,13 +75,13 @@ function extractHeadings(content: string): { id: string; text: string; level: nu
 
 export default async function DocPage({ params }: { params: Promise<{ slug: string }> }) {
   const resolvedParams = await params;
-  const doc = getDocBySlug(resolvedParams.slug);
+  const doc = await getDocBySlug(resolvedParams.slug);
 
   if (!doc) {
     notFound();
   }
 
-  const allDocuments = getAllDocs();
+  const allDocuments = await getAllDocs();
   const currentIndex = allDocuments.findIndex((d) => d.slug === resolvedParams.slug);
   const prevDoc = currentIndex > 0 ? allDocuments[currentIndex - 1] : null;
   const nextDoc = currentIndex < allDocuments.length - 1 ? allDocuments[currentIndex + 1] : null;

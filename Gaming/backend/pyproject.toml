@@ -34,7 +34,6 @@ dependencies = [
     "langchain-nvidia-ai-endpoints",
     "langchain-text-splitters",
     "faiss-cpu",
-    "chromadb>=0.5.0",
     "rank_bm25",
     "tiktoken",
     "emoji>=2.15.0",

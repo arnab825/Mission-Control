@@ -460,7 +460,7 @@ const DashboardPage: React.FC<DashboardPageProps> = ({ state, onCommand, onNavig
               >
                 <div className="absolute inset-0 bg-fuchsia-500/10 translate-y-full group-hover:translate-y-0 transition-transform duration-300" />
                 <Zap className="w-3.5 h-3.5 relative z-10 text-fuchsia-400" />
-                <span className="relative z-10">Undo Game Mode</span>
+                <span className="relative z-10">Undo Boost Mode</span>
               </button>
             ) : (
               <button aria-label="button" type="button"
@@ -500,7 +500,7 @@ const DashboardPage: React.FC<DashboardPageProps> = ({ state, onCommand, onNavig
 
             {/* Recharts AreaChart (flexes to fill exactly remaining vertical space) */}
             <div className="flex-1 min-h-[160px] lg:min-h-0 relative">
-              <ResponsiveContainer width="100%" height="100%">
+              <ResponsiveContainer width="100%" height="100%" minWidth={1} minHeight={1}>
                 <AreaChart
                   data={history.GPU.map((_, i) => ({
                     t: i,
