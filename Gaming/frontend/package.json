@@ -21,7 +21,7 @@
                     "postinstall":  "node patch-nsis.mjs"
                 },
     "devDependencies":  {
-                            "@clerk/clerk-react":  "^4.19.0",
+                            "@clerk/clerk-react":  "^5.61.3",
                             "@electron-forge/cli":  "^7.11.2",
                             "@electron-forge/maker-deb":  "^7.11.2",
                             "@electron-forge/maker-rpm":  "^7.11.2",
