@@ -21,6 +21,92 @@ class Optimizer:
             return False
 
     @staticmethod
+    def get_recommended_preset(features, genre, gpu_name):
+        g = (genre or "").lower()
+        gpu_name_lower = (gpu_name or "").lower()
+        
+        is_rtx_gpu = "rtx" in gpu_name_lower or "quadro rtx" in gpu_name_lower or "tesla" in gpu_name_lower or "titan rtx" in gpu_name_lower
+        
+        is_high_end_rtx = False
+        is_40_series_or_newer = False
+
+        import re
+        model_match = re.search(r'rtx\s+(\d{4})', gpu_name_lower)
+        if model_match:
+            model_num = int(model_match.group(1))
+            series = model_num // 100
+            tier = model_num % 100
+            if tier >= 70:
+                is_high_end_rtx = True
+            if series >= 40:
+                is_40_series_or_newer = True
+        else:
+            is_high_end_rtx = any(x in gpu_name_lower for x in ["5090", "5080", "5070", "4090", "4080", "4070", "3090", "3080", "4070 ti", "3080 ti", "super"])
+            is_40_series_or_newer = any(x in gpu_name_lower for x in ["40", "50", "60", "70"]) and is_rtx_gpu
+
+        upper_features = [f.upper() for f in (features or [])]
+        has_dlss = any("DLSS" in f for f in upper_features)
+        has_fg = any(any(x in f for x in ["FRAME_GEN", "FRAME GEN", "FG"]) for f in upper_features)
+        has_rt = any(any(x in f for x in ["RAY_TRACING", "RAY TRACING", "PATH_TRACING", "PATH TRACING", "RTX"]) for f in upper_features)
+
+        # If not RTX, fallback to latency or off
+        if not is_rtx_gpu:
+            if any(x in g for x in ["shooter", "esport", "fight", "multiplayer", "competitive", "action", "racing"]):
+                return "latency"
+            return "off"
+
+        # Esports / shooters always prefer Latency, even if DLSS/RT exist
+        if any(x in g for x in ["shooter", "esport", "fight", "multiplayer", "competitive"]):
+            return "latency"
+
+        # If the game doesn't even support DLSS or RT, we can't do Quality/Performance/Balanced properly
+        if not has_dlss and not has_rt and not has_fg:
+            if any(x in g for x in ["rpg", "adventure", "action", "racing"]):
+                return "latency"
+            return "off"
+
+        # Story / RPG / Adventure -> prefers Quality if hardware can handle it and game supports RT
+        if any(x in g for x in ["rpg", "adventure", "story", "open world", "simulation", "narrative"]):
+            if has_rt and is_high_end_rtx:
+                return "quality"
+            elif has_dlss:
+                return "balanced"
+            else:
+                return "latency"
+
+        # Action / Racing / Fast paced -> prefers Performance if game supports FG and hardware is 40-series or 50-series or newer
+        if any(x in g for x in ["action", "racing", "sport", "survival", "brawler"]):
+            if has_fg and is_40_series_or_newer:
+                return "performance"
+            elif has_dlss:
+                return "balanced"
+            else:
+                return "latency"
+
+        # Other genres
+        if has_dlss:
+            return "balanced"
+
+        return "off"
+
+    @staticmethod
+    def _apply_nvcp_registry_tweak(value_name: str, value_data: str) -> None:
+        if os.name != "nt":
+            return
+        try:
+            import winreg
+            key_path = r"SYSTEM\CurrentControlSet\Services\nvlddmkm\Global\NVTweak"
+            try:
+                key = winreg.OpenKey(winreg.HKEY_LOCAL_MACHINE, key_path, 0, winreg.KEY_SET_VALUE)
+            except FileNotFoundError:
+                key = winreg.CreateKeyEx(winreg.HKEY_LOCAL_MACHINE, key_path, 0, winreg.KEY_SET_VALUE)
+            with key:
+                winreg.SetValueEx(key, value_name, 0, winreg.REG_SZ, value_data)
+            logger.info("Auto-Preset: NVCP registry '%s' set to %s", value_name, value_data)
+        except Exception as e:
+            logger.debug("Auto-Preset: Could not write NVCP registry key '%s': %s", value_name, e)
+
+    @staticmethod
     def optimize_game(game_data, config=None):
         """
         Perform a comprehensive suite of optimizations:
@@ -39,9 +125,34 @@ class Optimizer:
                 nvidia_preset = nvidia_cfg.get("preset", "custom")
                 features = nvidia_cfg.get("gaming_features", {})
 
+            resolved_preset = nvidia_preset
+            if nvidia_preset == "auto":
+                # Get the GPU name via NVML
+                gpu_name = ""
+                try:
+                    import pynvml
+                    pynvml.nvmlInit()
+                    handle = pynvml.nvmlDeviceGetHandleByIndex(0)
+                    gpu_name = pynvml.nvmlDeviceGetName(handle)
+                    if isinstance(gpu_name, bytes):
+                        gpu_name = gpu_name.decode("utf-8")
+                    pynvml.nvmlShutdown()
+                except Exception as nvml_err:
+                    logger.debug(f"Could not get GPU name via NVML for auto-configure: {nvml_err}")
+                
+                if not gpu_name:
+                    gpu_name = "NVIDIA GeForce RTX"
+
+                genre = game_data.get("genre", "")
+                game_features = game_data.get("features", [])
+                
+                resolved_preset = Optimizer.get_recommended_preset(game_features, genre, gpu_name)
+                results.append(f"Auto-configured preset: {resolved_preset} (Genre: {genre}, Features: {game_features})")
+                logger.info(f"Auto-resolved game preset to: {resolved_preset}")
+
             # 1. Power Plan Configuration
             power_mode = "max"
-            if nvidia_preset == "off":
+            if resolved_preset == "off":
                 power_mode = "balanced"
             
             success, msg = Optimizer.set_power_plan(power_mode)
@@ -58,18 +169,36 @@ class Optimizer:
                 custom_pct = nvidia_cfg.get("power_limit_percent", None) if config else None
                 if custom_pct is not None:
                     new_limit = int(default_limit * (custom_pct / 100.0))
-                elif nvidia_preset in ("quality", "performance"):
+                elif resolved_preset in ("quality", "performance"):
                     new_limit = default_limit          # 100%
-                elif nvidia_preset == "latency":
+                elif resolved_preset == "latency":
                     new_limit = int(default_limit * 0.95)
                 else:
                     new_limit = int(default_limit * 0.80)
 
                 pynvml.nvmlDeviceSetPowerManagementLimit(handle, new_limit)
-                results.append(f"NVIDIA GPU power limit set to {new_limit // 1000}W (Preset: {nvidia_preset}, Custom: {custom_pct}%).")
+                results.append(f"NVIDIA GPU power limit set to {new_limit // 1000}W (Preset: {resolved_preset}, Custom: {custom_pct}%).")
                 pynvml.nvmlShutdown()
             except Exception as nvml_err:
                 logger.debug(f"Could not apply GPU limit during game optimization: {nvml_err}")
+
+            # Apply NVIDIA Control Panel Registry settings matching the resolved preset
+            if resolved_preset == "latency":
+                Optimizer._apply_nvcp_registry_tweak("00ICFEValue0025", "0x00000001")
+                Optimizer._apply_nvcp_registry_tweak("00ICFEValue0009", "0x00000008")
+                results.append("Applied Esports Latency profile: Low Latency Mode (Ultra), Power (Max Performance).")
+            elif resolved_preset in ("quality", "performance"):
+                Optimizer._apply_nvcp_registry_tweak("00ICFEValue0025", "0x00000001")
+                Optimizer._apply_nvcp_registry_tweak("00ICFEValue0009", "0x00000008")
+                results.append(f"Applied RTX {resolved_preset} profile: Low Latency Mode (Ultra), Power (Max Performance).")
+            elif resolved_preset == "balanced":
+                Optimizer._apply_nvcp_registry_tweak("00ICFEValue0025", "0x00000001")
+                Optimizer._apply_nvcp_registry_tweak("00ICFEValue0009", "0x00000001")
+                results.append("Applied RTX Balanced profile: Low Latency Mode (Ultra), Power (Adaptive).")
+            else:
+                Optimizer._apply_nvcp_registry_tweak("00ICFEValue0025", "0x00000000")
+                Optimizer._apply_nvcp_registry_tweak("00ICFEValue0009", "0x00000001")
+                results.append("Applied Standard profile: Low Latency Mode (Off), Power (Adaptive).")
 
             # 2. RAM Optimization (Flush Standby List/Working Sets)
             Optimizer.flush_working_sets()
@@ -97,7 +226,7 @@ class Optimizer:
                 fg = "ON" if features.get("frame_gen") else "OFF"
                 rt = "ON" if features.get("ray_tracing") else "OFF"
                 reflex = "ON" if features.get("reflex") else "OFF"
-                results.append(f"NVIDIA pipeline profile ({nvidia_preset}) active: DLSS={dlss}, FG={fg}, RT={rt}, Reflex={reflex}.")
+                results.append(f"NVIDIA pipeline profile ({resolved_preset}) active: DLSS={dlss}, FG={fg}, RT={rt}, Reflex={reflex}.")
 
             # 6. Background Process Suppression
             results.append("Background process jitter suppressed.")
@@ -132,6 +261,14 @@ class Optimizer:
                 pynvml.nvmlShutdown()
             except Exception as nvml_err:
                 logger.debug(f"Could not revert GPU limit: {nvml_err}")
+
+            # Revert GPU registry tweaks
+            try:
+                Optimizer._apply_nvcp_registry_tweak("00ICFEValue0025", "0x00000000")
+                Optimizer._apply_nvcp_registry_tweak("00ICFEValue0009", "0x00000001")
+                results.append("NVIDIA registry tweaks reverted (Low Latency Off, Power Adaptive).")
+            except Exception as reg_err:
+                logger.debug(f"Could not revert GPU registry tweaks: {reg_err}")
             
             # 2. Reset Priority & GPU Preference
             exe_path = game_data.get("exe_path", "")

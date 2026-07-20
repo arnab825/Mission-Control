@@ -2,6 +2,10 @@
 
 This document contains a detailed history of all patches and updates for the AI Gaming Assistant.
 
+### Patch: 2026-07-20 — v1.8.3: Support dynamic RTX 60+ series and auto-configure presets
+
+- Support dynamic RTX 60+ series and auto-configure presets
+
 ### Patch: 2026-07-19 — v1.7.10: Check For Updates Logo Stylization
 
 - Updated Check For Updates tray icon to be white and borderless
