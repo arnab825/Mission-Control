@@ -326,7 +326,7 @@ const LabPage: React.FC<{
         </div>
       </div>
 
-      {/* ── Game Mode Badge & Optimization Status ── */}
+      {/* ── Boost Mode Badge & Optimization Status ── */}
       <div className="flex flex-col md:flex-row items-stretch md:items-center gap-4 shrink-0">
         <button aria-label="button" type="button"
           onClick={() => {
@@ -342,7 +342,7 @@ const LabPage: React.FC<{
             }`}
         >
           <Zap className={`w-4 h-4 ${isGameActive ? "fill-black" : "fill-current"}`} />
-          {isGameActive ? "Game Mode: Active" : "Game Mode"}
+          {isGameActive ? "Boost Mode: Active" : "Boost Mode"}
         </button>
 
       </div>
@@ -371,7 +371,7 @@ const LabPage: React.FC<{
             </div>
             <p className="text-xs font-medium text-zinc-500 leading-relaxed">
               {isGameActive
-                ? (state?.nvidia_tip || `AI managing Game Mode optimizations. System set to Best Performance plan.`)
+                ? (state?.nvidia_tip || `AI managing Boost Mode optimizations. System set to Best Performance plan.`)
                 : "AWAITING DATA: Start the AI pipeline or launch a supported game to begin real-time hardware analysis."}
             </p>
             <div className="p-4 bg-white/[0.03] border border-white/5 rounded-2xl text-center relative">

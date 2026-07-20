@@ -336,8 +336,12 @@ function createTray() {
               if (win.isMinimized()) win.restore();
               win.show();
               win.focus();
+              win.webContents.send('open-dashboard');
             } else {
               createWindow();
+              win?.webContents.once('did-finish-load', () => {
+                win?.webContents.send('open-dashboard');
+              });
             }
           }
         },
@@ -384,14 +388,19 @@ function createTray() {
         if (win.isMinimized()) {
           win.restore();
           win.focus();
+          win.webContents.send('open-dashboard');
         } else if (win.isVisible()) {
           win.hide();
         } else {
           win.show();
           win.focus();
+          win.webContents.send('open-dashboard');
         }
       } else {
         createWindow();
+        win?.webContents.once('did-finish-load', () => {
+          win?.webContents.send('open-dashboard');
+        });
       }
     });
 
@@ -400,8 +409,12 @@ function createTray() {
         if (win.isMinimized()) win.restore();
         win.show();
         win.focus();
+        win.webContents.send('open-dashboard');
       } else {
         createWindow();
+        win?.webContents.once('did-finish-load', () => {
+          win?.webContents.send('open-dashboard');
+        });
       }
     });
 

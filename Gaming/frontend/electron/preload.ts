@@ -59,5 +59,14 @@ contextBridge.exposeInMainWorld('electronAPI', {
     return () => {
       ipcRenderer.off('open-changelogs-modal', subscription)
     }
+  },
+  cancelElectronUpdate: () => ipcRenderer.send('cancel-electron-update'),
+  rollbackElectronUpdate: () => ipcRenderer.send('rollback-electron-update'),
+  onOpenDashboard: (callback: () => void) => {
+    const subscription = () => callback()
+    ipcRenderer.on('open-dashboard', subscription)
+    return () => {
+      ipcRenderer.off('open-dashboard', subscription)
+    }
   }
 })

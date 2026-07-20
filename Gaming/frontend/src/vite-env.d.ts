@@ -24,5 +24,8 @@ interface Window {
     onNetworkStatusChanged?: (isOnline: boolean) => void;
     toggleOffscreenRendering?: (enable: boolean) => void;
     onHUDStatus?: (callback: (isVisible: boolean) => void) => () => void;
+    cancelElectronUpdate?: () => void;
+    rollbackElectronUpdate?: () => void;
+    onOpenDashboard?: (callback: () => void) => () => void;
   };
 }
