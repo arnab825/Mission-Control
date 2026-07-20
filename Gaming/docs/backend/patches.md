@@ -2,6 +2,10 @@
 
 This document contains a detailed history of all patches and updates for the AI Gaming Assistant.
 
+### Patch: 2026-07-20 — v1.8.4: Support FPS genre mapping in preset recommendations
+
+- Support FPS genre mapping in preset recommendations
+
 ### Patch: 2026-07-20 — v1.8.3: Support dynamic RTX 60+ series and auto-configure presets
 
 - Support dynamic RTX 60+ series and auto-configure presets

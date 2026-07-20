@@ -51,12 +51,12 @@ class Optimizer:
 
         # If not RTX, fallback to latency or off
         if not is_rtx_gpu:
-            if any(x in g for x in ["shooter", "esport", "fight", "multiplayer", "competitive", "action", "racing"]):
+            if any(x in g for x in ["shooter", "esport", "fight", "multiplayer", "competitive", "action", "racing", "fps"]):
                 return "latency"
             return "off"
 
         # Esports / shooters always prefer Latency, even if DLSS/RT exist
-        if any(x in g for x in ["shooter", "esport", "fight", "multiplayer", "competitive"]):
+        if any(x in g for x in ["shooter", "esport", "fight", "multiplayer", "competitive", "fps"]):
             return "latency"
 
         # If the game doesn't even support DLSS or RT, we can't do Quality/Performance/Balanced properly
