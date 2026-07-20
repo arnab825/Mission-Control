@@ -152,6 +152,7 @@ export const UpdatesPage: React.FC<UpdatesPageProps> = ({
             onClick={() => {
               setActiveTab('check');
               sendCommand('check_updates');
+              window.electronAPI?.checkElectronUpdates?.();
             }}
             className={`flex-1 py-3 text-center text-[10px] font-black uppercase tracking-widest border-b-2 transition-all ${
               activeTab === 'check'
@@ -205,13 +206,21 @@ export const UpdatesPage: React.FC<UpdatesPageProps> = ({
                       </p>
                     </div>
 
-                    <button aria-label="button" type="button"
-                      onClick={() => window.electronAPI?.quitAndInstallElectronUpdate?.()}
-                      className="flex items-center gap-2 px-6 py-3 bg-linear-to-r from-purple-500 to-neon-green hover:from-purple-400 hover:to-neon-green text-black text-[9px] font-black uppercase tracking-widest rounded-xl shadow-[0_0_20px_rgba(118, 185, 0,0.3)] transition-all shrink-0 hover:scale-[1.02] cursor-pointer"
-                    >
-                      <RefreshCw className="w-3.5 h-3.5" />
-                      Restart & Relaunch
-                    </button>
+                    <div className="flex items-center gap-3 shrink-0">
+                      <button aria-label="button" type="button"
+                        onClick={() => window.electronAPI?.checkElectronUpdates?.()}
+                        className="px-5 py-3 bg-white/5 hover:bg-white/10 text-white text-[9px] font-black uppercase tracking-widest rounded-xl transition-all cursor-pointer hover:scale-[1.02]"
+                      >
+                        Check Again
+                      </button>
+                      <button aria-label="button" type="button"
+                        onClick={() => window.electronAPI?.quitAndInstallElectronUpdate?.()}
+                        className="flex items-center gap-2 px-6 py-3 bg-linear-to-r from-purple-500 to-neon-green hover:from-purple-400 hover:to-neon-green text-black text-[9px] font-black uppercase tracking-widest rounded-xl shadow-[0_0_20px_rgba(118, 185, 0,0.3)] transition-all hover:scale-[1.02] cursor-pointer"
+                      >
+                        <RefreshCw className="w-3.5 h-3.5" />
+                        Restart & Relaunch
+                      </button>
+                    </div>
                   </div>
 
                   {nativeUpdate.notes && (
@@ -387,7 +396,10 @@ export const UpdatesPage: React.FC<UpdatesPageProps> = ({
                       </div>
 
                       <button aria-label="button" type="button"
-                        onClick={() => sendCommand('check_updates')}
+                        onClick={() => {
+                          sendCommand('check_updates');
+                          window.electronAPI?.checkElectronUpdates?.();
+                        }}
                         className="flex items-center gap-1.5 px-6 py-3 bg-white/5 hover:bg-white/10 text-white text-[9px] font-black uppercase tracking-widest rounded-xl transition-all cursor-pointer shrink-0"
                       >
                         <RefreshCw className="w-3.5 h-3.5 text-zinc-400" />
