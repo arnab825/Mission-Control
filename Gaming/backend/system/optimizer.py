@@ -8,6 +8,19 @@ class Optimizer:
     """Handles system and game-specific optimizations."""
     
     @staticmethod
+    def set_windows_game_mode(enable: bool):
+        """Toggle Windows Game Mode via Registry."""
+        try:
+            value = 1 if enable else 0
+            # HKCU\Software\Microsoft\GameBar
+            cmd = f'powershell -Command "Set-ItemProperty -Path \'HKCU:\\Software\\Microsoft\\GameBar\' -Name \'AllowAutoGameMode\' -Value {value} -ErrorAction SilentlyContinue; Set-ItemProperty -Path \'HKCU:\\Software\\Microsoft\\GameBar\' -Name \'AutoGameModeEnabled\' -Value {value} -ErrorAction SilentlyContinue"'
+            subprocess.run(cmd, shell=True, creationflags=subprocess.CREATE_NO_WINDOW)
+            return True
+        except Exception as e:
+            logger.error(f"Failed to set Windows Game Mode: {e}")
+            return False
+
+    @staticmethod
     def optimize_game(game_data, config=None):
         """
         Perform a comprehensive suite of optimizations:
@@ -62,6 +75,10 @@ class Optimizer:
             Optimizer.flush_working_sets()
             results.append("Flushed RAM Working Sets for zero-lag.")
 
+            # Toggle Windows Game Mode
+            Optimizer.set_windows_game_mode(True)
+            results.append("Windows Game Mode Enabled.")
+
             # 3. Game Mode & GPU Preference
             exe_path = game_data.get("exe_path")
             if exe_path:
@@ -98,6 +115,23 @@ class Optimizer:
             # 1. Switch back to Balanced Power Plan via set_power_plan
             success, msg = Optimizer.set_power_plan("balanced")
             results.append(f"Power plan: {msg}")
+            
+            # Disable Windows Game Mode
+            Optimizer.set_windows_game_mode(False)
+            results.append("Windows Game Mode Disabled.")
+
+            # Revert GPU power limit to Balanced (80%)
+            try:
+                import pynvml
+                pynvml.nvmlInit()
+                handle = pynvml.nvmlDeviceGetHandleByIndex(0)
+                default_limit = pynvml.nvmlDeviceGetPowerManagementDefaultLimit(handle)
+                new_limit = int(default_limit * 0.80)
+                pynvml.nvmlDeviceSetPowerManagementLimit(handle, new_limit)
+                results.append(f"NVIDIA GPU power limit reverted to {new_limit // 1000}W (Balanced).")
+                pynvml.nvmlShutdown()
+            except Exception as nvml_err:
+                logger.debug(f"Could not revert GPU limit: {nvml_err}")
             
             # 2. Reset Priority & GPU Preference
             exe_path = game_data.get("exe_path", "")

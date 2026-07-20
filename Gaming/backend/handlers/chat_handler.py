@@ -328,7 +328,7 @@ def handle_suggest_session_title(payload: dict, pipeline, bridge, config) -> Non
                 ]
                 suggested = " ".join(words[:3]).upper()
             if suggested:
-                suggested = suggested.strip().replace('"', "").replace("'", "")
+                suggested = suggested.strip().replace('"', "").replace("'", "").replace("*", "")
                 for word in ["Title:", "Title -", "Session title:", "Session Title:", "title:", "Title", "TITLE:"]:
                     if suggested.startswith(word):
                         suggested = suggested[len(word):].strip()

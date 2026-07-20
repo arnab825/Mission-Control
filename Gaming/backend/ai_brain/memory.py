@@ -30,7 +30,17 @@ class GameMemory:
         self._db_lock = threading.RLock()
         # Default to a local SQLite db if no path is given
         if not save_path:
-            save_path = os.path.join("data", "agent_memory.db")
+            import sys
+            import os
+            if getattr(sys, 'frozen', False):
+                # Running in PyInstaller production bundle
+                appdata_dir = os.getenv('APPDATA') or os.path.expanduser('~')
+                save_dir = os.path.join(appdata_dir, "MissionControl")
+                os.makedirs(save_dir, exist_ok=True)
+                save_path = os.path.join(save_dir, "agent_memory.db")
+            else:
+                save_path = os.path.join("data", "agent_memory.db")
+                os.makedirs("data", exist_ok=True)
             
         # Ensure it has .db extension instead of .json
         if save_path.endswith('.json'):

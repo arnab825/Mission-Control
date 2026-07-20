@@ -890,7 +890,7 @@ const SystemPage: React.FC<SystemPageProps> = ({
               {/* Graph Area */}
               <div className="h-64 border-b border-white/5 relative group shrink-0">
                 <div className="absolute inset-0">
-                  <ResponsiveContainer width="100%" height="100%">
+                  <ResponsiveContainer width="100%" height="100%" minWidth={1} minHeight={1}>
                     <AreaChart
                       data={chartData}
                       margin={{ top: 10, right: 10, left: -25, bottom: 0 }}

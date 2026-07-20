@@ -4,7 +4,7 @@ const { app, BrowserWindow, ipcMain, protocol, net, globalShortcut, shell, scree
 type BrowserWindow = electron.BrowserWindow
 type Tray = electron.Tray
 
-import { autoUpdater } from 'electron-updater'
+import { autoUpdater, CancellationToken } from 'electron-updater'
 import path from 'node:path'
 import http from 'node:http'
 import { fileURLToPath, pathToFileURL } from 'node:url'
@@ -110,6 +110,7 @@ const _dirname = typeof __dirname !== 'undefined'
 let pythonProcess: ChildProcess | null = null
 let tray: Tray | null = null
 let isManualUpdateCheck = false;
+let updateCancellationToken: CancellationToken | null = null;
 
 // Fires a native Windows toast notification for update availability.
 // Non-blocking — the user decides when/whether to act on it.
@@ -128,6 +129,7 @@ function fireUpdateToast(version: string) {
     toast.on('click', () => {
       // Bring the main window to focus and open the updater modal
       if (win && !win.isDestroyed() && !win.webContents.isDestroyed()) {
+        if (win.isMinimized()) win.restore();
         win.show();
         win.focus();
         win.webContents.send('open-updater-modal');
@@ -260,6 +262,36 @@ function registerContextMenu(window: BrowserWindow) {
 }
 
 let updateTrayMenuRef: (() => void) | null = null;
+let currentUpdateIcon: any = null;
+let updateFrames: any[] = [];
+let updateAnimationInterval: NodeJS.Timeout | null = null;
+let currentFrameIndex = 0;
+
+function startUpdateAnimation() {
+  if (updateAnimationInterval) return;
+  currentFrameIndex = 0;
+  updateAnimationInterval = setInterval(() => {
+    if (updateFrames.length > 0) {
+      currentFrameIndex = (currentFrameIndex + 1) % updateFrames.length;
+      currentUpdateIcon = updateFrames[currentFrameIndex];
+      if (updateTrayMenuRef) {
+        try { updateTrayMenuRef(); } catch (_) {}
+      }
+    }
+  }, 150);
+}
+
+function stopUpdateAnimation() {
+  if (updateAnimationInterval) {
+    clearInterval(updateAnimationInterval);
+    updateAnimationInterval = null;
+  }
+  const publicDir = process.env.VITE_PUBLIC || '';
+  currentUpdateIcon = nativeImage.createFromPath(path.join(publicDir, 'tray', 'update.png')).resize({ width: 16, height: 16 });
+  if (updateTrayMenuRef) {
+    try { updateTrayMenuRef(); } catch (_) {}
+  }
+}
 
 function createTray() {
   try {
@@ -288,6 +320,12 @@ function createTray() {
     const iconUpdate = nativeImage.createFromPath(path.join(publicDir, 'tray', 'update.png')).resize({ width: 16, height: 16 });
     const iconExit = nativeImage.createFromPath(path.join(publicDir, 'tray', 'exit.png')).resize({ width: 16, height: 16 });
 
+    // Initialize module-scoped variables for animation
+    currentUpdateIcon = iconUpdate;
+    updateFrames = Array.from({ length: 8 }, (_, i) =>
+      nativeImage.createFromPath(path.join(publicDir, 'tray', `update_${i}.png`)).resize({ width: 16, height: 16 })
+    );
+
     function updateTrayMenu() {
       const contextMenu = Menu.buildFromTemplate([
         { label: 'Mission Control Gaming Assistant', enabled: false, icon: menuIcon },
@@ -295,6 +333,7 @@ function createTray() {
         {
           label: 'Show Dashboard', icon: iconDashboard, click: () => {
             if (win && !win.isDestroyed()) {
+              if (win.isMinimized()) win.restore();
               win.show();
               win.focus();
             } else {
@@ -308,8 +347,9 @@ function createTray() {
           }
         },
         {
-          label: 'Check for Updates', icon: iconUpdate, click: () => {
+          label: 'Check for Updates', icon: currentUpdateIcon || iconUpdate, click: () => {
             if (win && !win.isDestroyed() && !win.webContents.isDestroyed()) {
+              if (win.isMinimized()) win.restore();
               win.show();
               win.focus();
               win.webContents.send('open-updater-modal');
@@ -341,7 +381,10 @@ function createTray() {
 
     tray?.on('click', () => {
       if (win && !win.isDestroyed()) {
-        if (win.isVisible()) {
+        if (win.isMinimized()) {
+          win.restore();
+          win.focus();
+        } else if (win.isVisible()) {
           win.hide();
         } else {
           win.show();
@@ -354,6 +397,7 @@ function createTray() {
 
     tray?.on('double-click', () => {
       if (win && !win.isDestroyed()) {
+        if (win.isMinimized()) win.restore();
         win.show();
         win.focus();
       } else {
@@ -1531,10 +1575,14 @@ function setupAutoUpdater() {
   if (!isSupported) {
     console.log('[AutoUpdater] Skipping — not packaged or unsupported platform.');
     ipcMain.on('check-electron-updates', (event) => {
-      event.sender.send('electron-update-status', {
-        status: 'not-supported',
-        message: 'Auto-update is only supported in packaged Windows/macOS builds.'
-      });
+      startUpdateAnimation();
+      setTimeout(() => {
+        stopUpdateAnimation();
+        event.sender.send('electron-update-status', {
+          status: 'not-supported',
+          message: 'Auto-update is only supported in packaged Windows/macOS builds.'
+        });
+      }, 1000);
     });
     return;
   }
@@ -1548,6 +1596,7 @@ function setupAutoUpdater() {
   // ── Event Listeners ─────────────────────────────────────────────────────
   autoUpdater.on('checking-for-update', () => {
     console.log('[AutoUpdater] Checking for updates...');
+    startUpdateAnimation();
     sendToAllWindows('electron-update-status', { status: 'checking', message: 'Checking for updates...' });
   });
 
@@ -1573,6 +1622,7 @@ function setupAutoUpdater() {
 
   autoUpdater.on('update-not-available', () => {
     console.log('[AutoUpdater] No updates available.');
+    stopUpdateAnimation();
     sendToAllWindows('electron-update-status', { status: 'up-to-date', message: 'Application is up to date.' });
     if (isManualUpdateCheck) {
       isManualUpdateCheck = false;
@@ -1581,6 +1631,7 @@ function setupAutoUpdater() {
 
   autoUpdater.on('error', (err) => {
     console.error('[AutoUpdater] Error:', err);
+    stopUpdateAnimation();
     sendToAllWindows('electron-update-status', { status: 'error', message: err.message });
     if (isManualUpdateCheck) {
       isManualUpdateCheck = false;
@@ -1597,6 +1648,7 @@ function setupAutoUpdater() {
 
   autoUpdater.on('update-downloaded', (info) => {
     console.log('[AutoUpdater] Update downloaded:', info.version);
+    stopUpdateAnimation();
     // Send status to React UI — the UpdaterModal's "Restart & Relaunch" button
     // calls quit-and-install-update via IPC, so no native dialog needed here.
     sendToAllWindows('electron-update-status', {
@@ -1611,8 +1663,10 @@ function setupAutoUpdater() {
   // ── IPC Commands from frontend ───────────────────────────────────────────
   ipcMain.on('check-electron-updates', () => {
     isManualUpdateCheck = true;
+    startUpdateAnimation();
     autoUpdater.checkForUpdates().catch((err: any) => {
       isManualUpdateCheck = false;
+      stopUpdateAnimation();
       console.error('[AutoUpdater] checkForUpdates failed:', err);
       sendToAllWindows('electron-update-status', { status: 'error', message: err.message });
     });
@@ -1621,6 +1675,25 @@ function setupAutoUpdater() {
   ipcMain.on('quit-and-install-update', () => {
     console.log('[AutoUpdater] Quitting and installing update...');
     try {
+      // 1. BACKUP RESOURCES DIRECTORY FOR OFFLINE ROLLBACK
+      const resourcesPath = process.resourcesPath;
+      const backupPath = path.join(app.getPath('userData'), 'rollback_backup');
+      
+      console.log(`[AutoUpdater] Backing up current version for rollback from ${resourcesPath} to ${backupPath}...`);
+      try {
+        if (fs.existsSync(backupPath)) {
+           fs.rmSync(backupPath, { recursive: true, force: true });
+        }
+        if (process.platform === 'win32') {
+           execSync(`xcopy "${resourcesPath}" "${backupPath}" /E /I /H /Y`, { windowsHide: true });
+        } else {
+           execSync(`cp -R "${resourcesPath}" "${backupPath}"`);
+        }
+        console.log('[AutoUpdater] Backup completed successfully.');
+      } catch (err) {
+        console.error('[AutoUpdater] Failed to create rollback backup:', err);
+      }
+
       // Force kill python before NSIS tries to uninstall, preventing file lock crashes
       if (pythonProcess && pythonProcess.pid) {
         console.log('[AutoUpdater] Killing Python backend process tree before update...');
@@ -1641,6 +1714,7 @@ function setupAutoUpdater() {
   ipcMain.removeAllListeners('open-updater-modal');
   ipcMain.on('open-updater-modal', () => {
     if (win && !win.isDestroyed() && !win.webContents.isDestroyed()) {
+      if (win.isMinimized()) win.restore();
       win.show();
       win.focus();
       win.webContents.send('open-updater-modal');
@@ -1655,13 +1729,70 @@ function setupAutoUpdater() {
       if (checkResult && checkResult.updateInfo) {
         console.log('[AutoUpdater] Manual check succeeded, downloading version:', checkResult.updateInfo.version);
         sendToAllWindows('electron-update-status', { status: 'downloading', percent: 0, message: 'Starting download...' });
-        await autoUpdater.downloadUpdate();
+        updateCancellationToken = new CancellationToken();
+        await autoUpdater.downloadUpdate(updateCancellationToken);
       } else {
         throw new Error('Update payload verification failed on server. Please try again.');
       }
     } catch (err: any) {
       console.error('[AutoUpdater] downloadUpdate failed:', err);
       sendToAllWindows('electron-update-status', { status: 'error', message: err.message });
+    }
+  });
+
+  ipcMain.on('cancel-electron-update', () => {
+    if (updateCancellationToken) {
+      console.log('[AutoUpdater] User triggered cancellation of update download.');
+      updateCancellationToken.cancel();
+      updateCancellationToken = null;
+      sendToAllWindows('electron-update-status', { status: 'cancelled', message: 'Update download cancelled.' });
+    }
+  });
+
+  ipcMain.on('rollback-electron-update', () => {
+    console.log('[AutoUpdater] Offline rollback triggered.');
+    const backupPath = path.join(app.getPath('userData'), 'rollback_backup');
+    const resourcesPath = process.resourcesPath;
+    const exePath = process.execPath;
+    
+    if (!fs.existsSync(backupPath)) {
+       sendToAllWindows('electron-update-status', { status: 'error', message: 'No previous version backup found.' });
+       return;
+    }
+    
+    // Spawn detached powershell script to copy backup over current install after app exits
+    const psScript = `
+Start-Sleep -Seconds 2
+Write-Host "Restoring backup from '${backupPath}' to '${resourcesPath}'..."
+Copy-Item -Path "${backupPath}\\*" -Destination "${resourcesPath}" -Recurse -Force
+Write-Host "Restarting application..."
+Start-Process -FilePath "${exePath}"
+`;
+    try {
+      const scriptPath = path.join(app.getPath('userData'), 'rollback.ps1');
+      fs.writeFileSync(scriptPath, psScript);
+      
+      const psArgs = ['-NoProfile', '-ExecutionPolicy', 'Bypass', '-File', scriptPath];
+      spawn('powershell.exe', psArgs, {
+        detached: true,
+        stdio: 'ignore',
+        windowsHide: true
+      }).unref();
+      
+      console.log('[AutoUpdater] Rollback script spawned. Quitting...');
+      
+      if (pythonProcess && pythonProcess.pid) {
+        if (process.platform === 'win32') {
+          try { execSync(`taskkill /pid ${pythonProcess.pid} /f /t`, { windowsHide: true }) } catch (err) {}
+        } else {
+          try { pythonProcess.kill('SIGKILL') } catch (_) {}
+        }
+      }
+      
+      app.quit();
+    } catch (err: any) {
+      console.error('[AutoUpdater] Failed to spawn rollback script:', err);
+      sendToAllWindows('electron-update-status', { status: 'error', message: 'Rollback failed: ' + err.message });
     }
   });
 

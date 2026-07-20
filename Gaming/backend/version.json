@@ -1,8 +1,20 @@
 {
-    "version":  "1.7.10",
-    "release_date":  "2026-07-19",
+    "version":  "1.8.0",
+    "release_date":  "2026-07-20",
     "update_check_url":  "https://raw.githubusercontent.com/arnab825/Mission-Control/main/Gaming/backend/version.json",
     "changelog":  [
+                      {
+                          "version":  "1.8.0",
+                          "date":  "2026-07-20",
+                          "title":  "Updater Controls, Database Persistence & Website Mongoose Migration",
+                          "highlights":  [
+                                             "Implemented manual update cancellation and offline rollback backup/restoration mechanisms",
+                                             "Migrated desktop SQLite agent memory to write into user APPDATA folder, fixing production persistence",
+                                             "Removed ChromaDB dependency to reduce PyInstaller package size and resolved native C++ compilation issues",
+                                             "Migrated website issues list, documentation, and architecture layers to Mongoose/MongoDB",
+                                             "Refactored website architecture page into Server and Client components for Turbopack compatibility"
+                                         ]
+                      },
                       {
                           "version":  "1.7.10",
                           "date":  "2026-07-19",

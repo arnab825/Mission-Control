@@ -11,7 +11,7 @@ export default async function DocsLayout({
 }: {
   children: React.ReactNode;
 }) {
-  const docs = getAllDocs();
+  const docs = await getAllDocs();
 
   const hasSanityContent = docs.length > 0;
 

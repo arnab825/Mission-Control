@@ -11,56 +11,64 @@ logger = logging.getLogger(__name__)
 
 
 def handle_optimize_system(payload: dict, pipeline, bridge, config) -> None:
-    logger.info("One-Click Game Mode Activation initiated")
-    try:
-        from system.optimizer import Optimizer
+    logger.info("One-Click Boost Mode Activation initiated")
+    
+    def _do_optimize():
+        try:
+            from system.optimizer import Optimizer
 
-        active_game = _get_active_game(pipeline)
-        game_data = _game_data_from(active_game)
+            active_game = _get_active_game(pipeline)
+            game_data = _game_data_from(active_game)
 
-        success, results = Optimizer.optimize_game(game_data, config)
-        logger.info("System optimization completed: success=%s, results=%s", success, results)
+            success, results = Optimizer.optimize_game(game_data, config)
+            logger.info("System optimization completed: success=%s, results=%s", success, results)
 
-        if pipeline and hasattr(pipeline, "_game_state"):
-            with pipeline._state_lock:
-                pipeline._game_state["game_mode_manual"] = True
-                pipeline._game_state["cooling_mode"] = "max"
-                pipeline._game_state["cooling_applied"] = True
+            if pipeline and hasattr(pipeline, "_game_state"):
+                with pipeline._state_lock:
+                    pipeline._game_state["game_mode_manual"] = True
+                    pipeline._game_state["cooling_mode"] = "max"
+                    pipeline._game_state["cooling_applied"] = True
 
-        bridge.update_state({
-            "optimization_status": {"success": success, "results": results, "active": True},
-            "cooling_mode": "max",
-            "cooling_applied": True,
-        })
-    except Exception as e:
-        logger.error("System optimization failed: %s", e, exc_info=True)
-        bridge.update_state({"optimization_status": {"success": False, "error": str(e), "active": False}})
+            bridge.update_state({
+                "optimization_status": {"success": success, "results": results, "active": True},
+                "cooling_mode": "max",
+                "cooling_applied": True,
+            })
+        except Exception as e:
+            logger.error("System optimization failed: %s", e, exc_info=True)
+            bridge.update_state({"optimization_status": {"success": False, "error": str(e), "active": False}})
+
+    threading.Thread(target=_do_optimize, name="BoostModeActivate", daemon=True).start()
 
 
 def handle_revert_optimization(payload: dict, pipeline, bridge, config) -> None:
-    logger.info("One-Click Game Mode Revert initiated")
-    try:
-        from system.optimizer import Optimizer
+    logger.info("One-Click Boost Mode Revert initiated")
+    
+    def _do_revert():
+        try:
+            from system.optimizer import Optimizer
 
-        active_game = _get_active_game(pipeline)
-        game_data = _game_data_from(active_game)
+            active_game = _get_active_game(pipeline)
+            game_data = _game_data_from(active_game)
 
-        success, results = Optimizer.revert_optimization(game_data)
-        logger.info("System optimization revert completed: success=%s, results=%s", success, results)
+            success, results = Optimizer.revert_optimization(game_data)
+            logger.info("System optimization revert completed: success=%s, results=%s", success, results)
 
-        if pipeline and hasattr(pipeline, "_game_state"):
-            with pipeline._state_lock:
-                pipeline._game_state["game_mode_manual"] = False
-                pipeline._game_state["cooling_mode"] = "balanced"
-                pipeline._game_state["cooling_applied"] = True
+            if pipeline and hasattr(pipeline, "_game_state"):
+                with pipeline._state_lock:
+                    pipeline._game_state["game_mode_manual"] = False
+                    pipeline._game_state["cooling_mode"] = "balanced"
+                    pipeline._game_state["cooling_applied"] = True
 
-        bridge.update_state({
-            "optimization_status": {"success": success, "results": results, "active": False},
-            "cooling_mode": "balanced",
-            "cooling_applied": True,
-        })
-    except Exception as e:
-        logger.error("System optimization revert failed: %s", e, exc_info=True)
+            bridge.update_state({
+                "optimization_status": {"success": success, "results": results, "active": False},
+                "cooling_mode": "balanced",
+                "cooling_applied": True,
+            })
+        except Exception as e:
+            logger.error("System optimization revert failed: %s", e, exc_info=True)
+
+    threading.Thread(target=_do_revert, name="BoostModeRevert", daemon=True).start()
 
 
 def handle_set_cooling_mode(payload: dict, pipeline, bridge, config) -> None:

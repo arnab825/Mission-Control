@@ -102,7 +102,7 @@ const LabPage: React.FC<{
 
   // Dynamic offset state for premium micro-fluctuations
   const [fluctuationOffset, setFluctuationOffset] = useState(0);
-  
+
   // Refs to track last update time (debounce history updates)
   const lastHistoryUpdateRef = useRef<number>(0);
   const HISTORY_UPDATE_INTERVAL = 150; // Update history every 150ms max
@@ -154,7 +154,7 @@ const LabPage: React.FC<{
     } else {
       setStabilityHistory(prev => [...prev.slice(1), 0]);
     }
-    
+
     // Track temperature
     setTempHistory(prev => {
       let temp = state?.gpu_metrics?.temp ?? state?.gpu_metrics?.temperature ?? state?.cpu_temp ?? 0;
@@ -174,8 +174,8 @@ const LabPage: React.FC<{
   }, [coolingFeedback]);
 
   const avgStability = useMemo(() => stabilityHistory.reduce((a, b) => a + b, 0) / 10, [stabilityHistory]);
-  const stabilityPercent = useMemo(() => 
-    isGameActive ? Math.min(99.9, avgStability).toFixed(1) : "0.0", 
+  const stabilityPercent = useMemo(() =>
+    isGameActive ? Math.min(99.9, avgStability).toFixed(1) : "0.0",
     [isGameActive, avgStability]
   );
 
@@ -212,7 +212,7 @@ const LabPage: React.FC<{
       ? state.gpu_metrics.vram_percent
       : (isGameActive ? 68.2 : 14.3);
     const vramLoad = Math.round(Math.max(1, Math.min(99, baseVramLoad + fluctuationOffset * 0.4)));
-    
+
     return { gpuHeadroom, vramLoad };
   }, [state?.gpu_metrics, isGameActive, fluctuationOffset]);
 
@@ -221,7 +221,7 @@ const LabPage: React.FC<{
     if (vramLoad > 90) {
       if (!vramWarningSentRef.current) {
         vramWarningSentRef.current = true;
-        
+
         // Trigger native OS notification
         if ("Notification" in window && Notification.permission !== "denied") {
           Notification.requestPermission().then(permission => {
@@ -274,15 +274,9 @@ const LabPage: React.FC<{
       powerLimitW = Math.max(powerLimitW, Math.ceil(powerDrawRaw * 1.25));
     }
 
-    const powerLimitMaxRaw = state?.gpu_metrics?.power_limit_max ?? state?.gpu_metrics?.power_limit_max_w;
-    const powerLimitMaxW = (powerLimitMaxRaw !== undefined && typeof powerLimitMaxRaw === 'number' && !isNaN(powerLimitMaxRaw) && powerLimitMaxRaw > 0)
-      ? powerLimitMaxRaw
-      : null;
-
     const powerPercent = Math.round((powerDraw / powerLimitW) * 100);
     const powerTarget = Math.min(100, powerPercent);
-    const tgpSuffix = powerLimitMaxW ? ` (${powerLimitMaxW.toFixed(0)}W TGP max)` : '';
-    const powerLabel = `${powerDraw.toFixed(1)}W / ${powerLimitW.toFixed(0)}W limit${tgpSuffix} (${powerPercent}%)`;
+    const powerLabel = `${powerDraw.toFixed(1)}W / ${powerLimitW.toFixed(0)}W limit (${powerPercent}%)`;
 
     return { powerTarget, powerLabel };
   }, [state?.gpu_metrics?.power_draw, state?.gpu_metrics?.power_draw_w, state?.gpu_metrics?.power_limit, state?.gpu_metrics?.power_limit_w, state?.gpu_metrics?.power_limit_max, state?.gpu_metrics?.power_limit_max_w, isGameActive, coolingMode]);
@@ -342,38 +336,15 @@ const LabPage: React.FC<{
               sendCommand("optimize_system", { userId });
             }
           }}
-          className={`flex items-center justify-center gap-2 px-5 py-2.5 border rounded-2xl font-black text-xs uppercase tracking-widest transition-all shrink-0 ${
-            isGameActive
-              ? "bg-orange-500 text-black border-orange-400"
-              : "bg-orange-500/10 border-orange-500/30 text-orange-400 hover:bg-orange-500/20"
-          }`}
+          className={`flex items-center justify-center gap-2 px-5 py-2.5 border rounded-2xl font-black text-xs uppercase tracking-widest transition-all shrink-0 ${isGameActive
+            ? "bg-orange-500 text-black border-orange-400"
+            : "bg-orange-500/10 border-orange-500/30 text-orange-400 hover:bg-orange-500/20"
+            }`}
         >
           <Zap className={`w-4 h-4 ${isGameActive ? "fill-black" : "fill-current"}`} />
           {isGameActive ? "Game Mode: Active" : "Game Mode"}
         </button>
 
-        {/* Active Optimization Progress Details */}
-        {(state as any)?.optimization_status && (
-          <div className="flex-1 bg-white/[0.03] border border-white/5 rounded-2xl p-3 space-y-1.5 text-[8px] font-bold text-zinc-500 uppercase tracking-widest max-h-24 overflow-y-auto custom-scrollbar">
-            <div className="flex items-center justify-between border-b border-white/5 pb-1">
-              <span>Optimization Status</span>
-              <span className={(state as any).optimization_status.active ? "text-neon-green font-black" : "text-zinc-600 font-black"}>
-                {(state as any).optimization_status.active ? "OPTIMIZED" : "BALANCED"}
-              </span>
-            </div>
-            {(state as any).optimization_status.results?.map((res: string, idx: number) => (
-              <div key={idx} className="flex items-start gap-1.5 text-zinc-300 leading-tight normal-case">
-                <div className={`w-1.5 h-1.5 rounded-full mt-0.5 shrink-0 ${(state as any).optimization_status.active ? "bg-neon-green shadow-[0_0_5px_#76b900]" : "bg-zinc-600"}`} />
-                <span className="font-semibold text-[9px] text-zinc-400">{res}</span>
-              </div>
-            ))}
-            {(state as any).optimization_status.error && (
-              <div className="text-red-400 font-mono text-[9px] font-normal normal-case">
-                Error: {(state as any).optimization_status.error}
-              </div>
-            )}
-          </div>
-        )}
       </div>
 
       {/* ── Headroom Row ── */}
@@ -408,10 +379,9 @@ const LabPage: React.FC<{
                 <p className="text-[9px] font-bold text-zinc-500 uppercase">Performance Score</p>
                 <InfoTooltip explanation={metricExplanations.perfScore} align="center" position="top" />
               </div>
-              <p className={`text-xs font-black uppercase ${
-                (state?.perf_score ?? 100) >= 80 ? "text-neon-yellow" :
+              <p className={`text-xs font-black uppercase ${(state?.perf_score ?? 100) >= 80 ? "text-neon-yellow" :
                 (state?.perf_score ?? 100) >= 50 ? "text-yellow-400" : "text-rose-400"
-              }`}>
+                }`}>
                 {isGameActive ? `${state?.perf_score ?? 100}/100` : "Standby"}
               </p>
             </div>
@@ -435,11 +405,10 @@ const LabPage: React.FC<{
                   key={i}
                   initial={{ height: 6 }}
                   animate={{ height: isGameActive ? Math.max(6, (val / 100) * 44) : 6 }}
-                  className={`flex-1 rounded-t-sm transition-all duration-300 ${
-                    isGameActive
-                      ? "bg-neon-green shadow-[0_0_8px_rgba(6,180,212,0.4)]"
-                      : "bg-white/5"
-                  }`}
+                  className={`flex-1 rounded-t-sm transition-all duration-300 ${isGameActive
+                    ? "bg-neon-green shadow-[0_0_8px_rgba(6,180,212,0.4)]"
+                    : "bg-white/5"
+                    }`}
                   transition={{ type: "spring", bounce: 0, duration: 0.5 }}
                 />
               ))}
@@ -467,9 +436,8 @@ const LabPage: React.FC<{
                 <span className="text-zinc-500">Fan Speed Control</span>
                 <InfoTooltip explanation={metricExplanations.fanSpeed} align="left" position="top" />
               </div>
-              <span className={`shrink-0 ${
-                fanSpeed > 0 ? "text-neon-yellow" : "text-zinc-400"
-              }`}>
+              <span className={`shrink-0 ${fanSpeed > 0 ? "text-neon-yellow" : "text-zinc-400"
+                }`}>
                 {`${fanSpeed}% RPM`}
               </span>
             </div>
@@ -511,10 +479,9 @@ const LabPage: React.FC<{
                 </span>
                 <InfoTooltip explanation={metricExplanations.cooling} align="left" position="top" />
               </div>
-              <span className={`text-[10px] font-black uppercase ${
-                currentTemp >= 85 ? "text-rose-400" :
+              <span className={`text-[10px] font-black uppercase ${currentTemp >= 85 ? "text-rose-400" :
                 currentTemp >= 70 ? "text-orange-400" : "text-neon-green"
-              }`}>
+                }`}>
                 {currentTemp}°C
               </span>
             </div>
@@ -552,33 +519,30 @@ const LabPage: React.FC<{
           <div className="grid grid-cols-3 gap-2">
             <button aria-label="button" type="button"
               onClick={() => handleCoolingMode("silent")}
-              className={`py-2.5 rounded-xl border text-[9px] font-black uppercase tracking-widest transition-all flex flex-col items-center justify-center gap-1 ${
-                coolingMode === "silent"
-                  ? "bg-blue-500/15 border-blue-500/40 text-blue-400 shadow-[0_0_10px_rgba(59,130,246,0.15)]"
-                  : "border-white/5 text-zinc-500 hover:text-white hover:border-white/10"
-              }`}
+              className={`py-2.5 rounded-xl border text-[9px] font-black uppercase tracking-widest transition-all flex flex-col items-center justify-center gap-1 ${coolingMode === "silent"
+                ? "bg-blue-500/15 border-blue-500/40 text-blue-400 shadow-[0_0_10px_rgba(59,130,246,0.15)]"
+                : "border-white/5 text-zinc-500 hover:text-white hover:border-white/10"
+                }`}
             >
               <Wind className="w-3.5 h-3.5" />
               Silent
             </button>
             <button aria-label="button" type="button"
               onClick={() => handleCoolingMode("balanced")}
-              className={`py-2.5 rounded-xl border text-[9px] font-black uppercase tracking-widest transition-all flex flex-col items-center justify-center gap-1 ${
-                coolingMode === "balanced"
-                  ? "bg-white/8 border-white/20 text-white"
-                  : "border-white/5 text-zinc-500 hover:text-white hover:border-white/10"
-              }`}
+              className={`py-2.5 rounded-xl border text-[9px] font-black uppercase tracking-widest transition-all flex flex-col items-center justify-center gap-1 ${coolingMode === "balanced"
+                ? "bg-white/8 border-white/20 text-white"
+                : "border-white/5 text-zinc-500 hover:text-white hover:border-white/10"
+                }`}
             >
               <Zap className="w-3.5 h-3.5" />
               Balanced
             </button>
             <button aria-label="button" type="button"
               onClick={() => handleCoolingMode("max")}
-              className={`py-2.5 rounded-xl border text-[9px] font-black uppercase tracking-widest transition-all flex flex-col items-center justify-center gap-1 ${
-                coolingMode === "max"
-                  ? "bg-orange-500/15 border-orange-500/40 text-orange-400 shadow-[0_0_10px_rgba(249,115,22,0.15)]"
-                  : "border-white/5 text-zinc-500 hover:text-white hover:border-white/10"
-              }`}
+              className={`py-2.5 rounded-xl border text-[9px] font-black uppercase tracking-widest transition-all flex flex-col items-center justify-center gap-1 ${coolingMode === "max"
+                ? "bg-orange-500/15 border-orange-500/40 text-orange-400 shadow-[0_0_10px_rgba(249,115,22,0.15)]"
+                : "border-white/5 text-zinc-500 hover:text-white hover:border-white/10"
+                }`}
             >
               <Flame className="w-3.5 h-3.5" />
               Max
@@ -628,29 +592,26 @@ const LabPage: React.FC<{
             </div>
 
             {/* Active Cooling Profile */}
-            <div className={`p-4 rounded-2xl gap-y-1.5 transition-all ${
-              coolingMode === "silent"
-                ? "bg-blue-500/5 border border-blue-500/20"
-                : coolingMode === "max"
+            <div className={`p-4 rounded-2xl gap-y-1.5 transition-all ${coolingMode === "silent"
+              ? "bg-blue-500/5 border border-blue-500/20"
+              : coolingMode === "max"
                 ? "bg-orange-500/5 border border-orange-500/20"
                 : "bg-white/[0.03] border border-white/5"
-            }`}>
+              }`}>
               <div className="flex items-center justify-between gap-2">
-                <h5 className={`text-[10px] font-black uppercase tracking-widest ${
-                  coolingMode === "silent" ? "text-blue-400" :
+                <h5 className={`text-[10px] font-black uppercase tracking-widest ${coolingMode === "silent" ? "text-blue-400" :
                   coolingMode === "max" ? "text-orange-400" : "text-zinc-400"
-                }`}>Cooling Profile</h5>
-                <span className={`text-[10px] font-bold uppercase shrink-0 ${
-                  coolingMode === "silent" ? "text-blue-400" :
+                  }`}>Cooling Profile</h5>
+                <span className={`text-[10px] font-bold uppercase shrink-0 ${coolingMode === "silent" ? "text-blue-400" :
                   coolingMode === "max" ? "text-orange-400" : "text-zinc-400"
-                }`}>{coolingMode}</span>
+                  }`}>{coolingMode}</span>
               </div>
               <p className="text-[10px] font-medium text-zinc-500 leading-relaxed">
                 {coolingMode === "silent"
                   ? "Low-power profile active. Fan speed reduced for quiet operation."
                   : coolingMode === "max"
-                  ? "Maximum cooling engaged. Full power target unlocked for peak performance."
-                  : "Balanced profile active. Power and cooling automatically managed."}
+                    ? "Maximum cooling engaged. Full power target unlocked for peak performance."
+                    : "Balanced profile active. Power and cooling automatically managed."}
               </p>
             </div>
           </div>
