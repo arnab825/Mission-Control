@@ -461,11 +461,19 @@ export const UpdatesPage: React.FC<UpdatesPageProps> = ({
                       <div className="flex flex-col md:flex-row items-start md:items-center justify-between p-6 bg-neon-green/5 border border-neon-green/20 rounded-2xl gap-4">
                         <div className="space-y-1">
                           <div className="flex items-center gap-2">
-                            <span className="px-2 py-0.5 rounded bg-neon-green/10 text-neon-green text-[8px] font-black tracking-widest uppercase">UPGRADE AVAILABLE</span>
-                            <h4 className="text-xs font-black uppercase tracking-widest text-white">Upgrade Available</h4>
+                            <span className="px-2 py-0.5 rounded bg-neon-green/10 text-neon-green text-[8px] font-black tracking-widest uppercase">
+                              {updateState.is_patch ? 'PATCH UPDATE' : 'UPGRADE AVAILABLE'}
+                            </span>
+                            <h4 className="text-xs font-black uppercase tracking-widest text-white">
+                              {updateState.is_patch ? 'Patch Update Available' : 'Upgrade Available'}
+                            </h4>
                           </div>
                           <p className="text-[10px] text-zinc-400 font-bold uppercase leading-relaxed">
-                            A new version (<span className="text-neon-green font-mono">v{updateState.latest_version}</span>) is available. Upgrade now to access the latest improvements.
+                            {updateState.is_patch ? (
+                              <>A new patch for version (<span className="text-neon-green font-mono">v{updateState.latest_version}</span>) is available. Apply now to get the latest fixes.</>
+                            ) : (
+                              <>A new version (<span className="text-neon-green font-mono">v{updateState.latest_version}</span>) is available. Upgrade now to access the latest improvements.</>
+                            )}
                           </p>
                         </div>
 
