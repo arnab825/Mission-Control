@@ -502,21 +502,21 @@ const VisionPage: React.FC<VisionPageProps> = ({ state, sendCommand }) => {
           </div>
 
           {/* Quick Telemetry Cards in Right Sidebar */}
-          <div className="grid grid-cols-2 gap-2.5 font-mono">
-            <div className="bg-white/[0.04] border border-white/10 rounded-2xl p-3.5 shadow-[0_0_10px_rgba(118, 185, 0,0.02)]">
-              <p className="text-[8px] font-black text-zinc-500 uppercase mb-1">Inference Latency</p>
-              <p className={`text-xs font-black uppercase ${pipelineRunning ? 'text-neon-green' : 'text-white/25'}`}>{latencyVal}</p>
+          <div className="grid grid-cols-2 gap-2 font-mono">
+            <div className="bg-white/[0.04] border border-white/10 rounded-xl p-2.5 shadow-[0_0_10px_rgba(118,185,0,0.02)]">
+              <p className="text-[7px] font-black text-zinc-500 uppercase tracking-widest mb-0.5">Inference Latency</p>
+              <p className={`text-[10px] font-black uppercase ${pipelineRunning ? 'text-neon-green' : 'text-white/25'}`}>{latencyVal}</p>
             </div>
-            <div className="bg-white/[0.04] border border-white/10 rounded-2xl p-3.5 shadow-[0_0_10px_rgba(118, 185, 0,0.02)]">
-              <p className="text-[8px] font-black text-zinc-500 uppercase mb-1">Vision Model</p>
-              <p className="text-xs font-black text-neon-green uppercase">YOLOv8n</p>
+            <div className="bg-white/[0.04] border border-white/10 rounded-xl p-2.5 shadow-[0_0_10px_rgba(118,185,0,0.02)]">
+              <p className="text-[7px] font-black text-zinc-500 uppercase tracking-widest mb-0.5">Vision Model</p>
+              <p className="text-[10px] font-black text-neon-green uppercase">YOLOv8n</p>
             </div>
-            <div className="bg-white/[0.04] border border-white/10 rounded-2xl p-3.5 shadow-[0_0_10px_rgba(118, 185, 0,0.02)]">
-              <p className="text-[8px] font-black text-zinc-500 uppercase mb-1">Strategic AI</p>
-              <p className="text-[11px] font-black text-purple-400 uppercase truncate">{(state as any)?.strategic_model || 'Nemotron-4'}</p>
+            <div className="bg-white/[0.04] border border-white/10 rounded-xl p-2.5 shadow-[0_0_10px_rgba(118,185,0,0.02)]">
+              <p className="text-[7px] font-black text-zinc-500 uppercase tracking-widest mb-0.5">Strategic AI</p>
+              <p className="text-[10px] font-black text-purple-400 uppercase truncate">{(state as any)?.strategic_model || 'Nemotron-4'}</p>
             </div>
-            <div className={`bg-white/[0.04] border rounded-2xl p-3.5 ${pipelineRunning ? 'border-neon-yellow/30 shadow-[0_0_10px_rgba(191, 255, 0,0.1)]' : 'border-white/10 shadow-[0_0_10px_rgba(118, 185, 0,0.02)]'}`}>
-              <p className="text-[8px] font-black text-zinc-500 uppercase mb-1">Pipeline Health</p>
+            <div className={`bg-white/[0.04] border rounded-xl p-2.5 ${pipelineRunning ? 'border-neon-yellow/30 shadow-[0_0_10px_rgba(191,255,0,0.1)]' : 'border-white/10 shadow-[0_0_10px_rgba(118,185,0,0.02)]'}`}>
+              <p className="text-[7px] font-black text-zinc-500 uppercase tracking-widest mb-0.5">Pipeline Health</p>
               <div className="flex items-center gap-1.5">
                 {pipelineRunning
                   ? <CheckCircle className="w-3 h-3 text-neon-yellow" />
