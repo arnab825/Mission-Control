@@ -130,6 +130,16 @@ export interface TelemetryState {
   changelogs?: any;
   patches_sync?: any;
   annotated_frame?: string;
+  installed_models?: Record<string, boolean>;
+  model_download_status?: {
+    model_id: string;
+    status: 'downloading' | 'success' | 'error';
+    progress_pct?: number;
+    downloaded_mb?: string;
+    total_mb?: string;
+    speed_mbps?: string;
+    message?: string;
+  };
   suggested_session_title?: {
     id: string;
     title: string;

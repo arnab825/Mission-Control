@@ -575,6 +575,137 @@ def handle_install_yolo_deps(payload: dict, pipeline, bridge, config) -> None:
 
 # ── Private helpers ───────────────────────────────────────────────────────────
 
+AVAILABLE_AI_MODELS = {
+    "yolov8n": {
+        "id": "yolov8n",
+        "name": "YOLOv8n Vision Engine",
+        "desc": "Lightweight real-time HUD target tracking weights",
+        "size_mb": 6.2,
+        "filename": "yolov8n.pt",
+        "url": "https://github.com/ultralytics/assets/releases/download/v8.2.0/yolov8n.pt"
+    },
+    "yolov8s": {
+        "id": "yolov8s",
+        "name": "YOLOv8s High Precision Engine",
+        "desc": "High accuracy neural object tracking weights for complex games",
+        "size_mb": 22.5,
+        "filename": "yolov8s.pt",
+        "url": "https://github.com/ultralytics/assets/releases/download/v8.2.0/yolov8s.pt"
+    },
+    "whisper_tiny": {
+        "id": "whisper_tiny",
+        "name": "Whisper-Tiny Voice Command Engine",
+        "desc": "Local zero-latency voice recognition & tactical speech AI",
+        "size_mb": 39.0,
+        "filename": "ggml-tiny.bin",
+        "url": "https://huggingface.co/ggerganov/whisper.cpp/resolve/main/ggml-tiny.bin"
+    }
+}
+
+
+def check_installed_models() -> dict:
+    """Returns dictionary mapping model_id to boolean installation status."""
+    models_dir = Path(__file__).resolve().parent.parent / "models"
+    installed = {}
+    for model_id, info in AVAILABLE_AI_MODELS.items():
+        fp = models_dir / info["filename"]
+        root_fp = Path(__file__).resolve().parent.parent / info["filename"]
+        installed[model_id] = (fp.exists() and fp.stat().st_size > 1000) or (root_fp.exists() and root_fp.stat().st_size > 1000)
+    return installed
+
+
+def handle_download_ai_model(payload: dict, pipeline, bridge, config) -> None:
+    model_id = payload.get("model_id") or payload.get("model")
+    if not model_id or model_id not in AVAILABLE_AI_MODELS:
+        logger.warning("Download requested for unknown model_id: %s", model_id)
+        return
+
+    info = AVAILABLE_AI_MODELS[model_id]
+    logger.info("Starting model download for %s (%s)", info["name"], info["url"])
+
+    def _do_download():
+        try:
+            import urllib.request, time
+            models_dir = Path(__file__).resolve().parent.parent / "models"
+            models_dir.mkdir(parents=True, exist_ok=True)
+            target_path = models_dir / info["filename"]
+
+            bridge.update_state({
+                "model_download_status": {
+                    "model_id": model_id,
+                    "status": "downloading",
+                    "progress_pct": 0,
+                    "downloaded_mb": "0.0",
+                    "total_mb": str(info["size_mb"]),
+                    "message": f"Connecting to download {info['name']}..."
+                }
+            })
+
+            req = urllib.request.Request(
+                info["url"],
+                headers={"User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) MissionControl/2.1.2"}
+            )
+
+            start_time = time.time()
+            with urllib.request.urlopen(req, timeout=600) as response, open(target_path, "wb") as out_file:
+                total_bytes = int(response.headers.get("Content-Length", info["size_mb"] * 1024 * 1024))
+                downloaded_bytes = 0
+                block_size = 65536
+                last_update = 0
+
+                while True:
+                    buffer = response.read(block_size)
+                    if not buffer:
+                        break
+                    downloaded_bytes += len(buffer)
+                    out_file.write(buffer)
+
+                    pct = int((downloaded_bytes / total_bytes) * 100) if total_bytes > 0 else 50
+                    now = time.time()
+                    if now - last_update > 0.3:
+                        last_update = now
+                        dl_mb = round(downloaded_bytes / (1024 * 1024), 1)
+                        tot_mb = round(total_bytes / (1024 * 1024), 1)
+                        elapsed = now - start_time
+                        speed = round(dl_mb / elapsed, 1) if elapsed > 0 else 0
+                        bridge.update_state({
+                            "model_download_status": {
+                                "model_id": model_id,
+                                "status": "downloading",
+                                "progress_pct": pct,
+                                "downloaded_mb": str(dl_mb),
+                                "total_mb": str(tot_mb),
+                                "speed_mbps": str(speed),
+                                "message": f"Downloading {info['name']} ({dl_mb}/{tot_mb} MB · {speed} MB/s)"
+                            }
+                        })
+
+            logger.info("Successfully downloaded AI model %s to %s", model_id, target_path)
+            bridge.update_state({
+                "installed_models": check_installed_models(),
+                "model_download_status": {
+                    "model_id": model_id,
+                    "status": "success",
+                    "progress_pct": 100,
+                    "downloaded_mb": str(round(info["size_mb"], 1)),
+                    "total_mb": str(round(info["size_mb"], 1)),
+                    "message": f"{info['name']} downloaded and verified successfully!"
+                }
+            })
+        except Exception as e:
+            logger.error("Model download exception for %s: %s", model_id, e, exc_info=True)
+            bridge.update_state({
+                "model_download_status": {
+                    "model_id": model_id,
+                    "status": "error",
+                    "progress_pct": 0,
+                    "message": f"Failed to download {info['name']}: {str(e)}"
+                }
+            })
+
+    threading.Thread(target=_do_download, name=f"DownloadModel_{model_id}", daemon=True).start()
+
+
 def _get_active_game(pipeline):
     """Extract the current active game from the pipeline."""
     if pipeline and hasattr(pipeline, "current_game"):

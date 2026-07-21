@@ -1,8 +1,16 @@
 {
-  "version": "2.1.2",
+  "version": "2.1.3",
   "release_date": "2026-07-21",
   "update_check_url": "https://raw.githubusercontent.com/arnab825/Mission-Control/main/Gaming/backend/version.json",
   "changelog": [
+    {
+      "version": "2.1.3",
+      "date": "2026-07-22",
+      "title": "Added On-Demand AI Models & Weights Downloader with download icons, real-time progress bars, and streaming backend",
+      "highlights": [
+        "Added On-Demand AI Models & Weights Downloader with download icons, real-time progress bars, and streaming backend"
+      ]
+    },
     {
       "version": "2.1.2",
       "date": "2026-07-22",
@@ -426,18 +434,6 @@
       "title": "Fix packaging of rapidocr_onnxruntime ONNX models and config assets",
       "highlights": [
         "Fix packaging of rapidocr_onnxruntime ONNX models and config assets"
-      ]
-    },
-    {
-      "version": "1.6.4",
-      "date": "2026-07-16",
-      "title": "Hotfix: HUD FPS tracking and GPU power draw improvements",
-      "highlights": [
-        "Restored MPO events (IDs 46, 73, 78) to fix N/A FPS readings in modern DX12 games",
-        "Implemented a 1ms event debounce to completely prevent double-counting of duplicate Present/MPO events",
-        "Added NVML fallback to enforced power limit to resolve anomalous 300+W GPU power reporting on laptops and specific cards",
-        "Changed CPU clock speed formatting in compact HUD from 'G' to 'GHz' to prevent confusion with RAM capacity",
-        "Fixed a critical bug where the C++ ETW frame tracker would permanently freeze (causing stuck 'Calibrating' HUD state) after any 5s+ frame stall"
       ]
     }
   ]
