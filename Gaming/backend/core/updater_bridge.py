@@ -83,6 +83,42 @@ def check_git_remote_version(project_root: str) -> str:
         return "0.0.0"
 
 
+def _is_newer_patch(local: dict, remote: dict) -> bool:
+    if not remote:
+        return False
+    local_ver = local.get("version", "0.0.0")
+    remote_ver = remote.get("version", "0.0.0")
+    if remote_ver != local_ver:
+        return False
+    
+    # 1. Compare release date strings if they differ
+    remote_date_str = remote.get("release_date")
+    local_date_str = local.get("release_date")
+    if remote_date_str and local_date_str:
+        try:
+            r_date = datetime.strptime(remote_date_str.strip(), '%Y-%m-%d')
+            l_date = datetime.strptime(local_date_str.strip(), '%Y-%m-%d')
+            if r_date > l_date:
+                return True
+        except Exception:
+            pass
+
+    # 2. Compare latest changelog entry contents
+    remote_changelog = remote.get("changelog", [])
+    local_changelog = local.get("changelog", [])
+    if remote_changelog and local_changelog:
+        remote_latest = remote_changelog[0]
+        local_latest = local_changelog[0]
+        if remote_latest.get("title") != local_latest.get("title"):
+            return True
+        if remote_latest.get("highlights") != local_latest.get("highlights"):
+            return True
+        if remote_latest.get("date") != local_latest.get("date"):
+            return True
+
+    return False
+
+
 def load_local_version() -> dict:
     with open(VERSION_FILE, "r", encoding="utf-8") as f:
         return json.load(f)
@@ -156,7 +192,8 @@ def handle_bridge_update_commands(cmd_type: str, payload: dict, bridge_instance)
                     bridge_instance.update_state({"update_state": {"status": "failed", "reason": "No update URL configured."}})
                     return
 
-                if Version(remote_ver) > Version(local_ver):
+                is_patch = _is_newer_patch(local, remote)
+                if Version(remote_ver) > Version(local_ver) or is_patch:
                     # Check if the installer is downloadable before declaring the update available
                     owner_repo = "arnab825/Mission-Control"
                     if url and "githubusercontent.com/" in url:
@@ -213,6 +250,7 @@ def handle_bridge_update_commands(cmd_type: str, payload: dict, bridge_instance)
                                 "current_version": local_ver,
                                 "latest_version": remote_ver,
                                 "changelog": merged_changelog,
+                                "is_patch": is_patch,
                                 "remote_data": remote if remote else {"version": remote_ver, "changelog": remote_log},
                             }
                         }
