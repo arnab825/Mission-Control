@@ -469,7 +469,7 @@ export const UpdatesPage: React.FC<UpdatesPageProps> = ({
               )}
 
               {/* Scenario 1: Checking for updates */}
-              {(!updateState || updateState.status === 'checking') && !isManualChecking && (
+              {updateState?.status === 'checking' && !isManualChecking && (
                 <div className="flex flex-col items-center justify-center py-12 gap-y-6">
                   <div className="relative">
                     {/* Ring Pulse scanner */}
@@ -486,7 +486,7 @@ export const UpdatesPage: React.FC<UpdatesPageProps> = ({
               )}
 
               {/* Scenario 2 & 3: Unified Update Available / Up to Date layout */}
-              {updateState && (updateState.status === 'available' || updateState.status === 'up_to_date') && !installState && (
+              {(!updateState || updateState.status === 'available' || updateState.status === 'up_to_date' || updateState.status === 'idle') && updateState?.status !== 'checking' && !installState && (
                 <div className="space-y-6">
                   {/* Status header banner */}
                   {updateState.status === 'available' ? (

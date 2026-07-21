@@ -1,8 +1,16 @@
 {
-  "version": "1.9.9",
+  "version": "2.0.0",
   "release_date": "2026-07-21",
   "update_check_url": "https://raw.githubusercontent.com/arnab825/Mission-Control/main/Gaming/backend/version.json",
   "changelog": [
+    {
+      "version": "2.0.0",
+      "date": "2026-07-21",
+      "title": "Fix up-to-date card visibility on Updates page and add ultralytics to dependencies",
+      "highlights": [
+        "Fix up-to-date card visibility on Updates page and add ultralytics to dependencies"
+      ]
+    },
     {
       "version": "1.9.9",
       "date": "2026-07-21",
@@ -433,14 +441,6 @@
       "title": "Remove terminal logs from updates page",
       "highlights": [
         "Remove terminal logs from updates page"
-      ]
-    },
-    {
-      "version": "1.5.1",
-      "date": "2026-07-15",
-      "title": "Fix WARN log level filtering on Dashboard",
-      "highlights": [
-        "Fix WARN log level filtering on Dashboard"
       ]
     }
   ]
