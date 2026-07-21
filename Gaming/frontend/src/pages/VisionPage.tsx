@@ -85,7 +85,10 @@ const VisionPage: React.FC<VisionPageProps> = ({ state, sendCommand }) => {
 
 
   // AI Pipeline setup checks
-  const isYoloReady = state?.yolo_supported === true || inferenceMs > 0 || detectionsCount > 0;
+  // yolo_supported: undefined = not yet checked, true = available, false = confirmed missing
+  const yoloSupportedRaw = (state as any)?.yolo_supported;
+  const isYoloChecking = yoloSupportedRaw === undefined || yoloSupportedRaw === null;
+  const isYoloReady = yoloSupportedRaw === true || inferenceMs > 0 || detectionsCount > 0;
   const isYoloActive = inferenceMs > 0 || detectionsCount > 0;
 
   const preVal = pipelineRunning ? preMs : 0;
@@ -511,31 +514,37 @@ const VisionPage: React.FC<VisionPageProps> = ({ state, sendCommand }) => {
             <span className="text-[10px] font-black text-zinc-500 uppercase tracking-widest font-mono">AI Model Dependencies</span>
             <div className="flex items-center gap-2 text-[9px] text-zinc-400 font-mono">
               <span className="text-zinc-600">STATUS:</span>
-              <span className={`font-bold uppercase ${isYoloReady ? 'text-neon-green' : 'text-amber-400'}`}>
-                {isYoloReady ? 'Ready' : 'Pending Verification'}
+              <span className={`font-bold uppercase ${isYoloReady ? 'text-neon-green' : isYoloChecking ? 'text-zinc-400' : 'text-amber-400'}`}>
+                {isYoloReady ? 'Ready' : isYoloChecking ? 'Verifying...' : 'Optional Module Missing'}
               </span>
             </div>
           </div>
 
           <div className="flex flex-col gap-4">
-            <div className={`p-4 rounded-xl border ${isYoloReady ? 'bg-neon-green/5 border-neon-green/20' : 'bg-amber-500/5 border-amber-500/20'}`}>
+            <div className={`p-4 rounded-xl border ${isYoloReady ? 'bg-neon-green/5 border-neon-green/20' : isYoloChecking ? 'bg-white/[0.02] border-white/5' : 'bg-amber-500/5 border-amber-500/20'}`}>
               <div className="flex items-start gap-3">
-                {isYoloReady ? <CheckCircle className="w-5 h-5 text-neon-green shrink-0" /> : <AlertTriangle className="w-5 h-5 text-amber-400 shrink-0" />}
+                {isYoloReady
+                  ? <CheckCircle className="w-5 h-5 text-neon-green shrink-0" />
+                  : isYoloChecking
+                    ? <div className="w-5 h-5 shrink-0 rounded-full border-2 border-zinc-600 border-t-zinc-300 animate-spin" />
+                    : <AlertTriangle className="w-5 h-5 text-amber-400 shrink-0" />}
                 <div>
-                  <h4 className={`text-sm font-black uppercase tracking-tight mb-1 ${isYoloReady ? 'text-neon-green' : 'text-amber-400'}`}>
-                    {isYoloActive ? 'YOLO Inference Active' : isYoloReady ? 'YOLO Backend Ready' : 'YOLO Backend Offline'}
+                  <h4 className={`text-sm font-black uppercase tracking-tight mb-1 ${isYoloReady ? 'text-neon-green' : isYoloChecking ? 'text-zinc-400' : 'text-amber-400'}`}>
+                    {isYoloActive ? 'YOLO Inference Active' : isYoloReady ? 'YOLO Backend Ready' : isYoloChecking ? 'Verifying AI Dependencies...' : 'YOLO Module Not Installed'}
                   </h4>
                   <p className="text-[11px] text-zinc-400 leading-relaxed mb-3">
-                    {isYoloActive 
+                    {isYoloActive
                       ? 'The PyTorch backend and Ultralytics models are loaded and processing frames.'
                       : isYoloReady
                         ? 'The PyTorch backend and Ultralytics models are verified and ready to run.'
-                        : 'Missing PyTorch or Ultralytics modules. The Python backend is falling back to mocked detections or bypassing inference.'}
+                        : isYoloChecking
+                          ? 'Checking for PyTorch and Ultralytics modules in the Python backend...'
+                          : 'PyTorch and Ultralytics are optional modules for on-device YOLO inference. The backend falls back to mocked detections without them.'}
                   </p>
-                  
-                  {!isYoloReady && (
+
+                  {!isYoloReady && !isYoloChecking && (
                     <div className="p-3 bg-black/40 rounded-lg border border-white/5 font-mono text-[10px] text-zinc-300">
-                      <div className="text-zinc-500 mb-1">To fix this, install dependencies:</div>
+                      <div className="text-zinc-500 mb-1">To enable YOLO inference, install optional dependencies:</div>
                       <code className="text-amber-400 select-all">pip install torch torchvision torchaudio ultralytics</code>
                     </div>
                   )}

@@ -1650,30 +1650,6 @@ function setupAutoUpdater() {
     return Promise.resolve(null);
   };
 
-  // Overwrite isUpdateAvailable to allow updates with same versioning (patch updates)
-  (autoUpdater as any).isUpdateAvailable = async function(updateInfo: any) {
-    const latestVersion = updateInfo.version;
-    const currentVersion = app.getVersion();
-    if (!latestVersion || !currentVersion) return false;
-    
-    // Custom clean and compare
-    const cleanV1 = latestVersion.replace(/^v/, '');
-    const cleanV2 = currentVersion.replace(/^v/, '');
-    
-    const parts1 = cleanV1.split('.').map(Number);
-    const parts2 = cleanV2.split('.').map(Number);
-    
-    for (let i = 0; i < 3; i++) {
-      const p1 = parts1[i] || 0;
-      const p2 = parts2[i] || 0;
-      if (p1 > p2) return true;
-      if (p1 < p2) return false;
-    }
-    
-    console.log(`[AutoUpdater] Update version v${latestVersion} matches current version v${currentVersion}. Allowing same-version patch updates.`);
-    return true;
-  };
-
   // ── Event Listeners ─────────────────────────────────────────────────────
   autoUpdater.on('checking-for-update', () => {
     console.log('[AutoUpdater] Checking for updates...');

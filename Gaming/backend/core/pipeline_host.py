@@ -319,8 +319,20 @@ class GamingAssistantPipeline:
                 with self._state_lock:
                     self._game_state["yolo_supported"] = True
                 logger.info("YOLO dependencies (ultralytics, torch) verified successfully.")
+                # Immediately broadcast so the Vision page reflects readiness
+                # without needing an active game pipeline loop
+                try:
+                    from core.bridge_server import bridge as _bridge
+                    _bridge.update_state({"yolo_supported": True})
+                except Exception:
+                    pass
             except ImportError as e:
                 logger.warning(f"YOLO dependencies not fully installed: {e}")
+                try:
+                    from core.bridge_server import bridge as _bridge
+                    _bridge.update_state({"yolo_supported": False})
+                except Exception:
+                    pass
 
         threading.Thread(target=check_yolo_deps, name="YOLODepsCheck", daemon=True).start()
 
