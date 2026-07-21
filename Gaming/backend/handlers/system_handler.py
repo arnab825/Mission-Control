@@ -413,11 +413,12 @@ def handle_scan_preset_optimizer(
 
 def handle_get_gaming_readiness(payload: dict, pipeline, bridge, config) -> None:
     logger.info("Gaming Readiness Evaluation requested")
+    force_refresh = payload.get("forceRefresh", False) if payload else False
     def _do_evaluate():
         try:
             from system.hardware_readiness import GamingReadinessEngine
             engine = GamingReadinessEngine(config)
-            result = engine.evaluate_readiness()
+            result = engine.evaluate_readiness(force_refresh=force_refresh)
             bridge.update_state({"gaming_readiness": result})
             logger.info("Gaming Readiness Evaluation completed")
         except Exception as e:

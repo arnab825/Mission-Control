@@ -2,6 +2,10 @@
 
 This document contains a detailed history of all patches and updates for the AI Gaming Assistant.
 
+### Patch: 2026-07-21 — v1.9.3: Fix readiness caching, memory save path fallback, database thread-safe connection, and rollback lock
+
+- Fix readiness caching, memory save path fallback, database thread-safe connection, and rollback lock
+
 ### Patch: 2026-07-21 — v1.9.2: Add SQLite indices for near-instant chat history retrieval
 
 - Add SQLite indices for near-instant chat history retrieval
