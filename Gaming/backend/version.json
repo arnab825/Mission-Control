@@ -1,8 +1,16 @@
 {
-  "version": "2.1.3",
+  "version": "2.1.4",
   "release_date": "2026-07-21",
   "update_check_url": "https://raw.githubusercontent.com/arnab825/Mission-Control/main/Gaming/backend/version.json",
   "changelog": [
+    {
+      "version": "2.1.4",
+      "date": "2026-07-22",
+      "title": "Fixed automatic loading of Release Highlights on Updates page mount",
+      "highlights": [
+        "Fixed automatic loading of Release Highlights on Updates page mount"
+      ]
+    },
     {
       "version": "2.1.3",
       "date": "2026-07-22",
@@ -426,14 +434,6 @@
       "title": "Fix latest.yml UTF-8 BOM encoding for electron-updater support",
       "highlights": [
         "Fix latest.yml UTF-8 BOM encoding for electron-updater support"
-      ]
-    },
-    {
-      "version": "1.6.5",
-      "date": "2026-07-16",
-      "title": "Fix packaging of rapidocr_onnxruntime ONNX models and config assets",
-      "highlights": [
-        "Fix packaging of rapidocr_onnxruntime ONNX models and config assets"
       ]
     }
   ]
