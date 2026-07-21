@@ -455,14 +455,19 @@ def handle_install_yolo_deps(payload: dict, pipeline, bridge, config) -> None:
     logger.info("YOLO dependencies installation requested by user")
     def _do_install():
         try:
-            import sys, os, subprocess, shutil
-            bridge.update_state({"yolo_install_status": {"status": "installing", "message": "Downloading & installing PyTorch & Ultralytics packages..."}})
+            import sys, os, subprocess, shutil, re
+            bridge.update_state({
+                "yolo_install_status": {
+                    "status": "installing",
+                    "message": "Initializing installer...",
+                    "progress_pct": 5
+                }
+            })
             
             # Determine the correct python/pip executable to invoke
             if not getattr(sys, 'frozen', False):
                 cmd = [sys.executable, "-m", "pip", "install", "ultralytics", "torch", "torchvision"]
             else:
-                # Running compiled frozen binary: find python, pip, or uv on system PATH
                 py_path = shutil.which("python") or shutil.which("python3")
                 pip_path = shutil.which("pip") or shutil.which("pip3")
                 uv_path = shutil.which("uv")
@@ -478,24 +483,92 @@ def handle_install_yolo_deps(payload: dict, pipeline, bridge, config) -> None:
 
             creationflags = 0x08000000 if os.name == "nt" else 0
             logger.info("Executing YOLO installer command: %s", " ".join(cmd))
-            res = subprocess.run(cmd, capture_output=True, text=True, timeout=600, creationflags=creationflags)
             
-            if res.returncode == 0:
+            proc = subprocess.Popen(
+                cmd,
+                stdout=subprocess.PIPE,
+                stderr=subprocess.STDOUT,
+                text=True,
+                bufsize=1,
+                creationflags=creationflags
+            )
+            
+            current_pct = 10
+            last_lines = []
+            
+            if proc.stdout:
+                for raw_line in iter(proc.stdout.readline, ''):
+                    if not raw_line:
+                        break
+                    line_str = raw_line.strip()
+                    if not line_str:
+                        continue
+                    last_lines.append(line_str)
+                    if len(last_lines) > 10:
+                        last_lines.pop(0)
+
+                    # Extract percentage from progress bars (e.g. 45%)
+                    pct_match = re.search(r'(\d{1,3})\s*%', line_str)
+                    if pct_match:
+                        try:
+                            val = int(pct_match.group(1))
+                            if 0 <= val <= 100:
+                                current_pct = max(current_pct, val)
+                        except ValueError:
+                            pass
+                    elif "Collecting" in line_str or "Downloading" in line_str:
+                        if "ultralytics" in line_str.lower():
+                            current_pct = max(current_pct, 20)
+                        elif "torchvision" in line_str.lower():
+                            current_pct = max(current_pct, 40)
+                        elif "torch" in line_str.lower():
+                            current_pct = max(current_pct, 60)
+                    elif "Installing collected packages" in line_str or "Building wheels" in line_str:
+                        current_pct = max(current_pct, 85)
+
+                    display_msg = line_str[:85] + ("..." if len(line_str) > 85 else "")
+                    bridge.update_state({
+                        "yolo_install_status": {
+                            "status": "installing",
+                            "message": display_msg,
+                            "progress_pct": current_pct
+                        }
+                    })
+
+            proc.wait(timeout=600)
+            
+            if proc.returncode == 0:
                 logger.info("YOLO dependencies installed successfully.")
                 if pipeline and hasattr(pipeline, "_game_state"):
                     with pipeline._state_lock:
                         pipeline._game_state["yolo_supported"] = True
                 bridge.update_state({
                     "yolo_supported": True,
-                    "yolo_install_status": {"status": "success", "message": "YOLO AI Engine installed successfully!"}
+                    "yolo_install_status": {
+                        "status": "success",
+                        "message": "YOLO AI Engine installed successfully!",
+                        "progress_pct": 100
+                    }
                 })
             else:
-                err_msg = res.stderr[-300:] if res.stderr else "Installation failed. Ensure Python and pip are installed."
+                err_msg = "\n".join(last_lines[-3:]) if last_lines else "Installation failed with non-zero exit code."
                 logger.error(f"YOLO dependencies install failed: {err_msg}")
-                bridge.update_state({"yolo_install_status": {"status": "error", "message": err_msg}})
+                bridge.update_state({
+                    "yolo_install_status": {
+                        "status": "error",
+                        "message": err_msg,
+                        "progress_pct": current_pct
+                    }
+                })
         except Exception as e:
             logger.error("YOLO dependencies install exception: %s", e, exc_info=True)
-            bridge.update_state({"yolo_install_status": {"status": "error", "message": str(e)}})
+            bridge.update_state({
+                "yolo_install_status": {
+                    "status": "error",
+                    "message": str(e),
+                    "progress_pct": 0
+                }
+            })
 
     threading.Thread(target=_do_install, name="InstallYoloDeps", daemon=True).start()
 
