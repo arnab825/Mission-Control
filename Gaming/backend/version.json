@@ -1,8 +1,16 @@
 {
-  "version": "2.1.1",
+  "version": "2.1.2",
   "release_date": "2026-07-21",
   "update_check_url": "https://raw.githubusercontent.com/arnab825/Mission-Control/main/Gaming/backend/version.json",
   "changelog": [
+    {
+      "version": "2.1.2",
+      "date": "2026-07-22",
+      "title": "Added real-time percentage progress bar and output streaming to 1-click YOLO vision engine installer",
+      "highlights": [
+        "Added real-time percentage progress bar and output streaming to 1-click YOLO vision engine installer"
+      ]
+    },
     {
       "version": "2.1.1",
       "date": "2026-07-22",
@@ -430,15 +438,6 @@
         "Added NVML fallback to enforced power limit to resolve anomalous 300+W GPU power reporting on laptops and specific cards",
         "Changed CPU clock speed formatting in compact HUD from 'G' to 'GHz' to prevent confusion with RAM capacity",
         "Fixed a critical bug where the C++ ETW frame tracker would permanently freeze (causing stuck 'Calibrating' HUD state) after any 5s+ frame stall"
-      ]
-    },
-    {
-      "version": "1.6.3",
-      "date": "2026-07-16",
-      "title": "Fix HUD FPS tracking double-counting and remove misleading fallback",
-      "highlights": [
-        "Fix ETW frame timing double-counting by restricting DXGI events to Present_Start (eventId 42) and D3D9 to Present (eventId 1)",
-        "Remove misleading capture_fps fallback in HUD telemetry to prevent showing low capture rates when ETW/DXGI tracking is not active"
       ]
     }
   ]

@@ -569,12 +569,30 @@ const VisionPage: React.FC<VisionPageProps> = ({ state, sendCommand }) => {
                 {!isYoloReady && !isYoloChecking && (
                   <div className="space-y-3">
                     {((state as any)?.yolo_install_status?.status === 'installing') ? (
-                      <div className="p-3 bg-neon-green/10 border border-neon-green/30 rounded-xl flex items-center gap-3">
-                        <div className="w-4 h-4 rounded-full border-2 border-neon-green border-t-transparent animate-spin shrink-0" />
-                        <div>
-                          <p className="text-[10px] font-black text-neon-green uppercase tracking-wide">Installing Vision AI Engine...</p>
-                          <p className="text-[9px] text-zinc-400 font-mono">{(state as any)?.yolo_install_status?.message || 'Downloading PyTorch & Ultralytics modules...'}</p>
+                      <div className="p-3.5 bg-neon-green/10 border border-neon-green/30 rounded-xl space-y-2">
+                        <div className="flex items-center justify-between">
+                          <div className="flex items-center gap-2.5">
+                            <div className="w-4 h-4 rounded-full border-2 border-neon-green border-t-transparent animate-spin shrink-0" />
+                            <p className="text-[10px] font-black text-neon-green uppercase tracking-wide">Installing Vision AI Engine...</p>
+                          </div>
+                          <span className="text-[11px] font-black text-neon-green font-mono">
+                            {(state as any)?.yolo_install_status?.progress_pct ?? 10}%
+                          </span>
                         </div>
+
+                        {/* Progress Bar */}
+                        <div className="w-full h-1.5 bg-black/40 rounded-full overflow-hidden border border-white/5">
+                          <motion.div
+                            initial={{ width: '5%' }}
+                            animate={{ width: `${Math.min(100, Math.max(5, (state as any)?.yolo_install_status?.progress_pct ?? 10))}%` }}
+                            transition={{ duration: 0.3 }}
+                            className="h-full bg-gradient-to-r from-neon-green to-purple-500 shadow-[0_0_10px_rgba(118,185,0,0.5)]"
+                          />
+                        </div>
+
+                        <p className="text-[9px] text-zinc-400 font-mono truncate">
+                          {(state as any)?.yolo_install_status?.message || 'Downloading PyTorch & Ultralytics modules...'}
+                        </p>
                       </div>
                     ) : ((state as any)?.yolo_install_status?.status === 'error') ? (
                       <div className="p-3 bg-red-500/10 border border-red-500/25 rounded-xl space-y-2">
