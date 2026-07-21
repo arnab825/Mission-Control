@@ -1,8 +1,16 @@
 {
-  "version": "1.9.7",
+  "version": "1.9.8",
   "release_date": "2026-07-21",
   "update_check_url": "https://raw.githubusercontent.com/arnab825/Mission-Control/main/Gaming/backend/version.json",
   "changelog": [
+    {
+      "version": "1.9.8",
+      "date": "2026-07-21",
+      "title": "Fix update pause/resume persistence across app restarts and add in-UI rollback verification dialog",
+      "highlights": [
+        "Fix update pause/resume persistence across app restarts and add in-UI rollback verification dialog"
+      ]
+    },
     {
       "version": "1.9.7",
       "date": "2026-07-21",
@@ -433,14 +441,6 @@
       "title": "Redesign update system to resolve duplication and check installer availability",
       "highlights": [
         "Redesign update system to resolve duplication and check installer availability"
-      ]
-    },
-    {
-      "version": "1.4.9",
-      "date": "2026-07-15",
-      "title": "Upgrade installer to standard interactive wizard and fix telemetry dependencies",
-      "highlights": [
-        "Upgrade installer to standard interactive wizard and fix telemetry dependencies"
       ]
     }
   ]

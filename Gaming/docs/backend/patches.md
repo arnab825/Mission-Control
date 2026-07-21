@@ -2,6 +2,10 @@
 
 This document contains a detailed history of all patches and updates for the AI Gaming Assistant.
 
+### Patch: 2026-07-21 — v1.9.8: Fix update pause/resume persistence across app restarts and add in-UI rollback verification dialog
+
+- Fix update pause/resume persistence across app restarts and add in-UI rollback verification dialog
+
 ### Patch: 2026-07-21 — v1.9.7: Fix false update-available on same version; fix YOLO status always showing offline on Vision page
 
 - Fix false update-available on same version; fix YOLO status always showing offline on Vision page
