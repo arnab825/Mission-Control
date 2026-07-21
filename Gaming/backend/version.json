@@ -1,8 +1,18 @@
 {
-    "version":  "1.9.5",
+    "version":  "1.9.6",
     "release_date":  "2026-07-21",
     "update_check_url":  "https://raw.githubusercontent.com/arnab825/Mission-Control/main/Gaming/backend/version.json",
     "changelog":  [
+                      {
+                          "version":  "1.9.6",
+                          "date":  "2026-07-21",
+                          "title":  "Fix YOLO diagnostics, same-version update check, and uninstaller naming",
+                          "highlights":  [
+                                             "Resolve YOLO backend diagnostics false alarms by verifying dependencies from Python backend",
+                                             "Allow Electron auto-updater to download same-version patch updates",
+                                             "Change uninstaller display name in Windows control panel to Uninstall Mission Control"
+                                         ]
+                      },
                       {
                           "version":  "1.9.5",
                           "date":  "2026-07-21",
