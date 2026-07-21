@@ -2,6 +2,10 @@
 
 This document contains a detailed history of all patches and updates for the AI Gaming Assistant.
 
+### Patch: 2026-07-21 — v2.0.3: Unlock hardware max TGP ceiling for GPU power limits in Boost Mode and Optimization Mode
+
+- Unlock hardware max TGP ceiling for GPU power limits in Boost Mode and Optimization Mode
+
 ### Patch: 2026-07-21 — v2.0.2: Fix update pause/resume cancellation flow and prevent trailing progress override
 
 - Fix update pause/resume cancellation flow and prevent trailing progress override

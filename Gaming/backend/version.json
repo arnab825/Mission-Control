@@ -1,8 +1,16 @@
 {
-  "version": "2.0.2",
+  "version": "2.0.3",
   "release_date": "2026-07-21",
   "update_check_url": "https://raw.githubusercontent.com/arnab825/Mission-Control/main/Gaming/backend/version.json",
   "changelog": [
+    {
+      "version": "2.0.3",
+      "date": "2026-07-21",
+      "title": "Unlock hardware max TGP ceiling for GPU power limits in Boost Mode and Optimization Mode",
+      "highlights": [
+        "Unlock hardware max TGP ceiling for GPU power limits in Boost Mode and Optimization Mode"
+      ]
+    },
     {
       "version": "2.0.2",
       "date": "2026-07-21",
@@ -431,16 +439,6 @@
         "Update settings, documentation, and requirements to transition fully to RapidOCR",
         "Fix TTS thread crashes in voice_manager by validating SAPI5 COM dispatch at startup and implementing config setters in PyTTSX3 fallback",
         "Fix missing release highlights when up-to-date and system tray update check behavior when minimized"
-      ]
-    },
-    {
-      "version": "1.5.4",
-      "date": "2026-07-15",
-      "title": "DirectX 9 / Fullscreen FPS Fix and Publisher GUI Enhancements",
-      "highlights": [
-        "Extended ETW C++ engine with D3D9 and DxgKrnl providers to enable FPS tracking in DX9 and Exclusive Fullscreen games.",
-        "Redesigned Publisher GUI with drag-and-drop image uploads, dynamic version previews, and document-aware auto-generation.",
-        "Added MSI and Portable ZIP installer download links to the website landing page."
       ]
     }
   ]
