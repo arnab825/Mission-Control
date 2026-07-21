@@ -2,6 +2,10 @@
 
 This document contains a detailed history of all patches and updates for the AI Gaming Assistant.
 
+### Patch: 2026-07-21 — v2.0.8: Auto-restore local build-stamped files in run_local.ps1 to keep Git working tree clean
+
+- Auto-restore local build-stamped files in run_local.ps1 to keep Git working tree clean
+
 ### Patch: 2026-07-21 — v2.0.7: Remove chassis TGP tag from System and Settings pages
 
 - Remove chassis TGP tag from System and Settings pages
