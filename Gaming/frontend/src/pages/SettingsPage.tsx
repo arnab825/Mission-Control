@@ -2290,10 +2290,8 @@ const SettingsPage: React.FC<{ state: TelemetryState | null, sendCommand: (type:
             const gpuM = state?.gpu_metrics as any;
             const rawPowerDraw = gpuM?.power_draw_w ?? gpuM?.power_draw ?? null;
             const rawPowerLimit = gpuM?.power_limit_w ?? gpuM?.power_limit ?? null;
-            const rawPowerLimitMax = gpuM?.power_limit_max_w ?? gpuM?.power_limit_max ?? null;
             const powerDraw = rawPowerDraw !== null ? Math.round(rawPowerDraw) : null;
             const powerLimit = rawPowerLimit !== null ? Math.round(rawPowerLimit) : null;
-            const powerLimitMax = rawPowerLimitMax !== null && rawPowerLimitMax > 0 ? Math.round(rawPowerLimitMax) : null;
             const limitPct = (rawPowerDraw && rawPowerLimit && rawPowerLimit > 0)
               ? Math.round((rawPowerDraw / rawPowerLimit) * 100) : null;
 
@@ -2333,8 +2331,7 @@ const SettingsPage: React.FC<{ state: TelemetryState | null, sendCommand: (type:
                     <span className="text-[8px] font-black text-zinc-600 uppercase tracking-widest">GPU Power Draw</span>
                     <span className="text-[10px] font-black text-white">
                       {powerDraw !== null ? `${powerDraw}W draw` : <span className="text-zinc-600">—</span>}
-                      {powerLimit !== null && powerLimit > 0 && <span className="text-zinc-500 font-medium"> / {powerLimit}W configured</span>}
-                      {powerLimitMax !== null && <span className="text-zinc-600 font-medium"> (chassis max: {powerLimitMax}W TGP)</span>}
+                      {powerLimit !== null && powerLimit > 0 && <span className="text-zinc-500 font-medium"> / {powerLimit}W limit</span>}
                     </span>
                   </div>
 
