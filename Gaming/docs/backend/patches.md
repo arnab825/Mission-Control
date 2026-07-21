@@ -2,6 +2,10 @@
 
 This document contains a detailed history of all patches and updates for the AI Gaming Assistant.
 
+### Patch: 2026-07-21 — v2.0.6: Suppress terminal window popups during GPU power limit application on Windows
+
+- Suppress terminal window popups during GPU power limit application on Windows
+
 ### Patch: 2026-07-21 — v2.0.5: Add power_limit, power_limit_watts, and power_limit_max_watts aliases across telemetry pipeline
 
 - Add power_limit, power_limit_watts, and power_limit_max_watts aliases across telemetry pipeline

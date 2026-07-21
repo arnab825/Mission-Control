@@ -186,7 +186,7 @@ class Optimizer:
                 except Exception:
                     try:
                         watts = new_limit // 1000
-                        subprocess.run(["nvidia-smi", "-i", "0", "-pl", str(watts)], capture_output=True, timeout=5)
+                        subprocess.run(["nvidia-smi", "-i", "0", "-pl", str(watts)], capture_output=True, timeout=5, creationflags=0x08000000 if os.name == "nt" else 0)
                     except Exception:
                         pass
 
@@ -277,7 +277,7 @@ class Optimizer:
                 except Exception:
                     try:
                         watts = new_limit // 1000
-                        subprocess.run(["nvidia-smi", "-i", "0", "-pl", str(watts)], capture_output=True, timeout=5)
+                        subprocess.run(["nvidia-smi", "-i", "0", "-pl", str(watts)], capture_output=True, timeout=5, creationflags=0x08000000 if os.name == "nt" else 0)
                     except Exception:
                         pass
                 results.append(f"NVIDIA GPU power limit reverted to {new_limit // 1000}W (Balanced).")

@@ -107,7 +107,7 @@ def handle_set_cooling_mode(payload: dict, pipeline, bridge, config) -> None:
                     except Exception:
                         try:
                             watts = new_limit // 1000
-                            subprocess.run(["nvidia-smi", "-i", "0", "-pl", str(watts)], capture_output=True, timeout=5)
+                            subprocess.run(["nvidia-smi", "-i", "0", "-pl", str(watts)], capture_output=True, timeout=5, creationflags=0x08000000 if os.name == "nt" else 0)
                             gpu_applied = True
                         except Exception:
                             pass
@@ -192,7 +192,7 @@ def _apply_hardware_controls_bg(nvidia_cfg: dict) -> None:
             except Exception:
                 try:
                     watts = new_limit // 1000
-                    subprocess.run(["nvidia-smi", "-i", "0", "-pl", str(watts)], capture_output=True, timeout=5)
+                    subprocess.run(["nvidia-smi", "-i", "0", "-pl", str(watts)], capture_output=True, timeout=5, creationflags=0x08000000 if os.name == "nt" else 0)
                 except Exception:
                     pass
             hw_logger.info("GPU power limit set to %d%% (%dW)", power_limit_pct, new_limit // 1000)
