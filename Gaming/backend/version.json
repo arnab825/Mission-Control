@@ -1,8 +1,16 @@
 {
-  "version": "1.9.8",
+  "version": "1.9.9",
   "release_date": "2026-07-21",
   "update_check_url": "https://raw.githubusercontent.com/arnab825/Mission-Control/main/Gaming/backend/version.json",
   "changelog": [
+    {
+      "version": "1.9.9",
+      "date": "2026-07-21",
+      "title": "Fix TTS thread dead warning log and sync settings state between Electron and backend",
+      "highlights": [
+        "Fix TTS thread dead warning log and sync settings state between Electron and backend"
+      ]
+    },
     {
       "version": "1.9.8",
       "date": "2026-07-21",
@@ -433,14 +441,6 @@
       "title": "Fix WARN log level filtering on Dashboard",
       "highlights": [
         "Fix WARN log level filtering on Dashboard"
-      ]
-    },
-    {
-      "version": "1.5.0",
-      "date": "2026-07-15",
-      "title": "Redesign update system to resolve duplication and check installer availability",
-      "highlights": [
-        "Redesign update system to resolve duplication and check installer availability"
       ]
     }
   ]

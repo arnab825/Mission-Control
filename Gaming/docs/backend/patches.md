@@ -2,6 +2,10 @@
 
 This document contains a detailed history of all patches and updates for the AI Gaming Assistant.
 
+### Patch: 2026-07-21 — v1.9.9: Fix TTS thread dead warning log and sync settings state between Electron and backend
+
+- Fix TTS thread dead warning log and sync settings state between Electron and backend
+
 ### Patch: 2026-07-21 — v1.9.8: Fix update pause/resume persistence across app restarts and add in-UI rollback verification dialog
 
 - Fix update pause/resume persistence across app restarts and add in-UI rollback verification dialog

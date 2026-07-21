@@ -1357,6 +1357,9 @@ const SettingsPage: React.FC<{ state: TelemetryState | null, sendCommand: (type:
 
     setIsSaving(true);
     sendCommand('save_settings', { config: localConfig, userId });
+    if ((window as any).electronAPI?.saveSettings) {
+      (window as any).electronAPI.saveSettings(localConfig);
+    }
     setTimeout(() => setIsSaving(false), 1000);
   };
 
