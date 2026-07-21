@@ -72,14 +72,17 @@ export interface TelemetryState {
     power_draw?: number;
     /** @deprecated Use `power_draw` */
     power_draw_w?: number;
+    power_draw_watts?: number;
     /** Power limit in watts */
     power_limit?: number;
     /** @deprecated Use `power_limit` */
     power_limit_w?: number;
+    power_limit_watts?: number;
     /** Hardware TGP ceiling / chassis max power limit in watts */
     power_limit_max?: number;
     /** @deprecated Use `power_limit_max` */
     power_limit_max_w?: number;
+    power_limit_max_watts?: number;
     driver_version?: string;
     gpu_name?: string;
   };
