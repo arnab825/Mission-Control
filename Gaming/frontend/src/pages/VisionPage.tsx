@@ -501,119 +501,114 @@ const VisionPage: React.FC<VisionPageProps> = ({ state, sendCommand }) => {
             </div>
           </div>
 
+          {/* Quick Telemetry Cards in Right Sidebar */}
+          <div className="grid grid-cols-2 gap-2.5 font-mono">
+            <div className="bg-white/[0.04] border border-white/10 rounded-2xl p-3.5 shadow-[0_0_10px_rgba(118, 185, 0,0.02)]">
+              <p className="text-[8px] font-black text-zinc-500 uppercase mb-1">Inference Latency</p>
+              <p className={`text-xs font-black uppercase ${pipelineRunning ? 'text-neon-green' : 'text-white/25'}`}>{latencyVal}</p>
+            </div>
+            <div className="bg-white/[0.04] border border-white/10 rounded-2xl p-3.5 shadow-[0_0_10px_rgba(118, 185, 0,0.02)]">
+              <p className="text-[8px] font-black text-zinc-500 uppercase mb-1">Vision Model</p>
+              <p className="text-xs font-black text-neon-green uppercase">YOLOv8n</p>
+            </div>
+            <div className="bg-white/[0.04] border border-white/10 rounded-2xl p-3.5 shadow-[0_0_10px_rgba(118, 185, 0,0.02)]">
+              <p className="text-[8px] font-black text-zinc-500 uppercase mb-1">Strategic AI</p>
+              <p className="text-[11px] font-black text-purple-400 uppercase truncate">{(state as any)?.strategic_model || 'Nemotron-4'}</p>
+            </div>
+            <div className={`bg-white/[0.04] border rounded-2xl p-3.5 ${pipelineRunning ? 'border-neon-yellow/30 shadow-[0_0_10px_rgba(191, 255, 0,0.1)]' : 'border-white/10 shadow-[0_0_10px_rgba(118, 185, 0,0.02)]'}`}>
+              <p className="text-[8px] font-black text-zinc-500 uppercase mb-1">Pipeline Health</p>
+              <div className="flex items-center gap-1.5">
+                {pipelineRunning
+                  ? <CheckCircle className="w-3 h-3 text-neon-yellow" />
+                  : <Clock className="w-3 h-3 text-zinc-600" />}
+                <p className={`text-[9px] font-black uppercase ${pipelineRunning ? 'text-neon-yellow' : 'text-zinc-600'}`}>
+                  {pipelineRunning ? 'Nominal' : 'Standby'}
+                </p>
+              </div>
+            </div>
+          </div>
+
         </div>
 
       </div>
 
-      {/* Bottom Row: Animated SVG Neural Network & Diagnostics */}
-      <div className="grid grid-cols-1 lg:grid-cols-4 gap-5">
-
-        {/* Model Setup Checks */}
-        <div className="lg:col-span-3 bg-white/[0.04] border border-white/10 rounded-3xl p-6 shadow-[0_0_15px_rgba(118, 185, 0,0.02)]">
-          <div className="flex items-center justify-between mb-4">
-            <span className="text-[10px] font-black text-zinc-500 uppercase tracking-widest font-mono">AI Model Dependencies</span>
-            <div className="flex items-center gap-2 text-[9px] text-zinc-400 font-mono">
-              <span className="text-zinc-600">STATUS:</span>
-              <span className={`font-bold uppercase ${isYoloReady ? 'text-neon-green' : isYoloChecking ? 'text-zinc-400' : 'text-amber-400'}`}>
-                {isYoloReady ? 'Ready' : isYoloChecking ? 'Verifying...' : 'Optional Module Missing'}
-              </span>
-            </div>
+      {/* Model Setup Checks */}
+      <div className="bg-white/[0.04] border border-white/10 rounded-3xl p-6 shadow-[0_0_15px_rgba(118, 185, 0,0.02)]">
+        <div className="flex items-center justify-between mb-4">
+          <span className="text-[10px] font-black text-zinc-500 uppercase tracking-widest font-mono">AI Model Dependencies</span>
+          <div className="flex items-center gap-2 text-[9px] text-zinc-400 font-mono">
+            <span className="text-zinc-600">STATUS:</span>
+            <span className={`font-bold uppercase ${isYoloReady ? 'text-neon-green' : isYoloChecking ? 'text-zinc-400' : 'text-amber-400'}`}>
+              {isYoloReady ? 'Ready' : isYoloChecking ? 'Verifying...' : 'Optional Module Missing'}
+            </span>
           </div>
+        </div>
 
-          <div className="flex flex-col gap-4">
-            <div className={`p-4 rounded-xl border ${isYoloReady ? 'bg-neon-green/5 border-neon-green/20' : isYoloChecking ? 'bg-white/[0.02] border-white/5' : 'bg-amber-500/5 border-amber-500/20'}`}>
-              <div className="flex items-start gap-3">
-                {isYoloReady
-                  ? <CheckCircle className="w-5 h-5 text-neon-green shrink-0" />
-                  : isYoloChecking
-                    ? <div className="w-5 h-5 shrink-0 rounded-full border-2 border-zinc-600 border-t-zinc-300 animate-spin" />
-                    : <AlertTriangle className="w-5 h-5 text-amber-400 shrink-0" />}
-                <div>
-                  <h4 className={`text-sm font-black uppercase tracking-tight mb-1 ${isYoloReady ? 'text-neon-green' : isYoloChecking ? 'text-zinc-400' : 'text-amber-400'}`}>
-                    {isYoloActive ? 'YOLO Inference Active' : isYoloReady ? 'YOLO Backend Ready' : isYoloChecking ? 'Verifying AI Dependencies...' : 'YOLO Module Not Installed'}
-                  </h4>
-                  <p className="text-[11px] text-zinc-400 leading-relaxed mb-3">
-                    {isYoloActive
-                      ? 'The PyTorch backend and Ultralytics models are loaded and processing frames.'
-                      : isYoloReady
-                        ? 'The PyTorch backend and Ultralytics models are verified and ready to run.'
-                        : isYoloChecking
-                          ? 'Checking for PyTorch and Ultralytics modules in the Python backend...'
-                          : 'PyTorch and Ultralytics are optional modules for on-device YOLO inference. The backend falls back to mocked detections without them.'}
-                  </p>
+        <div className="flex flex-col gap-4">
+          <div className={`p-4 rounded-xl border ${isYoloReady ? 'bg-neon-green/5 border-neon-green/20' : isYoloChecking ? 'bg-white/[0.02] border-white/5' : 'bg-amber-500/5 border-amber-500/20'}`}>
+            <div className="flex items-start gap-3">
+              {isYoloReady
+                ? <CheckCircle className="w-5 h-5 text-neon-green shrink-0" />
+                : isYoloChecking
+                  ? <div className="w-5 h-5 shrink-0 rounded-full border-2 border-zinc-600 border-t-zinc-300 animate-spin" />
+                  : <AlertTriangle className="w-5 h-5 text-amber-400 shrink-0" />}
+              <div>
+                <h4 className={`text-sm font-black uppercase tracking-tight mb-1 ${isYoloReady ? 'text-neon-green' : isYoloChecking ? 'text-zinc-400' : 'text-amber-400'}`}>
+                  {isYoloActive ? 'YOLO Inference Active' : isYoloReady ? 'YOLO Backend Ready' : isYoloChecking ? 'Verifying AI Dependencies...' : 'YOLO Module Not Installed'}
+                </h4>
+                <p className="text-[11px] text-zinc-400 leading-relaxed mb-3">
+                  {isYoloActive
+                    ? 'The PyTorch backend and Ultralytics models are loaded and processing frames.'
+                    : isYoloReady
+                      ? 'The PyTorch backend and Ultralytics models are verified and ready to run.'
+                      : isYoloChecking
+                        ? 'Checking for PyTorch and Ultralytics modules in the Python backend...'
+                        : 'PyTorch and Ultralytics are optional modules for on-device YOLO inference. The backend falls back to mocked detections without them.'}
+                </p>
 
-                  {!isYoloReady && !isYoloChecking && (
-                    <div className="space-y-3">
-                      {((state as any)?.yolo_install_status?.status === 'installing') ? (
-                        <div className="p-3 bg-neon-green/10 border border-neon-green/30 rounded-xl flex items-center gap-3">
-                          <div className="w-4 h-4 rounded-full border-2 border-neon-green border-t-transparent animate-spin shrink-0" />
-                          <div>
-                            <p className="text-[10px] font-black text-neon-green uppercase tracking-wide">Installing Vision AI Engine...</p>
-                            <p className="text-[9px] text-zinc-400 font-mono">{(state as any)?.yolo_install_status?.message || 'Downloading PyTorch & Ultralytics modules...'}</p>
-                          </div>
+                {!isYoloReady && !isYoloChecking && (
+                  <div className="space-y-3">
+                    {((state as any)?.yolo_install_status?.status === 'installing') ? (
+                      <div className="p-3 bg-neon-green/10 border border-neon-green/30 rounded-xl flex items-center gap-3">
+                        <div className="w-4 h-4 rounded-full border-2 border-neon-green border-t-transparent animate-spin shrink-0" />
+                        <div>
+                          <p className="text-[10px] font-black text-neon-green uppercase tracking-wide">Installing Vision AI Engine...</p>
+                          <p className="text-[9px] text-zinc-400 font-mono">{(state as any)?.yolo_install_status?.message || 'Downloading PyTorch & Ultralytics modules...'}</p>
                         </div>
-                      ) : ((state as any)?.yolo_install_status?.status === 'error') ? (
-                        <div className="p-3 bg-red-500/10 border border-red-500/25 rounded-xl space-y-2">
-                          <p className="text-[10px] font-black text-red-400 uppercase tracking-wide">Installation Encountered An Error</p>
-                          <p className="text-[9px] text-zinc-400 font-mono">{String((state as any)?.yolo_install_status?.message || 'Check network connection.')}</p>
-                          <button
-                            type="button"
-                            onClick={() => sendCommand('install_yolo_deps')}
-                            className="px-3 py-1.5 bg-red-500/20 hover:bg-red-500/30 text-red-300 text-[9px] font-black uppercase tracking-widest rounded-lg border border-red-500/30 transition cursor-pointer"
-                          >
-                            Retry 1-Click Install
-                          </button>
+                      </div>
+                    ) : ((state as any)?.yolo_install_status?.status === 'error') ? (
+                      <div className="p-3 bg-red-500/10 border border-red-500/25 rounded-xl space-y-2">
+                        <p className="text-[10px] font-black text-red-400 uppercase tracking-wide">Installation Encountered An Error</p>
+                        <p className="text-[9px] text-zinc-400 font-mono">{String((state as any)?.yolo_install_status?.message || 'Check network connection.')}</p>
+                        <button
+                          type="button"
+                          onClick={() => sendCommand('install_yolo_deps')}
+                          className="px-3 py-1.5 bg-red-500/20 hover:bg-red-500/30 text-red-300 text-[9px] font-black uppercase tracking-widest rounded-lg border border-red-500/30 transition cursor-pointer"
+                        >
+                          Retry 1-Click Install
+                        </button>
+                      </div>
+                    ) : (
+                      <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 p-3 bg-black/40 rounded-xl border border-white/5 font-mono text-[10px]">
+                        <div className="space-y-1">
+                          <div className="text-zinc-400 font-sans font-bold">Install optional Vision AI engine on-demand:</div>
+                          <code className="text-amber-400 select-all block">pip install torch torchvision ultralytics</code>
                         </div>
-                      ) : (
-                        <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 p-3 bg-black/40 rounded-xl border border-white/5 font-mono text-[10px]">
-                          <div className="space-y-1">
-                            <div className="text-zinc-400 font-sans font-bold">Install optional Vision AI engine on-demand:</div>
-                            <code className="text-amber-400 select-all block">pip install torch torchvision ultralytics</code>
-                          </div>
-                          <button
-                            type="button"
-                            onClick={() => sendCommand('install_yolo_deps')}
-                            className="px-4 py-2.5 bg-linear-to-r from-purple-500/20 to-neon-green/20 hover:from-purple-500/30 hover:to-neon-green/30 text-neon-green text-[9px] font-black uppercase tracking-widest rounded-xl border border-neon-green/30 hover:border-neon-green/50 transition cursor-pointer shrink-0"
-                          >
-                            ⚡ 1-Click Install Vision Engine
-                          </button>
-                        </div>
-                      )}
-                    </div>
-                  )}
-                </div>
+                        <button
+                          type="button"
+                          onClick={() => sendCommand('install_yolo_deps')}
+                          className="px-4 py-2.5 bg-linear-to-r from-purple-500/20 to-neon-green/20 hover:from-purple-500/30 hover:to-neon-green/30 text-neon-green text-[9px] font-black uppercase tracking-widest rounded-xl border border-neon-green/30 hover:border-neon-green/50 transition cursor-pointer shrink-0"
+                        >
+                          ⚡ 1-Click Install Vision Engine
+                        </button>
+                      </div>
+                    )}
+                  </div>
+                )}
               </div>
             </div>
           </div>
         </div>
-
-        {/* Stats Column */}
-        <div className="lg:col-span-1 flex flex-col gap-3 min-w-[140px] font-mono">
-          <div className="bg-white/[0.04] border border-white/10 rounded-2xl p-4 shadow-[0_0_10px_rgba(118, 185, 0,0.02)]">
-            <p className="text-[8px] font-black text-zinc-500 uppercase mb-1">Inference Latency</p>
-            <p className={`text-sm font-black uppercase ${pipelineRunning ? 'text-neon-green' : 'text-white/25'}`}>{latencyVal}</p>
-          </div>
-          <div className="bg-white/[0.04] border border-white/10 rounded-2xl p-4 shadow-[0_0_10px_rgba(118, 185, 0,0.02)]">
-            <p className="text-[8px] font-black text-zinc-500 uppercase mb-1">Vision Model</p>
-            <p className="text-sm font-black text-neon-green uppercase">YOLOv8n</p>
-          </div>
-          <div className="bg-white/[0.04] border border-white/10 rounded-2xl p-4 shadow-[0_0_10px_rgba(118, 185, 0,0.02)]">
-            <p className="text-[8px] font-black text-zinc-500 uppercase mb-1">Strategic AI</p>
-            <p className="text-xs font-black text-purple-400 uppercase">{(state as any)?.strategic_model || 'Nemotron-4'}</p>
-          </div>
-          <div className={`bg-white/[0.04] border rounded-2xl p-4 ${pipelineRunning ? 'border-neon-yellow/30 shadow-[0_0_10px_rgba(191, 255, 0,0.1)]' : 'border-white/10 shadow-[0_0_10px_rgba(118, 185, 0,0.02)]'}`}>
-            <p className="text-[8px] font-black text-zinc-500 uppercase mb-1.5">Pipeline Health</p>
-            <div className="flex items-center gap-1.5">
-              {pipelineRunning
-                ? <CheckCircle className="w-3.5 h-3.5 text-neon-yellow" />
-                : <Clock className="w-3.5 h-3.5 text-zinc-600" />}
-              <p className={`text-[9px] font-black uppercase ${pipelineRunning ? 'text-neon-yellow' : 'text-zinc-600'}`}>
-                {pipelineRunning ? 'Nominal' : 'Standby'}
-              </p>
-            </div>
-          </div>
-        </div>
-
       </div>
 
     </div>
