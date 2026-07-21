@@ -310,7 +310,22 @@ class GamingAssistantPipeline:
         # Shared state (Pydantic model for performance)
         self._state_lock = threading.Lock()
         self._game_state = TelemetryState().model_dump()
+        self._game_state["yolo_supported"] = False
+
+        def check_yolo_deps():
+            try:
+                from ultralytics import YOLO
+                import torch
+                with self._state_lock:
+                    self._game_state["yolo_supported"] = True
+                logger.info("YOLO dependencies (ultralytics, torch) verified successfully.")
+            except ImportError as e:
+                logger.warning(f"YOLO dependencies not fully installed: {e}")
+
+        threading.Thread(target=check_yolo_deps, name="YOLODepsCheck", daemon=True).start()
+
         self._hw_cache = {} 
+
         self._last_active_title = ""
         self._vision_frame_count = 0
         self._last_ocr_results = {}

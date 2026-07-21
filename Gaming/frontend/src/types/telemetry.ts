@@ -155,7 +155,9 @@ export interface TelemetryState {
 
   // AI Performance Advisor
   advisor_recommendations?: AdvisorRecommendation[];
+  yolo_supported?: boolean;
 }
+
 
 export interface AdvisorRecommendation {
   id: string;
