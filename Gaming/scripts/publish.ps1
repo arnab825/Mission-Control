@@ -18,19 +18,29 @@ Write-Host "[PUBLISH] Starting release process..." -ForegroundColor Cyan
 
 Push-Location "$PSScriptRoot/.."
 try {
-    # If no specific changes provided, use the Title as the change point
+    # If no specific changes provided, or if Title contains semicolons/newlines/pipes, split into bullet items
     if ($Changes.Count -eq 0) {
-        $Changes = @($Title)
+        $Changes = $Title -split '[;\n\|]' | ForEach-Object { $_.Trim() } | Where-Object { $_ -ne "" }
+    } else {
+        $expanded = @()
+        foreach ($c in $Changes) {
+            $parts = $c -split '[;\n\|]' | ForEach-Object { $_.Trim() } | Where-Object { $_ -ne "" }
+            $expanded += $parts
+        }
+        $Changes = $expanded
     }
+
+    # Extract clean single-line title for Git commit/tag if Title has semicolons
+    $cleanTitle = ($Title -split '[;\n\|]')[0].Trim()
 
     # 1. Bump version and update local logs
     $bumpArgs = @()
     if ($Version) {
         Write-Host "[BUMP] Setting manual version to $Version..." -ForegroundColor Cyan
-        $bumpArgs += @("--set", $Version, "--title", $Title, "--changes") + $Changes
+        $bumpArgs += @("--set", $Version, "--title", $cleanTitle, "--changes") + $Changes
     } else {
         Write-Host "[BUMP] Incrementing version ($Type)..." -ForegroundColor Cyan
-        $bumpArgs += @("--bump", $Type, "--title", $Title, "--changes") + $Changes
+        $bumpArgs += @("--bump", $Type, "--title", $cleanTitle, "--changes") + $Changes
     }
 
     if ($Image) {

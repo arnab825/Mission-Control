@@ -77,12 +77,20 @@ def main():
     else:
         new_ver = bump(old_ver, args.bump)
 
+    # Split change strings on semicolons, newlines, or pipes if passed as a single string
+    split_changes = []
+    for c in args.changes:
+        for part in re.split(r'[;\n\|]', c):
+            clean_part = part.strip()
+            if clean_part:
+                split_changes.append(clean_part)
+
     # Build new changelog entry
     entry = {
         "version": new_ver,
         "date": args.date,
         "title": args.title,
-        "highlights": args.changes
+        "highlights": split_changes if split_changes else args.changes
     }
     
     if args.image:
