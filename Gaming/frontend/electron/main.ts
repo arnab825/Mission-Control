@@ -1703,6 +1703,8 @@ function setupAutoUpdater() {
   autoUpdater.on('download-progress', (progress) => {
     const currentPercent = Math.round(progress.percent);
     const currentState = loadUpdateState();
+    // If the download was paused or cancelled by user, ignore trailing progress events
+    if (currentState.status === 'paused' || currentState.status === 'cancelled') return;
     const state = {
       ...currentState,
       status: 'downloading',
@@ -1808,17 +1810,34 @@ function setupAutoUpdater() {
     }
   });
 
-  ipcMain.on('cancel-electron-update', () => {
+  ipcMain.on('pause-electron-update', () => {
     if (updateCancellationToken) {
-      console.log('[AutoUpdater] User triggered cancellation of update download.');
+      console.log('[AutoUpdater] User paused update download.');
       updateCancellationToken.cancel();
       updateCancellationToken = null;
     }
     const currentState = loadUpdateState();
+    const pausedPercent = currentState.percent || 0;
     const state = {
       ...currentState,
-      status: 'cancelled',
-      message: 'Download paused by user.'
+      status: 'paused',
+      percent: pausedPercent,
+      message: `Download paused at ${pausedPercent}%.`
+    };
+    saveUpdateState(state);
+    sendToAllWindows('electron-update-status', state);
+  });
+
+  ipcMain.on('cancel-electron-update', () => {
+    if (updateCancellationToken) {
+      console.log('[AutoUpdater] User cancelled update download.');
+      updateCancellationToken.cancel();
+      updateCancellationToken = null;
+    }
+    const state = {
+      status: 'idle',
+      percent: 0,
+      message: 'Download cancelled.'
     };
     saveUpdateState(state);
     sendToAllWindows('electron-update-status', state);

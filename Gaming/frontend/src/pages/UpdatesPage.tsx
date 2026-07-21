@@ -392,8 +392,11 @@ export const UpdatesPage: React.FC<UpdatesPageProps> = ({
                     <button aria-label="Pause" type="button"
                       onClick={() => {
                         const pausedPercent = nativeUpdate.percent || 0;
-                        window.electronAPI?.cancelElectronUpdate?.();
-                        // Save as 'paused' (not cancelled) so we can resume the same version
+                        if ((window.electronAPI as any)?.pauseElectronUpdate) {
+                          (window.electronAPI as any).pauseElectronUpdate();
+                        } else {
+                          window.electronAPI?.cancelElectronUpdate?.();
+                        }
                         setNativeUpdate(prev => ({ ...prev, status: 'paused', percent: pausedPercent, message: `Paused at ${pausedPercent}% — click Resume to continue.` }));
                       }}
                       className="px-6 py-2.5 bg-amber-500/10 hover:bg-amber-500/20 border border-amber-500/20 text-amber-400 text-[9px] font-black uppercase tracking-widest rounded-xl transition-all cursor-pointer"

@@ -60,6 +60,7 @@ contextBridge.exposeInMainWorld('electronAPI', {
       ipcRenderer.off('open-changelogs-modal', subscription)
     }
   },
+  pauseElectronUpdate: () => ipcRenderer.send('pause-electron-update'),
   cancelElectronUpdate: () => ipcRenderer.send('cancel-electron-update'),
   rollbackElectronUpdate: () => ipcRenderer.send('rollback-electron-update'),
   getElectronUpdateState: () => ipcRenderer.invoke('get-electron-update-state'),
