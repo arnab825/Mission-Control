@@ -81,7 +81,7 @@ try {
 } finally {
   # Automatically restore local build-stamped files so Git working tree remains clean
   try {
-    git checkout -- Gaming/backend/version.json Gaming/frontend/package.json 2>$null
+    git checkout -- Gaming/backend/version.json Gaming/frontend/package.json 2>&1 | Out-Null
   } catch {}
   # Clear the commit tag environment variable so subsequent runs in the same PowerShell session will prompt again
   $env:CI_COMMIT_TAG = $null
