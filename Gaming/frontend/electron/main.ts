@@ -1591,6 +1591,27 @@ ipcMain.on('game-focus-changed', (_event, isActive: boolean, isFocused: boolean,
 // === electron-updater Configuration (NSIS / GitHub Releases) ===
 function setupAutoUpdater() {
   const isSupported = (process.platform === 'win32' || process.platform === 'darwin') && app.isPackaged;
+  const UPDATE_STATE_PATH = path.join(app.getPath('userData'), 'update_download_state.json');
+
+  function saveUpdateState(state: any) {
+    try {
+      fs.writeFileSync(UPDATE_STATE_PATH, JSON.stringify(state, null, 2), 'utf-8');
+    } catch (err) {
+      console.error('[AutoUpdater] Failed to save update state:', err);
+    }
+  }
+
+  function loadUpdateState() {
+    try {
+      if (fs.existsSync(UPDATE_STATE_PATH)) {
+        const data = fs.readFileSync(UPDATE_STATE_PATH, 'utf-8');
+        return JSON.parse(data);
+      }
+    } catch (err) {
+      console.warn('[AutoUpdater] Failed to load update state:', err);
+    }
+    return { status: 'idle', percent: 0 };
+  }
 
   if (!isSupported) {
     console.log('[AutoUpdater] Skipping — not packaged or unsupported platform.');
@@ -1633,21 +1654,22 @@ function setupAutoUpdater() {
   autoUpdater.on('checking-for-update', () => {
     console.log('[AutoUpdater] Checking for updates...');
     startUpdateAnimation();
-    sendToAllWindows('electron-update-status', { status: 'checking', message: 'Checking for updates...' });
+    const state = { status: 'checking', message: 'Checking for updates...' };
+    saveUpdateState(state);
+    sendToAllWindows('electron-update-status', state);
   });
 
   autoUpdater.on('update-available', (info) => {
     console.log('[AutoUpdater] Update available:', info.version);
-    // Send status to React UI — the UpdaterModal handles the download prompt
-    // so no native dialog is shown here (that would race with and duplicate the UI).
-    sendToAllWindows('electron-update-status', {
+    const state = {
       status: 'available',
       version: info.version,
       notes: typeof info.releaseNotes === 'string' ? info.releaseNotes : '',
-      message: `Update v${info.version} available.`
-    });
-    // Fire a native Windows toast only on automated startup checks.
-    // For manual checks the user already has the UpdaterModal open, so no toast needed.
+      message: `Update v${info.version} available.`,
+      percent: 0
+    };
+    saveUpdateState(state);
+    sendToAllWindows('electron-update-status', state);
     if (!isManualUpdateCheck) {
       fireUpdateToast(info.version);
     }
@@ -1659,7 +1681,9 @@ function setupAutoUpdater() {
   autoUpdater.on('update-not-available', () => {
     console.log('[AutoUpdater] No updates available.');
     stopUpdateAnimation();
-    sendToAllWindows('electron-update-status', { status: 'up-to-date', message: 'Application is up to date.' });
+    const state = { status: 'up-to-date', message: 'Application is up to date.' };
+    saveUpdateState(state);
+    sendToAllWindows('electron-update-status', state);
     if (isManualUpdateCheck) {
       isManualUpdateCheck = false;
     }
@@ -1668,32 +1692,40 @@ function setupAutoUpdater() {
   autoUpdater.on('error', (err) => {
     console.error('[AutoUpdater] Error:', err);
     stopUpdateAnimation();
-    sendToAllWindows('electron-update-status', { status: 'error', message: err.message });
+    const state = { status: 'error', message: err.message };
+    saveUpdateState(state);
+    sendToAllWindows('electron-update-status', state);
     if (isManualUpdateCheck) {
       isManualUpdateCheck = false;
     }
   });
 
   autoUpdater.on('download-progress', (progress) => {
-    sendToAllWindows('electron-update-status', {
+    const currentPercent = Math.round(progress.percent);
+    const currentState = loadUpdateState();
+    const state = {
+      ...currentState,
       status: 'downloading',
-      percent: Math.round(progress.percent),
-      message: `Downloading update… ${Math.round(progress.percent)}%`
-    });
+      percent: currentPercent,
+      message: `Downloading update… ${currentPercent}%`
+    };
+    saveUpdateState(state);
+    sendToAllWindows('electron-update-status', state);
   });
 
   autoUpdater.on('update-downloaded', (info) => {
     console.log('[AutoUpdater] Update downloaded:', info.version);
     stopUpdateAnimation();
-    // Send status to React UI — the UpdaterModal's "Restart & Relaunch" button
-    // calls quit-and-install-update via IPC, so no native dialog needed here.
-    sendToAllWindows('electron-update-status', {
+    const state = {
       status: 'downloaded',
       version: info.version,
       date: info.releaseDate,
       notes: typeof info.releaseNotes === 'string' ? info.releaseNotes : '',
-      message: `Update v${info.version} downloaded.`
-    });
+      message: `Update v${info.version} downloaded.`,
+      percent: 100
+    };
+    saveUpdateState(state);
+    sendToAllWindows('electron-update-status', state);
   });
 
   // ── IPC Commands from frontend ───────────────────────────────────────────
@@ -1781,8 +1813,25 @@ function setupAutoUpdater() {
       console.log('[AutoUpdater] User triggered cancellation of update download.');
       updateCancellationToken.cancel();
       updateCancellationToken = null;
-      sendToAllWindows('electron-update-status', { status: 'cancelled', message: 'Update download cancelled.' });
     }
+    const currentState = loadUpdateState();
+    const state = {
+      ...currentState,
+      status: 'cancelled',
+      message: 'Download paused by user.'
+    };
+    saveUpdateState(state);
+    sendToAllWindows('electron-update-status', state);
+  });
+
+  ipcMain.handle('get-electron-update-state', () => {
+    const state = loadUpdateState();
+    if (state.status === 'downloading' || state.status === 'checking') {
+      state.status = 'cancelled';
+      state.message = 'Download paused by user.';
+      saveUpdateState(state);
+    }
+    return state;
   });
 
   ipcMain.on('rollback-electron-update', () => {
@@ -1798,7 +1847,18 @@ function setupAutoUpdater() {
     
     // Spawn detached powershell script to copy backup over current install after app exits
     const psScript = `
-Start-Sleep -Seconds 2
+$attempts = 0
+while ($attempts -lt 15) {
+    try {
+        $testFile = Join-Path "${resourcesPath}" "rollback_lock_test.tmp"
+        New-Item -Path $testFile -ItemType File -Force -ErrorAction Stop | Out-Null
+        Remove-Item -Path $testFile -Force -ErrorAction Stop | Out-Null
+        break
+    } catch {
+        Start-Sleep -Seconds 1
+        $attempts++
+    }
+}
 Write-Host "Restoring backup from '${backupPath}' to '${resourcesPath}'..."
 Copy-Item -Path "${backupPath}\\*" -Destination "${resourcesPath}" -Recurse -Force
 Write-Host "Restarting application..."

@@ -17,8 +17,10 @@ This repository, **Mission Control**, is split into three primary components:
 
 The website features an automated AI-driven blog generation pipeline at `/api/blogs/generate`:
 - **Feeds**: It fetches from IGN, Kotaku, Eurogamer, AnandTech, and Tom's Hardware RSS feeds.
-- **Categories**: It generates two primary categories: `GPU News` and `Game News`.
+- **Categories**: It generates and posts for **four** categories daily: `GPU News`, `Game News`, `Hardware Deep-Dive`, and `Game Revisit`.
+- **Scheduling**: The blog generation runs automatically every day at **4:00 AM** via Vercel cron jobs.
 - **Tone**: Technical, authoritative, and analytical. Avoid generic AI catchphrases.
+- **Content Restrictions**: Strict prohibition of advertisements, promotional calls to action, marketing bloat, harmful/unsafe content, or 18+/adult material.
 - **Image Generation**: Uses the parsed `image_prompt` from the LLM frontmatter to generate custom preview images via Pollinations AI or HuggingFace.
 
 ---

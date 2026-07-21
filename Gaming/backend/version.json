@@ -1,18 +1,8 @@
 {
-  "version": "1.9.0",
+  "version": "1.8.9",
   "release_date": "2026-07-20",
   "update_check_url": "https://raw.githubusercontent.com/arnab825/Mission-Control/main/Gaming/backend/version.json",
   "changelog": [
-    {
-      "version": "1.9.0",
-      "date": "2026-07-20",
-      "title": "Strict Content Restrictions and Blog Scheduling Enhancements",
-      "highlights": [
-        "Enforced strict anti-ad, anti-bloat, and anti-promotional restrictions in blog generation skills and API prompts",
-        "Refactored blog generation scheduling to rotate through 4 distinct categories (GPU News, Game News, Hardware Deep-Dive, Game Revisit)",
-        "Fixed day-of-month parity edge cases using epoch-based day counts"
-      ]
-    },
     {
       "version": "1.8.9",
       "date": "2026-07-20",

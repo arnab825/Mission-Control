@@ -1743,11 +1743,19 @@ class GameBrain:
 
     # ── NVIDIA NIM Integration ────────────────────────────────────────
     
-    def _query_nvidia_nim(self, prompt, model_override: str = None, system_instruction: str = None, temperature: float = 0.2, stream: bool = False):
+    def _query_nvidia_nim(self, prompt, model_override: str = None, system_instruction: str = None, temperature: float = None, stream: bool = False):
         """
         Direct interface for NVIDIA NIM (Inference Microservices).
         Supports model_override for auto task-based model switching.
         """
+        if temperature is None:
+            # Map reasoning_intensity (typically 0.0 - 1.0) to model temperature (0.0 - 1.2)
+            intensity = self.config.get("ai_agent", {}).get("reasoning_intensity")
+            if intensity is not None:
+                temperature = float(intensity) * 1.2
+            else:
+                temperature = 0.2
+
         # Anonymized Reasoning: strip system metadata (Username, OS, paths)
         if self.config.get("privacy", {}).get("anonymize", False):
             import re
