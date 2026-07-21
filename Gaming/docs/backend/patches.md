@@ -2,6 +2,10 @@
 
 This document contains a detailed history of all patches and updates for the AI Gaming Assistant.
 
+### Patch: 2026-07-22 — v2.1.1: Added --system flag to uv installer and prioritized system Python for 1-click YOLO vision engine installation
+
+- Added --system flag to uv installer and prioritized system Python for 1-click YOLO vision engine installation
+
 ### Patch: 2026-07-22 — v2.1.0: Fixed 1-Click YOLO Vision Engine installer for standalone desktop release
 
 - Fixed 1-Click YOLO Vision Engine installer for standalone desktop release

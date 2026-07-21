@@ -467,10 +467,10 @@ def handle_install_yolo_deps(payload: dict, pipeline, bridge, config) -> None:
                 pip_path = shutil.which("pip") or shutil.which("pip3")
                 uv_path = shutil.which("uv")
                 
-                if uv_path:
-                    cmd = [uv_path, "pip", "install", "ultralytics", "torch", "torchvision"]
-                elif py_path:
+                if py_path:
                     cmd = [py_path, "-m", "pip", "install", "ultralytics", "torch", "torchvision"]
+                elif uv_path:
+                    cmd = [uv_path, "pip", "install", "--system", "ultralytics", "torch", "torchvision"]
                 elif pip_path:
                     cmd = [pip_path, "install", "ultralytics", "torch", "torchvision"]
                 else:
