@@ -41,7 +41,7 @@ export const UpdatesPage: React.FC<UpdatesPageProps> = ({
   const [expandedVersions, setExpandedVersions] = React.useState<Record<string, boolean>>({});
   const logEndRef = useRef<HTMLDivElement>(null);
   const [nativeUpdate, setNativeUpdate] = React.useState<{
-    status: 'idle' | 'checking' | 'available' | 'downloading' | 'up-to-date' | 'downloaded' | 'error' | 'not-supported' | 'cancelled';
+    status: 'idle' | 'checking' | 'available' | 'downloading' | 'paused' | 'up-to-date' | 'downloaded' | 'error' | 'not-supported' | 'cancelled';
     version?: string;
     date?: string;
     notes?: string;
@@ -51,11 +51,15 @@ export const UpdatesPage: React.FC<UpdatesPageProps> = ({
   const [isManualChecking, setIsManualChecking] = React.useState(false);
   const [toastMessage, setToastMessage] = React.useState<string | null>(null);
   const manualCheckStatusRef = useRef<'idle' | 'checking'>('idle');
+  const [rollbackInfo, setRollbackInfo] = React.useState<{ exists: boolean; version?: string } | null>(null);
+  const [rollbackConfirm, setRollbackConfirm] = React.useState(false);
+
 
   useEffect(() => {
     setActiveTab(defaultTab);
     if (defaultTab === 'check') {
       sendCommand('check_updates');
+      // Load persisted update state (pause/resume support)
       if (window.electronAPI?.getElectronUpdateState) {
         window.electronAPI.getElectronUpdateState().then((savedState: any) => {
           if (savedState && savedState.status && savedState.status !== 'idle' && savedState.status !== 'up-to-date') {
@@ -67,10 +71,17 @@ export const UpdatesPage: React.FC<UpdatesPageProps> = ({
       } else {
         window.electronAPI?.checkElectronUpdates?.();
       }
+      // Check if a rollback backup exists
+      if ((window.electronAPI as any)?.checkRollbackBackup) {
+        (window.electronAPI as any).checkRollbackBackup().then((info: any) => {
+          setRollbackInfo(info);
+        }).catch(() => {});
+      }
     } else if (defaultTab === 'changelogs') {
       sendCommand('get_changelogs');
     }
   }, [defaultTab]);
+
 
   useEffect(() => {
     if (window.electronAPI?.onElectronUpdateStatus) {
@@ -380,12 +391,14 @@ export const UpdatesPage: React.FC<UpdatesPageProps> = ({
                   <div className="flex justify-end gap-3 pt-2">
                     <button aria-label="Pause" type="button"
                       onClick={() => {
+                        const pausedPercent = nativeUpdate.percent || 0;
                         window.electronAPI?.cancelElectronUpdate?.();
-                        setNativeUpdate(prev => ({ ...prev, status: 'cancelled', message: 'Download paused by user.' }));
+                        // Save as 'paused' (not cancelled) so we can resume the same version
+                        setNativeUpdate(prev => ({ ...prev, status: 'paused', percent: pausedPercent, message: `Paused at ${pausedPercent}% — click Resume to continue.` }));
                       }}
-                      className="px-6 py-2.5 bg-white/5 hover:bg-white/10 text-white text-[9px] font-black uppercase tracking-widest rounded-xl transition-all cursor-pointer font-bold"
+                      className="px-6 py-2.5 bg-amber-500/10 hover:bg-amber-500/20 border border-amber-500/20 text-amber-400 text-[9px] font-black uppercase tracking-widest rounded-xl transition-all cursor-pointer"
                     >
-                      Pause
+                      ⏸ Pause
                     </button>
                     <button aria-label="Cancel" type="button"
                       onClick={() => {
@@ -400,36 +413,56 @@ export const UpdatesPage: React.FC<UpdatesPageProps> = ({
                 </div>
               )}
 
-              {(!installState || installState.status === 'use_native') && nativeUpdate.status === 'cancelled' && (
-                <div className="p-6 bg-zinc-900/40 border border-white/5 rounded-3xl space-y-4 shadow-[0_0_20px_rgba(255,255,255,0.02)]">
+              {/* Paused Download State — persists across navigation and app restarts */}
+              {(!installState || installState.status === 'use_native') && nativeUpdate.status === 'paused' && (
+                <div className="p-6 bg-amber-500/5 border border-amber-500/20 rounded-3xl space-y-4">
                   <div className="flex items-center justify-between gap-4">
                     <div className="space-y-1">
                       <div className="flex items-center gap-2">
-                        <span className="px-2 py-0.5 rounded bg-zinc-800 text-zinc-400 text-[8px] font-black tracking-widest uppercase border border-white/5">DOWNLOAD PAUSED</span>
+                        <span className="px-2 py-0.5 rounded bg-amber-500/15 text-amber-400 text-[8px] font-black tracking-widest uppercase border border-amber-500/25">⏸ DOWNLOAD PAUSED</span>
+                        {nativeUpdate.version && <span className="px-2 py-0.5 rounded bg-white/5 text-zinc-300 text-[8px] font-bold font-mono">v{nativeUpdate.version}</span>}
                       </div>
-                      <h4 className="text-xs font-black uppercase tracking-widest text-zinc-300">Update Download Paused</h4>
-                      <p className="text-[10px] text-zinc-500 font-bold uppercase">
-                        {nativeUpdate.message || 'Download was cancelled or paused by user.'}
+                      <h4 className="text-xs font-black uppercase tracking-widest text-amber-300 mt-1">Update Download Paused</h4>
+                      <p className="text-[10px] text-zinc-400 font-bold uppercase">
+                        {nativeUpdate.message || 'Download paused by user.'}
                       </p>
+                    </div>
+                    <div className="text-2xl font-black text-amber-400/60 font-mono shrink-0">
+                      {nativeUpdate.percent || 0}%
                     </div>
                   </div>
 
-                  <div className="flex items-center gap-3 pt-2">
+                  {/* Frozen progress bar showing where it paused */}
+                  <div className="space-y-1.5">
+                    <div className="flex justify-between text-[9px] font-mono text-zinc-500">
+                      <span>Paused at</span>
+                      <span>{nativeUpdate.percent || 0}% of download</span>
+                    </div>
+                    <div className="w-full h-1.5 bg-white/5 rounded-full overflow-hidden">
+                      <div
+                        className="h-full bg-amber-400/70 transition-all duration-300"
+                        style={{ width: `${nativeUpdate.percent || 0}%` }}
+                      />
+                    </div>
+                    <p className="text-[9px] text-zinc-600 font-mono">Note: download will restart from the beginning when resumed (HTTP resume not supported)</p>
+                  </div>
+
+                  <div className="flex items-center gap-3 pt-1">
                     <button aria-label="Resume" type="button"
                       onClick={() => {
                         window.electronAPI?.downloadElectronUpdate?.();
-                        setNativeUpdate(prev => ({ ...prev, status: 'downloading' }));
+                        setNativeUpdate(prev => ({ ...prev, status: 'downloading', percent: 0, message: 'Restarting download...' }));
                       }}
-                      className="flex-1 flex items-center justify-center gap-2 px-6 py-3 bg-neon-green hover:bg-neon-green/90 text-black text-[9px] font-black uppercase tracking-widest rounded-xl transition-all hover:scale-[1.02] cursor-pointer font-bold"
+                      className="flex-1 flex items-center justify-center gap-2 px-6 py-3 bg-neon-green hover:bg-neon-green/90 text-black text-[9px] font-black uppercase tracking-widest rounded-xl transition-all hover:scale-[1.02] cursor-pointer"
                     >
                       <Download className="w-3.5 h-3.5" />
                       Resume Download
                     </button>
-                    <button aria-label="Clear" type="button"
+                    <button aria-label="Cancel" type="button"
                       onClick={() => setNativeUpdate({ status: 'idle' })}
-                      className="px-6 py-3 bg-white/5 hover:bg-white/10 text-white text-[9px] font-black uppercase tracking-widest rounded-xl transition-all cursor-pointer font-bold"
+                      className="px-6 py-3 bg-white/5 hover:bg-white/10 text-white text-[9px] font-black uppercase tracking-widest rounded-xl transition-all cursor-pointer"
                     >
-                      Clear
+                      Cancel
                     </button>
                   </div>
                 </div>
@@ -743,25 +776,64 @@ export const UpdatesPage: React.FC<UpdatesPageProps> = ({
                     <History className="w-3.5 h-3.5 text-red-400" />
                     System Recovery & Rollback
                   </h5>
-                  <div className="p-5 bg-red-500/5 border border-red-500/10 rounded-2xl flex flex-col sm:flex-row sm:items-center justify-between gap-4">
-                    <div className="space-y-1">
-                      <h6 className="text-[10px] font-black text-zinc-200 uppercase tracking-wide">Offline Backup Restoration</h6>
-                      <p className="text-[9px] text-zinc-500 font-bold uppercase leading-relaxed">
-                        If a recent update introduced instability, restore the cached backup of your previous working installation.
+
+                  {/* Rollback confirm dialog */}
+                  {rollbackConfirm ? (
+                    <div className="p-5 bg-red-500/10 border border-red-500/30 rounded-2xl space-y-3">
+                      <p className="text-[10px] font-black text-red-300 uppercase tracking-wide">⚠ Confirm Rollback</p>
+                      <p className="text-[9px] text-zinc-400 font-bold uppercase leading-relaxed">
+                        The app will close, restore the previous backup
+                        {rollbackInfo?.version ? ` (v${rollbackInfo.version})` : ''}, and relaunch.
+                        Unsaved changes will be lost.
+                      </p>
+                      <div className="flex gap-3 pt-1">
+                        <button
+                          type="button"
+                          onClick={() => {
+                            setRollbackConfirm(false);
+                            window.electronAPI?.rollbackElectronUpdate?.();
+                          }}
+                          className="flex-1 px-4 py-2.5 bg-red-500/20 hover:bg-red-500/30 text-red-300 text-[8px] font-black uppercase tracking-widest rounded-xl border border-red-500/30 transition cursor-pointer"
+                        >
+                          Yes, Rollback & Restart
+                        </button>
+                        <button
+                          type="button"
+                          onClick={() => setRollbackConfirm(false)}
+                          className="px-4 py-2.5 bg-white/5 hover:bg-white/10 text-zinc-400 text-[8px] font-black uppercase tracking-widest rounded-xl transition cursor-pointer"
+                        >
+                          Cancel
+                        </button>
+                      </div>
+                    </div>
+                  ) : rollbackInfo?.exists ? (
+                    <div className="p-5 bg-red-500/5 border border-red-500/10 rounded-2xl flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+                      <div className="space-y-1">
+                        <div className="flex items-center gap-2">
+                          <h6 className="text-[10px] font-black text-zinc-200 uppercase tracking-wide">Offline Backup Restoration</h6>
+                          {rollbackInfo.version && (
+                            <span className="px-2 py-0.5 rounded bg-white/5 text-zinc-400 text-[8px] font-mono border border-white/5">backup: v{rollbackInfo.version}</span>
+                          )}
+                        </div>
+                        <p className="text-[9px] text-zinc-500 font-bold uppercase leading-relaxed">
+                          A backup of your previous installation is available. Restore it if the current version is unstable.
+                        </p>
+                      </div>
+                      <button
+                        type="button"
+                        onClick={() => setRollbackConfirm(true)}
+                        className="px-4 py-2.5 bg-red-500/10 hover:bg-red-500/20 text-red-400 text-[8px] font-black uppercase tracking-widest rounded-xl border border-red-500/20 hover:border-red-500/30 transition cursor-pointer shrink-0"
+                      >
+                        Rollback Core Version
+                      </button>
+                    </div>
+                  ) : (
+                    <div className="p-5 bg-white/[0.02] border border-white/5 rounded-2xl">
+                      <p className="text-[9px] text-zinc-600 font-bold uppercase">
+                        No rollback backup available. A backup is created automatically when you install an update via "Restart & Relaunch".
                       </p>
                     </div>
-                    <button
-                      type="button"
-                      onClick={() => {
-                        if (window.confirm("Are you sure you want to rollback to the previous version? The app will close and restore your backup resources.")) {
-                          window.electronAPI?.rollbackElectronUpdate?.();
-                        }
-                      }}
-                      className="px-4 py-2.5 bg-red-500/10 hover:bg-red-500/20 text-red-400 text-[8px] font-black uppercase tracking-widest rounded-xl border border-red-500/20 hover:border-red-500/30 transition cursor-pointer shrink-0 font-bold"
-                    >
-                      Rollback Core Version
-                    </button>
-                  </div>
+                  )}
                 </div>
               )}
 

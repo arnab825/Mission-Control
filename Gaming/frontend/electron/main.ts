@@ -1827,11 +1827,27 @@ function setupAutoUpdater() {
   ipcMain.handle('get-electron-update-state', () => {
     const state = loadUpdateState();
     if (state.status === 'downloading' || state.status === 'checking') {
-      state.status = 'cancelled';
+      state.status = 'paused';
       state.message = 'Download paused by user.';
       saveUpdateState(state);
     }
     return state;
+  });
+
+  ipcMain.handle('check-rollback-backup', () => {
+    const backupPath = path.join(app.getPath('userData'), 'rollback_backup');
+    const exists = fs.existsSync(backupPath);
+    let version = undefined;
+    if (exists) {
+      try {
+        const pkgJson = path.join(backupPath, 'app.asar.unpacked', 'package.json');
+        if (fs.existsSync(pkgJson)) {
+          const content = fs.readFileSync(pkgJson, 'utf-8');
+          version = JSON.parse(content).version;
+        }
+      } catch (_) {}
+    }
+    return { exists, version };
   });
 
   ipcMain.on('rollback-electron-update', () => {
