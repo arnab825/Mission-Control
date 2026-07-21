@@ -107,6 +107,24 @@ New-Item -ItemType Directory -Force -Path $releaseDir | Out-Null
 $targetInstaller = Join-Path $releaseDir 'MissionControl-Setup.exe'
 Copy-Item $sourceInstaller.FullName $targetInstaller -Force
 
+# Check for generated MSI installer
+$sourceMsi = Get-ChildItem -Path "Gaming/frontend/out", "Gaming/frontend/dist" -Filter "*.msi" -Recurse -ErrorAction SilentlyContinue | Select-Object -First 1
+$targetMsi = $null
+if ($sourceMsi) {
+  $targetMsi = Join-Path $releaseDir 'MissionControl-Setup.msi'
+  Copy-Item $sourceMsi.FullName $targetMsi -Force
+  Write-Host "Prepared MSI installer at: $targetMsi"
+}
+
+# Check for generated ZIP archive
+$sourceZip = Get-ChildItem -Path "Gaming/frontend/out", "Gaming/frontend/dist" -Filter "*.zip" -Recurse -ErrorAction SilentlyContinue | Select-Object -First 1
+$targetZip = $null
+if ($sourceZip) {
+  $targetZip = Join-Path $releaseDir 'MissionControl-Portable.zip'
+  Copy-Item $sourceZip.FullName $targetZip -Force
+  Write-Host "Prepared Portable ZIP archive at: $targetZip"
+}
+
 $hashBytes = [System.Security.Cryptography.SHA512]::Create().ComputeHash(
   [System.IO.File]::ReadAllBytes($sourceInstaller.FullName)
 )
@@ -182,7 +200,7 @@ try {
   $assetsUrl = "https://api.github.com/repos/$repo/releases/$releaseId/assets"
   $existingAssets = Invoke-RestMethod -Uri $assetsUrl -Method Get -Headers $headers
   foreach ($asset in $existingAssets) {
-    if ($asset.name -eq "MissionControl-Setup.exe" -or $asset.name -eq "latest.yml") {
+    if ($asset.name -like "MissionControl*" -or $asset.name -eq "latest.yml") {
       Write-Host "Deleting existing asset: $($asset.name)..."
       Invoke-RestMethod -Uri $asset.url -Method Delete -Headers $headers
     }
@@ -192,6 +210,11 @@ try {
 }
 
 $uploadBase = "https://uploads.github.com/repos/$repo/releases/$releaseId/assets"
+$uploadHeaders = @{
+  Authorization = "Bearer $githubToken"
+  Accept = "application/vnd.github.v3+json"
+  "X-GitHub-Api-Version" = "2022-11-28"
+}
 
 if (-not (Test-Path $targetInstaller)) {
   throw "Installer file not found at: $targetInstaller"
@@ -199,22 +222,33 @@ if (-not (Test-Path $targetInstaller)) {
 
 Write-Host "Uploading $targetInstaller via Upload-FileWithProgress..."
 $installerUrl = "${uploadBase}?name=MissionControl-Setup.exe"
-$uploadHeaders = @{
-  Authorization = "Bearer $githubToken"
-  Accept = "application/vnd.github.v3+json"
-  "X-GitHub-Api-Version" = "2022-11-28"
-}
 try {
   $uploadResponse = Upload-FileWithProgress -Uri $installerUrl -FilePath $targetInstaller -Headers $uploadHeaders -ContentType "application/octet-stream"
-  Write-Host "Installer uploaded successfully."
+  Write-Host "NSIS Installer uploaded successfully."
 } catch {
-  Write-Error "Failed to upload installer: $($_.Exception.Message)"
-  if ($_.Exception.Response) {
-    $stream = $_.Exception.Response.GetResponseStream()
-    $reader = New-Object System.IO.StreamReader($stream)
-    Write-Host "Response body: $($reader.ReadToEnd())"
+  Write-Error "Failed to upload NSIS installer: $($_.Exception.Message)"
+}
+
+if ($targetMsi -and (Test-Path $targetMsi)) {
+  Write-Host "Uploading $targetMsi via Upload-FileWithProgress..."
+  $msiUrl = "${uploadBase}?name=MissionControl-Setup.msi"
+  try {
+    $uploadMsiResponse = Upload-FileWithProgress -Uri $msiUrl -FilePath $targetMsi -Headers $uploadHeaders -ContentType "application/x-msi"
+    Write-Host "MSI installer uploaded successfully."
+  } catch {
+    Write-Warning "Failed to upload MSI installer: $($_.Exception.Message)"
   }
-  throw
+}
+
+if ($targetZip -and (Test-Path $targetZip)) {
+  Write-Host "Uploading $targetZip via Upload-FileWithProgress..."
+  $zipUrl = "${uploadBase}?name=MissionControl-Portable.zip"
+  try {
+    $uploadZipResponse = Upload-FileWithProgress -Uri $zipUrl -FilePath $targetZip -Headers $uploadHeaders -ContentType "application/zip"
+    Write-Host "Portable ZIP archive uploaded successfully."
+  } catch {
+    Write-Warning "Failed to upload ZIP archive: $($_.Exception.Message)"
+  }
 }
 
 Write-Host "Uploading latest.yml via Invoke-RestMethod..."

@@ -9,4 +9,4 @@ if (-not $prepackaged) {
 Write-Host "Using prepackaged folder: $($prepackaged.FullName)"
 
 Set-Location Gaming/frontend
-npx electron-builder --prepackaged "$($prepackaged.FullName)" --win nsis --publish never
+npx electron-builder --prepackaged "$($prepackaged.FullName)" --win nsis msi zip --publish never
