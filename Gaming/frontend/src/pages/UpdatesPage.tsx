@@ -57,6 +57,7 @@ export const UpdatesPage: React.FC<UpdatesPageProps> = ({
 
   useEffect(() => {
     setActiveTab(defaultTab);
+    sendCommand('get_changelogs');
     if (defaultTab === 'check') {
       sendCommand('check_updates');
       // Load persisted update state (pause/resume support)
@@ -77,8 +78,6 @@ export const UpdatesPage: React.FC<UpdatesPageProps> = ({
           setRollbackInfo(info);
         }).catch(() => {});
       }
-    } else if (defaultTab === 'changelogs') {
-      sendCommand('get_changelogs');
     }
   }, [defaultTab]);
 
