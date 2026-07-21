@@ -76,7 +76,7 @@
                                "packElevateHelper":  true,
                                "allowElevation":  true,
                                "shortcutName":  "Mission Control",
-                               "uninstallDisplayName":  "Mission Control",
+                               "uninstallDisplayName":  "Uninstall Mission Control",
                                "runAfterFinish":  true,
                                "createDesktopShortcut":  "always",
                                "createStartMenuShortcut":  true,

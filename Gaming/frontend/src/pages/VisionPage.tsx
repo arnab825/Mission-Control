@@ -85,7 +85,8 @@ const VisionPage: React.FC<VisionPageProps> = ({ state, sendCommand }) => {
 
 
   // AI Pipeline setup checks
-  const isYoloReady = inferenceMs > 0 || detectionsCount > 0;
+  const isYoloReady = state?.yolo_supported === true || inferenceMs > 0 || detectionsCount > 0;
+  const isYoloActive = inferenceMs > 0 || detectionsCount > 0;
 
   const preVal = pipelineRunning ? preMs : 0;
   const infVal = pipelineRunning ? inferenceMs : 0;
@@ -522,12 +523,14 @@ const VisionPage: React.FC<VisionPageProps> = ({ state, sendCommand }) => {
                 {isYoloReady ? <CheckCircle className="w-5 h-5 text-neon-green shrink-0" /> : <AlertTriangle className="w-5 h-5 text-amber-400 shrink-0" />}
                 <div>
                   <h4 className={`text-sm font-black uppercase tracking-tight mb-1 ${isYoloReady ? 'text-neon-green' : 'text-amber-400'}`}>
-                    {isYoloReady ? 'YOLO Inference Active' : 'YOLO Backend Offline'}
+                    {isYoloActive ? 'YOLO Inference Active' : isYoloReady ? 'YOLO Backend Ready' : 'YOLO Backend Offline'}
                   </h4>
                   <p className="text-[11px] text-zinc-400 leading-relaxed mb-3">
-                    {isYoloReady 
+                    {isYoloActive 
                       ? 'The PyTorch backend and Ultralytics models are loaded and processing frames.'
-                      : 'Missing PyTorch or Ultralytics modules. The Python backend is falling back to mocked detections or bypassing inference.'}
+                      : isYoloReady
+                        ? 'The PyTorch backend and Ultralytics models are verified and ready to run.'
+                        : 'Missing PyTorch or Ultralytics modules. The Python backend is falling back to mocked detections or bypassing inference.'}
                   </p>
                   
                   {!isYoloReady && (

@@ -91,3 +91,5 @@ class TelemetryState(BaseModel):
     # Populated on startup by the pipeline host; surfaced to the UI as a
     # compatibility badge when Alienware Command Center is detected.
     awcc_status: Optional[Dict[str, Any]] = None
+    yolo_supported: bool = False
+
