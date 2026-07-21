@@ -2,6 +2,22 @@
 
 This document contains a detailed history of all patches and updates for the AI Gaming Assistant.
 
+### Patch: 2026-07-21 — v1.9.3: Fix readiness caching, memory save path fallback, database thread-safe connection, and rollback lock
+
+- Fix readiness caching, memory save path fallback, database thread-safe connection, and rollback lock
+
+### Patch: 2026-07-21 — v1.9.2: Add SQLite indices for near-instant chat history retrieval
+
+- Add SQLite indices for near-instant chat history retrieval
+
+### Patch: 2026-07-21 — v1.9.1: Fix stale closure check again button stuck in checking
+
+- Fix stale closure check again button stuck in checking
+
+### Patch: 2026-07-21 — v1.9.0: Remove Brave Search and add update pause/resume persistence
+
+- Remove Brave Search and add update pause/resume persistence
+
 ### Patch: 2026-07-20 — v1.8.9: Fix list index out of range in Brave search parsing
 
 - Fix list index out of range in Brave search parsing

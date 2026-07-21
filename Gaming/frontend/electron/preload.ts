@@ -62,6 +62,7 @@ contextBridge.exposeInMainWorld('electronAPI', {
   },
   cancelElectronUpdate: () => ipcRenderer.send('cancel-electron-update'),
   rollbackElectronUpdate: () => ipcRenderer.send('rollback-electron-update'),
+  getElectronUpdateState: () => ipcRenderer.invoke('get-electron-update-state'),
   onOpenDashboard: (callback: () => void) => {
     const subscription = () => callback()
     ipcRenderer.on('open-dashboard', subscription)

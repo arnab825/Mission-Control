@@ -129,7 +129,7 @@ const ReadinessPage: React.FC<ReadinessPageProps> = ({ state, connected, sendCom
           onClick={() => {
             hasAnimatedScore = false;
             setIsReevaluating(true);
-            sendCommand('get_gaming_readiness');
+            sendCommand('get_gaming_readiness', { forceRefresh: true });
           }}
           className="mt-3 sm:mt-0 px-4 py-2 bg-white/5 border border-white/10 hover:bg-white/10 hover:border-white/20 text-white rounded-xl text-xs font-black uppercase tracking-wider transition-all flex items-center gap-2 group"
         >

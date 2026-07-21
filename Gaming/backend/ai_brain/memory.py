@@ -30,6 +30,11 @@ class GameMemory:
         self._db_lock = threading.RLock()
         # Default to a local SQLite db if no path is given
         if not save_path:
+            config_save_path = self.config.get("memory", {}).get("save_path")
+            if config_save_path:
+                save_path = config_save_path
+                
+        if not save_path:
             import sys
             import os
             if getattr(sys, 'frozen', False):
@@ -180,6 +185,9 @@ class GameMemory:
                       INSERT INTO chat_messages_fts(rowid, content) VALUES (new.id, new.content);
                     END;
                 ''')
+                # Optimization Indexes for instant chat loading
+                self._conn.execute('CREATE INDEX IF NOT EXISTS idx_chat_messages_session_id ON chat_messages(session_id)')
+                self._conn.execute('CREATE INDEX IF NOT EXISTS idx_chat_sessions_user_id ON chat_sessions(user_id)')
                 # Schema for Post-Game Session Performance Dashboard (Feature 4)
                 self._conn.execute('''
                     CREATE TABLE IF NOT EXISTS game_sessions (

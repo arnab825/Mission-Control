@@ -50,15 +50,19 @@ class DatabaseManager:
             )
             return
 
-        try:
-            self._conn = psycopg2.connect(url, connect_timeout=10)
-            self._conn.autocommit = False
-            self._ensure_schema()
-            self.available = True
-            logger.info("Supabase / PostgreSQL connection established.")
-        except Exception as exc:
-            logger.error("Failed to connect to Supabase PostgreSQL: %s", exc)
-            self._conn = None
+        import threading
+        def _connect():
+            try:
+                self._conn = psycopg2.connect(url, connect_timeout=3)
+                self._conn.autocommit = False
+                self._ensure_schema()
+                self.available = True
+                logger.info("Supabase / PostgreSQL connection established in background.")
+            except Exception as exc:
+                logger.error("Failed to connect to Supabase PostgreSQL in background: %s", exc)
+                self._conn = None
+        
+        threading.Thread(target=_connect, name="SupabaseConnectionThread", daemon=True).start()
 
     # ──────────────────────────────────────────────────────────────────────────
     # Internal helpers

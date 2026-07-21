@@ -75,7 +75,17 @@ To avoid creating duplicate posts for the same day (e.g. if the generation scrip
 * **Banned Closers**:
   * *"...developers can build robust, high-performance systems ready for the next decade."*
   * *"...in an ever-evolving digital landscape."*
-* **Content Restrictions (No Bloat, No Ads, No Promotions)**:
+
+---
+
+## 5. Content Restrictions & Scheduling Rules
+
+* **Content Restrictions (No Bloat, No Ads, No Promotions, No Harmful or 18+ Content)**:
   * Articles must be strictly informational and analytical.
   * Never include advertisements, sponsored placements, or promotional calls to action (e.g., "Buy now", "Click here to subscribe", "Check out their website").
   * Cut out marketing fluff and bloated introductory paragraphs. Get straight to the technical facts and analysis.
+  * **STRICT SAFETY**: Do NOT generate any harmful, unsafe, hateful, or 18+ / adult-related content. Keep the content safe for all audiences.
+
+* **Scheduling & Daily Multi-Post Rules**:
+  * The blog generator runs daily at **4:00 AM** (configured as a Vercel cron job).
+  * Every execution must generate a post for **each** of the four active categories (GPU News, Game News, Hardware Deep-Dive, Game Revisit) to populate the website filters daily.

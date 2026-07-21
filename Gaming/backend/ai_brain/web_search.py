@@ -31,14 +31,14 @@ logger = logging.getLogger(__name__)
 # ── Task → Provider routing ───────────────────────────────────────────────────
 
 TASK_ROUTING = {
-    "wiki":        ["wikipedia", "rawg", "duckduckgo", "brave"],
-    "patch":       ["steam_news", "reddit", "duckduckgo", "brave"],    # Steam News first: official, reliable
-    "strategy":    ["reddit", "duckduckgo", "steamspy", "brave"],
-    "walkthrough": ["reddit", "duckduckgo", "wikipedia", "brave"],
-    "real_time":   ["steam_players", "steamspy", "duckduckgo", "brave"],  # Live player count
-    "game_info":   ["rawg", "steamspy", "brave"],
-    "price":       ["duckduckgo", "steamspy", "brave"],
-    "general":     ["duckduckgo", "wikipedia", "brave", "reddit"],
+    "wiki":        ["wikipedia", "rawg", "duckduckgo"],
+    "patch":       ["steam_news", "reddit", "duckduckgo"],    # Steam News first: official, reliable
+    "strategy":    ["reddit", "duckduckgo", "steamspy"],
+    "walkthrough": ["reddit", "duckduckgo", "wikipedia"],
+    "real_time":   ["steam_players", "steamspy", "duckduckgo"],  # Live player count
+    "game_info":   ["rawg", "steamspy"],
+    "price":       ["duckduckgo", "steamspy"],
+    "general":     ["duckduckgo", "wikipedia", "reddit"],
 }
 
 TASK_DDG_SUFFIXES = {
@@ -146,8 +146,7 @@ class WebSearchEngine:
                     suffix = TASK_DDG_SUFFIXES.get(task, "")
                     max_results = DDG_MAX_RESULTS.get(task, 3)
                     return self._search_duckduckgo(query + suffix, max_results=max_results)
-            elif provider == "brave":
-                return self._search_brave(query, max_results=3)
+
             elif provider == "reddit":
                 return self._search_reddit(query, max_results=3)
         except Exception as e:
@@ -213,12 +212,7 @@ class WebSearchEngine:
                 if "tavily" not in active_providers:
                     active_providers.insert(0, "tavily")
                     
-        # Priority 2: Brave Search API (inserts at 1, or 0 if Tavily unavailable)
-        brave_key = os.environ.get("BRAVE_API_KEY")
-        if brave_key and "brave" in active_providers:
-            active_providers.remove("brave")
-            insert_idx = 1 if "tavily" in active_providers else 0
-            active_providers.insert(insert_idx, "brave")
+
                     
         merged_results = []
         answer = ""
@@ -635,43 +629,7 @@ class WebSearchEngine:
 
         return {"answer": answer, "results": results, "source": "duckduckgo"}
 
-    # ── Provider: Brave Search (Optional, User Key Only, 2000 free/month) ────────
-    
-    def _search_brave(self, query: str, max_results: int = 3) -> dict:
-        """Brave Search API — extremely high quality, 2000 free requests per month."""
-        results = []
-        answer = ""
-        api_key = os.environ.get("BRAVE_API_KEY")
-        if not api_key:
-            return {"answer": "", "results": [], "source": "brave"}
-            
-        try:
-            url = f"https://api.search.brave.com/res/v1/web/search?q={urllib.parse.quote(query)}&count={max_results}"
-            req = urllib.request.Request(url, headers={
-                "Accept": "application/json",
-                "Accept-Encoding": "gzip",
-                "X-Subscription-Token": api_key,
-                "User-Agent": "MissionControl/1.0"
-            })
-            with urllib.request.urlopen(req, timeout=5) as r:
-                if r.info().get('Content-Encoding') == 'gzip':
-                    import gzip
-                    data = gzip.decompress(r.read())
-                else:
-                    data = r.read()
-                d = json.loads(data)
-                web_results = d.get("web", {}).get("results", [])
-                for item in web_results:
-                    extra_snippets = item.get("extra_snippets", [])
-                    extra_snippet = extra_snippets[0] if isinstance(extra_snippets, list) and len(extra_snippets) > 0 else ""
-                    desc = item.get("description", "") or extra_snippet
-                    results.append({"title": item.get("title", ""), "url": item.get("url", ""), "content": desc})
-                if results:
-                    answer = results[0]["content"][:500]
-        except Exception as e:
-            logger.debug(f"Brave Search failed: {e}")
-            
-        return {"answer": answer, "results": results, "source": "brave"}
+
 
     # ── Provider: Reddit (JSON API, Truly Free) ──────────────────────────────
     
