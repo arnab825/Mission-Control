@@ -97,7 +97,7 @@ const VisionPage: React.FC<VisionPageProps> = ({ state, sendCommand }) => {
   const totalVal = preVal + infVal + postVal;
 
   return (
-    <div className="flex-1 flex flex-col p-6 gap-y-5 overflow-y-auto custom-scrollbar font-['Inter',system-ui,sans-serif]">
+    <div className="flex-1 flex flex-col p-6 pb-20 gap-y-5 overflow-y-auto custom-scrollbar font-['Inter',system-ui,sans-serif]">
 
       {/* Self-contained animations style injector */}
       <style dangerouslySetInnerHTML={{
