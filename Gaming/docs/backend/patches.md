@@ -2,6 +2,13 @@
 
 This document contains a detailed history of all patches and updates for the AI Gaming Assistant.
 
+### Patch: 2026-07-22 — v2.1.0: Fixed 1-Click YOLO Vision Engine installer for standalone desktop release
+
+- Fixed 1-Click YOLO Vision Engine installer for standalone desktop release
+- Optimized Vision Command Center telemetry layout into clean right sidebar
+- Prevented Dashboard CPU temperature text truncation on wide displays
+- Updated release process documentation
+
 ### Patch: 2026-07-21 — v2.0.9: Support multi-line bullet points in publish.ps1 via semicolons, newlines, or multiple arguments
 
 - Support multi-line bullet points in publish.ps1 via semicolons, newlines, or multiple arguments

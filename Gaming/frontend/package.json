@@ -2,7 +2,7 @@
     "name":  "mission-control",
     "productName":  "Mission Control",
     "private":  true,
-    "version":  "2.0.9",
+    "version":  "2.1.0",
     "description":  "Mission Control desktop app for gamers.",
     "author":  "Arnab Contributors \u003csupport@missioncontrol.app\u003e",
     "type":  "module",
