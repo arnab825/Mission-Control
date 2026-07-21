@@ -489,8 +489,8 @@ export async function POST(request: NextRequest) {
           localCoverPath = isHardware ? "/images/gpu-placeholder.png" : "/images/game-placeholder.png";
         }
 
-        // Normalize publication time to exactly 08:00 AM IST (02:30 UTC of same day)
-        const postDate = new Date(Date.UTC(istYear, istMonth - 1, istDay, 8, 0, 0, 0) - 5.5 * 60 * 60 * 1000);
+        // Normalize publication time to exactly 04:00 AM IST (22:30 UTC of same day)
+        const postDate = new Date(Date.UTC(istYear, istMonth - 1, istDay, 4, 0, 0, 0) - 5.5 * 60 * 60 * 1000);
         const publishedAt = postDate.toISOString();
 
         const saved = await writeToMongoDB(post, currentTopic, publishedAt, localCoverPath);
