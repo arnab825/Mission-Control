@@ -119,9 +119,9 @@ export default async function BlogListing({
       {/* ── Gaming Intel (MongoDB + MDX) ── */}
       {currentTab === "intel" && (
         <Suspense fallback={
-          <div className="py-20 flex flex-col items-center justify-center gap-4 border border-white/5 bg-white/[0.01] rounded-2xl">
+          <div className="py-20 flex flex-col items-center justify-center gap-4 border border-white/5 bg-white/[0.01] rounded-2xl p-4">
             <Radio className="w-8 h-8 text-amber-400 animate-pulse" />
-            <p className="text-amber-400 font-mono text-xs uppercase tracking-widest animate-pulse">Establishing Secure Connection to Intelligence Database...</p>
+            <p className="text-amber-400 font-mono text-xs uppercase tracking-widest animate-pulse text-center max-w-full px-6 break-words">Establishing Secure Connection to Intelligence Database...</p>
           </div>
         }>
           <GamingIntelData activeCategory={activeCategory} localGamingPosts={localGamingPosts} />
