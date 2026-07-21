@@ -1,442 +1,442 @@
 {
-  "version": "2.0.5",
-  "release_date": "2026-07-21",
-  "update_check_url": "https://raw.githubusercontent.com/arnab825/Mission-Control/main/Gaming/backend/version.json",
-  "changelog": [
-    {
-      "version": "2.0.5",
-      "date": "2026-07-21",
-      "title": "Add power_limit, power_limit_watts, and power_limit_max_watts aliases across telemetry pipeline",
-      "highlights": [
-        "Add power_limit, power_limit_watts, and power_limit_max_watts aliases across telemetry pipeline"
-      ]
-    },
-    {
-      "version": "2.0.4",
-      "date": "2026-07-21",
-      "title": "Map GPU max hardware TGP constraints directly into LabPage Power Target UI and telemetry",
-      "highlights": [
-        "Map GPU max hardware TGP constraints directly into LabPage Power Target UI and telemetry"
-      ]
-    },
-    {
-      "version": "2.0.3",
-      "date": "2026-07-21",
-      "title": "Unlock hardware max TGP ceiling for GPU power limits in Boost Mode and Optimization Mode",
-      "highlights": [
-        "Unlock hardware max TGP ceiling for GPU power limits in Boost Mode and Optimization Mode"
-      ]
-    },
-    {
-      "version": "2.0.2",
-      "date": "2026-07-21",
-      "title": "Fix update pause/resume cancellation flow and prevent trailing progress override",
-      "highlights": [
-        "Fix update pause/resume cancellation flow and prevent trailing progress override"
-      ]
-    },
-    {
-      "version": "2.0.1",
-      "date": "2026-07-21",
-      "title": "Add 1-Click in-app installer for optional PyTorch and Ultralytics vision engines",
-      "highlights": [
-        "Add 1-Click in-app installer for optional PyTorch and Ultralytics vision engines"
-      ]
-    },
-    {
-      "version": "2.0.0",
-      "date": "2026-07-21",
-      "title": "Fix up-to-date card visibility on Updates page and add ultralytics to dependencies",
-      "highlights": [
-        "Fix up-to-date card visibility on Updates page and add ultralytics to dependencies"
-      ]
-    },
-    {
-      "version": "1.9.9",
-      "date": "2026-07-21",
-      "title": "Fix TTS thread dead warning log and sync settings state between Electron and backend",
-      "highlights": [
-        "Fix TTS thread dead warning log and sync settings state between Electron and backend"
-      ]
-    },
-    {
-      "version": "1.9.8",
-      "date": "2026-07-21",
-      "title": "Fix update pause/resume persistence across app restarts and add in-UI rollback verification dialog",
-      "highlights": [
-        "Fix update pause/resume persistence across app restarts and add in-UI rollback verification dialog"
-      ]
-    },
-    {
-      "version": "1.9.7",
-      "date": "2026-07-21",
-      "title": "Fix false update-available on same version; fix YOLO status always showing offline on Vision page",
-      "highlights": [
-        "Fix false update-available on same version; fix YOLO status always showing offline on Vision page"
-      ]
-    },
-    {
-      "version": "1.9.6",
-      "date": "2026-07-21",
-      "title": "Fix YOLO diagnostics, same-version update check, and uninstaller naming",
-      "highlights": [
-        "Resolve YOLO backend diagnostics false alarms by verifying dependencies from Python backend",
-        "Allow Electron auto-updater to download same-version patch updates",
-        "Change uninstaller display name in Windows control panel to Uninstall Mission Control"
-      ]
-    },
-    {
-      "version": "1.9.5",
-      "date": "2026-07-21",
-      "title": "Revamp Vision Command Center UI and clean up voice/controller configurations",
-      "highlights": [
-        "Revamp Vision Command Center UI, remove fake radar/compass/SVG neural widgets",
-        "Add PyTorch/Ultralytics backend dependency check card",
-        "Remove voice mapping Toggle Mic config and clean up game controller auto-detection"
-      ]
-    },
-    {
-      "version": "1.8.9",
-      "date": "2026-07-20",
-      "title": "Fix list index out of range in Brave search parsing",
-      "highlights": [
-        "Fix list index out of range in Brave search parsing"
-      ]
-    },
-    {
-      "version": "1.8.8",
-      "date": "2026-07-20",
-      "title": "Filter launcher icons in Settings table and fallback to Steam headers",
-      "highlights": [
-        "Filter launcher icons in Settings table and fallback to Steam headers"
-      ]
-    },
-    {
-      "version": "1.8.7",
-      "date": "2026-07-20",
-      "title": "Tray Redirects, Boost Mode Renaming, and Update Controls & Rollback UI",
-      "highlights": [
-        "Enabled tray Show Dashboard click/double-click events to automatically restore and redirect users to the Dashboard",
-        "Renamed user-facing 'Game Mode' labels and badges to 'Boost Mode' to align with backend optimization contexts",
-        "Added manual Pause and Cancel action buttons for active update downloads",
-        "Implemented a System Recovery & Rollback panel to trigger offline backup restoration natively"
-      ]
-    },
-    {
-      "version": "1.8.6",
-      "date": "2026-07-20",
-      "title": "Use public WebSearchEngine search API for game fallback classification",
-      "highlights": [
-        "Use public WebSearchEngine search API for game fallback classification"
-      ]
-    },
-    {
-      "version": "1.8.5",
-      "date": "2026-07-20",
-      "title": "Support dynamic RAWG fallback database scan for 1 lakh+ games",
-      "highlights": [
-        "Support dynamic RAWG fallback database scan for 1 lakh+ games"
-      ]
-    },
-    {
-      "version": "1.8.4",
-      "date": "2026-07-20",
-      "title": "Support FPS genre mapping in preset recommendations",
-      "highlights": [
-        "Support FPS genre mapping in preset recommendations"
-      ]
-    },
-    {
-      "version": "1.8.3",
-      "date": "2026-07-20",
-      "title": "Support dynamic RTX 60+ series and auto-configure presets",
-      "highlights": [
-        "Support dynamic RTX 60+ series and auto-configure presets"
-      ]
-    },
-    {
-      "version": "1.8.2",
-      "date": "2026-07-20",
-      "title": "Subsequent Update Check Overrides",
-      "highlights": [
-        "Enabled check for newer system updates even when an update has already been downloaded and is waiting for client restart",
-        "Added Check Again trigger endpoints to both tab headings and relaunch prompts"
-      ]
-    },
-    {
-      "version": "1.8.1",
-      "date": "2026-07-20",
-      "title": "Configurable Auto-Update Control",
-      "highlights": [
-        "Added a configurable background auto-download switch for core system updates",
-        "Allows toggling auto-download on or off to choose when to initiate update downloads manually"
-      ]
-    },
-    {
-      "version": "1.8.0",
-      "date": "2026-07-20",
-      "title": "Updater Controls, Database Persistence & Website Mongoose Migration",
-      "highlights": [
-        "Implemented manual update cancellation and offline rollback backup/restoration mechanisms",
-        "Migrated desktop SQLite agent memory to write into user APPDATA folder, fixing production persistence",
-        "Removed ChromaDB dependency to reduce PyInstaller package size and resolved native C++ compilation issues",
-        "Migrated website issues list, documentation, and architecture layers to Mongoose/MongoDB",
-        "Refactored website architecture page into Server and Client components for Turbopack compatibility"
-      ]
-    },
-    {
-      "version": "1.7.10",
-      "date": "2026-07-19",
-      "title": "Check For Updates Logo Stylization",
-      "highlights": [
-        "Updated Check For Updates tray icon to be white and borderless"
-      ]
-    },
-    {
-      "version": "1.7.9",
-      "date": "2026-07-19",
-      "title": "Remove Mission Briefs, update tray icon, and finalize TGP telemetry",
-      "highlights": [
-        "Deleted Mission Briefs and associated local mdx briefs",
-        "Updated Check For Updates tray icon to match Windows Update logo",
-        "Updated release notes readmes with precise TGP & CPU Offset documentation"
-      ]
-    },
-    {
-      "version": "1.7.8",
-      "date": "2026-07-19",
-      "title": "Apply offset for ACPI CPU temp",
-      "highlights": [
-        "Subtracts 12C from ACPI TZ01 to approximate CPU Package avg under blocked driver mode"
-      ]
-    },
-    {
-      "version": "1.7.7",
-      "date": "2026-07-19",
-      "title": "Precision TGP and CPU Thermal fallbacks",
-      "highlights": [
-        "Precision TGP and CPU Thermal fallbacks"
-      ]
-    },
-    {
-      "version": "1.7.6",
-      "date": "2026-07-19",
-      "title": "Bypass code signature verification for self-built updates and robustify download updater",
-      "highlights": [
-        "Bypass code signature verification for self-built updates and robustify download updater"
-      ]
-    },
-    {
-      "version": "1.7.5",
-      "date": "2026-07-18",
-      "title": "Update system tray check updates menu icon to match flat white style",
-      "highlights": [
-        "Update system tray check updates menu icon to match flat white style"
-      ]
-    },
-    {
-      "version": "1.7.4",
-      "date": "2026-07-18",
-      "title": "Fix Object Destroyed Electron Crash",
-      "highlights": [
-        "Guarded all asynchronous loadURL retries, event listener invocations, and ready-to-show transitions with isDestroyed() checks on BrowserWindow instances.",
-        "Prevents application crashes caused by delayed callbacks firing after a window (Dashboard, HUD, or OSR) has been closed by the user or system."
-      ]
-    },
-    {
-      "version": "1.7.3",
-      "date": "2026-07-18",
-      "title": "True FPS for Fullscreen Exclusive Games",
-      "highlights": [
-        "Added DxgKrnl kernel-mode ETW event handling so fullscreen exclusive games (e.g. Spider-Man 2, DX12/Vulkan titles) now report real hardware FPS instead of N/A.",
-        "DXGI user-mode events are preferred in windowed/borderless mode; DxgKrnl events are automatically activated only when DXGI goes silent (fullscreen exclusive), preventing double-counting."
-      ]
-    },
-    {
-      "version": "1.7.5",
-      "date": "2026-07-18",
-      "title": "Fix UAC Startup Crash & Settings Tweaks",
-      "highlights": [
-        "Deferred Python backend launch until after Electron ready-to-show to prevent UAC dimming crash.",
-        "Renamed 'Power Save' preset to 'Standard' and removed obsolete 'ANSEL' from feature detection."
-      ]
-    },
-    {
-      "version": "1.7.4",
-      "date": "2026-07-18",
-      "title": "Fix Splash Screen Startup Crash",
-      "highlights": [
-        "Bundled splash.html to dist-electron during build to resolve ERR_FILE_NOT_FOUND error on startup.",
-        "Added safe catch handlers on splash screen load functions to prevent unhandled promise rejections."
-      ]
-    },
-    {
-      "version": "1.7.3",
-      "date": "2026-07-18",
-      "title": "Fix Unused Game Launch Variable & Stability Graph Reset",
-      "highlights": [
-        "Fixed linting warning by removing unused handleLaunch variable in GameCard.",
-        "Fixed Stability Lab chart history reset logic when games are inactive."
-      ]
-    },
-    {
-      "version": "1.7.2",
-      "date": "2026-07-17",
-      "title": "Fix Misleading FPS Telemetry",
-      "highlights": [
-        "Removed capture_fps fallback in HUD telemetry to prevent showing low capture loop rates as game FPS when ETW tracking is unavailable."
-      ]
-    },
-    {
-      "version": "1.7.1",
-      "date": "2026-07-17",
-      "title": "Fix HUD interaction usability and positioning deadlock",
-      "highlights": [
-        "Fixed UX deadlock where the HUD overlay would immediately hide itself upon Alt-Tabbing out of a game, preventing any mouse interaction, dragging, or closing when unlocked."
-      ]
-    },
-    {
-      "version": "1.7.0",
-      "date": "2026-07-17",
-      "title": "Stability Update: HUD Calibration, FPS Fallback, and API Reliability",
-      "highlights": [
-        "Fixed permanently stuck HUD CALIBRATING state by changing the flag condition and introducing a 10s timeout.",
-        "Fixed FPS showing N/A in fullscreen and Vulkan/OpenGL games (e.g. Spider-Man 2) by fallback to capture-loop FPS.",
-        "Fixed GameKB infinite retry storm on LLM connection errors by enforcing a 5-minute per-game cooldown.",
-        "Fixed installer shortcut removal and ensured silent cleanup of legacy per-user scope installations."
-      ]
-    },
-    {
-      "version": "1.6.11",
-      "date": "2026-07-17",
-      "title": "Fix FPS showing N/A for non-ETW games (e.g. Spider-Man 2)",
-      "highlights": [
-        "Restored capture-loop FPS as fallback when the ETW hardware tracker returns no data",
-        "Affects all games where DXGI Present ETW events are unavailable (fullscreen exclusive, Vulkan, OpenGL, or admin-permission issues)"
-      ]
-    },
-    {
-      "version": "1.6.10",
-      "date": "2026-07-17",
-      "title": "Fix GameKB infinite retry storm on LLM 404",
-      "highlights": [
-        "GameKB keybind fetch failures (404, timeout, etc.) now enforce a 5-minute per-game cooldown before retrying",
-        "Cooldown check added at both thread-spawn site (identify_game) and background worker to guarantee no storm",
-        "Successful fetches clear the failure record so retries resume normally after an endpoint recovers"
-      ]
-    },
-    {
-      "version": "1.6.9",
-      "date": "2026-07-17",
-      "title": "Fix permanently stuck HUD CALIBRATING state",
-      "highlights": [
-        "Fixed: game_loading flag now clears after 10 s even if the ETW FPS tracker returns no data (Vulkan, OpenGL, or elevated-permission failures)",
-        "Changed CALIBRATING condition from 'frame_count<30 OR fps==0' to 'frame_count<30 AND fps==0', preventing infinite stuck state"
-      ]
-    },
-    {
-      "version": "1.6.8",
-      "date": "2026-07-17",
-      "title": "Fix missing shortcuts and uninstall legacy versions during upgrade",
-      "highlights": [
-        "Protect machine-wide desktop shortcuts from being deleted during cleanup",
-        "Automatically and silently uninstall legacy per-user installations during per-machine upgrades"
-      ]
-    },
-    {
-      "version": "1.6.7",
-      "date": "2026-07-17",
-      "title": "Fix default version fallback and newly downloaded launcher games classification",
-      "highlights": [
-        "Copy app-update.yml to packaged resources so native updates can resolve successfully",
-        "Automatically map newly scanned Local games to their correct platforms (Steam, Epic, EA Desktop, etc.) based on install/exe paths",
-        "Merge duplicate scanned game metadata keys to preserve direct paths alongside platform mappings"
-      ]
-    },
-    {
-      "version": "1.6.6",
-      "date": "2026-07-17",
-      "title": "Fix latest.yml UTF-8 BOM encoding for electron-updater support",
-      "highlights": [
-        "Fix latest.yml UTF-8 BOM encoding for electron-updater support"
-      ]
-    },
-    {
-      "version": "1.6.5",
-      "date": "2026-07-16",
-      "title": "Fix packaging of rapidocr_onnxruntime ONNX models and config assets",
-      "highlights": [
-        "Fix packaging of rapidocr_onnxruntime ONNX models and config assets"
-      ]
-    },
-    {
-      "version": "1.6.4",
-      "date": "2026-07-16",
-      "title": "Hotfix: HUD FPS tracking and GPU power draw improvements",
-      "highlights": [
-        "Restored MPO events (IDs 46, 73, 78) to fix N/A FPS readings in modern DX12 games",
-        "Implemented a 1ms event debounce to completely prevent double-counting of duplicate Present/MPO events",
-        "Added NVML fallback to enforced power limit to resolve anomalous 300+W GPU power reporting on laptops and specific cards",
-        "Changed CPU clock speed formatting in compact HUD from 'G' to 'GHz' to prevent confusion with RAM capacity",
-        "Fixed a critical bug where the C++ ETW frame tracker would permanently freeze (causing stuck 'Calibrating' HUD state) after any 5s+ frame stall"
-      ]
-    },
-    {
-      "version": "1.6.3",
-      "date": "2026-07-16",
-      "title": "Fix HUD FPS tracking double-counting and remove misleading fallback",
-      "highlights": [
-        "Fix ETW frame timing double-counting by restricting DXGI events to Present_Start (eventId 42) and D3D9 to Present (eventId 1)",
-        "Remove misleading capture_fps fallback in HUD telemetry to prevent showing low capture rates when ETW/DXGI tracking is not active"
-      ]
-    },
-    {
-      "version": "1.6.2",
-      "date": "2026-07-15",
-      "title": "Move Optimization Status block to Stability Lab next to Game Mode toggle",
-      "highlights": [
-        "Move Optimization Status block to Stability Lab next to Game Mode toggle"
-      ]
-    },
-    {
-      "version": "1.6.1",
-      "date": "2026-07-15",
-      "title": "Fix NSIS compile escape syntax in installer.nsh",
-      "highlights": [
-        "Fix NSIS compile escape syntax in installer.nsh"
-      ]
-    },
-    {
-      "version": "1.6.0",
-      "date": "2026-07-15",
-      "title": "Fix duplicate start menu shortcuts and update overlay blocking",
-      "highlights": [
-        "Fix duplicate start menu shortcuts and update overlay blocking"
-      ]
-    },
-    {
-      "version": "1.5.9",
-      "date": "2026-07-15",
-      "title": "Fixed the USE DESKTOP UPGRADE ",
-      "highlights": [
-        "Fixed the USE DESKTOP UPGRADE "
-      ]
-    },
-    {
-      "version": "1.5.8",
-      "date": "2026-07-15",
-      "title": "Fixed the Frozen Update. ",
-      "highlights": [
-        "Fixed the Frozen Update. "
-      ]
-    },
-    {
-      "version": "1.5.7",
-      "date": "2026-07-15",
-      "title": "Fixed the Frozen Update and making soe issue. ",
-      "highlights": [
-        "Fixed the Frozen Update and making soe issue. "
-      ]
-    }
-  ]
+    "version":  "2.0.5",
+    "release_date":  "2026-07-21",
+    "update_check_url":  "https://raw.githubusercontent.com/arnab825/Mission-Control/main/Gaming/backend/version.json",
+    "changelog":  [
+                      {
+                          "version":  "2.0.5",
+                          "date":  "2026-07-21",
+                          "title":  "Add power_limit, power_limit_watts, and power_limit_max_watts aliases across telemetry pipeline",
+                          "highlights":  [
+                                             "Add power_limit, power_limit_watts, and power_limit_max_watts aliases across telemetry pipeline"
+                                         ]
+                      },
+                      {
+                          "version":  "2.0.4",
+                          "date":  "2026-07-21",
+                          "title":  "Map GPU max hardware TGP constraints directly into LabPage Power Target UI and telemetry",
+                          "highlights":  [
+                                             "Map GPU max hardware TGP constraints directly into LabPage Power Target UI and telemetry"
+                                         ]
+                      },
+                      {
+                          "version":  "2.0.3",
+                          "date":  "2026-07-21",
+                          "title":  "Unlock hardware max TGP ceiling for GPU power limits in Boost Mode and Optimization Mode",
+                          "highlights":  [
+                                             "Unlock hardware max TGP ceiling for GPU power limits in Boost Mode and Optimization Mode"
+                                         ]
+                      },
+                      {
+                          "version":  "2.0.2",
+                          "date":  "2026-07-21",
+                          "title":  "Fix update pause/resume cancellation flow and prevent trailing progress override",
+                          "highlights":  [
+                                             "Fix update pause/resume cancellation flow and prevent trailing progress override"
+                                         ]
+                      },
+                      {
+                          "version":  "2.0.1",
+                          "date":  "2026-07-21",
+                          "title":  "Add 1-Click in-app installer for optional PyTorch and Ultralytics vision engines",
+                          "highlights":  [
+                                             "Add 1-Click in-app installer for optional PyTorch and Ultralytics vision engines"
+                                         ]
+                      },
+                      {
+                          "version":  "2.0.0",
+                          "date":  "2026-07-21",
+                          "title":  "Fix up-to-date card visibility on Updates page and add ultralytics to dependencies",
+                          "highlights":  [
+                                             "Fix up-to-date card visibility on Updates page and add ultralytics to dependencies"
+                                         ]
+                      },
+                      {
+                          "version":  "1.9.9",
+                          "date":  "2026-07-21",
+                          "title":  "Fix TTS thread dead warning log and sync settings state between Electron and backend",
+                          "highlights":  [
+                                             "Fix TTS thread dead warning log and sync settings state between Electron and backend"
+                                         ]
+                      },
+                      {
+                          "version":  "1.9.8",
+                          "date":  "2026-07-21",
+                          "title":  "Fix update pause/resume persistence across app restarts and add in-UI rollback verification dialog",
+                          "highlights":  [
+                                             "Fix update pause/resume persistence across app restarts and add in-UI rollback verification dialog"
+                                         ]
+                      },
+                      {
+                          "version":  "1.9.7",
+                          "date":  "2026-07-21",
+                          "title":  "Fix false update-available on same version; fix YOLO status always showing offline on Vision page",
+                          "highlights":  [
+                                             "Fix false update-available on same version; fix YOLO status always showing offline on Vision page"
+                                         ]
+                      },
+                      {
+                          "version":  "1.9.6",
+                          "date":  "2026-07-21",
+                          "title":  "Fix YOLO diagnostics, same-version update check, and uninstaller naming",
+                          "highlights":  [
+                                             "Resolve YOLO backend diagnostics false alarms by verifying dependencies from Python backend",
+                                             "Allow Electron auto-updater to download same-version patch updates",
+                                             "Change uninstaller display name in Windows control panel to Uninstall Mission Control"
+                                         ]
+                      },
+                      {
+                          "version":  "1.9.5",
+                          "date":  "2026-07-21",
+                          "title":  "Revamp Vision Command Center UI and clean up voice/controller configurations",
+                          "highlights":  [
+                                             "Revamp Vision Command Center UI, remove fake radar/compass/SVG neural widgets",
+                                             "Add PyTorch/Ultralytics backend dependency check card",
+                                             "Remove voice mapping Toggle Mic config and clean up game controller auto-detection"
+                                         ]
+                      },
+                      {
+                          "version":  "1.8.9",
+                          "date":  "2026-07-20",
+                          "title":  "Fix list index out of range in Brave search parsing",
+                          "highlights":  [
+                                             "Fix list index out of range in Brave search parsing"
+                                         ]
+                      },
+                      {
+                          "version":  "1.8.8",
+                          "date":  "2026-07-20",
+                          "title":  "Filter launcher icons in Settings table and fallback to Steam headers",
+                          "highlights":  [
+                                             "Filter launcher icons in Settings table and fallback to Steam headers"
+                                         ]
+                      },
+                      {
+                          "version":  "1.8.7",
+                          "date":  "2026-07-20",
+                          "title":  "Tray Redirects, Boost Mode Renaming, and Update Controls \u0026 Rollback UI",
+                          "highlights":  [
+                                             "Enabled tray Show Dashboard click/double-click events to automatically restore and redirect users to the Dashboard",
+                                             "Renamed user-facing \u0027Game Mode\u0027 labels and badges to \u0027Boost Mode\u0027 to align with backend optimization contexts",
+                                             "Added manual Pause and Cancel action buttons for active update downloads",
+                                             "Implemented a System Recovery \u0026 Rollback panel to trigger offline backup restoration natively"
+                                         ]
+                      },
+                      {
+                          "version":  "1.8.6",
+                          "date":  "2026-07-20",
+                          "title":  "Use public WebSearchEngine search API for game fallback classification",
+                          "highlights":  [
+                                             "Use public WebSearchEngine search API for game fallback classification"
+                                         ]
+                      },
+                      {
+                          "version":  "1.8.5",
+                          "date":  "2026-07-20",
+                          "title":  "Support dynamic RAWG fallback database scan for 1 lakh+ games",
+                          "highlights":  [
+                                             "Support dynamic RAWG fallback database scan for 1 lakh+ games"
+                                         ]
+                      },
+                      {
+                          "version":  "1.8.4",
+                          "date":  "2026-07-20",
+                          "title":  "Support FPS genre mapping in preset recommendations",
+                          "highlights":  [
+                                             "Support FPS genre mapping in preset recommendations"
+                                         ]
+                      },
+                      {
+                          "version":  "1.8.3",
+                          "date":  "2026-07-20",
+                          "title":  "Support dynamic RTX 60+ series and auto-configure presets",
+                          "highlights":  [
+                                             "Support dynamic RTX 60+ series and auto-configure presets"
+                                         ]
+                      },
+                      {
+                          "version":  "1.8.2",
+                          "date":  "2026-07-20",
+                          "title":  "Subsequent Update Check Overrides",
+                          "highlights":  [
+                                             "Enabled check for newer system updates even when an update has already been downloaded and is waiting for client restart",
+                                             "Added Check Again trigger endpoints to both tab headings and relaunch prompts"
+                                         ]
+                      },
+                      {
+                          "version":  "1.8.1",
+                          "date":  "2026-07-20",
+                          "title":  "Configurable Auto-Update Control",
+                          "highlights":  [
+                                             "Added a configurable background auto-download switch for core system updates",
+                                             "Allows toggling auto-download on or off to choose when to initiate update downloads manually"
+                                         ]
+                      },
+                      {
+                          "version":  "1.8.0",
+                          "date":  "2026-07-20",
+                          "title":  "Updater Controls, Database Persistence \u0026 Website Mongoose Migration",
+                          "highlights":  [
+                                             "Implemented manual update cancellation and offline rollback backup/restoration mechanisms",
+                                             "Migrated desktop SQLite agent memory to write into user APPDATA folder, fixing production persistence",
+                                             "Removed ChromaDB dependency to reduce PyInstaller package size and resolved native C++ compilation issues",
+                                             "Migrated website issues list, documentation, and architecture layers to Mongoose/MongoDB",
+                                             "Refactored website architecture page into Server and Client components for Turbopack compatibility"
+                                         ]
+                      },
+                      {
+                          "version":  "1.7.10",
+                          "date":  "2026-07-19",
+                          "title":  "Check For Updates Logo Stylization",
+                          "highlights":  [
+                                             "Updated Check For Updates tray icon to be white and borderless"
+                                         ]
+                      },
+                      {
+                          "version":  "1.7.9",
+                          "date":  "2026-07-19",
+                          "title":  "Remove Mission Briefs, update tray icon, and finalize TGP telemetry",
+                          "highlights":  [
+                                             "Deleted Mission Briefs and associated local mdx briefs",
+                                             "Updated Check For Updates tray icon to match Windows Update logo",
+                                             "Updated release notes readmes with precise TGP \u0026 CPU Offset documentation"
+                                         ]
+                      },
+                      {
+                          "version":  "1.7.8",
+                          "date":  "2026-07-19",
+                          "title":  "Apply offset for ACPI CPU temp",
+                          "highlights":  [
+                                             "Subtracts 12C from ACPI TZ01 to approximate CPU Package avg under blocked driver mode"
+                                         ]
+                      },
+                      {
+                          "version":  "1.7.7",
+                          "date":  "2026-07-19",
+                          "title":  "Precision TGP and CPU Thermal fallbacks",
+                          "highlights":  [
+                                             "Precision TGP and CPU Thermal fallbacks"
+                                         ]
+                      },
+                      {
+                          "version":  "1.7.6",
+                          "date":  "2026-07-19",
+                          "title":  "Bypass code signature verification for self-built updates and robustify download updater",
+                          "highlights":  [
+                                             "Bypass code signature verification for self-built updates and robustify download updater"
+                                         ]
+                      },
+                      {
+                          "version":  "1.7.5",
+                          "date":  "2026-07-18",
+                          "title":  "Update system tray check updates menu icon to match flat white style",
+                          "highlights":  [
+                                             "Update system tray check updates menu icon to match flat white style"
+                                         ]
+                      },
+                      {
+                          "version":  "1.7.4",
+                          "date":  "2026-07-18",
+                          "title":  "Fix Object Destroyed Electron Crash",
+                          "highlights":  [
+                                             "Guarded all asynchronous loadURL retries, event listener invocations, and ready-to-show transitions with isDestroyed() checks on BrowserWindow instances.",
+                                             "Prevents application crashes caused by delayed callbacks firing after a window (Dashboard, HUD, or OSR) has been closed by the user or system."
+                                         ]
+                      },
+                      {
+                          "version":  "1.7.3",
+                          "date":  "2026-07-18",
+                          "title":  "True FPS for Fullscreen Exclusive Games",
+                          "highlights":  [
+                                             "Added DxgKrnl kernel-mode ETW event handling so fullscreen exclusive games (e.g. Spider-Man 2, DX12/Vulkan titles) now report real hardware FPS instead of N/A.",
+                                             "DXGI user-mode events are preferred in windowed/borderless mode; DxgKrnl events are automatically activated only when DXGI goes silent (fullscreen exclusive), preventing double-counting."
+                                         ]
+                      },
+                      {
+                          "version":  "1.7.5",
+                          "date":  "2026-07-18",
+                          "title":  "Fix UAC Startup Crash \u0026 Settings Tweaks",
+                          "highlights":  [
+                                             "Deferred Python backend launch until after Electron ready-to-show to prevent UAC dimming crash.",
+                                             "Renamed \u0027Power Save\u0027 preset to \u0027Standard\u0027 and removed obsolete \u0027ANSEL\u0027 from feature detection."
+                                         ]
+                      },
+                      {
+                          "version":  "1.7.4",
+                          "date":  "2026-07-18",
+                          "title":  "Fix Splash Screen Startup Crash",
+                          "highlights":  [
+                                             "Bundled splash.html to dist-electron during build to resolve ERR_FILE_NOT_FOUND error on startup.",
+                                             "Added safe catch handlers on splash screen load functions to prevent unhandled promise rejections."
+                                         ]
+                      },
+                      {
+                          "version":  "1.7.3",
+                          "date":  "2026-07-18",
+                          "title":  "Fix Unused Game Launch Variable \u0026 Stability Graph Reset",
+                          "highlights":  [
+                                             "Fixed linting warning by removing unused handleLaunch variable in GameCard.",
+                                             "Fixed Stability Lab chart history reset logic when games are inactive."
+                                         ]
+                      },
+                      {
+                          "version":  "1.7.2",
+                          "date":  "2026-07-17",
+                          "title":  "Fix Misleading FPS Telemetry",
+                          "highlights":  [
+                                             "Removed capture_fps fallback in HUD telemetry to prevent showing low capture loop rates as game FPS when ETW tracking is unavailable."
+                                         ]
+                      },
+                      {
+                          "version":  "1.7.1",
+                          "date":  "2026-07-17",
+                          "title":  "Fix HUD interaction usability and positioning deadlock",
+                          "highlights":  [
+                                             "Fixed UX deadlock where the HUD overlay would immediately hide itself upon Alt-Tabbing out of a game, preventing any mouse interaction, dragging, or closing when unlocked."
+                                         ]
+                      },
+                      {
+                          "version":  "1.7.0",
+                          "date":  "2026-07-17",
+                          "title":  "Stability Update: HUD Calibration, FPS Fallback, and API Reliability",
+                          "highlights":  [
+                                             "Fixed permanently stuck HUD CALIBRATING state by changing the flag condition and introducing a 10s timeout.",
+                                             "Fixed FPS showing N/A in fullscreen and Vulkan/OpenGL games (e.g. Spider-Man 2) by fallback to capture-loop FPS.",
+                                             "Fixed GameKB infinite retry storm on LLM connection errors by enforcing a 5-minute per-game cooldown.",
+                                             "Fixed installer shortcut removal and ensured silent cleanup of legacy per-user scope installations."
+                                         ]
+                      },
+                      {
+                          "version":  "1.6.11",
+                          "date":  "2026-07-17",
+                          "title":  "Fix FPS showing N/A for non-ETW games (e.g. Spider-Man 2)",
+                          "highlights":  [
+                                             "Restored capture-loop FPS as fallback when the ETW hardware tracker returns no data",
+                                             "Affects all games where DXGI Present ETW events are unavailable (fullscreen exclusive, Vulkan, OpenGL, or admin-permission issues)"
+                                         ]
+                      },
+                      {
+                          "version":  "1.6.10",
+                          "date":  "2026-07-17",
+                          "title":  "Fix GameKB infinite retry storm on LLM 404",
+                          "highlights":  [
+                                             "GameKB keybind fetch failures (404, timeout, etc.) now enforce a 5-minute per-game cooldown before retrying",
+                                             "Cooldown check added at both thread-spawn site (identify_game) and background worker to guarantee no storm",
+                                             "Successful fetches clear the failure record so retries resume normally after an endpoint recovers"
+                                         ]
+                      },
+                      {
+                          "version":  "1.6.9",
+                          "date":  "2026-07-17",
+                          "title":  "Fix permanently stuck HUD CALIBRATING state",
+                          "highlights":  [
+                                             "Fixed: game_loading flag now clears after 10 s even if the ETW FPS tracker returns no data (Vulkan, OpenGL, or elevated-permission failures)",
+                                             "Changed CALIBRATING condition from \u0027frame_count\u003c30 OR fps==0\u0027 to \u0027frame_count\u003c30 AND fps==0\u0027, preventing infinite stuck state"
+                                         ]
+                      },
+                      {
+                          "version":  "1.6.8",
+                          "date":  "2026-07-17",
+                          "title":  "Fix missing shortcuts and uninstall legacy versions during upgrade",
+                          "highlights":  [
+                                             "Protect machine-wide desktop shortcuts from being deleted during cleanup",
+                                             "Automatically and silently uninstall legacy per-user installations during per-machine upgrades"
+                                         ]
+                      },
+                      {
+                          "version":  "1.6.7",
+                          "date":  "2026-07-17",
+                          "title":  "Fix default version fallback and newly downloaded launcher games classification",
+                          "highlights":  [
+                                             "Copy app-update.yml to packaged resources so native updates can resolve successfully",
+                                             "Automatically map newly scanned Local games to their correct platforms (Steam, Epic, EA Desktop, etc.) based on install/exe paths",
+                                             "Merge duplicate scanned game metadata keys to preserve direct paths alongside platform mappings"
+                                         ]
+                      },
+                      {
+                          "version":  "1.6.6",
+                          "date":  "2026-07-17",
+                          "title":  "Fix latest.yml UTF-8 BOM encoding for electron-updater support",
+                          "highlights":  [
+                                             "Fix latest.yml UTF-8 BOM encoding for electron-updater support"
+                                         ]
+                      },
+                      {
+                          "version":  "1.6.5",
+                          "date":  "2026-07-16",
+                          "title":  "Fix packaging of rapidocr_onnxruntime ONNX models and config assets",
+                          "highlights":  [
+                                             "Fix packaging of rapidocr_onnxruntime ONNX models and config assets"
+                                         ]
+                      },
+                      {
+                          "version":  "1.6.4",
+                          "date":  "2026-07-16",
+                          "title":  "Hotfix: HUD FPS tracking and GPU power draw improvements",
+                          "highlights":  [
+                                             "Restored MPO events (IDs 46, 73, 78) to fix N/A FPS readings in modern DX12 games",
+                                             "Implemented a 1ms event debounce to completely prevent double-counting of duplicate Present/MPO events",
+                                             "Added NVML fallback to enforced power limit to resolve anomalous 300+W GPU power reporting on laptops and specific cards",
+                                             "Changed CPU clock speed formatting in compact HUD from \u0027G\u0027 to \u0027GHz\u0027 to prevent confusion with RAM capacity",
+                                             "Fixed a critical bug where the C++ ETW frame tracker would permanently freeze (causing stuck \u0027Calibrating\u0027 HUD state) after any 5s+ frame stall"
+                                         ]
+                      },
+                      {
+                          "version":  "1.6.3",
+                          "date":  "2026-07-16",
+                          "title":  "Fix HUD FPS tracking double-counting and remove misleading fallback",
+                          "highlights":  [
+                                             "Fix ETW frame timing double-counting by restricting DXGI events to Present_Start (eventId 42) and D3D9 to Present (eventId 1)",
+                                             "Remove misleading capture_fps fallback in HUD telemetry to prevent showing low capture rates when ETW/DXGI tracking is not active"
+                                         ]
+                      },
+                      {
+                          "version":  "1.6.2",
+                          "date":  "2026-07-15",
+                          "title":  "Move Optimization Status block to Stability Lab next to Game Mode toggle",
+                          "highlights":  [
+                                             "Move Optimization Status block to Stability Lab next to Game Mode toggle"
+                                         ]
+                      },
+                      {
+                          "version":  "1.6.1",
+                          "date":  "2026-07-15",
+                          "title":  "Fix NSIS compile escape syntax in installer.nsh",
+                          "highlights":  [
+                                             "Fix NSIS compile escape syntax in installer.nsh"
+                                         ]
+                      },
+                      {
+                          "version":  "1.6.0",
+                          "date":  "2026-07-15",
+                          "title":  "Fix duplicate start menu shortcuts and update overlay blocking",
+                          "highlights":  [
+                                             "Fix duplicate start menu shortcuts and update overlay blocking"
+                                         ]
+                      },
+                      {
+                          "version":  "1.5.9",
+                          "date":  "2026-07-15",
+                          "title":  "Fixed the USE DESKTOP UPGRADE ",
+                          "highlights":  [
+                                             "Fixed the USE DESKTOP UPGRADE "
+                                         ]
+                      },
+                      {
+                          "version":  "1.5.8",
+                          "date":  "2026-07-15",
+                          "title":  "Fixed the Frozen Update. ",
+                          "highlights":  [
+                                             "Fixed the Frozen Update. "
+                                         ]
+                      },
+                      {
+                          "version":  "1.5.7",
+                          "date":  "2026-07-15",
+                          "title":  "Fixed the Frozen Update and making soe issue. ",
+                          "highlights":  [
+                                             "Fixed the Frozen Update and making soe issue. "
+                                         ]
+                      }
+                  ]
 }
