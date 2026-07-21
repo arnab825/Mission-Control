@@ -38,21 +38,28 @@ If you just have a single fix or small update, use the simplified one-argument s
 .\Gaming\scripts\publish.ps1 "Fixed WiFi SSID detection logic"
 ```
 
-### Mode B: GUI Release (Recommended for detailed releases)
-For an easier experience when writing long descriptions or multi-line changes, use the modern, Mission Control-themed UI:
-```powershell
-.\Gaming\scripts\gui_publish.ps1
-```
-This will open an Electron application where you can fill in the Title, Type, Changes, and Image URL. When you click Publish, it automatically triggers the release scripts under the hood.
+### Mode B: Multi-line & Detailed Release Notes (Semicolons & Arguments)
+Include multi-line bullet points in your release notes by separating items with semicolons `;`, pipes `|`, or by passing multiple quoted arguments:
 
-### Mode C: Detailed Release
-Use this mode for major updates where you want to list multiple features and specify the version bump type.
+```powershell
+# Option 1: Semicolon-separated single string (headline + bullet points)
+.\Gaming\scripts\publish.ps1 "Fixed Update Pause Flow; Unlocked Hardware Max TGP; Suppressed Terminal Popups"
+
+# Option 2: Multiple quoted arguments
+.\Gaming\scripts\publish.ps1 "v2.1.0 Major Update" "Fixed Update Pause/Cancel flow" "Unlocked hardware TGP on laptops" "Removed chassis TGP tag in UI"
+
+# Option 3: Explicit -Changes parameter
+.\Gaming\scripts\publish.ps1 -Title "Performance Release" -Changes "Improved fan curve response", "Optimized VRAM monitoring"
+```
+
+### Mode C: Major / Minor Feature Release
+Use this mode for major or minor updates where you want to specify the version bump type (`minor` or `major`):
 ```powershell
 .\Gaming\scripts\publish.ps1 "Agentic AI Update" "Integrated NVIDIA NIM" "Added Racing genre support" -Type minor
 ```
 
 ### Mode D: Visual Release (With Optional Image)
-Include an image in your release notes by using the `-Image` parameter.
+Include an image in your release notes by using the `-Image` parameter:
 ```powershell
 .\Gaming\scripts\publish.ps1 "New HUD Aesthetics" -Image "https://i.imgur.com/example.png"
 ```
