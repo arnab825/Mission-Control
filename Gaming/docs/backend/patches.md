@@ -2,6 +2,10 @@
 
 This document contains a detailed history of all patches and updates for the AI Gaming Assistant.
 
+### Patch: 2026-07-21 — v1.9.7: Fix false update-available on same version; fix YOLO status always showing offline on Vision page
+
+- Fix false update-available on same version; fix YOLO status always showing offline on Vision page
+
 ### Patch: 2026-07-21 — v1.9.3: Fix readiness caching, memory save path fallback, database thread-safe connection, and rollback lock
 
 - Fix readiness caching, memory save path fallback, database thread-safe connection, and rollback lock
