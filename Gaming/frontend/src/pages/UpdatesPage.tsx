@@ -185,13 +185,32 @@ export const UpdatesPage: React.FC<UpdatesPageProps> = ({
 
   const getReleaseHighlightsForVersion = (version: string) => {
     const cleanTarget = version.replace(/^v/, '');
+    let match = null;
     if (updateState?.changelog) {
-      const match = updateState.changelog.find((log: any) => log.version.replace(/^v/, '') === cleanTarget);
-      if (match) return match;
+      match = updateState.changelog.find((log: any) => log.version.replace(/^v/, '') === cleanTarget);
     }
-    if (changelogsData?.changelog) {
-      const match = changelogsData.changelog.find((log: any) => log.version.replace(/^v/, '') === cleanTarget);
-      if (match) return match;
+    if (!match && changelogsData?.changelog) {
+      match = changelogsData.changelog.find((log: any) => log.version.replace(/^v/, '') === cleanTarget);
+    }
+    if (match) {
+      // Ensure if highlights is a single string with semicolons/newlines, it gets split into separate bullet points
+      if (Array.isArray(match.highlights)) {
+        const splitHighlights: string[] = [];
+        match.highlights.forEach((h: string) => {
+          h.split(/;|\n|\|/).forEach(part => {
+            const trimmed = part.trim();
+            if (trimmed) splitHighlights.push(trimmed);
+          });
+        });
+        return { ...match, highlights: splitHighlights };
+      }
+      return match;
+    }
+    if (updateState?.notes) {
+      const splitNotes = updateState.notes.split(/;|\n|\||\*|-/).map((s: string) => s.trim()).filter(Boolean);
+      if (splitNotes.length > 0) {
+        return { version, highlights: splitNotes };
+      }
     }
     return null;
   };

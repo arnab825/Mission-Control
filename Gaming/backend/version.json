@@ -1,8 +1,16 @@
 {
-  "version": "2.0.8",
+  "version": "2.0.9",
   "release_date": "2026-07-21",
   "update_check_url": "https://raw.githubusercontent.com/arnab825/Mission-Control/main/Gaming/backend/version.json",
   "changelog": [
+    {
+      "version": "2.0.9",
+      "date": "2026-07-21",
+      "title": "Support multi-line bullet points in publish.ps1 via semicolons, newlines, or multiple arguments",
+      "highlights": [
+        "Support multi-line bullet points in publish.ps1 via semicolons, newlines, or multiple arguments"
+      ]
+    },
     {
       "version": "2.0.8",
       "date": "2026-07-21",
@@ -428,14 +436,6 @@
       "title": "Fix NSIS compile escape syntax in installer.nsh",
       "highlights": [
         "Fix NSIS compile escape syntax in installer.nsh"
-      ]
-    },
-    {
-      "version": "1.6.0",
-      "date": "2026-07-15",
-      "title": "Fix duplicate start menu shortcuts and update overlay blocking",
-      "highlights": [
-        "Fix duplicate start menu shortcuts and update overlay blocking"
       ]
     }
   ]
