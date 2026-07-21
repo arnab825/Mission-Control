@@ -456,7 +456,7 @@ class VoiceManager:
                 self._pending_update = (token, p_rate, vol, p_pitch)
         # Restart TTS thread if it has died
         if self._tts_thread is None or not self._tts_thread.is_alive():
-            logger.warning("TTS thread was dead — restarting.")
+            logger.info("TTS worker thread auto-initialized.")
             self._running = True
             self._tts_thread = threading.Thread(target=self._tts_loop, daemon=True, name="VoiceTTS")
             self._tts_thread.start()
@@ -467,7 +467,7 @@ class VoiceManager:
         if self.chat_tts_muted and not force: return
         # Auto-heal: restart TTS thread if it died unexpectedly
         if self._running and (self._tts_thread is None or not self._tts_thread.is_alive()):
-            logger.warning("TTS thread found dead in speak() — restarting.")
+            logger.info("TTS worker thread auto-restored in speak().")
             self._tts_thread = threading.Thread(target=self._tts_loop, daemon=True, name="VoiceTTS")
             self._tts_thread.start()
         
@@ -483,12 +483,22 @@ class VoiceManager:
         self.speech_queue.put(clean_text)
 
     def _tts_loop(self):
-        try: pygame.mixer.init()
-        except: pass
+        try:
+            import pygame
+            pygame.mixer.init()
+        except Exception:
+            pass
+
         self._apply_pending_update()
+
         while self._running:
             try:
-                text = self.speech_queue.get(timeout=0.5)
+                try:
+                    text = self.speech_queue.get(timeout=0.5)
+                except queue.Empty:
+                    self._apply_pending_update()
+                    continue
+
                 self._apply_pending_update()
                 
                 # Discard items queued before the user muted TTS
@@ -518,11 +528,9 @@ class VoiceManager:
                         self._speak_sapi5(text)
                 finally:
                     self._is_speaking = False
-                    
-            except queue.Empty:
-                self._apply_pending_update()
             except Exception as e:
-                logger.error(f"TTS Loop error: {e}")
+                logger.debug(f"TTS Loop iteration error: {e}")
+                time.sleep(0.1)
 
     def _split_text(self, text: str, max_chars: int = 180) -> list:
         # Split text into chunks of under max_chars characters safely at word boundaries
