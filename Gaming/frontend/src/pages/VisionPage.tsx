@@ -543,9 +543,42 @@ const VisionPage: React.FC<VisionPageProps> = ({ state, sendCommand }) => {
                   </p>
 
                   {!isYoloReady && !isYoloChecking && (
-                    <div className="p-3 bg-black/40 rounded-lg border border-white/5 font-mono text-[10px] text-zinc-300">
-                      <div className="text-zinc-500 mb-1">To enable YOLO inference, install optional dependencies:</div>
-                      <code className="text-amber-400 select-all">pip install torch torchvision torchaudio ultralytics</code>
+                    <div className="space-y-3">
+                      {((state as any)?.yolo_install_status?.status === 'installing') ? (
+                        <div className="p-3 bg-neon-green/10 border border-neon-green/30 rounded-xl flex items-center gap-3">
+                          <div className="w-4 h-4 rounded-full border-2 border-neon-green border-t-transparent animate-spin shrink-0" />
+                          <div>
+                            <p className="text-[10px] font-black text-neon-green uppercase tracking-wide">Installing Vision AI Engine...</p>
+                            <p className="text-[9px] text-zinc-400 font-mono">{(state as any)?.yolo_install_status?.message || 'Downloading PyTorch & Ultralytics modules...'}</p>
+                          </div>
+                        </div>
+                      ) : ((state as any)?.yolo_install_status?.status === 'error') ? (
+                        <div className="p-3 bg-red-500/10 border border-red-500/25 rounded-xl space-y-2">
+                          <p className="text-[10px] font-black text-red-400 uppercase tracking-wide">Installation Encountered An Error</p>
+                          <p className="text-[9px] text-zinc-400 font-mono">{String((state as any)?.yolo_install_status?.message || 'Check network connection.')}</p>
+                          <button
+                            type="button"
+                            onClick={() => sendCommand('install_yolo_deps')}
+                            className="px-3 py-1.5 bg-red-500/20 hover:bg-red-500/30 text-red-300 text-[9px] font-black uppercase tracking-widest rounded-lg border border-red-500/30 transition cursor-pointer"
+                          >
+                            Retry 1-Click Install
+                          </button>
+                        </div>
+                      ) : (
+                        <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 p-3 bg-black/40 rounded-xl border border-white/5 font-mono text-[10px]">
+                          <div className="space-y-1">
+                            <div className="text-zinc-400 font-sans font-bold">Install optional Vision AI engine on-demand:</div>
+                            <code className="text-amber-400 select-all block">pip install torch torchvision ultralytics</code>
+                          </div>
+                          <button
+                            type="button"
+                            onClick={() => sendCommand('install_yolo_deps')}
+                            className="px-4 py-2.5 bg-linear-to-r from-purple-500/20 to-neon-green/20 hover:from-purple-500/30 hover:to-neon-green/30 text-neon-green text-[9px] font-black uppercase tracking-widest rounded-xl border border-neon-green/30 hover:border-neon-green/50 transition cursor-pointer shrink-0"
+                          >
+                            ⚡ 1-Click Install Vision Engine
+                          </button>
+                        </div>
+                      )}
                     </div>
                   )}
                 </div>

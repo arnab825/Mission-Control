@@ -1,8 +1,16 @@
 {
-  "version": "2.0.0",
+  "version": "2.0.1",
   "release_date": "2026-07-21",
   "update_check_url": "https://raw.githubusercontent.com/arnab825/Mission-Control/main/Gaming/backend/version.json",
   "changelog": [
+    {
+      "version": "2.0.1",
+      "date": "2026-07-21",
+      "title": "Add 1-Click in-app installer for optional PyTorch and Ultralytics vision engines",
+      "highlights": [
+        "Add 1-Click in-app installer for optional PyTorch and Ultralytics vision engines"
+      ]
+    },
     {
       "version": "2.0.0",
       "date": "2026-07-21",
@@ -433,14 +441,6 @@
       "title": "Align C# telemetry search paths with PyInstaller internal directories",
       "highlights": [
         "Align C# telemetry search paths with PyInstaller internal directories"
-      ]
-    },
-    {
-      "version": "1.5.2",
-      "date": "2026-07-15",
-      "title": "Remove terminal logs from updates page",
-      "highlights": [
-        "Remove terminal logs from updates page"
       ]
     }
   ]

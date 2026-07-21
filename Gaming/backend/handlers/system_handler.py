@@ -428,6 +428,36 @@ def handle_get_gaming_readiness(payload: dict, pipeline, bridge, config) -> None
     threading.Thread(target=_do_evaluate, name="GamingReadiness", daemon=True).start()
 
 
+def handle_install_yolo_deps(payload: dict, pipeline, bridge, config) -> None:
+    logger.info("YOLO dependencies installation requested by user")
+    def _do_install():
+        try:
+            import sys, subprocess
+            bridge.update_state({"yolo_install_status": {"status": "installing", "message": "Downloading & installing PyTorch & Ultralytics packages..."}})
+            
+            cmd = [sys.executable, "-m", "pip", "install", "ultralytics", "torch", "torchvision"]
+            res = subprocess.run(cmd, capture_output=True, text=True, timeout=600)
+            
+            if res.returncode == 0:
+                logger.info("YOLO dependencies installed successfully.")
+                if pipeline and hasattr(pipeline, "_game_state"):
+                    with pipeline._state_lock:
+                        pipeline._game_state["yolo_supported"] = True
+                bridge.update_state({
+                    "yolo_supported": True,
+                    "yolo_install_status": {"status": "success", "message": "YOLO AI Engine installed successfully!"}
+                })
+            else:
+                err_msg = res.stderr[-300:] if res.stderr else "Installation failed with non-zero exit code."
+                logger.error(f"YOLO dependencies install failed: {err_msg}")
+                bridge.update_state({"yolo_install_status": {"status": "error", "message": err_msg}})
+        except Exception as e:
+            logger.error("YOLO dependencies install exception: %s", e, exc_info=True)
+            bridge.update_state({"yolo_install_status": {"status": "error", "message": str(e)}})
+
+    threading.Thread(target=_do_install, name="YOLOInstaller", daemon=True).start()
+
+
 # ── Private helpers ───────────────────────────────────────────────────────────
 
 def _get_active_game(pipeline):

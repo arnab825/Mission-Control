@@ -172,7 +172,7 @@ class BridgeServer:
             "voice_prompt", "agent_response", "chat_history", "chat_sessions",
             "active_chat_session_id",
             "suggested_session_title", "config", "version", "connected",
-            "update_state", "account_deleted", "launch_status", "yolo_supported",
+            "update_state", "account_deleted", "launch_status", "yolo_supported", "yolo_install_status",
 
             # System telemetry should always update immediately for dashboard
             "cpu_pct", "gpu_metrics", "mem_pct", "mem_used_gb", "mem_total_gb",
