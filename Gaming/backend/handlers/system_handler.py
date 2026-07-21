@@ -88,17 +88,30 @@ def handle_set_cooling_mode(payload: dict, pipeline, bridge, config) -> None:
             gm = pipeline.gpu_monitor
             if gm.is_available and gm._initialized and gm._handle:
                 try:
-                    import pynvml
-                    default_limit = pynvml.nvmlDeviceGetPowerManagementDefaultLimit(gm._handle)
+                    import pynvml, subprocess
+                    try:
+                        _min_lim, max_lim = pynvml.nvmlDeviceGetPowerManagementLimitConstraints(gm._handle)
+                    except Exception:
+                        max_lim = pynvml.nvmlDeviceGetPowerManagementDefaultLimit(gm._handle)
+
                     if mode == "silent":
-                        new_limit = int(default_limit * 0.60)
+                        new_limit = int(max_lim * 0.60)
                     elif mode == "max":
-                        new_limit = default_limit
+                        new_limit = max_lim
                     else:
-                        new_limit = int(default_limit * 0.80)
-                    pynvml.nvmlDeviceSetPowerManagementLimit(gm._handle, new_limit)
+                        new_limit = int(max_lim * 0.85)
+
+                    try:
+                        pynvml.nvmlDeviceSetPowerManagementLimit(gm._handle, new_limit)
+                        gpu_applied = True
+                    except Exception:
+                        try:
+                            watts = new_limit // 1000
+                            subprocess.run(["nvidia-smi", "-i", "0", "-pl", str(watts)], capture_output=True, timeout=5)
+                            gpu_applied = True
+                        except Exception:
+                            pass
                     logger.info("Cooling mode '%s' GPU limit applied: %dW", mode, new_limit // 1000)
-                    gpu_applied = True
                 except Exception as nvml_err:
                     logger.warning("Could not apply GPU power limit via NVML: %s", nvml_err)
 
@@ -166,12 +179,22 @@ def _apply_hardware_controls_bg(nvidia_cfg: dict) -> None:
     power_limit_pct = nvidia_cfg.get("power_limit_percent", None)
     if power_limit_pct is not None:
         try:
-            import pynvml
+            import pynvml, subprocess
             pynvml.nvmlInit()
             handle = pynvml.nvmlDeviceGetHandleByIndex(0)
-            default_limit = pynvml.nvmlDeviceGetPowerManagementDefaultLimit(handle)
-            new_limit = int(default_limit * (power_limit_pct / 100.0))
-            pynvml.nvmlDeviceSetPowerManagementLimit(handle, new_limit)
+            try:
+                _min_lim, max_lim = pynvml.nvmlDeviceGetPowerManagementLimitConstraints(handle)
+            except Exception:
+                max_lim = pynvml.nvmlDeviceGetPowerManagementDefaultLimit(handle)
+            new_limit = int(max_lim * (power_limit_pct / 100.0))
+            try:
+                pynvml.nvmlDeviceSetPowerManagementLimit(handle, new_limit)
+            except Exception:
+                try:
+                    watts = new_limit // 1000
+                    subprocess.run(["nvidia-smi", "-i", "0", "-pl", str(watts)], capture_output=True, timeout=5)
+                except Exception:
+                    pass
             hw_logger.info("GPU power limit set to %d%% (%dW)", power_limit_pct, new_limit // 1000)
             pynvml.nvmlShutdown()
         except Exception as e:

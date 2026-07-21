@@ -160,24 +160,37 @@ class Optimizer:
 
             # Apply GPU power limits via NVML based on preset OR user's custom slider
             try:
-                import pynvml
+                import pynvml, subprocess
                 pynvml.nvmlInit()
                 handle = pynvml.nvmlDeviceGetHandleByIndex(0)
-                default_limit = pynvml.nvmlDeviceGetPowerManagementDefaultLimit(handle)
 
-                # If user set a custom % in the settings slider, respect it
+                # Fetch hardware TGP ceiling (max limit constraint allowed by GPU)
+                try:
+                    _min_lim, max_lim = pynvml.nvmlDeviceGetPowerManagementLimitConstraints(handle)
+                except Exception:
+                    max_lim = pynvml.nvmlDeviceGetPowerManagementDefaultLimit(handle)
+
+                # If user set a custom % in settings slider, respect it relative to max TGP
                 custom_pct = nvidia_cfg.get("power_limit_percent", None) if config else None
                 if custom_pct is not None:
-                    new_limit = int(default_limit * (custom_pct / 100.0))
+                    new_limit = int(max_lim * (custom_pct / 100.0))
                 elif resolved_preset in ("quality", "performance"):
-                    new_limit = default_limit          # 100%
+                    new_limit = max_lim          # 100% max TGP
                 elif resolved_preset == "latency":
-                    new_limit = int(default_limit * 0.95)
+                    new_limit = int(max_lim * 0.95)
                 else:
-                    new_limit = int(default_limit * 0.80)
+                    new_limit = int(max_lim * 0.85)
 
-                pynvml.nvmlDeviceSetPowerManagementLimit(handle, new_limit)
-                results.append(f"NVIDIA GPU power limit set to {new_limit // 1000}W (Preset: {resolved_preset}, Custom: {custom_pct}%).")
+                try:
+                    pynvml.nvmlDeviceSetPowerManagementLimit(handle, new_limit)
+                except Exception:
+                    try:
+                        watts = new_limit // 1000
+                        subprocess.run(["nvidia-smi", "-i", "0", "-pl", str(watts)], capture_output=True, timeout=5)
+                    except Exception:
+                        pass
+
+                results.append(f"NVIDIA GPU power limit set to max TGP ({new_limit // 1000}W) [Preset: {resolved_preset}].")
                 pynvml.nvmlShutdown()
             except Exception as nvml_err:
                 logger.debug(f"Could not apply GPU limit during game optimization: {nvml_err}")
@@ -249,14 +262,24 @@ class Optimizer:
             Optimizer.set_windows_game_mode(False)
             results.append("Windows Game Mode Disabled.")
 
-            # Revert GPU power limit to Balanced (80%)
+            # Revert GPU power limit to Balanced (85%)
             try:
-                import pynvml
+                import pynvml, subprocess
                 pynvml.nvmlInit()
                 handle = pynvml.nvmlDeviceGetHandleByIndex(0)
-                default_limit = pynvml.nvmlDeviceGetPowerManagementDefaultLimit(handle)
-                new_limit = int(default_limit * 0.80)
-                pynvml.nvmlDeviceSetPowerManagementLimit(handle, new_limit)
+                try:
+                    _min_lim, max_lim = pynvml.nvmlDeviceGetPowerManagementLimitConstraints(handle)
+                except Exception:
+                    max_lim = pynvml.nvmlDeviceGetPowerManagementDefaultLimit(handle)
+                new_limit = int(max_lim * 0.85)
+                try:
+                    pynvml.nvmlDeviceSetPowerManagementLimit(handle, new_limit)
+                except Exception:
+                    try:
+                        watts = new_limit // 1000
+                        subprocess.run(["nvidia-smi", "-i", "0", "-pl", str(watts)], capture_output=True, timeout=5)
+                    except Exception:
+                        pass
                 results.append(f"NVIDIA GPU power limit reverted to {new_limit // 1000}W (Balanced).")
                 pynvml.nvmlShutdown()
             except Exception as nvml_err:
