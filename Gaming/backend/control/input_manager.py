@@ -78,43 +78,6 @@ KEYBOARD_MOUSE_DEFAULTS = {
     GameAction.PAUSE: "escape",
 }
 
-XBOX_DEFAULTS = {
-    GameAction.MOVE_UP: "left_stick_up",
-    GameAction.MOVE_DOWN: "left_stick_down",
-    GameAction.MOVE_LEFT: "left_stick_left",
-    GameAction.MOVE_RIGHT: "left_stick_right",
-    GameAction.AIM_X: "right_stick_x",
-    GameAction.AIM_Y: "right_stick_y",
-    GameAction.PRIMARY_ATTACK: "right_trigger",
-    GameAction.SECONDARY_ATTACK: "left_trigger",
-    GameAction.INTERACT: "button_a",
-    GameAction.RELOAD: "button_x",
-    GameAction.JUMP: "button_a",
-    GameAction.CROUCH: "button_b",
-    GameAction.SPRINT: "left_stick_press",
-    GameAction.INVENTORY: "button_back",
-    GameAction.MAP: "button_view",
-    GameAction.PAUSE: "button_start",
-}
-
-PLAYSTATION_DEFAULTS = {
-    GameAction.MOVE_UP: "left_stick_up",
-    GameAction.MOVE_DOWN: "left_stick_down",
-    GameAction.MOVE_LEFT: "left_stick_left",
-    GameAction.MOVE_RIGHT: "left_stick_right",
-    GameAction.AIM_X: "right_stick_x",
-    GameAction.AIM_Y: "right_stick_y",
-    GameAction.PRIMARY_ATTACK: "r2",
-    GameAction.SECONDARY_ATTACK: "l2",
-    GameAction.INTERACT: "button_cross",
-    GameAction.RELOAD: "button_square",
-    GameAction.JUMP: "button_cross",
-    GameAction.CROUCH: "button_circle",
-    GameAction.SPRINT: "l3",
-    GameAction.INVENTORY: "touchpad",
-    GameAction.MAP: "touchpad",
-    GameAction.PAUSE: "button_options",
-}
 
 
 class InputManager:
@@ -163,20 +126,8 @@ class InputManager:
         # Always have keyboard+mouse
         logger.info("Input: Keyboard + Mouse detected (always available)")
 
-        # Try to detect game controllers
-        if _PYGAME_AVAILABLE:
-            self._detect_pygame_controllers()
-        elif _XINPUT_AVAILABLE:
-            self._detect_xinput_controllers()
-        
-        # Set active device based on preference
-        if self._preferred_device == "auto":
-            # Default to keyboard+mouse, switch dynamically when controller input detected
-            self._active_device = InputDevice.KEYBOARD_MOUSE
-        elif self._preferred_device == "controller" and self._controllers:
-            self._active_device = self._controllers[0]["type"]
-        else:
-            self._active_device = InputDevice.KEYBOARD_MOUSE
+        # Game controller auto-detection disabled
+        self._active_device = InputDevice.KEYBOARD_MOUSE
 
     def _detect_pygame_controllers(self):
         """Detect controllers via pygame."""
@@ -256,12 +207,7 @@ class InputManager:
 
     def _apply_bindings(self):
         """Apply key bindings based on active device."""
-        if self._active_device == InputDevice.XBOX_CONTROLLER:
-            self._bindings = dict(XBOX_DEFAULTS)
-        elif self._active_device == InputDevice.PLAYSTATION_CONTROLLER:
-            self._bindings = dict(PLAYSTATION_DEFAULTS)
-        else:
-            self._bindings = dict(KEYBOARD_MOUSE_DEFAULTS)
+        self._bindings = dict(KEYBOARD_MOUSE_DEFAULTS)
         
         # Apply custom overrides from config
         custom = self.config.get("custom_bindings", {})

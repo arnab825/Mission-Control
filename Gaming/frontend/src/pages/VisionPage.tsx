@@ -35,12 +35,11 @@ const VisionPage: React.FC<VisionPageProps> = ({ state, sendCommand }) => {
   const [scanlines, setScanlines] = useState(true);
   const [crtCurve, setCrtCurve] = useState(false);
   const [minConfidence, setMinConfidence] = useState(0.4);
-  const [activeLayer, setActiveLayer] = useState<'input' | 'backbone' | 'neck' | 'head'>('input');
+
 
   const isGameActive = state?.is_game_active === true;
   const hasFrame = !!state?.annotated_frame;
   const detectionsCount = state?.detections_count ?? 0;
-  const healthVal = state?.health ?? 100;
   const visionFps = state?.vision_fps ?? 0;
   const captureFps = state?.capture_fps ?? 0;
   const inferenceMs = state?.vision_profiling?.inference ?? 0;
@@ -60,11 +59,8 @@ const VisionPage: React.FC<VisionPageProps> = ({ state, sendCommand }) => {
     ? detectionsCount > 0 ? `Active · ${detectionsCount} Target${detectionsCount !== 1 ? 's' : ''}` : 'Scanning…'
     : 'Offline';
   const trackingColor = pipelineRunning ? (detectionsCount > 0 ? 'text-neon-green animate-pulse' : 'text-neon-green/60') : 'text-zinc-600';
-  const healthLabel = pipelineRunning ? `${healthVal.toFixed(0)}%` : 'Standby';
-  const healthColor = pipelineRunning ? (healthVal < 30 ? 'text-red-400 animate-pulse' : healthVal < 60 ? 'text-amber-400' : 'text-neon-yellow') : 'text-zinc-600';
   const threatLabel = pipelineRunning ? (detectionsCount > 3 ? 'HIGH' : detectionsCount > 0 ? 'MEDIUM' : 'NONE') : 'None';
   const threatColor = pipelineRunning ? (detectionsCount > 3 ? 'text-red-400 animate-pulse' : detectionsCount > 0 ? 'text-amber-400' : 'text-zinc-500') : 'text-zinc-600';
-  const motionColor = pipelineRunning ? 'text-purple-400' : 'text-zinc-600';
 
   const gameRunning = !!(state as any)?.game_info;
   const diagnosisMsg = !pipelineRunning
@@ -86,53 +82,10 @@ const VisionPage: React.FC<VisionPageProps> = ({ state, sendCommand }) => {
   // Filter detections locally in the frontend based on the user confidence threshold slider
   const filteredDetections = detections.filter(d => (d?.conf ?? 0) >= minConfidence);
 
-  // Computes polar coordinates offset for drawing radar dots based on raw coordinates
-  const getRadarCoords = (box: number[]) => {
-    if (!box || box.length < 4) return { x: 50, y: 50 };
-    // Detect if box bounds are normalized (0..1) or absolute pixels (0..640)
-    const isNormalized = Math.max(...box) <= 1.0;
-    const xMax = isNormalized ? 1.0 : 640;
-    const yMax = isNormalized ? 1.0 : 640;
-    const cx = (box[0] + box[2]) / 2;
-    const cy = (box[1] + box[3]) / 2;
 
-    // Scale points to remain comfortably within the circular radar area (15% to 85%)
-    const xPct = 15 + (cx / xMax) * 70;
-    const yPct = 15 + (cy / yMax) * 70;
-    return { x: xPct, y: yPct };
-  };
 
-  const layerDetails = {
-    input: {
-      name: 'Input Layer',
-      role: 'Batch Preprocessing',
-      desc: 'Resizes frames to 640x640, normalizes color channels, and executes batch TensorRT conversion sequences.',
-      latency: '0.2 ms'
-    },
-    backbone: {
-      name: 'Backbone Layer',
-      role: 'CSPDarknet53 Feature Extractor',
-      desc: 'Applies deep convolutional feature extraction to detect shapes, edges, and texture hierarchies.',
-      latency: '1.4 ms'
-    },
-    neck: {
-      name: 'Neck Layer',
-      role: 'PANet Path Aggregation',
-      desc: 'Combines low-level spatial detail with high-level semantic info to handle varying target scales.',
-      latency: '0.6 ms'
-    },
-    head: {
-      name: 'Prediction Head',
-      role: 'Decoupled Anchor-Free Regression',
-      desc: 'Performs multi-class object labeling and bounding-box regression output mapping in parallel.',
-      latency: '0.9 ms'
-    }
-  };
-
-  // Pre-configured coordinates for nodes in SVG neural net visualizer
-  const xCoords = [80, 240, 400, 560];
-  const yCoords = [30, 70, 110, 150, 190];
-  const layerKeys: ('input' | 'backbone' | 'neck' | 'head')[] = ['input', 'backbone', 'neck', 'head'];
+  // AI Pipeline setup checks
+  const isYoloReady = inferenceMs > 0 || detectionsCount > 0;
 
   const preVal = pipelineRunning ? preMs : 0;
   const infVal = pipelineRunning ? inferenceMs : 0;
@@ -462,60 +415,12 @@ const VisionPage: React.FC<VisionPageProps> = ({ state, sendCommand }) => {
             <span className="text-[10px] font-black text-zinc-500 uppercase tracking-widest font-mono">AI Analysis</span>
             <div className="space-y-3">
               <StatRow label="Target Tracking" value={trackingLabel} color={trackingColor} />
-              <StatRow label="Health Status" value={healthLabel} color={healthColor} />
               <StatRow label="Threat Level" value={threatLabel} color={threatColor} />
-              <StatRow label="Movement Predict" value={pipelineRunning ? 'Predicting' : 'Waiting'} color={motionColor} />
+              <StatRow label="Capture Focus" value={state?.is_game_focused ? 'Focused' : 'Background'} color={state?.is_game_focused ? 'text-neon-green' : 'text-amber-400'} />
             </div>
           </div>
 
-          {/* Interactive Proximity Radar */}
-          <div className="bg-white/[0.04] border border-white/10 rounded-3xl p-5 flex flex-col items-center gap-3 shadow-[0_0_15px_rgba(118, 185, 0,0.02)] relative">
-            <span className="text-[10px] font-black text-zinc-500 uppercase tracking-widest font-mono">Proximity Compass</span>
 
-            <div className="w-32 h-32 rounded-full border border-white/10 relative flex items-center justify-center overflow-hidden bg-black/45">
-
-              {/* Outer pulsing ring */}
-              <div className="absolute inset-0 rounded-full border border-neon-green/10 animate-pulse-ring" />
-
-              {/* Radial crosshair lines */}
-              <div className="absolute w-full h-[0.5px] bg-white/5" />
-              <div className="absolute h-full w-[0.5px] bg-white/5" />
-              <div className="absolute inset-4 rounded-full border border-dashed border-white/5" />
-              <div className="absolute inset-8 rounded-full border border-white/5" />
-
-              {/* Sweeping scan lines */}
-              <div className="absolute inset-0 rounded-full bg-gradient-to-tr from-neon-green/15 via-transparent to-transparent animate-radar-sweep pointer-events-none" />
-
-              {/* Center blip */}
-              <div className={`w-2 h-2 rounded-full z-10 ${pipelineRunning ? 'bg-neon-green shadow-[0_0_10px_#76b900] animate-pulse' : 'bg-zinc-700'
-                }`} />
-
-              {/* Dynamic threat warning blips mapped to actual target boxes */}
-              {pipelineRunning && filteredDetections.map((det, idx) => {
-                const coords = getRadarCoords(det.box);
-                return (
-                  <motion.div
-                    key={`${det.label}-${idx}`}
-                    initial={{ scale: 0, opacity: 0 }}
-                    animate={{ scale: [1, 1.25, 1], opacity: [1, 0.5, 1] }}
-                    transition={{ duration: 1.5, repeat: Infinity, delay: idx * 0.15 }}
-                    style={{ left: `${coords.x}%`, top: `${coords.y}%` }}
-                    className="absolute w-2.5 h-2.5 -ml-1.25 -mt-1.25 rounded-full bg-red-500 shadow-[0_0_10px_#ef4444] border border-white/40 cursor-pointer"
-                    title={`${det.label} (${((det.conf ?? 0.8) * 100).toFixed(0)}%)`}
-                  />
-                );
-              })}
-
-              {/* Standby blips placeholder */}
-              {pipelineRunning && detectionsCount > 0 && filteredDetections.length === 0 && (
-                <motion.div
-                  animate={{ opacity: [1, 0.4, 1] }}
-                  transition={{ duration: 0.8, repeat: Infinity }}
-                  className="absolute top-4 left-8 w-2 h-2 rounded-full bg-amber-500 shadow-[0_0_8px_#f59e0b]"
-                />
-              )}
-            </div>
-          </div>
 
           {/* Detections list & slider */}
           <div className="bg-white/[0.04] border border-white/10 rounded-3xl p-5 flex flex-col gap-3 font-mono shadow-[0_0_15px_rgba(118, 185, 0,0.02)]">
@@ -599,134 +504,41 @@ const VisionPage: React.FC<VisionPageProps> = ({ state, sendCommand }) => {
       {/* Bottom Row: Animated SVG Neural Network & Diagnostics */}
       <div className="grid grid-cols-1 lg:grid-cols-4 gap-5">
 
-        {/* Animated SVG Neural Network Card */}
-        <div className="lg:col-span-3 bg-white/[0.04] border border-white/10 rounded-3xl p-6 relative overflow-hidden shadow-[0_0_15px_rgba(118, 185, 0,0.02)]">
+        {/* Model Setup Checks */}
+        <div className="lg:col-span-3 bg-white/[0.04] border border-white/10 rounded-3xl p-6 shadow-[0_0_15px_rgba(118, 185, 0,0.02)]">
           <div className="flex items-center justify-between mb-4">
-            <span className="text-[10px] font-black text-zinc-500 uppercase tracking-widest font-mono">Neural Network Status</span>
+            <span className="text-[10px] font-black text-zinc-500 uppercase tracking-widest font-mono">AI Model Dependencies</span>
             <div className="flex items-center gap-2 text-[9px] text-zinc-400 font-mono">
-              <span className="text-zinc-600">SELECTED LAYER:</span>
-              <span className="text-neon-green font-bold uppercase">{activeLayer}</span>
+              <span className="text-zinc-600">STATUS:</span>
+              <span className={`font-bold uppercase ${isYoloReady ? 'text-neon-green' : 'text-amber-400'}`}>
+                {isYoloReady ? 'Ready' : 'Pending Verification'}
+              </span>
             </div>
           </div>
 
-          <div className="flex flex-col md:flex-row gap-6 items-stretch">
-
-            {/* SVG Visualizer Canvas */}
-            <div className="flex-[2] relative min-h-[200px] border border-white/5 rounded-2xl p-2 bg-black/20 flex items-center justify-center">
-              <svg width="100%" height="100%" viewBox="0 0 640 220" className="opacity-95 select-none">
-
-                {/* SVG Connections between layer groups */}
-                {xCoords.map((x, colIdx) => {
-                  if (colIdx === xCoords.length - 1) return null;
-                  const nextX = xCoords[colIdx + 1];
-                  const currentLayerKey = layerKeys[colIdx];
-                  const isActive = activeLayer === currentLayerKey;
-
-                  return yCoords.map((y1, row1) => {
-                    return yCoords.map((y2, row2) => {
-                      if (Math.abs(row1 - row2) > 1) return null; // keep connections clean
-                      return (
-                        <line
-                          key={`line-${colIdx}-${row1}-${row2}`}
-                          x1={x}
-                          y1={y1}
-                          x2={nextX}
-                          y2={y2}
-                          className={`${pipelineRunning
-                              ? isActive
-                                ? 'stroke-neon-green/50 stroke-[1.5] animate-data-pulse'
-                                : 'stroke-zinc-700/25 stroke-[0.8]'
-                              : 'stroke-zinc-800 stroke-[0.5]'
-                            } transition-all duration-300`}
-                        />
-                      );
-                    });
-                  });
-                })}
-
-                {/* Layer Boundary Labels */}
-                {xCoords.map((x, colIdx) => {
-                  const key = layerKeys[colIdx];
-                  const isSel = activeLayer === key;
-                  return (
-                    <text
-                      key={`label-${colIdx}`}
-                      x={x}
-                      y={15}
-                      textAnchor="middle"
-                      onClick={() => setActiveLayer(key)}
-                      className={`text-[8px] font-mono font-black uppercase tracking-wider cursor-pointer transition-colors ${isSel ? 'fill-neon-green font-extrabold' : 'fill-zinc-600 hover:fill-zinc-400'
-                        }`}
-                    >
-                      {key}
-                    </text>
-                  );
-                })}
-
-                {/* Nodes representation */}
-                {xCoords.map((x, colIdx) => {
-                  const layerKey = layerKeys[colIdx];
-                  const isSelected = activeLayer === layerKey;
-
-                  return (
-                    <g key={`layer-${layerKey}`}>
-                      {yCoords.map((y, rowIdx) => (
-                        <circle
-                          key={`node-${colIdx}-${rowIdx}`}
-                          cx={x}
-                          cy={y}
-                          r={isSelected ? 6 : 4}
-                          onClick={() => setActiveLayer(layerKey)}
-                          className={`cursor-pointer transition-all duration-300 ${pipelineRunning
-                              ? isSelected
-                                ? 'fill-neon-green stroke-white stroke-2 shadow-[0_0_10px_rgba(118, 185, 0,0.8)]'
-                                : 'fill-zinc-800 stroke-zinc-600 hover:fill-zinc-600'
-                              : 'fill-zinc-900 stroke-zinc-800'
-                            }`}
-                        />
-                      ))}
-                    </g>
-                  );
-                })}
-              </svg>
-            </div>
-
-            {/* Neural Net Layer details information card */}
-            <div className="flex-1 bg-white/[0.03] border border-white/5 rounded-2xl p-4 flex flex-col justify-between">
-              <div>
-                <div className="flex items-center gap-2 mb-1">
-                  <div className="w-1.5 h-1.5 rounded-full bg-neon-green shadow-[0_0_8px_#76b900] animate-pulse" />
-                  <span className="text-[8px] font-black uppercase text-neon-green tracking-wider font-mono">
-                    {layerDetails[activeLayer].role}
-                  </span>
+          <div className="flex flex-col gap-4">
+            <div className={`p-4 rounded-xl border ${isYoloReady ? 'bg-neon-green/5 border-neon-green/20' : 'bg-amber-500/5 border-amber-500/20'}`}>
+              <div className="flex items-start gap-3">
+                {isYoloReady ? <CheckCircle className="w-5 h-5 text-neon-green shrink-0" /> : <AlertTriangle className="w-5 h-5 text-amber-400 shrink-0" />}
+                <div>
+                  <h4 className={`text-sm font-black uppercase tracking-tight mb-1 ${isYoloReady ? 'text-neon-green' : 'text-amber-400'}`}>
+                    {isYoloReady ? 'YOLO Inference Active' : 'YOLO Backend Offline'}
+                  </h4>
+                  <p className="text-[11px] text-zinc-400 leading-relaxed mb-3">
+                    {isYoloReady 
+                      ? 'The PyTorch backend and Ultralytics models are loaded and processing frames.'
+                      : 'Missing PyTorch or Ultralytics modules. The Python backend is falling back to mocked detections or bypassing inference.'}
+                  </p>
+                  
+                  {!isYoloReady && (
+                    <div className="p-3 bg-black/40 rounded-lg border border-white/5 font-mono text-[10px] text-zinc-300">
+                      <div className="text-zinc-500 mb-1">To fix this, install dependencies:</div>
+                      <code className="text-amber-400 select-all">pip install torch torchvision torchaudio ultralytics</code>
+                    </div>
+                  )}
                 </div>
-                <h4 className="text-xs font-black text-white uppercase tracking-tight mb-2">
-                  {layerDetails[activeLayer].name}
-                </h4>
-                <p className="text-[10px] text-zinc-400 leading-relaxed">
-                  {layerDetails[activeLayer].desc}
-                </p>
-              </div>
-              <div className="mt-4 pt-3 border-t border-white/5 flex justify-between items-center text-[8px] font-mono">
-                <span className="text-zinc-500 uppercase tracking-widest">LAYER INF LATENCY</span>
-                <span className="text-neon-green font-bold">{layerDetails[activeLayer].latency}</span>
               </div>
             </div>
-
-          </div>
-
-          {/* Network signal details */}
-          <div className="absolute bottom-4 left-6 flex items-center gap-4 font-mono text-[8px]">
-            {[
-              { label: 'CAPTURE', on: pipelineRunning, color: 'text-neon-green' },
-              { label: 'VISION', on: pipelineRunning && visionFps > 0, color: 'text-purple-400' },
-              { label: 'BRAIN', on: isGameActive, color: 'text-neon-yellow' },
-            ].map(s => (
-              <div key={s.label} className="flex items-center gap-1">
-                <div className={`w-1 h-1 rounded-full ${s.on ? `bg-current ${s.color}` : 'bg-zinc-700'}`} />
-                <span className={s.on ? s.color : 'text-zinc-700'}>{s.label}</span>
-              </div>
-            ))}
           </div>
         </div>
 
