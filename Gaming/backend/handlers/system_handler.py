@@ -455,11 +455,30 @@ def handle_install_yolo_deps(payload: dict, pipeline, bridge, config) -> None:
     logger.info("YOLO dependencies installation requested by user")
     def _do_install():
         try:
-            import sys, subprocess
+            import sys, os, subprocess, shutil
             bridge.update_state({"yolo_install_status": {"status": "installing", "message": "Downloading & installing PyTorch & Ultralytics packages..."}})
             
-            cmd = [sys.executable, "-m", "pip", "install", "ultralytics", "torch", "torchvision"]
-            res = subprocess.run(cmd, capture_output=True, text=True, timeout=600)
+            # Determine the correct python/pip executable to invoke
+            if not getattr(sys, 'frozen', False):
+                cmd = [sys.executable, "-m", "pip", "install", "ultralytics", "torch", "torchvision"]
+            else:
+                # Running compiled frozen binary: find python, pip, or uv on system PATH
+                py_path = shutil.which("python") or shutil.which("python3")
+                pip_path = shutil.which("pip") or shutil.which("pip3")
+                uv_path = shutil.which("uv")
+                
+                if uv_path:
+                    cmd = [uv_path, "pip", "install", "ultralytics", "torch", "torchvision"]
+                elif py_path:
+                    cmd = [py_path, "-m", "pip", "install", "ultralytics", "torch", "torchvision"]
+                elif pip_path:
+                    cmd = [pip_path, "install", "ultralytics", "torch", "torchvision"]
+                else:
+                    cmd = ["pip", "install", "ultralytics", "torch", "torchvision"]
+
+            creationflags = 0x08000000 if os.name == "nt" else 0
+            logger.info("Executing YOLO installer command: %s", " ".join(cmd))
+            res = subprocess.run(cmd, capture_output=True, text=True, timeout=600, creationflags=creationflags)
             
             if res.returncode == 0:
                 logger.info("YOLO dependencies installed successfully.")
@@ -471,14 +490,14 @@ def handle_install_yolo_deps(payload: dict, pipeline, bridge, config) -> None:
                     "yolo_install_status": {"status": "success", "message": "YOLO AI Engine installed successfully!"}
                 })
             else:
-                err_msg = res.stderr[-300:] if res.stderr else "Installation failed with non-zero exit code."
+                err_msg = res.stderr[-300:] if res.stderr else "Installation failed. Ensure Python and pip are installed."
                 logger.error(f"YOLO dependencies install failed: {err_msg}")
                 bridge.update_state({"yolo_install_status": {"status": "error", "message": err_msg}})
         except Exception as e:
             logger.error("YOLO dependencies install exception: %s", e, exc_info=True)
             bridge.update_state({"yolo_install_status": {"status": "error", "message": str(e)}})
 
-    threading.Thread(target=_do_install, name="YOLOInstaller", daemon=True).start()
+    threading.Thread(target=_do_install, name="InstallYoloDeps", daemon=True).start()
 
 
 # ── Private helpers ───────────────────────────────────────────────────────────
