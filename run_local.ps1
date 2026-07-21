@@ -79,6 +79,10 @@ Write-Host "Running Woodpecker CI pipeline locally using local backend..."
 try {
   & $cliPath exec --backend-engine local --local --pipeline-event tag --commit-ref "refs/tags/$tag" --secrets github_token="$env:GITHUB_TOKEN" .woodpecker/release.yml
 } finally {
+  # Automatically restore local build-stamped files so Git working tree remains clean
+  try {
+    git checkout -- Gaming/backend/version.json Gaming/frontend/package.json 2>$null
+  } catch {}
   # Clear the commit tag environment variable so subsequent runs in the same PowerShell session will prompt again
   $env:CI_COMMIT_TAG = $null
   Pop-Location
