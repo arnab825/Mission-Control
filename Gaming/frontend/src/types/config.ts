@@ -76,7 +76,6 @@ export interface AppConfig {
   hotkeys?: {
     toggle_hud?: string;
     toggle_agentic?: string;
-    toggle_mic?: string;
     inc_font?: string;
     dec_font?: string;
   };

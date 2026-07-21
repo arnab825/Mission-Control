@@ -624,22 +624,7 @@ class GamingAssistantPipeline:
             except Exception:
                 pass
 
-        def on_toggle_mic():
-            if not self.voice_manager: return
-            is_active = not self.voice_manager.is_listening
-            if is_active:
-                self.voice_manager.start()
-                self._play_hook_sound() # Use existing chime
-            else:
-                self.voice_manager.stop_listening()
-                self._play_unhook_sound()
-            
-            logger.info(f"Microphone toggled: {'ON' if is_active else 'OFF'}")
-            bridge.update_state({"mic_active": is_active})
-            
-            # Sync to local state so the 3-frame bridge pusher includes it
-            with self._state_lock:
-                self._game_state["mic_active"] = is_active
+
 
         # Build map from config with 300ms debounce to prevent double-triggering on Windows
         last_trigger_times = {}
@@ -656,7 +641,6 @@ class GamingAssistantPipeline:
         bindings = {}
         bindings[hotkey_cfg.get("toggle_hud", "<ctrl>+<alt>+o")] = debounced_callback("toggle_hud", on_toggle)
         bindings[hotkey_cfg.get("toggle_agentic", "<ctrl>+<alt>+a")] = debounced_callback("toggle_agentic", on_toggle_agentic)
-        bindings[hotkey_cfg.get("toggle_mic", "<ctrl>+<alt>+v")] = debounced_callback("toggle_mic", on_toggle_mic)
         bindings[hotkey_cfg.get("inc_font", "<ctrl>+<alt>+=")] = debounced_callback("inc_font", on_inc_font)
         bindings[hotkey_cfg.get("dec_font", "<ctrl>+<alt>+-")] = debounced_callback("dec_font", on_dec_font)
         

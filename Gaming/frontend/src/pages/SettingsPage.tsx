@@ -3439,12 +3439,7 @@ const SettingsPage: React.FC<{ state: TelemetryState | null, sendCommand: (type:
             />
           </SettingsField>
 
-          <SettingsField label="Toggle Mic" description="Shortcut to toggle voice recognition on/off.">
-            <HotkeyRecorder
-              value={localConfig.hotkeys?.toggle_mic || ''}
-              onChange={(val) => setLocalConfig({ ...localConfig, hotkeys: { ...localConfig.hotkeys, toggle_mic: val } })}
-            />
-          </SettingsField>
+
 
           <SettingsField label="Voice Profile" description="Select the vocal characteristics and engine for the AI assistant.">
             <CustomSelect
