@@ -30,6 +30,11 @@ class GameMemory:
         self._db_lock = threading.RLock()
         # Default to a local SQLite db if no path is given
         if not save_path:
+            config_save_path = self.config.get("memory", {}).get("save_path")
+            if config_save_path:
+                save_path = config_save_path
+                
+        if not save_path:
             import sys
             import os
             if getattr(sys, 'frozen', False):

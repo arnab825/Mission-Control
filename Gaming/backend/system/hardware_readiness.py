@@ -7,13 +7,39 @@ class GamingReadinessEngine:
     def __init__(self, config=None):
         self.config = config or {}
         self.hw_checker = HardwareChecker(self.config)
+        
+        import json
+        from pathlib import Path
+        app_data_path = self.config.get("system", {}).get("app_data_path")
+        if app_data_path:
+            base_dir = Path(app_data_path)
+        else:
+            base_dir = Path(__file__).parent.parent
+        self.cache_file = base_dir / "config" / "readiness_cache.json"
 
-    def evaluate_readiness(self):
+    def evaluate_readiness(self, force_refresh=False):
         """
         Gathers hardware specs and evaluates them against minimum/recommended
         requirements, calculating a Gaming Readiness Score and determining
-        feature compatibility.
+        feature compatibility. Uses a local JSON cache to bypass slow checks.
         """
+        import json
+        import platform
+        if not force_refresh and self.cache_file.exists():
+            try:
+                with open(self.cache_file, "r", encoding="utf-8") as f:
+                    cached = json.load(f)
+                    
+                    cpu_name = platform.processor()
+                    gpu_name = self.hw_checker.gpu_caps.gpu_name
+                    
+                    cached_specs = cached.get("specs", {})
+                    if cached_specs.get("cpu") == cpu_name and cached_specs.get("gpu") == gpu_name:
+                        logger.info("Serving gaming readiness from cache (hardware unchanged)")
+                        return cached.get("readiness")
+            except Exception as exc:
+                logger.warning("Failed to load readiness cache: %s", exc)
+
         try:
             specs = self.hw_checker.get_system_specs()
             
@@ -26,7 +52,7 @@ class GamingReadinessEngine:
             score = self._calculate_score(os_eval, cpu_eval, ram_eval, gpu_eval, storage_eval)
             features = self._evaluate_features(gpu_eval, cpu_eval)
             
-            return {
+            result = {
                 "score": score,
                 "components": {
                     "os": os_eval,
@@ -37,6 +63,22 @@ class GamingReadinessEngine:
                 },
                 "features": features
             }
+            
+            # Save to cache
+            try:
+                self.cache_file.parent.mkdir(parents=True, exist_ok=True)
+                with open(self.cache_file, "w", encoding="utf-8") as f:
+                    json.dump({
+                        "specs": {
+                            "cpu": platform.processor(),
+                            "gpu": self.hw_checker.gpu_caps.gpu_name
+                        },
+                        "readiness": result
+                    }, f, indent=4)
+            except Exception as exc:
+                logger.error("Failed to save readiness cache: %s", exc)
+                
+            return result
         except Exception as e:
             logger.error(f"Error evaluating gaming readiness: {e}", exc_info=True)
             return {"error": str(e)}

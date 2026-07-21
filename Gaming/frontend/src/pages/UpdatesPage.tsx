@@ -86,7 +86,7 @@ export const UpdatesPage: React.FC<UpdatesPageProps> = ({
     }
   }, []);
 
-  const updateState = state?.update_state;
+  const updateState = state?.update_state || { status: 'idle' };
   const installState = state?.update_install_state;
   const changelogsData = state?.changelogs;
 

@@ -1847,7 +1847,18 @@ function setupAutoUpdater() {
     
     // Spawn detached powershell script to copy backup over current install after app exits
     const psScript = `
-Start-Sleep -Seconds 2
+$attempts = 0
+while ($attempts -lt 15) {
+    try {
+        $testFile = Join-Path "${resourcesPath}" "rollback_lock_test.tmp"
+        New-Item -Path $testFile -ItemType File -Force -ErrorAction Stop | Out-Null
+        Remove-Item -Path $testFile -Force -ErrorAction Stop | Out-Null
+        break
+    } catch {
+        Start-Sleep -Seconds 1
+        $attempts++
+    }
+}
 Write-Host "Restoring backup from '${backupPath}' to '${resourcesPath}'..."
 Copy-Item -Path "${backupPath}\\*" -Destination "${resourcesPath}" -Recurse -Force
 Write-Host "Restarting application..."
