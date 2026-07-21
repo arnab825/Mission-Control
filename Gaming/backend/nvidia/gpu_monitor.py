@@ -525,6 +525,10 @@ class GPUMonitor:
                 if power_limit_max > 1000.0:
                     power_limit_max = 0.0
                 self._metrics["power_limit_max_w"] = round(power_limit_max, 1)
+                
+                # If hardware max TGP constraint is higher than the idle sub-cap, use max TGP for limit reporting
+                if power_limit_max > self._metrics.get("power_limit_w", 0):
+                    self._metrics["power_limit_w"] = round(power_limit_max, 1)
             except Exception as e:
                 self._handle_nvml_error(e)
             

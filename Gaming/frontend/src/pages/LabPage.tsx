@@ -265,13 +265,17 @@ const LabPage: React.FC<{
       ? powerDrawRaw
       : (isGameActive ? (coolingMode === "max" ? 42.4 : coolingMode === "silent" ? 18.2 : 28.5) : 12.8);
 
-    const powerLimitRaw = state?.gpu_metrics?.power_limit ?? state?.gpu_metrics?.power_limit_w;
-    let powerLimitW = (powerLimitRaw !== undefined && typeof powerLimitRaw === 'number' && !isNaN(powerLimitRaw) && powerLimitRaw > 0)
-      ? powerLimitRaw
-      : (coolingMode === "max" ? 45.0 : coolingMode === "silent" ? 25.0 : 35.0);
+    const maxLimitRaw = state?.gpu_metrics?.power_limit_max_w ?? state?.gpu_metrics?.power_limit_max;
+    const powerLimitRaw = state?.gpu_metrics?.power_limit_w ?? state?.gpu_metrics?.power_limit;
+    
+    let powerLimitW = (maxLimitRaw !== undefined && typeof maxLimitRaw === 'number' && !isNaN(maxLimitRaw) && maxLimitRaw > 0)
+      ? maxLimitRaw
+      : (powerLimitRaw !== undefined && typeof powerLimitRaw === 'number' && !isNaN(powerLimitRaw) && powerLimitRaw > 0)
+        ? powerLimitRaw
+        : (coolingMode === "max" ? 75.0 : coolingMode === "silent" ? 35.0 : 50.0);
 
-    if ((!powerLimitRaw || powerLimitRaw <= 0) && powerDrawRaw !== undefined && powerDrawRaw > 0) {
-      powerLimitW = Math.max(powerLimitW, Math.ceil(powerDrawRaw * 1.25));
+    if (powerDrawRaw !== undefined && powerDrawRaw > 0) {
+      powerLimitW = Math.max(powerLimitW, Math.ceil(powerDrawRaw * 1.1));
     }
 
     const powerPercent = Math.round((powerDraw / powerLimitW) * 100);
