@@ -545,6 +545,8 @@ Ready and monitoring. Launch your game to initiate automatic HUD lock.
                 system_handler.handle_scan_preset_optimizer(payload, pipeline, bridge, config)
             elif cmd_type == "get_gaming_readiness":
                 system_handler.handle_get_gaming_readiness(payload, pipeline, bridge, config)
+            elif cmd_type == "install_yolo_deps":
+                system_handler.handle_install_yolo_deps(payload, pipeline, bridge, config)
 
             # ── Agent mode / voice commands ───────────────────────────────
             elif cmd_type == "toggle_agent_mode":

@@ -22,7 +22,7 @@ pygame-ce        # Gamepad/joystick detection and input reading
 nvidia-ml-py     # NVIDIA Management Library for GPU metrics
 
 # NVIDIA Optimization (optional / on-device vision)
-ultralytics       # YOLOv8 object detection engine
+
 # torch           # PyTorch with CUDA (install via pytorch.org for your CUDA version)
 
 

@@ -2,6 +2,10 @@
 
 This document contains a detailed history of all patches and updates for the AI Gaming Assistant.
 
+### Patch: 2026-07-21 — v2.0.1: Add 1-Click in-app installer for optional PyTorch and Ultralytics vision engines
+
+- Add 1-Click in-app installer for optional PyTorch and Ultralytics vision engines
+
 ### Patch: 2026-07-21 — v2.0.0: Fix up-to-date card visibility on Updates page and add ultralytics to dependencies
 
 - Fix up-to-date card visibility on Updates page and add ultralytics to dependencies
