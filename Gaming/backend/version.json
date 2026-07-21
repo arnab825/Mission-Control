@@ -1,8 +1,16 @@
 {
-  "version": "2.0.4",
+  "version": "2.0.5",
   "release_date": "2026-07-21",
   "update_check_url": "https://raw.githubusercontent.com/arnab825/Mission-Control/main/Gaming/backend/version.json",
   "changelog": [
+    {
+      "version": "2.0.5",
+      "date": "2026-07-21",
+      "title": "Add power_limit, power_limit_watts, and power_limit_max_watts aliases across telemetry pipeline",
+      "highlights": [
+        "Add power_limit, power_limit_watts, and power_limit_max_watts aliases across telemetry pipeline"
+      ]
+    },
     {
       "version": "2.0.4",
       "date": "2026-07-21",
@@ -428,14 +436,6 @@
       "title": "Fixed the Frozen Update and making soe issue. ",
       "highlights": [
         "Fixed the Frozen Update and making soe issue. "
-      ]
-    },
-    {
-      "version": "1.5.6",
-      "date": "2026-07-15",
-      "title": "Fixed the OCR",
-      "highlights": [
-        "Fixed the OCR"
       ]
     }
   ]

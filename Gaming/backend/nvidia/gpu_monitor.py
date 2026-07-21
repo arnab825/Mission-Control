@@ -502,33 +502,34 @@ class GPUMonitor:
                 self._handle_nvml_error(e)
 
             # Power limit (currently configured NVML limit)
+            # Power limit & hardware TGP max constraints
             try:
                 try:
                     raw_limit = pynvml.nvmlDeviceGetPowerManagementLimit(self._handle)
                 except Exception:
                     raw_limit = pynvml.nvmlDeviceGetEnforcedPowerLimit(self._handle)
                 power_limit = raw_limit / 1000.0
-                if power_limit > 1000.0:
-                    power_limit = power_limit / 1000.0
-                if power_limit > 1000.0:
-                    power_limit = 0.0
-                self._metrics["power_limit_w"] = round(power_limit, 1)
-            except Exception as e:
-                self._handle_nvml_error(e)
+                if power_limit > 1000.0: power_limit /= 1000.0
+                if power_limit > 1000.0: power_limit = 0.0
 
-            # Hardware TGP ceiling — manufacturer chassis cap via limit constraints
-            try:
-                _min_raw, max_raw = pynvml.nvmlDeviceGetPowerManagementLimitConstraints(self._handle)
-                power_limit_max = max_raw / 1000.0
-                if power_limit_max > 1000.0:
-                    power_limit_max = power_limit_max / 1000.0
-                if power_limit_max > 1000.0:
-                    power_limit_max = 0.0
-                self._metrics["power_limit_max_w"] = round(power_limit_max, 1)
-                
-                # If hardware max TGP constraint is higher than the idle sub-cap, use max TGP for limit reporting
-                if power_limit_max > self._metrics.get("power_limit_w", 0):
-                    self._metrics["power_limit_w"] = round(power_limit_max, 1)
+                power_limit_max = 0.0
+                try:
+                    _min_raw, max_raw = pynvml.nvmlDeviceGetPowerManagementLimitConstraints(self._handle)
+                    power_limit_max = max_raw / 1000.0
+                    if power_limit_max > 1000.0: power_limit_max /= 1000.0
+                    if power_limit_max > 1000.0: power_limit_max = 0.0
+                except Exception:
+                    pass
+
+                effective_limit = round(max(power_limit, power_limit_max) if power_limit_max > 0 else power_limit, 1)
+                max_limit = round(power_limit_max if power_limit_max > 0 else effective_limit, 1)
+
+                self._metrics["power_limit"] = effective_limit
+                self._metrics["power_limit_w"] = effective_limit
+                self._metrics["power_limit_watts"] = effective_limit
+                self._metrics["power_limit_max"] = max_limit
+                self._metrics["power_limit_max_w"] = max_limit
+                self._metrics["power_limit_max_watts"] = max_limit
             except Exception as e:
                 self._handle_nvml_error(e)
             
