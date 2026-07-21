@@ -177,7 +177,7 @@ def handle_bridge_update_commands(cmd_type: str, payload: dict, bridge_instance)
                     except urllib.error.HTTPError as e:
                         if not remote_ver:
                             if e.code == 404:
-                                bridge_instance.update_state({"update_state": {"status": "up_to_date", "current_version": local_ver}})
+                                bridge_instance.update_state({"update_state": {"status": "up_to_date", "current_version": local_ver, "changelog": local.get("changelog", [])}})
                             else:
                                 bridge_instance.update_state({"update_state": {"status": "failed", "reason": f"Server error: HTTP {e.code}"}})
                             return

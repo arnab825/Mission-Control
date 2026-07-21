@@ -183,13 +183,22 @@ export const UpdatesPage: React.FC<UpdatesPageProps> = ({
   const currentVersion = state?.version || '---';
 
   const getReleaseHighlightsForVersion = (version: string) => {
-    const cleanTarget = version.replace(/^v/, '');
+    if (!version || version === '---') return null;
+    const cleanTarget = version.replace(/^v/i, '').trim();
     let match = null;
-    if (updateState?.changelog) {
-      match = updateState.changelog.find((log: any) => log.version.replace(/^v/, '') === cleanTarget);
+
+    if (updateState?.changelog && Array.isArray(updateState.changelog)) {
+      match = updateState.changelog.find((log: any) => log?.version && log.version.replace(/^v/i, '').trim() === cleanTarget);
     }
-    if (!match && changelogsData?.changelog) {
-      match = changelogsData.changelog.find((log: any) => log.version.replace(/^v/, '') === cleanTarget);
+    if (!match && changelogsData?.changelog && Array.isArray(changelogsData.changelog)) {
+      match = changelogsData.changelog.find((log: any) => log?.version && log.version.replace(/^v/i, '').trim() === cleanTarget);
+    }
+    // Fallback: use top changelog entry if version string matching fails
+    if (!match) {
+      const topLog = updateState?.changelog?.[0] || changelogsData?.changelog?.[0];
+      if (topLog && topLog.highlights) {
+        match = topLog;
+      }
     }
     if (match) {
       // Ensure if highlights is a single string with semicolons/newlines, it gets split into separate bullet points
