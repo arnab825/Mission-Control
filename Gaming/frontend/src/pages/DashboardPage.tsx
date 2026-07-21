@@ -109,7 +109,7 @@ const StatCard = React.memo<StatCardProps>(({ label, value, percent, subtext, ic
           />
         </div>
 
-        <p className="text-[10px] font-bold text-zinc-500 uppercase tracking-tight truncate">{subtext}</p>
+        <p title={subtext} className="text-[10px] font-bold text-zinc-500 uppercase tracking-tight truncate">{subtext}</p>
       </div>
 
       {/* Sparkline Background */}
@@ -253,7 +253,7 @@ const DashboardPage: React.FC<DashboardPageProps> = ({ state, onCommand, onNavig
           label="CPU"
           value={state?.cpu_pct != null ? state.cpu_pct.toFixed(1) : '0.0'}
           percent={state?.cpu_pct || 0}
-          subtext={`Clock: ${state?.cpu_freq ? formatFrequency(state.cpu_freq) : '---'} / ${state?.cpu_max_freq ? formatFrequency(state.cpu_max_freq) : '---'} | Temp: ${state?.cpu_temp && state.cpu_temp > 0 ? formatTemp(Math.round(state.cpu_temp)) : '---°C'}`}
+          subtext={`Clock: ${state?.cpu_freq ? formatFrequency(state.cpu_freq) : '---'} | Temp: ${state?.cpu_temp && state.cpu_temp > 0 ? formatTemp(Math.round(state.cpu_temp)) : '---°C'}`}
           icon={Cpu}
           color="cyan"
           history={history.CPU}
