@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { Eye, Play, Square, Activity, Radar, AlertTriangle, CheckCircle, Clock, ArrowRight } from 'lucide-react';
+import { Eye, Play, Square, Activity, Radar, AlertTriangle, CheckCircle, Clock, ArrowRight, Download } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import type { TelemetryState } from '../types/telemetry';
 import { useAuth } from '@clerk/clerk-react';
@@ -624,6 +624,116 @@ const VisionPage: React.FC<VisionPageProps> = ({ state, sendCommand }) => {
                   </div>
                 )}
               </div>
+            </div>
+          </div>
+
+          {/* On-Demand Neural Model Weights Downloader */}
+          <div className="mt-4 pt-4 border-t border-white/10 space-y-3">
+            <div className="flex items-center justify-between">
+              <span className="text-[10px] font-black text-zinc-400 uppercase tracking-widest font-mono">
+                On-Demand AI Model Weights
+              </span>
+              <span className="text-[9px] text-zinc-500 font-mono">
+                Download model weights on-demand to keep base installation lightweight
+              </span>
+            </div>
+
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
+              {[
+                {
+                  id: 'yolov8n',
+                  name: 'YOLOv8n Vision Model',
+                  size: '6.2 MB',
+                  desc: 'Real-time HUD target tracking weights',
+                  icon: Eye,
+                },
+                {
+                  id: 'yolov8s',
+                  name: 'YOLOv8s High Precision',
+                  size: '22.5 MB',
+                  desc: 'High accuracy neural tracking weights',
+                  icon: Activity,
+                },
+                {
+                  id: 'whisper_tiny',
+                  name: 'Whisper-Tiny Voice AI',
+                  size: '39.0 MB',
+                  desc: 'Local speech recognition engine',
+                  icon: Clock,
+                },
+              ].map((m) => {
+                const installed = state?.installed_models?.[m.id] === true;
+                const dlStatus = state?.model_download_status;
+                const isDownloading = dlStatus?.model_id === m.id && dlStatus?.status === 'downloading';
+                const isErr = dlStatus?.model_id === m.id && dlStatus?.status === 'error';
+                const Icon = m.icon;
+
+                return (
+                  <div
+                    key={m.id}
+                    className={`p-3.5 rounded-2xl border flex flex-col justify-between gap-3 transition-all ${
+                      installed
+                        ? 'bg-neon-green/5 border-neon-green/20'
+                        : isDownloading
+                        ? 'bg-purple-500/10 border-purple-500/30'
+                        : 'bg-white/[0.02] border-white/10 hover:border-white/20'
+                    }`}
+                  >
+                    <div className="flex items-start justify-between gap-2">
+                      <div className="flex items-center gap-2.5">
+                        <div className={`p-2 rounded-xl border ${installed ? 'bg-neon-green/10 border-neon-green/30 text-neon-green' : 'bg-white/5 border-white/10 text-zinc-400'}`}>
+                          <Icon className="w-4 h-4" />
+                        </div>
+                        <div>
+                          <h5 className="text-[11px] font-black text-white uppercase tracking-tight">{m.name}</h5>
+                          <p className="text-[9px] text-zinc-500">{m.desc}</p>
+                        </div>
+                      </div>
+                      <span className="text-[9px] font-bold text-zinc-400 font-mono px-2 py-0.5 bg-white/5 rounded-md shrink-0">
+                        {m.size}
+                      </span>
+                    </div>
+
+                    {isDownloading ? (
+                      <div className="space-y-1.5 pt-1">
+                        <div className="flex justify-between items-center text-[9px] font-mono">
+                          <span className="text-purple-400 font-bold">Downloading...</span>
+                          <span className="text-neon-green font-bold">{dlStatus?.progress_pct ?? 0}%</span>
+                        </div>
+                        <div className="w-full h-1 bg-black/40 rounded-full overflow-hidden">
+                          <motion.div
+                            animate={{ width: `${dlStatus?.progress_pct ?? 0}%` }}
+                            transition={{ duration: 0.3 }}
+                            className="h-full bg-gradient-to-r from-purple-500 to-neon-green"
+                          />
+                        </div>
+                        {dlStatus?.speed_mbps && (
+                          <p className="text-[8px] text-zinc-500 font-mono text-right">{dlStatus.speed_mbps} MB/s</p>
+                        )}
+                      </div>
+                    ) : (
+                      <div className="flex items-center justify-between pt-1 border-t border-white/5">
+                        <span className={`text-[9px] font-black uppercase font-mono ${installed ? 'text-neon-green' : 'text-zinc-500'}`}>
+                          {installed ? '✓ Installed' : isErr ? 'Download Failed' : 'Not Installed'}
+                        </span>
+                        <button
+                          type="button"
+                          onClick={() => sendCommand('download_ai_model', { model_id: m.id })}
+                          disabled={isDownloading}
+                          className={`flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-[9px] font-black uppercase tracking-wider border transition-all cursor-pointer ${
+                            installed
+                              ? 'bg-neon-green/10 border-neon-green/30 text-neon-green hover:bg-neon-green/20'
+                              : 'bg-white/5 border-white/15 text-zinc-200 hover:border-neon-green/40 hover:text-neon-green'
+                          }`}
+                        >
+                          <Download className="w-3 h-3" />
+                          {installed ? 'Re-Download' : 'Download'}
+                        </button>
+                      </div>
+                    )}
+                  </div>
+                );
+              })}
             </div>
           </div>
         </div>
