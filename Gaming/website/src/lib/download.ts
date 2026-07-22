@@ -5,4 +5,4 @@ export const WINDOWS_MSI_URL =
   "https://github.com/arnab825/Mission-Control/releases/latest/download/MissionControl-Setup.msi";
 
 export const WINDOWS_ZIP_URL =
-  "https://github.com/arnab825/Mission-Control/releases/latest/download/MissionControl-Setup.zip";
+  "/api/download?type=zip";
