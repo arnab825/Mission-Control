@@ -14,11 +14,70 @@ import netSocket from 'node:net'
 import os from 'node:os'
 import { Worker } from 'node:worker_threads'
 
+// Define file-based logging for Electron main process to capture stdout/stderr and React console.logs
+function getLogFilePath(): string {
+  const localAppData = process.env.LOCALAPPDATA || (app && app.getPath ? app.getPath('appData') : '');
+  const userDataPath = path.join(localAppData, 'MissionControl', 'Electron');
+  try {
+    fs.mkdirSync(userDataPath, { recursive: true });
+  } catch (err) {}
+  return path.join(userDataPath, 'app.log');
+}
+
+function logToFile(level: string, ...args: any[]) {
+  try {
+    const logFile = getLogFilePath();
+    const msg = args.map(arg => {
+      if (arg instanceof Error) return arg.stack || arg.message;
+      if (typeof arg === 'object') {
+        try { return JSON.stringify(arg); } catch (_) { return String(arg); }
+      }
+      return String(arg);
+    }).join(' ');
+    
+    const formatted = `[${new Date().toISOString()}] [${level}] ${msg}\n`;
+    fs.appendFileSync(logFile, formatted);
+  } catch (err) {
+    process.stderr.write(`Failed to write to log file: ${err}\n`);
+  }
+}
+
+// Redirect console methods to write to the persistent log file
+const originalLog = console.log;
+const originalError = console.error;
+const originalWarn = console.warn;
+
+console.log = (...args) => {
+  originalLog(...args);
+  logToFile('INFO', ...args);
+};
+console.error = (...args) => {
+  originalError(...args);
+  logToFile('ERROR', ...args);
+};
+console.warn = (...args) => {
+  originalWarn(...args);
+  logToFile('WARN', ...args);
+};
+
+// Catch unhandled node process exceptions
+process.on('uncaughtException', (err) => {
+  console.error('[Electron Main Process Uncaught Exception]', err);
+});
+process.on('unhandledRejection', (reason) => {
+  console.error('[Electron Main Process Unhandled Rejection]', reason);
+});
+
 // Disable GPU sandbox on Windows to prevent GPU process crashes and black screen issues,
 // while keeping hardware acceleration enabled so transparent windows (splash) and Mica load correctly.
 if (process.platform === 'win32') {
   app.commandLine.appendSwitch('disable-gpu-sandbox');
-  console.log('[Electron] Windows platform detected — disabled GPU sandbox.');
+  // Run GPU in the browser process to prevent GPU process crash → black screen
+  app.commandLine.appendSwitch('in-process-gpu');
+  // Disable color-correct rendering — prevents a black window when the GPU
+  // color-space negotiation fails on some driver/monitor combinations.
+  app.commandLine.appendSwitch('disable-color-correct-rendering');
+  console.log('[Electron] Windows platform detected — applied GPU resilience flags.');
 }
 
 // Optimize Memory for 16GB RAM constraints
@@ -107,6 +166,11 @@ protocol.registerSchemesAsPrivileged([
 const _dirname = typeof __dirname !== 'undefined'
   ? __dirname
   : path.dirname(fileURLToPath(import.meta.url))
+
+// Set process.env.DIST so production builds can locate the Vite output index.html and assets
+process.env.DIST = path.join(_dirname, '../dist')
+process.env.VITE_PUBLIC = app.isPackaged ? process.env.DIST : path.join(process.env.DIST, '../public')
+
 let pythonProcess: ChildProcess | null = null
 let tray: Tray | null = null
 let isManualUpdateCheck = false;
@@ -446,29 +510,42 @@ function startPythonBackend() {
     : path.join((process as any).resourcesPath, 'backend', 'main.py')
 
   const port = parseInt(process.env.VITE_BRIDGE_PORT || '8765', 10)
-  const timeout = setTimeout(() => {
-    // Timeout - no response from backend on port, try spawning
-    console.log(`[Electron] Backend probe timeout on port ${port}. Spawning new backend instance...`)
-    spawnBackend()
-  }, 2000)
 
-  // Probe port first to check if external python backend is already running
-  const socket = netSocket.createConnection({ port, host: '127.0.0.1' }, () => {
-    clearTimeout(timeout)
-    console.log(`[Electron] ✓ External Python backend detected on port ${port}. Skipping auto-spawn.`)
-    socket.end()
-  })
+  // In packaged mode, kill any orphaned background backend process first to ensure we launch the updated binary
+  if (!isDev && process.platform === 'win32') {
+    try {
+      execSync('taskkill /f /im MissionControlBackend.exe', { windowsHide: true, stdio: 'ignore' })
+      console.log('[Electron] Cleaned up lingering MissionControlBackend.exe background processes on startup.')
+    } catch (_) {}
+  }
 
-  socket.on('error', () => {
-    clearTimeout(timeout)
-    console.log(`[Electron] Port ${port} is free. Starting Python backend: ${scriptPath}`)
+  if (isDev) {
+    const timeout = setTimeout(() => {
+      console.log(`[Electron] Backend probe timeout on port ${port}. Spawning new backend instance...`)
+      spawnBackend()
+    }, 2000)
+
+    // Probe port first in dev mode to check if external python backend is already running
+    const socket = netSocket.createConnection({ port, host: '127.0.0.1' }, () => {
+      clearTimeout(timeout)
+      console.log(`[Electron] ✓ External Python backend detected on port ${port}. Skipping auto-spawn.`)
+      socket.end()
+    })
+
+    socket.on('error', () => {
+      clearTimeout(timeout)
+      console.log(`[Electron] Port ${port} is free. Starting Python backend: ${scriptPath}`)
+      spawnBackend()
+    })
+  } else {
+    // Packaged production mode: spawn bundled backend directly
     spawnBackend()
-  })
+  }
 
   function spawnBackend() {
     // ── Priority chain ──────────────────────────────────────────────────────
     // 1. Dev mode  → use venv python + main.py (hot-reload friendly)
-    // 2. Packaged  → use bundled MissionControl.exe (no Python install needed)
+    // 2. Packaged  → use bundled MissionControlBackend.exe (no Python install needed)
     // 3. Fallback  → system python + main.py (developer machine testing)
 
     let executablePath: string
@@ -478,16 +555,20 @@ function startPythonBackend() {
       // Dev: prefer venv python
       const venvPython = path.join(_dirname, '..', '..', 'backend', '.venv', 'Scripts', 'python.exe')
       executablePath = fs.existsSync(venvPython) ? venvPython : 'python'
-      args = [scriptPath, '--dev']
+      args = [scriptPath, '--dev', '--no-admin']
       console.log(`[Electron] Dev mode — python: ${executablePath}`)
     } else {
       // Production: look for bundled standalone exe first
-      const bundledExeBuilder = path.join((process as any).resourcesPath, 'backend', 'MissionControl', 'MissionControl.exe')
-      const bundledExeForge = path.join((process as any).resourcesPath, 'MissionControl', 'MissionControl.exe')
+      const bundledExeDirect = path.join((process as any).resourcesPath, 'MissionControl', 'MissionControlBackend.exe')
+      const bundledExeBuilder = path.join((process as any).resourcesPath, 'backend', 'MissionControl', 'MissionControlBackend.exe')
+      const bundledExeForge = path.join((process as any).resourcesPath, 'MissionControlBackend', 'MissionControlBackend.exe')
 
-      if (fs.existsSync(bundledExeBuilder)) {
+      if (fs.existsSync(bundledExeDirect)) {
+        executablePath = bundledExeDirect
+        console.log(`[Electron] Using bundled backend exe (direct): ${bundledExeDirect}`)
+      } else if (fs.existsSync(bundledExeBuilder)) {
         executablePath = bundledExeBuilder
-        console.log(`[Electron] Using bundled backend exe: ${bundledExeBuilder}`)
+        console.log(`[Electron] Using bundled backend exe (builder): ${bundledExeBuilder}`)
       } else if (fs.existsSync(bundledExeForge)) {
         executablePath = bundledExeForge
         console.log(`[Electron] Using bundled backend exe (forge): ${bundledExeForge}`)
@@ -570,6 +651,15 @@ function startLocalServer(distPath: string, port = FIXED_UI_PORT, retries = 3): 
 
         fs.stat(filePath, (err, stats) => {
           if (err || !stats.isFile()) {
+            // Only fallback to index.html for navigational routes (no extension or .html)
+            // If an asset (.js, .css, .png, etc.) is missing, return 404 properly.
+            const ext = path.extname(safeUrl).toLowerCase()
+            if (ext && ext !== '.html') {
+              res.writeHead(404, { 'Content-Type': 'text/plain' })
+              res.end('404 Not Found')
+              return
+            }
+
             const indexPath = path.join(distPath, 'index.html').replace(/\\/g, '/')
             res.writeHead(200, {
               'Content-Type': 'text/html',
@@ -641,7 +731,8 @@ async function createWindow() {
   splash = new BrowserWindow({
     width: 600,
     height: 400,
-    transparent: true,
+    transparent: false,
+    backgroundColor: '#0d0f14',
     frame: false,
     alwaysOnTop: true,
     show: true,
@@ -664,14 +755,23 @@ async function createWindow() {
     });
   }
 
+  // Mica (backgroundMaterial) can silently fail on some GPU driver / Windows build
+  // combinations and render as a solid black window. We only enable it when we are
+  // confident the DWM compositor will honour it: Windows 11 build 22000+ (NT 10.0.22000+).
+  const osRelease = os.release(); // e.g. "10.0.22621"
+  const [, , buildStr] = osRelease.split('.');
+  const osBuild = parseInt(buildStr || '0', 10);
+  const micaSupported = false; // Disable Mica to resolve black client area composition bugs
+  console.log(`[Electron] OS build ${osBuild} — Mica ${micaSupported ? 'ENABLED' : 'DISABLED (fallback to solid bg)'}`);
+
   win = new BrowserWindow({
     width: 1200,
     height: 800,
     frame: false,
     show: false, // Don't show the window until it's ready-to-show
     transparent: false, // Must be false for backgroundMaterial
-    backgroundColor: '#0a0a0a',
-    backgroundMaterial: 'mica', // Enable native Windows 11 Mica effect
+    backgroundColor: '#0d0f14', // Explicit dark bg — shown if Mica is unavailable
+    ...(micaSupported ? { backgroundMaterial: 'mica' } : {}),
     icon: getWindowIcon(),
     webPreferences: {
       preload: path.join(_dirname, 'preload.cjs'),
@@ -685,7 +785,25 @@ async function createWindow() {
     console.log(`[Web Console] ${message} (${sourceId}:${line})`);
   });
 
+  // Safety timeout: if ready-to-show never fires (renderer stall / load failure),
+  // forcibly show the window after 10 s so the user doesn't see a forever-splash.
+  let readyToShowFired = false;
+  const readyToShowTimeout = setTimeout(() => {
+    if (!readyToShowFired && win && !win.isDestroyed() && !win.isVisible()) {
+      console.warn('[Electron] ready-to-show timeout hit — forcing window visible.');
+      if (splash && !splash.isDestroyed()) {
+        try { splash.close(); } catch (_) {}
+        splash = null;
+      }
+      win.show();
+      win.focus();
+      startPythonBackend();
+    }
+  }, 10_000);
+
   win.once('ready-to-show', () => {
+    readyToShowFired = true;
+    clearTimeout(readyToShowTimeout);
     console.log('[Electron] main window ready-to-show fired!');
     if (splash) {
       try { splash.close(); } catch(e) {}
@@ -701,10 +819,37 @@ async function createWindow() {
     startPythonBackend();
   })
 
+  // Recovery: if the URL or file fails to load, retry the fallback immediately
+  win.webContents.on('did-fail-load', (_event, errorCode, errorDescription, validatedURL) => {
+    // Ignore aborted navigations (code -3) — these are intentional (e.g. redirect)
+    if (errorCode === -3) return;
+    console.error(`[Electron] did-fail-load: ${errorCode} ${errorDescription} — URL: ${validatedURL}`);
+    // Wait briefly then attempt to fall back to direct file load
+    setTimeout(() => {
+      if (win && !win.isDestroyed()) {
+        const indexHtmlPath = path.join(process.env.DIST || '', 'index.html');
+        console.warn(`[Electron] Retrying via direct file load: ${indexHtmlPath}`);
+        win.loadFile(indexHtmlPath).catch(err => {
+          console.error('[Electron] Final fallback loadFile also failed:', err);
+        });
+      }
+    }, 1500);
+  })
+
   registerContextMenu(win)
 
   // Ensure CSS transparency allows Mica to show through.
   // We'll stick to CSS transparency combined with a frameless transparent window for now.
+
+  const fallbackToFile = () => {
+    if (win && !win.isDestroyed()) {
+      const indexHtmlPath = path.join(process.env.DIST || '', 'index.html');
+      console.log(`[Electron] Falling back to direct file load: ${indexHtmlPath}`);
+      win.loadFile(indexHtmlPath).catch(err => {
+        console.error('[Electron] Failed to load index.html fallback:', err);
+      });
+    }
+  };
 
   if (VITE_DEV_SERVER_URL) {
     win.loadURL(VITE_DEV_SERVER_URL)
@@ -721,12 +866,16 @@ async function createWindow() {
         // Fallback retry
         setTimeout(() => {
           if (win && !win.isDestroyed()) {
-            win.loadURL(`http://127.0.0.1:${localServerPort}`).catch(() => {});
+            win.loadURL(`http://127.0.0.1:${localServerPort}`).catch((err2) => {
+              console.error('[Electron] Failed to load local server URL on retry:', err2);
+              fallbackToFile();
+            });
           }
         }, 1000);
       });
     } else {
-      console.error('[Electron] Local server port is 0, cannot load UI');
+      console.error('[Electron] Local server port is 0, cannot load UI via HTTP');
+      fallbackToFile();
     }
     // win.webContents.openDevTools()
   }
@@ -750,6 +899,30 @@ app.on('activate', () => {
   }
 })
 
+// Listen for child process crashes (GPU process, utility processes, etc.)
+app.on('child-process-gone', (_event, details) => {
+  console.error(`[Electron] Child process gone: type=${details.type}, reason=${details.reason}, exitCode=${details.exitCode}`);
+  if (details.type === 'GPU' && details.reason === 'crashed') {
+    console.warn('[Electron] GPU process crashed! Attempting to continue in software rendering fallback.');
+  }
+});
+
+// Listen for renderer process crashes (React frontend crash, out-of-memory, etc.)
+app.on('render-process-gone', (_event, _webContents, details) => {
+  console.error(`[Electron] Renderer process gone: reason=${details.reason}, exitCode=${details.exitCode}`);
+  // If the main window renderer crashed, try to reload it or recreate it
+  if (win && _webContents === win.webContents) {
+    console.warn('[Electron] Main window renderer crashed! Recreating window in 3 seconds...');
+    setTimeout(() => {
+      if (win && !win.isDestroyed()) {
+        try { win.close(); } catch (e) {}
+      }
+      win = null;
+      createWindow();
+    }, 3000);
+  }
+});
+
 // Handle SSL/TLS certificate errors in development environments (e.g. self-signed certs or corporate proxies)
 app.on('certificate-error', (event, _webContents, url, _error, _certificate, callback) => {
   if (!app.isPackaged) {
@@ -761,11 +934,14 @@ app.on('certificate-error', (event, _webContents, url, _error, _certificate, cal
   }
 });
 
-app.whenReady().then(() => {
+app.whenReady().then(async () => {
   // Clear Chromium cache on startup to ensure updated assets load immediately
-  session.defaultSession.clearCache().catch((err) => {
-    console.warn('[Electron] Failed to clear session cache:', err)
-  })
+  try {
+    await session.defaultSession.clearCache();
+    console.log('[Electron] Session cache cleared successfully.');
+  } catch (err) {
+    console.warn('[Electron] Failed to clear session cache:', err);
+  }
 
   // ── Elevation guard ────────────────────────────────────────────────────────
   // The backend requires admin privileges for hardware sensor access (WMI,
@@ -1628,6 +1804,17 @@ function setupAutoUpdater() {
     return;
   }
 
+  // Clear stale update state if it's for a different (old) version.
+  // This prevents the UI from showing a previously-downloaded version as "ready"
+  // when the user is already on a newer version or has a fresh install.
+  try {
+    const savedState = loadUpdateState();
+    if (savedState.status === 'downloaded' && savedState.version !== app.getVersion()) {
+      console.log(`[AutoUpdater] Clearing stale update state for v${savedState.version} (current: v${app.getVersion()})`);
+      saveUpdateState({ status: 'idle', percent: 0 });
+    }
+  } catch (_) {}
+
   // Load autoDownload setting from config on startup
   let autoDownloadEnabled = true;
   try {
@@ -1774,7 +1961,38 @@ function setupAutoUpdater() {
         }
         pythonProcess = null;
       }
-      autoUpdater.quitAndInstall();
+
+      // electron-updater's quitAndInstall() cannot request UAC elevation on its own for
+      // perMachine NSIS installers. Instead, directly locate and launch the downloaded
+      // installer executable via ShellExecute 'runas' verb so Windows always shows the
+      // UAC prompt regardless of the isAdminRightsRequired flag in update-info.json.
+      const updaterDir = path.join(app.getPath('userData'), '../mission-control-updater');
+      const candidates = [
+        path.join(updaterDir, 'pending', 'MissionControl-Setup.exe'),
+        path.join(updaterDir, 'installer.exe'),
+      ];
+      const installerExe = candidates.find(p => fs.existsSync(p));
+
+      if (installerExe) {
+        console.log(`[AutoUpdater] Launching installer with UAC elevation: ${installerExe}`);
+        try {
+          // Use cmd /c start "" /wait so Windows itself requests UAC via ShellExecute
+          spawn('cmd.exe', ['/c', 'start', '""', installerExe], {
+            detached: true,
+            stdio: 'ignore',
+            windowsHide: false,
+          }).unref();
+          // Give the UAC dialog a moment to appear before quitting
+          setTimeout(() => app.quit(), 1500);
+        } catch (spawnErr) {
+          console.error('[AutoUpdater] Failed to spawn installer via cmd:', spawnErr);
+          // Last resort: use autoUpdater's own mechanism
+          autoUpdater.quitAndInstall(false, true);
+        }
+      } else {
+        console.warn('[AutoUpdater] No pending installer found, falling back to autoUpdater.quitAndInstall');
+        autoUpdater.quitAndInstall(false, true);
+      }
     } catch (err: any) {
       console.error('[AutoUpdater] quitAndInstall failed:', err);
     }

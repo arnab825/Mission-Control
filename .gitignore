@@ -104,7 +104,7 @@ Gaming/frontend/doctor_report_*.txt
 Gaming/backend/ai_brain/rag_index/
 
 # ── Compiled Backend Binaries (generated build artifact) ─────────────
-Gaming/frontend/backend/MissionControl/
+Gaming/frontend/backend/MissionControlBackend/
 
 # ── Woodpecker local CLI bin ──────────────────────────────────────────
 .woodpecker/bin/
