@@ -2,6 +2,10 @@
 
 This document contains a detailed history of all patches and updates for the AI Gaming Assistant.
 
+### Patch: 2026-07-22 — v2.3.1: Fix production backend executable directory search path
+
+- Fix production backend executable directory search path
+
 ### Patch: 2026-07-22 — v2.3.0: Fix electron-builder schema validation and path resolving
 
 - Fix electron-builder schema validation and path resolving
