@@ -2,6 +2,10 @@
 
 This document contains a detailed history of all patches and updates for the AI Gaming Assistant.
 
+### Patch: 2026-07-22 — v2.2.7: Fix release builder sorting bug that packaged obsolete 1.7.5 installer
+
+- Fix release builder sorting bug that packaged obsolete 1.7.5 installer
+
 ### Patch: 2026-07-22 — v2.2.6: Fix black screen issue on Windows Electron launch
 
 - Fix black screen issue on Windows Electron launch
