@@ -2,6 +2,10 @@
 
 This document contains a detailed history of all patches and updates for the AI Gaming Assistant.
 
+### Patch: 2026-07-22 — v2.2.3: Fix updater install: bypass electron-updater quitAndInstall for perMachine NSIS, launch installer directly via cmd ShellExecute for proper UAC elevation
+
+- Fix updater install: bypass electron-updater quitAndInstall for perMachine NSIS, launch installer directly via cmd ShellExecute for proper UAC elevation
+
 ### Patch: 2026-07-22 — v2.2.2: Fix updater not installing: move requestedExecutionLevel to nsis block
 
 - Fix updater not installing: move requestedExecutionLevel to nsis block
