@@ -22,25 +22,20 @@ function decodeHTMLEntities(html: string): string {
 function sanitizeMermaidCode(code: string): string {
   let cleaned = code;
   
-  // 1. Fix flowchart arrows ending with |text|>
-  cleaned = cleaned.replace(/-->\s*\|([^|]+)\|\s*>/g, "-->|$1| ");
-  cleaned = cleaned.replace(/-->\s*\|([^|]+)\|>/g, "-->|$1| ");
+  // 1. Normalize flowchart link arrows with pipe labels (fix spacing, inner padding, & trailing '>')
+  cleaned = cleaned.replace(/(-->|---|==>|-\.->)\s*\|\s*([^|]+?)\s*\|>?\s*/g, "$1|$2| ");
 
-  // 2. Fix flowchart arrows with spaces inside pipes
-  cleaned = cleaned.replace(/-->\s*\|\s+([^|]+?)\s+\|\s+/g, "-->|$1| ");
-  cleaned = cleaned.replace(/-->\s*\|\s+([^|]+?)\s+\|/g, "-->|$1| ");
-
-  // 3. Fix unquoted node labels containing spaces/parentheses/brackets by quoting them
+  // 2. Fix unquoted node labels containing spaces/parentheses/brackets by quoting them
   cleaned = cleaned.replace(/([A-Za-z0-9_]+)\[([^\]\n"]+)\]/g, '$1["$2"]');
   cleaned = cleaned.replace(/([A-Za-z0-9_]+)\(([^)\n"]+)\)/g, '$1("$2")');
   cleaned = cleaned.replace(/([A-Za-z0-9_]+)\{([^}\n"]+)\}/g, '$1{"$2"}');
 
-  // 4. Fix unclosed brackets/parentheses/braces (e.g., B[Supporting Talent)
+  // 3. Fix unclosed brackets/parentheses/braces (e.g., B[Supporting Talent)
   cleaned = cleaned.replace(/([A-Za-z0-9_]+)\[([^\]\n"]+)(?=\s*(?:-->|---|==>|\n|$))/g, '$1["$2"]');
   cleaned = cleaned.replace(/([A-Za-z0-9_]+)\(([^)\n"]+)(?=\s*(?:-->|---|==>|\n|$))/g, '$1("$2")');
   cleaned = cleaned.replace(/([A-Za-z0-9_]+)\{([^}\n"]+)(?=\s*(?:-->|---|==>|\n|$))/g, '$1{"$2"}');
 
-  // 5. Fix pie chart titles (remove colon)
+  // 4. Fix pie chart titles (remove colon)
   cleaned = cleaned.replace(/^\s*title:\s*(.*)$/gm, "    title $1");
 
   return cleaned;

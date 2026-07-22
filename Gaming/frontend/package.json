@@ -106,6 +106,7 @@
                                          }
                                      ],
                   "win":  {
+                              "artifactName":  "MissionControl-Setup.${ext}",
                               "icon":  "public/favicon.ico",
                               "requestedExecutionLevel":  "requireAdministrator",
                               "verifyUpdateCodeSignature":  false,
