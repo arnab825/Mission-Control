@@ -7,7 +7,7 @@ export async function GET(request: NextRequest) {
   const fallbackMap: Record<string, string> = {
     exe: "https://github.com/arnab825/Mission-Control/releases/latest/download/MissionControl-Setup.exe",
     msi: "https://github.com/arnab825/Mission-Control/releases/latest/download/MissionControl-Setup.msi",
-    zip: "https://github.com/arnab825/Mission-Control/releases/latest/download/MissionControl-Setup.zip",
+    zip: "https://github.com/arnab825/Mission-Control/releases/latest/download/MissionControl-Portable.zip",
   };
 
   try {
@@ -30,8 +30,8 @@ export async function GET(request: NextRequest) {
     let targetAsset = null;
     const targetExt = type === "zip" ? ".zip" : type === "msi" ? ".msi" : ".exe";
 
-    // 1. First try exact setup filename match
-    const exactName = `MissionControl-Setup${targetExt}`;
+    // 1. First try exact filename match (Portable for zip, Setup for exe/msi)
+    const exactName = type === "zip" ? "MissionControl-Portable.zip" : `MissionControl-Setup${targetExt}`;
     targetAsset = assets.find((a: any) => a.name === exactName);
 
     // 2. Fallback to any asset matching the extension
