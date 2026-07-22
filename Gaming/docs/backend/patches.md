@@ -2,6 +2,10 @@
 
 This document contains a detailed history of all patches and updates for the AI Gaming Assistant.
 
+### Patch: 2026-07-22 — v2.3.0: Fix electron-builder schema validation and path resolving
+
+- Fix electron-builder schema validation and path resolving
+
 ### Patch: 2026-07-22 — v2.2.9: Fix release compiler process locking & folder rename syntax
 
 - Fix release compiler process locking & folder rename syntax
