@@ -2,6 +2,10 @@
 
 This document contains a detailed history of all patches and updates for the AI Gaming Assistant.
 
+### Patch: 2026-07-22 — v2.2.1: Fix updater fallback execution for elevated installers
+
+- Fix updater fallback execution for elevated installers
+
 ### Patch: 2026-07-22 — v2.2.0: Fix black screen on app update
 
 - Fix black screen on app update

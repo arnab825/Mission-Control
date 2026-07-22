@@ -1,8 +1,16 @@
 {
-  "version": "2.2.0",
+  "version": "2.2.1",
   "release_date": "2026-07-22",
   "update_check_url": "https://raw.githubusercontent.com/arnab825/Mission-Control/main/Gaming/backend/version.json",
   "changelog": [
+    {
+      "version": "2.2.1",
+      "date": "2026-07-22",
+      "title": "Fix updater fallback execution for elevated installers",
+      "highlights": [
+        "Fix updater fallback execution for elevated installers"
+      ]
+    },
     {
       "version": "2.2.0",
       "date": "2026-07-22",
@@ -416,14 +424,6 @@
       "highlights": [
         "Fixed linting warning by removing unused handleLaunch variable in GameCard.",
         "Fixed Stability Lab chart history reset logic when games are inactive."
-      ]
-    },
-    {
-      "version": "1.7.2",
-      "date": "2026-07-17",
-      "title": "Fix Misleading FPS Telemetry",
-      "highlights": [
-        "Removed capture_fps fallback in HUD telemetry to prevent showing low capture loop rates as game FPS when ETW tracking is unavailable."
       ]
     }
   ]
