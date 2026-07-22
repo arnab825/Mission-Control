@@ -629,6 +629,15 @@ function startLocalServer(distPath: string, port = FIXED_UI_PORT, retries = 3): 
 
         fs.stat(filePath, (err, stats) => {
           if (err || !stats.isFile()) {
+            // Only fallback to index.html for navigational routes (no extension or .html)
+            // If an asset (.js, .css, .png, etc.) is missing, return 404 properly.
+            const ext = path.extname(safeUrl).toLowerCase()
+            if (ext && ext !== '.html') {
+              res.writeHead(404, { 'Content-Type': 'text/plain' })
+              res.end('404 Not Found')
+              return
+            }
+
             const indexPath = path.join(distPath, 'index.html').replace(/\\/g, '/')
             res.writeHead(200, {
               'Content-Type': 'text/html',
@@ -859,11 +868,14 @@ app.on('certificate-error', (event, _webContents, url, _error, _certificate, cal
   }
 });
 
-app.whenReady().then(() => {
+app.whenReady().then(async () => {
   // Clear Chromium cache on startup to ensure updated assets load immediately
-  session.defaultSession.clearCache().catch((err) => {
-    console.warn('[Electron] Failed to clear session cache:', err)
-  })
+  try {
+    await session.defaultSession.clearCache();
+    console.log('[Electron] Session cache cleared successfully.');
+  } catch (err) {
+    console.warn('[Electron] Failed to clear session cache:', err);
+  }
 
   // ── Elevation guard ────────────────────────────────────────────────────────
   // The backend requires admin privileges for hardware sensor access (WMI,
