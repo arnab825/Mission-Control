@@ -559,12 +559,16 @@ function startPythonBackend() {
       console.log(`[Electron] Dev mode — python: ${executablePath}`)
     } else {
       // Production: look for bundled standalone exe first
-      const bundledExeBuilder = path.join((process as any).resourcesPath, 'backend', 'MissionControlBackend', 'MissionControlBackend.exe')
+      const bundledExeDirect = path.join((process as any).resourcesPath, 'MissionControl', 'MissionControlBackend.exe')
+      const bundledExeBuilder = path.join((process as any).resourcesPath, 'backend', 'MissionControl', 'MissionControlBackend.exe')
       const bundledExeForge = path.join((process as any).resourcesPath, 'MissionControlBackend', 'MissionControlBackend.exe')
 
-      if (fs.existsSync(bundledExeBuilder)) {
+      if (fs.existsSync(bundledExeDirect)) {
+        executablePath = bundledExeDirect
+        console.log(`[Electron] Using bundled backend exe (direct): ${bundledExeDirect}`)
+      } else if (fs.existsSync(bundledExeBuilder)) {
         executablePath = bundledExeBuilder
-        console.log(`[Electron] Using bundled backend exe: ${bundledExeBuilder}`)
+        console.log(`[Electron] Using bundled backend exe (builder): ${bundledExeBuilder}`)
       } else if (fs.existsSync(bundledExeForge)) {
         executablePath = bundledExeForge
         console.log(`[Electron] Using bundled backend exe (forge): ${bundledExeForge}`)
