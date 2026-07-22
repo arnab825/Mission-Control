@@ -1,14 +1,15 @@
 {
-  "version": "2.2.3",
+  "version": "2.2.4",
   "release_date": "2026-07-22",
   "update_check_url": "https://raw.githubusercontent.com/arnab825/Mission-Control/main/Gaming/backend/version.json",
   "changelog": [
     {
-      "version": "2.2.3",
+      "version": "2.2.4",
       "date": "2026-07-22",
-      "title": "Fix updater install: bypass electron-updater quitAndInstall for perMachine NSIS, launch installer directly via cmd ShellExecute for proper UAC elevation",
+      "title": "Fix updater install & prevent app version defaulting to old builds",
       "highlights": [
-        "Fix updater install: bypass electron-updater quitAndInstall for perMachine NSIS, launch installer directly via cmd ShellExecute for proper UAC elevation"
+        "Fix updater install: bypass electron-updater quitAndInstall for perMachine NSIS, launch installer directly via cmd ShellExecute for proper UAC elevation",
+        "Ensured packaged production builds terminate orphaned MissionControl.exe background processes on startup, preventing the app from connecting to stale backend instances."
       ]
     },
     {
