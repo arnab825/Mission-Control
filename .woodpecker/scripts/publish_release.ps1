@@ -79,16 +79,21 @@ $tag = $env:CI_COMMIT_TAG
 if (-not $tag) { $tag = "v$version" }
 $semver = $tag -replace '^v', ''
 
+$releaseDir = 'Gaming/frontend/out/release'
+if (Test-Path $releaseDir) {
+  Remove-Item -Recurse -Force $releaseDir -ErrorAction SilentlyContinue
+}
+New-Item -ItemType Directory -Force -Path $releaseDir | Out-Null
+
 $candidatePaths = @(
   'Gaming/frontend/out/make',
-  'Gaming/frontend/out',
-  'Gaming/frontend/out/make/zip'
+  'Gaming/frontend/dist'
 )
 $sourceInstaller = $null
 foreach ($path in $candidatePaths) {
   if (Test-Path $path) {
     $match = Get-ChildItem -Path $path -Filter "*.exe" -Recurse -ErrorAction SilentlyContinue |
-      Where-Object { $_.Name -notlike "*__uninstaller*" -and $_.Name -notlike "*Uninstall*" -and $_.Name -notlike "*builder*" } |
+      Where-Object { $_.FullName -notlike "*out/release*" -and $_.FullName -notlike "*out\release*" -and $_.Name -notlike "*__uninstaller*" -and $_.Name -notlike "*Uninstall*" -and $_.Name -notlike "*builder*" } |
       Sort-Object Length -Descending |
       Select-Object -First 1
     if ($match) {
@@ -101,11 +106,10 @@ if (-not $sourceInstaller) {
   throw "Windows installer was not generated in the expected output directories."
 }
 
-$releaseDir = 'Gaming/frontend/out/release'
-New-Item -ItemType Directory -Force -Path $releaseDir | Out-Null
-
 $targetInstaller = Join-Path $releaseDir 'MissionControl-Setup.exe'
-Copy-Item $sourceInstaller.FullName $targetInstaller -Force
+if ((Resolve-Path $sourceInstaller.FullName).Path -ne (Resolve-Path $targetInstaller -ErrorAction SilentlyContinue).Path) {
+  Copy-Item $sourceInstaller.FullName $targetInstaller -Force
+}
 
 # Check for generated MSI installer
 $sourceMsi = Get-ChildItem -Path "Gaming/frontend/out/make", "Gaming/frontend/dist" -Filter "*.msi" -Recurse -ErrorAction SilentlyContinue |
@@ -114,7 +118,9 @@ $sourceMsi = Get-ChildItem -Path "Gaming/frontend/out/make", "Gaming/frontend/di
 $targetMsi = $null
 if ($sourceMsi) {
   $targetMsi = Join-Path $releaseDir 'MissionControl-Setup.msi'
-  Copy-Item $sourceMsi.FullName $targetMsi -Force
+  if ((Resolve-Path $sourceMsi.FullName).Path -ne (Resolve-Path $targetMsi -ErrorAction SilentlyContinue).Path) {
+    Copy-Item $sourceMsi.FullName $targetMsi -Force
+  }
   Write-Host "Prepared MSI installer at: $targetMsi"
 }
 
@@ -125,7 +131,9 @@ $sourceZip = Get-ChildItem -Path "Gaming/frontend/out/make", "Gaming/frontend/di
 $targetZip = $null
 if ($sourceZip) {
   $targetZip = Join-Path $releaseDir 'MissionControl-Portable.zip'
-  Copy-Item $sourceZip.FullName $targetZip -Force
+  if ((Resolve-Path $sourceZip.FullName).Path -ne (Resolve-Path $targetZip -ErrorAction SilentlyContinue).Path) {
+    Copy-Item $sourceZip.FullName $targetZip -Force
+  }
   Write-Host "Prepared Portable ZIP archive at: $targetZip"
 }
 
