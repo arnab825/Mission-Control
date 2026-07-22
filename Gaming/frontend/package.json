@@ -108,8 +108,8 @@
                   "win":  {
                               "artifactName":  "MissionControl-Setup.${ext}",
                               "icon":  "public/favicon.ico",
-                              "requestedExecutionLevel":  "requireAdministrator",
                               "verifyUpdateCodeSignature":  false,
+                              "requestedExecutionLevel":  "requireAdministrator",
                               "target":  [
                                              {
                                                  "target":  "nsis",

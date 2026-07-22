@@ -1174,7 +1174,7 @@ class HotReloader:
 
     def _scan_files(self):
         new_state = {}
-        ignore_dirs = {".git", "__pycache__", ".venv", "data", "logs", "assets", "scripts"}
+        ignore_dirs = {".git", "__pycache__", ".venv", "data", "logs", "assets", "scripts", "node_modules", "out"}
 
         try:
             for root, dirs, files in os.walk(self.watch_dir):

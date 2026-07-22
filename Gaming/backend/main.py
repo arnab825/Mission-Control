@@ -354,7 +354,7 @@ def main():
                 pass
 
     if args.dev:
-        reloader = HotReloader(on_reload=_request_graceful_reload)
+        reloader = HotReloader(watch_dir=base_dir, on_reload=_request_graceful_reload)
         reloader.start()
 
     try:
