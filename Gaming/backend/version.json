@@ -1,8 +1,16 @@
 {
-  "version": "2.2.6",
+  "version": "2.2.7",
   "release_date": "2026-07-22",
   "update_check_url": "https://raw.githubusercontent.com/arnab825/Mission-Control/main/Gaming/backend/version.json",
   "changelog": [
+    {
+      "version": "2.2.7",
+      "date": "2026-07-22",
+      "title": "Fix release builder sorting bug that packaged obsolete 1.7.5 installer",
+      "highlights": [
+        "Fix release builder sorting bug that packaged obsolete 1.7.5 installer"
+      ]
+    },
     {
       "version": "2.2.6",
       "date": "2026-07-22",
@@ -413,15 +421,6 @@
       "title": "Update system tray check updates menu icon to match flat white style",
       "highlights": [
         "Update system tray check updates menu icon to match flat white style"
-      ]
-    },
-    {
-      "version": "1.7.4",
-      "date": "2026-07-18",
-      "title": "Fix Object Destroyed Electron Crash",
-      "highlights": [
-        "Guarded all asynchronous loadURL retries, event listener invocations, and ready-to-show transitions with isDestroyed() checks on BrowserWindow instances.",
-        "Prevents application crashes caused by delayed callbacks firing after a window (Dashboard, HUD, or OSR) has been closed by the user or system."
       ]
     }
   ]
