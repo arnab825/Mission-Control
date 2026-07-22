@@ -1,8 +1,16 @@
 {
-  "version": "2.3.2",
+  "version": "2.3.3",
   "release_date": "2026-07-21",
   "update_check_url": "https://raw.githubusercontent.com/arnab825/Mission-Control/main/Gaming/backend/version.json",
   "changelog": [
+    {
+      "version": "2.3.3",
+      "date": "2026-07-23",
+      "title": "Fix ASAR static file streaming in packaged production builds",
+      "highlights": [
+        "Fix ASAR static file streaming in packaged production builds"
+      ]
+    },
     {
       "version": "2.3.2",
       "date": "2026-07-23",
@@ -420,16 +428,6 @@
       "highlights": [
         "Restored capture-loop FPS as fallback when the ETW hardware tracker returns no data",
         "Affects all games where DXGI Present ETW events are unavailable (fullscreen exclusive, Vulkan, OpenGL, or admin-permission issues)"
-      ]
-    },
-    {
-      "version": "1.6.10",
-      "date": "2026-07-17",
-      "title": "Fix GameKB infinite retry storm on LLM 404",
-      "highlights": [
-        "GameKB keybind fetch failures (404, timeout, etc.) now enforce a 5-minute per-game cooldown before retrying",
-        "Cooldown check added at both thread-spawn site (identify_game) and background worker to guarantee no storm",
-        "Successful fetches clear the failure record so retries resume normally after an endpoint recovers"
       ]
     }
   ]

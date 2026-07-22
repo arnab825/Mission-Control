@@ -644,34 +644,20 @@ function startLocalServer(distPath: string, port = FIXED_UI_PORT, retries = 3): 
         let safeUrl = req.url?.split('?')[0] || '/'
         if (safeUrl === '/') safeUrl = '/index.html'
 
-        const filePath = path.join(distPath, safeUrl).replace(/\\/g, '/')
+        let filePath = path.join(distPath, safeUrl).replace(/\\/g, '/')
 
-        fs.stat(filePath, (err, stats) => {
-          if (err || !stats.isFile()) {
-            // Only fallback to index.html for navigational routes (no extension or .html)
-            // If an asset (.js, .css, .png, etc.) is missing, return 404 properly.
-            const ext = path.extname(safeUrl).toLowerCase()
-            if (ext && ext !== '.html') {
-              res.writeHead(404, { 'Content-Type': 'text/plain' })
-              res.end('404 Not Found')
-              return
-            }
-
-            const indexPath = path.join(distPath, 'index.html').replace(/\\/g, '/')
-            res.writeHead(200, {
-              'Content-Type': 'text/html',
-              'Cache-Control': 'no-store, no-cache, must-revalidate, max-age=0'
-            })
-            const stream = fs.createReadStream(indexPath)
-            stream.on('error', (streamErr) => {
-              console.error('[Electron Server] Error serving fallback index.html:', streamErr)
-              res.writeHead(404, { 'Content-Type': 'text/plain' })
-              res.end('404 Not Found')
-            })
-            stream.pipe(res)
+        if (!fs.existsSync(filePath) || fs.statSync(filePath).isDirectory()) {
+          const ext = path.extname(safeUrl).toLowerCase()
+          if (ext && ext !== '.html') {
+            res.writeHead(404, { 'Content-Type': 'text/plain' })
+            res.end('404 Not Found')
             return
           }
+          filePath = path.join(distPath, 'index.html').replace(/\\/g, '/')
+        }
 
+        try {
+          const data = fs.readFileSync(filePath)
           let contentType = 'text/plain'
           const ext = path.extname(filePath).toLowerCase()
           if (ext === '.html') contentType = 'text/html'
@@ -686,17 +672,16 @@ function startLocalServer(distPath: string, port = FIXED_UI_PORT, retries = 3): 
 
           res.writeHead(200, {
             'Content-Type': contentType,
+            'Content-Length': data.length,
             'Access-Control-Allow-Origin': '*',
             'Cache-Control': 'no-store, no-cache, must-revalidate, max-age=0'
           })
-          const stream = fs.createReadStream(filePath)
-          stream.on('error', (streamErr) => {
-            console.error('[Electron Server] Error serving file:', streamErr)
-            res.writeHead(500, { 'Content-Type': 'text/plain' })
-            res.end('500 Internal Server Error')
-          })
-          stream.pipe(res)
-        })
+          res.end(data)
+        } catch (readErr) {
+          console.error('[Electron Server] Error reading static file:', readErr)
+          res.writeHead(500, { 'Content-Type': 'text/plain' })
+          res.end('500 Internal Server Error')
+        }
       })
 
       server.on('error', (err: any) => {
