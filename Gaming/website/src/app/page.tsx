@@ -5,6 +5,8 @@ import Link from "next/link";
 import Script from "next/script";
 import { motion, AnimatePresence } from "framer-motion";
 import { WINDOWS_INSTALLER_URL, WINDOWS_MSI_URL, WINDOWS_ZIP_URL } from "@/lib/download";
+import { ScreenshotGallery } from "@/components/ScreenshotGallery";
+import { BeforeAfterSlider } from "@/components/BeforeAfterSlider";
 import { 
   Users, 
   Search, 
@@ -488,6 +490,40 @@ export default function Home() {
             );
           })}
         </div>
+      </motion.section>
+
+      {/* ================= SCREENSHOT GALLERY SECTION ================= */}
+      <motion.section 
+        initial={{ opacity: 0, y: 20 }}
+        whileInView={{ opacity: 1, y: 0 }}
+        viewport={{ once: true, margin: "-50px" }}
+        transition={{ duration: 0.5 }}
+        className="w-full max-w-7xl px-4 sm:px-6 mb-20 sm:mb-36 relative z-10"
+      >
+        <div className="text-center mb-10 sm:mb-14 max-w-3xl mx-auto">
+          <div className="inline-block border border-neon-green/30 rounded-full px-4 py-1.5 bg-neon-green/10 mb-4 backdrop-blur-md">
+            <span className="text-neon-green text-xs font-bold font-mono tracking-widest uppercase">APP PREVIEW</span>
+          </div>
+          <h2 className="text-3xl sm:text-5xl font-black mb-4 sm:mb-6 font-display uppercase tracking-tight text-white">
+            DESIGNED FOR <span className="text-neon-green glow-text-teal">GAMERS</span>
+          </h2>
+          <p className="text-gray-400 text-sm sm:text-lg leading-relaxed font-sans">
+            A beautiful, lightweight, and hardware-accelerated interface that stays out of your way until you need it.
+          </p>
+        </div>
+        
+        <ScreenshotGallery />
+      </motion.section>
+
+      {/* ================= BEFORE & AFTER ARCHITECTURE SECTION ================= */}
+      <motion.section 
+        initial={{ opacity: 0, y: 20 }}
+        whileInView={{ opacity: 1, y: 0 }}
+        viewport={{ once: true, margin: "-50px" }}
+        transition={{ duration: 0.5 }}
+        className="w-full max-w-7xl px-4 sm:px-6 mb-20 sm:mb-36 relative z-10"
+      >
+        <BeforeAfterSlider />
       </motion.section>
 
       {/* ================= AI OVERLAY PREVIEW SECTION ================= */}

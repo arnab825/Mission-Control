@@ -161,6 +161,11 @@ protocol.registerSchemesAsPrivileged([
 const _dirname = typeof __dirname !== 'undefined'
   ? __dirname
   : path.dirname(fileURLToPath(import.meta.url))
+
+// Set process.env.DIST so production builds can locate the Vite output index.html and assets
+process.env.DIST = path.join(_dirname, '../dist')
+process.env.VITE_PUBLIC = app.isPackaged ? process.env.DIST : path.join(process.env.DIST, '../public')
+
 let pythonProcess: ChildProcess | null = null
 let tray: Tray | null = null
 let isManualUpdateCheck = false;
@@ -695,7 +700,8 @@ async function createWindow() {
   splash = new BrowserWindow({
     width: 600,
     height: 400,
-    transparent: true,
+    transparent: false,
+    backgroundColor: '#0d0f14',
     frame: false,
     alwaysOnTop: true,
     show: true,
