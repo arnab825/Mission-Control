@@ -1,8 +1,16 @@
 {
-    "version":  "2.1.10",
+    "version":  "2.1.11",
     "release_date":  "2026-07-22",
     "update_check_url":  "https://raw.githubusercontent.com/arnab825/Mission-Control/main/Gaming/backend/version.json",
     "changelog":  [
+                      {
+                          "version":  "2.1.11",
+                          "date":  "2026-07-22",
+                          "title":  "Remove duplicate portable ZIP asset upload",
+                          "highlights":  [
+                                             "Optimized Woodpecker release script to prevent uploading the portable ZIP archive twice, significantly reducing build pipeline duration."
+                                         ]
+                      },
                       {
                           "version":  "2.1.10",
                           "date":  "2026-07-22",

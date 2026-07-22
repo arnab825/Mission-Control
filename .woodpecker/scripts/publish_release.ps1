@@ -261,14 +261,6 @@ if ($targetZip -and (Test-Path $targetZip)) {
   } catch {
     Write-Warning "Failed to upload ZIP archive: $($_.Exception.Message)"
   }
-
-  $zipSetupUrl = "${uploadBase}?name=MissionControl-Setup.zip"
-  try {
-    $uploadZipSetupResponse = Upload-FileWithProgress -Uri $zipSetupUrl -FilePath $targetZip -Headers $uploadHeaders -ContentType "application/zip"
-    Write-Host "Portable ZIP archive uploaded successfully (MissionControl-Setup.zip)."
-  } catch {
-    Write-Warning "Failed to upload MissionControl-Setup.zip: $($_.Exception.Message)"
-  }
 }
 
 Write-Host "Uploading latest.yml via Invoke-RestMethod..."
