@@ -2,6 +2,10 @@
 
 This document contains a detailed history of all patches and updates for the AI Gaming Assistant.
 
+### Patch: 2026-07-22 — v2.2.9: Fix release compiler process locking & folder rename syntax
+
+- Fix release compiler process locking & folder rename syntax
+
 ### Patch: 2026-07-22 — v2.2.8: Fix CI move_backend file locking issue on local release pipeline
 
 - Fix CI move_backend file locking issue on local release pipeline
