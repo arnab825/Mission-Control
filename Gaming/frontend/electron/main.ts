@@ -1884,7 +1884,26 @@ function setupAutoUpdater() {
         }
         pythonProcess = null;
       }
-      autoUpdater.quitAndInstall();
+      // Call quitAndInstall with non-silent flag so UAC prompt can be presented to user on elevated installers
+      autoUpdater.quitAndInstall(false, true);
+
+      // Fallback: If app does not exit within 3 seconds, attempt to launch pending installer with admin rights directly
+      setTimeout(() => {
+        try {
+          const pendingExe = path.join(app.getPath('userData'), '../mission-control-updater/pending/MissionControl-Setup.exe');
+          if (fs.existsSync(pendingExe)) {
+            console.log('[AutoUpdater] Fallback: Launching pending installer elevated via PowerShell...');
+            spawn('powershell.exe', [
+              '-NoProfile',
+              '-Command',
+              `Start-Process -FilePath "${pendingExe}" -Verb RunAs`
+            ], { detached: true, stdio: 'ignore' }).unref();
+            app.quit();
+          }
+        } catch (fallbackErr) {
+          console.error('[AutoUpdater] Fallback installer launch failed:', fallbackErr);
+        }
+      }, 3000);
     } catch (err: any) {
       console.error('[AutoUpdater] quitAndInstall failed:', err);
     }
