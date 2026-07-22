@@ -108,7 +108,9 @@ $targetInstaller = Join-Path $releaseDir 'MissionControl-Setup.exe'
 Copy-Item $sourceInstaller.FullName $targetInstaller -Force
 
 # Check for generated MSI installer
-$sourceMsi = Get-ChildItem -Path "Gaming/frontend/out", "Gaming/frontend/dist" -Filter "*.msi" -Recurse -ErrorAction SilentlyContinue | Select-Object -First 1
+$sourceMsi = Get-ChildItem -Path "Gaming/frontend/out/make", "Gaming/frontend/dist" -Filter "*.msi" -Recurse -ErrorAction SilentlyContinue |
+  Where-Object { $_.FullName -notlike "*out/release*" -and $_.FullName -notlike "*out\release*" } |
+  Select-Object -First 1
 $targetMsi = $null
 if ($sourceMsi) {
   $targetMsi = Join-Path $releaseDir 'MissionControl-Setup.msi'
@@ -117,7 +119,9 @@ if ($sourceMsi) {
 }
 
 # Check for generated ZIP archive
-$sourceZip = Get-ChildItem -Path "Gaming/frontend/out", "Gaming/frontend/dist" -Filter "*.zip" -Recurse -ErrorAction SilentlyContinue | Select-Object -First 1
+$sourceZip = Get-ChildItem -Path "Gaming/frontend/out/make", "Gaming/frontend/dist" -Filter "*.zip" -Recurse -ErrorAction SilentlyContinue |
+  Where-Object { $_.FullName -notlike "*out/release*" -and $_.FullName -notlike "*out\release*" } |
+  Select-Object -First 1
 $targetZip = $null
 if ($sourceZip) {
   $targetZip = Join-Path $releaseDir 'MissionControl-Portable.zip'
