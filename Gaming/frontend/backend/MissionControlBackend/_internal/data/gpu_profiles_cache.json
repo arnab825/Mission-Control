@@ -1,0 +1,14 @@
+{
+  "rtx 5050 laptop gpu": {
+    "brand": "NVIDIA",
+    "architecture": "Blackwell",
+    "max_dlss_quality": "DLSS 4.5",
+    "max_dlss_perf": "DLSS 4",
+    "max_fg": "4x",
+    "ray_tracing": true,
+    "path_tracing": true,
+    "reflex": true,
+    "tier": "high",
+    "is_rtx": true
+  }
+}
