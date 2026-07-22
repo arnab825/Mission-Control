@@ -1,8 +1,16 @@
 {
-  "version": "2.1.6",
+  "version": "2.1.7",
   "release_date": "2026-07-21",
   "update_check_url": "https://raw.githubusercontent.com/arnab825/Mission-Control/main/Gaming/backend/version.json",
   "changelog": [
+    {
+      "version": "2.1.7",
+      "date": "2026-07-22",
+      "title": "Route all Windows installer downloads dynamically through resolver API",
+      "highlights": [
+        "Route all Windows installer downloads dynamically through resolver API"
+      ]
+    },
     {
       "version": "2.1.6",
       "date": "2026-07-22",
@@ -423,15 +431,6 @@
       "highlights": [
         "Fixed: game_loading flag now clears after 10 s even if the ETW FPS tracker returns no data (Vulkan, OpenGL, or elevated-permission failures)",
         "Changed CALIBRATING condition from 'frame_count<30 OR fps==0' to 'frame_count<30 AND fps==0', preventing infinite stuck state"
-      ]
-    },
-    {
-      "version": "1.6.8",
-      "date": "2026-07-17",
-      "title": "Fix missing shortcuts and uninstall legacy versions during upgrade",
-      "highlights": [
-        "Protect machine-wide desktop shortcuts from being deleted during cleanup",
-        "Automatically and silently uninstall legacy per-user installations during per-machine upgrades"
       ]
     }
   ]
