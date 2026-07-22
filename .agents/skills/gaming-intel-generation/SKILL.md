@@ -87,5 +87,6 @@ To avoid creating duplicate posts for the same day (e.g. if the generation scrip
   * **STRICT SAFETY**: Do NOT generate any harmful, unsafe, hateful, or 18+ / adult-related content. Keep the content safe for all audiences.
 
 * **Scheduling & Daily Multi-Post Rules**:
-  * The blog generator runs daily at **4:00 AM** (configured as a Vercel cron job).
+  * The blog generator runs daily at **4:00 AM IST** (configured as a Vercel cron job running at `22:30 UTC`).
   * Every execution must generate a post for **each** of the four active categories (GPU News, Game News, Hardware Deep-Dive, Game Revisit) to populate the website filters daily.
+  * **Anti-Duplication**: Feed items must be partitioned/sliced across related categories (e.g. GPU News and Hardware Deep-Dive get separate halves of the hardware news, while Game News and Game Revisit get separate halves of the game news). Each category must also be prompted with a distinct focus (e.g. latest releases vs. historical retrospects/architecture) to avoid topic duplicates on the same day.

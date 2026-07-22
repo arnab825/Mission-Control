@@ -139,6 +139,13 @@ async function generateBlogPost(
     .map((i, idx) => `${idx + 1}. [${i.source}] ${i.title}\n   ${i.description}`)
     .join("\n\n");
 
+  const categoryInstructions = {
+    "GPU News": "Focus on current news, releases, product specifications, performance benchmarks, and leaks about graphics processors, CPUs, memory, or fabrication technology.",
+    "Game News": "Focus on current news about game releases, launch dates, developer announcements, game engine updates, patches, or graphics API features.",
+    "Hardware Deep-Dive": "Focus on a detailed, technical, or architectural deep-dive explaining the underlying physics, science, or computer architecture of a hardware technology (e.g. how ray tracing pipelines operate, memory controller physics, CUDA/Tensor core operation, or thermal throttles). Do not just write a news report.",
+    "Game Revisit": "Focus on a retrospective look, post-mortem, or engine design analysis of a classic, retro, or older game. Discuss its historical rendering engine architecture, how it bypassed physical console/system constraints, or code-level development triumphs."
+  }[postType];
+
   const prompt = `You are an expert gaming journalist, technical writer, and SEO specialist writing for a high-quality developer and gamer audience.
 
 Today is ${today}. Based on the following real headlines and news items, write a comprehensive blog post.
@@ -155,6 +162,7 @@ Generate a highly engaging, accurate, and completely unique blog post about thes
 
 2. REQUIREMENTS & STANDARDS:
 - Post type: ${postType}
+- Category Focus: ${categoryInstructions}
 - Tone: Sharp, technical, authoritative. Write as an experienced technology journalist, engineer, or game analyst—not as a generic AI. Avoid repetitive AI clichés and generic introductions. Blend technical depth with readability.
 - Length: 700-900 words. Start with a compelling introduction paragraph and include a brief ## Conclusion section.
 
@@ -445,7 +453,22 @@ export async function POST(request: NextRequest) {
   
   for (const currentTopic of postTypes) {
     const isHardware = (currentTopic === "GPU News" || currentTopic === "Hardware Deep-Dive");
-    const itemsToUse = isHardware ? gpuItems : gameItems;
+    let itemsToUse: FeedItem[];
+
+    if (currentTopic === "GPU News") {
+      itemsToUse = gpuItems.slice(0, Math.ceil(gpuItems.length / 2));
+    } else if (currentTopic === "Hardware Deep-Dive") {
+      itemsToUse = gpuItems.slice(Math.floor(gpuItems.length / 2));
+    } else if (currentTopic === "Game News") {
+      itemsToUse = gameItems.slice(0, Math.ceil(gameItems.length / 2));
+    } else { // Game Revisit
+      itemsToUse = gameItems.slice(Math.floor(gameItems.length / 2));
+    }
+
+    // Fall back to entire array if slicing left too few items (need at least 2)
+    if (itemsToUse.length < 2) {
+      itemsToUse = isHardware ? gpuItems : gameItems;
+    }
 
     if (itemsToUse.length >= 2) {
       const post = await generateBlogPost(itemsToUse, currentTopic, apiKey, targetDate);
