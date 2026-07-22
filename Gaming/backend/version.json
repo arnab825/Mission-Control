@@ -1,8 +1,16 @@
 {
-  "version": "2.1.8",
-  "release_date": "2026-07-21",
+  "version": "2.1.9",
+  "release_date": "2026-07-22",
   "update_check_url": "https://raw.githubusercontent.com/arnab825/Mission-Control/main/Gaming/backend/version.json",
   "changelog": [
+    {
+      "version": "2.1.9",
+      "date": "2026-07-22",
+      "title": "Implemented interactive Screenshot Gallery and Before/After Architecture Comparison UI",
+      "highlights": [
+        "Implemented interactive Screenshot Gallery and Before/After Architecture Comparison UI on the website."
+      ]
+    },
     {
       "version": "2.1.8",
       "date": "2026-07-22",
