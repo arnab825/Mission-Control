@@ -1895,26 +1895,38 @@ function setupAutoUpdater() {
         }
         pythonProcess = null;
       }
-      // Call quitAndInstall with non-silent flag so UAC prompt can be presented to user on elevated installers
-      autoUpdater.quitAndInstall(false, true);
 
-      // Fallback: If app does not exit within 3 seconds, attempt to launch pending installer with admin rights directly
-      setTimeout(() => {
+      // electron-updater's quitAndInstall() cannot request UAC elevation on its own for
+      // perMachine NSIS installers. Instead, directly locate and launch the downloaded
+      // installer executable via ShellExecute 'runas' verb so Windows always shows the
+      // UAC prompt regardless of the isAdminRightsRequired flag in update-info.json.
+      const updaterDir = path.join(app.getPath('userData'), '../mission-control-updater');
+      const candidates = [
+        path.join(updaterDir, 'pending', 'MissionControl-Setup.exe'),
+        path.join(updaterDir, 'installer.exe'),
+      ];
+      const installerExe = candidates.find(p => fs.existsSync(p));
+
+      if (installerExe) {
+        console.log(`[AutoUpdater] Launching installer with UAC elevation: ${installerExe}`);
         try {
-          const pendingExe = path.join(app.getPath('userData'), '../mission-control-updater/pending/MissionControl-Setup.exe');
-          if (fs.existsSync(pendingExe)) {
-            console.log('[AutoUpdater] Fallback: Launching pending installer elevated via PowerShell...');
-            spawn('powershell.exe', [
-              '-NoProfile',
-              '-Command',
-              `Start-Process -FilePath "${pendingExe}" -Verb RunAs`
-            ], { detached: true, stdio: 'ignore' }).unref();
-            app.quit();
-          }
-        } catch (fallbackErr) {
-          console.error('[AutoUpdater] Fallback installer launch failed:', fallbackErr);
+          // Use cmd /c start "" /wait so Windows itself requests UAC via ShellExecute
+          spawn('cmd.exe', ['/c', 'start', '""', installerExe], {
+            detached: true,
+            stdio: 'ignore',
+            windowsHide: false,
+          }).unref();
+          // Give the UAC dialog a moment to appear before quitting
+          setTimeout(() => app.quit(), 1500);
+        } catch (spawnErr) {
+          console.error('[AutoUpdater] Failed to spawn installer via cmd:', spawnErr);
+          // Last resort: use autoUpdater's own mechanism
+          autoUpdater.quitAndInstall(false, true);
         }
-      }, 3000);
+      } else {
+        console.warn('[AutoUpdater] No pending installer found, falling back to autoUpdater.quitAndInstall');
+        autoUpdater.quitAndInstall(false, true);
+      }
     } catch (err: any) {
       console.error('[AutoUpdater] quitAndInstall failed:', err);
     }
