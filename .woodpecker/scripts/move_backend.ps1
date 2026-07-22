@@ -4,10 +4,13 @@ $src  = "Gaming/backend/dist/MissionControlBackend"
 $dest = "Gaming/frontend/backend/MissionControlBackend"
 
 if (Test-Path $dest) {
-  # Terminate any orphaned Python or Mission Control backend instances before cleaning up
+  # Terminate any orphaned Python, backend, or .NET compiler processes locking assembly DLLs
   try {
     taskkill /f /im MissionControlBackend.exe 2>&1 | Out-Null
     taskkill /f /im python.exe 2>&1 | Out-Null
+    taskkill /f /im VBCSCompiler.exe 2>&1 | Out-Null
+    taskkill /f /im dotnet.exe 2>&1 | Out-Null
+    taskkill /f /im MSBuild.exe 2>&1 | Out-Null
   } catch {}
 
   # Retry Remove-Item up to 5 times with delay to handle transient filesystem/antivirus locks
@@ -25,9 +28,13 @@ if (Test-Path $dest) {
   if (-not $success) {
     # If standard Remove-Item fails, try renaming the folder first (standard Windows lock workaround), then deleting it
     try {
-      $tempRename = "$dest-old-$([guid]::NewGuid())"
-      Rename-Item $dest $tempRename -Force -ErrorAction Stop
-      Remove-Item $tempRename -Recurse -Force -ErrorAction SilentlyContinue
+      $destLeaf = Split-Path $dest -Leaf
+      $tempRenameName = "$destLeaf-old-$([guid]::NewGuid())"
+      Rename-Item -Path $dest -NewName $tempRenameName -Force -ErrorAction Stop
+      
+      $parentDir = Split-Path $dest
+      $tempRenameFullPath = Join-Path $parentDir $tempRenameName
+      Remove-Item $tempRenameFullPath -Recurse -Force -ErrorAction SilentlyContinue
     } catch {
       throw "Failed to remove destination folder $dest after multiple retries: $_"
     }
