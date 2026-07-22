@@ -87,8 +87,8 @@ $candidatePaths = @(
 $sourceInstaller = $null
 foreach ($path in $candidatePaths) {
   if (Test-Path $path) {
-    $match = Get-ChildItem -Path $path -Filter "*$semver*.exe" -Recurse -ErrorAction SilentlyContinue |
-      Where-Object { $_.Name -notlike "*__uninstaller*" -and $_.Name -notlike "*Uninstall*" } |
+    $match = Get-ChildItem -Path $path -Filter "*.exe" -Recurse -ErrorAction SilentlyContinue |
+      Where-Object { $_.Name -notlike "*__uninstaller*" -and $_.Name -notlike "*Uninstall*" -and $_.Name -notlike "*builder*" } |
       Sort-Object Length -Descending |
       Select-Object -First 1
     if ($match) {
@@ -98,7 +98,7 @@ foreach ($path in $candidatePaths) {
   }
 }
 if (-not $sourceInstaller) {
-  throw "Windows installer was not generated in the expected output directories (searched for *$semver*.exe)."
+  throw "Windows installer was not generated in the expected output directories."
 }
 
 $releaseDir = 'Gaming/frontend/out/release'
@@ -245,9 +245,17 @@ if ($targetZip -and (Test-Path $targetZip)) {
   $zipUrl = "${uploadBase}?name=MissionControl-Portable.zip"
   try {
     $uploadZipResponse = Upload-FileWithProgress -Uri $zipUrl -FilePath $targetZip -Headers $uploadHeaders -ContentType "application/zip"
-    Write-Host "Portable ZIP archive uploaded successfully."
+    Write-Host "Portable ZIP archive uploaded successfully (MissionControl-Portable.zip)."
   } catch {
     Write-Warning "Failed to upload ZIP archive: $($_.Exception.Message)"
+  }
+
+  $zipSetupUrl = "${uploadBase}?name=MissionControl-Setup.zip"
+  try {
+    $uploadZipSetupResponse = Upload-FileWithProgress -Uri $zipSetupUrl -FilePath $targetZip -Headers $uploadHeaders -ContentType "application/zip"
+    Write-Host "Portable ZIP archive uploaded successfully (MissionControl-Setup.zip)."
+  } catch {
+    Write-Warning "Failed to upload MissionControl-Setup.zip: $($_.Exception.Message)"
   }
 }
 
