@@ -2,6 +2,10 @@
 
 This document contains a detailed history of all patches and updates for the AI Gaming Assistant.
 
+### Patch: 2026-07-22 — v2.1.7: Route all Windows installer downloads dynamically through resolver API
+
+- Route all Windows installer downloads dynamically through resolver API
+
 ### Patch: 2026-07-22 — v2.1.6: Fix Agent page infinite re-render loop and black screen issue
 
 - Fix Agent page infinite re-render loop and black screen issue
