@@ -911,6 +911,8 @@ class TelemetryThread(threading.Thread):
                                         pass
                                 except Exception:
                                     pass
+                            except Exception:
+                                pass
                     
                     if cpu_temp <= 0:
                         if hasattr(self, "_cached_wmi_temp") and self._cached_wmi_temp > 0:
