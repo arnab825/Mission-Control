@@ -14,6 +14,60 @@ import netSocket from 'node:net'
 import os from 'node:os'
 import { Worker } from 'node:worker_threads'
 
+// Define file-based logging for Electron main process to capture stdout/stderr and React console.logs
+function getLogFilePath(): string {
+  const localAppData = process.env.LOCALAPPDATA || (app && app.getPath ? app.getPath('appData') : '');
+  const userDataPath = path.join(localAppData, 'MissionControl', 'Electron');
+  try {
+    fs.mkdirSync(userDataPath, { recursive: true });
+  } catch (err) {}
+  return path.join(userDataPath, 'app.log');
+}
+
+function logToFile(level: string, ...args: any[]) {
+  try {
+    const logFile = getLogFilePath();
+    const msg = args.map(arg => {
+      if (arg instanceof Error) return arg.stack || arg.message;
+      if (typeof arg === 'object') {
+        try { return JSON.stringify(arg); } catch (_) { return String(arg); }
+      }
+      return String(arg);
+    }).join(' ');
+    
+    const formatted = `[${new Date().toISOString()}] [${level}] ${msg}\n`;
+    fs.appendFileSync(logFile, formatted);
+  } catch (err) {
+    process.stderr.write(`Failed to write to log file: ${err}\n`);
+  }
+}
+
+// Redirect console methods to write to the persistent log file
+const originalLog = console.log;
+const originalError = console.error;
+const originalWarn = console.warn;
+
+console.log = (...args) => {
+  originalLog(...args);
+  logToFile('INFO', ...args);
+};
+console.error = (...args) => {
+  originalError(...args);
+  logToFile('ERROR', ...args);
+};
+console.warn = (...args) => {
+  originalWarn(...args);
+  logToFile('WARN', ...args);
+};
+
+// Catch unhandled node process exceptions
+process.on('uncaughtException', (err) => {
+  console.error('[Electron Main Process Uncaught Exception]', err);
+});
+process.on('unhandledRejection', (reason) => {
+  console.error('[Electron Main Process Unhandled Rejection]', reason);
+});
+
 // Disable GPU sandbox on Windows to prevent GPU process crashes and black screen issues,
 // while keeping hardware acceleration enabled so transparent windows (splash) and Mica load correctly.
 if (process.platform === 'win32') {
@@ -706,6 +760,16 @@ async function createWindow() {
   // Ensure CSS transparency allows Mica to show through.
   // We'll stick to CSS transparency combined with a frameless transparent window for now.
 
+  const fallbackToFile = () => {
+    if (win && !win.isDestroyed()) {
+      const indexHtmlPath = path.join(process.env.DIST || '', 'index.html');
+      console.log(`[Electron] Falling back to direct file load: ${indexHtmlPath}`);
+      win.loadFile(indexHtmlPath).catch(err => {
+        console.error('[Electron] Failed to load index.html fallback:', err);
+      });
+    }
+  };
+
   if (VITE_DEV_SERVER_URL) {
     win.loadURL(VITE_DEV_SERVER_URL)
     // Open devtools by default for development
@@ -721,12 +785,16 @@ async function createWindow() {
         // Fallback retry
         setTimeout(() => {
           if (win && !win.isDestroyed()) {
-            win.loadURL(`http://127.0.0.1:${localServerPort}`).catch(() => {});
+            win.loadURL(`http://127.0.0.1:${localServerPort}`).catch((err2) => {
+              console.error('[Electron] Failed to load local server URL on retry:', err2);
+              fallbackToFile();
+            });
           }
         }, 1000);
       });
     } else {
-      console.error('[Electron] Local server port is 0, cannot load UI');
+      console.error('[Electron] Local server port is 0, cannot load UI via HTTP');
+      fallbackToFile();
     }
     // win.webContents.openDevTools()
   }
@@ -749,6 +817,30 @@ app.on('activate', () => {
     createWindow()
   }
 })
+
+// Listen for child process crashes (GPU process, utility processes, etc.)
+app.on('child-process-gone', (_event, details) => {
+  console.error(`[Electron] Child process gone: type=${details.type}, reason=${details.reason}, exitCode=${details.exitCode}`);
+  if (details.type === 'GPU' && details.reason === 'crashed') {
+    console.warn('[Electron] GPU process crashed! Attempting to continue in software rendering fallback.');
+  }
+});
+
+// Listen for renderer process crashes (React frontend crash, out-of-memory, etc.)
+app.on('render-process-gone', (_event, _webContents, details) => {
+  console.error(`[Electron] Renderer process gone: reason=${details.reason}, exitCode=${details.exitCode}`);
+  // If the main window renderer crashed, try to reload it or recreate it
+  if (win && _webContents === win.webContents) {
+    console.warn('[Electron] Main window renderer crashed! Recreating window in 3 seconds...');
+    setTimeout(() => {
+      if (win && !win.isDestroyed()) {
+        try { win.close(); } catch (e) {}
+      }
+      win = null;
+      createWindow();
+    }, 3000);
+  }
+});
 
 // Handle SSL/TLS certificate errors in development environments (e.g. self-signed certs or corporate proxies)
 app.on('certificate-error', (event, _webContents, url, _error, _certificate, callback) => {

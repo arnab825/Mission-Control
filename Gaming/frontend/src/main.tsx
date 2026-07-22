@@ -4,6 +4,15 @@ import { ClerkProvider, AuthenticateWithRedirectCallback } from '@clerk/clerk-re
 import App from './App.tsx'
 import './index.css'
 
+// Catch global window errors and unhandled promise rejections so they are printed to the console.
+// Electron captures web console messages and writes them to the main app log.
+window.addEventListener('error', (event) => {
+  console.error('[Web Global Error]', event.error?.stack || event.error?.message || event.message);
+});
+window.addEventListener('unhandledrejection', (event) => {
+  console.error('[Web Unhandled Rejection]', event.reason?.stack || event.reason?.message || event.reason);
+});
+
 const PUBLISHABLE_KEY = import.meta.env.VITE_CLERK_PUBLISHABLE_KEY || 'pk_test_ZXZpZGVudC1taWRnZS02Ni5jbGVyay5hY2NvdW50cy5kZXYk'
 const isSSOCallback = window.location.pathname === '/sso-callback'
 
