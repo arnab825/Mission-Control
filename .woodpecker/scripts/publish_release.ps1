@@ -149,7 +149,7 @@ foreach ($path in $candidatePaths) {
   if (Test-Path $path) {
     $match = Get-ChildItem -Path $path -Filter "*.exe" -Recurse -ErrorAction SilentlyContinue |
       Where-Object { $_.FullName -notlike "*out/release*" -and $_.FullName -notlike "*out\release*" -and $_.Name -notlike "*__uninstaller*" -and $_.Name -notlike "*Uninstall*" -and $_.Name -notlike "*builder*" } |
-      Sort-Object Length -Descending |
+      Sort-Object LastWriteTime -Descending |
       Select-Object -First 1
     if ($match) {
       $sourceInstaller = $match
@@ -169,6 +169,7 @@ if ((Resolve-Path $sourceInstaller.FullName).Path -ne (Resolve-Path $targetInsta
 # Check for generated MSI installer
 $sourceMsi = Get-ChildItem -Path "Gaming/frontend/out/make", "Gaming/frontend/dist" -Filter "*.msi" -Recurse -ErrorAction SilentlyContinue |
   Where-Object { $_.FullName -notlike "*out/release*" -and $_.FullName -notlike "*out\release*" } |
+  Sort-Object LastWriteTime -Descending |
   Select-Object -First 1
 $targetMsi = $null
 if ($sourceMsi) {
@@ -182,6 +183,7 @@ if ($sourceMsi) {
 # Check for generated ZIP archive
 $sourceZip = Get-ChildItem -Path "Gaming/frontend/out/make", "Gaming/frontend/dist" -Filter "*.zip" -Recurse -ErrorAction SilentlyContinue |
   Where-Object { $_.FullName -notlike "*out/release*" -and $_.FullName -notlike "*out\release*" } |
+  Sort-Object LastWriteTime -Descending |
   Select-Object -First 1
 $targetZip = $null
 if ($sourceZip) {
