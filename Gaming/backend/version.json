@@ -1,8 +1,17 @@
 {
-  "version": "2.2.1",
+  "version": "2.2.2",
   "release_date": "2026-07-22",
   "update_check_url": "https://raw.githubusercontent.com/arnab825/Mission-Control/main/Gaming/backend/version.json",
   "changelog": [
+    {
+      "version": "2.2.2",
+      "date": "2026-07-22",
+      "title": "Fix updater not installing: move requestedExecutionLevel to nsis block",
+      "highlights": [
+        "Fix updater not installing: move requestedExecutionLevel to nsis block",
+        "clear stale update state on startup"
+      ]
+    },
     {
       "version": "2.2.1",
       "date": "2026-07-22",
@@ -415,15 +424,6 @@
       "highlights": [
         "Bundled splash.html to dist-electron during build to resolve ERR_FILE_NOT_FOUND error on startup.",
         "Added safe catch handlers on splash screen load functions to prevent unhandled promise rejections."
-      ]
-    },
-    {
-      "version": "1.7.3",
-      "date": "2026-07-18",
-      "title": "Fix Unused Game Launch Variable & Stability Graph Reset",
-      "highlights": [
-        "Fixed linting warning by removing unused handleLaunch variable in GameCard.",
-        "Fixed Stability Lab chart history reset logic when games are inactive."
       ]
     }
   ]

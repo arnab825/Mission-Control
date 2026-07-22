@@ -2,6 +2,11 @@
 
 This document contains a detailed history of all patches and updates for the AI Gaming Assistant.
 
+### Patch: 2026-07-22 — v2.2.2: Fix updater not installing: move requestedExecutionLevel to nsis block
+
+- Fix updater not installing: move requestedExecutionLevel to nsis block
+- clear stale update state on startup
+
 ### Patch: 2026-07-22 — v2.2.1: Fix updater fallback execution for elevated installers
 
 - Fix updater fallback execution for elevated installers
