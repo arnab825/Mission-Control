@@ -1,8 +1,16 @@
 {
-  "version": "2.3.3",
+  "version": "2.3.4",
   "release_date": "2026-07-21",
   "update_check_url": "https://raw.githubusercontent.com/arnab825/Mission-Control/main/Gaming/backend/version.json",
   "changelog": [
+    {
+      "version": "2.3.4",
+      "date": "2026-07-23",
+      "title": "Fix production backend self-elevation exit loop and ASAR file streaming",
+      "highlights": [
+        "Fix production backend self-elevation exit loop and ASAR file streaming"
+      ]
+    },
     {
       "version": "2.3.3",
       "date": "2026-07-23",
@@ -419,15 +427,6 @@
         "Fixed FPS showing N/A in fullscreen and Vulkan/OpenGL games (e.g. Spider-Man 2) by fallback to capture-loop FPS.",
         "Fixed GameKB infinite retry storm on LLM connection errors by enforcing a 5-minute per-game cooldown.",
         "Fixed installer shortcut removal and ensured silent cleanup of legacy per-user scope installations."
-      ]
-    },
-    {
-      "version": "1.6.11",
-      "date": "2026-07-17",
-      "title": "Fix FPS showing N/A for non-ETW games (e.g. Spider-Man 2)",
-      "highlights": [
-        "Restored capture-loop FPS as fallback when the ETW hardware tracker returns no data",
-        "Affects all games where DXGI Present ETW events are unavailable (fullscreen exclusive, Vulkan, OpenGL, or admin-permission issues)"
       ]
     }
   ]

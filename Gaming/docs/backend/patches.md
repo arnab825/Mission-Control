@@ -2,6 +2,10 @@
 
 This document contains a detailed history of all patches and updates for the AI Gaming Assistant.
 
+### Patch: 2026-07-23 — v2.3.4: Fix production backend self-elevation exit loop and ASAR file streaming
+
+- Fix production backend self-elevation exit loop and ASAR file streaming
+
 ### Patch: 2026-07-23 — v2.3.3: Fix ASAR static file streaming in packaged production builds
 
 - Fix ASAR static file streaming in packaged production builds
