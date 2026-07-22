@@ -2,6 +2,8 @@
 
 import { useState, useRef } from "react";
 import { MoveHorizontal } from "lucide-react";
+import beforeImg from "../../public/screenshots/before.png";
+import afterImg from "../../public/screenshots/after.png";
 
 export function BeforeAfterSlider() {
   const [sliderPosition, setSliderPosition] = useState(50);
@@ -56,7 +58,7 @@ export function BeforeAfterSlider() {
         >
           {/* After Image (Background) */}
           <div className="absolute inset-0">
-             <img src="/screenshots/after.png" alt="After: Next.js + Electron" className="w-full h-full object-cover" />
+             <img src={afterImg.src} alt="After: Next.js + Electron" className="w-full h-full object-cover" />
              <div className="absolute top-4 right-4 sm:top-6 sm:right-6 bg-neon-green text-obsidian px-3 py-1.5 rounded-full font-mono text-[10px] sm:text-xs font-bold shadow-[0_0_15px_rgba(118,185,0,0.4)]">
                AFTER (NEXT.JS + ELECTRON)
              </div>
@@ -67,7 +69,7 @@ export function BeforeAfterSlider() {
             className="absolute inset-0 border-r-2 border-white/80 z-10"
             style={{ clipPath: `polygon(0 0, ${sliderPosition}% 0, ${sliderPosition}% 100%, 0 100%)` }}
           >
-             <img src="/screenshots/before.png" alt="Before: Python GUI" className="w-full h-full object-cover grayscale-[20%]" />
+             <img src={beforeImg.src} alt="Before: Python GUI" className="w-full h-full object-cover grayscale-[20%]" />
              <div className="absolute top-4 left-4 sm:top-6 sm:left-6 bg-gray-800/90 text-white px-3 py-1.5 rounded-full font-mono text-[10px] sm:text-xs font-bold backdrop-blur-sm border border-white/10">
                BEFORE (PYTHON ONLY)
              </div>
