@@ -865,7 +865,7 @@ class TelemetryThread(threading.Thread):
                                 try:
                                     # Query both ACPI temperature and max actual core frequency in one fast call, prefixing to prevent parsing confusion
                                     out = subprocess.check_output(
-                                        'powershell -NoProfile -Command "$t = Get-CimInstance -Namespace root/wmi -ClassName MSAcpi_ThermalZoneTemperature | Where-Object { $_.InstanceName -notmatch \'PCH|BAT|SEN\' } | Select-Object -ExpandProperty CurrentTemperature -ErrorAction SilentlyContinue; $f = Get-CimInstance -ClassName Win32_PerfFormattedData_Counters_ProcessorInformation | Measure-Object -Property ActualFrequency -Maximum | Select-Object -ExpandProperty Maximum -ErrorAction SilentlyContinue; Write-Output \\"TEMP:$t\\"; Write-Output \\"FREQ:$f\\""',
+                                        'powershell -NoProfile -Command "$t = Get-CimInstance -Namespace root/wmi -ClassName MSAcpi_ThermalZoneTemperature -ErrorAction SilentlyContinue | Where-Object { $_.InstanceName -notmatch \'PCH|BAT|SEN\' } | Select-Object -ExpandProperty CurrentTemperature -ErrorAction SilentlyContinue; $f = Get-CimInstance -ClassName Win32_PerfFormattedData_Counters_ProcessorInformation -ErrorAction SilentlyContinue | Measure-Object -Property ActualFrequency -Maximum | Select-Object -ExpandProperty Maximum -ErrorAction SilentlyContinue; Write-Output \\"TEMP:$t\\"; Write-Output \\"FREQ:$f\\""',
                                         shell=True, startupinfo=si, creationflags=0x08000000, timeout=2.0
                                     ).decode().strip().splitlines()
                                     wmi_temps = []
@@ -891,7 +891,7 @@ class TelemetryThread(threading.Thread):
                                     # Fallback to legacy wmic for temperature only if powershell fails
                                     try:
                                         out = subprocess.check_output(
-                                            'wmic /namespace:\\\\root\\wmi PATH MSAcpi_ThermalZoneTemperature get InstanceName,CurrentTemperature /value',
+                                            'wmic /namespace:\\\\root\\wmi PATH MSAcpi_ThermalZoneTemperature get InstanceName,CurrentTemperature /value 2>NUL',
                                             shell=True, startupinfo=si, creationflags=0x08000000, timeout=2.0
                                         ).decode().strip()
                                         lines = [line.strip() for line in out.splitlines() if line.strip()]
@@ -909,13 +909,16 @@ class TelemetryThread(threading.Thread):
                                                             self._cached_wmi_temp = temp_c
                                     except Exception:
                                         pass
-                                except Exception as e:
-                                    logger.debug(f"WMI query failed: {e}")
-                            except Exception:
-                                pass
+                                except Exception:
+                                    pass
                     
-                    if cpu_temp <= 0 and hasattr(self, "_cached_wmi_temp"):
-                        cpu_temp = self._cached_wmi_temp
+                    if cpu_temp <= 0:
+                        if hasattr(self, "_cached_wmi_temp") and self._cached_wmi_temp > 0:
+                            cpu_temp = self._cached_wmi_temp
+                        else:
+                            native_t = _try_win_cpu_temp_native()
+                            if native_t > 0:
+                                cpu_temp = native_t
 
                     if cpu_freq <= 0 and hasattr(self, "_cached_wmi_freq") and self._cached_wmi_freq > 0:
                         cpu_freq = self._cached_wmi_freq
