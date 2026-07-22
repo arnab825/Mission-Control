@@ -873,14 +873,14 @@ const AgentPage: React.FC<{
       timer = setTimeout(() => {
         setIsHistoryLoading(false);
       }, 1200);
-    } else if (!connected && isHistoryLoading) {
+    } else if (!connected) {
       setIsHistoryLoading(false);
     }
 
     return () => {
       if (timer) clearTimeout(timer);
     };
-  }, [activeSessionId, connected, onCommand, isPopup, state?.chat_history, isHistoryLoading]);
+  }, [activeSessionId, connected, onCommand, isPopup, state?.chat_history]);
 
   // Sync history from backend — only replace if there are no in-progress (thinking/typing) messages
   // to avoid clobbering real-time chat bubbles with stale backend data.
