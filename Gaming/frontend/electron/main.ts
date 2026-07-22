@@ -72,7 +72,12 @@ process.on('unhandledRejection', (reason) => {
 // while keeping hardware acceleration enabled so transparent windows (splash) and Mica load correctly.
 if (process.platform === 'win32') {
   app.commandLine.appendSwitch('disable-gpu-sandbox');
-  console.log('[Electron] Windows platform detected — disabled GPU sandbox.');
+  // Run GPU in the browser process to prevent GPU process crash → black screen
+  app.commandLine.appendSwitch('in-process-gpu');
+  // Disable color-correct rendering — prevents a black window when the GPU
+  // color-space negotiation fails on some driver/monitor combinations.
+  app.commandLine.appendSwitch('disable-color-correct-rendering');
+  console.log('[Electron] Windows platform detected — applied GPU resilience flags.');
 }
 
 // Optimize Memory for 16GB RAM constraints
@@ -746,14 +751,23 @@ async function createWindow() {
     });
   }
 
+  // Mica (backgroundMaterial) can silently fail on some GPU driver / Windows build
+  // combinations and render as a solid black window. We only enable it when we are
+  // confident the DWM compositor will honour it: Windows 11 build 22000+ (NT 10.0.22000+).
+  const osRelease = os.release(); // e.g. "10.0.22621"
+  const [, , buildStr] = osRelease.split('.');
+  const osBuild = parseInt(buildStr || '0', 10);
+  const micaSupported = process.platform === 'win32' && osBuild >= 22000;
+  console.log(`[Electron] OS build ${osBuild} — Mica ${micaSupported ? 'ENABLED' : 'DISABLED (fallback to solid bg)'}`);
+
   win = new BrowserWindow({
     width: 1200,
     height: 800,
     frame: false,
     show: false, // Don't show the window until it's ready-to-show
     transparent: false, // Must be false for backgroundMaterial
-    backgroundColor: '#0a0a0a',
-    backgroundMaterial: 'mica', // Enable native Windows 11 Mica effect
+    backgroundColor: '#0d0f14', // Explicit dark bg — shown if Mica is unavailable
+    ...(micaSupported ? { backgroundMaterial: 'mica' } : {}),
     icon: getWindowIcon(),
     webPreferences: {
       preload: path.join(_dirname, 'preload.cjs'),
@@ -767,7 +781,25 @@ async function createWindow() {
     console.log(`[Web Console] ${message} (${sourceId}:${line})`);
   });
 
+  // Safety timeout: if ready-to-show never fires (renderer stall / load failure),
+  // forcibly show the window after 10 s so the user doesn't see a forever-splash.
+  let readyToShowFired = false;
+  const readyToShowTimeout = setTimeout(() => {
+    if (!readyToShowFired && win && !win.isDestroyed() && !win.isVisible()) {
+      console.warn('[Electron] ready-to-show timeout hit — forcing window visible.');
+      if (splash && !splash.isDestroyed()) {
+        try { splash.close(); } catch (_) {}
+        splash = null;
+      }
+      win.show();
+      win.focus();
+      startPythonBackend();
+    }
+  }, 10_000);
+
   win.once('ready-to-show', () => {
+    readyToShowFired = true;
+    clearTimeout(readyToShowTimeout);
     console.log('[Electron] main window ready-to-show fired!');
     if (splash) {
       try { splash.close(); } catch(e) {}
@@ -781,6 +813,23 @@ async function createWindow() {
 
     // Start Python backend AFTER window is shown to avoid UAC prompt crashing the Electron DWM render context
     startPythonBackend();
+  })
+
+  // Recovery: if the URL or file fails to load, retry the fallback immediately
+  win.webContents.on('did-fail-load', (_event, errorCode, errorDescription, validatedURL) => {
+    // Ignore aborted navigations (code -3) — these are intentional (e.g. redirect)
+    if (errorCode === -3) return;
+    console.error(`[Electron] did-fail-load: ${errorCode} ${errorDescription} — URL: ${validatedURL}`);
+    // Wait briefly then attempt to fall back to direct file load
+    setTimeout(() => {
+      if (win && !win.isDestroyed()) {
+        const indexHtmlPath = path.join(process.env.DIST || '', 'index.html');
+        console.warn(`[Electron] Retrying via direct file load: ${indexHtmlPath}`);
+        win.loadFile(indexHtmlPath).catch(err => {
+          console.error('[Electron] Final fallback loadFile also failed:', err);
+        });
+      }
+    }, 1500);
   })
 
   registerContextMenu(win)
