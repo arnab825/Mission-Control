@@ -2,6 +2,10 @@
 
 This document contains a detailed history of all patches and updates for the AI Gaming Assistant.
 
+### Patch: 2026-07-22 — v2.1.5: Fix Mermaid render errors, add dynamic portable ZIP resolver, AI weights docs, and Winget Python installer
+
+- Fix Mermaid render errors, add dynamic portable ZIP resolver, AI weights docs, and Winget Python installer
+
 ### Patch: 2026-07-22 — v2.1.4: Fixed automatic loading of Release Highlights on Updates page mount
 
 - Fixed automatic loading of Release Highlights on Updates page mount
