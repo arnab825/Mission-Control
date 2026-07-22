@@ -1,0 +1,84 @@
+{
+    "specs": {
+        "cpu": "Intel64 Family 6 Model 186 Stepping 2, GenuineIntel",
+        "gpu": "NVIDIA GeForce RTX 5050 Laptop GPU"
+    },
+    "readiness": {
+        "score": 100,
+        "components": {
+            "os": {
+                "name": "Windows 11 Home Single Language",
+                "version": "25H2 (Build 26200)",
+                "min_req": "Windows 10 (64-bit)",
+                "rec_req": "Windows 11",
+                "status": "pass",
+                "reason": "Windows 11 provides the latest gaming optimizations and DirectStorage support.",
+                "score_impact": 100
+            },
+            "cpu": {
+                "name": "Intel(R) Core(TM) 7 240H",
+                "min_req": "4 Physical Cores",
+                "rec_req": "6+ Physical Cores",
+                "status": "pass",
+                "reason": "10 Physical Cores provide more than sufficient processing capability for real-time HUD, Vision processing, and background services.",
+                "score_impact": 100
+            },
+            "ram": {
+                "name": "16 GB",
+                "min_req": "8 GB",
+                "rec_req": "16 GB",
+                "status": "pass",
+                "reason": "Sufficient memory for simultaneous game execution, overlay rendering, and Vision analysis.",
+                "score_impact": 100
+            },
+            "gpu": {
+                "name": "NVIDIA GeForce RTX 5050 Laptop GPU",
+                "min_req": "NVIDIA GTX 10-Series",
+                "rec_req": "NVIDIA RTX 20-Series or newer",
+                "status": "pass",
+                "reason": "Supports all required NVIDIA APIs, Tensor cores for AI, and advanced rendering technologies.",
+                "score_impact": 100
+            },
+            "storage": {
+                "name": "NVMe PM9C1a Samsung 1024GB",
+                "min_req": "SATA Drive",
+                "rec_req": "NVMe / SATA SSD",
+                "status": "pass",
+                "reason": "SSD storage ensures fast loading and smooth asset streaming.",
+                "score_impact": 100
+            }
+        },
+        "features": [
+            {
+                "name": "Gaming Library",
+                "status": "Fully Supported",
+                "reason": "Basic application features are supported on all hardware."
+            },
+            {
+                "name": "HUD Overlay",
+                "status": "Fully Supported",
+                "reason": "Hardware-accelerated overlay is supported."
+            },
+            {
+                "name": "Performance Monitoring",
+                "status": "Fully Supported",
+                "reason": "System telemetry APIs are available."
+            },
+            {
+                "name": "Vision Analysis",
+                "status": "Fully Supported",
+                "reason": "Vision processing uses Tensor cores on RTX GPUs for real-time inference. Runs in fallback mode on GTX."
+            },
+            {
+                "name": "Future AI Assistant",
+                "status": "Fully Supported",
+                "reason": "Cloud-based AI requires minimal local hardware."
+            },
+            {
+                "name": "Future Recording Features",
+                "status": "Unsupported",
+                "reason": "Feature currently in development."
+            }
+        ]
+    }
+}
