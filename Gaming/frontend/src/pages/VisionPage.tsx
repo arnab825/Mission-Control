@@ -608,9 +608,9 @@ const VisionPage: React.FC<VisionPageProps> = ({ state, sendCommand }) => {
                       </div>
                     ) : (
                       <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 p-3 bg-black/40 rounded-xl border border-white/5 font-mono text-[10px]">
-                        <div className="space-y-1">
-                          <div className="text-zinc-400 font-sans font-bold">Install optional Vision AI engine on-demand:</div>
-                          <code className="text-amber-400 select-all block">pip install torch torchvision ultralytics</code>
+                        <div className="space-y-1 min-w-0">
+                          <div className="text-zinc-400 font-sans font-bold">Install optional Vision AI engine on-demand (Winget / Python):</div>
+                          <code className="text-amber-400 select-all block break-all">winget install Python.Python.3.11 ; pip install torch torchvision ultralytics</code>
                         </div>
                         <button
                           type="button"

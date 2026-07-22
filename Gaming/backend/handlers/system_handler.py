@@ -465,23 +465,45 @@ def handle_install_yolo_deps(payload: dict, pipeline, bridge, config) -> None:
             })
             
             # Determine the correct python/pip executable to invoke
-            if not getattr(sys, 'frozen', False):
-                cmd = [sys.executable, "-m", "pip", "install", "ultralytics", "torch", "torchvision"]
-            else:
-                py_path = shutil.which("python") or shutil.which("python3")
-                pip_path = shutil.which("pip") or shutil.which("pip3")
-                uv_path = shutil.which("uv")
-                
-                if py_path:
-                    cmd = [py_path, "-m", "pip", "install", "ultralytics", "torch", "torchvision"]
-                elif uv_path:
-                    cmd = [uv_path, "pip", "install", "--system", "ultralytics", "torch", "torchvision"]
-                elif pip_path:
-                    cmd = [pip_path, "install", "ultralytics", "torch", "torchvision"]
-                else:
-                    cmd = ["pip", "install", "ultralytics", "torch", "torchvision"]
+            winget_path = shutil.which("winget")
+            py_path = shutil.which("python") or shutil.which("python3")
+            pip_path = shutil.which("pip") or shutil.which("pip3")
+            uv_path = shutil.which("uv")
 
             creationflags = 0x08000000 if os.name == "nt" else 0
+
+            # If python/pip is not found on Windows, attempt winget installation first
+            if not py_path and not pip_path and not uv_path and os.name == "nt" and winget_path:
+                bridge.update_state({
+                    "yolo_install_status": {
+                        "status": "installing",
+                        "message": "Python not found. Installing Python via Winget...",
+                        "progress_pct": 10
+                    }
+                })
+                winget_cmd = [winget_path, "install", "--id", "Python.Python.3.11", "--exact", "--accept-package-agreements", "--accept-source-agreements"]
+                logger.info("Executing Winget Python installer: %s", " ".join(winget_cmd))
+                try:
+                    w_proc = subprocess.run(winget_cmd, stdout=subprocess.PIPE, stderr=subprocess.STDOUT, text=True, creationflags=creationflags, timeout=300)
+                    logger.info("Winget installation output: %s", w_proc.stdout)
+                except Exception as w_err:
+                    logger.warning("Winget Python install attempted with result: %s", w_err)
+                
+                # Refresh python paths after winget run
+                py_path = shutil.which("python") or shutil.which("python3")
+                pip_path = shutil.which("pip") or shutil.which("pip3")
+
+            if not getattr(sys, 'frozen', False):
+                cmd = [sys.executable, "-m", "pip", "install", "ultralytics", "torch", "torchvision"]
+            elif py_path:
+                cmd = [py_path, "-m", "pip", "install", "ultralytics", "torch", "torchvision"]
+            elif uv_path:
+                cmd = [uv_path, "pip", "install", "--system", "ultralytics", "torch", "torchvision"]
+            elif pip_path:
+                cmd = [pip_path, "install", "ultralytics", "torch", "torchvision"]
+            else:
+                cmd = ["pip", "install", "ultralytics", "torch", "torchvision"]
+
             logger.info("Executing YOLO installer command: %s", " ".join(cmd))
             
             proc = subprocess.Popen(

@@ -87,6 +87,7 @@ const QUICK_LINKS = [
   { label: "Installation", href: "#getting-started" },
   { label: "Configuration", href: "#configuration" },
   { label: "NIM / AI", href: "#nim-ai" },
+  { label: "AI Weights", href: "/docs/on_demand_ai_weights" },
   { label: "HUD", href: "#hud-overlay" },
   { label: "Telemetry", href: "#telemetry" },
   { label: "Agentic AI", href: "#agentic-ai" },

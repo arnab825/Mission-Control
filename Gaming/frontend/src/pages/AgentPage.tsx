@@ -855,6 +855,7 @@ const AgentPage: React.FC<{
  
   // Fetch history when active session changes or when connection is established
   useEffect(() => {
+    let timer: ReturnType<typeof setTimeout> | null = null;
     if (activeSessionId && connected) {
       if (lastFetchedSessionRef.current === activeSessionId) {
         return;
@@ -867,8 +868,19 @@ const AgentPage: React.FC<{
       lastFetchedSessionRef.current = activeSessionId;
       setIsHistoryLoading(true);
       onCommand('get_chat_history', { sessionId: activeSessionId, isBackground: isPopup });
+
+      // Safety timeout: reset history loading after 1.2s to prevent stuck skeleton UI
+      timer = setTimeout(() => {
+        setIsHistoryLoading(false);
+      }, 1200);
+    } else if (!connected && isHistoryLoading) {
+      setIsHistoryLoading(false);
     }
-  }, [activeSessionId, connected, onCommand, isPopup, state?.chat_history]);
+
+    return () => {
+      if (timer) clearTimeout(timer);
+    };
+  }, [activeSessionId, connected, onCommand, isPopup, state?.chat_history, isHistoryLoading]);
 
   // Sync history from backend — only replace if there are no in-progress (thinking/typing) messages
   // to avoid clobbering real-time chat bubbles with stale backend data.
@@ -1670,6 +1682,21 @@ const AgentPage: React.FC<{
                       <div className="h-2.5 w-48 rounded-full bg-white/8" />
                       <div className="h-2.5 w-20 rounded-full bg-white/6" />
                     </div>
+                  </div>
+                </div>
+              </div>
+            ) : chat.length === 0 ? (
+              <div className="flex justify-start mb-6">
+                <div className="max-w-[85%] space-y-1.5">
+                  <div className="flex items-center gap-2">
+                    <div className="w-5 h-5 rounded-md flex items-center justify-center bg-neon-green/10 border border-neon-green/20">
+                      <BrainCircuit className="w-3 h-3 text-neon-green" />
+                    </div>
+                    <span className="text-[8px] font-bold text-zinc-500 uppercase tracking-widest">Agent</span>
+                    <span className="text-[8px] font-medium text-zinc-700">Just now</span>
+                  </div>
+                  <div className="p-4 rounded-2xl rounded-tl-sm bg-white/[0.06] border border-white/15 text-zinc-200 text-[12px] sm:text-[13px] leading-relaxed backdrop-blur-xl shadow-[0_0_15px_rgba(118,185,0,0.03)]">
+                    Neural Link established. I am your Agentic AI Assistant. How can I assist you today?
                   </div>
                 </div>
               </div>
