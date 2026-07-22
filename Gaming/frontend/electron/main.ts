@@ -1738,6 +1738,17 @@ function setupAutoUpdater() {
     return;
   }
 
+  // Clear stale update state if it's for a different (old) version.
+  // This prevents the UI from showing a previously-downloaded version as "ready"
+  // when the user is already on a newer version or has a fresh install.
+  try {
+    const savedState = loadUpdateState();
+    if (savedState.status === 'downloaded' && savedState.version !== app.getVersion()) {
+      console.log(`[AutoUpdater] Clearing stale update state for v${savedState.version} (current: v${app.getVersion()})`);
+      saveUpdateState({ status: 'idle', percent: 0 });
+    }
+  } catch (_) {}
+
   // Load autoDownload setting from config on startup
   let autoDownloadEnabled = true;
   try {

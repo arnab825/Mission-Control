@@ -2,7 +2,7 @@
     "name":  "mission-control",
     "productName":  "Mission Control",
     "private":  true,
-    "version":  "2.2.1",
+    "version":  "2.2.2",
     "description":  "Mission Control desktop app for gamers.",
     "author":  "Arnab Contributors \u003csupport@missioncontrol.app\u003e",
     "type":  "module",
@@ -75,6 +75,7 @@
                                "perMachine":  true,
                                "packElevateHelper":  true,
                                "allowElevation":  true,
+                               "requestedExecutionLevel":  "requireAdministrator",
                                "shortcutName":  "Mission Control",
                                "uninstallDisplayName":  "Uninstall Mission Control",
                                "runAfterFinish":  true,
@@ -108,7 +109,6 @@
                   "win":  {
                               "artifactName":  "MissionControl-Setup.${ext}",
                               "icon":  "public/favicon.ico",
-                              "requestedExecutionLevel":  "requireAdministrator",
                               "verifyUpdateCodeSignature":  false,
                               "target":  [
                                              {
