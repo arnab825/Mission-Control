@@ -779,7 +779,7 @@ if __name__ == "__main__":
     multiprocessing.freeze_support()
     
     # Request UAC elevation on Windows if not running as admin.
-    if sys.platform == "win32" and "--no-admin" not in sys.argv:
+    if sys.platform == "win32" and "--no-admin" not in sys.argv and "--dev" not in sys.argv:
         import ctypes
         try:
             if not ctypes.windll.shell32.IsUserAnAdmin():

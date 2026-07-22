@@ -562,18 +562,21 @@ function startPythonBackend() {
 
       if (fs.existsSync(bundledExeDirect)) {
         executablePath = bundledExeDirect
+        args = ['--no-admin']
         console.log(`[Electron] Using bundled backend exe (direct): ${bundledExeDirect}`)
       } else if (fs.existsSync(bundledExeBuilder)) {
         executablePath = bundledExeBuilder
+        args = ['--no-admin']
         console.log(`[Electron] Using bundled backend exe (builder): ${bundledExeBuilder}`)
       } else if (fs.existsSync(bundledExeForge)) {
         executablePath = bundledExeForge
+        args = ['--no-admin']
         console.log(`[Electron] Using bundled backend exe (forge): ${bundledExeForge}`)
       } else {
         // Fallback: raw python (developer machine without compiled binary)
         const localVenv = 'c:/GitHub/Mission-Control/Gaming/backend/.venv/Scripts/python.exe'
         executablePath = fs.existsSync(localVenv) ? localVenv : 'python'
-        args = [scriptPath]
+        args = [scriptPath, '--no-admin']
         console.log(`[Electron] Fallback — python: ${executablePath}`)
       }
     }
