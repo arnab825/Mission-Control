@@ -72,16 +72,13 @@ process.on('unhandledRejection', (reason) => {
 // while keeping hardware acceleration enabled so transparent windows (splash) and Mica load correctly.
 if (process.platform === 'win32') {
   app.commandLine.appendSwitch('disable-gpu-sandbox');
-  // Run GPU in the browser process to prevent GPU process crash → black screen
-  app.commandLine.appendSwitch('in-process-gpu');
   // Disable color-correct rendering — prevents a black window when the GPU
   // color-space negotiation fails on some driver/monitor combinations.
   app.commandLine.appendSwitch('disable-color-correct-rendering');
   console.log('[Electron] Windows platform detected — applied GPU resilience flags.');
 }
 
-// Optimize Memory for 16GB RAM constraints
-app.commandLine.appendSwitch('js-flags', '--max-old-space-size=256');
+// Enable GC exposure for memory management
 app.commandLine.appendSwitch('js-flags', '--expose-gc');
 
 function handleSquirrelEvent(): boolean {
