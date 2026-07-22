@@ -509,8 +509,8 @@ function startPythonBackend() {
   // In packaged mode, kill any orphaned background backend process first to ensure we launch the updated binary
   if (!isDev && process.platform === 'win32') {
     try {
-      execSync('taskkill /f /im MissionControl.exe', { windowsHide: true, stdio: 'ignore' })
-      console.log('[Electron] Cleaned up lingering MissionControl.exe background processes on startup.')
+      execSync('taskkill /f /im MissionControlBackend.exe', { windowsHide: true, stdio: 'ignore' })
+      console.log('[Electron] Cleaned up lingering MissionControlBackend.exe background processes on startup.')
     } catch (_) {}
   }
 
@@ -540,7 +540,7 @@ function startPythonBackend() {
   function spawnBackend() {
     // ── Priority chain ──────────────────────────────────────────────────────
     // 1. Dev mode  → use venv python + main.py (hot-reload friendly)
-    // 2. Packaged  → use bundled MissionControl.exe (no Python install needed)
+    // 2. Packaged  → use bundled MissionControlBackend.exe (no Python install needed)
     // 3. Fallback  → system python + main.py (developer machine testing)
 
     let executablePath: string
@@ -554,8 +554,8 @@ function startPythonBackend() {
       console.log(`[Electron] Dev mode — python: ${executablePath}`)
     } else {
       // Production: look for bundled standalone exe first
-      const bundledExeBuilder = path.join((process as any).resourcesPath, 'backend', 'MissionControl', 'MissionControl.exe')
-      const bundledExeForge = path.join((process as any).resourcesPath, 'MissionControl', 'MissionControl.exe')
+      const bundledExeBuilder = path.join((process as any).resourcesPath, 'backend', 'MissionControlBackend', 'MissionControlBackend.exe')
+      const bundledExeForge = path.join((process as any).resourcesPath, 'MissionControlBackend', 'MissionControlBackend.exe')
 
       if (fs.existsSync(bundledExeBuilder)) {
         executablePath = bundledExeBuilder

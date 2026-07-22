@@ -154,7 +154,7 @@ exe = EXE(
     a.scripts,
     [],                   # onedir: no binaries merged into exe
     exclude_binaries=True,
-    name='MissionControl',
+    name='MissionControlBackend',
     debug=False,
     bootloader_ignore_signals=False,
     strip=False,
@@ -176,5 +176,5 @@ coll = COLLECT(
     strip=False,
     upx=False,
     upx_exclude=[],
-    name='MissionControl',  # output folder: dist/MissionControl/
+    name='MissionControlBackend',  # output folder: dist/MissionControlBackend/
 )

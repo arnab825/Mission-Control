@@ -240,7 +240,7 @@ class WindowDetector:
                 exe_path = ""
 
             # If the foreground window belongs to our own app, preserve the current state
-            our_procs = {"electron.exe", "aero-ai.exe", "python.exe", "py.exe", "missioncontrol.exe", "mission control.exe"}
+            our_procs = {"electron.exe", "aero-ai.exe", "python.exe", "py.exe", "missioncontrol.exe", "missioncontrolbackend.exe", "mission control.exe"}
             if exe_name.lower() in our_procs and self._current_window:
                 return self._current_window
                 
