@@ -134,15 +134,41 @@ $tag = $env:CI_COMMIT_TAG
 if (-not $tag) { $tag = "v$version" }
 $semver = $tag -replace '^v', ''
 
-$releaseDir = 'Gaming/frontend/out/release'
+$releaseDir = [System.IO.Path]::GetFullPath((Join-Path $PSScriptRoot "../../Gaming/frontend/out/release"))
 if (Test-Path $releaseDir) {
-  Remove-Item -Recurse -Force $releaseDir -ErrorAction SilentlyContinue
+  try {
+    taskkill /f /im MissionControl-Setup.exe 2>&1 | Out-Null
+    taskkill /f /im MissionControl-Setup.msi 2>&1 | Out-Null
+  } catch {}
+  
+  $success = $false
+  for ($i = 1; $i -le 5; $i++) {
+    try {
+      Remove-Item -Recurse -Force $releaseDir -ErrorAction Stop
+      $success = $true
+      break
+    } catch {
+      Write-Warning "Attempt $i to remove release folder failed: $_. Retrying in 1 second..."
+      Start-Sleep -Seconds 1
+    }
+  }
+  if (-not $success) {
+    try {
+      $destLeaf = Split-Path $releaseDir -Leaf
+      $tempRenameName = "$destLeaf-old-$([guid]::NewGuid())"
+      Rename-Item -Path $releaseDir -NewName $tempRenameName -Force -ErrorAction Stop
+      $parentDir = Split-Path $releaseDir
+      Remove-Item (Join-Path $parentDir $tempRenameName) -Recurse -Force -ErrorAction SilentlyContinue
+    } catch {
+      Write-Warning "Failed to delete releaseDir fallback rename: $_"
+    }
+  }
 }
 New-Item -ItemType Directory -Force -Path $releaseDir | Out-Null
 
 $candidatePaths = @(
-  'Gaming/frontend/out/make',
-  'Gaming/frontend/dist'
+  [System.IO.Path]::GetFullPath((Join-Path $PSScriptRoot "../../Gaming/frontend/out/make")),
+  [System.IO.Path]::GetFullPath((Join-Path $PSScriptRoot "../../Gaming/frontend/dist"))
 )
 $sourceInstaller = $null
 foreach ($path in $candidatePaths) {
@@ -167,7 +193,7 @@ if ((Resolve-Path $sourceInstaller.FullName).Path -ne (Resolve-Path $targetInsta
 }
 
 # Check for generated MSI installer
-$sourceMsi = Get-ChildItem -Path "Gaming/frontend/out/make", "Gaming/frontend/dist" -Filter "*.msi" -Recurse -ErrorAction SilentlyContinue |
+$sourceMsi = Get-ChildItem -Path $candidatePaths -Filter "*.msi" -Recurse -ErrorAction SilentlyContinue |
   Where-Object { $_.FullName -notlike "*out/release*" -and $_.FullName -notlike "*out\release*" } |
   Sort-Object LastWriteTime -Descending |
   Select-Object -First 1
@@ -181,7 +207,7 @@ if ($sourceMsi) {
 }
 
 # Check for generated ZIP archive
-$sourceZip = Get-ChildItem -Path "Gaming/frontend/out/make", "Gaming/frontend/dist" -Filter "*.zip" -Recurse -ErrorAction SilentlyContinue |
+$sourceZip = Get-ChildItem -Path $candidatePaths -Filter "*.zip" -Recurse -ErrorAction SilentlyContinue |
   Where-Object { $_.FullName -notlike "*out/release*" -and $_.FullName -notlike "*out\release*" } |
   Sort-Object LastWriteTime -Descending |
   Select-Object -First 1

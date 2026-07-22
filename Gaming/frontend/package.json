@@ -75,7 +75,6 @@
                                "perMachine":  true,
                                "packElevateHelper":  true,
                                "allowElevation":  true,
-                               "requestedExecutionLevel":  "requireAdministrator",
                                "shortcutName":  "Mission Control",
                                "uninstallDisplayName":  "Uninstall Mission Control",
                                "runAfterFinish":  true,
@@ -110,6 +109,7 @@
                               "artifactName":  "MissionControl-Setup.${ext}",
                               "icon":  "public/favicon.ico",
                               "verifyUpdateCodeSignature":  false,
+                              "requestedExecutionLevel":  "requireAdministrator",
                               "target":  [
                                              {
                                                  "target":  "nsis",
