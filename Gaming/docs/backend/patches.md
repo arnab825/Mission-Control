@@ -2,6 +2,10 @@
 
 This document contains a detailed history of all patches and updates for the AI Gaming Assistant.
 
+### Patch: 2026-07-22 — v2.1.8: Add persistent diagnostic logging and file fallback loader to resolve black screen issues
+
+- Add persistent diagnostic logging and file fallback loader to resolve black screen issues
+
 ### Patch: 2026-07-22 — v2.1.7: Route all Windows installer downloads dynamically through resolver API
 
 - Route all Windows installer downloads dynamically through resolver API

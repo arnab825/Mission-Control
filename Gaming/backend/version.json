@@ -1,8 +1,16 @@
 {
-  "version": "2.1.7",
+  "version": "2.1.8",
   "release_date": "2026-07-21",
   "update_check_url": "https://raw.githubusercontent.com/arnab825/Mission-Control/main/Gaming/backend/version.json",
   "changelog": [
+    {
+      "version": "2.1.8",
+      "date": "2026-07-22",
+      "title": "Add persistent diagnostic logging and file fallback loader to resolve black screen issues",
+      "highlights": [
+        "Add persistent diagnostic logging and file fallback loader to resolve black screen issues"
+      ]
+    },
     {
       "version": "2.1.7",
       "date": "2026-07-22",
