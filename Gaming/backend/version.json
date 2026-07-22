@@ -1,8 +1,16 @@
 {
-  "version": "2.2.4",
+  "version": "2.2.5",
   "release_date": "2026-07-22",
   "update_check_url": "https://raw.githubusercontent.com/arnab825/Mission-Control/main/Gaming/backend/version.json",
   "changelog": [
+    {
+      "version": "2.2.5",
+      "date": "2026-07-22",
+      "title": "Fix black screen on startup caused by process name collision",
+      "highlights": [
+        "Renamed PyInstaller output executable to MissionControlBackend.exe to prevent startup taskkill from terminating the Electron application itself."
+      ]
+    },
     {
       "version": "2.2.4",
       "date": "2026-07-22",
