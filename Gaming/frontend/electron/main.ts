@@ -505,24 +505,37 @@ function startPythonBackend() {
     : path.join((process as any).resourcesPath, 'backend', 'main.py')
 
   const port = parseInt(process.env.VITE_BRIDGE_PORT || '8765', 10)
-  const timeout = setTimeout(() => {
-    // Timeout - no response from backend on port, try spawning
-    console.log(`[Electron] Backend probe timeout on port ${port}. Spawning new backend instance...`)
-    spawnBackend()
-  }, 2000)
 
-  // Probe port first to check if external python backend is already running
-  const socket = netSocket.createConnection({ port, host: '127.0.0.1' }, () => {
-    clearTimeout(timeout)
-    console.log(`[Electron] ✓ External Python backend detected on port ${port}. Skipping auto-spawn.`)
-    socket.end()
-  })
+  // In packaged mode, kill any orphaned background backend process first to ensure we launch the updated binary
+  if (!isDev && process.platform === 'win32') {
+    try {
+      execSync('taskkill /f /im MissionControl.exe', { windowsHide: true, stdio: 'ignore' })
+      console.log('[Electron] Cleaned up lingering MissionControl.exe background processes on startup.')
+    } catch (_) {}
+  }
 
-  socket.on('error', () => {
-    clearTimeout(timeout)
-    console.log(`[Electron] Port ${port} is free. Starting Python backend: ${scriptPath}`)
+  if (isDev) {
+    const timeout = setTimeout(() => {
+      console.log(`[Electron] Backend probe timeout on port ${port}. Spawning new backend instance...`)
+      spawnBackend()
+    }, 2000)
+
+    // Probe port first in dev mode to check if external python backend is already running
+    const socket = netSocket.createConnection({ port, host: '127.0.0.1' }, () => {
+      clearTimeout(timeout)
+      console.log(`[Electron] ✓ External Python backend detected on port ${port}. Skipping auto-spawn.`)
+      socket.end()
+    })
+
+    socket.on('error', () => {
+      clearTimeout(timeout)
+      console.log(`[Electron] Port ${port} is free. Starting Python backend: ${scriptPath}`)
+      spawnBackend()
+    })
+  } else {
+    // Packaged production mode: spawn bundled backend directly
     spawnBackend()
-  })
+  }
 
   function spawnBackend() {
     // ── Priority chain ──────────────────────────────────────────────────────
