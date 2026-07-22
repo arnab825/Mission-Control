@@ -1,4 +1,25 @@
-$ErrorActionPreference = 'Stop'
+# Ensure TLS 1.2 / 1.3 is enabled and disable Expect100Continue to prevent HTTP socket connection drops during large asset uploads
+[System.Net.ServicePointManager]::SecurityProtocol = [System.Net.SecurityProtocolType]::Tls12 -bor [System.Net.SecurityProtocolType]::Tls13
+[System.Net.ServicePointManager]::Expect100Continue = $false
+
+function Remove-AssetByName {
+  param(
+    [string]$Repo,
+    [string]$ReleaseId,
+    [string]$AssetName,
+    [hashtable]$Headers
+  )
+  try {
+    $assetsUrl = "https://api.github.com/repos/$Repo/releases/$ReleaseId/assets"
+    $existingAssets = Invoke-RestMethod -Uri $assetsUrl -Method Get -Headers $Headers -ErrorAction SilentlyContinue
+    foreach ($asset in $existingAssets) {
+      if ($asset.name -eq $AssetName) {
+        Write-Host "Cleaning up incomplete/existing asset record: $($asset.name)..."
+        Invoke-RestMethod -Uri $asset.url -Method Delete -Headers $Headers -ErrorAction SilentlyContinue
+      }
+    }
+  } catch {}
+}
 
 function Upload-FileWithProgress {
   param (
@@ -19,6 +40,7 @@ function Upload-FileWithProgress {
   $request.ContentLength = $totalBytes
   $request.ContentType = $ContentType
   $request.KeepAlive = $true
+  $request.AllowWriteStreamBuffering = $false # Avoid buffering massive files in RAM
   
   foreach ($key in $Headers.Keys) {
     if ($key -eq "Content-Type") { continue }
@@ -67,6 +89,39 @@ function Upload-FileWithProgress {
   $response.Close()
   
   return $responseBody
+}
+
+function Upload-AssetWithRetry {
+  param (
+    [string]$UploadBaseUrl,
+    [string]$AssetName,
+    [string]$FilePath,
+    [hashtable]$Headers,
+    [string]$ContentType,
+    [string]$Repo,
+    [string]$ReleaseId,
+    [int]$MaxRetries = 3
+  )
+
+  for ($attempt = 1; $attempt -le $MaxRetries; $attempt++) {
+    try {
+      if ($attempt -gt 1) {
+        Write-Host "Retry attempt $attempt of $MaxRetries for $AssetName after transport connection error..." -ForegroundColor Yellow
+        Remove-AssetByName -Repo $Repo -ReleaseId $ReleaseId -AssetName $AssetName -Headers $Headers
+        Start-Sleep -Seconds 5
+      }
+
+      $url = "${UploadBaseUrl}?name=${AssetName}"
+      $response = Upload-FileWithProgress -Uri $url -FilePath $FilePath -Headers $Headers -ContentType $ContentType
+      Write-Host "$AssetName uploaded successfully." -ForegroundColor Green
+      return $response
+    } catch {
+      Write-Warning "Attempt $attempt failed uploading ${AssetName}: $($_.Exception.Message)"
+      if ($attempt -eq $MaxRetries) {
+        throw $_
+      }
+    }
+  }
 }
 
 
@@ -232,50 +287,38 @@ if (-not (Test-Path $targetInstaller)) {
   throw "Installer file not found at: $targetInstaller"
 }
 
-Write-Host "Uploading $targetInstaller via Upload-FileWithProgress..."
-$installerUrl = "${uploadBase}?name=MissionControl-Setup.exe"
+Write-Host "Uploading $targetInstaller via Upload-AssetWithRetry..."
 try {
-  $uploadResponse = Upload-FileWithProgress -Uri $installerUrl -FilePath $targetInstaller -Headers $uploadHeaders -ContentType "application/octet-stream"
-  Write-Host "NSIS Installer uploaded successfully."
+  $uploadResponse = Upload-AssetWithRetry -UploadBaseUrl $uploadBase -AssetName "MissionControl-Setup.exe" -FilePath $targetInstaller -Headers $uploadHeaders -ContentType "application/octet-stream" -Repo $repo -ReleaseId $releaseId
 } catch {
   Write-Error "Failed to upload NSIS installer: $($_.Exception.Message)"
 }
 
 if ($targetMsi -and (Test-Path $targetMsi)) {
-  Write-Host "Uploading $targetMsi via Upload-FileWithProgress..."
-  $msiUrl = "${uploadBase}?name=MissionControl-Setup.msi"
+  Write-Host "Uploading $targetMsi via Upload-AssetWithRetry..."
   try {
-    $uploadMsiResponse = Upload-FileWithProgress -Uri $msiUrl -FilePath $targetMsi -Headers $uploadHeaders -ContentType "application/x-msi"
-    Write-Host "MSI installer uploaded successfully."
+    $uploadMsiResponse = Upload-AssetWithRetry -UploadBaseUrl $uploadBase -AssetName "MissionControl-Setup.msi" -FilePath $targetMsi -Headers $uploadHeaders -ContentType "application/x-msi" -Repo $repo -ReleaseId $releaseId
   } catch {
     Write-Warning "Failed to upload MSI installer: $($_.Exception.Message)"
   }
 }
 
 if ($targetZip -and (Test-Path $targetZip)) {
-  Write-Host "Uploading $targetZip via Upload-FileWithProgress..."
-  $zipUrl = "${uploadBase}?name=MissionControl-Portable.zip"
+  Write-Host "Uploading $targetZip via Upload-AssetWithRetry..."
   try {
-    $uploadZipResponse = Upload-FileWithProgress -Uri $zipUrl -FilePath $targetZip -Headers $uploadHeaders -ContentType "application/zip"
-    Write-Host "Portable ZIP archive uploaded successfully (MissionControl-Portable.zip)."
+    $uploadZipResponse = Upload-AssetWithRetry -UploadBaseUrl $uploadBase -AssetName "MissionControl-Portable.zip" -FilePath $targetZip -Headers $uploadHeaders -ContentType "application/zip" -Repo $repo -ReleaseId $releaseId
   } catch {
     Write-Warning "Failed to upload ZIP archive: $($_.Exception.Message)"
   }
 }
 
-Write-Host "Uploading latest.yml via Invoke-RestMethod..."
-$ymlUrl = "${uploadBase}?name=latest.yml"
+Write-Host "Uploading latest.yml via Upload-AssetWithRetry..."
 try {
-  $uploadYmlResponse = Invoke-RestMethod -Uri $ymlUrl -Method Post -Headers $uploadHeaders -InFile $latestYmlPath -ContentType "application/x-yaml"
-  Write-Host "latest.yml uploaded successfully."
+  $uploadYmlResponse = Upload-AssetWithRetry -UploadBaseUrl $uploadBase -AssetName "latest.yml" -FilePath $latestYmlPath -Headers $uploadHeaders -ContentType "application/x-yaml" -Repo $repo -ReleaseId $releaseId
 } catch {
   Write-Error "Failed to upload latest.yml: $($_.Exception.Message)"
-  if ($_.Exception.Response) {
-    $stream = $_.Exception.Response.GetResponseStream()
-    $reader = New-Object System.IO.StreamReader($stream)
-    Write-Host "Response body: $($reader.ReadToEnd())"
-  }
   throw
 }
 
 Write-Host "Release published successfully."
+
