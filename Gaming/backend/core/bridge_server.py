@@ -298,10 +298,15 @@ class BridgeServer:
 
         async def safe_send(client):
             try:
-                # Use a short timeout so a slow/frozen client doesn't hang the loop
-                await asyncio.wait_for(client.send(message), timeout=0.5)
+                # Use a generous timeout so large payloads (like frames) don't drop on busy systems
+                await asyncio.wait_for(client.send(message), timeout=3.0)
                 return None
-            except Exception:
+            except Exception as e:
+                logger.warning("Dropping client due to send failure/timeout: %s", e)
+                try:
+                    await client.close()
+                except Exception:
+                    pass
                 return client
 
         # Run all sends concurrently
