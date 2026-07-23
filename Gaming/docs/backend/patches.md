@@ -2,26 +2,17 @@
 
 This document contains a detailed history of all patches and updates for the AI Gaming Assistant.
 
-### Patch: 2026-07-22 — v2.2.3: Fix updater install: bypass electron-updater quitAndInstall for perMachine NSIS, launch installer directly via cmd ShellExecute for proper UAC elevation
+### Patch: 2026-07-23 — v2.3.4: Fix production backend self-elevation exit loop and ASAR file streaming
 
-- Fix updater install: bypass electron-updater quitAndInstall for perMachine NSIS, launch installer directly via cmd ShellExecute for proper UAC elevation
+- Fix production backend self-elevation exit loop and ASAR file streaming
 
-### Patch: 2026-07-22 — v2.2.2: Fix updater not installing: move requestedExecutionLevel to nsis block
+### Patch: 2026-07-23 — v2.3.3: Fix ASAR static file streaming in packaged production builds
 
-- Fix updater not installing: move requestedExecutionLevel to nsis block
-- clear stale update state on startup
+- Fix ASAR static file streaming in packaged production builds
 
-### Patch: 2026-07-22 — v2.2.1: Fix updater fallback execution for elevated installers
+### Patch: 2026-07-23 — v2.3.2: Fix production black screen and GPU compositor rendering
 
-- Fix updater fallback execution for elevated installers
-
-### Patch: 2026-07-22 — v2.2.0: Fix black screen on app update
-
-- Fix black screen on app update
-
-### Patch: 2026-07-22 — v2.1.8: Add persistent diagnostic logging and file fallback loader to resolve black screen issues
-
-- Add persistent diagnostic logging and file fallback loader to resolve black screen issues
+- Fix production black screen and GPU compositor rendering
 
 ### Patch: 2026-07-22 — v2.1.7: Route all Windows installer downloads dynamically through resolver API
 
