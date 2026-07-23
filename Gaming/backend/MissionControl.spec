@@ -43,7 +43,7 @@ datas = [
 # Only bundle directories that actually exist (avoid CI failures)
 for d in ['queries', 'vision', 'ai_brain', 'core', 'control',
           'capture', 'fps_counter', 'handlers', 'nvidia',
-          'system', 'voice', 'overlay_pos.json']:
+          'system', 'voice', 'overlay_pos.json', '.env']:
     src = Path(d)
     if src.exists():
         dest = d if src.is_dir() else '.'
