@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
-import { generateAndSavePost } from "./shared";
+import { generateAndSavePost } from "../shared";
 
-export const maxDuration = 60; // Max for Hobby plan (this route is for local sequential dev/trigger.ts)
+export const maxDuration = 60; // Max for Hobby plan
 
 export async function POST(request: NextRequest) {
   if (process.env.NODE_ENV === "production") {
@@ -26,20 +26,11 @@ export async function POST(request: NextRequest) {
     }
   }
 
-  const results: { type: string; slug: string; saved: boolean }[] = [];
-  const postTypes = ["GPU News", "Game News", "Hardware Deep-Dive", "Game Revisit"] as const;
-
-  for (const currentTopic of postTypes) {
-    const result = await generateAndSavePost(currentTopic, targetDate, apiKey, process.env.HF_TOKEN);
-    if (result) {
-      results.push(result);
-    }
-  }
+  const result = await generateAndSavePost("Game Revisit", targetDate, apiKey, process.env.HF_TOKEN);
 
   return NextResponse.json({
-    success: true,
-    generated: results.filter((r) => r.saved).length,
-    posts: results,
+    success: !!result?.saved,
+    post: result,
   });
 }
 

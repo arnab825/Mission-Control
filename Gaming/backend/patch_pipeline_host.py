@@ -1,6 +1,6 @@
 import os
 
-file_path = r"c:\GitHub\AiAssistant\Gaming\backend\core\pipeline_host.py"
+file_path = r"c:\GitHub\Mission-Control\Gaming\backend\core\pipeline_host.py"
 
 with open(file_path, "r", encoding="utf-8") as f:
     content = f.read()
