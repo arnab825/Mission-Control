@@ -1,7 +1,8 @@
 import * as electron from 'electron'
 const { app, BrowserWindow, ipcMain, protocol, net, globalShortcut, shell, screen, dialog, Tray, Menu, nativeImage, Notification, session } = electron
 
-app.disableHardwareAcceleration()
+// Prevent black screen bugs on hybrid GPU laptops without dropping UI framerates
+app.commandLine.appendSwitch('disable-gpu-compositing')
 
 type BrowserWindow = electron.BrowserWindow
 type Tray = electron.Tray
