@@ -1,8 +1,8 @@
 import os
 import re
 
-gk_path = r"c:\GitHub\AiAssistant\Gaming\backend\ai_brain\game_knowledge.py"
-dm_path = r"c:\GitHub\AiAssistant\Gaming\backend\ai_brain\decision_maker.py"
+gk_path = r"c:\GitHub\Mission-Control\Gaming\backend\ai_brain\game_knowledge.py"
+dm_path = r"c:\GitHub\Mission-Control\Gaming\backend\ai_brain\decision_maker.py"
 
 # --- Patch game_knowledge.py ---
 with open(gk_path, "r", encoding="utf-8") as f:

@@ -1,7 +1,7 @@
 import os
 import re
 
-file_path = r"c:\GitHub\AiAssistant\Gaming\backend\ai_brain\decision_maker.py"
+file_path = r"c:\GitHub\Mission-Control\Gaming\backend\ai_brain\decision_maker.py"
 
 with open(file_path, "r", encoding="utf-8") as f:
     content = f.read()
