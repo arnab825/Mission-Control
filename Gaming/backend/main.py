@@ -316,13 +316,23 @@ def main():
                 except Exception:
                     pass
 
-            try:
-                os.remove(path)
-                fd = os.open(path, os.O_CREAT | os.O_EXCL | os.O_RDWR)
-                os.write(fd, str(os.getpid()).encode())
-                return fd
-            except Exception:
-                return None
+            import time
+            for attempt in range(10):
+                try:
+                    try:
+                        os.remove(path)
+                    except FileNotFoundError:
+                        pass
+                    except Exception:
+                        pass
+                    
+                    fd = os.open(path, os.O_CREAT | os.O_EXCL | os.O_RDWR)
+                    os.write(fd, str(os.getpid()).encode())
+                    return fd
+                except Exception:
+                    if attempt < 9:
+                        time.sleep(0.5)
+            return None
 
     def exception_hook(exctype, value, tb):
         err_msg = "".join(traceback.format_exception(exctype, value, tb))
