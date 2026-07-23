@@ -2,7 +2,44 @@ $ErrorActionPreference = 'Stop'
 
 $src  = "Gaming/backend/dist/MissionControlBackend"
 $dest = "Gaming/frontend/backend/MissionControlBackend"
-if (Test-Path $dest) { Remove-Item $dest -Recurse -Force }
+
+if (Test-Path $dest) {
+  # Terminate any orphaned Python, backend, or .NET compiler processes locking assembly DLLs
+  try {
+    taskkill /f /im MissionControlBackend.exe 2>&1 | Out-Null
+    taskkill /f /im python.exe 2>&1 | Out-Null
+    taskkill /f /im VBCSCompiler.exe 2>&1 | Out-Null
+    taskkill /f /im dotnet.exe 2>&1 | Out-Null
+    taskkill /f /im MSBuild.exe 2>&1 | Out-Null
+  } catch {}
+
+  # Retry Remove-Item up to 5 times with delay to handle transient filesystem/antivirus locks
+  $success = $false
+  for ($i = 1; $i -le 5; $i++) {
+    try {
+      Remove-Item $dest -Recurse -Force -ErrorAction Stop
+      $success = $true
+      break
+    } catch {
+      Write-Warning "Attempt $i to remove destination folder failed: $_. Retrying in 1 second..."
+      Start-Sleep -Seconds 1
+    }
+  }
+  if (-not $success) {
+    # If standard Remove-Item fails, try renaming the folder first (standard Windows lock workaround), then deleting it
+    try {
+      $destLeaf = Split-Path $dest -Leaf
+      $tempRenameName = "$destLeaf-old-$([guid]::NewGuid())"
+      Rename-Item -Path $dest -NewName $tempRenameName -Force -ErrorAction Stop
+      
+      $parentDir = Split-Path $dest
+      $tempRenameFullPath = Join-Path $parentDir $tempRenameName
+      Remove-Item $tempRenameFullPath -Recurse -Force -ErrorAction SilentlyContinue
+    } catch {
+      throw "Failed to remove destination folder $dest after multiple retries: $_"
+    }
+  }
+}
 New-Item -ItemType Directory -Force -Path (Split-Path $dest) | Out-Null
 
 $roboOutput = robocopy $src $dest /E /NFL /NDL /NJH /nc /ns /np

@@ -72,11 +72,13 @@ process.on('unhandledRejection', (reason) => {
 // while keeping hardware acceleration enabled so transparent windows (splash) and Mica load correctly.
 if (process.platform === 'win32') {
   app.commandLine.appendSwitch('disable-gpu-sandbox');
-  console.log('[Electron] Windows platform detected — disabled GPU sandbox.');
+  // Disable color-correct rendering — prevents a black window when the GPU
+  // color-space negotiation fails on some driver/monitor combinations.
+  app.commandLine.appendSwitch('disable-color-correct-rendering');
+  console.log('[Electron] Windows platform detected — applied GPU resilience flags.');
 }
 
-// Optimize Memory for 16GB RAM constraints
-app.commandLine.appendSwitch('js-flags', '--max-old-space-size=256');
+// Enable GC exposure for memory management
 app.commandLine.appendSwitch('js-flags', '--expose-gc');
 
 function handleSquirrelEvent(): boolean {
@@ -550,24 +552,31 @@ function startPythonBackend() {
       // Dev: prefer venv python
       const venvPython = path.join(_dirname, '..', '..', 'backend', '.venv', 'Scripts', 'python.exe')
       executablePath = fs.existsSync(venvPython) ? venvPython : 'python'
-      args = [scriptPath, '--dev']
+      args = [scriptPath, '--dev', '--no-admin']
       console.log(`[Electron] Dev mode — python: ${executablePath}`)
     } else {
       // Production: look for bundled standalone exe first
-      const bundledExeBuilder = path.join((process as any).resourcesPath, 'backend', 'MissionControlBackend', 'MissionControlBackend.exe')
+      const bundledExeDirect = path.join((process as any).resourcesPath, 'MissionControl', 'MissionControlBackend.exe')
+      const bundledExeBuilder = path.join((process as any).resourcesPath, 'backend', 'MissionControl', 'MissionControlBackend.exe')
       const bundledExeForge = path.join((process as any).resourcesPath, 'MissionControlBackend', 'MissionControlBackend.exe')
 
-      if (fs.existsSync(bundledExeBuilder)) {
+      if (fs.existsSync(bundledExeDirect)) {
+        executablePath = bundledExeDirect
+        args = ['--no-admin']
+        console.log(`[Electron] Using bundled backend exe (direct): ${bundledExeDirect}`)
+      } else if (fs.existsSync(bundledExeBuilder)) {
         executablePath = bundledExeBuilder
-        console.log(`[Electron] Using bundled backend exe: ${bundledExeBuilder}`)
+        args = ['--no-admin']
+        console.log(`[Electron] Using bundled backend exe (builder): ${bundledExeBuilder}`)
       } else if (fs.existsSync(bundledExeForge)) {
         executablePath = bundledExeForge
+        args = ['--no-admin']
         console.log(`[Electron] Using bundled backend exe (forge): ${bundledExeForge}`)
       } else {
         // Fallback: raw python (developer machine without compiled binary)
         const localVenv = 'c:/GitHub/Mission-Control/Gaming/backend/.venv/Scripts/python.exe'
         executablePath = fs.existsSync(localVenv) ? localVenv : 'python'
-        args = [scriptPath]
+        args = [scriptPath, '--no-admin']
         console.log(`[Electron] Fallback — python: ${executablePath}`)
       }
     }
@@ -638,34 +647,20 @@ function startLocalServer(distPath: string, port = FIXED_UI_PORT, retries = 3): 
         let safeUrl = req.url?.split('?')[0] || '/'
         if (safeUrl === '/') safeUrl = '/index.html'
 
-        const filePath = path.join(distPath, safeUrl).replace(/\\/g, '/')
+        let filePath = path.join(distPath, safeUrl).replace(/\\/g, '/')
 
-        fs.stat(filePath, (err, stats) => {
-          if (err || !stats.isFile()) {
-            // Only fallback to index.html for navigational routes (no extension or .html)
-            // If an asset (.js, .css, .png, etc.) is missing, return 404 properly.
-            const ext = path.extname(safeUrl).toLowerCase()
-            if (ext && ext !== '.html') {
-              res.writeHead(404, { 'Content-Type': 'text/plain' })
-              res.end('404 Not Found')
-              return
-            }
-
-            const indexPath = path.join(distPath, 'index.html').replace(/\\/g, '/')
-            res.writeHead(200, {
-              'Content-Type': 'text/html',
-              'Cache-Control': 'no-store, no-cache, must-revalidate, max-age=0'
-            })
-            const stream = fs.createReadStream(indexPath)
-            stream.on('error', (streamErr) => {
-              console.error('[Electron Server] Error serving fallback index.html:', streamErr)
-              res.writeHead(404, { 'Content-Type': 'text/plain' })
-              res.end('404 Not Found')
-            })
-            stream.pipe(res)
+        if (!fs.existsSync(filePath) || fs.statSync(filePath).isDirectory()) {
+          const ext = path.extname(safeUrl).toLowerCase()
+          if (ext && ext !== '.html') {
+            res.writeHead(404, { 'Content-Type': 'text/plain' })
+            res.end('404 Not Found')
             return
           }
+          filePath = path.join(distPath, 'index.html').replace(/\\/g, '/')
+        }
 
+        try {
+          const data = fs.readFileSync(filePath)
           let contentType = 'text/plain'
           const ext = path.extname(filePath).toLowerCase()
           if (ext === '.html') contentType = 'text/html'
@@ -680,17 +675,16 @@ function startLocalServer(distPath: string, port = FIXED_UI_PORT, retries = 3): 
 
           res.writeHead(200, {
             'Content-Type': contentType,
+            'Content-Length': data.length,
             'Access-Control-Allow-Origin': '*',
             'Cache-Control': 'no-store, no-cache, must-revalidate, max-age=0'
           })
-          const stream = fs.createReadStream(filePath)
-          stream.on('error', (streamErr) => {
-            console.error('[Electron Server] Error serving file:', streamErr)
-            res.writeHead(500, { 'Content-Type': 'text/plain' })
-            res.end('500 Internal Server Error')
-          })
-          stream.pipe(res)
-        })
+          res.end(data)
+        } catch (readErr) {
+          console.error('[Electron Server] Error reading static file:', readErr)
+          res.writeHead(500, { 'Content-Type': 'text/plain' })
+          res.end('500 Internal Server Error')
+        }
       })
 
       server.on('error', (err: any) => {
@@ -746,14 +740,23 @@ async function createWindow() {
     });
   }
 
+  // Mica (backgroundMaterial) can silently fail on some GPU driver / Windows build
+  // combinations and render as a solid black window. We only enable it when we are
+  // confident the DWM compositor will honour it: Windows 11 build 22000+ (NT 10.0.22000+).
+  const osRelease = os.release(); // e.g. "10.0.22621"
+  const [, , buildStr] = osRelease.split('.');
+  const osBuild = parseInt(buildStr || '0', 10);
+  const micaSupported = false; // Disable Mica to resolve black client area composition bugs
+  console.log(`[Electron] OS build ${osBuild} — Mica ${micaSupported ? 'ENABLED' : 'DISABLED (fallback to solid bg)'}`);
+
   win = new BrowserWindow({
     width: 1200,
     height: 800,
     frame: false,
     show: false, // Don't show the window until it's ready-to-show
     transparent: false, // Must be false for backgroundMaterial
-    backgroundColor: '#0a0a0a',
-    backgroundMaterial: 'mica', // Enable native Windows 11 Mica effect
+    backgroundColor: '#0d0f14', // Explicit dark bg — shown if Mica is unavailable
+    ...(micaSupported ? { backgroundMaterial: 'mica' } : {}),
     icon: getWindowIcon(),
     webPreferences: {
       preload: path.join(_dirname, 'preload.cjs'),
@@ -767,7 +770,25 @@ async function createWindow() {
     console.log(`[Web Console] ${message} (${sourceId}:${line})`);
   });
 
+  // Safety timeout: if ready-to-show never fires (renderer stall / load failure),
+  // forcibly show the window after 10 s so the user doesn't see a forever-splash.
+  let readyToShowFired = false;
+  const readyToShowTimeout = setTimeout(() => {
+    if (!readyToShowFired && win && !win.isDestroyed() && !win.isVisible()) {
+      console.warn('[Electron] ready-to-show timeout hit — forcing window visible.');
+      if (splash && !splash.isDestroyed()) {
+        try { splash.close(); } catch (_) {}
+        splash = null;
+      }
+      win.show();
+      win.focus();
+      startPythonBackend();
+    }
+  }, 10_000);
+
   win.once('ready-to-show', () => {
+    readyToShowFired = true;
+    clearTimeout(readyToShowTimeout);
     console.log('[Electron] main window ready-to-show fired!');
     if (splash) {
       try { splash.close(); } catch(e) {}
@@ -781,6 +802,23 @@ async function createWindow() {
 
     // Start Python backend AFTER window is shown to avoid UAC prompt crashing the Electron DWM render context
     startPythonBackend();
+  })
+
+  // Recovery: if the URL or file fails to load, retry the fallback immediately
+  win.webContents.on('did-fail-load', (_event, errorCode, errorDescription, validatedURL) => {
+    // Ignore aborted navigations (code -3) — these are intentional (e.g. redirect)
+    if (errorCode === -3) return;
+    console.error(`[Electron] did-fail-load: ${errorCode} ${errorDescription} — URL: ${validatedURL}`);
+    // Wait briefly then attempt to fall back to direct file load
+    setTimeout(() => {
+      if (win && !win.isDestroyed()) {
+        const indexHtmlPath = path.join(process.env.DIST || '', 'index.html');
+        console.warn(`[Electron] Retrying via direct file load: ${indexHtmlPath}`);
+        win.loadFile(indexHtmlPath).catch(err => {
+          console.error('[Electron] Final fallback loadFile also failed:', err);
+        });
+      }
+    }, 1500);
   })
 
   registerContextMenu(win)
