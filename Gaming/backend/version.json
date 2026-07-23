@@ -1,8 +1,19 @@
 {
-  "version": "2.3.5",
-  "release_date": "2026-07-21",
+  "version": "2.3.6",
+  "release_date": "2026-07-23",
   "update_check_url": "https://raw.githubusercontent.com/arnab825/Mission-Control/main/Gaming/backend/version.json",
   "changelog": [
+    {
+      "version": "2.3.6",
+      "date": "2026-07-23",
+      "title": "Fix WebSocket bridge connection deadlock, process lock race condition, and env search path priority",
+      "highlights": [
+        "Fix WebSocket bridge connection deadlock when broadcasting telemetry and Vision frames",
+        "Fix process lock file race condition on Windows startup",
+        "Fix .env search path priority and multi-file cascade loading",
+        "Fix Windows Settings Installed Apps display name and appId registration"
+      ]
+    },
     {
       "version": "2.3.5",
       "date": "2026-07-23",
