@@ -306,7 +306,11 @@ def main():
                             is_same_app = True
                             
                         if is_same_app:
-                            return None
+                            try:
+                                proc.kill()
+                                proc.wait(timeout=3)
+                            except Exception:
+                                pass
                 except (psutil.NoSuchProcess, psutil.AccessDenied):
                     pass
                 except Exception:

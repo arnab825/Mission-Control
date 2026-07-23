@@ -2,6 +2,11 @@
 
 This document contains a detailed history of all patches and updates for the AI Gaming Assistant.
 
+### Patch: 2026-07-23 — v2.3.5: Fix production backend synchronization deadlock
+
+- Fix production backend synchronization deadlock
+- Verify Vercel cron secret headers
+
 ### Patch: 2026-07-23 — v2.3.4: Fix production backend self-elevation exit loop and ASAR file streaming
 
 - Fix production backend self-elevation exit loop and ASAR file streaming
