@@ -30,39 +30,41 @@ logging.getLogger("rapidocr_onnxruntime").setLevel(logging.ERROR)
 
 from dotenv import load_dotenv
 
-# Look for .env in various possible locations, especially when packaged/frozen
+# Look for .env in various possible locations, ordered from lowest to highest priority
 env_search_paths = []
 
-# 1. Same directory as this script (Dev mode)
-env_search_paths.append(os.path.join(os.path.dirname(__file__), ".env"))
+# 1. Bundled PyInstaller temp dir (sys._MEIPASS)
+mei_dir = getattr(sys, '_MEIPASS', None)
+if mei_dir:
+    env_search_paths.append(os.path.join(mei_dir, ".env"))
 
-# 2. If frozen (compiled PyInstaller executable), check executable folder and its parent
+# 2. Executable folder and parent (Packaged production mode)
 if getattr(sys, 'frozen', False):
     exe_dir = os.path.dirname(sys.executable)
-    env_search_paths.append(os.path.join(exe_dir, ".env"))
     env_search_paths.append(os.path.join(os.path.dirname(exe_dir), ".env"))
+    env_search_paths.append(os.path.join(exe_dir, ".env"))
 
-# 3. Parent directory of the script
-env_search_paths.append(os.path.join(os.path.dirname(os.path.dirname(__file__)), ".env"))
+# 3. Script directory and parent directories (Dev mode)
+base_backend = os.path.dirname(os.path.abspath(__file__))
+env_search_paths.append(os.path.abspath(os.path.join(base_backend, "..", "..", ".env")))
+env_search_paths.append(os.path.abspath(os.path.join(base_backend, "..", ".env")))
+env_search_paths.append(os.path.join(base_backend, ".env"))
 
-# 4. Project Root (two levels up from backend)
-env_search_paths.append(os.path.abspath(os.path.join(os.path.dirname(__file__), "..", "..", ".env")))
-
-# 5. AppData directory for packaged production installations
+# 4. User AppData directory (highest priority for installed production instances)
 env_search_paths.append(os.path.expandvars(r"%LOCALAPPDATA%\MissionControl\.env"))
+env_search_paths.append(os.path.expandvars(r"%APPDATA%\MissionControl\.env"))
 
-# Load the first one that exists
+# Load all existing .env files in priority order so later paths override earlier ones
 env_loaded = False
 for path_to_try in env_search_paths:
     if os.path.exists(path_to_try):
         load_dotenv(path_to_try, override=True)
-        print(f"Loaded .env from: {path_to_try}")
+        logger.info(f"[Env] Loaded .env from: {path_to_try}")
         env_loaded = True
-        break
 
 if not env_loaded:
     load_dotenv(override=True)
-    print("Warning: No .env file found in search paths, falling back to default load_dotenv().")
+    logger.warning("[Env] No .env file found in search paths, falling back to default load_dotenv().")
 
 try:
     import psutil
