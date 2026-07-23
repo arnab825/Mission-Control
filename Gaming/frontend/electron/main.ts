@@ -1,6 +1,8 @@
 import * as electron from 'electron'
 const { app, BrowserWindow, ipcMain, protocol, net, globalShortcut, shell, screen, dialog, Tray, Menu, nativeImage, Notification, session } = electron
 
+app.disableHardwareAcceleration()
+
 type BrowserWindow = electron.BrowserWindow
 type Tray = electron.Tray
 
