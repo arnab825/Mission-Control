@@ -1,8 +1,17 @@
 {
-  "version": "2.3.4",
+  "version": "2.3.5",
   "release_date": "2026-07-21",
   "update_check_url": "https://raw.githubusercontent.com/arnab825/Mission-Control/main/Gaming/backend/version.json",
   "changelog": [
+    {
+      "version": "2.3.5",
+      "date": "2026-07-23",
+      "title": "Fix production backend synchronization deadlock",
+      "highlights": [
+        "Fix production backend synchronization deadlock",
+        "Verify Vercel cron secret headers"
+      ]
+    },
     {
       "version": "2.3.4",
       "date": "2026-07-23",
@@ -416,17 +425,6 @@
       "title": "Fix HUD interaction usability and positioning deadlock",
       "highlights": [
         "Fixed UX deadlock where the HUD overlay would immediately hide itself upon Alt-Tabbing out of a game, preventing any mouse interaction, dragging, or closing when unlocked."
-      ]
-    },
-    {
-      "version": "1.7.0",
-      "date": "2026-07-17",
-      "title": "Stability Update: HUD Calibration, FPS Fallback, and API Reliability",
-      "highlights": [
-        "Fixed permanently stuck HUD CALIBRATING state by changing the flag condition and introducing a 10s timeout.",
-        "Fixed FPS showing N/A in fullscreen and Vulkan/OpenGL games (e.g. Spider-Man 2) by fallback to capture-loop FPS.",
-        "Fixed GameKB infinite retry storm on LLM connection errors by enforcing a 5-minute per-game cooldown.",
-        "Fixed installer shortcut removal and ensured silent cleanup of legacy per-user scope installations."
       ]
     }
   ]
