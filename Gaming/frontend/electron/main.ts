@@ -1,6 +1,9 @@
 import * as electron from 'electron'
 const { app, BrowserWindow, ipcMain, protocol, net, globalShortcut, shell, screen, dialog, Tray, Menu, nativeImage, Notification, session } = electron
 
+// Prevent black screen bugs on hybrid GPU laptops without dropping UI framerates
+app.commandLine.appendSwitch('disable-gpu-compositing')
+
 type BrowserWindow = electron.BrowserWindow
 type Tray = electron.Tray
 
@@ -555,10 +558,9 @@ function startPythonBackend() {
       args = [scriptPath, '--dev', '--no-admin']
       console.log(`[Electron] Dev mode — python: ${executablePath}`)
     } else {
-      // Production: look for bundled standalone exe first
-      const bundledExeDirect = path.join((process as any).resourcesPath, 'MissionControl', 'MissionControlBackend.exe')
-      const bundledExeBuilder = path.join((process as any).resourcesPath, 'backend', 'MissionControl', 'MissionControlBackend.exe')
-      const bundledExeForge = path.join((process as any).resourcesPath, 'MissionControlBackend', 'MissionControlBackend.exe')
+      const bundledExeDirect = path.join((process as any).resourcesPath, 'MissionControl', 'MissionControl.exe')
+      const bundledExeBuilder = path.join((process as any).resourcesPath, 'backend', 'MissionControl', 'MissionControl.exe')
+      const bundledExeForge = path.join((process as any).resourcesPath, 'MissionControlBackend', 'MissionControl.exe')
 
       if (fs.existsSync(bundledExeDirect)) {
         executablePath = bundledExeDirect
