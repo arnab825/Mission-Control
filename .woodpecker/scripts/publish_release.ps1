@@ -167,8 +167,10 @@ if (Test-Path $releaseDir) {
 New-Item -ItemType Directory -Force -Path $releaseDir | Out-Null
 
 $candidatePaths = @(
+  [System.IO.Path]::GetFullPath((Join-Path $PSScriptRoot "../../Gaming/frontend/out/dist")),
   [System.IO.Path]::GetFullPath((Join-Path $PSScriptRoot "../../Gaming/frontend/out/make")),
-  [System.IO.Path]::GetFullPath((Join-Path $PSScriptRoot "../../Gaming/frontend/dist"))
+  [System.IO.Path]::GetFullPath((Join-Path $PSScriptRoot "../../Gaming/frontend/dist")),
+  [System.IO.Path]::GetFullPath((Join-Path $PSScriptRoot "../../Gaming/frontend/out"))
 )
 $sourceInstaller = $null
 foreach ($path in $candidatePaths) {
@@ -208,7 +210,13 @@ if ($sourceMsi) {
 
 # Check for generated ZIP archive
 $sourceZip = Get-ChildItem -Path $candidatePaths -Filter "*.zip" -Recurse -ErrorAction SilentlyContinue |
-  Where-Object { $_.FullName -notlike "*out/release*" -and $_.FullName -notlike "*out\release*" } |
+  Where-Object { 
+    $_.FullName -notlike "*out/release*" -and 
+    $_.FullName -notlike "*out\release*" -and 
+    $_.FullName -notlike "*_internal*" -and 
+    $_.FullName -notlike "*win-unpacked*" -and 
+    $_.Name -ne "base_library.zip" 
+  } |
   Sort-Object LastWriteTime -Descending |
   Select-Object -First 1
 $targetZip = $null
