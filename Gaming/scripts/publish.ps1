@@ -64,11 +64,28 @@ try {
         git commit -m "Release v${version}: $Title"
         git tag -a "v${version}" -m "Release v${version}: $Title"
         
-        # 5. Push to GitHub
+        # 5. Build binaries and optionally publish release assets to GitHub
+        Write-Host "[BUILD] Compiling Electron packages for v${version}..." -ForegroundColor Cyan
+        Push-Location "frontend"
+        try {
+            if ($env:GH_TOKEN -or $env:GITHUB_TOKEN) {
+                Write-Host "[PUBLISH] GH_TOKEN detected! Building and publishing assets to GitHub Releases..." -ForegroundColor Cyan
+                npx electron-builder --win nsis --x64 --publish always
+            } else {
+                Write-Host "[BUILD] Compiling local NSIS installer in frontend/out/make..." -ForegroundColor Yellow
+                npm run make:win
+            }
+        } catch {
+            Write-Host "[WARNING] Binary packaging encountered an error: $_" -ForegroundColor Yellow
+        } finally {
+            Pop-Location
+        }
+
+        # 6. Push code and tags to GitHub
         Write-Host "[PUSH] Pushing to main and syncing tags..." -ForegroundColor Cyan
         git push origin main --tags
         
-        Write-Host "[SUCCESS] Version v${version} is now live on GitHub!" -ForegroundColor Green
+        Write-Host "[SUCCESS] Version v${version} is now tagged and live!" -ForegroundColor Green
     } else {
         Write-Host "[ERROR] Release failed during version bump." -ForegroundColor Red
     }

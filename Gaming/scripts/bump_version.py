@@ -143,6 +143,21 @@ def update_package_files(new_ver):
             f.write(updated)
         print(f"backend/pyproject.toml updated -> version = {new_ver}")
 
+    # 4. Sync version.json into all PyInstaller dist directories
+    import shutil
+    src_ver_json = os.path.join(base_dir, "backend", "version.json")
+    dist_paths = [
+        os.path.join(base_dir, "backend", "dist", "MissionControl", "_internal", "version.json"),
+        os.path.join(base_dir, "backend", "dist", "MissionControl", "version.json"),
+        os.path.join(base_dir, "frontend", "backend", "MissionControl", "_internal", "version.json"),
+        os.path.join(base_dir, "frontend", "backend", "MissionControl", "version.json"),
+    ]
+    for dp in dist_paths:
+        if os.path.exists(os.path.dirname(dp)):
+            shutil.copy2(src_ver_json, dp)
+            print(f"Synced version.json -> {os.path.relpath(dp, base_dir)}")
+
+
 
 def _sanitize(field_name: str, value: str) -> str:
     """Strip non-printable chars and enforce max length to prevent binary blobs."""
