@@ -1,8 +1,17 @@
 {
-  "version": "2.3.6",
-  "release_date": "2026-07-23",
+  "version": "2.3.7",
+  "release_date": "2026-07-24",
   "update_check_url": "https://raw.githubusercontent.com/arnab825/Mission-Control/main/Gaming/backend/version.json",
   "changelog": [
+    {
+      "version": "2.3.7",
+      "date": "2026-07-24",
+      "title": "Fix Game Preview modal responsive layout and component typing",
+      "highlights": [
+        "Fix Game Preview modal height overflow, vertical scrolling, and fluid typography",
+        "Add onPreview handler to GameCard prop types and restore isLauncher logic"
+      ]
+    },
     {
       "version": "2.3.6",
       "date": "2026-07-23",
