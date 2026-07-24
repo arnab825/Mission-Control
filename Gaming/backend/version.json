@@ -1,432 +1,432 @@
 {
-  "version": "2.3.8",
-  "release_date": "2026-07-24",
-  "update_check_url": "https://raw.githubusercontent.com/arnab825/Mission-Control/main/Gaming/backend/version.json",
-  "changelog": [
-    {
-      "version": "2.3.8",
-      "date": "2026-07-24",
-      "title": "Removed Preview button completely",
-      "highlights": [
-        "Removed Preview button completely"
-      ]
-    },
-    {
-      "version": "2.3.8",
-      "date": "2026-07-24",
-      "title": "Removed Preview button completely",
-      "highlights": [
-        "Removed Preview button completely"
-      ]
-    },
-    {
-      "version": "2.3.8",
-      "date": "2026-07-24",
-      "title": "Removed Preview button",
-      "highlights": [
-        "Removed Preview button"
-      ]
-    },
-    {
-      "version": "2.3.8",
-      "date": "2026-07-24",
-      "title": "Fix GameCard direct execution button and GamePreviewModal banner scaling",
-      "highlights": [
-        "Restore primary Execute button on GameCard for direct game launch",
-        "Fix GamePreviewModal banner image object-contain scaling for launcher SVGs",
-        "Verify Ultralytics YOLO vision dependencies"
-      ]
-    },
-    {
-      "version": "2.3.7",
-      "date": "2026-07-24",
-      "title": "Fix Game Preview modal responsive layout and component typing",
-      "highlights": [
-        "Fix Game Preview modal height overflow, vertical scrolling, and fluid typography",
-        "Add onPreview handler to GameCard prop types and restore isLauncher logic"
-      ]
-    },
-    {
-      "version": "2.3.6",
-      "date": "2026-07-23",
-      "title": "Release v2.3.6",
-      "highlights": [
-        "Version sync fix"
-      ]
-    },
-    {
-      "version": "2.3.6",
-      "date": "2026-07-23",
-      "title": "Fix WebSocket bridge connection deadlock, process lock race condition, and env search path priority",
-      "highlights": [
-        "Fix WebSocket bridge connection deadlock when broadcasting telemetry and Vision frames",
-        "Fix process lock file race condition on Windows startup",
-        "Fix .env search path priority and multi-file cascade loading",
-        "Fix Windows Settings Installed Apps display name and appId registration"
-      ]
-    },
-    {
-      "version": "2.3.5",
-      "date": "2026-07-23",
-      "title": "Fix production backend synchronization deadlock",
-      "highlights": [
-        "Fix production backend synchronization deadlock",
-        "Verify Vercel cron secret headers"
-      ]
-    },
-    {
-      "version": "2.3.4",
-      "date": "2026-07-23",
-      "title": "Fix production backend self-elevation exit loop and ASAR file streaming",
-      "highlights": [
-        "Fix production backend self-elevation exit loop and ASAR file streaming"
-      ]
-    },
-    {
-      "version": "2.3.3",
-      "date": "2026-07-23",
-      "title": "Fix ASAR static file streaming in packaged production builds",
-      "highlights": [
-        "Fix ASAR static file streaming in packaged production builds"
-      ]
-    },
-    {
-      "version": "2.3.2",
-      "date": "2026-07-23",
-      "title": "Fix production black screen and GPU compositor rendering",
-      "highlights": [
-        "Fix production black screen and GPU compositor rendering"
-      ]
-    },
-    {
-      "version": "2.1.7",
-      "date": "2026-07-22",
-      "title": "Route all Windows installer downloads dynamically through resolver API",
-      "highlights": [
-        "Route all Windows installer downloads dynamically through resolver API"
-      ]
-    },
-    {
-      "version": "2.1.6",
-      "date": "2026-07-22",
-      "title": "Fix Agent page infinite re-render loop and black screen issue",
-      "highlights": [
-        "Fix Agent page infinite re-render loop and black screen issue"
-      ]
-    },
-    {
-      "version": "2.1.5",
-      "date": "2026-07-22",
-      "title": "Fix Mermaid render errors, add dynamic portable ZIP resolver, AI weights docs, and Winget Python installer",
-      "highlights": [
-        "Fix Mermaid render errors, add dynamic portable ZIP resolver, AI weights docs, and Winget Python installer"
-      ]
-    },
-    {
-      "version": "2.1.4",
-      "date": "2026-07-22",
-      "title": "Fixed automatic loading of Release Highlights on Updates page mount",
-      "highlights": [
-        "Fixed automatic loading of Release Highlights on Updates page mount"
-      ]
-    },
-    {
-      "version": "2.1.3",
-      "date": "2026-07-22",
-      "title": "Added On-Demand AI Models & Weights Downloader with download icons, real-time progress bars, and streaming backend",
-      "highlights": [
-        "Added On-Demand AI Models & Weights Downloader with download icons, real-time progress bars, and streaming backend"
-      ]
-    },
-    {
-      "version": "2.1.2",
-      "date": "2026-07-22",
-      "title": "Added real-time percentage progress bar and output streaming to 1-click YOLO vision engine installer",
-      "highlights": [
-        "Added real-time percentage progress bar and output streaming to 1-click YOLO vision engine installer"
-      ]
-    },
-    {
-      "version": "2.1.1",
-      "date": "2026-07-22",
-      "title": "Added --system flag to uv installer and prioritized system Python for 1-click YOLO vision engine installation",
-      "highlights": [
-        "Added --system flag to uv installer and prioritized system Python for 1-click YOLO vision engine installation"
-      ]
-    },
-    {
-      "version": "2.1.0",
-      "date": "2026-07-22",
-      "title": "Fixed 1-Click YOLO Vision Engine installer for standalone desktop release",
-      "highlights": [
-        "Fixed 1-Click YOLO Vision Engine installer for standalone desktop release",
-        "Optimized Vision Command Center telemetry layout into clean right sidebar",
-        "Prevented Dashboard CPU temperature text truncation on wide displays",
-        "Updated release process documentation"
-      ]
-    },
-    {
-      "version": "2.0.9",
-      "date": "2026-07-21",
-      "title": "Support multi-line bullet points in publish.ps1 via semicolons, newlines, or multiple arguments",
-      "highlights": [
-        "Support multi-line bullet points in publish.ps1 via semicolons, newlines, or multiple arguments"
-      ]
-    },
-    {
-      "version": "2.0.8",
-      "date": "2026-07-21",
-      "title": "Auto-restore local build-stamped files in run_local.ps1 to keep Git working tree clean",
-      "highlights": [
-        "Auto-restore local build-stamped files in run_local.ps1 to keep Git working tree clean"
-      ]
-    },
-    {
-      "version": "2.0.7",
-      "date": "2026-07-21",
-      "title": "Remove chassis TGP tag from System and Settings pages",
-      "highlights": [
-        "Remove chassis TGP tag from System and Settings pages"
-      ]
-    },
-    {
-      "version": "2.0.6",
-      "date": "2026-07-21",
-      "title": "Suppress terminal window popups during GPU power limit application on Windows",
-      "highlights": [
-        "Suppress terminal window popups during GPU power limit application on Windows"
-      ]
-    },
-    {
-      "version": "2.0.5",
-      "date": "2026-07-21",
-      "title": "Add power_limit, power_limit_watts, and power_limit_max_watts aliases across telemetry pipeline",
-      "highlights": [
-        "Add power_limit, power_limit_watts, and power_limit_max_watts aliases across telemetry pipeline"
-      ]
-    },
-    {
-      "version": "2.0.4",
-      "date": "2026-07-21",
-      "title": "Map GPU max hardware TGP constraints directly into LabPage Power Target UI and telemetry",
-      "highlights": [
-        "Map GPU max hardware TGP constraints directly into LabPage Power Target UI and telemetry"
-      ]
-    },
-    {
-      "version": "2.0.3",
-      "date": "2026-07-21",
-      "title": "Unlock hardware max TGP ceiling for GPU power limits in Boost Mode and Optimization Mode",
-      "highlights": [
-        "Unlock hardware max TGP ceiling for GPU power limits in Boost Mode and Optimization Mode"
-      ]
-    },
-    {
-      "version": "2.0.2",
-      "date": "2026-07-21",
-      "title": "Fix update pause/resume cancellation flow and prevent trailing progress override",
-      "highlights": [
-        "Fix update pause/resume cancellation flow and prevent trailing progress override"
-      ]
-    },
-    {
-      "version": "2.0.1",
-      "date": "2026-07-21",
-      "title": "Add 1-Click in-app installer for optional PyTorch and Ultralytics vision engines",
-      "highlights": [
-        "Add 1-Click in-app installer for optional PyTorch and Ultralytics vision engines"
-      ]
-    },
-    {
-      "version": "2.0.0",
-      "date": "2026-07-21",
-      "title": "Fix up-to-date card visibility on Updates page and add ultralytics to dependencies",
-      "highlights": [
-        "Fix up-to-date card visibility on Updates page and add ultralytics to dependencies"
-      ]
-    },
-    {
-      "version": "1.9.9",
-      "date": "2026-07-21",
-      "title": "Fix TTS thread dead warning log and sync settings state between Electron and backend",
-      "highlights": [
-        "Fix TTS thread dead warning log and sync settings state between Electron and backend"
-      ]
-    },
-    {
-      "version": "1.9.8",
-      "date": "2026-07-21",
-      "title": "Fix update pause/resume persistence across app restarts and add in-UI rollback verification dialog",
-      "highlights": [
-        "Fix update pause/resume persistence across app restarts and add in-UI rollback verification dialog"
-      ]
-    },
-    {
-      "version": "1.9.7",
-      "date": "2026-07-21",
-      "title": "Fix false update-available on same version; fix YOLO status always showing offline on Vision page",
-      "highlights": [
-        "Fix false update-available on same version; fix YOLO status always showing offline on Vision page"
-      ]
-    },
-    {
-      "version": "1.9.6",
-      "date": "2026-07-21",
-      "title": "Fix YOLO diagnostics, same-version update check, and uninstaller naming",
-      "highlights": [
-        "Resolve YOLO backend diagnostics false alarms by verifying dependencies from Python backend",
-        "Allow Electron auto-updater to download same-version patch updates",
-        "Change uninstaller display name in Windows control panel to Uninstall Mission Control"
-      ]
-    },
-    {
-      "version": "1.9.5",
-      "date": "2026-07-21",
-      "title": "Revamp Vision Command Center UI and clean up voice/controller configurations",
-      "highlights": [
-        "Revamp Vision Command Center UI, remove fake radar/compass/SVG neural widgets",
-        "Add PyTorch/Ultralytics backend dependency check card",
-        "Remove voice mapping Toggle Mic config and clean up game controller auto-detection"
-      ]
-    },
-    {
-      "version": "1.8.9",
-      "date": "2026-07-20",
-      "title": "Fix list index out of range in Brave search parsing",
-      "highlights": [
-        "Fix list index out of range in Brave search parsing"
-      ]
-    },
-    {
-      "version": "1.8.8",
-      "date": "2026-07-20",
-      "title": "Filter launcher icons in Settings table and fallback to Steam headers",
-      "highlights": [
-        "Filter launcher icons in Settings table and fallback to Steam headers"
-      ]
-    },
-    {
-      "version": "1.8.7",
-      "date": "2026-07-20",
-      "title": "Tray Redirects, Boost Mode Renaming, and Update Controls & Rollback UI",
-      "highlights": [
-        "Enabled tray Show Dashboard click/double-click events to automatically restore and redirect users to the Dashboard",
-        "Renamed user-facing 'Game Mode' labels and badges to 'Boost Mode' to align with backend optimization contexts",
-        "Added manual Pause and Cancel action buttons for active update downloads",
-        "Implemented a System Recovery & Rollback panel to trigger offline backup restoration natively"
-      ]
-    },
-    {
-      "version": "1.8.6",
-      "date": "2026-07-20",
-      "title": "Use public WebSearchEngine search API for game fallback classification",
-      "highlights": [
-        "Use public WebSearchEngine search API for game fallback classification"
-      ]
-    },
-    {
-      "version": "1.8.5",
-      "date": "2026-07-20",
-      "title": "Support dynamic RAWG fallback database scan for 1 lakh+ games",
-      "highlights": [
-        "Support dynamic RAWG fallback database scan for 1 lakh+ games"
-      ]
-    },
-    {
-      "version": "1.8.4",
-      "date": "2026-07-20",
-      "title": "Support FPS genre mapping in preset recommendations",
-      "highlights": [
-        "Support FPS genre mapping in preset recommendations"
-      ]
-    },
-    {
-      "version": "1.8.3",
-      "date": "2026-07-20",
-      "title": "Support dynamic RTX 60+ series and auto-configure presets",
-      "highlights": [
-        "Support dynamic RTX 60+ series and auto-configure presets"
-      ]
-    },
-    {
-      "version": "1.8.2",
-      "date": "2026-07-20",
-      "title": "Subsequent Update Check Overrides",
-      "highlights": [
-        "Enabled check for newer system updates even when an update has already been downloaded and is waiting for client restart",
-        "Added Check Again trigger endpoints to both tab headings and relaunch prompts"
-      ]
-    },
-    {
-      "version": "1.8.1",
-      "date": "2026-07-20",
-      "title": "Configurable Auto-Update Control",
-      "highlights": [
-        "Added a configurable background auto-download switch for core system updates",
-        "Allows toggling auto-download on or off to choose when to initiate update downloads manually"
-      ]
-    },
-    {
-      "version": "1.8.0",
-      "date": "2026-07-20",
-      "title": "Updater Controls, Database Persistence & Website Mongoose Migration",
-      "highlights": [
-        "Implemented manual update cancellation and offline rollback backup/restoration mechanisms",
-        "Migrated desktop SQLite agent memory to write into user APPDATA folder, fixing production persistence",
-        "Removed ChromaDB dependency to reduce PyInstaller package size and resolved native C++ compilation issues",
-        "Migrated website issues list, documentation, and architecture layers to Mongoose/MongoDB",
-        "Refactored website architecture page into Server and Client components for Turbopack compatibility"
-      ]
-    },
-    {
-      "version": "1.7.10",
-      "date": "2026-07-19",
-      "title": "Check For Updates Logo Stylization",
-      "highlights": [
-        "Updated Check For Updates tray icon to be white and borderless"
-      ]
-    },
-    {
-      "version": "1.7.9",
-      "date": "2026-07-19",
-      "title": "Remove Mission Briefs, update tray icon, and finalize TGP telemetry",
-      "highlights": [
-        "Deleted Mission Briefs and associated local mdx briefs",
-        "Updated Check For Updates tray icon to match Windows Update logo",
-        "Updated release notes readmes with precise TGP & CPU Offset documentation"
-      ]
-    },
-    {
-      "version": "1.7.8",
-      "date": "2026-07-19",
-      "title": "Apply offset for ACPI CPU temp",
-      "highlights": [
-        "Subtracts 12C from ACPI TZ01 to approximate CPU Package avg under blocked driver mode"
-      ]
-    },
-    {
-      "version": "1.7.7",
-      "date": "2026-07-19",
-      "title": "Precision TGP and CPU Thermal fallbacks",
-      "highlights": [
-        "Precision TGP and CPU Thermal fallbacks"
-      ]
-    },
-    {
-      "version": "1.7.6",
-      "date": "2026-07-19",
-      "title": "Bypass code signature verification for self-built updates and robustify download updater",
-      "highlights": [
-        "Bypass code signature verification for self-built updates and robustify download updater"
-      ]
-    },
-    {
-      "version": "1.7.5",
-      "date": "2026-07-18",
-      "title": "Update system tray check updates menu icon to match flat white style",
-      "highlights": [
-        "Update system tray check updates menu icon to match flat white style"
-      ]
-    }
-  ]
+    "version":  "2.3.8",
+    "release_date":  "2026-07-24",
+    "update_check_url":  "https://raw.githubusercontent.com/arnab825/Mission-Control/main/Gaming/backend/version.json",
+    "changelog":  [
+                      {
+                          "version":  "2.3.8",
+                          "date":  "2026-07-24",
+                          "title":  "Removed Preview button completely",
+                          "highlights":  [
+                                             "Removed Preview button completely"
+                                         ]
+                      },
+                      {
+                          "version":  "2.3.8",
+                          "date":  "2026-07-24",
+                          "title":  "Removed Preview button completely",
+                          "highlights":  [
+                                             "Removed Preview button completely"
+                                         ]
+                      },
+                      {
+                          "version":  "2.3.8",
+                          "date":  "2026-07-24",
+                          "title":  "Removed Preview button",
+                          "highlights":  [
+                                             "Removed Preview button"
+                                         ]
+                      },
+                      {
+                          "version":  "2.3.8",
+                          "date":  "2026-07-24",
+                          "title":  "Fix GameCard direct execution button and GamePreviewModal banner scaling",
+                          "highlights":  [
+                                             "Restore primary Execute button on GameCard for direct game launch",
+                                             "Fix GamePreviewModal banner image object-contain scaling for launcher SVGs",
+                                             "Verify Ultralytics YOLO vision dependencies"
+                                         ]
+                      },
+                      {
+                          "version":  "2.3.7",
+                          "date":  "2026-07-24",
+                          "title":  "Fix Game Preview modal responsive layout and component typing",
+                          "highlights":  [
+                                             "Fix Game Preview modal height overflow, vertical scrolling, and fluid typography",
+                                             "Add onPreview handler to GameCard prop types and restore isLauncher logic"
+                                         ]
+                      },
+                      {
+                          "version":  "2.3.6",
+                          "date":  "2026-07-23",
+                          "title":  "Release v2.3.6",
+                          "highlights":  [
+                                             "Version sync fix"
+                                         ]
+                      },
+                      {
+                          "version":  "2.3.6",
+                          "date":  "2026-07-23",
+                          "title":  "Fix WebSocket bridge connection deadlock, process lock race condition, and env search path priority",
+                          "highlights":  [
+                                             "Fix WebSocket bridge connection deadlock when broadcasting telemetry and Vision frames",
+                                             "Fix process lock file race condition on Windows startup",
+                                             "Fix .env search path priority and multi-file cascade loading",
+                                             "Fix Windows Settings Installed Apps display name and appId registration"
+                                         ]
+                      },
+                      {
+                          "version":  "2.3.5",
+                          "date":  "2026-07-23",
+                          "title":  "Fix production backend synchronization deadlock",
+                          "highlights":  [
+                                             "Fix production backend synchronization deadlock",
+                                             "Verify Vercel cron secret headers"
+                                         ]
+                      },
+                      {
+                          "version":  "2.3.4",
+                          "date":  "2026-07-23",
+                          "title":  "Fix production backend self-elevation exit loop and ASAR file streaming",
+                          "highlights":  [
+                                             "Fix production backend self-elevation exit loop and ASAR file streaming"
+                                         ]
+                      },
+                      {
+                          "version":  "2.3.3",
+                          "date":  "2026-07-23",
+                          "title":  "Fix ASAR static file streaming in packaged production builds",
+                          "highlights":  [
+                                             "Fix ASAR static file streaming in packaged production builds"
+                                         ]
+                      },
+                      {
+                          "version":  "2.3.2",
+                          "date":  "2026-07-23",
+                          "title":  "Fix production black screen and GPU compositor rendering",
+                          "highlights":  [
+                                             "Fix production black screen and GPU compositor rendering"
+                                         ]
+                      },
+                      {
+                          "version":  "2.1.7",
+                          "date":  "2026-07-22",
+                          "title":  "Route all Windows installer downloads dynamically through resolver API",
+                          "highlights":  [
+                                             "Route all Windows installer downloads dynamically through resolver API"
+                                         ]
+                      },
+                      {
+                          "version":  "2.1.6",
+                          "date":  "2026-07-22",
+                          "title":  "Fix Agent page infinite re-render loop and black screen issue",
+                          "highlights":  [
+                                             "Fix Agent page infinite re-render loop and black screen issue"
+                                         ]
+                      },
+                      {
+                          "version":  "2.1.5",
+                          "date":  "2026-07-22",
+                          "title":  "Fix Mermaid render errors, add dynamic portable ZIP resolver, AI weights docs, and Winget Python installer",
+                          "highlights":  [
+                                             "Fix Mermaid render errors, add dynamic portable ZIP resolver, AI weights docs, and Winget Python installer"
+                                         ]
+                      },
+                      {
+                          "version":  "2.1.4",
+                          "date":  "2026-07-22",
+                          "title":  "Fixed automatic loading of Release Highlights on Updates page mount",
+                          "highlights":  [
+                                             "Fixed automatic loading of Release Highlights on Updates page mount"
+                                         ]
+                      },
+                      {
+                          "version":  "2.1.3",
+                          "date":  "2026-07-22",
+                          "title":  "Added On-Demand AI Models \u0026 Weights Downloader with download icons, real-time progress bars, and streaming backend",
+                          "highlights":  [
+                                             "Added On-Demand AI Models \u0026 Weights Downloader with download icons, real-time progress bars, and streaming backend"
+                                         ]
+                      },
+                      {
+                          "version":  "2.1.2",
+                          "date":  "2026-07-22",
+                          "title":  "Added real-time percentage progress bar and output streaming to 1-click YOLO vision engine installer",
+                          "highlights":  [
+                                             "Added real-time percentage progress bar and output streaming to 1-click YOLO vision engine installer"
+                                         ]
+                      },
+                      {
+                          "version":  "2.1.1",
+                          "date":  "2026-07-22",
+                          "title":  "Added --system flag to uv installer and prioritized system Python for 1-click YOLO vision engine installation",
+                          "highlights":  [
+                                             "Added --system flag to uv installer and prioritized system Python for 1-click YOLO vision engine installation"
+                                         ]
+                      },
+                      {
+                          "version":  "2.1.0",
+                          "date":  "2026-07-22",
+                          "title":  "Fixed 1-Click YOLO Vision Engine installer for standalone desktop release",
+                          "highlights":  [
+                                             "Fixed 1-Click YOLO Vision Engine installer for standalone desktop release",
+                                             "Optimized Vision Command Center telemetry layout into clean right sidebar",
+                                             "Prevented Dashboard CPU temperature text truncation on wide displays",
+                                             "Updated release process documentation"
+                                         ]
+                      },
+                      {
+                          "version":  "2.0.9",
+                          "date":  "2026-07-21",
+                          "title":  "Support multi-line bullet points in publish.ps1 via semicolons, newlines, or multiple arguments",
+                          "highlights":  [
+                                             "Support multi-line bullet points in publish.ps1 via semicolons, newlines, or multiple arguments"
+                                         ]
+                      },
+                      {
+                          "version":  "2.0.8",
+                          "date":  "2026-07-21",
+                          "title":  "Auto-restore local build-stamped files in run_local.ps1 to keep Git working tree clean",
+                          "highlights":  [
+                                             "Auto-restore local build-stamped files in run_local.ps1 to keep Git working tree clean"
+                                         ]
+                      },
+                      {
+                          "version":  "2.0.7",
+                          "date":  "2026-07-21",
+                          "title":  "Remove chassis TGP tag from System and Settings pages",
+                          "highlights":  [
+                                             "Remove chassis TGP tag from System and Settings pages"
+                                         ]
+                      },
+                      {
+                          "version":  "2.0.6",
+                          "date":  "2026-07-21",
+                          "title":  "Suppress terminal window popups during GPU power limit application on Windows",
+                          "highlights":  [
+                                             "Suppress terminal window popups during GPU power limit application on Windows"
+                                         ]
+                      },
+                      {
+                          "version":  "2.0.5",
+                          "date":  "2026-07-21",
+                          "title":  "Add power_limit, power_limit_watts, and power_limit_max_watts aliases across telemetry pipeline",
+                          "highlights":  [
+                                             "Add power_limit, power_limit_watts, and power_limit_max_watts aliases across telemetry pipeline"
+                                         ]
+                      },
+                      {
+                          "version":  "2.0.4",
+                          "date":  "2026-07-21",
+                          "title":  "Map GPU max hardware TGP constraints directly into LabPage Power Target UI and telemetry",
+                          "highlights":  [
+                                             "Map GPU max hardware TGP constraints directly into LabPage Power Target UI and telemetry"
+                                         ]
+                      },
+                      {
+                          "version":  "2.0.3",
+                          "date":  "2026-07-21",
+                          "title":  "Unlock hardware max TGP ceiling for GPU power limits in Boost Mode and Optimization Mode",
+                          "highlights":  [
+                                             "Unlock hardware max TGP ceiling for GPU power limits in Boost Mode and Optimization Mode"
+                                         ]
+                      },
+                      {
+                          "version":  "2.0.2",
+                          "date":  "2026-07-21",
+                          "title":  "Fix update pause/resume cancellation flow and prevent trailing progress override",
+                          "highlights":  [
+                                             "Fix update pause/resume cancellation flow and prevent trailing progress override"
+                                         ]
+                      },
+                      {
+                          "version":  "2.0.1",
+                          "date":  "2026-07-21",
+                          "title":  "Add 1-Click in-app installer for optional PyTorch and Ultralytics vision engines",
+                          "highlights":  [
+                                             "Add 1-Click in-app installer for optional PyTorch and Ultralytics vision engines"
+                                         ]
+                      },
+                      {
+                          "version":  "2.0.0",
+                          "date":  "2026-07-21",
+                          "title":  "Fix up-to-date card visibility on Updates page and add ultralytics to dependencies",
+                          "highlights":  [
+                                             "Fix up-to-date card visibility on Updates page and add ultralytics to dependencies"
+                                         ]
+                      },
+                      {
+                          "version":  "1.9.9",
+                          "date":  "2026-07-21",
+                          "title":  "Fix TTS thread dead warning log and sync settings state between Electron and backend",
+                          "highlights":  [
+                                             "Fix TTS thread dead warning log and sync settings state between Electron and backend"
+                                         ]
+                      },
+                      {
+                          "version":  "1.9.8",
+                          "date":  "2026-07-21",
+                          "title":  "Fix update pause/resume persistence across app restarts and add in-UI rollback verification dialog",
+                          "highlights":  [
+                                             "Fix update pause/resume persistence across app restarts and add in-UI rollback verification dialog"
+                                         ]
+                      },
+                      {
+                          "version":  "1.9.7",
+                          "date":  "2026-07-21",
+                          "title":  "Fix false update-available on same version; fix YOLO status always showing offline on Vision page",
+                          "highlights":  [
+                                             "Fix false update-available on same version; fix YOLO status always showing offline on Vision page"
+                                         ]
+                      },
+                      {
+                          "version":  "1.9.6",
+                          "date":  "2026-07-21",
+                          "title":  "Fix YOLO diagnostics, same-version update check, and uninstaller naming",
+                          "highlights":  [
+                                             "Resolve YOLO backend diagnostics false alarms by verifying dependencies from Python backend",
+                                             "Allow Electron auto-updater to download same-version patch updates",
+                                             "Change uninstaller display name in Windows control panel to Uninstall Mission Control"
+                                         ]
+                      },
+                      {
+                          "version":  "1.9.5",
+                          "date":  "2026-07-21",
+                          "title":  "Revamp Vision Command Center UI and clean up voice/controller configurations",
+                          "highlights":  [
+                                             "Revamp Vision Command Center UI, remove fake radar/compass/SVG neural widgets",
+                                             "Add PyTorch/Ultralytics backend dependency check card",
+                                             "Remove voice mapping Toggle Mic config and clean up game controller auto-detection"
+                                         ]
+                      },
+                      {
+                          "version":  "1.8.9",
+                          "date":  "2026-07-20",
+                          "title":  "Fix list index out of range in Brave search parsing",
+                          "highlights":  [
+                                             "Fix list index out of range in Brave search parsing"
+                                         ]
+                      },
+                      {
+                          "version":  "1.8.8",
+                          "date":  "2026-07-20",
+                          "title":  "Filter launcher icons in Settings table and fallback to Steam headers",
+                          "highlights":  [
+                                             "Filter launcher icons in Settings table and fallback to Steam headers"
+                                         ]
+                      },
+                      {
+                          "version":  "1.8.7",
+                          "date":  "2026-07-20",
+                          "title":  "Tray Redirects, Boost Mode Renaming, and Update Controls \u0026 Rollback UI",
+                          "highlights":  [
+                                             "Enabled tray Show Dashboard click/double-click events to automatically restore and redirect users to the Dashboard",
+                                             "Renamed user-facing \u0027Game Mode\u0027 labels and badges to \u0027Boost Mode\u0027 to align with backend optimization contexts",
+                                             "Added manual Pause and Cancel action buttons for active update downloads",
+                                             "Implemented a System Recovery \u0026 Rollback panel to trigger offline backup restoration natively"
+                                         ]
+                      },
+                      {
+                          "version":  "1.8.6",
+                          "date":  "2026-07-20",
+                          "title":  "Use public WebSearchEngine search API for game fallback classification",
+                          "highlights":  [
+                                             "Use public WebSearchEngine search API for game fallback classification"
+                                         ]
+                      },
+                      {
+                          "version":  "1.8.5",
+                          "date":  "2026-07-20",
+                          "title":  "Support dynamic RAWG fallback database scan for 1 lakh+ games",
+                          "highlights":  [
+                                             "Support dynamic RAWG fallback database scan for 1 lakh+ games"
+                                         ]
+                      },
+                      {
+                          "version":  "1.8.4",
+                          "date":  "2026-07-20",
+                          "title":  "Support FPS genre mapping in preset recommendations",
+                          "highlights":  [
+                                             "Support FPS genre mapping in preset recommendations"
+                                         ]
+                      },
+                      {
+                          "version":  "1.8.3",
+                          "date":  "2026-07-20",
+                          "title":  "Support dynamic RTX 60+ series and auto-configure presets",
+                          "highlights":  [
+                                             "Support dynamic RTX 60+ series and auto-configure presets"
+                                         ]
+                      },
+                      {
+                          "version":  "1.8.2",
+                          "date":  "2026-07-20",
+                          "title":  "Subsequent Update Check Overrides",
+                          "highlights":  [
+                                             "Enabled check for newer system updates even when an update has already been downloaded and is waiting for client restart",
+                                             "Added Check Again trigger endpoints to both tab headings and relaunch prompts"
+                                         ]
+                      },
+                      {
+                          "version":  "1.8.1",
+                          "date":  "2026-07-20",
+                          "title":  "Configurable Auto-Update Control",
+                          "highlights":  [
+                                             "Added a configurable background auto-download switch for core system updates",
+                                             "Allows toggling auto-download on or off to choose when to initiate update downloads manually"
+                                         ]
+                      },
+                      {
+                          "version":  "1.8.0",
+                          "date":  "2026-07-20",
+                          "title":  "Updater Controls, Database Persistence \u0026 Website Mongoose Migration",
+                          "highlights":  [
+                                             "Implemented manual update cancellation and offline rollback backup/restoration mechanisms",
+                                             "Migrated desktop SQLite agent memory to write into user APPDATA folder, fixing production persistence",
+                                             "Removed ChromaDB dependency to reduce PyInstaller package size and resolved native C++ compilation issues",
+                                             "Migrated website issues list, documentation, and architecture layers to Mongoose/MongoDB",
+                                             "Refactored website architecture page into Server and Client components for Turbopack compatibility"
+                                         ]
+                      },
+                      {
+                          "version":  "1.7.10",
+                          "date":  "2026-07-19",
+                          "title":  "Check For Updates Logo Stylization",
+                          "highlights":  [
+                                             "Updated Check For Updates tray icon to be white and borderless"
+                                         ]
+                      },
+                      {
+                          "version":  "1.7.9",
+                          "date":  "2026-07-19",
+                          "title":  "Remove Mission Briefs, update tray icon, and finalize TGP telemetry",
+                          "highlights":  [
+                                             "Deleted Mission Briefs and associated local mdx briefs",
+                                             "Updated Check For Updates tray icon to match Windows Update logo",
+                                             "Updated release notes readmes with precise TGP \u0026 CPU Offset documentation"
+                                         ]
+                      },
+                      {
+                          "version":  "1.7.8",
+                          "date":  "2026-07-19",
+                          "title":  "Apply offset for ACPI CPU temp",
+                          "highlights":  [
+                                             "Subtracts 12C from ACPI TZ01 to approximate CPU Package avg under blocked driver mode"
+                                         ]
+                      },
+                      {
+                          "version":  "1.7.7",
+                          "date":  "2026-07-19",
+                          "title":  "Precision TGP and CPU Thermal fallbacks",
+                          "highlights":  [
+                                             "Precision TGP and CPU Thermal fallbacks"
+                                         ]
+                      },
+                      {
+                          "version":  "1.7.6",
+                          "date":  "2026-07-19",
+                          "title":  "Bypass code signature verification for self-built updates and robustify download updater",
+                          "highlights":  [
+                                             "Bypass code signature verification for self-built updates and robustify download updater"
+                                         ]
+                      },
+                      {
+                          "version":  "1.7.5",
+                          "date":  "2026-07-18",
+                          "title":  "Update system tray check updates menu icon to match flat white style",
+                          "highlights":  [
+                                             "Update system tray check updates menu icon to match flat white style"
+                                         ]
+                      }
+                  ]
 }

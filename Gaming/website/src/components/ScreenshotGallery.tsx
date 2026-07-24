@@ -2,12 +2,15 @@
 
 import { useState, useEffect } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import { Maximize2, X, Activity, Scan, Cpu, BrainCircuit, Terminal } from "lucide-react";
+import { Maximize2, X, Activity, Scan, Cpu, BrainCircuit, Terminal, Gamepad2, Server, ShieldCheck } from "lucide-react";
 
 export function ScreenshotGallery() {
   const tabs = [
-    { id: "dashboard", label: "Aero Telemetry Control", icon: Activity, src: "/screenshots/dashboard.png" },
-    { id: "hud", label: "In-Game HUD Overlay", icon: Scan, src: "/screenshots/hud.png" },
+    { id: "dashboard", label: "Dashboard", icon: Activity, src: "/screenshots/dashboard.jpg" },
+    { id: "library", label: "Library", icon: Gamepad2, src: "/screenshots/library.jpg" },
+    { id: "system", label: "System", icon: Server, src: "/screenshots/system.jpg" },
+    { id: "readiness", label: "Readiness", icon: ShieldCheck, src: "/screenshots/readiness.jpg" },
+    { id: "hud", label: "In-Game HUD Overlay", icon: Scan, src: "/screenshots/hud.jpg" },
     { id: "vision", label: "Real-time YOLO Vision", icon: BrainCircuit, src: "/screenshots/vision.jpg" },
     { id: "lab", label: "Performance Lab", icon: Cpu, src: "/screenshots/lab.jpg" },
   ];
@@ -28,7 +31,75 @@ export function ScreenshotGallery() {
       case 'dashboard':
         return (
           <div className="w-full h-full relative overflow-hidden bg-black flex items-center justify-center">
-            <img src="/screenshots/dashboard.png" alt="Mission Control Dashboard" className="w-full h-full object-cover" />
+            <img src="/screenshots/dashboard.jpg" alt="Mission Control Dashboard" className="w-full h-full object-cover" />
+          </div>
+        );
+      case 'library':
+        return (
+          <div className="w-full h-full bg-[#0d0d12] rounded-[16px] sm:rounded-[24px] border border-white/10 p-4 sm:p-6 flex flex-col relative overflow-hidden">
+             <div className="flex items-center justify-between mb-4 border-b border-white/10 pb-3">
+                <div className="flex items-center gap-2 text-neon-green font-mono text-xs font-bold">
+                  <Gamepad2 className="w-4 h-4" /> GAMES LIBRARY & DISCOVERY
+                </div>
+                <div className="text-gray-400 font-mono text-[10px]">SCAN STATUS: SYNCHRONIZED</div>
+             </div>
+             <div className="grid grid-cols-3 sm:grid-cols-4 gap-3 flex-1">
+                {[1, 2, 3, 4, 5, 6, 7, 8].map(i => (
+                  <div key={i} className="bg-white/5 border border-white/10 rounded-xl p-2 flex flex-col justify-between">
+                    <div className="w-full aspect-video bg-neon-green/10 rounded-lg mb-2 flex items-center justify-center text-neon-green font-mono text-[9px]">GAME {i}</div>
+                    <div className="h-2 w-3/4 bg-white/20 rounded mb-1" />
+                    <div className="h-1.5 w-1/2 bg-neon-green/40 rounded" />
+                  </div>
+                ))}
+             </div>
+          </div>
+        );
+      case 'system':
+        return (
+          <div className="w-full h-full bg-[#0a0a0f] rounded-[16px] sm:rounded-[24px] border border-white/10 p-4 sm:p-6 flex flex-col relative overflow-hidden">
+             <div className="flex items-center justify-between mb-4 border-b border-white/10 pb-3">
+                <div className="flex items-center gap-2 text-neon-green font-mono text-xs font-bold">
+                  <Server className="w-4 h-4" /> HARDWARE MONITOR & METRICS
+                </div>
+                <div className="text-gray-400 font-mono text-[10px]">GPU: RTX 4090 - 32°C</div>
+             </div>
+             <div className="grid grid-cols-2 gap-4 flex-1">
+                <div className="bg-white/5 border border-white/10 rounded-xl p-4 flex flex-col justify-between">
+                  <div className="text-gray-300 font-mono text-xs font-bold">GPU LOAD & VRAM</div>
+                  <div className="text-3xl font-mono font-black text-neon-green">42% <span className="text-xs text-gray-400">/ 24 GB</span></div>
+                  <div className="w-full bg-white/10 h-2 rounded-full overflow-hidden">
+                    <div className="bg-neon-green h-full w-[42%]" />
+                  </div>
+                </div>
+                <div className="bg-white/5 border border-white/10 rounded-xl p-4 flex flex-col justify-between">
+                  <div className="text-gray-300 font-mono text-xs font-bold">CPU CLOCK & TEMP</div>
+                  <div className="text-3xl font-mono font-black text-neon-yellow">5.4 GHz <span className="text-xs text-gray-400">/ 58°C</span></div>
+                  <div className="w-full bg-white/10 h-2 rounded-full overflow-hidden">
+                    <div className="bg-neon-yellow h-full w-[65%]" />
+                  </div>
+                </div>
+             </div>
+          </div>
+        );
+      case 'readiness':
+        return (
+          <div className="w-full h-full bg-[#090b0e] rounded-[16px] sm:rounded-[24px] border border-white/10 p-4 sm:p-6 flex flex-col relative overflow-hidden">
+             <div className="flex items-center justify-between mb-4 border-b border-white/10 pb-3">
+                <div className="flex items-center gap-2 text-neon-green font-mono text-xs font-bold">
+                  <ShieldCheck className="w-4 h-4" /> GAME READINESS AUDIT
+                </div>
+                <div className="text-neon-green font-mono text-xs font-bold">SCORE: 98/100</div>
+             </div>
+             <div className="space-y-3 flex-1 justify-center flex flex-col">
+                {['DirectX 12 Ultimate Verified', 'Resizable BAR Enabled', 'NVIDIA Reflex Low Latency Active', 'Windows Game Mode Tuned'].map((item, idx) => (
+                  <div key={idx} className="flex items-center justify-between p-3 bg-neon-green/5 border border-neon-green/20 rounded-xl">
+                    <span className="text-white font-mono text-xs flex items-center gap-2">
+                      <ShieldCheck className="w-3.5 h-3.5 text-neon-green" /> {item}
+                    </span>
+                    <span className="text-neon-green font-mono text-[10px] font-bold">OPTIMAL</span>
+                  </div>
+                ))}
+             </div>
           </div>
         );
       case 'hud':

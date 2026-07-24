@@ -63,28 +63,28 @@
                             "vite-plugin-electron-renderer":  "^1.0.0",
                             "vitest":  "^4.1.7"
                         },
-    "build": {
-        "appId": "com.missioncontrol.app",
-        "productName": "Mission Control",
-        "compression": "maximum",
-        "publish": {
-            "provider": "github",
-            "owner": "arnab825",
-            "repo": "Mission-Control"
-        },
-        "nsis": {
-            "oneClick": false,
-            "allowToChangeInstallationDirectory": true,
-            "perMachine": true,
-            "packElevateHelper": true,
-            "allowElevation": true,
-            "shortcutName": "Mission Control",
-            "runAfterFinish": true,
-            "createDesktopShortcut": "always",
-            "createStartMenuShortcut": true,
-            "license": "electron/license.txt",
-            "include": "electron/installer.nsh"
-        },
+    "build":  {
+                  "appId":  "com.missioncontrol.app",
+                  "productName":  "Mission Control",
+                  "compression":  "maximum",
+                  "publish":  {
+                                  "provider":  "github",
+                                  "owner":  "arnab825",
+                                  "repo":  "Mission-Control"
+                              },
+                  "nsis":  {
+                               "oneClick":  false,
+                               "allowToChangeInstallationDirectory":  true,
+                               "perMachine":  true,
+                               "packElevateHelper":  true,
+                               "allowElevation":  true,
+                               "shortcutName":  "Mission Control",
+                               "runAfterFinish":  true,
+                               "createDesktopShortcut":  "always",
+                               "createStartMenuShortcut":  true,
+                               "license":  "electron/license.txt",
+                               "include":  "electron/installer.nsh"
+                           },
                   "msi":  {
                               "oneClick":  false,
                               "perMachine":  true,
