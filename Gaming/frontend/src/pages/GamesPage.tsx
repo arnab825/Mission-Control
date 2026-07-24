@@ -86,7 +86,7 @@ function getPlatformLabel(platform: string): string {
 
 // ── Game Card ──────────────────────────────────────────────────────────────────
 
-const GameCard: React.FC<{ game: BackendGame; sendCommand: (type: string, payload?: any) => void; onPreview?: (game: BackendGame) => void; isRtxGpu?: boolean; isNvidiaGpu?: boolean }> = ({ game, sendCommand, onPreview }) => {
+const GameCard: React.FC<{ game: BackendGame; sendCommand: (type: string, payload?: any) => void; isRtxGpu?: boolean; isNvidiaGpu?: boolean }> = ({ game, sendCommand }) => {
   const seed = encodeURIComponent(game.name);
 
   // High-fidelity cover art strategy: Local Banner > Steam Header > Local Icon > Generative Placeholder
@@ -157,7 +157,6 @@ const GameCard: React.FC<{ game: BackendGame; sendCommand: (type: string, payloa
     >
       {/* Cover Image */}
       <div 
-        onClick={() => onPreview?.(game)}
         className="aspect-video relative overflow-hidden bg-black/40 flex items-center justify-center cursor-pointer"
       >
         <img
@@ -188,7 +187,6 @@ const GameCard: React.FC<{ game: BackendGame; sendCommand: (type: string, payloa
       <div className="p-4 space-y-3 flex-1 flex flex-col justify-between">
         <div className="space-y-2">
           <div 
-            onClick={() => onPreview?.(game)}
             className="min-h-10 cursor-pointer"
           >
             <h4 className="text-sm font-black text-white tracking-tight group-hover:text-neon-green transition-colors truncate leading-tight">
@@ -220,180 +218,12 @@ const GameCard: React.FC<{ game: BackendGame; sendCommand: (type: string, payloa
             <span>{launchUri ? 'Execute' : 'Unavailable'}</span>
           </button>
 
-          {onPreview && (
-            <button aria-label="button" type="button"
-              onClick={(e) => {
-                e.stopPropagation();
-                onPreview(game);
-              }}
-              className="px-3 py-2 bg-white/5 hover:bg-white/10 text-zinc-300 hover:text-white rounded-xl transition-all duration-300 border border-white/10 text-[9px] font-black uppercase tracking-widest cursor-pointer shrink-0"
-              title="Preview Details"
-            >
-              Preview
-            </button>
-          )}
         </div>
       </div>
     </motion.div>
   );
 };
 
-// ── Game Preview Modal ─────────────────────────────────────────────────────────
-const GamePreviewModal: React.FC<{
-  game: BackendGame;
-  onClose: () => void;
-  sendCommand: (type: string, payload?: any) => void;
-}> = ({ game, onClose, sendCommand }) => {
-  const seed = encodeURIComponent(game.name);
-
-  // High-fidelity cover art strategy
-  let coverUrl = `https://api.dicebear.com/7.x/shapes/svg?seed=${seed}&backgroundColor=0a0a0a&shape1Color=1a1a2e&shape2Color=16213e&shape3Color=0f3460`;
-  const LAUNCHER_BANNERS: Record<string, string> = {
-    'Steam': 'https://cdn.simpleicons.org/steam/ffffff',
-    'Epic Games': 'https://cdn.simpleicons.org/epicgames/ffffff',
-    'Epic': 'https://cdn.simpleicons.org/epicgames/ffffff',
-    'Xbox': 'data:image/svg+xml;base64,PD94bWwgdmVyc2lvbj0iMS4wIiBlbmNvZGluZz0iVVRGLTgiIHN0YW5kYWxvbmU9Im5vIj8+DQo8c3ZnIHhtbG5zPSJodHRwOi8vd3d3LnczLm9yZy8yMDAwL3N2ZyIgd2lkdGg9Ijg4IiBoZWlnaHQ9Ijg4Ij48dGl0bGU+WGJveCBMb2dvPC90aXRsZT48cGF0aCBmaWxsPSIjZmZmZmZmIiBkPSJNMzkuNzMgODYuOTFjLTYuNjI4LS42MzUtMTMuMzM4LTMuMDE1LTE5LjEwMi02Ljc3Ni00LjgzLTMuMTUtNS45Mi00LjQ0Ny01LjkyLTcuMDMyIDAtNS4xOTMgNS43MS0xNC4yOSAxNS40OC0yNC42NTggNS41NDctNS44OSAxMy4yNzUtMTIuNzkgMTQuMTEtMTIuNjA0IDEuNjI2LjM2MyAxNC42MTYgMTMuMDM0IDE5LjQ4IDE5IDcuNjkgOS40MyAxMS4yMjQgMTcuMTU0IDkuNDI4IDIwLjU5Ny0xLjM2NSAyLjYxNy05LjgzNyA3LjczMy0xNi4wNiA5LjY5OC01LjEzIDEuNjItMTEuODY3IDIuMzA2LTE3LjQxNiAxLjc3NXpNOC4xODQgNjcuNzAzYy00LjAxNC02LjE1OC02LjA0Mi0xMi4yMi03LjAyLTIwLjk4OC0uMzI0LTIuODk1LS4yMS00LjU1LjczMy0xMC40OTQgMS4xNzMtNy40IDUuMzktMTUuOTcgMTAuNDYtMjEuMjQgMi4xNTgtMi4yNCAyLjM1LTIuMyA0Ljk4Mi0xLjQxIDMuMTkgMS4wOCA2LjYgMy40MzYgMTEuODkgOC4yMmwzLjA5IDIuNzk0LTEuNjkgMi4wN2MtNy44MjggOS42MS0xNi4wOSAyMy4yNC0xOS4yIDMxLjY3LTEuNjkgNC41OC0yLjM3IDkuMTgtMS42NCAxMS4wOTUuNDkgMS4yOTQuMDQuODEyLTEuNjEtMS43MTR6bTcwLjQ1MyAxLjA0N2MuMzk3LTEuOTM2LS4xMDUtNS40OS0xLjI4LTkuMDc2LTIuNTQ1LTcuNzY1LTExLjA1NC0yMi4yMS0xOC44NjctMzIuMDMybC0yLjQ2LTMuMDkyIDIuNjYyLTIuNDQzYzMuNDc0LTMuMTkgNS44ODYtNS4xIDguNDktNi43MjMgMi4wNTMtMS4yOCA0Ljk4OC0yLjQxMyA2LjI1LTIuNDEzLjc3NyAwIDMuNTE2IDIuODUgNS43MjYgNS45NSAzLjQyNCA0LjggNS45NDIgMTAuNjMgNy4yMTggMTYuNjkuODI1IDMuOTIuODk0IDEyLjMuMTMzIDE2LjIxLS42MyAzLjIwOC0xLjk1IDcuMzY2LTMuMjMgMTAuMTg3LS45NyAyLjExMy0zLjM2IDYuMjE4LTQuNDEgNy41NTQtLjU0LjY4Ny0uNTQuNjg2LS4yNC0uNzk2ek00MC40NCAxMS41MDVDMzYuODM0IDkuNjc1IDMxLjI3MiA3LjcxIDI4LjIgNy4xOGMtMS4wNzYtLjE4NS0yLjkxMy0uMjktNC4wOC0uMjMtMi41MzYuMTI4LTIuNDIzLS4wMDQgMS42NDMtMS45MjUgMy4zOC0xLjU5NyA2LjItMi41MzYgMTAuMDMtMy4zNEM0MC4wOTguNzggNDguMTkzLjc3IDUyLjQzIDEuNjYzYzQuNTc1Ljk2NSA5Ljk2NCAyLjk3IDEzIDQuODRsLjkwNC41NTQtMi4wNy0uMTA0QzYwLjE0OCA2Ljc0NSA1NC4xNSA4LjQwOCA0Ny43MSAxMS41NGMtMS45NDIuOTQ2LTMuNjMgMS43LTMuNzU0IDEuNjgtLjEyMy0uMDI0LTEuNzA2LS43OTUtMy41Mi0xLjcxNXoiLz48L3N2Zz4=',
-    'Xbox App': 'data:image/svg+xml;base64,PD94bWwgdmVyc2lvbj0iMS4wIiBlbmNvZGluZz0iVVRGLTgiIHN0YW5kYWxvbmU9Im5vIj8+DQo8c3ZnIHhtbG5zPSJodHRwOi8vd3d3LnczLm9yZy8yMDAwL3N2ZyIgd2lkdGg9Ijg4IiBoZWlnaHQ9Ijg4Ij48dGl0bGU+WGJveCBMb2dvPC90aXRsZT48cGF0aCBmaWxsPSIjZmZmZmZmIiBkPSJNMzkuNzMgODYuOTFjLTYuNjI4LS42MzUtMTMuMzM4LTMuMDE1LTE5LjEwMi02Ljc3Ni00LjgzLTMuMTUtNS45Mi00LjQ0Ny01LjkyLTcuMDMyIDAtNS4xOTMgNS43MS0xNC4yOSAxNS40OC0yNC42NTggNS41NDctNS44OSAxMy4yNzUtMTIuNzkgMTQuMTEtMTIuNjA0IDEuNjI2LjM2MyAxNC42MTYgMTMuMDM0IDE5LjQ4IDE5IDcuNjkgOS40MyAxMS4yMjQgMTcuMTU0IDkuNDI4IDIwLjU5Ny0xLjM2NSAyLjYxNy05LjgzNyA3LjczMy0xNi4wNiA5LjY5OC01LjEzIDEuNjItMTEuODY3IDIuMzA2LTE3LjQxNiAxLjc3NXpNOC4xODQgNjcuNzAzYy00LjAxNC02LjE1OC02LjA0Mi0xMi4yMi03LjAyLTIwLjk4OC0uMzI0LTIuODk1LS4yMS00LjU1LjczMy0xMC40OTQgMS4xNzMtNy40IDUuMzktMTUuOTcgMTAuNDYtMjEuMjQgMi4xNTgtMi4yNCAyLjM1LTIuMyA0Ljk4Mi0xLjQxIDMuMTkgMS4wOCA2LjYgMy40MzYgMTEuODkgOC4yMmwzLjA5IDIuNzk0LTEuNjkgMi4wN2MtNy44MjggOS42MS0xNi4wOSAyMy4yNC0xOS4yIDMxLjY3LTEuNjkgNC41OC0yLjM3IDkuMTgtMS42NCAxMS4wOTUuNDkgMS4yOTQuMDQuODEyLTEuNjEtMS43MTR6bTcwLjQ1MyAxLjA0N2MuMzk3LTEuOTM2LS4xMDUtNS40OS0xLjI4LTkuMDc2LTIuNTQ1LTcuNzY1LTExLjA1NC0yMi4yMS0xOC44NjctMzIuMDMybC0yLjQ2LTMuMDkyIDIuNjYyLTIuNDQzYzMuNDc0LTMuMTkgNS44ODYtNS4xIDguNDktNi43MjMgMi4wNTMtMS4yOCA0Ljk4OC0yLjQxMyA2LjI1LTIuNDEzLjc3NyAwIDMuNTE2IDIuODUgNS43MjYgNS45NSAzLjQyNCA0LjggNS45NDIgMTAuNjMgNy4yMTggMTYuNjkuODI1IDMuOTIuODk0IDEyLjMuMTMzIDE2LjIxLS42MyAzLjIwOC0xLjk1IDcuMzY2LTMuMjMgMTAuMTg3LS45NyAyLjExMy0zLjM2IDYuMjE4LTQuNDEgNy41NTQtLjU0LjY4Ny0uNTQuNjg2LS4yNC0uNzk2ek00MC40NCAxMS41MDVDMzYuODM0IDkuNjc1IDMxLjI3MiA3LjcxIDI4LjIgNy4xOGMtMS4wNzYtLjE4NS0yLjkxMy0uMjktNC4wOC0uMjMtMi41MzYuMTI4LTIuNDIzLS4wMDQgMS42NDMtMS45MjUgMy4zOC0xLjU5NyA2LjItMi41MzYgMTAuMDMtMy4zNEM0MC4wOTguNzggNDguMTkzLjc3IDUyLjQzIDEuNjYzYzQuNTc1Ljk2NSA5Ljk2NCAyLjk3IDEzIDQuODRsLjkwNC41NTQtMi4wNy0uMTA0QzYwLjE0OCA2Ljc0NSA1NC4xNSA4LjQwOCA0Ny43MSAxMS41NGMtMS45NDIuOTQ2LTMuNjMgMS43LTMuNzU0IDEuNjgtLjEyMy0uMDI0LTEuNzA2LS43OTUtMy41Mi0xLjcxNXoiLz48L3N2Zz4=',
-    'EA Desktop': 'data:image/svg+xml;base64,PHN2ZyBmaWxsPSIjZmZmZmZmIiByb2xlPSJpbWciIHZpZXdCb3g9IjAgMCAyNCAyNCIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj48dGl0bGU+RUE8L3RpdGxlPjxwYXRoIGQ9Ik0xNi42MzUgNi4xNjJsLTUuOTI4IDkuMzc3SDQuMjRsMS41MDgtMi4zaDQuMDI0bDEuNDc0LTIuMzM1SDIuMjY0TC43OSAxMy4yMzloMi4xNTZMMCAxNy44NGgxMi4wNzJsNC41NjMtNy4yNTkgMS42NTIgMi42NmgtMS40MDFsLTEuNDczIDIuMjk5aDQuMzQ3bDEuNDczIDIuM0gyNHptLTExLjQ2MS4xMDdMMy43IDguNjA0bDkuNTItLjAzNSAxLjQ3NC0yLjN6Ii8+PC9zdmc+',
-    'Origin': 'data:image/svg+xml;base64,PHN2ZyBmaWxsPSIjZmZmZmZmIiByb2xlPSJpbWciIHZpZXdCb3g9IjAgMCAyNCAyNCIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj48dGl0bGU+RUE8L3RpdGxlPjxwYXRoIGQ9Ik0xNi42MzUgNi4xNjJsLTUuOTI4IDkuMzc3SDQuMjRsMS41MDgtMi4zaDQuMDI0bDEuNDc0LTIuMzM1SDIuMjY0TC43OSAxMy4yMzloMi4xNTZMMCAxNy44NGgxMi4wNzJsNC41NjMtNy4yNTkgMS42NTIgMi42NmgtMS40MDFsLTEuNDczIDIuMjk5aDQuMzQ3bDEuNDczIDIuM0gyNHptLTExLjQ2MS4xMDdMMy43IDguNjA0bDkuNTItLjAzNSAxLjQ3NC0yLjN6Ii8+PC9zdmc+',
-    'Ubisoft Connect': 'data:image/svg+xml;base64,PHN2ZyBmaWxsPSIjZmZmZmZmIiByb2xlPSJpbWciIHZpZXdCb3g9IjAgMCAyNCAyNCIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj48dGl0bGU+VWJpc29mdDwvdGl0bGU+PHBhdGggZD0iTTIzLjU2MSAxMS45ODhDMjMuMzAxLS4zMDQgNi45NTQtNC44OS42NTYgNi42MzRjLjI4Mi4yMDYuNjYxLjQ3Ny45NDMuNjcyYTExLjc0NyAxMS43NDcgMCAwMC0uOTc2IDMuMDY3IDExLjg4NSAxMS44ODUgMCAwMC0uMTg0IDIuMDcxQy40MzkgMTguODE4IDUuNjIxIDI0IDEyLjAwNSAyNGM2LjM4NSAwIDExLjU1Ni01LjE3IDExLjU1Ni0xMS41NTZ2LS40NTV6bS0yMC4yNyAyLjA2Yy0uMTUyIDEuMjQ2LS4wNTQgMS42MzYtLjA1NCAxLjc4OGwtLjI4Mi4wOThjLS4xMDgtLjIwNi0uMzctLjkzMi0uNDg4LTEuOTA4QzIuMTYzIDEwLjMwOCA0LjcgNi45NiA4LjU3IDYuMzNjMy41NDQtLjUyIDYuOTM3IDEuNjggNy43MjggNC43NThsLS4yODIuMDk4Yy0uMDg3LS4wODctLjIyOC0uMzM2LS43Ny0uODc4LTQuMjgxLTQuMjgxLTExLjAwMi0yLjMyLTExLjk1NiAzLjc0em0xMS4wMDIgMi4wODFhMy4xNDUgMy4xNDUgMCAwMS0yLjU5IDEuMzU1IDMuMTUgMy4xNSAwIDAxLTMuMTU1LTMuMTU1IDMuMTU5IDMuMTU5IDAgMDEyLjkyNy0zLjE0NGMxLjAxOC0uMDQzIDEuOTcyLjUxIDIuNDE2IDEuMzk4YTIuNTggMi41OCAwIDAxLS40NTUgMi45NWMuMjkzLjIwNS41NzUuNC44NTYuNTk1em02LjU4LjEyYy0xLjY2OSAzLjc4Mi01LjEwNiA1Ljc2Ni04Ljc3IDUuNzEyLTcuMDM0LS4zNDctOS4wODMtOC40NjYtNC4zOC0xMS4zOTNsLjIwNy4yMDZjLS4wNzYuMTA4LS4zNTguMzI1LS43OTEgMS4xODItLjUxIDEuMDQxLS42NzIgMi4wODEtLjYwNyAyLjczMi4zNjkgNS42NyA4LjMxNCA2LjgzIDExLjA0NSAxLjIxNEMyMS4wNTcgOC4yMTcgMTEuODIyLjQwMSAzLjYyNiA2LjM3NGwtLjE4NC0uMTg0QzUuNTk5IDIuODA4IDkuODE2IDEuMyAxMy44MzcgMi4zMDljNi4xNDcgMS4xNSA5LjQ1MyA3Ljk1NiA3LjAzNSAxMy45NHoiLz48L3N2Zz4=',
-    'Battle.net': 'data:image/svg+xml;base64,PHN2ZyBmaWxsPSIjZmZmZmZmIiByb2xlPSJpbWciIHZpZXdCb3g9IjAgMCAyNCAyNCIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj48dGl0bGU+QmF0dGxlLm5ldDwvdGl0bGU+PHBhdGggZD0iTTE4Ljk0IDguMjk2QzE1LjkgNi44OTIgMTEuNTM0IDYgNy40MjYgNi4zMzJjLjIwNi0xLjM2LjcxNC0yLjMwOCAxLjU0OC0yLjUwOCAxLjE0OC0uMjc1IDIuNC40OCAzLjU5NCAxLjg1NC43ODIuMTAyIDEuNzEuMjggMi4zNTUuNDI5QzEyLjc0NyAyLjAxMyA5LjgyOC0uMjgyIDcuNjA3LjU2NWMtMS42ODguNjQ0LTIuNTUzIDIuOTctMi40NDggNi4wOTQtMi4yLjQ2OC0zLjkxNSAxLjMtNS4wMTMgMi40OTUtLjA1Ni4wNjUtLjE4MS4yMjctLjEzNy4zMDUuMDM0LjA1OC4xNDYtLjAwOC4xOTQtLjA0IDEuMjc0LS44OSAyLjkwNC0xLjM3MyA1LjAyNy0xLjY3Ni4zMDMgMy4zMzMgMS43MTMgNy41NiA0LjA1NSAxMC45NTItMS4yOC41MDItMi4zNTYuNTM2LTIuOTQ2LS4wODctLjgxMi0uODU2LS43ODQtMi4zMTgtLjE5LTQuMDRhMjYuNzY0IDI2Ljc2NCAwIDAgMS0uODA3LTIuMjU0Yy0yLjQ1OSAzLjkzNC0yLjk4NiA3LjYxLTEuMTQzIDkuMTEgMS40MDIgMS4xNCAzLjg0Ny43MjUgNi41MDItLjkyNiAxLjUwNSAxLjY3MiAzLjA4MyAyLjc0IDQuNjY3IDMuMDk0LjA4NC4wMTUuMjg3LjA0My4zMzItLjAzNC4wMzQtLjA2LS4wOC0uMTI0LS4xMzEtLjE0OS0xLjQwOC0uNjU3LTIuNjQtMS44MjgtMy45NjQtMy41MTUgMi43MzUtMS45MjkgNS42OTEtNS4yNjMgNy40NTctOC45ODggMS4wNzYuODYgMS42NCAxLjc3MyAxLjM5OCAyLjU5NS0uMzM2IDEuMTMxLTEuNjE1IDEuODQtMy40MDMgMi4xODVhMjcuNjk3IDI3LjY5NyAwIDAgMS0xLjU0OCAxLjgyNmM0LjYzNC4xNiA4LjA4LTEuMjIgOC40NTgtMy41NjUuMjg2LTEuNzg2LTEuMjk1LTMuNjk2LTQuMDUzLTUuMTcuNjk2LTIuMTM5LjgzMi00LjA0LjM0Ni01LjU4OC0uMDI5LS4wOC0uMTA2LS4yNy0uMTk2LS4yNy0uMDY4IDAtLjA2Ny4xMy0uMDYzLjE4Ny4xMzUgMS41NDctLjI2MyAzLjItMS4wNjIgNS4xOXptLTguNTMzIDkuODY5Yy0xLjk2LTMuMTQ1LTMuMDktNi44NDktMy4wODItMTAuNTk0IDMuNzAyLS4xMjQgNy40NzQuNzQ4IDEwLjcxNCAyLjYyNy0xLjc0MyAzLjI2OS00LjM4NSA2LjEtNy42MzMgNy45NjZoLjAwMXoiLz48L3N2Zz4=',
-    'GOG Galaxy': 'data:image/svg+xml;base64,PHN2ZyBmaWxsPSIjZmZmZmZmIiByb2xlPSJpbWciIHZpZXdCb3g9IjAgMCAyNCAyNCIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj48dGl0bGU+R09HLmNvbTwvdGl0bGU+PHBhdGggZD0iTTcuMTUgMTUuMjRINC4zNmEuNC40IDAgMCAwLS40LjR2MmMwIC4yMS4xOC40LjQuNGgyLjh2MS4zMmgtMy41Yy0uNTYgMC0xLjAyLS40Ni0xLjAyLTEuMDN2LTMuMzljMC0uNTYuNDYtMS4wMiAxLjAzLTEuMDJoMy40OHYxLjMyek04LjE2IDExLjU0YzAgLjU4LS40NyAxLjA1LTEuMDUgMS4wNUgyLjYzdi0xLjM1aDMuNzhhLjQuNCAwIDAgMCAuNC0uNFY2LjM5YS40LjQgMCAwIDAtLjQtLjRINC4zOWEuNC40IDAgMCAwLS40MS40djIuMDJjMCAuMjMuMTguNC40LjRINnYxLjM1SDMuNjhjLS41OCAwLTEuMDUtLjQ2LTEuMDUtMS4wNFY1LjY4YzAtLjU3LjQ3LTEuMDQgMS4wNS0xLjA0SDcuMWMuNTggMCAxLjA1LjQ3IDEuMDUgMS4wNHY1Ljg2ek0yMS4zNiAxOS4zNmgtMS4zMnYtNC4xMmgtLjkzYS40LjQgMCAwIDAtLjQuNHYzLjcyaC0xLjMzdi00LjEyaC0uOTNhLjQuNCAwIDAgMC0uNC40djMuNzJoLTEuMzN2LTQuNDJjMC0uNTYuNDYtMS4wMiAxLjAzLTEuMDJoNS42MXY1LjQ0ek0yMS4zNyAxMS41NGMwIC41OC0uNDcgMS4wNS0xLjA1IDEuMDVoLTQuNDh2LTEuMzVoMy43OGEuNC40IDAgMCAwIC40LS40VjYuMzlhLjQuNCAwIDAgMC0uNC0uNGgtMi4wM2EuNC40IDAgMCAwLS40LjR2Mi4wMmMwIC4yMy4xOC40LjQuNGgxLjYydjEuMzVIMTYuOWMtLjU4IDAtMS4wNS0uNDYtMS4wNS0xLjA0VjUuNjhjMC0uNTcuNDctMS4wNCAxLjA1LTEuMDRoMy40M2MuNTggMCAxLjA1LjQ3IDEuMDUgMS4wNHY1Ljg2ek0xMy43MiA0LjY0aC0zLjQ0Yy0uNTggMC0xLjA0LjQ3LTEuMDQgMS4wNHYzLjQ0YzAgLjU4LjQ2IDEuMDQgMS4wNCAxLjA0aDMuNDRjLjU3IDAgMS4wNC0uNDYgMS4wNC0xLjA0VjUuNjhjMC0uNTctLjQ3LTEuMDQtMS4wNC0xLjA0bS0uMyAxLjc1djIuMDJhLjQuNCAwIDAgMS0uNC40aC0yLjAzYS40LjQgMCAwIDEtLjQtLjRWNi40YzAtLjIyLjE3LS40LjQtLjRIMTNjLjIzIDAgLjQuMTguNC40ek0xMi42MyAxMy45Mkg5LjI0Yy0uNTcgMC0xLjAzLjQ2LTEuMDMgMS4wMnYzLjM5YzAgLjU3LjQ2IDEuMDMgMS4wMyAxLjAzaDMuMzljLjU3IDAgMS4wMy0uNDYgMS4wMy0xLjAzdi0zLjM5YzAtLjU2LS40Ni0xLjAyLTEuMDMtMS4wMm0tLjMgMS43MnYyYS40LjQgMCAwIDEtLjQuNHYtLjAxSDkuOTRhLjQuNCAwIDAgMS0uNC0uNHYtMS45OWMwLS4yMi4xOC0uNC40LS40aDJjLjIyIDAgLjQuMTguNC40ek0yMy40OSAxLjFhMS43NCAxLjc0IDAgMCAwLTEuMjQtLjUySDEuNzVBMS43NCAxLjc0IDAgMCAwIDAgMi4zM3YxOS4zNGExLjc0IDEuNzQgMCAwIDAgMS43NSAxLjc1aDIwLjVBMS43NCAxLjc0IDAgMCAwIDI0IDIxLjY3VjIuMzNjMC0uNDgtLjItLjkyLS41MS0xLjI0bTAgMjAuNThhMS4yMyAxLjIzIDAgMCAxLTEuMjQgMS4yNEgxLjc1QTEuMjMgMS4yMyAwIDAgMSAuNSAyMS42N1YyLjMzYTEuMjMgMS4yMyAwIDAgMSAxLjI0LTEuMjRoMjAuNWExLjI0IDEuMjQgMCAwIDEgMS4yNCAxLjI0djE5LjM0eiIvPjwvc3ZnPg==',
-    'Riot Games': 'data:image/svg+xml;base64,PHN2ZyBmaWxsPSIjZmZmZmZmIiByb2xlPSJpbWciIHZpZXdCb3g9IjAgMCAyNCAyNCIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj48dGl0bGU+UmlvdCBHYW1lczwvdGl0bGU+PHBhdGggZD0iTTEzLjQ1OC44NiAwIDcuMDkzbDMuMzUzIDEyLjc2MSAyLjU1Mi0uMzEzLS43MDEtOC4wMjQuODM4LS4zNzMgMS40NDcgOC4yMDIgNC4zNjEtLjUzNS0uNzc1LTguODU3LjgzLS4zNyAxLjU5MSA5LjAyNSA0LjQxMi0uNTQyLS44NDktOS43MDguODQtLjM3NCAxLjc0IDkuODdMMjQgMTcuMzE4VjMuNVptLjMxNiAxOS4zNTYuMjIyIDEuMjU2TDI0IDIzLjE0di00LjE4bC0xMC4yMiAxLjI1NloiLz48L3N2Zz4=',
-    'Rockstar Games': 'data:image/svg+xml;base64,PHN2ZyBmaWxsPSIjZmZmZmZmIiByb2xlPSJpbWciIHZpZXdCb3g9IjAgMCAyNCAyNCIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj48dGl0bGU+Um9ja3N0YXIgR2FtZXM8L3RpdGxlPjxwYXRoIGQ9Ik01Ljk3MSA2LjgxNmgzLjI0MWMxLjQ2OSAwIDIuNzQxLS40NDggMi43NDEtMi4wODQgMC0xLjMtMS4xMTctMS41NzYtMi4xOS0xLjU3Nkg2Ljc0OGwtLjc3NyAzLjY2Wm0xMi44MzQgOC43NTNoNS4xNjhsLTQuNjY0IDMuMjI4Ljc1NSA1LjA4Ny00LjA0MS0zLjA3TDEwLjU5OSAyNGwyLjUzNi01LjM5MnMtMi45NS0zLjA3NS0yLjk0Ny0zLjA3NWMtLjE5OC0uMjYyLS4yNjUtLjkzNi0uMjY1LTEuMjI2IDAtLjM2Ny4wMjQtLjczOS4wNDktMS4xMzQuMDI4LS40NTEuMDU4LS45MzMuMDU4LTEuNDc2IDAtMS4zMzgtLjU5LTIuMDM4LTIuMDM2LTIuMDM4SDUuMjgzbC0xLjE4IDUuNTI1SC4wMjZMMy4yNjkgMGg3LjY3MmMyLjg1MiAwIDUuMDI3LjcwMiA1LjAyNyAzLjkzNiAwIDIuMjc2LTEuMTIgMy44OTQtMy41OTIgNC4yMzN2LjA0NWMxLjE2Mi4yNzYgMS41OTggMS4wNjIgMS41OTggMi41MjcgMCAuNTg1LS4wMTggMS4wOTgtLjAzNCAxLjU4MS0uMDE1LjQyOC0uMDMuODM0LS4wMyAxLjI0MyAwIC41MjUuMTM3IDEuMzgyLjQ4IDEuOTY4aC41NjdsMy4wMjgtNS4wNi44MiA1LjA5NlptLTEuMjMzLTIuOTQ4LTIuMTg3IDMuNjU0aC0zLjQ1N2wyLjEwMyAyLjE4OS0xLjczIDMuNjcyIDMuNzc3LTIuMjE4IDIuOTc2IDIuMjYzLS41NTMtMy43MzEgMy4wOTMtMi4xMzloLTMuNDNsLS41OTItMy42OVoiLz48L3N2Zz4='
-  };
-
-  // Robust launcher detection: Check type, genre, and platform name
-  const isLauncher =
-    game.type?.toUpperCase() === 'LAUNCHER' ||
-    game.genre?.toUpperCase() === 'PLATFORM' ||
-    ['Steam', 'Epic Games', 'Xbox', 'EA Desktop', 'Origin'].includes(game.platform) && game.name.toLowerCase().includes('app') ||
-    game.name.toLowerCase() === game.platform.toLowerCase();
-
-  if (game.local_banner) {
-    coverUrl = game.local_banner.startsWith('http') ? game.local_banner : `asset:///${game.local_banner.replace(/\\/g, '/')}`;
-  } else if (game.platform === 'Steam' && game.id && !isLauncher) {
-    coverUrl = `https://cdn.akamai.steamstatic.com/steam/apps/${game.id}/header.jpg`;
-  } else if (isLauncher && LAUNCHER_BANNERS[game.platform]) {
-    coverUrl = LAUNCHER_BANNERS[game.platform];
-  } else if (game.icon && game.icon !== 'null') {
-    coverUrl = game.icon.startsWith('http') ? game.icon : `asset:///${game.icon.replace(/\\/g, '/')}`;
-  }
-
-  const getLaunchUri = () => {
-    if (game.platform === 'Steam' && game.id && !isLauncher) return `steam://rungameid/${game.id}`;
-    if ((game.platform === 'Epic Games' || game.platform === 'Epic') && game.id && !isLauncher) return `com.epicgames.launcher://apps/${game.id}?action=launch&silent=true`;
-    if ((game.platform === 'EA Desktop' || game.platform === 'Origin') && game.id && !isLauncher) return `origin://launchgame/${game.id}`;
-    if (game.platform === 'Ubisoft Connect' && game.id && !isLauncher) return `uplay://launch/${game.id}`;
-    if (game.platform === 'GOG Galaxy' && game.id && !isLauncher) return `goggalaxy://openGameView/${game.id}`;
-    if (game.platform === 'Battle.net' && game.id && !isLauncher) return `battlenet://play/${game.id}`;
-    if (game.exe_path) return game.exe_path;
-    if (game.platform === 'Steam') return 'steam://open/main';
-    if (game.platform === 'Epic Games' || game.platform === 'Epic') return 'com.epicgames.launcher://store';
-    if (game.platform === 'EA Desktop' || game.platform === 'Origin') return 'origin://';
-    if (game.platform === 'Ubisoft Connect') return 'uplay://';
-    if (game.platform === 'GOG Galaxy') return 'goggalaxy://';
-    if (game.platform === 'Battle.net') return 'battlenet://';
-    if (game.platform === 'Xbox' || game.platform === 'Xbox App') return 'xbox:';
-    return null;
-  };
-
-  const launchUri = getLaunchUri();
-
-  const handleLaunch = () => {
-    if (launchUri) {
-      if ((window as any).electronAPI?.launchGame) {
-        (window as any).electronAPI.launchGame(launchUri);
-      } else {
-        sendCommand('launch_game', { exe_path: launchUri });
-      }
-      onClose();
-    }
-  };
-
-  return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center p-3 sm:p-4 bg-black/80 backdrop-blur-md overflow-y-auto">
-      <motion.div
-        initial={{ opacity: 0, scale: 0.95, y: 20 }}
-        animate={{ opacity: 1, scale: 1, y: 0 }}
-        exit={{ opacity: 0, scale: 0.95, y: 20 }}
-        className="bg-[#0a0a0f] border border-white/10 rounded-3xl overflow-hidden w-full max-w-3xl max-h-[90vh] flex flex-col my-auto shadow-[0_0_50px_rgba(0,0,0,0.8)] relative shrink-0"
-      >
-        <button 
-          onClick={onClose} 
-          aria-label="Close modal"
-          className="absolute top-3 right-3 sm:top-4 sm:right-4 z-20 p-2 bg-black/60 hover:bg-black text-white rounded-full transition-colors border border-white/10 backdrop-blur-md cursor-pointer"
-        >
-          <X className="w-5 h-5" />
-        </button>
-
-        {/* Banner Section */}
-        <div className="relative aspect-[16/9] sm:aspect-[21/9] min-h-[160px] sm:min-h-[220px] shrink-0 overflow-hidden bg-black flex items-center justify-center">
-          <img
-            src={coverUrl}
-            alt={game.name}
-            className={`w-full h-full opacity-60 ${isLauncher ? 'object-contain p-8 sm:p-12' : 'object-cover'}`}
-          />
-          <div className="absolute inset-0 bg-gradient-to-t from-[#0a0a0f] via-[#0a0a0f]/40 to-transparent pointer-events-none" />
-          
-          <div className="absolute bottom-4 left-4 right-4 sm:bottom-6 sm:left-8 sm:right-8">
-            <div className={`inline-block px-2.5 py-1 mb-2 sm:mb-3 rounded-lg border backdrop-blur-md shadow-lg ${PLATFORM_STYLES[game.platform]?.bg || 'bg-white/10'} ${PLATFORM_STYLES[game.platform]?.text || 'text-white'} ${PLATFORM_STYLES[game.platform]?.border || 'border-white/20'}`}>
-              <span className="text-[9px] sm:text-[10px] font-black uppercase tracking-widest">{game.platform}</span>
-            </div>
-            <h2 className="text-xl sm:text-3xl md:text-4xl font-black text-white tracking-tighter drop-shadow-xl break-words leading-tight">
-              {game.name}
-            </h2>
-          </div>
-        </div>
-
-        {/* Content Details Section - scrollable inside modal */}
-        <div className="p-4 sm:p-6 md:p-8 overflow-y-auto flex flex-col md:flex-row gap-6 md:gap-8 items-start">
-          <div className="flex-1 space-y-6 w-full">
-            <div>
-              <h3 className="text-[10px] font-black text-zinc-500 uppercase tracking-widest mb-2">Details</h3>
-              <div className="flex flex-wrap gap-2">
-                <span className="px-3 py-1 bg-white/5 border border-white/10 rounded-lg text-xs font-bold text-zinc-300">
-                  {game.genre === 'N/A' || !game.genre ? (game.type === 'LAUNCHER' ? 'GAMING PLATFORM' : 'GAME') : game.genre}
-                </span>
-                {game.tags && game.tags.map((tag, i) => (
-                  <span key={`pt-${i}`} className="px-3 py-1 bg-white/5 border border-white/10 rounded-lg text-xs font-bold text-zinc-300 uppercase tracking-tighter">
-                    {tag}
-                  </span>
-                ))}
-              </div>
-            </div>
-
-            {game.features && game.features.length > 0 && (
-              <div>
-                <h3 className="text-[10px] font-black text-zinc-500 uppercase tracking-widest mb-2">Supported Tech</h3>
-                <div className="flex flex-wrap gap-2">
-                  {game.features.map((feature, i) => (
-                    <span key={`pf-${i}`} className="px-3 py-1 bg-neon-green/10 border border-neon-green/20 rounded-lg text-xs font-bold text-neon-green uppercase tracking-tighter shadow-[0_0_10px_rgba(118,185,0,0.1)]">
-                      {feature}
-                    </span>
-                  ))}
-                </div>
-              </div>
-            )}
-          </div>
-
-          <div className="w-full md:w-64 shrink-0 flex flex-col gap-3">
-             <button aria-label="button" type="button"
-                onClick={handleLaunch}
-                disabled={!launchUri}
-                className="w-full flex items-center justify-center gap-2 py-3.5 sm:py-4 bg-neon-green hover:bg-[#8aff00] text-black rounded-2xl transition-all duration-300 shadow-[0_0_20px_rgba(118,185,0,0.3)] hover:shadow-[0_0_30px_rgba(118,185,0,0.5)] disabled:opacity-40 disabled:cursor-not-allowed hover:-translate-y-1 cursor-pointer"
-              >
-                <Play className="w-5 h-5 fill-current" />
-                <span className="text-sm font-black uppercase tracking-widest">
-                  {launchUri ? 'Execute' : 'Unavailable'}
-                </span>
-              </button>
-          </div>
-        </div>
-      </motion.div>
-    </div>
-  );
-};
 const CacheLoadingScreen: React.FC = () => (
   <div className="flex-1 flex flex-col items-center justify-center p-8">
     <div className="bg-black/20 backdrop-blur-md border border-white/5 rounded-3xl p-10 flex flex-col items-center max-w-md w-full shadow-[0_0_50px_rgba(118, 185, 0,0.05)]">
@@ -570,7 +400,7 @@ const GamesLibraryContent: React.FC<GamesPageProps> = ({ state, sendCommand, set
   const lastAuthStateRef = useRef<string>('');
   // Tracks previous userId to detect provider switches (userId changes while still signed in)
   const lastUserIdRef = useRef<string | null | undefined>(undefined);
-  const [selectedGame, setSelectedGame] = useState<BackendGame | null>(null);
+
 
   const handlePlatformChange = (p: string) => {
     setFilter(p);
@@ -1066,7 +896,6 @@ const GamesLibraryContent: React.FC<GamesPageProps> = ({ state, sendCommand, set
                     key={`${game.id}-${i}`} 
                     game={game} 
                     sendCommand={sendCommand}
-                    onPreview={(g) => setSelectedGame(g)}
                     isRtxGpu={isRtxGpu} 
                     isNvidiaGpu={isNvidiaGpu} 
                   />
@@ -1092,16 +921,7 @@ const GamesLibraryContent: React.FC<GamesPageProps> = ({ state, sendCommand, set
         </>
       )}
 
-      {/* Game Preview Modal Overlay */}
-      <AnimatePresence>
-        {selectedGame && (
-          <GamePreviewModal
-            game={selectedGame}
-            onClose={() => setSelectedGame(null)}
-            sendCommand={sendCommand}
-          />
-        )}
-      </AnimatePresence>
+
     </div>
   );
 };
