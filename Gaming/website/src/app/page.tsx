@@ -7,7 +7,6 @@ import { motion, AnimatePresence } from "framer-motion";
 import { WINDOWS_INSTALLER_URL, WINDOWS_MSI_URL, WINDOWS_ZIP_URL } from "@/lib/download";
 import { ScreenshotGallery } from "@/components/ScreenshotGallery";
 import { BeforeAfterSlider } from "@/components/BeforeAfterSlider";
-import { MissionControlAppMockup } from "@/components/MissionControlAppMockup";
 import { 
   Users, 
   Search, 
@@ -38,7 +37,6 @@ export default function Home() {
   const [activeFaq, setActiveFaq] = useState<number | null>(null);
   const [activePersonality, setActivePersonality] = useState("Tactical");
   const [consoleCommand, setConsoleCommand] = useState("/boost --vram-flush");
-  const [heroView, setHeroView] = useState<'dashboard' | 'hud'>('dashboard');
   
   type OS = "windows" | "linux" | "mac" | "other" | null;
   const [os, setOs] = useState<OS>(null);
@@ -311,130 +309,42 @@ export default function Home() {
             </div>
           </motion.div>
 
-          {/* Right Column: Dynamic Interactive Overlay Mockup & Telemetry Cards */}
+          {/* Right Column: Dynamic Real Dashboard Showcase */}
           <motion.div 
             initial={{ opacity: 0, scale: 0.95 }}
             animate={{ opacity: 1, scale: 1 }}
             transition={{ duration: 0.6, delay: 0.2 }}
             className="lg:col-span-5 relative w-full flex flex-col items-center"
           >
-            {/* View Switcher Tabs */}
-            <div className="flex items-center gap-2 mb-3 bg-white/5 p-1 rounded-xl border border-white/10 self-center sm:self-end z-20">
-              <button
-                type="button"
-                onClick={() => setHeroView('dashboard')}
-                className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-mono font-bold transition-all cursor-pointer ${heroView === 'dashboard' ? 'bg-neon-green text-obsidian shadow-[0_0_12px_rgba(118,185,0,0.4)]' : 'text-gray-400 hover:text-white'}`}
-              >
-                <Monitor className="w-3.5 h-3.5" />
-                <span>Desktop Dashboard</span>
-              </button>
-              <button
-                type="button"
-                onClick={() => setHeroView('hud')}
-                className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-mono font-bold transition-all cursor-pointer ${heroView === 'hud' ? 'bg-neon-green text-obsidian shadow-[0_0_12px_rgba(118,185,0,0.4)]' : 'text-gray-400 hover:text-white'}`}
-              >
-                <Scan className="w-3.5 h-3.5" />
-                <span>HUD Overlay</span>
-              </button>
-            </div>
-
             {/* Glow backing */}
             <div className="absolute inset-0 bg-neon-green/15 blur-3xl rounded-3xl -z-10" />
 
-            {heroView === 'dashboard' ? (
-              <MissionControlAppMockup />
-            ) : (
-              /* Tactical Dashboard HUD Frame */
-              <div className="w-full bg-[#0d0f14]/95 border border-white/15 rounded-[24px] overflow-hidden shadow-[0_0_50px_rgba(0,0,0,0.8)] scanline-effect relative">
-                
-                {/* Window Header Bar */}
-                <div className="bg-obsidian/95 px-4 sm:px-5 py-3 border-b border-white/10 flex items-center justify-between">
-                  <div className="flex items-center gap-2">
-                    <div className="w-2.5 h-2.5 rounded-full bg-red-500/80" />
-                    <div className="w-2.5 h-2.5 rounded-full bg-yellow-500/80" />
-                    <div className="w-2.5 h-2.5 rounded-full bg-green-500/80" />
-                    <span className="ml-1 text-[10px] sm:text-xs font-mono text-gray-400 uppercase tracking-widest truncate max-w-[140px] sm:max-w-none">MISSION_CONTROL_HUD</span>
-                  </div>
-                  <div className="flex items-center gap-1.5 shrink-0">
-                    <span className="inline-block w-2 h-2 rounded-full bg-neon-green animate-ping" />
-                    <span className="text-[10px] sm:text-[11px] font-mono text-neon-green font-bold">LIVE IN-GAME</span>
-                  </div>
+            {/* Desktop Application Window Frame */}
+            <div className="w-full bg-[#0d0f14]/95 border border-white/15 rounded-[24px] overflow-hidden shadow-[0_0_50px_rgba(0,0,0,0.8)] relative group">
+              
+              {/* Window Header Bar */}
+              <div className="bg-obsidian/95 px-4 sm:px-5 py-3 border-b border-white/10 flex items-center justify-between">
+                <div className="flex items-center gap-2">
+                  <div className="w-2.5 h-2.5 rounded-full bg-red-500/80" />
+                  <div className="w-2.5 h-2.5 rounded-full bg-yellow-500/80" />
+                  <div className="w-2.5 h-2.5 rounded-full bg-green-500/80" />
+                  <span className="ml-1 text-[10px] sm:text-xs font-mono text-gray-400 uppercase tracking-widest truncate">MISSION_CONTROL_DASHBOARD</span>
                 </div>
-
-                {/* Tactical Inner Viewport */}
-                <div className="p-4 sm:p-6 space-y-4 sm:space-y-5">
-                  
-                  {/* Floating Telemetry Widgets Bar */}
-                  <div className="grid grid-cols-2 gap-2.5 sm:gap-3">
-                    
-                    {/* FPS & Frame Time Widget */}
-                    <div className="glass-card p-3.5 sm:p-4 border-neon-green/30 bg-neon-green/[0.03]">
-                      <div className="flex justify-between items-center text-[10px] sm:text-xs text-gray-400 font-mono mb-1">
-                        <span>FRAME_RATE</span>
-                        <Activity className="w-3.5 h-3.5 text-neon-green shrink-0" />
-                      </div>
-                      <div className="flex items-baseline gap-1.5">
-                        <span className="text-2xl sm:text-3xl font-black font-mono text-white">165.4</span>
-                        <span className="text-[10px] sm:text-xs font-mono text-neon-green font-bold">FPS</span>
-                      </div>
-                      <div className="w-full bg-white/10 rounded-full h-1.5 mt-2.5 overflow-hidden">
-                        <div className="bg-neon-green h-full w-[88%] shadow-[0_0_8px_rgba(118, 185, 0,0.8)]" />
-                      </div>
-                    </div>
-
-                    {/* GPU Thermals & Load */}
-                    <div className="glass-card p-3.5 sm:p-4">
-                      <div className="flex justify-between items-center text-[10px] sm:text-xs text-gray-400 font-mono mb-1">
-                        <span>GPU_THERMALS</span>
-                        <Cpu className="w-3.5 h-3.5 text-gray-400 shrink-0" />
-                      </div>
-                      <div className="flex items-baseline gap-1.5">
-                        <span className="text-2xl sm:text-3xl font-black font-mono text-white">62°C</span>
-                        <span className="text-[10px] sm:text-xs font-mono text-gray-400">42% LOAD</span>
-                      </div>
-                      <div className="w-full bg-white/10 rounded-full h-1.5 mt-2.5 overflow-hidden">
-                        <div className="bg-neon-yellow h-full w-[42%]" />
-                      </div>
-                    </div>
-
-                  </div>
-
-                  {/* AI Assistant Live Feed Box */}
-                  <div className="glass-card p-3.5 sm:p-4 border-neon-green/30 bg-obsidian/90">
-                    <div className="flex items-center justify-between mb-2.5 pb-2 border-b border-white/10">
-                      <div className="flex items-center gap-2">
-                        <Sparkles className="w-4 h-4 text-neon-green shrink-0" />
-                        <span className="text-xs font-bold font-mono text-white uppercase">AI Companion</span>
-                      </div>
-                      <span className="text-[9px] sm:text-[10px] font-mono px-2 py-0.5 rounded bg-neon-green/20 text-neon-green font-bold">TACTICAL</span>
-                    </div>
-
-                    <div className="space-y-2 font-mono text-xs">
-                      <div className="text-gray-400 text-[11px]">
-                        <span className="text-neon-green font-bold">&gt; Scanner:</span> Cyberpunk 2077 detected.
-                      </div>
-                      <div className="text-white bg-white/[0.04] p-2.5 rounded-xl border border-white/5 leading-relaxed text-[11px]">
-                        <span className="text-yellow-400 font-bold">Recommendation:</span> Reclaiming 1.8 GB VRAM. Enabling Reflex Boost for low latency.
-                      </div>
-                    </div>
-                  </div>
-
-                  {/* Simulated Quick Console Terminal */}
-                  <div className="bg-obsidian p-3 sm:p-3.5 rounded-xl border border-white/10 font-mono text-xs flex items-center gap-2.5">
-                    <Terminal className="w-4 h-4 text-neon-green shrink-0" />
-                    <span className="text-neon-green font-bold">&gt;</span>
-                    <input 
-                      type="text" 
-                      value={consoleCommand}
-                      onChange={(e) => setConsoleCommand(e.target.value)}
-                      className="bg-transparent text-gray-200 focus:outline-none w-full font-mono text-xs"
-                    />
-                    <span className="text-[9px] sm:text-[10px] text-gray-400 bg-white/10 px-2 py-1 rounded shrink-0 font-bold">ENTER</span>
-                  </div>
-
+                <div className="flex items-center gap-1.5 shrink-0">
+                  <span className="inline-block w-2 h-2 rounded-full bg-neon-green animate-ping" />
+                  <span className="text-[10px] sm:text-[11px] font-mono text-neon-green font-bold">LIVE IN-GAME</span>
                 </div>
               </div>
-            )}
+
+              {/* Real Screenshot Viewport */}
+              <div className="relative aspect-[16/10] sm:aspect-video w-full overflow-hidden bg-black">
+                <img 
+                  src="/screenshots/dashboard.png" 
+                  alt="Mission Control Desktop Application Dashboard" 
+                  className="w-full h-full object-cover group-hover:scale-[1.02] transition-transform duration-500" 
+                />
+              </div>
+            </div>
 
             {/* Mobile Responsive Floating Accents */}
             <div className="mt-4 sm:mt-0 sm:absolute sm:-bottom-6 sm:-left-6 glass-card p-3.5 px-4 flex items-center gap-3 border-neon-green/40 bg-obsidian/95 shadow-2xl z-20 w-full sm:w-auto">

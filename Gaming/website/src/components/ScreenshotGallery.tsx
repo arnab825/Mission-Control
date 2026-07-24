@@ -3,7 +3,6 @@
 import { useState, useEffect } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { Maximize2, X, Activity, Scan, Cpu, BrainCircuit, Terminal } from "lucide-react";
-import { MissionControlAppMockup } from "@/components/MissionControlAppMockup";
 
 export function ScreenshotGallery() {
   const tabs = [
@@ -28,8 +27,8 @@ export function ScreenshotGallery() {
     switch (tabId) {
       case 'dashboard':
         return (
-          <div className="w-full h-full relative overflow-hidden flex items-center justify-center p-2">
-            <MissionControlAppMockup showWindowControls={false} className="max-h-full overflow-y-auto scale-95" />
+          <div className="w-full h-full relative overflow-hidden bg-black flex items-center justify-center">
+            <img src="/screenshots/dashboard.png" alt="Mission Control Dashboard" className="w-full h-full object-cover" />
           </div>
         );
       case 'hud':
