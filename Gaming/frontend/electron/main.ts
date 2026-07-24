@@ -2004,14 +2004,19 @@ function setupAutoUpdater() {
       if (checkResult && checkResult.updateInfo) {
         console.log('[AutoUpdater] Manual check succeeded, downloading version:', checkResult.updateInfo.version);
         sendToAllWindows('electron-update-status', { status: 'downloading', percent: 0, message: 'Starting download...' });
-        updateCancellationToken = new CancellationToken();
-        await autoUpdater.downloadUpdate(updateCancellationToken);
+        if (!autoUpdater.autoDownload) {
+          updateCancellationToken = new CancellationToken();
+          await autoUpdater.downloadUpdate(updateCancellationToken);
+        }
       } else {
         throw new Error('Update payload verification failed on server. Please try again.');
       }
     } catch (err: any) {
       console.error('[AutoUpdater] downloadUpdate failed:', err);
-      sendToAllWindows('electron-update-status', { status: 'error', message: err.message });
+      const friendlyMsg = err.message === 'Please check update first'
+        ? 'Update download is initializing. Please verify update check first or try again in a few moments.'
+        : err.message;
+      sendToAllWindows('electron-update-status', { status: 'error', message: friendlyMsg });
     }
   });
 

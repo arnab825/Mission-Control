@@ -1,8 +1,26 @@
 {
-  "version": "2.3.6",
-  "release_date": "2026-07-23",
+  "version": "2.3.7",
+  "release_date": "2026-07-24",
   "update_check_url": "https://raw.githubusercontent.com/arnab825/Mission-Control/main/Gaming/backend/version.json",
   "changelog": [
+    {
+      "version": "2.3.7",
+      "date": "2026-07-24",
+      "title": "Fix Game Preview modal responsive layout and component typing",
+      "highlights": [
+        "Fix Game Preview modal height overflow, vertical scrolling, and fluid typography",
+        "Add onPreview handler to GameCard prop types and restore isLauncher logic"
+      ]
+    },
+    {
+      "version": "2.3.7",
+      "date": "2026-07-24",
+      "title": "Fix Game Preview modal responsive layout and component typing",
+      "highlights": [
+        "Fix Game Preview modal height overflow, vertical scrolling, and fluid typography",
+        "Add onPreview handler to GameCard prop types and restore isLauncher logic"
+      ]
+    },
     {
       "version": "2.3.6",
       "date": "2026-07-23",
@@ -410,24 +428,6 @@
       "highlights": [
         "Deferred Python backend launch until after Electron ready-to-show to prevent UAC dimming crash.",
         "Renamed 'Power Save' preset to 'Standard' and removed obsolete 'ANSEL' from feature detection."
-      ]
-    },
-    {
-      "version": "1.7.4",
-      "date": "2026-07-18",
-      "title": "Fix Splash Screen Startup Crash",
-      "highlights": [
-        "Bundled splash.html to dist-electron during build to resolve ERR_FILE_NOT_FOUND error on startup.",
-        "Added safe catch handlers on splash screen load functions to prevent unhandled promise rejections."
-      ]
-    },
-    {
-      "version": "1.7.3",
-      "date": "2026-07-18",
-      "title": "Fix Unused Game Launch Variable & Stability Graph Reset",
-      "highlights": [
-        "Fixed linting warning by removing unused handleLaunch variable in GameCard.",
-        "Fixed Stability Lab chart history reset logic when games are inactive."
       ]
     }
   ]
