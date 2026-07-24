@@ -2,6 +2,18 @@
 
 This document contains a detailed history of all patches and updates for the AI Gaming Assistant.
 
+### Patch: 2026-07-24 — v2.3.8: Removed Preview button completely
+
+- Removed Preview button completely
+
+### Patch: 2026-07-24 — v2.3.8: Removed Preview button completely
+
+- Removed Preview button completely
+
+### Patch: 2026-07-24 — v2.3.8: Removed Preview button
+
+- Removed Preview button
+
 ### Patch: 2026-07-24 — v2.3.8: Fix GameCard direct execution button and GamePreviewModal banner scaling
 
 - Restore primary Execute button on GameCard for direct game launch
