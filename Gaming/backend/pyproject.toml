@@ -1,6 +1,6 @@
 [project]
 name = "ai-gaming-assistant"
-version = "2.3.6"
+version = "2.3.7"
 requires-python = ">=3.11"
 dependencies = [
     "opencv-python",

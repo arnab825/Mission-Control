@@ -207,157 +207,99 @@ export default function Home() {
       <div className="absolute top-[-10%] left-1/2 -translate-x-1/2 w-[600px] sm:w-[1000px] h-[400px] sm:h-[500px] bg-neon-green/10 rounded-full blur-[120px] sm:blur-[140px] pointer-events-none z-0 animate-pulse-slow" />
 
       {/* ================= HERO SECTION ================= */}
-      <section className="w-full max-w-7xl px-4 sm:px-6 mt-6 sm:mt-16 mb-20 sm:mb-36 relative z-10">
-        <div className="grid grid-cols-1 lg:grid-cols-12 gap-10 lg:gap-8 items-center">
+      <section className="w-full max-w-4xl px-4 sm:px-6 mt-6 sm:mt-16 mb-20 sm:mb-28 relative z-10 mx-auto text-center flex flex-col items-center">
+        <motion.div 
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.5, ease: "easeOut" }}
+          className="flex flex-col items-center text-center"
+        >
+          {/* Hero Brand Header */}
+          <div className="text-center mb-8">
+            <span className="text-[8px] sm:text-[10px] font-mono font-bold text-neon-green uppercase tracking-wider sm:tracking-widest block mb-0.5 truncate">THE NEXT-GEN GAME ASSISTANT</span>
+            <span className="text-base sm:text-lg font-black font-display text-white uppercase tracking-wider block">MISSION CONTROL</span>
+          </div>
+
+          {/* Top Tactical Badges */}
+          <div className="flex flex-wrap justify-center items-center gap-2 sm:gap-3 mb-6">
+            <div className="inline-flex items-center gap-2 border border-neon-green/40 rounded-full px-3.5 py-1.5 bg-neon-green/10 backdrop-blur-md">
+              <span className="w-2 h-2 rounded-full bg-neon-green animate-pulse shrink-0" />
+              <span className="text-neon-green text-[11px] sm:text-xs font-bold font-mono tracking-wider uppercase">NVIDIA TensorRT Native</span>
+            </div>
+            <div className="inline-flex items-center gap-2 border border-white/10 rounded-full px-3.5 py-1.5 bg-white/[0.03] backdrop-blur-md">
+              <Shield className="w-3.5 h-3.5 text-gray-400 shrink-0" />
+              <span className="text-gray-300 text-[11px] sm:text-xs font-semibold font-mono tracking-wider uppercase">v2.4 Stealth Build</span>
+            </div>
+          </div>
           
-          {/* Left Column: Headline & Action Buttons */}
-          <motion.div 
-            initial={{ opacity: 0, x: -20 }}
-            animate={{ opacity: 1, x: 0 }}
-            transition={{ duration: 0.5, ease: "easeOut" }}
-            className="lg:col-span-7 flex flex-col items-start text-left"
-          >
-            {/* Hero Brand Logo */}
-            <div className="flex items-center gap-3 sm:gap-4 mb-8">
-              <div className="w-14 h-14 sm:w-20 sm:h-20 rounded-2xl border border-neon-green/30 flex items-center justify-center bg-neon-green/5 overflow-hidden p-2 sm:p-3 shadow-[0_0_25px_rgba(118, 185, 0,0.15)] shrink-0">
-                <img src="/logo.png" alt="Mission Control Logo" className="w-full h-full object-contain" />
+          {/* Headline */}
+          <h1 className="text-3xl sm:text-6xl lg:text-7xl font-black font-display tracking-tight text-white mb-6 uppercase leading-[1.1] sm:leading-[1.05]">
+            THE ULTIMATE <br />
+            <span className="text-transparent bg-clip-text bg-gradient-to-r from-neon-green via-white to-neon-green glow-text-teal">
+              GAMING AI
+            </span> DASHBOARD
+          </h1>
+
+          {/* Subheadline */}
+          <p className="text-sm sm:text-xl text-gray-300 sm:text-gray-400 max-w-2xl mb-8 sm:mb-10 leading-relaxed font-normal text-center">
+            Next-generation tactical HUD overlay built for high-performance rigs. Monitor thermals in real-time, trigger agentic system commands, and receive low-latency AI tactical advice—directly inside your game.
+          </p>
+
+          {/* CTAs */}
+          <div className="flex flex-col sm:flex-row items-center justify-center gap-3.5 w-full sm:w-auto">
+            {os === "mac" || os === "other" ? (
+              <div
+                className="group relative inline-flex items-center justify-center gap-3 bg-white/5 border border-white/20 text-gray-400 px-7 py-4 rounded-2xl font-black text-sm sm:text-base uppercase tracking-wider text-center w-full sm:w-auto cursor-not-allowed"
+              >
+                <span>This app will not support this OS</span>
               </div>
-              <div className="min-w-0">
-                <span className="text-[8px] sm:text-[10px] font-mono font-bold text-neon-green uppercase tracking-wider sm:tracking-widest block mb-0.5 truncate">THE NEXT-GEN GAME ASSISTANT</span>
-                <span className="text-base sm:text-lg font-black font-display text-white uppercase tracking-wider block">MISSION CONTROL</span>
-              </div>
+            ) : (
+              <Link 
+                href="#download" 
+                className="group relative inline-flex items-center justify-center gap-3 bg-neon-green text-obsidian px-7 py-4 rounded-2xl font-black text-sm sm:text-base uppercase tracking-wider transition-all duration-300 hover:bg-white hover:shadow-[0_0_35px_rgba(118,185,0,0.6)] active:scale-95 text-center shadow-[0_0_25px_rgba(118,185,0,0.35)] w-full sm:w-auto"
+              >
+                <Download className="w-5 h-5 transition-transform group-hover:-translate-y-0.5 shrink-0" />
+                <span>Download for {os === "linux" ? "Linux" : "Windows"}</span>
+              </Link>
+            )}
+
+            <div className="flex items-center justify-center gap-3 w-full sm:w-auto">
+              <Link 
+                href="/docs" 
+                className="flex-1 sm:flex-none inline-flex items-center justify-center gap-2 glass-card glass-card-hover px-6 py-4 text-xs sm:text-base font-bold text-white transition-all text-center border-white/15"
+              >
+                <FileText className="w-4 h-4 sm:w-5 sm:h-5 text-neon-green shrink-0" />
+                <span>Read Architecture Docs</span>
+              </Link>
+
+              <a 
+                href="https://github.com" 
+                target="_blank" 
+                rel="noopener noreferrer" 
+                className="inline-flex items-center justify-center p-4 glass-card glass-card-hover text-gray-300 hover:text-white transition-colors border-white/15 shrink-0"
+                title="View GitHub Repository"
+              >
+                <svg viewBox="0 0 24 24" className="w-5 h-5 fill-current"><path d="M12 0c-6.626 0-12 5.373-12 12 0 5.302 3.438 9.8 8.207 11.387.599.111.793-.261.793-.577v-2.234c-3.338.726-4.033-1.416-4.033-1.416-.546-1.387-1.333-1.756-1.333-1.756-1.089-.745.083-.729.083-.729 1.205.084 1.839 1.237 1.839 1.237 1.07 1.834 2.807 1.304 3.492.997.107-.775.418-1.305.762-1.604-2.665-.305-5.467-1.334-5.467-5.931 0-1.311.469-2.381 1.236-3.221-.124-.303-.535-1.524.117-3.176 0 0 1.008-.322 3.301 1.23.957-.266 1.983-.399 3.003-.404 1.02.005 2.047.138 3.006.404 2.291-1.552 3.297-1.23 3.297-1.23.653 1.653.242 2.874.118 3.176.77.84 1.235 1.911 1.235 3.221 0 4.609-2.807 5.624-5.479 5.921.43.372.823 1.102.823 2.222v3.293c0 .319.192.694.801.576 4.765-1.589 8.199-6.086 8.199-11.386 0-6.627-5.373-12-12-12z"/></svg>
+              </a>
             </div>
-
-            {/* Top Tactical Badges */}
-            <div className="flex flex-wrap items-center gap-2 sm:gap-3 mb-6">
-              <div className="inline-flex items-center gap-2 border border-neon-green/40 rounded-full px-3.5 py-1.5 bg-neon-green/10 backdrop-blur-md">
-                <span className="w-2 h-2 rounded-full bg-neon-green animate-pulse shrink-0" />
-                <span className="text-neon-green text-[11px] sm:text-xs font-bold font-mono tracking-wider uppercase">NVIDIA TensorRT Native</span>
-              </div>
-              <div className="inline-flex items-center gap-2 border border-white/10 rounded-full px-3.5 py-1.5 bg-white/[0.03] backdrop-blur-md">
-                <Shield className="w-3.5 h-3.5 text-gray-400 shrink-0" />
-                <span className="text-gray-300 text-[11px] sm:text-xs font-semibold font-mono tracking-wider uppercase">v2.4 Stealth Build</span>
-              </div>
+          </div>
+          
+          {/* Quick Spec Highlights */}
+          <div className="mt-10 pt-6 border-t border-white/[0.08] grid grid-cols-3 gap-4 sm:gap-12 w-full max-w-xl text-center">
+            <div>
+              <div className="text-xl sm:text-3xl font-black font-mono text-white">165+</div>
+              <div className="text-[10px] sm:text-xs text-gray-400 font-sans uppercase tracking-wider mt-1">FPS Target Lock</div>
             </div>
-            
-            {/* Headline */}
-            <h1 className="text-3xl sm:text-6xl lg:text-7xl font-black font-display tracking-tight text-white mb-6 uppercase leading-[1.1] sm:leading-[1.05]">
-              THE ULTIMATE <br />
-              <span className="text-transparent bg-clip-text bg-gradient-to-r from-neon-green via-white to-neon-green glow-text-teal">
-                GAMING AI
-              </span> DASHBOARD
-            </h1>
-
-            {/* Subheadline */}
-            <p className="text-sm sm:text-xl text-gray-300 sm:text-gray-400 max-w-2xl mb-8 sm:mb-10 leading-relaxed font-normal">
-              Next-generation tactical HUD overlay built for high-performance rigs. Monitor thermals in real-time, trigger agentic system commands, and receive low-latency AI tactical advice—directly inside your game.
-            </p>
-
-            {/* CTAs - Flawless Mobile Responsiveness */}
-            <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-3.5 w-full sm:w-auto">
-              {os === "mac" || os === "other" ? (
-                <div
-                  className="group relative inline-flex items-center justify-center gap-3 bg-white/5 border border-white/20 text-gray-400 px-7 py-4 rounded-2xl font-black text-sm sm:text-base uppercase tracking-wider text-center w-full sm:w-auto cursor-not-allowed"
-                >
-                  <span>This app will not support this OS</span>
-                </div>
-              ) : (
-                <Link 
-                  href="#download" 
-                  className="group relative inline-flex items-center justify-center gap-3 bg-neon-green text-obsidian px-7 py-4 rounded-2xl font-black text-sm sm:text-base uppercase tracking-wider transition-all duration-300 hover:bg-white hover:shadow-[0_0_35px_rgba(118, 185, 0,0.6)] active:scale-95 text-center shadow-[0_0_25px_rgba(118, 185, 0,0.35)] w-full sm:w-auto"
-                >
-                  <Download className="w-5 h-5 transition-transform group-hover:-translate-y-0.5 shrink-0" />
-                  <span>Download for {os === "linux" ? "Linux" : "Windows"}</span>
-                </Link>
-              )}
-
-              <div className="flex items-center gap-3 w-full sm:w-auto">
-                <Link 
-                  href="/docs" 
-                  className="flex-1 sm:flex-none inline-flex items-center justify-center gap-2 glass-card glass-card-hover px-6 py-4 text-xs sm:text-base font-bold text-white transition-all text-center border-white/15"
-                >
-                  <FileText className="w-4 h-4 sm:w-5 sm:h-5 text-neon-green shrink-0" />
-                  <span>Read Architecture Docs</span>
-                </Link>
-
-                <a 
-                  href="https://github.com" 
-                  target="_blank" 
-                  rel="noopener noreferrer" 
-                  className="inline-flex items-center justify-center p-4 glass-card glass-card-hover text-gray-300 hover:text-white transition-colors border-white/15 shrink-0"
-                  title="View GitHub Repository"
-                >
-                  <svg viewBox="0 0 24 24" className="w-5 h-5 fill-current"><path d="M12 0c-6.626 0-12 5.373-12 12 0 5.302 3.438 9.8 8.207 11.387.599.111.793-.261.793-.577v-2.234c-3.338.726-4.033-1.416-4.033-1.416-.546-1.387-1.333-1.756-1.333-1.756-1.089-.745.083-.729.083-.729 1.205.084 1.839 1.237 1.839 1.237 1.07 1.834 2.807 1.304 3.492.997.107-.775.418-1.305.762-1.604-2.665-.305-5.467-1.334-5.467-5.931 0-1.311.469-2.381 1.236-3.221-.124-.303-.535-1.524.117-3.176 0 0 1.008-.322 3.301 1.23.957-.266 1.983-.399 3.003-.404 1.02.005 2.047.138 3.006.404 2.291-1.552 3.297-1.23 3.297-1.23.653 1.653.242 2.874.118 3.176.77.84 1.235 1.911 1.235 3.221 0 4.609-2.807 5.624-5.479 5.921.43.372.823 1.102.823 2.222v3.293c0 .319.192.694.801.576 4.765-1.589 8.199-6.086 8.199-11.386 0-6.627-5.373-12-12-12z"/></svg>
-                </a>
-              </div>
+            <div>
+              <div className="text-xl sm:text-3xl font-black font-mono text-neon-green glow-text-teal">1.2ms</div>
+              <div className="text-[10px] sm:text-xs text-gray-400 font-sans uppercase tracking-wider mt-1">CUDA Latency</div>
             </div>
-            
-            {/* Quick Spec Highlights */}
-            <div className="mt-10 pt-6 border-t border-white/[0.08] grid grid-cols-3 gap-2 sm:gap-6 w-full max-w-lg text-center sm:text-left">
-              <div>
-                <div className="text-xl sm:text-3xl font-black font-mono text-white">165+</div>
-                <div className="text-[10px] sm:text-xs text-gray-400 font-sans uppercase tracking-wider mt-1">FPS Target Lock</div>
-              </div>
-              <div>
-                <div className="text-xl sm:text-3xl font-black font-mono text-neon-green glow-text-teal">1.2ms</div>
-                <div className="text-[10px] sm:text-xs text-gray-400 font-sans uppercase tracking-wider mt-1">CUDA Latency</div>
-              </div>
-              <div>
-                <div className="text-xl sm:text-3xl font-black font-mono text-white">0%</div>
-                <div className="text-[10px] sm:text-xs text-gray-400 font-sans uppercase tracking-wider mt-1">Cloud Dependency</div>
-              </div>
+            <div>
+              <div className="text-xl sm:text-3xl font-black font-mono text-white">0%</div>
+              <div className="text-[10px] sm:text-xs text-gray-400 font-sans uppercase tracking-wider mt-1">Cloud Dependency</div>
             </div>
-          </motion.div>
-
-          {/* Right Column: Dynamic Real Dashboard Showcase */}
-          <motion.div 
-            initial={{ opacity: 0, scale: 0.95 }}
-            animate={{ opacity: 1, scale: 1 }}
-            transition={{ duration: 0.6, delay: 0.2 }}
-            className="lg:col-span-5 relative w-full flex flex-col items-center"
-          >
-            {/* Glow backing */}
-            <div className="absolute inset-0 bg-neon-green/15 blur-3xl rounded-3xl -z-10" />
-
-            {/* Desktop Application Window Frame */}
-            <div className="w-full bg-[#0d0f14]/95 border border-white/15 rounded-[24px] overflow-hidden shadow-[0_0_50px_rgba(0,0,0,0.8)] relative group">
-              
-              {/* Window Header Bar */}
-              <div className="bg-obsidian/95 px-4 sm:px-5 py-3 border-b border-white/10 flex items-center justify-between">
-                <div className="flex items-center gap-2">
-                  <div className="w-2.5 h-2.5 rounded-full bg-red-500/80" />
-                  <div className="w-2.5 h-2.5 rounded-full bg-yellow-500/80" />
-                  <div className="w-2.5 h-2.5 rounded-full bg-green-500/80" />
-                  <span className="ml-1 text-[10px] sm:text-xs font-mono text-gray-400 uppercase tracking-widest truncate">MISSION_CONTROL_DASHBOARD</span>
-                </div>
-                <div className="flex items-center gap-1.5 shrink-0">
-                  <span className="inline-block w-2 h-2 rounded-full bg-neon-green animate-ping" />
-                  <span className="text-[10px] sm:text-[11px] font-mono text-neon-green font-bold">LIVE IN-GAME</span>
-                </div>
-              </div>
-
-              {/* Real Screenshot Viewport */}
-              <div className="relative aspect-[16/10] sm:aspect-video w-full overflow-hidden bg-black">
-                <img 
-                  src="/screenshots/dashboard.png" 
-                  alt="Mission Control Desktop Application Dashboard" 
-                  className="w-full h-full object-cover group-hover:scale-[1.02] transition-transform duration-500" 
-                />
-              </div>
-            </div>
-
-            {/* Mobile Responsive Floating Accents */}
-            <div className="mt-4 sm:mt-0 sm:absolute sm:-bottom-6 sm:-left-6 glass-card p-3.5 px-4 flex items-center gap-3 border-neon-green/40 bg-obsidian/95 shadow-2xl z-20 w-full sm:w-auto">
-              <div className="w-3 h-3 rounded-full bg-neon-green animate-ping shrink-0" />
-              <div className="text-xs font-mono">
-                <div className="text-white font-bold">AGENTIC HOOK ACTIVE</div>
-                <div className="text-gray-400 text-[10px]">PyTorch CUDA Idle Cache Flushed</div>
-              </div>
-            </div>
-
-          </motion.div>
-
-        </div>
+          </div>
+        </motion.div>
       </section>
 
       {/* ================= FEATURES SECTION (BENTO GRID) ================= */}

@@ -2,6 +2,11 @@
 
 This document contains a detailed history of all patches and updates for the AI Gaming Assistant.
 
+### Patch: 2026-07-24 — v2.3.7: Fix Game Preview modal responsive layout and component typing
+
+- Fix Game Preview modal height overflow, vertical scrolling, and fluid typography
+- Add onPreview handler to GameCard prop types and restore isLauncher logic
+
 ### Patch: 2026-07-23 — v2.3.6: Release v2.3.6
 
 - Version sync fix
