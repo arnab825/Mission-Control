@@ -115,15 +115,36 @@ const GameCard: React.FC<{ game: BackendGame; sendCommand: (type: string, payloa
     ['Steam', 'Epic Games', 'Xbox', 'EA Desktop', 'Origin'].includes(game.platform) && game.name.toLowerCase().includes('app') ||
     game.name.toLowerCase() === game.platform.toLowerCase();
 
-  if (game.local_banner) {
-    coverUrl = game.local_banner.startsWith('http') ? game.local_banner : `asset:///${game.local_banner.replace(/\\/g, '/')}`;
-  } else if (game.platform === 'Steam' && game.id && !isLauncher) {
-    coverUrl = `https://cdn.akamai.steamstatic.com/steam/apps/${game.id}/header.jpg`;
-  } else if (isLauncher && LAUNCHER_BANNERS[game.platform]) {
-    coverUrl = LAUNCHER_BANNERS[game.platform];
-  } else if (game.icon && game.icon !== 'null') {
-    coverUrl = game.icon.startsWith('http') ? game.icon : `asset:///${game.icon.replace(/\\/g, '/')}`;
-  }
+  const getLaunchUri = () => {
+    if (game.platform === 'Steam' && game.id && !isLauncher) return `steam://rungameid/${game.id}`;
+    if ((game.platform === 'Epic Games' || game.platform === 'Epic') && game.id && !isLauncher) return `com.epicgames.launcher://apps/${game.id}?action=launch&silent=true`;
+    if ((game.platform === 'EA Desktop' || game.platform === 'Origin') && game.id && !isLauncher) return `origin://launchgame/${game.id}`;
+    if (game.platform === 'Ubisoft Connect' && game.id && !isLauncher) return `uplay://launch/${game.id}`;
+    if (game.platform === 'GOG Galaxy' && game.id && !isLauncher) return `goggalaxy://openGameView/${game.id}`;
+    if (game.platform === 'Battle.net' && game.id && !isLauncher) return `battlenet://play/${game.id}`;
+    if (game.exe_path) return game.exe_path;
+    if (game.platform === 'Steam') return 'steam://open/main';
+    if (game.platform === 'Epic Games' || game.platform === 'Epic') return 'com.epicgames.launcher://store';
+    if (game.platform === 'EA Desktop' || game.platform === 'Origin') return 'origin://';
+    if (game.platform === 'Ubisoft Connect') return 'uplay://';
+    if (game.platform === 'GOG Galaxy') return 'goggalaxy://';
+    if (game.platform === 'Battle.net') return 'battlenet://';
+    if (game.platform === 'Xbox' || game.platform === 'Xbox App') return 'xbox:';
+    return null;
+  };
+
+  const launchUri = getLaunchUri();
+
+  const handleLaunch = (e?: React.MouseEvent) => {
+    e?.stopPropagation();
+    if (launchUri) {
+      if ((window as any).electronAPI?.launchGame) {
+        (window as any).electronAPI.launchGame(launchUri);
+      } else {
+        sendCommand('launch_game', { exe_path: launchUri });
+      }
+    }
+  };
 
   return (
     <motion.div
@@ -132,10 +153,13 @@ const GameCard: React.FC<{ game: BackendGame; sendCommand: (type: string, payloa
       animate={{ opacity: 1, scale: 1 }}
       exit={{ opacity: 0, scale: 0.95 }}
       whileHover={{ y: -4 }}
-      className="group bg-white/[0.03] hover:border-neon-green/30 rounded-3xl overflow-hidden transition-all duration-500 border border-white/5"
+      className="group bg-white/[0.03] hover:border-neon-green/30 rounded-3xl overflow-hidden transition-all duration-500 border border-white/5 flex flex-col justify-between"
     >
       {/* Cover Image */}
-      <div className="aspect-video relative overflow-hidden bg-black/40 flex items-center justify-center">
+      <div 
+        onClick={() => onPreview?.(game)}
+        className="aspect-video relative overflow-hidden bg-black/40 flex items-center justify-center cursor-pointer"
+      >
         <img
           src={coverUrl}
           alt={game.name}
@@ -161,40 +185,54 @@ const GameCard: React.FC<{ game: BackendGame; sendCommand: (type: string, payloa
       </div>
 
       {/* Info */}
-      <div className="p-4 space-y-3">
-        <div className="min-h-10">
-          <h4 className="text-sm font-black text-white tracking-tight group-hover:text-neon-green transition-colors truncate leading-tight">
-            {game.name}
-          </h4>
-          <p className="text-[9px] font-bold text-zinc-500 uppercase tracking-widest mt-0.5">
-            {game.genre === 'N/A' || !game.genre ? (game.type === 'LAUNCHER' ? 'GAMING PLATFORM' : 'GAME') : game.genre}
-          </p>
+      <div className="p-4 space-y-3 flex-1 flex flex-col justify-between">
+        <div className="space-y-2">
+          <div 
+            onClick={() => onPreview?.(game)}
+            className="min-h-10 cursor-pointer"
+          >
+            <h4 className="text-sm font-black text-white tracking-tight group-hover:text-neon-green transition-colors truncate leading-tight">
+              {game.name}
+            </h4>
+            <p className="text-[9px] font-bold text-zinc-500 uppercase tracking-widest mt-0.5">
+              {game.genre === 'N/A' || !game.genre ? (game.type === 'LAUNCHER' ? 'GAMING PLATFORM' : 'GAME') : game.genre}
+            </p>
+          </div>
+
+          {/* AI Genre/Mode Tags */}
+          <div className="flex gap-1 flex-wrap min-h-4">
+            {game.tags && game.tags.map((tag, i) => (
+              <span key={`t-${i}`} className="text-[7px] font-black px-1.5 py-0.5 rounded bg-white/5 text-zinc-400 uppercase tracking-tighter border border-white/5">
+                {tag}
+              </span>
+            ))}
+          </div>
         </div>
 
-        {/* AI Genre/Mode Tags */}
-        <div className="flex gap-1 flex-wrap min-h-4">
-          {game.tags && game.tags.map((tag, i) => (
-            <span key={`t-${i}`} className="text-[7px] font-black px-1.5 py-0.5 rounded bg-white/5 text-zinc-400 uppercase tracking-tighter border border-white/5">
-              {tag}
-            </span>
-          ))}
-        </div>
+        {/* Action buttons */}
+        <div className="flex items-center gap-2 pt-1">
+          <button aria-label="button" type="button"
+            onClick={handleLaunch}
+            disabled={!launchUri}
+            className="flex-1 flex items-center justify-center gap-1.5 py-2 bg-neon-green hover:bg-[#8aff00] text-black font-black uppercase text-[9px] tracking-widest rounded-xl transition-all duration-300 shadow-[0_0_15px_rgba(118,185,0,0.25)] hover:shadow-[0_0_25px_rgba(118,185,0,0.45)] disabled:opacity-40 disabled:cursor-not-allowed cursor-pointer"
+          >
+            <Play className="w-3.5 h-3.5 fill-current" />
+            <span>{launchUri ? 'Execute' : 'Unavailable'}</span>
+          </button>
 
-        {/* View button */}
-        <button aria-label="button" type="button"
-          onClick={() => {
-            if (onPreview) {
-              onPreview(game);
-            } else {
-              sendCommand('view_game', { game });
-            }
-          }}
-          className="w-full flex items-center justify-center gap-2 py-2 bg-white/4 hover:bg-neon-green hover:text-black rounded-xl transition-all duration-300 border border-white/6 hover:border-neon-green group/btn cursor-pointer"
-        >
-          <span className="text-[9px] font-black uppercase tracking-widest">
-            Preview
-          </span>
-        </button>
+          {onPreview && (
+            <button aria-label="button" type="button"
+              onClick={(e) => {
+                e.stopPropagation();
+                onPreview(game);
+              }}
+              className="px-3 py-2 bg-white/5 hover:bg-white/10 text-zinc-300 hover:text-white rounded-xl transition-all duration-300 border border-white/10 text-[9px] font-black uppercase tracking-widest cursor-pointer shrink-0"
+              title="Preview Details"
+            >
+              Preview
+            </button>
+          )}
+        </div>
       </div>
     </motion.div>
   );
@@ -294,7 +332,7 @@ const GamePreviewModal: React.FC<{
           <img
             src={coverUrl}
             alt={game.name}
-            className={`w-full h-full opacity-60 object-cover`}
+            className={`w-full h-full opacity-60 ${isLauncher ? 'object-contain p-8 sm:p-12' : 'object-cover'}`}
           />
           <div className="absolute inset-0 bg-gradient-to-t from-[#0a0a0f] via-[#0a0a0f]/40 to-transparent pointer-events-none" />
           

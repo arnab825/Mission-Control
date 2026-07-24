@@ -1,15 +1,16 @@
 {
-  "version": "2.3.7",
+  "version": "2.3.8",
   "release_date": "2026-07-24",
   "update_check_url": "https://raw.githubusercontent.com/arnab825/Mission-Control/main/Gaming/backend/version.json",
   "changelog": [
     {
-      "version": "2.3.7",
+      "version": "2.3.8",
       "date": "2026-07-24",
-      "title": "Fix Game Preview modal responsive layout and component typing",
+      "title": "Fix GameCard direct execution button and GamePreviewModal banner scaling",
       "highlights": [
-        "Fix Game Preview modal height overflow, vertical scrolling, and fluid typography",
-        "Add onPreview handler to GameCard prop types and restore isLauncher logic"
+        "Restore primary Execute button on GameCard for direct game launch",
+        "Fix GamePreviewModal banner image object-contain scaling for launcher SVGs",
+        "Verify Ultralytics YOLO vision dependencies"
       ]
     },
     {
