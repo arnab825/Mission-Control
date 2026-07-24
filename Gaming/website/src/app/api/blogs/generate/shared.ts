@@ -126,7 +126,17 @@ export async function generateBlogPostWithModel(
   targetDate: Date,
   modelId: string
 ): Promise<{ slug: string; title: string; excerpt: string; tags: string[]; content: string; imagePrompt?: string } | null> {
-  const today = targetDate.toISOString().split("T")[0];
+  const istFormatter = new Intl.DateTimeFormat("en-US", {
+    timeZone: "Asia/Kolkata",
+    year: "numeric",
+    month: "2-digit",
+    day: "2-digit",
+  });
+  const parts = istFormatter.formatToParts(targetDate);
+  const istYear = parts.find(p => p.type === 'year')?.value;
+  const istMonth = parts.find(p => p.type === 'month')?.value;
+  const istDay = parts.find(p => p.type === 'day')?.value;
+  const today = `${istYear}-${istMonth}-${istDay}`;
   const headlines = items
     .slice(0, 8)
     .map((i, idx) => `${idx + 1}. [${i.source}] ${i.title}\n   ${i.description}`)
