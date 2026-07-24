@@ -3,11 +3,12 @@
 import { useState, useEffect } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { Maximize2, X, Activity, Scan, Cpu, BrainCircuit, Terminal } from "lucide-react";
+import { MissionControlAppMockup } from "@/components/MissionControlAppMockup";
 
 export function ScreenshotGallery() {
   const tabs = [
-    { id: "dashboard", label: "Aero Telemetry Control", icon: Activity, src: "/screenshots/dashboard.jpg" },
-    { id: "hud", label: "In-Game HUD Overlay", icon: Scan, src: "/screenshots/hud.jpg" },
+    { id: "dashboard", label: "Aero Telemetry Control", icon: Activity, src: "/screenshots/dashboard.png" },
+    { id: "hud", label: "In-Game HUD Overlay", icon: Scan, src: "/screenshots/hud.png" },
     { id: "vision", label: "Real-time YOLO Vision", icon: BrainCircuit, src: "/screenshots/vision.jpg" },
     { id: "lab", label: "Performance Lab", icon: Cpu, src: "/screenshots/lab.jpg" },
   ];
@@ -27,45 +28,8 @@ export function ScreenshotGallery() {
     switch (tabId) {
       case 'dashboard':
         return (
-          <div className="w-full h-full bg-[#0a0a0a] border border-white/10 rounded-[16px] sm:rounded-[24px] p-4 sm:p-6 flex flex-col justify-between overflow-hidden relative">
-            <div className="absolute inset-0 bg-neon-green/5 blur-3xl" />
-            <div className="flex justify-between items-center mb-4 sm:mb-6 border-b border-white/10 pb-4">
-              <div className="flex items-center gap-3">
-                <div className="w-3 h-3 bg-neon-green rounded-full animate-pulse" />
-                <span className="font-mono text-white text-xs sm:text-sm font-bold">MISSION CONTROL DASHBOARD</span>
-              </div>
-              <div className="flex gap-2">
-                <div className="w-12 sm:w-16 h-2 bg-white/10 rounded-full" />
-                <div className="w-6 sm:w-8 h-2 bg-white/10 rounded-full" />
-              </div>
-            </div>
-            <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 h-full pb-4">
-              <div className="sm:col-span-2 space-y-4 flex flex-col h-full">
-                <div className="flex-1 bg-white/5 rounded-xl border border-white/10 p-4 flex flex-col justify-end">
-                  <div className="flex gap-2 items-end h-full mt-4">
-                    {[40, 60, 30, 80, 50, 90, 70, 100].map((h, i) => (
-                      <motion.div key={i} animate={{ height: [`${h}%`, `${Math.max(20, h - 20)}%`, `${h}%`] }} transition={{ repeat: Infinity, duration: 2 + i * 0.2 }} className="flex-1 bg-neon-green/40 rounded-t-sm" />
-                    ))}
-                  </div>
-                </div>
-                <div className="flex-1 grid grid-cols-2 gap-4">
-                  <div className="bg-white/5 rounded-xl border border-white/10" />
-                  <div className="bg-white/5 rounded-xl border border-white/10" />
-                </div>
-              </div>
-              <div className="hidden sm:flex col-span-1 bg-obsidian border border-white/10 rounded-xl p-4 flex-col gap-3">
-                <div className="h-8 bg-white/10 rounded" />
-                <div className="h-20 bg-neon-green/10 border border-neon-green/20 rounded" />
-                <div className="h-20 bg-white/5 rounded" />
-                <div className="h-20 bg-white/5 rounded" />
-              </div>
-            </div>
-            {/* Overlay indicating it's a simulated mockup */}
-            <div className="absolute inset-0 flex flex-col items-center justify-center bg-black/60 backdrop-blur-sm z-10">
-               <Terminal className="w-8 h-8 sm:w-10 sm:h-10 text-gray-500 mb-2 sm:mb-3" />
-               <span className="text-gray-400 font-mono text-xs sm:text-sm uppercase tracking-widest text-center px-4">Screenshot Pending</span>
-               <span className="text-gray-500 text-[10px] sm:text-xs mt-2 text-center">Displaying simulated mockup until /public/screenshots/dashboard.jpg is added</span>
-            </div>
+          <div className="w-full h-full relative overflow-hidden flex items-center justify-center p-2">
+            <MissionControlAppMockup showWindowControls={false} className="max-h-full overflow-y-auto scale-95" />
           </div>
         );
       case 'hud':
