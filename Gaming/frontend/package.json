@@ -16,7 +16,8 @@
                     "test:run":  "vitest run",
                     "package":  "electron-forge package",
                     "make":  "electron-forge make",
-                    "make:win":  "electron-builder --win nsis msi zip --x64",
+                    "make:win":  "electron-builder --win nsis --x64",
+                    "make:win:all":  "electron-builder --win nsis msi zip --x64",
                     "doctor":  "react-doctor",
                     "postinstall":  "node patch-nsis.mjs"
                 },
@@ -90,11 +91,13 @@
                               "runAfterFinish":  true
                           },
                   "directories":  {
-                                      "output":  "out/make"
+                                      "output":  "out/dist"
                                   },
                   "files":  [
-                                "**/*",
-                                "!backend/**"
+                                "dist/**/*",
+                                "dist-electron/**/*",
+                                "!backend/**",
+                                "!out/**"
                             ],
                   "extraResources":  [
                                          {

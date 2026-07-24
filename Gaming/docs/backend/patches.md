@@ -2,6 +2,10 @@
 
 This document contains a detailed history of all patches and updates for the AI Gaming Assistant.
 
+### Patch: 2026-07-23 — v2.3.6: Release v2.3.6
+
+- Version sync fix
+
 ### Patch: 2026-07-23 — v2.3.6: Fix WebSocket bridge connection deadlock, process lock race condition, and .env search path priority
 
 - Fix WebSocket bridge connection deadlock when broadcasting telemetry and Vision frames
