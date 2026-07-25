@@ -6,6 +6,7 @@ Commands: optimize_system, revert_optimization, set_cooling_mode, update_config,
 """
 import logging
 import threading
+from pathlib import Path
 
 logger = logging.getLogger(__name__)
 
