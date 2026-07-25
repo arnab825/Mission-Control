@@ -505,10 +505,13 @@ const getRecommendedPreset = (features: string[] = [], genre: string = '', gpuIn
   const hasFG = upperFeatures.some(f => f.includes('FRAME_GEN') || f.includes('FRAME GEN') || f.includes('FG'));
   const hasRT = upperFeatures.some(f => f.includes('RAY_TRACING') || f.includes('RAY TRACING') || f.includes('PATH_TRACING') || f.includes('PATH TRACING') || f.includes('RTX'));
 
-  // If not RTX, fallback to latency or off
+  // If not RTX, fallback to latency for competitive shooters, balanced for racing/action, or off
   if (!isRtxGpu) {
-    if (g.includes('shooter') || g.includes('esport') || g.includes('fight') || g.includes('multiplayer') || g.includes('competitive') || g.includes('action') || g.includes('racing') || g.includes('fps')) {
+    if (g.includes('shooter') || g.includes('esport') || g.includes('fight') || g.includes('multiplayer') || g.includes('competitive') || g.includes('fps')) {
       return PRESET_DETAILS.find(p => p.key === 'latency') || PRESET_DETAILS[2];
+    }
+    if (g.includes('racing') || g.includes('sport') || g.includes('action') || g.includes('rpg')) {
+      return PRESET_DETAILS.find(p => p.key === 'balanced') || PRESET_DETAILS[1];
     }
     return PRESET_DETAILS.find(p => p.key === 'off') || PRESET_DETAILS[3];
   }
@@ -518,10 +521,13 @@ const getRecommendedPreset = (features: string[] = [], genre: string = '', gpuIn
     return PRESET_DETAILS.find(p => p.key === 'latency') || PRESET_DETAILS[2];
   }
 
-  // If the game doesn't even support DLSS or RT, we can't do Quality/Performance/Balanced properly
+  // If the game doesn't support DLSS or RT tags yet, recommend genre-tailored baseline presets
   if (!hasDLSS && !hasRT && !hasFG) {
-    if (g.includes('rpg') || g.includes('adventure') || g.includes('action') || g.includes('racing')) {
-      return PRESET_DETAILS.find(p => p.key === 'latency') || PRESET_DETAILS[2]; // Use latency for reflex
+    if (g.includes('racing') || g.includes('sport') || g.includes('action')) {
+      return PRESET_DETAILS.find(p => p.key === 'balanced') || PRESET_DETAILS[1];
+    }
+    if (g.includes('rpg') || g.includes('adventure') || g.includes('story') || g.includes('open world')) {
+      return PRESET_DETAILS.find(p => p.key === 'quality') || PRESET_DETAILS[0];
     }
     return PRESET_DETAILS.find(p => p.key === 'off') || PRESET_DETAILS[3];
   }
@@ -533,19 +539,16 @@ const getRecommendedPreset = (features: string[] = [], genre: string = '', gpuIn
     } else if (hasDLSS) {
       return PRESET_DETAILS.find(p => p.key === 'balanced') || PRESET_DETAILS[1];
     } else {
-      return PRESET_DETAILS.find(p => p.key === 'latency') || PRESET_DETAILS[2];
+      return PRESET_DETAILS.find(p => p.key === 'balanced') || PRESET_DETAILS[1];
     }
   }
 
-  // Action / Racing / Fast paced -> prefers Performance if game supports FG and hardware is 40-series or 50-series or newer
+  // Action / Racing / Fast paced -> prefers Performance if game supports FG, or Balanced for DLSS/standard
   if (g.includes('action') || g.includes('racing') || g.includes('sport') || g.includes('survival') || g.includes('brawler')) {
     if (hasFG && is40SeriesOrNewer) {
       return PRESET_DETAILS.find(p => p.key === 'performance') || PRESET_DETAILS[1];
-    } else if (hasDLSS) {
-      return PRESET_DETAILS.find(p => p.key === 'balanced') || PRESET_DETAILS[1];
-    } else {
-      return PRESET_DETAILS.find(p => p.key === 'latency') || PRESET_DETAILS[2];
     }
+    return PRESET_DETAILS.find(p => p.key === 'balanced') || PRESET_DETAILS[1];
   }
 
   // Other genres (indie, puzzle, etc.)
