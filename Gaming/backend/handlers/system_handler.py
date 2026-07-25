@@ -6,6 +6,9 @@ Commands: optimize_system, revert_optimization, set_cooling_mode, update_config,
 """
 import logging
 import threading
+import urllib.request
+import time
+import ssl
 from pathlib import Path
 
 logger = logging.getLogger(__name__)
@@ -674,7 +677,6 @@ def handle_download_ai_model(payload: dict, pipeline, bridge, config) -> None:
 
     def _do_download():
         try:
-            import urllib.request, time
             models_dir = get_models_dir()
             target_path = models_dir / info["filename"]
 
@@ -694,7 +696,6 @@ def handle_download_ai_model(payload: dict, pipeline, bridge, config) -> None:
                 headers={"User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) MissionControl/2.1.2"}
             )
 
-            import ssl
             try:
                 context = ssl._create_unverified_context()
             except AttributeError:

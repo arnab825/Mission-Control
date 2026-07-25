@@ -266,7 +266,7 @@ class GameScanner:
                             elif name_lower == "nvlowlatency.dll" or name_lower == "sl.interposer.dll":
                                 reflex_found = True
                             # 3. Ray Tracing / RTX
-                            elif name_lower.startswith("d3d12raytracing") or (name_lower.startswith("rtx_") and name_lower.endswith(".dll")) or "dxr" in name_lower:
+                            elif (name_lower.startswith("d3d12raytracing") or (name_lower.startswith("rtx_") and name_lower.endswith(".dll")) or ("dxr" in name_lower and not any(x in name_lower for x in ["redist", "setup", "install", "dist"]))) and name_lower.endswith(".dll"):
                                 rt_found = True
                             # 4. PhysX
                             elif name_lower.startswith("physx"):

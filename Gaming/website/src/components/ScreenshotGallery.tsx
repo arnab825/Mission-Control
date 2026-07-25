@@ -7,9 +7,9 @@ import { Maximize2, X, Activity, Scan, Cpu, BrainCircuit, Terminal, Gamepad2, Se
 export function ScreenshotGallery() {
   const tabs = [
     { id: "dashboard", label: "Dashboard", icon: Activity, src: "/screenshots/dashboard.jpg" },
-    { id: "library", label: "Library", icon: Gamepad2, src: "/screenshots/library.jpg" },
-    { id: "system", label: "System", icon: Server, src: "/screenshots/system.jpg" },
-    { id: "readiness", label: "Readiness", icon: ShieldCheck, src: "/screenshots/readiness.jpg" },
+    { id: "library", label: "Library", icon: Gamepad2, src: "/screenshots/library.png" },
+    { id: "system", label: "System", icon: Server, src: "/screenshots/system.png" },
+    { id: "readiness", label: "Readiness", icon: ShieldCheck, src: "/screenshots/readiness.png" },
     { id: "hud", label: "In-Game HUD Overlay", icon: Scan, src: "/screenshots/hud.jpg" },
     { id: "vision", label: "Real-time YOLO Vision", icon: BrainCircuit, src: "/screenshots/vision.jpg" },
     { id: "lab", label: "Performance Lab", icon: Cpu, src: "/screenshots/lab.jpg" },
@@ -22,6 +22,20 @@ export function ScreenshotGallery() {
   useEffect(() => {
     setImageStatus('loading');
   }, [activeTab]);
+
+  useEffect(() => {
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if (e.key === 'Escape') {
+        setIsLightboxOpen(false);
+      }
+    };
+    if (isLightboxOpen) {
+      window.addEventListener('keydown', handleKeyDown);
+    }
+    return () => {
+      window.removeEventListener('keydown', handleKeyDown);
+    };
+  }, [isLightboxOpen]);
 
   const activeTabData = tabs.find(t => t.id === activeTab)!;
 
@@ -115,10 +129,10 @@ export function ScreenshotGallery() {
                 <div className="text-white font-mono text-xl sm:text-2xl font-black">165 <span className="text-[9px] sm:text-[10px] text-neon-green">FPS</span></div>
              </div>
              <div className="absolute inset-0 flex flex-col items-center justify-center bg-black/60 backdrop-blur-sm z-10">
-               <Terminal className="w-8 h-8 sm:w-10 sm:h-10 text-gray-500 mb-2 sm:mb-3" />
-               <span className="text-gray-400 font-mono text-xs sm:text-sm uppercase tracking-widest text-center px-4">Screenshot Pending</span>
-               <span className="text-gray-500 text-[10px] sm:text-xs mt-2 text-center">Displaying simulated mockup until /public/screenshots/hud.jpg is added</span>
-            </div>
+                <Terminal className="w-8 h-8 sm:w-10 sm:h-10 text-gray-500 mb-2 sm:mb-3" />
+                <span className="text-gray-400 font-mono text-xs sm:text-sm uppercase tracking-widest text-center px-4">Screenshot Pending</span>
+                <span className="text-gray-500 text-[10px] sm:text-xs mt-2 text-center">Displaying simulated mockup until /public/screenshots/hud.jpg is added</span>
+             </div>
           </div>
         );
       case 'vision':
@@ -140,10 +154,10 @@ export function ScreenshotGallery() {
                 <div className="absolute bottom-[35%] right-[30%] bg-red-500 text-white text-[8px] sm:text-[9px] font-bold px-1.5 py-0.5">VEHICLE 85%</div>
              </div>
              <div className="absolute inset-0 flex flex-col items-center justify-center bg-black/60 backdrop-blur-sm z-10">
-               <Terminal className="w-8 h-8 sm:w-10 sm:h-10 text-gray-500 mb-2 sm:mb-3" />
-               <span className="text-gray-400 font-mono text-xs sm:text-sm uppercase tracking-widest text-center px-4">Screenshot Pending</span>
-               <span className="text-gray-500 text-[10px] sm:text-xs mt-2 text-center">Displaying simulated mockup until /public/screenshots/vision.jpg is added</span>
-            </div>
+                <Terminal className="w-8 h-8 sm:w-10 sm:h-10 text-gray-500 mb-2 sm:mb-3" />
+                <span className="text-gray-400 font-mono text-xs sm:text-sm uppercase tracking-widest text-center px-4">Screenshot Pending</span>
+                <span className="text-gray-500 text-[10px] sm:text-xs mt-2 text-center">Displaying simulated mockup until /public/screenshots/vision.jpg is added</span>
+             </div>
           </div>
         );
       case 'lab':
@@ -161,10 +175,10 @@ export function ScreenshotGallery() {
                 <div className="h-2 w-full bg-white/10 rounded-full"><div className="h-full w-1/2 bg-neon-yellow rounded-full shadow-[0_0_10px_rgba(255,255,0,0.5)]" /></div>
              </div>
              <div className="absolute inset-0 flex flex-col items-center justify-center bg-black/60 backdrop-blur-sm z-10">
-               <Terminal className="w-8 h-8 sm:w-10 sm:h-10 text-gray-500 mb-2 sm:mb-3" />
-               <span className="text-gray-400 font-mono text-xs sm:text-sm uppercase tracking-widest text-center px-4">Screenshot Pending</span>
-               <span className="text-gray-500 text-[10px] sm:text-xs mt-2 text-center">Displaying simulated mockup until /public/screenshots/lab.jpg is added</span>
-            </div>
+                <Terminal className="w-8 h-8 sm:w-10 sm:h-10 text-gray-500 mb-2 sm:mb-3" />
+                <span className="text-gray-400 font-mono text-xs sm:text-sm uppercase tracking-widest text-center px-4">Screenshot Pending</span>
+                <span className="text-gray-500 text-[10px] sm:text-xs mt-2 text-center">Displaying simulated mockup until /public/screenshots/lab.jpg is added</span>
+             </div>
           </div>
         );
       default:
@@ -230,7 +244,7 @@ export function ScreenshotGallery() {
              <div className="absolute inset-0 flex items-center justify-center opacity-0 group-hover:opacity-100 bg-black/40 backdrop-blur-[2px] transition-all duration-300">
                <button 
                  onClick={() => setIsLightboxOpen(true)}
-                 className="flex items-center gap-2 bg-neon-green text-obsidian px-5 sm:px-6 py-2.5 sm:py-3 rounded-full font-bold font-mono text-xs sm:text-sm hover:scale-105 transition-transform shadow-[0_0_30px_rgba(118, 185, 0,0.5)]"
+                 className="flex items-center gap-2 bg-neon-green text-obsidian px-5 sm:px-6 py-2.5 sm:py-3 rounded-full font-bold font-mono text-xs sm:text-sm hover:scale-105 transition-transform shadow-[0_0_30px_rgba(118, 185, 0,0.5)] cursor-pointer"
                >
                  <Maximize2 className="w-3.5 h-3.5 sm:w-4 sm:h-4" /> Enlarge View
                </button>
@@ -246,25 +260,50 @@ export function ScreenshotGallery() {
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
-            className="fixed inset-0 z-50 flex items-center justify-center bg-black/95 backdrop-blur-xl p-4 sm:p-8"
-            onClick={() => setIsLightboxOpen(false)}
+            className="fixed inset-0 z-50 flex items-center justify-center p-4 sm:p-8"
           >
-            <button 
-              className="absolute top-6 right-6 sm:top-10 sm:right-10 text-gray-400 hover:text-white bg-white/10 hover:bg-white/20 rounded-full p-2.5 sm:p-3 transition-colors"
+            {/* Backdrop background overlay */}
+            <div 
+              className="absolute inset-0 bg-black/90 backdrop-blur-md cursor-pointer"
               onClick={() => setIsLightboxOpen(false)}
-            >
-              <X className="w-5 h-5 sm:w-6 sm:h-6" />
-            </button>
-            <motion.img
-              initial={{ scale: 0.9, y: 20 }}
-              animate={{ scale: 1, y: 0 }}
-              exit={{ scale: 0.9, y: 20 }}
-              transition={{ type: "spring", damping: 25, stiffness: 300 }}
-              src={activeTabData.src}
-              alt={activeTabData.label}
-              className="w-full h-full max-w-7xl object-contain shadow-2xl rounded-lg"
-              onClick={(e) => e.stopPropagation()}
             />
+
+            {/* Close Button */}
+            <button 
+              type="button"
+              className="absolute top-4 right-4 sm:top-8 sm:right-8 z-50 text-gray-300 hover:text-white bg-black/60 hover:bg-white/20 border border-white/20 rounded-full p-3 transition-all cursor-pointer shadow-xl"
+              onClick={(e) => {
+                e.stopPropagation();
+                setIsLightboxOpen(false);
+              }}
+              title="Close image view (Esc)"
+            >
+              <X className="w-6 h-6" />
+            </button>
+
+            {/* Sharp Image Container */}
+            <motion.div
+              initial={{ scale: 0.95, opacity: 0 }}
+              animate={{ scale: 1, opacity: 1 }}
+              exit={{ scale: 0.95, opacity: 0 }}
+              transition={{ duration: 0.2, ease: "easeOut" }}
+              className="relative z-10 max-w-[95vw] max-h-[90vh] flex flex-col items-center justify-center pointer-events-auto"
+            >
+              <img
+                src={activeTabData.src}
+                alt={activeTabData.label}
+                className="max-w-[95vw] max-h-[85vh] w-auto h-auto object-contain rounded-xl border border-white/15 shadow-[0_0_50px_rgba(0,0,0,0.8)]"
+              />
+              <div className="mt-3 flex items-center justify-between w-full px-2 text-xs font-mono text-gray-400">
+                <span className="font-bold text-white">{activeTabData.label}</span>
+                <button 
+                  onClick={() => setIsLightboxOpen(false)}
+                  className="text-neon-green hover:underline cursor-pointer font-bold"
+                >
+                  Click anywhere or press Esc to close
+                </button>
+              </div>
+            </motion.div>
           </motion.div>
         )}
       </AnimatePresence>
