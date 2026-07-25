@@ -468,10 +468,11 @@ const PRESET_DETAILS = [
 const GPU_RTX_FEATURES = ['DLSS', 'FRAME_GEN', 'FRAME GEN', 'FG', 'PATH_TRACING', 'PATH TRACING', 'RAY_TRACING', 'RAY TRACING'];
 const GPU_NVIDIA_FEATURES = ['REFLEX', 'PHYSX'];
 
-const getRecommendedPreset = (features: string[] = [], genre: string = '', gpuInfo: string | Record<string, any> = '', gameName: string = '') => {
+const getRecommendedPreset = (features: string[] = [], genre: string = '', gpuInfo: string | Record<string, any> = '', _gameName: string = '') => {
   const g = genre.toLowerCase();
-  const title = gameName.toLowerCase();
+  const upperFeatures = (features || []).map(f => String(f).toUpperCase());
 
+  // 1. Detect GPU Architecture (GTX vs RTX, Generation & Tier)
   let isRtxGpu = false;
   let isHighEndRtx = false;
   let is40SeriesOrNewer = false;
@@ -497,95 +498,50 @@ const getRecommendedPreset = (features: string[] = [], genre: string = '', gpuIn
     }
   }
 
-  const upperFeatures = features.map(f => f.toUpperCase());
+  // 2. Evaluate Scanned Library Features
   const hasDLSS = upperFeatures.some(f => f.includes('DLSS'));
   const hasFG = upperFeatures.some(f => f.includes('FRAME_GEN') || f.includes('FRAME GEN') || f.includes('FG'));
   const hasRT = upperFeatures.some(f => f.includes('RAY_TRACING') || f.includes('RAY TRACING') || f.includes('PATH_TRACING') || f.includes('PATH TRACING') || f.includes('RTX'));
+  const hasReflex = upperFeatures.some(f => f.includes('REFLEX'));
 
-  // 1. Title & Franchise Classifier
-  // Competitive / FPS / Twitch-Shooters -> Esports Latency
-  if (
-    title.includes('counter-strike') || title.includes('cs2') || title.includes('cs:go') ||
-    title.includes('valorant') || title.includes('overwatch') || title.includes('rainbow six') ||
-    title.includes('apex legends') || title.includes('pubg') || title.includes('fortnite') ||
-    title.includes('destiny') || title.includes('division') || title.includes('battlefield') ||
-    title.includes('call of duty') || title.includes('warzone') || title.includes('halo') ||
-    title.includes('team fortress') || title.includes('titanfall') || title.includes('left 4 dead')
-  ) {
-    return PRESET_DETAILS.find(p => p.key === 'latency') || PRESET_DETAILS[2];
-  }
-
-  // Ray Tracing / AAA Visual Showcase RPGs -> Ultra Quality
-  if (
-    title.includes('cyberpunk') || title.includes('witcher') || title.includes('elden ring') ||
-    title.includes('black myth') || title.includes('wukong') || title.includes('alan wake') ||
-    title.includes('baldur') || title.includes('starfield') || title.includes('hogwarts') ||
-    title.includes('horizon') || title.includes('god of war') || title.includes('red dead') ||
-    title.includes('rdr2') || title.includes('spider-man') || title.includes('last of us') ||
-    title.includes('control') || title.includes('avatar') || title.includes('metro exodus')
-  ) {
-    if (hasDLSS || hasRT) {
-      return PRESET_DETAILS.find(p => p.key === 'quality') || PRESET_DETAILS[0];
+  // 3. GTX Hardware Architecture Logic (Legacy GTX 10-Series, 16-Series, GTX 1080 Ti, etc.)
+  if (!isRtxGpu) {
+    // For competitive FPS / Esports / Reflex games on GTX -> Esports Latency
+    if (g.includes('shooter') || g.includes('esport') || g.includes('fight') || g.includes('multiplayer') || g.includes('competitive') || g.includes('fps') || hasReflex) {
+      return PRESET_DETAILS.find(p => p.key === 'latency') || PRESET_DETAILS[2];
     }
-    return PRESET_DETAILS.find(p => p.key === 'quality') || PRESET_DETAILS[0];
+    // For non-RTX RPG, Racing, Action, and Standard games -> Standard Direct Rendering
+    return PRESET_DETAILS.find(p => p.key === 'off') || PRESET_DETAILS[3];
   }
 
-  // High-Speed Racing & Driving Games -> RTX High FPS / Balanced
-  if (
-    title.includes('need for speed') || title.includes('nfs') || title.includes('forza') ||
-    title.includes('f1') || title.includes('assetto') || title.includes('gran turismo') ||
-    title.includes('dirt') || title.includes('grid') || title.includes('crew') ||
-    title.includes('burnout') || title.includes('trackmania') || title.includes('project cars')
-  ) {
-    if (hasFG || is40SeriesOrNewer) {
-      return PRESET_DETAILS.find(p => p.key === 'performance') || PRESET_DETAILS[1];
-    }
-    return PRESET_DETAILS.find(p => p.key === 'balanced') || PRESET_DETAILS[1];
-  }
-
-  // Open World / Action-Adventure -> RTX Balanced
-  if (
-    title.includes('grand theft auto') || title.includes('gta') || title.includes('watch dogs') ||
-    title.includes('assassin') || title.includes('far cry') || title.includes('tomb raider') ||
-    title.includes('hitman') || title.includes('death stranding') || title.includes('flight simulator')
-  ) {
-    return PRESET_DETAILS.find(p => p.key === 'balanced') || PRESET_DETAILS[1];
-  }
-
-  // 2. Genre Fallback Rules
+  // 4. RTX Hardware & Scanned Feature Matrix Decision Engine
+  // Competitive / Esports / Shooters -> Esports Latency (Reflex + Low Input Lag)
   if (g.includes('shooter') || g.includes('esport') || g.includes('fight') || g.includes('multiplayer') || g.includes('competitive') || g.includes('fps')) {
     return PRESET_DETAILS.find(p => p.key === 'latency') || PRESET_DETAILS[2];
   }
 
-  if (g.includes('racing') || g.includes('sport') || g.includes('driving')) {
+  // Scanned Ray Tracing / Path Tracing + High-End RTX GPU -> Ultra Quality
+  if (hasRT && isHighEndRtx) {
+    return PRESET_DETAILS.find(p => p.key === 'quality') || PRESET_DETAILS[0];
+  }
+
+  // Scanned Frame Generation + RTX 40/50 Series GPU -> RTX High FPS
+  if (hasFG && is40SeriesOrNewer) {
+    return PRESET_DETAILS.find(p => p.key === 'performance') || PRESET_DETAILS[1];
+  }
+
+  // Scanned DLSS Support -> RTX Balanced
+  if (hasDLSS) {
     return PRESET_DETAILS.find(p => p.key === 'balanced') || PRESET_DETAILS[1];
   }
 
+  // Scanned Genre Rules for RTX GPUs
   if (g.includes('rpg') || g.includes('adventure') || g.includes('story') || g.includes('open world')) {
-    if (hasRT || isHighEndRtx) {
-      return PRESET_DETAILS.find(p => p.key === 'quality') || PRESET_DETAILS[0];
-    }
-    return PRESET_DETAILS.find(p => p.key === 'balanced') || PRESET_DETAILS[1];
+    return PRESET_DETAILS.find(p => p.key === 'quality') || PRESET_DETAILS[0];
   }
 
-  if (g.includes('action') || g.includes('survival') || g.includes('brawler')) {
-    if (hasFG && is40SeriesOrNewer) {
-      return PRESET_DETAILS.find(p => p.key === 'performance') || PRESET_DETAILS[1];
-    }
+  if (g.includes('racing') || g.includes('sport') || g.includes('driving') || g.includes('action')) {
     return PRESET_DETAILS.find(p => p.key === 'balanced') || PRESET_DETAILS[1];
-  }
-
-  // 3. Title Hash Distribution for Custom Unmatched Titles
-  if (title) {
-    let hash = 0;
-    for (let i = 0; i < title.length; i++) {
-      hash = (hash << 5) - hash + title.charCodeAt(i);
-      hash |= 0;
-    }
-    const idx = Math.abs(hash) % 3;
-    if (idx === 0) return PRESET_DETAILS.find(p => p.key === 'balanced') || PRESET_DETAILS[1];
-    if (idx === 1) return PRESET_DETAILS.find(p => p.key === 'quality') || PRESET_DETAILS[0];
-    if (idx === 2) return PRESET_DETAILS.find(p => p.key === 'performance') || PRESET_DETAILS[1];
   }
 
   return PRESET_DETAILS.find(p => p.key === 'balanced') || PRESET_DETAILS[1];
