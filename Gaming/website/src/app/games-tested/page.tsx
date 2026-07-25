@@ -64,8 +64,8 @@ export default function GamesTestedPage() {
     testedSpecs: {
       gpu: "NVIDIA GeForce RTX Series / GTX Series",
       resolution: "4K UHD (3840 x 2160) & 1440p QHD",
-      avgFps: "148 FPS",
-      vramUsed: "6.85 GB / 12.0 GB",
+      avgFps: "80 FPS",
+      vramUsed: "6.5 GB / 8.0 GB",
       latency: "10.8 ms",
       gpuLoad: "94%"
     },
@@ -84,7 +84,7 @@ export default function GamesTestedPage() {
       {
         src: "/games/SpiderMan_SS1.png",
         title: "High-Speed Manhattan Traversal & Ray Tracing",
-        desc: "Full Ray-Traced city reflections and ultra draw distance at 148 FPS with DLSS 3.5 Frame Generation (94% GPU Load, 6.85 GB VRAM)."
+        desc: "Full Ray-Traced city reflections and ultra draw distance at 80 FPS with DLSS 3.5 Frame Generation (94% GPU Load, 6.5 GB / 8.0 GB VRAM)."
       },
       {
         src: "/games/SpiderMan_SS2.png",
@@ -94,7 +94,7 @@ export default function GamesTestedPage() {
       {
         src: "/games/SpiderMan_SS3.png",
         title: "New York City Skyline & VRAM Footprint",
-        desc: "Panoramic cityscape audit demonstrating high-density geometry rendering and verified 6.85 GB / 12.0 GB VRAM memory footprint."
+        desc: "Panoramic cityscape audit demonstrating high-density geometry rendering and verified 6.5 GB / 8.0 GB VRAM memory footprint."
       }
     ]
   };
@@ -108,8 +108,8 @@ export default function GamesTestedPage() {
       preset: "Ultra Ray Tracing",
       keyTech: ["DLSS 3.5", "Frame Gen", "Reflex", "Ray Tracing"],
       status: "VERIFIED BENCHMARK",
-      fps: "148 FPS",
-      vram: "6.85 GB / 12.0 GB",
+      fps: "80 FPS",
+      vram: "6.5 GB / 8.0 GB",
       gpuLoad: "94%",
       latency: "10.8 ms",
       api: "DX12 Ultimate",
@@ -170,11 +170,11 @@ export default function GamesTestedPage() {
               <div className="text-gray-400 text-[10px] uppercase font-bold tracking-wider">Render Engine</div>
             </div>
             <div className="p-3 rounded-2xl bg-white/[0.03] border border-white/10 text-center">
-              <div className="text-teal-300 font-black text-xl sm:text-2xl">12.4 ms</div>
+              <div className="text-teal-300 font-black text-xl sm:text-2xl">10.8 ms</div>
               <div className="text-gray-400 text-[10px] uppercase font-bold tracking-wider">System Latency</div>
             </div>
             <div className="p-3 rounded-2xl bg-white/[0.03] border border-white/10 text-center">
-              <div className="text-neon-yellow font-black text-xl sm:text-2xl">4.56 GB</div>
+              <div className="text-neon-yellow font-black text-xl sm:text-2xl">6.5 GB</div>
               <div className="text-gray-400 text-[10px] uppercase font-bold tracking-wider">VRAM Allocation</div>
             </div>
           </div>
