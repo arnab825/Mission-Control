@@ -1,8 +1,24 @@
 {
-  "version": "2.4.2",
+  "version": "2.4.3",
   "release_date": "2026-07-25",
   "update_check_url": "https://raw.githubusercontent.com/arnab825/Mission-Control/main/Gaming/backend/version.json",
   "changelog": [
+    {
+      "version": "2.4.3",
+      "date": "2026-07-25",
+      "title": "Fix FPS capture for Fullscreen Exclusive games",
+      "highlights": [
+        "Fix FPS capture for Fullscreen Exclusive games"
+      ]
+    },
+    {
+      "version": "2.4.2",
+      "date": "2026-07-25",
+      "title": "Test",
+      "highlights": [
+        "Test"
+      ]
+    },
     {
       "version": "2.4.2",
       "date": "2026-07-25",
@@ -418,32 +434,6 @@
         "Removed ChromaDB dependency to reduce PyInstaller package size and resolved native C++ compilation issues",
         "Migrated website issues list, documentation, and architecture layers to Mongoose/MongoDB",
         "Refactored website architecture page into Server and Client components for Turbopack compatibility"
-      ]
-    },
-    {
-      "version": "1.7.10",
-      "date": "2026-07-19",
-      "title": "Check For Updates Logo Stylization",
-      "highlights": [
-        "Updated Check For Updates tray icon to be white and borderless"
-      ]
-    },
-    {
-      "version": "1.7.9",
-      "date": "2026-07-19",
-      "title": "Remove Mission Briefs, update tray icon, and finalize TGP telemetry",
-      "highlights": [
-        "Deleted Mission Briefs and associated local mdx briefs",
-        "Updated Check For Updates tray icon to match Windows Update logo",
-        "Updated release notes readmes with precise TGP & CPU Offset documentation"
-      ]
-    },
-    {
-      "version": "1.7.8",
-      "date": "2026-07-19",
-      "title": "Apply offset for ACPI CPU temp",
-      "highlights": [
-        "Subtracts 12C from ACPI TZ01 to approximate CPU Package avg under blocked driver mode"
       ]
     }
   ]

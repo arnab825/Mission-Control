@@ -2,6 +2,14 @@
 
 This document contains a detailed history of all patches and updates for the AI Gaming Assistant.
 
+### Patch: 2026-07-25 — v2.4.3: Fix FPS capture for Fullscreen Exclusive games
+
+- Fix FPS capture for Fullscreen Exclusive games
+
+### Patch: 2026-07-25 — v2.4.2: Test
+
+- Test
+
 ### Patch: 2026-07-25 — v2.4.2: Fix model download thread imports, preset recommendations, agent prompts & website lightbox
 
 - Move model download module imports to top level to resolve PyInstaller thread deadlocks

@@ -64,7 +64,15 @@ try {
         git commit -m "Release v${version}: $Title"
         git tag -a "v${version}" -m "Release v${version}: $Title"
         
-        # 5. Build binaries and optionally publish release assets to GitHub
+        # 5. Build PyInstaller Backend Binary
+        Write-Host "[BUILD] Building PyInstaller backend..." -ForegroundColor Cyan
+        powershell -ExecutionPolicy Bypass -File .\scripts\build_app.ps1
+        if ($LASTEXITCODE -ne 0) {
+            Write-Host "[ERROR] PyInstaller backend build failed." -ForegroundColor Red
+            exit 1
+        }
+
+        # 6. Build binaries and optionally publish release assets to GitHub
         Write-Host "[BUILD] Compiling Electron packages for v${version}..." -ForegroundColor Cyan
         Push-Location "frontend"
         try {
