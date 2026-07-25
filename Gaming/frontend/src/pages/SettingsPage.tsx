@@ -465,8 +465,28 @@ const PRESET_DETAILS = [
   }
 ];
 
-const GPU_RTX_FEATURES = ['DLSS', 'FRAME_GEN', 'FRAME GEN', 'FG', 'PATH_TRACING', 'PATH TRACING', 'RAY_TRACING', 'RAY TRACING'];
+const GPU_RTX_FEATURES = ['DLSS', 'FRAME_GEN', 'FRAME GEN', 'FG', 'PATH_TRACING', 'PATH TRACING', 'RAY_TRACING', 'RAY TRACING', 'RTX'];
 const GPU_NVIDIA_FEATURES = ['REFLEX', 'PHYSX'];
+
+const DEFAULT_PROMPTS: Record<string, string> = {
+  welcome_prompt: `Greet the user as their AI Gaming Assistant. Give a very brief, friendly welcome message. Explain that you can monitor their gameplay, provide tactical advice, and optimize their system. Ask how you can assist them today.`,
+  welcome_fallback: `Neural Link established. I am your Agentic AI Assistant, powered by NVIDIA NIM. I can monitor your gameplay, provide tactical advice, and automate system tasks. How can I assist you today?`,
+  session_title_prompt: `You are a session titling AI. Generate a concise, extremely short title (maximum 3 words) summarizing the following conversation. Do not include markdown, do not include quotes, do not include punctuation, and do not write 'Session' or 'Optimization'. Just return the title.\n\nConversation:\n\n{conversation}`,
+  system_access_instruction: `\nAGENTIC PERMISSION: The user has enabled 'Agentic AI Mode'. You now have direct access to system sensors and controls.\nAGENTIC VOICE GUIDANCE:\n1. If the user asks for guidance or says 'yes' to voice guidance, you MUST become a proactive co-pilot.\n2. Use LIVE WEB CONTEXT to perform 'Game Prediction': analyze current quest/state and predict the next encounter or optimal strategy.\n3. Provide logic-based commentary on player performance and upcoming hazards.\nSYSTEM ACCESS INTEGRATION:\n1. APP CONTROL: If the user asks to open, close, or configure app features, use these command prefixes:\n   - Change Cooling/Stability: \`[SYSTEM_COMMAND:set_cooling_mode:<silent|balanced|max>]\` (refer to 'Stability Mode')\n   - Toggle Vision: \`[SYSTEM_COMMAND:toggle_vision:<on|off>]\` (refer to 'Vision Panel')\n   - Clear VRAM/Optimize: \`[SYSTEM_COMMAND:optimize_system]\` \n   - Open HUD/Settings: \`[SYSTEM_COMMAND:open_page:<dashboard|vision|lab|agent|library|system|settings>]\` (refer to 'HUD' or 'Tabs')\n2. LAUNCHER: If the user asks to open/launch/start a game or app (Steam, OBS, GTA V), you MUST prefix your response with: \`[LAUNCH_COMMAND:<target>]\` where \`<target>\` is the target name or executable. Example: \`[LAUNCH_COMMAND:obs]\`, \`[LAUNCH_COMMAND:steam]\`, or the exact game name from library.`,
+  inactive_greeting_desktop: `Hello! I am your AI Gaming Assistant. I see you have {count_games} games installed and scanned in your library. How can I help you today? Is there any game you'd like to launch, or any PC optimization you'd like to perform?`,
+  inactive_greeting_desktop_fallback: `Hello! How can I help you today? Is there any problem or anything you'd like to optimize?`,
+  active_greeting_game: `Agent Panel: Active Welcome, Agent. I'm actively monitoring your gameplay in **{game_display}**! Your current status is: - Health: {health_pct}% - Ammo: {ammo} - Position: {position} - Enemy Count: {enemies} Hostiles in the vicinity. What's your objective?`,
+  brevity_concise: `You MUST be extremely concise, brief, and to the point. Keep your reply strictly under 1-2 short sentences (maximum 25-30 words). Do NOT describe everything all at once. If there's more details or explanations, keep them hidden and offer to explain further by saying naturally: 'If you want to know more, say yes and I will explain it in detail!' or similar.`,
+  brevity_detailed: `Provide a comprehensive, detailed, and clear explanation of the topic. Respond naturally and context-aware.`
+};
+
+const DEFAULT_PERSONALITIES: Record<string, string> = {
+  tactical: "You are a pro tactical gaming assistant. Provide concise, strategic, and data-driven advice. Focus on survival and efficiency.",
+  friendly: "You are a helpful and friendly gaming companion. Provide encouraging advice and helpful tips for a relaxed experience.",
+  immersive: "You are an in-universe tactical advisor. Use military telemetry phrasing and immersive terminology.",
+  sarcastic: "You are a witty, slightly sarcastic AI gaming sidekick. Give helpful advice with sharp humor.",
+  aggressive: "You are an aggressive tactical commander. Focus on relentless offense, dominate objectives, and push hard."
+};
 
 const getRecommendedPreset = (features: string[] = [], genre: string = '', gpuInfo: string | Record<string, any> = '', _gameName: string = '') => {
   const g = genre.toLowerCase();
@@ -503,48 +523,40 @@ const getRecommendedPreset = (features: string[] = [], genre: string = '', gpuIn
   const hasFG = upperFeatures.some(f => f.includes('FRAME_GEN') || f.includes('FRAME GEN') || f.includes('FG'));
   const hasRT = upperFeatures.some(f => f.includes('RAY_TRACING') || f.includes('RAY TRACING') || f.includes('PATH_TRACING') || f.includes('PATH TRACING') || f.includes('RTX'));
   const hasReflex = upperFeatures.some(f => f.includes('REFLEX'));
+  const hasRtxTech = hasDLSS || hasFG || hasRT;
 
-  // 3. GTX Hardware Architecture Logic (Legacy GTX 10-Series, 16-Series, GTX 1080 Ti, etc.)
-  if (!isRtxGpu) {
-    // For competitive FPS / Esports / Reflex games on GTX -> Esports Latency
+  // 3. Non-RTX Games OR GTX Hardware Architecture Logic
+  if (!isRtxGpu || !hasRtxTech) {
+    // For competitive FPS / Esports / Reflex games -> Esports Latency
     if (g.includes('shooter') || g.includes('esport') || g.includes('fight') || g.includes('multiplayer') || g.includes('competitive') || g.includes('fps') || hasReflex) {
-      return PRESET_DETAILS.find(p => p.key === 'latency') || PRESET_DETAILS[2];
+      return PRESET_DETAILS.find(p => p.key === 'latency') || PRESET_DETAILS[4];
     }
     // For non-RTX RPG, Racing, Action, and Standard games -> Standard Direct Rendering
-    return PRESET_DETAILS.find(p => p.key === 'off') || PRESET_DETAILS[3];
+    return PRESET_DETAILS.find(p => p.key === 'off') || PRESET_DETAILS[5];
   }
 
-  // 4. RTX Hardware & Scanned Feature Matrix Decision Engine
-  // Competitive / Esports / Shooters -> Esports Latency (Reflex + Low Input Lag)
+  // 4. RTX Hardware & Scanned Feature Matrix Decision Engine (Games WITH DLSS / FG / Ray Tracing)
   if (g.includes('shooter') || g.includes('esport') || g.includes('fight') || g.includes('multiplayer') || g.includes('competitive') || g.includes('fps')) {
-    return PRESET_DETAILS.find(p => p.key === 'latency') || PRESET_DETAILS[2];
+    return PRESET_DETAILS.find(p => p.key === 'latency') || PRESET_DETAILS[4];
   }
 
-  // Scanned Ray Tracing / Path Tracing + High-End RTX GPU -> Ultra Quality
   if (hasRT && isHighEndRtx) {
-    return PRESET_DETAILS.find(p => p.key === 'quality') || PRESET_DETAILS[0];
+    return PRESET_DETAILS.find(p => p.key === 'quality') || PRESET_DETAILS[1];
   }
 
-  // Scanned Frame Generation + RTX 40/50 Series GPU -> RTX High FPS
   if (hasFG && is40SeriesOrNewer) {
-    return PRESET_DETAILS.find(p => p.key === 'performance') || PRESET_DETAILS[1];
+    return PRESET_DETAILS.find(p => p.key === 'performance') || PRESET_DETAILS[2];
   }
 
-  // Scanned DLSS Support -> RTX Balanced
   if (hasDLSS) {
-    return PRESET_DETAILS.find(p => p.key === 'balanced') || PRESET_DETAILS[1];
+    return PRESET_DETAILS.find(p => p.key === 'balanced') || PRESET_DETAILS[3];
   }
 
-  // Scanned Genre Rules for RTX GPUs
   if (g.includes('rpg') || g.includes('adventure') || g.includes('story') || g.includes('open world')) {
-    return PRESET_DETAILS.find(p => p.key === 'quality') || PRESET_DETAILS[0];
+    return PRESET_DETAILS.find(p => p.key === 'quality') || PRESET_DETAILS[1];
   }
 
-  if (g.includes('racing') || g.includes('sport') || g.includes('driving') || g.includes('action')) {
-    return PRESET_DETAILS.find(p => p.key === 'balanced') || PRESET_DETAILS[1];
-  }
-
-  return PRESET_DETAILS.find(p => p.key === 'balanced') || PRESET_DETAILS[1];
+  return PRESET_DETAILS.find(p => p.key === 'balanced') || PRESET_DETAILS[3];
 };
 
 const OAUTH_PROVIDERS = [
@@ -3418,14 +3430,14 @@ const SettingsPage: React.FC<{ state: TelemetryState | null, sendCommand: (type:
         <SettingsSection searchQuery={searchQuery} title="Hotkeys & Interface" icon={Keyboard}>
           <SettingsField label="Toggle HUD" description="Shortcut to show/hide the tactical overlay.">
             <HotkeyRecorder
-              value={localConfig.hotkeys?.toggle_hud || ''}
+              value={localConfig.hotkeys?.toggle_hud || '<ctrl>+<alt>+o'}
               onChange={(val) => setLocalConfig({ ...localConfig, hotkeys: { ...localConfig.hotkeys, toggle_hud: val } })}
             />
           </SettingsField>
 
           <SettingsField label="Agentic Toggle" description="Activate/Deactivate the autonomous agent.">
             <HotkeyRecorder
-              value={localConfig.hotkeys?.toggle_agentic || ''}
+              value={localConfig.hotkeys?.toggle_agentic || '<ctrl>+<alt>+a'}
               onChange={(val) => setLocalConfig({ ...localConfig, hotkeys: { ...localConfig.hotkeys, toggle_agentic: val } })}
             />
           </SettingsField>
@@ -3494,8 +3506,8 @@ const SettingsPage: React.FC<{ state: TelemetryState | null, sendCommand: (type:
             <textarea
               id="prompt-welcome"
               rows={4}
-              value={localConfig.ai_agent?.prompts?.welcome_prompt || ''}
-              onChange={(e) => setLocalConfig({ ...localConfig, ai_agent: { ...localConfig.ai_agent, prompts: { ...localConfig.ai_agent?.prompts, welcome_prompt: e.target.value } } })}
+              value={localConfig.ai_agent?.prompts?.welcome_prompt ?? DEFAULT_PROMPTS.welcome_prompt}
+              onChange={(e) => setLocalConfig({ ...localConfig, ai_agent: { ...localConfig.ai_agent, prompts: { ...DEFAULT_PROMPTS, ...localConfig.ai_agent?.prompts, welcome_prompt: e.target.value } } })}
               placeholder="Greet the user as their AI Gaming Assistant. Give a very brief, friendly welcome message..."
               className="w-full bg-black/40 border border-white/10 rounded-xl py-3 px-4 text-[10px] font-mono text-zinc-200 focus:outline-none focus:border-neon-green/40 resize-y placeholder-zinc-600 transition-colors"
             />
@@ -3508,8 +3520,8 @@ const SettingsPage: React.FC<{ state: TelemetryState | null, sendCommand: (type:
             <textarea
               id="prompt-welcome-fallback"
               rows={3}
-              value={localConfig.ai_agent?.prompts?.welcome_fallback || ''}
-              onChange={(e) => setLocalConfig({ ...localConfig, ai_agent: { ...localConfig.ai_agent, prompts: { ...localConfig.ai_agent?.prompts, welcome_fallback: e.target.value } } })}
+              value={localConfig.ai_agent?.prompts?.welcome_fallback ?? DEFAULT_PROMPTS.welcome_fallback}
+              onChange={(e) => setLocalConfig({ ...localConfig, ai_agent: { ...localConfig.ai_agent, prompts: { ...DEFAULT_PROMPTS, ...localConfig.ai_agent?.prompts, welcome_fallback: e.target.value } } })}
               placeholder="Neural Link established. I am your Agentic AI Assistant..."
               className="w-full bg-black/40 border border-white/10 rounded-xl py-3 px-4 text-[10px] font-mono text-zinc-200 focus:outline-none focus:border-neon-green/40 resize-y placeholder-zinc-600 transition-colors"
             />
@@ -3525,8 +3537,8 @@ const SettingsPage: React.FC<{ state: TelemetryState | null, sendCommand: (type:
             <textarea
               id="prompt-session-title"
               rows={4}
-              value={localConfig.ai_agent?.prompts?.session_title_prompt || ''}
-              onChange={(e) => setLocalConfig({ ...localConfig, ai_agent: { ...localConfig.ai_agent, prompts: { ...localConfig.ai_agent?.prompts, session_title_prompt: e.target.value } } })}
+              value={localConfig.ai_agent?.prompts?.session_title_prompt ?? DEFAULT_PROMPTS.session_title_prompt}
+              onChange={(e) => setLocalConfig({ ...localConfig, ai_agent: { ...localConfig.ai_agent, prompts: { ...DEFAULT_PROMPTS, ...localConfig.ai_agent?.prompts, session_title_prompt: e.target.value } } })}
               placeholder="You are a session titling AI. Generate a concise, extremely short title (maximum 3 words)..."
               className="w-full bg-black/40 border border-white/10 rounded-xl py-3 px-4 text-[10px] font-mono text-zinc-200 focus:outline-none focus:border-neon-green/40 resize-y placeholder-zinc-600 transition-colors"
             />
@@ -3541,8 +3553,8 @@ const SettingsPage: React.FC<{ state: TelemetryState | null, sendCommand: (type:
             <textarea
               id="prompt-system-access"
               rows={8}
-              value={localConfig.ai_agent?.prompts?.system_access_instruction || ''}
-              onChange={(e) => setLocalConfig({ ...localConfig, ai_agent: { ...localConfig.ai_agent, prompts: { ...localConfig.ai_agent?.prompts, system_access_instruction: e.target.value } } })}
+              value={localConfig.ai_agent?.prompts?.system_access_instruction ?? DEFAULT_PROMPTS.system_access_instruction}
+              onChange={(e) => setLocalConfig({ ...localConfig, ai_agent: { ...localConfig.ai_agent, prompts: { ...DEFAULT_PROMPTS, ...localConfig.ai_agent?.prompts, system_access_instruction: e.target.value } } })}
               placeholder="AGENTIC PERMISSION: The user has enabled 'Agentic AI Mode'..."
               className="w-full bg-black/40 border border-white/10 rounded-xl py-3 px-4 text-[10px] font-mono text-zinc-200 focus:outline-none focus:border-neon-green/40 resize-y placeholder-zinc-600 transition-colors"
             />
@@ -3558,8 +3570,8 @@ const SettingsPage: React.FC<{ state: TelemetryState | null, sendCommand: (type:
             <textarea
               id="prompt-inactive-greeting-desktop"
               rows={3}
-              value={localConfig.ai_agent?.prompts?.inactive_greeting_desktop || ''}
-              onChange={(e) => setLocalConfig({ ...localConfig, ai_agent: { ...localConfig.ai_agent, prompts: { ...localConfig.ai_agent?.prompts, inactive_greeting_desktop: e.target.value } } })}
+              value={localConfig.ai_agent?.prompts?.inactive_greeting_desktop ?? DEFAULT_PROMPTS.inactive_greeting_desktop}
+              onChange={(e) => setLocalConfig({ ...localConfig, ai_agent: { ...localConfig.ai_agent, prompts: { ...DEFAULT_PROMPTS, ...localConfig.ai_agent?.prompts, inactive_greeting_desktop: e.target.value } } })}
               placeholder="Hello! I am your AI Gaming Assistant. I see you have {count_games} games installed..."
               className="w-full bg-black/40 border border-white/10 rounded-xl py-3 px-4 text-[10px] font-mono text-zinc-200 focus:outline-none focus:border-neon-green/40 resize-y placeholder-zinc-600 transition-colors"
             />
@@ -3571,8 +3583,8 @@ const SettingsPage: React.FC<{ state: TelemetryState | null, sendCommand: (type:
             <textarea
               id="prompt-inactive-greeting-fallback"
               rows={2}
-              value={localConfig.ai_agent?.prompts?.inactive_greeting_desktop_fallback || ''}
-              onChange={(e) => setLocalConfig({ ...localConfig, ai_agent: { ...localConfig.ai_agent, prompts: { ...localConfig.ai_agent?.prompts, inactive_greeting_desktop_fallback: e.target.value } } })}
+              value={localConfig.ai_agent?.prompts?.inactive_greeting_desktop_fallback ?? DEFAULT_PROMPTS.inactive_greeting_desktop_fallback}
+              onChange={(e) => setLocalConfig({ ...localConfig, ai_agent: { ...localConfig.ai_agent, prompts: { ...DEFAULT_PROMPTS, ...localConfig.ai_agent?.prompts, inactive_greeting_desktop_fallback: e.target.value } } })}
               placeholder="Hello! How can I help you today? Is there any problem or anything you'd like to optimize?"
               className="w-full bg-black/40 border border-white/10 rounded-xl py-3 px-4 text-[10px] font-mono text-zinc-200 focus:outline-none focus:border-neon-green/40 resize-y placeholder-zinc-600 transition-colors"
             />
@@ -3591,8 +3603,8 @@ const SettingsPage: React.FC<{ state: TelemetryState | null, sendCommand: (type:
             <textarea
               id="prompt-active-greeting"
               rows={3}
-              value={localConfig.ai_agent?.prompts?.active_greeting_game || ''}
-              onChange={(e) => setLocalConfig({ ...localConfig, ai_agent: { ...localConfig.ai_agent, prompts: { ...localConfig.ai_agent?.prompts, active_greeting_game: e.target.value } } })}
+              value={localConfig.ai_agent?.prompts?.active_greeting_game ?? DEFAULT_PROMPTS.active_greeting_game}
+              onChange={(e) => setLocalConfig({ ...localConfig, ai_agent: { ...localConfig.ai_agent, prompts: { ...DEFAULT_PROMPTS, ...localConfig.ai_agent?.prompts, active_greeting_game: e.target.value } } })}
               placeholder="Agent Panel: Active Welcome, Agent. I'm actively monitoring your gameplay in **{game_display}**!..."
               className="w-full bg-black/40 border border-white/10 rounded-xl py-3 px-4 text-[10px] font-mono text-zinc-200 focus:outline-none focus:border-neon-green/40 resize-y placeholder-zinc-600 transition-colors"
             />
@@ -3605,8 +3617,8 @@ const SettingsPage: React.FC<{ state: TelemetryState | null, sendCommand: (type:
             <textarea
               id="prompt-brevity-concise"
               rows={3}
-              value={localConfig.ai_agent?.prompts?.brevity_concise || ''}
-              onChange={(e) => setLocalConfig({ ...localConfig, ai_agent: { ...localConfig.ai_agent, prompts: { ...localConfig.ai_agent?.prompts, brevity_concise: e.target.value } } })}
+              value={localConfig.ai_agent?.prompts?.brevity_concise ?? DEFAULT_PROMPTS.brevity_concise}
+              onChange={(e) => setLocalConfig({ ...localConfig, ai_agent: { ...localConfig.ai_agent, prompts: { ...DEFAULT_PROMPTS, ...localConfig.ai_agent?.prompts, brevity_concise: e.target.value } } })}
               placeholder="You MUST be extremely concise, brief, and to the point..."
               className="w-full bg-black/40 border border-white/10 rounded-xl py-3 px-4 text-[10px] font-mono text-zinc-200 focus:outline-none focus:border-neon-green/40 resize-y placeholder-zinc-600 transition-colors"
             />
@@ -3618,8 +3630,8 @@ const SettingsPage: React.FC<{ state: TelemetryState | null, sendCommand: (type:
             <textarea
               id="prompt-brevity-detailed"
               rows={2}
-              value={localConfig.ai_agent?.prompts?.brevity_detailed || ''}
-              onChange={(e) => setLocalConfig({ ...localConfig, ai_agent: { ...localConfig.ai_agent, prompts: { ...localConfig.ai_agent?.prompts, brevity_detailed: e.target.value } } })}
+              value={localConfig.ai_agent?.prompts?.brevity_detailed ?? DEFAULT_PROMPTS.brevity_detailed}
+              onChange={(e) => setLocalConfig({ ...localConfig, ai_agent: { ...localConfig.ai_agent, prompts: { ...DEFAULT_PROMPTS, ...localConfig.ai_agent?.prompts, brevity_detailed: e.target.value } } })}
               placeholder="Provide a comprehensive, detailed, and clear explanation of the topic..."
               className="w-full bg-black/40 border border-white/10 rounded-xl py-3 px-4 text-[10px] font-mono text-zinc-200 focus:outline-none focus:border-neon-green/40 resize-y placeholder-zinc-600 transition-colors"
             />
@@ -3649,14 +3661,16 @@ const SettingsPage: React.FC<{ state: TelemetryState | null, sendCommand: (type:
                 <textarea
                   id={`prompt-personality-${key}`}
                   rows={2}
-                  value={localConfig.ai_agent?.prompts?.personalities?.[key] || ''}
+                  value={localConfig.ai_agent?.prompts?.personalities?.[key] ?? DEFAULT_PERSONALITIES[key] ?? ''}
                   onChange={(e) => setLocalConfig({
                     ...localConfig,
                     ai_agent: {
                       ...localConfig.ai_agent,
                       prompts: {
+                        ...DEFAULT_PROMPTS,
                         ...localConfig.ai_agent?.prompts,
                         personalities: {
+                          ...DEFAULT_PERSONALITIES,
                           ...localConfig.ai_agent?.prompts?.personalities,
                           [key]: e.target.value
                         }

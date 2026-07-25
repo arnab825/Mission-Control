@@ -2,6 +2,13 @@
 
 This document contains a detailed history of all patches and updates for the AI Gaming Assistant.
 
+### Patch: 2026-07-25 — v2.4.2: Fix model download thread imports, preset recommendations, agent prompts & website lightbox
+
+- Move model download module imports to top level to resolve PyInstaller thread deadlocks
+- Refine Hardware Feature Matrix presets so non-RTX titles accurately default to Standard
+- Pre-fill default agent prompts and hotkeys in Settings UI
+- Fix blurry lightbox modal and enable Esc/backdrop close controls in website gallery
+
 ### Patch: 2026-07-25 — v2.4.1: Fix AI vision module bundling and write permissions for model weights
 
 - Bundle PyTorch and torchvision into desktop releases

@@ -713,7 +713,10 @@ const VisionPage: React.FC<VisionPageProps> = ({ state, sendCommand }) => {
                       </div>
                     ) : (
                       <div className="flex items-center justify-between pt-1 border-t border-white/5">
-                        <span className={`text-[9px] font-black uppercase font-mono ${installed ? 'text-neon-green' : 'text-zinc-500'}`}>
+                        <span 
+                          className={`text-[9px] font-black uppercase font-mono ${installed ? 'text-neon-green' : isErr ? 'text-red-500' : 'text-zinc-500'}`}
+                          title={isErr ? dlStatus?.message : undefined}
+                        >
                           {installed ? '✓ Installed' : isErr ? 'Download Failed' : 'Not Installed'}
                         </span>
                         <button

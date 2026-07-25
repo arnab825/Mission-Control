@@ -1,8 +1,19 @@
 {
-  "version": "2.4.1",
-  "release_date": "2026-07-24",
+  "version": "2.4.2",
+  "release_date": "2026-07-25",
   "update_check_url": "https://raw.githubusercontent.com/arnab825/Mission-Control/main/Gaming/backend/version.json",
   "changelog": [
+    {
+      "version": "2.4.2",
+      "date": "2026-07-25",
+      "title": "Fix model download thread imports, preset recommendations, agent prompts & website lightbox",
+      "highlights": [
+        "Move model download module imports to top level to resolve PyInstaller thread deadlocks",
+        "Refine Hardware Feature Matrix presets so non-RTX titles accurately default to Standard",
+        "Pre-fill default agent prompts and hotkeys in Settings UI",
+        "Fix blurry lightbox modal and enable Esc/backdrop close controls in website gallery"
+      ]
+    },
     {
       "version": "2.4.1",
       "date": "2026-07-25",
