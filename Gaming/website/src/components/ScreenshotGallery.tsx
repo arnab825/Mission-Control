@@ -10,7 +10,7 @@ export function ScreenshotGallery() {
     { id: "library", label: "Library", icon: Gamepad2, src: "/screenshots/library.png" },
     { id: "system", label: "System", icon: Server, src: "/screenshots/system.png" },
     { id: "readiness", label: "Readiness", icon: ShieldCheck, src: "/screenshots/readiness.png" },
-    { id: "hud", label: "In-Game HUD Overlay", icon: Scan, src: "/screenshots/hud.jpg" },
+    { id: "hud", label: "In-Game HUD Overlay", icon: Scan, src: "/screenshots/hud.png" },
     { id: "vision", label: "Real-time YOLO Vision", icon: BrainCircuit, src: "/screenshots/vision.jpg" },
     { id: "lab", label: "Performance Lab", icon: Cpu, src: "/screenshots/lab.jpg" },
   ];
@@ -131,7 +131,7 @@ export function ScreenshotGallery() {
              <div className="absolute inset-0 flex flex-col items-center justify-center bg-black/60 backdrop-blur-sm z-10">
                 <Terminal className="w-8 h-8 sm:w-10 sm:h-10 text-gray-500 mb-2 sm:mb-3" />
                 <span className="text-gray-400 font-mono text-xs sm:text-sm uppercase tracking-widest text-center px-4">Screenshot Pending</span>
-                <span className="text-gray-500 text-[10px] sm:text-xs mt-2 text-center">Displaying simulated mockup until /public/screenshots/hud.jpg is added</span>
+                <span className="text-gray-500 text-[10px] sm:text-xs mt-2 text-center">Displaying simulated mockup until /public/screenshots/hud.png is added</span>
              </div>
           </div>
         );
