@@ -44,7 +44,14 @@ export default function GamesTestedPage() {
     };
   }, [selectedImage]);
 
-  // Featured Test: Grand Theft Auto V Enhanced (Actual captured telemetry data)
+  const scrollToBenchmark = () => {
+    const el = document.getElementById("featured-benchmark");
+    if (el) {
+      el.scrollIntoView({ behavior: "smooth", block: "start" });
+    }
+  };
+
+  // Featured Test: Grand Theft Auto V Enhanced (Only verified benchmark done so far)
   const featuredGame = {
     id: "gtav_enhanced",
     name: "Grand Theft Auto V Enhanced",
@@ -92,7 +99,7 @@ export default function GamesTestedPage() {
     ]
   };
 
-  // Verified Tested Games Library with actual telemetry metrics
+  // Only actual verified benchmark done so far
   const testedGames = [
     {
       name: "Grand Theft Auto V Enhanced",
@@ -100,83 +107,13 @@ export default function GamesTestedPage() {
       genre: "Open World / Action",
       preset: "RTX High FPS",
       keyTech: ["DLSS 3.5", "Frame Gen", "Reflex", "Ray Tracing"],
-      status: "VERIFIED",
+      status: "VERIFIED BENCHMARK",
       fps: "193 FPS",
       vram: "4.56 GB / 8.0 GB",
       gpuLoad: "88%",
       latency: "12.4 ms",
       api: "DX12 Ultimate",
       icon: Gamepad2
-    },
-    {
-      name: "Ghost of Tsushima Director's Cut",
-      publisher: "PlayStation Publishing",
-      genre: "Open World / Action",
-      preset: "Standard / Esports Latency",
-      keyTech: ["NVIDIA Reflex", "FSR 3.0", "DirectX 12"],
-      status: "VERIFIED",
-      fps: "142 FPS",
-      vram: "5.10 GB / 8.0 GB",
-      gpuLoad: "92%",
-      latency: "14.1 ms",
-      api: "DirectX 12",
-      icon: ShieldCheck
-    },
-    {
-      name: "Cyberpunk 2077: Phantom Liberty",
-      publisher: "CD PROJEKT RED",
-      genre: "RPG / Action",
-      preset: "RTX Ultra Quality",
-      keyTech: ["DLSS 3.5", "Path Tracing", "Frame Gen", "Reflex"],
-      status: "VERIFIED",
-      fps: "118 FPS",
-      vram: "7.20 GB / 8.0 GB",
-      gpuLoad: "96%",
-      latency: "18.2 ms",
-      api: "DX12 Ultimate",
-      icon: Sparkles
-    },
-    {
-      name: "Forza Horizon 5",
-      publisher: "Xbox Game Studios",
-      genre: "Racing / Open World",
-      preset: "RTX High FPS",
-      keyTech: ["DLSS", "Frame Gen", "Ray Tracing", "Reflex"],
-      status: "VERIFIED",
-      fps: "165 FPS",
-      vram: "5.80 GB / 8.0 GB",
-      gpuLoad: "90%",
-      latency: "11.8 ms",
-      api: "DirectX 12",
-      icon: Gauge
-    },
-    {
-      name: "Hogwarts Legacy",
-      publisher: "Warner Bros. Games",
-      genre: "Action RPG",
-      preset: "RTX Balanced",
-      keyTech: ["DLSS 3.0", "Frame Gen", "Ray Tracing"],
-      status: "VERIFIED",
-      fps: "110 FPS",
-      vram: "6.40 GB / 8.0 GB",
-      gpuLoad: "94%",
-      latency: "16.5 ms",
-      api: "DirectX 12",
-      icon: Flame
-    },
-    {
-      name: "Counter-Strike 2",
-      publisher: "Valve",
-      genre: "Competitive FPS",
-      preset: "Esports Latency",
-      keyTech: ["NVIDIA Reflex", "Sub-Tick Engine"],
-      status: "MAX SPEED",
-      fps: "340 FPS",
-      vram: "2.10 GB / 8.0 GB",
-      gpuLoad: "65%",
-      latency: "4.2 ms",
-      api: "DirectX 11",
-      icon: Zap
     }
   ];
 
@@ -230,7 +167,7 @@ export default function GamesTestedPage() {
         </div>
 
         {/* Featured Benchmark: Grand Theft Auto V Enhanced */}
-        <div className="mb-20">
+        <div id="featured-benchmark" className="mb-20 scroll-mt-28">
           <div className="flex items-center justify-between mb-6">
             <div className="flex items-center gap-3">
               <span className="w-3 h-3 rounded-full bg-neon-green animate-pulse" />
@@ -239,7 +176,7 @@ export default function GamesTestedPage() {
               </h2>
             </div>
             <span className="text-xs font-mono font-bold text-neon-green bg-neon-green/10 border border-neon-green/30 px-3 py-1 rounded-full uppercase tracking-widest">
-              ★ Spotlight Audit
+              ★ Verified Audit
             </span>
           </div>
 
@@ -381,30 +318,16 @@ export default function GamesTestedPage() {
           </div>
         </div>
 
-        {/* Additional Tested Games Library Grid */}
+        {/* Verified Tested Games Library Grid */}
         <div className="space-y-8">
           <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 border-b border-white/10 pb-6">
             <div>
               <h2 className="text-2xl font-black font-display uppercase tracking-wider text-white">
-                All Verified Tested Games
+                Verified Tested Games
               </h2>
               <p className="text-gray-400 text-xs font-mono">
-                Explore verified compatibility profiles, actual VRAM footprints, system latency, and GPU loads tested by Mission Control.
+                Verified compatibility profiles, actual VRAM footprints, system latency, and GPU loads tested by Mission Control.
               </p>
-            </div>
-
-            {/* Filter Tabs & Search */}
-            <div className="flex flex-wrap items-center gap-3 w-full sm:w-auto font-mono text-xs">
-              <div className="relative flex-1 sm:w-64">
-                <input
-                  type="text"
-                  placeholder="Filter games..."
-                  value={searchQuery}
-                  onChange={(e) => setSearchQuery(e.target.value)}
-                  className="w-full bg-white/5 border border-white/15 rounded-xl pl-9 pr-4 py-2 text-xs font-mono text-white focus:outline-none focus:border-neon-green"
-                />
-                <Search className="w-3.5 h-3.5 text-gray-400 absolute left-3 top-2.5" />
-              </div>
             </div>
           </div>
 
@@ -467,9 +390,12 @@ export default function GamesTestedPage() {
 
                   <div className="pt-3 border-t border-white/5 flex items-center justify-between text-xs font-mono">
                     <span className="text-gray-500 text-[10px]">Verified by Mission Control</span>
-                    <span className="text-neon-green group-hover:translate-x-1 transition-transform flex items-center gap-1 font-bold text-[11px]">
+                    <button
+                      onClick={scrollToBenchmark}
+                      className="text-neon-green hover:underline flex items-center gap-1 font-bold text-[11px] cursor-pointer"
+                    >
                       View Profile <ArrowRight className="w-3 h-3" />
-                    </span>
+                    </button>
                   </div>
                 </div>
               );
