@@ -1,8 +1,17 @@
 {
-  "version": "2.4.0",
+  "version": "2.4.1",
   "release_date": "2026-07-24",
   "update_check_url": "https://raw.githubusercontent.com/arnab825/Mission-Control/main/Gaming/backend/version.json",
   "changelog": [
+    {
+      "version": "2.4.1",
+      "date": "2026-07-25",
+      "title": "Fix AI vision module bundling and write permissions for model weights",
+      "highlights": [
+        "Bundle PyTorch and torchvision into desktop releases",
+        "Store and auto-verify model weights in user AppData directory"
+      ]
+    },
     {
       "version": "2.4.0",
       "date": "2026-07-25",
@@ -424,14 +433,6 @@
       "title": "Apply offset for ACPI CPU temp",
       "highlights": [
         "Subtracts 12C from ACPI TZ01 to approximate CPU Package avg under blocked driver mode"
-      ]
-    },
-    {
-      "version": "1.7.7",
-      "date": "2026-07-19",
-      "title": "Precision TGP and CPU Thermal fallbacks",
-      "highlights": [
-        "Precision TGP and CPU Thermal fallbacks"
       ]
     }
   ]

@@ -1,6 +1,6 @@
 [project]
 name = "ai-gaming-assistant"
-version = "2.4.0"
+version = "2.4.1"
 requires-python = ">=3.11"
 dependencies = [
     "opencv-python",
@@ -41,6 +41,8 @@ dependencies = [
     "ddgs>=9.14.4",
     "httpx>=0.28.1",
     "ultralytics",
+    "torch",
+    "torchvision",
 ]
 
 [tool.uv]
