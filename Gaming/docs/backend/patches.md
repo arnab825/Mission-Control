@@ -2,6 +2,11 @@
 
 This document contains a detailed history of all patches and updates for the AI Gaming Assistant.
 
+### Patch: 2026-07-25 — v2.4.0: Fix offline library icons and write permissions for model downloads in production
+
+- Resolve PermissionError on model downloads in production by storing weights in user AppData folder
+- Ensure offline-safe loading of platform launcher cover arts and base64 SVG banners
+
 ### Patch: 2026-07-25 — v2.3.9: v2.3.9: AI Agent latency optimizations, direct library clicks, dashboard stream & model download fixes
 
 - v2.3.9: AI Agent latency optimizations, direct library clicks, dashboard stream & model download fixes
