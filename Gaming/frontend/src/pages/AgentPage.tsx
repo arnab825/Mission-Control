@@ -124,8 +124,9 @@ const ChatBubble: React.FC<{
     intervalRef.current = setInterval(() => {
       const target = text.split('\u200b')[0].length;
       // Dynamically calculate how many characters to reveal per tick based on the current known length
-      // so that longer chunks stream faster without dropping frames.
-      const currentCharsPerTick = Math.max(2, Math.floor(target / 40));
+      // and the amount of lag behind the target. This ensures the typing catches up quickly if the stream is fast.
+      const lag = target - currentIndexRef.current;
+      const currentCharsPerTick = Math.max(3, Math.floor(target / 30), Math.floor(lag / 4));
       
       currentIndexRef.current = Math.min(currentIndexRef.current + currentCharsPerTick, target);
       setDisplayedText(text.slice(0, currentIndexRef.current));

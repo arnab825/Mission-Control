@@ -2,6 +2,15 @@
 
 This document contains a detailed history of all patches and updates for the AI Gaming Assistant.
 
+### Patch: 2026-07-25 — v2.3.9: v2.3.9: AI Agent latency optimizations, direct library clicks, dashboard stream & model download fixes
+
+- v2.3.9: AI Agent latency optimizations, direct library clicks, dashboard stream & model download fixes
+- Added direct click-to-launch handlers for game cards
+- Bypassed RAG/search for conversational queries to optimize Agent response speed
+- Added dynamic lag-aware typing speedup
+- Resolved IndexError on welcome stream finish
+- Bypassed cert validation for model downloads
+
 ### Patch: 2026-07-24 — v2.3.8: Removed Preview button completely
 
 - Removed Preview button completely

@@ -668,8 +668,18 @@ def handle_download_ai_model(payload: dict, pipeline, bridge, config) -> None:
                 headers={"User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) MissionControl/2.1.2"}
             )
 
+            import ssl
+            try:
+                context = ssl._create_unverified_context()
+            except AttributeError:
+                context = None
+
             start_time = time.time()
-            with urllib.request.urlopen(req, timeout=600) as response, open(target_path, "wb") as out_file:
+            urlopen_kwargs = {"timeout": 600}
+            if context:
+                urlopen_kwargs["context"] = context
+
+            with urllib.request.urlopen(req, **urlopen_kwargs) as response, open(target_path, "wb") as out_file:
                 total_bytes = int(response.headers.get("Content-Length", info["size_mb"] * 1024 * 1024))
                 downloaded_bytes = 0
                 block_size = 65536
