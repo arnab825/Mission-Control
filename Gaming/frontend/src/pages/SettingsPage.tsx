@@ -468,8 +468,9 @@ const PRESET_DETAILS = [
 const GPU_RTX_FEATURES = ['DLSS', 'FRAME_GEN', 'FRAME GEN', 'FG', 'PATH_TRACING', 'PATH TRACING', 'RAY_TRACING', 'RAY TRACING'];
 const GPU_NVIDIA_FEATURES = ['REFLEX', 'PHYSX'];
 
-const getRecommendedPreset = (features: string[] = [], genre: string = '', gpuInfo: string | Record<string, any> = '') => {
+const getRecommendedPreset = (features: string[] = [], genre: string = '', gpuInfo: string | Record<string, any> = '', gameName: string = '') => {
   const g = genre.toLowerCase();
+  const title = gameName.toLowerCase();
 
   let isRtxGpu = false;
   let isHighEndRtx = false;
@@ -488,12 +489,8 @@ const getRecommendedPreset = (features: string[] = [], genre: string = '', gpuIn
       const modelNum = parseInt(rtxMatch[1], 10);
       const series = Math.floor(modelNum / 100);
       const tier = modelNum % 100;
-      if (tier >= 70) {
-        isHighEndRtx = true;
-      }
-      if (series >= 40) {
-        is40SeriesOrNewer = true;
-      }
+      if (tier >= 70) isHighEndRtx = true;
+      if (series >= 40) is40SeriesOrNewer = true;
     } else {
       isHighEndRtx = name.includes('5090') || name.includes('5080') || name.includes('5070') || name.includes('4090') || name.includes('4080') || name.includes('4070') || name.includes('3090') || name.includes('3080') || name.includes('4070 ti') || name.includes('3080 ti') || name.includes('super');
       is40SeriesOrNewer = (name.includes('40') || name.includes('50') || name.includes('60') || name.includes('70')) && isRtxGpu;
@@ -505,58 +502,93 @@ const getRecommendedPreset = (features: string[] = [], genre: string = '', gpuIn
   const hasFG = upperFeatures.some(f => f.includes('FRAME_GEN') || f.includes('FRAME GEN') || f.includes('FG'));
   const hasRT = upperFeatures.some(f => f.includes('RAY_TRACING') || f.includes('RAY TRACING') || f.includes('PATH_TRACING') || f.includes('PATH TRACING') || f.includes('RTX'));
 
-  // If not RTX, fallback to latency for competitive shooters, balanced for racing/action, or off
-  if (!isRtxGpu) {
-    if (g.includes('shooter') || g.includes('esport') || g.includes('fight') || g.includes('multiplayer') || g.includes('competitive') || g.includes('fps')) {
-      return PRESET_DETAILS.find(p => p.key === 'latency') || PRESET_DETAILS[2];
-    }
-    if (g.includes('racing') || g.includes('sport') || g.includes('action') || g.includes('rpg')) {
-      return PRESET_DETAILS.find(p => p.key === 'balanced') || PRESET_DETAILS[1];
-    }
-    return PRESET_DETAILS.find(p => p.key === 'off') || PRESET_DETAILS[3];
+  // 1. Title & Franchise Classifier
+  // Competitive / FPS / Twitch-Shooters -> Esports Latency
+  if (
+    title.includes('counter-strike') || title.includes('cs2') || title.includes('cs:go') ||
+    title.includes('valorant') || title.includes('overwatch') || title.includes('rainbow six') ||
+    title.includes('apex legends') || title.includes('pubg') || title.includes('fortnite') ||
+    title.includes('destiny') || title.includes('division') || title.includes('battlefield') ||
+    title.includes('call of duty') || title.includes('warzone') || title.includes('halo') ||
+    title.includes('team fortress') || title.includes('titanfall') || title.includes('left 4 dead')
+  ) {
+    return PRESET_DETAILS.find(p => p.key === 'latency') || PRESET_DETAILS[2];
   }
 
-  // Esports / shooters always prefer Latency, even if DLSS/RT exist
+  // Ray Tracing / AAA Visual Showcase RPGs -> Ultra Quality
+  if (
+    title.includes('cyberpunk') || title.includes('witcher') || title.includes('elden ring') ||
+    title.includes('black myth') || title.includes('wukong') || title.includes('alan wake') ||
+    title.includes('baldur') || title.includes('starfield') || title.includes('hogwarts') ||
+    title.includes('horizon') || title.includes('god of war') || title.includes('red dead') ||
+    title.includes('rdr2') || title.includes('spider-man') || title.includes('last of us') ||
+    title.includes('control') || title.includes('avatar') || title.includes('metro exodus')
+  ) {
+    if (hasDLSS || hasRT) {
+      return PRESET_DETAILS.find(p => p.key === 'quality') || PRESET_DETAILS[0];
+    }
+    return PRESET_DETAILS.find(p => p.key === 'quality') || PRESET_DETAILS[0];
+  }
+
+  // High-Speed Racing & Driving Games -> RTX High FPS / Balanced
+  if (
+    title.includes('need for speed') || title.includes('nfs') || title.includes('forza') ||
+    title.includes('f1') || title.includes('assetto') || title.includes('gran turismo') ||
+    title.includes('dirt') || title.includes('grid') || title.includes('crew') ||
+    title.includes('burnout') || title.includes('trackmania') || title.includes('project cars')
+  ) {
+    if (hasFG || is40SeriesOrNewer) {
+      return PRESET_DETAILS.find(p => p.key === 'performance') || PRESET_DETAILS[1];
+    }
+    return PRESET_DETAILS.find(p => p.key === 'balanced') || PRESET_DETAILS[1];
+  }
+
+  // Open World / Action-Adventure -> RTX Balanced
+  if (
+    title.includes('grand theft auto') || title.includes('gta') || title.includes('watch dogs') ||
+    title.includes('assassin') || title.includes('far cry') || title.includes('tomb raider') ||
+    title.includes('hitman') || title.includes('death stranding') || title.includes('flight simulator')
+  ) {
+    return PRESET_DETAILS.find(p => p.key === 'balanced') || PRESET_DETAILS[1];
+  }
+
+  // 2. Genre Fallback Rules
   if (g.includes('shooter') || g.includes('esport') || g.includes('fight') || g.includes('multiplayer') || g.includes('competitive') || g.includes('fps')) {
     return PRESET_DETAILS.find(p => p.key === 'latency') || PRESET_DETAILS[2];
   }
 
-  // If the game doesn't support DLSS or RT tags yet, recommend genre-tailored baseline presets
-  if (!hasDLSS && !hasRT && !hasFG) {
-    if (g.includes('racing') || g.includes('sport') || g.includes('action')) {
-      return PRESET_DETAILS.find(p => p.key === 'balanced') || PRESET_DETAILS[1];
-    }
-    if (g.includes('rpg') || g.includes('adventure') || g.includes('story') || g.includes('open world')) {
-      return PRESET_DETAILS.find(p => p.key === 'quality') || PRESET_DETAILS[0];
-    }
-    return PRESET_DETAILS.find(p => p.key === 'off') || PRESET_DETAILS[3];
+  if (g.includes('racing') || g.includes('sport') || g.includes('driving')) {
+    return PRESET_DETAILS.find(p => p.key === 'balanced') || PRESET_DETAILS[1];
   }
 
-  // Story / RPG / Adventure -> prefers Quality if hardware can handle it and game supports RT
-  if (g.includes('rpg') || g.includes('adventure') || g.includes('story') || g.includes('open world') || g.includes('simulation') || g.includes('narrative')) {
-    if (hasRT && isHighEndRtx) {
+  if (g.includes('rpg') || g.includes('adventure') || g.includes('story') || g.includes('open world')) {
+    if (hasRT || isHighEndRtx) {
       return PRESET_DETAILS.find(p => p.key === 'quality') || PRESET_DETAILS[0];
-    } else if (hasDLSS) {
-      return PRESET_DETAILS.find(p => p.key === 'balanced') || PRESET_DETAILS[1];
-    } else {
-      return PRESET_DETAILS.find(p => p.key === 'balanced') || PRESET_DETAILS[1];
     }
+    return PRESET_DETAILS.find(p => p.key === 'balanced') || PRESET_DETAILS[1];
   }
 
-  // Action / Racing / Fast paced -> prefers Performance if game supports FG, or Balanced for DLSS/standard
-  if (g.includes('action') || g.includes('racing') || g.includes('sport') || g.includes('survival') || g.includes('brawler')) {
+  if (g.includes('action') || g.includes('survival') || g.includes('brawler')) {
     if (hasFG && is40SeriesOrNewer) {
       return PRESET_DETAILS.find(p => p.key === 'performance') || PRESET_DETAILS[1];
     }
     return PRESET_DETAILS.find(p => p.key === 'balanced') || PRESET_DETAILS[1];
   }
 
-  // Other genres (indie, puzzle, etc.)
-  if (hasDLSS) {
-    return PRESET_DETAILS.find(p => p.key === 'balanced') || PRESET_DETAILS[1];
+  // 3. Title Hash Distribution for Custom Unmatched Titles
+  if (title) {
+    let hash = 0;
+    for (let i = 0; i < title.length; i++) {
+      hash = (hash << 5) - hash + title.charCodeAt(i);
+      hash |= 0;
+    }
+    const idx = Math.abs(hash) % 3;
+    if (idx === 0) return PRESET_DETAILS.find(p => p.key === 'balanced') || PRESET_DETAILS[1];
+    if (idx === 1) return PRESET_DETAILS.find(p => p.key === 'quality') || PRESET_DETAILS[0];
+    if (idx === 2) return PRESET_DETAILS.find(p => p.key === 'performance') || PRESET_DETAILS[1];
   }
 
-  return PRESET_DETAILS.find(p => p.key === 'off') || PRESET_DETAILS[3];
+  return PRESET_DETAILS.find(p => p.key === 'balanced') || PRESET_DETAILS[1];
 };
 
 const OAUTH_PROVIDERS = [
@@ -832,7 +864,7 @@ const SettingsPage: React.FC<{ state: TelemetryState | null, sendCommand: (type:
       if (library.length > 0) {
         const counts: Record<string, number> = {};
         library.forEach((g: any) => {
-          const rec = getRecommendedPreset(g.features || [], g.genre, gpuCaps || gpuNameStr);
+          const rec = getRecommendedPreset(g.features || [], g.genre, gpuCaps || gpuNameStr, g.name || '');
           counts[rec.key] = (counts[rec.key] || 0) + 1;
         });
 
@@ -921,7 +953,7 @@ const SettingsPage: React.FC<{ state: TelemetryState | null, sendCommand: (type:
       if (library.length > 0) {
         const counts: Record<string, number> = {};
         library.forEach((g: any) => {
-          const rec = getRecommendedPreset(g.features || [], g.genre, gpuCaps || gpuNameStr);
+          const rec = getRecommendedPreset(g.features || [], g.genre, gpuCaps || gpuNameStr, g.name || '');
           counts[rec.key] = (counts[rec.key] || 0) + 1;
         });
         let maxCount = -1;
@@ -970,7 +1002,7 @@ const SettingsPage: React.FC<{ state: TelemetryState | null, sendCommand: (type:
       let bestKey = 'balanced';
       const counts: Record<string, number> = {};
       library.forEach((g: any) => {
-        const rec = getRecommendedPreset(g.features || [], g.genre, gpuCaps || gpuNameStr);
+        const rec = getRecommendedPreset(g.features || [], g.genre, gpuCaps || gpuNameStr, g.name || '');
         counts[rec.key] = (counts[rec.key] || 0) + 1;
       });
 
@@ -3041,7 +3073,7 @@ const SettingsPage: React.FC<{ state: TelemetryState | null, sendCommand: (type:
                               {(() => {
                                 const gpuCaps = state?.system_specs?.hardware?.gpu_capabilities;
                                 const gpuNameStr = state?.system_specs?.hardware?.gpu || state?.gpu_metrics?.gpu_name || '';
-                                const recPreset = getRecommendedPreset(features, game.genre, gpuCaps || gpuNameStr);
+                                const recPreset = getRecommendedPreset(features, game.genre, gpuCaps || gpuNameStr, game.name || '');
                                 return (
                                   <span className={`px-2 py-1 rounded-lg text-[8px] font-black uppercase tracking-tighter border ${recPreset.key === 'quality' ? 'bg-neon-green/10 border-neon-green/20 text-neon-green' :
                                     recPreset.key === 'performance' ? 'bg-blue-500/10 border-blue-500/20 text-blue-400' :
