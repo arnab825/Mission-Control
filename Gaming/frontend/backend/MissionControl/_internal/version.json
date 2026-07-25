@@ -1,8 +1,21 @@
 {
-  "version": "2.3.8",
+  "version": "2.3.9",
   "release_date": "2026-07-24",
   "update_check_url": "https://raw.githubusercontent.com/arnab825/Mission-Control/main/Gaming/backend/version.json",
   "changelog": [
+    {
+      "version": "2.3.9",
+      "date": "2026-07-25",
+      "title": "v2.3.9: AI Agent latency optimizations, direct library clicks, dashboard stream & model download fixes",
+      "highlights": [
+        "v2.3.9: AI Agent latency optimizations, direct library clicks, dashboard stream & model download fixes",
+        "Added direct click-to-launch handlers for game cards",
+        "Bypassed RAG/search for conversational queries to optimize Agent response speed",
+        "Added dynamic lag-aware typing speedup",
+        "Resolved IndexError on welcome stream finish",
+        "Bypassed cert validation for model downloads"
+      ]
+    },
     {
       "version": "2.3.8",
       "date": "2026-07-24",
@@ -418,14 +431,6 @@
       "title": "Bypass code signature verification for self-built updates and robustify download updater",
       "highlights": [
         "Bypass code signature verification for self-built updates and robustify download updater"
-      ]
-    },
-    {
-      "version": "1.7.5",
-      "date": "2026-07-18",
-      "title": "Update system tray check updates menu icon to match flat white style",
-      "highlights": [
-        "Update system tray check updates menu icon to match flat white style"
       ]
     }
   ]

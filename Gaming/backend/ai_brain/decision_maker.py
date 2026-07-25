@@ -919,17 +919,35 @@ class GameBrain:
         rag_context = ""
         web_context = ""
         kb_context = ""
-        try:
-            from ai_brain.game_knowledge import get_knowledge_base
-            kb = get_knowledge_base()
-            if active_game:
-                kb.identify_game(active_game, self.config)
-                kb_context = kb.build_context_block(include_keybinds=True)
-            knowledge = kb.query_knowledge(prompt, active_game, self.config)
-            rag_context = knowledge.get("rag_context", "")
-            web_context = knowledge.get("web_context", "")
-        except Exception as e:
-            logger.error(f"Layer 1 Knowledge Error: {e}")
+        
+        # Optimize: skip slow RAG/Web search queries for greetings, welcome messages, and short conversational/generic turns.
+        skip_search = False
+        if is_greeting or is_welcome_request:
+            skip_search = True
+        else:
+            prompt_lower = prompt.lower().strip("?,.!")
+            conversational_phrases = {
+                "thank you", "thanks", "ok", "okay", "yes", "no", "sure", "cool",
+                "good morning", "good evening", "bye", "goodbye", "help", "who are you",
+                "hey the"
+            }
+            if prompt_lower in conversational_phrases or len(prompt_lower.split()) < 3:
+                # If there's no active game or it is not mentioned in the query, skip search
+                if not active_game or active_game.lower() not in prompt_lower:
+                    skip_search = True
+
+        if not skip_search:
+            try:
+                from ai_brain.game_knowledge import get_knowledge_base
+                kb = get_knowledge_base()
+                if active_game:
+                    kb.identify_game(active_game, self.config)
+                    kb_context = kb.build_context_block(include_keybinds=True)
+                knowledge = kb.query_knowledge(prompt, active_game, self.config)
+                rag_context = knowledge.get("rag_context", "")
+                web_context = knowledge.get("web_context", "")
+            except Exception as e:
+                logger.error(f"Layer 1 Knowledge Error: {e}")
 
         # ── Auto Model Switching based on task ──
         model_id = None
@@ -1834,7 +1852,7 @@ class GameBrain:
                 if stream:
                     def generate():
                         for chunk in completion:
-                            if hasattr(chunk.choices[0], "delta") and getattr(chunk.choices[0].delta, "content", None):
+                            if chunk.choices and hasattr(chunk.choices[0], "delta") and getattr(chunk.choices[0].delta, "content", None):
                                 yield chunk.choices[0].delta.content
                     return generate()
                 else:
