@@ -2,6 +2,11 @@
 
 This document contains a detailed history of all patches and updates for the AI Gaming Assistant.
 
+### Patch: 2026-07-25 — v2.4.1: Fix AI vision module bundling and write permissions for model weights
+
+- Bundle PyTorch and torchvision into desktop releases
+- Store and auto-verify model weights in user AppData directory
+
 ### Patch: 2026-07-25 — v2.4.0: Fix offline library icons and write permissions for model downloads in production
 
 - Resolve PermissionError on model downloads in production by storing weights in user AppData folder
