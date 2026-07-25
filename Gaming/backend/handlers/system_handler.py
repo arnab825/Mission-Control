@@ -625,14 +625,40 @@ AVAILABLE_AI_MODELS = {
 }
 
 
+def get_models_dir() -> Path:
+    """Gets the models directory, prioritizing user-writable LOCALAPPDATA in production to avoid PermissionError."""
+    import os
+    local_appdata = os.environ.get("LOCALAPPDATA")
+    if local_appdata:
+        appdata_dir = Path(local_appdata) / "MissionControl" / "models"
+        try:
+            appdata_dir.mkdir(parents=True, exist_ok=True)
+            return appdata_dir
+        except Exception:
+            pass
+    # Fallback to backend/models in dev environment
+    dev_dir = Path(__file__).resolve().parent.parent / "models"
+    try:
+        dev_dir.mkdir(parents=True, exist_ok=True)
+    except Exception:
+        pass
+    return dev_dir
+
+
 def check_installed_models() -> dict:
     """Returns dictionary mapping model_id to boolean installation status."""
-    models_dir = Path(__file__).resolve().parent.parent / "models"
+    models_dir = get_models_dir()
+    dev_dir = Path(__file__).resolve().parent.parent / "models"
     installed = {}
     for model_id, info in AVAILABLE_AI_MODELS.items():
         fp = models_dir / info["filename"]
+        dev_fp = dev_dir / info["filename"]
         root_fp = Path(__file__).resolve().parent.parent / info["filename"]
-        installed[model_id] = (fp.exists() and fp.stat().st_size > 1000) or (root_fp.exists() and root_fp.stat().st_size > 1000)
+        installed[model_id] = (
+            (fp.exists() and fp.stat().st_size > 1000) or
+            (dev_fp.exists() and dev_fp.stat().st_size > 1000) or
+            (root_fp.exists() and root_fp.stat().st_size > 1000)
+        )
     return installed
 
 
@@ -648,8 +674,7 @@ def handle_download_ai_model(payload: dict, pipeline, bridge, config) -> None:
     def _do_download():
         try:
             import urllib.request, time
-            models_dir = Path(__file__).resolve().parent.parent / "models"
-            models_dir.mkdir(parents=True, exist_ok=True)
+            models_dir = get_models_dir()
             target_path = models_dir / info["filename"]
 
             bridge.update_state({

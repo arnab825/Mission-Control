@@ -151,13 +151,29 @@ class GamingAssistantPipeline:
         if vision_cfg.get("detector") in ("yolo", "trt", "cuda") and _YOLO_AVAILABLE:
             yolo_model = vision_cfg.get("yolo_model", "yolov8n.pt")
             import os
-            engine_path = os.path.join("models", "yolov8n.engine")
-            pt_path = os.path.join("models", "yolov8n.pt")
+            
+            # Prioritize writable user AppData models path in production
+            models_dirs = []
+            local_appdata = os.environ.get("LOCALAPPDATA")
+            if local_appdata:
+                models_dirs.append(os.path.join(local_appdata, "MissionControl", "models"))
+            models_dirs.append("models")
+            
+            engine_path = None
+            pt_path = None
+            for md in models_dirs:
+                ep = os.path.join(md, "yolov8n.engine")
+                pp = os.path.join(md, "yolov8n.pt")
+                if os.path.exists(ep) and not engine_path:
+                    engine_path = ep
+                if os.path.exists(pp) and not pt_path:
+                    pt_path = pp
+
             if yolo_model == "yolov8n.pt":
-                if os.path.exists(engine_path):
+                if engine_path and os.path.exists(engine_path):
                     yolo_model = engine_path
                     logger.info("Auto-upgraded YOLO model to TensorRT engine")
-                elif os.path.exists(pt_path):
+                elif pt_path and os.path.exists(pt_path):
                     yolo_model = pt_path
             self.yolo_detector = YOLODetector(
                 model_path=yolo_model
@@ -484,12 +500,28 @@ class GamingAssistantPipeline:
         if vision_cfg.get("detector") in ("yolo", "trt", "cuda") and _YOLO_AVAILABLE:
             new_model = vision_cfg.get("yolo_model", "yolov8n.pt")
             import os
-            engine_path = os.path.join("models", "yolov8n.engine")
-            pt_path = os.path.join("models", "yolov8n.pt")
+            
+            # Prioritize writable user AppData models path in production
+            models_dirs = []
+            local_appdata = os.environ.get("LOCALAPPDATA")
+            if local_appdata:
+                models_dirs.append(os.path.join(local_appdata, "MissionControl", "models"))
+            models_dirs.append("models")
+            
+            engine_path = None
+            pt_path = None
+            for md in models_dirs:
+                ep = os.path.join(md, "yolov8n.engine")
+                pp = os.path.join(md, "yolov8n.pt")
+                if os.path.exists(ep) and not engine_path:
+                    engine_path = ep
+                if os.path.exists(pp) and not pt_path:
+                    pt_path = pp
+
             if new_model == "yolov8n.pt":
-                if os.path.exists(engine_path):
+                if engine_path and os.path.exists(engine_path):
                     new_model = engine_path
-                elif os.path.exists(pt_path):
+                elif pt_path and os.path.exists(pt_path):
                     new_model = pt_path
             if not self.yolo_detector or self.yolo_detector.model_path != new_model:
                 if self.yolo_detector:

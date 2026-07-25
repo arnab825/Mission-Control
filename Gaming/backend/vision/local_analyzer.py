@@ -21,8 +21,16 @@ class LocalVisionAnalyzer:
             from ultralytics import YOLO
             import torch
             
-            # Resolve model path: prefer models/ dir, fall back to CWD for backwards compat
-            model_path = _MODELS_DIR / "yolov8n.pt"
+            # Resolve model path: prefer Local AppData (where downloads are saved), then backend/models/ dir, then fallback to CWD
+            model_path = None
+            local_appdata = os.environ.get("LOCALAPPDATA")
+            if local_appdata:
+                appdata_path = Path(local_appdata) / "MissionControl" / "models" / "yolov8n.pt"
+                if appdata_path.exists():
+                    model_path = appdata_path
+            
+            if not model_path:
+                model_path = _MODELS_DIR / "yolov8n.pt"
             if not model_path.exists():
                 model_path = Path("yolov8n.pt")  # legacy fallback
 
