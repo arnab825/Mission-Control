@@ -153,9 +153,13 @@ static bool IsDXGIActive()
 
 static void WINAPI EventRecordCallback(PEVENT_RECORD pEventRecord)
 {
-    // Ensure we only process events for our target game
-    if (g_target_pid <= 0 || pEventRecord->EventHeader.ProcessId != static_cast<DWORD>(g_target_pid)) 
+    // We must check ProcessId for user-mode events (DXGI, D3D9) to isolate the target game.
+    // However, DxgKrnl flip events (kernel-mode) in Fullscreen Exclusive are often emitted 
+    // by the System process (PID 4) or DWM, not the game's PID.
+    bool isDxgKrnl = IsEqualGUID(pEventRecord->EventHeader.ProviderId, DXGKRNL_PROVIDER_GUID);
+    if (!isDxgKrnl && (g_target_pid <= 0 || pEventRecord->EventHeader.ProcessId != static_cast<DWORD>(g_target_pid))) {
         return;
+    }
 
     DWORD eventId = pEventRecord->EventHeader.EventDescriptor.Id;
     bool isPresent = false;
