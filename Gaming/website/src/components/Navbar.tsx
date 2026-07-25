@@ -27,7 +27,8 @@ import {
   Send,
   TrendingUp,
   Database,
-  Menu
+  Menu,
+  Gamepad2
 } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 import { WINDOWS_INSTALLER_URL } from "@/lib/download";
@@ -130,6 +131,7 @@ export default function Navbar() {
   ];
 
   const moreLinks = [
+    { name: "Games Tested", href: "/games-tested", icon: Gamepad2 },
     { name: "Blog Intelligence", href: "/blog", icon: Newspaper },
     { name: "Contact Support", href: "/contact", icon: Mail },
   ];
