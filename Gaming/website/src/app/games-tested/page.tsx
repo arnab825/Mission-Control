@@ -33,6 +33,16 @@ export default function GamesTestedPage() {
   const [searchQuery, setSearchQuery] = useState<string>("");
 
   useEffect(() => {
+    if (typeof window !== "undefined") {
+      const params = new URLSearchParams(window.location.search);
+      const gameParam = params.get("game");
+      if (gameParam && (gameParam === "spiderman2" || gameParam === "gtav")) {
+        setSelectedGameId(gameParam);
+      }
+    }
+  }, []);
+
+  useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {
       if (e.key === "Escape") {
         setSelectedImage(null);
