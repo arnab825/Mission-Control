@@ -2,6 +2,12 @@
 
 This document contains a detailed history of all patches and updates for the AI Gaming Assistant.
 
+### Patch: 2026-07-26 — v2.5.0: Agent Crash & Tone Corrections
+
+- Fixed list index out of range crash in NIM streaming generator
+- Corrected agent response tone and emoji usage
+- Silenced proactive game library context enumeration
+
 ### Patch: 2026-07-26 — v2.4.9: AI Neural Backbone Cleanup & Agent Crash Fix
 
 - Fixed Neural failure list index out of range crash when NVIDIA NIM returns empty choices
