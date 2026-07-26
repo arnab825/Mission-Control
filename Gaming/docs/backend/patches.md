@@ -2,6 +2,11 @@
 
 This document contains a detailed history of all patches and updates for the AI Gaming Assistant.
 
+### Patch: 2026-07-26 — v2.5.3: Dynamic Steam Artwork Fetching
+
+- Removed hardcoded game title to banner mappings in GamesPage.tsx
+- Enhanced backend Steam banner search to dynamically strip edition tags (like DC, Director's Cut) and fetch artwork for all local games
+
 ### Patch: 2026-07-26 — v2.5.2: Frontend UI Fixes & Icon Mapping
 
 - Removed obsolete Skip Admin Privilege Check from settings
