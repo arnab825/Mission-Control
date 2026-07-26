@@ -18,11 +18,21 @@
     scroll-padding-top: 6rem;
     overflow-y: auto;
     overflow-x: hidden;
+    -webkit-overflow-scrolling: touch;
   }
 
   body {
     @apply bg-obsidian text-white antialiased selection:bg-neon-green/30 selection:text-neon-green;
     overflow: visible;
+    text-rendering: optimizeLegibility;
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+  }
+
+  /* Off-Screen Performance Optimization */
+  section {
+    content-visibility: auto;
+    contain-intrinsic-size: 1px 800px;
   }
 }
 
@@ -157,18 +167,20 @@
 
 @keyframes marquee {
   0% {
-    transform: translateX(0%);
+    transform: translate3d(0%, 0, 0);
   }
 
   100% {
-    transform: translateX(-50%);
+    transform: translate3d(-50%, 0, 0);
   }
 }
 
 .animate-marquee {
   display: flex;
   width: max-content;
+  will-change: transform;
   animation: marquee 25s linear infinite;
+  backface-visibility: hidden;
 }
 
 .animate-marquee:hover {
