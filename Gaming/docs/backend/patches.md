@@ -2,6 +2,11 @@
 
 This document contains a detailed history of all patches and updates for the AI Gaming Assistant.
 
+### Patch: 2026-07-26 — v2.4.9: AI Neural Backbone Cleanup & Agent Crash Fix
+
+- Fixed Neural failure list index out of range crash when NVIDIA NIM returns empty choices
+- Cleaned up AI Neural Backbone model options in Settings page, set clear default and improved custom model UI
+
 ### Patch: 2026-07-26 — v2.4.8: App Logo Splash Screen & Website Blog Pagination
 
 - Added App Logo to Electron splash screen and in-app loading overlays

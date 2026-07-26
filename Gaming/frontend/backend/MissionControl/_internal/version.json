@@ -1,8 +1,17 @@
 {
-  "version": "2.4.8",
+  "version": "2.4.9",
   "release_date": "2026-07-25",
   "update_check_url": "https://raw.githubusercontent.com/arnab825/Mission-Control/main/Gaming/backend/version.json",
   "changelog": [
+    {
+      "version": "2.4.9",
+      "date": "2026-07-26",
+      "title": "AI Neural Backbone Cleanup & Agent Crash Fix",
+      "highlights": [
+        "Fixed Neural failure list index out of range crash when NVIDIA NIM returns empty choices",
+        "Cleaned up AI Neural Backbone model options in Settings page, set clear default and improved custom model UI"
+      ]
+    },
     {
       "version": "2.4.8",
       "date": "2026-07-26",
@@ -427,14 +436,6 @@
       "title": "Use public WebSearchEngine search API for game fallback classification",
       "highlights": [
         "Use public WebSearchEngine search API for game fallback classification"
-      ]
-    },
-    {
-      "version": "1.8.5",
-      "date": "2026-07-20",
-      "title": "Support dynamic RAWG fallback database scan for 1 lakh+ games",
-      "highlights": [
-        "Support dynamic RAWG fallback database scan for 1 lakh+ games"
       ]
     }
   ]
