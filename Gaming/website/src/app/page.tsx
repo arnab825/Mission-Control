@@ -558,15 +558,15 @@ export default function Home() {
                 {personalityData[activePersonality].desc}
               </p>
 
-              {/* Personality Selector Tabs */}
-              <div className="grid grid-cols-5 gap-1.5 sm:gap-2 p-1.5 bg-obsidian/90 border border-white/10 rounded-xl text-center mb-6">
+              {/* Personality Selector Tabs - Scrollable on mobile, 5-col grid on sm+ */}
+              <div className="flex overflow-x-auto sm:grid sm:grid-cols-5 gap-1.5 sm:gap-2 p-1.5 bg-obsidian/90 border border-white/10 rounded-xl text-center mb-6 no-scrollbar scrollbar-none">
                 {["Tactical", "Immersive", "Friendly", "Sarcastic", "Aggressive"].map((p) => {
                   const isActive = activePersonality === p;
                   return (
                     <button
                       key={p}
                       onClick={() => setActivePersonality(p)}
-                      className={`py-2 px-1 sm:px-3 rounded-lg text-[11px] font-mono font-bold transition-all cursor-pointer truncate ${isActive
+                      className={`py-2 px-3 sm:px-2 md:px-3 rounded-lg text-[11px] font-mono font-bold transition-all cursor-pointer whitespace-nowrap sm:whitespace-normal shrink-0 sm:shrink ${isActive
                           ? "bg-neon-green text-obsidian shadow-[0_0_15px_rgba(118,185,0,0.5)] scale-[1.02]"
                           : "bg-white/[0.02] text-gray-400 hover:text-white hover:bg-white/10"
                         }`}
@@ -579,13 +579,13 @@ export default function Home() {
 
               {/* Voice Frequency Equalizer Visualizer & Quote Box */}
               <div className="bg-obsidian/95 border border-neon-green/30 p-4 sm:p-5 rounded-xl relative overflow-hidden">
-                <div className="flex items-center justify-between mb-3 text-xs font-mono text-gray-400">
+                <div className="flex items-center justify-between flex-wrap gap-2 mb-3 text-xs font-mono text-gray-400">
                   <div className="flex items-center gap-2">
-                    <Volume2 className="w-4 h-4 text-neon-green animate-pulse" />
+                    <Volume2 className="w-4 h-4 text-neon-green animate-pulse shrink-0" />
                     <span className="text-white font-bold uppercase">{activePersonality} VOICE MATRIX</span>
                   </div>
                   {/* Equalizer frequency bars */}
-                  <div className="flex items-end gap-1 h-4">
+                  <div className="flex items-end gap-1 h-4 shrink-0">
                     {[60, 100, 45, 80, 95, 30, 85, 50, 90, 70].map((val, idx) => (
                       <div
                         key={idx}
@@ -601,27 +601,39 @@ export default function Home() {
                 </div>
 
                 {/* Trait Meters */}
-                <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 mt-4 pt-4 border-t border-white/10 font-mono text-[10px]">
+                <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 mt-4 pt-4 border-t border-white/10 font-mono text-[10px] sm:text-xs">
                   <div>
-                    <span className="text-gray-400 block mb-1">TACTICAL:</span>
+                    <div className="flex justify-between items-center mb-1">
+                      <span className="text-gray-400">TACTICAL:</span>
+                      <span className="text-neon-green font-bold">{personalityData[activePersonality].stats.tactical}%</span>
+                    </div>
                     <div className="w-full bg-white/10 h-1.5 rounded-full overflow-hidden">
                       <div className="bg-neon-green h-full transition-all duration-500" style={{ width: `${personalityData[activePersonality].stats.tactical}%` }} />
                     </div>
                   </div>
                   <div>
-                    <span className="text-gray-400 block mb-1">AGGRESSION:</span>
+                    <div className="flex justify-between items-center mb-1">
+                      <span className="text-gray-400">AGGRESSION:</span>
+                      <span className="text-red-400 font-bold">{personalityData[activePersonality].stats.aggression}%</span>
+                    </div>
                     <div className="w-full bg-white/10 h-1.5 rounded-full overflow-hidden">
                       <div className="bg-red-400 h-full transition-all duration-500" style={{ width: `${personalityData[activePersonality].stats.aggression}%` }} />
                     </div>
                   </div>
                   <div>
-                    <span className="text-gray-400 block mb-1">IMMERSION:</span>
+                    <div className="flex justify-between items-center mb-1">
+                      <span className="text-gray-400">IMMERSION:</span>
+                      <span className="text-neon-yellow font-bold">{personalityData[activePersonality].stats.immersion}%</span>
+                    </div>
                     <div className="w-full bg-white/10 h-1.5 rounded-full overflow-hidden">
                       <div className="bg-neon-yellow h-full transition-all duration-500" style={{ width: `${personalityData[activePersonality].stats.immersion}%` }} />
                     </div>
                   </div>
                   <div>
-                    <span className="text-gray-400 block mb-1">SASS LEVEL:</span>
+                    <div className="flex justify-between items-center mb-1">
+                      <span className="text-gray-400">SASS LEVEL:</span>
+                      <span className="text-purple-400 font-bold">{personalityData[activePersonality].stats.sass}%</span>
+                    </div>
                     <div className="w-full bg-white/10 h-1.5 rounded-full overflow-hidden">
                       <div className="bg-purple-400 h-full transition-all duration-500" style={{ width: `${personalityData[activePersonality].stats.sass}%` }} />
                     </div>
@@ -779,7 +791,7 @@ export default function Home() {
                 <button
                   onClick={fetchExternalSiteData}
                   disabled={isFetchingExternal}
-                  className="inline-flex items-center gap-2 bg-neon-green text-obsidian px-4 py-2 rounded-xl font-mono text-xs font-bold uppercase tracking-wider hover:bg-white hover:shadow-[0_0_20px_rgba(118,185,0,0.6)] transition-all cursor-pointer"
+                  className="w-full sm:w-auto justify-center inline-flex items-center gap-2 bg-neon-green text-obsidian px-4 py-2.5 rounded-xl font-mono text-xs font-bold uppercase tracking-wider hover:bg-white hover:shadow-[0_0_20px_rgba(118,185,0,0.6)] transition-all cursor-pointer"
                 >
                   <RefreshCw className={`w-3.5 h-3.5 ${isFetchingExternal ? "animate-spin" : ""}`} />
                   <span>{isFetchingExternal ? "FETCHING EXTERNAL SITES..." : "FETCH EXTERNAL SITE DATA"}</span>
@@ -793,12 +805,12 @@ export default function Home() {
             </div>
 
             <div className="p-4 bg-obsidian/95 border border-neon-green/30 rounded-xl font-mono text-xs space-y-3">
-              <div className="flex items-center justify-between border-b border-white/10 pb-2">
-                <span className="text-neon-green font-bold flex items-center gap-2">
-                  <span className="w-2 h-2 rounded-full bg-neon-green animate-ping" />
-                  {hasFetched ? "LIVE EXTERNAL RSS FEEDS (4 ARTICLES FETCHED)" : "PARSED EXTERNAL SITE FEEDS"}
+              <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-1.5 sm:gap-2 border-b border-white/10 pb-2.5">
+                <span className="text-neon-green font-bold flex items-center gap-2 text-xs">
+                  <span className="w-2 h-2 rounded-full bg-neon-green animate-ping shrink-0" />
+                  <span className="truncate">{hasFetched ? "LIVE EXTERNAL RSS FEEDS (4 ARTICLES FETCHED)" : "PARSED EXTERNAL SITE FEEDS"}</span>
                 </span>
-                <span className="text-[10px] text-gray-400">IGN • KOTAKU • EUROGAMER</span>
+                <span className="text-[10px] text-gray-400 font-mono tracking-wider">IGN • KOTAKU • EUROGAMER</span>
               </div>
 
               {hasFetched && externalNews.length > 0 ? (
