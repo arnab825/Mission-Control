@@ -26,7 +26,7 @@ export function safeAppendFileSync(filePath: string, content: string) {
 }
 
 export const GAMING_RSS_FEEDS = [
-  { url: "http://feeds.ign.com/ign/all", label: "IGN", type: "gaming" },
+  { url: "https://www.ign.com/feeds/news.xml", label: "IGN", type: "gaming" },
   { url: "https://kotaku.com/rss", label: "Kotaku", type: "gaming" },
   { url: "https://www.eurogamer.net/?format=rss", label: "Eurogamer", type: "gaming" },
   { url: "https://feeds.anandtech.com/anandtech/anandtech.xml", label: "AnandTech", type: "hardware" },
