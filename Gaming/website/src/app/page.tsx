@@ -662,18 +662,17 @@ export default function Home() {
               </p>
             </div>
 
-            {/* Radar Sweep Animated Mockup */}
-            <div className="w-full h-28 bg-obsidian border border-neon-green/20 rounded-xl relative overflow-hidden flex items-center justify-center">
-              <div className="absolute inset-0 flex items-center justify-center">
-                <div className="w-20 h-20 border border-neon-green/30 rounded-full" />
-                <div className="w-12 h-12 border border-neon-green/20 rounded-full" />
-              </div>
-              <div className="absolute w-full h-full animate-radar-sweep pointer-events-none">
-                <div className="w-1/2 h-1/2 bg-gradient-to-tl from-neon-green/30 to-transparent origin-bottom-right rounded-tl-full" />
-              </div>
-              <div className="relative z-10 flex items-center gap-2 font-mono text-[10px] text-neon-green bg-obsidian/90 px-3 py-1.5 rounded-full border border-neon-green/40">
-                <Scan className="w-3.5 h-3.5 animate-spin" />
-                <span>SCANNING DIRECTORY...</span>
+            {/* High-Fidelity Deep Scanner Interface Preview */}
+            <div className="w-full h-32 bg-obsidian border border-white/10 rounded-xl relative overflow-hidden group/scan-preview">
+              <img
+                src="/screenshots/deepscanner.png"
+                alt="Deep Game Scanner Interface"
+                className="w-full h-full object-cover transition-all duration-500 group-hover/scan-preview:scale-105 group-hover/scan-preview:border-neon-green/30"
+              />
+              <div className="absolute inset-0 bg-gradient-to-t from-obsidian/85 via-obsidian/10 to-transparent pointer-events-none" />
+              <div className="absolute bottom-2.5 left-3 flex items-center gap-1.5 font-mono text-[9px] text-neon-green bg-obsidian/90 px-2.5 py-1 rounded-md border border-neon-green/30 backdrop-blur-sm">
+                <div className="w-1.5 h-1.5 rounded-full bg-neon-green animate-pulse" />
+                <span>SCANNER ACTIVE</span>
               </div>
             </div>
           </div>
