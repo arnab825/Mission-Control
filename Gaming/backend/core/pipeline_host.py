@@ -392,7 +392,7 @@ class GamingAssistantPipeline:
         # ── Window Detector (for Alt+Tab handling) ─────────────────
         self.window_detector = None
         if _WINDOW_DETECTOR_AVAILABLE:
-            self.window_detector = WindowDetector(poll_interval=1.0)
+            self.window_detector = WindowDetector(poll_interval=1.0, config=config)
             self.window_detector.on_focus_lost = self._on_focus_lost
             self.window_detector.on_focus_gained = self._on_focus_gained
             logger.info("Window detector initialized for Alt+Tab handling")
