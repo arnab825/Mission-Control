@@ -1,8 +1,17 @@
 {
-  "version": "2.5.3",
+  "version": "2.5.4",
   "release_date": "2026-07-25",
   "update_check_url": "https://raw.githubusercontent.com/arnab825/Mission-Control/main/Gaming/backend/version.json",
   "changelog": [
+    {
+      "version": "2.5.4",
+      "date": "2026-07-26",
+      "title": "Dynamic Steam Artwork & Scanner Polish",
+      "highlights": [
+        "Removed hardcoded game title mappings from frontend",
+        "Enhanced backend Steam banner search to dynamically fetch header artwork for local games"
+      ]
+    },
     {
       "version": "2.5.3",
       "date": "2026-07-26",
@@ -429,16 +438,6 @@
         "Resolve YOLO backend diagnostics false alarms by verifying dependencies from Python backend",
         "Allow Electron auto-updater to download same-version patch updates",
         "Change uninstaller display name in Windows control panel to Uninstall Mission Control"
-      ]
-    },
-    {
-      "version": "1.9.5",
-      "date": "2026-07-21",
-      "title": "Revamp Vision Command Center UI and clean up voice/controller configurations",
-      "highlights": [
-        "Revamp Vision Command Center UI, remove fake radar/compass/SVG neural widgets",
-        "Add PyTorch/Ultralytics backend dependency check card",
-        "Remove voice mapping Toggle Mic config and clean up game controller auto-detection"
       ]
     }
   ]
