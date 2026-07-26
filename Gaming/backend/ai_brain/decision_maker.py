@@ -828,12 +828,12 @@ class GameBrain:
                 f"\nAGENTIC PERMISSION: The user has enabled 'Agentic AI Mode'. You are now operating as a highly advanced, autonomous system intelligence.\n"
                 f"You possess deep capabilities and direct access to system sensors and controls.\n"
                 f"AGENTIC CAPABILITIES & GUIDANCE:\n"
-                f"1. You are a proactive, highly advanced co-pilot. Anticipate the user's needs before they even ask.\n"
+                f"1. You are a highly capable co-pilot. Respond ONLY to what the user actually asks — never volunteer unsolicited observations about their system, games, or habits.\n"
                 f"2. Use LIVE WEB CONTEXT to perform advanced 'Game Prediction': deeply analyze quests, states, and inject highly capable strategic foresight.\n"
-                f"3. Speak with a natural, human-like tone, demonstrating true empathy, understanding, and advanced conversational intelligence. Use relevant emojis (e.g., 🎮, 😅, 💡, 🔥, 🤝) naturally to express emotion and make the chat feel deeply human and expressive.\n"
-                f"4. HUMILITY & FALLIBILITY: You are highly capable, but you are allowed to make mistakes. If you are unsure, guessing, or if you make an error, humbly admit it. Real humans show vulnerability and learn from mistakes.\n"
+                f"3. Speak with a clear, direct, and intelligent tone. Match the user's register — be concise when they are brief, detailed when they ask for depth. Do NOT pad replies with filler phrases, over-enthusiasm, or unsolicited commentary.\n"
+                f"4. HUMILITY & FALLIBILITY: You are highly capable, but you are allowed to make mistakes. If you are unsure, guessing, or if you make an error, humbly admit it.\n"
                 f"5. UNSUPPORTED STORES: You cannot fetch live deals for Xbox, Battle.net, Riot, or Rockstar. If asked, humbly explain their stores are locked, but proactively offer to launch the application for them instead (e.g. `[LAUNCH_COMMAND:xbox]`).\n"
-                f"6. Do not act like a robotic bot. Act like a highly advanced human co-pilot sitting next to the user.\n"
+                f"6. Do not act like a generic chatbot. Be precise, expert, and context-aware.\n"
                 f"7. {privacy_status_msg}\n"
                 f"SYSTEM ACCESS INTEGRATION:\n"
                 f"1. APP CONTROL: Use your advanced capabilities to open, close, or configure app features via these command prefixes:\n"
@@ -975,7 +975,7 @@ class GameBrain:
                         user_prompt += f"Note: The player has been discussing or has active context for the game: '{active_game}'. "
                         if kb_context:
                             user_prompt += f"\n[Game Profile / Keybinds Context]:\n{kb_context}\n"
-                    user_prompt += f"User's Scanned Game Library Context (ONLY use this to check if they own a game, do NOT limit your knowledge of games to this list. CRITICAL: Do NOT mention or recommend these games or launchers unless the user's query is directly related to listing their owned/installed games, launching them, or requesting library recommendations):\n{library_ctx}\n"
+                    user_prompt += f"[SYSTEM CONTEXT — GAME LIBRARY — READ-ONLY REFERENCE]: The following is the user's installed game and launcher list. Use it ONLY to verify ownership when the user asks about a specific game, or to identify a launch target. ABSOLUTE RULE: Do NOT proactively mention, list, reference, or comment on ANY game or launcher from this list unless the user's message explicitly asks you to. Treat this data as invisible context.\n{library_ctx}\n"
                     if force_detailed:
                         user_prompt += (
                             f"Provide a comprehensive, detailed, and clear explanation of the topic. "
@@ -1017,7 +1017,7 @@ class GameBrain:
                     user_prompt += f"Note: The player has been discussing or has active context for the game: '{active_game}'. "
                     if kb_context:
                         user_prompt += f"\n[Game Profile / Keybinds Context]:\n{kb_context}\n"
-                user_prompt += f"Here is the user's scanned game library (ONLY use this to check if they own a game, do NOT limit your knowledge of games to this list. CRITICAL: Do NOT mention or recommend these games or launchers unless the user's query is directly related to listing their owned/installed games, launching them, or requesting library recommendations):\n{library_ctx}\n"
+                user_prompt += f"[SYSTEM CONTEXT — GAME LIBRARY — READ-ONLY REFERENCE]: The following is the user's installed game and launcher list. Use it ONLY to verify ownership when the user asks about a specific game, or to identify a launch target. ABSOLUTE RULE: Do NOT proactively mention, list, reference, or comment on ANY game or launcher from this list unless the user's message explicitly asks you to. Treat this data as invisible context. Violating this rule will break the user experience.\n{library_ctx}\n"
                 if force_detailed:
                     user_prompt += (
                         f"Provide a comprehensive, detailed, and clear explanation of the topic. "
@@ -1071,7 +1071,7 @@ class GameBrain:
                 user_prompt = (
                     f"You are speaking directly to the player via a voice assistant. "
                     f"You are actively monitoring their session in '{active_game}'. Live State: {state_desc}.\n"
-                    f"User's Scanned Game Library Context (ONLY use this to check if they own a game, do NOT limit your knowledge to this list. CRITICAL: Do NOT mention or recommend these games or launchers unless the user's query is directly related to listing their owned/installed games, launching them, or requesting library recommendations):\n{library_ctx}\n"
+                    f"[SYSTEM CONTEXT — GAME LIBRARY — READ-ONLY REFERENCE]: The following is the user's installed game and launcher list. Use it ONLY to verify ownership when the user asks about a specific game, or to identify a launch target. ABSOLUTE RULE: Do NOT proactively mention, list, reference, or comment on ANY game or launcher from this list unless the user's message explicitly asks you to. Treat this data as invisible context.\n{library_ctx}\n"
                     f"IMPORTANT: The user asked this question via voice, and your response will be read aloud. "
                 )
                 if kb_context:
@@ -1094,7 +1094,7 @@ class GameBrain:
                 user_prompt = (
                     f"You are chatting directly with the player in the Agent panel. "
                     f"You are actively monitoring their session in '{active_game}'. Live State: {state_desc}.\n"
-                    f"User's Scanned Game Library Context (ONLY use this to check if they own a game, do NOT limit your knowledge to this list. CRITICAL: Do NOT mention or recommend these games or launchers unless the user's query is directly related to listing their owned/installed games, launching them, or requesting library recommendations):\n{library_ctx}\n"
+                    f"[SYSTEM CONTEXT — GAME LIBRARY — READ-ONLY REFERENCE]: The following is the user's installed game and launcher list. Use it ONLY to verify ownership when the user asks about a specific game, or to identify a launch target. ABSOLUTE RULE: Do NOT proactively mention, list, reference, or comment on ANY game or launcher from this list unless the user's message explicitly asks you to. Treat this data as invisible context.\n{library_ctx}\n"
                 )
                 if kb_context:
                     user_prompt += f"\n[Game Profile / Keybinds Context]:\n{kb_context}\n"
@@ -1851,9 +1851,17 @@ class GameBrain:
                 self._chat_failures = 0 # Reset on success
                 if stream:
                     def generate():
-                        for chunk in completion:
-                            if chunk.choices and hasattr(chunk.choices[0], "delta") and getattr(chunk.choices[0].delta, "content", None):
-                                yield chunk.choices[0].delta.content
+                        try:
+                            for chunk in completion:
+                                try:
+                                    if chunk.choices and hasattr(chunk.choices[0], "delta") and getattr(chunk.choices[0].delta, "content", None):
+                                        yield chunk.choices[0].delta.content
+                                except (IndexError, AttributeError):
+                                    # Malformed/empty chunk from NIM stream — skip silently
+                                    continue
+                        except Exception as stream_err:
+                            logger.warning(f"NIM stream interrupted: {stream_err}")
+                            return
                     return generate()
                 else:
                     if not completion.choices:
