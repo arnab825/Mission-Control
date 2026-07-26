@@ -24,9 +24,11 @@ import {
 } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 import { WINDOWS_INSTALLER_URL } from "@/lib/download";
+import { TESTED_GAMES_LIST, getBenchmarkProfileById } from "@/data/benchmarks";
 
 export default function GamesTestedPage() {
   const [selectedImage, setSelectedImage] = useState<{ src: string; title: string; desc: string } | null>(null);
+  const [selectedGameId, setSelectedGameId] = useState<string>("spiderman2");
   const [filterGenre, setFilterGenre] = useState<string>("ALL");
   const [searchQuery, setSearchQuery] = useState<string>("");
 
@@ -51,87 +53,14 @@ export default function GamesTestedPage() {
     }
   };
 
-  // Featured Test: Marvel's Spider-Man 2 (Primary Verified Benchmark)
-  const featuredGame = {
-    id: "spiderman2",
-    name: "Marvel's Spider-Man 2",
-    publisher: "Insomniac Games / PlayStation",
-    releaseYear: "2026 PC Edition",
-    genre: "Open World / Action",
-    api: "DirectX 12 Ultimate",
-    score: 99,
-    status: "VERIFIED & OPTIMAL",
-    testedSpecs: {
-      gpu: "NVIDIA GeForce RTX Series / GTX Series",
-      resolution: "4K UHD (3840 x 2160) & 1440p QHD",
-      avgFps: "80 FPS",
-      vramUsed: "6.5 GB / 8.0 GB",
-      latency: "10.8 ms",
-      gpuLoad: "94%"
-    },
-    presets: {
-      rtx40: "Ultra Ray Tracing + DLSS Quality + Frame Generation",
-      rtx30: "High Ray Tracing + DLSS Balanced + Reflex",
-      gtx: "Esports Latency (NVIDIA Reflex Low Latency)"
-    },
-    features: [
-      { name: "NVIDIA DLSS 3.5", desc: "Super Resolution & Ray Reconstruction", active: true },
-      { name: "DLSS Frame Generation", desc: "2x Frame Interpolation", active: true },
-      { name: "NVIDIA Reflex", desc: "Low Latency Input Pass-Through", active: true },
-      { name: "Full Ray Tracing", desc: "Ray-Traced Reflections & Ambient Occlusion", active: true }
-    ],
-    screenshots: [
-      {
-        src: "/games/SpiderMan_SS1.png",
-        title: "High-Speed Manhattan Traversal & Ray Tracing",
-        desc: "Full Ray-Traced city reflections and ultra draw distance at 80 FPS with DLSS 3.5 Frame Generation (94% GPU Load, 6.5 GB / 8.0 GB VRAM)."
-      },
-      {
-        src: "/games/SpiderMan_SS2.png",
-        title: "Combat Telemetry & Input Responsiveness Audit",
-        desc: "Fast-paced acrobatic combat with NVIDIA Reflex Low Latency active, maintaining 10.8 ms system response latency."
-      },
-      {
-        src: "/games/SpiderMan_SS3.png",
-        title: "New York City Skyline & VRAM Footprint",
-        desc: "Panoramic cityscape audit demonstrating high-density geometry rendering and verified 6.5 GB / 8.0 GB VRAM memory footprint."
-      }
-    ]
+  const handleSelectGame = (gameId: string) => {
+    setSelectedGameId(gameId);
+    scrollToBenchmark();
   };
 
-  // Verified tested games list
-  const testedGames = [
-    {
-      name: "Marvel's Spider-Man 2",
-      publisher: "Insomniac Games",
-      genre: "Open World / Action",
-      preset: "Ultra Ray Tracing",
-      keyTech: ["DLSS 3.5", "Frame Gen", "Reflex", "Ray Tracing"],
-      status: "VERIFIED BENCHMARK",
-      fps: "80 FPS",
-      vram: "6.5 GB / 8.0 GB",
-      gpuLoad: "94%",
-      latency: "10.8 ms",
-      api: "DX12 Ultimate",
-      icon: Gamepad2
-    },
-    {
-      name: "Grand Theft Auto V Enhanced",
-      publisher: "Rockstar Games",
-      genre: "Open World / Action",
-      preset: "RTX High FPS",
-      keyTech: ["DLSS 3.5", "Frame Gen", "Reflex", "Ray Tracing"],
-      status: "VERIFIED BENCHMARK",
-      fps: "193 FPS",
-      vram: "4.56 GB / 8.0 GB",
-      gpuLoad: "88%",
-      latency: "12.4 ms",
-      api: "DX12 Ultimate",
-      icon: Gamepad2
-    }
-  ];
+  const featuredGame = getBenchmarkProfileById(selectedGameId);
 
-  const filteredGames = testedGames.filter(g => {
+  const filteredGames = TESTED_GAMES_LIST.filter(g => {
     const matchesGenre = filterGenre === "ALL" || g.genre.toUpperCase().includes(filterGenre);
     const matchesSearch = !searchQuery || g.name.toLowerCase().includes(searchQuery.toLowerCase()) || g.genre.toLowerCase().includes(searchQuery.toLowerCase());
     return matchesGenre && matchesSearch;
@@ -170,31 +99,54 @@ export default function GamesTestedPage() {
               <div className="text-gray-400 text-[10px] uppercase font-bold tracking-wider">Render Engine</div>
             </div>
             <div className="p-3 rounded-2xl bg-white/[0.03] border border-white/10 text-center">
-              <div className="text-teal-300 font-black text-xl sm:text-2xl">10.8 ms</div>
+              <div className="text-teal-300 font-black text-xl sm:text-2xl">{featuredGame.testedSpecs.latency}</div>
               <div className="text-gray-400 text-[10px] uppercase font-bold tracking-wider">System Latency</div>
             </div>
             <div className="p-3 rounded-2xl bg-white/[0.03] border border-white/10 text-center">
-              <div className="text-neon-yellow font-black text-xl sm:text-2xl">6.5 GB</div>
+              <div className="text-neon-yellow font-black text-xl sm:text-2xl">{featuredGame.testedSpecs.vramUsed.split(' / ')[0]}</div>
               <div className="text-gray-400 text-[10px] uppercase font-bold tracking-wider">VRAM Allocation</div>
             </div>
           </div>
         </div>
 
-        {/* Featured Benchmark: Grand Theft Auto V Enhanced */}
+        {/* Featured Benchmark Section */}
         <div id="featured-benchmark" className="mb-20 scroll-mt-28">
-          <div className="flex items-center justify-between mb-6">
+          <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 mb-6">
             <div className="flex items-center gap-3">
               <span className="w-3 h-3 rounded-full bg-neon-green animate-pulse" />
               <h2 className="text-xl sm:text-2xl font-black font-display uppercase tracking-wider text-white">
-                Featured Benchmark Test
+                Benchmark Profile: {featuredGame.name}
               </h2>
             </div>
-            <span className="text-xs font-mono font-bold text-neon-green bg-neon-green/10 border border-neon-green/30 px-3 py-1 rounded-full uppercase tracking-widest">
-              ★ Verified Audit
-            </span>
+            
+            {/* Interactive Game Selection Switcher */}
+            <div className="flex items-center gap-2 bg-white/5 border border-white/10 p-1.5 rounded-full">
+              {TESTED_GAMES_LIST.map((game) => {
+                const isActive = game.id === selectedGameId;
+                return (
+                  <button
+                    key={game.id}
+                    onClick={() => handleSelectGame(game.id)}
+                    className={`px-3 py-1.5 rounded-full text-xs font-mono font-bold transition-all cursor-pointer ${
+                      isActive
+                        ? "bg-neon-green text-obsidian shadow-[0_0_15px_rgba(118,185,0,0.4)]"
+                        : "text-gray-400 hover:text-white hover:bg-white/5"
+                    }`}
+                  >
+                    {game.name}
+                  </button>
+                );
+              })}
+            </div>
           </div>
 
-          <div className="relative rounded-3xl bg-[#0c0d12] border border-white/15 p-6 sm:p-10 shadow-2xl overflow-hidden group">
+          <motion.div
+            key={featuredGame.id}
+            initial={{ opacity: 0, y: 10 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.3 }}
+            className="relative rounded-3xl bg-[#0c0d12] border border-white/15 p-6 sm:p-10 shadow-2xl overflow-hidden group"
+          >
             {/* Background Glow */}
             <div className="absolute top-0 right-0 w-[500px] h-[500px] bg-neon-green/10 blur-[100px] pointer-events-none rounded-full" />
             
@@ -281,27 +233,29 @@ export default function GamesTestedPage() {
                 </div>
 
                 {/* Primary Large Screenshot */}
-                <div 
-                  onClick={() => setSelectedImage(featuredGame.screenshots[0])}
-                  className="relative aspect-video rounded-2xl overflow-hidden border border-white/15 bg-black cursor-pointer group/img shadow-2xl"
-                >
-                  <img
-                    src={featuredGame.screenshots[0].src}
-                    alt={featuredGame.screenshots[0].title}
-                    className="w-full h-full object-cover group-hover/img:scale-105 transition-transform duration-500"
-                  />
-                  <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-transparent to-transparent flex items-end p-4">
-                    <div>
-                      <div className="text-white font-mono text-xs font-bold flex items-center gap-2">
-                        <Maximize2 className="w-3.5 h-3.5 text-neon-green" />
-                        {featuredGame.screenshots[0].title}
-                      </div>
-                      <div className="text-gray-400 font-mono text-[10px] line-clamp-1">
-                        {featuredGame.screenshots[0].desc}
+                {featuredGame.screenshots.length > 0 && (
+                  <div 
+                    onClick={() => setSelectedImage(featuredGame.screenshots[0])}
+                    className="relative aspect-video rounded-2xl overflow-hidden border border-white/15 bg-black cursor-pointer group/img shadow-2xl"
+                  >
+                    <img
+                      src={featuredGame.screenshots[0].src}
+                      alt={featuredGame.screenshots[0].title}
+                      className="w-full h-full object-cover group-hover/img:scale-105 transition-transform duration-500"
+                    />
+                    <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-transparent to-transparent flex items-end p-4">
+                      <div>
+                        <div className="text-white font-mono text-xs font-bold flex items-center gap-2">
+                          <Maximize2 className="w-3.5 h-3.5 text-neon-green" />
+                          {featuredGame.screenshots[0].title}
+                        </div>
+                        <div className="text-gray-400 font-mono text-[10px] line-clamp-1">
+                          {featuredGame.screenshots[0].desc}
+                        </div>
                       </div>
                     </div>
                   </div>
-                </div>
+                )}
 
                 {/* Secondary Screenshots Grid */}
                 <div className="grid grid-cols-2 gap-4">
@@ -329,7 +283,7 @@ export default function GamesTestedPage() {
               </div>
 
             </div>
-          </div>
+          </motion.div>
         </div>
 
         {/* Verified Tested Games Library Grid */}
@@ -347,17 +301,19 @@ export default function GamesTestedPage() {
 
           {/* Games Grid */}
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-            {filteredGames.map((game, idx) => {
-              const Icon = game.icon;
+            {filteredGames.map((game) => {
+              const isSelected = game.id === selectedGameId;
               return (
                 <div
-                  key={idx}
-                  className="p-6 rounded-2xl bg-[#0b0c10] border border-white/10 hover:border-neon-green/40 transition-all duration-300 flex flex-col justify-between space-y-4 group"
+                  key={game.id}
+                  className={`p-6 rounded-2xl bg-[#0b0c10] border transition-all duration-300 flex flex-col justify-between space-y-4 group ${
+                    isSelected ? "border-neon-green shadow-[0_0_20px_rgba(118,185,0,0.15)]" : "border-white/10 hover:border-neon-green/40"
+                  }`}
                 >
                   <div className="space-y-3">
                     <div className="flex items-center justify-between">
                       <span className="text-[10px] font-mono font-bold text-gray-400 uppercase tracking-widest flex items-center gap-1.5">
-                        <Icon className="w-3.5 h-3.5 text-neon-green" /> {game.genre}
+                        <Gamepad2 className="w-3.5 h-3.5 text-neon-green" /> {game.genre}
                       </span>
                       <span className="text-[10px] font-mono font-bold text-neon-green bg-neon-green/10 px-2 py-0.5 rounded border border-neon-green/30 uppercase">
                         {game.status}
@@ -405,7 +361,7 @@ export default function GamesTestedPage() {
                   <div className="pt-3 border-t border-white/5 flex items-center justify-between text-xs font-mono">
                     <span className="text-gray-500 text-[10px]">Verified by Mission Control</span>
                     <button
-                      onClick={scrollToBenchmark}
+                      onClick={() => handleSelectGame(game.id)}
                       className="text-neon-green hover:underline flex items-center gap-1 font-bold text-[11px] cursor-pointer"
                     >
                       View Profile <ArrowRight className="w-3 h-3" />
