@@ -1,8 +1,17 @@
 {
-  "version": "2.5.2",
+  "version": "2.5.3",
   "release_date": "2026-07-25",
   "update_check_url": "https://raw.githubusercontent.com/arnab825/Mission-Control/main/Gaming/backend/version.json",
   "changelog": [
+    {
+      "version": "2.5.3",
+      "date": "2026-07-26",
+      "title": "Dynamic Steam Artwork Fetching",
+      "highlights": [
+        "Removed hardcoded game title to banner mappings in GamesPage.tsx",
+        "Enhanced backend Steam banner search to dynamically strip edition tags (like DC, Director's Cut) and fetch artwork for all local games"
+      ]
+    },
     {
       "version": "2.5.2",
       "date": "2026-07-26",
@@ -430,14 +439,6 @@
         "Revamp Vision Command Center UI, remove fake radar/compass/SVG neural widgets",
         "Add PyTorch/Ultralytics backend dependency check card",
         "Remove voice mapping Toggle Mic config and clean up game controller auto-detection"
-      ]
-    },
-    {
-      "version": "1.8.9",
-      "date": "2026-07-20",
-      "title": "Fix list index out of range in Brave search parsing",
-      "highlights": [
-        "Fix list index out of range in Brave search parsing"
       ]
     }
   ]

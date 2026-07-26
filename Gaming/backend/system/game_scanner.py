@@ -680,19 +680,23 @@ class GameScanner:
             # Clean name for search (remove common suffixes and tags)
             clean_name = name
             clean_name = re.sub(r'\[.*?\]', '', clean_name)
-            clean_name = re.sub(r' (Enhanced|Remastered|Edition|GOTY|Complete|Collection|Digital|Version).*', '', clean_name, flags=re.IGNORECASE)
+            clean_name = re.sub(r' (DC|Director\'s Cut|Director|Enhanced|Remastered|Edition|GOTY|Complete|Collection|Digital|Version|Repack|Build|NoDVD).*', '', clean_name, flags=re.IGNORECASE)
             clean_name = re.sub(r'[™®©]', '', clean_name)
             clean_name = re.sub(r'\(.*\)', '', clean_name).strip()
             
             headers = {"User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/91.0.4472.124 Safari/537.36"}
             
             appid = None
-            search_url = f"https://store.steampowered.com/api/storesearch/?term={clean_name}&l=english&cc=US"
-            resp = requests.get(search_url, headers=headers, timeout=5)
-            if resp.status_code == 200:
-                data = resp.json()
-                if data.get("total", 0) > 0:
-                    appid = data["items"][0]["id"]
+            for query in [clean_name, name]:
+                if not query:
+                    continue
+                search_url = f"https://store.steampowered.com/api/storesearch/?term={requests.utils.quote(query)}&l=english&cc=US"
+                resp = requests.get(search_url, headers=headers, timeout=5)
+                if resp.status_code == 200:
+                    data = resp.json()
+                    if data.get("total", 0) > 0:
+                        appid = data["items"][0]["id"]
+                        break
             
             if appid:
                 header_url = f"https://cdn.akamai.steamstatic.com/steam/apps/{appid}/header.jpg"

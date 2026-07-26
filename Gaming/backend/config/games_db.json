@@ -102,8 +102,8 @@
     ],
     "type": "GAME",
     "genre": "CLASSIC",
-    "tags": [],
-    "icon": "C:\\GitHub\\Mission-Control\\Gaming\\backend\\data\\icons\\C_GhostofTsushimaDC.png"
+    "icon": "C:\\GitHub\\Mission-Control\\Gaming\\backend\\data\\icons\\C_GhostofTsushimaDC.png",
+    "local_banner": "https://cdn.akamai.steamstatic.com/steam/apps/2215430/header.jpg"
   },
   {
     "name": "Grand Theft Auto V Enhanced",
