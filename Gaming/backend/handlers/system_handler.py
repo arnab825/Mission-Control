@@ -692,57 +692,49 @@ def handle_download_ai_model(payload: dict, pipeline, bridge, config) -> None:
                 }
             })
 
-            req = urllib.request.Request(
-                info["url"],
-                headers={"User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) MissionControl/2.1.2"}
-            )
-
-            try:
-                context = ssl._create_unverified_context()
-            except AttributeError:
-                context = None
-
+            import requests
+            req_headers = {"User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) MissionControl/2.1.2"}
+            
             start_time = time.time()
-            urlopen_kwargs = {"timeout": 600}
-            if context:
-                urlopen_kwargs["context"] = context
-
-            with urllib.request.urlopen(req, **urlopen_kwargs) as response, open(target_path, "wb") as out_file:
+            with requests.get(info["url"], headers=req_headers, stream=True, timeout=60, verify=False) as response:
+                response.raise_for_status()
+                
                 raw_cl = response.headers.get("Content-Length")
                 if raw_cl and str(raw_cl).isdigit():
                     total_bytes = int(raw_cl)
                 else:
                     total_bytes = int(info["size_mb"] * 1024 * 1024)
+                
                 downloaded_bytes = 0
                 block_size = 65536
                 last_update = 0
 
-                while True:
-                    buffer = response.read(block_size)
-                    if not buffer:
-                        break
-                    downloaded_bytes += len(buffer)
-                    out_file.write(buffer)
+                with open(target_path, "wb") as out_file:
+                    for chunk in response.iter_content(chunk_size=block_size):
+                        if not chunk:
+                            continue
+                        downloaded_bytes += len(chunk)
+                        out_file.write(chunk)
 
-                    pct = int((downloaded_bytes / total_bytes) * 100) if total_bytes > 0 else 50
-                    now = time.time()
-                    if now - last_update > 0.3:
-                        last_update = now
-                        dl_mb = round(downloaded_bytes / (1024 * 1024), 1)
-                        tot_mb = round(total_bytes / (1024 * 1024), 1)
-                        elapsed = now - start_time
-                        speed = round(dl_mb / elapsed, 1) if elapsed > 0 else 0
-                        bridge.update_state({
-                            "model_download_status": {
-                                "model_id": model_id,
-                                "status": "downloading",
-                                "progress_pct": pct,
-                                "downloaded_mb": str(dl_mb),
-                                "total_mb": str(tot_mb),
-                                "speed_mbps": str(speed),
-                                "message": f"Downloading {info['name']} ({dl_mb}/{tot_mb} MB · {speed} MB/s)"
-                            }
-                        })
+                        pct = int((downloaded_bytes / total_bytes) * 100) if total_bytes > 0 else 50
+                        now = time.time()
+                        if now - last_update > 0.3:
+                            last_update = now
+                            dl_mb = round(downloaded_bytes / (1024 * 1024), 1)
+                            tot_mb = round(total_bytes / (1024 * 1024), 1)
+                            elapsed = now - start_time
+                            speed = round(dl_mb / elapsed, 1) if elapsed > 0 else 0
+                            bridge.update_state({
+                                "model_download_status": {
+                                    "model_id": model_id,
+                                    "status": "downloading",
+                                    "progress_pct": pct,
+                                    "downloaded_mb": str(dl_mb),
+                                    "total_mb": str(tot_mb),
+                                    "speed_mbps": str(speed),
+                                    "message": f"Downloading {info['name']} ({dl_mb}/{tot_mb} MB · {speed} MB/s)"
+                                }
+                            })
 
             logger.info("Successfully downloaded AI model %s to %s", model_id, target_path)
             bridge.update_state({
