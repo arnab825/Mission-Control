@@ -5,7 +5,7 @@ import React, { Suspense } from "react";
 import { getSortedPostsData, formatDateToIST, parseBlogDate } from "@/lib/blog";
 import connectDB from "@/lib/mongodb";
 import GamingPost from "@/models/GamingPost";
-import { Calendar, ArrowUpRight, Zap, Clock, Gamepad2, Bot, Radio, ChevronDown } from "lucide-react";
+import { Calendar, ArrowUpRight, Zap, Clock, Gamepad2, Bot, Radio, ChevronDown, ChevronLeft, ChevronRight } from "lucide-react";
 
 const CATEGORY_CONFIG: Record<string, { color: string; activeBg: string; shadow: string; icon: string; hoverBorder: string }> = {
   "Game News": { color: "text-neon-green", activeBg: "bg-neon-green text-obsidian border-neon-green", shadow: "shadow-[0_0_15px_rgba(118,185,0,0.4)]", icon: "🎮", hoverBorder: "hover:border-neon-green/40 shadow-[0_0_25px_rgba(118,185,0,0.1)]" },
@@ -19,7 +19,7 @@ const GAMING_CATEGORIES = ["Game News", "GPU News", "Game Revisit", "Hardware De
 export default async function BlogListing({
   searchParams,
 }: {
-  searchParams: Promise<{ tab?: string; category?: string }>;
+  searchParams: Promise<{ tab?: string; category?: string; page?: string }>;
 }) {
   const resolvedParams = await searchParams;
   const currentTab =
@@ -27,6 +27,7 @@ export default async function BlogListing({
       ? "logs"
       : "intel";
   const activeCategory = resolvedParams?.category ?? "all";
+  const currentPage = Math.max(1, parseInt(resolvedParams?.page || "1", 10));
 
   interface ChangelogLog {
     version: string;
@@ -45,6 +46,12 @@ export default async function BlogListing({
     const now = new Date();
     logs = allLogs.filter((log) => new Date(log.date) <= now);
   } catch { }
+
+  // Pagination for Transmission Logs
+  const LOGS_PER_PAGE = 6;
+  const totalLogPages = Math.ceil(logs.length / LOGS_PER_PAGE);
+  const validLogPage = Math.min(currentPage, totalLogPages || 1);
+  const paginatedLogs = logs.slice((validLogPage - 1) * LOGS_PER_PAGE, validLogPage * LOGS_PER_PAGE);
 
   // Get all local MDX posts
   const allMdxPosts = getSortedPostsData();
@@ -66,7 +73,7 @@ export default async function BlogListing({
   }));
 
   return (
-    <div className="min-h-screen pt-28 pb-24 px-4 sm:px-6 max-w-6xl mx-auto w-full relative z-10 bg-[#0a0a0c]">
+    <div className="min-h-screen pt-28 pb-12 px-4 sm:px-6 max-w-6xl mx-auto w-full relative z-10 bg-[#0a0a0c]">
 
       {/* Cyber Grid & Ambient Radial Glows */}
       <div className="absolute inset-0 cyber-grid opacity-25 pointer-events-none -z-10" />
@@ -124,49 +131,88 @@ export default async function BlogListing({
             <p className="text-amber-400 font-mono text-xs uppercase tracking-widest animate-pulse text-center max-w-full px-6 break-words">Establishing Secure Connection to Intelligence Database...</p>
           </div>
         }>
-          <GamingIntelData activeCategory={activeCategory} localGamingPosts={localGamingPosts} />
+          <GamingIntelData activeCategory={activeCategory} localGamingPosts={localGamingPosts} currentPage={currentPage} />
         </Suspense>
       )}
 
       {/* ── Transmission Logs (version.json) ── */}
       {currentTab === "logs" && (
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-          {logs.map((post, idx) => (
-            <Link href={`/blog/${post.version}`} key={`${post.version}-${idx}`} className="block group">
-              <article className="glass-card glass-card-hover p-5 sm:p-8 border border-white/10 rounded-2xl relative overflow-hidden h-full flex flex-col justify-between shadow-[0_0_30px_rgba(0,0,0,0.5)]">
-                <div className="absolute top-0 left-0 w-full h-[2px] bg-gradient-to-r from-white to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
-                <div>
-                  <div className="flex items-center gap-4 text-xs font-mono text-white mb-4 uppercase tracking-widest flex-wrap">
-                    <span className="flex items-center gap-1.5">
-                      <Calendar className="w-3.5 h-3.5" /> {formatDateToIST(post.date)}
-                    </span>
-                    <span className="flex items-center gap-1.5 text-neon-green">
-                      <Zap className="w-3.5 h-3.5" /> Kernel Release
-                    </span>
-                  </div>
-                  <h2 className="text-lg min-[375px]:text-xl sm:text-2xl font-bold mb-3 text-white group-hover:text-neon-green transition-colors font-display line-clamp-2">
-                    v{post.version} - {post.title}
-                  </h2>
-                  <p className="text-gray-300 text-sm leading-relaxed mb-6 line-clamp-3 font-sans">
-                    {post.highlights?.[0] ?? "Check out the latest patch notes and agent fixes."}
-                  </p>
-                </div>
-                <div className="flex flex-col min-[380px]:flex-row min-[380px]:items-center justify-between pt-4 border-t border-white/5 mt-auto gap-3 text-xs">
-                  <div className="flex items-center gap-2 text-xs text-gray-400 font-mono">
-                    <div className="w-6 h-6 rounded-full bg-obsidian border border-white/20 flex items-center justify-center text-white text-[10px] font-bold">
-                      v{post.version}
+        <div className="flex flex-col gap-8">
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+            {paginatedLogs.map((post, idx) => (
+              <Link href={`/blog/${post.version}`} key={`${post.version}-${idx}`} className="block group">
+                <article className="glass-card glass-card-hover p-5 sm:p-8 border border-white/10 rounded-2xl relative overflow-hidden h-full flex flex-col justify-between shadow-[0_0_30px_rgba(0,0,0,0.5)]">
+                  <div className="absolute top-0 left-0 w-full h-[2px] bg-gradient-to-r from-white to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
+                  <div>
+                    <div className="flex items-center gap-4 text-xs font-mono text-white mb-4 uppercase tracking-widest flex-wrap">
+                      <span className="flex items-center gap-1.5">
+                        <Calendar className="w-3.5 h-3.5" /> {formatDateToIST(post.date)}
+                      </span>
+                      <span className="flex items-center gap-1.5 text-neon-green">
+                        <Zap className="w-3.5 h-3.5" /> Kernel Release
+                      </span>
                     </div>
-                    <span>Mission Control Core Engine</span>
+                    <h2 className="text-lg min-[375px]:text-xl sm:text-2xl font-bold mb-3 text-white group-hover:text-neon-green transition-colors font-display line-clamp-2">
+                      v{post.version} - {post.title}
+                    </h2>
+                    <p className="text-gray-300 text-sm leading-relaxed mb-6 line-clamp-3 font-sans">
+                      {post.highlights?.[0] ?? "Check out the latest patch notes and agent fixes."}
+                    </p>
                   </div>
-                  <span className="text-xs font-mono font-bold text-white flex items-center gap-1 uppercase tracking-wider group-hover:translate-x-1 transition-transform self-end min-[380px]:self-auto shrink-0">
-                    View Release Logs <ArrowUpRight className="w-4 h-4" />
-                  </span>
-                </div>
-              </article>
-            </Link>
-          ))}
-          {logs.length === 0 && (
-            <p className="text-gray-500 font-mono italic py-8">No transmission logs recorded.</p>
+                  <div className="flex flex-col min-[380px]:flex-row min-[380px]:items-center justify-between pt-4 border-t border-white/5 mt-auto gap-3 text-xs">
+                    <div className="flex items-center gap-2 text-xs text-gray-400 font-mono">
+                      <div className="w-6 h-6 rounded-full bg-obsidian border border-white/20 flex items-center justify-center text-white text-[10px] font-bold">
+                        v{post.version}
+                      </div>
+                      <span>Mission Control Core Engine</span>
+                    </div>
+                    <span className="text-xs font-mono font-bold text-white flex items-center gap-1 uppercase tracking-wider group-hover:translate-x-1 transition-transform self-end min-[380px]:self-auto shrink-0">
+                      View Release Logs <ArrowUpRight className="w-4 h-4" />
+                    </span>
+                  </div>
+                </article>
+              </Link>
+            ))}
+            {logs.length === 0 && (
+              <p className="text-gray-500 font-mono italic py-8">No transmission logs recorded.</p>
+            )}
+          </div>
+
+          {/* Pagination Controls for Logs */}
+          {totalLogPages > 1 && (
+            <div className="flex flex-wrap items-center justify-center gap-2 pt-6 border-t border-white/10 font-mono text-xs">
+              {validLogPage > 1 && (
+                <Link
+                  href={`/blog?tab=logs&page=${validLogPage - 1}`}
+                  className="px-3.5 py-2 rounded-xl bg-white/[0.03] border border-white/10 hover:border-white/40 hover:text-white text-gray-400 transition-all flex items-center gap-1 uppercase tracking-wider font-bold"
+                >
+                  <ChevronLeft className="w-4 h-4" /> Prev
+                </Link>
+              )}
+
+              {Array.from({ length: totalLogPages }, (_, i) => i + 1).map((p) => (
+                <Link
+                  key={p}
+                  href={`/blog?tab=logs&page=${p}`}
+                  className={`w-9 h-9 rounded-xl flex items-center justify-center border font-bold transition-all ${
+                    p === validLogPage
+                      ? "bg-white text-obsidian border-white shadow-[0_0_15px_rgba(255,255,255,0.4)]"
+                      : "bg-white/[0.03] border-white/10 text-gray-400 hover:border-white/30 hover:text-white"
+                  }`}
+                >
+                  {p}
+                </Link>
+              ))}
+
+              {validLogPage < totalLogPages && (
+                <Link
+                  href={`/blog?tab=logs&page=${validLogPage + 1}`}
+                  className="px-3.5 py-2 rounded-xl bg-white/[0.03] border border-white/10 hover:border-white/40 hover:text-white text-gray-400 transition-all flex items-center gap-1 uppercase tracking-wider font-bold"
+                >
+                  Next <ChevronRight className="w-4 h-4" />
+                </Link>
+              )}
+            </div>
           )}
         </div>
       )}
@@ -187,7 +233,7 @@ interface DBPost {
   coverImage?: string;
 }
 
-async function GamingIntelData({ activeCategory, localGamingPosts }: { activeCategory: string, localGamingPosts: any[] }) {
+async function GamingIntelData({ activeCategory, localGamingPosts, currentPage }: { activeCategory: string; localGamingPosts: any[]; currentPage: number }) {
   // Fetch from MongoDB (with graceful fallback for unwhitelisted IPs)
   let dbPosts: DBPost[] = [];
   try {
@@ -261,6 +307,12 @@ async function GamingIntelData({ activeCategory, localGamingPosts }: { activeCat
   const activeCategoryConfig = activeCategory !== "all" 
     ? CATEGORY_CONFIG[activeCategory] 
     : { color: "text-amber-400", icon: "📰" };
+
+  // Pagination calculations (6 posts per page for concise vertical height)
+  const POSTS_PER_PAGE = 6;
+  const totalPages = Math.ceil(gamingPosts.length / POSTS_PER_PAGE);
+  const validPage = Math.min(currentPage, totalPages || 1);
+  const paginatedPosts = gamingPosts.slice((validPage - 1) * POSTS_PER_PAGE, validPage * POSTS_PER_PAGE);
 
   return (
     <div>
@@ -355,8 +407,8 @@ async function GamingIntelData({ activeCategory, localGamingPosts }: { activeCat
         </div>
       </div>
 
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-        {gamingPosts.map((post) => {
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-12">
+        {paginatedPosts.map((post) => {
           const cfg = (post.category ? CATEGORY_CONFIG[post.category as keyof typeof CATEGORY_CONFIG] : null) ?? {
             color: "text-neon-green",
             icon: "📰",
@@ -449,6 +501,43 @@ async function GamingIntelData({ activeCategory, localGamingPosts }: { activeCat
           </div>
         )}
       </div>
+
+      {/* Pagination Controls for Intel */}
+      {totalPages > 1 && (
+        <div className="flex flex-wrap items-center justify-center gap-2 pt-6 border-t border-white/10 font-mono text-xs">
+          {validPage > 1 && (
+            <Link
+              href={`/blog?tab=intel&category=${encodeURIComponent(activeCategory)}&page=${validPage - 1}`}
+              className="px-3.5 py-2 rounded-xl bg-white/[0.03] border border-white/10 hover:border-amber-400/50 hover:text-white text-gray-400 transition-all flex items-center gap-1 uppercase tracking-wider font-bold"
+            >
+              <ChevronLeft className="w-4 h-4" /> Prev
+            </Link>
+          )}
+
+          {Array.from({ length: totalPages }, (_, i) => i + 1).map((p) => (
+            <Link
+              key={p}
+              href={`/blog?tab=intel&category=${encodeURIComponent(activeCategory)}&page=${p}`}
+              className={`w-9 h-9 rounded-xl flex items-center justify-center border font-bold transition-all ${
+                p === validPage
+                  ? "bg-amber-400 text-obsidian border-amber-400 shadow-[0_0_15px_rgba(251,191,36,0.4)]"
+                  : "bg-white/[0.03] border-white/10 text-gray-400 hover:border-white/30 hover:text-white"
+              }`}
+            >
+              {p}
+            </Link>
+          ))}
+
+          {validPage < totalPages && (
+            <Link
+              href={`/blog?tab=intel&category=${encodeURIComponent(activeCategory)}&page=${validPage + 1}`}
+              className="px-3.5 py-2 rounded-xl bg-white/[0.03] border border-white/10 hover:border-amber-400/50 hover:text-white text-gray-400 transition-all flex items-center gap-1 uppercase tracking-wider font-bold"
+            >
+              Next <ChevronRight className="w-4 h-4" />
+            </Link>
+          )}
+        </div>
+      )}
     </div>
   );
 }

@@ -53,7 +53,7 @@ export default function Footer() {
         whileInView={{ opacity: 1, y: 0 }}
         viewport={{ once: true }}
         transition={{ duration: 0.8 }}
-        className="w-full bg-[#0a0a0d] py-16 mt-24 relative overflow-hidden border-t border-white/[0.05]"
+        className="w-full bg-[#0a0a0d] py-16 mt-12 relative overflow-hidden border-t border-white/[0.05]"
       >
         {/* Animated Gradient Top Border */}
         <div className="absolute top-0 left-0 w-full h-[1px] bg-gradient-to-r from-transparent via-neon-green/60 to-transparent shadow-[0_0_15px_rgba(118, 185, 0,0.4)]"></div>

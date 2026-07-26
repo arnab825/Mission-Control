@@ -16,7 +16,7 @@ import HUD from './components/HUD';
 import { useBridge } from './hooks/useBridge';
 import type { TelemetryState } from './types/telemetry';
 import { UpdatesPage } from './pages/UpdatesPage';
-import { Sparkles, ChevronDown, ToggleRight, ToggleLeft, Menu, Gamepad2 } from 'lucide-react';
+import { Sparkles, ChevronDown, ToggleRight, ToggleLeft, Menu } from 'lucide-react';
 import { useAuth, useSignIn, useSignUp } from '@clerk/clerk-react';
 import { motion, AnimatePresence, MotionConfig } from 'framer-motion';
 
@@ -166,7 +166,7 @@ const App: React.FC = () => {
   useEffect(() => {
     const params = new URLSearchParams(window.location.search);
     const triggerOauth = params.get('trigger_oauth');
-    
+
     if (triggerOauth && (triggerOauth === 'oauth_google' || triggerOauth === 'oauth_discord') && !isSignedIn) {
       if (isSignInLoaded && isSignUpLoaded && signIn && signUp) {
         // Clear the query parameters from the URL first to avoid infinite redirect loops
@@ -186,7 +186,7 @@ const App: React.FC = () => {
           options.additionalData = { prompt: 'select_account' };
           options.customOAuthOptions = { prompt: 'select_account' };
         }
-        
+
         console.log(`[Clerk] Auto-triggering OAuth switch to: ${triggerOauth}`);
         signIn.authenticateWithRedirect(options).catch(err => {
           console.error('[Clerk] Auto OAuth trigger failed:', err);
@@ -520,8 +520,8 @@ const App: React.FC = () => {
                 <div className="absolute inset-0 rounded-full bg-gradient-to-tr from-neon-green/20 via-transparent to-transparent animate-spin [animation-duration:3s]" />
 
                 {/* Central glowing icon */}
-                <div className="relative w-24 h-24 rounded-full bg-neon-green/10 border border-neon-green/30 flex items-center justify-center shadow-[0_0_30px_rgba(118, 185, 0,0.2)]">
-                  <Gamepad2 className="w-10 h-10 text-neon-green animate-pulse" />
+                <div className="relative w-24 h-24 rounded-full bg-neon-green/10 border border-neon-green/30 flex items-center justify-center shadow-[0_0_30px_rgba(118,185,0,0.2)] overflow-hidden p-2">
+                  <img src="/logo.png" className="w-12 h-12 object-contain animate-pulse" alt="Mission Control Logo" />
                 </div>
               </div>
 

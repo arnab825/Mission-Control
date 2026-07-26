@@ -74,17 +74,20 @@ const SSOCallback: React.FC = () => {
         gap: '16px',
       }}
     >
-      {/* Animated spinner */}
-      <div
-        style={{
-          width: 40,
-          height: 40,
-          borderRadius: '50%',
-          border: '2px solid rgba(118, 185, 0,0.15)',
-          borderTopColor: '#76b900',
-          animation: 'spin 0.8s linear infinite',
-        }}
-      />
+      {/* Animated spinner with App Logo */}
+      <div style={{ position: 'relative', width: 64, height: 64, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+        <div
+          style={{
+            position: 'absolute',
+            inset: 0,
+            borderRadius: '50%',
+            border: '2px solid rgba(118, 185, 0,0.15)',
+            borderTopColor: '#76b900',
+            animation: 'spin 0.8s linear infinite',
+          }}
+        />
+        <img src="/logo.png" style={{ width: 32, height: 32, objectFit: 'contain' }} alt="Mission Control Logo" />
+      </div>
       <style>{`@keyframes spin { to { transform: rotate(360deg); } }`}</style>
       <p style={{ fontSize: 12, fontWeight: 700, color: '#52525b', textTransform: 'uppercase', letterSpacing: '0.15em', margin: 0 }}>
         Verifying Identity…
