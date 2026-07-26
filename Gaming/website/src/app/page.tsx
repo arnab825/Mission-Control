@@ -7,6 +7,8 @@ import { motion, AnimatePresence } from "framer-motion";
 import { WINDOWS_INSTALLER_URL, WINDOWS_MSI_URL, WINDOWS_ZIP_URL } from "@/lib/download";
 import { ScreenshotGallery } from "@/components/ScreenshotGallery";
 import { BeforeAfterSlider } from "@/components/BeforeAfterSlider";
+//import { PromotionalVideoShowcase } from "@/components/PromotionalVideoShowcase";
+//import { SponsorshipPartnerSection } from "@/components/SponsorshipPartnerSection";
 import { TESTED_GAMES_LIST } from "@/data/benchmarks";
 import {
   Users,
@@ -20,6 +22,8 @@ import {
   CheckCircle2,
   ChevronDown,
   Cpu,
+  Monitor,
+  HardDrive,
   Activity,
   Terminal,
   Sparkles,
@@ -191,7 +195,7 @@ export default function Home() {
     },
     {
       q: "Is Mission Control free and open source?",
-      a: "Yes! Mission Control is 100% free, telemetry-transparent, and open-source. Created by Arnab Labs & open contributors on GitHub."
+      a: "Yes! Mission Control is 100% free, telemetry-transparent, and open-source. Created by Mission Control Labs & open contributors on GitHub."
     },
     {
       q: "Will using the HUD get me banned in anti-cheat protected multiplayer games?",
@@ -223,7 +227,7 @@ export default function Home() {
           <div className="w-5 h-5 rounded bg-neon-green/20 border border-neon-green/40 flex items-center justify-center text-neon-green shrink-0 shadow-[0_0_10px_rgba(118,185,0,0.3)]">
             <Sparkles className="w-3 h-3 animate-pulse" />
           </div>
-          <span>POWERED BY ARNAB LABS</span>
+          <span>POWERED BY MISSION CONTROL LABS</span>
         </div>
 
         <span className="text-neon-green/40 font-black">{"×"}</span>
@@ -273,7 +277,7 @@ export default function Home() {
 
           {/* Subtitle */}
           <p className="text-sm sm:text-xl text-gray-300 max-w-3xl mb-10 leading-relaxed font-sans text-center">
-            Engineered by <strong className="text-neon-green">Arnab Labs</strong> for high-performance rigs. Monitor thermals in real-time, trigger agentic system macros, and receive sub-15ms local AI tactics directly inside your game.
+            Engineered by <strong className="text-neon-green">Mission Control Labs</strong> for high-performance rigs. Monitor thermals in real-time, trigger agentic system macros, and receive sub-15ms local AI tactics directly inside your game.
           </p>
 
           {/* Primary Action Buttons */}
@@ -525,7 +529,7 @@ export default function Home() {
             GAIN THE <span className="text-neon-green glow-text-teal">UNFAIR</span> ADVANTAGE
           </h2>
           <p className="text-gray-400 text-sm sm:text-lg leading-relaxed font-sans">
-            Engineered by <strong className="text-neon-green">Arnab Labs</strong> for zero CPU bottlenecking.
+            Engineered by <strong className="text-neon-green">Mission Control Labs</strong> for zero CPU bottlenecking.
           </p>
         </div>
 
@@ -853,7 +857,7 @@ export default function Home() {
             DESIGNED FOR <span className="text-neon-green glow-text-teal">GAMERS</span>
           </h2>
           <p className="text-gray-400 text-sm sm:text-lg leading-relaxed font-sans">
-            High-contrast, hardware-accelerated interface engineered by <strong className="text-neon-green">Arnab Labs</strong>.
+            High-contrast, hardware-accelerated interface engineered by <strong className="text-neon-green">Mission Control Labs</strong>.
           </p>
         </div>
 
@@ -870,6 +874,9 @@ export default function Home() {
       >
         <BeforeAfterSlider />
       </motion.section>
+
+      {/* ================= PROMOTIONAL MEDIA & VIDEO SHOWCASE ================= */}
+      {/* <PromotionalVideoShowcase /> */}
 
       {/* ================= INTERACTIVE HUD OVERLAY PREVIEW SECTION ================= */}
       <motion.section
@@ -1199,40 +1206,68 @@ export default function Home() {
 
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6 sm:gap-8">
             <div className="glass-card p-6 sm:p-8 border-white/10">
-              <h4 className="text-lg sm:text-xl font-bold mb-4 sm:mb-6 text-gray-300 font-display">Minimum Requirements</h4>
-              <ul className="space-y-3.5 text-xs sm:text-sm text-gray-400 font-mono">
-                <li className="flex flex-col sm:flex-row sm:justify-between border-b border-white/5 pb-2.5 gap-1">
-                  <span className="text-white font-bold">OS:</span> Windows 10 64-bit
+              <h4 className="text-lg sm:text-xl font-bold mb-4 sm:mb-6 text-gray-300 font-display flex items-center gap-2">
+                <Sliders className="w-4 h-4 text-gray-400" /> Minimum Requirements
+              </h4>
+              <ul className="space-y-4 text-xs sm:text-sm text-gray-400 font-mono">
+                <li className="flex items-center justify-between border-b border-white/5 pb-3 gap-2">
+                  <span className="text-white font-bold flex items-center gap-2">
+                    <Monitor className="w-4 h-4 text-gray-400 shrink-0" /> OS:
+                  </span>
+                  <span>Windows 10 64-bit</span>
                 </li>
-                <li className="flex flex-col sm:flex-row sm:justify-between border-b border-white/5 pb-2.5 gap-1">
-                  <span className="text-white font-bold">GPU:</span> NVIDIA GTX 1060 (6GB VRAM)
+                <li className="flex items-center justify-between border-b border-white/5 pb-3 gap-2">
+                  <span className="text-white font-bold flex items-center gap-2">
+                    <Cpu className="w-4 h-4 text-gray-400 shrink-0" /> GPU:
+                  </span>
+                  <span>NVIDIA GTX 1060 (6GB VRAM)</span>
                 </li>
-                <li className="flex flex-col sm:flex-row sm:justify-between border-b border-white/5 pb-2.5 gap-1">
-                  <span className="text-white font-bold">RAM:</span> 16 GB System RAM
+                <li className="flex items-center justify-between border-b border-white/5 pb-3 gap-2">
+                  <span className="text-white font-bold flex items-center gap-2">
+                    <Gauge className="w-4 h-4 text-gray-400 shrink-0" /> RAM:
+                  </span>
+                  <span>16 GB System RAM</span>
                 </li>
-                <li className="flex flex-col sm:flex-row sm:justify-between gap-1">
-                  <span className="text-white font-bold">Storage:</span> 4 GB NVMe SSD
+                <li className="flex items-center justify-between gap-2">
+                  <span className="text-white font-bold flex items-center gap-2">
+                    <HardDrive className="w-4 h-4 text-gray-400 shrink-0" /> Storage:
+                  </span>
+                  <span>4 GB NVMe SSD</span>
                 </li>
               </ul>
             </div>
 
-            <div className="glass-card p-6 sm:p-8 border-neon-green/40 bg-neon-green/[0.02] relative overflow-hidden">
-              <div className="absolute top-0 right-0 bg-neon-green text-obsidian text-[10px] font-mono font-bold px-3 py-1 rounded-bl-lg uppercase">
+            <div className="glass-card p-6 sm:p-8 border-neon-green/40 bg-neon-green/[0.02] relative overflow-hidden shadow-[0_0_30px_rgba(118,185,0,0.1)]">
+              <div className="absolute top-0 right-0 bg-neon-green text-obsidian text-[10px] font-mono font-bold px-3 py-1 rounded-bl-lg uppercase shadow-md">
                 RECOMMENDED
               </div>
-              <h4 className="text-lg sm:text-xl font-bold mb-4 sm:mb-6 text-neon-green font-display">Recommended Specs</h4>
-              <ul className="space-y-3.5 text-xs sm:text-sm text-gray-300 font-mono">
-                <li className="flex flex-col sm:flex-row sm:justify-between border-b border-white/10 pb-2.5 gap-1">
-                  <span className="text-white font-bold">OS:</span> Windows 11 64-bit
+              <h4 className="text-lg sm:text-xl font-bold mb-4 sm:mb-6 text-neon-green font-display flex items-center gap-2">
+                <Sparkles className="w-4 h-4 text-neon-green" /> Recommended Specs
+              </h4>
+              <ul className="space-y-4 text-xs sm:text-sm text-gray-300 font-mono">
+                <li className="flex items-center justify-between border-b border-white/10 pb-3 gap-2">
+                  <span className="text-white font-bold flex items-center gap-2">
+                    <Monitor className="w-4 h-4 text-neon-green shrink-0" /> OS:
+                  </span>
+                  <span className="text-neon-green font-semibold">Windows 11 64-bit</span>
                 </li>
-                <li className="flex flex-col sm:flex-row sm:justify-between border-b border-white/10 pb-2.5 gap-1">
-                  <span className="text-white font-bold">GPU:</span> NVIDIA RTX 2060+ (6GB+ VRAM)
+                <li className="flex items-center justify-between border-b border-white/10 pb-3 gap-2">
+                  <span className="text-white font-bold flex items-center gap-2">
+                    <Cpu className="w-4 h-4 text-neon-green shrink-0" /> GPU:
+                  </span>
+                  <span className="text-neon-green font-semibold">NVIDIA RTX 2060+ (6GB+ VRAM)</span>
                 </li>
-                <li className="flex flex-col sm:flex-row sm:justify-between border-b border-white/10 pb-2.5 gap-1">
-                  <span className="text-white font-bold">RAM:</span> 32 GB High-Speed RAM
+                <li className="flex items-center justify-between border-b border-white/10 pb-3 gap-2">
+                  <span className="text-white font-bold flex items-center gap-2">
+                    <Gauge className="w-4 h-4 text-neon-green shrink-0" /> RAM:
+                  </span>
+                  <span className="text-neon-green font-semibold">32 GB High-Speed RAM</span>
                 </li>
-                <li className="flex flex-col sm:flex-row sm:justify-between gap-1">
-                  <span className="text-white font-bold">Acceleration:</span> TensorRT Enabled
+                <li className="flex items-center justify-between gap-2">
+                  <span className="text-white font-bold flex items-center gap-2">
+                    <Zap className="w-4 h-4 text-neon-yellow shrink-0" /> Acceleration:
+                  </span>
+                  <span className="text-neon-yellow font-bold">TensorRT Enabled</span>
                 </li>
               </ul>
             </div>
@@ -1240,6 +1275,9 @@ export default function Home() {
         </div>
 
       </section>
+
+      {/* ================= HARDWARE OEM & BRAND SPONSORSHIP SECTION ================= */}
+      {/* <SponsorshipPartnerSection /> */}
 
       {/* ================= FAQ SECTION (ACCORDION) ================= */}
       <motion.section
