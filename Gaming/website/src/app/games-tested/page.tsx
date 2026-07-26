@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useCallback } from "react";
 import Link from "next/link";
 import {
   Gamepad2,
@@ -20,17 +20,25 @@ import {
   Flame,
   Gauge,
   Sliders,
-  Download
+  Download,
+  ChevronLeft,
+  ChevronRight,
+  Play,
+  Pause
 } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 import { WINDOWS_INSTALLER_URL } from "@/lib/download";
 import { TESTED_GAMES_LIST, getBenchmarkProfileById } from "@/data/benchmarks";
 
 export default function GamesTestedPage() {
-  const [selectedImage, setSelectedImage] = useState<{ src: string; title: string; desc: string } | null>(null);
   const [selectedGameId, setSelectedGameId] = useState<string>("spiderman2");
+  const [slideshowIndex, setSlideshowIndex] = useState<number | null>(null);
+  const [isPlaying, setIsPlaying] = useState<boolean>(false);
   const [filterGenre, setFilterGenre] = useState<string>("ALL");
   const [searchQuery, setSearchQuery] = useState<string>("");
+
+  const featuredGame = getBenchmarkProfileById(selectedGameId);
+  const screenshots = featuredGame.screenshots || [];
 
   useEffect(() => {
     if (typeof window !== "undefined") {
@@ -42,19 +50,55 @@ export default function GamesTestedPage() {
     }
   }, []);
 
+  // Handle Auto-Play Slideshow Timer
+  useEffect(() => {
+    let interval: NodeJS.Timeout | null = null;
+    if (slideshowIndex !== null && isPlaying && screenshots.length > 0) {
+      interval = setInterval(() => {
+        setSlideshowIndex((prevIndex) => {
+          if (prevIndex === null) return 0;
+          return (prevIndex + 1) % screenshots.length;
+        });
+      }, 4000);
+    }
+    return () => {
+      if (interval) clearInterval(interval);
+    };
+  }, [slideshowIndex, isPlaying, screenshots.length]);
+
+  const handlePrevSlide = useCallback(() => {
+    if (slideshowIndex === null || screenshots.length === 0) return;
+    setSlideshowIndex((slideshowIndex - 1 + screenshots.length) % screenshots.length);
+  }, [slideshowIndex, screenshots.length]);
+
+  const handleNextSlide = useCallback(() => {
+    if (slideshowIndex === null || screenshots.length === 0) return;
+    setSlideshowIndex((slideshowIndex + 1) % screenshots.length);
+  }, [slideshowIndex, screenshots.length]);
+
+  // Handle Keyboard Shortcuts (Arrow Left/Right, Space for Play/Pause, Esc for Close)
   useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {
+      if (slideshowIndex === null) return;
+
       if (e.key === "Escape") {
-        setSelectedImage(null);
+        setSlideshowIndex(null);
+        setIsPlaying(false);
+      } else if (e.key === "ArrowLeft") {
+        handlePrevSlide();
+      } else if (e.key === "ArrowRight") {
+        handleNextSlide();
+      } else if (e.code === "Space") {
+        e.preventDefault();
+        setIsPlaying((prev) => !prev);
       }
     };
-    if (selectedImage) {
-      window.addEventListener("keydown", handleKeyDown);
-    }
+
+    window.addEventListener("keydown", handleKeyDown);
     return () => {
       window.removeEventListener("keydown", handleKeyDown);
     };
-  }, [selectedImage]);
+  }, [slideshowIndex, handlePrevSlide, handleNextSlide]);
 
   const scrollToBenchmark = () => {
     const el = document.getElementById("featured-benchmark");
@@ -65,16 +109,28 @@ export default function GamesTestedPage() {
 
   const handleSelectGame = (gameId: string) => {
     setSelectedGameId(gameId);
+    setSlideshowIndex(null);
+    setIsPlaying(false);
     scrollToBenchmark();
   };
 
-  const featuredGame = getBenchmarkProfileById(selectedGameId);
+  const openSlideshow = (index: number) => {
+    setSlideshowIndex(index);
+    setIsPlaying(false);
+  };
+
+  const closeSlideshow = () => {
+    setSlideshowIndex(null);
+    setIsPlaying(false);
+  };
 
   const filteredGames = TESTED_GAMES_LIST.filter(g => {
     const matchesGenre = filterGenre === "ALL" || g.genre.toUpperCase().includes(filterGenre);
     const matchesSearch = !searchQuery || g.name.toLowerCase().includes(searchQuery.toLowerCase()) || g.genre.toLowerCase().includes(searchQuery.toLowerCase());
     return matchesGenre && matchesSearch;
   });
+
+  const currentSlide = slideshowIndex !== null && screenshots[slideshowIndex] ? screenshots[slideshowIndex] : null;
 
   return (
     <div className="min-h-screen bg-[#070709] text-white pt-24 pb-20 selection:bg-neon-green selection:text-black">
@@ -239,29 +295,36 @@ export default function GamesTestedPage() {
               <div className="lg:col-span-7 space-y-4">
                 <div className="text-xs font-mono font-bold text-gray-300 uppercase tracking-wider flex items-center justify-between">
                   <span>Captured 4K In-Engine Screenshots</span>
-                  <span className="text-gray-500 text-[10px]">Click any image to enlarge</span>
+                  <span className="text-neon-green text-[10px] font-bold flex items-center gap-1">
+                    <Play className="w-3 h-3 fill-neon-green" /> Click image to launch interactive slideshow
+                  </span>
                 </div>
 
                 {/* Primary Large Screenshot */}
-                {featuredGame.screenshots.length > 0 && (
+                {screenshots.length > 0 && (
                   <div 
-                    onClick={() => setSelectedImage(featuredGame.screenshots[0])}
+                    onClick={() => openSlideshow(0)}
                     className="relative aspect-video rounded-2xl overflow-hidden border border-white/15 bg-black cursor-pointer group/img shadow-2xl"
                   >
                     <img
-                      src={featuredGame.screenshots[0].src}
-                      alt={featuredGame.screenshots[0].title}
+                      src={screenshots[0].src}
+                      alt={screenshots[0].title}
                       className="w-full h-full object-cover group-hover/img:scale-105 transition-transform duration-500"
                     />
                     <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-transparent to-transparent flex items-end p-4">
-                      <div>
-                        <div className="text-white font-mono text-xs font-bold flex items-center gap-2">
-                          <Maximize2 className="w-3.5 h-3.5 text-neon-green" />
-                          {featuredGame.screenshots[0].title}
+                      <div className="w-full flex items-end justify-between gap-2">
+                        <div>
+                          <div className="text-white font-mono text-xs font-bold flex items-center gap-2">
+                            <Maximize2 className="w-3.5 h-3.5 text-neon-green" />
+                            {screenshots[0].title}
+                          </div>
+                          <div className="text-gray-400 font-mono text-[10px] line-clamp-1">
+                            {screenshots[0].desc}
+                          </div>
                         </div>
-                        <div className="text-gray-400 font-mono text-[10px] line-clamp-1">
-                          {featuredGame.screenshots[0].desc}
-                        </div>
+                        <span className="px-2.5 py-1 rounded bg-neon-green/20 border border-neon-green/40 text-neon-green text-[10px] font-mono font-bold flex items-center gap-1 shrink-0">
+                          <Play className="w-2.5 h-2.5 fill-neon-green" /> Slideshow
+                        </span>
                       </div>
                     </div>
                   </div>
@@ -269,10 +332,10 @@ export default function GamesTestedPage() {
 
                 {/* Secondary Screenshots Grid */}
                 <div className="grid grid-cols-2 gap-4">
-                  {featuredGame.screenshots.slice(1).map((ss, idx) => (
+                  {screenshots.slice(1).map((ss, idx) => (
                     <div
                       key={idx}
-                      onClick={() => setSelectedImage(ss)}
+                      onClick={() => openSlideshow(idx + 1)}
                       className="relative aspect-video rounded-xl overflow-hidden border border-white/15 bg-black cursor-pointer group/img shadow-lg"
                     >
                       <img
@@ -348,35 +411,23 @@ export default function GamesTestedPage() {
                         <span className="font-bold text-emerald-400">{game.gpuLoad} | {game.latency}</span>
                       </div>
                       <div className="flex justify-between text-[11px]">
-                        <span className="text-gray-400">Recommended Preset:</span>
-                        <span className="font-bold text-neon-yellow">{game.preset}</span>
-                      </div>
-                    </div>
-
-                    <div className="space-y-1.5">
-                      <div className="text-[10px] font-mono font-bold text-gray-400 uppercase tracking-wider">Key Technologies</div>
-                      <div className="flex flex-wrap gap-1.5">
-                        {game.keyTech.map((tech, tIdx) => (
-                          <span
-                            key={tIdx}
-                            className="px-2 py-0.5 rounded bg-white/5 border border-white/10 text-gray-300 text-[10px] font-mono font-bold"
-                          >
-                            {tech}
-                          </span>
-                        ))}
+                        <span className="text-gray-400">API:</span>
+                        <span className="font-bold text-gray-300">{game.api}</span>
                       </div>
                     </div>
                   </div>
 
-                  <div className="pt-3 border-t border-white/5 flex items-center justify-between text-xs font-mono">
-                    <span className="text-gray-500 text-[10px]">Verified by Mission Control</span>
-                    <button
-                      onClick={() => handleSelectGame(game.id)}
-                      className="text-neon-green hover:underline flex items-center gap-1 font-bold text-[11px] cursor-pointer"
-                    >
-                      View Profile <ArrowRight className="w-3 h-3" />
-                    </button>
-                  </div>
+                  <button
+                    onClick={() => handleSelectGame(game.id)}
+                    className={`w-full py-2.5 rounded-xl font-mono text-xs font-bold uppercase tracking-wider transition-all cursor-pointer flex items-center justify-center gap-2 ${
+                      isSelected
+                        ? "bg-neon-green text-obsidian shadow-[0_0_15px_rgba(118,185,0,0.4)]"
+                        : "bg-white/5 text-gray-300 hover:bg-white/10 hover:text-white"
+                    }`}
+                  >
+                    <span>{isSelected ? "Viewing Profile" : "View Benchmark Profile"}</span>
+                    <ArrowRight className="w-3.5 h-3.5" />
+                  </button>
                 </div>
               );
             })}
@@ -405,60 +456,156 @@ export default function GamesTestedPage() {
 
       </div>
 
-      {/* Full-Screen Sharp Lightbox Modal for Screenshots */}
+      {/* Full-Screen Interactive Slideshow Lightbox Modal */}
       <AnimatePresence>
-        {selectedImage && (
+        {slideshowIndex !== null && currentSlide && (
           <motion.div
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
-            className="fixed inset-0 z-50 flex items-center justify-center p-4 sm:p-8"
+            className="fixed inset-0 z-50 flex flex-col justify-between p-4 sm:p-6 bg-black/95 backdrop-blur-xl selection:bg-neon-green selection:text-black"
           >
-            {/* Backdrop */}
-            <div
-              className="absolute inset-0 bg-black/90 backdrop-blur-md cursor-pointer"
-              onClick={() => setSelectedImage(null)}
-            />
+            {/* Modal Header Controls */}
+            <div className="relative z-50 flex items-center justify-between w-full max-w-7xl mx-auto font-mono text-xs">
+              <div className="flex items-center gap-3">
+                <div className="w-2.5 h-2.5 rounded-full bg-neon-green animate-ping" />
+                <span className="font-bold text-white uppercase text-sm font-display tracking-wider">
+                  {featuredGame.name}
+                </span>
+                <span className="px-2.5 py-0.5 rounded-full bg-white/10 border border-white/15 text-[11px] font-bold text-neon-green">
+                  {slideshowIndex + 1} / {screenshots.length}
+                </span>
+              </div>
 
-            {/* Close Button */}
-            <button
-              type="button"
-              className="absolute top-4 right-4 sm:top-8 sm:right-8 z-50 text-gray-300 hover:text-white bg-black/60 hover:bg-white/20 border border-white/20 rounded-full p-3 transition-all cursor-pointer shadow-xl"
-              onClick={(e) => {
-                e.stopPropagation();
-                setSelectedImage(null);
-              }}
-              title="Close image view (Esc)"
-            >
-              <X className="w-6 h-6" />
-            </button>
-
-            {/* Image Container */}
-            <motion.div
-              initial={{ scale: 0.95, opacity: 0 }}
-              animate={{ scale: 1, opacity: 1 }}
-              exit={{ scale: 0.95, opacity: 0 }}
-              transition={{ duration: 0.2, ease: "easeOut" }}
-              className="relative z-10 max-w-[95vw] max-h-[90vh] flex flex-col items-center justify-center pointer-events-auto"
-            >
-              <img
-                src={selectedImage.src}
-                alt={selectedImage.title}
-                className="max-w-[95vw] max-h-[82vh] w-auto h-auto object-contain rounded-2xl border border-white/20 shadow-[0_0_60px_rgba(0,0,0,0.9)]"
-              />
-              <div className="mt-4 flex flex-col sm:flex-row items-center justify-between w-full px-3 text-xs font-mono gap-2 text-gray-300">
-                <div>
-                  <span className="font-bold text-white text-sm">{selectedImage.title}</span>
-                  <p className="text-gray-400 text-[11px] font-normal">{selectedImage.desc}</p>
-                </div>
+              <div className="flex items-center gap-3">
+                {/* Auto-Play Slideshow Toggle Button */}
                 <button
-                  onClick={() => setSelectedImage(null)}
-                  className="text-neon-green hover:underline cursor-pointer font-bold shrink-0 text-xs"
+                  type="button"
+                  onClick={() => setIsPlaying((prev) => !prev)}
+                  className={`px-3 py-1.5 rounded-xl border text-xs font-mono font-bold uppercase tracking-wider flex items-center gap-2 transition-all cursor-pointer ${
+                    isPlaying
+                      ? "bg-neon-green text-obsidian border-neon-green shadow-[0_0_15px_rgba(118,185,0,0.6)]"
+                      : "bg-white/10 border-white/20 text-gray-200 hover:bg-white/20 hover:text-white"
+                  }`}
+                  title={isPlaying ? "Pause automatic slideshow (Space)" : "Initiate automatic slideshow (Space)"}
                 >
-                  Click anywhere or press Esc to close
+                  {isPlaying ? (
+                    <>
+                      <Pause className="w-3.5 h-3.5 fill-obsidian" />
+                      <span>Pause Slideshow</span>
+                    </>
+                  ) : (
+                    <>
+                      <Play className="w-3.5 h-3.5 fill-neon-green" />
+                      <span>Initiate Auto Slideshow</span>
+                    </>
+                  )}
+                </button>
+
+                {/* Close Button */}
+                <button
+                  type="button"
+                  className="text-gray-400 hover:text-white bg-white/10 hover:bg-white/20 border border-white/20 rounded-full p-2.5 transition-all cursor-pointer shadow-xl"
+                  onClick={closeSlideshow}
+                  title="Close slideshow (Esc)"
+                >
+                  <X className="w-5 h-5" />
                 </button>
               </div>
-            </motion.div>
+            </div>
+
+            {/* Central Main Viewport with Prev / Next Buttons */}
+            <div className="relative flex-1 flex items-center justify-center my-4 w-full max-w-7xl mx-auto overflow-hidden">
+              {/* Previous Slide Arrow Button */}
+              {screenshots.length > 1 && (
+                <button
+                  type="button"
+                  onClick={handlePrevSlide}
+                  className="absolute left-2 sm:left-4 z-40 p-3 sm:p-4 rounded-full bg-black/70 hover:bg-neon-green hover:text-obsidian border border-white/20 hover:border-neon-green text-white transition-all cursor-pointer shadow-2xl hover:scale-110"
+                  title="Previous image (Left Arrow)"
+                >
+                  <ChevronLeft className="w-6 h-6 sm:w-8 sm:h-8" />
+                </button>
+              )}
+
+              {/* Main Active Image Display */}
+              <AnimatePresence mode="wait">
+                <motion.div
+                  key={slideshowIndex}
+                  initial={{ opacity: 0, scale: 0.97 }}
+                  animate={{ opacity: 1, scale: 1 }}
+                  exit={{ opacity: 0, scale: 0.97 }}
+                  transition={{ duration: 0.25, ease: "easeInOut" }}
+                  className="max-w-[92vw] max-h-[68vh] flex items-center justify-center relative"
+                >
+                  <img
+                    src={currentSlide.src}
+                    alt={currentSlide.title}
+                    className="max-w-full max-h-[68vh] w-auto h-auto object-contain rounded-2xl border border-white/20 shadow-[0_0_60px_rgba(0,0,0,0.9)]"
+                  />
+                </motion.div>
+              </AnimatePresence>
+
+              {/* Next Slide Arrow Button */}
+              {screenshots.length > 1 && (
+                <button
+                  type="button"
+                  onClick={handleNextSlide}
+                  className="absolute right-2 sm:right-4 z-40 p-3 sm:p-4 rounded-full bg-black/70 hover:bg-neon-green hover:text-obsidian border border-white/20 hover:border-neon-green text-white transition-all cursor-pointer shadow-2xl hover:scale-110"
+                  title="Next image (Right Arrow)"
+                >
+                  <ChevronRight className="w-6 h-6 sm:w-8 sm:h-8" />
+                </button>
+              )}
+            </div>
+
+            {/* Bottom Section: Caption & Clickable Thumbnail Strip */}
+            <div className="w-full max-w-5xl mx-auto space-y-3 font-mono text-xs relative z-50">
+              {/* Slide Caption Details */}
+              <div className="bg-obsidian/90 border border-white/15 p-4 rounded-2xl flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 backdrop-blur-md">
+                <div>
+                  <div className="text-white font-bold text-sm sm:text-base flex items-center gap-2 font-display uppercase tracking-wide">
+                    <Maximize2 className="w-4 h-4 text-neon-green" />
+                    {currentSlide.title}
+                  </div>
+                  <p className="text-gray-300 text-xs font-mono mt-1 leading-relaxed max-w-3xl">
+                    {currentSlide.desc}
+                  </p>
+                </div>
+
+                <div className="text-[10px] text-gray-400 shrink-0 self-end sm:self-center font-mono">
+                  Use <kbd className="px-1.5 py-0.5 bg-white/10 rounded border border-white/20 text-white">←</kbd> <kbd className="px-1.5 py-0.5 bg-white/10 rounded border border-white/20 text-white">→</kbd> to navigate • <kbd className="px-1.5 py-0.5 bg-white/10 rounded border border-white/20 text-white">Space</kbd> to pause
+                </div>
+              </div>
+
+              {/* Interactive Thumbnail Strip */}
+              {screenshots.length > 1 && (
+                <div className="flex items-center justify-center gap-3 overflow-x-auto py-1 no-scrollbar">
+                  {screenshots.map((ss, idx) => {
+                    const isActive = idx === slideshowIndex;
+                    return (
+                      <button
+                        key={idx}
+                        type="button"
+                        onClick={() => openSlideshow(idx)}
+                        className={`relative w-20 sm:w-24 h-12 sm:h-14 rounded-xl overflow-hidden border transition-all cursor-pointer shrink-0 ${
+                          isActive
+                            ? "border-neon-green shadow-[0_0_15px_rgba(118,185,0,0.6)] scale-105"
+                            : "border-white/20 opacity-50 hover:opacity-100 hover:border-white/40"
+                        }`}
+                        title={`Jump to slide ${idx + 1}: ${ss.title}`}
+                      >
+                        <img src={ss.src} alt={ss.title} className="w-full h-full object-cover" />
+                        {isActive && (
+                          <div className="absolute inset-0 bg-neon-green/10 border-2 border-neon-green pointer-events-none rounded-xl" />
+                        )}
+                      </button>
+                    );
+                  })}
+                </div>
+              )}
+            </div>
+
           </motion.div>
         )}
       </AnimatePresence>
