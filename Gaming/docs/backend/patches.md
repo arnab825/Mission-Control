@@ -2,6 +2,11 @@
 
 This document contains a detailed history of all patches and updates for the AI Gaming Assistant.
 
+### Patch: 2026-07-26 — v2.5.4: Dynamic Steam Artwork & Scanner Polish
+
+- Removed hardcoded game title mappings from frontend
+- Enhanced backend Steam banner search to dynamically fetch header artwork for local games
+
 ### Patch: 2026-07-26 — v2.5.3: Dynamic Steam Artwork Fetching
 
 - Removed hardcoded game title to banner mappings in GamesPage.tsx
