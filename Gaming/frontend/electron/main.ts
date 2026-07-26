@@ -1863,10 +1863,38 @@ function setupAutoUpdater() {
     }
   });
 
+function sanitizeUpdateErrorMessage(rawMsg: string): string {
+  if (!rawMsg) return 'An unexpected error occurred during update initialization.';
+  const msgLower = rawMsg.toLowerCase();
+  if (msgLower.includes('latest.yml') || (msgLower.includes('404') && (msgLower.includes('github.com') || msgLower.includes('httperror')))) {
+    return 'The release assets for this version are currently being compiled and published. Please check back in a few minutes or download Setup.exe manually below.';
+  }
+  if (msgLower.includes('enotfound') || msgLower.includes('econnrefused') || msgLower.includes('etimedout') || msgLower.includes('internet_disconnected') || msgLower.includes('name_not_resolved')) {
+    return 'Unable to reach update servers. Please check your network connection and try again.';
+  }
+  if (msgLower.includes('rate limit') || msgLower.includes('429')) {
+    return 'GitHub update server rate limit exceeded. Please try again in a few minutes.';
+  }
+  if (msgLower.includes('please check update first')) {
+    return 'Update download is initializing. Please verify update check first or try again in a few moments.';
+  }
+  let clean = rawMsg;
+  const truncateIndex = clean.search(/\b(Headers:|HttpError:|\n\s*at\b|Stacktrace:)/i);
+  if (truncateIndex > 0) {
+    clean = clean.substring(0, truncateIndex).trim();
+  }
+  clean = clean.replace(/[\r\n]+/g, ' ').trim();
+  if (clean.length > 220) {
+    clean = clean.substring(0, 217) + '...';
+  }
+  return clean || 'An unexpected error occurred during update initialization.';
+}
+
   autoUpdater.on('error', (err) => {
     console.error('[AutoUpdater] Error:', err);
     stopUpdateAnimation();
-    const state = { status: 'error', message: err.message };
+    const friendlyMsg = sanitizeUpdateErrorMessage(err.message || String(err));
+    const state = { status: 'error', message: friendlyMsg };
     saveUpdateState(state);
     sendToAllWindows('electron-update-status', state);
     if (isManualUpdateCheck) {
@@ -2013,9 +2041,7 @@ function setupAutoUpdater() {
       }
     } catch (err: any) {
       console.error('[AutoUpdater] downloadUpdate failed:', err);
-      const friendlyMsg = err.message === 'Please check update first'
-        ? 'Update download is initializing. Please verify update check first or try again in a few moments.'
-        : err.message;
+      const friendlyMsg = sanitizeUpdateErrorMessage(err?.message || String(err));
       sendToAllWindows('electron-update-status', { status: 'error', message: friendlyMsg });
     }
   });

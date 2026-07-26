@@ -2,6 +2,13 @@
 
 This document contains a detailed history of all patches and updates for the AI Gaming Assistant.
 
+### Patch: 2026-07-26 — v2.4.5: Fix model weights download and sanitize auto-updater errors
+
+- Broadcast installed models status on backend startup
+- Fix Content-Length header parsing exception on HTTP redirects during model downloads
+- Sanitize auto-updater errors by stripping JS stack traces and HTTP headers
+- Translate raw 404 latest.yml errors into clean beginner-friendly updates-pending messages
+
 ### Patch: 2026-07-26 — v2.4.4: Ignore pirate release groups in game scan and fix missing icon
 
 - Ignore pirate release groups (FLT, RUNE, CODEX, ali213, tenoke, goldberg, epicfiles, steamfiles, online fix) in deep scan

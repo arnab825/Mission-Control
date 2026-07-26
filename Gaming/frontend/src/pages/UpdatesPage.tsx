@@ -563,7 +563,29 @@ export const UpdatesPage: React.FC<UpdatesPageProps> = ({
                             <div className="space-y-1">
                               <h5 className="text-[10px] font-black uppercase tracking-widest">Desktop Client Update Interrupted</h5>
                               <p className="text-[9px] font-medium leading-relaxed">
-                                {nativeUpdate.message || 'An unexpected error occurred during update initialization.'}
+                                {(() => {
+                                  const rawMsg = nativeUpdate.message || '';
+                                  const msgLower = rawMsg.toLowerCase();
+                                  if (msgLower.includes('latest.yml') || (msgLower.includes('404') && (msgLower.includes('github.com') || msgLower.includes('httperror')))) {
+                                    return 'The release assets for this version are currently being compiled and published to GitHub. Please check back in a few minutes or download Setup.exe manually below.';
+                                  }
+                                  if (msgLower.includes('enotfound') || msgLower.includes('econnrefused') || msgLower.includes('etimedout') || msgLower.includes('internet_disconnected') || msgLower.includes('name_not_resolved')) {
+                                    return 'Unable to reach update servers. Please check your network connection and try again.';
+                                  }
+                                  if (msgLower.includes('rate limit') || msgLower.includes('429')) {
+                                    return 'GitHub update server rate limit exceeded. Please try again in a few minutes.';
+                                  }
+                                  let clean = rawMsg;
+                                  const truncateIndex = clean.search(/\b(Headers:|HttpError:|\n\s*at\b|Stacktrace:)/i);
+                                  if (truncateIndex > 0) {
+                                    clean = clean.substring(0, truncateIndex).trim();
+                                  }
+                                  clean = clean.replace(/[\r\n]+/g, ' ').trim();
+                                  if (clean.length > 220) {
+                                    clean = clean.substring(0, 217) + '...';
+                                  }
+                                  return clean || 'An unexpected error occurred during update initialization.';
+                                })()}
                               </p>
                             </div>
                           </div>

@@ -441,6 +441,13 @@ Ready and monitoring. Launch your game to initiate automatic HUD lock.
         except Exception:
             pass
 
+        try:
+            from handlers.system_handler import check_installed_models
+            bridge.update_state({"installed_models": check_installed_models()})
+            logger.info("Broadcasted initial installed_models status.")
+        except Exception as e:
+            logger.error(f"Failed to broadcast installed_models: {e}")
+
         # Trigger initial telemetry glitch scan once on startup
         try:
             handle_bridge_update_commands("check_patches", {}, bridge)
