@@ -93,6 +93,20 @@ class GameScanner:
         launcher_keywords = ["play", "launcher", "launch", "start"]
         avoid_keywords = ["unins", "crash", "report", "helper", "setup", "install", "config", "patch"]
         
+        crack_groups = {"flt", "rune", "codex", "ali213", "tenoke", "goldberg", "epicfiles", "steamfiles", "onlinefix", "skidrow", "reloaded", "fitgirl", "dodi", "razor1911", "emp", "empress", "crack", "update"}
+        
+        # filter out crack group exes and emulator wrappers
+        filtered_exes = []
+        for p in exes_paths:
+            name_no_ext = p.stem.lower()
+            if name_no_ext not in crack_groups and not name_no_ext.startswith("steam_api") and not name_no_ext.startswith("steamclient"):
+                filtered_exes.append(p)
+                
+        if not filtered_exes:
+            filtered_exes = exes_paths  # fallback
+            
+        exes_paths = filtered_exes
+        
         best_launcher = None
         for p in exes_paths:
             name = p.name.lower()
@@ -1984,6 +1998,10 @@ class GameScanner:
                             if game_dir.name.startswith("$") or game_dir.name == "Common":
                                 continue
                                 
+                            crack_groups = {"flt", "rune", "codex", "ali213", "tenoke", "goldberg", "epicfiles", "steamfiles", "onlinefix", "online fix", "crack", "skidrow", "reloaded", "fitgirl", "dodi", "update", "updates"}
+                            if game_dir.name.lower() in crack_groups:
+                                continue
+                                
                             # Look for an .exe in the root or common subfolders
                             exes = []
                             search_patterns = [
@@ -2043,7 +2061,10 @@ class GameScanner:
             "users", "$recycle.bin", "system volume information",
             "common files", "internet explorer", "windowsapps",
             "microsoft", "intel", "nvidia", "amd", "appdata",
-            "documents and settings", "recovery", "msocache"
+            "documents and settings", "recovery", "msocache",
+            "flt", "rune", "codex", "ali213", "tenoke", "goldberg", 
+            "epicfiles", "steamfiles", "onlinefix", "online fix",
+            "crack", "skidrow", "reloaded", "fitgirl", "dodi", "update", "updates"
         }
         
         # Game-like patterns in folder names
