@@ -1,8 +1,18 @@
 {
-  "version": "2.4.5",
+  "version": "2.4.6",
   "release_date": "2026-07-25",
   "update_check_url": "https://raw.githubusercontent.com/arnab825/Mission-Control/main/Gaming/backend/version.json",
   "changelog": [
+    {
+      "version": "2.4.6",
+      "date": "2026-07-26",
+      "title": "v2.4.6 Bug Fixes",
+      "highlights": [
+        "Fixed Electron updater pause glitch",
+        "Fixed AI model download timeout",
+        "Fixed Ghost of Tsushima pirate release filter"
+      ]
+    },
     {
       "version": "2.4.5",
       "date": "2026-07-26",
@@ -424,15 +434,6 @@
       "title": "Support dynamic RTX 60+ series and auto-configure presets",
       "highlights": [
         "Support dynamic RTX 60+ series and auto-configure presets"
-      ]
-    },
-    {
-      "version": "1.8.2",
-      "date": "2026-07-20",
-      "title": "Subsequent Update Check Overrides",
-      "highlights": [
-        "Enabled check for newer system updates even when an update has already been downloaded and is waiting for client restart",
-        "Added Check Again trigger endpoints to both tab headings and relaunch prompts"
       ]
     }
   ]
