@@ -1,8 +1,17 @@
 {
-  "version": "2.4.7",
+  "version": "2.4.8",
   "release_date": "2026-07-25",
   "update_check_url": "https://raw.githubusercontent.com/arnab825/Mission-Control/main/Gaming/backend/version.json",
   "changelog": [
+    {
+      "version": "2.4.8",
+      "date": "2026-07-26",
+      "title": "App Logo Splash Screen & Website Blog Pagination",
+      "highlights": [
+        "Added App Logo to Electron splash screen and in-app loading overlays",
+        "Added 6-item pagination and reduced vertical padding on website blog page"
+      ]
+    },
     {
       "version": "2.4.7",
       "date": "2026-07-26",
@@ -426,14 +435,6 @@
       "title": "Support dynamic RAWG fallback database scan for 1 lakh+ games",
       "highlights": [
         "Support dynamic RAWG fallback database scan for 1 lakh+ games"
-      ]
-    },
-    {
-      "version": "1.8.4",
-      "date": "2026-07-20",
-      "title": "Support FPS genre mapping in preset recommendations",
-      "highlights": [
-        "Support FPS genre mapping in preset recommendations"
       ]
     }
   ]

@@ -2,6 +2,11 @@
 
 This document contains a detailed history of all patches and updates for the AI Gaming Assistant.
 
+### Patch: 2026-07-26 — v2.4.8: App Logo Splash Screen & Website Blog Pagination
+
+- Added App Logo to Electron splash screen and in-app loading overlays
+- Added 6-item pagination and reduced vertical padding on website blog page
+
 ### Patch: 2026-07-26 — v2.4.7: Fix Ghost of Tsushima Vision Capture
 
 - Fix WindowDetector library lookup for E2EE Privacy Shield
