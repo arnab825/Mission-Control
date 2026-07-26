@@ -1,8 +1,18 @@
 {
-  "version": "2.5.1",
+  "version": "2.5.2",
   "release_date": "2026-07-25",
   "update_check_url": "https://raw.githubusercontent.com/arnab825/Mission-Control/main/Gaming/backend/version.json",
   "changelog": [
+    {
+      "version": "2.5.2",
+      "date": "2026-07-26",
+      "title": "Frontend UI Fixes & Icon Mapping",
+      "highlights": [
+        "Removed obsolete Skip Admin Privilege Check from settings",
+        "Updated AI Vision Weights installer to use manual GitHub release downloads",
+        "Added Ghost of Tsushima to recognized game banners"
+      ]
+    },
     {
       "version": "2.5.1",
       "date": "2026-07-26",
@@ -428,14 +438,6 @@
       "title": "Fix list index out of range in Brave search parsing",
       "highlights": [
         "Fix list index out of range in Brave search parsing"
-      ]
-    },
-    {
-      "version": "1.8.8",
-      "date": "2026-07-20",
-      "title": "Filter launcher icons in Settings table and fallback to Steam headers",
-      "highlights": [
-        "Filter launcher icons in Settings table and fallback to Steam headers"
       ]
     }
   ]
