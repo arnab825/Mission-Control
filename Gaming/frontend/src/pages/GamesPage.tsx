@@ -17,7 +17,6 @@ import {
   RefreshCcw,
   Filter,
   Terminal,
-  Database,
   Shield
 } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
@@ -166,7 +165,7 @@ const GameCard: React.FC<{ game: BackendGame; sendCommand: (type: string, payloa
       className="group bg-white/[0.03] hover:border-neon-green/30 rounded-3xl overflow-hidden transition-all duration-500 border border-white/5 flex flex-col justify-between"
     >
       {/* Cover Image */}
-      <div 
+      <div
         onClick={handleLaunch}
         className="aspect-video relative overflow-hidden bg-black/40 flex items-center justify-center cursor-pointer"
       >
@@ -197,7 +196,7 @@ const GameCard: React.FC<{ game: BackendGame; sendCommand: (type: string, payloa
       {/* Info */}
       <div className="p-4 space-y-3 flex-1 flex flex-col justify-between">
         <div className="space-y-2">
-          <div 
+          <div
             onClick={handleLaunch}
             className="min-h-10 cursor-pointer"
           >
@@ -242,7 +241,7 @@ const CacheLoadingScreen: React.FC = () => (
       <div className="relative w-20 h-20 flex items-center justify-center mb-6">
         <div className="absolute inset-0 rounded-full border-t border-neon-green animate-spin [animation-duration:1.5s]" />
         <div className="absolute inset-2 rounded-full border-b border-indigo-500 animate-spin [animation-duration:2s]" />
-        <Database className="w-8 h-8 text-neon-green animate-pulse" />
+        <img src="/logo.png" className="w-10 h-10 object-contain animate-pulse" alt="Mission Control Logo" />
       </div>
       <h3 className="text-sm font-black tracking-[0.3em] text-white uppercase text-center mb-2">
         Retrieving Neural Archive
@@ -904,12 +903,12 @@ const GamesLibraryContent: React.FC<GamesPageProps> = ({ state, sendCommand, set
             <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 2xl:grid-cols-4 gap-5">
               <AnimatePresence mode="popLayout">
                 {filteredGames.map((game, i) => (
-                  <GameCard 
-                    key={`${game.id}-${i}`} 
-                    game={game} 
+                  <GameCard
+                    key={`${game.id}-${i}`}
+                    game={game}
                     sendCommand={sendCommand}
-                    isRtxGpu={isRtxGpu} 
-                    isNvidiaGpu={isNvidiaGpu} 
+                    isRtxGpu={isRtxGpu}
+                    isNvidiaGpu={isNvidiaGpu}
                   />
                 ))}
               </AnimatePresence>

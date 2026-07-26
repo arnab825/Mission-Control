@@ -37,8 +37,15 @@ const cleanElectronBuildPlugin = () => ({
       const dest = path.resolve('dist-electron/splash.html');
       fs.copyFileSync(src, dest);
       console.log('✓ Copied splash.html to dist-electron');
+
+      const srcLogo = path.resolve('public/logo.png');
+      const destLogo = path.resolve('dist-electron/logo.png');
+      if (fs.existsSync(srcLogo)) {
+        fs.copyFileSync(srcLogo, destLogo);
+        console.log('✓ Copied logo.png to dist-electron');
+      }
     } catch (err) {
-      console.error('Failed to copy splash.html:', err);
+      console.error('Failed to copy splash assets:', err);
     }
   }
 })
