@@ -114,8 +114,16 @@ const GameCard: React.FC<{ game: BackendGame; sendCommand: (type: string, payloa
     'Rockstar Games': 'data:image/svg+xml;base64,PHN2ZyBmaWxsPSIjZmZmZmZmIiByb2xlPSJpbWciIHZpZXdCb3g9IjAgMCAyNCAyNCIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj48dGl0bGU+Um9ja3N0YXIgR2FtZXM8L3RpdGxlPjxwYXRoIGQ9Ik01Ljk3MSA2LjgxNmgzLjI0MWMxLjQ2OSAwIDIuNzQxLS40NDggMi43NDEtMi4wODQgMC0xLjMtMS4xMTctMS41NzYtMi4xOS0xLjU3Nkg2Ljc0OGwtLjc3NyAzLjY2Wm0xMi44MzQgOC43NTNoNS4xNjhsLTQuNjY0IDMuMjI4Ljc1NSA1LjA4Ny00LjA0MS0zLjA3TDEwLjU5OSAyNGwyLjUzNi01LjM5MnMtMi45NS0zLjA3NS0yLjk0Ny0zLjA3NWMtLjE5OC0uMjYyLS4yNjUtLjkzNi0uMjY1LTEuMjI2IDAtLjM2Ny4wMjQtLjczOS4wNDktMS4xMzQuMDI4LS40NTEuMDU4LS45MzMuMDU4LTEuNDc2IDAtMS4zMzgtLjU5LTIuMDM4LTIuMDM2LTIuMDM4SDUuMjgzbC0xLjE4IDUuNTI1SC4wMjZMMy4yNjkgMGg3LjY3MmMyLjg1MiAwIDUuMDI3LjcwMiA1LjAyNyAzLjkzNiAwIDIuMjc2LTEuMTIgMy44OTQtMy41OTIgNC4yMzN2LjA0NWMxLjE2Mi4yNzYgMS41OTggMS4wNjIgMS41OTggMi41MjcgMCAuNTg1LS4wMTggMS4wOTgtLjAzNCAxLjU4MS0uMDE1LjQyOC0uMDMuODM0LS4wMyAxLjI0MyAwIC41MjUuMTM3IDEuMzgyLjQ4IDEuOTY4aC41NjdsMy4wMjgtNS4wNi44MiA1LjA5NlptLTEuMjMzLTIuOTQ4LTIuMTg3IDMuNjU0aC0zLjQ1N2wyLjEwMyAyLjE4OS0xLjczIDMuNjcyIDMuNzc3LTIuMjE4IDIuOTc2IDIuMjYzLS41NTMtMy43MzEgMy4wOTMtMi4xMzloLTMuNDNsLS41OTItMy42OVoiLz48L3N2Zz4='
   };
 
+  const KNOWN_GAMES: Record<string, string> = {
+    'ghost of tsushima dc': '2215430',
+    'ghost of tsushima': '2215430',
+  };
+  const knownAppId = KNOWN_GAMES[game.name.toLowerCase().trim()];
+
   if (game.local_banner && game.local_banner !== 'null') {
     coverUrl = game.local_banner.startsWith('http') ? game.local_banner : `asset:///${game.local_banner.replace(/\\/g, '/')}`;
+  } else if (knownAppId) {
+    coverUrl = `https://cdn.akamai.steamstatic.com/steam/apps/${knownAppId}/header.jpg`;
   } else if (game.platform === 'Steam' && game.id && !isLauncher) {
     coverUrl = `https://cdn.akamai.steamstatic.com/steam/apps/${game.id}/header.jpg`;
   } else if (isLauncher && LAUNCHER_BANNERS[game.platform]) {

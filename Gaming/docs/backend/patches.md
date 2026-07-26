@@ -2,6 +2,12 @@
 
 This document contains a detailed history of all patches and updates for the AI Gaming Assistant.
 
+### Patch: 2026-07-26 — v2.5.2: Frontend UI Fixes & Icon Mapping
+
+- Removed obsolete Skip Admin Privilege Check from settings
+- Updated AI Vision Weights installer to use manual GitHub release downloads
+- Added Ghost of Tsushima to recognized game banners
+
 ### Patch: 2026-07-26 — v2.5.1: Pirate Release Group Filter Fix
 
 - Fixed Game Scanner wrongly picking up crack group names (e.g. FLT, RUNE) as game names

@@ -634,7 +634,7 @@ const VisionPage: React.FC<VisionPageProps> = ({ state, sendCommand }) => {
                 On-Demand AI Model Weights
               </span>
               <span className="text-[9px] text-zinc-500 font-mono">
-                Download model weights on-demand to keep base installation lightweight
+                Manual install required. Download and extract to <b>Gaming/backend/models</b>
               </span>
             </div>
 
@@ -721,8 +721,7 @@ const VisionPage: React.FC<VisionPageProps> = ({ state, sendCommand }) => {
                         </span>
                         <button
                           type="button"
-                          onClick={() => sendCommand('download_ai_model', { model_id: m.id })}
-                          disabled={isDownloading}
+                          onClick={() => window.open('https://github.com/arnab825/Mission-Control/releases', '_blank')}
                           className={`flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-[9px] font-black uppercase tracking-wider border transition-all cursor-pointer ${
                             installed
                               ? 'bg-neon-green/10 border-neon-green/30 text-neon-green hover:bg-neon-green/20'
@@ -730,7 +729,7 @@ const VisionPage: React.FC<VisionPageProps> = ({ state, sendCommand }) => {
                           }`}
                         >
                           <Download className="w-3 h-3" />
-                          {installed ? 'Re-Download' : 'Download'}
+                          {installed ? 'Update Manually' : 'Manual Download'}
                         </button>
                       </div>
                     )}

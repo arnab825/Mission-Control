@@ -3411,24 +3411,6 @@ const SettingsPage: React.FC<{ state: TelemetryState | null, sendCommand: (type:
             </div>
           </SettingsField>
 
-          <SettingsField label="Skip Admin Privilege Check" description="Do not prompt for Administrator privileges on startup. Note: CPU temp/wattage sensors may be restricted.">
-            <div className="flex items-center gap-3">
-              <span className={`text-[9px] font-black uppercase ${localConfig.overlay?.skip_admin_prompt === true ? 'text-neon-green' : 'text-zinc-500'}`}>
-                {localConfig.overlay?.skip_admin_prompt === true ? 'Enabled' : 'Disabled'}
-              </span>
-              <div role="button" tabIndex={0} onKeyDown={(e) => e.key === 'Enter' && e.currentTarget.click()}
-                onClick={() => {
-                  const newVal = localConfig.overlay?.skip_admin_prompt !== true;
-                  const updatedOverlay = { ...localConfig.overlay, skip_admin_prompt: newVal };
-                  setLocalConfig({ ...localConfig, overlay: updatedOverlay });
-                  sendCommand('update_config', { overlay: updatedOverlay });
-                }}
-                className={`w-12 h-6 rounded-full relative p-1 cursor-pointer transition-colors ${localConfig.overlay?.skip_admin_prompt === true ? 'bg-neon-green' : 'bg-zinc-800'}`}
-              >
-                <div className={`w-4 h-4 rounded-full absolute transition-all ${localConfig.overlay?.skip_admin_prompt === true ? 'bg-black right-1' : 'bg-black left-1'}`} />
-              </div>
-            </div>
-          </SettingsField>
         </SettingsSection>
 
         {/* Hotkeys & Voice */}
