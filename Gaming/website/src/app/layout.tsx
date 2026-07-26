@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import { Inter, JetBrains_Mono, Outfit } from "next/font/google";
 import "./globals.css";
 import ClientLayout from "@/components/ClientLayout";
+import { GoogleAdSenseScript } from "@/components/GoogleAdSense";
 
 const inter = Inter({
   variable: "--font-inter",
@@ -21,7 +22,7 @@ const outfit = Outfit({
 export const metadata: Metadata = {
   title: {
     default: "Mission Control - Autonomous Gaming Assistant & Telemetry Control",
-    template: "%s | Mission Control Mission Control"
+    template: "%s | Mission Control"
   },
   description: "Mission Control is an advanced agentic gaming overlay, technical coach, and hardware telemetry dashboard. Optimize your GPU performance, track real-time frame rates, and synchronize community telemetry hotfixes automatically.",
   keywords: [
@@ -36,11 +37,14 @@ export const metadata: Metadata = {
     "System Performance Optimizer"
   ],
   authors: [{ name: "Mission Control Team" }],
+  verification: {
+    google: process.env.NEXT_PUBLIC_GOOGLE_SITE_VERIFICATION ,
+  },
   openGraph: {
     title: "Mission Control - Autonomous Gaming Assistant & Telemetry Control",
     description: "Advanced agentic HUD overlay, technical coach, and hardware performance diagnostics optimized by NVIDIA NIM.",
-    url: "https://aero-mission-control.dev",
-    siteName: "Mission Control Mission Control",
+    url: "https://mission-control-roan-seven.vercel.app",
+    siteName: "Mission Control",
     locale: "en_US",
     type: "website",
   },
@@ -74,13 +78,34 @@ export default function RootLayout({
       className={`${inter.variable} ${jetbrainsMono.variable} ${outfit.variable} antialiased dark`}
     >
       <body className="min-h-screen flex flex-col bg-obsidian text-foreground font-sans">
+        <GoogleAdSenseScript />
+
+        {/* Google Search Sitelinks & WebSite SearchAction Schema */}
+        <script
+          type="application/ld+json"
+          dangerouslySetInnerHTML={{
+            __html: JSON.stringify({
+              "@context": "https://schema.org",
+              "@type": "WebSite",
+              "name": "Mission Control",
+              "url": "https://mission-control-roan-seven.vercel.app",
+              "potentialAction": {
+                "@type": "SearchAction",
+                "target": "https://mission-control-roan-seven.vercel.app/blog?search={search_term_string}",
+                "query-input": "required name=search_term_string"
+              }
+            })
+          }}
+        />
+
+        {/* Software Application Schema */}
         <script
           type="application/ld+json"
           dangerouslySetInnerHTML={{
             __html: JSON.stringify({
               "@context": "https://schema.org",
               "@type": "SoftwareApplication",
-              "name": "Mission Control Mission Control",
+              "name": "Mission Control",
               "operatingSystem": "Windows 10, Windows 11",
               "applicationCategory": "GameApplication, UtilityApplication",
               "offers": {
@@ -98,6 +123,7 @@ export default function RootLayout({
             })
           }}
         />
+
         <ClientLayout>
           {children}
         </ClientLayout>

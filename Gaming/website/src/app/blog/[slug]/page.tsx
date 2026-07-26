@@ -63,9 +63,9 @@ export default async function BlogPost({ params }: { params: Promise<{ slug: str
   const versionFile = path.join(process.cwd(), "../backend/version.json");
   
   const headersList = await headers();
-  const host = headersList.get("host") || "aero-mission-control.dev";
-  const isLocal = host.startsWith("localhost") || host.startsWith("127.0.0.1");
-  const shareHost = isLocal ? "aero-mission-control.dev" : host;
+  const host = headersList.get("host") || "mission-control-roan-seven.vercel.app";
+  const isLocal = host.includes("localhost") || host.includes("127.0.0.1");
+  const shareHost = isLocal ? "mission-control-roan-seven.vercel.app" : host;
   const postUrl = `https://${shareHost}/blog/${slug}`;
   
   let postLog: any = null;
