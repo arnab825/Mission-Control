@@ -681,6 +681,7 @@ def handle_download_ai_model(payload: dict, pipeline, bridge, config) -> None:
             target_path = models_dir / info["filename"]
 
             bridge.update_state({
+                "installed_models": check_installed_models(),
                 "model_download_status": {
                     "model_id": model_id,
                     "status": "downloading",
@@ -707,7 +708,11 @@ def handle_download_ai_model(payload: dict, pipeline, bridge, config) -> None:
                 urlopen_kwargs["context"] = context
 
             with urllib.request.urlopen(req, **urlopen_kwargs) as response, open(target_path, "wb") as out_file:
-                total_bytes = int(response.headers.get("Content-Length", info["size_mb"] * 1024 * 1024))
+                raw_cl = response.headers.get("Content-Length")
+                if raw_cl and str(raw_cl).isdigit():
+                    total_bytes = int(raw_cl)
+                else:
+                    total_bytes = int(info["size_mb"] * 1024 * 1024)
                 downloaded_bytes = 0
                 block_size = 65536
                 last_update = 0

@@ -1,8 +1,19 @@
 {
-  "version": "2.4.4",
+  "version": "2.4.5",
   "release_date": "2026-07-25",
   "update_check_url": "https://raw.githubusercontent.com/arnab825/Mission-Control/main/Gaming/backend/version.json",
   "changelog": [
+    {
+      "version": "2.4.5",
+      "date": "2026-07-26",
+      "title": "Fix model weights download and sanitize auto-updater errors",
+      "highlights": [
+        "Broadcast installed models status on backend startup",
+        "Fix Content-Length header parsing exception on HTTP redirects during model downloads",
+        "Sanitize auto-updater errors by stripping JS stack traces and HTTP headers",
+        "Translate raw 404 latest.yml errors into clean beginner-friendly updates-pending messages"
+      ]
+    },
     {
       "version": "2.4.4",
       "date": "2026-07-26",
@@ -422,15 +433,6 @@
       "highlights": [
         "Enabled check for newer system updates even when an update has already been downloaded and is waiting for client restart",
         "Added Check Again trigger endpoints to both tab headings and relaunch prompts"
-      ]
-    },
-    {
-      "version": "1.8.1",
-      "date": "2026-07-20",
-      "title": "Configurable Auto-Update Control",
-      "highlights": [
-        "Added a configurable background auto-download switch for core system updates",
-        "Allows toggling auto-download on or off to choose when to initiate update downloads manually"
       ]
     }
   ]
