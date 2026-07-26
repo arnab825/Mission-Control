@@ -72,9 +72,10 @@ class WindowDetector:
         "nzxt cam", "nvidia geforce experience", "geforce experience"
     ]
     
-    def __init__(self, poll_interval: float = 1.0, app_data_path: Optional[str] = None):
+    def __init__(self, poll_interval: float = 1.0, app_data_path: Optional[str] = None, config: Optional[Dict] = None):
         self.poll_interval = poll_interval
         self.app_data_path = app_data_path
+        self.config = config or {}
         self._running = False
         self._thread: Optional[threading.Thread] = None
         
@@ -268,40 +269,34 @@ class WindowDetector:
         return None
         
     def _load_library_games(self):
-        """Load scanned games from all games_db*.json databases."""
+        """Load scanned games using the system GameScanner."""
         library_games = []
         try:
-            import json
-            import glob
+            import sys
+            import os
             from pathlib import Path
-            # Use provided app_data_path or fallback to backend config directory
-            if self.app_data_path:
-                config_dir = Path(self.app_data_path)
-            else:
-                config_dir = Path(__file__).parent.parent / "config"
+            # Prepend backend path to sys.path to ensure we can import system modules
+            backend_path = os.path.abspath(os.path.join(os.path.dirname(__file__), ".."))
+            if backend_path not in sys.path:
+                sys.path.insert(0, backend_path)
                 
-            cache_files = glob.glob(str(config_dir / "games_db*.json"))
-            for path_str in cache_files:
-                cache_file = Path(path_str)
-                if cache_file.exists():
-                    try:
-                        with open(cache_file, "r", encoding="utf-8") as f:
-                            games = json.load(f)
-                            for game in games:
-                                # Extract the executable base name
-                                exe_path = game.get("exe_path")
-                                if exe_path:
-                                    exe_name = Path(exe_path).name.lower()
-                                    if exe_name and exe_name.endswith(".exe"):
-                                        library_games.append(exe_name)
-                                # Also add the game name itself as keyword
-                                name = game.get("name")
-                                if name:
-                                    library_games.append(name.lower())
-                    except Exception as fe:
-                        logger.debug(f"Failed to load specific games database {cache_file}: {fe}")
+            from system.game_scanner import GameScanner
+            scanner = GameScanner(config=self.config)
+            games = scanner.load_cached_games()
+            
+            for game in games:
+                # Extract the executable base name
+                exe_path = game.get("exe_path")
+                if exe_path:
+                    exe_name = Path(exe_path).name.lower()
+                    if exe_name and exe_name.endswith(".exe"):
+                        library_games.append(exe_name)
+                # Also add the game name itself as keyword
+                name = game.get("name")
+                if name:
+                    library_games.append(name.lower())
         except Exception as e:
-            logger.debug(f"Failed to load library games database: {e}")
+            logger.debug(f"Failed to load library games via GameScanner: {e}")
         return library_games
 
     def _is_likely_game(self, title: str, window_class: str, exe_name: str, width: int, height: int) -> bool:
