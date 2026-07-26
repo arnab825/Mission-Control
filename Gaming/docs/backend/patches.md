@@ -2,6 +2,14 @@
 
 This document contains a detailed history of all patches and updates for the AI Gaming Assistant.
 
+### Patch: 2026-07-26 — v2.5.1: Pirate Release Group Filter, UI Fixes & Dynamic Steam Artwork
+
+- Fixed Game Scanner wrongly picking up crack group names (e.g. FLT, RUNE) as game names
+- Added global name sanitization logic and parent-directory fallback resolution to scan_all
+- Removed obsolete Skip Admin Privilege Check from settings
+- Updated AI Vision Weights installer to use manual GitHub release downloads
+- Enhanced backend Steam banner search to dynamically fetch header artwork for local games without hardcoding
+
 ### Patch: 2026-07-26 — v2.5.4: Dynamic Steam Artwork & Scanner Polish
 
 - Removed hardcoded game title mappings from frontend
