@@ -1,8 +1,17 @@
 {
-  "version": "2.4.3",
+  "version": "2.4.4",
   "release_date": "2026-07-25",
   "update_check_url": "https://raw.githubusercontent.com/arnab825/Mission-Control/main/Gaming/backend/version.json",
   "changelog": [
+    {
+      "version": "2.4.4",
+      "date": "2026-07-26",
+      "title": "Ignore pirate release groups in game scan and fix missing icon",
+      "highlights": [
+        "Ignore pirate release groups (FLT, RUNE, CODEX, ali213, tenoke, goldberg, epicfiles, steamfiles, online fix) in deep scan",
+        "Ignore crack emulator wrappers (steam_api64.exe) to fix missing game icon"
+      ]
+    },
     {
       "version": "2.4.3",
       "date": "2026-07-25",
@@ -422,18 +431,6 @@
       "highlights": [
         "Added a configurable background auto-download switch for core system updates",
         "Allows toggling auto-download on or off to choose when to initiate update downloads manually"
-      ]
-    },
-    {
-      "version": "1.8.0",
-      "date": "2026-07-20",
-      "title": "Updater Controls, Database Persistence & Website Mongoose Migration",
-      "highlights": [
-        "Implemented manual update cancellation and offline rollback backup/restoration mechanisms",
-        "Migrated desktop SQLite agent memory to write into user APPDATA folder, fixing production persistence",
-        "Removed ChromaDB dependency to reduce PyInstaller package size and resolved native C++ compilation issues",
-        "Migrated website issues list, documentation, and architecture layers to Mongoose/MongoDB",
-        "Refactored website architecture page into Server and Client components for Turbopack compatibility"
       ]
     }
   ]

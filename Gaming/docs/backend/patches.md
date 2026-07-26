@@ -2,6 +2,11 @@
 
 This document contains a detailed history of all patches and updates for the AI Gaming Assistant.
 
+### Patch: 2026-07-26 — v2.4.4: Ignore pirate release groups in game scan and fix missing icon
+
+- Ignore pirate release groups (FLT, RUNE, CODEX, ali213, tenoke, goldberg, epicfiles, steamfiles, online fix) in deep scan
+- Ignore crack emulator wrappers (steam_api64.exe) to fix missing game icon
+
 ### Patch: 2026-07-25 — v2.4.3: Fix FPS capture for Fullscreen Exclusive games
 
 - Fix FPS capture for Fullscreen Exclusive games
