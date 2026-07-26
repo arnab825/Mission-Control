@@ -38,7 +38,10 @@ export const metadata: Metadata = {
   ],
   authors: [{ name: "Mission Control Team" }],
   verification: {
-    google: process.env.NEXT_PUBLIC_GOOGLE_SITE_VERIFICATION ,
+    google: process.env.NEXT_PUBLIC_GOOGLE_SITE_VERIFICATION || "",
+  },
+  other: {
+    "google-adsense-account": process.env.NEXT_PUBLIC_ADSENSE_CLIENT_ID || "",
   },
   openGraph: {
     title: "Mission Control - Autonomous Gaming Assistant & Telemetry Control",

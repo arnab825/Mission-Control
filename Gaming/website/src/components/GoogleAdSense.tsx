@@ -8,7 +8,7 @@ interface GoogleAdSenseProps {
 }
 
 export function GoogleAdSenseScript({ publisherId }: GoogleAdSenseProps) {
-  const client = publisherId || process.env.NEXT_PUBLIC_ADSENSE_CLIENT_ID || "ca-pub-0000000000000000";
+  const client = publisherId || process.env.NEXT_PUBLIC_ADSENSE_CLIENT_ID || "";
 
   return (
     <Script
