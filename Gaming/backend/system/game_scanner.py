@@ -2064,7 +2064,8 @@ class GameScanner:
             "documents and settings", "recovery", "msocache",
             "flt", "rune", "codex", "ali213", "tenoke", "goldberg", 
             "epicfiles", "steamfiles", "onlinefix", "online fix",
-            "crack", "skidrow", "reloaded", "fitgirl", "dodi", "update", "updates"
+            "crack", "skidrow", "reloaded", "fitgirl", "dodi", "update", "updates",
+            "nodvd", "no-dvd", "crackfix"
         }
         
         # Game-like patterns in folder names
