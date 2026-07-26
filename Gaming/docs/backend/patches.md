@@ -2,6 +2,10 @@
 
 This document contains a detailed history of all patches and updates for the AI Gaming Assistant.
 
+### Patch: 2026-07-26 — v2.4.7: Fix Ghost of Tsushima Vision Capture
+
+- Fix WindowDetector library lookup for E2EE Privacy Shield
+
 ### Patch: 2026-07-26 — v2.4.6: v2.4.6 Bug Fixes
 
 - Fixed Electron updater pause glitch

@@ -1,8 +1,16 @@
 {
-  "version": "2.4.6",
+  "version": "2.4.7",
   "release_date": "2026-07-25",
   "update_check_url": "https://raw.githubusercontent.com/arnab825/Mission-Control/main/Gaming/backend/version.json",
   "changelog": [
+    {
+      "version": "2.4.7",
+      "date": "2026-07-26",
+      "title": "Fix Ghost of Tsushima Vision Capture",
+      "highlights": [
+        "Fix WindowDetector library lookup for E2EE Privacy Shield"
+      ]
+    },
     {
       "version": "2.4.6",
       "date": "2026-07-26",
@@ -426,14 +434,6 @@
       "title": "Support FPS genre mapping in preset recommendations",
       "highlights": [
         "Support FPS genre mapping in preset recommendations"
-      ]
-    },
-    {
-      "version": "1.8.3",
-      "date": "2026-07-20",
-      "title": "Support dynamic RTX 60+ series and auto-configure presets",
-      "highlights": [
-        "Support dynamic RTX 60+ series and auto-configure presets"
       ]
     }
   ]
