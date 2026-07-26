@@ -1856,6 +1856,9 @@ class GameBrain:
                                 yield chunk.choices[0].delta.content
                     return generate()
                 else:
+                    if not completion.choices:
+                        logger.warning("NVIDIA NIM returned empty choices list. Falling back to local response.")
+                        return None
                     advice = completion.choices[0].message.content
                     return advice
                 

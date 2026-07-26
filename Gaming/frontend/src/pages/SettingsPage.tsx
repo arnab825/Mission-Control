@@ -364,14 +364,14 @@ const OCR_ENGINE_OPTIONS = [
 ];
 
 const AI_NEURAL_BACKBONE_OPTIONS = [
-  { value: 'meta/llama-3.3-70b-instruct', label: 'Llama 3.3 70B Instruct (Recommended)', group: 'Strategic Analysis (Balanced)', isMono: true },
-  { value: 'meta/llama-3.1-70b-instruct', label: 'Llama 3.1 70B Instruct', group: 'Strategic Analysis (Balanced)', isMono: true },
-  { value: 'meta/llama-3.1-8b-instruct', label: 'Llama 3.1 8B Instruct', group: 'Fast Reasoning (Low Latency)', isMono: true },
-  { value: 'meta/llama-3.2-3b-instruct', label: 'Llama 3.2 3B Instruct', group: 'Fast Reasoning (Low Latency)', isMono: true },
-  { value: 'nvidia/nemotron-4-340b-instruct', label: 'Nemotron-4 340B', group: 'Strategic Analysis (Balanced)', isMono: true },
-  { value: 'meta/llama-3.2-11b-vision-instruct', label: 'Llama 3.2 11B Vision', group: 'Vision Specialized', isMono: true },
-  { value: 'nvidia/vlm-vila-1.5-40b', label: 'VILA 1.5 40B', group: 'Vision Specialized', isMono: true },
-  { value: 'custom', label: 'Custom ID...', isMono: true }
+  { value: 'meta/llama-3.3-70b-instruct', label: 'Llama 3.3 70B · Recommended', group: 'Strategic Analysis', isMono: true },
+  { value: 'meta/llama-3.1-70b-instruct', label: 'Llama 3.1 70B', group: 'Strategic Analysis', isMono: true },
+  { value: 'nvidia/llama-3.1-nemotron-70b-instruct', label: 'Nemotron 70B Instruct', group: 'Strategic Analysis', isMono: true },
+  { value: 'meta/llama-3.1-8b-instruct', label: 'Llama 3.1 8B · Fast', group: 'Fast Reasoning', isMono: true },
+  { value: 'mistralai/mistral-7b-instruct-v0.3', label: 'Mistral 7B · Lightweight', group: 'Fast Reasoning', isMono: true },
+  { value: 'meta/llama-3.2-11b-vision-instruct', label: 'Llama 3.2 11B Vision', group: 'Vision Models', isMono: true },
+  { value: 'microsoft/phi-3-medium-4k-instruct', label: 'Phi-3 Medium 14B', group: 'Fast Reasoning', isMono: true },
+  { value: 'custom', label: 'Custom NIM model ID...', isMono: true }
 ];
 
 const MEMORY_MODE_OPTIONS = [
@@ -1066,7 +1066,7 @@ const SettingsPage: React.FC<{ state: TelemetryState | null, sendCommand: (type:
         const customId = localConfig.ai_agent?.custom_model_id || 'Custom';
         return `Vision Model (${customId})`;
       }
-      const modelLabel = AI_NEURAL_BACKBONE_OPTIONS.find(o => o.value === model)?.label || 'Llama 3.1 8B';
+      const modelLabel = AI_NEURAL_BACKBONE_OPTIONS.find(o => o.value === model)?.label || 'Llama 3.3 70B';
       return `Vision Model (${modelLabel})`;
     }
     if (label === 'AI OCR Dialogue Reader') {
@@ -2622,7 +2622,7 @@ const SettingsPage: React.FC<{ state: TelemetryState | null, sendCommand: (type:
 
           <SettingsField
             label="AI Neural Backbone"
-            description="Select the NVIDIA NIM model for vision-language reasoning and tactical analysis.">
+            description="Select the NVIDIA NIM model for conversational AI. All models run on NVIDIA's cloud API — no local GPU required. Get a free key at build.nvidia.com.">
             <div className="space-y-3">
               <CustomSelect
                 value={localConfig.ai_agent?.model_id || 'meta/llama-3.3-70b-instruct'}
@@ -2632,13 +2632,18 @@ const SettingsPage: React.FC<{ state: TelemetryState | null, sendCommand: (type:
               />
 
               {localConfig.ai_agent?.model_id === 'custom' && (
-                <input
-                  type="text"
-                  placeholder="Enter custom model ID..."
-                  value={localConfig.ai_agent?.custom_model_id || ''}
-                  onChange={(e) => setLocalConfig({ ...localConfig, ai_agent: { ...localConfig.ai_agent, custom_model_id: e.target.value } })}
-                  className="w-full bg-black/40 border border-white/10 rounded-xl py-2.5 px-4 text-[10px] font-mono font-bold text-neon-green"
-                />
+                <div className="space-y-1.5">
+                  <input
+                    type="text"
+                    placeholder="e.g. org/model-name-variant (from build.nvidia.com)"
+                    value={localConfig.ai_agent?.custom_model_id || ''}
+                    onChange={(e) => setLocalConfig({ ...localConfig, ai_agent: { ...localConfig.ai_agent, custom_model_id: e.target.value } })}
+                    className="w-full bg-black/40 border border-white/10 rounded-xl py-2.5 px-4 text-[10px] font-mono font-bold text-neon-green placeholder:text-zinc-600"
+                  />
+                  <p className="text-[9px] text-zinc-500 leading-relaxed">
+                    Browse available models at <span className="text-neon-green font-bold">build.nvidia.com/explore/reasoning</span>. Copy the exact model ID shown (e.g. <span className="font-mono text-zinc-400">meta/llama-3.3-70b-instruct</span>).
+                  </p>
+                </div>
               )}
             </div>
           </SettingsField>
