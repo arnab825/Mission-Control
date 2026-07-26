@@ -1,8 +1,17 @@
 {
-  "version": "2.5.0",
+  "version": "2.5.1",
   "release_date": "2026-07-25",
   "update_check_url": "https://raw.githubusercontent.com/arnab825/Mission-Control/main/Gaming/backend/version.json",
   "changelog": [
+    {
+      "version": "2.5.1",
+      "date": "2026-07-26",
+      "title": "Pirate Release Group Filter Fix",
+      "highlights": [
+        "Fixed Game Scanner wrongly picking up crack group names (e.g. FLT, RUNE) as game names",
+        "Added global name sanitization logic and parent-directory fallback resolution to scan_all"
+      ]
+    },
     {
       "version": "2.5.0",
       "date": "2026-07-26",
@@ -427,17 +436,6 @@
       "title": "Filter launcher icons in Settings table and fallback to Steam headers",
       "highlights": [
         "Filter launcher icons in Settings table and fallback to Steam headers"
-      ]
-    },
-    {
-      "version": "1.8.7",
-      "date": "2026-07-20",
-      "title": "Tray Redirects, Boost Mode Renaming, and Update Controls & Rollback UI",
-      "highlights": [
-        "Enabled tray Show Dashboard click/double-click events to automatically restore and redirect users to the Dashboard",
-        "Renamed user-facing 'Game Mode' labels and badges to 'Boost Mode' to align with backend optimization contexts",
-        "Added manual Pause and Cancel action buttons for active update downloads",
-        "Implemented a System Recovery & Rollback panel to trigger offline backup restoration natively"
       ]
     }
   ]
