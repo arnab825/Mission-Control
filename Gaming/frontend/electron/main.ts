@@ -1815,8 +1815,8 @@ function setupAutoUpdater() {
   } catch (err) {
     console.warn('[AutoUpdater] Failed to read auto_download_updates setting:', err);
   }
-  autoUpdater.autoDownload = autoDownloadEnabled;
-  console.log(`[AutoUpdater] Initialized autoDownload to: ${autoUpdater.autoDownload}`);
+  autoUpdater.autoDownload = false; // MUST be false to allow pausing/cancelling via CancellationToken
+  console.log(`[AutoUpdater] Initialized autoDownload to: ${autoUpdater.autoDownload} (autoDownloadEnabled config: ${autoDownloadEnabled})`);
 
   // Disable code signature verification for unsigned development/self-built updates
   (autoUpdater as any).verifyUpdateCodeSignature = (_publisherName: string[], path: string) => {
@@ -1847,6 +1847,16 @@ function setupAutoUpdater() {
     if (!isManualUpdateCheck) {
       fireUpdateToast(info.version);
     }
+    
+    // Automatically trigger download if enabled and this wasn't a manual check
+    if (autoDownloadEnabled && !isManualUpdateCheck) {
+      console.log('[AutoUpdater] Auto-download is enabled, starting download automatically.');
+      updateCancellationToken = new CancellationToken();
+      autoUpdater.downloadUpdate(updateCancellationToken).catch((err: any) => {
+         console.error('[AutoUpdater] auto download failed', err);
+      });
+    }
+
     if (isManualUpdateCheck) {
       isManualUpdateCheck = false;
     }
