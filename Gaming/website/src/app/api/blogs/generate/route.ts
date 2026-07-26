@@ -18,6 +18,8 @@ export async function POST(request: NextRequest) {
 
   const { searchParams } = new URL(request.url);
   const customDateParam = searchParams.get("date");
+  const requestedCategory = searchParams.get("category");
+
   let targetDate = new Date();
   if (customDateParam) {
     const parsed = new Date(customDateParam);
@@ -27,7 +29,12 @@ export async function POST(request: NextRequest) {
   }
 
   const results: { type: string; slug: string; saved: boolean }[] = [];
-  const postTypes = ["GPU News", "Game News", "Hardware Deep-Dive", "Game Revisit"] as const;
+  const allPostTypes = ["GPU News", "Game News", "Hardware Deep-Dive", "Game Revisit"] as const;
+  
+  // If specific category filter is requested, generate only for that category
+  const postTypes = requestedCategory && requestedCategory !== "all" && allPostTypes.includes(requestedCategory as any)
+    ? [requestedCategory as typeof allPostTypes[number]]
+    : allPostTypes;
 
   for (const currentTopic of postTypes) {
     const result = await generateAndSavePost(currentTopic, targetDate, apiKey, process.env.HF_TOKEN);

@@ -11,9 +11,15 @@ This skill documents the formatting, metadata, and quality requirements for gene
 
 ## 1. Allowed Categories & Feed Routing
 
-The blog generator route `/api/blogs/generate` automatically categorizes articles based on the filtered RSS feed items:
-* **GPU News**: Covers graphics processors, CPU architectures, semiconductors, memory tech, fabrication nodes, leaks, and hardware benchmarks.
-* **Game News**: Covers video game releases, expansions, developer announcements, graphics APIs, game engines, and performance optimizations.
+The blog generator route `/api/blogs/generate` automatically categorizes articles based on 10 parsed RSS feeds (IGN, Kotaku, Eurogamer, PC Gamer, Polygon, GameSpot, Rock Paper Shotgun, Wccftech, AnandTech, Tom's Hardware).
+
+### Category Query Parameter Support:
+- Calling `/api/blogs/generate` without parameters generates posts across all 4 active categories.
+- Passing `?category=[Category]` generates an AI article specifically for that filtered category:
+  * **GPU News**: `/api/blogs/generate?category=GPU%20News` (Graphics processors, CPUs, memory tech, fabrication nodes, hardware benchmarks).
+  * **Game News**: `/api/blogs/generate?category=Game%20News` (Game releases, launches, developer updates, graphics APIs, game engines).
+  * **Hardware Deep-Dive**: `/api/blogs/generate?category=Hardware%20Deep-Dive` (Technical architecture, ray tracing pipelines, CUDA/Tensor core mechanics).
+  * **Game Revisit**: `/api/blogs/generate?category=Game%20Revisit` (Retrospective post-mortems, legacy engine architectures, rendering triumphs).
 
 ---
 

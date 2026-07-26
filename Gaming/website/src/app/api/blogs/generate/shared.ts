@@ -29,6 +29,11 @@ export const GAMING_RSS_FEEDS = [
   { url: "https://www.ign.com/feeds/news.xml", label: "IGN", type: "gaming" },
   { url: "https://kotaku.com/rss", label: "Kotaku", type: "gaming" },
   { url: "https://www.eurogamer.net/?format=rss", label: "Eurogamer", type: "gaming" },
+  { url: "https://www.pcgamer.com/rss/", label: "PC Gamer", type: "gaming" },
+  { url: "https://www.polygon.com/rss/index.xml", label: "Polygon", type: "gaming" },
+  { url: "https://www.gamespot.com/feeds/news/", label: "GameSpot", type: "gaming" },
+  { url: "https://www.rockpapershotgun.com/feed", label: "Rock Paper Shotgun", type: "gaming" },
+  { url: "https://wccftech.com/feed/", label: "Wccftech", type: "hardware" },
   { url: "https://feeds.anandtech.com/anandtech/anandtech.xml", label: "AnandTech", type: "hardware" },
   { url: "https://www.tomshardware.com/feeds/all", label: "Tom's Hardware", type: "hardware" },
 ];
@@ -467,14 +472,13 @@ export async function generateAndSavePost(
 
       try {
         try {
-          // Try Pollinations first since it's free and unlimited
-          let defaultPrompt = "";
-          if (isHardware) {
-            defaultPrompt = `${post.title}. Futuristic hardware, tech concept art, glowing neon accents, 8k resolution, cyberpunk style.`;
-          } else {
-            defaultPrompt = `${post.title}. Stylized gaming concept art, high-tech HUD elements, colorful neon game design aesthetic, 8k resolution.`;
-          }
-          const finalPrompt = post.imagePrompt || defaultPrompt;
+          const cleanTitle = post.title.replace(/[\d]+|Why|How|What|When|[:"'\?\!\-\|]/gi, " ").replace(/\s+/g, " ").trim();
+          const basePrompt = post.imagePrompt && post.imagePrompt.length > 10 ? post.imagePrompt : cleanTitle;
+
+          const finalPrompt = isHardware
+            ? `Photorealistic 3D render of ${basePrompt}, high-tech computer hardware engineering, microscopic circuit architecture, metallic GPU heatsink, vibrant neon green ambient lighting, octane render, 8k resolution, cinematic studio shot, sharp focus, no text`
+            : `Cinematic 3D video game visual concept art of ${basePrompt}, epic action scene, dramatic volumetric lighting, high dynamic range colors, 8k resolution, Unreal Engine 5 render style, photorealistic detail, no text`;
+
           imageBuffer = await generateImageWithPollinations(finalPrompt);
         } catch (pollError) {
           console.warn(`[BlogGen][${currentTopic}] Pollinations failed, falling back to HuggingFace:`, pollError);

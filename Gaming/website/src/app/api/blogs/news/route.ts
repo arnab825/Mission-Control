@@ -4,6 +4,11 @@ const GAMING_RSS_FEEDS = [
   { url: "https://www.ign.com/feeds/news.xml", label: "IGN", type: "gaming" },
   { url: "https://kotaku.com/rss", label: "Kotaku", type: "gaming" },
   { url: "https://www.eurogamer.net/?format=rss", label: "Eurogamer", type: "gaming" },
+  { url: "https://www.pcgamer.com/rss/", label: "PC Gamer", type: "gaming" },
+  { url: "https://www.polygon.com/rss/index.xml", label: "Polygon", type: "gaming" },
+  { url: "https://www.gamespot.com/feeds/news/", label: "GameSpot", type: "gaming" },
+  { url: "https://www.rockpapershotgun.com/feed", label: "Rock Paper Shotgun", type: "gaming" },
+  { url: "https://wccftech.com/feed/", label: "Wccftech", type: "hardware" },
   { url: "https://feeds.anandtech.com/anandtech/anandtech.xml", label: "AnandTech", type: "hardware" },
   { url: "https://www.tomshardware.com/feeds/all", label: "Tom's Hardware", type: "hardware" },
 ];
