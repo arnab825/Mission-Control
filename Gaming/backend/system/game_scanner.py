@@ -49,6 +49,14 @@ class GameScanner:
         self.cache_file = base_dir / "config" / filename
         self._ensure_cache_dir()
         
+        self.crack_groups = {
+            "flt", "rune", "codex", "ali213", "tenoke", "goldberg", 
+            "epicfiles", "steamfiles", "onlinefix", "online fix", 
+            "crack", "skidrow", "reloaded", "fitgirl", "dodi", 
+            "update", "updates", "razor1911", "emp", "empress", 
+            "crackfix", "nodvd", "no-dvd", "gog"
+        }
+        
         # Extended list of keywords to filter out non-game applications
         self.junk_keywords = [
             "redistributable", "microsoft visual c++", "directx", "vulkan rt",
@@ -93,13 +101,11 @@ class GameScanner:
         launcher_keywords = ["play", "launcher", "launch", "start"]
         avoid_keywords = ["unins", "crash", "report", "helper", "setup", "install", "config", "patch"]
         
-        crack_groups = {"flt", "rune", "codex", "ali213", "tenoke", "goldberg", "epicfiles", "steamfiles", "onlinefix", "skidrow", "reloaded", "fitgirl", "dodi", "razor1911", "emp", "empress", "crack", "update"}
-        
         # filter out crack group exes and emulator wrappers
         filtered_exes = []
         for p in exes_paths:
             name_no_ext = p.stem.lower()
-            if name_no_ext not in crack_groups and not name_no_ext.startswith("steam_api") and not name_no_ext.startswith("steamclient"):
+            if name_no_ext not in self.crack_groups and not name_no_ext.startswith("steam_api") and not name_no_ext.startswith("steamclient"):
                 filtered_exes.append(p)
                 
         if not filtered_exes:
@@ -435,7 +441,34 @@ class GameScanner:
         for g in self.games:
             if "name" in g:
                 g["name"] = g["name"].strip()
-            name_lower = g["name"].lower()
+                
+                # Regex to strip crack groups from the end of a game name (e.g., "Ghost of Tsushima - FLT" -> "Ghost of Tsushima")
+                import re
+                crack_pattern = re.compile(r'[\s\-_]+(?:' + '|'.join(self.crack_groups) + r')\b', re.IGNORECASE)
+                cleaned_name = crack_pattern.sub('', g["name"]).strip(' -_()[]')
+                if cleaned_name:
+                    g["name"] = cleaned_name
+                
+                name_lower = g["name"].lower()
+                
+                # If the name is STILL exactly a crack group name, try to rescue it from its path
+                if name_lower in self.crack_groups:
+                    path = Path(g.get("install_path", ""))
+                    if path.exists() and len(path.parts) > 1:
+                        found_better = False
+                        for p in reversed(path.parents):
+                            p_lower = p.name.lower()
+                            if p_lower not in self.crack_groups and p_lower not in ["bin", "binaries", "release", "win64", "win32", "games", "game", "common", "x64", "x86"]:
+                                g["name"] = p.name
+                                name_lower = p.name.lower()
+                                found_better = True
+                                break
+                        if not found_better:
+                            continue # Could not rescue
+                    else:
+                        continue # Drop it
+
+            name_lower = g.get("name", "").lower()
             
             # Universal Junk Filter (Applies to ALL platforms)
             # EXCEPT if the game name is exactly in our launcher whitelist
@@ -1998,8 +2031,7 @@ class GameScanner:
                             if game_dir.name.startswith("$") or game_dir.name == "Common":
                                 continue
                                 
-                            crack_groups = {"flt", "rune", "codex", "ali213", "tenoke", "goldberg", "epicfiles", "steamfiles", "onlinefix", "online fix", "crack", "skidrow", "reloaded", "fitgirl", "dodi", "update", "updates"}
-                            if game_dir.name.lower() in crack_groups:
+                            if game_dir.name.lower() in self.crack_groups:
                                 continue
                                 
                             # Look for an .exe in the root or common subfolders
@@ -2055,18 +2087,15 @@ class GameScanner:
         """
         import psutil
         
-        # Folders to skip during deep scan
         skip_folders = {
             "windows", "program files", "program files (x86)", "programdata",
             "users", "$recycle.bin", "system volume information",
             "common files", "internet explorer", "windowsapps",
             "microsoft", "intel", "nvidia", "amd", "appdata",
             "documents and settings", "recovery", "msocache",
-            "flt", "rune", "codex", "ali213", "tenoke", "goldberg", 
-            "epicfiles", "steamfiles", "onlinefix", "online fix",
-            "crack", "skidrow", "reloaded", "fitgirl", "dodi", "update", "updates",
-            "nodvd", "no-dvd", "crackfix"
+            "onlinefix", "online fix"
         }
+        skip_folders.update(self.crack_groups)
         
         # Game-like patterns in folder names
         game_patterns = [

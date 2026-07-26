@@ -2,6 +2,11 @@
 
 This document contains a detailed history of all patches and updates for the AI Gaming Assistant.
 
+### Patch: 2026-07-26 — v2.5.1: Pirate Release Group Filter Fix
+
+- Fixed Game Scanner wrongly picking up crack group names (e.g. FLT, RUNE) as game names
+- Added global name sanitization logic and parent-directory fallback resolution to scan_all
+
 ### Patch: 2026-07-26 — v2.5.0: Agent Crash & Tone Corrections
 
 - Fixed list index out of range crash in NIM streaming generator
