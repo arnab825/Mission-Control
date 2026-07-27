@@ -1791,14 +1791,29 @@ function setupAutoUpdater() {
     return;
   }
 
-  // Clear stale update state if it's for a different (old) version.
+  // Clear stale update state if it's for a different (old) version or if already installed.
   // This prevents the UI from showing a previously-downloaded version as "ready"
   // when the user is already on a newer version or has a fresh install.
   try {
     const savedState = loadUpdateState();
-    if (savedState.status === 'downloaded' && savedState.version !== app.getVersion()) {
-      console.log(`[AutoUpdater] Clearing stale update state for v${savedState.version} (current: v${app.getVersion()})`);
-      saveUpdateState({ status: 'idle', percent: 0 });
+    if (savedState.status === 'downloaded' && savedState.version) {
+      const isStale = (() => {
+        const parse = (v: string) => v.replace(/^v/i, '').split('.').map(Number);
+        const savedParts = parse(savedState.version);
+        const currentParts = parse(app.getVersion());
+        for (let i = 0; i < Math.max(savedParts.length, currentParts.length); i++) {
+          const s = savedParts[i] || 0;
+          const c = currentParts[i] || 0;
+          if (s > c) return false; // saved is newer, not stale
+          if (s < c) return true;  // saved is older, stale
+        }
+        return true; // versions are exactly equal, so it's already installed (stale)
+      })();
+
+      if (isStale) {
+        console.log(`[AutoUpdater] Clearing stale update state for v${savedState.version} (current: v${app.getVersion()})`);
+        saveUpdateState({ status: 'idle', percent: 0 });
+      }
     }
   } catch (_) {}
 
