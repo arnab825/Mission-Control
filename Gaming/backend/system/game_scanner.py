@@ -103,12 +103,18 @@ class GameScanner:
         launcher_keywords = ["play", "launcher", "launch", "start"]
         avoid_keywords = ["unins", "crash", "report", "helper", "setup", "install", "config", "patch"]
         
-        # filter out crack group exes and emulator wrappers
+        # filter out crack group exes, emulator wrappers, and exes living inside crack/nodvd subdirectories
         filtered_exes = []
         for p in exes_paths:
             name_no_ext = p.stem.lower()
-            if name_no_ext not in self.crack_groups and not name_no_ext.startswith("steam_api") and not name_no_ext.startswith("steamclient"):
-                filtered_exes.append(p)
+            # Skip if the exe stem itself is a crack-group name
+            if name_no_ext in self.crack_groups or name_no_ext.startswith("steam_api") or name_no_ext.startswith("steamclient"):
+                continue
+            # Skip if any parent directory of the exe is a crack/nodvd subfolder
+            in_crack_dir = any(part.lower() in self.crack_groups for part in p.parts[:-1])
+            if in_crack_dir:
+                continue
+            filtered_exes.append(p)
                 
         if not filtered_exes:
             filtered_exes = exes_paths  # fallback
@@ -1165,6 +1171,9 @@ class GameScanner:
                     # Scan for .exe files in subdirectories (shallow)
                     for sub in path.iterdir():
                         if sub.is_dir():
+                            # Skip crack/nodvd subdirectories
+                            if sub.name.lower() in self.crack_groups:
+                                continue
                             exes = list(sub.glob("*.exe"))
                             if exes:
                                 best_exe = self._select_best_exe(exes, sub.name)
@@ -1228,7 +1237,12 @@ class GameScanner:
                                 if install_path.exists():
                                     exes = list(install_path.glob("*.exe"))
                                     if not exes:
-                                        exes = list(install_path.glob("**/*.exe"))
+                                        # Recursive glob but exclude known crack/nodvd subdirs
+                                        all_exes = list(install_path.glob("**/*.exe"))
+                                        exes = [
+                                            e for e in all_exes
+                                            if not any(part.lower() in self.crack_groups for part in e.relative_to(install_path).parts[:-1])
+                                        ] or all_exes
                                     if exes:
                                         resolved_exe = self._select_best_exe(exes, game_name)
                             except Exception: pass

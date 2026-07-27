@@ -2,6 +2,12 @@
 
 This document contains a detailed history of all patches and updates for the AI Gaming Assistant.
 
+### Patch: 2026-07-27 — v2.6.2: Filtered crack and NoDVD subdirectories from game detection
+
+- Filtered executables inside crack/nodvd subdirectories in _select_best_exe
+- Skipped crack/nodvd subdirectories during drive scan
+- Filtered crack/nodvd subdirectories during Steam recursive glob search
+
 ### Patch: 2026-07-27 — v2.6.1: Optimized updater mechanism and excluded crack directories
 
 - Skip NoDVD and skidrow folders in game deep scanning
