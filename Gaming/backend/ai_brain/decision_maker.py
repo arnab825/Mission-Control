@@ -494,7 +494,7 @@ class GameBrain:
                 if not active_sid:
                     # Find the active session based on start_time DESC (first returned session)
                     sessions = self.memory.get_chat_sessions(user_id=user_id or "guest")
-                    if sessions:
+                    if sessions and len(sessions) > 0 and isinstance(sessions[0], dict) and "id" in sessions[0]:
                         active_sid = sessions[0]["id"]
                 if active_sid:
                     history = self.memory.get_chat_history(active_sid)
@@ -763,8 +763,12 @@ class GameBrain:
             library_ctx = self.get_game_library_context(user_id=user_id)
             count_games = 0
             if "User's Scanned/Installed Games:\n" in library_ctx:
-                section = library_ctx.split("User's Scanned/Installed Games:\n")[1].split("\n\n")[0]
-                count_games = len([line for line in section.strip().split("\n") if line.strip().startswith("-")])
+                parts = library_ctx.split("User's Scanned/Installed Games:\n")
+                if len(parts) > 1:
+                    subparts = parts[1].split("\n\n")
+                    if subparts:
+                        section = subparts[0]
+                        count_games = len([line for line in section.strip().split("\n") if line.strip().startswith("-")])
                 
             if is_welcome_request:
                 if agent_prompts.get("welcome_fallback"):
@@ -1855,7 +1859,7 @@ class GameBrain:
                             for chunk in completion:
                                 try:
                                     choices = getattr(chunk, "choices", None)
-                                    if not choices:
+                                    if not choices or not isinstance(choices, (list, tuple)) or len(choices) == 0:
                                         continue
                                     delta = getattr(choices[0], "delta", None)
                                     if delta is None:
@@ -1863,7 +1867,7 @@ class GameBrain:
                                     content = getattr(delta, "content", None)
                                     if content:
                                         yield content
-                                except (IndexError, AttributeError, TypeError):
+                                except (IndexError, AttributeError, TypeError, Exception):
                                     # Malformed/empty chunk from NIM stream — skip silently
                                     continue
                         except Exception as stream_err:
@@ -1871,10 +1875,13 @@ class GameBrain:
                             return
                     return generate()
                 else:
-                    if not completion.choices:
+                    choices = getattr(completion, "choices", None) if completion else None
+                    if not choices or not isinstance(choices, (list, tuple)) or len(choices) == 0:
                         logger.warning("NVIDIA NIM returned empty choices list. Falling back to local response.")
                         return None
-                    advice = completion.choices[0].message.content
+                    first_choice = choices[0]
+                    message = getattr(first_choice, "message", None)
+                    advice = getattr(message, "content", None) if message else None
                     return advice
                 
             except Exception as e:

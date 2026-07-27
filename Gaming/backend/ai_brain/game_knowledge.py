@@ -171,7 +171,15 @@ class GameKnowledgeBase:
                 max_tokens=1200,
                 timeout=self._LLM_TIMEOUT,
             )
-            raw = response.choices[0].message.content.strip()
+            choices = getattr(response, "choices", None) if response else None
+            if not choices or not isinstance(choices, (list, tuple)) or len(choices) == 0:
+                logger.warning(f"[GameKB] LLM keybind fetch returned empty choices for '{game_name}'.")
+                return None
+            first_choice = choices[0]
+            message = getattr(first_choice, "message", None)
+            raw = getattr(message, "content", "").strip() if message else ""
+            if not raw:
+                return None
             # Strip markdown code fences in case the model adds them
             if raw.startswith("```"):
                 raw = re.sub(r"^```[a-z]*\n?", "", raw)
