@@ -53,87 +53,78 @@ const METADATA_FALLBACKS: Record<string, { category?: string; title?: string; ba
 export async function getAllDocs(): Promise<DocData[]> {
   try {
     await connectDB();
-    let docs = await DocModel.find({}).sort({ order: 1 }).lean();
     
-    if (docs.length === 0) {
-      console.log("Docs collection is empty. Attempting to seed from filesystem...");
+    // Always attempt to read and sync from local filesystem if available
+    if (fs.existsSync(docsDirectory)) {
+      const fileNames = fs.readdirSync(docsDirectory);
       const fileDocs: any[] = [];
-      
-      if (fs.existsSync(docsDirectory)) {
-        const fileNames = fs.readdirSync(docsDirectory);
-        fileNames
-          .filter((f) => f.endsWith(".md") || f.endsWith(".mdx"))
-          .forEach((fileName) => {
-            const slug = fileName.replace(/\.mdx?$/, "").toLowerCase();
-            const fullPath = path.join(docsDirectory, fileName);
-            const fileContents = fs.readFileSync(fullPath, "utf8");
-            const matterResult = matter(fileContents);
-            const fallback = METADATA_FALLBACKS[slug] || {};
-            
-            let title = matterResult.data.title || fallback.title;
-            let category = matterResult.data.category || fallback.category || "Documentation";
-            let content = matterResult.content;
-            let excerpt = matterResult.data.excerpt || "";
-            let badge = matterResult.data.badge || fallback.badge || "";
-            let badgeColor = matterResult.data.badgeColor || fallback.badgeColor || "";
 
-            if (!title) {
-              const match = content.match(/^#\s+(.*)/m);
-              if (match) {
-                title = match[1].trim();
-                content = content.replace(/^#\s+(.*)/m, "").trim();
-              } else {
-                title = slug.replace(/_/g, " ").replace(/-/g, " ").toUpperCase();
-              }
+      fileNames
+        .filter((f) => f.endsWith(".md") || f.endsWith(".mdx"))
+        .forEach((fileName) => {
+          const slug = fileName.replace(/\.mdx?$/, "").toLowerCase();
+          const fullPath = path.join(docsDirectory, fileName);
+          const fileContents = fs.readFileSync(fullPath, "utf8");
+          const matterResult = matter(fileContents);
+          const fallback = METADATA_FALLBACKS[slug] || {};
+          
+          let title = matterResult.data.title || fallback.title;
+          let category = matterResult.data.category || fallback.category || "Documentation";
+          let content = matterResult.content;
+          let excerpt = matterResult.data.excerpt || "";
+          let badge = matterResult.data.badge || fallback.badge || "";
+          let badgeColor = matterResult.data.badgeColor || fallback.badgeColor || "";
+
+          if (!title) {
+            const match = content.match(/^#\s+(.*)/m);
+            if (match) {
+              title = match[1].trim();
+              content = content.replace(/^#\s+(.*)/m, "").trim();
+            } else {
+              title = slug.replace(/_/g, " ").replace(/-/g, " ").toUpperCase();
             }
+          }
 
-            if (!excerpt) {
-              const paragraphs = content.split(/\n\n/);
-              for (let p of paragraphs) {
-                p = p.trim();
-                if (p && !p.startsWith("#") && !p.startsWith("-") && !p.startsWith("*")) {
-                  const plain = p.replace(/[*_#`\[\]()]/g, "");
+          if (!excerpt) {
+            const paragraphs = content.split(/\n\n/);
+            for (let p of paragraphs) {
+              p = p.trim();
+              const isCodeLike = /^(```|cpp|python|bash|javascript|cl\s|#include|import\s|PYBIND11|extern\s|\/\/|\/\*)/i.test(p);
+              if (p && !p.startsWith("#") && !p.startsWith("-") && !p.startsWith("*") && !isCodeLike) {
+                const plain = p.replace(/[*_#`\[\]()]/g, "").replace(/\s+/g, " ").trim();
+                if (plain.length > 20) {
                   excerpt = plain.substring(0, 160);
                   if (plain.length > 160) excerpt += "...";
                   break;
                 }
               }
             }
-            
-            const order = DOCS_ORDER.indexOf(slug) === -1 ? 999 : DOCS_ORDER.indexOf(slug);
-            
-            fileDocs.push({
-              slug,
-              title,
-              content,
-              category,
-              excerpt,
-              badge,
-              badgeColor,
-              order,
-            });
+          }
+          
+          const order = DOCS_ORDER.indexOf(slug) === -1 ? 999 : DOCS_ORDER.indexOf(slug);
+          
+          fileDocs.push({
+            slug,
+            title,
+            content,
+            category,
+            excerpt,
+            badge,
+            badgeColor,
+            order,
           });
-      }
-      
+        });
+
       if (fileDocs.length > 0) {
-        await DocModel.insertMany(fileDocs);
-        docs = await DocModel.find({}).sort({ order: 1 }).lean();
-      } else {
-        const defaultDoc = {
-          slug: "summary",
-          title: "Project Summary",
-          content: "# Mission Control Documentation\n\nWelcome to the Documentation portal.",
-          category: "Overview",
-          excerpt: "Project Documentation summary.",
-          badge: "Core",
-          badgeColor: "text-neon-green",
-          order: 0,
-        };
-        await DocModel.create(defaultDoc);
-        docs = [defaultDoc as any];
+        // Sync/upsert into MongoDB
+        for (const doc of fileDocs) {
+          await DocModel.findOneAndUpdate({ slug: doc.slug }, doc, { upsert: true, returnDocument: "after" });
+        }
       }
     }
-    
+
+    let docs = await DocModel.find({}).sort({ order: 1 }).lean();
+
     return docs.map((d: any) => ({
       slug: d.slug,
       title: d.title,
@@ -151,22 +142,9 @@ export async function getAllDocs(): Promise<DocData[]> {
 
 export async function getDocBySlug(slug: string): Promise<DocData | null> {
   try {
-    await connectDB();
-    const doc = await DocModel.findOne({ slug }).lean();
-    if (!doc) {
-      const all = await getAllDocs();
-      const found = all.find((d) => d.slug === slug);
-      return found || null;
-    }
-    return {
-      slug: doc.slug,
-      title: doc.title,
-      content: doc.content,
-      category: doc.category,
-      excerpt: doc.excerpt,
-      badge: doc.badge,
-      badgeColor: doc.badgeColor,
-    };
+    const all = await getAllDocs();
+    const found = all.find((d) => d.slug.toLowerCase() === slug.toLowerCase());
+    return found || null;
   } catch (error) {
     console.error(`Error loading doc ${slug} from MongoDB:`, error);
     return null;

@@ -111,10 +111,12 @@ export default function Navbar() {
       href: "/docs",
       icon: BookOpen,
       subLinks: [
-        { name: "Getting Started Guide", href: "/docs", icon: BookOpen },
-        { name: "Launcher Core Setup", href: "/docs", icon: Settings },
-        { name: "Troubleshooting FAQ", href: "/docs", icon: HelpCircle },
-        { name: "Neural Cryptography", href: "/docs", icon: ShieldCheck },
+        { name: "Project Summary", href: "/docs/summary", icon: BookOpen },
+        { name: "System Architecture", href: "/docs/design", icon: Cpu },
+        { name: "Agentic AI Controller", href: "/docs/agentic_logic", icon: Terminal },
+        { name: "NVIDIA NIM Guide", href: "/docs/nvidia_ai_guide", icon: Zap },
+        { name: "FPS & VRAM Optimization", href: "/docs/fps", icon: Activity },
+        { name: "On-Demand AI Weights", href: "/docs/on_demand_ai_weights", icon: ShieldCheck },
       ]
     },
     {

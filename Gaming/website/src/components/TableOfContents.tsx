@@ -22,10 +22,8 @@ export function TableOfContents({ headings }: TableOfContentsProps) {
 
     const observer = new IntersectionObserver(
       (entries) => {
-        // Track which headings are in the viewport
         const visibleEntries = entries.filter((entry) => entry.isIntersecting);
         if (visibleEntries.length > 0) {
-          // Find the one closest to the top of the viewport
           const topEntry = visibleEntries.reduce((prev, curr) => {
             return curr.boundingClientRect.top < prev.boundingClientRect.top ? curr : prev;
           });
@@ -35,7 +33,7 @@ export function TableOfContents({ headings }: TableOfContentsProps) {
         }
       },
       {
-        rootMargin: "-80px 0px -60% 0px", // Trigger when heading is near the top half of the screen
+        rootMargin: "-80px 0px -60% 0px",
         threshold: 0,
       }
     );
@@ -44,7 +42,6 @@ export function TableOfContents({ headings }: TableOfContentsProps) {
       if (el) observer.observe(el);
     });
 
-    // Also run a scroll listener to highlight the first heading if at the very top of the page
     const handleScroll = () => {
       if (window.scrollY < 100 && headings.length > 0) {
         setActiveId(headings[0].id);
@@ -59,28 +56,30 @@ export function TableOfContents({ headings }: TableOfContentsProps) {
   }, [headings]);
 
   return (
-    <ul className="space-y-2 text-xs font-mono">
-      {headings.map((h, idx) => {
-        const isActive = activeId === h.id;
-        return (
-          <li
-            key={`${h.id}-${idx}`}
-            style={{ paddingLeft: h.level === 3 ? "12px" : "0px" }}
-            className="relative"
-          >
-            <a
-              href={`#${h.id}`}
-              className={`transition-all duration-150 leading-relaxed block truncate border-l pl-3 -ml-[1px] ${
-                isActive
-                  ? "text-neon-green border-neon-green font-bold"
-                  : "text-gray-500 hover:text-gray-300 border-white/5"
-              }`}
+    <nav className="font-sans">
+      <ul className="space-y-1 text-xs">
+        {headings.map((h, idx) => {
+          const isActive = activeId === h.id;
+          return (
+            <li
+              key={`${h.id}-${idx}`}
+              style={{ paddingLeft: h.level === 3 ? "12px" : "0px" }}
+              className="relative"
             >
-              {h.text}
-            </a>
-          </li>
-        );
-      })}
-    </ul>
+              <a
+                href={`#${h.id}`}
+                className={`transition-all duration-150 py-1 pl-3.5 border-l-2 block truncate ${
+                  isActive
+                    ? "text-neon-green border-neon-green font-bold bg-neon-green/10 rounded-r-md shadow-[0_0_10px_rgba(34,197,94,0.1)]"
+                    : "text-gray-400 hover:text-white border-white/10 hover:border-white/30"
+                }`}
+              >
+                {h.text}
+              </a>
+            </li>
+          );
+        })}
+      </ul>
+    </nav>
   );
 }
