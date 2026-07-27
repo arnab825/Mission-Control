@@ -264,7 +264,7 @@ def handle_delete_chat_session(payload: dict, pipeline, bridge, config) -> None:
         pipeline.memory.delete_chat_session(session_id, user_id=user_id)
         sessions = pipeline.memory.get_chat_sessions(user_id=user_id)
         if getattr(pipeline, "active_chat_session_id", None) == session_id:
-            next_session = sessions[0]["id"] if sessions else ""
+            next_session = sessions[0]["id"] if (sessions and len(sessions) > 0 and isinstance(sessions[0], dict) and "id" in sessions[0]) else ""
             pipeline.active_chat_session_id = next_session
             bridge.update_state({
                 "chat_sessions": sessions,

@@ -2,6 +2,11 @@
 
 This document contains a detailed history of all patches and updates for the AI Gaming Assistant.
 
+### Patch: 2026-07-27 — v2.5.5: Fixed welcome stream fallback list index out of range crash
+
+- Guarded welcome stream and fallback chat generation
+- Safeguarded session deletion and system specs display lookups
+
 ### Patch: 2026-07-27 — v2.5.4: Optimized FeedbackLoop timeout and error logging
 
 - Reduced ChatNVIDIA evaluator timeout to 15s
