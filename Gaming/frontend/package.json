@@ -54,7 +54,7 @@
                             "react":  "^19.2.7",
                             "react-doctor":  "^0.8.1",
                             "react-dom":  "^19.2.8",
-                            "recharts":  "^2.15.0",
+                            "recharts":  "^3.10.1",
                             "tailwind-merge":  "^3.6.0",
                             "typescript":  "~7.0.2",
                             "typescript-eslint":  "^8.64.0",
