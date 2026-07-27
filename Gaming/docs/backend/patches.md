@@ -2,6 +2,12 @@
 
 This document contains a detailed history of all patches and updates for the AI Gaming Assistant.
 
+### Patch: 2026-07-27 — v2.5.4: Optimized FeedbackLoop timeout and error logging
+
+- Reduced ChatNVIDIA evaluator timeout to 15s
+- Gracefully handle API read timeouts in background thread
+- Removed global requests monkey-patch
+
 ### Patch: 2026-07-27 — v2.5.3: Fixed list index out of range crash in agent response stream
 
 - Guarded NIM choices access against empty lists

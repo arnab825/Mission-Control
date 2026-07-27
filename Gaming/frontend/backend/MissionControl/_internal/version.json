@@ -1,8 +1,18 @@
 {
-  "version": "2.5.3",
+  "version": "2.5.4",
   "release_date": "2026-07-26",
   "update_check_url": "https://raw.githubusercontent.com/arnab825/Mission-Control/main/Gaming/backend/version.json",
   "changelog": [
+    {
+      "version": "2.5.4",
+      "date": "2026-07-27",
+      "title": "Optimized FeedbackLoop timeout and error logging",
+      "highlights": [
+        "Reduced ChatNVIDIA evaluator timeout to 15s",
+        "Gracefully handle API read timeouts in background thread",
+        "Removed global requests monkey-patch"
+      ]
+    },
     {
       "version": "2.5.3",
       "date": "2026-07-27",

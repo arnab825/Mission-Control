@@ -4,15 +4,6 @@ import logging
 from typing import Optional
 from pydantic import BaseModel, Field
 
-# Monkey-patch requests.Session.request to enforce a default timeout of 30 seconds
-import requests
-_orig_session_request = requests.Session.request
-def _patched_session_request(self, method, url, *args, **kwargs):
-    if 'timeout' not in kwargs or kwargs['timeout'] is None:
-        kwargs['timeout'] = 30.0
-    return _orig_session_request(self, method, url, *args, **kwargs)
-requests.Session.request = _patched_session_request
-
 from langchain_nvidia_ai_endpoints import ChatNVIDIA
 from langchain_core.prompts import ChatPromptTemplate
 from langchain_core.output_parsers import PydanticOutputParser
@@ -44,7 +35,7 @@ class FeedbackLoop:
 
         try:
             # We use a secondary LLM to evaluate the primary one
-            self.evaluator_llm = ChatNVIDIA(model=evaluator_model, api_key=nvidia_key, temperature=0.2, timeout=30.0)
+            self.evaluator_llm = ChatNVIDIA(model=evaluator_model, api_key=nvidia_key, temperature=0.2, timeout=15.0)
             
             self.parser = PydanticOutputParser(pydantic_object=EvaluationResult)
             
@@ -95,4 +86,8 @@ class FeedbackLoop:
             logger.info("Logged DPO pair to dataset.")
             
         except Exception as e:
-            logger.error(f"Failed during feedback loop evaluation: {e}")
+            err_msg = str(e)
+            if "timed out" in err_msg.lower() or "timeout" in err_msg.lower():
+                logger.warning(f"FeedbackLoop evaluation skipped due to API timeout: {e}")
+            else:
+                logger.error(f"Failed during feedback loop evaluation: {e}")
