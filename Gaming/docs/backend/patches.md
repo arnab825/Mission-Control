@@ -2,6 +2,10 @@
 
 This document contains a detailed history of all patches and updates for the AI Gaming Assistant.
 
+### Patch: 2026-07-27 — v2.5.9: Added dual-mode choice content parser to game_knowledge.py
+
+- Added dual dict and object choice parsing to _fetch_keybinds_via_llm in game_knowledge.py
+
 ### Patch: 2026-07-27 — v2.5.8: Updated process.md documentation with build_app.ps1 backend compilation
 
 - Documented build_app.ps1 standalone PyInstaller compilation command in process.md
