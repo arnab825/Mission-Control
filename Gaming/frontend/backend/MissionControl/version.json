@@ -1,8 +1,17 @@
 {
-  "version": "2.5.6",
+  "version": "2.5.7",
   "release_date": "2026-07-26",
   "update_check_url": "https://raw.githubusercontent.com/arnab825/Mission-Control/main/Gaming/backend/version.json",
   "changelog": [
+    {
+      "version": "2.5.7",
+      "date": "2026-07-27",
+      "title": "Completely stripped Neural failure error text and added dual-mode choice content extractor",
+      "highlights": [
+        "Removed Neural failure error text fallback from directive stream exception handlers",
+        "Added dual-mode extract_choice_content helper to parse both dict and SDK completion choices"
+      ]
+    },
     {
       "version": "2.5.6",
       "date": "2026-07-27",
@@ -436,14 +445,6 @@
       "title": "Fix TTS thread dead warning log and sync settings state between Electron and backend",
       "highlights": [
         "Fix TTS thread dead warning log and sync settings state between Electron and backend"
-      ]
-    },
-    {
-      "version": "1.9.8",
-      "date": "2026-07-21",
-      "title": "Fix update pause/resume persistence across app restarts and add in-UI rollback verification dialog",
-      "highlights": [
-        "Fix update pause/resume persistence across app restarts and add in-UI rollback verification dialog"
       ]
     }
   ]

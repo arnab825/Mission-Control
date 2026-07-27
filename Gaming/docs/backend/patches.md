@@ -2,6 +2,11 @@
 
 This document contains a detailed history of all patches and updates for the AI Gaming Assistant.
 
+### Patch: 2026-07-27 — v2.5.7: Completely stripped Neural failure error text and added dual-mode choice content extractor
+
+- Removed Neural failure error text fallback from directive stream exception handlers
+- Added dual-mode extract_choice_content helper to parse both dict and SDK completion choices
+
 ### Patch: 2026-07-27 — v2.5.6: Compiled PyInstaller backend binary v2.5.6
 
 - Compiled and synced v2.5.6 backend executable to frontend distribution
