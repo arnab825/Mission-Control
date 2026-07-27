@@ -2,6 +2,10 @@
 
 This document contains a detailed history of all patches and updates for the AI Gaming Assistant.
 
+### Patch: 2026-07-27 — v2.5.8: Updated process.md documentation with build_app.ps1 backend compilation
+
+- Documented build_app.ps1 standalone PyInstaller compilation command in process.md
+
 ### Patch: 2026-07-27 — v2.5.7: Completely stripped Neural failure error text and added dual-mode choice content extractor
 
 - Removed Neural failure error text fallback from directive stream exception handlers

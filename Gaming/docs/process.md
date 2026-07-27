@@ -80,8 +80,12 @@ When you trigger `.\run_local.ps1`, the pipeline executes the following sequence
 2. **`stamp-version`** (Critical Order): Updates the release version in **both** `Gaming/frontend/package.json` and `Gaming/backend/version.json` using the tag version. 
    > [!NOTE]
    > Stamping is executed *before* backend compilation so that the correct version number is permanently compiled into the PyInstaller binary.
-3. **`compile-backend`**: Bundles the Python code into a standalone binary using PyInstaller.
+3. **`compile-backend`**: Bundles the Python code into a standalone binary using PyInstaller via `build_app.ps1`.
    * **Bundle Optimization**: To avoid compilation stutters, dynamic import errors (such as ChromaDB telemetry/posthog failures), and package bloat, the [MissionControl.spec](file:///c:/GitHub/Mission-Control/Gaming/backend/MissionControl.spec) file dynamically walks ChromaDB to include all submodules while explicitly excluding unused vector adapters from `mem0` (like Weaviate, Pinecone, Milvus) and `chromadb` testing packages.
+   * **Standalone Execution**: You can also trigger backend compilation and sync directly via:
+     ```powershell
+     powershell -ExecutionPolicy Bypass -File .\Gaming\scripts\build_app.ps1
+     ```
 4. **`move-backend`**: Copies `dist/MissionControl` to `Gaming/frontend/backend/MissionControl`.
 5. **`package-electron`**: Packages the Electron application containing the compiled backend.
 6. **`build-nsis`**: Generates the `MissionControl-Setup.exe` installer.
