@@ -497,12 +497,21 @@ export async function generateAndSavePost(
         }
 
         if (imageBuffer) {
-            // Save locally
             const publicDir = path.join(process.cwd(), "public/images/blog");
             const imagePath = path.join(publicDir, `${post.slug}.png`);
             safeWriteFileSync(imagePath, imageBuffer);
-            localCoverPath = `/images/blog/${post.slug}.png`;
-            safeAppendFileSync(logFile, `[BlogGen][${currentTopic}] [IMAGE OK] Cover image generated and saved.\n`);
+            
+            if (fs.existsSync(imagePath)) {
+              localCoverPath = `/images/blog/${post.slug}.png`;
+            } else {
+              const cleanTitle = post.title.replace(/[\d]+|Why|How|What|When|[:"'\?\!\-\|]/gi, " ").replace(/\s+/g, " ").trim();
+              const basePrompt = post.imagePrompt && post.imagePrompt.length > 10 ? post.imagePrompt : cleanTitle;
+              const prompt = isHardware
+                ? `Photorealistic 3D render of ${basePrompt}, high-tech computer hardware engineering`
+                : `Cinematic 3D video game visual concept art of ${basePrompt}`;
+              localCoverPath = `https://image.pollinations.ai/prompt/${encodeURIComponent(prompt)}?nologo=true&width=1024&height=768&model=flux`;
+            }
+            safeAppendFileSync(logFile, `[BlogGen][${currentTopic}] [IMAGE OK] Cover image configured.\n`);
         }
       } catch (imgErr: unknown) {
         const errMsg = imgErr instanceof Error ? imgErr.message : String(imgErr);
