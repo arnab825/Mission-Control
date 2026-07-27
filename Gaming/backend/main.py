@@ -11,6 +11,15 @@ import argparse
 import logging
 import os
 import sys
+
+# Configure basic logging immediately so early imports and .env loading logs are visible
+logging.basicConfig(
+    level=logging.INFO,
+    format="%(asctime)s [%(name)s] %(levelname)s: %(message)s",
+    datefmt="%H:%M:%S",
+)
+logger = logging.getLogger("main")
+
 sys.dont_write_bytecode = True
 
 
@@ -95,16 +104,8 @@ from core.pipeline_host import GamingAssistantPipeline
 from core.runtime_helpers import HotReloader, _ChildProcessLogger
 from core.updater_bridge import handle_bridge_update_commands, load_local_version
 
-logging.basicConfig(
-    level=logging.INFO,
-    format="%(asctime)s [%(name)s] %(levelname)s: %(message)s",
-    datefmt="%H:%M:%S",
-)
-
 # Silence verbose, transient warnings from the dxcam screen-capture library
 logging.getLogger("dxcam").setLevel(logging.ERROR)
-
-logger = logging.getLogger("main")
 
 # ── Per-user in-memory library session cache ───────────────────────────────────
 # Keyed by Clerk user_id. Populated on first get_cached_games per login session.

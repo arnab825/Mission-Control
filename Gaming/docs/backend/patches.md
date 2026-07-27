@@ -2,6 +2,10 @@
 
 This document contains a detailed history of all patches and updates for the AI Gaming Assistant.
 
+### Patch: 2026-07-27 — v2.6.0: Fixed NameError on early logger call in main.py
+
+- Moved basicConfig and logger definitions to the top of main.py to resolve NameError during initialization
+
 ### Patch: 2026-07-27 — v2.5.9: Added dual-mode choice content parser to game_knowledge.py
 
 - Added dual dict and object choice parsing to _fetch_keybinds_via_llm in game_knowledge.py
