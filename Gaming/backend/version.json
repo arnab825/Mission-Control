@@ -1,8 +1,16 @@
 {
-  "version": "2.5.8",
+  "version": "2.5.9",
   "release_date": "2026-07-26",
   "update_check_url": "https://raw.githubusercontent.com/arnab825/Mission-Control/main/Gaming/backend/version.json",
   "changelog": [
+    {
+      "version": "2.5.9",
+      "date": "2026-07-27",
+      "title": "Added dual-mode choice content parser to game_knowledge.py",
+      "highlights": [
+        "Added dual dict and object choice parsing to _fetch_keybinds_via_llm in game_knowledge.py"
+      ]
+    },
     {
       "version": "2.5.8",
       "date": "2026-07-27",
@@ -437,14 +445,6 @@
       "title": "Add 1-Click in-app installer for optional PyTorch and Ultralytics vision engines",
       "highlights": [
         "Add 1-Click in-app installer for optional PyTorch and Ultralytics vision engines"
-      ]
-    },
-    {
-      "version": "2.0.0",
-      "date": "2026-07-21",
-      "title": "Fix up-to-date card visibility on Updates page and add ultralytics to dependencies",
-      "highlights": [
-        "Fix up-to-date card visibility on Updates page and add ultralytics to dependencies"
       ]
     }
   ]
