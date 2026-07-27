@@ -9,6 +9,7 @@ import os
 import sys
 import threading
 import time
+from typing import Optional, Dict, List, Any
 
 from ai_brain.prompts.persona_profiles import PERSONALITY_PROFILES
 from ai_brain.telemetry_rules import TelemetryAdvisor
@@ -68,8 +69,33 @@ _TASK_MODEL_MAP = {
 }
 
 
-# Delegate aliases generation
-_get_game_aliases = get_game_aliases
+def extract_choice_content(choice) -> Optional[str]:
+    """Safely extract string content from a completion choice whether it is an SDK object or dict."""
+    if not choice:
+        return None
+    if isinstance(choice, dict):
+        delta = choice.get("delta")
+        if isinstance(delta, dict) and delta.get("content"):
+            return delta.get("content")
+        msg = choice.get("message")
+        if isinstance(msg, dict) and msg.get("content"):
+            return msg.get("content")
+        return choice.get("text") or choice.get("content")
+    
+    delta = getattr(choice, "delta", None)
+    if delta:
+        content = getattr(delta, "content", None) if not isinstance(delta, dict) else delta.get("content")
+        if content:
+            return content
+            
+    msg = getattr(choice, "message", None)
+    if msg:
+        content = getattr(msg, "content", None) if not isinstance(msg, dict) else msg.get("content")
+        if content:
+            return content
+            
+    return getattr(choice, "text", None) or getattr(choice, "content", None)
+
 
 
 
@@ -1858,13 +1884,10 @@ class GameBrain:
                         try:
                             for chunk in completion:
                                 try:
-                                    choices = getattr(chunk, "choices", None)
+                                    choices = getattr(chunk, "choices", None) if not isinstance(chunk, dict) else chunk.get("choices")
                                     if not choices or not isinstance(choices, (list, tuple)) or len(choices) == 0:
                                         continue
-                                    delta = getattr(choices[0], "delta", None)
-                                    if delta is None:
-                                        continue
-                                    content = getattr(delta, "content", None)
+                                    content = extract_choice_content(choices[0])
                                     if content:
                                         yield content
                                 except (IndexError, AttributeError, TypeError, Exception):
@@ -1875,13 +1898,11 @@ class GameBrain:
                             return
                     return generate()
                 else:
-                    choices = getattr(completion, "choices", None) if completion else None
+                    choices = getattr(completion, "choices", None) if not isinstance(completion, dict) else completion.get("choices")
                     if not choices or not isinstance(choices, (list, tuple)) or len(choices) == 0:
                         logger.warning("NVIDIA NIM returned empty choices list. Falling back to local response.")
                         return None
-                    first_choice = choices[0]
-                    message = getattr(first_choice, "message", None)
-                    advice = getattr(message, "content", None) if message else None
+                    advice = extract_choice_content(choices[0])
                     return advice
                 
             except Exception as e:

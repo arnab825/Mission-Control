@@ -2501,8 +2501,8 @@ class GamingAssistantPipeline:
                     response = f"{response}\u200bsearch_status:{status}"
             return response
         except Exception as e:
-            logger.error(f"Failed to process directive: {e}")
-            return f"Neural failure: {str(e)}"
+            logger.error(f"Failed to process directive: {e}", exc_info=True)
+            return ""
         finally:
             with self._state_lock:
                 self._game_state["ai_analytic"]["search_active"] = False
@@ -2541,10 +2541,8 @@ class GamingAssistantPipeline:
                 session_id=self.active_chat_session_id,
                 agentic_mode_active=self.agentic_mode_active
             )
-            yielded_any = False
             for chunk in generator:
                 if chunk:
-                    yielded_any = True
                     yield chunk
                 
             web_search_obj = getattr(self.brain, "_web_search", None) or getattr(getattr(self, "brain", None), "_kb_instance", None)
@@ -2554,8 +2552,6 @@ class GamingAssistantPipeline:
                     yield f"\u200bsearch_status:{status}"
         except Exception as e:
             logger.error(f"Failed to process directive stream: {e}", exc_info=True)
-            if not yielded_any:
-                yield f"Neural failure: {str(e)}"
         finally:
             with self._state_lock:
                 self._game_state["ai_analytic"]["search_active"] = False
