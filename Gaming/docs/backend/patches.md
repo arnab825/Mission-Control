@@ -2,6 +2,12 @@
 
 This document contains a detailed history of all patches and updates for the AI Gaming Assistant.
 
+### Patch: 2026-07-27 — v2.5.3: Fixed list index out of range crash in agent response stream
+
+- Guarded NIM choices access against empty lists
+- Guarded web search API array lookups
+- Cleaned stream error handling
+
 ### Patch: 2026-07-27 — v2.5.2: v2.5.2 Bug Fixes
 
 - v2.5.2 Bug Fixes

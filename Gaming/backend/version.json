@@ -1,8 +1,18 @@
 {
-  "version": "2.5.2",
+  "version": "2.5.3",
   "release_date": "2026-07-26",
   "update_check_url": "https://raw.githubusercontent.com/arnab825/Mission-Control/main/Gaming/backend/version.json",
   "changelog": [
+    {
+      "version": "2.5.3",
+      "date": "2026-07-27",
+      "title": "Fixed list index out of range crash in agent response stream",
+      "highlights": [
+        "Guarded NIM choices access against empty lists",
+        "Guarded web search API array lookups",
+        "Cleaned stream error handling"
+      ]
+    },
     {
       "version": "2.5.2",
       "date": "2026-07-27",

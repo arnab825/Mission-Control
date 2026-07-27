@@ -2541,16 +2541,21 @@ class GamingAssistantPipeline:
                 session_id=self.active_chat_session_id,
                 agentic_mode_active=self.agentic_mode_active
             )
+            yielded_any = False
             for chunk in generator:
-                yield chunk
+                if chunk:
+                    yielded_any = True
+                    yield chunk
                 
-            if hasattr(self.brain, "_web_search") and self.brain._web_search.was_search_triggered_this_tick:
-                status = getattr(self.brain._web_search, "last_search_status", None)
+            web_search_obj = getattr(self.brain, "_web_search", None) or getattr(getattr(self, "brain", None), "_kb_instance", None)
+            if web_search_obj and getattr(web_search_obj, "was_search_triggered_this_tick", False):
+                status = getattr(web_search_obj, "last_search_status", None)
                 if status:
                     yield f"\u200bsearch_status:{status}"
         except Exception as e:
-            logger.error(f"Failed to process directive stream: {e}")
-            yield f"Neural failure: {str(e)}"
+            logger.error(f"Failed to process directive stream: {e}", exc_info=True)
+            if not yielded_any:
+                yield f"Neural failure: {str(e)}"
         finally:
             with self._state_lock:
                 self._game_state["ai_analytic"]["search_active"] = False

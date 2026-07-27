@@ -344,7 +344,7 @@ class WebSearchEngine:
                 data = json.loads(r.read())
 
             games = data.get("results", [])
-            if not games:
+            if not games or not isinstance(games, list) or len(games) == 0:
                 return {"answer": "", "results": [], "source": "rawg"}
 
             g = games[0]
@@ -387,7 +387,7 @@ class WebSearchEngine:
 
             # SteamSpy returns a dict of appid → game data
             games = list(data.values())
-            if not games:
+            if not games or len(games) == 0:
                 return {"answer": "", "results": [], "source": "steamspy"}
 
             g = games[0]
@@ -482,7 +482,7 @@ class WebSearchEngine:
                 date_str = datetime.datetime.fromtimestamp(date_ts).strftime("%Y-%m-%d") if date_ts else "Unknown"
                 results.append({"title": f"{title} ({date_str})", "url": url_link, "content": contents})
 
-            answer = f"[Steam News — {game_name}] {results[0]['title']}: {results[0]['content']}" if results else ""
+            answer = f"[Steam News — {game_name}] {results[0]['title']}: {results[0]['content']}" if (results and len(results) > 0) else ""
             return {"answer": answer, "results": results, "source": "steam_news"}
         except Exception as e:
             logger.debug(f"Steam News fetch failed for '{game_name}' (appid={appid}): {e}")
@@ -550,7 +550,7 @@ class WebSearchEngine:
                     proms = game.get("promotions")
                     if proms and proms.get("promotionalOffers"):
                         offers = proms["promotionalOffers"]
-                        if offers and offers[0].get("promotionalOffers"):
+                        if offers and len(offers) > 0 and isinstance(offers[0], dict) and offers[0].get("promotionalOffers"):
                             name = game.get("title", "Unknown")
                             price_info = game.get("price", {}).get("totalPrice", {})
                             original_price = price_info.get("originalPrice", 0) / 100
@@ -612,7 +612,7 @@ class WebSearchEngine:
             with DDGS() as ddgs:
                 hits = list(ddgs.text(query, max_results=max_results))
                 results = [{"title": h["title"], "url": h["href"], "content": h["body"]} for h in hits]
-                if results:
+                if results and len(results) > 0:
                     answer = results[0]["content"][:500]
         except Exception:
             # Ultra-fallback: DuckDuckGo Instant Answer (stdlib only)
@@ -652,7 +652,7 @@ class WebSearchEngine:
                     if not content:
                         continue # Skip image-only or link-only posts
                     results.append({"title": f"[Reddit] {title}", "url": url, "content": content[:800]})
-                if results:
+                if results and len(results) > 0:
                     answer = results[0]["content"][:500]
         except Exception as e:
             logger.debug(f"Reddit Search failed: {e}")
