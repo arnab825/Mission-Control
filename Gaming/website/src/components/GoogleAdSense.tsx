@@ -1,24 +1,26 @@
 "use client";
 
 import React, { useEffect } from "react";
-import Script from "next/script";
 
 interface GoogleAdSenseProps {
   publisherId?: string;
 }
 
 export function GoogleAdSenseScript({ publisherId }: GoogleAdSenseProps) {
-  const client = publisherId || process.env.NEXT_PUBLIC_ADSENSE_CLIENT_ID || "";
+  const client = publisherId || process.env.NEXT_PUBLIC_ADSENSE_CLIENT_ID;
 
-  return (
-    <Script
-      id="google-adsense-script"
-      async
-      src={`https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=${client}`}
-      crossOrigin="anonymous"
-      strategy="afterInteractive"
-    />
-  );
+  useEffect(() => {
+    if (!client) return;
+    if (document.querySelector('script[src*="adsbygoogle.js"]')) return;
+
+    const script = document.createElement("script");
+    script.src = `https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=${client}`;
+    script.async = true;
+    script.crossOrigin = "anonymous";
+    document.head.appendChild(script);
+  }, [client]);
+
+  return null;
 }
 
 interface AdSlotProps {

@@ -28,7 +28,6 @@ export async function POST(request: NextRequest) {
     }
   }
 
-  const results: { type: string; slug: string; saved: boolean }[] = [];
   const allPostTypes = ["GPU News", "Game News", "Hardware Deep-Dive", "Game Revisit"] as const;
   
   // If specific category filter is requested, generate only for that category
@@ -36,12 +35,16 @@ export async function POST(request: NextRequest) {
     ? [requestedCategory as typeof allPostTypes[number]]
     : allPostTypes;
 
-  for (const currentTopic of postTypes) {
-    const result = await generateAndSavePost(currentTopic, targetDate, apiKey, process.env.HF_TOKEN);
-    if (result) {
-      results.push(result);
-    }
-  }
+  // Run all categories in parallel to stay safely within Vercel's 60s maxDuration limit
+  const settlementResults = await Promise.allSettled(
+    postTypes.map((currentTopic) =>
+      generateAndSavePost(currentTopic, targetDate, apiKey, process.env.HF_TOKEN)
+    )
+  );
+
+  const results = settlementResults
+    .filter((r): r is PromiseFulfilledResult<any> => r.status === "fulfilled" && r.value !== null)
+    .map((r) => r.value);
 
   return NextResponse.json({
     success: true,
