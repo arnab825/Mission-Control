@@ -1,35 +1,35 @@
+import glob
+import os
 import sqlite3
 
-conn = sqlite3.connect('data/agent_memory.db')
-cur = conn.cursor()
+for db in glob.glob("**/*.db", recursive=True):
+    try:
+        c = sqlite3.connect(db)
+        cur = c.cursor()
+        cur.execute("SELECT name FROM sqlite_master WHERE type='table'")
+        tables = [r[0] for r in cur.fetchall()]
+        for t in tables:
+            try:
+                cur.execute(f"SELECT * FROM {t}")
+                for row in cur.fetchall():
+                    s = str(row)
+                    if "Neural failure" in s or "list index out of range" in s:
+                        print(f"FOUND IN DB {db} table {t}: {s[:200]}")
+            except Exception:
+                pass
+    except Exception:
+        pass
 
-# Check all messages
-cur.execute("SELECT COUNT(*) FROM chat_messages")
-total = cur.fetchone()[0]
-print(f"Total messages: {total}")
-
-# Check encrypted ones
-cur.execute("SELECT COUNT(*) FROM chat_messages WHERE content LIKE 'ENC:%'")
-encrypted = cur.fetchone()[0]
-print(f"Encrypted (ENC:) messages: {encrypted}")
-
-# Show first plaintext message
-cur.execute("SELECT content FROM chat_messages WHERE content NOT LIKE 'ENC:%' LIMIT 1")
-row = cur.fetchone()
-if row:
-    print(f"Sample plaintext: {repr(row[0][:80])}")
-
-# Show first encrypted message if any
-cur.execute("SELECT content FROM chat_messages WHERE content LIKE 'ENC:%' LIMIT 1")
-row = cur.fetchone()
-if row:
-    print(f"Sample encrypted: {repr(row[0][:80])}")
-else:
-    print("No encrypted messages found")
-
-# Get a count breakdown
-cur.execute("SELECT SUM(CASE WHEN content LIKE 'ENC:%' THEN 1 ELSE 0 END), SUM(CASE WHEN content NOT LIKE 'ENC:%' THEN 1 ELSE 0 END) FROM chat_messages")
-enc_count, plain_count = cur.fetchone()
-print(f"\nBreakdown: {enc_count or 0} encrypted, {plain_count or 0} plaintext")
-
-conn.close()
+for root, dirs, files in os.walk("."):
+    if ".venv" in root or "__pycache__" in root or "node_modules" in root or ".git" in root:
+        continue
+    for f in files:
+        if f.endswith((".json", ".txt", ".jsonl", ".log")):
+            p = os.path.join(root, f)
+            try:
+                with open(p, "r", encoding="utf-8", errors="ignore") as fp:
+                    content = fp.read()
+                    if "Neural failure" in content or "list index out of range" in content:
+                        print(f"FOUND IN FILE: {p}")
+            except Exception:
+                pass

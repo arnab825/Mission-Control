@@ -1,8 +1,16 @@
 {
-  "version": "2.5.5",
+  "version": "2.5.6",
   "release_date": "2026-07-26",
   "update_check_url": "https://raw.githubusercontent.com/arnab825/Mission-Control/main/Gaming/backend/version.json",
   "changelog": [
+    {
+      "version": "2.5.6",
+      "date": "2026-07-27",
+      "title": "Compiled PyInstaller backend binary v2.5.6",
+      "highlights": [
+        "Compiled and synced v2.5.6 backend executable to frontend distribution"
+      ]
+    },
     {
       "version": "2.5.5",
       "date": "2026-07-27",
@@ -436,14 +444,6 @@
       "title": "Fix update pause/resume persistence across app restarts and add in-UI rollback verification dialog",
       "highlights": [
         "Fix update pause/resume persistence across app restarts and add in-UI rollback verification dialog"
-      ]
-    },
-    {
-      "version": "1.9.7",
-      "date": "2026-07-21",
-      "title": "Fix false update-available on same version; fix YOLO status always showing offline on Vision page",
-      "highlights": [
-        "Fix false update-available on same version; fix YOLO status always showing offline on Vision page"
       ]
     }
   ]

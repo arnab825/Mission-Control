@@ -2,6 +2,10 @@
 
 This document contains a detailed history of all patches and updates for the AI Gaming Assistant.
 
+### Patch: 2026-07-27 — v2.5.6: Compiled PyInstaller backend binary v2.5.6
+
+- Compiled and synced v2.5.6 backend executable to frontend distribution
+
 ### Patch: 2026-07-27 — v2.5.5: Fixed welcome stream fallback list index out of range crash
 
 - Guarded welcome stream and fallback chat generation
