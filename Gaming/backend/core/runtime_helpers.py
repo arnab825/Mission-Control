@@ -1060,7 +1060,10 @@ class TelemetryThread(threading.Thread):
                     return 60
 
                 game_fps = state_copy.get("game_fps", 0.0)
-                state_copy["fps"] = round(game_fps, 1) if (is_active and game_fps > 0.0) else 0.0
+                capture_fps = state_copy.get("capture_fps", 0.0)
+                # Fall back to capture_fps if the ETW/QPC layer hasn't delivered game_fps yet
+                effective_fps = game_fps if game_fps > 0.0 else capture_fps
+                state_copy["fps"] = round(effective_fps, 1) if (is_active and effective_fps > 0.0) else 0.0
 
                 game_info = state_copy.get("game_info")
                 if game_info:

@@ -105,7 +105,7 @@ const HUD: React.FC<{ state: TelemetryState | null; sendCommand?: (cmd: string, 
   const { fps, gpuUtil, gpuTemp, vramUsed, vramTot, cpuUtil, memPct, minFps, maxFps, onePctLow, gpuPwr, cpuTemp, cpuPwr, cpuFreq } = useMemo(() => {
     const gpuMetrics = (state?.gpu_metrics || {}) as any;
     return {
-      fps: state?.fps ? Math.round(state.fps) : null,
+      fps: state?.fps != null ? Math.round(state.fps) : null,
       gpuUtil: Math.round(gpuMetrics.utilization ?? gpuMetrics.gpu_util ?? 0),
       gpuTemp: Math.round(gpuMetrics.temp ?? gpuMetrics.temperature ?? 0),
       gpuPwr: Math.round(gpuMetrics.power_draw ?? gpuMetrics.power_draw_w ?? 0),
