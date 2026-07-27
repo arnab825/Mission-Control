@@ -1,8 +1,17 @@
 {
-  "version": "2.5.4",
+  "version": "2.5.5",
   "release_date": "2026-07-26",
   "update_check_url": "https://raw.githubusercontent.com/arnab825/Mission-Control/main/Gaming/backend/version.json",
   "changelog": [
+    {
+      "version": "2.5.5",
+      "date": "2026-07-27",
+      "title": "Fixed welcome stream fallback list index out of range crash",
+      "highlights": [
+        "Guarded welcome stream and fallback chat generation",
+        "Safeguarded session deletion and system specs display lookups"
+      ]
+    },
     {
       "version": "2.5.4",
       "date": "2026-07-27",
@@ -435,16 +444,6 @@
       "title": "Fix false update-available on same version; fix YOLO status always showing offline on Vision page",
       "highlights": [
         "Fix false update-available on same version; fix YOLO status always showing offline on Vision page"
-      ]
-    },
-    {
-      "version": "1.9.6",
-      "date": "2026-07-21",
-      "title": "Fix YOLO diagnostics, same-version update check, and uninstaller naming",
-      "highlights": [
-        "Resolve YOLO backend diagnostics false alarms by verifying dependencies from Python backend",
-        "Allow Electron auto-updater to download same-version patch updates",
-        "Change uninstaller display name in Windows control panel to Uninstall Mission Control"
       ]
     }
   ]

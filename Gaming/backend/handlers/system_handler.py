@@ -321,8 +321,9 @@ def handle_get_core_optimization(payload: dict, pipeline, bridge, config) -> Non
             hw_checker = HardwareChecker()
             specs = hw_checker.get_system_specs()
             hw_str = f"CPU: {specs['hardware']['cpu']}, GPU: {specs['hardware']['gpu']} ({specs['vram_gb']}GB VRAM), RAM: {specs['hardware']['ram']}"
-            if specs['displays']:
-                hw_str += f", Display: {specs['displays'][0]['resolution']} {specs['displays'][0]['refresh']}"
+            if specs.get('displays') and len(specs['displays']) > 0 and isinstance(specs['displays'][0], dict):
+                d0 = specs['displays'][0]
+                hw_str += f", Display: {d0.get('resolution', 'N/A')} {d0.get('refresh', '')}"
 
             # 2. Try to resolve the game entry from the active pipeline game state
             #    so we always have install_path/exe_path available.
