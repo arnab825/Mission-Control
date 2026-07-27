@@ -1,8 +1,18 @@
 {
-  "version": "2.6.1",
+  "version": "2.6.2",
   "release_date": "2026-07-26",
   "update_check_url": "https://raw.githubusercontent.com/arnab825/Mission-Control/main/Gaming/backend/version.json",
   "changelog": [
+    {
+      "version": "2.6.2",
+      "date": "2026-07-27",
+      "title": "Filtered crack and NoDVD subdirectories from game detection",
+      "highlights": [
+        "Filtered executables inside crack/nodvd subdirectories in _select_best_exe",
+        "Skipped crack/nodvd subdirectories during drive scan",
+        "Filtered crack/nodvd subdirectories during Steam recursive glob search"
+      ]
+    },
     {
       "version": "2.6.1",
       "date": "2026-07-27",
@@ -439,14 +449,6 @@
       "title": "Map GPU max hardware TGP constraints directly into LabPage Power Target UI and telemetry",
       "highlights": [
         "Map GPU max hardware TGP constraints directly into LabPage Power Target UI and telemetry"
-      ]
-    },
-    {
-      "version": "2.0.3",
-      "date": "2026-07-21",
-      "title": "Unlock hardware max TGP ceiling for GPU power limits in Boost Mode and Optimization Mode",
-      "highlights": [
-        "Unlock hardware max TGP ceiling for GPU power limits in Boost Mode and Optimization Mode"
       ]
     }
   ]
