@@ -57,7 +57,7 @@
                             "recharts":  "^3.10.1",
                             "tailwind-merge":  "^3.6.0",
                             "typescript":  "~7.0.2",
-                            "typescript-eslint":  "^8.64.0",
+                            "typescript-eslint":  "^8.65.0",
                             "vite":  "^8.1.5",
                             "vite-plugin-electron":  "^0.29.1",
                             "vite-plugin-electron-renderer":  "^1.0.0",
