@@ -2,6 +2,12 @@
 
 This document contains a detailed history of all patches and updates for the AI Gaming Assistant.
 
+### Patch: 2026-07-27 — v2.6.1: Optimized updater mechanism and excluded crack directories
+
+- Skip NoDVD and skidrow folders in game deep scanning
+- Clean stale update state on start via semantic comparison
+- Correctly scan changelog for executable availability in backend updater
+
 ### Patch: 2026-07-27 — v2.6.0: Fixed NameError on early logger call in main.py
 
 - Moved basicConfig and logger definitions to the top of main.py to resolve NameError during initialization

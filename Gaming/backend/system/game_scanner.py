@@ -2100,7 +2100,7 @@ class GameScanner:
             "common files", "internet explorer", "windowsapps",
             "microsoft", "intel", "nvidia", "amd", "appdata",
             "documents and settings", "recovery", "msocache",
-            "onlinefix", "online fix"
+            "onlinefix", "online fix", "nodvd", "crack", "update", "updates", "skidrow"
         }
         skip_folders.update(self.crack_groups)
         

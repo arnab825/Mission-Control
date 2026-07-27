@@ -1860,20 +1860,50 @@ class GameBrain:
             try:
                 # We use non-streaming here for simpler integration into the pipeline, 
                 # but we could adapt for streaming if needed in the UI.
+                import copy
                 if isinstance(prompt, list):
-                    messages = prompt
+                    messages = copy.deepcopy(prompt)
                 else:
                     messages = []
                     if system_instruction:
                         messages.append({"role": "system", "content": system_instruction})
                     messages.append({"role": "user", "content": prompt})
 
+                # Model-specific system instruction tuning
+                m_lower = model_id.lower()
+                sys_addition = ""
+                if "nemotron" in m_lower:
+                    sys_addition = "\n\n[MODEL OVERRIDE: NEMOTRON] Ensure your response is highly analytical, tactical, and concise. Prioritize system optimization data and avoid unnecessary conversational fluff."
+                elif "phi" in m_lower:
+                    sys_addition = "\n\n[MODEL OVERRIDE: PHI] Provide a highly condensed, ultra-fast summary. Keep your output short and direct."
+                elif "mistral" in m_lower:
+                    sys_addition = "\n\n[MODEL OVERRIDE: MISTRAL] Focus on step-by-step logic. Provide clear, well-structured, and direct answers without filler."
+                
+                if sys_addition:
+                    has_sys = False
+                    for m in messages:
+                        if m.get("role") == "system":
+                            m["content"] = str(m.get("content", "")) + sys_addition
+                            has_sys = True
+                            break
+                    if not has_sys:
+                        messages.insert(0, {"role": "system", "content": sys_addition})
+
+                # Define model-specific parameter overrides to prevent token limits (NIM 400 Bad Request)
+                model_max_tokens = 4096
+                if "phi-3" in m_lower or "4k" in m_lower:
+                    model_max_tokens = 1024
+                elif "mistral" in m_lower:
+                    model_max_tokens = 1024
+                elif "nemotron" in m_lower:
+                    model_max_tokens = 1024
+
                 completion = self.client.chat.completions.create(
                     model=model_id,
                     messages=messages,
                     temperature=temperature,
                     top_p=0.7,
-                    max_tokens=4096,
+                    max_tokens=model_max_tokens,
                     stream=stream,
                     timeout=60.0
                 )

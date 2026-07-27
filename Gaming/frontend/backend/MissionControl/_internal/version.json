@@ -1,8 +1,18 @@
 {
-  "version": "2.6.0",
+  "version": "2.6.1",
   "release_date": "2026-07-26",
   "update_check_url": "https://raw.githubusercontent.com/arnab825/Mission-Control/main/Gaming/backend/version.json",
   "changelog": [
+    {
+      "version": "2.6.1",
+      "date": "2026-07-27",
+      "title": "Optimized updater mechanism and excluded crack directories",
+      "highlights": [
+        "Skip NoDVD and skidrow folders in game deep scanning",
+        "Clean stale update state on start via semantic comparison",
+        "Correctly scan changelog for executable availability in backend updater"
+      ]
+    },
     {
       "version": "2.6.0",
       "date": "2026-07-27",
@@ -437,14 +447,6 @@
       "title": "Unlock hardware max TGP ceiling for GPU power limits in Boost Mode and Optimization Mode",
       "highlights": [
         "Unlock hardware max TGP ceiling for GPU power limits in Boost Mode and Optimization Mode"
-      ]
-    },
-    {
-      "version": "2.0.2",
-      "date": "2026-07-21",
-      "title": "Fix update pause/resume cancellation flow and prevent trailing progress override",
-      "highlights": [
-        "Fix update pause/resume cancellation flow and prevent trailing progress override"
       ]
     }
   ]

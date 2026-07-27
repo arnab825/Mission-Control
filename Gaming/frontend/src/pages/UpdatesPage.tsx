@@ -223,6 +223,15 @@ export const UpdatesPage: React.FC<UpdatesPageProps> = ({
     return null;
   };
 
+  const targetVersion = updateState?.latest_version || (changelogsData?.changelog?.[0]?.version);
+
+  const isNativeStale = Boolean(
+    nativeUpdate?.status === 'downloaded' &&
+    nativeUpdate?.version &&
+    targetVersion &&
+    compareSemVer(targetVersion, nativeUpdate.version) > 0
+  );
+
   return (
     <div className="flex-1 flex flex-col h-full bg-zinc-950 overflow-hidden relative font-['Inter',system-ui,sans-serif]">
       {/* Animated Background Highlights */}
@@ -248,19 +257,19 @@ export const UpdatesPage: React.FC<UpdatesPageProps> = ({
             onClick={() => {
               setActiveTab('check');
               sendCommand('check_updates');
-              window.electronAPI?.checkElectronUpdates?.();
             }}
-            className={`flex-1 py-3 text-center text-[10px] font-black uppercase tracking-widest border-b-2 transition-all ${
-              activeTab === 'check'
-                ? 'border-neon-green text-neon-green bg-neon-green/2'
-                : 'border-transparent text-zinc-500 hover:text-zinc-300 hover:bg-white/1'
+            className={`flex-1 py-3 text-center text-[10px] font-black uppercase tracking-widest border-r border-b-2 transition-all ${
+              activeTab === 'check' 
+                ? 'border-r-white/5 border-b-neon-green text-neon-green bg-neon-green/2' 
+                : 'border-r-white/5 border-b-transparent text-zinc-500 hover:text-zinc-300 hover:bg-white/1'
             }`}
           >
             <span className="flex items-center justify-center gap-2">
-              <RefreshCw className={`w-3.5 h-3.5 ${updateState?.status === 'checking' ? 'animate-spin' : ''}`} />
-              Check Updates
+              <Sparkles className="w-3.5 h-3.5" />
+              Intelligence Core Check
             </span>
           </button>
+          
           <button aria-label="button" type="button"
             onClick={() => {
               setActiveTab('changelogs');
@@ -287,7 +296,7 @@ export const UpdatesPage: React.FC<UpdatesPageProps> = ({
             <div className="space-y-6">
               
               {/* Native Client Update Alert (Squirrel) */}
-              {(!installState || installState.status === 'use_native') && nativeUpdate.status === 'downloaded' && (
+              {(!installState || installState.status === 'use_native') && nativeUpdate.status === 'downloaded' && !isNativeStale && (
                 <div className="p-6 bg-linear-to-r from-purple-500/10 to-neon-green/10 border border-neon-green/30 rounded-3xl space-y-4 shadow-[0_0_20px_rgba(118, 185, 0,0.15)] relative overflow-hidden">
                   <div className="absolute top-0 right-0 w-24 h-24 bg-neon-green/5 rounded-full blur-[60px] pointer-events-none" />
                   <div className="flex flex-col md:flex-row items-start md:items-center justify-between gap-4">
