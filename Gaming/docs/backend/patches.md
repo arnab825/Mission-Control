@@ -2,6 +2,14 @@
 
 This document contains a detailed history of all patches and updates for the AI Gaming Assistant.
 
+### Patch: 2026-07-27 — v2.5.2: v2.5.2 Bug Fixes
+
+- v2.5.2 Bug Fixes
+- Fixed list index out of range crash in NIM streaming generator
+- Filtered pirate release folders (e.g. Epic/Steam Files) from scanner
+- Fixed HUD FPS counter falling back to capture FPS when ETW is zero
+- Fixed HUD rendering showing null when FPS is 0
+
 ### Patch: 2026-07-26 — v2.5.1: Pirate Release Group Filter, UI Fixes & Dynamic Steam Artwork
 
 - Fixed Game Scanner wrongly picking up crack group names (e.g. FLT, RUNE) as game names

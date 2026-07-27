@@ -41,40 +41,6 @@
     "icon": "C:\\GitHub\\Mission-Control\\Gaming\\backend\\data\\icons\\fallback_epic_games.png"
   },
   {
-    "name": "Epic Files",
-    "platform": "Local",
-    "id": "deep_Epic Files",
-    "install_path": "C:\\Games\\Ghost of Tsushima DC\\NoDVD\\Epic Files",
-    "exe_path": "C:\\Games\\Ghost of Tsushima DC\\NoDVD\\Epic Files\\GhostOfTsushima.exe",
-    "features": [
-      "DLSS",
-      "FRAME_GEN",
-      "REFLEX"
-    ],
-    "source": "deep_scan",
-    "type": "GAME",
-    "genre": "CLASSIC",
-    "tags": [],
-    "icon": "C:\\GitHub\\Mission-Control\\Gaming\\backend\\data\\icons\\deep_EpicFiles.png"
-  },
-  {
-    "name": "Steam Files",
-    "platform": "Local",
-    "id": "deep_Steam Files",
-    "install_path": "C:\\Games\\Ghost of Tsushima DC\\NoDVD\\Steam Files",
-    "exe_path": "C:\\Games\\Ghost of Tsushima DC\\NoDVD\\Steam Files\\GhostOfTsushima.exe",
-    "features": [
-      "DLSS",
-      "FRAME_GEN",
-      "REFLEX"
-    ],
-    "source": "deep_scan",
-    "type": "GAME",
-    "genre": "CLASSIC",
-    "tags": [],
-    "icon": "C:\\GitHub\\Mission-Control\\Gaming\\backend\\data\\icons\\deep_SteamFiles.png"
-  },
-  {
     "name": "Ubisoft Connect",
     "platform": "Ubisoft Connect",
     "id": "ubisoft_launcher",
@@ -102,7 +68,6 @@
     ],
     "type": "GAME",
     "genre": "CLASSIC",
-    "icon": "C:\\GitHub\\Mission-Control\\Gaming\\backend\\data\\icons\\C_GhostofTsushimaDC.png",
     "local_banner": "https://cdn.akamai.steamstatic.com/steam/apps/2215430/header.jpg"
   },
   {

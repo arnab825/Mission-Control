@@ -1854,9 +1854,16 @@ class GameBrain:
                         try:
                             for chunk in completion:
                                 try:
-                                    if chunk.choices and hasattr(chunk.choices[0], "delta") and getattr(chunk.choices[0].delta, "content", None):
-                                        yield chunk.choices[0].delta.content
-                                except (IndexError, AttributeError):
+                                    choices = getattr(chunk, "choices", None)
+                                    if not choices:
+                                        continue
+                                    delta = getattr(choices[0], "delta", None)
+                                    if delta is None:
+                                        continue
+                                    content = getattr(delta, "content", None)
+                                    if content:
+                                        yield content
+                                except (IndexError, AttributeError, TypeError):
                                     # Malformed/empty chunk from NIM stream — skip silently
                                     continue
                         except Exception as stream_err:

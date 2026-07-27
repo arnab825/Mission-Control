@@ -54,7 +54,9 @@ class GameScanner:
             "epicfiles", "steamfiles", "onlinefix", "online fix", 
             "crack", "skidrow", "reloaded", "fitgirl", "dodi", 
             "update", "updates", "razor1911", "emp", "empress", 
-            "crackfix", "nodvd", "no-dvd", "gog"
+            "crackfix", "nodvd", "no-dvd", "gog",
+            # spaced variants (for folder names like "Epic Files", "Steam Files")
+            "epic files", "steam files", "online fix", "no dvd",
         }
         
         # Extended list of keywords to filter out non-game applications
@@ -451,8 +453,9 @@ class GameScanner:
                 
                 name_lower = g["name"].lower()
                 
-                # If the name is STILL exactly a crack group name, try to rescue it from its path
-                if name_lower in self.crack_groups:
+                # If the name is STILL exactly a crack group name (with or without spaces), try to rescue it from its path
+                name_nospace = name_lower.replace(" ", "")
+                if name_lower in self.crack_groups or name_nospace in self.crack_groups:
                     path = Path(g.get("install_path", ""))
                     if path.exists() and len(path.parts) > 1:
                         found_better = False
