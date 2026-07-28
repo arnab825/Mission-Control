@@ -279,16 +279,10 @@ class ProcessWatcher:
                             is_minimized = self._is_window_minimized(self._monitored_pid)
                             hwnd = self._get_hwnd_for_pid(self._monitored_pid)
                             
-                            # Check if the process has no visible window for more than 30 seconds (orphaned/background)
-                            if hwnd is None:
-                                try:
-                                    elapsed = time.time() - proc.create_time()
-                                    if elapsed > 30.0:
-                                        logger.info(f"Monitored game process {proc.name()} (PID: {self._monitored_pid}) has no visible window after {elapsed:.1f}s. Treating as not running.")
-                                        return None
-                                except Exception:
-                                    pass
-                                    
+                            # NOTE: Do NOT bail out on hwnd=None — exclusive fullscreen games
+                            # (e.g. Ghost of Tsushima, RDR2) run under DXGI exclusive mode which
+                            # bypasses the Win32 window manager. EnumWindows won't find their
+                            # render window. The process being alive IS the ground truth.
                             self._current_game["is_minimized"] = is_minimized
                             self._current_game["hwnd"] = hwnd
                             return self._current_game
@@ -329,15 +323,12 @@ class ProcessWatcher:
                         pid = proc.pid
                         hwnd = self._get_hwnd_for_pid(pid)
                         
-                        # Verify it has a window or is newly launched
-                        if hwnd is None:
-                            try:
-                                elapsed = time.time() - proc.create_time()
-                                if elapsed > 30.0:
-                                    # Skip this process as it's likely an orphaned background process
-                                    continue
-                            except Exception:
-                                pass
+                        # NOTE: Do NOT bail out here when hwnd is None.
+                        # Exclusive fullscreen games (e.g. Ghost of Tsushima, RDR2 in
+                        # exclusive mode) have no enumerable Win32 HWND via EnumWindows
+                        # because DXGI bypasses the standard window manager for their
+                        # swapchain. The registry exe-name match is sufficient trust;
+                        # hwnd=None is handled gracefully downstream.
                                 
                         return {
                             **game,
@@ -364,14 +355,9 @@ class ProcessWatcher:
                                 pid = p_obj.pid
                                 hwnd = self._get_hwnd_for_pid(pid)
                                 
-                                # Verify it has a window or is newly launched
-                                if hwnd is None:
-                                    try:
-                                        elapsed = time.time() - p_obj.create_time()
-                                        if elapsed > 30.0:
-                                            continue
-                                    except Exception:
-                                        pass
+                                # NOTE: Do NOT skip on hwnd=None — exclusive fullscreen
+                                # (DXGI) games have no enumerable HWND but are genuinely running.
+                                # The install-path match is sufficient trust.
                                         
                                 return {
                                     **game,
@@ -433,11 +419,32 @@ class ProcessWatcher:
                             
                             if exe_name not in self.EXCLUDED_PROCESSES and exe_name not in self.LAUNCHER_PROCESSES and exe_name not in self.BROWSER_PROCESSES and not any(ext in title_lower for ext in self.EXCLUDED_TITLES):
                                 famous_game_keywords = [
-                                    "grand theft auto", "gta", "cyberpunk", "far cry", "spiderman", "witcher", 
-                                    "valorant", "counter-strike", "csgo", "minecraft", "fortnite", "apex legends", 
-                                    "destiny", "diablo", "red dead", "rdr", "borderlands", "halo", "doom", "skyrim", 
-                                    "fallout", "assassin's creed", "forza", "fifa", "madden", "nba 2k", "playgtav",
-                                    "elden ring", "hades", "hollow knight"
+                                    # Rockstar
+                                    "grand theft auto", "gta", "red dead", "rdr", "playgtav",
+                                    # Open world / action-adventure
+                                    "cyberpunk", "far cry", "farcry", "witcher", "assassin's creed",
+                                    "ghost of tsushima", "ghosts of tsushima", "horizon", "spider-man",
+                                    "spiderman", "god of war", "uncharted", "last of us", "death stranding",
+                                    "days gone", "returnal", "ratchet", "clank", "demon's souls",
+                                    "nier automata", "nier replicant", "persona",
+                                    # FPS / Shooters
+                                    "valorant", "counter-strike", "csgo", "apex legends",
+                                    "fortnite", "destiny", "borderlands", "halo", "doom",
+                                    "battlefield", "call of duty", "cod", "warzone",
+                                    # RPG
+                                    "diablo", "skyrim", "fallout", "elden ring", "dark souls",
+                                    "sekiro", "bloodborne", "armored core", "baldur's gate",
+                                    "divinity", "pathfinder", "pillars",
+                                    # Indie
+                                    "hades", "hollow knight", "celeste", "dead cells", "risk of rain",
+                                    "stardew", "terraria", "cuphead", "ori",
+                                    # Sports / Racing
+                                    "forza", "fifa", "madden", "nba 2k", "f1 ",
+                                    # Survival / sandbox
+                                    "minecraft", "valheim", "subnautica", "green hell",
+                                    # MMO / Online
+                                    "final fantasy", "world of warcraft", "guild wars", "lost ark",
+                                    "path of exile", "warframe",
                                 ]
                                 
                                 is_game = False

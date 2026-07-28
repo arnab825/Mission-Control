@@ -1,8 +1,18 @@
 {
-  "version": "2.6.5",
-  "release_date": "2026-07-26",
+  "version": "2.6.6",
+  "release_date": "2026-07-28",
   "update_check_url": "https://raw.githubusercontent.com/arnab825/Mission-Control/main/Gaming/backend/version.json",
   "changelog": [
+    {
+      "version": "2.6.6",
+      "date": "2026-07-28",
+      "title": "Exclusive Fullscreen & Game Detection Fixes",
+      "highlights": [
+        "Fixed process watcher HWND bail-out for DXGI exclusive fullscreen games (Ghost of Tsushima, RDR2, etc.)",
+        "Expanded famous_game_keywords fallback list with major action, shooter, RPG and indie titles",
+        "Resolved null FPS overlay bug by ensuring ETW PID tracking activates for exclusive fullscreen games"
+      ]
+    },
     {
       "version": "2.6.5",
       "date": "2026-07-28",
