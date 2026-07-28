@@ -2,6 +2,13 @@
 
 This document contains a detailed history of all patches and updates for the AI Gaming Assistant.
 
+### Patch: 2026-07-28 — v2.6.5: Exclusive Fullscreen: Privacy Shield Fix + Tray Telemetry
+
+- Fixed Privacy Shield false-positive in exclusive fullscreen (alt-tab no longer blacks out vision feed)
+- Decoupled Privacy Shield from GetForegroundWindow — now only fires when game process exits or window is minimized
+- Added live FPS/GPU/Temp telemetry to system tray tooltip (hover to check performance without alt-tabbing)
+- Added psutil PID-alive check in _is_game_active Step 6 to preserve focused=True for exclusive fullscreen games
+
 ### Patch: 2026-07-27 — v2.6.2: Filtered crack and NoDVD subdirectories from game detection
 
 - Filtered executables inside crack/nodvd subdirectories in _select_best_exe

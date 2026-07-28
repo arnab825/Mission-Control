@@ -12,6 +12,7 @@ contextBridge.exposeInMainWorld('electronAPI', {
   updateHUDConfig: (config: any) => ipcRenderer.send('update-hud-config', config),
   toggleHUD: () => ipcRenderer.send('toggle-hud'),
   onGameFocusChanged: (isActive: boolean, isFocused: boolean, gameTitle?: string, gamePid?: number) => ipcRenderer.send('game-focus-changed', isActive, isFocused, gameTitle, gamePid),
+  updateTrayTelemetry: (data: { fps?: number; gpuLoad?: number; gpuTemp?: number; isActive?: boolean }) => ipcRenderer.send('update-tray-telemetry', data),
   moveHUDWindow: (deltaX: number, deltaY: number) => ipcRenderer.send('move-hud-window', deltaX, deltaY),
   selectDirectory: () => ipcRenderer.invoke('select-directory'),
   getDesktopPath: () => ipcRenderer.invoke('get-desktop-path'),

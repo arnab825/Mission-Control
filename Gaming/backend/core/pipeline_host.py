@@ -1076,8 +1076,19 @@ class GamingAssistantPipeline:
 
         # 6. If a game is registered as running but doesn't have active foreground window
         if is_running:
-            # Game is tracked but not focused. 
-            # We return True so the Vision pipeline keeps analyzing the screen (crucial for Borderless/Multi-Monitor!)
+            # Game is tracked but not in foreground.
+            # Check if game process is still alive and not minimized — if so, it's likely
+            # exclusive fullscreen and we lost foreground momentarily (e.g., Mission Control
+            # overlay popped up). Preserve focused=True so Privacy Shield doesn't fire.
+            game_pid = _gi.get("pid")
+            if game_pid and psutil is not None:
+                try:
+                    proc = psutil.Process(game_pid)
+                    if proc.is_running() and not is_minimized:
+                        # Process alive and not minimized → treat as still focused
+                        return True, True, _gi.get("name", active_title)
+                except (psutil.NoSuchProcess, psutil.AccessDenied):
+                    pass
             return True, False, _gi.get("name", active_title)
             
         return False, False, "No game detected"
@@ -1473,17 +1484,22 @@ class GamingAssistantPipeline:
         """Run all vision processing on a frame."""
         t_start = time.perf_counter()
 
-        # Privacy Shield Safeguard: If the game is not focused and we are using a desktop-level capture backend,
-        # we black out the frame and skip heavy AI vision processing to protect user privacy.
-        is_focused = False
+        # Privacy Shield Safeguard: Only block capture when the game is NOT running at all,
+        # or when the game window is explicitly minimized (SW_SHOWMINIMIZED).
+        # Losing foreground focus (e.g., alt-tab in exclusive fullscreen or to Mission Control)
+        # does NOT count as a privacy violation — the game still owns the display.
         with self._state_lock:
-            is_focused = self._game_state.get("is_game_focused", False)
+            is_focused    = self._game_state.get("is_game_focused", False)
+            is_active     = self._game_state.get("is_game_active", False)
+            is_minimized  = self._game_state.get("game_minimized", False)
 
         capture_backend = getattr(self.capture, "backend_name", "dxcam")
         is_desktop_capture = capture_backend in ("dxcam", "mss")
 
         privacy_enabled = self.config.get("privacy", {}).get("enabled", True)
-        privacy_shield_active = privacy_enabled and not is_focused and is_desktop_capture
+        privacy_shield_active = privacy_enabled and is_desktop_capture and (
+            not is_active or is_minimized
+        )
 
         self._vision_frame_count += 1
 
@@ -1666,11 +1682,14 @@ class GamingAssistantPipeline:
         with self._state_lock:
             state_snapshot = dict(self._game_state)
 
-        # Privacy Shield Safeguard: If game is unfocused and capture is desktop-based, skip VLM query
+        # Privacy Shield Safeguard: Only skip VLM when game is not running or explicitly minimized
         capture_backend = getattr(self.capture, "backend_name", "dxcam")
         is_desktop_capture = capture_backend in ("dxcam", "mss")
         privacy_enabled = self.config.get("privacy", {}).get("enabled", True)
-        privacy_shield_active = privacy_enabled and not state_snapshot.get("is_game_focused", False) and is_desktop_capture
+        privacy_shield_active = privacy_enabled and is_desktop_capture and (
+            not state_snapshot.get("is_game_active", False)
+            or state_snapshot.get("game_minimized", False)
+        )
 
         # ── Multi-modal Vision Refinement (Phase 17) ──
         now = time.time()
