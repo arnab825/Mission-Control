@@ -1,8 +1,28 @@
 {
-  "version": "2.6.2",
+  "version": "2.6.5",
   "release_date": "2026-07-26",
   "update_check_url": "https://raw.githubusercontent.com/arnab825/Mission-Control/main/Gaming/backend/version.json",
   "changelog": [
+    {
+      "version": "2.6.5",
+      "date": "2026-07-28",
+      "title": "AI Changelog Engine & Mermaid Architecture Diagrams",
+      "highlights": [
+        "Integrated AI-driven release notes generator into publish script",
+        "Automated Mermaid system architecture diagram creation",
+        "Synchronized real-time MongoDB documentation pipeline"
+      ]
+    },
+    {
+      "version": "2.6.4",
+      "date": "2026-07-28",
+      "title": "Release v2.6.4: Mobile Optimization & Real-Time Docs Sync",
+      "highlights": [
+        "Synchronized changelog highlights and version tags up to v2.6.4",
+        "Optimized docs layout for mobile viewports",
+        "Automated real-time website documentation updates"
+      ]
+    },
     {
       "version": "2.6.2",
       "date": "2026-07-27",
@@ -433,22 +453,6 @@
       "title": "Suppress terminal window popups during GPU power limit application on Windows",
       "highlights": [
         "Suppress terminal window popups during GPU power limit application on Windows"
-      ]
-    },
-    {
-      "version": "2.0.5",
-      "date": "2026-07-21",
-      "title": "Add power_limit, power_limit_watts, and power_limit_max_watts aliases across telemetry pipeline",
-      "highlights": [
-        "Add power_limit, power_limit_watts, and power_limit_max_watts aliases across telemetry pipeline"
-      ]
-    },
-    {
-      "version": "2.0.4",
-      "date": "2026-07-21",
-      "title": "Map GPU max hardware TGP constraints directly into LabPage Power Target UI and telemetry",
-      "highlights": [
-        "Map GPU max hardware TGP constraints directly into LabPage Power Target UI and telemetry"
       ]
     }
   ]

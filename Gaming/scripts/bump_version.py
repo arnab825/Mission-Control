@@ -104,6 +104,7 @@ def main():
     save(data)
     update_package_files(new_ver)
     update_patches_md(entry)
+    update_changes_summary_md(entry)
     print(f"   Previous: v{old_ver}")
     print(f"   New     : v{new_ver}")
     print(f"   Title   : {args.title}")
@@ -199,6 +200,170 @@ def update_patches_md(entry):
     with open(PATCHES_FILE, "w", encoding="utf-8") as f:
         f.write(updated_content)
     print(f"patches.md updated with v{entry['version']}")
+
+
+def generate_mermaid_diagram(title: str, highlights: list) -> str:
+    """Generate a Mermaid architectural flow diagram based on the title and release highlights."""
+    text = (title + " " + " ".join(highlights)).lower()
+    
+    if "mobile" in text or "responsive" in text or "ui" in text or "css" in text or "layout" in text:
+        return """```mermaid
+graph TD
+    A[Mobile Client / DevTools (320px+)] --> B[Responsive CSS & Layout Container]
+    B --> C[DocsClient Component & Cards]
+    C --> D[MobileDocsSidebar Drawer & Header Bar]
+    D --> E[Real-Time Mongo Telemetry & Render]
+```"""
+    elif "vision" in text or "yolo" in text or "camera" in text:
+        return """```mermaid
+graph TD
+    A[Game Screen Frame Capture] --> B[YOLO Vision Inference Engine]
+    B --> C[Detection Telemetry & Bounding Boxes]
+    C --> D[Electron HUD Overlay]
+```"""
+    elif "backend" in text or "api" in text or "fastapi" in text or "python" in text:
+        return """```mermaid
+graph TD
+    A[Electron Main IPC Engine] --> B[FastAPI Backend Host]
+    B --> C[NVIDIA NIM AI Cloud Inference]
+    C --> D[Directive Stream & Telemetry Bridge]
+```"""
+    else:
+        return """```mermaid
+graph TD
+    A[Developer Push / Publish Pipeline] --> B[Version Stamping & AI Changelog Enforcer]
+    B --> C[Mission Control System Core]
+    C --> D[Website Documentation & Real-Time Sync]
+```"""
+
+
+def enrich_with_ai(title: str, raw_changes: list, version: str) -> dict:
+    """Attempt AI enrichment via NVIDIA NIM API; fallback to smart rule-based enrichment."""
+    api_key = os.environ.get("NVIDIA_API_KEY")
+    if not api_key:
+        # Check .env files
+        for env_path in [
+            os.path.join(os.path.dirname(__file__), "..", ".env"),
+            os.path.join(os.path.dirname(__file__), "..", "backend", ".env"),
+            os.path.join(os.path.dirname(__file__), "..", "website", ".env.local"),
+        ]:
+            if os.path.exists(env_path):
+                try:
+                    with open(env_path, "r", encoding="utf-8") as f:
+                        for line in f:
+                            if line.startswith("NVIDIA_API_KEY="):
+                                val = line.split("=", 1)[1].strip().strip('"').strip("'")
+                                if val and not val.startswith("your_"):
+                                    api_key = val
+                                    break
+                except Exception:
+                    pass
+
+    if api_key and not api_key.startswith("your_"):
+        try:
+            import urllib.request
+            import json
+
+            prompt = f"""You are the lead AI software architect for Mission Control.
+Generate rich, professional technical release notes for Version v{version}.
+
+Title: {title}
+Changes:
+{chr(10).join('- ' + c for c in raw_changes)}
+
+Respond ONLY with valid JSON in this exact structure:
+{{
+  "highlights": ["Formatted feature bullet 1", "Formatted feature bullet 2"],
+  "technical_decisions": "2-3 sentences explaining architectural decisions and optimizations.",
+  "mermaid_diagram": "graph TD\\n  A[Client] --> B[Server]",
+  "file_changes": [
+    {{"file": "filename.ts", "status": "Modified", "desc": "Brief explanation"}}
+  ]
+}}
+"""
+
+            req = urllib.request.Request(
+                "https://integrate.api.nvidia.com/v1/chat/completions",
+                headers={
+                    "Authorization": f"Bearer {api_key}",
+                    "Content-Type": "application/json"
+                },
+                data=json.dumps({
+                    "model": "meta/llama-3.1-8b-instruct",
+                    "messages": [{"role": "user", "content": prompt}],
+                    "temperature": 0.2,
+                    "max_tokens": 1024
+                }).encode("utf-8")
+            )
+
+            with urllib.request.urlopen(req, timeout=10) as response:
+                res_data = json.loads(response.read().decode("utf-8"))
+                content = res_data["choices"][0]["message"]["content"]
+                parsed = json.loads(content)
+                print(f"[AI ENRICHER] Release notes auto-generated via NVIDIA NIM AI!")
+                return parsed
+        except Exception as e:
+            print(f"[AI ENRICHER] AI generator notice ({e}). Using smart rule-based enricher.")
+
+    # Rule-based fallback
+    highlights = [c.strip() for c in raw_changes if c.strip()]
+    tech_decisions = f"Automated version bump and telemetry synchronization for Version v{version}. Ensures all backend pipelines, frontend dependencies, and website documentation remain aligned in real-time."
+    mermaid = generate_mermaid_diagram(title, highlights)
+    file_changes = [
+        {"file": "backend/version.json", "status": "Updated", "desc": f"Bumped version tag to v{version}"},
+        {"file": "Gaming/docs/changes_summary.md", "status": "Updated", "desc": "Appended release history entry with Mermaid flowchart"},
+        {"file": "frontend/package.json", "status": "Updated", "desc": "Synchronized npm package version"}
+    ]
+    return {
+        "highlights": highlights,
+        "technical_decisions": tech_decisions,
+        "mermaid_diagram": mermaid,
+        "file_changes": file_changes
+    }
+
+
+def update_changes_summary_md(entry):
+    changes_file = os.path.join(os.path.dirname(__file__), "..", "docs", "changes_summary.md")
+    if not os.path.exists(changes_file):
+        return
+
+    with open(changes_file, "r", encoding="utf-8") as f:
+        content = f.read()
+
+    # Avoid duplicate section if version already present
+    if f"v{entry['version']}" in content:
+        return
+
+    # Auto-enrich entry via AI / rule-based enricher
+    enriched = enrich_with_ai(entry["title"], entry.get("highlights", []), entry["version"])
+
+    new_entry = f"\n---\n\n## Session Release — {entry['date']}: {entry['title']} (v{entry['version']})\n\n"
+    new_entry += "### 🛠️ Key Features Added/Modified\n"
+    for idx, highlight in enumerate(enriched.get("highlights", entry.get("highlights", [])), 1):
+        new_entry += f"{idx}. **{highlight}**\n"
+
+    if enriched.get("technical_decisions"):
+        new_entry += f"\n### 🧩 Technical Decisions & Architecture\n* {enriched['technical_decisions']}\n"
+
+    if enriched.get("mermaid_diagram"):
+        diag = enriched["mermaid_diagram"].strip()
+        if not diag.startswith("```"):
+            diag = f"```mermaid\n{diag}\n```"
+        new_entry += f"\n### 📊 System Architecture & Flow\n{diag}\n"
+
+    if enriched.get("file_changes"):
+        new_entry += "\n### 📋 File Changes\n| File | Status | Description |\n|---|---|---|\n"
+        for fc in enriched["file_changes"]:
+            new_entry += f"| `{fc['file']}` | **{fc['status']}** | {fc['desc']} |\n"
+
+    if "image_url" in entry:
+        new_entry += f"\n![Preview]({entry['image_url']})\n"
+
+    new_content = content.rstrip() + "\n" + new_entry
+
+    with open(changes_file, "w", encoding="utf-8") as f:
+        f.write(new_content)
+    print(f"changes_summary.md updated -> enriched release entry added for v{entry['version']}")
 
 
 if __name__ == "__main__":
