@@ -44,7 +44,7 @@ export default function GamesTestedPage() {
     if (typeof window !== "undefined") {
       const params = new URLSearchParams(window.location.search);
       const gameParam = params.get("game");
-      if (gameParam && (gameParam === "spiderman2" || gameParam === "gtav")) {
+      if (gameParam && TESTED_GAMES_LIST.some((g) => g.id === gameParam)) {
         setSelectedGameId(gameParam);
       }
     }
@@ -183,26 +183,6 @@ export default function GamesTestedPage() {
               <h2 className="text-xl sm:text-2xl font-black font-display uppercase tracking-wider text-white">
                 Benchmark Profile: {featuredGame.name}
               </h2>
-            </div>
-            
-            {/* Interactive Game Selection Switcher */}
-            <div className="flex items-center gap-2 bg-white/5 border border-white/10 p-1.5 rounded-full">
-              {TESTED_GAMES_LIST.map((game) => {
-                const isActive = game.id === selectedGameId;
-                return (
-                  <button
-                    key={game.id}
-                    onClick={() => handleSelectGame(game.id)}
-                    className={`px-3 py-1.5 rounded-full text-xs font-mono font-bold transition-all cursor-pointer ${
-                      isActive
-                        ? "bg-neon-green text-obsidian shadow-[0_0_15px_rgba(118,185,0,0.4)]"
-                        : "text-gray-400 hover:text-white hover:bg-white/5"
-                    }`}
-                  >
-                    {game.name}
-                  </button>
-                );
-              })}
             </div>
           </div>
 
@@ -514,8 +494,8 @@ export default function GamesTestedPage() {
               </div>
             </div>
 
-            {/* Central Main Viewport with Prev / Next Buttons */}
-            <div className="relative flex-1 flex items-center justify-center my-4 w-full max-w-7xl mx-auto overflow-hidden">
+            {/* Central Main Viewport with Prev / Next Buttons (Positioned lower with top clearance) */}
+            <div className="relative flex-1 flex items-center justify-center pt-10 sm:pt-14 pb-2 w-full max-w-7xl mx-auto overflow-hidden">
               {/* Previous Slide Arrow Button */}
               {screenshots.length > 1 && (
                 <button
@@ -536,12 +516,12 @@ export default function GamesTestedPage() {
                   animate={{ opacity: 1, scale: 1 }}
                   exit={{ opacity: 0, scale: 0.97 }}
                   transition={{ duration: 0.25, ease: "easeInOut" }}
-                  className="max-w-[92vw] max-h-[68vh] flex items-center justify-center relative"
+                  className="max-w-[92vw] max-h-[52vh] sm:max-h-[56vh] flex items-center justify-center relative"
                 >
                   <img
                     src={currentSlide.src}
                     alt={currentSlide.title}
-                    className="max-w-full max-h-[68vh] w-auto h-auto object-contain rounded-2xl border border-white/20 shadow-[0_0_60px_rgba(0,0,0,0.9)]"
+                    className="max-w-full max-h-[52vh] sm:max-h-[56vh] w-auto h-auto object-contain rounded-2xl border border-white/20 shadow-[0_0_60px_rgba(0,0,0,0.9)]"
                   />
                 </motion.div>
               </AnimatePresence>
