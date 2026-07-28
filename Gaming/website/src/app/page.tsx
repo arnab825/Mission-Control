@@ -77,6 +77,7 @@ export default function Home() {
 
   type OS = "windows" | "linux" | "mac" | "other" | null;
   const [os, setOs] = useState<OS>(null);
+  const [appVersion, setAppVersion] = useState("2.6.2");
 
   useEffect(() => {
     const platform = window.navigator.platform.toLowerCase();
@@ -84,6 +85,13 @@ export default function Home() {
     else if (platform.includes("linux")) setOs("linux");
     else if (platform.includes("mac")) setOs("mac");
     else setOs("other");
+
+    fetch("/api/version")
+      .then((res) => res.json())
+      .then((data) => {
+        if (data?.version) setAppVersion(data.version);
+      })
+      .catch(() => {});
   }, []);
 
   const fetchExternalSiteData = async () => {
@@ -273,40 +281,41 @@ export default function Home() {
         >
 
           {/* High-Tech Tactical Header Pill */}
-          <div className="inline-flex items-center gap-2 sm:gap-3 border border-neon-green/50 rounded-full px-4 py-1.5 bg-neon-green/10 backdrop-blur-md mb-8 shadow-[0_0_25px_rgba(118,185,0,0.25)]">
+          <div className="inline-flex items-center gap-2 sm:gap-3 border border-neon-green/50 rounded-full px-4 py-1.5 bg-neon-green/10 backdrop-blur-md mb-6 shadow-[0_0_25px_rgba(118,185,0,0.25)]">
             <Sparkles className="w-3.5 h-3.5 text-neon-green shrink-0 animate-pulse" />
             <span className="text-neon-green text-[10px] sm:text-xs font-bold font-mono tracking-widest uppercase">
-              NEXT-GEN GAMING COMMAND STATION
+              TACTICAL SYSTEM ENGINE v{appVersion}
             </span>
           </div>
 
-          {/* ROG / Razer Inspired Gradient Title */}
-          <h1 className="text-4xl sm:text-7xl lg:text-8xl font-black font-display tracking-tight text-white mb-6 uppercase leading-[1.05] max-w-5xl">
-            THE ULTIMATE <br className="hidden sm:inline" />
-            <span className="text-transparent bg-clip-text bg-gradient-to-r from-neon-green via-neon-yellow to-neon-green glow-text-teal">
+          {/* ROG / Razer Inspired Gradient Title matching screenshot */}
+          <h1 className="text-4xl sm:text-7xl lg:text-8xl font-black font-display tracking-tight text-white mb-6 uppercase leading-[1.02] max-w-5xl">
+            THE ULTIMATE <br />
+            <span className="text-transparent bg-clip-text bg-gradient-to-r from-neon-green via-neon-yellow to-neon-green glow-text-green drop-shadow-[0_0_25px_rgba(118,185,0,0.6)]">
               GAMING AI
-            </span> DASHBOARD
+            </span> <br />
+            DASHBOARD
           </h1>
 
           {/* Subtitle */}
-          <p className="text-sm sm:text-xl text-gray-300 max-w-3xl mb-10 leading-relaxed font-sans text-center">
+          <p className="text-sm sm:text-lg text-gray-300 max-w-2xl mb-10 leading-relaxed font-mono text-center">
             Engineered by <strong className="text-neon-green">Mission Control Labs</strong> for high-performance rigs. Monitor thermals in real-time, trigger agentic system macros, and receive sub-15ms local AI tactics directly inside your game.
           </p>
 
-          {/* Primary Action Buttons */}
-          <div className="flex flex-col sm:flex-row items-center justify-center gap-4 w-full sm:w-auto mb-14">
+          {/* Primary Action Buttons & Quick Tag Indicators */}
+          <div className="flex flex-col sm:flex-row items-center justify-center gap-4 w-full sm:w-auto mb-12">
             {os === "mac" || os === "other" ? (
               <div className="group relative inline-flex items-center justify-center gap-3 bg-white/5 border border-white/20 text-gray-400 px-8 py-4 rounded-2xl font-black text-sm sm:text-base uppercase tracking-wider text-center w-full sm:w-auto cursor-not-allowed">
                 <span>Windows & Linux Only</span>
               </div>
             ) : (
-              <Link
-                href="#download"
-                className="group relative inline-flex items-center justify-center gap-3 bg-neon-green text-obsidian px-9 py-4.5 rounded-2xl font-black text-sm sm:text-base uppercase tracking-wider transition-all duration-300 hover:bg-white hover:shadow-[0_0_45px_rgba(118,185,0,0.7)] active:scale-95 text-center shadow-[0_0_35px_rgba(118,185,0,0.4)] w-full sm:w-auto font-mono cyber-clip-sm"
+              <a
+                href={WINDOWS_INSTALLER_URL}
+                className="group relative inline-flex items-center justify-center gap-3 bg-neon-green text-obsidian px-9 py-4.5 rounded-2xl font-black text-sm sm:text-base uppercase tracking-wider transition-all duration-300 hover:bg-white hover:shadow-[0_0_45px_rgba(118,185,0,0.8)] active:scale-95 text-center shadow-[0_0_35px_rgba(118,185,0,0.4)] w-full sm:w-auto font-mono cyber-clip-sm"
               >
                 <Download className="w-5 h-5 transition-transform group-hover:-translate-y-0.5 shrink-0" />
-                <span>Download for {os === "linux" ? "Linux" : "Windows"}</span>
-              </Link>
+                <span>DOWNLOAD NOW (WINDOWS)</span>
+              </a>
             )}
 
             <div className="flex items-center justify-center gap-3 w-full sm:w-auto">
@@ -340,7 +349,7 @@ export default function Home() {
                   <div className="w-3 h-3 rounded-full bg-red-500/80" />
                   <div className="w-3 h-3 rounded-full bg-yellow-500/80" />
                   <div className="w-3 h-3 rounded-full bg-green-500/80" />
-                  <span className="text-gray-400 ml-2 font-bold hidden sm:inline">MISSION CONTROL v2.4.4 — TACTICAL STATION</span>
+                  <span className="text-gray-400 ml-2 font-bold hidden sm:inline">MISSION CONTROL v{appVersion} — TACTICAL STATION</span>
                 </div>
                 <div className="flex items-center gap-3 text-neon-green font-bold">
                   <span className="w-2 h-2 rounded-full bg-neon-green animate-pulse" />
