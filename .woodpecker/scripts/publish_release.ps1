@@ -269,20 +269,28 @@ $headers = @{
 
 Write-Host "Creating release $tag for $repo..."
 $releaseUrl = "https://api.github.com/repos/$repo/releases"
-$releaseBody = @{
+$releaseBodyJson = @{
   tag_name = $tag
   name = "Release ${tag}: $title"
   body = $notes
   draft = $false
   prerelease = $false
-} | ConvertTo-Json
+} | ConvertTo-Json -Depth 10
+
+$releaseBodyBytes = [System.Text.Encoding]::UTF8.GetBytes($releaseBodyJson)
 
 $releaseId = $null
 try {
-  $releaseResponse = Invoke-RestMethod -Uri $releaseUrl -Method Post -Headers $headers -Body $releaseBody -ContentType "application/json"
+  $releaseResponse = Invoke-RestMethod -Uri $releaseUrl -Method Post -Headers $headers -Body $releaseBodyBytes -ContentType "application/json; charset=utf-8"
   $releaseId = $releaseResponse.id
 } catch {
-  Write-Host "Create release returned an error: $($_.Exception.Message). Checking if release already exists..."
+  Write-Host "Create release returned an error: $($_.Exception.Message)"
+  if ($_.Exception.Response) {
+    $stream = $_.Exception.Response.GetResponseStream()
+    $reader = New-Object System.IO.StreamReader($stream)
+    Write-Host "POST Response body: $($reader.ReadToEnd())"
+  }
+  Write-Host "Checking if release already exists..."
   try {
     $existingRelease = Invoke-RestMethod -Uri "${releaseUrl}/tags/${tag}" -Method Get -Headers $headers
     $releaseId = $existingRelease.id
@@ -292,7 +300,7 @@ try {
     if ($_.Exception.Response) {
       $stream = $_.Exception.Response.GetResponseStream()
       $reader = New-Object System.IO.StreamReader($stream)
-      Write-Host "Response body: $($reader.ReadToEnd())"
+      Write-Host "GET Response body: $($reader.ReadToEnd())"
     }
     throw
   }
