@@ -100,7 +100,7 @@ When you trigger `.\run_local.ps1`, the pipeline executes the following sequence
      ```powershell
      powershell -ExecutionPolicy Bypass -File .\Gaming\scripts\build_app.ps1
      ```
-4. **`move-backend`**: Copies `dist/MissionControl` to `Gaming/frontend/backend/MissionControl`.
+4. **`move-backend`**: Copies `dist/MissionControlBackend` to `Gaming/frontend/backend/MissionControlBackend`. Note: `electron-builder` reads the backend directly from `../backend/dist/MissionControlBackend` via `extraResources` — this step also mirrors it into the `frontend/backend/` folder as a legacy artefact.
 5. **`package-electron`**: Packages the Electron application containing the compiled backend.
 6. **`build-nsis`**: Generates the `MissionControl-Setup.exe` installer.
 7. **`release`**: Publishes the setup installer and `latest.yml` as release assets on GitHub.

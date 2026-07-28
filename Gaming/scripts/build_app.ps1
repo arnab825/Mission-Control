@@ -67,10 +67,10 @@ try {
     if ($LASTEXITCODE -eq 0) {
         Write-Host "[SUCCESS] PyInstaller build complete!" -ForegroundColor Green
         
-        # Check if directory mode (dist/MissionControl) was used
-        $distFolder = "dist\MissionControl"
+        # Check if directory mode (dist/MissionControlBackend) was used
+        $distFolder = "dist\MissionControlBackend"
         if (Test-Path $distFolder) {
-            $frontendDest = "$PSScriptRoot\..\frontend\backend\MissionControl"
+            $frontendDest = "$PSScriptRoot\..\frontend\backend\MissionControlBackend"
             Write-Host "[SYNC] Copying compiled backend to frontend resources: $frontendDest" -ForegroundColor Cyan
             
             # Clean destination first

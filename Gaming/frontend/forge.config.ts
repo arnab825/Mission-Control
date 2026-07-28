@@ -4,7 +4,7 @@ const config: ForgeConfig = {
   packagerConfig: {
     appCopyright: `Copyright \u00a9 ${new Date().getFullYear()} Mission Control Contributors`,
     asar: true,
-    extraResource: ['../backend/dist/MissionControl', 'app-update.yml'],
+    extraResource: ['../backend/dist/MissionControlBackend', 'app-update.yml'],
     icon: './public/favicon',
     win32metadata: {
       CompanyName: 'Mission Control',
