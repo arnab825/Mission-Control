@@ -330,14 +330,17 @@ def update_changes_summary_md(entry):
     with open(changes_file, "r", encoding="utf-8") as f:
         content = f.read()
 
-    # Avoid duplicate section if version already present
-    if f"v{entry['version']}" in content:
-        return
+    # Calculate next Session number automatically
+    session_matches = re.findall(r'## Session (\d+)', content)
+    if session_matches:
+        next_session = max(int(s) for s in session_matches) + 1
+    else:
+        next_session = 1
 
     # Auto-enrich entry via AI / rule-based enricher
     enriched = enrich_with_ai(entry["title"], entry.get("highlights", []), entry["version"])
 
-    new_entry = f"\n---\n\n## Session Release — {entry['date']}: {entry['title']} (v{entry['version']})\n\n"
+    new_entry = f"\n---\n\n## Session {next_session} — {entry['date']}: {entry['title']} (v{entry['version']})\n\n"
     new_entry += "### 🛠️ Key Features Added/Modified\n"
     for idx, highlight in enumerate(enriched.get("highlights", entry.get("highlights", [])), 1):
         new_entry += f"{idx}. **{highlight}**\n"
