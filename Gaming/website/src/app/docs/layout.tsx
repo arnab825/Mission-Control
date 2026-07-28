@@ -13,11 +13,11 @@ export default async function DocsLayout({
   const docs = await getAllDocs();
 
   return (
-    <div className="flex-1 w-full relative pt-20 bg-[#070709] text-gray-300 flex flex-col min-h-screen">
+    <div className="flex-1 w-full relative pt-20 bg-[#070709] text-gray-300 flex flex-col min-h-screen overflow-x-clip">
 
       {/* Ambient background glows */}
-      <div className="absolute top-20 left-10 w-[500px] h-[500px] bg-neon-green/5 blur-[180px] rounded-full pointer-events-none -z-10" />
-      <div className="absolute top-1/2 right-10 w-[400px] h-[400px] bg-emerald-500/3 blur-[160px] rounded-full pointer-events-none -z-10" />
+      <div className="absolute top-20 left-10 w-72 sm:w-[500px] h-72 sm:h-[500px] bg-neon-green/5 blur-[120px] sm:blur-[180px] rounded-full pointer-events-none -z-10" />
+      <div className="absolute top-1/2 right-10 w-72 sm:w-[400px] h-72 sm:h-[400px] bg-emerald-500/3 blur-[120px] sm:blur-[160px] rounded-full pointer-events-none -z-10" />
 
       {/* Mobile Sidebar Navigation */}
       <MobileDocsSidebar docs={docs} />

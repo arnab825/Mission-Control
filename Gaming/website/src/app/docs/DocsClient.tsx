@@ -80,7 +80,7 @@ function DocCardView({ card, idx }: { card: DocData; idx: number }) {
     >
       <Link
         href={`/docs/${card.slug}`}
-        className="group flex flex-col justify-between h-full glass-card glass-card-hover border border-white/10 hover:border-neon-green/60 rounded-2xl p-6 sm:p-7 relative overflow-hidden transition-all duration-300 shadow-[0_0_30px_rgba(0,0,0,0.8)] hover:shadow-[0_0_35px_rgba(118,185,0,0.25)] backdrop-blur-2xl"
+        className="group flex flex-col justify-between h-full glass-card glass-card-hover border border-white/10 hover:border-neon-green/60 rounded-2xl p-4 sm:p-7 relative overflow-hidden transition-all duration-300 shadow-[0_0_30px_rgba(0,0,0,0.8)] hover:shadow-[0_0_35px_rgba(118,185,0,0.25)] backdrop-blur-2xl"
       >
         {/* Futuristic Cyber Laser Accent Line */}
         <div className="absolute top-0 left-0 w-full h-[2px] bg-gradient-to-r from-neon-green via-neon-yellow to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-500" />
@@ -88,34 +88,34 @@ function DocCardView({ card, idx }: { card: DocData; idx: number }) {
 
         <div>
           {/* Header Row: Category Badge & Reading Time */}
-          <div className="flex items-center justify-between gap-2 mb-4">
-            <span className="text-[10px] font-mono font-bold uppercase tracking-widest text-neon-green bg-neon-green/10 border border-neon-green/30 rounded-md px-3 py-1 shadow-[0_0_10px_rgba(118,185,0,0.15)]">
+          <div className="flex items-center justify-between gap-2 mb-3.5 flex-wrap">
+            <span className="text-[10px] font-mono font-bold uppercase tracking-widest text-neon-green bg-neon-green/10 border border-neon-green/30 rounded-md px-2.5 py-0.5 shadow-[0_0_10px_rgba(118,185,0,0.15)]">
               {card.category || "DOCUMENTATION"}
             </span>
-            <span className="text-[10px] font-mono text-gray-400 font-bold bg-white/5 px-2.5 py-0.5 rounded-full border border-white/10">
+            <span className="text-[10px] font-mono text-gray-400 font-bold bg-white/5 px-2 py-0.5 rounded-full border border-white/10">
               {readTime}
             </span>
           </div>
 
           {/* Title */}
-          <h3 className="text-xl font-bold font-display text-white mb-3 group-hover:text-neon-green transition-colors leading-snug line-clamp-2">
+          <h3 className="text-base sm:text-xl font-bold font-display text-white mb-2.5 group-hover:text-neon-green transition-colors leading-snug line-clamp-2">
             {card.title}
           </h3>
 
           {/* Excerpt */}
-          <p className="text-xs sm:text-sm text-gray-300 leading-relaxed font-sans line-clamp-3 mb-6">
+          <p className="text-xs sm:text-sm text-gray-300 leading-relaxed font-sans line-clamp-3 mb-5">
             {card.excerpt}
           </p>
         </div>
 
         {/* Footer Action Bar */}
-        <div className="pt-4 border-t border-white/10 flex items-center justify-between text-xs font-mono font-bold uppercase tracking-wider text-neon-green group-hover:text-white transition-colors">
-          <span className="flex items-center gap-1.5">
-            <Sparkles className="w-3.5 h-3.5 text-neon-green animate-pulse" />
-            <span>EXPLORE DOCUMENTATION</span>
+        <div className="pt-3.5 border-t border-white/10 flex items-center justify-between text-[11px] sm:text-xs font-mono font-bold uppercase tracking-wider text-neon-green group-hover:text-white transition-colors gap-2">
+          <span className="flex items-center gap-1.5 truncate">
+            <Sparkles className="w-3.5 h-3.5 text-neon-green animate-pulse shrink-0" />
+            <span className="truncate">READ DOCS</span>
           </span>
-          <div className="w-8 h-8 rounded-xl bg-neon-green/10 border border-neon-green/30 flex items-center justify-center text-neon-green group-hover:bg-neon-green group-hover:text-obsidian group-hover:scale-110 transition-all shadow-[0_0_12px_rgba(118,185,0,0.2)]">
-            <ArrowRight className="w-4 h-4 group-hover:translate-x-0.5 transition-transform" />
+          <div className="w-7 h-7 sm:w-8 sm:h-8 rounded-xl bg-neon-green/10 border border-neon-green/30 flex items-center justify-center text-neon-green group-hover:bg-neon-green group-hover:text-obsidian group-hover:scale-110 transition-all shadow-[0_0_12px_rgba(118,185,0,0.2)] shrink-0">
+            <ArrowRight className="w-3.5 h-3.5 sm:w-4 sm:h-4 group-hover:translate-x-0.5 transition-transform" />
           </div>
         </div>
       </Link>
@@ -192,7 +192,7 @@ export default function DocsClient({ docs }: { docs: DocData[] }) {
     <div className="w-full max-w-6xl mx-auto py-6 px-2 sm:px-4 relative z-10 font-sans">
       {/* Background ambience */}
       <div className="absolute inset-0 cyber-grid opacity-15 pointer-events-none -z-10" />
-      <div className="absolute top-1/4 left-1/2 -translate-x-1/2 w-[800px] h-[350px] bg-neon-green/5 blur-[180px] rounded-full pointer-events-none -z-10 animate-pulse-slow" />
+      <div className="absolute top-1/4 left-1/2 -translate-x-1/2 w-full max-w-[800px] h-[350px] bg-neon-green/5 blur-[180px] rounded-full pointer-events-none -z-10 animate-pulse-slow" />
 
       {/* ── Hero Header ─────────────────────────────────────────────────── */}
       <motion.div
@@ -201,33 +201,33 @@ export default function DocsClient({ docs }: { docs: DocData[] }) {
         transition={{ duration: 0.5 }}
         className="mb-12 text-center max-w-3xl mx-auto"
       >
-        <div className="inline-flex items-center gap-2 border border-neon-green/30 rounded-full px-4 py-1.5 bg-neon-green/10 mb-6 backdrop-blur-md shadow-[0_0_20px_rgba(34,197,94,0.15)]">
-          <Radio className="w-3.5 h-3.5 text-neon-green animate-pulse" />
-          <span className="text-neon-green text-xs font-bold font-mono tracking-widest uppercase">
+        <div className="inline-flex items-center gap-1.5 sm:gap-2 border border-neon-green/30 rounded-full px-3 sm:px-4 py-1 sm:py-1.5 bg-neon-green/10 mb-4 sm:mb-6 backdrop-blur-md shadow-[0_0_20px_rgba(34,197,94,0.15)] max-w-full">
+          <Radio className="w-3 h-3 sm:w-3.5 sm:h-3.5 text-neon-green animate-pulse shrink-0" />
+          <span className="text-neon-green text-[9px] min-[360px]:text-xs font-bold font-mono tracking-wider sm:tracking-widest uppercase truncate max-w-[240px] min-[360px]:max-w-none">
             Mission Control Architecture & API Reference
           </span>
         </div>
 
-        <h1 className="text-4xl sm:text-6xl font-black tracking-tight text-white mb-4 font-display uppercase leading-tight">
+        <h1 className="text-lg min-[340px]:text-xl min-[380px]:text-2xl sm:text-5xl lg:text-6xl font-black tracking-normal sm:tracking-tight text-white mb-3 sm:mb-4 font-display uppercase leading-tight break-words">
           DOCUMENTATION{" "}
-          <span className="text-neon-green drop-shadow-[0_0_25px_rgba(34,197,94,0.4)]">
+          <span className="text-neon-green">
             PORTAL
           </span>
         </h1>
-        <p className="text-sm sm:text-base text-gray-400 max-w-2xl mx-auto leading-relaxed font-mono">
+        <p className="text-xs sm:text-base text-gray-400 max-w-2xl mx-auto leading-relaxed font-mono px-2">
           Complete technical reference, API integration guides, system telemetry setup,
           and NVIDIA NIM AI models for production deployments.
         </p>
 
         {/* Command Search Bar */}
-        <div className="relative mt-8 max-w-xl mx-auto">
+        <div className="relative mt-5 sm:mt-8 max-w-xl mx-auto px-1">
           <Search className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-neon-green" />
           <input
             type="text"
-            placeholder="Search documentation topics, APIs, guides..."
+            placeholder="Search documentation topics, APIs..."
             value={query}
             onChange={(e) => setQuery(e.target.value)}
-            className="w-full pl-11 pr-20 py-4 rounded-2xl bg-[#0c0d12]/90 border border-white/10 text-sm text-white placeholder-gray-500 font-mono focus:outline-none focus:border-neon-green focus:ring-1 focus:ring-neon-green shadow-2xl transition-all"
+            className="w-full pl-10 pr-12 sm:pr-20 py-3 sm:py-4 rounded-xl sm:rounded-2xl bg-[#0c0d12]/90 border border-white/10 text-xs sm:text-sm text-white placeholder-gray-500 font-mono focus:outline-none focus:border-neon-green focus:ring-1 focus:ring-neon-green shadow-2xl transition-all"
           />
           <div className="absolute right-3 top-1/2 -translate-y-1/2 flex items-center gap-2">
             {query ? (
@@ -291,7 +291,7 @@ export default function DocsClient({ docs }: { docs: DocData[] }) {
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
-            className="space-y-16"
+            className="space-y-12 sm:space-y-16"
           >
             {filtered.map((section, sIdx) => {
               const SectionIcon = section.icon;
@@ -303,22 +303,22 @@ export default function DocsClient({ docs }: { docs: DocData[] }) {
                     whileInView={{ opacity: 1, x: 0 }}
                     viewport={{ once: true, margin: "-40px" }}
                     transition={{ duration: 0.4, delay: sIdx * 0.03 }}
-                    className="flex items-center justify-between mb-6 pb-4 border-b border-white/10"
+                    className="flex items-center justify-between mb-5 sm:mb-6 pb-3 sm:pb-4 border-b border-white/10"
                   >
-                    <div className="flex items-center gap-3.5">
-                      <div className="w-10 h-10 rounded-2xl bg-neon-green/10 border border-neon-green/30 flex items-center justify-center text-neon-green shrink-0 shadow-[0_0_15px_rgba(34,197,94,0.15)]">
-                        <SectionIcon className="w-5 h-5" />
+                    <div className="flex items-center gap-2.5 sm:gap-3.5 min-w-0">
+                      <div className="w-8 h-8 sm:w-10 sm:h-10 rounded-xl sm:rounded-2xl bg-neon-green/10 border border-neon-green/30 flex items-center justify-center text-neon-green shrink-0 shadow-[0_0_15px_rgba(34,197,94,0.15)]">
+                        <SectionIcon className="w-4 h-4 sm:w-5 sm:h-5" />
                       </div>
-                      <div>
-                        <div className="flex items-center gap-2">
-                          <p className="text-[10px] font-mono font-bold text-neon-green uppercase tracking-widest">
+                      <div className="min-w-0">
+                        <div className="flex items-center gap-1.5 sm:gap-2 flex-wrap">
+                          <p className="text-[9px] sm:text-[10px] font-mono font-bold text-neon-green uppercase tracking-widest truncate">
                             {section.category}
                           </p>
-                          <span className="text-[10px] font-mono text-gray-500 bg-white/5 px-2 py-0.5 rounded-full border border-white/5">
+                          <span className="text-[9px] sm:text-[10px] font-mono text-gray-400 bg-white/5 px-2 py-0.5 rounded-full border border-white/5 shrink-0">
                             {section.docs.length} articles
                           </span>
                         </div>
-                        <h2 className="text-xl font-bold font-display text-white uppercase tracking-tight">
+                        <h2 className="text-lg sm:text-xl font-bold font-display text-white uppercase tracking-tight truncate">
                           {section.label}
                         </h2>
                       </div>
