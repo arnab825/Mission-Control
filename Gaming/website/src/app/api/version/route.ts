@@ -13,12 +13,12 @@ export async function GET() {
     );
     if (res.ok) {
       const data = await res.json();
-      const version = data.tag_name ? data.tag_name.replace(/^v/, "") : "2.1.7";
+      const version = data.tag_name ? data.tag_name.replace(/^v/, "") : "2.6.2";
       return NextResponse.json({ version });
     }
-    return NextResponse.json({ version: "2.1.7" });
+    return NextResponse.json({ version: "2.6.2" });
   } catch (error) {
     console.error("Failed to fetch latest version from GitHub:", error);
-    return NextResponse.json({ version: "2.1.7" });
+    return NextResponse.json({ version: "2.6.2" });
   }
 }
