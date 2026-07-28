@@ -445,7 +445,7 @@ function createTray() {
     updateTrayMenuRef = updateTrayMenu;
     updateTrayMenu();
 
-    tray?.setToolTip('Mission Control Gaming Assistant');
+    tray?.setToolTip('Mission Control Gaming Assistant'); // Updated dynamically via update-tray-telemetry IPC
 
     tray?.on('click', () => {
       if (win && !win.isDestroyed()) {
@@ -1653,6 +1653,21 @@ ipcMain.on('move-hud-window', (_event, deltaX: number, deltaY: number) => {
 
 ipcMain.on('update-hud-config', (_event, config) => {
   updateHUDConfig(config);
+});
+
+// Live tray tooltip: update with FPS/GPU metrics so users can check performance
+// by hovering the system tray icon without alt-tabbing out of fullscreen.
+ipcMain.on('update-tray-telemetry', (_event, data: { fps?: number; gpuLoad?: number; gpuTemp?: number; isActive?: boolean }) => {
+  if (!tray || tray.isDestroyed()) return;
+  if (!data.isActive) {
+    tray.setToolTip('Mission Control Gaming Assistant');
+    return;
+  }
+  const parts = ['Mission Control'];
+  if (data.fps != null && data.fps > 0) parts.push(`${Math.round(data.fps)} FPS`);
+  if (data.gpuLoad != null) parts.push(`GPU ${Math.round(data.gpuLoad)}%`);
+  if (data.gpuTemp != null && data.gpuTemp > 0) parts.push(`${Math.round(data.gpuTemp)}°C`);
+  tray.setToolTip(parts.join(' | '));
 });
 
 ipcMain.on('game-focus-changed', (_event, isActive: boolean, isFocused: boolean, gameTitle?: string, gamePid?: number) => {

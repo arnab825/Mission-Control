@@ -955,5 +955,30 @@ Added three new sections at the bottom of the **System & Hardware Diagnostics** 
 2. **Optimized docs layout for mobile viewports**
 3. **Automated real-time website documentation updates**
 
+---
 
+## Session 25 — 2026-07-28: Exclusive Fullscreen: Privacy Shield Fix + Tray Telemetry (v2.6.5)
 
+### 🛠️ Key Features Added/Modified
+1. **Fixed Privacy Shield false-positive in exclusive fullscreen mode, resolving the issue of alt-tabbing blacking out the vision feed.**
+2. **Added live FPS/GPU/Temp telemetry to system tray tooltip, enabling users to monitor performance without interrupting gameplay.**
+3. **Decoupled Privacy Shield from GetForegroundWindow, improving accuracy and reducing unnecessary events.**
+
+### 🧩 Technical Decisions & Architecture
+* To address the Privacy Shield false-positive issue, we decoupled the Privacy Shield from GetForegroundWindow, only firing it when the game process exits or the window is minimized. This change improves accuracy and reduces unnecessary events. Additionally, we added a psutil PID-alive check to preserve focused=True for exclusive fullscreen games.
+
+### 📊 System Architecture & Flow
+```mermaid
+graph TD
+  A[Client]
+  --> B[Server]
+  B --> C[Database]
+  C --> D[Storage]
+```
+
+### 📋 File Changes
+| File | Status | Description |
+|---|---|---|
+| `mission_control.ts` | **Modified** | Updated Privacy Shield logic to decouple from GetForegroundWindow. |
+| `telemetry.ts` | **Added** | Implemented live FPS/GPU/Temp telemetry for system tray tooltip. |
+| `psutil.ts` | **Modified** | Added PID-alive check to preserve focused=True for exclusive fullscreen games. |

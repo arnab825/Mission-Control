@@ -14,6 +14,7 @@ interface Window {
     selectDirectory: () => Promise<string | null>;
     getDesktopPath: () => Promise<string | null>;
     onGameFocusChanged?: (isActive: boolean, isFocused: boolean, gameTitle?: string, gamePid?: number) => void;
+    updateTrayTelemetry?: (data: { fps?: number; gpuLoad?: number; gpuTemp?: number; isActive?: boolean }) => void;
     moveHUDWindow?: (deltaX: number, deltaY: number) => void;
     onHUDMoved?: (callback: (coords: { x: number; y: number }) => void) => () => void;
     checkElectronUpdates?: () => void;
