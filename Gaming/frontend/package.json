@@ -1,8 +1,8 @@
 {
-    "name":  "mission-control",
+    "name":  "mission-control-frontend",
     "productName":  "Mission Control",
     "private":  true,
-    "version":  "2.6.2",
+    "version":  "2.6.4",
     "description":  "Mission Control desktop app for gamers.",
     "author":  "Arnab Contributors \u003csupport@missioncontrol.app\u003e",
     "type":  "module",

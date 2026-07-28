@@ -3,9 +3,42 @@
 import { useState, useMemo } from "react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { Terminal, ChevronRight, BookOpen, Layers, FileCode2, Cpu, Bot, Zap } from "lucide-react";
+import { 
+  Terminal, ChevronRight, BookOpen, Layers, FileCode2, Cpu, Bot, Zap, 
+  History, Sparkles, FileText, Activity, ShieldCheck, Flame, Compass, 
+  GitBranch, Code2, Users
+} from "lucide-react";
 import { DocData } from "@/lib/docs";
 import { motion, AnimatePresence } from "framer-motion";
+
+const CATEGORY_ICONS: Record<string, any> = {
+  "Overview": BookOpen,
+  "Architecture": Cpu,
+  "Core Logic": Bot,
+  "Integrations": Zap,
+  "AI Models": ShieldCheck,
+  "Performance": Flame,
+  "Roadmaps": Compass,
+  "Reference": Terminal,
+  "Documentation": Layers,
+};
+
+const DOC_ITEM_ICONS: Record<string, any> = {
+  "summary": FileText,
+  "changes_summary": History,
+  "design": Cpu,
+  "process": Activity,
+  "agentic_logic": Bot,
+  "agents": Users,
+  "nvidia_ai_guide": Zap,
+  "nvidia": Zap,
+  "on_demand_ai_weights": ShieldCheck,
+  "fps": Flame,
+  "productroadmap": Compass,
+  "electronroadmap": GitBranch,
+  "aero_ai_full_prompt": Code2,
+  "patchesfile": Layers,
+};
 
 export function DocsSidebarNav({ docs }: { docs: DocData[] }) {
   const [expandedCategories, setExpandedCategories] = useState<Record<string, boolean>>({});
@@ -35,22 +68,25 @@ export function DocsSidebarNav({ docs }: { docs: DocData[] }) {
     }));
   };
 
-  const icons = [Terminal, Layers, FileCode2, Cpu, Bot, Zap, BookOpen];
-  
-  const getIconForIndex = (index: number) => {
-    const Icon = icons[index % icons.length];
-    return <Icon className="w-3.5 h-3.5 text-neon-green shrink-0" />;
+  const getCategoryIcon = (category: string) => {
+    const IconComponent = CATEGORY_ICONS[category] || Layers;
+    return <IconComponent className="w-3.5 h-3.5 text-neon-green shrink-0" />;
+  };
+
+  const getDocIcon = (slug: string) => {
+    const IconComponent = DOC_ITEM_ICONS[slug] || FileCode2;
+    return IconComponent;
   };
 
   return (
     <nav className="space-y-4 flex-1 flex flex-col h-full font-sans">
-      <div className="space-y-4 flex-1 overflow-y-auto pr-1 scrollbar-none">
+      <div className="space-y-3.5 flex-1 overflow-y-auto pr-1 scrollbar-none">
         {categoryList.length === 0 ? (
           <div className="text-center py-6 text-gray-500 text-xs font-mono">
             No documentation sections available
           </div>
         ) : (
-          categoryList.map(({ category, items }, idx) => {
+          categoryList.map(({ category, items }) => {
             const isExpanded = expandedCategories[category] !== false; // Default true
             const hasActiveItem = items.some(item => pathname === `/docs/${item.slug}`);
             
@@ -58,7 +94,7 @@ export function DocsSidebarNav({ docs }: { docs: DocData[] }) {
               <div key={category} className="space-y-1">
                 <button
                   onClick={() => toggleCategory(category)}
-                  className="w-full flex items-center justify-between gap-2 py-1.5 px-2 rounded-lg group/cat hover:bg-white/[0.04] transition-colors"
+                  className="w-full flex items-center justify-between gap-2 py-1.5 px-2 rounded-lg group/cat hover:bg-white/[0.04] transition-colors cursor-pointer"
                 >
                   <div className="flex items-center gap-2 min-w-0">
                     <div className={`p-1 rounded-md transition-colors duration-150 ${
@@ -66,7 +102,7 @@ export function DocsSidebarNav({ docs }: { docs: DocData[] }) {
                         ? 'bg-neon-green/15 text-neon-green border border-neon-green/30' 
                         : 'bg-white/5 text-gray-400 group-hover/cat:text-neon-green'
                     }`}>
-                      {getIconForIndex(idx)}
+                      {getCategoryIcon(category)}
                     </div>
                     <h3 className={`font-mono text-[11px] tracking-[0.15em] uppercase truncate transition-colors duration-150 ${
                       hasActiveItem 
@@ -94,17 +130,21 @@ export function DocsSidebarNav({ docs }: { docs: DocData[] }) {
                     >
                       {items.map((doc) => {
                         const isActive = pathname === `/docs/${doc.slug}`;
+                        const DocIcon = getDocIcon(doc.slug);
                         
                         return (
                           <li key={doc.slug}>
                             <Link
                               href={`/docs/${doc.slug}`}
-                              className={`flex items-center text-xs py-1.5 px-2.5 rounded-lg transition-all duration-150 relative group ${
+                              className={`flex items-center gap-2 text-xs py-1.5 px-2.5 rounded-lg transition-all duration-150 relative group ${
                                 isActive 
                                   ? 'text-white font-bold bg-gradient-to-r from-neon-green/20 to-transparent border-l-2 border-neon-green shadow-[0_0_12px_rgba(34,197,94,0.15)]' 
                                   : 'text-gray-400 hover:text-white hover:bg-white/5'
                               }`}
                             >
+                              <DocIcon className={`w-3.5 h-3.5 shrink-0 transition-colors ${
+                                isActive ? 'text-neon-green' : 'text-gray-500 group-hover:text-neon-green'
+                              }`} />
                               <span className={`truncate tracking-wide relative z-10 font-sans ${isActive ? 'text-neon-green' : ''}`}>
                                 {doc.title}
                               </span>

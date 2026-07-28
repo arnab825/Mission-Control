@@ -72,14 +72,28 @@ If you want to set an **exact, specific version number** (e.g., forcing a jump t
 
 ---
 
+## 🤖 AI Release Notes & Mermaid Diagram Generation
+
+Whenever you trigger `.\Gaming\scripts\publish.ps1 "Your Update Summary"`, the pipeline executes `bump_version.py` which includes an integrated **AI Release Notes Enricher**:
+
+1. **NVIDIA NIM AI Integration**:
+   - Queries `meta/llama-3.1-8b-instruct` using `NVIDIA_API_KEY` (from environment or `.env` files).
+   - Automatically expands your raw update notes into technical feature bullet points, architectural decisions, and a file changes table.
+2. **Mermaid Flowchart Generator**:
+   - Automatically generates a dynamic **Mermaid system architecture diagram** (e.g. ````mermaid graph TD ... ````) illustrating the workflow of your changes.
+3. **Real-Time Website Documentation Sync**:
+   - Appends the enriched release entry directly to [Gaming/docs/changes_summary.md](file:///e:/AiAssistant/Gaming/docs/changes_summary.md), which streams into MongoDB and updates the website's `/docs/changes_summary` page in real time.
+
+---
+
 ## 🏗️ Release Build Architecture (Woodpecker CI)
 
 When you trigger `.\run_local.ps1`, the pipeline executes the following sequence:
 
 1. **`backend-deps`**: Creates an isolated virtual environment and installs dependencies using `uv`.
-2. **`stamp-version`** (Critical Order): Updates the release version in **both** `Gaming/frontend/package.json` and `Gaming/backend/version.json` using the tag version. 
+2. **`stamp-version`** (Critical Order): Bumps and syncs the release version in `Gaming/backend/version.json`, `Gaming/frontend/package.json`, `Gaming/website/package.json`, and `Gaming/docs/changes_summary.md`.
    > [!NOTE]
-   > Stamping is executed *before* backend compilation so that the correct version number is permanently compiled into the PyInstaller binary.
+   > Stamping automatically appends the new release patch notes directly into `Gaming/docs/changes_summary.md`. On runtime request or deployment, the website's `/docs/changes_summary` page syncs these changes into MongoDB in real time so release notes are always up to date.
 3. **`compile-backend`**: Bundles the Python code into a standalone binary using PyInstaller via `build_app.ps1`.
    * **Bundle Optimization**: To avoid compilation stutters, dynamic import errors (such as ChromaDB telemetry/posthog failures), and package bloat, the [MissionControl.spec](file:///c:/GitHub/Mission-Control/Gaming/backend/MissionControl.spec) file dynamically walks ChromaDB to include all submodules while explicitly excluding unused vector adapters from `mem0` (like Weaviate, Pinecone, Milvus) and `chromadb` testing packages.
    * **Standalone Execution**: You can also trigger backend compilation and sync directly via:

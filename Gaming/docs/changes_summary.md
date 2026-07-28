@@ -826,3 +826,133 @@ Added three new sections at the bottom of the **System & Hardware Diagnostics** 
 | `readme.md` | **Updated** | Documented version v1.4.8 release notes and new voice assistant control highlights |
 | `changes_summary.md` | **Updated** | This file |
 
+---
+
+## Session 19 — 2026-07-21: Telemetry Pipeline Aliasing & TGP Constraints (v2.0.4 - v2.0.9)
+
+### 🛠️ Key Features Added/Modified
+1. **GPU Hardware TGP Mapping**:
+   * Mapped GPU max hardware TGP constraints directly into LabPage Power Target UI and telemetry.
+   * Added `power_limit`, `power_limit_watts`, and `power_limit_max_watts` aliases across telemetry pipeline.
+2. **Windows Process Elevation & Window Handling**:
+   * Suppressed terminal window popups during GPU power limit application on Windows.
+   * Removed legacy chassis TGP tag from System and Settings pages.
+3. **Build & Script Automation**:
+   * Auto-restore local build-stamped files in `run_local.ps1` to keep Git working tree clean.
+   * Supported multi-line bullet points in `publish.ps1` via semicolons, newlines, or multiple arguments.
+
+### 📋 File Changes
+| File | Status | Description |
+|---|---|---|
+| `backend/core/gpu_monitor.py` | **Modified** | Mapped GPU max TGP hardware limits and telemetry alias attributes |
+| `frontend/src/pages/LabPage.tsx` | **Upgraded** | Bound GPU power target sliders directly to hardware TGP limits |
+| `scripts/publish.ps1` | **Updated** | Added support for multi-line release highlights and automated changelog updates |
+
+---
+
+## Session 20 — 2026-07-22: 1-Click YOLO Vision Engine & On-Demand AI Model Weights (v2.1.0 - v2.1.7)
+
+### 🛠️ Key Features Added/Modified
+1. **1-Click YOLO Vision Engine Installer**:
+   * Fixed 1-Click YOLO Vision Engine installer for standalone desktop release.
+   * Added `--system` flag to uv installer and prioritized system Python for 1-click YOLO vision engine installation.
+   * Added real-time percentage progress bar and output streaming to 1-click YOLO vision engine installer.
+2. **On-Demand AI Model Weights Downloader**:
+   * Added On-Demand AI Models & Weights Downloader with download icons, real-time progress bars, and streaming backend.
+   * Fixed Mermaid render errors, added dynamic portable ZIP resolver, AI weights docs, and Winget Python installer.
+3. **Agent & Dashboard UI Improvements**:
+   * Fixed Agent page infinite re-render loop and black screen issue.
+   * Prevented Dashboard CPU temperature text truncation on wide displays.
+   * Routed all Windows installer downloads dynamically through resolver API.
+
+### 📋 File Changes
+| File | Status | Description |
+|---|---|---|
+| `backend/core/vision_engine.py` | **Upgraded** | Added 1-click YOLO vision engine downloader and streaming progress reporter |
+| `frontend/src/components/VisionCommandCenter.tsx` | **Modified** | Redesigned vision telemetry controls and installer progress bars |
+| `Gaming/docs/on_demand_ai_weights.md` | **New** | Added documentation for downloading on-demand AI vision weights |
+
+---
+
+## Session 21 — 2026-07-23 - 2026-07-24: Backend Synchronization, ASAR Streaming & Game Preview Modal (v2.3.2 - v2.3.9)
+
+### 🛠️ Key Features Added/Modified
+1. **Production Backend & ASAR Streaming Fixes**:
+   * Fixed production black screen, GPU compositor rendering, and ASAR static file streaming in packaged production builds.
+   * Fixed production backend self-elevation exit loop and synchronization deadlocks.
+   * Fixed WebSocket bridge connection deadlock when broadcasting telemetry and Vision frames.
+   * Fixed process lock file race condition on Windows startup and `.env` search path priority.
+2. **Interactive Game Cards & Preview Modal**:
+   * Fixed Game Preview modal responsive layout, height overflow, vertical scrolling, and fluid typography.
+   * Added direct click-to-launch handlers for game cards in library.
+   * Optimized AI Agent latency by bypassing RAG/search for conversational queries and adding dynamic typing speedups.
+
+### 📋 File Changes
+| File | Status | Description |
+|---|---|---|
+| `frontend/electron/main.ts` | **Modified** | Resolved ASAR static file streaming, WebSocket bridge deadlocks, and process locks |
+| `frontend/src/components/GameCard.tsx` | **Upgraded** | Added direct execution handlers and responsive modal trigger controls |
+| `backend/core/agent_controller.py` | **Optimized** | Accelerated chat response streaming and query classification |
+
+---
+
+## Session 22 — 2026-07-25 - 2026-07-26: PyTorch Vision Bundling, Auto-Updater & Crack Group Filters (v2.4.0 - v2.5.0)
+
+### 🛠️ Key Features Added/Modified
+1. **PyTorch Vision Bundling & AppData Permissions**:
+   * Stored and auto-verified model weights in user `AppData` directory to resolve `PermissionError` in production.
+   * Bundled PyTorch and torchvision into desktop releases with offline-safe launcher cover art fallbacks.
+   * Fixed model download thread imports to resolve PyInstaller thread deadlocks.
+2. **Auto-Updater & Error Sanitization**:
+   * Fixed model weights download and sanitized auto-updater errors by stripping stack traces and HTTP headers.
+   * Translated raw 404 latest.yml errors into clean beginner-friendly updates-pending messages.
+3. **Pirate Release Group Filter**:
+   * Ignored pirate release group names (FLT, RUNE, CODEX, ali213, tenoke, goldberg, epicfiles, steamfiles, online fix) in deep game scan.
+   * Ignored crack emulator wrappers (`steam_api64.exe`) to fix missing game icons.
+4. **App Splash Screen & Blog Enhancements**:
+   * Added App Logo splash screen to Electron and in-app loading overlays.
+   * Added 6-item pagination and blog search filter on website.
+
+### 📋 File Changes
+| File | Status | Description |
+|---|---|---|
+| `backend/core/game_scanner.py` | **Upgraded** | Implemented pirate release group filter and crack wrapper exclusions |
+| `backend/core/model_manager.py` | **Modified** | Moved model weight storage to AppData to eliminate production write permission crashes |
+| `frontend/electron/main.ts` | **Modified** | Added app splash screen initialization and sanitized updater error messages |
+
+---
+
+## Session 23 — 2026-07-27: Dynamic Game Scanner, Dual-Mode LLM Choice Extractor & Exe Selection (v2.5.1 - v2.6.2)
+
+### 🛠️ Key Features Added/Modified
+1. **Dynamic Steam Artwork & Scanner Sanitization**:
+   * Enhanced backend Steam banner search to dynamically fetch header artwork for local games without hardcoding.
+   * Added global name sanitization logic and parent-directory fallback resolution to `scan_all`.
+   * Filtered executables inside `crack`/`nodvd`/`skidrow` subdirectories during drive scanning and Steam recursive globbing.
+2. **LLM Response Extractor & NIM Robustness**:
+   * Fixed list index out of range crash in NIM streaming generator when choices list is empty.
+   * Added dual-mode `extract_choice_content` helper to parse both dictionary and SDK completion choices in `game_knowledge.py` and `directive_stream`.
+   * Completely stripped neural failure error text fallbacks from directive stream exception handlers.
+3. **Backend Initialization & Standalone Build**:
+   * Moved `basicConfig` and logger definitions to the top of `main.py` to resolve early initialization `NameError`.
+   * Documented standalone PyInstaller compilation commands in `process.md` and verified `build_app.ps1`.
+   * Cleaned stale update state on startup via semantic version comparison.
+
+### 📋 File Changes
+| File | Status | Description |
+|---|---|---|
+| `backend/core/game_scanner.py` | **Upgraded** | Added `crack`/`nodvd` subdirectory exclusions to `_select_best_exe` and drive scans |
+| `backend/core/directive_stream.py` | **Modified** | Added `extract_choice_content` dual-mode helper and stripped error text fallbacks |
+| `backend/main.py` | **Modified** | Moved logger initialization to top level to prevent startup `NameError` |
+| `backend/version.json` | **Updated** | Synchronized changelog highlights up to release v2.6.2 |
+
+---
+
+## Release v2.6.4 — 2026-07-28: Release v2.6.4: Mobile Optimization & Real-Time Docs Sync
+
+### 🛠️ Key Features Added/Modified
+1. **Synchronized changelog highlights and version tags up to v2.6.4**
+2. **Optimized docs layout for mobile viewports**
+3. **Automated real-time website documentation updates**
+
+
