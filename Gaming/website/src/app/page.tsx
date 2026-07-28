@@ -171,7 +171,7 @@ export default function Home() {
   ];
 
   const supportedGames = [
-    { title: "Cyberpunk 2077", tag: "DLSS 3.5 Path Tracing", url: "https://store.steampowered.com/app/2050650/Cyberpunk_2077/" },
+    { title: "Cyberpunk 2077", tag: "DLSS 4 Path Tracing", url: "https://store.steampowered.com/app/2050650/Cyberpunk_2077/" },
     { title: "Apex Legends", tag: "165+ FPS Target Lock", url: "https://store.steampowered.com/app/1172470/Apex_Legends/" },
     { title: "Elden Ring", tag: "Boss Scraper Ready", url: "https://store.steampowered.com/app/1245625/ELDEN_RING/" },
     { title: "Call of Duty: Warzone", tag: "Reflex Low Latency", url: "https://store.steampowered.com/app/1962663/Call_of_Duty_Warzone/" },
@@ -451,9 +451,9 @@ export default function Home() {
           </p>
         </div>
 
-        {/* Display 2 Verified Tested Games */}
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-6 sm:gap-8 mb-10">
-          {TESTED_GAMES_LIST.slice(0, 2).map((game) => (
+        {/* Display Verified Tested Games */}
+        <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 sm:gap-8 mb-10">
+          {TESTED_GAMES_LIST.map((game) => (
             <div
               key={game.id}
               className="glass-card p-6 sm:p-8 border-neon-green/40 bg-gradient-to-b from-white/[0.03] to-transparent flex flex-col justify-between group relative overflow-hidden shadow-[0_0_30px_rgba(118,185,0,0.1)] hover:border-neon-green/70 transition-all"
@@ -680,7 +680,7 @@ export default function Home() {
               <h3 className="text-2xl font-bold font-display text-white mb-1">Deep Game Scanner</h3>
               <div className="text-xs font-mono text-neon-green uppercase tracking-wider mb-3 font-semibold">NVIDIA DLSS & Path Tracing</div>
               <p className="text-gray-400 text-sm leading-relaxed font-sans mb-6">
-                Scans game directories up to 3 subfolders deep to auto-configure DLSS 3.5 Frame Gen & Reflex low latency.
+                Scans game directories up to 3 subfolders deep to auto-configure DLSS 4 Multi-Frame Gen & Reflex low latency.
               </p>
             </div>
 
