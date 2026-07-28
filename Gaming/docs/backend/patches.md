@@ -2,6 +2,12 @@
 
 This document contains a detailed history of all patches and updates for the AI Gaming Assistant.
 
+### Patch: 2026-07-28 — v2.6.7: Exclusive Fullscreen BetterCam Backend & Auto-Failover
+
+- Added BetterCam capture backend for Direct3D exclusive fullscreen compatibility
+- Added capture loop auto-failover switching between DXCam and BetterCam on sustained None frames
+- Included BetterCam in Privacy Shield desktop capture safeguards
+
 ### Patch: 2026-07-28 — v2.6.5: Exclusive Fullscreen: Privacy Shield Fix + Tray Telemetry
 
 - Fixed Privacy Shield false-positive in exclusive fullscreen (alt-tab no longer blacks out vision feed)

@@ -1,6 +1,6 @@
 [project]
 name = "ai-gaming-assistant"
-version = "2.6.5"
+version = "2.6.7"
 requires-python = ">=3.11"
 dependencies = [
     "opencv-python",
@@ -10,6 +10,7 @@ dependencies = [
     "pynput",
     "pyyaml",
     "dxcam",
+    "bettercam",
     "rapidocr-onnxruntime",
     "pygame-ce",
     "nvidia-ml-py",

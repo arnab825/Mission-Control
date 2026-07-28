@@ -126,6 +126,7 @@ class GamingAssistantPipeline:
             capture_backend = "dxcam"
         elif capture_backend == "bitblt":
             capture_backend = "mss"
+        # "bettercam" is used as-is (no alias needed)
         self._last_capture_backend = capture_backend
 
         self.capture = ScreenCapture(
@@ -573,6 +574,7 @@ class GamingAssistantPipeline:
             capture_backend = "dxcam"
         elif capture_backend == "bitblt":
             capture_backend = "mss"
+        # "bettercam" is used as-is (no alias needed)
 
         self.capture_hz = capture_cfg.get("fps_cap_limit", 60) if capture_cfg.get("cap_fps", False) else 0
         if hasattr(self, "capture") and self.capture:
@@ -1159,6 +1161,8 @@ class GamingAssistantPipeline:
     def _capture_loop(self):
         """Capture thread: grabs frames as fast as possible."""
         logger.info(f"Capture thread started ({self.capture_hz}hz)")
+        _consecutive_none_frames = 0
+        _FAILOVER_THRESHOLD = 60  # ~1 second at 60hz before attempting backend switch
         
         while self.running:
             if getattr(self, "neural_security_lock", False):
@@ -1176,6 +1180,7 @@ class GamingAssistantPipeline:
             else:
                 current_hz = 10.0
                 interval = 0.1
+                _consecutive_none_frames = 0  # Reset when no game is active
             
             try:
                 frame = self.capture.get_frame()
@@ -1183,7 +1188,40 @@ class GamingAssistantPipeline:
                 # Never push None — it would propagate stale data downstream.
                 if frame is not None:
                     self.frame_buffer.push(frame)
+                    _consecutive_none_frames = 0
                 else:
+                    _consecutive_none_frames += 1
+                    
+                    # Exclusive fullscreen auto-failover: if game is active but we're
+                    # getting sustained None frames, the current DXGI backend can't
+                    # capture (likely DWM bypass). Try switching to the alternate backend.
+                    if is_active and _consecutive_none_frames >= _FAILOVER_THRESHOLD:
+                        current_backend = getattr(self.capture, "backend_name", "unknown")
+                        if current_backend in ("dxcam", "bettercam"):
+                            from capture.screen import _check_bettercam_available, _check_dxcam_available
+                            alt_backend = "bettercam" if current_backend == "dxcam" else "dxcam"
+                            alt_available = (_check_bettercam_available() if alt_backend == "bettercam" 
+                                           else _check_dxcam_available())
+                            if alt_available:
+                                logger.warning(
+                                    f"Exclusive fullscreen failover: {current_backend} returned "
+                                    f"{_consecutive_none_frames} consecutive None frames while game is active. "
+                                    f"Switching to {alt_backend}..."
+                                )
+                                try:
+                                    self.capture.set_hwnd(None)  # Ensure desktop mode
+                                    self.capture.__init__(
+                                        region=self.capture.region,
+                                        backend=alt_backend,
+                                        target_fps=self.capture.target_fps,
+                                        device_index=getattr(self.capture, "_device_index", 0),
+                                        output_index=getattr(self.capture, "_output_index", 0),
+                                    )
+                                    logger.info(f"Successfully switched capture backend to: {alt_backend}")
+                                except Exception as switch_e:
+                                    logger.error(f"Failed to switch to {alt_backend}: {switch_e}")
+                        _consecutive_none_frames = 0  # Reset after failover attempt
+                    
                     # Sleep slightly longer on no-new-frame to prevent high CPU polling overhead
                     time.sleep(0.004 if is_active else 0.05)
                     continue
@@ -1494,7 +1532,7 @@ class GamingAssistantPipeline:
             is_minimized  = self._game_state.get("game_minimized", False)
 
         capture_backend = getattr(self.capture, "backend_name", "dxcam")
-        is_desktop_capture = capture_backend in ("dxcam", "mss")
+        is_desktop_capture = capture_backend in ("dxcam", "mss", "bettercam")
 
         privacy_enabled = self.config.get("privacy", {}).get("enabled", True)
         privacy_shield_active = privacy_enabled and is_desktop_capture and (
@@ -1684,7 +1722,7 @@ class GamingAssistantPipeline:
 
         # Privacy Shield Safeguard: Only skip VLM when game is not running or explicitly minimized
         capture_backend = getattr(self.capture, "backend_name", "dxcam")
-        is_desktop_capture = capture_backend in ("dxcam", "mss")
+        is_desktop_capture = capture_backend in ("dxcam", "mss", "bettercam")
         privacy_enabled = self.config.get("privacy", {}).get("enabled", True)
         privacy_shield_active = privacy_enabled and is_desktop_capture and (
             not state_snapshot.get("is_game_active", False)
