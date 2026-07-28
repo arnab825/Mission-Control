@@ -1,8 +1,18 @@
 {
-  "version": "2.6.6",
+  "version": "2.6.7",
   "release_date": "2026-07-28",
   "update_check_url": "https://raw.githubusercontent.com/arnab825/Mission-Control/main/Gaming/backend/version.json",
   "changelog": [
+    {
+      "version": "2.6.7",
+      "date": "2026-07-28",
+      "title": "Exclusive Fullscreen BetterCam Backend & Auto-Failover",
+      "highlights": [
+        "Added BetterCam capture backend for Direct3D exclusive fullscreen compatibility",
+        "Added capture loop auto-failover switching between DXCam and BetterCam on sustained None frames",
+        "Included BetterCam in Privacy Shield desktop capture safeguards"
+      ]
+    },
     {
       "version": "2.6.6",
       "date": "2026-07-28",
@@ -452,22 +462,6 @@
         "Optimized Vision Command Center telemetry layout into clean right sidebar",
         "Prevented Dashboard CPU temperature text truncation on wide displays",
         "Updated release process documentation"
-      ]
-    },
-    {
-      "version": "2.0.9",
-      "date": "2026-07-21",
-      "title": "Support multi-line bullet points in publish.ps1 via semicolons, newlines, or multiple arguments",
-      "highlights": [
-        "Support multi-line bullet points in publish.ps1 via semicolons, newlines, or multiple arguments"
-      ]
-    },
-    {
-      "version": "2.0.8",
-      "date": "2026-07-21",
-      "title": "Auto-restore local build-stamped files in run_local.ps1 to keep Git working tree clean",
-      "highlights": [
-        "Auto-restore local build-stamped files in run_local.ps1 to keep Git working tree clean"
       ]
     }
   ]

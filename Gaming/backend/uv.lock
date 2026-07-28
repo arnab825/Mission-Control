@@ -24,9 +24,10 @@ excludes = ["opencv-python-headless"]
 
 [[package]]
 name = "ai-gaming-assistant"
-version = "2.6.4"
+version = "2.6.5"
 source = { virtual = "." }
 dependencies = [
+    { name = "bettercam" },
     { name = "ddgs" },
     { name = "duckduckgo-search" },
     { name = "dxcam" },
@@ -71,6 +72,7 @@ dependencies = [
 
 [package.metadata]
 requires-dist = [
+    { name = "bettercam" },
     { name = "ddgs", specifier = ">=9.14.4" },
     { name = "duckduckgo-search" },
     { name = "dxcam" },
@@ -331,6 +333,19 @@ source = { registry = "https://pypi.org/simple" }
 sdist = { url = "https://files.pythonhosted.org/packages/47/d7/5bbeb12c44d7c4f2fb5b56abce497eb5ed9f34d85701de869acedd602619/backoff-2.2.1.tar.gz", hash = "sha256:03f829f5bb1923180821643f8753b0502c3b682293992485b0eef2807afa5cba", size = 17001, upload-time = "2022-10-05T19:19:32.061Z" }
 wheels = [
     { url = "https://files.pythonhosted.org/packages/df/73/b6e24bd22e6720ca8ee9a85a0c4a2971af8497d8f3193fa05390cbd46e09/backoff-2.2.1-py3-none-any.whl", hash = "sha256:63579f9a0628e06278f7e47b7d7d5b6ce20dc65c5e96a6f3ca99a6adca0396e8", size = 15148, upload-time = "2022-10-05T19:19:30.546Z" },
+]
+
+[[package]]
+name = "bettercam"
+version = "1.0.0"
+source = { registry = "https://pypi.org/simple" }
+dependencies = [
+    { name = "comtypes" },
+    { name = "numpy" },
+]
+sdist = { url = "https://files.pythonhosted.org/packages/96/27/bf39ca1caaaac0aedfdc77929608b316cce2bab7fc6f5f2643e3c107793b/bettercam-1.0.0.tar.gz", hash = "sha256:122cc0e905cb40be8f2a26e46ee587bae40c10eb9c23201370a54e68b84a0940", size = 19269, upload-time = "2023-11-22T08:25:15.705Z" }
+wheels = [
+    { url = "https://files.pythonhosted.org/packages/3c/66/c16181c6e036e60f41161ea31f78d4ffe76babbdad1e82499226e55bfecf/bettercam-1.0.0-py3-none-any.whl", hash = "sha256:0690b2289683725d875eb877db13a8c628935816866ef8ec0751945e988f32ac", size = 21029, upload-time = "2023-11-22T08:25:13.676Z" },
 ]
 
 [[package]]

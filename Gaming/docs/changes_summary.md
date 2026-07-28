@@ -982,3 +982,32 @@ graph TD
 | `mission_control.ts` | **Modified** | Updated Privacy Shield logic to decouple from GetForegroundWindow. |
 | `telemetry.ts` | **Added** | Implemented live FPS/GPU/Temp telemetry for system tray tooltip. |
 | `psutil.ts` | **Modified** | Added PID-alive check to preserve focused=True for exclusive fullscreen games. |
+
+---
+
+## Session 26 — 2026-07-28: Exclusive Fullscreen BetterCam Backend & Auto-Failover (v2.6.7)
+
+### 🛠️ Key Features Added/Modified
+1. **Added exclusive fullscreen compatibility through BetterCam capture backend for Direct3D.**
+2. **Implemented auto-failover switching between DXCam and BetterCam on sustained None frames.**
+3. **Integrated BetterCam into Privacy Shield desktop capture safeguards for enhanced security.**
+
+### 🧩 Technical Decisions & Architecture
+* To ensure seamless compatibility and high-quality video capture, we opted to utilize the BetterCam backend in conjunction with DXCam. This dual-backend approach allows for auto-failover switching, ensuring continuous capture functionality even in the event of sustained None frames. Additionally, we integrated BetterCam into our existing Privacy Shield safeguards to maintain the highest level of security and user trust.
+
+### 📊 System Architecture & Flow
+```mermaid
+graph TD
+  A[Client]
+  A -->|DXCam|> B[Server]
+  A -->|BetterCam|> C[Server]
+  B -->|Auto-Failover|> D[Server]
+  D -->|BetterCam|> E[Server]
+```
+
+### 📋 File Changes
+| File | Status | Description |
+|---|---|---|
+| `capture_backend.ts` | **Added** | Implemented BetterCam capture backend for exclusive fullscreen compatibility. |
+| `auto_failover.ts` | **Added** | Developed auto-failover logic for switching between DXCam and BetterCam on sustained None frames. |
+| `privacy_shield.ts` | **Modified** | Integrated BetterCam into existing Privacy Shield safeguards for enhanced security and user trust. |

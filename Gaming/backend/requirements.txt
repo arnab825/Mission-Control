@@ -8,8 +8,9 @@ pyyaml
 
 
 # High-Performance Capture (60fps+)
-# Install ONE of these for GPU-accelerated capture:
-dxcam            # Recommended: fastest DXGI capture (~120fps+)
+# GPU-accelerated DXGI capture backends (both installed for auto-failover):
+bettercam         # Preferred: exclusive fullscreen compatible DXGI capture (~240fps+)
+dxcam            # Fallback: fast DXGI Desktop Duplication (~120fps+)
 
 # OCR for Story Mode
 rapidocr-onnxruntime # ONNX-based fast OCR

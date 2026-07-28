@@ -18,6 +18,7 @@ from typing import Optional
 logger = logging.getLogger(__name__)
 
 _DXCAM_AVAILABLE = None
+_BETTERCAM_AVAILABLE = None
 
 def _check_dxcam_available():
     global _DXCAM_AVAILABLE
@@ -29,6 +30,17 @@ def _check_dxcam_available():
             _DXCAM_AVAILABLE = False
     return _DXCAM_AVAILABLE
 
+def _check_bettercam_available():
+    """Check if the bettercam library (exclusive-fullscreen-compatible DXGI) is installed."""
+    global _BETTERCAM_AVAILABLE
+    if _BETTERCAM_AVAILABLE is None:
+        try:
+            import bettercam
+            _BETTERCAM_AVAILABLE = True
+        except Exception:
+            _BETTERCAM_AVAILABLE = False
+    return _BETTERCAM_AVAILABLE
+
 import mss  # Always available as fallback
 
 
@@ -37,17 +49,18 @@ class ScreenCapture:
     High-performance screen capture with automatic backend selection.
 
     Backend priority:
-      1. window  — Win32 PrintWindow, per-HWND. Used when hwnd is provided.
-                   Works for windowed/borderless games that are in the background.
-      2. dxcam   — GPU-accelerated DXGI, fastest (~120+ fps) for full-screen games.
-      3. mss     — CPU-based GDI, reliable fallback (~30-50 fps).
+      1. window    — Win32 PrintWindow, per-HWND. Used when hwnd is provided.
+                     Works for windowed/borderless games that are in the background.
+      2. bettercam — GPU-accelerated DXGI, exclusive fullscreen compatible (~240+ fps).
+      3. dxcam     — GPU-accelerated DXGI, fastest (~120+ fps) for composed desktop.
+      4. mss       — CPU-based GDI, reliable fallback (~30-50 fps).
     """
 
     def __init__(self, region=None, backend="auto", target_fps=60,
                  device_index=0, output_index=0, hwnd: Optional[int] = None):
         """
         :param region: dict {'top', 'left', 'width', 'height'} or None for full screen
-        :param backend: 'window', 'dxcam', 'mss', or 'auto'
+        :param backend: 'window', 'bettercam', 'dxcam', 'mss', or 'auto'
         :param target_fps: Target capture FPS (used by dxcam's internal capture)
         :param device_index: GPU adapter index (0 = primary).
         :param output_index: Display output index on the selected GPU (0 = primary).
@@ -71,7 +84,22 @@ class ScreenCapture:
             except Exception as e:
                 logger.warning(f"Window capture init failed (hwnd={hwnd:#x}): {e}. Falling back...")
 
-        # --- dxcam backend ---
+        # --- bettercam backend (preferred — exclusive fullscreen compatible) ---
+        if backend in ("auto", "bettercam") and _check_bettercam_available():
+            try:
+                self._capture = _BetterCamBackend(
+                    self.region, self.target_fps,
+                    device_index=self._device_index,
+                    output_index=self._output_index
+                )
+                self._backend_name = "bettercam"
+                logger.info(f"Capture backend: bettercam (exclusive-FS compatible, target {self.target_fps}fps, "
+                            f"device={self._device_index}, output={self._output_index})")
+                return
+            except Exception as e:
+                logger.warning(f"bettercam init failed: {e}. Falling back to dxcam...")
+
+        # --- dxcam backend (legacy DXGI) ---
         if backend in ("auto", "dxcam") and _check_dxcam_available():
             try:
                 self._capture = _DXCamBackend(
@@ -101,10 +129,17 @@ class ScreenCapture:
         logger.info(f"Capture backend: mss (Selected for {backend})")
 
     def _fallback_to_desktop(self):
-        """Internal helper to switch capture to dxcam/mss desktop capture."""
+        """Internal helper to switch capture to bettercam/dxcam/mss desktop capture."""
         try:
-            logger.info("Falling back to desktop capture (dxcam/mss)...")
-            if _check_dxcam_available():
+            logger.info("Falling back to desktop capture (bettercam/dxcam/mss)...")
+            if _check_bettercam_available():
+                self._capture = _BetterCamBackend(
+                    self.region, self.target_fps,
+                    device_index=self._device_index,
+                    output_index=self._output_index
+                )
+                self._backend_name = "bettercam"
+            elif _check_dxcam_available():
                 self._capture = _DXCamBackend(
                     self.region, self.target_fps,
                     device_index=self._device_index,
@@ -368,6 +403,69 @@ class _DXCamBackend:
     def change_output(self, output_index, device_index=0):
         logger.info(f"dxcam: Switching to output {output_index} on device {device_index}")
         self._cam = dxcam.create(device_idx=device_index, output_idx=output_index, output_color="BGR")
+
+
+class _BetterCamBackend:
+    """bettercam backend — exclusive fullscreen compatible DXGI capture.
+
+    BetterCam is a performance-optimized fork of DXCam that uses the same
+    DXGI Desktop Duplication API but with improved handling of exclusive
+    fullscreen transitions. Where vanilla dxcam returns None/black frames
+    when DWM is bypassed, bettercam maintains capture continuity by working
+    at the DXGI output level during fullscreen mode switches.
+
+    get_frame() returns None when no new frame is available (same contract
+    as _DXCamBackend).
+    """
+
+    def __init__(self, region=None, target_fps=60, device_index=0, output_index=0):
+        import bettercam
+        self._device_index = device_index
+        self._output_index = output_index
+        self._cam = bettercam.create(device_idx=device_index, output_idx=output_index, output_color="BGR")
+        self._region = None
+        if region:
+            self._region = (
+                region["left"], region["top"],
+                region["left"] + region["width"],
+                region["top"] + region["height"]
+            )
+
+    def get_frame(self) -> Optional[np.ndarray]:
+        """Return the latest frame, or None if no new frame is available."""
+        try:
+            frame = self._cam.grab(region=self._region)
+            if frame is None:
+                return None
+            return frame
+        except Exception as e:
+            err_str = str(e).lower()
+            if "invalid" in err_str or "-2005270527" in err_str or "access" in err_str:
+                logger.warning("bettercam context lost, attempting to re-initialize...")
+                try:
+                    import bettercam
+                    self._cam = bettercam.create(device_idx=self._device_index, output_idx=self._output_index, output_color="BGR")
+                except Exception as inner_e:
+                    logger.error(f"Failed to re-initialize bettercam: {inner_e}")
+                    time.sleep(0.5)
+            else:
+                logger.error(f"bettercam grab error: {e}")
+            return None
+
+    def set_region(self, region):
+        if region:
+            self._region = (
+                region["left"], region["top"],
+                region["left"] + region["width"],
+                region["top"] + region["height"]
+            )
+        else:
+            self._region = None
+
+    def change_output(self, output_index, device_index=0):
+        logger.info(f"bettercam: Switching to output {output_index} on device {device_index}")
+        import bettercam
+        self._cam = bettercam.create(device_idx=device_index, output_idx=output_index, output_color="BGR")
 
 
 class _MSSBackend:
