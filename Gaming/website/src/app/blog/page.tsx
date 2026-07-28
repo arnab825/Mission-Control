@@ -73,7 +73,7 @@ export default async function BlogListing({
   }));
 
   return (
-    <div className="min-h-screen pt-28 pb-12 px-4 sm:px-6 max-w-6xl mx-auto w-full relative z-10 bg-[#0a0a0c]">
+    <div className="min-h-screen pt-24 sm:pt-28 pb-12 px-3 sm:px-6 max-w-6xl mx-auto w-full relative z-10 bg-[#0a0a0c] overflow-hidden">
 
       {/* Cyber Grid & Ambient Radial Glows */}
       <div className="absolute inset-0 cyber-grid opacity-25 pointer-events-none -z-10" />
@@ -317,15 +317,15 @@ async function GamingIntelData({ activeCategory, localGamingPosts, currentPage }
   return (
     <div>
       {/* Category filter pills - Mobile Accordion */}
-      <details className="group sm:hidden mb-8 border border-white/10 rounded-xl bg-white/[0.02]">
-        <summary className="flex items-center justify-between p-4 text-xs font-mono font-bold text-gray-300 cursor-pointer select-none rounded-xl group-open:rounded-b-none group-open:border-b group-open:border-white/10 transition-all duration-300 hover:border-amber-400/30">
-          <span className="flex items-center gap-2">
+      <details className="group sm:hidden mb-8 border border-white/10 rounded-xl bg-white/[0.02] max-w-full overflow-hidden">
+        <summary className="flex items-center justify-between p-3.5 sm:p-4 text-xs font-mono font-bold text-gray-300 cursor-pointer select-none rounded-xl group-open:rounded-b-none group-open:border-b group-open:border-white/10 transition-all duration-300 hover:border-amber-400/30">
+          <span className="flex items-center gap-2 truncate mr-2">
             <span className={activeCategoryConfig.color}>{activeCategoryConfig.icon}</span>
-            Active Filter: <span className={`${activeCategoryConfig.color} uppercase font-bold`}>{activeCategory === "all" ? "All Intel" : activeCategory}</span>
+            <span className="shrink-0">Active Filter:</span> <span className={`${activeCategoryConfig.color} uppercase font-bold truncate`}>{activeCategory === "all" ? "All Intel" : activeCategory}</span>
           </span>
-          <ChevronDown className="w-4 h-4 text-gray-400 group-open:rotate-180 transition-transform" />
+          <ChevronDown className="w-4 h-4 text-gray-400 group-open:rotate-180 transition-transform shrink-0" />
         </summary>
-        <div className="p-3 flex flex-col gap-2 bg-obsidian/95 rounded-b-xl">
+        <div className="p-2.5 sm:p-3 flex flex-col gap-2 bg-obsidian/95 rounded-b-xl">
           <Link
             href="/blog?tab=intel&category=all"
             className={`flex items-center justify-between p-3 rounded-lg text-xs font-mono font-bold border transition-all text-left ${

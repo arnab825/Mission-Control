@@ -532,8 +532,8 @@ export async function generateAndSavePost(
       const istMonth = Number(parts.find(p => p.type === 'month')?.value);
       const istDay = Number(parts.find(p => p.type === 'day')?.value);
 
-      // Normalize publication time to exactly 04:00 AM IST (22:30 UTC of same day)
-      const postDate = new Date(Date.UTC(istYear, istMonth - 1, istDay, 4, 0, 0, 0) - 5.5 * 60 * 60 * 1000);
+      // Normalize publication time to exactly 05:30 AM IST (00:00 UTC of same day)
+      const postDate = new Date(Date.UTC(istYear, istMonth - 1, istDay, 5, 30, 0, 0) - 5.5 * 60 * 60 * 1000);
       const publishedAt = postDate.toISOString();
 
       const saved = await writeToMongoDB(post, currentTopic, publishedAt, localCoverPath);
