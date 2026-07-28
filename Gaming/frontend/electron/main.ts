@@ -517,6 +517,11 @@ function startPythonBackend() {
       execSync('taskkill /f /im MissionControlBackend.exe', { windowsHide: true, stdio: 'ignore' })
       console.log('[Electron] Cleaned up lingering MissionControlBackend.exe background processes on startup.')
     } catch (_) {}
+    // Also kill the legacy binary name from pre-rename builds to prevent stale lock conflicts
+    try {
+      execSync('taskkill /f /im MissionControl.exe', { windowsHide: true, stdio: 'ignore' })
+      console.log('[Electron] Cleaned up lingering legacy MissionControl.exe processes on startup.')
+    } catch (_) {}
   }
 
   if (isDev) {
