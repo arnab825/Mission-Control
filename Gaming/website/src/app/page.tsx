@@ -288,10 +288,10 @@ export default function Home() {
             </span>
           </div>
 
-          {/* ROG / Razer Inspired Gradient Title matching screenshot */}
+          {/* Clean ROG / Razer Inspired Title */}
           <h1 className="text-4xl sm:text-7xl lg:text-8xl font-black font-display tracking-tight text-white mb-6 uppercase leading-[1.02] max-w-5xl">
             THE ULTIMATE <br />
-            <span className="text-transparent bg-clip-text bg-gradient-to-r from-neon-green via-neon-yellow to-neon-green glow-text-green drop-shadow-[0_0_25px_rgba(118,185,0,0.6)]">
+            <span className="text-neon-green font-black">
               GAMING AI
             </span> <br />
             DASHBOARD

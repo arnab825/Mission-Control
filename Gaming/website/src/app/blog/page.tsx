@@ -420,69 +420,71 @@ async function GamingIntelData({ activeCategory, localGamingPosts, currentPage }
           return (
             <Link href={`/blog/gaming/${slug}`} key={post._id} className="block group">
               <article
-                className={`glass-card glass-card-hover border border-white/10 ${cfg.hoverBorder} rounded-2xl relative overflow-hidden h-full flex flex-col justify-between shadow-[0_0_30px_rgba(0,0,0,0.5)]`}
+                className={`glass-card glass-card-hover border border-white/10 ${cfg.hoverBorder} rounded-3xl relative overflow-hidden h-full flex flex-col justify-between shadow-[0_0_35px_rgba(0,0,0,0.8)] backdrop-blur-2xl transition-all duration-300`}
               >
-                <div className="absolute top-0 left-0 w-full h-[2px] bg-gradient-to-r from-amber-400 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
+                {/* Cyber Laser Accent Line on Hover */}
+                <div className="absolute top-0 left-0 w-full h-[2.5px] bg-gradient-to-r from-neon-green via-neon-yellow to-amber-400 opacity-0 group-hover:opacity-100 transition-opacity duration-500 z-10" />
 
                 {post.coverImage ? (
-                  <div className="w-full h-48 overflow-hidden relative border-b border-white/10">
+                  <div className="w-full h-52 sm:h-56 overflow-hidden relative border-b border-white/10 bg-obsidian">
                     <img
                       src={post.coverImage}
                       alt={post.title}
-                      className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
+                      className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-700 upscale-crisp opacity-90 group-hover:opacity-100"
                     />
+                    <div className="absolute inset-0 bg-gradient-to-t from-obsidian via-transparent to-transparent opacity-80 pointer-events-none" />
                   </div>
                 ) : null}
 
-                <div className="p-5 sm:p-8 flex-1 flex flex-col justify-between">
+                <div className="p-6 sm:p-8 flex-1 flex flex-col justify-between relative z-10">
                   <div>
-                    <div className="flex items-center gap-2 mb-3 flex-wrap">
+                    <div className="flex items-center gap-2 mb-3.5 flex-wrap">
                       <span
-                        className={`text-[10px] font-mono font-bold uppercase tracking-wider px-3 py-1 rounded-md border bg-white/5 ${cfg.color} border-current/20`}
+                        className={`text-[10px] font-mono font-bold uppercase tracking-widest px-3 py-1 rounded-lg border bg-white/5 ${cfg.color} border-current/30 shadow-[0_0_10px_rgba(0,0,0,0.5)]`}
                       >
                         {cfg.icon} {post.category}
                       </span>
                       {post.aiGenerated && (
-                        <span className="text-[10px] font-mono font-bold uppercase tracking-wider px-3 py-1 rounded-md border border-violet-500/30 text-violet-400 bg-violet-500/10 flex items-center gap-1">
-                          <Bot className="w-3 h-3" /> AI PIPELINE
+                        <span className="text-[10px] font-mono font-bold uppercase tracking-widest px-3 py-1 rounded-lg border border-violet-500/40 text-violet-300 bg-violet-500/15 flex items-center gap-1.5 shadow-[0_0_12px_rgba(168,85,247,0.2)]">
+                          <Bot className="w-3 h-3 text-violet-400 animate-pulse" /> AI PIPELINE
                         </span>
                       )}
                     </div>
-                    <div className="flex items-center gap-4 text-xs font-mono text-gray-400 mb-3 uppercase tracking-widest flex-wrap">
-                      <span className="flex items-center gap-1.5">
-                        <Calendar className="w-3.5 h-3.5" /> {formatDateToIST(date)}
+                    <div className="flex items-center gap-4 text-[11px] font-mono text-gray-400 mb-3 uppercase tracking-widest flex-wrap">
+                      <span className="flex items-center gap-1.5 bg-white/5 px-2.5 py-0.5 rounded-full border border-white/5">
+                        <Calendar className="w-3.5 h-3.5 text-neon-green" /> {formatDateToIST(date)}
                       </span>
                     </div>
                     <h2
-                      className="text-lg min-[375px]:text-xl sm:text-2xl font-bold mb-3 text-white group-hover:text-amber-400 transition-colors font-display line-clamp-2"
+                      className="text-xl sm:text-2xl font-bold mb-3 text-white group-hover:text-amber-400 transition-colors font-display line-clamp-2 leading-snug"
                     >
                       {post.title}
                     </h2>
-                    <p className="text-gray-300 text-sm leading-relaxed mb-4 line-clamp-3 font-sans">
+                    <p className="text-gray-300 text-xs sm:text-sm leading-relaxed mb-5 line-clamp-3 font-sans">
                       {post.excerpt}
                     </p>
                     {post.tags && post.tags.length > 0 && (
-                      <div className="flex flex-wrap gap-1.5 mb-4">
+                      <div className="flex flex-wrap gap-1.5 mb-5">
                         {post.tags.slice(0, 4).map((tag: string) => (
                           <span
                             key={tag}
-                            className="text-[10px] font-mono uppercase tracking-wider px-2 py-0.5 rounded bg-white/5 border border-white/10 text-gray-400"
+                            className="text-[10px] font-mono uppercase tracking-wider px-2.5 py-1 rounded-md bg-white/[0.04] border border-white/10 text-gray-400 group-hover:border-amber-400/30 group-hover:text-gray-200 transition-colors"
                           >
-                            {tag}
+                            #{tag}
                           </span>
                         ))}
                       </div>
                     )}
                   </div>
-                  <div className="flex flex-col min-[380px]:flex-row min-[380px]:items-center justify-between pt-4 border-t border-white/5 mt-auto gap-3 text-xs">
-                    <div className="flex items-center gap-2 text-xs text-gray-400 font-mono">
-                      <div className="w-6 h-6 rounded-full bg-obsidian border border-amber-400/40 flex items-center justify-center text-amber-400 text-[10px] font-bold">
+                  <div className="flex flex-col min-[380px]:flex-row min-[380px]:items-center justify-between pt-4 border-t border-white/10 mt-auto gap-3 text-xs">
+                    <div className="flex items-center gap-2.5 text-xs text-gray-400 font-mono">
+                      <div className="w-7 h-7 rounded-full bg-obsidian border border-amber-400/50 flex items-center justify-center text-amber-400 text-[10px] font-bold shadow-[0_0_10px_rgba(251,191,36,0.2)]">
                         AI
                       </div>
-                      <span>{post.author ?? "Mission Control Neural Brief"}</span>
+                      <span className="font-semibold text-gray-300">{post.author ?? "Mission Control Neural Brief"}</span>
                     </div>
                     <span
-                      className="text-xs font-mono font-bold text-amber-400 flex items-center gap-1 uppercase tracking-wider group-hover:translate-x-1 transition-transform self-end min-[380px]:self-auto shrink-0"
+                      className="text-xs font-mono font-bold text-amber-400 flex items-center gap-1.5 uppercase tracking-wider group-hover:translate-x-1 transition-transform self-end min-[380px]:self-auto shrink-0 bg-amber-400/10 border border-amber-400/30 px-3 py-1.5 rounded-xl group-hover:bg-amber-400 group-hover:text-obsidian shadow-[0_0_12px_rgba(251,191,36,0.15)]"
                     >
                       Read Intel <ArrowUpRight className="w-4 h-4" />
                     </span>
