@@ -45,6 +45,7 @@ steps:
   package-electron:
     image: powershell
     commands:
+      - .woodpecker/scripts/clean_frontend.ps1
       - Set-Location Gaming/frontend
       - npm run build
       - npm run package
