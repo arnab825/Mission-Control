@@ -100,7 +100,9 @@ export function CodeBlock({ code, language }: CodeBlockProps) {
             fontSize: "0.8rem",
             lineHeight: "1.6",
             fontFamily: "ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, 'Liberation Mono', 'Courier New', monospace",
-            whiteSpace: "pre",
+            whiteSpace: "pre-wrap",
+            wordBreak: "break-word",
+            overflowX: "hidden",
           }}
         >
           {code}

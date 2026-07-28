@@ -2,6 +2,7 @@ import Link from "next/link";
 import { BookOpen, Terminal, Sparkles, ChevronLeft } from "lucide-react";
 import { getAllDocs } from "@/lib/docs";
 import { DocsSidebarNav } from "@/components/DocsSidebarNav";
+import { DocsVersionBadge } from "@/components/DocsVersionBadge";
 import MobileDocsSidebar from "@/components/MobileDocsSidebar";
 
 export default async function DocsLayout({
@@ -12,7 +13,7 @@ export default async function DocsLayout({
   const docs = await getAllDocs();
 
   return (
-    <div className="flex-1 w-full relative pt-20 bg-[#070709] text-gray-300 flex flex-col overflow-x-hidden min-h-screen">
+    <div className="flex-1 w-full relative pt-20 bg-[#070709] text-gray-300 flex flex-col min-h-screen">
 
       {/* Ambient background glows */}
       <div className="absolute top-20 left-10 w-[500px] h-[500px] bg-neon-green/5 blur-[180px] rounded-full pointer-events-none -z-10" />
@@ -24,7 +25,7 @@ export default async function DocsLayout({
       <div className="max-w-[90rem] mx-auto px-4 sm:px-6 md:px-8 flex-1 flex items-start w-full gap-8">
 
         {/* ── Left Sidebar ─────────────────────────────────────────────── */}
-        <aside className="sticky top-24 hidden lg:flex flex-col w-64 pt-6 pb-10 h-[calc(100vh-6.5rem)] overflow-y-auto border-r border-white/10 pr-4 gap-5 scrollbar-none shrink-0">
+        <aside className="sticky top-24 hidden lg:flex flex-col w-64 pt-2 pb-8 h-[calc(100vh-7rem)] overflow-y-auto border-r border-white/10 pr-4 gap-5 scrollbar-none shrink-0 self-start z-30">
 
           {/* Navigation Controls */}
           <div className="space-y-2 pb-4 border-b border-white/10">
@@ -53,16 +54,8 @@ export default async function DocsLayout({
             <DocsSidebarNav docs={docs} />
           </div>
 
-          {/* Version badge */}
-          <div className="border-t border-white/10 pt-4 mt-auto">
-            <div className="flex items-center justify-between px-2 text-[10px] font-mono text-gray-500 uppercase tracking-widest">
-              <div className="flex items-center gap-2">
-                <span className="w-1.5 h-1.5 rounded-full bg-neon-green animate-pulse shadow-[0_0_8px_rgba(34,197,94,0.8)]" />
-                <span>v1.4.8 Release</span>
-              </div>
-              <span className="text-neon-green/80 font-bold">Stable</span>
-            </div>
-          </div>
+          {/* Dynamic Version badge */}
+          <DocsVersionBadge />
         </aside>
 
         {/* ── Main Content ─────────────────────────────────────────────── */}

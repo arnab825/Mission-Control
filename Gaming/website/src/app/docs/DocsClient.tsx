@@ -80,37 +80,41 @@ function DocCardView({ card, idx }: { card: DocData; idx: number }) {
     >
       <Link
         href={`/docs/${card.slug}`}
-        className="group flex flex-col justify-between h-full bg-[#0d0e12]/90 hover:bg-[#12141c] border border-white/10 hover:border-neon-green/40 rounded-2xl p-6 relative overflow-hidden transition-all duration-300 shadow-xl hover:shadow-[0_0_30px_rgba(34,197,94,0.15)] backdrop-blur-xl"
+        className="group flex flex-col justify-between h-full glass-card glass-card-hover border border-white/10 hover:border-neon-green/60 rounded-2xl p-6 sm:p-7 relative overflow-hidden transition-all duration-300 shadow-[0_0_30px_rgba(0,0,0,0.8)] hover:shadow-[0_0_35px_rgba(118,185,0,0.25)] backdrop-blur-2xl"
       >
-        {/* Subtle Cyberpunk Ambient Glow */}
-        <div className="absolute top-0 right-0 w-24 h-24 bg-gradient-to-bl from-neon-green/10 via-transparent to-transparent opacity-50 group-hover:opacity-100 transition-opacity pointer-events-none" />
+        {/* Futuristic Cyber Laser Accent Line */}
+        <div className="absolute top-0 left-0 w-full h-[2px] bg-gradient-to-r from-neon-green via-neon-yellow to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-500" />
+        <div className="absolute top-0 right-0 w-32 h-32 bg-neon-green/5 blur-2xl group-hover:bg-neon-green/15 transition-all pointer-events-none" />
 
         <div>
           {/* Header Row: Category Badge & Reading Time */}
           <div className="flex items-center justify-between gap-2 mb-4">
-            <span className="text-[10px] font-mono font-bold uppercase tracking-wider text-neon-green bg-neon-green/10 border border-neon-green/20 rounded-md px-2.5 py-1">
+            <span className="text-[10px] font-mono font-bold uppercase tracking-widest text-neon-green bg-neon-green/10 border border-neon-green/30 rounded-md px-3 py-1 shadow-[0_0_10px_rgba(118,185,0,0.15)]">
               {card.category || "DOCUMENTATION"}
             </span>
-            <span className="text-[10px] font-mono text-gray-500 font-medium">
+            <span className="text-[10px] font-mono text-gray-400 font-bold bg-white/5 px-2.5 py-0.5 rounded-full border border-white/10">
               {readTime}
             </span>
           </div>
 
           {/* Title */}
-          <h3 className="text-lg font-bold font-display text-white mb-2.5 group-hover:text-neon-green transition-colors leading-snug line-clamp-2">
+          <h3 className="text-xl font-bold font-display text-white mb-3 group-hover:text-neon-green transition-colors leading-snug line-clamp-2">
             {card.title}
           </h3>
 
           {/* Excerpt */}
-          <p className="text-xs text-gray-400 leading-relaxed font-sans line-clamp-3 mb-6">
+          <p className="text-xs sm:text-sm text-gray-300 leading-relaxed font-sans line-clamp-3 mb-6">
             {card.excerpt}
           </p>
         </div>
 
         {/* Footer Action Bar */}
-        <div className="pt-4 border-t border-white/5 flex items-center justify-between text-xs font-mono font-bold uppercase tracking-wider text-neon-green/80 group-hover:text-neon-green transition-colors">
-          <span>Read Documentation</span>
-          <div className="w-7 h-7 rounded-lg bg-neon-green/10 border border-neon-green/20 flex items-center justify-center text-neon-green group-hover:bg-neon-green group-hover:text-black transition-all">
+        <div className="pt-4 border-t border-white/10 flex items-center justify-between text-xs font-mono font-bold uppercase tracking-wider text-neon-green group-hover:text-white transition-colors">
+          <span className="flex items-center gap-1.5">
+            <Sparkles className="w-3.5 h-3.5 text-neon-green animate-pulse" />
+            <span>EXPLORE DOCUMENTATION</span>
+          </span>
+          <div className="w-8 h-8 rounded-xl bg-neon-green/10 border border-neon-green/30 flex items-center justify-center text-neon-green group-hover:bg-neon-green group-hover:text-obsidian group-hover:scale-110 transition-all shadow-[0_0_12px_rgba(118,185,0,0.2)]">
             <ArrowRight className="w-4 h-4 group-hover:translate-x-0.5 transition-transform" />
           </div>
         </div>
