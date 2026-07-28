@@ -86,8 +86,9 @@
 
   ; Clean up dynamic files and subdirectories created during app execution
   Delete "$INSTDIR\CONTENTS.txt"
-  RMDir /r "$INSTDIR\resources\MissionControl\rag_data"
-  RMDir /r "$INSTDIR\resources\MissionControl\__pycache__"
+  RMDir /r "$INSTDIR\resources\MissionControlBackend\rag_data"
+  RMDir /r "$INSTDIR\resources\MissionControlBackend\__pycache__"
+  RMDir /r "$INSTDIR\resources\MissionControlBackend"
   RMDir /r "$INSTDIR\resources\MissionControl"
   RMDir /r "$INSTDIR\resources"
   RMDir /r "$INSTDIR\locales"

@@ -2,6 +2,10 @@
 
 This document contains a detailed history of all patches and updates for the AI Gaming Assistant.
 
+### Patch: 2026-07-28 — v2.6.3: Fix forge.config.ts extraResource path for Woodpecker CI
+
+- Fixed forge.config.ts extraResource path from MissionControl to MissionControlBackend
+
 ### Patch: 2026-07-28 — v2.6.3: Fix production packaging and backend binary paths
 
 - Fixed extraResources path in package.json to point to MissionControlBackend
