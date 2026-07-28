@@ -2,6 +2,12 @@
 
 This document contains a detailed history of all patches and updates for the AI Gaming Assistant.
 
+### Patch: 2026-07-28 — v2.6.4: Fix instance lock stale file blocking backend startup
+
+- Fixed lock file path to use user-writable LOCALAPPDATA instead of read-only Program Files _internal
+- Added dead-PID stale lock cleanup to instance guard
+- Added legacy MissionControl.exe taskkill on Electron startup for rename migration
+
 ### Patch: 2026-07-28 — v2.6.3: Fix forge.config.ts extraResource path for Woodpecker CI
 
 - Fixed forge.config.ts extraResource path from MissionControl to MissionControlBackend

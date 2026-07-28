@@ -1,8 +1,18 @@
 {
-  "version": "2.6.3",
+  "version": "2.6.4",
   "release_date": "2026-07-26",
   "update_check_url": "https://raw.githubusercontent.com/arnab825/Mission-Control/main/Gaming/backend/version.json",
   "changelog": [
+    {
+      "version": "2.6.4",
+      "date": "2026-07-28",
+      "title": "Fix instance lock stale file blocking backend startup",
+      "highlights": [
+        "Fixed lock file path to use user-writable LOCALAPPDATA instead of read-only Program Files _internal",
+        "Added dead-PID stale lock cleanup to instance guard",
+        "Added legacy MissionControl.exe taskkill on Electron startup for rename migration"
+      ]
+    },
     {
       "version": "2.6.3",
       "date": "2026-07-28",
@@ -442,14 +452,6 @@
       "title": "Remove chassis TGP tag from System and Settings pages",
       "highlights": [
         "Remove chassis TGP tag from System and Settings pages"
-      ]
-    },
-    {
-      "version": "2.0.6",
-      "date": "2026-07-21",
-      "title": "Suppress terminal window popups during GPU power limit application on Windows",
-      "highlights": [
-        "Suppress terminal window popups during GPU power limit application on Windows"
       ]
     }
   ]
