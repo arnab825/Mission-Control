@@ -252,16 +252,20 @@ image_prompt: A high-resolution, close-up shot of [Specific Topic/Hardware/Chara
     }
 
     const fmText = match[1];
-    const content = match[2].trim();
-
-    const title = fmText.match(/^title:\s*(.*)$/m)?.[1]?.replace(/^["']|["']$/g, "").trim() ?? `${postType} — ${today}`;
+    const content = match[2].trim();    const title = fmText.match(/^title:\s*(.*)$/m)?.[1]?.replace(/^["']|["']$/g, "").trim() ?? `${postType} — ${today}`;
     const excerpt = (fmText.match(/^meta_description:\s*(.*)$/m)?.[1] ?? fmText.match(/^excerpt:\s*(.*)$/m)?.[1])?.replace(/^["']|["']$/g, "").trim() ?? "";
-    let slug = fmText.match(/^slug:\s*(.*)$/m)?.[1]?.replace(/^["']|["']$/g, "").trim() ?? `${postType.toLowerCase().replace(/\s+/g, "-")}-${today}`;
+    let rawSlug = fmText.match(/^slug:\s*(.*)$/m)?.[1]?.replace(/^["']|["']$/g, "").trim() ?? `${postType.toLowerCase().replace(/\s+/g, "-")}`;
     
-    // Ensure slug strictly ends with the YYYY-MM-DD date suffix to prevent duplication and collisions
-    if (!slug.endsWith(today)) {
-      slug = `${slug}-${today}`;
+    // Clean date suffix if present in raw slug
+    let baseSlug = rawSlug.replace(new RegExp(`-${today}$`), "").replace(/[^a-z0-9-]/gi, "-").toLowerCase().replace(/-+/g, "-");
+    
+    // Ensure category tag in slug to guarantee zero cross-category slug collisions
+    const categoryTag = postType.toLowerCase().replace(/\s+/g, "-");
+    if (!baseSlug.includes(categoryTag)) {
+      baseSlug = `${categoryTag}-${baseSlug}`;
     }
+
+    let slug = `${baseSlug}-${today}`;
 
     const imagePrompt = fmText.match(/^image_prompt:\s*(.*)$/m)?.[1]?.replace(/^["']|["']$/g, "").trim() ?? "";
     const tagsRaw = fmText.match(/^tags:\s*\[(.*?)\]/m)?.[1] ?? fmText.match(/^tags:\s*(.*)$/m)?.[1] ?? "";
@@ -318,52 +322,41 @@ export async function writeToMongoDB(
     // Check if a post with this slug already exists to avoid duplicates
     const existing = await GamingPost.findOne({ slug: post.slug });
     if (existing) {
-      safeAppendFileSync(logFilePath, `[BlogGen][${postType}] Post already exists for slug in MongoDB: ${post.slug}\n`);
-      console.log(`[BlogGen][${postType}] Post already exists for slug: ${post.slug}`);
+      safeAppendFileSync(logFilePath, `[BlogGen][${postType}] [SKIP] Post already exists for slug: ${post.slug}\n`);
       return false;
     }
 
     await GamingPost.create({
       title: post.title,
       slug: post.slug,
-      category: postType,
+      content: post.content,
       excerpt: post.excerpt,
-      markdownBody: post.content,
+      category: postType,
       tags: post.tags,
       author: "Mission Control Intel",
+      publishedAt,
       aiGenerated: true,
-      publishedAt: new Date(publishedAt),
-      coverImage,
+      coverImage: coverImage || `/images/blog/${post.slug}.png`,
     });
-
-    safeAppendFileSync(logFilePath, `[BlogGen][${postType}] [SAVED] Saved to MongoDB successfully: ${post.slug}\n`);
-    console.log(`[BlogGen][${postType}] Saved to MongoDB: ${post.slug}`);
+    safeAppendFileSync(logFilePath, `[BlogGen][${postType}] [SAVED] Saved to MongoDB: ${post.slug}\n`);
     return true;
-  } catch (err: unknown) {
-    if (process.env.NODE_ENV !== "production") {
-      const msg = `[BlogGen][${postType}] MongoDB write skipped: database not available locally (saved post locally instead).`;
-      safeAppendFileSync(logFilePath, `${msg}\n`);
-      console.log(msg);
-    } else {
-      const errMsg = err instanceof Error ? err.message : String(err);
-      safeAppendFileSync(logFilePath, `[BlogGen][${postType}] [FAILED] MongoDB write error: ${errMsg}\n`);
-      console.error(`[BlogGen][${postType}] MongoDB write error:`, err);
-    }
+  } catch (err: any) {
+    safeAppendFileSync(logFilePath, `[BlogGen][${postType}] [ERROR] MongoDB write error: ${err.message}\n`);
+    console.error(`[BlogGen][${postType}] MongoDB write error:`, err);
     return false;
   }
 }
 
-export function writeToLocalMdx(
+export function saveLocalMDX(
   post: { slug: string; title: string; excerpt: string; tags: string[]; content: string },
-  postType: string,
-  publishedAt: string,
+  postType: "Game News" | "GPU News" | "Game Revisit" | "Hardware Deep-Dive",
+  dateFormatted: string,
   coverImage?: string
 ) {
   const contentDir = path.join(process.cwd(), "content/blog");
-  const dateStr = formatDateToIST(publishedAt);
   const mdxContent = `---
 title: "${post.title.replace(/"/g, '\\"')}"
-date: "${dateStr}"
+date: "${dateFormatted}"
 author: "Mission Control Intel"
 excerpt: "${post.excerpt.replace(/"/g, '\\"')}"
 category: "${postType}"
@@ -380,13 +373,25 @@ ${post.content}
 }
 
 export async function generateImageWithPollinations(prompt: string): Promise<Buffer> {
-  const url = `https://image.pollinations.ai/prompt/${encodeURIComponent(prompt)}?nologo=true&width=1024&height=768&model=flux`;
-  const response = await fetch(url);
-  if (!response.ok) {
-    throw new Error(`Pollinations API failed: ${response.statusText}`);
+  const cleanPrompt = encodeURIComponent(prompt.slice(0, 300));
+  const models = ["flux", "turbo", "default"];
+  
+  for (const model of models) {
+    try {
+      const modelParam = model !== "default" ? `&model=${model}` : "";
+      const url = `https://image.pollinations.ai/prompt/${cleanPrompt}?nologo=true&width=1024&height=768${modelParam}`;
+      const response = await fetch(url, { signal: AbortSignal.timeout(12000) });
+      if (response.ok) {
+        const arrayBuffer = await response.arrayBuffer();
+        if (arrayBuffer.byteLength > 2000) {
+          return Buffer.from(arrayBuffer);
+        }
+      }
+    } catch (err) {
+      await new Promise((r) => setTimeout(r, 1000));
+    }
   }
-  const arrayBuffer = await response.arrayBuffer();
-  return Buffer.from(arrayBuffer);
+  throw new Error("Pollinations API rate limited across all models");
 }
 
 export async function generateAndSavePost(
@@ -481,18 +486,20 @@ export async function generateAndSavePost(
 
           imageBuffer = await generateImageWithPollinations(finalPrompt);
         } catch (pollError) {
-          console.warn(`[BlogGen][${currentTopic}] Pollinations failed, falling back to HuggingFace:`, pollError);
+          console.warn(`[BlogGen][${currentTopic}] Pollinations failed, attempting HuggingFace fallback:`, pollError);
           if (hfToken) {
-            const hfClient = new InferenceClient(hfToken);
-            const imageBlob = await hfClient.textToImage({
-              provider: "hf-inference",
-              model: "black-forest-labs/FLUX.1-schnell",
-              inputs: post.imagePrompt || `A highly detailed gaming or tech illustration for a blog post titled: ${post.title}. ${post.tags.join(', ')}`,
-              parameters: { num_inference_steps: 4 },
-            }, {
-              outputType: "blob"
-            });
-            imageBuffer = Buffer.from(await imageBlob.arrayBuffer());
+            try {
+              const hfClient = new InferenceClient(hfToken);
+              const imageBlob = await hfClient.textToImage({
+                model: "stabilityai/stable-diffusion-xl-base-1.0",
+                inputs: post.imagePrompt || `A highly detailed gaming or tech illustration for a blog post titled: ${post.title}. ${post.tags.join(', ')}`,
+              }, {
+                outputType: "blob"
+              });
+              imageBuffer = Buffer.from(await imageBlob.arrayBuffer());
+            } catch (hfErr) {
+              console.warn(`[BlogGen][${currentTopic}] HuggingFace fallback also failed:`, hfErr);
+            }
           }
         }
 
@@ -537,7 +544,7 @@ export async function generateAndSavePost(
       const publishedAt = postDate.toISOString();
 
       const saved = await writeToMongoDB(post, currentTopic, publishedAt, localCoverPath);
-      writeToLocalMdx(post, currentTopic, publishedAt, localCoverPath);
+      saveLocalMDX(post, currentTopic, publishedAt, localCoverPath);
       
       if (!saved) {
           safeAppendFileSync(logFile, `[BlogGen][${currentTopic}] [FAILED] Post was generated but DB write returned false.\n`);
