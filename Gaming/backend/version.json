@@ -6,6 +6,14 @@
     {
       "version": "2.6.3",
       "date": "2026-07-28",
+      "title": "Fix forge.config.ts extraResource path for Woodpecker CI",
+      "highlights": [
+        "Fixed forge.config.ts extraResource path from MissionControl to MissionControlBackend"
+      ]
+    },
+    {
+      "version": "2.6.3",
+      "date": "2026-07-28",
       "title": "Fix production packaging and backend binary paths",
       "highlights": [
         "Fixed extraResources path in package.json to point to MissionControlBackend",
@@ -442,14 +450,6 @@
       "title": "Suppress terminal window popups during GPU power limit application on Windows",
       "highlights": [
         "Suppress terminal window popups during GPU power limit application on Windows"
-      ]
-    },
-    {
-      "version": "2.0.5",
-      "date": "2026-07-21",
-      "title": "Add power_limit, power_limit_watts, and power_limit_max_watts aliases across telemetry pipeline",
-      "highlights": [
-        "Add power_limit, power_limit_watts, and power_limit_max_watts aliases across telemetry pipeline"
       ]
     }
   ]
