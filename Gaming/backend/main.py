@@ -268,7 +268,11 @@ def main():
         pass
 
     lock_fd = None
-    lock_path = config.get("instance_lock_path", os.path.join(base_dir, "data", "ai_gaming_assistant.lock"))
+    # Use a user-writable path for the lock file. In a PyInstaller onedir build,
+    # base_dir resolves to _internal/ inside Program Files which is read-only.
+    # %LOCALAPPDATA%\MissionControl\ is always writable without admin rights.
+    _default_lock_dir = os.path.expandvars(r"%LOCALAPPDATA%\MissionControl")
+    lock_path = config.get("instance_lock_path", os.path.join(_default_lock_dir, "ai_gaming_assistant.lock"))
     try:
         os.makedirs(os.path.dirname(lock_path), exist_ok=True)
     except Exception:
@@ -293,10 +297,10 @@ def main():
                     if psutil.pid_exists(pid):
                         proc = psutil.Process(pid)
                         curr_proc = psutil.Process(os.getpid())
-                        
+
                         proc_name = proc.name().lower()
                         curr_name = curr_proc.name().lower()
-                        
+
                         is_same_app = False
                         if "python" in proc_name and "python" in curr_name:
                             proc_cmd = proc.cmdline()
@@ -307,15 +311,31 @@ def main():
                                 is_same_app = True
                         elif proc_name == curr_name:
                             is_same_app = True
-                            
+                        # Also match old binary name to handle rename upgrades
+                        elif "missioncontrol" in proc_name and "missioncontrol" in curr_name:
+                            is_same_app = True
+
                         if is_same_app:
                             try:
                                 proc.kill()
                                 proc.wait(timeout=3)
                             except Exception:
                                 pass
+                    else:
+                        # PID is dead — stale lock. Remove it immediately.
+                        logger.warning("[Lock] Stale lock found (PID %s is dead). Removing.", pid)
+                        try:
+                            os.remove(path)
+                        except Exception as _rm_err:
+                            logger.error("[Lock] Could not remove stale lock at %s: %s", path, _rm_err)
                 except (psutil.NoSuchProcess, psutil.AccessDenied):
                     pass
+                except Exception:
+                    pass
+            elif not _PSUTIL_AVAILABLE:
+                # No psutil: assume stale and force remove
+                try:
+                    os.remove(path)
                 except Exception:
                     pass
 
@@ -328,7 +348,7 @@ def main():
                         pass
                     except Exception:
                         pass
-                    
+
                     fd = os.open(path, os.O_CREAT | os.O_EXCL | os.O_RDWR)
                     os.write(fd, str(os.getpid()).encode())
                     return fd

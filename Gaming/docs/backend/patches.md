@@ -2,12 +2,6 @@
 
 This document contains a detailed history of all patches and updates for the AI Gaming Assistant.
 
-### Patch: 2026-07-28 — v2.6.4: Release v2.6.4: Mobile Optimization & Real-Time Docs Sync
-
-- Synchronized changelog highlights and version tags up to v2.6.4
-- Optimized docs layout for mobile viewports
-- Automated real-time website documentation updates
-
 ### Patch: 2026-07-27 — v2.6.2: Filtered crack and NoDVD subdirectories from game detection
 
 - Filtered executables inside crack/nodvd subdirectories in _select_best_exe
