@@ -2,6 +2,11 @@
 
 This document contains a detailed history of all patches and updates for the AI Gaming Assistant.
 
+### Patch: 2026-07-28 — v2.6.3: Fix production packaging and backend binary paths
+
+- Fixed extraResources path in package.json to point to MissionControlBackend
+- Updated Electron main process binary lookup to MissionControlBackend.exe
+
 ### Patch: 2026-07-27 — v2.6.2: Filtered crack and NoDVD subdirectories from game detection
 
 - Filtered executables inside crack/nodvd subdirectories in _select_best_exe

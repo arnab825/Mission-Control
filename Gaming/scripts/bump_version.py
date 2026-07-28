@@ -147,10 +147,10 @@ def update_package_files(new_ver):
     import shutil
     src_ver_json = os.path.join(base_dir, "backend", "version.json")
     dist_paths = [
-        os.path.join(base_dir, "backend", "dist", "MissionControl", "_internal", "version.json"),
-        os.path.join(base_dir, "backend", "dist", "MissionControl", "version.json"),
-        os.path.join(base_dir, "frontend", "backend", "MissionControl", "_internal", "version.json"),
-        os.path.join(base_dir, "frontend", "backend", "MissionControl", "version.json"),
+        os.path.join(base_dir, "backend", "dist", "MissionControlBackend", "_internal", "version.json"),
+        os.path.join(base_dir, "backend", "dist", "MissionControlBackend", "version.json"),
+        os.path.join(base_dir, "frontend", "backend", "MissionControlBackend", "_internal", "version.json"),
+        os.path.join(base_dir, "frontend", "backend", "MissionControlBackend", "version.json"),
     ]
     for dp in dist_paths:
         if os.path.exists(os.path.dirname(dp)):

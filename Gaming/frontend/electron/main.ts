@@ -558,9 +558,10 @@ function startPythonBackend() {
       args = [scriptPath, '--dev', '--no-admin']
       console.log(`[Electron] Dev mode — python: ${executablePath}`)
     } else {
-      const bundledExeDirect = path.join((process as any).resourcesPath, 'MissionControl', 'MissionControl.exe')
-      const bundledExeBuilder = path.join((process as any).resourcesPath, 'backend', 'MissionControl', 'MissionControl.exe')
-      const bundledExeForge = path.join((process as any).resourcesPath, 'MissionControlBackend', 'MissionControl.exe')
+      // Primary: electron-builder extraResources → resources/MissionControlBackend/MissionControlBackend.exe
+      const bundledExeDirect = path.join((process as any).resourcesPath, 'MissionControlBackend', 'MissionControlBackend.exe')
+      // Legacy: electron-builder nested layout → resources/backend/MissionControlBackend/MissionControlBackend.exe
+      const bundledExeBuilder = path.join((process as any).resourcesPath, 'backend', 'MissionControlBackend', 'MissionControlBackend.exe')
 
       if (fs.existsSync(bundledExeDirect)) {
         executablePath = bundledExeDirect
@@ -570,10 +571,6 @@ function startPythonBackend() {
         executablePath = bundledExeBuilder
         args = ['--no-admin']
         console.log(`[Electron] Using bundled backend exe (builder): ${bundledExeBuilder}`)
-      } else if (fs.existsSync(bundledExeForge)) {
-        executablePath = bundledExeForge
-        args = ['--no-admin']
-        console.log(`[Electron] Using bundled backend exe (forge): ${bundledExeForge}`)
       } else {
         // Fallback: raw python (developer machine without compiled binary)
         const localVenv = 'c:/GitHub/Mission-Control/Gaming/backend/.venv/Scripts/python.exe'
