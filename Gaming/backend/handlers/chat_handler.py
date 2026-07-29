@@ -51,12 +51,17 @@ def handle_execute(payload: dict, pipeline, bridge, config) -> None:
         BATCH_MS = 80  # ms between progressive frontend updates
         last_flush = _time.monotonic()
 
-        for chunk in generator:
-            full_response += chunk
-            now = _time.monotonic()
-            if (now - last_flush) * 1000 >= BATCH_MS:
-                bridge.update_state({"agent_response": full_response})
-                last_flush = now
+        try:
+            for chunk in generator:
+                full_response += chunk
+                now = _time.monotonic()
+                if (now - last_flush) * 1000 >= BATCH_MS:
+                    bridge.update_state({"agent_response": full_response})
+                    last_flush = now
+        except Exception as err:
+            logger.error("Error during agent stream execution: %s", err)
+            if not full_response:
+                full_response = f"Neural link stream error: {err}"
 
         # Final flush — ensure the complete response is always sent
         bridge.update_state({"agent_response": full_response})

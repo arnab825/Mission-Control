@@ -360,7 +360,7 @@ class GameBrain:
                 # We dynamically probe if native SSL/TLS works without crashing by running a quick probe in a subprocess.
                 # If the probe succeeds, we use native TLS safely. Otherwise, we fall back to an insecure client.
                 needs_insecure_fallback = False
-                if sys.platform == "win32" and agent_cfg.get("insecure_tls_windows_fallback", True):
+                if sys.platform == "win32" and not getattr(sys, "frozen", False) and agent_cfg.get("insecure_tls_windows_fallback", True):
                     try:
                         import subprocess
                         code = (
