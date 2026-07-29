@@ -1,8 +1,18 @@
 {
-  "version": "2.6.7",
-  "release_date": "2026-07-28",
+  "version": "2.6.8",
+  "release_date": "2026-07-29",
   "update_check_url": "https://raw.githubusercontent.com/arnab825/Mission-Control/main/Gaming/backend/version.json",
   "changelog": [
+    {
+      "version": "2.6.8",
+      "date": "2026-07-29",
+      "title": "Agentic Mode System Instructions & UI Synchronization Fixes",
+      "highlights": [
+        "Dynamically synchronized Agentic Mode ON/OFF system prompt instructions in decision_maker.py",
+        "Fixed WebSocket event dispatching for Agentic Mode toggle in frontend App.tsx",
+        "Resolved UpdatesPage latest vs current version matching bug for native Electron client"
+      ]
+    },
     {
       "version": "2.6.7",
       "date": "2026-07-28",
