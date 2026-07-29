@@ -847,12 +847,15 @@ const AgentPage: React.FC<{
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [state?.chat_sessions, userId, onCommand, isPopup]);
  
+  const lastBackendActiveSessionIdRef = useRef<string | null>(null);
+
   // Synchronize activeSessionId with backend state (especially useful for popup overlay sync)
   useEffect(() => {
-    if (state?.active_chat_session_id && state.active_chat_session_id !== activeSessionId) {
+    if (state?.active_chat_session_id && state.active_chat_session_id !== lastBackendActiveSessionIdRef.current) {
+      lastBackendActiveSessionIdRef.current = state.active_chat_session_id;
       setActiveSessionId(state.active_chat_session_id);
     }
-  }, [state?.active_chat_session_id, activeSessionId]);
+  }, [state?.active_chat_session_id]);
  
   // Fetch history when active session changes or when connection is established
   useEffect(() => {

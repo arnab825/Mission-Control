@@ -854,9 +854,19 @@ class GameBrain:
         )
         system_access_instruction = agent_prompts.get("system_access_instruction")
         if not system_access_instruction:
+            if agentic_mode_active:
+                status_header = (
+                    f"\nAGENTIC PERMISSION: The user has enabled 'Agentic AI Mode'. You are now operating as a highly advanced, autonomous system intelligence.\n"
+                    f"You possess deep capabilities and direct access to system sensors and controls.\n"
+                )
+            else:
+                status_header = (
+                    f"\nAGENTIC PERMISSION: 'Agentic AI Mode' is currently DISABLED. You are operating as a standard assistant.\n"
+                    f"You DO NOT have permission to launch apps or modify system configurations until the user toggles Agentic Mode ON.\n"
+                )
+
             system_access_instruction = (
-                f"\nAGENTIC PERMISSION: The user has enabled 'Agentic AI Mode'. You are now operating as a highly advanced, autonomous system intelligence.\n"
-                f"You possess deep capabilities and direct access to system sensors and controls.\n"
+                f"{status_header}"
                 f"AGENTIC CAPABILITIES & GUIDANCE:\n"
                 f"1. You are a highly capable co-pilot. Respond ONLY to what the user actually asks — never volunteer unsolicited observations about their system, games, or habits.\n"
                 f"2. Use LIVE WEB CONTEXT to perform advanced 'Game Prediction': deeply analyze quests, states, and inject highly capable strategic foresight.\n"
@@ -1016,7 +1026,7 @@ class GameBrain:
                             f"Respond naturally and conversationally. Adapt your behavior to match what the user is saying. "
                             f"Keep your response concise but ensure you fully answer their question without artificially hiding information. "
                             f"IMPORTANT: If [Live Web Context] or [RAG Context] is provided below, you MUST use the specific facts, numbers, and data from it to give a real answer instead of a generic one. "
-                            f"If the topic is extremely complex, you may ask if they want more details."
+                            f"Provide a complete, concrete answer directly. Do not ask the user if they want more details or ask for too much specific information."
                         )
                     user_prompt += f"\n{rag_context}{web_context}\nUser message: {prompt}"
                     user_prompt += system_access_instruction
@@ -1058,7 +1068,7 @@ class GameBrain:
                         f"Respond naturally and conversationally. Adapt your behavior to match what the user is saying. "
                         f"Keep your response concise but ensure you fully answer their question without artificially hiding information. "
                         f"IMPORTANT: If [Live Web Context] or [RAG Context] is provided below, you MUST use the specific facts, numbers, and data from it to give a real answer instead of a generic one. "
-                        f"If the topic is extremely complex, you may ask if they want more details."
+                        f"Provide a complete, concrete answer directly. Do not ask the user if they want more details or ask for too much specific information."
                     )
                 user_prompt += f"\n{rag_context}{web_context}\nUser message: {prompt}"
                 user_prompt += system_access_instruction
@@ -1116,7 +1126,7 @@ class GameBrain:
                         f"Respond naturally and conversationally. Adapt your behavior to match what the user is saying. "
                         f"Keep your response concise but ensure you fully answer their question without artificially hiding information. "
                         f"IMPORTANT: If [Live Web Context] or [RAG Context] is provided below, you MUST use the specific facts, numbers, and data from it to give a real answer instead of a generic one. "
-                        f"If the topic is extremely complex, you may ask if they want more details."
+                        f"Provide a complete, concrete answer directly. Do not ask the user if they want more details or ask for too much specific information."
                     )
                 user_prompt += f"\n{rag_context}{web_context}\nUser message: {prompt}"
                 user_prompt += system_access_instruction
@@ -1138,7 +1148,7 @@ class GameBrain:
                         f"Respond naturally and conversationally. Adapt your behavior to match what the user is saying. "
                         f"Keep your response concise but ensure you fully answer their question without artificially hiding information. "
                         f"IMPORTANT: If [Live Web Context] or [RAG Context] is provided below, you MUST use the specific facts, numbers, and data from it to give a real answer instead of a generic one. "
-                        f"If the topic is extremely complex, you may ask if they want more details."
+                        f"Provide a complete, concrete answer directly. Do not ask the user if they want more details or ask for too much specific information."
                     )
                 user_prompt += f"\n{rag_context}{web_context}\nUser message: {prompt}"
                 user_prompt += system_access_instruction

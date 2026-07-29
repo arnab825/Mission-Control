@@ -180,7 +180,7 @@ export const UpdatesPage: React.FC<UpdatesPageProps> = ({
     }
   }, [installState?.status]);
 
-  const currentVersion = state?.version || '---';
+  const currentVersion = (state?.version || '---').replace(/^v/i, '');
 
   const getReleaseHighlightsForVersion = (version: string) => {
     if (!version || version === '---') return null;
@@ -223,7 +223,8 @@ export const UpdatesPage: React.FC<UpdatesPageProps> = ({
     return null;
   };
 
-  const targetVersion = updateState?.latest_version || (changelogsData?.changelog?.[0]?.version);
+  const rawTargetVersion = nativeUpdate?.version || updateState?.latest_version || (changelogsData?.changelog?.[0]?.version);
+  const targetVersion = rawTargetVersion ? rawTargetVersion.replace(/^v/i, '') : currentVersion;
 
   const isNativeStale = Boolean(
     nativeUpdate?.status === 'downloaded' &&
@@ -643,14 +644,14 @@ export const UpdatesPage: React.FC<UpdatesPageProps> = ({
                     <div className="p-5 bg-zinc-900/20 border border-white/5 rounded-2xl flex flex-col justify-between space-y-2">
                       <span className="text-[9px] font-black text-zinc-500 uppercase tracking-wider">Latest Version</span>
                       <span className="text-xl font-mono font-black text-neon-green">
-                        v{updateState.status === 'available' ? updateState.latest_version : currentVersion}
+                        v{targetVersion}
                       </span>
                     </div>
                   </div>
 
                   {/* Highlights section */}
                   {(() => {
-                    const targetVer = updateState.status === 'available' ? updateState.latest_version : currentVersion;
+                    const targetVer = targetVersion;
                     const highlightsData = getReleaseHighlightsForVersion(targetVer);
                     return (
                       <div className="space-y-4">
