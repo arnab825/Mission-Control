@@ -359,55 +359,67 @@ export default function GamesTestedPage() {
               return (
                 <div
                   key={game.id}
-                  className={`p-6 rounded-2xl bg-[#0b0c10] border transition-all duration-300 flex flex-col justify-between space-y-4 group ${
-                    isSelected ? "border-neon-green shadow-[0_0_20px_rgba(118,185,0,0.15)]" : "border-white/10 hover:border-neon-green/40"
+                  className={`rounded-3xl bg-[#0b0c10] border transition-all duration-300 flex flex-col justify-between group overflow-hidden ${
+                    isSelected ? "border-neon-green shadow-[0_0_25px_rgba(118,185,0,0.25)]" : "border-white/10 hover:border-neon-green/40 shadow-xl"
                   }`}
                 >
-                  <div className="space-y-3">
-                    <div className="flex items-center justify-between">
-                      <span className="text-[10px] font-mono font-bold text-gray-400 uppercase tracking-widest flex items-center gap-1.5">
-                        <Gamepad2 className="w-3.5 h-3.5 text-neon-green" /> {game.genre}
+                  {/* Card Cover Header */}
+                  <div className="relative h-40 w-full overflow-hidden border-b border-white/10 group-hover:border-neon-green/30">
+                    <img
+                      src={game.coverImage}
+                      alt={game.name}
+                      className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
+                    />
+                    <div className="absolute inset-0 bg-gradient-to-t from-[#0b0c10] via-[#0b0c10]/40 to-black/30" />
+                    
+                    <div className="absolute top-3 left-3 right-3 flex items-center justify-between gap-2">
+                      <span className="text-[10px] font-mono font-bold text-gray-200 px-2.5 py-1 rounded-full bg-black/80 border border-white/20 backdrop-blur-md uppercase tracking-wider flex items-center gap-1">
+                        <Gamepad2 className="w-3 h-3 text-neon-green" /> {game.genre}
                       </span>
-                      <span className="text-[10px] font-mono font-bold text-neon-green bg-neon-green/10 px-2 py-0.5 rounded border border-neon-green/30 uppercase">
+                      <span className="text-[10px] font-mono font-bold text-neon-green bg-black/80 px-2.5 py-1 rounded-full border border-neon-green/30 uppercase backdrop-blur-md">
                         {game.status}
                       </span>
                     </div>
-
-                    <h3 className="text-lg font-black font-display text-white uppercase tracking-tight group-hover:text-neon-green transition-colors">
-                      {game.name}
-                    </h3>
-
-                    <div className="p-3 rounded-xl bg-white/[0.03] border border-white/5 space-y-1.5 font-mono text-xs">
-                      <div className="flex justify-between text-[11px]">
-                        <span className="text-gray-400">Target FPS:</span>
-                        <span className="font-bold text-neon-green">{game.fps}</span>
-                      </div>
-                      <div className="flex justify-between text-[11px]">
-                        <span className="text-gray-400">VRAM Footprint:</span>
-                        <span className="font-bold text-white">{game.vram}</span>
-                      </div>
-                      <div className="flex justify-between text-[11px]">
-                        <span className="text-gray-400">GPU Usage & Latency:</span>
-                        <span className="font-bold text-emerald-400">{game.gpuLoad} | {game.latency}</span>
-                      </div>
-                      <div className="flex justify-between text-[11px]">
-                        <span className="text-gray-400">API:</span>
-                        <span className="font-bold text-gray-300">{game.api}</span>
-                      </div>
-                    </div>
                   </div>
 
-                  <button
-                    onClick={() => handleSelectGame(game.id)}
-                    className={`w-full py-2.5 rounded-xl font-mono text-xs font-bold uppercase tracking-wider transition-all cursor-pointer flex items-center justify-center gap-2 ${
-                      isSelected
-                        ? "bg-neon-green text-obsidian shadow-[0_0_15px_rgba(118,185,0,0.4)]"
-                        : "bg-white/5 text-gray-300 hover:bg-white/10 hover:text-white"
-                    }`}
-                  >
-                    <span>{isSelected ? "Viewing Profile" : "View Benchmark Profile"}</span>
-                    <ArrowRight className="w-3.5 h-3.5" />
-                  </button>
+                  <div className="p-6 flex flex-col justify-between flex-1 space-y-4">
+                    <div className="space-y-3">
+                      <h3 className="text-xl font-black font-display text-white uppercase tracking-tight group-hover:text-neon-green transition-colors line-clamp-1">
+                        {game.name}
+                      </h3>
+
+                      <div className="p-3.5 rounded-2xl bg-white/[0.03] border border-white/10 space-y-2 font-mono text-xs">
+                        <div className="flex justify-between text-[11px] border-b border-white/5 pb-1">
+                          <span className="text-gray-400">Target FPS:</span>
+                          <span className="font-black text-neon-green">{game.fps}</span>
+                        </div>
+                        <div className="flex justify-between text-[11px] border-b border-white/5 pb-1">
+                          <span className="text-gray-400">VRAM Footprint:</span>
+                          <span className="font-bold text-white">{game.vram}</span>
+                        </div>
+                        <div className="flex justify-between text-[11px] border-b border-white/5 pb-1">
+                          <span className="text-gray-400">GPU Usage & Latency:</span>
+                          <span className="font-bold text-emerald-400">{game.gpuLoad} | {game.latency}</span>
+                        </div>
+                        <div className="flex justify-between text-[11px]">
+                          <span className="text-gray-400">API:</span>
+                          <span className="font-bold text-amber-400">{game.api}</span>
+                        </div>
+                      </div>
+                    </div>
+
+                    <button
+                      onClick={() => handleSelectGame(game.id)}
+                      className={`w-full py-3 px-4 rounded-xl font-mono text-xs font-bold uppercase tracking-wider transition-all cursor-pointer flex items-center justify-center gap-2 whitespace-nowrap shrink-0 ${
+                        isSelected
+                          ? "bg-neon-green text-obsidian shadow-[0_0_20px_rgba(118,185,0,0.5)]"
+                          : "bg-white/5 text-gray-300 hover:bg-white/10 hover:text-white border border-white/10 hover:border-neon-green/40"
+                      }`}
+                    >
+                      <span className="truncate">{isSelected ? "Viewing Profile" : "View Benchmark Profile"}</span>
+                      <ArrowRight className="w-3.5 h-3.5 shrink-0" />
+                    </button>
+                  </div>
                 </div>
               );
             })}

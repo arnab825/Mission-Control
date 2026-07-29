@@ -452,72 +452,84 @@ export default function Home() {
         </div>
 
         {/* Display Verified Tested Games */}
-        <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 sm:gap-8 mb-10">
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 sm:gap-8 mb-12">
           {TESTED_GAMES_LIST.map((game) => (
             <div
               key={game.id}
-              className="glass-card p-6 sm:p-8 border-neon-green/40 bg-gradient-to-b from-white/[0.03] to-transparent flex flex-col justify-between group relative overflow-hidden shadow-[0_0_30px_rgba(118,185,0,0.1)] hover:border-neon-green/70 transition-all"
+              className="rounded-3xl border border-white/15 bg-[#0b0c10] hover:border-neon-green/60 flex flex-col justify-between group relative overflow-hidden shadow-[0_10px_35px_rgba(0,0,0,0.6)] hover:shadow-[0_0_30px_rgba(118,185,0,0.25)] transition-all duration-300"
             >
-              {/* Corner Badge */}
-              <div className="flex items-center justify-between mb-4 flex-wrap gap-2">
-                <div className="flex items-center gap-2">
-                  <Gamepad2 className="w-5 h-5 text-neon-green shrink-0" />
-                  <span className="text-xs font-mono text-gray-400 uppercase tracking-wider">{game.publisher}</span>
-                </div>
-                <span className="text-[10px] font-mono font-bold text-neon-green px-3 py-1 rounded-full bg-neon-green/10 border border-neon-green/30 uppercase tracking-wider">
-                  {game.status}
-                </span>
-              </div>
-
-              {/* Game Title & Genre */}
-              <div className="mb-6">
-                <h3 className="text-2xl sm:text-3xl font-black font-display text-white mb-1 group-hover:text-neon-green transition-colors">
-                  {game.name}
-                </h3>
-                <div className="flex items-center gap-2 text-xs font-mono text-gray-400">
-                  <span>{game.genre}</span>
-                  <span>•</span>
-                  <span className="text-neon-yellow">{game.api}</span>
-                </div>
-              </div>
-
-              {/* Real Telemetry Benchmark Grid */}
-              <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 p-3.5 bg-obsidian/90 border border-white/10 rounded-xl font-mono text-xs mb-6">
-                <div>
-                  <span className="text-gray-400 text-[10px] block">AVG FPS:</span>
-                  <span className="text-neon-green font-bold text-sm">{game.fps}</span>
-                </div>
-                <div>
-                  <span className="text-gray-400 text-[10px] block">VRAM USED:</span>
-                  <span className="text-white font-bold text-sm">{game.vram}</span>
-                </div>
-                <div>
-                  <span className="text-gray-400 text-[10px] block">LATENCY:</span>
-                  <span className="text-neon-yellow font-bold text-sm">{game.latency}</span>
-                </div>
-                <div>
-                  <span className="text-gray-400 text-[10px] block">GPU LOAD:</span>
-                  <span className="text-white font-bold text-sm">{game.gpuLoad}</span>
-                </div>
-              </div>
-
-              {/* Tech Tags */}
-              <div className="flex flex-wrap gap-1.5 mb-6 font-mono text-[10px]">
-                {game.keyTech.map((tech, i) => (
-                  <span key={i} className="px-2.5 py-1 bg-white/5 border border-white/10 rounded text-gray-300">
-                    ✓ {tech}
+              {/* Game Screenshot Banner Header */}
+              <div className="relative h-44 sm:h-48 w-full overflow-hidden border-b border-white/10 group-hover:border-neon-green/30">
+                <img
+                  src={game.coverImage}
+                  alt={game.name}
+                  className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
+                />
+                <div className="absolute inset-0 bg-gradient-to-t from-[#0b0c10] via-[#0b0c10]/50 to-black/30" />
+                
+                {/* Header Overlays */}
+                <div className="absolute top-3 left-3 right-3 flex items-center justify-between gap-2">
+                  <span className="text-[10px] font-mono font-bold text-gray-200 px-2.5 py-1 rounded-full bg-black/80 border border-white/20 backdrop-blur-md uppercase tracking-wider flex items-center gap-1.5 shadow-lg">
+                    <Gamepad2 className="w-3 h-3 text-neon-green" /> {game.publisher}
                   </span>
-                ))}
+                  <span className="text-[10px] font-mono font-bold text-neon-green px-2.5 py-1 rounded-full bg-black/80 border border-neon-green/40 backdrop-blur-md uppercase tracking-wider shadow-lg">
+                    {game.status}
+                  </span>
+                </div>
               </div>
 
-              {/* View Profile Button */}
-              <Link
-                href={`/games-tested?game=${game.id}`}
-                className="w-full bg-neon-green/10 text-neon-green border border-neon-green/40 hover:bg-neon-green hover:text-obsidian px-5 py-3.5 rounded-xl font-bold text-xs uppercase tracking-wider font-mono transition-all duration-300 flex items-center justify-center gap-2 text-center group/btn shadow-[0_0_15px_rgba(118,185,0,0.15)]"
-              >
-                <span>View Profile & Benchmarks</span>
-                <ArrowRight className="w-4 h-4 transition-transform group-hover/btn:translate-x-1" />
-              </Link>
+              {/* Card Body */}
+              <div className="p-6 flex flex-col justify-between flex-1 space-y-5">
+                {/* Game Title & Genre */}
+                <div>
+                  <h3 className="text-xl sm:text-2xl font-black font-display text-white group-hover:text-neon-green transition-colors uppercase tracking-tight line-clamp-1">
+                    {game.name}
+                  </h3>
+                  <div className="flex items-center gap-2 text-xs font-mono text-gray-400 mt-1">
+                    <span className="truncate">{game.genre}</span>
+                    <span>•</span>
+                    <span className="text-neon-yellow shrink-0">{game.api}</span>
+                  </div>
+                </div>
+
+                {/* Real Telemetry Benchmark Grid */}
+                <div className="grid grid-cols-2 gap-2.5 p-3 bg-white/[0.03] border border-white/10 rounded-2xl font-mono text-xs">
+                  <div className="p-2 rounded-xl bg-black/40 border border-white/5">
+                    <span className="text-gray-400 text-[10px] block font-bold uppercase">Avg FPS</span>
+                    <span className="text-neon-green font-black text-base">{game.fps}</span>
+                  </div>
+                  <div className="p-2 rounded-xl bg-black/40 border border-white/5">
+                    <span className="text-gray-400 text-[10px] block font-bold uppercase">VRAM Used</span>
+                    <span className="text-white font-bold text-sm truncate block">{game.vram}</span>
+                  </div>
+                  <div className="p-2 rounded-xl bg-black/40 border border-white/5">
+                    <span className="text-gray-400 text-[10px] block font-bold uppercase">Latency</span>
+                    <span className="text-amber-400 font-bold text-sm">{game.latency}</span>
+                  </div>
+                  <div className="p-2 rounded-xl bg-black/40 border border-white/5">
+                    <span className="text-gray-400 text-[10px] block font-bold uppercase">GPU Load</span>
+                    <span className="text-emerald-400 font-bold text-sm">{game.gpuLoad}</span>
+                  </div>
+                </div>
+
+                {/* Tech Tags */}
+                <div className="flex flex-wrap gap-1.5 font-mono text-[10px]">
+                  {game.keyTech.map((tech, i) => (
+                    <span key={i} className="px-2 py-0.5 bg-white/5 border border-white/10 rounded-lg text-gray-300">
+                      ✓ {tech}
+                    </span>
+                  ))}
+                </div>
+
+                {/* View Profile Button (Non-clipping layout) */}
+                <Link
+                  href={`/games-tested?game=${game.id}`}
+                  className="w-full bg-neon-green/10 text-neon-green border border-neon-green/40 hover:bg-neon-green hover:text-obsidian py-3 px-4 rounded-xl font-bold text-xs uppercase tracking-wider font-mono transition-all duration-300 flex items-center justify-center gap-2 text-center group/btn shadow-[0_0_15px_rgba(118,185,0,0.15)] hover:shadow-[0_0_25px_rgba(118,185,0,0.5)] shrink-0 whitespace-nowrap"
+                >
+                  <span className="truncate">View Benchmark Profile</span>
+                  <ArrowRight className="w-4 h-4 shrink-0 transition-transform group-hover/btn:translate-x-1" />
+                </Link>
+              </div>
             </div>
           ))}
         </div>

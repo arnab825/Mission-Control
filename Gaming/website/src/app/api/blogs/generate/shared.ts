@@ -319,16 +319,19 @@ export async function writeToMongoDB(
   const logFilePath = path.join(process.cwd(), "generate.log");
   try {
     await connectDB();
-    // Check if a post with this slug already exists to avoid duplicates
-    const existing = await GamingPost.findOne({ slug: post.slug });
+    let finalSlug = post.slug;
+    // Check if a post with this slug already exists to avoid duplicate key errors
+    const existing = await GamingPost.findOne({ slug: finalSlug });
     if (existing) {
-      safeAppendFileSync(logFilePath, `[BlogGen][${postType}] [SKIP] Post already exists for slug: ${post.slug}\n`);
-      return false;
+      const suffix = Math.floor(Math.random() * 899 + 100);
+      finalSlug = `${post.slug.replace(/-\d+$/, '')}-${postType.toLowerCase().replace(/\s+/g, '-')}-${suffix}`;
+      safeAppendFileSync(logFilePath, `[BlogGen][${postType}] Slug collision detected for '${post.slug}', resolved as '${finalSlug}'\n`);
     }
 
     await GamingPost.create({
       title: post.title,
-      slug: post.slug,
+      slug: finalSlug,
+      markdownBody: post.content,
       content: post.content,
       excerpt: post.excerpt,
       category: postType,
@@ -336,9 +339,9 @@ export async function writeToMongoDB(
       author: "Mission Control Intel",
       publishedAt,
       aiGenerated: true,
-      coverImage: coverImage || `/images/blog/${post.slug}.png`,
+      coverImage: coverImage || `/images/blog/${finalSlug}.png`,
     });
-    safeAppendFileSync(logFilePath, `[BlogGen][${postType}] [SAVED] Saved to MongoDB: ${post.slug}\n`);
+    safeAppendFileSync(logFilePath, `[BlogGen][${postType}] [SAVED] Saved to MongoDB: ${finalSlug}\n`);
     return true;
   } catch (err: any) {
     safeAppendFileSync(logFilePath, `[BlogGen][${postType}] [ERROR] MongoDB write error: ${err.message}\n`);
@@ -376,19 +379,25 @@ export async function generateImageWithPollinations(prompt: string): Promise<Buf
   const cleanPrompt = encodeURIComponent(prompt.slice(0, 300));
   const models = ["flux", "turbo", "default"];
   
-  for (const model of models) {
-    try {
-      const modelParam = model !== "default" ? `&model=${model}` : "";
-      const url = `https://image.pollinations.ai/prompt/${cleanPrompt}?nologo=true&width=1024&height=768${modelParam}`;
-      const response = await fetch(url, { signal: AbortSignal.timeout(12000) });
-      if (response.ok) {
-        const arrayBuffer = await response.arrayBuffer();
-        if (arrayBuffer.byteLength > 2000) {
-          return Buffer.from(arrayBuffer);
+  for (let attempt = 0; attempt < 4; attempt++) {
+    for (const model of models) {
+      try {
+        const seed = Math.floor(Math.random() * 999999) + 1;
+        const modelParam = model !== "default" ? `&model=${model}` : "";
+        const url = `https://image.pollinations.ai/prompt/${cleanPrompt}?nologo=true&width=1024&height=768&seed=${seed}${modelParam}`;
+        const response = await fetch(url, {
+          headers: { "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64)" },
+          signal: AbortSignal.timeout(18000)
+        });
+        if (response.ok) {
+          const arrayBuffer = await response.arrayBuffer();
+          if (arrayBuffer.byteLength > 4000) {
+            return Buffer.from(arrayBuffer);
+          }
         }
+      } catch (err) {
+        await new Promise((r) => setTimeout(r, 1200));
       }
-    } catch (err) {
-      await new Promise((r) => setTimeout(r, 1000));
     }
   }
   throw new Error("Pollinations API rate limited across all models");
@@ -477,12 +486,18 @@ export async function generateAndSavePost(
 
       try {
         try {
-          const cleanTitle = post.title.replace(/[\d]+|Why|How|What|When|[:"'\?\!\-\|]/gi, " ").replace(/\s+/g, " ").trim();
-          const basePrompt = post.imagePrompt && post.imagePrompt.length > 10 ? post.imagePrompt : cleanTitle;
+          
+          const cleanBase = (post.imagePrompt && post.imagePrompt.length > 10 ? post.imagePrompt : post.title)
+            .replace(/[\u0300-\u036f]/g, "")
+            .replace(/[\d]+|Why|How|What|When|[:"'\?\!\-\|\(\)\[\]]/gi, " ")
+            .replace(/[^\x00-\x7F]/g, "")
+            .replace(/\s+/g, " ")
+            .trim()
+            .slice(0, 100);
 
           const finalPrompt = isHardware
-            ? `Photorealistic 3D render of ${basePrompt}, high-tech computer hardware engineering, microscopic circuit architecture, metallic GPU heatsink, vibrant neon green ambient lighting, octane render, 8k resolution, cinematic studio shot, sharp focus, no text`
-            : `Cinematic 3D video game visual concept art of ${basePrompt}, epic action scene, dramatic volumetric lighting, high dynamic range colors, 8k resolution, Unreal Engine 5 render style, photorealistic detail, no text`;
+            ? `photorealistic 3d render of ${cleanBase}, high tech hardware, neon green lighting, 8k, no text`
+            : `cinematic 3d video game visual concept art of ${cleanBase}, volumetric lighting, photorealistic 8k, no text`;
 
           imageBuffer = await generateImageWithPollinations(finalPrompt);
         } catch (pollError) {
@@ -491,8 +506,8 @@ export async function generateAndSavePost(
             try {
               const hfClient = new InferenceClient(hfToken);
               const imageBlob = await hfClient.textToImage({
-                model: "stabilityai/stable-diffusion-xl-base-1.0",
-                inputs: post.imagePrompt || `A highly detailed gaming or tech illustration for a blog post titled: ${post.title}. ${post.tags.join(', ')}`,
+                model: "black-forest-labs/FLUX.1-schnell",
+                inputs: post.imagePrompt || `A highly detailed photorealistic 3D gaming illustration for: ${post.title}`,
               }, {
                 outputType: "blob"
               });
@@ -511,14 +526,11 @@ export async function generateAndSavePost(
             if (fs.existsSync(imagePath)) {
               localCoverPath = `/images/blog/${post.slug}.png`;
             } else {
-              const cleanTitle = post.title.replace(/[\d]+|Why|How|What|When|[:"'\?\!\-\|]/gi, " ").replace(/\s+/g, " ").trim();
-              const basePrompt = post.imagePrompt && post.imagePrompt.length > 10 ? post.imagePrompt : cleanTitle;
-              const prompt = isHardware
-                ? `Photorealistic 3D render of ${basePrompt}, high-tech computer hardware engineering`
-                : `Cinematic 3D video game visual concept art of ${basePrompt}`;
-              localCoverPath = `https://image.pollinations.ai/prompt/${encodeURIComponent(prompt)}?nologo=true&width=1024&height=768&model=flux`;
+              localCoverPath = isHardware ? "/images/gpu-placeholder.png" : "/images/game-placeholder.png";
             }
             safeAppendFileSync(logFile, `[BlogGen][${currentTopic}] [IMAGE OK] Cover image configured.\n`);
+        } else {
+          localCoverPath = isHardware ? "/images/gpu-placeholder.png" : "/images/game-placeholder.png";
         }
       } catch (imgErr: unknown) {
         const errMsg = imgErr instanceof Error ? imgErr.message : String(imgErr);

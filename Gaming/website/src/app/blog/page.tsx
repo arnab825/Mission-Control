@@ -5,6 +5,7 @@ import React, { Suspense } from "react";
 import { getSortedPostsData, formatDateToIST, parseBlogDate } from "@/lib/blog";
 import connectDB from "@/lib/mongodb";
 import GamingPost from "@/models/GamingPost";
+import SafeBlogImage from "@/components/SafeBlogImage";
 import { Calendar, ArrowUpRight, Zap, Clock, Gamepad2, Bot, Radio, ChevronDown, ChevronLeft, ChevronRight } from "lucide-react";
 
 const CATEGORY_CONFIG: Record<string, { color: string; activeBg: string; shadow: string; icon: string; hoverBorder: string }> = {
@@ -425,16 +426,15 @@ async function GamingIntelData({ activeCategory, localGamingPosts, currentPage }
                 {/* Cyber Laser Accent Line on Hover */}
                 <div className="absolute top-0 left-0 w-full h-[2.5px] bg-gradient-to-r from-neon-green via-neon-yellow to-amber-400 opacity-0 group-hover:opacity-100 transition-opacity duration-500 z-10" />
 
-                {post.coverImage ? (
-                  <div className="w-full h-52 sm:h-56 overflow-hidden relative border-b border-white/10 bg-obsidian">
-                    <img
-                      src={post.coverImage}
-                      alt={post.title}
-                      className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-700 upscale-crisp opacity-90 group-hover:opacity-100"
-                    />
-                    <div className="absolute inset-0 bg-gradient-to-t from-obsidian via-transparent to-transparent opacity-80 pointer-events-none" />
-                  </div>
-                ) : null}
+                <div className="w-full h-52 sm:h-56 overflow-hidden relative border-b border-white/10 bg-obsidian">
+                  <SafeBlogImage
+                    src={post.coverImage}
+                    alt={post.title}
+                    category={post.category}
+                    className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-700 upscale-crisp opacity-90 group-hover:opacity-100"
+                  />
+                  <div className="absolute inset-0 bg-gradient-to-t from-obsidian via-transparent to-transparent opacity-80 pointer-events-none" />
+                </div>
 
                 <div className="p-6 sm:p-8 flex-1 flex flex-col justify-between relative z-10">
                   <div>
