@@ -1961,6 +1961,11 @@ class GameBrain:
                     self._chat_failures += 1
                     if self._chat_failures >= 3:
                         self._chat_disabled_until = time.time() + 60
+                        
+                if stream:
+                    def error_gen():
+                        yield f"Neural link API error: {e}"
+                    return error_gen()
                 return None
 
     def _query_vision_nim(self, image_b64):
@@ -2044,6 +2049,10 @@ class GameBrain:
         )
         
         import types
+        if generator is None:
+            yield "Neural link offline: API error or model connection failed. Please verify your model selection and API key in Settings."
+            return
+            
         if not isinstance(generator, types.GeneratorType):
             # It returned a static string instead of a stream generator (e.g., fallback texts)
             yield str(generator)

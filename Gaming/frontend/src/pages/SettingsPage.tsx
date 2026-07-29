@@ -28,7 +28,8 @@ import {
   Search,
   ArrowRight,
   BookOpen,
-  Info
+  Info,
+  RefreshCw
 } from 'lucide-react';
 import type { TelemetryState } from '../types/telemetry';
 
@@ -671,6 +672,23 @@ const MODE_INTELLIGENCE: Record<string, {
 const SettingsPage: React.FC<{ state: TelemetryState | null, sendCommand: (type: string, payload?: any) => void }> = ({ state, sendCommand }) => {
   const { isSignedIn, userId, signOut } = useAuth();
   const { user } = useUser();
+
+  const dynamicNeuralOptions = useMemo(() => {
+    const fetchedModels: string[] | undefined = (state as any)?.nvidia_available_models;
+    if (!fetchedModels || fetchedModels.length === 0) {
+      return AI_NEURAL_BACKBONE_OPTIONS;
+    }
+    
+    const knownOptions = AI_NEURAL_BACKBONE_OPTIONS.filter(o => o.value === 'custom' || fetchedModels.includes(o.value));
+    const knownValues = new Set(knownOptions.map(o => o.value));
+    const extraOptions = fetchedModels
+      .filter(m => !knownValues.has(m) && (m.includes('llama') || m.includes('nemotron') || m.includes('mistral') || m.includes('phi') || m.includes('nvidia')))
+      .map(m => ({ value: m, label: m, group: 'Other Available Models', isMono: true }));
+      
+    const customOption = AI_NEURAL_BACKBONE_OPTIONS.find(o => o.value === 'custom');
+    
+    return [...knownOptions.filter(o => o.value !== 'custom'), ...extraOptions, customOption].filter(Boolean) as any;
+  }, [(state as any)?.nvidia_available_models]);
 
   const handleSwitchAccount = async () => {
     let targetProvider = 'oauth_google';
@@ -2624,12 +2642,23 @@ const SettingsPage: React.FC<{ state: TelemetryState | null, sendCommand: (type:
             label="AI Neural Backbone"
             description="Select the NVIDIA NIM model for conversational AI. All models run on NVIDIA's cloud API — no local GPU required. Get a free key at build.nvidia.com.">
             <div className="space-y-3">
-              <CustomSelect
-                value={localConfig.ai_agent?.model_id || 'meta/llama-3.3-70b-instruct'}
-                onChange={(val) => setLocalConfig({ ...localConfig, ai_agent: { ...localConfig.ai_agent, model_id: val } })}
-                options={AI_NEURAL_BACKBONE_OPTIONS}
-                isMono={true}
-              />
+              <div className="flex gap-2 items-center">
+                <div className="flex-1">
+                  <CustomSelect
+                    value={localConfig.ai_agent?.model_id || 'meta/llama-3.3-70b-instruct'}
+                    onChange={(val) => setLocalConfig({ ...localConfig, ai_agent: { ...localConfig.ai_agent, model_id: val } })}
+                    options={dynamicNeuralOptions}
+                    isMono={true}
+                  />
+                </div>
+                <button
+                  onClick={() => sendCommand('fetch_nvidia_models')}
+                  className="px-3 py-2 bg-black/40 border border-white/10 hover:border-neon-green/50 hover:bg-neon-green/10 rounded-xl text-[10px] font-bold text-zinc-400 hover:text-neon-green transition-colors"
+                  title="Refresh Available Models from your NVIDIA API Key"
+                >
+                  <RefreshCw className="w-3.5 h-3.5" />
+                </button>
+              </div>
 
               {localConfig.ai_agent?.model_id === 'custom' && (
                 <div className="space-y-1.5">

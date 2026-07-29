@@ -776,3 +776,33 @@ def _game_data_from(active_game) -> dict:
     if isinstance(active_game, str):
         return {"name": active_game, "exe_path": active_game}
     return {}
+
+def handle_fetch_nvidia_models(payload: dict, pipeline, bridge, config) -> None:
+    logger.info("Fetching available NVIDIA NIM models...")
+    
+    def _do_fetch():
+        try:
+            from openai import OpenAI
+            import os
+            
+            api_key = config.get("ai_agent", {}).get("nvidia_api_key", "")
+            if not api_key:
+                logger.error("No NVIDIA API key found in configuration.")
+                bridge.update_state({"nvidia_available_models": []})
+                return
+                
+            client = OpenAI(base_url="https://integrate.api.nvidia.com/v1", api_key=api_key)
+            models_response = client.models.list()
+            
+            # Extract just the ID strings, filter out basic non-text models if needed, 
+            # but usually it's fine to return all IDs.
+            model_ids = [m.id for m in models_response.data]
+            
+            logger.info(f"Successfully fetched {len(model_ids)} NIM models.")
+            bridge.update_state({"nvidia_available_models": model_ids})
+            
+        except Exception as e:
+            logger.error("Failed to fetch NVIDIA models: %s", e)
+            bridge.update_state({"nvidia_available_models": []})
+            
+    threading.Thread(target=_do_fetch, name="FetchNVIDIAModels", daemon=True).start()
