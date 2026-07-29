@@ -388,8 +388,8 @@ export default function Home() {
                 {/* Left: Windows App Icon & Title */}
                 <div className="flex items-center gap-2 sm:gap-3 overflow-hidden">
                   <div className="flex items-center gap-2 overflow-hidden">
-                    <div className="w-4 h-4 rounded bg-neon-green/20 border border-neon-green/40 flex items-center justify-center text-neon-green font-bold text-[9px] shrink-0 shadow-[0_0_8px_rgba(118,185,0,0.4)]">
-                      MC
+                    <div className="w-5 h-5 sm:w-6 sm:h-6 rounded-lg bg-neon-green/10 border border-neon-green/40 flex items-center justify-center p-0.5 shrink-0 shadow-[0_0_10px_rgba(118,185,0,0.4)] overflow-hidden">
+                      <img src="/logo.png" alt="Mission Control Logo" className="w-full h-full object-contain" />
                     </div>
                     <span className="text-gray-200 font-bold tracking-wider text-[11px] sm:text-xs truncate">
                       MISSION CONTROL v{appVersion} <span className="hidden sm:inline">— TACTICAL STATION</span>
