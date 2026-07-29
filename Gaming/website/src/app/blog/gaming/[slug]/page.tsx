@@ -6,6 +6,7 @@ import GamingPost from "@/models/GamingPost";
 import { ArrowLeft, Calendar, Share2, Tag, Bot } from "lucide-react";
 import { headers } from "next/headers";
 import ShareButtons from "@/components/ShareButtons";
+import SafeBlogImage from "@/components/SafeBlogImage";
 import { formatDateToIST, getPostData } from "@/lib/blog";
 import Mermaid from "@/components/Mermaid";
 import remarkGfm from "remark-gfm";
@@ -58,9 +59,13 @@ interface GamingPostDisplay {
 
 function cleanMarkdown(content: string): string {
   if (!content) return "";
-  return content
-    .replace(/```(?:markdown|md)\r?\n([\s\S]*?)\r?\n```/gi, "$1")
-    .replace(/```table\r?\n([\s\S]*?)\r?\n```/gi, "$1");
+  let clean = content;
+  // Remove frontmatter if present in markdown string
+  clean = clean.replace(/^---[\s\S]*?---\s*/i, "");
+  // Remove markdown code fences wrapping entire body
+  clean = clean.replace(/```(?:markdown|md)\r?\n([\s\S]*?)\r?\n```/gi, "$1");
+  clean = clean.replace(/```table\r?\n([\s\S]*?)\r?\n```/gi, "$1");
+  return clean.trim();
 }
 
 export default async function GamingBlogPost({ params }: { params: Promise<{ slug: string }> }) {
@@ -173,19 +178,18 @@ export default async function GamingBlogPost({ params }: { params: Promise<{ slu
               </div>
             </header>
             
-            {post.coverImage ? (
-              <div className="mb-10 rounded-xl overflow-hidden border border-white/10 shadow-[0_0_40px_rgba(118,185,0,0.1)] relative z-10">
-                <img
-                  src={post.coverImage}
-                  alt={post.title}
-                  className="w-full h-auto object-cover max-h-[450px]"
-                />
-              </div>
-            ) : null}
+            <div className="mb-10 rounded-xl overflow-hidden border border-white/10 shadow-[0_0_40px_rgba(118,185,0,0.1)] relative z-10">
+              <SafeBlogImage
+                src={post.coverImage}
+                alt={post.title}
+                category={post.category}
+                className="w-full h-auto object-cover max-h-[450px]"
+              />
+            </div>
             
             <div className="prose prose-invert prose-headings:font-display prose-headings:text-white prose-a:text-neon-green max-w-none flex-1 relative z-10 leading-relaxed text-sm sm:text-base text-gray-300">
               <MDXRemote 
-                source={cleanMarkdown(post.markdownBody || "")} 
+                source={cleanMarkdown(post.markdownBody || "").replace(/\{(?![a-zA-Z0-9_\s\:\,\"\']*?\})/g, "&#123;")} 
                 components={mdxComponents}  
                 options={{
                   mdxOptions: {
