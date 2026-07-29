@@ -34,11 +34,25 @@ const mdxComponents = {
     if (codeProps && codeProps.className === "language-mermaid") {
       return <Mermaid chart={codeProps.children || ""} />;
     }
-    return <pre>{children}</pre>;
+    return (
+      <pre className="bg-obsidian/90 border border-white/10 rounded-xl p-5 overflow-x-auto font-mono text-sm shadow-2xl my-6 text-gray-200 leading-relaxed">
+        {children}
+      </pre>
+    );
+  },
+  code: ({ className, children, ...props }: any) => {
+    if (className?.includes("language-")) {
+      return <code className={`${className} font-mono text-neon-green text-sm`} {...props}>{children}</code>;
+    }
+    return (
+      <code className="bg-white/10 text-neon-green px-1.5 py-0.5 rounded font-mono text-xs border border-white/10" {...props}>
+        {children}
+      </code>
+    );
   },
   table: ({ children, ...props }: any) => (
-    <div className="overflow-x-auto my-6 border border-white/5 rounded-xl bg-white/[0.01] w-full">
-      <table className="w-full border-collapse text-left m-0" {...props}>
+    <div className="overflow-x-auto my-6 border border-white/10 rounded-xl bg-obsidian/50 w-full shadow-lg">
+      <table className="w-full border-collapse text-left m-0 text-sm" {...props}>
         {children}
       </table>
     </div>
@@ -60,11 +74,56 @@ interface GamingPostDisplay {
 function cleanMarkdown(content: string): string {
   if (!content) return "";
   let clean = content;
-  // Remove frontmatter if present in markdown string
+  // Remove frontmatter if present in markdown body string
   clean = clean.replace(/^---[\s\S]*?---\s*/i, "");
-  // Remove markdown code fences wrapping entire body
-  clean = clean.replace(/```(?:markdown|md)\r?\n([\s\S]*?)\r?\n```/gi, "$1");
-  clean = clean.replace(/```table\r?\n([\s\S]*?)\r?\n```/gi, "$1");
+  
+  // Remove outer markdown code fences wrapping whole post
+  clean = clean.replace(/^```(?:markdown|md)\r?\n([\s\S]*?)\r?\n```$/gi, "$1");
+
+  // Auto-fence unfenced Mermaid diagrams (e.g. graph LR A[...] --> B[...])
+  clean = clean.replace(
+    /(?:^\/\/[^\n]*\n)?^(graph\s+(?:LR|TD|TB|RL)|sequenceDiagram|gantt|classDiagram|flowchart\s+(?:LR|TD|TB|RL))([\s\S]*?)(?=\n\s*\n\s*#|\n\s*\n\s*\/[^\/]|$(?!\n))/gm,
+    (match, p1, p2) => {
+      if (match.includes("```")) return match;
+      return `\n\`\`\`mermaid\n${p1}${p2.trim()}\n\`\`\`\n`;
+    }
+  );
+
+  // Auto-fence unfenced code blocks (C#, Python, C++, TypeScript)
+  clean = clean.replace(
+    /(?:^\/\/\s*Example code[^\n]*\n)?^(public\s+class\s+\w+|import\s+\w+\s*\n\s*def\s+\w+[\s\S]*?)(?=\n\s*\n\s*#|\n\s*\n\s*http|\n\s*\n\s*graph|\n\s*\n\s*class|\n\s*\n\s*##|$(?!\n))/gm,
+    (match, p1) => {
+      if (match.includes("```")) return match;
+      const lang = p1.includes("import ") || p1.includes("def ") ? "python" : "csharp";
+      return `\n\`\`\`${lang}\n${p1.trim()}\n\`\`\`\n`;
+    }
+  );
+
+  // Convert ```latex ... ``` code blocks into rendered KaTeX math blocks & plain text
+  clean = clean.replace(/```(?:latex|math)\r?\n([\s\S]*?)\r?\n```/gi, (_match, body) => {
+    let text = body
+      .replace(/\\documentclass\{[^\}]*\}/gi, "")
+      .replace(/\\begin\{document\}/gi, "")
+      .replace(/\\end\{document\}/gi, "")
+      .trim();
+
+    // Separate plain text preamble from align*/equation math blocks
+    const alignMatch = text.match(/(\\begin\{(?:align\*?|equation\*?|gather\*?)\}[\s\S]*?\\end\{(?:align\*?|equation\*?|gather\*?)\})/i);
+    if (alignMatch) {
+      const mathPart = alignMatch[1];
+      const plainTextBefore = text.slice(0, alignMatch.index).trim();
+      const plainTextAfter = text.slice((alignMatch.index || 0) + mathPart.length).trim();
+      
+      let result = "";
+      if (plainTextBefore) result += `\n\n${plainTextBefore}\n\n`;
+      result += `$$\n${mathPart}\n$$`;
+      if (plainTextAfter) result += `\n\n${plainTextAfter}\n\n`;
+      return result;
+    }
+
+    return `\n\n$$\n${text}\n$$\n\n`;
+  });
+
   return clean.trim();
 }
 
@@ -189,7 +248,7 @@ export default async function GamingBlogPost({ params }: { params: Promise<{ slu
             
             <div className="prose prose-invert prose-headings:font-display prose-headings:text-white prose-a:text-neon-green max-w-none flex-1 relative z-10 leading-relaxed text-sm sm:text-base text-gray-300">
               <MDXRemote 
-                source={cleanMarkdown(post.markdownBody || "").replace(/\{(?![a-zA-Z0-9_\s\:\,\"\']*?\})/g, "&#123;")} 
+                source={cleanMarkdown(post.markdownBody || "")} 
                 components={mdxComponents}  
                 options={{
                   mdxOptions: {
