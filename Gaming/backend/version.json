@@ -1,8 +1,18 @@
 {
-  "version": "2.7.0",
+  "version": "2.7.1",
   "release_date": "2026-07-29",
   "update_check_url": "https://raw.githubusercontent.com/arnab825/Mission-Control/main/Gaming/backend/version.json",
   "changelog": [
+    {
+      "version": "2.7.1",
+      "date": "2026-07-29",
+      "title": "NIM Model Tier Labels & Ghost of Tsushima Fallback Banner",
+      "highlights": [
+        "Updated AI Neural Backbone options to clarify free models vs models requiring NVIDIA NIM API credits",
+        "Added Gemma 2 9B to fast reasoning model options",
+        "Fixed missing icon for Ghost of Tsushima in Library Hardware Feature Matrix"
+      ]
+    },
     {
       "version": "2.7.0",
       "date": "2026-07-29",
