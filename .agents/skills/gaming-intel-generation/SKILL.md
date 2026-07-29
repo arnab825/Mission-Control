@@ -56,18 +56,18 @@ To avoid creating duplicate posts for the same day (e.g. if the generation scrip
 * Headings must be **2-6 words only**.
 * If a heading starts with Why, How, What, or When, it **must** end with a question mark (`?`).
 
-### Code Blocks
-* All code blocks must be complete, correct, and runnable (no commented-out placeholder comments).
-* Do not include command-line prompts (`$` or `>`) in console blocks.
+### Code & Diagram Fencing (Strict MDX Rule)
+* **Code Fencing**: All code blocks (C#, Python, C++, TypeScript, Bash) **MUST** be explicitly enclosed in triple backticks with language specifiers (e.g. ```csharp ... ``` or ```python ... ```). Never output unfenced code snippets in markdown body text.
+* **Mermaid Diagrams**: All diagrams **MUST** be enclosed in ```mermaid ... ``` code fences. Use node labels wrapped in double quotes (e.g., `A["Node Label"]`). Never include styling directives or `classDef` definitions, as the site frontend styles diagrams dynamically.
 
-### Mermaid Diagrams
-* Use node labels wrapped in double quotes (e.g., `A["Node Label"]`).
-* Never include styling directives or `classDef` definitions, as the site frontend styles diagrams dynamically.
-* Keep diagrams focused on technical flows (e.g., frame rendering pipelines, API auth).
-
-### Mathematical Expressions
+### Mathematical Expressions & KaTeX
 * Use `$ ... $` for inline formulas and `$$ ... $$` for block equations.
+* Use standard LaTeX bracket syntax (e.g., `\frac{A}{B}`) with plain `{` and `}` curly braces. Never output HTML entity escapes (`&#123;`).
 * All metrics and calculations must be technically precise and physically plausible.
+
+### Photorealistic 3D Cover Art Requirements
+* **3D Photorealistic Style Only**: `image_prompt` MUST request photorealistic 3D renders or cinematic 3D game concept art (e.g. *"Photorealistic 3D render of [hardware] with neon lighting, 8k resolution, no text"* or *"Cinematic 3D video game visual concept art of [character/scene], Unreal Engine 5 render style, volumetric lighting, photorealistic 8k, no text"*).
+* **No Vector / SVG Icons**: Never generate 2D vector graphics, flat SVG icons, or line art.
 
 ---
 
