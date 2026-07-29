@@ -365,13 +365,14 @@ const OCR_ENGINE_OPTIONS = [
 ];
 
 const AI_NEURAL_BACKBONE_OPTIONS = [
-  { value: 'meta/llama-3.3-70b-instruct', label: 'Llama 3.3 70B · Recommended', group: 'Strategic Analysis', isMono: true },
-  { value: 'meta/llama-3.1-70b-instruct', label: 'Llama 3.1 70B', group: 'Strategic Analysis', isMono: true },
-  { value: 'nvidia/llama-3.1-nemotron-70b-instruct', label: 'Nemotron 70B Instruct', group: 'Strategic Analysis', isMono: true },
-  { value: 'meta/llama-3.1-8b-instruct', label: 'Llama 3.1 8B · Fast', group: 'Fast Reasoning', isMono: true },
-  { value: 'mistralai/mistral-7b-instruct-v0.3', label: 'Mistral 7B · Lightweight', group: 'Fast Reasoning', isMono: true },
-  { value: 'meta/llama-3.2-11b-vision-instruct', label: 'Llama 3.2 11B Vision', group: 'Vision Models', isMono: true },
-  { value: 'microsoft/phi-3-medium-4k-instruct', label: 'Phi-3 Medium 14B', group: 'Fast Reasoning', isMono: true },
+  { value: 'meta/llama-3.3-70b-instruct', label: 'Llama 3.3 70B (Requires Credits)', group: 'Strategic Analysis', isMono: true },
+  { value: 'meta/llama-3.1-70b-instruct', label: 'Llama 3.1 70B (Requires Credits)', group: 'Strategic Analysis', isMono: true },
+  { value: 'nvidia/llama-3.1-nemotron-70b-instruct', label: 'Nemotron 70B (Requires Credits)', group: 'Strategic Analysis', isMono: true },
+  { value: 'meta/llama-3.1-8b-instruct', label: 'Llama 3.1 8B · Free / Fast', group: 'Fast Reasoning', isMono: true },
+  { value: 'google/gemma-2-9b-it', label: 'Gemma 2 9B · Free / Fast', group: 'Fast Reasoning', isMono: true },
+  { value: 'mistralai/mistral-7b-instruct-v0.3', label: 'Mistral 7B (Requires Credits)', group: 'Fast Reasoning', isMono: true },
+  { value: 'meta/llama-3.2-11b-vision-instruct', label: 'Llama 3.2 11B Vision · Free', group: 'Vision Models', isMono: true },
+  { value: 'microsoft/phi-3-medium-4k-instruct', label: 'Phi-3 Medium (Requires Credits)', group: 'Fast Reasoning', isMono: true },
   { value: 'custom', label: 'Custom NIM model ID...', isMono: true }
 ];
 
@@ -3024,13 +3025,20 @@ const SettingsPage: React.FC<{ state: TelemetryState | null, sendCommand: (type:
 
                                   const useLocalIcon = game.icon && game.icon !== 'null' && !isLauncherExe && !hasLauncherIcon;
 
+                                  let fallbackUrl = null;
+                                  if (!game.id && game.name) {
+                                    if (game.name.toLowerCase().includes('ghost of tsushima')) {
+                                      fallbackUrl = 'https://cdn.akamai.steamstatic.com/steam/apps/2215430/header.jpg';
+                                    }
+                                  }
+
                                   const iconUrl = useLocalIcon
                                     ? (game.icon.startsWith('http') ? game.icon : `asset:///${game.icon.replace(/\\/g, '/')}`)
                                     : game.local_banner && game.local_banner !== 'null'
                                       ? (game.local_banner.startsWith('http') ? game.local_banner : `asset:///${game.local_banner.replace(/\\/g, '/')}`)
                                       : game.platform === 'Steam' && game.id
                                         ? `https://cdn.akamai.steamstatic.com/steam/apps/${game.id}/header.jpg`
-                                        : null;
+                                        : fallbackUrl;
 
                                   if (iconUrl) {
                                     return (
