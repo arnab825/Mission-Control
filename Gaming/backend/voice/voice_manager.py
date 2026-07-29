@@ -252,6 +252,8 @@ class VoiceManager:
         self.nvidia_api_key = ""
         self.elevenlabs_api_key = ""
         self.elevenlabs_voice_id = "21m00Tcm4TlvDq8ikWAM"
+        
+        self.bridge = None # For frontend telemetry
 
         self._pending_update: Optional[tuple] = None
         self._pending_lock = threading.Lock()
@@ -397,6 +399,15 @@ class VoiceManager:
 
     def stop_listening(self):
         self.is_listening = False
+        # If we have an active stream, close it to immediately unblock recognizer.listen()
+        if hasattr(self, '_active_mic_stream') and self._active_mic_stream:
+            try:
+                self._active_mic_stream.close()
+                self._active_mic_stream = None
+            except:
+                pass
+        if self.bridge:
+            self.bridge.update_state({"agent_response": "Voice note aborted."})
 
     def stop(self):
         self._running = False
@@ -637,11 +648,19 @@ class VoiceManager:
                             time.sleep(0.1)
                             continue
 
-                        audio = self.recognizer.listen(source, timeout=1.0)
+                        # Store stream reference for forcible abort
+                        self._active_mic_stream = getattr(source, 'stream', None)
+                        
+                        audio = self.recognizer.listen(source, timeout=1.0, phrase_time_limit=15.0)
+                        
+                        self._active_mic_stream = None
                         
                         if not self.is_listening or getattr(self, '_is_speaking', False):
                             # Ignore audio captured while TTS is speaking (prevents feedback loops)
                             continue
+
+                        if self.bridge:
+                            self.bridge.update_state({"agent_response": "🎙️ Processing audio..."})
 
                         # Dispatch transcription to a background thread to avoid blocking the mic
                         def _transcribe_and_dispatch(audio_data):
@@ -651,6 +670,8 @@ class VoiceManager:
                                 if getattr(self, '_is_speaking', False): return
                                 logger.info(f"[VOICE] STT: \"{text}\"")
                                 if self.on_command_received: self.on_command_received(text)
+                                if self.bridge:
+                                    self.bridge.update_state({"agent_response": f"🎙️ You: {text}"})
                                 
                         t = threading.Thread(target=_transcribe_and_dispatch, args=(audio,), daemon=True)
                         t.start()

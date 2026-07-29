@@ -34,6 +34,8 @@ def handle_set_personality(payload: dict, pipeline, bridge, config) -> None:
 
 
 def handle_toggle_voice(payload: dict, pipeline, bridge, config) -> None:
+    if hasattr(pipeline, "voice_manager") and pipeline.voice_manager:
+        pipeline.voice_manager.bridge = bridge
     pipeline.toggle_voice(payload.get("active", False))
 
 

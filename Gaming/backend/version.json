@@ -1,8 +1,19 @@
 {
-  "version": "2.6.10",
+  "version": "2.7.0",
   "release_date": "2026-07-29",
   "update_check_url": "https://raw.githubusercontent.com/arnab825/Mission-Control/main/Gaming/backend/version.json",
   "changelog": [
+    {
+      "version": "2.7.0",
+      "date": "2026-07-29",
+      "title": "NIM Error Surfacing & Real-time Voice Manager Feedback",
+      "highlights": [
+        "Surfaced accurate NVIDIA NIM error responses in chat stream to prevent UI hangs on model entitlement or timeout failures",
+        "Added 15-second phrase cutoff time limit to SpeechRecognition to prevent endless mic blocking",
+        "Implemented instant mic stream interruption when aborting voice notes",
+        "Added real-time status updates (Processing, You: transcript) to the chat bridge during voice input"
+      ]
+    },
     {
       "version": "2.6.10",
       "date": "2026-07-29",
