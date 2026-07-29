@@ -179,7 +179,6 @@ export default function GamesTestedPage() {
         <div id="featured-benchmark" className="mb-20 scroll-mt-28">
           <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 mb-6">
             <div className="flex items-center gap-3">
-              <span className="w-3 h-3 rounded-full bg-neon-green animate-pulse" />
               <h2 className="text-xl sm:text-2xl font-black font-display uppercase tracking-wider text-white">
                 Benchmark Profile: {featuredGame.name}
               </h2>
@@ -460,7 +459,6 @@ export default function GamesTestedPage() {
             {/* Modal Header Controls */}
             <div className="relative z-50 flex items-center justify-between w-full max-w-7xl mx-auto font-mono text-xs">
               <div className="flex items-center gap-3">
-                <div className="w-2.5 h-2.5 rounded-full bg-neon-green animate-ping" />
                 <span className="font-bold text-white uppercase text-sm font-display tracking-wider">
                   {featuredGame.name}
                 </span>

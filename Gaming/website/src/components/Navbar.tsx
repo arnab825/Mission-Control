@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from "react";
 import Link from "next/link";
-import { usePathname } from "next/navigation";
+import { usePathname, useRouter } from "next/navigation";
 import {
   Home,
   Cpu,
@@ -37,6 +37,7 @@ export default function Navbar() {
   const [isOpen, setIsOpen] = useState(false);
   const [isScrolled, setIsScrolled] = useState(false);
   const pathname = usePathname();
+  const router = useRouter();
 
   // Search States
   const [searchQuery, setSearchQuery] = useState("");
@@ -48,6 +49,14 @@ export default function Navbar() {
 
   type OS = "windows" | "linux" | "mac" | "other" | null;
   const [os, setOs] = useState<OS>(null);
+
+  const closeSearch = () => {
+    setSearchQuery("");
+    setSearchResults([]);
+    setIsSearchFocused(false);
+    setShowAllResults(false);
+    setIsMobileSearchOpen(false);
+  };
 
   useEffect(() => {
     const handleScroll = () => {
@@ -72,7 +81,7 @@ export default function Navbar() {
   // Close mobile drawer on route change
   useEffect(() => {
     setIsOpen(false);
-    setIsMobileSearchOpen(false);
+    closeSearch();
   }, [pathname]);
 
   const handleSearch = async (query: string) => {
@@ -91,6 +100,15 @@ export default function Navbar() {
       }
     } catch (err) {
       console.error("Search query failed", err);
+    }
+  };
+
+  const handleSearchKeyDown = (e: React.KeyboardEvent<HTMLInputElement>) => {
+    if (e.key === "Enter" && searchQuery.trim()) {
+      router.push(`/blog?search=${encodeURIComponent(searchQuery.trim())}`);
+      closeSearch();
+    } else if (e.key === "Escape") {
+      closeSearch();
     }
   };
 
@@ -237,19 +255,19 @@ export default function Navbar() {
               placeholder="Search docs/blog..."
               value={searchQuery}
               onChange={(e) => handleSearch(e.target.value)}
+              onKeyDown={handleSearchKeyDown}
               onFocus={() => setIsSearchFocused(true)}
               onBlur={() => setTimeout(() => setIsSearchFocused(false), 250)}
-              className="w-full bg-obsidian/80 border border-white/15 hover:border-neon-green/40 rounded-xl pl-9 pr-8 py-2 text-xs font-mono text-white focus:outline-none focus:border-neon-green focus:shadow-[0_0_15px_rgba(118, 185, 0,0.25)] transition-all"
+              className="w-full bg-obsidian/80 border border-white/15 hover:border-neon-green/40 rounded-xl pl-9 pr-8 py-2 text-xs font-mono text-white focus:outline-none focus:border-neon-green focus:shadow-[0_0_15px_rgba(118,185,0,0.25)] transition-all"
             />
             <SearchIcon className="w-3.5 h-3.5 text-gray-400 absolute left-3 top-2.5" />
             {(searchQuery || isSearchFocused) && (
               <button
                 onMouseDown={(e) => {
                   e.preventDefault();
-                  setSearchQuery("");
-                  setSearchResults([]);
-                  setIsSearchFocused(false);
+                  closeSearch();
                 }}
+                onClick={closeSearch}
                 className="absolute right-2.5 top-2.5 text-gray-400 hover:text-white transition-colors cursor-pointer"
                 aria-label="Close Search"
               >
@@ -267,6 +285,7 @@ export default function Navbar() {
                     <Link
                       key={idx}
                       href={res.url}
+                      onClick={closeSearch}
                       className="block p-3 hover:bg-white/[0.05] rounded-xl transition-colors text-left font-mono"
                     >
                       <div className="text-[10px] font-bold text-neon-green uppercase tracking-widest mb-0.5">{res.category}</div>
@@ -291,21 +310,19 @@ export default function Navbar() {
                   <div className="text-[10px] font-bold text-gray-400 uppercase tracking-widest border-b border-white/10 pb-1">Suggested Telemetry Searches</div>
                   <div className="space-y-1">
                     {[
-                      { title: "DirectX 12 Overlay Swapchain", category: "Community", query: "DirectX 12" },
-                      { title: "NVIDIA DLSS Frame Generation", category: "Docs", query: "DLSS" },
-                      { title: "Parallel Hardware Diagnostics", category: "Architecture", query: "Thermal" },
+                      { title: "DirectX 12 Overlay Swapchain", category: "Architecture", href: "/architecture#directx-presentation" },
+                      { title: "NVIDIA DLSS Frame Generation", category: "Docs", href: "/docs/nvidia_ai_guide" },
+                      { title: "Parallel Hardware Diagnostics", category: "Architecture", href: "/architecture#parallel-hardware" },
                     ].map((s, idx) => (
-                      <button
+                      <Link
                         key={idx}
-                        onMouseDown={(e) => {
-                          e.preventDefault();
-                          handleSearch(s.query);
-                        }}
-                        className="w-full flex items-center justify-between p-2 rounded-lg hover:bg-white/5 text-xs text-gray-300 hover:text-neon-green text-left transition-colors cursor-pointer"
+                        href={s.href}
+                        onClick={closeSearch}
+                        className="w-full flex items-center justify-between p-2 rounded-lg hover:bg-white/10 text-xs text-gray-300 hover:text-neon-green text-left transition-colors cursor-pointer"
                       >
                         <span>{s.title}</span>
-                        <span className="text-[9px] px-1.5 py-0.5 rounded bg-white/5 border border-white/5 text-gray-400">{s.category}</span>
-                      </button>
+                        <span className="text-[9px] px-1.5 py-0.5 rounded bg-white/10 border border-white/10 text-gray-400 font-mono">{s.category}</span>
+                      </Link>
                     ))}
                   </div>
                 </div>
