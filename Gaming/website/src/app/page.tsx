@@ -43,6 +43,7 @@ import {
   ExternalLink,
   Rss,
   Newspaper,
+  Eye,
   Maximize2,
   X
 } from "lucide-react";
@@ -563,11 +564,44 @@ export default function Home() {
 
                 {/* Tech Tags */}
                 <div className="flex flex-wrap gap-1.5 font-mono text-[10px]">
-                  {game.keyTech.map((tech, i) => (
-                    <span key={i} className="px-2 py-0.5 bg-white/5 border border-white/10 rounded-lg text-gray-300">
-                      ✓ {tech}
-                    </span>
-                  ))}
+                  {game.keyTech.map((tech, i) => {
+                    const lower = tech.toLowerCase();
+                    let IconComponent = Cpu;
+                    let iconColor = "text-neon-green";
+
+                    if (lower.includes("dlss") || lower.includes("ai")) {
+                      IconComponent = Sparkles;
+                      iconColor = "text-neon-green";
+                    } else if (lower.includes("frame gen") || lower.includes("fps")) {
+                      IconComponent = Zap;
+                      iconColor = "text-neon-yellow";
+                    } else if (lower.includes("reflex") || lower.includes("latency")) {
+                      IconComponent = Activity;
+                      iconColor = "text-cyan-400";
+                    } else if (lower.includes("ray tracing") || lower.includes("path")) {
+                      IconComponent = Sparkles;
+                      iconColor = "text-purple-400";
+                    } else if (lower.includes("frostbite") || lower.includes("snowdrop") || lower.includes("engine") || lower.includes("unreal")) {
+                      IconComponent = Flame;
+                      iconColor = "text-amber-400";
+                    } else if (lower.includes("shader") || lower.includes("volumetric") || lower.includes("render") || lower.includes("heat")) {
+                      IconComponent = Eye;
+                      iconColor = "text-violet-400";
+                    } else if (lower.includes("dx12") || lower.includes("vulkan") || lower.includes("directx")) {
+                      IconComponent = Cpu;
+                      iconColor = "text-emerald-400";
+                    } else if (lower.includes("fullscreen") || lower.includes("etw")) {
+                      IconComponent = Shield;
+                      iconColor = "text-indigo-400";
+                    }
+
+                    return (
+                      <span key={i} className="px-2.5 py-1 bg-white/5 border border-white/10 hover:border-white/20 rounded-lg text-gray-200 flex items-center gap-1.5 transition-colors font-semibold">
+                        <IconComponent className={`w-3 h-3 ${iconColor} shrink-0`} />
+                        <span>{tech}</span>
+                      </span>
+                    );
+                  })}
                 </div>
 
                 {/* View Profile Button (Non-clipping layout) */}
