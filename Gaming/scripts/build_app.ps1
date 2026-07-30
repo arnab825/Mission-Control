@@ -70,20 +70,9 @@ try {
         # Check if directory mode (dist/MissionControlBackend) was used
         $distFolder = "dist\MissionControlBackend"
         if (Test-Path $distFolder) {
-            $frontendDest = "$PSScriptRoot\..\frontend\backend\MissionControlBackend"
-            Write-Host "[SYNC] Copying compiled backend to frontend resources: $frontendDest" -ForegroundColor Cyan
-            
-            # Clean destination first
-            if (Test-Path $frontendDest) {
-                Remove-Item $frontendDest -Recurse -Force -ErrorAction SilentlyContinue
-            }
-            New-Item -ItemType Directory -Force -Path $frontendDest | Out-Null
-            
-            # Copy all files recursively
-            Copy-Item -Path "$distFolder\*" -Destination $frontendDest -Recurse -Force
-            Write-Host "[SUCCESS] Compiled backend copied successfully!" -ForegroundColor Green
+            Write-Host "[INFO] Compiled backend ready at $distFolder for Electron packaging." -ForegroundColor Green
         } else {
-            Write-Host "[INFO] Standalone file mode used. No automatic copy performed." -ForegroundColor Yellow
+            Write-Host "[INFO] Standalone file mode used." -ForegroundColor Yellow
         }
     } else {
         Write-Host "[FAILURE] Build failed. Check errors above." -ForegroundColor Red

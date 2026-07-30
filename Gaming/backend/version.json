@@ -1,8 +1,17 @@
 {
-  "version": "2.7.2",
+  "version": "2.7.3",
   "release_date": "2026-07-30",
   "update_check_url": "https://raw.githubusercontent.com/arnab825/Mission-Control/main/Gaming/backend/version.json",
   "changelog": [
+    {
+      "version": "2.7.3",
+      "date": "2026-07-30",
+      "title": "Curated AI model options & cleanup",
+      "highlights": [
+        "Cleaned up obsolete backend copy",
+        "Curated AI model options to strictly use defined options"
+      ]
+    },
     {
       "version": "2.7.2",
       "date": "2026-07-30",
@@ -466,14 +475,6 @@
       "title": "Fix production black screen and GPU compositor rendering",
       "highlights": [
         "Fix production black screen and GPU compositor rendering"
-      ]
-    },
-    {
-      "version": "2.1.7",
-      "date": "2026-07-22",
-      "title": "Route all Windows installer downloads dynamically through resolver API",
-      "highlights": [
-        "Route all Windows installer downloads dynamically through resolver API"
       ]
     }
   ]

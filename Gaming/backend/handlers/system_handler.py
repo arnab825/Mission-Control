@@ -794,11 +794,14 @@ def handle_fetch_nvidia_models(payload: dict, pipeline, bridge, config) -> None:
             client = OpenAI(base_url="https://integrate.api.nvidia.com/v1", api_key=api_key)
             models_response = client.models.list()
             
-            # Extract just the ID strings, filter out basic non-text models if needed, 
-            # but usually it's fine to return all IDs.
-            model_ids = [m.id for m in models_response.data]
+            # Filter out non-chat models (embeddings, rerankers, audio, guardrails)
+            non_chat_keywords = ['embed', 'rerank', 'guard', 'reward', 'whisper', 'sdxl', 'canvas', 'bge', 'clip', 'vision-language-embedding']
+            model_ids = [
+                m.id for m in models_response.data
+                if not any(kw in m.id.lower() for kw in non_chat_keywords)
+            ]
             
-            logger.info(f"Successfully fetched {len(model_ids)} NIM models.")
+            logger.info(f"Successfully fetched {len(model_ids)} NIM text/LLM models.")
             bridge.update_state({"nvidia_available_models": model_ids})
             
         except Exception as e:
