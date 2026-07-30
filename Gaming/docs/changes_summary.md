@@ -1116,3 +1116,29 @@ graph TD
 | `models/gemini2.0.ts` | **Added** | Integrated Gemini 2.0 Flash Thinking model |
 | `models/moonshot128k.ts` | **Added** | Integrated Moonshot 128k context model |
 | `models/nvidia.ts` | **Modified** | Cleaned up NVIDIA hosted models list |
+
+---
+
+## Session 31 — 2026-07-30: Agent Logic Fixes (v2.7.6)
+
+### 🛠️ Key Features Added/Modified
+1. **Fixed UI permanently locking up if an active session is deleted**
+2. **Fixed UI freezing indefinitely when an AI API endpoint is unreachable or fails**
+
+### 🧩 Technical Decisions & Architecture
+* In this release, we prioritized stability and reliability by implementing robust error handling mechanisms to prevent UI lockups and indefinite freezes. This involved revising the session deletion logic and enhancing API endpoint failure detection. These changes ensure a seamless user experience and maintain the overall system integrity.
+
+### 📊 System Architecture & Flow
+```mermaid
+graph TD
+  A[Client] --> B[Server]
+  B --> C[API Endpoint]
+  C --> D[Error Handling Mechanism]
+```
+
+### 📋 File Changes
+| File | Status | Description |
+|---|---|---|
+| `ui.ts` | **Modified** | Revised session deletion logic to prevent UI lockups |
+| `api.ts` | **Modified** | Enhanced API endpoint failure detection and error handling |
+| `session.ts` | **Modified** | Improved session management to prevent indefinite freezes |
