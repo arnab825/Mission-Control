@@ -2,6 +2,11 @@
 
 This document contains a detailed history of all patches and updates for the AI Gaming Assistant.
 
+### Patch: 2026-07-30 — v2.7.6: Agent Logic Fixes
+
+- Fixed UI permanently locking up if an active session is deleted
+- Fixed UI freezing indefinitely when an AI API endpoint is unreachable or fails
+
 ### Patch: 2026-07-30 — v2.7.5: Agent UX improvements & Model Updates
 
 - Unlocked Agent textbox during processing

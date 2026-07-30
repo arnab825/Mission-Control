@@ -1,8 +1,17 @@
 {
-  "version": "2.7.5",
+  "version": "2.7.6",
   "release_date": "2026-07-30",
   "update_check_url": "https://raw.githubusercontent.com/arnab825/Mission-Control/main/Gaming/backend/version.json",
   "changelog": [
+    {
+      "version": "2.7.6",
+      "date": "2026-07-30",
+      "title": "Agent Logic Fixes",
+      "highlights": [
+        "Fixed UI permanently locking up if an active session is deleted",
+        "Fixed UI freezing indefinitely when an AI API endpoint is unreachable or fails"
+      ]
+    },
     {
       "version": "2.7.5",
       "date": "2026-07-30",
@@ -471,14 +480,6 @@
       "highlights": [
         "Fix production backend synchronization deadlock",
         "Verify Vercel cron secret headers"
-      ]
-    },
-    {
-      "version": "2.3.4",
-      "date": "2026-07-23",
-      "title": "Fix production backend self-elevation exit loop and ASAR file streaming",
-      "highlights": [
-        "Fix production backend self-elevation exit loop and ASAR file streaming"
       ]
     }
   ]
