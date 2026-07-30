@@ -1529,7 +1529,12 @@ const AgentPage: React.FC<{
           <div className="flex items-center gap-2 min-w-0 flex-1">
             {!isPopup && (
               <button aria-label="button" type="button" 
-                onClick={() => window.location.reload()} 
+                onClick={() => {
+                  onCommand('get_chat_sessions', { userId });
+                  if (activeSessionId) {
+                    onCommand('get_chat_history', { sessionId: activeSessionId });
+                  }
+                }} 
                 className="p-1.5 hover:bg-white/5 rounded-lg text-zinc-400 transition-colors cursor-pointer active:scale-95 outline-none"
                 title="Refresh Agent Page"
               >

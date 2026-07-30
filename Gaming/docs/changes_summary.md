@@ -1011,3 +1011,29 @@ graph TD
 | `capture_backend.ts` | **Added** | Implemented BetterCam capture backend for exclusive fullscreen compatibility. |
 | `auto_failover.ts` | **Added** | Developed auto-failover logic for switching between DXCam and BetterCam on sustained None frames. |
 | `privacy_shield.ts` | **Modified** | Integrated BetterCam into existing Privacy Shield safeguards for enhanced security and user trust. |
+
+---
+
+## Session 27 — 2026-07-30: Multi-Provider AI Architecture & Settings Bug Fixes (v2.7.2)
+
+### 🛠️ Key Features Added/Modified
+1. **Resolved critical issue in Multi-Provider AI Architecture causing inconsistent model predictions.**
+2. **Improved AI settings validation to prevent configuration errors and ensure seamless system operation.**
+
+### 🧩 Technical Decisions & Architecture
+* In v2.7.2, we have refactored the AI architecture to utilize a more robust and scalable design, enabling better performance and reliability. Additionally, we have implemented a comprehensive validation framework to ensure AI settings are correctly configured, preventing potential system crashes and data inconsistencies.
+
+### 📊 System Architecture & Flow
+```mermaid
+graph TD
+  A[Client] --> B[AI Engine]
+  B --> C[Model Repository]
+  C --> D[Model Executor]
+```
+
+### 📋 File Changes
+| File | Status | Description |
+|---|---|---|
+| `ai_architecture.ts` | **Modified** | Refactored AI architecture for improved performance and scalability. |
+| `ai_settings.ts` | **Added** | Implemented comprehensive AI settings validation framework. |
+| `model_repository.ts` | **Modified** | Updated model repository to support new AI engine integration. |

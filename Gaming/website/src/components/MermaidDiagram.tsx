@@ -46,6 +46,9 @@ export function MermaidDiagram({ chart }: MermaidDiagramProps) {
       })
       .catch((err) => {
         console.error("Mermaid rendering error:", err);
+        const errEl = document.getElementById("d" + uniqueId) || document.getElementById(uniqueId);
+        if (errEl) errEl.remove();
+
         if (isMounted) {
           setRenderError("Could not render diagram visually.");
           setIsRendering(false);

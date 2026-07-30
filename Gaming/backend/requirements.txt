@@ -58,3 +58,4 @@ faiss-cpu
 rank_bm25
 tiktoken
 mem0ai
+google-genai==1.0.0

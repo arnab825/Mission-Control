@@ -1,8 +1,28 @@
 {
-  "version": "2.7.1",
-  "release_date": "2026-07-29",
+  "version": "2.7.2",
+  "release_date": "2026-07-30",
   "update_check_url": "https://raw.githubusercontent.com/arnab825/Mission-Control/main/Gaming/backend/version.json",
   "changelog": [
+    {
+      "version": "2.7.2",
+      "date": "2026-07-30",
+      "title": "Multi-Provider AI Architecture & Settings Bug Fixes",
+      "highlights": [
+        "Multi-Provider AI Architecture & Settings Bug Fixes"
+      ]
+    },
+    {
+      "version": "2.7.2",
+      "date": "2026-07-30",
+      "title": "Multi-Provider AI Architecture (Google GenAI, DeepSeek, Moonshot)",
+      "highlights": [
+        "Added multi-provider AI support (Google Gemini, DeepSeek, Moonshot/Kimi, NVIDIA NIM)",
+        "Integrated native google-genai SDK for Google Gemini models",
+        "Enforced API key security via .env file instead of plaintext config",
+        "Added provider selection dropdown and dynamic model filtering in Settings",
+        "Fixed scope hoisting issue in Settings page component"
+      ]
+    },
     {
       "version": "2.7.1",
       "date": "2026-07-29",
@@ -454,65 +474,6 @@
       "title": "Route all Windows installer downloads dynamically through resolver API",
       "highlights": [
         "Route all Windows installer downloads dynamically through resolver API"
-      ]
-    },
-    {
-      "version": "2.1.6",
-      "date": "2026-07-22",
-      "title": "Fix Agent page infinite re-render loop and black screen issue",
-      "highlights": [
-        "Fix Agent page infinite re-render loop and black screen issue"
-      ]
-    },
-    {
-      "version": "2.1.5",
-      "date": "2026-07-22",
-      "title": "Fix Mermaid render errors, add dynamic portable ZIP resolver, AI weights docs, and Winget Python installer",
-      "highlights": [
-        "Fix Mermaid render errors, add dynamic portable ZIP resolver, AI weights docs, and Winget Python installer"
-      ]
-    },
-    {
-      "version": "2.1.4",
-      "date": "2026-07-22",
-      "title": "Fixed automatic loading of Release Highlights on Updates page mount",
-      "highlights": [
-        "Fixed automatic loading of Release Highlights on Updates page mount"
-      ]
-    },
-    {
-      "version": "2.1.3",
-      "date": "2026-07-22",
-      "title": "Added On-Demand AI Models & Weights Downloader with download icons, real-time progress bars, and streaming backend",
-      "highlights": [
-        "Added On-Demand AI Models & Weights Downloader with download icons, real-time progress bars, and streaming backend"
-      ]
-    },
-    {
-      "version": "2.1.2",
-      "date": "2026-07-22",
-      "title": "Added real-time percentage progress bar and output streaming to 1-click YOLO vision engine installer",
-      "highlights": [
-        "Added real-time percentage progress bar and output streaming to 1-click YOLO vision engine installer"
-      ]
-    },
-    {
-      "version": "2.1.1",
-      "date": "2026-07-22",
-      "title": "Added --system flag to uv installer and prioritized system Python for 1-click YOLO vision engine installation",
-      "highlights": [
-        "Added --system flag to uv installer and prioritized system Python for 1-click YOLO vision engine installation"
-      ]
-    },
-    {
-      "version": "2.1.0",
-      "date": "2026-07-22",
-      "title": "Fixed 1-Click YOLO Vision Engine installer for standalone desktop release",
-      "highlights": [
-        "Fixed 1-Click YOLO Vision Engine installer for standalone desktop release",
-        "Optimized Vision Command Center telemetry layout into clean right sidebar",
-        "Prevented Dashboard CPU temperature text truncation on wide displays",
-        "Updated release process documentation"
       ]
     }
   ]

@@ -100,5 +100,15 @@ export interface AppConfig {
   auto_optimize_on_detect?: boolean;
   instance_lock_path?: string;
   headless?: boolean;
-  ai_agent?: any;
+  ai_agent?: {
+    provider?: string;
+    model_id?: string;
+    custom_model_id?: string;
+    vision_model?: string;
+    personality?: string;
+    endpoint_url?: string;
+    vision_endpoint_url?: string;
+    insecure_tls_windows_fallback?: boolean;
+    [key: string]: any;
+  };
 }
