@@ -2,6 +2,13 @@
 
 This document contains a detailed history of all patches and updates for the AI Gaming Assistant.
 
+### Patch: 2026-07-30 — v2.7.5: Agent UX improvements & Model Updates
+
+- Unlocked Agent textbox during processing
+- Added Gemini 2.0 Flash Thinking model
+- Added Moonshot 128k context model
+- Cleaned up NVIDIA hosted models list
+
 ### Patch: 2026-07-30 — v2.7.4: Explicitly flag obsolete models & UI cleanup
 
 - Removed unnecessary refresh models button
