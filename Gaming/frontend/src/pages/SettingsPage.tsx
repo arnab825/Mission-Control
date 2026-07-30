@@ -790,7 +790,8 @@ const SettingsPage: React.FC<{ state: TelemetryState | null, sendCommand: (type:
     } else if (provider === 'kimi') {
       options = [
         { value: 'moonshot-v1-8k', label: 'Moonshot v1 8K', group: 'Moonshot', isMono: true },
-        { value: 'moonshot-v1-32k', label: 'Moonshot v1 32K', group: 'Moonshot', isMono: true }
+        { value: 'moonshot-v1-32k', label: 'Moonshot v1 32K', group: 'Moonshot', isMono: true },
+        { value: 'moonshot-v1-128k', label: 'Moonshot v1 128K', group: 'Moonshot', isMono: true }
       ];
     } else if (provider === 'deepseek') {
       options = [
