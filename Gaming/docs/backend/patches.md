@@ -2,6 +2,11 @@
 
 This document contains a detailed history of all patches and updates for the AI Gaming Assistant.
 
+### Patch: 2026-07-30 — v2.7.4: Explicitly flag obsolete models & UI cleanup
+
+- Removed unnecessary refresh models button
+- Explicitly flag invalid model IDs in Settings UI dropdown
+
 ### Patch: 2026-07-30 — v2.7.3: Curated AI model options & cleanup
 
 - Cleaned up obsolete backend copy

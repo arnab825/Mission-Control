@@ -1,8 +1,17 @@
 {
-  "version": "2.7.3",
+  "version": "2.7.4",
   "release_date": "2026-07-30",
   "update_check_url": "https://raw.githubusercontent.com/arnab825/Mission-Control/main/Gaming/backend/version.json",
   "changelog": [
+    {
+      "version": "2.7.4",
+      "date": "2026-07-30",
+      "title": "Explicitly flag obsolete models & UI cleanup",
+      "highlights": [
+        "Removed unnecessary refresh models button",
+        "Explicitly flag invalid model IDs in Settings UI dropdown"
+      ]
+    },
     {
       "version": "2.7.3",
       "date": "2026-07-30",
@@ -467,14 +476,6 @@
       "title": "Fix ASAR static file streaming in packaged production builds",
       "highlights": [
         "Fix ASAR static file streaming in packaged production builds"
-      ]
-    },
-    {
-      "version": "2.3.2",
-      "date": "2026-07-23",
-      "title": "Fix production black screen and GPU compositor rendering",
-      "highlights": [
-        "Fix production black screen and GPU compositor rendering"
       ]
     }
   ]
