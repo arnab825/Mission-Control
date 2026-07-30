@@ -1328,6 +1328,7 @@ const AgentPage: React.FC<{
       return updated;
     });
 
+    setIsThinking(false);
     onCommand('delete_chat_session', { sessionId: id, userId });
   }, [activeSessionId, userId, onCommand]);
 
