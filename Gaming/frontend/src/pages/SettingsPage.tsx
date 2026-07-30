@@ -2674,15 +2674,7 @@ const SettingsPage: React.FC<{ state: TelemetryState | null, sendCommand: (type:
                     isMono={true}
                   />
                 </div>
-                {localConfig.ai_agent?.provider === 'nvidia' && (
-                <button
-                  onClick={() => sendCommand('fetch_nvidia_models')}
-                  className="px-3 py-2 bg-black/40 border border-white/10 hover:border-neon-green/50 hover:bg-neon-green/10 rounded-xl text-[10px] font-bold text-zinc-400 hover:text-neon-green transition-colors"
-                  title="Refresh Available Models from your NVIDIA API Key"
-                >
-                  <RefreshCw className="w-3.5 h-3.5" />
-                </button>
-                )}
+
               </div>
 
               {localConfig.ai_agent?.model_id === 'custom' && (
