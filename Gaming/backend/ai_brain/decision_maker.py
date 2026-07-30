@@ -155,7 +155,7 @@ class GameBrain:
         # Initialize NVIDIA NIM Client (only if online)
         self.client = None
         if self._online:
-            self._init_nim_client()
+            self._init_ai_client()
         else:
             logger.info("NVIDIA NIM skipped: Offline mode active.")
         
@@ -326,7 +326,7 @@ class GameBrain:
             self.task_models["vision"] = vision_model
             
         # Re-initialize client if API key changed
-        self._init_nim_client()
+        self._init_ai_client()
         
         # Update web search config
         if hasattr(self, "_web_search") and self._web_search:
@@ -335,81 +335,89 @@ class GameBrain:
         logger.info(f"AI Brain models updated: {self.task_models}")
 
 
-    def _init_nim_client(self):
-        """Initialize the OpenAI client for NVIDIA NIM with specialized endpoints."""
+    def _init_ai_client(self):
+        """Initialize the AI client (OpenAI or Google GenAI) based on provider configuration."""
         _prepare_windows_ssl_runtime()
         import httpx
         from openai import OpenAI
+        from core.ai_providers import PROVIDERS
+        
         agent_cfg = self.config.get("ai_agent", {})
+        provider_key = agent_cfg.get("provider", "nvidia")
+        provider_config = PROVIDERS.get(provider_key, PROVIDERS["nvidia"])
+        
+        self.provider_type = provider_config.get("client_type", "openai")
         
         # Try config first, then environment as fallback
-        api_key = agent_cfg.get("nvidia_api_key") or os.environ.get("NVIDIA_API_KEY") or os.environ.get("AI_GAMING_ASSISTANT_NVIDIA_API_KEY")
-        
-        # Standard endpoint for chat models (Llama 3, etc.)
-        base_url = agent_cfg.get("endpoint_url") or os.environ.get("NVIDIA_ENDPOINT_URL", "https://integrate.api.nvidia.com/v1")
-        
-        # Vision models can share the OpenAI-compatible base URL unless explicitly overridden.
-        vision_url = agent_cfg.get("vision_endpoint_url") or os.environ.get("NVIDIA_VISION_ENDPOINT_URL") or base_url
-        
-        # Validate key
-        invalid_keys = ["YOUR_NVIDIA_API_KEY_HERE", "your_nvidia_api_key_here", "", None]
+        env_key_name = provider_config.get("env_key")
+        api_key = agent_cfg.get(env_key_name.lower()) or os.environ.get(env_key_name)
+        # Fallback for old NVIDIA keys if needed
+        if not api_key and env_key_name == "NVIDIA_API_KEY":
+            api_key = os.environ.get("AI_GAMING_ASSISTANT_NVIDIA_API_KEY")
+
+        invalid_keys = [f"YOUR_{env_key_name}_HERE", f"your_{env_key_name.lower()}_here", "", None]
         if api_key and api_key.strip() not in invalid_keys:
             try:
-                # Some Windows environments ship conflicting OpenSSL runtimes that
-                # crash native TLS initialization ("OPENSSL_Uplink ... no OPENSSL_Applink").
-                # We dynamically probe if native SSL/TLS works without crashing by running a quick probe in a subprocess.
-                # If the probe succeeds, we use native TLS safely. Otherwise, we fall back to an insecure client.
-                needs_insecure_fallback = False
-                if sys.platform == "win32" and not getattr(sys, "frozen", False) and agent_cfg.get("insecure_tls_windows_fallback", True):
-                    try:
-                        import subprocess
-                        code = (
-                            "import sys\n"
-                            "import ssl\n"
-                            "try:\n"
-                            "    ctx = ssl.create_default_context()\n"
-                            "    ctx.load_default_certs()\n"
-                            "    sys.exit(0)\n"
-                            "except Exception:\n"
-                            "    sys.exit(0)\n"
-                        )
-                        result = subprocess.run(
-                            [sys.executable, "-c", code],
-                            capture_output=True,
-                            timeout=1.5,
-                            creationflags=0x08000000
-                        )
-                        needs_insecure_fallback = (result.returncode != 0)
-                    except Exception:
-                        needs_insecure_fallback = True
-
-                use_insecure_tls = (
-                    sys.platform == "win32"
-                    and needs_insecure_fallback
-                    and not self.config.get("privacy", {}).get("enabled", False)
-                )
-                if use_insecure_tls:
-                    logger.warning(
-                        "Using insecure TLS fallback for NVIDIA NIM on Windows due to OpenSSL runtime mismatch."
-                    )
-                    chat_http = httpx.Client(verify=False, timeout=30.0)
-                    vision_http = httpx.Client(verify=False, timeout=30.0)
-                    self.client = OpenAI(base_url=base_url, api_key=api_key, http_client=chat_http, max_retries=0, timeout=30.0)
-                    self.vision_client = OpenAI(
-                        base_url=vision_url, api_key=api_key, http_client=vision_http, max_retries=0, timeout=30.0
-                    )
+                if self.provider_type == "google":
+                    from google import genai
+                    self.client = genai.Client(api_key=api_key)
+                    self.vision_client = self.client
+                    logger.info(f"Google GenAI client initialized")
                 else:
-                    self.client = OpenAI(base_url=base_url, api_key=api_key, max_retries=0, timeout=30.0)
-                    self.vision_client = OpenAI(base_url=vision_url, api_key=api_key, max_retries=0, timeout=30.0)
-                logger.info(f"NVIDIA NIM clients initialized (Chat: {base_url}, Vision: {vision_url})")
+                    # OpenAI-compatible client
+                    base_url = agent_cfg.get("endpoint_url") or os.environ.get(f"{provider_key.upper()}_ENDPOINT_URL") or provider_config.get("base_url")
+                    vision_url = agent_cfg.get("vision_endpoint_url") or os.environ.get(f"{provider_key.upper()}_VISION_ENDPOINT_URL") or base_url
+                    
+                    needs_insecure_fallback = False
+                    if sys.platform == "win32" and not getattr(sys, "frozen", False) and agent_cfg.get("insecure_tls_windows_fallback", True):
+                        try:
+                            import subprocess
+                            code = (
+                                "import sys\n"
+                                "import ssl\n"
+                                "try:\n"
+                                "    ctx = ssl.create_default_context()\n"
+                                "    ctx.load_default_certs()\n"
+                                "    sys.exit(0)\n"
+                                "except Exception:\n"
+                                "    sys.exit(0)\n"
+                            )
+                            result = subprocess.run(
+                                [sys.executable, "-c", code],
+                                capture_output=True,
+                                timeout=1.5,
+                                creationflags=0x08000000
+                            )
+                            needs_insecure_fallback = (result.returncode != 0)
+                        except Exception:
+                            needs_insecure_fallback = True
+
+                    use_insecure_tls = (
+                        sys.platform == "win32"
+                        and needs_insecure_fallback
+                        and not self.config.get("privacy", {}).get("enabled", False)
+                    )
+                    if use_insecure_tls:
+                        logger.warning(
+                            f"Using insecure TLS fallback for {provider_config['label']} on Windows due to OpenSSL runtime mismatch."
+                        )
+                        chat_http = httpx.Client(verify=False, timeout=30.0)
+                        vision_http = httpx.Client(verify=False, timeout=30.0)
+                        self.client = OpenAI(base_url=base_url, api_key=api_key, http_client=chat_http, max_retries=0, timeout=30.0)
+                        self.vision_client = OpenAI(
+                            base_url=vision_url, api_key=api_key, http_client=vision_http, max_retries=0, timeout=30.0
+                        )
+                    else:
+                        self.client = OpenAI(base_url=base_url, api_key=api_key, max_retries=0, timeout=30.0)
+                        self.vision_client = OpenAI(base_url=vision_url, api_key=api_key, max_retries=0, timeout=30.0)
+                    logger.info(f"{provider_config['label']} clients initialized (Chat: {base_url}, Vision: {vision_url})")
             except Exception as e:
-                logger.error(f"Failed to initialize NVIDIA NIM clients: {e}")
+                logger.error(f"Failed to initialize {provider_config['label']} clients: {e}")
                 self.client = None
                 self.vision_client = None
                 self._online = False # Treat as offline if API fails
         else:
-            logger.warning("No valid NVIDIA_API_KEY found. Agentic AI will run in local-only mode.")
-            logger.info("To enable NVIDIA NIM: Copy .env.example to .env and add your API key from https://build.nvidia.com/")
+            logger.warning(f"No valid {env_key_name} found. Agentic AI will run in local-only mode.")
             self.client = None
             self._online = False # Treat as offline if no key
 
@@ -1908,11 +1916,11 @@ class GameBrain:
                 elif "nemotron" in m_lower:
                     model_max_tokens = 1024
 
-                completion = self.client.chat.completions.create(
-                    model=model_id,
+                completion = self._create_chat_completion(
+                    client=self.client,
+                    model_id=model_id,
                     messages=messages,
                     temperature=temperature,
-                    top_p=0.7,
                     max_tokens=model_max_tokens,
                     stream=stream,
                     timeout=60.0
@@ -1924,6 +1932,9 @@ class GameBrain:
                         try:
                             for chunk in completion:
                                 try:
+                                    if isinstance(chunk, str):
+                                        yield chunk
+                                        continue
                                     choices = getattr(chunk, "choices", None) if not isinstance(chunk, dict) else chunk.get("choices")
                                     if not choices or not isinstance(choices, (list, tuple)) or len(choices) == 0:
                                         continue
@@ -1997,8 +2008,9 @@ class GameBrain:
 
         try:
             logger.info(f"Executing Multi-modal Vision NIM: {model_id} via {vision_url}")
-            completion = client.chat.completions.create(
-                model=model_id,
+            completion = self._create_chat_completion(
+                client=client,
+                model_id=model_id,
                 messages=[
                     {
                         "role": "user",
@@ -2015,7 +2027,8 @@ class GameBrain:
                     }
                 ],
                 max_tokens=256,
-                timeout=15.0
+                timeout=15.0,
+                is_vision=True
             )
             self._vision_failures = 0 # Reset on success
             return completion.choices[0].message.content

@@ -364,15 +364,18 @@ const OCR_ENGINE_OPTIONS = [
   { value: 'tesseract', label: 'Tesseract (Legacy)' }
 ];
 
+const AI_PROVIDER_OPTIONS = [
+  { value: 'nvidia', label: 'NVIDIA NIM' },
+  { value: 'gemini', label: 'Google Gemini' },
+  { value: 'kimi', label: 'Moonshot (Kimi)' },
+  { value: 'deepseek', label: 'DeepSeek' }
+];
+
 const AI_NEURAL_BACKBONE_OPTIONS = [
-  { value: 'meta/llama-3.3-70b-instruct', label: 'Llama 3.3 70B (Requires Credits)', group: 'Strategic Analysis', isMono: true },
-  { value: 'meta/llama-3.1-70b-instruct', label: 'Llama 3.1 70B (Requires Credits)', group: 'Strategic Analysis', isMono: true },
-  { value: 'nvidia/llama-3.1-nemotron-70b-instruct', label: 'Nemotron 70B (Requires Credits)', group: 'Strategic Analysis', isMono: true },
-  { value: 'meta/llama-3.1-8b-instruct', label: 'Llama 3.1 8B · Free / Fast', group: 'Fast Reasoning', isMono: true },
-  { value: 'google/gemma-2-9b-it', label: 'Gemma 2 9B · Free / Fast', group: 'Fast Reasoning', isMono: true },
-  { value: 'mistralai/mistral-7b-instruct-v0.3', label: 'Mistral 7B (Requires Credits)', group: 'Fast Reasoning', isMono: true },
+  { value: 'meta/llama-3.1-8b-instruct', label: 'Llama 3.1 8B · Free / Fast', group: 'NVIDIA NIM (Free Tier)', isMono: true },
+  { value: 'google/gemma-2-9b-it', label: 'Gemma 2 9B · Free / Fast', group: 'NVIDIA NIM (Free Tier)', isMono: true },
   { value: 'meta/llama-3.2-11b-vision-instruct', label: 'Llama 3.2 11B Vision · Free', group: 'Vision Models', isMono: true },
-  { value: 'microsoft/phi-3-medium-4k-instruct', label: 'Phi-3 Medium (Requires Credits)', group: 'Fast Reasoning', isMono: true },
+  { value: 'deepseek-ai/deepseek-r1', label: 'DeepSeek R1 (NVIDIA Hosted)', group: 'NVIDIA NIM (Free Tier)', isMono: true },
   { value: 'custom', label: 'Custom NIM model ID...', isMono: true }
 ];
 
@@ -674,22 +677,7 @@ const SettingsPage: React.FC<{ state: TelemetryState | null, sendCommand: (type:
   const { isSignedIn, userId, signOut } = useAuth();
   const { user } = useUser();
 
-  const dynamicNeuralOptions = useMemo(() => {
-    const fetchedModels: string[] | undefined = (state as any)?.nvidia_available_models;
-    if (!fetchedModels || fetchedModels.length === 0) {
-      return AI_NEURAL_BACKBONE_OPTIONS;
-    }
-    
-    const knownOptions = AI_NEURAL_BACKBONE_OPTIONS.filter(o => o.value === 'custom' || fetchedModels.includes(o.value));
-    const knownValues = new Set(knownOptions.map(o => o.value));
-    const extraOptions = fetchedModels
-      .filter(m => !knownValues.has(m) && (m.includes('llama') || m.includes('nemotron') || m.includes('mistral') || m.includes('phi') || m.includes('nvidia')))
-      .map(m => ({ value: m, label: m, group: 'Other Available Models', isMono: true }));
-      
-    const customOption = AI_NEURAL_BACKBONE_OPTIONS.find(o => o.value === 'custom');
-    
-    return [...knownOptions.filter(o => o.value !== 'custom'), ...extraOptions, customOption].filter(Boolean) as any;
-  }, [(state as any)?.nvidia_available_models]);
+
 
   const handleSwitchAccount = async () => {
     let targetProvider = 'oauth_google';
@@ -791,6 +779,45 @@ const SettingsPage: React.FC<{ state: TelemetryState | null, sendCommand: (type:
   }, [state]);
 
   const [localConfig, setLocalConfig] = useState<any>(null);
+
+  const dynamicNeuralOptions = useMemo(() => {
+    const provider = localConfig?.ai_agent?.provider || 'nvidia';
+    if (provider === 'gemini') {
+      return [
+        { value: 'gemini-1.5-flash', label: 'Gemini 1.5 Flash', group: 'Google GenAI', isMono: true },
+        { value: 'gemini-1.5-pro', label: 'Gemini 1.5 Pro', group: 'Google GenAI', isMono: true },
+        { value: 'gemini-2.0-flash-exp', label: 'Gemini 2.0 Flash Exp', group: 'Google GenAI', isMono: true },
+        { value: 'custom', label: 'Custom Model ID...', isMono: true }
+      ];
+    } else if (provider === 'kimi') {
+      return [
+        { value: 'moonshot-v1-8k', label: 'Moonshot v1 8K', group: 'Moonshot', isMono: true },
+        { value: 'moonshot-v1-32k', label: 'Moonshot v1 32K', group: 'Moonshot', isMono: true },
+        { value: 'custom', label: 'Custom Model ID...', isMono: true }
+      ];
+    } else if (provider === 'deepseek') {
+      return [
+        { value: 'deepseek-chat', label: 'DeepSeek Chat (V3)', group: 'DeepSeek', isMono: true },
+        { value: 'deepseek-reasoner', label: 'DeepSeek Reasoner (R1)', group: 'DeepSeek', isMono: true },
+        { value: 'custom', label: 'Custom Model ID...', isMono: true }
+      ];
+    }
+    
+    const fetchedModels: string[] | undefined = (state as any)?.nvidia_available_models;
+    if (!fetchedModels || fetchedModels.length === 0) {
+      return AI_NEURAL_BACKBONE_OPTIONS;
+    }
+    
+    const knownOptions = AI_NEURAL_BACKBONE_OPTIONS.filter(o => o.value === 'custom' || fetchedModels.includes(o.value));
+    const knownValues = new Set(knownOptions.map(o => o.value));
+    const extraOptions = fetchedModels
+      .filter(m => !knownValues.has(m) && (m.includes('llama') || m.includes('nemotron') || m.includes('mistral') || m.includes('phi') || m.includes('nvidia')))
+      .map(m => ({ value: m, label: m, group: 'Other Available Models', isMono: true }));
+      
+    const customOption = AI_NEURAL_BACKBONE_OPTIONS.find(o => o.value === 'custom');
+    
+    return [...knownOptions.filter(o => o.value !== 'custom'), ...extraOptions, customOption].filter(Boolean) as any;
+  }, [(state as any)?.nvidia_available_models, localConfig?.ai_agent?.provider]);
   const [isSaving, setIsSaving] = useState(false);
   const [newDirInput, setNewDirInput] = useState('');
   const [configLoaded, setConfigLoaded] = useState(false);
@@ -2641,17 +2668,26 @@ const SettingsPage: React.FC<{ state: TelemetryState | null, sendCommand: (type:
 
           <SettingsField
             label="AI Neural Backbone"
-            description="Select the NVIDIA NIM model for conversational AI. All models run on NVIDIA's cloud API — no local GPU required. Get a free key at build.nvidia.com.">
+            description="Select the AI provider and model for conversational AI. All models run on cloud APIs. Set your API keys securely in the backend .env file.">
             <div className="space-y-3">
               <div className="flex gap-2 items-center">
+                <div className="w-1/3">
+                  <CustomSelect
+                    value={localConfig.ai_agent?.provider || 'nvidia'}
+                    onChange={(val) => setLocalConfig({ ...localConfig, ai_agent: { ...localConfig.ai_agent, provider: val, model_id: val === 'nvidia' ? 'meta/llama-3.1-8b-instruct' : 'custom' } })}
+                    options={AI_PROVIDER_OPTIONS}
+                    isMono={false}
+                  />
+                </div>
                 <div className="flex-1">
                   <CustomSelect
-                    value={localConfig.ai_agent?.model_id || 'meta/llama-3.3-70b-instruct'}
+                    value={localConfig.ai_agent?.model_id || 'meta/llama-3.1-8b-instruct'}
                     onChange={(val) => setLocalConfig({ ...localConfig, ai_agent: { ...localConfig.ai_agent, model_id: val } })}
                     options={dynamicNeuralOptions}
                     isMono={true}
                   />
                 </div>
+                {localConfig.ai_agent?.provider === 'nvidia' && (
                 <button
                   onClick={() => sendCommand('fetch_nvidia_models')}
                   className="px-3 py-2 bg-black/40 border border-white/10 hover:border-neon-green/50 hover:bg-neon-green/10 rounded-xl text-[10px] font-bold text-zinc-400 hover:text-neon-green transition-colors"
@@ -2659,6 +2695,7 @@ const SettingsPage: React.FC<{ state: TelemetryState | null, sendCommand: (type:
                 >
                   <RefreshCw className="w-3.5 h-3.5" />
                 </button>
+                )}
               </div>
 
               {localConfig.ai_agent?.model_id === 'custom' && (
@@ -2671,7 +2708,7 @@ const SettingsPage: React.FC<{ state: TelemetryState | null, sendCommand: (type:
                     className="w-full bg-black/40 border border-white/10 rounded-xl py-2.5 px-4 text-[10px] font-mono font-bold text-neon-green placeholder:text-zinc-600"
                   />
                   <p className="text-[9px] text-zinc-500 leading-relaxed">
-                    Browse available models at <span className="text-neon-green font-bold">build.nvidia.com/explore/reasoning</span>. Copy the exact model ID shown (e.g. <span className="font-mono text-zinc-400">meta/llama-3.3-70b-instruct</span>).
+                    Enter the exact API model ID for your selected provider. <span className="text-neon-green font-bold">Ensure your API keys are added in the .env file.</span>
                   </p>
                 </div>
               )}

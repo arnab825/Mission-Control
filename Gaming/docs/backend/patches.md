@@ -2,6 +2,10 @@
 
 This document contains a detailed history of all patches and updates for the AI Gaming Assistant.
 
+### Patch: 2026-07-30 — v2.7.2: Multi-Provider AI Architecture & Settings Bug Fixes
+
+- Multi-Provider AI Architecture & Settings Bug Fixes
+
 ### Patch: 2026-07-28 — v2.6.7: Exclusive Fullscreen BetterCam Backend & Auto-Failover
 
 - Added BetterCam capture backend for Direct3D exclusive fullscreen compatibility

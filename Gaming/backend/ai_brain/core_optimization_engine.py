@@ -55,7 +55,7 @@ class CoreOptimizationEngine:
     def __init__(self, config=None):
         self.config = config or {}
         self.client = None
-        self._init_nim_client()
+        self._init_ai_client()
 
     def _init_nim_client(self):
         _prepare_windows_ssl_runtime()

@@ -71,7 +71,16 @@ export default function Mermaid({ chart }: MermaidProps) {
         // Generate a random ID for the SVG
         const id = `mermaid-${Math.floor(Math.random() * 1000000)}`;
         const cleanChart = sanitizeMermaidCode(decodeHTMLEntities(chart.trim()));
-        const { svg: renderedSvg } = await mermaid.render(id, cleanChart);
+        
+        let renderedSvg = "";
+        try {
+          const res = await mermaid.render(id, cleanChart);
+          renderedSvg = res.svg;
+        } catch (renderErr) {
+          const errEl = document.getElementById("d" + id) || document.getElementById(id);
+          if (errEl) errEl.remove();
+          throw renderErr;
+        }
         
         if (isMounted) {
           setSvg(renderedSvg);
