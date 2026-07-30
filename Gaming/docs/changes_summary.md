@@ -1063,3 +1063,29 @@ graph TD
 | `models/backend.ts` | **Deleted** | Removed obsolete backend copy |
 | `models/options.ts` | **Modified** | Updated AI model options to enforce strict adherence to defined options |
 | `models/config.ts` | **Modified** | Refactored configuration to support new AI model options |
+
+---
+
+## Session 29 — 2026-07-30: Explicitly flag obsolete models & UI cleanup (v2.7.4)
+
+### 🛠️ Key Features Added/Modified
+1. **Removed unnecessary refresh models button to declutter UI and improve user experience.**
+2. **Explicitly flagged invalid model IDs in Settings UI dropdown to prevent user confusion and improve model management.**
+
+### 🧩 Technical Decisions & Architecture
+* In this release, we've made a conscious effort to simplify the UI and improve user feedback. By removing unnecessary buttons and explicitly flagging invalid model IDs, we've optimized the user experience and reduced potential errors. These changes align with our goal of providing a more intuitive and user-friendly interface.
+
+### 📊 System Architecture & Flow
+```mermaid
+graph TD
+  A[User] -->|Click| B[Settings UI]
+  B -->|Dropdown| C[Model List]
+  C -->|Invalid ID| D[Error Message]
+```
+
+### 📋 File Changes
+| File | Status | Description |
+|---|---|---|
+| `models.ts` | **Modified** | Added flag to indicate obsolete models |
+| `settings.ui.ts` | **Modified** | Updated dropdown to explicitly flag invalid model IDs |
+| `main.ts` | **Modified** | Removed unnecessary refresh models button |
