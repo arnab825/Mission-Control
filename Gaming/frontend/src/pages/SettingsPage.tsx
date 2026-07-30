@@ -372,10 +372,7 @@ const AI_PROVIDER_OPTIONS = [
 
 const AI_NEURAL_BACKBONE_OPTIONS = [
   { value: 'meta/llama-3.1-8b-instruct', label: 'Llama 3.1 8B · Free / Fast', group: 'NVIDIA NIM (Free Tier)', isMono: true },
-  { value: 'google/gemma-2-9b-it', label: 'Gemma 2 9B · Free / Fast', group: 'NVIDIA NIM (Free Tier)', isMono: true },
-  { value: 'meta/llama-3.2-11b-vision-instruct', label: 'Llama 3.2 11B Vision · Free', group: 'Vision Models', isMono: true },
-  { value: 'deepseek-ai/deepseek-r1', label: 'DeepSeek R1 (NVIDIA Hosted)', group: 'NVIDIA NIM (Free Tier)', isMono: true },
-  { value: 'custom', label: 'Custom NIM model ID...', isMono: true }
+  { value: 'meta/llama-3.3-70b-instruct', label: 'Llama 3.3 70B · Advanced', group: 'NVIDIA NIM (Free Tier)', isMono: true }
 ];
 
 const MEMORY_MODE_OPTIONS = [
@@ -788,24 +785,22 @@ const SettingsPage: React.FC<{ state: TelemetryState | null, sendCommand: (type:
         { value: 'gemini-1.5-flash', label: 'Gemini 1.5 Flash', group: 'Google GenAI', isMono: true },
         { value: 'gemini-1.5-pro', label: 'Gemini 1.5 Pro', group: 'Google GenAI', isMono: true },
         { value: 'gemini-2.0-flash-exp', label: 'Gemini 2.0 Flash Exp', group: 'Google GenAI', isMono: true },
-        { value: 'custom', label: 'Custom Model ID...', isMono: true }
+        { value: 'gemini-2.0-flash-thinking-exp-1219', label: 'Gemini 2.0 Flash Thinking', group: 'Google GenAI', isMono: true }
       ];
     } else if (provider === 'kimi') {
       options = [
         { value: 'moonshot-v1-8k', label: 'Moonshot v1 8K', group: 'Moonshot', isMono: true },
-        { value: 'moonshot-v1-32k', label: 'Moonshot v1 32K', group: 'Moonshot', isMono: true },
-        { value: 'custom', label: 'Custom Model ID...', isMono: true }
+        { value: 'moonshot-v1-32k', label: 'Moonshot v1 32K', group: 'Moonshot', isMono: true }
       ];
     } else if (provider === 'deepseek') {
       options = [
         { value: 'deepseek-chat', label: 'DeepSeek Chat (V3)', group: 'DeepSeek', isMono: true },
-        { value: 'deepseek-reasoner', label: 'DeepSeek Reasoner (R1)', group: 'DeepSeek', isMono: true },
-        { value: 'custom', label: 'Custom Model ID...', isMono: true }
+        { value: 'deepseek-reasoner', label: 'DeepSeek Reasoner (R1)', group: 'DeepSeek', isMono: true }
       ];
     }
     
     const currentVal = localConfig?.ai_agent?.model_id;
-    if (currentVal && currentVal !== 'custom' && !options.some(opt => opt.value === currentVal)) {
+    if (currentVal && !options.some(opt => opt.value === currentVal)) {
       return [
         { value: currentVal, label: `⚠️ Invalid/Old: ${currentVal.split('/').pop() || currentVal}`, isMono: true },
         ...options
@@ -2685,21 +2680,6 @@ const SettingsPage: React.FC<{ state: TelemetryState | null, sendCommand: (type:
                 </div>
 
               </div>
-
-              {localConfig.ai_agent?.model_id === 'custom' && (
-                <div className="space-y-1.5">
-                  <input
-                    type="text"
-                    placeholder="e.g. org/model-name-variant (from build.nvidia.com)"
-                    value={localConfig.ai_agent?.custom_model_id || ''}
-                    onChange={(e) => setLocalConfig({ ...localConfig, ai_agent: { ...localConfig.ai_agent, custom_model_id: e.target.value } })}
-                    className="w-full bg-black/40 border border-white/10 rounded-xl py-2.5 px-4 text-[10px] font-mono font-bold text-neon-green placeholder:text-zinc-600"
-                  />
-                  <p className="text-[9px] text-zinc-500 leading-relaxed">
-                    Enter the exact API model ID for your selected provider. <span className="text-neon-green font-bold">Ensure your API keys are added in the .env file.</span>
-                  </p>
-                </div>
-              )}
             </div>
           </SettingsField>
 
