@@ -1787,8 +1787,7 @@ const AgentPage: React.FC<{
                           ? 'Send command...' 
                           : 'Send a command or drop a file...'
                   }
-                  disabled={isThinking}
-                  className={`flex-1 min-w-0 bg-transparent ${isCompact ? 'py-1 text-[11px]' : 'py-2.5 sm:py-3 text-[12px] sm:text-[13px]'} font-medium text-white placeholder:text-zinc-600 focus:outline-none ${isThinking ? 'opacity-50 cursor-not-allowed' : ''}`}
+                  className={`flex-1 min-w-0 bg-transparent ${isCompact ? 'py-1 text-[11px]' : 'py-2.5 sm:py-3 text-[12px] sm:text-[13px]'} font-medium text-white placeholder:text-zinc-600 focus:outline-none`}
                 />
               )}
               <div className="flex items-center gap-1 sm:gap-1.5 shrink-0">
