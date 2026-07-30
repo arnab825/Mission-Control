@@ -38,20 +38,20 @@ def handle_execute(payload: dict, pipeline, bridge, config) -> None:
     bridge.update_state({"agent_response": f"Processing: {directive}..."})
 
     def _do_execute():
-        generator = pipeline.handle_directive_stream(directive, user_id=user_id)
         full_response = ""
-
-        # ── Token broadcast throttling ──────────────────────────────────────────
-        # Sending every individual token as a separate WebSocket message causes
-        # hundreds of near-simultaneous React re-renders (agent_response is a
-        # CRITICAL_KEY that bypasses all throttling in useBridge).  Instead we
-        # accumulate tokens for up to BATCH_MS milliseconds and then flush the
-        # accumulated text as a single broadcast.  This cuts WS messages from
-        # ~200+ per response down to ~20-30 with zero perceptible latency change.
-        BATCH_MS = 80  # ms between progressive frontend updates
-        last_flush = _time.monotonic()
-
         try:
+            generator = pipeline.handle_directive_stream(directive, user_id=user_id)
+
+            # ── Token broadcast throttling ──────────────────────────────────────────
+            # Sending every individual token as a separate WebSocket message causes
+            # hundreds of near-simultaneous React re-renders (agent_response is a
+            # CRITICAL_KEY that bypasses all throttling in useBridge).  Instead we
+            # accumulate tokens for up to BATCH_MS milliseconds and then flush the
+            # accumulated text as a single broadcast.  This cuts WS messages from
+            # ~200+ per response down to ~20-30 with zero perceptible latency change.
+            BATCH_MS = 80  # ms between progressive frontend updates
+            last_flush = _time.monotonic()
+
             for chunk in generator:
                 full_response += chunk
                 now = _time.monotonic()
@@ -256,6 +256,7 @@ def handle_create_chat_session(payload: dict, pipeline, bridge, config) -> None:
             })
         except Exception as e:
             logger.error("Failed to generate welcome message: %s", e, exc_info=True)
+            bridge.update_state({"agent_response": f"Neural link welcome error: {e}"})
         finally:
             pipeline._generating_welcome_sessions.discard(session_id)
 
@@ -388,16 +389,20 @@ def handle_retry_message(payload: dict, pipeline, bridge, config) -> None:
     bridge.update_state({"agent_response": f"Processing: {text}..."})
 
     def _do_execute_retry():
-        response = pipeline.handle_directive(text, user_id=user_id)
-        if pipeline and pipeline.memory:
-            pipeline.memory.add_chat_message(session_id, "agent", response, user_id=user_id)
-        if "🎮 **Agentic Launcher**" in response:
-            bridge.update_state({
-                "agent_response": response,
-                "launch_status": {"success": True, "game_name": "Application", "trigger": "agent"}
-            })
-        else:
-            bridge.update_state({"agent_response": response})
+        try:
+            response = pipeline.handle_directive(text, user_id=user_id)
+            if pipeline and pipeline.memory:
+                pipeline.memory.add_chat_message(session_id, "agent", response, user_id=user_id)
+            if "🎮 **Agentic Launcher**" in response:
+                bridge.update_state({
+                    "agent_response": response,
+                    "launch_status": {"success": True, "game_name": "Application", "trigger": "agent"}
+                })
+            else:
+                bridge.update_state({"agent_response": response})
+        except Exception as e:
+            logger.error("Error during agent retry execution: %s", e)
+            bridge.update_state({"agent_response": f"Neural link retry error: {e}"})
 
     threading.Thread(target=_do_execute_retry, name="AIDirectiveRetry", daemon=True).start()
 
