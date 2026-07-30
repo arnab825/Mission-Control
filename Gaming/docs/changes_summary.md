@@ -1089,3 +1089,30 @@ graph TD
 | `models.ts` | **Modified** | Added flag to indicate obsolete models |
 | `settings.ui.ts` | **Modified** | Updated dropdown to explicitly flag invalid model IDs |
 | `main.ts` | **Modified** | Removed unnecessary refresh models button |
+
+---
+
+## Session 30 — 2026-07-30: Agent UX improvements & Model Updates (v2.7.5)
+
+### 🛠️ Key Features Added/Modified
+1. **Unlocked Agent textbox during processing for improved user experience**
+2. **Added Gemini 2.0 Flash Thinking model and Moonshot 128k context model for enhanced AI capabilities**
+
+### 🧩 Technical Decisions & Architecture
+* To improve user interaction, we unlocked the Agent textbox during processing. Additionally, we integrated the Gemini 2.0 Flash Thinking model and Moonshot 128k context model to expand our AI capabilities. These decisions were made to enhance the overall user experience and provide more accurate results.
+
+### 📊 System Architecture & Flow
+```mermaid
+graph TD
+  A[Client] --> B[Server]
+  B[Server] --> C[Model]
+  C[Model] --> D[Response]
+```
+
+### 📋 File Changes
+| File | Status | Description |
+|---|---|---|
+| `agent.ts` | **Modified** | Unlocked Agent textbox during processing |
+| `models/gemini2.0.ts` | **Added** | Integrated Gemini 2.0 Flash Thinking model |
+| `models/moonshot128k.ts` | **Added** | Integrated Moonshot 128k context model |
+| `models/nvidia.ts` | **Modified** | Cleaned up NVIDIA hosted models list |

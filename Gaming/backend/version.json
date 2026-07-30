@@ -1,8 +1,19 @@
 {
-  "version": "2.7.4",
+  "version": "2.7.5",
   "release_date": "2026-07-30",
   "update_check_url": "https://raw.githubusercontent.com/arnab825/Mission-Control/main/Gaming/backend/version.json",
   "changelog": [
+    {
+      "version": "2.7.5",
+      "date": "2026-07-30",
+      "title": "Agent UX improvements & Model Updates",
+      "highlights": [
+        "Unlocked Agent textbox during processing",
+        "Added Gemini 2.0 Flash Thinking model",
+        "Added Moonshot 128k context model",
+        "Cleaned up NVIDIA hosted models list"
+      ]
+    },
     {
       "version": "2.7.4",
       "date": "2026-07-30",
@@ -468,14 +479,6 @@
       "title": "Fix production backend self-elevation exit loop and ASAR file streaming",
       "highlights": [
         "Fix production backend self-elevation exit loop and ASAR file streaming"
-      ]
-    },
-    {
-      "version": "2.3.3",
-      "date": "2026-07-23",
-      "title": "Fix ASAR static file streaming in packaged production builds",
-      "highlights": [
-        "Fix ASAR static file streaming in packaged production builds"
       ]
     }
   ]
