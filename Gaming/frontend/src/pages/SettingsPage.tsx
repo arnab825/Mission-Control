@@ -28,8 +28,7 @@ import {
   Search,
   ArrowRight,
   BookOpen,
-  Info,
-  RefreshCw
+  Info
 } from 'lucide-react';
 import type { TelemetryState } from '../types/telemetry';
 
@@ -177,7 +176,7 @@ const SettingsSection: React.FC<{
   searchTerms?: string;
 }> = ({ title, icon: Icon, children, searchQuery = '', searchTerms = '' }) => {
   let hasVisibleChildren = false;
-  
+
   const filteredChildren = React.Children.map(children, child => {
     if (child === null || child === undefined || child === false || child === true) {
       return null;
@@ -206,11 +205,11 @@ const SettingsSection: React.FC<{
     const q = searchQuery.toLowerCase();
     const matchesTitle = title.toLowerCase().includes(q);
     const matchesTerms = searchTerms.toLowerCase().includes(q);
-    
+
     if (!matchesTitle && !matchesTerms && !hasVisibleChildren) {
       return null;
     }
-    
+
     // If the section title/terms match, show all children. Otherwise, show only matching children.
     children = (matchesTitle || matchesTerms) ? children : filteredChildren;
   }
@@ -509,7 +508,7 @@ const getRecommendedPreset = (features: string[] = [], genre: string = '', gpuIn
   } else {
     const name = String(gpuInfo).toLowerCase();
     isRtxGpu = name.includes('rtx') || name.includes('quadro rtx') || name.includes('tesla') || name.includes('titan rtx');
-    
+
     const rtxMatch = name.match(/rtx\s+(\d{4})/);
     if (rtxMatch) {
       const modelNum = parseInt(rtxMatch[1], 10);
@@ -688,9 +687,9 @@ const SettingsPage: React.FC<{ state: TelemetryState | null, sendCommand: (type:
       const isGoogle = user.externalAccounts.some((acc: any) => acc.provider === 'google');
       targetProvider = isGoogle ? 'oauth_discord' : 'oauth_google';
     }
-    
+
     localStorage.removeItem('mission_control_active_provider');
-    
+
     // Sign out and redirect to initiate OAuth for the target provider
     signOut(() => {
       window.location.replace(window.location.origin + `/?trigger_oauth=${targetProvider}`);
@@ -782,29 +781,39 @@ const SettingsPage: React.FC<{ state: TelemetryState | null, sendCommand: (type:
 
   const dynamicNeuralOptions = useMemo(() => {
     const provider = localConfig?.ai_agent?.provider || 'nvidia';
+    let options = AI_NEURAL_BACKBONE_OPTIONS;
+
     if (provider === 'gemini') {
-      return [
+      options = [
         { value: 'gemini-1.5-flash', label: 'Gemini 1.5 Flash', group: 'Google GenAI', isMono: true },
         { value: 'gemini-1.5-pro', label: 'Gemini 1.5 Pro', group: 'Google GenAI', isMono: true },
         { value: 'gemini-2.0-flash-exp', label: 'Gemini 2.0 Flash Exp', group: 'Google GenAI', isMono: true },
         { value: 'custom', label: 'Custom Model ID...', isMono: true }
       ];
     } else if (provider === 'kimi') {
-      return [
+      options = [
         { value: 'moonshot-v1-8k', label: 'Moonshot v1 8K', group: 'Moonshot', isMono: true },
         { value: 'moonshot-v1-32k', label: 'Moonshot v1 32K', group: 'Moonshot', isMono: true },
         { value: 'custom', label: 'Custom Model ID...', isMono: true }
       ];
     } else if (provider === 'deepseek') {
-      return [
+      options = [
         { value: 'deepseek-chat', label: 'DeepSeek Chat (V3)', group: 'DeepSeek', isMono: true },
         { value: 'deepseek-reasoner', label: 'DeepSeek Reasoner (R1)', group: 'DeepSeek', isMono: true },
         { value: 'custom', label: 'Custom Model ID...', isMono: true }
       ];
     }
     
-    return AI_NEURAL_BACKBONE_OPTIONS;
-  }, [localConfig?.ai_agent?.provider]);
+    const currentVal = localConfig?.ai_agent?.model_id;
+    if (currentVal && currentVal !== 'custom' && !options.some(opt => opt.value === currentVal)) {
+      return [
+        { value: currentVal, label: `⚠️ Invalid/Old: ${currentVal.split('/').pop() || currentVal}`, isMono: true },
+        ...options
+      ];
+    }
+
+    return options;
+  }, [localConfig?.ai_agent?.provider, localConfig?.ai_agent?.model_id]);
   const [isSaving, setIsSaving] = useState(false);
   const [newDirInput, setNewDirInput] = useState('');
   const [configLoaded, setConfigLoaded] = useState(false);
@@ -1541,192 +1550,192 @@ const SettingsPage: React.FC<{ state: TelemetryState | null, sendCommand: (type:
       </div>
       <div className="space-y-16 pb-20">
         {/* Assistant Mode */}
-        {(!searchQuery || 
+        {(!searchQuery ||
           "assistant mode configure your default co-pilot neural enclaves. aero automatically switches modes depending on the game launched. competitive low-latency tactical alerts story dialogue & quest tracking hybrid balanced gameplay engine agent autonomous agentic ai inspect pipeline log aero auto-sense active".includes(searchQuery.toLowerCase())
         ) && (
-          <div className="space-y-6">
-          <div className="flex items-center justify-between flex-wrap gap-4">
-            <div>
-              <h3 className="text-[11px] font-black text-neon-green uppercase tracking-[0.2em] mb-1">Assistant Mode</h3>
-              <p className="text-[10px] text-zinc-500 font-medium">
-                Configure your default co-pilot neural enclaves. Aero automatically switches modes depending on the game launched.
-              </p>
-            </div>
-            {/* Action buttons & Auto-Sense status */}
-            <div className="flex items-center gap-3">
-              <button aria-label="button" type="button"
-                onClick={() => setShowDiagnostics(!showDiagnostics)}
-                className={`flex items-center gap-2 px-3.5 py-1.5 rounded-xl text-[9px] font-black uppercase tracking-widest border transition-all duration-300 ${showDiagnostics
-                  ? 'bg-neon-green/10 text-neon-green border-neon-green/20 shadow-[0_0_15px_rgba(118, 185, 0,0.15)]'
-                  : 'bg-white/5 text-zinc-400 border-white/5 hover:text-white hover:border-white/10'
-                  }`}
-              >
-                <Cpu className="w-3 h-3 text-neon-green" />
-                {showDiagnostics ? 'Hide Log' : 'Inspect Pipeline Log'}
-              </button>
+            <div className="space-y-6">
+              <div className="flex items-center justify-between flex-wrap gap-4">
+                <div>
+                  <h3 className="text-[11px] font-black text-neon-green uppercase tracking-[0.2em] mb-1">Assistant Mode</h3>
+                  <p className="text-[10px] text-zinc-500 font-medium">
+                    Configure your default co-pilot neural enclaves. Aero automatically switches modes depending on the game launched.
+                  </p>
+                </div>
+                {/* Action buttons & Auto-Sense status */}
+                <div className="flex items-center gap-3">
+                  <button aria-label="button" type="button"
+                    onClick={() => setShowDiagnostics(!showDiagnostics)}
+                    className={`flex items-center gap-2 px-3.5 py-1.5 rounded-xl text-[9px] font-black uppercase tracking-widest border transition-all duration-300 ${showDiagnostics
+                      ? 'bg-neon-green/10 text-neon-green border-neon-green/20 shadow-[0_0_15px_rgba(118, 185, 0,0.15)]'
+                      : 'bg-white/5 text-zinc-400 border-white/5 hover:text-white hover:border-white/10'
+                      }`}
+                  >
+                    <Cpu className="w-3 h-3 text-neon-green" />
+                    {showDiagnostics ? 'Hide Log' : 'Inspect Pipeline Log'}
+                  </button>
 
-              <div className="flex items-center gap-2 px-3 py-1.5 bg-neon-green/5 border border-neon-green/10 rounded-xl">
-                <Sparkles className="w-3.5 h-3.5 text-neon-green animate-pulse" />
-                <span className="text-[8px] font-black uppercase tracking-widest text-neon-green">
-                  Aero Auto-Sense: Active
-                </span>
-              </div>
-            </div>
-          </div>
-          <div className="flex gap-6 overflow-x-auto pb-4 no-scrollbar">
-            <AssistantModeCard
-              mode="competitive"
-              title="Competitive"
-              description="Low-latency tactical alerts"
-              icon={Target}
-              active={localConfig.game_mode === 'competitive'}
-              onClick={() => setLocalConfig({ ...localConfig, game_mode: 'competitive' })}
-              onMouseEnter={() => setHoveredMode('competitive')}
-              onMouseLeave={() => setHoveredMode(null)}
-            />
-            <AssistantModeCard
-              mode="story"
-              title="Story"
-              description="Dialogue & Quest tracking"
-              icon={Sparkles}
-              active={localConfig.game_mode === 'story'}
-              onClick={() => setLocalConfig({ ...localConfig, game_mode: 'story' })}
-              onMouseEnter={() => setHoveredMode('story')}
-              onMouseLeave={() => setHoveredMode(null)}
-            />
-            <AssistantModeCard
-              mode="hybrid"
-              title="Hybrid"
-              description="Balanced Gameplay Engine"
-              icon={Zap}
-              active={localConfig.game_mode === 'hybrid'}
-              onClick={() => setLocalConfig({ ...localConfig, game_mode: 'hybrid' })}
-              onMouseEnter={() => setHoveredMode('hybrid')}
-              onMouseLeave={() => setHoveredMode(null)}
-            />
-            <AssistantModeCard
-              mode="agent"
-              title="Agent"
-              description="Autonomous Agentic AI"
-              icon={Brain}
-              active={localConfig.game_mode === 'agent'}
-              onClick={() => setLocalConfig({ ...localConfig, game_mode: 'agent' })}
-              onMouseEnter={() => setHoveredMode('agent')}
-              onMouseLeave={() => setHoveredMode(null)}
-            />
-          </div>
-
-          {/* Dynamic HUD Mode Intelligence panel (Collapsible) */}
-          <AnimatePresence>
-            {showDiagnostics && (
-              <motion.div
-                initial={{ height: 0, opacity: 0 }}
-                animate={{ height: 'auto', opacity: 1 }}
-                exit={{ height: 0, opacity: 0 }}
-                transition={{ duration: 0.2 }}
-                className="overflow-hidden pt-4"
-              >
-                <div className="bg-black/40 border border-white/15 rounded-3xl p-6 space-y-6 relative overflow-hidden backdrop-blur-md transition-all duration-300 shadow-[0_0_20px_rgba(118, 185, 0,0.05)]">
-                  {/* Corner cyber tech decals */}
-                  <div className="absolute top-0 right-0 w-32 h-32 bg-neon-green/[0.02] rounded-full blur-2xl pointer-events-none" />
-
-                  <div className="flex flex-col lg:flex-row justify-between gap-6 border-b border-white/5 pb-5">
-                    <div className="space-y-1.5">
-                      <div className="flex items-center gap-3">
-                        <span className="text-[9px] font-black px-2 py-0.5 rounded bg-neon-green/10 border border-neon-green/20 text-neon-green uppercase tracking-widest animate-pulse">
-                          Pipeline Log
-                        </span>
-                        <h4 className="text-sm font-black text-white uppercase tracking-wider">
-                          {activeModeKey} Mode Diagnostics
-                        </h4>
-                      </div>
-                      <p className="text-[10px] text-zinc-400 max-w-2xl font-medium leading-relaxed">
-                        {intel.tagline}
-                      </p>
-                    </div>
-
-                    <div className="flex items-center gap-6 shrink-0">
-                      <div className="text-right">
-                        <span className="text-[8px] font-black text-zinc-500 uppercase tracking-widest block mb-1">Latency Overhead</span>
-                        <span className="text-xs font-mono font-black text-neon-green">{intel.latency}</span>
-                      </div>
-                      <div className="h-8 w-[1px] bg-white/5" />
-                      <div className="text-right">
-                        <span className="text-[8px] font-black text-zinc-500 uppercase tracking-widest block mb-1">Status</span>
-                        <span className={`text-[10px] font-black uppercase tracking-widest ${localConfig.game_mode === activeModeKey ? 'text-neon-yellow' : 'text-zinc-500'}`}>
-                          {localConfig.game_mode === activeModeKey ? '● DEPLOYED' : '○ PREVIEW'}
-                        </span>
-                      </div>
-                    </div>
+                  <div className="flex items-center gap-2 px-3 py-1.5 bg-neon-green/5 border border-neon-green/10 rounded-xl">
+                    <Sparkles className="w-3.5 h-3.5 text-neon-green animate-pulse" />
+                    <span className="text-[8px] font-black uppercase tracking-widest text-neon-green">
+                      Aero Auto-Sense: Active
+                    </span>
                   </div>
+                </div>
+              </div>
+              <div className="flex gap-6 overflow-x-auto pb-4 no-scrollbar">
+                <AssistantModeCard
+                  mode="competitive"
+                  title="Competitive"
+                  description="Low-latency tactical alerts"
+                  icon={Target}
+                  active={localConfig.game_mode === 'competitive'}
+                  onClick={() => setLocalConfig({ ...localConfig, game_mode: 'competitive' })}
+                  onMouseEnter={() => setHoveredMode('competitive')}
+                  onMouseLeave={() => setHoveredMode(null)}
+                />
+                <AssistantModeCard
+                  mode="story"
+                  title="Story"
+                  description="Dialogue & Quest tracking"
+                  icon={Sparkles}
+                  active={localConfig.game_mode === 'story'}
+                  onClick={() => setLocalConfig({ ...localConfig, game_mode: 'story' })}
+                  onMouseEnter={() => setHoveredMode('story')}
+                  onMouseLeave={() => setHoveredMode(null)}
+                />
+                <AssistantModeCard
+                  mode="hybrid"
+                  title="Hybrid"
+                  description="Balanced Gameplay Engine"
+                  icon={Zap}
+                  active={localConfig.game_mode === 'hybrid'}
+                  onClick={() => setLocalConfig({ ...localConfig, game_mode: 'hybrid' })}
+                  onMouseEnter={() => setHoveredMode('hybrid')}
+                  onMouseLeave={() => setHoveredMode(null)}
+                />
+                <AssistantModeCard
+                  mode="agent"
+                  title="Agent"
+                  description="Autonomous Agentic AI"
+                  icon={Brain}
+                  active={localConfig.game_mode === 'agent'}
+                  onClick={() => setLocalConfig({ ...localConfig, game_mode: 'agent' })}
+                  onMouseEnter={() => setHoveredMode('agent')}
+                  onMouseLeave={() => setHoveredMode(null)}
+                />
+              </div>
 
-                  {/* Content body split */}
-                  <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
+              {/* Dynamic HUD Mode Intelligence panel (Collapsible) */}
+              <AnimatePresence>
+                {showDiagnostics && (
+                  <motion.div
+                    initial={{ height: 0, opacity: 0 }}
+                    animate={{ height: 'auto', opacity: 1 }}
+                    exit={{ height: 0, opacity: 0 }}
+                    transition={{ duration: 0.2 }}
+                    className="overflow-hidden pt-4"
+                  >
+                    <div className="bg-black/40 border border-white/15 rounded-3xl p-6 space-y-6 relative overflow-hidden backdrop-blur-md transition-all duration-300 shadow-[0_0_20px_rgba(118, 185, 0,0.05)]">
+                      {/* Corner cyber tech decals */}
+                      <div className="absolute top-0 right-0 w-32 h-32 bg-neon-green/[0.02] rounded-full blur-2xl pointer-events-none" />
 
-                    {/* Pipelines Active/Inactive status */}
-                    <div className="space-y-3.5">
-                      <span className="text-[8px] font-black text-zinc-500 uppercase tracking-widest block">Active Neural Pipelines</span>
-                      <div className="grid grid-cols-1 xl:grid-cols-2 gap-2.5">
-                        {intel.pipelines.map((pipe, idx) => {
-                          const label = getDynamicPipelineLabel(pipe.label);
-                          return (
-                            <div
-                              key={idx}
-                              className={`flex items-center justify-between px-3 py-2 rounded-xl border text-[9px] font-bold uppercase tracking-widest transition-all min-w-0 ${pipe.active
-                                ? 'bg-neon-yellow/5 border-neon-yellow/15 text-neon-yellow'
-                                : 'bg-black/20 border-white/5 text-zinc-600'
-                                }`}
-                            >
-                              <span className="truncate mr-2" title={label}>{label}</span>
-                              <span className="font-mono text-[8px] whitespace-nowrap shrink-0">
-                                {pipe.active ? '● RUNNING' : '○ STANDBY'}
-                              </span>
-                            </div>
-                          );
-                        })}
-                      </div>
-                    </div>
+                      <div className="flex flex-col lg:flex-row justify-between gap-6 border-b border-white/5 pb-5">
+                        <div className="space-y-1.5">
+                          <div className="flex items-center gap-3">
+                            <span className="text-[9px] font-black px-2 py-0.5 rounded bg-neon-green/10 border border-neon-green/20 text-neon-green uppercase tracking-widest animate-pulse">
+                              Pipeline Log
+                            </span>
+                            <h4 className="text-sm font-black text-white uppercase tracking-wider">
+                              {activeModeKey} Mode Diagnostics
+                            </h4>
+                          </div>
+                          <p className="text-[10px] text-zinc-400 max-w-2xl font-medium leading-relaxed">
+                            {intel.tagline}
+                          </p>
+                        </div>
 
-                    {/* Functional descriptions & recommended games */}
-                    <div className="gap-y-4 flex flex-col justify-between">
-                      <div className="space-y-2.5">
-                        <span className="text-[8px] font-black text-zinc-500 uppercase tracking-widest block">Functional Parameters</span>
-                        <ul className="space-y-2 text-[10px] font-medium text-zinc-400 leading-relaxed list-disc list-inside">
-                          {intel.details.map((detail, idx) => (
-                            <li key={idx} className="marker:text-neon-green/70">{detail}</li>
-                          ))}
-                        </ul>
-                      </div>
-
-                      <div className="space-y-2 pt-2">
-                        <div className="flex items-center gap-2">
-                          <span className="text-[8px] font-black text-zinc-500 uppercase tracking-widest">Target Game Profiles:</span>
-                          <div className="flex flex-wrap gap-1.5">
-                            {targetGames.map((game, idx) => (
-                              <span key={idx} className="text-[8px] font-mono font-bold px-2 py-0.5 rounded bg-white/5 border border-white/5 text-zinc-300">
-                                {game}
-                              </span>
-                            ))}
+                        <div className="flex items-center gap-6 shrink-0">
+                          <div className="text-right">
+                            <span className="text-[8px] font-black text-zinc-500 uppercase tracking-widest block mb-1">Latency Overhead</span>
+                            <span className="text-xs font-mono font-black text-neon-green">{intel.latency}</span>
+                          </div>
+                          <div className="h-8 w-[1px] bg-white/5" />
+                          <div className="text-right">
+                            <span className="text-[8px] font-black text-zinc-500 uppercase tracking-widest block mb-1">Status</span>
+                            <span className={`text-[10px] font-black uppercase tracking-widest ${localConfig.game_mode === activeModeKey ? 'text-neon-yellow' : 'text-zinc-500'}`}>
+                              {localConfig.game_mode === activeModeKey ? '● DEPLOYED' : '○ PREVIEW'}
+                            </span>
                           </div>
                         </div>
                       </div>
-                    </div>
 
-                  </div>
+                      {/* Content body split */}
+                      <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
 
-                  {/* Warning block if present */}
-                  {intel.warning && (
-                    <div className="p-3.5 bg-red-950/20 border border-red-500/15 rounded-2xl">
-                      <p className="text-[9px] font-black text-red-400 tracking-wider leading-relaxed">
-                        {intel.warning}
-                      </p>
+                        {/* Pipelines Active/Inactive status */}
+                        <div className="space-y-3.5">
+                          <span className="text-[8px] font-black text-zinc-500 uppercase tracking-widest block">Active Neural Pipelines</span>
+                          <div className="grid grid-cols-1 xl:grid-cols-2 gap-2.5">
+                            {intel.pipelines.map((pipe, idx) => {
+                              const label = getDynamicPipelineLabel(pipe.label);
+                              return (
+                                <div
+                                  key={idx}
+                                  className={`flex items-center justify-between px-3 py-2 rounded-xl border text-[9px] font-bold uppercase tracking-widest transition-all min-w-0 ${pipe.active
+                                    ? 'bg-neon-yellow/5 border-neon-yellow/15 text-neon-yellow'
+                                    : 'bg-black/20 border-white/5 text-zinc-600'
+                                    }`}
+                                >
+                                  <span className="truncate mr-2" title={label}>{label}</span>
+                                  <span className="font-mono text-[8px] whitespace-nowrap shrink-0">
+                                    {pipe.active ? '● RUNNING' : '○ STANDBY'}
+                                  </span>
+                                </div>
+                              );
+                            })}
+                          </div>
+                        </div>
+
+                        {/* Functional descriptions & recommended games */}
+                        <div className="gap-y-4 flex flex-col justify-between">
+                          <div className="space-y-2.5">
+                            <span className="text-[8px] font-black text-zinc-500 uppercase tracking-widest block">Functional Parameters</span>
+                            <ul className="space-y-2 text-[10px] font-medium text-zinc-400 leading-relaxed list-disc list-inside">
+                              {intel.details.map((detail, idx) => (
+                                <li key={idx} className="marker:text-neon-green/70">{detail}</li>
+                              ))}
+                            </ul>
+                          </div>
+
+                          <div className="space-y-2 pt-2">
+                            <div className="flex items-center gap-2">
+                              <span className="text-[8px] font-black text-zinc-500 uppercase tracking-widest">Target Game Profiles:</span>
+                              <div className="flex flex-wrap gap-1.5">
+                                {targetGames.map((game, idx) => (
+                                  <span key={idx} className="text-[8px] font-mono font-bold px-2 py-0.5 rounded bg-white/5 border border-white/5 text-zinc-300">
+                                    {game}
+                                  </span>
+                                ))}
+                              </div>
+                            </div>
+                          </div>
+                        </div>
+
+                      </div>
+
+                      {/* Warning block if present */}
+                      {intel.warning && (
+                        <div className="p-3.5 bg-red-950/20 border border-red-500/15 rounded-2xl">
+                          <p className="text-[9px] font-black text-red-400 tracking-wider leading-relaxed">
+                            {intel.warning}
+                          </p>
+                        </div>
+                      )}
                     </div>
-                  )}
-                </div>
-              </motion.div>
-            )}
-          </AnimatePresence>
-        </div>)}
+                  </motion.div>
+                )}
+              </AnimatePresence>
+            </div>)}
         {/* ── Linked Account ─────────────────────────────────────────── */}
         {isSignedIn && user && (
           <SettingsSection searchQuery={searchQuery} title="Linked Account" icon={KeyRound}>
@@ -2568,7 +2577,7 @@ const SettingsPage: React.FC<{ state: TelemetryState | null, sendCommand: (type:
                             </div>
                             <div>
                               <h5 className="text-[10px] font-black text-white uppercase tracking-wider">{item.label}</h5>
-                              
+
                               {isUnknown ? (
                                 <div className="flex items-center gap-1.5 mt-1">
                                   <span className="text-[9px] text-zinc-500 font-medium uppercase tracking-wider">Config State:</span>
@@ -2585,7 +2594,7 @@ const SettingsPage: React.FC<{ state: TelemetryState | null, sendCommand: (type:
                                     <span className="text-[9px] text-zinc-500 font-medium uppercase tracking-wider">Current:</span>
                                     {renderValuePill(item.current_value)}
                                   </div>
-                                  
+
                                   <ArrowRight className={`w-3.5 h-3.5 text-zinc-600 shrink-0 ${!isMatch ? 'text-neon-green/80 animate-pulse' : ''}`} />
 
                                   <div className="flex items-center gap-1">
@@ -2618,7 +2627,7 @@ const SettingsPage: React.FC<{ state: TelemetryState | null, sendCommand: (type:
                               <p className="text-[10px] text-zinc-300 font-medium leading-relaxed">
                                 {item.instruction}
                               </p>
-                              
+
                               {item.note && (
                                 <div className="flex items-start gap-2 bg-[#08080c]/60 border border-neon-green/10 rounded-lg p-2.5 mt-1">
                                   <Info className="w-3.5 h-3.5 text-neon-green shrink-0 mt-0.5" />
