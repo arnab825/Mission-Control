@@ -1037,3 +1037,29 @@ graph TD
 | `ai_architecture.ts` | **Modified** | Refactored AI architecture for improved performance and scalability. |
 | `ai_settings.ts` | **Added** | Implemented comprehensive AI settings validation framework. |
 | `model_repository.ts` | **Modified** | Updated model repository to support new AI engine integration. |
+
+---
+
+## Session 28 — 2026-07-30: Curated AI model options & cleanup (v2.7.3)
+
+### 🛠️ Key Features Added/Modified
+1. **Removed outdated backend copy to improve system maintainability and reduce technical debt.**
+2. **Enforced strict adherence to defined AI model options to ensure consistency and reliability across the system.**
+
+### 🧩 Technical Decisions & Architecture
+* To achieve these improvements, we refactored the backend codebase, removing unused and obsolete components. This effort not only streamlined the system but also paved the way for future enhancements and integrations.
+
+### 📊 System Architecture & Flow
+```mermaid
+graph TD
+  A[Client] --> B[Server]
+  B --> C[AI Model]
+  C --> D[Model Options]
+```
+
+### 📋 File Changes
+| File | Status | Description |
+|---|---|---|
+| `models/backend.ts` | **Deleted** | Removed obsolete backend copy |
+| `models/options.ts` | **Modified** | Updated AI model options to enforce strict adherence to defined options |
+| `models/config.ts` | **Modified** | Refactored configuration to support new AI model options |

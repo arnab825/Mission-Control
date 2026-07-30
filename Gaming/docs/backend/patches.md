@@ -2,6 +2,11 @@
 
 This document contains a detailed history of all patches and updates for the AI Gaming Assistant.
 
+### Patch: 2026-07-30 — v2.7.3: Curated AI model options & cleanup
+
+- Cleaned up obsolete backend copy
+- Curated AI model options to strictly use defined options
+
 ### Patch: 2026-07-30 — v2.7.2: Multi-Provider AI Architecture & Settings Bug Fixes
 
 - Multi-Provider AI Architecture & Settings Bug Fixes

@@ -803,21 +803,8 @@ const SettingsPage: React.FC<{ state: TelemetryState | null, sendCommand: (type:
       ];
     }
     
-    const fetchedModels: string[] | undefined = (state as any)?.nvidia_available_models;
-    if (!fetchedModels || fetchedModels.length === 0) {
-      return AI_NEURAL_BACKBONE_OPTIONS;
-    }
-    
-    const knownOptions = AI_NEURAL_BACKBONE_OPTIONS.filter(o => o.value === 'custom' || fetchedModels.includes(o.value));
-    const knownValues = new Set(knownOptions.map(o => o.value));
-    const extraOptions = fetchedModels
-      .filter(m => !knownValues.has(m) && (m.includes('llama') || m.includes('nemotron') || m.includes('mistral') || m.includes('phi') || m.includes('nvidia')))
-      .map(m => ({ value: m, label: m, group: 'Other Available Models', isMono: true }));
-      
-    const customOption = AI_NEURAL_BACKBONE_OPTIONS.find(o => o.value === 'custom');
-    
-    return [...knownOptions.filter(o => o.value !== 'custom'), ...extraOptions, customOption].filter(Boolean) as any;
-  }, [(state as any)?.nvidia_available_models, localConfig?.ai_agent?.provider]);
+    return AI_NEURAL_BACKBONE_OPTIONS;
+  }, [localConfig?.ai_agent?.provider]);
   const [isSaving, setIsSaving] = useState(false);
   const [newDirInput, setNewDirInput] = useState('');
   const [configLoaded, setConfigLoaded] = useState(false);
