@@ -6,6 +6,16 @@
     {
       "version": "2.7.8",
       "date": "2026-07-31",
+      "title": "Auto Provider Failover & Fixes",
+      "highlights": [
+        "Added Auto Mode with dynamic rate-limit load balancing",
+        "Fixed IndentationError in decision_maker.py",
+        "Unified Gemini with OpenAI-compatible API endpoint"
+      ]
+    },
+    {
+      "version": "2.7.8",
+      "date": "2026-07-31",
       "title": "Fix Backend Indentation Syntax Error",
       "highlights": [
         "Fixed IndentationError in decision_maker.py"
@@ -470,14 +480,6 @@
       "highlights": [
         "Fix Game Preview modal height overflow, vertical scrolling, and fluid typography",
         "Add onPreview handler to GameCard prop types and restore isLauncher logic"
-      ]
-    },
-    {
-      "version": "2.3.6",
-      "date": "2026-07-23",
-      "title": "Release v2.3.6",
-      "highlights": [
-        "Version sync fix"
       ]
     }
   ]

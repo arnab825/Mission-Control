@@ -335,85 +335,144 @@ class GameBrain:
         logger.info(f"AI Brain models updated: {self.task_models}")
 
 
-    def _init_ai_client(self):
-        """Initialize the AI client (OpenAI or Google GenAI) based on provider configuration."""
-        _prepare_windows_ssl_runtime()
+    def _build_single_client(self, provider_key, provider_config, agent_cfg):
         import httpx
         from openai import OpenAI
-        from core.ai_providers import PROVIDERS
-        
-        agent_cfg = self.config.get("ai_agent", {})
-        provider_key = agent_cfg.get("provider", "nvidia")
-        provider_config = PROVIDERS.get(provider_key, PROVIDERS["nvidia"])
-        
-        self.provider_type = provider_config.get("client_type", "openai")
-        
-        # Try config first, then environment as fallback
         env_key_name = provider_config.get("env_key")
         api_key = agent_cfg.get(env_key_name.lower()) or os.environ.get(env_key_name)
-        # Fallback for old NVIDIA keys if needed
         if not api_key and env_key_name == "NVIDIA_API_KEY":
             api_key = os.environ.get("AI_GAMING_ASSISTANT_NVIDIA_API_KEY")
 
         invalid_keys = [f"YOUR_{env_key_name}_HERE", f"your_{env_key_name.lower()}_here", "", None]
-        if api_key and api_key.strip() not in invalid_keys:
-            try:
-                # OpenAI-compatible client for all providers
-                base_url = agent_cfg.get("endpoint_url") or os.environ.get(f"{provider_key.upper()}_ENDPOINT_URL") or provider_config.get("base_url")
-                vision_url = agent_cfg.get("vision_endpoint_url") or os.environ.get(f"{provider_key.upper()}_VISION_ENDPOINT_URL") or base_url
-                    
-                needs_insecure_fallback = False
-                if sys.platform == "win32" and not getattr(sys, "frozen", False) and agent_cfg.get("insecure_tls_windows_fallback", True):
-                    try:
-                        import subprocess
-                        code = (
-                            "import sys\n"
-                            "import ssl\n"
-                            "try:\n"
-                            "    ctx = ssl.create_default_context()\n"
-                            "    ctx.load_default_certs()\n"
-                            "    sys.exit(0)\n"
-                            "except Exception:\n"
-                            "    sys.exit(0)\n"
-                        )
-                        result = subprocess.run(
-                            [sys.executable, "-c", code],
-                            capture_output=True,
-                            timeout=1.5,
-                            creationflags=0x08000000
-                        )
-                        needs_insecure_fallback = (result.returncode != 0)
-                    except Exception:
-                        needs_insecure_fallback = True
+        if not api_key or api_key.strip() in invalid_keys:
+            return None, None
 
-                use_insecure_tls = (
-                    sys.platform == "win32"
-                    and needs_insecure_fallback
-                    and not self.config.get("privacy", {}).get("enabled", False)
-                )
-                if use_insecure_tls:
-                    logger.warning(
-                        f"Using insecure TLS fallback for {provider_config['label']} on Windows due to OpenSSL runtime mismatch."
+        try:
+            base_url = agent_cfg.get("endpoint_url") or os.environ.get(f"{provider_key.upper()}_ENDPOINT_URL") or provider_config.get("base_url")
+            vision_url = agent_cfg.get("vision_endpoint_url") or os.environ.get(f"{provider_key.upper()}_VISION_ENDPOINT_URL") or base_url
+
+            needs_insecure_fallback = False
+            if sys.platform == "win32" and not getattr(sys, "frozen", False) and agent_cfg.get("insecure_tls_windows_fallback", True):
+                try:
+                    import subprocess
+                    code = (
+                        "import sys\n"
+                        "import ssl\n"
+                        "try:\n"
+                        "    ctx = ssl.create_default_context()\n"
+                        "    ctx.load_default_certs()\n"
+                        "    sys.exit(0)\n"
+                        "except Exception:\n"
+                        "    sys.exit(0)\n"
                     )
-                    chat_http = httpx.Client(verify=False, timeout=120.0)
-                    vision_http = httpx.Client(verify=False, timeout=120.0)
-                    self.client = OpenAI(base_url=base_url, api_key=api_key, http_client=chat_http, max_retries=1, timeout=120.0)
-                    self.vision_client = OpenAI(
-                        base_url=vision_url, api_key=api_key, http_client=vision_http, max_retries=1, timeout=120.0
+                    result = subprocess.run(
+                        [sys.executable, "-c", code],
+                        capture_output=True,
+                        timeout=1.5,
+                        creationflags=0x08000000
                     )
-                else:
-                    self.client = OpenAI(base_url=base_url, api_key=api_key, max_retries=1, timeout=120.0)
-                    self.vision_client = OpenAI(base_url=vision_url, api_key=api_key, max_retries=1, timeout=120.0)
-                logger.info(f"{provider_config['label']} clients initialized (Chat: {base_url}, Vision: {vision_url})")
-            except Exception as e:
-                logger.error(f"Failed to initialize {provider_config['label']} clients: {e}")
+                    needs_insecure_fallback = (result.returncode != 0)
+                except Exception:
+                    needs_insecure_fallback = True
+
+            use_insecure_tls = (
+                sys.platform == "win32"
+                and needs_insecure_fallback
+                and not self.config.get("privacy", {}).get("enabled", False)
+            )
+            if use_insecure_tls:
+                chat_http = httpx.Client(verify=False, timeout=120.0)
+                vision_http = httpx.Client(verify=False, timeout=120.0)
+                client = OpenAI(base_url=base_url, api_key=api_key, http_client=chat_http, max_retries=1, timeout=120.0)
+                vision_client = OpenAI(base_url=vision_url, api_key=api_key, http_client=vision_http, max_retries=1, timeout=120.0)
+            else:
+                client = OpenAI(base_url=base_url, api_key=api_key, max_retries=1, timeout=120.0)
+                vision_client = OpenAI(base_url=vision_url, api_key=api_key, max_retries=1, timeout=120.0)
+            return client, vision_client
+        except Exception as e:
+            logger.error(f"Failed to initialize {provider_config.get('label', provider_key)} client: {e}")
+            return None, None
+
+    def _init_ai_client(self):
+        """Initialize AI clients across all valid providers for Auto Mode & failover."""
+        _prepare_windows_ssl_runtime()
+        from core.ai_providers import PROVIDERS
+        
+        self.all_clients = {}
+        self._provider_disabled_until = {}
+        self._provider_failures = {}
+
+        agent_cfg = self.config.get("ai_agent", {})
+        provider_key = agent_cfg.get("provider", "nvidia")
+
+        # Initialize clients for all available providers
+        for p_key, p_cfg in PROVIDERS.items():
+            if p_key == "auto":
+                continue
+            c, vc = self._build_single_client(p_key, p_cfg, agent_cfg)
+            if c:
+                self.all_clients[p_key] = {
+                    "client": c,
+                    "vision_client": vc,
+                    "config": p_cfg,
+                    "default_model": p_cfg.get("default_model")
+                }
+                logger.info(f"Initialized AI client for provider: {p_cfg.get('label')}")
+
+        if provider_key == "auto":
+            if self.all_clients:
+                first_key = list(self.all_clients.keys())[0]
+                self.client = self.all_clients[first_key]["client"]
+                self.vision_client = self.all_clients[first_key]["vision_client"]
+                self.provider_type = "openai"
+                self._online = True
+                logger.info(f"⚡ Auto Mode active! Active provider pool: {list(self.all_clients.keys())}")
+            else:
+                logger.warning("⚡ Auto Mode active, but no valid API keys found across any provider!")
                 self.client = None
                 self.vision_client = None
-                self._online = False # Treat as offline if API fails
+                self._online = False
         else:
-            logger.warning(f"No valid {env_key_name} found. Agentic AI will run in local-only mode.")
-            self.client = None
-            self._online = False # Treat as offline if no key
+            if provider_key in self.all_clients:
+                self.client = self.all_clients[provider_key]["client"]
+                self.vision_client = self.all_clients[provider_key]["vision_client"]
+                self.provider_type = "openai"
+                self._online = True
+            else:
+                p_cfg = PROVIDERS.get(provider_key, PROVIDERS.get("nvidia"))
+                c, vc = self._build_single_client(provider_key, p_cfg, agent_cfg)
+                self.client = c
+                self.vision_client = vc
+                self.provider_type = "openai"
+                self._online = (c is not None)
+
+    def _get_provider_candidates(self, provider_key, requested_model):
+        """Return list of (provider_key, client, model_id) candidates for execution."""
+        from core.ai_providers import PROVIDERS
+        if provider_key == "auto" or requested_model == "auto":
+            candidates = []
+            priority_order = ["nvidia", "gemini", "deepseek", "kimi"]
+            now = time.time()
+            for p_key in priority_order:
+                if p_key in self.all_clients:
+                    if now < self._provider_disabled_until.get(p_key, 0):
+                        continue
+                    c_info = self.all_clients[p_key]
+                    candidates.append((p_key, c_info["client"], c_info["default_model"]))
+            
+            # Fallback if all candidates are temporarily disabled: add them back
+            if not candidates and self.all_clients:
+                for p_key in priority_order:
+                    if p_key in self.all_clients:
+                        c_info = self.all_clients[p_key]
+                        candidates.append((p_key, c_info["client"], c_info["default_model"]))
+            return candidates
+        else:
+            p_client = self.client
+            p_model = requested_model
+            if not p_client and provider_key in self.all_clients:
+                p_client = self.all_clients[provider_key]["client"]
+            return [(provider_key, p_client, p_model)]
 
     def _create_chat_completion(self, client, model_id, messages, temperature=0.7, max_tokens=4096, stream=False, timeout=60.0, is_vision=False):
         """Unified wrapper for OpenAI-compatible completion creation."""
@@ -1860,132 +1919,124 @@ class GameBrain:
             else:
                 prompt = anonymize_text(prompt)
 
-        if not self.client:
+        if not self.client and not self.all_clients:
             return None
 
         with self._chat_lock:
-            # Circuit Breaker
-            now = time.time()
-            if self._chat_failures >= 3:
-                if now < self._chat_disabled_until:
-                    return None
-                else:
-                    self._chat_failures = 0
-
             agent_cfg = self.config.get("ai_agent", {})
-            # Use override if provided, else fall back to config/defaults
+            provider_key = agent_cfg.get("provider", "nvidia")
+            
             if model_override:
                 model_id = model_override
             else:
                 task = "strategic"  # Default for general chat
                 model_id = agent_cfg.get(f"{task}_model") or agent_cfg.get("model_id") or self.task_models.get(task)
             
-            try:
-                # We use non-streaming here for simpler integration into the pipeline, 
-                # but we could adapt for streaming if needed in the UI.
-                import copy
-                if isinstance(prompt, list):
-                    messages = copy.deepcopy(prompt)
-                else:
-                    messages = []
-                    if system_instruction:
-                        messages.append({"role": "system", "content": system_instruction})
-                    messages.append({"role": "user", "content": prompt})
-
-                # Model-specific system instruction tuning
-                m_lower = model_id.lower()
-                sys_addition = ""
-                if "nemotron" in m_lower:
-                    sys_addition = "\n\n[MODEL OVERRIDE: NEMOTRON] Ensure your response is highly analytical, tactical, and concise. Prioritize system optimization data and avoid unnecessary conversational fluff."
-                elif "phi" in m_lower:
-                    sys_addition = "\n\n[MODEL OVERRIDE: PHI] Provide a highly condensed, ultra-fast summary. Keep your output short and direct."
-                elif "mistral" in m_lower:
-                    sys_addition = "\n\n[MODEL OVERRIDE: MISTRAL] Focus on step-by-step logic. Provide clear, well-structured, and direct answers without filler."
-                
-                if sys_addition:
-                    has_sys = False
-                    for m in messages:
-                        if m.get("role") == "system":
-                            m["content"] = str(m.get("content", "")) + sys_addition
-                            has_sys = True
-                            break
-                    if not has_sys:
-                        messages.insert(0, {"role": "system", "content": sys_addition})
-
-                # Define model-specific parameter overrides to prevent token limits (NIM 400 Bad Request)
-                model_max_tokens = 4096
-                if "phi-3" in m_lower or "4k" in m_lower:
-                    model_max_tokens = 1024
-                elif "mistral" in m_lower:
-                    model_max_tokens = 1024
-                elif "nemotron" in m_lower:
-                    model_max_tokens = 1024
-
-                completion = self._create_chat_completion(
-                    client=self.client,
-                    model_id=model_id,
-                    messages=messages,
-                    temperature=temperature,
-                    max_tokens=model_max_tokens,
-                    stream=stream,
-                    timeout=60.0
-                )
-                
-                self._chat_failures = 0 # Reset on success
-                if stream:
-                    def generate():
-                        try:
-                            for chunk in completion:
-                                try:
-                                    if isinstance(chunk, str):
-                                        yield chunk
-                                        continue
-                                    choices = getattr(chunk, "choices", None) if not isinstance(chunk, dict) else chunk.get("choices")
-                                    if not choices or not isinstance(choices, (list, tuple)) or len(choices) == 0:
-                                        continue
-                                    content = extract_choice_content(choices[0])
-                                    if content:
-                                        yield content
-                                except (IndexError, AttributeError, TypeError, Exception):
-                                    # Malformed/empty chunk from NIM stream — skip silently
-                                    continue
-                        except Exception as stream_err:
-                            logger.warning(f"NIM stream interrupted: {stream_err}")
-                            return
-                    return generate()
-                else:
-                    choices = getattr(completion, "choices", None) if not isinstance(completion, dict) else completion.get("choices")
-                    if not choices or not isinstance(choices, (list, tuple)) or len(choices) == 0:
-                        logger.warning("NVIDIA NIM returned empty choices list. Falling back to local response.")
-                        return None
-                    advice = extract_choice_content(choices[0])
-                    return advice
-                
-            except Exception as e:
-                error_text = str(e).lower()
-                logger.error(f"Neural link API query failed: {e}")
-                
-                if "429" in error_text or "too many requests" in error_text:
-                    self._chat_failures += 1
-                    wait_time = 30 * self._chat_failures # Exponential-ish backoff
-                    self._chat_disabled_until = time.time() + wait_time
-                    logger.warning(f"Neural link Rate Limited (429). Disabling for {wait_time}s.")
-                elif "403" in error_text or "401" in error_text or "authorization failed" in error_text:
-                    self.client = None
-                    logger.warning("Disabling Neural link for this session after auth failure; falling back to local rules.")
-                elif "timeout" in error_text or "readtimeout" in error_text:
-                    logger.warning(f"Neural link Timeout! The AI context is massive and took too long (>120s). Not tripping circuit breaker.")
-                else:
-                    self._chat_failures += 1
-                    if self._chat_failures >= 3:
-                        logger.error(f"Neural link failed 3 times! Tripping circuit breaker for 60s. Last error: {e}")
-                        self._chat_disabled_until = time.time() + 60
-                        
-                if stream:
-                    def error_gen():
-                        yield f"Neural link API error: {e}"
-                    return error_gen()
+            candidates = self._get_provider_candidates(provider_key, model_id)
+            if not candidates:
+                logger.warning("No active AI provider candidates available for query.")
                 return None
+
+            last_error = None
+            for p_key, candidate_client, candidate_model in candidates:
+                if not candidate_client:
+                    continue
+                try:
+                    import copy
+                    if isinstance(prompt, list):
+                        messages = copy.deepcopy(prompt)
+                    else:
+                        messages = []
+                        if system_instruction:
+                            messages.append({"role": "system", "content": system_instruction})
+                        messages.append({"role": "user", "content": prompt})
+
+                    m_lower = candidate_model.lower()
+                    sys_addition = ""
+                    if "nemotron" in m_lower:
+                        sys_addition = "\n\n[MODEL OVERRIDE: NEMOTRON] Ensure your response is highly analytical, tactical, and concise. Prioritize system optimization data and avoid unnecessary conversational fluff."
+                    elif "phi" in m_lower:
+                        sys_addition = "\n\n[MODEL OVERRIDE: PHI] Provide a highly condensed, ultra-fast summary. Keep your output short and direct."
+                    elif "mistral" in m_lower:
+                        sys_addition = "\n\n[MODEL OVERRIDE: MISTRAL] Focus on step-by-step logic. Provide clear, well-structured, and direct answers without filler."
+                    
+                    if sys_addition:
+                        has_sys = False
+                        for m in messages:
+                            if m.get("role") == "system":
+                                m["content"] = str(m.get("content", "")) + sys_addition
+                                has_sys = True
+                                break
+                        if not has_sys:
+                            messages.insert(0, {"role": "system", "content": sys_addition})
+
+                    model_max_tokens = 4096
+                    if "phi-3" in m_lower or "4k" in m_lower or "mistral" in m_lower or "nemotron" in m_lower:
+                        model_max_tokens = 1024
+
+                    logger.info(f"Executing query via Provider '{p_key}' (Model: {candidate_model})")
+                    completion = self._create_chat_completion(
+                        client=candidate_client,
+                        model_id=candidate_model,
+                        messages=messages,
+                        temperature=temperature,
+                        max_tokens=model_max_tokens,
+                        stream=stream,
+                        timeout=60.0
+                    )
+                    
+                    self._chat_failures = 0 # Reset on success
+                    if stream:
+                        def generate():
+                            try:
+                                for chunk in completion:
+                                    try:
+                                        if isinstance(chunk, str):
+                                            yield chunk
+                                            continue
+                                        choices = getattr(chunk, "choices", None) if not isinstance(chunk, dict) else chunk.get("choices")
+                                        if not choices or not isinstance(choices, (list, tuple)) or len(choices) == 0:
+                                            continue
+                                        content = extract_choice_content(choices[0])
+                                        if content:
+                                            yield content
+                                    except (IndexError, AttributeError, TypeError, Exception):
+                                        continue
+                            except Exception as stream_err:
+                                logger.warning(f"AI stream ({p_key}) interrupted: {stream_err}")
+                                return
+                        return generate()
+                    else:
+                        choices = getattr(completion, "choices", None) if not isinstance(completion, dict) else completion.get("choices")
+                        if not choices or not isinstance(choices, (list, tuple)) or len(choices) == 0:
+                            logger.warning(f"Provider '{p_key}' returned empty choices list. Trying next provider...")
+                            continue
+                        advice = extract_choice_content(choices[0])
+                        return advice
+                    
+                except Exception as e:
+                    last_error = e
+                    error_text = str(e).lower()
+                    logger.warning(f"Provider '{p_key}' query failed: {e}")
+                    
+                    if "429" in error_text or "too many requests" in error_text:
+                        self._provider_disabled_until[p_key] = time.time() + 60
+                        logger.warning(f"⚡ Auto Failover: Provider '{p_key}' rate limited (429). Temporarily disabling for 60s and trying next candidate.")
+                    elif "403" in error_text or "401" in error_text or "authorization failed" in error_text:
+                        self._provider_disabled_until[p_key] = time.time() + 300
+                        logger.warning(f"Provider '{p_key}' authentication failed. Disabling for 5m.")
+                    elif "timeout" in error_text or "readtimeout" in error_text:
+                        logger.warning(f"Provider '{p_key}' timed out. Trying next candidate...")
+                    else:
+                        self._provider_disabled_until[p_key] = time.time() + 30
+
+            # If all candidates fail:
+            logger.error(f"All provider candidates failed. Last error: {last_error}")
+            if stream:
+                def error_gen():
+                    yield f"Neural link API error: All providers rate limited or unavailable ({last_error})"
+                return error_gen()
+            return None
 
     def _query_vision_nim(self, image_b64):
         """

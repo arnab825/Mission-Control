@@ -2,6 +2,12 @@
 
 This document contains a detailed history of all patches and updates for the AI Gaming Assistant.
 
+### Patch: 2026-07-31 — v2.7.8: Auto Provider Failover & Fixes
+
+- Added Auto Mode with dynamic rate-limit load balancing
+- Fixed IndentationError in decision_maker.py
+- Unified Gemini with OpenAI-compatible API endpoint
+
 ### Patch: 2026-07-31 — v2.7.8: Fix Backend Indentation Syntax Error
 
 - Fixed IndentationError in decision_maker.py

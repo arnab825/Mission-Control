@@ -364,6 +364,7 @@ const OCR_ENGINE_OPTIONS = [
 ];
 
 const AI_PROVIDER_OPTIONS = [
+  { value: 'auto', label: '⚡ Auto (Smart Failover & Balancing)' },
   { value: 'nvidia', label: 'NVIDIA NIM' },
   { value: 'gemini', label: 'Google Gemini' },
   { value: 'kimi', label: 'Moonshot (Kimi)' },
@@ -780,7 +781,11 @@ const SettingsPage: React.FC<{ state: TelemetryState | null, sendCommand: (type:
     const provider = localConfig?.ai_agent?.provider || 'nvidia';
     let options = AI_NEURAL_BACKBONE_OPTIONS;
 
-    if (provider === 'gemini') {
+    if (provider === 'auto') {
+      options = [
+        { value: 'auto', label: '⚡ Auto Selected · Dynamic Failover & Balancing', group: 'Auto Routing', isMono: true }
+      ];
+    } else if (provider === 'gemini') {
       options = [
         { value: 'gemini-1.5-flash', label: 'Gemini 1.5 Flash', group: 'Google GenAI', isMono: true },
         { value: 'gemini-1.5-pro', label: 'Gemini 1.5 Pro', group: 'Google GenAI', isMono: true },
