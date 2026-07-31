@@ -2,6 +2,18 @@
 
 This document contains a detailed history of all patches and updates for the AI Gaming Assistant.
 
+### Patch: 2026-07-31 — v2.7.9: Free Provider Expansion & Cleanup
+
+- Added Groq and OpenRouter 100% free AI providers
+- Removed Kimi and DeepSeek paid provider dependencies
+- Updated Auto Mode routing to prioritize free high-speed models
+
+### Patch: 2026-07-31 — v2.7.9: Free Provider Integration & Cleanups
+
+- Added Groq and OpenRouter 100% free providers
+- Removed Kimi and DeepSeek paid providers
+- Fixed Gemini 404 error by updating to gemini-flash-latest
+
 ### Patch: 2026-07-31 — v2.7.8: Auto Provider Failover & Fixes
 
 - Added Auto Mode with dynamic rate-limit load balancing
