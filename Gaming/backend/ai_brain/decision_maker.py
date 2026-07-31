@@ -362,49 +362,49 @@ class GameBrain:
                 base_url = agent_cfg.get("endpoint_url") or os.environ.get(f"{provider_key.upper()}_ENDPOINT_URL") or provider_config.get("base_url")
                 vision_url = agent_cfg.get("vision_endpoint_url") or os.environ.get(f"{provider_key.upper()}_VISION_ENDPOINT_URL") or base_url
                     
-                    needs_insecure_fallback = False
-                    if sys.platform == "win32" and not getattr(sys, "frozen", False) and agent_cfg.get("insecure_tls_windows_fallback", True):
-                        try:
-                            import subprocess
-                            code = (
-                                "import sys\n"
-                                "import ssl\n"
-                                "try:\n"
-                                "    ctx = ssl.create_default_context()\n"
-                                "    ctx.load_default_certs()\n"
-                                "    sys.exit(0)\n"
-                                "except Exception:\n"
-                                "    sys.exit(0)\n"
-                            )
-                            result = subprocess.run(
-                                [sys.executable, "-c", code],
-                                capture_output=True,
-                                timeout=1.5,
-                                creationflags=0x08000000
-                            )
-                            needs_insecure_fallback = (result.returncode != 0)
-                        except Exception:
-                            needs_insecure_fallback = True
+                needs_insecure_fallback = False
+                if sys.platform == "win32" and not getattr(sys, "frozen", False) and agent_cfg.get("insecure_tls_windows_fallback", True):
+                    try:
+                        import subprocess
+                        code = (
+                            "import sys\n"
+                            "import ssl\n"
+                            "try:\n"
+                            "    ctx = ssl.create_default_context()\n"
+                            "    ctx.load_default_certs()\n"
+                            "    sys.exit(0)\n"
+                            "except Exception:\n"
+                            "    sys.exit(0)\n"
+                        )
+                        result = subprocess.run(
+                            [sys.executable, "-c", code],
+                            capture_output=True,
+                            timeout=1.5,
+                            creationflags=0x08000000
+                        )
+                        needs_insecure_fallback = (result.returncode != 0)
+                    except Exception:
+                        needs_insecure_fallback = True
 
-                    use_insecure_tls = (
-                        sys.platform == "win32"
-                        and needs_insecure_fallback
-                        and not self.config.get("privacy", {}).get("enabled", False)
+                use_insecure_tls = (
+                    sys.platform == "win32"
+                    and needs_insecure_fallback
+                    and not self.config.get("privacy", {}).get("enabled", False)
+                )
+                if use_insecure_tls:
+                    logger.warning(
+                        f"Using insecure TLS fallback for {provider_config['label']} on Windows due to OpenSSL runtime mismatch."
                     )
-                    if use_insecure_tls:
-                        logger.warning(
-                            f"Using insecure TLS fallback for {provider_config['label']} on Windows due to OpenSSL runtime mismatch."
-                        )
-                        chat_http = httpx.Client(verify=False, timeout=120.0)
-                        vision_http = httpx.Client(verify=False, timeout=120.0)
-                        self.client = OpenAI(base_url=base_url, api_key=api_key, http_client=chat_http, max_retries=1, timeout=120.0)
-                        self.vision_client = OpenAI(
-                            base_url=vision_url, api_key=api_key, http_client=vision_http, max_retries=1, timeout=120.0
-                        )
-                    else:
-                        self.client = OpenAI(base_url=base_url, api_key=api_key, max_retries=1, timeout=120.0)
-                        self.vision_client = OpenAI(base_url=vision_url, api_key=api_key, max_retries=1, timeout=120.0)
-                    logger.info(f"{provider_config['label']} clients initialized (Chat: {base_url}, Vision: {vision_url})")
+                    chat_http = httpx.Client(verify=False, timeout=120.0)
+                    vision_http = httpx.Client(verify=False, timeout=120.0)
+                    self.client = OpenAI(base_url=base_url, api_key=api_key, http_client=chat_http, max_retries=1, timeout=120.0)
+                    self.vision_client = OpenAI(
+                        base_url=vision_url, api_key=api_key, http_client=vision_http, max_retries=1, timeout=120.0
+                    )
+                else:
+                    self.client = OpenAI(base_url=base_url, api_key=api_key, max_retries=1, timeout=120.0)
+                    self.vision_client = OpenAI(base_url=vision_url, api_key=api_key, max_retries=1, timeout=120.0)
+                logger.info(f"{provider_config['label']} clients initialized (Chat: {base_url}, Vision: {vision_url})")
             except Exception as e:
                 logger.error(f"Failed to initialize {provider_config['label']} clients: {e}")
                 self.client = None
