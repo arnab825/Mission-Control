@@ -625,6 +625,18 @@ const AgentPage: React.FC<{
   const [isVerifyModalOpen, setIsVerifyModalOpen] = useState(false);
   const [isGeneratingKeys, setIsGeneratingKeys] = useState(false);
   const [secKeys, setSecKeys] = useState<string[]>([]);
+  const [localPrivacyEnabled, setLocalPrivacyEnabled] = useState<boolean | null>(null);
+  
+  const isPrivacyEnabled = localPrivacyEnabled !== null
+    ? localPrivacyEnabled
+    : (state?.config?.privacy?.enabled ?? false);
+
+  useEffect(() => {
+    if (state?.config?.privacy?.enabled !== undefined) {
+      setLocalPrivacyEnabled(state.config.privacy.enabled);
+    }
+  }, [state?.config?.privacy?.enabled]);
+
   const [configLoaded, setConfigLoaded] = useState(false);
   const configRequestTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const lastConfigRequestRef = useRef<number>(0);
@@ -1387,8 +1399,9 @@ const AgentPage: React.FC<{
   };
 
   const handleToggleEncryption = () => {
-    const currentState = state?.config?.privacy?.enabled ?? false;
-    const newState = !currentState;
+    const newState = !isPrivacyEnabled;
+    setLocalPrivacyEnabled(newState);
+    setIsGeneratingKeys(true);
     onCommand('update_config', {
       privacy: {
         enabled: newState,
@@ -1558,11 +1571,11 @@ const AgentPage: React.FC<{
           </div>
           <div className="flex items-center gap-1.5 sm:gap-2 shrink-0" style={{ WebkitAppRegion: 'no-drag' } as any}>
 
-            {state?.config?.privacy?.enabled ? (
+            {isPrivacyEnabled ? (
               <button aria-label="button" type="button"
                 onClick={() => {
                   if (isPopup) {
-                    onCommand('update_config', { privacy: { ...state?.config?.privacy, enabled: false } });
+                    handleToggleEncryption();
                   } else {
                     setIsVerifyModalOpen(true);
                   }
@@ -1582,7 +1595,7 @@ const AgentPage: React.FC<{
               <button aria-label="button" type="button"
                 onClick={() => {
                   if (isPopup) {
-                    onCommand('update_config', { privacy: { ...state?.config?.privacy, enabled: true } });
+                    handleToggleEncryption();
                   } else {
                     setIsVerifyModalOpen(true);
                   }
@@ -1945,7 +1958,7 @@ const AgentPage: React.FC<{
                 <div className={`w-10 h-10 rounded-xl mx-auto flex items-center justify-center border mb-2 transition-all duration-500 ${
                   isGeneratingKeys
                     ? 'bg-neon-green/5 border-neon-green/20 text-neon-green animate-pulse'
-                    : state?.config?.privacy?.enabled
+                    : isPrivacyEnabled
                       ? 'bg-neon-yellow/5 border-neon-yellow/20 text-neon-yellow shadow-[0_0_20px_rgba(191, 255, 0,0.15)] animate-bounce'
                       : 'bg-red-500/5 border-red-500/25 text-red-400 shadow-[0_0_16px_rgba(239,68,68,0.12)]'
                 }`}>
@@ -1957,7 +1970,7 @@ const AgentPage: React.FC<{
 
               {/* Holographic QR Code Area / Scanner */}
               <div className={`relative w-28 h-28 mx-auto mb-4 bg-black/40 border rounded-xl flex items-center justify-center overflow-hidden transition-all duration-500 ${
-                state?.config?.privacy?.enabled ? 'border-neon-yellow/15' : 'border-red-500/20'
+                isPrivacyEnabled ? 'border-neon-yellow/15' : 'border-red-500/20'
               }`}>
                 {/* Dots Matrix */}
                 <div className="grid grid-cols-12 gap-1 opacity-25">
@@ -1969,7 +1982,7 @@ const AgentPage: React.FC<{
                         className={`w-1 h-1 rounded-sm transition-all duration-300 ${
                           isGeneratingKeys
                             ? isFilled ? 'bg-neon-green' : 'bg-zinc-800'
-                            : state?.config?.privacy?.enabled
+                            : isPrivacyEnabled
                               ? isFilled ? 'bg-neon-yellow' : 'bg-zinc-800'
                               : isFilled ? 'bg-red-500/60' : 'bg-zinc-800'
                         }`}
@@ -1979,7 +1992,7 @@ const AgentPage: React.FC<{
                 </div>
 
                 {/* Cyber Scanner Line — only shown while generating or when encrypted */}
-                {(isGeneratingKeys || state?.config?.privacy?.enabled) && (
+                {(isGeneratingKeys || isPrivacyEnabled) && (
                   <motion.div
                     animate={{ top: ['0%', '100%', '0%'] }}
                     transition={{ duration: 3, repeat: Infinity, ease: 'easeInOut' }}
@@ -1990,7 +2003,7 @@ const AgentPage: React.FC<{
                 )}
 
                 {/* SUCCESS OVERLAY — shown when encryption is active and keys are settled */}
-                {!isGeneratingKeys && state?.config?.privacy?.enabled && (
+                {!isGeneratingKeys && isPrivacyEnabled && (
                   <motion.div
                     initial={{ opacity: 0, scale: 0.7 }}
                     animate={{ opacity: 1, scale: 1 }}
@@ -2011,7 +2024,7 @@ const AgentPage: React.FC<{
                 )}
 
                 {/* WARNING OVERLAY — shown when encryption is disabled */}
-                {!isGeneratingKeys && !state?.config?.privacy?.enabled && (
+                {!isGeneratingKeys && !isPrivacyEnabled && (
                   <motion.div
                     initial={{ opacity: 0, scale: 0.7 }}
                     animate={{ opacity: 1, scale: 1 }}
@@ -2041,8 +2054,8 @@ const AgentPage: React.FC<{
                   </div>
                   <div className="flex items-center justify-between text-[8px] font-mono">
                     <span className="text-zinc-500">STATE:</span>
-                    <span className={isGeneratingKeys ? 'text-neon-green animate-pulse' : state?.config?.privacy?.enabled ? 'text-neon-yellow' : 'text-red-400 animate-pulse'}>
-                      {isGeneratingKeys ? 'SYNCHRONIZING...' : state?.config?.privacy?.enabled ? 'SECURE LINK' : 'UNPROTECTED'}
+                    <span className={isGeneratingKeys ? 'text-neon-green animate-pulse' : isPrivacyEnabled ? 'text-neon-yellow' : 'text-red-400 animate-pulse'}>
+                      {isGeneratingKeys ? 'SYNCHRONIZING...' : isPrivacyEnabled ? 'SECURE LINK' : 'UNPROTECTED'}
                     </span>
                   </div>
                 </div>
@@ -2054,11 +2067,11 @@ const AgentPage: React.FC<{
                   <span className="text-[8px] font-black text-zinc-500 uppercase tracking-wider">Motherboard & Session Bindings</span>
                   {!isGeneratingKeys && (
                     <span className={`text-[7px] font-bold uppercase tracking-wider px-1.5 py-0.5 rounded-full border ${
-                      state?.config?.privacy?.enabled
+                      isPrivacyEnabled
                         ? 'text-neon-yellow border-neon-yellow/20 bg-neon-yellow/5'
                         : 'text-red-400 border-red-500/20 bg-red-500/5'
                     }`}>
-                      {state?.config?.privacy?.enabled ? '● Active' : '● Redacted'}
+                      {isPrivacyEnabled ? '● Active' : '● Redacted'}
                     </span>
                   )}
                 </div>
@@ -2069,12 +2082,12 @@ const AgentPage: React.FC<{
                       className={`py-1.5 px-0.5 text-center rounded-lg font-mono text-[9px] font-bold border transition-all duration-300 ${
                         isGeneratingKeys
                           ? 'bg-neon-green/2 border-neon-green/10 text-neon-green/70 scale-95 opacity-50'
-                          : state?.config?.privacy?.enabled
+                          : isPrivacyEnabled
                             ? 'bg-neon-yellow/2 border-neon-yellow/10 text-neon-yellow shadow-[inset_0_0_8px_rgba(191, 255, 0,0.02)] scale-100 opacity-100'
                             : 'bg-red-500/2 border-red-500/10 text-red-500/40 scale-100 opacity-70 tracking-[0.3em]'
                       }`}
                     >
-                      {state?.config?.privacy?.enabled ? key : '--'}
+                      {isPrivacyEnabled ? key : '--'}
                     </div>
                   ))}
                 </div>
@@ -2088,13 +2101,13 @@ const AgentPage: React.FC<{
               {/* Encryption Toggle Button */}
               <button aria-label="button" type="button"
                 onClick={handleToggleEncryption}
-                className={`w-full py-2 px-3 rounded-xl border font-bold text-[10px] uppercase tracking-widest transition-all active:scale-95 flex items-center justify-center gap-2 ${
-                  state?.config?.privacy?.enabled
+                className={`w-full py-2 px-3 rounded-xl border font-bold text-[10px] uppercase tracking-widest transition-all active:scale-95 flex items-center justify-center gap-2 cursor-pointer ${
+                  isPrivacyEnabled
                     ? 'bg-neon-yellow/10 border-neon-yellow/20 text-neon-yellow hover:bg-neon-yellow/15 hover:border-neon-yellow/30 shadow-[0_0_12px_rgba(191, 255, 0,0.1)]'
                     : 'bg-red-500/10 border-red-500/25 text-red-400 hover:bg-red-500/15 hover:border-red-500/35 shadow-[0_0_14px_rgba(239,68,68,0.12)]'
                 }`}
               >
-                {state?.config?.privacy?.enabled ? (
+                {isPrivacyEnabled ? (
                   <>
                     <span>🔒</span>
                     <span>Disable E2E Encryption</span>
