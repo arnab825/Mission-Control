@@ -368,9 +368,7 @@ const AI_PROVIDER_OPTIONS = [
   { value: 'groq', label: '⚡ Groq (100% Free · Ultra Fast)' },
   { value: 'nvidia', label: 'NVIDIA NIM (Free Credits)' },
   { value: 'gemini', label: 'Google Gemini (100% Free)' },
-  { value: 'openrouter', label: 'OpenRouter (Free Tier)' },
-  { value: 'kimi', label: 'Moonshot (Kimi)' },
-  { value: 'deepseek', label: 'DeepSeek' }
+  { value: 'openrouter', label: 'OpenRouter (Free Tier)' }
 ];
 
 const AI_NEURAL_BACKBONE_OPTIONS = [
@@ -792,17 +790,6 @@ const SettingsPage: React.FC<{ state: TelemetryState | null, sendCommand: (type:
         { value: 'gemini-flash-latest', label: 'Gemini Flash (Latest)', group: 'Google GenAI', isMono: true },
         { value: 'gemini-3.6-flash', label: 'Gemini 3.6 Flash', group: 'Google GenAI', isMono: true },
         { value: 'gemini-2.0-flash', label: 'Gemini 2.0 Flash', group: 'Google GenAI', isMono: true }
-      ];
-    } else if (provider === 'kimi') {
-      options = [
-        { value: 'moonshot-v1-8k', label: 'Moonshot v1 8K', group: 'Moonshot', isMono: true },
-        { value: 'moonshot-v1-32k', label: 'Moonshot v1 32K', group: 'Moonshot', isMono: true },
-        { value: 'moonshot-v1-128k', label: 'Moonshot v1 128K', group: 'Moonshot', isMono: true }
-      ];
-    } else if (provider === 'deepseek') {
-      options = [
-        { value: 'deepseek-chat', label: 'DeepSeek Chat (V3)', group: 'DeepSeek', isMono: true },
-        { value: 'deepseek-reasoner', label: 'DeepSeek Reasoner (R1)', group: 'DeepSeek', isMono: true }
       ];
     } else if (provider === 'groq') {
       options = [
