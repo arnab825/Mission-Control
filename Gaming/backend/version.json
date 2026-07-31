@@ -1,8 +1,16 @@
 {
-  "version": "2.7.7",
+  "version": "2.7.8",
   "release_date": "2026-07-30",
   "update_check_url": "https://raw.githubusercontent.com/arnab825/Mission-Control/main/Gaming/backend/version.json",
   "changelog": [
+    {
+      "version": "2.7.8",
+      "date": "2026-07-31",
+      "title": "Fix Backend Indentation Syntax Error",
+      "highlights": [
+        "Fixed IndentationError in decision_maker.py"
+      ]
+    },
     {
       "version": "2.7.7",
       "date": "2026-07-31",
@@ -470,17 +478,6 @@
       "title": "Release v2.3.6",
       "highlights": [
         "Version sync fix"
-      ]
-    },
-    {
-      "version": "2.3.6",
-      "date": "2026-07-23",
-      "title": "Fix WebSocket bridge connection deadlock, process lock race condition, and env search path priority",
-      "highlights": [
-        "Fix WebSocket bridge connection deadlock when broadcasting telemetry and Vision frames",
-        "Fix process lock file race condition on Windows startup",
-        "Fix .env search path priority and multi-file cascade loading",
-        "Fix Windows Settings Installed Apps display name and appId registration"
       ]
     }
   ]
