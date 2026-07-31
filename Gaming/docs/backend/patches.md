@@ -2,6 +2,12 @@
 
 This document contains a detailed history of all patches and updates for the AI Gaming Assistant.
 
+### Patch: 2026-07-31 — v2.7.7: Unified Provider Endpoints & Error Handling
+
+- Unified Gemini with OpenAI-compatible API endpoint
+- Removed Google GenAI SDK translator overhead
+- Increased timeout for massive context handling
+
 ### Patch: 2026-07-30 — v2.7.6: Agent Logic Fixes
 
 - Fixed UI permanently locking up if an active session is deleted

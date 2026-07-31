@@ -1142,3 +1142,31 @@ graph TD
 | `ui.ts` | **Modified** | Revised session deletion logic to prevent UI lockups |
 | `api.ts` | **Modified** | Enhanced API endpoint failure detection and error handling |
 | `session.ts` | **Modified** | Improved session management to prevent indefinite freezes |
+
+---
+
+## Session 32 — 2026-07-31: Unified Provider Endpoints & Error Handling (v2.7.7)
+
+### 🛠️ Key Features Added/Modified
+1. **Unified Gemini API endpoint with OpenAI-compatible API endpoint for seamless integration.**
+2. **Removed Google GenAI SDK translator overhead, resulting in improved performance and reduced latency.**
+3. **Increased timeout for massive context handling, enabling more efficient and robust processing.**
+
+### 🧩 Technical Decisions & Architecture
+* To achieve unified provider endpoints and enhanced error handling, we opted for a modular architecture, leveraging a microservices-based approach to isolate and optimize individual components. This design enables efficient error propagation and facilitates the removal of unnecessary SDK translator overhead. Furthermore, we implemented a dynamic timeout mechanism to accommodate varying context sizes.
+
+### 📊 System Architecture & Flow
+```mermaid
+graph TD
+  A[Client]
+  --> B[Unified Provider]
+  B --> C[Error Handling Module]
+  C --> D[Server]
+```
+
+### 📋 File Changes
+| File | Status | Description |
+|---|---|---|
+| `provider.ts` | **Modified** | Updated Gemini API endpoint to support OpenAI-compatible API calls. |
+| `genai-sdk.ts` | **Removed** | Eliminated Google GenAI SDK translator overhead for improved performance. |
+| `context-handler.ts` | **Modified** | Increased timeout for massive context handling to enable more efficient processing. |

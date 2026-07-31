@@ -10,7 +10,8 @@ PROVIDERS = {
     },
     "gemini": {
         "label": "Google Gemini",
-        "client_type": "google",
+        "client_type": "openai",
+        "base_url": "https://generativelanguage.googleapis.com/v1beta/openai/",
         "env_key": "GEMINI_API_KEY",
         "default_model": "gemini-1.5-flash"
     },
