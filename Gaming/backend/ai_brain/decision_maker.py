@@ -451,7 +451,7 @@ class GameBrain:
         from core.ai_providers import PROVIDERS
         if provider_key == "auto" or requested_model == "auto":
             candidates = []
-            priority_order = ["groq", "nvidia", "gemini", "openrouter", "deepseek", "kimi"]
+            priority_order = ["groq", "nvidia", "gemini", "openrouter"]
             now = time.time()
             for p_key in priority_order:
                 if p_key in self.all_clients:

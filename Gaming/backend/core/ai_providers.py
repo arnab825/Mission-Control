@@ -21,20 +21,6 @@ PROVIDERS = {
         "env_key": "GEMINI_API_KEY",
         "default_model": "gemini-flash-latest"
     },
-    "kimi": {
-        "label": "Moonshot (Kimi)",
-        "client_type": "openai",
-        "base_url": "https://api.moonshot.cn/v1",
-        "env_key": "MOONSHOT_API_KEY",
-        "default_model": "moonshot-v1-8k"
-    },
-    "deepseek": {
-        "label": "DeepSeek",
-        "client_type": "openai",
-        "base_url": "https://api.deepseek.com",
-        "env_key": "DEEPSEEK_API_KEY",
-        "default_model": "deepseek-chat"
-    },
     "groq": {
         "label": "Groq (Lightning Fast)",
         "client_type": "openai",
