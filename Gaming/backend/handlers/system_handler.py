@@ -659,10 +659,11 @@ def check_installed_models() -> dict:
         fp = models_dir / info["filename"]
         dev_fp = dev_dir / info["filename"]
         root_fp = Path(__file__).resolve().parent.parent / info["filename"]
+        expected_bytes = info.get("size_mb", 0) * 1024 * 1024 * 0.95
         installed[model_id] = (
-            (fp.exists() and fp.stat().st_size > 1000) or
-            (dev_fp.exists() and dev_fp.stat().st_size > 1000) or
-            (root_fp.exists() and root_fp.stat().st_size > 1000)
+            (fp.exists() and fp.stat().st_size >= expected_bytes) or
+            (dev_fp.exists() and dev_fp.stat().st_size >= expected_bytes) or
+            (root_fp.exists() and root_fp.stat().st_size >= expected_bytes)
         )
     return installed
 
@@ -680,6 +681,8 @@ def handle_download_ai_model(payload: dict, pipeline, bridge, config) -> None:
         try:
             models_dir = get_models_dir()
             target_path = models_dir / info["filename"]
+
+            tmp_target_path = target_path.with_suffix('.tmp')
 
             bridge.update_state({
                 "installed_models": check_installed_models(),
@@ -710,7 +713,7 @@ def handle_download_ai_model(payload: dict, pipeline, bridge, config) -> None:
                 block_size = 65536
                 last_update = 0
 
-                with open(target_path, "wb") as out_file:
+                with open(tmp_target_path, "wb") as out_file:
                     for chunk in response.iter_content(chunk_size=block_size):
                         if not chunk:
                             continue
@@ -736,6 +739,9 @@ def handle_download_ai_model(payload: dict, pipeline, bridge, config) -> None:
                                     "message": f"Downloading {info['name']} ({dl_mb}/{tot_mb} MB · {speed} MB/s)"
                                 }
                             })
+                            
+            # Atomically replace old/corrupted file
+            tmp_target_path.replace(target_path)
 
             logger.info("Successfully downloaded AI model %s to %s", model_id, target_path)
             bridge.update_state({

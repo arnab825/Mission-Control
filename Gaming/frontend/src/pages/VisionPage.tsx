@@ -634,7 +634,7 @@ const VisionPage: React.FC<VisionPageProps> = ({ state, sendCommand }) => {
                 On-Demand AI Model Weights
               </span>
               <span className="text-[9px] text-zinc-500 font-mono">
-                Manual install required. Download and extract to <b>Gaming/backend/models</b>
+                One-click download directly to <b>Gaming/backend/models</b>
               </span>
             </div>
 
@@ -721,15 +721,21 @@ const VisionPage: React.FC<VisionPageProps> = ({ state, sendCommand }) => {
                         </span>
                         <button
                           type="button"
-                          onClick={() => window.open('https://github.com/arnab825/Mission-Control/releases', '_blank')}
+                          onClick={() => {
+                            if (installed) {
+                              window.open('https://github.com/arnab825/Mission-Control/releases', '_blank');
+                            } else {
+                              sendCommand('download_ai_model', { model_id: m.id });
+                            }
+                          }}
                           className={`flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-[9px] font-black uppercase tracking-wider border transition-all cursor-pointer ${
                             installed
                               ? 'bg-neon-green/10 border-neon-green/30 text-neon-green hover:bg-neon-green/20'
-                              : 'bg-white/5 border-white/15 text-zinc-200 hover:border-neon-green/40 hover:text-neon-green'
+                              : 'bg-white/5 border-white/15 text-zinc-200 hover:border-neon-green/40 hover:text-neon-green shadow-[0_2px_8px_rgba(0,0,0,0.4)]'
                           }`}
                         >
                           <Download className="w-3 h-3" />
-                          {installed ? 'Update Manually' : 'Manual Download'}
+                          {installed ? 'Update Manually' : 'Download Now'}
                         </button>
                       </div>
                     )}
