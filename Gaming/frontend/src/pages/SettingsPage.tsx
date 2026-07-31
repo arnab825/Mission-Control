@@ -365,8 +365,10 @@ const OCR_ENGINE_OPTIONS = [
 
 const AI_PROVIDER_OPTIONS = [
   { value: 'auto', label: '⚡ Auto (Smart Failover & Balancing)' },
-  { value: 'nvidia', label: 'NVIDIA NIM' },
-  { value: 'gemini', label: 'Google Gemini' },
+  { value: 'groq', label: '⚡ Groq (100% Free · Ultra Fast)' },
+  { value: 'nvidia', label: 'NVIDIA NIM (Free Credits)' },
+  { value: 'gemini', label: 'Google Gemini (100% Free)' },
+  { value: 'openrouter', label: 'OpenRouter (Free Tier)' },
   { value: 'kimi', label: 'Moonshot (Kimi)' },
   { value: 'deepseek', label: 'DeepSeek' }
 ];
@@ -801,6 +803,18 @@ const SettingsPage: React.FC<{ state: TelemetryState | null, sendCommand: (type:
       options = [
         { value: 'deepseek-chat', label: 'DeepSeek Chat (V3)', group: 'DeepSeek', isMono: true },
         { value: 'deepseek-reasoner', label: 'DeepSeek Reasoner (R1)', group: 'DeepSeek', isMono: true }
+      ];
+    } else if (provider === 'groq') {
+      options = [
+        { value: 'llama-3.3-70b-versatile', label: 'Llama 3.3 70B · Groq (Free)', group: 'Groq Cloud', isMono: true },
+        { value: 'llama-3.1-8b-instant', label: 'Llama 3.1 8B · Groq (Free)', group: 'Groq Cloud', isMono: true },
+        { value: 'deepseek-r1-distill-llama-70b', label: 'DeepSeek R1 70B · Groq (Free)', group: 'Groq Cloud', isMono: true }
+      ];
+    } else if (provider === 'openrouter') {
+      options = [
+        { value: 'deepseek/deepseek-r1:free', label: 'DeepSeek R1 · OpenRouter (Free)', group: 'OpenRouter Free', isMono: true },
+        { value: 'meta-llama/llama-3.3-70b-instruct:free', label: 'Llama 3.3 70B · OpenRouter (Free)', group: 'OpenRouter Free', isMono: true },
+        { value: 'google/gemini-2.0-flash-exp:free', label: 'Gemini 2.0 Flash · OpenRouter (Free)', group: 'OpenRouter Free', isMono: true }
       ];
     }
     

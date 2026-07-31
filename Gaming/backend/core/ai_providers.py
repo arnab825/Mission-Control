@@ -34,5 +34,19 @@ PROVIDERS = {
         "base_url": "https://api.deepseek.com",
         "env_key": "DEEPSEEK_API_KEY",
         "default_model": "deepseek-chat"
+    },
+    "groq": {
+        "label": "Groq (Lightning Fast)",
+        "client_type": "openai",
+        "base_url": "https://api.groq.com/openai/v1",
+        "env_key": "GROQ_API_KEY",
+        "default_model": "llama-3.3-70b-versatile"
+    },
+    "openrouter": {
+        "label": "OpenRouter (Free Tier)",
+        "client_type": "openai",
+        "base_url": "https://openrouter.ai/api/v1",
+        "env_key": "OPENROUTER_API_KEY",
+        "default_model": "deepseek/deepseek-r1:free"
     }
 }
