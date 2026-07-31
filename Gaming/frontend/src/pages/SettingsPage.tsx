@@ -2667,8 +2667,8 @@ const SettingsPage: React.FC<{ state: TelemetryState | null, sendCommand: (type:
             label="AI Neural Backbone"
             description="Select the AI provider and model for conversational AI. All models run on cloud APIs. Set your API keys securely in the backend .env file.">
             <div className="space-y-3">
-              <div className="flex gap-2 items-center">
-                <div className="w-1/3">
+              <div className="flex flex-col sm:flex-row gap-2 sm:items-center">
+                <div className="w-full sm:w-1/3 shrink-0">
                   <CustomSelect
                     value={localConfig.ai_agent?.provider || 'nvidia'}
                     onChange={(val) => setLocalConfig({ ...localConfig, ai_agent: { ...localConfig.ai_agent, provider: val, model_id: val === 'nvidia' ? 'meta/llama-3.1-8b-instruct' : 'custom' } })}
@@ -2676,7 +2676,7 @@ const SettingsPage: React.FC<{ state: TelemetryState | null, sendCommand: (type:
                     isMono={false}
                   />
                 </div>
-                <div className="flex-1">
+                <div className="flex-1 min-w-0 w-full">
                   <CustomSelect
                     value={localConfig.ai_agent?.model_id || 'meta/llama-3.1-8b-instruct'}
                     onChange={(val) => setLocalConfig({ ...localConfig, ai_agent: { ...localConfig.ai_agent, model_id: val } })}

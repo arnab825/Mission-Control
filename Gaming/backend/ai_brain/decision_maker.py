@@ -1165,6 +1165,16 @@ class GameBrain:
                     response = self._process_system_command(response.strip(), agentic_mode_active=agentic_mode_active)
                     return self._process_launch_command(response, agentic_mode_active=agentic_mode_active, is_launch_request=is_launch_request, prompt=prompt)
             
+            # Check if live NIM is available
+            if self.client:
+                # Code above handles NIM query...
+                pass
+            else:
+                agent_cfg = self.config.get("ai_agent", {})
+                provider_key = agent_cfg.get("provider", "nvidia")
+                if provider_key != "auto":
+                    return f"Neural link offline: Failed to initialize AI provider '{provider_key}'. This usually means the API key is missing or invalid in your .env file. Please check your keys and restart the backend."
+
             # Local fallback for general chat without game active
             fallback_general = {
                 "tactical": "I am your Tactical Gaming Assistant. General offline mode is active. I can help optimize your PC specs, check thermals, clear VRAM, or launch games from your library.",
