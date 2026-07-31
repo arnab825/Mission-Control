@@ -422,7 +422,9 @@ class _BetterCamBackend:
         import bettercam
         self._device_index = device_index
         self._output_index = output_index
+        self._target_fps = target_fps
         self._cam = bettercam.create(device_idx=device_index, output_idx=output_index, output_color="BGR")
+        self._cam.start(target_fps=target_fps, video_mode=True)
         self._region = None
         if region:
             self._region = (
@@ -434,9 +436,16 @@ class _BetterCamBackend:
     def get_frame(self) -> Optional[np.ndarray]:
         """Return the latest frame, or None if no new frame is available."""
         try:
-            frame = self._cam.grab(region=self._region)
+            # When video_mode=True, we pull the latest frame from the background thread's ring buffer
+            frame = self._cam.get_latest_frame()
             if frame is None:
                 return None
+            
+            # BetterCam returns full frame in video_mode, apply region cropping manually if needed
+            if self._region:
+                left, top, right, bottom = self._region
+                frame = frame[top:bottom, left:right]
+                
             return frame
         except Exception as e:
             err_str = str(e).lower()
@@ -444,7 +453,12 @@ class _BetterCamBackend:
                 logger.warning("bettercam context lost, attempting to re-initialize...")
                 try:
                     import bettercam
+                    try:
+                        self._cam.stop()
+                    except Exception:
+                        pass
                     self._cam = bettercam.create(device_idx=self._device_index, output_idx=self._output_index, output_color="BGR")
+                    self._cam.start(target_fps=self._target_fps, video_mode=True)
                 except Exception as inner_e:
                     logger.error(f"Failed to re-initialize bettercam: {inner_e}")
                     time.sleep(0.5)
@@ -465,7 +479,12 @@ class _BetterCamBackend:
     def change_output(self, output_index, device_index=0):
         logger.info(f"bettercam: Switching to output {output_index} on device {device_index}")
         import bettercam
+        try:
+            self._cam.stop()
+        except Exception:
+            pass
         self._cam = bettercam.create(device_idx=device_index, output_idx=output_index, output_color="BGR")
+        self._cam.start(target_fps=self._target_fps, video_mode=True)
 
 
 class _MSSBackend:
