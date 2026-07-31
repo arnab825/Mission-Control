@@ -358,15 +358,9 @@ class GameBrain:
         invalid_keys = [f"YOUR_{env_key_name}_HERE", f"your_{env_key_name.lower()}_here", "", None]
         if api_key and api_key.strip() not in invalid_keys:
             try:
-                if self.provider_type == "google":
-                    from google import genai
-                    self.client = genai.Client(api_key=api_key)
-                    self.vision_client = self.client
-                    logger.info(f"Google GenAI client initialized")
-                else:
-                    # OpenAI-compatible client
-                    base_url = agent_cfg.get("endpoint_url") or os.environ.get(f"{provider_key.upper()}_ENDPOINT_URL") or provider_config.get("base_url")
-                    vision_url = agent_cfg.get("vision_endpoint_url") or os.environ.get(f"{provider_key.upper()}_VISION_ENDPOINT_URL") or base_url
+                # OpenAI-compatible client for all providers
+                base_url = agent_cfg.get("endpoint_url") or os.environ.get(f"{provider_key.upper()}_ENDPOINT_URL") or provider_config.get("base_url")
+                vision_url = agent_cfg.get("vision_endpoint_url") or os.environ.get(f"{provider_key.upper()}_VISION_ENDPOINT_URL") or base_url
                     
                     needs_insecure_fallback = False
                     if sys.platform == "win32" and not getattr(sys, "frozen", False) and agent_cfg.get("insecure_tls_windows_fallback", True):
@@ -401,15 +395,15 @@ class GameBrain:
                         logger.warning(
                             f"Using insecure TLS fallback for {provider_config['label']} on Windows due to OpenSSL runtime mismatch."
                         )
-                        chat_http = httpx.Client(verify=False, timeout=30.0)
-                        vision_http = httpx.Client(verify=False, timeout=30.0)
-                        self.client = OpenAI(base_url=base_url, api_key=api_key, http_client=chat_http, max_retries=0, timeout=30.0)
+                        chat_http = httpx.Client(verify=False, timeout=120.0)
+                        vision_http = httpx.Client(verify=False, timeout=120.0)
+                        self.client = OpenAI(base_url=base_url, api_key=api_key, http_client=chat_http, max_retries=1, timeout=120.0)
                         self.vision_client = OpenAI(
-                            base_url=vision_url, api_key=api_key, http_client=vision_http, max_retries=0, timeout=30.0
+                            base_url=vision_url, api_key=api_key, http_client=vision_http, max_retries=1, timeout=120.0
                         )
                     else:
-                        self.client = OpenAI(base_url=base_url, api_key=api_key, max_retries=0, timeout=30.0)
-                        self.vision_client = OpenAI(base_url=vision_url, api_key=api_key, max_retries=0, timeout=30.0)
+                        self.client = OpenAI(base_url=base_url, api_key=api_key, max_retries=1, timeout=120.0)
+                        self.vision_client = OpenAI(base_url=vision_url, api_key=api_key, max_retries=1, timeout=120.0)
                     logger.info(f"{provider_config['label']} clients initialized (Chat: {base_url}, Vision: {vision_url})")
             except Exception as e:
                 logger.error(f"Failed to initialize {provider_config['label']} clients: {e}")
@@ -420,6 +414,17 @@ class GameBrain:
             logger.warning(f"No valid {env_key_name} found. Agentic AI will run in local-only mode.")
             self.client = None
             self._online = False # Treat as offline if no key
+
+    def _create_chat_completion(self, client, model_id, messages, temperature=0.7, max_tokens=4096, stream=False, timeout=60.0, is_vision=False):
+        """Unified wrapper for OpenAI-compatible completion creation."""
+        return client.chat.completions.create(
+            model=model_id,
+            messages=messages,
+            temperature=temperature,
+            max_tokens=max_tokens,
+            stream=stream,
+            timeout=timeout
+        )
 
 
     def analyze_state(self, game_state):
@@ -1958,19 +1963,22 @@ class GameBrain:
                 
             except Exception as e:
                 error_text = str(e).lower()
-                logger.error(f"NVIDIA NIM Query failed: {e}")
+                logger.error(f"Neural link API query failed: {e}")
                 
                 if "429" in error_text or "too many requests" in error_text:
                     self._chat_failures += 1
                     wait_time = 30 * self._chat_failures # Exponential-ish backoff
                     self._chat_disabled_until = time.time() + wait_time
-                    logger.warning(f"NVIDIA NIM Rate Limited (429). Disabling for {wait_time}s.")
+                    logger.warning(f"Neural link Rate Limited (429). Disabling for {wait_time}s.")
                 elif "403" in error_text or "401" in error_text or "authorization failed" in error_text:
                     self.client = None
-                    logger.warning("Disabling NVIDIA NIM for this session after auth failure; falling back to local rules.")
+                    logger.warning("Disabling Neural link for this session after auth failure; falling back to local rules.")
+                elif "timeout" in error_text or "readtimeout" in error_text:
+                    logger.warning(f"Neural link Timeout! The AI context is massive and took too long (>120s). Not tripping circuit breaker.")
                 else:
                     self._chat_failures += 1
                     if self._chat_failures >= 3:
+                        logger.error(f"Neural link failed 3 times! Tripping circuit breaker for 60s. Last error: {e}")
                         self._chat_disabled_until = time.time() + 60
                         
                 if stream:
