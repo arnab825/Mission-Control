@@ -787,10 +787,9 @@ const SettingsPage: React.FC<{ state: TelemetryState | null, sendCommand: (type:
       ];
     } else if (provider === 'gemini') {
       options = [
-        { value: 'gemini-1.5-flash', label: 'Gemini 1.5 Flash', group: 'Google GenAI', isMono: true },
-        { value: 'gemini-1.5-pro', label: 'Gemini 1.5 Pro', group: 'Google GenAI', isMono: true },
-        { value: 'gemini-2.0-flash-exp', label: 'Gemini 2.0 Flash Exp', group: 'Google GenAI', isMono: true },
-        { value: 'gemini-2.0-flash-thinking-exp-1219', label: 'Gemini 2.0 Flash Thinking', group: 'Google GenAI', isMono: true }
+        { value: 'gemini-flash-latest', label: 'Gemini Flash (Latest)', group: 'Google GenAI', isMono: true },
+        { value: 'gemini-3.6-flash', label: 'Gemini 3.6 Flash', group: 'Google GenAI', isMono: true },
+        { value: 'gemini-2.0-flash', label: 'Gemini 2.0 Flash', group: 'Google GenAI', isMono: true }
       ];
     } else if (provider === 'kimi') {
       options = [

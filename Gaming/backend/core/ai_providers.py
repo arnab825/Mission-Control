@@ -19,7 +19,7 @@ PROVIDERS = {
         "client_type": "openai",
         "base_url": "https://generativelanguage.googleapis.com/v1beta/openai/",
         "env_key": "GEMINI_API_KEY",
-        "default_model": "gemini-1.5-flash"
+        "default_model": "gemini-flash-latest"
     },
     "kimi": {
         "label": "Moonshot (Kimi)",
