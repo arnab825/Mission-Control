@@ -1222,3 +1222,57 @@ graph TD
 | `decision_maker.py` | **Fixed** | Resolved IndentationError |
 | `gemini_api.py` | **Modified** | Unified API endpoint with OpenAI-compatible interface |
 | `load_balancer.py` | **Added** | Implemented dynamic rate-limit load balancing mechanism |
+
+---
+
+## Session 35 — 2026-07-31: Free Provider Integration & Cleanups (v2.7.9)
+
+### 🛠️ Key Features Added/Modified
+1. **Added support for 100% free Groq and OpenRouter providers**
+2. **Removed paid Kimi and DeepSeek providers to align with free provider integration**
+3. **Updated Gemini provider to gemini-flash-latest to resolve 404 errors**
+
+### 🧩 Technical Decisions & Architecture
+* In this release, we prioritized the integration of free providers to enhance user experience and align with our mission control goals. We removed paid providers to maintain a consistent and cost-effective solution. Additionally, we optimized the Gemini provider to prevent 404 errors.
+
+### 📊 System Architecture & Flow
+```mermaid
+graph TD
+  A[Client] --> B[Free Providers]
+  B --> C[Groq]
+  B --> D[OpenRouter]
+  B --> E[Gemini]
+```
+
+### 📋 File Changes
+| File | Status | Description |
+|---|---|---|
+| `providers.ts` | **Modified** | Added Groq and OpenRouter providers and removed Kimi and DeepSeek providers |
+| `gemini.ts` | **Modified** | Updated Gemini provider to gemini-flash-latest to resolve 404 errors |
+
+---
+
+## Session 36 — 2026-07-31: Free Provider Expansion & Cleanup (v2.7.9)
+
+### 🛠️ Key Features Added/Modified
+1. **Added support for 100% free AI providers: Groq and OpenRouter**
+2. **Updated Auto Mode routing to prioritize high-speed free models**
+3. **Removed dependencies on paid provider Kimi and DeepSeek**
+
+### 🧩 Technical Decisions & Architecture
+* This release prioritizes the adoption of free AI providers to reduce operational costs and improve model accessibility. The removal of paid provider dependencies enables a more sustainable and cost-effective architecture. Additionally, the updated Auto Mode routing ensures optimal performance with high-speed free models.
+
+### 📊 System Architecture & Flow
+```mermaid
+graph TD
+  A[Client] --> B[Server]
+  B --> C[Free Provider]
+  C --> D[Auto Mode Routing]
+```
+
+### 📋 File Changes
+| File | Status | Description |
+|---|---|---|
+| `ai_providers.ts` | **Modified** | Added Groq and OpenRouter free AI providers |
+| `routing.ts` | **Modified** | Updated Auto Mode routing to prioritize free high-speed models |
+| `dependencies.ts` | **Deleted** | Removed Kimi and DeepSeek paid provider dependencies |
