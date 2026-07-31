@@ -1195,3 +1195,30 @@ graph TD
 |---|---|---|
 | `decision_maker.py` | **Fixed** | Resolved IndentationError to ensure correct code formatting and execution |
 | `tests.py` | **Modified** | Updated test cases to cover decision_maker.py functionality |
+
+---
+
+## Session 34 — 2026-07-31: Auto Provider Failover & Fixes (v2.7.8)
+
+### 🛠️ Key Features Added/Modified
+1. **Added Auto Mode with dynamic rate-limit load balancing for enhanced system resilience.**
+2. **Unified Gemini with OpenAI-compatible API endpoint for seamless integration.**
+
+### 🧩 Technical Decisions & Architecture
+* To achieve auto provider failover, we implemented a dynamic rate-limit load balancing mechanism, leveraging the existing decision_maker.py module. This optimization ensures efficient resource allocation and minimizes downtime. Additionally, we unified the Gemini API endpoint with OpenAI's to facilitate a more streamlined user experience.
+
+### 📊 System Architecture & Flow
+```mermaid
+graph TD
+  A[Client] --> B[Server]
+  B --> C[Load Balancer]
+  C --> D[Provider 1]
+  C --> E[Provider 2]
+```
+
+### 📋 File Changes
+| File | Status | Description |
+|---|---|---|
+| `decision_maker.py` | **Fixed** | Resolved IndentationError |
+| `gemini_api.py` | **Modified** | Unified API endpoint with OpenAI-compatible interface |
+| `load_balancer.py` | **Added** | Implemented dynamic rate-limit load balancing mechanism |

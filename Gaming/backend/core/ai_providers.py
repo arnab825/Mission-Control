@@ -1,6 +1,12 @@
 # ai_providers.py
 
 PROVIDERS = {
+    "auto": {
+        "label": "Auto (Smart Failover)",
+        "client_type": "openai",
+        "env_key": "NVIDIA_API_KEY",
+        "default_model": "auto"
+    },
     "nvidia": {
         "label": "NVIDIA NIM",
         "client_type": "openai",
