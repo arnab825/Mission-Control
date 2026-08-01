@@ -72,5 +72,12 @@ contextBridge.exposeInMainWorld('electronAPI', {
     return () => {
       ipcRenderer.off('open-dashboard', subscription)
     }
+  },
+  onToggleAgenticHotkey: (callback: () => void) => {
+    const subscription = () => callback()
+    ipcRenderer.on('toggle-agentic-hotkey', subscription)
+    return () => {
+      ipcRenderer.off('toggle-agentic-hotkey', subscription)
+    }
   }
 })

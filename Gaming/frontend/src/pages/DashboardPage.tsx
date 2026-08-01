@@ -6,9 +6,9 @@ import {
   AlertTriangle, XCircle, Bot, Info,TrendingUp, BrainCircuit, Copy, Check
 } from 'lucide-react';
 import {
-  AreaChart, Area, XAxis, YAxis, CartesianGrid, Tooltip,
-  ResponsiveContainer
+  AreaChart, Area, XAxis, YAxis, CartesianGrid, Tooltip
 } from 'recharts';
+import SafeResponsiveContainer from '../components/SafeResponsiveContainer';
 import type { TelemetryState } from '../types/telemetry';
 import { useHotkey } from '../hooks/useHotkey';
 import { formatFrequency, formatTemp } from '../lib/formatters';
@@ -500,7 +500,7 @@ const DashboardPage: React.FC<DashboardPageProps> = ({ state, onCommand, onNavig
 
             {/* Recharts AreaChart (flexes to fill exactly remaining vertical space) */}
             <div className="flex-1 min-h-[160px] lg:min-h-0 relative">
-              <ResponsiveContainer width="100%" height="100%" minWidth={1} minHeight={1}>
+              <SafeResponsiveContainer width="100%" height="100%">
                 <AreaChart
                   data={history.GPU.map((_, i) => ({
                     t: i,
@@ -544,7 +544,7 @@ const DashboardPage: React.FC<DashboardPageProps> = ({ state, onCommand, onNavig
                   <Area type="monotone" dataKey="CPU" stroke="#76b900" strokeWidth={1.2} fill="url(#cpuGrad)" dot={false} activeDot={{ r: 2.5, fill: '#76b900' }} />
                   <Area type="monotone" dataKey="RAM" stroke="#a855f7" strokeWidth={1.2} fill="url(#ramGrad)" dot={false} activeDot={{ r: 2.5, fill: '#a855f7' }} />
                 </AreaChart>
-              </ResponsiveContainer>
+              </SafeResponsiveContainer>
             </div>
           </div>
         </div>

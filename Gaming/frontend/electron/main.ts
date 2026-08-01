@@ -1252,6 +1252,7 @@ ipcMain.handle('launch-game', async (_event, exePath: string) => {
 let hudWin: BrowserWindow | null = null;
 let isHUDVisible = false;
 let currentHotkey: string = '';
+let currentAgentHotkey: string = '';
 let cachedConfig: any = null;
 let lastActiveGame: string | null = null;
 let lastActiveGamePid: number | null = null;
@@ -1611,6 +1612,39 @@ function updateHUDConfig(config: any) {
       }
     } catch (err) {
       console.error(`[Electron] Failed to register global hotkey ${electronHotkey}:`, err);
+    }
+  }
+
+  // 2. Update agentic toggle hotkey
+  const rawAgentHotkey = config.hotkeys?.toggle_agentic || '<ctrl>+<alt>+a';
+  const electronAgentHotkey = convertHotkeyToElectron(rawAgentHotkey);
+
+  if (electronAgentHotkey && currentAgentHotkey !== electronAgentHotkey) {
+    if (currentAgentHotkey) {
+      try {
+        globalShortcut.unregister(currentAgentHotkey);
+        console.log(`[Electron] Unregistered old agent hotkey: ${currentAgentHotkey}`);
+      } catch (err) {
+        console.error(`[Electron] Failed to unregister old agent hotkey ${currentAgentHotkey}:`, err);
+      }
+    }
+
+    currentAgentHotkey = electronAgentHotkey;
+
+    try {
+      const registered = globalShortcut.register(electronAgentHotkey, () => {
+        console.log(`[Electron] Global shortcut triggered: ${electronAgentHotkey}`);
+        if (win && !win.isDestroyed()) {
+          win.webContents.send('toggle-agentic-hotkey');
+        }
+      });
+      if (registered) {
+        console.log(`[Electron] Successfully registered new global agent hotkey: ${electronAgentHotkey}`);
+      } else {
+        console.warn(`[Electron] Registration returned false for agent hotkey: ${electronAgentHotkey}`);
+      }
+    } catch (err) {
+      console.error(`[Electron] Failed to register global agent hotkey ${electronAgentHotkey}:`, err);
     }
   }
 

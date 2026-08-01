@@ -130,34 +130,45 @@ class ScreenCapture:
 
     def _fallback_to_desktop(self):
         """Internal helper to switch capture to bettercam/dxcam/mss desktop capture."""
-        try:
-            logger.info("Falling back to desktop capture (bettercam/dxcam/mss)...")
-            if _check_bettercam_available():
+        logger.info("Falling back to desktop capture (bettercam/dxcam/mss)...")
+        
+        # 1. Try bettercam
+        if _check_bettercam_available():
+            try:
                 self._capture = _BetterCamBackend(
                     self.region, self.target_fps,
                     device_index=self._device_index,
                     output_index=self._output_index
                 )
                 self._backend_name = "bettercam"
-            elif _check_dxcam_available():
+                logger.info("Successfully fell back to desktop capture backend: bettercam")
+                return
+            except Exception as e:
+                logger.warning(f"bettercam fallback init failed: {e}")
+
+        # 2. Try dxcam
+        if _check_dxcam_available():
+            try:
                 self._capture = _DXCamBackend(
                     self.region, self.target_fps,
                     device_index=self._device_index,
                     output_index=self._output_index
                 )
                 self._backend_name = "dxcam"
-            else:
-                self._capture = _MSSBackend(self.region, output_index=self._output_index)
-                self._backend_name = "mss"
-            logger.info(f"Successfully fell back to desktop capture backend: {self._backend_name}")
+                logger.info("Successfully fell back to desktop capture backend: dxcam")
+                return
+            except Exception as e:
+                logger.warning(f"dxcam fallback init failed: {e}")
+
+        # 3. Try mss (last resort)
+        try:
+            self._capture = _MSSBackend(self.region, output_index=self._output_index)
+            self._backend_name = "mss"
+            logger.info("Successfully fell back to desktop capture backend: mss")
         except Exception as e:
-            logger.error(f"Failed to initialize desktop capture fallback: {e}")
-            try:
-                self._capture = _MSSBackend(self.region, output_index=self._output_index)
-                self._backend_name = "mss"
-            except Exception:
-                self._capture = None
-                self._backend_name = "none"
+            logger.error(f"mss fallback init failed: {e}")
+            self._capture = None
+            self._backend_name = "none"
 
     def get_frame(self) -> Optional[np.ndarray]:
         """Capture and return a single frame as BGR numpy array, or None on no-new-frame."""
@@ -191,7 +202,7 @@ class ScreenCapture:
 
     def set_hwnd(self, hwnd: Optional[int]):
         """Switch to (or away from) per-window capture at runtime."""
-        if hwnd == self._hwnd:
+        if hwnd == self._hwnd and self._capture is not None:
             return
         self._hwnd = hwnd
         if hwnd:
@@ -202,11 +213,13 @@ class ScreenCapture:
                 return
             except Exception as e:
                 logger.warning(f"Failed to switch to window backend: {e}")
-        # Fall back to dxcam or mss
+        # Fall back to desktop capture prioritizing bettercam for exclusive fullscreen support
+        fallback_backend = "bettercam" if _check_bettercam_available() else ("dxcam" if _check_dxcam_available() else "mss")
+        target_fps = self.target_fps if (self.target_fps and self.target_fps > 0) else 60
         self.__init__(
             region=self.region,
-            backend="dxcam" if _check_dxcam_available() else "mss",
-            target_fps=self.target_fps,
+            backend=fallback_backend,
+            target_fps=target_fps,
             device_index=self._device_index,
             output_index=self._output_index,
             hwnd=None,
@@ -422,9 +435,10 @@ class _BetterCamBackend:
         import bettercam
         self._device_index = device_index
         self._output_index = output_index
-        self._target_fps = target_fps
+        valid_fps = target_fps if (target_fps and target_fps > 0) else 60
+        self._target_fps = valid_fps
         self._cam = bettercam.create(device_idx=device_index, output_idx=output_index, output_color="BGR")
-        self._cam.start(target_fps=target_fps, video_mode=True)
+        self._cam.start(target_fps=valid_fps, video_mode=True)
         self._region = None
         if region:
             self._region = (
