@@ -3190,6 +3190,23 @@ const SettingsPage: React.FC<{ state: TelemetryState | null, sendCommand: (type:
             </div>
           </SettingsField>
 
+          <SettingsField label="Agentic Execution Delay" description="The time (in seconds) the AI waits before autonomously executing a system action, giving you time to cancel it.">
+            <div className="flex items-center gap-4">
+              <input
+                type="range"
+                min="0"
+                max="5"
+                step="1"
+                value={localConfig.agentic?.confirmation_delay ?? 2}
+                onChange={(e) => setLocalConfig({ ...localConfig, agentic: { ...localConfig.agentic, confirmation_delay: parseInt(e.target.value) } })}
+                className="flex-1 accent-neon-green"
+              />
+              <span className="text-[10px] font-mono text-neon-green font-bold">
+                {localConfig.agentic?.confirmation_delay ?? 2}s
+              </span>
+            </div>
+          </SettingsField>
+
           <SettingsField label="Memory Persistence" description="Allows the AI to remember your preferences and quest progress across sessions.">
             <div className="flex gap-4 items-center">
               <div role="button" tabIndex={0} onKeyDown={(e) => e.key === 'Enter' && e.currentTarget.click()}
