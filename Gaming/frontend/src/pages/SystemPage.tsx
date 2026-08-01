@@ -1,9 +1,9 @@
 import React, { useState, useEffect, useMemo, useRef } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import {
-  AreaChart, Area, XAxis, YAxis, CartesianGrid, Tooltip,
-  ResponsiveContainer
+  AreaChart, Area, XAxis, YAxis, CartesianGrid, Tooltip
 } from 'recharts';
+import SafeResponsiveContainer from '../components/SafeResponsiveContainer';
 import {
   Cpu,
   Box,
@@ -890,7 +890,7 @@ const SystemPage: React.FC<SystemPageProps> = ({
               {/* Graph Area */}
               <div className="h-64 border-b border-white/5 relative group shrink-0">
                 <div className="absolute inset-0">
-                  <ResponsiveContainer width="100%" height="100%" minWidth={1} minHeight={1}>
+                  <SafeResponsiveContainer width="100%" height="100%">
                     <AreaChart
                       data={chartData}
                       margin={{ top: 10, right: 10, left: -25, bottom: 0 }}
@@ -933,7 +933,7 @@ const SystemPage: React.FC<SystemPageProps> = ({
                         activeDot={{ r: 3.5, fill: getCategoryColor }} 
                       />
                     </AreaChart>
-                  </ResponsiveContainer>
+                  </SafeResponsiveContainer>
                 </div>
               </div>
 

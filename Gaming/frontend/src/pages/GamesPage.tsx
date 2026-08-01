@@ -143,15 +143,18 @@ const GameCard: React.FC<{ game: BackendGame; sendCommand: (type: string, payloa
   };
 
   const launchUri = getLaunchUri();
+  const [isLaunching, setIsLaunching] = useState(false);
 
   const handleLaunch = (e?: React.MouseEvent) => {
     e?.stopPropagation();
-    if (launchUri) {
+    if (launchUri && !isLaunching) {
+      setIsLaunching(true);
       if ((window as any).electronAPI?.launchGame) {
         (window as any).electronAPI.launchGame(launchUri);
       } else {
         sendCommand('launch_game', { exe_path: launchUri });
       }
+      setTimeout(() => setIsLaunching(false), 2500);
     }
   };
 
@@ -222,11 +225,30 @@ const GameCard: React.FC<{ game: BackendGame; sendCommand: (type: string, payloa
         <div className="flex items-center gap-2 pt-1">
           <button aria-label="button" type="button"
             onClick={handleLaunch}
-            disabled={!launchUri}
-            className="flex-1 flex items-center justify-center gap-1.5 py-2 bg-neon-green hover:bg-[#8aff00] text-black font-black uppercase text-[9px] tracking-widest rounded-xl transition-all duration-300 shadow-[0_0_15px_rgba(118,185,0,0.25)] hover:shadow-[0_0_25px_rgba(118,185,0,0.45)] disabled:opacity-40 disabled:cursor-not-allowed cursor-pointer"
+            disabled={!launchUri || isLaunching}
+            className="relative flex-1 flex items-center justify-center gap-1.5 py-2 bg-neon-green hover:bg-[#8aff00] text-black font-black uppercase text-[9px] tracking-widest rounded-xl transition-all duration-300 shadow-[0_0_15px_rgba(118,185,0,0.25)] hover:shadow-[0_0_25px_rgba(118,185,0,0.45)] disabled:opacity-80 disabled:cursor-wait cursor-pointer overflow-hidden group"
           >
-            <Play className="w-3.5 h-3.5 fill-current" />
-            <span>{launchUri ? 'Execute' : 'Unavailable'}</span>
+            {isLaunching && (
+              <motion.div
+                className="absolute inset-0 bg-black/20"
+                initial={{ x: '-100%' }}
+                animate={{ x: '100%' }}
+                transition={{ repeat: Infinity, duration: 1, ease: 'linear' }}
+              />
+            )}
+            <div className="relative z-10 flex items-center gap-1.5">
+              {isLaunching ? (
+                <>
+                  <Loader2 className="w-3.5 h-3.5 animate-spin text-black" />
+                  <span>Executing...</span>
+                </>
+              ) : (
+                <>
+                  <Play className="w-3.5 h-3.5 fill-current" />
+                  <span>{launchUri ? 'Execute' : 'Unavailable'}</span>
+                </>
+              )}
+            </div>
           </button>
 
         </div>

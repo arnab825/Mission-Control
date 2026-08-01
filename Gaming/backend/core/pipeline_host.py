@@ -12,6 +12,14 @@ from typing import Any, Dict, List, Optional
 import cv2  # type: ignore[reportMissingImports]
 import numpy as np
 from pynput import keyboard  # type: ignore[reportMissingModuleSource]
+import ctypes
+
+if sys.platform == "win32":
+    try:
+        ctypes.windll.winmm.timeBeginPeriod(1)
+        logging.info("Windows timer resolution set to 1ms.")
+    except Exception as e:
+        logging.warning(f"Could not set timer resolution: {e}")
 
 try:
     import psutil  # type: ignore[reportMissingImports]
@@ -293,7 +301,7 @@ class GamingAssistantPipeline:
         self.active_user_id = None
 
         # Agentic Mode Toggle
-        self.agentic_mode_active = False
+        self.agentic_mode_active = config.get("ai_agent", {}).get("agentic_mode", False)
         self.agent_mode_changed_callback = None
         self.action_confirm_callback = None
         self.thermal_alert_callback = None
@@ -1251,16 +1259,44 @@ class GamingAssistantPipeline:
                 continue
             start = time.perf_counter()
             try:
-                frame, fid, is_new = self.frame_buffer.get(timeout=0.1)
-                if frame is None or not is_new:
-                    continue
-                
                 is_active, is_focused, title = self._is_game_active()
                 is_minimized = self._game_state.get("game_minimized", False)
                 
                 with self._state_lock:
                     self._game_state["is_game_active"] = is_active
                     self._game_state["is_game_focused"] = is_focused
+                    self._game_state["capture_fps"] = self.frame_buffer.capture_fps if is_active else 0.0
+                    self._game_state["vision_fps"] = fps_counter.fps if is_active else 0.0
+                    if is_active:
+                        avg_fps = self.frame_buffer.average_fps
+                        self._game_state["game_fps"] = avg_fps
+                        f_count = self.frame_buffer.frame_count
+                        if f_count == 0:
+                            f_count = self.frame_buffer.capture_frame_count
+                        if not getattr(self, "_game_active_since", None):
+                            self._game_active_since = time.time()
+                        etw_warmup_expired = (time.time() - self._game_active_since) > 10.0
+                        self._game_state["game_loading"] = (f_count < 30 and avg_fps == 0.0) and not etw_warmup_expired
+                        self._game_state["min_avg_fps"] = self.frame_buffer.min_avg_fps
+                        self._game_state["max_avg_fps"] = self.frame_buffer.max_avg_fps
+                        self._game_state["min_fps"] = self.frame_buffer.min_fps
+                        self._game_state["max_fps"] = self.frame_buffer.max_fps
+                        self._game_state["one_percent_low"] = self.frame_buffer.one_percent_low
+                        self._game_state["frametimes"] = self.frame_buffer.frametimes
+                    else:
+                        self._game_state["game_fps"] = 0.0
+                        self._game_state["game_loading"] = False
+                        self._game_active_since = None
+                        self._game_state["min_avg_fps"] = 0.0
+                        self._game_state["max_avg_fps"] = 0.0
+                        self._game_state["min_fps"] = 0.0
+                        self._game_state["max_fps"] = 0.0
+                        self._game_state["one_percent_low"] = 0.0
+                        self._game_state["frametimes"] = []
+
+                frame, fid, is_new = self.frame_buffer.get(timeout=0.1)
+                if frame is None or not is_new:
+                    continue
 
                 if is_active:
                     if not hasattr(self, "_last_is_focused"):
@@ -1352,43 +1388,6 @@ class GamingAssistantPipeline:
                         if self.ocr_reader and getattr(self.ocr_reader, '_reader', None) is not None:
                             logger.info("Game inactive for > 30 seconds. Dynamically unloading RapidOCR reader model to free RAM/VRAM.")
                             self.ocr_reader.unload_model()
-                
-                with self._state_lock:
-                    self._game_state["capture_fps"] = self.frame_buffer.capture_fps if is_active else 0.0
-                    self._game_state["vision_fps"] = fps_counter.fps if is_active else 0.0
-                    if is_active:
-                        avg_fps = self.frame_buffer.average_fps
-                        self._game_state["game_fps"] = avg_fps
-                        f_count = self.frame_buffer.frame_count
-                        if f_count == 0:
-                            f_count = self.frame_buffer.capture_frame_count
-                        # Track when the game session first became active so we can impose an
-                        # ETW warmup timeout.  Without this, `avg_fps == 0.0` (e.g. Vulkan /
-                        # OpenGL games, or ETW permission failures) would permanently keep the
-                        # HUD stuck on the CALIBRATING splash screen.
-                        if not getattr(self, "_game_active_since", None):
-                            self._game_active_since = time.time()
-                        etw_warmup_expired = (time.time() - self._game_active_since) > 10.0
-                        # CALIBRATING = still in the early ramp-up window AND no FPS yet.
-                        # After 10 s we clear it unconditionally so the HUD always recovers.
-                        self._game_state["game_loading"] = (f_count < 30 and avg_fps == 0.0) and not etw_warmup_expired
-                        self._game_state["min_avg_fps"] = self.frame_buffer.min_avg_fps
-                        self._game_state["max_avg_fps"] = self.frame_buffer.max_avg_fps
-                        self._game_state["min_fps"] = self.frame_buffer.min_fps
-                        self._game_state["max_fps"] = self.frame_buffer.max_fps
-                        self._game_state["one_percent_low"] = self.frame_buffer.one_percent_low
-                        self._game_state["frametimes"] = self.frame_buffer.frametimes
-                    else:
-                        self._game_state["game_fps"] = 0.0
-                        self._game_state["game_loading"] = False
-                        # Reset the active-since timer so next game launch gets a fresh warmup window
-                        self._game_active_since = None
-                        self._game_state["min_avg_fps"] = 0.0
-                        self._game_state["max_avg_fps"] = 0.0
-                        self._game_state["min_fps"] = 0.0
-                        self._game_state["max_fps"] = 0.0
-                        self._game_state["one_percent_low"] = 0.0
-                        self._game_state["frametimes"] = []
                 
                 v_hz_active = v_hz
             except Exception as e:

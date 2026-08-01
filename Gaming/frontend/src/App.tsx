@@ -299,6 +299,20 @@ const App: React.FC = () => {
     }
   }, [state?.config, sendCommand]);
 
+  // Listen for agentic toggle hotkey from main process
+  useEffect(() => {
+    const api = (window as any).electronAPI;
+    if (api?.onToggleAgenticHotkey) {
+      return api.onToggleAgenticHotkey(() => {
+        setIsAgentic((prev) => {
+          const next = !prev;
+          sendCommand('toggle_agent_mode', { active: next });
+          return next;
+        });
+      });
+    }
+  }, [sendCommand]);
+
   if (isHUDWindow) {
     if (!isHUDVisibleState) {
       return <div className="w-screen h-screen bg-transparent" />;
