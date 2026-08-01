@@ -381,13 +381,13 @@ class GameBrain:
                 and not self.config.get("privacy", {}).get("enabled", False)
             )
             if use_insecure_tls:
-                chat_http = httpx.Client(verify=False, timeout=120.0)
-                vision_http = httpx.Client(verify=False, timeout=120.0)
-                client = OpenAI(base_url=base_url, api_key=api_key, http_client=chat_http, max_retries=1, timeout=120.0)
-                vision_client = OpenAI(base_url=vision_url, api_key=api_key, http_client=vision_http, max_retries=1, timeout=120.0)
+                chat_http = httpx.Client(verify=False, timeout=30.0)
+                vision_http = httpx.Client(verify=False, timeout=30.0)
+                client = OpenAI(base_url=base_url, api_key=api_key, http_client=chat_http, max_retries=1, timeout=30.0)
+                vision_client = OpenAI(base_url=vision_url, api_key=api_key, http_client=vision_http, max_retries=1, timeout=30.0)
             else:
-                client = OpenAI(base_url=base_url, api_key=api_key, max_retries=1, timeout=120.0)
-                vision_client = OpenAI(base_url=vision_url, api_key=api_key, max_retries=1, timeout=120.0)
+                client = OpenAI(base_url=base_url, api_key=api_key, max_retries=1, timeout=30.0)
+                vision_client = OpenAI(base_url=vision_url, api_key=api_key, max_retries=1, timeout=30.0)
             return client, vision_client
         except Exception as e:
             logger.error(f"Failed to initialize {provider_config.get('label', provider_key)} client: {e}")

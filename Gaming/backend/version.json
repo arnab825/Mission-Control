@@ -1,8 +1,18 @@
 {
-  "version": "2.8.0",
-  "release_date": "2026-07-31",
+  "version": "2.8.1",
+  "release_date": "2026-08-01",
   "update_check_url": "https://raw.githubusercontent.com/arnab825/Mission-Control/main/Gaming/backend/version.json",
   "changelog": [
+    {
+      "version": "2.8.1",
+      "date": "2026-08-01",
+      "title": "Customizable Hotkeys, Timeout Hardening & AI Traffic Disclaimers",
+      "highlights": [
+        "Added customizable HUD hotkey setting with dynamic system tray label updates",
+        "Hardened AI decision pipeline network timeout to 30s to prevent unresponsiveness during cloud outages",
+        "Added network traffic, outage, and rate-limit advisory to AI Neural Backbone settings"
+      ]
+    },
     {
       "version": "2.8.0",
       "date": "2026-07-31",

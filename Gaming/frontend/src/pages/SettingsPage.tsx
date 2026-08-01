@@ -2665,7 +2665,7 @@ const SettingsPage: React.FC<{ state: TelemetryState | null, sendCommand: (type:
 
           <SettingsField
             label="AI Neural Backbone"
-            description="Select the AI provider and model for conversational AI. All models run on cloud APIs. Set your API keys securely in the backend .env file.">
+            description="Select the AI provider and model for conversational AI. All models run on cloud APIs. Set your API keys securely in the backend .env file. Note: Performance depends on the provider's network traffic. You may experience slow responses or hangs during provider outages or if you hit API rate limits.">
             <div className="space-y-3">
               <div className="flex flex-col sm:flex-row gap-2 sm:items-center">
                 <div className="w-full sm:w-1/3 shrink-0">

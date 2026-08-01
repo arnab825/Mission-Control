@@ -410,7 +410,7 @@ function createTray() {
           }
         },
         {
-          label: 'Toggle HUD Overlay (Ctrl+Alt+H)', icon: iconHud, click: () => {
+          label: `Toggle HUD Overlay (${currentHotkey ? currentHotkey.replace('CommandOrControl', 'Ctrl') : 'Ctrl+Alt+H'})`, icon: iconHud, click: () => {
             toggleHUDWindow();
           }
         },
