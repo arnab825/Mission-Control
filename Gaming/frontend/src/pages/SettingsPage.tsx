@@ -799,7 +799,8 @@ const SettingsPage: React.FC<{ state: TelemetryState | null, sendCommand: (type:
       ];
     } else if (provider === 'openrouter') {
       options = [
-        { value: 'deepseek/deepseek-r1', label: 'DeepSeek R1 · OpenRouter (Paid)', group: 'OpenRouter', isMono: true },
+        { value: 'openrouter/free', label: 'OpenRouter Free Auto · OpenRouter (Free)', group: 'OpenRouter Free', isMono: true },
+        { value: 'deepseek/deepseek-chat:free', label: 'DeepSeek V3 · OpenRouter (Free)', group: 'OpenRouter Free', isMono: true },
         { value: 'meta-llama/llama-3.3-70b-instruct:free', label: 'Llama 3.3 70B · OpenRouter (Free)', group: 'OpenRouter Free', isMono: true },
         { value: 'google/gemini-2.0-flash-exp:free', label: 'Gemini 2.0 Flash · OpenRouter (Free)', group: 'OpenRouter Free', isMono: true }
       ];
