@@ -809,7 +809,7 @@ const SettingsPage: React.FC<{ state: TelemetryState | null, sendCommand: (type:
     const currentVal = localConfig?.ai_agent?.model_id;
     if (currentVal && !options.some(opt => opt.value === currentVal)) {
       return [
-        { value: currentVal, label: `⚠️ Invalid/Old: ${currentVal.split('/').pop() || currentVal}`, isMono: true },
+        { value: currentVal, label: `Deprecated: ${currentVal.split('/').pop() || currentVal}`, isMono: true },
         ...options
       ];
     }
