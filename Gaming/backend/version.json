@@ -1,8 +1,19 @@
 {
-  "version": "2.8.2",
-  "release_date": "2026-08-01",
+  "version": "2.8.3",
+  "release_date": "2026-08-02",
   "update_check_url": "https://raw.githubusercontent.com/arnab825/Mission-Control/main/Gaming/backend/version.json",
   "changelog": [
+    {
+      "version": "2.8.3",
+      "date": "2026-08-02",
+      "title": "E2EE Privacy Shield Verification, Responsive UI & TTS Optimization",
+      "highlights": [
+        "Fixed E2EE Cryptographic Verification modal responsiveness and event handling",
+        "Made Privacy Shield chat notice card fully responsive with cursor scaling",
+        "Streamlined NVIDIA DLSS Evolution Guide modal overlay via React portal",
+        "Removed offline Piper TTS dependency for lightweight audio pipeline"
+      ]
+    },
     {
       "version": "2.8.2",
       "date": "2026-08-01",

@@ -169,15 +169,6 @@ class VoiceManager:
         with self._pending_lock:
             update = self._pending_update
             self._pending_update = None
-        if update and self._speaker:
-            try:
-                token, rate, vol, pitch = update
-                if token: self._speaker.set_voice(token)
-                self._speaker.set_rate(rate)
-                self._speaker.set_volume(vol)
-                self._speaker.set_pitch(pitch)
-            except Exception as e:
-                logger.error(f"Failed to apply pending voice update: {e}")
 
     def start(self):
         if not self.enabled: return
@@ -325,8 +316,6 @@ class VoiceManager:
                         spoken = self._speak_elevenlabs(text)
                     elif active_provider == "edge":
                         spoken = self._speak_edge(text)
-                    elif active_provider == "piper":
-                        spoken = self._speak_piper(text)
                     elif active_provider == "google":
                         spoken = self._speak_google(text)
                     
@@ -336,11 +325,8 @@ class VoiceManager:
                         if self.elevenlabs_api_key and pref_provider == "elevenlabs":
                             spoken = self._speak_elevenlabs(text)
                         
-                        if not spoken and (pref_provider == "google" or active_provider == "google"):
-                            spoken = self._speak_google(text)
-                            
                         if not spoken:
-                            spoken = self._speak_piper(text)
+                            spoken = self._speak_google(text)
                         
                         
                 finally:
@@ -448,53 +434,7 @@ class VoiceManager:
             logger.error(f"Edge TTS speak failed: {e}")
             return False
 
-    def _speak_piper(self, text: str) -> bool:
-        try:
-            from piper.voice import PiperVoice
-            import wave
-            
-            model_dir = Path("models/piper")
-            model_dir.mkdir(parents=True, exist_ok=True)
-            
-            model_path = model_dir / "en_US-lessac-low.onnx"
-            config_path = model_dir / "en_US-lessac-low.onnx.json"
-            
-            if not model_path.exists() or not config_path.exists():
-                logger.info("Downloading Piper TTS model...")
-                model_url = "https://huggingface.co/rhasspy/piper-voices/resolve/v1.0.0/en/en_US/lessac/low/en_US-lessac-low.onnx"
-                config_url = "https://huggingface.co/rhasspy/piper-voices/resolve/v1.0.0/en/en_US/lessac/low/en_US-lessac-low.onnx.json"
-                
-                with open(model_path, "wb") as f:
-                    f.write(requests.get(model_url, timeout=30).content)
-                with open(config_path, "wb") as f:
-                    f.write(requests.get(config_url, timeout=30).content)
-            
-            voice = PiperVoice.load(str(model_path), str(config_path))
-            chunks = self._split_text(text, 180)
-            
-            for chunk in chunks:
-                if not self._running or not self.enabled or self.chat_tts_muted:
-                    break
-                
-                with tempfile.NamedTemporaryFile(delete=False, suffix=".wav") as tmp:
-                    with wave.open(tmp.name, "wb") as wav_file:
-                        voice.synthesize(chunk, wav_file)
-                    
-                    try:
-                        import pygame
-                        pygame.mixer.music.load(tmp.name)
-                        pygame.mixer.music.play()
-                        while pygame.mixer.music.get_busy() and self._running and self.enabled and not self.chat_tts_muted:
-                            time.sleep(0.05)
-                    finally:
-                        try:
-                            pygame.mixer.music.unload()
-                            os.remove(tmp.name)
-                        except: pass
-            return True
-        except Exception as e:
-            logger.error(f"Piper TTS speak failed: {e}")
-            return False
+
 
     def _speak_elevenlabs(self, text: str) -> bool:
         try:
