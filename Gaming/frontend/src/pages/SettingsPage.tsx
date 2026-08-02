@@ -1,4 +1,5 @@
 import React, { useState, useEffect, useRef, useMemo } from 'react';
+import { createPortal } from 'react-dom';
 import { useAuth, useUser, UserButton } from '@clerk/clerk-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import {
@@ -397,8 +398,7 @@ const HUD_LAYOUT_STYLE_OPTIONS = [
 const SPEECH_PROVIDER_OPTIONS = [
   { value: 'google', label: 'Aero (Cloud - Google)' },
   { value: 'elevenlabs', label: 'ElevenLabs (High-Fidelity)' },
-  { value: 'edge', label: 'Microsoft Edge (Cloud - Free)' },
-  { value: 'piper', label: 'Piper TTS (Ultra-Fast - Offline)' }
+  { value: 'edge', label: 'Microsoft Edge (Cloud - Free)' }
 ];
 
 
@@ -2743,7 +2743,7 @@ const SettingsPage: React.FC<{ state: TelemetryState | null, sendCommand: (type:
                 <div className={`w-4 h-4 rounded-full absolute transition-all ${localConfig.nvidia?.gaming_features?.dlss ? 'bg-black right-1' : 'bg-zinc-600 left-1'}`} />
               </div>
               <div className="flex flex-wrap gap-2">
-                {['DLSS 1', 'DLSS 2', 'DLSS 3', 'DLSS 3.5', 'DLSS 4', 'DLSS 4.5'].map((v) => (
+                {['DLSS 1', 'DLSS 2', 'DLSS 3', 'DLSS 3.5', 'DLSS 4', 'DLSS 4.5', 'DLSS 5'].map((v) => (
                   <button aria-label="button" type="button"
                     key={v}
                     onClick={() => setLocalConfig({ ...localConfig, nvidia: { ...localConfig.nvidia, gaming_features: { ...(localConfig.nvidia?.gaming_features || {}), dlss_version: v } } })}
@@ -2752,6 +2752,18 @@ const SettingsPage: React.FC<{ state: TelemetryState | null, sendCommand: (type:
                     {v}
                   </button>
                 ))}
+              </div>
+
+              {/* DLSS Knowledge Base / Guide */}
+              <div className="mt-6 border-t border-white/10 pt-6">
+                <button
+                  type="button"
+                  onClick={() => setShowDlssGuide(true)}
+                  className="flex items-center gap-2 px-4 py-2 bg-neon-green/10 border border-neon-green/20 hover:bg-neon-green/20 hover:border-neon-green/40 text-neon-green font-black text-[10px] uppercase tracking-widest rounded-xl transition-all cursor-pointer"
+                >
+                  <BookOpen className="w-4 h-4" />
+                  View NVIDIA DLSS Evolution Guide
+                </button>
               </div>
             </div>
           </SettingsField>
@@ -3932,20 +3944,20 @@ const SettingsPage: React.FC<{ state: TelemetryState | null, sendCommand: (type:
 
         </SettingsSection>
       <AnimatePresence>
-        {showDlssGuide && (
+        {showDlssGuide && createPortal(
           <motion.div
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
-            className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm"
+            className="fixed inset-0 z-[9999] flex items-center justify-center p-4 sm:p-6 bg-black/80 backdrop-blur-md"
             onClick={() => setShowDlssGuide(false)}
           >
             <motion.div
-              initial={{ scale: 0.95, opacity: 0 }}
-              animate={{ scale: 1, opacity: 1 }}
-              exit={{ scale: 0.95, opacity: 0 }}
+              initial={{ scale: 0.95, opacity: 0, y: 12 }}
+              animate={{ scale: 1, opacity: 1, y: 0 }}
+              exit={{ scale: 0.95, opacity: 0, y: 12 }}
               onClick={(e) => e.stopPropagation()}
-              className="bg-[#0c0c10] border border-white/10 rounded-2xl w-full max-w-2xl max-h-[85vh] overflow-hidden flex flex-col shadow-2xl"
+              className="bg-[#0c0c10] border border-white/10 rounded-2xl w-full max-w-2xl max-h-[85vh] overflow-hidden flex flex-col shadow-2xl z-[10000]"
             >
               <div className="p-5 border-b border-white/10 flex items-center justify-between shrink-0 bg-white/2">
                 <div className="flex items-center gap-3">
@@ -3958,8 +3970,9 @@ const SettingsPage: React.FC<{ state: TelemetryState | null, sendCommand: (type:
                   </div>
                 </div>
                 <button
+                  type="button"
                   onClick={() => setShowDlssGuide(false)}
-                  className="w-8 h-8 rounded-full bg-white/5 hover:bg-white/10 flex items-center justify-center text-zinc-400 hover:text-white transition-colors"
+                  className="w-8 h-8 rounded-full bg-white/5 hover:bg-white/10 flex items-center justify-center text-zinc-400 hover:text-white transition-colors cursor-pointer"
                 >
                   ✕
                 </button>
@@ -3979,7 +3992,8 @@ const SettingsPage: React.FC<{ state: TelemetryState | null, sendCommand: (type:
                 ))}
               </div>
             </motion.div>
-          </motion.div>
+          </motion.div>,
+          document.body
         )}
       </AnimatePresence>
 

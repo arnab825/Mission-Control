@@ -94,6 +94,7 @@ requires-dist = [
     { name = "opencv-python" },
     { name = "orjson" },
     { name = "packaging" },
+    { name = "piper-tts" },
     { name = "piper-tts", specifier = ">=1.6.0" },
     { name = "psutil" },
     { name = "psycopg2-binary", specifier = ">=2.9.9" },
