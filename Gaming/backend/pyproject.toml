@@ -44,6 +44,8 @@ dependencies = [
     "ultralytics",
     "torch",
     "torchvision",
+    "edge-tts",
+    "piper-tts>=1.6.0",
 ]
 
 [tool.uv]

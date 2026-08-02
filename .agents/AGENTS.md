@@ -30,6 +30,7 @@ The website features an automated AI-driven blog generation pipeline at `/api/bl
 * **TypeScript**: Use strict types where possible. Always verify typing with `tsc --noEmit` before proposing changes.
 * **Styles**: Ensure that styling modifications remain clean and align with the design system.
 * **Paths**: Ensure all paths are relative within the workspace. Never hardcode absolute user paths.
+* **Game Benchmark Profiles**: Whenever a game is added to `BENCHMARK_PROFILES` in `Gaming/website/src/data/benchmarks.ts`, you MUST include a complete `detailedOverview` object (with `story`, `gameplayLoop`, and 4 `keyMechanics` items `{ name, desc }`). Use Llama/NVIDIA NIM to generate the structured game overviews automatically.
 
 For the full detailed rules on generating gaming news blog posts and SEO/formatting details, see the skill file:
 → [`.agents/skills/gaming-intel-generation/SKILL.md`](file:///e:/AiAssistant/.agents/skills/gaming-intel-generation/SKILL.md)

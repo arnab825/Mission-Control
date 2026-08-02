@@ -1999,17 +1999,37 @@ class GameBrain:
                     if stream:
                         def generate():
                             try:
+                                buffer = ""
+                                prefix_stripped = False
                                 for chunk in completion:
                                     try:
                                         if isinstance(chunk, str):
-                                            yield chunk
-                                            continue
-                                        choices = getattr(chunk, "choices", None) if not isinstance(chunk, dict) else chunk.get("choices")
-                                        if not choices or not isinstance(choices, (list, tuple)) or len(choices) == 0:
-                                            continue
-                                        content = extract_choice_content(choices[0])
+                                            content = chunk
+                                        else:
+                                            choices = getattr(chunk, "choices", None) if not isinstance(chunk, dict) else chunk.get("choices")
+                                            if not choices or not isinstance(choices, (list, tuple)) or len(choices) == 0:
+                                                continue
+                                            content = extract_choice_content(choices[0])
+                                        
                                         if content:
-                                            yield content
+                                            if not prefix_stripped:
+                                                buffer += content
+                                                target = "User Safety: Safe"
+                                                # If buffer is still building up the prefix exactly, wait
+                                                if target.startswith(buffer.lstrip()):
+                                                    continue
+                                                # If it found and passed the target, strip it and yield rest
+                                                elif target in buffer:
+                                                    buffer = buffer.replace(target, "").lstrip("\n ")
+                                                    prefix_stripped = True
+                                                    if buffer:
+                                                        yield buffer
+                                                # Otherwise, the prefix isn't there, yield everything and move on
+                                                else:
+                                                    prefix_stripped = True
+                                                    yield buffer
+                                            else:
+                                                yield content
                                     except (IndexError, AttributeError, TypeError, Exception):
                                         continue
                             except Exception as stream_err:
@@ -2022,6 +2042,8 @@ class GameBrain:
                             logger.warning(f"Provider '{p_key}' returned empty choices list. Trying next provider...")
                             continue
                         advice = extract_choice_content(choices[0])
+                        if advice and "User Safety: Safe" in advice:
+                            advice = advice.replace("User Safety: Safe", "").lstrip("\n ")
                         return advice
                     
                 except Exception as e:

@@ -36,6 +36,22 @@ def _check_bettercam_available():
     if _BETTERCAM_AVAILABLE is None:
         try:
             import bettercam
+            import threading
+            
+            # Monkey-patch bettercam.BetterCam.stop to prevent the capture thread 
+            # from raising RuntimeError when it calls stop() on itself.
+            if hasattr(bettercam, "BetterCam"):
+                original_stop = bettercam.BetterCam.stop
+                def safe_stop(self):
+                    try:
+                        original_stop(self)
+                    except RuntimeError as e:
+                        if "cannot join current thread" in str(e):
+                            pass
+                        else:
+                            raise
+                bettercam.BetterCam.stop = safe_stop
+
             _BETTERCAM_AVAILABLE = True
         except Exception:
             _BETTERCAM_AVAILABLE = False

@@ -973,6 +973,11 @@ app.whenReady().then(async () => {
         return new Response('Forbidden: Only image assets are allowed', { status: 403 });
       }
 
+      if (!fs.existsSync(filePath)) {
+        console.warn(`[Asset Protocol] File not found: ${filePath}`);
+        return new Response('File Not Found', { status: 404 });
+      }
+
       const finalUrl = pathToFileURL(filePath).toString()
       console.log(`[Asset Protocol] Resolved File URL: ${finalUrl}`)
       return net.fetch(finalUrl)
