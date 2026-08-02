@@ -225,12 +225,6 @@ export const UpdatesPage: React.FC<UpdatesPageProps> = ({
 
   const rawTargetVersion = nativeUpdate?.version || updateState?.latest_version || (changelogsData?.changelog?.[0]?.version);
   const targetVersion = rawTargetVersion ? rawTargetVersion.replace(/^v/i, '') : currentVersion;
-  const isNewerVersionAvailable = Boolean(
-    targetVersion && 
-    currentVersion && 
-    currentVersion !== '---' && 
-    compareSemVer(targetVersion, currentVersion) > 0
-  );
 
   const isNativeStale = Boolean(
     nativeUpdate?.status === 'downloaded' &&
@@ -535,7 +529,7 @@ export const UpdatesPage: React.FC<UpdatesPageProps> = ({
               {(!updateState || updateState.status === 'available' || updateState.status === 'up_to_date' || updateState.status === 'idle') && updateState?.status !== 'checking' && !installState && (
                 <div className="space-y-6">
                   {/* Status header banner */}
-                  {(updateState.status === 'available' || isNewerVersionAvailable) ? (
+                  {updateState.status === 'available' ? (
                     <div className="space-y-3">
                       <div className="flex flex-col md:flex-row items-start md:items-center justify-between p-6 bg-neon-green/5 border border-neon-green/20 rounded-2xl gap-4">
                         <div className="space-y-1">

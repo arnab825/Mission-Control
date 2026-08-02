@@ -397,10 +397,20 @@ const HUD_LAYOUT_STYLE_OPTIONS = [
 const SPEECH_PROVIDER_OPTIONS = [
   { value: 'google', label: 'Aero (Cloud - Google)' },
   { value: 'elevenlabs', label: 'ElevenLabs (High-Fidelity)' },
-  { value: 'riva', label: 'NVIDIA Riva (FastPitch)' },
-  { value: 'local', label: 'Command (Neural Lite)' }
+  { value: 'edge', label: 'Microsoft Edge (Cloud - Free)' },
+  { value: 'piper', label: 'Piper TTS (Ultra-Fast - Offline)' }
 ];
 
+
+const DLSS_GUIDE = [
+  { version: "1", name: "AI Super Sampling", tech: "NVIDIA Tensor Cores + DLSS", impact: "The first step toward using AI to increase rendering performance." },
+  { version: "2", name: "AI Super Resolution", tech: "Temporal feedback + deep-learning reconstruction.", impact: "Better image quality and broad game support without per-game AI models." },
+  { version: "3", name: "AI Frame Generation", tech: "Optical Flow Accelerator + Tensor Cores + NVIDIA Reflex.", impact: "Higher displayed frame rates with improved latency management." },
+  { version: "3.5", name: "Ray Reconstruction", tech: "Deep-learning model trained to reconstruct ray-traced images.", impact: "More detailed lighting, reflections and global illumination with temporal stability." },
+  { version: "4", name: "Multi Frame Generation", tech: "Transformer models + 5th-gen Tensor Cores + Multi Frame Generation.", impact: "Up to 3 AI-generated frames per traditionally rendered frame on RTX 50 Series." },
+  { version: "4.5", name: "Dynamic Multi Frame Gen", tech: "2nd-gen Transformer Super Resolution + Dynamic MFG.", impact: "Up to 5 AI-generated frames per rendered frame, enabling up to 6X frame generation." },
+  { version: "5", name: "Neural Rendering", tech: "Neural rendering model integrated into the real-time graphics pipeline.", impact: "Aims to push real-time graphics closer to cinematic-level visual fidelity. Coming Fall 2026." },
+];
 const PRESET_DETAILS = [
   {
     key: 'auto',
@@ -821,6 +831,8 @@ const SettingsPage: React.FC<{ state: TelemetryState | null, sendCommand: (type:
   const [configLoaded, setConfigLoaded] = useState(false);
   const [desktopPath, setDesktopPath] = useState('C:/Users/Default/Desktop');
   const [searchQuery, setSearchQuery] = useState('');
+  const [showDlssGuide, setShowDlssGuide] = useState(false);
+
   const searchInputRef = useRef<HTMLInputElement>(null);
   const lastSettingsRequestRef = useRef<number>(0);
   const settingsRequestTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
@@ -2133,6 +2145,13 @@ const SettingsPage: React.FC<{ state: TelemetryState | null, sendCommand: (type:
         </SettingsSection>
         {/* Screen Capture */}
         <SettingsSection searchQuery={searchQuery} title="Screen Capture" icon={Camera}>
+          <div className="p-3 bg-neon-yellow/5 border border-neon-yellow/20 rounded-xl flex items-start gap-3 mb-2">
+            <AlertTriangle className="w-5 h-5 text-neon-yellow shrink-0 mt-0.5" />
+            <div className="text-[10px] text-neon-yellow/90 leading-relaxed font-medium">
+              <span className="font-bold uppercase tracking-widest text-neon-yellow mb-1 block">Display Requirement</span>
+              To ensure the vision and capture engine works correctly, you must set your game to run in <strong className="text-neon-yellow">Borderless Windowed</strong> or <strong className="text-neon-yellow">Windowed</strong> mode before playing. Exclusive Fullscreen may block screen capture.
+            </div>
+          </div>
           <SettingsField label="Focus Mode" description="Use 'Auto-Follow' if you play games on different monitors.">
             <CustomSelect
               value={localConfig.capture?.focus_mode || 'Primary Only'}
@@ -2712,7 +2731,7 @@ const SettingsPage: React.FC<{ state: TelemetryState | null, sendCommand: (type:
                     nvidia: {
                       ...localConfig.nvidia,
                       gaming_features: {
-                        ...localConfig.nvidia.gaming_features,
+                        ...(localConfig.nvidia?.gaming_features || {}),
                         dlss: nextVal,
                         dlss_version: nextVal ? (localConfig.nvidia?.gaming_features?.dlss_version || 'DLSS 1') : undefined
                       }
@@ -2727,7 +2746,7 @@ const SettingsPage: React.FC<{ state: TelemetryState | null, sendCommand: (type:
                 {['DLSS 1', 'DLSS 2', 'DLSS 3', 'DLSS 3.5', 'DLSS 4', 'DLSS 4.5'].map((v) => (
                   <button aria-label="button" type="button"
                     key={v}
-                    onClick={() => setLocalConfig({ ...localConfig, nvidia: { ...localConfig.nvidia, gaming_features: { ...localConfig.nvidia.gaming_features, dlss_version: v } } })}
+                    onClick={() => setLocalConfig({ ...localConfig, nvidia: { ...localConfig.nvidia, gaming_features: { ...(localConfig.nvidia?.gaming_features || {}), dlss_version: v } } })}
                     className={`px-3 py-1.5 rounded-lg text-[8px] font-black uppercase border transition-all ${localConfig.nvidia?.gaming_features?.dlss_version === v && localConfig.nvidia?.gaming_features?.dlss ? 'bg-neon-green text-black border-neon-green shadow-[0_0_10px_rgba(118, 185, 0,0.3)]' : 'bg-white/5 border-white/10 text-zinc-500 hover:border-white/20'}`}
                   >
                     {v}
@@ -2759,7 +2778,7 @@ const SettingsPage: React.FC<{ state: TelemetryState | null, sendCommand: (type:
                     nvidia: {
                       ...localConfig.nvidia,
                       gaming_features: {
-                        ...localConfig.nvidia.gaming_features,
+                        ...(localConfig.nvidia?.gaming_features || {}),
                         frame_gen: nextVal,
                         frame_gen_multiplier: nextVal ? (localConfig.nvidia?.gaming_features?.frame_gen_multiplier || '2x') : undefined
                       }
@@ -2781,7 +2800,7 @@ const SettingsPage: React.FC<{ state: TelemetryState | null, sendCommand: (type:
                         nvidia: {
                           ...localConfig.nvidia,
                           gaming_features: {
-                            ...localConfig.nvidia.gaming_features,
+                            ...(localConfig.nvidia?.gaming_features || {}),
                             frame_gen_multiplier: mult
                           }
                         }
@@ -2811,13 +2830,13 @@ const SettingsPage: React.FC<{ state: TelemetryState | null, sendCommand: (type:
             description={activeFeatures && !activeFeatures.includes('RTX') && !activeFeatures.includes('PATH_TRACING') ? "Your active game does not support Ray Tracing. This advisory preference is safely ignored." : "Advisory preference — enable RT/PT in-game. The AI uses this to tailor performance advice."}>
             <div className={`flex gap-4 ${(!isRtxGpu || (activeFeatures && !activeFeatures.includes('RTX') && !activeFeatures.includes('PATH_TRACING'))) ? 'pointer-events-none opacity-40 select-none' : ''}`}>
               <button aria-label="button" type="button"
-                onClick={() => setLocalConfig({ ...localConfig, nvidia: { ...localConfig.nvidia, gaming_features: { ...localConfig.nvidia.gaming_features, ray_tracing: !localConfig.nvidia.gaming_features.ray_tracing } } })}
+                onClick={() => setLocalConfig({ ...localConfig, nvidia: { ...localConfig.nvidia, gaming_features: { ...(localConfig.nvidia?.gaming_features || {}), ray_tracing: !localConfig.nvidia?.gaming_features?.ray_tracing } } })}
                 className={`px-4 py-2 rounded-xl text-[9px] font-black uppercase tracking-widest border transition-all ${localConfig.nvidia?.gaming_features?.ray_tracing ? 'bg-neon-green/20 border-neon-green/40 text-neon-green' : 'bg-white/5 border-white/10 text-zinc-500'}`}
               >
                 Ray Tracing
               </button>
               <button aria-label="button" type="button"
-                onClick={() => setLocalConfig({ ...localConfig, nvidia: { ...localConfig.nvidia, gaming_features: { ...localConfig.nvidia.gaming_features, path_tracing: !localConfig.nvidia.gaming_features.path_tracing } } })}
+                onClick={() => setLocalConfig({ ...localConfig, nvidia: { ...localConfig.nvidia, gaming_features: { ...(localConfig.nvidia?.gaming_features || {}), path_tracing: !localConfig.nvidia?.gaming_features?.path_tracing } } })}
                 className={`px-4 py-2 rounded-xl text-[9px] font-black uppercase tracking-widest border transition-all ${localConfig.nvidia?.gaming_features?.path_tracing ? 'bg-orange-500/20 border-orange-500/40 text-orange-400' : 'bg-white/5 border-white/10 text-zinc-500'}`}
               >
                 <Flame className="w-3 h-3 inline-block mr-1" />
@@ -2841,7 +2860,7 @@ const SettingsPage: React.FC<{ state: TelemetryState | null, sendCommand: (type:
             description={activeFeatures && !activeFeatures.includes('REFLEX') ? "Your active game does not support NVIDIA Reflex. This advisory preference is safely ignored." : "Advisory preference — enable NVIDIA Reflex in-game. Tells the AI your latency priority."}>
             <div className={`flex gap-4 ${(!isNvidiaGpu || (activeFeatures && !activeFeatures.includes('REFLEX'))) ? 'pointer-events-none opacity-40 select-none' : ''}`}>
               <button aria-label="button" type="button"
-                onClick={() => setLocalConfig({ ...localConfig, nvidia: { ...localConfig.nvidia, gaming_features: { ...localConfig.nvidia.gaming_features, reflex: !localConfig.nvidia.gaming_features.reflex } } })}
+                onClick={() => setLocalConfig({ ...localConfig, nvidia: { ...localConfig.nvidia, gaming_features: { ...(localConfig.nvidia?.gaming_features || {}), reflex: !localConfig.nvidia?.gaming_features?.reflex } } })}
                 className={`px-4 py-2 rounded-xl text-[9px] font-black uppercase tracking-widest border transition-all ${localConfig.nvidia?.gaming_features?.reflex ? 'bg-neon-yellow/20 border-neon-yellow/40 text-neon-yellow' : 'bg-white/5 border-white/10 text-zinc-500'} ${!isNvidiaGpu ? 'pointer-events-none opacity-40 select-none' : ''}`}
               >
                 NVIDIA Reflex
@@ -2864,7 +2883,7 @@ const SettingsPage: React.FC<{ state: TelemetryState | null, sendCommand: (type:
             description={activeFeatures && !activeFeatures.includes('HDR') ? "Your active game does not natively support HDR. This advisory preference is safely ignored." : "Advisory preference — enable HDR in Windows Display Settings and in-game. The AI uses this for visual quality guidance."}>
             <div className={`flex gap-4 ${(activeFeatures && !activeFeatures.includes('HDR')) ? 'pointer-events-none opacity-40 select-none' : ''}`}>
               <button aria-label="button" type="button"
-                onClick={() => setLocalConfig({ ...localConfig, nvidia: { ...localConfig.nvidia, gaming_features: { ...localConfig.nvidia.gaming_features, hdr: !localConfig.nvidia.gaming_features?.hdr } } })}
+                onClick={() => setLocalConfig({ ...localConfig, nvidia: { ...localConfig.nvidia, gaming_features: { ...(localConfig.nvidia?.gaming_features || {}), hdr: !localConfig.nvidia?.gaming_features?.hdr } } })}
                 className={`px-4 py-2 rounded-xl text-[9px] font-black uppercase tracking-widest border transition-all ${localConfig.nvidia?.gaming_features?.hdr ? 'bg-violet-500/20 border-violet-500/40 text-violet-400 shadow-[0_0_15px_rgba(139,92,246,0.15)]' : 'bg-white/5 border-white/10 text-zinc-500'}`}
               >
                 HDR Optimization
@@ -3912,6 +3931,58 @@ const SettingsPage: React.FC<{ state: TelemetryState | null, sendCommand: (type:
           </SettingsField>
 
         </SettingsSection>
+      <AnimatePresence>
+        {showDlssGuide && (
+          <motion.div
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm"
+            onClick={() => setShowDlssGuide(false)}
+          >
+            <motion.div
+              initial={{ scale: 0.95, opacity: 0 }}
+              animate={{ scale: 1, opacity: 1 }}
+              exit={{ scale: 0.95, opacity: 0 }}
+              onClick={(e) => e.stopPropagation()}
+              className="bg-[#0c0c10] border border-white/10 rounded-2xl w-full max-w-2xl max-h-[85vh] overflow-hidden flex flex-col shadow-2xl"
+            >
+              <div className="p-5 border-b border-white/10 flex items-center justify-between shrink-0 bg-white/2">
+                <div className="flex items-center gap-3">
+                  <div className="w-8 h-8 rounded-xl bg-neon-green/10 border border-neon-green/20 flex items-center justify-center">
+                    <BookOpen className="w-4 h-4 text-neon-green" />
+                  </div>
+                  <div>
+                    <h2 className="text-[13px] font-black text-white tracking-widest uppercase">The Evolution of DLSS</h2>
+                    <p className="text-[10px] font-bold text-zinc-500 uppercase tracking-widest">From AI Upscaling to Neural Rendering</p>
+                  </div>
+                </div>
+                <button
+                  onClick={() => setShowDlssGuide(false)}
+                  className="w-8 h-8 rounded-full bg-white/5 hover:bg-white/10 flex items-center justify-center text-zinc-400 hover:text-white transition-colors"
+                >
+                  ✕
+                </button>
+              </div>
+              <div className="p-6 overflow-y-auto custom-scrollbar flex flex-col gap-4">
+                {DLSS_GUIDE.map((g) => (
+                  <div key={g.version} className="p-4 rounded-xl bg-white/5 border border-white/5">
+                    <h3 className="text-neon-green text-[11px] font-black uppercase tracking-widest mb-2 flex items-center gap-2">
+                      <span className="w-1.5 h-1.5 rounded-full bg-neon-green shadow-[0_0_8px_rgba(118,185,0,0.8)]" />
+                      DLSS {g.version} ({g.name})
+                    </h3>
+                    <div className="flex flex-col gap-1.5 mt-2">
+                      <p className="text-[10px] text-zinc-300"><span className="text-white font-bold">Key Tech:</span> {g.tech}</p>
+                      <p className="text-[10px] text-zinc-400"><span className="text-white font-bold">Impact:</span> {g.impact}</p>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </motion.div>
+          </motion.div>
+        )}
+      </AnimatePresence>
+
 
 
 

@@ -25,6 +25,17 @@ export interface BenchmarkScreenshot {
   desc: string;
 }
 
+export interface GameplayMechanic {
+  name: string;
+  desc: string;
+}
+
+export interface DetailedOverview {
+  story: string;
+  gameplayLoop: string;
+  keyMechanics: GameplayMechanic[];
+}
+
 export interface BenchmarkProfile {
   id: string;
   name: string;
@@ -35,6 +46,8 @@ export interface BenchmarkProfile {
   score: number;
   status: string;
   preset: string;
+  overview: string;
+  detailedOverview: DetailedOverview;
   testedSpecs: TestedSpecs;
   presets: PresetRecommendations;
   features: VerifiedFeature[];
@@ -68,6 +81,17 @@ export const BENCHMARK_PROFILES: Record<string, BenchmarkProfile> = {
     score: 99,
     status: "VERIFIED & OPTIMAL",
     preset: "Ultra Ray Tracing",
+    overview: "Set nine months after Spider-Man: Miles Morales, Peter Parker and Miles Morales balance their personal lives while defending New York City from Kraven the Hunter and a corruption caused by the alien Venom Symbiote.",
+    detailedOverview: {
+      story: "Set nine months after the events of Spider-Man: Miles Morales, Peter Parker and Miles Morales struggle to balance their personal lives while defending New York City. The return of Peter's childhood friend Harry Osborn and the arrival of Kraven the Hunter's murderous mercenary faction turns Marvel's New York into a hunting ground. When the alien Venom Symbiote bonds with Peter, it grants him terrifying Symbiote abilities but corrupts his moral compass, forcing Miles to confront his mentor and save the city from an impending Symbiote takeover.",
+      gameplayLoop: "Seamless dual-character swapping across an expanded NYC (Manhattan, Brooklyn, Queens) with Web Wings traversal, high-speed catapults, dynamic crime events, Symbiote combat abilities, and tactical gadget combos.",
+      keyMechanics: [
+        { name: "Dual-Protagonist Swapping", desc: "Switch dynamically between Peter and Miles in the open world, each featuring unique skill trees, suit abilities, and combat animations." },
+        { name: "Web Wings Traversal", desc: "Glide through wind tunnels and skyscraper slipstreams at twice the speed of web-swinging, seamlessly linking traversal mechanics across massive distances." },
+        { name: "Symbiote & Bio-Electric Combat", desc: "Peter utilizes heavy Symbiote tendrils for devastating crowd-control attacks, while Miles wields Venom shockwaves and chain lightning abilities." },
+        { name: "Parry & Precision Combat", desc: "Execute timed parries against heavy boss strikes and brute enemies, expanding the traditional dodge-heavy combat system." }
+      ]
+    },
     testedSpecs: {
       gpu: "NVIDIA GeForce RTX Series / GTX Series",
       resolution: "4K UHD (3840 x 2160) & 1440p QHD",
@@ -115,6 +139,17 @@ export const BENCHMARK_PROFILES: Record<string, BenchmarkProfile> = {
     score: 98,
     status: "VERIFIED BENCHMARK",
     preset: "RTX High FPS",
+    overview: "Set in the sun-drenched metropolis of Los Santos and Blaine County, GTA V follows retired bank robber Michael, unhinged dealer Trevor, and street hustler Franklin as they execute high-stakes heists while dodging corrupt federal agents.",
+    detailedOverview: {
+      story: "Set in the expansive metropolis of Los Santos and Blaine County, Grand Theft Auto V weaves the intertwined lives of three distinct criminals: Michael De Santa, a former bank robber living in witness protection; Trevor Philips, a chaotic and volatile arms runner; and Franklin Clinton, a young street hustler aiming for high-end score opportunities. Dragged back into the criminal underworld by corrupted federal agents and dangerous cartels, the trio must pull off a series of complex, high-stakes heists to secure their freedom and fortune.",
+      gameplayLoop: "Freely explore a massive open-world sandbox, engage in multi-stage heist missions, customize vehicles and weaponry, run criminal enterprises, and switch dynamically between three protagonists during missions and free-roam.",
+      keyMechanics: [
+        { name: "Three-Protagonist Dynamic Switching", desc: "Seamlessly switch between Michael, Franklin, and Trevor during heists to manage snipers, getaway drivers, and assault teams in real time." },
+        { name: "Multi-Stage Heist Planning", desc: "Plan major robberies by selecting approach vectors (Smart vs. Loud), hiring crew members with distinct skill/cut ratios, and setting up prep missions." },
+        { name: "Special Character Abilities", desc: "Michael triggers bullet-time precision marksmanship; Franklin slows time while driving for high-speed maneuvers; Trevor enters a berserk rage with reduced damage and boosted firepower." },
+        { name: "Enhanced Graphics & Dynamic Sandbox", desc: "Features upgraded ray-traced shadows, enhanced foliage density, high-resolution textures, and a living open-world AI simulation." }
+      ]
+    },
     testedSpecs: {
       gpu: "NVIDIA GeForce RTX Series / GTX Series",
       resolution: "4K UHD (3840 x 2160) & 1440p QHD",
@@ -162,6 +197,17 @@ export const BENCHMARK_PROFILES: Record<string, BenchmarkProfile> = {
     score: 99,
     status: "VERIFIED & OPTIMAL",
     preset: "Very High / DLSS Quality",
+    overview: "Set in 13th-century feudal Japan during the Mongol invasion, honorable samurai Jin Sakai survives a devastating assault on Tsushima Island and must abandon his code of honor to become 'The Ghost' to liberate his homeland.",
+    detailedOverview: {
+      story: "In late 13th century Japan, the Mongol Empire invades Tsushima Island, wiping out the samurai defense in a brutal slaughter. Lord Jin Sakai, one of the last surviving samurai, is saved from death and vows to liberate his home from the tyrannical General Khotun Khan. Realizing that traditional, honorable samurai combat tactics are ineffective against the ruthless invaders, Jin must break his sacred samurai code and forge the identity of 'The Ghost' — a feared stealth assassin who uses fear, explosive weapons, and dishonorable tactics to save Tsushima.",
+      gameplayLoop: "Explore feudal Tsushima guided by wind and wildlife, master four distinct combat stances, execute stealth assassinations from rooftops, liberate occupied Mongol outposts, and duel master swordsmen in cinematic 1v1 encounters.",
+      keyMechanics: [
+        { name: "Four Combat Stances", desc: "Switch between Stone, Water, Wind, and Moon stances in real-time to stagger specific enemy weapon types (Swords, Shields, Spears, Brutes)." },
+        { name: "The Ghost Stealth & Tools", desc: "Utilize kunai throwing daggers, smoke bombs, sticky bombs, blowdarts, and grappling hooks to strike fear into enemies and trigger terror flee mechanics." },
+        { name: "Guiding Wind Exploration", desc: "Clean, immersive UI with no mini-map — swiping the touchpad or summoning the wind visually guides players toward objectives and secrets." },
+        { name: "Standoff & Mythic Duels", desc: "Initiate high-stakes 1v1 Standoffs at camp entrances to instantly execute approaching foes with single-frame katana strikes." }
+      ]
+    },
     testedSpecs: {
       gpu: "NVIDIA GeForce RTX Series / GTX Series",
       resolution: "4K UHD (3840 x 2160) & 1440p QHD",
@@ -209,6 +255,17 @@ export const BENCHMARK_PROFILES: Record<string, BenchmarkProfile> = {
     score: 97,
     status: "VERIFIED BENCHMARK",
     preset: "Ultra Frostbite",
+    overview: "Set in Palm City, a neon-lit street racing paradise inspired by Miami, players race by day in sanctioned Speedhunters Showdown events to earn Bank, and risk it all in illegal night races to build Rep while evading a rogue police taskforce.",
+    detailedOverview: {
+      story: "Set in Palm City, a neon-infused street racing destination inspired by Miami, players step into the shoes of an up-and-coming street racer. By day, the city hosts the Speedhunters Showdown — a sanctioned, legal competition where drivers earn cash to purchase and upgrade performance parts. But as night falls, the city transforms into an illegal underground street racing arena where racers risk everything for Rep. Tensions escalate when a corrupt High-Speed Task Force led by Mercer exploits the law to extort and impound street racers' cars.",
+      gameplayLoop: "Engage in a dual Day/Night gameplay loop: race legal events during the day to earn Bank, then swap to night racing to accumulate Rep and Heat levels. Return safely to a safehouse without getting busted by aggressive police to bank your rewards.",
+      keyMechanics: [
+        { name: "Day & Night Dual Progression", desc: "Day events earn Bank (money for cars/parts); Night events earn Rep (unlocks new cars/parts) and raise Heat level multipliers up to 5x." },
+        { name: "High-Risk Cop Chases", desc: "Night cops deploy PIT maneuvers, spike strips, kill switches, and armored Rhinos. Getting busted loses your Heat multiplier and a chunk of Bank." },
+        { name: "Deep Performance & Visual Tuning", desc: "Exchange engines, adjust exhaust notes, fine-tune stance, customize liveries, and balance drift vs. grip handling dynamics." },
+        { name: "Manual Drift Tap & Gas Control", desc: "Tap or release/re-engage the throttle while steering to initiate smooth, high-speed drifts around tight city corners." }
+      ]
+    },
     testedSpecs: {
       gpu: "NVIDIA GeForce RTX Series / GTX Series",
       resolution: "1080p FHD / 1440p QHD",
@@ -256,6 +313,17 @@ export const BENCHMARK_PROFILES: Record<string, BenchmarkProfile> = {
     score: 98,
     status: "VERIFIED BENCHMARK",
     preset: "Ultra Snowdrop Settings",
+    overview: "Set in a frozen, post-apocalyptic New York City following the collapse of society from the 'Dollar Flu' pandemic, tactical operatives of The Division are deployed to restore order, investigate the virus's origin, and reclaim Manhattan.",
+    detailedOverview: {
+      story: "On Black Friday, a deadly, smallpox-based bio-weapon known as 'The Dollar Flu' is released via paper currency in New York City. Within weeks, the pandemic devastates the city's infrastructure, leading to a complete societal breakdown. Government agencies collapse, and violent rogue factions (Rioters, Cleaners, Rikers, Last Man Battalion) seize control of Manhattan. You are an agent of the Strategic Homeland Division — an elite unit of tactical sleeper agents activated as the last line of defense to restore order, assist survivors, and discover the source of the virus.",
+      gameplayLoop: "Deploy into a snowy midtown Manhattan, fight through tactical cover-based combat encounters, loot high-tier gear and weapons, upgrade your Base of Operations, and enter the high-risk Dark Zone PvPvE area for contaminated loot extractions.",
+      keyMechanics: [
+        { name: "Tactical Cover-Based Combat", desc: "Utilize dynamic cover-to-cover transitions, suppression mechanics, and tactical positioning to outflank heavily armed enemy factions." },
+        { name: "Base of Operations Upgrade Wings", desc: "Rebuild Medical, Tech, and Security wings to unlock active skills (Seeker Mines, Turrets, Pulse Scanners, First Aid) and passive perks." },
+        { name: "Loot & RPG Build Customization", desc: "Collect High-End gear sets, calibrate weapon talents (DPS, Armor, Skill Power), and optimize weapon attachments for recoil and critical hits." },
+        { name: "The Dark Zone (PvPvE Zone)", desc: "Enter a lawless walled-off zone to collect high-tier contaminated loot, call in helicopter extractions, and decide whether to team up or go Rogue against other players." }
+      ]
+    },
     testedSpecs: {
       gpu: "NVIDIA GeForce RTX Series / GTX Series",
       resolution: "1080p FHD / 1440p QHD",
@@ -378,5 +446,5 @@ export function getAllBenchmarkProfiles(): BenchmarkProfile[] {
 }
 
 export function getBenchmarkProfileById(id: string): BenchmarkProfile {
-  return BENCHMARK_PROFILES[id] || BENCHMARK_PROFILES["spiderman2"];
+  return BENCHMARK_PROFILES[id] || BENCHMARK_PROFILES.spiderman2;
 }

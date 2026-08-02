@@ -29,6 +29,7 @@ const DOCS_ORDER = [
   "fps",
   "productroadmap",
   "electronroadmap",
+  "dlss_guide",
   "aero_ai_full_prompt",
   "patchesfile"
 ];
@@ -42,6 +43,7 @@ const METADATA_FALLBACKS: Record<string, { category?: string; title?: string; ba
   "agents": { category: "Core Logic", title: "AI Personalities" },
   "nvidia_ai_guide": { category: "Integrations", title: "NVIDIA NIM Guide" },
   "nvidia": { category: "Integrations", title: "NVIDIA Integration" },
+  "dlss_guide": { category: "Integrations", title: "Evolution of DLSS" },
   "on_demand_ai_weights": { category: "AI Models", title: "On-Demand AI Model Weights", badge: "AI Engine", badgeColor: "text-neon-green" },
   "fps": { category: "Performance", title: "FPS & VRAM Optimization" },
   "patchesfile": { category: "Reference", title: "Patches & Version History" },

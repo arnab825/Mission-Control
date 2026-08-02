@@ -85,6 +85,11 @@ export interface AppConfig {
   };
 
   nvidia?: {
+    preset?: string;
+    dlss?: {
+      enabled?: boolean;
+      target_version?: number;
+    };
     gpu_monitoring?: {
       enabled?: boolean;
       device_index?: number;

@@ -24,7 +24,8 @@ import {
   ChevronLeft,
   ChevronRight,
   Play,
-  Pause
+  Pause,
+  BookOpen
 } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 import { WINDOWS_INSTALLER_URL } from "@/lib/download";
@@ -206,8 +207,8 @@ export default function GamesTestedPage() {
                   <h3 className="text-3xl sm:text-4xl font-black font-display text-white uppercase tracking-tight">
                     {featuredGame.name}
                   </h3>
-                  <p className="text-gray-400 text-xs font-mono mt-2 leading-relaxed">
-                    Full hardware audit and AI optimization benchmark. Mission Control verified 4K Ray Tracing, DLSS Super Resolution, Frame Generation, and Reflex latency tuning.
+                  <p className="text-gray-300 text-xs sm:text-sm font-sans mt-3 leading-relaxed border-l-2 border-neon-green/40 pl-3">
+                    {featuredGame.overview}
                   </p>
                 </div>
 
@@ -333,6 +334,60 @@ export default function GamesTestedPage() {
                 </div>
 
               </div>
+
+              {/* Detailed Game Overview & Mechanics Section */}
+              {featuredGame.detailedOverview && (
+                <div className="col-span-1 lg:col-span-12 mt-8 pt-8 border-t border-white/10 space-y-6">
+                  <div className="flex items-center gap-2">
+                    <Gamepad2 className="w-5 h-5 text-neon-green" />
+                    <h4 className="text-lg font-black font-display text-white uppercase tracking-wider">
+                      Detailed Game Overview & Mechanics
+                    </h4>
+                  </div>
+
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-6 font-mono text-xs">
+                    {/* Story & Premise */}
+                    <div className="p-5 rounded-2xl bg-white/[0.02] border border-white/10 space-y-2">
+                      <div className="text-neon-green font-bold uppercase tracking-wider text-xs flex items-center gap-2">
+                        <BookOpen className="w-4 h-4 text-neon-green" /> Story & Narrative Premise
+                      </div>
+                      <p className="text-gray-300 font-sans text-xs leading-relaxed">
+                        {featuredGame.detailedOverview.story}
+                      </p>
+                    </div>
+
+                    {/* Gameplay Loop */}
+                    <div className="p-5 rounded-2xl bg-white/[0.02] border border-white/10 space-y-2">
+                      <div className="text-emerald-400 font-bold uppercase tracking-wider text-xs flex items-center gap-2">
+                        <Zap className="w-4 h-4 text-emerald-400" /> Core Gameplay Loop
+                      </div>
+                      <p className="text-gray-300 font-sans text-xs leading-relaxed">
+                        {featuredGame.detailedOverview.gameplayLoop}
+                      </p>
+                    </div>
+                  </div>
+
+                  {/* Key Gameplay Mechanics Grid */}
+                  <div className="space-y-3">
+                    <div className="text-xs font-mono font-bold text-gray-300 uppercase tracking-wider flex items-center gap-2">
+                      <Sliders className="w-4 h-4 text-neon-yellow" /> Key Gameplay Mechanics & Features
+                    </div>
+                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                      {featuredGame.detailedOverview.keyMechanics.map((mech, idx) => (
+                        <div key={idx} className="p-4 rounded-xl bg-white/[0.02] border border-white/5 font-mono">
+                          <div className="text-neon-yellow font-bold text-xs uppercase tracking-wide mb-1 flex items-center gap-2">
+                            <span className="w-1.5 h-1.5 rounded-full bg-neon-yellow" />
+                            {mech.name}
+                          </div>
+                          <p className="text-gray-400 text-[11px] font-sans leading-relaxed">
+                            {mech.desc}
+                          </p>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                </div>
+              )}
 
             </div>
           </motion.div>

@@ -36,24 +36,7 @@ with warnings.catch_warnings():
 logger = logging.getLogger(__name__)
 
 # ── SAPI5 via win32com ─────────────────────────────────────────────────────────
-try:
-    import win32com.client
-    _WIN32COM_OK = True
-except ImportError:
-    _WIN32COM_OK = False
-    logger.warning("win32com not available — falling back to pyttsx3")
 
-_PYTTSX3_OK = None
-
-def _check_pyttsx3():
-    global _PYTTSX3_OK
-    if _PYTTSX3_OK is None:
-        try:
-            import pyttsx3
-            _PYTTSX3_OK = True
-        except ImportError:
-            _PYTTSX3_OK = False
-    return _PYTTSX3_OK
 
 # ── Profile table ─────────────────────────────────────────────────────────────
 # (gender, sapi5_rate, sapi5_volume, sapi5_pitch, preferred_provider)
@@ -69,172 +52,22 @@ PROFILES = {
     "antoni (tactical)":  ("male",   0,  100,  0, "elevenlabs"),
     
     # --- Local (SAPI5) ---
-    "tactical (male)":    ("male",  -1,  100,  0, "sapi5"),
-    "valkyrie (agile)":   ("female", 2,  100,  5, "sapi5"),
-    "intel (synthetic)":  ("female", 1,   80, -3, "sapi5"),
-    "overwatch (heavy)":  ("male",  -2,  100, -5, "sapi5"),
+    "tactical (male)":    ("male",  -1,  100,  0, "piper"),
+    "valkyrie (agile)":   ("female", 2,  100,  5, "piper"),
+    "intel (synthetic)":  ("female", 1,   80, -3, "piper"),
+    "overwatch (heavy)":  ("male",  -2,  100, -5, "piper"),
 }
 DEFAULT_PROFILE = "aero (cloud)"
 
 
-class _SAPI5Speaker:
-    """Thin wrapper around Windows SAPI5 SpVoice COM object."""
-    def __init__(self):
-        self._local = threading.local()
-        self._current_pitch = 0
-
-    def _get_speaker(self):
-        if not hasattr(self._local, "speaker") or self._local.speaker is None:
-            try:
-                import pythoncom
-                pythoncom.CoInitialize()
-            except:
-                pass
-            self._local.speaker = win32com.client.Dispatch("SAPI.SpVoice")
-        return self._local.speaker
-
-    def set_voice(self, token_id: str):
-        try:
-            speaker = self._get_speaker()
-            voices = speaker.GetVoices()
-            for i in range(voices.Count):
-                v = voices.Item(i)
-                if token_id in v.Id:
-                    speaker.Voice = v
-                    return
-        except Exception as e:
-            logger.warning(f"SAPI5 set_voice failed: {e}")
-
-    def set_rate(self, rate: int):
-        try: self._get_speaker().Rate = max(-10, min(10, rate))
-        except: pass
-
-    def set_volume(self, volume: int):
-        try: self._get_speaker().Volume = max(0, min(100, volume))
-        except: pass
-        
-    def set_pitch(self, pitch: int):
-        self._current_pitch = max(-10, min(10, pitch))
-
-    def speak(self, text: str):
-        try:
-            # Use SSML-like XML to set pitch
-            # 0x2 = SPF_PURGEBEFORESPEAK
-            # 0x8 = SPF_IS_XML
-            xml_text = f"<pitch absmiddle='{self._current_pitch}'>{text}</pitch>"
-            self._get_speaker().Speak(xml_text, 0x2 | 0x8)
-        except Exception as e:
-            # Fallback to plain text if XML fails
-            try: self._get_speaker().Speak(text, 0x2)
-            except: pass
-            logger.error(f"SAPI5 speak failed: {e}")
-
-    def stop(self):
-        try:
-            self._get_speaker().Speak("", 0x2)
-        except Exception as e:
-            logger.debug(f"SAPI5 stop failed: {e}")
 
 
-class _PyTTSX3Speaker:
-    """Fallback speaker using pyttsx3 if win32com/SAPI5 is unavailable or fails."""
-    def __init__(self):
-        self._engine = None
-        self._pending_properties = {}
 
-    def _ensure_engine(self):
-        if self._engine is None:
-            try:
-                import pyttsx3
-                self._engine = pyttsx3.init()
-                for prop, val in self._pending_properties.items():
-                    try: self._engine.setProperty(prop, val)
-                    except: pass
-                self._pending_properties.clear()
-            except Exception as e:
-                logger.error(f"Failed to initialize pyttsx3 engine: {e}")
-        return self._engine
 
-    def set_voice(self, token_id: str):
-        engine = self._ensure_engine()
-        if engine:
-            try:
-                voices = engine.getProperty('voices')
-                for v in voices:
-                    if token_id in v.id or (v.name and token_id.lower() in v.name.lower()):
-                        engine.setProperty('voice', v.id)
-                        return
-            except Exception as e:
-                logger.debug(f"pyttsx3 set_voice failed: {e}")
-        else:
-            self._pending_properties['voice'] = token_id
-
-    def set_rate(self, rate: int):
-        wpm = 200 + rate * 15
-        wpm = max(50, min(400, wpm))
-        engine = self._ensure_engine()
-        if engine:
-            try: engine.setProperty('rate', wpm)
-            except: pass
-        else:
-            self._pending_properties['rate'] = wpm
-
-    def set_volume(self, volume: int):
-        vol_float = max(0.0, min(1.0, volume / 100.0))
-        engine = self._ensure_engine()
-        if engine:
-            try: engine.setProperty('volume', vol_float)
-            except: pass
-        else:
-            self._pending_properties['volume'] = vol_float
-
-    def set_pitch(self, pitch: int):
-        pass
-
-    def speak(self, text: str):
-        engine = self._ensure_engine()
-        if engine:
-            try:
-                engine.say(text)
-                engine.runAndWait()
-            except Exception as e:
-                logger.error(f"pyttsx3 speak failed: {e}")
-        else:
-            logger.error("pyttsx3 engine is not available for speak")
-
-    def stop(self):
-        engine = self._ensure_engine()
-        if engine:
-            try:
-                engine.stop()
-            except Exception as e:
-                logger.debug(f"pyttsx3 stop failed: {e}")
 
 
 class VoiceManager:
     def __init__(self, config=None):
-        self._speaker = None
-        if _WIN32COM_OK:
-            try:
-                import pythoncom
-                pythoncom.CoInitialize()
-                # Test SAPI.SpVoice Dispatch to verify SAPI5 is working
-                win32com.client.Dispatch("SAPI.SpVoice")
-                self._speaker = _SAPI5Speaker()
-            except Exception as e:
-                logger.warning(f"SAPI5 SpVoice Dispatch test failed: {e}. Falling back to pyttsx3.")
-        
-        if self._speaker is None:
-            if _check_pyttsx3():
-                self._speaker = _PyTTSX3Speaker()
-                logger.info("Using pyttsx3 fallback speaker.")
-            else:
-                self._speaker = None
-
-        self._david_token: Optional[str] = None
-        self._zira_token:  Optional[str] = None
-        self._find_voice_tokens()
-
         self.speech_queue: queue.Queue = queue.Queue()
         self.is_listening = False
         self._tts_thread: Optional[threading.Thread] = None
@@ -281,51 +114,17 @@ class VoiceManager:
         self._is_speaking = False
         self.apply_config(config or {})
 
-    def _find_voice_tokens(self):
-        if not _WIN32COM_OK: return
-        try:
-            import pythoncom
-            pythoncom.CoInitialize()
-            speaker = win32com.client.Dispatch("SAPI.SpVoice")
-            voices = speaker.GetVoices()
-            
-            # Robust matching: look for names first, then gender attributes
-            for i in range(voices.Count):
-                v = voices.Item(i)
-                desc = v.GetDescription().lower()
-                
-                # Male: David, Mark, etc.
-                if self._david_token is None:
-                    if any(k in desc for k in ["david", "mark", "paul", "male", "guy"]):
-                        self._david_token = v.Id
-                        logger.info(f"Pinned Male voice: {v.GetDescription()}")
-
-                # Female: Zira, Hazel, etc.
-                if self._zira_token is None:
-                    if any(k in desc for k in ["zira", "hazel", "susan", "female", "girl"]):
-                        self._zira_token = v.Id
-                        logger.info(f"Pinned Female voice: {v.GetDescription()}")
-
-            # Absolute Fallback: use first 2 voices if tokens still None
-            if self._david_token is None and voices.Count > 0:
-                self._david_token = voices.Item(0).Id
-            if self._zira_token is None:
-                self._zira_token = voices.Item(1).Id if voices.Count > 1 else self._david_token
-        except Exception as e:
-            logger.warning(f"Voice discovery error: {e}")
-
     def _profile_params(self, profile: str) -> tuple:
         key = profile.lower().strip()
         # Find match by substring for robustness (e.g. "Tactical" matches "Tactical (Male)")
         match_key = DEFAULT_PROFILE
         for p_key in PROFILES:
-            if p_key in key:
+            if key in p_key:
                 match_key = p_key
                 break
         
         gender, rate, vol, pitch, provider = PROFILES.get(match_key, PROFILES[DEFAULT_PROFILE])
-        token = self._david_token if gender == "male" else self._zira_token
-        return token, rate, vol, pitch, provider
+        return gender, rate, vol, pitch, provider
 
     def apply_config(self, config: dict):
         self.config = config
@@ -428,11 +227,7 @@ class VoiceManager:
             except Exception:
                 pass
             # Stop the speaker wrapper (SAPI5 or pyttsx3)
-            if self._speaker and hasattr(self._speaker, "stop"):
-                try:
-                    self._speaker.stop()
-                except Exception:
-                    pass
+            
             logger.info("Voice TTS interrupted.")
         except Exception as e:
             logger.error(f"Failed to stop speaking: {e}")
@@ -440,8 +235,7 @@ class VoiceManager:
     def mute_chat_tts(self):
         """Mute TTS for typed chat responses (does not affect mic/co-pilot)."""
         self.chat_tts_muted = True
-        # Clear the speech queue and stop pygame audio — but do NOT call self._speaker.stop()
-        # because SAPI5's Speak("", 0x2) purge can corrupt the COM state for future calls.
+        # Clear the speech queue and stop pygame audio.
         try:
             with self.speech_queue.mutex:
                 self.speech_queue.queue.clear()
@@ -524,19 +318,31 @@ class VoiceManager:
                     logger.info(f"Speaking: {text[:60]}... | Mode: {pref_provider}")
                     spoken = False
                     
-                    # 1. ElevenLabs (if key present)
-                    if self.elevenlabs_api_key:
+                    # Determine provider based on global settings first
+                    active_provider = self.speech_provider
+                    
+                    if active_provider == "elevenlabs" and self.elevenlabs_api_key:
                         spoken = self._speak_elevenlabs(text)
+                    elif active_provider == "edge":
+                        spoken = self._speak_edge(text)
+                    elif active_provider == "piper":
+                        spoken = self._speak_piper(text)
+                    elif active_provider == "google":
+                        spoken = self._speak_google(text)
                     
-                    # 2. Google TTS (Only if preferred OR global is Google AND NOT a male SAPI5 profile)
+                    # Fallback if global failed or was invalid
                     if not spoken:
-                        use_google = (pref_provider == "google") or (self.speech_provider == "google" and pref_provider != "sapi5")
-                        if use_google:
+                        logger.warning(f"No TTS output for text: {text}")
+                        if self.elevenlabs_api_key and pref_provider == "elevenlabs":
+                            spoken = self._speak_elevenlabs(text)
+                        
+                        if not spoken and (pref_provider == "google" or active_provider == "google"):
                             spoken = self._speak_google(text)
-                    
-                    # 3. Local SAPI5 (fallback or primary for Tactical/Valkyrie)
-                    if not spoken:
-                        self._speak_sapi5(text)
+                            
+                        if not spoken:
+                            spoken = self._speak_piper(text)
+                        
+                        
                 finally:
                     self._is_speaking = False
             except Exception as e:
@@ -574,8 +380,7 @@ class VoiceManager:
                 if r.status_code != 200: 
                     # If Google fails, speak remaining chunks with fallback to avoid repeating
                     remaining = " ".join(chunks[i:])
-                    if remaining:
-                        self._speak_sapi5(remaining)
+                    
                     return True # Return true so caller doesn't re-speak the whole text
                 with tempfile.NamedTemporaryFile(delete=False, suffix=".mp3") as tmp:
                     tmp.write(r.content)
@@ -595,24 +400,101 @@ class VoiceManager:
             logger.error(f"Google TTS speak failed: {e}")
             return False
 
-    def _speak_sapi5(self, text: str):
-        if self._speaker:
-            try:
-                self._speaker.speak(text)
-            except Exception as e:
-                logger.error(f"Primary speaker failed, attempting pyttsx3 fallback: {e}")
-                self._speak_pyttsx3_directly(text)
-        else:
-            self._speak_pyttsx3_directly(text)
-
-    def _speak_pyttsx3_directly(self, text: str):
+    def _speak_edge(self, text: str) -> bool:
         try:
-            import pyttsx3
-            engine = pyttsx3.init()
-            engine.say(text)
-            engine.runAndWait()
+            import edge_tts
+            import asyncio
+            
+            token, rate, vol, pitch, provider = self._profile_params(self.voice_profile)
+            # Use male voice if profile is male, else female
+            voice = "en-US-ChristopherNeural" if token == self._david_token else "en-US-AriaNeural"
+            
+            rate_str = "+0%"
+            if rate != 0:
+                rate_pct = rate * 10
+                rate_str = f"+{rate_pct}%" if rate > 0 else f"{rate_pct}%"
+                
+            pitch_str = "+0Hz"
+            if pitch != 0:
+                pitch_str = f"+{pitch}Hz" if pitch > 0 else f"{pitch}Hz"
+                
+            chunks = self._split_text(text, 180)
+            
+            for chunk in chunks:
+                if not self._running or not self.enabled or self.chat_tts_muted:
+                    break
+                    
+                async def generate_edge(text_chunk):
+                    communicate = edge_tts.Communicate(text_chunk, voice, rate=rate_str, pitch=pitch_str)
+                    with tempfile.NamedTemporaryFile(delete=False, suffix=".mp3") as tmp:
+                        await communicate.save(tmp.name)
+                        return tmp.name
+                        
+                tmp_path = asyncio.run(generate_edge(chunk))
+                try:
+                    import pygame
+                    pygame.mixer.music.load(tmp_path)
+                    pygame.mixer.music.play()
+                    while pygame.mixer.music.get_busy() and self._running and self.enabled and not self.chat_tts_muted:
+                        time.sleep(0.05)
+                finally:
+                    try:
+                        pygame.mixer.music.unload()
+                        os.remove(tmp_path)
+                    except: pass
+                    
+            return True
         except Exception as e:
-            logger.error(f"Direct pyttsx3 fallback speak failed: {e}")
+            logger.error(f"Edge TTS speak failed: {e}")
+            return False
+
+    def _speak_piper(self, text: str) -> bool:
+        try:
+            from piper.voice import PiperVoice
+            import wave
+            
+            model_dir = Path("models/piper")
+            model_dir.mkdir(parents=True, exist_ok=True)
+            
+            model_path = model_dir / "en_US-lessac-low.onnx"
+            config_path = model_dir / "en_US-lessac-low.onnx.json"
+            
+            if not model_path.exists() or not config_path.exists():
+                logger.info("Downloading Piper TTS model...")
+                model_url = "https://huggingface.co/rhasspy/piper-voices/resolve/v1.0.0/en/en_US/lessac/low/en_US-lessac-low.onnx"
+                config_url = "https://huggingface.co/rhasspy/piper-voices/resolve/v1.0.0/en/en_US/lessac/low/en_US-lessac-low.onnx.json"
+                
+                with open(model_path, "wb") as f:
+                    f.write(requests.get(model_url, timeout=30).content)
+                with open(config_path, "wb") as f:
+                    f.write(requests.get(config_url, timeout=30).content)
+            
+            voice = PiperVoice.load(str(model_path), str(config_path))
+            chunks = self._split_text(text, 180)
+            
+            for chunk in chunks:
+                if not self._running or not self.enabled or self.chat_tts_muted:
+                    break
+                
+                with tempfile.NamedTemporaryFile(delete=False, suffix=".wav") as tmp:
+                    with wave.open(tmp.name, "wb") as wav_file:
+                        voice.synthesize(chunk, wav_file)
+                    
+                    try:
+                        import pygame
+                        pygame.mixer.music.load(tmp.name)
+                        pygame.mixer.music.play()
+                        while pygame.mixer.music.get_busy() and self._running and self.enabled and not self.chat_tts_muted:
+                            time.sleep(0.05)
+                    finally:
+                        try:
+                            pygame.mixer.music.unload()
+                            os.remove(tmp.name)
+                        except: pass
+            return True
+        except Exception as e:
+            logger.error(f"Piper TTS speak failed: {e}")
+            return False
 
     def _speak_elevenlabs(self, text: str) -> bool:
         try:
