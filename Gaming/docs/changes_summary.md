@@ -1304,3 +1304,33 @@ graph TD
 | `gamepad-configurator.ts` | **Added** | Implemented interactive gamepad configurator using Native XInput and DirectInput |
 | `ai-model-downloader.ts` | **Modified** | Optimized in-app automated AI model downloader for YOLOv8 & Whisper-Tiny weights |
 | `e2ee-modal.ts` | **Modified** | Centered E2EE Privacy Shield Verification status overlay and optimized modal responsiveness |
+
+---
+
+## Session 38 — 2026-08-03: Website Docs Render Fix, Google AdSense Integration & Controller Mapping Wording (v2.8.5)
+
+### 🛠️ Key Features Added/Modified
+1. **Fixed inline code and paragraph rendering issue in docs pages**
+2. **Integrated Google AdSense display ad slots in docs and gaming blog pages**
+3. **Updated Controller Mapping documentation wording from HTML5 to Native XInput and DirectInput**
+
+### 🧩 Technical Decisions & Architecture
+* To address the inline code and paragraph rendering issue, we implemented a custom renderer for Markdown content. Additionally, we optimized the pagination component to prevent arrow truncation. Furthermore, we integrated Google AdSense by generating a public ads.txt file for site authorization.
+
+### 📊 System Architecture & Flow
+```mermaid
+graph TD
+  A[Docs Pages] --> B[Code Renderer]
+  C[AdSense Integration] --> D[Public Ads.txt]
+  E[Controller Mapping] --> F[Native XInput and DirectInput]
+```
+
+### 📋 File Changes
+| File | Status | Description |
+|---|---|---|
+| `docs/renderer.ts` | **Modified** | Fixed inline code and paragraph rendering issue |
+| `public/ads.txt` | **Added** | Generated public ads.txt file for AdSense site authorization |
+| `docs/controller-mapping.md` | **Modified** | Updated Controller Mapping documentation wording |
+| `docs/vision-ai-guide.md` | **Modified** | Updated Vision AI guide documentation |
+| `components/pagination.ts` | **Modified** | Optimized pagination component to prevent arrow truncation |
+| `components/ad-sense.ts` | **Added** | Integrated Google AdSense display ad slots |
