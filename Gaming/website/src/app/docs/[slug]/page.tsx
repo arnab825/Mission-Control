@@ -287,39 +287,39 @@ export default async function DocPage({ params }: { params: Promise<{ slug: stri
 
         {/* Previous / Next Article Pagination Cards */}
         {(prevDoc || nextDoc) && (
-          <div className="mt-16 pt-8 border-t border-white/10 flex flex-col sm:flex-row gap-4 items-stretch justify-between font-mono">
+          <div className="mt-16 pt-8 border-t border-white/10 flex flex-col sm:flex-row gap-4 items-stretch justify-between font-mono w-full min-w-0">
             {prevDoc ? (
               <Link
                 href={`/docs/${prevDoc.slug}`}
-                className="flex-1 flex items-start gap-4 p-5 rounded-2xl border border-white/10 bg-[#0c0d12] hover:bg-[#12141c] hover:border-neon-green/40 transition-all duration-200 group text-left shadow-lg"
+                className="flex-1 min-w-0 flex items-center gap-3.5 p-4 sm:p-5 rounded-2xl border border-white/10 bg-[#0c0d12] hover:bg-[#12141c] hover:border-neon-green/40 transition-all duration-200 group text-left shadow-lg overflow-hidden"
               >
-                <div className="w-8 h-8 rounded-xl bg-neon-green/10 border border-neon-green/20 flex items-center justify-center text-neon-green group-hover:bg-neon-green group-hover:text-black transition-all shrink-0 mt-0.5">
+                <div className="w-8 h-8 rounded-xl bg-neon-green/10 border border-neon-green/20 flex items-center justify-center text-neon-green group-hover:bg-neon-green group-hover:text-black transition-all shrink-0">
                   <ChevronLeft className="w-4 h-4 group-hover:-translate-x-0.5 transition-transform" />
                 </div>
-                <div className="min-w-0 flex-1">
+                <div className="min-w-0 flex-1 overflow-hidden">
                   <span className="text-[10px] uppercase tracking-wider text-gray-500 font-bold block mb-1">Previous Article</span>
-                  <span className="text-sm font-bold text-white group-hover:text-neon-green transition-colors block truncate">{prevDoc.title}</span>
+                  <span className="text-xs sm:text-sm font-bold text-white group-hover:text-neon-green transition-colors block truncate">{prevDoc.title}</span>
                 </div>
               </Link>
             ) : (
-              <div className="flex-1 hidden sm:block" />
+              <div className="flex-1 hidden sm:block min-w-0" />
             )}
 
             {nextDoc ? (
               <Link
                 href={`/docs/${nextDoc.slug}`}
-                className="flex-1 flex items-center justify-between gap-4 p-5 rounded-2xl border border-white/10 bg-[#0c0d12] hover:bg-[#12141c] hover:border-neon-green/40 transition-all duration-200 group text-right shadow-lg"
+                className="flex-1 min-w-0 flex items-center justify-between gap-3.5 p-4 sm:p-5 rounded-2xl border border-white/10 bg-[#0c0d12] hover:bg-[#12141c] hover:border-neon-green/40 transition-all duration-200 group text-right shadow-lg overflow-hidden"
               >
-                <div className="min-w-0 flex-1">
+                <div className="min-w-0 flex-1 overflow-hidden">
                   <span className="text-[10px] uppercase tracking-wider text-gray-500 font-bold block mb-1">Next Article</span>
-                  <span className="text-sm font-bold text-white group-hover:text-neon-green transition-colors block truncate">{nextDoc.title}</span>
+                  <span className="text-xs sm:text-sm font-bold text-white group-hover:text-neon-green transition-colors block truncate">{nextDoc.title}</span>
                 </div>
-                <div className="w-8 h-8 rounded-xl bg-neon-green/10 border border-neon-green/20 flex items-center justify-center text-neon-green group-hover:bg-neon-green group-hover:text-black transition-all shrink-0 mt-0.5">
+                <div className="w-8 h-8 rounded-xl bg-neon-green/10 border border-neon-green/20 flex items-center justify-center text-neon-green group-hover:bg-neon-green group-hover:text-black transition-all shrink-0">
                   <ChevronRight className="w-4 h-4 group-hover:translate-x-0.5 transition-transform" />
                 </div>
               </Link>
             ) : (
-              <div className="flex-1 hidden sm:block" />
+              <div className="flex-1 hidden sm:block min-w-0" />
             )}
           </div>
         )}
