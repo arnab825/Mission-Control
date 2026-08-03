@@ -1,12 +1,15 @@
 import { NextRequest, NextResponse } from "next/server";
 import { generateAndSavePost } from "./shared";
 
-export const maxDuration = 60; // Max for Hobby plan (this route is for local sequential dev/trigger.ts)
+export const maxDuration = 60;
 
 export async function POST(request: NextRequest) {
   if (process.env.NODE_ENV === "production") {
     const authHeader = request.headers.get("authorization");
-    if (!process.env.CRON_SECRET || authHeader !== `Bearer ${process.env.CRON_SECRET}`) {
+    const isVercelCron = request.headers.get("x-vercel-cron") === "1";
+    const isValidCronSecret = Boolean(process.env.CRON_SECRET && authHeader === `Bearer ${process.env.CRON_SECRET}`);
+
+    if (!isVercelCron && !isValidCronSecret) {
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
     }
   }
@@ -30,12 +33,10 @@ export async function POST(request: NextRequest) {
 
   const allPostTypes = ["GPU News", "Game News", "Hardware Deep-Dive", "Game Revisit"] as const;
   
-  // If specific category filter is requested, generate only for that category
   const postTypes = requestedCategory && requestedCategory !== "all" && allPostTypes.includes(requestedCategory as any)
     ? [requestedCategory as typeof allPostTypes[number]]
     : allPostTypes;
 
-  // Run all categories in parallel to stay safely within Vercel's 60s maxDuration limit
   const settlementResults = await Promise.allSettled(
     postTypes.map((currentTopic) =>
       generateAndSavePost(currentTopic, targetDate, apiKey, process.env.HF_TOKEN)
@@ -53,11 +54,13 @@ export async function POST(request: NextRequest) {
   });
 }
 
-// Allow GET for manual one-off trigger in dev
 export async function GET(request: NextRequest) {
   if (process.env.NODE_ENV === "production") {
     const authHeader = request.headers.get("authorization");
-    if (!process.env.CRON_SECRET || authHeader !== `Bearer ${process.env.CRON_SECRET}`) {
+    const isVercelCron = request.headers.get("x-vercel-cron") === "1";
+    const isValidCronSecret = Boolean(process.env.CRON_SECRET && authHeader === `Bearer ${process.env.CRON_SECRET}`);
+
+    if (!isVercelCron && !isValidCronSecret) {
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
     }
   }
