@@ -8,6 +8,7 @@ import ReactMarkdown from 'react-markdown';
 import remarkGfm from 'remark-gfm';
 import { TableOfContents } from "@/components/TableOfContents";
 import { CodeBlock } from "@/components/CodeBlock";
+import { AdSenseAdSlot } from "@/components/GoogleAdSense";
 
 export async function generateStaticParams() {
   const docs = await getAllDocs();
@@ -284,6 +285,9 @@ export default async function DocPage({ params }: { params: Promise<{ slug: stri
             {doc.content}
           </ReactMarkdown>
         </div>
+
+        {/* Google AdSense Display Slot */}
+        <AdSenseAdSlot slotId="3942234105" className="my-8 w-full flex justify-center border-t border-white/10 pt-6" />
 
         {/* Previous / Next Article Pagination Cards */}
         {(prevDoc || nextDoc) && (
