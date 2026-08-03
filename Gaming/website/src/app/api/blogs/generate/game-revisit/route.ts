@@ -1,12 +1,15 @@
 import { NextRequest, NextResponse } from "next/server";
 import { generateAndSavePost } from "../shared";
 
-export const maxDuration = 60; // Max for Hobby plan
+export const maxDuration = 60;
 
 export async function POST(request: NextRequest) {
   if (process.env.NODE_ENV === "production") {
     const authHeader = request.headers.get("authorization");
-    if (!process.env.CRON_SECRET || authHeader !== `Bearer ${process.env.CRON_SECRET}`) {
+    const isVercelCron = request.headers.get("x-vercel-cron") === "1";
+    const isValidCronSecret = Boolean(process.env.CRON_SECRET && authHeader === `Bearer ${process.env.CRON_SECRET}`);
+
+    if (!isVercelCron && !isValidCronSecret) {
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
     }
   }
@@ -34,11 +37,13 @@ export async function POST(request: NextRequest) {
   });
 }
 
-// Allow GET for manual one-off trigger in dev
 export async function GET(request: NextRequest) {
   if (process.env.NODE_ENV === "production") {
     const authHeader = request.headers.get("authorization");
-    if (!process.env.CRON_SECRET || authHeader !== `Bearer ${process.env.CRON_SECRET}`) {
+    const isVercelCron = request.headers.get("x-vercel-cron") === "1";
+    const isValidCronSecret = Boolean(process.env.CRON_SECRET && authHeader === `Bearer ${process.env.CRON_SECRET}`);
+
+    if (!isVercelCron && !isValidCronSecret) {
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
     }
   }
