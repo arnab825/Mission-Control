@@ -174,7 +174,7 @@ export const ControllerMapping: React.FC<ControllerMappingProps> = ({ state, sen
     // Send to backend Python XInput layer
     sendCommand('trigger_controller_rumble', { left_motor: 0.8, right_motor: 0.8, duration: 0.4 });
 
-    // Trigger HTML5 Web Gamepad Haptics in Browser if available
+    // Trigger Web / Renderer Gamepad Haptics if available
     if (activeGamepadIndex !== null) {
       const rawPads = navigator.getGamepads ? navigator.getGamepads() : [];
       const pad = rawPads[activeGamepadIndex] as any;

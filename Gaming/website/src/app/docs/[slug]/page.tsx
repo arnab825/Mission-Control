@@ -100,7 +100,7 @@ export default async function DocPage({ params }: { params: Promise<{ slug: stri
   };
 
   return (
-    <div className="flex items-start gap-8 lg:gap-12 w-full relative font-sans">
+    <div className="flex items-start gap-8 lg:gap-12 w-full relative font-sans pt-20 sm:pt-28">
       <div className="flex-1 min-w-0 max-w-4xl">
         <Script id="docs-schema" type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(docsSchema) }} />
         
@@ -153,7 +153,7 @@ export default async function DocPage({ params }: { params: Promise<{ slug: stri
             remarkPlugins={[remarkGfm]}
             components={{
               p: ({ children }: any) => (
-                <div className="my-4 text-gray-300 leading-relaxed font-sans text-sm sm:text-base">{children}</div>
+                <p className="my-4 text-gray-300 leading-relaxed font-sans text-sm sm:text-base">{children}</p>
               ),
               table: ({ children, ...props }: any) => (
                 <div className="overflow-x-auto my-8 border border-white/10 rounded-2xl bg-obsidian w-full shadow-2xl">
@@ -205,7 +205,7 @@ export default async function DocPage({ params }: { params: Promise<{ slug: stri
                 const text = getChildrenText(children);
                 const id = slugify(text);
                 return (
-                  <h2 id={id} className="scroll-mt-24 text-2xl sm:text-3xl font-bold font-display text-white mt-12 mb-4 pb-3 border-b border-white/10 border-l-4 border-l-neon-green pl-3 flex items-center gap-2" {...props}>
+                  <h2 id={id} className="scroll-mt-28 text-2xl sm:text-3xl font-bold font-display text-white mt-12 mb-4 pb-3 border-b border-white/10 border-l-4 border-l-neon-green pl-3 flex items-center gap-2 flex-wrap" {...props}>
                     {children}
                   </h2>
                 );
@@ -214,7 +214,7 @@ export default async function DocPage({ params }: { params: Promise<{ slug: stri
                 const text = getChildrenText(children);
                 const id = slugify(text);
                 return (
-                  <h3 id={id} className="scroll-mt-24 text-lg sm:text-xl font-bold font-display text-neon-green mt-8 mb-3 uppercase tracking-wider" {...props}>
+                  <h3 id={id} className="scroll-mt-28 text-lg sm:text-xl font-bold font-display text-neon-green mt-8 mb-3 uppercase tracking-wider" {...props}>
                     {children}
                   </h3>
                 );
@@ -224,7 +224,7 @@ export default async function DocPage({ params }: { params: Promise<{ slug: stri
                 const contentStr = String(children).replace(/\n$/, '');
                 const isMultiLine = contentStr.includes('\n');
                 
-                if (isMultiLine || match) {
+                if (isMultiLine || (match && !inline)) {
                   return (
                     <CodeBlock
                       code={contentStr}
@@ -234,7 +234,7 @@ export default async function DocPage({ params }: { params: Promise<{ slug: stri
                 }
                 
                 return (
-                  <code className="bg-white/10 border border-white/15 px-2 py-0.5 rounded text-xs font-mono text-neon-green font-semibold" {...props}>
+                  <code className="bg-white/10 border border-white/15 px-1.5 py-0.5 rounded text-xs font-mono text-neon-yellow font-semibold inline mx-0.5 whitespace-normal break-words" {...props}>
                     {children}
                   </code>
                 );
@@ -327,7 +327,7 @@ export default async function DocPage({ params }: { params: Promise<{ slug: stri
 
       {/* Right Sidebar - Index / Table of Contents */}
       {headings.length > 0 && (
-        <aside className="hidden xl:block w-64 shrink-0 sticky top-24 h-[calc(100vh-7rem)] overflow-y-auto p-5 glass-card border border-white/10 rounded-2xl shadow-xl scrollbar-none backdrop-blur-xl self-start z-30">
+        <aside className="hidden xl:block w-64 shrink-0 sticky top-28 h-[calc(100vh-8rem)] overflow-y-auto p-5 glass-card border border-white/10 rounded-2xl shadow-xl scrollbar-none backdrop-blur-xl self-start z-20">
           <div className="flex items-center justify-between gap-2 text-[10px] font-mono font-bold text-neon-green uppercase tracking-widest mb-4 pb-3 border-b border-white/10">
             <div className="flex items-center gap-2">
               <Sparkles className="w-3.5 h-3.5 text-neon-green animate-pulse" />
