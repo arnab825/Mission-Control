@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { generateAndSavePost } from "./shared";
 
-export const maxDuration = 60;
+export const maxDuration = 60; // 60s limit for Vercel Hobby (Free) plan
 
 export async function POST(request: NextRequest) {
   if (process.env.NODE_ENV === "production") {
@@ -22,6 +22,7 @@ export async function POST(request: NextRequest) {
   const { searchParams } = new URL(request.url);
   const customDateParam = searchParams.get("date");
   const requestedCategory = searchParams.get("category");
+  const batch = searchParams.get("batch");
 
   let targetDate = new Date();
   if (customDateParam) {
@@ -33,9 +34,17 @@ export async function POST(request: NextRequest) {
 
   const allPostTypes = ["GPU News", "Game News", "Hardware Deep-Dive", "Game Revisit"] as const;
   
-  const postTypes = requestedCategory && requestedCategory !== "all" && allPostTypes.includes(requestedCategory as any)
-    ? [requestedCategory as typeof allPostTypes[number]]
-    : allPostTypes;
+  let postTypes: ("GPU News" | "Game News" | "Hardware Deep-Dive" | "Game Revisit")[];
+
+  if (batch === "1") {
+    postTypes = ["GPU News", "Game News"];
+  } else if (batch === "2") {
+    postTypes = ["Hardware Deep-Dive", "Game Revisit"];
+  } else if (requestedCategory && requestedCategory !== "all" && allPostTypes.includes(requestedCategory as any)) {
+    postTypes = [requestedCategory as typeof allPostTypes[number]];
+  } else {
+    postTypes = [...allPostTypes];
+  }
 
   const settlementResults = await Promise.allSettled(
     postTypes.map((currentTopic) =>
