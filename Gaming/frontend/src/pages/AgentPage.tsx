@@ -2019,7 +2019,7 @@ const AgentPage: React.FC<{
                           <polyline points="20 6 9 17 4 12" />
                         </svg>
                       </motion.div>
-                      <span className="text-[8px] font-black text-neon-yellow uppercase tracking-widest">Successfully Encrypted</span>
+                      <span className="text-[8px] font-black text-neon-yellow uppercase tracking-widest text-center px-1 leading-tight">Successfully Encrypted</span>
                     </motion.div>
                   )}
 
@@ -2041,8 +2041,8 @@ const AgentPage: React.FC<{
                           <line x1="6" y1="6" x2="18" y2="18" />
                         </svg>
                       </motion.div>
-                      <span className="text-[8px] font-black text-red-400 uppercase tracking-widest">Not Encrypted</span>
-                      <span className="text-[7px] font-bold text-red-500/60 uppercase tracking-wider mt-0.5">Unprotected</span>
+                      <span className="text-[8px] font-black text-red-400 uppercase tracking-widest text-center px-1 leading-tight">Not Encrypted</span>
+                      <span className="text-[7px] font-bold text-red-500/60 uppercase tracking-wider text-center mt-0.5">Unprotected</span>
                     </motion.div>
                   )}
 

@@ -815,3 +815,56 @@ def handle_fetch_nvidia_models(payload: dict, pipeline, bridge, config) -> None:
             bridge.update_state({"nvidia_available_models": []})
             
     threading.Thread(target=_do_fetch, name="FetchNVIDIAModels", daemon=True).start()
+
+
+def handle_get_controller_config(payload: dict, pipeline, bridge, config) -> None:
+    try:
+        from control.input_manager import InputManager
+        mgr = InputManager(config=config)
+        connected = mgr.connected_controllers
+        bindings = config.get("controller_bindings", {
+            "boost": "LB+RB",
+            "voice_ai": "DPAD_UP",
+            "vision_recon": "Y",
+            "story_skip": "X",
+            "toggle_overlay": "SELECT"
+        })
+        deadzone = config.get("controller_deadzone", 0.15)
+        bridge.update_state({
+            "connected_controllers": connected,
+            "controller_bindings": bindings,
+            "controller_deadzone": deadzone
+        })
+    except Exception as e:
+        logger.error(f"Failed to get controller config: {e}")
+
+
+def handle_save_controller_mappings(payload: dict, pipeline, bridge, config, save_config_fn, enforce_security_fn) -> None:
+    try:
+        bindings = payload.get("bindings", {})
+        deadzone = payload.get("deadzone", 0.15)
+        config["controller_bindings"] = bindings
+        config["controller_deadzone"] = deadzone
+        save_config_fn(config)
+        enforce_security_fn(config, pipeline)
+        bridge.update_state({
+            "config": config,
+            "controller_bindings": bindings,
+            "controller_deadzone": deadzone
+        })
+        logger.info("Controller bindings and deadzone settings saved successfully.")
+    except Exception as e:
+        logger.error(f"Failed to save controller mappings: {e}")
+
+
+def handle_trigger_controller_rumble(payload: dict, pipeline, bridge, config) -> None:
+    try:
+        left_motor = float(payload.get("left_motor", 0.8))
+        right_motor = float(payload.get("right_motor", 0.8))
+        duration = float(payload.get("duration", 0.3))
+        from control.input_manager import InputManager
+        mgr = InputManager(config=config)
+        mgr.trigger_rumble(left_motor=left_motor, right_motor=right_motor, duration=duration)
+    except Exception as e:
+        logger.error(f"Failed to trigger controller rumble: {e}")
+

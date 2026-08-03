@@ -2179,3 +2179,27 @@ class GameBrain:
             import threading
             threading.Thread(target=self.memory.extract_and_store_semantic_memory, args=(session_id, user_id or "guest"), daemon=True).start()
 
+    def classify_game_title(self, title: str) -> dict:
+        """Classify a game title into type, genre, and tags."""
+        clean_title = title.replace("™", "").replace("®", "").strip()
+        title_lower = clean_title.lower()
+        
+        launchers = ["steam", "epic games", "xbox", "ea desktop", "origin", "ubisoft connect", "gog galaxy", "battle.net", "riot games", "rockstar games"]
+        if title_lower in launchers or any(title_lower == l + " app" or title_lower == l + " launcher" for l in launchers):
+            return {"type": "LAUNCHER", "genre": "PLATFORM", "tags": ["SYSTEM"]}
+            
+        genre = "ACTION"
+        tags = []
+        if any(k in title_lower for k in ["need for speed", "nfs", "forza", "f1", "dirt", "crew", "gran turismo", "burnout"]):
+            genre = "RACING"
+            tags = ["DRIVING", "MULTIPLAYER"]
+        elif any(k in title_lower for k in ["division", "call of duty", "battlefield", "counter-strike", "cs:go", "valorant", "halo", "far cry", "cyberpunk", "doom"]):
+            genre = "SHOOTER"
+            tags = ["FPS" if any(x in title_lower for x in ["far cry", "doom", "halo"]) else "TPS", "ACTION"]
+        elif any(k in title_lower for k in ["witcher", "elden ring", "dark souls", "skyrim", "fallout", "final fantasy"]):
+            genre = "RPG"
+            tags = ["OPEN WORLD", "ACTION"]
+            
+        return {"type": "GAME", "genre": genre, "tags": tags}
+
+

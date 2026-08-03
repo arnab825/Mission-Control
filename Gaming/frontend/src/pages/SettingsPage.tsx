@@ -29,9 +29,11 @@ import {
   Search,
   ArrowRight,
   BookOpen,
-  Info
+  Info,
+  Gamepad2
 } from 'lucide-react';
 import type { TelemetryState } from '../types/telemetry';
+import { ControllerMapping } from '../components/ControllerMapping';
 
 const HotkeyRecorder: React.FC<{
   value: string;
@@ -3943,6 +3945,20 @@ const SettingsPage: React.FC<{ state: TelemetryState | null, sendCommand: (type:
           </SettingsField>
 
         </SettingsSection>
+
+        {/* ── Controller & Input Mapping Section ───────────────────────────── */}
+        {(!searchQuery ||
+          "controller input mapping gamepad joystick xbox playstation button binding deadzone rumble vibration".includes(searchQuery.toLowerCase())
+        ) && (
+          <SettingsSection
+            title="Controller & Input Mapping"
+            icon={Gamepad2}
+            searchQuery={searchQuery}
+            searchTerms="controller input gamepad xbox playstation xinput directinput joystick button binding deadzone rumble vibration"
+          >
+            <ControllerMapping state={state} sendCommand={sendCommand} />
+          </SettingsSection>
+        )}
       <AnimatePresence>
         {showDlssGuide && createPortal(
           <motion.div

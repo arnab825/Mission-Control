@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+import { useMutation } from "@tanstack/react-query";
 import { Mail, User, MessageSquare, Send, CheckCircle, AlertCircle, Sparkles, Terminal, Radio } from "lucide-react";
 import { motion } from "framer-motion";
 
@@ -12,59 +13,43 @@ export default function ContactPage() {
     message: "",
   });
 
-  const [status, setStatus] = useState<{
-    type: "idle" | "loading" | "success" | "error";
-    message: string;
-  }>({
-    type: "idle",
-    message: "",
+  const contactMutation = useMutation({
+    mutationFn: async (payload: typeof formData) => {
+      const response = await fetch("/api/contact", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(payload),
+      });
+      const data = await response.json();
+      if (!response.ok) {
+        throw new Error(data.error || "Transmission rejected by dispatch gateway. Try again.");
+      }
+      return data;
+    },
+    onSuccess: () => {
+      setFormData({ name: "", email: "", subject: "", message: "" });
+    },
   });
+
+  const status = contactMutation.isPending
+    ? { type: "loading" as const, message: "Encrypting & Transmitting Payload..." }
+    : contactMutation.isSuccess
+    ? { type: "success" as const, message: "Transmission received and logged in core developer dispatch queue." }
+    : contactMutation.isError
+    ? { type: "error" as const, message: contactMutation.error.message }
+    : { type: "idle" as const, message: "" };
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
     const { name, value } = e.target;
     setFormData((prev) => ({ ...prev, [name]: value }));
   };
 
-  const handleSubmit = async (e: React.FormEvent) => {
+  const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     if (!formData.name || !formData.email || !formData.message) {
-      setStatus({
-        type: "error",
-        message: "Please fill in all required telemetry fields.",
-      });
       return;
     }
-
-    setStatus({ type: "loading", message: "Encrypting & Transmitting Payload..." });
-
-    try {
-      const response = await fetch("/api/contact", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(formData),
-      });
-
-      const data = await response.json();
-
-      if (response.ok) {
-        setStatus({
-          type: "success",
-          message: "Transmission received and logged in core developer dispatch queue.",
-        });
-        setFormData({ name: "", email: "", subject: "", message: "" });
-      } else {
-        setStatus({
-          type: "error",
-          message: data.error || "Transmission rejected by dispatch gateway. Try again.",
-        });
-      }
-    } catch (error) {
-      console.error(error);
-      setStatus({
-        type: "error",
-        message: "Kernel network socket timeout. Verify connectivity.",
-      });
-    }
+    contactMutation.mutate(formData);
   };
 
   return (
@@ -121,7 +106,7 @@ export default function ContactPage() {
             <h2 className="text-xl sm:text-3xl font-black font-display text-white mb-2 sm:mb-3 uppercase tracking-tight">TRANSMISSION RECEIVED</h2>
             <p className="text-gray-300 font-mono text-xs sm:text-sm max-w-md mb-6 sm:mb-8 leading-relaxed">{status.message}</p>
             <button
-              onClick={() => setStatus({ type: "idle", message: "" })}
+              onClick={() => contactMutation.reset()}
               className="bg-neon-green text-obsidian hover:bg-white px-6 sm:px-8 py-3 rounded-xl sm:rounded-2xl font-black transition-all duration-300 font-mono uppercase tracking-wider text-xs shadow-[0_0_25px_rgba(118,185,0,0.4)] cursor-pointer"
             >
               Dispatch New Message

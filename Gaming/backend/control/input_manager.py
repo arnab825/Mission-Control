@@ -126,8 +126,53 @@ class InputManager:
         # Always have keyboard+mouse
         logger.info("Input: Keyboard + Mouse detected (always available)")
 
-        # Game controller auto-detection disabled
-        self._active_device = InputDevice.KEYBOARD_MOUSE
+        if _XINPUT_AVAILABLE:
+            self._detect_xinput_controllers()
+        if _PYGAME_AVAILABLE and not self._controllers:
+            self._detect_pygame_controllers()
+
+        if self._controllers:
+            self._active_device = self._controllers[0]["type"]
+            logger.info(f"Input: Controller active — {self._controllers[0]['name']}")
+        else:
+            self._active_device = InputDevice.KEYBOARD_MOUSE
+
+    def trigger_rumble(self, left_motor: float = 0.8, right_motor: float = 0.8, duration: float = 0.3):
+        """Trigger force-feedback vibration on connected controller."""
+        def _do_rumble():
+            try:
+                if _XINPUT_AVAILABLE and sys.platform == "win32":
+                    try:
+                        xinput = windll.xinput1_4
+                    except OSError:
+                        try:
+                            xinput = windll.xinput1_3
+                        except OSError:
+                            xinput = None
+
+                    if xinput:
+                        class XINPUT_VIBRATION(Structure):
+                            _fields_ = [("wLeftMotorSpeed", c_ushort), ("wRightMotorSpeed", c_ushort)]
+
+                        vib = XINPUT_VIBRATION(
+                            wLeftMotorSpeed=int(max(0.0, min(1.0, left_motor)) * 65535),
+                            wRightMotorSpeed=int(max(0.0, min(1.0, right_motor)) * 65535)
+                        )
+                        for c in self._controllers:
+                            if c.get("backend") == "xinput":
+                                xinput.XInputSetState(c["index"], byref(vib))
+
+                        time.sleep(duration)
+
+                        stop_vib = XINPUT_VIBRATION(0, 0)
+                        for c in self._controllers:
+                            if c.get("backend") == "xinput":
+                                xinput.XInputSetState(c["index"], byref(stop_vib))
+                        return
+            except Exception as e:
+                logger.debug(f"XInput rumble failed: {e}")
+
+        threading.Thread(target=_do_rumble, name="ControllerRumble", daemon=True).start()
 
     def _detect_pygame_controllers(self):
         """Detect controllers via pygame."""

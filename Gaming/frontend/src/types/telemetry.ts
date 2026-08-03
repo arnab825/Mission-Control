@@ -145,6 +145,9 @@ export interface TelemetryState {
     title: string;
   };
   launch_status?: any;
+  connected_controllers?: Array<{ name: string; type: string; index: number }>;
+  controller_bindings?: Record<string, string>;
+  controller_deadzone?: number;
   scan_state?: {
     progress: number;
     status: string;

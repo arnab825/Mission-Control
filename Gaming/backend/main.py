@@ -595,6 +595,12 @@ Ready and monitoring. Launch your game to initiate automatic HUD lock.
                 system_handler.handle_download_ai_model(payload, pipeline, bridge, config)
             elif cmd_type == "fetch_nvidia_models":
                 system_handler.handle_fetch_nvidia_models(payload, pipeline, bridge, config)
+            elif cmd_type == "get_controller_config":
+                system_handler.handle_get_controller_config(payload, pipeline, bridge, config)
+            elif cmd_type == "save_controller_mappings":
+                system_handler.handle_save_controller_mappings(payload, pipeline, bridge, config, save_config, enforce_neural_security)
+            elif cmd_type == "trigger_controller_rumble":
+                system_handler.handle_trigger_controller_rumble(payload, pipeline, bridge, config)
             # ── Agent mode / voice commands ───────────────────────────────
             elif cmd_type == "toggle_agent_mode":
                 agent_handler.handle_toggle_agent_mode(payload, pipeline, bridge, config)

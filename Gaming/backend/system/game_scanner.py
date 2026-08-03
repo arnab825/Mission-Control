@@ -96,21 +96,23 @@ class GameScanner:
             for p in exes_paths:
                 if p.name.lower() == "playgtav.exe":
                     return str(p)
-                    
-        # 2. General launcher preference:
-        # If there are multiple executables, and one of them is explicitly named "launcher.exe" or "play.exe"
-        # or starts with "play" or "launch", and is not just a helper/uninstaller, we can prefer it.
+        elif "need for speed" in game_name_lower or "nfs" in game_name_lower or "heat" in game_name_lower:
+            # Prefer main NFS game exe (e.g. NFSHeat.exe) over Trial executables
+            for p in exes_paths:
+                p_name = p.name.lower()
+                if p_name in ["nfsheat.exe", "nfs.exe", "needforspeed.exe"] or (p_name.startswith("nfs") and "trial" not in p_name and "demo" not in p_name):
+                    return str(p)
+
+        # 2. General launcher preference & trial filtering:
         launcher_keywords = ["play", "launcher", "launch", "start"]
-        avoid_keywords = ["unins", "crash", "report", "helper", "setup", "install", "config", "patch"]
+        avoid_keywords = ["unins", "crash", "report", "helper", "setup", "install", "config", "patch", "trial", "demo", "benchmark"]
         
-        # filter out crack group exes, emulator wrappers, and exes living inside crack/nodvd subdirectories
+        # Filter out crack group exes, trial wrappers, and subdirectories
         filtered_exes = []
         for p in exes_paths:
             name_no_ext = p.stem.lower()
-            # Skip if the exe stem itself is a crack-group name
             if name_no_ext in self.crack_groups or name_no_ext.startswith("steam_api") or name_no_ext.startswith("steamclient"):
                 continue
-            # Skip if any parent directory of the exe is a crack/nodvd subfolder
             in_crack_dir = any(part.lower() in self.crack_groups for part in p.parts[:-1])
             if in_crack_dir:
                 continue
@@ -121,6 +123,11 @@ class GameScanner:
             
         exes_paths = filtered_exes
         
+        # Prefer non-trial executables first if available
+        non_trial_exes = [p for p in exes_paths if not any(k in p.name.lower() for k in ["trial", "demo", "benchmark"])]
+        if non_trial_exes:
+            exes_paths = non_trial_exes
+
         best_launcher = None
         for p in exes_paths:
             name = p.name.lower()
@@ -447,8 +454,11 @@ class GameScanner:
 
         unique_games = {}
         for g in self.games:
-            if "name" in g:
-                g["name"] = g["name"].strip()
+            if "name" in g and g["name"]:
+                name = g["name"]
+                for symbol in ["™", "®", "\u2122", "\u00ae", "\x99"]:
+                    name = name.replace(symbol, "")
+                g["name"] = " ".join(name.split())
                 
                 # Regex to strip crack groups from the end of a game name (e.g., "Ghost of Tsushima - FLT" -> "Ghost of Tsushima")
                 import re
@@ -1217,7 +1227,7 @@ class GameScanner:
                 # Scan .acf files
                 for acf in apps_path.glob("appmanifest_*.acf"):
                     try:
-                        with open(acf, "r", encoding="utf-8") as f:
+                        with open(acf, "r", encoding="utf-8", errors="ignore") as f:
                             acf_content = f.read()
                         
                         name_match = re.search(r'"name"\s+"([^"]+)"', acf_content)
@@ -1226,6 +1236,9 @@ class GameScanner:
                         
                         if name_match and id_match and install_dir_match:
                             game_name = name_match.group(1)
+                            for symbol in ["™", "®", "\u2122", "\u00ae", "\x99"]:
+                                game_name = game_name.replace(symbol, "")
+                            game_name = " ".join(game_name.split())
                             app_id = id_match.group(1)
                             install_dir = install_dir_match.group(1)
                             
@@ -1944,13 +1957,18 @@ class GameScanner:
                         with open(url_file, "r", encoding="utf-8", errors="ignore") as f:
                             content = f.read()
                         
+                        raw_stem = url_file.stem
+                        for symbol in ["™", "®", "\u2122", "\u00ae", "\x99"]:
+                            raw_stem = raw_stem.replace(symbol, "")
+                        clean_stem = " ".join(raw_stem.split())
+                        
                         import re
                         # Steam URL: steam://rungameid/12345
                         steam_match = re.search(r"steam://rungameid/(\d+)", content)
                         if steam_match:
                             appid = steam_match.group(1)
                             self.games.append({
-                                "name": url_file.stem,
+                                "name": clean_stem,
                                 "platform": "Steam",
                                 "id": appid,
                                 "install_path": "Shortcut"
@@ -1962,7 +1980,7 @@ class GameScanner:
                         if epic_match:
                             appid = epic_match.group(1)
                             self.games.append({
-                                "name": url_file.stem,
+                                "name": clean_stem,
                                 "platform": "Epic Games",
                                 "id": appid,
                                 "install_path": "Shortcut"
@@ -1974,7 +1992,7 @@ class GameScanner:
                         if ea_match:
                             offer_id = ea_match.group(1)
                             self.games.append({
-                                "name": url_file.stem,
+                                "name": clean_stem,
                                 "platform": "EA Desktop",
                                 "id": offer_id,
                                 "install_path": "Shortcut"

@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, useEffect } from "react";
+import { useQuery, useMutation } from "@tanstack/react-query";
 import { createPortal } from "react-dom";
 import { X, RefreshCw, Cpu, Monitor, Zap } from "lucide-react";
 
@@ -11,7 +12,6 @@ interface ReportModalProps {
 }
 
 export default function ReportModal({ isOpen, onClose, onSuccess }: ReportModalProps) {
-  const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
   // Form states
@@ -27,24 +27,29 @@ export default function ReportModal({ isOpen, onClose, onSuccess }: ReportModalP
   const [gpu, setGpu] = useState("");
   const [gpuDriver, setGpuDriver] = useState("");
   const [ramGB, setRamGB] = useState(16);
-  const [appVersion, setAppVersion] = useState("1.2.0");
+  const [appVersion, setAppVersion] = useState("2.8.4");
   
   // Telemetry Sharing Setting
   const [includeTelemetry, setIncludeTelemetry] = useState(true);
 
   const [mounted, setMounted] = useState(false);
 
+  const { data: versionData } = useQuery({
+    queryKey: ["app-version"],
+    queryFn: async () => {
+      const res = await fetch("/api/version");
+      if (!res.ok) throw new Error("Failed to fetch version");
+      return res.json();
+    },
+    staleTime: 1000 * 60 * 10,
+  });
+
   useEffect(() => {
     setMounted(true);
-    fetch("/api/version")
-      .then((res) => res.json())
-      .then((data) => {
-        if (data.version) {
-          setAppVersion(data.version);
-        }
-      })
-      .catch((err) => console.error("Error fetching version:", err));
-  }, []);
+    if (versionData?.version) {
+      setAppVersion(versionData.version);
+    }
+  }, [versionData]);
 
   if (!isOpen || !mounted) return null;
 
@@ -200,58 +205,62 @@ export default function ReportModal({ isOpen, onClose, onSuccess }: ReportModalP
     }
   };
 
-  const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
-    setLoading(true);
-    setError(null);
-
-    if (!title.trim() || !description.trim()) {
-      setError("Please fill out both Title and Description.");
-      setLoading(false);
-      return;
-    }
-
-    try {
+  const submitIssueMutation = useMutation({
+    mutationFn: async (payload: any) => {
       const response = await fetch("/api/issues", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          title,
-          description,
-          category,
-          game: game.trim() || undefined,
-          specs: includeTelemetry ? {
-            os,
-            osVersion,
-            cpu: cpu || "AMD Ryzen 7 7800X3D (Simulated)",
-            gpu: gpu || "NVIDIA GeForce RTX 4070",
-            gpuDriver: gpuDriver || "555.99",
-            ramGB: Number(ramGB) || 16,
-            appVersion,
-          } : {
-            os: "Anonymous",
-            osVersion: "Anonymous",
-            cpu: "Anonymous",
-            gpu: "Anonymous",
-            gpuDriver: "Anonymous",
-            ramGB: 0,
-            appVersion,
-          },
-        }),
+        body: JSON.stringify(payload),
       });
-
       if (!response.ok) {
         const errData = await response.json();
         throw new Error(errData.error || "Failed to submit report.");
       }
-
+      return response.json();
+    },
+    onSuccess: () => {
       onSuccess();
       onClose();
-    } catch (err: any) {
+    },
+    onError: (err: any) => {
       setError(err.message || "An unknown error occurred.");
-    } finally {
-      setLoading(false);
+    },
+  });
+
+  const loading = submitIssueMutation.isPending;
+
+  const handleSubmit = (e: React.FormEvent) => {
+    e.preventDefault();
+    setError(null);
+
+    if (!title.trim() || !description.trim()) {
+      setError("Please fill out both Title and Description.");
+      return;
     }
+
+    submitIssueMutation.mutate({
+      title,
+      description,
+      category,
+      game: game.trim() || undefined,
+      specs: includeTelemetry ? {
+        os,
+        osVersion,
+        cpu: cpu || "AMD Ryzen 7 7800X3D (Simulated)",
+        gpu: gpu || "NVIDIA GeForce RTX 4070",
+        gpuDriver: gpuDriver || "555.99",
+        ramGB: Number(ramGB) || 16,
+        appVersion,
+      } : {
+        os: "Anonymous",
+        osVersion: "Anonymous",
+        cpu: "Anonymous",
+        gpu: "Anonymous",
+        gpuDriver: "Anonymous",
+        ramGB: 0,
+        appVersion,
+      },
+    });
   };
 
   return createPortal(

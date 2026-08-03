@@ -721,13 +721,7 @@ const VisionPage: React.FC<VisionPageProps> = ({ state, sendCommand }) => {
                         </span>
                         <button
                           type="button"
-                          onClick={() => {
-                            if (installed) {
-                              window.open('https://github.com/arnab825/Mission-Control/releases', '_blank');
-                            } else {
-                              sendCommand('download_ai_model', { model_id: m.id });
-                            }
-                          }}
+                          onClick={() => sendCommand('download_ai_model', { model_id: m.id })}
                           className={`flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-[9px] font-black uppercase tracking-wider border transition-all cursor-pointer ${
                             installed
                               ? 'bg-neon-green/10 border-neon-green/30 text-neon-green hover:bg-neon-green/20'
@@ -735,7 +729,7 @@ const VisionPage: React.FC<VisionPageProps> = ({ state, sendCommand }) => {
                           }`}
                         >
                           <Download className="w-3 h-3" />
-                          {installed ? 'Update Manually' : 'Download Now'}
+                          {installed ? 'Re-Download / Update' : 'Download Now'}
                         </button>
                       </div>
                     )}
