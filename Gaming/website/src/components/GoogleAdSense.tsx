@@ -31,7 +31,7 @@ interface AdSlotProps {
 }
 
 export function AdSenseAdSlot({
-  slotId = "1234567890",
+  slotId = "3942234105",
   format = "auto",
   responsive = true,
   className = "my-6 w-full flex justify-center"

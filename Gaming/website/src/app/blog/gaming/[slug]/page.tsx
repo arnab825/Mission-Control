@@ -8,6 +8,7 @@ import { headers } from "next/headers";
 import ShareButtons from "@/components/ShareButtons";
 import SafeBlogImage from "@/components/SafeBlogImage";
 import { formatDateToIST, getPostData } from "@/lib/blog";
+import { AdSenseAdSlot } from "@/components/GoogleAdSense";
 import Mermaid from "@/components/Mermaid";
 import remarkGfm from "remark-gfm";
 import remarkMath from "remark-math";
@@ -258,6 +259,7 @@ export default async function GamingBlogPost({ params }: { params: Promise<{ slu
                 }}
               />
             </div>
+            <AdSenseAdSlot slotId="3942234105" className="my-8 w-full flex justify-center border-t border-white/10 pt-6" />
           </article>
         </div>
         
