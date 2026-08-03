@@ -247,7 +247,7 @@
                           "title":  "Exclusive Fullscreen: Privacy Shield Fix + Tray Telemetry",
                           "highlights":  [
                                              "Fixed Privacy Shield false-positive in exclusive fullscreen (alt-tab no longer blacks out vision feed)",
-                                             "Decoupled Privacy Shield from GetForegroundWindow â€” now only fires when game process exits or window is minimized",
+                                             "Decoupled Privacy Shield from GetForegroundWindow Ã¢â‚¬â€ now only fires when game process exits or window is minimized",
                                              "Added live FPS/GPU/Temp telemetry to system tray tooltip (hover to check performance without alt-tabbing)",
                                              "Added psutil PID-alive check in _is_game_active Step 6 to preserve focused=True for exclusive fullscreen games"
                                          ]
