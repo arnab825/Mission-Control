@@ -4,7 +4,7 @@ This document contains a detailed history of all patches and updates for the AI 
 
 ### Patch: 2026-08-03 — v2.8.4: Interactive Controller Mapping, Automated AI Model Downloader & E2EE Alignment
 
-- Added interactive HTML5 & XInput Gamepad Configurator with real-time SVG button highlights, deadzone controls, and vibration haptics
+- Added interactive Native XInput & DirectInput Gamepad Configurator with real-time SVG button highlights, deadzone controls, and vibration haptics
 - Implemented in-app automated AI model downloader for YOLOv8 & Whisper-Tiny weights with streaming progress
 - Centered E2EE Privacy Shield Verification status overlay and optimized modal responsiveness
 

@@ -3,7 +3,7 @@ title: "Controller & Gamepad Input Mapping"
 category: "Core Logic"
 badge: "Input Engine"
 badgeColor: "text-neon-green"
-excerpt: "Complete guide to Mission Control's interactive HTML5 & XInput Gamepad Configurator, custom action combos, analog stick deadzone tuning, and force feedback haptics."
+excerpt: "Complete guide to Mission Control's interactive Native XInput & DirectInput Gamepad Configurator, custom action combos, analog stick deadzone tuning, and force feedback haptics."
 ---
 
 # Controller & Gamepad Input Mapping
@@ -13,7 +13,7 @@ excerpt: "Complete guide to Mission Control's interactive HTML5 & XInput Gamepad
 ![Controller Mapping Diagram](/images/controller_mapping.png)
 
 > [!NOTE]
-> Mission Control features full dual-stack Gamepad support across **XInput**, **DirectInput**, and the browser **HTML5 Gamepad API**. Whether you play with an Xbox Wireless Controller, DualSense, DualShock 4, or generic DirectInput gamepad, Mission Control auto-detects and binds hardware inputs in real time.
+> Mission Control features full dual-stack Gamepad hardware support across **XInput**, **DirectInput**, and the native **Windows Input Subsystem**. Whether you play with an Xbox Wireless Controller, DualSense, DualShock 4, or generic DirectInput gamepad, Mission Control auto-detects and binds hardware inputs in real time.
 
 ---
 
@@ -35,13 +35,13 @@ excerpt: "Complete guide to Mission Control's interactive HTML5 & XInput Gamepad
 
 | Controller Family | Detection Mechanism | Native Vibration | Special Features |
 | :--- | :--- | :--- | :--- |
-| **Xbox Wireless / Elite** | XInput & HTML5 Gamepad API | Dual Impulse Motors | Full Guide Button & Trigger Haptics |
-| **PlayStation DualSense / DS4** | DirectInput & Pygame | Dual Actuators | Adaptive Trigger telemetry mapping |
+| **Xbox Wireless / Elite** | Native XInput & Windows Input API | Dual Impulse Motors | Full Guide Button & Trigger Haptics |
+| **PlayStation DualSense / DS4** | DirectInput & Pygame Daemon | Dual Actuators | Adaptive Trigger telemetry mapping |
 | **Generic DirectInput** | Pygame / WinMM Fallback | Single Motor | Auto-mapping fallback profile |
 
 ---
 
-## Python Backend Integration (`input_manager.py`)
+## Python Backend Integration — input_manager.py
 
 The backend Python daemon routes gamepad inputs directly to system macros and overlay functions:
 
