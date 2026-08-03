@@ -1,18 +1,19 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useQuery } from "@tanstack/react-query";
 
 export function DocsVersionBadge() {
-  const [version, setVersion] = useState("2.6.2");
+  const { data } = useQuery({
+    queryKey: ["app-version"],
+    queryFn: async () => {
+      const res = await fetch("/api/version");
+      if (!res.ok) throw new Error("Failed to fetch version");
+      return res.json();
+    },
+    staleTime: 1000 * 60 * 10,
+  });
 
-  useEffect(() => {
-    fetch("/api/version")
-      .then((res) => res.json())
-      .then((data) => {
-        if (data?.version) setVersion(data.version);
-      })
-      .catch(() => {});
-  }, []);
+  const version = data?.version || "2.8.4";
 
   return (
     <div className="border-t border-white/10 pt-4 mt-auto">

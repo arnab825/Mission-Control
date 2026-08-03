@@ -1,6 +1,7 @@
 "use client";
 
 import React, { useState } from "react";
+import { useMutation } from "@tanstack/react-query";
 import { Zap, ShieldCheck, Cpu, Award, Mail, Sparkles, CheckCircle2, ArrowRight, X, Send } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 
@@ -14,26 +15,32 @@ export function SponsorshipPartnerSection() {
     partnershipType: "Hardware Sponsor",
     message: ""
   });
-  const [submitStatus, setSubmitStatus] = useState<"idle" | "loading" | "success">("idle");
 
-  const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
-    setSubmitStatus("loading");
-    try {
-      await fetch("/api/contact", {
+  const sponsorMutation = useMutation({
+    mutationFn: async (payload: any) => {
+      const res = await fetch("/api/contact", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          name: sponsorForm.companyName,
-          email: sponsorForm.contactEmail,
-          subject: `[SPONSOR INQUIRY] ${sponsorForm.partnershipType} - ${sponsorForm.companyName}`,
-          message: `Company Web: ${sponsorForm.websiteUrl}\nType: ${sponsorForm.partnershipType}\n\n${sponsorForm.message}`
-        })
+        body: JSON.stringify(payload),
       });
-      setSubmitStatus("success");
-    } catch {
-      setSubmitStatus("success");
-    }
+      return res.json();
+    },
+  });
+
+  const submitStatus = sponsorMutation.isPending
+    ? "loading"
+    : sponsorMutation.isSuccess
+    ? "success"
+    : "idle";
+
+  const handleSubmit = (e: React.FormEvent) => {
+    e.preventDefault();
+    sponsorMutation.mutate({
+      name: sponsorForm.companyName,
+      email: sponsorForm.contactEmail,
+      subject: `[SPONSOR INQUIRY] ${sponsorForm.partnershipType} - ${sponsorForm.companyName}`,
+      message: `Company Web: ${sponsorForm.websiteUrl}\nType: ${sponsorForm.partnershipType}\n\n${sponsorForm.message}`
+    });
   };
 
   return (
@@ -225,7 +232,7 @@ export function SponsorshipPartnerSection() {
                   <button
                     onClick={() => {
                       setIsSponsorModalOpen(false);
-                      setSubmitStatus("idle");
+                      sponsorMutation.reset();
                     }}
                     className="px-6 py-2.5 rounded-full bg-neon-yellow text-obsidian font-mono text-xs font-bold uppercase cursor-pointer"
                   >
