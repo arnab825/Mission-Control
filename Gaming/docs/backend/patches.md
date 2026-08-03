@@ -2,6 +2,15 @@
 
 This document contains a detailed history of all patches and updates for the AI Gaming Assistant.
 
+### Patch: 2026-08-03 — v2.8.5: Website Docs Render Fix, Google AdSense Integration & Controller Mapping Wording
+
+- Fixed inline code and paragraph rendering issue in docs pages
+- Fixed pagination arrow truncation on Previous/Next article navigation cards
+- Integrated Google AdSense display ad slots in docs and gaming blog pages
+- Added public/ads.txt for AdSense site authorization
+- Updated Controller Mapping documentation wording from HTML5 to Native XInput and DirectInput
+- Updated Vision AI guide documentation
+
 ### Patch: 2026-08-03 — v2.8.4: Interactive Controller Mapping, Automated AI Model Downloader & E2EE Alignment
 
 - Added interactive Native XInput & DirectInput Gamepad Configurator with real-time SVG button highlights, deadzone controls, and vibration haptics
