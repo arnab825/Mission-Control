@@ -12,6 +12,14 @@
       ]
     },
     {
+      "version": "2.8.9",
+      "date": "2026-08-04",
+      "title": "Fix Parent Flex Height Chain for Library Windowed Responsiveness",
+      "highlights": [
+        "Fix Parent Flex Height Chain for Library Windowed Responsiveness"
+      ]
+    },
+    {
       "version": "2.8.8",
       "date": "2026-08-04",
       "title": "GTA V Enhanced Title Normalization and Rockstar Games Launcher Deduplication",
@@ -475,16 +483,6 @@
       "title": "Fix Ghost of Tsushima Vision Capture",
       "highlights": [
         "Fix WindowDetector library lookup for E2EE Privacy Shield"
-      ]
-    },
-    {
-      "version": "2.4.6",
-      "date": "2026-07-26",
-      "title": "v2.4.6 Bug Fixes",
-      "highlights": [
-        "Fixed Electron updater pause glitch",
-        "Fixed AI model download timeout",
-        "Fixed Ghost of Tsushima pirate release filter"
       ]
     }
   ]

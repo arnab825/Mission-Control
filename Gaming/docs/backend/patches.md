@@ -6,6 +6,10 @@ This document contains a detailed history of all patches and updates for the AI 
 
 - Fix Parent Flex Height Chain for Library Windowed Responsiveness
 
+### Patch: 2026-08-04 — v2.8.9: Fix Parent Flex Height Chain for Library Windowed Responsiveness
+
+- Fix Parent Flex Height Chain for Library Windowed Responsiveness
+
 ### Patch: 2026-08-04 — v2.8.8: GTA V Enhanced Title Normalization and Rockstar Games Launcher Deduplication
 
 - GTA V Enhanced Title Normalization and Rockstar Games Launcher Deduplication
