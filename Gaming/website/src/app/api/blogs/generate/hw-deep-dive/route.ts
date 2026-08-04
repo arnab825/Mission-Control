@@ -6,7 +6,8 @@ export const maxDuration = 60;
 export async function POST(request: NextRequest) {
   if (process.env.NODE_ENV === "production") {
     const authHeader = request.headers.get("authorization");
-    const isVercelCron = request.headers.get("x-vercel-cron") === "1";
+    const userAgent = request.headers.get("user-agent") || "";
+    const isVercelCron = request.headers.get("x-vercel-cron") === "1" || userAgent.toLowerCase().includes("vercel-cron");
     const isValidCronSecret = Boolean(process.env.CRON_SECRET && authHeader === `Bearer ${process.env.CRON_SECRET}`);
 
     if (!isVercelCron && !isValidCronSecret) {
@@ -40,7 +41,8 @@ export async function POST(request: NextRequest) {
 export async function GET(request: NextRequest) {
   if (process.env.NODE_ENV === "production") {
     const authHeader = request.headers.get("authorization");
-    const isVercelCron = request.headers.get("x-vercel-cron") === "1";
+    const userAgent = request.headers.get("user-agent") || "";
+    const isVercelCron = request.headers.get("x-vercel-cron") === "1" || userAgent.toLowerCase().includes("vercel-cron");
     const isValidCronSecret = Boolean(process.env.CRON_SECRET && authHeader === `Bearer ${process.env.CRON_SECRET}`);
 
     if (!isVercelCron && !isValidCronSecret) {
