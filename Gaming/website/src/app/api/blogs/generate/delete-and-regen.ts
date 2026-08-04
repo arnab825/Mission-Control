@@ -4,6 +4,7 @@ import GamingPost from "@/models/GamingPost";
 import fs from "fs";
 import path from "path";
 import { POST } from "./route";
+import { safeAppendFileSync } from "./shared";
 
 async function run() {
   await connectDB();
@@ -36,7 +37,7 @@ async function run() {
 
   // 3. Delete from generate.log if needed or append notice
   const logFile = path.join(process.cwd(), "generate.log");
-  fs.appendFileSync(logFile, `[DeleteRegen] Cleaned database and local files for July 21st and 22nd. Regenerating...\n`);
+  safeAppendFileSync(logFile, `[DeleteRegen] Cleaned database and local files for July 21st and 22nd. Regenerating...\n`);
 
   // 4. Regenerate posts for July 21st and 22nd
   for (const date of targetDates) {

@@ -12,16 +12,33 @@ export function safeWriteFileSync(filePath: string, content: string | Buffer, op
       fs.mkdirSync(dir, { recursive: true });
     }
     fs.writeFileSync(filePath, content, options);
-  } catch (err) {
-    console.warn(`[SafeWrite] Failed to write file ${filePath}:`, err);
+  } catch (err: any) {
+    if (err?.code === "EROFS") {
+      try {
+        const tmpPath = path.join("/tmp", path.basename(filePath));
+        fs.writeFileSync(tmpPath, content, options);
+      } catch {}
+    } else {
+      console.warn(`[SafeWrite] Failed to write file ${filePath}:`, err?.message || err);
+    }
   }
 }
 
 export function safeAppendFileSync(filePath: string, content: string) {
+  const cleanMessage = content.trim();
+  if (cleanMessage) {
+    console.log(`[BlogGen] ${cleanMessage}`);
+  }
   try {
     fs.appendFileSync(filePath, content);
-  } catch (err) {
-    console.warn(`[SafeWrite] Failed to append to file ${filePath}:`, err);
+  } catch (err: any) {
+    if (err?.code === "EROFS") {
+      try {
+        fs.appendFileSync(path.join("/tmp", path.basename(filePath)), content);
+      } catch {}
+    } else {
+      console.warn(`[SafeWrite] Failed to append to file ${filePath}:`, err?.message || err);
+    }
   }
 }
 
@@ -526,9 +543,10 @@ export async function generateAndSavePost(
             if (fs.existsSync(imagePath)) {
               localCoverPath = `/images/blog/${post.slug}.png`;
             } else {
-              localCoverPath = isHardware ? "/images/gpu-placeholder.png" : "/images/game-placeholder.png";
+              const cleanBase = encodeURIComponent((post.imagePrompt || post.title).slice(0, 150));
+              localCoverPath = `https://image.pollinations.ai/prompt/${cleanBase}?nologo=true&width=1024&height=768`;
             }
-            safeAppendFileSync(logFile, `[BlogGen][${currentTopic}] [IMAGE OK] Cover image configured.\n`);
+            safeAppendFileSync(logFile, `[BlogGen][${currentTopic}] [IMAGE OK] Cover image configured: ${localCoverPath}\n`);
         } else {
           localCoverPath = isHardware ? "/images/gpu-placeholder.png" : "/images/game-placeholder.png";
         }
