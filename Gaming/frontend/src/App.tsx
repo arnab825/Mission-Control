@@ -446,19 +446,19 @@ const App: React.FC = () => {
               </header>
 
               {/* Dynamic Page Rendering (Lazy-loaded / Keep-alive toggling) */}
-              <div className="flex-1 flex flex-col lg:flex-row relative overflow-hidden">
+              <div className="flex-1 min-h-0 flex flex-col lg:flex-row relative overflow-hidden">
                 {visitedPages['dashboard'] && (
-                  <div className={`flex-1 flex flex-col relative ${activePage === 'dashboard' ? '' : 'hidden'}`}>
+                  <div className={`flex-1 min-h-0 flex flex-col relative ${activePage === 'dashboard' ? '' : 'hidden'}`}>
                     <DashboardPage state={activePage === 'dashboard' ? state : null} onCommand={sendCommand} onNavigate={handleNavigate} />
                   </div>
                 )}
                 {visitedPages['vision'] && (
-                  <div className={`flex-1 flex flex-col relative ${activePage === 'vision' ? '' : 'hidden'}`}>
+                  <div className={`flex-1 min-h-0 flex flex-col relative ${activePage === 'vision' ? '' : 'hidden'}`}>
                     <VisionPage state={activePage === 'vision' ? state : null} sendCommand={sendCommand} />
                   </div>
                 )}
                 {visitedPages['system'] && (
-                  <div className={`flex-1 flex flex-col relative ${activePage === 'system' ? '' : 'hidden'}`}>
+                  <div className={`flex-1 min-h-0 flex flex-col relative ${activePage === 'system' ? '' : 'hidden'}`}>
                     <SystemPage
                       state={activePage === 'system' ? state : null}
                       selectedCategory={systemCategory}
@@ -468,7 +468,7 @@ const App: React.FC = () => {
                   </div>
                 )}
                 {visitedPages['games'] && (
-                  <div className={`flex-1 flex flex-col relative ${activePage === 'games' ? '' : 'hidden'}`}>
+                  <div className={`flex-1 min-h-0 flex flex-col relative ${activePage === 'games' ? '' : 'hidden'}`}>
                     <GamesPage
                       state={activePage === 'games' ? state : null}
                       sendCommand={sendCommand}
@@ -478,22 +478,22 @@ const App: React.FC = () => {
                   </div>
                 )}
                 {visitedPages['settings'] && (
-                  <div className={`flex-1 flex flex-col relative ${activePage === 'settings' ? '' : 'hidden'}`}>
+                  <div className={`flex-1 min-h-0 flex flex-col relative ${activePage === 'settings' ? '' : 'hidden'}`}>
                     <SettingsPage state={activePage === 'settings' ? state : null} sendCommand={sendCommand} />
                   </div>
                 )}
                 {visitedPages['lab'] && (
-                  <div className={`flex-1 flex flex-col relative ${activePage === 'lab' ? '' : 'hidden'}`}>
+                  <div className={`flex-1 min-h-0 flex flex-col relative ${activePage === 'lab' ? '' : 'hidden'}`}>
                     <LabPage state={activePage === 'lab' ? state : null} sendCommand={sendCommand} />
                   </div>
                 )}
                 {visitedPages['readiness'] && (
-                  <div className={`flex-1 flex flex-col relative ${activePage === 'readiness' ? '' : 'hidden'}`}>
+                  <div className={`flex-1 min-h-0 flex flex-col relative ${activePage === 'readiness' ? '' : 'hidden'}`}>
                     <ReadinessPage state={activePage === 'readiness' ? state : null} connected={connected} sendCommand={sendCommand} />
                   </div>
                 )}
                 {visitedPages['agent'] && (
-                  <div className={`flex-1 flex flex-col relative ${activePage === 'agent' ? '' : 'hidden'}`}>
+                  <div className={`flex-1 min-h-0 flex flex-col relative ${activePage === 'agent' ? '' : 'hidden'}`}>
                     {!isSignedIn && gamesPageMode === 'auth' ? (
                       <AuthPage onBackToLibrary={() => setGamesPageMode('library')} />
                     ) : (
@@ -509,7 +509,7 @@ const App: React.FC = () => {
                   </div>
                 )}
                 {visitedPages['updates'] && (
-                  <div className={`flex-1 flex flex-col relative ${activePage === 'updates' ? '' : 'hidden'}`}>
+                  <div className={`flex-1 min-h-0 flex flex-col relative ${activePage === 'updates' ? '' : 'hidden'}`}>
                     <UpdatesPage
                       state={activePage === 'updates' ? state : null}
                       sendCommand={sendCommand}

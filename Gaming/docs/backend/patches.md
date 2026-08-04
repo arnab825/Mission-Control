@@ -2,6 +2,10 @@
 
 This document contains a detailed history of all patches and updates for the AI Gaming Assistant.
 
+### Patch: 2026-08-04 — v2.8.6: Library Fit to Window Responsiveness and Rockstar Games Scanner Path Validation
+
+- Library Fit to Window Responsiveness and Rockstar Games Scanner Path Validation
+
 ### Patch: 2026-08-03 — v2.8.5: Website Docs Render Fix, Google AdSense Integration & Controller Mapping Wording
 
 - Fixed inline code and paragraph rendering issue in docs pages

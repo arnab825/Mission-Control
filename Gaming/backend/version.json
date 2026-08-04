@@ -1,8 +1,16 @@
 {
-  "version": "2.8.5",
+  "version": "2.8.6",
   "release_date": "2026-08-02",
   "update_check_url": "https://raw.githubusercontent.com/arnab825/Mission-Control/main/Gaming/backend/version.json",
   "changelog": [
+    {
+      "version": "2.8.6",
+      "date": "2026-08-04",
+      "title": "Library Fit to Window Responsiveness and Rockstar Games Scanner Path Validation",
+      "highlights": [
+        "Library Fit to Window Responsiveness and Rockstar Games Scanner Path Validation"
+      ]
+    },
     {
       "version": "2.8.5",
       "date": "2026-08-03",
@@ -481,14 +489,6 @@
       "title": "Fix FPS capture for Fullscreen Exclusive games",
       "highlights": [
         "Fix FPS capture for Fullscreen Exclusive games"
-      ]
-    },
-    {
-      "version": "2.4.2",
-      "date": "2026-07-25",
-      "title": "Test",
-      "highlights": [
-        "Test"
       ]
     }
   ]
