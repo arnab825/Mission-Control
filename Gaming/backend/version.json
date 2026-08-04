@@ -1,8 +1,16 @@
 {
-  "version": "2.8.7",
+  "version": "2.8.8",
   "release_date": "2026-08-02",
   "update_check_url": "https://raw.githubusercontent.com/arnab825/Mission-Control/main/Gaming/backend/version.json",
   "changelog": [
+    {
+      "version": "2.8.8",
+      "date": "2026-08-04",
+      "title": "GTA V Enhanced Title Normalization and Rockstar Games Launcher Deduplication",
+      "highlights": [
+        "GTA V Enhanced Title Normalization and Rockstar Games Launcher Deduplication"
+      ]
+    },
     {
       "version": "2.8.7",
       "date": "2026-08-04",
@@ -480,15 +488,6 @@
         "Fix Content-Length header parsing exception on HTTP redirects during model downloads",
         "Sanitize auto-updater errors by stripping JS stack traces and HTTP headers",
         "Translate raw 404 latest.yml errors into clean beginner-friendly updates-pending messages"
-      ]
-    },
-    {
-      "version": "2.4.4",
-      "date": "2026-07-26",
-      "title": "Ignore pirate release groups in game scan and fix missing icon",
-      "highlights": [
-        "Ignore pirate release groups (FLT, RUNE, CODEX, ali213, tenoke, goldberg, epicfiles, steamfiles, online fix) in deep scan",
-        "Ignore crack emulator wrappers (steam_api64.exe) to fix missing game icon"
       ]
     }
   ]
