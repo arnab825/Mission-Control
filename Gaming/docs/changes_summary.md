@@ -1364,3 +1364,30 @@ graph TD
 | `scanner/path-validation.ts` | **Modified** | Enhanced Rockstar Games scanner path validation. |
 | `components/client.ts` | **Added** | Introduced new client-side component for improved responsiveness. |
 | `models/rockstar-games.ts` | **Modified** | Updated Rockstar Games model to accommodate enhanced scanner path validation. |
+
+---
+
+## Session 40 — 2026-08-04: Auto Update Backend Relaunch and Working Directory Recovery (v2.8.7)
+
+### 🛠️ Key Features Added/Modified
+1. **Auto Update Backend Relaunch: Enhanced auto-update functionality with improved reliability and reduced downtime.**
+2. **Working Directory Recovery: Implemented robust working directory recovery mechanism to ensure seamless data integrity and minimize data loss.**
+
+### 🧩 Technical Decisions & Architecture
+* To achieve the Auto Update Backend Relaunch and Working Directory Recovery, we implemented a microservices architecture with a message queue to decouple the update process from the main application flow. This allowed for more efficient and reliable updates. Additionally, we optimized the working directory recovery mechanism by utilizing a combination of file system snapshots and incremental backups.
+
+### 📊 System Architecture & Flow
+```mermaid
+graph TD
+  A[Client] --> B[Server]
+  B[Server] --> C[Auto Update Service]
+  C[Auto Update Service] --> D[Working Directory Recovery Service]
+```
+
+### 📋 File Changes
+| File | Status | Description |
+|---|---|---|
+| `auto_update_service.ts` | **Modified** | Updated auto-update logic to utilize message queue for decoupling and improved reliability. |
+| `working_directory_recovery_service.ts` | **Added** | Implemented working directory recovery mechanism using file system snapshots and incremental backups. |
+| `config.ts` | **Modified** | Updated configuration settings to support new auto-update and working directory recovery features. |
+| `README.md` | **Modified** | Updated documentation to reflect new features and technical decisions. |

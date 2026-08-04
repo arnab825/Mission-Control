@@ -21,6 +21,7 @@ contextBridge.exposeInMainWorld('electronAPI', {
   downloadElectronUpdate: () => ipcRenderer.send('download-electron-update'),
   quitAndInstallElectronUpdate: () => ipcRenderer.send('quit-and-install-update'),
   setProgressBar: (value: number) => ipcRenderer.send('set-progress-bar', value),
+  restartBackend: () => ipcRenderer.send('restart-backend'),
   onNetworkStatusChanged: (isOnline: boolean) => ipcRenderer.send('network-status-changed', isOnline),
   toggleOffscreenRendering: (enable: boolean) => ipcRenderer.send('toggle-offscreen-rendering', enable),
   onHUDStatus: (callback: (isVisible: boolean) => void) => {

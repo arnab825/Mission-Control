@@ -83,7 +83,7 @@ function patchNsis() {
       if (!content.includes(patchMarker2)) {
         const killMacro = `
   ${patchMarker2}
-  nsExec::ExecToStack \`"$SYSDIR\\WindowsPowerShell\\v1.0\\powershell.exe" -NonInteractive -NoProfile -Command { Get-CimInstance Win32_Process | Where-Object { $$$$_.Name -in @('dotnet.exe','HardwareMonitor.exe') -and $$$$_.ExecutablePath -and $$$$_.ExecutablePath.ToLower().StartsWith('$INSTDIR'.ToLower()) } | ForEach-Object { Stop-Process -Id $$$$_.ProcessId -Force -ErrorAction SilentlyContinue } }\`
+  nsExec::ExecToStack \`"$SYSDIR\\WindowsPowerShell\\v1.0\\powershell.exe" -NonInteractive -NoProfile -Command { Get-CimInstance Win32_Process | Where-Object { $$$$_.ExecutablePath -and $$$$_.ExecutablePath.ToLower().StartsWith('$INSTDIR'.ToLower()) } | ForEach-Object { Stop-Process -Id $$$$_.ProcessId -Force -ErrorAction SilentlyContinue } }\`
   Pop $$0
   Pop $$1
   nsExec::ExecToStack \`"$SYSDIR\\WindowsPowerShell\\v1.0\\powershell.exe" -NonInteractive -NoProfile -Command { Get-Process -Name 'Uninstall*' -ErrorAction SilentlyContinue | Where-Object { $$$$_.Path -and $$$$_.Path.StartsWith('$INSTDIR') } | Stop-Process -Force -ErrorAction SilentlyContinue }\`

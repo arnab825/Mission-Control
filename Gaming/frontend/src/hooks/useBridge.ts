@@ -48,6 +48,8 @@ export const useBridge = (url: string = defaultBridgeUrl) => {
     }
   }, []);
 
+  const disconnectCount = useRef<number>(0);
+
   const connect = useCallback(() => {
     if (ws.current?.readyState === WebSocket.OPEN || ws.current?.readyState === WebSocket.CONNECTING) return;
 
@@ -55,6 +57,7 @@ export const useBridge = (url: string = defaultBridgeUrl) => {
 
     ws.current.onopen = () => {
       setConnected(true);
+      disconnectCount.current = 0;
       lastMessageTime.current = performance.now();
       console.log('Connected to Aero Bridge');
       // Drain any commands that were queued during reconnection
@@ -106,7 +109,12 @@ export const useBridge = (url: string = defaultBridgeUrl) => {
 
     ws.current.onclose = () => {
       setConnected(false);
-      console.log('Disconnected from Aero Bridge');
+      disconnectCount.current += 1;
+      console.log(`Disconnected from Aero Bridge (retry ${disconnectCount.current})`);
+      if (disconnectCount.current >= 2 && (window as any).electronAPI?.restartBackend) {
+        console.warn('Aero Bridge disconnected multiple times. Triggering backend restart signal...');
+        (window as any).electronAPI.restartBackend();
+      }
       setTimeout(connect, 3000);
     };
   }, [url, flushPending]);

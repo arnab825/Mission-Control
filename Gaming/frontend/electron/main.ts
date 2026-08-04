@@ -175,6 +175,9 @@ let pythonProcess: ChildProcess | null = null
 let tray: Tray | null = null
 let isManualUpdateCheck = false;
 let updateCancellationToken: CancellationToken | null = null;
+let isAppQuitting = false;
+let backendRestartCount = 0;
+const MAX_BACKEND_RESTARTS = 5;
 
 // Fires a native Windows toast notification for update availability.
 // Non-blocking — the user decides when/whether to act on it.
@@ -518,10 +521,12 @@ function startPythonBackend() {
       console.log('[Electron] Cleaned up lingering MissionControlBackend.exe background processes on startup.')
     } catch (_) {}
     // Also kill the legacy binary name from pre-rename builds to prevent stale lock conflicts
-    try {
-      execSync('taskkill /f /im MissionControl.exe', { windowsHide: true, stdio: 'ignore' })
-      console.log('[Electron] Cleaned up lingering legacy MissionControl.exe processes on startup.')
-    } catch (_) {}
+    if (path.basename(process.execPath).toLowerCase() !== 'missioncontrol.exe') {
+      try {
+        execSync('taskkill /f /im MissionControl.exe', { windowsHide: true, stdio: 'ignore' })
+        console.log('[Electron] Cleaned up lingering legacy MissionControl.exe processes on startup.')
+      } catch (_) {}
+    }
   }
 
   if (isDev) {
@@ -555,13 +560,15 @@ function startPythonBackend() {
 
     let executablePath: string
     let args: string[] = []
+    let cwdDir: string
 
     if (isDev) {
       // Dev: prefer venv python
       const venvPython = path.join(_dirname, '..', '..', 'backend', '.venv', 'Scripts', 'python.exe')
       executablePath = fs.existsSync(venvPython) ? venvPython : 'python'
       args = [scriptPath, '--dev', '--no-admin']
-      console.log(`[Electron] Dev mode — python: ${executablePath}`)
+      cwdDir = path.dirname(scriptPath)
+      console.log(`[Electron] Dev mode — python: ${executablePath}, cwd: ${cwdDir}`)
     } else {
       // Primary: electron-builder extraResources → resources/MissionControlBackend/MissionControlBackend.exe
       const bundledExeDirect = path.join((process as any).resourcesPath, 'MissionControlBackend', 'MissionControlBackend.exe')
@@ -571,28 +578,47 @@ function startPythonBackend() {
       if (fs.existsSync(bundledExeDirect)) {
         executablePath = bundledExeDirect
         args = ['--no-admin']
+        cwdDir = path.dirname(bundledExeDirect)
         console.log(`[Electron] Using bundled backend exe (direct): ${bundledExeDirect}`)
       } else if (fs.existsSync(bundledExeBuilder)) {
         executablePath = bundledExeBuilder
         args = ['--no-admin']
+        cwdDir = path.dirname(bundledExeBuilder)
         console.log(`[Electron] Using bundled backend exe (builder): ${bundledExeBuilder}`)
       } else {
         // Fallback: raw python (developer machine without compiled binary)
         const localVenv = 'c:/GitHub/Mission-Control/Gaming/backend/.venv/Scripts/python.exe'
         executablePath = fs.existsSync(localVenv) ? localVenv : 'python'
         args = [scriptPath, '--no-admin']
+        cwdDir = path.dirname(scriptPath)
         console.log(`[Electron] Fallback — python: ${executablePath}`)
       }
     }
 
-    // Spawn the backend – windowsHide prevents a console window on Windows;
-    // stdio:'pipe' avoids inheriting the parent console.
+    if (pythonProcess) {
+      try {
+        if (process.platform === 'win32' && pythonProcess.pid) {
+          execSync(`taskkill /pid ${pythonProcess.pid} /f /t`, { windowsHide: true })
+        } else {
+          pythonProcess.kill()
+        }
+      } catch (_) {}
+      pythonProcess = null
+    }
+
+    // Spawn the backend – explicit cwd ensures working directory is valid even after NSIS installer updates
     pythonProcess = spawn(executablePath, args, {
+      cwd: cwdDir,
       stdio: 'pipe',
       windowsHide: true,
       detached: false,
       env: { ...process.env, PYTHONUNBUFFERED: '1', PYTHONDONTWRITEBYTECODE: '1' }
     })
+
+    // Reset restart counter after 5s of stable execution
+    const stableTimer = setTimeout(() => {
+      backendRestartCount = 0;
+    }, 5000);
 
     // Drain the pipes so the buffer never fills up and stalls the process.
     // In dev we forward to Electron's own console; in production we discard.
@@ -604,11 +630,23 @@ function startPythonBackend() {
     })
 
     pythonProcess.on('error', (err) => {
+      clearTimeout(stableTimer);
       console.error('[Electron] Failed to start Python backend:', err)
     })
 
     pythonProcess.on('exit', (code) => {
+      clearTimeout(stableTimer);
       console.log(`[Electron] Python backend exited with code ${code}`)
+      pythonProcess = null
+      if (!isAppQuitting && backendRestartCount < MAX_BACKEND_RESTARTS) {
+        backendRestartCount++
+        console.warn(`[Electron] Backend exited unexpectedly (code ${code}). Attempting auto-restart (${backendRestartCount}/${MAX_BACKEND_RESTARTS}) in 1.5s...`)
+        setTimeout(() => {
+          if (!isAppQuitting) {
+            startPythonBackend()
+          }
+        }, 1500)
+      }
     })
   }
 }
@@ -1015,6 +1053,7 @@ app.whenReady().then(async () => {
 })
 
 app.on('before-quit', () => {
+  isAppQuitting = true;
   globalShortcut.unregisterAll()
   // Clean up OSR offscreen window
   if (osrWin && !osrWin.isDestroyed()) {
@@ -2026,6 +2065,7 @@ function sanitizeUpdateErrorMessage(rawMsg: string): string {
   });
 
   ipcMain.on('quit-and-install-update', () => {
+    isAppQuitting = true;
     console.log('[AutoUpdater] Quitting and installing update...');
     try {
       // 1. BACKUP RESOURCES DIRECTORY FOR OFFLINE ROLLBACK
@@ -2092,6 +2132,12 @@ function sanitizeUpdateErrorMessage(rawMsg: string): string {
     } catch (err: any) {
       console.error('[AutoUpdater] quitAndInstall failed:', err);
     }
+  });
+
+  ipcMain.on('restart-backend', () => {
+    console.log('[Electron] IPC restart-backend requested by renderer.');
+    backendRestartCount = 0;
+    startPythonBackend();
   });
 
   // Sent by fireUpdateToast click handler to open the UpdaterModal in React
