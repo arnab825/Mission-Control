@@ -1678,30 +1678,94 @@ class GameScanner:
         except Exception: pass
 
     def _scan_rockstar(self):
-        """Scan for Rockstar Games."""
-        try:
-            key_path = r"SOFTWARE\WOW6432Node\Rockstar Games\Launcher\InstalledGames"
-            with winreg.OpenKey(winreg.HKEY_LOCAL_MACHINE, key_path) as key:
-                i = 0
-                while True:
-                    try:
-                        game_id = winreg.EnumKey(key, i)
-                        with winreg.OpenKey(key, game_id) as subkey:
-                            try:
-                                path, _ = winreg.QueryValueEx(subkey, "InstallFolder")
-                                self.games.append({
-                                    "name": game_id.replace("_", " "),
-                                    "platform": "Rockstar Games",
-                                    "id": game_id,
-                                    "install_path": path
-                                })
-                            except Exception:
-                                pass
-                        i += 1
-                    except OSError:
-                        break
-        except Exception:
-            pass
+        """Scan for Rockstar Games installed via the Rockstar Games Launcher."""
+        # Primary registry path (older launcher versions)
+        registry_paths = [
+            (winreg.HKEY_LOCAL_MACHINE, r"SOFTWARE\WOW6432Node\Rockstar Games\Launcher\InstalledGames"),
+            (winreg.HKEY_LOCAL_MACHINE, r"SOFTWARE\WOW6432Node\Rockstar Games"),
+            (winreg.HKEY_LOCAL_MACHINE, r"SOFTWARE\Rockstar Games"),
+        ]
+
+        for hkey, key_path in registry_paths:
+            try:
+                with winreg.OpenKey(hkey, key_path) as key:
+                    i = 0
+                    while True:
+                        try:
+                            game_id = winreg.EnumKey(key, i)
+                            with winreg.OpenKey(key, game_id) as subkey:
+                                try:
+                                    path = None
+                                    for val_name in ["InstallFolder", "InstallLocation", "GameFolder"]:
+                                        try:
+                                            path, _ = winreg.QueryValueEx(subkey, val_name)
+                                            if path:
+                                                break
+                                        except Exception:
+                                            continue
+
+                                    if not path:
+                                        i += 1
+                                        continue
+
+                                    # Only add if the install directory actually exists on disk
+                                    if not os.path.isdir(path):
+                                        logger.debug("Rockstar: skipping '%s' — path does not exist: %s", game_id, path)
+                                        i += 1
+                                        continue
+
+                                    name = game_id.replace("_", " ").strip()
+                                    # Skip the launcher entry itself
+                                    if name.lower() in ["launcher", "rockstar games launcher"]:
+                                        i += 1
+                                        continue
+
+                                    # Try to find the best exe
+                                    resolved_exe = None
+                                    try:
+                                        exes = list(Path(path).glob("*.exe"))
+                                        if exes:
+                                            resolved_exe = self._select_best_exe(exes, name)
+                                    except Exception:
+                                        pass
+
+                                    self.games.append({
+                                        "name": name,
+                                        "platform": "Rockstar Games",
+                                        "id": game_id,
+                                        "install_path": path,
+                                        "exe_path": resolved_exe
+                                    })
+                                except Exception:
+                                    pass
+                            i += 1
+                        except OSError:
+                            break
+            except Exception:
+                pass
+
+        # Also scan the Rockstar Games default install directory directly
+        for program_files in [os.environ.get("ProgramFiles", ""), os.environ.get("ProgramFiles(x86)", "")]:
+            if not program_files:
+                continue
+            rockstar_dir = Path(program_files) / "Rockstar Games"
+            if rockstar_dir.is_dir():
+                for game_dir in rockstar_dir.iterdir():
+                    if not game_dir.is_dir():
+                        continue
+                    name = game_dir.name.strip()
+                    if name.lower() in ["launcher", "rockstar games launcher", "social club"]:
+                        continue
+                    exes = list(game_dir.glob("*.exe"))
+                    resolved_exe = self._select_best_exe(exes, name) if exes else None
+                    self.games.append({
+                        "name": name,
+                        "platform": "Rockstar Games",
+                        "id": f"rockstar_{name}",
+                        "install_path": str(game_dir),
+                        "exe_path": resolved_exe,
+                        "source": "rockstar_dir_scan"
+                    })
 
     def _scan_amazon(self):
         """Scan for Amazon Games."""
@@ -1886,10 +1950,9 @@ class GameScanner:
                                         if any(kw in name_lower for kw in ["launcher", "connect", "redistributable", "runtime", "service"]):
                                             i += 1
                                             continue
-
                                         self.games.append({
                                             "name": name,
-                                            "platform": "Local",
+                                            "platform": "Rockstar Games" if any(p in publisher for p in ["Rockstar"]) else "Local",
                                             "id": subkey_name,
                                             "install_path": install_path,
                                             "exe_path": None  # Resolved later by feature-detect pass if not deduped
