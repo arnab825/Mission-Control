@@ -1,0 +1,16 @@
+16:50:16 [main] INFO: [Env] Loaded .env from: C:\GitHub\Mission-Control\Gaming\backend\dist\MissionControlBackend\_internal\.env
+16:50:16 [main] INFO: [Env] Loaded .env from: C:\GitHub\Mission-Control\Gaming\backend\dist\MissionControlBackend\.env
+16:50:16 [main] INFO: [Env] Loaded .env from: C:\GitHub\Mission-Control\Gaming\backend\dist\MissionControlBackend\.env
+16:50:16 [main] INFO: [Env] Loaded .env from: C:\GitHub\Mission-Control\Gaming\backend\dist\MissionControlBackend\_internal\.env
+16:50:16 [root] INFO: Windows timer resolution set to 1ms.
+16:50:18 [fps_counter.fps_counter_dx] INFO: [FPSCounter] Native ETW/DXGI mode active — fps_counter.dll loaded
+pyimod02_importers.py:457: RuntimeWarning: import cursors: No module named 'pygame.cursors'
+(ModuleNotFoundError: No module named 'pygame.cursors')
+16:50:19 [core.config_loader] INFO: [Config] NVIDIA API key loaded successfully.
+16:50:19 [core.security] INFO: [Security] Motherboard UUID signature verified successfully.
+16:50:19 [main] INFO: [Security] Secure Sandbox active: AI decision pipeline isolated in volatile in-memory enclave.
+16:50:19 [main] INFO: [Security] Automated Key Rotation active: Rotating E2EE keys every 5 minutes.
+16:50:19 [main] INFO: [Perf] Backend process priority set to BELOW_NORMAL — game performance protected.
+16:50:24 [main] ERROR: Another instance appears to be running; exiting.
+pygame-ce 2.5.7 (SDL 2.32.10, Python 3.12.13)
+Another instance appears to be running; exiting.

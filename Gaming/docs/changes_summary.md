@@ -1418,3 +1418,30 @@ graph TD
 | `title-normalizer.ts` | **Modified** | Updated string matching algorithm to improve title normalization accuracy. |
 | `deduplication-service.ts` | **Added** | Implemented deduplication logic to eliminate redundant game instances. |
 | `rockstar-games-launcher.ts` | **Modified** | Integrated title normalization and deduplication services to enhance overall system performance. |
+
+---
+
+## Session 42 — 2026-08-04: Fix Parent Flex Height Chain for Library Windowed Responsiveness (v2.8.9)
+
+### 🛠️ Key Features Added/Modified
+1. **Resolved a critical issue with parent flex height chain, ensuring seamless responsiveness in library windowed mode.**
+2. **Enhanced overall system stability and performance through targeted optimizations.**
+
+### 🧩 Technical Decisions & Architecture
+* To address the parent flex height chain issue, we implemented a recursive height calculation algorithm, leveraging the CSS Flexible Box Model to dynamically adjust container heights. This approach enables efficient handling of complex layout scenarios, while minimizing computational overhead.
+
+### 📊 System Architecture & Flow
+```mermaid
+graph TD
+  A[Client] --> B[Server]
+  B[Server] --> C[Mission Control]
+  C[Mission Control] --> D[Library Windowed Mode]
+  D[Library Windowed Mode] --> E[Parent Flex Height Chain Fix]
+```
+
+### 📋 File Changes
+| File | Status | Description |
+|---|---|---|
+| `library-windowed-mode.ts` | **Modified** | Updated recursive height calculation algorithm to handle complex layout scenarios. |
+| `flex-height-chain.ts` | **Added** | Introduced CSS Flexible Box Model to dynamically adjust container heights. |
+| `mission-control.ts` | **Modified** | Integrated parent flex height chain fix into Mission Control's core functionality. |
