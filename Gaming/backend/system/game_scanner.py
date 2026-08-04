@@ -71,7 +71,8 @@ class GameScanner:
             "diagnostic", "telemetry", "license", "read me", "help", "about",
             "unwise", "install", "config", "tool", "editor", "benchmark",
             "dedicated server", "dedicated_server", "server_launcher",
-            "battleye", "easyanticheat", "punkbuster", "guardian", "vanguard", "eac"
+            "battleye", "easyanticheat", "punkbuster", "guardian", "vanguard", "eac",
+            "social club", "socialclub", "rockstar games social club", "rockstar launcher"
         ]
         
         self.launcher_whitelist = [
@@ -566,6 +567,11 @@ class GameScanner:
             else:
                 norm_name = re.sub(r'\[.*?\]', '', name_lower)
                 norm_name = re.sub(r'\(.*?\)', '', norm_name)
+                # Alias normalization: resolve common title acronyms to canonical full names
+                norm_name = re.sub(r'\bgtav\b|\bgta\s*v\b|\bgta\s*5\b', 'grand theft auto v', norm_name)
+                norm_name = re.sub(r'\bgtaiv\b|\bgta\s*iv\b|\bgta\s*4\b', 'grand theft auto iv', norm_name)
+                norm_name = re.sub(r'\brdr2\b|\bred\s*dead\s*2\b', 'red dead redemption 2', norm_name)
+                norm_name = re.sub(r'\bnfs\b', 'need for speed', norm_name)
                 norm_name = norm_name.replace("launcher", "").replace("app", "").replace("desktop", "").replace("connect", "").replace("games", "").strip()
                 clean_name = "".join(filter(str.isalnum, norm_name)).lower()
 
@@ -596,6 +602,11 @@ class GameScanner:
                     unique_games[clean_name] = g
                 elif g["platform"] == "Steam" and existing["platform"] != "Steam":
                     unique_games[clean_name] = g
+                elif g.get("exe_path") and not existing.get("exe_path"):
+                    unique_games[clean_name] = g
+                elif len(g["name"]) > len(existing["name"]) and not (existing.get("exe_path") and not g.get("exe_path")):
+                    # Prefer standard full title (e.g. "Grand Theft Auto V Enhanced" over "GTAV Enhanced")
+                    unique_games[clean_name] = g
                 elif g["platform"] == "Local" and existing["platform"] == "Local":
                     # Prefer the entry with a shorter name to drop verbose suffixes like [FitGirl Repack]
                     if len(g["name"]) < len(existing["name"]):
@@ -616,15 +627,17 @@ class GameScanner:
         seen_launchers = set()
         final_games = []
         
-        # Sort games to prefer entries with "Launcher" in the name, then by shorter length
-        sorted_games = sorted(self.games, key=lambda g: ("Launcher" not in (g.get("name") or ""), len(g.get("name") or "")))
+        # Sort games to prefer entries with "Launcher" or exact platform name
+        sorted_games = sorted(self.games, key=lambda g: ("Launcher" not in (g.get("name") or "") and g.get("name") != g.get("platform"), len(g.get("name") or "")))
         for g in sorted_games:
             name_lower = g.get("name", "").lower().strip()
-            is_launcher = (g.get("type") == "LAUNCHER") or any(wl == name_lower for wl in self.launcher_whitelist)
+            is_launcher = (g.get("type") == "LAUNCHER") or any(wl == name_lower for wl in self.launcher_whitelist) or (g.get("name") == g.get("platform"))
             
             if is_launcher and g.get("platform") in launcher_platforms:
                 if g["platform"] not in seen_launchers:
                     seen_launchers.add(g["platform"])
+                    # Standardize display name to platform name
+                    g["name"] = g["platform"]
                     final_games.append(g)
             else:
                 final_games.append(g)
@@ -1715,8 +1728,12 @@ class GameScanner:
                                         continue
 
                                     name = game_id.replace("_", " ").strip()
-                                    # Skip the launcher entry itself
-                                    if name.lower() in ["launcher", "rockstar games launcher"]:
+                                    # Standardize abbreviation names like GTAV Enhanced -> Grand Theft Auto V Enhanced
+                                    if name.lower().startswith("gtav"):
+                                        name = name.replace("GTAV", "Grand Theft Auto V").replace("gtav", "Grand Theft Auto V")
+
+                                    # Skip launcher and service helper components
+                                    if any(x in name.lower() for x in ["launcher", "social club", "socialclub", "service", "sdk"]):
                                         i += 1
                                         continue
 
@@ -1754,7 +1771,10 @@ class GameScanner:
                     if not game_dir.is_dir():
                         continue
                     name = game_dir.name.strip()
-                    if name.lower() in ["launcher", "rockstar games launcher", "social club"]:
+                    if name.lower().startswith("gtav"):
+                        name = name.replace("GTAV", "Grand Theft Auto V").replace("gtav", "Grand Theft Auto V")
+
+                    if any(x in name.lower() for x in ["launcher", "social club", "socialclub", "service", "sdk"]):
                         continue
                     exes = list(game_dir.glob("*.exe"))
                     resolved_exe = self._select_best_exe(exes, name) if exes else None

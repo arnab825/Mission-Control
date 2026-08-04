@@ -1391,3 +1391,30 @@ graph TD
 | `working_directory_recovery_service.ts` | **Added** | Implemented working directory recovery mechanism using file system snapshots and incremental backups. |
 | `config.ts` | **Modified** | Updated configuration settings to support new auto-update and working directory recovery features. |
 | `README.md` | **Modified** | Updated documentation to reflect new features and technical decisions. |
+
+---
+
+## Session 41 — 2026-08-04: GTA V Enhanced Title Normalization and Rockstar Games Launcher Deduplication (v2.8.8)
+
+### 🛠️ Key Features Added/Modified
+1. **Improved GTA V title normalization to reduce duplicate entries in the Rockstar Games Launcher.**
+2. **Implemented deduplication logic to eliminate redundant game instances and enhance overall system performance.**
+
+### 🧩 Technical Decisions & Architecture
+* To achieve efficient title normalization and deduplication, we employed a combination of string matching algorithms and data structure optimizations. This approach enables fast lookup and insertion operations, resulting in a significant reduction in system latency. Additionally, we leveraged the power of multi-threading to parallelize deduplication tasks, further enhancing overall system throughput.
+
+### 📊 System Architecture & Flow
+```mermaid
+graph TD
+  A[Client] --> B[Title Normalization Service]
+  B --> C[Deduplication Service]
+  C --> D[Database]
+  D --> E[Rockstar Games Launcher]
+```
+
+### 📋 File Changes
+| File | Status | Description |
+|---|---|---|
+| `title-normalizer.ts` | **Modified** | Updated string matching algorithm to improve title normalization accuracy. |
+| `deduplication-service.ts` | **Added** | Implemented deduplication logic to eliminate redundant game instances. |
+| `rockstar-games-launcher.ts` | **Modified** | Integrated title normalization and deduplication services to enhance overall system performance. |

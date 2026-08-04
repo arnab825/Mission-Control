@@ -2,6 +2,10 @@
 
 This document contains a detailed history of all patches and updates for the AI Gaming Assistant.
 
+### Patch: 2026-08-04 — v2.8.8: GTA V Enhanced Title Normalization and Rockstar Games Launcher Deduplication
+
+- GTA V Enhanced Title Normalization and Rockstar Games Launcher Deduplication
+
 ### Patch: 2026-08-04 — v2.8.7: Auto Update Backend Relaunch and Working Directory Recovery
 
 - Auto Update Backend Relaunch and Working Directory Recovery
