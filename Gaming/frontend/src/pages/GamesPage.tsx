@@ -661,7 +661,7 @@ const GamesLibraryContent: React.FC<GamesPageProps> = ({ state, sendCommand, set
   }, [games, filter, selectedGenre, selectedFeature, selectedType, searchQuery]);
 
   return (
-    <div className="flex-1 p-4 sm:p-6 flex flex-col overflow-y-auto custom-scrollbar gap-y-4 sm:gap-y-6">
+    <div className="flex-1 min-h-0 p-4 sm:p-6 flex flex-col overflow-y-auto custom-scrollbar gap-y-4 sm:gap-y-6">
 
       {/* Header */}
       <div className="flex flex-col md:flex-row md:items-end justify-between gap-4">
@@ -741,7 +741,7 @@ const GamesLibraryContent: React.FC<GamesPageProps> = ({ state, sendCommand, set
           <div className="bg-white/[0.03] border border-white/5 rounded-3xl p-4 sm:p-5 space-y-4">
             {/* Tier 1: Platform Pills & Search */}
             <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-4">
-              <div className="flex flex-wrap lg:flex-nowrap gap-1.5 items-center lg:overflow-x-auto no-scrollbar lg:whitespace-nowrap pb-1 lg:pb-0 shrink-0 max-w-full">
+              <div className="flex flex-nowrap gap-1.5 items-center overflow-x-auto no-scrollbar pb-1 shrink-0 max-w-full">
                 <span className="text-[8px] font-black text-zinc-500 uppercase tracking-widest mr-2 shrink-0">Platform:</span>
                 {/* All button */}
                 <button aria-label="button" type="button"

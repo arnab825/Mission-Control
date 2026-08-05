@@ -1618,36 +1618,43 @@ class GamingAssistantPipeline:
         
         # ── Visual Bounding Box & Diagnostic Stream ──
         if self._vision_frame_count % 3 == 0:  # Stream around ~10-15 FPS to avoid saturating Websocket
-            try:
-                import base64
-                
-                # Copy frame for annotation
-                annotated = frame.copy()
-                if detections:
-                    for d in detections:
-                        box = d.get("box")
-                        if box and len(box) == 4:
-                            x1, y1, x2, y2 = box
-                            label = d.get("label", "target")
-                            conf = d.get("conf", 0.0)
-                            
-                            # Elegant cyan bounding box (B=255, G=255, R=0)
-                            cv2.rectangle(annotated, (x1, y1), (x2, y2), (255, 255, 0), 2)
-                            
-                            # Gorgeous high-contrast text overlay
-                            text = f"{label.upper()} {conf:.2f}"
-                            cv2.putText(annotated, text, (x1, max(15, y1 - 5)),
-                                        cv2.FONT_HERSHEY_SIMPLEX, 0.4, (255, 255, 0), 1, cv2.LINE_AA)
-                
-                # Resize to beautiful 800x450 (16:9) for premium high-quality visual clarity
-                small_frame = cv2.resize(annotated, (800, 450), interpolation=cv2.INTER_AREA)
-                _, buffer = cv2.imencode('.jpg', small_frame, [int(cv2.IMWRITE_JPEG_QUALITY), 85])
-                img_b64 = base64.b64encode(buffer).decode('utf-8')
-                
+            if privacy_shield_active:
+                # Privacy Shield is active: clear annotated_frame so the frontend
+                # shows the correct "Awaiting Game Launch" placeholder instead of
+                # a stale black frame from when the shield was previously engaged.
                 with self._state_lock:
-                    self._game_state["annotated_frame"] = img_b64
-            except Exception as e:
-                logger.error(f"Failed to render vision frame: {e}")
+                    self._game_state["annotated_frame"] = None
+            else:
+                try:
+                    import base64
+                    
+                    # Copy frame for annotation
+                    annotated = frame.copy()
+                    if detections:
+                        for d in detections:
+                            box = d.get("box")
+                            if box and len(box) == 4:
+                                x1, y1, x2, y2 = box
+                                label = d.get("label", "target")
+                                conf = d.get("conf", 0.0)
+                                
+                                # Elegant cyan bounding box (B=255, G=255, R=0)
+                                cv2.rectangle(annotated, (x1, y1), (x2, y2), (255, 255, 0), 2)
+                                
+                                # Gorgeous high-contrast text overlay
+                                text = f"{label.upper()} {conf:.2f}"
+                                cv2.putText(annotated, text, (x1, max(15, y1 - 5)),
+                                            cv2.FONT_HERSHEY_SIMPLEX, 0.4, (255, 255, 0), 1, cv2.LINE_AA)
+                    
+                    # Resize to beautiful 800x450 (16:9) for premium high-quality visual clarity
+                    small_frame = cv2.resize(annotated, (800, 450), interpolation=cv2.INTER_AREA)
+                    _, buffer = cv2.imencode('.jpg', small_frame, [int(cv2.IMWRITE_JPEG_QUALITY), 85])
+                    img_b64 = base64.b64encode(buffer).decode('utf-8')
+                    
+                    with self._state_lock:
+                        self._game_state["annotated_frame"] = img_b64
+                except Exception as e:
+                    logger.error(f"Failed to render vision frame: {e}")
 
         # 6. Update shared state
         with self._state_lock:

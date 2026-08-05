@@ -47,6 +47,12 @@ const VisionPage: React.FC<VisionPageProps> = ({ state, sendCommand }) => {
   const postMs = state?.vision_profiling?.post ?? 0;
   const currentGameName = state?.current_game ?? null;
 
+  // Privacy Shield awareness: config.privacy.enabled defaults to true on the backend.
+  // When the shield is active, annotated_frame is cleared to null (not a black frame).
+  const privacyEnabled = (state?.config as any)?.privacy?.enabled !== false;
+  const isGameMinimized = state?.game_minimized === true;
+  const privacyShieldActive = privacyEnabled && isGameActive && (!state?.is_game_focused || isGameMinimized);
+
   const dialogueText = state?.dialogue_text ?? '';
   const questTexts = state?.quest_texts ?? [];
   const detections = state?.detections ?? [];
@@ -244,11 +250,25 @@ const VisionPage: React.FC<VisionPageProps> = ({ state, sendCommand }) => {
             ) : pipelineRunning ? (
               <div className="absolute inset-0 flex flex-col items-center justify-center gap-3 text-center">
                 <div className="absolute inset-0 bg-[repeating-linear-gradient(0deg,transparent,transparent_2px,rgba(118, 185, 0,0.015)_2px,rgba(118, 185, 0,0.015)_4px)] pointer-events-none" />
-                <motion.div animate={{ rotate: 360 }} transition={{ duration: 2.5, repeat: Infinity, ease: 'linear' }}>
-                  <Radar className="w-8 h-8 text-neon-green/50" />
-                </motion.div>
-                <h3 className="text-sm font-black text-white tracking-tighter uppercase">Scanning…</h3>
-                <p className="text-[11px] text-zinc-600 font-bold">Pipeline active — bring your game window to the foreground</p>
+                {privacyShieldActive ? (
+                  <>
+                    <div className="w-10 h-10 rounded-full bg-amber-500/10 border border-amber-500/30 flex items-center justify-center">
+                      <AlertTriangle className="w-5 h-5 text-amber-400" />
+                    </div>
+                    <h3 className="text-sm font-black text-amber-400 tracking-tighter uppercase">Privacy Shield Active</h3>
+                    <p className="text-[11px] text-zinc-500 font-bold max-w-xs leading-relaxed">
+                      Feed is paused — bring your game window to the foreground to resume capture.
+                    </p>
+                  </>
+                ) : (
+                  <>
+                    <motion.div animate={{ rotate: 360 }} transition={{ duration: 2.5, repeat: Infinity, ease: 'linear' }}>
+                      <Radar className="w-8 h-8 text-neon-green/50" />
+                    </motion.div>
+                    <h3 className="text-sm font-black text-white tracking-tighter uppercase">Scanning…</h3>
+                    <p className="text-[11px] text-zinc-600 font-bold">Pipeline active — bring your game window to the foreground</p>
+                  </>
+                )}
               </div>
             ) : (
               <div className="absolute inset-0 flex flex-col items-center justify-center gap-4 text-center">
