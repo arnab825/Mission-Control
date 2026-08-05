@@ -740,8 +740,9 @@ const GamesLibraryContent: React.FC<GamesPageProps> = ({ state, sendCommand, set
           {/* HUD Tactical Filters Console */}
           <div className="bg-white/[0.03] border border-white/5 rounded-3xl p-4 sm:p-5 space-y-4">
             {/* Tier 1: Platform Pills & Search */}
-            <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-4">
-              <div className="flex flex-nowrap gap-1.5 items-center overflow-x-auto no-scrollbar pb-1 shrink-0 max-w-full">
+            <div className="flex flex-col gap-3">
+              {/* Pills row — always horizontal, scrolls if overflowing */}
+              <div className="flex flex-nowrap gap-1.5 items-center overflow-x-auto no-scrollbar shrink-0">
                 <span className="text-[8px] font-black text-zinc-500 uppercase tracking-widest mr-2 shrink-0">Platform:</span>
                 {/* All button */}
                 <button aria-label="button" type="button"
@@ -772,9 +773,9 @@ const GamesLibraryContent: React.FC<GamesPageProps> = ({ state, sendCommand, set
                 })}
               </div>
 
-              {/* Search & Toggle Filters */}
-              <div className="w-full lg:max-w-md flex items-center gap-3">
-                <div className="flex-1 relative">
+              {/* Search & Toggle Filters — always on own row, full width */}
+              <div className="flex items-center gap-3 w-full">
+                <div className="flex-1 relative min-w-0">
                   <Search className="absolute left-3.5 top-1/2 -translate-y-1/2 w-3.5 h-3.5 text-zinc-500" />
                   <input
                     type="text"
