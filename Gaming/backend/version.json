@@ -1,8 +1,17 @@
 {
-  "version": "2.8.10",
+  "version": "2.8.11",
   "release_date": "2026-08-05",
   "update_check_url": "https://raw.githubusercontent.com/arnab825/Mission-Control/main/Gaming/backend/version.json",
   "changelog": [
+    {
+      "version": "2.8.11",
+      "date": "2026-08-05",
+      "title": "Library Filter Bar Full Responsiveness Fix",
+      "highlights": [
+        "Search bar and Filter HUD button now always stack on their own row at all window widths",
+        "Platform pills row always scrolls horizontally instead of competing with search for space"
+      ]
+    },
     {
       "version": "2.8.10",
       "date": "2026-08-05",
