@@ -1,4 +1,6 @@
 import { NextResponse } from "next/server";
+import connectDB from "@/lib/mongodb";
+import ContactSubmission from "@/models/ContactSubmission";
 import nodemailer from "nodemailer";
 
 export async function POST(request: Request) {
@@ -12,6 +14,20 @@ export async function POST(request: Request) {
         { error: "Required fields missing: name, email, and message are required." },
         { status: 400 }
       );
+    }
+
+    let submissionDoc = null;
+    try {
+      await connectDB();
+      submissionDoc = await ContactSubmission.create({
+        name: name.trim(),
+        email: email.trim().toLowerCase(),
+        subject: subject ? subject.trim() : "General Support Inquiry",
+        message: message.trim(),
+        emailSent: false,
+      });
+    } catch (dbErr: any) {
+      console.warn("MongoDB ContactSubmission save warning (continuing email dispatch):", dbErr.message);
     }
 
     const host = process.env.SMTP_HOST;
@@ -69,26 +85,35 @@ export async function POST(request: Request) {
 
     const info = await transporter.sendMail(mailOptions);
 
+    // Update emailSent flag in MongoDB if doc exists
+    if (submissionDoc) {
+      await ContactSubmission.updateOne({ _id: submissionDoc._id }, { $set: { emailSent: true } }).catch(() => {});
+    }
+
     // If using Ethereal fallback, log the preview URL
     if (!host) {
       const previewUrl = nodemailer.getTestMessageUrl(info);
       console.log("-----------------------------------------");
       console.log("Ethereal Email sent successfully!");
-      console.log("Envelope:", info.envelope);
       console.log("Message ID:", info.messageId);
       console.log("Ethereal Preview URL:", previewUrl);
       console.log("-----------------------------------------");
       
       return NextResponse.json({
         success: true,
-        message: "Message processed via Ethereal fallback.",
+        message: "Message logged & processed via Ethereal fallback.",
         previewUrl,
+        submissionId: submissionDoc?._id || null,
       });
     }
 
-    return NextResponse.json({ success: true, message: "Email sent successfully." });
+    return NextResponse.json({
+      success: true,
+      message: "Email sent and logged successfully.",
+      submissionId: submissionDoc?._id || null,
+    });
   } catch (error: any) {
-    console.error("Failed to send email:", error);
+    console.error("Failed to send contact email:", error);
     return NextResponse.json(
       { error: "Internal Server Error. Failed to send message.", details: error.message },
       { status: 500 }
