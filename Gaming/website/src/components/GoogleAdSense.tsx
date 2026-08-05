@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useEffect } from "react";
+import React, { useEffect, useRef } from "react";
 
 interface GoogleAdSenseProps {
   publisherId?: string;
@@ -34,19 +34,32 @@ export function AdSenseAdSlot({
   slotId = "3942234105",
   format = "auto",
   responsive = true,
-  className = "my-6 w-full flex justify-center"
+  className = "my-6 w-full flex justify-center min-h-[90px]"
 }: AdSlotProps) {
   const publisherId = process.env.NEXT_PUBLIC_ADSENSE_CLIENT_ID;
+  const containerRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
-    try {
-      if (typeof window !== "undefined" && publisherId) {
-        // @ts-ignore
-        (window.adsbygoogle = window.adsbygoogle || []).push({});
+    if (typeof window === "undefined" || !publisherId) return;
+
+    const timer = setTimeout(() => {
+      try {
+        const insElement = containerRef.current?.querySelector("ins.adsbygoogle");
+        if (
+          insElement &&
+          !insElement.getAttribute("data-ad-status") &&
+          !insElement.getAttribute("data-adsbygoogle-status") &&
+          insElement.children.length === 0
+        ) {
+          // @ts-ignore
+          (window.adsbygoogle = window.adsbygoogle || []).push({});
+        }
+      } catch (err) {
+        console.warn("AdSense push error:", err);
       }
-    } catch (err) {
-      console.warn("AdSense push error:", err);
-    }
+    }, 150);
+
+    return () => clearTimeout(timer);
   }, [publisherId]);
 
   if (!publisherId) {
@@ -59,10 +72,10 @@ export function AdSenseAdSlot({
   }
 
   return (
-    <div className={className}>
+    <div ref={containerRef} className={className}>
       <ins
         className="adsbygoogle"
-        style={{ display: "block" }}
+        style={{ display: "block", width: "100%", minHeight: "90px" }}
         data-ad-client={publisherId}
         data-ad-slot={slotId}
         data-ad-format={format}
@@ -71,3 +84,5 @@ export function AdSenseAdSlot({
     </div>
   );
 }
+
+

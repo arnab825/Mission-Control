@@ -66,8 +66,14 @@ To avoid creating duplicate posts for the same day (e.g. if the generation scrip
 * All metrics and calculations must be technically precise and physically plausible.
 
 ### Photorealistic 3D Cover Art Requirements
-* **3D Photorealistic Style Only**: `image_prompt` MUST request photorealistic 3D renders or cinematic 3D game concept art (e.g. *"Photorealistic 3D render of [hardware] with neon lighting, 8k resolution, no text"* or *"Cinematic 3D video game visual concept art of [character/scene], Unreal Engine 5 render style, volumetric lighting, photorealistic 8k, no text"*).
-* **No Vector / SVG Icons**: Never generate 2D vector graphics, flat SVG icons, or line art.
+* **Topic-Specific 3D Photorealistic Style Only**: `image_prompt` MUST request photorealistic 3D renders or cinematic 3D game concept art depicting the **exact character, game scene, or hardware component** from the article (e.g. *"A highly detailed, photorealistic 3D video game concept art depicting [Specific Character/Combat Scene], cinematic volumetric lighting, 8k resolution, Unreal Engine 5 style, no text"*).
+* **Multi-Tier AI Image Pipeline**: Images are generated through a 4-tier provider cascade:
+  1. **Google Gemini (Imagen 3)** via `GEMINI_API_KEY` (`imagen-3.0-generate-002`)
+  2. **Hugging Face (`FLUX.1-schnell`)** via `HF_TOKEN`
+  3. **Pollinations AI** (fast 8s timeout)
+  4. **High-Resolution Photorealistic 3D PNG Artwork** category fallback
+* **No Generic Abstract Art**: Never generate flat vector graphics, generic abstract wallpapers, or unrelated artwork.
+
 
 ---
 
