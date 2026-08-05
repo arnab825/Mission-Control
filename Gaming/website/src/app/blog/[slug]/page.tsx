@@ -96,6 +96,18 @@ export default async function BlogPost({ params }: { params: Promise<{ slug: str
     notFound();
   }
 
+  let prevMdx: { id: string; title: string } | null = null;
+  let nextMdx: { id: string; title: string } | null = null;
+  if (mdxPost) {
+    const allMdx = getSortedPostsData();
+    const idx = allMdx.findIndex(p => p.id === slug);
+    if (idx !== -1) {
+      prevMdx = idx < allMdx.length - 1 ? { id: allMdx[idx + 1].id, title: allMdx[idx + 1].title } : { id: allMdx[0].id, title: allMdx[0].title };
+      nextMdx = idx > 0 ? { id: allMdx[idx - 1].id, title: allMdx[idx - 1].title } : { id: allMdx[allMdx.length - 1].id, title: allMdx[allMdx.length - 1].title };
+    }
+  }
+
+
   const isMdx = !!mdxPost;
   const title = isMdx ? mdxPost.title : `v${postLog.version} - ${postLog.title}`;
   const date = isMdx ? mdxPost.date : postLog.date;
@@ -199,27 +211,50 @@ export default async function BlogPost({ params }: { params: Promise<{ slug: str
             </div>
             
             {/* Prev / Next Navigation */}
-            {!isMdx && (
-              <footer className="mt-16 pt-8 border-t border-white/10 flex flex-col sm:flex-row justify-between gap-4 relative z-10">
-                {prevLog ? (
-                  <Link href={`/blog/${prevLog.version}`} className="flex-1 glass-panel p-4 hover:border-neon-green/50 hover:bg-white/5 transition-all group flex flex-col items-start rounded-lg">
-                    <span className="text-[10px] text-gray-500 font-display uppercase tracking-widest mb-1 flex items-center gap-1 group-hover:text-neon-green transition-colors">
-                      &larr; Previous Post
-                    </span>
-                    <span className="font-bold text-xs sm:text-sm text-gray-300 group-hover:text-white line-clamp-1">v{prevLog.version} - {prevLog.title}</span>
-                  </Link>
-                ) : <div className="flex-1"></div>}
-                
-                {nextLog ? (
-                  <Link href={`/blog/${nextLog.version}`} className="flex-1 glass-panel p-4 hover:border-neon-green/50 hover:bg-white/5 transition-all group flex flex-col items-end text-right rounded-lg">
-                    <span className="text-[10px] text-gray-500 font-display uppercase tracking-widest mb-1 flex items-center gap-1 group-hover:text-neon-green transition-colors">
-                      Next Post &rarr;
-                    </span>
-                    <span className="font-bold text-xs sm:text-sm text-gray-300 group-hover:text-white line-clamp-1">v{nextLog.version} - {nextLog.title}</span>
-                  </Link>
-                ) : <div className="flex-1"></div>}
-              </footer>
-            )}
+            <footer className="mt-16 pt-8 border-t border-white/10 flex flex-col sm:flex-row justify-between gap-4 relative z-10">
+              {isMdx ? (
+                <>
+                  {prevMdx ? (
+                    <Link href={`/blog/${prevMdx.id}`} className="flex-1 glass-panel p-4 hover:border-neon-green/50 hover:bg-white/5 transition-all group flex flex-col items-start rounded-lg border border-white/10">
+                      <span className="text-[10px] text-gray-400 font-display uppercase tracking-widest mb-1 flex items-center gap-1 group-hover:text-neon-green transition-colors">
+                        &larr; Previous Post
+                      </span>
+                      <span className="font-bold text-xs sm:text-sm text-gray-300 group-hover:text-white line-clamp-1">{prevMdx.title}</span>
+                    </Link>
+                  ) : <div className="flex-1"></div>}
+                  
+                  {nextMdx ? (
+                    <Link href={`/blog/${nextMdx.id}`} className="flex-1 glass-panel p-4 hover:border-neon-green/50 hover:bg-white/5 transition-all group flex flex-col items-end text-right rounded-lg border border-white/10">
+                      <span className="text-[10px] text-gray-400 font-display uppercase tracking-widest mb-1 flex items-center gap-1 group-hover:text-neon-green transition-colors">
+                        Next Post &rarr;
+                      </span>
+                      <span className="font-bold text-xs sm:text-sm text-gray-300 group-hover:text-white line-clamp-1">{nextMdx.title}</span>
+                    </Link>
+                  ) : <div className="flex-1"></div>}
+                </>
+              ) : (
+                <>
+                  {prevLog ? (
+                    <Link href={`/blog/${prevLog.version}`} className="flex-1 glass-panel p-4 hover:border-neon-green/50 hover:bg-white/5 transition-all group flex flex-col items-start rounded-lg border border-white/10">
+                      <span className="text-[10px] text-gray-400 font-display uppercase tracking-widest mb-1 flex items-center gap-1 group-hover:text-neon-green transition-colors">
+                        &larr; Previous Post
+                      </span>
+                      <span className="font-bold text-xs sm:text-sm text-gray-300 group-hover:text-white line-clamp-1">v{prevLog.version} - {prevLog.title}</span>
+                    </Link>
+                  ) : <div className="flex-1"></div>}
+                  
+                  {nextLog ? (
+                    <Link href={`/blog/${nextLog.version}`} className="flex-1 glass-panel p-4 hover:border-neon-green/50 hover:bg-white/5 transition-all group flex flex-col items-end text-right rounded-lg border border-white/10">
+                      <span className="text-[10px] text-gray-400 font-display uppercase tracking-widest mb-1 flex items-center gap-1 group-hover:text-neon-green transition-colors">
+                        Next Post &rarr;
+                      </span>
+                      <span className="font-bold text-xs sm:text-sm text-gray-300 group-hover:text-white line-clamp-1">v{nextLog.version} - {nextLog.title}</span>
+                    </Link>
+                  ) : <div className="flex-1"></div>}
+                </>
+              )}
+            </footer>
+
           </article>
         </div>
         

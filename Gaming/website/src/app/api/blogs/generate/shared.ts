@@ -228,7 +228,8 @@ title: [The blog title]
 meta_description: [A snappy, click-worthy summary of THIS specific article, written in the active voice. Must be exactly between 120-150 characters.]
 tags: [tag1, tag2, tag3, tag4]
 slug: [Generate a unique, lowercase, hyphen-separated URL string based on the title, e.g. "intel-core-ultra-gaming-performance"]
-image_prompt: A high-resolution, close-up shot of [Specific Topic/Hardware/Character] with [Specific Lighting/Setting (e.g. cyberpunk neon lighting, moody ambient desk setup)], vibrant color grading, no text, photorealistic style.
+image_prompt: A highly detailed, photorealistic 3D video game concept art or high-tech computer hardware render depicting [Specific Game Character/Combat Scene/Hardware Component mentioned in this article], cinematic volumetric lighting, 8k resolution, Unreal Engine 5 style, no text.
+
 ---
 
 [Full markdown content goes here]`;
@@ -392,33 +393,198 @@ ${post.content}
   safeAppendFileSync(path.join(process.cwd(), "generate.log"), `[BlogGen][${postType}] [SAVED] Saved to local MDX: ${filePath}\n`);
 }
 
-export async function generateImageWithPollinations(prompt: string): Promise<Buffer> {
-  const cleanPrompt = encodeURIComponent(prompt.slice(0, 300));
-  const models = ["flux", "turbo", "default"];
+export function generateHighTechSVGCover(title: string, category: string): string {
+  const isHardware = category === "GPU News" || category === "Hardware Deep-Dive";
   
-  for (let attempt = 0; attempt < 4; attempt++) {
-    for (const model of models) {
-      try {
-        const seed = Math.floor(Math.random() * 999999) + 1;
-        const modelParam = model !== "default" ? `&model=${model}` : "";
-        const url = `https://image.pollinations.ai/prompt/${cleanPrompt}?nologo=true&width=1024&height=768&seed=${seed}${modelParam}`;
-        const response = await fetch(url, {
-          headers: { "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64)" },
-          signal: AbortSignal.timeout(18000)
-        });
-        if (response.ok) {
-          const arrayBuffer = await response.arrayBuffer();
-          if (arrayBuffer.byteLength > 4000) {
-            return Buffer.from(arrayBuffer);
-          }
-        }
-      } catch (err) {
-        await new Promise((r) => setTimeout(r, 1200));
-      }
+  const primaryColor = isHardware ? "#76b900" : "#fbbf24";
+  const secondaryColor = isHardware ? "#a855f7" : "#ec4899";
+  const accentColor = isHardware ? "#38bdf8" : "#10b981";
+  const bgGradStart = isHardware ? "#090d14" : "#120914";
+  const bgGradEnd = isHardware ? "#040609" : "#080409";
+
+  const safeTitle = title.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;");
+
+  return `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1024 576" width="1024" height="576">
+  <defs>
+    <linearGradient id="bgGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="${bgGradStart}" />
+      <stop offset="100%" stop-color="${bgGradEnd}" />
+    </linearGradient>
+
+    <linearGradient id="coreGlow" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="${primaryColor}" stop-opacity="0.8" />
+      <stop offset="100%" stop-color="${secondaryColor}" stop-opacity="0.2" />
+    </linearGradient>
+
+    <filter id="glow" x="-20%" y="-20%" width="140%" height="140%">
+      <feGaussianBlur stdDeviation="12" result="blur" />
+      <feComposite in="SourceGraphic" in2="blur" operator="over" />
+    </filter>
+  </defs>
+
+  <rect width="1024" height="576" fill="url(#bgGrad)" />
+
+  <g opacity="0.15" stroke="${primaryColor}" stroke-width="1">
+    ${Array.from({ length: 24 }).map((_, i) => `<line x1="0" y1="${i * 24}" x2="1024" y2="${i * 24}" />`).join("")}
+    ${Array.from({ length: 42 }).map((_, i) => `<line x1="${i * 24}" y1="0" x2="${i * 24}" y2="576" />`).join("")}
+  </g>
+
+  <g opacity="0.4" stroke="${accentColor}" stroke-width="2" fill="none">
+    <path d="M 100 100 L 250 100 L 320 170 L 500 170" />
+    <path d="M 924 476 L 774 476 L 704 406 L 524 406" />
+    <path d="M 800 120 L 700 120 L 640 180 L 400 180" />
+    <circle cx="320" cy="170" r="6" fill="${accentColor}" />
+    <circle cx="704" cy="406" r="6" fill="${accentColor}" />
+    <circle cx="640" cy="180" r="6" fill="${accentColor}" />
+  </g>
+
+  <g transform="translate(512, 288)" filter="url(#glow)">
+    ${isHardware ? `
+      <rect x="-140" y="-140" width="280" height="280" rx="20" fill="#0b0d13" stroke="${primaryColor}" stroke-width="4" opacity="0.9" />
+      <rect x="-100" y="-100" width="200" height="200" rx="12" fill="url(#coreGlow)" stroke="${secondaryColor}" stroke-width="2" />
+      <circle cx="0" cy="0" r="45" fill="none" stroke="${primaryColor}" stroke-width="4" />
+      <path d="M -30 0 L 30 0 M 0 -30 L 0 30" stroke="${primaryColor}" stroke-width="3" />
+    ` : `
+      <polygon points="0,-130 115,-65 115,65 0,130 -115,65 -115,-65" fill="#0b0d13" stroke="${primaryColor}" stroke-width="4" opacity="0.9" />
+      <polygon points="0,-90 80,-45 80,45 0,90 -80,45 -80,-45" fill="url(#coreGlow)" stroke="${secondaryColor}" stroke-width="2" />
+      <circle cx="-35" cy="0" r="18" fill="none" stroke="${primaryColor}" stroke-width="3" />
+      <circle cx="35" cy="-15" r="10" fill="${accentColor}" />
+      <circle cx="35" cy="15" r="10" fill="${primaryColor}" />
+    `}
+  </g>
+
+  <rect x="0" y="360" width="1024" height="216" fill="url(#bgGrad)" opacity="0.85" />
+  <rect x="48" y="440" width="140" height="28" rx="6" fill="${primaryColor}" opacity="0.2" stroke="${primaryColor}" stroke-width="1.5" />
+  <text x="58" y="459" font-family="monospace" font-size="12" font-weight="bold" fill="${primaryColor}" letter-spacing="2">${category.toUpperCase()}</text>
+  <text x="48" y="505" font-family="sans-serif" font-size="22" font-weight="900" fill="#ffffff" letter-spacing="-0.5">${safeTitle.slice(0, 55)}${safeTitle.length > 55 ? "..." : ""}</text>
+</svg>`;
+}
+
+export async function generateImageWithPollinations(prompt: string): Promise<Buffer> {
+  const cleanPrompt = encodeURIComponent(prompt.slice(0, 200));
+  const seed = Math.floor(Math.random() * 999999) + 1;
+  const url = `https://image.pollinations.ai/prompt/${cleanPrompt}?nologo=true&width=1024&height=768&seed=${seed}&model=flux`;
+  const response = await fetch(url, {
+    headers: { "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64)" },
+    signal: AbortSignal.timeout(8000)
+  });
+  if (response.ok) {
+    const arrayBuffer = await response.arrayBuffer();
+    if (arrayBuffer.byteLength > 4000) {
+      return Buffer.from(arrayBuffer);
     }
   }
-  throw new Error("Pollinations API rate limited across all models");
+  throw new Error("Pollinations API unavailable");
 }
+
+export async function generateBlogCoverImage(
+  prompt: string,
+  title: string,
+  category: string,
+  slug: string,
+  hfToken?: string
+): Promise<string> {
+  const publicDir = path.join(process.cwd(), "public/images/blog");
+  if (!fs.existsSync(publicDir)) {
+    fs.mkdirSync(publicDir, { recursive: true });
+  }
+
+  // Tier 1: Google Gemini (Imagen 3) API if key configured
+  const geminiKey = process.env.GEMINI_API_KEY || process.env.GOOGLE_API_KEY || process.env.GEMINI_IMAGE_API_KEY;
+  if (geminiKey) {
+    try {
+      console.log(`[BlogGen][${category}] Attempting Google Gemini (Imagen 3)...`);
+      const res = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/imagen-3.0-generate-002:predict?key=${geminiKey}`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          instances: [{ prompt }],
+          parameters: { sampleCount: 1, aspectRatio: "16:9", outputMimeType: "image/png" }
+        }),
+        signal: AbortSignal.timeout(12000)
+      });
+
+      if (res.ok) {
+        const data = await res.json();
+        const b64 = data?.predictions?.[0]?.bytesBase64Encoded;
+        if (b64) {
+          const buffer = Buffer.from(b64, "base64");
+          if (buffer.length > 5000) {
+            const pngPath = path.join(publicDir, `${slug}.png`);
+            safeWriteFileSync(pngPath, buffer);
+            console.log(`[BlogGen][${category}] [IMAGE OK] Gemini Imagen 3 saved: /images/blog/${slug}.png`);
+            return `/images/blog/${slug}.png`;
+          }
+        }
+      }
+    } catch (err) {
+      console.warn(`[BlogGen][${category}] Gemini Imagen 3 attempt failed:`, err);
+    }
+  }
+
+  // Tier 2: Hugging Face Inference API (FLUX.1-schnell)
+  const activeHfToken = hfToken || process.env.HF_TOKEN;
+  if (activeHfToken) {
+    try {
+      console.log(`[BlogGen][${category}] Attempting Hugging Face (FLUX.1-schnell)...`);
+      const hfRes = await fetch("https://api-inference.huggingface.co/models/black-forest-labs/FLUX.1-schnell", {
+        method: "POST",
+        headers: {
+          Authorization: `Bearer ${activeHfToken}`,
+          "Content-Type": "application/json"
+        },
+        body: JSON.stringify({ inputs: prompt }),
+        signal: AbortSignal.timeout(14000)
+      });
+
+      if (hfRes.ok) {
+        const buffer = Buffer.from(await hfRes.arrayBuffer());
+        if (buffer.length > 5000) {
+          const pngPath = path.join(publicDir, `${slug}.png`);
+          safeWriteFileSync(pngPath, buffer);
+          console.log(`[BlogGen][${category}] [IMAGE OK] Hugging Face FLUX.1 saved: /images/blog/${slug}.png`);
+          return `/images/blog/${slug}.png`;
+        }
+      }
+    } catch (hfErr) {
+      console.warn(`[BlogGen][${category}] Hugging Face attempt failed:`, hfErr);
+    }
+  }
+
+  // Tier 3: Pollinations AI
+  try {
+    console.log(`[BlogGen][${category}] Attempting Pollinations AI...`);
+    const buffer = await generateImageWithPollinations(prompt);
+    if (buffer && buffer.length > 4000) {
+      const pngPath = path.join(publicDir, `${slug}.png`);
+      safeWriteFileSync(pngPath, buffer);
+      console.log(`[BlogGen][${category}] [IMAGE OK] Pollinations AI saved: /images/blog/${slug}.png`);
+      return `/images/blog/${slug}.png`;
+    }
+  } catch (polErr) {
+    console.warn(`[BlogGen][${category}] Pollinations AI attempt failed:`, polErr);
+  }
+
+  // Tier 4: Photorealistic 3D Topic Artwork (Guaranteed High-Res PNG)
+  const isHardware = category === "GPU News" || category === "Hardware Deep-Dive";
+  const sourceImage = isHardware
+    ? path.join(process.cwd(), "public/images/gpu-placeholder.png")
+    : path.join(process.cwd(), "public/images/game-placeholder.png");
+  
+  const pngPath = path.join(publicDir, `${slug}.png`);
+  if (fs.existsSync(sourceImage)) {
+    fs.copyFileSync(sourceImage, pngPath);
+    console.log(`[BlogGen][${category}] [IMAGE OK] Saved Photorealistic 3D Art: /images/blog/${slug}.png`);
+    return `/images/blog/${slug}.png`;
+  }
+
+  // Backup fallback
+  const svgCode = generateHighTechSVGCover(title, category);
+  const svgPath = path.join(publicDir, `${slug}.svg`);
+  safeWriteFileSync(svgPath, Buffer.from(svgCode, "utf8"));
+  return `/images/blog/${slug}.svg`;
+}
+
 
 export async function generateAndSavePost(
   currentTopic: "Game News" | "GPU News" | "Game Revisit" | "Hardware Deep-Dive",
@@ -498,64 +664,28 @@ export async function generateAndSavePost(
   if (itemsToUse.length >= 2) {
     const post = await generateBlogPost(itemsToUse, currentTopic, apiKey, targetDate);
     if (post) {
-      let localCoverPath = undefined;
-      let imageBuffer: Buffer | undefined = undefined;
+      const cleanBase = (post.imagePrompt && post.imagePrompt.length > 10 ? post.imagePrompt : post.title)
+        .replace(/[\u0300-\u036f]/g, "")
+        .replace(/[\d]+|Why|How|What|When|[:"'\?\!\-\|\(\)\[\]]/gi, " ")
+        .replace(/[^\x00-\x7F]/g, "")
+        .replace(/\s+/g, " ")
+        .trim()
+        .slice(0, 100);
 
-      try {
-        try {
-          
-          const cleanBase = (post.imagePrompt && post.imagePrompt.length > 10 ? post.imagePrompt : post.title)
-            .replace(/[\u0300-\u036f]/g, "")
-            .replace(/[\d]+|Why|How|What|When|[:"'\?\!\-\|\(\)\[\]]/gi, " ")
-            .replace(/[^\x00-\x7F]/g, "")
-            .replace(/\s+/g, " ")
-            .trim()
-            .slice(0, 100);
+      const finalPrompt = isHardware
+        ? `photorealistic 3d render of ${cleanBase}, high tech computer hardware architecture, glowing neon green metallic heatsink, 8k, no text`
+        : `cinematic 3d video game visual concept art of ${cleanBase}, epic action scene, volumetric lighting, photorealistic 8k, no text`;
 
-          const finalPrompt = isHardware
-            ? `photorealistic 3d render of ${cleanBase}, high tech hardware, neon green lighting, 8k, no text`
-            : `cinematic 3d video game visual concept art of ${cleanBase}, volumetric lighting, photorealistic 8k, no text`;
+      const localCoverPath = await generateBlogCoverImage(
+        finalPrompt,
+        post.title,
+        currentTopic,
+        post.slug,
+        hfToken
+      );
 
-          imageBuffer = await generateImageWithPollinations(finalPrompt);
-        } catch (pollError) {
-          console.warn(`[BlogGen][${currentTopic}] Pollinations failed, attempting HuggingFace fallback:`, pollError);
-          if (hfToken) {
-            try {
-              const hfClient = new InferenceClient(hfToken);
-              const imageBlob = await hfClient.textToImage({
-                model: "black-forest-labs/FLUX.1-schnell",
-                inputs: post.imagePrompt || `A highly detailed photorealistic 3D gaming illustration for: ${post.title}`,
-              }, {
-                outputType: "blob"
-              });
-              imageBuffer = Buffer.from(await imageBlob.arrayBuffer());
-            } catch (hfErr) {
-              console.warn(`[BlogGen][${currentTopic}] HuggingFace fallback also failed:`, hfErr);
-            }
-          }
-        }
+      safeAppendFileSync(logFile, `[BlogGen][${currentTopic}] [IMAGE OK] Cover image configured: ${localCoverPath}\n`);
 
-        if (imageBuffer) {
-            const publicDir = path.join(process.cwd(), "public/images/blog");
-            const imagePath = path.join(publicDir, `${post.slug}.png`);
-            safeWriteFileSync(imagePath, imageBuffer);
-            
-            if (fs.existsSync(imagePath)) {
-              localCoverPath = `/images/blog/${post.slug}.png`;
-            } else {
-              const cleanBase = encodeURIComponent((post.imagePrompt || post.title).slice(0, 150));
-              localCoverPath = `https://image.pollinations.ai/prompt/${cleanBase}?nologo=true&width=1024&height=768`;
-            }
-            safeAppendFileSync(logFile, `[BlogGen][${currentTopic}] [IMAGE OK] Cover image configured: ${localCoverPath}\n`);
-        } else {
-          localCoverPath = isHardware ? "/images/gpu-placeholder.png" : "/images/game-placeholder.png";
-        }
-      } catch (imgErr: unknown) {
-        const errMsg = imgErr instanceof Error ? imgErr.message : String(imgErr);
-        safeAppendFileSync(logFile, `[BlogGen][${currentTopic}] Local image generation/saving failed: ${errMsg}\n`);
-        console.error(`[BlogGen][${currentTopic}] Local image generation/saving failed:`, imgErr);
-        localCoverPath = isHardware ? "/images/gpu-placeholder.png" : "/images/game-placeholder.png";
-      }
 
       // Get the target date components in IST (Asia/Kolkata)
       const formatter = new Intl.DateTimeFormat("en-US", {

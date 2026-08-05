@@ -21,7 +21,8 @@ The website features an automated AI-driven blog generation pipeline at `/api/bl
 - **Scheduling**: The blog generation runs automatically every day at **5:30 AM IST** via Vercel cron jobs.
 - **Tone**: Technical, authoritative, and analytical. Avoid generic AI catchphrases.
 - **Content Restrictions**: Strict prohibition of advertisements, promotional calls to action, marketing bloat, harmful/unsafe content, or 18+/adult material.
-- **Image Generation**: Uses the parsed `image_prompt` from the LLM frontmatter to generate custom preview images via Pollinations AI or HuggingFace.
+- **Image Generation**: Uses the parsed `image_prompt` from the LLM frontmatter to generate topic-matched preview images via a 4-tier pipeline: **Google Gemini (Imagen 3)** (`GEMINI_API_KEY`), **Hugging Face (`FLUX.1-schnell`)** (`HF_TOKEN`), **Pollinations AI**, or **High-Resolution Photorealistic 3D PNG Artwork** fallbacks matching the exact category.
+
 
 ---
 

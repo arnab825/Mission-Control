@@ -131,10 +131,46 @@ function cleanMarkdown(content: string): string {
 export default async function GamingBlogPost({ params }: { params: Promise<{ slug: string }> }) {
   const { slug } = await params;
   
-  let dbPost = null;
+  let dbPost: any = null;
+  let prevPost: { slug: string; title: string } | null = null;
+  let nextPost: { slug: string; title: string } | null = null;
+
   try {
     await connectDB();
     dbPost = await GamingPost.findOne({ slug }).lean();
+
+
+    if (dbPost) {
+      const prevDb = await GamingPost.findOne({ publishedAt: { $lt: dbPost.publishedAt } })
+        .sort({ publishedAt: -1 })
+        .select("slug title")
+        .lean();
+      const nextDb = await GamingPost.findOne({ publishedAt: { $gt: dbPost.publishedAt } })
+        .sort({ publishedAt: 1 })
+        .select("slug title")
+        .lean();
+
+      if (prevDb) {
+        prevPost = { slug: (prevDb as any).slug, title: (prevDb as any).title };
+      } else {
+        const newestDb = await GamingPost.findOne({ slug: { $ne: slug } })
+          .sort({ publishedAt: -1 })
+          .select("slug title")
+          .lean();
+        if (newestDb) prevPost = { slug: (newestDb as any).slug, title: (newestDb as any).title };
+      }
+
+      if (nextDb) {
+        nextPost = { slug: (nextDb as any).slug, title: (nextDb as any).title };
+      } else {
+        const oldestDb = await GamingPost.findOne({ slug: { $ne: slug } })
+          .sort({ publishedAt: 1 })
+          .select("slug title")
+          .lean();
+        if (oldestDb) nextPost = { slug: (oldestDb as any).slug, title: (oldestDb as any).title };
+      }
+    }
+
   } catch (error) {
     console.warn("MongoDB Connection Error: IP not whitelisted. Falling back to local post.");
   }
@@ -173,6 +209,7 @@ export default async function GamingBlogPost({ params }: { params: Promise<{ slu
   if (!post) {
     notFound();
   }
+
 
   const date = post.publishedAt ?? "";
   const readTime = Math.max(1, Math.ceil((post.markdownBody?.split(" ").length || 1) / 200));
@@ -260,7 +297,29 @@ export default async function GamingBlogPost({ params }: { params: Promise<{ slu
               />
             </div>
             <AdSenseAdSlot slotId="3942234105" className="my-8 w-full flex justify-center border-t border-white/10 pt-6" />
+
+            {/* Prev / Next Navigation */}
+            <footer className="mt-8 pt-8 border-t border-white/10 flex flex-col sm:flex-row justify-between gap-4 relative z-10">
+              {prevPost ? (
+                <Link href={`/blog/gaming/${prevPost.slug}`} className="flex-1 glass-panel p-4 hover:border-neon-green/50 hover:bg-white/5 transition-all group flex flex-col items-start rounded-xl border border-white/10">
+                  <span className="text-[10px] text-gray-400 font-display uppercase tracking-widest mb-1 flex items-center gap-1 group-hover:text-neon-green transition-colors">
+                    &larr; Previous Post
+                  </span>
+                  <span className="font-bold text-xs sm:text-sm text-gray-200 group-hover:text-white line-clamp-1">{prevPost.title}</span>
+                </Link>
+              ) : <div className="flex-1"></div>}
+              
+              {nextPost ? (
+                <Link href={`/blog/gaming/${nextPost.slug}`} className="flex-1 glass-panel p-4 hover:border-neon-green/50 hover:bg-white/5 transition-all group flex flex-col items-end text-right rounded-xl border border-white/10">
+                  <span className="text-[10px] text-gray-400 font-display uppercase tracking-widest mb-1 flex items-center gap-1 group-hover:text-neon-green transition-colors">
+                    Next Post &rarr;
+                  </span>
+                  <span className="font-bold text-xs sm:text-sm text-gray-200 group-hover:text-white line-clamp-1">{nextPost.title}</span>
+                </Link>
+              ) : <div className="flex-1"></div>}
+            </footer>
           </article>
+
         </div>
         
         {/* Sidebar */}
