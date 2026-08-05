@@ -2,10 +2,39 @@
 
 import { useState } from 'react';
 import Link from 'next/link';
-import { MessageSquare, Mail, Send } from 'lucide-react';
+import { MessageSquare, Mail, Send, CheckCircle2, Loader2, AlertCircle } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
+
 export default function Footer() {
   const [activeModal, setActiveModal] = useState<'terms' | 'privacy' | 'cookies' | null>(null);
+  const [email, setEmail] = useState("");
+  const [subStatus, setSubStatus] = useState<"idle" | "loading" | "success" | "error">("idle");
+  const [errorMessage, setErrorMessage] = useState("");
+
+  const handleSubscribe = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!email || !email.includes("@")) return;
+
+    setSubStatus("loading");
+    setErrorMessage("");
+
+    try {
+      const res = await fetch("/api/subscribe", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ email }),
+      });
+      const data = await res.json();
+      if (!res.ok) {
+        throw new Error(data.error || "Subscription request rejected.");
+      }
+      setSubStatus("success");
+      setEmail("");
+    } catch (err: any) {
+      setSubStatus("error");
+      setErrorMessage(err.message || "Failed to subscribe. Please try again.");
+    }
+  };
 
   const modalContent = {
     terms: {
@@ -116,20 +145,48 @@ export default function Footer() {
           <div>
             <h4 className="font-bold text-white mb-4 text-sm uppercase tracking-wider font-display">Telemetry Feed</h4>
             <p className="text-gray-400 text-sm mb-4 leading-relaxed">Subscribe for firmware updates, model patches, and performance optimizations.</p>
-            <form className="flex flex-col gap-3" onSubmit={(e) => e.preventDefault()}>
-              <input
-                type="email"
-                placeholder="operator@system.io"
-                className="bg-obsidian/80 border border-white/10 rounded-xl px-4 py-3 text-sm text-white focus:outline-none focus:border-neon-green focus:shadow-[0_0_20px_rgba(118, 185, 0,0.3)] transition-all duration-300 font-mono"
-                suppressHydrationWarning={true}
-              />
-              <button
-                type="submit"
-                className="bg-neon-green/10 text-neon-green border border-neon-green/50 hover:bg-neon-green hover:text-obsidian transition-all duration-300 rounded-xl px-4 py-3 font-bold text-xs uppercase tracking-wider flex items-center justify-center gap-2 shadow-[0_0_15px_rgba(118, 185, 0,0.15)]"
-              >
-                <Send className="w-4 h-4" /> Subscribe to Telemetry
-              </button>
-            </form>
+            {subStatus === "success" ? (
+              <div className="bg-neon-green/10 border border-neon-green/40 rounded-xl p-4 flex items-center gap-3 text-neon-green">
+                <CheckCircle2 className="w-5 h-5 shrink-0" />
+                <div className="text-xs font-mono font-bold uppercase tracking-wider">
+                  Telemetry Dispatch Active. Welcome Operator!
+                </div>
+              </div>
+            ) : (
+              <form className="flex flex-col gap-3" onSubmit={handleSubscribe}>
+                <input
+                  type="email"
+                  value={email}
+                  onChange={(e) => setEmail(e.target.value)}
+                  placeholder="operator@system.io"
+                  required
+                  disabled={subStatus === "loading"}
+                  className="bg-obsidian/80 border border-white/10 rounded-xl px-4 py-3 text-sm text-white focus:outline-none focus:border-neon-green focus:shadow-[0_0_20px_rgba(118,185,0,0.3)] transition-all duration-300 font-mono disabled:opacity-50"
+                  suppressHydrationWarning={true}
+                />
+                {subStatus === "error" && (
+                  <div className="flex items-center gap-2 text-red-400 text-xs font-mono">
+                    <AlertCircle className="w-4 h-4 shrink-0" />
+                    <span>{errorMessage}</span>
+                  </div>
+                )}
+                <button
+                  type="submit"
+                  disabled={subStatus === "loading"}
+                  className="bg-neon-green/10 text-neon-green border border-neon-green/50 hover:bg-neon-green hover:text-obsidian transition-all duration-300 rounded-xl px-4 py-3 font-bold text-xs uppercase tracking-wider flex items-center justify-center gap-2 shadow-[0_0_15px_rgba(118,185,0,0.15)] disabled:opacity-50 cursor-pointer"
+                >
+                  {subStatus === "loading" ? (
+                    <>
+                      <Loader2 className="w-4 h-4 animate-spin" /> Enrolling Operator...
+                    </>
+                  ) : (
+                    <>
+                      <Send className="w-4 h-4" /> Subscribe to Telemetry
+                    </>
+                  )}
+                </button>
+              </form>
+            )}
           </div>
 
         </div>
