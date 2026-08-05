@@ -92,11 +92,13 @@ To avoid creating duplicate posts for the same day (e.g. if the generation scrip
 
 ## 5. Content Restrictions & Scheduling Rules
 
-* **Content Restrictions (No Bloat, No Ads, No Promotions, No Harmful or 18+ Content)**:
-  * Articles must be strictly informational and analytical.
-  * Never include advertisements, sponsored placements, or promotional calls to action (e.g., "Buy now", "Click here to subscribe", "Check out their website").
-  * Cut out marketing fluff and bloated introductory paragraphs. Get straight to the technical facts and analysis.
-  * **STRICT SAFETY**: Do NOT generate any harmful, unsafe, hateful, or 18+ / adult-related content. Keep the content safe for all audiences.
+* **3-Tier LLM Failover for Busy Schedules / Quota Limits**:
+  * If Google Gemini is busy or rate-limited during scheduled cron executions, the system automatically cascades to:
+    1. **Google Gemini Flash** (`gemini-3.6-flash`, `gemini-3.5-flash`, `gemini-2.0-flash`)
+    2. **Hugging Face LLMs** (`meta-llama/Llama-3.1-8B-Instruct`, `mistralai/Mistral-7B-Instruct-v0.3`, `Qwen/Qwen2.5-72B-Instruct` via `HF_TOKEN`)
+    3. **NVIDIA NIM LLMs** (`meta/llama-3.3-70b-instruct` via `NVIDIA_API_KEY`)
+  * This guarantees 100% uptime for automated daily blog generation under high traffic or API quota limits.
+
 
 * **Scheduling & Daily Multi-Post Rules**:
   * The blog generator runs daily at **5:30 AM IST** (configured as a Vercel cron job running at `00:00 UTC`).

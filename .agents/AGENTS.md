@@ -20,8 +20,12 @@ The website features an automated AI-driven blog generation pipeline at `/api/bl
 - **Categories**: It generates and posts for **four** categories daily: `GPU News`, `Game News`, `Hardware Deep-Dive`, and `Game Revisit`.
 - **Scheduling**: The blog generation runs automatically every day at **5:30 AM IST** via Vercel cron jobs.
 - **Tone**: Technical, authoritative, and analytical. Avoid generic AI catchphrases.
-- **Content Restrictions**: Strict prohibition of advertisements, promotional calls to action, marketing bloat, harmful/unsafe content, or 18+/adult material.
-- **Image Generation**: Uses the parsed `image_prompt` from the LLM frontmatter to generate topic-matched preview images via a 4-tier pipeline: **Google Gemini (Imagen 3)** (`GEMINI_API_KEY`), **Hugging Face (`FLUX.1-schnell`)** (`HF_TOKEN`), **Pollinations AI**, or **High-Resolution Photorealistic 3D PNG Artwork** fallbacks matching the exact category.
+- **LLM Text Generation (3-Tier Failover)**: Uses a 3-tier LLM cascade for 100% uptime:
+  1. **Google Gemini Flash** (`gemini-3.6-flash`, `gemini-3.5-flash`, `gemini-2.0-flash` via `GEMINI_API_KEY`)
+  2. **Hugging Face LLM** (`Llama-3.1-8B-Instruct`, `Mistral-7B-Instruct`, `Qwen2.5-72B-Instruct` via `HF_TOKEN`)
+  3. **NVIDIA NIM** (`meta/llama-3.3-70b-instruct` via `NVIDIA_API_KEY`)
+- **Image Generation (4-Tier Failover)**: Uses the parsed `image_prompt` from frontmatter via a 4-tier pipeline: **Google Gemini (Imagen 3)** (`GEMINI_API_KEY`), **Hugging Face (`FLUX.1-schnell`)** (`HF_TOKEN`), **Pollinations AI**, or **High-Resolution Photorealistic 3D PNG Artwork** category fallbacks.
+
 
 
 ---
