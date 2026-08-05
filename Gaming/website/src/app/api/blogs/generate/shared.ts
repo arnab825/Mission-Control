@@ -141,13 +141,11 @@ export function sanitizeMermaid(content: string): string {
   });
 }
 
-export async function generateBlogPostWithModel(
+function buildPromptForItems(
   items: FeedItem[],
   postType: "Game News" | "GPU News" | "Game Revisit" | "Hardware Deep-Dive",
-  apiKey: string,
-  targetDate: Date,
-  modelId: string
-): Promise<{ slug: string; title: string; excerpt: string; tags: string[]; content: string; imagePrompt?: string } | null> {
+  targetDate: Date
+): string {
   const istFormatter = new Intl.DateTimeFormat("en-US", {
     timeZone: "Asia/Kolkata",
     year: "numeric",
@@ -171,7 +169,7 @@ export async function generateBlogPostWithModel(
     "Game Revisit": "Focus on a retrospective look, post-mortem, or engine design analysis of a classic, retro, or older game. Discuss its historical rendering engine architecture, how it bypassed physical console/system constraints, or code-level development triumphs."
   }[postType];
 
-  const prompt = `You are an expert gaming journalist, technical writer, and SEO specialist writing for a high-quality developer and gamer audience.
+  return `You are an expert gaming journalist, technical writer, and SEO specialist writing for a high-quality developer and gamer audience.
 
 Today is ${today}. Based on the following real headlines and news items, write a comprehensive blog post.
 
@@ -233,9 +231,20 @@ image_prompt: A highly detailed, photorealistic 3D video game concept art or hig
 ---
 
 [Full markdown content goes here]`;
+}
+
+export async function generateBlogPostWithModel(
+  items: FeedItem[],
+  postType: "Game News" | "GPU News" | "Game Revisit" | "Hardware Deep-Dive",
+  apiKey: string,
+  targetDate: Date,
+  modelId: string
+): Promise<{ slug: string; title: string; excerpt: string; tags: string[]; content: string; imagePrompt?: string } | null> {
+  const prompt = buildPromptForItems(items, postType, targetDate);
 
   try {
     const response = await fetch("https://integrate.api.nvidia.com/v1/chat/completions", {
+
       method: "POST",
       headers: {
         "Content-Type": "application/json",
@@ -259,45 +268,7 @@ image_prompt: A highly detailed, photorealistic 3D video game concept art or hig
 
     const data = await response.json();
     const rawContent = (data.choices?.[0]?.message?.content ?? "").trim();
-
-    // Parse frontmatter
-    const frontmatterRegex = /^---\r?\n([\s\S]*?)\r?\n---\r?\n([\s\S]*)$/;
-    const match = rawContent.match(frontmatterRegex);
-    if (!match) {
-      safeAppendFileSync(path.join(process.cwd(), "generate.log"), `[BlogGen][${postType}][${modelId}] Frontmatter mismatch. Raw content sample: ${rawContent.slice(0, 300)}\n`);
-      console.error(`[BlogGen][${postType}][${modelId}] Frontmatter match failed`);
-      return null;
-    }
-
-    const fmText = match[1];
-    const content = match[2].trim();    const title = fmText.match(/^title:\s*(.*)$/m)?.[1]?.replace(/^["']|["']$/g, "").trim() ?? `${postType} — ${today}`;
-    const excerpt = (fmText.match(/^meta_description:\s*(.*)$/m)?.[1] ?? fmText.match(/^excerpt:\s*(.*)$/m)?.[1])?.replace(/^["']|["']$/g, "").trim() ?? "";
-    let rawSlug = fmText.match(/^slug:\s*(.*)$/m)?.[1]?.replace(/^["']|["']$/g, "").trim() ?? `${postType.toLowerCase().replace(/\s+/g, "-")}`;
-    
-    // Clean date suffix if present in raw slug
-    let baseSlug = rawSlug.replace(new RegExp(`-${today}$`), "").replace(/[^a-z0-9-]/gi, "-").toLowerCase().replace(/-+/g, "-");
-    
-    // Ensure category tag in slug to guarantee zero cross-category slug collisions
-    const categoryTag = postType.toLowerCase().replace(/\s+/g, "-");
-    if (!baseSlug.includes(categoryTag)) {
-      baseSlug = `${categoryTag}-${baseSlug}`;
-    }
-
-    let slug = `${baseSlug}-${today}`;
-
-    const imagePrompt = fmText.match(/^image_prompt:\s*(.*)$/m)?.[1]?.replace(/^["']|["']$/g, "").trim() ?? "";
-    const tagsRaw = fmText.match(/^tags:\s*\[(.*?)\]/m)?.[1] ?? fmText.match(/^tags:\s*(.*)$/m)?.[1] ?? "";
-    const tags = tagsRaw
-      .replace(/[\[\]]/g, "")
-      .split(",")
-      .map((t: string) => t.replace(/^["']|["']$/g, "").trim())
-      .filter(Boolean);
-
-    const cleanContent = content
-      .replace(/```(?:markdown|md)\r?\n([\s\S]*?)\r?\n```/gi, "$1")
-      .replace(/```table\r?\n([\s\S]*?)\r?\n```/gi, "$1");
-    const sanitizedContent = sanitizeMermaid(cleanContent);
-    return { slug, title, excerpt, tags, content: sanitizedContent, imagePrompt };
+    return parseGeneratedBlogResponse(rawContent, postType, targetDate);
   } catch (err: unknown) {
     const errMsg = err instanceof Error ? err.message : String(err);
     safeAppendFileSync(path.join(process.cwd(), "generate.log"), `[BlogGen][${postType}][${modelId}] Generation error: ${errMsg}\n`);
@@ -306,6 +277,109 @@ image_prompt: A highly detailed, photorealistic 3D video game concept art or hig
   }
 }
 
+function parseGeneratedBlogResponse(
+  rawContent: string,
+  postType: "Game News" | "GPU News" | "Game Revisit" | "Hardware Deep-Dive",
+  targetDate: Date
+) {
+
+  const formatter = new Intl.DateTimeFormat("en-US", {
+    timeZone: "Asia/Kolkata",
+    year: "numeric",
+    month: "2-digit",
+    day: "2-digit",
+  });
+  const parts = formatter.formatToParts(targetDate);
+  const year = parts.find(p => p.type === 'year')?.value;
+  const month = parts.find(p => p.type === 'month')?.value;
+  const day = parts.find(p => p.type === 'day')?.value;
+  const today = `${year}-${month}-${day}`;
+
+  const frontmatterRegex = /^---\r?\n([\s\S]*?)\r?\n---\r?\n([\s\S]*)$/;
+  const match = rawContent.match(frontmatterRegex);
+  if (!match) {
+    return null;
+  }
+
+  const fmText = match[1];
+  const content = match[2].trim();
+  const title = fmText.match(/^title:\s*(.*)$/m)?.[1]?.replace(/^["']|["']$/g, "").trim() ?? `${postType} — ${today}`;
+  const excerpt = (fmText.match(/^meta_description:\s*(.*)$/m)?.[1] ?? fmText.match(/^excerpt:\s*(.*)$/m)?.[1])?.replace(/^["']|["']$/g, "").trim() ?? "";
+  let rawSlug = fmText.match(/^slug:\s*(.*)$/m)?.[1]?.replace(/^["']|["']$/g, "").trim() ?? `${postType.toLowerCase().replace(/\s+/g, "-")}`;
+  
+  let baseSlug = rawSlug.replace(new RegExp(`-${today}$`), "").replace(/[^a-z0-9-]/gi, "-").toLowerCase().replace(/-+/g, "-");
+  
+  const categoryTag = postType.toLowerCase().replace(/\s+/g, "-");
+  if (!baseSlug.includes(categoryTag)) {
+    baseSlug = `${categoryTag}-${baseSlug}`;
+  }
+
+  let slug = `${baseSlug}-${today}`;
+
+  const imagePrompt = fmText.match(/^image_prompt:\s*(.*)$/m)?.[1]?.replace(/^["']|["']$/g, "").trim() ?? "";
+  const tagsRaw = fmText.match(/^tags:\s*\[(.*?)\]/m)?.[1] ?? fmText.match(/^tags:\s*(.*)$/m)?.[1] ?? "";
+  const tags = tagsRaw
+    .replace(/[\[\]]/g, "")
+    .split(",")
+    .map((t: string) => t.replace(/^["']|["']$/g, "").trim())
+    .filter(Boolean);
+
+  const cleanContent = content
+    .replace(/```(?:markdown|md)\r?\n([\s\S]*?)\r?\n```/gi, "$1")
+    .replace(/```table\r?\n([\s\S]*?)\r?\n```/gi, "$1");
+  const sanitizedContent = sanitizeMermaid(cleanContent);
+  return { slug, title, excerpt, tags, content: sanitizedContent, imagePrompt };
+}
+
+async function generateBlogPostWithGemini(
+  items: FeedItem[],
+  postType: "Game News" | "GPU News" | "Game Revisit" | "Hardware Deep-Dive",
+  geminiKey: string,
+  targetDate: Date = new Date()
+) {
+  const prompt = buildPromptForItems(items, postType, targetDate);
+  const modelsToTry = [
+    process.env.GEMINI_MODEL,
+    "gemini-3.6-flash",
+    "gemini-3.5-flash",
+    "gemini-2.0-flash",
+    "gemini-1.5-flash"
+  ].filter(Boolean) as string[];
+
+  for (const modelId of modelsToTry) {
+    try {
+      console.log(`[BlogGen][${postType}] Requesting Gemini model (${modelId})...`);
+      const response = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/${modelId}:generateContent?key=${geminiKey}`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          contents: [{ parts: [{ text: prompt }] }],
+          generationConfig: { maxOutputTokens: 4096, temperature: 0.7 }
+        }),
+        signal: AbortSignal.timeout(30000)
+      });
+
+      if (response.ok) {
+        const data = await response.json();
+        const rawContent = (data.candidates?.[0]?.content?.parts?.[0]?.text ?? "").trim();
+        const parsed = parseGeneratedBlogResponse(rawContent, postType, targetDate);
+        if (parsed) {
+          console.log(`[BlogGen][${postType}] SUCCESS with Gemini model: ${modelId}`);
+          return parsed;
+        }
+      } else {
+        const errText = await response.text();
+        console.warn(`[BlogGen][${postType}][Gemini ${modelId}] HTTP ${response.status}: ${errText.slice(0, 150)}`);
+      }
+    } catch (err) {
+      console.warn(`[BlogGen][${postType}][Gemini ${modelId}] Attempt failed:`, err);
+    }
+  }
+
+  return null;
+}
+
+
 export async function generateBlogPost(
   items: FeedItem[],
   postType: "Game News" | "GPU News" | "Game Revisit" | "Hardware Deep-Dive",
@@ -313,13 +387,26 @@ export async function generateBlogPost(
   targetDate: Date = new Date()
 ): Promise<{ slug: string; title: string; excerpt: string; tags: string[]; content: string; imagePrompt?: string } | null> {
   
-  // Try with primary model
+  const geminiKey = process.env.GEMINI_API_KEY || process.env.GOOGLE_API_KEY;
+
+  // Tier 1: Google Gemini 2.0 Flash (ultra-fast 2s response, high reliability)
+  if (geminiKey) {
+    console.log(`[BlogGen][${postType}] Attempting LLM generation via Gemini 2.0 Flash...`);
+    const res = await generateBlogPostWithGemini(items, postType, geminiKey, targetDate);
+    if (res) {
+      safeAppendFileSync(path.join(process.cwd(), "generate.log"), `[BlogGen][${postType}] [LLM OK] Content generated via Gemini 2.0 Flash.\n`);
+      return res;
+    }
+  }
+
+  // Tier 2: NVIDIA NIM (meta/llama-3.1-8b-instruct)
+  console.log(`[BlogGen][${postType}] Attempting LLM generation via NVIDIA NIM (meta/llama-3.1-8b-instruct)...`);
   let result = await generateBlogPostWithModel(items, postType, apiKey, targetDate, "meta/llama-3.1-8b-instruct");
   
-  // Fallback if primary model fails
+  // Tier 3: Active NVIDIA NIM fallback (mistralai/mistral-large-2407)
   if (!result) {
-    safeAppendFileSync(path.join(process.cwd(), "generate.log"), `[BlogGen][${postType}] Primary model failed. Falling back to mistralai/mixtral-8x7b-instruct-v0.1\n`);
-    result = await generateBlogPostWithModel(items, postType, apiKey, targetDate, "mistralai/mixtral-8x7b-instruct-v0.1");
+    safeAppendFileSync(path.join(process.cwd(), "generate.log"), `[BlogGen][${postType}] Primary model failed. Falling back to mistralai/mistral-large-2407\n`);
+    result = await generateBlogPostWithModel(items, postType, apiKey, targetDate, "mistralai/mistral-large-2407");
   }
   
   if (result) {
@@ -327,6 +414,7 @@ export async function generateBlogPost(
   }
   return result;
 }
+
 
 export async function writeToMongoDB(
   post: { slug: string; title: string; excerpt: string; tags: string[]; content: string },
@@ -527,7 +615,8 @@ export async function generateBlogCoverImage(
   if (activeHfToken) {
     try {
       console.log(`[BlogGen][${category}] Attempting Hugging Face (FLUX.1-schnell)...`);
-      const hfRes = await fetch("https://api-inference.huggingface.co/models/black-forest-labs/FLUX.1-schnell", {
+      const hfRes = await fetch("https://router.huggingface.co/hf-inference/v1/models/black-forest-labs/FLUX.1-schnell", {
+
         method: "POST",
         headers: {
           Authorization: `Bearer ${activeHfToken}`,
