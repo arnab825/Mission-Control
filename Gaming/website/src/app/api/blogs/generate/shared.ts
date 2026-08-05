@@ -342,9 +342,13 @@ async function generateBlogPostWithGemini(
     process.env.GEMINI_MODEL,
     "gemini-3.6-flash",
     "gemini-3.5-flash",
+    "gemini-3.5-flash-lite",
+    "gemini-3-flash-preview",
     "gemini-2.0-flash",
-    "gemini-1.5-flash"
+    "gemini-1.5-flash-latest"
   ].filter(Boolean) as string[];
+
+
 
   for (const modelId of modelsToTry) {
     try {
@@ -380,6 +384,45 @@ async function generateBlogPostWithGemini(
 }
 
 
+async function generateBlogPostWithHuggingFace(
+  items: FeedItem[],
+  postType: "Game News" | "GPU News" | "Game Revisit" | "Hardware Deep-Dive",
+  hfToken: string,
+  targetDate: Date = new Date()
+) {
+  const prompt = buildPromptForItems(items, postType, targetDate);
+  const modelsToTry = [
+    "meta-llama/Llama-3.1-8B-Instruct",
+    "mistralai/Mistral-7B-Instruct-v0.3",
+    "Qwen/Qwen2.5-72B-Instruct"
+  ];
+
+  for (const modelId of modelsToTry) {
+    try {
+      console.log(`[BlogGen][${postType}] Attempting Hugging Face LLM (${modelId})...`);
+      const hf = new InferenceClient(hfToken);
+      const res = await hf.chatCompletion({
+        model: modelId,
+        messages: [{ role: "user", content: prompt }],
+        max_tokens: 3000,
+        temperature: 0.7,
+      });
+
+      const rawContent = res.choices?.[0]?.message?.content?.trim();
+      if (rawContent) {
+        const parsed = parseGeneratedBlogResponse(rawContent, postType, targetDate);
+        if (parsed) {
+          console.log(`[BlogGen][${postType}] SUCCESS with Hugging Face model: ${modelId}`);
+          return parsed;
+        }
+      }
+    } catch (err) {
+      console.warn(`[BlogGen][${postType}][HF ${modelId}] Attempt failed:`, err);
+    }
+  }
+  return null;
+}
+
 export async function generateBlogPost(
   items: FeedItem[],
   postType: "Game News" | "GPU News" | "Game Revisit" | "Hardware Deep-Dive",
@@ -388,32 +431,48 @@ export async function generateBlogPost(
 ): Promise<{ slug: string; title: string; excerpt: string; tags: string[]; content: string; imagePrompt?: string } | null> {
   
   const geminiKey = process.env.GEMINI_API_KEY || process.env.GOOGLE_API_KEY;
+  const hfToken = process.env.HF_TOKEN;
 
-  // Tier 1: Google Gemini 2.0 Flash (ultra-fast 2s response, high reliability)
+  // Tier 1: Google Gemini (3.6 / 3.5 / 2.0 / 1.5 Flash)
   if (geminiKey) {
-    console.log(`[BlogGen][${postType}] Attempting LLM generation via Gemini 2.0 Flash...`);
+    console.log(`[BlogGen][${postType}] Attempting LLM generation via Gemini Flash...`);
     const res = await generateBlogPostWithGemini(items, postType, geminiKey, targetDate);
     if (res) {
-      safeAppendFileSync(path.join(process.cwd(), "generate.log"), `[BlogGen][${postType}] [LLM OK] Content generated via Gemini 2.0 Flash.\n`);
+      safeAppendFileSync(path.join(process.cwd(), "generate.log"), `[BlogGen][${postType}] [LLM OK] Content generated via Gemini Flash.\n`);
       return res;
     }
   }
 
-  // Tier 2: NVIDIA NIM (meta/llama-3.1-8b-instruct)
-  console.log(`[BlogGen][${postType}] Attempting LLM generation via NVIDIA NIM (meta/llama-3.1-8b-instruct)...`);
-  let result = await generateBlogPostWithModel(items, postType, apiKey, targetDate, "meta/llama-3.1-8b-instruct");
-  
-  // Tier 3: Active NVIDIA NIM fallback (mistralai/mistral-large-2407)
-  if (!result) {
-    safeAppendFileSync(path.join(process.cwd(), "generate.log"), `[BlogGen][${postType}] Primary model failed. Falling back to mistralai/mistral-large-2407\n`);
-    result = await generateBlogPostWithModel(items, postType, apiKey, targetDate, "mistralai/mistral-large-2407");
+  // Tier 2: Hugging Face LLM (Llama 3.1 8B / Mistral 7B / Qwen 2.5) if Gemini busy or quota exceeded
+  if (hfToken) {
+    console.log(`[BlogGen][${postType}] Gemini unavailable/busy. Falling back to Hugging Face LLM...`);
+    const hfRes = await generateBlogPostWithHuggingFace(items, postType, hfToken, targetDate);
+    if (hfRes) {
+      safeAppendFileSync(path.join(process.cwd(), "generate.log"), `[BlogGen][${postType}] [LLM OK] Content generated via Hugging Face LLM.\n`);
+      return hfRes;
+    }
   }
-  
-  if (result) {
-    safeAppendFileSync(path.join(process.cwd(), "generate.log"), `[BlogGen][${postType}] [LLM OK] Content generated successfully.\n`);
+
+  // Tier 3: NVIDIA NIM (meta/llama-3.3-70b-instruct / meta/llama-3.1-8b-instruct)
+  if (apiKey) {
+    console.log(`[BlogGen][${postType}] Falling back to NVIDIA NIM (meta/llama-3.3-70b-instruct)...`);
+    let result = await generateBlogPostWithModel(items, postType, apiKey, targetDate, "meta/llama-3.3-70b-instruct");
+    
+    if (!result) {
+      console.log(`[BlogGen][${postType}] Falling back to NVIDIA NIM (meta/llama-3.1-8b-instruct)...`);
+      result = await generateBlogPostWithModel(items, postType, apiKey, targetDate, "meta/llama-3.1-8b-instruct");
+    }
+    
+    if (result) {
+      safeAppendFileSync(path.join(process.cwd(), "generate.log"), `[BlogGen][${postType}] [LLM OK] Content generated via NVIDIA NIM.\n`);
+      return result;
+    }
   }
-  return result;
+
+  return null;
 }
+
+
 
 
 export async function writeToMongoDB(
@@ -548,22 +607,27 @@ export function generateHighTechSVGCover(title: string, category: string): strin
 </svg>`;
 }
 
-export async function generateImageWithPollinations(prompt: string): Promise<Buffer> {
-  const cleanPrompt = encodeURIComponent(prompt.slice(0, 200));
-  const seed = Math.floor(Math.random() * 999999) + 1;
-  const url = `https://image.pollinations.ai/prompt/${cleanPrompt}?nologo=true&width=1024&height=768&seed=${seed}&model=flux`;
-  const response = await fetch(url, {
-    headers: { "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64)" },
-    signal: AbortSignal.timeout(8000)
-  });
-  if (response.ok) {
-    const arrayBuffer = await response.arrayBuffer();
-    if (arrayBuffer.byteLength > 4000) {
-      return Buffer.from(arrayBuffer);
+export async function generateImageWithPollinations(prompt: string): Promise<Buffer | null> {
+  try {
+    const cleanPrompt = encodeURIComponent(prompt.slice(0, 200));
+    const seed = Math.floor(Math.random() * 999999) + 1;
+    const url = `https://image.pollinations.ai/prompt/${cleanPrompt}?nologo=true&width=1024&height=768&seed=${seed}&model=flux`;
+    const response = await fetch(url, {
+      headers: { "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64)" },
+      signal: AbortSignal.timeout(8000)
+    });
+    if (response.ok) {
+      const arrayBuffer = await response.arrayBuffer();
+      if (arrayBuffer.byteLength > 4000) {
+        return Buffer.from(arrayBuffer);
+      }
     }
+  } catch (err) {
+    // Quietly return null to trigger Tier 4 fallback
   }
-  throw new Error("Pollinations API unavailable");
+  return null;
 }
+
 
 export async function generateBlogCoverImage(
   prompt: string,
@@ -615,30 +679,33 @@ export async function generateBlogCoverImage(
   if (activeHfToken) {
     try {
       console.log(`[BlogGen][${category}] Attempting Hugging Face (FLUX.1-schnell)...`);
-      const hfRes = await fetch("https://router.huggingface.co/hf-inference/v1/models/black-forest-labs/FLUX.1-schnell", {
+      const hf = new InferenceClient(activeHfToken);
+      const resBlob: any = await hf.textToImage({
 
-        method: "POST",
-        headers: {
-          Authorization: `Bearer ${activeHfToken}`,
-          "Content-Type": "application/json"
-        },
-        body: JSON.stringify({ inputs: prompt }),
-        signal: AbortSignal.timeout(14000)
+        model: "black-forest-labs/FLUX.1-schnell",
+        inputs: prompt,
       });
-
-      if (hfRes.ok) {
-        const buffer = Buffer.from(await hfRes.arrayBuffer());
-        if (buffer.length > 5000) {
-          const pngPath = path.join(publicDir, `${slug}.png`);
-          safeWriteFileSync(pngPath, buffer);
-          console.log(`[BlogGen][${category}] [IMAGE OK] Hugging Face FLUX.1 saved: /images/blog/${slug}.png`);
-          return `/images/blog/${slug}.png`;
-        }
+      let buffer: Buffer;
+      if (Buffer.isBuffer(resBlob)) {
+        buffer = resBlob;
+      } else if (typeof resBlob === "string") {
+        buffer = Buffer.from(resBlob, "base64");
+      } else {
+        buffer = Buffer.from(await resBlob.arrayBuffer());
       }
+
+      if (buffer.length > 5000) {
+        const pngPath = path.join(publicDir, `${slug}.png`);
+        safeWriteFileSync(pngPath, buffer);
+        console.log(`[BlogGen][${category}] [IMAGE OK] Hugging Face FLUX.1 saved: /images/blog/${slug}.png`);
+        return `/images/blog/${slug}.png`;
+      }
+
     } catch (hfErr) {
       console.warn(`[BlogGen][${category}] Hugging Face attempt failed:`, hfErr);
     }
   }
+
 
   // Tier 3: Pollinations AI
   try {
