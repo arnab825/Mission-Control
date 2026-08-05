@@ -63,7 +63,11 @@ export const UpdatesPage: React.FC<UpdatesPageProps> = ({
       // Load persisted update state (pause/resume support)
       if (window.electronAPI?.getElectronUpdateState) {
         window.electronAPI.getElectronUpdateState().then((savedState: any) => {
-          if (savedState && savedState.status && savedState.status !== 'idle' && savedState.status !== 'up-to-date') {
+          // Only restore in-progress states (downloading, available, downloaded).
+          // Discard paused/cancelled states on fresh launch — the user already exited
+          // during those states and they have no meaning after a restart.
+          const RESTORABLE_STATUSES = new Set(['downloading', 'available', 'downloaded']);
+          if (savedState && savedState.status && RESTORABLE_STATUSES.has(savedState.status)) {
             setNativeUpdate(savedState);
           } else {
             window.electronAPI?.checkElectronUpdates?.();
