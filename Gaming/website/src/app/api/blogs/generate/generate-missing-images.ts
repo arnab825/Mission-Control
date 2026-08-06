@@ -2,27 +2,27 @@ import "./loadenv";
 import connectDB from "@/lib/mongodb";
 import GamingPost from "@/models/GamingPost";
 import path from "path";
-import { generateBlogCoverImage } from "./shared";
+import fs from "fs";
+import { generateBlogCoverImage, saveLocalMDX } from "./shared";
 
 async function run() {
   await connectDB();
 
-  const posts = await GamingPost.find({
-    $or: [
-      { coverImage: "/images/gpu-placeholder.png" },
-      { coverImage: "/images/game-placeholder.png" },
-      { coverImage: { $regex: /\.svg$/ } },
-      { coverImage: { $exists: false } },
-      { coverImage: null },
-      { coverImage: "" }
-    ]
+  const allPosts = await GamingPost.find({});
+
+  const postsToFix = allPosts.filter((post) => {
+    if (!post.coverImage || post.coverImage.endsWith(".svg") || post.coverImage.includes("placeholder")) {
+      return true;
+    }
+    const diskPath = path.join(process.cwd(), "public", post.coverImage.replace(/^\//, ""));
+    return !fs.existsSync(diskPath);
   });
 
-  console.log(`[GenMissingImages] Found ${posts.length} blog posts needing custom AI cover images.`);
+  console.log(`[GenMissingImages] Found ${postsToFix.length} blog posts needing custom AI cover images or disk sync out of ${allPosts.length} total posts.`);
 
-  for (let i = 0; i < posts.length; i++) {
-    const post = posts[i];
-    console.log(`\n[${i + 1}/${posts.length}] Generating unique cover art for: '${post.title}'`);
+  for (let i = 0; i < postsToFix.length; i++) {
+    const post = postsToFix[i];
+    console.log(`\n[${i + 1}/${postsToFix.length}] Generating unique cover art for: '${post.title}' (${post.slug})`);
 
     const isHardware = post.category === "GPU News" || post.category === "Hardware Deep-Dive";
     const cleanTitle = post.title.replace(/[\u0300-\u036f]/g, "").replace(/[:"'\?\!\-\|\(\)\[\]]/g, " ").trim();
@@ -41,6 +41,21 @@ async function run() {
 
     post.coverImage = coverPath;
     await post.save();
+
+    // Ensure local MDX exists and is updated
+    saveLocalMDX(
+      {
+        slug: post.slug,
+        title: post.title,
+        excerpt: post.excerpt || "",
+        tags: post.tags || [],
+        content: post.markdownBody || post.content || "",
+      },
+      post.category as any,
+      post.publishedAt ? new Date(post.publishedAt).toISOString() : new Date().toISOString(),
+      coverPath
+    );
+
     console.log(`[GenMissingImages] Updated post '${post.title}' -> '${coverPath}'`);
   }
 
@@ -52,4 +67,5 @@ run().catch((err) => {
   console.error(err);
   process.exit(1);
 });
+
 
