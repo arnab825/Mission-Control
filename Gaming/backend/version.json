@@ -1,8 +1,19 @@
 {
-  "version": "2.9.0",
+  "version": "2.9.1",
   "release_date": "2026-08-06",
   "update_check_url": "https://raw.githubusercontent.com/arnab825/Mission-Control/main/Gaming/backend/version.json",
   "changelog": [
+    {
+      "version": "2.9.1",
+      "date": "2026-08-06",
+      "title": "Borderless Fullscreen Window Detection, Multi-GPU Fallback & Privacy Shield Patch",
+      "highlights": [
+        "Fixed Need for Speed Heat (Frostbite engine) game window detection by adding Frostbite engine window classes and game keywords",
+        "Added hybrid GPU fallback for BetterCam and DXCam screen capture backends",
+        "Updated Privacy Shield to black out desktop capture when tabbing to Mission Control, eliminating infinite mirror effect",
+        "Demoted normal WebSocket closures (1000 OK) from WARNING to INFO log level"
+      ]
+    },
     {
       "version": "2.9.0",
       "date": "2026-08-06",
