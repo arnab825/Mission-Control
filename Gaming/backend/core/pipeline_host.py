@@ -404,6 +404,7 @@ class GamingAssistantPipeline:
             self.window_detector = WindowDetector(poll_interval=1.0, config=config)
             self.window_detector.on_focus_lost = self._on_focus_lost
             self.window_detector.on_focus_gained = self._on_focus_gained
+            self.window_detector.on_window_detected = self._on_window_detected
             logger.info("Window detector initialized for Alt+Tab handling")
             
         # Initialize CPU usage counter
@@ -668,6 +669,14 @@ class GamingAssistantPipeline:
         with self._state_lock:
             self._game_state["is_game_active"] = True
         self._play_hook_sound()
+
+    def _on_window_detected(self, window_info):
+        """Called when WindowDetector finds a game window."""
+        with self._state_lock:
+            if self._game_state.get("game_info"):
+                self._game_state["game_info"].update(window_info)
+            else:
+                self._game_state["game_info"] = window_info
 
     def _setup_hotkeys(self):
         """Register global hotkeys for toggling and scaling HUD."""
@@ -1171,6 +1180,8 @@ class GamingAssistantPipeline:
         logger.info(f"Capture thread started ({self.capture_hz}hz)")
         _consecutive_none_frames = 0
         _FAILOVER_THRESHOLD = 60  # ~1 second at 60hz before attempting backend switch
+        _dxgi_failover_count = 0   # tracks how many DXGI backend swaps we've attempted
+        _window_fallback_tried = False  # set True once window backend has been attempted
         
         while self.running:
             if getattr(self, "neural_security_lock", False):
@@ -1189,35 +1200,44 @@ class GamingAssistantPipeline:
                 current_hz = 10.0
                 interval = 0.1
                 _consecutive_none_frames = 0  # Reset when no game is active
+                _dxgi_failover_count = 0      # Reset failover state for next game session
+                _window_fallback_tried = False # Reset window-backend attempt flag
             
             try:
                 frame = self.capture.get_frame()
-                # None means no new frame (dxcam between vsync, window backend failed, etc.)
-                # Never push None — it would propagate stale data downstream.
-                if frame is not None:
+                
+                is_valid = frame is not None
+                if is_valid and not np.any(frame):
+                    is_valid = False
+
+                # None or all-black means no new/valid frame (dxcam between vsync, window backend failed, DWM bypass, etc.)
+                if is_valid:
                     self.frame_buffer.push(frame)
                     _consecutive_none_frames = 0
                 else:
                     _consecutive_none_frames += 1
                     
-                    # Exclusive fullscreen auto-failover: if game is active but we're
-                    # getting sustained None frames, the current DXGI backend can't
-                    # capture (likely DWM bypass). Try switching to the alternate backend.
+                    # Exclusive fullscreen / borderless fullscreen failover:
+                    # If game is active but we keep getting None frames, the current
+                    # DXGI backend can't capture (flip-model / DWM bypass). Progress
+                    # through: dxcam <-> bettercam -> window (PrintWindow) -> mss.
                     if is_active and _consecutive_none_frames >= _FAILOVER_THRESHOLD:
                         current_backend = getattr(self.capture, "backend_name", "unknown")
-                        if current_backend in ("dxcam", "bettercam"):
-                            from capture.screen import _check_bettercam_available, _check_dxcam_available
+                        from capture.screen import _check_bettercam_available, _check_dxcam_available
+
+                        if current_backend in ("dxcam", "bettercam") and _dxgi_failover_count < 2:
+                            # Stage 1 & 2: Swap between the two DXGI backends
                             alt_backend = "bettercam" if current_backend == "dxcam" else "dxcam"
-                            alt_available = (_check_bettercam_available() if alt_backend == "bettercam" 
+                            from capture.screen import _check_bettercam_available, _check_dxcam_available
+                            alt_available = (_check_bettercam_available() if alt_backend == "bettercam"
                                            else _check_dxcam_available())
                             if alt_available:
                                 logger.warning(
-                                    f"Exclusive fullscreen failover: {current_backend} returned "
-                                    f"{_consecutive_none_frames} consecutive None frames while game is active. "
+                                    f"DXGI failover #{_dxgi_failover_count + 1}: {current_backend} returned "
+                                    f"{_consecutive_none_frames} consecutive None frames. "
                                     f"Switching to {alt_backend}..."
                                 )
                                 try:
-                                    self.capture.set_hwnd(None)  # Ensure desktop mode
                                     self.capture.__init__(
                                         region=self.capture.region,
                                         backend=alt_backend,
@@ -1225,10 +1245,68 @@ class GamingAssistantPipeline:
                                         device_index=getattr(self.capture, "_device_index", 0),
                                         output_index=getattr(self.capture, "_output_index", 0),
                                     )
+                                    _dxgi_failover_count += 1
                                     logger.info(f"Successfully switched capture backend to: {alt_backend}")
                                 except Exception as switch_e:
                                     logger.error(f"Failed to switch to {alt_backend}: {switch_e}")
-                        _consecutive_none_frames = 0  # Reset after failover attempt
+                            else:
+                                _dxgi_failover_count += 1  # No alt DXGI available, skip to next stage
+
+                        elif not _window_fallback_tried:
+                            # Stage 3: Try window (PrintWindow)
+                            # This works for borderless fullscreen DX games that bypass DWM.
+                            game_hwnd = None
+                            with self._state_lock:
+                                game_info = self._game_state.get("game_info")
+                                if game_info:
+                                    game_hwnd = game_info.get("hwnd")
+
+                            if game_hwnd:
+                                logger.warning(
+                                    f"Capture failover: {current_backend} failed. "
+                                    f"Falling back to window capture (PrintWindow) for hwnd={game_hwnd:#x}..."
+                                )
+                                try:
+                                    self.capture.set_hwnd(game_hwnd)
+                                    _window_fallback_tried = True
+                                    logger.info("Successfully switched to window (PrintWindow) backend for borderless game.")
+                                except Exception as win_e:
+                                    logger.error(f"Window backend fallback failed: {win_e}")
+                                    _window_fallback_tried = True
+                            else:
+                                # We don't have an HWND yet. Don't mark _window_fallback_tried=True so we can try again later.
+                                if current_backend != "mss":
+                                    logger.warning("No HWND available yet. Falling back to MSS (CPU capture)...")
+                                    try:
+                                        self.capture.__init__(
+                                            region=self.capture.region,
+                                            backend="mss",
+                                            target_fps=self.capture.target_fps,
+                                            device_index=getattr(self.capture, "_device_index", 0),
+                                            output_index=getattr(self.capture, "_output_index", 0),
+                                        )
+                                    except Exception as mss_e:
+                                        logger.error(f"MSS fallback failed: {mss_e}")
+                        
+                        elif current_backend != "mss":
+                            # Stage 4: Window already tried, fallback to MSS
+                            logger.warning(
+                                f"Capture failover: Window backend failed. "
+                                f"Falling back to MSS (CPU capture)..."
+                            )
+                            try:
+                                self.capture.__init__(
+                                    region=self.capture.region,
+                                    backend="mss",
+                                    target_fps=self.capture.target_fps,
+                                    device_index=getattr(self.capture, "_device_index", 0),
+                                    output_index=getattr(self.capture, "_output_index", 0),
+                                )
+                                logger.info("Successfully switched capture backend to: mss")
+                            except Exception as mss_e:
+                                logger.error(f"MSS fallback failed: {mss_e}")
+
+                        _consecutive_none_frames = 0  # Reset after each failover attempt
                     
                     # Sleep slightly longer on no-new-frame to prevent high CPU polling overhead
                     time.sleep(0.004 if is_active else 0.05)
@@ -1534,8 +1612,8 @@ class GamingAssistantPipeline:
         is_desktop_capture = capture_backend in ("dxcam", "mss", "bettercam")
 
         privacy_enabled = self.config.get("privacy", {}).get("enabled", True)
-        privacy_shield_active = privacy_enabled and is_desktop_capture and (
-            not is_active or is_minimized
+        privacy_shield_active = privacy_enabled and (
+            (is_desktop_capture and not is_focused) or not is_active or is_minimized
         )
 
         self._vision_frame_count += 1

@@ -302,7 +302,11 @@ class BridgeServer:
                 await asyncio.wait_for(client.send(message), timeout=3.0)
                 return None
             except Exception as e:
-                logger.warning("Dropping client due to send failure/timeout: %s", e)
+                err_str = str(e)
+                if "1000" in err_str or "OK" in err_str:
+                    logger.info("Client disconnected gracefully: %s", e)
+                else:
+                    logger.warning("Dropping client due to send failure/timeout: %s", e)
                 try:
                     await client.close()
                 except Exception:

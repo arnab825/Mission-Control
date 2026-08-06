@@ -102,42 +102,39 @@ class ScreenCapture:
 
         # --- bettercam backend (preferred — exclusive fullscreen compatible) ---
         if backend in ("auto", "bettercam") and _check_bettercam_available():
-            try:
-                self._capture = _BetterCamBackend(
-                    self.region, self.target_fps,
-                    device_index=self._device_index,
-                    output_index=self._output_index
-                )
-                self._backend_name = "bettercam"
-                logger.info(f"Capture backend: bettercam (exclusive-FS compatible, target {self.target_fps}fps, "
-                            f"device={self._device_index}, output={self._output_index})")
-                return
-            except Exception as e:
-                logger.warning(f"bettercam init failed: {e}. Falling back to dxcam...")
+            for dev_idx in (self._device_index, 1 if self._device_index == 0 else 0):
+                try:
+                    self._capture = _BetterCamBackend(
+                        self.region, self.target_fps,
+                        device_index=dev_idx,
+                        output_index=self._output_index
+                    )
+                    self._backend_name = "bettercam"
+                    self._device_index = dev_idx
+                    logger.info(f"Capture backend: bettercam (exclusive-FS compatible, target {self.target_fps}fps, "
+                                f"device={dev_idx}, output={self._output_index})")
+                    return
+                except Exception as e:
+                    logger.warning(f"bettercam init failed on device {dev_idx}: {e}")
+            logger.warning("bettercam init failed on all devices. Falling back to dxcam...")
 
         # --- dxcam backend (legacy DXGI) ---
         if backend in ("auto", "dxcam") and _check_dxcam_available():
-            try:
-                self._capture = _DXCamBackend(
-                    self.region, self.target_fps,
-                    device_index=self._device_index,
-                    output_index=self._output_index
-                )
-                self._backend_name = "dxcam"
-                logger.info(f"Capture backend: dxcam (GPU-accelerated, target {self.target_fps}fps, "
-                            f"device={self._device_index}, output={self._output_index})")
-                return
-            except IndexError as e:
-                logger.warning(f"dxcam index error (device {self._device_index} / output {self._output_index}): {e}. Attempting auto-discovery...")
+            for dev_idx in (self._device_index, 1 if self._device_index == 0 else 0):
                 try:
-                    self._capture = _DXCamBackend(self.region, self.target_fps, device_index=0, output_index=0)
+                    self._capture = _DXCamBackend(
+                        self.region, self.target_fps,
+                        device_index=dev_idx,
+                        output_index=self._output_index
+                    )
                     self._backend_name = "dxcam"
-                    logger.info("Capture backend: dxcam (Fallback to device 0, output 0)")
+                    self._device_index = dev_idx
+                    logger.info(f"Capture backend: dxcam (GPU-accelerated, target {self.target_fps}fps, "
+                                f"device={dev_idx}, output={self._output_index})")
                     return
-                except Exception as e2:
-                    logger.warning(f"dxcam auto-discovery also failed: {e2}")
-            except Exception as e:
-                logger.warning(f"dxcam init failed: {e}")
+                except Exception as e:
+                    logger.warning(f"dxcam init failed on device {dev_idx}: {e}")
+            logger.warning("dxcam init failed on all devices.")
 
         # --- Fallback to MSS ---
         self._capture = _MSSBackend(self.region, output_index=self._output_index)
@@ -325,11 +322,18 @@ class _WindowCaptureBackend:
             bmp.CreateCompatibleBitmap(hdc_mem, w, h)
             hdc_dest.SelectObject(bmp)
 
-            # Use PrintWindow to capture the client area, including DirectComposition/hardware-accelerated content
-            # PW_CLIENTONLY (1) | PW_RENDERFULLCONTENT (2) = 3
+            # Use PrintWindow to capture the client area.
+            # PW_RENDERFULLCONTENT (2) captures DirectComposition/hardware-accelerated content.
+            # We try PW_CLIENTONLY|PW_RENDERFULLCONTENT (3) first; if that fails, retry with
+            # PW_RENDERFULLCONTENT only (2) which some DX12 games require.
             result = ctypes.windll.user32.PrintWindow(
                 hwnd, hdc_dest.GetSafeHdc(), 3
             )
+            if not result:
+                # Retry with PW_RENDERFULLCONTENT only (no PW_CLIENTONLY flag)
+                result = ctypes.windll.user32.PrintWindow(
+                    hwnd, hdc_dest.GetSafeHdc(), 2
+                )
 
             bmp_info = bmp.GetInfo()
             bmp_bits = bmp.GetBitmapBits(True)
@@ -341,8 +345,9 @@ class _WindowCaptureBackend:
             win32gui.DeleteObject(bmp.GetHandle())
 
             if not result:
-                # BitBlt failed
-                pass
+                # PrintWindow failed entirely — return None so the failure
+                # counter in ScreenCapture.get_frame() triggers desktop fallback.
+                return None
 
             img = np.frombuffer(bmp_bits, dtype=np.uint8)
             img.shape = (bmp_info["bmHeight"], bmp_info["bmWidth"], 4)  # BGRA
@@ -547,14 +552,13 @@ class _MSSBackend:
         except Exception as e:
             now = time.time()
             if not hasattr(self, "_last_err_time") or now - self._last_err_time > 5.0:
-                logger.warning(f"MSS capture failed: {e}. Sleeping 0.5s before retry...")
+                logger.warning(f"MSS capture failed: {e}")
                 self._last_err_time = now
             # Recreate mss instance to recover from lost GDI connection/context
             try:
                 self.sct = mss.mss()
             except Exception:
                 pass
-            time.sleep(0.5)
             return None
 
 

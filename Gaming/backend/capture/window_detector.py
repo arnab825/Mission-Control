@@ -39,6 +39,9 @@ class WindowDetector:
         "Source Engine",       # Source engine games
         "SDL_app",             # SDL-based games
         "GlFW30",              # GLFW games
+        "Frostbite",           # EA Frostbite Engine (NFS, Battlefield)
+        "FrostbiteWindowClass",
+        "Direct3DWindowClass", # Generic Direct3D game windows
     }
 
     # System and development processes that are NEVER games
@@ -346,7 +349,8 @@ class WindowDetector:
             "starcraft", "warcraft", "overwatch", "diablo", "path", "exile",
             "escape", "tarkov", "pubg", "battlegrounds", "rogue", "company",
             "heroes", "storm", "smite", "paladins", "warframe", "destiny",
-            "spiderman", "spider-man", "marvel", "miles", "remastered", "zero"
+            "spiderman", "spider-man", "marvel", "miles", "remastered", "zero",
+            "nfs", "need for speed", "heat", "unbound", "payback", "rivals", "speed"
         ]
         
         # Generic words that should not be dynamically added to game keywords (to avoid system matching)
