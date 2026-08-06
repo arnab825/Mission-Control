@@ -325,10 +325,10 @@ class _WindowCaptureBackend:
             bmp.CreateCompatibleBitmap(hdc_mem, w, h)
             hdc_dest.SelectObject(bmp)
 
-            # Use BitBlt to capture the client area safely from the screen without sending blocking messages to the target window proc
-            result = ctypes.windll.gdi32.BitBlt(
-                hdc_dest.GetSafeHdc(), 0, 0, w, h,
-                hdc_src, 0, 0, 0x00CC0020  # SRCCOPY
+            # Use PrintWindow to capture the client area, including DirectComposition/hardware-accelerated content
+            # PW_CLIENTONLY (1) | PW_RENDERFULLCONTENT (2) = 3
+            result = ctypes.windll.user32.PrintWindow(
+                hwnd, hdc_dest.GetSafeHdc(), 3
             )
 
             bmp_info = bmp.GetInfo()
