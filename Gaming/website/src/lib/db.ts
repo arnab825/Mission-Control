@@ -71,7 +71,7 @@ export async function voteIssue(id: string): Promise<Issue | null> {
     const doc = await IssueModel.findByIdAndUpdate(
       id,
       { $inc: { votes: 1 } },
-      { new: true }
+      { returnDocument: "after" }
     ).lean();
 
     if (!doc) {

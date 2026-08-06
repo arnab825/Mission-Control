@@ -24,7 +24,7 @@ export async function POST(request: Request) {
       subscriberDoc = await Subscriber.findOneAndUpdate(
         { email: cleanEmail },
         { email: cleanEmail, status: "active", source: "footer_newsletter", subscribedAt: new Date() },
-        { upsert: true, new: true, setDefaultsOnInsert: true }
+        { upsert: true, returnDocument: "after", setDefaultsOnInsert: true }
       );
     } catch (dbError: any) {
       console.warn("MongoDB subscription save failed (operating in fallback mode):", dbError.message);
