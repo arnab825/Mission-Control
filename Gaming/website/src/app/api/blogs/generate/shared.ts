@@ -4,6 +4,30 @@ import { InferenceClient } from "@huggingface/inference";
 import fs from "fs";
 import path from "path";
 import { formatDateToIST } from "@/lib/blog";
+import { put } from "@vercel/blob";
+
+async function saveImageBuffer(buffer: Buffer, slug: string, extension: string = "png"): Promise<string> {
+  const publicDir = path.join(process.cwd(), "public/images/blog");
+  const fileName = `${slug}.${extension}`;
+  const localPath = path.join(publicDir, fileName);
+  safeWriteFileSync(localPath, buffer);
+
+  // If Vercel Blob token is configured, upload to cloud for persistent Vercel CDN serving
+  if (process.env.BLOB_READ_WRITE_TOKEN) {
+    try {
+      const blob = await put(`images/blog/${fileName}`, buffer, {
+        access: "public",
+        addRandomSuffix: false,
+      });
+      console.log(`[BlogGen] [BLOB OK] Uploaded image to Vercel Blob CDN: ${blob.url}`);
+      return blob.url;
+    } catch (blobErr) {
+      console.warn(`[BlogGen] Vercel Blob upload failed, falling back to local path:`, blobErr);
+    }
+  }
+
+  return `/images/blog/${fileName}`;
+}
 
 export function safeWriteFileSync(filePath: string, content: string | Buffer, options?: any) {
   try {
@@ -662,10 +686,9 @@ export async function generateBlogCoverImage(
         if (b64) {
           const buffer = Buffer.from(b64, "base64");
           if (buffer.length > 5000) {
-            const pngPath = path.join(publicDir, `${slug}.png`);
-            safeWriteFileSync(pngPath, buffer);
-            console.log(`[BlogGen][${category}] [IMAGE OK] Gemini Imagen 3 saved: /images/blog/${slug}.png`);
-            return `/images/blog/${slug}.png`;
+            const savedPath = await saveImageBuffer(buffer, slug, "png");
+            console.log(`[BlogGen][${category}] [IMAGE OK] Gemini Imagen 3 saved: ${savedPath}`);
+            return savedPath;
           }
         }
       }
@@ -681,7 +704,6 @@ export async function generateBlogCoverImage(
       console.log(`[BlogGen][${category}] Attempting Hugging Face (FLUX.1-schnell)...`);
       const hf = new InferenceClient(activeHfToken);
       const resBlob: any = await hf.textToImage({
-
         model: "black-forest-labs/FLUX.1-schnell",
         inputs: prompt,
       });
@@ -695,10 +717,9 @@ export async function generateBlogCoverImage(
       }
 
       if (buffer.length > 5000) {
-        const pngPath = path.join(publicDir, `${slug}.png`);
-        safeWriteFileSync(pngPath, buffer);
-        console.log(`[BlogGen][${category}] [IMAGE OK] Hugging Face FLUX.1 saved: /images/blog/${slug}.png`);
-        return `/images/blog/${slug}.png`;
+        const savedPath = await saveImageBuffer(buffer, slug, "png");
+        console.log(`[BlogGen][${category}] [IMAGE OK] Hugging Face FLUX.1 saved: ${savedPath}`);
+        return savedPath;
       }
 
     } catch (hfErr) {
@@ -712,10 +733,9 @@ export async function generateBlogCoverImage(
     console.log(`[BlogGen][${category}] Attempting Pollinations AI...`);
     const buffer = await generateImageWithPollinations(prompt);
     if (buffer && buffer.length > 4000) {
-      const pngPath = path.join(publicDir, `${slug}.png`);
-      safeWriteFileSync(pngPath, buffer);
-      console.log(`[BlogGen][${category}] [IMAGE OK] Pollinations AI saved: /images/blog/${slug}.png`);
-      return `/images/blog/${slug}.png`;
+      const savedPath = await saveImageBuffer(buffer, slug, "png");
+      console.log(`[BlogGen][${category}] [IMAGE OK] Pollinations AI saved: ${savedPath}`);
+      return savedPath;
     }
   } catch (polErr) {
     console.warn(`[BlogGen][${category}] Pollinations AI attempt failed:`, polErr);
@@ -727,18 +747,17 @@ export async function generateBlogCoverImage(
     ? path.join(process.cwd(), "public/images/gpu-placeholder.png")
     : path.join(process.cwd(), "public/images/game-placeholder.png");
   
-  const pngPath = path.join(publicDir, `${slug}.png`);
   if (fs.existsSync(sourceImage)) {
-    fs.copyFileSync(sourceImage, pngPath);
-    console.log(`[BlogGen][${category}] [IMAGE OK] Saved Photorealistic 3D Art: /images/blog/${slug}.png`);
-    return `/images/blog/${slug}.png`;
+    const buffer = fs.readFileSync(sourceImage);
+    const savedPath = await saveImageBuffer(buffer, slug, "png");
+    console.log(`[BlogGen][${category}] [IMAGE OK] Saved Photorealistic 3D Art: ${savedPath}`);
+    return savedPath;
   }
 
   // Backup fallback
   const svgCode = generateHighTechSVGCover(title, category);
-  const svgPath = path.join(publicDir, `${slug}.svg`);
-  safeWriteFileSync(svgPath, Buffer.from(svgCode, "utf8"));
-  return `/images/blog/${slug}.svg`;
+  const savedPath = await saveImageBuffer(Buffer.from(svgCode, "utf8"), slug, "svg");
+  return savedPath;
 }
 
 
