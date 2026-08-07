@@ -66,7 +66,7 @@ function GithubIcon(props: React.SVGProps<SVGSVGElement>) {
 export default function Home() {
   const [activeFaq, setActiveFaq] = useState<number | null>(null);
   const [activePersonality, setActivePersonality] = useState("Tactical");
-  const [activeHudTab, setActiveHudTab] = useState<"combat" | "telemetry" | "scraper">("combat");
+  const [activeHudTab, setActiveHudTab] = useState<"horizontal" | "compact" | "standard">("standard");
   const [isVramFlushing, setIsVramFlushing] = useState(false);
   const [vramFlushedMsg, setVramFlushedMsg] = useState<string | null>(null);
   const [isZoomModalOpen, setIsZoomModalOpen] = useState(false);
@@ -1034,7 +1034,7 @@ export default function Home() {
 
               {/* Dynamic HUD Mode Tabs */}
               <div className="flex gap-2 p-1.5 bg-white/5 border border-white/10 rounded-xl font-mono text-xs">
-                {(["combat", "telemetry", "scraper"] as const).map((tab) => (
+                {(["horizontal", "compact", "standard"] as const).map((tab) => (
                   <button
                     key={tab}
                     onClick={() => setActiveHudTab(tab)}
@@ -1067,92 +1067,111 @@ export default function Home() {
               </div>
             </div>
 
-            {/* Simulated Dynamic HUD Visual Container */}
-            <div className="lg:col-span-7 relative">
-              <div className="w-full bg-[#06070a] border border-white/20 rounded-2xl p-5 sm:p-7 relative scanline-effect shadow-2xl">
+            {/* Dynamic HUD Showcase Frame */}
+            <div className="lg:col-span-7 relative flex flex-col items-center justify-center min-h-[380px] sm:min-h-[440px] w-full">
+              <div className="w-full bg-[#07080c] border border-white/15 rounded-3xl p-4 sm:p-8 relative overflow-hidden shadow-[0_0_60px_rgba(0,0,0,0.8)] flex flex-col items-center justify-center">
 
-                {/* Background Crosshair Graphic */}
-                <div className="absolute inset-0 flex items-center justify-center opacity-10 pointer-events-none">
-                  <Crosshair className="w-48 h-48 text-neon-green" />
-                </div>
+                {/* Subtle Ambient Backlight Glow */}
+                <div className="absolute inset-0 bg-gradient-to-tr from-neon-green/10 via-transparent to-emerald-500/5 pointer-events-none" />
+                <div className="absolute inset-0 cyber-grid opacity-10 pointer-events-none" />
+                <div className="absolute inset-0 scanline-effect opacity-20 pointer-events-none" />
 
-                <div className="relative z-10 space-y-4 font-mono text-xs">
-                  {/* HUD Header Status */}
-                  <div className="flex justify-between items-center bg-white/[0.04] p-3.5 rounded-xl border border-white/10 flex-wrap gap-2">
-                    <div className="flex items-center gap-2">
-                      <div className="w-2.5 h-2.5 rounded-full bg-neon-green animate-ping" />
-                      <span className="text-white font-bold text-xs">APEX LEGENDS (DX12)</span>
-                    </div>
-                    <div className="flex items-center gap-3 text-[11px]">
-                      <span className="text-gray-400">FRAME TIME: <strong className="text-neon-yellow">6.0ms</strong></span>
-                      <span className="text-neon-green font-bold">LATENCY: 0.8ms</span>
-                    </div>
+                {/* Header Window Title Bar */}
+                <div className="w-full flex items-center justify-between px-3.5 py-2 bg-black/60 rounded-xl border border-white/10 mb-6 font-mono text-xs z-10">
+                  <div className="flex items-center gap-2">
+                    <span className="w-2.5 h-2.5 rounded-full bg-neon-green animate-pulse" />
+                    <span className="text-white font-bold uppercase tracking-wider text-[11px]">
+                      OVERLAY PREVIEW &gt; {activeHudTab} LAYOUT
+                    </span>
                   </div>
-
-                  {/* Mode Specific Dynamic Body */}
-                  {activeHudTab === "combat" && (
-                    <div className="space-y-4">
-                      <div className="glass-card p-4 border-neon-green/40 bg-neon-green/[0.04]">
-                        <div className="text-neon-green font-bold mb-1.5 flex items-center justify-between text-xs">
-                          <span>TACTICAL ASSISTANT &gt; TACTICAL MODE</span>
-                          <span className="text-[9px] bg-neon-green/20 px-2 py-0.5 rounded text-white font-mono">AUTONOMOUS</span>
-                        </div>
-                        <p className="text-gray-200 leading-relaxed text-xs sm:text-sm">
-                          "Enemy squad holding East building. Flank from high ground left to break line of sight."
-                        </p>
-                      </div>
-
-                      <div className="glass-card p-4 space-y-2 border-white/10">
-                        <div className="flex justify-between text-gray-400 text-[11px]">
-                          <span>FRAME RATE STABILITY INDEX</span>
-                          <span className="text-white font-bold">165 FPS (STABLE)</span>
-                        </div>
-                        <div className="flex items-end gap-1.5 h-14 pt-2">
-                          {[70, 85, 90, 88, 95, 92, 100, 98, 96, 99, 97, 100, 98, 100].map((h, i) => (
-                            <div
-                              key={i}
-                              className="flex-1 bg-neon-green/50 hover:bg-neon-green rounded-t transition-all"
-                              style={{ height: `${h}%` }}
-                            />
-                          ))}
-                        </div>
-                      </div>
-                    </div>
-                  )}
-
-                  {activeHudTab === "telemetry" && (
-                    <div className="grid grid-cols-2 gap-3">
-                      <div className="glass-card p-4 border-white/10">
-                        <div className="text-gray-400 text-[10px] mb-1">GPU THERMAL CLOCK</div>
-                        <div className="text-2xl font-bold text-white font-mono">62°C</div>
-                        <div className="text-neon-green text-[10px] mt-1">Fan Speed: 48%</div>
-                      </div>
-                      <div className="glass-card p-4 border-white/10">
-                        <div className="text-gray-400 text-[10px] mb-1">CUDA VRAM USED</div>
-                        <div className="text-2xl font-bold text-neon-yellow font-mono">4.2 GB</div>
-                        <div className="text-gray-400 text-[10px] mt-1">Total: 24 GB</div>
-                      </div>
-                      <div className="glass-card p-4 col-span-2 border-white/10 flex justify-between items-center">
-                        <span className="text-gray-300 font-bold">PYTORCH INFERENCE ENGINE</span>
-                        <span className="text-neon-green font-bold">ACTIVE (0.8ms)</span>
-                      </div>
-                    </div>
-                  )}
-
-                  {activeHudTab === "scraper" && (
-                    <div className="glass-card p-4 border-neon-green/30 bg-neon-green/[0.02] space-y-2">
-                      <div className="text-neon-yellow font-bold text-xs border-b border-white/10 pb-1">
-                        LIVE WIKI INJECTION: WIKI SCRAPER ACTIVE
-                      </div>
-                      <div className="text-gray-300 text-xs leading-relaxed">
-                        • Weakness: Shock damage (+25% critical multiplier)<br />
-                        • Recommended Loadout: Energy rifle with high-velocity optics<br />
-                        • Spawn Interval: 45 Seconds
-                      </div>
-                    </div>
-                  )}
-
+                  <span className="text-[10px] text-gray-400 uppercase font-mono tracking-widest hidden sm:inline">
+                    TRANSPARENT HUD HOOK
+                  </span>
                 </div>
+
+                {/* Dynamic Content Frame per HUD layout */}
+                <div className="w-full flex-1 flex items-center justify-center py-2 relative z-10">
+                  <AnimatePresence mode="wait">
+                    {activeHudTab === "horizontal" && (
+                      <motion.div
+                        key="horizontal"
+                        initial={{ opacity: 0, y: 15, scale: 0.96 }}
+                        animate={{ opacity: 1, y: 0, scale: 1 }}
+                        exit={{ opacity: 0, y: -15, scale: 0.96 }}
+                        transition={{ duration: 0.3 }}
+                        className="w-full flex flex-col items-center gap-4"
+                      >
+                        <div className="w-full max-w-2xl bg-black/80 p-3 sm:p-4 rounded-2xl border border-neon-green/40 shadow-[0_0_30px_rgba(118,185,0,0.25)] overflow-hidden">
+                          <img
+                            src="/screenshots/hud_horizontal.webp"
+                            alt="Horizontal HUD Overlay Layout"
+                            className="w-full h-auto object-contain rounded-lg filter drop-shadow-[0_0_10px_rgba(118,185,0,0.4)]"
+                          />
+                        </div>
+                        <div className="flex items-center gap-2 sm:gap-4 text-gray-400 font-mono text-[10px] sm:text-[11px]">
+                          <span className="text-neon-green font-bold flex items-center gap-1">
+                            ✓ Top-Bar Format
+                          </span>
+                          <span>•</span>
+                          <span>System Metrics &amp; Temperatures</span>
+                        </div>
+                      </motion.div>
+                    )}
+
+                    {activeHudTab === "compact" && (
+                      <motion.div
+                        key="compact"
+                        initial={{ opacity: 0, y: 15, scale: 0.96 }}
+                        animate={{ opacity: 1, y: 0, scale: 1 }}
+                        exit={{ opacity: 0, y: -15, scale: 0.96 }}
+                        transition={{ duration: 0.3 }}
+                        className="w-full flex flex-col items-center gap-4"
+                      >
+                        <div className="bg-black/80 p-3 sm:p-4 rounded-2xl border border-neon-green/40 shadow-[0_0_30px_rgba(118,185,0,0.25)] overflow-hidden max-w-[280px]">
+                          <img
+                            src="/screenshots/hud_compact.webp"
+                            alt="Compact HUD Overlay Layout"
+                            className="w-full h-auto object-contain rounded-lg filter drop-shadow-[0_0_10px_rgba(118,185,0,0.4)]"
+                          />
+                        </div>
+                        <div className="flex items-center gap-2 sm:gap-4 text-gray-400 font-mono text-[10px] sm:text-[11px]">
+                          <span className="text-neon-green font-bold flex items-center gap-1">
+                            ✓ Minimal Corner Widget
+                          </span>
+                          <span>•</span>
+                          <span>Zero Screen Clutter</span>
+                        </div>
+                      </motion.div>
+                    )}
+
+                    {activeHudTab === "standard" && (
+                      <motion.div
+                        key="standard"
+                        initial={{ opacity: 0, y: 15, scale: 0.96 }}
+                        animate={{ opacity: 1, y: 0, scale: 1 }}
+                        exit={{ opacity: 0, y: -15, scale: 0.96 }}
+                        transition={{ duration: 0.3 }}
+                        className="w-full flex flex-col items-center gap-4"
+                      >
+                        <div className="bg-black/80 p-3 sm:p-4 rounded-2xl border border-neon-green/40 shadow-[0_0_30px_rgba(118,185,0,0.25)] overflow-hidden max-w-[340px]">
+                          <img
+                            src="/screenshots/hud_standard.webp"
+                            alt="Standard HUD Overlay Layout"
+                            className="w-full h-auto object-contain rounded-lg filter drop-shadow-[0_0_10px_rgba(118,185,0,0.4)]"
+                          />
+                        </div>
+                        <div className="flex items-center gap-2 sm:gap-4 text-gray-400 font-mono text-[10px] sm:text-[11px]">
+                          <span className="text-neon-green font-bold flex items-center gap-1">
+                            ✓ Complete Telemetry Suite
+                          </span>
+                          <span>•</span>
+                          <span>Tactical AI Logs</span>
+                        </div>
+                      </motion.div>
+                    )}
+                  </AnimatePresence>
+                </div>
+
               </div>
             </div>
 
