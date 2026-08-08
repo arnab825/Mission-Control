@@ -18,7 +18,7 @@ export async function POST(request: Request) {
     if (!updatedIssue) {
       return NextResponse.json(
         { error: `Issue with ID ${issueId} not found.` },
-        { status: 444 }
+        { status: 404 }
       );
     }
 
