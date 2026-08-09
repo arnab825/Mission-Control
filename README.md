@@ -25,7 +25,7 @@
   <tr>
     <td width="50%" align="center">
       <b>🖥️ Main Console & Dashboard</b><br/><br/>
-      <img src="Gaming/website/public/screenshots/dashboard_hdr.webp" alt="Main Console & Dashboard" width="100%"/>
+      <img src="Gaming/website/public/screenshots/dashboard.webp" alt="Main Console & Dashboard" width="100%"/>
     </td>
     <td width="50%" align="center">
       <b>📟 Glassmorphic HUD Overlay</b><br/><br/>

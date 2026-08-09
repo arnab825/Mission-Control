@@ -14,7 +14,7 @@ The primary desktop client interface for **Mission Control**, built using Electr
   <tr>
     <td width="50%" align="center">
       <b>🖥️ Main Console Dashboard</b><br/><br/>
-      <img src="../website/public/screenshots/dashboard_hdr.webp" alt="Main Console Dashboard" width="100%"/>
+      <img src="../website/public/screenshots/dashboard.webp" alt="Main Console Dashboard" width="100%"/>
     </td>
     <td width="50%" align="center">
       <b>📟 Glassmorphic HUD Overlay</b><br/><br/>
