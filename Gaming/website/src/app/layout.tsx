@@ -4,6 +4,8 @@ import "./globals.css";
 import ClientLayout from "@/components/ClientLayout";
 import { GoogleAdSenseScript } from "@/components/GoogleAdSense";
 import { GoogleAnalyticsScript } from "@/components/GoogleAnalytics";
+import { Analytics } from "@vercel/analytics/react";
+import { SpeedInsights } from "@vercel/speed-insights/next";
 
 const inter = Inter({
   variable: "--font-inter",
@@ -55,6 +57,14 @@ export const metadata: Metadata = {
     "Autonomous Gaming Co-Pilot"
   ],
   authors: [{ name: "Mission Control Team" }],
+  icons: {
+    icon: [
+      { url: "/logo.png", type: "image/png" },
+      { url: "/favicon.ico", sizes: "any" }
+    ],
+    shortcut: "/logo.png",
+    apple: "/logo.png",
+  },
   alternates: {
     canonical: "/",
   },
@@ -152,6 +162,8 @@ export default function RootLayout({
         <ClientLayout>
           {children}
         </ClientLayout>
+        <Analytics />
+        <SpeedInsights />
       </body>
     </html>
   );
