@@ -1,83 +1,127 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# 🌐 Mission Control — Web Platform (`Gaming/website`)
 
-## Getting Started
+<p align="center">
+  <img src="public/logo.ico" width="80" alt="Mission Control Website Logo" />
+</p>
 
-First, run the development server:
+The official high-performance web platform for **Mission Control**, built with Next.js 15 (App Router), TypeScript, Tailwind CSS, and MongoDB Atlas. It hosts the interactive game benchmark dataset, documentation center, community glitch tracker, and an automated AI-driven gaming news generation engine (`Gaming Intel`).
+
+---
+
+## ⚡ Key Features
+
+- **📰 Automated AI Gaming Intel Blog Pipeline (`/api/blogs/generate`)**:
+  - Automatically fetches real-time updates from 5 major RSS feeds: IGN, Kotaku, Eurogamer, AnandTech, and Tom's Hardware.
+  - Generates technical gaming articles daily across 4 core categories: `GPU News`, `Game News`, `Hardware Deep-Dive`, and `Game Revisit`.
+  - **3-Tier Failover LLM Pipeline**: Google Gemini (`gemini-3.6-flash`) ➔ Hugging Face (`Llama-3.1-8B-Instruct`) ➔ NVIDIA NIM (`meta/llama-3.3-70b-instruct`).
+  - **4-Tier Image Failover Pipeline**: Imagen 3 via Gemini ➔ Hugging Face (`FLUX.1-schnell`) ➔ Pollinations AI ➔ Fallback 3D PNG artwork assets.
+  - **MongoDB Atlas Persistence**: Saves posts directly into MongoDB Atlas to guarantee zero content loss across serverless Vercel function lifecycles.
+- **🎮 Interactive Game Benchmark Library**: Dynamic rendering of GPU performance profiles, CPU bottleneck metrics, story overviews, and gameplay mechanics across top titles.
+- **📊 System Telemetry & Glitch Tracker**: Community bug tracking hub and live WebGL GPU hardware specs auto-detection.
+- **🔍 Automated SEO & Schema**: Full JSON-LD structured schema metadata generation for gaming news articles and benchmarks.
+
+---
+
+## 🛠️ Tech Stack
+
+- **Framework**: Next.js 15 (App Router)
+- **Language**: TypeScript
+- **Styling**: Tailwind CSS + Custom Design Tokens
+- **Database**: MongoDB Atlas (via Mongoose)
+- **AI Integrations**: Google Gemini API, Hugging Face Inference, NVIDIA NIM API
+- **Deployment & Crons**: Vercel Serverless Functions + Vercel Cron Jobs
+
+---
+
+## 🚀 Getting Started
+
+### 1. Installation
+
+```bash
+# Navigate to website directory
+cd Gaming/website
+
+# Install dependencies
+npm install
+```
+
+### 2. Environment Configuration (`.env`)
+
+Create a `.env` file in `Gaming/website/` with the following variables:
+
+```env
+# MongoDB Connection String
+MONGODB_URI=mongodb+srv://<user>:<password>@cluster.mongodb.net/mission_control?retryWrites=true&w=majority
+
+# Cron Secret for Protected Blog Generation Endpoint
+CRON_SECRET=your_secure_cron_secret_token
+
+# AI LLM & Image Generation Keys
+GEMINI_API_KEY=your_google_gemini_api_key
+HF_TOKEN=your_hugging_face_token
+NVIDIA_API_KEY=nvapi-your_nvidia_nim_api_key
+```
+
+### 3. Local Development Server
 
 ```bash
 npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+Open [http://localhost:3000](http://localhost:3000) in your browser.
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+---
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+## 📅 Automated Blog Pipeline Scheduling
 
-## Learn More
+The blog generation route runs automatically via Vercel Crons configured in [`vercel.json`](vercel.json):
 
-To learn more about Next.js, take a look at the following resources:
+```json
+{
+  "crons": [
+    {
+      "path": "/api/blogs/generate?batch=1",
+      "schedule": "0 0 * * *"
+    },
+    {
+      "path": "/api/blogs/generate?batch=2",
+      "schedule": "15 0 * * *"
+    }
+  ]
+}
+```
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+### Manual Triggering (Development / Testing)
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
+```bash
+curl -X POST "http://localhost:3000/api/blogs/generate" \
+  -H "Authorization: Bearer YOUR_CRON_SECRET"
+```
 
-## Deploy on Vercel
+---
 
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
+## 📂 Project Structure
 
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
-
-## System Requirements
-
-To run Mission Control's local AI features, your system must meet the following minimum requirements:
-
-- **OS**: Windows 10/11 or modern Linux distributions
-- **GPU**: NVIDIA GTX or RTX series graphics card (Strictly required for TensorRT local inference)
-- **RAM**: Minimum 16GB system memory recommended
-- **Storage**: SSD with at least 5GB free space for models
-
-## AI Gaming Blog (Gaming Intel) Pipeline
-
-Mission Control incorporates an automated, AI-driven gaming intelligence blog section designed to run alongside standard documentation:
-
-- **AI Generation Route**: `/api/blogs/generate` fetches real-time updates from five major RSS feeds (IGN, Kotaku, Eurogamer, AnandTech, Tom's Hardware) and generates comprehensive technical articles using the NVIDIA NIM API (`meta/llama-3.1-70b-instruct`).
-- **Data Persistence**: To prevent data loss in Vercel's ephemeral serverless environments, generated articles are written directly to MongoDB Atlas instead of the local filesystem.
-- **Nightly Scheduling**: Configured via `vercel.json` to execute automatically every night at **05:30 AM IST (00:00 UTC)**. The endpoint is protected against unauthorized invocation using a custom `CRON_SECRET` bearer token handshake.
-- **Clean Schema Separation**: 
-  - **Blogs**: Queried from MongoDB and shown under the *Gaming Intel* tab at `/blog` and `/blog/gaming/[slug]`.
-  - **Documentation**: Loaded dynamically from local Markdown/MDX files in `/Gaming/docs` and rendered under `/docs` and `/docs/[slug]`.
-
-### MongoDB Atlas IP Whitelist & Connection Troubleshooting
-
-If you encounter connection issues or the blog generation fails in local development or production, it is typically due to the MongoDB Atlas firewall blocking the connection.
-
-#### 1. Whitelisting your Local IP for Development
-To run the project locally, your current IP address must be allowed to connect to MongoDB Atlas:
-1. Log in to your **[MongoDB Atlas Dashboard](https://cloud.mongodb.com/)**.
-2. In the left-hand sidebar under the *Security* section, click on **Network Access**.
-3. Click the green **Add IP Address** button on the top right.
-4. Choose **Add Current IP Address** to whitelist only your current internet connection. (Or click **Allow Access From Anywhere** if you test from multiple networks).
-5. Click **Confirm** and wait 30–60 seconds for the status to change to *Active*.
-
-#### 2. Whitelisting Vercel for Deployed Production Website (Ephemeral Serverless IPs)
-Vercel deploys your website on serverless functions that use dynamic IP addresses. Every time the cron job runs, it runs on a different IP, which causes MongoDB Atlas to block Vercel's database connection requests:
-1. Log in to your **[MongoDB Atlas Dashboard](https://cloud.mongodb.com/)**.
-2. Click **Network Access** under the *Security* section in the left sidebar.
-3. Click **Add IP Address** on the right side.
-4. Click **Allow Access From Anywhere** (which adds `0.0.0.0/0` to the whitelist, allowing connections from all IPs).
-5. Click **Confirm**.
-
-## Recent Updates
-
-#### `v1.7.7` — 2026-07-19 (Precision Hardware TGP & CPU Thermal Zone Fixes)
-- **Chassis TGP Constraints**: Validated that `nvmlDeviceGetPowerManagementLimitConstraints()` dynamically correctly pulls the true Maximum Graphics Power (TGP MAX) programmed into the VBIOS across all OEM laptops, eliminating the need for complex NVAPI overrides.
-- **CPU Thermal Zone Calibration**: Fixed PDH path instance names (e.g. `_TZ.TZ01` -> `\_TZ.TZ01`) enabling successful fallback to Windows Performance Counters when the native kernel driver is blocked by VBS.
-- **Temperature Offset Correction**: Implemented a dynamic thermal offset mapping for specific ACPI sensors to correct standard raw Kelvin discrepancies, ensuring the displayed CPU temps perfectly mirror Ryzen Master/HWiNFO.
+```
+Gaming/website/
+├── src/
+│   ├── app/
+│   │   ├── api/
+│   │   │   └── blogs/
+│   │   │       ├── route.ts              # Blog GET/POST endpoint
+│   │   │       └── generate/
+│   │   │           ├── route.ts          # AI blog generation cron route
+│   │   │           └── shared.ts         # RSS parser & failover LLM/Image logic
+│   │   ├── blog/                         # Gaming Intel UI pages
+│   │   ├── benchmarks/                   # Game benchmark profiles UI
+│   │   ├── docs/                         # Documentation hub
+│   │   └── page.tsx                      # Landing homepage
+│   ├── components/                       # Shared UI components & navbar
+│   ├── data/
+│   │   └── benchmarks.ts                 # Hardware benchmark datasets
+│   └── models/
+│       └── Blog.ts                       # Mongoose Blog schema model
+├── public/                               # Static images, fonts, & fallbacks
+├── next.config.ts                        # Next.js configuration
+└── vercel.json                           # Vercel deployment & cron config
+```
