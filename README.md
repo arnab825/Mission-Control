@@ -1,7 +1,7 @@
 # 🧠 🎮 Mission Control — NVIDIA-Powered AI Gaming Platform
 
 <p align="center">
-  <img src="Gaming/frontend/public/logo.ico" width="100" alt="Mission Control Logo" />
+  <img src="Gaming/frontend/public/logo.png" width="100" alt="Mission Control Logo" />
 </p>
 
 <p align="center">
