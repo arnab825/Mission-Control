@@ -68,11 +68,128 @@ Mission-Control /
 ├── 🖥️ Gaming/frontend/       # Electron + React + Vite + TypeScript
 │                             # Desktop dashboard, glassmorphic HUD overlay, hotkeys engine, and telemetry UI.
 │
+├── 📦 Gaming/publisher-gui/  # Electron + Vite + Tailwind CSS
+│                             # Build manager, installer generator, & release publishing client GUI.
+│
 ├── 🐍 Gaming/backend/        # Python 3.12 + FastAPI + PyNVML + TensorRT + C++ DirectX DLL
 │                             # Local AI brain, C++ FPS engine, TensorRT YOLO vision, hardware monitoring, & voice TTS/STT.
 │
 ├── 📜 run_local.ps1          # Automated local build, package & release runner script.
 └── ⚙️ .woodpecker/           # CI/CD pipelines for automated multi-platform desktop releases.
+```
+
+### 🧱 System Workflow Architecture
+
+<table align="center" width="100%">
+  <tr>
+    <th colspan="3" style="text-align:center; background:#0f172a; color:#38bdf8; font-size:16px;">
+      👤 USER / GAMER INTERACTION LAYER
+    </th>
+  </tr>
+  <tr>
+    <td width="33%" align="center"><b>🖥️ Electron Desktop Dashboard</b><br/>React + Vite HUD & Telemetry</td>
+    <td width="33%" align="center"><b>📦 Publisher GUI Client</b><br/>Builds, Packaging & Releases</td>
+    <td width="33%" align="center"><b>🎙️ Voice & Hotkey Controls</b><br/>Mic Toggle & Global Shortcuts</td>
+  </tr>
+  <tr>
+    <th colspan="3" style="text-align:center; background:#111827; color:#a855f7; font-size:16px;">
+      🧠 AI DECISION ENGINE & TASK AUTO-ROUTER
+    </th>
+  </tr>
+  <tr>
+    <td colspan="3" align="center">
+      <b>Task Classifier ➔ Dynamic Web Search Engine</b> (Wikipedia | RAWG.io | SteamSpy | DuckDuckGo)<br/>
+      <b>Model Router ➔ NVIDIA NIM Cloud AI</b> (Llama 3.1 8B/70B Strategic + Llama 3.2 11B Vision VLM)
+    </td>
+  </tr>
+  <tr>
+    <th colspan="3" style="text-align:center; background:#064e3b; color:#10b981; font-size:16px;">
+      ⚡ REAL-TIME EXECUTION & TELEMETRY PIPELINES
+    </th>
+  </tr>
+  <tr>
+    <td width="33%" align="center"><b>🎮 Game Vision Pipeline</b><br/>dxcam 60fps ➔ TensorRT YOLOv8 ➔ OCR</td>
+    <td width="33%" align="center"><b>🎙️ Voice Engine</b><br/>Google / Sphinx STT ➔ ElevenLabs / SAPI5 TTS</td>
+    <td width="33%" align="center"><b>🔧 Hardware Telemetry</b><br/>C++ DirectX FPS DLL + PyNVML + WMI/PDH</td>
+  </tr>
+  <tr>
+    <th colspan="3" style="text-align:center; background:#312e81; color:#818cf8; font-size:16px;">
+      📟 GLASSMORPHIC HUD OVERLAY STREAM
+    </th>
+  </tr>
+  <tr>
+    <td colspan="3" align="center">
+      <b>Tactical Alerts Cards • Real-time Min/Max FPS & Thermal Bar • Live Subtitles Strip</b>
+    </td>
+  </tr>
+</table>
+
+```mermaid
+flowchart TD
+    User["👤 USER / Gamer"]
+
+    subgraph UI ["🖥️ DESKTOP CLIENT INTERFACES"]
+        GamesLib["🎮 Games Library"]
+        AgentChatUI["💬 Agent Chat"]
+        SysDash["📊 System Dashboard"]
+        SettingsPage["⚙️ Settings Page"]
+        PublisherGUI["📦 Publisher GUI (Builds & Releases)"]
+    end
+
+    subgraph Brain ["🧠 AI DECISION ENGINE"]
+        TaskDetect["🔍 Task Auto Detection"]
+        WebSearch["🌐 Web Search Engine"]
+        ModelRouter["🤖 Model Auto Router"]
+    end
+
+    subgraph CloudAI ["🔮 NVIDIA NIM CLOUD AI"]
+        StrategicModel["🧠 Llama 3.1 8B / 70B (Strategic & Tactical)"]
+        VisionModel["👁️ Llama 3.2 11B Vision (VLM Scene Analysis)"]
+    end
+
+    subgraph OutputPipes ["⚡ EXECUTION & OUTPUT PIPELINES"]
+        subgraph VoiceEng ["🎙️ Voice Engine"]
+            STT["STT: Google Cloud / Sphinx"]
+            TTS["TTS: ElevenLabs / SAPI5"]
+        end
+
+        subgraph AgentChatOut ["💬 Agent Chat Response"]
+            ChatReplies["Chat Replies & Advice Cards"]
+        end
+
+        subgraph VisionPipeline ["🎮 Game Vision Pipeline"]
+            Capture["📸 Screen Capture (dxcam 60fps+)"]
+            YOLO["⚡ YOLOv8 Vision (TensorRT 10x)"]
+            OCR["📝 OCR & Scene Classification"]
+        end
+    end
+
+    subgraph HUD ["📟 GLASSMORPHIC HUD OVERLAY"]
+        Alerts["Tactical Alerts & Story Tips"]
+        Bars["HP / GPU / CPU Telemetry Bar"]
+        Subtitles["Voice & AI Subtitles Strip"]
+    end
+
+    subgraph HW ["🔧 HARDWARE TELEMETRY & HOTKEYS"]
+        Tele["GPU, CPU, Thermal, RAM Telemetry Stream"]
+        Hotkeys["⌨️ Global Hotkeys (Ctrl+W HUD, Ctrl+Alt+M Mic)"]
+    end
+
+    User --> UI
+    UI --> TaskDetect
+    TaskDetect --> WebSearch
+    WebSearch --> ModelRouter
+    ModelRouter --> CloudAI
+    CloudAI --> VoiceEng
+    CloudAI --> AgentChatOut
+    
+    Capture --> YOLO
+    YOLO --> OCR
+    OCR --> HUD
+    VoiceEng --> Subtitles
+    AgentChatOut --> Alerts
+    Tele --> Bars
+    Hotkeys --> HUD
 ```
 
 ---
@@ -83,6 +200,7 @@ Mission-Control /
 |---|---|---|---|
 | **Web Platform** | Next.js 15, TypeScript, Tailwind CSS, MongoDB | Live gaming intelligence web app, benchmark profiles, documentation, and RSS AI blog generator. | [Website README](Gaming/website/README.md) |
 | **Desktop App** | Electron, React, Vite, Tailwind CSS | Real-time desktop application with glassmorphic HUD overlay, hardware telemetry, & keybindings. | [Frontend README](Gaming/frontend/README.md) |
+| **Publisher GUI** | Electron, Vite, Tailwind CSS | Release packaging, installer generation, release manifest sync & asset publisher client. | [Publisher GUI README](Gaming/publisher-gui/README.md) |
 | **Python Backend** | Python 3.12, FastAPI, C++, PyNVML, TensorRT | High-frequency telemetry service, native DirectX frame queue monitoring, and NVIDIA AI models. | [Backend README](Gaming/backend/README.md) |
 | **Complete System** | Architecture & Versioning | Detailed technical patch notes, agentic logic, and system overview. | [System Manual](Gaming/readme.md) |
 
