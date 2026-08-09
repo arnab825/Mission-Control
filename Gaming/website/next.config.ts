@@ -22,7 +22,25 @@ const nextConfig: NextConfig = {
   },
   env: Object.fromEntries(
     Object.entries(publicEnv).filter(([_, val]) => typeof val === "string" && !val.startsWith("your_"))
-  ) as Record<string, string>
+  ) as Record<string, string>,
+  async headers() {
+    return [
+      {
+        source: "/_next/static/:path*",
+        headers: [
+          { key: "Access-Control-Allow-Origin", value: "*" },
+          { key: "Cache-Control", value: "public, max-age=31536000, immutable" }
+        ]
+      },
+      {
+        source: "/(fonts|images|screenshots)/:path*",
+        headers: [
+          { key: "Access-Control-Allow-Origin", value: "*" },
+          { key: "Cache-Control", value: "public, max-age=31536000, immutable" }
+        ]
+      }
+    ];
+  }
 };
 
 export default nextConfig;
