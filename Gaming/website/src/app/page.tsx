@@ -281,7 +281,10 @@ export default function Home() {
             transition={{ duration: 0.7, ease: "easeOut" }}
             className="lg:col-span-6 flex flex-col items-center lg:items-start text-center lg:text-left"
           >
-            {/* Tactical Header Badge */}
+            {/* SEO Brand Heading for Google Indexing */}
+            <h1 className="sr-only">Mission Control — Autonomous AI Gaming Assistant & Telemetry Overlay</h1>
+
+            {/* Glowing Category Badge */}
             <div className="inline-flex items-center gap-2 border border-neon-green/60 rounded-full px-3.5 py-1.5 bg-gradient-to-r from-neon-green/20 via-neon-green/10 to-transparent backdrop-blur-xl mb-6 shadow-[0_0_25px_rgba(118,185,0,0.25)]">
               <span className="text-neon-green text-[11px] sm:text-xs font-bold font-mono tracking-widest uppercase flex items-center gap-1.5">
                 <Sparkles className="w-3 h-3 text-neon-yellow" /> TACTICAL ENGINE v{appVersion}
