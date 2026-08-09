@@ -1,7 +1,7 @@
 # 🌐 Mission Control — Web Platform (`Gaming/website`)
 
 <p align="center">
-  <img src="public/logo.ico" width="80" alt="Mission Control Website Logo" />
+  <img src="public/logo.png" width="80" alt="Mission Control Website Logo" />
 </p>
 
 The official high-performance web platform for **Mission Control**, built with Next.js 15 (App Router), TypeScript, Tailwind CSS, and MongoDB Atlas. It hosts the interactive game benchmark dataset, documentation center, community glitch tracker, and an automated AI-driven gaming news generation engine (`Gaming Intel`).
