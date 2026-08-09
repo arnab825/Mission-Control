@@ -4,17 +4,18 @@ import { InferenceClient } from "@huggingface/inference";
 import fs from "fs";
 import path from "path";
 import { formatDateToIST } from "@/lib/blog";
-import { put } from "@vercel/blob";
 
 async function saveImageBuffer(buffer: Buffer, slug: string, extension: string = "png"): Promise<string> {
   const publicDir = path.join(process.cwd(), "public/images/blog");
   const fileName = `${slug}.${extension}`;
-  const localPath = path.join(publicDir, fileName);
+  const localPath = path.join(process.cwd(), "public/images/blog", fileName);
   safeWriteFileSync(localPath, buffer);
 
   // If Vercel Blob token is configured, upload to cloud for persistent Vercel CDN serving
   if (process.env.BLOB_READ_WRITE_TOKEN) {
     try {
+      // @ts-ignore
+      const { put } = await import("@vercel/blob");
       const blob = await put(`images/blog/${fileName}`, buffer, {
         access: "public",
         addRandomSuffix: false,
@@ -632,22 +633,26 @@ export function generateHighTechSVGCover(title: string, category: string): strin
 }
 
 export async function generateImageWithPollinations(prompt: string): Promise<Buffer | null> {
-  try {
-    const cleanPrompt = encodeURIComponent(prompt.slice(0, 200));
-    const seed = Math.floor(Math.random() * 999999) + 1;
-    const url = `https://image.pollinations.ai/prompt/${cleanPrompt}?nologo=true&width=1024&height=768&seed=${seed}&model=flux`;
-    const response = await fetch(url, {
-      headers: { "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64)" },
-      signal: AbortSignal.timeout(8000)
-    });
-    if (response.ok) {
-      const arrayBuffer = await response.arrayBuffer();
-      if (arrayBuffer.byteLength > 4000) {
-        return Buffer.from(arrayBuffer);
+  const cleanPrompt = encodeURIComponent(prompt.slice(0, 250));
+  const models = ["flux", "turbo", "sdxl"];
+
+  for (const model of models) {
+    try {
+      const seed = Math.floor(Math.random() * 899999) + 100000;
+      const url = `https://image.pollinations.ai/prompt/${cleanPrompt}?nologo=true&width=1024&height=576&seed=${seed}&model=${model}`;
+      const response = await fetch(url, {
+        headers: { "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64)" },
+        signal: AbortSignal.timeout(25000)
+      });
+      if (response.ok) {
+        const arrayBuffer = await response.arrayBuffer();
+        if (arrayBuffer.byteLength > 4000) {
+          return Buffer.from(arrayBuffer);
+        }
       }
+    } catch (err) {
+      console.warn(`[BlogGen][Pollinations ${model}] Attempt failed:`, err);
     }
-  } catch (err) {
-    // Quietly return null to trigger Tier 4 fallback
   }
   return null;
 }

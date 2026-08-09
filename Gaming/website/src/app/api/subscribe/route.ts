@@ -3,21 +3,36 @@ import connectDB from "@/lib/mongodb";
 import Subscriber from "@/models/Subscriber";
 import nodemailer from "nodemailer";
 
+function escapeHtml(str: string): string {
+  return String(str)
+    .replace(/&/g, "&amp;")
+    .replace(/</g, "&lt;")
+    .replace(/>/g, "&gt;")
+    .replace(/"/g, "&quot;")
+    .replace(/'/g, "&#039;");
+}
+
 export async function POST(request: Request) {
   try {
     const body = await request.json();
     const { email } = body;
 
-    if (!email || typeof email !== "string" || !email.includes("@")) {
+    if (!email || typeof email !== "string" || !email.trim()) {
       return NextResponse.json(
-        { error: "Invalid email address provided." },
+        { error: "Validation Error: Please provide an email address." },
         { status: 400 }
       );
     }
 
     const cleanEmail = email.trim().toLowerCase();
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    if (!emailRegex.test(cleanEmail)) {
+      return NextResponse.json(
+        { error: "Validation Error: Please provide a valid email address." },
+        { status: 400 }
+      );
+    }
 
-    // 1. Connect DB & Save Subscriber
     let subscriberDoc = null;
     try {
       await connectDB();
@@ -30,7 +45,6 @@ export async function POST(request: Request) {
       console.warn("MongoDB subscription save failed (operating in fallback mode):", dbError.message);
     }
 
-    // 2. Dispatch Welcome Telemetry Email via Nodemailer (or Ethereal fallback)
     const host = process.env.SMTP_HOST;
     const port = process.env.SMTP_PORT ? parseInt(process.env.SMTP_PORT, 10) : 587;
     const user = process.env.SMTP_USER;
@@ -58,29 +72,72 @@ export async function POST(request: Request) {
       });
     }
 
+    const safeEmail = escapeHtml(cleanEmail);
+
     const mailOptions = {
       from: `"Mission Control Telemetry" <noreply@missioncontrol.gg>`,
       to: cleanEmail,
-      subject: "Mission Control Telemetry Feed Subscribed",
-      text: `Operator registered. You are now subscribed to Mission Control telemetry updates, model patches, and firmware optimizations.`,
+      subject: "[System Activated] Mission Control Telemetry Feed Subscribed",
+      text: `Operator registered: ${cleanEmail}. You are now subscribed to Mission Control telemetry updates, model patches, and firmware optimizations.`,
       html: `
-        <div style="background-color: #0a0a0d; color: #ffffff; padding: 32px; font-family: 'Courier New', Courier, monospace; border: 1px solid #76b900; border-radius: 12px; max-width: 600px; margin: 0 auto;">
-          <h2 style="color: #76b900; letter-spacing: 2px; margin-top: 0;">[SYSTEM CONFIRMATION] TELEMETRY FEED SUBSCRIBED</h2>
-          <p style="color: #cccccc; font-size: 14px; line-height: 1.6;">
-            Operator <strong>${cleanEmail}</strong> has been enrolled in the zero-latency Mission Control update dispatch queue.
-          </p>
-          <div style="background-color: #12131a; border-left: 4px solid #76b900; padding: 16px; margin: 24px 0; border-radius: 4px;">
-            <p style="margin: 0; color: #ffffff; font-weight: bold; font-size: 13px;">INCLUDED SUBSCRIPTION PIPELINES:</p>
-            <ul style="color: #aaaaaa; font-size: 12px; margin: 8px 0 0 0; padding-left: 20px;">
-              <li>AI Telemetry & Local Inference Model Updates</li>
-              <li>GPU Driver Performance Patch Benchmarks</li>
-              <li>Mission Control Desktop App Changelogs</li>
-            </ul>
-          </div>
-          <footer style="margin-top: 32px; font-size: 10px; color: #666666; text-align: center; border-t: 1px solid #222; padding-top: 16px;">
-            MISSION CONTROL ARCHITECTURE &bull; ZERO CLOUD DEPENDENCY
-          </footer>
-        </div>
+        <!DOCTYPE html>
+        <html>
+        <head>
+          <meta charset="utf-8">
+          <meta name="viewport" content="width=device-width, initial-scale=1.0">
+          <title>Telemetry Feed Subscribed</title>
+        </head>
+        <body style="margin: 0; padding: 0; background-color: #050608; font-family: 'Segoe UI', Roboto, Helvetica, Arial, sans-serif; -webkit-font-smoothing: antialiased;">
+          <table role="presentation" width="100%" cellspacing="0" cellpadding="0" border="0" style="background-color: #050608; padding: 30px 10px;">
+            <tr>
+              <td align="center">
+                <table role="presentation" width="100%" cellspacing="0" cellpadding="0" border="0" style="max-width: 600px; background-color: #090c12; border: 1px solid #76b90044; border-radius: 12px; overflow: hidden; box-shadow: 0 10px 30px rgba(118,185,0,0.1);">
+                  
+                  <!-- Banner -->
+                  <tr>
+                    <td style="padding: 24px 30px; background: linear-gradient(135deg, #090f17 0%, #111a28 100%); border-bottom: 1px solid #76b90033;">
+                      <span style="font-family: monospace; font-size: 11px; font-weight: 700; color: #76b900; letter-spacing: 2px; text-transform: uppercase;">[SYSTEM CONFIRMATION]</span>
+                      <h1 style="margin: 6px 0 0 0; font-size: 20px; font-weight: 800; color: #ffffff; letter-spacing: -0.5px;">TELEMETRY FEED ACTIVATED</h1>
+                    </td>
+                  </tr>
+
+                  <!-- Body -->
+                  <tr>
+                    <td style="padding: 30px;">
+                      <p style="margin: 0 0 20px 0; color: #c0cddc; font-size: 14px; line-height: 1.6;">
+                        Operator <strong style="color: #76b900;">${safeEmail}</strong> has been enrolled in the Mission Control zero-latency dispatch queue.
+                      </p>
+
+                      <table width="100%" cellspacing="0" cellpadding="0" border="0" style="background-color: #0e1420; border-left: 3px solid #76b900; border-radius: 4px;">
+                        <tr>
+                          <td style="padding: 18px;">
+                            <p style="margin: 0 0 10px 0; color: #ffffff; font-weight: 700; font-size: 12px; font-family: monospace; letter-spacing: 1px;">ACTIVE SUBSCRIPTION DISPATCHES:</p>
+                            <ul style="color: #99aabc; font-size: 13px; margin: 0; padding-left: 20px; line-height: 1.8;">
+                              <li>AI Telemetry & Local Inference Model Updates</li>
+                              <li>GPU Driver Performance Patch Benchmarks</li>
+                              <li>Mission Control Desktop App Changelogs</li>
+                            </ul>
+                          </td>
+                        </tr>
+                      </table>
+                    </td>
+                  </tr>
+
+                  <!-- Footer -->
+                  <tr>
+                    <td style="padding: 20px 30px; background-color: #06080c; border-top: 1px solid #ffffff10; text-align: center;">
+                      <p style="margin: 0; font-size: 11px; color: #556677; font-family: monospace;">
+                        MISSION CONTROL ARCHITECTURE &bull; ZERO CLOUD DEPENDENCY
+                      </p>
+                    </td>
+                  </tr>
+
+                </table>
+              </td>
+            </tr>
+          </table>
+        </body>
+        </html>
       `,
     };
 

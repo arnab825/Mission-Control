@@ -17,25 +17,23 @@ async function run() {
     let needsUpdate = false;
     let newCoverImage = post.coverImage;
 
-    // Check if coverImage is missing, points to external URL, or missing local file
-    if (!newCoverImage) {
-      needsUpdate = true;
-    } else if (newCoverImage.startsWith("http")) {
-      // Check if a local image exists for this slug
-      const localImagePath = path.join(publicDir, "images/blog", `${post.slug}.png`);
-      if (fs.existsSync(localImagePath)) {
-        newCoverImage = `/images/blog/${post.slug}.png`;
-        needsUpdate = true;
-      } else {
-        newCoverImage = (post.category === "GPU News" || post.category === "Hardware Deep-Dive")
-          ? "/images/gpu-placeholder.png"
-          : "/images/game-placeholder.png";
+    const localImagePath = path.join(publicDir, "images/blog", `${post.slug}.png`);
+    const hasLocalImage = fs.existsSync(localImagePath);
+
+    if (hasLocalImage) {
+      const expectedCover = `/images/blog/${post.slug}.png`;
+      if (newCoverImage !== expectedCover) {
+        newCoverImage = expectedCover;
         needsUpdate = true;
       }
+    } else if (!newCoverImage || newCoverImage.startsWith("http")) {
+      newCoverImage = (post.category === "GPU News" || post.category === "Hardware Deep-Dive")
+        ? "/images/gpu-placeholder.png"
+        : "/images/game-placeholder.png";
+      needsUpdate = true;
     } else if (newCoverImage.startsWith("/images/blog/")) {
       const fullPath = path.join(publicDir, newCoverImage);
       if (!fs.existsSync(fullPath)) {
-        // Fallback to placeholder if local file is missing
         newCoverImage = (post.category === "GPU News" || post.category === "Hardware Deep-Dive")
           ? "/images/gpu-placeholder.png"
           : "/images/game-placeholder.png";
