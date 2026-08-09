@@ -21,23 +21,27 @@ const outfit = Outfit({
 });
 
 export const metadata: Metadata = {
+  metadataBase: new URL("https://mission-control-roan-seven.vercel.app"),
   title: {
-    default: "Mission Control - Autonomous Gaming Assistant & Telemetry Control",
+    default: "Mission Control — Autonomous AI Gaming Assistant & Telemetry Overlay",
     template: "%s | Mission Control"
   },
-  description: "Mission Control is an advanced agentic gaming overlay, technical coach, and hardware telemetry dashboard. Optimize your GPU performance, track real-time frame rates, and synchronize community telemetry hotfixes automatically.",
+  description: "Mission Control is an advanced agentic AI gaming overlay, telemetry control dashboard, and technical coach. Optimize GPU performance, frame rates, and telemetry hotfixes.",
   keywords: [
-    "AI Gaming Assistant", 
-    "Mission Control", 
-    "NVIDIA NIM", 
-    "DirectX 12 FPS Engine", 
-    "GPU Telemetry", 
-    "HUD Overlay", 
-    "DirectX Overlay Jitter", 
-    "Community Hotfix Tracker", 
+    "Mission Control Gaming",
+    "Mission Control AI",
+    "AI Gaming Assistant",
+    "Mission Control Overlay",
+    "NVIDIA NIM",
+    "DirectX 12 FPS Engine",
+    "GPU Telemetry",
+    "HUD Overlay",
     "System Performance Optimizer"
   ],
   authors: [{ name: "Mission Control Team" }],
+  alternates: {
+    canonical: "/",
+  },
   verification: {
     google: process.env.NEXT_PUBLIC_GOOGLE_SITE_VERIFICATION || "",
   },

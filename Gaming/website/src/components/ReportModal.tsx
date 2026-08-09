@@ -51,6 +51,28 @@ export default function ReportModal({ isOpen, onClose, onSuccess }: ReportModalP
     }
   }, [versionData]);
 
+  const submitIssueMutation = useMutation({
+    mutationFn: async (payload: any) => {
+      const response = await fetch("/api/issues", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(payload),
+      });
+      if (!response.ok) {
+        const errData = await response.json();
+        throw new Error(errData.error || "Failed to submit report.");
+      }
+      return response.json();
+    },
+    onSuccess: () => {
+      onSuccess();
+      onClose();
+    },
+    onError: (err: any) => {
+      setError(err.message || "An unknown error occurred.");
+    },
+  });
+
   if (!isOpen || !mounted) return null;
 
   // Dual-layer hardware auto-detection (Local WebSocket -> High-Performance WebGL)
@@ -204,28 +226,6 @@ export default function ReportModal({ isOpen, onClose, onSuccess }: ReportModalP
       runWebGLFallback();
     }
   };
-
-  const submitIssueMutation = useMutation({
-    mutationFn: async (payload: any) => {
-      const response = await fetch("/api/issues", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(payload),
-      });
-      if (!response.ok) {
-        const errData = await response.json();
-        throw new Error(errData.error || "Failed to submit report.");
-      }
-      return response.json();
-    },
-    onSuccess: () => {
-      onSuccess();
-      onClose();
-    },
-    onError: (err: any) => {
-      setError(err.message || "An unknown error occurred.");
-    },
-  });
 
   const loading = submitIssueMutation.isPending;
 
