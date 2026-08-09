@@ -41,7 +41,7 @@ export function safeWriteFileSync(filePath: string, content: string | Buffer, op
       try {
         const tmpPath = path.join("/tmp", path.basename(filePath));
         fs.writeFileSync(tmpPath, content, options);
-      } catch {}
+      } catch { }
     } else {
       console.warn(`[SafeWrite] Failed to write file ${filePath}:`, err?.message || err);
     }
@@ -59,7 +59,7 @@ export function safeAppendFileSync(filePath: string, content: string) {
     if (err?.code === "EROFS") {
       try {
         fs.appendFileSync(path.join("/tmp", path.basename(filePath)), content);
-      } catch {}
+      } catch { }
     } else {
       console.warn(`[SafeWrite] Failed to append to file ${filePath}:`, err?.message || err);
     }
@@ -330,9 +330,9 @@ function parseGeneratedBlogResponse(
   const title = fmText.match(/^title:\s*(.*)$/m)?.[1]?.replace(/^["']|["']$/g, "").trim() ?? `${postType} — ${today}`;
   const excerpt = (fmText.match(/^meta_description:\s*(.*)$/m)?.[1] ?? fmText.match(/^excerpt:\s*(.*)$/m)?.[1])?.replace(/^["']|["']$/g, "").trim() ?? "";
   let rawSlug = fmText.match(/^slug:\s*(.*)$/m)?.[1]?.replace(/^["']|["']$/g, "").trim() ?? `${postType.toLowerCase().replace(/\s+/g, "-")}`;
-  
+
   let baseSlug = rawSlug.replace(new RegExp(`-${today}$`), "").replace(/[^a-z0-9-]/gi, "-").toLowerCase().replace(/-+/g, "-");
-  
+
   const categoryTag = postType.toLowerCase().replace(/\s+/g, "-");
   if (!baseSlug.includes(categoryTag)) {
     baseSlug = `${categoryTag}-${baseSlug}`;
@@ -453,7 +453,7 @@ export async function generateBlogPost(
   apiKey: string,
   targetDate: Date = new Date()
 ): Promise<{ slug: string; title: string; excerpt: string; tags: string[]; content: string; imagePrompt?: string } | null> {
-  
+
   const geminiKey = process.env.GEMINI_API_KEY || process.env.GOOGLE_API_KEY;
   const hfToken = process.env.HF_TOKEN;
 
@@ -481,12 +481,12 @@ export async function generateBlogPost(
   if (apiKey) {
     console.log(`[BlogGen][${postType}] Falling back to NVIDIA NIM (meta/llama-3.3-70b-instruct)...`);
     let result = await generateBlogPostWithModel(items, postType, apiKey, targetDate, "meta/llama-3.3-70b-instruct");
-    
+
     if (!result) {
       console.log(`[BlogGen][${postType}] Falling back to NVIDIA NIM (meta/llama-3.1-8b-instruct)...`);
       result = await generateBlogPostWithModel(items, postType, apiKey, targetDate, "meta/llama-3.1-8b-instruct");
     }
-    
+
     if (result) {
       safeAppendFileSync(path.join(process.cwd(), "generate.log"), `[BlogGen][${postType}] [LLM OK] Content generated via NVIDIA NIM.\n`);
       return result;
@@ -566,7 +566,7 @@ ${post.content}
 
 export function generateHighTechSVGCover(title: string, category: string): string {
   const isHardware = category === "GPU News" || category === "Hardware Deep-Dive";
-  
+
   const primaryColor = isHardware ? "#76b900" : "#fbbf24";
   const secondaryColor = isHardware ? "#a855f7" : "#ec4899";
   const accentColor = isHardware ? "#38bdf8" : "#10b981";
@@ -670,7 +670,7 @@ export async function generateBlogCoverImage(
   if (geminiKey) {
     try {
       console.log(`[BlogGen][${category}] Attempting Google Gemini (Imagen 3)...`);
-      const res = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/imagen-3.0-generate-002:predict?key=${geminiKey}`, {
+      const res = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/imagen-4.0-fast-generate-001:predict?key=${geminiKey}`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
@@ -746,7 +746,7 @@ export async function generateBlogCoverImage(
   const sourceImage = isHardware
     ? path.join(process.cwd(), "public/images/gpu-placeholder.png")
     : path.join(process.cwd(), "public/images/game-placeholder.png");
-  
+
   if (fs.existsSync(sourceImage)) {
     const buffer = fs.readFileSync(sourceImage);
     const savedPath = await saveImageBuffer(buffer, slug, "png");
@@ -769,7 +769,7 @@ export async function generateAndSavePost(
 ): Promise<{ type: string; slug: string; saved: boolean } | null> {
   const isHardware = (currentTopic === "GPU News" || currentTopic === "Hardware Deep-Dive");
   const logFile = path.join(process.cwd(), "generate.log");
-  
+
   safeAppendFileSync(logFile, `[${new Date().toISOString()}] [START] Generating post for ${currentTopic}\n`);
 
   // Fetch all RSS feeds in parallel
@@ -880,16 +880,16 @@ export async function generateAndSavePost(
 
       const saved = await writeToMongoDB(post, currentTopic, publishedAt, localCoverPath);
       saveLocalMDX(post, currentTopic, publishedAt, localCoverPath);
-      
+
       if (!saved) {
-          safeAppendFileSync(logFile, `[BlogGen][${currentTopic}] [FAILED] Post was generated but DB write returned false.\n`);
+        safeAppendFileSync(logFile, `[BlogGen][${currentTopic}] [FAILED] Post was generated but DB write returned false.\n`);
       }
       return { type: currentTopic, slug: post.slug, saved };
     } else {
-        safeAppendFileSync(logFile, `[BlogGen][${currentTopic}] [FAILED] No post returned from LLM.\n`);
+      safeAppendFileSync(logFile, `[BlogGen][${currentTopic}] [FAILED] No post returned from LLM.\n`);
     }
   } else {
-      safeAppendFileSync(logFile, `[BlogGen][${currentTopic}] [FAILED] Not enough feed items.\n`);
+    safeAppendFileSync(logFile, `[BlogGen][${currentTopic}] [FAILED] Not enough feed items.\n`);
   }
   return null;
 }
