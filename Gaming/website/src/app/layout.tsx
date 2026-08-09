@@ -3,6 +3,7 @@ import { Inter, JetBrains_Mono, Outfit } from "next/font/google";
 import "./globals.css";
 import ClientLayout from "@/components/ClientLayout";
 import { GoogleAdSenseScript } from "@/components/GoogleAdSense";
+import { GoogleAnalyticsScript } from "@/components/GoogleAnalytics";
 
 const inter = Inter({
   variable: "--font-inter",
@@ -81,6 +82,7 @@ export default function RootLayout({
       className={`${inter.variable} ${jetbrainsMono.variable} ${outfit.variable} antialiased dark`}
     >
       <body className="min-h-screen flex flex-col bg-obsidian text-foreground font-sans">
+        <GoogleAnalyticsScript />
         <GoogleAdSenseScript />
 
         {/* Google Search Sitelinks & WebSite SearchAction Schema */}
