@@ -19,6 +19,43 @@
 
 ---
 
+## 📸 Interface & Capabilities Showcase
+
+<table align="center">
+  <tr>
+    <td width="50%" align="center">
+      <b>🖥️ Main Console & Dashboard</b><br/><br/>
+      <img src="Gaming/website/public/screenshots/dashboard_hdr.webp" alt="Main Console & Dashboard" width="100%"/>
+    </td>
+    <td width="50%" align="center">
+      <b>📟 Glassmorphic HUD Overlay</b><br/><br/>
+      <img src="Gaming/website/public/screenshots/hud.webp" alt="Glassmorphic HUD Overlay" width="100%"/>
+    </td>
+  </tr>
+  <tr>
+    <td width="50%" align="center">
+      <b>🎯 TensorRT AI Vision & YOLO Detection</b><br/><br/>
+      <img src="Gaming/website/public/screenshots/vision.webp" alt="TensorRT AI Vision" width="100%"/>
+    </td>
+    <td width="50%" align="center">
+      <b>📊 Real-Time Hardware Telemetry</b><br/><br/>
+      <img src="Gaming/website/public/screenshots/system.webp" alt="Real-Time Hardware Telemetry" width="100%"/>
+    </td>
+  </tr>
+  <tr>
+    <td width="50%" align="center">
+      <b>🎮 Game Library & Auto-Sense Target Routing</b><br/><br/>
+      <img src="Gaming/website/public/screenshots/library.webp" alt="Game Library" width="100%"/>
+    </td>
+    <td width="50%" align="center">
+      <b>⚡ AI Hardware Readiness Matrix</b><br/><br/>
+      <img src="Gaming/website/public/screenshots/readiness.webp" alt="AI Hardware Readiness" width="100%"/>
+    </td>
+  </tr>
+</table>
+
+---
+
 ## 📌 Monorepo Architecture Overview
 
 **Mission Control** is an integrated platform split into three primary sub-projects designed to deliver ultra-low latency hardware monitoring, local AI vision, and high-performance gaming intelligence:

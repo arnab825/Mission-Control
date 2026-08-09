@@ -8,6 +8,33 @@ The primary desktop client interface for **Mission Control**, built using Electr
 
 ---
 
+## 📸 Interface Screenshots
+
+<table align="center">
+  <tr>
+    <td width="50%" align="center">
+      <b>🖥️ Main Console Dashboard</b><br/><br/>
+      <img src="../website/public/screenshots/dashboard_hdr.webp" alt="Main Console Dashboard" width="100%"/>
+    </td>
+    <td width="50%" align="center">
+      <b>📟 Glassmorphic HUD Overlay</b><br/><br/>
+      <img src="../website/public/screenshots/hud.webp" alt="Glassmorphic HUD Overlay" width="100%"/>
+    </td>
+  </tr>
+  <tr>
+    <td width="50%" align="center">
+      <b>📊 Real-Time Hardware Telemetry</b><br/><br/>
+      <img src="../website/public/screenshots/system.webp" alt="Real-Time Hardware Telemetry" width="100%"/>
+    </td>
+    <td width="50%" align="center">
+      <b>🎮 Game Library & Auto-Sense Target Routing</b><br/><br/>
+      <img src="../website/public/screenshots/library.webp" alt="Game Library" width="100%"/>
+    </td>
+  </tr>
+</table>
+
+---
+
 ## ⚡ Key Features
 
 - **📟 Glassmorphic HUD Overlay**: Low-overhead overlay strip rendering real-time FPS counter, CPU/GPU temperatures, wattage, and dynamic voice/AI co-pilot subtitles.
