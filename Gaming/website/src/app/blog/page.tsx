@@ -248,18 +248,33 @@ async function GamingIntelData({ activeCategory, localGamingPosts, currentPage }
     console.warn("MongoDB Connection Error: IP not whitelisted. Falling back to local posts.");
   }
 
-  const mappedDbPosts = dbPosts.map((p) => ({
-    _id: p._id?.toString() || Math.random().toString(),
-    title: p.title || 'Untitled Intel',
-    slug: { current: p.slug || 'unknown-slug' },
-    category: p.category || 'Mission Brief',
-    excerpt: p.excerpt || '',
-    tags: p.tags || [],
-    author: p.author || 'Mission Control',
-    aiGenerated: p.aiGenerated || false,
-    publishedAt: p.publishedAt ? new Date(p.publishedAt).toISOString() : new Date().toISOString(),
-    coverImage: p.coverImage,
-  }));
+  const mappedDbPosts = dbPosts.map((p) => {
+    let resolvedCover = p.coverImage;
+    const isPlaceholder = !resolvedCover || resolvedCover.includes("placeholder");
+    if (isPlaceholder) {
+      const localMdx = localGamingPosts.find((lp) => lp.slug?.current === p.slug || lp._id === p.slug);
+      if (localMdx?.coverImage && !localMdx.coverImage.includes("placeholder")) {
+        resolvedCover = localMdx.coverImage;
+      } else {
+        const pngPath = `/images/blog/${p.slug}.png`;
+        if (fs.existsSync(path.join(process.cwd(), "public", pngPath))) {
+          resolvedCover = pngPath;
+        }
+      }
+    }
+    return {
+      _id: p._id?.toString() || Math.random().toString(),
+      title: p.title || 'Untitled Intel',
+      slug: { current: p.slug || 'unknown-slug' },
+      category: p.category || 'Mission Brief',
+      excerpt: p.excerpt || '',
+      tags: p.tags || [],
+      author: p.author || 'Mission Control',
+      aiGenerated: p.aiGenerated || false,
+      publishedAt: p.publishedAt ? new Date(p.publishedAt).toISOString() : new Date().toISOString(),
+      coverImage: resolvedCover,
+    };
+  });
 
   // Filter local posts by activeCategory if selected
   const filteredLocalGaming = activeCategory !== "all"
