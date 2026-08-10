@@ -1,8 +1,18 @@
 {
-  "version": "2.9.1",
-  "release_date": "2026-08-06",
+  "version": "2.9.2",
+  "release_date": "2026-08-10",
   "update_check_url": "https://raw.githubusercontent.com/arnab825/Mission-Control/main/Gaming/backend/version.json",
   "changelog": [
+    {
+      "version": "2.9.2",
+      "date": "2026-08-10",
+      "title": "Frontend Graph Responsiveness & Performance Optimizations",
+      "highlights": [
+        "Fixed responsiveness lag on telemetry graphs by passing explicit parent ResizeObserver dimensions to Recharts",
+        "Optimized System and Dashboard pages by extracting graphs into memoized React components",
+        "Added history update throttling (200ms) to Dashboard to reduce layout rendering overhead during high-speed telemetry packets"
+      ]
+    },
     {
       "version": "2.9.1",
       "date": "2026-08-06",

@@ -29,7 +29,7 @@ export const SafeResponsiveContainer: React.FC<React.ComponentProps<typeof Respo
   return (
     <div ref={containerRef} className="w-full h-full min-w-0 min-h-0 relative">
       {hasValidSize && (
-        <ResponsiveContainer {...props} width="100%" height="100%" minWidth={1} minHeight={1} />
+        <ResponsiveContainer {...props} width={dimensions.width} height={dimensions.height} minWidth={1} minHeight={1} />
       )}
     </div>
   );

@@ -1,5 +1,5 @@
 import * as React from 'react';
-import { useState, useEffect, useMemo } from 'react';
+import { useState, useEffect, useMemo, useRef } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { 
   Cpu, Zap, Box, Database, Search, Settings, ShieldCheck, 
@@ -138,6 +138,53 @@ const StatCard = React.memo<StatCardProps>(({ label, value, percent, subtext, ic
   );
 });
 
+const DashboardAreaChart = React.memo<{
+  data: { t: number; GPU: number; CPU: number; RAM: number }[];
+}>(({ data }) => {
+  return (
+    <SafeResponsiveContainer width="100%" height="100%">
+      <AreaChart
+        data={data}
+        margin={{ top: 2, right: 2, left: -32, bottom: 0 }}
+      >
+        <defs>
+          <linearGradient id="gpuGrad" x1="0" y1="0" x2="0" y2="1">
+            <stop offset="5%" stopColor="#e879f9" stopOpacity={0.3} />
+            <stop offset="95%" stopColor="#e879f9" stopOpacity={0} />
+          </linearGradient>
+          <linearGradient id="cpuGrad" x1="0" y1="0" x2="0" y2="1">
+            <stop offset="5%" stopColor="#76b900" stopOpacity={0.25} />
+            <stop offset="95%" stopColor="#76b900" stopOpacity={0} />
+          </linearGradient>
+          <linearGradient id="ramGrad" x1="0" y1="0" x2="0" y2="1">
+            <stop offset="5%" stopColor="#a855f7" stopOpacity={0.2} />
+            <stop offset="95%" stopColor="#a855f7" stopOpacity={0} />
+          </linearGradient>
+        </defs>
+        <CartesianGrid strokeDasharray="3 3" stroke="rgba(255,255,255,0.03)" vertical={false} />
+        <XAxis dataKey="t" hide />
+        <YAxis domain={[0, 100]} tick={{ fill: '#52525b', fontSize: 8, fontWeight: 700 }} tickLine={false} axisLine={false} tickFormatter={(v) => `${v}%`} />
+        <Tooltip
+          contentStyle={{
+            background: 'rgba(9,9,15,0.95)',
+            border: '1px solid rgba(255,255,255,0.06)',
+            borderRadius: '12px',
+            fontSize: '9px',
+            fontWeight: 700,
+            color: '#fff',
+            boxShadow: '0 8px 32px rgba(0,0,0,0.5)'
+          }}
+          formatter={(value: any, name: any) => [`${value}%`, name]}
+          cursor={{ stroke: 'rgba(255,255,255,0.06)', strokeWidth: 1 }}
+        />
+        <Area type="monotone" dataKey="GPU" stroke="#e879f9" strokeWidth={1.2} fill="url(#gpuGrad)" dot={false} activeDot={{ r: 2.5, fill: '#e879f9' }} />
+        <Area type="monotone" dataKey="CPU" stroke="#76b900" strokeWidth={1.2} fill="url(#cpuGrad)" dot={false} activeDot={{ r: 2.5, fill: '#76b900' }} />
+        <Area type="monotone" dataKey="RAM" stroke="#a855f7" strokeWidth={1.2} fill="url(#ramGrad)" dot={false} activeDot={{ r: 2.5, fill: '#a855f7' }} />
+      </AreaChart>
+    </SafeResponsiveContainer>
+  );
+});
+
 interface DashboardPageProps {
   state: TelemetryState | null;
   onCommand: (type: string, payload: any) => void;
@@ -185,8 +232,18 @@ const DashboardPage: React.FC<DashboardPageProps> = ({ state, onCommand, onNavig
     onCommand('scan_games', { userId: userId || undefined });
   });
 
+  const lastHistoryUpdateRef = useRef<number>(0);
+  const HISTORY_UPDATE_INTERVAL = 200; // Update history every 200ms max
+
   useEffect(() => {
     if (state) {
+      // Debounce history updates - only update if enough time has passed
+      const now = Date.now();
+      if (now - lastHistoryUpdateRef.current < HISTORY_UPDATE_INTERVAL) {
+        return; // Skip update if too soon
+      }
+      lastHistoryUpdateRef.current = now;
+
       const gpuVal = state.gpu_metrics?.utilization ?? state.gpu_metrics?.gpu_util ?? 0;
       setHistory(prev => ({
         CPU: [...prev.CPU.slice(1), state.cpu_pct || 0],
@@ -196,6 +253,15 @@ const DashboardPage: React.FC<DashboardPageProps> = ({ state, onCommand, onNavig
       }));
     }
   }, [state]);
+
+  const chartData = useMemo(() => {
+    return history.GPU.map((_, i) => ({
+      t: i,
+      GPU: Math.round(history.GPU[i] ?? 0),
+      CPU: Math.round(history.CPU[i] ?? 0),
+      RAM: Math.round(history.RAM[i] ?? 0),
+    }));
+  }, [history]);
 
   const rawLogs = (state as any)?.logs || [
     { time: '00:00:00', type: 'INFO', msg: 'Neural Link operational. Awaiting backend synchronization.' }
@@ -500,51 +566,7 @@ const DashboardPage: React.FC<DashboardPageProps> = ({ state, onCommand, onNavig
 
             {/* Recharts AreaChart (flexes to fill exactly remaining vertical space) */}
             <div className="flex-1 min-h-[160px] lg:min-h-0 relative">
-              <SafeResponsiveContainer width="100%" height="100%">
-                <AreaChart
-                  data={history.GPU.map((_, i) => ({
-                    t: i,
-                    GPU: Math.round(history.GPU[i] ?? 0),
-                    CPU: Math.round(history.CPU[i] ?? 0),
-                    RAM: Math.round(history.RAM[i] ?? 0),
-                  }))}
-                  margin={{ top: 2, right: 2, left: -32, bottom: 0 }}
-                >
-                  <defs>
-                    <linearGradient id="gpuGrad" x1="0" y1="0" x2="0" y2="1">
-                      <stop offset="5%" stopColor="#e879f9" stopOpacity={0.3} />
-                      <stop offset="95%" stopColor="#e879f9" stopOpacity={0} />
-                    </linearGradient>
-                    <linearGradient id="cpuGrad" x1="0" y1="0" x2="0" y2="1">
-                      <stop offset="5%" stopColor="#76b900" stopOpacity={0.25} />
-                      <stop offset="95%" stopColor="#76b900" stopOpacity={0} />
-                    </linearGradient>
-                    <linearGradient id="ramGrad" x1="0" y1="0" x2="0" y2="1">
-                      <stop offset="5%" stopColor="#a855f7" stopOpacity={0.2} />
-                      <stop offset="95%" stopColor="#a855f7" stopOpacity={0} />
-                    </linearGradient>
-                  </defs>
-                  <CartesianGrid strokeDasharray="3 3" stroke="rgba(255,255,255,0.03)" vertical={false} />
-                  <XAxis dataKey="t" hide />
-                  <YAxis domain={[0, 100]} tick={{ fill: '#52525b', fontSize: 8, fontWeight: 700 }} tickLine={false} axisLine={false} tickFormatter={(v) => `${v}%`} />
-                  <Tooltip
-                    contentStyle={{
-                      background: 'rgba(9,9,15,0.95)',
-                      border: '1px solid rgba(255,255,255,0.06)',
-                      borderRadius: '12px',
-                      fontSize: '9px',
-                      fontWeight: 700,
-                      color: '#fff',
-                      boxShadow: '0 8px 32px rgba(0,0,0,0.5)'
-                    }}
-                    formatter={(value: any, name: any) => [`${value}%`, name]}
-                    cursor={{ stroke: 'rgba(255,255,255,0.06)', strokeWidth: 1 }}
-                  />
-                  <Area type="monotone" dataKey="GPU" stroke="#e879f9" strokeWidth={1.2} fill="url(#gpuGrad)" dot={false} activeDot={{ r: 2.5, fill: '#e879f9' }} />
-                  <Area type="monotone" dataKey="CPU" stroke="#76b900" strokeWidth={1.2} fill="url(#cpuGrad)" dot={false} activeDot={{ r: 2.5, fill: '#76b900' }} />
-                  <Area type="monotone" dataKey="RAM" stroke="#a855f7" strokeWidth={1.2} fill="url(#ramGrad)" dot={false} activeDot={{ r: 2.5, fill: '#a855f7' }} />
-                </AreaChart>
-              </SafeResponsiveContainer>
+              <DashboardAreaChart data={chartData} />
             </div>
           </div>
         </div>
