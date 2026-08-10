@@ -25,7 +25,7 @@ dependencies = [
     "pyaudio",
     "tavily-python",
     "duckduckgo-search",
-    "websockets>=17.0",
+    "websockets>=17.0.1",
     "wmi>=1.5.1",
     "pywin32",
     "requests",
