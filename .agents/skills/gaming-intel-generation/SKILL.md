@@ -67,11 +67,12 @@ To avoid creating duplicate posts for the same day (e.g. if the generation scrip
 
 ### Photorealistic 3D Cover Art Requirements
 * **Topic-Specific 3D Photorealistic Style Only**: `image_prompt` MUST request photorealistic 3D renders or cinematic 3D game concept art depicting the **exact character, game scene, or hardware component** from the article (e.g. *"A highly detailed, photorealistic 3D video game concept art depicting [Specific Character/Combat Scene], cinematic volumetric lighting, 8k resolution, Unreal Engine 5 style, no text"*).
-* **Multi-Tier AI Image Pipeline**: Images are generated through a 4-tier provider cascade:
+* **Multi-Tier AI Image Pipeline & Persistent Vercel Blob Storage**: Images are generated through a 4-tier provider cascade:
   1. **Google Gemini (Imagen 3)** via `GEMINI_API_KEY` (`imagen-3.0-generate-002`)
   2. **Hugging Face (`FLUX.1-schnell`)** via `HF_TOKEN`
   3. **Pollinations AI** (fast 8s timeout)
   4. **High-Resolution Photorealistic 3D PNG Artwork** category fallback
+* **Vercel Blob CDN Integration (`BLOB_READ_WRITE_TOKEN`)**: Generated image buffers are automatically uploaded to Vercel Blob CDN (`@vercel/blob`) and saved as public CDN URLs in MongoDB. This ensures 100% persistent storage and prevents serverless filesystem 404 errors.
 * **No Generic Abstract Art**: Never generate flat vector graphics, generic abstract wallpapers, or unrelated artwork.
 
 
