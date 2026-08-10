@@ -6,15 +6,14 @@ import { generateBlogCoverImage } from "./shared";
 async function run() {
   await connectDB();
 
-  const todayStr = "2026-08-05";
-  const regex = new RegExp(`-${todayStr}$`);
+  const targetSlugs = [
+    "game-news-handheld-cloud-breaches-eos-workarounds-gaming-tech-2026-2026-08-10",
+    "hardware-deep-dive-architectural-divergence-nvidia-blackwell-512-bit-amd-rdna4-2026-08-10",
+    "game-revisit-gba-engine-architecture-tilemaps-dma-2026-08-10",
+    "gpu-news-nvidia-blackwell-rtx-5090-amd-rdna4-market-shift-2026-08-10"
+  ];
 
-  const posts = await GamingPost.find({
-    $or: [
-      { slug: { $regex: regex } },
-      { createdAt: { $gte: new Date(Date.now() - 24 * 60 * 60 * 1000) } }
-    ]
-  });
+  const posts = await GamingPost.find({ slug: { $in: targetSlugs } });
 
   console.log(`[UpdateTodayImages] Found ${posts.length} posts for today.`);
 

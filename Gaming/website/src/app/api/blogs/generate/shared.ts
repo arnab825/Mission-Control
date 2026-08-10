@@ -22,8 +22,8 @@ async function saveImageBuffer(buffer: Buffer, slug: string, extension: string =
       });
       console.log(`[BlogGen] [BLOB OK] Uploaded image to Vercel Blob CDN: ${blob.url}`);
       return blob.url;
-    } catch (blobErr) {
-      console.warn(`[BlogGen] Vercel Blob upload failed, falling back to local path:`, blobErr);
+    } catch (blobErr: any) {
+      console.warn(`[BlogGen] Vercel Blob upload failed, falling back to local path:`, blobErr?.message || blobErr);
     }
   }
 
