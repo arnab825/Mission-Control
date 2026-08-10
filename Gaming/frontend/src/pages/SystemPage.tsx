@@ -392,6 +392,59 @@ const AnomalyDetailPanel: React.FC<{ event: any }> = ({ event }) => {
   );
 };
 
+const SystemAreaChart = React.memo<{
+  data: { tick: number; val: number }[];
+  color: string;
+  category: string;
+}>(({ data, color, category }) => {
+  return (
+    <SafeResponsiveContainer width="100%" height="100%">
+      <AreaChart
+        data={data}
+        margin={{ top: 10, right: 10, left: -25, bottom: 0 }}
+      >
+        <defs>
+          <linearGradient id="systemChartGrad" x1="0" y1="0" x2="0" y2="1">
+            <stop offset="5%" stopColor={color} stopOpacity="0.4" />
+            <stop offset="95%" stopColor={color} stopOpacity="0" />
+          </linearGradient>
+        </defs>
+        <CartesianGrid strokeDasharray="3 3" stroke="rgba(255,255,255,0.03)" vertical={false} />
+        <XAxis dataKey="tick" hide />
+        <YAxis 
+          domain={[0, 100]} 
+          tick={{ fill: '#71717a', fontSize: 9, fontWeight: 700 }} 
+          tickLine={false} 
+          axisLine={false} 
+          tickFormatter={(v) => `${v}%`} 
+        />
+        <Tooltip
+          contentStyle={{
+            background: 'rgba(9,9,15,0.95)',
+            border: '1px solid rgba(255,255,255,0.06)',
+            borderRadius: '12px',
+            fontSize: '9px',
+            fontWeight: 700,
+            color: '#fff',
+            boxShadow: '0 8px 32px rgba(0,0,0,0.5)'
+          }}
+          formatter={(value: any) => [`${value}%`, category]}
+          cursor={{ stroke: 'rgba(255,255,255,0.06)', strokeWidth: 1 }}
+        />
+        <Area 
+          type="monotone" 
+          dataKey="val" 
+          stroke={color} 
+          strokeWidth={2.5} 
+          fill="url(#systemChartGrad)" 
+          dot={false} 
+          activeDot={{ r: 3.5, fill: color }} 
+        />
+      </AreaChart>
+    </SafeResponsiveContainer>
+  );
+});
+
 interface SystemPageProps {
   state: TelemetryState | null;
   selectedCategory?: string;
@@ -890,50 +943,11 @@ const SystemPage: React.FC<SystemPageProps> = ({
               {/* Graph Area */}
               <div className="h-64 border-b border-white/5 relative group shrink-0">
                 <div className="absolute inset-0">
-                  <SafeResponsiveContainer width="100%" height="100%">
-                    <AreaChart
-                      data={chartData}
-                      margin={{ top: 10, right: 10, left: -25, bottom: 0 }}
-                    >
-                      <defs>
-                        <linearGradient id="systemChartGrad" x1="0" y1="0" x2="0" y2="1">
-                          <stop offset="5%" stopColor={getCategoryColor} stopOpacity="0.4" />
-                          <stop offset="95%" stopColor={getCategoryColor} stopOpacity="0" />
-                        </linearGradient>
-                      </defs>
-                      <CartesianGrid strokeDasharray="3 3" stroke="rgba(255,255,255,0.03)" vertical={false} />
-                      <XAxis dataKey="tick" hide />
-                      <YAxis 
-                        domain={[0, 100]} 
-                        tick={{ fill: '#71717a', fontSize: 9, fontWeight: 700 }} 
-                        tickLine={false} 
-                        axisLine={false} 
-                        tickFormatter={(v) => `${v}%`} 
-                      />
-                      <Tooltip
-                        contentStyle={{
-                          background: 'rgba(9,9,15,0.95)',
-                          border: '1px solid rgba(255,255,255,0.06)',
-                          borderRadius: '12px',
-                          fontSize: '9px',
-                          fontWeight: 700,
-                          color: '#fff',
-                          boxShadow: '0 8px 32px rgba(0,0,0,0.5)'
-                        }}
-                        formatter={(value: any) => [`${value}%`, selectedCategory]}
-                        cursor={{ stroke: 'rgba(255,255,255,0.06)', strokeWidth: 1 }}
-                      />
-                      <Area 
-                        type="monotone" 
-                        dataKey="val" 
-                        stroke={getCategoryColor} 
-                        strokeWidth={2.5} 
-                        fill="url(#systemChartGrad)" 
-                        dot={false} 
-                        activeDot={{ r: 3.5, fill: getCategoryColor }} 
-                      />
-                    </AreaChart>
-                  </SafeResponsiveContainer>
+                  <SystemAreaChart
+                    data={chartData}
+                    color={getCategoryColor}
+                    category={selectedCategory}
+                  />
                 </div>
               </div>
 
