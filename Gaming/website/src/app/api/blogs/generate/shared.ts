@@ -746,24 +746,39 @@ export async function generateBlogCoverImage(
     console.warn(`[BlogGen][${category}] Pollinations AI attempt failed:`, polErr);
   }
 
-  // Tier 4: Photorealistic 3D Topic Artwork (Guaranteed High-Res PNG)
+  // Tier 4: Placeholder PNG fallback (Guaranteed High-Res PNG)
   const isHardware = category === "GPU News" || category === "Hardware Deep-Dive";
   const sourceImage = isHardware
     ? path.join(process.cwd(), "public/images/gpu-placeholder.png")
     : path.join(process.cwd(), "public/images/game-placeholder.png");
 
-  if (fs.existsSync(sourceImage)) {
-    const buffer = fs.readFileSync(sourceImage);
-    const savedPath = await saveImageBuffer(buffer, slug, "png");
-    console.log(`[BlogGen][${category}] [IMAGE OK] Saved Photorealistic 3D Art: ${savedPath}`);
-    return savedPath;
+  try {
+    if (fs.existsSync(sourceImage)) {
+      const buffer = fs.readFileSync(sourceImage);
+      const savedPath = await saveImageBuffer(buffer, slug, "png");
+      console.log(`[BlogGen][${category}] [IMAGE OK] Saved placeholder PNG: ${savedPath}`);
+      return savedPath;
+    }
+  } catch (placeholderErr) {
+    console.error(`[BlogGen][${category}] Placeholder PNG copy failed:`, placeholderErr);
   }
 
-  // Backup fallback
-  const svgCode = generateHighTechSVGCover(title, category);
-  const savedPath = await saveImageBuffer(Buffer.from(svgCode, "utf8"), slug, "svg");
-  return savedPath;
+  // Absolute last resort: write SVG directly (never fails)
+  try {
+    const svgCode = generateHighTechSVGCover(title, category);
+    const svgPath = path.join(process.cwd(), "public/images/blog", `${slug}.svg`);
+    fs.mkdirSync(path.dirname(svgPath), { recursive: true });
+    fs.writeFileSync(svgPath, svgCode, "utf8");
+    console.log(`[BlogGen][${category}] [IMAGE OK] SVG fallback saved: /images/blog/${slug}.svg`);
+    return `/images/blog/${slug}.svg`;
+  } catch (svgErr) {
+    console.error(`[BlogGen][${category}] SVG fallback also failed:`, svgErr);
+  }
+
+  // If we somehow get here, return expected path (file won't exist but DB path is consistent)
+  return `/images/blog/${slug}.png`;
 }
+
 
 
 export async function generateAndSavePost(

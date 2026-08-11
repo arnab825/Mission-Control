@@ -47,15 +47,18 @@ export async function POST(request: NextRequest) {
     postTypes = [...allPostTypes];
   }
 
-  const settlementResults = await Promise.allSettled(
-    postTypes.map((currentTopic) =>
-      generateAndSavePost(currentTopic, targetDate, apiKey, process.env.HF_TOKEN)
-    )
-  );
-
-  const results = settlementResults
-    .filter((r): r is PromiseFulfilledResult<any> => r.status === "fulfilled" && r.value !== null)
-    .map((r) => r.value);
+  // Run sequentially to avoid hammering image APIs (Gemini/HF/Pollinations) with 4 concurrent
+  // requests at once, which causes all tiers to rate-limit/timeout simultaneously and fall through
+  // to the placeholder — or worse, save nothing.
+  const results: any[] = [];
+  for (const currentTopic of postTypes) {
+    try {
+      const result = await generateAndSavePost(currentTopic, targetDate, apiKey, process.env.HF_TOKEN);
+      if (result !== null) results.push(result);
+    } catch (err) {
+      console.error(`[BlogGen][${currentTopic}] Unhandled error in generateAndSavePost:`, err);
+    }
+  }
 
   return NextResponse.json({
     success: true,
