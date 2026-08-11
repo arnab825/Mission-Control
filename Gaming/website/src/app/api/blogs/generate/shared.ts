@@ -16,12 +16,27 @@ async function saveImageBuffer(buffer: Buffer, slug: string, extension: string =
     try {
       // @ts-ignore
       const { put } = await import("@vercel/blob");
-      const blob = await put(`images/blog/${fileName}`, buffer, {
-        access: "public",
-        addRandomSuffix: false,
-      });
-      console.log(`[BlogGen] [BLOB OK] Uploaded image to Vercel Blob CDN: ${blob.url}`);
-      return blob.url;
+      // Try public access first, fallback to store default if private
+      let blob;
+      try {
+        blob = await put(`images/blog/${fileName}`, buffer, {
+          access: "public",
+          addRandomSuffix: false,
+        });
+      } catch (accessErr: any) {
+        if (accessErr?.message?.includes("private store")) {
+          // Store is private; upload without explicit access override
+          blob = await put(`images/blog/${fileName}`, buffer, {
+            addRandomSuffix: false,
+          } as any);
+        } else {
+          throw accessErr;
+        }
+      }
+      if (blob?.url) {
+        console.log(`[BlogGen] [BLOB OK] Uploaded image to Vercel Blob CDN: ${blob.url}`);
+        return blob.url;
+      }
     } catch (blobErr: any) {
       console.warn(`[BlogGen] Vercel Blob upload failed, falling back to local path:`, blobErr?.message || blobErr);
     }
