@@ -24,11 +24,12 @@ async function saveImageBuffer(buffer: Buffer, slug: string, extension: string =
           addRandomSuffix: false,
         });
       } catch (accessErr: any) {
-        if (accessErr?.message?.includes("private store")) {
-          // Store is private; upload without explicit access override
+        if (accessErr?.message?.includes("private store") || accessErr?.message?.includes("private access")) {
+          // Store is private; upload with explicit 'private' access
           blob = await put(`images/blog/${fileName}`, buffer, {
+            access: "private",
             addRandomSuffix: false,
-          } as any);
+          });
         } else {
           throw accessErr;
         }
