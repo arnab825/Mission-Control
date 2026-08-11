@@ -7,10 +7,10 @@ async function run() {
   await connectDB();
 
   const targetSlugs = [
-    "game-news-handheld-cloud-breaches-eos-workarounds-gaming-tech-2026-2026-08-10",
-    "hardware-deep-dive-architectural-divergence-nvidia-blackwell-512-bit-amd-rdna4-2026-08-10",
-    "game-revisit-gba-engine-architecture-tilemaps-dma-2026-08-10",
-    "gpu-news-nvidia-blackwell-rtx-5090-amd-rdna4-market-shift-2026-08-10"
+    "game-news-aaa-budget-cuts-delisted-software-netcode-patches-august-2026-2026-08-11",
+    "game-revisit-engine-post-mortem-id-tech-3-quake-iii-arena-2026-08-11",
+    "hardware-deep-dive-silicon-bottlenecks-and-virtualization-boundaries-gpu-architecture-2026-08-11",
+    "gpu-news-marvel-tokon-pc-patch-rtx-5070-laptop-nvidia-ai-geopolitics-2026-08-11"
   ];
 
   const posts = await GamingPost.find({ slug: { $in: targetSlugs } });
