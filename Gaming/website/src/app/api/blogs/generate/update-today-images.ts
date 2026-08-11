@@ -10,7 +10,8 @@ async function run() {
     "game-news-aaa-budget-cuts-delisted-software-netcode-patches-august-2026-2026-08-11",
     "game-revisit-engine-post-mortem-id-tech-3-quake-iii-arena-2026-08-11",
     "hardware-deep-dive-silicon-bottlenecks-and-virtualization-boundaries-gpu-architecture-2026-08-11",
-    "gpu-news-marvel-tokon-pc-patch-rtx-5070-laptop-nvidia-ai-geopolitics-2026-08-11"
+    "gpu-news-marvel-tokon-pc-patch-rtx-5070-laptop-nvidia-ai-geopolitics-2026-08-11",
+    "hardware-deep-dive-mechanics-of-frame-determinism-vram-constraints-blackwell-2026-08-11"
   ];
 
   const posts = await GamingPost.find({ slug: { $in: targetSlugs } });
