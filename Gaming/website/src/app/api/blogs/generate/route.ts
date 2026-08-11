@@ -47,18 +47,18 @@ export async function POST(request: NextRequest) {
     postTypes = [...allPostTypes];
   }
 
-  // Run sequentially to avoid hammering image APIs (Gemini/HF/Pollinations) with 4 concurrent
-  // requests at once, which causes all tiers to rate-limit/timeout simultaneously and fall through
-  // to the placeholder — or worse, save nothing.
-  const results: any[] = [];
-  for (const currentTopic of postTypes) {
-    try {
-      const result = await generateAndSavePost(currentTopic, targetDate, apiKey, process.env.HF_TOKEN);
-      if (result !== null) results.push(result);
-    } catch (err) {
-      console.error(`[BlogGen][${currentTopic}] Unhandled error in generateAndSavePost:`, err);
-    }
-  }
+  // Run in parallel — the main route is used for manual triggers only.
+  // Cron jobs use the individual per-category routes (gpu-news, game-news, etc.)
+  // which each handle 1 post within the 60s function limit.
+  const settlementResults = await Promise.allSettled(
+    postTypes.map((currentTopic) =>
+      generateAndSavePost(currentTopic, targetDate, apiKey, process.env.HF_TOKEN)
+    )
+  );
+
+  const results = settlementResults
+    .filter((r): r is PromiseFulfilledResult<any> => r.status === "fulfilled" && r.value !== null)
+    .map((r) => r.value);
 
   return NextResponse.json({
     success: true,
