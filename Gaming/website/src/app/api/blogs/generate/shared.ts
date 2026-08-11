@@ -649,29 +649,55 @@ export function generateHighTechSVGCover(title: string, category: string): strin
 }
 
 export async function generateImageWithPollinations(prompt: string): Promise<Buffer | null> {
-  const cleanPrompt = encodeURIComponent(prompt.slice(0, 250));
   const models = ["flux", "turbo", "sdxl"];
 
+  // Attempt 1: Full prompt with each model
   for (const model of models) {
     try {
+      const cleanPrompt = encodeURIComponent(prompt.slice(0, 250));
       const seed = Math.floor(Math.random() * 899999) + 100000;
       const url = `https://image.pollinations.ai/prompt/${cleanPrompt}?nologo=true&width=1024&height=576&seed=${seed}&model=${model}`;
+      console.log(`[BlogGen][Pollinations ${model}] Generating image...`);
       const response = await fetch(url, {
         headers: { "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64)" },
-        signal: AbortSignal.timeout(25000)
+        signal: AbortSignal.timeout(50000)
       });
       if (response.ok) {
         const arrayBuffer = await response.arrayBuffer();
         if (arrayBuffer.byteLength > 4000) {
+          console.log(`[BlogGen][Pollinations ${model}] Success (${arrayBuffer.byteLength} bytes)`);
           return Buffer.from(arrayBuffer);
         }
       }
-    } catch (err) {
-      console.warn(`[BlogGen][Pollinations ${model}] Attempt failed:`, err);
+    } catch (err: any) {
+      console.warn(`[BlogGen][Pollinations ${model}] Attempt failed: ${err?.message || err}`);
     }
   }
+
+  // Attempt 2: Simplified short prompt with flux (most reliable model)
+  try {
+    const shortPrompt = encodeURIComponent(prompt.slice(0, 80).replace(/[^a-zA-Z0-9 ]/g, " ").trim());
+    const seed = Math.floor(Math.random() * 899999) + 100000;
+    const url = `https://image.pollinations.ai/prompt/${shortPrompt}?nologo=true&width=1024&height=576&seed=${seed}&model=flux`;
+    console.log(`[BlogGen][Pollinations flux-retry] Retrying with simplified prompt...`);
+    const response = await fetch(url, {
+      headers: { "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64)" },
+      signal: AbortSignal.timeout(50000)
+    });
+    if (response.ok) {
+      const arrayBuffer = await response.arrayBuffer();
+      if (arrayBuffer.byteLength > 4000) {
+        console.log(`[BlogGen][Pollinations flux-retry] Success (${arrayBuffer.byteLength} bytes)`);
+        return Buffer.from(arrayBuffer);
+      }
+    }
+  } catch (err: any) {
+    console.warn(`[BlogGen][Pollinations flux-retry] Final attempt failed: ${err?.message || err}`);
+  }
+
   return null;
 }
+
 
 
 export async function generateBlogCoverImage(
@@ -718,7 +744,20 @@ export async function generateBlogCoverImage(
     }
   }
 
-  // Tier 2: Hugging Face Inference API (FLUX.1-schnell)
+  // Tier 2: Pollinations AI (Free, high performance, no rate-limit quota)
+  try {
+    console.log(`[BlogGen][${category}] Attempting Pollinations AI...`);
+    const buffer = await generateImageWithPollinations(prompt);
+    if (buffer && buffer.length > 4000) {
+      const savedPath = await saveImageBuffer(buffer, slug, "png");
+      console.log(`[BlogGen][${category}] [IMAGE OK] Pollinations AI saved: ${savedPath}`);
+      return savedPath;
+    }
+  } catch (polErr) {
+    console.warn(`[BlogGen][${category}] Pollinations AI attempt failed:`, polErr);
+  }
+
+  // Tier 3: Hugging Face Inference API (FLUX.1-schnell)
   const activeHfToken = hfToken || process.env.HF_TOKEN;
   if (activeHfToken) {
     try {
@@ -746,20 +785,6 @@ export async function generateBlogCoverImage(
     } catch (hfErr) {
       console.warn(`[BlogGen][${category}] Hugging Face attempt failed:`, hfErr);
     }
-  }
-
-
-  // Tier 3: Pollinations AI
-  try {
-    console.log(`[BlogGen][${category}] Attempting Pollinations AI...`);
-    const buffer = await generateImageWithPollinations(prompt);
-    if (buffer && buffer.length > 4000) {
-      const savedPath = await saveImageBuffer(buffer, slug, "png");
-      console.log(`[BlogGen][${category}] [IMAGE OK] Pollinations AI saved: ${savedPath}`);
-      return savedPath;
-    }
-  } catch (polErr) {
-    console.warn(`[BlogGen][${category}] Pollinations AI attempt failed:`, polErr);
   }
 
   // Tier 4: Placeholder PNG fallback (Guaranteed High-Res PNG)
