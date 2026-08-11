@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import { Maximize2, X, Activity, Scan, Cpu, BrainCircuit, Terminal, Gamepad2, Server, ShieldCheck } from "lucide-react";
+import { Maximize2, X, Activity, Scan, Cpu, BrainCircuit, Terminal, Gamepad2, Server, ShieldCheck, Bot } from "lucide-react";
 
 export function ScreenshotGallery() {
   const tabs = [
@@ -10,6 +10,7 @@ export function ScreenshotGallery() {
     { id: "library", label: "Library", icon: Gamepad2, src: "/screenshots/library.webp" },
     { id: "system", label: "System", icon: Server, src: "/screenshots/system.webp" },
     { id: "readiness", label: "Readiness", icon: ShieldCheck, src: "/screenshots/readiness.webp" },
+    { id: "agent", label: "Agent Co-Pilot", icon: Bot, src: "/screenshots/agent.webp" },
     { id: "hud", label: "In-Game HUD Overlay", icon: Scan, src: "/screenshots/hud.webp" },
     { id: "vision", label: "Real-time YOLO Vision", icon: BrainCircuit, src: "/screenshots/vision.webp" },
     { id: "lab", label: "Performance Lab", icon: Cpu, src: "/screenshots/lab.webp" },
@@ -42,6 +43,12 @@ export function ScreenshotGallery() {
   // Fallback Mockup Generator
   const renderMockup = (tabId: string) => {
     switch (tabId) {
+      case 'agent':
+        return (
+          <div className="w-full h-full relative overflow-hidden bg-black flex items-center justify-center">
+            <img src="/screenshots/agent.webp" alt="Mission Control Agent Co-Pilot" className="w-full h-full object-cover upscale-crisp" />
+          </div>
+        );
       case 'dashboard':
         return (
           <div className="w-full h-full relative overflow-hidden bg-black flex items-center justify-center">
