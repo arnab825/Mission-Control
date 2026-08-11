@@ -45,7 +45,8 @@ import {
   Newspaper,
   Eye,
   Maximize2,
-  X
+  X,
+  Bot
 } from "lucide-react";
 
 function GithubIcon(props: React.SVGProps<SVGSVGElement>) {
@@ -285,12 +286,16 @@ export default function Home() {
             <h1 className="sr-only">Mission Control — Autonomous AI Gaming Assistant & Telemetry Overlay</h1>
 
             {/* Glowing Category Badge */}
-            <div className="inline-flex items-center gap-2 border border-neon-green/60 rounded-full px-3.5 py-1.5 bg-gradient-to-r from-neon-green/20 via-neon-green/10 to-transparent backdrop-blur-xl mb-6 shadow-[0_0_25px_rgba(118,185,0,0.25)]">
+            <div className="inline-flex items-center gap-2 border border-neon-green/60 rounded-full px-3.5 py-1.5 bg-gradient-to-r from-neon-green/20 via-neon-green/10 to-transparent backdrop-blur-xl mb-6 shadow-[0_0_25px_rgba(118,185,0,0.25)] flex-wrap justify-center lg:justify-start">
               <span className="text-neon-green text-[11px] sm:text-xs font-bold font-mono tracking-widest uppercase flex items-center gap-1.5">
                 <Sparkles className="w-3 h-3 text-neon-yellow" /> TACTICAL ENGINE v{appVersion}
               </span>
               <span className="text-white/30 hidden sm:inline">•</span>
               <span className="text-gray-300 text-xs font-mono font-semibold hidden sm:inline">LOCAL CUDA</span>
+              <span className="text-white/30 hidden sm:inline">•</span>
+              <span className="text-neon-yellow text-xs font-mono font-bold uppercase flex items-center gap-1 bg-neon-yellow/10 px-2 py-0.5 rounded-full border border-neon-yellow/30">
+                <Bot className="w-3 h-3 text-neon-yellow" /> AGENT CO-PILOT
+              </span>
             </div>
 
             {/* Premium Cybernetic Gradient Title */}
@@ -340,10 +345,10 @@ export default function Home() {
                   href="https://github.com/arnab825/Mission-Control"
                   target="_blank"
                   rel="noopener noreferrer"
-                  className="inline-flex items-center justify-center p-3.5 glass-card glass-card-hover text-gray-300 hover:text-neon-green transition-all border-white/15 hover:border-neon-green/50 shrink-0 rounded-xl shadow-md"
+                  className="inline-flex items-center justify-center p-3.5 glass-card glass-card-hover text-gray-300 hover:text-neon-green transition-all border-white/15 hover:border-neon-green/50 shrink-0 rounded-xl shadow-md group"
                   title="View GitHub Repository"
                 >
-                  <GithubIcon className="w-4 h-4 text-neon-green" />
+                  <GithubIcon className="w-4 h-4 text-neon-green group-hover:scale-110 transition-transform" />
                 </a>
               </div>
             </div>
