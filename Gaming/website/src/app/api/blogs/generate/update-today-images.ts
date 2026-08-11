@@ -6,11 +6,12 @@ import { generateBlogCoverImage } from "./shared";
 async function run() {
   await connectDB();
 
-  const targetSlugs = [
-    "hardware-deep-dive-mechanics-of-frame-determinism-vram-constraints-blackwell-2026-08-11"
-  ];
-
-  const posts = await GamingPost.find({ slug: { $in: targetSlugs } });
+  // Query all posts published today (2026-08-11)
+  const startOfDay = new Date("2026-08-11T00:00:00.000Z");
+  const endOfDay = new Date("2026-08-11T23:59:59.999Z");
+  const posts = await GamingPost.find({
+    publishedAt: { $gte: startOfDay, $lte: endOfDay }
+  });
 
   console.log(`[UpdateTodayImages] Found ${posts.length} posts for today.`);
 
