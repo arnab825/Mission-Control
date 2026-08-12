@@ -103,7 +103,12 @@ try {
 
         # 6. Push code and tags to GitHub
         Write-Host "[PUSH] Pushing to main and syncing tags..." -ForegroundColor Cyan
-        git push origin main --tags
+        $token = if ($env:GH_TOKEN) { $env:GH_TOKEN } else { $env:GITHUB_TOKEN }
+        if ($token) {
+            git push "https://x-access-token:${token}@github.com/arnab825/Mission-Control.git" main --tags
+        } else {
+            git push origin main --tags
+        }
         
         Write-Host "[SUCCESS] Version v${version} is now tagged and live!" -ForegroundColor Green
     } else {
