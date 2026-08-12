@@ -132,71 +132,35 @@ Impact: these changes improve reliability, reduce crashes, enable higher-perform
 </table>
 
 ```mermaid
-flowchart TD
-    User["👤 USER / Gamer"]
+graph TD
+    classDef client fill:#1e293b,stroke:#38bdf8,stroke-width:2px,color:#f8fafc;
+    classDef ai fill:#0f172a,stroke:#a855f7,stroke-width:2px,color:#f8fafc;
+    classDef cloud fill:#022c22,stroke:#10b981,stroke-width:2px,color:#f8fafc;
+    classDef output fill:#1c1917,stroke:#f59e0b,stroke-width:2px,color:#f8fafc;
 
-    subgraph UI ["🖥️ DESKTOP CLIENT INTERFACES"]
-        GamesLib["🎮 Games Library"]
-        AgentChatUI["💬 Agent Chat"]
-        SysDash["📊 System Dashboard"]
-        SettingsPage["⚙️ Settings Page"]
-        PublisherGUI["📦 Publisher GUI (Builds & Releases)"]
+    User["👤 USER / GAMER"] --> UI["🖥️ ELECTRON CLIENT & INTERFACES<br/><i>Dashboard • Library • Agent Chat • HUD • Settings</i>"]:::client
+
+    subgraph ENGINE ["🧠 MISSION CONTROL ENGINE ARCHITECTURE"]
+        direction TB
+
+        UI --> Router["🔍 Task Classifier & Web Search Engine<br/><i>RAG Router • DuckDuckGo • RAWG.io • SteamSpy</i>"]:::ai
+        Router --> NIM["⚡ NVIDIA NIM CLOUD AI<br/><i>Llama 3.1 8B/70B Strategic + Llama 3.2 11B Vision VLM</i>"]:::cloud
+
+        NIM --> Voice["🎙️ Voice & Subtitle Engine<br/><i>Google STT • ElevenLabs / SAPI5 TTS</i>"]:::output
+        NIM --> Advice["💬 Agent Co-Pilot Advice & Tactical Cards"]:::output
+
+        FrameCap["📸 dxcam 60 FPS Capture"] --> YOLO["🎯 TensorRT YOLOv8 + OCR Vision Engine"]:::ai
+        YOLO --> HUD["📟 Glassmorphic HUD Overlay<br/><i>Live Telemetry • Tactical Hints • Min/Max FPS</i>"]:::output
+        
+        HW["🔧 Native Hardware Telemetry<br/><i>LibreHardwareMonitor • PyNVML • C++ ETW DLL</i>"]:::ai --> HUD
+        Voice --> HUD
+        Advice --> HUD
     end
 
-    subgraph Brain ["🧠 AI DECISION ENGINE"]
-        TaskDetect["🔍 Task Auto Detection"]
-        WebSearch["🌐 Web Search Engine"]
-        ModelRouter["🤖 Model Auto Router"]
-    end
-
-    subgraph CloudAI ["🔮 NVIDIA NIM CLOUD AI"]
-        StrategicModel["🧠 Llama 3.1 8B / 70B (Strategic & Tactical)"]
-        VisionModel["👁️ Llama 3.2 11B Vision (VLM Scene Analysis)"]
-    end
-
-    subgraph OutputPipes ["⚡ EXECUTION & OUTPUT PIPELINES"]
-        subgraph VoiceEng ["🎙️ Voice Engine"]
-            STT["STT: Google Cloud / Sphinx"]
-            TTS["TTS: ElevenLabs / SAPI5"]
-        end
-
-        subgraph AgentChatOut ["💬 Agent Chat Response"]
-            ChatReplies["Chat Replies & Advice Cards"]
-        end
-
-        subgraph VisionPipeline ["🎮 Game Vision Pipeline"]
-            Capture["📸 Screen Capture (dxcam 60fps+)"]
-            YOLO["⚡ YOLOv8 Vision (TensorRT 10x)"]
-            OCR["📝 OCR & Scene Classification"]
-        end
-    end
-
-    subgraph HUD ["📟 GLASSMORPHIC HUD OVERLAY"]
-        Alerts["Tactical Alerts & Story Tips"]
-        Bars["HP / GPU / CPU Telemetry Bar"]
-        Subtitles["Voice & AI Subtitles Strip"]
-    end
-
-    subgraph HW ["🔧 HARDWARE TELEMETRY & HOTKEYS"]
-        Tele["GPU, CPU, Thermal, RAM Telemetry Stream"]
-        Hotkeys["⌨️ Global Hotkeys (Ctrl+W HUD, Ctrl+Alt+M Mic)"]
-    end
-
-    User --> UI
-    UI --> TaskDetect
-    TaskDetect --> WebSearch
-    WebSearch --> ModelRouter
-    ModelRouter --> CloudAI
-    CloudAI --> VoiceEng
-    CloudAI --> AgentChatOut
-    
-    Capture --> YOLO
-    YOLO --> OCR
-    OCR --> HUD
-    VoiceEng --> Subtitles
-    AgentChatOut --> Alerts
-    Tele --> Bars
-    Hotkeys --> HUD
+    class UI client;
+    class Router,YOLO,HW ai;
+    class NIM cloud;
+    class Voice,Advice,HUD output;
 ```
 
 ---
