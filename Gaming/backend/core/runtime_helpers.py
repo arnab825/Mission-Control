@@ -31,6 +31,7 @@ logger = logging.getLogger(__name__)
 _AWCC_COOLDOWN_UNTIL = 0.0
 _PS_THERMAL_COOLDOWN_UNTIL = 0.0
 _CACHED_AWCC_SENSOR_ID = None
+_PS_THERMAL_FAILED = False
 
 
 def _try_win_cpu_temp_native() -> float:
@@ -43,7 +44,7 @@ def _try_win_cpu_temp_native() -> float:
     3. Read all PDH thermal zones dynamically
     Returns 0.0 if nothing works.
     """
-    global _AWCC_COOLDOWN_UNTIL, _PS_THERMAL_COOLDOWN_UNTIL, _CACHED_AWCC_SENSOR_ID
+    global _AWCC_COOLDOWN_UNTIL, _PS_THERMAL_COOLDOWN_UNTIL, _CACHED_AWCC_SENSOR_ID, _PS_THERMAL_FAILED
     if sys.platform != "win32":
         return 0.0
 
