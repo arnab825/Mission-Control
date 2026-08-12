@@ -1,3 +1,4 @@
-# Release v3.1.0: Fixes some Bugs for Linux
+# Release v3.1.1: fixed som e bugs
 
-- Fixes some Bugs for Linux
+- fixed som e bugs
+

@@ -77,6 +77,24 @@ echo -e "\033[0;36m[PUSH] Pushing code and tags to GitHub...\033[0m"
 TOKEN="${GH_TOKEN:-$GITHUB_TOKEN}"
 if [ -n "$TOKEN" ]; then
     git push "https://x-access-token:${TOKEN}@github.com/arnab825/Mission-Control.git" main --tags
+    
+    # Automatically un-draft the release on GitHub so it becomes public and Latest
+    echo -e "\033[0;36m[PUBLISH] Publishing draft release v${VERSION} live on GitHub...\033[0m"
+    python3 -c "
+import urllib.request, json
+try:
+    req = urllib.request.Request('https://api.github.com/repos/arnab825/Mission-Control/releases', headers={'Authorization': 'token ${TOKEN}', 'Accept': 'application/vnd.github.v3+json', 'User-Agent': 'MissionControlPublisher'})
+    with urllib.request.urlopen(req) as resp:
+        releases = json.loads(resp.read().decode())
+    target = next((r for r in releases if r.get('tag_name') == 'v${VERSION}' or 'v${VERSION}' in r.get('name', '')), None)
+    if target and target.get('draft'):
+        update_data = json.dumps({'draft': False, 'name': '${RELEASE_TITLE}'}).encode()
+        patch_req = urllib.request.Request(f'https://api.github.com/repos/arnab825/Mission-Control/releases/{target[\"id\"]}', data=update_data, headers={'Authorization': 'token ${TOKEN}', 'Content-Type': 'application/json', 'User-Agent': 'MissionControlPublisher'}, method='PATCH')
+        with urllib.request.urlopen(patch_req) as p_resp:
+            print('[SUCCESS] Release v${VERSION} is now LIVE and marked as Latest on GitHub!')
+except Exception as e:
+    print(f'[NOTE] Release upload complete: {e}')
+" || true
 else
     git push origin main --tags
 fi

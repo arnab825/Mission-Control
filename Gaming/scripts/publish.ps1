@@ -122,6 +122,21 @@ try {
         $token = if ($env:GH_TOKEN) { $env:GH_TOKEN } else { $env:GITHUB_TOKEN }
         if ($token) {
             git push "https://x-access-token:${token}@github.com/arnab825/Mission-Control.git" main --tags
+            
+            # Automatically un-draft the release on GitHub so it becomes public and Latest
+            try {
+                Write-Host "[PUBLISH] Publishing draft release v${version} live on GitHub..." -ForegroundColor Cyan
+                $headers = @{ Authorization = "token ${token}"; Accept = "application/vnd.github.v3+json"; "User-Agent" = "MissionControlPublisher" }
+                $releases = Invoke-RestMethod -Uri "https://api.github.com/repos/arnab825/Mission-Control/releases" -Headers $headers
+                $target = $releases | Where-Object { $_.tag_name -eq "v${version}" -or $_.name -like "*${version}*" }
+                if ($target -and $target.draft) {
+                    $body = @{ draft = $false; name = $releaseTitle } | ConvertTo-Json
+                    Invoke-RestMethod -Uri "https://api.github.com/repos/arnab825/Mission-Control/releases/$($target.id)" -Method Patch -Headers $headers -Body $body -ContentType "application/json" | Out-Null
+                    Write-Host "[SUCCESS] Release v${version} is now LIVE and marked as Latest on GitHub!" -ForegroundColor Green
+                }
+            } catch {
+                Write-Host "[WARNING] Release upload complete (manual un-draft on GitHub may be required): $_" -ForegroundColor Yellow
+            }
         } else {
             git push origin main --tags
         }
