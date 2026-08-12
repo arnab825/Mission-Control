@@ -1,8 +1,16 @@
 {
-  "version": "3.1.1",
+  "version": "3.1.2",
   "release_date": "2026-08-10",
   "update_check_url": "https://raw.githubusercontent.com/arnab825/Mission-Control/main/Gaming/backend/version.json",
   "changelog": [
+    {
+      "version": "3.1.2",
+      "date": "2026-08-13",
+      "title": "fixed som e bugs",
+      "highlights": [
+        "fixed som e bugs"
+      ]
+    },
     {
       "version": "3.1.1",
       "date": "2026-08-13",
@@ -443,17 +451,6 @@
         "Updated AI Neural Backbone options to clarify free models vs models requiring NVIDIA NIM API credits",
         "Added Gemma 2 9B to fast reasoning model options",
         "Fixed missing icon for Ghost of Tsushima in Library Hardware Feature Matrix"
-      ]
-    },
-    {
-      "version": "2.7.0",
-      "date": "2026-07-29",
-      "title": "NIM Error Surfacing & Real-time Voice Manager Feedback",
-      "highlights": [
-        "Surfaced accurate NVIDIA NIM error responses in chat stream to prevent UI hangs on model entitlement or timeout failures",
-        "Added 15-second phrase cutoff time limit to SpeechRecognition to prevent endless mic blocking",
-        "Implemented instant mic stream interruption when aborting voice notes",
-        "Added real-time status updates (Processing, You: transcript) to the chat bridge during voice input"
       ]
     }
   ]
