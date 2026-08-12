@@ -4,17 +4,30 @@ import Subscriber from "@/models/Subscriber";
 import SupportSession from "@/models/SupportSession";
 
 // System prompt for 24/7 Mission Control Support AI Assistant
-const SUPPORT_SYSTEM_PROMPT = `You are "Mission Control 24/7 Support AI", the official website guide & technical expert for Mission Control website & ecosystem.
-Your tone is technical, friendly, authoritative, and helpful. You assist visitors with navigating the website, accessing documentation, joining the community glitch tracker, contacting the support team, inspecting system architecture, and downloading the Mission Control desktop app.
+const SUPPORT_SYSTEM_PROMPT = `You are "Mission Control 24/7 Support AI", the official website guide, developer ambassador & technical support expert for the Mission Control ecosystem.
 
-Key Website Modules & Knowledge Base:
-- 📚 Documentation Hub (/docs): Complete API reference, environment setup, NVIDIA NIM integration guides, and system architecture docs.
-- 💬 Community Glitch Tracker (/community): Submit hardware sensor mismatches, overlay glitches, or system driver conflicts. Upvoted logs trigger automated telemetry hotfixes.
-- 📬 Contact Support Team (/contact): Direct contact form to reach the core Mission Control development and telemetry labs team.
+Key Information & Knowledge Base:
+- 👨‍💻 Developers & Project Creators: Mission Control is developed and engineered by **Arnab Roy** (@arnab825) as Project Founder & Lead Architect and **Anirudha Basu Thakur** (@Ani0811) as Core Co-Developer across Apps & Website.
+- 👥 GitHub Contributors & Profiles:
+  • **Arnab Roy** ([@arnab825](https://github.com/arnab825)): Project Founder & Lead Architect — System Architecture, Telemetry Engine, Next.js Web App, C# HAL & Python daemons.
+  • **Anirudha Basu Thakur** ([@Ani0811](https://github.com/Ani0811)): Core Co-Developer — App & Website features, system interfaces & frontend optimization.
+  • 🐙 GitHub Repository: [github.com/arnab825/Mission-Control](https://github.com/arnab825/Mission-Control)
+- 📥 Desktop App Downloads & Formats:
+  • **.EXE Installer** (\`MissionControl-Setup.exe\`): Recommended standard 64-bit Windows installer with auto-updates.
+  • **.MSI Package** (\`MissionControl-Setup.msi\`): Enterprise Windows Installer package for silent/custom domain deployments.
+  • **.ZIP Portable** (\`MissionControl-Portable.zip\`): Portable standalone archive — no installation required, run directly.
+- 📬 Support & Contact Hub (/contact): Direct contact form for user queries, technical doubts, feature feedback, and engineering support.
+- 📚 Documentation Hub (/docs): Complete API reference, environment setup, NVIDIA NIM integration guides, and low-level system architecture docs.
+- 📊 Benchmark Profiles (/benchmarks): Detailed game overview, story, gameplay loop, mechanics, and hardware performance metrics across RTX GPUs.
+- 💬 Community Glitch Tracker (/community): Submit hardware sensor mismatches, overlay glitches, FPS drops, or driver conflicts. Upvoted logs trigger automated telemetry hotfixes.
 - ⚡ System Architecture (/architecture): Low-level HAL daemons, quantized TensorRT compilers, and swapchain overlay presentation pipeline.
-- 📥 Desktop App Download (/download): Download the Windows 10/11 stealth overlay executable and telemetry monitoring daemon.
 
-Format your answer cleanly with bullet points where appropriate. Keep answers focused, precise, and beginner-friendly!`;
+Instructions for Responding:
+1. Always be polite, concise, helpful, and technical.
+2. If asked about downloads, concisely explain all 3 formats: **.EXE**, **.MSI**, and **.ZIP portable**, with internal link to **[Downloads](/download)**.
+3. If asked about doubts, help, feedback, or contacting the team, guide users directly to the **[Contact Us](/contact)** page or **[Community Glitch Tracker](/community)**.
+4. If asked "who developed/made/built this app/website" or about contributors, list **Arnab Roy** (@arnab825) and **Anirudha Basu Thakur** (@Ani0811) along with the [GitHub Repo](https://github.com/arnab825/Mission-Control).
+5. Provide structured, clean Markdown responses with bullet points or numbered lists. Include internal markdown links to guide users effectively.`;
 
 // GET: Fetch all saved chat sessions for user email
 export async function GET(request: Request) {
@@ -109,7 +122,11 @@ export async function POST(request: Request) {
 
     // If message is empty (onboarding register trigger), initialize session in MongoDB
     if (!message || !message.trim()) {
-      const welcomeReply = `Welcome **${cleanName}**! I'm your 24/7 Mission Control Support Assistant. How can I assist you with our **Documentation**, **Community Glitch Tracker**, **System Architecture**, or **App Download** today?`;
+      const welcomeReply = `Welcome **${cleanName}**! I'm your 24/7 Mission Control Support Assistant.
+
+> ⚠️ **BETA NOTICE & GUIDELINES**: This AI Assistant is currently in **Active BETA**. It may occasionally generate minor mistakes or incomplete details. If you notice any inaccuracies or require direct developer assistance, please submit your feedback via our **[Contact Us](/contact)** form or report bugs on our **[Community Glitch Tracker](/community)**!
+
+How can I assist you with our **Documentation**, **System Architecture**, **App Download**, **Contributors**, or hardware performance benchmarks today?`;
       const initialMsgs = [
         {
           id: "welcome-1",
@@ -177,46 +194,112 @@ export async function POST(request: Request) {
 
     // Fallback rule-based smart responder if AI API key is omitted or busy
     if (!replyText) {
-      const q = userPrompt.toLowerCase();
-      if (q.includes("doc") || q.includes("api") || q.includes("guide") || q.includes("help")) {
-        replyText = `### 📚 Documentation & Technical Reference
-1. **API Reference**: Check out our comprehensive **[Docs Hub](/docs)** for API keys, NVIDIA NIM setup, and environment config.
-2. **Architecture**: Inspect our low-level telemetry HAL and swapchain overlay pipeline on the **[Architecture](/architecture)** page.
-3. **Troubleshooting**: Search doc articles directly using the global search bar at the top of the site.`;
-      } else if (q.includes("community") || q.includes("glitch") || q.includes("tracker") || q.includes("report")) {
-        replyText = `### 💬 Community Glitch Tracker
-1. **Telemetry Reports**: Visit the **[Community Glitch Tracker](/community)** to view upvoted hardware logs and driver conflict patches.
-2. **Submit Issues**: Click **+ Log Telemetry Glitch** on the Community page to submit your rig specs and issue details.
-3. **Hotfix Pipeline**: Top-voted logs trigger automated telemetry hotfixes in active build pipelines.`;
-      } else if (q.includes("contact") || q.includes("support") || q.includes("team") || q.includes("email")) {
-        replyText = `### 📬 Contact Support Team
-1. **Direct Form**: Reach our core engineering team directly via the **[Contact Us](/contact)** page.
-2. **Weekly Intel**: Since you're opted in, you'll receive weekly conversation digests and system telemetry updates directly in your inbox.`;
-      } else if (q.includes("download") || q.includes("app") || q.includes("exe") || q.includes("install")) {
-        replyText = `### 📥 Mission Control App Download
-1. **Latest Build**: Download \`MissionControl-Setup.exe\` directly from the **[Downloads](/download)** page.
-2. **OS Support**: Built for 64-bit Windows 10 & Windows 11 rigs with DirectX 12 graphics cards.`;
-      } else {
-        replyText = `Hello **${cleanName}**! I'm here 24/7 to guide you through the Mission Control website.
+      const q = userPrompt.toLowerCase().trim();
 
-Feel free to ask about:
-1. **📚 Documentation & API Reference (/docs)**
-2. **💬 Community Glitch Tracker (/community)**
-3. **⚡ System Architecture (/architecture)**
-4. **📬 Contact Support Team (/contact)**
-5. **📥 Desktop App Download (/download)**`;
+      // Check if user replied with a single number option (e.g. "1", "2", "3", "4", "option 1", "#3")
+      const numMatch = q.match(/^(option\s*|#\s*)?([1-4])$/i);
+      const selectedNum = numMatch ? numMatch[2] : null;
+
+      // 1. Developer / Author / Creator / Option 3
+      const devRegex = /(who|whos|who's)\s*(is|was|has)?\s*(the)?\s*(dveloped|devloped|developed|created|built|made|engineered|designed|author|creator|developer|owner|founder|contributor|contributors)/i;
+      const devKeywords = ["who developed", "who devloped", "who dveloped", "who created", "who built", "who made", "developer of", "creator of", "built by", "developed by", "arnab", "arnab roy", "arnab825", "anirudha", "anirudha basu thakur", "ani0811", "contributors", "github"];
+
+      if (selectedNum === "3" || devRegex.test(q) || devKeywords.some(k => q.includes(k))) {
+        replyText = `### 👨‍💻 Project Developers & GitHub Contributors
+**Mission Control** is developed by **Arnab Roy** and **Anirudha Basu Thakur** on GitHub.
+
+**Core Contributors:**
+- 👑 **Arnab Roy** ([@arnab825](https://github.com/arnab825)): Project Founder & Lead Architect — System Architecture, Telemetry Engine, Next.js Web Platform, C# HAL & Python daemons.
+- ⚡ **Anirudha Basu Thakur** ([@Ani0811](https://github.com/Ani0811)): Core Co-Developer — App & Website features, system interfaces, and performance optimizations.
+
+🐙 View repository & code on **[GitHub Repo (arnab825/Mission-Control)](https://github.com/arnab825/Mission-Control)**!`;
+
+      // 2. Desktop App Download (.EXE, .MSI, .ZIP) / Option 1
+      } else if (selectedNum === "1" || q.includes("download") || q.includes("exe") || q.includes("msi") || q.includes("zip") || q.includes("install") || (q.includes("app") && !q.includes("who"))) {
+        replyText = `### 📥 Mission Control App Downloads
+Download the latest 64-bit Windows release on the **[Downloads](/download)** page:
+
+1. **⚙️ Executable (.EXE)**: Standard installer (\`MissionControl-Setup.exe\`) with auto-updates.
+2. **📦 MSI Package (.MSI)**: Enterprise installer (\`MissionControl-Setup.msi\`) for domain & silent deployments.
+3. **📁 Portable Archive (.ZIP)**: Standalone portable package (\`MissionControl-Portable.zip\`) — run instantly without installation.`;
+
+      // 3. Contact Support & General Doubts / Option 2
+      } else if (
+        selectedNum === "2" ||
+        q.includes("contact") ||
+        q.includes("doubt") ||
+        q.includes("doubts") ||
+        q.includes("reach") ||
+        q.includes("message") ||
+        q.includes("email support") ||
+        q.includes("ask")
+      ) {
+        replyText = `### 📬 Contact Support & Direct Assistance
+Have questions, doubts, or feedback? Our core team is here to assist:
+
+1. **Direct Contact Form**: Submit your questions directly to our engineers on the **[Contact Us](/contact)** page.
+2. **Community Hub**: Browse upvoted telemetry logs and driver hotfixes on the **[Community Glitch Tracker](/community)**.
+3. **Documentation**: Find API guides, NIM setups, and environment configs in our **[Docs Hub](/docs)**.`;
+
+      // 4. Documentation & API Reference / Option 4
+      } else if (
+        selectedNum === "4" ||
+        q.includes("doc") ||
+        q.includes("api") ||
+        q.includes("guide") ||
+        q.includes("how to")
+      ) {
+        replyText = `### 📚 Support & Documentation Reference
+1. **Docs Hub**: Visit our **[Documentation Hub](/docs)** for API references, NVIDIA NIM integration guides, and setup steps.
+2. **System Benchmarks**: View live GPU metrics and game hardware breakdowns on our **[Benchmark Profiles](/benchmarks)** page.
+3. **Architecture Overview**: Dive into our high-performance HAL and telemetry daemons on the **[Architecture](/architecture)** page.`;
+
+      // 5. Technical Issues / Bugs / Glitches / Troubleshooting
+      } else if (
+        q.includes("issue") ||
+        q.includes("bug") ||
+        q.includes("glitch") ||
+        q.includes("problem") ||
+        q.includes("error") ||
+        q.includes("crash") ||
+        q.includes("not working") ||
+        q.includes("trouble") ||
+        q.includes("fix")
+      ) {
+        replyText = `### 🛠️ Technical Issue & Troubleshooting Guide
+Sorry to hear you're experiencing an issue! Here is how we can solve it:
+
+1. **Submit Telemetry Log**: Head to the **[Community Glitch Tracker](/community)** to view existing hardware patches or log your crash details.
+2. **Contact Support Team**: Send a message directly to our core engineers on the **[Contact Support](/contact)** page.
+3. **App Setup & Overlay Fix**: Ensure DirectX 12 graphics drivers are updated and run \`MissionControl-Setup.exe\` or \`MissionControl-Setup.msi\` as Administrator.`;
+
+      // 6. General Fallback
+      } else {
+        replyText = `Hello **${cleanName}**! I'm here 24/7 to answer your queries and assist you with Mission Control.
+
+You can ask me about:
+1. **📥 App Downloads (.EXE, .MSI, .ZIP)**
+2. **📬 Contact Support & Guidance ([Contact Us](/contact))**
+3. **👨‍💻 Developer & Team Credits**
+4. **📚 Documentation & API Reference**`;
       }
     }
 
-    // Prepare updated message list
+    // Prepare updated message list safely without duplication
     const timestampStr = new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
-    const userMsgObj = { id: Date.now().toString(), sender: "user" as const, text: userPrompt, timestamp: timestampStr };
-    const assistantMsgObj = { id: (Date.now() + 1).toString(), sender: "assistant" as const, text: replyText, timestamp: timestampStr };
+    const userMsgObj = { id: `u_${Date.now()}`, sender: "user" as const, text: userPrompt, timestamp: timestampStr };
+    const assistantMsgObj = { id: `a_${Date.now() + 1}`, sender: "assistant" as const, text: replyText, timestamp: timestampStr };
 
-    let updatedMessages = fullHistory || [];
-    if (!updatedMessages.some((m: any) => m.id === userMsgObj.id)) {
-      updatedMessages = [...updatedMessages, userMsgObj, assistantMsgObj];
+    let updatedMessages = Array.isArray(fullHistory) && fullHistory.length > 0 ? [...fullHistory] : [];
+    
+    // Check if the last message in fullHistory is already the user's current message
+    const lastMsg = updatedMessages[updatedMessages.length - 1];
+    const userMsgAlreadyPresent = lastMsg && lastMsg.sender === "user" && lastMsg.text === userPrompt;
+
+    if (!userMsgAlreadyPresent) {
+      updatedMessages.push(userMsgObj);
     }
+    updatedMessages.push(assistantMsgObj);
 
     // Auto session title based on query
     const sessionTitle = userPrompt.length > 25 ? `${userPrompt.substring(0, 25)}...` : userPrompt;

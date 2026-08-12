@@ -2,6 +2,7 @@
 
 import { useState, useEffect, useRef } from "react";
 import { createPortal } from "react-dom";
+import Link from "next/link";
 import {
   MessageSquare,
   X,
@@ -365,18 +366,57 @@ export default function SupportChatbot() {
         }
       }
 
-      // Parse bold **text** syntax
-      const parts = displayContent.split(/(\*\*.*?\*\*)/g);
-      const formattedLine = parts.map((part, pIdx) => {
-        if (part.startsWith("**") && part.endsWith("**")) {
-          return (
-            <strong key={pIdx} className="font-bold text-white font-mono">
-              {part.slice(2, -2)}
-            </strong>
-          );
-        }
-        return part;
-      });
+      // Helper to render inline formatting (bold **text**, code `text`, and links [text](url))
+      const renderInlineFormatting = (content: string) => {
+        // Regex matches [text](url), **bold**, or `code`
+        const tokenRegex = /(\[\s*[^\]]+\s*\]\(\s*[^)]+\s*\)|\*\*[^*]+\*\*|`[^`]+`)/g;
+        const tokens = content.split(tokenRegex);
+
+        return tokens.map((token, idx) => {
+          if (!token) return null;
+
+          // Check if token is or contains a Markdown Link [Text](URL) or **[Text](URL)**
+          const rawLinkMatch = token.match(/\[(.*?)\]\((.*?)\)/);
+          if (rawLinkMatch) {
+            const linkText = rawLinkMatch[1];
+            const linkUrl = rawLinkMatch[2];
+            const isBold = token.startsWith("**") && token.endsWith("**");
+
+            return (
+              <Link
+                key={idx}
+                href={linkUrl}
+                onClick={() => setIsOpen(false)}
+                className={`${isBold ? "font-black" : "font-bold"} text-neon-green hover:underline hover:text-white underline-offset-2 transition-colors inline-flex items-center gap-0.5 mx-0.5`}
+              >
+                {linkText}
+              </Link>
+            );
+          }
+
+          // Match Bold **Text**
+          if (token.startsWith("**") && token.endsWith("**")) {
+            return (
+              <strong key={idx} className="font-bold text-white font-mono">
+                {token.slice(2, -2)}
+              </strong>
+            );
+          }
+
+          // Match Inline Code `code`
+          if (token.startsWith("`") && token.endsWith("`")) {
+            return (
+              <code key={idx} className="px-1 py-0.5 rounded bg-white/10 text-cyan-300 font-mono text-[10px]">
+                {token.slice(1, -1)}
+              </code>
+            );
+          }
+
+          return token;
+        });
+      };
+
+      const formattedLine = renderInlineFormatting(displayContent);
 
       return (
         <span key={lIdx} className="block min-h-[1.2em] my-0.5">
@@ -413,8 +453,6 @@ export default function SupportChatbot() {
         ) : (
           <span className="relative flex items-center justify-center w-6 h-6 sm:w-7 sm:h-7">
             <img src="/logo.png" alt="Mission Control Chatbot" className="w-full h-full object-contain drop-shadow-[0_0_10px_rgba(118,185,0,0.8)]" />
-            <span className="absolute -top-1 -right-1 w-2.5 h-2.5 bg-neon-green rounded-full animate-ping" />
-            <span className="absolute -top-1 -right-1 w-2.5 h-2.5 bg-neon-green rounded-full border-2 border-[#080c14]" />
           </span>
         )}
       </button>
@@ -425,9 +463,11 @@ export default function SupportChatbot() {
           style={{
             position: "fixed",
             bottom: 72,
-            right: 16,
-            width: "min(340px, calc(100vw - 32px))",
-            height: 460,
+            right: 12,
+            left: "auto",
+            width: "calc(100vw - 24px)",
+            maxWidth: 360,
+            height: 480,
             maxHeight: "calc(100vh - 90px)",
             zIndex: 2147483647,
             pointerEvents: "auto",
@@ -437,68 +477,64 @@ export default function SupportChatbot() {
           className="bg-[#070a12]/95 border-2 border-neon-green/60 rounded-2xl shadow-[0_0_80px_rgba(0,0,0,0.95)] flex flex-col overflow-hidden text-foreground select-none"
         >
           {/* Header */}
-          <div className="bg-[#0b101d]/95 backdrop-blur-2xl p-2.5 sm:p-3 border-b border-neon-green/30 flex items-center justify-between shrink-0">
-            <div className="flex items-center gap-1.5 sm:gap-2">
+          <div className="bg-[#0b101d]/95 backdrop-blur-2xl px-2.5 py-2 border-b border-neon-green/30 flex items-center gap-1.5 shrink-0 min-w-0">
+            {/* Left: Logo + Text */}
+            <div className="flex items-center gap-1.5 flex-1 min-w-0 overflow-hidden">
               {showHistoryView ? (
                 <button
                   onClick={() => setShowHistoryView(false)}
-                  className="text-neon-green p-1 hover:bg-white/10 rounded-lg transition-colors cursor-pointer flex items-center gap-1 font-mono text-[10px]"
+                  className="text-neon-green p-1 hover:bg-white/10 rounded-lg transition-colors cursor-pointer flex items-center gap-1 font-mono text-[10px] shrink-0"
                 >
                   <ChevronLeft className="w-4 h-4" /> Back
                 </button>
               ) : (
-                <div className="flex items-center gap-1.5 sm:gap-2">
-                  <div className="relative">
-                    <div className="w-6 h-6 sm:w-7 sm:h-7 rounded-lg bg-neon-green/15 border border-neon-green/50 flex items-center justify-center overflow-hidden p-0.5 shadow-[0_0_10px_rgba(118,185,0,0.35)]">
-                      <img src="/logo.png" alt="Mission Control" className="w-full h-full object-contain" />
-                    </div>
-                    <span className="absolute -bottom-0.5 -right-0.5 w-1.5 h-1.5 sm:w-2 sm:h-2 bg-neon-green rounded-full border border-[#080c14]" />
+                <>
+                  <div className="w-6 h-6 rounded-lg bg-neon-green/15 border border-neon-green/50 flex items-center justify-center overflow-hidden p-0.5 shadow-[0_0_10px_rgba(118,185,0,0.35)] shrink-0">
+                    <img src="/logo.png" alt="Mission Control" className="w-full h-full object-contain" />
                   </div>
-                  <div>
-                    <h3 className="font-mono text-[10px] sm:text-[11px] font-black tracking-wider text-white uppercase flex items-center gap-1">
-                      MISSION CONTROL AI <Sparkles className="w-3 h-3 text-neon-green animate-pulse" />
+                  <div className="min-w-0 overflow-hidden">
+                    <h3 className="font-mono text-[9px] font-black text-white uppercase tracking-tight leading-none overflow-hidden text-ellipsis whitespace-nowrap">
+                      MISSION CONTROL AI
                     </h3>
-                    <p className="font-mono text-[8px] text-neon-green/90 flex items-center gap-1">
-                      <span className="w-1.5 h-1.5 rounded-full bg-neon-green animate-ping" />
-                      24/7 SUPPORT ASSISTANT
+                    <p style={{ fontSize: "7px" }} className="font-mono text-neon-green/80 uppercase tracking-tight leading-none mt-[2px] overflow-hidden text-ellipsis whitespace-nowrap flex items-center gap-1">
+                      <span>24/7 SUPPORT ASSISTANT</span>
+                      <span style={{ fontSize: "6px", padding: "0.5px 3px", borderRadius: "2px", background: "rgba(245,158,11,0.2)", color: "#fcd34d", fontWeight: 800, letterSpacing: "0.05em", border: "0.5px solid rgba(245,158,11,0.4)" }} className="shrink-0">BETA</span>
                     </p>
                   </div>
-                </div>
+                </>
               )}
             </div>
 
-            <div className="flex items-center gap-1">
+            {/* Right: Action Buttons — always shrink-0, never flex-grow */}
+            <div className="flex items-center gap-0.5 shrink-0">
               {userProfile && (
                 <>
-                  {/* + New Chat Button */}
                   <button
                     onClick={handleNewChat}
-                    title="Start New Chat"
-                    className="flex items-center gap-1 px-1.5 sm:px-2 py-1 bg-neon-green/20 border border-neon-green/50 text-neon-green text-[8px] sm:text-[9px] font-mono font-bold rounded-lg hover:bg-neon-green hover:text-obsidian transition-all cursor-pointer"
+                    title="New Chat"
+                    className="p-1 rounded border border-neon-green/40 text-neon-green hover:bg-neon-green hover:text-obsidian transition-all cursor-pointer"
                   >
-                    <Plus className="w-3 h-3" /> New
+                    <Plus className="w-3 h-3" />
                   </button>
 
-                  {/* History Sessions Drawer Toggler */}
                   <button
                     onClick={() => setShowHistoryView((prev) => !prev)}
                     title="Chat History"
-                    className={`p-1 sm:p-1.5 rounded-lg border transition-all cursor-pointer ${
+                    className={`p-1 rounded border transition-all cursor-pointer ${
                       showHistoryView
                         ? "bg-neon-green text-obsidian border-neon-green"
                         : "text-gray-400 border-white/15 hover:text-white hover:bg-white/10"
                     }`}
                   >
-                    <Clock className="w-3.5 h-3.5" />
+                    <Clock className="w-3 h-3" />
                   </button>
 
-                  {/* Delete Current Chat Button */}
                   <button
                     onClick={handleDeleteCurrentChat}
                     title="Delete Current Chat"
-                    className="p-1 sm:p-1.5 rounded-lg border border-white/15 text-gray-400 hover:text-red-400 hover:border-red-500/40 hover:bg-red-500/10 transition-all cursor-pointer"
+                    className="p-1 rounded border border-white/15 text-gray-400 hover:text-red-400 hover:border-red-500/40 hover:bg-red-500/10 transition-all cursor-pointer"
                   >
-                    <Trash2 className="w-3.5 h-3.5" />
+                    <Trash2 className="w-3 h-3" />
                   </button>
                 </>
               )}
@@ -506,9 +542,9 @@ export default function SupportChatbot() {
               <button
                 onClick={() => setIsOpen(false)}
                 title="Close"
-                className="text-gray-400 hover:text-white p-1 sm:p-1.5 rounded-lg hover:bg-white/10 transition-colors cursor-pointer"
+                className="text-gray-400 hover:text-white p-1 rounded hover:bg-white/10 transition-colors cursor-pointer"
               >
-                <X className="w-4 h-4" />
+                <X className="w-3.5 h-3.5" />
               </button>
             </div>
           </div>
@@ -713,10 +749,10 @@ export default function SupportChatbot() {
                 <div className="p-2 border-t border-white/10 bg-[#0b101d]/90">
                   <div className="grid grid-cols-2 gap-1.5">
                     {[
+                      "👨‍💻 Who developed this app?",
+                      "🛠️ Report Issue / Glitch",
                       "📚 Explore Docs & APIs",
-                      "💬 Community Tracker",
-                      "⚡ System Architecture",
-                      "📬 Contact Support"
+                      "📥 Download Desktop App"
                     ].map((chip) => (
                       <button
                         key={chip}
