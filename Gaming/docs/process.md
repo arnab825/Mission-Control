@@ -100,9 +100,13 @@ When you trigger `.\run_local.ps1`, the pipeline executes the following sequence
      powershell -ExecutionPolicy Bypass -File .\Gaming\scripts\build_app.ps1
      ```
 4. **`move-backend`**: Copies `dist/MissionControlBackend` to `Gaming/frontend/backend/MissionControlBackend`. Note: `electron-builder` reads the backend directly from `../backend/dist/MissionControlBackend` via `extraResources` — this step also mirrors it into the `frontend/backend/` folder as a legacy artefact.
-5. **`package-electron`**: Packages the Electron application containing the compiled backend across Windows (`nsis`, `msi`, `zip`) and Linux (`AppImage`, `deb`, `rpm`, `tar.gz`).
+5. **`package-electron`**: Packages the Electron application containing the compiled backend:
+   * **Windows (`publish.ps1`)**: Packages Windows installers (`nsis`, `msi`, `zip`).
+   * **Linux (`publish.sh`)**: Packages Linux distributions (`AppImage`, `deb`, `rpm`, `tar.gz`).
+   > [!NOTE]
+   > `electron-builder` cannot build Linux `AppImage` targets on a native Windows host without Administrator/Developer Mode symlink privileges, as Node.js encounters `EPERM: operation not permitted, symlink` errors. Therefore, `publish.ps1` automatically builds Windows targets (`--win`) on Windows hosts, while `publish.sh` builds Linux targets (`--linux`) on Linux environments.
 6. **`build-nsis & linux-targets`**: Generates `MissionControl-Setup.exe` (Windows) and `MissionControl-Linux.AppImage` (Linux) release artifacts.
-7. **`release`**: Publishes all compiled Windows & Linux setup installers and `latest.yml` release manifest assets directly onto GitHub.
+7. **`release`**: Publishes compiled setup installers and `latest.yml` release manifest assets directly onto GitHub.
 
 ### Cross-Platform Linux Publishing
 To execute the automated release workflow on Linux machines, run:

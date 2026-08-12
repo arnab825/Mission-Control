@@ -77,12 +77,11 @@ try {
         Push-Location "frontend"
         try {
             if ($env:GH_TOKEN -or $env:GITHUB_TOKEN) {
-                Write-Host "[PUBLISH] GH_TOKEN detected! Building and publishing Windows & Linux assets to GitHub Releases..." -ForegroundColor Cyan
-                npx electron-builder --win --linux --publish always
+                Write-Host "[PUBLISH] GH_TOKEN detected! Building and publishing Windows assets to GitHub Releases..." -ForegroundColor Cyan
+                npx electron-builder --win --publish always
             } else {
-                Write-Host "[BUILD] Compiling local Windows & Linux installers in frontend/out/dist..." -ForegroundColor Yellow
+                Write-Host "[BUILD] Compiling local Windows installers in frontend/out/dist..." -ForegroundColor Yellow
                 npm run make:win
-                npm run make:linux
             }
         } catch {
             Write-Host "[WARNING] Binary packaging encountered an error: $_" -ForegroundColor Yellow
