@@ -10,6 +10,9 @@ fi
 
 echo -e "\033[0;36m[PUBLISH] Starting Linux release process for Mission Control...\033[0m"
 
+# Move to the Gaming project directory root (parent of scripts/)
+cd "$(dirname "$0")/.."
+
 # 1. Bump version and sync version files
 python3 scripts/bump_version.py --bump patch --title "$TITLE"
 
