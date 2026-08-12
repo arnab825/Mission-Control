@@ -2,6 +2,18 @@
 
 This document contains a detailed history of all patches and updates for the AI Gaming Assistant.
 
+### Patch: 2026-08-12 — v2.9.6: Fix Alienware CPU thermal telemetry & add Linux build targets
+
+- Fixed UnboundLocalError _PS_THERMAL_FAILED scope in thermal telemetry helper
+- Added Linux AppImage, deb, rpm, tar.gz cross-platform packaging target
+- Optimized website performance and mobile chatbot UI layout
+
+### Patch: 2026-08-12 — v2.9.5: Fix Alienware CPU thermal telemetry & add Linux build targets
+
+- Fixed UnboundLocalError _PS_THERMAL_FAILED scope in thermal telemetry helper
+- Added Linux AppImage, deb, rpm, tar.gz cross-platform packaging target
+- Optimized website performance and mobile chatbot UI layout
+
 ### Patch: 2026-08-12 — v2.9.6: Release Title Here
 
 - Release Title Here
