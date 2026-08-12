@@ -17,7 +17,7 @@ Always execute all commands from the **project root directory** (`Mission-Contro
 ### 🐧 Linux (Bash Terminal)
 ```bash
 # Bumps version, compiles Linux AppImage/deb/rpm packages, tags commit, and pushes to GitHub
-./scripts/publish.sh "Fixed Alienware CPU thermals & optimized website"
+./Gaming/scripts/publish.sh "Fixed Alienware CPU thermals & optimized website"
 ```
 
 ---
@@ -112,7 +112,7 @@ When you trigger `.\run_local.ps1`, the pipeline executes the following sequence
 ### Cross-Platform Linux Publishing
 To execute the automated release workflow on Linux machines, run:
 ```bash
-./scripts/publish.sh "Release v2.9.6: Add Linux Support"
+./Gaming/scripts/publish.sh "Release v2.9.6: Add Linux Support"
 ```
 
 ---
