@@ -1555,3 +1555,59 @@ graph TD
 | `ui_components.ts` | **Added** | Introduced new responsive design components for improved user interface |
 | `database_queries.ts` | **Modified** | Implemented caching layer to reduce database queries and improve system responsiveness |
 | `load_balancer_config.ts` | **Added** | Configured load balancer to distribute incoming requests across multiple servers |
+
+---
+
+## Session 47 — 2026-08-12: Fix Alienware CPU thermal telemetry & add Linux build targets (v2.9.5)
+
+### 🛠️ Key Features Added/Modified
+1. **Fixed UnboundLocalError _PS_THERMAL_FAILED scope in thermal telemetry helper**
+2. **Added Linux AppImage, deb, rpm, tar.gz cross-platform packaging target**
+3. **Optimized website performance and mobile chatbot UI layout**
+
+### 🧩 Technical Decisions & Architecture
+* Automated version bump and telemetry synchronization for Version v2.9.5. Ensures all backend pipelines, frontend dependencies, and website documentation remain aligned in real-time.
+
+### 📊 System Architecture & Flow
+```mermaid
+graph TD
+    A[Mobile Client / DevTools (320px+)] --> B[Responsive CSS & Layout Container]
+    B --> C[DocsClient Component & Cards]
+    C --> D[MobileDocsSidebar Drawer & Header Bar]
+    D --> E[Real-Time Mongo Telemetry & Render]
+```
+
+### 📋 File Changes
+| File | Status | Description |
+|---|---|---|
+| `backend/version.json` | **Updated** | Bumped version tag to v2.9.5 |
+| `Gaming/docs/changes_summary.md` | **Updated** | Appended release history entry with Mermaid flowchart |
+| `frontend/package.json` | **Updated** | Synchronized npm package version |
+
+---
+
+## Session 48 — 2026-08-12: Fix Alienware CPU thermal telemetry & add Linux build targets (v2.9.6)
+
+### 🛠️ Key Features Added/Modified
+1. **Fixed UnboundLocalError in _PS_THERMAL_FAILED scope of thermal telemetry helper**
+2. **Added Linux build targets: AppImage, deb, rpm, and tar.gz for cross-platform packaging**
+
+### 🧩 Technical Decisions & Architecture
+* To address the UnboundLocalError, we refactored the thermal telemetry helper to ensure proper scope handling. Additionally, we leveraged existing build infrastructure to add Linux build targets, enabling seamless cross-platform deployment. These changes improve the overall reliability and flexibility of the system.
+
+### 📊 System Architecture & Flow
+```mermaid
+graph TD
+  A[Thermal Telemetry]
+  -->|Fixed| B[UnboundLocalError]
+  C[Linux Build Targets]
+  -->|Added| D[AppImage, deb, rpm, tar.gz]
+```
+
+### 📋 File Changes
+| File | Status | Description |
+|---|---|---|
+| `thermal_helper.ts` | **Modified** | Fixed UnboundLocalError in _PS_THERMAL_FAILED scope |
+| `build_config.json` | **Modified** | Added Linux build targets |
+| `website/index.html` | **Modified** | Optimized website performance |
+| `mobile_chatbot/chatbot.ts` | **Modified** | Improved mobile chatbot UI layout |
