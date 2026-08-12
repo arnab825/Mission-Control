@@ -13,18 +13,28 @@ An advanced, real-time AI gaming assistant that provides tactical coaching, visi
       <img src="website/public/screenshots/dashboard.webp" alt="Main Console Dashboard" width="100%"/>
     </td>
     <td width="50%" align="center">
-      <b>📟 Glassmorphic HUD Overlay</b><br/><br/>
-      <img src="website/public/screenshots/hud.webp" alt="Glassmorphic HUD Overlay" width="100%"/>
+      <b>🤖 Autonomous AI Co-Pilot & Tactical Agent</b><br/><br/>
+      <img src="website/public/screenshots/agent.webp" alt="Autonomous AI Co-Pilot & Tactical Agent" width="100%"/>
     </td>
   </tr>
   <tr>
     <td width="50%" align="center">
+      <b>📟 Glassmorphic HUD Overlay</b><br/><br/>
+      <img src="website/public/screenshots/hud.webp" alt="Glassmorphic HUD Overlay" width="100%"/>
+    </td>
+    <td width="50%" align="center">
       <b>🎯 TensorRT AI Vision & YOLO Detection</b><br/><br/>
       <img src="website/public/screenshots/vision.webp" alt="TensorRT AI Vision" width="100%"/>
     </td>
+  </tr>
+  <tr>
     <td width="50%" align="center">
       <b>📊 Real-Time Hardware Telemetry</b><br/><br/>
       <img src="website/public/screenshots/system.webp" alt="Real-Time Hardware Telemetry" width="100%"/>
+    </td>
+    <td width="50%" align="center">
+      <b>🔬 Performance Tuning Lab & Power Controls</b><br/><br/>
+      <img src="website/public/screenshots/lab.webp" alt="Performance Tuning Lab" width="100%"/>
     </td>
   </tr>
   <tr>
