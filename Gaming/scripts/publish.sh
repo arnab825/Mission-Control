@@ -16,9 +16,8 @@ cd "$(dirname "$0")/.."
 # 1. Bump version and sync version files
 python3 scripts/bump_version.py --bump patch --title "$TITLE" --changes "$TITLE"
 
-# 2. Stage files and tag commit
-git add backend/version.json readme.md docs/backend/patches.md
-git add .
+# 2. Stage version release files for commit
+git add backend/version.json frontend/package.json website/package.json backend/pyproject.toml docs/backend/patches.md docs/changes_summary.md readme.md
 
 VERSION=$(python3 -c "import json; print(json.load(open('backend/version.json'))['version'])")
 
@@ -41,10 +40,20 @@ EOF
 
 if [ -n "$GH_TOKEN" ] || [ -n "$GITHUB_TOKEN" ]; then
     echo -e "\033[0;36m[PUBLISH] GH_TOKEN detected! Publishing ${RELEASE_TITLE} to GitHub Releases...\033[0m"
-    npx electron-builder --win --linux --publish always --config.extraMetadata.name="${RELEASE_TITLE}"
+    if grep -q -i microsoft /proc/version 2>/dev/null || [ -d "/mnt/c" ]; then
+        echo -e "\033[0;33m[WSL DETECTED] Building Linux tar.gz package on Windows host...\033[0m"
+        npx electron-builder --linux tar.gz --publish always --config.extraMetadata.name="${RELEASE_TITLE}"
+    else
+        npx electron-builder --linux --publish always --config.extraMetadata.name="${RELEASE_TITLE}"
+    fi
 else
     echo -e "\033[0;33m[BUILD] Compiling local Linux binaries in frontend/out/dist...\033[0m"
-    npm run make:linux
+    if grep -q -i microsoft /proc/version 2>/dev/null || [ -d "/mnt/c" ]; then
+        echo -e "\033[0;33m[WSL DETECTED] Building Linux tar.gz package on Windows host...\033[0m"
+        npx electron-builder --linux tar.gz --x64
+    else
+        npm run make:linux
+    fi
 fi
 
 cd ..

@@ -52,9 +52,8 @@ try {
 
     if ($LASTEXITCODE -eq 0) {
         # 2. Sync files
-        Write-Host "[SYNC] Staging changes..." -ForegroundColor Cyan
-        git add backend/version.json readme.md docs/backend/patches.md
-        git add .
+        Write-Host "[SYNC] Staging version release files..." -ForegroundColor Cyan
+        git add backend/version.json frontend/package.json website/package.json backend/pyproject.toml docs/backend/patches.md docs/changes_summary.md readme.md
         
         # 3. Get new version
         $version = (Get-Content backend/version.json | ConvertFrom-Json).version
