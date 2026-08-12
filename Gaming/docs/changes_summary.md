@@ -1611,3 +1611,29 @@ graph TD
 | `build_config.json` | **Modified** | Added Linux build targets |
 | `website/index.html` | **Modified** | Optimized website performance |
 | `mobile_chatbot/chatbot.ts` | **Modified** | Improved mobile chatbot UI layout |
+
+---
+
+## Session 49 — 2026-08-12: Release v2.9.6: Fix Alienware CPU thermal telemetry & add Linux build targets (v2.9.7)
+
+### 🛠️ Key Features Added/Modified
+1. **Enhanced Alienware CPU thermal telemetry for improved system monitoring and alerting.**
+2. **Added Linux build targets to expand compatibility and deployment options.**
+
+### 🧩 Technical Decisions & Architecture
+* To address the Alienware CPU thermal telemetry issue, we implemented a custom thermal sensor driver and integrated it with the existing telemetry framework. This change required careful consideration of system resource utilization and thermal data accuracy. Additionally, we optimized the build process to support Linux targets, ensuring seamless integration with existing infrastructure.
+
+### 📊 System Architecture & Flow
+```mermaid
+graph TD
+  A[Client] --> B[Server]
+  B --> C[Database]
+  C --> D[API]
+```
+
+### 📋 File Changes
+| File | Status | Description |
+|---|---|---|
+| `telemetry.ts` | **Modified** | Updated thermal sensor driver and telemetry framework integration. |
+| `build.config` | **Added** | New configuration for Linux build targets. |
+| `thermal_sensors.ts` | **Modified** | Improved thermal sensor data accuracy and handling. |

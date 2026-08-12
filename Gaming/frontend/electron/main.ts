@@ -564,22 +564,25 @@ function startPythonBackend() {
 
     if (isDev) {
       // Dev: prefer venv python
-      const venvPython = path.join(_dirname, '..', '..', 'backend', '.venv', 'Scripts', 'python.exe')
-      executablePath = fs.existsSync(venvPython) ? venvPython : 'python'
+      const isWin = process.platform === 'win32';
+      const venvPython = isWin
+        ? path.join(_dirname, '..', '..', 'backend', '.venv', 'Scripts', 'python.exe')
+        : path.join(_dirname, '..', '..', 'backend', '.venv', 'bin', 'python');
+      executablePath = fs.existsSync(venvPython) ? venvPython : (isWin ? 'python' : 'python3');
       args = [scriptPath, '--dev', '--no-admin']
       cwdDir = path.dirname(scriptPath)
       console.log(`[Electron] Dev mode — python: ${executablePath}, cwd: ${cwdDir}`)
     } else {
-      // Primary: electron-builder extraResources → resources/MissionControlBackend/MissionControlBackend.exe
-      const bundledExeDirect = path.join((process as any).resourcesPath, 'MissionControlBackend', 'MissionControlBackend.exe')
-      // Legacy: electron-builder nested layout → resources/backend/MissionControlBackend/MissionControlBackend.exe
-      const bundledExeBuilder = path.join((process as any).resourcesPath, 'backend', 'MissionControlBackend', 'MissionControlBackend.exe')
+      // Primary: electron-builder extraResources → resources/MissionControlBackend/MissionControlBackend (.exe on Win)
+      const exeName = process.platform === 'win32' ? 'MissionControlBackend.exe' : 'MissionControlBackend';
+      const bundledExeDirect = path.join((process as any).resourcesPath, 'MissionControlBackend', exeName)
+      const bundledExeBuilder = path.join((process as any).resourcesPath, 'backend', 'MissionControlBackend', exeName)
 
       if (fs.existsSync(bundledExeDirect)) {
         executablePath = bundledExeDirect
         args = ['--no-admin']
         cwdDir = path.dirname(bundledExeDirect)
-        console.log(`[Electron] Using bundled backend exe (direct): ${bundledExeDirect}`)
+        console.log(`[Electron] Using bundled backend binary (direct): ${bundledExeDirect}`)
       } else if (fs.existsSync(bundledExeBuilder)) {
         executablePath = bundledExeBuilder
         args = ['--no-admin']
