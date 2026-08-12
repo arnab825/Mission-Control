@@ -1501,3 +1501,29 @@ graph TD
 | `telemetry.ts` | **Modified** | Updated thermal monitoring logic to account for heavy gaming loads. |
 | `error_handling.ts` | **Added** | Implemented a robust error handling mechanism for CPU temperature telemetry data. |
 | `thermal_model.ts` | **Modified** | Integrated custom-built thermal model with existing telemetry system. |
+
+---
+
+## Session 45 — 2026-08-12: Release v2.9.5: Add Linux Support (v2.9.5)
+
+### 🛠️ Key Features Added/Modified
+1. **Added native support for Linux operating systems, enabling seamless integration with diverse infrastructure environments.**
+2. **Enhanced system compatibility and reliability through rigorous testing and validation processes.**
+
+### 🧩 Technical Decisions & Architecture
+* To ensure a robust and scalable architecture, we opted for a modular design, allowing for easy maintenance and updates. This approach also facilitated the integration of Linux support without compromising existing functionality. Furthermore, we implemented a comprehensive testing framework to guarantee the reliability and stability of the system.
+
+### 📊 System Architecture & Flow
+```mermaid
+graph TD
+  A[Client] --> B[Server]
+  B[Server] --> C[Linux Support Module]
+  C[Linux Support Module] --> D[Infrastructure Integration]
+```
+
+### 📋 File Changes
+| File | Status | Description |
+|---|---|---|
+| `mission_control.ts` | **Modified** | Updated system configuration to accommodate Linux support. |
+| `linux_integration.ts` | **Added** | Implemented native Linux support and infrastructure integration. |
+| `testing_framework.ts` | **Modified** | Enhanced testing framework to include Linux-specific test cases and scenarios. |

@@ -1,483 +1,481 @@
 {
-    "version":  "2.9.4",
-    "release_date":  "2026-08-10",
-    "update_check_url":  "https://raw.githubusercontent.com/arnab825/Mission-Control/main/Gaming/backend/version.json",
-    "changelog":  [
-                      {
-                          "version":  "2.9.4",
-                          "date":  "2026-08-12",
-                          "title":  "Fix Alienware CPU temperature telemetry lockouts under heavy gaming loads",
-                          "highlights":  [
-                                             "Fix Alienware CPU temperature telemetry lockouts under heavy gaming loads"
-                                         ]
-                      },
-                      {
-                          "version":  "2.9.3",
-                          "date":  "2026-08-12",
-                          "title":  "Fix Alienware CPU temperature telemetry lockouts and dynamic blog AI cover generation",
-                          "highlights":  [
-                                             "Fix Alienware CPU temperature telemetry lockouts and dynamic blog AI cover generation"
-                                         ]
-                      },
-                      {
-                          "version":  "2.9.2",
-                          "date":  "2026-08-10",
-                          "title":  "Frontend Graph Responsiveness \u0026 Performance Optimizations",
-                          "highlights":  [
-                                             "Fixed responsiveness lag on telemetry graphs by passing explicit parent ResizeObserver dimensions to Recharts",
-                                             "Optimized System and Dashboard pages by extracting graphs into memoized React components",
-                                             "Added history update throttling (200ms) to Dashboard to reduce layout rendering overhead during high-speed telemetry packets"
-                                         ]
-                      },
-                      {
-                          "version":  "2.9.1",
-                          "date":  "2026-08-06",
-                          "title":  "Borderless Fullscreen Window Detection, Multi-GPU Fallback \u0026 Privacy Shield Patch",
-                          "highlights":  [
-                                             "Fixed Need for Speed Heat (Frostbite engine) game window detection by adding Frostbite engine window classes and game keywords",
-                                             "Added hybrid GPU fallback for BetterCam and DXCam screen capture backends",
-                                             "Updated Privacy Shield to black out desktop capture when tabbing to Mission Control, eliminating infinite mirror effect",
-                                             "Demoted normal WebSocket closures (1000 OK) from WARNING to INFO log level"
-                                         ]
-                      },
-                      {
-                          "version":  "2.9.0",
-                          "date":  "2026-08-06",
-                          "title":  "Hardware-Accelerated Borderless Fullscreen Screen Capture Fix",
-                          "highlights":  [
-                                             "Fixed black screen capture issue for borderless fullscreen DirectX/Vulkan games via PW_RENDERFULLCONTENT DirectComposition capture"
-                                         ]
-                      },
-                      {
-                          "version":  "2.8.11",
-                          "date":  "2026-08-05",
-                          "title":  "Library Filter Bar Full Responsiveness Fix",
-                          "highlights":  [
-                                             "Search bar and Filter HUD button now always stack on their own row at all window widths",
-                                             "Platform pills row always scrolls horizontally instead of competing with search for space"
-                                         ]
-                      },
-                      {
-                          "version":  "2.8.10",
-                          "date":  "2026-08-05",
-                          "title":  "Library Responsiveness, Updates Paused Bug Fix \u0026 Vision Privacy Shield Patch",
-                          "highlights":  [
-                                             "Fix Library grid responsiveness and horizontal platform pills scrolling on short viewports",
-                                             "Fix \u0027Update Paused By User\u0027 UI bug on app startup by filtering out stale paused/cancelled states",
-                                             "Fix Vision process black screen after disabling Privacy Shield by clearing annotated frame buffer"
-                                         ]
-                      },
-                      {
-                          "version":  "2.8.9",
-                          "date":  "2026-08-04",
-                          "title":  "Fix Parent Flex Height Chain for Library Windowed Responsiveness",
-                          "highlights":  [
-                                             "Fix Parent Flex Height Chain for Library Windowed Responsiveness"
-                                         ]
-                      },
-                      {
-                          "version":  "2.8.9",
-                          "date":  "2026-08-04",
-                          "title":  "Fix Parent Flex Height Chain for Library Windowed Responsiveness",
-                          "highlights":  [
-                                             "Fix Parent Flex Height Chain for Library Windowed Responsiveness"
-                                         ]
-                      },
-                      {
-                          "version":  "2.8.8",
-                          "date":  "2026-08-04",
-                          "title":  "GTA V Enhanced Title Normalization and Rockstar Games Launcher Deduplication",
-                          "highlights":  [
-                                             "GTA V Enhanced Title Normalization and Rockstar Games Launcher Deduplication"
-                                         ]
-                      },
-                      {
-                          "version":  "2.8.7",
-                          "date":  "2026-08-04",
-                          "title":  "Auto Update Backend Relaunch and Working Directory Recovery",
-                          "highlights":  [
-                                             "Auto Update Backend Relaunch and Working Directory Recovery"
-                                         ]
-                      },
-                      {
-                          "version":  "2.8.6",
-                          "date":  "2026-08-04",
-                          "title":  "Library Fit to Window Responsiveness and Rockstar Games Scanner Path Validation",
-                          "highlights":  [
-                                             "Library Fit to Window Responsiveness and Rockstar Games Scanner Path Validation"
-                                         ]
-                      },
-                      {
-                          "version":  "2.8.5",
-                          "date":  "2026-08-03",
-                          "title":  "Website Docs Render Fix, Google AdSense Integration \u0026 Controller Mapping Wording",
-                          "highlights":  [
-                                             "Fixed inline code and paragraph rendering issue in docs pages",
-                                             "Fixed pagination arrow truncation on Previous/Next article navigation cards",
-                                             "Integrated Google AdSense display ad slots in docs and gaming blog pages",
-                                             "Added public/ads.txt for AdSense site authorization",
-                                             "Updated Controller Mapping documentation wording from HTML5 to Native XInput and DirectInput",
-                                             "Updated Vision AI guide documentation"
-                                         ]
-                      },
-                      {
-                          "version":  "2.8.4",
-                          "date":  "2026-08-03",
-                          "title":  "Interactive Controller Mapping, Automated AI Model Downloader \u0026 E2EE Alignment",
-                          "highlights":  [
-                                             "Added interactive HTML5 \u0026 XInput Gamepad Configurator with real-time SVG button highlights, deadzone controls, and vibration haptics",
-                                             "Implemented in-app automated AI model downloader for YOLOv8 \u0026 Whisper-Tiny weights with streaming progress",
-                                             "Centered E2EE Privacy Shield Verification status overlay and optimized modal responsiveness"
-                                         ]
-                      },
-                      {
-                          "version":  "2.8.3",
-                          "date":  "2026-08-02",
-                          "title":  "E2EE Privacy Shield Verification, Responsive UI \u0026 TTS Optimization",
-                          "highlights":  [
-                                             "Fixed E2EE Cryptographic Verification modal responsiveness and event handling",
-                                             "Made Privacy Shield chat notice card fully responsive with cursor scaling",
-                                             "Streamlined NVIDIA DLSS Evolution Guide modal overlay via React portal",
-                                             "Removed offline Piper TTS dependency for lightweight audio pipeline"
-                                         ]
-                      },
-                      {
-                          "version":  "2.8.2",
-                          "date":  "2026-08-01",
-                          "title":  "Exclusive Fullscreen Capture Fix, Agentic Latency Slider \u0026 OpenRouter Free Model Updates",
-                          "highlights":  [
-                                             "Fixed Exclusive Fullscreen 0 FPS bug via DXCam/BetterCam fallback cascade",
-                                             "Added UI slider for Agentic Execution Delay (0s latency option)",
-                                             "Updated OpenRouter AI provider to support active free models"
-                                         ]
-                      },
-                      {
-                          "version":  "2.8.1",
-                          "date":  "2026-08-01",
-                          "title":  "Customizable Hotkeys, Timeout Hardening \u0026 AI Traffic Disclaimers",
-                          "highlights":  [
-                                             "Added customizable HUD hotkey setting with dynamic system tray label updates",
-                                             "Hardened AI decision pipeline network timeout to 30s to prevent unresponsiveness during cloud outages",
-                                             "Added network traffic, outage, and rate-limit advisory to AI Neural Backbone settings"
-                                         ]
-                      },
-                      {
-                          "version":  "2.8.0",
-                          "date":  "2026-07-31",
-                          "title":  "On-Demand Model Download \u0026 Verification Upgrades",
-                          "highlights":  [
-                                             "Enabled direct, one-click in-app downloads of AI model weights (YOLOv8 \u0026 Whisper)",
-                                             "Added atomic download streaming (.tmp buffer) to prevent corrupted model states",
-                                             "Implemented strict size verification (\u003e=95% expected MB) for downloaded weights"
-                                         ]
-                      },
-                      {
-                          "version":  "2.7.10",
-                          "date":  "2026-07-31",
-                          "title":  "BetterCam Exclusive Fullscreen Capture \u0026 UI Fixes",
-                          "highlights":  [
-                                             "Fixed BetterCam capture mode for Exclusive Fullscreen games",
-                                             "Made AI Neural Backbone model picker completely responsive",
-                                             "Improved error reporting when AI providers fail to initialize"
-                                         ]
-                      },
-                      {
-                          "version":  "2.7.9",
-                          "date":  "2026-07-31",
-                          "title":  "Free Provider Expansion \u0026 Cleanup",
-                          "highlights":  [
-                                             "Added Groq and OpenRouter 100% free AI providers",
-                                             "Removed Kimi and DeepSeek paid provider dependencies",
-                                             "Updated Auto Mode routing to prioritize free high-speed models"
-                                         ]
-                      },
-                      {
-                          "version":  "2.7.9",
-                          "date":  "2026-07-31",
-                          "title":  "Free Provider Integration \u0026 Cleanups",
-                          "highlights":  [
-                                             "Added Groq and OpenRouter 100% free providers",
-                                             "Removed Kimi and DeepSeek paid providers",
-                                             "Fixed Gemini 404 error by updating to gemini-flash-latest"
-                                         ]
-                      },
-                      {
-                          "version":  "2.7.8",
-                          "date":  "2026-07-31",
-                          "title":  "Auto Provider Failover \u0026 Fixes",
-                          "highlights":  [
-                                             "Added Auto Mode with dynamic rate-limit load balancing",
-                                             "Fixed IndentationError in decision_maker.py",
-                                             "Unified Gemini with OpenAI-compatible API endpoint"
-                                         ]
-                      },
-                      {
-                          "version":  "2.7.8",
-                          "date":  "2026-07-31",
-                          "title":  "Fix Backend Indentation Syntax Error",
-                          "highlights":  [
-                                             "Fixed IndentationError in decision_maker.py"
-                                         ]
-                      },
-                      {
-                          "version":  "2.7.7",
-                          "date":  "2026-07-31",
-                          "title":  "Unified Provider Endpoints \u0026 Error Handling",
-                          "highlights":  [
-                                             "Unified Gemini with OpenAI-compatible API endpoint",
-                                             "Removed Google GenAI SDK translator overhead",
-                                             "Increased timeout for massive context handling"
-                                         ]
-                      },
-                      {
-                          "version":  "2.7.6",
-                          "date":  "2026-07-30",
-                          "title":  "Agent Logic Fixes",
-                          "highlights":  [
-                                             "Fixed UI permanently locking up if an active session is deleted",
-                                             "Fixed UI freezing indefinitely when an AI API endpoint is unreachable or fails"
-                                         ]
-                      },
-                      {
-                          "version":  "2.7.5",
-                          "date":  "2026-07-30",
-                          "title":  "Agent UX improvements \u0026 Model Updates",
-                          "highlights":  [
-                                             "Unlocked Agent textbox during processing",
-                                             "Added Gemini 2.0 Flash Thinking model",
-                                             "Added Moonshot 128k context model",
-                                             "Cleaned up NVIDIA hosted models list"
-                                         ]
-                      },
-                      {
-                          "version":  "2.7.4",
-                          "date":  "2026-07-30",
-                          "title":  "Explicitly flag obsolete models \u0026 UI cleanup",
-                          "highlights":  [
-                                             "Removed unnecessary refresh models button",
-                                             "Explicitly flag invalid model IDs in Settings UI dropdown"
-                                         ]
-                      },
-                      {
-                          "version":  "2.7.3",
-                          "date":  "2026-07-30",
-                          "title":  "Curated AI model options \u0026 cleanup",
-                          "highlights":  [
-                                             "Cleaned up obsolete backend copy",
-                                             "Curated AI model options to strictly use defined options"
-                                         ]
-                      },
-                      {
-                          "version":  "2.7.2",
-                          "date":  "2026-07-30",
-                          "title":  "Multi-Provider AI Architecture \u0026 Settings Bug Fixes",
-                          "highlights":  [
-                                             "Multi-Provider AI Architecture \u0026 Settings Bug Fixes"
-                                         ]
-                      },
-                      {
-                          "version":  "2.7.2",
-                          "date":  "2026-07-30",
-                          "title":  "Multi-Provider AI Architecture (Google GenAI, DeepSeek, Moonshot)",
-                          "highlights":  [
-                                             "Added multi-provider AI support (Google Gemini, DeepSeek, Moonshot/Kimi, NVIDIA NIM)",
-                                             "Integrated native google-genai SDK for Google Gemini models",
-                                             "Enforced API key security via .env file instead of plaintext config",
-                                             "Added provider selection dropdown and dynamic model filtering in Settings",
-                                             "Fixed scope hoisting issue in Settings page component"
-                                         ]
-                      },
-                      {
-                          "version":  "2.7.1",
-                          "date":  "2026-07-29",
-                          "title":  "NIM Model Tier Labels \u0026 Ghost of Tsushima Fallback Banner",
-                          "highlights":  [
-                                             "Updated AI Neural Backbone options to clarify free models vs models requiring NVIDIA NIM API credits",
-                                             "Added Gemma 2 9B to fast reasoning model options",
-                                             "Fixed missing icon for Ghost of Tsushima in Library Hardware Feature Matrix"
-                                         ]
-                      },
-                      {
-                          "version":  "2.7.0",
-                          "date":  "2026-07-29",
-                          "title":  "NIM Error Surfacing \u0026 Real-time Voice Manager Feedback",
-                          "highlights":  [
-                                             "Surfaced accurate NVIDIA NIM error responses in chat stream to prevent UI hangs on model entitlement or timeout failures",
-                                             "Added 15-second phrase cutoff time limit to SpeechRecognition to prevent endless mic blocking",
-                                             "Implemented instant mic stream interruption when aborting voice notes",
-                                             "Added real-time status updates (Processing, You: transcript) to the chat bridge during voice input"
-                                         ]
-                      },
-                      {
-                          "version":  "2.6.10",
-                          "date":  "2026-07-29",
-                          "title":  "Fix Frozen PyInstaller Process Cascade \u0026 Stream Error Recovery",
-                          "highlights":  [
-                                             "Fixed recursive PyInstaller binary launch loop by bypassing subprocess TLS probes in frozen builds",
-                                             "Resolved infinite AI thinking state when changing models in Settings",
-                                             "Added stream error exception handling to flush partial responses and finalize chat UI"
-                                         ]
-                      },
-                      {
-                          "version":  "2.6.9",
-                          "date":  "2026-07-29",
-                          "title":  "Dynamic NVIDIA NIM Model Fetching \u0026 Chat Error Handling",
-                          "highlights":  [
-                                             "Added dynamic NVIDIA NIM model fetching and dropdown sync in Settings page",
-                                             "Improved AI chat error handling and surfaced exact API failure messages instead of generic None output",
-                                             "Added manual Refresh Models option to sync accessible model entitlements from NVIDIA portal"
-                                         ]
-                      },
-                      {
-                          "version":  "2.6.8",
-                          "date":  "2026-07-29",
-                          "title":  "Agentic Mode System Instructions \u0026 UI Synchronization Fixes",
-                          "highlights":  [
-                                             "Dynamically synchronized Agentic Mode ON/OFF system prompt instructions in decision_maker.py",
-                                             "Fixed WebSocket event dispatching for Agentic Mode toggle in frontend App.tsx",
-                                             "Resolved UpdatesPage latest vs current version matching bug for native Electron client"
-                                         ]
-                      },
-                      {
-                          "version":  "2.6.7",
-                          "date":  "2026-07-28",
-                          "title":  "Exclusive Fullscreen BetterCam Backend \u0026 Auto-Failover",
-                          "highlights":  [
-                                             "Added BetterCam capture backend for Direct3D exclusive fullscreen compatibility",
-                                             "Added capture loop auto-failover switching between DXCam and BetterCam on sustained None frames",
-                                             "Included BetterCam in Privacy Shield desktop capture safeguards"
-                                         ]
-                      },
-                      {
-                          "version":  "2.6.6",
-                          "date":  "2026-07-28",
-                          "title":  "Exclusive Fullscreen \u0026 Game Detection Fixes",
-                          "highlights":  [
-                                             "Fixed process watcher HWND bail-out for DXGI exclusive fullscreen games (Ghost of Tsushima, RDR2, etc.)",
-                                             "Expanded famous_game_keywords fallback list with major action, shooter, RPG and indie titles",
-                                             "Resolved null FPS overlay bug by ensuring ETW PID tracking activates for exclusive fullscreen games"
-                                         ]
-                      },
-                      {
-                          "version":  "2.6.5",
-                          "date":  "2026-07-28",
-                          "title":  "Exclusive Fullscreen: Privacy Shield Fix + Tray Telemetry",
-                          "highlights":  [
-                                             "Fixed Privacy Shield false-positive in exclusive fullscreen (alt-tab no longer blacks out vision feed)",
-                                             "Decoupled Privacy Shield from GetForegroundWindow ÃƒÂ¢Ã¢â€šÂ¬Ã¢â‚¬Â now only fires when game process exits or window is minimized",
-                                             "Added live FPS/GPU/Temp telemetry to system tray tooltip (hover to check performance without alt-tabbing)",
-                                             "Added psutil PID-alive check in _is_game_active Step 6 to preserve focused=True for exclusive fullscreen games"
-                                         ]
-                      },
-                      {
-                          "version":  "2.6.4",
-                          "date":  "2026-07-28",
-                          "title":  "Fix instance lock stale file \u0026 Mobile Optimization",
-                          "highlights":  [
-                                             "Fixed lock file path to use user-writable LOCALAPPDATA instead of read-only Program Files _internal",
-                                             "Added dead-PID stale lock cleanup to instance guard",
-                                             "Added legacy MissionControl.exe taskkill on Electron startup for rename migration",
-                                             "Synchronized changelog highlights and version tags up to v2.6.4",
-                                             "Optimized docs layout for mobile viewports",
-                                             "Automated real-time website documentation updates"
-                                         ]
-                      },
-                      {
-                          "version":  "2.6.3",
-                          "date":  "2026-07-28",
-                          "title":  "Fix forge.config.ts extraResource path for Woodpecker CI",
-                          "highlights":  [
-                                             "Fixed forge.config.ts extraResource path from MissionControl to MissionControlBackend"
-                                         ]
-                      },
-                      {
-                          "version":  "2.6.3",
-                          "date":  "2026-07-28",
-                          "title":  "Fix production packaging and backend binary paths",
-                          "highlights":  [
-                                             "Fixed extraResources path in package.json to point to MissionControlBackend",
-                                             "Updated Electron main process binary lookup to MissionControlBackend.exe"
-                                         ]
-                      },
-                      {
-                          "version":  "2.6.2",
-                          "date":  "2026-07-27",
-                          "title":  "Filtered crack and NoDVD subdirectories from game detection",
-                          "highlights":  [
-                                             "Filtered executables inside crack/nodvd subdirectories in _select_best_exe",
-                                             "Skipped crack/nodvd subdirectories during drive scan",
-                                             "Filtered crack/nodvd subdirectories during Steam recursive glob search"
-                                         ]
-                      },
-                      {
-                          "version":  "2.6.1",
-                          "date":  "2026-07-27",
-                          "title":  "Optimized updater mechanism and excluded crack directories",
-                          "highlights":  [
-                                             "Skip NoDVD and skidrow folders in game deep scanning",
-                                             "Clean stale update state on start via semantic comparison",
-                                             "Correctly scan changelog for executable availability in backend updater"
-                                         ]
-                      },
-                      {
-                          "version":  "2.6.0",
-                          "date":  "2026-07-27",
-                          "title":  "Fixed NameError on early logger call in main.py",
-                          "highlights":  [
-                                             "Moved basicConfig and logger definitions to the top of main.py to resolve NameError during initialization"
-                                         ]
-                      },
-                      {
-                          "version":  "2.5.9",
-                          "date":  "2026-07-27",
-                          "title":  "Added dual-mode choice content parser to game_knowledge.py",
-                          "highlights":  [
-                                             "Added dual dict and object choice parsing to _fetch_keybinds_via_llm in game_knowledge.py"
-                                         ]
-                      },
-                      {
-                          "version":  "2.5.8",
-                          "date":  "2026-07-27",
-                          "title":  "Updated process.md documentation with build_app.ps1 backend compilation",
-                          "highlights":  [
-                                             "Documented build_app.ps1 standalone PyInstaller compilation command in process.md"
-                                         ]
-                      },
-                      {
-                          "version":  "2.5.7",
-                          "date":  "2026-07-27",
-                          "title":  "Completely stripped Neural failure error text and added dual-mode choice content extractor",
-                          "highlights":  [
-                                             "Removed Neural failure error text fallback from directive stream exception handlers",
-                                             "Added dual-mode extract_choice_content helper to parse both dict and SDK completion choices"
-                                         ]
-                      },
-                      {
-                          "version":  "2.5.6",
-                          "date":  "2026-07-27",
-                          "title":  "Compiled PyInstaller backend binary v2.5.6",
-                          "highlights":  [
-                                             "Compiled and synced v2.5.6 backend executable to frontend distribution"
-                                         ]
-                      },
-                      {
-                          "version":  "2.5.5",
-                          "date":  "2026-07-27",
-                          "title":  "Fixed welcome stream fallback list index out of range crash",
-                          "highlights":  [
-                                             "Guarded welcome stream and fallback chat generation",
-                                             "Safeguarded session deletion and system specs display lookups"
-                                         ]
-                      },
-                      {
-                          "version":  "2.5.4",
-                          "date":  "2026-07-27",
-                          "title":  "Optimized FeedbackLoop timeout and error logging",
-                          "highlights":  [
-                                             "Reduced ChatNVIDIA evaluator timeout to 15s",
-                                             "Gracefully handle API read timeouts in background thread",
-                                             "Removed global requests monkey-patch"
-                                         ]
-                      }
-                  ]
+  "version": "2.9.5",
+  "release_date": "2026-08-10",
+  "update_check_url": "https://raw.githubusercontent.com/arnab825/Mission-Control/main/Gaming/backend/version.json",
+  "changelog": [
+    {
+      "version": "2.9.5",
+      "date": "2026-08-12",
+      "title": "Release v2.9.5: Add Linux Support",
+      "highlights": [
+        "Release v2.9.5: Add Linux Support"
+      ]
+    },
+    {
+      "version": "2.9.4",
+      "date": "2026-08-12",
+      "title": "Fix Alienware CPU temperature telemetry lockouts under heavy gaming loads",
+      "highlights": [
+        "Fix Alienware CPU temperature telemetry lockouts under heavy gaming loads"
+      ]
+    },
+    {
+      "version": "2.9.3",
+      "date": "2026-08-12",
+      "title": "Fix Alienware CPU temperature telemetry lockouts and dynamic blog AI cover generation",
+      "highlights": [
+        "Fix Alienware CPU temperature telemetry lockouts and dynamic blog AI cover generation"
+      ]
+    },
+    {
+      "version": "2.9.2",
+      "date": "2026-08-10",
+      "title": "Frontend Graph Responsiveness & Performance Optimizations",
+      "highlights": [
+        "Fixed responsiveness lag on telemetry graphs by passing explicit parent ResizeObserver dimensions to Recharts",
+        "Optimized System and Dashboard pages by extracting graphs into memoized React components",
+        "Added history update throttling (200ms) to Dashboard to reduce layout rendering overhead during high-speed telemetry packets"
+      ]
+    },
+    {
+      "version": "2.9.1",
+      "date": "2026-08-06",
+      "title": "Borderless Fullscreen Window Detection, Multi-GPU Fallback & Privacy Shield Patch",
+      "highlights": [
+        "Fixed Need for Speed Heat (Frostbite engine) game window detection by adding Frostbite engine window classes and game keywords",
+        "Added hybrid GPU fallback for BetterCam and DXCam screen capture backends",
+        "Updated Privacy Shield to black out desktop capture when tabbing to Mission Control, eliminating infinite mirror effect",
+        "Demoted normal WebSocket closures (1000 OK) from WARNING to INFO log level"
+      ]
+    },
+    {
+      "version": "2.9.0",
+      "date": "2026-08-06",
+      "title": "Hardware-Accelerated Borderless Fullscreen Screen Capture Fix",
+      "highlights": [
+        "Fixed black screen capture issue for borderless fullscreen DirectX/Vulkan games via PW_RENDERFULLCONTENT DirectComposition capture"
+      ]
+    },
+    {
+      "version": "2.8.11",
+      "date": "2026-08-05",
+      "title": "Library Filter Bar Full Responsiveness Fix",
+      "highlights": [
+        "Search bar and Filter HUD button now always stack on their own row at all window widths",
+        "Platform pills row always scrolls horizontally instead of competing with search for space"
+      ]
+    },
+    {
+      "version": "2.8.10",
+      "date": "2026-08-05",
+      "title": "Library Responsiveness, Updates Paused Bug Fix & Vision Privacy Shield Patch",
+      "highlights": [
+        "Fix Library grid responsiveness and horizontal platform pills scrolling on short viewports",
+        "Fix 'Update Paused By User' UI bug on app startup by filtering out stale paused/cancelled states",
+        "Fix Vision process black screen after disabling Privacy Shield by clearing annotated frame buffer"
+      ]
+    },
+    {
+      "version": "2.8.9",
+      "date": "2026-08-04",
+      "title": "Fix Parent Flex Height Chain for Library Windowed Responsiveness",
+      "highlights": [
+        "Fix Parent Flex Height Chain for Library Windowed Responsiveness"
+      ]
+    },
+    {
+      "version": "2.8.9",
+      "date": "2026-08-04",
+      "title": "Fix Parent Flex Height Chain for Library Windowed Responsiveness",
+      "highlights": [
+        "Fix Parent Flex Height Chain for Library Windowed Responsiveness"
+      ]
+    },
+    {
+      "version": "2.8.8",
+      "date": "2026-08-04",
+      "title": "GTA V Enhanced Title Normalization and Rockstar Games Launcher Deduplication",
+      "highlights": [
+        "GTA V Enhanced Title Normalization and Rockstar Games Launcher Deduplication"
+      ]
+    },
+    {
+      "version": "2.8.7",
+      "date": "2026-08-04",
+      "title": "Auto Update Backend Relaunch and Working Directory Recovery",
+      "highlights": [
+        "Auto Update Backend Relaunch and Working Directory Recovery"
+      ]
+    },
+    {
+      "version": "2.8.6",
+      "date": "2026-08-04",
+      "title": "Library Fit to Window Responsiveness and Rockstar Games Scanner Path Validation",
+      "highlights": [
+        "Library Fit to Window Responsiveness and Rockstar Games Scanner Path Validation"
+      ]
+    },
+    {
+      "version": "2.8.5",
+      "date": "2026-08-03",
+      "title": "Website Docs Render Fix, Google AdSense Integration & Controller Mapping Wording",
+      "highlights": [
+        "Fixed inline code and paragraph rendering issue in docs pages",
+        "Fixed pagination arrow truncation on Previous/Next article navigation cards",
+        "Integrated Google AdSense display ad slots in docs and gaming blog pages",
+        "Added public/ads.txt for AdSense site authorization",
+        "Updated Controller Mapping documentation wording from HTML5 to Native XInput and DirectInput",
+        "Updated Vision AI guide documentation"
+      ]
+    },
+    {
+      "version": "2.8.4",
+      "date": "2026-08-03",
+      "title": "Interactive Controller Mapping, Automated AI Model Downloader & E2EE Alignment",
+      "highlights": [
+        "Added interactive HTML5 & XInput Gamepad Configurator with real-time SVG button highlights, deadzone controls, and vibration haptics",
+        "Implemented in-app automated AI model downloader for YOLOv8 & Whisper-Tiny weights with streaming progress",
+        "Centered E2EE Privacy Shield Verification status overlay and optimized modal responsiveness"
+      ]
+    },
+    {
+      "version": "2.8.3",
+      "date": "2026-08-02",
+      "title": "E2EE Privacy Shield Verification, Responsive UI & TTS Optimization",
+      "highlights": [
+        "Fixed E2EE Cryptographic Verification modal responsiveness and event handling",
+        "Made Privacy Shield chat notice card fully responsive with cursor scaling",
+        "Streamlined NVIDIA DLSS Evolution Guide modal overlay via React portal",
+        "Removed offline Piper TTS dependency for lightweight audio pipeline"
+      ]
+    },
+    {
+      "version": "2.8.2",
+      "date": "2026-08-01",
+      "title": "Exclusive Fullscreen Capture Fix, Agentic Latency Slider & OpenRouter Free Model Updates",
+      "highlights": [
+        "Fixed Exclusive Fullscreen 0 FPS bug via DXCam/BetterCam fallback cascade",
+        "Added UI slider for Agentic Execution Delay (0s latency option)",
+        "Updated OpenRouter AI provider to support active free models"
+      ]
+    },
+    {
+      "version": "2.8.1",
+      "date": "2026-08-01",
+      "title": "Customizable Hotkeys, Timeout Hardening & AI Traffic Disclaimers",
+      "highlights": [
+        "Added customizable HUD hotkey setting with dynamic system tray label updates",
+        "Hardened AI decision pipeline network timeout to 30s to prevent unresponsiveness during cloud outages",
+        "Added network traffic, outage, and rate-limit advisory to AI Neural Backbone settings"
+      ]
+    },
+    {
+      "version": "2.8.0",
+      "date": "2026-07-31",
+      "title": "On-Demand Model Download & Verification Upgrades",
+      "highlights": [
+        "Enabled direct, one-click in-app downloads of AI model weights (YOLOv8 & Whisper)",
+        "Added atomic download streaming (.tmp buffer) to prevent corrupted model states",
+        "Implemented strict size verification (>=95% expected MB) for downloaded weights"
+      ]
+    },
+    {
+      "version": "2.7.10",
+      "date": "2026-07-31",
+      "title": "BetterCam Exclusive Fullscreen Capture & UI Fixes",
+      "highlights": [
+        "Fixed BetterCam capture mode for Exclusive Fullscreen games",
+        "Made AI Neural Backbone model picker completely responsive",
+        "Improved error reporting when AI providers fail to initialize"
+      ]
+    },
+    {
+      "version": "2.7.9",
+      "date": "2026-07-31",
+      "title": "Free Provider Expansion & Cleanup",
+      "highlights": [
+        "Added Groq and OpenRouter 100% free AI providers",
+        "Removed Kimi and DeepSeek paid provider dependencies",
+        "Updated Auto Mode routing to prioritize free high-speed models"
+      ]
+    },
+    {
+      "version": "2.7.9",
+      "date": "2026-07-31",
+      "title": "Free Provider Integration & Cleanups",
+      "highlights": [
+        "Added Groq and OpenRouter 100% free providers",
+        "Removed Kimi and DeepSeek paid providers",
+        "Fixed Gemini 404 error by updating to gemini-flash-latest"
+      ]
+    },
+    {
+      "version": "2.7.8",
+      "date": "2026-07-31",
+      "title": "Auto Provider Failover & Fixes",
+      "highlights": [
+        "Added Auto Mode with dynamic rate-limit load balancing",
+        "Fixed IndentationError in decision_maker.py",
+        "Unified Gemini with OpenAI-compatible API endpoint"
+      ]
+    },
+    {
+      "version": "2.7.8",
+      "date": "2026-07-31",
+      "title": "Fix Backend Indentation Syntax Error",
+      "highlights": [
+        "Fixed IndentationError in decision_maker.py"
+      ]
+    },
+    {
+      "version": "2.7.7",
+      "date": "2026-07-31",
+      "title": "Unified Provider Endpoints & Error Handling",
+      "highlights": [
+        "Unified Gemini with OpenAI-compatible API endpoint",
+        "Removed Google GenAI SDK translator overhead",
+        "Increased timeout for massive context handling"
+      ]
+    },
+    {
+      "version": "2.7.6",
+      "date": "2026-07-30",
+      "title": "Agent Logic Fixes",
+      "highlights": [
+        "Fixed UI permanently locking up if an active session is deleted",
+        "Fixed UI freezing indefinitely when an AI API endpoint is unreachable or fails"
+      ]
+    },
+    {
+      "version": "2.7.5",
+      "date": "2026-07-30",
+      "title": "Agent UX improvements & Model Updates",
+      "highlights": [
+        "Unlocked Agent textbox during processing",
+        "Added Gemini 2.0 Flash Thinking model",
+        "Added Moonshot 128k context model",
+        "Cleaned up NVIDIA hosted models list"
+      ]
+    },
+    {
+      "version": "2.7.4",
+      "date": "2026-07-30",
+      "title": "Explicitly flag obsolete models & UI cleanup",
+      "highlights": [
+        "Removed unnecessary refresh models button",
+        "Explicitly flag invalid model IDs in Settings UI dropdown"
+      ]
+    },
+    {
+      "version": "2.7.3",
+      "date": "2026-07-30",
+      "title": "Curated AI model options & cleanup",
+      "highlights": [
+        "Cleaned up obsolete backend copy",
+        "Curated AI model options to strictly use defined options"
+      ]
+    },
+    {
+      "version": "2.7.2",
+      "date": "2026-07-30",
+      "title": "Multi-Provider AI Architecture & Settings Bug Fixes",
+      "highlights": [
+        "Multi-Provider AI Architecture & Settings Bug Fixes"
+      ]
+    },
+    {
+      "version": "2.7.2",
+      "date": "2026-07-30",
+      "title": "Multi-Provider AI Architecture (Google GenAI, DeepSeek, Moonshot)",
+      "highlights": [
+        "Added multi-provider AI support (Google Gemini, DeepSeek, Moonshot/Kimi, NVIDIA NIM)",
+        "Integrated native google-genai SDK for Google Gemini models",
+        "Enforced API key security via .env file instead of plaintext config",
+        "Added provider selection dropdown and dynamic model filtering in Settings",
+        "Fixed scope hoisting issue in Settings page component"
+      ]
+    },
+    {
+      "version": "2.7.1",
+      "date": "2026-07-29",
+      "title": "NIM Model Tier Labels & Ghost of Tsushima Fallback Banner",
+      "highlights": [
+        "Updated AI Neural Backbone options to clarify free models vs models requiring NVIDIA NIM API credits",
+        "Added Gemma 2 9B to fast reasoning model options",
+        "Fixed missing icon for Ghost of Tsushima in Library Hardware Feature Matrix"
+      ]
+    },
+    {
+      "version": "2.7.0",
+      "date": "2026-07-29",
+      "title": "NIM Error Surfacing & Real-time Voice Manager Feedback",
+      "highlights": [
+        "Surfaced accurate NVIDIA NIM error responses in chat stream to prevent UI hangs on model entitlement or timeout failures",
+        "Added 15-second phrase cutoff time limit to SpeechRecognition to prevent endless mic blocking",
+        "Implemented instant mic stream interruption when aborting voice notes",
+        "Added real-time status updates (Processing, You: transcript) to the chat bridge during voice input"
+      ]
+    },
+    {
+      "version": "2.6.10",
+      "date": "2026-07-29",
+      "title": "Fix Frozen PyInstaller Process Cascade & Stream Error Recovery",
+      "highlights": [
+        "Fixed recursive PyInstaller binary launch loop by bypassing subprocess TLS probes in frozen builds",
+        "Resolved infinite AI thinking state when changing models in Settings",
+        "Added stream error exception handling to flush partial responses and finalize chat UI"
+      ]
+    },
+    {
+      "version": "2.6.9",
+      "date": "2026-07-29",
+      "title": "Dynamic NVIDIA NIM Model Fetching & Chat Error Handling",
+      "highlights": [
+        "Added dynamic NVIDIA NIM model fetching and dropdown sync in Settings page",
+        "Improved AI chat error handling and surfaced exact API failure messages instead of generic None output",
+        "Added manual Refresh Models option to sync accessible model entitlements from NVIDIA portal"
+      ]
+    },
+    {
+      "version": "2.6.8",
+      "date": "2026-07-29",
+      "title": "Agentic Mode System Instructions & UI Synchronization Fixes",
+      "highlights": [
+        "Dynamically synchronized Agentic Mode ON/OFF system prompt instructions in decision_maker.py",
+        "Fixed WebSocket event dispatching for Agentic Mode toggle in frontend App.tsx",
+        "Resolved UpdatesPage latest vs current version matching bug for native Electron client"
+      ]
+    },
+    {
+      "version": "2.6.7",
+      "date": "2026-07-28",
+      "title": "Exclusive Fullscreen BetterCam Backend & Auto-Failover",
+      "highlights": [
+        "Added BetterCam capture backend for Direct3D exclusive fullscreen compatibility",
+        "Added capture loop auto-failover switching between DXCam and BetterCam on sustained None frames",
+        "Included BetterCam in Privacy Shield desktop capture safeguards"
+      ]
+    },
+    {
+      "version": "2.6.6",
+      "date": "2026-07-28",
+      "title": "Exclusive Fullscreen & Game Detection Fixes",
+      "highlights": [
+        "Fixed process watcher HWND bail-out for DXGI exclusive fullscreen games (Ghost of Tsushima, RDR2, etc.)",
+        "Expanded famous_game_keywords fallback list with major action, shooter, RPG and indie titles",
+        "Resolved null FPS overlay bug by ensuring ETW PID tracking activates for exclusive fullscreen games"
+      ]
+    },
+    {
+      "version": "2.6.5",
+      "date": "2026-07-28",
+      "title": "Exclusive Fullscreen: Privacy Shield Fix + Tray Telemetry",
+      "highlights": [
+        "Fixed Privacy Shield false-positive in exclusive fullscreen (alt-tab no longer blacks out vision feed)",
+        "Decoupled Privacy Shield from GetForegroundWindow ÃƒÂ¢Ã¢â€šÂ¬Ã¢â‚¬Â now only fires when game process exits or window is minimized",
+        "Added live FPS/GPU/Temp telemetry to system tray tooltip (hover to check performance without alt-tabbing)",
+        "Added psutil PID-alive check in _is_game_active Step 6 to preserve focused=True for exclusive fullscreen games"
+      ]
+    },
+    {
+      "version": "2.6.4",
+      "date": "2026-07-28",
+      "title": "Fix instance lock stale file & Mobile Optimization",
+      "highlights": [
+        "Fixed lock file path to use user-writable LOCALAPPDATA instead of read-only Program Files _internal",
+        "Added dead-PID stale lock cleanup to instance guard",
+        "Added legacy MissionControl.exe taskkill on Electron startup for rename migration",
+        "Synchronized changelog highlights and version tags up to v2.6.4",
+        "Optimized docs layout for mobile viewports",
+        "Automated real-time website documentation updates"
+      ]
+    },
+    {
+      "version": "2.6.3",
+      "date": "2026-07-28",
+      "title": "Fix forge.config.ts extraResource path for Woodpecker CI",
+      "highlights": [
+        "Fixed forge.config.ts extraResource path from MissionControl to MissionControlBackend"
+      ]
+    },
+    {
+      "version": "2.6.3",
+      "date": "2026-07-28",
+      "title": "Fix production packaging and backend binary paths",
+      "highlights": [
+        "Fixed extraResources path in package.json to point to MissionControlBackend",
+        "Updated Electron main process binary lookup to MissionControlBackend.exe"
+      ]
+    },
+    {
+      "version": "2.6.2",
+      "date": "2026-07-27",
+      "title": "Filtered crack and NoDVD subdirectories from game detection",
+      "highlights": [
+        "Filtered executables inside crack/nodvd subdirectories in _select_best_exe",
+        "Skipped crack/nodvd subdirectories during drive scan",
+        "Filtered crack/nodvd subdirectories during Steam recursive glob search"
+      ]
+    },
+    {
+      "version": "2.6.1",
+      "date": "2026-07-27",
+      "title": "Optimized updater mechanism and excluded crack directories",
+      "highlights": [
+        "Skip NoDVD and skidrow folders in game deep scanning",
+        "Clean stale update state on start via semantic comparison",
+        "Correctly scan changelog for executable availability in backend updater"
+      ]
+    },
+    {
+      "version": "2.6.0",
+      "date": "2026-07-27",
+      "title": "Fixed NameError on early logger call in main.py",
+      "highlights": [
+        "Moved basicConfig and logger definitions to the top of main.py to resolve NameError during initialization"
+      ]
+    },
+    {
+      "version": "2.5.9",
+      "date": "2026-07-27",
+      "title": "Added dual-mode choice content parser to game_knowledge.py",
+      "highlights": [
+        "Added dual dict and object choice parsing to _fetch_keybinds_via_llm in game_knowledge.py"
+      ]
+    },
+    {
+      "version": "2.5.8",
+      "date": "2026-07-27",
+      "title": "Updated process.md documentation with build_app.ps1 backend compilation",
+      "highlights": [
+        "Documented build_app.ps1 standalone PyInstaller compilation command in process.md"
+      ]
+    },
+    {
+      "version": "2.5.7",
+      "date": "2026-07-27",
+      "title": "Completely stripped Neural failure error text and added dual-mode choice content extractor",
+      "highlights": [
+        "Removed Neural failure error text fallback from directive stream exception handlers",
+        "Added dual-mode extract_choice_content helper to parse both dict and SDK completion choices"
+      ]
+    },
+    {
+      "version": "2.5.6",
+      "date": "2026-07-27",
+      "title": "Compiled PyInstaller backend binary v2.5.6",
+      "highlights": [
+        "Compiled and synced v2.5.6 backend executable to frontend distribution"
+      ]
+    },
+    {
+      "version": "2.5.5",
+      "date": "2026-07-27",
+      "title": "Fixed welcome stream fallback list index out of range crash",
+      "highlights": [
+        "Guarded welcome stream and fallback chat generation",
+        "Safeguarded session deletion and system specs display lookups"
+      ]
+    }
+  ]
 }

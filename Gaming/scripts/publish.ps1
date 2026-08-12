@@ -77,8 +77,8 @@ try {
         Push-Location "frontend"
         try {
             if ($env:GH_TOKEN -or $env:GITHUB_TOKEN) {
-                Write-Host "[PUBLISH] GH_TOKEN detected! Building and publishing assets to GitHub Releases..." -ForegroundColor Cyan
-                npx electron-builder --win nsis --x64 --publish always
+                Write-Host "[PUBLISH] GH_TOKEN detected! Building and publishing Windows & Linux assets to GitHub Releases..." -ForegroundColor Cyan
+                npx electron-builder --win --linux --publish always
             } else {
                 Write-Host "[BUILD] Compiling local NSIS installer in frontend/out/make..." -ForegroundColor Yellow
                 npm run make:win
