@@ -76,6 +76,13 @@ try {
         Write-Host "[BUILD] Compiling Electron packages for v${version}..." -ForegroundColor Cyan
         Push-Location "frontend"
         try {
+            Write-Host "[BUILD] Building React/Vite frontend assets..." -ForegroundColor Cyan
+            npm run build
+            if ($LASTEXITCODE -ne 0) {
+                Write-Host "[ERROR] Frontend build failed." -ForegroundColor Red
+                exit 1
+            }
+
             if ($env:GH_TOKEN -or $env:GITHUB_TOKEN) {
                 Write-Host "[PUBLISH] GH_TOKEN detected! Building and publishing Windows assets to GitHub Releases..." -ForegroundColor Cyan
                 npx electron-builder --win --publish always

@@ -26,6 +26,7 @@ git tag -a "v${VERSION}" -m "Release v${VERSION}: $TITLE" || true
 # 3. Build Linux Electron Binaries (.AppImage, .deb, .rpm, .tar.gz)
 echo -e "\033[0;36m[BUILD] Compiling Linux packages for v${VERSION}...\033[0m"
 cd frontend
+npm run build
 
 if [ -n "$GH_TOKEN" ] || [ -n "$GITHUB_TOKEN" ]; then
     echo -e "\033[0;36m[PUBLISH] GH_TOKEN detected! Building and publishing Windows & Linux assets to GitHub Releases...\033[0m"
