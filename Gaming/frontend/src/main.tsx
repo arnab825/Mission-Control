@@ -113,7 +113,6 @@ if (!PUBLISHABLE_KEY) {
     <React.StrictMode>
       <ClerkProvider
         publishableKey={PUBLISHABLE_KEY}
-        // @ts-expect-error: navigate prop is deprecated in newer clerk-react versions
         navigate={clerkNavigate}
         signInUrl="/"
         signUpUrl="/"
