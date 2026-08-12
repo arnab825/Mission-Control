@@ -47,6 +47,16 @@ An advanced, real-time AI gaming assistant that provides tactical coaching, visi
       <img src="website/public/screenshots/readiness.webp" alt="AI Hardware Readiness" width="100%"/>
     </td>
   </tr>
+  <tr>
+    <td width="50%" align="center">
+      <b>⚙️ System Settings & AI Neural Configuration</b><br/><br/>
+      <img src="website/public/screenshots/setting.webp" alt="System Settings & AI Configuration" width="100%"/>
+    </td>
+    <td width="50%" align="center">
+      <b>🔍 Deep Scanner & Library Auto-Discovery</b><br/><br/>
+      <img src="website/public/screenshots/deepscanner.png" alt="Deep Scanner & Auto-Discovery" width="100%"/>
+    </td>
+  </tr>
 </table>
 
 ---
