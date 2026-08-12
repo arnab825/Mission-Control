@@ -1,8 +1,16 @@
 {
-  "version": "2.9.8",
+  "version": "2.9.9",
   "release_date": "2026-08-10",
   "update_check_url": "https://raw.githubusercontent.com/arnab825/Mission-Control/main/Gaming/backend/version.json",
   "changelog": [
+    {
+      "version": "2.9.9",
+      "date": "2026-08-12",
+      "title": "Fixes some issue",
+      "highlights": [
+        "Fixes some issue"
+      ]
+    },
     {
       "version": "2.9.8",
       "date": "2026-08-12",
@@ -469,14 +477,6 @@
       "title": "Fixed NameError on early logger call in main.py",
       "highlights": [
         "Moved basicConfig and logger definitions to the top of main.py to resolve NameError during initialization"
-      ]
-    },
-    {
-      "version": "2.5.9",
-      "date": "2026-07-27",
-      "title": "Added dual-mode choice content parser to game_knowledge.py",
-      "highlights": [
-        "Added dual dict and object choice parsing to _fetch_keybinds_via_llm in game_knowledge.py"
       ]
     }
   ]
