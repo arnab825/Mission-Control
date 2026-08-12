@@ -1637,3 +1637,30 @@ graph TD
 | `telemetry.ts` | **Modified** | Updated thermal sensor driver and telemetry framework integration. |
 | `build.config` | **Added** | New configuration for Linux build targets. |
 | `thermal_sensors.ts` | **Modified** | Improved thermal sensor data accuracy and handling. |
+
+---
+
+## Session 50 — 2026-08-12: Release v2.9.6: Fix Alienware CPU thermal telemetry & add Linux build targets (v2.9.8)
+
+### 🛠️ Key Features Added/Modified
+1. **Fixed Alienware CPU thermal telemetry issues by updating thermal sensor calibration data**
+2. **Added support for Linux build targets, enabling cross-platform development and deployment**
+
+### 🧩 Technical Decisions & Architecture
+* To address the Alienware CPU thermal telemetry issues, we implemented a new thermal sensor calibration data update mechanism, which improves accuracy and reduces latency. Additionally, we optimized the Linux build process to minimize compilation time and ensure seamless integration with existing Windows and macOS build targets.
+
+### 📊 System Architecture & Flow
+```mermaid
+graph TD
+  A[Client] --> B[Server]
+  B[Server] --> C[API]
+  C[API] --> D[Database]
+```
+
+### 📋 File Changes
+| File | Status | Description |
+|---|---|---|
+| `mission_control.ts` | **Modified** | Updated thermal sensor calibration data and added Linux build target support |
+| `build_config.json` | **Added** | New Linux build configuration |
+| `thermal_sensors.ts` | **Modified** | Improved thermal sensor data processing and calibration |
+| `linux_build.sh` | **Added** | New Linux build script |

@@ -2,6 +2,10 @@
 
 This document contains a detailed history of all patches and updates for the AI Gaming Assistant.
 
+### Patch: 2026-08-12 — v2.9.8: Release v2.9.6: Fix Alienware CPU thermal telemetry & add Linux build targets
+
+- Release v2.9.6: Fix Alienware CPU thermal telemetry & add Linux build targets
+
 ### Patch: 2026-08-12 — v2.9.7: Release v2.9.6: Fix Alienware CPU thermal telemetry & add Linux build targets
 
 - Release v2.9.6: Fix Alienware CPU thermal telemetry & add Linux build targets
