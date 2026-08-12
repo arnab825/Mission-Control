@@ -153,7 +153,7 @@ export default function CommunityPage() {
   };
 
   return (
-    <main className="flex-1 min-h-screen pt-28 pb-24 px-4 sm:px-6 lg:px-8 bg-[#0a0a0c] relative z-10 overflow-x-hidden">
+    <main className="flex-1 min-h-screen pt-28 pb-24 px-4 sm:px-6 lg:px-8 bg-[#0a0a0c] relative overflow-x-hidden">
       
       {/* Cyber Grid & Ambient Background */}
       <div className="absolute inset-0 cyber-grid opacity-25 pointer-events-none -z-10" />

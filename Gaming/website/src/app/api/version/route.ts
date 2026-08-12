@@ -8,17 +8,17 @@ export async function GET() {
         headers: {
           "User-Agent": "MissionControl-Website",
         },
+        signal: AbortSignal.timeout(3000),
         next: { revalidate: 300 }, // Cache for 5 minutes
       }
     );
     if (res.ok) {
       const data = await res.json();
-      const version = data.tag_name ? data.tag_name.replace(/^v/, "") : "2.6.2";
+      const version = data.tag_name ? data.tag_name.replace(/^v/, "") : "2.9.4";
       return NextResponse.json({ version });
     }
-    return NextResponse.json({ version: "2.6.2" });
+    return NextResponse.json({ version: "2.9.4" });
   } catch (error) {
-    console.error("Failed to fetch latest version from GitHub:", error);
-    return NextResponse.json({ version: "2.6.2" });
+    return NextResponse.json({ version: "2.9.4" });
   }
 }

@@ -4,6 +4,7 @@ import { usePathname } from 'next/navigation'
 import Navbar from './Navbar'
 import Footer from './Footer'
 import ScrollToTop from './ScrollToTop'
+import SupportChatbot from './SupportChatbot'
 import { AnimatePresence, motion } from 'framer-motion'
 import InteractiveNetwork from './InteractiveNetwork'
 import QueryProvider from './QueryProvider'
@@ -35,6 +36,7 @@ export default function ClientLayout({ children }: { children: React.ReactNode }
         </motion.main>
       </AnimatePresence>
       <Footer />
+      <SupportChatbot />
       <ScrollToTop />
     </QueryProvider>
   );
