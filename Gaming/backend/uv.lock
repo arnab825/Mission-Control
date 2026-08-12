@@ -24,7 +24,7 @@ excludes = ["opencv-python-headless"]
 
 [[package]]
 name = "ai-gaming-assistant"
-version = "2.9.0"
+version = "2.9.5"
 source = { virtual = "." }
 dependencies = [
     { name = "bettercam" },
@@ -115,7 +115,7 @@ requires-dist = [
     { name = "torch" },
     { name = "torchvision" },
     { name = "ultralytics" },
-    { name = "websockets", specifier = ">=17.0" },
+    { name = "websockets", specifier = ">=17.0.1" },
     { name = "wmi", specifier = ">=1.5.1" },
 ]
 
