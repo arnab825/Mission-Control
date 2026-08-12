@@ -14,7 +14,7 @@ echo -e "\033[0;36m[PUBLISH] Starting Linux release process for Mission Control.
 cd "$(dirname "$0")/.."
 
 # 1. Bump version and sync version files
-python3 scripts/bump_version.py --bump patch --title "$TITLE"
+python3 scripts/bump_version.py --bump patch --title "$TITLE" --changes "$TITLE"
 
 # 2. Stage files and tag commit
 git add backend/version.json readme.md docs/backend/patches.md
