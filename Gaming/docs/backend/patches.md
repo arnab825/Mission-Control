@@ -2,6 +2,10 @@
 
 This document contains a detailed history of all patches and updates for the AI Gaming Assistant.
 
+### Patch: 2026-08-12 — v2.9.5: Release v2.9.5: Add Linux Support
+
+- Release v2.9.5: Add Linux Support
+
 ### Patch: 2026-08-12 — v2.9.4: Fix Alienware CPU temperature telemetry lockouts under heavy gaming loads
 
 - Fix Alienware CPU temperature telemetry lockouts under heavy gaming loads
