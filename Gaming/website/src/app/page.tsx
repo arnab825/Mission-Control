@@ -7,8 +7,6 @@ import { motion, AnimatePresence } from "framer-motion";
 import { WINDOWS_INSTALLER_URL, WINDOWS_MSI_URL, WINDOWS_ZIP_URL } from "@/lib/download";
 import { ScreenshotGallery } from "@/components/ScreenshotGallery";
 import { BeforeAfterSlider } from "@/components/BeforeAfterSlider";
-//import { PromotionalVideoShowcase } from "@/components/PromotionalVideoShowcase";
-//import { SponsorshipPartnerSection } from "@/components/SponsorshipPartnerSection";
 import { TESTED_GAMES_LIST } from "@/data/benchmarks";
 import {
   Users,

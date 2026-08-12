@@ -56,14 +56,18 @@ const METADATA_FALLBACKS: Record<string, { category?: string; title?: string; ba
   "productroadmap": { category: "Roadmaps", title: "Product Roadmap" },
 };
 
+let cachedDocs: DocData[] | null = null;
+
 export async function getAllDocs(): Promise<DocData[]> {
+  if (cachedDocs && process.env.NODE_ENV === "production") {
+    return cachedDocs;
+  }
+
   try {
-    await connectDB();
-    
-    // Always attempt to read and sync from local filesystem if available
+    // 1. If local docs directory exists, read directly without blocking on MongoDB sync
     if (fs.existsSync(docsDirectory)) {
       const fileNames = fs.readdirSync(docsDirectory);
-      const fileDocs: any[] = [];
+      const fileDocs: DocData[] = [];
 
       fileNames
         .filter((f) => f.endsWith(".md") || f.endsWith(".mdx"))
@@ -117,21 +121,20 @@ export async function getAllDocs(): Promise<DocData[]> {
             excerpt,
             badge,
             badgeColor,
-            order,
           });
         });
 
       if (fileDocs.length > 0) {
-        // Sync/upsert into MongoDB
-        for (const doc of fileDocs) {
-          await DocModel.findOneAndUpdate({ slug: doc.slug }, doc, { upsert: true, returnDocument: "after" });
-        }
+        cachedDocs = fileDocs;
+        return fileDocs;
       }
     }
 
+    // 2. Fallback to MongoDB query if no local files found
+    await connectDB();
     let docs = await DocModel.find({}).sort({ order: 1 }).lean();
 
-    return docs.map((d: any) => ({
+    const result = docs.map((d: any) => ({
       slug: d.slug,
       title: d.title,
       content: d.content,
@@ -140,8 +143,11 @@ export async function getAllDocs(): Promise<DocData[]> {
       badge: d.badge,
       badgeColor: d.badgeColor,
     }));
+
+    cachedDocs = result;
+    return result;
   } catch (error) {
-    console.error("Error loading docs from MongoDB:", error);
+    console.error("Error loading docs:", error);
     return [];
   }
 }

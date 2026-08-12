@@ -30,6 +30,18 @@
     text-rendering: optimizeLegibility;
     -webkit-font-smoothing: antialiased;
     -moz-osx-font-smoothing: grayscale;
+    background-image: 
+      radial-gradient(circle at 50% 0%, rgba(118, 185, 0, 0.08) 0%, transparent 40%),
+      linear-gradient(to bottom, rgba(10, 10, 12, 0.95), rgba(10, 10, 12, 1));
+    background-attachment: fixed;
+  }
+
+  /* Cyber Grid Background Utility */
+  .cyber-grid {
+    background-image: 
+      linear-gradient(to right, rgba(255, 255, 255, 0.02) 1px, transparent 1px),
+      linear-gradient(to bottom, rgba(255, 255, 255, 0.02) 1px, transparent 1px);
+    background-size: 40px 40px;
   }
 
   /* Off-Screen Performance Optimization */

@@ -17,8 +17,20 @@ const rootDir = path.resolve(process.cwd(), "../..");
 
 const nextConfig: NextConfig = {
   outputFileTracingRoot: rootDir,
+  compress: true,
+  reactStrictMode: true,
   turbopack: {
     root: rootDir,
+  },
+  images: {
+    remotePatterns: [
+      { protocol: "https", hostname: "images.unsplash.com" },
+      { protocol: "https", hostname: "blob.vercel-storage.com" },
+      { protocol: "https", hostname: "*.public.blob.vercel-storage.com" },
+      { protocol: "https", hostname: "pollinations.ai" }
+    ],
+    formats: ["image/avif", "image/webp"],
+    minimumCacheTTL: 86400,
   },
   env: Object.fromEntries(
     Object.entries(publicEnv).filter(([_, val]) => typeof val === "string" && !val.startsWith("your_"))
@@ -28,11 +40,12 @@ const nextConfig: NextConfig = {
       {
         source: "/_next/static/:path*",
         headers: [
-          { key: "Access-Control-Allow-Origin", value: "*" }
+          { key: "Access-Control-Allow-Origin", value: "*" },
+          { key: "Cache-Control", value: "public, max-age=31536000, immutable" }
         ]
       },
       {
-        source: "/(fonts|images|screenshots)/:path*",
+        source: "/(fonts|images|screenshots|logo.png)/:path*",
         headers: [
           { key: "Access-Control-Allow-Origin", value: "*" },
           { key: "Cache-Control", value: "public, max-age=31536000, immutable" }
