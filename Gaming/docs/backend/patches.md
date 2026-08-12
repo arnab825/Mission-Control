@@ -2,6 +2,10 @@
 
 This document contains a detailed history of all patches and updates for the AI Gaming Assistant.
 
+### Patch: 2026-08-12 — v2.9.6: Release Title Here
+
+- Release Title Here
+
 ### Patch: 2026-08-12 — v2.9.5: Release v2.9.5: Add Linux Support
 
 - Release v2.9.5: Add Linux Support
