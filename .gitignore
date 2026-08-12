@@ -95,8 +95,13 @@ desktop.ini
 # ── TypeScript build cache ────────────────────────────────────────────
 *.tsbuildinfo
 
-# ── uv / pip lock (optional — remove ! if you want to commit lock) ───
-# Gaming/backend/uv.lock
+# ── uv / pip lock ───────────────────────────────────────────────────
+Gaming/backend/uv.lock
+uv.lock
+
+# ── Build temporary release notes ─────────────────────────────────────
+Gaming/frontend/release-notes.md
+release-notes.md
 
 # ── Doctor / report files ─────────────────────────────────────────────
 Gaming/frontend/doctor_report_*.txt
