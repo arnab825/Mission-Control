@@ -1472,3 +1472,32 @@ graph TD
 | `lib/windowed_responsiveness.ts` | **Modified** | Updated recursive height calculation mechanism. |
 | `ui/rendering.ts` | **Added** | Implemented dynamic UI rendering based on flex container height. |
 | `cssom/dom.ts` | **Modified** | Enhanced CSSOM integration for dynamic height updates. |
+
+---
+
+## Session 44 — 2026-08-12: Fix Alienware CPU temperature telemetry lockouts under heavy gaming loads (v2.9.4)
+
+### 🛠️ Key Features Added/Modified
+1. **Resolved Alienware CPU temperature telemetry lockouts under heavy gaming loads through optimized thermal monitoring and real-time data processing.**
+2. **Improved system reliability and responsiveness by implementing a robust error handling mechanism for CPU temperature telemetry data.**
+
+### 🧩 Technical Decisions & Architecture
+* To address the CPU temperature telemetry lockouts, we implemented a hybrid approach combining real-time data processing and optimized thermal monitoring. This involved integrating a custom-built thermal model with the existing telemetry system, allowing for more accurate temperature readings and reduced latency. The resulting architecture provides a robust and scalable solution for handling heavy gaming loads.
+
+### 📊 System Architecture & Flow
+```mermaid
+graph TD
+  A[Client] --> B[Server]
+  B --> C[Thermal Monitoring]
+  C --> D[Real-time Data Processing]
+  D --> E[Error Handling]
+  E --> F[Telemetry Data]
+  F --> G[Alienware CPU Temperature Telemetry]
+```
+
+### 📋 File Changes
+| File | Status | Description |
+|---|---|---|
+| `telemetry.ts` | **Modified** | Updated thermal monitoring logic to account for heavy gaming loads. |
+| `error_handling.ts` | **Added** | Implemented a robust error handling mechanism for CPU temperature telemetry data. |
+| `thermal_model.ts` | **Modified** | Integrated custom-built thermal model with existing telemetry system. |
