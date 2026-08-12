@@ -102,8 +102,15 @@ When you trigger `.\run_local.ps1`, the pipeline executes the following sequence
      ```
 4. **`move-backend`**: Copies `dist/MissionControlBackend` to `Gaming/frontend/backend/MissionControlBackend`. Note: `electron-builder` reads the backend directly from `../backend/dist/MissionControlBackend` via `extraResources` — this step also mirrors it into the `frontend/backend/` folder as a legacy artefact.
 5. **`package-electron`**: Packages the Electron application containing the compiled backend.
-6. **`build-nsis`**: Generates the `MissionControl-Setup.exe` installer.
-7. **`release`**: Publishes the setup installer and `latest.yml` as release assets on GitHub.
+6. **`package-electron`**: Packages the Electron application containing the compiled backend across Windows (`nsis`, `msi`, `zip`) and Linux (`AppImage`, `deb`, `rpm`, `tar.gz`).
+7. **`build-nsis & linux-targets`**: Generates `MissionControl-Setup.exe` (Windows) and `MissionControl-Linux.AppImage` (Linux) release artifacts.
+8. **`release`**: Publishes all compiled Windows & Linux setup installers and `latest.yml` release manifest assets directly onto GitHub.
+
+### Cross-Platform Linux Publishing
+To execute the automated release workflow on Linux machines, run:
+```bash
+./scripts/publish.sh "Release v2.9.5: Add Linux Support"
+```
 
 ---
 
