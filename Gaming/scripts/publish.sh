@@ -99,4 +99,6 @@ else
     git push origin main --tags
 fi
 
+rm -f "$SCRIPT_DIR/../frontend/release-notes.md" 2>/dev/null || true
+
 echo -e "\033[0;32m[SUCCESS] Mission Control v${VERSION} (Windows & Linux) is tagged and live!\033[0m"

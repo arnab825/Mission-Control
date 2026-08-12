@@ -114,6 +114,9 @@ try {
         } catch {
             Write-Host "[WARNING] Binary packaging encountered an error: $_" -ForegroundColor Yellow
         } finally {
+            if ($releaseNotesFile -and (Test-Path $releaseNotesFile)) {
+                Remove-Item -Force $releaseNotesFile -ErrorAction SilentlyContinue
+            }
             Pop-Location
         }
 
