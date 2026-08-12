@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import { Maximize2, X, Activity, Scan, Cpu, BrainCircuit, Terminal, Gamepad2, Server, ShieldCheck, Bot } from "lucide-react";
+import { Maximize2, X, Activity, Scan, Cpu, BrainCircuit, Terminal, Gamepad2, Server, ShieldCheck, Bot, Settings } from "lucide-react";
 
 export function ScreenshotGallery() {
   const tabs = [
@@ -14,6 +14,7 @@ export function ScreenshotGallery() {
     { id: "hud", label: "In-Game HUD Overlay", icon: Scan, src: "/screenshots/hud.webp" },
     { id: "vision", label: "Real-time YOLO Vision", icon: BrainCircuit, src: "/screenshots/vision.webp" },
     { id: "lab", label: "Performance Lab", icon: Cpu, src: "/screenshots/lab.webp" },
+    { id: "settings", label: "Settings", icon: Settings, src: "/screenshots/setting.webp" },
   ];
 
   const [activeTab, setActiveTab] = useState(tabs[0].id);
