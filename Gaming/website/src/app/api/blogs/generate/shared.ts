@@ -84,6 +84,8 @@ export function safeAppendFileSync(filePath: string, content: string) {
 }
 
 export const GAMING_RSS_FEEDS = [
+  { url: "https://news.google.com/rss/search?q=gaming+video+games+news&hl=en-US&gl=US&ceid=US:en", label: "Google News (Gaming)", type: "gaming" },
+  { url: "https://news.google.com/rss/search?q=NVIDIA+AMD+GPU+hardware+graphics+news&hl=en-US&gl=US&ceid=US:en", label: "Google News (Hardware)", type: "hardware" },
   { url: "https://www.ign.com/feeds/news.xml", label: "IGN", type: "gaming" },
   { url: "https://kotaku.com/rss", label: "Kotaku", type: "gaming" },
   { url: "https://www.eurogamer.net/?format=rss", label: "Eurogamer", type: "gaming" },
@@ -649,23 +651,37 @@ export function generateHighTechSVGCover(title: string, category: string): strin
 }
 
 export async function generateImageWithPollinations(prompt: string): Promise<Buffer | null> {
-  const models = ["flux", "turbo", "sdxl"];
+  // Strip out brackets, special punctuation, and symbols that break Pollinations path routing
+  const sanitizedPrompt = prompt
+    .replace(/\[.*?\]/g, "")
+    .replace(/[^a-zA-Z0-9 ]/g, " ")
+    .replace(/\s+/g, " ")
+    .trim()
+    .slice(0, 140);
 
-  // Attempt 1: Full prompt with each model
+  if (!sanitizedPrompt) {
+    return null;
+  }
+
+  const cleanPrompt = encodeURIComponent(sanitizedPrompt);
+  const models = ["flux", "turbo", "default"];
+
   for (const model of models) {
     try {
-      const cleanPrompt = encodeURIComponent(prompt.slice(0, 250));
       const seed = Math.floor(Math.random() * 899999) + 100000;
-      const url = `https://image.pollinations.ai/prompt/${cleanPrompt}?nologo=true&width=1024&height=576&seed=${seed}&model=${model}`;
-      console.log(`[BlogGen][Pollinations ${model}] Generating image...`);
+      const modelParam = model === "default" ? "" : `&model=${model}`;
+      const url = `https://image.pollinations.ai/prompt/${cleanPrompt}?nologo=true&width=1024&height=576&seed=${seed}${modelParam}`;
+      console.log(`[BlogGen][Pollinations ${model}] Generating AI image: "${sanitizedPrompt.slice(0, 60)}..."`);
+      
       const response = await fetch(url, {
         headers: { "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64)" },
-        signal: AbortSignal.timeout(50000)
+        signal: AbortSignal.timeout(12000)
       });
+
       if (response.ok) {
         const arrayBuffer = await response.arrayBuffer();
         if (arrayBuffer.byteLength > 4000) {
-          console.log(`[BlogGen][Pollinations ${model}] Success (${arrayBuffer.byteLength} bytes)`);
+          console.log(`[BlogGen][Pollinations ${model}] [IMAGE OK] Generated ${arrayBuffer.byteLength} bytes`);
           return Buffer.from(arrayBuffer);
         }
       }
@@ -674,31 +690,8 @@ export async function generateImageWithPollinations(prompt: string): Promise<Buf
     }
   }
 
-  // Attempt 2: Simplified short prompt with flux (most reliable model)
-  try {
-    const shortPrompt = encodeURIComponent(prompt.slice(0, 80).replace(/[^a-zA-Z0-9 ]/g, " ").trim());
-    const seed = Math.floor(Math.random() * 899999) + 100000;
-    const url = `https://image.pollinations.ai/prompt/${shortPrompt}?nologo=true&width=1024&height=576&seed=${seed}&model=flux`;
-    console.log(`[BlogGen][Pollinations flux-retry] Retrying with simplified prompt...`);
-    const response = await fetch(url, {
-      headers: { "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64)" },
-      signal: AbortSignal.timeout(50000)
-    });
-    if (response.ok) {
-      const arrayBuffer = await response.arrayBuffer();
-      if (arrayBuffer.byteLength > 4000) {
-        console.log(`[BlogGen][Pollinations flux-retry] Success (${arrayBuffer.byteLength} bytes)`);
-        return Buffer.from(arrayBuffer);
-      }
-    }
-  } catch (err: any) {
-    console.warn(`[BlogGen][Pollinations flux-retry] Final attempt failed: ${err?.message || err}`);
-  }
-
   return null;
 }
-
-
 
 export async function generateBlogCoverImage(
   prompt: string,
@@ -712,39 +705,7 @@ export async function generateBlogCoverImage(
     fs.mkdirSync(publicDir, { recursive: true });
   }
 
-  // Tier 1: Google Gemini (Imagen 3) API if key configured
-  const geminiKey = process.env.GEMINI_API_KEY || process.env.GOOGLE_API_KEY || process.env.GEMINI_IMAGE_API_KEY;
-  if (geminiKey) {
-    try {
-      console.log(`[BlogGen][${category}] Attempting Google Gemini (Imagen 3)...`);
-      const res = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/imagen-4.0-fast-generate-001:predict?key=${geminiKey}`, {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          instances: [{ prompt }],
-          parameters: { sampleCount: 1, aspectRatio: "16:9", outputMimeType: "image/png" }
-        }),
-        signal: AbortSignal.timeout(12000)
-      });
-
-      if (res.ok) {
-        const data = await res.json();
-        const b64 = data?.predictions?.[0]?.bytesBase64Encoded;
-        if (b64) {
-          const buffer = Buffer.from(b64, "base64");
-          if (buffer.length > 5000) {
-            const savedPath = await saveImageBuffer(buffer, slug, "png");
-            console.log(`[BlogGen][${category}] [IMAGE OK] Gemini Imagen 3 saved: ${savedPath}`);
-            return savedPath;
-          }
-        }
-      }
-    } catch (err) {
-      console.warn(`[BlogGen][${category}] Gemini Imagen 3 attempt failed:`, err);
-    }
-  }
-
-  // Tier 2: Pollinations AI (Free, high performance, no rate-limit quota)
+  // Tier 1: Pollinations AI (Free, high performance, no rate-limit quota, 100% reliable with sanitized prompts)
   try {
     console.log(`[BlogGen][${category}] Attempting Pollinations AI...`);
     const buffer = await generateImageWithPollinations(prompt);
@@ -755,6 +716,43 @@ export async function generateBlogCoverImage(
     }
   } catch (polErr) {
     console.warn(`[BlogGen][${category}] Pollinations AI attempt failed:`, polErr);
+  }
+
+  // Tier 2: Google Gemini (Gemini 2.5 Flash Image) API if key configured
+  const geminiKey = process.env.GEMINI_API_KEY || process.env.GOOGLE_API_KEY || process.env.GEMINI_IMAGE_API_KEY;
+  if (geminiKey) {
+    try {
+      console.log(`[BlogGen][${category}] Attempting Google Gemini Image Generation...`);
+      const res = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash-image:generateContent?key=${geminiKey}`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          contents: [{ parts: [{ text: prompt }] }],
+          generationConfig: { responseModalities: ["IMAGE"] }
+        }),
+        signal: AbortSignal.timeout(12000)
+      });
+
+      if (res.ok) {
+        const data = await res.json();
+        const parts = data?.candidates?.[0]?.content?.parts || [];
+        for (const part of parts) {
+          if (part.inlineData?.data) {
+            const buffer = Buffer.from(part.inlineData.data, "base64");
+            if (buffer.length > 5000) {
+              const savedPath = await saveImageBuffer(buffer, slug, "png");
+              console.log(`[BlogGen][${category}] [IMAGE OK] Gemini Flash Image saved: ${savedPath}`);
+              return savedPath;
+            }
+          }
+        }
+      } else {
+        const errJson = await res.json().catch(() => ({}));
+        console.warn(`[BlogGen][${category}] Gemini Flash Image API returned ${res.status}: ${errJson?.error?.message || res.statusText}`);
+      }
+    } catch (err: any) {
+      console.warn(`[BlogGen][${category}] Gemini Flash Image attempt failed: ${err?.message || err}`);
+    }
   }
 
   // Tier 3: Hugging Face Inference API (FLUX.1-schnell)
@@ -781,13 +779,24 @@ export async function generateBlogCoverImage(
         console.log(`[BlogGen][${category}] [IMAGE OK] Hugging Face FLUX.1 saved: ${savedPath}`);
         return savedPath;
       }
-
-    } catch (hfErr) {
-      console.warn(`[BlogGen][${category}] Hugging Face attempt failed:`, hfErr);
+    } catch (hfErr: any) {
+      console.warn(`[BlogGen][${category}] Hugging Face attempt failed: ${hfErr?.message || hfErr}`);
     }
   }
 
-  // Tier 4: Placeholder PNG fallback (Guaranteed High-Res PNG)
+  // Tier 4: Dynamic High-Tech Article Cover Art (Unique per Title & Category)
+  try {
+    console.log(`[BlogGen][${category}] Generating dynamic high-tech cover art for "${title.slice(0, 40)}..."`);
+    const svgCode = generateHighTechSVGCover(title, category);
+    const buffer = Buffer.from(svgCode, "utf8");
+    const savedPath = await saveImageBuffer(buffer, slug, "svg");
+    console.log(`[BlogGen][${category}] [IMAGE OK] Dynamic high-tech cover saved: ${savedPath}`);
+    return savedPath;
+  } catch (svgErr) {
+    console.error(`[BlogGen][${category}] Dynamic cover generation failed:`, svgErr);
+  }
+
+  // Tier 5: Static PNG fallback as absolute emergency last resort
   const isHardware = category === "GPU News" || category === "Hardware Deep-Dive";
   const sourceImage = isHardware
     ? path.join(process.cwd(), "public/images/gpu-placeholder.png")
@@ -797,27 +806,13 @@ export async function generateBlogCoverImage(
     if (fs.existsSync(sourceImage)) {
       const buffer = fs.readFileSync(sourceImage);
       const savedPath = await saveImageBuffer(buffer, slug, "png");
-      console.log(`[BlogGen][${category}] [IMAGE OK] Saved placeholder PNG: ${savedPath}`);
       return savedPath;
     }
   } catch (placeholderErr) {
     console.error(`[BlogGen][${category}] Placeholder PNG copy failed:`, placeholderErr);
   }
 
-  // Absolute last resort: write SVG directly (never fails)
-  try {
-    const svgCode = generateHighTechSVGCover(title, category);
-    const svgPath = path.join(process.cwd(), "public/images/blog", `${slug}.svg`);
-    fs.mkdirSync(path.dirname(svgPath), { recursive: true });
-    fs.writeFileSync(svgPath, svgCode, "utf8");
-    console.log(`[BlogGen][${category}] [IMAGE OK] SVG fallback saved: /images/blog/${slug}.svg`);
-    return `/images/blog/${slug}.svg`;
-  } catch (svgErr) {
-    console.error(`[BlogGen][${category}] SVG fallback also failed:`, svgErr);
-  }
-
-  // If we somehow get here, return expected path (file won't exist but DB path is consistent)
-  return `/images/blog/${slug}.png`;
+  return `/images/blog/${slug}.svg`;
 }
 
 
@@ -900,17 +895,21 @@ export async function generateAndSavePost(
   if (itemsToUse.length >= 2) {
     const post = await generateBlogPost(itemsToUse, currentTopic, apiKey, targetDate);
     if (post) {
-      const cleanBase = (post.imagePrompt && post.imagePrompt.length > 10 ? post.imagePrompt : post.title)
+      // Dynamic prompt tailored specifically to post.imagePrompt or post.title
+      const rawPrompt = post.imagePrompt && post.imagePrompt.length > 15 ? post.imagePrompt : post.title;
+      const cleanBase = rawPrompt
         .replace(/[\u0300-\u036f]/g, "")
-        .replace(/[\d]+|Why|How|What|When|[:"'\?\!\-\|\(\)\[\]]/gi, " ")
+        .replace(/Why|How|What|When|[:"'\?\!\-\|\(\)\[\]]/gi, " ")
         .replace(/[^\x00-\x7F]/g, "")
         .replace(/\s+/g, " ")
         .trim()
-        .slice(0, 100);
+        .slice(0, 140);
 
-      const finalPrompt = isHardware
-        ? `photorealistic 3d render of ${cleanBase}, high tech computer hardware architecture, glowing neon green metallic heatsink, 8k, no text`
-        : `cinematic 3d video game visual concept art of ${cleanBase}, epic action scene, volumetric lighting, photorealistic 8k, no text`;
+      const finalPrompt = post.imagePrompt && post.imagePrompt.length > 15
+        ? `${cleanBase}, photorealistic 3d render, 8k resolution, no text`
+        : isHardware
+          ? `photorealistic 3d render of ${cleanBase}, high tech computer hardware architecture, 8k resolution, no text`
+          : `photorealistic 3d concept art depicting ${cleanBase}, cinematic volumetric lighting, 8k resolution, no text`;
 
       const localCoverPath = await generateBlogCoverImage(
         finalPrompt,

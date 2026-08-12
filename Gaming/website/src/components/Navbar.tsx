@@ -33,21 +33,6 @@ import {
 import { motion, AnimatePresence } from "framer-motion";
 import { WINDOWS_INSTALLER_URL } from "@/lib/download";
 
-function GithubIcon(props: React.SVGProps<SVGSVGElement>) {
-  return (
-    <svg
-      role="img"
-      viewBox="0 0 24 24"
-      fill="currentColor"
-      width="1em"
-      height="1em"
-      {...props}
-    >
-      <path d="M12 0C5.37 0 0 5.37 0 12c0 5.31 3.435 9.795 8.205 11.385.6.105.825-.255.825-.57 0-.285-.015-1.23-.015-2.235-3.015.555-3.795-.735-4.035-1.41-.135-.345-.72-1.41-1.23-1.695-.42-.225-1.02-.78-.015-.795.945-.015 1.62.87 1.845 1.23 1.08 1.815 2.805 1.305 3.495.99.105-.78.42-1.305.765-1.605-2.67-.3-5.46-1.335-5.46-5.925 0-1.305.465-2.385 1.23-3.225-.12-.3-.54-1.53.12-3.18 0 0 1.005-.315 3.3 1.23.96-.27 1.98-.405 3-.405s2.04.135 3 .405c2.295-1.56 3.3-1.23 3.3-1.23.66 1.65.24 2.88.12 3.18.765.84 1.23 1.905 1.23 3.225 0 4.605-2.805 5.625-5.475 5.925.435.375.81 1.095.81 2.22 0 1.605-.015 2.895-.015 3.3 0 .315.225.69.825.57A12.02 12.02 0 0024 12c0-6.63-5.37-12-12-12z" />
-    </svg>
-  );
-}
-
 export default function Navbar() {
   const [isOpen, setIsOpen] = useState(false);
   const [isScrolled, setIsScrolled] = useState(false);
@@ -195,8 +180,8 @@ export default function Navbar() {
           </span>
         </Link>
 
-        {/* Desktop Navigation Links (XL screens and above) */}
-        <div className="hidden xl:flex items-center gap-5 2xl:gap-6">
+        {/* Desktop Navigation Links */}
+        <div className="hidden lg:flex items-center gap-6">
           {navLinks.map((link) => {
             const isActive = pathname === link.href;
             const Icon = link.icon;
@@ -262,8 +247,8 @@ export default function Navbar() {
           </div>
         </div>
 
-        {/* Search Bar - Desktop Layout (XL screens) */}
-        <div className="hidden xl:block relative max-w-[200px] 2xl:max-w-[240px] w-full mx-4 z-10">
+        {/* Search Bar - Desktop Layout */}
+        <div className="hidden md:block relative max-w-[200px] xl:max-w-[240px] w-full mx-4 z-10">
           <div className="relative">
             <input
               type="text"
@@ -347,18 +332,8 @@ export default function Navbar() {
         </div>
 
         {/* Action Button & Mobile Controls */}
-        <div className="flex items-center gap-2.5 sm:gap-3 z-10 shrink-0">
-          <a
-            href="https://github.com/arnab825/Mission-Control"
-            target="_blank"
-            rel="noopener noreferrer"
-            className="inline-flex items-center justify-center p-2.5 font-mono text-xs font-bold tracking-wider uppercase border border-white/15 text-gray-300 hover:text-neon-green hover:border-neon-green/50 rounded-xl bg-white/[0.04] hover:bg-white/[0.08] transition-all duration-300 shadow-sm"
-            title="View GitHub Repository"
-          >
-            <GithubIcon className="w-4 h-4 text-neon-green" />
-          </a>
-
-          <div className="hidden xl:block">
+        <div className="flex items-center gap-3 z-10">
+          <div className="hidden lg:block">
             {os === "mac" || os === "other" ? (
               <div
                 className="relative inline-flex items-center justify-center px-4 py-2 font-mono text-[10px] font-bold tracking-wider uppercase border border-white/20 text-gray-400 rounded-xl bg-white/5 cursor-not-allowed max-w-[220px] text-center leading-tight"
@@ -376,19 +351,19 @@ export default function Navbar() {
             )}
           </div>
 
-          {/* Search Trigger for Non-XL Viewports */}
+          {/* Search Trigger for Mobile */}
           <button
             onClick={() => setIsMobileSearchOpen(!isMobileSearchOpen)}
-            className="xl:hidden p-2.5 text-gray-300 hover:text-neon-green focus:outline-none transition-colors rounded-xl bg-white/[0.03] border border-white/5 cursor-pointer"
-            aria-label="Toggle Search"
+            className="md:hidden p-2.5 text-gray-300 hover:text-neon-green focus:outline-none transition-colors rounded-xl bg-white/[0.03] border border-white/5"
+            aria-label="Toggle Mobile Search"
           >
             <SearchIcon className="w-5 h-5" />
           </button>
 
-          {/* Mobile/Tablet Hamburger Menu Button */}
+          {/* Mobile Hamburger Button */}
           <button
             onClick={() => setIsOpen(!isOpen)}
-            className="xl:hidden p-2.5 text-gray-300 hover:text-neon-green focus:outline-none transition-colors rounded-xl bg-white/[0.03] border border-white/5 cursor-pointer"
+            className="lg:hidden p-2.5 text-gray-300 hover:text-neon-green focus:outline-none transition-colors rounded-xl bg-white/[0.03] border border-white/5"
             aria-label="Toggle Navigation Menu"
           >
             {isOpen ? (
@@ -476,7 +451,7 @@ export default function Navbar() {
             animate={{ opacity: 1, y: 0 }}
             exit={{ opacity: 0, y: -10 }}
             transition={{ duration: 0.25 }}
-            className="xl:hidden fixed top-20 left-0 w-full bg-[#0a0a0c]/98 backdrop-blur-2xl border-b border-neon-green/30 shadow-[0_20px_50px_rgba(0,0,0,0.9)] max-h-[calc(100vh-5rem)] overflow-y-auto z-40"
+            className="lg:hidden fixed top-20 left-0 w-full bg-[#0a0a0c]/98 backdrop-blur-2xl border-b border-neon-green/30 shadow-[0_20px_50px_rgba(0,0,0,0.9)] max-h-[calc(100vh-5rem)] overflow-y-auto z-40"
           >
             <div className="px-4 py-6 flex flex-col gap-3 font-mono">
 
@@ -534,19 +509,8 @@ export default function Navbar() {
                 );
               })}
 
-              {/* Mobile Download & GitHub CTA */}
-              <div className="pt-2 flex flex-col gap-2.5">
-                <a
-                  href="https://github.com/arnab825/Mission-Control"
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  onClick={() => setIsOpen(false)}
-                  className="w-full text-center py-3.5 rounded-2xl bg-white/5 text-gray-200 hover:text-neon-green font-bold text-xs uppercase tracking-wider border border-white/15 hover:border-neon-green/40 transition-all duration-300 flex items-center justify-center gap-2"
-                >
-                  <GithubIcon className="w-4 h-4 text-neon-green" />
-                  <span>GitHub Repository</span>
-                </a>
-
+              {/* Mobile Download CTA */}
+              <div className="pt-2">
                 {os === "mac" || os === "other" ? (
                   <div
                     className="w-full text-center py-4 rounded-2xl bg-white/10 text-gray-400 font-bold text-xs uppercase tracking-wider border border-white/20 flex items-center justify-center px-4"
