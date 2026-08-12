@@ -80,8 +80,9 @@ try {
                 Write-Host "[PUBLISH] GH_TOKEN detected! Building and publishing Windows & Linux assets to GitHub Releases..." -ForegroundColor Cyan
                 npx electron-builder --win --linux --publish always
             } else {
-                Write-Host "[BUILD] Compiling local NSIS installer in frontend/out/make..." -ForegroundColor Yellow
+                Write-Host "[BUILD] Compiling local Windows & Linux installers in frontend/out/dist..." -ForegroundColor Yellow
                 npm run make:win
+                npm run make:linux
             }
         } catch {
             Write-Host "[WARNING] Binary packaging encountered an error: $_" -ForegroundColor Yellow
