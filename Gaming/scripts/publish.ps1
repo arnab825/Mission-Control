@@ -83,9 +83,15 @@ try {
                 exit 1
             }
 
+            # Generate release notes markdown for GitHub Releases
+            $releaseTitle = "Release v${version}: $cleanTitle"
+            $releaseNotesFile = "$PSScriptRoot/../frontend/release-notes.md"
+            $releaseBody = "# $releaseTitle`n`n" + ($Changes | ForEach-Object { "- $_" } | Out-String)
+            Set-Content -Path $releaseNotesFile -Value $releaseBody -Encoding UTF8
+
             if ($env:GH_TOKEN -or $env:GITHUB_TOKEN) {
-                Write-Host "[PUBLISH] GH_TOKEN detected! Building and publishing Windows assets to GitHub Releases..." -ForegroundColor Cyan
-                npx electron-builder --win --publish always
+                Write-Host "[PUBLISH] GH_TOKEN detected! Publishing $releaseTitle to GitHub Releases..." -ForegroundColor Cyan
+                npx electron-builder --win --publish always --config.extraMetadata.name="$releaseTitle"
             } else {
                 Write-Host "[BUILD] Compiling local Windows installers in frontend/out/dist..." -ForegroundColor Yellow
                 npm run make:win
