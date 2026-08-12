@@ -11,7 +11,21 @@ fi
 echo -e "\033[0;36m[PUBLISH] Starting Linux release process for Mission Control...\033[0m"
 
 # Move to the Gaming project directory root (parent of scripts/)
-cd "$(dirname "$0")/.."
+SCRIPT_DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" &> /dev/null && pwd )"
+cd "$SCRIPT_DIR/.."
+
+# Auto-load GH_TOKEN from .env files if not in environment
+if [ -z "$GH_TOKEN" ] && [ -z "$GITHUB_TOKEN" ]; then
+    for env_path in "$SCRIPT_DIR/../.env" "$SCRIPT_DIR/../backend/.env" "$SCRIPT_DIR/../website/.env.local"; do
+        if [ -f "$env_path" ]; then
+            token_val=$(grep -E '^(GH_TOKEN|GITHUB_TOKEN)=' "$env_path" | head -n 1 | cut -d '=' -f 2- | tr -d '"' | tr -d "'" | tr -d '\r')
+            if [ -n "$token_val" ] && [[ "$token_val" != your_* ]]; then
+                export GH_TOKEN="$token_val"
+                break
+            fi
+        fi
+    done
+fi
 
 # 1. Bump version and sync version files
 python3 scripts/bump_version.py --bump patch --title "$TITLE" --changes "$TITLE"
@@ -50,9 +64,9 @@ else
     echo -e "\033[0;33m[BUILD] Compiling local binaries in frontend/out/dist...\033[0m"
     if grep -q -i microsoft /proc/version 2>/dev/null || [ -d "/mnt/c" ]; then
         echo -e "\033[0;33m[NOTE] Running under WSL on Windows host. Compiling Windows installer...\033[0m"
-        npm run make:win
+        npx electron-builder --win --publish never
     else
-        npm run make:linux
+        npx electron-builder --linux --publish never
     fi
 fi
 

@@ -16,6 +16,22 @@ param(
 
 Write-Host "[PUBLISH] Starting release process..." -ForegroundColor Cyan
 
+# Auto-load GH_TOKEN from .env files if not in environment
+if (-not $env:GH_TOKEN -and -not $env:GITHUB_TOKEN) {
+    foreach ($envPath in @("$PSScriptRoot/../.env", "$PSScriptRoot/../backend/.env", "$PSScriptRoot/../website/.env.local")) {
+        if (Test-Path $envPath) {
+            Get-Content $envPath | ForEach-Object {
+                if ($_ -match '^(GH_TOKEN|GITHUB_TOKEN)\s*=\s*(.+)$') {
+                    $tokenVal = $matches[2].Trim().Trim('"').Trim("'")
+                    if ($tokenVal -and $tokenVal -notlike 'your_*') {
+                        $env:GH_TOKEN = $tokenVal
+                    }
+                }
+            }
+        }
+    }
+}
+
 Push-Location "$PSScriptRoot/.."
 try {
     # If no specific changes provided, or if Title contains semicolons/newlines/pipes, split into bullet items
@@ -93,7 +109,7 @@ try {
                 npx electron-builder --win --publish always --config.extraMetadata.name="$releaseTitle"
             } else {
                 Write-Host "[BUILD] Compiling local Windows installers in frontend/out/dist..." -ForegroundColor Yellow
-                npm run make:win
+                npx electron-builder --win --publish never
             }
         } catch {
             Write-Host "[WARNING] Binary packaging encountered an error: $_" -ForegroundColor Yellow
