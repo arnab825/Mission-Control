@@ -8,18 +8,17 @@ This document outlines the step-by-step process for releasing a new version of t
 
 Always execute all commands from the **project root directory** (`Mission-Control`):
 
-### Step 1: Push & tag the code
+### 🪟 Windows (PowerShell)
 ```powershell
-.\Gaming\scripts\publish.ps1 "Fixed telemetry issues and version mismatch"
+# Bumps version, compiles PyInstaller backend & Electron packages, tags commit, and pushes to GitHub
+.\Gaming\scripts\publish.ps1 "Fixed Alienware CPU thermals & optimized website"
 ```
-*(This bumps the version in config files, commits the updates, tags it, and pushes to GitHub).*
 
-### Step 2: Build the Installer
-```powershell
-.\run_local.ps1
+### 🐧 Linux (Bash Terminal)
+```bash
+# Bumps version, compiles Linux AppImage/deb/rpm packages, tags commit, and pushes to GitHub
+./scripts/publish.sh "Fixed Alienware CPU thermals & optimized website"
 ```
-* **Enter GITHUB_TOKEN** when prompted (if not set).
-* *Note: The version tag is automatically detected from the project files. You no longer need to enter it manually.*
 
 ---
 
