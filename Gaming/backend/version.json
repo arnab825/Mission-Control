@@ -1,8 +1,24 @@
 {
-  "version": "2.9.2",
+  "version": "2.9.4",
   "release_date": "2026-08-10",
   "update_check_url": "https://raw.githubusercontent.com/arnab825/Mission-Control/main/Gaming/backend/version.json",
   "changelog": [
+    {
+      "version": "2.9.4",
+      "date": "2026-08-12",
+      "title": "Fix Alienware CPU temperature telemetry lockouts under heavy gaming loads",
+      "highlights": [
+        "Fix Alienware CPU temperature telemetry lockouts under heavy gaming loads"
+      ]
+    },
+    {
+      "version": "2.9.3",
+      "date": "2026-08-12",
+      "title": "Fix Alienware CPU temperature telemetry lockouts and dynamic blog AI cover generation",
+      "highlights": [
+        "Fix Alienware CPU temperature telemetry lockouts and dynamic blog AI cover generation"
+      ]
+    },
     {
       "version": "2.9.2",
       "date": "2026-08-10",
@@ -461,76 +477,6 @@
         "Reduced ChatNVIDIA evaluator timeout to 15s",
         "Gracefully handle API read timeouts in background thread",
         "Removed global requests monkey-patch"
-      ]
-    },
-    {
-      "version": "2.5.3",
-      "date": "2026-07-27",
-      "title": "Fixed list index out of range crash in agent response stream",
-      "highlights": [
-        "Guarded NIM choices access against empty lists",
-        "Guarded web search API array lookups",
-        "Cleaned stream error handling"
-      ]
-    },
-    {
-      "version": "2.5.2",
-      "date": "2026-07-27",
-      "title": "v2.5.2 Bug Fixes",
-      "highlights": [
-        "v2.5.2 Bug Fixes",
-        "Fixed list index out of range crash in NIM streaming generator",
-        "Filtered pirate release folders (e.g. Epic/Steam Files) from scanner",
-        "Fixed HUD FPS counter falling back to capture FPS when ETW is zero",
-        "Fixed HUD rendering showing null when FPS is 0"
-      ]
-    },
-    {
-      "version": "2.5.1",
-      "date": "2026-07-26",
-      "title": "Pirate Release Group Filter, UI Fixes & Dynamic Steam Artwork",
-      "highlights": [
-        "Fixed Game Scanner wrongly picking up crack group names (e.g. FLT, RUNE) as game names",
-        "Added global name sanitization logic and parent-directory fallback resolution to scan_all",
-        "Removed obsolete Skip Admin Privilege Check from settings",
-        "Updated AI Vision Weights installer to use manual GitHub release downloads",
-        "Enhanced backend Steam banner search to dynamically fetch header artwork for local games without hardcoding"
-      ]
-    },
-    {
-      "version": "2.5.0",
-      "date": "2026-07-26",
-      "title": "Agent Crash & Tone Corrections",
-      "highlights": [
-        "Fixed list index out of range crash in NIM streaming generator",
-        "Corrected agent response tone and emoji usage",
-        "Silenced proactive game library context enumeration"
-      ]
-    },
-    {
-      "version": "2.4.9",
-      "date": "2026-07-26",
-      "title": "AI Neural Backbone Cleanup & Agent Crash Fix",
-      "highlights": [
-        "Fixed Neural failure list index out of range crash when NVIDIA NIM returns empty choices",
-        "Cleaned up AI Neural Backbone model options in Settings page, set clear default and improved custom model UI"
-      ]
-    },
-    {
-      "version": "2.4.8",
-      "date": "2026-07-26",
-      "title": "App Logo Splash Screen & Website Blog Pagination",
-      "highlights": [
-        "Added App Logo to Electron splash screen and in-app loading overlays",
-        "Added 6-item pagination and reduced vertical padding on website blog page"
-      ]
-    },
-    {
-      "version": "2.4.7",
-      "date": "2026-07-26",
-      "title": "Fix Ghost of Tsushima Vision Capture",
-      "highlights": [
-        "Fix WindowDetector library lookup for E2EE Privacy Shield"
       ]
     }
   ]

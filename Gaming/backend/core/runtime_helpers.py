@@ -28,8 +28,9 @@ from core.bridge_server import bridge
 logger = logging.getLogger(__name__)
 
 
-_AWCC_FAILED = False
-_PS_THERMAL_FAILED = False
+_AWCC_COOLDOWN_UNTIL = 0.0
+_PS_THERMAL_COOLDOWN_UNTIL = 0.0
+_CACHED_AWCC_SENSOR_ID = None
 
 
 def _try_win_cpu_temp_native() -> float:
@@ -42,9 +43,11 @@ def _try_win_cpu_temp_native() -> float:
     3. Read all PDH thermal zones dynamically
     Returns 0.0 if nothing works.
     """
-    global _AWCC_FAILED, _PS_THERMAL_FAILED
+    global _AWCC_COOLDOWN_UNTIL, _PS_THERMAL_COOLDOWN_UNTIL, _CACHED_AWCC_SENSOR_ID
     if sys.platform != "win32":
         return 0.0
+
+    now_ts = time.time()
 
     # --- Approach 1: PDH Thermal Zone counters (fast, no subprocess) ---
     try:
@@ -86,82 +89,63 @@ def _try_win_cpu_temp_native() -> float:
 
     # --- Approach 0: AWCC WMI (Alienware Command Center) ---
     # AWCCWmiMethodFunction.Thermal_Information returns CPU temp in Celsius.
-    # arg2=260 (0x0104) is the 'CPU Internal Thermistor' live sensor.
-    # This is pre-installed on all Alienware laptops and needs no kernel driver.
-    if not _AWCC_FAILED:
+    if now_ts >= _AWCC_COOLDOWN_UNTIL:
         try:
             si = subprocess.STARTUPINFO()
             si.dwFlags |= subprocess.STARTF_USESHOWWINDOW
             
-            # Diagnostics: Query correct bitpacked sensor IDs and write them to a log file so we can see which one matches the actual CPU temp.
-            diag_script = (
-                '$awcc = Get-CimInstance -Namespace "root/WMI" -ClassName "AWCCWmiMethodFunction" -ErrorAction Stop; '
-                '$res = @(); '
-                'foreach ($id in @(4, 260, 516, 772, 1028, 1284, 1540)) { '
-                '  try { '
-                '    $r = Invoke-CimMethod -InputObject $awcc -MethodName "Thermal_Information" -Arguments @{arg2=[uint32]$id} -ErrorAction Stop; '
-                '    $res += "$id=$($r.argr)" '
-                '  } catch {} '
-                '}; '
-                'Write-Host ($res -join ",")'
-            )
-            diag_out = subprocess.check_output(
-                ["powershell", "-NoProfile", "-Command", diag_script],
-                startupinfo=si, creationflags=0x08000000, timeout=2.0
-            ).decode().strip()
-            
-            if not diag_out:
-                _AWCC_FAILED = True
-            else:
-                # Write to log file in backend/scratch
-                try:
-                    log_dir = os.path.join(os.path.dirname(os.path.dirname(__file__)), "scratch")
-                    os.makedirs(log_dir, exist_ok=True)
-                    with open(os.path.join(log_dir, "awcc_values.log"), "w") as f:
-                        f.write(diag_out + "\n")
-                except Exception:
-                    pass
-
-                # Parse the output to find a valid temp sensor (preferring values that are not 100 or 0, between 35 and 95)
-                # Fallback to 260 if nothing else fits.
-                sensor_vals = {}
-                for pair in diag_out.split(","):
-                    if "=" in pair:
-                        key, v = pair.split("=")
-                        if v.isdigit():
-                            sensor_vals[int(key)] = int(v)
-
-                # Print all values to debug
-                logger.debug(f"[Telemetry] AWCC sensor values: {sensor_vals}")
-
-                # Choose the best CPU sensor:
-                # On Alienware, 260 is sometimes static 100 (thermal limit or disabled),
-                # while other sensors dynamically report temperatures.
-                # Let's pick the first sensor in our list that returns a temperature between 30 and 99.
-                cpu_sensor_id = 260
-                for possible_id in [4, 260, 516, 772, 1028, 1284, 1540]:
-                    val = sensor_vals.get(possible_id, 0)
-                    if 30 < val < 100:
-                        cpu_sensor_id = possible_id
-                        break
-
-                # Query the chosen sensor
-                awcc_script = (
+            # If we don't have a cached AWCC sensor ID yet, run a fast query to detect it
+            if _CACHED_AWCC_SENSOR_ID is None:
+                diag_script = (
                     '$awcc = Get-CimInstance -Namespace "root/WMI" -ClassName "AWCCWmiMethodFunction" -ErrorAction Stop; '
-                    f'$r = Invoke-CimMethod -InputObject $awcc -MethodName "Thermal_Information" -Arguments @{{arg2=[uint32]{cpu_sensor_id}}}; '
-                    'Write-Host $r.argr'
+                    '$res = @(); '
+                    'foreach ($id in @(4, 260, 516, 772, 1028, 1284, 1540)) { '
+                    '  try { '
+                    '    $r = Invoke-CimMethod -InputObject $awcc -MethodName "Thermal_Information" -Arguments @{arg2=[uint32]$id} -ErrorAction Stop; '
+                    '    $res += "$id=$($r.argr)" '
+                    '  } catch {} '
+                    '}; '
+                    'Write-Host ($res -join ",")'
                 )
-                out = subprocess.check_output(
-                    ["powershell", "-NoProfile", "-Command", awcc_script],
-                    startupinfo=si, creationflags=0x08000000, timeout=2.0
+                diag_out = subprocess.check_output(
+                    ["powershell", "-NoProfile", "-Command", diag_script],
+                    startupinfo=si, creationflags=0x08000000, timeout=3.0
                 ).decode().strip()
-                if out.isdigit():
-                    t = int(out)
-                    # 0xFFFFFFFE / 0xFFFFFFFF are AWCC error codes; valid range is 0-120°C
-                    if 0 < t < 120:
-                        return float(t)
-        except Exception:
-            _AWCC_FAILED = True
+
+                if diag_out:
+                    sensor_vals = {}
+                    for pair in diag_out.split(","):
+                        if "=" in pair:
+                            key, v = pair.split("=")
+                            if v.isdigit():
+                                sensor_vals[int(key)] = int(v)
+                    for possible_id in [4, 260, 516, 772, 1028, 1284, 1540]:
+                        val = sensor_vals.get(possible_id, 0)
+                        if 30 < val < 100:
+                            _CACHED_AWCC_SENSOR_ID = possible_id
+                            break
+                    if _CACHED_AWCC_SENSOR_ID is None and 260 in sensor_vals:
+                        _CACHED_AWCC_SENSOR_ID = 260
+
+            # Query the cached AWCC sensor directly
+            target_sensor_id = _CACHED_AWCC_SENSOR_ID or 260
+            awcc_script = (
+                '$awcc = Get-CimInstance -Namespace "root/WMI" -ClassName "AWCCWmiMethodFunction" -ErrorAction Stop; '
+                f'$r = Invoke-CimMethod -InputObject $awcc -MethodName "Thermal_Information" -Arguments @{{arg2=[uint32]{target_sensor_id}}}; '
+                'Write-Host $r.argr'
+            )
+            out = subprocess.check_output(
+                ["powershell", "-NoProfile", "-Command", awcc_script],
+                startupinfo=si, creationflags=0x08000000, timeout=2.5
+            ).decode().strip()
+
+            if out.isdigit():
+                t = int(out)
+                if 0 < t < 120:
+                    return float(t)
+        except Exception as awcc_err:
+            logger.debug(f"[Telemetry] AWCC query temporary cooldown (15s): {awcc_err}")
+            _AWCC_COOLDOWN_UNTIL = now_ts + 15.0
 
 
     # --- Approach 2: PowerShell enumerate all thermal zone instances ---
@@ -938,21 +922,13 @@ class TelemetryThread(threading.Thread):
                     if cpu_temp <= 0 and hasattr(self, "_cached_native_temp") and self._cached_native_temp > 0:
                         cpu_temp = self._cached_native_temp
 
-                    # --- Smart Estimation Fallback if no sensor works or is blocked ---
+                    # --- Hold last valid temperature through transient polling gaps ---
                     if cpu_temp <= 0:
-                        pass # Fallback simulation removed to prevent inaccurate reporting
+                        last_temp = getattr(self, "_last_cpu_temp", 0)
+                        if last_temp > 0:
+                            cpu_temp = last_temp
 
                 # --- Source-aware temperature post-processing ---
-                # LHM priority ladder (Program.cs GetCpuTempPriority):
-                #   100 — "CPU Package" / "Package"   ← package-level die temp (preferred)
-                #    95 — "Tdie"                        ← AMD silicon die, no offset
-                #    90 — "Tctl" / "Tctl/Tdie"          ← AMD control temp
-                #    85 — CCD* (AMD chiplet die)
-                #    70 — generic CPU-named sensor
-                #     5 — "Core Max" / "Core Average"   ← per-core aggregates, NOT package
-                #     2 — "Core #N"                     ← individual cores, last resort
-                # Fallback sources (WMI ACPI, psutil, native) get an outlier guard
-                # before the EMA step below.
                 lhm_provided_temp = lhm and lhm.get("cpu_temp", 0) > 0
 
                 if cpu_temp > 0:

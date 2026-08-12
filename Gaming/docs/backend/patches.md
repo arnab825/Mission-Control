@@ -2,6 +2,14 @@
 
 This document contains a detailed history of all patches and updates for the AI Gaming Assistant.
 
+### Patch: 2026-08-12 — v2.9.4: Fix Alienware CPU temperature telemetry lockouts under heavy gaming loads
+
+- Fix Alienware CPU temperature telemetry lockouts under heavy gaming loads
+
+### Patch: 2026-08-12 — v2.9.3: Fix Alienware CPU temperature telemetry lockouts and dynamic blog AI cover generation
+
+- Fix Alienware CPU temperature telemetry lockouts and dynamic blog AI cover generation
+
 ### Patch: 2026-08-04 — v2.8.9: Fix Parent Flex Height Chain for Library Windowed Responsiveness
 
 - Fix Parent Flex Height Chain for Library Windowed Responsiveness

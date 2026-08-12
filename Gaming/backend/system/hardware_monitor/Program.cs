@@ -423,24 +423,20 @@ namespace HardwareMonitor
             if (nameLower.StartsWith("ccd"))
                 return 85;
 
-            // Generic CPU-named sensor (e.g. board-level "CPU" zone)
+            // Generic CPU-named sensor (e.g. board-level "CPU" zone, "CPU Thermal", "CPU Core")
             if (nameLower.Contains("cpu"))
                 return 70;
 
-            // "Core Max" — LHM virtual sensor = MAX(Core #0 .. Core #N).
-            // This is the HOTTEST individual core, not the package temperature.
-            // It reads higher than package on single-threaded bursts, causing the
-            // HUD to show inflated temperatures. Explicitly assign -1 to ignore them
-            // so we can fallback to WMI package sensors.
+            // "Core Max" / "Core Average" — aggregate per-core sensors on Alienware & Dell laptops
             if (nameLower.Contains("core max") || nameLower.Contains("core average"))
-                return -1;
+                return 50;
 
-            // Individual cores (e.g. "Core #0", "Core(#3)") — last hardware resort
-            if (nameLower.Contains("core #") || nameLower.Contains("core(#"))
-                return -1;
+            // Individual cores (e.g. "Core #0", "Core(#3)", "CPU Core #1") — essential fallback for Alienware/Dell mobile CPUs
+            if (nameLower.Contains("core #") || nameLower.Contains("core(#") || nameLower.Contains("core"))
+                return 30;
 
-            // Unknown — accept as absolute last resort
-            return 0;
+            // Unknown — accept as fallback
+            return 10;
         }
     }
 
