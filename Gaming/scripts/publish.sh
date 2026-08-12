@@ -28,9 +28,17 @@ echo -e "\033[0;36m[BUILD] Compiling Linux packages for v${VERSION}...\033[0m"
 cd frontend
 npm run build
 
+# Generate release notes markdown for GitHub Releases
+RELEASE_TITLE="Release v${VERSION}: ${TITLE}"
+cat <<EOF > release-notes.md
+# ${RELEASE_TITLE}
+
+- ${TITLE}
+EOF
+
 if [ -n "$GH_TOKEN" ] || [ -n "$GITHUB_TOKEN" ]; then
-    echo -e "\033[0;36m[PUBLISH] GH_TOKEN detected! Building and publishing Windows & Linux assets to GitHub Releases...\033[0m"
-    npx electron-builder --win --linux --publish always
+    echo -e "\033[0;36m[PUBLISH] GH_TOKEN detected! Publishing ${RELEASE_TITLE} to GitHub Releases...\033[0m"
+    npx electron-builder --win --linux --publish always --config.extraMetadata.name="${RELEASE_TITLE}"
 else
     echo -e "\033[0;33m[BUILD] Compiling local Linux binaries in frontend/out/dist...\033[0m"
     npm run make:linux
