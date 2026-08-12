@@ -1,8 +1,32 @@
 {
-  "version": "3.0.0",
+  "version": "3.0.3",
   "release_date": "2026-08-10",
   "update_check_url": "https://raw.githubusercontent.com/arnab825/Mission-Control/main/Gaming/backend/version.json",
   "changelog": [
+    {
+      "version": "3.0.3",
+      "date": "2026-08-12",
+      "title": "Fixes Linux build on WSL",
+      "highlights": [
+        "Fixes Linux build on WSL"
+      ]
+    },
+    {
+      "version": "3.0.2",
+      "date": "2026-08-12",
+      "title": "Fixes some Bugs for Linux",
+      "highlights": [
+        "Fixes some Bugs for Linux"
+      ]
+    },
+    {
+      "version": "3.0.1",
+      "date": "2026-08-12",
+      "title": "Fixes some Bugs for Linux",
+      "highlights": [
+        "Fixes some Bugs for Linux"
+      ]
+    },
     {
       "version": "3.0.0",
       "date": "2026-08-12",
@@ -448,35 +472,6 @@
       "title": "Fix forge.config.ts extraResource path for Woodpecker CI",
       "highlights": [
         "Fixed forge.config.ts extraResource path from MissionControl to MissionControlBackend"
-      ]
-    },
-    {
-      "version": "2.6.3",
-      "date": "2026-07-28",
-      "title": "Fix production packaging and backend binary paths",
-      "highlights": [
-        "Fixed extraResources path in package.json to point to MissionControlBackend",
-        "Updated Electron main process binary lookup to MissionControlBackend.exe"
-      ]
-    },
-    {
-      "version": "2.6.2",
-      "date": "2026-07-27",
-      "title": "Filtered crack and NoDVD subdirectories from game detection",
-      "highlights": [
-        "Filtered executables inside crack/nodvd subdirectories in _select_best_exe",
-        "Skipped crack/nodvd subdirectories during drive scan",
-        "Filtered crack/nodvd subdirectories during Steam recursive glob search"
-      ]
-    },
-    {
-      "version": "2.6.1",
-      "date": "2026-07-27",
-      "title": "Optimized updater mechanism and excluded crack directories",
-      "highlights": [
-        "Skip NoDVD and skidrow folders in game deep scanning",
-        "Clean stale update state on start via semantic comparison",
-        "Correctly scan changelog for executable availability in backend updater"
       ]
     }
   ]

@@ -2,7 +2,7 @@
     "name":  "mission-control-frontend",
     "productName":  "Mission Control",
     "private":  true,
-    "version":  "3.0.0",
+    "version":  "3.0.3",
     "description":  "Mission Control desktop app for gamers.",
     "author":  "Arnab Contributors \u003csupport@missioncontrol.app\u003e",
     "type":  "module",
@@ -72,9 +72,7 @@
                   "publish":  {
                                   "provider":  "github",
                                   "owner":  "arnab825",
-                                  "repo":  "Mission-Control",
-                                  "draft":  false,
-                                  "releaseType":  "release"
+                                  "repo":  "Mission-Control"
                               },
                   "nsis":  {
                                "oneClick":  false,
