@@ -1,3 +1,3 @@
-# Release v3.0.3: Fixes Linux build on WSL
+# Release v3.0.7: Fixes some Bugs for Linux
 
-- Fixes Linux build on WSL
+- Fixes some Bugs for Linux

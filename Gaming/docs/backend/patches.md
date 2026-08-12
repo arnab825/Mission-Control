@@ -2,6 +2,22 @@
 
 This document contains a detailed history of all patches and updates for the AI Gaming Assistant.
 
+### Patch: 2026-08-12 — v3.0.7: Fixes some Bugs for Linux
+
+- Fixes some Bugs for Linux
+
+### Patch: 2026-08-12 — v3.0.6: Fixes some Bugs for Linux
+
+- Fixes some Bugs for Linux
+
+### Patch: 2026-08-12 — v3.0.5: Fixes some Bugs for Linux
+
+- Fixes some Bugs for Linux
+
+### Patch: 2026-08-12 — v3.0.4: Fixes some Bugs for Linux
+
+- Fixes some Bugs for Linux
+
 ### Patch: 2026-08-12 — v3.0.3: Fixes Linux build on WSL
 
 - Fixes Linux build on WSL

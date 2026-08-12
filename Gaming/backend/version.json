@@ -1,8 +1,40 @@
 {
-  "version": "3.0.3",
+  "version": "3.0.7",
   "release_date": "2026-08-10",
   "update_check_url": "https://raw.githubusercontent.com/arnab825/Mission-Control/main/Gaming/backend/version.json",
   "changelog": [
+    {
+      "version": "3.0.7",
+      "date": "2026-08-12",
+      "title": "Fixes some Bugs for Linux",
+      "highlights": [
+        "Fixes some Bugs for Linux"
+      ]
+    },
+    {
+      "version": "3.0.6",
+      "date": "2026-08-12",
+      "title": "Fixes some Bugs for Linux",
+      "highlights": [
+        "Fixes some Bugs for Linux"
+      ]
+    },
+    {
+      "version": "3.0.5",
+      "date": "2026-08-12",
+      "title": "Fixes some Bugs for Linux",
+      "highlights": [
+        "Fixes some Bugs for Linux"
+      ]
+    },
+    {
+      "version": "3.0.4",
+      "date": "2026-08-12",
+      "title": "Fixes some Bugs for Linux",
+      "highlights": [
+        "Fixes some Bugs for Linux"
+      ]
+    },
     {
       "version": "3.0.3",
       "date": "2026-08-12",
@@ -430,48 +462,6 @@
         "Added BetterCam capture backend for Direct3D exclusive fullscreen compatibility",
         "Added capture loop auto-failover switching between DXCam and BetterCam on sustained None frames",
         "Included BetterCam in Privacy Shield desktop capture safeguards"
-      ]
-    },
-    {
-      "version": "2.6.6",
-      "date": "2026-07-28",
-      "title": "Exclusive Fullscreen & Game Detection Fixes",
-      "highlights": [
-        "Fixed process watcher HWND bail-out for DXGI exclusive fullscreen games (Ghost of Tsushima, RDR2, etc.)",
-        "Expanded famous_game_keywords fallback list with major action, shooter, RPG and indie titles",
-        "Resolved null FPS overlay bug by ensuring ETW PID tracking activates for exclusive fullscreen games"
-      ]
-    },
-    {
-      "version": "2.6.5",
-      "date": "2026-07-28",
-      "title": "Exclusive Fullscreen: Privacy Shield Fix + Tray Telemetry",
-      "highlights": [
-        "Fixed Privacy Shield false-positive in exclusive fullscreen (alt-tab no longer blacks out vision feed)",
-        "Decoupled Privacy Shield from GetForegroundWindow ÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â‚¬Å¡Ã‚Â¬ÃƒÂ¢Ã¢â€šÂ¬Ã‚Â now only fires when game process exits or window is minimized",
-        "Added live FPS/GPU/Temp telemetry to system tray tooltip (hover to check performance without alt-tabbing)",
-        "Added psutil PID-alive check in _is_game_active Step 6 to preserve focused=True for exclusive fullscreen games"
-      ]
-    },
-    {
-      "version": "2.6.4",
-      "date": "2026-07-28",
-      "title": "Fix instance lock stale file & Mobile Optimization",
-      "highlights": [
-        "Fixed lock file path to use user-writable LOCALAPPDATA instead of read-only Program Files _internal",
-        "Added dead-PID stale lock cleanup to instance guard",
-        "Added legacy MissionControl.exe taskkill on Electron startup for rename migration",
-        "Synchronized changelog highlights and version tags up to v2.6.4",
-        "Optimized docs layout for mobile viewports",
-        "Automated real-time website documentation updates"
-      ]
-    },
-    {
-      "version": "2.6.3",
-      "date": "2026-07-28",
-      "title": "Fix forge.config.ts extraResource path for Woodpecker CI",
-      "highlights": [
-        "Fixed forge.config.ts extraResource path from MissionControl to MissionControlBackend"
       ]
     }
   ]

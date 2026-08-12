@@ -41,16 +41,16 @@ EOF
 if [ -n "$GH_TOKEN" ] || [ -n "$GITHUB_TOKEN" ]; then
     echo -e "\033[0;36m[PUBLISH] GH_TOKEN detected! Publishing ${RELEASE_TITLE} to GitHub Releases...\033[0m"
     if grep -q -i microsoft /proc/version 2>/dev/null || [ -d "/mnt/c" ]; then
-        echo -e "\033[0;33m[WSL DETECTED] Building Linux tar.gz package on Windows host...\033[0m"
-        npx electron-builder --linux tar.gz --publish always --config.extraMetadata.name="${RELEASE_TITLE}"
+        echo -e "\033[0;33m[NOTE] Running under WSL on Windows host. Packaging Windows assets...\033[0m"
+        npx electron-builder --win --publish always --config.extraMetadata.name="${RELEASE_TITLE}"
     else
         npx electron-builder --linux --publish always --config.extraMetadata.name="${RELEASE_TITLE}"
     fi
 else
-    echo -e "\033[0;33m[BUILD] Compiling local Linux binaries in frontend/out/dist...\033[0m"
+    echo -e "\033[0;33m[BUILD] Compiling local binaries in frontend/out/dist...\033[0m"
     if grep -q -i microsoft /proc/version 2>/dev/null || [ -d "/mnt/c" ]; then
-        echo -e "\033[0;33m[WSL DETECTED] Building Linux tar.gz package on Windows host...\033[0m"
-        npx electron-builder --linux tar.gz --x64
+        echo -e "\033[0;33m[NOTE] Running under WSL on Windows host. Compiling Windows installer...\033[0m"
+        npm run make:win
     else
         npm run make:linux
     fi
@@ -60,6 +60,11 @@ cd ..
 
 # 4. Push code and tags to GitHub
 echo -e "\033[0;36m[PUSH] Pushing code and tags to GitHub...\033[0m"
-git push origin main --tags
+TOKEN="${GH_TOKEN:-$GITHUB_TOKEN}"
+if [ -n "$TOKEN" ]; then
+    git push "https://x-access-token:${TOKEN}@github.com/arnab825/Mission-Control.git" main --tags
+else
+    git push origin main --tags
+fi
 
 echo -e "\033[0;32m[SUCCESS] Mission Control v${VERSION} (Windows & Linux) is tagged and live!\033[0m"
