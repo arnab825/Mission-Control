@@ -273,7 +273,28 @@ Sorry to hear you're experiencing an issue! Here is how we can solve it:
 2. **Contact Support Team**: Send a message directly to our core engineers on the **[Contact Support](/contact)** page.
 3. **App Setup & Overlay Fix**: Ensure DirectX 12 graphics drivers are updated and run \`MissionControl-Setup.exe\` or \`MissionControl-Setup.msi\` as Administrator.`;
 
-      // 6. General Fallback
+      // 6. Frequently Asked Questions (FAQ) & General Guidance
+      } else if (
+        q.includes("faq") ||
+        q.includes("frequently asked") ||
+        q.includes("question") ||
+        q.includes("questions") ||
+        q.includes("what is mission control") ||
+        q.includes("how does it work")
+      ) {
+        replyText = `### ❓ Frequently Asked Questions (FAQ) & System Guidance
+Here are common answers & guidelines for Mission Control:
+
+- **Q: What is Mission Control?**
+  *A: Mission Control is an open-source hardware monitoring, AI inference, and telemetry platform for modern PCs.*
+- **Q: Which download format should I use?**
+  *A: Use **.EXE** for standard Windows setups with auto-updates, **.MSI** for enterprise domain installs, or **.ZIP** for standalone portable usage on the **[Downloads](/download)** page.*
+- **Q: Who created Mission Control?**
+  *A: Created by **Arnab Roy** (@arnab825) & **Anirudha Basu Thakur** (@Ani0811) on [GitHub](https://github.com/arnab825/Mission-Control).*
+- **Q: Where can I submit doubts or questions?**
+  *A: Submit direct questions to our team on the **[Contact Support](/contact)** page or report bugs on the **[Community Glitch Tracker](/community)**.*`;
+
+      // 7. General Fallback
       } else {
         replyText = `Hello **${cleanName}**! I'm here 24/7 to answer your queries and assist you with Mission Control.
 
@@ -281,7 +302,7 @@ You can ask me about:
 1. **📥 App Downloads (.EXE, .MSI, .ZIP)**
 2. **📬 Contact Support & Guidance ([Contact Us](/contact))**
 3. **👨‍💻 Developer & Team Credits**
-4. **📚 Documentation & API Reference**`;
+4. **📚 FAQ & Documentation Reference**`;
       }
     }
 

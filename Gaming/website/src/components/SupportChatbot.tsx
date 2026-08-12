@@ -77,17 +77,20 @@ export default function SupportChatbot() {
   const fetchBackendSessions = async (email: string, userName?: string) => {
     try {
       const res = await fetch(`/api/support/chat?email=${encodeURIComponent(email)}`);
-      const data = await res.json();
-      if (data.success && Array.isArray(data.sessions) && data.sessions.length > 0) {
-        setSavedSessions(data.sessions);
-        const latestSess = data.sessions[0];
-        if (latestSess && latestSess.messages && latestSess.messages.length > 0) {
-          setCurrentSessionId(latestSess.sessionId);
-          setMessages(latestSess.messages);
+      const contentType = res.headers.get("content-type");
+      if (res.ok && contentType && contentType.includes("application/json")) {
+        const data = await res.json();
+        if (data.success && Array.isArray(data.sessions) && data.sessions.length > 0) {
+          setSavedSessions(data.sessions);
+          const latestSess = data.sessions[0];
+          if (latestSess && latestSess.messages && latestSess.messages.length > 0) {
+            setCurrentSessionId(latestSess.sessionId);
+            setMessages(latestSess.messages);
+          }
         }
       }
     } catch (err) {
-      console.warn("Error fetching backend chat history:", err);
+      console.warn("Notice: Backend chat history sync skipped:", err);
     }
   };
 

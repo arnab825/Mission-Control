@@ -28,11 +28,11 @@ export function BeforeAfterSlider() {
           <Sparkles className="w-3.5 h-3.5 text-neon-green" />
           <span className="text-neon-green text-xs font-bold font-mono tracking-wider uppercase">ARCHITECTURE EVOLUTION</span>
         </div>
-        
+
         <h3 className="text-3xl sm:text-4xl font-black font-display uppercase tracking-tight text-white leading-tight">
           FROM PROTOTYPE TO <span className="text-neon-green glow-text-teal">PRODUCTION</span>
         </h3>
-        
+
         <div className="space-y-4 font-mono text-xs sm:text-sm">
           {/* BEFORE CARD */}
           <div className="p-5 rounded-2xl bg-white/[0.03] border border-white/10 relative overflow-hidden backdrop-blur-sm group hover:border-white/20 transition-all">
@@ -87,7 +87,7 @@ export function BeforeAfterSlider() {
           </div>
         </div>
 
-        <div 
+        <div
           ref={containerRef}
           className="relative w-full aspect-[16/10] sm:aspect-video rounded-[24px] sm:rounded-[32px] overflow-hidden cursor-ew-resize group select-none shadow-[0_0_50px_rgba(0,0,0,0.8)] border border-neon-green/30 bg-obsidian"
           onMouseMove={handleMouseMove}
@@ -95,19 +95,19 @@ export function BeforeAfterSlider() {
         >
           {/* After Image (Background - Zoomed out uncropped view) */}
           <div className="absolute inset-0 p-3 sm:p-5 flex items-center justify-center bg-[#0a0a0c]">
-             <img src={afterImg.src} alt="After: Next.js + Electron" className="w-full h-full object-contain max-h-full max-w-full rounded-xl" />
+            <img src={afterImg.src} alt="After: Next.js + Electron" className="w-full h-full object-contain max-h-full max-w-full rounded-xl" />
           </div>
-          
+
           {/* Before Image (Foreground, Clipped - Zoomed out uncropped view) */}
-          <div 
+          <div
             className="absolute inset-0 border-r-2 border-neon-green z-10 p-3 sm:p-5 flex items-center justify-center overflow-hidden bg-[#0a0a0c]"
             style={{ clipPath: `polygon(0 0, ${sliderPosition}% 0, ${sliderPosition}% 100%, 0 100%)` }}
           >
-             <img src={beforeImg.src} alt="Before: Python GUI" className="w-full h-full object-contain max-h-full max-w-full rounded-xl grayscale-[15%]" />
+            <img src={beforeImg.src} alt="Before: Python GUI" className="w-full h-full object-contain max-h-full max-w-full rounded-xl grayscale-[15%]" />
           </div>
 
           {/* Slider Handle Divider */}
-          <div 
+          <div
             className="absolute top-0 bottom-0 w-1 bg-neon-green cursor-ew-resize shadow-[0_0_20px_rgba(118,185,0,0.9)] z-20"
             style={{ left: `${sliderPosition}%`, transform: 'translateX(-50%)' }}
           >
@@ -116,7 +116,7 @@ export function BeforeAfterSlider() {
             </div>
           </div>
         </div>
-        
+
         <div className="text-center mt-4">
           <span className="text-neon-green font-mono text-xs uppercase tracking-widest font-bold flex items-center justify-center gap-2">
             <span>‹ SLIDE HORIZONTALLY TO COMPARE ARCHITECTURE EVOLUTION ›</span>
