@@ -1,8 +1,40 @@
 {
-  "version": "3.0.7",
+  "version": "3.1.1",
   "release_date": "2026-08-10",
   "update_check_url": "https://raw.githubusercontent.com/arnab825/Mission-Control/main/Gaming/backend/version.json",
   "changelog": [
+    {
+      "version": "3.1.1",
+      "date": "2026-08-13",
+      "title": "fixed som e bugs",
+      "highlights": [
+        "fixed som e bugs"
+      ]
+    },
+    {
+      "version": "3.1.0",
+      "date": "2026-08-12",
+      "title": "Fixes some Bugs for Linux",
+      "highlights": [
+        "Fixes some Bugs for Linux"
+      ]
+    },
+    {
+      "version": "3.0.9",
+      "date": "2026-08-12",
+      "title": "Fixes some Bugs for Linux",
+      "highlights": [
+        "Fixes some Bugs for Linux"
+      ]
+    },
+    {
+      "version": "3.0.8",
+      "date": "2026-08-12",
+      "title": "Fixes some Bugs for Linux",
+      "highlights": [
+        "Fixes some Bugs for Linux"
+      ]
+    },
     {
       "version": "3.0.7",
       "date": "2026-08-12",
@@ -422,46 +454,6 @@
         "Added 15-second phrase cutoff time limit to SpeechRecognition to prevent endless mic blocking",
         "Implemented instant mic stream interruption when aborting voice notes",
         "Added real-time status updates (Processing, You: transcript) to the chat bridge during voice input"
-      ]
-    },
-    {
-      "version": "2.6.10",
-      "date": "2026-07-29",
-      "title": "Fix Frozen PyInstaller Process Cascade & Stream Error Recovery",
-      "highlights": [
-        "Fixed recursive PyInstaller binary launch loop by bypassing subprocess TLS probes in frozen builds",
-        "Resolved infinite AI thinking state when changing models in Settings",
-        "Added stream error exception handling to flush partial responses and finalize chat UI"
-      ]
-    },
-    {
-      "version": "2.6.9",
-      "date": "2026-07-29",
-      "title": "Dynamic NVIDIA NIM Model Fetching & Chat Error Handling",
-      "highlights": [
-        "Added dynamic NVIDIA NIM model fetching and dropdown sync in Settings page",
-        "Improved AI chat error handling and surfaced exact API failure messages instead of generic None output",
-        "Added manual Refresh Models option to sync accessible model entitlements from NVIDIA portal"
-      ]
-    },
-    {
-      "version": "2.6.8",
-      "date": "2026-07-29",
-      "title": "Agentic Mode System Instructions & UI Synchronization Fixes",
-      "highlights": [
-        "Dynamically synchronized Agentic Mode ON/OFF system prompt instructions in decision_maker.py",
-        "Fixed WebSocket event dispatching for Agentic Mode toggle in frontend App.tsx",
-        "Resolved UpdatesPage latest vs current version matching bug for native Electron client"
-      ]
-    },
-    {
-      "version": "2.6.7",
-      "date": "2026-07-28",
-      "title": "Exclusive Fullscreen BetterCam Backend & Auto-Failover",
-      "highlights": [
-        "Added BetterCam capture backend for Direct3D exclusive fullscreen compatibility",
-        "Added capture loop auto-failover switching between DXCam and BetterCam on sustained None frames",
-        "Included BetterCam in Privacy Shield desktop capture safeguards"
       ]
     }
   ]
