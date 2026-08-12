@@ -1,8 +1,16 @@
 {
-  "version": "2.9.5",
+  "version": "2.9.6",
   "release_date": "2026-08-10",
   "update_check_url": "https://raw.githubusercontent.com/arnab825/Mission-Control/main/Gaming/backend/version.json",
   "changelog": [
+    {
+      "version": "2.9.6",
+      "date": "2026-08-12",
+      "title": "Release Title Here",
+      "highlights": [
+        "Release Title Here"
+      ]
+    },
     {
       "version": "2.9.5",
       "date": "2026-08-12",
@@ -466,15 +474,6 @@
       "title": "Compiled PyInstaller backend binary v2.5.6",
       "highlights": [
         "Compiled and synced v2.5.6 backend executable to frontend distribution"
-      ]
-    },
-    {
-      "version": "2.5.5",
-      "date": "2026-07-27",
-      "title": "Fixed welcome stream fallback list index out of range crash",
-      "highlights": [
-        "Guarded welcome stream and fallback chat generation",
-        "Safeguarded session deletion and system specs display lookups"
       ]
     }
   ]
