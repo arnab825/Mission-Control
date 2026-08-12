@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Terminal, Send, BrainCircuit, Mic } from 'lucide-react';
+import { Terminal, Send, Mic } from 'lucide-react';
 
 const ChatBubble: React.FC<{ role: 'agent' | 'user'; text: string; time: string }> = ({ role, text, time }) => (
   <motion.div
@@ -10,8 +10,8 @@ const ChatBubble: React.FC<{ role: 'agent' | 'user'; text: string; time: string 
   >
     <div className={`max-w-[90%] sm:max-w-[85%] gap-y-1.5`}>
       <div className={`flex items-center gap-2 ${role === 'user' ? 'flex-row-reverse' : ''}`}>
-        <div className={`w-5 h-5 rounded-md flex items-center justify-center ${role === 'agent' ? 'bg-neon-green/10 border border-neon-green/20' : 'bg-white/5 border border-white/10'}`}>
-          {role === 'agent' ? <BrainCircuit className="w-3 h-3 text-neon-green" /> : <div className="w-1 h-1 rounded-full bg-zinc-400" />}
+        <div className={`w-5 h-5 rounded-md flex items-center justify-center overflow-hidden ${role === 'agent' ? 'bg-neon-green/10 border border-neon-green/20' : 'bg-white/5 border border-white/10'}`}>
+          {role === 'agent' ? <img src="/logo.png" alt="Mission Control" className="w-full h-full object-contain p-0.5" /> : <div className="w-1 h-1 rounded-full bg-zinc-400" />}
         </div>
         <span className="text-[8px] font-bold text-zinc-500 uppercase tracking-widest">{role === 'agent' ? 'Agent' : 'You'}</span>
         <span className="text-[8px] font-medium text-zinc-700">{time}</span>

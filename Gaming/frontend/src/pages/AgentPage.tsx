@@ -350,7 +350,7 @@ const ChatBubble: React.FC<{
               : 'bg-white/5 border border-white/10'
               }`}>
               {role === 'agent' ? (
-                <BrainCircuit className={`w-3 h-3 text-neon-green ${isThinking ? 'animate-pulse' : ''}`} />
+                <img src="/logo.png" alt="Mission Control" className={`w-full h-full object-contain p-0.5 ${isThinking ? 'animate-pulse' : ''}`} />
               ) : isSignedIn && user?.imageUrl ? (
                 <img src={user.imageUrl} className="w-full h-full object-cover" alt="User" />
               ) : (
@@ -1568,7 +1568,10 @@ const AgentPage: React.FC<{
                   <Menu className="w-4 h-4" />
                 </button>
               )}
-              <div className="w-1.5 h-1.5 rounded-full bg-neon-green/80 shadow-[0_0_8px_rgba(118, 185, 0,0.8)] animate-pulse shrink-0" />
+              <div className="w-5 h-5 rounded-md bg-neon-green/10 border border-neon-green/30 p-0.5 overflow-hidden shrink-0 flex items-center justify-center shadow-[0_0_8px_rgba(118,185,0,0.25)]">
+                <img src="/logo.png" alt="Mission Control" className="w-full h-full object-contain" />
+              </div>
+              <div className="w-1.5 h-1.5 rounded-full bg-neon-green/80 shadow-[0_0_8px_rgba(118,185,0,0.8)] animate-pulse shrink-0" />
               <span className="text-[10px] font-bold text-zinc-400 uppercase tracking-widest truncate max-w-[100px] sm:max-w-[180px] md:max-w-xs block">
                 {headline}
               </span>
