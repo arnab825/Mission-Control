@@ -163,6 +163,15 @@ If the version in `version.json` gets out of sync with your Git tags, you can ma
 uv run python scripts/bump_version.py --set 0.4.0 --title "Reset" --changes "Manual reset"
 ```
 
+### EPERM Symlink Error on Windows (`electron-builder`)
+If packaging fails on Windows with `EPERM: operation not permitted, symlink`:
+* **Cause**: `electron-builder` was invoked with `--linux` (AppImage target) on a Windows host OS without symlink creation privileges.
+* **Fix**: Run Windows builds via `.\Gaming\scripts\publish.ps1` (which automatically passes `--win`). Run Linux builds via `./scripts/publish.sh` on Linux hosts or WSL.
+* **Cleanup**: Delete any lingering temporary directory:
+  ```powershell
+  Remove-Item -Recurse -Force Gaming\frontend\out\dist\__appImage-x64
+  ```
+
 ---
 
 ## 🖥️ Application UI Demos
