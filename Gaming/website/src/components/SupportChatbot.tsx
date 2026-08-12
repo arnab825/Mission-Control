@@ -411,10 +411,10 @@ export default function SupportChatbot() {
         {isOpen ? (
           <X className="w-5 h-5 sm:w-6 sm:h-6 text-white" />
         ) : (
-          <span className="relative flex items-center justify-center">
-            <MessageSquare className="w-5 h-5 sm:w-6 sm:h-6 text-neon-green" />
-            <span className="absolute -top-2.5 -right-2.5 w-3 h-3 bg-neon-green rounded-full animate-ping" />
-            <span className="absolute -top-2.5 -right-2.5 w-3 h-3 bg-neon-green rounded-full border-2 border-[#080c14]" />
+          <span className="relative flex items-center justify-center w-6 h-6 sm:w-7 sm:h-7">
+            <img src="/logo.png" alt="Mission Control Chatbot" className="w-full h-full object-contain drop-shadow-[0_0_10px_rgba(118,185,0,0.8)]" />
+            <span className="absolute -top-1 -right-1 w-2.5 h-2.5 bg-neon-green rounded-full animate-ping" />
+            <span className="absolute -top-1 -right-1 w-2.5 h-2.5 bg-neon-green rounded-full border-2 border-[#080c14]" />
           </span>
         )}
       </button>
@@ -449,18 +449,18 @@ export default function SupportChatbot() {
               ) : (
                 <div className="flex items-center gap-1.5 sm:gap-2">
                   <div className="relative">
-                    <div className="w-6 h-6 sm:w-7 sm:h-7 rounded-lg bg-neon-green/15 border border-neon-green/50 flex items-center justify-center text-neon-green shadow-[0_0_10px_rgba(118,185,0,0.3)]">
-                      <Bot className="w-3.5 h-3.5 sm:w-4 sm:h-4" />
+                    <div className="w-6 h-6 sm:w-7 sm:h-7 rounded-lg bg-neon-green/15 border border-neon-green/50 flex items-center justify-center overflow-hidden p-0.5 shadow-[0_0_10px_rgba(118,185,0,0.35)]">
+                      <img src="/logo.png" alt="Mission Control" className="w-full h-full object-contain" />
                     </div>
                     <span className="absolute -bottom-0.5 -right-0.5 w-1.5 h-1.5 sm:w-2 sm:h-2 bg-neon-green rounded-full border border-[#080c14]" />
                   </div>
                   <div>
                     <h3 className="font-mono text-[10px] sm:text-[11px] font-black tracking-wider text-white uppercase flex items-center gap-1">
-                      24/7 SUPPORT <Sparkles className="w-3 h-3 text-neon-green animate-pulse" />
+                      MISSION CONTROL AI <Sparkles className="w-3 h-3 text-neon-green animate-pulse" />
                     </h3>
                     <p className="font-mono text-[8px] text-neon-green/90 flex items-center gap-1">
                       <span className="w-1.5 h-1.5 rounded-full bg-neon-green animate-ping" />
-                      LIVE ASSISTANT
+                      24/7 SUPPORT ASSISTANT
                     </p>
                   </div>
                 </div>
@@ -518,8 +518,8 @@ export default function SupportChatbot() {
             <div className="flex-1 p-3 sm:p-4 flex flex-col justify-between overflow-y-auto font-mono text-xs bg-[#070a12]/95 backdrop-blur-2xl">
               <div>
                 <div className="text-center mb-3">
-                  <div className="w-9 h-9 sm:w-10 sm:h-10 mx-auto mb-2 rounded-xl bg-neon-green/15 border border-neon-green/40 flex items-center justify-center text-neon-green shadow-[0_0_15px_rgba(118,185,0,0.25)]">
-                    <ShieldCheck className="w-5 h-5 sm:w-6 sm:h-6" />
+                  <div className="w-9 h-9 sm:w-10 sm:h-10 mx-auto mb-2 rounded-xl bg-neon-green/15 border border-neon-green/40 flex items-center justify-center p-1 shadow-[0_0_15px_rgba(118,185,0,0.25)] overflow-hidden">
+                    <img src="/logo.png" alt="Mission Control" className="w-full h-full object-contain" />
                   </div>
                   <h4 className="text-xs font-black text-white uppercase tracking-tight">24/7 SUPPORT SESSION</h4>
                   <p className="text-[10px] text-gray-400 mt-0.5">Enter details to unlock assistant chat.</p>
@@ -678,8 +678,8 @@ export default function SupportChatbot() {
                     className={`flex gap-2 ${msg.sender === "user" ? "justify-end" : "justify-start"}`}
                   >
                     {msg.sender === "assistant" && (
-                      <div className="w-6 h-6 sm:w-7 sm:h-7 rounded-lg bg-neon-green/15 border border-neon-green/40 flex items-center justify-center text-neon-green shrink-0 mt-0.5">
-                        <Bot className="w-3 h-3 sm:w-3.5 sm:h-3.5" />
+                      <div className="w-6 h-6 sm:w-7 sm:h-7 rounded-lg bg-neon-green/15 border border-neon-green/40 flex items-center justify-center shrink-0 mt-0.5 overflow-hidden p-0.5 shadow-[0_0_8px_rgba(118,185,0,0.25)]">
+                        <img src="/logo.png" alt="Mission Control" className="w-full h-full object-contain" />
                       </div>
                     )}
                     <div
@@ -698,8 +698,8 @@ export default function SupportChatbot() {
 
                 {isLoading && (
                   <div className="flex gap-2 items-center">
-                    <div className="w-6 h-6 sm:w-7 sm:h-7 rounded-lg bg-neon-green/15 border border-neon-green/40 flex items-center justify-center text-neon-green shrink-0">
-                      <Bot className="w-3 h-3 sm:w-3.5 sm:h-3.5 animate-spin" />
+                    <div className="w-6 h-6 sm:w-7 sm:h-7 rounded-lg bg-neon-green/15 border border-neon-green/40 flex items-center justify-center shrink-0 overflow-hidden p-0.5 shadow-[0_0_8px_rgba(118,185,0,0.25)]">
+                      <img src="/logo.png" alt="Mission Control" className="w-full h-full object-contain animate-spin" />
                     </div>
                     <span className="text-neon-green/80 font-mono text-[9px] sm:text-[10px] animate-pulse">
                       Analyzing website docs...
