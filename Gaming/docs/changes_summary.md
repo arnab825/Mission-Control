@@ -2049,3 +2049,30 @@ graph TD
 | `build-scripts/linux-build.sh` | **Modified** | Updated Node.js version and optimized dependencies |
 | `spec-validation/validator.ts` | **Added** | New validation layer for cross-platform compatibility |
 | `tests/cross-platform-test.ts` | **Modified** | Enhanced automated testing for cross-platform scenarios |
+
+---
+
+## Session 66 — 2026-08-13: Fixed Linux build pipeline, spec cross-compatibility, and ClerkProvider router props (v3.1.4)
+
+### 🛠️ Key Features Added/Modified
+1. **Fixed Linux build pipeline to ensure cross-platform compatibility.**
+2. **Enhanced spec cross-compatibility to support multiple ClerkProvider configurations.**
+3. **Improved ClerkProvider router props to optimize routing performance.**
+
+### 🧩 Technical Decisions & Architecture
+* In v3.1.4, we refactored the Linux build pipeline to utilize a unified build script, ensuring seamless cross-platform compatibility. Additionally, we implemented a dynamic ClerkProvider router prop system to optimize routing performance and improve spec cross-compatibility. These changes enable more efficient and scalable system operations.
+
+### 📊 System Architecture & Flow
+```mermaid
+graph TD
+  A[Client] --> B[Server]
+  B --> C[Linux Build Pipeline]
+  C --> D[ClerkProvider Router Props]
+```
+
+### 📋 File Changes
+| File | Status | Description |
+|---|---|---|
+| `build/linux.ts` | **Modified** | Unified build script for cross-platform compatibility |
+| `src/ClerkProvider.ts` | **Added** | Dynamic router prop system for optimized routing performance |
+| `spec/ClerkProvider.spec.ts` | **Modified** | Updated spec to support multiple ClerkProvider configurations |
