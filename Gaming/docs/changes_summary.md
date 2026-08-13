@@ -2022,3 +2022,30 @@ graph TD
 | `mission_control.ts` | **Modified** | Updated error handling mechanisms to improve system stability. |
 | `logger.ts` | **Added** | Introduced enhanced logging features for better issue tracking. |
 | `database.ts` | **Modified** | Improved database connectivity and query optimization for faster data retrieval. |
+
+---
+
+## Session 65 — 2026-08-13: Fixed Linux build pipeline and spec cross-compatibility (v3.1.3)
+
+### 🛠️ Key Features Added/Modified
+1. **Improved Linux build pipeline stability and reliability**
+2. **Enhanced cross-platform compatibility for mission-critical specifications**
+
+### 🧩 Technical Decisions & Architecture
+* To address the Linux build pipeline issues, we implemented a revised build script that leverages the latest Node.js version and optimizes dependencies. Additionally, we introduced a new validation layer to ensure cross-platform compatibility, utilizing a combination of automated testing and human review.
+
+### 📊 System Architecture & Flow
+```mermaid
+graph TD
+  A[Client]
+  A -->|API Call|> B[Server]
+  B -->|Data Processing|> C[Database]
+  C -->|Result|> A
+```
+
+### 📋 File Changes
+| File | Status | Description |
+|---|---|---|
+| `build-scripts/linux-build.sh` | **Modified** | Updated Node.js version and optimized dependencies |
+| `spec-validation/validator.ts` | **Added** | New validation layer for cross-platform compatibility |
+| `tests/cross-platform-test.ts` | **Modified** | Enhanced automated testing for cross-platform scenarios |

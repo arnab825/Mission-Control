@@ -1,8 +1,16 @@
 {
-  "version": "3.1.2",
+  "version": "3.1.3",
   "release_date": "2026-08-10",
   "update_check_url": "https://raw.githubusercontent.com/arnab825/Mission-Control/main/Gaming/backend/version.json",
   "changelog": [
+    {
+      "version": "3.1.3",
+      "date": "2026-08-13",
+      "title": "Fixed Linux build pipeline and spec cross-compatibility",
+      "highlights": [
+        "Fixed Linux build pipeline and spec cross-compatibility"
+      ]
+    },
     {
       "version": "3.1.2",
       "date": "2026-08-13",
@@ -441,16 +449,6 @@
         "Enforced API key security via .env file instead of plaintext config",
         "Added provider selection dropdown and dynamic model filtering in Settings",
         "Fixed scope hoisting issue in Settings page component"
-      ]
-    },
-    {
-      "version": "2.7.1",
-      "date": "2026-07-29",
-      "title": "NIM Model Tier Labels & Ghost of Tsushima Fallback Banner",
-      "highlights": [
-        "Updated AI Neural Backbone options to clarify free models vs models requiring NVIDIA NIM API credits",
-        "Added Gemma 2 9B to fast reasoning model options",
-        "Fixed missing icon for Ghost of Tsushima in Library Hardware Feature Matrix"
       ]
     }
   ]
