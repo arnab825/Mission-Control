@@ -2,6 +2,10 @@
 
 This document contains a detailed history of all patches and updates for the AI Gaming Assistant.
 
+### Patch: 2026-08-13 — v3.1.4: Fixed Linux build pipeline, spec cross-compatibility, and ClerkProvider router props
+
+- Fixed Linux build pipeline, spec cross-compatibility, and ClerkProvider router props
+
 ### Patch: 2026-08-13 — v3.1.3: Fixed Linux build pipeline and spec cross-compatibility
 
 - Fixed Linux build pipeline and spec cross-compatibility
