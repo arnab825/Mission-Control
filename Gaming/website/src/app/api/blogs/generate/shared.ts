@@ -22,24 +22,32 @@ async function saveImageBuffer(buffer: Buffer, slug: string, extension: string =
         blob = await put(`images/blog/${fileName}`, buffer, {
           access: "public",
           addRandomSuffix: false,
+          allowOverwrite: true,
         });
+        if (blob?.url) {
+          console.log(`[BlogGen] [BLOB OK] Uploaded public image to Vercel Blob CDN: ${blob.url}`);
+          return blob.url;
+        }
       } catch (accessErr: any) {
-        if (accessErr?.message?.includes("private store") || accessErr?.message?.includes("private access")) {
-          // Store is private; upload with explicit 'private' access
+        const msg = String(accessErr?.message || "").toLowerCase();
+        if (msg.includes("private") || msg.includes("private store") || msg.includes("private access") || msg.includes("already exists")) {
+          // Store is private; upload with explicit 'private' access and serve via /api/blob proxy
           blob = await put(`images/blog/${fileName}`, buffer, {
             access: "private",
             addRandomSuffix: false,
+            allowOverwrite: true,
           });
+          if (blob?.pathname) {
+            const proxyUrl = `/api/blob?pathname=${encodeURIComponent(blob.pathname)}`;
+            console.log(`[BlogGen] [BLOB OK] Uploaded private image to Vercel Blob (served via proxy): ${proxyUrl}`);
+            return proxyUrl;
+          }
         } else {
           throw accessErr;
         }
       }
-      if (blob?.url) {
-        console.log(`[BlogGen] [BLOB OK] Uploaded image to Vercel Blob CDN: ${blob.url}`);
-        return blob.url;
-      }
     } catch (blobErr: any) {
-      console.warn(`[BlogGen] Vercel Blob upload failed, falling back to local path:`, blobErr?.message || blobErr);
+      console.warn(`[BlogGen] Vercel Blob upload failed, using proxy fallback:`, blobErr?.message || blobErr);
     }
   }
 

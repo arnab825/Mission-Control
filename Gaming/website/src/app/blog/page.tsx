@@ -250,6 +250,12 @@ async function GamingIntelData({ activeCategory, localGamingPosts, currentPage }
 
   const mappedDbPosts = dbPosts.map((p) => {
     let resolvedCover = p.coverImage;
+    if (resolvedCover && resolvedCover.includes(".private.blob.vercel-storage.com")) {
+      try {
+        const parsed = new URL(resolvedCover);
+        resolvedCover = `/api/blob?pathname=${encodeURIComponent(parsed.pathname.replace(/^\//, ""))}`;
+      } catch {}
+    }
     const isPlaceholder = !resolvedCover || resolvedCover.includes("placeholder");
     if (isPlaceholder) {
       const localMdx = localGamingPosts.find((lp) => lp.slug?.current === p.slug || lp._id === p.slug);
@@ -259,6 +265,8 @@ async function GamingIntelData({ activeCategory, localGamingPosts, currentPage }
         const pngPath = `/images/blog/${p.slug}.png`;
         if (fs.existsSync(path.join(process.cwd(), "public", pngPath))) {
           resolvedCover = pngPath;
+        } else {
+          resolvedCover = `/api/blob?pathname=${encodeURIComponent(`images/blog/${p.slug}.png`)}`;
         }
       }
     }
