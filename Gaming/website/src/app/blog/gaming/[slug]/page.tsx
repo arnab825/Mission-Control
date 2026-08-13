@@ -177,6 +177,15 @@ export default async function GamingBlogPost({ params }: { params: Promise<{ slu
 
   let post: GamingPostDisplay | null = null;
   if (dbPost) {
+    let dbCover = dbPost.coverImage;
+    if (dbCover && dbCover.includes(".private.blob.vercel-storage.com")) {
+      try {
+        const parsed = new URL(dbCover);
+        dbCover = `/api/blob?pathname=${encodeURIComponent(parsed.pathname.replace(/^\//, ""))}`;
+      } catch {}
+    } else if (!dbCover || dbCover.includes("placeholder")) {
+      dbCover = `/api/blob?pathname=${encodeURIComponent(`images/blog/${slug}.png`)}`;
+    }
     post = {
       title: dbPost.title,
       category: dbPost.category,
@@ -186,7 +195,7 @@ export default async function GamingBlogPost({ params }: { params: Promise<{ slu
       author: dbPost.author,
       aiGenerated: dbPost.aiGenerated,
       publishedAt: dbPost.publishedAt.toISOString(),
-      coverImage: dbPost.coverImage,
+      coverImage: dbCover,
     };
   } else {
     // Fallback to local MDX file
