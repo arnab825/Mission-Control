@@ -13,6 +13,7 @@ import {
   LINUX_DEB_URL,
   LINUX_RPM_URL,
   LINUX_TAR_URL,
+  LINUX_ZIP_URL,
   AUTO_DOWNLOAD_URL,
 } from "@/lib/download";
 import { ScreenshotGallery } from "@/components/ScreenshotGallery";
@@ -1354,25 +1355,29 @@ export default function Home() {
             </div>
             <div>
               <h3 className="text-2xl sm:text-3xl font-black text-white mb-1.5 font-display">Linux Deployment</h3>
-              <p className="text-gray-400 text-xs sm:text-sm font-mono mb-8">Ubuntu / Debian / Fedora / Arch (.AppImage)</p>
+              <p className="text-gray-400 text-xs sm:text-sm font-mono mb-8">Ubuntu / Debian / Fedora / Arch (.tar.gz / .AppImage)</p>
             </div>
             <a
-              href={LINUX_APPIMAGE_URL}
+              href={LINUX_INSTALLER_URL}
               className="w-full bg-gradient-to-r from-cyan-400 to-teal-400 text-obsidian px-6 py-4.5 rounded-xl font-black text-sm uppercase tracking-wider hover:bg-white hover:shadow-[0_0_30px_rgba(34,211,238,0.6)] transition-all duration-300 flex items-center justify-center gap-2.5 font-mono shadow-[0_0_20px_rgba(34,211,238,0.3)] text-center mb-4 cursor-pointer"
             >
-              <Download className="w-5 h-5 shrink-0" /> Download for Linux (AppImage)
+              <Download className="w-5 h-5 shrink-0" /> Download for Linux
             </a>
-            <div className="flex justify-center gap-4 text-xs font-mono">
-              <a href={LINUX_DEB_URL} className="text-gray-400 hover:text-cyan-400 transition-colors flex items-center gap-1">
-                <Download className="w-3.5 h-3.5" /> .DEB
-              </a>
-              <span className="text-gray-600">|</span>
-              <a href={LINUX_RPM_URL} className="text-gray-400 hover:text-cyan-400 transition-colors flex items-center gap-1">
-                <Download className="w-3.5 h-3.5" /> .RPM
-              </a>
-              <span className="text-gray-600">|</span>
+            <div className="flex flex-wrap justify-center gap-3 sm:gap-4 text-xs font-mono">
               <a href={LINUX_TAR_URL} className="text-gray-400 hover:text-cyan-400 transition-colors flex items-center gap-1">
                 <Download className="w-3.5 h-3.5" /> .TAR.GZ
+              </a>
+              <span className="text-gray-600">|</span>
+              <a href={LINUX_ZIP_URL} className="text-gray-400 hover:text-cyan-400 transition-colors flex items-center gap-1">
+                <Download className="w-3.5 h-3.5" /> Portable (.ZIP)
+              </a>
+              <span className="text-gray-600">|</span>
+              <a href={LINUX_APPIMAGE_URL} className="text-gray-400 hover:text-cyan-400 transition-colors flex items-center gap-1">
+                <Download className="w-3.5 h-3.5" /> AppImage
+              </a>
+              <span className="text-gray-600">|</span>
+              <a href={LINUX_DEB_URL} className="text-gray-400 hover:text-cyan-400 transition-colors flex items-center gap-1">
+                <Download className="w-3.5 h-3.5" /> .DEB
               </a>
             </div>
           </div>
