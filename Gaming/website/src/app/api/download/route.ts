@@ -1,5 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 
+export const dynamic = "force-dynamic";
+
 export async function GET(request: NextRequest) {
   const { searchParams } = new URL(request.url);
   let rawType = searchParams.get("type");
@@ -8,27 +10,14 @@ export async function GET(request: NextRequest) {
   if (!rawType || rawType === "auto") {
     const userAgent = (request.headers.get("user-agent") || "").toLowerCase();
     if (userAgent.includes("linux") || userAgent.includes("x11")) {
-      rawType = "appimage";
+      rawType = "linux";
     } else {
       rawType = "exe";
     }
   }
 
   const type = rawType.toLowerCase();
-
-  const fallbackMap: Record<string, string> = {
-    exe: "https://github.com/arnab825/Mission-Control/releases/latest/download/MissionControl-Setup.exe",
-    msi: "https://github.com/arnab825/Mission-Control/releases/latest/download/MissionControl-Setup.msi",
-    zip: "https://github.com/arnab825/Mission-Control/releases/latest/download/MissionControl-Portable.zip",
-    appimage: "https://github.com/arnab825/Mission-Control/releases/latest/download/MissionControl-Linux.AppImage",
-    deb: "https://github.com/arnab825/Mission-Control/releases/latest/download/MissionControl-Linux.deb",
-    rpm: "https://github.com/arnab825/Mission-Control/releases/latest/download/MissionControl-Linux.rpm",
-    "tar.gz": "https://github.com/arnab825/Mission-Control/releases/latest/download/MissionControl-Linux.tar.gz",
-    tar: "https://github.com/arnab825/Mission-Control/releases/latest/download/MissionControl-Linux.tar.gz",
-    linux: "https://github.com/arnab825/Mission-Control/releases/latest/download/MissionControl-Linux.AppImage",
-  };
-
-  const fallbackUrl = fallbackMap[type] || fallbackMap.exe || "https://github.com/arnab825/Mission-Control/releases/latest";
+  const GITHUB_RELEASES_URL = "https://github.com/arnab825/Mission-Control/releases";
 
   try {
     const res = await fetch("https://api.github.com/repos/arnab825/Mission-Control/releases/latest", {
@@ -36,11 +25,11 @@ export async function GET(request: NextRequest) {
         "User-Agent": "MissionControl-Website",
         Accept: "application/vnd.github.v3+json",
       },
-      next: { revalidate: 300 }, // Cache release info for 5 minutes
+      cache: "no-store",
     });
 
     if (!res.ok) {
-      return NextResponse.redirect(fallbackUrl, { status: 302 });
+      return NextResponse.redirect(GITHUB_RELEASES_URL, { status: 302 });
     }
 
     const data = await res.json();
@@ -48,59 +37,79 @@ export async function GET(request: NextRequest) {
 
     let targetAsset = null;
 
-    // 1. Precise type/name matching
-    targetAsset = assets.find((a) => {
-      const name = (a.name || "").toLowerCase();
-      if (type === "zip") {
-        return name === "missioncontrol-portable.zip" || name.includes("portable.zip");
-      }
-      if (type === "msi") {
-        return name === "missioncontrol-setup.msi" || (name.includes("setup") && name.endsWith(".msi"));
-      }
-      if (type === "exe") {
-        return name === "missioncontrol-setup.exe" || (name.includes("setup") && name.endsWith(".exe"));
-      }
-      if (type === "appimage" || type === "linux") {
-        return name.endsWith(".appimage");
-      }
-      if (type === "deb") {
-        return name.endsWith(".deb");
-      }
-      if (type === "rpm") {
-        return name.endsWith(".rpm");
-      }
-      if (type === "tar.gz" || type === "tar" || type === "tgz") {
-        return name.endsWith(".tar.gz") || name.endsWith(".tgz");
-      }
-      return false;
-    });
+    // Helper functions for matching
+    const isLinuxAsset = (name: string) => {
+      const n = name.toLowerCase();
+      return (
+        n.endsWith(".appimage") ||
+        n.endsWith(".deb") ||
+        n.endsWith(".rpm") ||
+        n.endsWith(".tar.gz") ||
+        n.endsWith(".tgz") ||
+        (n.includes("linux") && n.endsWith(".zip"))
+      );
+    };
 
-    // 2. Generic extension matching fallback
-    if (!targetAsset) {
-      const extMap: Record<string, string> = {
-        zip: ".zip",
-        msi: ".msi",
-        exe: ".exe",
-        appimage: ".appimage",
-        linux: ".appimage",
-        deb: ".deb",
-        rpm: ".rpm",
-        "tar.gz": ".tar.gz",
-        tar: ".tar.gz",
-        tgz: ".tgz",
-      };
-      const ext = extMap[type] || `.${type}`;
-      targetAsset = assets.find((a) => (a.name || "").toLowerCase().endsWith(ext));
+    const isWinAsset = (name: string) => {
+      const n = name.toLowerCase();
+      return (
+        n.endsWith(".exe") ||
+        n.endsWith(".msi") ||
+        (n.endsWith(".zip") && !n.includes("linux"))
+      );
+    };
+
+    // 1. Precise type matching
+    if (type === "appimage") {
+      targetAsset = assets.find((a) => a.name.toLowerCase().endsWith(".appimage"));
+    } else if (type === "deb") {
+      targetAsset = assets.find((a) => a.name.toLowerCase().endsWith(".deb"));
+    } else if (type === "rpm") {
+      targetAsset = assets.find((a) => a.name.toLowerCase().endsWith(".rpm"));
+    } else if (type === "tar.gz" || type === "tar" || type === "tgz") {
+      targetAsset = assets.find((a) => a.name.toLowerCase().endsWith(".tar.gz") || a.name.toLowerCase().endsWith(".tgz"));
+    } else if (type === "linux-zip" || type === "linux_zip") {
+      targetAsset = assets.find((a) => a.name.toLowerCase().includes("linux") && a.name.toLowerCase().endsWith(".zip"));
+    } else if (type === "linux") {
+      // Prioritize AppImage > tar.gz > deb > rpm > linux-zip
+      targetAsset =
+        assets.find((a) => a.name.toLowerCase().endsWith(".appimage")) ||
+        assets.find((a) => a.name.toLowerCase().endsWith(".tar.gz") || a.name.toLowerCase().endsWith(".tgz")) ||
+        assets.find((a) => a.name.toLowerCase().endsWith(".deb")) ||
+        assets.find((a) => a.name.toLowerCase().endsWith(".rpm")) ||
+        assets.find((a) => a.name.toLowerCase().includes("linux") && a.name.toLowerCase().endsWith(".zip")) ||
+        assets.find((a) => isLinuxAsset(a.name));
+    } else if (type === "exe") {
+      targetAsset = assets.find((a) => a.name.toLowerCase().endsWith(".exe"));
+    } else if (type === "msi") {
+      targetAsset = assets.find((a) => a.name.toLowerCase().endsWith(".msi"));
+    } else if (type === "zip" || type === "win-zip") {
+      targetAsset = assets.find((a) => a.name.toLowerCase().endsWith(".zip") && !a.name.toLowerCase().includes("linux"));
+    } else if (type === "windows" || type === "win") {
+      targetAsset =
+        assets.find((a) => a.name.toLowerCase().endsWith(".exe")) ||
+        assets.find((a) => a.name.toLowerCase().endsWith(".msi")) ||
+        assets.find((a) => isWinAsset(a.name));
     }
 
+    // 2. Generic fallback within OS family
+    if (!targetAsset) {
+      if (type.includes("linux") || ["appimage", "deb", "rpm", "tar.gz", "tar", "tgz"].includes(type)) {
+        targetAsset = assets.find((a) => isLinuxAsset(a.name));
+      } else if (type.includes("win") || ["exe", "msi", "zip"].includes(type)) {
+        targetAsset = assets.find((a) => isWinAsset(a.name));
+      }
+    }
+
+    // 3. Redirect to asset or release page
     if (targetAsset && targetAsset.browser_download_url) {
       return NextResponse.redirect(targetAsset.browser_download_url, { status: 302 });
     }
 
-    // 3. Fallback to direct URL or GitHub releases page
-    return NextResponse.redirect(fallbackUrl, { status: 302 });
+    // If no assets matched at all, redirect to GitHub releases page (never 404)
+    return NextResponse.redirect(GITHUB_RELEASES_URL, { status: 302 });
   } catch (error) {
     console.error("Error fetching release download:", error);
-    return NextResponse.redirect(fallbackUrl, { status: 302 });
+    return NextResponse.redirect(GITHUB_RELEASES_URL, { status: 302 });
   }
 }
