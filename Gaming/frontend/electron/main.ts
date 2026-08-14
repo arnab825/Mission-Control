@@ -590,11 +590,20 @@ function startPythonBackend() {
         console.log(`[Electron] Using bundled backend exe (builder): ${bundledExeBuilder}`)
       } else {
         // Fallback: raw python (developer machine without compiled binary)
-        const localVenv = 'c:/GitHub/Mission-Control/Gaming/backend/.venv/Scripts/python.exe'
-        executablePath = fs.existsSync(localVenv) ? localVenv : 'python'
+        const isWin = process.platform === 'win32';
+        const localVenv = isWin
+          ? path.join(__dirname, '..', '..', 'backend', '.venv', 'Scripts', 'python.exe')
+          : path.join(__dirname, '..', '..', 'backend', '.venv', 'bin', 'python');
+        executablePath = fs.existsSync(localVenv) ? localVenv : (isWin ? 'python' : 'python3');
         args = [scriptPath, '--no-admin']
         cwdDir = path.dirname(scriptPath)
         console.log(`[Electron] Fallback — python: ${executablePath}`)
+      }
+
+      if (process.platform !== 'win32' && fs.existsSync(executablePath)) {
+        try {
+          fs.chmodSync(executablePath, '755')
+        } catch (_) {}
       }
     }
 

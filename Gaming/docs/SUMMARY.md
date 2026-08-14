@@ -67,7 +67,7 @@ User Query → detect_task() → select providers → fetch results
 ## 🔄 Recent Changes
 
 | Version | Change |
-|---|---|
+| Latest | **Multi-Platform Linux Release** — Universal `.AppImage`, `.deb`, `.rpm`, `.tar.gz` packages + OS-dependent dynamic download router |
 | Latest | **Mission Control UI Overhaul** — Premium glassmorphism, neural backgrounds, Lucide icons |
 | Latest | **Hybrid Connectivity** — Intelligent offline/online switching with Neural Lite local reasoning |
 | Latest | **Gaming Web Search Engine** — Wikipedia + RAWG + SteamSpy + DuckDuckGo, free dev+prod |
@@ -96,9 +96,10 @@ User Query → detect_task() → select providers → fetch results
 | 18 | Adaptive Agent Personalities | ✅ Done |
 | 19 | High-Reliability Voice Engine | ✅ Done |
 | 20 | Autonomous Gameplay + Safety Lab | ✅ Done |
-| **21** | **Gaming Web Search Intelligence** | ✅ **Done** |
-| **22** | **Hotkey Recorder + Auto Model Routing** | ✅ **Done** |
+| 21 | Gaming Web Search Intelligence | ✅ Done |
+| 22 | Hotkey Recorder + Auto Model Routing | ✅ Done |
+| **23** | **Multi-Platform Packaging & Linux Downloads** | ✅ **Done** |
 
 ---
 
-*Last Updated: 2026-05-16*
+*Last Updated: 2026-08-14*

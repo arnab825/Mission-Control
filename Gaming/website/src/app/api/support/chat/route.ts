@@ -13,9 +13,8 @@ Key Information & Knowledge Base:
   • **Anirudha Basu Thakur** ([@Ani0811](https://github.com/Ani0811)): Core Co-Developer — App & Website features, system interfaces & frontend optimization.
   • 🐙 GitHub Repository: [github.com/arnab825/Mission-Control](https://github.com/arnab825/Mission-Control)
 - 📥 Desktop App Downloads & Formats:
-  • **.EXE Installer** (\`MissionControl-Setup.exe\`): Recommended standard 64-bit Windows installer with auto-updates.
-  • **.MSI Package** (\`MissionControl-Setup.msi\`): Enterprise Windows Installer package for silent/custom domain deployments.
-  • **.ZIP Portable** (\`MissionControl-Portable.zip\`): Portable standalone archive — no installation required, run directly.
+  • **Windows Packages**: **.EXE Installer** (\`MissionControl-Setup.exe\`), **.MSI Package** (\`MissionControl-Setup.msi\`), and **.ZIP Portable** (\`MissionControl-Portable.zip\`).
+  • **Linux Packages**: **AppImage** (\`MissionControl-Linux.AppImage\`), **.DEB Package** (\`MissionControl-Linux.deb\`), **.RPM Package** (\`MissionControl-Linux.rpm\`), and **.TAR.GZ Archive** (\`MissionControl-Linux.tar.gz\`).
 - 📬 Support & Contact Hub (/contact): Direct contact form for user queries, technical doubts, feature feedback, and engineering support.
 - 📚 Documentation Hub (/docs): Complete API reference, environment setup, NVIDIA NIM integration guides, and low-level system architecture docs.
 - 📊 Benchmark Profiles (/benchmarks): Detailed game overview, story, gameplay loop, mechanics, and hardware performance metrics across RTX GPUs.
@@ -24,7 +23,7 @@ Key Information & Knowledge Base:
 
 Instructions for Responding:
 1. Always be polite, concise, helpful, and technical.
-2. If asked about downloads, concisely explain all 3 formats: **.EXE**, **.MSI**, and **.ZIP portable**, with internal link to **[Downloads](/download)**.
+2. If asked about downloads, concisely explain Windows formats (**.EXE**, **.MSI**, **.ZIP portable**) and Linux formats (**AppImage**, **.DEB**, **.RPM**, **.TAR.GZ**), with internal link to **[Downloads](/#download)**.
 3. If asked about doubts, help, feedback, or contacting the team, guide users directly to the **[Contact Us](/contact)** page or **[Community Glitch Tracker](/community)**.
 4. If asked "who developed/made/built this app/website" or about contributors, list **Arnab Roy** (@arnab825) and **Anirudha Basu Thakur** (@Ani0811) along with the [GitHub Repo](https://github.com/arnab825/Mission-Control).
 5. Provide structured, clean Markdown responses with bullet points or numbered lists. Include internal markdown links to guide users effectively.`;
@@ -214,14 +213,21 @@ How can I assist you with our **Documentation**, **System Architecture**, **App 
 
 🐙 View repository & code on **[GitHub Repo (arnab825/Mission-Control)](https://github.com/arnab825/Mission-Control)**!`;
 
-      // 2. Desktop App Download (.EXE, .MSI, .ZIP) / Option 1
-      } else if (selectedNum === "1" || q.includes("download") || q.includes("exe") || q.includes("msi") || q.includes("zip") || q.includes("install") || (q.includes("app") && !q.includes("who"))) {
+      // 2. Desktop App Download (Windows & Linux) / Option 1
+      } else if (selectedNum === "1" || q.includes("download") || q.includes("exe") || q.includes("msi") || q.includes("zip") || q.includes("linux") || q.includes("appimage") || q.includes("deb") || q.includes("rpm") || q.includes("install") || (q.includes("app") && !q.includes("who"))) {
         replyText = `### 📥 Mission Control App Downloads
-Download the latest 64-bit Windows release on the **[Downloads](/download)** page:
+Download the latest releases for Windows and Linux on our **[Downloads](/#download)** section:
 
+**🪟 Windows (64-bit):**
 1. **⚙️ Executable (.EXE)**: Standard installer (\`MissionControl-Setup.exe\`) with auto-updates.
 2. **📦 MSI Package (.MSI)**: Enterprise installer (\`MissionControl-Setup.msi\`) for domain & silent deployments.
-3. **📁 Portable Archive (.ZIP)**: Standalone portable package (\`MissionControl-Portable.zip\`) — run instantly without installation.`;
+3. **📁 Portable Archive (.ZIP)**: Standalone portable package (\`MissionControl-Portable.zip\`) — run instantly without installation.
+
+**🐧 Linux (x86_64):**
+1. **🚀 AppImage (.AppImage)**: Universal Linux standalone binary — run directly on Ubuntu, Debian, Fedora, Arch, etc.
+2. **📦 DEB Package (.deb)**: Native installer for Ubuntu / Debian-based systems.
+3. **📦 RPM Package (.rpm)**: Native package for Fedora / RHEL / openSUSE systems.
+4. **📁 TAR.GZ Archive (.tar.gz)**: Standalone portable Linux archive.`;
 
       // 3. Contact Support & General Doubts / Option 2
       } else if (
@@ -288,7 +294,7 @@ Here are common answers & guidelines for Mission Control:
 - **Q: What is Mission Control?**
   *A: Mission Control is an open-source hardware monitoring, AI inference, and telemetry platform for modern PCs.*
 - **Q: Which download format should I use?**
-  *A: Use **.EXE** for standard Windows setups with auto-updates, **.MSI** for enterprise domain installs, or **.ZIP** for standalone portable usage on the **[Downloads](/download)** page.*
+  *A: On Windows, use **.EXE** for standard setups, **.MSI** for enterprise domain installs, or **.ZIP** for portable use. On Linux, use **.AppImage** for universal plug-and-play, or native **.DEB** / **.RPM** packages on the **[Downloads](/#download)** section.*
 - **Q: Who created Mission Control?**
   *A: Created by **Arnab Roy** (@arnab825) & **Anirudha Basu Thakur** (@Ani0811) on [GitHub](https://github.com/arnab825/Mission-Control).*
 - **Q: Where can I submit doubts or questions?**
@@ -299,7 +305,7 @@ Here are common answers & guidelines for Mission Control:
         replyText = `Hello **${cleanName}**! I'm here 24/7 to answer your queries and assist you with Mission Control.
 
 You can ask me about:
-1. **📥 App Downloads (.EXE, .MSI, .ZIP)**
+1. **📥 App Downloads (Windows: .EXE, .MSI, .ZIP | Linux: AppImage, .DEB, .RPM, .TAR.GZ)**
 2. **📬 Contact Support & Guidance ([Contact Us](/contact))**
 3. **👨‍💻 Developer & Team Credits**
 4. **📚 FAQ & Documentation Reference**`;

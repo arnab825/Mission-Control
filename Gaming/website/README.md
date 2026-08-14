@@ -17,6 +17,7 @@ The official high-performance web platform for **Mission Control**, built with N
   - **4-Tier Image Failover Pipeline**: Imagen 3 via Gemini ➔ Hugging Face (`FLUX.1-schnell`) ➔ Pollinations AI ➔ Fallback 3D PNG artwork assets.
   - **MongoDB Atlas Persistence**: Saves posts directly into MongoDB Atlas to guarantee zero content loss across serverless Vercel function lifecycles.
 - **🎮 Interactive Game Benchmark Library**: Dynamic rendering of GPU performance profiles, CPU bottleneck metrics, story overviews, and gameplay mechanics across top titles.
+- **📥 Dynamic OS-Dependent Download Router (`/api/download`)**: Automated HTTP User-Agent inspection serving native Windows installers (`.exe`, `.msi`, `.zip`) to Windows users and Linux packages (`.AppImage`, `.deb`, `.rpm`, `.tar.gz`) to Linux users.
 - **📊 System Telemetry & Glitch Tracker**: Community bug tracking hub and live WebGL GPU hardware specs auto-detection.
 - **🔍 Automated SEO & Schema**: Full JSON-LD structured schema metadata generation for gaming news articles and benchmarks.
 

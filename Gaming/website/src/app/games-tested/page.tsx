@@ -28,7 +28,7 @@ import {
   BookOpen
 } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
-import { WINDOWS_INSTALLER_URL } from "@/lib/download";
+import { WINDOWS_INSTALLER_URL, LINUX_INSTALLER_URL, AUTO_DOWNLOAD_URL } from "@/lib/download";
 import { TESTED_GAMES_LIST, getBenchmarkProfileById } from "@/data/benchmarks";
 
 export default function GamesTestedPage() {
@@ -38,11 +38,20 @@ export default function GamesTestedPage() {
   const [filterGenre, setFilterGenre] = useState<string>("ALL");
   const [searchQuery, setSearchQuery] = useState<string>("");
 
+  type OS = "windows" | "linux" | "mac" | "other" | null;
+  const [os, setOs] = useState<OS>(null);
+
   const featuredGame = getBenchmarkProfileById(selectedGameId);
   const screenshots = featuredGame.screenshots || [];
 
   useEffect(() => {
     if (typeof window !== "undefined") {
+      const ua = (window.navigator.userAgent || window.navigator.platform || "").toLowerCase();
+      if (ua.includes("win")) setOs("windows");
+      else if (ua.includes("linux") || ua.includes("x11")) setOs("linux");
+      else if (ua.includes("mac")) setOs("mac");
+      else setOs("other");
+
       const params = new URLSearchParams(window.location.search);
       const gameParam = params.get("game");
       if (gameParam && TESTED_GAMES_LIST.some((g) => g.id === gameParam)) {
@@ -491,10 +500,12 @@ export default function GamesTestedPage() {
             </p>
             <div className="pt-2 flex justify-center">
               <a
-                href={WINDOWS_INSTALLER_URL}
+                href={os === "linux" ? LINUX_INSTALLER_URL : (os === "windows" ? WINDOWS_INSTALLER_URL : AUTO_DOWNLOAD_URL)}
+                suppressHydrationWarning
                 className="inline-flex items-center gap-2 px-6 py-3 rounded-xl bg-neon-green text-obsidian font-black font-mono text-xs uppercase tracking-wider hover:bg-white transition-all shadow-[0_0_30px_rgba(118,185,0,0.5)]"
               >
-                <Download className="w-4 h-4" /> Download Mission Control
+                <Download className="w-4 h-4 shrink-0" />
+                <span suppressHydrationWarning>Download Mission Control {os === "linux" ? "(Linux)" : os === "windows" ? "(Windows)" : ""}</span>
               </a>
             </div>
           </div>

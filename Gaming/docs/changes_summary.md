@@ -2076,3 +2076,42 @@ graph TD
 | `build/linux.ts` | **Modified** | Unified build script for cross-platform compatibility |
 | `src/ClerkProvider.ts` | **Added** | Dynamic router prop system for optimized routing performance |
 | `spec/ClerkProvider.spec.ts` | **Modified** | Updated spec to support multiple ClerkProvider configurations |
+
+---
+
+## Session 67 — 2026-08-14: Multi-Platform Linux Release & Dynamic OS-Dependent Download Engine
+
+### 🛠️ Key Features Added/Modified
+1. **Linux Package Support & Distribution**: Enabled full production downloads for Linux operating systems, including universal `.AppImage`, native `.deb` (Debian/Ubuntu), `.rpm` (Fedora/RHEL), and standalone `.tar.gz` archives alongside Windows (`.exe`, `.msi`, `.zip`).
+2. **Dynamic OS-Dependent Download Router (`/api/download`)**: Built an intelligent redirect handler with automated server-side HTTP `User-Agent` inspection, serving Windows binaries to Windows clients and Linux binaries to Linux clients automatically.
+3. **Interactive Linux Deployment Matrix Card**: Replaced the placeholder "Under Active Development" UI with a high-tech cyan cyberpunk **Linux Deployment** card featuring instant AppImage download and format selector links.
+4. **Hydration-Safe Client OS Detection**: Implemented SSR-compliant, hydration-safe platform detection with `suppressHydrationWarning` and streamlined desktop/mobile navigation CTA buttons.
+
+### 🧩 Technical Decisions & Architecture
+* **Server-Side Fallback & Resilience**: The `/api/download` route fetches release asset metadata from GitHub Releases API with 5-minute caching. If no query parameters are passed (`type=auto`), it parses the incoming `user-agent` header for Linux (`x11`/`linux`) or Windows (`win`) identifiers to route the client directly to the appropriate binary asset without requiring client-side JS.
+* **Electron Packaging Compatibility**: The asset matcher maps electron-builder output patterns (`MissionControl-Linux-${version}.${ext}`) to standard downloads, supporting `.AppImage`, `.deb`, `.rpm`, `.tar.gz`, `.exe`, `.msi`, and `.zip`.
+
+### 📊 System Architecture & Flow
+```mermaid
+graph TD
+    Client[Browser Client] -->|Clicks Download| Route["/api/download"]
+    Route -->|Query Type Specified| Direct[Match Exact Extension / Name]
+    Route -->|Type Unspecified / Auto| UA{Inspect User-Agent}
+    UA -->|Linux / X11| LinuxAsset["MissionControl-Linux.AppImage"]
+    UA -->|Windows / NT| WinAsset["MissionControl-Setup.exe"]
+    Direct --> Release[GitHub Releases API / Redirect 302]
+    LinuxAsset --> Release
+    WinAsset --> Release
+```
+
+### 📋 File Changes
+| File | Status | Description |
+|---|---|---|
+| `Gaming/website/src/lib/download.ts` | **Modified** | Added Linux URL constants (`LINUX_APPIMAGE_URL`, `LINUX_DEB_URL`, `LINUX_RPM_URL`, `LINUX_TAR_URL`, `AUTO_DOWNLOAD_URL`) |
+| `Gaming/website/src/app/api/download/route.ts` | **Modified** | Implemented automatic User-Agent OS detection & multi-format Linux asset matching |
+| `Gaming/website/src/app/page.tsx` | **Modified** | Enabled dynamic hero OS CTA (`DOWNLOAD NOW (LINUX)` / `(WINDOWS)`), active Linux Deployment card, and updated specs matrix |
+| `Gaming/website/src/components/Navbar.tsx` | **Modified** | Streamlined navbar button to concise `Download`, added OS routing & hydration safeguards |
+| `Gaming/website/src/app/games-tested/page.tsx` | **Modified** | Added OS-dependent download routing on the bottom game optimization banner |
+| `Gaming/website/src/app/api/support/chat/route.ts` | **Modified** | Updated AI support chatbot knowledge base and fallback responses to cover Linux packages |
+| `Gaming/website/next.config.ts` | **Modified** | Configured redirect from `/download` to `/#download` |
+

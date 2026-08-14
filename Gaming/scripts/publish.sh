@@ -11,7 +11,7 @@ fi
 echo -e "\033[0;36m[PUBLISH] Starting Linux release process for Mission Control...\033[0m"
 
 # Move to the Gaming project directory root (parent of scripts/)
-SCRIPT_DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" &> /dev/null && pwd )"
+SCRIPT_DIR="$( cd "$( dirname "$0" )" && pwd )"
 cd "$SCRIPT_DIR/.."
 
 # Auto-load GH_TOKEN from .env files if not in environment
@@ -39,8 +39,13 @@ echo -e "\033[0;36m[COMMIT] Creating release v${VERSION}\033[0m"
 git commit -m "Release v${VERSION}: $TITLE" || true
 git tag -a "v${VERSION}" -m "Release v${VERSION}: $TITLE" || true
 
-# 3. Build Linux Electron Binaries (.AppImage, .deb, .rpm, .tar.gz)
-echo -e "\033[0;36m[BUILD] Compiling Linux packages for v${VERSION}...\033[0m"
+# 3. Build PyInstaller Backend Binary for Linux
+echo -e "\033[0;36m[BUILD] Packaging Python backend for Linux...\033[0m"
+chmod +x "$SCRIPT_DIR/build_app.sh" 2>/dev/null || true
+"$SCRIPT_DIR/build_app.sh"
+
+# 4. Build Linux Electron Binaries (.AppImage, .deb, .rpm, .tar.gz)
+echo -e "\033[0;36m[BUILD] Compiling Electron packages for v${VERSION}...\033[0m"
 cd frontend
 npm run build
 
@@ -52,22 +57,17 @@ cat <<EOF > release-notes.md
 - ${TITLE}
 EOF
 
+BUILD_TARGET="--linux"
+if [ "$2" == "--win" ] || [ "$TARGET_OS" == "win" ]; then
+    BUILD_TARGET="--win"
+fi
+
 if [ -n "$GH_TOKEN" ] || [ -n "$GITHUB_TOKEN" ]; then
-    echo -e "\033[0;36m[PUBLISH] GH_TOKEN detected! Publishing ${RELEASE_TITLE} to GitHub Releases...\033[0m"
-    if grep -q -i microsoft /proc/version 2>/dev/null || [ -d "/mnt/c" ]; then
-        echo -e "\033[0;33m[NOTE] Running under WSL on Windows host. Packaging Windows assets...\033[0m"
-        npx electron-builder --win --publish always --config.extraMetadata.name="${RELEASE_TITLE}"
-    else
-        npx electron-builder --linux --publish always --config.extraMetadata.name="${RELEASE_TITLE}"
-    fi
+    echo -e "\033[0;36m[PUBLISH] GH_TOKEN detected! Publishing ${RELEASE_TITLE} (${BUILD_TARGET}) to GitHub Releases...\033[0m"
+    npx electron-builder ${BUILD_TARGET} --publish always --config.extraMetadata.name="${RELEASE_TITLE}"
 else
-    echo -e "\033[0;33m[BUILD] Compiling local binaries in frontend/out/dist...\033[0m"
-    if grep -q -i microsoft /proc/version 2>/dev/null || [ -d "/mnt/c" ]; then
-        echo -e "\033[0;33m[NOTE] Running under WSL on Windows host. Compiling Windows installer...\033[0m"
-        npx electron-builder --win --publish never
-    else
-        npx electron-builder --linux --publish never
-    fi
+    echo -e "\033[0;33m[BUILD] Compiling local binaries (${BUILD_TARGET}) in frontend/out/dist...\033[0m"
+    npx electron-builder ${BUILD_TARGET} --publish never
 fi
 
 cd ..
