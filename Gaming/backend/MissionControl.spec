@@ -50,7 +50,12 @@ for d in ['queries', 'vision', 'ai_brain', 'core', 'control',
         datas.append((d, dest))
 
 # Resolve rapidocr_onnxruntime files without importing (prevents build-time DLL load failures on CI runners)
-site_packages = os.path.join(SPECPATH, '.venv', 'Lib', 'site-packages')
+import glob
+if sys.platform == 'win32':
+    site_packages = os.path.join(SPECPATH, '.venv', 'Lib', 'site-packages')
+else:
+    candidates = glob.glob(os.path.join(SPECPATH, '.venv', 'lib', 'python3.*', 'site-packages'))
+    site_packages = candidates[0] if candidates else os.path.join(SPECPATH, '.venv', 'lib', 'site-packages')
 
 rapidocr_datas = []
 rapidocr_imports = []
@@ -92,6 +97,28 @@ else:
 
 datas += rapidocr_datas
 
+if sys.platform == 'win32':
+    platform_hiddenimports = [
+        'pynput.keyboard._win32',
+        'pynput.mouse._win32',
+        'win32api',
+        'win32con',
+        'win32com',
+        'win32com.client',
+        'wmi',
+        'psutil._pswindows',
+        'pyttsx3.drivers',
+        'pyttsx3.drivers.sapi5',
+    ]
+else:
+    platform_hiddenimports = [
+        'pynput.keyboard._xorg',
+        'pynput.mouse._xorg',
+        'psutil._pslinux',
+        'pyttsx3.drivers',
+        'pyttsx3.drivers.espeak',
+    ]
+
 a = Analysis(
     ['main.py'],
     pathex=['.'],
@@ -103,23 +130,9 @@ a = Analysis(
         'websockets.legacy',
         'websockets.legacy.server',
         'websockets.legacy.client',
-        # ── pynput Windows backend ──────────────────────────────────────────
-        'pynput.keyboard._win32',
-        'pynput.mouse._win32',
-        # ── WMI / win32 ─────────────────────────────────────────────────────
-        'win32api',
-        'win32con',
-        'win32com',
-        'win32com.client',
-        'wmi',
-        # ── psutil ──────────────────────────────────────────────────────────
-        'psutil._pswindows',
-        # ── pyttsx3 ─────────────────────────────────────────────────────────
-        'pyttsx3.drivers',
-        'pyttsx3.drivers.sapi5',
         # ── PIL ─────────────────────────────────────────────────────────────
         'PIL._tkinter_finder',
-    ] + mem0_imports + rapidocr_imports,
+    ] + platform_hiddenimports + mem0_imports + rapidocr_imports,
     hookspath=[],
     hooksconfig={},
     runtime_hooks=[],
@@ -165,7 +178,7 @@ exe = EXE(
     target_arch=None,
     codesign_identity=None,
     entitlements_file=None,
-    icon=['logo.ico'],
+    icon=['logo.ico'] if sys.platform == 'win32' and os.path.exists('logo.ico') else None,
 )
 
 coll = COLLECT(

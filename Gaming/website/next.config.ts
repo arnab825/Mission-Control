@@ -62,6 +62,15 @@ const nextConfig: NextConfig = {
         ]
       }
     ];
+  },
+  async redirects() {
+    return [
+      {
+        source: "/download",
+        destination: "/#download",
+        permanent: false,
+      },
+    ];
   }
 };
 

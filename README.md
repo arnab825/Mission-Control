@@ -202,11 +202,12 @@ graph TD
 
 ## 🛠️ Prerequisites & Requirements
 
-- **Operating System**: Windows 10 / 11 (64-bit strictly required for native C++ DirectX hooks & NVML driver APIs).
+- **Operating System**: Windows 10 / 11 (64-bit) or Linux (Ubuntu 22.04+, Arch, Fedora x86_64).
 - **GPU**: NVIDIA GeForce GTX / RTX series card (RTX 20, 30, 40, or 50 series recommended for TensorRT & DLSS telemetry).
 - **Node.js**: v18.x or v20.x+
 - **Python**: v3.12 (managed via [`uv`](https://github.com/astral-sh/uv))
 - **Drivers**: NVIDIA Display Drivers R580+ & CUDA Toolkit 12.x+
+- **Download Packages**: Windows (`.exe`, `.msi`, `.zip`) & Linux (`.AppImage`, `.deb`, `.rpm`, `.tar.gz`) available via GitHub Releases and the web platform.
 
 ---
 

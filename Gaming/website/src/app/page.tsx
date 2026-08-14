@@ -4,7 +4,17 @@ import { useState, useEffect } from "react";
 import Link from "next/link";
 import Script from "next/script";
 import { motion, AnimatePresence } from "framer-motion";
-import { WINDOWS_INSTALLER_URL, WINDOWS_MSI_URL, WINDOWS_ZIP_URL } from "@/lib/download";
+import {
+  WINDOWS_INSTALLER_URL,
+  WINDOWS_MSI_URL,
+  WINDOWS_ZIP_URL,
+  LINUX_INSTALLER_URL,
+  LINUX_APPIMAGE_URL,
+  LINUX_DEB_URL,
+  LINUX_RPM_URL,
+  LINUX_TAR_URL,
+  AUTO_DOWNLOAD_URL,
+} from "@/lib/download";
 import { ScreenshotGallery } from "@/components/ScreenshotGallery";
 import { BeforeAfterSlider } from "@/components/BeforeAfterSlider";
 import { TESTED_GAMES_LIST } from "@/data/benchmarks";
@@ -80,10 +90,12 @@ export default function Home() {
   const [appVersion, setAppVersion] = useState("2.9.4");
 
   useEffect(() => {
-    const platform = window.navigator.platform.toLowerCase();
-    if (platform.includes("win")) setOs("windows");
-    else if (platform.includes("linux")) setOs("linux");
-    else if (platform.includes("mac")) setOs("mac");
+    const ua = (
+      (typeof window !== "undefined" && (window.navigator.userAgent || window.navigator.platform)) || ""
+    ).toLowerCase();
+    if (ua.includes("win")) setOs("windows");
+    else if (ua.includes("linux") || ua.includes("x11")) setOs("linux");
+    else if (ua.includes("mac")) setOs("mac");
     else setOs("other");
 
     fetch("/api/version")
@@ -322,11 +334,12 @@ export default function Home() {
                 </div>
               ) : (
                 <a
-                  href={WINDOWS_INSTALLER_URL}
-                  className="w-full sm:w-auto inline-flex items-center justify-center gap-2.5 bg-gradient-to-r from-neon-green to-emerald-400 text-obsidian px-6 py-3.5 rounded-xl font-black uppercase tracking-wider transition-all duration-300 hover:scale-105 hover:shadow-[0_0_35px_rgba(118,185,0,0.75)] active:scale-95 text-center shadow-[0_0_20px_rgba(118,185,0,0.3)] border border-neon-green"
+                  href={os === "linux" ? LINUX_INSTALLER_URL : (os === "windows" ? WINDOWS_INSTALLER_URL : AUTO_DOWNLOAD_URL)}
+                  suppressHydrationWarning
+                  className="w-full sm:w-auto inline-flex items-center justify-center gap-2.5 bg-gradient-to-r from-neon-green to-emerald-400 text-obsidian px-6 py-3.5 rounded-xl font-black uppercase tracking-wider transition-all duration-300 hover:scale-105 hover:shadow-[0_0_35px_rgba(118,185,0,0.75)] active:scale-95 text-center shadow-[0_0_20px_rgba(118,185,0,0.3)] border border-neon-green whitespace-nowrap"
                 >
                   <Download className="w-4 h-4 shrink-0" />
-                  <span>DOWNLOAD NOW (WINDOWS)</span>
+                  <span suppressHydrationWarning>DOWNLOAD NOW ({os === "linux" ? "LINUX" : "WINDOWS"})</span>
                 </a>
               )}
 
@@ -1335,17 +1348,33 @@ export default function Home() {
           </div>
 
           {/* Linux Build */}
-          <div className="glass-card p-6 sm:p-10 border-white/10 flex flex-col justify-between text-left relative overflow-hidden opacity-85">
-            <div className="absolute top-0 right-0 bg-white/10 text-gray-400 text-[10px] font-mono font-bold px-3.5 py-1 rounded-bl-lg uppercase tracking-wider">
-              IN DEVELOPMENT
+          <div className="glass-card p-6 sm:p-10 border-cyan-400/50 hover:border-cyan-400 flex flex-col justify-between group text-left relative overflow-hidden shadow-[0_0_35px_rgba(34,211,238,0.15)]">
+            <div className="absolute top-0 right-0 bg-cyan-400 text-obsidian text-[10px] font-mono font-bold px-3.5 py-1 rounded-bl-lg uppercase tracking-wider">
+              STABLE BUILD
             </div>
             <div>
-              <h3 className="text-2xl sm:text-3xl font-black text-white mb-1.5 font-display">Linux Package</h3>
-              <p className="text-gray-400 text-xs sm:text-sm font-mono mb-8">AppImage / .deb Package</p>
+              <h3 className="text-2xl sm:text-3xl font-black text-white mb-1.5 font-display">Linux Deployment</h3>
+              <p className="text-gray-400 text-xs sm:text-sm font-mono mb-8">Ubuntu / Debian / Fedora / Arch (.AppImage)</p>
             </div>
-            <button className="w-full border border-white/10 bg-white/5 text-gray-500 px-6 py-4.5 rounded-xl font-bold text-xs uppercase tracking-wider cursor-not-allowed font-mono">
-              Under Active Development
-            </button>
+            <a
+              href={LINUX_APPIMAGE_URL}
+              className="w-full bg-gradient-to-r from-cyan-400 to-teal-400 text-obsidian px-6 py-4.5 rounded-xl font-black text-sm uppercase tracking-wider hover:bg-white hover:shadow-[0_0_30px_rgba(34,211,238,0.6)] transition-all duration-300 flex items-center justify-center gap-2.5 font-mono shadow-[0_0_20px_rgba(34,211,238,0.3)] text-center mb-4 cursor-pointer"
+            >
+              <Download className="w-5 h-5 shrink-0" /> Download for Linux (AppImage)
+            </a>
+            <div className="flex justify-center gap-4 text-xs font-mono">
+              <a href={LINUX_DEB_URL} className="text-gray-400 hover:text-cyan-400 transition-colors flex items-center gap-1">
+                <Download className="w-3.5 h-3.5" /> .DEB
+              </a>
+              <span className="text-gray-600">|</span>
+              <a href={LINUX_RPM_URL} className="text-gray-400 hover:text-cyan-400 transition-colors flex items-center gap-1">
+                <Download className="w-3.5 h-3.5" /> .RPM
+              </a>
+              <span className="text-gray-600">|</span>
+              <a href={LINUX_TAR_URL} className="text-gray-400 hover:text-cyan-400 transition-colors flex items-center gap-1">
+                <Download className="w-3.5 h-3.5" /> .TAR.GZ
+              </a>
+            </div>
           </div>
 
         </div>
@@ -1367,7 +1396,7 @@ export default function Home() {
                   <span className="text-white font-bold flex items-center gap-2">
                     <Monitor className="w-4 h-4 text-gray-400 shrink-0" /> OS:
                   </span>
-                  <span>Windows 10 64-bit</span>
+                  <span>Windows 10 / Ubuntu 22.04+ (64-bit)</span>
                 </li>
                 <li className="flex items-center justify-between border-b border-white/5 pb-3 gap-2">
                   <span className="text-white font-bold flex items-center gap-2">
@@ -1402,7 +1431,7 @@ export default function Home() {
                   <span className="text-white font-bold flex items-center gap-2">
                     <Monitor className="w-4 h-4 text-neon-green shrink-0" /> OS:
                   </span>
-                  <span className="text-neon-green font-semibold">Windows 11 64-bit</span>
+                  <span className="text-neon-green font-semibold">Windows 11 / Arch / Fedora (64-bit)</span>
                 </li>
                 <li className="flex items-center justify-between border-b border-white/10 pb-3 gap-2">
                   <span className="text-white font-bold flex items-center gap-2">

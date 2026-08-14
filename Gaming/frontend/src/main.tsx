@@ -113,7 +113,8 @@ if (!PUBLISHABLE_KEY) {
     <React.StrictMode>
       <ClerkProvider
         publishableKey={PUBLISHABLE_KEY}
-        navigate={clerkNavigate}
+        routerPush={(to) => clerkNavigate(to)}
+        routerReplace={(to) => clerkNavigate(to)}
         signInUrl="/"
         signUpUrl="/"
         afterSignInUrl="/"
