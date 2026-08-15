@@ -125,6 +125,21 @@ function cleanMarkdown(content: string): string {
     return `\n\n$$\n${text}\n$$\n\n`;
   });
 
+  // Trim truncated trailing sentence if post body ends mid-sentence without punctuation
+  const trimmed = clean.trim();
+  if (trimmed && !/[.!?\`"'\n]$/.test(trimmed)) {
+    const lastPunct = Math.max(
+      trimmed.lastIndexOf("."),
+      trimmed.lastIndexOf("!"),
+      trimmed.lastIndexOf("?"),
+      trimmed.lastIndexOf("```")
+    );
+    if (lastPunct > 100) {
+      const endOffset = trimmed.substring(lastPunct, lastPunct + 3) === "```" ? 3 : 1;
+      clean = trimmed.slice(0, lastPunct + endOffset);
+    }
+  }
+
   return clean.trim();
 }
 
@@ -251,7 +266,7 @@ export default async function GamingBlogPost({ params }: { params: Promise<{ slu
         
         {/* Main Content Column */}
         <div className="lg:col-span-3">
-          <article className="glass-panel p-6 sm:p-8 md:p-12 relative overflow-hidden h-full flex flex-col rounded-xl border border-white/5">
+          <article className="glass-panel p-6 sm:p-8 md:p-12 relative overflow-hidden rounded-xl border border-white/5">
             <div className="absolute top-0 right-0 w-64 h-64 bg-neon-green/5 blur-[100px] -mr-20 -mt-20 rounded-full pointer-events-none"></div>
             
             <header className="mb-10 border-b border-white/10 pb-8 relative z-10">
@@ -293,7 +308,7 @@ export default async function GamingBlogPost({ params }: { params: Promise<{ slu
               />
             </div>
             
-            <div className="prose prose-invert prose-headings:font-display prose-headings:text-white prose-a:text-neon-green max-w-none flex-1 relative z-10 leading-relaxed text-sm sm:text-base text-gray-300">
+            <div className="prose prose-invert prose-headings:font-display prose-headings:text-white prose-a:text-neon-green max-w-none relative z-10 leading-relaxed text-sm sm:text-base text-gray-300">
               <MDXRemote 
                 source={cleanMarkdown(post.markdownBody || "")} 
                 components={mdxComponents}  
@@ -305,7 +320,6 @@ export default async function GamingBlogPost({ params }: { params: Promise<{ slu
                 }}
               />
             </div>
-            <AdSenseAdSlot slotId="3942234105" className="my-8 w-full flex justify-center border-t border-white/10 pt-6" />
 
             {/* Prev / Next Navigation */}
             <footer className="mt-8 pt-8 border-t border-white/10 flex flex-col sm:flex-row justify-between gap-4 relative z-10">

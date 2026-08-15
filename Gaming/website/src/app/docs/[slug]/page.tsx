@@ -156,6 +156,14 @@ export default async function DocPage({ params }: { params: Promise<{ slug: stri
               p: ({ children }: any) => (
                 <p className="my-4 text-gray-300 leading-relaxed font-sans text-sm sm:text-base">{children}</p>
               ),
+              img: ({ src, alt, ...props }: any) => (
+                <img
+                  src={src}
+                  alt={alt || "Documentation Graphic"}
+                  className="rounded-xl border border-white/10 my-4 max-w-full h-auto shadow-lg object-cover"
+                  {...props}
+                />
+              ),
               table: ({ children, ...props }: any) => (
                 <div className="overflow-x-auto my-8 border border-white/10 rounded-2xl bg-obsidian w-full shadow-2xl">
                   <table className="w-full border-collapse text-left m-0" {...props}>

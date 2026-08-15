@@ -87,11 +87,9 @@ RTX users possess dedicated AI hardware (Tensor Cores and Optical Flow Accelerat
 
 To make the app look and feel incredibly premium, the visual layout must explicitly celebrate the user's hardware.
 
-```carousel
-![RTX Visual Badge Interface Example](/absolute/path/to/media__1780070518543.png)
-<!-- slide -->
-![Encryption Status Modal Verification UI](/absolute/path/to/media__1780070883783.png)
-```
+| 📟 **Glassmorphic HUD & Telemetry** | ⚡ **AI Hardware Readiness Matrix** |
+| :---: | :---: |
+| ![Glassmorphic HUD Interface](/screenshots/hud.webp) | ![AI Hardware Readiness Matrix](/screenshots/readiness.webp) |
 
 1.  **Dynamic Ambient Lighting (GPU-Themed):**
     *   **RTX Mode:** Sleek, neon cyberpunk theme with vibrant ray-traced ambient glows (emerald green, electric cyan, and deep purple glassmorphism).
@@ -122,21 +120,35 @@ Beyond GPU specifics, these overarching enhancements will elevate the utility of
 To power the next generation of Mission Control, the backend and frontend architecture must evolve. The **12 items** defined in the technical roadmap ([ElectronRoadmap.md](./ElectronRoadmap.md)) represent the ultimate modern core foundation. Here is how they map to enabling our future-gen features:
 
 ```mermaid
-gantt
-    title Mission Control Future-Gen Technical Timeline
-    dateFormat  YYYY-MM-DD
-    section Phase 1: Security & Hardening
-    1. Cookie Encrypt & 2. ASAR-Only Boot   :active, p1_1, 2026-06-01, 5d
-    7. Authenticode Windows Signing        :         p1_2, after p1_1, 4d
-    section Phase 2: Performance & Engine
-    5. Node.js Multithreaded Core          :         p2_1, after p1_2, 7d
-    10. Low-Latency Off-screen Rendering    :         p2_2, after p2_1, 6d
-    11. Network State Event Listeners      :         p2_3, after p2_2, 3d
-    section Phase 3: Premium Shell UX
-    3. Install Progress & 4. HUD Alerts    :         p3_1, after p2_3, 4d
-    8. Tray / App Menus & 9. Drag-and-Drop  :         p3_2, after p3_1, 5d
-    6. Advanced Hardware References        :         p3_3, after p3_2, 3d
-    12. Automated Global Distribution      :         p3_4, after p3_3, 4d
+graph TD
+    classDef sec fill:#1e1b4b,stroke:#818cf8,stroke-width:2px,color:#ffffff;
+    classDef perf fill:#022c22,stroke:#10b981,stroke-width:2px,color:#ffffff;
+    classDef ux fill:#0f172a,stroke:#38bdf8,stroke-width:2px,color:#ffffff;
+    classDef deploy fill:#3b0764,stroke:#c084fc,stroke-width:2px,color:#ffffff;
+
+    subgraph PHASE1 ["🔒 PHASE 1: SECURITY & HARDENING"]
+        P1A["1. Cookie & Token Encryption"]:::sec --> P1B["2. Strict ASAR-Only Execution"]:::sec
+        P1B --> P1C["7. Authenticode Windows Signing"]:::sec
+    end
+
+    subgraph PHASE2 ["⚡ PHASE 2: PERFORMANCE & HARDWARE PIPELINE"]
+        P2A["5. Node.js Multithreading Core"]:::perf --> P2B["10. Low-Latency Off-Screen Rendering (OSR)"]:::perf
+        P2B --> P2C["11. Online/Offline State Detection"]:::perf
+    end
+
+    subgraph PHASE3 ["🎮 PHASE 3: PREMIUM SHELL & HUD EXPERIENCE"]
+        P3A["3. Native Taskbar Progress Bar"]:::ux --> P3B["4. HUD Notification & Hardware Alerts"]:::ux
+        P3B --> P3C["8. Native Tray & Context Menus"]:::ux
+        P3C --> P3D["9. Native File Drag & Drop"]:::ux
+    end
+
+    subgraph PHASE4 ["📦 PHASE 4: AUTOMATED RELEASE & DEPLOYMENT"]
+        P4A["12. Automated Multi-Platform Release Distribution"]:::deploy
+    end
+
+    PHASE1 ==> PHASE2
+    PHASE2 ==> PHASE3
+    PHASE3 ==> PHASE4
 ```
 
 ### 🔒 1. Security & Hardening (Items 1, 2 & 7)
