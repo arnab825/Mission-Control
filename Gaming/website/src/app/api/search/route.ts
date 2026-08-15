@@ -1,48 +1,15 @@
 import { NextResponse } from "next/server";
 import { getSortedPostsData } from "@/lib/blog";
+import { getAllDocs } from "@/lib/docs";
 import connectDB from "@/lib/mongodb";
 import GamingPost from "@/models/GamingPost";
 import fs from "fs";
 import path from "path";
 
-// Static Docs index topics to allow search support before Sanity release
-const STATIC_DOCS = [
-  {
-    title: "Sanity CMS Integration Setup",
-    slug: "setup",
-    category: "Installation",
-    excerpt: "Learn how to link Sanity CMS headless studio to manage documents locally.",
-  },
-  {
-    title: "VRAM Allocation Optimizer",
-    slug: "vram",
-    category: "Commands",
-    excerpt: "Use the /vram command to flush graphics caches and release system memory.",
-  },
-  {
-    title: "Stealth Boost Performance Mode",
-    slug: "boost",
-    category: "Configuration",
-    excerpt: "Toggle stealth boost to suspend launcher processes and maximize game frame rate.",
-  },
-  {
-    title: "NVIDIA Telemetry Deep Scanner",
-    slug: "scan",
-    category: "Telemetry",
-    excerpt: "Scan project directories automatically for Reflex, DLSS, and Frame Generation dependencies.",
-  },
-  {
-    title: "Hotkeys & Shortcuts Binding",
-    slug: "shortcuts",
-    category: "Configuration",
-    excerpt: "Configure Ctrl + Grave hotkeys to instantly trigger the overlay viewport.",
-  },
-];
-
 export async function GET(request: Request) {
   try {
     const { searchParams } = new URL(request.url);
-    const query = searchParams.get("q")?.toLowerCase() || "";
+    const query = searchParams.get("q")?.toLowerCase().trim() || "";
 
     if (!query) {
       return NextResponse.json({ results: [] });
@@ -50,7 +17,7 @@ export async function GET(request: Request) {
 
     interface SearchResult {
       title: string;
-      type: string;
+      type: "docs" | "blog" | "changelog" | "architecture";
       url: string;
       category: string;
       description: string;
@@ -59,110 +26,118 @@ export async function GET(request: Request) {
     const results: SearchResult[] = [];
     const addedUrls = new Set<string>();
 
-    interface DBPostDoc {
-      title: string;
-      slug: string;
-      category?: string;
-      excerpt?: string;
+    // 1. Search Documentation (Markdown & MongoDB Cached)
+    try {
+      const allDocs = await getAllDocs();
+      allDocs.forEach((doc) => {
+        const titleMatch = doc.title.toLowerCase().includes(query);
+        const excerptMatch = doc.excerpt.toLowerCase().includes(query);
+        const categoryMatch = doc.category.toLowerCase().includes(query);
+        const contentMatch = doc.content?.toLowerCase().includes(query);
+
+        if (titleMatch || excerptMatch || categoryMatch || contentMatch) {
+          const docUrl = `/docs/${doc.slug}`;
+          if (!addedUrls.has(docUrl)) {
+            results.push({
+              title: doc.title,
+              type: "docs",
+              url: docUrl,
+              category: `Docs: ${doc.category || "General"}`,
+              description: doc.excerpt || doc.title,
+            });
+            addedUrls.add(docUrl);
+          }
+        }
+      });
+    } catch (docErr) {
+      console.warn("Docs search fetch fallback error:", docErr);
     }
 
-    // 1. Search MongoDB Gaming Posts
+    // 2. Search MongoDB Gaming Intel Posts
     try {
       await connectDB();
-      const dbPosts = (await GamingPost.find({
+      const dbPosts = await GamingPost.find({
         $or: [
           { title: { $regex: query, $options: "i" } },
           { excerpt: { $regex: query, $options: "i" } },
-          { tags: { $regex: query, $options: "i" } }
-        ]
-      }).lean()) as unknown as DBPostDoc[];
+          { tags: { $regex: query, $options: "i" } },
+          { category: { $regex: query, $options: "i" } },
+        ],
+      }).limit(8).lean();
 
-      dbPosts.forEach((post) => {
-        results.push({
-          title: post.title,
-          type: "blog",
-          url: `/blog/gaming/${post.slug}`,
-          category: post.category || "Gaming Intel",
-          description: post.excerpt || "Read full article...",
-        });
-        addedUrls.add(post.slug);
+      dbPosts.forEach((post: any) => {
+        const postUrl = `/blog/gaming/${post.slug}`;
+        if (!addedUrls.has(postUrl)) {
+          results.push({
+            title: post.title,
+            type: "blog",
+            url: postUrl,
+            category: post.category || "Gaming Intel",
+            description: post.excerpt || "Read full gaming intel dispatch...",
+          });
+          addedUrls.add(postUrl);
+        }
       });
-    } catch (error) {
-      console.warn("MongoDB Search Connection Error: IP not whitelisted. Falling back to local posts.");
+    } catch (mongoErr) {
+      console.warn("MongoDB search connection warning: falling back to local posts.");
     }
 
-    // 2. Search Local Blog Posts (MDX Gaming Intel)
-    const blogPosts = getSortedPostsData();
-    blogPosts.forEach((post) => {
-      if (addedUrls.has(post.id)) return;
+    // 3. Search Local Blog Posts (MDX Gaming Intel)
+    try {
+      const blogPosts = getSortedPostsData();
+      blogPosts.forEach((post) => {
+        const postUrl = `/blog/gaming/${post.id}`;
+        if (addedUrls.has(postUrl)) return;
 
-      if (
-        post.title.toLowerCase().includes(query) ||
-        post.excerpt?.toLowerCase().includes(query)
-      ) {
-        results.push({
-          title: post.title,
-          type: "blog",
-          url: `/blog/gaming/${post.id}`,
-          category: post.category || "Gaming Intel",
-          description: post.excerpt || "Read full article...",
-        });
-        addedUrls.add(post.id);
-      }
-    });
-
-    interface ChangelogItem {
-      version: string;
-      date: string;
-      title: string;
-      highlights?: string[];
+        if (
+          post.title.toLowerCase().includes(query) ||
+          post.excerpt?.toLowerCase().includes(query) ||
+          post.category?.toLowerCase().includes(query)
+        ) {
+          results.push({
+            title: post.title,
+            type: "blog",
+            url: postUrl,
+            category: post.category || "Gaming Intel",
+            description: post.excerpt || "Read full gaming intel dispatch...",
+          });
+          addedUrls.add(postUrl);
+        }
+      });
+    } catch (blogErr) {
+      console.warn("Local blog search fallback error:", blogErr);
     }
 
-    // 2. Search Changelogs / Transmission Logs
-    const versionFile = path.join(process.cwd(), "../backend/version.json");
+    // 4. Search Changelogs / Transmission Logs
+    const versionFile = path.join(process.cwd(), "..", "backend", "version.json");
     if (fs.existsSync(versionFile)) {
       try {
         const rawData = fs.readFileSync(versionFile, "utf-8");
         const data = JSON.parse(rawData);
-        const allChangelogs = (data.changelog || []) as ChangelogItem[];
-        const now = new Date();
-        const changelogs = allChangelogs.filter((log) => new Date(log.date) <= now);
-        changelogs.forEach((log) => {
+        const allChangelogs = data.changelog || [];
+        allChangelogs.forEach((log: any) => {
           if (
-            log.title.toLowerCase().includes(query) ||
-            log.version.toLowerCase().includes(query) ||
-            log.highlights?.some((h) => h.toLowerCase().includes(query))
+            log.title?.toLowerCase().includes(query) ||
+            log.version?.toLowerCase().includes(query) ||
+            log.highlights?.some((h: string) => h.toLowerCase().includes(query))
           ) {
-            results.push({
-              title: `v${log.version} - ${log.title}`,
-              type: "changelog",
-              url: `/blog/${log.version}`,
-              category: "Transmission Logs",
-              description: log.highlights?.[0] || "View patch logs.",
-            });
+            const changeUrl = `/docs/changes_summary`;
+            if (!addedUrls.has(`changelog-${log.version}`)) {
+              results.push({
+                title: `v${log.version} - ${log.title}`,
+                type: "changelog",
+                url: changeUrl,
+                category: "Transmission Logs",
+                description: log.highlights?.[0] || "View detailed version update release notes.",
+              });
+              addedUrls.add(`changelog-${log.version}`);
+            }
           }
         });
       } catch (err) {
         console.error("Failed to parse changelogs in search API", err);
       }
     }
-
-    // 3. Search Static Docs topics
-    STATIC_DOCS.forEach((doc) => {
-      if (
-        doc.title.toLowerCase().includes(query) ||
-        doc.excerpt.toLowerCase().includes(query) ||
-        doc.category.toLowerCase().includes(query)
-      ) {
-        results.push({
-          title: doc.title,
-          type: "docs",
-          url: `/docs#${doc.slug}`,
-          category: `Docs: ${doc.category}`,
-          description: doc.excerpt,
-        });
-      }
-    });
 
     return NextResponse.json({ results });
   } catch (error: unknown) {

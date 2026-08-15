@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useMemo } from "react";
+import { useState, useMemo, useEffect, useRef } from "react";
 import Link from "next/link";
 import { motion, AnimatePresence } from "framer-motion";
 import {
@@ -128,6 +128,19 @@ function DocCardView({ card, idx }: { card: DocData; idx: number }) {
 export default function DocsClient({ docs }: { docs: DocData[] }) {
   const [query, setQuery] = useState("");
   const [copiedKey, setCopiedKey] = useState<string | null>(null);
+  const searchInputRef = useRef<HTMLInputElement>(null);
+
+  useEffect(() => {
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if ((e.ctrlKey || e.metaKey) && e.key.toLowerCase() === "k") {
+        e.preventDefault();
+        searchInputRef.current?.focus();
+        searchInputRef.current?.select();
+      }
+    };
+    window.addEventListener("keydown", handleKeyDown);
+    return () => window.removeEventListener("keydown", handleKeyDown);
+  }, []);
 
   const handleCopy = (text: string) => {
     navigator.clipboard.writeText(text);
@@ -223,6 +236,7 @@ export default function DocsClient({ docs }: { docs: DocData[] }) {
         <div className="relative mt-5 sm:mt-8 max-w-xl mx-auto px-1">
           <Search className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-neon-green" />
           <input
+            ref={searchInputRef}
             type="text"
             placeholder="Search documentation topics, APIs..."
             value={query}
@@ -238,7 +252,13 @@ export default function DocsClient({ docs }: { docs: DocData[] }) {
                 Clear
               </button>
             ) : (
-              <kbd className="hidden sm:inline-block px-2.5 py-1 text-[10px] font-mono font-bold text-gray-500 bg-white/5 border border-white/10 rounded-md">
+              <kbd
+                onClick={() => {
+                  searchInputRef.current?.focus();
+                  searchInputRef.current?.select();
+                }}
+                className="hidden sm:inline-block px-2.5 py-1 text-[10px] font-mono font-bold text-gray-400 hover:text-neon-green bg-white/5 hover:bg-neon-green/10 border border-white/10 hover:border-neon-green/30 rounded-md cursor-pointer transition-all"
+              >
                 CTRL + K
               </kbd>
             )}
