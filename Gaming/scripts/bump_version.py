@@ -204,7 +204,7 @@ def update_patches_md(entry):
 
 
 def update_summary_md(entry, short_desc: str):
-    """Automatically update the Recent Changes table in Gaming/docs/SUMMARY.md (Website Project Summary)."""
+    """Automatically update the Recent Changes table & Last Updated date in Gaming/docs/SUMMARY.md."""
     summary_file = os.path.join(os.path.dirname(__file__), "..", "docs", "SUMMARY.md")
     if not os.path.exists(summary_file):
         return
@@ -212,28 +212,40 @@ def update_summary_md(entry, short_desc: str):
     with open(summary_file, "r", encoding="utf-8") as f:
         content = f.read()
 
+    # Format date as dd/mm/yyyy
+    raw_date = entry.get("date", str(date.today()))
+    try:
+        parts = raw_date.split("-")
+        if len(parts) == 3:
+            formatted_date = f"{parts[2]}/{parts[1]}/{parts[0]}"
+        else:
+            formatted_date = raw_date
+    except Exception:
+        formatted_date = raw_date
+
     # Find the Recent Changes section header
     marker = "## 🔄 Recent Changes\n\n| Version | Key Feature / Change Description |\n| :--- | :--- |"
     alt_marker = "## 🔄 Recent Changes\n\n| Version | Change |\n| :--- | :--- |"
     
     found_marker = marker if marker in content else (alt_marker if alt_marker in content else None)
-    if not found_marker:
-        return
+    if found_marker:
+        # Strip existing "(Latest)" tags from previous versions
+        content = content.replace(" (Latest)**", "**")
 
-    # Strip existing "(Latest)" tags from previous versions
-    content = content.replace(" (Latest)**", "**")
+        # Clean short description
+        clean_desc = short_desc.strip().rstrip(".")
+        new_row = f"\n| **v{entry['version']} (Latest)** | **{entry['title']}** — {clean_desc}. |"
 
-    # Clean short description
-    clean_desc = short_desc.strip().rstrip(".")
-    new_row = f"\n| **v{entry['version']} (Latest)** | **{entry['title']}** — {clean_desc}. |"
+        # Insert right after header separator
+        split_idx = content.find(found_marker) + len(found_marker)
+        content = content[:split_idx] + new_row + content[split_idx:]
 
-    # Insert right after header separator
-    split_idx = content.find(found_marker) + len(found_marker)
-    updated_content = content[:split_idx] + new_row + content[split_idx:]
+    # Update the *Last Updated: dd/mm/yyyy* line
+    content = re.sub(r'\*Last Updated:\s*[^\*]+\*', f'*Last Updated: {formatted_date}*', content)
 
     with open(summary_file, "w", encoding="utf-8") as f:
-        f.write(updated_content)
-    print(f"SUMMARY.md (Website Project Summary) updated -> v{entry['version']} added to Recent Changes")
+        f.write(content)
+    print(f"SUMMARY.md updated -> v{entry['version']} added & Last Updated set to {formatted_date}")
 
 
 def generate_mermaid_diagram(title: str, highlights: list) -> str:
@@ -360,40 +372,43 @@ def update_changes_summary_md(entry, enriched: dict):
     with open(changes_file, "r", encoding="utf-8") as f:
         content = f.read()
 
-    # Calculate next Session number automatically
-    session_matches = re.findall(r'## Session (\d+)', content)
-    if session_matches:
-        next_session = max(int(s) for s in session_matches) + 1
-    else:
-        next_session = 1
+    # Change previous latest release indicator to standard version heading
+    content = content.replace("## 🌟 Version v", "## 📦 Version v")
+    content = content.replace(" (Latest)", "")
 
-    new_entry = f"\n---\n\n## Session {next_session} — {entry['date']}: {entry['title']} (v{entry['version']})\n\n"
-    new_entry += "### 🛠️ Key Features Added/Modified\n"
+    # Build curated new release block
+    new_entry = f"\n---\n\n## 🌟 Version v{entry['version']} (Latest) — {entry['title']}\n\n"
+    new_entry += "### 🛠️ Key Highlights\n"
     for idx, highlight in enumerate(enriched.get("highlights", entry.get("highlights", [])), 1):
         new_entry += f"{idx}. **{highlight}**\n"
-
-    if enriched.get("technical_decisions"):
-        new_entry += f"\n### 🧩 Technical Decisions & Architecture\n* {enriched['technical_decisions']}\n"
 
     if enriched.get("mermaid_diagram"):
         diag = enriched["mermaid_diagram"].strip()
         if not diag.startswith("```"):
             diag = f"```mermaid\n{diag}\n```"
-        new_entry += f"\n### 📊 System Architecture & Flow\n{diag}\n"
+        new_entry += f"\n### 📊 Architecture & Data Flow\n{diag}\n"
 
-    if enriched.get("file_changes"):
-        new_entry += "\n### 📋 File Changes\n| File | Status | Description |\n|---|---|---|\n"
-        for fc in enriched["file_changes"]:
-            new_entry += f"| `{fc['file']}` | **{fc['status']}** | {fc['desc']} |\n"
+    # Insert after top title header section (find the first '---')
+    first_divider = content.find("\n---")
+    if first_divider != -1:
+        # Check if there is frontmatter
+        if content.startswith("---"):
+            second_divider = content.find("\n---", 4)
+            if second_divider != -1:
+                third_divider = content.find("\n---", second_divider + 4)
+                split_point = third_divider if third_divider != -1 else second_divider
+            else:
+                split_point = first_divider
+        else:
+            split_point = first_divider
 
-    if "image_url" in entry:
-        new_entry += f"\n![Preview]({entry['image_url']})\n"
-
-    new_content = content.rstrip() + "\n" + new_entry
+        updated_content = content[:split_point] + new_entry + content[split_point:]
+    else:
+        updated_content = content + new_entry
 
     with open(changes_file, "w", encoding="utf-8") as f:
-        f.write(new_content)
-    print(f"changes_summary.md updated -> enriched release entry added for v{entry['version']}")
+        f.write(updated_content)
+    print(f"changes_summary.md updated -> v{entry['version']} (Latest) prepended to Major Releases")
 
 
 if __name__ == "__main__":
