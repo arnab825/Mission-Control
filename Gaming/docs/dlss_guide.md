@@ -10,7 +10,9 @@ excerpt: "A comprehensive technical breakdown of NVIDIA Deep Learning Super Samp
 
 *From AI-Powered Upscaling to Full-Pipeline Neural Rendering*
 
-![NVIDIA DLSS Evolution Architecture](/images/dlss_evolution.png)
+| 🔬 **Performance Tuning Lab** | ⚡ **AI Hardware Readiness Matrix** |
+| :---: | :---: |
+| ![Performance Tuning Lab](/screenshots/lab.webp) | ![Hardware Readiness Matrix](/screenshots/readiness.webp) |
 
 > [!NOTE]
 > NVIDIA Deep Learning Super Sampling (DLSS) is a revolutionary suite of neural rendering technologies powered by dedicated hardware **Tensor Cores** on GeForce RTX GPUs. Over six generations, DLSS has evolved from resolution upscaling to multi-frame neural generation and real-time ray reconstruction.

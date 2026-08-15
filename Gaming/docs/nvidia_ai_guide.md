@@ -6,6 +6,14 @@ Comprehensive guide for leveraging NVIDIA's hardware and software for the AI Gam
 
 ---
 
+## 📸 NVIDIA AI & Vision Interface
+
+| 🎯 **TensorRT YOLO Vision Detection** | 🔬 **Performance Tuning Lab** |
+| :---: | :---: |
+| ![TensorRT AI Vision](/screenshots/vision.webp) | ![Performance Tuning Lab](/screenshots/lab.webp) |
+
+---
+
 ## 1. Local Vision AI (Low Latency)
 For real-time detection, we use **YOLO** optimized for NVIDIA GPUs.
 

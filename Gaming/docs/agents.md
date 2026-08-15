@@ -4,10 +4,16 @@ We have successfully implemented and verified the **Enriched Agentic AI Mode & V
 
 ---
 
+## 📸 Autonomous Agent Interface
+
+![Autonomous AI Co-Pilot & Tactical Agent](/screenshots/agent.webp)
+
+---
+
 ## 🛠️ Summary of Accomplishments
 
 1. **Installed Game Library Context**:
-   - Implemented `get_game_library_context` in [decision_maker.py](file:///c:/Users/DELL/Desktop/GameMode/Gaming/backend/ai_brain/decision_maker.py) to load all cached games from `GameScanner` database.
+   - Implemented `get_game_library_context` in [decision_maker.py](../backend/ai_brain/decision_maker.py) to load all cached games from `GameScanner` database.
    - Formatted scanned game metadata (names, platforms, executables, and supported NVIDIA features like DLSS/RTX/Reflex) and injected it directly into active chat panels (`reply_to_prompt`) and autonomous reasoning blocks (`_agentic_analyze`).
 
 2. **Contextual VLM Vision Descriptions**:
@@ -19,7 +25,7 @@ We have successfully implemented and verified the **Enriched Agentic AI Mode & V
    - Instructed the AI to recommend specific, device-appropriate key/button prompts (e.g. RT/A/B on controllers vs. Q/Shift/Space on keyboard/mouse) tailored to what the user is actively playing with.
 
 4. **Robust Key Simulation Fallback**:
-   - Hardened the action execution loop in [pipeline_host.py](file:///c:/Users/DELL/Desktop/GameMode/Gaming/backend/pipeline_host.py) to wrap abstract `GameAction` lookups with a nested try-except pattern.
+   - Hardened the action execution loop in [pipeline_host.py](../backend/core/pipeline_host.py) to wrap abstract `GameAction` lookups with a nested try-except pattern.
    - When the AI generates raw actions or custom key combinations (e.g., `press_q`, `key_caps_lock`), the coordinator extracts the raw keys, strips prefixes, and fires them directly via `input_manager.execute_key(raw_key, mode="click")` cleanly.
 
 5. **Search Query Enrichment**:
@@ -27,7 +33,7 @@ We have successfully implemented and verified the **Enriched Agentic AI Mode & V
    - Lookups are automatically routed to the DuckDuckGo/Wikipedia engines for optimal, real-time strategic assistance.
 
 6. **Latent Bug Resolution**:
-   - Discovered and fixed a latent `NameError` in [input_manager.py](file:///c:/Users/DELL/Desktop/GameMode/Gaming/backend/control/input_manager.py) where failing to import `pygame` or `xinput` on headless/clean environments left core global guards (`_PYGAME_AVAILABLE` and `_XINPUT_AVAILABLE`) completely undefined.
+   - Discovered and fixed a latent `NameError` in [input_manager.py](../backend/control/input_manager.py) where failing to import `pygame` or `xinput` on headless/clean environments left core global guards (`_PYGAME_AVAILABLE` and `_XINPUT_AVAILABLE`) completely undefined.
 
 ---
 
