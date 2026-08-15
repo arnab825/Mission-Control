@@ -556,9 +556,9 @@ export const UpdatesPage: React.FC<UpdatesPageProps> = ({
 
                         <button aria-label="button" type="button"
                           onClick={() => {
-                            if (state?.is_frozen) {
-                              window.electronAPI?.downloadElectronUpdate?.();
-                              setNativeUpdate({ status: 'downloading', percent: 0 });
+                            if (window.electronAPI?.downloadElectronUpdate) {
+                              setNativeUpdate({ status: 'downloading', percent: 0, message: 'Starting update download...' });
+                              window.electronAPI.downloadElectronUpdate();
                             } else {
                               sendCommand('install_update');
                             }
@@ -603,11 +603,27 @@ export const UpdatesPage: React.FC<UpdatesPageProps> = ({
                               </p>
                             </div>
                           </div>
-                          <a href="https://github.com/arnab825/Mission-Control/releases" target="_blank" rel="noopener noreferrer"
-                            className="px-4 py-2 bg-red-500/20 hover:bg-red-500/30 text-red-300 text-[8px] font-black uppercase tracking-widest rounded-xl border border-red-500/30 transition-all text-center shrink-0"
-                          >
-                            Download Setup.exe Manually
-                          </a>
+                          <div className="flex items-center gap-2 shrink-0 flex-wrap">
+                            <button
+                              type="button"
+                              onClick={() => {
+                                setNativeUpdate({ status: 'downloading', percent: 0, message: 'Retrying update download...' });
+                                if (window.electronAPI?.downloadElectronUpdate) {
+                                  window.electronAPI.downloadElectronUpdate();
+                                } else {
+                                  sendCommand('install_update');
+                                }
+                              }}
+                              className="px-4 py-2 bg-neon-green/20 hover:bg-neon-green/30 text-neon-green text-[8px] font-black uppercase tracking-widest rounded-xl border border-neon-green/30 transition-all text-center cursor-pointer"
+                            >
+                              Retry Download
+                            </button>
+                            <a href="https://github.com/arnab825/Mission-Control/releases" target="_blank" rel="noopener noreferrer"
+                              className="px-4 py-2 bg-red-500/20 hover:bg-red-500/30 text-red-300 text-[8px] font-black uppercase tracking-widest rounded-xl border border-red-500/30 transition-all text-center"
+                            >
+                              Download Setup.exe Manually
+                            </a>
+                          </div>
                         </div>
                       )}
                     </div>
