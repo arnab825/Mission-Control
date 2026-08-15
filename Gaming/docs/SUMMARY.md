@@ -78,7 +78,8 @@ User Query → detect_task() → select providers → fetch results
 
 | Version | Key Feature / Change Description |
 | :--- | :--- |
-| **v3.1.6 (Latest)** | **Alienware CPU Thermal Fix** — Fixed AWCC WMI sensor mapping & eliminated delayed telemetry readings. |
+| **v3.1.7 (Latest)** | **Multi-Vendor GPU Support & Unified GPU Tuning** — Added AMD & Intel GPU detection, Groq GPT OSS 120B/Qwen 3.6 models, and unified GPU power optimizer. |
+| **v3.1.6** | **Alienware CPU Thermal Fix** — Fixed AWCC WMI sensor mapping & eliminated delayed telemetry readings. |
 | **v3.1.5** | **Multi-Platform Linux Release** — Universal `.AppImage`, `.deb`, `.rpm`, `.tar.gz` packages + OS-dependent download router. |
 | **v3.1.4** | **Mission Control UI Overhaul** — Premium glassmorphism, neural glow backgrounds, and Lucide icons. |
 | **v3.1.3** | **Hybrid Connectivity** — Intelligent offline/online switching with Neural Lite local reasoning fallback. |

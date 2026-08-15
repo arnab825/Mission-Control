@@ -12,10 +12,29 @@ Comprehensive breakdown of major milestone releases, architectural upgrades, and
 
 ---
 
-## 🌟 Version v3.1.6 (Latest) — Alienware AWCC Thermal Architecture
+## 🌟 Version v3.1.7 (Latest) — Multi-Vendor GPU Support & Unified GPU Tuning
 
 ### 🛠️ Key Highlights
-1. **Alienware AWCC Thermal Sensor Integration**: Resolved long-standing sensor latency by directly hooking into Alienware Command Center (AWCC) WMI namespaces (`root\\WMI\\Alienware`), providing instantaneous CPU temperature readings on Alienware m15, x15, and Aurora systems.
+1. **Multi-Vendor GPU Capability Detection**: Added detection and telemetry for AMD Radeon (RDNA 2/3) and Intel Arc GPUs alongside existing NVIDIA GeForce RTX architectures.
+2. **Unified GPU Tuning Architecture**: Streamlined frontend power sliders, fan curve profiles, and backend optimizer into a unified `gpu_tuning` engine.
+3. **Groq Model Enhancements**: Upgraded cloud inference providers to support high-throughput GPT OSS 120B and Qwen 3.6 27B models.
+4. **Optimized Pydantic Data Contracts**: Sanitized backend telemetry schemas to prevent serialization bottlenecks and ensure zero-latency IPC between Python and Electron.
+
+### 📊 Architecture & Data Flow
+```mermaid
+graph TD
+    A["Multi-Vendor Hardware (NVIDIA / AMD / Intel)"] --> B["Unified GPU Tuning Engine"]
+    B --> C["Mission Control Core Pipeline"]
+    C --> D["Cloud NIM / Groq High-Speed Reasoning"]
+    C --> E["Electron Glassmorphic HUD & Dashboard"]
+```
+
+---
+
+## ❄️ Version v3.1.6 — Alienware AWCC Thermal Architecture
+
+### 🛠️ Key Highlights
+1. **Alienware AWCC Thermal Sensor Integration**: Resolved long-standing sensor latency by directly hooking into Alienware Command Center (AWCC) WMI namespaces (`root\WMI\Alienware`), providing instantaneous CPU temperature readings on Alienware m15, x15, and Aurora systems.
 2. **Zero-Latency Telemetry Priming Loop**: Eliminated initial 0% CPU and 0°C readings on application launch through a non-blocking background initialization priming pass.
 3. **Automated Release Documentation Sync**: Integrated real-time version stamping across website documentation (`SUMMARY.md`) and package manifests.
 
