@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
 import {
@@ -29,6 +29,7 @@ import {
   Database,
   Menu,
   Gamepad2,
+  FileText,
 } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 import { WINDOWS_INSTALLER_URL, LINUX_INSTALLER_URL, AUTO_DOWNLOAD_URL } from "@/lib/download";
@@ -38,6 +39,7 @@ export default function Navbar() {
   const [isScrolled, setIsScrolled] = useState(false);
   const pathname = usePathname();
   const router = useRouter();
+  const desktopSearchRef = useRef<HTMLInputElement>(null);
 
   // Search States
   const [searchQuery, setSearchQuery] = useState("");
@@ -84,6 +86,22 @@ export default function Navbar() {
   useEffect(() => {
     setIsOpen(false);
     closeSearch();
+  }, [pathname]);
+
+  // Global Ctrl + K Shortcut handler
+  useEffect(() => {
+    const handleGlobalKeyDown = (e: KeyboardEvent) => {
+      if ((e.ctrlKey || e.metaKey) && e.key.toLowerCase() === "k") {
+        if (pathname !== "/docs") {
+          e.preventDefault();
+          desktopSearchRef.current?.focus();
+          desktopSearchRef.current?.select();
+          setIsSearchFocused(true);
+        }
+      }
+    };
+    window.addEventListener("keydown", handleGlobalKeyDown);
+    return () => window.removeEventListener("keydown", handleGlobalKeyDown);
   }, [pathname]);
 
   const handleSearch = async (query: string) => {
@@ -250,9 +268,10 @@ export default function Navbar() {
         </div>
 
         {/* Search Bar - Desktop Layout */}
-        <div className="hidden md:block relative max-w-[200px] xl:max-w-[240px] w-full mx-4 z-10">
-          <div className="relative">
+        <div className="hidden md:block relative max-w-[210px] xl:max-w-[260px] w-full mx-4 z-10">
+          <div className="relative flex items-center">
             <input
+              ref={desktopSearchRef}
               type="text"
               placeholder="Search docs/blog..."
               value={searchQuery}
@@ -260,60 +279,84 @@ export default function Navbar() {
               onKeyDown={handleSearchKeyDown}
               onFocus={() => setIsSearchFocused(true)}
               onBlur={() => setTimeout(() => setIsSearchFocused(false), 250)}
-              className="w-full bg-obsidian/80 border border-white/15 hover:border-neon-green/40 rounded-xl pl-9 pr-8 py-2 text-xs font-mono text-white focus:outline-none focus:border-neon-green focus:shadow-[0_0_15px_rgba(118,185,0,0.25)] transition-all"
+              className="w-full bg-obsidian/90 border border-white/15 hover:border-neon-green/50 focus:border-neon-green rounded-xl pl-9 pr-14 py-2 text-xs font-mono text-white placeholder-gray-500 focus:outline-none focus:shadow-[0_0_15px_rgba(118,185,0,0.3)] transition-all"
             />
-            <SearchIcon className="w-3.5 h-3.5 text-gray-400 absolute left-3 top-2.5" />
-            {(searchQuery || isSearchFocused) && (
-              <button
-                onMouseDown={(e) => {
-                  e.preventDefault();
-                  closeSearch();
-                }}
-                onClick={closeSearch}
-                className="absolute right-2.5 top-2.5 text-gray-400 hover:text-white transition-colors cursor-pointer"
-                aria-label="Close Search"
-              >
-                <X className="w-3.5 h-3.5" />
-              </button>
-            )}
+            <SearchIcon className="w-3.5 h-3.5 text-neon-green absolute left-3 pointer-events-none" />
+            <div className="absolute right-2.5 flex items-center gap-1">
+              {searchQuery ? (
+                <button
+                  onMouseDown={(e) => {
+                    e.preventDefault();
+                    closeSearch();
+                  }}
+                  onClick={closeSearch}
+                  className="text-gray-400 hover:text-white transition-colors cursor-pointer p-0.5"
+                  aria-label="Close Search"
+                >
+                  <X className="w-3.5 h-3.5" />
+                </button>
+              ) : (
+                <kbd
+                  onClick={() => {
+                    desktopSearchRef.current?.focus();
+                    setIsSearchFocused(true);
+                  }}
+                  className="text-[9px] font-mono font-bold text-gray-400 bg-white/5 hover:bg-neon-green/10 border border-white/10 hover:border-neon-green/30 px-1.5 py-0.5 rounded cursor-pointer transition-all"
+                >
+                  CTRL+K
+                </kbd>
+              )}
+            </div>
           </div>
 
           {/* Search Results Dropdown */}
           {isSearchFocused && (
-            <div className="absolute top-11 left-0 w-80 bg-[#0d0e12] border border-white/10 rounded-2xl p-2 z-50 max-h-80 overflow-y-auto shadow-2xl">
+            <div className="absolute top-11 left-0 w-80 sm:w-96 bg-[#0d0e12]/95 backdrop-blur-2xl border border-white/15 rounded-2xl p-2 z-50 max-h-96 overflow-y-auto shadow-2xl">
               {searchResults.length > 0 ? (
                 <>
-                  {(showAllResults ? searchResults : searchResults.slice(0, 5)).map((res: any, idx: number) => (
+                  <div className="text-[10px] font-mono font-bold text-neon-green uppercase tracking-widest px-3 py-1.5 border-b border-white/10 flex items-center justify-between">
+                    <span>Search Results</span>
+                    <span className="text-gray-500">{searchResults.length} matches</span>
+                  </div>
+                  {(showAllResults ? searchResults : searchResults.slice(0, 6)).map((res: any, idx: number) => (
                     <Link
                       key={idx}
                       href={res.url}
                       onClick={closeSearch}
-                      className="block p-3 hover:bg-white/[0.05] rounded-xl transition-colors text-left font-mono"
+                      className="block p-3 hover:bg-white/[0.05] rounded-xl transition-colors text-left font-mono border-b border-white/5 last:border-0"
                     >
-                      <div className="text-[10px] font-bold text-neon-green uppercase tracking-widest mb-0.5">{res.category}</div>
+                      <div className="flex items-center justify-between gap-2 mb-1">
+                        <span className="text-[9px] font-bold text-neon-green uppercase tracking-wider bg-neon-green/10 border border-neon-green/30 px-1.5 py-0.5 rounded">
+                          {res.category || res.type}
+                        </span>
+                      </div>
                       <div className="text-xs font-bold text-white truncate">{res.title}</div>
-                      <div className="text-[11px] text-gray-400 truncate">{res.description}</div>
+                      <div className="text-[11px] text-gray-400 truncate mt-0.5">{res.description}</div>
                     </Link>
                   ))}
-                  {searchResults.length > 5 && !showAllResults && (
+                  {searchResults.length > 6 && !showAllResults && (
                     <button
                       onMouseDown={(e) => {
                         e.preventDefault();
                         setShowAllResults(true);
                       }}
-                      className="w-full text-center py-2 mt-1 text-[10px] font-mono font-bold text-neon-green hover:text-white hover:bg-neon-green/15 border border-neon-green/30 rounded-xl transition-all cursor-pointer uppercase tracking-widest"
+                      className="w-full text-center py-2.5 mt-1 text-[10px] font-mono font-bold text-neon-green hover:text-white hover:bg-neon-green/15 border border-neon-green/30 rounded-xl transition-all cursor-pointer uppercase tracking-widest"
                     >
-                      Show More Results ({searchResults.length - 5} remaining)
+                      Show All ({searchResults.length} results)
                     </button>
                   )}
                 </>
               ) : (
                 <div className="p-3 space-y-2 font-mono">
-                  <div className="text-[10px] font-bold text-gray-400 uppercase tracking-widest border-b border-white/10 pb-1">Suggested Telemetry Searches</div>
+                  <div className="text-[10px] font-bold text-gray-400 uppercase tracking-widest border-b border-white/10 pb-1.5 flex items-center justify-between">
+                    <span>Suggested Searches</span>
+                    <span className="text-[9px] text-neon-green">Live Index</span>
+                  </div>
                   <div className="space-y-1">
                     {[
                       { title: "DirectX 12 Overlay Swapchain", category: "Architecture", href: "/architecture#directx-presentation" },
                       { title: "NVIDIA DLSS Frame Generation", category: "Docs", href: "/docs/nvidia_ai_guide" },
+                      { title: "Project Summary & Roadmap", category: "Docs", href: "/docs/summary" },
                       { title: "Parallel Hardware Diagnostics", category: "Architecture", href: "/architecture#parallel-hardware" },
                     ].map((s, idx) => (
                       <Link
@@ -322,8 +365,8 @@ export default function Navbar() {
                         onClick={closeSearch}
                         className="w-full flex items-center justify-between p-2 rounded-lg hover:bg-white/10 text-xs text-gray-300 hover:text-neon-green text-left transition-colors cursor-pointer"
                       >
-                        <span>{s.title}</span>
-                        <span className="text-[9px] px-1.5 py-0.5 rounded bg-white/10 border border-white/10 text-gray-400 font-mono">{s.category}</span>
+                        <span className="truncate pr-2">{s.title}</span>
+                        <span className="text-[9px] px-1.5 py-0.5 rounded bg-white/10 border border-white/10 text-gray-400 font-mono shrink-0">{s.category}</span>
                       </Link>
                     ))}
                   </div>
