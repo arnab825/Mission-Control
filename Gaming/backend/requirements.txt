@@ -39,7 +39,8 @@ psutil           # RAM/CPU monitoring
 WMI              # Windows hardware names/info
 pywin32          # Required for WMI
 orjson           # Ultra-fast JSON
-pydantic         # High-speed Data Models
+pydantic>=2.10.0         # High-speed Pydantic v2 Data Models
+pydantic-settings>=2.7.0 # Pydantic v2 Settings management
 packaging        # Version parsing
 openai           # NVIDIA NIM / OpenAI API Client
 requests         # HTTP Requests for voice/game updates

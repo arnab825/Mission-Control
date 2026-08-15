@@ -120,16 +120,20 @@ def _try_win_cpu_temp_native() -> float:
                             key, v = pair.split("=")
                             if v.isdigit():
                                 sensor_vals[int(key)] = int(v)
-                    for possible_id in [4, 260, 516, 772, 1028, 1284, 1540]:
-                        val = sensor_vals.get(possible_id, 0)
-                        if 30 < val < 100:
-                            _CACHED_AWCC_SENSOR_ID = possible_id
-                            break
-                    if _CACHED_AWCC_SENSOR_ID is None and 260 in sensor_vals:
-                        _CACHED_AWCC_SENSOR_ID = 260
+                    # Sensor 4 = CPU Thermal Zone (CPU package)
+                    # Sensor 260 = GPU Thermal Zone
+                    # Sensor 516 = Memory / System Thermal Zone
+                    if 4 in sensor_vals and 20 < sensor_vals[4] < 115:
+                        _CACHED_AWCC_SENSOR_ID = 4
+                    else:
+                        for possible_id in [4, 772, 1028, 1540]:
+                            val = sensor_vals.get(possible_id, 0)
+                            if 20 < val < 115:
+                                _CACHED_AWCC_SENSOR_ID = possible_id
+                                break
 
-            # Query the cached AWCC sensor directly
-            target_sensor_id = _CACHED_AWCC_SENSOR_ID or 260
+            # Query the cached AWCC CPU sensor directly (Sensor 4 = CPU)
+            target_sensor_id = _CACHED_AWCC_SENSOR_ID or 4
             awcc_script = (
                 '$awcc = Get-CimInstance -Namespace "root/WMI" -ClassName "AWCCWmiMethodFunction" -ErrorAction Stop; '
                 f'$r = Invoke-CimMethod -InputObject $awcc -MethodName "Thermal_Information" -Arguments @{{arg2=[uint32]{target_sensor_id}}}; '
@@ -911,17 +915,16 @@ class TelemetryThread(threading.Thread):
                         cpu_freq = self._cached_wmi_freq
 
                     # --- Driver-free fallback for VBS/Alienware systems ---
-                    # Only poll native temp if we don't have a CPU temperature, or if we have successfully used it before.
-                    # Throttling to 5s instead of 2s to minimize CPU cycles.
-                    if cpu_temp <= 0 or (hasattr(self, "_cached_native_temp") and self._cached_native_temp > 0):
-                        if not hasattr(self, "_last_native_temp_poll") or (now - self._last_native_temp_poll) > 5.0:
+                    # Only poll native AWCC/WMI temp if LHM/psutil is not providing CPU temperature.
+                    if cpu_temp <= 0:
+                        if not hasattr(self, "_last_native_temp_poll") or (now - self._last_native_temp_poll) > 2.0:
                             self._last_native_temp_poll = now
                             t = _try_win_cpu_temp_native()
                             if t > 0:
                                 self._cached_native_temp = t
                                 logger.debug(f"[Telemetry] AWCC/Native thermal read: {t}°C")
-                    if cpu_temp <= 0 and hasattr(self, "_cached_native_temp") and self._cached_native_temp > 0:
-                        cpu_temp = self._cached_native_temp
+                        if hasattr(self, "_cached_native_temp") and self._cached_native_temp > 0:
+                            cpu_temp = self._cached_native_temp
 
                     # --- Hold last valid temperature through transient polling gaps ---
                     if cpu_temp <= 0:
