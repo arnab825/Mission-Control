@@ -1,8 +1,16 @@
 {
-  "version": "3.1.5",
+  "version": "3.1.6",
   "release_date": "2026-08-10",
   "update_check_url": "https://raw.githubusercontent.com/arnab825/Mission-Control/main/Gaming/backend/version.json",
   "changelog": [
+    {
+      "version": "3.1.6",
+      "date": "2026-08-15",
+      "title": "Fixed Alienware CPU temperature telemetry & optimized backend Pydantic models",
+      "highlights": [
+        "Fixed Alienware CPU temperature telemetry & optimized backend Pydantic models"
+      ]
+    },
     {
       "version": "3.1.5",
       "date": "2026-08-15",
@@ -436,15 +444,6 @@
       "highlights": [
         "Removed unnecessary refresh models button",
         "Explicitly flag invalid model IDs in Settings UI dropdown"
-      ]
-    },
-    {
-      "version": "2.7.3",
-      "date": "2026-07-30",
-      "title": "Curated AI model options & cleanup",
-      "highlights": [
-        "Cleaned up obsolete backend copy",
-        "Curated AI model options to strictly use defined options"
       ]
     }
   ]

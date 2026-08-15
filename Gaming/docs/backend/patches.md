@@ -2,6 +2,10 @@
 
 This document contains a detailed history of all patches and updates for the AI Gaming Assistant.
 
+### Patch: 2026-08-15 — v3.1.6: Fixed Alienware CPU temperature telemetry & optimized backend Pydantic models
+
+- Fixed Alienware CPU temperature telemetry & optimized backend Pydantic models
+
 ### Patch: 2026-08-15 — v3.1.5: Fixed Alienware CPU temperature telemetry & optimized backend Pydantic models
 
 - Fixed Alienware CPU temperature telemetry & optimized backend Pydantic models
