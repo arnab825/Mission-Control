@@ -113,4 +113,4 @@ User Query → detect_task() → select providers → fetch results
 
 ---
 
-*Last Updated: 2026-08-14*
+*Last Updated: 15/08/2026*
