@@ -40,11 +40,15 @@ A **gaming-optimized, multi-source search engine** that enriches AI responses wi
 | **RAWG.io** | Free key | 20,000/month | Ratings, genres, Metacritic, DLC |
 | **Tavily AI** | User key | 1,000/month | Optional enrichment (richer AI answers) |
 
-**Task → Source → Model routing:**
-```
-User Query → detect_task() → select providers → fetch results
-           → inject context into NIM prompt → model_override per task
-           → AI response enriched with live game data
+**Task → Source → Model routing architecture:**
+```mermaid
+graph TD
+    A["User Tactical Query"] --> B["detect_task() Classifier"]
+    B --> C["Provider Dispatch (Wiki / SteamSpy / RAWG / DuckDuckGo)"]
+    C --> D["Fetch Real-Time Intelligence & Results"]
+    D --> E["Inject Context into NVIDIA NIM Prompt"]
+    E --> F["Task Model Selection (Nemotron / Llama / Vision)"]
+    F --> G["AI Response Enriched with Live Game Data"]
 ```
 
 ### 4. 🗣️ Voice Engine (The Voice)
