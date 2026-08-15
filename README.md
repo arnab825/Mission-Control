@@ -264,4 +264,4 @@ We welcome contributions from developers, gamers, and open-source enthusiasts!
 
 ## 📄 License
 
-This repository is maintained under the project's custom license. See individual sub-directory licenses and documentation files for third-party component specifics.
+This repository and software are maintained under the **Mission Control Custom License & EULA**. See the root [LICENSE](LICENSE) file and [Desktop App EULA](Gaming/frontend/electron/license.txt) for full terms regarding personal, educational, and open-source contributions.
