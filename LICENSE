@@ -1,0 +1,26 @@
+END USER LICENSE AGREEMENT (EULA) & TERMS FOR MISSION CONTROL
+
+Copyright (c) 2026 Arnab Contributors. All rights reserved.
+
+Permission is hereby granted, free of charge, to any person obtaining a copy
+of this software and associated documentation files (the "Software"), to use,
+copy, modify, merge, publish, and distribute copies of the Software for 
+personal, educational, and non-commercial open-source development, subject to
+the following conditions:
+
+1. LICENSE GRANT
+Arnab Contributors grants you a non-exclusive, limited license to install, 
+run, and build the Software on compatible hardware for personal, non-commercial use.
+
+2. HARDWARE REQUIREMENTS
+The Software utilizes advanced graphics processing and GPU telemetry. High-precision
+features require an NVIDIA GTX/RTX GPU, AMD Radeon RX GPU, or Intel Arc GPU.
+
+3. DISCLAIMER OF WARRANTY
+THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+SOFTWARE.

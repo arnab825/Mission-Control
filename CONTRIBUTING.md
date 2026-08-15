@@ -74,4 +74,10 @@ If you're new to the codebase, check out issues tagged with:
    ```
 4. **Open a PR**: Open a Pull Request targeting the `main` branch of `arnab825/Mission-Control`. Describe your changes, test results, and reference relevant issue numbers.
 
+---
+
+## 📄 License & Attribution
+
+By submitting a Pull Request or contribution to **Mission Control**, you agree that your contributions will be licensed under the project's [LICENSE](LICENSE) and [EULA](Gaming/frontend/electron/license.txt).
+
 Thank you for helping make **Mission Control** the ultimate open-source AI gaming platform! 🚀
