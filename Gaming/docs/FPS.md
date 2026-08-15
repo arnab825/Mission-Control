@@ -13,6 +13,14 @@ Build a hybrid FPS counter system for a gaming application with a Python backend
 
 ---
 
+## 📸 Real-Time Telemetry & HUD Overlay
+
+| 📟 **Glassmorphic HUD Overlay** | 📊 **Real-Time Hardware Telemetry** |
+| :---: | :---: |
+| ![Glassmorphic HUD Overlay](/screenshots/hud.webp) | ![Hardware Telemetry](/screenshots/system.webp) |
+
+---
+
 ## 1. Core FPS Measurement (C++ / DirectX)
 Hook into `swapchain->Present()` in DirectX 11/12.
 * Use `QueryPerformanceCounter` for high‑precision timestamps.

@@ -6,6 +6,16 @@ The **Mission Control Gaming Assistant** is a high-performance, real-time agenti
 
 ---
 
+## 📸 Interface & Dashboard Showcase
+
+| 🖥️ **Main Console & Dashboard** | 🤖 **Autonomous AI Co-Pilot** |
+| :---: | :---: |
+| ![Main Console & Dashboard](/screenshots/dashboard.webp) | ![Autonomous AI Co-Pilot](/screenshots/agent.webp) |
+| 📟 **Glassmorphic HUD Overlay** | 📊 **Real-Time Hardware Telemetry** |
+| ![Glassmorphic HUD Overlay](/screenshots/hud.webp) | ![Real-Time Hardware Telemetry](/screenshots/system.webp) |
+
+---
+
 ## 🛠️ Architectural Pillars
 
 ### 1. 👁️ Vision Pipeline (The Eyes)
@@ -66,18 +76,18 @@ User Query → detect_task() → select providers → fetch results
 
 ## 🔄 Recent Changes
 
-| Version | Change |
-| Latest | **Multi-Platform Linux Release** — Universal `.AppImage`, `.deb`, `.rpm`, `.tar.gz` packages + OS-dependent dynamic download router |
-| Latest | **Mission Control UI Overhaul** — Premium glassmorphism, neural backgrounds, Lucide icons |
-| Latest | **Hybrid Connectivity** — Intelligent offline/online switching with Neural Lite local reasoning |
-| Latest | **Gaming Web Search Engine** — Wikipedia + RAWG + SteamSpy + DuckDuckGo, free dev+prod |
-| Latest | **Auto Model Router** — Task-based NIM model selection (tactical/strategic/vision) |
-| Latest | **Hotkey Recorder** — Click-to-record with live visual feedback |
-| Latest | **CPU Thermal Fallback** — Aggressive multi-stage WMI → CIM → LibreHWM chain |
-| Latest | **System Page Fix** — CPU name no longer renders as raw JSON |
-| Latest | **Voice Profile System** — Male/female profiles with ElevenLabs + Google + SAPI5 |
-| Latest | **NVIDIA NIM Multi-Model** — Nemotron/Llama task-mapped model pipeline |
-| Latest | **OSD Polish** — `---` placeholder for missing sensors (no `N/A` clutter) |
+| Version | Key Feature / Change Description |
+| :--- | :--- |
+| **v3.1.6 (Latest)** | **Alienware CPU Thermal Fix** — Fixed AWCC WMI sensor mapping & eliminated delayed telemetry readings. |
+| **v3.1.5** | **Multi-Platform Linux Release** — Universal `.AppImage`, `.deb`, `.rpm`, `.tar.gz` packages + OS-dependent download router. |
+| **v3.1.4** | **Mission Control UI Overhaul** — Premium glassmorphism, neural glow backgrounds, and Lucide icons. |
+| **v3.1.3** | **Hybrid Connectivity** — Intelligent offline/online switching with Neural Lite local reasoning fallback. |
+| **v3.1.2** | **Gaming Web Search Engine** — Free multi-source integration (Wikipedia, RAWG.io, SteamSpy, DuckDuckGo). |
+| **v3.1.1** | **Auto Model Router** — Task-based NIM model selection (tactical, strategic, vision multi-modal). |
+| **v3.1.0** | **Click-to-Record Hotkey Manager** — Live visual key combination recorder without manual config edits. |
+| **v3.0.9** | **CPU Thermal Fallback Chain** — Multi-stage WMI → CIM → LibreHardwareMonitor sensor polling. |
+| **v3.0.8** | **Voice Profile System** — Dynamic male/female profiles powered by ElevenLabs + Google TTS + SAPI5. |
+| **v3.0.7** | **Zero-Waste TensorRT Vision Engine** — Sub-5ms YOLOv8 screen inference with 0 MB PyTorch VRAM overhead. |
 
 ---
 

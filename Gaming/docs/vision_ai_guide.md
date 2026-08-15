@@ -10,7 +10,7 @@ excerpt: "Architectural overview of Mission Control's AI Vision pipeline, YOLOv8
 
 *Real-Time Game Screen Analysis, Object Bounding Boxes & On-Demand Model Downloader*
 
-![Vision AI Diagram](/images/vision_ai.png)
+![TensorRT YOLO Vision Detection](/screenshots/vision.webp)
 
 > [!NOTE]
 > Mission Control incorporates lightweight, high-speed Computer Vision models (**YOLOv8 Nano/Small**) and Automatic Speech Recognition (**Whisper-Tiny**) for real-time tactical game screen analysis, enemy/health bar detection, and voice-command activation.

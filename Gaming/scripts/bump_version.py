@@ -101,10 +101,14 @@ def main():
     data["changelog"] = data["changelog"][:_MAX_CHANGELOG_ENTRIES]
     data["version"] = new_ver
 
+    enriched = enrich_with_ai(entry["title"], entry.get("highlights", []), entry["version"])
+    short_desc = enriched.get("short_desc", entry.get("highlights", ["Stability & performance update"])[0])
+
     save(data)
     update_package_files(new_ver)
     update_patches_md(entry)
-    update_changes_summary_md(entry)
+    update_summary_md(entry, short_desc)
+    update_changes_summary_md(entry, enriched)
     print(f"   Previous: v{old_ver}")
     print(f"   New     : v{new_ver}")
     print(f"   Title   : {args.title}")
@@ -178,7 +182,6 @@ def update_patches_md(entry):
     with open(PATCHES_FILE, "r", encoding="utf-8") as f:
         content = f.read()
 
-    # Create the new patch markdown entry
     new_entry = f"### Patch: {entry['date']} — v{entry['version']}: {entry['title']}\n\n"
     
     if "image_url" in entry:
@@ -188,8 +191,6 @@ def update_patches_md(entry):
         new_entry += f"- {highlight}\n"
     new_entry += "\n"
 
-    # Insert after the header (usually line 3 or 4)
-    # We look for the first "### Patch:" and insert before it
     marker = "### Patch:"
     index = content.find(marker)
     if index != -1:
@@ -200,6 +201,39 @@ def update_patches_md(entry):
     with open(PATCHES_FILE, "w", encoding="utf-8") as f:
         f.write(updated_content)
     print(f"patches.md updated with v{entry['version']}")
+
+
+def update_summary_md(entry, short_desc: str):
+    """Automatically update the Recent Changes table in Gaming/docs/SUMMARY.md (Website Project Summary)."""
+    summary_file = os.path.join(os.path.dirname(__file__), "..", "docs", "SUMMARY.md")
+    if not os.path.exists(summary_file):
+        return
+
+    with open(summary_file, "r", encoding="utf-8") as f:
+        content = f.read()
+
+    # Find the Recent Changes section header
+    marker = "## 🔄 Recent Changes\n\n| Version | Key Feature / Change Description |\n| :--- | :--- |"
+    alt_marker = "## 🔄 Recent Changes\n\n| Version | Change |\n| :--- | :--- |"
+    
+    found_marker = marker if marker in content else (alt_marker if alt_marker in content else None)
+    if not found_marker:
+        return
+
+    # Strip existing "(Latest)" tags from previous versions
+    content = content.replace(" (Latest)**", "**")
+
+    # Clean short description
+    clean_desc = short_desc.strip().rstrip(".")
+    new_row = f"\n| **v{entry['version']} (Latest)** | **{entry['title']}** — {clean_desc}. |"
+
+    # Insert right after header separator
+    split_idx = content.find(found_marker) + len(found_marker)
+    updated_content = content[:split_idx] + new_row + content[split_idx:]
+
+    with open(summary_file, "w", encoding="utf-8") as f:
+        f.write(updated_content)
+    print(f"SUMMARY.md (Website Project Summary) updated -> v{entry['version']} added to Recent Changes")
 
 
 def generate_mermaid_diagram(title: str, highlights: list) -> str:
@@ -238,10 +272,9 @@ graph TD
 
 
 def enrich_with_ai(title: str, raw_changes: list, version: str) -> dict:
-    """Attempt AI enrichment via NVIDIA NIM API; fallback to smart rule-based enrichment."""
+    """Attempt concise, low-token AI enrichment via NVIDIA NIM API; fallback to smart rule-based enrichment."""
     api_key = os.environ.get("NVIDIA_API_KEY")
     if not api_key:
-        # Check .env files
         for env_path in [
             os.path.join(os.path.dirname(__file__), "..", ".env"),
             os.path.join(os.path.dirname(__file__), "..", "backend", ".env"),
@@ -264,23 +297,17 @@ def enrich_with_ai(title: str, raw_changes: list, version: str) -> dict:
             import urllib.request
             import json
 
-            prompt = f"""You are the lead AI software architect for Mission Control.
-Generate rich, professional technical release notes for Version v{version}.
+            prompt = f"""You are the release engineer for Mission Control. Generate a concise 1-sentence feature summary and 2-3 short bullet points for v{version}.
 
 Title: {title}
-Changes:
-{chr(10).join('- ' + c for c in raw_changes)}
+Changes: {'; '.join(raw_changes)}
 
-Respond ONLY with valid JSON in this exact structure:
+Respond ONLY with valid JSON:
 {{
-  "highlights": ["Formatted feature bullet 1", "Formatted feature bullet 2"],
-  "technical_decisions": "2-3 sentences explaining architectural decisions and optimizations.",
-  "mermaid_diagram": "graph TD\\n  A[Client] --> B[Server]",
-  "file_changes": [
-    {{"file": "filename.ts", "status": "Modified", "desc": "Brief explanation"}}
-  ]
-}}
-"""
+  "short_desc": "Single crisp sentence describing the primary update",
+  "highlights": ["Short bullet 1", "Short bullet 2"],
+  "technical_decisions": "1 concise sentence on architecture optimization."
+}}"""
 
             req = urllib.request.Request(
                 "https://integrate.api.nvidia.com/v1/chat/completions",
@@ -291,30 +318,33 @@ Respond ONLY with valid JSON in this exact structure:
                 data=json.dumps({
                     "model": "meta/llama-3.1-8b-instruct",
                     "messages": [{"role": "user", "content": prompt}],
-                    "temperature": 0.2,
-                    "max_tokens": 1024
+                    "temperature": 0.1,
+                    "max_tokens": 250
                 }).encode("utf-8")
             )
 
-            with urllib.request.urlopen(req, timeout=10) as response:
+            with urllib.request.urlopen(req, timeout=8) as response:
                 res_data = json.loads(response.read().decode("utf-8"))
                 content = res_data["choices"][0]["message"]["content"]
                 parsed = json.loads(content)
-                print(f"[AI ENRICHER] Release notes auto-generated via NVIDIA NIM AI!")
+                print(f"[AI ENRICHER] Concise release summary auto-generated via NVIDIA NIM (low-token consumption)!")
                 return parsed
         except Exception as e:
-            print(f"[AI ENRICHER] AI generator notice ({e}). Using smart rule-based enricher.")
+            print(f"[AI ENRICHER] Notice ({e}). Using smart rule-based enricher.")
 
     # Rule-based fallback
     highlights = [c.strip() for c in raw_changes if c.strip()]
-    tech_decisions = f"Automated version bump and telemetry synchronization for Version v{version}. Ensures all backend pipelines, frontend dependencies, and website documentation remain aligned in real-time."
+    short_desc = highlights[0] if highlights else "Performance & telemetry stability updates"
+    tech_decisions = f"Automated version bump and telemetry synchronization for Version v{version}. Ensures all backend pipelines and website documentation remain aligned in real-time."
     mermaid = generate_mermaid_diagram(title, highlights)
     file_changes = [
         {"file": "backend/version.json", "status": "Updated", "desc": f"Bumped version tag to v{version}"},
+        {"file": "Gaming/docs/SUMMARY.md", "status": "Updated", "desc": "Updated Recent Changes table for website documentation"},
         {"file": "Gaming/docs/changes_summary.md", "status": "Updated", "desc": "Appended release history entry with Mermaid flowchart"},
         {"file": "frontend/package.json", "status": "Updated", "desc": "Synchronized npm package version"}
     ]
     return {
+        "short_desc": short_desc,
         "highlights": highlights,
         "technical_decisions": tech_decisions,
         "mermaid_diagram": mermaid,
@@ -322,7 +352,7 @@ Respond ONLY with valid JSON in this exact structure:
     }
 
 
-def update_changes_summary_md(entry):
+def update_changes_summary_md(entry, enriched: dict):
     changes_file = os.path.join(os.path.dirname(__file__), "..", "docs", "changes_summary.md")
     if not os.path.exists(changes_file):
         return
@@ -336,9 +366,6 @@ def update_changes_summary_md(entry):
         next_session = max(int(s) for s in session_matches) + 1
     else:
         next_session = 1
-
-    # Auto-enrich entry via AI / rule-based enricher
-    enriched = enrich_with_ai(entry["title"], entry.get("highlights", []), entry["version"])
 
     new_entry = f"\n---\n\n## Session {next_session} — {entry['date']}: {entry['title']} (v{entry['version']})\n\n"
     new_entry += "### 🛠️ Key Features Added/Modified\n"
