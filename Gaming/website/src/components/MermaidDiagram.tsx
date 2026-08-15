@@ -7,6 +7,21 @@ interface MermaidDiagramProps {
   chart: string;
 }
 
+function sanitizeMermaidChart(raw: string): string {
+  if (!raw) return "graph TD\n  A[Empty] --> B[Diagram]";
+  let clean = raw.trim();
+
+  // 1. Fix malformed arrow links with trailing > e.g. -->|label|> to -->|label|
+  clean = clean.replace(/-->\s*\|([^|]+)\|\s*>/g, "-->|$1|");
+
+  // 2. Fix unquoted bracket labels containing parentheses or special characters e.g. [Label (info)] -> ["Label (info)"]
+  clean = clean.replace(/\[([^"\]\n]+[\(\)\+\/\&][^"\]\n]*)\]/g, (match, p1) => {
+    return `["${p1.trim()}"]`;
+  });
+
+  return clean;
+}
+
 export function MermaidDiagram({ chart }: MermaidDiagramProps) {
   const [svgHtml, setSvgHtml] = useState<string>("");
   const [isRendering, setIsRendering] = useState<boolean>(true);
@@ -42,9 +57,10 @@ export function MermaidDiagram({ chart }: MermaidDiagramProps) {
     });
 
     const uniqueId = `mermaid-svg-${Math.random().toString(36).substring(2, 9)}`;
+    const sanitizedChart = sanitizeMermaidChart(chart);
 
     mermaid
-      .render(uniqueId, chart.trim())
+      .render(uniqueId, sanitizedChart)
       .then((res) => {
         if (isMounted) {
           setSvgHtml(res.svg);
@@ -52,7 +68,7 @@ export function MermaidDiagram({ chart }: MermaidDiagramProps) {
         }
       })
       .catch((err) => {
-        console.error("Mermaid rendering error:", err);
+        console.warn("Mermaid rendering warning (gracefully recovered):", err);
         const errEl = document.getElementById("d" + uniqueId) || document.getElementById(uniqueId);
         if (errEl) errEl.remove();
 

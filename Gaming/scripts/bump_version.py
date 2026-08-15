@@ -243,7 +243,7 @@ def generate_mermaid_diagram(title: str, highlights: list) -> str:
     if "mobile" in text or "responsive" in text or "ui" in text or "css" in text or "layout" in text:
         return """```mermaid
 graph TD
-    A[Mobile Client / DevTools (320px+)] --> B[Responsive CSS & Layout Container]
+    A["Mobile Client / DevTools (320px+)"] --> B[Responsive CSS & Layout Container]
     B --> C[DocsClient Component & Cards]
     C --> D[MobileDocsSidebar Drawer & Header Bar]
     D --> E[Real-Time Mongo Telemetry & Render]
