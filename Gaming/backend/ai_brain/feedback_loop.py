@@ -2,7 +2,7 @@ import json
 import os
 import logging
 from typing import Optional
-from pydantic import BaseModel, Field
+from pydantic import BaseModel, ConfigDict, Field
 
 from langchain_nvidia_ai_endpoints import ChatNVIDIA
 from langchain_core.prompts import ChatPromptTemplate
@@ -11,6 +11,8 @@ from langchain_core.output_parsers import PydanticOutputParser
 logger = logging.getLogger(__name__)
 
 class EvaluationResult(BaseModel):
+    model_config = ConfigDict(populate_by_name=True)
+
     is_good: bool = Field(description="True if the response is helpful, accurate, and safe.")
     feedback: str = Field(description="Detailed feedback explaining why the response is good or bad.")
     corrected_response: Optional[str] = Field(description="If is_good is False, provide a better, corrected response.", default=None)

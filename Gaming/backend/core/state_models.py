@@ -1,7 +1,7 @@
 """Shared Pydantic models for telemetry / pipeline state."""
 from typing import Any, Dict, List, Optional
 
-from pydantic import BaseModel, Field
+from pydantic import BaseModel, ConfigDict, Field
 
 # --- Genre → Assistant Mode Auto-Routing ---
 GENRE_MODE_MAP = {
@@ -36,6 +36,8 @@ TITLE_GENRE_MAP = {
 
 class TelemetryState(BaseModel):
     """Memory-optimized state container (seed dict; runtime adds bridge-only keys)."""
+
+    model_config = ConfigDict(arbitrary_types_allowed=True, populate_by_name=True)
 
     health: float = 100.0
     is_low_health: bool = False
