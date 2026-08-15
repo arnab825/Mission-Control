@@ -16,18 +16,6 @@ window.addEventListener('unhandledrejection', (event) => {
 const PUBLISHABLE_KEY = import.meta.env.VITE_CLERK_PUBLISHABLE_KEY || 'pk_test_ZXZpZGVudC1taWRnZS02Ni5jbGVyay5hY2NvdW50cy5kZXYk'
 const isSSOCallback = window.location.pathname === '/sso-callback'
 
-// Custom navigation shim for Clerk in Electron SPA (no React Router).
-// Clerk calls this function internally after SSO completes to redirect the user.
-const clerkNavigate = (to: string) => {
-  if (to === '/' || to === '') {
-    // After OAuth completes, force a hard navigation to root to re-mount the app
-    window.location.replace('/')
-  } else {
-    window.location.href = to
-  }
-  return Promise.resolve()
-}
-
 /**
  * Handles the OAuth callback route (/sso-callback).
  *
@@ -113,8 +101,6 @@ if (!PUBLISHABLE_KEY) {
     <React.StrictMode>
       <ClerkProvider
         publishableKey={PUBLISHABLE_KEY}
-        routerPush={(to) => clerkNavigate(to)}
-        routerReplace={(to) => clerkNavigate(to)}
         signInUrl="/"
         signUpUrl="/"
         afterSignInUrl="/"
