@@ -24,7 +24,7 @@ excludes = ["opencv-python-headless"]
 
 [[package]]
 name = "ai-gaming-assistant"
-version = "3.1.4"
+version = "3.1.5"
 source = { virtual = "." }
 dependencies = [
     { name = "bettercam" },
@@ -53,6 +53,7 @@ dependencies = [
     { name = "pyaudio" },
     { name = "pyautogui" },
     { name = "pydantic" },
+    { name = "pydantic-settings" },
     { name = "pygame-ce" },
     { name = "pynput" },
     { name = "python-dotenv" },
@@ -99,7 +100,8 @@ requires-dist = [
     { name = "psycopg2-binary", specifier = ">=2.9.9" },
     { name = "pyaudio" },
     { name = "pyautogui" },
-    { name = "pydantic" },
+    { name = "pydantic", specifier = ">=2.10.0" },
+    { name = "pydantic-settings", specifier = ">=2.7.0" },
     { name = "pygame-ce" },
     { name = "pynput" },
     { name = "python-dotenv" },
