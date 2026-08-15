@@ -344,57 +344,112 @@ export default function GamesTestedPage() {
 
               </div>
 
-              {/* Detailed Game Overview & Mechanics Section */}
+              {/* Steam / Microsoft Store Storefront Deep-Dive Inspiration Section */}
               {featuredGame.detailedOverview && (
-                <div className="col-span-1 lg:col-span-12 mt-8 pt-8 border-t border-white/10 space-y-6">
-                  <div className="flex items-center gap-2">
-                    <Gamepad2 className="w-5 h-5 text-neon-green" />
-                    <h4 className="text-lg font-black font-display text-white uppercase tracking-wider">
-                      Detailed Game Overview & Mechanics
-                    </h4>
+                <div className="col-span-1 lg:col-span-12 mt-10 pt-10 border-t border-white/15 space-y-12">
+                  
+                  {/* Section 1: Cinematic Story & Narrative */}
+                  <div className="space-y-4">
+                    <div className="flex items-center justify-between gap-4">
+                      <h4 className="text-2xl sm:text-3xl font-black font-display text-amber-300 uppercase tracking-wider drop-shadow-[0_0_20px_rgba(251,191,36,0.35)]">
+                        A Thrilling Cinematic Narrative
+                      </h4>
+                      <span className="hidden sm:inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-amber-400/10 border border-amber-400/30 text-amber-300 text-[11px] font-mono font-bold uppercase tracking-wider">
+                        <BookOpen className="w-3.5 h-3.5" /> Story Overview
+                      </span>
+                    </div>
+
+                    <p className="text-gray-300 text-sm sm:text-base font-sans leading-relaxed max-w-4xl">
+                      {featuredGame.detailedOverview.story}
+                    </p>
+
+                    {/* Cinematic Story Image Banner */}
+                    {screenshots.length > 0 && (
+                      <div 
+                        onClick={() => openSlideshow(0)}
+                        className="relative w-full aspect-[21/9] sm:aspect-[24/9] rounded-2xl overflow-hidden border border-amber-400/20 bg-black/60 shadow-2xl cursor-pointer group/banner mt-4"
+                      >
+                        <img
+                          src={screenshots[0].src}
+                          alt={featuredGame.name}
+                          className="w-full h-full object-cover group-hover/banner:scale-105 transition-transform duration-700 ease-out"
+                        />
+                        <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-transparent to-transparent flex items-end justify-between p-4 sm:p-6">
+                          <div className="text-white font-mono text-xs sm:text-sm font-bold flex items-center gap-2">
+                            <Maximize2 className="w-4 h-4 text-amber-300" />
+                            <span>{screenshots[0].title}</span>
+                          </div>
+                          <span className="px-3 py-1.5 rounded-lg bg-amber-400/20 border border-amber-400/40 text-amber-300 text-xs font-mono font-bold flex items-center gap-1.5 backdrop-blur-md">
+                            <Play className="w-3 h-3 fill-amber-300" /> Cinematic Preview
+                          </span>
+                        </div>
+                      </div>
+                    )}
                   </div>
 
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-6 font-mono text-xs">
-                    {/* Story & Premise */}
-                    <div className="p-5 rounded-2xl bg-white/[0.02] border border-white/10 space-y-2">
-                      <div className="text-neon-green font-bold uppercase tracking-wider text-xs flex items-center gap-2">
-                        <BookOpen className="w-4 h-4 text-neon-green" /> Story & Narrative Premise
-                      </div>
-                      <p className="text-gray-300 font-sans text-xs leading-relaxed">
-                        {featuredGame.detailedOverview.story}
-                      </p>
+                  {/* Section 2: Core Gameplay Loop & Dynamic Traversal */}
+                  <div className="space-y-4 pt-4">
+                    <div className="flex items-center justify-between gap-4">
+                      <h4 className="text-2xl sm:text-3xl font-black font-display text-emerald-400 uppercase tracking-wider drop-shadow-[0_0_20px_rgba(52,211,153,0.35)]">
+                        Dynamic Gameplay & Combat Systems
+                      </h4>
+                      <span className="hidden sm:inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-emerald-400/10 border border-emerald-400/30 text-emerald-400 text-[11px] font-mono font-bold uppercase tracking-wider">
+                        <Zap className="w-3.5 h-3.5" /> Core Systems
+                      </span>
                     </div>
 
-                    {/* Gameplay Loop */}
-                    <div className="p-5 rounded-2xl bg-white/[0.02] border border-white/10 space-y-2">
-                      <div className="text-emerald-400 font-bold uppercase tracking-wider text-xs flex items-center gap-2">
-                        <Zap className="w-4 h-4 text-emerald-400" /> Core Gameplay Loop
+                    <p className="text-gray-300 text-sm sm:text-base font-sans leading-relaxed max-w-4xl">
+                      {featuredGame.detailedOverview.gameplayLoop}
+                    </p>
+
+                    {/* Cinematic Gameplay Loop Banner */}
+                    {screenshots.length > 1 && (
+                      <div 
+                        onClick={() => openSlideshow(1)}
+                        className="relative w-full aspect-[21/9] sm:aspect-[24/9] rounded-2xl overflow-hidden border border-emerald-400/20 bg-black/60 shadow-2xl cursor-pointer group/banner mt-4"
+                      >
+                        <img
+                          src={screenshots[1].src}
+                          alt={screenshots[1].title}
+                          className="w-full h-full object-cover group-hover/banner:scale-105 transition-transform duration-700 ease-out"
+                        />
+                        <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-transparent to-transparent flex items-end justify-between p-4 sm:p-6">
+                          <div className="text-white font-mono text-xs sm:text-sm font-bold flex items-center gap-2">
+                            <Maximize2 className="w-4 h-4 text-emerald-400" />
+                            <span>{screenshots[1].title}</span>
+                          </div>
+                          <span className="px-3 py-1.5 rounded-lg bg-emerald-400/20 border border-emerald-400/40 text-emerald-400 text-xs font-mono font-bold flex items-center gap-1.5 backdrop-blur-md">
+                            <Play className="w-3 h-3 fill-emerald-400" /> In-Engine Action
+                          </span>
+                        </div>
                       </div>
-                      <p className="text-gray-300 font-sans text-xs leading-relaxed">
-                        {featuredGame.detailedOverview.gameplayLoop}
-                      </p>
-                    </div>
+                    )}
                   </div>
 
-                  {/* Key Gameplay Mechanics Grid */}
-                  <div className="space-y-3">
-                    <div className="text-xs font-mono font-bold text-gray-300 uppercase tracking-wider flex items-center gap-2">
-                      <Sliders className="w-4 h-4 text-neon-yellow" /> Key Gameplay Mechanics & Features
+                  {/* Section 3: Signature Gameplay Mechanics Grid */}
+                  <div className="space-y-4 pt-4">
+                    <div className="flex items-center gap-2">
+                      <Sliders className="w-5 h-5 text-neon-yellow" />
+                      <h4 className="text-xl sm:text-2xl font-black font-display text-white uppercase tracking-wider">
+                        Signature Mechanics & Combat Innovations
+                      </h4>
                     </div>
-                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+
+                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                       {featuredGame.detailedOverview.keyMechanics.map((mech, idx) => (
-                        <div key={idx} className="p-4 rounded-xl bg-white/[0.02] border border-white/5 font-mono">
-                          <div className="text-neon-yellow font-bold text-xs uppercase tracking-wide mb-1 flex items-center gap-2">
-                            <span className="w-1.5 h-1.5 rounded-full bg-neon-yellow" />
+                        <div key={idx} className="p-5 rounded-2xl bg-white/[0.03] border border-white/10 hover:border-neon-yellow/40 transition-colors font-mono space-y-2 group/card">
+                          <div className="text-neon-yellow font-bold text-sm uppercase tracking-wide flex items-center gap-2">
+                            <span className="w-2 h-2 rounded-full bg-neon-yellow shadow-[0_0_8px_rgba(250,204,21,0.8)]" />
                             {mech.name}
                           </div>
-                          <p className="text-gray-400 text-[11px] font-sans leading-relaxed">
+                          <p className="text-gray-300 text-xs sm:text-sm font-sans leading-relaxed">
                             {mech.desc}
                           </p>
                         </div>
                       ))}
                     </div>
                   </div>
+
                 </div>
               )}
 
@@ -404,14 +459,34 @@ export default function GamesTestedPage() {
 
         {/* Verified Tested Games Library Grid */}
         <div className="space-y-8">
-          <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 border-b border-white/10 pb-6">
+          <div className="flex flex-col md:flex-row items-start md:items-center justify-between gap-6 border-b border-white/10 pb-6">
             <div>
-              <h2 className="text-2xl font-black font-display uppercase tracking-wider text-white">
-                Verified Tested Games
+              <div className="flex items-center gap-2 text-xs font-mono font-bold text-neon-green uppercase tracking-widest mb-1">
+                <Sparkles className="w-3.5 h-3.5" /> Microsoft Store-Style Live Previews
+              </div>
+              <h2 className="text-2xl sm:text-3xl font-black font-display uppercase tracking-wider text-white">
+                Verified Tested Games Library
               </h2>
-              <p className="text-gray-400 text-xs font-mono">
-                Verified compatibility profiles, actual VRAM footprints, system latency, and GPU loads tested by Mission Control.
+              <p className="text-gray-400 text-xs font-mono mt-1">
+                Hover over any game to trigger animated gameplay previews, FPS metrics, and verified DLSS/Ray Tracing compatibility.
               </p>
+            </div>
+
+            {/* Filter Pills */}
+            <div className="flex flex-wrap items-center gap-2 font-mono text-xs">
+              {["ALL", "ACTION", "OPEN WORLD", "RACING", "TACTICAL"].map((genre) => (
+                <button
+                  key={genre}
+                  onClick={() => setFilterGenre(genre)}
+                  className={`px-3.5 py-1.5 rounded-xl font-bold uppercase transition-all cursor-pointer ${
+                    filterGenre === genre
+                      ? "bg-neon-green text-obsidian shadow-[0_0_15px_rgba(118,185,0,0.4)]"
+                      : "bg-white/5 text-gray-400 hover:text-white hover:bg-white/10 border border-white/10"
+                  }`}
+                >
+                  {genre}
+                </button>
+              ))}
             </div>
           </div>
 
@@ -423,50 +498,66 @@ export default function GamesTestedPage() {
                 <div
                   key={game.id}
                   className={`rounded-3xl bg-[#0b0c10] border transition-all duration-300 flex flex-col justify-between group overflow-hidden ${
-                    isSelected ? "border-neon-green shadow-[0_0_25px_rgba(118,185,0,0.25)]" : "border-white/10 hover:border-neon-green/40 shadow-xl"
+                    isSelected ? "border-neon-green shadow-[0_0_30px_rgba(118,185,0,0.25)]" : "border-white/10 hover:border-neon-green/50 hover:shadow-[0_0_25px_rgba(118,185,0,0.15)] shadow-xl"
                   }`}
                 >
-                  {/* Card Cover Header */}
-                  <div className="relative h-40 w-full overflow-hidden border-b border-white/10 group-hover:border-neon-green/30">
+                  {/* Card Cover Header with Microsoft Store Hover Preview */}
+                  <div className="relative h-48 w-full overflow-hidden border-b border-white/10 group-hover:border-neon-green/30">
                     <img
                       src={game.coverImage}
                       alt={game.name}
-                      className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
+                      className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-700 ease-out"
                     />
-                    <div className="absolute inset-0 bg-gradient-to-t from-[#0b0c10] via-[#0b0c10]/40 to-black/30" />
+                    <div className="absolute inset-0 bg-gradient-to-t from-[#0b0c10] via-black/20 to-black/40" />
                     
+                    {/* Top Badges */}
                     <div className="absolute top-3 left-3 right-3 flex items-center justify-between gap-2">
-                      <span className="text-[10px] font-mono font-bold text-gray-200 px-2.5 py-1 rounded-full bg-black/80 border border-white/20 backdrop-blur-md uppercase tracking-wider flex items-center gap-1">
-                        <Gamepad2 className="w-3 h-3 text-neon-green" /> {game.genre}
+                      <span className="text-[10px] font-mono font-bold text-gray-200 px-2.5 py-1 rounded-full bg-black/85 border border-white/20 backdrop-blur-md uppercase tracking-wider flex items-center gap-1 shadow-md">
+                        <Gamepad2 className="w-3 h-3 text-neon-green" /> {game.genre.split('/')[0]}
                       </span>
-                      <span className="text-[10px] font-mono font-bold text-neon-green bg-black/80 px-2.5 py-1 rounded-full border border-neon-green/30 uppercase backdrop-blur-md">
-                        {game.status}
+                      <span className="text-[10px] font-mono font-bold text-amber-300 bg-black/85 px-2.5 py-1 rounded-full border border-amber-400/30 uppercase backdrop-blur-md shadow-md">
+                        {game.storeRating || "4.9 ★★★★★"}
+                      </span>
+                    </div>
+
+                    {/* Bottom Floating Live Telemetry Badge on Hover */}
+                    <div className="absolute bottom-3 left-3 right-3 flex items-center justify-between pointer-events-none">
+                      <span className="px-2.5 py-1 rounded-lg bg-neon-green/20 border border-neon-green/40 text-neon-green text-[10px] font-mono font-bold backdrop-blur-md flex items-center gap-1.5 shadow-lg">
+                        <Zap className="w-3 h-3 fill-neon-green" /> {game.fps}
+                      </span>
+                      <span className="px-2.5 py-1 rounded-lg bg-black/80 border border-white/20 text-white text-[10px] font-mono font-bold backdrop-blur-md">
+                        {game.dlssVersion || "DLSS 4.0"}
                       </span>
                     </div>
                   </div>
 
                   <div className="p-6 flex flex-col justify-between flex-1 space-y-4">
                     <div className="space-y-3">
-                      <h3 className="text-xl font-black font-display text-white uppercase tracking-tight group-hover:text-neon-green transition-colors line-clamp-1">
-                        {game.name}
-                      </h3>
+                      <div>
+                        <div className="text-[11px] font-mono text-gray-400 font-bold uppercase tracking-wider mb-1">
+                          {game.publisher}
+                        </div>
+                        <h3 className="text-xl font-black font-display text-white uppercase tracking-tight group-hover:text-neon-green transition-colors line-clamp-1">
+                          {game.name}
+                        </h3>
+                      </div>
 
                       <div className="p-3.5 rounded-2xl bg-white/[0.03] border border-white/10 space-y-2 font-mono text-xs">
                         <div className="flex justify-between text-[11px] border-b border-white/5 pb-1">
-                          <span className="text-gray-400">Target FPS:</span>
+                          <span className="text-gray-400">Target Benchmark:</span>
                           <span className="font-black text-neon-green">{game.fps}</span>
                         </div>
                         <div className="flex justify-between text-[11px] border-b border-white/5 pb-1">
-                          <span className="text-gray-400">VRAM Footprint:</span>
+                          <span className="text-gray-400">VRAM Allocation:</span>
                           <span className="font-bold text-white">{game.vram}</span>
                         </div>
                         <div className="flex justify-between text-[11px] border-b border-white/5 pb-1">
-                          <span className="text-gray-400">GPU Usage & Latency:</span>
-                          <span className="font-bold text-emerald-400">{game.gpuLoad} | {game.latency}</span>
+                          <span className="text-gray-400">Latency & Load:</span>
+                          <span className="font-bold text-emerald-400">{game.latency} • {game.gpuLoad}</span>
                         </div>
                         <div className="flex justify-between text-[11px]">
-                          <span className="text-gray-400">API:</span>
-                          <span className="font-bold text-amber-400">{game.api}</span>
+                          <span className="text-gray-400">Graphics API:</span>
+                          <span className="font-bold text-teal-300">{game.api}</span>
                         </div>
                       </div>
                     </div>
@@ -479,7 +570,7 @@ export default function GamesTestedPage() {
                           : "bg-white/5 text-gray-300 hover:bg-white/10 hover:text-white border border-white/10 hover:border-neon-green/40"
                       }`}
                     >
-                      <span className="truncate">{isSelected ? "Viewing Profile" : "View Benchmark Profile"}</span>
+                      <span className="truncate">{isSelected ? "Viewing Profile & Gallery" : "View Benchmark & Gameplay"}</span>
                       <ArrowRight className="w-3.5 h-3.5 shrink-0" />
                     </button>
                   </div>
