@@ -10,6 +10,7 @@ type Tray = electron.Tray
 import { autoUpdater, CancellationToken } from 'electron-updater'
 import path from 'node:path'
 import http from 'node:http'
+import https from 'node:https'
 import { fileURLToPath, pathToFileURL } from 'node:url'
 import { spawn, ChildProcess, execSync } from 'node:child_process'
 import fs from 'node:fs'
@@ -1858,10 +1859,252 @@ ipcMain.on('game-focus-changed', (_event, isActive: boolean, isFocused: boolean,
   }
 });
 
-// === electron-updater Configuration (NSIS / GitHub Releases) ===
+// === electron-updater Configuration (NSIS / GitHub Releases & Direct Fallback) ===
 function setupAutoUpdater() {
-  const isSupported = (process.platform === 'win32' || process.platform === 'darwin') && app.isPackaged;
+  const isSupported = (process.platform === 'win32' || process.platform === 'darwin' || process.platform === 'linux') && app.isPackaged;
   const UPDATE_STATE_PATH = path.join(app.getPath('userData'), 'update_download_state.json');
+
+  interface GitHubReleaseFallback {
+    available: boolean;
+    version?: string;
+    releaseNotes?: string;
+    releaseDate?: string;
+    assetUrl?: string;
+    assetName?: string;
+    assetSize?: number;
+  }
+
+  let directUpdateInfo: GitHubReleaseFallback | null = null;
+  let directDownloadRequest: http.ClientRequest | null = null;
+  let directDownloadAborted = false;
+
+  function isNewerSemver(remote: string, local: string): boolean {
+    const parse = (v: string) => v.replace(/^v/i, '').split('.').map(Number);
+    const r = parse(remote);
+    const l = parse(local);
+    for (let i = 0; i < Math.max(r.length, l.length); i++) {
+      const rv = r[i] || 0;
+      const lv = l[i] || 0;
+      if (rv > lv) return true;
+      if (rv < lv) return false;
+    }
+    return false;
+  }
+
+  function fetchGitHubReleaseUpdate(): Promise<GitHubReleaseFallback> {
+    return new Promise((resolve) => {
+      const currentVersion = app.getVersion();
+      const options = {
+        hostname: 'api.github.com',
+        path: '/repos/arnab825/Mission-Control/releases',
+        method: 'GET',
+        headers: {
+          'User-Agent': 'MissionControl-Desktop-Updater',
+          'Accept': 'application/vnd.github.v3+json'
+        },
+        timeout: 8000
+      };
+
+      const req = https.request(options, (res) => {
+        if (res.statusCode !== 200) {
+          console.warn(`[AutoUpdater] GitHub Releases API returned status ${res.statusCode}`);
+          return resolve({ available: false });
+        }
+        let rawData = '';
+        res.on('data', (chunk) => { rawData += chunk; });
+        res.on('end', () => {
+          try {
+            const releases = JSON.parse(rawData);
+            if (!Array.isArray(releases) || releases.length === 0) {
+              return resolve({ available: false });
+            }
+
+            const latestRelease = releases.find((r: any) => !r.draft);
+            if (!latestRelease || !latestRelease.tag_name) {
+              return resolve({ available: false });
+            }
+
+            const remoteVer = latestRelease.tag_name.replace(/^v/i, '');
+            const isNewer = isNewerSemver(remoteVer, currentVersion);
+            if (!isNewer) {
+              return resolve({ available: false, version: remoteVer });
+            }
+
+            const assets: any[] = latestRelease.assets || [];
+            let matchingAsset: any = null;
+
+            if (process.platform === 'win32') {
+              matchingAsset = assets.find((a: any) => a.name.endsWith('.exe')) ||
+                              assets.find((a: any) => a.name.endsWith('.msi')) ||
+                              assets.find((a: any) => a.name.endsWith('.zip'));
+            } else if (process.platform === 'linux') {
+              matchingAsset = assets.find((a: any) => a.name.endsWith('.AppImage') || a.name.endsWith('.tar.gz') || a.name.endsWith('.deb'));
+            } else {
+              matchingAsset = assets.find((a: any) => a.name.endsWith('.dmg') || a.name.endsWith('.zip'));
+            }
+
+            if (matchingAsset && matchingAsset.browser_download_url) {
+              return resolve({
+                available: true,
+                version: remoteVer,
+                releaseNotes: typeof latestRelease.body === 'string' ? latestRelease.body : '',
+                releaseDate: latestRelease.published_at || latestRelease.created_at,
+                assetUrl: matchingAsset.browser_download_url,
+                assetName: matchingAsset.name,
+                assetSize: matchingAsset.size
+              });
+            }
+
+            return resolve({ available: false, version: remoteVer });
+          } catch (parseErr) {
+            console.warn('[AutoUpdater] Failed to parse GitHub releases response:', parseErr);
+            resolve({ available: false });
+          }
+        });
+      });
+
+      req.on('timeout', () => {
+        req.destroy();
+        resolve({ available: false });
+      });
+
+      req.on('error', (err) => {
+        console.warn('[AutoUpdater] GitHub Releases API request failed:', err);
+        resolve({ available: false });
+      });
+
+      req.end();
+    });
+  }
+
+  function downloadDirectUpdatePayload(downloadUrl: string, version: string): Promise<string> {
+    return new Promise((resolve, reject) => {
+      directDownloadAborted = false;
+      const updaterDir = path.join(app.getPath('userData'), '../mission-control-updater/pending');
+      try { fs.mkdirSync(updaterDir, { recursive: true }); } catch (_) {}
+      
+      const fileName = path.basename(downloadUrl.split('?')[0]) || 'MissionControl-Setup.exe';
+      const targetFile = path.join(updaterDir, fileName.endsWith('.exe') ? fileName : 'MissionControl-Setup.exe');
+      const tempFile = path.join(updaterDir, 'MissionControl-Setup.tmp');
+
+      if (fs.existsSync(tempFile)) {
+        try { fs.unlinkSync(tempFile); } catch (_) {}
+      }
+
+      sendToAllWindows('electron-update-status', {
+        status: 'downloading',
+        version: version,
+        percent: 0,
+        message: 'Starting installer package download from GitHub...'
+      });
+
+      const startDownload = (currentUrl: string, redirectCount = 0) => {
+        if (redirectCount > 5) {
+          return reject(new Error('Too many redirects while downloading update payload.'));
+        }
+        if (directDownloadAborted) {
+          return reject(new Error('Download cancelled by user.'));
+        }
+
+        const client = currentUrl.startsWith('https:') ? https : http;
+        const req = client.get(currentUrl, {
+          headers: {
+            'User-Agent': 'MissionControl-Desktop-Updater',
+            'Accept': 'application/octet-stream'
+          }
+        }, (res) => {
+          if (res.statusCode && res.statusCode >= 300 && res.statusCode < 400 && res.headers.location) {
+            return startDownload(res.headers.location, redirectCount + 1);
+          }
+          if (res.statusCode !== 200) {
+            return reject(new Error(`Download failed with server status ${res.statusCode}`));
+          }
+
+          const totalBytes = parseInt(res.headers['content-length'] || '0', 10);
+          let downloadedBytes = 0;
+          let lastReportedPercent = -1;
+          let lastReportTime = 0;
+
+          const fileStream = fs.createWriteStream(tempFile);
+
+          res.on('data', (chunk) => {
+            if (directDownloadAborted) {
+              req.destroy();
+              fileStream.close();
+              try { fs.unlinkSync(tempFile); } catch (_) {}
+              return;
+            }
+            downloadedBytes += chunk.length;
+            const percent = totalBytes > 0 ? Math.min(100, Math.round((downloadedBytes / totalBytes) * 100)) : 0;
+            const now = Date.now();
+            if (percent !== lastReportedPercent && (now - lastReportTime > 200 || percent === 100)) {
+              lastReportedPercent = percent;
+              lastReportTime = now;
+              const downloadedMB = (downloadedBytes / (1024 * 1024)).toFixed(1);
+              const totalMB = totalBytes > 0 ? (totalBytes / (1024 * 1024)).toFixed(1) : '?';
+              const progressState = {
+                status: 'downloading',
+                version: version,
+                percent: percent,
+                message: `Downloading update… ${percent}% (${downloadedMB} MB / ${totalMB} MB)`
+              };
+              saveUpdateState(progressState);
+              sendToAllWindows('electron-update-status', progressState);
+            }
+          });
+
+          res.pipe(fileStream);
+
+          fileStream.on('finish', () => {
+            fileStream.close(() => {
+              if (directDownloadAborted) {
+                try { fs.unlinkSync(tempFile); } catch (_) {}
+                return reject(new Error('Download cancelled by user.'));
+              }
+              try {
+                if (fs.existsSync(targetFile)) {
+                  fs.unlinkSync(targetFile);
+                }
+                fs.renameSync(tempFile, targetFile);
+              } catch (renameErr) {
+                console.warn('[AutoUpdater] Failed to rename temp download file, keeping temp path:', renameErr);
+              }
+
+              console.log('[AutoUpdater] Direct installer download completed:', targetFile);
+              stopUpdateAnimation();
+              const downloadedState = {
+                status: 'downloaded',
+                version: version,
+                date: directUpdateInfo?.releaseDate || new Date().toISOString(),
+                notes: directUpdateInfo?.releaseNotes || '',
+                message: `Update v${version} downloaded and ready to install.`,
+                percent: 100
+              };
+              saveUpdateState(downloadedState);
+              sendToAllWindows('electron-update-status', downloadedState);
+              resolve(targetFile);
+            });
+          });
+
+          fileStream.on('error', (err) => {
+            try { fs.unlinkSync(tempFile); } catch (_) {}
+            reject(err);
+          });
+        });
+
+        directDownloadRequest = req;
+
+        req.on('error', (err) => {
+          if (!directDownloadAborted) {
+            try { fs.unlinkSync(tempFile); } catch (_) {}
+            reject(err);
+          }
+        });
+      };
+
+      startDownload(downloadUrl);
+    });
+  }
 
   function saveUpdateState(state: any) {
     try {
@@ -1891,7 +2134,7 @@ function setupAutoUpdater() {
         stopUpdateAnimation();
         event.sender.send('electron-update-status', {
           status: 'not-supported',
-          message: 'Auto-update is only supported in packaged Windows/macOS builds.'
+          message: 'Auto-update is only supported in packaged Windows/macOS/Linux builds.'
         });
       }, 1000);
     });
@@ -1899,8 +2142,6 @@ function setupAutoUpdater() {
   }
 
   // Clear stale update state if it's for a different (old) version or if already installed.
-  // This prevents the UI from showing a previously-downloaded version as "ready"
-  // when the user is already on a newer version or has a fresh install.
   try {
     const savedState = loadUpdateState();
     if (savedState.status === 'downloaded' && savedState.version) {
@@ -1914,7 +2155,7 @@ function setupAutoUpdater() {
           if (s > c) return false; // saved is newer, not stale
           if (s < c) return true;  // saved is older, stale
         }
-        return true; // versions are exactly equal, so it's already installed (stale)
+        return true; // versions are equal, so it's already installed
       })();
 
       if (isStale) {
@@ -1985,7 +2226,7 @@ function setupAutoUpdater() {
   });
 
   autoUpdater.on('update-not-available', () => {
-    console.log('[AutoUpdater] No updates available.');
+    console.log('[AutoUpdater] No updates available via electron-updater.');
     stopUpdateAnimation();
     const state = { status: 'up-to-date', message: 'Application is up to date.' };
     saveUpdateState(state);
@@ -1995,35 +2236,81 @@ function setupAutoUpdater() {
     }
   });
 
-function sanitizeUpdateErrorMessage(rawMsg: string): string {
-  if (!rawMsg) return 'An unexpected error occurred during update initialization.';
-  const msgLower = rawMsg.toLowerCase();
-  if (msgLower.includes('latest.yml') || (msgLower.includes('404') && (msgLower.includes('github.com') || msgLower.includes('httperror')))) {
-    return 'The release assets for this version are currently being compiled and published. Please check back in a few minutes or download Setup.exe manually below.';
+  function sanitizeUpdateErrorMessage(rawMsg: string): string {
+    if (!rawMsg) return 'An unexpected error occurred during update initialization.';
+    const msgLower = rawMsg.toLowerCase();
+    if (msgLower.includes('latest.yml') || (msgLower.includes('404') && (msgLower.includes('github.com') || msgLower.includes('httperror')))) {
+      return 'The release assets for this version are currently being compiled and published. Please check back in a few minutes or download Setup.exe manually below.';
+    }
+    if (msgLower.includes('enotfound') || msgLower.includes('econnrefused') || msgLower.includes('etimedout') || msgLower.includes('internet_disconnected') || msgLower.includes('name_not_resolved')) {
+      return 'Unable to reach update servers. Please check your network connection and try again.';
+    }
+    if (msgLower.includes('rate limit') || msgLower.includes('429')) {
+      return 'GitHub update server rate limit exceeded. Please try again in a few minutes.';
+    }
+    if (msgLower.includes('please check update first')) {
+      return 'Update download is initializing. Please verify update check first or try again in a few moments.';
+    }
+    let clean = rawMsg;
+    const truncateIndex = clean.search(/\b(Headers:|HttpError:|\n\s*at\b|Stacktrace:)/i);
+    if (truncateIndex > 0) {
+      clean = clean.substring(0, truncateIndex).trim();
+    }
+    clean = clean.replace(/[\r\n]+/g, ' ').trim();
+    if (clean.length > 220) {
+      clean = clean.substring(0, 217) + '...';
+    }
+    return clean || 'An unexpected error occurred during update initialization.';
   }
-  if (msgLower.includes('enotfound') || msgLower.includes('econnrefused') || msgLower.includes('etimedout') || msgLower.includes('internet_disconnected') || msgLower.includes('name_not_resolved')) {
-    return 'Unable to reach update servers. Please check your network connection and try again.';
-  }
-  if (msgLower.includes('rate limit') || msgLower.includes('429')) {
-    return 'GitHub update server rate limit exceeded. Please try again in a few minutes.';
-  }
-  if (msgLower.includes('please check update first')) {
-    return 'Update download is initializing. Please verify update check first or try again in a few moments.';
-  }
-  let clean = rawMsg;
-  const truncateIndex = clean.search(/\b(Headers:|HttpError:|\n\s*at\b|Stacktrace:)/i);
-  if (truncateIndex > 0) {
-    clean = clean.substring(0, truncateIndex).trim();
-  }
-  clean = clean.replace(/[\r\n]+/g, ' ').trim();
-  if (clean.length > 220) {
-    clean = clean.substring(0, 217) + '...';
-  }
-  return clean || 'An unexpected error occurred during update initialization.';
-}
 
-  autoUpdater.on('error', (err) => {
-    console.error('[AutoUpdater] Error:', err);
+  autoUpdater.on('error', async (err) => {
+    console.error('[AutoUpdater] Error from electron-updater:', err);
+    const msgLower = (err?.message || String(err)).toLowerCase();
+    const isMissingLatestYml = msgLower.includes('latest.yml') || msgLower.includes('404') || msgLower.includes('cannot find latest');
+
+    if (isMissingLatestYml) {
+      console.log('[AutoUpdater] latest.yml missing in GitHub release. Attempting direct GitHub Release fallback...');
+      try {
+        const ghRelease = await fetchGitHubReleaseUpdate();
+        if (ghRelease.available && ghRelease.version && ghRelease.assetUrl) {
+          console.log(`[AutoUpdater] Direct GitHub fallback found version v${ghRelease.version} (${ghRelease.assetName})`);
+          directUpdateInfo = ghRelease;
+          stopUpdateAnimation();
+          const state = {
+            status: 'available',
+            version: ghRelease.version,
+            notes: ghRelease.releaseNotes || '',
+            message: `Update v${ghRelease.version} available.`,
+            percent: 0
+          };
+          saveUpdateState(state);
+          sendToAllWindows('electron-update-status', state);
+          if (!isManualUpdateCheck) {
+            fireUpdateToast(ghRelease.version);
+          }
+          if (autoDownloadEnabled && !isManualUpdateCheck) {
+            console.log('[AutoUpdater] Auto-downloading direct update payload...');
+            downloadDirectUpdatePayload(ghRelease.assetUrl, ghRelease.version).catch(dlErr => {
+              console.error('[AutoUpdater] Direct auto-download failed:', dlErr);
+            });
+          }
+          isManualUpdateCheck = false;
+          return;
+        } else if (!ghRelease.available && ghRelease.version) {
+          // The remote version is not newer than current
+          console.log('[AutoUpdater] Direct GitHub check confirms application is up to date.');
+          stopUpdateAnimation();
+          const state = { status: 'up-to-date', message: 'Application is up to date.' };
+          saveUpdateState(state);
+          sendToAllWindows('electron-update-status', state);
+          isManualUpdateCheck = false;
+          return;
+        }
+      } catch (fallbackErr) {
+        console.warn('[AutoUpdater] GitHub Releases fallback check encountered error:', fallbackErr);
+      }
+    }
+
     stopUpdateAnimation();
     const friendlyMsg = sanitizeUpdateErrorMessage(err.message || String(err));
     const state = { status: 'error', message: friendlyMsg };
@@ -2057,7 +2344,7 @@ function sanitizeUpdateErrorMessage(rawMsg: string): string {
       version: info.version,
       date: info.releaseDate,
       notes: typeof info.releaseNotes === 'string' ? info.releaseNotes : '',
-      message: `Update v${info.version} downloaded.`,
+      message: `Update v${info.version} downloaded and ready to install.`,
       percent: 100
     };
     saveUpdateState(state);
@@ -2068,11 +2355,40 @@ function sanitizeUpdateErrorMessage(rawMsg: string): string {
   ipcMain.on('check-electron-updates', () => {
     isManualUpdateCheck = true;
     startUpdateAnimation();
-    autoUpdater.checkForUpdates().catch((err: any) => {
+    autoUpdater.checkForUpdates().catch(async (err: any) => {
+      console.warn('[AutoUpdater] checkForUpdates failed, trying direct GitHub fallback...', err);
+      try {
+        const ghRelease = await fetchGitHubReleaseUpdate();
+        if (ghRelease.available && ghRelease.version && ghRelease.assetUrl) {
+          console.log(`[AutoUpdater] Direct check found update v${ghRelease.version}`);
+          directUpdateInfo = ghRelease;
+          stopUpdateAnimation();
+          isManualUpdateCheck = false;
+          const state = {
+            status: 'available',
+            version: ghRelease.version,
+            notes: ghRelease.releaseNotes || '',
+            message: `Update v${ghRelease.version} available.`,
+            percent: 0
+          };
+          saveUpdateState(state);
+          sendToAllWindows('electron-update-status', state);
+          return;
+        } else if (!ghRelease.available && ghRelease.version) {
+          stopUpdateAnimation();
+          isManualUpdateCheck = false;
+          const state = { status: 'up-to-date', message: 'Application is up to date.' };
+          saveUpdateState(state);
+          sendToAllWindows('electron-update-status', state);
+          return;
+        }
+      } catch (_) {}
+
       isManualUpdateCheck = false;
       stopUpdateAnimation();
-      console.error('[AutoUpdater] checkForUpdates failed:', err);
-      sendToAllWindows('electron-update-status', { status: 'error', message: err.message });
+      console.error('[AutoUpdater] All update checks failed:', err);
+      const friendlyMsg = sanitizeUpdateErrorMessage(err?.message || String(err));
+      sendToAllWindows('electron-update-status', { status: 'error', message: friendlyMsg });
     });
   });
 
@@ -2087,14 +2403,23 @@ function sanitizeUpdateErrorMessage(rawMsg: string): string {
       console.log(`[AutoUpdater] Backing up current version for rollback from ${resourcesPath} to ${backupPath}...`);
       try {
         if (fs.existsSync(backupPath)) {
-           fs.rmSync(backupPath, { recursive: true, force: true });
+          fs.rmSync(backupPath, { recursive: true, force: true });
         }
-        if (process.platform === 'win32') {
-           execSync(`xcopy "${resourcesPath}" "${backupPath}" /E /I /H /Y`, { windowsHide: true });
-        } else {
-           execSync(`cp -R "${resourcesPath}" "${backupPath}"`);
-        }
-        console.log('[AutoUpdater] Backup completed successfully.');
+        fs.mkdirSync(backupPath, { recursive: true });
+        
+        // Copy directory tree using Node's native cross-platform fs.cpSync
+        fs.cpSync(resourcesPath, backupPath, { recursive: true, force: true });
+        
+        // Write rollback metadata
+        const metaPath = path.join(backupPath, 'rollback_meta.json');
+        fs.writeFileSync(metaPath, JSON.stringify({
+          version: app.getVersion(),
+          date: new Date().toISOString(),
+          resourcesPath: resourcesPath,
+          execPath: process.execPath
+        }, null, 2), 'utf-8');
+        
+        console.log('[AutoUpdater] Rollback backup completed successfully for v' + app.getVersion());
       } catch (err) {
         console.error('[AutoUpdater] Failed to create rollback backup:', err);
       }
@@ -2110,35 +2435,30 @@ function sanitizeUpdateErrorMessage(rawMsg: string): string {
         pythonProcess = null;
       }
 
-      // electron-updater's quitAndInstall() cannot request UAC elevation on its own for
-      // perMachine NSIS installers. Instead, directly locate and launch the downloaded
-      // installer executable via ShellExecute 'runas' verb so Windows always shows the
-      // UAC prompt regardless of the isAdminRightsRequired flag in update-info.json.
+      // Check for downloaded installer executable in pending directory
       const updaterDir = path.join(app.getPath('userData'), '../mission-control-updater');
       const candidates = [
         path.join(updaterDir, 'pending', 'MissionControl-Setup.exe'),
+        path.join(updaterDir, 'pending', 'installer.exe'),
         path.join(updaterDir, 'installer.exe'),
       ];
       const installerExe = candidates.find(p => fs.existsSync(p));
 
       if (installerExe) {
-        console.log(`[AutoUpdater] Launching installer with UAC elevation: ${installerExe}`);
+        console.log(`[AutoUpdater] Launching downloaded installer with UAC elevation: ${installerExe}`);
         try {
-          // Use cmd /c start "" /wait so Windows itself requests UAC via ShellExecute
           spawn('cmd.exe', ['/c', 'start', '""', installerExe], {
             detached: true,
             stdio: 'ignore',
             windowsHide: false,
           }).unref();
-          // Give the UAC dialog a moment to appear before quitting
           setTimeout(() => app.quit(), 1500);
         } catch (spawnErr) {
           console.error('[AutoUpdater] Failed to spawn installer via cmd:', spawnErr);
-          // Last resort: use autoUpdater's own mechanism
           autoUpdater.quitAndInstall(false, true);
         }
       } else {
-        console.warn('[AutoUpdater] No pending installer found, falling back to autoUpdater.quitAndInstall');
+        console.warn('[AutoUpdater] No pending installer found on disk, using autoUpdater.quitAndInstall');
         autoUpdater.quitAndInstall(false, true);
       }
     } catch (err: any) {
@@ -2164,19 +2484,38 @@ function sanitizeUpdateErrorMessage(rawMsg: string): string {
   });
 
   ipcMain.on('download-electron-update', async () => {
-    console.log('[AutoUpdater] User manually triggered downloadUpdate()');
+    console.log('[AutoUpdater] User manually triggered download-electron-update');
     try {
       sendToAllWindows('electron-update-status', { status: 'checking', message: 'Verifying update package...' });
-      const checkResult = await autoUpdater.checkForUpdates();
-      if (checkResult && checkResult.updateInfo) {
-        console.log('[AutoUpdater] Manual check succeeded, downloading version:', checkResult.updateInfo.version);
-        sendToAllWindows('electron-update-status', { status: 'downloading', percent: 0, message: 'Starting download...' });
-        if (!autoUpdater.autoDownload) {
-          updateCancellationToken = new CancellationToken();
-          await autoUpdater.downloadUpdate(updateCancellationToken);
+      
+      // If we already resolved a valid direct download URL from GitHub releases:
+      if (directUpdateInfo && directUpdateInfo.assetUrl && directUpdateInfo.version) {
+        console.log(`[AutoUpdater] Starting direct download for v${directUpdateInfo.version} from: ${directUpdateInfo.assetUrl}`);
+        await downloadDirectUpdatePayload(directUpdateInfo.assetUrl, directUpdateInfo.version);
+        return;
+      }
+
+      // Otherwise attempt standard electron-updater check & download
+      try {
+        const checkResult = await autoUpdater.checkForUpdates();
+        if (checkResult && checkResult.updateInfo) {
+          console.log('[AutoUpdater] Manual check succeeded, downloading version:', checkResult.updateInfo.version);
+          sendToAllWindows('electron-update-status', { status: 'downloading', percent: 0, message: 'Starting download...' });
+          if (!autoUpdater.autoDownload) {
+            updateCancellationToken = new CancellationToken();
+            await autoUpdater.downloadUpdate(updateCancellationToken);
+          }
+          return;
         }
-      } else {
-        throw new Error('Update payload verification failed on server. Please try again.');
+      } catch (autoErr: any) {
+        console.warn('[AutoUpdater] autoUpdater check failed during download request, attempting direct GitHub fallback...', autoErr);
+        const ghRelease = await fetchGitHubReleaseUpdate();
+        if (ghRelease.available && ghRelease.assetUrl && ghRelease.version) {
+          directUpdateInfo = ghRelease;
+          await downloadDirectUpdatePayload(ghRelease.assetUrl, ghRelease.version);
+          return;
+        }
+        throw autoErr;
       }
     } catch (err: any) {
       console.error('[AutoUpdater] downloadUpdate failed:', err);
@@ -2187,9 +2526,15 @@ function sanitizeUpdateErrorMessage(rawMsg: string): string {
 
   ipcMain.on('pause-electron-update', () => {
     if (updateCancellationToken) {
-      console.log('[AutoUpdater] User paused update download.');
+      console.log('[AutoUpdater] User paused electron-updater download.');
       updateCancellationToken.cancel();
       updateCancellationToken = null;
+    }
+    if (directDownloadRequest) {
+      console.log('[AutoUpdater] User paused direct GitHub download.');
+      directDownloadAborted = true;
+      directDownloadRequest.destroy();
+      directDownloadRequest = null;
     }
     const currentState = loadUpdateState();
     const pausedPercent = currentState.percent || 0;
@@ -2205,9 +2550,15 @@ function sanitizeUpdateErrorMessage(rawMsg: string): string {
 
   ipcMain.on('cancel-electron-update', () => {
     if (updateCancellationToken) {
-      console.log('[AutoUpdater] User cancelled update download.');
+      console.log('[AutoUpdater] User cancelled electron-updater download.');
       updateCancellationToken.cancel();
       updateCancellationToken = null;
+    }
+    if (directDownloadRequest) {
+      console.log('[AutoUpdater] User cancelled direct GitHub download.');
+      directDownloadAborted = true;
+      directDownloadRequest.destroy();
+      directDownloadRequest = null;
     }
     const state = {
       status: 'idle',
@@ -2234,10 +2585,17 @@ function sanitizeUpdateErrorMessage(rawMsg: string): string {
     let version = undefined;
     if (exists) {
       try {
-        const pkgJson = path.join(backupPath, 'app.asar.unpacked', 'package.json');
-        if (fs.existsSync(pkgJson)) {
-          const content = fs.readFileSync(pkgJson, 'utf-8');
-          version = JSON.parse(content).version;
+        const metaPath = path.join(backupPath, 'rollback_meta.json');
+        if (fs.existsSync(metaPath)) {
+          const meta = JSON.parse(fs.readFileSync(metaPath, 'utf-8'));
+          version = meta.version;
+        }
+        if (!version) {
+          const pkgJson = path.join(backupPath, 'app.asar.unpacked', 'package.json');
+          if (fs.existsSync(pkgJson)) {
+            const content = fs.readFileSync(pkgJson, 'utf-8');
+            version = JSON.parse(content).version;
+          }
         }
       } catch (_) {}
     }
@@ -2249,63 +2607,163 @@ function sanitizeUpdateErrorMessage(rawMsg: string): string {
     const backupPath = path.join(app.getPath('userData'), 'rollback_backup');
     const resourcesPath = process.resourcesPath;
     const exePath = process.execPath;
+    const userDataPath = app.getPath('userData');
     
     if (!fs.existsSync(backupPath)) {
-       sendToAllWindows('electron-update-status', { status: 'error', message: 'No previous version backup found.' });
-       return;
+      sendToAllWindows('electron-update-status', { status: 'error', message: 'No previous version backup found.' });
+      return;
     }
-    
-    // Spawn detached powershell script to copy backup over current install after app exits
-    const psScript = `
+
+    if (process.platform === 'win32') {
+      const scriptPath = path.join(userDataPath, 'rollback.ps1');
+      const logPath = path.join(userDataPath, 'rollback.log');
+      const targetPid = process.pid;
+
+      const psScript = `
+# Mission Control Automated Rollback Script
+$ErrorActionPreference = "Continue"
+$logPath = "${logPath.replace(/\\/g, '\\\\')}"
+$backupPath = "${backupPath.replace(/\\/g, '\\\\')}"
+$resourcesPath = "${resourcesPath.replace(/\\/g, '\\\\')}"
+$exePath = "${exePath.replace(/\\/g, '\\\\')}"
+$parentPid = ${targetPid}
+
+Function Log-Message($msg) {
+    $timestamp = Get-Date -Format "yyyy-MM-dd HH:mm:ss"
+    "[$timestamp] $msg" | Out-File -FilePath $logPath -Append -Encoding utf8
+    Write-Host "[$timestamp] $msg"
+}
+
+Log-Message "=== Rollback process started ==="
+Log-Message "Target resources path: $resourcesPath"
+Log-Message "Source backup path: $backupPath"
+
+# Wait for calling Electron process to exit
+Log-Message "Waiting for parent PID $parentPid to terminate..."
 $attempts = 0
-while ($attempts -lt 15) {
-    try {
-        $testFile = Join-Path "${resourcesPath}" "rollback_lock_test.tmp"
-        New-Item -Path $testFile -ItemType File -Force -ErrorAction Stop | Out-Null
-        Remove-Item -Path $testFile -Force -ErrorAction Stop | Out-Null
-        break
-    } catch {
-        Start-Sleep -Seconds 1
-        $attempts++
+while ($attempts -lt 20) {
+    $proc = Get-Process -Id $parentPid -ErrorAction SilentlyContinue
+    if (-not $proc) { break }
+    Start-Sleep -Milliseconds 500
+    $attempts++
+}
+
+# Wait additional seconds for file handles to release
+Start-Sleep -Seconds 2
+
+# Force kill any lingering python or electron helper processes
+Get-Process -Name "Mission Control", "MissionControl", "python" -ErrorAction SilentlyContinue | Where-Object { $_.Id -ne $PID } | Stop-Process -Force -ErrorAction SilentlyContinue
+
+Log-Message "Restoring files via robocopy..."
+$robocopyArgs = @(
+    $backupPath,
+    $resourcesPath,
+    "/E",
+    "/R:15",
+    "/W:1",
+    "/NP",
+    "/NFL",
+    "/NDL",
+    "/XF", "rollback_meta.json", "rollback.log", "rollback.ps1"
+)
+$rc = Start-Process -FilePath "robocopy.exe" -ArgumentList $robocopyArgs -Wait -PassThru -NoNewWindow
+Log-Message "Robocopy exited with code: $($rc.ExitCode)"
+
+# In robocopy, exit code <= 7 means success (0=no change, 1=copied, 2=extra, 3=copied+extra)
+if ($rc.ExitCode -gt 7) {
+    Log-Message "Robocopy reported issues, falling back to PowerShell copy..."
+    Get-ChildItem -Path $backupPath -Recurse | ForEach-Object {
+        $rel = $_.FullName.Substring($backupPath.Length).TrimStart('\\\\')
+        $dest = Join-Path $resourcesPath $rel
+        if ($_.PSIsContainer) {
+            if (-not (Test-Path $dest)) { New-Item -ItemType Directory -Path $dest -Force | Out-Null }
+        } else {
+            Copy-Item -Path $_.FullName -Destination $dest -Force -ErrorAction SilentlyContinue
+        }
     }
 }
-Write-Host "Restoring backup from '${backupPath}' to '${resourcesPath}'..."
-Copy-Item -Path "${backupPath}\\*" -Destination "${resourcesPath}" -Recurse -Force
-Write-Host "Restarting application..."
-Start-Process -FilePath "${exePath}"
+
+Log-Message "Relaunching application at: $exePath"
+Start-Process -FilePath $exePath
+
+Log-Message "=== Rollback completed successfully ==="
 `;
-    try {
-      const scriptPath = path.join(app.getPath('userData'), 'rollback.ps1');
-      fs.writeFileSync(scriptPath, psScript);
-      
-      const psArgs = ['-NoProfile', '-ExecutionPolicy', 'Bypass', '-File', scriptPath];
-      spawn('powershell.exe', psArgs, {
-        detached: true,
-        stdio: 'ignore',
-        windowsHide: true
-      }).unref();
-      
-      console.log('[AutoUpdater] Rollback script spawned. Quitting...');
-      
-      if (pythonProcess && pythonProcess.pid) {
-        if (process.platform === 'win32') {
-          try { execSync(`taskkill /pid ${pythonProcess.pid} /f /t`, { windowsHide: true }) } catch (err) {}
-        } else {
-          try { pythonProcess.kill('SIGKILL') } catch (_) {}
+
+      try {
+        fs.writeFileSync(scriptPath, psScript, 'utf-8');
+
+        // Test write access to resourcesPath to determine if elevation is required
+        let needsElevation = false;
+        try {
+          const testFile = path.join(resourcesPath, `_perm_test_${Date.now()}.tmp`);
+          fs.writeFileSync(testFile, 'test');
+          fs.unlinkSync(testFile);
+        } catch (permErr) {
+          needsElevation = true;
+          console.log('[AutoUpdater] Write test to resourcesPath failed, elevation required for rollback.');
         }
+
+        if (needsElevation) {
+          console.log('[AutoUpdater] Spawning rollback script with UAC elevation (RunAs)...');
+          spawn('powershell.exe', [
+            '-NoProfile',
+            '-ExecutionPolicy', 'Bypass',
+            '-Command',
+            `Start-Process powershell.exe -ArgumentList '-NoProfile -ExecutionPolicy Bypass -File \"${scriptPath}\"' -Verb RunAs`
+          ], {
+            detached: true,
+            stdio: 'ignore',
+            windowsHide: false
+          }).unref();
+        } else {
+          console.log('[AutoUpdater] Spawning rollback script directly...');
+          spawn('powershell.exe', [
+            '-NoProfile',
+            '-ExecutionPolicy', 'Bypass',
+            '-File', scriptPath
+          ], {
+            detached: true,
+            stdio: 'ignore',
+            windowsHide: true
+          }).unref();
+        }
+
+        if (pythonProcess && pythonProcess.pid) {
+          try { execSync(`taskkill /pid ${pythonProcess.pid} /f /t`, { windowsHide: true }); } catch (_) {}
+          pythonProcess = null;
+        }
+
+        setTimeout(() => app.quit(), 500);
+      } catch (err: any) {
+        console.error('[AutoUpdater] Failed to execute rollback:', err);
+        sendToAllWindows('electron-update-status', { status: 'error', message: 'Rollback failed: ' + err.message });
       }
-      
-      app.quit();
-    } catch (err: any) {
-      console.error('[AutoUpdater] Failed to spawn rollback script:', err);
-      sendToAllWindows('electron-update-status', { status: 'error', message: 'Rollback failed: ' + err.message });
+    } else {
+      // Non-Windows (Linux/macOS)
+      const scriptPath = path.join(userDataPath, 'rollback.sh');
+      const shScript = `#!/bin/bash
+sleep 2
+pkill -9 -f "MissionControl" || true
+cp -R "${backupPath}/." "${resourcesPath}/"
+"${exePath}" &
+`;
+      try {
+        fs.writeFileSync(scriptPath, shScript, { mode: 0o755 });
+        spawn('/bin/bash', [scriptPath], { detached: true, stdio: 'ignore' }).unref();
+        if (pythonProcess && pythonProcess.pid) {
+          try { pythonProcess.kill('SIGKILL'); } catch (_) {}
+        }
+        setTimeout(() => app.quit(), 500);
+      } catch (err: any) {
+        sendToAllWindows('electron-update-status', { status: 'error', message: 'Rollback failed: ' + err.message });
+      }
     }
   });
 
   // Automatic check 5 seconds after startup
   setTimeout(() => {
     autoUpdater.checkForUpdates().catch((err) => {
-      console.warn('[AutoUpdater] Startup check failed:', err);
+      console.warn('[AutoUpdater] Startup check failed, will rely on direct GitHub fallback if available:', err);
     });
   }, 5000);
 }

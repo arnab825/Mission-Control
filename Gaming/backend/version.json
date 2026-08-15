@@ -1,8 +1,19 @@
 {
-  "version": "3.1.7",
-  "release_date": "2026-08-10",
+  "version": "3.1.8",
+  "release_date": "2026-08-15",
   "update_check_url": "https://raw.githubusercontent.com/arnab825/Mission-Control/main/Gaming/backend/version.json",
   "changelog": [
+    {
+      "version": "3.1.8",
+      "date": "2026-08-15",
+      "title": "Direct GitHub Releases In-App Updater Fallback & Elevated Offline Rollback",
+      "highlights": [
+        "Added direct GitHub Releases API fallback to Electron autoUpdater for seamless in-app downloads when latest.yml is absent",
+        "Refactored automated offline rollback system using robocopy retry loops and automatic UAC elevation escalation",
+        "Added live Retry Download control to Updates page",
+        "Resolved shadowed local variable imports in AI brain memory module and updated Vitest suite"
+      ]
+    },
     {
       "version": "3.1.7",
       "date": "2026-08-15",

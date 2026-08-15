@@ -36,7 +36,6 @@ class GameMemory:
                 
         if not save_path:
             import sys
-            import os
             if getattr(sys, 'frozen', False):
                 # Running in PyInstaller production bundle
                 appdata_dir = os.getenv('APPDATA') or os.path.expanduser('~')

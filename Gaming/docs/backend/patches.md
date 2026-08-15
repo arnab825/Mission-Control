@@ -2,6 +2,13 @@
 
 This document contains a detailed history of all patches and updates for the AI Gaming Assistant.
 
+### Patch: 2026-08-15 — v3.1.8: Direct GitHub Releases In-App Updater Fallback & Elevated Offline Rollback
+
+- Added direct GitHub Releases API fallback to Electron autoUpdater for seamless in-app downloads when latest.yml is absent
+- Refactored automated offline rollback system using robocopy retry loops and automatic UAC elevation escalation
+- Added live Retry Download control to Updates page
+- Resolved shadowed local variable imports in AI brain memory module and updated Vitest suite
+
 ### Patch: 2026-08-15 — v3.1.7: Multi-Vendor GPU Support (AMD & Intel), Groq Model Updates & Optimizer Refinements
 
 - Added full multi-vendor GPU capability detection for AMD Radeon and Intel Arc graphics

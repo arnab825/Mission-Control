@@ -37,7 +37,7 @@ const Sidebar: React.FC<SidebarProps> = ({
   const { signOut } = useClerk();
   
   // Find the exact external account the user just logged in with (saved in localStorage during sign in)
-  const activeProvider = localStorage.getItem('mission_control_active_provider');
+  const activeProvider = typeof window !== 'undefined' && typeof window.localStorage?.getItem === 'function' ? window.localStorage.getItem('mission_control_active_provider') : null;
   const normalizedActiveProvider = activeProvider?.replace('oauth_', '');
   let activeExternalAccount = user?.externalAccounts?.find(a => a.provider?.replace('oauth_', '') === normalizedActiveProvider);
   
