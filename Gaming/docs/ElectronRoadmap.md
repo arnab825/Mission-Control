@@ -16,6 +16,55 @@ We have systematically integrated the items from this roadmap into the **Fronten
 *   **[x] 12) Distribution:** Fully configured Electron Forge build suite for Windows/Linux installers with integrated tray and manual update query hooks.
 
 ---
+
+## 🎮 Multi-Vendor GPU Support Roadmap: AMD Radeon RX & Intel Arc Series
+
+To deliver native parity with NVIDIA hardware across all desktop platforms, Mission Control's Electron shell and C++/Python telemetry runtime expand support to **AMD Radeon RX Series** (RDNA 1 / 2 / 3 / 4) and **Intel Arc Graphics** (Alchemist / Battlemage).
+
+```mermaid
+graph TD
+    A[Electron Main Shell / React UI] -->|IPC Bridge| B[Backend Telemetry Engine]
+    B --> C{GPU Vendor Detection}
+    C -->|NVIDIA| D[NVML API]
+    C -->|AMD Radeon RX| E[ADLX SDK / AMF Encoder / ROCm]
+    C -->|Intel Arc| F[oneAPI Level Zero Sysman / QSV / OpenVINO]
+    E --> G[Electron Transparent HUD Overlay]
+    F --> G
+    D --> G
+```
+
+### Phase 1: AMD Radeon RX Series Support (RDNA 1, 2, 3 & 4)
+
+| Feature Target | Architecture & Implementation Strategy | Status |
+| :--- | :--- | :---: |
+| **ADLX Telemetry SDK** | Bind native C++ `ADLX` (AMD Display Library Extra) into the C# `HardwareMonitor` helper to stream **Junction Temp ($T_{junc}$)**, **Mem Temp**, **TBP (Total Board Power)**, and Fan RPM to Electron. | 🟡 In Progress |
+| **AMD AMF Encoder** | Integrate Advanced Media Framework (AMF) HW H.264/HEVC/AV1 encoding for zero-lag background gameplay recording in Electron overlays. | 📋 Planned |
+| **FSR 3.1 & FSR 4 Tracking** | Expose FidelityFX Super Resolution 3.1 frame generation detection & scaling ratio telemetry to the React UI dashboard. | 📋 Planned |
+| **ROCm / DirectML Inference** | Enable DirectML & ROCm backend routing for local LLM / Vision model execution on RX 6000/7000/8000 series GPUs. | 📋 Planned |
+| **Adrenalin Software Coexistence** | Automatic detection & overlay z-index synchronization with AMD Software: Adrenalin Edition OSD. | 📋 Planned |
+
+---
+
+### Phase 2: Intel Arc Series Support (Alchemist A-Series & Battlemage B-Series)
+
+| Feature Target | Architecture & Implementation Strategy | Status |
+| :--- | :--- | :---: |
+| **oneAPI Level Zero (Sysman API)** | Native C++ integration of `zesInit()` & `zesDeviceEnumEngineGroups()` for real-time **Xe Core load**, **Tile Temp**, **GPU Power (W)**, and VRAM bandwidth telemetry. | 📋 Planned |
+| **Intel Quick Sync Video (QSV)** | Hardware-accelerated AV1 / HEVC video encoding pipeline via Intel QSV for Electron clip capture and AI vision frame streaming. | 📋 Planned |
+| **XeSS AI Upscaling Telemetry** | Detect active Intel XeSS preset (Ultra Performance $\to$ Ultra Quality) and calculate effective rendered vs output resolution. | 📋 Planned |
+| **OpenVINO NPU & XMX Acceleration** | Route local AI tasks (OCR, object detection, tactical advice) to Intel Arc XMX engines and integrated NPU via OpenVINO Execution Provider. | 📋 Planned |
+| **Intel Arc Control Integration** | Seamless hotkey & window focus management during Intel Arc Control overlay toggles. | 📋 Planned |
+
+---
+
+### Phase 3: Electron Multi-GPU Management & UI Integration
+
+* **Dynamic Multi-GPU Hardware Selector**: React settings component allowing users to switch active telemetry focus between discrete (dGPU) and integrated (iGPU) hardware.
+* **Vendor-Specific Performance Badges**: Visual indicators in Electron UI displaying active upscaler technology (`DLSS 3.5`, `FSR 3.1`, `XeSS 1.3`).
+* **Universal D3D12/Vulkan Swapchain Overlay**: Cross-vendor DirectX 12 & Vulkan overlay hook ensuring 240Hz borderless rendering on GeForce, Radeon, and Arc graphics cards.
+
+---
+
 For reference: https://www.electronjs.org/docs/latest/
 Product Guide: [ProductRoadmap.md](file:///c:/GitHub/Mission-Control/Gaming/docs/ProductRoadmap.md)
 Walkthrough notes: [walkthrough.md](./walkthrough.md)
