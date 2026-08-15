@@ -25,10 +25,10 @@ class Optimizer:
         g = (genre or "").lower()
         gpu_name_lower = (gpu_name or "").lower()
         
-        is_rtx_gpu = "rtx" in gpu_name_lower or "quadro rtx" in gpu_name_lower or "tesla" in gpu_name_lower or "titan rtx" in gpu_name_lower
+        is_capable_gpu = "rtx" in gpu_name_lower or "quadro rtx" in gpu_name_lower or "tesla" in gpu_name_lower or "titan rtx" in gpu_name_lower or "rx " in gpu_name_lower or "arc " in gpu_name_lower or "radeon" in gpu_name_lower
         
-        is_high_end_rtx = False
-        is_40_series_or_newer = False
+        is_high_end = False
+        is_modern = False
 
         import re
         model_match = re.search(r'rtx\s+(\d{4})', gpu_name_lower)
@@ -37,20 +37,20 @@ class Optimizer:
             series = model_num // 100
             tier = model_num % 100
             if tier >= 70:
-                is_high_end_rtx = True
+                is_high_end = True
             if series >= 40:
-                is_40_series_or_newer = True
+                is_modern = True
         else:
-            is_high_end_rtx = any(x in gpu_name_lower for x in ["5090", "5080", "5070", "4090", "4080", "4070", "3090", "3080", "4070 ti", "3080 ti", "super"])
-            is_40_series_or_newer = any(x in gpu_name_lower for x in ["40", "50", "60", "70"]) and is_rtx_gpu
+            is_high_end = any(x in gpu_name_lower for x in ["5090", "5080", "5070", "4090", "4080", "4070", "3090", "3080", "4070 ti", "3080 ti", "super", "7900", "7800", "6900", "6800"])
+            is_modern = any(x in gpu_name_lower for x in ["40", "50", "60", "70", "rx 7", "rx 8", "arc"])
 
         upper_features = [f.upper() for f in (features or [])]
-        has_dlss = any("DLSS" in f for f in upper_features)
-        has_fg = any(any(x in f for x in ["FRAME_GEN", "FRAME GEN", "FG"]) for f in upper_features)
+        has_upscaler = any(any(x in f for x in ["DLSS", "FSR", "XESS"]) for f in upper_features)
+        has_fg = any(any(x in f for x in ["FRAME_GEN", "FRAME GEN", "FG", "AFMF", "EXTRASS"]) for f in upper_features)
         has_rt = any(any(x in f for x in ["RAY_TRACING", "RAY TRACING", "PATH_TRACING", "PATH TRACING", "RTX"]) for f in upper_features)
 
-        # If not RTX, fallback to latency or off
-        if not is_rtx_gpu:
+        # If not capable, fallback to latency or off
+        if not is_capable_gpu:
             if any(x in g for x in ["shooter", "esport", "fight", "multiplayer", "competitive", "action", "racing", "fps"]):
                 return "latency"
             return "off"
@@ -59,32 +59,32 @@ class Optimizer:
         if any(x in g for x in ["shooter", "esport", "fight", "multiplayer", "competitive", "fps"]):
             return "latency"
 
-        # If the game doesn't even support DLSS or RT, we can't do Quality/Performance/Balanced properly
-        if not has_dlss and not has_rt and not has_fg:
+        # If the game doesn't even support Upscaling or RT, we can't do Quality/Performance/Balanced properly
+        if not has_upscaler and not has_rt and not has_fg:
             if any(x in g for x in ["rpg", "adventure", "action", "racing"]):
                 return "latency"
             return "off"
 
         # Story / RPG / Adventure -> prefers Quality if hardware can handle it and game supports RT
         if any(x in g for x in ["rpg", "adventure", "story", "open world", "simulation", "narrative"]):
-            if has_rt and is_high_end_rtx:
+            if has_rt and is_high_end:
                 return "quality"
-            elif has_dlss:
+            elif has_upscaler:
                 return "balanced"
             else:
                 return "latency"
 
-        # Action / Racing / Fast paced -> prefers Performance if game supports FG and hardware is 40-series or 50-series or newer
+        # Action / Racing / Fast paced -> prefers Performance if game supports FG and hardware is modern
         if any(x in g for x in ["action", "racing", "sport", "survival", "brawler"]):
-            if has_fg and is_40_series_or_newer:
+            if has_fg and is_modern:
                 return "performance"
-            elif has_dlss:
+            elif has_upscaler:
                 return "balanced"
             else:
                 return "latency"
 
         # Other genres
-        if has_dlss:
+        if has_upscaler:
             return "balanced"
 
         return "off"
@@ -117,16 +117,16 @@ class Optimizer:
         """
         results = []
         try:
-            # Get NVIDIA settings if config is provided
-            nvidia_preset = "custom"
+            # Get GPU Tuning settings if config is provided
+            preset = "custom"
             features = {}
             if config:
-                nvidia_cfg = config.get("nvidia", {})
-                nvidia_preset = nvidia_cfg.get("preset", "custom")
-                features = nvidia_cfg.get("gaming_features", {})
+                gpu_tuning_cfg = config.get("gpu_tuning", {})
+                preset = gpu_tuning_cfg.get("preset", "custom")
+                features = gpu_tuning_cfg.get("gaming_features", {})
 
-            resolved_preset = nvidia_preset
-            if nvidia_preset == "auto":
+            resolved_preset = preset
+            if preset == "auto":
                 # Get the GPU name via NVML
                 gpu_name = ""
                 try:
@@ -140,6 +140,16 @@ class Optimizer:
                 except Exception as nvml_err:
                     logger.debug(f"Could not get GPU name via NVML for auto-configure: {nvml_err}")
                 
+                if not gpu_name:
+                    # Try getting from DXGI / WMI via GPUMonitor as fallback
+                    try:
+                        from nvidia.gpu_monitor import GPUMonitor
+                        monitor = GPUMonitor()
+                        mets = monitor.poll_once()
+                        if mets and mets.get("gpu_name"):
+                            gpu_name = mets["gpu_name"]
+                    except:
+                        pass
                 if not gpu_name:
                     gpu_name = "NVIDIA GeForce RTX"
 
@@ -171,7 +181,7 @@ class Optimizer:
                     max_lim = pynvml.nvmlDeviceGetPowerManagementDefaultLimit(handle)
 
                 # If user set a custom % in settings slider, respect it relative to max TGP
-                custom_pct = nvidia_cfg.get("power_limit_percent", None) if config else None
+                custom_pct = gpu_tuning_cfg.get("power_limit_percent", None) if config else None
                 if custom_pct is not None:
                     new_limit = int(max_lim * (custom_pct / 100.0))
                 elif resolved_preset in ("quality", "performance"):

@@ -37,10 +37,14 @@ CACHE_DB_PATH   = Path(__file__).parent.parent / "rag_data" / "pcgw_features.db"
 # Features that PCGW tracks and how we map them to Mission Control feature strings
 _FEATURE_FLAGS = {
     "DLSS":         "DLSS",
+    "FSR":          "FSR",
+    "XESS":         "XESS",
     "FRAME_GEN":    "FRAME_GEN",
+    "FSR_3":        "FSR 3",
     "RAY_TRACING":  "RAY_TRACING",
     "PATH_TRACING": "PATH_TRACING",
     "REFLEX":       "REFLEX",
+    "ANTI_LAG":     "ANTI_LAG",
     "HDR":          "HDR",
 }
 
@@ -207,25 +211,49 @@ def _extract_features_from_wikitext(wikitext: str) -> List[str]:
     """
     features: set[str] = set()
 
-    # ── DLSS ─────────────────────────────────────────────────────────────────
+    # ── Upscaling ────────────────────────────────────────────────────────────
     upscaling_tech = _parse_template_field(wikitext, "upscaling tech")
+    
     if re.search(r"\bDLSS\b", upscaling_tech, re.IGNORECASE):
         features.add("DLSS")
+    if re.search(r"\bFSR\b", upscaling_tech, re.IGNORECASE):
+        features.add("FSR")
+        if re.search(r"\bFSR\s*2\b", upscaling_tech, re.IGNORECASE):
+            features.add("FSR 2")
+        if re.search(r"\bFSR\s*3\b", upscaling_tech, re.IGNORECASE):
+            features.add("FSR 3")
+    if re.search(r"\bXeSS\b", upscaling_tech, re.IGNORECASE):
+        features.add("XESS")
 
-    # Also detect DLSS mentioned anywhere in upscaling-related lines
+    # Also detect mentioned anywhere in upscaling-related lines
     if re.search(r"\|\s*upscaling\s*=\s*true", wikitext, re.IGNORECASE):
         if re.search(r"\bDLSS\b", wikitext, re.IGNORECASE):
             features.add("DLSS")
+        if re.search(r"\bFSR\b", wikitext, re.IGNORECASE):
+            features.add("FSR")
+            if re.search(r"\bFSR\s*2\b", wikitext, re.IGNORECASE):
+                features.add("FSR 2")
+            if re.search(r"\bFSR\s*3\b", wikitext, re.IGNORECASE):
+                features.add("FSR 3")
+        if re.search(r"\bXeSS\b", wikitext, re.IGNORECASE):
+            features.add("XESS")
 
     # ── Frame Generation ─────────────────────────────────────────────────────
     framegen_val = _parse_template_field(wikitext, "framegen")
     framegen_tech = _parse_template_field(wikitext, "framegen tech")
     if framegen_val.lower() in ("true", "1"):
         features.add("FRAME_GEN")
-    elif re.search(r"\bDLSS\s*(?:FG|MFG|Frame\s*Gen(?:eration)?)\b", framegen_tech, re.IGNORECASE):
+    if re.search(r"\bDLSS\s*(?:FG|MFG|Frame\s*Gen(?:eration)?)\b", framegen_tech, re.IGNORECASE):
         features.add("FRAME_GEN")
-    # If framegen tech mentions DLSS FG anywhere in text
     if re.search(r"\bDLSS\s*(?:FG|MFG|Multi[- ]?Frame)\b", wikitext, re.IGNORECASE):
+        features.add("FRAME_GEN")
+    
+    if re.search(r"\bFSR\s*3\b", framegen_tech, re.IGNORECASE) or re.search(r"\bFSR\s*3\s*FG\b", wikitext, re.IGNORECASE):
+        features.add("FSR 3")
+        features.add("FRAME_GEN")
+        
+    if re.search(r"\bAFMF\b", wikitext, re.IGNORECASE):
+        features.add("AFMF")
         features.add("FRAME_GEN")
 
     # ── Ray Tracing ──────────────────────────────────────────────────────────
@@ -244,10 +272,14 @@ def _extract_features_from_wikitext(wikitext: str) -> List[str]:
     if re.search(r"\bpath\s*trac", wikitext, re.IGNORECASE):
         features.add("PATH_TRACING")
 
-    # ── NVIDIA Reflex ────────────────────────────────────────────────────────
+    # ── Latency Reduction (Reflex, Anti-Lag, SmoothSync) ─────────────────────
     # PCGW doesn't have a dedicated template field; detect from plain text
     if re.search(r"nvidia\s+reflex|reflex\s+low\s+latency", wikitext, re.IGNORECASE):
         features.add("REFLEX")
+    if re.search(r"anti[- ]?lag", wikitext, re.IGNORECASE):
+        features.add("ANTI_LAG")
+    if re.search(r"smooth\s*sync", wikitext, re.IGNORECASE):
+        features.add("SMOOTHSYNC")
 
     # ── HDR ──────────────────────────────────────────────────────────────────
     hdr_val = _parse_template_field(wikitext, "hdr")

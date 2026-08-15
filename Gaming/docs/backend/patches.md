@@ -2,6 +2,13 @@
 
 This document contains a detailed history of all patches and updates for the AI Gaming Assistant.
 
+### Patch: 2026-08-15 — v3.1.7: Multi-Vendor GPU Support (AMD & Intel), Groq Model Updates & Optimizer Refinements
+
+- Added full multi-vendor GPU capability detection for AMD Radeon and Intel Arc graphics
+- Migrated frontend settings and backend optimizer to unified gpu_tuning architecture
+- Updated Groq AI provider models to GPT OSS 120B and Qwen 3.6 27B
+- Removed deprecated Custom AI model fallback options
+
 ### Patch: 2026-08-15 — v3.1.6: Fixed Alienware CPU temperature telemetry & optimized backend Pydantic models
 
 - Fixed Alienware CPU temperature telemetry & optimized backend Pydantic models

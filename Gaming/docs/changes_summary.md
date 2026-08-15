@@ -2169,3 +2169,35 @@ graph TD
 | `telemetry.ts` | **Modified** | Updated custom driver implementation for Alienware CPU temperature telemetry. |
 | `models.py` | **Modified** | Optimized Pydantic models for improved data serialization and deserialization performance. |
 | `config.json` | **Added** | New configuration file for custom driver settings and Pydantic model optimizations. |
+
+---
+
+## Session 70 — 2026-08-15: Multi-Vendor GPU Support (AMD & Intel), Groq Model Updates & Optimizer Refinements (v3.1.7)
+
+### 🛠️ Key Features Added/Modified
+1. **Added full multi-vendor GPU capability detection for AMD Radeon and Intel Arc graphics**
+2. **Migrated frontend settings and backend optimizer to unified gpu_tuning architecture**
+3. **Updated Groq AI provider models to GPT OSS 120B and Qwen 3.6 27B**
+4. **Removed deprecated Custom AI model fallback options**
+
+### 🧩 Technical Decisions & Architecture
+* To ensure seamless integration with diverse GPU architectures, we unified the frontend settings and backend optimizer under the gpu_tuning architecture. This change enables efficient GPU utilization and optimizes performance across AMD Radeon and Intel Arc graphics. Furthermore, we updated the Groq AI provider models to leverage the latest advancements in AI research.
+
+### 📊 System Architecture & Flow
+```mermaid
+graph TD
+  A[Client]
+  --> B[Server]
+  B --> C[GPU Capability Detection]
+  C --> D[Unified gpu_tuning Architecture]
+  D --> E[Groq AI Provider Models]
+  E --> F[Optimized Performance]
+```
+
+### 📋 File Changes
+| File | Status | Description |
+|---|---|---|
+| `gpu_detection.ts` | **Added** | Multi-vendor GPU capability detection for AMD Radeon and Intel Arc graphics |
+| `gpu_tuning.ts` | **Modified** | Unified frontend settings and backend optimizer under gpu_tuning architecture |
+| `groq_provider.ts` | **Modified** | Updated Groq AI provider models to GPT OSS 120B and Qwen 3.6 27B |
+| `custom_ai_model.ts` | **Removed** | Deprecated Custom AI model fallback options |

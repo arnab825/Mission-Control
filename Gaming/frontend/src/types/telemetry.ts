@@ -113,6 +113,7 @@ export interface TelemetryState {
     search_active: boolean;
     mode: string;
   };
+  gpu_tip?: string;
   nvidia_tip?: string;
   perf_score?: number;
   cooling_mode?: "silent" | "balanced" | "max";
