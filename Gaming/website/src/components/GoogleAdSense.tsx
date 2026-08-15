@@ -63,12 +63,7 @@ export function AdSenseAdSlot({
   }, [publisherId]);
 
   if (!publisherId) {
-    return (
-      <div className={`${className} p-4 rounded-2xl bg-white/[0.02] border border-dashed border-neon-green/30 font-mono text-xs text-gray-400 text-center flex flex-col items-center justify-center gap-1.5 backdrop-blur-sm min-h-[100px]`}>
-        <span className="text-neon-green font-bold uppercase text-[10px] tracking-wider">⚡ GOOGLE ADSENSE READY SLOT</span>
-        <span className="text-[11px] text-gray-300">Set <code className="text-neon-yellow">NEXT_PUBLIC_ADSENSE_CLIENT_ID</code> in environment to activate live Google ads.</span>
-      </div>
-    );
+    return null;
   }
 
   return (

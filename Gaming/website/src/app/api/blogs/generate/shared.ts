@@ -304,10 +304,10 @@ export async function generateBlogPostWithModel(
       body: JSON.stringify({
         model: modelId,
         messages: [{ role: "user", content: prompt }],
-        max_tokens: 4096,
+        max_tokens: 8192,
         temperature: 0.7,
       }),
-      signal: AbortSignal.timeout(40000), // Reduce LLM timeout to 40s
+      signal: AbortSignal.timeout(45000), // 45s timeout for complete generation
     });
 
     if (!response.ok) {
@@ -375,9 +375,25 @@ function parseGeneratedBlogResponse(
     .map((t: string) => t.replace(/^["']|["']$/g, "").trim())
     .filter(Boolean);
 
-  const cleanContent = content
+  let cleanContent = content
     .replace(/```(?:markdown|md)\r?\n([\s\S]*?)\r?\n```/gi, "$1")
     .replace(/```table\r?\n([\s\S]*?)\r?\n```/gi, "$1");
+
+  // Trim incomplete trailing sentence if response hit LLM max tokens mid-sentence
+  const trimmed = cleanContent.trim();
+  if (trimmed && !/[.!?\`"'\n]$/.test(trimmed)) {
+    const lastPunct = Math.max(
+      trimmed.lastIndexOf("."),
+      trimmed.lastIndexOf("!"),
+      trimmed.lastIndexOf("?"),
+      trimmed.lastIndexOf("```")
+    );
+    if (lastPunct > 100) {
+      const endOffset = trimmed.substring(lastPunct, lastPunct + 3) === "```" ? 3 : 1;
+      cleanContent = trimmed.slice(0, lastPunct + endOffset).trim();
+    }
+  }
+
   const sanitizedContent = sanitizeMermaid(cleanContent);
   return { slug, title, excerpt, tags, content: sanitizedContent, imagePrompt };
 }
@@ -399,8 +415,6 @@ async function generateBlogPostWithGemini(
     "gemini-1.5-flash-latest"
   ].filter(Boolean) as string[];
 
-
-
   for (const modelId of modelsToTry) {
     try {
       console.log(`[BlogGen][${postType}] Requesting Gemini model (${modelId})...`);
@@ -409,9 +423,9 @@ async function generateBlogPostWithGemini(
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
           contents: [{ parts: [{ text: prompt }] }],
-          generationConfig: { maxOutputTokens: 4096, temperature: 0.7 }
+          generationConfig: { maxOutputTokens: 8192, temperature: 0.7 }
         }),
-        signal: AbortSignal.timeout(30000)
+        signal: AbortSignal.timeout(35000)
       });
 
       if (response.ok) {
@@ -455,7 +469,7 @@ async function generateBlogPostWithHuggingFace(
       const res = await hf.chatCompletion({
         model: modelId,
         messages: [{ role: "user", content: prompt }],
-        max_tokens: 3000,
+        max_tokens: 4096,
         temperature: 0.7,
       });
 
