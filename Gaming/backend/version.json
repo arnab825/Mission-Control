@@ -1,8 +1,16 @@
 {
-  "version": "3.1.4",
+  "version": "3.1.5",
   "release_date": "2026-08-10",
   "update_check_url": "https://raw.githubusercontent.com/arnab825/Mission-Control/main/Gaming/backend/version.json",
   "changelog": [
+    {
+      "version": "3.1.5",
+      "date": "2026-08-15",
+      "title": "Fixed Alienware CPU temperature telemetry & optimized backend Pydantic models",
+      "highlights": [
+        "Fixed Alienware CPU temperature telemetry & optimized backend Pydantic models"
+      ]
+    },
     {
       "version": "3.1.4",
       "date": "2026-08-13",
@@ -437,14 +445,6 @@
       "highlights": [
         "Cleaned up obsolete backend copy",
         "Curated AI model options to strictly use defined options"
-      ]
-    },
-    {
-      "version": "2.7.2",
-      "date": "2026-07-30",
-      "title": "Multi-Provider AI Architecture & Settings Bug Fixes",
-      "highlights": [
-        "Multi-Provider AI Architecture & Settings Bug Fixes"
       ]
     }
   ]
