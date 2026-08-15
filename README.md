@@ -9,12 +9,11 @@
 </p>
 
 <p align="center">
-  <a href="#-repository-structure"><img src="https://img.shields.io/badge/Architecture-Monorepo-blue.svg" alt="Monorepo" /></a>
-  <a href="https://nextjs.org"><img src="https://img.shields.io/badge/Website-Next.js%2015-black.svg" alt="Next.js" /></a>
-  <a href="https://www.electronjs.org/"><img src="https://img.shields.io/badge/Desktop-Electron%20%2B%20React-47848F.svg" alt="Electron" /></a>
-  <a href="https://fastapi.tiangolo.com/"><img src="https://img.shields.io/badge/Backend-Python%20%2B%20FastAPI-009688.svg" alt="Python" /></a>
-  <a href="https://developer.nvidia.com/cuda-toolkit"><img src="https://img.shields.io/badge/GPU-NVIDIA%20TensorRT%20%2B%20NIM-76B900.svg" alt="NVIDIA" /></a>
-  <a href="https://github.com/arnab825/Mission-Control/releases"><img src="https://img.shields.io/badge/GitHub-Releases-brightgreen.svg" alt="Releases" /></a>
+  <a href="https://github.com/arnab825/Mission-Control/stargazers"><img src="https://img.shields.io/github/stars/arnab825/Mission-Control?style=for-the-badge&color=76B900&logo=github" alt="GitHub Stars" /></a>
+  <a href="https://github.com/arnab825/Mission-Control/network/members"><img src="https://img.shields.io/github/forks/arnab825/Mission-Control?style=for-the-badge&color=blue&logo=github" alt="GitHub Forks" /></a>
+  <a href="CONTRIBUTING.md"><img src="https://img.shields.io/badge/PRs-Welcome-brightgreen.svg?style=for-the-badge" alt="PRs Welcome" /></a>
+  <a href="https://developer.nvidia.com/cuda-toolkit"><img src="https://img.shields.io/badge/GPU-NVIDIA%20TensorRT%20%2B%20NIM-76B900.svg?style=for-the-badge&logo=nvidia" alt="NVIDIA" /></a>
+  <a href="https://github.com/arnab825/Mission-Control/releases"><img src="https://img.shields.io/badge/GitHub-Releases-brightgreen.svg?style=for-the-badge" alt="Releases" /></a>
 </p>
 
 ---
@@ -253,11 +252,13 @@ npm run dev
 
 ---
 
-## 🌐 Live Web App & Deployments
+## 🤝 Community & Contributing
 
-- **Live Web Application**: [mission-control-roan-seven.vercel.app](https://mission-control-roan-seven.vercel.app)
-- **Automated Blog Generation Endpoint**: Protected via `CRON_SECRET` at `/api/blogs/generate`
-- **CI/CD Pipeline**: Woodpecker CI/CD configuration at `.woodpecker/release.yml`
+We welcome contributions from developers, gamers, and open-source enthusiasts!
+
+* **[Contributing Guide](CONTRIBUTING.md)**: Detailed steps on setting up local dev environments, submitting PRs, and testing telemetry modules.
+* **[Good First Issues](https://github.com/arnab825/Mission-Control/issues?q=is%3Aissue+is%3Aopen+label%3A%22good+first+issue%22)**: Tagged tasks perfect for getting started with the repository.
+* **[System Roadmap](Gaming/docs/ProductRoadmap.md)**: Check upcoming features including multi-vendor AMD RX & Intel Arc telemetry support.
 
 ---
 
