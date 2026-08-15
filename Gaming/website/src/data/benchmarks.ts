@@ -52,6 +52,10 @@ export interface BenchmarkProfile {
   presets: PresetRecommendations;
   features: VerifiedFeature[];
   screenshots: BenchmarkScreenshot[];
+  gameplayGif?: string;
+  storeRating?: string;
+  dlssVersion?: string;
+  aiVisionStatus?: string;
 }
 
 export interface TestedGameSummary {
@@ -68,6 +72,9 @@ export interface TestedGameSummary {
   latency: string;
   api: string;
   coverImage: string;
+  gameplayGif?: string;
+  storeRating?: string;
+  dlssVersion?: string;
 }
 
 export const BENCHMARK_PROFILES: Record<string, BenchmarkProfile> = {
@@ -367,7 +374,7 @@ export const TESTED_GAMES_LIST: TestedGameSummary[] = [
   {
     id: "spiderman2",
     name: "Marvel's Spider-Man 2",
-    publisher: "Insomniac Games",
+    publisher: "Insomniac Games / PlayStation",
     genre: "Open World / Action",
     preset: "Ultra Ray Tracing",
     keyTech: ["DLSS 4", "Frame Gen", "Reflex", "Ray Tracing"],
@@ -377,7 +384,10 @@ export const TESTED_GAMES_LIST: TestedGameSummary[] = [
     gpuLoad: "94%",
     latency: "10.8 ms",
     api: "DX12 Ultimate",
-    coverImage: "/games/SpiderMan_SS1.webp"
+    coverImage: "/games/SpiderMan_SS1.webp",
+    gameplayGif: "/games/SpiderMan_SS1.webp",
+    storeRating: "4.9 ★★★★★",
+    dlssVersion: "DLSS 4.0 + FG"
   },
   {
     id: "gtav",
@@ -392,7 +402,10 @@ export const TESTED_GAMES_LIST: TestedGameSummary[] = [
     gpuLoad: "88%",
     latency: "12.4 ms",
     api: "DX12 Ultimate",
-    coverImage: "/games/GTA_V_SS1.webp"
+    coverImage: "/games/GTA_V_SS1.webp",
+    gameplayGif: "/games/GTA_V_SS1.webp",
+    storeRating: "4.8 ★★★★★",
+    dlssVersion: "DLSS 4.0 + FG"
   },
   {
     id: "tsushima",
@@ -407,7 +420,10 @@ export const TESTED_GAMES_LIST: TestedGameSummary[] = [
     gpuLoad: "96%",
     latency: "11.2 ms",
     api: "DX12 Ultimate",
-    coverImage: "/games/Tsushima_SS1.webp"
+    coverImage: "/games/Tsushima_SS1.webp",
+    gameplayGif: "/games/Tsushima_SS1.webp",
+    storeRating: "4.9 ★★★★★",
+    dlssVersion: "DLSS 4.0 + FG"
   },
   {
     id: "nfsheat",
@@ -422,7 +438,10 @@ export const TESTED_GAMES_LIST: TestedGameSummary[] = [
     gpuLoad: "100%",
     latency: "13.5 ms",
     api: "DX12",
-    coverImage: "/games/NFSHeat_SS1.webp"
+    coverImage: "/games/NFSHeat_SS1.webp",
+    gameplayGif: "/games/NFSHeat_SS1.webp",
+    storeRating: "4.7 ★★★★★",
+    dlssVersion: "DLSS 2.4"
   },
   {
     id: "thedivision",
@@ -437,7 +456,10 @@ export const TESTED_GAMES_LIST: TestedGameSummary[] = [
     gpuLoad: "100%",
     latency: "10.6 ms",
     api: "DX12",
-    coverImage: "/games/TomClancyThe Division_SS1.webp"
+    coverImage: "/games/TomClancyThe Division_SS1.webp",
+    gameplayGif: "/games/TomClancyThe Division_SS1.webp",
+    storeRating: "4.6 ★★★★☆",
+    dlssVersion: "DirectX 12"
   }
 ];
 
