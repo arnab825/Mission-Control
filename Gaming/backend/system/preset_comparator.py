@@ -266,11 +266,11 @@ class PresetComparator:
     def _game_supports(self, feature_key: str, features_upper: list) -> bool:
         """Check if the game library entry indicates this feature is supported."""
         mapping = {
-            "dlss_mode":         ["DLSS"],
-            "ray_tracing":  ["RTX", "RAY_TRACING", "RAY TRACING"],
-            "path_tracing": ["PATH_TRACING", "PATH TRACING"],
-            "frame_gen":    ["FRAME_GEN", "FRAME GEN", "FG"],
-            "reflex":       ["REFLEX"],
+            "dlss_mode":    ["DLSS", "FSR", "FSR 2", "XESS", "FSR 3", "FSR 3.1"],
+            "ray_tracing":  ["RTX", "RAY_TRACING", "RAY TRACING", "RT"],
+            "path_tracing": ["PATH_TRACING", "PATH TRACING", "PT"],
+            "frame_gen":    ["FRAME_GEN", "FRAME GEN", "FG", "FSR 3", "AFMF", "EXTRASS", "DLSS 3"],
+            "reflex":       ["REFLEX", "ANTI_LAG", "ANTI-LAG", "SMOOTHSYNC"],
             "hdr":          ["HDR"],
         }
         required_tags = mapping.get(feature_key, [])

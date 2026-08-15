@@ -67,8 +67,11 @@ class GPUProfiler:
             "ray_tracing": False,
             "path_tracing": False,
             "reflex": False,
+            "anti_lag": False,
             "tier": "mid",
-            "is_rtx": False
+            "is_rtx": False,
+            "supports_fsr": True,
+            "supports_xess": True
         }
 
         # 1. Brand detection
@@ -135,17 +138,22 @@ class GPUProfiler:
 
         # 3. AMD Specific Heuristics
         elif profile["brand"] == "AMD":
+            profile["anti_lag"] = True
+            profile["supports_fsr"] = True
             if "rx 8" in name: # RX 8000 Series
                 profile["architecture"] = "RDNA 4"
                 profile["ray_tracing"] = True
+                profile["max_fg"] = "FSR 3"
                 profile["tier"] = "high"
             elif "rx 7" in name: # RX 7000 Series
                 profile["architecture"] = "RDNA 3"
                 profile["ray_tracing"] = True
+                profile["max_fg"] = "FSR 3"
                 profile["tier"] = "high" if any(x in name for x in ["7900", "7800"]) else "mid"
             elif "rx 6" in name: # RX 6000 Series
                 profile["architecture"] = "RDNA 2"
                 profile["ray_tracing"] = True
+                profile["max_fg"] = "FSR 3"
                 profile["tier"] = "high" if any(x in name for x in ["6900", "6800"]) else "mid"
             elif "rx 5" in name or "vega" in name:
                 profile["architecture"] = "GCN"
@@ -153,9 +161,11 @@ class GPUProfiler:
 
         # 4. Intel Specific Heuristics
         elif profile["brand"] == "Intel":
-            if "arc" in name:
-                profile["architecture"] = "Alchemist"
+            profile["supports_xess"] = True
+            if "arc" in name or "b-series" in name or "b580" in name:
+                profile["architecture"] = "Alchemist/Battlemage"
                 profile["ray_tracing"] = True
+                profile["max_fg"] = "ExtraSS"
                 profile["tier"] = "mid"
             else:
                 profile["architecture"] = "Xe"
@@ -212,12 +222,15 @@ class GPUProfiler:
                             "  \"architecture\": \"<arch name e.g. Blackwell, Ada Lovelace, RDNA 3, Alchemist, etc.>\",\n"
                             "  \"max_dlss_quality\": \"DLSS 4.5\" | \"DLSS 3.5\" | \"DLSS 2\" | \"None\",\n"
                             "  \"max_dlss_perf\": \"DLSS 4\" | \"DLSS 3\" | \"DLSS 2\" | \"None\",\n"
-                            "  \"max_fg\": \"4x\" | \"2x\" | \"None\",\n"
+                            "  \"max_fg\": \"4x\" | \"2x\" | \"FSR 3\" | \"ExtraSS\" | \"None\",\n"
                             "  \"ray_tracing\": true | false,\n"
                             "  \"path_tracing\": true | false,\n"
                             "  \"reflex\": true | false,\n"
+                            "  \"anti_lag\": true | false,\n"
                             "  \"tier\": \"high\" | \"mid\" | \"low\",\n"
-                            "  \"is_rtx\": true | false\n"
+                            "  \"is_rtx\": true | false,\n"
+                            "  \"supports_fsr\": true | false,\n"
+                            "  \"supports_xess\": true | false\n"
                             "}"
                         )
                         
@@ -241,7 +254,7 @@ class GPUProfiler:
                         
                         parsed = json.loads(raw_response)
                         # Validate basic fields exist
-                        required_fields = ["brand", "architecture", "max_dlss_quality", "max_dlss_perf", "max_fg", "ray_tracing", "path_tracing", "reflex", "tier", "is_rtx"]
+                        required_fields = ["brand", "architecture", "max_dlss_quality", "max_dlss_perf", "max_fg", "ray_tracing", "path_tracing", "tier"]
                         if all(f in parsed for f in required_fields):
                             profile = parsed
                             logger.info(f"Successfully profiled GPU '{gpu_name}' dynamically using Search + LLM.")

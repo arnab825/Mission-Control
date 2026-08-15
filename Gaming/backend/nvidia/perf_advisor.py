@@ -1,7 +1,7 @@
 """
-NVIDIA performance advisor.
-Monitors real-time GPU metrics and recommends enabling/disabling NVIDIA technologies
-like DLSS, Ray Tracing, Frame Generation, and Reflex based on current performance.
+Multi-Vendor Performance Advisor.
+Monitors real-time GPU metrics and recommends enabling/disabling NVIDIA, AMD, and Intel technologies
+like DLSS/FSR/XeSS, Ray Tracing, Frame Generation, and Reflex/Anti-Lag based on current performance.
 """
 import logging
 
@@ -10,25 +10,11 @@ logger = logging.getLogger(__name__)
 
 class PerformanceAdvisor:
     """
-    Provides real-time recommendations for NVIDIA gaming technologies
+    Provides real-time recommendations for NVIDIA, AMD, and Intel gaming technologies
     based on current GPU metrics and capabilities.
-    
-    Analyzes FPS, GPU utilization, VRAM pressure, and temperature to suggest:
-    - When to enable/disable DLSS and at what quality level
-    - Whether Ray Tracing is viable at current performance
-    - When Frame Generation would help
-    - When Reflex should be enabled for latency
-    - Optimal resolution scaling
     """
 
-    # DLSS quality modes ordered from highest quality to highest performance
-    DLSS_MODES = ["native", "dlaa", "quality", "balanced", "performance", "ultra_performance"]
-
     def __init__(self, capabilities=None, config=None):
-        """
-        :param capabilities: GPUCapabilities instance
-        :param config: dict with advisor thresholds
-        """
         self.capabilities = capabilities
         self.config = config or {}
         
@@ -40,18 +26,10 @@ class PerformanceAdvisor:
         self._temp_warning = self.config.get("temp_warning", 90)
         self._temp_critical = self.config.get("temp_critical", 100)
         
-        # Track recommendation history to avoid spamming
         self._last_recommendations = []
         self._recommendation_cooldowns = {}
 
     def analyze(self, gpu_metrics, game_fps=None):
-        """
-        Analyze current performance and return recommendations.
-        
-        :param gpu_metrics: dict from GPUMonitor.metrics
-        :param game_fps: Measured in-game FPS (if available, more accurate than capture FPS)
-        :returns: dict with 'status', 'recommendations', 'warnings'
-        """
         result = {
             "status": "optimal",
             "performance_score": 100,
@@ -72,13 +50,12 @@ class PerformanceAdvisor:
         score = 100
         caps = self.capabilities
         
-        # ── FPS Analysis ──────────────────────────────────────────
-        
         if fps > 0:
             if fps < self._fps_critical:
                 score -= 40
                 result["status"] = "critical"
                 
+                # Frame Generation
                 if caps and caps.supports("dlss_3"):
                     result["recommendations"].append({
                         "tech": "DLSS 3 Frame Generation",
@@ -86,11 +63,48 @@ class PerformanceAdvisor:
                         "reason": f"FPS critically low ({fps:.0f}). Frame Gen can double your FPS.",
                         "priority": "critical",
                     })
+                elif caps and caps.supports("fsr_3"):
+                    result["recommendations"].append({
+                        "tech": "FSR 3 Frame Generation",
+                        "action": "ENABLE",
+                        "reason": f"FPS critically low ({fps:.0f}). Frame Gen can double your FPS.",
+                        "priority": "critical",
+                    })
+                elif caps and caps.supports("extrass"):
+                    result["recommendations"].append({
+                        "tech": "Intel ExtraSS (Frame Gen)",
+                        "action": "ENABLE",
+                        "reason": f"FPS critically low ({fps:.0f}). ExtraSS generates frames to boost FPS.",
+                        "priority": "critical",
+                    })
+                elif caps and caps.supports("afmf"):
+                    result["recommendations"].append({
+                        "tech": "AMD Fluid Motion Frames (AFMF)",
+                        "action": "ENABLE via Adrenalin",
+                        "reason": f"FPS critically low ({fps:.0f}). Driver-level frame generation.",
+                        "priority": "critical",
+                    })
+
+                # Super Resolution
                 if caps and caps.supports("dlss_2"):
                     result["recommendations"].append({
                         "tech": "DLSS Super Resolution",
                         "action": "Set to Performance or Ultra Performance",
-                        "reason": f"FPS at {fps:.0f}. DLSS Performance mode renders at half resolution, upscaled by AI.",
+                        "reason": f"FPS at {fps:.0f}. DLSS Performance mode upscales by AI.",
+                        "priority": "critical",
+                    })
+                elif caps and caps.supports("xess_1_3"):
+                    result["recommendations"].append({
+                        "tech": "Intel XeSS",
+                        "action": "Set to Performance mode",
+                        "reason": f"FPS at {fps:.0f}. XeSS Performance mode significantly boosts FPS.",
+                        "priority": "critical",
+                    })
+                elif caps and caps.supports("fsr_2"):
+                    result["recommendations"].append({
+                        "tech": "AMD FSR Super Resolution",
+                        "action": "Set to Performance mode",
+                        "reason": f"FPS at {fps:.0f}. FSR Performance mode boosts frame rates.",
                         "priority": "critical",
                     })
                     
@@ -102,38 +116,52 @@ class PerformanceAdvisor:
                     result["recommendations"].append({
                         "tech": "DLSS Super Resolution",
                         "action": "Set to Balanced mode",
-                        "reason": f"FPS below target ({fps:.0f}/{self._target_fps}). DLSS Balanced gives good quality with ~50% FPS boost.",
+                        "reason": f"FPS below target ({fps:.0f}/{self._target_fps}).",
+                        "priority": "high",
+                    })
+                elif caps and caps.supports("xess_1_3"):
+                    result["recommendations"].append({
+                        "tech": "Intel XeSS",
+                        "action": "Set to Balanced mode",
+                        "reason": f"FPS below target ({fps:.0f}/{self._target_fps}).",
+                        "priority": "high",
+                    })
+                elif caps and caps.supports("fsr_2"):
+                    result["recommendations"].append({
+                        "tech": "AMD FSR",
+                        "action": "Set to Balanced mode",
+                        "reason": f"FPS below target ({fps:.0f}/{self._target_fps}).",
                         "priority": "high",
                     })
             
             elif fps >= self._target_fps * 1.5:
-                # Lots of FPS headroom — can afford to turn on RT
+                # RT Headroom
                 if caps and caps.supports("ray_tracing"):
                     result["recommendations"].append({
-                        "tech": "Ray Tracing",
+                        "tech": "Hardware Ray Tracing",
                         "action": "ENABLE (if game supports it)",
                         "reason": f"FPS headroom ({fps:.0f}fps). Enable RT for better visuals.",
                         "priority": "low",
                     })
+                
+                # SR Headroom
                 if caps and caps.supports("dlss_2"):
-                    result["recommendations"].append({
-                        "tech": "DLSS Super Resolution",
-                        "action": "Try Quality or DLAA mode",
-                        "reason": "Enough headroom for max quality upscaling.",
-                        "priority": "low",
-                    })
+                    result["recommendations"].append({"tech": "DLSS Super Resolution", "action": "Try Quality or DLAA mode", "reason": "Enough headroom for max quality upscaling.", "priority": "low"})
+                elif caps and caps.supports("xess_1_3"):
+                    result["recommendations"].append({"tech": "Intel XeSS", "action": "Try Quality or Ultra Quality mode", "reason": "Enough headroom for max quality upscaling.", "priority": "low"})
+                elif caps and caps.supports("fsr_2"):
+                    result["recommendations"].append({"tech": "AMD FSR", "action": "Try Quality or Native AA mode", "reason": "Enough headroom for max quality upscaling.", "priority": "low"})
         
         # ── GPU Utilization Analysis ──────────────────────────────
         
         if gpu_util > self._gpu_util_high:
             score -= 10
             if caps and caps.supports("dlss_2"):
-                result["recommendations"].append({
-                    "tech": "DLSS Super Resolution",
-                    "action": "ENABLE or increase performance level",
-                    "reason": f"GPU at {gpu_util}% utilization — GPU-bound. DLSS reduces rendering load.",
-                    "priority": "medium",
-                })
+                result["recommendations"].append({"tech": "DLSS Super Resolution", "action": "ENABLE", "reason": f"GPU at {gpu_util}% utilization. DLSS reduces load.", "priority": "medium"})
+            elif caps and caps.supports("xess_1_3"):
+                result["recommendations"].append({"tech": "Intel XeSS", "action": "ENABLE", "reason": f"GPU at {gpu_util}% utilization. XeSS reduces load.", "priority": "medium"})
+            elif caps and caps.supports("fsr_2"):
+                result["recommendations"].append({"tech": "AMD FSR", "action": "ENABLE", "reason": f"GPU at {gpu_util}% utilization. FSR reduces load.", "priority": "medium"})
         
         # ── VRAM Analysis ─────────────────────────────────────────
         
@@ -142,16 +170,18 @@ class PerformanceAdvisor:
             result["warnings"].append({
                 "type": "vram_pressure",
                 "message": f"VRAM usage high: {vram_used}MB / {vram_total}MB ({vram_pct:.0f}%). "
-                          f"Reduce texture quality or resolution to prevent stuttering.",
+                          f"Reduce texture quality or resolution.",
                 "priority": "high",
             })
-            if caps and caps.supports("dlss_2"):
-                result["recommendations"].append({
-                    "tech": "DLSS Super Resolution",
-                    "action": "ENABLE — reduces VRAM usage",
-                    "reason": f"VRAM at {vram_pct:.0f}%. DLSS renders at lower internal resolution, using less VRAM.",
-                    "priority": "high",
-                })
+            if caps:
+                sr_tech = "DLSS" if caps.supports("dlss_2") else "XeSS" if caps.supports("xess_1_3") else "FSR" if caps.supports("fsr_2") else None
+                if sr_tech:
+                    result["recommendations"].append({
+                        "tech": f"{sr_tech} Super Resolution",
+                        "action": "ENABLE — reduces VRAM usage",
+                        "reason": f"VRAM at {vram_pct:.0f}%. Renders at lower internal resolution.",
+                        "priority": "high",
+                    })
         
         # ── Temperature Analysis ──────────────────────────────────
         
@@ -160,8 +190,7 @@ class PerformanceAdvisor:
             result["status"] = "critical"
             result["warnings"].append({
                 "type": "thermal_critical",
-                "message": f"GPU temperature CRITICAL: {temp}°C! GPU will thermal throttle. "
-                          f"Improve cooling or reduce settings immediately.",
+                "message": f"GPU temperature CRITICAL: {temp}°C! GPU will thermal throttle.",
                 "priority": "critical",
             })
         elif temp > self._temp_warning:
@@ -178,68 +207,70 @@ class PerformanceAdvisor:
             score -= 5
             result["warnings"].append({
                 "type": "power_limit",
-                "message": f"GPU near power limit ({power:.0f}W / {power_limit:.0f}W). "
-                          f"May be power throttling.",
+                "message": f"GPU near power limit ({power:.0f}W / {power_limit:.0f}W).",
                 "priority": "low",
             })
-        
-        # ── Frame Gen Recommendation ────────────────────────────────
-        
-        if caps and caps.supports("dlss_4_5"):
-             result["recommendations"].append({
-                 "tech": "DLSS 4.5 (Dynamic Frame Gen)",
-                 "action": "ENABLE",
-                 "reason": "Dynamic FG intelligently scales frame generation based on scene complexity, providing smooth motion with optimized latency.",
-                 "priority": "high",
-             })
-        elif caps and caps.supports("dlss_3"):
-             pass # Kept in critical section
              
-        # ── Reflex Recommendation ─────────────────────────────────
+        # ── Latency Recommendation (Reflex / Anti-Lag) ────────────────
+        
+        has_fg_enabled = False # We'd need to know if FG is actually enabled, but we can recommend
         
         if caps and caps.supports("reflex"):
-            if caps.supports("dlss_3"):
-                result["recommendations"].append({
-                    "tech": "NVIDIA Reflex",
-                    "action": "ALWAYS ENABLE with Frame Generation",
-                    "reason": "Frame Gen adds latency. Reflex compensates, keeping input response crisp.",
-                    "priority": "high",
-                })
-            elif fps and fps < self._target_fps:
+            if fps and fps < self._target_fps:
                 result["recommendations"].append({
                     "tech": "NVIDIA Reflex",
                     "action": "ENABLE (+ Boost mode for competitive)",
-                    "reason": "Reduces input latency by up to 50%. Essential for competitive play.",
+                    "reason": "Reduces input latency. Essential for competitive play.",
+                    "priority": "medium",
+                })
+        elif caps and caps.supports("anti_lag_2"):
+            if fps and fps < self._target_fps:
+                result["recommendations"].append({
+                    "tech": "Radeon Anti-Lag 2",
+                    "action": "ENABLE in-game",
+                    "reason": "Reduces input-to-response latency.",
+                    "priority": "medium",
+                })
+        elif caps and caps.supports("anti_lag"):
+            if fps and fps < self._target_fps:
+                result["recommendations"].append({
+                    "tech": "Radeon Anti-Lag",
+                    "action": "ENABLE in Adrenalin",
+                    "reason": "Driver-level latency reduction.",
                     "priority": "medium",
                 })
         
-        # ── RTX Video ─────────────────────────────────────────────
+        # ── SmoothSync (Intel) ──────────────────────────────────
+        if caps and caps.supports("smooth_sync"):
+            result["recommendations"].append({
+                "tech": "Intel SmoothSync",
+                "action": "ENABLE in Arc Control",
+                "reason": "Blurs screen tearing boundaries for a smoother VSync-off experience.",
+                "priority": "low",
+            })
+        
+        # ── Video Features ─────────────────────────────────────────────
         
         if caps and caps.supports("rtx_video_sr"):
             result["recommendations"].append({
                 "tech": "RTX Video Super Resolution",
                 "action": "ENABLE in NVIDIA Control Panel",
-                "reason": "Enhances video stream quality using AI. Perfect for watching walkthroughs or streaming.",
+                "reason": "Enhances video stream quality using AI.",
                 "priority": "low",
             })
         
         # ── Path Tracing ──────────────────────────────────────────
         
-        if caps and caps.supports("path_tracing"):
-            if fps and fps > self._target_fps * 2:
-                result["recommendations"].append({
-                    "tech": "Full Path Tracing",
-                    "action": "Try enabling (if game supports it)",
-                    "reason": "Your GPU supports full path tracing with ample FPS headroom. "
-                             "Enable for photorealistic lighting (Cyberpunk 2077, Portal RTX, etc.).",
-                    "priority": "low",
-                })
-        
-        # ── Final Score ───────────────────────────────────────────
+        if caps and caps.supports("ray_tracing") and caps.vendor == "nvidia" and fps and fps > self._target_fps * 2:
+            result["recommendations"].append({
+                "tech": "Full Path Tracing",
+                "action": "Try enabling (if game supports it)",
+                "reason": "Your GPU supports full path tracing with ample FPS headroom.",
+                "priority": "low",
+            })
         
         result["performance_score"] = max(0, min(100, score))
         
-        # Deduplicate recommendations by tech
         seen = set()
         deduped = []
         for rec in result["recommendations"]:
@@ -253,12 +284,7 @@ class PerformanceAdvisor:
         return result
 
     def get_full_analysis(self, gpu_metrics, game_fps=None):
-        """
-        Returns the complete analysis dict for the session dashboard.
-        Same as analyze() but guaranteed to include all fields.
-        """
         analysis = self.analyze(gpu_metrics, game_fps)
-        # Ensure all expected keys exist for frontend consumption
         analysis.setdefault("status", "unknown")
         analysis.setdefault("performance_score", 100)
         analysis.setdefault("recommendations", [])
@@ -267,18 +293,12 @@ class PerformanceAdvisor:
         return analysis
 
     def get_quick_tip(self, gpu_metrics, game_fps=None):
-        """
-        Get a single-line quick tip for the overlay.
-        Returns the highest-priority recommendation as a short string.
-        """
         analysis = self.analyze(gpu_metrics, game_fps)
         
-        # Warnings first
         for w in analysis["warnings"]:
             if w["priority"] in ("critical",):
                 return f"⚠️ {w['message'][:80]}"
         
-        # Then recommendations
         for rec in analysis["recommendations"]:
             if rec["priority"] in ("critical", "high"):
                 return f"💡 {rec['tech']}: {rec['action']}"
@@ -289,10 +309,6 @@ class PerformanceAdvisor:
         return ""
 
     def get_settings_preset(self, gpu_metrics, game_fps=None, game_name=None):
-        """
-        Suggest a complete settings preset based on current GPU and performance.
-        Returns a dict of recommended settings.
-        """
         caps = self.capabilities
         if not caps:
             return {"note": "GPU capabilities not detected"}
@@ -303,19 +319,16 @@ class PerformanceAdvisor:
         preset = {
             "display_mode": "borderless",
             "resolution_scale": "native",
-            "dlss_mode": "off",
+            "upscaler": "off",
             "ray_tracing": "off",
-            "reflex": "off",
+            "latency_reduction": "off",
             "frame_generation": "off",
             "texture_quality": "high",
         }
         
-        # Determine base preset from VRAM, FPS, and game intensity
         intensity = "standard"
         if game_name:
             game_lower = game_name.lower()
-            
-            # Try to get classification from Game Library or Web Search
             tags_to_check = ""
             
             try:
@@ -332,7 +345,6 @@ class PerformanceAdvisor:
             except Exception:
                 pass
                 
-            # Fallback to Web Search Engine if local library doesn't have it or tags are empty
             if not tags_to_check.strip():
                 try:
                     from ai_brain.web_search import WebSearchEngine
@@ -344,30 +356,27 @@ class PerformanceAdvisor:
                 except Exception:
                     pass
             
-            # Determine intensity based on collected tags and text
             if tags_to_check:
                 heavy_keywords = ["open world", "rpg", "narrative", "demanding", "aaa", "story rich", "graphics", "cyberpunk"]
                 light_keywords = ["esports", "competitive", "multiplayer", "shooter", "moba", "platformer", "pixel graphics", "2d", "indie", "tactical shooter", "hero shooter"]
                 
-                # Check heavy first, as modern multiplayer RPGs are still heavy
                 if any(kw in tags_to_check for kw in heavy_keywords):
                     intensity = "heavy"
                 elif any(kw in tags_to_check for kw in light_keywords):
                     intensity = "light"
         
-        # Adjust VRAM requirements based on game intensity
         vram_ultra = 12000
         vram_high = 8000
         vram_medium = 4000
         
         if intensity == "heavy":
-            vram_ultra += 4000  # Needs 16GB for Ultra
-            vram_high += 2000   # Needs 10GB for High
-            vram_medium += 2000 # Needs 6GB for Medium
+            vram_ultra += 4000
+            vram_high += 2000
+            vram_medium += 2000
         elif intensity == "light":
-            vram_ultra = 6000   # 6GB is enough for Ultra
-            vram_high = 4000    # 4GB is enough for High
-            vram_medium = 2000  # 2GB is enough for Medium
+            vram_ultra = 6000
+            vram_high = 4000
+            vram_medium = 2000
 
         if vram >= vram_ultra:
             preset["texture_quality"] = "ultra"
@@ -378,35 +387,40 @@ class PerformanceAdvisor:
         else:
             preset["texture_quality"] = "low"
         
-        # DLSS
-        if caps.supports("dlss_2"):
+        # Upscaler
+        if caps.supports("dlss_2"): preset["upscaler"] = "dlss"
+        elif caps.supports("xess_1_3"): preset["upscaler"] = "xess"
+        elif caps.supports("fsr_2"): preset["upscaler"] = "fsr"
+        
+        if preset["upscaler"] != "off":
             if fps > 0 and fps >= self._target_fps:
-                preset["dlss_mode"] = "quality"  # Can afford high quality
+                preset["upscaler_mode"] = "quality"
             elif fps > 0 and fps >= self._fps_low:
-                preset["dlss_mode"] = "balanced"
+                preset["upscaler_mode"] = "balanced"
             else:
-                preset["dlss_mode"] = "performance"
+                preset["upscaler_mode"] = "performance"
         
         # Ray Tracing
         if caps.supports("ray_tracing"):
             if fps > 0 and fps >= self._target_fps:
                 preset["ray_tracing"] = "medium"
-            if caps.supports("dlss_2") and (fps == 0 or fps >= self._fps_low):
-                preset["ray_tracing"] = "high"  # DLSS compensates
+            if preset["upscaler"] != "off" and (fps == 0 or fps >= self._fps_low):
+                preset["ray_tracing"] = "high"
         
         # Frame Generation
-        if caps.supports("dlss_3"):
-            preset["frame_generation"] = "on"
+        if caps.supports("dlss_3"): preset["frame_generation"] = "dlss_fg"
+        elif caps.supports("fsr_3"): preset["frame_generation"] = "fsr_fg"
+        elif caps.supports("extrass"): preset["frame_generation"] = "extrass"
         
-        # Reflex
-        if caps.supports("reflex"):
-            preset["reflex"] = "on"
+        # Latency
+        if caps.supports("reflex"): preset["latency_reduction"] = "reflex"
+        elif caps.supports("anti_lag_2"): preset["latency_reduction"] = "anti_lag_2"
+        elif caps.supports("anti_lag"): preset["latency_reduction"] = "anti_lag"
         
         return preset
 
     @staticmethod
     def _format_gpu_summary(metrics):
-        """Format GPU metrics into a brief summary string."""
         return (
             f"{metrics.get('gpu_name', '?')} | "
             f"GPU: {metrics.get('gpu_util', 0)}% | "

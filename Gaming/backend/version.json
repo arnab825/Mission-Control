@@ -1,8 +1,19 @@
 {
-  "version": "3.1.6",
+  "version": "3.1.7",
   "release_date": "2026-08-10",
   "update_check_url": "https://raw.githubusercontent.com/arnab825/Mission-Control/main/Gaming/backend/version.json",
   "changelog": [
+    {
+      "version": "3.1.7",
+      "date": "2026-08-15",
+      "title": "Multi-Vendor GPU Support (AMD & Intel), Groq Model Updates & Optimizer Refinements",
+      "highlights": [
+        "Added full multi-vendor GPU capability detection for AMD Radeon and Intel Arc graphics",
+        "Migrated frontend settings and backend optimizer to unified gpu_tuning architecture",
+        "Updated Groq AI provider models to GPT OSS 120B and Qwen 3.6 27B",
+        "Removed deprecated Custom AI model fallback options"
+      ]
+    },
     {
       "version": "3.1.6",
       "date": "2026-08-15",
@@ -435,15 +446,6 @@
         "Added Gemini 2.0 Flash Thinking model",
         "Added Moonshot 128k context model",
         "Cleaned up NVIDIA hosted models list"
-      ]
-    },
-    {
-      "version": "2.7.4",
-      "date": "2026-07-30",
-      "title": "Explicitly flag obsolete models & UI cleanup",
-      "highlights": [
-        "Removed unnecessary refresh models button",
-        "Explicitly flag invalid model IDs in Settings UI dropdown"
       ]
     }
   ]

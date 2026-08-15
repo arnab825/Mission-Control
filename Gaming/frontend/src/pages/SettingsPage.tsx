@@ -507,17 +507,17 @@ const getRecommendedPreset = (features: string[] = [], genre: string = '', gpuIn
   const upperFeatures = (features || []).map(f => String(f).toUpperCase());
 
   // 1. Detect GPU Architecture (GTX vs RTX, Generation & Tier)
-  let isRtxGpu = false;
+  let isAdvancedGpu = false;
   let isHighEndRtx = false;
   let is40SeriesOrNewer = false;
 
   if (typeof gpuInfo === 'object' && gpuInfo !== null) {
-    isRtxGpu = gpuInfo.is_rtx ?? false;
-    isHighEndRtx = isRtxGpu && (gpuInfo.tier === 'high');
-    is40SeriesOrNewer = isRtxGpu && (gpuInfo.generation_number >= 40 || gpuInfo.architecture === 'Ada Lovelace' || gpuInfo.architecture === 'Blackwell' || (gpuInfo.architecture && !['Turing', 'Ampere'].includes(gpuInfo.architecture)));
+    isAdvancedGpu = gpuInfo.is_rtx ?? false;
+    isHighEndRtx = isAdvancedGpu && (gpuInfo.tier === 'high');
+    is40SeriesOrNewer = isAdvancedGpu && (gpuInfo.generation_number >= 40 || gpuInfo.architecture === 'Ada Lovelace' || gpuInfo.architecture === 'Blackwell' || (gpuInfo.architecture && !['Turing', 'Ampere'].includes(gpuInfo.architecture)));
   } else {
     const name = String(gpuInfo).toLowerCase();
-    isRtxGpu = name.includes('rtx') || name.includes('quadro rtx') || name.includes('tesla') || name.includes('titan rtx');
+    isAdvancedGpu = name.includes('rtx') || name.includes('quadro rtx') || name.includes('tesla') || name.includes('titan rtx');
 
     const rtxMatch = name.match(/rtx\s+(\d{4})/);
     if (rtxMatch) {
@@ -528,7 +528,7 @@ const getRecommendedPreset = (features: string[] = [], genre: string = '', gpuIn
       if (series >= 40) is40SeriesOrNewer = true;
     } else {
       isHighEndRtx = name.includes('5090') || name.includes('5080') || name.includes('5070') || name.includes('4090') || name.includes('4080') || name.includes('4070') || name.includes('3090') || name.includes('3080') || name.includes('4070 ti') || name.includes('3080 ti') || name.includes('super');
-      is40SeriesOrNewer = (name.includes('40') || name.includes('50') || name.includes('60') || name.includes('70')) && isRtxGpu;
+      is40SeriesOrNewer = (name.includes('40') || name.includes('50') || name.includes('60') || name.includes('70')) && isAdvancedGpu;
     }
   }
 
@@ -540,7 +540,7 @@ const getRecommendedPreset = (features: string[] = [], genre: string = '', gpuIn
   const hasRtxTech = hasDLSS || hasFG || hasRT;
 
   // 3. Non-RTX Games OR GTX Hardware Architecture Logic
-  if (!isRtxGpu || !hasRtxTech) {
+  if (!isAdvancedGpu || !hasRtxTech) {
     // For competitive FPS / Esports / Reflex games -> Esports Latency
     if (g.includes('shooter') || g.includes('esport') || g.includes('fight') || g.includes('multiplayer') || g.includes('competitive') || g.includes('fps') || hasReflex) {
       return PRESET_DETAILS.find(p => p.key === 'latency') || PRESET_DETAILS[4];
@@ -805,7 +805,8 @@ const SettingsPage: React.FC<{ state: TelemetryState | null, sendCommand: (type:
       ];
     } else if (provider === 'groq') {
       options = [
-        { value: 'llama-3.3-70b-versatile', label: 'Llama 3.3 70B · Groq (Free)', group: 'Groq Cloud', isMono: true },
+        { value: 'gpt-oss-120b', label: 'GPT OSS 120B · Groq (Free)', group: 'Groq Cloud', isMono: true },
+        { value: 'qwen-3.6-27b', label: 'Qwen 3.6 27B · Groq (Free)', group: 'Groq Cloud', isMono: true },
         { value: 'llama-3.1-8b-instant', label: 'Llama 3.1 8B · Groq (Free)', group: 'Groq Cloud', isMono: true },
         { value: 'deepseek-r1-distill-llama-70b', label: 'DeepSeek R1 70B · Groq (Free)', group: 'Groq Cloud', isMono: true }
       ];
@@ -819,7 +820,7 @@ const SettingsPage: React.FC<{ state: TelemetryState | null, sendCommand: (type:
     }
     
     const currentVal = localConfig?.ai_agent?.model_id;
-    if (currentVal && !options.some(opt => opt.value === currentVal)) {
+    if (currentVal && currentVal !== 'custom' && !options.some(opt => opt.value === currentVal)) {
       return [
         { value: currentVal, label: `Deprecated: ${currentVal.split('/').pop() || currentVal}`, isMono: true },
         ...options
@@ -863,8 +864,8 @@ const SettingsPage: React.FC<{ state: TelemetryState | null, sendCommand: (type:
   };
 
   const activePreset = useMemo(() => {
-    if (localConfig?.nvidia?.preset) return localConfig.nvidia.preset;
-    const f = localConfig?.nvidia?.gaming_features;
+    if (localConfig?.gpu_tuning?.preset) return localConfig.gpu_tuning.preset;
+    const f = localConfig?.gpu_tuning?.gaming_features;
     if (!f) return 'custom';
     if (f.dlss && f.ray_tracing && f.path_tracing && f.reflex && f.hdr) return 'quality';
     if (f.dlss && f.frame_gen && !f.ray_tracing && f.reflex && f.hdr) return 'performance';
@@ -872,10 +873,10 @@ const SettingsPage: React.FC<{ state: TelemetryState | null, sendCommand: (type:
     if (!f.dlss && !f.frame_gen && !f.ray_tracing && f.reflex && !f.hdr) return 'latency';
     if (!f.dlss && !f.frame_gen && !f.ray_tracing && !f.path_tracing && !f.reflex && !f.hdr) return 'off';
     return 'custom';
-  }, [localConfig?.nvidia]);
+  }, [localConfig?.gpu_tuning]);
 
   const handlePresetChange = (preset: string) => {
-    let updatedFeatures = { ...localConfig?.nvidia?.gaming_features };
+    let updatedFeatures = { ...localConfig?.gpu_tuning?.gaming_features };
     const gpuCaps = state?.system_specs?.hardware?.gpu_capabilities;
     const gpuNameStr = state?.system_specs?.hardware?.gpu || state?.gpu_metrics?.gpu_name || '';
 
@@ -970,8 +971,8 @@ const SettingsPage: React.FC<{ state: TelemetryState | null, sendCommand: (type:
       };
     }
 
-    let updatedPowerLimit = localConfig?.nvidia?.power_limit_percent ?? 100;
-    let updatedPowerMode = localConfig?.nvidia?.power_management_mode ?? 'adaptive';
+    let updatedPowerLimit = localConfig?.gpu_tuning?.power_limit_percent ?? 100;
+    let updatedPowerMode = localConfig?.gpu_tuning?.power_management_mode ?? 'adaptive';
 
     const bestKey = preset === 'auto' ? (function () {
       const library = (state as any)?.game_library || [];
@@ -1008,7 +1009,7 @@ const SettingsPage: React.FC<{ state: TelemetryState | null, sendCommand: (type:
     setLocalConfig({
       ...localConfig,
       nvidia: {
-        ...localConfig.nvidia,
+        ...localConfig.gpu_tuning,
         preset: preset,
         gaming_features: updatedFeatures,
         ...(preset !== 'custom' ? {
@@ -1020,7 +1021,7 @@ const SettingsPage: React.FC<{ state: TelemetryState | null, sendCommand: (type:
   };
 
   useEffect(() => {
-    if (localConfig?.nvidia?.preset === 'auto' && (state as any)?.game_library?.length > 0) {
+    if (localConfig?.gpu_tuning?.preset === 'auto' && (state as any)?.game_library?.length > 0) {
       const library = (state as any)?.game_library || [];
       const gpuCaps = state?.system_specs?.hardware?.gpu_capabilities;
       const gpuNameStr = state?.system_specs?.hardware?.gpu || state?.gpu_metrics?.gpu_name || '';
@@ -1044,7 +1045,7 @@ const SettingsPage: React.FC<{ state: TelemetryState | null, sendCommand: (type:
       const maxPerfDlss = gpuCaps?.max_dlss_perf || (gpuNameStr.toLowerCase().includes('50') ? 'DLSS 4' : 'DLSS 3');
       const fgMultiplier = gpuCaps?.max_fg || (gpuNameStr.toLowerCase().includes('50') ? '4x' : '2x');
 
-      let updatedFeatures = { ...(localConfig?.nvidia?.gaming_features || {}) };
+      let updatedFeatures = { ...(localConfig?.gpu_tuning?.gaming_features || {}) };
       if (bestKey === 'quality') {
         updatedFeatures = { ...updatedFeatures, dlss: true, dlss_version: maxQualityDlss, frame_gen: false, ray_tracing: true, path_tracing: true, reflex: true, hdr: true };
       } else if (bestKey === 'performance') {
@@ -1057,11 +1058,11 @@ const SettingsPage: React.FC<{ state: TelemetryState | null, sendCommand: (type:
         updatedFeatures = { ...updatedFeatures, dlss: true, dlss_version: maxPerfDlss, frame_gen: false, ray_tracing: false, path_tracing: false, reflex: true, hdr: true };
       }
 
-      const currentFeaturesStr = JSON.stringify(localConfig?.nvidia?.gaming_features || {});
+      const currentFeaturesStr = JSON.stringify(localConfig?.gpu_tuning?.gaming_features || {});
       const newFeaturesStr = JSON.stringify(updatedFeatures);
 
-      let updatedPowerLimit = localConfig?.nvidia?.power_limit_percent ?? 100;
-      let updatedPowerMode = localConfig?.nvidia?.power_management_mode ?? 'adaptive';
+      let updatedPowerLimit = localConfig?.gpu_tuning?.power_limit_percent ?? 100;
+      let updatedPowerMode = localConfig?.gpu_tuning?.power_management_mode ?? 'adaptive';
 
       if (bestKey === 'quality' || bestKey === 'performance') {
         updatedPowerLimit = 100;
@@ -1078,12 +1079,12 @@ const SettingsPage: React.FC<{ state: TelemetryState | null, sendCommand: (type:
       }
 
       if (currentFeaturesStr !== newFeaturesStr ||
-        localConfig?.nvidia?.power_limit_percent !== updatedPowerLimit ||
-        localConfig?.nvidia?.power_management_mode !== updatedPowerMode) {
+        localConfig?.gpu_tuning?.power_limit_percent !== updatedPowerLimit ||
+        localConfig?.gpu_tuning?.power_management_mode !== updatedPowerMode) {
         const newConfig = {
           ...localConfig,
           nvidia: {
-            ...localConfig.nvidia,
+            ...localConfig.gpu_tuning,
             gaming_features: updatedFeatures,
             power_limit_percent: updatedPowerLimit,
             power_management_mode: updatedPowerMode
@@ -1093,7 +1094,7 @@ const SettingsPage: React.FC<{ state: TelemetryState | null, sendCommand: (type:
         sendCommand('update_config', { nvidia: newConfig.nvidia });
       }
     }
-  }, [(state as any)?.game_library, localConfig?.nvidia?.preset]);
+  }, [(state as any)?.game_library, localConfig?.gpu_tuning?.preset]);
 
   useEffect(() => {
     if ((window as any).electronAPI?.getDesktopPath) {
@@ -1205,13 +1206,17 @@ const SettingsPage: React.FC<{ state: TelemetryState | null, sendCommand: (type:
     return mapping;
   }, [state]);
 
-  const isNvidiaGpu = React.useMemo(() => {
+  const isCapableGpu = React.useMemo(() => {
     const gpuName = (state?.system_specs?.hardware?.gpu || state?.gpu_metrics?.gpu_name || '').toLowerCase();
     const driverVersion = state?.gpu_metrics?.driver_version;
 
     // If telemetry hasn't loaded system_specs yet, look at the driver version
-    const hasNvidiaDriver = driverVersion && driverVersion !== 'Unknown' && driverVersion !== '---';
-    const hasNvidiaName = gpuName && (gpuName.includes('nvidia') || gpuName.includes('geforce') || gpuName.includes('rtx') || gpuName.includes('gtx'));
+    const hasDriver = driverVersion && driverVersion !== 'Unknown' && driverVersion !== '---';
+    const hasKnownGpuName = gpuName && (
+      gpuName.includes('nvidia') || gpuName.includes('geforce') || gpuName.includes('rtx') || gpuName.includes('gtx') ||
+      gpuName.includes('amd') || gpuName.includes('radeon') || gpuName.includes('rx ') ||
+      gpuName.includes('intel') || gpuName.includes('arc')
+    );
 
     // Default to true on initial load so it doesn't flicker,
     // but once specs/metrics arrive we do a strict check
@@ -1219,19 +1224,19 @@ const SettingsPage: React.FC<{ state: TelemetryState | null, sendCommand: (type:
       return true;
     }
 
-    return hasNvidiaName || hasNvidiaDriver;
+    return hasKnownGpuName || hasDriver;
   }, [state]);
 
-  const isRtxGpu = React.useMemo(() => {
-    if (!isNvidiaGpu) return false;
+  const isAdvancedGpu = React.useMemo(() => {
+    if (!isCapableGpu) return false;
     const gpuName = (state?.system_specs?.hardware?.gpu || state?.gpu_metrics?.gpu_name || '').toLowerCase();
 
     // Default to true on initial load so it doesn't flicker
     if (!state?.system_specs?.hardware?.gpu && !state?.gpu_metrics?.gpu_name) return true;
 
-    // Check if it's an RTX GPU (has RT cores / DLSS support)
-    return gpuName.includes('rtx') || gpuName.includes('quadro rtx') || gpuName.includes('tesla') || gpuName.includes('titan rtx');
-  }, [state, isNvidiaGpu]);
+    // Check if it's an advanced GPU (RTX, RX 6000+, Arc)
+    return gpuName.includes('rtx') || gpuName.includes('quadro rtx') || gpuName.includes('tesla') || gpuName.includes('titan rtx') || gpuName.includes('rx ') || gpuName.includes('arc') || gpuName.includes('radeon');
+  }, [state, isCapableGpu]);
 
   // ── Account Deletion State ──────────────────────────────────────────────────
   const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
@@ -2252,21 +2257,21 @@ const SettingsPage: React.FC<{ state: TelemetryState | null, sendCommand: (type:
 
         {/* NVIDIA Features */}
         <SettingsSection searchQuery={searchQuery} title="Processing Pipeline" icon={Cpu}>
-          {!isNvidiaGpu ? (
+          {!isCapableGpu ? (
             <div className="p-4 rounded-2xl bg-red-500/10 border border-red-500/20 flex items-start gap-3 select-none">
               <AlertTriangle className="w-4 h-4 text-red-400 shrink-0 mt-0.5" />
               <div>
-                <span className="text-[10px] font-black text-red-400 uppercase tracking-widest block mb-0.5">NVIDIA RTX GPU Required</span>
+                <span className="text-[10px] font-black text-red-400 uppercase tracking-widest block mb-0.5">Advanced GPU Required</span>
                 <p className="text-[9px] font-bold text-zinc-500 leading-normal uppercase">
                   This system does not have an active NVIDIA GPU. Hardware-accelerated DLSS, Ray Tracing, Reflex, and Frame Generation are locked.
                 </p>
               </div>
             </div>
-          ) : (!isRtxGpu && (
+          ) : (!isAdvancedGpu && (
             <div className="p-4 rounded-2xl bg-amber-500/10 border border-amber-500/20 flex items-start gap-3 select-none">
               <AlertTriangle className="w-4 h-4 text-amber-400 shrink-0 mt-0.5" />
               <div>
-                <span className="text-[10px] font-black text-amber-400 uppercase tracking-widest block mb-0.5">NVIDIA GTX GPU Detected</span>
+                <span className="text-[10px] font-black text-amber-400 uppercase tracking-widest block mb-0.5">Legacy GPU Detected</span>
                 <p className="text-[9px] font-bold text-zinc-500 leading-normal uppercase">
                   Legacy technologies (Reflex, PhysX, Ansel) are supported, but RTX hardware-specific features (Ray Tracing, DLSS, and Frame Gen) are locked.
                 </p>
@@ -2476,7 +2481,7 @@ const SettingsPage: React.FC<{ state: TelemetryState | null, sendCommand: (type:
                 <button
                   aria-label="Rescan"
                   type="button"
-                  onClick={() => sendCommand('scan_preset_optimizer', { preset: localConfig.nvidia?.preset || 'quality', game_entry: (state as any)?.game_info || null })}
+                  onClick={() => sendCommand('scan_preset_optimizer', { preset: localConfig.gpu_tuning?.preset || 'quality', game_entry: (state as any)?.game_info || null })}
                   className="px-3 py-1.5 bg-white/5 hover:bg-white/10 border border-white/10 rounded-xl text-[9px] font-black uppercase tracking-widest transition-colors text-zinc-300 shrink-0"
                 >
                   Rescan Config
@@ -2518,7 +2523,7 @@ const SettingsPage: React.FC<{ state: TelemetryState | null, sendCommand: (type:
                     </div>
                   </div>
                   <button aria-label="Rescan" type="button"
-                    onClick={() => sendCommand('scan_preset_optimizer', { preset: localConfig.nvidia?.preset || 'quality', game_entry: (state as any)?.game_info || null })}
+                    onClick={() => sendCommand('scan_preset_optimizer', { preset: localConfig.gpu_tuning?.preset || 'quality', game_entry: (state as any)?.game_info || null })}
                     className="px-3 py-1.5 bg-white/5 hover:bg-white/10 border border-white/10 rounded-xl text-[9px] font-black uppercase tracking-widest transition-colors text-zinc-300 shrink-0"
                   >
                     Rescan Config
@@ -2693,7 +2698,13 @@ const SettingsPage: React.FC<{ state: TelemetryState | null, sendCommand: (type:
                 <div className="w-full sm:w-1/3 shrink-0">
                   <CustomSelect
                     value={localConfig.ai_agent?.provider || 'nvidia'}
-                    onChange={(val) => setLocalConfig({ ...localConfig, ai_agent: { ...localConfig.ai_agent, provider: val, model_id: val === 'nvidia' ? 'meta/llama-3.1-8b-instruct' : 'custom' } })}
+                    onChange={(val) => {
+                      let defaultModel = 'meta/llama-3.1-8b-instruct';
+                      if (val === 'gemini') defaultModel = 'gemini-3.6-flash';
+                      else if (val === 'groq') defaultModel = 'gpt-oss-120b';
+                      else if (val === 'openrouter') defaultModel = 'openrouter/free';
+                      setLocalConfig({ ...localConfig, ai_agent: { ...localConfig.ai_agent, provider: val, model_id: defaultModel } })
+                    }}
                     options={AI_PROVIDER_OPTIONS}
                     isMono={false}
                   />
@@ -2724,32 +2735,32 @@ const SettingsPage: React.FC<{ state: TelemetryState | null, sendCommand: (type:
               </div>
             }
             description={activeFeatures && !activeFeatures.includes('DLSS') ? "Your active game does not support DLSS. This advisory preference is safely ignored." : "Advisory preference — enable this in your game's own graphics settings. The AI uses your selection to give in-game guidance."}>
-            <div className={`flex flex-col gap-4 ${(!isRtxGpu || (activeFeatures && !activeFeatures.includes('DLSS'))) ? 'pointer-events-none opacity-40 select-none' : ''}`}>
+            <div className={`flex flex-col gap-4 ${(!isAdvancedGpu || (activeFeatures && !activeFeatures.includes('DLSS'))) ? 'pointer-events-none opacity-40 select-none' : ''}`}>
               <div role="button" tabIndex={0} onKeyDown={(e) => e.key === 'Enter' && e.currentTarget.click()}
                 onClick={() => {
-                  const nextVal = !localConfig.nvidia?.gaming_features?.dlss;
+                  const nextVal = !localConfig.gpu_tuning?.gaming_features?.dlss;
                   setLocalConfig({
                     ...localConfig,
                     nvidia: {
-                      ...localConfig.nvidia,
+                      ...localConfig.gpu_tuning,
                       gaming_features: {
-                        ...(localConfig.nvidia?.gaming_features || {}),
+                        ...(localConfig.gpu_tuning?.gaming_features || {}),
                         dlss: nextVal,
-                        dlss_version: nextVal ? (localConfig.nvidia?.gaming_features?.dlss_version || 'DLSS 1') : undefined
+                        dlss_version: nextVal ? (localConfig.gpu_tuning?.gaming_features?.dlss_version || 'DLSS 1') : undefined
                       }
                     }
                   });
                 }}
-                className={`w-12 h-6 rounded-full relative p-1 cursor-pointer transition-colors ${localConfig.nvidia?.gaming_features?.dlss ? 'bg-neon-green' : 'bg-zinc-800'}`}
+                className={`w-12 h-6 rounded-full relative p-1 cursor-pointer transition-colors ${localConfig.gpu_tuning?.gaming_features?.dlss ? 'bg-neon-green' : 'bg-zinc-800'}`}
               >
-                <div className={`w-4 h-4 rounded-full absolute transition-all ${localConfig.nvidia?.gaming_features?.dlss ? 'bg-black right-1' : 'bg-zinc-600 left-1'}`} />
+                <div className={`w-4 h-4 rounded-full absolute transition-all ${localConfig.gpu_tuning?.gaming_features?.dlss ? 'bg-black right-1' : 'bg-zinc-600 left-1'}`} />
               </div>
               <div className="flex flex-wrap gap-2">
                 {['DLSS 1', 'DLSS 2', 'DLSS 3', 'DLSS 3.5', 'DLSS 4', 'DLSS 4.5', 'DLSS 5'].map((v) => (
                   <button aria-label="button" type="button"
                     key={v}
-                    onClick={() => setLocalConfig({ ...localConfig, nvidia: { ...localConfig.nvidia, gaming_features: { ...(localConfig.nvidia?.gaming_features || {}), dlss_version: v } } })}
-                    className={`px-3 py-1.5 rounded-lg text-[8px] font-black uppercase border transition-all ${localConfig.nvidia?.gaming_features?.dlss_version === v && localConfig.nvidia?.gaming_features?.dlss ? 'bg-neon-green text-black border-neon-green shadow-[0_0_10px_rgba(118, 185, 0,0.3)]' : 'bg-white/5 border-white/10 text-zinc-500 hover:border-white/20'}`}
+                    onClick={() => setLocalConfig({ ...localConfig, gpu_tuning: { ...localConfig.gpu_tuning, gaming_features: { ...(localConfig.gpu_tuning?.gaming_features || {}), dlss_version: v } } })}
+                    className={`px-3 py-1.5 rounded-lg text-[8px] font-black uppercase border transition-all ${localConfig.gpu_tuning?.gaming_features?.dlss_version === v && localConfig.gpu_tuning?.gaming_features?.dlss ? 'bg-neon-green text-black border-neon-green shadow-[0_0_10px_rgba(118, 185, 0,0.3)]' : 'bg-white/5 border-white/10 text-zinc-500 hover:border-white/20'}`}
                   >
                     {v}
                   </button>
@@ -2783,43 +2794,43 @@ const SettingsPage: React.FC<{ state: TelemetryState | null, sendCommand: (type:
               </div>
             }
             description={activeFeatures && !activeFeatures.includes('FRAME_GEN') ? "Your active game does not support Frame Generation. This advisory preference is safely ignored." : "Advisory preference — enable Frame Gen inside your game's graphics menu. The AI will advise based on this setting."}>
-            <div className={`flex flex-col gap-4 ${(!isRtxGpu || (activeFeatures && !activeFeatures.includes('FRAME_GEN'))) ? 'pointer-events-none opacity-40 select-none' : ''}`}>
+            <div className={`flex flex-col gap-4 ${(!isAdvancedGpu || (activeFeatures && !activeFeatures.includes('FRAME_GEN'))) ? 'pointer-events-none opacity-40 select-none' : ''}`}>
               <div role="button" tabIndex={0} onKeyDown={(e) => e.key === 'Enter' && e.currentTarget.click()}
                 onClick={() => {
-                  const nextVal = !localConfig.nvidia?.gaming_features?.frame_gen;
+                  const nextVal = !localConfig.gpu_tuning?.gaming_features?.frame_gen;
                   setLocalConfig({
                     ...localConfig,
                     nvidia: {
-                      ...localConfig.nvidia,
+                      ...localConfig.gpu_tuning,
                       gaming_features: {
-                        ...(localConfig.nvidia?.gaming_features || {}),
+                        ...(localConfig.gpu_tuning?.gaming_features || {}),
                         frame_gen: nextVal,
-                        frame_gen_multiplier: nextVal ? (localConfig.nvidia?.gaming_features?.frame_gen_multiplier || '2x') : undefined
+                        frame_gen_multiplier: nextVal ? (localConfig.gpu_tuning?.gaming_features?.frame_gen_multiplier || '2x') : undefined
                       }
                     }
                   });
                 }}
-                className={`w-12 h-6 rounded-full relative p-1 cursor-pointer transition-colors ${localConfig.nvidia?.gaming_features?.frame_gen ? 'bg-blue-500' : 'bg-zinc-800'}`}
+                className={`w-12 h-6 rounded-full relative p-1 cursor-pointer transition-colors ${localConfig.gpu_tuning?.gaming_features?.frame_gen ? 'bg-blue-500' : 'bg-zinc-800'}`}
               >
-                <div className={`w-4 h-4 rounded-full absolute transition-all ${localConfig.nvidia?.gaming_features?.frame_gen ? 'bg-black right-1' : 'bg-zinc-600 left-1'}`} />
+                <div className={`w-4 h-4 rounded-full absolute transition-all ${localConfig.gpu_tuning?.gaming_features?.frame_gen ? 'bg-black right-1' : 'bg-zinc-600 left-1'}`} />
               </div>
               <div className="flex flex-wrap gap-2">
                 {['2x', '3x', '4x', '6x'].map((mult) => {
-                  const isSelected = localConfig.nvidia?.gaming_features?.frame_gen_multiplier === mult || (!localConfig.nvidia?.gaming_features?.frame_gen_multiplier && mult === '2x');
+                  const isSelected = localConfig.gpu_tuning?.gaming_features?.frame_gen_multiplier === mult || (!localConfig.gpu_tuning?.gaming_features?.frame_gen_multiplier && mult === '2x');
                   return (
                     <button aria-label="button" type="button"
                       key={mult}
                       onClick={() => setLocalConfig({
                         ...localConfig,
                         nvidia: {
-                          ...localConfig.nvidia,
+                          ...localConfig.gpu_tuning,
                           gaming_features: {
-                            ...(localConfig.nvidia?.gaming_features || {}),
+                            ...(localConfig.gpu_tuning?.gaming_features || {}),
                             frame_gen_multiplier: mult
                           }
                         }
                       })}
-                      className={`px-3 py-1.5 rounded-lg text-[8px] font-black uppercase border transition-all ${isSelected && localConfig.nvidia?.gaming_features?.frame_gen ? 'bg-blue-500 text-black border-blue-500 shadow-[0_0_10px_rgba(59,130,246,0.3)]' : 'bg-white/5 border-white/10 text-zinc-500 hover:border-white/20'}`}
+                      className={`px-3 py-1.5 rounded-lg text-[8px] font-black uppercase border transition-all ${isSelected && localConfig.gpu_tuning?.gaming_features?.frame_gen ? 'bg-blue-500 text-black border-blue-500 shadow-[0_0_10px_rgba(59,130,246,0.3)]' : 'bg-white/5 border-white/10 text-zinc-500 hover:border-white/20'}`}
                     >
                       {mult}
                     </button>
@@ -2842,16 +2853,16 @@ const SettingsPage: React.FC<{ state: TelemetryState | null, sendCommand: (type:
               </div>
             }
             description={activeFeatures && !activeFeatures.includes('RTX') && !activeFeatures.includes('PATH_TRACING') ? "Your active game does not support Ray Tracing. This advisory preference is safely ignored." : "Advisory preference — enable RT/PT in-game. The AI uses this to tailor performance advice."}>
-            <div className={`flex gap-4 ${(!isRtxGpu || (activeFeatures && !activeFeatures.includes('RTX') && !activeFeatures.includes('PATH_TRACING'))) ? 'pointer-events-none opacity-40 select-none' : ''}`}>
+            <div className={`flex gap-4 ${(!isAdvancedGpu || (activeFeatures && !activeFeatures.includes('RTX') && !activeFeatures.includes('PATH_TRACING'))) ? 'pointer-events-none opacity-40 select-none' : ''}`}>
               <button aria-label="button" type="button"
-                onClick={() => setLocalConfig({ ...localConfig, nvidia: { ...localConfig.nvidia, gaming_features: { ...(localConfig.nvidia?.gaming_features || {}), ray_tracing: !localConfig.nvidia?.gaming_features?.ray_tracing } } })}
-                className={`px-4 py-2 rounded-xl text-[9px] font-black uppercase tracking-widest border transition-all ${localConfig.nvidia?.gaming_features?.ray_tracing ? 'bg-neon-green/20 border-neon-green/40 text-neon-green' : 'bg-white/5 border-white/10 text-zinc-500'}`}
+                onClick={() => setLocalConfig({ ...localConfig, gpu_tuning: { ...localConfig.gpu_tuning, gaming_features: { ...(localConfig.gpu_tuning?.gaming_features || {}), ray_tracing: !localConfig.gpu_tuning?.gaming_features?.ray_tracing } } })}
+                className={`px-4 py-2 rounded-xl text-[9px] font-black uppercase tracking-widest border transition-all ${localConfig.gpu_tuning?.gaming_features?.ray_tracing ? 'bg-neon-green/20 border-neon-green/40 text-neon-green' : 'bg-white/5 border-white/10 text-zinc-500'}`}
               >
                 Ray Tracing
               </button>
               <button aria-label="button" type="button"
-                onClick={() => setLocalConfig({ ...localConfig, nvidia: { ...localConfig.nvidia, gaming_features: { ...(localConfig.nvidia?.gaming_features || {}), path_tracing: !localConfig.nvidia?.gaming_features?.path_tracing } } })}
-                className={`px-4 py-2 rounded-xl text-[9px] font-black uppercase tracking-widest border transition-all ${localConfig.nvidia?.gaming_features?.path_tracing ? 'bg-orange-500/20 border-orange-500/40 text-orange-400' : 'bg-white/5 border-white/10 text-zinc-500'}`}
+                onClick={() => setLocalConfig({ ...localConfig, gpu_tuning: { ...localConfig.gpu_tuning, gaming_features: { ...(localConfig.gpu_tuning?.gaming_features || {}), path_tracing: !localConfig.gpu_tuning?.gaming_features?.path_tracing } } })}
+                className={`px-4 py-2 rounded-xl text-[9px] font-black uppercase tracking-widest border transition-all ${localConfig.gpu_tuning?.gaming_features?.path_tracing ? 'bg-orange-500/20 border-orange-500/40 text-orange-400' : 'bg-white/5 border-white/10 text-zinc-500'}`}
               >
                 <Flame className="w-3 h-3 inline-block mr-1" />
                 Path Tracing
@@ -2872,10 +2883,10 @@ const SettingsPage: React.FC<{ state: TelemetryState | null, sendCommand: (type:
               </div>
             }
             description={activeFeatures && !activeFeatures.includes('REFLEX') ? "Your active game does not support NVIDIA Reflex. This advisory preference is safely ignored." : "Advisory preference — enable NVIDIA Reflex in-game. Tells the AI your latency priority."}>
-            <div className={`flex gap-4 ${(!isNvidiaGpu || (activeFeatures && !activeFeatures.includes('REFLEX'))) ? 'pointer-events-none opacity-40 select-none' : ''}`}>
+            <div className={`flex gap-4 ${(!isCapableGpu || (activeFeatures && !activeFeatures.includes('REFLEX'))) ? 'pointer-events-none opacity-40 select-none' : ''}`}>
               <button aria-label="button" type="button"
-                onClick={() => setLocalConfig({ ...localConfig, nvidia: { ...localConfig.nvidia, gaming_features: { ...(localConfig.nvidia?.gaming_features || {}), reflex: !localConfig.nvidia?.gaming_features?.reflex } } })}
-                className={`px-4 py-2 rounded-xl text-[9px] font-black uppercase tracking-widest border transition-all ${localConfig.nvidia?.gaming_features?.reflex ? 'bg-neon-yellow/20 border-neon-yellow/40 text-neon-yellow' : 'bg-white/5 border-white/10 text-zinc-500'} ${!isNvidiaGpu ? 'pointer-events-none opacity-40 select-none' : ''}`}
+                onClick={() => setLocalConfig({ ...localConfig, gpu_tuning: { ...localConfig.gpu_tuning, gaming_features: { ...(localConfig.gpu_tuning?.gaming_features || {}), reflex: !localConfig.gpu_tuning?.gaming_features?.reflex } } })}
+                className={`px-4 py-2 rounded-xl text-[9px] font-black uppercase tracking-widest border transition-all ${localConfig.gpu_tuning?.gaming_features?.reflex ? 'bg-neon-yellow/20 border-neon-yellow/40 text-neon-yellow' : 'bg-white/5 border-white/10 text-zinc-500'} ${!isCapableGpu ? 'pointer-events-none opacity-40 select-none' : ''}`}
               >
                 NVIDIA Reflex
               </button>
@@ -2897,8 +2908,8 @@ const SettingsPage: React.FC<{ state: TelemetryState | null, sendCommand: (type:
             description={activeFeatures && !activeFeatures.includes('HDR') ? "Your active game does not natively support HDR. This advisory preference is safely ignored." : "Advisory preference — enable HDR in Windows Display Settings and in-game. The AI uses this for visual quality guidance."}>
             <div className={`flex gap-4 ${(activeFeatures && !activeFeatures.includes('HDR')) ? 'pointer-events-none opacity-40 select-none' : ''}`}>
               <button aria-label="button" type="button"
-                onClick={() => setLocalConfig({ ...localConfig, nvidia: { ...localConfig.nvidia, gaming_features: { ...(localConfig.nvidia?.gaming_features || {}), hdr: !localConfig.nvidia?.gaming_features?.hdr } } })}
-                className={`px-4 py-2 rounded-xl text-[9px] font-black uppercase tracking-widest border transition-all ${localConfig.nvidia?.gaming_features?.hdr ? 'bg-violet-500/20 border-violet-500/40 text-violet-400 shadow-[0_0_15px_rgba(139,92,246,0.15)]' : 'bg-white/5 border-white/10 text-zinc-500'}`}
+                onClick={() => setLocalConfig({ ...localConfig, gpu_tuning: { ...localConfig.gpu_tuning, gaming_features: { ...(localConfig.gpu_tuning?.gaming_features || {}), hdr: !localConfig.gpu_tuning?.gaming_features?.hdr } } })}
+                className={`px-4 py-2 rounded-xl text-[9px] font-black uppercase tracking-widest border transition-all ${localConfig.gpu_tuning?.gaming_features?.hdr ? 'bg-violet-500/20 border-violet-500/40 text-violet-400 shadow-[0_0_15px_rgba(139,92,246,0.15)]' : 'bg-white/5 border-white/10 text-zinc-500'}`}
               >
                 HDR Optimization
               </button>
@@ -2927,11 +2938,11 @@ const SettingsPage: React.FC<{ state: TelemetryState | null, sendCommand: (type:
                 <div className="flex items-center gap-4">
                   <input
                     type="range" min="50" max="100" step="5"
-                    value={localConfig.nvidia?.power_limit_percent ?? 100}
-                    onChange={(e) => setLocalConfig({ ...localConfig, nvidia: { ...localConfig.nvidia, power_limit_percent: parseInt(e.target.value) } })}
+                    value={localConfig.gpu_tuning?.power_limit_percent ?? 100}
+                    onChange={(e) => setLocalConfig({ ...localConfig, gpu_tuning: { ...localConfig.gpu_tuning, power_limit_percent: parseInt(e.target.value) } })}
                     className="flex-1 accent-neon-yellow"
                   />
-                  <span className="text-xs font-black text-neon-yellow w-12 text-right">{localConfig.nvidia?.power_limit_percent ?? 100}%</span>
+                  <span className="text-xs font-black text-neon-yellow w-12 text-right">{localConfig.gpu_tuning?.power_limit_percent ?? 100}%</span>
                 </div>
                 <div className="flex justify-between text-[8px] font-bold text-zinc-600 uppercase tracking-wider px-0.5">
                   <span>50% — Eco</span>
@@ -2951,8 +2962,8 @@ const SettingsPage: React.FC<{ state: TelemetryState | null, sendCommand: (type:
                 <div className="flex gap-2">
                   {(['adaptive', 'max_performance', 'optimal'] as const).map((mode) => (
                     <button aria-label="button" type="button" key={mode}
-                      onClick={() => setLocalConfig({ ...localConfig, nvidia: { ...localConfig.nvidia, power_management_mode: mode } })}
-                      className={`flex-1 py-2 rounded-xl text-[8px] font-black uppercase tracking-widest border transition-all ${(localConfig.nvidia?.power_management_mode ?? 'adaptive') === mode
+                      onClick={() => setLocalConfig({ ...localConfig, gpu_tuning: { ...localConfig.gpu_tuning, power_management_mode: mode } })}
+                      className={`flex-1 py-2 rounded-xl text-[8px] font-black uppercase tracking-widest border transition-all ${(localConfig.gpu_tuning?.power_management_mode ?? 'adaptive') === mode
                         ? 'bg-neon-yellow/20 border-neon-yellow/40 text-neon-yellow shadow-[0_0_10px_rgba(191, 255, 0,0.15)]'
                         : 'bg-white/5 border-white/10 text-zinc-500 hover:border-white/20'
                         }`}
@@ -2972,10 +2983,10 @@ const SettingsPage: React.FC<{ state: TelemetryState | null, sendCommand: (type:
               </div>
               <div className="w-full lg:w-96 shrink-0">
                 <div role="button" tabIndex={0} onKeyDown={(e) => e.key === 'Enter' && e.currentTarget.click()}
-                  onClick={() => setLocalConfig({ ...localConfig, nvidia: { ...localConfig.nvidia, low_latency_mode: !localConfig.nvidia?.low_latency_mode } })}
-                  className={`w-12 h-6 rounded-full relative p-1 cursor-pointer transition-colors ${localConfig.nvidia?.low_latency_mode ? 'bg-neon-yellow shadow-[0_0_10px_rgba(191, 255, 0,0.3)]' : 'bg-zinc-800'
+                  onClick={() => setLocalConfig({ ...localConfig, gpu_tuning: { ...localConfig.gpu_tuning, low_latency_mode: !localConfig.gpu_tuning?.low_latency_mode } })}
+                  className={`w-12 h-6 rounded-full relative p-1 cursor-pointer transition-colors ${localConfig.gpu_tuning?.low_latency_mode ? 'bg-neon-yellow shadow-[0_0_10px_rgba(191, 255, 0,0.3)]' : 'bg-zinc-800'
                     }`}>
-                  <div className={`w-4 h-4 rounded-full absolute transition-all bg-black ${localConfig.nvidia?.low_latency_mode ? 'right-1' : 'left-1'
+                  <div className={`w-4 h-4 rounded-full absolute transition-all bg-black ${localConfig.gpu_tuning?.low_latency_mode ? 'right-1' : 'left-1'
                     }`} />
                 </div>
               </div>
@@ -2991,11 +3002,11 @@ const SettingsPage: React.FC<{ state: TelemetryState | null, sendCommand: (type:
                 <div className="flex items-center gap-4">
                   <input
                     type="range" min="1" max="100" step="1"
-                    value={localConfig.nvidia?.shader_cache_gb ?? 10}
-                    onChange={(e) => setLocalConfig({ ...localConfig, nvidia: { ...localConfig.nvidia, shader_cache_gb: parseInt(e.target.value) } })}
+                    value={localConfig.gpu_tuning?.shader_cache_gb ?? 10}
+                    onChange={(e) => setLocalConfig({ ...localConfig, gpu_tuning: { ...localConfig.gpu_tuning, shader_cache_gb: parseInt(e.target.value) } })}
                     className="flex-1 accent-neon-green"
                   />
-                  <span className="text-xs font-black text-neon-green w-16 text-right">{localConfig.nvidia?.shader_cache_gb ?? 10} GB</span>
+                  <span className="text-xs font-black text-neon-green w-16 text-right">{localConfig.gpu_tuning?.shader_cache_gb ?? 10} GB</span>
                 </div>
                 <div className="flex justify-between text-[8px] font-bold text-zinc-600 uppercase tracking-wider px-0.5">
                   <span>1 GB</span>
@@ -3146,7 +3157,7 @@ const SettingsPage: React.FC<{ state: TelemetryState | null, sendCommand: (type:
                                 <div className="flex gap-1 flex-wrap max-w-[140px]">
                                   {[...rtxFeatures, ...gtxFeatures].slice(0, 3).map((f: string, i: number) => (
                                     <span key={i} className={`px-1.5 py-0.5 rounded text-[8px] font-black uppercase tracking-tighter border ${GPU_RTX_FEATURES.includes(f.toUpperCase())
-                                      ? (isRtxGpu ? 'bg-neon-green/10 border-neon-green/20 text-neon-green' : 'bg-zinc-800 border-zinc-700 text-zinc-500')
+                                      ? (isAdvancedGpu ? 'bg-neon-green/10 border-neon-green/20 text-neon-green' : 'bg-zinc-800 border-zinc-700 text-zinc-500')
                                       : 'bg-neon-yellow/10 border-neon-yellow/20 text-neon-yellow'
                                       }`}>
                                       {f}
@@ -3172,12 +3183,12 @@ const SettingsPage: React.FC<{ state: TelemetryState | null, sendCommand: (type:
                               )}
                             </td>
                             <td className="p-3 pr-5">
-                              {hasRtx && isRtxGpu ? (
+                              {hasRtx && isAdvancedGpu ? (
                                 <span className="text-neon-yellow font-bold text-[9px] uppercase tracking-wider flex items-center gap-1">
                                   <span className="w-1.5 h-1.5 rounded-full bg-neon-yellow animate-pulse" />
                                   RTX Active
                                 </span>
-                              ) : hasGtx && isNvidiaGpu ? (
+                              ) : hasGtx && isCapableGpu ? (
                                 <span className="text-neon-green font-bold text-[9px] uppercase tracking-wider flex items-center gap-1">
                                   <span className="w-1.5 h-1.5 rounded-full bg-neon-green" />
                                   GTX Active

@@ -31,7 +31,7 @@ export interface AppConfig {
     show_scene_type?: boolean;
     show_gpu_stats?: boolean;
     show_input_device?: boolean;
-    show_nvidia_tips?: boolean;
+    show_gpu_tips?: boolean;
     text_color?: [number, number, number];
     alert_color?: [number, number, number];
     auto_spawn?: boolean;
@@ -84,11 +84,15 @@ export interface AppConfig {
     log_child_processes?: boolean;
   };
 
-  nvidia?: {
+  gpu_tuning?: {
     preset?: string;
-    dlss?: {
-      enabled?: boolean;
-      target_version?: number;
+    power_limit_percent?: number;
+    power_management_mode?: string;
+    gaming_features?: {
+      dlss?: boolean;
+      frame_generation?: boolean;
+      ray_tracing?: boolean;
+      reflex?: boolean;
     };
     gpu_monitoring?: {
       enabled?: boolean;

@@ -1,11 +1,12 @@
 """
-NVIDIA GPU capabilities detection.
-Identifies which NVIDIA technologies the user's GPU supports:
-DLSS, Ray Tracing, Path Tracing, Frame Generation, Reflex, etc.
+Multi-Vendor GPU capabilities detection (NVIDIA, AMD, Intel).
+Identifies which technologies the user's GPU supports:
+DLSS, FSR, XeSS, Ray Tracing, Frame Generation, Reflex, Anti-Lag, etc.
 """
 import subprocess
 import re
 import logging
+import platform
 
 logger = logging.getLogger(__name__)
 
@@ -18,8 +19,7 @@ except ImportError:
 
 def discover_best_gpu_index():
     """
-    Finds the index of the best available NVIDIA GPU.
-    Prioritizes dedicated GPUs over integrated ones by checking VRAM total.
+    Finds the index of the best available NVIDIA GPU if available.
     """
     if not _NVML_AVAILABLE:
         return 0
@@ -36,7 +36,6 @@ def discover_best_gpu_index():
             try:
                 handle = pynvml.nvmlDeviceGetHandleByIndex(i)
                 mem = pynvml.nvmlDeviceGetMemoryInfo(handle)
-                # Prioritize GPU with more VRAM (usually the dedicated one)
                 if mem.total > max_vram:
                     max_vram = mem.total
                     best_index = i
@@ -52,51 +51,36 @@ def discover_best_gpu_index():
         except Exception:
             pass
 
-# ── GPU Architecture Data ──────────────────────────────────────
-# Maps compute capability → architecture name and supported features.
 
-GPU_ARCHITECTURES = {
-    # (major, minor): (arch_name, generation)
-    (6, 0): ("Pascal", "pascal"),
-    (6, 1): ("Pascal", "pascal"),
-    (6, 2): ("Pascal", "pascal"),
-    (7, 0): ("Volta", "volta"),
-    (7, 5): ("Turing", "turing"),
-    (8, 0): ("Ampere", "ampere"),
-    (8, 6): ("Ampere", "ampere"),
-    (8, 9): ("Ada Lovelace", "ada"),
-    (9, 0): ("Hopper", "hopper"),
-    (10, 0): ("Blackwell", "blackwell"),
-    (10, 2): ("Blackwell", "blackwell"),
-}
+def _get_wmi_gpus():
+    """Fallback method to detect GPU names via WMI on Windows."""
+    gpus = []
+    if platform.system() == "Windows":
+        try:
+            result = subprocess.run(
+                ["wmic", "path", "win32_VideoController", "get", "name"],
+                capture_output=True, text=True, creationflags=0x08000000
+            )
+            if result.returncode == 0:
+                lines = result.stdout.strip().split("\n")
+                for line in lines[1:]:
+                    name = line.strip()
+                    if name:
+                        gpus.append(name)
+        except Exception as e:
+            logger.warning(f"WMI GPU detection failed: {e}")
+    return gpus
 
-# Feature support by architecture generation
-FEATURE_SUPPORT = {
-    # feature_key: {set of architecture generations that support it}
-    "rt_cores": {"turing", "ampere", "ada", "hopper", "blackwell"},
-    "tensor_cores": {"volta", "turing", "ampere", "ada", "hopper", "blackwell"},
-    "dlss_2": {"turing", "ampere", "ada", "hopper", "blackwell"},
-    "dlss_3": {"ada", "blackwell"},                  # Frame Generation
-    "dlss_3_5": {"ada", "blackwell"},                 # Ray Reconstruction
-    "dlss_4": {"blackwell"},                          # Multi Frame Gen
-    "dlss_4_5": {"blackwell"},                        # Dynamic Frame Generation
-    "ray_tracing": {"turing", "ampere", "ada", "hopper", "blackwell"},
-    "path_tracing": {"ada", "blackwell"},             # Full path tracing viable
-    "reflex": {"pascal", "turing", "ampere", "ada", "hopper", "blackwell"},
-    "nvenc_av1": {"ada", "blackwell"},                # AV1 hardware encode
-    "tensorrt": {"pascal", "volta", "turing", "ampere", "ada", "hopper", "blackwell"},
-    "cuda": {"pascal", "volta", "turing", "ampere", "ada", "hopper", "blackwell"},
-    "rtx_video_sr": {"ampere", "ada", "blackwell"},   # RTX Video Super Resolution
-    "rtx_video_hdr": {"ampere", "ada", "blackwell"},  # RTX Video HDR
-}
+# ── Feature Database ──────────────────────────────────────
 
-# Human-friendly feature descriptions
 FEATURE_INFO = {
-    "rt_cores": {
-        "name": "RT Cores (Ray Tracing)",
-        "desc": "Hardware-accelerated ray tracing for realistic lighting, shadows, and reflections.",
-        "impact": "Visual quality ↑↑, Performance ↓ (mitigated by DLSS)",
+    # Cross-platform / Generic
+    "ray_tracing": {
+        "name": "Hardware Ray Tracing",
+        "desc": "Simulates realistic light behavior for shadows, reflections, and global illumination.",
+        "impact": "Visual quality ↑↑↑, Performance ↓↓",
     },
+    # NVIDIA
     "tensor_cores": {
         "name": "Tensor Cores",
         "desc": "AI/ML accelerator cores used by DLSS, DLAA, and AI denoising.",
@@ -104,84 +88,92 @@ FEATURE_INFO = {
     },
     "dlss_2": {
         "name": "DLSS 2 (Super Resolution)",
-        "desc": "AI-powered upscaling: renders at lower resolution, upscales to native quality using deep learning.",
-        "impact": "Performance ↑↑ (up to 2x), Visual quality ≈ native",
+        "desc": "NVIDIA AI-powered upscaling.",
+        "impact": "Performance ↑↑, Visual quality ≈ native",
     },
     "dlss_3": {
         "name": "DLSS 3 (Frame Generation)",
-        "desc": "AI generates entirely new intermediate frames, effectively doubling FPS beyond GPU rendering speed.",
-        "impact": "Performance ↑↑↑ (up to 4x with SR+FG), Latency ↑ (use with Reflex)",
+        "desc": "AI generates intermediate frames.",
+        "impact": "Performance ↑↑↑, Requires Reflex",
     },
     "dlss_3_5": {
         "name": "DLSS 3.5 (Ray Reconstruction)",
-        "desc": "Replaces hand-tuned denoisers with AI-powered ray reconstruction for cleaner RT at lower ray counts.",
-        "impact": "RT quality ↑↑ at lower performance cost",
-    },
-    "dlss_4": {
-        "name": "DLSS 4 (Multi Frame Generation)",
-        "desc": "Generates up to 3 frames for every rendered frame, massive FPS boost with Blackwell architecture.",
-        "impact": "Performance ↑↑↑↑ (up to 8x), Requires RTX 50 series",
-    },
-    "dlss_4_5": {
-        "name": "DLSS 4.5 (Dynamic Frame Generation)",
-        "desc": "Dynamically adjusts the number of generated frames based on scene complexity and motion.",
-        "impact": "Smoothness ↑↑↑↑, Latency optimized",
-    },
-    "ray_tracing": {
-        "name": "Ray Tracing",
-        "desc": "Simulates realistic light behavior for shadows, reflections, and global illumination.",
-        "impact": "Visual quality ↑↑↑, Performance ↓↓ (enable DLSS to compensate)",
-    },
-    "path_tracing": {
-        "name": "Full Path Tracing",
-        "desc": "Every light ray in the scene is physically simulated. Used in Cyberpunk 2077 RT Overdrive, Portal RTX.",
-        "impact": "Visual quality ↑↑↑↑ (photorealistic), Very GPU intensive",
+        "desc": "AI-powered ray reconstruction for cleaner RT.",
+        "impact": "RT quality ↑↑",
     },
     "reflex": {
-        "name": "NVIDIA Reflex (Low Latency)",
-        "desc": "Reduces render queue latency for more responsive input. Critical for competitive gaming.",
-        "impact": "Latency ↓↓ (up to 50% lower), Essential with DLSS 3 Frame Gen",
+        "name": "NVIDIA Reflex",
+        "desc": "Reduces render queue latency.",
+        "impact": "Latency ↓↓",
     },
     "nvenc_av1": {
-        "name": "NVENC AV1 Encoding",
-        "desc": "Hardware AV1 video encoding for high-quality, low-bitrate game streaming and recording.",
-        "impact": "Stream/record quality ↑ at lower bitrate, Near-zero performance impact",
+        "name": "NVENC AV1",
+        "desc": "Hardware AV1 video encoding.",
+        "impact": "Stream quality ↑",
     },
-    "tensorrt": {
-        "name": "TensorRT Inference",
-        "desc": "Optimized AI inference engine. Converts models to run up to 10x faster on NVIDIA GPUs.",
-        "impact": "AI model inference ↑↑↑ (10x faster YOLO, etc.)",
+    # AMD
+    "fsr_2": {
+        "name": "FSR 2 (Super Resolution)",
+        "desc": "AMD spatial and temporal upscaling.",
+        "impact": "Performance ↑↑",
     },
-    "cuda": {
-        "name": "CUDA Compute",
-        "desc": "General-purpose GPU computing. Foundation for all GPU-accelerated processing.",
-        "impact": "Enables all GPU-accelerated features",
+    "fsr_3": {
+        "name": "FSR 3 (Frame Generation)",
+        "desc": "AMD temporal upscaling with Frame Generation.",
+        "impact": "Performance ↑↑↑",
     },
-    "rtx_video_sr": {
-        "name": "RTX Video Super Resolution",
-        "desc": "Uses AI to upscale low-resolution video and remove compression artifacts.",
-        "impact": "Video quality ↑↑ (cleaner streams/videos)",
+    "afmf": {
+        "name": "AMD Fluid Motion Frames (AFMF)",
+        "desc": "Driver-level frame generation for any game.",
+        "impact": "Performance ↑↑, Latency ↑",
     },
-    "rtx_video_hdr": {
-        "name": "RTX Video HDR",
-        "desc": "AI-powered SDR-to-HDR conversion for videos in your browser or players.",
-        "impact": "Visual vibrance ↑↑ on HDR displays",
+    "anti_lag": {
+        "name": "Radeon Anti-Lag",
+        "desc": "Reduces input-to-response latency.",
+        "impact": "Latency ↓",
+    },
+    "anti_lag_2": {
+        "name": "Radeon Anti-Lag 2",
+        "desc": "Game-integrated low latency.",
+        "impact": "Latency ↓↓",
+    },
+    "amf_av1": {
+        "name": "AMF AV1",
+        "desc": "AMD Advanced Media Framework AV1 encoding.",
+        "impact": "Stream quality ↑",
+    },
+    # Intel
+    "xess_1_3": {
+        "name": "Intel XeSS 1.3",
+        "desc": "AI-enhanced upscaling powered by XMX.",
+        "impact": "Performance ↑↑",
+    },
+    "extrass": {
+        "name": "Intel ExtraSS",
+        "desc": "Intel Frame Generation.",
+        "impact": "Performance ↑↑↑",
+    },
+    "smooth_sync": {
+        "name": "Intel SmoothSync",
+        "desc": "Reduces screen tearing visually without VSync latency.",
+        "impact": "Tearing ↓, Latency unaffected",
+    },
+    "qsv_av1": {
+        "name": "Intel QuickSync AV1",
+        "desc": "Intel hardware AV1 encoding.",
+        "impact": "Stream quality ↑",
     },
 }
 
-
 class GPUCapabilities:
     """
-    Detects NVIDIA GPU capabilities and supported technologies.
+    Detects GPU capabilities and supported technologies for NVIDIA, AMD, and Intel.
     """
 
     def __init__(self, device_index=None):
-        if device_index is None:
-            self._device_index = discover_best_gpu_index()
-        else:
-            self._device_index = device_index
+        self._device_index = device_index if device_index is not None else discover_best_gpu_index()
         self._gpu_name = "Unknown"
-        self._compute_capability = (0, 0)
+        self._vendor = "unknown"
         self._architecture = "unknown"
         self._generation = "unknown"
         self._vram_mb = 0
@@ -192,127 +184,161 @@ class GPUCapabilities:
 
     def _detect(self):
         """Detect GPU capabilities."""
-        if not _NVML_AVAILABLE:
-            logger.warning("pynvml not available. Trying nvidia-smi fallback.")
-            self._detect_via_smi()
-            return
-        
-        try:
-            pynvml.nvmlInit()
-            handle = pynvml.nvmlDeviceGetHandleByIndex(self._device_index)
-            
-            # GPU name
-            name = pynvml.nvmlDeviceGetName(handle)
-            self._gpu_name = name.decode("utf-8") if isinstance(name, bytes) else name
-            
-            # VRAM
-            mem = pynvml.nvmlDeviceGetMemoryInfo(handle)
-            self._vram_mb = mem.total // (1024 * 1024)
-            
-            # Driver
-            driver = pynvml.nvmlSystemGetDriverVersion()
-            self._driver_version = driver.decode("utf-8") if isinstance(driver, bytes) else driver
-            
-            # Compute capability
+        # 1. Try NVML first for NVIDIA GPUs
+        nvidia_detected = False
+        if _NVML_AVAILABLE:
             try:
-                major = pynvml.nvmlDeviceGetCudaComputeCapability(handle)
-                if isinstance(major, tuple):
-                    self._compute_capability = major
-                else:
-                    # Some versions return (major, minor) directly
-                    minor = 0
-                    self._compute_capability = (major, minor)
-            except Exception:
-                # Fallback: infer from GPU name
-                self._compute_capability = self._infer_compute_capability(self._gpu_name)
-            
-            pynvml.nvmlShutdown()
-        except Exception as e:
-            logger.error(f"GPU detection failed: {e}")
-            self._detect_via_smi()
-        
-        # Resolve architecture
+                pynvml.nvmlInit()
+                handle = pynvml.nvmlDeviceGetHandleByIndex(self._device_index)
+                
+                name = pynvml.nvmlDeviceGetName(handle)
+                self._gpu_name = name.decode("utf-8") if isinstance(name, bytes) else name
+                self._vendor = "nvidia"
+                
+                mem = pynvml.nvmlDeviceGetMemoryInfo(handle)
+                self._vram_mb = mem.total // (1024 * 1024)
+                
+                driver = pynvml.nvmlSystemGetDriverVersion()
+                self._driver_version = driver.decode("utf-8") if isinstance(driver, bytes) else driver
+                
+                pynvml.nvmlShutdown()
+                nvidia_detected = True
+            except Exception as e:
+                pass
+                
+        # 2. If not NVIDIA, try to detect AMD/Intel via WMI
+        if not nvidia_detected:
+            gpus = _get_wmi_gpus()
+            # Prioritize dedicated GPUs if possible
+            for name in gpus:
+                if "NVIDIA" in name.upper() or "AMD" in name.upper() or "RADEON" in name.upper() or "INTEL ARC" in name.upper() or "INTEL(R) ARC" in name.upper():
+                    self._gpu_name = name
+                    break
+            if self._gpu_name == "Unknown" and gpus:
+                self._gpu_name = gpus[0]
+                
+            name_upper = self._gpu_name.upper()
+            if "NVIDIA" in name_upper:
+                self._vendor = "nvidia"
+            elif "AMD" in name_upper or "RADEON" in name_upper:
+                self._vendor = "amd"
+            elif "INTEL" in name_upper or "ARC" in name_upper:
+                self._vendor = "intel"
+            else:
+                self._vendor = "generic"
+
+        # Resolve architecture and features based on vendor and name
         self._resolve_architecture()
         self._resolve_features()
 
-    def _detect_via_smi(self):
-        """Fallback: detect via nvidia-smi command."""
-        import os
-        import platform
-        try:
-            # Hide the console window on Windows
-            si = None
-            creationflags = 0
-            if os.name == 'nt' or platform.system() == 'Windows':
-                si = subprocess.STARTUPINFO()
-                si.dwFlags |= subprocess.STARTF_USESHOWWINDOW
-                si.wShowWindow = 0
-                creationflags = 0x08000000
-
-            result = subprocess.run(
-                ["nvidia-smi", "--query-gpu=name,memory.total,driver_version,compute_cap",
-                 "--format=csv,noheader,nounits"],
-                capture_output=True, text=True, timeout=5,
-                startupinfo=si,
-                creationflags=creationflags
-            )
-            if result.returncode == 0:
-                parts = result.stdout.strip().split(",")
-                if len(parts) >= 4:
-                    self._gpu_name = parts[0].strip()
-                    self._vram_mb = int(float(parts[1].strip()))
-                    self._driver_version = parts[2].strip()
-                    cc = parts[3].strip()
-                    if "." in cc:
-                        major, minor = cc.split(".")
-                        self._compute_capability = (int(major), int(minor))
-        except Exception as e:
-            logger.error(f"nvidia-smi detection failed: {e}")
-
-    def _infer_compute_capability(self, name):
-        """Infer compute capability from GPU name."""
-        name_upper = name.upper()
-        if any(x in name_upper for x in ["RTX 50", "5090", "5080", "5070", "5060"]):
-            return (10, 0)
-        elif any(x in name_upper for x in ["RTX 40", "4090", "4080", "4070", "4060"]):
-            return (8, 9)
-        elif any(x in name_upper for x in ["RTX 30", "3090", "3080", "3070", "3060", "A100"]):
-            return (8, 6)
-        elif any(x in name_upper for x in ["RTX 20", "2080", "2070", "2060", "1660"]):
-            return (7, 5)
-        elif any(x in name_upper for x in ["V100", "TITAN V"]):
-            return (7, 0)
-        elif any(x in name_upper for x in ["GTX 10", "1080", "1070", "1060", "1050", "TITAN X"]):
-            return (6, 1)
-        return (7, 5)  # Default to Turing as safe bet
-
     def _resolve_architecture(self):
-        """Map compute capability to architecture name."""
-        cc = self._compute_capability
-        if cc in GPU_ARCHITECTURES:
-            self._architecture, self._generation = GPU_ARCHITECTURES[cc]
-        else:
-            # Find closest match
-            for (maj, min_), (arch, gen) in sorted(GPU_ARCHITECTURES.items(), reverse=True):
-                if cc[0] > maj or (cc[0] == maj and cc[1] >= min_):
-                    self._architecture, self._generation = arch, gen
-                    break
+        """Infer architecture and generation from GPU name."""
+        name_upper = self._gpu_name.upper()
+        
+        if self._vendor == "nvidia":
+            if any(x in name_upper for x in ["RTX 50", "5090", "5080", "5070", "5060"]):
+                self._architecture, self._generation = "Blackwell", "blackwell"
+            elif any(x in name_upper for x in ["RTX 40", "4090", "4080", "4070", "4060"]):
+                self._architecture, self._generation = "Ada Lovelace", "ada"
+            elif any(x in name_upper for x in ["RTX 30", "3090", "3080", "3070", "3060", "A100"]):
+                self._architecture, self._generation = "Ampere", "ampere"
+            elif any(x in name_upper for x in ["RTX 20", "2080", "2070", "2060", "1660"]):
+                self._architecture, self._generation = "Turing", "turing"
+            elif any(x in name_upper for x in ["GTX 10", "1080", "1070", "1060", "1050", "TITAN X"]):
+                self._architecture, self._generation = "Pascal", "pascal"
+            else:
+                self._architecture, self._generation = "Unknown NVIDIA", "unknown"
+                
+        elif self._vendor == "amd":
+            if any(x in name_upper for x in ["RX 8000", "8900", "8800", "8700"]):
+                self._architecture, self._generation = "RDNA 4", "rdna4"
+            elif any(x in name_upper for x in ["RX 7000", "7900", "7800", "7700", "7600"]):
+                self._architecture, self._generation = "RDNA 3", "rdna3"
+            elif any(x in name_upper for x in ["RX 6000", "6900", "6800", "6700", "6600", "6500"]):
+                self._architecture, self._generation = "RDNA 2", "rdna2"
+            elif any(x in name_upper for x in ["RX 5000", "5700", "5600", "5500"]):
+                self._architecture, self._generation = "RDNA 1", "rdna1"
+            elif "VEGA" in name_upper or "RADEON VII" in name_upper:
+                self._architecture, self._generation = "Vega", "vega"
+            elif any(x in name_upper for x in ["RX 590", "RX 580", "RX 570", "RX 480", "RX 470"]):
+                self._architecture, self._generation = "Polaris", "polaris"
+            else:
+                self._architecture, self._generation = "AMD Generic", "unknown"
+                
+        elif self._vendor == "intel":
+            if "B-SERIES" in name_upper or "B580" in name_upper or "B570" in name_upper:
+                self._architecture, self._generation = "Battlemage (Xe2)", "battlemage"
+            elif "ARC" in name_upper and any(x in name_upper for x in ["A770", "A750", "A580", "A380"]):
+                self._architecture, self._generation = "Alchemist (Xe-HPG)", "alchemist"
+            elif "IRIS XE" in name_upper or "UHD" in name_upper:
+                self._architecture, self._generation = "Xe-LP", "xelp"
+            else:
+                self._architecture, self._generation = "Intel Generic", "unknown"
 
     def _resolve_features(self):
-        """Determine which features this GPU supports."""
+        """Determine which features this GPU supports based on vendor and generation."""
         self._supported_features = {}
-        for feature_key, supported_gens in FEATURE_SUPPORT.items():
-            supported = self._generation in supported_gens
+        
+        # Initialize all features as unsupported
+        for feature_key, info in FEATURE_INFO.items():
             self._supported_features[feature_key] = {
-                "supported": supported,
-                **FEATURE_INFO.get(feature_key, {}),
+                "supported": False,
+                **info
             }
+            
+        gen = self._generation
+        
+        if self._vendor == "nvidia":
+            has_rt = gen in ["turing", "ampere", "ada", "hopper", "blackwell"]
+            has_tensor = gen in ["volta", "turing", "ampere", "ada", "hopper", "blackwell"]
+            
+            self._set_supported("ray_tracing", has_rt)
+            self._set_supported("tensor_cores", has_tensor)
+            self._set_supported("dlss_2", has_tensor)
+            self._set_supported("dlss_3", gen in ["ada", "blackwell"])
+            self._set_supported("dlss_3_5", has_tensor)
+            self._set_supported("reflex", True)
+            self._set_supported("nvenc_av1", gen in ["ada", "blackwell"])
+            self._set_supported("fsr_2", True) # NVIDIA supports FSR 2
+            
+        elif self._vendor == "amd":
+            has_rt = gen in ["rdna2", "rdna3", "rdna4"]
+            
+            self._set_supported("ray_tracing", has_rt)
+            self._set_supported("fsr_2", True)
+            self._set_supported("fsr_3", True)
+            self._set_supported("afmf", gen in ["rdna2", "rdna3", "rdna4"])
+            self._set_supported("anti_lag", True)
+            self._set_supported("anti_lag_2", gen in ["rdna3", "rdna4"])
+            self._set_supported("amf_av1", gen in ["rdna3", "rdna4"])
+            
+        elif self._vendor == "intel":
+            has_rt = gen in ["alchemist", "battlemage"]
+            
+            self._set_supported("ray_tracing", has_rt)
+            self._set_supported("xess_1_3", gen in ["alchemist", "battlemage", "xelp"])
+            self._set_supported("extrass", gen in ["alchemist", "battlemage"])
+            self._set_supported("smooth_sync", gen in ["alchemist", "battlemage"])
+            self._set_supported("qsv_av1", gen in ["alchemist", "battlemage"])
+            self._set_supported("fsr_2", True) # Intel supports FSR 2
+            
+        else:
+            # Generic fallback
+            self._set_supported("fsr_2", True)
+
+    def _set_supported(self, feature_key: str, supported: bool):
+        if feature_key in self._supported_features:
+            self._supported_features[feature_key]["supported"] = supported
 
     # ── Public API ────────────────────────────────────────────────
 
     @property
     def gpu_name(self) -> str:
         return self._gpu_name
+        
+    @property
+    def vendor(self) -> str:
+        return self._vendor
 
     @property
     def architecture(self) -> str:
@@ -321,10 +347,6 @@ class GPUCapabilities:
     @property
     def generation(self) -> str:
         return self._generation
-
-    @property
-    def compute_capability(self) -> tuple:
-        return self._compute_capability
 
     @property
     def vram_mb(self) -> int:
@@ -355,9 +377,9 @@ class GPUCapabilities:
         """Get a complete GPU summary."""
         return {
             "gpu_name": self._gpu_name,
+            "vendor": self._vendor,
             "architecture": self._architecture,
             "generation": self._generation,
-            "compute_capability": f"{self._compute_capability[0]}.{self._compute_capability[1]}",
             "vram_mb": self._vram_mb,
             "driver_version": self._driver_version,
             "supported_features": self.get_supported_list(),
@@ -367,11 +389,12 @@ class GPUCapabilities:
     def print_report(self):
         """Print a human-readable capabilities report."""
         print(f"\n{'='*60}")
-        print(f"  NVIDIA GPU Capabilities Report")
+        print(f"  GPU Capabilities Report")
         print(f"{'='*60}")
         print(f"  GPU:            {self._gpu_name}")
+        print(f"  Vendor:         {self._vendor.upper()}")
         print(f"  Architecture:   {self._architecture}")
-        print(f"  Compute:        {self._compute_capability[0]}.{self._compute_capability[1]}")
+        print(f"  Generation:     {self._generation}")
         print(f"  VRAM:           {self._vram_mb} MB")
         print(f"  Driver:         {self._driver_version}")
         print(f"{'─'*60}")
