@@ -64,22 +64,31 @@ try {
         $bumpArgs += $Image
     }
 
-    uv run python scripts/bump_version.py @bumpArgs
+    # Run bump_version with uv if available, or standard python
+    if (Get-Command uv -ErrorAction SilentlyContinue) {
+        uv run python scripts/bump_version.py @bumpArgs
+    } else {
+        python scripts/bump_version.py @bumpArgs
+    }
 
     if ($LASTEXITCODE -eq 0) {
-        # 2. Sync files
+        # 2. Synchronize all docs and package manifests
+        Write-Host "[SYNC] Synchronizing documentation and package manifests..." -ForegroundColor Cyan
+        python scripts/sync_version.py
+
+        # 3. Stage version release files
         Write-Host "[SYNC] Staging version release files..." -ForegroundColor Cyan
         git add backend/version.json frontend/package.json website/package.json backend/pyproject.toml docs/backend/patches.md docs/changes_summary.md docs/SUMMARY.md readme.md
         
-        # 3. Get new version
+        # 4. Get new version
         $version = (Get-Content backend/version.json | ConvertFrom-Json).version
         
-        # 4. Commit and Tag
+        # 5. Commit and Tag
         Write-Host "[COMMIT] Creating release v${version}" -ForegroundColor Cyan
         git commit -m "Release v${version}: $Title"
         git tag -a "v${version}" -m "Release v${version}: $Title"
         
-        # 5. Build PyInstaller Backend Binary
+        # 6. Build PyInstaller Backend Binary
         Write-Host "[BUILD] Building PyInstaller backend..." -ForegroundColor Cyan
         powershell -ExecutionPolicy Bypass -File .\scripts\build_app.ps1
         if ($LASTEXITCODE -ne 0) {
