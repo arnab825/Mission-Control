@@ -82,7 +82,8 @@ graph TD
 
 | Version | Key Feature / Change Description |
 | :--- | :--- |
-| **v3.1.7 (Latest)** | **Multi-Vendor GPU Support & Unified GPU Tuning** — Added AMD & Intel GPU detection, Groq GPT OSS 120B/Qwen 3.6 models, and unified GPU power optimizer. |
+| **v3.1.8 (Latest)** | **Direct GitHub Releases In-App Updater Fallback & Elevated Offline Rollback** — Added direct GitHub Releases API fallback to Electron autoUpdater for seamless in-app downloads, and refactored automated offline rollback with robocopy retry loops and automatic UAC elevation escalation. |
+| **v3.1.7** | **Multi-Vendor GPU Support & Unified GPU Tuning** — Added AMD & Intel GPU detection, Groq GPT OSS 120B/Qwen 3.6 models, and unified GPU power optimizer. |
 | **v3.1.6** | **Alienware CPU Thermal Fix** — Fixed AWCC WMI sensor mapping & eliminated delayed telemetry readings. |
 | **v3.1.5** | **Multi-Platform Linux Release** — Universal `.AppImage`, `.deb`, `.rpm`, `.tar.gz` packages + OS-dependent download router. |
 | **v3.1.4** | **Mission Control UI Overhaul** — Premium glassmorphism, neural glow backgrounds, and Lucide icons. |

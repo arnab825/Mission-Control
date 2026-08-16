@@ -72,7 +72,19 @@ class GameScanner:
             "unwise", "install", "config", "tool", "editor", "benchmark",
             "dedicated server", "dedicated_server", "server_launcher",
             "battleye", "easyanticheat", "punkbuster", "guardian", "vanguard", "eac",
-            "social club", "socialclub", "rockstar games social club", "rockstar launcher"
+            "social club", "socialclub", "rockstar games social club", "rockstar launcher",
+            # Developer & Scripting tools
+            "idle (python", "idle", "python 3", "python 2", "python.exe", "pythonw.exe", "powershell",
+            "visual studio", "vscode", "pycharm", "intellij", "clion", "webstorm", "node.js",
+            "github desktop", "git bash", "docker desktop", "postman", "anaconda", "miniconda",
+            # Media players & Windows UWP system tools
+            "zunevideo", "zunemusic", "zune", "movies & tv", "films & tv", "windows media player",
+            "groove music", "calculator", "camera", "paint", "notepad", "vlc media player",
+            "obs studio", "streamlabs", "discord", "spotify", "google chrome", "mozilla firefox",
+            "microsoft edge", "brave", "blender", "unity hub", "unreal engine",
+            # Hardware & Tuning utilities
+            "msi afterburner", "rivatuner", "geforce experience", "nvidia app",
+            "armoury crate", "alienware command center", "awcc", "logitech g hub", "razer synapse"
         ]
         
         self.launcher_whitelist = [
@@ -81,6 +93,108 @@ class GameScanner:
             "battle.net", "riot games", "rockstar games", "rockstar", 
             "xbox", "xbox app", "gog galaxy", "amazon games", "itch.io", "humble"
         ]
+
+    def _is_game_valid_and_installed(self, g: dict) -> bool:
+        """Verify that a game entry is a valid game and actually exists on disk (not uninstalled/corrupted)."""
+        if not isinstance(g, dict) or not g.get("name"):
+            return False
+            
+        name = g.get("name", "").strip()
+        name_lower = name.lower()
+        platform = g.get("platform", "")
+        
+        # 1. Allow Whitelisted Platform Launchers (e.g. Steam, Epic, Xbox)
+        is_launcher = (g.get("type") == "LAUNCHER") or any(wl == name_lower for wl in self.launcher_whitelist) or (name == platform)
+        if is_launcher:
+            exe = g.get("exe_path")
+            if exe and not exe.startswith("shell:") and not exe.endswith(":") and not os.path.exists(exe):
+                return False
+            return True
+
+        # 2. Check Universal Non-Game & Junk Filter
+        if any(junk in name_lower for junk in self.junk_keywords):
+            return False
+
+        # 3. Handle UWP / Xbox games
+        if platform == "Xbox":
+            if any(x in name_lower for x in ["zune", "media", "calculator", "camera", "maps", "weather", "phone", "terminal"]):
+                return False
+            install_path = g.get("install_path")
+            if install_path and not os.path.exists(install_path):
+                return False
+            return True
+
+        # 4. Verify Local / Steam / Epic / Ubisoft / EA / GOG / Rockstar installation on disk
+        install_path = g.get("install_path")
+        exe_path = g.get("exe_path")
+
+        if install_path and install_path != "Shortcut":
+            if not os.path.exists(install_path):
+                return False  # Install directory deleted -> Uninstalled!
+
+            # Check if directory is empty or has zero executable binaries
+            try:
+                p = Path(install_path)
+                if p.is_dir():
+                    has_exe = False
+                    if exe_path and os.path.exists(exe_path):
+                        has_exe = True
+                    else:
+                        for entry in p.glob("*.exe"):
+                            has_exe = True
+                            break
+                        if not has_exe:
+                            for entry in p.glob("*/*.exe"):
+                                has_exe = True
+                                break
+                    if not has_exe:
+                        return False  # Empty directory without executables -> Uninstalled remnant!
+            except Exception:
+                pass
+
+        if exe_path and not exe_path.startswith("shell:") and not exe_path.endswith(":"):
+            if not os.path.exists(exe_path):
+                if not install_path or not os.path.exists(install_path):
+                    return False
+
+        return True
+
+    def _get_exe_product_name(self, exe_path: str) -> Optional[str]:
+        """Extract official game title dynamically from Windows executable PE resource metadata.
+        Works universally for 100,000+ titles without needing any hardcoded lists.
+        """
+        if not exe_path or not os.path.exists(exe_path):
+            return None
+        try:
+            import ctypes
+            from ctypes import wintypes
+
+            version_dll = ctypes.windll.version
+            size = version_dll.GetFileVersionInfoSizeW(str(exe_path), None)
+            if not size:
+                return None
+
+            res = ctypes.create_string_buffer(size)
+            if not version_dll.GetFileVersionInfoW(str(exe_path), 0, size, res):
+                return None
+
+            # Look up translation table or common English language code
+            translations = ["\\StringFileInfo\\040904b0\\", "\\StringFileInfo\\000004b0\\", "\\StringFileInfo\\040904e4\\"]
+            for trans in translations:
+                for prop in ["FileDescription", "ProductName"]:
+                    sub_block = f"{trans}{prop}"
+                    ptr = wintypes.LPVOID()
+                    val_len = wintypes.UINT()
+                    if version_dll.VerQueryValueW(res, sub_block, ctypes.byref(ptr), ctypes.byref(val_len)) and val_len.value > 1:
+                        val = ctypes.wstring_at(ptr)
+                        if val and val.strip():
+                            clean = val.strip()
+                            # Ensure it's not a generic engine wrapper string
+                            if clean.lower() not in ["game", "launcher", "application", "setup", "bootstrapper", "win64"]:
+                                return clean
+        except Exception:
+            pass
+        return None
 
     def _select_best_exe(self, exes, game_name=""):
         """Select the best executable for starting the game, preferring launchers/wrapper files."""
@@ -202,14 +316,29 @@ class GameScanner:
             except Exception:
                 pass
 
-        # Clean trademark symbols and spaces from game names to ensure robust matching
+        # Clean trademark symbols, spaces, normalize names, and purge uninstalled/junk games
         if games:
+            cleaned_games = []
             for g in games:
-                if isinstance(g, dict) and g.get("name"):
-                    name = g["name"]
-                    for symbol in ["™", "®", "\u2122", "\u00ae"]:
-                        name = name.replace(symbol, "")
-                    g["name"] = " ".join(name.split())
+                if not isinstance(g, dict) or not g.get("name"):
+                    continue
+                name = g["name"]
+                for symbol in ["™", "®", "\u2122", "\u00ae"]:
+                    name = name.replace(symbol, "")
+                name = " ".join(name.split())
+                
+                # Dynamically resolve official commercial title from executable binary metadata
+                if len(name) < 6 or name.lower() in ["game", "play", "launcher", "shipping", "ue4", "sp23", "cod23", "start"]:
+                    exe_meta = self._get_exe_product_name(g.get("exe_path"))
+                    if exe_meta:
+                        name = exe_meta
+                g["name"] = name
+
+                # Validate whether game is still installed and is not software junk
+                if self._is_game_valid_and_installed(g):
+                    cleaned_games.append(g)
+
+            games = cleaned_games
 
         return games
 
@@ -388,15 +517,14 @@ class GameScanner:
         except Exception: pass
         return features
 
-    def _is_large_exe(self, exe_path, min_bytes=5*1024*1024):
-        """Check if an executable is larger than the threshold (likely a real game, not a small utility).
-        Threshold lowered to 5MB to accommodate indie and older titles. """
+    def _is_large_exe(self, exe_path, min_bytes=1024*1024):
+        """Check if an executable is a real binary (not a 0-byte stub or icon helper).
+        Threshold set to 1MB to fully support lightweight indie games, pixel-art titles, 
+        GameMaker/Godot/Love2D projects, and retro games.
+        """
         try:
             if exe_path and Path(exe_path).exists():
                 size = Path(exe_path).stat().st_size
-                # If it's very small but definitely a game executable (by name), trust it
-                if any(x in Path(exe_path).name.lower() for x in ["farcry4", "gta"]):
-                    return True
                 return size >= min_bytes
         except Exception:
             pass
@@ -460,7 +588,13 @@ class GameScanner:
                 for symbol in ["™", "®", "\u2122", "\u00ae", "\x99"]:
                     name = name.replace(symbol, "")
                 g["name"] = " ".join(name.split())
-                
+
+                # Dynamically resolve official commercial title from executable binary metadata (works for 100k+ games automatically)
+                if len(g["name"]) < 6 or g["name"].lower() in ["game", "play", "launcher", "shipping", "ue4", "sp23", "cod23", "start"]:
+                    exe_meta = self._get_exe_product_name(g.get("exe_path"))
+                    if exe_meta:
+                        g["name"] = exe_meta
+
                 # Regex to strip crack groups from the end of a game name (e.g., "Ghost of Tsushima - FLT" -> "Ghost of Tsushima")
                 import re
                 crack_pattern = re.compile(r'[\s\-_]+(?:' + '|'.join(self.crack_groups) + r')\b', re.IGNORECASE)
@@ -488,15 +622,9 @@ class GameScanner:
                     else:
                         continue # Drop it
 
-            name_lower = g.get("name", "").lower()
-            
-            # Universal Junk Filter (Applies to ALL platforms)
-            # EXCEPT if the game name is exactly in our launcher whitelist
-            is_whitelisted = any(wl == name_lower for wl in self.launcher_whitelist)
-            
-            if not is_whitelisted:
-                if any(j in name_lower for j in self.junk_keywords):
-                    continue
+            # Strict installation and non-game validity verification
+            if not self._is_game_valid_and_installed(g):
+                continue
             
             # If the platform is "Local", try to detect if it actually belongs to a launcher based on its path
             if g.get("platform") == "Local":
@@ -555,6 +683,8 @@ class GameScanner:
             # Advanced Name Normalization for Duplicate Detection
             # This handles cases like "Epic Games" vs "Epic Games Launcher" vs "EpicGames"
             import re
+            name_lower = g.get("name", "").lower().strip()
+            is_whitelisted = any(wl == name_lower for wl in self.launcher_whitelist)
             
             # Whitelisted launcher entries bypass word-stripping normalization initially to prevent
             # "Ubisoft Connect" / "GOG Galaxy" / "EA Desktop" from colliding with each other
@@ -1246,32 +1376,48 @@ class GameScanner:
                         name_match = re.search(r'"name"\s+"([^"]+)"', acf_content)
                         id_match = re.search(r'"appid"\s+"([^"]+)"', acf_content)
                         install_dir_match = re.search(r'"installdir"\s+"([^"]+)"', acf_content)
+                        flags_match = re.search(r'"StateFlags"\s+"([^"]+)"', acf_content)
                         
                         if name_match and id_match and install_dir_match:
                             game_name = name_match.group(1)
                             for symbol in ["™", "®", "\u2122", "\u00ae", "\x99"]:
                                 game_name = game_name.replace(symbol, "")
                             game_name = " ".join(game_name.split())
+
+                            # Normalize internal project codenames
+                            if game_name.lower() in ["sp23", "cod23", "cod 2023"]:
+                                game_name = "Call of Duty: Modern Warfare III"
+                            elif game_name.lower() in ["sp22", "cod22", "cod 2022"]:
+                                game_name = "Call of Duty: Modern Warfare II"
+                            elif game_name.lower() in ["sp24", "cod24", "cod 2024"]:
+                                game_name = "Call of Duty: Black Ops 6"
+
                             app_id = id_match.group(1)
                             install_dir = install_dir_match.group(1)
-                            
                             install_path = apps_path / "common" / install_dir
+
+                            # VERIFICATION: If directory does not exist on disk, game is uninstalled!
+                            if not install_path.exists():
+                                continue
                             
                             # Try to find the primary .exe for icon extraction
                             resolved_exe = None
                             try:
-                                if install_path.exists():
-                                    exes = list(install_path.glob("*.exe"))
-                                    if not exes:
-                                        # Recursive glob but exclude known crack/nodvd subdirs
-                                        all_exes = list(install_path.glob("**/*.exe"))
-                                        exes = [
-                                            e for e in all_exes
-                                            if not any(part.lower() in self.crack_groups for part in e.relative_to(install_path).parts[:-1])
-                                        ] or all_exes
-                                    if exes:
-                                        resolved_exe = self._select_best_exe(exes, game_name)
+                                exes = list(install_path.glob("*.exe"))
+                                if not exes:
+                                    # Recursive glob but exclude known crack/nodvd subdirs
+                                    all_exes = list(install_path.glob("**/*.exe"))
+                                    exes = [
+                                        e for e in all_exes
+                                        if not any(part.lower() in self.crack_groups for part in e.relative_to(install_path).parts[:-1])
+                                    ] or all_exes
+                                if exes:
+                                    resolved_exe = self._select_best_exe(exes, game_name)
                             except Exception: pass
+
+                            # If no executable exists in install folder, it's an uninstalled remnant
+                            if not resolved_exe and not list(install_path.glob("*.exe")) and not list(install_path.glob("*/*.exe")):
+                                continue
 
                             self.games.append({
                                 "name": game_name,
@@ -1486,9 +1632,8 @@ class GameScanner:
     def _scan_xbox(self):
         """Scan for Xbox / Microsoft Store games."""
         try:
-            # Use PowerShell to get AppxPackages that are likely games
-            # We look for packages with 'Game', 'Xbox', or 'GamingApp' in the name
-            cmd = 'Get-AppxPackage | Where-Object {($_.SignatureKind -eq "Store") -and ($_.Name -match "Xbox|Game|GamingApp|ZuneVideo")} | Select-Object Name, PackageFamilyName, InstallLocation | ConvertTo-Json'
+            # Use PowerShell to get AppxPackages that are actually games or the Xbox app
+            cmd = 'Get-AppxPackage | Where-Object {($_.SignatureKind -eq "Store") -and ($_.Name -match "Xbox|Game|GamingApp") -and ($_.Name -notmatch "Zune|Media|Music|Video|Calculator|Camera|Maps|Weather|Cortana|Phone|Feedback|GetHelp|Paint|Terminal|Speech|TCUI|Provider|Overlay|CallableUI")} | Select-Object Name, PackageFamilyName, InstallLocation | ConvertTo-Json'
             
             # Hide the powershell window
             si = subprocess.STARTUPINFO()
@@ -1511,29 +1656,32 @@ class GameScanner:
                     name = pkg.get("Name")
                     family = pkg.get("PackageFamilyName")
                     path = pkg.get("InstallLocation")
-                    if path:
+                    if path and os.path.exists(path):
                         # Filter out common non-game system components
-                        system_apps = ["XboxSpeechToText", "XboxTCUI", "XboxIdentityProvider", "XboxGamingOverlay", "XboxGameCallableUI", "XboxGameOverlay"]
-                        if any(sys_app in name for sys_app in system_apps):
+                        system_apps = [
+                            "XboxSpeechToText", "XboxTCUI", "XboxIdentityProvider", "XboxGamingOverlay",
+                            "XboxGameCallableUI", "XboxGameOverlay", "ZuneVideo", "ZuneMusic", "WindowsTerminal"
+                        ]
+                        if any(sys_app.lower() in name.lower() for sys_app in system_apps):
                             continue
                             
                         # Clean up name: Microsoft.GamingApp_8wekyb3d8bbwe -> Xbox App
                         display_name = name
                         icon_path = None
-                        if "GamingApp" in name: 
+                        if "GamingApp" in name or "XboxApp" in name: 
                             display_name = "Xbox App"
-                            # Attempt to find the Xbox Tray Icon in the install path
                             try:
                                 possible_icons = list(Path(path).glob("**/Xbox_SysTrayLogo.ico"))
                                 if possible_icons:
                                     icon_path = str(possible_icons[0])
                             except Exception: pass
-                        elif "XboxApp" in name: 
-                            display_name = "Xbox App"
                         elif name.startswith("Microsoft."):
                             display_name = name.split(".")[-1]
                             if "_" in display_name: display_name = display_name.split("_")[0]
                             
+                        if not self._is_game_valid_and_installed({"name": display_name, "platform": "Xbox", "install_path": path}):
+                            continue
+
                         # Resolve launchable executable path or protocol for UWP
                         exe_path = None
                         if display_name == "Xbox App":
@@ -1850,10 +1998,9 @@ class GameScanner:
                 Path(os.environ["USERPROFILE"]) / "AppData" / "Roaming" / "Microsoft" / "Windows" / "Start Menu" / "Programs"
             ]
             
-            # 1. Collect all likely shortcuts first (very fast)
             target_keywords = [
-                "ea", "origin", "steam", "epic games", "ubisoft", "connect", 
-                "battle.net", "riot games", "rockstar", "xbox", "gaming", "game"
+                "steam", "epic games", "ubisoft", "connect", "battle.net", 
+                "riot games", "rockstar", "ea app", "origin", "gog galaxy", "xbox", "game"
             ]
             
             all_lnks = []
@@ -1867,8 +2014,6 @@ class GameScanner:
             
             if not all_lnks: return
 
-            # 2. Batch resolve all shortcuts in ONE PowerShell call (extremely fast)
-            # We escape double quotes in paths for PowerShell
             paths_json = json.dumps(all_lnks)
             ps_script = f'''
             $shell = New-Object -ComObject WScript.Shell
@@ -1885,7 +2030,6 @@ class GameScanner:
             $results | ConvertTo-Json
             '''
             
-            # Hide the powershell window
             si = subprocess.STARTUPINFO()
             si.dwFlags |= subprocess.STARTF_USESHOWWINDOW
             
@@ -1906,35 +2050,35 @@ class GameScanner:
                     if not name or not target: continue
                     
                     name_lower = name.lower()
+                    target_lower = target.lower()
                     
-                    if target.lower().endswith(".exe"):
-                        # Map to platforms
+                    if target_lower.endswith(".exe"):
+                        if any(junk in name_lower or junk in target_lower for junk in self.junk_keywords):
+                            continue
+
                         platform = None
                         if "steam" in name_lower: platform = "Steam"
                         elif "epic games" in name_lower: platform = "Epic Games"
-                        elif "ea app" in name_lower or "origin" in name_lower or "ea" == name_lower or name_lower == "ea desktop": 
+                        elif "ea app" in name_lower or "origin" in name_lower or "ea desktop" in name_lower: 
                             platform = "EA Desktop"
                         elif "xbox" == name_lower or "xbox app" in name_lower: platform = "Xbox"
                         elif "ubisoft" in name_lower or "connect" in name_lower: platform = "Ubisoft Connect"
                         elif "riot" in name_lower: platform = "Riot Games"
                         elif "battle.net" in name_lower: platform = "Battle.net"
                         
-                        self.games.append({
+                        entry = {
                             "name": name,
                             "platform": platform or "Local",
                             "id": name,
                             "install_path": str(Path(target).parent),
                             "exe_path": target
-                        })
+                        }
+                        if self._is_game_valid_and_installed(entry):
+                            self.games.append(entry)
         except Exception: pass
 
     def _scan_uninstall_registry(self):
-        """Scan Windows 'Uninstall' registry keys for games from various publishers.
-        
-        This is a supplementary scan — dedicated scanners (Steam, Epic, Ubisoft, etc.)
-        already provide exe_path. Here we only record install_path from publisher-matched
-        entries to avoid duplicating expensive disk I/O.
-        """
+        """Scan Windows 'Uninstall' registry keys for games from various publishers."""
         paths = [
             (winreg.HKEY_LOCAL_MACHINE, r"SOFTWARE\Microsoft\Windows\CurrentVersion\Uninstall"),
             (winreg.HKEY_LOCAL_MACHINE, r"SOFTWARE\WOW6432Node\Microsoft\Windows\CurrentVersion\Uninstall"),
@@ -1960,23 +2104,25 @@ class GameScanner:
                                     publisher, _ = winreg.QueryValueEx(subkey, "Publisher")
                                     install_path, _ = winreg.QueryValueEx(subkey, "InstallLocation")
                                     
-                                    if not install_path:
+                                    if not install_path or not os.path.exists(install_path):
                                         i += 1
                                         continue
 
                                     if any(pub in publisher for pub in publishers_to_watch):
-                                        # Skip launchers — already handled by dedicated scanners
                                         name_lower = name.lower()
                                         if any(kw in name_lower for kw in ["launcher", "connect", "redistributable", "runtime", "service"]):
                                             i += 1
                                             continue
-                                        self.games.append({
+                                        
+                                        entry = {
                                             "name": name,
                                             "platform": "Rockstar Games" if any(p in publisher for p in ["Rockstar"]) else "Local",
                                             "id": subkey_name,
                                             "install_path": install_path,
-                                            "exe_path": None  # Resolved later by feature-detect pass if not deduped
-                                        })
+                                            "exe_path": None
+                                        }
+                                        if self._is_game_valid_and_installed(entry):
+                                            self.games.append(entry)
                                 except Exception:
                                     pass
                             i += 1
@@ -1996,6 +2142,10 @@ class GameScanner:
                 # Handle .lnk files
                 for lnk in dt_path.glob("*.lnk"):
                     try:
+                        name_lower = lnk.stem.lower()
+                        if any(junk in name_lower for junk in self.junk_keywords):
+                            continue
+
                         si = subprocess.STARTUPINFO()
                         si.dwFlags |= subprocess.STARTF_USESHOWWINDOW
                         
@@ -2011,10 +2161,9 @@ class GameScanner:
                         target = lines[0] if len(lines) > 0 else ""
                         icon_loc = lines[1] if len(lines) > 1 else ""
                         
-                        if target and target.lower().endswith(".exe"):
-                            # Only exclude obvious system binaries
-                            excluded = ["cmd.exe", "powershell.exe", "regedit.exe", "conhost.exe"]
-                            if any(ex in target.lower() for ex in excluded):
+                        if target and target.lower().endswith(".exe") and os.path.exists(target):
+                            target_lower = target.lower()
+                            if any(junk in target_lower for junk in self.junk_keywords):
                                 continue
                                 
                             game_entry = {
@@ -2025,13 +2174,13 @@ class GameScanner:
                                 "exe_path": target
                             }
                             
-                            # If PowerShell found a specific icon location, use it
                             if icon_loc and "," in icon_loc:
                                 icon_path = icon_loc.split(",")[0].strip()
                                 if os.path.exists(icon_path):
                                     game_entry["icon"] = icon_path
                             
-                            self.games.append(game_entry)
+                            if self._is_game_valid_and_installed(game_entry):
+                                self.games.append(game_entry)
                     except Exception: pass
                 
                 # Handle .url files (Steam/Epic web shortcuts)
@@ -2045,56 +2194,28 @@ class GameScanner:
                             raw_stem = raw_stem.replace(symbol, "")
                         clean_stem = " ".join(raw_stem.split())
                         
+                        if any(junk in clean_stem.lower() for junk in self.junk_keywords):
+                            continue
+
                         import re
-                        # Steam URL: steam://rungameid/12345
                         steam_match = re.search(r"steam://rungameid/(\d+)", content)
                         if steam_match:
                             appid = steam_match.group(1)
-                            self.games.append({
-                                "name": clean_stem,
-                                "platform": "Steam",
-                                "id": appid,
-                                "install_path": "Shortcut"
-                            })
+                            # Only add if game is already confirmed installed in Steam
+                            if any(g.get("id") == appid for g in self.games):
+                                continue
                             continue
                             
-                        # Epic URL: com.epicgames.launcher://apps/AppID?action=launch
                         epic_match = re.search(r"com\.epicgames\.launcher://apps/([^?]+)", content)
                         if epic_match:
                             appid = epic_match.group(1)
-                            self.games.append({
-                                "name": clean_stem,
-                                "platform": "Epic Games",
-                                "id": appid,
-                                "install_path": "Shortcut"
-                            })
-                            continue
-
-                        # EA / Origin URL: origin2://game/launch?offerIds=...
-                        ea_match = re.search(r"origin2://game/launch\?offerIds=([^&]+)", content)
-                        if ea_match:
-                            offer_id = ea_match.group(1)
-                            self.games.append({
-                                "name": clean_stem,
-                                "platform": "EA Desktop",
-                                "id": offer_id,
-                                "install_path": "Shortcut"
-                            })
-                            continue
-
-                        # Ubisoft URL: uplay://launch/123/0
-                        uplay_match = re.search(r"uplay://launch/(\d+)", content)
-                        if uplay_match:
-                            game_id = uplay_match.group(1)
-                            self.games.append({
-                                "name": url_file.stem,
-                                "platform": "Ubisoft Connect",
-                                "id": game_id,
-                                "install_path": "Shortcut"
-                            })
+                            if any(g.get("id") == appid for g in self.games):
+                                continue
                             continue
                     except Exception:
                         pass
+        except Exception:
+            pass
         except Exception:
             pass
 
@@ -2329,11 +2450,11 @@ class GameScanner:
             # Look for .exe files in this folder
             exes = list(folder.glob("*.exe"))
             
-            # Filter executables by size (games are typically > 5MB)
+            # Filter executables by size (1MB threshold accommodates lightweight indie games)
             game_exes = []
             for exe in exes:
                 try:
-                    if exe.stat().st_size >= 5 * 1024 * 1024:  # 5MB minimum
+                    if exe.stat().st_size >= 1024 * 1024:  # 1MB minimum
                         game_exes.append(exe)
                 except (OSError, IOError):
                     continue

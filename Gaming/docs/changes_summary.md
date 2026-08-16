@@ -12,7 +12,26 @@ Comprehensive breakdown of major milestone releases, architectural upgrades, and
 
 ---
 
-## 🌟 Version v3.1.7 (Latest) — Multi-Vendor GPU Support & Unified GPU Tuning
+## 🌟 Version v3.1.8 (Latest) — Direct GitHub Releases In-App Updater Fallback & Elevated Offline Rollback
+
+### 🛠️ Key Highlights
+1. **Direct GitHub Releases Auto-Updater Fallback**: Implemented direct GitHub Releases API integration into the Electron auto-updater, ensuring seamless in-app background download even when `latest.yml` manifests are absent.
+2. **Elevated Offline Rollback Architecture**: Refactored the automated offline rollback recovery subsystem using multi-stage robocopy retry loops and automatic UAC elevation escalation.
+3. **Interactive Retry Download Controls**: Added responsive retry and rollback triggers directly into the application Updates dashboard.
+4. **AI Memory & Type Safety**: Resolved shadowed local variable imports in AI brain memory subsystem and updated end-to-end Vitest test suites.
+
+### 📊 Architecture & Data Flow
+```mermaid
+graph TD
+    A["GitHub Releases API / Artifact Host"] --> B["Electron autoUpdater Fallback"]
+    B --> C["Mission Control Staging & Verification"]
+    C --> D["UAC-Elevated Robocopy Rollback Loop"]
+    D --> E["Electron In-App Updates Dashboard"]
+```
+
+---
+
+## 📦 Version v3.1.7 — Multi-Vendor GPU Support & Unified GPU Tuning
 
 ### 🛠️ Key Highlights
 1. **Multi-Vendor GPU Capability Detection**: Added detection and telemetry for AMD Radeon (RDNA 2/3) and Intel Arc GPUs alongside existing NVIDIA GeForce RTX architectures.
