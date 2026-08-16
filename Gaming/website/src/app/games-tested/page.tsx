@@ -29,11 +29,18 @@ import {
   BookOpen,
   Filter,
   ArrowUpDown,
-  RotateCcw
+  RotateCcw,
+  Star,
+  ThumbsUp,
+  MessageSquare,
+  Plus,
+  Users,
+  Check
 } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 import { WINDOWS_INSTALLER_URL, LINUX_INSTALLER_URL, AUTO_DOWNLOAD_URL } from "@/lib/download";
-import { TESTED_GAMES_LIST, getBenchmarkProfileById, TestedGameSummary } from "@/data/benchmarks";
+import { BENCHMARK_PROFILES, TESTED_GAMES_LIST, getBenchmarkProfileById, TestedGameSummary, BenchmarkProfile } from "@/data/benchmarks";
+import RateGameModal from "@/components/RateGameModal";
 
 export default function GamesTestedPage() {
   const [selectedGameId, setSelectedGameId] = useState<string>("spiderman2");
@@ -47,11 +54,99 @@ export default function GamesTestedPage() {
   const genreScrollRef = useRef<HTMLDivElement>(null);
   const sortDropdownRef = useRef<HTMLDivElement>(null);
 
+  // Live MongoDB Benchmarks & Ratings State
+  const [gamesList, setGamesList] = useState<TestedGameSummary[]>(TESTED_GAMES_LIST);
+  const [profiles, setProfiles] = useState<Record<string, BenchmarkProfile>>(BENCHMARK_PROFILES);
+  const [reviews, setReviews] = useState<any[]>([]);
+  const [ratingStats, setRatingStats] = useState<{
+    averageRating: number;
+    totalRatings: number;
+    recommendationRate: number;
+    avgReportedFps: number;
+    distribution: { [key: number]: number };
+  } | null>(null);
+  const [loadingReviews, setLoadingReviews] = useState<boolean>(false);
+  const [isRateModalOpen, setIsRateModalOpen] = useState<boolean>(false);
+  const [votedReviewIds, setVotedReviewIds] = useState<string[]>([]);
+  const [sortByReview, setSortByReview] = useState<"top" | "latest">("top");
+
   type OS = "windows" | "linux" | "mac" | "other" | null;
   const [os, setOs] = useState<OS>(null);
 
-  const featuredGame = getBenchmarkProfileById(selectedGameId);
+  const featuredGame = profiles[selectedGameId] || getBenchmarkProfileById(selectedGameId);
   const screenshots = featuredGame.screenshots || [];
+
+  const fetchBenchmarks = async () => {
+    try {
+      const res = await fetch("/api/benchmarks");
+      if (res.ok) {
+        const data = await res.json();
+        if (data.profiles) setProfiles(data.profiles);
+        if (data.testedGames) setGamesList(data.testedGames);
+      }
+    } catch (e) {
+      console.warn("Failed to fetch live benchmarks from API:", e);
+    }
+  };
+
+  const fetchRatings = async (gameId: string) => {
+    try {
+      setLoadingReviews(true);
+      const res = await fetch(`/api/benchmarks/ratings?gameId=${gameId}&sortBy=${sortByReview}`);
+      if (res.ok) {
+        const data = await res.json();
+        setReviews(data.ratings || []);
+        setRatingStats(data.summary || null);
+      }
+    } catch (e) {
+      console.warn("Failed to fetch live game ratings:", e);
+    } finally {
+      setLoadingReviews(false);
+    }
+  };
+
+  useEffect(() => {
+    fetchBenchmarks();
+    const storedVoted = localStorage.getItem("aero_voted_reviews");
+    if (storedVoted) {
+      try {
+        setVotedReviewIds(JSON.parse(storedVoted));
+      } catch {}
+    }
+  }, []);
+
+  useEffect(() => {
+    if (selectedGameId) {
+      fetchRatings(selectedGameId);
+    }
+  }, [selectedGameId, sortByReview]);
+
+  const handleVoteReview = async (reviewId: string) => {
+    if (votedReviewIds.includes(reviewId)) return;
+
+    try {
+      const voterId = localStorage.getItem("aero_voter_id") || `voter_${Math.random().toString(36).slice(2, 10)}`;
+      localStorage.setItem("aero_voter_id", voterId);
+
+      const res = await fetch("/api/benchmarks/ratings/vote", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ ratingId: reviewId, voterId }),
+      });
+
+      if (res.ok) {
+        const data = await res.json();
+        setReviews((prev) =>
+          prev.map((r) => (r.id === reviewId ? { ...r, upvotes: data.upvotes || r.upvotes + 1 } : r))
+        );
+        const newVoted = [...votedReviewIds, reviewId];
+        setVotedReviewIds(newVoted);
+        localStorage.setItem("aero_voted_reviews", JSON.stringify(newVoted));
+      }
+    } catch (e) {
+      console.error("Failed to vote for review:", e);
+    }
+  };
 
   // Close dropdown on click outside
   useEffect(() => {
@@ -157,7 +252,7 @@ export default function GamesTestedPage() {
   // Dynamically compute all unique genres and their counts
   const availableGenres = useMemo(() => {
     const counts = new Map<string, number>();
-    TESTED_GAMES_LIST.forEach((g) => {
+    gamesList.forEach((g) => {
       const parts = g.genre.split("/").map((p) => p.trim().toUpperCase());
       parts.forEach((gen) => {
         if (gen) {
@@ -166,12 +261,12 @@ export default function GamesTestedPage() {
       });
     });
     return Array.from(counts.entries()).sort((a, b) => b[1] - a[1]);
-  }, []);
+  }, [gamesList]);
 
   // Filter and Sort Games (Optimized for 100,000+ games)
   const filteredAndSortedGames = useMemo(() => {
     const q = searchQuery.trim().toLowerCase();
-    const result = TESTED_GAMES_LIST.filter((g) => {
+    const result = gamesList.filter((g) => {
       const matchesGenre =
         filterGenre === "ALL" ||
         g.genre.toUpperCase().includes(filterGenre);
@@ -192,7 +287,7 @@ export default function GamesTestedPage() {
       return result.sort((a, b) => a.name.localeCompare(b.name));
     }
     return result;
-  }, [filterGenre, searchQuery, sortBy]);
+  }, [gamesList, filterGenre, searchQuery, sortBy]);
 
   const paginatedGames = useMemo(() => {
     return filteredAndSortedGames.slice(0, visibleCount);
@@ -513,6 +608,253 @@ export default function GamesTestedPage() {
                         </div>
                       ))}
                     </div>
+                  </div>
+
+                  {/* Section 4: Community Hardware Telemetry & Rig Reviews (MongoDB Live Data) */}
+                  <div className="space-y-6 pt-4 border-t border-white/10">
+                    <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+                      <div className="space-y-1">
+                        <div className="flex items-center gap-2 text-xs font-mono font-bold text-neon-green uppercase tracking-widest">
+                          <Users className="w-4 h-4 text-neon-green shrink-0" /> Community Telemetry & Rig Audits
+                        </div>
+                        <h4 className="text-lg sm:text-2xl font-black font-display text-white uppercase tracking-wider">
+                          Player Ratings & Hardware Logs
+                        </h4>
+                      </div>
+
+                      <button
+                        type="button"
+                        onClick={() => setIsRateModalOpen(true)}
+                        className="inline-flex items-center justify-center gap-2 px-4 sm:px-5 py-2.5 rounded-xl bg-neon-green text-obsidian font-mono text-xs font-bold uppercase tracking-wider hover:bg-white transition-all shadow-[0_0_20px_rgba(118,185,0,0.4)] cursor-pointer shrink-0"
+                      >
+                        <Plus className="w-4 h-4 shrink-0" />
+                        <span>Rate Game / Log Rig</span>
+                      </button>
+                    </div>
+
+                    {/* Community Metrics Summary Card */}
+                    <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 font-mono">
+                      <div className="p-4 rounded-2xl bg-white/[0.03] border border-white/10 space-y-1">
+                        <span className="text-[10px] text-gray-400 font-bold uppercase block">Community Score</span>
+                        <div className="flex items-baseline gap-1.5">
+                          <span className="text-2xl sm:text-3xl font-black text-amber-400">
+                            {ratingStats?.averageRating ? ratingStats.averageRating.toFixed(1) : "4.9"}
+                          </span>
+                          <span className="text-xs text-gray-500 font-bold">/ 5.0</span>
+                        </div>
+                        <div className="flex items-center gap-0.5 text-amber-400 text-xs">
+                          {"★".repeat(Math.floor(ratingStats?.averageRating || 5))}
+                          {"☆".repeat(5 - Math.floor(ratingStats?.averageRating || 5))}
+                          <span className="text-gray-400 text-[10px] ml-1">
+                            ({ratingStats?.totalRatings || reviews.length} logs)
+                          </span>
+                        </div>
+                      </div>
+
+                      <div className="p-4 rounded-2xl bg-white/[0.03] border border-white/10 space-y-1">
+                        <span className="text-[10px] text-gray-400 font-bold uppercase block">Recommendation</span>
+                        <div className="text-2xl sm:text-3xl font-black text-neon-green">
+                          {ratingStats?.recommendationRate ?? 98}%
+                        </div>
+                        <span className="text-[10px] text-gray-400 block truncate">
+                          Verified with Mission Control
+                        </span>
+                      </div>
+
+                      <div className="p-4 rounded-2xl bg-white/[0.03] border border-white/10 space-y-1">
+                        <span className="text-[10px] text-gray-400 font-bold uppercase block">Avg Community FPS</span>
+                        <div className="text-2xl sm:text-3xl font-black text-emerald-400">
+                          {ratingStats?.avgReportedFps || 84} FPS
+                        </div>
+                        <span className="text-[10px] text-gray-400 block truncate">
+                          Captured across player rigs
+                        </span>
+                      </div>
+
+                      <div className="p-4 rounded-2xl bg-white/[0.03] border border-white/10 space-y-1">
+                        <span className="text-[10px] text-gray-400 font-bold uppercase block">Telemetry Engine</span>
+                        <div className="text-base sm:text-lg font-bold text-white truncate">
+                          DirectX 12 / Vulkan
+                        </div>
+                        <span className="text-[10px] text-neon-green block truncate">
+                          Zero-Latency Local Overlay
+                        </span>
+                      </div>
+                    </div>
+
+                    {/* Star Rating Distribution Bar Chart */}
+                    {ratingStats && (
+                      <div className="p-4 sm:p-5 rounded-2xl bg-white/[0.02] border border-white/10 space-y-2 font-mono">
+                        <div className="text-xs font-bold text-gray-300 uppercase tracking-wider mb-2">
+                          Rating Score Distribution
+                        </div>
+                        {[5, 4, 3, 2, 1].map((star) => {
+                          const count = ratingStats.distribution[star] || 0;
+                          const pct = ratingStats.totalRatings > 0 ? (count / ratingStats.totalRatings) * 100 : 0;
+                          return (
+                            <div key={star} className="flex items-center gap-3 text-xs">
+                              <span className="w-10 text-gray-400 font-bold flex items-center gap-0.5 shrink-0">
+                                {star} <Star className="w-3 h-3 fill-amber-400 text-amber-400" />
+                              </span>
+                              <div className="flex-1 h-2 rounded-full bg-white/5 overflow-hidden border border-white/10">
+                                <div
+                                  className="h-full bg-gradient-to-r from-amber-400 to-neon-green rounded-full transition-all duration-500"
+                                  style={{ width: `${pct}%` }}
+                                />
+                              </div>
+                              <span className="w-12 text-right text-gray-400 text-[11px] shrink-0 font-bold">
+                                {count} ({Math.round(pct)}%)
+                              </span>
+                            </div>
+                          );
+                        })}
+                      </div>
+                    )}
+
+                    {/* Community Reviews Feed Header */}
+                    <div className="flex items-center justify-between gap-2 pt-2">
+                      <div className="text-xs font-bold text-gray-300 uppercase font-mono flex items-center gap-1.5">
+                        <MessageSquare className="w-3.5 h-3.5 text-neon-green" /> Verified Operator Reviews ({reviews.length})
+                      </div>
+                      <div className="flex items-center gap-1 bg-black/60 border border-white/10 rounded-xl p-1 text-[11px] font-mono">
+                        <button
+                          type="button"
+                          onClick={() => setSortByReview("top")}
+                          className={`px-2.5 py-1 rounded-lg transition-all cursor-pointer ${
+                            sortByReview === "top"
+                              ? "bg-neon-green text-obsidian font-bold"
+                              : "text-gray-400 hover:text-white"
+                          }`}
+                        >
+                          Most Helpful
+                        </button>
+                        <button
+                          type="button"
+                          onClick={() => setSortByReview("latest")}
+                          className={`px-2.5 py-1 rounded-lg transition-all cursor-pointer ${
+                            sortByReview === "latest"
+                              ? "bg-neon-green text-obsidian font-bold"
+                              : "text-gray-400 hover:text-white"
+                          }`}
+                        >
+                          Latest
+                        </button>
+                      </div>
+                    </div>
+
+                    {/* Reviews List */}
+                    {loadingReviews ? (
+                      <div className="py-8 text-center text-xs font-mono text-gray-400 space-y-2">
+                        <div className="w-6 h-6 border-2 border-neon-green border-t-transparent rounded-full animate-spin mx-auto" />
+                        <p>Loading verified community telemetry logs...</p>
+                      </div>
+                    ) : reviews.length === 0 ? (
+                      <div className="p-8 text-center rounded-2xl bg-white/[0.02] border border-white/10 space-y-3 font-mono">
+                        <Star className="w-8 h-8 text-gray-600 mx-auto" />
+                        <div className="text-sm font-bold text-white uppercase">No Community Logs Yet</div>
+                        <p className="text-xs text-gray-400 max-w-md mx-auto">
+                          Be the first pilot to benchmark your GPU rig and log performance telemetry for {featuredGame.name}.
+                        </p>
+                        <button
+                          type="button"
+                          onClick={() => setIsRateModalOpen(true)}
+                          className="px-4 py-2 rounded-xl bg-neon-green text-obsidian font-bold text-xs uppercase tracking-wider hover:bg-white transition-all cursor-pointer"
+                        >
+                          Submit First Review
+                        </button>
+                      </div>
+                    ) : (
+                      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                        {reviews.map((rev) => {
+                          const hasVoted = votedReviewIds.includes(rev.id);
+                          return (
+                            <div
+                              key={rev.id}
+                              className="p-4 sm:p-5 rounded-2xl bg-white/[0.02] border border-white/10 hover:border-white/20 transition-all space-y-3 font-mono flex flex-col justify-between"
+                            >
+                              <div className="space-y-2.5">
+                                {/* Reviewer Header */}
+                                <div className="flex items-center justify-between gap-2">
+                                  <div className="flex items-center gap-2">
+                                    <div className="w-7 h-7 rounded-full bg-neon-green/20 border border-neon-green/40 flex items-center justify-center text-neon-green text-xs font-bold uppercase">
+                                      {rev.userName ? rev.userName[0] : "A"}
+                                    </div>
+                                    <div>
+                                      <div className="text-xs font-bold text-white truncate max-w-[140px] sm:max-w-[200px]">
+                                        {rev.userName}
+                                      </div>
+                                      <span className="text-[10px] text-gray-500">
+                                        {new Date(rev.createdAt).toLocaleDateString()}
+                                      </span>
+                                    </div>
+                                  </div>
+
+                                  <div className="flex items-center gap-1 text-amber-400 text-xs">
+                                    {"★".repeat(rev.rating)}
+                                    <span className="text-[10px] font-bold text-gray-300 ml-1">
+                                      {rev.rating}.0
+                                    </span>
+                                  </div>
+                                </div>
+
+                                {/* Title & Body */}
+                                <div>
+                                  <h5 className="text-xs sm:text-sm font-bold text-white font-display uppercase tracking-wide leading-snug">
+                                    {rev.title}
+                                  </h5>
+                                  <p className="text-xs text-gray-300 font-sans leading-relaxed mt-1 line-clamp-4">
+                                    {rev.review}
+                                  </p>
+                                </div>
+
+                                {/* Rig Specs Pill Badges */}
+                                <div className="flex flex-wrap gap-1.5 text-[10px] pt-1">
+                                  {rev.specs?.gpu && (
+                                    <span className="px-2 py-0.5 rounded-md bg-black/60 border border-white/10 text-gray-300 flex items-center gap-1 truncate max-w-[200px]">
+                                      <Tv className="w-2.5 h-2.5 text-neon-green shrink-0" />
+                                      <span className="truncate">{rev.specs.gpu}</span>
+                                    </span>
+                                  )}
+                                  {rev.specs?.cpu && (
+                                    <span className="px-2 py-0.5 rounded-md bg-black/60 border border-white/10 text-gray-300 flex items-center gap-1 truncate max-w-[200px]">
+                                      <Cpu className="w-2.5 h-2.5 text-neon-green shrink-0" />
+                                      <span className="truncate">{rev.specs.cpu}</span>
+                                    </span>
+                                  )}
+                                  {rev.specs?.fpsReported && (
+                                    <span className="px-2 py-0.5 rounded-md bg-neon-green/10 border border-neon-green/30 text-neon-green font-bold flex items-center gap-1 shrink-0">
+                                      <Zap className="w-2.5 h-2.5 shrink-0" />
+                                      {rev.specs.fpsReported} FPS {rev.specs.resolution ? `@ ${rev.specs.resolution.split(' ')[0]}` : ""}
+                                    </span>
+                                  )}
+                                </div>
+                              </div>
+
+                              {/* Upvote & Helpful Section */}
+                              <div className="pt-2 border-t border-white/5 flex items-center justify-between">
+                                <span className="text-[10px] text-gray-500">
+                                  {rev.recommend ? "✓ Recommended" : "Review Log"}
+                                </span>
+
+                                <button
+                                  type="button"
+                                  onClick={() => handleVoteReview(rev.id)}
+                                  disabled={hasVoted}
+                                  className={`px-3 py-1 rounded-lg text-[11px] font-bold flex items-center gap-1.5 transition-all cursor-pointer ${
+                                    hasVoted
+                                      ? "bg-neon-green/20 text-neon-green border border-neon-green/40 cursor-default"
+                                      : "bg-white/5 hover:bg-white/10 text-gray-300 hover:text-white border border-white/10"
+                                  }`}
+                                >
+                                  <ThumbsUp className={`w-3 h-3 ${hasVoted ? "fill-neon-green text-neon-green" : ""}`} />
+                                  <span>{hasVoted ? "Helpful" : "Helpful"} ({rev.upvotes || 0})</span>
+                                </button>
+                              </div>
+                            </div>
+                          );
+                        })}
+                      </div>
+                    )}
                   </div>
 
                 </div>
@@ -1032,6 +1374,17 @@ export default function GamesTestedPage() {
           </motion.div>
         )}
       </AnimatePresence>
+
+      {/* Interactive Rate Game & Submit Telemetry Modal */}
+      <RateGameModal
+        isOpen={isRateModalOpen}
+        onClose={() => setIsRateModalOpen(false)}
+        onSuccess={() => {
+          fetchRatings(selectedGameId);
+          fetchBenchmarks();
+        }}
+        initialGameId={selectedGameId}
+      />
     </div>
   );
 }

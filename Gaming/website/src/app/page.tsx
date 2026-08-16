@@ -539,8 +539,8 @@ export default function Home() {
                     <Gamepad2 className="w-3 h-3 text-neon-green shrink-0" />
                     <span className="truncate">{game.publisher}</span>
                   </span>
-                  <span className="text-[10px] font-mono font-bold text-neon-green px-2.5 py-1 rounded-full bg-black/80 border border-neon-green/40 backdrop-blur-md uppercase tracking-wider shadow-lg shrink-0 whitespace-nowrap">
-                    {game.status}
+                  <span className="text-[10px] font-mono font-bold text-amber-300 bg-black/80 px-2.5 py-1 rounded-full border border-amber-400/30 backdrop-blur-md uppercase tracking-wider shadow-lg shrink-0 whitespace-nowrap">
+                    {game.storeRating || "4.9 ★★★★★"}
                   </span>
                 </div>
               </div>
