@@ -9,6 +9,12 @@ import {
   getBenchmarkProfileById,
 } from "@/data/benchmarks";
 
+export interface GameRatingMedia {
+  url: string;
+  type: "image" | "gif" | "video";
+  name?: string;
+}
+
 export interface GameRatingItem {
   id: string;
   gameId: string;
@@ -27,6 +33,7 @@ export interface GameRatingItem {
     os: string;
     presetUsed?: string;
   };
+  media?: GameRatingMedia[];
   recommend: boolean;
   upvotes: number;
   createdAt: string;
@@ -40,189 +47,15 @@ export interface RatingStats {
   distribution: { [key: number]: number };
 }
 
-// Initial community seed ratings to populate when collection is empty
-const INITIAL_SEED_RATINGS = [
-  {
-    gameId: "spiderman2",
-    gameName: "Marvel's Spider-Man 2",
-    userName: "VortexRunner",
-    rating: 5,
-    title: "Incredible 80+ FPS at 4K with DLSS 4 Frame Gen",
-    review: "Mission Control preset optimizations completely eliminated micro-stutters during high-speed web-wings traversal through Manhattan wind tunnels. VRAM allocation remained steady at 6.4 GB.",
-    specs: {
-      gpu: "NVIDIA GeForce RTX 4080 Super",
-      cpu: "AMD Ryzen 7 7800X3D",
-      ramGB: 32,
-      resolution: "4K (3840x2160)",
-      fpsReported: 84,
-      os: "Windows 11 Pro",
-      presetUsed: "Ultra Ray Tracing + Frame Gen",
-    },
-    recommend: true,
-    upvotes: 42,
-  },
-  {
-    gameId: "spiderman2",
-    gameName: "Marvel's Spider-Man 2",
-    userName: "CyberKnight_99",
-    rating: 5,
-    title: "Smooth 1440p 120 FPS on RTX 4070 Ti",
-    review: "Reflex ultra-low latency mode reduced input lag down to 9.8ms. Ray-traced reflections in Central Park puddles look phenomenal without frame drops.",
-    specs: {
-      gpu: "NVIDIA GeForce RTX 4070 Ti",
-      cpu: "Intel Core i7-14700K",
-      ramGB: 32,
-      resolution: "1440p (2560x1440)",
-      fpsReported: 118,
-      os: "Windows 11",
-      presetUsed: "Ultra Ray Tracing + DLSS Quality",
-    },
-    recommend: true,
-    upvotes: 28,
-  },
-  {
-    gameId: "spiderman2",
-    gameName: "Marvel's Spider-Man 2",
-    userName: "AeroPilot",
-    rating: 4,
-    title: "Solid 65 FPS on RTX 3070 with High Presets",
-    review: "On RTX 30 series, dropping crowd density by one tier and enabling Mission Control telemetry allowed locked 60+ FPS throughout symbiote battles.",
-    specs: {
-      gpu: "NVIDIA GeForce RTX 3070",
-      cpu: "AMD Ryzen 5 5600X",
-      ramGB: 16,
-      resolution: "1440p",
-      fpsReported: 67,
-      os: "Windows 10",
-      presetUsed: "High Settings + DLSS Quality",
-    },
-    recommend: true,
-    upvotes: 19,
-  },
-  {
-    gameId: "gtav",
-    gameName: "Grand Theft Auto V Enhanced",
-    userName: "SpeedDemon_X",
-    rating: 5,
-    title: "190+ FPS Ultra Butter Smooth Experience",
-    review: "Ultra settings with soft shadows at 1080p produces insane responsiveness. Zero frame pacing anomalies even during 5-star police chases.",
-    specs: {
-      gpu: "NVIDIA GeForce RTX 4090",
-      cpu: "Intel Core i9-13900K",
-      ramGB: 64,
-      resolution: "1440p",
-      fpsReported: 195,
-      os: "Windows 11",
-      presetUsed: "Ultra Maxed Out",
-    },
-    recommend: true,
-    upvotes: 35,
-  },
-  {
-    gameId: "gtav",
-    gameName: "Grand Theft Auto V Enhanced",
-    userName: "LosSantosDrifter",
-    rating: 5,
-    title: "Locked 144 FPS with minimal power draw",
-    review: "Tested on RTX 3080 with Mission Control power profile. GPU hovered at 68C with whisper-quiet fan speeds.",
-    specs: {
-      gpu: "NVIDIA GeForce RTX 3080",
-      cpu: "AMD Ryzen 7 5800X3D",
-      ramGB: 32,
-      resolution: "1440p",
-      fpsReported: 148,
-      os: "Windows 11",
-      presetUsed: "Very High Settings",
-    },
-    recommend: true,
-    upvotes: 21,
-  },
-  {
-    gameId: "tsushima",
-    gameName: "Ghost of Tsushima Director's Cut",
-    userName: "SamuraiJin",
-    rating: 5,
-    title: "107 FPS Benchmark Verified with DLSS 4 Frame Gen",
-    review: "Wind particles and golden leaf foliage in Otsuna marshes render with incredible fidelity. Exclusive Fullscreen ETW telemetry confirmed zero stutters.",
-    specs: {
-      gpu: "NVIDIA GeForce RTX 4080",
-      cpu: "AMD Ryzen 9 7900X",
-      ramGB: 32,
-      resolution: "4K (3840x2160)",
-      fpsReported: 110,
-      os: "Windows 11",
-      presetUsed: "Very High / DLSS Quality",
-    },
-    recommend: true,
-    upvotes: 31,
-  },
-  {
-    gameId: "tsushima",
-    gameName: "Ghost of Tsushima Director's Cut",
-    userName: "RoninBlade",
-    rating: 5,
-    title: "Flawless combat parry timing with Reflex low latency",
-    review: "Stand-off duels feel instantaneous. System latency clocked at 11.2ms on DX12 Ultimate.",
-    specs: {
-      gpu: "NVIDIA GeForce RTX 4070",
-      cpu: "Intel Core i5-13600K",
-      ramGB: 32,
-      resolution: "1440p",
-      fpsReported: 98,
-      os: "Windows 11",
-      presetUsed: "Very High Preset",
-    },
-    recommend: true,
-    upvotes: 17,
-  },
-  {
-    gameId: "nfsheat",
-    gameName: "Need For Speed Heat",
-    userName: "NightCrawler_9",
-    rating: 5,
-    title: "Frostbite 3 Engine runs brilliantly at 75+ FPS",
-    review: "Night neon rain reflections and wet asphalt shaders look stunning. Mission Control memory cleanup recovered 800MB VRAM.",
-    specs: {
-      gpu: "NVIDIA GeForce RTX 3070 Ti",
-      cpu: "AMD Ryzen 7 5700X",
-      ramGB: 32,
-      resolution: "1440p",
-      fpsReported: 76,
-      os: "Windows 10",
-      presetUsed: "Ultra Frostbite",
-    },
-    recommend: true,
-    upvotes: 14,
-  },
-  {
-    gameId: "thedivision",
-    gameName: "Tom Clancy's The Division",
-    userName: "AgentShadow",
-    rating: 5,
-    title: "Snowdrop volumetric weather benchmark passed",
-    review: "Blizzard storms in the Dark Zone maintain a locked 94 FPS with 10.6ms latency. Ultra settings fully utilized DX12 multithreaded command lists.",
-    specs: {
-      gpu: "NVIDIA GeForce RTX 4070 Super",
-      cpu: "AMD Ryzen 7 7700X",
-      ramGB: 32,
-      resolution: "1440p",
-      fpsReported: 96,
-      os: "Windows 11",
-      presetUsed: "Ultra Snowdrop",
-    },
-    recommend: true,
-    upvotes: 22,
-  },
-];
-
 /**
- * Ensures MongoDB is populated with initial benchmark profiles and seed community ratings.
+ * Ensures MongoDB is populated with initial verified benchmark profiles (admin-curated).
+ * Community posts and user ratings are strictly user-generated without mock data.
  */
 export async function ensureBenchmarksSeeded(): Promise<void> {
   try {
     await connectDB();
 
-    // 1. Seed Benchmark Profiles
+    // Seed Admin Benchmark Profiles if collection is empty
     const benchmarkCount = await BenchmarkModel.countDocuments();
     if (benchmarkCount === 0) {
       const benchmarkDocs = Object.values(BENCHMARK_PROFILES).map((profile) => {
@@ -232,25 +65,18 @@ export async function ensureBenchmarksSeeded(): Promise<void> {
           coverImage: summary?.coverImage || `/games/${profile.id}.webp`,
           gameplayGif: summary?.gameplayGif || summary?.coverImage,
           keyTech: summary?.keyTech || ["DirectX 12", "Reflex", "DLSS"],
-          averageRating: profile.id === "spiderman2" ? 4.9 : profile.id === "gtav" ? 4.8 : profile.id === "tsushima" ? 4.9 : 4.7,
-          totalRatings: profile.id === "spiderman2" ? 142 : profile.id === "gtav" ? 210 : 86,
-          recommendationRate: 98,
-          avgReportedFps: parseInt(profile.testedSpecs.avgFps) || 80,
+          averageRating: profile.score ? profile.score / 20 : 5.0,
+          totalRatings: 0,
+          recommendationRate: 100,
+          avgReportedFps: parseInt(profile.testedSpecs.avgFps) || 60,
         };
       });
 
       await BenchmarkModel.insertMany(benchmarkDocs);
       console.log(`[MongoDB] Successfully seeded ${benchmarkDocs.length} benchmark profiles.`);
     }
-
-    // 2. Seed Initial Community Game Ratings
-    const ratingsCount = await GameRatingModel.countDocuments();
-    if (ratingsCount === 0) {
-      await GameRatingModel.insertMany(INITIAL_SEED_RATINGS);
-      console.log(`[MongoDB] Successfully seeded ${INITIAL_SEED_RATINGS.length} community ratings.`);
-    }
   } catch (error) {
-    console.warn("[MongoDB] Seed operation error (falling back to static defaults):", error);
+    console.warn("[MongoDB] Benchmark profiles seed error (falling back to static defaults):", error);
   }
 }
 
@@ -445,22 +271,14 @@ export async function getGameRatings(
       title: doc.title,
       review: doc.review,
       specs: doc.specs,
+      media: doc.media || [],
       recommend: doc.recommend,
       upvotes: doc.upvotes || 0,
       createdAt: doc.createdAt ? new Date(doc.createdAt).toISOString() : new Date().toISOString(),
     }));
   } catch (error) {
     console.error("Error fetching community ratings from MongoDB:", error);
-    // Fallback seed ratings
-    const filtered = gameId && gameId !== "all"
-      ? INITIAL_SEED_RATINGS.filter((r) => r.gameId === gameId)
-      : INITIAL_SEED_RATINGS;
-
-    return filtered.map((r, idx) => ({
-      id: `seed-${idx}`,
-      ...r,
-      createdAt: new Date().toISOString(),
-    }));
+    return [];
   }
 }
 
@@ -478,11 +296,11 @@ export async function getRatingSummary(gameId?: string): Promise<RatingStats> {
     const ratings = await GameRatingModel.find(query).lean();
     if (ratings.length === 0) {
       return {
-        averageRating: 4.9,
-        totalRatings: 1,
+        averageRating: 0,
+        totalRatings: 0,
         recommendationRate: 100,
-        avgReportedFps: 80,
-        distribution: { 5: 1, 4: 0, 3: 0, 2: 0, 1: 0 },
+        avgReportedFps: 0,
+        distribution: { 5: 0, 4: 0, 3: 0, 2: 0, 1: 0 },
       };
     }
 
@@ -514,11 +332,11 @@ export async function getRatingSummary(gameId?: string): Promise<RatingStats> {
   } catch (error) {
     console.error("Error computing rating summary:", error);
     return {
-      averageRating: 4.9,
-      totalRatings: INITIAL_SEED_RATINGS.length,
-      recommendationRate: 98,
-      avgReportedFps: 85,
-      distribution: { 5: 7, 4: 2, 3: 0, 2: 0, 1: 0 },
+      averageRating: 0,
+      totalRatings: 0,
+      recommendationRate: 100,
+      avgReportedFps: 0,
+      distribution: { 5: 0, 4: 0, 3: 0, 2: 0, 1: 0 },
     };
   }
 }
@@ -542,6 +360,7 @@ export async function createGameRating(ratingData: {
     os: string;
     presetUsed?: string;
   };
+  media?: GameRatingMedia[];
   recommend: boolean;
 }): Promise<GameRatingItem | null> {
   try {
@@ -576,6 +395,7 @@ export async function createGameRating(ratingData: {
       title: doc.title,
       review: doc.review,
       specs: doc.specs,
+      media: doc.media || [],
       recommend: doc.recommend,
       upvotes: doc.upvotes,
       createdAt: doc.createdAt.toISOString(),

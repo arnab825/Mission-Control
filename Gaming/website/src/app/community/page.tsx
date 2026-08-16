@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useState, useRef, useMemo } from "react";
 import { 
   Zap, 
   ChevronDown, 
@@ -23,7 +23,11 @@ import {
   Sliders,
   Users,
   ShieldCheck,
-  Sparkles
+  Sparkles,
+  Search,
+  X,
+  ArrowUpDown,
+  Check
 } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 import ReportModal from "@/components/ReportModal";
@@ -67,10 +71,23 @@ interface GameRatingItem {
     os: string;
     presetUsed?: string;
   };
+  media?: Array<{
+    url: string;
+    type: "image" | "gif" | "video";
+    name?: string;
+  }>;
   recommend: boolean;
   upvotes: number;
   createdAt: string;
 }
+
+const GAME_FILTER_LABELS: Record<string, string> = {
+  spiderman2: "Spider-Man 2",
+  gtav: "GTA V",
+  tsushima: "Ghost of Tsushima",
+  nfsheat: "NFS Heat",
+  thedivision: "The Division",
+};
 
 export default function CommunityPage() {
   // Main Tab: "ratings" | "glitches"
@@ -81,13 +98,15 @@ export default function CommunityPage() {
   const [loadingRatings, setLoadingRatings] = useState(true);
   const [ratingGameFilter, setRatingGameFilter] = useState<string>("all");
   const [ratingSortBy, setRatingSortBy] = useState<"top" | "latest">("top");
+  const [ratingSearchQuery, setRatingSearchQuery] = useState<string>("");
   const [isRateModalOpen, setIsRateModalOpen] = useState(false);
+  const [isRatingSortOpen, setIsRatingSortOpen] = useState(false);
   const [votedReviewIds, setVotedReviewIds] = useState<string[]>([]);
   const [ratingStats, setRatingStats] = useState({
     totalRatings: 0,
-    averageRating: 4.9,
-    recommendationRate: 98,
-    avgReportedFps: 84
+    averageRating: 0,
+    recommendationRate: 100,
+    avgReportedFps: 0
   });
 
   // Glitches / Issues State
@@ -95,6 +114,7 @@ export default function CommunityPage() {
   const [loadingIssues, setLoadingIssues] = useState(true);
   const [votedIssueIds, setVotedIssueIds] = useState<string[]>([]);
   const [isIssueModalOpen, setIsIssueModalOpen] = useState(false);
+  const [isIssueSortOpen, setIsIssueSortOpen] = useState(false);
   const [categoryFilter, setCategoryFilter] = useState<string>("all");
   const [issueSortBy, setIssueSortBy] = useState<"votes" | "latest">("votes");
   const [expandedIssueId, setExpandedIssueId] = useState<string | null>(null);
@@ -104,6 +124,23 @@ export default function CommunityPage() {
     hardware: 0,
     performance: 0
   });
+
+  const ratingSortRef = useRef<HTMLDivElement>(null);
+  const issueSortRef = useRef<HTMLDivElement>(null);
+
+  // Close dropdowns on outside click
+  useEffect(() => {
+    const handleClickOutside = (e: MouseEvent) => {
+      if (ratingSortRef.current && !ratingSortRef.current.contains(e.target as Node)) {
+        setIsRatingSortOpen(false);
+      }
+      if (issueSortRef.current && !issueSortRef.current.contains(e.target as Node)) {
+        setIsIssueSortOpen(false);
+      }
+    };
+    document.addEventListener("mousedown", handleClickOutside);
+    return () => document.removeEventListener("mousedown", handleClickOutside);
+  }, []);
 
   // Fetch Community Game Ratings
   const fetchRatings = async () => {
@@ -120,9 +157,9 @@ export default function CommunityPage() {
         if (data.summary) {
           setRatingStats({
             totalRatings: data.summary.totalRatings || data.ratings?.length || 0,
-            averageRating: data.summary.averageRating || 4.9,
-            recommendationRate: data.summary.recommendationRate || 98,
-            avgReportedFps: data.summary.avgReportedFps || 84
+            averageRating: data.summary.averageRating || 0,
+            recommendationRate: data.summary.recommendationRate ?? 100,
+            avgReportedFps: data.summary.avgReportedFps || 0
           });
         }
       }
@@ -142,7 +179,6 @@ export default function CommunityPage() {
         const data = await res.json();
         setIssues(data);
         
-        // Calculate category stats
         const counts = data.reduce((acc: any, curr: Issue) => {
           acc.total++;
           if (curr.category === "glitch") acc.glitches++;
@@ -181,16 +217,26 @@ export default function CommunityPage() {
       } catch {}
     }
 
-    if (typeof window !== "undefined") {
+    // Synchronize active tab & modal states with URL query params
+    const handleUrlSync = () => {
+      if (typeof window === "undefined") return;
       const searchParams = new URLSearchParams(window.location.search);
-      if (searchParams.get("report") === "true") {
+      const tabParam = searchParams.get("tab");
+      const reportParam = searchParams.get("report") === "true";
+      const rateParam = searchParams.get("rate") === "true";
+
+      if (tabParam === "glitches" || reportParam) {
         setActiveTab("glitches");
-        setIsIssueModalOpen(true);
-      } else if (searchParams.get("rate") === "true") {
+        if (reportParam) setIsIssueModalOpen(true);
+      } else if (tabParam === "ratings" || rateParam) {
         setActiveTab("ratings");
-        setIsRateModalOpen(true);
+        if (rateParam) setIsRateModalOpen(true);
       }
-    }
+    };
+
+    handleUrlSync();
+    window.addEventListener("popstate", handleUrlSync);
+    return () => window.removeEventListener("popstate", handleUrlSync);
   }, []);
 
   const handleVoteIssue = async (issueId: string) => {
@@ -250,18 +296,35 @@ export default function CommunityPage() {
     setExpandedIssueId(expandedIssueId === id ? null : id);
   };
 
-  const processedIssues = [...issues]
-    .filter(issue => {
-      if (categoryFilter === "all") return true;
-      return issue.category === categoryFilter;
-    })
-    .sort((a, b) => {
-      if (issueSortBy === "votes") {
-        return b.votes - a.votes;
-      } else {
-        return new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime();
-      }
-    });
+  // Filtered Reviews based on text search
+  const processedReviews = useMemo(() => {
+    const q = ratingSearchQuery.trim().toLowerCase();
+    if (!q) return reviews;
+    return reviews.filter(
+      (r) =>
+        r.title.toLowerCase().includes(q) ||
+        r.review.toLowerCase().includes(q) ||
+        r.gameName.toLowerCase().includes(q) ||
+        r.userName.toLowerCase().includes(q) ||
+        r.specs.gpu.toLowerCase().includes(q) ||
+        r.specs.cpu.toLowerCase().includes(q)
+    );
+  }, [reviews, ratingSearchQuery]);
+
+  const processedIssues = useMemo(() => {
+    return [...issues]
+      .filter((issue) => {
+        if (categoryFilter === "all") return true;
+        return issue.category === categoryFilter;
+      })
+      .sort((a, b) => {
+        if (issueSortBy === "votes") {
+          return b.votes - a.votes;
+        } else {
+          return new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime();
+        }
+      });
+  }, [issues, categoryFilter, issueSortBy]);
 
   const getCategoryColor = (cat: string) => {
     switch (cat) {
@@ -289,13 +352,13 @@ export default function CommunityPage() {
           className="text-center space-y-4 max-w-3xl mx-auto"
         >
           <div className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full bg-neon-green/10 border border-neon-green/30 text-neon-green text-xs font-bold font-mono tracking-widest uppercase backdrop-blur-md">
-            <Radio className="w-3.5 h-3.5 text-neon-green animate-pulse" /> COMMUNITY HARDWARE & TELEMETRY HUB
+            <Radio className="w-3.5 h-3.5 text-neon-green animate-pulse" /> COMMUNITY HARDWARE & GAMING HUB
           </div>
           <h1 className="text-2xl min-[375px]:text-3xl sm:text-6xl font-black font-display uppercase tracking-tight text-white">
             COMMUNITY <br className="sm:hidden" /> <span className="text-neon-green glow-text-teal">INTEL HUB</span>
           </h1>
           <p className="max-w-2xl mx-auto text-xs sm:text-base text-gray-400 leading-relaxed font-sans">
-            Inspect real-world gaming rig benchmarks, verified player ratings, or submit system driver glitches to trigger automated telemetry hotfixes.
+            Read real player game reviews, compare hardware rig setups, or submit system driver glitches to trigger community fixes.
           </p>
         </motion.div>
 
@@ -311,7 +374,7 @@ export default function CommunityPage() {
               }`}
             >
               <Star className="w-4 h-4 fill-current" />
-              <span>Game Ratings & Rig Logs</span>
+              <span>Community Reviews & Rig Posts</span>
             </button>
 
             <button
@@ -323,7 +386,7 @@ export default function CommunityPage() {
               }`}
             >
               <AlertTriangle className="w-4 h-4" />
-              <span>Telemetry Glitch Tracker</span>
+              <span>Kernel Telemetry Glitch Tracker</span>
             </button>
           </div>
         </div>
@@ -334,10 +397,26 @@ export default function CommunityPage() {
             {/* Rating Stats Grid */}
             <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
               {[
-                { label: "Community Verified Logs", count: ratingStats.totalRatings || reviews.length, color: "border-white/10 text-white" },
-                { label: "Overall Star Score", count: `${ratingStats.averageRating.toFixed(1)} / 5.0`, color: "border-amber-400/40 text-amber-400" },
-                { label: "Recommendation Rate", count: `${ratingStats.recommendationRate}%`, color: "border-neon-green/40 text-neon-green glow-text-teal" },
-                { label: "Avg Player Rig FPS", count: `${ratingStats.avgReportedFps} FPS`, color: "border-emerald-400/40 text-emerald-400" }
+                { 
+                  label: "Community Reviews", 
+                  count: ratingStats.totalRatings || reviews.length, 
+                  color: "border-white/10 text-white" 
+                },
+                { 
+                  label: "Average Rating", 
+                  count: ratingStats.averageRating > 0 ? `${ratingStats.averageRating.toFixed(1)} / 5.0` : "Unrated", 
+                  color: "border-amber-400/40 text-amber-400" 
+                },
+                { 
+                  label: "Player Recommendation", 
+                  count: `${ratingStats.recommendationRate}%`, 
+                  color: "border-neon-green/40 text-neon-green glow-text-teal" 
+                },
+                { 
+                  label: "Avg Player Rig FPS", 
+                  count: ratingStats.avgReportedFps > 0 ? `${ratingStats.avgReportedFps} FPS` : "—", 
+                  color: "border-emerald-400/40 text-emerald-400" 
+                }
               ].map((item, idx) => (
                 <div key={idx} className="glass-card p-5 flex flex-col items-center justify-center text-center space-y-1 border">
                   <span className="text-[9px] min-[375px]:text-[11px] uppercase font-mono font-bold text-gray-400 tracking-wider">
@@ -351,54 +430,128 @@ export default function CommunityPage() {
             </div>
 
             {/* Game Filters & Action Bar */}
-            <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 p-4 rounded-2xl glass-card border border-white/10">
-              {/* Game Selector Tabs */}
-              <div className="flex flex-wrap gap-2">
+            <div className="space-y-4 p-4 rounded-2xl glass-card border border-white/10">
+              
+              {/* Game Selector Pills */}
+              <div className="flex items-center gap-2 overflow-x-auto pb-1 no-scrollbar">
                 <button
                   onClick={() => setRatingGameFilter("all")}
-                  className={`px-3.5 py-2 rounded-xl text-xs font-mono font-bold uppercase tracking-wider transition-all duration-300 border cursor-pointer ${
+                  className={`px-4 py-2 rounded-xl text-xs font-mono font-bold uppercase tracking-wider transition-all duration-300 border cursor-pointer shrink-0 ${
                     ratingGameFilter === "all"
                       ? "bg-neon-green text-obsidian border-neon-green shadow-[0_0_15px_rgba(118,185,0,0.4)]"
                       : "bg-white/[0.03] text-gray-400 border-white/5 hover:bg-white/10 hover:text-white"
                   }`}
                 >
-                  All Tested Titles
+                  All Games
                 </button>
-                {TESTED_GAMES_LIST.map((game) => (
-                  <button
-                    key={game.id}
-                    onClick={() => setRatingGameFilter(game.id)}
-                    className={`px-3.5 py-2 rounded-xl text-xs font-mono font-bold uppercase tracking-wider transition-all duration-300 border cursor-pointer ${
-                      ratingGameFilter === game.id
-                        ? "bg-neon-green text-obsidian border-neon-green shadow-[0_0_15px_rgba(118,185,0,0.4)]"
-                        : "bg-white/[0.03] text-gray-400 border-white/5 hover:bg-white/10 hover:text-white"
-                    }`}
-                  >
-                    {game.name.split(" ")[0]}
-                  </button>
-                ))}
+                {TESTED_GAMES_LIST.map((game) => {
+                  const label = GAME_FILTER_LABELS[game.id] || game.name;
+                  const isSelected = ratingGameFilter === game.id;
+                  return (
+                    <button
+                      key={game.id}
+                      onClick={() => setRatingGameFilter(game.id)}
+                      className={`px-4 py-2 rounded-xl text-xs font-mono font-bold uppercase tracking-wider transition-all duration-300 border cursor-pointer shrink-0 ${
+                        isSelected
+                          ? "bg-neon-green text-obsidian border-neon-green shadow-[0_0_15px_rgba(118,185,0,0.4)]"
+                          : "bg-white/[0.03] text-gray-400 border-white/5 hover:bg-white/10 hover:text-white"
+                      }`}
+                    >
+                      {label}
+                    </button>
+                  );
+                })}
               </div>
 
-              {/* Sorting and Submit button */}
-              <div className="flex flex-col min-[440px]:flex-row items-stretch min-[440px]:items-center gap-3 w-full sm:w-auto">
-                <div className="flex items-center gap-2 bg-obsidian/90 border border-white/10 rounded-xl px-3.5 py-2 text-xs font-mono text-gray-300 justify-center w-full min-[440px]:w-auto">
-                  <Filter className="w-3.5 h-3.5 text-neon-green" />
-                  <select
-                    value={ratingSortBy}
-                    onChange={(e: any) => setRatingSortBy(e.target.value)}
-                    className="bg-transparent border-none focus:outline-none cursor-pointer text-white font-mono flex-1 min-[440px]:flex-none text-center"
-                  >
-                    <option className="bg-obsidian text-white" value="top">Most Helpful Reviews</option>
-                    <option className="bg-obsidian text-white" value="latest">Latest Logged</option>
-                  </select>
+              {/* Search, Custom Sort Dropdown & Action Button */}
+              <div className="flex flex-col md:flex-row items-stretch md:items-center justify-between gap-3 pt-2 border-t border-white/5">
+                
+                {/* Search Bar for reviews */}
+                <div className="relative flex-1">
+                  <Search className="w-4 h-4 text-gray-400 absolute left-3.5 top-1/2 -translate-y-1/2 pointer-events-none" />
+                  <input
+                    type="text"
+                    value={ratingSearchQuery}
+                    onChange={(e) => setRatingSearchQuery(e.target.value)}
+                    placeholder="Search reviews by rig, GPU, CPU, player or keyword..."
+                    className="w-full pl-10 pr-9 py-2 bg-black/60 border border-white/15 focus:border-neon-green rounded-xl text-xs font-mono text-white placeholder-gray-500 focus:outline-none transition-all"
+                  />
+                  {ratingSearchQuery && (
+                    <button
+                      onClick={() => setRatingSearchQuery("")}
+                      className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 hover:text-white cursor-pointer"
+                    >
+                      <X className="w-3.5 h-3.5" />
+                    </button>
+                  )}
                 </div>
 
-                <button
-                  onClick={() => setIsRateModalOpen(true)}
-                  className="px-5 py-2.5 text-xs font-black uppercase tracking-wider rounded-xl bg-neon-green text-obsidian hover:bg-white hover:shadow-[0_0_20px_rgba(118,185,0,0.4)] transition-all duration-300 cursor-pointer font-mono flex items-center justify-center gap-1.5 w-full min-[440px]:w-auto"
-                >
-                  <Plus className="w-4 h-4" /> Rate a Game
-                </button>
+                <div className="flex items-center gap-3">
+                  {/* Custom Glassmorphic Sort Dropdown */}
+                  <div className="relative" ref={ratingSortRef}>
+                    <button
+                      type="button"
+                      onClick={() => setIsRatingSortOpen(!isRatingSortOpen)}
+                      className="w-full sm:w-auto bg-black/70 hover:bg-black/90 border border-white/15 hover:border-neon-green/50 rounded-xl px-4 py-2 text-xs font-mono font-bold text-gray-200 uppercase tracking-wider flex items-center justify-between gap-2.5 transition-all shadow-lg cursor-pointer select-none"
+                    >
+                      <div className="flex items-center gap-2">
+                        <Filter className="w-3.5 h-3.5 text-neon-green shrink-0" />
+                        <span>{ratingSortBy === "top" ? "Most Helpful" : "Latest Reviews"}</span>
+                      </div>
+                      <ChevronDown className={`w-3.5 h-3.5 text-gray-400 transition-transform duration-200 ${isRatingSortOpen ? "rotate-180 text-neon-green" : ""}`} />
+                    </button>
+
+                    <AnimatePresence>
+                      {isRatingSortOpen && (
+                        <motion.div
+                          initial={{ opacity: 0, y: -6 }}
+                          animate={{ opacity: 1, y: 0 }}
+                          exit={{ opacity: 0, y: -6 }}
+                          className="absolute right-0 top-full mt-1.5 w-48 bg-[#0b0c10] border border-white/15 rounded-xl shadow-2xl overflow-hidden z-30 p-1 font-mono text-xs"
+                        >
+                          <button
+                            type="button"
+                            onClick={() => {
+                              setRatingSortBy("top");
+                              setIsRatingSortOpen(false);
+                            }}
+                            className={`w-full px-3 py-2 rounded-lg text-left transition-colors flex items-center justify-between cursor-pointer ${
+                              ratingSortBy === "top"
+                                ? "bg-neon-green text-obsidian font-bold"
+                                : "text-gray-300 hover:bg-white/5 hover:text-white"
+                            }`}
+                          >
+                            <span>Most Helpful</span>
+                            {ratingSortBy === "top" && <Check className="w-3.5 h-3.5" />}
+                          </button>
+                          <button
+                            type="button"
+                            onClick={() => {
+                              setRatingSortBy("latest");
+                              setIsRatingSortOpen(false);
+                            }}
+                            className={`w-full px-3 py-2 rounded-lg text-left transition-colors flex items-center justify-between cursor-pointer ${
+                              ratingSortBy === "latest"
+                                ? "bg-neon-green text-obsidian font-bold"
+                                : "text-gray-300 hover:bg-white/5 hover:text-white"
+                            }`}
+                          >
+                            <span>Latest Logged</span>
+                            {ratingSortBy === "latest" && <Check className="w-3.5 h-3.5" />}
+                          </button>
+                        </motion.div>
+                      )}
+                    </AnimatePresence>
+                  </div>
+
+                  <button
+                    onClick={() => setIsRateModalOpen(true)}
+                    className="px-5 py-2 text-xs font-black uppercase tracking-wider rounded-xl bg-neon-green text-obsidian hover:bg-white hover:shadow-[0_0_20px_rgba(118,185,0,0.4)] transition-all duration-300 cursor-pointer font-mono flex items-center justify-center gap-1.5 shrink-0"
+                  >
+                    <Plus className="w-4 h-4" /> Share Review
+                  </button>
+                </div>
+
               </div>
             </div>
 
@@ -406,23 +559,29 @@ export default function CommunityPage() {
             {loadingRatings ? (
               <div className="flex flex-col items-center justify-center py-20 space-y-4">
                 <div className="w-10 h-10 border-4 border-neon-green border-t-transparent rounded-full animate-spin"></div>
-                <p className="text-xs text-neon-green font-mono tracking-wider uppercase">Loading community rig telemetry...</p>
+                <p className="text-xs text-neon-green font-mono tracking-wider uppercase">Loading community reviews...</p>
               </div>
-            ) : reviews.length === 0 ? (
-              <div className="text-center py-20 glass-card rounded-2xl border border-white/10 space-y-3">
+            ) : processedReviews.length === 0 ? (
+              <div className="text-center py-20 glass-card rounded-2xl border border-white/10 space-y-3 font-mono">
                 <Star className="w-10 h-10 text-gray-500 mx-auto" />
-                <h3 className="text-base sm:text-lg font-bold text-white font-display uppercase leading-tight px-4">No reviews found for this title</h3>
-                <p className="text-xs sm:text-sm text-gray-400 font-mono px-4">Be the first operator to log your frame rates and benchmark rating.</p>
+                <h3 className="text-base sm:text-lg font-bold text-white font-display uppercase leading-tight px-4">
+                  {ratingSearchQuery ? "No matching community posts" : "No community reviews posted yet"}
+                </h3>
+                <p className="text-xs sm:text-sm text-gray-400 px-4 max-w-md mx-auto">
+                  {ratingSearchQuery 
+                    ? "Try adjusting your search terms or clearing the filter."
+                    : "Be the first community member to share your gameplay impressions and rig setup."}
+                </p>
                 <button
                   onClick={() => setIsRateModalOpen(true)}
                   className="mt-2 px-5 py-2.5 rounded-xl bg-neon-green text-obsidian font-bold text-xs uppercase tracking-wider font-mono hover:bg-white transition-all shadow-lg cursor-pointer"
                 >
-                  Submit First Benchmark Review
+                  + Write First Community Review
                 </button>
               </div>
             ) : (
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                {reviews.map((rev) => {
+                {processedReviews.map((rev) => {
                   const hasVoted = votedReviewIds.includes(rev.id);
                   return (
                     <div
@@ -470,6 +629,38 @@ export default function CommunityPage() {
                           </p>
                         </div>
 
+                        {/* Attached Media Gallery (Images, GIFs, Videos) */}
+                        {rev.media && rev.media.length > 0 && (
+                          <div className="grid grid-cols-2 gap-2 pt-1">
+                            {rev.media.map((m, mIdx) => (
+                              <div
+                                key={mIdx}
+                                className="relative aspect-video rounded-xl overflow-hidden bg-black/80 border border-white/15 group/media"
+                              >
+                                {m.type === "video" ? (
+                                  <video
+                                    src={m.url}
+                                    controls
+                                    playsInline
+                                    preload="metadata"
+                                    className="w-full h-full object-cover"
+                                  />
+                                ) : (
+                                  <img
+                                    src={m.url}
+                                    alt={m.name || "Media attachment"}
+                                    className="w-full h-full object-cover group-hover/media:scale-105 transition-transform duration-300 cursor-pointer"
+                                    onClick={() => window.open(m.url, "_blank")}
+                                  />
+                                )}
+                                <span className="absolute top-1.5 left-1.5 px-1.5 py-0.5 rounded bg-black/80 border border-white/20 text-[9px] font-mono font-bold uppercase text-white shadow pointer-events-none">
+                                  {m.type}
+                                </span>
+                              </div>
+                            ))}
+                          </div>
+                        )}
+
                         {/* Hardware Rig Specs Badge Strip */}
                         <div className="flex flex-wrap gap-1.5 pt-2 text-[10px]">
                           {rev.specs?.gpu && (
@@ -496,7 +687,7 @@ export default function CommunityPage() {
                           {rev.recommend ? (
                             <span className="text-emerald-400 font-bold">✓ Recommended with Mission Control</span>
                           ) : (
-                            <span>Telemetry Feedback</span>
+                            <span>Player Review</span>
                           )}
                         </span>
 
@@ -570,21 +761,66 @@ export default function CommunityPage() {
 
               {/* Sorting and Submit button */}
               <div className="flex flex-col min-[440px]:flex-row items-stretch min-[440px]:items-center gap-3 w-full sm:w-auto">
-                <div className="flex items-center gap-2 bg-obsidian/90 border border-white/10 rounded-xl px-3.5 py-2 text-xs font-mono text-gray-300 justify-center w-full min-[440px]:w-auto">
-                  <Filter className="w-3.5 h-3.5 text-neon-green" />
-                  <select
-                    value={issueSortBy}
-                    onChange={(e: any) => setIssueSortBy(e.target.value)}
-                    className="bg-transparent border-none focus:outline-none cursor-pointer text-white font-mono flex-1 min-[440px]:flex-none text-center"
+                {/* Custom Glassmorphic Sort Dropdown */}
+                <div className="relative" ref={issueSortRef}>
+                  <button
+                    type="button"
+                    onClick={() => setIsIssueSortOpen(!isIssueSortOpen)}
+                    className="w-full min-[440px]:w-auto bg-black/70 hover:bg-black/90 border border-white/15 hover:border-neon-green/50 rounded-xl px-4 py-2 text-xs font-mono font-bold text-gray-200 uppercase tracking-wider flex items-center justify-between gap-2.5 transition-all shadow-lg cursor-pointer select-none"
                   >
-                    <option className="bg-obsidian text-white" value="votes">Most Voted Logs</option>
-                    <option className="bg-obsidian text-white" value="latest">Latest Logged</option>
-                  </select>
+                    <div className="flex items-center gap-2">
+                      <Filter className="w-3.5 h-3.5 text-neon-green shrink-0" />
+                      <span>{issueSortBy === "votes" ? "Most Voted Logs" : "Latest Logged"}</span>
+                    </div>
+                    <ChevronDown className={`w-3.5 h-3.5 text-gray-400 transition-transform duration-200 ${isIssueSortOpen ? "rotate-180 text-neon-green" : ""}`} />
+                  </button>
+
+                  <AnimatePresence>
+                    {isIssueSortOpen && (
+                      <motion.div
+                        initial={{ opacity: 0, y: -6 }}
+                        animate={{ opacity: 1, y: 0 }}
+                        exit={{ opacity: 0, y: -6 }}
+                        className="absolute right-0 top-full mt-1.5 w-48 bg-[#0b0c10] border border-white/15 rounded-xl shadow-2xl overflow-hidden z-30 p-1 font-mono text-xs"
+                      >
+                        <button
+                          type="button"
+                          onClick={() => {
+                            setIssueSortBy("votes");
+                            setIsIssueSortOpen(false);
+                          }}
+                          className={`w-full px-3 py-2 rounded-lg text-left transition-colors flex items-center justify-between cursor-pointer ${
+                            issueSortBy === "votes"
+                              ? "bg-neon-green text-obsidian font-bold"
+                              : "text-gray-300 hover:bg-white/5 hover:text-white"
+                          }`}
+                        >
+                          <span>Most Voted Logs</span>
+                          {issueSortBy === "votes" && <Check className="w-3.5 h-3.5" />}
+                        </button>
+                        <button
+                          type="button"
+                          onClick={() => {
+                            setIssueSortBy("latest");
+                            setIsIssueSortOpen(false);
+                          }}
+                          className={`w-full px-3 py-2 rounded-lg text-left transition-colors flex items-center justify-between cursor-pointer ${
+                            issueSortBy === "latest"
+                              ? "bg-neon-green text-obsidian font-bold"
+                              : "text-gray-300 hover:bg-white/5 hover:text-white"
+                          }`}
+                        >
+                          <span>Latest Logged</span>
+                          {issueSortBy === "latest" && <Check className="w-3.5 h-3.5" />}
+                        </button>
+                      </motion.div>
+                    )}
+                  </AnimatePresence>
                 </div>
 
                 <button
                   onClick={() => setIsIssueModalOpen(true)}
-                  className="px-5 py-2.5 text-xs font-black uppercase tracking-wider rounded-xl bg-neon-green text-obsidian hover:bg-white hover:shadow-[0_0_20px_rgba(118, 185, 0, 0.4)] transition-all duration-300 cursor-pointer font-mono flex items-center justify-center gap-1.5 w-full min-[440px]:w-auto"
+                  className="px-5 py-2 text-xs font-black uppercase tracking-wider rounded-xl bg-neon-green text-obsidian hover:bg-white hover:shadow-[0_0_20px_rgba(118, 185, 0, 0.4)] transition-all duration-300 cursor-pointer font-mono flex items-center justify-center gap-1.5 w-full min-[440px]:w-auto"
                 >
                   <Plus className="w-4 h-4" /> Log Telemetry Glitch
                 </button>

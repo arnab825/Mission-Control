@@ -1,5 +1,11 @@
 import mongoose, { Schema, Document } from "mongoose";
 
+export interface IGameRatingMedia {
+  url: string;
+  type: "image" | "gif" | "video";
+  name?: string;
+}
+
 export interface IGameRating extends Document {
   gameId: string; // ID of the benchmarked game (e.g. "spiderman2")
   gameName: string;
@@ -17,6 +23,7 @@ export interface IGameRating extends Document {
     os: string;
     presetUsed?: string;
   };
+  media?: IGameRatingMedia[];
   recommend: boolean;
   upvotes: number;
   voters: string[];
@@ -42,6 +49,13 @@ const GameRatingSchema = new Schema<IGameRating>(
       os: { type: String, default: "Windows 11" },
       presetUsed: { type: String, default: "Optimal Preset" },
     },
+    media: [
+      {
+        url: { type: String, required: true },
+        type: { type: String, enum: ["image", "gif", "video"], default: "image" },
+        name: { type: String },
+      },
+    ],
     recommend: { type: Boolean, default: true },
     upvotes: { type: Number, default: 0 },
     voters: { type: [String], default: [] },

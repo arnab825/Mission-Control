@@ -30,6 +30,8 @@ import {
   Menu,
   Gamepad2,
   FileText,
+  Star,
+  Sparkles,
 } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 import { WINDOWS_INSTALLER_URL, LINUX_INSTALLER_URL, AUTO_DOWNLOAD_URL } from "@/lib/download";
@@ -162,10 +164,10 @@ export default function Navbar() {
       href: "/community",
       icon: Users,
       subLinks: [
-        { name: "Active Glitch Tracker", href: "/community", icon: AlertTriangle },
-        { name: "Submit Telemetry Report", href: "/community?report=true", icon: Send },
-        { name: "Prioritized Hotfixes", href: "/community", icon: TrendingUp },
-        { name: "Diagnostics Database", href: "/community", icon: Database },
+        { name: "Community Game Reviews", href: "/community?tab=ratings", icon: Star },
+        { name: "Share Review & Rig Setup", href: "/community?tab=ratings&rate=true", icon: Sparkles },
+        { name: "Kernel Glitch Tracker", href: "/community?tab=glitches", icon: AlertTriangle },
+        { name: "Submit Telemetry Report", href: "/community?tab=glitches&report=true", icon: Send },
       ]
     },
   ];

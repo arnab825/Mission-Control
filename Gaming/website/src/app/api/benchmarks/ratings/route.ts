@@ -26,7 +26,7 @@ export async function GET(request: Request) {
 export async function POST(request: Request) {
   try {
     const body = await request.json();
-    const { gameId, gameName, userName, rating, title, review, specs, recommend } = body;
+    const { gameId, gameName, userName, rating, title, review, specs, media, recommend } = body;
 
     // Validation
     if (!gameId || !gameName || !title || !review || !rating) {
@@ -51,6 +51,14 @@ export async function POST(request: Request) {
       );
     }
 
+    const formattedMedia = Array.isArray(media)
+      ? media.map((m: any) => ({
+          url: String(m.url),
+          type: m.type === "video" ? ("video" as const) : m.type === "gif" ? ("gif" as const) : ("image" as const),
+          name: m.name ? String(m.name).slice(0, 100) : undefined,
+        }))
+      : [];
+
     const newRating = await createGameRating({
       gameId,
       gameName,
@@ -67,6 +75,7 @@ export async function POST(request: Request) {
         os: specs.os || "Windows 11",
         presetUsed: specs.presetUsed || "Optimal Preset",
       },
+      media: formattedMedia,
       recommend: recommend !== false,
     });
 
