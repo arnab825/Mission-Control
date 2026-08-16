@@ -1,8 +1,20 @@
 {
-  "version": "3.1.9",
+  "version": "3.2.0",
   "release_date": "2026-08-15",
   "update_check_url": "https://raw.githubusercontent.com/arnab825/Mission-Control/main/Gaming/backend/version.json",
   "changelog": [
+    {
+      "version": "3.2.0",
+      "date": "2026-08-16",
+      "title": "Dynamic Game Root Resolution & Subfolder Optimization",
+      "highlights": [
+        "Dynamic Game Root Resolution & Subfolder Optimization",
+        "Automated upward directory walker past nested engine and architecture folders",
+        "Game root scoping preventing orphan sub-games for mod and crash tools",
+        "Enhanced executable scoring with auxiliary tool and uninstaller filtering",
+        "Universal Windows PE metadata title extraction for ambiguous binaries"
+      ]
+    },
     {
       "version": "3.1.9",
       "date": "2026-08-16",
@@ -438,16 +450,6 @@
       "title": "Fix Backend Indentation Syntax Error",
       "highlights": [
         "Fixed IndentationError in decision_maker.py"
-      ]
-    },
-    {
-      "version": "2.7.7",
-      "date": "2026-07-31",
-      "title": "Unified Provider Endpoints & Error Handling",
-      "highlights": [
-        "Unified Gemini with OpenAI-compatible API endpoint",
-        "Removed Google GenAI SDK translator overhead",
-        "Increased timeout for massive context handling"
       ]
     }
   ]
