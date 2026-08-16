@@ -114,11 +114,11 @@ try {
             Set-Content -Path $releaseNotesFile -Value $releaseBody -Encoding UTF8
 
             if ($env:GH_TOKEN -or $env:GITHUB_TOKEN) {
-                Write-Host "[PUBLISH] GH_TOKEN detected! Publishing $releaseTitle to GitHub Releases..." -ForegroundColor Cyan
-                npx electron-builder --win --publish always --config.extraMetadata.name="$releaseTitle"
+                Write-Host "[PUBLISH] GH_TOKEN detected! Publishing $releaseTitle (NSIS, MSI, ZIP) to GitHub Releases..." -ForegroundColor Cyan
+                npx electron-builder --win nsis msi zip --publish always --config.extraMetadata.name="$releaseTitle"
             } else {
-                Write-Host "[BUILD] Compiling local Windows installers in frontend/out/dist..." -ForegroundColor Yellow
-                npx electron-builder --win --publish never
+                Write-Host "[BUILD] Compiling local Windows installers (NSIS, MSI, ZIP) in frontend/out/dist..." -ForegroundColor Yellow
+                npx electron-builder --win nsis msi zip --publish never
             }
         } catch {
             Write-Host "[WARNING] Binary packaging encountered an error: $_" -ForegroundColor Yellow

@@ -57,9 +57,9 @@ cat <<EOF > release-notes.md
 - ${TITLE}
 EOF
 
-BUILD_TARGET="--linux"
+BUILD_TARGET="--linux AppImage deb rpm tar.gz"
 if [ "$2" == "--win" ] || [ "$TARGET_OS" == "win" ]; then
-    BUILD_TARGET="--win"
+    BUILD_TARGET="--win nsis msi zip"
 fi
 
 if [ -n "$GH_TOKEN" ] || [ -n "$GITHUB_TOKEN" ]; then
