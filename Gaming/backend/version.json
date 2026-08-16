@@ -1,8 +1,30 @@
 {
-  "version": "3.2.0",
-  "release_date": "2026-08-15",
+  "version": "3.2.1",
+  "release_date": "2026-08-16",
   "update_check_url": "https://raw.githubusercontent.com/arnab825/Mission-Control/main/Gaming/backend/version.json",
   "changelog": [
+    {
+      "version": "3.2.1",
+      "date": "2026-08-16",
+      "title": "Library Scanner Sanitation & Steam Container Optimization",
+      "highlights": [
+        "Resolved Steam library container false-positives by filtering out steamapps directory entries",
+        "Enabled automated steamapps/common recursive game discovery in drive and library scans",
+        "Enhanced junk keywords and container validation in library scanner",
+        "Connected community review media uploads and navbar active tab synchronization"
+      ]
+    },
+    {
+      "version": "3.2.1",
+      "date": "2026-08-16",
+      "title": "Library Scanner Sanitation & Steam Container Optimization",
+      "highlights": [
+        "Resolved Steam library container false-positives by filtering out steamapps directory entries",
+        "Enabled automated steamapps/common recursive game discovery in drive and library scans",
+        "Enhanced junk keywords and container validation in library scanner",
+        "Connected community review media uploads and navbar active tab synchronization"
+      ]
+    },
     {
       "version": "3.2.0",
       "date": "2026-08-16",
@@ -432,24 +454,6 @@
         "Added Groq and OpenRouter 100% free providers",
         "Removed Kimi and DeepSeek paid providers",
         "Fixed Gemini 404 error by updating to gemini-flash-latest"
-      ]
-    },
-    {
-      "version": "2.7.8",
-      "date": "2026-07-31",
-      "title": "Auto Provider Failover & Fixes",
-      "highlights": [
-        "Added Auto Mode with dynamic rate-limit load balancing",
-        "Fixed IndentationError in decision_maker.py",
-        "Unified Gemini with OpenAI-compatible API endpoint"
-      ]
-    },
-    {
-      "version": "2.7.8",
-      "date": "2026-07-31",
-      "title": "Fix Backend Indentation Syntax Error",
-      "highlights": [
-        "Fixed IndentationError in decision_maker.py"
       ]
     }
   ]

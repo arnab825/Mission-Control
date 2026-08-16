@@ -12,7 +12,15 @@ Comprehensive breakdown of major milestone releases, architectural upgrades, and
 
 ---
 
-## 🌟 Version v3.2.0 (Latest) — Dynamic Game Root Resolution & Subfolder Optimization
+## 🌟 Version v3.2.1 (Latest) — Library Scanner Sanitation & Steam Container Optimization
+
+### 🛠️ Key Highlights
+1. **Resolve steam library container false-positives**
+2. **Enable automated game discovery in drive and library scans**
+
+---
+
+## 📦 Version v3.2.0 — Dynamic Game Root Resolution & Subfolder Optimization
 
 ### 🛠️ Key Highlights
 1. **Automated directory walker resolves nested engine and architecture folders.**

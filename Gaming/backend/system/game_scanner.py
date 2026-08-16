@@ -97,7 +97,8 @@ class GameScanner:
         # Extended list of keywords to filter out non-game applications
         self.junk_keywords = [
             "redistributable", "microsoft visual c++", "directx", "vulkan rt",
-            "steamworks common", "identityprovider", "tcui", "gamingoverlay",
+            "steamworks common", "steamworks", "steam works", "steamapps", "steamlibrary",
+            "identityprovider", "tcui", "gamingoverlay",
             "speechtotext", "callableui", "gamebar", "system", "mongodb",
             "eclipse", "sdk", "jdk", "uninstaller", "driver", "setup", "update",
             "error reporter", "crash reporter", "disk cleanup", "usb recovery", 
@@ -138,6 +139,10 @@ class GameScanner:
         name_lower = name.lower()
         platform = g.get("platform", "")
         
+        # 0. Container and system directories are NEVER games
+        if name_lower in ["steamapps", "steamlibrary", "common", "my games", "games"]:
+            return False
+
         # 1. Allow Whitelisted Platform Launchers (e.g. Steam, Epic, Xbox)
         is_launcher = (g.get("type") == "LAUNCHER") or any(wl == name_lower for wl in self.launcher_whitelist) or (name == platform)
         if is_launcher:
@@ -145,6 +150,10 @@ class GameScanner:
             if exe and not exe.startswith("shell:") and not exe.endswith(":") and not os.path.exists(exe):
                 return False
             return True
+
+        # Check against library root folder names (e.g. "epic games", "ubisoft games", "program files")
+        if name_lower in self.library_root_names:
+            return False
 
         # 2. Check Universal Non-Game & Junk Filter
         if any(junk in name_lower for junk in self.junk_keywords):
@@ -1495,9 +1504,36 @@ class GameScanner:
                         if sub.is_dir():
                             if sub.name.startswith(("$", ".")) or sub.name.lower() in self.crack_groups:
                                 continue
+                            # If sub is "steamapps", drill down into "steamapps/common" to find actual games
+                            if sub.name.lower() == "steamapps":
+                                common_sub = sub / "common"
+                                if common_sub.exists() and common_sub.is_dir():
+                                    for steam_game_dir in common_sub.iterdir():
+                                        if steam_game_dir.is_dir() and not steam_game_dir.name.startswith(("$", ".")) and steam_game_dir.name.lower() not in self.library_root_names:
+                                            exes = self._collect_game_executables(steam_game_dir, max_depth=3)
+                                            if exes:
+                                                game_root = self._resolve_game_root(steam_game_dir)
+                                                if game_root.name.lower() in self.library_root_names:
+                                                    continue
+                                                best_exe = self._select_best_exe(exes, game_root.name)
+                                                title = self._get_exe_product_name(best_exe) or game_root.name
+                                                self.games.append({
+                                                    "name": title,
+                                                    "platform": "Steam",
+                                                    "id": f"{drive}_{game_root.name}",
+                                                    "install_path": str(game_root),
+                                                    "exe_path": best_exe,
+                                                    "source": "drive_scan"
+                                                })
+                                continue
+                            if sub.name.lower() in self.library_root_names:
+                                continue
+
                             exes = self._collect_game_executables(sub, max_depth=3)
                             if exes:
                                 game_root = self._resolve_game_root(sub)
+                                if game_root.name.lower() in self.library_root_names:
+                                    continue
                                 best_exe = self._select_best_exe(exes, game_root.name)
                                 title = self._get_exe_product_name(best_exe) or game_root.name
                                 self.games.append({
@@ -2441,12 +2477,40 @@ class GameScanner:
                 try:
                     for game_dir in root_path.iterdir():
                         if game_dir.is_dir():
-                            if game_dir.name.startswith(("$", ".")) or game_dir.name == "Common" or game_dir.name.lower() in self.crack_groups:
+                            if game_dir.name.startswith(("$", ".")) or game_dir.name.lower() in self.crack_groups:
+                                continue
+                            
+                            # If game_dir is "steamapps", drill down into "steamapps/common"
+                            if game_dir.name.lower() == "steamapps":
+                                common_dir = game_dir / "common"
+                                if common_dir.exists() and common_dir.is_dir():
+                                    for actual_game_dir in common_dir.iterdir():
+                                        if actual_game_dir.is_dir() and not actual_game_dir.name.startswith(("$", ".")) and actual_game_dir.name.lower() not in self.library_root_names:
+                                            exes = self._collect_game_executables(actual_game_dir, max_depth=3)
+                                            if exes:
+                                                game_root = self._resolve_game_root(actual_game_dir)
+                                                if game_root.name.lower() in self.library_root_names:
+                                                    continue
+                                                best_exe = self._select_best_exe(exes, game_root.name)
+                                                title = self._get_exe_product_name(best_exe) or game_root.name
+                                                self.games.append({
+                                                    "name": title,
+                                                    "platform": "Steam",
+                                                    "id": f"{drive}_{game_root.name}",
+                                                    "install_path": str(game_root),
+                                                    "exe_path": best_exe,
+                                                    "source": "common_paths"
+                                                })
+                                continue
+
+                            if game_dir.name.lower() in self.library_root_names or game_dir.name.lower() in ["common", "steamlibrary"]:
                                 continue
                                 
                             exes = self._collect_game_executables(game_dir, max_depth=3)
                             if exes:
                                 game_root = self._resolve_game_root(game_dir)
+                                if game_root.name.lower() in self.library_root_names:
+                                    continue
                                 best_exe = self._select_best_exe(exes, game_root.name)
                                 title = self._get_exe_product_name(best_exe) or game_root.name
                                 
@@ -2569,7 +2633,7 @@ class GameScanner:
                 
         # Emit exactly one game entry per resolved game root
         for game_root, exes in scanned_game_roots.items():
-            if not exes:
+            if not exes or game_root.name.lower() in self.library_root_names or game_root.name.lower() in ["steamapps", "steamlibrary", "common", "games", "my games"]:
                 continue
             best_exe = self._select_best_exe(exes, game_root.name)
             title = self._get_exe_product_name(best_exe) or game_root.name
