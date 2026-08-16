@@ -2,6 +2,13 @@
 
 This document contains a detailed history of all patches and updates for the AI Gaming Assistant.
 
+### Patch: 2026-08-16 — v3.1.9: Universal Game Scanner & Dynamic Binary Title Resolution
+
+- Dynamic PE binary title extraction for 100k+ games
+- 1MB executable threshold for lightweight indie & retro games
+- Excluded non-game developer tools & ZuneVideo UWP app
+- Auto-purge uninstalled titles & pre-build version sync
+
 ### Patch: 2026-08-15 — v3.1.8: Direct GitHub Releases In-App Updater Fallback & Elevated Offline Rollback
 
 - Added direct GitHub Releases API fallback to Electron autoUpdater for seamless in-app downloads when latest.yml is absent

@@ -12,7 +12,15 @@ Comprehensive breakdown of major milestone releases, architectural upgrades, and
 
 ---
 
-## 🌟 Version v3.1.8 (Latest) — Direct GitHub Releases In-App Updater Fallback & Elevated Offline Rollback
+## 🌟 Version v3.1.9 (Latest) — Universal Game Scanner & Dynamic Binary Title Resolution
+
+### 🛠️ Key Highlights
+1. **Dynamic PE binary title extraction for 100k+ games**
+2. **1MB executable threshold for lightweight indie & retro games**
+
+---
+
+## 📦 Version v3.1.8 — Direct GitHub Releases In-App Updater Fallback & Elevated Offline Rollback
 
 ### 🛠️ Key Highlights
 1. **Direct GitHub Releases Auto-Updater Fallback**: Implemented direct GitHub Releases API integration into the Electron auto-updater, ensuring seamless in-app background download even when `latest.yml` manifests are absent.

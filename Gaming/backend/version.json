@@ -1,8 +1,19 @@
 {
-  "version": "3.1.8",
+  "version": "3.1.9",
   "release_date": "2026-08-15",
   "update_check_url": "https://raw.githubusercontent.com/arnab825/Mission-Control/main/Gaming/backend/version.json",
   "changelog": [
+    {
+      "version": "3.1.9",
+      "date": "2026-08-16",
+      "title": "Universal Game Scanner & Dynamic Binary Title Resolution",
+      "highlights": [
+        "Dynamic PE binary title extraction for 100k+ games",
+        "1MB executable threshold for lightweight indie & retro games",
+        "Excluded non-game developer tools & ZuneVideo UWP app",
+        "Auto-purge uninstalled titles & pre-build version sync"
+      ]
+    },
     {
       "version": "3.1.8",
       "date": "2026-08-15",
@@ -437,26 +448,6 @@
         "Unified Gemini with OpenAI-compatible API endpoint",
         "Removed Google GenAI SDK translator overhead",
         "Increased timeout for massive context handling"
-      ]
-    },
-    {
-      "version": "2.7.6",
-      "date": "2026-07-30",
-      "title": "Agent Logic Fixes",
-      "highlights": [
-        "Fixed UI permanently locking up if an active session is deleted",
-        "Fixed UI freezing indefinitely when an AI API endpoint is unreachable or fails"
-      ]
-    },
-    {
-      "version": "2.7.5",
-      "date": "2026-07-30",
-      "title": "Agent UX improvements & Model Updates",
-      "highlights": [
-        "Unlocked Agent textbox during processing",
-        "Added Gemini 2.0 Flash Thinking model",
-        "Added Moonshot 128k context model",
-        "Cleaned up NVIDIA hosted models list"
       ]
     }
   ]
