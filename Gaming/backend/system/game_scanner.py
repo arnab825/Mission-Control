@@ -58,6 +58,41 @@ class GameScanner:
             # spaced variants (for folder names like "Epic Files", "Steam Files")
             "epic files", "steam files", "online fix", "no dvd",
         }
+
+        # Subdirectories commonly found inside game folders that are NOT the game root
+        self.generic_subfolders = {
+            "bin", "binaries", "x64", "x86", "win64", "win32", "win_x64", "win_x86",
+            "retail", "shipping", "release", "debug", "client", "game", "gamedata",
+            "engine", "redmod", "r6", "tools", "data", "content",
+            "build", "plugins", "mods", "support", "redist", "commonredist",
+            "installers", "_installer", "_commonredist", "thirdparty", "directx",
+            "easyanticheat", "battleye", "crashreporter", "crashpad", "dotnet",
+            "vcredist", "dxredist", "prerequisites", "temp", "tmp", "x64_dx12"
+        }
+
+        # Parent directory names that represent top-level library / system folders (boundaries for game root detection)
+        self.library_root_names = {
+            "games", "my games", "steamlibrary", "steamapps", "common", 
+            "epic games", "epicgames", "ubisoft", "ubisoft games", "ubisoft game launcher", 
+            "origin games", "ea games", "electronic arts", "riot games", "riotgames", 
+            "battle.net", "blizzard", "activision", "gog games", "gog.com", "xboxgames", 
+            "microsoft games", "amazon games", "amazongames", "itch.io", "itch", 
+            "humble bundle", "humblebundle", "rockstar games", "rockstargames", 
+            "bethesda", "bethesda.net", "square enix", "squareenix", "2k games", "2kgames", 
+            "capcom", "sega", "bandai namco", "konami", "koei tecmo", "sony", 
+            "playstation studios", "program files", "program files (x86)", 
+            "programdata", "users", "public", "appdata", "local", "roaming", "desktop", "downloads"
+        }
+        
+        # Keywords for auxiliary executables to exclude or heavily down-rank
+        self.auxiliary_exe_keywords = [
+            "unins", "uninstall", "crash", "report", "helper", "setup", "install", 
+            "config", "patch", "trial", "demo", "benchmark", "redmod", "creationkit", 
+            "modorganizer", "editor", "sdk", "support", "redist", "vcredist", "dxsetup", 
+            "oalinst", "physx", "easyanticheat", "battleye", "crashpad", "werfault", 
+            "unitycrashhandler", "crashreportclient", "redcrashreporter", "cleanup", 
+            "diagnostics", "launcher_helper", "register", "repair", "eula"
+        ]
         
         # Extended list of keywords to filter out non-game applications
         self.junk_keywords = [
@@ -196,33 +231,118 @@ class GameScanner:
             pass
         return None
 
+    def _resolve_game_root(self, path: Path) -> Path:
+        """
+        Dynamically ascends the directory hierarchy to resolve the true canonical Game Root.
+        Works across any game engine (REDengine, Unreal Engine, Unity, Decima, Source 2, Frostbite)
+        by walking up past any architecture, engine, binary, or tool subfolders (e.g. bin/x64,
+        redmod/bin, Engine/Binaries/Win64, Project/Binaries/Win64) without crossing library boundaries.
+        """
+        if not path:
+            return path
+        
+        # If passed a file, start from its directory
+        curr = path if path.is_dir() else path.parent
+        
+        # Walk up while current folder name is a known generic/internal subfolder or crack group
+        while curr.parent != curr:
+            curr_name_lower = curr.name.lower().strip()
+            parent_name_lower = curr.parent.name.lower().strip()
+            
+            # Stop if current folder is a library root or parent is drive root
+            if curr_name_lower in self.library_root_names or curr.parent.parent == curr:
+                break
+                
+            # If parent is a library root, stop ascending unless current is an obvious generic/architecture folder
+            if parent_name_lower in self.library_root_names:
+                if curr_name_lower not in ["bin", "binaries", "x64", "win64", "win32", "x86", "release", "shipping", "retail", "redmod", "game", "tools"]:
+                    break
+
+            # 1. Direct generic subfolder or crack group match
+            is_subfolder = (
+                curr_name_lower in self.generic_subfolders
+                or curr_name_lower in self.crack_groups
+                or any(curr_name_lower == g for g in self.generic_subfolders)
+                or curr_name_lower.startswith("bin")
+                or curr_name_lower.startswith("redmod")
+                or (curr_name_lower.startswith("_") and curr_name_lower not in ["_games"])
+            )
+            
+            # 2. Unreal Engine Project / Engine module detection (e.g. <GameRoot>/b1/Binaries or <GameRoot>/Engine/Binaries)
+            if not is_subfolder:
+                has_engine_sibling = (curr.parent / "Engine").is_dir() or (curr.parent / "engine").is_dir()
+                has_binaries_child = (curr / "Binaries").is_dir() or (curr / "binaries").is_dir()
+                if (has_engine_sibling or has_binaries_child) and parent_name_lower not in self.library_root_names:
+                    is_subfolder = True
+
+            if is_subfolder:
+                curr = curr.parent
+            else:
+                break
+                
+        return curr
+
+    def _collect_game_executables(self, folder: Path, max_depth: int = 4) -> list[Path]:
+        """
+        Recursively discover all launchable game executables within a directory tree up to max_depth.
+        Skips crack folders, installers, crash tools, and known non-game directories.
+        """
+        if not folder or not folder.exists() or not folder.is_dir():
+            return []
+
+        exes = []
+        skip_folder_names = set(self.crack_groups)
+        skip_folder_names.update({
+            "node_modules", ".git", ".vscode", "temp", "tmp", "logs", 
+            "shadercache", "directx", "vcredist", "_commonredist", "support", 
+            "installers", "$recycle.bin", "system volume information"
+        })
+
+        def walk(curr_dir: Path, depth: int):
+            if depth > max_depth:
+                return
+            try:
+                for entry in os.scandir(curr_dir):
+                    if entry.is_dir(follow_symlinks=False):
+                        entry_lower = entry.name.lower()
+                        if entry_lower not in skip_folder_names and not entry.name.startswith(("$", ".")):
+                            walk(Path(entry.path), depth + 1)
+                    elif entry.is_file(follow_symlinks=False):
+                        if entry.name.lower().endswith(".exe"):
+                            try:
+                                if entry.stat().st_size >= 1024 * 1024:  # 1MB threshold
+                                    exes.append(Path(entry.path))
+                            except (OSError, IOError):
+                                pass
+            except (PermissionError, OSError):
+                pass
+
+        walk(folder, 0)
+        return exes
+
     def _select_best_exe(self, exes, game_name=""):
-        """Select the best executable for starting the game, preferring launchers/wrapper files."""
+        """Select the best executable for starting the game, preferring main game binaries over tools/launchers."""
         if not exes:
             return None
         
-        # Convert path objects or strings to Path objects
-        exes_paths = [Path(e) for e in exes]
+        exes_paths = [Path(e) for e in exes if e and Path(e).exists()]
+        if not exes_paths:
+            return None
+
+        game_name_lower = game_name.lower().strip()
         
         # 1. SPECIAL CASE OVERRIDES:
-        game_name_lower = game_name.lower()
         if "grand theft auto" in game_name_lower or "gta" in game_name_lower:
-            # Prefer PlayGTAV.exe
             for p in exes_paths:
                 if p.name.lower() == "playgtav.exe":
                     return str(p)
         elif "need for speed" in game_name_lower or "nfs" in game_name_lower or "heat" in game_name_lower:
-            # Prefer main NFS game exe (e.g. NFSHeat.exe) over Trial executables
             for p in exes_paths:
                 p_name = p.name.lower()
                 if p_name in ["nfsheat.exe", "nfs.exe", "needforspeed.exe"] or (p_name.startswith("nfs") and "trial" not in p_name and "demo" not in p_name):
                     return str(p)
 
-        # 2. General launcher preference & trial filtering:
-        launcher_keywords = ["play", "launcher", "launch", "start"]
-        avoid_keywords = ["unins", "crash", "report", "helper", "setup", "install", "config", "patch", "trial", "demo", "benchmark"]
-        
-        # Filter out crack group exes, trial wrappers, and subdirectories
+        # 2. Filter out crack group executables, trial wrappers, and pure auxiliary binaries
         filtered_exes = []
         for p in exes_paths:
             name_no_ext = p.stem.lower()
@@ -232,38 +352,67 @@ class GameScanner:
             if in_crack_dir:
                 continue
             filtered_exes.append(p)
-                
+            
         if not filtered_exes:
-            filtered_exes = exes_paths  # fallback
+            filtered_exes = exes_paths
             
-        exes_paths = filtered_exes
+        # 3. Dynamic Scoring of Executables
+        clean_game_name = "".join(filter(str.isalnum, game_name_lower))
         
-        # Prefer non-trial executables first if available
-        non_trial_exes = [p for p in exes_paths if not any(k in p.name.lower() for k in ["trial", "demo", "benchmark"])]
-        if non_trial_exes:
-            exes_paths = non_trial_exes
-
-        best_launcher = None
-        for p in exes_paths:
-            name = p.name.lower()
-            try:
-                size = p.stat().st_size
-            except Exception:
-                size = 0
-            if size > 1024 * 1024: # Must be at least 1MB to avoid tiny utilities
-                if any(k in name for k in launcher_keywords) and not any(a in name for a in avoid_keywords):
-                    if not best_launcher or size > best_launcher.stat().st_size:
-                        best_launcher = p
-                        
-        if best_launcher:
-            return str(best_launcher)
+        def score_exe(p: Path) -> float:
+            score = 0.0
+            p_name_lower = p.name.lower()
+            p_stem_lower = p.stem.lower()
+            p_parts_lower = [part.lower() for part in p.parts[:-1]]
             
-        # 3. Fallback: Sort by size descending
-        try:
-            exes_paths.sort(key=lambda p: p.stat().st_size, reverse=True)
-        except Exception:
-            pass
-        return str(exes_paths[0])
+            # Check auxiliary penalty in name or any parent directory
+            is_auxiliary = any(k in p_name_lower for k in self.auxiliary_exe_keywords)
+            in_aux_dir = any(any(k in part for k in ["redmod", "crashreport", "tools", "support", "redist", "easyanticheat", "battleye", "engine", "plugins"]) for part in p_parts_lower)
+            
+            if is_auxiliary:
+                score -= 150.0
+            if in_aux_dir:
+                score -= 60.0
+                
+            # Check size
+            try:
+                size_mb = p.stat().st_size / (1024 * 1024)
+            except Exception:
+                size_mb = 0
+                
+            if size_mb < 1.0:
+                score -= 50.0  # Under 1MB is likely a small utility or helper
+            else:
+                score += min(size_mb, 50.0)  # Up to 50 points for larger binary size
+                
+            # Unreal Engine Shipping binaries
+            if "shipping" in p_stem_lower:
+                score += 45.0
+                
+            # Name matching
+            clean_stem = "".join(filter(str.isalnum, p_stem_lower))
+            if clean_game_name and (clean_stem == clean_game_name or clean_stem in clean_game_name or clean_game_name in clean_stem):
+                score += 60.0
+                
+            # PE Product Name match
+            try:
+                pe_name = self._get_exe_product_name(str(p))
+                if pe_name:
+                    clean_pe = "".join(filter(str.isalnum, pe_name.lower()))
+                    if clean_game_name and (clean_pe == clean_game_name or clean_pe in clean_game_name or clean_game_name in clean_pe):
+                        score += 80.0
+            except Exception:
+                pass
+                
+            # Launcher keywords (positive for wrapper/play executables unless penalized by auxiliary)
+            if any(k in p_name_lower for k in ["play", "launch", "start"]):
+                if not is_auxiliary and not in_aux_dir:
+                    score += 20.0
+                    
+            return score
+
+        scored_exes = sorted(filtered_exes, key=score_exe, reverse=True)
+        return str(scored_exes[0])
 
     def _ensure_cache_dir(self):
         """Ensure the config directory exists."""
@@ -589,11 +738,21 @@ class GameScanner:
                     name = name.replace(symbol, "")
                 g["name"] = " ".join(name.split())
 
+                name_lower_clean = g["name"].lower().strip()
+                is_generic = (
+                    len(name_lower_clean) < 6
+                    or name_lower_clean in self.generic_subfolders
+                    or name_lower_clean in self.crack_groups
+                    or any(name_lower_clean == sub for sub in self.generic_subfolders)
+                    or name_lower_clean in ["game", "play", "launcher", "shipping", "ue4", "ue5", "sp23", "cod23", "start", "client", "main", "windows"]
+                )
+                
                 # Dynamically resolve official commercial title from executable binary metadata (works for 100k+ games automatically)
-                if len(g["name"]) < 6 or g["name"].lower() in ["game", "play", "launcher", "shipping", "ue4", "sp23", "cod23", "start"]:
+                if is_generic:
                     exe_meta = self._get_exe_product_name(g.get("exe_path"))
                     if exe_meta:
                         g["name"] = exe_meta
+                        name_lower_clean = g["name"].lower().strip()
 
                 # Regex to strip crack groups from the end of a game name (e.g., "Ghost of Tsushima - FLT" -> "Ghost of Tsushima")
                 import re
@@ -603,21 +762,18 @@ class GameScanner:
                     g["name"] = cleaned_name
                 
                 name_lower = g["name"].lower()
-                
-                # If the name is STILL exactly a crack group name (with or without spaces), try to rescue it from its path
                 name_nospace = name_lower.replace(" ", "")
-                if name_lower in self.crack_groups or name_nospace in self.crack_groups:
-                    path = Path(g.get("install_path", ""))
-                    if path.exists() and len(path.parts) > 1:
-                        found_better = False
-                        for p in reversed(path.parents):
-                            p_lower = p.name.lower()
-                            if p_lower not in self.crack_groups and p_lower not in ["bin", "binaries", "release", "win64", "win32", "games", "game", "common", "x64", "x86"]:
-                                g["name"] = p.name
-                                name_lower = p.name.lower()
-                                found_better = True
-                                break
-                        if not found_better:
+                
+                # If the name is STILL generic (e.g. "bin", "redmod", "x64") or a crack group name, rescue it via _resolve_game_root
+                if name_lower in self.crack_groups or name_nospace in self.crack_groups or name_lower in self.generic_subfolders:
+                    target_path = Path(g.get("install_path") or g.get("exe_path") or "")
+                    if target_path.exists():
+                        resolved_root = self._resolve_game_root(target_path)
+                        if resolved_root and resolved_root.name and resolved_root.name.lower() not in self.library_root_names:
+                            g["name"] = resolved_root.name
+                            g["install_path"] = str(resolved_root)
+                            name_lower = g["name"].lower()
+                        else:
                             continue # Could not rescue
                     else:
                         continue # Drop it
@@ -1267,41 +1423,55 @@ class GameScanner:
             if not dir_str:
                 continue
             root_path = Path(dir_str)
-            if not root_path.exists():
+            if not root_path.exists() or not root_path.is_dir():
                 continue
 
             try:
-                # If it's a directory, scan for .exe files or subfolders with games
-                if root_path.is_dir():
-                    # 1. Check if the folder itself contains .exe files
-                    exes = list(root_path.glob("*.exe"))
-                    if exes:
-                        best_exe = self._select_best_exe(exes, root_path.name)
+                is_library_container = (
+                    root_path.name.lower() in self.library_root_names
+                    or any(sub.is_dir() and not sub.name.startswith(("$", ".")) for sub in root_path.iterdir() if sub.name.lower() not in self.generic_subfolders)
+                )
+                
+                # Check if root_path itself is a single game
+                has_direct_exe = any(
+                    e.is_file() and e.name.lower().endswith(".exe") 
+                    for e in os.scandir(root_path)
+                )
+                has_direct_game_sub = any(
+                    (root_path / s).is_dir() for s in ["bin", "binaries", "r6"]
+                )
+
+                if (has_direct_exe or has_direct_game_sub) and root_path.name.lower() not in self.library_root_names:
+                    # Single game directory
+                    direct_exes = self._collect_game_executables(root_path, max_depth=3)
+                    if direct_exes:
+                        game_root = self._resolve_game_root(root_path)
+                        best_exe = self._select_best_exe(direct_exes, game_root.name)
+                        title = self._get_exe_product_name(best_exe) or game_root.name
                         self.games.append({
-                            "name": root_path.name,
+                            "name": title,
                             "platform": "Local",
-                            "id": f"custom_{root_path.name}",
-                            "install_path": str(root_path),
+                            "id": f"custom_{game_root.name}",
+                            "install_path": str(game_root),
                             "exe_path": best_exe,
                             "source": "custom_path"
                         })
-
-                    # 2. Also scan subdirectories (shallow) for games
+                else:
+                    # Library container containing subdirectories
                     for game_dir in root_path.iterdir():
                         if game_dir.is_dir():
-                            if game_dir.name.startswith("$") or game_dir.name.startswith("."):
+                            if game_dir.name.startswith(("$", ".")) or game_dir.name.lower() in self.crack_groups:
                                 continue
-                            exes = list(game_dir.glob("*.exe"))
-                            if not exes:
-                                # Common subfolders
-                                exes = list(game_dir.glob("bin/*.exe")) + list(game_dir.glob("binaries/Win64/*.exe"))
-                            if exes:
-                                best_exe = self._select_best_exe(exes, game_dir.name)
+                            sub_exes = self._collect_game_executables(game_dir, max_depth=3)
+                            if sub_exes:
+                                game_root = self._resolve_game_root(game_dir)
+                                best_exe = self._select_best_exe(sub_exes, game_root.name)
+                                title = self._get_exe_product_name(best_exe) or game_root.name
                                 self.games.append({
-                                    "name": game_dir.name,
+                                    "name": title,
                                     "platform": "Local",
-                                    "id": f"custom_{game_dir.name}",
-                                    "install_path": str(game_dir),
+                                    "id": f"custom_{game_root.name}",
+                                    "install_path": str(game_root),
                                     "exe_path": best_exe,
                                     "source": "custom_path"
                                 })
@@ -1320,21 +1490,21 @@ class GameScanner:
         for drive in drives:
             for d in common_dirs:
                 path = Path(drive) / d
-                if path.exists():
-                    # Scan for .exe files in subdirectories (shallow)
+                if path.exists() and path.is_dir():
                     for sub in path.iterdir():
                         if sub.is_dir():
-                            # Skip crack/nodvd subdirectories
-                            if sub.name.lower() in self.crack_groups:
+                            if sub.name.startswith(("$", ".")) or sub.name.lower() in self.crack_groups:
                                 continue
-                            exes = list(sub.glob("*.exe"))
+                            exes = self._collect_game_executables(sub, max_depth=3)
                             if exes:
-                                best_exe = self._select_best_exe(exes, sub.name)
+                                game_root = self._resolve_game_root(sub)
+                                best_exe = self._select_best_exe(exes, game_root.name)
+                                title = self._get_exe_product_name(best_exe) or game_root.name
                                 self.games.append({
-                                    "name": sub.name,
+                                    "name": title,
                                     "platform": "Local",
-                                    "id": sub.name,
-                                    "install_path": str(sub),
+                                    "id": f"{drive}_{game_root.name}",
+                                    "install_path": str(game_root),
                                     "exe_path": best_exe,
                                     "source": "drive_scan"
                                 })
@@ -2265,42 +2435,24 @@ class GameScanner:
         for drive in drives:
             for sub in common_subfolders:
                 root_path = Path(drive) / sub
-                if not root_path.exists(): continue
+                if not root_path.exists() or not root_path.is_dir():
+                    continue
                 
                 try:
                     for game_dir in root_path.iterdir():
                         if game_dir.is_dir():
-                            # Filter out system folders
-                            if game_dir.name.startswith("$") or game_dir.name == "Common":
+                            if game_dir.name.startswith(("$", ".")) or game_dir.name == "Common" or game_dir.name.lower() in self.crack_groups:
                                 continue
                                 
-                            if game_dir.name.lower() in self.crack_groups:
-                                continue
-                                
-                            # Look for an .exe in the root or common subfolders
-                            exes = []
-                            search_patterns = [
-                                "*.exe", "bin/*.exe", "binaries/Win64/*.exe", 
-                                "build/win64/*.exe", "game/bin/*.exe", "release/*.exe",
-                                "retail/*.exe", "Retail/*.exe"
-                            ]
-                            for pattern in search_patterns:
-                                candidates = list(game_dir.glob(pattern))
-                                # Filter out obvious non-game executables like uninstallers or installers
-                                filtered_candidates = [
-                                    c for c in candidates 
-                                    if not any(k in c.name.lower() for k in ["unins", "uninstall", "setup", "install", "crash"])
-                                ]
-                                if filtered_candidates:
-                                    exes = filtered_candidates
-                                    break
-                                
+                            exes = self._collect_game_executables(game_dir, max_depth=3)
                             if exes:
-                                best_exe = self._select_best_exe(exes, game_dir.name)
+                                game_root = self._resolve_game_root(game_dir)
+                                best_exe = self._select_best_exe(exes, game_root.name)
+                                title = self._get_exe_product_name(best_exe) or game_root.name
                                 
                                 # Detect platform from directory name or path
                                 platform = "Local"
-                                dir_name_lower = game_dir.name.lower()
+                                dir_name_lower = game_root.name.lower()
                                 sub_lower = sub.lower()
                                 if "steam" in dir_name_lower or "steam" in sub_lower: platform = "Steam"
                                 elif "epic" in dir_name_lower or "epic" in sub_lower: platform = "Epic Games"
@@ -2311,22 +2463,22 @@ class GameScanner:
                                 elif "xbox" in dir_name_lower or "xbox" in sub_lower: platform = "Xbox"
                                 
                                 self.games.append({
-                                    "name": game_dir.name,
+                                    "name": title,
                                     "platform": platform,
-                                    "id": f"{drive}_{game_dir.name}",
-                                    "install_path": str(game_dir),
+                                    "id": f"{drive}_{game_root.name}",
+                                    "install_path": str(game_root),
                                     "exe_path": best_exe,
                                     "source": "common_paths"
                                 })
                 except Exception:
                     continue
 
-
     def _scan_deep_recursive(self, max_depth=5):
         """
         Deep recursive scan of common game directories.
         This finds games buried deep in folder structures like:
         D:\\Games\\Ubisoft\\Far Cry 4\\bin\\FarCry4.exe
+        D:\\Games\\Cyberpunk 2077\\bin\\x64\\Cyberpunk2077.exe
         """
         import psutil
         
@@ -2340,27 +2492,18 @@ class GameScanner:
         }
         skip_folders.update(self.crack_groups)
         
-        # Game-like patterns in folder names
-        game_patterns = [
-            "game", "games", "bin", "binaries", "release", "debug",
-            "x64", "x86", "win64", "win32", "_windows", "_pc", "retail"
-        ]
-        
         try:
             drives = [p.mountpoint for p in psutil.disk_partitions() 
                      if 'fixed' in p.opts or 'cdrom' not in p.opts]
         except Exception:
             drives = ["C:\\", "D:\\", "E:\\", "F:\\", "G:\\"]
         
-        # Scan specific root folders that are likely to contain games
         root_scan_targets = []
-        
         for drive in drives:
             drive_path = Path(drive)
             if not drive_path.exists():
                 continue
                 
-            # Add common game library locations
             targets = [
                 "Games", "Game", "My Games", 
                 "SteamLibrary", "Steam Games",
@@ -2389,19 +2532,16 @@ class GameScanner:
                 if full_path.exists():
                     root_scan_targets.append(full_path)
             
-            # Also check Public Games
             public_games = Path("C:\\Users\\Public\\Games")
             if public_games.exists() and public_games not in root_scan_targets:
                 root_scan_targets.append(public_games)
             
-            # Check common publisher folders in root
             publishers = ["Sony", "PlayStation Studios", "Ubisoft", "Electronic Arts", "Activision", "Bethesda"]
             for pub in publishers:
                 pub_path = drive_path / pub
                 if pub_path.exists() and pub_path not in root_scan_targets:
                     root_scan_targets.append(pub_path)
         
-        # Also scan the root of each drive for any folder containing "game"
         for drive in drives:
             try:
                 for item in Path(drive).iterdir():
@@ -2411,10 +2551,10 @@ class GameScanner:
             except (PermissionError, OSError):
                 continue
         
-        # Now deep scan each target (capped to prevent runaway recursion)
-        found_games = set()
+        # Aggregate executables by resolved canonical game root
+        scanned_game_roots: dict[Path, list[Path]] = {}
         self._deep_scan_folder_count = 0
-        self._deep_scan_max_folders = 5000  # Safety cap (increased from 500)
+        self._deep_scan_max_folders = 5000
 
         for root_path in root_scan_targets:
             if not root_path.exists():
@@ -2423,79 +2563,63 @@ class GameScanner:
                 logger.info(f"Deep scan folder cap reached ({self._deep_scan_max_folders}). Stopping.")
                 break
             try:
-                self._deep_scan_folder(root_path, max_depth, 0, skip_folders, game_patterns, found_games)
+                self._deep_scan_folder(root_path, max_depth, 0, skip_folders, scanned_game_roots)
             except (PermissionError, OSError):
                 continue
                 
+        # Emit exactly one game entry per resolved game root
+        for game_root, exes in scanned_game_roots.items():
+            if not exes:
+                continue
+            best_exe = self._select_best_exe(exes, game_root.name)
+            title = self._get_exe_product_name(best_exe) or game_root.name
+            
+            self.games.append({
+                "name": title,
+                "platform": "Local",
+                "id": f"deep_{game_root.name}",
+                "install_path": str(game_root),
+                "exe_path": best_exe,
+                "features": [],
+                "source": "deep_scan"
+            })
+            logger.debug(f"Deep scan resolved game: {title} at {game_root} ({best_exe})")
+
     def _deep_scan_folder(self, folder: Path, max_depth: int, current_depth: int, 
-                          skip_folders: set, game_patterns: list, found_games: set):
-        """Recursively scan a folder for game executables."""
-        
+                          skip_folders: set, scanned_game_roots: dict[Path, list[Path]]):
+        """Recursively scan a folder and aggregate executables by their resolved game root."""
         if current_depth >= max_depth:
             return
-        # Safety cap: stop scanning if we've visited too many folders
         if self._deep_scan_folder_count >= self._deep_scan_max_folders:
             return
         self._deep_scan_folder_count += 1
             
         folder_lower = folder.name.lower()
-        
-        # Skip system/protected folders
-        if folder_lower in skip_folders:
-            return
-        if folder.name.startswith("$") or folder.name.startswith("."):
+        if folder_lower in skip_folders or folder.name.startswith(("$", ".")):
             return
             
         try:
-            # Look for .exe files in this folder
             exes = list(folder.glob("*.exe"))
-            
-            # Filter executables by size (1MB threshold accommodates lightweight indie games)
-            game_exes = []
+            valid_exes = []
             for exe in exes:
                 try:
                     if exe.stat().st_size >= 1024 * 1024:  # 1MB minimum
-                        game_exes.append(exe)
+                        valid_exes.append(exe)
                 except (OSError, IOError):
                     continue
             
-            if game_exes:
-                # Use parent folder name as game name, or this folder if it looks game-like
-                game_name = folder.name
-                parent = folder.parent
-                
-                # Try to find a better name
-                if any(pattern in folder_lower for pattern in game_patterns):
-                    # This folder is bin/, release/, etc - use parent
-                    game_name = parent.name
+            if valid_exes:
+                game_root = self._resolve_game_root(folder)
+                if game_root and game_root.name.lower() not in self.library_root_names:
+                    scanned_game_roots.setdefault(game_root, []).extend(valid_exes)
                     
-                best_exe = self._select_best_exe(game_exes, game_name)
-                
-                # Check if we already found this game
-                game_key = f"{game_name}_{folder}"
-                if game_key not in found_games:
-                    found_games.add(game_key)
-                    
-                    self.games.append({
-                        "name": game_name,
-                        "platform": "Local",
-                        "id": f"deep_{game_name}",
-                        "install_path": str(folder),
-                        "exe_path": best_exe,
-                        "features": [],
-                        "source": "deep_scan"
-                    })
-                    logger.debug(f"Deep scan found: {game_name} at {folder}")
-                    
-            # Recurse into subdirectories (but not too many)
             if current_depth < max_depth - 1:
                 for subfolder in folder.iterdir():
                     if subfolder.is_dir():
                         self._deep_scan_folder(
                             subfolder, max_depth, current_depth + 1,
-                            skip_folders, game_patterns, found_games
+                            skip_folders, scanned_game_roots
                         )
-                        
         except (PermissionError, OSError):
             return
 
