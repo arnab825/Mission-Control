@@ -288,7 +288,7 @@ export const BENCHMARK_PROFILES: Record<string, BenchmarkProfile> = {
     },
     features: [
       { name: "Frostbite 3 Engine", desc: "Dynamic Wet Asphalt & Volumetric Rain", active: true },
-      { name: "NVIDIA DLAA", desc: "Deep Learning Anti-Aliasing High Quality AA", active: true },
+      { name: "Temporal Anti-Aliasing (TAA)", desc: "Temporal Anti-Aliasing for smooth edge gradients", active: true },
       { name: "NVIDIA Reflex", desc: "Low Latency Input Pass-Through", active: true },
       { name: "Dynamic Night Lighting", desc: "Neon Shader Simulation & Screen Space Reflections", active: true }
     ],
@@ -296,7 +296,7 @@ export const BENCHMARK_PROFILES: Record<string, BenchmarkProfile> = {
       {
         src: "/games/NFSHeat_SS1.webp",
         title: "Cape Castille Rain Race & Max-Load GPU Telemetry",
-        desc: "Wet weather grid racing captured at 63 FPS with DLAA active (100% GPU utilization, 53W power draw, 2.76 GB / 8.0 GB VRAM)."
+        desc: "Wet weather grid racing captured at 63 FPS with TAA active (100% GPU utilization, 53W power draw, 2.76 GB / 8.0 GB VRAM)."
       },
       {
         src: "/games/NFSHeat_SS2.webp",
@@ -346,7 +346,7 @@ export const BENCHMARK_PROFILES: Record<string, BenchmarkProfile> = {
     },
     features: [
       { name: "Snowdrop Engine", desc: "Procedural Weather, Snow & Volumetric Lighting", active: true },
-      { name: "NVIDIA DLSS 4", desc: "Deep Learning Super Sampling Super Resolution", active: true },
+      { name: "Temporal Anti-Aliasing (TAA)", desc: "Temporal Anti-Aliasing for smooth image scaling", active: true },
       { name: "NVIDIA Reflex", desc: "Low Latency Input Optimization", active: true },
       { name: "Memory Optimization", desc: "3.26 GB Peak Allocation at Ultra Geometry Density", active: true }
     ],
@@ -431,7 +431,7 @@ export const TESTED_GAMES_LIST: TestedGameSummary[] = [
     publisher: "Electronic Arts",
     genre: "Arcade Racing / Open World",
     preset: "Ultra Frostbite",
-    keyTech: ["Frostbite 3", "Reflex", "DLAA", "Night Heat Shaders"],
+    keyTech: ["Frostbite 3", "Reflex", "TAA", "Night Heat Shaders"],
     status: "VERIFIED BENCHMARK",
     fps: "73 FPS",
     vram: "2.76 GB / 8.0 GB",
@@ -441,7 +441,7 @@ export const TESTED_GAMES_LIST: TestedGameSummary[] = [
     coverImage: "/games/NFSHeat_SS1.webp",
     gameplayGif: "/games/NFSHeat_SS1.webp",
     storeRating: "4.7 ★★★★★",
-    dlssVersion: "DLAA"
+    dlssVersion: "TAA"
   },
   {
     id: "thedivision",
@@ -449,7 +449,7 @@ export const TESTED_GAMES_LIST: TestedGameSummary[] = [
     publisher: "Ubisoft",
     genre: "Tactical Shooter / Action RPG",
     preset: "Ultra Snowdrop",
-    keyTech: ["DLSS 4", "DX12", "Reflex", "Volumetric Snow"],
+    keyTech: ["TAA", "DX12", "Reflex", "Volumetric Snow"],
     status: "VERIFIED BENCHMARK",
     fps: "94 FPS",
     vram: "3.26 GB / 8.0 GB",
@@ -459,7 +459,7 @@ export const TESTED_GAMES_LIST: TestedGameSummary[] = [
     coverImage: "/games/TomClancyThe Division_SS1.webp",
     gameplayGif: "/games/TomClancyThe Division_SS1.webp",
     storeRating: "4.6 ★★★★☆",
-    dlssVersion: "DLSS 4"
+    dlssVersion: "TAA"
   }
 ];
 
