@@ -628,7 +628,7 @@ export default function GamesTestedPage() {
                         className="inline-flex items-center justify-center gap-2 px-4 sm:px-5 py-2.5 rounded-xl bg-neon-green text-obsidian font-mono text-xs font-bold uppercase tracking-wider hover:bg-white transition-all shadow-[0_0_20px_rgba(118,185,0,0.4)] cursor-pointer shrink-0"
                       >
                         <Plus className="w-4 h-4 shrink-0" />
-                        <span>Rate Game / Log Rig</span>
+                        <span>Share Review & Rig Log</span>
                       </button>
                     </div>
 
@@ -806,6 +806,38 @@ export default function GamesTestedPage() {
                                     {rev.review}
                                   </p>
                                 </div>
+
+                                {/* Attached Media Gallery (Images, GIFs, Videos) */}
+                                {rev.media && rev.media.length > 0 && (
+                                  <div className="grid grid-cols-2 gap-2 pt-1">
+                                    {rev.media.map((m: any, mIdx: number) => (
+                                      <div
+                                        key={mIdx}
+                                        className="relative aspect-video rounded-xl overflow-hidden bg-black/80 border border-white/15 group/media"
+                                      >
+                                        {m.type === "video" ? (
+                                          <video
+                                            src={m.url}
+                                            controls
+                                            playsInline
+                                            preload="metadata"
+                                            className="w-full h-full object-cover"
+                                          />
+                                        ) : (
+                                          <img
+                                            src={m.url}
+                                            alt={m.name || "Media attachment"}
+                                            className="w-full h-full object-cover group-hover/media:scale-105 transition-transform duration-300 cursor-pointer"
+                                            onClick={() => window.open(m.url, "_blank")}
+                                          />
+                                        )}
+                                        <span className="absolute top-1.5 left-1.5 px-1.5 py-0.5 rounded bg-black/80 border border-white/20 text-[9px] font-mono font-bold uppercase text-white shadow pointer-events-none">
+                                          {m.type}
+                                        </span>
+                                      </div>
+                                    ))}
+                                  </div>
+                                )}
 
                                 {/* Rig Specs Pill Badges */}
                                 <div className="flex flex-wrap gap-1.5 text-[10px] pt-1">
@@ -1003,12 +1035,12 @@ export default function GamesTestedPage() {
                 )}
               </div>
             </div>
-
-            {/* Scalable Horizontal-Scrolling Genre Bar with Arrows */}
-            <div className="relative flex items-center group/genres pt-2 border-t border-white/5 w-full">
+            {/* Scalable Horizontal-Scrolling Genre Bar with Clean Side Controls */}
+            <div className="flex items-center gap-1.5 sm:gap-2 pt-2 border-t border-white/5 w-full">
               <button
+                type="button"
                 onClick={() => scrollGenres("left")}
-                className="hidden sm:flex absolute left-0 z-20 w-7 h-7 rounded-full bg-black/80 border border-white/20 items-center justify-center text-gray-300 hover:text-white hover:border-neon-green transition-all -translate-x-3 shadow-xl cursor-pointer"
+                className="w-7 h-7 rounded-lg bg-black/70 hover:bg-black/90 border border-white/15 hover:border-neon-green/50 flex items-center justify-center text-gray-300 hover:text-white transition-all shadow-md cursor-pointer shrink-0"
                 title="Scroll left"
               >
                 <ChevronLeft className="w-3.5 h-3.5" />
@@ -1016,7 +1048,7 @@ export default function GamesTestedPage() {
 
               <div
                 ref={genreScrollRef}
-                className="flex items-center gap-1.5 sm:gap-2 overflow-x-auto no-scrollbar scroll-smooth w-full px-0.5 py-1"
+                className="flex-1 flex items-center gap-1.5 sm:gap-2 overflow-x-auto no-scrollbar scroll-smooth py-1"
                 style={{ scrollbarWidth: "none" }}
               >
                 {/* 'ALL' Pill */}
@@ -1027,34 +1059,34 @@ export default function GamesTestedPage() {
                   }}
                   className={`px-3 py-1.5 rounded-xl font-mono text-[11px] sm:text-xs font-bold uppercase tracking-wider shrink-0 transition-all cursor-pointer flex items-center gap-1.5 ${
                     filterGenre === "ALL"
-                      ? "bg-neon-green text-obsidian shadow-[0_0_15px_rgba(118,185,0,0.5)]"
-                      : "bg-white/5 text-gray-400 hover:text-white hover:bg-white/10 border border-white/10"
+                      ? "bg-neon-green text-obsidian shadow-[0_0_15px_rgba(118,185,0,0.5)] scale-105"
+                      : "bg-white/5 text-gray-400 hover:text-white hover:bg-white/10"
                   }`}
                 >
-                  <span>ALL</span>
-                  <span className={`px-1.5 py-0.2 rounded-full text-[9px] sm:text-[10px] ${filterGenre === "ALL" ? "bg-black/20 text-black" : "bg-white/10 text-gray-300"}`}>
-                    {TESTED_GAMES_LIST.length}
+                  <span>All</span>
+                  <span className={`text-[10px] px-1.5 py-0.2 rounded-full ${filterGenre === "ALL" ? "bg-black/30 text-obsidian" : "bg-white/10 text-gray-400"}`}>
+                    {gamesList.length}
                   </span>
                 </button>
 
                 {/* Dynamic Genre Pills */}
                 {availableGenres.map(([genre, count]) => {
-                  const isActive = filterGenre === genre;
+                  const isSelected = filterGenre === genre;
                   return (
                     <button
                       key={genre}
                       onClick={() => {
-                        setFilterGenre(genre);
+                        setFilterGenre(isSelected ? "ALL" : genre);
                         setVisibleCount(12);
                       }}
                       className={`px-3 py-1.5 rounded-xl font-mono text-[11px] sm:text-xs font-bold uppercase tracking-wider shrink-0 transition-all cursor-pointer flex items-center gap-1.5 ${
-                        isActive
-                          ? "bg-neon-green text-obsidian shadow-[0_0_15px_rgba(118,185,0,0.5)]"
-                          : "bg-white/5 text-gray-400 hover:text-white hover:bg-white/10 border border-white/10"
+                        isSelected
+                          ? "bg-neon-green text-obsidian shadow-[0_0_15px_rgba(118,185,0,0.5)] scale-105"
+                          : "bg-white/5 text-gray-400 hover:text-white hover:bg-white/10"
                       }`}
                     >
                       <span>{genre}</span>
-                      <span className={`px-1.5 py-0.2 rounded-full text-[9px] sm:text-[10px] ${isActive ? "bg-black/20 text-black" : "bg-white/10 text-gray-300"}`}>
+                      <span className={`text-[10px] px-1.5 py-0.2 rounded-full ${isSelected ? "bg-black/30 text-obsidian" : "bg-white/10 text-gray-400"}`}>
                         {count}
                       </span>
                     </button>
@@ -1063,8 +1095,9 @@ export default function GamesTestedPage() {
               </div>
 
               <button
+                type="button"
                 onClick={() => scrollGenres("right")}
-                className="hidden sm:flex absolute right-0 z-20 w-7 h-7 rounded-full bg-black/80 border border-white/20 items-center justify-center text-gray-300 hover:text-white hover:border-neon-green transition-all translate-x-3 shadow-xl cursor-pointer"
+                className="w-7 h-7 rounded-lg bg-black/70 hover:bg-black/90 border border-white/15 hover:border-neon-green/50 flex items-center justify-center text-gray-300 hover:text-white transition-all shadow-md cursor-pointer shrink-0"
                 title="Scroll right"
               >
                 <ChevronRight className="w-3.5 h-3.5" />
