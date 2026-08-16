@@ -2,6 +2,14 @@
 
 This document contains a detailed history of all patches and updates for the AI Gaming Assistant.
 
+### Patch: 2026-08-16 — v3.2.0: Dynamic Game Root Resolution & Subfolder Optimization
+
+- Dynamic Game Root Resolution & Subfolder Optimization
+- Automated upward directory walker past nested engine and architecture folders
+- Game root scoping preventing orphan sub-games for mod and crash tools
+- Enhanced executable scoring with auxiliary tool and uninstaller filtering
+- Universal Windows PE metadata title extraction for ambiguous binaries
+
 ### Patch: 2026-08-16 — v3.1.9: Universal Game Scanner & Dynamic Binary Title Resolution
 
 - Dynamic PE binary title extraction for 100k+ games

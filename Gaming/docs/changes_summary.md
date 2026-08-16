@@ -12,7 +12,16 @@ Comprehensive breakdown of major milestone releases, architectural upgrades, and
 
 ---
 
-## 🌟 Version v3.1.9 (Latest) — Universal Game Scanner & Dynamic Binary Title Resolution
+## 🌟 Version v3.2.0 (Latest) — Dynamic Game Root Resolution & Subfolder Optimization
+
+### 🛠️ Key Highlights
+1. **Automated directory walker resolves nested engine and architecture folders.**
+2. **Game root scoping prevents orphan sub-games for mod and crash tools.**
+3. **Enhanced executable scoring filters auxiliary tools and uninstallers.**
+
+---
+
+## 📦 Version v3.1.9 — Universal Game Scanner & Dynamic Binary Title Resolution
 
 ### 🛠️ Key Highlights
 1. **Dynamic PE binary title extraction for 100k+ games**
