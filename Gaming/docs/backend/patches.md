@@ -2,6 +2,13 @@
 
 This document contains a detailed history of all patches and updates for the AI Gaming Assistant.
 
+### Patch: 2026-08-16 — v3.2.1: Library Scanner Sanitation & Steam Container Optimization
+
+- Resolved Steam library container false-positives by filtering out steamapps directory entries
+- Enabled automated steamapps/common recursive game discovery in drive and library scans
+- Enhanced junk keywords and container validation in library scanner
+- Connected community review media uploads and navbar active tab synchronization
+
 ### Patch: 2026-08-16 — v3.2.0: Dynamic Game Root Resolution & Subfolder Optimization
 
 - Dynamic Game Root Resolution & Subfolder Optimization
