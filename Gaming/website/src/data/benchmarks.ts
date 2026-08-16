@@ -113,7 +113,7 @@ export const BENCHMARK_PROFILES: Record<string, BenchmarkProfile> = {
       gtx: "Esports Latency (NVIDIA Reflex Low Latency)"
     },
     features: [
-      { name: "NVIDIA DLSS 3.7", desc: "Super Resolution & Ray Reconstruction", active: true },
+      { name: "NVIDIA DLSS 3.5", desc: "Super Resolution & Ray Reconstruction", active: true },
       { name: "DLSS Frame Generation", desc: "2x Frame Interpolation", active: true },
       { name: "NVIDIA Reflex", desc: "Low Latency Input Pass-Through", active: true },
       { name: "Full Ray Tracing", desc: "Ray-Traced Reflections & Ambient Occlusion", active: true }
@@ -122,7 +122,7 @@ export const BENCHMARK_PROFILES: Record<string, BenchmarkProfile> = {
       {
         src: "/games/SpiderMan_SS1.webp",
         title: "High-Speed Manhattan Traversal & Ray Tracing",
-        desc: "Full Ray-Traced city reflections and ultra draw distance at 80 FPS with DLSS 3.7 Frame Generation (94% GPU Load, 6.5 GB / 8.0 GB VRAM)."
+        desc: "Full Ray-Traced city reflections and ultra draw distance at 80 FPS with DLSS 3.5 Frame Generation (94% GPU Load, 6.5 GB / 8.0 GB VRAM)."
       },
       {
         src: "/games/SpiderMan_SS2.webp",
@@ -142,10 +142,10 @@ export const BENCHMARK_PROFILES: Record<string, BenchmarkProfile> = {
     publisher: "Rockstar Games",
     releaseYear: "Enhanced Edition",
     genre: "Open World / Action",
-    api: "DirectX 12 Ultimate",
+    api: "DirectX 11",
     score: 98,
     status: "VERIFIED BENCHMARK",
-    preset: "RTX High FPS",
+    preset: "Ultra Settings",
     overview: "Set in the sun-drenched metropolis of Los Santos and Blaine County, GTA V follows retired bank robber Michael, unhinged dealer Trevor, and street hustler Franklin as they execute high-stakes heists while dodging corrupt federal agents.",
     detailedOverview: {
       story: "Set in the expansive metropolis of Los Santos and Blaine County, Grand Theft Auto V weaves the intertwined lives of three distinct criminals: Michael De Santa, a former bank robber living in witness protection; Trevor Philips, a chaotic and volatile arms runner; and Franklin Clinton, a young street hustler aiming for high-end score opportunities. Dragged back into the criminal underworld by corrupted federal agents and dangerous cartels, the trio must pull off a series of complex, high-stakes heists to secure their freedom and fortune.",
@@ -154,7 +154,7 @@ export const BENCHMARK_PROFILES: Record<string, BenchmarkProfile> = {
         { name: "Three-Protagonist Dynamic Switching", desc: "Seamlessly switch between Michael, Franklin, and Trevor during heists to manage snipers, getaway drivers, and assault teams in real time." },
         { name: "Multi-Stage Heist Planning", desc: "Plan major robberies by selecting approach vectors (Smart vs. Loud), hiring crew members with distinct skill/cut ratios, and setting up prep missions." },
         { name: "Special Character Abilities", desc: "Michael triggers bullet-time precision marksmanship; Franklin slows time while driving for high-speed maneuvers; Trevor enters a berserk rage with reduced damage and boosted firepower." },
-        { name: "Enhanced Graphics & Dynamic Sandbox", desc: "Features upgraded ray-traced shadows, enhanced foliage density, high-resolution textures, and a living open-world AI simulation." }
+        { name: "Enhanced Graphics & Dynamic Sandbox", desc: "Features Percentage Closer Soft Shadows (PCSS), enhanced foliage density, high-resolution textures, and a living open-world AI simulation." }
       ]
     },
     testedSpecs: {
@@ -166,13 +166,13 @@ export const BENCHMARK_PROFILES: Record<string, BenchmarkProfile> = {
       gpuLoad: "88%"
     },
     presets: {
-      rtx40: "RTX High FPS + Ultra Textures + Extended Draw Distance",
-      rtx30: "High Preset + RT Shadows + Reflex",
+      rtx40: "Ultra Preset + Ultra Textures + Extended Draw Distance",
+      rtx30: "High Preset + Soft Shadows + Reflex",
       gtx: "Maxed Standard + NVIDIA Reflex Low Latency"
     },
     features: [
-      { name: "DirectX 12 / Enhanced API", desc: "High-Resolution Geometry & Volumetric Shading", active: true },
-      { name: "Ray Tracing Shadows", desc: "Enhanced Ray-Traced Sun Shadows & Directional Reflections", active: true },
+      { name: "DirectX 11 / Native API", desc: "High-Resolution Geometry & Volumetric Shading", active: true },
+      { name: "NVIDIA TXAA / Soft Shadows", desc: "NVIDIA Temporal Anti-Aliasing & Percentage Closer Soft Shadows", active: true },
       { name: "NVIDIA Reflex", desc: "Low Latency Input Optimization", active: true },
       { name: "High-FPS Engine", desc: "Optimized Multi-Core Threading (190+ FPS)", active: true }
     ],
@@ -180,7 +180,7 @@ export const BENCHMARK_PROFILES: Record<string, BenchmarkProfile> = {
       {
         src: "/games/GTA_V_SS1.webp",
         title: "Los Santos Highway High-Speed Telemetry",
-        desc: "High-speed highway rendering at 193 FPS with enhanced volumetric lighting and RT shadows (88% GPU Load, 4.56 GB / 8.0 GB VRAM)."
+        desc: "High-speed highway rendering at 193 FPS with enhanced volumetric lighting and soft shadows (88% GPU Load, 4.56 GB / 8.0 GB VRAM)."
       },
       {
         src: "/games/GTA_V_SS2.webp",
@@ -229,7 +229,7 @@ export const BENCHMARK_PROFILES: Record<string, BenchmarkProfile> = {
       gtx: "Medium Preset + FSR 3 / XeSS + Reflex Low Latency"
     },
     features: [
-      { name: "NVIDIA DLSS 3.7", desc: "Super Resolution & Anti-Aliasing", active: true },
+      { name: "NVIDIA DLSS 3.5", desc: "Super Resolution & Anti-Aliasing", active: true },
       { name: "DLSS Frame Generation", desc: "2x Frame Rate Boost", active: true },
       { name: "NVIDIA Reflex", desc: "Low Latency Input Pass-Through", active: true },
       { name: "Exclusive Fullscreen ETW", desc: "Hardware ETW Hook & Direct DXGI Telemetry", active: true }
@@ -238,7 +238,7 @@ export const BENCHMARK_PROFILES: Record<string, BenchmarkProfile> = {
       {
         src: "/games/Tsushima_SS1.webp",
         title: "Tsushima Island Traversal & Hardware Telemetry",
-        desc: "High-fidelity rendering across feudal Japan at 107 FPS with DLSS 3.7 Frame Generation (96% GPU Load, 5.3 GB / 8.0 GB VRAM)."
+        desc: "High-fidelity rendering across feudal Japan at 107 FPS with DLSS 3.5 Frame Generation (96% GPU Load, 5.3 GB / 8.0 GB VRAM)."
       },
       {
         src: "/games/Tsushima_SS2.webp",
@@ -258,7 +258,7 @@ export const BENCHMARK_PROFILES: Record<string, BenchmarkProfile> = {
     publisher: "Electronic Arts / Ghost Games",
     releaseYear: "2019 / Frostbite 3",
     genre: "Arcade Racing / Open World",
-    api: "DirectX 12",
+    api: "DirectX 11",
     score: 97,
     status: "VERIFIED BENCHMARK",
     preset: "Ultra Frostbite",
@@ -377,7 +377,7 @@ export const TESTED_GAMES_LIST: TestedGameSummary[] = [
     publisher: "Insomniac Games / PlayStation",
     genre: "Open World / Action",
     preset: "Ultra Ray Tracing",
-    keyTech: ["DLSS 3.7", "Frame Gen", "Reflex", "Ray Tracing"],
+    keyTech: ["DLSS 3.5", "Frame Gen", "Reflex", "Ray Tracing"],
     status: "VERIFIED BENCHMARK",
     fps: "80 FPS",
     vram: "6.5 GB / 8.0 GB",
@@ -387,25 +387,25 @@ export const TESTED_GAMES_LIST: TestedGameSummary[] = [
     coverImage: "/games/SpiderMan_SS1.webp",
     gameplayGif: "/games/SpiderMan_SS1.webp",
     storeRating: "4.9 ★★★★★",
-    dlssVersion: "DLSS 3.7 + FG"
+    dlssVersion: "DLSS 3.5 + FG"
   },
   {
     id: "gtav",
     name: "Grand Theft Auto V Enhanced",
     publisher: "Rockstar Games",
     genre: "Open World / Action",
-    preset: "RTX High FPS",
-    keyTech: ["DirectX 12", "RT Shadows", "Reflex", "High FPS"],
+    preset: "Ultra Settings",
+    keyTech: ["DirectX 11", "Soft Shadows", "Reflex", "High FPS"],
     status: "VERIFIED BENCHMARK",
     fps: "193 FPS",
     vram: "4.56 GB / 8.0 GB",
     gpuLoad: "88%",
     latency: "12.4 ms",
-    api: "DX12 Ultimate",
+    api: "DirectX 11",
     coverImage: "/games/GTA_V_SS1.webp",
     gameplayGif: "/games/GTA_V_SS1.webp",
     storeRating: "4.8 ★★★★★",
-    dlssVersion: "DirectX 12 / RT"
+    dlssVersion: "DirectX 11 / TXAA"
   },
   {
     id: "tsushima",
@@ -413,7 +413,7 @@ export const TESTED_GAMES_LIST: TestedGameSummary[] = [
     publisher: "Sucker Punch / PlayStation",
     genre: "Open World / Action RPG",
     preset: "Very High / DLSS",
-    keyTech: ["DLSS 3.7", "Frame Gen", "Reflex", "Exclusive Fullscreen ETW"],
+    keyTech: ["DLSS 3.5", "Frame Gen", "Reflex", "Exclusive Fullscreen ETW"],
     status: "VERIFIED BENCHMARK",
     fps: "107 FPS",
     vram: "5.3 GB / 8.0 GB",
@@ -423,7 +423,7 @@ export const TESTED_GAMES_LIST: TestedGameSummary[] = [
     coverImage: "/games/Tsushima_SS1.webp",
     gameplayGif: "/games/Tsushima_SS1.webp",
     storeRating: "4.9 ★★★★★",
-    dlssVersion: "DLSS 3.7 + FG"
+    dlssVersion: "DLSS 3.5 + FG"
   },
   {
     id: "nfsheat",
@@ -431,17 +431,17 @@ export const TESTED_GAMES_LIST: TestedGameSummary[] = [
     publisher: "Electronic Arts",
     genre: "Arcade Racing / Open World",
     preset: "Ultra Frostbite",
-    keyTech: ["Frostbite 3", "Reflex", "DX12", "Night Heat Shaders"],
+    keyTech: ["Frostbite 3", "Reflex", "DX11", "Night Heat Shaders"],
     status: "VERIFIED BENCHMARK",
     fps: "73 FPS",
     vram: "2.76 GB / 8.0 GB",
     gpuLoad: "100%",
     latency: "13.5 ms",
-    api: "DX12",
+    api: "DirectX 11",
     coverImage: "/games/NFSHeat_SS1.webp",
     gameplayGif: "/games/NFSHeat_SS1.webp",
     storeRating: "4.7 ★★★★★",
-    dlssVersion: "Frostbite 3 / TAA"
+    dlssVersion: "DirectX 11 / TAA"
   },
   {
     id: "thedivision",
@@ -459,7 +459,7 @@ export const TESTED_GAMES_LIST: TestedGameSummary[] = [
     coverImage: "/games/TomClancyThe Division_SS1.webp",
     gameplayGif: "/games/TomClancyThe Division_SS1.webp",
     storeRating: "4.6 ★★★★☆",
-    dlssVersion: "Snowdrop / DX12"
+    dlssVersion: "DirectX 12 / TAA"
   }
 ];
 
