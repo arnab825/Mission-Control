@@ -82,7 +82,7 @@ export const BENCHMARK_PROFILES: Record<string, BenchmarkProfile> = {
     id: "spiderman2",
     name: "Marvel's Spider-Man 2",
     publisher: "Insomniac Games / PlayStation",
-    releaseYear: "2026 PC Edition",
+    releaseYear: "2024 PC Edition",
     genre: "Open World / Action",
     api: "DirectX 12 Ultimate",
     score: 99,
@@ -113,7 +113,7 @@ export const BENCHMARK_PROFILES: Record<string, BenchmarkProfile> = {
       gtx: "Esports Latency (NVIDIA Reflex Low Latency)"
     },
     features: [
-      { name: "NVIDIA DLSS 4", desc: "Multi-Frame Generation & Ray Reconstruction", active: true },
+      { name: "NVIDIA DLSS 3.7", desc: "Super Resolution & Ray Reconstruction", active: true },
       { name: "DLSS Frame Generation", desc: "2x Frame Interpolation", active: true },
       { name: "NVIDIA Reflex", desc: "Low Latency Input Pass-Through", active: true },
       { name: "Full Ray Tracing", desc: "Ray-Traced Reflections & Ambient Occlusion", active: true }
@@ -122,7 +122,7 @@ export const BENCHMARK_PROFILES: Record<string, BenchmarkProfile> = {
       {
         src: "/games/SpiderMan_SS1.webp",
         title: "High-Speed Manhattan Traversal & Ray Tracing",
-        desc: "Full Ray-Traced city reflections and ultra draw distance at 80 FPS with DLSS 4 Multi-Frame Generation (94% GPU Load, 6.5 GB / 8.0 GB VRAM)."
+        desc: "Full Ray-Traced city reflections and ultra draw distance at 80 FPS with DLSS 3.7 Frame Generation (94% GPU Load, 6.5 GB / 8.0 GB VRAM)."
       },
       {
         src: "/games/SpiderMan_SS2.webp",
@@ -166,21 +166,21 @@ export const BENCHMARK_PROFILES: Record<string, BenchmarkProfile> = {
       gpuLoad: "88%"
     },
     presets: {
-      rtx40: "RTX High FPS + DLSS Quality + Frame Generation",
-      rtx30: "High Preset + DLSS Quality + Reflex",
+      rtx40: "RTX High FPS + Ultra Textures + Extended Draw Distance",
+      rtx30: "High Preset + RT Shadows + Reflex",
       gtx: "Maxed Standard + NVIDIA Reflex Low Latency"
     },
     features: [
-      { name: "NVIDIA DLSS 4", desc: "Multi-Frame Generation & Super Resolution", active: true },
-      { name: "DLSS Frame Generation", desc: "High Frame Rate Boost", active: true },
-      { name: "NVIDIA Reflex", desc: "Low Latency Optimization", active: true },
-      { name: "Ray Tracing Shadows", desc: "Enhanced Ray-Traced Shadows & Reflections", active: true }
+      { name: "DirectX 12 / Enhanced API", desc: "High-Resolution Geometry & Volumetric Shading", active: true },
+      { name: "Ray Tracing Shadows", desc: "Enhanced Ray-Traced Sun Shadows & Directional Reflections", active: true },
+      { name: "NVIDIA Reflex", desc: "Low Latency Input Optimization", active: true },
+      { name: "High-FPS Engine", desc: "Optimized Multi-Core Threading (190+ FPS)", active: true }
     ],
     screenshots: [
       {
         src: "/games/GTA_V_SS1.webp",
         title: "Los Santos Highway High-Speed Telemetry",
-        desc: "High-speed highway rendering at 193 FPS with DLSS 4 Multi-Frame Generation (88% GPU Load, 4.56 GB / 8.0 GB VRAM)."
+        desc: "High-speed highway rendering at 193 FPS with enhanced volumetric lighting and RT shadows (88% GPU Load, 4.56 GB / 8.0 GB VRAM)."
       },
       {
         src: "/games/GTA_V_SS2.webp",
@@ -229,7 +229,7 @@ export const BENCHMARK_PROFILES: Record<string, BenchmarkProfile> = {
       gtx: "Medium Preset + FSR 3 / XeSS + Reflex Low Latency"
     },
     features: [
-      { name: "NVIDIA DLSS 4", desc: "Multi-Frame Generation & Super Resolution", active: true },
+      { name: "NVIDIA DLSS 3.7", desc: "Super Resolution & Anti-Aliasing", active: true },
       { name: "DLSS Frame Generation", desc: "2x Frame Rate Boost", active: true },
       { name: "NVIDIA Reflex", desc: "Low Latency Input Pass-Through", active: true },
       { name: "Exclusive Fullscreen ETW", desc: "Hardware ETW Hook & Direct DXGI Telemetry", active: true }
@@ -238,7 +238,7 @@ export const BENCHMARK_PROFILES: Record<string, BenchmarkProfile> = {
       {
         src: "/games/Tsushima_SS1.webp",
         title: "Tsushima Island Traversal & Hardware Telemetry",
-        desc: "High-fidelity rendering across feudal Japan at 107 FPS with DLSS 4 Multi-Frame Generation (96% GPU Load, 5.3 GB / 8.0 GB VRAM)."
+        desc: "High-fidelity rendering across feudal Japan at 107 FPS with DLSS 3.7 Frame Generation (96% GPU Load, 5.3 GB / 8.0 GB VRAM)."
       },
       {
         src: "/games/Tsushima_SS2.webp",
@@ -377,7 +377,7 @@ export const TESTED_GAMES_LIST: TestedGameSummary[] = [
     publisher: "Insomniac Games / PlayStation",
     genre: "Open World / Action",
     preset: "Ultra Ray Tracing",
-    keyTech: ["DLSS 4", "Frame Gen", "Reflex", "Ray Tracing"],
+    keyTech: ["DLSS 3.7", "Frame Gen", "Reflex", "Ray Tracing"],
     status: "VERIFIED BENCHMARK",
     fps: "80 FPS",
     vram: "6.5 GB / 8.0 GB",
@@ -387,7 +387,7 @@ export const TESTED_GAMES_LIST: TestedGameSummary[] = [
     coverImage: "/games/SpiderMan_SS1.webp",
     gameplayGif: "/games/SpiderMan_SS1.webp",
     storeRating: "4.9 ★★★★★",
-    dlssVersion: "DLSS 4.0 + FG"
+    dlssVersion: "DLSS 3.7 + FG"
   },
   {
     id: "gtav",
@@ -395,7 +395,7 @@ export const TESTED_GAMES_LIST: TestedGameSummary[] = [
     publisher: "Rockstar Games",
     genre: "Open World / Action",
     preset: "RTX High FPS",
-    keyTech: ["DLSS 4", "Frame Gen", "Reflex", "Ray Tracing"],
+    keyTech: ["DirectX 12", "RT Shadows", "Reflex", "High FPS"],
     status: "VERIFIED BENCHMARK",
     fps: "193 FPS",
     vram: "4.56 GB / 8.0 GB",
@@ -405,7 +405,7 @@ export const TESTED_GAMES_LIST: TestedGameSummary[] = [
     coverImage: "/games/GTA_V_SS1.webp",
     gameplayGif: "/games/GTA_V_SS1.webp",
     storeRating: "4.8 ★★★★★",
-    dlssVersion: "DLSS 4.0 + FG"
+    dlssVersion: "DirectX 12 / RT"
   },
   {
     id: "tsushima",
@@ -413,7 +413,7 @@ export const TESTED_GAMES_LIST: TestedGameSummary[] = [
     publisher: "Sucker Punch / PlayStation",
     genre: "Open World / Action RPG",
     preset: "Very High / DLSS",
-    keyTech: ["DLSS 4", "Frame Gen", "Reflex", "Exclusive Fullscreen ETW"],
+    keyTech: ["DLSS 3.7", "Frame Gen", "Reflex", "Exclusive Fullscreen ETW"],
     status: "VERIFIED BENCHMARK",
     fps: "107 FPS",
     vram: "5.3 GB / 8.0 GB",
@@ -423,7 +423,7 @@ export const TESTED_GAMES_LIST: TestedGameSummary[] = [
     coverImage: "/games/Tsushima_SS1.webp",
     gameplayGif: "/games/Tsushima_SS1.webp",
     storeRating: "4.9 ★★★★★",
-    dlssVersion: "DLSS 4.0 + FG"
+    dlssVersion: "DLSS 3.7 + FG"
   },
   {
     id: "nfsheat",
@@ -441,7 +441,7 @@ export const TESTED_GAMES_LIST: TestedGameSummary[] = [
     coverImage: "/games/NFSHeat_SS1.webp",
     gameplayGif: "/games/NFSHeat_SS1.webp",
     storeRating: "4.7 ★★★★★",
-    dlssVersion: "DLSS 2.4"
+    dlssVersion: "Frostbite 3 / TAA"
   },
   {
     id: "thedivision",
@@ -459,7 +459,7 @@ export const TESTED_GAMES_LIST: TestedGameSummary[] = [
     coverImage: "/games/TomClancyThe Division_SS1.webp",
     gameplayGif: "/games/TomClancyThe Division_SS1.webp",
     storeRating: "4.6 ★★★★☆",
-    dlssVersion: "DirectX 12"
+    dlssVersion: "Snowdrop / DX12"
   }
 ];
 
