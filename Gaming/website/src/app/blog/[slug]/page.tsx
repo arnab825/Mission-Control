@@ -4,7 +4,7 @@ import Link from "next/link";
 import { notFound } from "next/navigation";
 import { MDXRemote } from "next-mdx-remote/rsc";
 import { getPostData, getSortedPostsData, formatDateToIST, parseBlogDate } from "@/lib/blog";
-import { ArrowLeft, Calendar, Clock, User, Share2, MessageSquare, Tag, Check, HelpCircle, Bot, Gamepad2, Cpu } from "lucide-react";
+import { ArrowLeft, Calendar, Clock, Share2, Tag, Bot } from "lucide-react";
 import Mermaid from "@/components/Mermaid";
 import remarkGfm from "remark-gfm";
 import remarkMath from "remark-math";

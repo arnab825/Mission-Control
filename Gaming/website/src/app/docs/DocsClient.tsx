@@ -151,20 +151,16 @@ export default function DocsClient({ docs }: { docs: DocData[] }) {
   const [query, setQuery] = useState("");
   const [copiedKey, setCopiedKey] = useState<string | null>(null);
   const [isSearchFocused, setIsSearchFocused] = useState(false);
-  const [suggestedDocs, setSuggestedDocs] = useState<DocData[]>([]);
+  const [suggestedDocs, setSuggestedDocs] = useState<DocData[]>(() => (docs ? docs.slice(0, 5) : []));
   const searchInputRef = useRef<HTMLInputElement>(null);
   const searchContainerRef = useRef<HTMLDivElement>(null);
 
-  // Pick randomized suggestions from existing docs library
+  // Pick randomized suggestions from existing docs library on user action
   const refreshSuggestions = () => {
     if (!docs || docs.length === 0) return;
     const shuffled = [...docs].sort(() => 0.5 - Math.random());
     setSuggestedDocs(shuffled.slice(0, 5));
   };
-
-  useEffect(() => {
-    refreshSuggestions();
-  }, [docs]);
 
   // Focus Search and open recommendations helper
   const triggerFocusSearch = () => {
