@@ -1,8 +1,10 @@
 import fs from "fs";
 import path from "path";
 import Link from "next/link";
-import { notFound } from "next/navigation";
+import { notFound, redirect } from "next/navigation";
 import { MDXRemote } from "next-mdx-remote/rsc";
+import connectDB from "@/lib/mongodb";
+import GamingPost from "@/models/GamingPost";
 import { getPostData, getSortedPostsData, formatDateToIST, parseBlogDate } from "@/lib/blog";
 import { ArrowLeft, Calendar, Clock, Share2, Tag, Bot } from "lucide-react";
 import Mermaid from "@/components/Mermaid";
@@ -93,6 +95,13 @@ export default async function BlogPost({ params }: { params: Promise<{ slug: str
   const mdxPost = rawMdxPost && parseBlogDate(rawMdxPost.date) <= new Date() ? rawMdxPost : null;
 
   if (!postLog && !mdxPost) {
+    try {
+      await connectDB();
+      const dbPost = await GamingPost.findOne({ slug }).lean();
+      if (dbPost) {
+        redirect(`/blog/gaming/${slug}`);
+      }
+    } catch {}
     notFound();
   }
 

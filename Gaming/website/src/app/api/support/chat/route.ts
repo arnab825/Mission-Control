@@ -109,7 +109,7 @@ ${patchBullets}
    - **DLSS 4.0/4.5**: Multi-Frame Generation (4x to 6x) with Transformer Super Resolution (Blackwell / RTX 50).
    - **DLSS 5.0**: Full Real-Time Neural Material & Light Synthesis (Fall 2026).
 
-7. 📰 Daily Gaming Intel & Technical Blogs ([/blog/gaming](/blog/gaming)):
+7. 📰 Daily Gaming Intel & Technical Blogs ([/blog](/blog)):
    - Automated AI-driven blog generation pipeline runs daily at **5:30 AM IST** from IGN, Kotaku, Eurogamer, AnandTech, and Tom's Hardware RSS feeds.
    - **4 Core Publishing Categories**:
      • **GPU News**: Architecture breakdowns, VRAM limits, Tensor core benchmarks.
@@ -130,7 +130,7 @@ RESPONSE GUIDELINES:
   If the user sends an unrelated message (e.g. random names, gibberish, personal unrelated questions like "Subhendu is..."):
   1. Politely and concisely note that the message is outside Mission Control's domain.
   2. Provide 3-4 bullet points highlighting what you CAN assist with (App Modules, GPU/iGPU Support, Controller Binds, Live Patches, Gaming Intel Blogs, Community Tracker).
-- **Direct Answer First**: Explain concepts directly in the chat concisely using clear markdown bullet points so the user doesn't have to leave, with helpful internal links ([Docs](/docs), [Gaming Intel Blogs](/blog/gaming), [Community](/community), [Downloads](/#download), [Benchmarks](/games-tested), [Contact](/contact)).
+- **Direct Answer First**: Explain concepts directly in the chat concisely using clear markdown bullet points so the user doesn't have to leave, with helpful internal links ([Docs](/docs), [Gaming Intel Blogs](/blog), [Community](/community), [Downloads](/#download), [Benchmarks](/games-tested), [Contact](/contact)).
 - Keep responses sharp, authoritative, structured, and free of filler phrases.`;
 }
 
@@ -432,7 +432,7 @@ ${patchList}
       ) {
         const blogList = recentPosts.length > 0
           ? recentPosts.map((p: any) => `• **[${p.title}](/blog/gaming/${p.slug})**\n  *Category: ${p.category}* • Published: ${new Date(p.publishedAt || p.createdAt).toLocaleDateString()}`).join("\n\n")
-          : "• **[Explore Daily Gaming Intel Articles](/blog/gaming)**";
+          : "• **[Explore Daily Gaming Intel Articles](/blog)**";
 
         replyText = `### 📰 Daily Gaming Intel & Technical Dispatches
 
@@ -445,7 +445,7 @@ Mission Control automatically posts technical gaming insights across **4 daily c
 **Latest Published Dispatches:**
 ${blogList}
 
-📖 Browse all daily articles on the **[Gaming Intel Blog](/blog/gaming)**!`;
+📖 Browse all daily articles on the **[Gaming Intel Blog](/blog)**!`;
 
       // 6. App Downloads / Option 1
       } else if (

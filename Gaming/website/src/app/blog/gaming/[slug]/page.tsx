@@ -1,5 +1,7 @@
+import fs from "fs";
+import path from "path";
 import Link from "next/link";
-import { notFound } from "next/navigation";
+import { notFound, redirect } from "next/navigation";
 import { MDXRemote } from "next-mdx-remote/rsc";
 import connectDB from "@/lib/mongodb";
 import GamingPost from "@/models/GamingPost";
@@ -231,6 +233,17 @@ export default async function GamingBlogPost({ params }: { params: Promise<{ slu
   }
 
   if (!post) {
+    try {
+      const versionFile = path.join(process.cwd(), "../backend/version.json");
+      if (fs.existsSync(versionFile)) {
+        const rawData = fs.readFileSync(versionFile, "utf-8");
+        const data = JSON.parse(rawData);
+        const match = (data.changelog || []).find((c: any) => c.version === slug);
+        if (match) {
+          redirect(`/blog/${slug}`);
+        }
+      }
+    } catch {}
     notFound();
   }
 
