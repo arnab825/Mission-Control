@@ -1,0 +1,14 @@
+version: '3.8'
+
+services:
+  distributed_library_server:
+    build: .
+    container_name: mc-distributed-library-server
+    restart: always
+    ports:
+      - "8800:8800"
+    env_file:
+      - .env
+    volumes:
+      # Optional: sync query folder in development/production if updating schemas
+      - ./queries:/app/queries
