@@ -264,20 +264,21 @@ export default function ReportModal({ isOpen, onClose, onSuccess }: ReportModalP
   };
 
   return createPortal(
-    <div className="fixed inset-0 z-[100] flex items-center justify-center p-4 bg-black/80 backdrop-blur-md">
-      <div className="relative w-full max-w-2xl max-h-[85vh] overflow-y-auto glass-panel glow-green rounded-xl border border-white/10 text-white p-6 scrollbar-thin">
+    <div className="fixed inset-0 z-[100] flex items-center justify-center p-2.5 sm:p-4 bg-black/80 backdrop-blur-md">
+      <div className="relative w-full max-w-2xl max-h-[90vh] overflow-y-auto glass-panel glow-green rounded-2xl border border-white/10 text-white p-4 sm:p-6 md:p-8 scrollbar-thin">
         
         {/* Header */}
-        <div className="flex items-start justify-between pb-4 border-b border-white/10 gap-4">
-          <div className="flex items-start gap-2 pt-0.5">
+        <div className="flex items-start justify-between pb-3 sm:pb-4 border-b border-white/10 gap-2 sm:gap-4">
+          <div className="flex items-start gap-2 pt-0.5 min-w-0">
             <Zap className="w-4 h-4 text-neon-green animate-pulse shrink-0 mt-0.5" />
-            <h2 className="text-sm min-[375px]:text-base sm:text-lg font-bold font-display uppercase tracking-wider text-neon-green leading-tight">
-              Transmit Hardware Telemetry / Glitch Report
+            <h2 className="text-xs min-[375px]:text-sm sm:text-base md:text-lg font-bold font-display uppercase tracking-wider text-neon-green leading-tight break-words">
+              Transmit Telemetry / Glitch Report
             </h2>
           </div>
           <button
             onClick={onClose}
-            className="p-1.5 rounded-lg bg-white/5 hover:bg-white/10 text-white/70 hover:text-white transition shrink-0"
+            className="p-1.5 rounded-lg bg-white/5 hover:bg-white/10 text-white/70 hover:text-white transition shrink-0 cursor-pointer"
+            aria-label="Close modal"
           >
             <X className="w-4 h-4" />
           </button>

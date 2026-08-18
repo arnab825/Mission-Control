@@ -24,9 +24,31 @@ import {
   Copy,
   ExternalLink,
   Sparkles,
+  RefreshCw,
+  X,
+  ShieldCheck,
+  Gamepad2,
+  Zap,
 } from "lucide-react";
 
 import { DocData } from "@/lib/docs";
+
+// ─── Helper: Get Contextual Icon for Doc ───────────────────────────────────────
+
+function getDocIcon(category: string, slug: string) {
+  const catLower = (category || "").toLowerCase();
+  const slugLower = (slug || "").toLowerCase();
+  if (slugLower.includes("nvidia") || slugLower.includes("nim") || slugLower.includes("ai") || slugLower.includes("weights")) return Bot;
+  if (slugLower.includes("prompt") || slugLower.includes("terminal") || catLower.includes("logic")) return Terminal;
+  if (slugLower.includes("patch") || slugLower.includes("version") || slugLower.includes("update") || slugLower.includes("roadmap")) return GitBranch;
+  if (slugLower.includes("telemetry") || slugLower.includes("sensor") || slugLower.includes("hardware") || slugLower.includes("fps") || slugLower.includes("vram")) return Cpu;
+  if (slugLower.includes("overlay") || slugLower.includes("directx") || slugLower.includes("hud") || slugLower.includes("dlss")) return Activity;
+  if (slugLower.includes("gamepad") || slugLower.includes("controller") || slugLower.includes("game")) return Gamepad2;
+  if (catLower.includes("reference") || slugLower.includes("key")) return KeyRound;
+  if (catLower.includes("architecture") || slugLower.includes("process") || slugLower.includes("design")) return Layers;
+  if (catLower.includes("security") || catLower.includes("shield")) return ShieldCheck;
+  return BookOpen;
+}
 
 // ─── ENV Keys reference ───────────────────────────────────────────────────────
 
@@ -128,18 +150,77 @@ function DocCardView({ card, idx }: { card: DocData; idx: number }) {
 export default function DocsClient({ docs }: { docs: DocData[] }) {
   const [query, setQuery] = useState("");
   const [copiedKey, setCopiedKey] = useState<string | null>(null);
+  const [isSearchFocused, setIsSearchFocused] = useState(false);
+  const [suggestedDocs, setSuggestedDocs] = useState<DocData[]>([]);
   const searchInputRef = useRef<HTMLInputElement>(null);
+  const searchContainerRef = useRef<HTMLDivElement>(null);
+
+  // Pick randomized suggestions from existing docs library
+  const refreshSuggestions = () => {
+    if (!docs || docs.length === 0) return;
+    const shuffled = [...docs].sort(() => 0.5 - Math.random());
+    setSuggestedDocs(shuffled.slice(0, 5));
+  };
 
   useEffect(() => {
+    refreshSuggestions();
+  }, [docs]);
+
+  // Focus Search and open recommendations helper
+  const triggerFocusSearch = () => {
+    if (searchInputRef.current) {
+      searchInputRef.current.focus();
+      searchInputRef.current.select();
+      setIsSearchFocused(true);
+      searchContainerRef.current?.scrollIntoView({ behavior: "smooth", block: "nearest" });
+    }
+  };
+
+  // Global & Local Keyboard Shortcut handler (Ctrl+K, Cmd+K, /, Esc)
+  useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {
-      if ((e.ctrlKey || e.metaKey) && e.key.toLowerCase() === "k") {
+      const isK = e.key === "k" || e.key === "K" || e.code === "KeyK";
+      const isCtrlOrCmd = e.ctrlKey || e.metaKey;
+
+      if (isCtrlOrCmd && isK) {
         e.preventDefault();
-        searchInputRef.current?.focus();
-        searchInputRef.current?.select();
+        e.stopPropagation();
+        triggerFocusSearch();
+      } else if (e.key === "Escape") {
+        setIsSearchFocused(false);
+        searchInputRef.current?.blur();
+      } else if (
+        e.key === "/" &&
+        document.activeElement?.tagName !== "INPUT" &&
+        document.activeElement?.tagName !== "TEXTAREA"
+      ) {
+        e.preventDefault();
+        triggerFocusSearch();
       }
     };
-    window.addEventListener("keydown", handleKeyDown);
-    return () => window.removeEventListener("keydown", handleKeyDown);
+
+    const handleCustomTrigger = () => {
+      triggerFocusSearch();
+    };
+
+    window.addEventListener("keydown", handleKeyDown, { capture: true });
+    window.addEventListener("trigger-docs-search", handleCustomTrigger);
+
+    return () => {
+      window.removeEventListener("keydown", handleKeyDown, { capture: true });
+      window.removeEventListener("trigger-docs-search", handleCustomTrigger);
+    };
+  }, []);
+
+  // Handle outside click to close suggestions
+  useEffect(() => {
+    const handleOutsideClick = (e: MouseEvent) => {
+      if (searchContainerRef.current && !searchContainerRef.current.contains(e.target as Node)) {
+        setIsSearchFocused(false);
+      }
+    };
+    document.addEventListener("mousedown", handleOutsideClick);
+    return () => document.removeEventListener("mousedown", handleOutsideClick);
   }, []);
 
   const handleCopy = (text: string) => {
@@ -197,6 +278,19 @@ export default function DocsClient({ docs }: { docs: DocData[] }) {
     })).filter((s) => s.docs.length > 0);
   }, [query, DOC_SECTIONS]);
 
+  // Real-time live search matches from existing docs
+  const liveSearchResults = useMemo(() => {
+    if (!query.trim()) return [];
+    const q = query.toLowerCase();
+    return docs.filter(
+      (d) =>
+        d.title.toLowerCase().includes(q) ||
+        d.excerpt.toLowerCase().includes(q) ||
+        d.category.toLowerCase().includes(q) ||
+        d.slug.toLowerCase().includes(q)
+    ).slice(0, 8);
+  }, [docs, query]);
+
   const totalDocsCount = useMemo(() => {
     return filtered.reduce((acc, section) => acc + section.docs.length, 0);
   }, [filtered]);
@@ -231,38 +325,128 @@ export default function DocsClient({ docs }: { docs: DocData[] }) {
           Complete technical reference, API integration guides, system telemetry setup,
           and NVIDIA NIM AI models for production deployments.
         </p>
-
-        {/* Command Search Bar */}
-        <div className="relative mt-5 sm:mt-8 max-w-xl mx-auto px-1">
-          <Search className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-neon-green" />
-          <input
-            ref={searchInputRef}
-            type="text"
-            placeholder="Search documentation topics, APIs..."
-            value={query}
-            onChange={(e) => setQuery(e.target.value)}
-            className="w-full pl-10 pr-12 sm:pr-20 py-3 sm:py-4 rounded-xl sm:rounded-2xl bg-[#0c0d12]/90 border border-white/10 text-xs sm:text-sm text-white placeholder-gray-500 font-mono focus:outline-none focus:border-neon-green focus:ring-1 focus:ring-neon-green shadow-2xl transition-all"
-          />
-          <div className="absolute right-3 top-1/2 -translate-y-1/2 flex items-center gap-2">
-            {query ? (
-              <button
-                onClick={() => setQuery("")}
-                className="text-gray-400 hover:text-white transition-colors text-xs font-mono bg-white/5 hover:bg-white/10 px-2 py-1 rounded-md"
-              >
-                Clear
-              </button>
-            ) : (
-              <kbd
-                onClick={() => {
-                  searchInputRef.current?.focus();
-                  searchInputRef.current?.select();
-                }}
-                className="hidden sm:inline-block px-2.5 py-1 text-[10px] font-mono font-bold text-gray-400 hover:text-neon-green bg-white/5 hover:bg-neon-green/10 border border-white/10 hover:border-neon-green/30 rounded-md cursor-pointer transition-all"
-              >
-                CTRL + K
-              </kbd>
-            )}
+        {/* Command Search Bar & Dynamic Suggestions Dropdown */}
+        <div className="relative mt-5 sm:mt-8 max-w-xl mx-auto px-1" ref={searchContainerRef}>
+          <div className="relative group">
+            <Search className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-neon-green/70 group-focus-within:text-neon-green group-focus-within:drop-shadow-[0_0_8px_rgba(118,185,0,0.8)] transition-all pointer-events-none" />
+            <input
+              ref={searchInputRef}
+              type="text"
+              placeholder="Search documentation topics, APIs, guides..."
+              value={query}
+              onChange={(e) => {
+                setQuery(e.target.value);
+                setIsSearchFocused(true);
+              }}
+              onFocus={() => setIsSearchFocused(true)}
+              className="w-full h-12 sm:h-14 pl-11 pr-20 rounded-xl sm:rounded-2xl bg-[#0c0d12]/95 border border-white/15 text-xs sm:text-sm text-white placeholder-gray-500 font-mono focus:outline-none focus:border-neon-green focus:ring-1 focus:ring-neon-green/50 focus:shadow-[0_0_25px_rgba(118,185,0,0.25)] shadow-2xl transition-all"
+            />
+            <div className="absolute right-3 top-1/2 -translate-y-1/2 flex items-center gap-1.5">
+              {query ? (
+                <button
+                  onClick={() => {
+                    setQuery("");
+                    searchInputRef.current?.focus();
+                  }}
+                  className="text-gray-400 hover:text-white transition-colors text-xs font-mono bg-white/10 hover:bg-white/20 p-1.5 rounded-lg cursor-pointer"
+                  title="Clear query"
+                >
+                  <X className="w-3.5 h-3.5" />
+                </button>
+              ) : (
+                <kbd
+                  onClick={() => {
+                    searchInputRef.current?.focus();
+                    searchInputRef.current?.select();
+                    setIsSearchFocused(true);
+                  }}
+                  className="hidden sm:inline-flex items-center gap-1 px-2.5 py-1 text-[10px] font-mono font-bold text-gray-400 hover:text-neon-green bg-white/5 hover:bg-neon-green/10 border border-white/10 hover:border-neon-green/30 rounded-lg cursor-pointer transition-all shadow-sm select-none"
+                >
+                  <span>CTRL + K</span>
+                </kbd>
+              )}
+            </div>
           </div>
+
+          {/* Floating Glassmorphic Suggestions & Search Results Dropdown */}
+          <AnimatePresence>
+            {isSearchFocused && (
+              <motion.div
+                initial={{ opacity: 0, y: -8, scale: 0.98 }}
+                animate={{ opacity: 1, y: 0, scale: 1 }}
+                exit={{ opacity: 0, y: -8, scale: 0.98 }}
+                transition={{ duration: 0.15 }}
+                className="absolute left-1 right-1 top-full mt-2 bg-[#0c0d12]/98 backdrop-blur-2xl border border-neon-green/30 rounded-2xl shadow-[0_20px_50px_rgba(0,0,0,0.9),0_0_30px_rgba(118,185,0,0.15)] overflow-hidden z-50 p-2 font-mono text-left max-h-[420px] overflow-y-auto scrollbar-thin"
+              >
+                {/* Header with Title and Randomize / Shuffle button */}
+                <div className="px-3 py-2 border-b border-white/10 flex items-center justify-between text-[10px] font-bold uppercase tracking-wider text-gray-400">
+                  <span className="flex items-center gap-1.5 text-neon-green">
+                    <Sparkles className="w-3.5 h-3.5 text-neon-green" />
+                    {query ? `Search Results (${liveSearchResults.length})` : "Recommended Docs & Topics"}
+                  </span>
+                  {!query && (
+                    <button
+                      type="button"
+                      onMouseDown={(e) => {
+                        e.preventDefault();
+                        refreshSuggestions();
+                      }}
+                      className="flex items-center gap-1 text-[10px] text-gray-400 hover:text-neon-green transition-colors cursor-pointer bg-white/5 hover:bg-white/10 px-2 py-0.5 rounded-md border border-white/10"
+                      title="Randomize suggested documentation"
+                    >
+                      <RefreshCw className="w-3 h-3 text-neon-green" />
+                      <span>Randomize</span>
+                    </button>
+                  )}
+                </div>
+
+                {/* Items List */}
+                <div className="py-1 space-y-1">
+                  {(query ? liveSearchResults : suggestedDocs).length === 0 ? (
+                    <div className="p-6 text-center text-xs text-gray-500 font-mono">
+                      No matching documentation topics found for &ldquo;<span className="text-white">{query}</span>&rdquo;.
+                    </div>
+                  ) : (
+                    (query ? liveSearchResults : suggestedDocs).map((doc) => {
+                      const Icon = getDocIcon(doc.category, doc.slug);
+                      return (
+                        <Link
+                          key={doc.slug}
+                          href={`/docs/${doc.slug}`}
+                          onClick={() => setIsSearchFocused(false)}
+                          className="group/item flex items-start gap-3 p-2.5 rounded-xl hover:bg-neon-green/10 hover:border-neon-green/30 border border-transparent transition-all duration-200 cursor-pointer"
+                        >
+                          <div className="p-2 rounded-lg bg-white/5 group-hover/item:bg-neon-green/20 text-gray-400 group-hover/item:text-neon-green transition-colors shrink-0 mt-0.5 border border-white/10 group-hover/item:border-neon-green/40">
+                            <Icon className="w-4 h-4" />
+                          </div>
+                          <div className="flex-1 min-w-0">
+                            <div className="flex items-center justify-between gap-2 mb-0.5">
+                              <span className="text-xs font-bold text-white group-hover/item:text-neon-green transition-colors truncate">
+                                {doc.title}
+                              </span>
+                              <span className="text-[9px] font-bold text-gray-400 bg-white/5 px-1.5 py-0.5 rounded border border-white/10 uppercase tracking-widest shrink-0">
+                                {doc.category || "DOC"}
+                              </span>
+                            </div>
+                            <p className="text-[11px] text-gray-400 group-hover/item:text-gray-300 transition-colors line-clamp-1 font-sans">
+                              {doc.excerpt || "Read technical reference and implementation details."}
+                            </p>
+                          </div>
+                          <ArrowRight className="w-3.5 h-3.5 text-gray-600 group-hover/item:text-neon-green group-hover/item:translate-x-0.5 transition-all self-center shrink-0" />
+                        </Link>
+                      );
+                    })
+                  )}
+                </div>
+
+                {/* Footer hint */}
+                <div className="px-3 py-1.5 border-t border-white/5 flex items-center justify-between text-[9px] text-gray-500">
+                  <span>Press <kbd className="px-1 py-0.5 bg-white/5 rounded text-gray-300">Esc</kbd> to dismiss</span>
+                  <span className="text-neon-green">Live Index</span>
+                </div>
+              </motion.div>
+            )}
+          </AnimatePresence>
         </div>
       </motion.div>
 
