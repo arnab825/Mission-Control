@@ -196,22 +196,35 @@ export function ScreenshotGallery() {
 
   return (
     <div className="w-full flex flex-col items-center">
-      {/* Tabs */}
-      <div className="flex flex-wrap justify-center gap-2 sm:gap-4 mb-8 sm:mb-12 max-w-4xl">
-        {tabs.map(tab => {
-          const isActive = activeTab === tab.id;
-          const Icon = tab.icon;
-          return (
-            <button
-              key={tab.id}
-              onClick={() => setActiveTab(tab.id)}
-              className={`flex items-center gap-2 px-4 sm:px-6 py-2.5 sm:py-3 rounded-full font-mono text-[10px] sm:text-sm font-bold transition-all duration-300 ${isActive ? "bg-neon-green text-obsidian shadow-[0_0_20px_rgba(118, 185, 0,0.4)] scale-105" : "bg-white/5 text-gray-400 hover:text-white hover:bg-white/10 border border-white/10"}`}
-            >
-              <Icon className="w-3.5 h-3.5 sm:w-4 sm:h-4" />
-              {tab.label}
-            </button>
-          );
-        })}
+      {/* Filter Tabs Bar (Horizontal Swipeable on Mobile, Centered on Desktop) */}
+      <div className="w-full max-w-5xl mb-6 sm:mb-10 relative">
+        {/* Left/Right Edge Fades for Mobile Touch Discovery */}
+        <div className="sm:hidden absolute left-0 top-0 bottom-0 w-4 bg-gradient-to-r from-obsidian to-transparent z-10 pointer-events-none" />
+        <div className="sm:hidden absolute right-0 top-0 bottom-0 w-4 bg-gradient-to-l from-obsidian to-transparent z-10 pointer-events-none" />
+
+        <div className="flex items-center gap-2 sm:gap-3 overflow-x-auto no-scrollbar scroll-smooth flex-nowrap sm:flex-wrap sm:justify-center px-4 py-1.5">
+          {tabs.map(tab => {
+            const isActive = activeTab === tab.id;
+            const Icon = tab.icon;
+            return (
+              <button
+                key={tab.id}
+                onClick={(e) => {
+                  setActiveTab(tab.id);
+                  e.currentTarget.scrollIntoView({ behavior: 'smooth', inline: 'center', block: 'nearest' });
+                }}
+                className={`flex items-center gap-1.5 sm:gap-2 px-3.5 sm:px-5 py-2 sm:py-2.5 rounded-full font-mono text-xs sm:text-sm font-bold transition-all duration-300 shrink-0 whitespace-nowrap cursor-pointer ${
+                  isActive
+                    ? "bg-neon-green text-obsidian shadow-[0_0_20px_rgba(118,185,0,0.4)] scale-105"
+                    : "bg-white/5 text-gray-400 hover:text-white hover:bg-white/10 border border-white/10"
+                }`}
+              >
+                <Icon className="w-3.5 h-3.5 sm:w-4 sm:h-4 shrink-0" />
+                <span>{tab.label}</span>
+              </button>
+            );
+          })}
+        </div>
       </div>
 
       {/* Main Preview Container */}

@@ -3,10 +3,11 @@
 import { useState } from 'react';
 import Link from 'next/link';
 import { Send, CheckCircle2, Loader2, AlertCircle } from 'lucide-react';
-import { motion, AnimatePresence } from 'framer-motion';
+import { motion } from 'framer-motion';
+import LegalModal, { LegalModalTab } from './LegalModal';
 
 export default function Footer() {
-  const [activeModal, setActiveModal] = useState<'terms' | 'privacy' | 'cookies' | null>(null);
+  const [activeModal, setActiveModal] = useState<LegalModalTab | null>(null);
   const [email, setEmail] = useState("");
   const [subStatus, setSubStatus] = useState<"idle" | "loading" | "success" | "error">("idle");
   const [errorMessage, setErrorMessage] = useState("");
@@ -36,45 +37,6 @@ export default function Footer() {
     }
   };
 
-  const modalContent = {
-    terms: {
-      title: "Terms & Conditions",
-      date: "June 2026",
-      content: (
-        <>
-          <h2 className="text-xl font-bold mt-6 mb-2">1. Acceptance of Terms</h2>
-          <p className="mb-4 text-gray-400 leading-relaxed">By downloading or using Mission Control, you agree to these terms.</p>
-          <h2 className="text-xl font-bold mt-6 mb-2">2. Use License</h2>
-          <p className="mb-4 text-gray-400 leading-relaxed">Mission Control is provided as-is during its experimental phase.</p>
-        </>
-      )
-    },
-    privacy: {
-      title: "Privacy Policy",
-      date: "June 2026",
-      content: (
-        <>
-          <h2 className="text-xl font-bold mt-6 mb-2">1. Local Processing</h2>
-          <p className="mb-4 text-gray-400 leading-relaxed">Mission Control processes all AI inference locally on your NVIDIA hardware. We do not upload your gaming telemetry to the cloud.</p>
-          <h2 className="text-xl font-bold mt-6 mb-2">2. Data Collection</h2>
-          <p className="mb-4 text-gray-400 leading-relaxed">Anonymous crash reports and performance metrics may be collected if you opt-in.</p>
-        </>
-      )
-    },
-    cookies: {
-      title: "Cookie Policy",
-      date: "June 2026",
-      content: (
-        <>
-          <h2 className="text-xl font-bold mt-6 mb-2">1. Essential Cookies</h2>
-          <p className="mb-4 text-gray-400 leading-relaxed">We use essential cookies to maintain your session.</p>
-          <h2 className="text-xl font-bold mt-6 mb-2">2. Analytics</h2>
-          <p className="mb-4 text-gray-400 leading-relaxed">We use anonymous analytics cookies to improve our website.</p>
-        </>
-      )
-    }
-  };
-
   return (
     <>
       <motion.footer 
@@ -85,13 +47,13 @@ export default function Footer() {
         className="w-full bg-[#0a0a0d] py-16 mt-12 relative overflow-hidden border-t border-white/[0.05]"
       >
         {/* Animated Gradient Top Border */}
-        <div className="absolute top-0 left-0 w-full h-[1px] bg-gradient-to-r from-transparent via-neon-green/60 to-transparent shadow-[0_0_15px_rgba(118, 185, 0,0.4)]"></div>
+        <div className="absolute top-0 left-0 w-full h-[1px] bg-gradient-to-r from-transparent via-neon-green/60 to-transparent shadow-[0_0_15px_rgba(118,185,0,0.4)]"></div>
         <div className="max-w-7xl mx-auto px-6 grid grid-cols-1 md:grid-cols-4 gap-10">
 
           {/* Brand & Creators */}
           <div className="col-span-1 md:col-span-2">
             <h3 className="text-2xl font-black font-display tracking-tight text-white mb-4">
-              MISSION <span className="text-neon-green drop-shadow-[0_0_10px_rgba(118, 185, 0,0.5)]">CONTROL</span>
+              MISSION <span className="text-neon-green drop-shadow-[0_0_10px_rgba(118,185,0,0.5)]">CONTROL</span>
             </h3>
             <p className="text-gray-400 mb-6 max-w-sm text-sm sm:text-base leading-relaxed">
               The ultimate AI-powered tactical gaming overlay and rig dashboard. Designed for zero-latency execution.
@@ -115,27 +77,27 @@ export default function Footer() {
             <ul className="space-y-3">
               <li>
                 <Link href="/games-tested" className="text-gray-400 hover:text-white hover:translate-x-1 transition-all duration-300 text-sm cursor-pointer text-left flex items-center gap-2 group">
-                  <span className="w-1.5 h-1.5 rounded-full bg-neon-green/40 group-hover:bg-neon-green group-hover:shadow-[0_0_8px_rgba(118, 185, 0,0.8)] transition-all duration-300"></span> Games Tested
+                  <span className="w-1.5 h-1.5 rounded-full bg-neon-green/40 group-hover:bg-neon-green group-hover:shadow-[0_0_8px_rgba(118,185,0,0.8)] transition-all duration-300"></span> Games Tested
                 </Link>
               </li>
               <li>
                 <Link href="/contact" className="text-gray-400 hover:text-white hover:translate-x-1 transition-all duration-300 text-sm cursor-pointer text-left flex items-center gap-2 group">
-                  <span className="w-1.5 h-1.5 rounded-full bg-neon-green/40 group-hover:bg-neon-green group-hover:shadow-[0_0_8px_rgba(118, 185, 0,0.8)] transition-all duration-300"></span> Contact Support
+                  <span className="w-1.5 h-1.5 rounded-full bg-neon-green/40 group-hover:bg-neon-green group-hover:shadow-[0_0_8px_rgba(118,185,0,0.8)] transition-all duration-300"></span> Contact Support
                 </Link>
               </li>
               <li>
                 <button onClick={() => setActiveModal('terms')} className="text-gray-400 hover:text-white hover:translate-x-1 transition-all duration-300 text-sm cursor-pointer text-left flex items-center gap-2 group">
-                  <span className="w-1.5 h-1.5 rounded-full bg-neon-green/40 group-hover:bg-neon-green group-hover:shadow-[0_0_8px_rgba(118, 185, 0,0.8)] transition-all duration-300"></span> Terms & Conditions
+                  <span className="w-1.5 h-1.5 rounded-full bg-neon-green/40 group-hover:bg-neon-green group-hover:shadow-[0_0_8px_rgba(118,185,0,0.8)] transition-all duration-300"></span> Terms & Conditions
                 </button>
               </li>
               <li>
                 <button onClick={() => setActiveModal('privacy')} className="text-gray-400 hover:text-white hover:translate-x-1 transition-all duration-300 text-sm cursor-pointer text-left flex items-center gap-2 group">
-                  <span className="w-1.5 h-1.5 rounded-full bg-neon-green/40 group-hover:bg-neon-green group-hover:shadow-[0_0_8px_rgba(118, 185, 0,0.8)] transition-all duration-300"></span> Privacy Policy
+                  <span className="w-1.5 h-1.5 rounded-full bg-neon-green/40 group-hover:bg-neon-green group-hover:shadow-[0_0_8px_rgba(118,185,0,0.8)] transition-all duration-300"></span> Privacy Policy
                 </button>
               </li>
               <li>
                 <button onClick={() => setActiveModal('cookies')} className="text-gray-400 hover:text-white hover:translate-x-1 transition-all duration-300 text-sm cursor-pointer text-left flex items-center gap-2 group">
-                  <span className="w-1.5 h-1.5 rounded-full bg-neon-green/40 group-hover:bg-neon-green group-hover:shadow-[0_0_8px_rgba(118, 185, 0,0.8)] transition-all duration-300"></span> Cookie Policy
+                  <span className="w-1.5 h-1.5 rounded-full bg-neon-green/40 group-hover:bg-neon-green group-hover:shadow-[0_0_8px_rgba(118,185,0,0.8)] transition-all duration-300"></span> Cookie Policy
                 </button>
               </li>
             </ul>
@@ -196,57 +158,14 @@ export default function Footer() {
         </div>
       </motion.footer>
 
-      {/* Modal Overlay */}
-      <AnimatePresence>
-      {activeModal && (
-        <motion.div 
-          initial={{ opacity: 0 }}
-          animate={{ opacity: 1 }}
-          exit={{ opacity: 0 }}
-          className="fixed inset-0 z-50 flex items-center justify-center p-4"
-        >
-          {/* Backdrop */}
-          <div
-            className="absolute inset-0 bg-obsidian/80 backdrop-blur-sm"
-            onClick={() => setActiveModal(null)}
-          ></div>
-
-          {/* Modal Content */}
-          <motion.div 
-            initial={{ opacity: 0, scale: 0.9, y: 20 }}
-            animate={{ opacity: 1, scale: 1, y: 0 }}
-            exit={{ opacity: 0, scale: 0.9, y: 20 }}
-            transition={{ type: "spring", damping: 25, stiffness: 300 }}
-            className="glass-panel w-full max-w-2xl max-h-[80vh] overflow-y-auto rounded-xl relative z-10 border-neon-green/30 shadow-[0_0_50px_rgba(118, 185, 0,0.1)] p-5 sm:p-8"
-          >
-            <button
-              onClick={() => setActiveModal(null)}
-              className="absolute top-4 right-4 sm:top-6 sm:right-6 text-gray-400 hover:text-neon-green transition-colors"
-            >
-              <svg className="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
-              </svg>
-            </button>
-
-            <h1 className="text-2xl sm:text-3xl font-bold font-display mb-2 text-white">{modalContent[activeModal].title}</h1>
-            <p className="text-sm text-neon-green mb-5 sm:mb-8 font-display">Last updated: {modalContent[activeModal].date}</p>
-
-            <div className="prose prose-invert max-w-none font-sans">
-              {modalContent[activeModal].content}
-            </div>
-
-            <div className="mt-8 pt-6 border-t border-white/10 text-right">
-              <button
-                onClick={() => setActiveModal(null)}
-                className="bg-neon-green text-obsidian px-6 py-2 rounded-md font-bold hover:bg-white transition-colors"
-              >
-                Accept & Close
-              </button>
-            </div>
-          </motion.div>
-        </motion.div>
-      )}
-      </AnimatePresence>
+      {/* Premium Legal Modal */}
+      <LegalModal
+        isOpen={activeModal !== null}
+        activeTab={activeModal || "terms"}
+        onClose={() => setActiveModal(null)}
+        onTabChange={(tab) => setActiveModal(tab)}
+      />
     </>
   );
 }
+
