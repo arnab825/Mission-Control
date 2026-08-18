@@ -150,7 +150,7 @@ export async function POST(request: Request) {
 
     return NextResponse.json({
       success: true,
-      message: "Subscribed to Mission Control Telemetry Feed successfully.",
+      message: "Subscribed to Mission Control Telemetry Feed successfully. Dispatches delivered once weekly.",
       previewUrl,
       subscriberId: subscriberDoc?._id || null,
     });
@@ -158,6 +158,44 @@ export async function POST(request: Request) {
     console.error("Subscription endpoint error:", error);
     return NextResponse.json(
       { error: "Internal server error while processing subscription.", details: error.message },
+      { status: 500 }
+    );
+  }
+}
+
+// DELETE: Unsubscribe from weekly telemetry newsletter
+export async function DELETE(request: Request) {
+  try {
+    const { searchParams } = new URL(request.url);
+    const email = searchParams.get("email");
+
+    if (!email || !email.includes("@")) {
+      return NextResponse.json(
+        { error: "Validation Error: Please provide a valid email address." },
+        { status: 400 }
+      );
+    }
+
+    const cleanEmail = email.trim().toLowerCase();
+
+    try {
+      await connectDB();
+      await Subscriber.findOneAndUpdate(
+        { email: cleanEmail },
+        { status: "unsubscribed", unsubscribedAt: new Date() }
+      );
+    } catch (dbError: any) {
+      console.warn("MongoDB unsubscribe notice:", dbError.message);
+    }
+
+    return NextResponse.json({
+      success: true,
+      message: `Unsubscribed ${cleanEmail} from weekly telemetry feed.`
+    });
+  } catch (error: any) {
+    console.error("Unsubscribe endpoint error:", error);
+    return NextResponse.json(
+      { error: "Internal server error while unsubscribing.", details: error.message },
       { status: 500 }
     );
   }

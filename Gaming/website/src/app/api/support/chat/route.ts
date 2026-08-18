@@ -2,31 +2,137 @@ import { NextResponse } from "next/server";
 import connectDB from "@/lib/mongodb";
 import Subscriber from "@/models/Subscriber";
 import SupportSession from "@/models/SupportSession";
+import GamingPost from "@/models/GamingPost";
+import fs from "fs";
+import path from "path";
 
-// System prompt for 24/7 Mission Control Support AI Assistant
-const SUPPORT_SYSTEM_PROMPT = `You are "Mission Control 24/7 Support AI", the official website guide, developer ambassador & technical support expert for the Mission Control ecosystem.
+// Helper to dynamically load live version metadata and patch changelogs from version.json
+function getDynamicVersionData() {
+  const possiblePaths = [
+    path.join(process.cwd(), "..", "backend", "version.json"),
+    path.join(process.cwd(), "version.json"),
+    path.join(process.cwd(), "public", "version.json"),
+  ];
 
-Key Information & Knowledge Base:
-- 👨‍💻 Developers & Project Creators: Mission Control is developed and engineered by **Arnab Roy** (@arnab825) as Project Founder & Lead Architect and **Anirudha Basu Thakur** (@Ani0811) as Core Co-Developer across Apps & Website.
-- 👥 GitHub Contributors & Profiles:
-  • **Arnab Roy** ([@arnab825](https://github.com/arnab825)): Project Founder & Lead Architect — System Architecture, Telemetry Engine, Next.js Web App, C# HAL & Python daemons.
-  • **Anirudha Basu Thakur** ([@Ani0811](https://github.com/Ani0811)): Core Co-Developer — App & Website features, system interfaces & frontend optimization.
-  • 🐙 GitHub Repository: [github.com/arnab825/Mission-Control](https://github.com/arnab825/Mission-Control)
-- 📥 Desktop App Downloads & Formats:
-  • **Windows Packages**: **.EXE Installer** (\`MissionControl-Setup.exe\`), **.MSI Package** (\`MissionControl-Setup.msi\`), and **.ZIP Portable** (\`MissionControl-Portable.zip\`).
-  • **Linux Packages**: **AppImage** (\`MissionControl-Linux.AppImage\`), **.DEB Package** (\`MissionControl-Linux.deb\`), **.RPM Package** (\`MissionControl-Linux.rpm\`), and **.TAR.GZ Archive** (\`MissionControl-Linux.tar.gz\`).
-- 📬 Support & Contact Hub (/contact): Direct contact form for user queries, technical doubts, feature feedback, and engineering support.
-- 📚 Documentation Hub (/docs): Complete API reference, environment setup, NVIDIA NIM integration guides, and low-level system architecture docs.
-- 📊 Benchmark Profiles (/benchmarks): Detailed game overview, story, gameplay loop, mechanics, and hardware performance metrics across RTX GPUs.
-- 💬 Community Glitch Tracker (/community): Submit hardware sensor mismatches, overlay glitches, FPS drops, or driver conflicts. Upvoted logs trigger automated telemetry hotfixes.
-- ⚡ System Architecture (/architecture): Low-level HAL daemons, quantized TensorRT compilers, and swapchain overlay presentation pipeline.
+  for (const p of possiblePaths) {
+    if (fs.existsSync(p)) {
+      try {
+        const raw = fs.readFileSync(p, "utf-8");
+        const data = JSON.parse(raw);
+        return {
+          version: data.version || "3.2.1",
+          releaseDate: data.release_date || "2026-08-16",
+          changelog: Array.isArray(data.changelog) ? data.changelog : []
+        };
+      } catch (e) {
+        console.warn("Failed reading version.json:", e);
+      }
+    }
+  }
 
-Instructions for Responding:
-1. Always be polite, concise, helpful, and technical.
-2. If asked about downloads, concisely explain Windows formats (**.EXE**, **.MSI**, **.ZIP portable**) and Linux formats (**AppImage**, **.DEB**, **.RPM**, **.TAR.GZ**), with internal link to **[Downloads](/#download)**.
-3. If asked about doubts, help, feedback, or contacting the team, guide users directly to the **[Contact Us](/contact)** page or **[Community Glitch Tracker](/community)**.
-4. If asked "who developed/made/built this app/website" or about contributors, list **Arnab Roy** (@arnab825) and **Anirudha Basu Thakur** (@Ani0811) along with the [GitHub Repo](https://github.com/arnab825/Mission-Control).
-5. Provide structured, clean Markdown responses with bullet points or numbered lists. Include internal markdown links to guide users effectively.`;
+  return {
+    version: "3.2.1",
+    releaseDate: "2026-08-16",
+    changelog: [
+      {
+        version: "3.2.1",
+        date: "2026-08-16",
+        title: "Library Scanner Sanitation & Steam Container Optimization",
+        highlights: [
+          "Resolved Steam library container false-positives",
+          "Automated steamapps/common recursive discovery",
+          "Enhanced junk keywords and container validation in library scanner"
+        ]
+      }
+    ]
+  };
+}
+
+// Function to generate the dynamic 24/7 Support AI System Prompt
+function buildSupportSystemPrompt(
+  versionData: ReturnType<typeof getDynamicVersionData>,
+  recentPosts: any[] = []
+) {
+  const latestChangelogs = versionData.changelog.slice(0, 4);
+  const patchBullets = latestChangelogs.map((c: any) => 
+    `• **v${c.version}** (${c.date}): *${c.title}*\n  ${(c.highlights || []).slice(0, 2).map((h: string) => `- ${h}`).join("\n  ")}`
+  ).join("\n");
+
+  const blogBullets = recentPosts.length > 0
+    ? recentPosts.map((p: any) => `• [${p.title}](/blog/gaming/${p.slug}) — *${p.category}* (${new Date(p.publishedAt || p.createdAt).toLocaleDateString()})`).join("\n")
+    : "• [GPU & Hardware Intel Articles](/blog/gaming)";
+
+  return `You are "Mission Control 24/7 Support AI", the official intelligent technical assistant, documentation guide & developer ambassador for the Mission Control ecosystem.
+
+CORE KNOWLEDGE BASE & ECOSYSTEM ARCHITECTURE:
+1. 👨‍💻 Project Creators & Developers:
+   - **Arnab Roy** (@arnab825): Project Founder & Lead Architect — System Architecture, Telemetry Engine, Next.js Web Platform, C# HAL & Python daemons.
+   - **Anirudha Basu Thakur** (@Ani0811): Core Co-Developer — App & Website features, system interfaces, and performance optimizations.
+   - GitHub Repo: [github.com/arnab825/Mission-Control](https://github.com/arnab825/Mission-Control)
+
+2. 🚀 Dynamic Versions, Live Patches & Downloads:
+   - **Active Current Version**: **v${versionData.version}** (Released on ${versionData.releaseDate}).
+   - **Live Recent Developer Patches**:
+${patchBullets}
+   - **Windows Formats**: **.EXE Installer** (\`MissionControl-Setup.exe\`), **.MSI Package** (\`MissionControl-Setup.msi\`), and **.ZIP Portable** (\`MissionControl-Portable.zip\`).
+   - **Linux Formats**: **.AppImage** (\`MissionControl-Linux.AppImage\`), **.DEB**, **.RPM**, and **.TAR.GZ** on the **[Downloads Section](/#download)**.
+
+3. ⚡ Hardware & GPU Matrix (iGPU & Discrete):
+   - **✅ Supported**: NVIDIA GeForce RTX (20, 30, 40, 50 series) and GTX 1060 (6GB min). Pure TensorRT execution saves ~1GB VRAM for games.
+   - **❌ Integrated GPUs (iGPU) NOT Supported Yet**: Intel UHD / Iris Xe / AMD Radeon iGPUs cannot run on-device SLMs and swapchain hook injection due to lack of dedicated VRAM and CUDA acceleration.
+
+4. 🎮 Controller & Gamepad Support (BETA Engine):
+   - **Current Status**: **Active BETA** with dual-stack XInput and DirectInput support (Xbox Wireless/Elite, PS DualSense, DualShock 4).
+   - **Key Action Combos**:
+     • \`LB + RB\`: Instant Boost overlay trigger.
+     • \`D-PAD UP\`: Activates Aero AI Voice Assistant.
+     • \`Y / Triangle\`: Triggers Tactical Recon overlay analysis.
+     • \`X / Square\`: Automated Story & Cutscene Auto-Skip.
+     • \`SELECT / SHARE\`: Toggles HUD overlay visibility.
+   - **Analog Deadzones & Haptics**: 5% to 35% configurable deadzone filtering and dual-motor rumble testing.
+
+5. 📸 10 Core Application Sub-Modules & Screenshot Pages:
+   - **Main Console Dashboard** (\`dashboard.webp\`): Live FPS/thermal graphs, AI resource load, and quick launcher.
+   - **Autonomous AI Co-Pilot & Tactical Agent** (\`agent.webp\`): Multi-model tactical assistant (Llama 3.1 8B/70B + Vision VLM).
+   - **Glassmorphic In-Game HUD Overlay** (\`hud.webp\`): DirectX 12 / Vulkan swapchain presentation hooks (Horizontal, Compact, Standard layouts). Zero frame loss, anti-cheat safe.
+   - **TensorRT AI Vision & YOLO Detection** (\`vision.webp\`): 60 FPS dxcam screen capture + YOLOv8 TensorRT neural radar.
+   - **Real-Time Hardware Telemetry** (\`system.webp\`): PyNVML GPU sensors + WMI/CIM/PDH fallback chain.
+   - **Performance Tuning Lab & Power Controls** (\`lab.webp\`): Standby cache purging, fan curves, and boost efficiency (+14.2% FPS).
+   - **Game Library & Auto-Discovery** (\`library.webp\`): Synchronizes titles across Steam, Epic, GOG, and Xbox Game Pass.
+   - **AI Hardware Readiness Matrix** (\`readiness.webp\`): Audits Resizable BAR, DX12 Ultimate, NVIDIA Reflex Low Latency, and Game Mode.
+   - **System Settings & AI Configuration** (\`setting.webp\`): Hotkey recorder, TTS voice profiles (ElevenLabs/NIM/SAPI5), and deadzone calibration.
+   - **Deep Scanner** (\`deepscanner.png\`): 3-level folder discovery for DLSS 4/4.5 Multi-Frame Gen, Ray Reconstruction, and Reflex configs.
+
+6. 🔮 NVIDIA DLSS Evolution (1.0 to 5.0):
+   - **DLSS 1.0/2.0**: AI Super Sampling & Universal Super Resolution (Turing / Ampere).
+   - **DLSS 3.0/3.5**: Frame Generation (2x) & AI Ray Reconstruction (Ada Lovelace).
+   - **DLSS 4.0/4.5**: Multi-Frame Generation (4x to 6x) with Transformer Super Resolution (Blackwell / RTX 50).
+   - **DLSS 5.0**: Full Real-Time Neural Material & Light Synthesis (Fall 2026).
+
+7. 📰 Daily Gaming Intel & Technical Blogs ([/blog/gaming](/blog/gaming)):
+   - Automated AI-driven blog generation pipeline runs daily at **5:30 AM IST** from IGN, Kotaku, Eurogamer, AnandTech, and Tom's Hardware RSS feeds.
+   - **4 Core Publishing Categories**:
+     • **GPU News**: Architecture breakdowns, VRAM limits, Tensor core benchmarks.
+     • **Game News**: Launch performance, patches, DLSS/FSR integration news.
+     • **Hardware Deep-Dive**: Silicon thermals, clock scaling, driver analyses.
+     • **Game Revisit**: Technical retrospectives and modern optimization mod guides.
+   - **Latest Dispatches**:
+${blogBullets}
+
+8. 💬 Community & Direct Contact:
+   - **[Community Glitch Tracker](/community)**: Submit hardware sensor mismatches, driver conflicts, or FPS drops. Upvoted logs trigger automated telemetry hotfixes.
+   - **[Benchmark Profiles](/games-tested)**: View tested GPU metrics and story/mechanics overviews.
+   - **[Contact Support](/contact)**: Direct form to reach Arnab & Anirudha for personalized developer assistance.
+   - **[Documentation Hub](/docs)**: In-depth technical guides for API setup, HAL daemons, and C# hooks.
+
+RESPONSE GUIDELINES:
+- **Intelligent Handling of Off-Topic / Unrelated / Random / Gibberish Messages**:
+  If the user sends an unrelated message (e.g. random names, gibberish, personal unrelated questions like "Subhendu is..."):
+  1. Politely and concisely note that the message is outside Mission Control's domain.
+  2. Provide 3-4 bullet points highlighting what you CAN assist with (App Modules, GPU/iGPU Support, Controller Binds, Live Patches, Gaming Intel Blogs, Community Tracker).
+- **Direct Answer First**: Explain concepts directly in the chat concisely using clear markdown bullet points so the user doesn't have to leave, with helpful internal links ([Docs](/docs), [Gaming Intel Blogs](/blog/gaming), [Community](/community), [Downloads](/#download), [Benchmarks](/games-tested), [Contact](/contact)).
+- Keep responses sharp, authoritative, structured, and free of filler phrases.`;
+}
 
 // GET: Fetch all saved chat sessions for user email
 export async function GET(request: Request) {
@@ -166,20 +272,49 @@ How can I assist you with our **Documentation**, **System Architecture**, **App 
     const userPrompt = message.trim();
     let replyText = "";
 
+    // Load live version metadata and patch changelogs dynamically
+    const versionData = getDynamicVersionData();
+
+    // Fetch recent live gaming intel blogs from MongoDB if connected
+    let recentPosts: any[] = [];
+    try {
+      await connectDB();
+      recentPosts = await GamingPost.find({})
+        .sort({ publishedAt: -1 })
+        .limit(4)
+        .select("title slug category publishedAt createdAt")
+        .lean();
+    } catch (postErr) {
+      console.warn("Recent posts fetch notice:", postErr);
+    }
+
+    const dynamicSystemPrompt = buildSupportSystemPrompt(versionData, recentPosts);
+
+    // Build multi-turn context for Gemini if history exists
+    const recentHistory = Array.isArray(fullHistory)
+      ? fullHistory.slice(-4).map((m: any) => ({
+          role: m.sender === "user" ? "user" : "model",
+          parts: [{ text: m.text }]
+        }))
+      : [];
+
     // Try Google Gemini API first if available
     const geminiKey = process.env.GEMINI_API_KEY;
     if (geminiKey) {
       try {
+        const contents = [
+          { role: "user", parts: [{ text: `${dynamicSystemPrompt}\n\nYou are chatting with operator: ${cleanName}. Provide concise, authoritative technical assistance.` }] },
+          { role: "model", parts: [{ text: `Understood. I am Mission Control 24/7 Support AI running with active v${versionData.version} intelligence, ready to assist ${cleanName} with concise, technical, and accurate guidance.` }] },
+          ...recentHistory,
+          { role: "user", parts: [{ text: userPrompt }] }
+        ];
+
         const geminiRes = await fetch(
           `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key=${geminiKey}`,
           {
             method: "POST",
             headers: { "Content-Type": "application/json" },
-            body: JSON.stringify({
-              contents: [
-                { role: "user", parts: [{ text: `${SUPPORT_SYSTEM_PROMPT}\n\nUser (${cleanName}): ${userPrompt}` }] }
-              ]
-            })
+            body: JSON.stringify({ contents })
           }
         );
         if (geminiRes.ok) {
@@ -195,72 +330,175 @@ How can I assist you with our **Documentation**, **System Architecture**, **App 
     if (!replyText) {
       const q = userPrompt.toLowerCase().trim();
 
-      // Check if user replied with a single number option (e.g. "1", "2", "3", "4", "option 1", "#3")
-      const numMatch = q.match(/^(option\s*|#\s*)?([1-4])$/i);
+      // Check single number choices
+      const numMatch = q.match(/^(option\s*|#\s*)?([1-6])$/i);
       const selectedNum = numMatch ? numMatch[2] : null;
 
-      // 1. Developer / Author / Creator / Option 3
+      // 1. Developer / Author / Creator
       const devRegex = /(who|whos|who's)\s*(is|was|has)?\s*(the)?\s*(dveloped|devloped|developed|created|built|made|engineered|designed|author|creator|developer|owner|founder|contributor|contributors)/i;
       const devKeywords = ["who developed", "who devloped", "who dveloped", "who created", "who built", "who made", "developer of", "creator of", "built by", "developed by", "arnab", "arnab roy", "arnab825", "anirudha", "anirudha basu thakur", "ani0811", "contributors", "github"];
 
       if (selectedNum === "3" || devRegex.test(q) || devKeywords.some(k => q.includes(k))) {
         replyText = `### 👨‍💻 Project Developers & GitHub Contributors
-**Mission Control** is developed by **Arnab Roy** and **Anirudha Basu Thakur** on GitHub.
+**Mission Control** is architected and maintained by **Arnab Roy** and **Anirudha Basu Thakur**:
 
-**Core Contributors:**
 - 👑 **Arnab Roy** ([@arnab825](https://github.com/arnab825)): Project Founder & Lead Architect — System Architecture, Telemetry Engine, Next.js Web Platform, C# HAL & Python daemons.
 - ⚡ **Anirudha Basu Thakur** ([@Ani0811](https://github.com/Ani0811)): Core Co-Developer — App & Website features, system interfaces, and performance optimizations.
 
-🐙 View repository & code on **[GitHub Repo (arnab825/Mission-Control)](https://github.com/arnab825/Mission-Control)**!`;
+🐙 Repository: **[github.com/arnab825/Mission-Control](https://github.com/arnab825/Mission-Control)**`;
 
-      // 2. Desktop App Download (Windows & Linux) / Option 1
-      } else if (selectedNum === "1" || q.includes("download") || q.includes("exe") || q.includes("msi") || q.includes("zip") || q.includes("linux") || q.includes("appimage") || q.includes("deb") || q.includes("rpm") || q.includes("install") || (q.includes("app") && !q.includes("who"))) {
-        replyText = `### 📥 Mission Control App Downloads
-Download the latest releases for Windows and Linux on our **[Downloads](/#download)** section:
-
-**🪟 Windows (64-bit):**
-1. **⚙️ Executable (.EXE)**: Standard installer (\`MissionControl-Setup.exe\`) with auto-updates.
-2. **📦 MSI Package (.MSI)**: Enterprise installer (\`MissionControl-Setup.msi\`) for domain & silent deployments.
-3. **📁 Portable Archive (.ZIP)**: Standalone portable package (\`MissionControl-Portable.zip\`) — run instantly without installation.
-
-**🐧 Linux (x86_64):**
-1. **🚀 AppImage (.AppImage)**: Universal Linux standalone binary — run directly on Ubuntu, Debian, Fedora, Arch, etc.
-2. **📦 DEB Package (.deb)**: Native installer for Ubuntu / Debian-based systems.
-3. **📦 RPM Package (.rpm)**: Native package for Fedora / RHEL / openSUSE systems.
-4. **📁 TAR.GZ Archive (.tar.gz)**: Standalone portable Linux archive.`;
-
-      // 3. Contact Support & General Doubts / Option 2
+      // 2. Hardware / GPU / iGPU Compatibility
       } else if (
-        selectedNum === "2" ||
-        q.includes("contact") ||
-        q.includes("doubt") ||
-        q.includes("doubts") ||
-        q.includes("reach") ||
-        q.includes("message") ||
-        q.includes("email support") ||
-        q.includes("ask")
+        q.includes("igpu") ||
+        q.includes("integrated") ||
+        q.includes("intel hd") ||
+        q.includes("intel uhd") ||
+        q.includes("iris") ||
+        q.includes("gpu") ||
+        q.includes("graphics card") ||
+        q.includes("hardware requirement") ||
+        q.includes("specs") ||
+        q.includes("nvidia") ||
+        q.includes("amd")
       ) {
-        replyText = `### 📬 Contact Support & Direct Assistance
-Have questions, doubts, or feedback? Our core team is here to assist:
+        replyText = `### ⚡ Hardware & GPU Compatibility Matrix
 
-1. **Direct Contact Form**: Submit your questions directly to our engineers on the **[Contact Us](/contact)** page.
-2. **Community Hub**: Browse upvoted telemetry logs and driver hotfixes on the **[Community Glitch Tracker](/community)**.
-3. **Documentation**: Find API guides, NIM setups, and environment configs in our **[Docs Hub](/docs)**.`;
+- **✅ Supported Discrete GPUs**:
+  - **NVIDIA GTX 1060 (6GB VRAM)** minimum.
+  - **NVIDIA RTX 2060 / 30 / 40 / 50 Series** recommended for TensorRT sub-15ms on-device inference.
+- **❌ Integrated GPUs (iGPU) NOT Supported Yet**:
+  - Intel UHD, Intel Iris Xe, and AMD Radeon Vega/RDNA iGPUs are **not supported at this time**. Local AI SLM models and swapchain hook injection strictly require dedicated VRAM and CUDA acceleration.
+- **📊 Benchmarks & Tested Titles**:
+  - Check tested FPS performance across GPU rigs on our **[Games Tested Benchmarks](/games-tested)** page.`;
 
-      // 4. Documentation & API Reference / Option 4
+      // 3. Controller Support Status (Beta)
+      } else if (
+        q.includes("controller") ||
+        q.includes("gamepad") ||
+        q.includes("joystick") ||
+        q.includes("xbox") ||
+        q.includes("dualsense") ||
+        q.includes("ps5") ||
+        q.includes("ps4")
+      ) {
+        replyText = `### 🎮 Controller Support Status (Active BETA)
+
+- **Current Status**: Controller support is currently in **Active BETA**.
+- **Supported Gamepads**: Xbox Wireless/USB Controllers and PlayStation DualSense/DualShock 4.
+- **Current Capabilities**: In-game HUD navigation and quick menu toggle.
+- **Key Action Combos**:
+  - \`LB + RB\`: Instant Boost overlay
+  - \`D-PAD UP\`: Voice assistant trigger
+  - \`Y / Triangle\`: Tactical Recon overlay
+  - \`X / Square\`: Story Auto-Skip
+  - \`SELECT / SHARE\`: HUD Visibility toggle
+- Have suggestions or encountered gamepad glitches? Let us know on the **[Community Glitch Tracker](/community)**!`;
+
+      // 4. Dynamic Versions & Live Developer Patches
+      } else if (
+        q.includes("version") ||
+        q.includes("patch") ||
+        q.includes("changelog") ||
+        q.includes("release") ||
+        q.includes("what is new") ||
+        q.includes("whats new") ||
+        q.includes("update") ||
+        q.includes("v3") ||
+        q.includes("v2")
+      ) {
+        const topPatches = versionData.changelog.slice(0, 3);
+        const patchList = topPatches.map((p: any) => 
+          `#### 🚀 v${p.version} (${p.date}) — ${p.title}\n${(p.highlights || []).slice(0, 3).map((h: string) => `• ${h}`).join("\n")}`
+        ).join("\n\n");
+
+        replyText = `### 🚀 Mission Control Dynamic Versions & Live Patches
+
+- **🌟 Current Active Release**: **v${versionData.version}** (Released on ${versionData.releaseDate})
+- **📦 Total Recorded Builds**: ${versionData.changelog.length} releases with automated rollback protection.
+
+${patchList}
+
+📥 Download the latest build on our **[Downloads Section](/#download)** or explore full release notes in the **[Docs Hub](/docs)**!`;
+
+      // 5. Gaming Intel & Technical Blogs
+      } else if (
+        q.includes("blog") ||
+        q.includes("article") ||
+        q.includes("news") ||
+        q.includes("gaming intel") ||
+        q.includes("gpu news") ||
+        q.includes("deep dive") ||
+        q.includes("revisit")
+      ) {
+        const blogList = recentPosts.length > 0
+          ? recentPosts.map((p: any) => `• **[${p.title}](/blog/gaming/${p.slug})**\n  *Category: ${p.category}* • Published: ${new Date(p.publishedAt || p.createdAt).toLocaleDateString()}`).join("\n\n")
+          : "• **[Explore Daily Gaming Intel Articles](/blog/gaming)**";
+
+        replyText = `### 📰 Daily Gaming Intel & Technical Dispatches
+
+Mission Control automatically posts technical gaming insights across **4 daily categories**:
+- **⚡ GPU News**: Next-gen GPU architectures, VRAM optimizations, and driver benchmarks.
+- **🎮 Game News**: Launch performance, DLSS/FSR integration notes, and game updates.
+- **🔬 Hardware Deep-Dive**: Silicon architecture, thermals, and overclocking analysis.
+- **🕹️ Game Revisit**: Technical retrospectives and modern optimization mod guides.
+
+**Latest Published Dispatches:**
+${blogList}
+
+📖 Browse all daily articles on the **[Gaming Intel Blog](/blog/gaming)**!`;
+
+      // 6. App Downloads / Option 1
+      } else if (
+        selectedNum === "1" ||
+        q.includes("download") ||
+        q.includes("exe") ||
+        q.includes("msi") ||
+        q.includes("zip") ||
+        q.includes("appimage") ||
+        q.includes("deb") ||
+        q.includes("rpm") ||
+        q.includes("install")
+      ) {
+        replyText = `### 📥 Mission Control App Downloads (v3.2.1)
+Download the latest binaries on our **[Downloads](/#download)** page:
+
+**🪟 Windows Packages**:
+- **⚙️ .EXE Installer**: Auto-updating setup (\`MissionControl-Setup.exe\`).
+- **📦 .MSI Package**: Enterprise domain/silent install (\`MissionControl-Setup.msi\`).
+- **📁 .ZIP Portable**: Standalone zero-installation package (\`MissionControl-Portable.zip\`).
+
+**🐧 Linux Packages**:
+- **🚀 .AppImage**: Universal standalone binary for Ubuntu, Debian, Fedora, Arch.
+- **📦 Native Packages**: **.DEB**, **.RPM**, and **.TAR.GZ** archives.`;
+
+      // 7. Features, HUD Overlay, YOLO Vision, AI Personalities & Docs / Option 4
       } else if (
         selectedNum === "4" ||
         q.includes("doc") ||
+        q.includes("feature") ||
+        q.includes("overlay") ||
+        q.includes("hud") ||
+        q.includes("yolo") ||
+        q.includes("vision") ||
+        q.includes("personality") ||
+        q.includes("personalities") ||
+        q.includes("anticheat") ||
+        q.includes("anti-cheat") ||
         q.includes("api") ||
         q.includes("guide") ||
         q.includes("how to")
       ) {
-        replyText = `### 📚 Support & Documentation Reference
-1. **Docs Hub**: Visit our **[Documentation Hub](/docs)** for API references, NVIDIA NIM integration guides, and setup steps.
-2. **System Benchmarks**: View live GPU metrics and game hardware breakdowns on our **[Benchmark Profiles](/benchmarks)** page.
-3. **Architecture Overview**: Dive into our high-performance HAL and telemetry daemons on the **[Architecture](/architecture)** page.`;
+        replyText = `### 📚 Feature Overview & Documentation
 
-      // 5. Technical Issues / Bugs / Glitches / Troubleshooting
+Here is how Mission Control works directly on your rig:
+- **🖥️ In-Game HUD Overlay**: Transparent DirectX 12 & Vulkan Present swapchain hooks. Zero frame drop, read-only telemetry, and anti-cheat safe.
+- **🤖 5 AI Personalities**: Tactical, Immersive, Friendly, Sarcastic, and Aggressive — executed locally on your GPU Tensor cores.
+- **👁️ Real-time YOLO Vision**: Local computer vision model for on-screen tactical radar and object detection.
+- **🔍 Deep Game Scanner**: Scans game folders up to 3 subdirectories deep to auto-configure DLSS 4 frame gen and Reflex low latency.
+
+📖 Read comprehensive setup guides and API architecture on the **[Documentation Hub](/docs)**.`;
+
+      // 8. Technical Issues / Bugs / Glitches / Community Support
       } else if (
         q.includes("issue") ||
         q.includes("bug") ||
@@ -270,45 +508,44 @@ Have questions, doubts, or feedback? Our core team is here to assist:
         q.includes("crash") ||
         q.includes("not working") ||
         q.includes("trouble") ||
-        q.includes("fix")
+        q.includes("fix") ||
+        q.includes("community")
       ) {
-        replyText = `### 🛠️ Technical Issue & Troubleshooting Guide
-Sorry to hear you're experiencing an issue! Here is how we can solve it:
+        replyText = `### 🛠️ Problem Resolution & Community Glitch Tracker
 
-1. **Submit Telemetry Log**: Head to the **[Community Glitch Tracker](/community)** to view existing hardware patches or log your crash details.
-2. **Contact Support Team**: Send a message directly to our core engineers on the **[Contact Support](/contact)** page.
-3. **App Setup & Overlay Fix**: Ensure DirectX 12 graphics drivers are updated and run \`MissionControl-Setup.exe\` or \`MissionControl-Setup.msi\` as Administrator.`;
+Facing a technical issue or crash? Here is how to resolve it:
+1. **Community Glitch Tracker**: Check community-upvoted driver patches or log your crash dump on the **[Community Glitch Tracker](/community)**.
+2. **Direct Developer Support**: Message Arnab and Anirudha directly using our **[Contact Support](/contact)** form.
+3. **GPU Driver Check**: Ensure latest NVIDIA Game Ready drivers are installed and run the application as Administrator.`;
 
-      // 6. Frequently Asked Questions (FAQ) & General Guidance
+      // 9. Contact Support / Option 2
       } else if (
-        q.includes("faq") ||
-        q.includes("frequently asked") ||
-        q.includes("question") ||
-        q.includes("questions") ||
-        q.includes("what is mission control") ||
-        q.includes("how does it work")
+        selectedNum === "2" ||
+        q.includes("contact") ||
+        q.includes("doubt") ||
+        q.includes("reach") ||
+        q.includes("message") ||
+        q.includes("email") ||
+        q.includes("ask")
       ) {
-        replyText = `### ❓ Frequently Asked Questions (FAQ) & System Guidance
-Here are common answers & guidelines for Mission Control:
+        replyText = `### 📬 Contact Support & Direct Assistance
+Have questions, doubts, or custom setup inquiries?
+- **Contact Form**: Message the engineering team directly at **[Contact Support](/contact)**.
+- **Community Glitch Tracker**: View driver fixes and user logs at **[Community](/community)**.
+- **Docs Hub**: Explore APIs and architecture at **[Documentation](/docs)**.`;
 
-- **Q: What is Mission Control?**
-  *A: Mission Control is an open-source hardware monitoring, AI inference, and telemetry platform for modern PCs.*
-- **Q: Which download format should I use?**
-  *A: On Windows, use **.EXE** for standard setups, **.MSI** for enterprise domain installs, or **.ZIP** for portable use. On Linux, use **.AppImage** for universal plug-and-play, or native **.DEB** / **.RPM** packages on the **[Downloads](/#download)** section.*
-- **Q: Who created Mission Control?**
-  *A: Created by **Arnab Roy** (@arnab825) & **Anirudha Basu Thakur** (@Ani0811) on [GitHub](https://github.com/arnab825/Mission-Control).*
-- **Q: Where can I submit doubts or questions?**
-  *A: Submit direct questions to our team on the **[Contact Support](/contact)** page or report bugs on the **[Community Glitch Tracker](/community)**.*`;
-
-      // 7. General Fallback
+      // 10. Intelligent Handling for Off-Topic / Unrelated / Random / Gibberish Messages
       } else {
-        replyText = `Hello **${cleanName}**! I'm here 24/7 to answer your queries and assist you with Mission Control.
+        replyText = `Hello **${cleanName}**! I specialize in **Mission Control** technical support, documentation, hardware compatibility, app downloads, and gaming intel blogs.
 
-You can ask me about:
-1. **📥 App Downloads (Windows: .EXE, .MSI, .ZIP | Linux: AppImage, .DEB, .RPM, .TAR.GZ)**
-2. **📬 Contact Support & Guidance ([Contact Us](/contact))**
-3. **👨‍💻 Developer & Team Credits**
-4. **📚 FAQ & Documentation Reference**`;
+Your message doesn't appear related to Mission Control. Here are the core topics I can assist you with:
+
+1. **⚡ GPU & Hardware Compatibility** (Discrete NVIDIA supported; iGPUs not supported yet)
+2. **🎮 Controller Support Status** (Active BETA for Xbox & DualSense)
+3. **🚀 App Versions & Live Patches** (Active **v${versionData.version}** with changelogs)
+4. **📰 Daily Gaming Intel & Technical Blogs** ([Gaming Blogs](/blog/gaming))
+5. **📚 Feature Docs & In-Game Overlay** ([Documentation](/docs))
+6. **🛠️ Bug Reporting & Community** ([Community Glitch Tracker](/community) • [Contact Support](/contact))`;
       }
     }
 
