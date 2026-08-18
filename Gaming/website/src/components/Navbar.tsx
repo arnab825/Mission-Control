@@ -90,20 +90,23 @@ export default function Navbar() {
     closeSearch();
   }, [pathname]);
 
-  // Global Ctrl + K Shortcut handler
+  // Global Ctrl + K / Cmd + K Shortcut handler
   useEffect(() => {
     const handleGlobalKeyDown = (e: KeyboardEvent) => {
-      if ((e.ctrlKey || e.metaKey) && e.key.toLowerCase() === "k") {
-        if (pathname !== "/docs") {
-          e.preventDefault();
+      const isK = e.key === "k" || e.key === "K" || e.code === "KeyK";
+      if ((e.ctrlKey || e.metaKey) && isK) {
+        e.preventDefault();
+        if (pathname === "/docs") {
+          window.dispatchEvent(new CustomEvent("trigger-docs-search"));
+        } else {
           desktopSearchRef.current?.focus();
           desktopSearchRef.current?.select();
           setIsSearchFocused(true);
         }
       }
     };
-    window.addEventListener("keydown", handleGlobalKeyDown);
-    return () => window.removeEventListener("keydown", handleGlobalKeyDown);
+    window.addEventListener("keydown", handleGlobalKeyDown, { capture: true });
+    return () => window.removeEventListener("keydown", handleGlobalKeyDown, { capture: true });
   }, [pathname]);
 
   const handleSearch = async (query: string) => {

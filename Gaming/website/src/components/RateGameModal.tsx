@@ -344,39 +344,40 @@ export default function RateGameModal({
 
   return (
     <AnimatePresence>
-      <div className="fixed inset-0 z-50 flex items-center justify-center p-3 sm:p-4 bg-black/85 backdrop-blur-md overflow-y-auto">
+      <div className="fixed inset-0 z-50 flex items-center justify-center p-2.5 sm:p-4 bg-black/85 backdrop-blur-md overflow-y-auto">
         <motion.div
           initial={{ opacity: 0, scale: 0.95, y: 15 }}
           animate={{ opacity: 1, scale: 1, y: 0 }}
           exit={{ opacity: 0, scale: 0.95, y: 15 }}
-          className="relative w-full max-w-2xl bg-[#0c0d12] border border-white/15 rounded-2xl sm:rounded-3xl p-5 sm:p-8 shadow-[0_0_50px_rgba(0,0,0,0.9)] overflow-hidden my-auto max-h-[90vh] flex flex-col font-mono text-white"
+          className="relative w-full max-w-2xl bg-[#0c0d12] border border-white/15 rounded-2xl sm:rounded-3xl p-4 sm:p-6 md:p-8 shadow-[0_0_50px_rgba(0,0,0,0.9)] overflow-hidden my-auto max-h-[92vh] flex flex-col font-mono text-white"
         >
           {/* Ambient Glow */}
           <div className="absolute top-0 right-0 w-[300px] h-[300px] bg-neon-green/10 blur-[100px] pointer-events-none rounded-full" />
           <div className="absolute bottom-0 left-0 w-[200px] h-[200px] bg-amber-400/10 blur-[80px] pointer-events-none rounded-full" />
 
           {/* Modal Header */}
-          <div className="flex items-center justify-between border-b border-white/10 pb-4 shrink-0 relative z-10">
-            <div className="flex items-center gap-2.5">
-              <div className="p-2 rounded-xl bg-neon-green/10 border border-neon-green/30 text-neon-green">
+          <div className="flex items-start justify-between border-b border-white/10 pb-3 sm:pb-4 shrink-0 relative z-10 gap-2">
+            <div className="flex items-start gap-2.5 min-w-0">
+              <div className="p-2 rounded-xl bg-neon-green/10 border border-neon-green/30 text-neon-green shrink-0">
                 <Star className="w-5 h-5 fill-neon-green" />
               </div>
-              <div>
+              <div className="min-w-0">
                 <div className="text-[10px] text-neon-green font-bold tracking-widest uppercase mb-0.5">
                   COMMUNITY POST
                 </div>
-                <h3 className="text-base sm:text-xl font-bold font-display uppercase tracking-wide text-white">
+                <h3 className="text-sm sm:text-lg md:text-xl font-bold font-display uppercase tracking-wide text-white break-words">
                   Share Game Review & Rig Setup
                 </h3>
-                <p className="text-[11px] text-gray-400">
-                  Publish your performance observations, screenshots, gameplay clips, and rating
+                <p className="text-[10px] sm:text-[11px] text-gray-400 break-words">
+                  Publish performance telemetry, screenshots, gameplay clips, and rating
                 </p>
               </div>
             </div>
 
             <button
               onClick={onClose}
-              className="p-2 rounded-xl bg-white/5 hover:bg-white/10 text-gray-400 hover:text-white transition-colors cursor-pointer"
+              className="p-1.5 sm:p-2 rounded-xl bg-white/5 hover:bg-white/10 text-gray-400 hover:text-white transition-colors cursor-pointer shrink-0"
+              aria-label="Close modal"
             >
               <X className="w-5 h-5" />
             </button>
@@ -820,11 +821,11 @@ export default function RateGameModal({
             </div>
 
             {/* Submit Action */}
-            <div className="pt-2 flex items-center justify-end gap-3 border-t border-white/10">
+            <div className="pt-2 flex flex-col-reverse sm:flex-row items-stretch sm:items-center justify-end gap-2.5 sm:gap-3 border-t border-white/10">
               <button
                 type="button"
                 onClick={onClose}
-                className="px-4 py-2.5 rounded-xl bg-white/5 hover:bg-white/10 text-gray-300 text-xs font-mono uppercase tracking-wider transition-colors cursor-pointer"
+                className="w-full sm:w-auto px-4 py-2.5 rounded-xl bg-white/5 hover:bg-white/10 text-gray-300 text-xs font-mono uppercase tracking-wider transition-colors cursor-pointer text-center"
               >
                 Cancel
               </button>
@@ -832,7 +833,7 @@ export default function RateGameModal({
               <button
                 type="submit"
                 disabled={loading || success || mediaList.some((m) => m.uploading)}
-                className="px-6 py-2.5 rounded-xl bg-neon-green text-obsidian hover:bg-white text-xs font-mono font-bold uppercase tracking-wider transition-all shadow-[0_0_20px_rgba(118,185,0,0.5)] cursor-pointer disabled:opacity-50 flex items-center gap-2"
+                className="w-full sm:w-auto px-6 py-2.5 rounded-xl bg-neon-green text-obsidian hover:bg-white text-xs font-mono font-bold uppercase tracking-wider transition-all shadow-[0_0_20px_rgba(118,185,0,0.5)] cursor-pointer disabled:opacity-50 flex items-center justify-center gap-2"
               >
                 {loading ? (
                   <>
