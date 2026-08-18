@@ -1,7 +1,10 @@
-import React, { useState, useEffect, useMemo, useRef } from 'react';
+import React, { useState, useEffect, useMemo, useRef, useCallback } from 'react';
 import { useAuth } from '@clerk/clerk-react';
 import Fuse from 'fuse.js';
 import AuthPage from './AuthPage';
+import NodeManagerModal from '../components/NodeManagerModal';
+import GameInstallationsModal, { type GameInstallation } from '../components/GameInstallationsModal';
+import DiscoverGamesModal from '../components/DiscoverGamesModal';
 import {
   Search,
   Play,
@@ -17,10 +20,62 @@ import {
   RefreshCcw,
   Filter,
   Terminal,
-  Shield
+  Shield,
+  Server,
+  HardDrive,
+  Globe
 } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import type { TelemetryState } from '../types/telemetry';
+
+// ── Distributed Library Types ────────────────────────────────────────────────
+const LIBRARY_SERVER_URL = (window as any).__LIBRARY_SERVER_URL__
+  || (import.meta as any).env?.VITE_LIBRARY_SERVER_URL
+  || 'http://localhost:8800';
+
+interface DistributedStats {
+  total_master_games: number;
+  total_installed_games: number;
+  total_nodes: number;
+  online_nodes: number;
+  total_storage_bytes: number;
+  used_storage_bytes: number;
+  nodes: Array<{ node_id: string; name: string; status: string; storage_total: number; storage_used: number }>;
+}
+
+function formatBytes(bytes: number): string {
+  if (!bytes) return '0 B';
+  const tb = bytes / 1e12;
+  if (tb >= 0.1) return `${tb.toFixed(1)} TB`;
+  const gb = bytes / 1e9;
+  if (gb >= 1) return `${gb.toFixed(1)} GB`;
+  return `${(bytes / 1e6).toFixed(0)} MB`;
+}
+
+function useDistributedStats(): { stats: DistributedStats | null; serverOnline: boolean } {
+  const [stats, setStats] = useState<DistributedStats | null>(null);
+  const [serverOnline, setServerOnline] = useState(false);
+
+  const fetchStats = useCallback(async () => {
+    try {
+      const res = await fetch(`${LIBRARY_SERVER_URL}/api/library/stats`, { signal: AbortSignal.timeout(3000) });
+      if (res.ok) {
+        setStats(await res.json());
+        setServerOnline(true);
+      }
+    } catch {
+      setServerOnline(false);
+    }
+  }, []);
+
+  useEffect(() => {
+    fetchStats();
+    const t = setInterval(fetchStats, 30000);
+    return () => clearInterval(t);
+  }, [fetchStats]);
+
+  return { stats, serverOnline };
+}
 
 // ── Types ──────────────────────────────────────────────────────────────────────
 interface BackendGame {
@@ -418,6 +473,10 @@ const GamesLibraryContent: React.FC<GamesPageProps> = ({ state, sendCommand, set
   const [selectedType, setSelectedType] = useState('All');
   const [searchQuery, setSearchQuery] = useState('');
   const [showAdvanced, setShowAdvanced] = useState(false);
+  const [showNodeManager, setShowNodeManager] = useState(false);
+  const [showDiscoverModal, setShowDiscoverModal] = useState(false);
+  const [installationsModal, setInstallationsModal] = useState<{ title: string; coverUrl?: string; primaryGenre?: string; installations: GameInstallation[] } | null>(null);
+  const { stats: distributedStats, serverOnline: libraryServerOnline } = useDistributedStats();
   const initialGames = (state as any)?.game_library || [];
   const initialLoaded = (state as any)?.game_library !== undefined;
 
@@ -662,6 +721,66 @@ const GamesLibraryContent: React.FC<GamesPageProps> = ({ state, sendCommand, set
 
   return (
     <div className="flex-1 min-h-0 p-4 sm:p-6 flex flex-col overflow-y-auto custom-scrollbar gap-y-4 sm:gap-y-6">
+
+      {/* Distributed Library Stats Bar */}
+      {libraryServerOnline && distributedStats && (
+        <motion.div
+          initial={{ opacity: 0, y: -6 }}
+          animate={{ opacity: 1, y: 0 }}
+          className="flex flex-wrap items-center gap-3 px-4 py-2.5 bg-white/[0.03] border border-white/[0.06] rounded-2xl"
+        >
+          {/* Stats Pills */}
+          <div className="flex items-center gap-1.5">
+            <Gamepad2 className="w-3.5 h-3.5 text-zinc-500" />
+            <span className="text-[10px] font-black text-white">{distributedStats.total_master_games.toLocaleString()}</span>
+            <span className="text-[9px] text-zinc-500 uppercase tracking-widest">Games</span>
+          </div>
+          <div className="w-px h-3 bg-white/10" />
+          <div className="flex items-center gap-1.5">
+            <HardDrive className="w-3.5 h-3.5 text-zinc-500" />
+            <span className="text-[10px] font-black text-white">{formatBytes(distributedStats.total_storage_bytes)}</span>
+            <span className="text-[9px] text-zinc-500 uppercase tracking-widest">Storage</span>
+          </div>
+          <div className="w-px h-3 bg-white/10" />
+          {/* Node Status Pills */}
+          <div className="flex items-center gap-1.5 flex-wrap">
+            <Server className="w-3.5 h-3.5 text-zinc-500" />
+            {distributedStats.nodes.map(n => (
+              <span
+                key={n.node_id}
+                className={`inline-flex items-center gap-1 px-2 py-0.5 rounded-full border text-[9px] font-black uppercase tracking-widest transition-all ${
+                  n.status === 'online'
+                    ? 'bg-emerald-500/10 text-emerald-400 border-emerald-500/25'
+                    : 'bg-red-500/10 text-red-400 border-red-500/20 opacity-60'
+                }`}
+              >
+                <span className={`w-1.5 h-1.5 rounded-full ${ n.status === 'online' ? 'bg-emerald-400 animate-pulse' : 'bg-red-400' }`} />
+                {n.name}
+              </span>
+            ))}
+          </div>
+          {/* Action buttons */}
+          <div className="ml-auto flex items-center gap-2">
+            <button
+              id="discover-games-btn"
+              onClick={() => setShowDiscoverModal(true)}
+              className="flex items-center gap-1.5 px-3 py-1 bg-neon-green/10 hover:bg-neon-green/20 border border-neon-green/30 hover:border-neon-green/50 rounded-xl text-[9px] font-black text-neon-green uppercase tracking-widest transition-all shadow-[0_0_15px_rgba(118,185,0,0.1)]"
+              title="Search and add games from Steam, Epic, GOG, and RAWG"
+            >
+              <Globe className="w-3 h-3" />
+              Discover from Web
+            </button>
+            <button
+              id="manage-nodes-btn"
+              onClick={() => setShowNodeManager(true)}
+              className="flex items-center gap-1.5 px-3 py-1 bg-white/5 hover:bg-white/10 border border-white/10 hover:border-white/20 rounded-xl text-[9px] font-black text-zinc-400 hover:text-white uppercase tracking-widest transition-all"
+            >
+              <Server className="w-3 h-3" />
+              Manage Nodes
+            </button>
+          </div>
+        </motion.div>
+      )}
 
       {/* Header */}
       <div className="flex flex-col md:flex-row md:items-end justify-between gap-4">
@@ -956,6 +1075,35 @@ const GamesLibraryContent: React.FC<GamesPageProps> = ({ state, sendCommand, set
       )}
 
 
+      {/* Node Manager Modal */}
+      <AnimatePresence>
+        {showNodeManager && <NodeManagerModal onClose={() => setShowNodeManager(false)} />}
+      </AnimatePresence>
+
+      {/* Discover Games Modal */}
+      <AnimatePresence>
+        {showDiscoverModal && (
+          <DiscoverGamesModal
+            onClose={() => setShowDiscoverModal(false)}
+            onGameAdded={() => {
+              // Refresh or signal update
+            }}
+          />
+        )}
+      </AnimatePresence>
+
+      {/* Game Installations Modal */}
+      <AnimatePresence>
+        {installationsModal && (
+          <GameInstallationsModal
+            gameTitle={installationsModal.title}
+            coverUrl={installationsModal.coverUrl}
+            primaryGenre={installationsModal.primaryGenre}
+            installations={installationsModal.installations}
+            onClose={() => setInstallationsModal(null)}
+          />
+        )}
+      </AnimatePresence>
     </div>
   );
 };

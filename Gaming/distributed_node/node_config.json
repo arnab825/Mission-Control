@@ -1,0 +1,13 @@
+{
+  "nodeId": "",
+  "name": "My-PC",
+  "serverUrl": "http://localhost:8800",
+  "token": "",
+  "scanPaths": [
+    "D:\\Games",
+    "D:\\SteamLibrary",
+    "C:\\Program Files\\Epic Games"
+  ],
+  "heartbeatInterval": 15,
+  "syncInterval": 300
+}
