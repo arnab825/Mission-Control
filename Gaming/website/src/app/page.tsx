@@ -91,6 +91,7 @@ export default function Home() {
   const [appVersion, setAppVersion] = useState("2.9.4");
 
   useEffect(() => {
+    let isMounted = true;
     const ua = (
       (typeof window !== "undefined" && (window.navigator.userAgent || window.navigator.platform)) || ""
     ).toLowerCase();
@@ -102,9 +103,13 @@ export default function Home() {
     fetch("/api/version")
       .then((res) => res.json())
       .then((data) => {
-        if (data?.version) setAppVersion(data.version);
+        if (isMounted && data?.version) setAppVersion(data.version);
       })
       .catch(() => {});
+
+    return () => {
+      isMounted = false;
+    };
   }, []);
 
   const fetchExternalSiteData = async () => {
@@ -327,69 +332,72 @@ export default function Home() {
               Engineered by <strong className="text-neon-green font-bold">Mission Control Labs</strong> for high-performance rigs. Monitor thermals in real-time, trigger agentic system macros, and receive <span className="text-neon-yellow font-mono font-bold px-1.5 py-0.5 rounded bg-neon-yellow/10 border border-neon-yellow/30 text-[11px]">sub-15ms</span> local AI tactics directly inside your game.
             </p>
 
-            {/* Action Buttons */}
-            <div className="flex flex-wrap items-center justify-center lg:justify-start gap-2.5 sm:gap-3 w-full mb-6 font-mono text-xs">
-              {os === "mac" || os === "other" ? (
-                <div className="w-full sm:w-auto inline-flex items-center justify-center gap-2 bg-white/5 border border-white/20 text-gray-400 px-6 py-3 rounded-xl font-bold uppercase tracking-wider text-center cursor-not-allowed">
-                  <span>Windows & Linux Only</span>
+            {/* Unified Action Buttons & Telemetry Grid Container for Pixel-Perfect Mobile Alignment */}
+            <div className="w-full max-w-md lg:max-w-xl mx-auto lg:mx-0 flex flex-col gap-3 sm:gap-4 mb-6">
+              {/* Action Buttons */}
+              <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-2.5 sm:gap-3 w-full font-mono text-xs">
+                {os === "mac" || os === "other" ? (
+                  <div className="w-full sm:flex-1 inline-flex items-center justify-center gap-2 bg-white/5 border border-white/20 text-gray-400 px-6 h-[50px] rounded-xl font-bold uppercase tracking-wider text-center cursor-not-allowed">
+                    <span>Windows & Linux Only</span>
+                  </div>
+                ) : (
+                  <a
+                    href={os === "linux" ? LINUX_INSTALLER_URL : (os === "windows" ? WINDOWS_INSTALLER_URL : AUTO_DOWNLOAD_URL)}
+                    suppressHydrationWarning
+                    className="w-full sm:flex-1 inline-flex items-center justify-center gap-2.5 bg-gradient-to-r from-neon-green to-emerald-400 text-obsidian px-5 h-[50px] rounded-xl font-black uppercase tracking-wider transition-all duration-300 hover:scale-[1.02] hover:shadow-[0_0_35px_rgba(118,185,0,0.75)] active:scale-95 text-center shadow-[0_0_20px_rgba(118,185,0,0.3)] border border-neon-green whitespace-nowrap"
+                  >
+                    <Download className="w-4 h-4 shrink-0" />
+                    <span suppressHydrationWarning>DOWNLOAD NOW ({os === "linux" ? "LINUX" : "WINDOWS"})</span>
+                  </a>
+                )}
+
+                <div className="flex items-center gap-2.5 w-full sm:w-auto">
+                  <Link
+                    href="/docs"
+                    className="flex-1 sm:flex-none inline-flex items-center justify-center gap-2 glass-card glass-card-hover px-5 h-[50px] font-bold text-white transition-all text-center border-white/15 hover:border-neon-green/50 rounded-xl shadow-md whitespace-nowrap"
+                  >
+                    <FileText className="w-4 h-4 text-neon-green shrink-0" />
+                    <span>Architecture Docs</span>
+                  </Link>
+
+                  <a
+                    href="https://github.com/arnab825/Mission-Control"
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="inline-flex items-center justify-center w-[50px] h-[50px] glass-card glass-card-hover text-gray-300 hover:text-neon-green transition-all border-white/15 hover:border-neon-green/50 shrink-0 rounded-xl shadow-md group"
+                    title="View GitHub Repository"
+                  >
+                    <GithubIcon className="w-4 h-4 text-neon-green group-hover:scale-110 transition-transform" />
+                  </a>
                 </div>
-              ) : (
-                <a
-                  href={os === "linux" ? LINUX_INSTALLER_URL : (os === "windows" ? WINDOWS_INSTALLER_URL : AUTO_DOWNLOAD_URL)}
-                  suppressHydrationWarning
-                  className="w-full sm:w-auto inline-flex items-center justify-center gap-2.5 bg-gradient-to-r from-neon-green to-emerald-400 text-obsidian px-6 py-3.5 rounded-xl font-black uppercase tracking-wider transition-all duration-300 hover:scale-105 hover:shadow-[0_0_35px_rgba(118,185,0,0.75)] active:scale-95 text-center shadow-[0_0_20px_rgba(118,185,0,0.3)] border border-neon-green whitespace-nowrap"
-                >
-                  <Download className="w-4 h-4 shrink-0" />
-                  <span suppressHydrationWarning>DOWNLOAD NOW ({os === "linux" ? "LINUX" : "WINDOWS"})</span>
-                </a>
-              )}
+              </div>
 
-              <div className="flex items-center justify-center gap-2.5 w-full sm:w-auto">
-                <Link
-                  href="/docs"
-                  className="flex-1 sm:flex-none inline-flex items-center justify-center gap-2 glass-card glass-card-hover px-5 py-3.5 font-bold text-white transition-all text-center border-white/15 hover:border-neon-green/50 rounded-xl shadow-md"
-                >
-                  <FileText className="w-4 h-4 text-neon-green shrink-0" />
-                  <span>Architecture Docs</span>
-                </Link>
-
-                <a
-                  href="https://github.com/arnab825/Mission-Control"
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="inline-flex items-center justify-center p-3.5 glass-card glass-card-hover text-gray-300 hover:text-neon-green transition-all border-white/15 hover:border-neon-green/50 shrink-0 rounded-xl shadow-md group"
-                  title="View GitHub Repository"
-                >
-                  <GithubIcon className="w-4 h-4 text-neon-green group-hover:scale-110 transition-transform" />
-                </a>
-              </div>
-            </div>
-
-            {/* High-Tech Telemetry Stats Counter Grid */}
-            <div className="w-full grid grid-cols-2 gap-2.5 font-mono text-[11px]">
-              <div className="p-2.5 rounded-xl bg-white/[0.03] border border-white/10 backdrop-blur-md flex flex-col items-start justify-center shadow-md hover:border-neon-green/40 transition-colors">
-                <span className="text-neon-green font-black text-xs flex items-center gap-1.5">
-                  <Zap className="w-3.5 h-3.5 text-neon-yellow" /> &lt;15ms
-                </span>
-                <span className="text-gray-400 text-[9px] uppercase tracking-wider font-semibold mt-0.5">Local CUDA Latency</span>
-              </div>
-              <div className="p-2.5 rounded-xl bg-white/[0.03] border border-white/10 backdrop-blur-md flex flex-col items-start justify-center shadow-md hover:border-neon-green/40 transition-colors">
-                <span className="text-neon-green font-black text-xs flex items-center gap-1.5">
-                  <Shield className="w-3.5 h-3.5 text-emerald-400" /> 100% SAFE
-                </span>
-                <span className="text-gray-400 text-[9px] uppercase tracking-wider font-semibold mt-0.5">Overlay Hooking</span>
-              </div>
-              <div className="p-2.5 rounded-xl bg-white/[0.03] border border-white/10 backdrop-blur-md flex flex-col items-start justify-center shadow-md hover:border-neon-green/40 transition-colors">
-                <span className="text-neon-purple font-black text-xs flex items-center gap-1.5">
-                  <Cpu className="w-3.5 h-3.5 text-neon-purple" /> TENSORRT
-                </span>
-                <span className="text-gray-400 text-[9px] uppercase tracking-wider font-semibold mt-0.5">NVIDIA Hardware Engine</span>
-              </div>
-              <div className="p-2.5 rounded-xl bg-white/[0.03] border border-white/10 backdrop-blur-md flex flex-col items-start justify-center shadow-md hover:border-neon-green/40 transition-colors">
-                <span className="text-amber-400 font-black text-xs flex items-center gap-1.5">
-                  <Globe className="w-3.5 h-3.5 text-amber-400" /> 100% FREE
-                </span>
-                <span className="text-gray-400 text-[9px] uppercase tracking-wider font-semibold mt-0.5">Open Source GitHub</span>
+              {/* High-Tech Telemetry Stats Counter Grid (Equal Height, Symmetric & Centered) */}
+              <div className="w-full grid grid-cols-2 gap-2.5 font-mono text-[11px]">
+                <div className="p-3 rounded-xl bg-white/[0.03] border border-white/10 backdrop-blur-md flex flex-col items-center justify-center text-center shadow-md hover:border-neon-green/40 transition-colors h-full min-h-[72px]">
+                  <span className="text-neon-green font-black text-xs flex items-center justify-center gap-1.5">
+                    <Zap className="w-3.5 h-3.5 text-neon-yellow shrink-0" /> &lt;15ms
+                  </span>
+                  <span className="text-gray-400 text-[10px] uppercase tracking-wider font-semibold mt-1 text-center">Local CUDA Latency</span>
+                </div>
+                <div className="p-3 rounded-xl bg-white/[0.03] border border-white/10 backdrop-blur-md flex flex-col items-center justify-center text-center shadow-md hover:border-neon-green/40 transition-colors h-full min-h-[72px]">
+                  <span className="text-neon-green font-black text-xs flex items-center justify-center gap-1.5">
+                    <Shield className="w-3.5 h-3.5 text-emerald-400 shrink-0" /> 100% SAFE
+                  </span>
+                  <span className="text-gray-400 text-[10px] uppercase tracking-wider font-semibold mt-1 text-center">Overlay Hooking</span>
+                </div>
+                <div className="p-3 rounded-xl bg-white/[0.03] border border-white/10 backdrop-blur-md flex flex-col items-center justify-center text-center shadow-md hover:border-neon-green/40 transition-colors h-full min-h-[72px]">
+                  <span className="text-neon-purple font-black text-xs flex items-center justify-center gap-1.5">
+                    <Cpu className="w-3.5 h-3.5 text-neon-purple shrink-0" /> TENSORRT
+                  </span>
+                  <span className="text-gray-400 text-[10px] uppercase tracking-wider font-semibold mt-1 text-center">NVIDIA Hardware Engine</span>
+                </div>
+                <div className="p-3 rounded-xl bg-white/[0.03] border border-white/10 backdrop-blur-md flex flex-col items-center justify-center text-center shadow-md hover:border-neon-green/40 transition-colors h-full min-h-[72px]">
+                  <span className="text-amber-400 font-black text-xs flex items-center justify-center gap-1.5">
+                    <Globe className="w-3.5 h-3.5 text-amber-400 shrink-0" /> 100% FREE
+                  </span>
+                  <span className="text-gray-400 text-[10px] uppercase tracking-wider font-semibold mt-1 text-center">Open Source GitHub</span>
+                </div>
               </div>
             </div>
 
@@ -1034,31 +1042,31 @@ export default function Home() {
         transition={{ duration: 0.6 }}
         className="w-full max-w-7xl px-4 sm:px-6 mb-24 sm:mb-36 relative z-10"
       >
-        <div className="glass-panel p-6 sm:p-12 lg:p-16 rounded-[28px] sm:rounded-[36px] border-neon-green/40 bg-obsidian/95 relative overflow-hidden shadow-[0_0_80px_rgba(0,0,0,0.9)]">
+        <div className="glass-panel p-4 sm:p-8 lg:p-16 rounded-2xl sm:rounded-[36px] border-neon-green/40 bg-obsidian/95 relative overflow-hidden shadow-[0_0_80px_rgba(0,0,0,0.9)] w-full">
 
-          <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 lg:gap-12 items-center">
+          <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 lg:gap-12 items-center w-full">
 
-            <div className="lg:col-span-5 space-y-6">
-              <div className="inline-flex items-center gap-2 border border-neon-green/30 rounded-full px-4 py-1.5 bg-neon-green/10">
+            <div className="lg:col-span-5 space-y-5 sm:space-y-6 w-full">
+              <div className="inline-flex items-center gap-2 border border-neon-green/30 rounded-full px-3.5 py-1.5 bg-neon-green/10">
                 <Radio className="w-4 h-4 text-neon-green animate-pulse shrink-0" />
-                <span className="text-neon-green text-xs font-bold font-mono tracking-widest uppercase">HUD ARCHITECTURE</span>
+                <span className="text-neon-green text-[11px] sm:text-xs font-bold font-mono tracking-widest uppercase">HUD ARCHITECTURE</span>
               </div>
 
-              <h2 className="text-3xl sm:text-5xl font-black font-display uppercase tracking-tight text-white leading-tight">
+              <h2 className="text-2xl sm:text-4xl lg:text-5xl font-black font-display uppercase tracking-tight text-white leading-tight">
                 IMMERSIVE <span className="text-neon-green glow-text-teal">IN-GAME</span> OVERLAY
               </h2>
 
-              <p className="text-gray-300 text-sm sm:text-base leading-relaxed font-sans">
+              <p className="text-gray-300 text-xs sm:text-base leading-relaxed font-sans">
                 Mission Control injects a transparent heads-up display. Summon real-time tactical advice, monitor thermals, or launch system macros without leaving your game.
               </p>
 
-              {/* Dynamic HUD Mode Tabs */}
-              <div className="flex gap-2 p-1.5 bg-white/5 border border-white/10 rounded-xl font-mono text-xs">
+              {/* Dynamic HUD Mode Tabs (Responsive Grid) */}
+              <div className="grid grid-cols-3 gap-1 sm:gap-2 p-1 sm:p-1.5 bg-white/5 border border-white/10 rounded-xl font-mono text-[10px] sm:text-xs w-full">
                 {(["horizontal", "compact", "standard"] as const).map((tab) => (
                   <button
                     key={tab}
                     onClick={() => setActiveHudTab(tab)}
-                    className={`flex-1 py-2 px-3 rounded-lg font-bold uppercase transition-all cursor-pointer ${activeHudTab === tab
+                    className={`w-full py-2 px-1 sm:px-3 rounded-lg font-bold uppercase transition-all cursor-pointer truncate text-center ${activeHudTab === tab
                         ? "bg-neon-green text-obsidian shadow-[0_0_10px_rgba(118,185,0,0.4)]"
                         : "text-gray-400 hover:text-white"
                       }`}
@@ -1320,64 +1328,66 @@ export default function Home() {
         </div>
 
         {/* OS Download Cards */}
-        <div className="grid grid-cols-1 sm:grid-cols-2 gap-6 sm:gap-8 mb-16">
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 sm:gap-8 mb-12 sm:mb-16">
 
           {/* Windows Build */}
-          <div className="glass-card p-6 sm:p-10 border-neon-green/50 hover:border-neon-green flex flex-col justify-between group text-left relative overflow-hidden shadow-[0_0_35px_rgba(118,185,0,0.15)]">
-            <div className="absolute top-0 right-0 bg-neon-green text-obsidian text-[10px] font-mono font-bold px-3.5 py-1 rounded-bl-lg uppercase tracking-wider">
+          <div className="glass-card p-4 sm:p-8 md:p-10 border-neon-green/50 hover:border-neon-green flex flex-col justify-between group text-left relative overflow-hidden shadow-[0_0_35px_rgba(118,185,0,0.15)] rounded-2xl sm:rounded-3xl">
+            <div className="absolute top-0 right-0 bg-neon-green text-obsidian text-[9px] sm:text-[10px] font-mono font-bold px-2.5 sm:px-3.5 py-0.5 sm:py-1 rounded-bl-lg uppercase tracking-wider">
               STABLE BUILD
             </div>
             <div>
-              <h3 className="text-2xl sm:text-3xl font-black text-white mb-1.5 font-display">Windows Deployment</h3>
-              <p className="text-gray-400 text-xs sm:text-sm font-mono mb-8">Windows 10 / 11 64-bit (.exe)</p>
+              <h3 className="text-xl sm:text-3xl font-black text-white mb-1 font-display">Windows Deployment</h3>
+              <p className="text-gray-400 text-xs sm:text-sm font-mono mb-4 sm:mb-7">Windows 10 / 11 64-bit (.exe)</p>
             </div>
             <a
               href={WINDOWS_INSTALLER_URL}
-              className="w-full bg-neon-green text-obsidian px-6 py-4.5 rounded-xl font-black text-sm uppercase tracking-wider hover:bg-white hover:shadow-[0_0_30px_rgba(118,185,0,0.6)] transition-all duration-300 flex items-center justify-center gap-2.5 font-mono shadow-[0_0_20px_rgba(118,185,0,0.3)] text-center mb-4 cursor-pointer"
+              className="w-full bg-neon-green text-obsidian px-4 sm:px-6 py-3 sm:py-3.5 rounded-xl font-black text-xs sm:text-sm uppercase tracking-wider hover:bg-white hover:shadow-[0_0_30px_rgba(118,185,0,0.6)] transition-all duration-300 flex items-center justify-center gap-2 font-mono shadow-[0_0_20px_rgba(118,185,0,0.3)] text-center mb-3 sm:mb-4 cursor-pointer"
             >
-              <Download className="w-5 h-5 shrink-0" /> Download for Windows
+              <Download className="w-4 h-4 sm:w-5 sm:h-5 shrink-0" />
+              <span>Download for Windows</span>
             </a>
-            <div className="flex justify-center gap-4 text-xs font-mono">
+            <div className="flex justify-center gap-3 sm:gap-4 text-[11px] sm:text-xs font-mono">
               <a href={WINDOWS_MSI_URL} className="text-gray-400 hover:text-neon-green transition-colors flex items-center gap-1">
-                <Download className="w-3.5 h-3.5" /> MSI Installer
+                <Download className="w-3 h-3 sm:w-3.5 sm:h-3.5" /> MSI Installer
               </a>
               <span className="text-gray-600">|</span>
               <a href={WINDOWS_ZIP_URL} className="text-gray-400 hover:text-neon-green transition-colors flex items-center gap-1">
-                <Download className="w-3.5 h-3.5" /> Portable ZIP
+                <Download className="w-3 h-3 sm:w-3.5 sm:h-3.5" /> Portable ZIP
               </a>
             </div>
           </div>
 
           {/* Linux Build */}
-          <div className="glass-card p-6 sm:p-10 border-cyan-400/50 hover:border-cyan-400 flex flex-col justify-between group text-left relative overflow-hidden shadow-[0_0_35px_rgba(34,211,238,0.15)]">
-            <div className="absolute top-0 right-0 bg-cyan-400 text-obsidian text-[10px] font-mono font-bold px-3.5 py-1 rounded-bl-lg uppercase tracking-wider">
+          <div className="glass-card p-4 sm:p-8 md:p-10 border-cyan-400/50 hover:border-cyan-400 flex flex-col justify-between group text-left relative overflow-hidden shadow-[0_0_35px_rgba(34,211,238,0.15)] rounded-2xl sm:rounded-3xl">
+            <div className="absolute top-0 right-0 bg-cyan-400 text-obsidian text-[9px] sm:text-[10px] font-mono font-bold px-2.5 sm:px-3.5 py-0.5 sm:py-1 rounded-bl-lg uppercase tracking-wider">
               STABLE BUILD
             </div>
             <div>
-              <h3 className="text-2xl sm:text-3xl font-black text-white mb-1.5 font-display">Linux Deployment</h3>
-              <p className="text-gray-400 text-xs sm:text-sm font-mono mb-8">Ubuntu / Debian / Fedora / Arch (.tar.gz / .AppImage)</p>
+              <h3 className="text-xl sm:text-3xl font-black text-white mb-1 font-display">Linux Deployment</h3>
+              <p className="text-gray-400 text-xs sm:text-sm font-mono mb-4 sm:mb-7">Ubuntu / Debian / Fedora / Arch (.tar.gz / .AppImage)</p>
             </div>
             <a
               href={LINUX_INSTALLER_URL}
-              className="w-full bg-gradient-to-r from-cyan-400 to-teal-400 text-obsidian px-6 py-4.5 rounded-xl font-black text-sm uppercase tracking-wider hover:bg-white hover:shadow-[0_0_30px_rgba(34,211,238,0.6)] transition-all duration-300 flex items-center justify-center gap-2.5 font-mono shadow-[0_0_20px_rgba(34,211,238,0.3)] text-center mb-4 cursor-pointer"
+              className="w-full bg-gradient-to-r from-cyan-400 to-teal-400 text-obsidian px-4 sm:px-6 py-3 sm:py-3.5 rounded-xl font-black text-xs sm:text-sm uppercase tracking-wider hover:bg-white hover:shadow-[0_0_30px_rgba(34,211,238,0.6)] transition-all duration-300 flex items-center justify-center gap-2 font-mono shadow-[0_0_20px_rgba(34,211,238,0.3)] text-center mb-3 sm:mb-4 cursor-pointer"
             >
-              <Download className="w-5 h-5 shrink-0" /> Download for Linux
+              <Download className="w-4 h-4 sm:w-5 sm:h-5 shrink-0" />
+              <span>Download for Linux</span>
             </a>
-            <div className="flex flex-wrap justify-center gap-3 sm:gap-4 text-xs font-mono">
+            <div className="flex flex-wrap justify-center gap-2.5 sm:gap-4 text-[11px] sm:text-xs font-mono">
               <a href={LINUX_TAR_URL} className="text-gray-400 hover:text-cyan-400 transition-colors flex items-center gap-1">
-                <Download className="w-3.5 h-3.5" /> .TAR.GZ
+                <Download className="w-3 h-3 sm:w-3.5 sm:h-3.5" /> .TAR.GZ
               </a>
               <span className="text-gray-600">|</span>
               <a href={LINUX_ZIP_URL} className="text-gray-400 hover:text-cyan-400 transition-colors flex items-center gap-1">
-                <Download className="w-3.5 h-3.5" /> Portable (.ZIP)
+                <Download className="w-3 h-3 sm:w-3.5 sm:h-3.5" /> ZIP
               </a>
               <span className="text-gray-600">|</span>
               <a href={LINUX_APPIMAGE_URL} className="text-gray-400 hover:text-cyan-400 transition-colors flex items-center gap-1">
-                <Download className="w-3.5 h-3.5" /> AppImage
+                <Download className="w-3 h-3 sm:w-3.5 sm:h-3.5" /> AppImage
               </a>
               <span className="text-gray-600">|</span>
               <a href={LINUX_DEB_URL} className="text-gray-400 hover:text-cyan-400 transition-colors flex items-center gap-1">
-                <Download className="w-3.5 h-3.5" /> .DEB
+                <Download className="w-3 h-3 sm:w-3.5 sm:h-3.5" /> .DEB
               </a>
             </div>
           </div>

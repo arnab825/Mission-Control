@@ -74,33 +74,35 @@ export function BeforeAfterSlider() {
 
       {/* Interactive Slider Frame */}
       <div className="w-full lg:w-2/3 pt-2 sm:pt-4">
-        {/* Dedicated Header Bar for Status Badges - Clean Non-Cutoff Display */}
-        <div className="flex items-center justify-between mb-4 px-1 font-mono text-[10px] sm:text-xs overflow-visible">
-          <div className="flex items-center gap-2 bg-obsidian/90 text-gray-300 px-3.5 py-1.5 rounded-full border border-white/20 shadow-md">
-            <span className="w-2 h-2 rounded-full bg-gray-400" />
-            <span>BEFORE (PYTHON GUI PROTOTYPE)</span>
+        {/* Dedicated Header Bar for Status Badges - Responsive Non-Cutoff Display */}
+        <div className="flex items-center justify-between gap-2 mb-3.5 px-0.5 font-mono text-[10px] sm:text-xs">
+          <div className="flex items-center gap-1.5 sm:gap-2 bg-obsidian/90 text-gray-300 px-2.5 sm:px-3.5 py-1 sm:py-1.5 rounded-full border border-white/20 shadow-md shrink-0">
+            <span className="w-1.5 h-1.5 sm:w-2 sm:h-2 rounded-full bg-gray-400 shrink-0" />
+            <span className="sm:hidden">BEFORE (PYTHON)</span>
+            <span className="hidden sm:inline">BEFORE (PYTHON GUI PROTOTYPE)</span>
           </div>
 
-          <div className="flex items-center gap-2 bg-obsidian/90 text-neon-green px-3.5 py-1.5 rounded-full border border-neon-green/40 shadow-[0_0_15px_rgba(118,185,0,0.2)] font-bold">
-            <span className="w-2 h-2 rounded-full bg-neon-green animate-ping" />
-            <span>AFTER (NEXT.JS + ELECTRON)</span>
+          <div className="flex items-center gap-1.5 sm:gap-2 bg-obsidian/90 text-neon-green px-2.5 sm:px-3.5 py-1 sm:py-1.5 rounded-full border border-neon-green/40 shadow-[0_0_15px_rgba(118,185,0,0.2)] font-bold shrink-0">
+            <span className="w-1.5 h-1.5 sm:w-2 sm:h-2 rounded-full bg-neon-green animate-ping shrink-0" />
+            <span className="sm:hidden">AFTER (NEXT.JS)</span>
+            <span className="hidden sm:inline">AFTER (NEXT.JS + ELECTRON)</span>
           </div>
         </div>
 
         <div
           ref={containerRef}
-          className="relative w-full aspect-[16/10] sm:aspect-video rounded-[24px] sm:rounded-[32px] overflow-hidden cursor-ew-resize group select-none shadow-[0_0_50px_rgba(0,0,0,0.8)] border border-neon-green/30 bg-obsidian"
+          className="relative w-full aspect-[16/10] sm:aspect-video rounded-2xl sm:rounded-[32px] overflow-hidden cursor-ew-resize group select-none shadow-[0_0_50px_rgba(0,0,0,0.8)] border border-neon-green/30 bg-obsidian"
           onMouseMove={handleMouseMove}
           onTouchMove={handleTouchMove}
         >
           {/* After Image (Background - Zoomed out uncropped view) */}
-          <div className="absolute inset-0 p-3 sm:p-5 flex items-center justify-center bg-[#0a0a0c]">
+          <div className="absolute inset-0 p-2 sm:p-5 flex items-center justify-center bg-[#0a0a0c]">
             <img src={afterImg.src} alt="After: Next.js + Electron" className="w-full h-full object-contain max-h-full max-w-full rounded-xl" />
           </div>
 
           {/* Before Image (Foreground, Clipped - Zoomed out uncropped view) */}
           <div
-            className="absolute inset-0 border-r-2 border-neon-green z-10 p-3 sm:p-5 flex items-center justify-center overflow-hidden bg-[#0a0a0c]"
+            className="absolute inset-0 border-r-2 border-neon-green z-10 p-2 sm:p-5 flex items-center justify-center overflow-hidden bg-[#0a0a0c]"
             style={{ clipPath: `polygon(0 0, ${sliderPosition}% 0, ${sliderPosition}% 100%, 0 100%)` }}
           >
             <img src={beforeImg.src} alt="Before: Python GUI" className="w-full h-full object-contain max-h-full max-w-full rounded-xl grayscale-[15%]" />
@@ -111,15 +113,15 @@ export function BeforeAfterSlider() {
             className="absolute top-0 bottom-0 w-1 bg-neon-green cursor-ew-resize shadow-[0_0_20px_rgba(118,185,0,0.9)] z-20"
             style={{ left: `${sliderPosition}%`, transform: 'translateX(-50%)' }}
           >
-            <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-12 h-12 bg-neon-green text-obsidian rounded-full flex items-center justify-center border-2 border-white shadow-[0_0_30px_rgba(118,185,0,0.8)] group-hover:scale-110 transition-transform">
-              <MoveHorizontal className="w-6 h-6 stroke-[2.5]" />
+            <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-10 h-10 sm:w-12 sm:h-12 bg-neon-green text-obsidian rounded-full flex items-center justify-center border-2 border-white shadow-[0_0_30px_rgba(118,185,0,0.8)] group-hover:scale-110 transition-transform">
+              <MoveHorizontal className="w-5 h-5 sm:w-6 sm:h-6 stroke-[2.5]" />
             </div>
           </div>
         </div>
 
-        <div className="text-center mt-4">
-          <span className="text-neon-green font-mono text-xs uppercase tracking-widest font-bold flex items-center justify-center gap-2">
-            <span>‹ SLIDE HORIZONTALLY TO COMPARE ARCHITECTURE EVOLUTION ›</span>
+        <div className="text-center mt-3 sm:mt-4">
+          <span className="text-neon-green font-mono text-[10px] sm:text-xs uppercase tracking-wider font-bold inline-flex items-center justify-center gap-1.5 text-center">
+            <span>‹ SLIDE TO COMPARE ARCHITECTURE ›</span>
           </span>
         </div>
       </div>
