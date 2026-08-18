@@ -106,7 +106,7 @@ export default function SupportChatbot() {
         setSelectedGender(parsed.gender);
 
         // Instantly display warm welcome message so window is never blank on refresh
-        const welcomeText = `Welcome back **${parsed.name}**! How can I assist you with our **Documentation**, **Community Glitch Tracker**, **System Architecture**, or **App Download** today?`;
+        const welcomeText = `Welcome back **${parsed.name}**! I'm your 24/7 Mission Control Support Assistant. How can I assist you with **Documentation**, **GPU/iGPU Compatibility**, **Controller Beta**, **App Versions**, or **Community Glitch Tracker** today?`;
         setMessages([
           {
             id: `welcome-init-${Date.now()}`,
@@ -151,7 +151,7 @@ export default function SupportChatbot() {
     const initialWelcome: ChatMessage = {
       id: `welcome-${Date.now()}`,
       sender: "assistant",
-      text: `Welcome **${profile.name}**! I'm your 24/7 Mission Control Support Assistant. How can I assist you with our **Documentation**, **Community Glitch Tracker**, **System Architecture**, or **App Download** today?`,
+      text: `Welcome **${profile.name}**! I'm your 24/7 Mission Control Support Assistant. How can I assist you with **Documentation**, **GPU/iGPU Compatibility**, **Controller Beta**, **App Versions**, or **Community Glitch Tracker** today?`,
       timestamp: new Date().toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" })
     };
 
@@ -196,7 +196,7 @@ export default function SupportChatbot() {
       {
         id: `welcome-${Date.now()}`,
         sender: "assistant",
-        text: `Welcome **${userProfile.name}**! I'm your 24/7 Mission Control Support Assistant. How can I assist you with our **Documentation**, **Community Glitch Tracker**, **System Architecture**, or **App Download** today?`,
+        text: `Welcome **${userProfile.name}**! I'm your 24/7 Mission Control Support Assistant. How can I assist you with **Documentation**, **GPU/iGPU Compatibility**, **Controller Beta**, **App Versions**, or **Community Glitch Tracker** today?`,
         timestamp: new Date().toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" })
       }
     ]);
@@ -752,10 +752,12 @@ export default function SupportChatbot() {
                 <div className="p-2 border-t border-white/10 bg-[#0b101d]/90">
                   <div className="grid grid-cols-2 gap-1.5">
                     {[
-                      "👨‍💻 Who developed this app?",
-                      "🛠️ Report Issue / Glitch",
-                      "📚 Explore Docs & APIs",
-                      "📥 Download Desktop App"
+                      "⚡ GPU & iGPU Support",
+                      "📰 Daily Gaming Intel Blogs",
+                      "🎮 Controller Beta Status",
+                      "🚀 Versions & Live Patches",
+                      "📚 Explain Features & Docs",
+                      "🛠️ Report Bug on Community"
                     ].map((chip) => (
                       <button
                         key={chip}

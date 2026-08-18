@@ -1,16 +1,30 @@
 "use client";
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import Link from 'next/link';
-import { Send, CheckCircle2, Loader2, AlertCircle } from 'lucide-react';
+import { Send, CheckCircle2, Loader2, AlertCircle, Sparkles } from 'lucide-react';
 import { motion } from 'framer-motion';
 import LegalModal, { LegalModalTab } from './LegalModal';
 
 export default function Footer() {
   const [activeModal, setActiveModal] = useState<LegalModalTab | null>(null);
   const [email, setEmail] = useState("");
+  const [subscribedEmail, setSubscribedEmail] = useState("");
   const [subStatus, setSubStatus] = useState<"idle" | "loading" | "success" | "error">("idle");
+  const [isUnsubscribing, setIsUnsubscribing] = useState(false);
   const [errorMessage, setErrorMessage] = useState("");
+
+  useEffect(() => {
+    try {
+      const saved = localStorage.getItem("mc_telemetry_feed_email");
+      if (saved) {
+        setSubscribedEmail(saved);
+        setSubStatus("success");
+      }
+    } catch (e) {
+      console.warn("Storage notice:", e);
+    }
+  }, []);
 
   const handleSubscribe = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -30,10 +44,42 @@ export default function Footer() {
         throw new Error(data.error || "Subscription request rejected.");
       }
       setSubStatus("success");
+      setSubscribedEmail(email.trim().toLowerCase());
+      try {
+        localStorage.setItem("mc_telemetry_feed_email", email.trim().toLowerCase());
+      } catch {}
       setEmail("");
     } catch (err: any) {
       setSubStatus("error");
       setErrorMessage(err.message || "Failed to subscribe. Please try again.");
+    }
+  };
+
+  const handleUnsubscribe = async () => {
+    const targetEmail = subscribedEmail || email;
+    if (!targetEmail) return;
+
+    setIsUnsubscribing(true);
+    setErrorMessage("");
+
+    try {
+      const res = await fetch(`/api/subscribe?email=${encodeURIComponent(targetEmail)}`, {
+        method: "DELETE",
+      });
+      if (!res.ok) {
+        const data = await res.json();
+        throw new Error(data.error || "Failed to unsubscribe.");
+      }
+      setSubscribedEmail("");
+      setSubStatus("idle");
+      try {
+        localStorage.removeItem("mc_telemetry_feed_email");
+      } catch {}
+    } catch (err: any) {
+      setSubStatus("error");
+      setErrorMessage(err.message || "Error unsubscribing. Please try again.");
+    } finally {
+      setIsUnsubscribing(false);
     }
   };
 
@@ -76,6 +122,11 @@ export default function Footer() {
             <h4 className="font-bold text-white mb-4 text-sm uppercase tracking-wider font-display">Explore & Legal</h4>
             <ul className="space-y-3">
               <li>
+                <Link href="/blog/gaming" className="text-gray-400 hover:text-white hover:translate-x-1 transition-all duration-300 text-sm cursor-pointer text-left flex items-center gap-2 group">
+                  <span className="w-1.5 h-1.5 rounded-full bg-neon-green/40 group-hover:bg-neon-green group-hover:shadow-[0_0_8px_rgba(118,185,0,0.8)] transition-all duration-300"></span> Gaming Intel Blogs
+                </Link>
+              </li>
+              <li>
                 <Link href="/games-tested" className="text-gray-400 hover:text-white hover:translate-x-1 transition-all duration-300 text-sm cursor-pointer text-left flex items-center gap-2 group">
                   <span className="w-1.5 h-1.5 rounded-full bg-neon-green/40 group-hover:bg-neon-green group-hover:shadow-[0_0_8px_rgba(118,185,0,0.8)] transition-all duration-300"></span> Games Tested
                 </Link>
@@ -105,17 +156,43 @@ export default function Footer() {
 
           {/* Newsletter */}
           <div>
-            <h4 className="font-bold text-white mb-4 text-sm uppercase tracking-wider font-display">Telemetry Feed</h4>
-            <p className="text-gray-400 text-sm mb-4 leading-relaxed">Subscribe for firmware updates, model patches, and performance optimizations.</p>
-            {subStatus === "success" ? (
-              <div className="bg-neon-green/10 border border-neon-green/40 rounded-xl p-4 flex items-center gap-3 text-neon-green">
-                <CheckCircle2 className="w-5 h-5 shrink-0" />
-                <div className="text-xs font-mono font-bold uppercase tracking-wider">
-                  Telemetry Dispatch Active. Welcome Operator!
+            <h4 className="font-bold text-white mb-2 text-sm uppercase tracking-wider font-display flex items-center gap-2">
+              <span>Telemetry Feed</span>
+              <span className="text-[9px] font-mono px-2 py-0.5 rounded bg-neon-green/10 text-neon-green border border-neon-green/30">1x / WEEK</span>
+            </h4>
+            <p className="text-gray-400 text-xs mb-3 leading-relaxed">
+              Subscribe for weekly gaming intel blogs, firmware updates, and AI patch notes.
+            </p>
+
+            {subStatus === "success" && subscribedEmail ? (
+              <div className="bg-neon-green/10 border border-neon-green/40 rounded-xl p-3.5 space-y-2.5">
+                <div className="flex items-center gap-2 text-neon-green text-xs font-mono font-bold uppercase tracking-wider">
+                  <CheckCircle2 className="w-4 h-4 shrink-0" />
+                  <span className="truncate">Weekly Dispatch Active</span>
+                </div>
+                <p className="text-gray-300 text-[11px] font-sans leading-relaxed">
+                  Enrolled as <strong className="text-white font-mono">{subscribedEmail}</strong>. Dispatches arrive 1x every week.
+                </p>
+                <div className="flex flex-wrap items-center justify-between gap-2 pt-1 border-t border-neon-green/20">
+                  <Link
+                    href="/blog/gaming"
+                    className="inline-flex items-center gap-1 text-[11px] font-mono font-bold text-neon-green hover:underline hover:text-white transition-colors"
+                  >
+                    <Sparkles className="w-3 h-3" />
+                    <span>View Latest Blogs</span>
+                  </Link>
+                  <button
+                    type="button"
+                    onClick={handleUnsubscribe}
+                    disabled={isUnsubscribing}
+                    className="text-[10px] font-mono text-gray-400 hover:text-red-400 underline transition-colors cursor-pointer"
+                  >
+                    {isUnsubscribing ? "Unsubscribing..." : "Unsubscribe"}
+                  </button>
                 </div>
               </div>
             ) : (
-              <form className="flex flex-col gap-3" onSubmit={handleSubscribe}>
+              <form className="flex flex-col gap-2.5" onSubmit={handleSubscribe}>
                 <input
                   type="email"
                   value={email}
@@ -123,30 +200,36 @@ export default function Footer() {
                   placeholder="operator@system.io"
                   required
                   disabled={subStatus === "loading"}
-                  className="bg-obsidian/80 border border-white/10 rounded-xl px-4 py-3 text-sm text-white focus:outline-none focus:border-neon-green focus:shadow-[0_0_20px_rgba(118,185,0,0.3)] transition-all duration-300 font-mono disabled:opacity-50"
+                  className="bg-obsidian/80 border border-white/10 rounded-xl px-3.5 py-2.5 text-xs text-white focus:outline-none focus:border-neon-green focus:shadow-[0_0_20px_rgba(118,185,0,0.3)] transition-all duration-300 font-mono disabled:opacity-50"
                   suppressHydrationWarning={true}
                 />
                 {subStatus === "error" && (
-                  <div className="flex items-center gap-2 text-red-400 text-xs font-mono">
-                    <AlertCircle className="w-4 h-4 shrink-0" />
+                  <div className="flex items-center gap-2 text-red-400 text-[11px] font-mono">
+                    <AlertCircle className="w-3.5 h-3.5 shrink-0" />
                     <span>{errorMessage}</span>
                   </div>
                 )}
                 <button
                   type="submit"
                   disabled={subStatus === "loading"}
-                  className="bg-neon-green/10 text-neon-green border border-neon-green/50 hover:bg-neon-green hover:text-obsidian transition-all duration-300 rounded-xl px-4 py-3 font-bold text-xs uppercase tracking-wider flex items-center justify-center gap-2 shadow-[0_0_15px_rgba(118,185,0,0.15)] disabled:opacity-50 cursor-pointer"
+                  className="bg-neon-green/15 text-neon-green border border-neon-green/50 hover:bg-neon-green hover:text-obsidian transition-all duration-300 rounded-xl px-4 py-2.5 font-bold text-xs uppercase tracking-wider flex items-center justify-center gap-2 shadow-[0_0_15px_rgba(118,185,0,0.15)] disabled:opacity-50 cursor-pointer"
                 >
                   {subStatus === "loading" ? (
                     <>
-                      <Loader2 className="w-4 h-4 animate-spin" /> Enrolling Operator...
+                      <Loader2 className="w-3.5 h-3.5 animate-spin" /> Enrolling Operator...
                     </>
                   ) : (
                     <>
-                      <Send className="w-4 h-4" /> Subscribe to Telemetry
+                      <Send className="w-3.5 h-3.5" /> Subscribe to Weekly Feed
                     </>
                   )}
                 </button>
+                <div className="flex items-center justify-between text-[10px] text-gray-400 pt-0.5 px-0.5 font-mono">
+                  <span>Zero spam • 1 email/week</span>
+                  <Link href="/blog/gaming" className="text-neon-green hover:underline">
+                    Explore Blogs ➔
+                  </Link>
+                </div>
               </form>
             )}
           </div>
@@ -168,4 +251,3 @@ export default function Footer() {
     </>
   );
 }
-
