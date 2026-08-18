@@ -2,19 +2,21 @@
 
 import { useState } from "react";
 import { useMutation } from "@tanstack/react-query";
-import { Mail, User, MessageSquare, Send, CheckCircle, AlertCircle, Sparkles, Terminal, Radio } from "lucide-react";
+import { Mail, User, MessageSquare, Send, CheckCircle, AlertCircle, Terminal, Radio } from "lucide-react";
 import { motion } from "framer-motion";
 
 export default function ContactPage() {
   const [formData, setFormData] = useState({
-    name: "",
+    firstName: "",
+    middleName: "",
+    lastName: "",
     email: "",
     subject: "",
     message: "",
   });
 
   const contactMutation = useMutation({
-    mutationFn: async (payload: typeof formData) => {
+    mutationFn: async (payload: { name: string; email: string; subject?: string; message: string }) => {
       const response = await fetch("/api/contact", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
@@ -27,17 +29,17 @@ export default function ContactPage() {
       return data;
     },
     onSuccess: () => {
-      setFormData({ name: "", email: "", subject: "", message: "" });
+      setFormData({ firstName: "", middleName: "", lastName: "", email: "", subject: "", message: "" });
     },
   });
 
   const status = contactMutation.isPending
     ? { type: "loading" as const, message: "Encrypting & Transmitting Payload..." }
     : contactMutation.isSuccess
-    ? { type: "success" as const, message: "Transmission received and logged in core developer dispatch queue." }
-    : contactMutation.isError
-    ? { type: "error" as const, message: contactMutation.error.message }
-    : { type: "idle" as const, message: "" };
+      ? { type: "success" as const, message: "Transmission received and logged in core developer dispatch queue." }
+      : contactMutation.isError
+        ? { type: "error" as const, message: contactMutation.error.message }
+        : { type: "idle" as const, message: "" };
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
     const { name, value } = e.target;
@@ -46,15 +48,24 @@ export default function ContactPage() {
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    if (!formData.name || !formData.email || !formData.message) {
+    const fullName = [formData.firstName.trim(), formData.middleName.trim(), formData.lastName.trim()]
+      .filter(Boolean)
+      .join(" ");
+
+    if (!fullName || !formData.email || !formData.message) {
       return;
     }
-    contactMutation.mutate(formData);
+    contactMutation.mutate({
+      name: fullName,
+      email: formData.email,
+      subject: formData.subject,
+      message: formData.message,
+    });
   };
 
   return (
     <div className="min-h-screen pt-20 sm:pt-28 pb-16 sm:pb-24 px-3 min-[375px]:px-4 sm:px-6 max-w-5xl mx-auto w-full relative z-10 flex flex-col items-center">
-      
+
       {/* Background Graphic Illustration */}
       <div className="absolute top-8 sm:top-12 left-1/2 -translate-x-1/2 w-full max-w-4xl h-48 sm:h-72 rounded-2xl sm:rounded-3xl overflow-hidden pointer-events-none -z-10 border border-neon-green/20 opacity-30 shadow-[0_0_50px_rgba(118,185,0,0.15)]">
         <img
@@ -70,7 +81,7 @@ export default function ContactPage() {
       <div className="absolute top-1/3 left-1/2 -translate-x-1/2 w-[300px] sm:w-[600px] h-[300px] bg-neon-green/10 blur-[100px] sm:blur-[140px] rounded-full pointer-events-none -z-10 animate-pulse-slow" />
 
       {/* Header */}
-      <motion.div 
+      <motion.div
         initial={{ opacity: 0, y: 20 }}
         animate={{ opacity: 1, y: 0 }}
         transition={{ duration: 0.5 }}
@@ -89,7 +100,7 @@ export default function ContactPage() {
       </motion.div>
 
       {/* Glassmorphism Form Card */}
-      <motion.div 
+      <motion.div
         initial={{ opacity: 0, scale: 0.96 }}
         animate={{ opacity: 1, scale: 1 }}
         transition={{ duration: 0.5, delay: 0.1 }}
@@ -114,7 +125,7 @@ export default function ContactPage() {
           </div>
         ) : (
           <form onSubmit={handleSubmit} className="space-y-4 sm:space-y-6">
-            
+
             {status.type === "error" && (
               <div className="flex items-center gap-2.5 bg-red-500/10 border border-red-500/30 rounded-xl p-3.5 text-red-400 text-xs font-mono">
                 <AlertCircle className="w-4 h-4 shrink-0" />
@@ -122,24 +133,57 @@ export default function ContactPage() {
               </div>
             )}
 
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 sm:gap-6">
-              {/* Operator Name */}
-              <div className="space-y-1.5 sm:space-y-2">
-                <label className="text-[11px] sm:text-xs uppercase font-mono font-bold tracking-wider text-gray-300 flex items-center gap-2">
-                  <User className="w-3.5 h-3.5 text-neon-green shrink-0" /> Operator Name <span className="text-neon-green">*</span>
-                </label>
-                <input
-                  type="text"
-                  name="name"
-                  value={formData.name}
-                  onChange={handleChange}
-                  placeholder="Operator Chief"
-                  required
-                  disabled={status.type === "loading"}
-                  className="w-full bg-[#07080c]/90 border border-white/10 rounded-xl sm:rounded-2xl px-3.5 sm:px-4.5 py-3 text-xs sm:text-sm font-mono text-white placeholder-gray-500 focus:outline-none focus:border-neon-green focus:ring-1 focus:ring-neon-green shadow-inner transition-all duration-300 disabled:opacity-50"
-                />
-              </div>
+            {/* Operator Identity: First, Middle, Last Name */}
+            <div className="space-y-2">
+              <label className="text-[11px] sm:text-xs uppercase font-mono font-bold tracking-wider text-gray-300 flex items-center gap-2">
+                <User className="w-3.5 h-3.5 text-neon-green shrink-0" /> Operator Name <span className="text-neon-green">*</span>
+              </label>
 
+              <div className="grid grid-cols-1 sm:grid-cols-3 gap-2.5 sm:gap-3">
+                {/* First Name */}
+                <div>
+                  <input
+                    type="text"
+                    name="firstName"
+                    value={formData.firstName}
+                    onChange={handleChange}
+                    placeholder="First Name *"
+                    required
+                    disabled={status.type === "loading"}
+                    className="w-full bg-[#07080c]/90 border border-white/10 rounded-xl px-3.5 py-2.5 text-xs sm:text-sm font-mono text-white placeholder-gray-500 focus:outline-none focus:border-neon-green focus:ring-1 focus:ring-neon-green shadow-inner transition-all duration-300 disabled:opacity-50"
+                  />
+                </div>
+
+                {/* Middle Name */}
+                <div>
+                  <input
+                    type="text"
+                    name="middleName"
+                    value={formData.middleName}
+                    onChange={handleChange}
+                    placeholder="Middle Name (Opt)"
+                    disabled={status.type === "loading"}
+                    className="w-full bg-[#07080c]/90 border border-white/10 rounded-xl px-3.5 py-2.5 text-xs sm:text-sm font-mono text-white placeholder-gray-500 focus:outline-none focus:border-neon-green focus:ring-1 focus:ring-neon-green shadow-inner transition-all duration-300 disabled:opacity-50"
+                  />
+                </div>
+
+                {/* Last Name */}
+                <div>
+                  <input
+                    type="text"
+                    name="lastName"
+                    value={formData.lastName}
+                    onChange={handleChange}
+                    placeholder="Last Name *"
+                    required
+                    disabled={status.type === "loading"}
+                    className="w-full bg-[#07080c]/90 border border-white/10 rounded-xl px-3.5 py-2.5 text-xs sm:text-sm font-mono text-white placeholder-gray-500 focus:outline-none focus:border-neon-green focus:ring-1 focus:ring-neon-green shadow-inner transition-all duration-300 disabled:opacity-50"
+                  />
+                </div>
+              </div>
+            </div>
+
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 sm:gap-6">
               {/* System Email */}
               <div className="space-y-1.5 sm:space-y-2">
                 <label className="text-[11px] sm:text-xs uppercase font-mono font-bold tracking-wider text-gray-300 flex items-center gap-2">
@@ -156,22 +200,22 @@ export default function ContactPage() {
                   className="w-full bg-[#07080c]/90 border border-white/10 rounded-xl sm:rounded-2xl px-3.5 sm:px-4.5 py-3 text-xs sm:text-sm font-mono text-white placeholder-gray-500 focus:outline-none focus:border-neon-green focus:ring-1 focus:ring-neon-green shadow-inner transition-all duration-300 disabled:opacity-50"
                 />
               </div>
-            </div>
 
-            {/* Subject */}
-            <div className="space-y-1.5 sm:space-y-2">
-              <label className="text-[11px] sm:text-xs uppercase font-mono font-bold tracking-wider text-gray-300 flex items-center gap-2">
-                <Terminal className="w-3.5 h-3.5 text-neon-green shrink-0" /> Transmission Subject
-              </label>
-              <input
-                type="text"
-                name="subject"
-                value={formData.subject}
-                onChange={handleChange}
-                placeholder="[CRITICAL] GPU Thermal Spike / Custom Hook Spec"
-                disabled={status.type === "loading"}
-                className="w-full bg-[#07080c]/90 border border-white/10 rounded-xl sm:rounded-2xl px-3.5 sm:px-4.5 py-3 text-xs sm:text-sm font-mono text-white placeholder-gray-500 focus:outline-none focus:border-neon-green focus:ring-1 focus:ring-neon-green shadow-inner transition-all duration-300 disabled:opacity-50 truncate"
-              />
+              {/* Subject */}
+              <div className="space-y-1.5 sm:space-y-2">
+                <label className="text-[11px] sm:text-xs uppercase font-mono font-bold tracking-wider text-gray-300 flex items-center gap-2">
+                  <Terminal className="w-3.5 h-3.5 text-neon-green shrink-0" /> Transmission Subject
+                </label>
+                <input
+                  type="text"
+                  name="subject"
+                  value={formData.subject}
+                  onChange={handleChange}
+                  placeholder="[CRITICAL] GPU Thermal Spike / Spec"
+                  disabled={status.type === "loading"}
+                  className="w-full bg-[#07080c]/90 border border-white/10 rounded-xl sm:rounded-2xl px-3.5 sm:px-4.5 py-3 text-xs sm:text-sm font-mono text-white placeholder-gray-500 focus:outline-none focus:border-neon-green focus:ring-1 focus:ring-neon-green shadow-inner transition-all duration-300 disabled:opacity-50 truncate"
+                />
+              </div>
             </div>
 
             {/* Message Payload */}
