@@ -8,6 +8,14 @@
       "date": "2026-08-19",
       "title": "Fix OpenCV config loader missing configuration in PyInstaller backend packaging",
       "highlights": [
+        "Fix OpenCV config loader missing configuration in PyInstaller backend packaging"
+      ]
+    },
+    {
+      "version": "3.2.3",
+      "date": "2026-08-19",
+      "title": "Fix OpenCV config loader missing configuration in PyInstaller backend packaging",
+      "highlights": [
         "Dynamically collected OpenCV cv2 config.py runtime files, binaries, and RapidOCR data in PyInstaller spec",
         "Added robust multi-environment package directory discovery fallback"
       ]
@@ -444,16 +452,6 @@
         "Fixed BetterCam capture mode for Exclusive Fullscreen games",
         "Made AI Neural Backbone model picker completely responsive",
         "Improved error reporting when AI providers fail to initialize"
-      ]
-    },
-    {
-      "version": "2.7.9",
-      "date": "2026-07-31",
-      "title": "Free Provider Expansion & Cleanup",
-      "highlights": [
-        "Added Groq and OpenRouter 100% free AI providers",
-        "Removed Kimi and DeepSeek paid provider dependencies",
-        "Updated Auto Mode routing to prioritize free high-speed models"
       ]
     }
   ]

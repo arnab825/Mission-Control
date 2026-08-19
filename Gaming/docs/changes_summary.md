@@ -15,6 +15,14 @@ Comprehensive breakdown of major milestone releases, architectural upgrades, and
 ## 🌟 Version v3.2.3 (Latest) — Fix OpenCV config loader missing configuration in PyInstaller backend packaging
 
 ### 🛠️ Key Highlights
+1. **Fixes missing configuration in OpenCV config loader**
+2. **Improves PyInstaller backend packaging reliability**
+
+---
+
+## 📦 Version v3.2.3 — Fix OpenCV config loader missing configuration in PyInstaller backend packaging
+
+### 🛠️ Key Highlights
 1. **Dynamically collects OpenCV cv2 config.py runtime files and binaries.**
 2. **Added robust multi-environment package directory discovery fallback.**
 

@@ -4,6 +4,10 @@ This document contains a detailed history of all patches and updates for the AI 
 
 ### Patch: 2026-08-19 — v3.2.3: Fix OpenCV config loader missing configuration in PyInstaller backend packaging
 
+- Fix OpenCV config loader missing configuration in PyInstaller backend packaging
+
+### Patch: 2026-08-19 — v3.2.3: Fix OpenCV config loader missing configuration in PyInstaller backend packaging
+
 - Dynamically collected OpenCV cv2 config.py runtime files, binaries, and RapidOCR data in PyInstaller spec
 - Added robust multi-environment package directory discovery fallback
 
