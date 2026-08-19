@@ -82,7 +82,8 @@ graph TD
 
 | Version | Key Feature / Change Description |
 | :--- | :--- |
-| **v3.2.3 (Latest)** | **Fix OpenCV config loader missing configuration in PyInstaller backend packaging** — Improved PyInstaller backend packaging for OpenCV and RapidOCR components. |
+| **v3.2.3 (Latest)** | **Fix OpenCV config loader missing configuration in PyInstaller backend packaging** — Resolve OpenCV configuration loading issue in PyInstaller backend packaging for Mission Control. |
+| **v3.2.3** | **Fix OpenCV config loader missing configuration in PyInstaller backend packaging** — Improved PyInstaller backend packaging for OpenCV and RapidOCR components. |
 | **v3.2.2** | **AI Support Assistant, Community Benchmarks & Live Telemetry Reporting** — Implemented comprehensive multi-tier AI support chatbot system with conversational assistance and model failovers |
 | **v3.2.1** | **Library Scanner Sanitation & Steam Container Optimization** — Enhance the library scanner's accuracy and efficiency with improved steam container handling and automated game discovery. |
 | **v3.2.1** | **Library Scanner Sanitation & Steam Container Optimization** — Resolved Steam library container false-positives by filtering out steamapps directory entries |
