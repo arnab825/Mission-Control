@@ -12,7 +12,15 @@ Comprehensive breakdown of major milestone releases, architectural upgrades, and
 
 ---
 
-## 🌟 Version v3.2.2 (Latest) — AI Support Assistant, Community Benchmarks & Live Telemetry Reporting
+## 🌟 Version v3.2.3 (Latest) — Fix First-Launch Setup Loading & Backend Process Startup Loop
+
+### 🛠️ Key Highlights
+1. **Resolves cascading backend kill-restart loop during cold boot and first launch**
+2. **Improves Electron main process stability with concurrency mutex and graceful process management**
+
+---
+
+## 📦 Version v3.2.2 — AI Support Assistant, Community Benchmarks & Live Telemetry Reporting
 
 ### 🛠️ Key Highlights
 1. **Multi-tier AI Support Chat System with automatic model failover**

@@ -1,8 +1,20 @@
 {
-  "version": "3.2.2",
+  "version": "3.2.3",
   "release_date": "2026-08-19",
   "update_check_url": "https://raw.githubusercontent.com/arnab825/Mission-Control/main/Gaming/backend/version.json",
   "changelog": [
+    {
+      "version": "3.2.3",
+      "date": "2026-08-19",
+      "title": "Fix First-Launch Setup Loading & Backend Process Startup Loop",
+      "highlights": [
+        "Resolved cascading backend kill-restart loop during cold boot and first launch",
+        "Standardized WebSocket bridge host to 127.0.0.1 to avoid Windows dual-stack socket collisions",
+        "Added concurrency mutex and graceful process management in Electron main process",
+        "Enabled full stdout and stderr traceback forwarding to app.log in production",
+        "Added persistent local app data directory creation in NSIS installer"
+      ]
+    },
     {
       "version": "3.2.2",
       "date": "2026-08-19",
@@ -445,16 +457,6 @@
         "Added Groq and OpenRouter 100% free AI providers",
         "Removed Kimi and DeepSeek paid provider dependencies",
         "Updated Auto Mode routing to prioritize free high-speed models"
-      ]
-    },
-    {
-      "version": "2.7.9",
-      "date": "2026-07-31",
-      "title": "Free Provider Integration & Cleanups",
-      "highlights": [
-        "Added Groq and OpenRouter 100% free providers",
-        "Removed Kimi and DeepSeek paid providers",
-        "Fixed Gemini 404 error by updating to gemini-flash-latest"
       ]
     }
   ]
