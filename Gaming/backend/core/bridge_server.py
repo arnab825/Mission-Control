@@ -30,7 +30,7 @@ class BridgeServer:
     """
 
     def __init__(self, host=None, port=None, max_workers=4):
-        self.host = host or os.getenv("BRIDGE_HOST", "localhost")
+        self.host = host or os.getenv("BRIDGE_HOST", "127.0.0.1")
         raw_port = port if port is not None else os.getenv("BRIDGE_PORT", "8765")
         self.port = int(raw_port)
         self.clients = set()

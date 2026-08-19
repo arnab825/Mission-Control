@@ -1,7 +1,7 @@
 import { useState, useEffect, useCallback, useRef } from 'react';
 import type { TelemetryState } from '../types/telemetry';
 
-const bridgeHost = import.meta.env.VITE_BRIDGE_HOST ?? 'localhost';
+const bridgeHost = import.meta.env.VITE_BRIDGE_HOST ?? '127.0.0.1';
 const bridgePort = import.meta.env.VITE_BRIDGE_PORT ?? '8765';
 const defaultBridgeUrl = import.meta.env.VITE_BRIDGE_URL ?? `ws://${bridgeHost}:${bridgePort}`;
 
@@ -31,6 +31,7 @@ export const useBridge = (url: string = defaultBridgeUrl) => {
   const lastFlush = useRef<number>(0);
   const flushTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
   const lastMessageTime = useRef<number>(performance.now());
+  const lastRestartRequestTime = useRef<number>(0);
 
   const ws = useRef<WebSocket | null>(null);
   // Outbound queue — commands sent during reconnection are buffered here and
@@ -111,7 +112,11 @@ export const useBridge = (url: string = defaultBridgeUrl) => {
       setConnected(false);
       disconnectCount.current += 1;
       console.log(`Disconnected from Aero Bridge (retry ${disconnectCount.current})`);
-      if (disconnectCount.current >= 2 && (window as any).electronAPI?.restartBackend) {
+      const now = performance.now();
+      // Allow 6 retry attempts (~18 seconds) before assuming the backend is dead on cold start,
+      // and debounce restart requests to at most once every 15 seconds to prevent kill storms.
+      if (disconnectCount.current >= 6 && (now - lastRestartRequestTime.current > 15000) && (window as any).electronAPI?.restartBackend) {
+        lastRestartRequestTime.current = now;
         console.warn('Aero Bridge disconnected multiple times. Triggering backend restart signal...');
         (window as any).electronAPI.restartBackend();
       }

@@ -2,6 +2,14 @@
 
 This document contains a detailed history of all patches and updates for the AI Gaming Assistant.
 
+### Patch: 2026-08-19 — v3.2.3: Fix First-Launch Setup Loading & Backend Process Startup Loop
+
+- Resolved cascading backend kill-restart loop during cold boot and first launch
+- Standardized WebSocket bridge host to 127.0.0.1 to avoid Windows dual-stack socket collisions
+- Added concurrency mutex and graceful process management in Electron main process
+- Enabled full stdout and stderr traceback forwarding to app.log in production
+- Added persistent local app data directory creation in NSIS installer
+
 ### Patch: 2026-08-19 — v3.2.2: AI Support Assistant, Community Benchmarks & Live Telemetry Reporting
 
 - Implemented comprehensive multi-tier AI support chatbot system with conversational assistance and model failovers

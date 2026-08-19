@@ -177,6 +177,9 @@ let tray: Tray | null = null
 let isManualUpdateCheck = false;
 let updateCancellationToken: CancellationToken | null = null;
 let isAppQuitting = false;
+let isStartingBackend = false;
+let lastBackendStartTime = 0;
+let backendRestartTimer: NodeJS.Timeout | null = null;
 let backendRestartCount = 0;
 const MAX_BACKEND_RESTARTS = 5;
 
@@ -507,50 +510,83 @@ function configureElectronStoragePaths() {
 
 configureElectronStoragePaths()
 
-function startPythonBackend() {
-  const isDev = !app.isPackaged
+function startPythonBackend(forceRestart = false) {
+  if (isAppQuitting) return;
+
+  // Prevent concurrent start calls if backend is already booting
+  if (isStartingBackend && !forceRestart) {
+    console.log('[Electron] Backend startup already in progress. Skipping redundant request.');
+    return;
+  }
+
+  // If a restart timer was pending, cancel it since we are starting now
+  if (backendRestartTimer) {
+    clearTimeout(backendRestartTimer);
+    backendRestartTimer = null;
+  }
+
+  // If pythonProcess is already alive and running stably, don't kill it unless forceRestart is true
+  if (pythonProcess && pythonProcess.pid && !forceRestart) {
+    console.log(`[Electron] Backend process already running (PID: ${pythonProcess.pid}). Skipping spawn.`);
+    return;
+  }
+
+  isStartingBackend = true;
+  lastBackendStartTime = Date.now();
+
+  const isDev = !app.isPackaged;
   const scriptPath = isDev
     ? path.join(_dirname, '..', '..', 'backend', 'main.py')
-    : path.join((process as any).resourcesPath, 'backend', 'main.py')
+    : path.join((process as any).resourcesPath, 'backend', 'main.py');
 
-  const port = parseInt(process.env.VITE_BRIDGE_PORT || '8765', 10)
+  const port = parseInt(process.env.VITE_BRIDGE_PORT || '8765', 10);
 
-  // In packaged mode, kill any orphaned background backend process first to ensure we launch the updated binary
-  if (!isDev && process.platform === 'win32') {
+  // In packaged mode, only kill lingering background processes if explicitly forced
+  if (forceRestart && !isDev && process.platform === 'win32') {
     try {
-      execSync('taskkill /f /im MissionControlBackend.exe', { windowsHide: true, stdio: 'ignore' })
-      console.log('[Electron] Cleaned up lingering MissionControlBackend.exe background processes on startup.')
+      execSync('taskkill /f /im MissionControlBackend.exe', { windowsHide: true, stdio: 'ignore' });
+      console.log('[Electron] Cleaned up lingering MissionControlBackend.exe background processes on force restart.');
     } catch (_) {}
-    // Also kill the legacy binary name from pre-rename builds to prevent stale lock conflicts
     if (path.basename(process.execPath).toLowerCase() !== 'missioncontrol.exe') {
       try {
-        execSync('taskkill /f /im MissionControl.exe', { windowsHide: true, stdio: 'ignore' })
-        console.log('[Electron] Cleaned up lingering legacy MissionControl.exe processes on startup.')
+        execSync('taskkill /f /im MissionControl.exe', { windowsHide: true, stdio: 'ignore' });
+        console.log('[Electron] Cleaned up lingering legacy MissionControl.exe processes on force restart.');
       } catch (_) {}
     }
   }
 
   if (isDev) {
+    let probeFinished = false;
     const timeout = setTimeout(() => {
-      console.log(`[Electron] Backend probe timeout on port ${port}. Spawning new backend instance...`)
-      spawnBackend()
-    }, 2000)
+      if (!probeFinished) {
+        probeFinished = true;
+        console.log(`[Electron] Backend probe timeout on port ${port}. Spawning new backend instance...`);
+        spawnBackend();
+      }
+    }, 2000);
 
     // Probe port first in dev mode to check if external python backend is already running
     const socket = netSocket.createConnection({ port, host: '127.0.0.1' }, () => {
-      clearTimeout(timeout)
-      console.log(`[Electron] ✓ External Python backend detected on port ${port}. Skipping auto-spawn.`)
-      socket.end()
-    })
+      if (!probeFinished) {
+        probeFinished = true;
+        clearTimeout(timeout);
+        isStartingBackend = false;
+        console.log(`[Electron] ✓ External Python backend detected on port ${port}. Skipping auto-spawn.`);
+        socket.end();
+      }
+    });
 
     socket.on('error', () => {
-      clearTimeout(timeout)
-      console.log(`[Electron] Port ${port} is free. Starting Python backend: ${scriptPath}`)
-      spawnBackend()
-    })
+      if (!probeFinished) {
+        probeFinished = true;
+        clearTimeout(timeout);
+        console.log(`[Electron] Port ${port} is free. Starting Python backend: ${scriptPath}`);
+        spawnBackend();
+      }
+    });
   } else {
     // Packaged production mode: spawn bundled backend directly
-    spawnBackend()
+    spawnBackend();
   }
 
   function spawnBackend() {
@@ -559,9 +595,9 @@ function startPythonBackend() {
     // 2. Packaged  → use bundled MissionControlBackend.exe (no Python install needed)
     // 3. Fallback  → system python + main.py (developer machine testing)
 
-    let executablePath: string
-    let args: string[] = []
-    let cwdDir: string
+    let executablePath: string;
+    let args: string[] = [];
+    let cwdDir: string;
 
     if (isDev) {
       // Dev: prefer venv python
@@ -570,25 +606,25 @@ function startPythonBackend() {
         ? path.join(_dirname, '..', '..', 'backend', '.venv', 'Scripts', 'python.exe')
         : path.join(_dirname, '..', '..', 'backend', '.venv', 'bin', 'python');
       executablePath = fs.existsSync(venvPython) ? venvPython : (isWin ? 'python' : 'python3');
-      args = [scriptPath, '--dev', '--no-admin']
-      cwdDir = path.dirname(scriptPath)
-      console.log(`[Electron] Dev mode — python: ${executablePath}, cwd: ${cwdDir}`)
+      args = [scriptPath, '--dev', '--no-admin'];
+      cwdDir = path.dirname(scriptPath);
+      console.log(`[Electron] Dev mode — python: ${executablePath}, cwd: ${cwdDir}`);
     } else {
       // Primary: electron-builder extraResources → resources/MissionControlBackend/MissionControlBackend (.exe on Win)
       const exeName = process.platform === 'win32' ? 'MissionControlBackend.exe' : 'MissionControlBackend';
-      const bundledExeDirect = path.join((process as any).resourcesPath, 'MissionControlBackend', exeName)
-      const bundledExeBuilder = path.join((process as any).resourcesPath, 'backend', 'MissionControlBackend', exeName)
+      const bundledExeDirect = path.join((process as any).resourcesPath, 'MissionControlBackend', exeName);
+      const bundledExeBuilder = path.join((process as any).resourcesPath, 'backend', 'MissionControlBackend', exeName);
 
       if (fs.existsSync(bundledExeDirect)) {
-        executablePath = bundledExeDirect
-        args = ['--no-admin']
-        cwdDir = path.dirname(bundledExeDirect)
-        console.log(`[Electron] Using bundled backend binary (direct): ${bundledExeDirect}`)
+        executablePath = bundledExeDirect;
+        args = ['--no-admin'];
+        cwdDir = path.dirname(bundledExeDirect);
+        console.log(`[Electron] Using bundled backend binary (direct): ${bundledExeDirect}`);
       } else if (fs.existsSync(bundledExeBuilder)) {
-        executablePath = bundledExeBuilder
-        args = ['--no-admin']
-        cwdDir = path.dirname(bundledExeBuilder)
-        console.log(`[Electron] Using bundled backend exe (builder): ${bundledExeBuilder}`)
+        executablePath = bundledExeBuilder;
+        args = ['--no-admin'];
+        cwdDir = path.dirname(bundledExeBuilder);
+        console.log(`[Electron] Using bundled backend exe (builder): ${bundledExeBuilder}`);
       } else {
         // Fallback: raw python (developer machine without compiled binary)
         const isWin = process.platform === 'win32';
@@ -596,14 +632,14 @@ function startPythonBackend() {
           ? path.join(__dirname, '..', '..', 'backend', '.venv', 'Scripts', 'python.exe')
           : path.join(__dirname, '..', '..', 'backend', '.venv', 'bin', 'python');
         executablePath = fs.existsSync(localVenv) ? localVenv : (isWin ? 'python' : 'python3');
-        args = [scriptPath, '--no-admin']
-        cwdDir = path.dirname(scriptPath)
-        console.log(`[Electron] Fallback — python: ${executablePath}`)
+        args = [scriptPath, '--no-admin'];
+        cwdDir = path.dirname(scriptPath);
+        console.log(`[Electron] Fallback — python: ${executablePath}`);
       }
 
       if (process.platform !== 'win32' && fs.existsSync(executablePath)) {
         try {
-          fs.chmodSync(executablePath, '755')
+          fs.chmodSync(executablePath, '755');
         } catch (_) {}
       }
     }
@@ -611,56 +647,76 @@ function startPythonBackend() {
     if (pythonProcess) {
       try {
         if (process.platform === 'win32' && pythonProcess.pid) {
-          execSync(`taskkill /pid ${pythonProcess.pid} /f /t`, { windowsHide: true })
+          execSync(`taskkill /pid ${pythonProcess.pid} /f /t`, { windowsHide: true, stdio: 'ignore' });
         } else {
-          pythonProcess.kill()
+          pythonProcess.kill();
         }
       } catch (_) {}
-      pythonProcess = null
+      pythonProcess = null;
     }
 
     // Spawn the backend – explicit cwd ensures working directory is valid even after NSIS installer updates
-    pythonProcess = spawn(executablePath, args, {
-      cwd: cwdDir,
-      stdio: 'pipe',
-      windowsHide: true,
-      detached: false,
-      env: { ...process.env, PYTHONUNBUFFERED: '1', PYTHONDONTWRITEBYTECODE: '1' }
-    })
+    try {
+      pythonProcess = spawn(executablePath, args, {
+        cwd: cwdDir,
+        stdio: 'pipe',
+        windowsHide: true,
+        detached: false,
+        env: { ...process.env, PYTHONUNBUFFERED: '1', PYTHONDONTWRITEBYTECODE: '1' }
+      });
+    } catch (spawnErr) {
+      isStartingBackend = false;
+      console.error('[Electron] Fatal error spawning backend process:', spawnErr);
+      return;
+    }
 
-    // Reset restart counter after 5s of stable execution
+    isStartingBackend = false;
+
+    // Reset restart counter after 6s of stable execution
     const stableTimer = setTimeout(() => {
       backendRestartCount = 0;
-    }, 5000);
+      console.log('[Electron] Python backend reached stable execution.');
+    }, 6000);
 
-    // Drain the pipes so the buffer never fills up and stalls the process.
-    // In dev we forward to Electron's own console; in production we discard.
+    // Forward stdout and stderr to logging in both dev and production so tracebacks appear in app.log
     pythonProcess.stdout?.on('data', (data: Buffer) => {
-      if (isDev) process.stdout.write(`[Backend] ${data}`)
-    })
+      const text = data.toString().trimEnd();
+      if (text) {
+        console.log(`[Backend stdout] ${text}`);
+      }
+    });
     pythonProcess.stderr?.on('data', (data: Buffer) => {
-      if (isDev) process.stderr.write(`[Backend] ${data}`)
-    })
+      const text = data.toString().trimEnd();
+      if (text) {
+        console.error(`[Backend stderr] ${text}`);
+      }
+    });
 
     pythonProcess.on('error', (err) => {
+      isStartingBackend = false;
       clearTimeout(stableTimer);
-      console.error('[Electron] Failed to start Python backend:', err)
-    })
+      console.error('[Electron] Failed to start Python backend:', err);
+    });
 
     pythonProcess.on('exit', (code) => {
       clearTimeout(stableTimer);
-      console.log(`[Electron] Python backend exited with code ${code}`)
-      pythonProcess = null
+      isStartingBackend = false;
+      console.log(`[Electron] Python backend exited with code ${code}`);
+      pythonProcess = null;
+
       if (!isAppQuitting && backendRestartCount < MAX_BACKEND_RESTARTS) {
-        backendRestartCount++
-        console.warn(`[Electron] Backend exited unexpectedly (code ${code}). Attempting auto-restart (${backendRestartCount}/${MAX_BACKEND_RESTARTS}) in 1.5s...`)
-        setTimeout(() => {
+        backendRestartCount++;
+        const backoffMs = Math.min(2000 * backendRestartCount, 10000);
+        console.warn(`[Electron] Backend exited unexpectedly (code ${code}). Scheduling auto-restart (${backendRestartCount}/${MAX_BACKEND_RESTARTS}) in ${backoffMs}ms...`);
+        if (backendRestartTimer) clearTimeout(backendRestartTimer);
+        backendRestartTimer = setTimeout(() => {
+          backendRestartTimer = null;
           if (!isAppQuitting) {
-            startPythonBackend()
+            startPythonBackend(false);
           }
-        }, 1500)
+        }, backoffMs);
       }
-    })
+    });
   }
 }
 
@@ -2467,9 +2523,15 @@ function setupAutoUpdater() {
   });
 
   ipcMain.on('restart-backend', () => {
+    const timeSinceLastStart = Date.now() - lastBackendStartTime;
+    // Don't kill backend if it was started less than 8 seconds ago (allow cold boot to complete)
+    if (timeSinceLastStart < 8000 && (isStartingBackend || pythonProcess)) {
+      console.log(`[Electron] IPC restart-backend ignored — backend was started ${timeSinceLastStart}ms ago and is still initializing.`);
+      return;
+    }
     console.log('[Electron] IPC restart-backend requested by renderer.');
     backendRestartCount = 0;
-    startPythonBackend();
+    startPythonBackend(true);
   });
 
   // Sent by fireUpdateToast click handler to open the UpdaterModal in React

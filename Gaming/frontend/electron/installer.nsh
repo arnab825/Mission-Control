@@ -40,12 +40,12 @@
   WriteRegStr HKLM "Software\Classes\AppUserModelId\com.missioncontrol.app" "DisplayName" "Mission Control"
   WriteRegStr HKLM "Software\Classes\AppUserModelId\com.missioncontrol.app" "IconUri" "$INSTDIR\${APP_EXECUTABLE_FILENAME}"
 
-  ; Create persistent user config directory (Task 4) — this directory is intentionally
-  ; OUTSIDE $INSTDIR so it survives application upgrades.  The uninstaller does NOT
-  ; remove this directory so user settings are preserved across reinstalls.
-  ; Python's config_loader.py writes to %APPDATA%\MissionControl\config\settings.yaml.
+  ; Create persistent user config & data directories
+  ; OUTSIDE $INSTDIR so they survive application upgrades.
   CreateDirectory "$APPDATA\MissionControl"
   CreateDirectory "$APPDATA\MissionControl\config"
+  CreateDirectory "$LOCALAPPDATA\MissionControl"
+  CreateDirectory "$LOCALAPPDATA\MissionControl\Electron"
 
   DetailPrint "Adding to system PATH..."
   nsExec::ExecToStack `"$SYSDIR\WindowsPowerShell\v1.0\powershell.exe" -NonInteractive -NoProfile -Command "$$p = [Environment]::GetEnvironmentVariable('Path', 'Machine'); if (($$p -split ';') -notcontains '$INSTDIR') { [Environment]::SetEnvironmentVariable('Path', ($$p + ';$INSTDIR').Replace(';;', ';'), 'Machine') }"`

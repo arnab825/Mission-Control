@@ -39,6 +39,50 @@ _BACKEND_DIR = os.path.dirname(_CORE_DIR)
 # Bump this when a breaking config schema change is made.
 CURRENT_SCHEMA_VERSION = 1
 
+DEFAULT_CONFIG: Dict[str, Any] = {
+    "schema_version": CURRENT_SCHEMA_VERSION,
+    "ai_agent": {
+        "personality": "friendly",
+        "speech_provider": "google",
+    },
+    "headless": True,
+    "overlay": {
+        "x": 212,
+        "y": 184,
+        "layout_style": "horizontal",
+        "lock_position": False,
+        "layout": "top-left",
+        "agent_x": 4248,
+        "agent_y": 278,
+        "show_search_hud": True,
+        "font_size": 13,
+        "auto_spawn": True,
+        "skip_admin_prompt": False,
+        "agent_compact": False,
+    },
+    "privacy": {
+        "enabled": True,
+        "uuid_lock": True,
+        "secure_sandbox": True,
+        "key_rotation": True,
+    },
+    "game_mode": "hybrid",
+    "nvidia": {
+        "preset": "auto",
+        "gaming_features": {
+            "dlss": False,
+            "frame_gen": False,
+            "ray_tracing": False,
+            "path_tracing": False,
+            "reflex": False,
+            "hdr": False,
+            "dlss_version": "DLSS 4",
+        },
+        "low_latency_mode": True,
+        "power_management_mode": "adaptive",
+    },
+}
+
 
 # ---------------------------------------------------------------------------
 # Persistent storage path helpers
@@ -128,6 +172,20 @@ def load_config(path: str | None = None) -> Dict[str, Any]:
             config = {}
     else:
         config = {}
+
+    # Deep-merge loaded config with DEFAULT_CONFIG so missing sections are safely filled
+    import copy
+    merged = copy.deepcopy(DEFAULT_CONFIG)
+    for k, v in config.items():
+        if isinstance(v, dict) and isinstance(merged.get(k), dict):
+            merged[k].update(v)
+        else:
+            merged[k] = v
+    config = merged
+
+    # If persistent settings did not exist, save the default config immediately
+    if not path and not os.path.exists(persistent):
+        save_config(config, persistent)
 
     # Apply schema migration
     config = migrate_config(config)
