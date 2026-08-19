@@ -20,8 +20,8 @@ function getDynamicVersionData() {
         const raw = fs.readFileSync(p, "utf-8");
         const data = JSON.parse(raw);
         return {
-          version: data.version || "3.2.1",
-          releaseDate: data.release_date || "2026-08-16",
+          version: data.version || "3.2.2",
+          releaseDate: data.release_date || "2026-08-19",
           changelog: Array.isArray(data.changelog) ? data.changelog : []
         };
       } catch (e) {
@@ -31,17 +31,19 @@ function getDynamicVersionData() {
   }
 
   return {
-    version: "3.2.1",
-    releaseDate: "2026-08-16",
+    version: "3.2.2",
+    releaseDate: "2026-08-19",
     changelog: [
       {
-        version: "3.2.1",
-        date: "2026-08-16",
-        title: "Library Scanner Sanitation & Steam Container Optimization",
+        version: "3.2.2",
+        date: "2026-08-19",
+        title: "AI Support Assistant, Community Benchmarks & Live Telemetry Reporting",
         highlights: [
-          "Resolved Steam library container false-positives",
-          "Automated steamapps/common recursive discovery",
-          "Enhanced junk keywords and container validation in library scanner"
+          "Implemented comprehensive multi-tier AI support chatbot system with conversational assistance and model failovers",
+          "Connected live community game ratings, rig reviews, and media uploads to MongoDB persistence layer",
+          "Added interactive documentation search, categorized guides, and API key management client",
+          "Introduced hardware telemetry reporting modal with automated system spec detection",
+          "Refined games tested benchmark profiles, DLSS 4/DLAA upscaler badges, and newsletter subscription pipelines"
         ]
       }
     ]
@@ -459,7 +461,7 @@ ${blogList}
         q.includes("rpm") ||
         q.includes("install")
       ) {
-        replyText = `### 📥 Mission Control App Downloads (v3.2.1)
+        replyText = `### 📥 Mission Control App Downloads (v3.2.2)
 Download the latest binaries on our **[Downloads](/#download)** page:
 
 **🪟 Windows Packages**:

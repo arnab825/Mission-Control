@@ -12,7 +12,18 @@ Comprehensive breakdown of major milestone releases, architectural upgrades, and
 
 ---
 
-## 🌟 Version v3.2.1 (Latest) — Library Scanner Sanitation & Steam Container Optimization
+## 🌟 Version v3.2.2 (Latest) — AI Support Assistant, Community Benchmarks & Live Telemetry Reporting
+
+### 🛠️ Key Highlights
+1. **Multi-tier AI Support Chat System with automatic model failover**
+2. **Community Game Ratings, Rig Reviews, and Media Uploads via MongoDB**
+3. **Interactive Documentation Search, Category Navigation & API Key Management**
+4. **Hardware Telemetry Reporting Modal with Auto-Detected Specs**
+5. **Benchmark Profiles & DLSS 4 / DLAA Upscaler Badges Refinements**
+
+---
+
+## 📦 Version v3.2.1 — Library Scanner Sanitation & Steam Container Optimization
 
 ### 🛠️ Key Highlights
 1. **Resolve steam library container false-positives**
