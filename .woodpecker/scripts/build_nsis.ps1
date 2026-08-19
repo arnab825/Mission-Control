@@ -8,5 +8,17 @@ if (-not $prepackaged) {
 }
 Write-Host "Using prepackaged folder: $($prepackaged.FullName)"
 
+# Explicitly synchronize the full backend distribution into the prepackaged resources directory
+$backendDist = [System.IO.Path]::GetFullPath((Join-Path $PSScriptRoot "../../Gaming/backend/dist/MissionControlBackend"))
+$targetBackend = Join-Path $prepackaged.FullName "resources/MissionControlBackend"
+if (Test-Path $backendDist) {
+  Write-Host "Synchronizing full backend distribution to $targetBackend..."
+  New-Item -ItemType Directory -Force -Path $targetBackend | Out-Null
+  robocopy $backendDist $targetBackend /E /NFL /NDL /NJH /nc /ns /np | Out-Null
+  if ($LASTEXITCODE -ge 8) {
+    Write-Warning "robocopy backend to prepackaged returned exit code $LASTEXITCODE"
+  }
+}
+
 Set-Location Gaming/frontend
 npx electron-builder --prepackaged "$($prepackaged.FullName)" --win nsis msi zip --publish never

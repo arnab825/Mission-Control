@@ -97,6 +97,21 @@ else:
 
 datas += rapidocr_datas
 
+# Explicitly collect cv2 data and dynamic config files (config.py, config-3.py) to prevent OpenCV runtime loader recursion/missing config errors
+cv2_src = os.path.join(site_packages, 'cv2')
+cv2_datas = []
+if os.path.isdir(cv2_src):
+    for root, dirs, files in os.walk(cv2_src):
+        if '__pycache__' in root:
+            continue
+        for f in files:
+            full_path = os.path.join(root, f)
+            rel_path = os.path.relpath(root, cv2_src)
+            dest_dir = os.path.join('cv2', rel_path) if rel_path != '.' else 'cv2'
+            cv2_datas.append((full_path, dest_dir))
+    print(f"INFO: Collected {len(cv2_datas)} cv2 data/config files from {cv2_src}")
+datas += cv2_datas
+
 if sys.platform == 'win32':
     platform_hiddenimports = [
         'pynput.keyboard._win32',
