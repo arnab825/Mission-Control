@@ -49,68 +49,87 @@ for d in ['queries', 'vision', 'ai_brain', 'core', 'control',
         dest = d if src.is_dir() else '.'
         datas.append((d, dest))
 
-# Resolve rapidocr_onnxruntime files without importing (prevents build-time DLL load failures on CI runners)
-import glob
-if sys.platform == 'win32':
-    site_packages = os.path.join(SPECPATH, '.venv', 'Lib', 'site-packages')
-else:
-    candidates = glob.glob(os.path.join(SPECPATH, '.venv', 'lib', 'python3.*', 'site-packages'))
-    site_packages = candidates[0] if candidates else os.path.join(SPECPATH, '.venv', 'lib', 'site-packages')
+from PyInstaller.utils.hooks import collect_all, collect_data_files, collect_submodules
 
-rapidocr_datas = []
-rapidocr_imports = []
-
-rapid_src = os.path.join(site_packages, 'rapidocr_onnxruntime')
-if os.path.isdir(rapid_src):
-    # Collect yaml/onnx data files manually
-    for root, dirs, files in os.walk(rapid_src):
-        for f in files:
-            if f.endswith(('.yaml', '.onnx')):
-                full_path = os.path.join(root, f)
-                rel_path = os.path.relpath(root, rapid_src)
-                dest_dir = os.path.join('rapidocr_onnxruntime', rel_path) if rel_path != '.' else 'rapidocr_onnxruntime'
-                rapidocr_datas.append((full_path, dest_dir))
-    
-    # Collect Python submodules manually for hiddenimports
-    for root, dirs, files in os.walk(rapid_src):
-        for f in files:
-            if f.endswith('.py') and not f.startswith('__'):
-                rel_file = os.path.relpath(os.path.join(root, f), rapid_src)
-                mod_name = 'rapidocr_onnxruntime.' + os.path.splitext(rel_file)[0].replace(os.path.sep, '.')
-                rapidocr_imports.append(mod_name)
-    rapidocr_imports.append('rapidocr_onnxruntime')
-    print(f"INFO: Collected {len(rapidocr_datas)} data files and {len(rapidocr_imports)} submodules from {rapid_src}")
-else:
+def find_package_dir(pkg_name):
+    """Dynamically resolve the installation directory for a python package across any environment layout."""
     try:
-        from PyInstaller.utils.hooks import collect_data_files, collect_submodules
-        rapidocr_datas = collect_data_files('rapidocr_onnxruntime')
-        rapidocr_imports = collect_submodules('rapidocr_onnxruntime')
-        print("INFO: Collected rapidocr_onnxruntime via standard PyInstaller hooks")
-    except Exception as e:
-        import traceback
-        print("=" * 60)
-        print(f"ERROR: Failed to collect rapidocr_onnxruntime: {e}")
-        traceback.print_exc()
-        print("=" * 60)
-        rapidocr_datas = []
-        rapidocr_imports = []
+        import importlib.util
+        spec = importlib.util.find_spec(pkg_name)
+        if spec and spec.submodule_search_locations:
+            for loc in spec.submodule_search_locations:
+                if os.path.isdir(loc):
+                    return loc
+    except Exception:
+        pass
+    
+    import sysconfig
+    candidate_dirs = [
+        sysconfig.get_paths().get('purelib', ''),
+        sysconfig.get_paths().get('platlib', ''),
+        os.path.join(SPECPATH, '.venv', 'Lib', 'site-packages'),
+        os.path.join(SPECPATH, '.venv', 'lib', 'site-packages'),
+        os.path.join(SPECPATH, '..', '.venv', 'Lib', 'site-packages'),
+        os.path.join(SPECPATH, '..', '.venv', 'lib', 'site-packages'),
+    ]
+    for sp in candidate_dirs:
+        if sp and os.path.isdir(os.path.join(sp, pkg_name)):
+            return os.path.join(sp, pkg_name)
+    return None
 
-datas += rapidocr_datas
+# 1. Resolve rapidocr_onnxruntime
+rapidocr_datas = []
+rapidocr_binaries = []
+rapidocr_imports = []
+try:
+    rapidocr_datas, rapidocr_binaries, rapidocr_imports = collect_all('rapidocr_onnxruntime')
+    print(f"INFO: Collected rapidocr_onnxruntime via collect_all: {len(rapidocr_datas)} datas, {len(rapidocr_imports)} submodules")
+except Exception as e:
+    print(f"WARNING: collect_all('rapidocr_onnxruntime') failed: {e}")
 
-# Explicitly collect cv2 data and dynamic config files (config.py, config-3.py) to prevent OpenCV runtime loader recursion/missing config errors
-cv2_src = os.path.join(site_packages, 'cv2')
+if not rapidocr_datas:
+    rapid_src = find_package_dir('rapidocr_onnxruntime')
+    if rapid_src and os.path.isdir(rapid_src):
+        for root, dirs, files in os.walk(rapid_src):
+            for f in files:
+                if f.endswith(('.yaml', '.onnx')):
+                    full_path = os.path.join(root, f)
+                    rel_path = os.path.relpath(root, rapid_src)
+                    dest_dir = os.path.join('rapidocr_onnxruntime', rel_path) if rel_path != '.' else 'rapidocr_onnxruntime'
+                    rapidocr_datas.append((full_path, dest_dir))
+                elif f.endswith('.py') and not f.startswith('__'):
+                    rel_file = os.path.relpath(os.path.join(root, f), rapid_src)
+                    mod_name = 'rapidocr_onnxruntime.' + os.path.splitext(rel_file)[0].replace(os.path.sep, '.')
+                    rapidocr_imports.append(mod_name)
+        rapidocr_imports.append('rapidocr_onnxruntime')
+        print(f"INFO: Collected {len(rapidocr_datas)} rapidocr data files via fallback search from {rapid_src}")
+
+# 2. Resolve cv2 (OpenCV - including config.py, config-3.py, binaries, data)
 cv2_datas = []
-if os.path.isdir(cv2_src):
-    for root, dirs, files in os.walk(cv2_src):
-        if '__pycache__' in root:
-            continue
-        for f in files:
-            full_path = os.path.join(root, f)
-            rel_path = os.path.relpath(root, cv2_src)
-            dest_dir = os.path.join('cv2', rel_path) if rel_path != '.' else 'cv2'
-            cv2_datas.append((full_path, dest_dir))
-    print(f"INFO: Collected {len(cv2_datas)} cv2 data/config files from {cv2_src}")
-datas += cv2_datas
+cv2_binaries = []
+cv2_imports = []
+try:
+    cv2_datas, cv2_binaries, cv2_imports = collect_all('cv2')
+    print(f"INFO: Collected cv2 via collect_all: {len(cv2_datas)} datas, {len(cv2_binaries)} binaries, {len(cv2_imports)} submodules")
+except Exception as e:
+    print(f"WARNING: collect_all('cv2') failed: {e}")
+
+# If PyInstaller hook collected 0 cv2 data files or missed config files, run manual collection
+if not any('config' in str(d[0]) for d in cv2_datas):
+    cv2_src = find_package_dir('cv2')
+    if cv2_src and os.path.isdir(cv2_src):
+        for root, dirs, files in os.walk(cv2_src):
+            if '__pycache__' in root:
+                continue
+            for f in files:
+                full_path = os.path.join(root, f)
+                rel_path = os.path.relpath(root, cv2_src)
+                dest_dir = os.path.join('cv2', rel_path) if rel_path != '.' else 'cv2'
+                cv2_datas.append((full_path, dest_dir))
+        print(f"INFO: Collected {len(cv2_datas)} cv2 data/config files via fallback search from {cv2_src}")
+
+datas += rapidocr_datas + cv2_datas
+extra_binaries = rapidocr_binaries + cv2_binaries
 
 if sys.platform == 'win32':
     platform_hiddenimports = [
@@ -137,7 +156,7 @@ else:
 a = Analysis(
     ['main.py'],
     pathex=['.'],
-    binaries=[],
+    binaries=extra_binaries,
     datas=datas,
     hiddenimports=[
         # ── websockets / asyncio ────────────────────────────────────────────
@@ -147,7 +166,7 @@ a = Analysis(
         'websockets.legacy.client',
         # ── PIL ─────────────────────────────────────────────────────────────
         'PIL._tkinter_finder',
-    ] + platform_hiddenimports + mem0_imports + rapidocr_imports,
+    ] + platform_hiddenimports + mem0_imports + rapidocr_imports + cv2_imports,
     hookspath=[],
     hooksconfig={},
     runtime_hooks=[],
