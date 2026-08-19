@@ -2,6 +2,14 @@
 
 This document contains a detailed history of all patches and updates for the AI Gaming Assistant.
 
+### Patch: 2026-08-19 — v3.2.2: AI Support Assistant, Community Benchmarks & Live Telemetry Reporting
+
+- Implemented comprehensive multi-tier AI support chatbot system with conversational assistance and model failovers
+- Connected live community game ratings, rig reviews, and media uploads to MongoDB persistence layer
+- Added interactive documentation search, categorized guides, and API key management client
+- Introduced hardware telemetry reporting modal with automated system spec detection
+- Refined games tested benchmark profiles, DLSS 4/DLAA upscaler badges, and newsletter subscription pipelines
+
 ### Patch: 2026-08-16 — v3.2.1: Library Scanner Sanitation & Steam Container Optimization
 
 - Resolved Steam library container false-positives by filtering out steamapps directory entries

@@ -34,9 +34,9 @@ if (-not $env:GITHUB_TOKEN) {
   )
   foreach ($file in $envFiles) {
     if (Test-Path $file) {
-      $match = Get-Content $file | Select-String -Pattern '^GITHUB_TOKEN=(.*)$'
+      $match = Get-Content $file | Select-String -Pattern '^(?:GITHUB_TOKEN|GH_TOKEN)=(.*)$'
       if ($match) {
-        $env:GITHUB_TOKEN = $match.Matches.Groups[1].Value.Trim()
+        $env:GITHUB_TOKEN = $match.Matches[0].Groups[1].Value.Trim()
         Write-Host "Auto-loaded GITHUB_TOKEN from $file" -ForegroundColor Cyan
         break
       }

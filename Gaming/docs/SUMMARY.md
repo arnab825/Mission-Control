@@ -82,7 +82,8 @@ graph TD
 
 | Version | Key Feature / Change Description |
 | :--- | :--- |
-| **v3.2.1 (Latest)** | **Library Scanner Sanitation & Steam Container Optimization** — Enhance the library scanner's accuracy and efficiency with improved steam container handling and automated game discovery. |
+| **v3.2.2 (Latest)** | **AI Support Assistant, Community Benchmarks & Live Telemetry Reporting** — Implemented comprehensive multi-tier AI support chatbot system with conversational assistance and model failovers |
+| **v3.2.1** | **Library Scanner Sanitation & Steam Container Optimization** — Enhance the library scanner's accuracy and efficiency with improved steam container handling and automated game discovery. |
 | **v3.2.1** | **Library Scanner Sanitation & Steam Container Optimization** — Resolved Steam library container false-positives by filtering out steamapps directory entries |
 | **v3.2.0** | **Dynamic Game Root Resolution & Subfolder Optimization** — v3.2.0 enhances game management with dynamic root resolution, subfolder optimization, and improved executable analysis. |
 | **v3.1.9** | **Universal Game Scanner & Dynamic Binary Title Resolution** — Enhance game title extraction and management for improved user experience. |
