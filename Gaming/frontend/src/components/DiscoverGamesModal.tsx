@@ -39,6 +39,7 @@ interface DiscoverItem {
 
 interface DiscoverGamesModalProps {
   onClose: () => void;
+  onGameAdded?: () => void;
 }
 
 const LAUNCHER_STYLES: Record<string, { bg: string; text: string; border: string }> = {
