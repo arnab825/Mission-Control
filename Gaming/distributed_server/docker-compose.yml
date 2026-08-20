@@ -1,5 +1,3 @@
-version: '3.8'
-
 services:
   distributed_library_server:
     build: .
