@@ -394,10 +394,10 @@ export default function Navbar() {
               <a
                 href={os === "linux" ? LINUX_INSTALLER_URL : (os === "windows" ? WINDOWS_INSTALLER_URL : AUTO_DOWNLOAD_URL)}
                 suppressHydrationWarning
-                className="relative inline-flex items-center justify-center px-4 py-2.5 font-mono text-xs font-black tracking-wider uppercase border border-neon-green/50 text-neon-green rounded-xl bg-neon-green/10 hover:bg-neon-green hover:text-obsidian hover:shadow-[0_0_25px_rgba(118, 185, 0,0.6)] shadow-[0_0_10px_rgba(118, 185, 0,0.2)] transition-all duration-300 gap-2 whitespace-nowrap shrink-0"
+                className="relative inline-flex items-center justify-center px-4.5 py-2.5 font-mono text-xs font-black tracking-wider uppercase btn-cyber-primary rounded-xl transition-all duration-300 gap-2 whitespace-nowrap shrink-0 cursor-pointer shadow-[0_0_20px_rgba(118,185,0,0.35)]"
               >
                 <Download className="w-4 h-4 shrink-0" />
-                <span>Download</span>
+                <span>DOWNLOAD</span>
               </a>
             )}
           </div>
@@ -573,10 +573,10 @@ export default function Navbar() {
                     href={os === "linux" ? LINUX_INSTALLER_URL : (os === "windows" ? WINDOWS_INSTALLER_URL : AUTO_DOWNLOAD_URL)}
                     suppressHydrationWarning
                     onClick={() => setIsOpen(false)}
-                    className="w-full text-center py-4 rounded-2xl bg-neon-green text-obsidian font-black text-sm uppercase tracking-wider hover:bg-white transition-all duration-300 flex items-center justify-center gap-2.5 shadow-[0_0_25px_rgba(118, 185, 0,0.4)]"
+                    className="w-full text-center py-3.5 sm:py-4 rounded-xl font-black text-sm uppercase tracking-wider btn-cyber-primary transition-all duration-300 flex items-center justify-center gap-2.5 shadow-[0_0_25px_rgba(118,185,0,0.4)] cursor-pointer"
                   >
                     <Download className="w-5 h-5 shrink-0" />
-                    <span>Download</span>
+                    <span>DOWNLOAD MISSION CONTROL</span>
                   </a>
                 )}
               </div>
