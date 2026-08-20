@@ -2,6 +2,12 @@
 
 This document contains a detailed history of all patches and updates for the AI Gaming Assistant.
 
+### Patch: 2026-08-20 — v3.2.4: OpenCV Config Loader & PyInstaller Backend Fixes
+
+- Resolved OpenCV cv2 config loader missing module errors in PyInstaller backend packaging
+- Dynamic multi-environment package directory discovery fallback for rapidocr and cv2
+- Verified clean frontend and website production builds
+
 ### Patch: 2026-08-19 — v3.2.3: Fix OpenCV config loader missing configuration in PyInstaller backend packaging
 
 - Fix OpenCV config loader missing configuration in PyInstaller backend packaging
