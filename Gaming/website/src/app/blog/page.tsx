@@ -17,6 +17,9 @@ const CATEGORY_CONFIG: Record<string, { color: string; activeBg: string; shadow:
 
 const GAMING_CATEGORIES = ["Game News", "GPU News", "Game Revisit", "Hardware Deep-Dive"] as const;
 
+export const dynamic = "force-dynamic";
+export const revalidate = 0;
+
 export default async function BlogListing({
   searchParams,
 }: {

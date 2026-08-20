@@ -15,9 +15,12 @@ export async function POST(request: NextRequest) {
     }
   }
 
-  const apiKey = process.env.NVIDIA_API_KEY;
-  if (!apiKey) {
-    return NextResponse.json({ error: "NVIDIA_API_KEY not configured" }, { status: 500 });
+  const apiKey = process.env.NVIDIA_API_KEY || "";
+  const geminiKey = process.env.GEMINI_API_KEY || process.env.GOOGLE_API_KEY || "";
+  const hfToken = process.env.HF_TOKEN || "";
+
+  if (!apiKey && !geminiKey && !hfToken) {
+    return NextResponse.json({ error: "No LLM API keys configured" }, { status: 500 });
   }
 
   const { searchParams } = new URL(request.url);
