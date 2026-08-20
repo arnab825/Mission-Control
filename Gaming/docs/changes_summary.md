@@ -12,11 +12,27 @@ Comprehensive breakdown of major milestone releases, architectural upgrades, and
 
 ---
 
-## 🌟 Version v3.2.3 (Latest) — Fix First-Launch Setup Loading & Backend Process Startup Loop
+## 🌟 Version v3.2.4 (Latest) — OpenCV Config Loader & PyInstaller Backend Fixes
+
+### 🛠️ Key Highlights
+1. **Resolved OpenCV cv2 config loader missing module errors**
+2. **Added dynamic multi-environment package directory discovery for rapidocr and cv2**
+
+---
+
+## 📦 Version v3.2.3 — Fix First-Launch Setup Loading & Backend Process Startup Loop
 
 ### 🛠️ Key Highlights
 1. **Resolves cascading backend kill-restart loop during cold boot and first launch**
 2. **Improves Electron main process stability with concurrency mutex and graceful process management**
+
+---
+
+## 📦 Version v3.2.3 — Fix OpenCV config loader missing configuration in PyInstaller backend packaging
+
+### 🛠️ Key Highlights
+1. **Dynamically collects OpenCV cv2 config.py runtime files and binaries.**
+2. **Added robust multi-environment package directory discovery fallback.**
 
 ---
 
@@ -169,33 +185,10 @@ graph TD
 
 ## 👁️ Version v3.0.0 — Zero-Waste TensorRT Vision Engine
 
-<<<<<<< HEAD
 ### 🛠️ Key Highlights
 1. **Pure TensorRT 10.x Acceleration**: High-speed YOLOv8 object and HUD detection running in under 5ms with **0 MB PyTorch VRAM overhead**.
 2. **DXGI Desktop Duplication (`dxcam`)**: Captures 60–120+ FPS directly from the GPU framebuffer without CPU-side pixel copying.
 3. **Glassmorphic In-Game HUD Overlay**: Ultra-lightweight transparent overlay displaying real-time FPS, thermals, and AI tactical cards over active DirectX/Vulkan games.
-=======
-### 🛠️ Key Features Added/Modified
-1. **Fixed UI permanently locking up if an active session is deleted**
-2. **Fixed UI freezing indefinitely when an AI API endpoint is unreachable or fails**
-
-### 🧩 Technical Decisions & Architecture
-* In this release, we prioritized stability and reliability by implementing robust error handling mechanisms to prevent UI lockups and indefinite freezes. This involved revising the session deletion logic and enhancing API endpoint failure detection. These changes ensure a seamless user experience and maintain the overall system integrity.
-
-### 📊 System Architecture & Flow
-```mermaid
-graph TD
-  A[Client] --> B[Server]
-  B --> C[API Endpoint]
-  C --> D[Error Handling Mechanism]
-```
-
-### 📋 File Changes
-| File | Status | Description |
-|---|---|---|
-| `ui.ts` | **Modified** | Revised session deletion logic to prevent UI lockups |
-| `api.ts` | **Modified** | Enhanced API endpoint failure detection and error handling |
-| `session.ts` | **Modified** | Improved session management to prevent indefinite freezes |
 
 ---
 

@@ -2,6 +2,12 @@
 
 This document contains a detailed history of all patches and updates for the AI Gaming Assistant.
 
+### Patch: 2026-08-20 — v3.2.4: OpenCV Config Loader & PyInstaller Backend Fixes
+
+- Resolved OpenCV cv2 config loader missing module errors in PyInstaller backend packaging
+- Dynamic multi-environment package directory discovery fallback for rapidocr and cv2
+- Verified clean frontend and website production builds
+
 ### Patch: 2026-08-19 — v3.2.3: Fix First-Launch Setup Loading & Backend Process Startup Loop
 
 - Resolved cascading backend kill-restart loop during cold boot and first launch
@@ -9,6 +15,11 @@ This document contains a detailed history of all patches and updates for the AI 
 - Added concurrency mutex and graceful process management in Electron main process
 - Enabled full stdout and stderr traceback forwarding to app.log in production
 - Added persistent local app data directory creation in NSIS installer
+
+### Patch: 2026-08-19 — v3.2.3: Fix OpenCV config loader missing configuration in PyInstaller backend packaging
+
+- Dynamically collected OpenCV cv2 config.py runtime files, binaries, and RapidOCR data in PyInstaller spec
+- Added robust multi-environment package directory discovery fallback
 
 ### Patch: 2026-08-19 — v3.2.2: AI Support Assistant, Community Benchmarks & Live Telemetry Reporting
 
