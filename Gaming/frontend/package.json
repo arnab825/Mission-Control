@@ -69,7 +69,7 @@
     "build":  {
                   "appId":  "com.missioncontrol.app",
                   "productName":  "Mission Control",
-                  "compression":  "maximum",
+                  "compression":  "normal",
                   "publish":  {
                                   "provider":  "github",
                                   "owner":  "arnab825",
