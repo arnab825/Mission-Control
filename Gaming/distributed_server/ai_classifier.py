@@ -38,7 +38,7 @@ _PROVIDERS = [
         "label": "Google Gemini Flash",
         "base_url": "https://generativelanguage.googleapis.com/v1beta/openai/",
         "env_key": "GEMINI_API_KEY",
-        "models": ["gemini-3.6-flash", "gemini-2.5-flash", "gemini-1.5-flash"],
+        "models": ["gemini-flash-lite-latest", "gemini-flash-latest"],
     },
     {
         "name": "nvidia",
@@ -52,14 +52,14 @@ _PROVIDERS = [
         "label": "Groq",
         "base_url": "https://api.groq.com/openai/v1",
         "env_key": "GROQ_API_KEY",
-        "models": ["llama-3.3-70b-versatile", "llama-3.1-70b-versatile", "gemma2-9b-it"],
+        "models": ["llama-3.3-70b-versatile", "llama-3.1-8b-instant"],
     },
     {
         "name": "openrouter",
         "label": "OpenRouter",
         "base_url": "https://openrouter.ai/api/v1",
         "env_key": "OPENROUTER_API_KEY",
-        "models": ["google/gemini-2.0-flash-001", "meta-llama/llama-3.3-70b-instruct"],
+        "models": ["meta-llama/llama-3.3-70b-instruct"],
     },
 ]
 
