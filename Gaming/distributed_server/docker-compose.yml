@@ -8,5 +8,13 @@ services:
     env_file:
       - .env
     volumes:
-      # Optional: sync query folder in development/production if updating schemas
       - ./queries:/app/queries
+
+  tunnel:
+    image: cloudflare/cloudflared:latest
+    container_name: mc-library-tunnel
+    restart: always
+    command: tunnel --url http://distributed_library_server:8800 --no-autoupdate
+    depends_on:
+      - distributed_library_server
+

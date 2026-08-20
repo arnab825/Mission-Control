@@ -67,14 +67,25 @@ The system is designed with a **100% stateless server model**. All libraries, ac
 
 ## 🐳 Production Deployment (Docker)
 
-To run the central server persistently in production:
-1. Ensure your PostgreSQL connection and API keys are specified in `.env`.
-2. Build and boot the stack:
+To run the central server persistently in production via Docker:
+
+1. Ensure your PostgreSQL connection and API keys are specified in `Gaming/distributed_server/.env`.
+2. *(Windows Docker Desktop users)* Ensure IPv6 is enabled in Docker Engine settings (`"ipv6": true, "ip6tables": true`) so the container can connect to Supabase.
+3. Build and boot the stack in detached mode:
    ```bash
    cd Gaming/distributed_server
    docker compose up -d --build
    ```
-This boots the server inside a lightweight Python container using **Gunicorn** with **4 concurrent Uvicorn worker processes** for high concurrency and auto-recovery.
+4. Verify the container and check logs:
+   ```bash
+   docker logs -f mc-distributed-library-server
+   ```
+5. Check health:
+   ```bash
+   curl http://localhost:8800/health
+   ```
+
+For detailed documentation, endpoints, and troubleshooting, see [`Gaming/distributed_server/README.md`](../distributed_server/README.md).
 
 ---
 
