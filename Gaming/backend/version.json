@@ -1,8 +1,18 @@
 {
-  "version": "3.2.3",
-  "release_date": "2026-08-19",
+  "version": "3.2.4",
+  "release_date": "2026-08-20",
   "update_check_url": "https://raw.githubusercontent.com/arnab825/Mission-Control/main/Gaming/backend/version.json",
   "changelog": [
+    {
+      "version": "3.2.4",
+      "date": "2026-08-20",
+      "title": "OpenCV Config Loader & PyInstaller Backend Fixes",
+      "highlights": [
+        "Resolved OpenCV cv2 config loader missing module errors in PyInstaller backend packaging",
+        "Dynamic multi-environment package directory discovery fallback for rapidocr and cv2",
+        "Verified clean frontend and website production builds"
+      ]
+    },
     {
       "version": "3.2.3",
       "date": "2026-08-19",
@@ -13,6 +23,15 @@
         "Added concurrency mutex and graceful process management in Electron main process",
         "Enabled full stdout and stderr traceback forwarding to app.log in production",
         "Added persistent local app data directory creation in NSIS installer"
+      ]
+    },
+    {
+      "version": "3.2.3",
+      "date": "2026-08-19",
+      "title": "Fix OpenCV config loader missing configuration in PyInstaller backend packaging",
+      "highlights": [
+        "Dynamically collected OpenCV cv2 config.py runtime files, binaries, and RapidOCR data in PyInstaller spec",
+        "Added robust multi-environment package directory discovery fallback"
       ]
     },
     {
