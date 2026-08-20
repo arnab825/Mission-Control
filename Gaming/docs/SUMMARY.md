@@ -82,7 +82,8 @@ graph TD
 
 | Version | Key Feature / Change Description |
 | :--- | :--- |
-| **v3.2.4 (Latest)** | **OpenCV Config Loader & PyInstaller Backend Fixes** — This release resolves OpenCV configuration loader issues and improves PyInstaller backend packaging for Mission Control. |
+| **v3.3.0 (Latest)** | **Distributed Game Library Server & Web Discovery Engine** — Implemented a multi-machine stateless server architecture with active heartbeats, Steam/Epic/GOG launcher crawlers, and Gemini Flash tag classifications. |
+| **v3.2.4** | **OpenCV Config Loader & PyInstaller Backend Fixes** — This release resolves OpenCV configuration loader issues and improves PyInstaller backend packaging for Mission Control. |
 | **v3.2.3** | **Fix First-Launch Setup Loading & Backend Process Startup Loop** — This release resolves critical issues with the first-launch setup and backend process startup loop, ensuring a stable and efficient user experience. |
 | **v3.2.3** | **Fix OpenCV config loader missing configuration in PyInstaller backend packaging** — Improved PyInstaller backend packaging for OpenCV and RapidOCR components. |
 | **v3.2.2** | **AI Support Assistant, Community Benchmarks & Live Telemetry Reporting** — Implemented comprehensive multi-tier AI support chatbot system with conversational assistance and model failovers |
@@ -122,7 +123,8 @@ graph TD
 | 20 | Autonomous Gameplay + Safety Lab | ✅ Done |
 | 21 | Gaming Web Search Intelligence | ✅ Done |
 | 22 | Hotkey Recorder + Auto Model Routing | ✅ Done |
-| **23** | **Multi-Platform Packaging & Linux Downloads** | ✅ **Done** |
+| 23 | Multi-Platform Packaging & Linux Downloads | ✅ Done |
+| **24** | **Distributed Game Library & Web Discovery** | ✅ **Done** |
 
 ---
 
