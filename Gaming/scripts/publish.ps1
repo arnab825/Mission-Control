@@ -11,7 +11,9 @@ param(
 
     [string]$Image = $null,
 
-    [string]$Version = $null
+    [string]$Version = $null,
+
+    [switch]$AllFormats
 )
 
 Write-Host "[PUBLISH] Starting release process..." -ForegroundColor Cyan
@@ -113,12 +115,15 @@ try {
             $releaseBody = "# $releaseTitle`n`n" + ($Changes | ForEach-Object { "- $_" } | Out-String)
             Set-Content -Path $releaseNotesFile -Value $releaseBody -Encoding UTF8
 
+            $targets = if ($AllFormats) { @("nsis", "msi", "zip") } else { @("nsis") }
+            $targetsDesc = $targets -join ", "
+
             if ($env:GH_TOKEN -or $env:GITHUB_TOKEN) {
-                Write-Host "[PUBLISH] GH_TOKEN detected! Publishing $releaseTitle (NSIS, MSI, ZIP) to GitHub Releases..." -ForegroundColor Cyan
-                npx electron-builder --win nsis msi zip --publish always --config.extraMetadata.name="$releaseTitle"
+                Write-Host "[PUBLISH] GH_TOKEN detected! Publishing $releaseTitle ($targetsDesc) to GitHub Releases..." -ForegroundColor Cyan
+                npx electron-builder --win @targets --publish always --config.extraMetadata.name="$releaseTitle"
             } else {
-                Write-Host "[BUILD] Compiling local Windows installers (NSIS, MSI, ZIP) in frontend/out/dist..." -ForegroundColor Yellow
-                npx electron-builder --win nsis msi zip --publish never
+                Write-Host "[BUILD] Compiling local Windows installers ($targetsDesc) in frontend/out/dist..." -ForegroundColor Yellow
+                npx electron-builder --win @targets --publish never
             }
         } catch {
             Write-Host "[WARNING] Binary packaging encountered an error: $_" -ForegroundColor Yellow
