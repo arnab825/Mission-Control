@@ -91,10 +91,10 @@ export default async function BlogListing({
             TELEMETRY DISPATCH & INTEL
           </span>
         </div>
-        <h1 className="text-4xl sm:text-6xl font-black font-display tracking-tight mb-4 uppercase text-white">
+        <h1 className="text-3xl min-[375px]:text-4xl sm:text-6xl font-black font-display tracking-tight mb-4 uppercase text-white leading-tight">
           MISSION CONTROL <span className="text-neon-green glow-text-teal">INTELLIGENCE</span>
         </h1>
-        <p className="text-gray-400 text-base leading-relaxed font-mono">
+        <p className="text-gray-400 text-xs sm:text-base leading-relaxed font-mono">
           Stay up to date with core engine optimizations, hardware firmware patches, GPU news, and game telemetry intelligence.
         </p>
       </div>
@@ -343,69 +343,20 @@ async function GamingIntelData({ activeCategory, localGamingPosts, currentPage }
 
   return (
     <div>
-      {/* Category filter pills - Mobile Accordion */}
-      <details className="group sm:hidden mb-8 border border-white/10 rounded-xl bg-white/[0.02] max-w-full overflow-hidden">
-        <summary className="flex items-center justify-between p-3.5 sm:p-4 text-xs font-mono font-bold text-gray-300 cursor-pointer select-none rounded-xl group-open:rounded-b-none group-open:border-b group-open:border-white/10 transition-all duration-300 hover:border-amber-400/30">
-          <span className="flex items-center gap-2 truncate mr-2">
-            <span className={activeCategoryConfig.color}>{activeCategoryConfig.icon}</span>
-            <span className="shrink-0">Active Filter:</span> <span className={`${activeCategoryConfig.color} uppercase font-bold truncate`}>{activeCategory === "all" ? "All Intel" : activeCategory}</span>
-          </span>
-          <ChevronDown className="w-4 h-4 text-gray-400 group-open:rotate-180 transition-transform shrink-0" />
-        </summary>
-        <div className="p-2.5 sm:p-3 flex flex-col gap-2 bg-obsidian/95 rounded-b-xl">
+      {/* Category filter pills - Responsive Horizontal Scroll & Wrap */}
+      <div className="relative w-full mb-8">
+        <div className="flex items-center gap-2 overflow-x-auto no-scrollbar py-1 px-0.5 sm:flex-wrap">
           <Link
             href="/blog?tab=intel&category=all"
-            className={`flex items-center justify-between p-3 rounded-lg text-xs font-mono font-bold border transition-all text-left ${
+            className={`px-3.5 sm:px-4 py-2 rounded-xl text-xs font-mono font-bold uppercase tracking-wider border transition-all shrink-0 flex items-center gap-1.5 cursor-pointer ${
               activeCategory === "all"
-                ? "bg-amber-400 text-obsidian border-amber-400 shadow-[0_0_15px_rgba(251,191,36,0.3)]"
-                : "border-white/5 text-gray-400 hover:text-white bg-white/[0.01]"
-            }`}
-          >
-            <span>📰 All Intel</span>
-            <span className={`text-[10px] px-1.5 py-0.5 rounded-full ml-1 font-bold ${
-              activeCategory === "all" ? "bg-black/20 text-current" : "bg-white/5 text-gray-400"
-            }`}>
-              {getCategoryCount("all")}
-            </span>
-          </Link>
-          {GAMING_CATEGORIES.map((cat) => {
-            const cfg = CATEGORY_CONFIG[cat];
-            return (
-              <Link
-                key={cat}
-                href={`/blog?tab=intel&category=${encodeURIComponent(cat)}`}
-                className={`flex items-center justify-between p-3 rounded-lg text-xs font-mono font-bold border transition-all text-left ${
-                  activeCategory === cat
-                    ? `${cfg.activeBg} ${cfg.shadow}`
-                    : "border-white/5 text-gray-400 hover:text-white bg-white/[0.01]"
-                }`}
-              >
-                <span>{cfg.icon} {cat}</span>
-                <span className={`text-[10px] px-1.5 py-0.5 rounded-full ml-1 font-bold ${
-                  activeCategory === cat ? "bg-black/20 text-current" : "bg-white/5 text-gray-400"
-                }`}>
-                  {getCategoryCount(cat)}
-                </span>
-              </Link>
-            );
-          })}
-        </div>
-      </details>
-
-      {/* Category filter pills - Desktop Horizontal List */}
-      <div className="hidden sm:block relative w-full mb-8">
-        <div className="flex items-center gap-2 sm:flex-wrap">
-          <Link
-            href="/blog?tab=intel&category=all"
-            className={`px-4 py-2 rounded-xl text-xs font-mono font-bold uppercase tracking-wider border transition-all shrink-0 flex items-center gap-1.5 ${
-              activeCategory === "all"
-                ? "bg-amber-400 text-obsidian border-amber-400 shadow-[0_0_15px_rgba(251,191,36,0.3)]"
-                : "border-white/10 text-gray-400 hover:border-white/30 hover:text-white bg-white/[0.02]"
+                ? "bg-amber-400 text-obsidian border-amber-400 shadow-[0_0_15px_rgba(251,191,36,0.35)]"
+                : "border-white/10 text-gray-400 hover:border-white/30 hover:text-white bg-white/[0.03]"
             }`}
           >
             <span>All Intel</span>
             <span className={`text-[10px] px-1.5 py-0.5 rounded-full ml-1 font-bold ${
-              activeCategory === "all" ? "bg-black/20 text-current" : "bg-white/5 text-gray-400"
+              activeCategory === "all" ? "bg-black/25 text-current" : "bg-white/10 text-gray-300"
             }`}>
               {getCategoryCount("all")}
             </span>
@@ -416,15 +367,15 @@ async function GamingIntelData({ activeCategory, localGamingPosts, currentPage }
               <Link
                 key={cat}
                 href={`/blog?tab=intel&category=${encodeURIComponent(cat)}`}
-                className={`px-4 py-2 rounded-xl text-xs font-mono font-bold uppercase tracking-wider border transition-all shrink-0 flex items-center gap-1.5 ${
+                className={`px-3.5 sm:px-4 py-2 rounded-xl text-xs font-mono font-bold uppercase tracking-wider border transition-all shrink-0 flex items-center gap-1.5 cursor-pointer ${
                   activeCategory === cat
                     ? `${cfg.activeBg} ${cfg.shadow}`
-                    : "border-white/10 text-gray-400 hover:border-white/30 hover:text-white bg-white/[0.02]"
+                    : "border-white/10 text-gray-400 hover:border-white/30 hover:text-white bg-white/[0.03]"
                 }`}
               >
                 <span>{cfg.icon} {cat}</span>
                 <span className={`text-[10px] px-1.5 py-0.5 rounded-full ml-1 font-bold ${
-                  activeCategory === cat ? "bg-black/20 text-current" : "bg-white/5 text-gray-400"
+                  activeCategory === cat ? "bg-black/25 text-current" : "bg-white/10 text-gray-300"
                 }`}>
                   {getCategoryCount(cat)}
                 </span>
@@ -462,7 +413,7 @@ async function GamingIntelData({ activeCategory, localGamingPosts, currentPage }
                   <div className="absolute inset-0 bg-gradient-to-t from-obsidian via-transparent to-transparent opacity-80 pointer-events-none" />
                 </div>
 
-                <div className="p-6 sm:p-8 flex-1 flex flex-col justify-between relative z-10">
+                <div className="p-4 min-[400px]:p-6 sm:p-8 flex-1 flex flex-col justify-between relative z-10">
                   <div>
                     <div className="flex items-center gap-2 mb-3.5 flex-wrap">
                       <span
