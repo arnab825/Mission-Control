@@ -114,19 +114,20 @@ try:
 except Exception as e:
     print(f"WARNING: collect_all('cv2') failed: {e}")
 
-# If PyInstaller hook collected 0 cv2 data files or missed config files, run manual collection
-if not any('config' in str(d[0]) for d in cv2_datas):
-    cv2_src = find_package_dir('cv2')
-    if cv2_src and os.path.isdir(cv2_src):
-        for root, dirs, files in os.walk(cv2_src):
-            if '__pycache__' in root:
-                continue
-            for f in files:
-                full_path = os.path.join(root, f)
-                rel_path = os.path.relpath(root, cv2_src)
-                dest_dir = os.path.join('cv2', rel_path) if rel_path != '.' else 'cv2'
+# ALWAYS ensure OpenCV configuration files (config.py, config-3.py, load_config_py3.py, etc.) are physically bundled as data files
+cv2_src = find_package_dir('cv2')
+if cv2_src and os.path.isdir(cv2_src):
+    for root, dirs, files in os.walk(cv2_src):
+        if '__pycache__' in root:
+            continue
+        for f in files:
+            full_path = os.path.join(root, f)
+            rel_path = os.path.relpath(root, cv2_src)
+            dest_dir = os.path.join('cv2', rel_path) if rel_path != '.' else 'cv2'
+            # Prevent duplicate tuples in datas
+            if not any(d[0] == full_path for d in cv2_datas):
                 cv2_datas.append((full_path, dest_dir))
-        print(f"INFO: Collected {len(cv2_datas)} cv2 data/config files via fallback search from {cv2_src}")
+    print(f"INFO: Guaranteed total {len(cv2_datas)} cv2 data/config/binary files physically mapped from {cv2_src}")
 
 datas += rapidocr_datas + cv2_datas
 extra_binaries = rapidocr_binaries + cv2_binaries

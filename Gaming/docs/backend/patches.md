@@ -2,6 +2,12 @@
 
 This document contains a detailed history of all patches and updates for the AI Gaming Assistant.
 
+### Patch: 2026-08-21 — v3.2.6: OpenCV Loader & Supabase Metadata Enrichment Fixes
+
+- Resolved OpenCV cv2 loader missing configuration in PyInstaller packages
+- Added full Steam features and authentic summaries backfill in Supabase
+- Streamlined AI classifier with zero-retry multi-provider failover
+
 ### Patch: 2026-08-20 — v3.2.4: OpenCV Config Loader & PyInstaller Backend Fixes
 
 - Resolved OpenCV cv2 config loader missing module errors in PyInstaller backend packaging
