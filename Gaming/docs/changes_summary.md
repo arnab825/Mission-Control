@@ -12,7 +12,16 @@ Comprehensive breakdown of major milestone releases, architectural upgrades, and
 
 ---
 
-## 🌟 Version v3.2.4 (Latest) — OpenCV Config Loader & PyInstaller Backend Fixes
+## 🌟 Version v3.2.6 (Latest) — OpenCV Loader & Supabase Metadata Enrichment Fixes
+
+### 🛠️ Key Highlights
+1. **Resolved missing OpenCV cv2 loader configuration in PyInstaller packages**
+2. **Added full Steam features and authentic summaries backfill in Supabase**
+3. **Streamlined AI classifier with zero-retry multi-provider failover**
+
+---
+
+## 📦 Version v3.2.4 — OpenCV Config Loader & PyInstaller Backend Fixes
 
 ### 🛠️ Key Highlights
 1. **Resolved OpenCV cv2 config loader missing module errors**

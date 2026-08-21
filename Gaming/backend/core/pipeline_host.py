@@ -9,7 +9,11 @@ import threading
 import time
 from typing import Any, Dict, List, Optional
 
-import cv2  # type: ignore[reportMissingImports]
+try:
+    import cv2  # type: ignore[reportMissingImports]
+except Exception as _cv2_err:
+    cv2 = None
+    logging.warning(f"OpenCV load warning: {_cv2_err}")
 import numpy as np
 from pynput import keyboard  # type: ignore[reportMissingModuleSource]
 import ctypes

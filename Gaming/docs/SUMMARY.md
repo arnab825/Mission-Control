@@ -82,7 +82,8 @@ graph TD
 
 | Version | Key Feature / Change Description |
 | :--- | :--- |
-| **v3.2.5 (Latest)** | **Distributed Cluster Architecture & Multi-Tenant User Isolation** — Implemented high-performance distributed cluster architecture with Load Balancer and multi-instance microservices |
+| **v3.2.6 (Latest)** | **OpenCV Loader & Supabase Metadata Enrichment Fixes** — This release addresses critical issues with OpenCV loader and Supabase metadata enrichment, while enhancing AI classifier reliability. |
+| **v3.2.5** | **Distributed Cluster Architecture & Multi-Tenant User Isolation** — Implemented high-performance distributed cluster architecture with Load Balancer and multi-instance microservices |
 | **v3.2.4** | **OpenCV Config Loader & PyInstaller Backend Fixes** — Resolved OpenCV cv2 config loader missing module errors in PyInstaller backend packaging |
 | **v3.3.0** | **Distributed Game Library Server & Web Discovery Engine** — Implemented a multi-machine stateless server architecture with active heartbeats, Steam/Epic/GOG launcher crawlers, and Gemini Flash tag classifications. |
 | **v3.2.4** | **OpenCV Config Loader & PyInstaller Backend Fixes** — This release resolves OpenCV configuration loader issues and improves PyInstaller backend packaging for Mission Control. |
@@ -130,4 +131,4 @@ graph TD
 
 ---
 
-*Last Updated: 20/08/2026*
+*Last Updated: 21/08/2026*
