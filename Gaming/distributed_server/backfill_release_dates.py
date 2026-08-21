@@ -99,26 +99,35 @@ def main():
         logger.error("Database connection failed. Ensure DATABASE_URL is set.")
         sys.exit(1)
 
-    # 1. Query all games with missing or empty release_date
+    # 1. Query all games with missing features, placeholder summary, or missing release_date
     sql = """
-        SELECT id, title, cover_url, banner_url, metadata
+        SELECT id, title, cover_url, banner_url, metadata, summary, features, release_date
         FROM canonical_games
-        WHERE release_date IS NULL 
+        WHERE features = '{}'
+           OR LEFT(summary, 28) = 'An acclaimed game developed by'
+           OR summary IS NULL
+           OR release_date IS NULL 
            OR release_date = '' 
            OR release_date = 'Unknown'
         ORDER BY id ASC
     """
     games = db.execute(sql, fetch="all") or []
     total = len(games)
-    logger.info("Found %d games needing release dates.", total)
+    logger.info("Found %d games needing metadata enrichment (features, summary, release dates).", total)
 
     if not games:
-        logger.info("All games already have release dates! Nothing to backfill.")
+        logger.info("All games already have rich summaries, features, and release dates! Nothing to backfill.")
         return
 
     # 2. Process games in chunks with worker pool
     updated_count = 0
     failed_count = 0
+
+    def clean_text(s: str) -> str:
+        if not s:
+            return ""
+        clean = re.sub(r"<[^>]+>", " ", s)
+        return re.sub(r"\s+", " ", clean).strip()
 
     def process_game(g):
         game_id = g["id"]
@@ -134,17 +143,18 @@ def main():
 
         appid = extract_appid(cover_url, banner_url, meta)
         if not appid:
-            return game_id, title, None, meta, "No AppID found"
+            return game_id, title, None, None, None, meta, "No AppID found"
 
         rd, steam_data = fetch_steam_release_date(appid)
-        if rd:
+        if steam_data:
             meta["appid"] = appid
-            return game_id, title, rd, meta, None
+            summary = clean_text(steam_data.get("short_description", "")) or g.get("summary")
+            categories = [c.get("description") for c in steam_data.get("categories", []) if c.get("description")]
+            return game_id, title, rd or g.get("release_date") or "Unknown", summary, categories, meta, None
         else:
-            return game_id, title, None, meta, "Steam returned no release date"
+            return game_id, title, None, None, None, meta, "Steam returned no data"
 
-    # Steam allows ~150 requests per 5 minutes without throttling, so 4 workers with slight spacing
-    logger.info("Starting parallel enrichment...")
+    logger.info("Starting parallel metadata enrichment...")
     
     batch_size = 20
     for i in range(0, total, batch_size):
@@ -152,21 +162,19 @@ def main():
         with ThreadPoolExecutor(max_workers=5) as executor:
             future_to_game = {executor.submit(process_game, g): g for g in chunk}
             for future in as_completed(future_to_game):
-                game_id, title, rd, meta, err = future.result()
-                if rd:
+                game_id, title, rd, summary, features, meta, err = future.result()
+                if summary or features or rd:
                     try:
-                        db.execute(
-                            """
-                            UPDATE canonical_games
-                            SET release_date = %(rd)s,
-                                metadata = %(meta)s::jsonb,
-                                updated_at = NOW()
-                            WHERE id = %(id)s
-                            """,
-                            {"rd": rd, "meta": json.dumps(meta), "id": game_id}
+                        db.enrich_game_metadata(
+                            game_id=game_id,
+                            summary=summary,
+                            features=features or [],
+                            release_date=rd,
+                            metadata=meta,
                         )
                         updated_count += 1
-                        logger.info("[%d/%d] Updated: '%s' -> %s", updated_count + failed_count, total, title, rd)
+                        logger.info("[%d/%d] Enriched: '%s' -> (Features: %d, Summary: %d chars, Date: %s)", 
+                                    updated_count + failed_count, total, title, len(features or []), len(summary or ""), rd)
                     except Exception as db_err:
                         logger.error("DB update failed for %s: %s", title, db_err)
                         failed_count += 1
