@@ -52,13 +52,16 @@ function formatBytes(bytes: number): string {
   return `${(bytes / 1e6).toFixed(0)} MB`;
 }
 
-function useDistributedStats(): { stats: DistributedStats | null; serverOnline: boolean } {
+function useDistributedStats(userId?: string | null): { stats: DistributedStats | null; serverOnline: boolean } {
   const [stats, setStats] = useState<DistributedStats | null>(null);
   const [serverOnline, setServerOnline] = useState(false);
 
   const fetchStats = useCallback(async () => {
     try {
-      const res = await fetch(`${LIBRARY_SERVER_URL}/api/library/stats`, { signal: AbortSignal.timeout(3000) });
+      const url = userId
+        ? `${LIBRARY_SERVER_URL}/api/library/stats?clerk_id=${encodeURIComponent(userId)}`
+        : `${LIBRARY_SERVER_URL}/api/library/stats`;
+      const res = await fetch(url, { signal: AbortSignal.timeout(3000) });
       if (res.ok) {
         setStats(await res.json());
         setServerOnline(true);
@@ -66,7 +69,7 @@ function useDistributedStats(): { stats: DistributedStats | null; serverOnline: 
     } catch {
       setServerOnline(false);
     }
-  }, []);
+  }, [userId]);
 
   useEffect(() => {
     fetchStats();
@@ -476,7 +479,7 @@ const GamesLibraryContent: React.FC<GamesPageProps> = ({ state, sendCommand, set
   const [showNodeManager, setShowNodeManager] = useState(false);
   const [showDiscoverModal, setShowDiscoverModal] = useState(false);
   const [installationsModal, setInstallationsModal] = useState<{ title: string; coverUrl?: string; primaryGenre?: string; installations: GameInstallation[] } | null>(null);
-  const { stats: distributedStats, serverOnline: libraryServerOnline } = useDistributedStats();
+  const { stats: distributedStats, serverOnline: libraryServerOnline } = useDistributedStats(userId);
   const initialGames = (state as any)?.game_library || [];
   const initialLoaded = (state as any)?.game_library !== undefined;
 
@@ -521,7 +524,7 @@ const GamesLibraryContent: React.FC<GamesPageProps> = ({ state, sendCommand, set
   useEffect(() => {
     if (!state) return;
     const s = state as any;
-    if (s.game_library !== undefined) {
+    if (s.game_library !== undefined && !libraryServerOnline) {
       const newGames = s.game_library || [];
       setGames(newGames);
       // Mark games as loaded even if the library is empty (backend confirmed no games yet)
@@ -532,7 +535,7 @@ const GamesLibraryContent: React.FC<GamesPageProps> = ({ state, sendCommand, set
       setScanProgress(s.scan_state.progress || 0);
       setIsScanning(s.scan_state.is_running || false);
     }
-  }, [state]);
+  }, [state, libraryServerOnline]);
 
   // Track scanning logs
   useEffect(() => {
@@ -608,9 +611,44 @@ const GamesLibraryContent: React.FC<GamesPageProps> = ({ state, sendCommand, set
       const now = Date.now();
       if (now - lastGamesRequestRef.current > 500) {
         lastGamesRequestRef.current = now;
-        sendCommand('get_cached_games', {
-          userId: userId || undefined
-        });
+        if (libraryServerOnline && userId) {
+          fetch(`${LIBRARY_SERVER_URL}/api/games?installed_only=true&clerk_id=${encodeURIComponent(userId)}`)
+            .then(res => res.json())
+            .then(data => {
+              if (data && Array.isArray(data.games)) {
+                const mappedGames: BackendGame[] = data.games.map((g: any) => {
+                  const firstInst = g.installations?.[0];
+                  return {
+                    id: firstInst?.storeAppId || g.id,
+                    name: g.title || g.name,
+                    platform: firstInst?.store || (Array.isArray(g.platforms) ? g.platforms[0] : g.platforms) || 'Local',
+                    genre: g.primaryGenre || g.primary_genre || g.genre || 'Action',
+                    features: g.features || [],
+                    tags: g.tags || [],
+                    type: g.type || 'GAME',
+                    icon: g.coverUrl || g.cover_url || g.icon,
+                    local_banner: g.bannerUrl || g.banner_url || g.coverUrl || g.cover_url || g.local_banner,
+                    install_path: firstInst?.installPath || firstInst?.install_path || g.install_path,
+                    exe_path: firstInst?.exePath || firstInst?.exe_path || g.exe_path,
+                    source: firstInst?.store || g.source,
+                    installations: g.installations || [],
+                  };
+                });
+                setGames(mappedGames);
+                setGamesLoaded(true);
+              } else {
+                sendCommand('get_cached_games', { userId: userId || undefined });
+              }
+            })
+            .catch(err => {
+              console.error("Distributed fetch failed:", err);
+              sendCommand('get_cached_games', { userId: userId || undefined });
+            });
+        } else {
+          sendCommand('get_cached_games', {
+            userId: userId || undefined
+          });
+        }
       }
 
       // Set timeout for retry only if not already set
@@ -619,7 +657,7 @@ const GamesLibraryContent: React.FC<GamesPageProps> = ({ state, sendCommand, set
           gamesRequestTimeoutRef.current = null;
           // If games still not loaded, request again (single retry)
           const currentState = state as any;
-          if (currentState?.game_library === undefined && Date.now() - lastGamesRequestRef.current > 500) {
+          if (currentState?.game_library === undefined && Date.now() - lastGamesRequestRef.current > 500 && !libraryServerOnline) {
             lastGamesRequestRef.current = Date.now();
             sendCommand('get_cached_games', {
               userId: userId || undefined

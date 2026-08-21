@@ -19,6 +19,7 @@ export interface DocData {
 const DOCS_ORDER = [
   "summary",
   "changes_summary",
+  "distributed_library",
   "design",
   "process",
   "agentic_logic",
@@ -39,6 +40,7 @@ const DOCS_ORDER = [
 const METADATA_FALLBACKS: Record<string, { category?: string; title?: string; badge?: string; badgeColor?: string }> = {
   "summary": { category: "Overview", title: "Project Summary", badge: "Core", badgeColor: "text-neon-green" },
   "changes_summary": { category: "Overview", title: "Recent Updates" },
+  "distributed_library": { category: "Architecture", title: "Distributed Library & Load Balancer", badge: "Cluster Engine", badgeColor: "text-neon-green" },
   "design": { category: "Architecture", title: "System Architecture" },
   "process": { category: "Architecture", title: "Process & Threading" },
   "agentic_logic": { category: "Core Logic", title: "Agentic AI Controller" },
@@ -55,6 +57,7 @@ const METADATA_FALLBACKS: Record<string, { category?: string; title?: string; ba
   "electronroadmap": { category: "Roadmaps", title: "Electron App Roadmap" },
   "productroadmap": { category: "Roadmaps", title: "Product Roadmap" },
 };
+
 
 let cachedDocs: DocData[] | null = null;
 

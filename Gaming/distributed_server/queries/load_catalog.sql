@@ -34,8 +34,10 @@ SELECT
         '[]'::json
     ) AS installations
 FROM canonical_games g
-LEFT JOIN game_installations i ON i.game_id = g.id
-LEFT JOIN library_nodes n ON n.node_id = i.node_id
+LEFT JOIN (
+    game_installations i
+    JOIN library_nodes n ON n.node_id = i.node_id AND (%(clerk_id)s IS NULL OR n.clerk_id = %(clerk_id)s)
+) ON i.game_id = g.id
 WHERE
     (%(search)s IS NULL OR to_tsvector('english', g.title) @@ plainto_tsquery('english', %(search)s)
      OR g.normalized_title ILIKE '%%' || %(search_like)s || '%%')

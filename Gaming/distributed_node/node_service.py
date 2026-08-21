@@ -66,6 +66,8 @@ class NodeConfig:
             self._cfg.get("name") or os.getenv("NODE_NAME", socket.gethostname())
         )
         self.token: str = self._cfg.get("token") or os.getenv("NODE_TOKEN", "")
+        self.clerk_id: str = self._cfg.get("clerkId") or os.getenv("CLERK_ID", "")
+        self.auth_provider: str = self._cfg.get("authProvider") or os.getenv("AUTH_PROVIDER", "")
         self.scan_paths: List[str] = self._cfg.get("scanPaths", [])
         self.heartbeat_interval: int = int(self._cfg.get("heartbeatInterval", 15))
         self.sync_interval: int = int(self._cfg.get("syncInterval", 300))
@@ -78,6 +80,8 @@ class NodeConfig:
                 "name":      self.node_name,
                 "serverUrl": self.server_url,
                 "token":     self.token,
+                "clerkId":   self.clerk_id,
+                "authProvider": self.auth_provider,
                 "scanPaths": self.scan_paths,
                 "heartbeatInterval": self.heartbeat_interval,
                 "syncInterval":      self.sync_interval,
@@ -134,6 +138,8 @@ class LibraryNodeService:
             "name":      self.cfg.node_name,
             "hostname":  socket.gethostname(),
             "ip":        _get_local_ip(),
+            "clerk_id":  self.cfg.clerk_id,
+            "auth_provider": self.cfg.auth_provider,
             "platform":  sys.platform,
             "version":   "1.0.0",
             "storage":   storage,

@@ -1,20 +1,79 @@
 services:
-  distributed_library_server:
+  # ── 1. Catalog & Discovery Service Pool ──────────────────────────────────────
+  catalog_service_1:
     build: .
-    container_name: mc-distributed-library-server
+    container_name: mc-catalog-service-1
+    command: python catalog_service.py --port 8811 --worker
+    restart: always
+    env_file:
+      - .env
+    environment:
+      - ENABLE_CATALOG_WORKERS=true
+    volumes:
+      - ./queries:/app/queries
+
+  catalog_service_2:
+    build: .
+    container_name: mc-catalog-service-2
+    command: python catalog_service.py --port 8812
+    restart: always
+    env_file:
+      - .env
+    environment:
+      - ENABLE_CATALOG_WORKERS=false
+    volumes:
+      - ./queries:/app/queries
+
+  # ── 2. User Library & Node Sync Service Pool ─────────────────────────────────
+  node_service_1:
+    build: .
+    container_name: mc-node-service-1
+    command: python node_service.py --port 8821 --watchdog
+    restart: always
+    env_file:
+      - .env
+    environment:
+      - ENABLE_NODE_WATCHDOG=true
+    volumes:
+      - ./queries:/app/queries
+
+  node_service_2:
+    build: .
+    container_name: mc-node-service-2
+    command: python node_service.py --port 8822
+    restart: always
+    env_file:
+      - .env
+    environment:
+      - ENABLE_NODE_WATCHDOG=false
+    volumes:
+      - ./queries:/app/queries
+
+  # ── 3. Multi-Pool Load Balancer & API Gateway ───────────────────────────────
+  load_balancer:
+    build: .
+    container_name: mc-load-balancer
+    command: >
+      python load_balancer.py
+      --port 8800
+      --catalog-servers http://catalog_service_1:8811,http://catalog_service_2:8812
+      --node-servers http://node_service_1:8821,http://node_service_2:8822
     restart: always
     ports:
       - "8800:8800"
     env_file:
       - .env
-    volumes:
-      - ./queries:/app/queries
+    depends_on:
+      - catalog_service_1
+      - catalog_service_2
+      - node_service_1
+      - node_service_2
 
+  # ── 4. Public Web Tunnel ───────────────────────────────────────────────────
   tunnel:
     image: cloudflare/cloudflared:latest
     container_name: mc-library-tunnel
     restart: always
-    command: tunnel --url http://distributed_library_server:8800 --no-autoupdate
+    command: tunnel --url http://load_balancer:8800 --no-autoupdate
     depends_on:
-      - distributed_library_server
-
+      - load_balancer

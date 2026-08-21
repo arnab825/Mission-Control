@@ -99,6 +99,76 @@ def _classification_worker():
             logger.error("AI Classifier Worker error: %s", exc)
         time.sleep(_CLASSIFY_INTERVAL)
 
+# ── Metadata Enrichment Background Worker ────────────────────────────────────
+_ENRICH_INTERVAL = 20  # seconds
+
+def _enrichment_worker():
+    """Background thread: periodically fills in missing release dates from Steam & web."""
+    import re
+    while True:
+        try:
+            if db.available:
+                # Find up to 10 games missing a release date
+                sql = """
+                    SELECT id, title, cover_url, banner_url, metadata
+                    FROM canonical_games
+                    WHERE release_date IS NULL
+                       OR release_date = ''
+                    LIMIT 10
+                """
+                games_to_enrich = db.execute(sql, fetch="all")
+                if games_to_enrich:
+                    logger.info("Enrichment Worker: Processing release dates for %d games...", len(games_to_enrich))
+                    from game_harvester import SteamHarvester
+                    for g in games_to_enrich:
+                        game_id = g["id"]
+                        meta = g.get("metadata") or {}
+                        if isinstance(meta, str):
+                            try:
+                                meta = json.loads(meta)
+                            except Exception:
+                                meta = {}
+
+                        appid = meta.get("appid")
+                        if not appid:
+                            for u in [g.get("cover_url") or "", g.get("banner_url") or ""]:
+                                m = re.search(r"apps/(\d+)", u)
+                                if m:
+                                    appid = m.group(1)
+                                    meta["appid"] = appid
+                                    break
+
+                        if appid:
+                            details = SteamHarvester.get_details(appid)
+                            if details and details.get("release_date"):
+                                db.execute(
+                                    """
+                                    UPDATE canonical_games 
+                                    SET release_date = %(rd)s,
+                                        metadata = %(meta)s::jsonb,
+                                        updated_at = NOW() 
+                                    WHERE id = %(id)s
+                                    """,
+                                    {"rd": details["release_date"], "meta": json.dumps(meta), "id": game_id}
+                                )
+                                logger.info("Enrichment Worker: Set release_date for '%s' -> %s", g.get("title"), details["release_date"])
+                            else:
+                                db.execute(
+                                    "UPDATE canonical_games SET release_date = 'Unknown', updated_at = NOW() WHERE id = %(id)s",
+                                    {"id": game_id}
+                                )
+                        else:
+                            db.execute(
+                                "UPDATE canonical_games SET release_date = 'Unknown', updated_at = NOW() WHERE id = %(id)s",
+                                {"id": game_id}
+                            )
+                        time.sleep(1.2) # Avoid Steam rate limits
+        except Exception as exc:
+            logger.error("Enrichment Worker error: %s", exc)
+        time.sleep(_ENRICH_INTERVAL)
+
+
+
 # ── Initial Seeding Worker ───────────────────────────────────────────────────
 def _seed_catalog_if_empty():
     """Seed the canonical games catalog on startup if empty."""
@@ -149,6 +219,7 @@ def _seed_catalog_if_empty():
 async def lifespan(app: FastAPI):
     threading.Thread(target=_offline_watchdog, daemon=True, name="OfflineWatchdog").start()
     threading.Thread(target=_classification_worker, daemon=True, name="AIClassifier").start()
+    threading.Thread(target=_enrichment_worker, daemon=True, name="EnrichmentWorker").start()
     threading.Thread(target=_seed_catalog_if_empty, daemon=True, name="InitialSeeder").start()
     logger.info("Mission Control Distributed Library Server started.")
     if not db.available:
@@ -645,6 +716,7 @@ async def get_games(
     search: Optional[str] = Query(None),
     genre: Optional[str] = Query(None),
     node_id: Optional[str] = Query(None),
+    clerk_id: Optional[str] = Query(None),
     store: Optional[str] = Query(None),
     installed_only: bool = Query(False),
     availability: Optional[str] = Query(None),
@@ -654,10 +726,14 @@ async def get_games(
     """
     _require_db()
 
+    if installed_only and not clerk_id and not node_id:
+        return {"games": [], "total": 0, "page": page, "limit": limit, "pages": 1}
+
     rows = db.get_catalog(
         search=search,
         genre=genre,
         node_id=node_id,
+        clerk_id=clerk_id,
         store=store,
         installed_only=installed_only,
         page=page,
@@ -714,9 +790,9 @@ async def get_game(game_id: str):
 
 
 @app.get("/api/games/{game_id}/installations")
-async def get_game_installations(game_id: str):
+async def get_game_installations(game_id: str, clerk_id: Optional[str] = None):
     _require_db()
-    rows = db.get_installations_for_game(game_id)
+    rows = db.get_installations_for_game(game_id, clerk_id=clerk_id)
     return {"game_id": game_id, "installations": rows}
 
 
@@ -784,10 +860,10 @@ async def classify_game_endpoint(req: ClassifyRequest):
 
 
 @app.get("/api/library/stats")
-async def library_stats():
+async def library_stats(clerk_id: Optional[str] = None):
     """Aggregated metrics: total games, total real storage, node breakdown."""
     _require_db()
-    raw = db.get_stats()
+    raw = db.get_stats(clerk_id=clerk_id)
     nodes_raw = raw.get("nodes") or []
     if isinstance(nodes_raw, str):
         nodes_raw = json.loads(nodes_raw)
