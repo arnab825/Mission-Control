@@ -78,21 +78,24 @@ def _classification_worker():
 
 
 def _enrichment_worker():
-    """Background thread: periodically fills in missing release dates from Steam & web."""
+    """Background thread: periodically fills in missing release dates, summaries, and features from Steam & web."""
     import re
     while True:
         try:
             if db.available:
                 sql = """
-                    SELECT id, title, cover_url, banner_url, metadata
+                    SELECT id, title, cover_url, banner_url, metadata, summary, features
                     FROM canonical_games
                     WHERE release_date IS NULL
                        OR release_date = ''
+                       OR LEFT(summary, 28) = 'An acclaimed game developed by'
+                       OR summary IS NULL
+                       OR features = '{}'
                     LIMIT 10
                 """
                 games_to_enrich = db.execute(sql, fetch="all")
                 if games_to_enrich:
-                    logger.info("Enrichment Worker: Processing release dates for %d games...", len(games_to_enrich))
+                    logger.info("Enrichment Worker: Processing metadata for %d games...", len(games_to_enrich))
                     for g in games_to_enrich:
                         game_id = g["id"]
                         meta = g.get("metadata") or {}
@@ -113,26 +116,26 @@ def _enrichment_worker():
 
                         if appid:
                             details = SteamHarvester.get_details(appid)
-                            if details and details.get("release_date"):
-                                db.execute(
-                                    """
-                                    UPDATE canonical_games 
-                                    SET release_date = %(rd)s,
-                                        metadata = %(meta)s::jsonb,
-                                        updated_at = NOW() 
-                                    WHERE id = %(id)s
-                                    """,
-                                    {"rd": details["release_date"], "meta": json.dumps(meta), "id": game_id}
+                            if details:
+                                rd = details.get("release_date") or "Unknown"
+                                summary = details.get("summary") or g.get("summary")
+                                features = details.get("features") or []
+                                db.enrich_game_metadata(
+                                    game_id=game_id,
+                                    summary=summary,
+                                    features=features,
+                                    release_date=rd,
+                                    metadata=meta,
                                 )
-                                logger.info("Enrichment Worker: Set release_date for '%s' -> %s", g.get("title"), details["release_date"])
+                                logger.info("Enrichment Worker: Enriched metadata for '%s'", g.get("title"))
                             else:
                                 db.execute(
-                                    "UPDATE canonical_games SET release_date = 'Unknown', updated_at = NOW() WHERE id = %(id)s",
+                                    "UPDATE canonical_games SET release_date = COALESCE(NULLIF(release_date, ''), 'Unknown'), updated_at = NOW() WHERE id = %(id)s",
                                     {"id": game_id}
                                 )
                         else:
                             db.execute(
-                                "UPDATE canonical_games SET release_date = 'Unknown', updated_at = NOW() WHERE id = %(id)s",
+                                "UPDATE canonical_games SET release_date = COALESCE(NULLIF(release_date, ''), 'Unknown'), updated_at = NOW() WHERE id = %(id)s",
                                 {"id": game_id}
                             )
                         time.sleep(1.2)

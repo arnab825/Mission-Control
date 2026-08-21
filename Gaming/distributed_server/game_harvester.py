@@ -126,6 +126,7 @@ class SteamHarvester:
             "summary": _clean_text(d.get("short_description", "")),
             "genres": genres,
             "raw_tags": raw_tags,
+            "features": categories,
             "store": "steam",
             "store_app_id": str(appid),
             "launchers": ["Steam"],

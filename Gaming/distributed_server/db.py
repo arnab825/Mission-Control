@@ -204,6 +204,8 @@ class LibraryDB:
         genres: List[str],
         tags: List[str],
         confidence: float,
+        features: Optional[List[str]] = None,
+        summary: Optional[str] = None,
         release_date: Optional[str] = None,
     ) -> None:
         sql = """
@@ -211,6 +213,15 @@ class LibraryDB:
                 primary_genre   = %(primary_genre)s,
                 genres          = %(genres)s,
                 tags            = %(tags)s,
+                features        = CASE 
+                                    WHEN array_length(%(features)s::text[], 1) > 0 THEN %(features)s 
+                                    ELSE canonical_games.features 
+                                  END,
+                summary         = CASE 
+                                    WHEN %(summary)s IS NOT NULL AND %(summary)s != '' AND LEFT(%(summary)s, 28) != 'An acclaimed game developed by' 
+                                    THEN %(summary)s 
+                                    ELSE canonical_games.summary 
+                                  END,
                 release_date    = COALESCE(NULLIF(canonical_games.release_date, ''), %(release_date)s),
                 ai_classified   = TRUE,
                 ai_confidence   = %(confidence)s,
@@ -222,8 +233,38 @@ class LibraryDB:
             "primary_genre": primary_genre,
             "genres": genres,
             "tags": tags,
+            "features": features or [],
+            "summary": summary,
             "confidence": confidence,
             "release_date": release_date,
+        })
+
+    def enrich_game_metadata(
+        self,
+        game_id: str,
+        summary: Optional[str] = None,
+        features: Optional[List[str]] = None,
+        release_date: Optional[str] = None,
+        metadata: Optional[Dict[str, Any]] = None,
+    ) -> None:
+        sql = """
+            UPDATE canonical_games SET
+                summary      = COALESCE(NULLIF(%(summary)s, ''), canonical_games.summary),
+                features     = CASE 
+                                 WHEN array_length(%(features)s::text[], 1) > 0 THEN %(features)s 
+                                 ELSE canonical_games.features 
+                               END,
+                release_date = COALESCE(NULLIF(canonical_games.release_date, ''), %(release_date)s),
+                metadata     = canonical_games.metadata || COALESCE(%(metadata)s::jsonb, '{}'::jsonb),
+                updated_at   = NOW()
+            WHERE id = %(id)s
+        """
+        self.execute(sql, {
+            "id": game_id,
+            "summary": summary,
+            "features": features or [],
+            "release_date": release_date,
+            "metadata": json.dumps(metadata) if metadata else "{}",
         })
 
 
