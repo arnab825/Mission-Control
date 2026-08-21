@@ -150,9 +150,14 @@ def main():
             meta["appid"] = appid
             summary = clean_text(steam_data.get("short_description", "")) or g.get("summary")
             categories = [c.get("description") for c in steam_data.get("categories", []) if c.get("description")]
-            return game_id, title, rd or g.get("release_date") or "Unknown", summary, categories, meta, None
+            raw_plat = steam_data.get("platforms", {})
+            platforms = []
+            if raw_plat.get("windows"): platforms.append("Windows")
+            if raw_plat.get("linux"): platforms.append("Linux")
+            if not platforms: platforms = ["Windows"]
+            return game_id, title, rd or g.get("release_date") or "Unknown", summary, categories, platforms, meta, None
         else:
-            return game_id, title, None, None, None, meta, "Steam returned no data"
+            return game_id, title, None, None, None, None, meta, "Steam returned no data"
 
     logger.info("Starting parallel metadata enrichment...")
     
@@ -162,19 +167,20 @@ def main():
         with ThreadPoolExecutor(max_workers=5) as executor:
             future_to_game = {executor.submit(process_game, g): g for g in chunk}
             for future in as_completed(future_to_game):
-                game_id, title, rd, summary, features, meta, err = future.result()
-                if summary or features or rd:
+                game_id, title, rd, summary, features, platforms, meta, err = future.result()
+                if summary or features or rd or platforms:
                     try:
                         db.enrich_game_metadata(
                             game_id=game_id,
                             summary=summary,
                             features=features or [],
+                            platforms=platforms or ["Windows"],
                             release_date=rd,
                             metadata=meta,
                         )
                         updated_count += 1
-                        logger.info("[%d/%d] Enriched: '%s' -> (Features: %d, Summary: %d chars, Date: %s)", 
-                                    updated_count + failed_count, total, title, len(features or []), len(summary or ""), rd)
+                        logger.info("[%d/%d] Enriched: '%s' -> (Features: %d, Platforms: %s, Date: %s)", 
+                                    updated_count + failed_count, total, title, len(features or []), platforms, rd)
                     except Exception as db_err:
                         logger.error("DB update failed for %s: %s", title, db_err)
                         failed_count += 1
