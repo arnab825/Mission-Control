@@ -15,6 +15,7 @@ import os
 import sys
 import threading
 import time
+import redis
 from contextlib import asynccontextmanager
 from pathlib import Path
 from typing import Any, Dict, List, Optional
@@ -432,6 +433,17 @@ async def classify_game_endpoint(req: ClassifyRequest):
     )
 
 
+_CACHE_TTL = 600  # 10 minutes
+redis_client = None
+if os.getenv("REDIS_URL"):
+    try:
+        redis_client = redis.Redis.from_url(os.getenv("REDIS_URL"), decode_responses=True)
+        redis_client.ping()
+        logger.info("Catalog Service: Connected to Redis cache.")
+    except Exception as exc:
+        logger.error("Catalog Service: Redis connection failed (%s). Falling back to no cache.", exc)
+        redis_client = None
+
 @app.get("/api/search")
 async def search_games(q: str = Query(..., min_length=1)):
     _require_db()
@@ -453,6 +465,7 @@ async def search_games(q: str = Query(..., min_length=1)):
 async def get_games(
     page: int = Query(1, ge=1),
     limit: int = Query(48, ge=1, le=200),
+    cursor: Optional[str] = Query(None, description="Last seen ID for cursor pagination"),
     search: Optional[str] = Query(None),
     genre: Optional[str] = Query(None),
     node_id: Optional[str] = Query(None),
@@ -463,7 +476,18 @@ async def get_games(
 ):
     _require_db()
     if installed_only and not clerk_id and not node_id:
-        return {"games": [], "total": 0, "page": page, "limit": limit, "pages": 1}
+        return {"games": [], "total": 0, "page": page, "limit": limit, "pages": 1, "nextCursor": None}
+
+    cache_key = f"mc:catalog:{cursor}:{page}:{limit}:{search}:{genre}:{node_id}:{clerk_id}:{store}:{installed_only}"
+    
+    if redis_client:
+        try:
+            cached_val = redis_client.get(cache_key)
+            if cached_val:
+                return json.loads(cached_val)
+        except Exception as exc:
+            logger.warning("Redis get failed: %s", exc)
+
 
     rows = db.get_catalog(
         search=search,
@@ -472,6 +496,7 @@ async def get_games(
         clerk_id=clerk_id,
         store=store,
         installed_only=installed_only,
+        last_seen_id=cursor,
         page=page,
         limit=limit,
     )
@@ -496,16 +521,34 @@ async def get_games(
             "installations": row.get("installations") or [],
         })
 
-    count_row = db.execute("SELECT COUNT(*) AS cnt FROM canonical_games", fetch="one")
-    total = count_row["cnt"] if count_row else len(games)
+    # Only count total if it's the first page (no cursor), else we estimate or return existing total logic
+    total = 0
+    if not cursor and not search:
+        count_row = db.execute("SELECT COUNT(*) AS cnt FROM canonical_games", fetch="one")
+        total = count_row["cnt"] if count_row else len(games)
+    else:
+        total = len(games)  # Simplified for cursor requests
 
-    return {
+    next_cursor = games[-1]["id"] if len(games) == limit else None
+
+    response_data = {
         "games": games,
         "total": total,
         "page": page,
         "limit": limit,
         "pages": max(1, -(-total // limit)),
+        "nextCursor": next_cursor,
     }
+
+    if not search and not genre and not clerk_id and not node_id:
+        # Cache general hot queries (e.g. top games)
+        if redis_client:
+            try:
+                redis_client.setex(cache_key, _CACHE_TTL, json.dumps(response_data))
+            except Exception as exc:
+                logger.warning("Redis set failed: %s", exc)
+
+    return response_data
 
 
 @app.get("/api/games/{game_id}")

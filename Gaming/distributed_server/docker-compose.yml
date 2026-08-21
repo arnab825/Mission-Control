@@ -9,6 +9,7 @@ services:
       - .env
     environment:
       - ENABLE_CATALOG_WORKERS=true
+      - REDIS_URL=redis://redis:6379/0
     volumes:
       - ./queries:/app/queries
 
@@ -21,6 +22,7 @@ services:
       - .env
     environment:
       - ENABLE_CATALOG_WORKERS=false
+      - REDIS_URL=redis://redis:6379/0
     volumes:
       - ./queries:/app/queries
 
@@ -69,7 +71,15 @@ services:
       - node_service_1
       - node_service_2
 
-  # ── 4. Public Web Tunnel ───────────────────────────────────────────────────
+  # ── 4. Redis Cache ─────────────────────────────────────────────────────────
+  redis:
+    image: redis:7-alpine
+    container_name: mc-redis
+    restart: always
+    ports:
+      - "6379:6379"
+
+  # ── 5. Public Web Tunnel ───────────────────────────────────────────────────
   tunnel:
     image: cloudflare/cloudflared:latest
     container_name: mc-library-tunnel
