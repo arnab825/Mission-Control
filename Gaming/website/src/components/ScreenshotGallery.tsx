@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { Maximize2, X, Activity, Scan, Cpu, BrainCircuit, Terminal, Gamepad2, Server, ShieldCheck, Bot, Settings } from "lucide-react";
 
@@ -20,6 +20,7 @@ export function ScreenshotGallery() {
   const [activeTab, setActiveTab] = useState(tabs[0].id);
   const [imageStatus, setImageStatus] = useState<'loading' | 'loaded' | 'error'>('loaded');
   const [isLightboxOpen, setIsLightboxOpen] = useState(false);
+  const tabsContainerRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
     // Keep loaded state active for instant rendering
@@ -202,7 +203,10 @@ export function ScreenshotGallery() {
         <div className="sm:hidden absolute left-0 top-0 bottom-0 w-4 bg-gradient-to-r from-obsidian to-transparent z-10 pointer-events-none" />
         <div className="sm:hidden absolute right-0 top-0 bottom-0 w-4 bg-gradient-to-l from-obsidian to-transparent z-10 pointer-events-none" />
 
-        <div className="flex items-center gap-2 sm:gap-3 overflow-x-auto no-scrollbar scroll-smooth flex-nowrap sm:flex-wrap sm:justify-center px-4 py-1.5">
+        <div
+          ref={tabsContainerRef}
+          className="flex items-center gap-2 sm:gap-3 overflow-x-auto no-scrollbar scroll-smooth flex-nowrap sm:flex-wrap sm:justify-center px-4 py-1.5"
+        >
           {tabs.map(tab => {
             const isActive = activeTab === tab.id;
             const Icon = tab.icon;
@@ -211,7 +215,12 @@ export function ScreenshotGallery() {
                 key={tab.id}
                 onClick={(e) => {
                   setActiveTab(tab.id);
-                  e.currentTarget.scrollIntoView({ behavior: 'smooth', inline: 'center', block: 'nearest' });
+                  if (tabsContainerRef.current && window.innerWidth < 640) {
+                    const container = tabsContainerRef.current;
+                    const btn = e.currentTarget;
+                    const scrollTarget = btn.offsetLeft - container.offsetWidth / 2 + btn.offsetWidth / 2;
+                    container.scrollTo({ left: scrollTarget, behavior: 'smooth' });
+                  }
                 }}
                 className={`flex items-center gap-1.5 sm:gap-2 px-3.5 sm:px-5 py-2 sm:py-2.5 rounded-full font-mono text-xs sm:text-sm font-bold transition-all duration-300 shrink-0 whitespace-nowrap cursor-pointer ${
                   isActive
