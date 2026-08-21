@@ -52,7 +52,7 @@ _PROVIDERS = [
         "label": "Groq",
         "base_url": "https://api.groq.com/openai/v1",
         "env_key": "GROQ_API_KEY",
-        "models": ["qwen-3.6-27b", "llama-3.1-8b-instant"],
+        "models": ["openai/gpt-oss-120b", "openai/gpt-oss-20b", "qwen/qwen3.6-27b"],
     },
     {
         "name": "openrouter",
