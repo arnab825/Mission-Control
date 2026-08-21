@@ -4,7 +4,7 @@ import GamingPost from "@/models/GamingPost";
 
 async function run() {
   await connectDB();
-  const todayStr = "2026-08-05";
+  const todayStr = "2026-08-21";
   const regex = new RegExp(`-${todayStr}$`);
   const posts = await GamingPost.find({ slug: { $regex: regex } });
   
