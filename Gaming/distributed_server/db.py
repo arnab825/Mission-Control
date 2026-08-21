@@ -246,6 +246,7 @@ class LibraryDB:
         game_id: str,
         summary: Optional[str] = None,
         features: Optional[List[str]] = None,
+        platforms: Optional[List[str]] = None,
         release_date: Optional[str] = None,
         metadata: Optional[Dict[str, Any]] = None,
     ) -> None:
@@ -256,6 +257,10 @@ class LibraryDB:
                                  WHEN array_length(%(features)s::text[], 1) > 0 THEN %(features)s 
                                  ELSE canonical_games.features 
                                END,
+                platforms    = CASE 
+                                 WHEN array_length(%(platforms)s::text[], 1) > 0 THEN %(platforms)s 
+                                 ELSE canonical_games.platforms 
+                               END,
                 release_date = COALESCE(NULLIF(canonical_games.release_date, ''), %(release_date)s),
                 metadata     = canonical_games.metadata || COALESCE(%(metadata)s::jsonb, '{}'::jsonb),
                 updated_at   = NOW()
@@ -265,6 +270,7 @@ class LibraryDB:
             "id": game_id,
             "summary": summary,
             "features": features or [],
+            "platforms": platforms or [],
             "release_date": release_date,
             "metadata": json.dumps(metadata) if metadata else "{}",
         })
