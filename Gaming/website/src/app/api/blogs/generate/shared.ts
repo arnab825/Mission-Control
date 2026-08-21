@@ -407,6 +407,8 @@ async function generateBlogPostWithGemini(
   const prompt = buildPromptForItems(items, postType, targetDate);
   const modelsToTry = [
     process.env.GEMINI_MODEL,
+    "gemini-flash-lite-latest",
+    "gemini-flash-latest",
     "gemini-3.6-flash",
     "gemini-3.5-flash",
     "gemini-3.5-flash-lite",
@@ -425,7 +427,7 @@ async function generateBlogPostWithGemini(
           contents: [{ parts: [{ text: prompt }] }],
           generationConfig: { maxOutputTokens: 8192, temperature: 0.7 }
         }),
-        signal: AbortSignal.timeout(35000)
+        signal: AbortSignal.timeout(18000)
       });
 
       if (response.ok) {
@@ -694,7 +696,7 @@ export async function generateImageWithPollinations(prompt: string): Promise<Buf
       const modelParam = model === "default" ? "" : `&model=${model}`;
       const url = `https://image.pollinations.ai/prompt/${cleanPrompt}?nologo=true&width=1024&height=576&seed=${seed}${modelParam}`;
       console.log(`[BlogGen][Pollinations ${model}] Generating AI image: "${sanitizedPrompt.slice(0, 60)}..."`);
-      
+
       const response = await fetch(url, {
         headers: { "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64)" },
         signal: AbortSignal.timeout(12000)
