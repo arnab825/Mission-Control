@@ -2,6 +2,7 @@
 -- Mission Control  Distributed Game Library Schema
 -- Supabase / PostgreSQL
 -- 
+CREATE EXTENSION IF NOT EXISTS pg_trgm;
 
 --  1. Master Canonical Games Catalog 
 -- Stores ALL known games regardless of whether they are installed anywhere.
@@ -29,6 +30,7 @@ CREATE TABLE IF NOT EXISTS canonical_games (
     updated_at        TIMESTAMPTZ     NOT NULL DEFAULT NOW()
 );
 CREATE INDEX IF NOT EXISTS idx_cg_normalized_title  ON canonical_games (normalized_title);
+CREATE INDEX IF NOT EXISTS idx_cg_trgm_title        ON canonical_games USING gin (normalized_title gin_trgm_ops);
 CREATE INDEX IF NOT EXISTS idx_cg_primary_genre     ON canonical_games (primary_genre);
 CREATE INDEX IF NOT EXISTS idx_cg_ai_classified     ON canonical_games (ai_classified);
 CREATE INDEX IF NOT EXISTS idx_cg_title_gin         ON canonical_games USING gin(to_tsvector('english', title));

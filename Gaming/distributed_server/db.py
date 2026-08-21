@@ -151,11 +151,12 @@ class LibraryDB:
         clerk_id: Optional[str] = None,
         store: Optional[str] = None,
         installed_only: bool = False,
+        last_seen_id: Optional[str] = None,
         page: int = 1,
         limit: int = 48,
     ) -> List[Dict]:
         sql = _load_sql("load_catalog")
-        offset = (page - 1) * limit
+        offset = 0 if last_seen_id else (page - 1) * limit
         return self.execute(sql, {
             "search": search or None,
             "search_like": (search or "").lower(),
@@ -164,6 +165,7 @@ class LibraryDB:
             "clerk_id": clerk_id or None,
             "store": store or None,
             "installed_only": installed_only,
+            "last_seen_id": last_seen_id,
             "limit": limit,
             "offset": offset,
         }, fetch="all")

@@ -45,6 +45,7 @@ WHERE
     AND (%(node_id)s IS NULL OR i.node_id = %(node_id)s)
     AND (%(store)s IS NULL OR i.store = %(store)s)
     AND (%(installed_only)s = FALSE OR i.id IS NOT NULL)
+    AND (%(last_seen_id)s IS NULL OR g.id > %(last_seen_id)s)
 GROUP BY g.id
-ORDER BY g.title ASC
+ORDER BY g.id ASC
 LIMIT %(limit)s OFFSET %(offset)s;
