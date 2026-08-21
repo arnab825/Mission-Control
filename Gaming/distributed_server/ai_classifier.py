@@ -143,7 +143,10 @@ def _call_provider(
         logger.error("AI Classifier: openai package not installed.")
         return None, 0.0, ""
 
-    client = OpenAI(api_key=api_key, base_url=provider["base_url"])
+    logging.getLogger("openai").setLevel(logging.WARNING)
+    logging.getLogger("httpx").setLevel(logging.WARNING)
+
+    client = OpenAI(api_key=api_key, base_url=provider["base_url"], max_retries=0)
     models = provider.get("models") or [provider.get("model", "gemini-3.6-flash")]
 
     for model in models:
