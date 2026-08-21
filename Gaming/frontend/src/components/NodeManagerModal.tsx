@@ -12,6 +12,7 @@ import {
   X, Server, WifiOff, RefreshCw, Trash2,
   Clock, Network, FolderSearch, Pencil, Check
 } from 'lucide-react';
+import { useAuth } from '@clerk/clerk-react';
 
 const LIBRARY_SERVER_URL = (window as any).__LIBRARY_SERVER_URL__
   || import.meta.env.VITE_LIBRARY_SERVER_URL
@@ -240,13 +241,17 @@ const NodeCard: React.FC<{
 // ── Main Modal ────────────────────────────────────────────────────────────────
 
 const NodeManagerModal: React.FC<NodeManagerModalProps> = ({ onClose }) => {
+  const { userId } = useAuth();
   const [nodes, setNodes] = useState<LibraryNode[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
   const fetchNodes = useCallback(async () => {
     try {
-      const res = await fetch(`${LIBRARY_SERVER_URL}/api/nodes`);
+      const url = userId
+        ? `${LIBRARY_SERVER_URL}/api/nodes?clerk_id=${encodeURIComponent(userId)}`
+        : `${LIBRARY_SERVER_URL}/api/nodes`;
+      const res = await fetch(url);
       if (!res.ok) throw new Error(`Server error: ${res.status}`);
       const data = await res.json();
       setNodes(Array.isArray(data) ? data : []);
@@ -256,7 +261,7 @@ const NodeManagerModal: React.FC<NodeManagerModalProps> = ({ onClose }) => {
     } finally {
       setLoading(false);
     }
-  }, []);
+  }, [userId]);
 
   useEffect(() => {
     fetchNodes();

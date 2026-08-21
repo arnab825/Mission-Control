@@ -148,6 +148,7 @@ class LibraryDB:
         search: Optional[str] = None,
         genre: Optional[str] = None,
         node_id: Optional[str] = None,
+        clerk_id: Optional[str] = None,
         store: Optional[str] = None,
         installed_only: bool = False,
         page: int = 1,
@@ -160,13 +161,23 @@ class LibraryDB:
             "search_like": (search or "").lower(),
             "genre": genre or None,
             "node_id": node_id or None,
+            "clerk_id": clerk_id or None,
             "store": store or None,
             "installed_only": installed_only,
             "limit": limit,
             "offset": offset,
         }, fetch="all")
 
-    def get_installations_for_game(self, game_id: str) -> List[Dict]:
+    def get_installations_for_game(self, game_id: str, clerk_id: Optional[str] = None) -> List[Dict]:
+        if clerk_id:
+            sql = """
+                SELECT i.*, n.name AS node_name, n.status AS node_status, n.hostname, n.ip
+                FROM game_installations i
+                JOIN library_nodes n ON n.node_id = i.node_id
+                WHERE i.game_id = %(game_id)s AND n.clerk_id = %(clerk_id)s
+                ORDER BY n.name, i.store
+            """
+            return self.execute(sql, {"game_id": game_id, "clerk_id": clerk_id}, fetch="all")
         sql = """
             SELECT i.*, n.name AS node_name, n.status AS node_status, n.hostname, n.ip
             FROM game_installations i
@@ -193,12 +204,14 @@ class LibraryDB:
         genres: List[str],
         tags: List[str],
         confidence: float,
+        release_date: Optional[str] = None,
     ) -> None:
         sql = """
             UPDATE canonical_games SET
                 primary_genre   = %(primary_genre)s,
                 genres          = %(genres)s,
                 tags            = %(tags)s,
+                release_date    = COALESCE(NULLIF(canonical_games.release_date, ''), %(release_date)s),
                 ai_classified   = TRUE,
                 ai_confidence   = %(confidence)s,
                 updated_at      = NOW()
@@ -210,7 +223,9 @@ class LibraryDB:
             "genres": genres,
             "tags": tags,
             "confidence": confidence,
+            "release_date": release_date,
         })
+
 
     def log_ai_classification(self, log: Dict[str, Any]) -> None:
         sql = """
@@ -228,11 +243,11 @@ class LibraryDB:
         sql = """
             INSERT INTO library_nodes (
                 node_id, name, hostname, ip, platform, status,
-                auth_token_hash, storage_total, storage_used, storage_free,
+                auth_token_hash, clerk_id, auth_provider, storage_total, storage_used, storage_free,
                 scan_paths, last_heartbeat, version, metadata, updated_at
             ) VALUES (
                 %(node_id)s, %(name)s, %(hostname)s, %(ip)s, %(platform)s, %(status)s,
-                %(auth_token_hash)s, %(storage_total)s, %(storage_used)s, %(storage_free)s,
+                %(auth_token_hash)s, %(clerk_id)s, %(auth_provider)s, %(storage_total)s, %(storage_used)s, %(storage_free)s,
                 %(scan_paths)s::jsonb, NOW(), %(version)s, %(metadata)s::jsonb, NOW()
             )
             ON CONFLICT (node_id) DO UPDATE SET
@@ -240,6 +255,8 @@ class LibraryDB:
                 hostname       = EXCLUDED.hostname,
                 ip             = EXCLUDED.ip,
                 status         = EXCLUDED.status,
+                clerk_id       = EXCLUDED.clerk_id,
+                auth_provider  = EXCLUDED.auth_provider,
                 storage_total  = EXCLUDED.storage_total,
                 storage_used   = EXCLUDED.storage_used,
                 storage_free   = EXCLUDED.storage_free,
@@ -257,7 +274,13 @@ class LibraryDB:
             {"node_id": node_id}, fetch="one"
         )
 
-    def get_all_nodes(self) -> List[Dict]:
+    def get_all_nodes(self, clerk_id: Optional[str] = None) -> List[Dict]:
+        if clerk_id:
+            return self.execute(
+                "SELECT * FROM library_nodes WHERE clerk_id = %(clerk_id)s ORDER BY name ASC",
+                {"clerk_id": clerk_id},
+                fetch="all",
+            )
         return self.execute("SELECT * FROM library_nodes ORDER BY name ASC", fetch="all")
 
     def heartbeat(self, node_id: str, storage_total: int, storage_used: int, storage_free: int, ip: str) -> None:
@@ -337,11 +360,9 @@ class LibraryDB:
             {"id": node_id}
         )
 
-    # ── Stats ────────────────────────────────────────────────────────────────
-
-    def get_stats(self) -> Dict[str, Any]:
+    def get_stats(self, clerk_id: Optional[str] = None) -> Dict[str, Any]:
         sql = _load_sql("stats")
-        return self.execute(sql, fetch="one") or {}
+        return self.execute(sql, {"clerk_id": clerk_id}, fetch="one") or {}
 
     # ── Offline Watchdog helper ──────────────────────────────────────────────
 

@@ -1,8 +1,20 @@
 {
-  "version": "3.2.4",
-  "release_date": "2026-08-20",
+  "version": "3.2.5",
+  "release_date": "2026-08-21",
   "update_check_url": "https://raw.githubusercontent.com/arnab825/Mission-Control/main/Gaming/backend/version.json",
   "changelog": [
+    {
+      "version": "3.2.5",
+      "date": "2026-08-21",
+      "title": "Distributed Cluster Architecture & Multi-Tenant User Isolation",
+      "highlights": [
+        "Implemented high-performance distributed cluster architecture with Load Balancer and multi-instance microservices",
+        "Enabled strict multi-tenant library and node isolation per authenticated Clerk ID and OAuth provider",
+        "Backfilled release dates across canonical catalog and removed deprecated database schemas",
+        "Integrated live Docker Compose orchestration with Windows IPv6 network compatibility",
+        "Connected frontend distributed synchronization with automatic server model mapping"
+      ]
+    },
     {
       "version": "3.2.4",
       "date": "2026-08-20",

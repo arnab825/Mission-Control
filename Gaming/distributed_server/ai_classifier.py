@@ -52,7 +52,7 @@ _PROVIDERS = [
         "label": "Groq",
         "base_url": "https://api.groq.com/openai/v1",
         "env_key": "GROQ_API_KEY",
-        "models": ["llama-3.3-70b-versatile", "llama-3.1-8b-instant"],
+        "models": ["qwen-3.6-27b", "llama-3.1-8b-instant"],
     },
     {
         "name": "openrouter",
@@ -79,7 +79,7 @@ GENRE_TAXONOMY = [
 ]
 
 _SYSTEM_PROMPT = f"""You are a precise video game taxonomy expert.
-Given a game title, developer, publisher, raw tags, and summary, classify the game into accurate genres and tags.
+Given a game title, developer, publisher, raw tags, and summary, classify the game into accurate genres and tags and determine its release date/year.
 
 You MUST respond with ONLY a valid JSON object (no markdown, no explanation). Use this exact schema:
 {{
@@ -87,6 +87,7 @@ You MUST respond with ONLY a valid JSON object (no markdown, no explanation). Us
   "genres": ["<genre1>", "<genre2>"],
   "tags": ["<tag1>", "<tag2>", ...],
   "features": ["<tech feature1>", ...],
+  "release_date": "<e.g. 'Oct 24, 2023' or '2023' or null if unknown>",
   "confidence": <float 0.0–1.0>
 }}
 
@@ -98,6 +99,7 @@ Rules:
 - genres may include 1–4 values, including primary_genre.
 - tags should be 4–12 concise gameplay/thematic descriptors (e.g. "Open World", "Dark Fantasy", "Stealth", "Co-op", "Singleplayer", "Rich Story", "Cyberpunk", "Post-Apocalyptic").
 - features should be verified technical capabilities only if clearly applicable (e.g. "DLSS", "Ray Tracing", "DirectX 12", "HDR", "60fps", "VR Support").
+- release_date: the known release date or release year (e.g., "Nov 10, 2020" or "2020"), or null if completely unknown.
 - confidence: your certainty that this classification is correct (0.0 = unsure, 1.0 = certain).
 - If the game is a launcher (Steam, Epic, Xbox), set primary_genre to "LAUNCHER".
 - NEVER use vague tags like "Game", "Video Game", "PC", "Software".
@@ -220,6 +222,7 @@ def classify_game(
                 "genres":         result.get("genres", []),
                 "tags":           result.get("tags", []),
                 "features":       result.get("features", []),
+                "release_date":   result.get("release_date"),
                 "confidence":     float(result.get("confidence", 0.5)),
                 "provider":       provider["name"],
                 "model":          successful_model or (provider.get("models") or [""])[0],
@@ -265,6 +268,7 @@ def classify_batch(
                     genres=result["genres"],
                     tags=result["tags"],
                     confidence=result["confidence"],
+                    release_date=result.get("release_date"),
                 )
                 db.log_ai_classification({
                     "game_id":      game_id,
@@ -285,3 +289,4 @@ def classify_batch(
 
     logger.info("AI Classifier: Classified %d / %d games.", classified, len(games))
     return classified
+

@@ -32,6 +32,8 @@ def main():
     parser.add_argument("--scan", nargs="+", default=None, metavar="PATH", help="Directories to scan for games")
     parser.add_argument("--node-id", default=None, help="Explicit node ID (optional; server will assign if blank)")
     parser.add_argument("--token", default=None, help="Auth token (from first registration)")
+    parser.add_argument("--clerk-id", default=None, help="Clerk User ID for Library Binding")
+    parser.add_argument("--provider", default=None, help="OAuth Provider (e.g. google, discord)")
     args = parser.parse_args()
 
     cfg = NodeConfig()
@@ -46,6 +48,10 @@ def main():
         cfg.node_id = args.node_id
     if args.token:
         cfg.token = args.token
+    if args.clerk_id:
+        cfg.clerk_id = args.clerk_id
+    if args.provider:
+        cfg.auth_provider = args.provider
 
     print(f"\n{'='*55}")
     print(f"  Mission Control — Library Node")

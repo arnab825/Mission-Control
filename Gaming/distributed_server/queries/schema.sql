@@ -42,6 +42,8 @@ CREATE TABLE IF NOT EXISTS library_nodes (
     platform          VARCHAR(32)     NOT NULL DEFAULT 'windows',
     status            VARCHAR(32)     NOT NULL DEFAULT 'offline',
     auth_token_hash   VARCHAR(255)    NOT NULL,
+    clerk_id          VARCHAR(255),
+    auth_provider     VARCHAR(64),
     storage_total     BIGINT          NOT NULL DEFAULT 0,
     storage_used      BIGINT          NOT NULL DEFAULT 0,
     storage_free      BIGINT          NOT NULL DEFAULT 0,
@@ -55,6 +57,7 @@ CREATE TABLE IF NOT EXISTS library_nodes (
 );
 CREATE INDEX IF NOT EXISTS idx_nodes_status           ON library_nodes (status);
 CREATE INDEX IF NOT EXISTS idx_nodes_last_heartbeat   ON library_nodes (last_heartbeat);
+CREATE INDEX IF NOT EXISTS idx_nodes_clerk_id         ON library_nodes (clerk_id);
 
 --  3. Game Installations 
 CREATE TABLE IF NOT EXISTS game_installations (

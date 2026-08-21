@@ -17,13 +17,14 @@ RUN pip install --no-cache-dir -r requirements.txt gunicorn
 COPY queries/ ./queries/
 COPY *.py .
 
-# Expose port
-EXPOSE 8800
+# Expose all cluster ports
+EXPOSE 8800 8811 8812 8821 8822
 
 # Set environment defaults
 ENV PYTHONUNBUFFERED=1
 ENV LIBRARY_SERVER_HOST=0.0.0.0
 ENV LIBRARY_SERVER_PORT=8800
 
-# Start server with Gunicorn (Uvicorn workers) for production scaling
-CMD ["gunicorn", "server:app", "-w", "4", "-k", "uvicorn.workers.UvicornWorker", "--bind", "0.0.0.0:8800"]
+# Default command: launch the full cluster orchestrator
+CMD ["python", "run_cluster.py"]
+

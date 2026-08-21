@@ -93,6 +93,8 @@ class StorageInfo(BaseModel):
 
 class NodeRegisterRequest(BaseModel):
     node_id: Optional[str] = None     # Server may auto-assign if absent
+    clerk_id: Optional[str] = None    # Binds node to user account
+    auth_provider: Optional[str] = None # E.g., 'Google', 'Discord'
     name: str
     hostname: str
     ip: str
@@ -122,6 +124,8 @@ class NodeHeartbeatResponse(BaseModel):
 
 class NodeResponse(BaseModel):
     node_id: str
+    clerk_id: Optional[str] = None
+    auth_provider: Optional[str] = None
     name: str
     hostname: str
     ip: str
