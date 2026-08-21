@@ -37,26 +37,10 @@ sys.path.insert(0, str(Path(__file__).parent))
 try:
     from db import LibraryDB
     from normalizer import normalize_title, title_to_slug, deduplicate_tags
+    from game_harvester import harvest_top_games_from_launchers
 except ImportError as e:
     logger.error("Failed to import database modules: %s. Ensure you are running this from the distributed_server directory.", e)
     sys.exit(1)
-
-
-def fetch_top_games(page: int = 1) -> dict:
-    """Fetch the top 1,000 games by popularity/owners from SteamSpy."""
-    url = f"https://steamspy.com/api.php?request=all&page={page}"
-    logger.info("Fetching top games from SteamSpy (page %d)...", page)
-    
-    req = urllib.request.Request(
-        url, 
-        headers={"User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36"}
-    )
-    try:
-        with urllib.request.urlopen(req, timeout=12) as response:
-            return json.loads(response.read().decode("utf-8", errors="ignore"))
-    except Exception as exc:
-        logger.error("Failed to fetch games list: %s", exc)
-        return {}
 
 
 def main():
@@ -66,13 +50,14 @@ def main():
         logger.error("Database connection failed. Ensure DATABASE_URL is set in your .env file.")
         sys.exit(1)
 
-    # 2. Fetch the top 1,000 games dataset
-    games_dict = fetch_top_games(page=1)
-    if not games_dict:
+    # 2. Harvest top games across Steam, Epic Games, Xbox Game Pass, and GOG Galaxy
+    logger.info("Harvesting top games across Steam, Epic Games Store, Xbox Game Pass, and GOG Galaxy...")
+    games_list = harvest_top_games_from_launchers(limit_per_launcher=100)
+    if not games_list:
         logger.error("No games retrieved. Seeding cancelled.")
         sys.exit(1)
 
-    logger.info("Retrieved %d games. Loading existing catalog to prevent duplicates...", len(games_dict))
+    logger.info("Retrieved %d unique games from launchers. Loading existing catalog to prevent duplicates...", len(games_list))
 
     # 3. Load existing game titles/ids for deduplication
     try:
@@ -84,16 +69,16 @@ def main():
 
     logger.info("Found %d existing games in database.", len(existing_set))
 
-    # 4. Ingest new games
+    # 4. Ingest new games from all platforms
     inserted = 0
     skipped = 0
 
-    for appid_str, g in games_dict.items():
-        title = g.get("name", "").strip()
+    for g in games_list:
+        title = g.get("title", "").strip()
         if not title:
             continue
 
-        slug = title_to_slug(title)
+        slug = g.get("slug") or title_to_slug(title)
         norm = normalize_title(title)
 
         # Skip if already in catalog
@@ -101,32 +86,28 @@ def main():
             skipped += 1
             continue
 
-        # Build official Steam asset links
-        cover_url = f"https://shared.akamai.steamstatic.com/store_item_assets/steam/apps/{appid_str}/header.jpg"
-        banner_url = f"https://shared.akamai.steamstatic.com/store_item_assets/steam/apps/{appid_str}/library_hero.jpg"
-
         game_data = {
             "id":               slug,
             "title":            title,
             "normalized_title": norm,
             "developer":        g.get("developer"),
             "publisher":        g.get("publisher"),
-            "release_date":     None,  # Will be enriched/classified later
-            "primary_genre":    "Action",  # Temporary fallback primary genre
-            "genres":           ["Action"],
-            "tags":             ["Steam"],
-            "features":         [],
+            "release_date":     g.get("release_date"),
+            "primary_genre":    (g.get("genres") or ["Action"])[0],
+            "genres":           g.get("genres") or ["Action"],
+            "tags":             g.get("raw_tags") or [g.get("store", "Steam").capitalize()],
+            "features":         g.get("features") or [],
             "platforms":        ["Windows"],
-            "cover_url":        cover_url,
-            "banner_url":       banner_url,
-            "summary":          f"An acclaimed game developed by {g.get('developer', 'Unknown')} and published by {g.get('publisher', 'Unknown')}.",
+            "cover_url":        g.get("cover_url"),
+            "banner_url":       g.get("banner_url") or g.get("cover_url"),
+            "summary":          g.get("summary") or f"{title} available on PC.",
             "ai_classified":    False,  # Enriched progressively by server background worker
             "ai_confidence":    0.0,
-            "raw_tags":         ["Steam"],
+            "raw_tags":         g.get("raw_tags") or [g.get("store", "Steam").capitalize()],
             "metadata":         json.dumps({
-                "appid": appid_str,
-                "source": "steamspy",
-                "launchers": ["Steam"]
+                "source": g.get("store", "multi"),
+                "storeAppId": g.get("store_app_id"),
+                "launchers": g.get("launchers", [g.get("store", "Steam").capitalize()]),
             })
         }
 
@@ -136,13 +117,13 @@ def main():
             existing_set.add(norm)
             existing_set.add(slug)
             
-            if inserted % 100 == 0:
+            if inserted % 20 == 0:
                 logger.info("Ingested %d games...", inserted)
         except Exception as exc:
             logger.debug("Failed to upsert %s: %s", title, exc)
 
     logger.info("Seeding complete: Ingested %d new games. Skipped %d existing games.", inserted, skipped)
-    logger.info("The server's background worker will progressively refine genres and tags for these games using Gemini Flash.")
+    logger.info("The server's background workers will refine genres and tags using balanced multi-model AI.")
 
 
 if __name__ == "__main__":

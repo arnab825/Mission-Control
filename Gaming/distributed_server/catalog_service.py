@@ -121,14 +121,16 @@ def _enrichment_worker():
                                 rd = details.get("release_date") or "Unknown"
                                 summary = details.get("summary") or g.get("summary")
                                 features = details.get("features") or []
+                                platforms = details.get("platforms") or ["Windows"]
                                 db.enrich_game_metadata(
                                     game_id=game_id,
                                     summary=summary,
                                     features=features,
+                                    platforms=platforms,
                                     release_date=rd,
                                     metadata=meta,
                                 )
-                                logger.info("Enrichment Worker: Enriched metadata for '%s'", g.get("title"))
+                                logger.info("Enrichment Worker: Enriched metadata (platforms=%s) for '%s'", platforms, g.get("title"))
                             else:
                                 db.execute(
                                     "UPDATE canonical_games SET release_date = COALESCE(NULLIF(release_date, ''), 'Unknown'), updated_at = NOW() WHERE id = %(id)s",

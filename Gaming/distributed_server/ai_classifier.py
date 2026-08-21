@@ -14,6 +14,8 @@ Classified metadata is cached permanently in Supabase.
 import json
 import logging
 import os
+import re
+import threading
 import time
 from typing import Any, Dict, List, Optional, Tuple
 
@@ -63,6 +65,29 @@ _PROVIDERS = [
     },
 ]
 
+_provider_lock = threading.Lock()
+_provider_counter = 0
+
+
+def _get_active_providers_ordered() -> List[Dict[str, Any]]:
+    """
+    Return available providers rotated in round-robin order.
+    Ensures load is balanced across Gemini, NVIDIA NIM, Groq, and OpenRouter,
+    while still providing immediate fallback if the chosen provider fails.
+    """
+    global _provider_counter
+    # Select providers whose API keys are configured
+    active = [p for p in _PROVIDERS if os.getenv(p["env_key"], "").strip()]
+    if not active:
+        active = _PROVIDERS
+
+    with _provider_lock:
+        start_idx = _provider_counter % len(active)
+        _provider_counter += 1
+
+    # Rotate order so start_idx is tried first, then subsequent providers
+    return [active[(start_idx + i) % len(active)] for i in range(len(active))]
+
 # ── Canonical genre taxonomy ──────────────────────────────────────────────────
 # The LLM is constrained to choose from this list for primary_genre.
 GENRE_TAXONOMY = [
@@ -72,11 +97,44 @@ GENRE_TAXONOMY = [
     "Metroidvania", "MMO", "MOBA", "Narrative", "Open World",
     "Party Game", "Platformer", "Puzzle", "Racing", "Real-Time Strategy",
     "Rhythm", "Roguelike", "Roguelite", "Role-Playing Game", "Sandbox",
-    "Simulation", "Souls-like", "Sports", "Stealth", "Survival",
+    "Simulation", "Souls-like", "Sports", "Stealth", "Strategy", "Survival",
     "Survival Horror", "Third-Person Shooter", "Tower Defense",
     "Turn-Based Strategy", "Turn-Based Tactics", "Visual Novel",
     "Walking Simulator", "LAUNCHER", "OTHER",
 ]
+
+GENRE_SYNONYMS = {
+    "strategy": "Strategy",
+    "rts": "Real-Time Strategy",
+    "tbs": "Turn-Based Strategy",
+    "fps": "First-Person Shooter",
+    "tps": "Third-Person Shooter",
+    "rpg": "Role-Playing Game",
+    "arpg": "Action RPG",
+    "shooter": "First-Person Shooter",
+    "tactics": "Turn-Based Tactics",
+    "tactical": "Turn-Based Tactics",
+    "tower defence": "Tower Defense",
+    "driving": "Racing",
+}
+
+
+def _clean_and_normalize_genre(raw_genre: Optional[str]) -> str:
+    if not raw_genre:
+        return "OTHER"
+    raw_clean = raw_genre.strip()
+    # 1. Exact match
+    for g in GENRE_TAXONOMY:
+        if raw_clean.lower() == g.lower():
+            return g
+    # 2. Synonym match
+    if raw_clean.lower() in GENRE_SYNONYMS:
+        return GENRE_SYNONYMS[raw_clean.lower()]
+    # 3. Substring match
+    for g in GENRE_TAXONOMY:
+        if g.lower() in raw_clean.lower() or raw_clean.lower() in g.lower():
+            return g
+    return "OTHER"
 
 _SYSTEM_PROMPT = f"""You are a precise video game taxonomy expert.
 Given a game title, developer, publisher, raw tags, and summary, classify the game into accurate genres and tags, extract technical/gameplay features, provide an engaging 1-2 sentence summary, and determine its release date.
@@ -165,13 +223,11 @@ def _call_provider(
             latency_ms = int((time.time() - t0) * 1000)
             content = response.choices[0].message.content.strip()
 
-            # Strip markdown code fences if present
-            if content.startswith("```"):
-                content = content.split("```")[1]
-                if content.startswith("json"):
-                    content = content[4:]
+            # Extract JSON block using robust regex
+            match = re.search(r"\{.*\}", content, re.DOTALL)
+            json_str = match.group(0) if match else content
 
-            data = json.loads(content)
+            data = json.loads(json_str)
             return data, latency_ms, model
 
         except Exception as exc:
@@ -185,15 +241,21 @@ def _call_provider(
 
 
 def _validate_result(data: Dict[str, Any]) -> bool:
-    """Sanity-check the LLM JSON output."""
+    """Sanity-check the LLM JSON output and normalize genre taxonomy."""
     if not isinstance(data, dict):
         return False
-    if data.get("primary_genre") not in GENRE_TAXONOMY:
-        return False
+
+    # Normalize primary genre
+    raw_genre = data.get("primary_genre")
+    norm_genre = _clean_and_normalize_genre(raw_genre)
+    data["primary_genre"] = norm_genre
+
     if not isinstance(data.get("genres"), list):
-        return False
+        data["genres"] = [norm_genre]
     if not isinstance(data.get("tags"), list):
-        return False
+        data["tags"] = []
+    if not isinstance(data.get("features"), list):
+        data["features"] = []
     return True
 
 
@@ -213,7 +275,8 @@ def classify_game(
     """
     user_prompt = _build_user_prompt(title, developer, publisher, raw_tags or [], summary)
 
-    for provider in _PROVIDERS:
+    ordered_providers = _get_active_providers_ordered()
+    for provider in ordered_providers:
         result, latency_ms, successful_model = _call_provider(provider, user_prompt)
         if result and _validate_result(result):
             logger.info(
@@ -238,7 +301,7 @@ def classify_game(
             provider["name"], title
         )
 
-    logger.error("AI Classifier: All providers failed for '%s'.", title)
+    logger.warning("AI Classifier: All providers failed for '%s', using fallback.", title)
     return None
 
 
@@ -290,6 +353,22 @@ def classify_batch(
                 classified += 1
             except Exception as exc:
                 logger.error("AI Classifier: DB update failed for %s: %s", game_id, exc)
+        elif not result and db:
+            # Fallback so the worker does not get stuck in a loop on this game
+            try:
+                db.mark_game_classified(
+                    game_id=game_id,
+                    primary_genre="Action",
+                    genres=["Action"],
+                    tags=game.get("raw_tags", []) or ["Action"],
+                    confidence=0.3,
+                    features=[],
+                    summary=game.get("summary"),
+                    release_date=None,
+                )
+                classified += 1
+            except Exception as exc:
+                logger.error("AI Classifier: Fallback mark failed for %s: %s", game_id, exc)
 
         if delay_between > 0:
             time.sleep(delay_between)
