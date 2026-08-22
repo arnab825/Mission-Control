@@ -28,7 +28,8 @@ logging.basicConfig(level=logging.INFO, format="%(asctime)s [%(name)s] %(levelna
 def main():
     parser = argparse.ArgumentParser(description="Mission Control Distributed Library Server")
     parser.add_argument("--host", default=os.getenv("LIBRARY_SERVER_HOST", "0.0.0.0"))
-    parser.add_argument("--port", type=int, default=int(os.getenv("LIBRARY_SERVER_PORT", "8800")))
+    default_port = int(os.getenv("PORT", os.getenv("LIBRARY_SERVER_PORT", "8800")))
+    parser.add_argument("--port", type=int, default=default_port)
     parser.add_argument("--reload", action="store_true", help="Enable hot reload (dev only)")
     args = parser.parse_args()
 

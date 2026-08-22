@@ -15,6 +15,7 @@ import os
 import sys
 import threading
 import time
+import urllib.request
 import redis
 from contextlib import asynccontextmanager
 from pathlib import Path
@@ -435,15 +436,66 @@ async def classify_game_endpoint(req: ClassifyRequest):
     )
 
 
+class UpstashRestClient:
+    """Lightweight REST client for Upstash Redis (zero dependencies)."""
+    def __init__(self, url: str, token: str):
+        self.url = url.rstrip("/")
+        self.token = token
+        self.headers = {"Authorization": f"Bearer {token}", "Content-Type": "application/json"}
+
+    def ping(self) -> bool:
+        try:
+            req = urllib.request.Request(f"{self.url}/ping", headers=self.headers)
+            with urllib.request.urlopen(req, timeout=3) as resp:
+                data = json.loads(resp.read().decode())
+                return data.get("result") in ["PONG", "OK"] or "result" in data
+        except Exception:
+            return False
+
+    def get(self, key: str) -> Optional[str]:
+        try:
+            cmd = ["GET", key]
+            req = urllib.request.Request(f"{self.url}/", data=json.dumps(cmd).encode("utf-8"), headers=self.headers, method="POST")
+            with urllib.request.urlopen(req, timeout=3) as resp:
+                data = json.loads(resp.read().decode())
+                return data.get("result")
+        except Exception:
+            return None
+
+    def setex(self, key: str, seconds: int, value: str) -> bool:
+        try:
+            cmd = ["SET", key, str(value), "EX", int(seconds)]
+            req = urllib.request.Request(f"{self.url}/", data=json.dumps(cmd).encode("utf-8"), headers=self.headers, method="POST")
+            with urllib.request.urlopen(req, timeout=3) as resp:
+                data = json.loads(resp.read().decode())
+                return data.get("result") == "OK"
+        except Exception:
+            return False
+
+
 _CACHE_TTL = 600  # 10 minutes
 redis_client = None
-if os.getenv("REDIS_URL"):
+
+# 1. Upstash REST
+_upstash_url = os.getenv("UPSTASH_REDIS_REST_URL")
+_upstash_token = os.getenv("UPSTASH_REDIS_REST_TOKEN")
+if _upstash_url and _upstash_token:
+    try:
+        _client = UpstashRestClient(_upstash_url, _upstash_token)
+        if _client.ping():
+            redis_client = _client
+            logger.info("Catalog Service: Connected to Upstash Redis via REST API.")
+    except Exception as exc:
+        logger.warning("Catalog Service: Upstash REST init failed: %s", exc)
+
+# 2. Redis TCP
+if not redis_client and os.getenv("REDIS_URL"):
     try:
         redis_client = redis.Redis.from_url(os.getenv("REDIS_URL"), decode_responses=True)
         redis_client.ping()
-        logger.info("Catalog Service: Connected to Redis cache.")
+        logger.info("Catalog Service: Connected to Redis via TCP socket URL.")
     except Exception as exc:
-        logger.error("Catalog Service: Redis connection failed (%s). Falling back to no cache.", exc)
+        logger.warning("Catalog Service: Redis TCP connection failed (%s). Continuing without cache.", exc)
         redis_client = None
 
 @app.get("/api/search")

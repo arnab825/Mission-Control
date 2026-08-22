@@ -11,8 +11,9 @@ The **Distributed Game Library Cluster** is the central REST API, load balancer,
 4. [Step-by-Step: Running Locally with Python](#-step-by-step-running-locally-with-python)
 5. [Simulating Multiple Nodes & Populating `game_installations`](#-simulating-multiple-nodes--populating-game_installations)
 6. [Environment Configuration (`.env`)](#-environment-configuration-env)
-7. [Cluster Architecture & API Endpoints](#-cluster-architecture--api-endpoints)
-8. [Troubleshooting & Gotchas](#-troubleshooting--gotchas)
+7. [Deploying to Render](#-deploying-to-render-100-free--no-credit-card-required)
+8. [Cluster Architecture & API Endpoints](#-cluster-architecture--api-endpoints)
+9. [Troubleshooting & Gotchas](#-troubleshooting--gotchas)
 
 ---
 
@@ -183,6 +184,57 @@ The node daemons will:
 | `NODE_SERVERS` | Optional | Comma-separated Node pool URLs | `http://127.0.0.1:8821,http://127.0.0.1:8822` |
 | `HEARTBEAT_TIMEOUT` | Optional | Seconds before marking a Node offline | `45` |
 | `AI_CLASSIFY_INTERVAL`| Optional| Background AI classification interval (seconds) | `20` |
+
+---
+
+## 🚀 Deploying to Render (100% Free & No Credit Card Required)
+
+Deploy the central library server as a free Python Web Service on Render:
+
+> [!TIP]
+> **No 30-Day PostgreSQL Limit:** Render's 30-day limit **only** applies if you create a database on Render. Because Mission Control uses **Supabase** (`DATABASE_URL`), your database is permanent, persistent, and never deleted.
+
+### Step-by-Step Render Deployment:
+1. Log into [Render Dashboard](https://dashboard.render.com/) (No credit card needed).
+2. Click **New +** -> **Web Service**.
+3. Select your GitHub repository: `Mission-Control`.
+4. Configure the service settings:
+   - **Name**: `mission-control-server`
+   - **Region**: Closest to you (e.g. Frankfurt, Singapore, Oregon)
+   - **Root Directory**: `Gaming/distributed_server`
+   - **Runtime**: `Python 3`
+   - **Build Command**: `pip install -r requirements.txt`
+   - **Start Command**: `python run_server.py`
+   - **Instance Type**: `Free`
+5. Expand **Advanced** -> Add **Environment Variables**:
+   - `DATABASE_URL`: `postgresql://postgres:YOUR_PASSWORD@db.vekqkwwzzamwhitjodld.supabase.co:5432/postgres` (or pooler)
+   - `UPSTASH_REDIS_REST_URL`: `https://funny-meerkat-131712.upstash.io`
+   - `UPSTASH_REDIS_REST_TOKEN`: `YOUR_UPSTASH_TOKEN`
+   - `GEMINI_API_KEY`: `YOUR_GEMINI_KEY`
+   - `NVIDIA_API_KEY`: `nvapi-YOUR_KEY`
+   - `GROQ_API_KEY` / `OPENROUTER_API_KEY` *(Optional)*
+   - `RAWG_API_KEY` / `TAVILY_API_KEY` *(Optional)*
+6. Set **Health Check Path**: `/health`
+7. Click **Create Web Service**.
+
+Render will deploy your server and provide a public HTTPS URL (e.g. `https://mission-control-server.onrender.com`).
+
+---
+
+### ⏱️ Keep-Alive Setup (Prevent Render Sleep with UptimeRobot)
+
+Render free instances spin down after 15 minutes of inactivity. Keep your API warm 24/7 with zero cold starts:
+
+1. Create a free account on [UptimeRobot](https://uptimerobot.com).
+2. Click **Add New Monitor**.
+3. Configure the monitor:
+   - **Monitor Type**: `HTTP(s)`
+   - **Friendly Name**: `Mission Control Server`
+   - **URL (or IP)**: `https://<your-service-name>.onrender.com/health`
+   - **Monitoring Interval**: `5 minutes`
+4. Click **Create Monitor**.
+
+Your server will now stay active continuously with zero cold starts!
 
 ---
 

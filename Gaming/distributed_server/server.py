@@ -20,6 +20,7 @@ import os
 import secrets
 import threading
 import time
+import urllib.request
 from contextlib import asynccontextmanager
 from typing import Any, Dict, List, Optional
 
@@ -259,10 +260,98 @@ def _require_db() -> None:
     if not db.available:
         raise HTTPException(status_code=503, detail="Database not available.")
 
+# ── Redis Cache Initialization (Upstash REST / Redis TCP) ───────────────────
+class UpstashRestClient:
+    """Lightweight REST client for Upstash Redis (zero dependencies)."""
+    def __init__(self, url: str, token: str):
+        self.url = url.rstrip("/")
+        self.token = token
+        self.headers = {"Authorization": f"Bearer {token}", "Content-Type": "application/json"}
+
+    def ping(self) -> bool:
+        try:
+            req = urllib.request.Request(f"{self.url}/ping", headers=self.headers)
+            with urllib.request.urlopen(req, timeout=3) as resp:
+                data = json.loads(resp.read().decode())
+                return data.get("result") in ["PONG", "OK"] or "result" in data
+        except Exception:
+            return False
+
+    def get(self, key: str) -> Optional[str]:
+        try:
+            cmd = ["GET", key]
+            req = urllib.request.Request(f"{self.url}/", data=json.dumps(cmd).encode("utf-8"), headers=self.headers, method="POST")
+            with urllib.request.urlopen(req, timeout=3) as resp:
+                data = json.loads(resp.read().decode())
+                return data.get("result")
+        except Exception:
+            return None
+
+    def setex(self, key: str, seconds: int, value: str) -> bool:
+        try:
+            cmd = ["SET", key, str(value), "EX", int(seconds)]
+            req = urllib.request.Request(f"{self.url}/", data=json.dumps(cmd).encode("utf-8"), headers=self.headers, method="POST")
+            with urllib.request.urlopen(req, timeout=3) as resp:
+                data = json.loads(resp.read().decode())
+                return data.get("result") == "OK"
+        except Exception:
+            return False
+
+
+redis_client = None
+_CACHE_TTL = 60
+
+# 1. Prefer Upstash REST if configured (fastest & most reliable across serverless/cloud)
+_upstash_url = os.getenv("UPSTASH_REDIS_REST_URL")
+_upstash_token = os.getenv("UPSTASH_REDIS_REST_TOKEN")
+if _upstash_url and _upstash_token:
+    try:
+        _client = UpstashRestClient(_upstash_url, _upstash_token)
+        if _client.ping():
+            redis_client = _client
+            logger.info("Library Server: Connected to Upstash Redis via REST API.")
+    except Exception as exc:
+        logger.warning("Library Server: Upstash REST init failed: %s", exc)
+
+# 2. Fallback to standard REDIS_URL via redis-py if REST is not set
+if not redis_client and os.getenv("REDIS_URL"):
+    try:
+        import redis
+        redis_client = redis.Redis.from_url(os.getenv("REDIS_URL"), decode_responses=True)
+        redis_client.ping()
+        logger.info("Library Server: Connected to Redis via TCP socket URL.")
+    except Exception as exc:
+        logger.warning("Library Server: Redis TCP connection failed (%s). Continuing without cache.", exc)
+        redis_client = None
+
+
+def ping_redis() -> Optional[bool]:
+    if not redis_client:
+        return None
+    try:
+        return bool(redis_client.ping())
+    except Exception:
+        return False
+
+
 # ── Health ────────────────────────────────────────────────────────────────────
 @app.get("/health")
 async def health():
-    return {"status": "ok", "db": db.available}
+    """
+    Health check endpoint:
+    Actively pings Supabase (SELECT 1) and Redis (PING) to keep both services awake,
+    preventing Supabase free tier inactivity pause and keeping cloud containers warm.
+    """
+    db_alive = db.ping()
+    redis_alive = ping_redis()
+    status = "ok" if db_alive else "degraded"
+    
+    return {
+        "status": status,
+        "db": db_alive,
+        "redis": redis_alive if redis_client else "disabled",
+        "timestamp": int(time.time()),
+    }
 
 # ══════════════════════════════════════════════════════════════════════════════
 # NODE ENDPOINTS
@@ -734,6 +823,15 @@ async def get_games(
     if installed_only and not clerk_id and not node_id:
         return {"games": [], "total": 0, "page": page, "limit": limit, "pages": 1}
 
+    cache_key = f"mc:catalog:{page}:{limit}:{search}:{genre}:{node_id}:{clerk_id}:{store}:{installed_only}:{availability}"
+    if redis_client and not installed_only:
+        try:
+            cached_val = redis_client.get(cache_key)
+            if cached_val:
+                return json.loads(cached_val)
+        except Exception as exc:
+            logger.warning("Redis get failed: %s", exc)
+
     rows = db.get_catalog(
         search=search,
         genre=genre,
@@ -776,13 +874,21 @@ async def get_games(
     )
     total = count_row["cnt"] if count_row else len(games)
 
-    return {
+    response_data = {
         "games": games,
         "total": total,
         "page": page,
         "limit": limit,
         "pages": max(1, -(-total // limit)),
     }
+
+    if redis_client and not installed_only:
+        try:
+            redis_client.setex(cache_key, _CACHE_TTL, json.dumps(response_data))
+        except Exception as exc:
+            logger.warning("Redis set failed: %s", exc)
+
+    return response_data
 
 
 @app.get("/api/games/{game_id}")

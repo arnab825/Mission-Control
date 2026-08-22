@@ -88,6 +88,17 @@ class LibraryDB:
             self._connect()
         return self.available
 
+    def ping(self) -> bool:
+        """Pings the database with an active SELECT 1 query to verify health and keep connections/Supabase alive."""
+        if not self._conn:
+            return self._ensure_connected()
+        try:
+            with self._conn.cursor() as cur:
+                cur.execute("SELECT 1")
+            return True
+        except Exception:
+            return self._ensure_connected()
+
     def _ensure_schema(self):
         schema_sql = _load_sql("schema")
         with self._conn.cursor() as cur:
