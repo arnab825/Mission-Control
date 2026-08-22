@@ -1,0 +1,31 @@
+services:
+  - type: web
+    name: mission-control-server
+    runtime: python
+    rootDir: Gaming/distributed_server
+    buildCommand: pip install -r requirements.txt
+    startCommand: python run_server.py
+    healthCheckPath: /health
+    envVars:
+      - key: PYTHON_VERSION
+        value: 3.11.9
+      - key: DATABASE_URL
+        sync: false
+      - key: GEMINI_API_KEY
+        sync: false
+      - key: NVIDIA_API_KEY
+        sync: false
+      - key: GROQ_API_KEY
+        sync: false
+      - key: OPENROUTER_API_KEY
+        sync: false
+      - key: RAWG_API_KEY
+        sync: false
+      - key: TAVILY_API_KEY
+        sync: false
+      - key: REDIS_URL
+        sync: false
+      - key: UPSTASH_REDIS_REST_URL
+        sync: false
+      - key: UPSTASH_REDIS_REST_TOKEN
+        sync: false

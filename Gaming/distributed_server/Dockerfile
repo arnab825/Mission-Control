@@ -17,8 +17,8 @@ RUN pip install --no-cache-dir -r requirements.txt gunicorn
 COPY queries/ ./queries/
 COPY *.py .
 
-# Expose all cluster ports
-EXPOSE 8800 8811 8812 8821 8822
+# Expose standard cloud & cluster ports (8080 for Fly.io, 8000 for standard cloud, 8800+ for cluster)
+EXPOSE 8080 8000 8800 8811 8812 8821 8822
 
 # Set environment defaults
 ENV PYTHONUNBUFFERED=1

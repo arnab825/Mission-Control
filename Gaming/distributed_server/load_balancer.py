@@ -332,7 +332,8 @@ async def proxy_request(request: Request, path: str):
 def main():
     parser = argparse.ArgumentParser(description="Mission Control Multi-Pool Load Balancer")
     parser.add_argument("--host", default="0.0.0.0")
-    parser.add_argument("--port", type=int, default=int(os.getenv("LIBRARY_SERVER_PORT", "8800")))
+    default_port = int(os.getenv("PORT", os.getenv("LIBRARY_SERVER_PORT", "8800")))
+    parser.add_argument("--port", type=int, default=default_port)
     parser.add_argument("--catalog-servers", default=None, help="Comma-separated URLs for Catalog Discovery pool")
     parser.add_argument("--node-servers", default=None, help="Comma-separated URLs for Node Sync pool")
     args = parser.parse_args()
