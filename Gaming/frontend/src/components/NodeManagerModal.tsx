@@ -14,9 +14,7 @@ import {
 } from 'lucide-react';
 import { useAuth } from '@clerk/clerk-react';
 
-const LIBRARY_SERVER_URL = (window as any).__LIBRARY_SERVER_URL__
-  || import.meta.env.VITE_LIBRARY_SERVER_URL
-  || 'http://localhost:8800';
+import { LIBRARY_SERVER_URL } from '../hooks/useDistributedStats';
 
 interface NodeStorage {
   storage_total: number;
