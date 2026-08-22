@@ -59,7 +59,7 @@ class NodeConfig:
 
         self.server_url: str = (
             self._cfg.get("serverUrl")
-            or os.getenv("LIBRARY_SERVER_URL", "http://localhost:8800")
+            or os.getenv("LIBRARY_SERVER_URL", "https://mission-control-server-okj7.onrender.com")
         ).rstrip("/")
         self.node_id: str = self._cfg.get("nodeId") or os.getenv("NODE_ID", "")
         self.node_name: str = (

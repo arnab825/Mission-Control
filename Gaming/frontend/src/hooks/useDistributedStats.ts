@@ -2,7 +2,7 @@ import { useState, useEffect, useCallback } from 'react';
 
 export const LIBRARY_SERVER_URL = (window as any).__LIBRARY_SERVER_URL__
   || (import.meta as any).env?.VITE_LIBRARY_SERVER_URL
-  || 'http://localhost:8800';
+  || 'https://mission-control-server-okj7.onrender.com';
 
 export interface DistributedStats {
   total_master_games: number;
