@@ -1,8 +1,19 @@
 {
-  "version": "3.2.7",
+  "version": "3.2.8",
   "release_date": "2026-08-22",
   "update_check_url": "https://raw.githubusercontent.com/arnab825/Mission-Control/main/Gaming/backend/version.json",
   "changelog": [
+    {
+      "version": "3.2.8",
+      "date": "2026-08-22",
+      "title": "OpenCV Resilience & Pipeline Stability Hardening",
+      "highlights": [
+        "Removed unused cv2 import from capture/screen.py that caused crash on DLL load failure",
+        "Added try/except cv2 import guards in scene_classifier, simple_rules, and trt_inference with graceful NumPy/PIL fallbacks",
+        "Guarded all cv2 window management and frame encoding calls in pipeline_host to prevent AttributeError and NoneType crashes",
+        "Fixed dangling self._render_preview() call in _display_loop that caused AttributeError at runtime"
+      ]
+    },
     {
       "version": "3.2.7",
       "date": "2026-08-22",

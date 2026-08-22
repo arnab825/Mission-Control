@@ -1,4 +1,9 @@
-import cv2
+try:
+    import cv2
+except Exception as _cv2_err:
+    cv2 = None
+    import logging
+    logging.getLogger(__name__).warning(f"OpenCV unavailable in simple_rules: {_cv2_err}")
 import numpy as np
 
 class SimpleDetector:
@@ -25,9 +30,13 @@ class SimpleDetector:
         """
         Analyzes health bar and returns percentage.
         """
+        if cv2 is None or frame is None:
+            return 100.0, False
         h, w = frame.shape[:2]
         r = self.config["health_bar"]["roi"]
         roi_img = frame[int(r[1]*h):int(r[3]*h), int(r[0]*w):int(r[2]*w)]
+        if roi_img.size == 0:
+            return 100.0, False
         
         hsv = cv2.cvtColor(roi_img, cv2.COLOR_BGR2HSV)
         mask = cv2.inRange(hsv, np.array(self.config["health_bar"]["color_low"]), 
@@ -45,6 +54,8 @@ class SimpleDetector:
         """
         Detects enemies based on color and returns bounding boxes.
         """
+        if cv2 is None or frame is None:
+            return []
         hsv = cv2.cvtColor(frame, cv2.COLOR_BGR2HSV)
         mask = cv2.inRange(hsv, np.array(self.config["enemy"]["color_low"]), 
                            np.array(self.config["enemy"]["color_high"]))

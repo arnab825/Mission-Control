@@ -9,7 +9,6 @@ _WindowCaptureBackend uses PrintWindow/BitBlt so games running in the background
 """
 import ctypes
 import numpy as np
-import cv2
 import time
 import threading
 import logging

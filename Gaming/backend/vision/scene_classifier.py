@@ -1,8 +1,9 @@
-"""
-Scene classifier for detecting the current game context.
-Classifies frames into: combat, dialogue, exploration, cutscene, menu, inventory, loading.
-"""
-import cv2
+try:
+    import cv2
+except Exception as _cv2_err:
+    cv2 = None
+    import logging
+    logging.getLogger(__name__).warning(f"OpenCV unavailable in scene_classifier: {_cv2_err}")
 import numpy as np
 import logging
 from collections import deque, Counter
@@ -47,35 +48,59 @@ class SceneClassifier:
 
     def _extract_features(self, frame):
         h, w = frame.shape[:2]
-        gray = cv2.cvtColor(frame, cv2.COLOR_BGR2GRAY)
-        hsv = cv2.cvtColor(frame, cv2.COLOR_BGR2HSV)
         f = {}
-        f["brightness"] = float(np.mean(gray))
-        f["color_variance"] = float(np.std(hsv[:, :, 0]))
-        f["saturation_mean"] = float(np.mean(hsv[:, :, 1]))
-        top = gray[:int(h * self._letterbox_thresh), :]
-        bot = gray[int(h * (1 - self._letterbox_thresh)):, :]
-        f["has_letterbox"] = np.mean(top) < self._dark_thresh and np.mean(bot) < self._dark_thresh
-        edges = cv2.Canny(gray, 50, 150)
-        f["edge_density"] = float(np.count_nonzero(edges) / (h * w))
-        if self._prev_gray is not None and self._prev_gray.shape == gray.shape and self._prev_gray.dtype == gray.dtype:
-            try:
-                f["motion"] = float(np.mean(cv2.absdiff(gray, self._prev_gray)))
-            except Exception as e:
-                logger.error(f"Error in absdiff: {e}")
+        if cv2 is not None:
+            gray = cv2.cvtColor(frame, cv2.COLOR_BGR2GRAY)
+            hsv = cv2.cvtColor(frame, cv2.COLOR_BGR2HSV)
+            f["brightness"] = float(np.mean(gray))
+            f["color_variance"] = float(np.std(hsv[:, :, 0]))
+            f["saturation_mean"] = float(np.mean(hsv[:, :, 1]))
+            top = gray[:int(h * self._letterbox_thresh), :]
+            bot = gray[int(h * (1 - self._letterbox_thresh)):, :]
+            f["has_letterbox"] = np.mean(top) < self._dark_thresh and np.mean(bot) < self._dark_thresh
+            edges = cv2.Canny(gray, 50, 150)
+            f["edge_density"] = float(np.count_nonzero(edges) / (h * w))
+            if self._prev_gray is not None and self._prev_gray.shape == gray.shape and self._prev_gray.dtype == gray.dtype:
+                try:
+                    f["motion"] = float(np.mean(cv2.absdiff(gray, self._prev_gray)))
+                except Exception as e:
+                    logger.error(f"Error in absdiff: {e}")
+                    f["motion"] = 0.0
+            else:
                 f["motion"] = 0.0
+            self._prev_gray = gray.copy()
+            f["is_dark"] = f["brightness"] < self._dark_thresh
+            hk = cv2.getStructuringElement(cv2.MORPH_RECT, (40, 1))
+            vk = cv2.getStructuringElement(cv2.MORPH_RECT, (1, 40))
+            hl = cv2.morphologyEx(edges, cv2.MORPH_OPEN, hk)
+            vl = cv2.morphologyEx(edges, cv2.MORPH_OPEN, vk)
+            f["ui_line_density"] = float((np.count_nonzero(hl) + np.count_nonzero(vl)) / (h * w))
+            cr = gray[int(h*0.6):int(h*0.9), int(w*0.15):int(w*0.85)]
+            f["center_bottom_brightness"] = float(np.mean(cr))
+            f["center_bottom_variance"] = float(np.std(cr))
         else:
-            f["motion"] = 0.0
-        self._prev_gray = gray.copy()
-        f["is_dark"] = f["brightness"] < self._dark_thresh
-        hk = cv2.getStructuringElement(cv2.MORPH_RECT, (40, 1))
-        vk = cv2.getStructuringElement(cv2.MORPH_RECT, (1, 40))
-        hl = cv2.morphologyEx(edges, cv2.MORPH_OPEN, hk)
-        vl = cv2.morphologyEx(edges, cv2.MORPH_OPEN, vk)
-        f["ui_line_density"] = float((np.count_nonzero(hl) + np.count_nonzero(vl)) / (h * w))
-        cr = gray[int(h*0.6):int(h*0.9), int(w*0.15):int(w*0.85)]
-        f["center_bottom_brightness"] = float(np.mean(cr))
-        f["center_bottom_variance"] = float(np.std(cr))
+            # Fallback pure NumPy calculations when OpenCV is unavailable
+            if frame.ndim == 3:
+                gray = np.mean(frame, axis=2).astype(np.uint8)
+            else:
+                gray = frame.astype(np.uint8)
+            f["brightness"] = float(np.mean(gray))
+            f["color_variance"] = float(np.std(frame)) if frame.ndim == 3 else 0.0
+            f["saturation_mean"] = 50.0
+            top = gray[:int(h * self._letterbox_thresh), :]
+            bot = gray[int(h * (1 - self._letterbox_thresh)):, :]
+            f["has_letterbox"] = np.mean(top) < self._dark_thresh and np.mean(bot) < self._dark_thresh
+            f["edge_density"] = 0.05
+            if self._prev_gray is not None and self._prev_gray.shape == gray.shape:
+                f["motion"] = float(np.mean(np.abs(gray.astype(np.int16) - self._prev_gray.astype(np.int16))))
+            else:
+                f["motion"] = 0.0
+            self._prev_gray = gray.copy()
+            f["is_dark"] = f["brightness"] < self._dark_thresh
+            f["ui_line_density"] = 0.0
+            cr = gray[int(h*0.6):int(h*0.9), int(w*0.15):int(w*0.85)]
+            f["center_bottom_brightness"] = float(np.mean(cr)) if cr.size > 0 else f["brightness"]
+            f["center_bottom_variance"] = float(np.std(cr)) if cr.size > 0 else 0.0
         return f
 
     def _score_loading(self, f):

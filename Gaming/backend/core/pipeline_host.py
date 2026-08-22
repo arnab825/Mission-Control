@@ -1555,7 +1555,7 @@ class GamingAssistantPipeline:
                 is_active = self._game_state.get("is_game_active", False)
             
             # 1. Manage the native OpenCV window (Disable when gaming to save resources)
-            if not self.headless and show_preview:
+            if cv2 is not None and not self.headless and show_preview:
                 if is_active:
                     # Automatically close debug window when game is focused to free GPU/CPU
                     try:
@@ -1572,15 +1572,11 @@ class GamingAssistantPipeline:
                     except Exception:
                         cv2.namedWindow("Mission Control", cv2.WINDOW_NORMAL)
 
-            # 2. Grab frame and render (including callback to UI)
-            # Use get_latest_copy but if headless/non-preview, we can be more efficient
-            frame, fid, is_new = self.frame_buffer.get_latest_copy(timeout=0.05)
-            if frame is not None:
-                # _render_preview handles the frame_callback to the Desktop App UI
-                self._render_preview(frame)
+            # 2. Grab frame (no direct preview rendering — bridge handles the UI)
+            self.frame_buffer.get_latest_copy(timeout=0.05)
             
-            # 3. Handle Exit Key
-            if not self.headless:
+            # 3. Handle Exit Key (only when cv2 window is active)
+            if cv2 is not None and not self.headless:
                 # waitKey is required for CV2 window but also for keyboard input
                 key = cv2.waitKey(1) & 0xFF
                 if key == ord('q'):
@@ -1634,13 +1630,15 @@ class GamingAssistantPipeline:
 
         if privacy_shield_active:
             # Black out the frame with privacy warning
-            if frame is not None:
+            if frame is not None and cv2 is not None:
                 h_frame, w_frame = frame.shape[:2]
                 frame.fill(0)  # Modify the frame in-place to black it out completely
                 cv2.putText(frame, "PRIVACY SHIELD ACTIVE", (50, h_frame // 2 - 10),
                             cv2.FONT_HERSHEY_SIMPLEX, 0.7, (0, 0, 255), 2)
                 cv2.putText(frame, "Game is unfocused. Scanning suspended.", (50, h_frame // 2 + 20),
                             cv2.FONT_HERSHEY_SIMPLEX, 0.5, (200, 200, 200), 1)
+            elif frame is not None:
+                frame.fill(0)  # Still black out even without cv2 text
         else:
             # 2. Dynamic Object Detection (YOLO)
             detections = getattr(self, "_last_detections", [])
@@ -1712,7 +1710,7 @@ class GamingAssistantPipeline:
                     
                     # Copy frame for annotation
                     annotated = frame.copy()
-                    if detections:
+                    if detections and cv2 is not None:
                         for d in detections:
                             box = d.get("box")
                             if box and len(box) == 4:
@@ -1728,10 +1726,23 @@ class GamingAssistantPipeline:
                                 cv2.putText(annotated, text, (x1, max(15, y1 - 5)),
                                             cv2.FONT_HERSHEY_SIMPLEX, 0.4, (255, 255, 0), 1, cv2.LINE_AA)
                     
-                    # Resize to beautiful 800x450 (16:9) for premium high-quality visual clarity
-                    small_frame = cv2.resize(annotated, (800, 450), interpolation=cv2.INTER_AREA)
-                    _, buffer = cv2.imencode('.jpg', small_frame, [int(cv2.IMWRITE_JPEG_QUALITY), 85])
-                    img_b64 = base64.b64encode(buffer).decode('utf-8')
+                    if cv2 is not None:
+                        # Resize to beautiful 800x450 (16:9) for premium high-quality visual clarity
+                        small_frame = cv2.resize(annotated, (800, 450), interpolation=cv2.INTER_AREA)
+                        _, buffer = cv2.imencode('.jpg', small_frame, [int(cv2.IMWRITE_JPEG_QUALITY), 85])
+                        img_b64 = base64.b64encode(buffer).decode('utf-8')
+                    else:
+                        # cv2 unavailable: use PIL as fallback for frame encoding
+                        try:
+                            from PIL import Image
+                            import io
+                            pil_img = Image.fromarray(annotated[:, :, ::-1] if annotated.ndim == 3 else annotated)
+                            pil_img = pil_img.resize((800, 450))
+                            buf = io.BytesIO()
+                            pil_img.save(buf, format='JPEG', quality=85)
+                            img_b64 = base64.b64encode(buf.getvalue()).decode('utf-8')
+                        except Exception:
+                            img_b64 = None
                     
                     with self._state_lock:
                         self._game_state["annotated_frame"] = img_b64

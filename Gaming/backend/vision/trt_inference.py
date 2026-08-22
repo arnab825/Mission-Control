@@ -57,7 +57,11 @@ if sys.platform == 'win32':
     else:
         logging.error("TensorRT installation not found. Please set TENSORRT_PATH environment variable.")
 
-import cv2
+try:
+    import cv2
+except Exception as _cv2_err:
+    cv2 = None
+    logging.warning(f"OpenCV unavailable in trt_inference: {_cv2_err}")
 import numpy as np
 import time
 
@@ -169,6 +173,11 @@ class PureTRTDetector:
         if not self.engine:
             return [], {}
             
+        # Guard: cv2 is required for pre/post-processing in TRT detect
+        if cv2 is None:
+            logger.warning("[TRT] OpenCV unavailable — TRT inference skipped.")
+            return [], {}
+
         # 1. PRE-PROCESSING
         pre_start = time.perf_counter()
         input_shape = self.inputs[0]["shape"] # Usually (1, 3, 640, 640)
@@ -239,10 +248,16 @@ class PureTRTDetector:
         for i in range(preds.shape[0]):
             row = preds[i]
             class_scores = row[4:]
-            _, max_score, _, max_idx = cv2.minMaxLoc(class_scores)
+            # Use cv2.minMaxLoc if available, else pure NumPy
+            if cv2 is not None:
+                _, max_score, _, max_idx = cv2.minMaxLoc(class_scores)
+                cls_id = max_idx[1]
+            else:
+                max_score = float(np.max(class_scores))
+                cls_id = int(np.argmax(class_scores))
+                max_idx = (0, cls_id)
             
             if max_score >= conf_threshold:
-                cls_id = max_idx[1]
                 if self.target_classes is None or cls_id in self.target_classes:
                     x, y, w, h = row[0], row[1], row[2], row[3]
                     
@@ -256,8 +271,11 @@ class PureTRTDetector:
                     scores.append(float(max_score))
                     class_ids.append(cls_id)
                     
-        # Apply Non-Maximum Suppression (NMS) via OpenCV (fast C++ implementation)
-        indices = cv2.dnn.NMSBoxes(boxes, scores, conf_threshold, iou_threshold)
+        # Apply Non-Maximum Suppression (NMS) via OpenCV if available, else keep all
+        if cv2 is not None:
+            indices = cv2.dnn.NMSBoxes(boxes, scores, conf_threshold, iou_threshold)
+        else:
+            indices = np.arange(len(boxes))
         
         detections = []
         if len(indices) > 0:
