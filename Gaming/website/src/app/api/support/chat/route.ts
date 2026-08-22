@@ -8,25 +8,19 @@ import path from "path";
 
 // Helper to dynamically load live version metadata and patch changelogs from version.json
 function getDynamicVersionData() {
-  const possiblePaths = [
-    path.join(process.cwd(), "..", "backend", "version.json"),
-    path.join(process.cwd(), "version.json"),
-    path.join(process.cwd(), "public", "version.json"),
-  ];
+  const versionFile = path.join(process.cwd(), "..", "backend", "version.json");
 
-  for (const p of possiblePaths) {
-    if (fs.existsSync(p)) {
-      try {
-        const raw = fs.readFileSync(p, "utf-8");
-        const data = JSON.parse(raw);
-        return {
-          version: data.version || "3.2.2",
-          releaseDate: data.release_date || "2026-08-19",
-          changelog: Array.isArray(data.changelog) ? data.changelog : []
-        };
-      } catch (e) {
-        console.warn("Failed reading version.json:", e);
-      }
+  if (fs.existsSync(versionFile)) {
+    try {
+      const raw = fs.readFileSync(versionFile, "utf-8");
+      const data = JSON.parse(raw);
+      return {
+        version: data.version || "3.2.8",
+        releaseDate: data.release_date || "2026-08-22",
+        changelog: Array.isArray(data.changelog) ? data.changelog : []
+      };
+    } catch (e) {
+      console.warn("Failed reading version.json:", e);
     }
   }
 
