@@ -13,9 +13,7 @@ import {
   X, Search, Sparkles, Check, Loader2, Globe, Flame, Gamepad2
 } from 'lucide-react';
 
-const LIBRARY_SERVER_URL = (window as any).__LIBRARY_SERVER_URL__
-  || import.meta.env.VITE_LIBRARY_SERVER_URL
-  || 'http://localhost:8800';
+import { LIBRARY_SERVER_URL } from '../hooks/useDistributedStats';
 
 interface DiscoverItem {
   id: string;

@@ -1,8 +1,18 @@
 {
-  "version": "3.2.6",
-  "release_date": "2026-08-21",
+  "version": "3.2.7",
+  "release_date": "2026-08-22",
   "update_check_url": "https://raw.githubusercontent.com/arnab825/Mission-Control/main/Gaming/backend/version.json",
   "changelog": [
+    {
+      "version": "3.2.7",
+      "date": "2026-08-22",
+      "title": "Distributed Server Agent and Vision Connection Integration",
+      "highlights": [
+        "Connected Agent and Vision UI pages to the central distributed library server with live node telemetry updates",
+        "Added Library Server online/offline pipeline status badges and stats panel overlays",
+        "Configured backend game scanner to fall back to distributed library server catalog API when direct DB access is unavailable"
+      ]
+    },
     {
       "version": "3.2.6",
       "date": "2026-08-21",

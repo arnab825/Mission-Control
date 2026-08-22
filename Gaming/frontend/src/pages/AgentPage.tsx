@@ -20,11 +20,15 @@ import {
   Menu,
   ThumbsUp,
   ThumbsDown,
-  ChevronDown
+  ChevronDown,
+  Server,
+  HardDrive,
+  Gamepad2
 } from 'lucide-react';
 import type { TelemetryState } from '../types/telemetry';
 import NeuralHistory from '../components/NeuralHistory';
 import { useUser } from '@clerk/clerk-react';
+import { useDistributedStats } from '../hooks/useDistributedStats';
 
 /* ─── Sub-components ─────────────────────────────────────────────── */
 
@@ -56,6 +60,15 @@ const CapabilityCard: React.FC<{ title: string; description: string; icon: any }
     <p className="text-[9px] font-medium text-zinc-600 leading-relaxed pr-4">{description}</p>
   </div>
 );
+
+function formatBytes(bytes: number): string {
+  if (!bytes) return '0 B';
+  const tb = bytes / 1e12;
+  if (tb >= 0.1) return `${tb.toFixed(1)} TB`;
+  const gb = bytes / 1e9;
+  if (gb >= 1) return `${gb.toFixed(1)} GB`;
+  return `${(bytes / 1e6).toFixed(0)} MB`;
+}
 
 const ChatBubble: React.FC<{
   role: 'agent' | 'user';
@@ -599,6 +612,7 @@ const AgentPage: React.FC<{
 }) => {
     const { user, isSignedIn } = useUser();
     const userId = isSignedIn && user ? user.id : 'guest';
+    const { stats: distributedStats, serverOnline: libraryServerOnline } = useDistributedStats(userId);
     const isCompact = isPopup && state?.config?.overlay?.agent_compact === true;
 
     const [input, setInput] = useState('');
@@ -1633,6 +1647,44 @@ const AgentPage: React.FC<{
             </div>
           </div>
 
+          {/* Distributed Library Stats Bar */}
+          {libraryServerOnline && distributedStats && (
+            <motion.div
+              initial={{ opacity: 0, y: -6 }}
+              animate={{ opacity: 1, y: 0 }}
+              className="flex flex-wrap items-center gap-3 px-6 py-2.5 bg-white/[0.02] border-b border-white/[0.04]"
+            >
+              <div className="flex items-center gap-1.5 font-mono">
+                <Gamepad2 className="w-3.5 h-3.5 text-zinc-500" />
+                <span className="text-[10px] font-black text-white">{distributedStats.total_master_games.toLocaleString()}</span>
+                <span className="text-[9px] text-zinc-500 uppercase tracking-widest">Games</span>
+              </div>
+              <div className="w-px h-3 bg-white/10" />
+              <div className="flex items-center gap-1.5 font-mono">
+                <HardDrive className="w-3.5 h-3.5 text-zinc-500" />
+                <span className="text-[10px] font-black text-white">{formatBytes(distributedStats.total_storage_bytes)}</span>
+                <span className="text-[9px] text-zinc-500 uppercase tracking-widest">Storage</span>
+              </div>
+              <div className="w-px h-3 bg-white/10" />
+              <div className="flex items-center gap-1.5 flex-wrap font-mono">
+                <Server className="w-3.5 h-3.5 text-zinc-500" />
+                {distributedStats.nodes.map(n => (
+                  <span
+                    key={n.node_id}
+                    className={`inline-flex items-center gap-1 px-2 py-0.5 rounded-full border text-[9px] font-black uppercase tracking-widest transition-all ${
+                      n.status === 'online'
+                        ? 'bg-emerald-500/10 text-emerald-400 border-emerald-500/25'
+                        : 'bg-red-500/10 text-red-400 border-red-500/20 opacity-60'
+                    }`}
+                  >
+                    <span className={`w-1.5 h-1.5 rounded-full ${ n.status === 'online' ? 'bg-emerald-400 animate-pulse' : 'bg-red-400' }`} />
+                    {n.name}
+                  </span>
+                ))}
+              </div>
+            </motion.div>
+          )}
+
           {/* Chat Messages */}
           <div key={activeSessionId} ref={scrollRef} className={`flex-1 overflow-y-auto ${isCompact ? 'px-2 py-2' : 'px-4 sm:px-8 py-6'} custom-scrollbar`}>
             <div className="max-w-2xl mx-auto">
@@ -1880,6 +1932,7 @@ const AgentPage: React.FC<{
                     <StatusItem label="Bridge" active={true} icon={Zap} />
                     <StatusItem label="IO Hook" active={true} icon={Cpu} />
                     <StatusItem label="Voice" active={isListening} icon={Mic} />
+                    <StatusItem label="Library Server" active={libraryServerOnline} icon={Server} />
                   </div>
                 </div>
 

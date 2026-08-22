@@ -451,6 +451,44 @@ class GameScanner:
             except Exception as exc:
                 logger.warning("Supabase load failed, falling back to SQLite: %s", exc)
 
+        # --- 1b. Try Distributed Library Server ---
+        if not games and self.user_id:
+            library_server_url = os.getenv("LIBRARY_SERVER_URL", "http://localhost:8800").rstrip("/")
+            if library_server_url:
+                try:
+                    import urllib.request
+                    import urllib.parse
+                    url = f"{library_server_url}/api/games?installed_only=true&clerk_id={urllib.parse.quote(self.user_id)}"
+                    req = urllib.request.Request(url, headers={"User-Agent": "MissionControl-Backend/1.0"})
+                    with urllib.request.urlopen(req, timeout=3) as resp:
+                        data = json.loads(resp.read().decode("utf-8"))
+                        if data and "games" in data:
+                            mapped_games = []
+                            for g in data["games"]:
+                                primary_inst = g.get("installations", [{}])[0] if g.get("installations") else {}
+                                mapped_games.append({
+                                    "id": g["id"],
+                                    "name": g["title"],
+                                    "platform": primary_inst.get("store", "PC").upper(),
+                                    "install_path": primary_inst.get("install_path", ""),
+                                    "exe_path": primary_inst.get("exe_path", ""),
+                                    "icon": g.get("coverUrl", ""),
+                                    "features": g.get("features", []),
+                                    "type": "GAME" if primary_inst.get("store") else "JUNK",
+                                    "genre": g.get("primaryGenre", "Action"),
+                                    "tags": g.get("tags", []),
+                                    "source": primary_inst.get("store", "manual"),
+                                    "local_banner": g.get("bannerUrl", "")
+                                })
+                            if mapped_games:
+                                logger.info(
+                                    "Loaded %d games from Distributed Library Server for user %s",
+                                    len(mapped_games), self.user_id
+                                )
+                                games = mapped_games
+                except Exception as exc:
+                    logger.warning("Distributed library server load failed: %s", exc)
+
         # --- 2. Try Local SQLite cache (with E2EE capability) ---
         if not games:
             try:
