@@ -453,7 +453,7 @@ class GameScanner:
 
         # --- 1b. Try Distributed Library Server ---
         if not games and self.user_id:
-            library_server_url = os.getenv("LIBRARY_SERVER_URL", "http://localhost:8800").rstrip("/")
+            library_server_url = os.getenv("LIBRARY_SERVER_URL", "https://mission-control-server-okj7.onrender.com").rstrip("/")
             if library_server_url:
                 try:
                     import urllib.request
