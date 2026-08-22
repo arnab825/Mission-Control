@@ -16,7 +16,7 @@ setInterval(() => {
   }
 }, 5 * 60 * 1000);
 
-export function middleware(request: NextRequest) {
+export function proxy(request: NextRequest) {
   const { pathname } = request.nextUrl;
 
   // 1. Block common malicious scanner probes and vulnerability scanners
@@ -92,6 +92,10 @@ export function middleware(request: NextRequest) {
 
   return response;
 }
+
+// Keep export default and export middleware for backwards compatibility if needed
+export default proxy;
+export const middleware = proxy;
 
 export const config = {
   matcher: [
