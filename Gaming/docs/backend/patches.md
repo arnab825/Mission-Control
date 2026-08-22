@@ -2,6 +2,13 @@
 
 This document contains a detailed history of all patches and updates for the AI Gaming Assistant.
 
+### Patch: 2026-08-22 — v3.2.8: OpenCV Resilience & Pipeline Stability Hardening
+
+- Removed unused `import cv2` from `capture/screen.py` that caused crash on OpenCV DLL load failure
+- Added `try/except` cv2 import guards in `scene_classifier`, `simple_rules`, and `trt_inference` with NumPy/PIL fallbacks
+- Guarded all cv2 window management, `waitKey`, `putText`, and `imencode` calls in `pipeline_host` with `if cv2 is not None` checks
+- Fixed dangling `self._render_preview()` call in `_display_loop` that caused `AttributeError` at runtime
+
 ### Patch: 2026-08-21 — v3.2.6: OpenCV Loader & Supabase Metadata Enrichment Fixes
 
 - Resolved OpenCV cv2 loader missing configuration in PyInstaller packages
