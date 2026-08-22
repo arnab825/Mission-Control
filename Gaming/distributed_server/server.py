@@ -258,6 +258,10 @@ def _require_node_auth(node_id: str, x_node_token: Optional[str]) -> None:
 
 def _require_db() -> None:
     if not db.available:
+        # Attempt a lazy reconnect — handles cases where the startup retry loop
+        # exhausted without success (e.g. Supabase was briefly unavailable on boot)
+        db._ensure_connected()
+    if not db.available:
         raise HTTPException(status_code=503, detail="Database not available.")
 
 # ── Redis Cache Initialization (Upstash REST / Redis TCP) ───────────────────
