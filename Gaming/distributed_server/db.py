@@ -56,13 +56,24 @@ class LibraryDB:
         if not _PSYCOPG2_AVAILABLE or not self._url:
             logger.warning("LibraryDB: psycopg2 or DATABASE_URL not available.")
             return
-        self._connect()
+        # Ensure SSL is enabled for cloud-to-cloud connections (Render -> Supabase)
+        if "sslmode" not in self._url:
+            sep = "&" if "?" in self._url else "?"
+            self._url = f"{self._url}{sep}sslmode=require"
+        # Retry loop: Render cold starts can take 10-30s to establish the first
+        # connection. Without retries, a single 5s timeout silently kills the DB.
+        for attempt in range(1, 4):
+            self._connect()
+            if self.available:
+                break
+            logger.warning("LibraryDB: Startup attempt %d/3 failed, retrying in 5s...", attempt)
+            time.sleep(5)
 
     # ── Connection Management ────────────────────────────────────────────────
 
     def _connect(self):
         try:
-            self._conn = psycopg2.connect(self._url, connect_timeout=5)
+            self._conn = psycopg2.connect(self._url, connect_timeout=15)
             self._conn.autocommit = False
             self._ensure_schema()
             self.available = True
