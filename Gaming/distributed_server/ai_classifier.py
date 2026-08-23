@@ -21,14 +21,14 @@ from typing import Any, Dict, List, Optional, Tuple
 
 from dotenv import load_dotenv
 
-# Load .env from backend / distributed_server
+# Load .env from backend / distributed_server (override=False to preserve cloud env vars)
 for _env_path in [
     os.path.join(os.path.dirname(__file__), ".env"),
     os.path.join(os.path.dirname(__file__), "..", "backend", ".env"),
     os.path.join(os.path.dirname(__file__), "..", ".env"),
 ]:
     if os.path.exists(_env_path):
-        load_dotenv(_env_path, override=True)
+        load_dotenv(_env_path, override=False)
         break
 
 logger = logging.getLogger(__name__)

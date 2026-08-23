@@ -14,13 +14,13 @@ import urllib.parse
 from pathlib import Path
 from dotenv import load_dotenv
 
-# Load environment configuration
+# Load environment configuration (override=False to preserve cloud env vars)
 for _env_path in [
     os.path.join(os.path.dirname(__file__), ".env"),
     os.path.join(os.path.dirname(__file__), "..", "backend", ".env"),
 ]:
     if os.path.exists(_env_path):
-        load_dotenv(_env_path, override=True)
+        load_dotenv(_env_path, override=False)
         break
 
 # Setup logging

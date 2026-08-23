@@ -388,6 +388,10 @@ def update_changes_summary_md(entry, enriched: dict):
             diag = f"```mermaid\n{diag}\n```"
         new_entry += f"\n### 📊 Architecture & Data Flow\n{diag}\n"
 
+    new_entry += f"\n### 📦 Distribution Artifacts\n"
+    new_entry += f"- **Linux**: `.deb` (Debian/Ubuntu), `.AppImage` (Universal), `.rpm` (Fedora/RHEL), `.tar.gz` (Portable)\n"
+    new_entry += f"- **Windows**: `.exe` (Setup Installer), `.msi` (Enterprise), `.zip` (Portable)\n"
+
     # Insert after top title header section (find the first '---')
     first_divider = content.find("\n---")
     if first_divider != -1:

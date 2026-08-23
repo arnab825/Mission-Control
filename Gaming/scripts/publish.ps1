@@ -77,16 +77,28 @@ try {
         python scripts/sync_version.py
 
         # 3. Stage version release files
-        Write-Host "[SYNC] Staging version release files..." -ForegroundColor Cyan
-        git add backend/version.json frontend/package.json website/package.json backend/pyproject.toml docs/backend/patches.md docs/changes_summary.md docs/SUMMARY.md readme.md
-        
+        $isGitRepo = $false
+        try {
+            $gitCheck = git rev-parse --is-inside-work-tree 2>$null
+            if ($LASTEXITCODE -eq 0 -and $gitCheck -eq "true") {
+                $isGitRepo = $true
+            }
+        } catch {}
+
         # 4. Get new version
         $version = (Get-Content backend/version.json | ConvertFrom-Json).version
-        
-        # 5. Commit and Tag
-        Write-Host "[COMMIT] Creating release v${version}" -ForegroundColor Cyan
-        git commit -m "Release v${version}: $Title"
-        git tag -a "v${version}" -m "Release v${version}: $Title"
+
+        if ($isGitRepo) {
+            Write-Host "[SYNC] Staging version release files..." -ForegroundColor Cyan
+            git add backend/version.json frontend/package.json website/package.json backend/pyproject.toml docs/backend/patches.md docs/changes_summary.md docs/SUMMARY.md readme.md 2>$null
+            
+            # 5. Commit and Tag
+            Write-Host "[COMMIT] Creating release v${version}" -ForegroundColor Cyan
+            git commit -m "Release v${version}: $Title"
+            git tag -a "v${version}" -m "Release v${version}: $Title"
+        } else {
+            Write-Host "[NOTE] Not a Git repository; skipping Git staging, commit, and tags." -ForegroundColor Yellow
+        }
         
         # 6. Build PyInstaller Backend Binary
         Write-Host "[BUILD] Building PyInstaller backend..." -ForegroundColor Cyan
@@ -110,7 +122,21 @@ try {
             # Generate release notes markdown for GitHub Releases
             $releaseTitle = "Release v${version}: $cleanTitle"
             $releaseNotesFile = "$PSScriptRoot/../frontend/release-notes.md"
-            $releaseBody = "# $releaseTitle`n`n" + ($Changes | ForEach-Object { "- $_" } | Out-String)
+            $changesFormatted = ($Changes | ForEach-Object { "- $_" }) -join "`n"
+            $releaseBody = @"
+# $releaseTitle
+
+$changesFormatted
+
+### 📦 Available Downloads & Formats
+- **Linux (.deb - Debian / Ubuntu / Mint)**: [MissionControl-Linux-${version}.deb](https://github.com/arnab825/Mission-Control/releases/download/v${version}/MissionControl-Linux-${version}.deb)
+- **Linux (.AppImage - Universal Linux)**: [MissionControl-Linux-${version}.AppImage](https://github.com/arnab825/Mission-Control/releases/download/v${version}/MissionControl-Linux-${version}.AppImage)
+- **Linux (.rpm - Fedora / RHEL / openSUSE)**: [MissionControl-Linux-${version}.rpm](https://github.com/arnab825/Mission-Control/releases/download/v${version}/MissionControl-Linux-${version}.rpm)
+- **Linux (.tar.gz - Standalone Linux Archive)**: [MissionControl-Linux-${version}.tar.gz](https://github.com/arnab825/Mission-Control/releases/download/v${version}/MissionControl-Linux-${version}.tar.gz)
+- **Windows (.exe - Setup Installer)**: [MissionControl-Setup.exe](https://github.com/arnab825/Mission-Control/releases/download/v${version}/MissionControl-Setup.exe)
+- **Windows (.msi - Enterprise Installer)**: [MissionControl-Setup.msi](https://github.com/arnab825/Mission-Control/releases/download/v${version}/MissionControl-Setup.msi)
+- **Windows (.zip - Portable Windows Archive)**: [MissionControl-Windows-${version}.zip](https://github.com/arnab825/Mission-Control/releases/download/v${version}/MissionControl-Windows-${version}.zip)
+"@
             Set-Content -Path $releaseNotesFile -Value $releaseBody -Encoding UTF8
 
             if ($env:GH_TOKEN -or $env:GITHUB_TOKEN) {
@@ -129,31 +155,35 @@ try {
             Pop-Location
         }
 
-        # 6. Push code and tags to GitHub
-        Write-Host "[PUSH] Pushing to main and syncing tags..." -ForegroundColor Cyan
-        $token = if ($env:GH_TOKEN) { $env:GH_TOKEN } else { $env:GITHUB_TOKEN }
-        if ($token) {
-            git push "https://x-access-token:${token}@github.com/arnab825/Mission-Control.git" main --tags
-            
-            # Automatically un-draft the release on GitHub so it becomes public and Latest
-            try {
-                Write-Host "[PUBLISH] Publishing draft release v${version} live on GitHub..." -ForegroundColor Cyan
-                $headers = @{ Authorization = "token ${token}"; Accept = "application/vnd.github.v3+json"; "User-Agent" = "MissionControlPublisher" }
-                $releases = Invoke-RestMethod -Uri "https://api.github.com/repos/arnab825/Mission-Control/releases" -Headers $headers
-                $target = $releases | Where-Object { $_.tag_name -eq "v${version}" -or $_.name -like "*${version}*" }
-                if ($target -and $target.draft) {
-                    $body = @{ draft = $false; name = $releaseTitle } | ConvertTo-Json
-                    Invoke-RestMethod -Uri "https://api.github.com/repos/arnab825/Mission-Control/releases/$($target.id)" -Method Patch -Headers $headers -Body $body -ContentType "application/json" | Out-Null
-                    Write-Host "[SUCCESS] Release v${version} is now LIVE and marked as Latest on GitHub!" -ForegroundColor Green
+        # 7. Push code and tags to GitHub (if in a git repository)
+        if ($isGitRepo) {
+            Write-Host "[PUSH] Pushing to main and syncing tags..." -ForegroundColor Cyan
+            $token = if ($env:GH_TOKEN) { $env:GH_TOKEN } else { $env:GITHUB_TOKEN }
+            if ($token) {
+                git push "https://x-access-token:${token}@github.com/arnab825/Mission-Control.git" main --tags
+                
+                # Automatically un-draft the release on GitHub so it becomes public and Latest
+                try {
+                    Write-Host "[PUBLISH] Publishing draft release v${version} live on GitHub..." -ForegroundColor Cyan
+                    $headers = @{ Authorization = "token ${token}"; Accept = "application/vnd.github.v3+json"; "User-Agent" = "MissionControlPublisher" }
+                    $releases = Invoke-RestMethod -Uri "https://api.github.com/repos/arnab825/Mission-Control/releases" -Headers $headers
+                    $target = $releases | Where-Object { $_.tag_name -eq "v${version}" -or $_.name -like "*${version}*" }
+                    if ($target -and $target.draft) {
+                        $body = @{ draft = $false; name = $releaseTitle } | ConvertTo-Json
+                        Invoke-RestMethod -Uri "https://api.github.com/repos/arnab825/Mission-Control/releases/$($target.id)" -Method Patch -Headers $headers -Body $body -ContentType "application/json" | Out-Null
+                        Write-Host "[SUCCESS] Release v${version} is now LIVE and marked as Latest on GitHub!" -ForegroundColor Green
+                    }
+                } catch {
+                    Write-Host "[WARNING] Release upload complete (manual un-draft on GitHub may be required): $_" -ForegroundColor Yellow
                 }
-            } catch {
-                Write-Host "[WARNING] Release upload complete (manual un-draft on GitHub may be required): $_" -ForegroundColor Yellow
+            } else {
+                git push origin main --tags
             }
         } else {
-            git push origin main --tags
+            Write-Host "[NOTE] Not a Git repository; skipping Git remote push." -ForegroundColor Yellow
         }
         
-        Write-Host "[SUCCESS] Version v${version} is now tagged and live!" -ForegroundColor Green
+        Write-Host "[SUCCESS] Version v${version} is now built and ready!" -ForegroundColor Green
     } else {
         Write-Host "[ERROR] Release failed during version bump." -ForegroundColor Red
     }
