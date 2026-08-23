@@ -23,6 +23,13 @@ from concurrent.futures import ThreadPoolExecutor, as_completed
 from pathlib import Path
 from typing import Any, Dict, List, Optional, Tuple
 
+from dotenv import load_dotenv
+
+# Load local environment if available (without overriding production cloud variables)
+_env_path = Path(__file__).resolve().parent / ".env"
+if _env_path.exists():
+    load_dotenv(_env_path, override=False)
+
 logger = logging.getLogger(__name__)
 
 USER_AGENT = "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36 MissionControl/1.0"
@@ -428,61 +435,42 @@ class RAWGHarvester:
 
 class XboxHarvester:
     @staticmethod
-    def search(query: str, limit: int = 8) -> List[Dict[str, Any]]:
-        """Search Xbox / Microsoft Store PC catalog for titles (including Xbox exclusives)."""
-        encoded_query = urllib.parse.quote(query)
-        url = f"https://storeedgefd.dsx.mp.microsoft.com/v9.0/pages/searchResults?market=US&locale=en-US&query={encoded_query}&deviceFamily=windows.desktop"
-        data = _urlopen_json(url, timeout=7)
-        if not data or not isinstance(data, dict):
-            return []
-
+    def search(query: str, limit: int = 6) -> List[Dict[str, Any]]:
+        """Search Xbox / PC Game Pass catalog for titles (including Xbox exclusives)."""
         results = []
-        # Parse MS Store search payload
-        payload_pages = data.get("payload", {}).get("pages", [])
-        items = []
-        for page in payload_pages:
-            for item in page.get("items", []):
-                if item.get("itemType") == "Product" or "Game" in str(item.get("categories", [])):
-                    items.append(item)
-
-        for item in items[:limit]:
-            title = item.get("title")
-            if not title:
-                continue
-
-            product_id = item.get("productId", "")
-            # Find best cover image
-            cover_url = None
-            images = item.get("images", [])
-            for img in images:
-                purpose = img.get("imagePurpose", "").lower()
-                if "boxart" in purpose or "poster" in purpose or "tile" in purpose:
-                    cover_url = img.get("url")
-                    break
-            if not cover_url and images:
-                cover_url = images[0].get("url")
-            if cover_url and not cover_url.startswith("http"):
-                cover_url = "https:" + cover_url
-
-            developer = item.get("developerName") or item.get("publisherName")
-            publisher = item.get("publisherName")
-            description = _clean_text(item.get("description", ""))
-
-            results.append({
-                "title": title,
-                "slug": _slugify(title),
-                "cover_url": cover_url,
-                "banner_url": cover_url,
-                "developer": developer,
-                "publisher": publisher,
-                "release_date": item.get("releaseDate", "")[:10] if item.get("releaseDate") else None,
-                "raw_tags": ["Xbox", "PC Game Pass", "Microsoft Store"],
-                "genres": ["Action"],
-                "summary": description[:300] if description else f"{title} available on Xbox PC",
-                "store": "xbox",
-                "store_app_id": product_id,
-                "launchers": ["Xbox", "Microsoft Store"],
+        rawg_key = os.getenv("RAWG_API_KEY", "").strip()
+        if rawg_key:
+            # Query RAWG with Xbox One (1) & Xbox Series X (186) platform filters
+            params = urllib.parse.urlencode({
+                "key": rawg_key,
+                "search": query,
+                "parent_platforms": "3",  # 3 is Xbox parent platform in RAWG
+                "page_size": limit,
             })
+            url = f"https://api.rawg.io/api/games?{params}"
+            data = _urlopen_json(url, timeout=5)
+            if data and isinstance(data, dict):
+                for g in data.get("results", []):
+                    name = g.get("name")
+                    if not name:
+                        continue
+                    genres = [gr.get("name") for gr in g.get("genres", []) if gr.get("name")]
+                    tags = [t.get("name") for t in g.get("tags", []) if t.get("name")]
+                    results.append({
+                        "title": name,
+                        "slug": _slugify(name),
+                        "cover_url": g.get("background_image"),
+                        "banner_url": g.get("background_image"),
+                        "developer": None,
+                        "publisher": "Xbox Game Studios",
+                        "release_date": g.get("released"),
+                        "raw_tags": ["Xbox", "PC Game Pass"] + (tags[:6] if tags else genres),
+                        "genres": genres or ["Action"],
+                        "platforms": ["Windows", "Linux", "Xbox"],
+                        "store": "xbox",
+                        "store_app_id": str(g.get("id", "")),
+                        "launchers": ["Xbox", "Xbox App"],
+                    })
         return results
 
     @staticmethod
