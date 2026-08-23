@@ -133,9 +133,24 @@ def main():
         t = threading.Thread(target=stream_logs, args=(proc, tag, COLORS[(idx + 2) % len(COLORS)]), daemon=True)
         t.start()
 
+    # 3. Start Dedicated AI Metadata Enricher & Healer Microservice (:8831)
+    enricher_cmd = [python_exe, str(server_dir / "ai_enricher_service.py"), "--port", "8831"]
+    enricher_proc = subprocess.Popen(
+        enricher_cmd,
+        stdout=subprocess.PIPE,
+        stderr=subprocess.STDOUT,
+        text=True,
+        bufsize=1,
+        cwd=str(server_dir)
+    )
+    enricher_tag = "AI_HEALER:8831"
+    processes.append((enricher_tag, enricher_proc))
+    t = threading.Thread(target=stream_logs, args=(enricher_proc, enricher_tag, "\033[95m"), daemon=True)
+    t.start()
+
     # Allow upstream microservices to bind ports and verify readiness
     print("⏳ Waiting for microservices to initialize and connect to DB...")
-    all_upstreams = catalog_urls + node_urls
+    all_upstreams = catalog_urls + node_urls + ["http://127.0.0.1:8831"]
     for target_url in all_upstreams:
         for _ in range(15):
             try:
