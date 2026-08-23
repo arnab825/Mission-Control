@@ -1,12 +1,14 @@
 import { MetadataRoute } from "next";
+import { getBaseUrl } from "@/lib/siteUrl";
 
 export default function robots(): MetadataRoute.Robots {
+  const baseUrl = getBaseUrl();
   return {
     rules: {
       userAgent: "*",
       allow: "/",
       disallow: ["/api/"],
     },
-    sitemap: "https://mission-control-roan-seven.vercel.app/sitemap.xml",
+    sitemap: `${baseUrl}/sitemap.xml`,
   };
 }

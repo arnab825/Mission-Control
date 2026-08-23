@@ -1,9 +1,10 @@
 import { MetadataRoute } from "next";
 import connectDB from "@/lib/mongodb";
 import GamingPost from "@/models/GamingPost";
+import { getBaseUrl } from "@/lib/siteUrl";
 
 export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
-  const baseUrl = "https://mission-control-roan-seven.vercel.app";
+  const baseUrl = getBaseUrl();
 
   const staticRoutes: MetadataRoute.Sitemap = [
     {
