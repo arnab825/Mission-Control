@@ -1071,6 +1071,13 @@ async def classify_game_endpoint(req: ClassifyRequest):
     )
 
 
+@app.get("/api/agent/diagnostics")
+async def get_agent_diagnostics():
+    """Real-time cluster health diagnostics and self-healing report from the Server Watchdog Agent."""
+    from server_watchdog_agent import watchdog_agent
+    return watchdog_agent.run_diagnostics()
+
+
 @app.get("/api/library/stats")
 async def library_stats(clerk_id: Optional[str] = None):
     """Aggregated metrics: total games, total real storage, node breakdown."""
