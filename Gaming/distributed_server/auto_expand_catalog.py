@@ -68,7 +68,7 @@ def harvest_steam_popular():
                     "developer": dev if dev != "None" else None,
                     "publisher": pub if pub != "None" else None,
                     "store_app_id": str(appid),
-                    "cover_url": f"https://shared.akamai.steamstatic.com/store_item_assets/steam/apps/{appid}/header.jpg",
+                    "cover_url": f"https://shared.akamai.steamstatic.com/store_item_assets/steam/apps/{appid}/library_600x900_2x.jpg",
                     "banner_url": f"https://shared.akamai.steamstatic.com/store_item_assets/steam/apps/{appid}/library_hero.jpg",
                     "raw_tags": ["Steam", "PC"],
                     "store": "steam"
@@ -100,7 +100,7 @@ def harvest_dynamic_live_apis():
                     "developer": item.get("developer") if item.get("developer") != "None" else None,
                     "publisher": item.get("publisher") if item.get("publisher") != "None" else None,
                     "store_app_id": str(appid),
-                    "cover_url": f"https://shared.akamai.steamstatic.com/store_item_assets/steam/apps/{appid}/header.jpg",
+                    "cover_url": f"https://shared.akamai.steamstatic.com/store_item_assets/steam/apps/{appid}/library_600x900_2x.jpg",
                     "banner_url": f"https://shared.akamai.steamstatic.com/store_item_assets/steam/apps/{appid}/library_hero.jpg",
                     "raw_tags": ["Steam", "PC"],
                     "store": "steam"
