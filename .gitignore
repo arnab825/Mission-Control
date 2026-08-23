@@ -14,6 +14,9 @@
 .env.test
 # Allow .env.example — these are safe templates with NO real values
 !.env.example
+node_config.json
+**/node_config.json
+!node_config.example.json
 
 
 # ── Python caches ───────────────────────────────────────────────────
