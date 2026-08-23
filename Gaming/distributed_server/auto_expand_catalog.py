@@ -236,6 +236,7 @@ def main():
             "tags":             g.get("raw_tags") or ["PC"],
             "features":         [],
             "platforms":        g.get("platforms") or ["Windows", "Linux"],
+            "launchers":        g.get("launchers") or [g.get("store", "Steam").title()],
             "cover_url":        g.get("cover_url"),
             "banner_url":       g.get("banner_url"),
             "summary":          None,
