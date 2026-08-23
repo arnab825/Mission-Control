@@ -35,6 +35,40 @@ class DatabaseManager:
             games = db.load_games(user_id)
     """
 
+import re
+import urllib.parse
+
+def _sanitize_db_url(raw_url: str) -> str:
+    if not raw_url:
+        return ""
+    url = raw_url.strip().strip('"').strip("'").strip()
+    url = re.sub(r'[\r\n\t"\']', '', url)
+    if url.startswith("postgres://"):
+        url = "postgresql://" + url[len("postgres://"):]
+    try:
+        parsed = urllib.parse.urlparse(url)
+        params = urllib.parse.parse_qs(parsed.query, keep_blank_values=True)
+        clean_params = {}
+        for k, vals in params.items():
+            clean_k = k.strip().strip('"').strip("'")
+            clean_params[clean_k] = [v.strip().strip('"').strip("'") for v in vals]
+        valid_sslmodes = {"require", "verify-full", "verify-ca", "prefer", "allow", "disable"}
+        if "sslmode" not in clean_params or not clean_params["sslmode"] or clean_params["sslmode"][0] not in valid_sslmodes:
+            clean_params["sslmode"] = ["require"]
+        new_query = urllib.parse.urlencode(clean_params, doseq=True)
+        return urllib.parse.urlunparse(parsed._replace(query=new_query))
+    except Exception:
+        if "sslmode" not in url:
+            sep = "&" if "?" in url else "?"
+            url = f"{url}{sep}sslmode=require"
+        return url
+
+
+class SupabaseDB:
+    """
+    Supabase (PostgreSQL) manager for the primary backend.
+    """
+
     def __init__(self, database_url: Optional[str] = None):
         self._conn = None
         self.available = False
@@ -42,13 +76,15 @@ class DatabaseManager:
         if not _PSYCOPG2_AVAILABLE:
             return
 
-        url = database_url or os.getenv("DATABASE_URL", "")
-        if not url:
+        raw_url = database_url or os.getenv("DATABASE_URL", "")
+        if not raw_url:
             logger.warning(
                 "DATABASE_URL not set. Supabase integration is disabled. "
                 "Add DATABASE_URL to backend/.env to enable cloud persistence."
             )
             return
+
+        url = _sanitize_db_url(raw_url)
 
         import threading
         def _connect():

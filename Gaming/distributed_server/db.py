@@ -43,6 +43,41 @@ def _load_sql(name: str) -> str:
     return (QUERIES_DIR / f"{name}.sql").read_text(encoding="utf-8-sig")
 
 
+import re
+import urllib.parse
+
+def _sanitize_db_url(raw_url: str) -> str:
+    if not raw_url:
+        return ""
+    # Strip any enclosing quotes, spaces, tabs, and Windows CRLF (\r\n)
+    url = raw_url.strip().strip('"').strip("'").strip()
+    url = re.sub(r'[\r\n\t"\']', '', url)
+    if url.startswith("postgres://"):
+        url = "postgresql://" + url[len("postgres://"):]
+    
+    # Parse and clean query parameters
+    try:
+        parsed = urllib.parse.urlparse(url)
+        params = urllib.parse.parse_qs(parsed.query, keep_blank_values=True)
+        clean_params = {}
+        for k, vals in params.items():
+            clean_k = k.strip().strip('"').strip("'")
+            clean_params[clean_k] = [v.strip().strip('"').strip("'") for v in vals]
+        
+        # Ensure sslmode is valid and present
+        valid_sslmodes = {"require", "verify-full", "verify-ca", "prefer", "allow", "disable"}
+        if "sslmode" not in clean_params or not clean_params["sslmode"] or clean_params["sslmode"][0] not in valid_sslmodes:
+            clean_params["sslmode"] = ["require"]
+            
+        new_query = urllib.parse.urlencode(clean_params, doseq=True)
+        return urllib.parse.urlunparse(parsed._replace(query=new_query))
+    except Exception:
+        if "sslmode" not in url:
+            sep = "&" if "?" in url else "?"
+            url = f"{url}{sep}sslmode=require"
+        return url
+
+
 class LibraryDB:
     """
     Thread-safe PostgreSQL connection manager for the distributed library.
@@ -50,21 +85,13 @@ class LibraryDB:
     """
 
     def __init__(self, database_url: Optional[str] = None):
-        self._url = database_url or os.getenv("DATABASE_URL", "")
+        raw_url = database_url or os.getenv("DATABASE_URL", "")
+        self._url = _sanitize_db_url(raw_url)
         self._conn = None
         self.available = False
         if not _PSYCOPG2_AVAILABLE or not self._url:
             logger.warning("LibraryDB: psycopg2 or DATABASE_URL not available.")
             return
-        
-        # Normalize URI scheme if postgres:// is provided (standardize to postgresql://)
-        if self._url.startswith("postgres://"):
-            self._url = "postgresql://" + self._url[len("postgres://"):]
-
-        # Ensure SSL is enabled for cloud-to-cloud connections (Render -> Supabase)
-        if "sslmode" not in self._url:
-            sep = "&" if "?" in self._url else "?"
-            self._url = f"{self._url}{sep}sslmode=require"
 
         # Retry loop: Render cold starts can take 10-30s to establish the first connection
         for attempt in range(1, 4):
