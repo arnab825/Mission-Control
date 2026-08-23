@@ -138,16 +138,14 @@ def _node_row_to_response(row: Dict[str, Any]) -> NodeResponse:
         ip=row["ip"],
         platform=row.get("platform", "windows"),
         status=row.get("status", "offline"),
-        storage={
-            "total": row.get("storage_total", 0),
-            "used": row.get("storage_used", 0),
-            "free": row.get("storage_free", 0),
-        },
-        scan_paths=scan_paths,
-        last_heartbeat=row.get("last_heartbeat"),
-        last_sync=row.get("last_sync"),
+        storage_total=int(row.get("storage_total", 0) or 0),
+        storage_used=int(row.get("storage_used", 0) or 0),
+        storage_free=int(row.get("storage_free", 0) or 0),
+        scan_paths=scan_paths if isinstance(scan_paths, list) else [],
+        last_heartbeat=str(row["last_heartbeat"]) if row.get("last_heartbeat") else None,
+        last_sync=str(row["last_sync"]) if row.get("last_sync") else None,
         version=row.get("version", "1.0.0"),
-        metadata=meta,
+        metadata=meta if isinstance(meta, dict) else {},
     )
 
 

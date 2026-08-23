@@ -391,6 +391,30 @@ class LibraryDB:
         """
         self.execute(sql, node)
 
+        # Sync normalized scan paths into node_scan_paths table
+        raw_paths = node.get("scan_paths")
+        if isinstance(raw_paths, str):
+            try:
+                paths = json.loads(raw_paths)
+            except Exception:
+                paths = []
+        elif isinstance(raw_paths, list):
+            paths = raw_paths
+        else:
+            paths = []
+
+        if paths:
+            try:
+                self.execute("DELETE FROM node_scan_paths WHERE node_id = %(node_id)s", {"node_id": node["node_id"]})
+                for p in paths:
+                    if p:
+                        self.execute(
+                            "INSERT INTO node_scan_paths (node_id, path, enabled) VALUES (%(node_id)s, %(path)s, TRUE)",
+                            {"node_id": node["node_id"], "path": str(p)}
+                        )
+            except Exception as e:
+                logger.warning("Failed to sync node_scan_paths: %s", e)
+
     def get_node(self, node_id: str) -> Optional[Dict]:
         return self.execute(
             "SELECT * FROM library_nodes WHERE node_id = %(node_id)s",
