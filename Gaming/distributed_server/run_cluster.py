@@ -133,8 +133,19 @@ def main():
         t = threading.Thread(target=stream_logs, args=(proc, tag, COLORS[(idx + 2) % len(COLORS)]), daemon=True)
         t.start()
 
-    # Allow upstream microservices to bind ports
-    time.sleep(1.2)
+    # Allow upstream microservices to bind ports and verify readiness
+    print("⏳ Waiting for microservices to initialize and connect to DB...")
+    all_upstreams = catalog_urls + node_urls
+    for target_url in all_upstreams:
+        for _ in range(15):
+            try:
+                import urllib.request
+                req = urllib.request.Request(f"{target_url}/health")
+                with urllib.request.urlopen(req, timeout=1.5) as r:
+                    if r.status == 200:
+                        break
+            except Exception:
+                time.sleep(0.4)
 
     # 3. Start Load Balancer
     lb_cmd = [
