@@ -82,12 +82,18 @@ def harvest_steam_popular():
 
 
 def harvest_dynamic_live_apis():
-    """Dynamically harvest live games across Steam, GOG, Epic Games, and SteamSpy APIs."""
+    """Dynamically harvest thousands of games across SteamSpy genres, Steam Store categories, GOG, and Epic Games."""
     all_games = []
     
-    # 1. SteamSpy Top 100 Charts
-    logger.info("Dynamically querying SteamSpy live charts...")
-    for req in ["top100forever", "top100in2weeks"]:
+    # 1. SteamSpy Top Charts & Genre Feeds
+    logger.info("Dynamically querying SteamSpy live charts & genres...")
+    genres_and_charts = [
+        "top100forever", "top100in2weeks",
+        "genre&genre=Action", "genre&genre=RPG", "genre&genre=Strategy",
+        "genre&genre=Adventure", "genre&genre=Simulation", "genre&genre=Indie",
+        "genre&genre=Massively+Multiplayer", "genre&genre=Racing", "genre&genre=Sports"
+    ]
+    for req in genres_and_charts:
         url = f"https://steamspy.com/api.php?request={req}"
         data = fetch_json(url, timeout=12)
         if data and isinstance(data, dict):
@@ -105,9 +111,9 @@ def harvest_dynamic_live_apis():
                     "raw_tags": ["Steam", "PC"],
                     "store": "steam"
                 })
-        time.sleep(0.5)
+        time.sleep(0.4)
 
-    # 2. Steam Store Featured Categories (Top Sellers, New Releases, Specials)
+    # 2. Steam Store Featured Categories (Top Sellers, New Releases, Specials, Coming Soon)
     logger.info("Dynamically querying Steam Store live featured categories...")
     steam_feat = fetch_json("https://store.steampowered.com/api/featuredcategories/?l=english&cc=US", timeout=10)
     if steam_feat and isinstance(steam_feat, dict):
@@ -122,23 +128,23 @@ def harvest_dynamic_live_apis():
                         "developer": None,
                         "publisher": None,
                         "store_app_id": str(appid),
-                        "cover_url": it.get("large_capsule_image") or it.get("header_image") or f"https://shared.akamai.steamstatic.com/store_item_assets/steam/apps/{appid}/header.jpg",
-                        "banner_url": f"https://shared.akamai.steamstatic.com/store_item_assets/steam/apps/{appid}/header.jpg",
+                        "cover_url": f"https://shared.akamai.steamstatic.com/store_item_assets/steam/apps/{appid}/library_600x900_2x.jpg",
+                        "banner_url": f"https://shared.akamai.steamstatic.com/store_item_assets/steam/apps/{appid}/library_hero.jpg",
                         "raw_tags": ["Steam", cat_key.replace("_", " ").title()],
                         "store": "steam"
                     })
 
-    # 3. GOG Galaxy Live Catalog
-    logger.info("Dynamically querying GOG Galaxy live catalog...")
-    for page in range(1, 5):
+    # 3. GOG Galaxy Deep Live Catalog (Pages 1 to 15 = 720+ Games)
+    logger.info("Dynamically querying GOG Galaxy live catalog (15 pages)...")
+    for page in range(1, 16):
         gog_url = f"https://catalog.gog.com/v1/catalog?limit=48&page={page}&order=desc:bestselling&productType=in:game"
         gog_data = fetch_json(gog_url, timeout=10)
         if gog_data and isinstance(gog_data, dict):
             products = gog_data.get("products", [])
             for p in products:
                 title = p.get("title", "")
-                slug = p.get("slug", "")
-                cover = p.get("coverHorizontal")
+                cover = p.get("coverVertical") or p.get("coverHorizontal")
+                banner = p.get("coverHorizontal") or cover
                 if title:
                     all_games.append({
                         "title": title,
@@ -147,7 +153,7 @@ def harvest_dynamic_live_apis():
                         "release_date": p.get("releaseDate"),
                         "store_app_id": str(p.get("id", "")),
                         "cover_url": cover,
-                        "banner_url": cover,
+                        "banner_url": banner,
                         "raw_tags": [g.get("name", "") for g in p.get("genres", []) if g.get("name")] or ["GOG"],
                         "store": "gog"
                     })
@@ -163,20 +169,27 @@ def harvest_dynamic_live_apis():
             if not title:
                 continue
             images = el.get("keyImages", [])
-            cover = images[0].get("url") if images else None
+            cover = None
+            banner = None
+            for img in images:
+                itype = img.get("type", "").lower()
+                if "tall" in itype or "portrait" in itype or "offerimagetall" in itype:
+                    cover = img.get("url")
+                if "wide" in itype or "hero" in itype or "dieselstorefrontwide" in itype:
+                    banner = img.get("url")
             all_games.append({
                 "title": title,
                 "developer": el.get("seller", {}).get("name"),
                 "publisher": el.get("seller", {}).get("name"),
                 "release_date": el.get("effectiveDate", "")[:10] if el.get("effectiveDate") else None,
                 "store_app_id": el.get("id"),
-                "cover_url": cover,
-                "banner_url": cover,
+                "cover_url": cover or (images[0].get("url") if images else None),
+                "banner_url": banner or (images[0].get("url") if images else None),
                 "raw_tags": ["Epic Games"],
                 "store": "epic"
             })
 
-    logger.info("Dynamic harvest completed: %d total games fetched live from store APIs.", len(all_games))
+    logger.info("Dynamic harvest completed: %d total games fetched live across store APIs.", len(all_games))
     return all_games
 
 
