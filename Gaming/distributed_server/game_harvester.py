@@ -383,7 +383,7 @@ class GOGHarvester:
 class RAWGHarvester:
     @staticmethod
     def search(query: str, rawg_key: Optional[str] = None, limit: int = 5) -> List[Dict[str, Any]]:
-        """Query RAWG.io for game information."""
+        """Query RAWG.io for multi-store game metadata, platforms, and official distribution stores."""
         key = rawg_key or os.getenv("RAWG_API_KEY", "")
         if not key:
             return []
@@ -410,7 +410,35 @@ class RAWGHarvester:
             platforms = []
             if any("pc" in x or "windows" in x for x in raw_plat): platforms.append("Windows")
             if any("linux" in x for x in raw_plat): platforms.append("Linux")
-            if not platforms: platforms = ["Windows"]
+            if any("xbox" in x for x in raw_plat): platforms.append("Xbox")
+            if any("playstation" in x for x in raw_plat): platforms.append("PlayStation")
+            if not platforms: platforms = ["Windows", "Linux"]
+
+            # Extract official distribution stores from RAWG
+            raw_stores = [st.get("store", {}).get("name") for st in g.get("stores", []) if st.get("store")]
+            launchers = []
+            store_type = "web"
+            for st_name in raw_stores:
+                st_lower = st_name.lower()
+                if "steam" in st_lower:
+                    launchers.append("Steam")
+                    store_type = "steam"
+                elif "epic" in st_lower:
+                    launchers.append("Epic Games")
+                    if store_type == "web": store_type = "epic"
+                elif "gog" in st_lower:
+                    launchers.append("GOG Galaxy")
+                    if store_type == "web": store_type = "gog"
+                elif "xbox" in st_lower or "microsoft" in st_lower:
+                    launchers.append("Xbox")
+                    if store_type == "web": store_type = "xbox"
+                elif "playstation" in st_lower:
+                    launchers.append("PlayStation Store")
+                elif "nintendo" in st_lower:
+                    launchers.append("Nintendo eShop")
+
+            if not launchers:
+                launchers = ["Web"]
 
             results.append({
                 "title": name,
@@ -420,13 +448,13 @@ class RAWGHarvester:
                 "developer": None,
                 "publisher": None,
                 "release_date": g.get("released"),
-                "raw_tags": tags[:10] if tags else genres,
-                "genres": genres,
+                "raw_tags": (tags[:10] if tags else genres) + raw_stores,
+                "genres": genres or ["Action"],
                 "platforms": platforms,
                 "summary": f"{name} (Released: {g.get('released', 'Unknown')})",
-                "store": "manual",
+                "store": store_type,
                 "store_app_id": str(g.get("id", "")),
-                "launchers": ["Web"],
+                "launchers": launchers,
             })
         return results
 
@@ -553,6 +581,60 @@ def _detect_release_status(release_date: Optional[str], raw_tags: List[str]) -> 
     return "RELEASED"
 
 
+def _detect_exclusivity(launchers: List[str], publisher: Optional[str], title: str) -> Dict[str, Any]:
+    """
+    Detect whether a title is a store-exclusive, platform-exclusive, or multi-platform.
+    Examples:
+      - Alan Wake 2 -> Epic Games Exclusive
+      - Half-Life: Alyx / Portal -> Steam Exclusive
+      - Forza / Halo / Gears -> Xbox Exclusive / PC Game Pass
+    """
+    clean_launchers = [l for l in launchers if l not in ["Web", "Manual"]]
+    launchers_lower = [x.lower() for x in clean_launchers]
+    pub_lower = (publisher or "").lower()
+    title_lower = title.lower()
+
+    if "epic games" in launchers_lower and "steam" not in launchers_lower:
+        return {
+            "is_exclusive": True,
+            "exclusive_to": "Epic Games Store",
+            "exclusivity_type": "STORE_EXCLUSIVE",
+            "badge": "Epic Games Exclusive",
+        }
+
+    if "steam" in launchers_lower and len(clean_launchers) == 1:
+        return {
+            "is_exclusive": True,
+            "exclusive_to": "Steam",
+            "exclusivity_type": "STORE_EXCLUSIVE",
+            "badge": "Steam Exclusive",
+        }
+
+    if "xbox" in launchers_lower and ("steam" not in launchers_lower and "epic games" not in launchers_lower and "gog galaxy" not in launchers_lower):
+        return {
+            "is_exclusive": True,
+            "exclusive_to": "Xbox / PC Game Pass",
+            "exclusivity_type": "PLATFORM_EXCLUSIVE",
+            "badge": "Xbox Exclusive",
+        }
+
+    if len(clean_launchers) == 1:
+        single = clean_launchers[0]
+        return {
+            "is_exclusive": True,
+            "exclusive_to": single,
+            "exclusivity_type": "STORE_EXCLUSIVE",
+            "badge": f"{single} Exclusive",
+        }
+
+    return {
+        "is_exclusive": False,
+        "exclusive_to": None,
+        "exclusivity_type": "MULTI_STORE",
+        "badge": "Multi-Store",
+    }
+
+
 def _build_store_url(store: str, store_app_id: Optional[str], slug: str) -> Optional[str]:
     """Generate direct store purchase/details link."""
     st = (store or "").lower()
@@ -561,7 +643,7 @@ def _build_store_url(store: str, store_app_id: Optional[str], slug: str) -> Opti
     elif st == "gog":
         return f"https://www.gog.com/game/{slug}"
     elif st == "epic":
-        return f"https://store.epicgames.com/"
+        return f"https://store.epicgames.com/p/{slug}"
     elif st == "xbox":
         return f"https://www.xbox.com/games/store/{slug}/{store_app_id}" if store_app_id else "https://www.xbox.com/games/pc-games"
     return None
@@ -572,8 +654,9 @@ def _build_store_url(store: str, store_app_id: Optional[str], slug: str) -> Opti
 def search_launcher_and_web_games(query: str, limit: int = 15) -> List[Dict[str, Any]]:
     """
     Search across renowned game launchers (Steam, Epic Games Store, Xbox, GOG) and RAWG in parallel.
-    Aggregates cross-store existence (e.g. if a game is available on Steam, Epic, and Xbox simultaneously)
-    and computes release/launch status (RELEASED vs COMING_SOON vs EARLY_ACCESS).
+    Aggregates cross-store existence (e.g. if a game is available on Steam, Epic, and Xbox simultaneously),
+    computes release/launch status (RELEASED vs COMING_SOON vs EARLY_ACCESS),
+    and evaluates storefront exclusivity (e.g. Epic Games Exclusive for Alan Wake 2).
     """
     raw_results_by_slug: Dict[str, Dict[str, Any]] = {}
 
@@ -662,8 +745,15 @@ def search_launcher_and_web_games(query: str, limit: int = 15) -> List[Dict[str,
                     "raw_tags": list(set(item.get("raw_tags", []) + details.get("raw_tags", []))),
                 })
         
-        # Compute release launch status
+        # Compute release launch status & exclusivity
         item["release_status"] = _detect_release_status(item.get("release_date"), item.get("raw_tags", []))
+        
+        excl = _detect_exclusivity(item.get("launchers", []), item.get("publisher"), item.get("title", ""))
+        item["is_exclusive"] = excl["is_exclusive"]
+        item["exclusive_to"] = excl["exclusive_to"]
+        item["exclusivity_type"] = excl["exclusivity_type"]
+        item["exclusivity_badge"] = excl["badge"]
+        
         enriched.append(item)
 
     return enriched
