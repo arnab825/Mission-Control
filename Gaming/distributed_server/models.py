@@ -92,17 +92,20 @@ class StorageInfo(BaseModel):
 
 
 class NodeRegisterRequest(BaseModel):
-    node_id: Optional[str] = None     # Server may auto-assign if absent
-    clerk_id: Optional[str] = None    # Binds node to user account
-    auth_provider: Optional[str] = None # E.g., 'Google', 'Discord'
-    name: str
-    hostname: str
-    ip: str
+    node_id: Optional[str] = Field(default=None, alias="nodeId")     # Server may auto-assign if absent
+    clerk_id: Optional[str] = Field(default=None, alias="clerkId")    # Binds node to user account
+    auth_provider: Optional[str] = Field(default=None, alias="authProvider") # E.g., 'google', 'discord'
+    name: str                                                         # Username or device friendly name
+    hostname: str = ""
+    ip: str = ""
     platform: str = "windows"
     version: str = "1.0.0"
     storage: StorageInfo
-    scan_paths: List[str] = []
-    metadata: Dict[str, Any] = {}
+    scan_paths: List[str] = Field(default_factory=list, alias="scanPaths")
+    metadata: Dict[str, Any] = Field(default_factory=dict)
+
+    class Config:
+        populate_by_name = True
 
 
 class NodeRegisterResponse(BaseModel):
@@ -139,6 +142,9 @@ class NodeResponse(BaseModel):
     last_sync: Optional[str] = None
     version: str
     metadata: Dict[str, Any] = {}
+
+    class Config:
+        populate_by_name = True
 
 
 # ── Sync Models ───────────────────────────────────────────────────────────────
