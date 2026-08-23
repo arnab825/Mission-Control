@@ -148,9 +148,24 @@ def main():
     t = threading.Thread(target=stream_logs, args=(enricher_proc, enricher_tag, "\033[95m"), daemon=True)
     t.start()
 
+    # 4. Start Dedicated Multi-Launcher Enricher Microservice (:8841)
+    launcher_cmd = [python_exe, str(server_dir / "launcher_enricher_service.py"), "--port", "8841"]
+    launcher_proc = subprocess.Popen(
+        launcher_cmd,
+        stdout=subprocess.PIPE,
+        stderr=subprocess.STDOUT,
+        text=True,
+        bufsize=1,
+        cwd=str(server_dir)
+    )
+    launcher_tag = "LAUNCHER_HEALER:8841"
+    processes.append((launcher_tag, launcher_proc))
+    t_l = threading.Thread(target=stream_logs, args=(launcher_proc, launcher_tag, "\033[96m"), daemon=True)
+    t_l.start()
+
     # Allow upstream microservices to bind ports and verify readiness
     print("⏳ Waiting for microservices to initialize and connect to DB...")
-    all_upstreams = catalog_urls + node_urls + ["http://127.0.0.1:8831"]
+    all_upstreams = catalog_urls + node_urls + ["http://127.0.0.1:8831", "http://127.0.0.1:8841"]
     for target_url in all_upstreams:
         for _ in range(15):
             try:
