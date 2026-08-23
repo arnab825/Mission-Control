@@ -14,13 +14,13 @@ import sys
 
 from dotenv import load_dotenv
 
-# Load .env (search common paths)
+# Load .env (search common paths — override=False ensures host/cloud env vars take precedence)
 for _path in [
     os.path.join(os.path.dirname(__file__), ".env"),
     os.path.join(os.path.dirname(__file__), "..", "backend", ".env"),
 ]:
     if os.path.exists(_path):
-        load_dotenv(_path, override=True)
+        load_dotenv(_path, override=False)
         break
 
 logging.basicConfig(level=logging.INFO, format="%(asctime)s [%(name)s] %(levelname)s: %(message)s")

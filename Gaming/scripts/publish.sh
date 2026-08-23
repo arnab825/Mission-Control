@@ -30,14 +30,16 @@ fi
 # 1. Bump version and sync version files
 python3 scripts/bump_version.py --bump patch --title "$TITLE" --changes "$TITLE"
 
-# 2. Stage version release files for commit
-git add backend/version.json frontend/package.json website/package.json backend/pyproject.toml docs/backend/patches.md docs/changes_summary.md readme.md
-
+# 2. Stage version release files for commit (if in a git repository)
 VERSION=$(python3 -c "import json; print(json.load(open('backend/version.json'))['version'])")
-
-echo -e "\033[0;36m[COMMIT] Creating release v${VERSION}\033[0m"
-git commit -m "Release v${VERSION}: $TITLE" || true
-git tag -a "v${VERSION}" -m "Release v${VERSION}: $TITLE" || true
+if git rev-parse --is-inside-work-tree >/dev/null 2>&1; then
+    git add backend/version.json frontend/package.json website/package.json backend/pyproject.toml docs/backend/patches.md docs/changes_summary.md docs/SUMMARY.md readme.md 2>/dev/null || true
+    echo -e "\033[0;36m[COMMIT] Creating release v${VERSION}\033[0m"
+    git commit -m "Release v${VERSION}: $TITLE" || true
+    git tag -a "v${VERSION}" -m "Release v${VERSION}: $TITLE" || true
+else
+    echo -e "\033[0;33m[NOTE] Not a Git repository; skipping Git staging, commit, and tag.\033[0m"
+fi
 
 # 3. Build PyInstaller Backend Binary for Linux
 echo -e "\033[0;36m[BUILD] Packaging Python backend for Linux...\033[0m"
@@ -55,6 +57,15 @@ cat <<EOF > release-notes.md
 # ${RELEASE_TITLE}
 
 - ${TITLE}
+
+### 📦 Available Downloads & Formats
+- **Linux (.deb - Debian / Ubuntu / Mint)**: [MissionControl-Linux-${VERSION}.deb](https://github.com/arnab825/Mission-Control/releases/download/v${VERSION}/MissionControl-Linux-${VERSION}.deb)
+- **Linux (.AppImage - Universal Linux)**: [MissionControl-Linux-${VERSION}.AppImage](https://github.com/arnab825/Mission-Control/releases/download/v${VERSION}/MissionControl-Linux-${VERSION}.AppImage)
+- **Linux (.rpm - Fedora / RHEL / openSUSE)**: [MissionControl-Linux-${VERSION}.rpm](https://github.com/arnab825/Mission-Control/releases/download/v${VERSION}/MissionControl-Linux-${VERSION}.rpm)
+- **Linux (.tar.gz - Standalone Linux Archive)**: [MissionControl-Linux-${VERSION}.tar.gz](https://github.com/arnab825/Mission-Control/releases/download/v${VERSION}/MissionControl-Linux-${VERSION}.tar.gz)
+- **Windows (.exe - Setup Installer)**: [MissionControl-Setup.exe](https://github.com/arnab825/Mission-Control/releases/download/v${VERSION}/MissionControl-Setup.exe)
+- **Windows (.msi - Enterprise Installer)**: [MissionControl-Setup.msi](https://github.com/arnab825/Mission-Control/releases/download/v${VERSION}/MissionControl-Setup.msi)
+- **Windows (.zip - Portable Windows Archive)**: [MissionControl-Windows-${VERSION}.zip](https://github.com/arnab825/Mission-Control/releases/download/v${VERSION}/MissionControl-Windows-${VERSION}.zip)
 EOF
 
 BUILD_TARGET="--linux AppImage deb rpm tar.gz"
@@ -72,15 +83,16 @@ fi
 
 cd ..
 
-# 4. Push code and tags to GitHub
-echo -e "\033[0;36m[PUSH] Pushing code and tags to GitHub...\033[0m"
-TOKEN="${GH_TOKEN:-$GITHUB_TOKEN}"
-if [ -n "$TOKEN" ]; then
-    git push "https://x-access-token:${TOKEN}@github.com/arnab825/Mission-Control.git" main --tags
-    
-    # Automatically un-draft the release on GitHub so it becomes public and Latest
-    echo -e "\033[0;36m[PUBLISH] Publishing draft release v${VERSION} live on GitHub...\033[0m"
-    python3 -c "
+# 5. Push code and tags to GitHub (if in a git repository)
+if git rev-parse --is-inside-work-tree >/dev/null 2>&1; then
+    echo -e "\033[0;36m[PUSH] Pushing code and tags to GitHub...\033[0m"
+    TOKEN="${GH_TOKEN:-$GITHUB_TOKEN}"
+    if [ -n "$TOKEN" ]; then
+        git push "https://x-access-token:${TOKEN}@github.com/arnab825/Mission-Control.git" main --tags || true
+        
+        # Automatically un-draft the release on GitHub so it becomes public and Latest
+        echo -e "\033[0;36m[PUBLISH] Publishing draft release v${VERSION} live on GitHub...\033[0m"
+        python3 -c "
 import urllib.request, json
 try:
     req = urllib.request.Request('https://api.github.com/repos/arnab825/Mission-Control/releases', headers={'Authorization': 'token ${TOKEN}', 'Accept': 'application/vnd.github.v3+json', 'User-Agent': 'MissionControlPublisher'})
@@ -95,8 +107,11 @@ try:
 except Exception as e:
     print(f'[NOTE] Release upload complete: {e}')
 " || true
+    else
+        git push origin main --tags || true
+    fi
 else
-    git push origin main --tags
+    echo -e "\033[0;33m[NOTE] Not a Git repository; skipping Git remote push.\033[0m"
 fi
 
 rm -f "$SCRIPT_DIR/../frontend/release-notes.md" 2>/dev/null || true

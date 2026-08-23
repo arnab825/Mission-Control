@@ -15,14 +15,14 @@ from typing import Any, Dict, List, Optional
 
 from dotenv import load_dotenv
 
-# Load .env (search local, backend, root)
+# Load .env (search local, backend, root) — override=False ensures host/cloud env vars take precedence
 for _env_path in [
     os.path.join(os.path.dirname(__file__), ".env"),
     os.path.join(os.path.dirname(__file__), "..", "backend", ".env"),
     os.path.join(os.path.dirname(__file__), "..", ".env"),
 ]:
     if os.path.exists(_env_path):
-        load_dotenv(_env_path, override=True)
+        load_dotenv(_env_path, override=False)
         break
 
 logger = logging.getLogger(__name__)
@@ -56,12 +56,17 @@ class LibraryDB:
         if not _PSYCOPG2_AVAILABLE or not self._url:
             logger.warning("LibraryDB: psycopg2 or DATABASE_URL not available.")
             return
+        
+        # Normalize URI scheme if postgres:// is provided (standardize to postgresql://)
+        if self._url.startswith("postgres://"):
+            self._url = "postgresql://" + self._url[len("postgres://"):]
+
         # Ensure SSL is enabled for cloud-to-cloud connections (Render -> Supabase)
         if "sslmode" not in self._url:
             sep = "&" if "?" in self._url else "?"
             self._url = f"{self._url}{sep}sslmode=require"
-        # Retry loop: Render cold starts can take 10-30s to establish the first
-        # connection. Without retries, a single 5s timeout silently kills the DB.
+
+        # Retry loop: Render cold starts can take 10-30s to establish the first connection
         for attempt in range(1, 4):
             self._connect()
             if self.available:
@@ -111,11 +116,19 @@ class LibraryDB:
             return self._ensure_connected()
 
     def _ensure_schema(self):
-        schema_sql = _load_sql("schema")
-        with self._conn.cursor() as cur:
-            cur.execute(schema_sql)
-        self._conn.commit()
-        logger.info("LibraryDB: Schema verified/created.")
+        try:
+            schema_sql = _load_sql("schema")
+            with self._conn.cursor() as cur:
+                cur.execute(schema_sql)
+            self._conn.commit()
+            logger.info("LibraryDB: Schema verified/created.")
+        except Exception as exc:
+            if self._conn:
+                try:
+                    self._conn.rollback()
+                except Exception:
+                    pass
+            logger.warning("LibraryDB: Schema setup notice (non-fatal, tables may already exist): %s", exc)
 
     # ── Generic Query Helpers ────────────────────────────────────────────────
 

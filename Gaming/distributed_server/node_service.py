@@ -29,7 +29,7 @@ for _env_path in [
     os.path.join(os.path.dirname(__file__), "..", ".env"),
 ]:
     if os.path.exists(_env_path):
-        load_dotenv(_env_path, override=True)
+        load_dotenv(_env_path, override=False)
         break
 
 from fastapi import FastAPI, HTTPException, Header, Query, Request
