@@ -16,7 +16,6 @@ import sys
 import threading
 import time
 import urllib.request
-import redis
 from contextlib import asynccontextmanager
 from pathlib import Path
 from typing import Any, Dict, List, Optional
@@ -491,6 +490,7 @@ if _upstash_url and _upstash_token:
 # 2. Redis TCP
 if not redis_client and os.getenv("REDIS_URL"):
     try:
+        import redis
         redis_client = redis.Redis.from_url(os.getenv("REDIS_URL"), decode_responses=True)
         redis_client.ping()
         logger.info("Catalog Service: Connected to Redis via TCP socket URL.")
