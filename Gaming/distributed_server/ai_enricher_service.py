@@ -105,7 +105,7 @@ def _autonomous_healer_loop():
     while _RUN_HEALER:
         try:
             if db.available:
-                # Find games with empty features or missing/placeholder summary
+                # Find games with empty features, missing summary, or missing release_date
                 sql = """
                     SELECT id, title, developer, publisher, primary_genre, tags, summary, features, release_date, metadata
                     FROM canonical_games
@@ -116,9 +116,12 @@ def _autonomous_healer_loop():
                         OR summary = ''
                         OR summary = 'EMPTY'
                         OR summary LIKE 'An acclaimed game developed by%%'
+                        OR release_date IS NULL
+                        OR release_date = ''
+                        OR release_date = 'None'
                     )
                     ORDER BY updated_at ASC
-                    LIMIT 12;
+                    LIMIT 15;
                 """
                 batch = db.execute(sql, fetch="all") or []
                 
