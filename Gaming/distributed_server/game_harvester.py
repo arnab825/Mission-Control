@@ -531,15 +531,51 @@ class XboxHarvester:
         return results
 
 
-# ── 6. Unified Web & Launcher Search ─────────────────────────────────────────
+def _detect_release_status(release_date: Optional[str], raw_tags: List[str]) -> str:
+    """Detect whether a game is RELEASED, COMING_SOON, ANNOUNCED, or EARLY_ACCESS."""
+    if any("early access" in str(t).lower() for t in raw_tags):
+        return "EARLY_ACCESS"
+    if not release_date:
+        return "ANNOUNCED"
+    
+    r_str = str(release_date).lower().strip()
+    if any(kw in r_str for kw in ["tba", "coming soon", "announced", "to be announced", "2026", "2027", "2028"]):
+        return "COMING_SOON"
+    
+    try:
+        if len(r_str) >= 4 and r_str[:4].isdigit():
+            year = int(r_str[:4])
+            if year > 2026:
+                return "COMING_SOON"
+    except Exception:
+        pass
+
+    return "RELEASED"
+
+
+def _build_store_url(store: str, store_app_id: Optional[str], slug: str) -> Optional[str]:
+    """Generate direct store purchase/details link."""
+    st = (store or "").lower()
+    if st == "steam" and store_app_id:
+        return f"https://store.steampowered.com/app/{store_app_id}/"
+    elif st == "gog":
+        return f"https://www.gog.com/game/{slug}"
+    elif st == "epic":
+        return f"https://store.epicgames.com/"
+    elif st == "xbox":
+        return f"https://www.xbox.com/games/store/{slug}/{store_app_id}" if store_app_id else "https://www.xbox.com/games/pc-games"
+    return None
+
+
+# ── 6. Unified Web & Launcher Search with Cross-Store Availability ───────────
 
 def search_launcher_and_web_games(query: str, limit: int = 15) -> List[Dict[str, Any]]:
     """
-    Search across renowned game launchers (Steam, Epic Games Store, Xbox, GOG) and RAWG/Web in parallel.
-    Deduplicates results by normalized title / slug.
+    Search across renowned game launchers (Steam, Epic Games Store, Xbox, GOG) and RAWG in parallel.
+    Aggregates cross-store existence (e.g. if a game is available on Steam, Epic, and Xbox simultaneously)
+    and computes release/launch status (RELEASED vs COMING_SOON vs EARLY_ACCESS).
     """
-    results: List[Dict[str, Any]] = []
-    seen_slugs = set()
+    raw_results_by_slug: Dict[str, Dict[str, Any]] = {}
 
     with ThreadPoolExecutor(max_workers=6) as executor:
         steam_future = executor.submit(SteamHarvester.search, query, limit=limit)
@@ -553,28 +589,81 @@ def search_launcher_and_web_games(query: str, limit: int = 15) -> List[Dict[str,
                 items = future.result() or []
                 for item in items:
                     slug = item.get("slug")
-                    if slug and slug not in seen_slugs:
-                        seen_slugs.add(slug)
-                        results.append(item)
+                    if not slug:
+                        continue
+                    
+                    if slug not in raw_results_by_slug:
+                        raw_results_by_slug[slug] = {
+                            "title": item.get("title"),
+                            "slug": slug,
+                            "cover_url": item.get("cover_url"),
+                            "banner_url": item.get("banner_url"),
+                            "developer": item.get("developer"),
+                            "publisher": item.get("publisher"),
+                            "release_date": item.get("release_date"),
+                            "raw_tags": list(item.get("raw_tags") or []),
+                            "genres": list(item.get("genres") or []),
+                            "platforms": list(item.get("platforms") or ["Windows", "Linux"]),
+                            "summary": item.get("summary"),
+                            "store": item.get("store"),
+                            "store_app_id": item.get("store_app_id"),
+                            "launchers": list(item.get("launchers") or [item.get("store", "Steam").title()]),
+                            "store_availability": {},
+                        }
+                    
+                    entry = raw_results_by_slug[slug]
+                    # Merge launchers and availability
+                    curr_store = item.get("store", "steam")
+                    store_url = _build_store_url(curr_store, item.get("store_app_id"), slug)
+                    entry["store_availability"][curr_store] = {
+                        "store": curr_store,
+                        "store_app_id": item.get("store_app_id"),
+                        "url": store_url,
+                        "available": True,
+                    }
+                    
+                    for l in item.get("launchers", []):
+                        if l not in entry["launchers"]:
+                            entry["launchers"].append(l)
+                    for p in item.get("platforms", []):
+                        if p not in entry["platforms"]:
+                            entry["platforms"].append(p)
+                    for t in item.get("raw_tags", []):
+                        if t not in entry["raw_tags"]:
+                            entry["raw_tags"].append(t)
+                    
+                    # Fill missing artwork or details
+                    if not entry.get("cover_url") and item.get("cover_url"):
+                        entry["cover_url"] = item["cover_url"]
+                    if not entry.get("developer") and item.get("developer"):
+                        entry["developer"] = item["developer"]
+                    if not entry.get("publisher") and item.get("publisher"):
+                        entry["publisher"] = item["publisher"]
+                    if not entry.get("release_date") and item.get("release_date"):
+                        entry["release_date"] = item["release_date"]
+
             except Exception as exc:
                 logger.debug("game_harvester: Search task error: %s", exc)
 
-    # For Steam items, enrich with detailed info (developer, publisher, short description) in background
+    results = list(raw_results_by_slug.values())
+
+    # For Steam items, enrich with detailed info (developer, publisher, short description)
     enriched: List[Dict[str, Any]] = []
     for item in results[:limit]:
         if item.get("store") == "steam" and item.get("store_app_id"):
             details = SteamHarvester.get_details(item["store_app_id"])
             if details:
-                # Merge details
                 item.update({
                     "developer": details.get("developer") or item.get("developer"),
                     "publisher": details.get("publisher") or item.get("publisher"),
                     "release_date": details.get("release_date") or item.get("release_date"),
-                    "cover_url": details.get("cover_url") or item.get("cover_url"),
                     "summary": details.get("summary") or item.get("summary"),
                     "genres": details.get("genres") or item.get("genres"),
                     "raw_tags": list(set(item.get("raw_tags", []) + details.get("raw_tags", []))),
                 })
+        
+        # Compute release launch status
+        item["release_status"] = _detect_release_status(item.get("release_date"), item.get("raw_tags", []))
         enriched.append(item)
 
     return enriched
