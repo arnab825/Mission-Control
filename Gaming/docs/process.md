@@ -81,7 +81,7 @@ Whenever you trigger `.\Gaming\scripts\publish.ps1 "Your Update Summary"`, the p
 2. **Mermaid Flowchart Generator**:
    - Automatically generates a dynamic **Mermaid system architecture diagram** (e.g. ````mermaid graph TD ... ````) illustrating the workflow of your changes.
 3. **Real-Time Website Documentation Sync**:
-   - Appends the enriched release entry directly to [Gaming/docs/changes_summary.md](file:///e:/AiAssistant/Gaming/docs/changes_summary.md), which streams into MongoDB and updates the website's `/docs/changes_summary` page in real time.
+   - Appends the enriched release entry directly to [`Gaming/docs/changes_summary.md`](./changes_summary.md), which streams into MongoDB and updates the website's `/docs/changes_summary` page in real time.
 
 ---
 
