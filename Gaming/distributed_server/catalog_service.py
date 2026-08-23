@@ -465,6 +465,13 @@ async def classify_game_endpoint(req: ClassifyRequest):
     )
 
 
+@app.get("/api/agent/diagnostics")
+async def get_agent_diagnostics():
+    """Real-time cluster health diagnostics and self-healing report from the Server Watchdog Agent."""
+    from server_watchdog_agent import watchdog_agent
+    return watchdog_agent.run_diagnostics()
+
+
 class UpstashRestClient:
     """Lightweight REST client for Upstash Redis (zero dependencies)."""
     def __init__(self, url: str, token: str):
