@@ -198,7 +198,20 @@ def _determine_pool(path: str, query_params: Dict[str, str]) -> UpstreamPool:
     return catalog_pool
 
 
-# ── Health & Cluster Status ───────────────────────────────────────────────────
+# ── Root & Cluster Health Status ─────────────────────────────────────────────
+
+@app.get("/")
+@app.head("/")
+async def root():
+    return {
+        "service": "Mission Control Distributed Cluster API Gateway",
+        "version": "2.0.0",
+        "status": "online",
+        "health": "/health",
+        "docs": "/docs",
+        "cluster_status": "/cluster/status",
+    }
+
 
 @app.get("/health")
 async def cluster_health():
