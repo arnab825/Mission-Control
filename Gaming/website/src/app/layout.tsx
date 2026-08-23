@@ -129,39 +129,49 @@ export default function RootLayout({
           dangerouslySetInnerHTML={{
             __html: JSON.stringify({
               "@context": "https://schema.org",
-              "@type": "WebSite",
-              "name": "Mission Control",
-              "url": "https://mission-control-roan-seven.vercel.app",
-              "potentialAction": {
-                "@type": "SearchAction",
-                "target": "https://mission-control-roan-seven.vercel.app/blog?search={search_term_string}",
-                "query-input": "required name=search_term_string"
-              }
-            })
-          }}
-        />
-
-        {/* Software Application Schema */}
-        <script
-          type="application/ld+json"
-          dangerouslySetInnerHTML={{
-            __html: JSON.stringify({
-              "@context": "https://schema.org",
-              "@type": "SoftwareApplication",
-              "name": "Mission Control",
-              "operatingSystem": "Windows 10, Windows 11",
-              "applicationCategory": "GameApplication, UtilityApplication",
-              "offers": {
-                "@type": "Offer",
-                "price": "0.00",
-                "priceCurrency": "USD"
-              },
-              "description": "An advanced AI-powered gaming assistant, overlay, and hardware diagnostic telemetry tool designed to optimize frame rates, cooling profiles, and apply community-sourced telemetry patches.",
-              "featureList": [
-                "Real-time DirectX HUD overlay",
-                "AI Agentic Auto-Play Co-pilot",
-                "Physical WMI and NVML GPU/CPU telemetry logging",
-                "Community-voted hardware conflict and hotfix repository"
+              "@graph": [
+                {
+                  "@type": "WebSite",
+                  "@id": `${BASE_SITE_URL}/#website`,
+                  "name": "Mission Control Gaming",
+                  "alternateName": ["Mission Control AI", "Mission Control", "MissionControl GG"],
+                  "url": BASE_SITE_URL,
+                  "potentialAction": {
+                    "@type": "SearchAction",
+                    "target": `${BASE_SITE_URL}/blog?search={search_term_string}`,
+                    "query-input": "required name=search_term_string"
+                  }
+                },
+                {
+                  "@type": "Organization",
+                  "@id": `${BASE_SITE_URL}/#organization`,
+                  "name": "Mission Control Gaming",
+                  "url": BASE_SITE_URL,
+                  "logo": `${BASE_SITE_URL}/logo.png`,
+                  "description": "Autonomous AI gaming telemetry, DirectX HUD overlay, and real-time PC performance assistant.",
+                  "sameAs": [
+                    "https://github.com/arnab825/Mission-Control"
+                  ]
+                },
+                {
+                  "@type": "SoftwareApplication",
+                  "@id": `${BASE_SITE_URL}/#software`,
+                  "name": "Mission Control Gaming AI",
+                  "operatingSystem": "Windows 10, Windows 11, Linux",
+                  "applicationCategory": "GameApplication, UtilityApplication",
+                  "offers": {
+                    "@type": "Offer",
+                    "price": "0.00",
+                    "priceCurrency": "USD"
+                  },
+                  "description": "Autonomous AI gaming assistant, DirectX 12 telemetry overlay, and hardware diagnostic optimizer.",
+                  "featureList": [
+                    "Real-time DirectX HUD overlay",
+                    "AI Agentic Auto-Play Co-pilot",
+                    "Physical WMI and NVML GPU/CPU telemetry logging",
+                    "Community-voted hardware conflict and hotfix repository"
+                  ]
+                }
               ]
             })
           }}
