@@ -197,6 +197,7 @@ class LibraryDB:
             "tags":             game.get("tags") or ["PC"],
             "features":         game.get("features") or [],
             "platforms":        game.get("platforms") or ["Windows", "Linux"],
+            "launchers":        game.get("launchers") or ["Steam"],
             "cover_url":        game.get("cover_url"),
             "banner_url":       game.get("banner_url"),
             "summary":          game.get("summary"),
