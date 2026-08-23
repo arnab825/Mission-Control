@@ -185,8 +185,28 @@ class LibraryDB:
     # ── Canonical Games ──────────────────────────────────────────────────────
 
     def upsert_game(self, game: Dict[str, Any]) -> None:
+        payload = {
+            "id":               game.get("id"),
+            "title":            game.get("title"),
+            "normalized_title": game.get("normalized_title"),
+            "developer":        game.get("developer"),
+            "publisher":        game.get("publisher"),
+            "release_date":     game.get("release_date"),
+            "primary_genre":    game.get("primary_genre") or "Action",
+            "genres":           game.get("genres") or ["Action"],
+            "tags":             game.get("tags") or ["PC"],
+            "features":         game.get("features") or [],
+            "platforms":        game.get("platforms") or ["Windows"],
+            "cover_url":        game.get("cover_url"),
+            "banner_url":       game.get("banner_url"),
+            "summary":          game.get("summary"),
+            "ai_classified":    bool(game.get("ai_classified", False)),
+            "ai_confidence":    float(game.get("ai_confidence", 0.0) or 0.0),
+            "raw_tags":         game.get("raw_tags") or game.get("tags") or [],
+            "metadata":         json.dumps(game.get("metadata", {})) if isinstance(game.get("metadata"), dict) else (game.get("metadata") or "{}"),
+        }
         sql = _load_sql("upsert_game")
-        self.execute(sql, game)
+        self.execute(sql, payload)
 
     def upsert_games_bulk(self, games: List[Dict[str, Any]]) -> int:
         sql = _load_sql("upsert_game")
