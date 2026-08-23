@@ -33,19 +33,20 @@ export const viewport: Viewport = {
 export const metadata: Metadata = {
   metadataBase: new URL(BASE_SITE_URL),
   title: {
-    default: "Mission Control — Autonomous AI Gaming Assistant & Telemetry Overlay",
-    template: "%s | Mission Control"
+    default: "Mission Control Gaming AI — Autonomous Assistant & Telemetry Overlay",
+    template: "%s | Mission Control Gaming AI"
   },
-  description: "Mission Control is an advanced agentic AI gaming overlay, telemetry control dashboard, and technical coach. Optimize GPU performance, frame rates, and telemetry hotfixes.",
+  description: "Mission Control Gaming AI is an autonomous PC gaming assistant, real-time DirectX telemetry overlay, and GPU optimization dashboard powered by NVIDIA NIM.",
   keywords: [
     "mission control gaming ai",
     "mission control gaming",
     "mission control ai",
     "mission control",
-    "gaming overlay",
     "Mission Control Gaming AI",
     "Mission Control Gaming",
     "Mission Control AI",
+    "gaming overlay",
+    "AI Gaming Assistant",
     "Mission Control App",
     "Mission Control Overlay",
     "Mission Control Vercel",
