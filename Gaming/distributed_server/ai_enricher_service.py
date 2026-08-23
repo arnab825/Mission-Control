@@ -87,18 +87,21 @@ def generate_ai_features_and_summary(
 
 # ── Continuous Healer Background Worker ──────────────────────────────────────
 
-_HEALER_INTERVAL = 15  # seconds
+_BASE_HEALER_INTERVAL = 15     # Base interval in seconds
+_MAX_HEALER_INTERVAL = 120    # Max backoff interval when idle (2 minutes)
 _RUN_HEALER = True
 _PROCESSED_HEAL_IDS = set()
 
 def _autonomous_healer_loop():
     """
     Dedicated background worker that heals and completes all games in canonical_games
-    with zero token waste and intelligent store-first caching.
+    with zero token waste, intelligent store-first caching, and adaptive exponential backoff.
     """
     time.sleep(3)
-    logger.info("AI Healer Service: Active with Zero-Token SteamStore priority & Multi-LLM failover...")
+    logger.info("AI Healer Service: Active with Zero-Token SteamStore priority, Multi-LLM failover, and Adaptive Backoff...")
     
+    current_interval = _BASE_HEALER_INTERVAL
+
     while _RUN_HEALER:
         try:
             if db.available:
@@ -123,7 +126,10 @@ def _autonomous_healer_loop():
                 unprocessed = [g for g in batch if g["id"] not in _PROCESSED_HEAL_IDS]
                 
                 if unprocessed:
+                    # Reset backoff interval immediately when work is found
+                    current_interval = _BASE_HEALER_INTERVAL
                     logger.info("AI Healer: Found %d games needing metadata repair. Enriching...", len(unprocessed))
+                    
                     for g in unprocessed:
                         game_id = g["id"]
                         _PROCESSED_HEAL_IDS.add(game_id)
@@ -186,10 +192,16 @@ def _autonomous_healer_loop():
                         )
                         logger.info("AI Healer: Fixed & permanently cached '%s' (%s)", title, game_id)
                         time.sleep(0.4)
+                else:
+                    # Exponential backoff when catalog is fully healthy and healed
+                    logger.debug("AI Healer: All catalog records healthy. Backing off for %ds...", current_interval)
+                    current_interval = min(current_interval * 2, _MAX_HEALER_INTERVAL)
+
         except Exception as exc:
             logger.error("AI Healer loop error: %s", exc)
+            current_interval = min(current_interval * 2, _MAX_HEALER_INTERVAL)
         
-        time.sleep(_HEALER_INTERVAL)
+        time.sleep(current_interval)
 
 
 # ── FastAPI Endpoints ────────────────────────────────────────────────────────
