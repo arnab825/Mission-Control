@@ -235,7 +235,7 @@ def main():
             "genres":           g.get("genres") or ["Action"],
             "tags":             g.get("raw_tags") or ["PC"],
             "features":         [],
-            "platforms":        ["Windows"],
+            "platforms":        g.get("platforms") or ["Windows", "Linux"],
             "cover_url":        g.get("cover_url"),
             "banner_url":       g.get("banner_url"),
             "summary":          None,

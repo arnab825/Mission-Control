@@ -196,7 +196,7 @@ class LibraryDB:
             "genres":           game.get("genres") or ["Action"],
             "tags":             game.get("tags") or ["PC"],
             "features":         game.get("features") or [],
-            "platforms":        game.get("platforms") or ["Windows"],
+            "platforms":        game.get("platforms") or ["Windows", "Linux"],
             "cover_url":        game.get("cover_url"),
             "banner_url":       game.get("banner_url"),
             "summary":          game.get("summary"),
