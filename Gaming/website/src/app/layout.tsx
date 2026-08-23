@@ -6,6 +6,7 @@ import { GoogleAdSenseScript } from "@/components/GoogleAdSense";
 import { GoogleAnalyticsScript } from "@/components/GoogleAnalytics";
 import { Analytics } from "@vercel/analytics/react";
 import { SpeedInsights } from "@vercel/speed-insights/next";
+import { BASE_SITE_URL } from "@/lib/siteUrl";
 
 const inter = Inter({
   variable: "--font-inter",
@@ -30,7 +31,7 @@ export const viewport: Viewport = {
 };
 
 export const metadata: Metadata = {
-  metadataBase: new URL("https://mission-control-roan-seven.vercel.app"),
+  metadataBase: new URL(BASE_SITE_URL),
   title: {
     default: "Mission Control — Autonomous AI Gaming Assistant & Telemetry Overlay",
     template: "%s | Mission Control"

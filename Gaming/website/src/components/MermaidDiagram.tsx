@@ -11,13 +11,22 @@ function sanitizeMermaidChart(raw: string): string {
   if (!raw) return "graph TD\n  A[Empty] --> B[Diagram]";
   let clean = raw.trim();
 
-  // 1. Fix malformed arrow links with trailing > e.g. -->|label|> to -->|label|
-  clean = clean.replace(/-->\s*\|([^|]+)\|\s*>/g, "-->|$1|");
+  // 1. Decode basic HTML entities
+  clean = clean
+    .replace(/&amp;/g, "&")
+    .replace(/&lt;/g, "<")
+    .replace(/&gt;/g, ">")
+    .replace(/&quot;/g, '"')
+    .replace(/&#039;/g, "'")
+    .replace(/&apos;/g, "'");
 
-  // 2. Fix unquoted bracket labels containing parentheses or special characters e.g. [Label (info)] -> ["Label (info)"]
-  clean = clean.replace(/\[([^"\]\n]+[\(\)\+\/\&][^"\]\n]*)\]/g, (match, p1) => {
-    return `["${p1.trim()}"]`;
-  });
+  // 2. Fix malformed arrow links with pipe labels e.g. -->|label|> to -->|label|
+  clean = clean.replace(/(-->|---|==>|-\.->)\s*\|\s*([^|]+?)\s*\|>?\s*/g, "$1|$2| ");
+
+  // 3. Fix unquoted bracket labels containing parentheses or special characters e.g. [Label (info)] -> ["Label (info)"]
+  clean = clean.replace(/([A-Za-z0-9_]+)\[([^"\]\n]+[\(\)\+\/\&:\-][^"\]\n]*)\]/g, '$1["$2"]');
+  clean = clean.replace(/([A-Za-z0-9_]+)\(([^"\)\n]+[\(\)\+\/\&:\-][^"\)\n]*)\)/g, '$1("$2")');
+  clean = clean.replace(/([A-Za-z0-9_]+)\{([^"\}\n]+[\(\)\+\/\&:\-][^"\}\n]*)\}/g, '$1{"$2"}');
 
   return clean;
 }
@@ -37,7 +46,7 @@ export function MermaidDiagram({ chart }: MermaidDiagramProps) {
       theme: "dark",
       securityLevel: "loose",
       fontFamily: "ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace",
-      fontSize: 14,
+      fontSize: 13,
       themeVariables: {
         darkMode: true,
         background: "transparent",
@@ -63,7 +72,12 @@ export function MermaidDiagram({ chart }: MermaidDiagramProps) {
       .render(uniqueId, sanitizedChart)
       .then((res) => {
         if (isMounted) {
-          setSvgHtml(res.svg);
+          // Ensure SVG viewBox and width allows dynamic responsive scaling without clipping
+          const processedSvg = res.svg
+            .replace(/max-width:\s*[\d\.]+px;?/gi, "max-width: 100%;")
+            .replace(/style="[^"]*"/, (m) => m.replace(/width:\s*[\d\.]+px;?/, "width: 100%;"));
+
+          setSvgHtml(processedSvg);
           setIsRendering(false);
         }
       })
@@ -104,7 +118,7 @@ export function MermaidDiagram({ chart }: MermaidDiagramProps) {
         </div>
       ) : (
         <div
-          className="mermaid-svg-container w-full flex justify-center [&>svg]:max-w-full [&>svg]:h-auto font-mono"
+          className="mermaid-svg-container w-full min-w-full overflow-x-auto flex justify-center [&>svg]:w-full [&>svg]:max-w-none [&>svg]:h-auto font-mono py-2"
           dangerouslySetInnerHTML={{ __html: svgHtml }}
         />
       )}

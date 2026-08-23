@@ -2,6 +2,7 @@ import fs from "fs";
 import path from "path";
 import Link from "next/link";
 import { notFound, redirect } from "next/navigation";
+import { Metadata } from "next";
 import { MDXRemote } from "next-mdx-remote/rsc";
 import connectDB from "@/lib/mongodb";
 import GamingPost from "@/models/GamingPost";
@@ -16,6 +17,61 @@ import remarkGfm from "remark-gfm";
 import remarkMath from "remark-math";
 import rehypeKatex from "rehype-katex";
 import "katex/dist/katex.min.css";
+import { BASE_SITE_URL, getBaseUrl } from "@/lib/siteUrl";
+
+export async function generateMetadata({ params }: { params: Promise<{ slug: string }> }): Promise<Metadata> {
+  const { slug } = await params;
+  const baseUrl = getBaseUrl();
+
+  try {
+    await connectDB();
+    const dbPost: any = await GamingPost.findOne({ slug }).lean();
+
+    if (dbPost) {
+      const coverUrl = dbPost.coverImage && dbPost.coverImage.startsWith("http")
+        ? dbPost.coverImage
+        : `${baseUrl}/images/blog/${slug}.png`;
+
+      return {
+        title: `${dbPost.title} | Mission Control Gaming Intel`,
+        description: dbPost.excerpt || dbPost.title,
+        keywords: dbPost.tags || ["Gaming", "Hardware", "Benchmarks", "PC Gaming"],
+        alternates: {
+          canonical: `${baseUrl}/blog/gaming/${slug}`,
+        },
+        openGraph: {
+          title: dbPost.title,
+          description: dbPost.excerpt || dbPost.title,
+          url: `${baseUrl}/blog/gaming/${slug}`,
+          siteName: "Mission Control",
+          images: [
+            {
+              url: coverUrl,
+              width: 1200,
+              height: 630,
+              alt: dbPost.title,
+            },
+          ],
+          type: "article",
+          publishedTime: dbPost.publishedAt ? new Date(dbPost.publishedAt).toISOString() : undefined,
+        },
+        twitter: {
+          card: "summary_large_image",
+          title: dbPost.title,
+          description: dbPost.excerpt || dbPost.title,
+          images: [coverUrl],
+        },
+      };
+    }
+  } catch (err) {
+    console.error("Metadata generation fallback for slug:", slug, err);
+  }
+
+  return {
+    title: "Gaming Intel & Hardware Analysis | Mission Control",
+    description: "In-depth gaming benchmarks, GPU architecture deep-dives, and real-time PC gaming telemetry.",
+  };
+}
 
 const CATEGORY_CONFIG: Record<string, { color: string; bg: string; border: string }> = {
   "Game News":          { color: "text-neon-green",   bg: "bg-neon-green/10",   border: "border-neon-green/20" },
@@ -322,16 +378,29 @@ export default async function GamingBlogPost({ params }: { params: Promise<{ slu
             </div>
             
             <div className="prose prose-invert prose-headings:font-display prose-headings:text-white prose-a:text-neon-green max-w-none relative z-10 leading-relaxed text-sm sm:text-base text-gray-300">
-              <MDXRemote 
-                source={cleanMarkdown(post.markdownBody || "")} 
-                components={mdxComponents}  
-                options={{
-                  mdxOptions: {
-                    remarkPlugins: [remarkGfm, remarkMath],
-                    rehypePlugins: [rehypeKatex],
-                  }
-                }}
-              />
+              {(() => {
+                try {
+                  return (
+                    <MDXRemote 
+                      source={cleanMarkdown(post.markdownBody || "")} 
+                      components={mdxComponents}  
+                      options={{
+                        mdxOptions: {
+                          remarkPlugins: [remarkGfm, remarkMath],
+                          rehypePlugins: [rehypeKatex],
+                        }
+                      }}
+                    />
+                  );
+                } catch (mdxErr) {
+                  console.error("MDX Remote render fallback error:", mdxErr);
+                  return (
+                    <div className="whitespace-pre-wrap leading-relaxed">
+                      {cleanMarkdown(post.markdownBody || "")}
+                    </div>
+                  );
+                }
+              })()}
             </div>
 
             {/* Prev / Next Navigation */}

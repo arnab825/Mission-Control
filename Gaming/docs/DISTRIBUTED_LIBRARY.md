@@ -8,44 +8,33 @@ Multiple computers (Library Nodes) contribute their locally installed games and 
 
 ## 🎯 Architecture & Load Balancing Overview
 
-```text
-                                  Mission Control Frontends
-                           (Desktop App / Web HUD / Node Daemons)
-                                             │
-                                             ▼
-                     ┌───────────────────────────────────────────────┐
-                     │    Multi-Pool API Gateway & Load Balancer     │
-                     │                 Port: 8800                    │
-                     │  • Asynchronous Path & Query Routing          │
-                     │  • Active 5s Health Probing & Failover        │
-                     │  • Round-Robin Pool Load Balancing            │
-                     └───────┬───────────────────────────────┬───────┘
-                             │                               │
-            ┌────────────────┴──────────────┐ ┌──────────────┴──────────────┐
-            ▼                               ▼ ▼                             ▼
- ┌─────────────────────┐ ┌─────────────────────┐ ┌─────────────────────┐ ┌─────────────────────┐
- │  Catalog Discovery  │ │  Catalog Discovery  │ │ User Library & Node │ │ User Library & Node │
- │   Service (:8811)   │ │   Service (:8812)   │ │  Sync Serv. (:8821) │ │  Sync Serv. (:8822) │
- └──────────┬──────────┘ └──────────┬──────────┘ └──────────┬──────────┘ └──────────┬──────────┘
-            │                       │                       │                       │
-            ├───────────────────────┴───────────────────────┼───────────────────────┘
-            ▼                                               ▼
-  [Web Discovery & Crawling]                      [Local Node Synchronization]
-  • Steam Store & SteamSpy                        • Storage Hardware Calculations (shutil)
-  • Epic Games Store Catalog                      • 15-second Realtime Node Heartbeats
-  • GOG Galaxy & RAWG API                         • Ingests .acf, .item, .info Manifests
-  • Multi-Tier LLM AI Classifier                  • Auto-online / offline Watchdog
-  • Metadata & Release Date Workers               • User Library Queries (installed_only)
-                                          │
-                                          ▼
-                                 Supabase PostgreSQL
-                  ┌───────────────────────────────────────────────┐
-                  │ 1. canonical_games    (Global Master Catalog) │
-                  │ 2. library_nodes      (Machine Registry)      │
-                  │ 3. game_installations (Junction per Machine)  │
-                  │ 4. node_scan_paths    (Scanned Directories)   │
-                  │ 5. ai_classification_log (LLM Audit Log)     │
-                  └───────────────────────────────────────────────┘
+```mermaid
+flowchart TD
+    Clients["Mission Control Frontends<br/>(Desktop App / Web HUD / Node Daemons)"]
+    Gateway["Multi-Pool API Gateway & Load Balancer<br/>(Port: 8800)"]
+    
+    subgraph DiscoveryPool["Catalog Discovery Pool"]
+        Cat1["Catalog Discovery Service (:8811)"]
+        Cat2["Catalog Discovery Service (:8812)"]
+    end
+
+    subgraph NodePool["User Library & Node Sync Pool"]
+        Node1["User Library & Sync Serv. (:8821)"]
+        Node2["User Library & Sync Serv. (:8822)"]
+    end
+
+    Web["Web Discovery & Crawling<br/>• Steam, Epic, GOG, RAWG<br/>• Multi-Tier LLM Classifier<br/>• Metadata Workers"]
+    Local["Local Node Synchronization<br/>• Storage Hardware (shutil)<br/>• 15s Heartbeats & Watchdog<br/>• Manifest Parsers (.acf, .item)"]
+
+    DB[("Supabase PostgreSQL<br/>1. canonical_games<br/>2. library_nodes<br/>3. game_installations<br/>4. node_scan_paths")]
+
+    Clients --> Gateway
+    Gateway --> DiscoveryPool
+    Gateway --> NodePool
+    DiscoveryPool --> Web
+    NodePool --> Local
+    Web --> DB
+    Local --> DB
 ```
 
 ---
