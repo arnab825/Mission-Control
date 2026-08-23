@@ -209,18 +209,22 @@ def main():
     existing_set = {r["normalized_title"] for r in existing_rows} | {r["id"] for r in existing_rows}
     logger.info("Found %d already existing games in database.", len(existing_set))
 
-    # 3. Ingest new unclassified games
-    new_games_inserted = 0
+    # 3. Deduplicate and bulk ingest new unclassified games
+    unique_new_games = []
+    seen_in_batch = set()
+    
     for g in all_harvested:
         title = g.get("title", "").strip()
         if not title:
             continue
         slug = title_to_slug(title)
         norm = normalize_title(title)
-        if slug in existing_set or norm in existing_set:
+        if slug in existing_set or norm in existing_set or slug in seen_in_batch or norm in seen_in_batch:
             continue
 
-        game_data = {
+        seen_in_batch.add(slug)
+        seen_in_batch.add(norm)
+        unique_new_games.append({
             "id":               slug,
             "title":            title,
             "normalized_title": norm,
@@ -236,31 +240,44 @@ def main():
             "banner_url":       g.get("banner_url"),
             "summary":          None,
             "ai_classified":    False,
-            "metadata":         {"store": g.get("store", "steam"), "store_app_id": g.get("store_app_id")},
-        }
-        try:
-            db.upsert_game(game_data)
-            existing_set.add(slug)
-            existing_set.add(norm)
-            new_games_inserted += 1
-        except Exception as e:
-            logger.warning("Could not insert %s: %s", title, e)
+            "ai_confidence":    0.0,
+            "raw_tags":         g.get("raw_tags") or ["PC"],
+            "metadata":         json.dumps({"store": g.get("store", "steam"), "store_app_id": g.get("store_app_id")}),
+        })
 
-    logger.info("Ingested %d NEW games into canonical_games!", new_games_inserted)
+    logger.info("Found %d brand new unique games to insert.", len(unique_new_games))
+    
+    # Bulk insert in chunks of 50
+    inserted = 0
+    chunk_size = 50
+    for i in range(0, len(unique_new_games), chunk_size):
+        chunk = unique_new_games[i:i + chunk_size]
+        for item in chunk:
+            try:
+                db.upsert_game(item)
+                existing_set.add(item["id"])
+                existing_set.add(item["normalized_title"])
+                inserted += 1
+            except Exception as e:
+                logger.debug("Insert skip for %s: %s", item["title"], e)
+        if inserted % 200 == 0 or i + chunk_size >= len(unique_new_games):
+            logger.info("Progress: Inserted %d / %d new games into canonical_games...", inserted, len(unique_new_games))
+
+    logger.info("Ingestion completed: Total %d new games inserted.", inserted)
 
     # 4. Continuous AI Classification Loop until 0 unclassified remain
-    logger.info("Starting automated AI classification until complete...")
+    logger.info("Starting continuous multi-provider AI classification...")
     while True:
-        unclassified = db.get_unclassified_games(limit=15)
+        unclassified = db.get_unclassified_games(limit=20)
         if not unclassified:
-            logger.info("All games in the database have been 100%% classified by AI! Process complete.")
+            logger.info("All games in canonical_games have been 100%% AI classified! Complete.")
             break
 
-        logger.info("AI Classifier: Classifying batch of %d unclassified games...", len(unclassified))
-        classify_batch(unclassified, db=db, delay_between=0.4)
-        time.sleep(1)
+        logger.info("AI Classifier: Classifying batch of %d games across Gemini, NVIDIA, Groq, OpenRouter...", len(unclassified))
+        classify_batch(unclassified, db=db, delay_between=0.2)
+        time.sleep(0.5)
 
-    logger.info("All done! Total games in database: %d", db.get_catalog_count() if hasattr(db, "get_catalog_count") else len(existing_set))
+    logger.info("Process finished. Total games in database: %d", len(existing_set))
 
 
 if __name__ == "__main__":
