@@ -1,7 +1,7 @@
 {
   "nodeId": "",
   "name": "My-PC",
-  "serverUrl": "http://localhost:8800",
+  "serverUrl": "https://mission-control-server-okj7.onrender.com",
   "token": "",
   "scanPaths": [
     "D:\\Games",
