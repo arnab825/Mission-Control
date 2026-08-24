@@ -86,7 +86,7 @@ def _offline_watchdog():
 
 # ── AI Classification Background Worker ──────────────────────────────────────
 _CLASSIFY_INTERVAL = int(os.getenv("AI_CLASSIFY_INTERVAL", "20"))  # seconds
-ENABLE_BACKGROUND_WORKERS = os.getenv("ENABLE_BACKGROUND_WORKERS", "true").lower() in ("true", "1")
+ENABLE_BACKGROUND_WORKERS = os.getenv("ENABLE_BACKGROUND_WORKERS", "false").lower() in ("true", "1")
 
 def _classification_worker():
     """Background thread: periodically refines genres for unclassified games."""
