@@ -181,17 +181,22 @@ class LibraryNodeService:
             except Exception:
                 continue
 
+        clerk_id_val = self.cfg.clerk_id or os.getenv("CLERK_ID", "")
+        auth_provider_val = self.cfg.auth_provider or os.getenv("AUTH_PROVIDER", "clerk")
+
         payload = {
-            "nodeId":    self.cfg.node_id or None,
-            "name":      self.cfg.node_name,
-            "hostname":  socket.gethostname(),
-            "ip":        _get_local_ip(),
-            "clerk_id":  self.cfg.clerk_id or os.getenv("CLERK_ID", ""),
-            "auth_provider": self.cfg.auth_provider or os.getenv("AUTH_PROVIDER", "clerk"),
-            "platform":  sys.platform,
-            "version":   app_version,
-            "storage":   storage,
-            "scanPaths": self.cfg.scan_paths,
+            "nodeId":        self.cfg.node_id or None,
+            "name":          self.cfg.node_name,
+            "hostname":      socket.gethostname(),
+            "ip":            _get_local_ip(),
+            "clerkId":       clerk_id_val,
+            "clerk_id":      clerk_id_val,
+            "authProvider":  auth_provider_val,
+            "auth_provider": auth_provider_val,
+            "platform":      sys.platform,
+            "version":       app_version,
+            "storage":       storage,
+            "scanPaths":     self.cfg.scan_paths,
             "metadata": {
                 "cpu": _get_cpu_info(),
                 "platform": sys.platform,
