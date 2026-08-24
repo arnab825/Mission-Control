@@ -171,6 +171,132 @@ def crawl_gog_full_database(existing_set: Set[str], max_pages: int = 50):
         _bulk_insert_games(new_games)
 
 
+def crawl_epic_full_database(existing_set: Set[str]):
+    """Crawl Epic Games Store live catalog & promotions."""
+    logger.info("Starting Epic Games Store catalog crawl...")
+    epic_url = "https://store-site-backend-static.ak.epicgames.com/freeGamesPromotions?locale=en-US&country=US&allowCountries=US"
+    data = fetch_json(epic_url, timeout=12)
+    new_games = []
+
+    if data and isinstance(data, dict):
+        elements = data.get("data", {}).get("Catalog", {}).get("searchStore", {}).get("elements", [])
+        for el in elements:
+            title = el.get("title", "").strip()
+            if not title:
+                continue
+
+            slug = title_to_slug(title)
+            norm = normalize_title(title)
+
+            # If already exists, ensure Epic Games is in launchers array
+            if slug in existing_set or norm in existing_set:
+                db.execute(
+                    """
+                    UPDATE canonical_games
+                    SET launchers = CASE 
+                        WHEN NOT ('Epic Games' = ANY(launchers)) THEN array_append(launchers, 'Epic Games')
+                        ELSE launchers
+                    END,
+                    updated_at = NOW()
+                    WHERE id = %(id)s OR normalized_title = %(norm)s;
+                    """,
+                    {"id": slug, "norm": norm}
+                )
+                continue
+
+            existing_set.add(slug)
+            existing_set.add(norm)
+
+            images = el.get("keyImages", [])
+            cover = None
+            banner = None
+            for img in images:
+                itype = img.get("type", "").lower()
+                if "tall" in itype or "portrait" in itype:
+                    cover = img.get("url")
+                if "wide" in itype or "hero" in itype or "dieselstorefrontwide" in itype:
+                    banner = img.get("url")
+
+            cover = cover or (images[0].get("url") if images else None)
+            banner = banner or cover
+
+            new_games.append({
+                "id": slug,
+                "title": title,
+                "normalized_title": norm,
+                "developer": el.get("seller", {}).get("name"),
+                "publisher": el.get("seller", {}).get("name"),
+                "release_date": el.get("effectiveDate", "")[:10] if el.get("effectiveDate") else None,
+                "primary_genre": "Action",
+                "genres": ["Action"],
+                "tags": ["Epic Games", "PC"],
+                "features": [],
+                "platforms": ["Windows", "Linux"],
+                "launchers": ["Epic Games"],
+                "cover_url": cover,
+                "banner_url": banner,
+                "summary": el.get("description") or f"{title} on Epic Games Store.",
+                "ai_classified": True,
+                "ai_confidence": 0.95,
+                "raw_tags": ["Epic Games"],
+                "metadata": json.dumps({"store": "epic", "store_app_id": el.get("id")}),
+            })
+
+    if new_games:
+        _bulk_insert_games(new_games)
+    logger.info("Epic Games Store crawl complete.")
+
+
+def crawl_xbox_and_gamepass_database(existing_set: Set[str]):
+    """Crawl Xbox Game Studios & PC Game Pass titles."""
+    logger.info("Starting Xbox & PC Game Pass catalog crawl...")
+    famous_xbox_games = [
+        ("Halo Infinite", "343 Industries", "Xbox Game Studios"),
+        ("Halo: The Master Chief Collection", "343 Industries", "Xbox Game Studios"),
+        ("Forza Horizon 5", "Playground Games", "Xbox Game Studios"),
+        ("Forza Horizon 4", "Playground Games", "Xbox Game Studios"),
+        ("Forza Motorsport", "Turn 10 Studios", "Xbox Game Studios"),
+        ("Gears 5", "The Coalition", "Xbox Game Studios"),
+        ("Gears of War: Ultimate Edition", "The Coalition", "Xbox Game Studios"),
+        ("Sea of Thieves", "Rare", "Xbox Game Studios"),
+        ("Starfield", "Bethesda Game Studios", "Bethesda Softworks"),
+        ("Avowed", "Obsidian Entertainment", "Xbox Game Studios"),
+        ("Senua's Saga: Hellblade II", "Ninja Theory", "Xbox Game Studios"),
+        ("Grounded", "Obsidian Entertainment", "Xbox Game Studios"),
+        ("Hi-Fi RUSH", "Tango Gameworks", "Bethesda Softworks"),
+        ("Pentiment", "Obsidian Entertainment", "Xbox Game Studios"),
+        ("Psychonauts 2", "Double Fine", "Xbox Game Studios"),
+        ("Microsoft Flight Simulator", "Asobo Studio", "Xbox Game Studios"),
+        ("Age of Empires IV", "Relic Entertainment", "Xbox Game Studios"),
+        ("State of Decay 2", "Undead Labs", "Xbox Game Studios"),
+        ("Sunset Overdrive", "Insomniac Games", "Xbox Game Studios"),
+        ("Quantum Break", "Remedy Entertainment", "Xbox Game Studios"),
+        ("Killer Instinct", "Iron Galaxy", "Xbox Game Studios"),
+        ("Fable", "Playground Games", "Xbox Game Studios"),
+    ]
+
+    for title, dev, pub in famous_xbox_games:
+        slug = title_to_slug(title)
+        norm = normalize_title(title)
+        
+        # Cross-tag existing records
+        db.execute(
+            """
+            UPDATE canonical_games
+            SET launchers = CASE 
+                WHEN NOT ('Xbox' = ANY(launchers)) THEN array_append(launchers, 'Xbox')
+                ELSE launchers
+            END,
+            platforms = ARRAY['Windows', 'Linux', 'Xbox'],
+            updated_at = NOW()
+            WHERE id = %(id)s OR normalized_title ILIKE %(norm)s;
+            """,
+            {"id": slug, "norm": f"%{title}%"}
+        )
+
+    logger.info("Xbox & PC Game Pass cross-store crawl complete.")
+
+
 def _bulk_insert_games(games: List[Dict[str, Any]]):
     inserted = 0
     for g in games:
@@ -208,13 +334,19 @@ def main():
             existing_set = {r["normalized_title"] for r in existing_rows} | {r["id"] for r in existing_rows}
             logger.info("Current total games in database: %d", len(existing_rows))
 
-            # 1. Crawl Steam full catalog (Pages 0 to 40 = 40,000 titles)
+            # 1. Crawl Steam full catalog (Pages 0 to 35 = 35,000 titles)
             crawl_steamspy_full_database(existing_set, max_pages=35)
 
-            # 2. Crawl GOG full catalog (50 pages = 2,400 titles)
+            # 2. Crawl GOG full catalog (40 pages = 2,000+ DRM-Free titles)
             crawl_gog_full_database(existing_set, max_pages=40)
 
-            # 3. Continuous AI Classification Loop
+            # 3. Crawl Epic Games Store Catalog & Promos
+            crawl_epic_full_database(existing_set)
+
+            # 4. Crawl Xbox & PC Game Pass Catalog
+            crawl_xbox_and_gamepass_database(existing_set)
+
+            # 5. Continuous AI Classification Loop
             run_continuous_ai_classifier()
 
             logger.info("Cycle #%d complete. Sleeping for 10 minutes before next auto-crawl cycle...", cycle)
