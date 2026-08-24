@@ -18,19 +18,26 @@ import threading as _threading
 _lib_lock = _threading.Lock()
 
 
+_node_service_instance = None
 _node_daemon_started = False
 _node_daemon_lock = _threading.Lock()
 
 
 def _ensure_local_node_daemon(user_id_str: Optional[str] = None):
     """Spawns the local node daemon background thread for real-time heartbeat and Supabase presence."""
-    global _node_daemon_started
+    global _node_daemon_started, _node_service_instance
     with _node_daemon_lock:
+        if _node_service_instance and user_id_str:
+            if _node_service_instance.cfg.clerk_id != user_id_str:
+                _node_service_instance.cfg.clerk_id = user_id_str
+                _node_service_instance.cfg.save()
+                _threading.Thread(target=_node_service_instance.register, daemon=True).start()
         if _node_daemon_started:
             return
         _node_daemon_started = True
 
     def _run():
+        global _node_service_instance
         try:
             node_dir = Path(__file__).parent.parent.parent / "distributed_node"
             if str(node_dir) not in sys.path:
@@ -41,6 +48,7 @@ def _ensure_local_node_daemon(user_id_str: Optional[str] = None):
             if user_id_str:
                 cfg.clerk_id = user_id_str
             svc = LibraryNodeService(cfg)
+            _node_service_instance = svc
             svc.run()
         except Exception as exc:
             logger.warning("[NodeSync] Background node service notice: %s", exc)
