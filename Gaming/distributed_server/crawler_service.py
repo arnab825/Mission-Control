@@ -1,16 +1,13 @@
 #!/usr/bin/env python3
 """
-Mission Control — Multi-Threaded Infinite Harvester & AI Classifier Engine
-infinite_catalog_crawler.py:
-Runs 6 independent concurrent infinite loops in parallel 24/7 without blocking each other:
-  1. Steam Infinite Loop (Crawls all pages & genre charts continuously).
-  2. GOG Galaxy Infinite Loop (Crawls all DRM-Free store pages continuously).
-  3. Epic Games Infinite Loop (Crawls all store releases & promotions continuously).
-  4. Xbox & PC Game Pass Infinite Loop (Crawls all Xbox Game Studios & Game Pass web APIs).
-  5. Continuous AI Classifier (Classifies unclassified games across Gemini, NVIDIA, Groq).
-  6. Autonomous Healer (Continuously heals release dates and multi-store launcher tags).
+Mission Control — Dedicated Infinite Harvester & AI Crawler Microservice
+crawler_service.py: High-availability autonomous background microservice running on port :8851:
+  1. Supervises 6 independent concurrent worker threads (Steam, GOG, Epic, Xbox, AI Classifier, Healer).
+  2. Built-in self-healing watchdog automatically revives any failed thread with 0 downtime.
+  3. Integrated with Load Balancer Gateway (:8800) with full health checks and live telemetry.
 """
 
+import argparse
 import json
 import logging
 import os
@@ -19,6 +16,7 @@ import threading
 import time
 import urllib.parse
 import urllib.request
+from contextlib import asynccontextmanager
 from pathlib import Path
 from typing import Any, Dict, List, Optional, Set
 
@@ -29,21 +27,48 @@ _env_path = Path(__file__).resolve().parent / ".env"
 if _env_path.exists():
     load_dotenv(_env_path, override=False)
 
+from fastapi import FastAPI, HTTPException
+from fastapi.middleware.cors import CORSMiddleware
+from fastapi.responses import JSONResponse
+
 from db import LibraryDB
 from normalizer import normalize_title, title_to_slug
 from ai_classifier import classify_batch
 
 logging.basicConfig(
     level=logging.INFO,
-    format="%(asctime)s [%(threadName)s] %(levelname)s: %(message)s",
+    format="%(asctime)s [%(name)s] %(levelname)s: %(message)s",
     datefmt="%H:%M:%S",
 )
-logger = logging.getLogger("infinite-crawler")
+logger = logging.getLogger("crawler-service")
 
 db = LibraryDB()
 USER_AGENT = "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36 MissionControl/1.0"
+
 _LOCK = threading.Lock()
 _EXISTING_CACHE: Set[str] = set()
+_RUNNING = True
+
+# Real-time Telemetry & Metrics
+_METRICS = {
+    "steam_inserted": 0,
+    "gog_inserted": 0,
+    "epic_inserted": 0,
+    "xbox_inserted": 0,
+    "ai_classified": 0,
+    "release_dates_healed": 0,
+    "worker_restarts": 0,
+    "start_time": time.time(),
+}
+
+_WORKER_STATUS = {
+    "steam": {"alive": False, "last_heartbeat": None, "restarts": 0},
+    "gog": {"alive": False, "last_heartbeat": None, "restarts": 0},
+    "epic": {"alive": False, "last_heartbeat": None, "restarts": 0},
+    "xbox": {"alive": False, "last_heartbeat": None, "restarts": 0},
+    "ai_classifier": {"alive": False, "last_heartbeat": None, "restarts": 0},
+    "healer": {"alive": False, "last_heartbeat": None, "restarts": 0},
+}
 
 
 def _get_existing_cache() -> Set[str]:
@@ -80,21 +105,26 @@ def _bulk_insert_games(games: List[Dict[str, Any]], store_name: str):
             _add_to_cache(g["id"], g["normalized_title"])
             inserted += 1
         except Exception as e:
-            logger.debug("Insert error for %s: %s", g.get("id"), e)
+            logger.debug("Insert error: %s", e)
     if inserted > 0:
-        logger.info("[%s] Successfully inserted %d new games into canonical_games!", store_name, inserted)
+        key = f"{store_name.lower()}_inserted"
+        if key in _METRICS:
+            _METRICS[key] += inserted
+        logger.info("[%s] Successfully inserted %d new games!", store_name, inserted)
 
 
-# ── THREAD 1: STEAM INFINITE LOOP ─────────────────────────────────────────────
-def loop_steam_crawler():
-    logger.info("Starting continuous Steam Store infinite loop...")
-    while True:
+# ── WORKER 1: STEAM INFINITE ENGINE ──────────────────────────────────────────
+def _worker_steam():
+    logger.info("Steam worker thread active.")
+    while _RUNNING:
         try:
+            _WORKER_STATUS["steam"]["last_heartbeat"] = time.strftime("%Y-%m-%d %H:%M:%S")
             page = 0
             consecutive_empty = 0
             new_games = []
 
-            while True:
+            while _RUNNING:
+                _WORKER_STATUS["steam"]["last_heartbeat"] = time.strftime("%Y-%m-%d %H:%M:%S")
                 existing_set = _get_existing_cache()
                 url = f"https://steamspy.com/api.php?request=all&page={page}"
                 data = fetch_json(url, timeout=15)
@@ -102,7 +132,6 @@ def loop_steam_crawler():
                 if not data or not isinstance(data, dict) or len(data) == 0:
                     consecutive_empty += 1
                     if consecutive_empty >= 3:
-                        logger.info("Steam global crawl completed full cycle at page %d. Restarting after brief pause.", page)
                         break
                     page += 1
                     time.sleep(1.0)
@@ -120,15 +149,12 @@ def loop_steam_crawler():
                         continue
 
                     _add_to_cache(slug, norm)
-                    dev = item.get("developer") if item.get("developer") != "None" else None
-                    pub = item.get("publisher") if item.get("publisher") != "None" else None
-
                     new_games.append({
                         "id": slug,
                         "title": name,
                         "normalized_title": norm,
-                        "developer": dev,
-                        "publisher": pub,
+                        "developer": item.get("developer") if item.get("developer") != "None" else None,
+                        "publisher": item.get("publisher") if item.get("publisher") != "None" else None,
                         "release_date": None,
                         "primary_genre": "Action",
                         "genres": ["Action"],
@@ -155,21 +181,23 @@ def loop_steam_crawler():
             if new_games:
                 _bulk_insert_games(new_games, "Steam")
 
-            time.sleep(180)  # Brief pause before next cycle
-        except Exception as e:
-            logger.error("Steam loop error: %s. Resuming in 20s...", e)
-            time.sleep(20)
+            time.sleep(180)
+        except Exception as exc:
+            logger.error("Steam worker error: %s", exc)
+            time.sleep(15)
 
 
-# ── THREAD 2: GOG GALAXY INFINITE LOOP ────────────────────────────────────────
-def loop_gog_crawler():
-    logger.info("Starting continuous GOG Galaxy DRM-Free infinite loop...")
-    while True:
+# ── WORKER 2: GOG GALAXY INFINITE ENGINE ──────────────────────────────────────
+def _worker_gog():
+    logger.info("GOG worker thread active.")
+    while _RUNNING:
         try:
+            _WORKER_STATUS["gog"]["last_heartbeat"] = time.strftime("%Y-%m-%d %H:%M:%S")
             page = 1
             new_games = []
 
-            while True:
+            while _RUNNING:
+                _WORKER_STATUS["gog"]["last_heartbeat"] = time.strftime("%Y-%m-%d %H:%M:%S")
                 existing_set = _get_existing_cache()
                 url = f"https://catalog.gog.com/v1/catalog?limit=48&page={page}&order=desc:bestselling&productType=in:game"
                 data = fetch_json(url, timeout=10)
@@ -178,7 +206,6 @@ def loop_gog_crawler():
 
                 products = data.get("products", [])
                 if not products:
-                    logger.info("GOG crawl completed full cycle at page %d. Restarting after brief pause.", page)
                     break
 
                 for p in products:
@@ -193,7 +220,6 @@ def loop_gog_crawler():
 
                     _add_to_cache(slug, norm)
                     cover = p.get("coverVertical") or p.get("coverHorizontal")
-                    banner = p.get("coverHorizontal") or cover
                     genres = [g.get("name") for g in p.get("genres", []) if g.get("name")] or ["Action"]
 
                     new_games.append({
@@ -210,7 +236,7 @@ def loop_gog_crawler():
                         "platforms": ["Windows", "Linux"],
                         "launchers": ["GOG Galaxy"],
                         "cover_url": cover,
-                        "banner_url": banner,
+                        "banner_url": p.get("coverHorizontal") or cover,
                         "summary": f"{title} available DRM-free on GOG Galaxy.",
                         "ai_classified": True,
                         "ai_confidence": 0.95,
@@ -229,16 +255,17 @@ def loop_gog_crawler():
                 _bulk_insert_games(new_games, "GOG")
 
             time.sleep(180)
-        except Exception as e:
-            logger.error("GOG loop error: %s. Resuming in 20s...", e)
-            time.sleep(20)
+        except Exception as exc:
+            logger.error("GOG worker error: %s", exc)
+            time.sleep(15)
 
 
-# ── THREAD 3: EPIC GAMES STORE INFINITE LOOP ──────────────────────────────────
-def loop_epic_crawler():
-    logger.info("Starting continuous Epic Games Store infinite loop...")
-    while True:
+# ── WORKER 3: EPIC GAMES INFINITE ENGINE ──────────────────────────────────────
+def _worker_epic():
+    logger.info("Epic Games worker thread active.")
+    while _RUNNING:
         try:
+            _WORKER_STATUS["epic"]["last_heartbeat"] = time.strftime("%Y-%m-%d %H:%M:%S")
             existing_set = _get_existing_cache()
             epic_url = "https://store-site-backend-static.ak.epicgames.com/freeGamesPromotions?locale=en-US&country=US&allowCountries=US"
             data = fetch_json(epic_url, timeout=12)
@@ -272,16 +299,11 @@ def loop_epic_crawler():
                     _add_to_cache(slug, norm)
                     images = el.get("keyImages", [])
                     cover = None
-                    banner = None
                     for img in images:
-                        itype = img.get("type", "").lower()
-                        if "tall" in itype or "portrait" in itype:
+                        if "tall" in img.get("type", "").lower() or "portrait" in img.get("type", "").lower():
                             cover = img.get("url")
-                        if "wide" in itype or "hero" in itype or "dieselstorefrontwide" in itype:
-                            banner = img.get("url")
 
                     cover = cover or (images[0].get("url") if images else None)
-                    banner = banner or cover
 
                     new_games.append({
                         "id": slug,
@@ -297,7 +319,7 @@ def loop_epic_crawler():
                         "platforms": ["Windows", "Linux"],
                         "launchers": ["Epic Games"],
                         "cover_url": cover,
-                        "banner_url": banner,
+                        "banner_url": cover,
                         "summary": el.get("description") or f"{title} on Epic Games Store.",
                         "ai_classified": True,
                         "ai_confidence": 0.95,
@@ -309,18 +331,18 @@ def loop_epic_crawler():
                 _bulk_insert_games(new_games, "Epic")
 
             time.sleep(120)
-        except Exception as e:
-            logger.error("Epic loop error: %s. Resuming in 20s...", e)
-            time.sleep(20)
+        except Exception as exc:
+            logger.error("Epic worker error: %s", exc)
+            time.sleep(15)
 
 
-# ── THREAD 4: XBOX & PC GAME PASS INFINITE LOOP ───────────────────────────────
-def loop_xbox_crawler():
-    logger.info("Starting continuous Xbox & PC Game Pass infinite loop...")
+# ── WORKER 4: XBOX & GAME PASS INFINITE ENGINE ────────────────────────────────
+def _worker_xbox():
+    logger.info("Xbox worker thread active.")
     rawg_key = os.getenv("RAWG_API_KEY", "").strip()
-    
-    while True:
+    while _RUNNING:
         try:
+            _WORKER_STATUS["xbox"]["last_heartbeat"] = time.strftime("%Y-%m-%d %H:%M:%S")
             if not rawg_key:
                 time.sleep(60)
                 continue
@@ -336,17 +358,13 @@ def loop_xbox_crawler():
                     if not data or not isinstance(data, dict):
                         continue
 
-                    results = data.get("results", [])
-                    for g in results:
+                    for g in data.get("results", []):
                         title = g.get("name", "").strip()
                         if not title:
                             continue
 
                         slug = title_to_slug(title)
                         norm = normalize_title(title)
-                        rel_date = g.get("released")
-                        bg_img = g.get("background_image")
-                        genres = [gen.get("name") for gen in g.get("genres", []) if gen.get("name")] or ["Action"]
 
                         if slug in existing_set or norm in existing_set:
                             db.execute(
@@ -365,62 +383,66 @@ def loop_xbox_crawler():
                             continue
 
                         _add_to_cache(slug, norm)
+                        bg = g.get("background_image")
+                        genres = [gen.get("name") for gen in g.get("genres", []) if gen.get("name")] or ["Action"]
+
                         new_games.append({
                             "id": slug,
                             "title": title,
                             "normalized_title": norm,
                             "developer": pub.replace("-", " ").title(),
                             "publisher": pub.replace("-", " ").title(),
-                            "release_date": rel_date,
+                            "release_date": g.get("released"),
                             "primary_genre": genres[0],
                             "genres": genres,
                             "tags": ["Xbox", "PC Game Pass"] + genres,
                             "features": [],
                             "platforms": ["Windows", "Linux", "Xbox"],
                             "launchers": ["Xbox", "PC Game Pass"],
-                            "cover_url": bg_img,
-                            "banner_url": bg_img,
+                            "cover_url": bg,
+                            "banner_url": bg,
                             "summary": f"{title} available on Xbox & PC Game Pass.",
                             "ai_classified": True,
                             "ai_confidence": 0.95,
                             "raw_tags": ["Xbox", "PC Game Pass"],
                             "metadata": json.dumps({"store": "xbox", "store_app_id": str(g.get("id", ""))}),
                         })
-
                     time.sleep(0.3)
 
             if new_games:
                 _bulk_insert_games(new_games, "Xbox")
 
             time.sleep(180)
-        except Exception as e:
-            logger.error("Xbox loop error: %s. Resuming in 20s...", e)
-            time.sleep(20)
+        except Exception as exc:
+            logger.error("Xbox worker error: %s", exc)
+            time.sleep(15)
 
 
-# ── THREAD 5: CONTINUOUS AI CLASSIFIER INFINITE LOOP ─────────────────────────
-def loop_ai_classifier():
-    logger.info("Starting continuous Multi-Provider AI Classifier loop...")
-    while True:
+# ── WORKER 5: CONTINUOUS AI CLASSIFIER ENGINE ────────────────────────────────
+def _worker_ai_classifier():
+    logger.info("AI Classifier worker thread active.")
+    while _RUNNING:
         try:
+            _WORKER_STATUS["ai_classifier"]["last_heartbeat"] = time.strftime("%Y-%m-%d %H:%M:%S")
             unclassified = db.get_unclassified_games(limit=20)
             if unclassified:
                 logger.info("AI Classifier: Classifying batch of %d games...", len(unclassified))
                 classify_batch(unclassified, db=db, delay_between=0.2)
+                _METRICS["ai_classified"] += len(unclassified)
                 time.sleep(0.5)
             else:
                 time.sleep(10)
-        except Exception as e:
-            logger.error("AI Classifier loop error: %s", e)
+        except Exception as exc:
+            logger.error("AI Classifier error: %s", exc)
             time.sleep(10)
 
 
-# ── THREAD 6: CONTINUOUS RELEASE DATE & EXCLUSIVITY HEALER ───────────────────
-def loop_autonomous_healer():
-    logger.info("Starting continuous Autonomous Metadata & Release Date Healer loop...")
-    while True:
+# ── WORKER 6: AUTONOMOUS HEALER ENGINE ───────────────────────────────────────
+def _worker_healer():
+    logger.info("Autonomous Healer worker thread active.")
+    while _RUNNING:
         try:
-            # 1. Heal NULL release dates
+            _WORKER_STATUS["healer"]["last_heartbeat"] = time.strftime("%Y-%m-%d %H:%M:%S")
             null_dates = db.execute(
                 """
                 SELECT id, title, metadata
@@ -448,36 +470,122 @@ def loop_autonomous_healer():
                                 "UPDATE canonical_games SET release_date = %(rel)s, updated_at = NOW() WHERE id = %(id)s;",
                                 {"rel": str(r_date).strip(), "id": row["id"]}
                             )
-                            logger.info("Healed release date for '%s' -> %s", row["title"], r_date)
+                            _METRICS["release_dates_healed"] += 1
                 time.sleep(0.3)
 
             time.sleep(15)
-        except Exception as e:
-            logger.error("Healer loop error: %s", e)
+        except Exception as exc:
+            logger.error("Healer error: %s", exc)
             time.sleep(15)
 
 
+# ── WATCHDOG & SUPERVISOR (Auto-Revives Any Failed Worker) ───────────────────
+_WORKER_TARGETS = {
+    "steam": _worker_steam,
+    "gog": _worker_gog,
+    "epic": _worker_epic,
+    "xbox": _worker_xbox,
+    "ai_classifier": _worker_ai_classifier,
+    "healer": _worker_healer,
+}
+_ACTIVE_THREADS: Dict[str, threading.Thread] = {}
+
+
+def _supervisor_loop():
+    logger.info("Supervisor Watchdog active. Monitoring 6 worker threads...")
+    while _RUNNING:
+        for name, target_fn in _WORKER_TARGETS.items():
+            t = _ACTIVE_THREADS.get(name)
+            if t is None or not t.is_alive():
+                logger.warning("Supervisor: Worker '%s' is dead or not started. Reviving now...", name)
+                new_t = threading.Thread(target=target_fn, name=f"{name.title()}WorkerThread", daemon=True)
+                new_t.start()
+                _ACTIVE_THREADS[name] = new_t
+                _WORKER_STATUS[name]["alive"] = True
+                _WORKER_STATUS[name]["restarts"] += 1
+                _METRICS["worker_restarts"] += 1
+            else:
+                _WORKER_STATUS[name]["alive"] = True
+        time.sleep(5)
+
+
+# ── FastAPI App Lifecycle ────────────────────────────────────────────────────
+@asynccontextmanager
+async def lifespan(app: FastAPI):
+    # Start Supervisor thread
+    sup_thread = threading.Thread(target=_supervisor_loop, name="SupervisorThread", daemon=True)
+    sup_thread.start()
+    yield
+    global _RUNNING
+    _RUNNING = False
+
+
+app = FastAPI(
+    title="Mission Control — High-Availability Crawler Microservice",
+    version="1.0.0",
+    lifespan=lifespan,
+)
+
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=["*"],
+    allow_credentials=True,
+    allow_methods=["*"],
+    allow_headers=["*"],
+)
+
+
+@app.get("/health")
+async def health():
+    uptime_sec = round(time.time() - _METRICS["start_time"], 1)
+    all_alive = all(s["alive"] for s in _WORKER_STATUS.values())
+    return {
+        "status": "healthy" if all_alive else "degraded",
+        "service": "crawler_service",
+        "port": 8851,
+        "uptime_seconds": uptime_sec,
+        "db_connected": db.available,
+        "workers": _WORKER_STATUS,
+        "metrics": _METRICS,
+    }
+
+
+@app.get("/api/crawler/stats")
+async def get_crawler_stats():
+    if not db.available:
+        raise HTTPException(status_code=503, detail="Database unavailable")
+    
+    rows = db.execute("SELECT launchers, COUNT(*) FROM canonical_games GROUP BY launchers ORDER BY count DESC;", fetch="all") or []
+    total = sum(r["count"] for r in rows)
+    return {
+        "total_canonical_games": total,
+        "launcher_distribution": [{"launchers": r["launchers"], "count": r["count"]} for r in rows],
+        "metrics": _METRICS,
+        "worker_health": _WORKER_STATUS,
+    }
+
+
+@app.post("/api/crawler/restart-worker/{worker_name}")
+async def restart_worker(worker_name: str):
+    if worker_name not in _WORKER_TARGETS:
+        raise HTTPException(status_code=400, detail=f"Invalid worker name. Choose from {list(_WORKER_TARGETS.keys())}")
+    
+    target_fn = _WORKER_TARGETS[worker_name]
+    new_t = threading.Thread(target=target_fn, name=f"{worker_name.title()}WorkerThread", daemon=True)
+    new_t.start()
+    _ACTIVE_THREADS[worker_name] = new_t
+    _WORKER_STATUS[worker_name]["alive"] = True
+    _WORKER_STATUS[worker_name]["restarts"] += 1
+    return {"status": "restarted", "worker": worker_name}
+
+
 def main():
-    logger.info("🚀 Launching Multi-Threaded Parallel Infinite Launcher Crawlers...")
+    parser = argparse.ArgumentParser(description="Crawler Microservice")
+    parser.add_argument("--port", type=int, default=8851, help="Port to run crawler service on")
+    args = parser.parse_args()
 
-    threads = [
-        threading.Thread(target=loop_steam_crawler, name="SteamCrawlerThread", daemon=True),
-        threading.Thread(target=loop_gog_crawler, name="GOGCrawlerThread", daemon=True),
-        threading.Thread(target=loop_epic_crawler, name="EpicCrawlerThread", daemon=True),
-        threading.Thread(target=loop_xbox_crawler, name="XboxCrawlerThread", daemon=True),
-        threading.Thread(target=loop_ai_classifier, name="AIClassifierThread", daemon=True),
-        threading.Thread(target=loop_autonomous_healer, name="HealerThread", daemon=True),
-    ]
-
-    for t in threads:
-        t.start()
-        time.sleep(0.5)
-
-    logger.info("All 6 concurrent launcher engines running 24/7 in parallel!")
-
-    # Keep main thread alive
-    while True:
-        time.sleep(60)
+    import uvicorn
+    uvicorn.run("crawler_service:app", host="0.0.0.0", port=args.port, reload=False)
 
 
 if __name__ == "__main__":

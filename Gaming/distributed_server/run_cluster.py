@@ -163,9 +163,24 @@ def main():
     t_l = threading.Thread(target=stream_logs, args=(launcher_proc, launcher_tag, "\033[96m"), daemon=True)
     t_l.start()
 
+    # 5. Start Dedicated Infinite Harvester & AI Crawler Microservice (:8851)
+    crawler_cmd = [python_exe, str(server_dir / "crawler_service.py"), "--port", "8851"]
+    crawler_proc = subprocess.Popen(
+        crawler_cmd,
+        stdout=subprocess.PIPE,
+        stderr=subprocess.STDOUT,
+        text=True,
+        bufsize=1,
+        cwd=str(server_dir)
+    )
+    crawler_tag = "CRAWLER_SERVICE:8851"
+    processes.append((crawler_tag, crawler_proc))
+    t_c = threading.Thread(target=stream_logs, args=(crawler_proc, crawler_tag, "\033[92m"), daemon=True)
+    t_c.start()
+
     # Allow upstream microservices to bind ports and verify readiness
     print("⏳ Waiting for microservices to initialize and connect to DB...")
-    all_upstreams = catalog_urls + node_urls + ["http://127.0.0.1:8831", "http://127.0.0.1:8841"]
+    all_upstreams = catalog_urls + node_urls + ["http://127.0.0.1:8831", "http://127.0.0.1:8841", "http://127.0.0.1:8851"]
     for target_url in all_upstreams:
         for _ in range(15):
             try:
