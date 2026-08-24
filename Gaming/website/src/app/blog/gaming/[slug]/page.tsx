@@ -81,21 +81,23 @@ const CATEGORY_CONFIG: Record<string, { color: string; bg: string; border: strin
   "Hardware Deep-Dive": { color: "text-blue-400",    bg: "bg-blue-400/10",    border: "border-blue-400/20" },
 };
 
-// Server-side: extract ```mermaid blocks and replace with inline MDX JSX so that
-// next-mdx-remote/rsc v6 renders them as <Mermaid> without relying on
-// the broken children.props.className interception in the pre component.
+// Server-side: extract ```mermaid blocks and replace with inline MDX JSX.
+// We base64-encode the chart to avoid backtick/quote characters that confuse
+// the MDX parser when embedded directly in a JSX attribute.
 function injectMermaidComponents(content: string): string {
   return content.replace(
     /```mermaid\r?\n([\s\S]*?)\r?\n```/g,
     (_match, code) => {
-      // Escape backticks and backslashes in the chart string for template literal safety
-      const safe = code.trim().replace(/\\/g, "\\\\").replace(/`/g, "\\`").replace(/\$/g, "\\$");
-      return `<MermaidChart chart={\`${safe}\`} />`;
+      // Base64 only contains A-Z a-z 0-9 + / = — safe in any JSX string attribute
+      const b64 = Buffer.from(code.trim(), "utf-8").toString("base64");
+      return `<MermaidChart b64="${b64}" />`;
     }
   );
 }
 
-function MermaidChart({ chart }: { chart: string }) {
+function MermaidChart({ b64 }: { b64: string }) {
+  // Decode server-side (RSC, Buffer is available)
+  const chart = Buffer.from(b64, "base64").toString("utf-8");
   return <Mermaid chart={chart} />;
 }
 
