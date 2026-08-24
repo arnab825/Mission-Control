@@ -131,7 +131,9 @@ graph TD
 | 22 | Hotkey Recorder + Auto Model Routing | ✅ Done |
 | 23 | Multi-Platform Packaging & Linux Downloads | ✅ Done |
 | **24** | **Distributed Game Library & Web Discovery** | ✅ **Done** |
+| **25** | **Open Knowledge Format (OKF) & Resilient RAG Engine** ([`OKF.md`](./OKF.md)) | ✅ **Done** |
 
 ---
 
 *Last Updated: 24/08/2026*
+
