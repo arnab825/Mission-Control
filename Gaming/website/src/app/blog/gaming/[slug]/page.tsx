@@ -145,18 +145,32 @@ function cleanMarkdown(content: string): string {
   // Remove outer markdown code fences wrapping whole post
   clean = clean.replace(/^```(?:markdown|md)\r?\n([\s\S]*?)\r?\n```$/gi, "$1");
 
-  // Auto-convert and fence entire ASCII diagrams (from first +---+ to last +---+)
+  // Greedy ASCII diagram block: capture everything from first +---+ line to last +---+ line
+  // This handles multi-row ASCII diagrams with vertical arrows between rows
   clean = clean.replace(
-    /((?:^\s*(?:\+[-=]{2,}\+|\s*\|[^\n]+\||\s*\[[^\n]+\]|\s*[\^vV]\s*)\r?\n)+)/gm,
+    /^[ \t]*\+[-=]{2,}\+.*(?:\n[^`].*)*?\n[ \t]*\+[-=]{2,}\+[^\n]*/gm,
     (match) => {
-      if (match.includes("```") || match.includes("<") || match.startsWith("#")) return match;
-      if (isAsciiBoxDiagram(match)) {
-        const converted = convertAsciiToMermaid(match.trim());
-        return `\n\`\`\`mermaid\n${converted}\n\`\`\`\n\n`;
-      }
-      return match;
+      if (match.includes("```")) return match;
+      const converted = convertAsciiToMermaid(match.trim());
+      return `\n\n\`\`\`mermaid\n${converted}\n\`\`\`\n\n`;
     }
   );
+
+  // Strip leftover ASCII connector fragments that appear outside boxes
+  // e.g. "^ | | [Class Action Lawsuit] v +----...----+"
+  clean = clean.replace(
+    /^[ \t]*(?:\^|v|V|\||\|\||\[\s*[^\]]+\s*\]|\+[-=.]{2,}\+)[ \t\|\^vV\[\]\-=+.>:]*$/gm,
+    ""
+  );
+
+  // Strip leftover inline pipe-table ASCII rows: | Label | ---> | Label |
+  clean = clean.replace(
+    /^[ \t]*\|[^\n|]+\|(?:[ \t]*[-=]->?[ \t]*\|[^\n|]+\|)*[ \t]*$/gm,
+    ""
+  );
+
+  // Collapse multiple blank lines into max two
+  clean = clean.replace(/\n{3,}/g, "\n\n");
 
   // Auto-fence unfenced Mermaid diagrams (e.g. graph LR A[...] --> B[...])
   clean = clean.replace(
