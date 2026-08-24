@@ -1,6 +1,6 @@
 # Mission Control — Major Upgrades, Architecture & Infrastructure Reference
 
-This document summarizes the **major architectural transformations, resilience engineering, cloud deployments, and database evolutions** implemented in the **Mission Control Distributed Ecosystem**.
+This document summarizes the **major architectural transformations, resilience engineering, cloud deployments, multi-tier database failovers, and backup systems** implemented in the **Mission Control Distributed Ecosystem**.
 
 ---
 
@@ -29,25 +29,29 @@ flowchart TD
         P5[" Infinite Harvester & Crawler Service (:8851)\n• 6 Parallel 24/7 Streaming Threads\n• Continuous AI Classification Loop"]
     end
 
-    subgraph CloudDatabase [" 5. Production Cloud Layer"]
-        R["Render Cloud Web Service\n(mission-control-server-okj7)"]
-        S[("Supabase PostgreSQL DB\n(db.vekqkwwzzamwhitjodld.supabase.co:5432)\n• 8,150+ Games & 93.5% AI Classified")]
+    subgraph DatabaseTier [" 5. Multi-Tier High-Availability Database & Backup Engine"]
+        T1[(" Tier 1: Supabase PostgreSQL (Primary)\n(db.vekqkwwzzamwhitjodld.supabase.co:5432)\n8,150+ Games & 93.5% AI Classified")]
+        T2[(" Tier 2: Secondary Cloud PostgreSQL (Fallback)\n(Neon Serverless / Cloud Postgres Standby)")]
+        T3[(" Tier 3: Local SQLite Backup Replica\n(data/catalog_fallback.db)\nAutonomous Offline Snapshot & Zero-Downtime Engine")]
+        R[" Upstash Redis Cache Layer\n(Sub-millisecond In-Memory Query Cache)"]
     end
 
     W & D -->|User Requests /api/*| LB
-    UR -->|GET /health| R
-    R -->|Active SQL Ping| S
+    UR -->|GET or HEAD /health| LB
     LB -->|/api/search, /api/games| P1
     LB -->|/api/nodes, /api/library| P2
     LB -->|/api/enrich| P3
     LB -->|/api/launchers| P4
     LB -->|/api/crawler| P5
-    P1 & P2 & P3 & P4 & P5 --> S
+    P1 & P2 & P3 & P4 & P5 --> T1
+    T1 -.->|Auto Failover if Cloud Down| T2
+    T2 -.->|Auto Fallback if Network Outage| T3
+    T1 -.->|Query Cache| R
 ```
 
 ---
 
-## 2. The 10 Major Architectural Upgrades
+## 2. The 11 Major Architectural Upgrades
 
 ### 🚀 1. Quad-Storefront Ingestion Engine
 - **Before:** Single-store indexing (Steam only).
@@ -56,7 +60,17 @@ flowchart TD
 
 ---
 
-### 🏪 2. Dedicated `launchers TEXT[]` Column & Exclusivity Detection
+### 🛡️ 2. Multi-Tier Database Architecture & Built-in Backup Replica
+- **Before:** Single Supabase cloud dependency. If Supabase went down or paused, the application would crash.
+- **Now:** Built a resilient 3-Tier Multi-Database Engine in [`db.py`](file:///e:/AiAssistant/Gaming/distributed_server/db.py):
+  1. **Tier 1 (Primary Cloud):** Supabase PostgreSQL (`db.vekqkwwzzamwhitjodld.supabase.co:5432`).
+  2. **Tier 2 (Secondary Standby Cloud):** Hot standby via `FALLBACK_DATABASE_URL` (e.g. Neon Serverless Postgres).
+  3. **Tier 3 (Local SQLite Backup Replica):** Embedded persistent replica (`data/catalog_fallback.db`). Auto-syncs on every write and seamlessly serves read/search queries offline with **zero network dependency**.
+  4. **Redis Cache:** Upstash REST client for sub-millisecond in-memory caching.
+
+---
+
+### 🏪 3. Dedicated `launchers TEXT[]` Column & Exclusivity Detection
 - **Before:** Store availability was buried in raw JSON metadata.
 - **Now:** Added a first-class `launchers TEXT[]` array column to PostgreSQL:
   - **Epic Exclusives:** *Alan Wake 2*, *Fortnite* $\rightarrow$ `['Epic Games']`
@@ -65,19 +79,19 @@ flowchart TD
 
 ---
 
-### ⚡ 3. Non-Blocking Sub-100ms Search Optimization
+### ⚡ 4. Non-Blocking Sub-100ms Search Optimization
 - **Before:** Live searches ran synchronous LLM calls (Gemini/OpenRouter), causing 5–15 second latency and timeouts.
 - **Now:** Decoupled synchronous LLM calls from search handlers. Live store search returns in **< 100ms** using instant store tags, while deep AI metadata enrichment runs in background worker threads.
 
 ---
 
-### ⚖️ 4. Multi-Pool Load Balancer Gateway (`:8800`)
+### ⚖️ 5. Multi-Pool Load Balancer Gateway (`:8800`)
 - **Before:** Direct, single-process connections susceptible to traffic overload.
 - **Now:** Built [`load_balancer.py`](file:///e:/AiAssistant/Gaming/distributed_server/load_balancer.py) with round-robin balancing across 5 microservice pools, sub-1.5s health probing, automatic upstream failover, and strict isolation of crawler workloads from user traffic.
 
 ---
 
-### 🔄 5. 24/7 6-Thread Parallel Infinite Crawler & Auto-Revive Watchdog
+### 🔄 6. 24/7 6-Thread Parallel Infinite Crawler & Auto-Revive Watchdog
 - **File:** [`crawler_service.py`](file:///e:/AiAssistant/Gaming/distributed_server/crawler_service.py) on Port **`:8851`**
 - **Now:** 6 independent, non-blocking parallel worker threads:
   1. `SteamCrawlerThread` (unlimited page-by-page streaming)
@@ -90,32 +104,32 @@ flowchart TD
 
 ---
 
-### 📅 6. Autonomous Release Date Healer
+### 📅 7. Autonomous Release Date Healer
 - **File:** [`heal_release_dates.py`](file:///e:/AiAssistant/Gaming/distributed_server/heal_release_dates.py)
 - **Now:** Continuously resolves `NULL` release dates by querying official Steam Store APIs and RAWG. Over **`2,690+` dates healed**.
 
 ---
 
-### 🖼️ 7. HD Portrait Box Art vs. Landscape Hero Banners
+### 🖼️ 8. HD Portrait Box Art vs. Landscape Hero Banners
 - **Before:** Square or landscape thumbnails were used for vertical library grid cards.
 - **Now:** Vertical High-Definition Portrait Box Art (`library_600x900_2x.jpg`) is separated from wide Landscape Hero Banners (`library_hero.jpg`), with automatic fallback to high-resolution photorealistic artwork.
 
 ---
 
-### 🐧 8. Full Linux & Steam Deck Support
+### 🐧 9. Full Linux & Steam Deck Support
 - **Now:** Default platform arrays across all database rows, models, and harvesters include `["Windows", "Linux"]` (and `["Windows", "Linux", "Xbox"]` for cross-play).
 
 ---
 
-### 🛡️ 9. Autonomous Server Watchdog & Self-Healing Agent
+### 🛡️ 10. Autonomous Server Watchdog & Self-Healing Agent
 - **File:** [`server_watchdog_agent.py`](file:///e:/AiAssistant/Gaming/distributed_server/server_watchdog_agent.py)
 - **Now:** Standalone monitoring daemon checking all cluster ports with `/api/agent/diagnostics` for automated health telemetry and self-healing restarts.
 
 ---
 
-### 🌐 10. UptimeRobot Keep-Alive Integration (Zero Sleep / Zero Pause)
-- **Endpoint:** `GET https://mission-control-server-okj7.onrender.com/health`
-- **Now:** A single 5-minute UptimeRobot ping prevents Render free-tier containers from going to sleep while actively executing `SELECT 1` SQL queries on Supabase to prevent the 7-day inactivity pause.
+### 🌐 11. UptimeRobot Keep-Alive Integration (Zero Sleep / Zero Pause)
+- **Endpoints:** `GET /` and `GET /health` on `https://mission-control-server-okj7.onrender.com`
+- **Now:** Handles both `GET` and `HEAD` probes. Every 5-minute ping prevents Render free-tier containers from going to sleep while actively executing `SELECT 1` SQL queries on Supabase to prevent the 7-day inactivity pause.
 
 ---
 
@@ -141,4 +155,5 @@ flowchart TD
 | **Integrated Storefronts** | Steam | **Steam, Epic Games, GOG Galaxy, Xbox / PC Game Pass** |
 | **Platform Compatibility** | Windows | **Windows, Linux, Steam Deck, Xbox** |
 | **Search Response Latency** | ~5,000ms | **< 100ms** |
-| **High-Availability Uptime** | Single Process | **5-Tier Microservices + Load Balancer + UptimeRobot** |
+| **Database Resilience** | Single Supabase Host | **3-Tier Engine (Supabase + Cloud Fallback + Local SQLite Replica)** |
+| **High-Availability Uptime** | Single Process | **5-Tier Microservices + Load Balancer + UptimeRobot Keep-Alive** |

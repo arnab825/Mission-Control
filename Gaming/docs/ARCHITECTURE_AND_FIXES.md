@@ -13,11 +13,15 @@ flowchart TD
         D[" Electron Desktop App & DirectX HUD Overlay"]
     end
 
-    subgraph GatewayLayer [" 2. API Gateway & Load Balancer (:8800)"]
+    subgraph MonitoringLayer [" 2. High-Availability & Keep-Alive"]
+        UR[" UptimeRobot Keep-Alive\n(5-minute ping to prevent Render/DB sleep)"]
+    end
+
+    subgraph GatewayLayer [" 3. API Gateway & Load Balancer (:8800)"]
         LB["Asynchronous Reverse Proxy & Health Watchdog\n(Round-Robin, Failover < 1.5s, Sub-100ms Search)"]
     end
 
-    subgraph ServicePools [" 3. Upstream Microservice Pools"]
+    subgraph ServicePools [" 4. Upstream Microservice Pools"]
         P1[" Catalog Discovery Pool (:8811, :8812)\n• Sub-100ms Global Game Search\n• In-Memory Deduplication\n• Fast Store Tag Extraction"]
         P2[" User Library & Node Sync Pool (:8821, :8822)\n• Local Hardware Node Detection\n• Installed Game Executables\n• Distributed Storage Metrics"]
         P3[" AI Metadata Enricher Service (:8831)\n• Technical Gameplay Features\n• Authentic Game Summaries\n• Hardware Requirements"]
@@ -25,18 +29,25 @@ flowchart TD
         P5[" Infinite Harvester & Crawler Service (:8851)\n• 6 Parallel 24/7 Autonomous Threads\n• Continuous Steam, GOG, Epic, Xbox Ingestion\n• Multi-Provider AI Classifier Loop"]
     end
 
-    subgraph DataLayer [" 4. Production Cloud Database"]
-        DB[(" Supabase PostgreSQL ('vekqkwwzzamwhitjodld')\n• public.canonical_games (8,150+ Games)\n• public.ai_classification_log (1,760+ Logs)\n• public.game_installations & library_nodes")]
+    subgraph DatabaseTier [" 5. Multi-Tier Database & Built-in Backup Architecture"]
+        T1[(" Tier 1: Supabase PostgreSQL (Primary)\n(db.vekqkwwzzamwhitjodld.supabase.co:5432)\n8,150+ Games & 93.5% AI Classified")]
+        T2[(" Tier 2: Secondary Cloud PostgreSQL (Fallback)\n(Neon Serverless / Cloud Postgres Standby)")]
+        T3[(" Tier 3: Local SQLite Backup Replica\n(data/catalog_fallback.db)\nAutonomous Offline Snapshot & Zero-Downtime Engine")]
+        R[" Upstash Redis Cache Layer\n(Sub-millisecond In-Memory Query Cache)"]
     end
 
     ClientLayer -->|All User Requests /api/*| GatewayLayer
+    UR -->|GET or HEAD /health| GatewayLayer
     GatewayLayer -->|/api/search, /api/games| P1
     GatewayLayer -->|/api/nodes, /api/library| P2
     GatewayLayer -->|/api/enrich| P3
     GatewayLayer -->|/api/launchers| P4
     GatewayLayer -->|/api/crawler| P5
 
-    P1 & P2 & P3 & P4 & P5 --> DB
+    P1 & P2 & P3 & P4 & P5 --> T1
+    T1 -.->|Auto Failover if Cloud Down| T2
+    T2 -.->|Auto Fallback if Network Outage| T3
+    T1 -.->|Query Cache| R
 ```
 
 ---
@@ -147,6 +158,15 @@ flowchart TD
   3. **Tier 3 (Embedded SQLite Replica):** Zero-dependency local `sqlite3` fallback (`catalog_fallback.db`). If cloud connectivity drops or times out, user searches, catalog queries, and library stats seamlessly execute offline.
 - **Background Snapshotting:**
   - All write and upsert operations asynchronously mirror and snapshot data to the local SQLite replica via background daemon threads, guaranteeing that local fallback caches remain warm.
+
+---
+
+### Fix 13: UptimeRobot Keep-Alive & Root Endpoint Welcome Support
+- **Files:** [`Gaming/distributed_server/server.py`](file:///e:/AiAssistant/Gaming/distributed_server/server.py) & [`load_balancer.py`](file:///e:/AiAssistant/Gaming/distributed_server/load_balancer.py)
+- **Features Implemented:**
+  - Registered `@app.get("/")` and `@app.head("/")` welcome endpoints so opening root domains displays active service discovery rather than `404 Not Found`.
+  - Added dual HTTP method support (`GET` and `HEAD`) on `/health` with automatic `SELECT 1` SQL keep-alive queries.
+  - Keeps Render web dynos warm (preventing the 15-minute idle shutdown) and prevents Supabase's 7-day free tier inactivity pause.
 
 ---
 
