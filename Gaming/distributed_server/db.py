@@ -752,11 +752,11 @@ class LibraryDB:
             INSERT INTO library_nodes (
                 node_id, name, hostname, ip, platform, status,
                 auth_token_hash, clerk_id, auth_provider, storage_total, storage_used, storage_free,
-                scan_paths, last_heartbeat, version, metadata, updated_at
+                scan_paths, last_heartbeat, last_sync, version, metadata, updated_at
             ) VALUES (
                 %(node_id)s, %(name)s, %(hostname)s, %(ip)s, %(platform)s, %(status)s,
                 %(auth_token_hash)s, %(clerk_id)s, %(auth_provider)s, %(storage_total)s, %(storage_used)s, %(storage_free)s,
-                %(scan_paths)s::jsonb, NOW(), %(version)s, %(metadata)s::jsonb, NOW()
+                %(scan_paths)s::jsonb, NOW(), NOW(), %(version)s, %(metadata)s::jsonb, NOW()
             )
             ON CONFLICT (node_id) DO UPDATE SET
                 name           = EXCLUDED.name,
@@ -770,6 +770,7 @@ class LibraryDB:
                 storage_free   = EXCLUDED.storage_free,
                 scan_paths     = EXCLUDED.scan_paths,
                 last_heartbeat = NOW(),
+                last_sync      = COALESCE(library_nodes.last_sync, NOW()),
                 version        = EXCLUDED.version,
                 metadata       = EXCLUDED.metadata,
                 updated_at     = NOW()
