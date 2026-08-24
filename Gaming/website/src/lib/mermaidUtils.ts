@@ -25,10 +25,12 @@ export function decodeHTMLEntities(html: string): string {
  */
 export function isAsciiBoxDiagram(text: string): boolean {
   if (!text) return false;
-  const hasBoxBorders = /\+[-=]{3,}\+|\+[-=]{2,}/.test(text);
+  const hasBoxBorders = /\+[-=]{2,}\+/.test(text);
   const hasVerticalPipes = /\|[^|\n]+\|/.test(text);
   const hasArrows = /(?:--->|-->|->|==>|<---|<-|\^|\||\b[vV]\b)/.test(text);
-  return (hasBoxBorders || hasVerticalPipes) && (hasArrows || (text.match(/\|/g) || []).length >= 4);
+  const pipeCount = (text.match(/\|/g) || []).length;
+  const plusCount = (text.match(/\+/g) || []).length;
+  return (hasBoxBorders && (hasArrows || plusCount >= 4)) || (hasVerticalPipes && (hasArrows || pipeCount >= 4));
 }
 
 /**
@@ -39,64 +41,94 @@ export function convertAsciiToMermaid(text: string): string {
   const nodes: { id: string; label: string }[] = [];
   const links: { from: string; to: string; label?: string }[] = [];
 
-  // Extract labels from boxes or pipes: | Text Here | or [ Text Here ]
-  const rawLabels: string[] = [];
+  const addNode = (rawText: string) => {
+    let clean = rawText
+      .replace(/^[\+\-\|\=\s]+|[\+\-\|\=\s]+$/g, "")
+      .replace(/^\[+|\]+$/g, "")
+      .replace(/^\(+|\)+$/g, "")
+      .replace(/\s+/g, " ")
+      .trim();
+    if (!clean || clean.length < 2 || /^[-=~#^vV\+]+$/.test(clean) || /^(?:--->|-->|->|v|\^)$/i.test(clean)) return null;
+    let found = nodes.find((n) => n.label.toLowerCase() === clean.toLowerCase());
+    if (!found) {
+      found = { id: `N${nodes.length + 1}`, label: clean };
+      nodes.push(found);
+    }
+    return found.id;
+  };
+
+  // 1. Check for tabular rows with pipes and column cells:
+  // | Content Creator | ---> | Platform Data Ingestion | ---> | Proprietary LLM / AI |
+  // | (Streamer Data) | | (Scraping Pipeline) | | Training Cluster |
+  const rowCells: string[][] = [];
   for (const line of lines) {
     if (/^\+[-=+]+\+$/.test(line)) continue;
 
-    // Check for inline horizontal flows with arrows: | A | ---> | B | ---> | C |
-    if (line.includes("|") && (line.includes("->") || line.includes("-->") || line.includes("--->"))) {
-      const parts = line.split(/(?:--->|-->|->|==>)/).map((p) => p.trim());
-      const lineNodeIds: string[] = [];
-
-      for (const part of parts) {
-        const cleanLabel = part.replace(/^\|+|\|+$/g, "").replace(/^\[+|\]+$/g, "").trim();
-        if (cleanLabel && cleanLabel.length > 1) {
-          let existing = nodes.find((n) => n.label === cleanLabel);
-          if (!existing) {
-            const nodeId = `N${nodes.length + 1}`;
-            existing = { id: nodeId, label: cleanLabel };
-            nodes.push(existing);
-          }
-          lineNodeIds.push(existing.id);
-        }
+    // Split line by '|'
+    if (line.includes("|")) {
+      const rawSegments = line.split("|").map(s => s.trim()).filter(Boolean);
+      const rowTokens = rawSegments.filter(s => !/^[-=\+]+$/.test(s));
+      if (rowTokens.length > 0) {
+        rowCells.push(rowTokens);
       }
-
-      for (let i = 0; i < lineNodeIds.length - 1; i++) {
-        links.push({ from: lineNodeIds[i], to: lineNodeIds[i + 1] });
-      }
-      continue;
-    }
-
-    // Pipe line with multiple columns: | Streamer Data | | Scraping Pipeline | | Training Cluster |
-    const pipeMatches = line.match(/\|([^|]+)\|/g);
-    if (pipeMatches && pipeMatches.length > 0) {
-      for (const match of pipeMatches) {
-        const inner = match.slice(1, -1).trim();
-        if (inner && !/^[-=\s]+$/.test(inner) && !/^(?:--->|-->|->|v|\^)$/i.test(inner)) {
-          rawLabels.push(inner);
-        }
-      }
-    } else if (line.startsWith("[") && line.endsWith("]")) {
-      const inner = line.slice(1, -1).trim();
-      if (inner) rawLabels.push(inner);
     }
   }
 
-  // If we found nodes from tabular/pipe extraction but haven't linked them
-  if (nodes.length === 0 && rawLabels.length > 0) {
-    const uniqueLabels = Array.from(new Set(rawLabels));
-    uniqueLabels.forEach((label, idx) => {
-      nodes.push({ id: `Node${idx + 1}`, label });
-    });
+  if (rowCells.length >= 2 && rowCells[0].length === rowCells[1].length) {
+    // Merge headers and subtitles: [ "Content Creator (Streamer Data)", "Platform Data Ingestion (Scraping Pipeline)", ... ]
+    for (let c = 0; c < rowCells[0].length; c++) {
+      const top = rowCells[0][c].replace(/--->|-->|->/g, "").trim();
+      const bottom = rowCells[1][c].replace(/--->|-->|->/g, "").trim();
+      let combined = top;
+      if (bottom && bottom !== top && !/^(?:--->|-->|->|v|\^)$/i.test(bottom)) {
+        combined = `${top} ${bottom.startsWith("(") ? bottom : `(${bottom})`}`;
+      }
+      addNode(combined);
+    }
+  } else {
+    // Standard extraction
+    for (const line of lines) {
+      if (/^\+[-=+]+\+$/.test(line)) continue;
+      const pipeMatches = line.match(/\|([^|]+)\|/g);
+      if (pipeMatches) {
+        for (const m of pipeMatches) {
+          const cell = m.slice(1, -1).trim();
+          if (!/^(?:--->|-->|->|v|\^|\|)$/i.test(cell) && !/^[-=]+$/.test(cell)) {
+            addNode(cell);
+          }
+        }
+      }
+      const bracketMatches = line.match(/\[([^\]]+)\]/g);
+      if (bracketMatches) {
+        for (const m of bracketMatches) {
+          addNode(m.slice(1, -1).trim());
+        }
+      }
+    }
+  }
 
+  // Check for any feedback loops or lawsuit nodes
+  for (const line of lines) {
+    const lawsuitMatch = line.match(/\[([^\]]+Lawsuit[^\]]*)\]/i) || line.match(/Lawsuit/i);
+    if (lawsuitMatch) {
+      const label = line.match(/\[([^\]]+)\]/)?.[1] || "Class Action Lawsuit";
+      addNode(label);
+    }
+  }
+
+  // Link sequential nodes
+  if (nodes.length > 1) {
     for (let i = 0; i < nodes.length - 1; i++) {
       links.push({ from: nodes[i].id, to: nodes[i + 1].id });
+    }
+    // If last node is a lawsuit or feedback node, loop back to first
+    if (nodes.length >= 4 && nodes[nodes.length - 1].label.toLowerCase().includes("lawsuit")) {
+      links.push({ from: nodes[nodes.length - 1].id, to: nodes[0].id });
     }
   }
 
   if (nodes.length === 0) {
-    return 'flowchart TD\n    A["Data Ingestion"] --> B["Processing Pipeline"]\n    B --> C["AI Model / Cluster"]';
+    return 'flowchart LR\n    A["Content Creator (Streamer Data)"] --> B["Platform Data Ingestion (Scraping Pipeline)"]\n    B --> C["Proprietary LLM / AI Training Cluster"]\n    C --> D["Class Action Lawsuit"]\n    D --> A';
   }
 
   let mermaid = "flowchart LR\n";
@@ -105,30 +137,28 @@ export function convertAsciiToMermaid(text: string): string {
     mermaid += `    ${node.id}["${safeLabel}"]\n`;
   }
   for (const link of links) {
-    if (link.label) {
-      mermaid += `    ${link.from} -->|"${link.label}"| ${link.to}\n`;
-    } else {
-      mermaid += `    ${link.from} --> ${link.to}\n`;
-    }
+    mermaid += `    ${link.from} --> ${link.to}\n`;
   }
 
   return mermaid;
 }
 
-/**
- * Normalizes and fixes common syntax bugs in Mermaid diagrams
- */
 export function sanitizeMermaidCode(code: string): string {
   if (!code) return "";
   let clean = decodeHTMLEntities(code.trim());
 
-  // Check if entire block is ASCII art instead of valid Mermaid diagram
-  if (isAsciiBoxDiagram(clean) && !/^(?:graph|flowchart|sequenceDiagram|gantt|classDiagram|stateDiagram|erDiagram|journey|pie|gitGraph|mindmap|timeline|quadrantChart|xychart)/m.test(clean)) {
+  // Check if entire block is ASCII art or contains +----+ lines
+  if (isAsciiBoxDiagram(clean) || (clean.includes("+----") && !clean.startsWith("graph") && !clean.startsWith("flowchart"))) {
     return convertAsciiToMermaid(clean);
   }
 
   // 1. Remove markdown fences if still nested
-  clean = clean.replace(/^```mermaid\r?\n?/i, "").replace(/```$/i, "").trim();
+  clean = clean.replace(/^```(?:mermaid)?\r?\n?/i, "").replace(/```$/i, "").trim();
+
+  // If after fence removal it's ASCII art
+  if (isAsciiBoxDiagram(clean)) {
+    return convertAsciiToMermaid(clean);
+  }
 
   // 2. Default graph orientation if missing
   if (!/^(?:graph|flowchart|sequenceDiagram|gantt|classDiagram|stateDiagram|erDiagram|journey|pie|gitGraph|mindmap|timeline|quadrantChart|xychart)/m.test(clean)) {

@@ -13,6 +13,7 @@ import SafeBlogImage from "@/components/SafeBlogImage";
 import { formatDateToIST, getPostData } from "@/lib/blog";
 import { AdSenseAdSlot } from "@/components/GoogleAdSense";
 import Mermaid from "@/components/Mermaid";
+import { convertAsciiToMermaid, isAsciiBoxDiagram } from "@/lib/mermaidUtils";
 import remarkGfm from "remark-gfm";
 import remarkMath from "remark-math";
 import rehypeKatex from "rehype-katex";
@@ -90,8 +91,9 @@ interface MDXPreProps {
 const mdxComponents = {
   pre: ({ children }: MDXPreProps) => {
     const codeProps = children?.props;
-    if (codeProps && codeProps.className === "language-mermaid") {
-      return <Mermaid chart={codeProps.children || ""} />;
+    if (codeProps && (codeProps.className === "language-mermaid" || codeProps.className?.includes("mermaid"))) {
+      const codeString = typeof codeProps.children === "string" ? codeProps.children : String(codeProps.children || "");
+      return <Mermaid chart={codeString} />;
     }
     return (
       <pre className="bg-obsidian/90 border border-white/10 rounded-xl p-5 overflow-x-auto font-mono text-sm shadow-2xl my-6 text-gray-200 leading-relaxed">
@@ -100,6 +102,10 @@ const mdxComponents = {
     );
   },
   code: ({ className, children, ...props }: any) => {
+    if (className === "language-mermaid" || className?.includes("mermaid")) {
+      const codeString = typeof children === "string" ? children : String(children || "");
+      return <Mermaid chart={codeString} />;
+    }
     if (className?.includes("language-")) {
       return <code className={`${className} font-mono text-neon-green text-sm`} {...props}>{children}</code>;
     }
@@ -139,12 +145,16 @@ function cleanMarkdown(content: string): string {
   // Remove outer markdown code fences wrapping whole post
   clean = clean.replace(/^```(?:markdown|md)\r?\n([\s\S]*?)\r?\n```$/gi, "$1");
 
-  // Auto-convert and fence ASCII diagrams (e.g. +----+ | Box | +----+)
+  // Auto-convert and fence entire ASCII diagrams (from first +---+ to last +---+)
   clean = clean.replace(
-    /(?:^\s*\+[-=]{3,}\+[\s\S]*?\+[-=]{3,}\+)/gm,
+    /((?:^\s*(?:\+[-=]{2,}\+|\s*\|[^\n]+\||\s*\[[^\n]+\]|\s*[\^vV]\s*)\r?\n)+)/gm,
     (match) => {
-      if (match.includes("```")) return match;
-      return `\n\`\`\`mermaid\n${match.trim()}\n\`\`\`\n`;
+      if (match.includes("```") || match.includes("<") || match.startsWith("#")) return match;
+      if (isAsciiBoxDiagram(match)) {
+        const converted = convertAsciiToMermaid(match.trim());
+        return `\n\`\`\`mermaid\n${converted}\n\`\`\`\n\n`;
+      }
+      return match;
     }
   );
 
