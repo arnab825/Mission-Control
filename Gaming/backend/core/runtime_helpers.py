@@ -970,6 +970,30 @@ class TelemetryThread(threading.Thread):
                     # Idle is ~5W, load is ~45-90W depending on utilization
                     cpu_power_w = 5.0 + (55.0 * (cpu_pct / 100.0))
 
+                if gpu_metrics:
+                    gpu_metrics = {
+                        **gpu_metrics,
+                        "utilization": gpu_metrics.get("utilization", gpu_metrics.get("gpu_util")),
+                        "gpu_util": gpu_metrics.get("gpu_util", gpu_metrics.get("utilization")),
+                        "temp": gpu_metrics.get("temp", gpu_metrics.get("temperature")),
+                        "temperature": gpu_metrics.get("temperature", gpu_metrics.get("temp")),
+                        "vram_used": gpu_metrics.get("vram_used", gpu_metrics.get("vram_used_mb")),
+                        "vram_used_mb": gpu_metrics.get("vram_used_mb", gpu_metrics.get("vram_used")),
+                        "vram_total": gpu_metrics.get("vram_total", gpu_metrics.get("vram_total_mb")),
+                        "vram_total_mb": gpu_metrics.get("vram_total_mb", gpu_metrics.get("vram_total")),
+                        "vram_percent": gpu_metrics.get("vram_percent"),
+                        "clock_core": gpu_metrics.get("clock_core", gpu_metrics.get("clock_gpu_mhz")),
+                        "clock_gpu_mhz": gpu_metrics.get("clock_gpu_mhz", gpu_metrics.get("clock_core")),
+                        "clock_mem": gpu_metrics.get("clock_mem", gpu_metrics.get("clock_mem_mhz")),
+                        "clock_mem_mhz": gpu_metrics.get("clock_mem_mhz", gpu_metrics.get("clock_mem")),
+                        "power_draw": gpu_metrics.get("power_draw", gpu_metrics.get("power_draw_w")),
+                        "power_draw_w": gpu_metrics.get("power_draw_w", gpu_metrics.get("power_draw")),
+                        "power_limit": gpu_metrics.get("power_limit", gpu_metrics.get("power_limit_w")),
+                        "power_limit_w": gpu_metrics.get("power_limit_w", gpu_metrics.get("power_limit")),
+                        "driver_version": gpu_metrics.get("driver_version"),
+                        "fan_speed": gpu_metrics.get("fan_speed"),
+                    }
+
                 with self.p._state_lock:
                     telemetry_update = {
                         "cpu_pct": cpu_pct,
@@ -1007,23 +1031,6 @@ class TelemetryThread(threading.Thread):
                             "CPU Temperature restricted: Run as Administrator to enable thermal sensors."
                         )
                     self._admin_checked = True
-
-                if "gpu_metrics" in state_copy and state_copy["gpu_metrics"]:
-                    gm = state_copy["gpu_metrics"]
-                    state_copy["gpu_metrics"] = {
-                        **gm,
-                        "utilization": gm.get("gpu_util"),
-                        "temp": gm.get("temperature"),
-                        "vram_used": gm.get("vram_used_mb"),
-                        "vram_total": gm.get("vram_total_mb"),
-                        "vram_percent": gm.get("vram_percent"),
-                        "clock_core": gm.get("clock_gpu_mhz"),
-                        "clock_mem": gm.get("clock_mem_mhz"),
-                        "power_draw": gm.get("power_draw_w"),
-                        "power_limit": gm.get("power_limit_w"),
-                        "driver_version": gm.get("driver_version"),
-                        "fan_speed": gm.get("fan_speed"),
-                    }
 
                 def get_screen_refresh_rate() -> int:
                     try:

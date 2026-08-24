@@ -162,8 +162,13 @@ class GPUProfiler:
         # 4. Intel Specific Heuristics
         elif profile["brand"] == "Intel":
             profile["supports_xess"] = True
-            if "arc" in name or "b-series" in name or "b580" in name:
-                profile["architecture"] = "Alchemist/Battlemage"
+            if "b5" in name or "b-series" in name or "battlemage" in name:
+                profile["architecture"] = "Battlemage"
+                profile["ray_tracing"] = True
+                profile["max_fg"] = "ExtraSS"
+                profile["tier"] = "mid"
+            elif "arc" in name or "a7" in name or "a5" in name or "a3" in name or "alchemist" in name:
+                profile["architecture"] = "Alchemist"
                 profile["ray_tracing"] = True
                 profile["max_fg"] = "ExtraSS"
                 profile["tier"] = "mid"

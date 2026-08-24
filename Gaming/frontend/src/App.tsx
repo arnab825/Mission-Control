@@ -260,13 +260,14 @@ const App: React.FC = () => {
     if (isHUDWindow || !state) return;
     const isActive = state.is_game_active === true;
     const gpuMetrics = state.gpu_metrics as any;
+    const effectiveFps = state.fps ?? (state as any).game_fps ?? 0;
     (window as any).electronAPI?.updateTrayTelemetry?.({
-      fps: (state as any).game_fps ?? 0,
+      fps: effectiveFps,
       gpuLoad: gpuMetrics?.utilization ?? gpuMetrics?.gpu_util ?? 0,
       gpuTemp: gpuMetrics?.temp ?? gpuMetrics?.temperature ?? 0,
       isActive,
     });
-  }, [(state as any)?.game_fps, state?.gpu_metrics, state?.is_game_active, isHUDWindow]);
+  }, [state?.fps, (state as any)?.game_fps, state?.gpu_metrics, state?.is_game_active, isHUDWindow]);
 
   // Listen for standalone HUD window visibility updates to sync Titlebar HUD status
   const [isHUDVisibleState, setIsHUDVisibleState] = useState(true);

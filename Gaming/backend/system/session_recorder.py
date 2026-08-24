@@ -61,14 +61,19 @@ class SessionRecorder:
         self._last_snapshot_time = now
 
         gpu_metrics = game_state.get("gpu_metrics", {}) or {}
+        gpu_util = gpu_metrics.get("utilization", gpu_metrics.get("gpu_util", 0))
+        gpu_temp = gpu_metrics.get("temp", gpu_metrics.get("temperature", 0))
+        vram_used = gpu_metrics.get("vram_used", gpu_metrics.get("vram_used_mb", 0))
+        vram_total = gpu_metrics.get("vram_total", gpu_metrics.get("vram_total_mb", 0))
+
         snapshot = {
             "timestamp": now,
             "capture_fps": game_state.get("capture_fps", 0.0),
             "vision_fps": game_state.get("vision_fps", 0.0),
-            "gpu_util": gpu_metrics.get("gpu_util", 0),
-            "gpu_temp": gpu_metrics.get("temperature", 0),
-            "vram_used_mb": gpu_metrics.get("vram_used_mb", 0),
-            "vram_total_mb": gpu_metrics.get("vram_total_mb", 0),
+            "gpu_util": gpu_util,
+            "gpu_temp": gpu_temp,
+            "vram_used_mb": vram_used,
+            "vram_total_mb": vram_total,
             "cpu_pct": game_state.get("cpu_pct", 0),
             "cpu_temp": game_state.get("cpu_temp", 0),
             "mem_pct": game_state.get("mem_pct", 0),
@@ -81,9 +86,6 @@ class SessionRecorder:
         # Real-time Anomaly Detection
         capture_fps = game_state.get("capture_fps", 0.0)
         one_percent_low = game_state.get("one_percent_low", 0.0)
-        gpu_temp = gpu_metrics.get("temperature", 0.0)
-        vram_used = gpu_metrics.get("vram_used_mb", 0.0)
-        vram_total = gpu_metrics.get("vram_total_mb", 0.0)
         cpu_pct = game_state.get("cpu_pct", 0.0)
         cpu_temp = game_state.get("cpu_temp", 0.0)
         scene_type = game_state.get("scene_type", "unknown")

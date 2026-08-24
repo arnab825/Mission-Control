@@ -39,6 +39,13 @@ interface RightTelemetryProps {
 }
 
 const RightTelemetry: React.FC<RightTelemetryProps> = ({ state, isAgentic, isListening, isIntelOpen }) => {
+  const isConnected = state !== null;
+  const tokensPerSec = state?.ai_analytic?.reasoning_tokens
+    ? state.ai_analytic.reasoning_tokens.toLocaleString()
+    : '1,402';
+  const latency = state?.neural_status?.tactical_latency || '42ms';
+  const modelName = state?.neural_status?.model_active || state?.config?.ai_agent?.primary_model || 'Nemotron';
+
   return (
     <div className={`
       fixed inset-y-0 right-0 z-60 w-72 lg:relative lg:translate-x-0 border-l border-white/5 flex flex-col bg-[#050505]/70 backdrop-blur-2xl lg:bg-[#050505]/70
@@ -56,8 +63,8 @@ const RightTelemetry: React.FC<RightTelemetryProps> = ({ state, isAgentic, isLis
           <div className="space-y-1.5">
             <StatusItem label="Neural Agent" active={isAgentic} icon={BrainCircuit} />
             <StatusItem label="Vision" active={state?.is_game_active || false} icon={Layers} />
-            <StatusItem label="Bridge" active={true} icon={Zap} />
-            <StatusItem label="IO Hook" active={true} icon={Cpu} />
+            <StatusItem label="Bridge" active={isConnected} icon={Zap} />
+            <StatusItem label="IO Hook" active={isConnected} icon={Cpu} />
             <StatusItem label="Voice" active={isListening} icon={Mic} />
           </div>
         </div>
@@ -85,15 +92,15 @@ const RightTelemetry: React.FC<RightTelemetryProps> = ({ state, isAgentic, isLis
             <div className="space-y-2 font-mono text-[10px]">
               <div className="flex justify-between items-center border-b border-white/2 pb-1.5">
                 <span className="text-zinc-600">TOK/SEC</span>
-                <span className="text-zinc-300 font-bold">1,402</span>
+                <span className="text-zinc-300 font-bold">{tokensPerSec}</span>
               </div>
               <div className="flex justify-between items-center border-b border-white/2 pb-1.5">
                 <span className="text-zinc-600">LATENCY</span>
-                <span className="text-zinc-300 font-bold">42ms</span>
+                <span className="text-zinc-300 font-bold">{latency}</span>
               </div>
               <div className="flex justify-between items-center pb-1.5">
                 <span className="text-zinc-600">MODEL</span>
-                <span className="text-neon-green font-bold">Nemotron</span>
+                <span className="text-neon-green font-bold truncate max-w-32" title={modelName}>{modelName}</span>
               </div>
             </div>
           </div>
