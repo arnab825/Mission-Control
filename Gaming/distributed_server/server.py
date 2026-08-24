@@ -354,23 +354,53 @@ def ping_redis() -> Optional[bool]:
         return False
 
 
-# ── Health ────────────────────────────────────────────────────────────────────
+# ── Root & API Welcome ───────────────────────────────────────────────────────
+@app.get("/")
+@app.head("/")
+async def root():
+    """Root endpoint welcoming clients, web scrapers, and browsers."""
+    return {
+        "service": "Mission Control Distributed Game Library API",
+        "version": "2.0.0",
+        "status": "online",
+        "health": "/health",
+        "docs": "/docs",
+        "openapi": "/openapi.json",
+        "endpoints": {
+            "search": "/api/search?q={query}",
+            "catalog": "/api/games",
+            "stats": "/api/library/stats",
+            "nodes": "/api/nodes",
+        }
+    }
+
+
+# ── Health & Uptime Keep-Alive ────────────────────────────────────────────────
 @app.get("/health")
 @app.head("/health")
 async def health():
     """
-    Health check endpoint:
-    Actively pings Supabase (SELECT 1) and Redis (PING) to keep both services awake,
-    preventing Supabase free tier inactivity pause and keeping cloud containers warm.
+    Health check & UptimeRobot Keep-Alive endpoint:
+    Actively pings PostgreSQL (SELECT 1) and Redis (PING) on every request,
+    preventing Supabase free-tier inactivity pauses, keeping Render containers warm,
+    and verifying Multi-Tier Failover Database health.
     """
     db_alive = db.ping()
     redis_alive = ping_redis()
+    active_tier_name = getattr(db, "active_tier_name", f"Tier {getattr(db, '_active_tier', 1)}")
+    
     status = "ok" if db_alive else "degraded"
     
     return {
         "status": status,
-        "db": db_alive,
-        "redis": redis_alive if redis_client else "disabled",
+        "keep_alive": "active",
+        "monitor": "UptimeRobot / HealthProbe Ready",
+        "database": {
+            "alive": db_alive,
+            "active_tier": active_tier_name,
+            "multi_tier_failover": True,
+        },
+        "redis_cache": redis_alive if redis_client else "disabled",
         "timestamp": int(time.time()),
     }
 
