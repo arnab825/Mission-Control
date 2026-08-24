@@ -133,6 +133,31 @@ class LibraryNodeService:
             else get_default_storage()
         )
 
+        # Dynamically discover desktop app version from version.json / package.json across all runtimes
+        app_version = "unknown"
+        candidate_paths = [
+            Path(__file__).parent.parent / "backend" / "version.json",
+            Path(__file__).parent.parent / "frontend" / "package.json",
+            Path(__file__).parent / "version.json",
+            Path(os.getcwd()) / "version.json",
+            Path(os.getcwd()) / "backend" / "version.json",
+        ]
+        # Check PyInstaller bundled temp dir if frozen
+        if getattr(sys, "frozen", False) and hasattr(sys, "_MEIPASS"):
+            candidate_paths.insert(0, Path(sys._MEIPASS) / "version.json")
+
+        for cp in candidate_paths:
+            try:
+                if cp.exists():
+                    with open(cp, "r", encoding="utf-8") as f:
+                        data = json.load(f)
+                        val = data.get("version")
+                        if val and str(val).strip():
+                            app_version = str(val).strip()
+                            break
+            except Exception:
+                continue
+
         payload = {
             "nodeId":    self.cfg.node_id or None,
             "name":      self.cfg.node_name,
@@ -141,7 +166,7 @@ class LibraryNodeService:
             "clerk_id":  self.cfg.clerk_id,
             "auth_provider": self.cfg.auth_provider,
             "platform":  sys.platform,
-            "version":   "1.0.0",
+            "version":   app_version,
             "storage":   storage,
             "scanPaths": self.cfg.scan_paths,
             "metadata": {
