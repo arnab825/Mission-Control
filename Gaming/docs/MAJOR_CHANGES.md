@@ -139,9 +139,9 @@ flowchart TD
 
 ### ⚡ 13. Real-Time Node Presence & Incremental Library Sync Engine
 - **Files:** [`Gaming/backend/handlers/game_handler.py`](file:///e:/AiAssistant/Gaming/backend/handlers/game_handler.py) & [`Gaming/distributed_node/node_service.py`](file:///e:/AiAssistant/Gaming/distributed_node/node_service.py)
-- **Before:** Opening the Desktop App left node status as `offline` in Supabase unless manually registering via terminal scripts. Game additions or uninstallations required manual button scans.
+- **Before:** Opening the Desktop App left node status as `offline` and version mismatched as `1.0.0` in Supabase unless manually registering via terminal scripts. Game additions or uninstallations required manual button scans.
 - **Now:**
-  1. **Autonomous Node Auto-Spawn:** Launching the desktop application automatically boots the `LibraryNodeService` daemon, instantly registering the node in Supabase (`library_nodes`) with status **`online`** and transmitting real-time 15s heartbeats with accurate physical disk metrics.
+  1. **Autonomous Node Auto-Spawn & Version Alignment:** Launching the desktop application automatically boots the `LibraryNodeService` daemon, instantly registering the node in Supabase (`library_nodes`) with status **`online`**, dynamic app version alignment (**`v3.2.8`** loaded directly from `version.json`), and transmitting real-time 15s heartbeats with accurate physical disk metrics.
   2. **Real-Time Differential Sync (Insert / Update / Delete):** `LibraryWatcher` detects local file system and registry changes. When games are installed or deleted:
      - **INSERT / UPDATE:** Upserts new game titles, paths, executables, icons, and size metrics into Supabase (`games` table).
      - **DELETE:** Executes automatic deletion SQL queries to prune uninstalled games from Supabase in real time without orphaned records.
