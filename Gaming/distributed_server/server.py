@@ -234,10 +234,16 @@ def _seed_catalog_if_empty():
 @asynccontextmanager
 async def lifespan(app: FastAPI):
     threading.Thread(target=_offline_watchdog, daemon=True, name="OfflineWatchdog").start()
-    if ENABLE_BACKGROUND_WORKERS:
+    if ENABLE_BACKGROUND_WORKERS or os.getenv("RUN_CRAWLER", "1").lower() in ("1", "true", "yes"):
         threading.Thread(target=_classification_worker, daemon=True, name="AIClassifier").start()
         threading.Thread(target=_enrichment_worker, daemon=True, name="EnrichmentWorker").start()
         threading.Thread(target=_seed_catalog_if_empty, daemon=True, name="InitialSeeder").start()
+        try:
+            from infinite_catalog_crawler import start_infinite_crawler_in_background
+            start_infinite_crawler_in_background()
+            logger.info("Mission Control: 6-Thread Parallel Infinite Crawler active 24/7.")
+        except Exception as exc:
+            logger.warning("Could not start background infinite crawler: %s", exc)
         logger.info("Mission Control: Background AI/Enrichment workers active.")
     else:
         logger.info("Mission Control: Running in low-memory Web API mode (workers disabled).")

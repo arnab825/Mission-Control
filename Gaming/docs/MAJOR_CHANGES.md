@@ -1,6 +1,6 @@
 # Mission Control — Major Upgrades, Architecture & Infrastructure Reference
 
-This document summarizes the **major architectural transformations, resilience engineering, cloud deployments, multi-tier database failovers, and backup systems** implemented in the **Mission Control Distributed Ecosystem**.
+This document summarizes the **major architectural transformations, resilience engineering, cloud deployments, multi-tier database failovers, 24/7 infinite crawler auto-revive engines, and backup systems** implemented in the **Mission Control Distributed Ecosystem**.
 
 ---
 
@@ -26,11 +26,11 @@ flowchart TD
         P2[" User Library & Node Sync Pool (:8821, :8822)\n• Local Hardware Detection & Storage Stats\n• Game Executables & Installations"]
         P3[" AI Metadata Enricher Service (:8831)\n• Gameplay Features & Rich Summaries\n• Autonomous Release Date Healer"]
         P4[" Multi-Launcher Enricher Service (:8841)\n• Cross-Store Multi-Launcher Sync\n• Exclusivity Detection Engine"]
-        P5[" Infinite Harvester & Crawler Service (:8851)\n• 6 Parallel 24/7 Streaming Threads\n• Continuous AI Classification Loop"]
+        P5[" Infinite Harvester & Crawler Service (:8851)\n• 6 Parallel 24/7 Autonomous Threads\n• Embedded Server Lifespan Auto-Boot\n• 5-Second Supervisor Auto-Revive Watchdog"]
     end
 
     subgraph DatabaseTier [" 5. Multi-Tier High-Availability Database & Backup Engine"]
-        T1[(" Tier 1: Supabase PostgreSQL (Primary)\n(db.vekqkwwzzamwhitjodld.supabase.co:5432)\n8,150+ Games & 93.5% AI Classified")]
+        T1[(" Tier 1: Supabase PostgreSQL (Primary)\n(db.vekqkwwzzamwhitjodld.supabase.co:5432)\n13,500+ Games & 10,500+ AI Classified")]
         T2[(" Tier 2: Secondary Cloud PostgreSQL (Fallback)\n(Neon Serverless / Cloud Postgres Standby)")]
         T3[(" Tier 3: Local SQLite Backup Replica\n(data/catalog_fallback.db)\nAutonomous Offline Snapshot & Zero-Downtime Engine")]
         R[" Upstash Redis Cache Layer\n(Sub-millisecond In-Memory Query Cache)"]
@@ -51,12 +51,12 @@ flowchart TD
 
 ---
 
-## 2. The 11 Major Architectural Upgrades
+## 2. The 12 Major Architectural Upgrades
 
 ### 🚀 1. Quad-Storefront Ingestion Engine
 - **Before:** Single-store indexing (Steam only).
 - **Now:** Integrated live autonomous harvesters across **Steam, Epic Games Store, GOG Galaxy (DRM-Free), and Xbox & PC Game Pass**.
-- **Impact:** Canonical game catalog surged from **`2,066`** to **`8,150+` production titles** and continues to grow 24/7.
+- **Impact:** Canonical game catalog surged from **`2,066`** to **`13,500+` production titles** and continues to grow 24/7.
 
 ---
 
@@ -70,7 +70,15 @@ flowchart TD
 
 ---
 
-### 🏪 3. Dedicated `launchers TEXT[]` Column & Exclusivity Detection
+### 🔄 3. 24/7 Infinite Ingestion Auto-Start & Supervisor Watchdog
+- **Before:** Crawler stopped when server processes were reset or required manual terminal commands.
+- **Now:** 
+  1. **Embedded Lifespan Auto-Boot:** [`server.py`](file:///e:/AiAssistant/Gaming/distributed_server/server.py) automatically boots all 6 crawler threads on application startup (`start_infinite_crawler_in_background()`).
+  2. **5-Second Supervisor Watchdog:** [`crawler_service.py`](file:///e:/AiAssistant/Gaming/distributed_server/crawler_service.py) continuously monitors all 6 worker threads (Steam, GOG, Epic, Xbox, AI Classifier, Healer). If any thread crashes due to network timeouts or rate limits, the supervisor automatically catches the exception and revives the thread within 5 seconds.
+
+---
+
+### 🏪 4. Dedicated `launchers TEXT[]` Column & Exclusivity Detection
 - **Before:** Store availability was buried in raw JSON metadata.
 - **Now:** Added a first-class `launchers TEXT[]` array column to PostgreSQL:
   - **Epic Exclusives:** *Alan Wake 2*, *Fortnite* $\rightarrow$ `['Epic Games']`
@@ -79,28 +87,15 @@ flowchart TD
 
 ---
 
-### ⚡ 4. Non-Blocking Sub-100ms Search Optimization
+### ⚡ 5. Non-Blocking Sub-100ms Search Optimization
 - **Before:** Live searches ran synchronous LLM calls (Gemini/OpenRouter), causing 5–15 second latency and timeouts.
 - **Now:** Decoupled synchronous LLM calls from search handlers. Live store search returns in **< 100ms** using instant store tags, while deep AI metadata enrichment runs in background worker threads.
 
 ---
 
-### ⚖️ 5. Multi-Pool Load Balancer Gateway (`:8800`)
+### ⚖️ 6. Multi-Pool Load Balancer Gateway (`:8800`)
 - **Before:** Direct, single-process connections susceptible to traffic overload.
 - **Now:** Built [`load_balancer.py`](file:///e:/AiAssistant/Gaming/distributed_server/load_balancer.py) with round-robin balancing across 5 microservice pools, sub-1.5s health probing, automatic upstream failover, and strict isolation of crawler workloads from user traffic.
-
----
-
-### 🔄 6. 24/7 6-Thread Parallel Infinite Crawler & Auto-Revive Watchdog
-- **File:** [`crawler_service.py`](file:///e:/AiAssistant/Gaming/distributed_server/crawler_service.py) on Port **`:8851`**
-- **Now:** 6 independent, non-blocking parallel worker threads:
-  1. `SteamCrawlerThread` (unlimited page-by-page streaming)
-  2. `GOGCrawlerThread` (DRM-Free catalog indexing)
-  3. `EpicCrawlerThread` (promotions & releases sync)
-  4. `XboxCrawlerThread` (Xbox Game Studios & Game Pass live web search)
-  5. `AIClassifierThread` (3-tier LLM cascade: Gemini, NVIDIA NIM, Groq, OpenRouter)
-  6. `HealerThread` (auto-heals release dates and launcher tags)
-  7. `SupervisorThread` (watchdog that auto-revives crashed threads within 5 seconds)
 
 ---
 
@@ -133,6 +128,11 @@ flowchart TD
 
 ---
 
+### 🔍 12. Root Domain Welcome & Discovery
+- **Now:** Visiting `https://mission-control-server-okj7.onrender.com/` displays the active API routing directory and online status instead of returning `404 Not Found`.
+
+---
+
 ## 3. Microservice Port Matrix
 
 | Service | Port | Description |
@@ -142,7 +142,7 @@ flowchart TD
 | **User Library & Node Sync** | **`:8821` / `:8822`** | Local hardware node detection and storage metrics pool. |
 | **AI Metadata Enricher** | **`:8831`** | Dedicated LLM feature & summary generator. |
 | **Multi-Launcher Store Healer** | **`:8841`** | Cross-store exclusivity & multi-launcher array sync. |
-| **Infinite Crawler & AI Harvester**| **`:8851`** | 24/7 6-thread quad-store ingestion & classifier daemon. |
+| **Infinite Crawler & AI Harvester**| **`:8851`** | 24/7 6-thread quad-store ingestion & supervisor auto-revive daemon. |
 
 ---
 
@@ -150,10 +150,11 @@ flowchart TD
 
 | Metric | Before | Current Live Production |
 | :--- | :---: | :---: |
-| **Total Ingested Games** | `2,066` | **`8,150+` Titles** |
-| **AI Classified Titles** | `1,497` | **`7,617+` (93.5%)** |
+| **Total Ingested Games** | `2,066` | **`13,500+` Titles** |
+| **AI Classified Titles** | `1,497` | **`10,500+` (77.8%)** |
 | **Integrated Storefronts** | Steam | **Steam, Epic Games, GOG Galaxy, Xbox / PC Game Pass** |
 | **Platform Compatibility** | Windows | **Windows, Linux, Steam Deck, Xbox** |
 | **Search Response Latency** | ~5,000ms | **< 100ms** |
+| **Crawler Self-Healing** | Manual Restart Required | **Embedded Server Lifespan + 5-Second Supervisor Watchdog** |
 | **Database Resilience** | Single Supabase Host | **3-Tier Engine (Supabase + Cloud Fallback + Local SQLite Replica)** |
 | **High-Availability Uptime** | Single Process | **5-Tier Microservices + Load Balancer + UptimeRobot Keep-Alive** |

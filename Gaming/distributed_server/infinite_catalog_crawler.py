@@ -457,7 +457,8 @@ def loop_autonomous_healer():
             time.sleep(15)
 
 
-def main():
+def start_infinite_crawler_in_background():
+    """Starts all 6 infinite crawler threads in the background."""
     logger.info("🚀 Launching Multi-Threaded Parallel Infinite Launcher Crawlers...")
 
     threads = [
@@ -474,6 +475,11 @@ def main():
         time.sleep(0.5)
 
     logger.info("All 6 concurrent launcher engines running 24/7 in parallel!")
+    return threads
+
+
+def main():
+    start_infinite_crawler_in_background()
 
     # Keep main thread alive
     while True:
