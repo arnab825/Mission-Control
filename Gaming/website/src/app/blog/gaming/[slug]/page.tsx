@@ -13,6 +13,7 @@ import SafeBlogImage from "@/components/SafeBlogImage";
 import { formatDateToIST, getPostData } from "@/lib/blog";
 import { AdSenseAdSlot } from "@/components/GoogleAdSense";
 import Mermaid from "@/components/Mermaid";
+import { CodeBlock } from "@/components/CodeBlock";
 import { convertAsciiToMermaid, isAsciiBoxDiagram } from "@/lib/mermaidUtils";
 import remarkGfm from "remark-gfm";
 import remarkMath from "remark-math";
@@ -81,50 +82,70 @@ const CATEGORY_CONFIG: Record<string, { color: string; bg: string; border: strin
   "Hardware Deep-Dive": { color: "text-blue-400", bg: "bg-blue-400/10", border: "border-blue-400/20" },
 };
 
-// Server-side: extract ```mermaid blocks and replace with inline MDX JSX.
-// We base64-encode the chart to avoid backtick/quote characters that confuse
-// the MDX parser when embedded directly in a JSX attribute.
-function injectMermaidComponents(content: string): string {
-  return content.replace(
-    /```mermaid\r?\n([\s\S]*?)\r?\n```/g,
-    (_match, code) => {
-      // Base64 only contains A-Z a-z 0-9 + / = — safe in any JSX string attribute
-      const b64 = Buffer.from(code.trim(), "utf-8").toString("base64");
-      return `<MermaidChart b64="${b64}" />`;
-    }
-  );
-}
-
-function MermaidChart({ b64 }: { b64: string }) {
-  // Decode server-side (RSC, Buffer is available)
-  const chart = Buffer.from(b64, "base64").toString("utf-8");
-  return <Mermaid chart={chart} />;
-}
-
 const mdxComponents = {
-  MermaidChart,
-  pre: ({ children, ...rest }: any) => (
-    <pre className="bg-obsidian/90 border border-white/10 rounded-xl p-5 overflow-x-auto font-mono text-sm shadow-2xl my-6 text-gray-200 leading-relaxed" {...rest}>
-      {children}
-    </pre>
-  ),
-  code: ({ className, children, ...props }: any) => {
-    if (className?.includes("language-")) {
-      return <code className={`${className} font-mono text-neon-green text-sm`} {...props}>{children}</code>;
+  pre: ({ children }: any) => {
+    const codeChild = children?.props ? children : null;
+    const className = codeChild?.props?.className || "";
+    const rawText = typeof codeChild?.props?.children === "string"
+      ? codeChild.props.children
+      : (typeof children === "string" ? children : "");
+
+    if (className.includes("mermaid") || className.includes("language-mermaid") || rawText.trim().startsWith("flowchart") || rawText.trim().startsWith("graph")) {
+      return <Mermaid chart={rawText} />;
     }
-    return (
-      <code className="bg-white/10 text-neon-green px-1.5 py-0.5 rounded font-mono text-xs border border-white/10" {...props}>
-        {children}
-      </code>
-    );
+
+    const langMatch = className.match(/language-(\w+)/);
+    const language = langMatch ? langMatch[1] : "python";
+
+    return <CodeBlock code={rawText.trim()} language={language} />;
+  },
+  code: ({ className, children, ...props }: any) => {
+    const rawText = typeof children === "string" ? children : String(children || "");
+    if (className?.includes("mermaid") || className === "language-mermaid" || rawText.trim().startsWith("flowchart") || rawText.trim().startsWith("graph")) {
+      return <Mermaid chart={rawText} />;
+    }
+    // Plain code span inside CodeBlock syntax highlighter or simple inline text
+    if (!className || !className.includes("language-")) {
+      return (
+        <code className="text-neon-green font-mono text-xs px-1.5 py-0.5 rounded bg-black/40 border border-white/10" {...props}>
+          {children}
+        </code>
+      );
+    }
+    return <code className={className} {...props}>{children}</code>;
   },
   table: ({ children, ...props }: any) => (
-    <div className="overflow-x-auto my-6 border border-white/10 rounded-xl bg-obsidian/50 w-full shadow-lg">
+    <div className="overflow-x-auto my-8 border border-neon-green/20 rounded-2xl bg-[#090b10] shadow-[0_0_30px_rgba(118,185,0,0.05)] w-full">
       <table className="w-full border-collapse text-left m-0 text-sm" {...props}>
         {children}
       </table>
     </div>
-  )
+  ),
+  thead: ({ children, ...props }: any) => (
+    <thead className="bg-white/5 border-b border-white/10 text-xs font-mono uppercase tracking-wider text-neon-green" {...props}>
+      {children}
+    </thead>
+  ),
+  tbody: ({ children, ...props }: any) => (
+    <tbody className="divide-y divide-white/5 font-sans" {...props}>
+      {children}
+    </tbody>
+  ),
+  tr: ({ children, ...props }: any) => (
+    <tr className="hover:bg-white/[0.03] transition-colors" {...props}>
+      {children}
+    </tr>
+  ),
+  th: ({ children, ...props }: any) => (
+    <th className="px-5 py-3.5 font-bold text-gray-200 border-r border-white/5 last:border-r-0" {...props}>
+      {children}
+    </th>
+  ),
+  td: ({ children, ...props }: any) => (
+    <td className="px-5 py-3.5 text-gray-300 border-r border-white/5 last:border-r-0 leading-relaxed" {...props}>
+      {children}
+    </td>
+  ),
 };
 
 interface GamingPostDisplay {
@@ -148,8 +169,16 @@ function cleanMarkdown(content: string): string {
   // Remove outer markdown code fences wrapping whole post
   clean = clean.replace(/^```(?:markdown|md)\r?\n([\s\S]*?)\r?\n```$/gi, "$1");
 
-  // Greedy ASCII diagram block: capture everything from first +---+ line to last +---+ line
-  // This handles multi-row ASCII diagrams with vertical arrows between rows
+  // Convert code-fenced ASCII diagrams (e.g. ```\n+---...---+\n```) into clean ```mermaid
+  clean = clean.replace(
+    /```(?:[a-z0-9_-]*\r?\n)?([ \t]*\+[-=]{2,}\+[\s\S]*?\+[-=]{2,}\+[\s\S]*?)```/gi,
+    (_match, inner) => {
+      const converted = convertAsciiToMermaid(inner.trim());
+      return `\n\n\`\`\`mermaid\n${converted}\n\`\`\`\n\n`;
+    }
+  );
+
+  // Greedy ASCII diagram block (unfenced): capture from first +---+ to last +---+
   clean = clean.replace(
     /^[ \t]*\+[-=]{2,}\+.*(?:\n[^`].*)*?\n[ \t]*\+[-=]{2,}\+[^\n]*/gm,
     (match) => {
@@ -160,15 +189,15 @@ function cleanMarkdown(content: string): string {
   );
 
   // Strip leftover ASCII connector fragments that appear outside boxes
-  // e.g. "^ | | [Class Action Lawsuit] v +----...----+"
+  // Only match if line contains arrows (^, v, --->) or plus-borders (+---+), never table delimiters (:---)
   clean = clean.replace(
-    /^[ \t]*(?:\^|v|V|\||\|\||\[\s*[^\]]+\s*\]|\+[-=.]{2,}\+)[ \t\|\^vV\[\]\-=+.>:]*$/gm,
+    /^[ \t]*(?:\^|v|V|\+[-=]{2,}\+)[ \t\|\^vV\[\]\-=+.>:]*$/gm,
     ""
   );
 
-  // Strip leftover inline pipe-table ASCII rows: | Label | ---> | Label |
+  // Strip leftover inline ASCII connector rows: | Label | ---> | Label | (must contain -> or --->)
   clean = clean.replace(
-    /^[ \t]*\|[^\n|]+\|(?:[ \t]*[-=]->?[ \t]*\|[^\n|]+\|)*[ \t]*$/gm,
+    /^[ \t]*\|[^\n|]+\|(?:[ \t]*[-=]+>[ \t]*\|[^\n|]+\|)+[ \t]*$/gm,
     ""
   );
 
@@ -418,7 +447,7 @@ export default async function GamingBlogPost({ params }: { params: Promise<{ slu
                 try {
                   return (
                     <MDXRemote
-                      source={injectMermaidComponents(cleanMarkdown(post.markdownBody || ""))}
+                      source={cleanMarkdown(post.markdownBody || "")}
                       components={mdxComponents}
                       options={{
                         mdxOptions: {

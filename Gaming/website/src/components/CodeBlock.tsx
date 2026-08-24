@@ -2,7 +2,7 @@
 
 import { useState } from "react";
 import { Prism as SyntaxHighlighter } from "react-syntax-highlighter";
-import { atomDark } from "react-syntax-highlighter/dist/cjs/styles/prism";
+import { oneDark } from "react-syntax-highlighter/dist/cjs/styles/prism";
 import { Check, Copy, Eye, Code } from "lucide-react";
 import { MermaidDiagram } from "@/components/MermaidDiagram";
 
@@ -48,21 +48,25 @@ export function CodeBlock({ code, language }: CodeBlockProps) {
     plaintext: "Output Log",
     powershell: "PowerShell",
     cpp: "C++",
+    c: "C",
     python: "Python",
     bash: "Bash / Terminal",
     json: "JSON Config",
-  }[language.toLowerCase()] || language;
+    typescript: "TypeScript",
+    javascript: "JavaScript",
+  }[language.toLowerCase()] || language.toUpperCase();
 
   return (
-    <div className="relative group/code my-6 rounded-xl overflow-hidden border border-white/8 bg-[#0a0a0c] font-sans">
+    <div className="relative group/code my-6 rounded-2xl overflow-hidden border border-white/10 bg-[#08090c] font-sans shadow-xl">
       {/* Code Block Header */}
-      <div className="flex items-center justify-between px-4 py-2 bg-white/3 border-b border-white/5 text-[10px] font-mono text-gray-400 uppercase tracking-widest">
-        <div className="flex items-center gap-3">
-          <span className="font-bold text-gray-300">{displayLanguage}</span>
+      <div className="flex items-center justify-between px-4 py-2.5 bg-white/[0.03] border-b border-white/5 text-[11px] font-mono text-gray-400 uppercase tracking-widest">
+        <div className="flex items-center gap-2">
+          <span className="w-2.5 h-2.5 rounded-full bg-neon-green/80 inline-block" />
+          <span className="font-bold text-gray-200">{displayLanguage}</span>
           {isMermaid && (
             <button
               onClick={() => setShowCode(false)}
-              className="flex items-center gap-1 text-neon-green hover:underline cursor-pointer text-[9px] font-bold"
+              className="flex items-center gap-1 text-neon-green hover:underline cursor-pointer text-[10px] font-bold ml-2"
             >
               <Eye className="w-3 h-3" />
               <span>View Visual Diagram</span>
@@ -71,7 +75,7 @@ export function CodeBlock({ code, language }: CodeBlockProps) {
         </div>
         <button
           onClick={handleCopy}
-          className="flex items-center gap-1 hover:text-neon-green transition-colors cursor-pointer select-none font-bold uppercase tracking-wider text-[9px]"
+          className="flex items-center gap-1.5 px-2.5 py-1 rounded-md bg-white/5 hover:bg-white/10 text-gray-300 hover:text-neon-green transition-colors cursor-pointer select-none font-mono text-[10px]"
         >
           {copied ? (
             <>
@@ -80,29 +84,36 @@ export function CodeBlock({ code, language }: CodeBlockProps) {
             </>
           ) : (
             <>
-              <Copy className="w-3 h-3 text-gray-500 group-hover/code:text-neon-green transition-colors" />
+              <Copy className="w-3 h-3 text-gray-400 group-hover/code:text-neon-green transition-colors" />
               <span>Copy</span>
             </>
           )}
         </button>
       </div>
       
-      {/* Code Body */}
-      <div className="overflow-x-auto">
+      {/* Code Body with clean typography & zero text-shadow/blur */}
+      <div className="overflow-x-auto p-4 sm:p-5 text-[13px] font-mono leading-relaxed [&_span]:!shadow-none [&_span]:!text-shadow-none [&_code]:!bg-transparent [&_code]:!border-none [&_code]:!p-0 [&_code]:!shadow-none">
         <SyntaxHighlighter
-          style={atomDark}
+          style={oneDark}
           language={language === "text" || language === "plaintext" ? "text" : language}
           PreTag="div"
           customStyle={{
             background: "transparent",
-            padding: "1.25rem",
+            padding: 0,
             margin: 0,
-            fontSize: "0.8rem",
-            lineHeight: "1.6",
+            fontSize: "13px",
+            lineHeight: "1.7",
             fontFamily: "ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, 'Liberation Mono', 'Courier New', monospace",
-            whiteSpace: "pre-wrap",
-            wordBreak: "break-word",
-            overflowX: "hidden",
+            textShadow: "none",
+            boxShadow: "none",
+          }}
+          codeTagProps={{
+            style: {
+              background: "transparent",
+              textShadow: "none",
+              boxShadow: "none",
+              border: "none",
+            }
           }}
         >
           {code}
