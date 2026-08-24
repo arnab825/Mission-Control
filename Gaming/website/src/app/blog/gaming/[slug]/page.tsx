@@ -139,6 +139,15 @@ function cleanMarkdown(content: string): string {
   // Remove outer markdown code fences wrapping whole post
   clean = clean.replace(/^```(?:markdown|md)\r?\n([\s\S]*?)\r?\n```$/gi, "$1");
 
+  // Auto-convert and fence ASCII diagrams (e.g. +----+ | Box | +----+)
+  clean = clean.replace(
+    /(?:^\s*\+[-=]{3,}\+[\s\S]*?\+[-=]{3,}\+)/gm,
+    (match) => {
+      if (match.includes("```")) return match;
+      return `\n\`\`\`mermaid\n${match.trim()}\n\`\`\`\n`;
+    }
+  );
+
   // Auto-fence unfenced Mermaid diagrams (e.g. graph LR A[...] --> B[...])
   clean = clean.replace(
     /(?:^\/\/[^\n]*\n)?^(graph\s+(?:LR|TD|TB|RL)|sequenceDiagram|gantt|classDiagram|flowchart\s+(?:LR|TD|TB|RL))([\s\S]*?)(?=\n\s*\n\s*#|\n\s*\n\s*\/[^\/]|$(?!\n))/gm,

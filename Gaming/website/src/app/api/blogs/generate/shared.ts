@@ -151,45 +151,76 @@ export async function fetchRSSFeed(feedUrl: string, label: string): Promise<Feed
   }
 }
 
+import { sanitizeMermaidCode, isAsciiBoxDiagram, convertAsciiToMermaid } from "@/lib/mermaidUtils";
+
+/**
+ * AI-powered Mermaid Diagram validator and fixer
+ * Automatically invokes an LLM to repair malformed or ASCII diagrams into clean Mermaid format
+ */
+export async function fixDiagramWithAI(diagramCode: string, apiKey?: string): Promise<string> {
+  const geminiKey = process.env.GEMINI_API_KEY || process.env.GOOGLE_API_KEY;
+  const prompt = `You are an expert Mermaid.js diagram engineer.
+Fix and convert the following text or malformed diagram into 100% syntactically valid Mermaid.js code.
+
+RULES:
+1. ONLY return the raw Mermaid diagram code inside \`\`\`mermaid and \`\`\` fences.
+2. Do NOT output any markdown commentary, explanation, or greeting.
+3. Use 'flowchart LR' or 'flowchart TD' for box/flow diagrams.
+4. Wrap all node labels in double quotes, e.g. A["Node Text"] --> B["Other Text"].
+5. NEVER use raw ASCII box art like '+---+' or '| |'. Convert them into proper Mermaid nodes.
+
+Input Diagram:
+${diagramCode}`;
+
+  // Try Gemini Flash
+  if (geminiKey) {
+    try {
+      const response = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key=${geminiKey}`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          contents: [{ parts: [{ text: prompt }] }],
+          generationConfig: { maxOutputTokens: 1024, temperature: 0.2 }
+        }),
+        signal: AbortSignal.timeout(8000)
+      });
+      if (response.ok) {
+        const data = await response.json();
+        const rawText = data.candidates?.[0]?.content?.parts?.[0]?.text?.trim();
+        const m = rawText?.match(/```(?:mermaid)?([\s\S]*?)```/i);
+        if (m && m[1]) return m[1].trim();
+        if (rawText && (rawText.startsWith("graph") || rawText.startsWith("flowchart") || rawText.startsWith("sequenceDiagram"))) {
+          return rawText.trim();
+        }
+      }
+    } catch (e) {
+      console.warn("[BlogGen] AI Mermaid fixer Gemini attempt failed:", e);
+    }
+  }
+
+  // Fallback to algorithmic sanitizer
+  return sanitizeMermaidCode(diagramCode);
+}
+
 export function sanitizeMermaid(content: string): string {
   if (!content) return content;
-  return content.replace(/```mermaid([\s\S]*?)```/g, (match, mermaidCode) => {
-    let code = mermaidCode;
 
-    // 1. Normalize flowchart link arrows with pipe labels (fix spacing, inner padding, & trailing '>')
-    code = code.replace(/(-->|---|==>|-\.->)\s*\|\s*([^|]+?)\s*\|>?\s*/g, "$1|$2| ");
-
-    // 2. Fix unquoted node labels containing spaces/parentheses/brackets by quoting them
-    code = code.replace(/([A-Za-z0-9_]+)\[([^\]\n"]+)\]/g, '$1["$2"]');
-    code = code.replace(/([A-Za-z0-9_]+)\(([^)\n"]+)\)/g, '$1("$2")');
-    code = code.replace(/([A-Za-z0-9_]+)\{([^}\n"]+)\}/g, '$1{"$2"}');
-
-    // 3. Fix unclosed brackets/parentheses/braces (e.g., B[Supporting Talent)
-    code = code.replace(/([A-Za-z0-9_]+)\[([^\]\n"]+)(?=\s*(?:-->|---|==>|\n|$))/g, '$1["$2"]');
-    code = code.replace(/([A-Za-z0-9_]+)\(([^)\n"]+)(?=\s*(?:-->|---|==>|\n|$))/g, '$1("$2")');
-    code = code.replace(/([A-Za-z0-9_]+)\{([^}\n"]+)(?=\s*(?:-->|---|==>|\n|$))/g, '$1{"$2"}');
-
-    // 4. Fix pie chart titles (remove colon)
-    code = code.replace(/^\s*title:\s*(.*)$/gm, "    title $1");
-
-    // 3. Fix sequence diagram notes without placement (e.g. note "text")
-    if (code.includes("sequenceDiagram")) {
-      const actorRegex = /participant\s+(\w+)/g;
-      const actors: string[] = [];
-      let actorMatch;
-      while ((actorMatch = actorRegex.exec(code)) !== null) {
-        actors.push(actorMatch[1]);
-      }
-
-      const defaultActor = actors[0] || "System";
-      const targetNoteActor = actors.length >= 2 ? `${actors[0]}, ${actors[1]}` : defaultActor;
-
-      code = code.replace(/^\s*note\s+["']([^"']+)["']/gm, `    Note over ${targetNoteActor}: $1`);
-      code = code.replace(/^\s*Note\s+["']([^"']+)["']/gm, `    Note over ${targetNoteActor}: $1`);
+  // 1. Convert unfenced ASCII diagrams or unfenced Mermaid graphs into ```mermaid blocks
+  let updated = content.replace(
+    /(?:^\/\/[^\n]*\n)?^(graph\s+(?:LR|TD|TB|RL)|sequenceDiagram|gantt|classDiagram|flowchart\s+(?:LR|TD|TB|RL))([\s\S]*?)(?=\n\s*\n\s*#|\n\s*\n\s*\/[^\/]|$(?!\n))/gm,
+    (match, p1, p2) => {
+      if (match.includes("```")) return match;
+      return `\n\`\`\`mermaid\n${p1}${p2.trim()}\n\`\`\`\n`;
     }
+  );
 
-    return "```mermaid" + code + "```";
+  // 2. Sanitize all ```mermaid ... ``` code blocks
+  updated = updated.replace(/```mermaid([\s\S]*?)```/g, (_match, mermaidCode) => {
+    const cleanedCode = sanitizeMermaidCode(mermaidCode);
+    return `\`\`\`mermaid\n${cleanedCode}\n\`\`\``;
   });
+
+  return updated;
 }
 
 function buildPromptForItems(
@@ -252,8 +283,18 @@ Generate a highly engaging, accurate, and completely unique blog post about thes
 - NO invented benchmarks or fabricated technical facts. Clearly indicate when something is uncertain rather than presenting speculation as fact.
 
 5. MERMAID DIAGRAMS (MANDATORY IF USEFUL):
-- When useful, generate valid Mermaid diagrams (flowcharts, sequence diagrams, architecture diagrams, pie charts, etc.). Ensure they are syntactically correct and reflect the actual system or process.
-- For flowcharts, NEVER use spaces inside edge labels. Use '-->|text|' instead of '-->| text |'.
+- When illustrating architectures, data flows, or rendering pipelines, ALWAYS generate valid Mermaid diagrams inside \`\`\`mermaid code blocks.
+- STRICT REQUIREMENT: NEVER use raw ASCII box art, unicode box drawings, or text tables with '+' and '|' lines (e.g. do NOT write '+---+' or '| Content | ---> | Pipeline |').
+- Always write proper Mermaid syntax such as:
+  \`\`\`mermaid
+  flowchart LR
+      A["Content Creator (Streamer Data)"] --> B["Platform Data Ingestion"]
+      B --> C["AI Training Cluster"]
+      C --> D["Class Action Lawsuit"]
+      D --> A
+  \`\`\`
+- Always enclose node labels in double quotes (e.g. A["Description"]).
+- For flowcharts, do not leave dangling arrows or unclosed brackets.
 
 6. DEVELOPER & GAMER FOCUS:
 - For development topics: Explain why something works, not just how. Include practical examples, copy-paste-ready commands, explain terminal utilities, mention installation methods, and discuss performance implications, architecture, debugging, and best practices.
