@@ -194,6 +194,15 @@ flowchart TD
 
 ---
 
+### Fix 16: Automated Store Hint Classification for Node Scan Paths
+- **Files:** [`Gaming/distributed_server/db.py`](file:///e:/AiAssistant/Gaming/distributed_server/db.py) & [`Gaming/distributed_node/node_service.py`](file:///e:/AiAssistant/Gaming/distributed_node/node_service.py)
+- **Problem:** When scan paths were registered in Supabase `node_scan_paths`, the `store_hint` column remained `NULL`.
+- **Resolution:**
+  - Implemented automated path parsing that maps directory structures to their corresponding digital store (`steam`, `epic`, `gog`, `ea`, `ubisoft`, `xbox`, `battlenet`, `riot`, `local`).
+  - Backfilled existing `node_scan_paths` records in Supabase so no `NULL` store hints remain.
+
+---
+
 ## 3. Real-Time Production Database Statistics
 
 | Metric | Initial State | Current Live Production State |

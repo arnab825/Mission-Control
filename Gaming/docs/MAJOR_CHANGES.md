@@ -158,6 +158,15 @@ flowchart TD
 
 ---
 
+### 📂 15. Automated Store Hint Classification for Node Scan Paths
+- **Files:** [`Gaming/distributed_server/db.py`](file:///e:/AiAssistant/Gaming/distributed_server/db.py) & [`Gaming/distributed_node/node_service.py`](file:///e:/AiAssistant/Gaming/distributed_node/node_service.py)
+- **Before:** Scanning custom or launcher paths inserted `NULL` into the `store_hint` column of `node_scan_paths`.
+- **Now:**
+  1. **Dynamic Path Detection:** Automatically detects all active library drives, Steam libraryfolders, Epic manifests, and custom directories on startup.
+  2. **Intelligent Store Classification:** Automatically maps filesystem paths to precise store hints (`steam`, `epic`, `gog`, `ea`, `ubisoft`, `xbox`, `battlenet`, `riot`, `local`).
+
+---
+
 ## 3. Microservice Port Matrix
 
 | Service | Port | Description |
