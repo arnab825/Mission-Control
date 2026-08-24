@@ -71,20 +71,22 @@ _WORKER_STATUS = {
 }
 
 
-def _get_existing_cache() -> Set[str]:
+def _is_in_cache(slug: str, norm: str) -> bool:
     global _EXISTING_CACHE
     with _LOCK:
         if not _EXISTING_CACHE:
             rows = db.execute("SELECT id, normalized_title FROM canonical_games;", fetch="all") or []
-            _EXISTING_CACHE = {r["normalized_title"] for r in rows} | {r["id"] for r in rows}
-        return set(_EXISTING_CACHE)
+            _EXISTING_CACHE = {r["normalized_title"] for r in rows if r.get("normalized_title")} | {r["id"] for r in rows if r.get("id")}
+            del rows
+        return (slug in _EXISTING_CACHE) or (norm in _EXISTING_CACHE)
 
 
 def _add_to_cache(slug: str, norm: str):
     global _EXISTING_CACHE
     with _LOCK:
-        _EXISTING_CACHE.add(slug)
-        _EXISTING_CACHE.add(norm)
+        if _EXISTING_CACHE is not None:
+            _EXISTING_CACHE.add(slug)
+            _EXISTING_CACHE.add(norm)
 
 
 def fetch_json(url: str, timeout: int = 12):
@@ -98,6 +100,7 @@ def fetch_json(url: str, timeout: int = 12):
 
 
 def _bulk_insert_games(games: List[Dict[str, Any]], store_name: str):
+    import gc
     inserted = 0
     for g in games:
         try:
@@ -111,6 +114,7 @@ def _bulk_insert_games(games: List[Dict[str, Any]], store_name: str):
         if key in _METRICS:
             _METRICS[key] += inserted
         logger.info("[%s] Successfully inserted %d new games!", store_name, inserted)
+    gc.collect()
 
 
 # ── WORKER 1: STEAM INFINITE ENGINE ──────────────────────────────────────────
@@ -125,7 +129,6 @@ def _worker_steam():
 
             while _RUNNING:
                 _WORKER_STATUS["steam"]["last_heartbeat"] = time.strftime("%Y-%m-%d %H:%M:%S")
-                existing_set = _get_existing_cache()
                 url = f"https://steamspy.com/api.php?request=all&page={page}"
                 data = fetch_json(url, timeout=15)
 
@@ -145,7 +148,7 @@ def _worker_steam():
 
                     slug = title_to_slug(name)
                     norm = normalize_title(name)
-                    if slug in existing_set or norm in existing_set:
+                    if _is_in_cache(slug, norm):
                         continue
 
                     _add_to_cache(slug, norm)
@@ -198,7 +201,6 @@ def _worker_gog():
 
             while _RUNNING:
                 _WORKER_STATUS["gog"]["last_heartbeat"] = time.strftime("%Y-%m-%d %H:%M:%S")
-                existing_set = _get_existing_cache()
                 url = f"https://catalog.gog.com/v1/catalog?limit=48&page={page}&order=desc:bestselling&productType=in:game"
                 data = fetch_json(url, timeout=10)
                 if not data or not isinstance(data, dict):
@@ -215,7 +217,7 @@ def _worker_gog():
 
                     slug = title_to_slug(title)
                     norm = normalize_title(title)
-                    if slug in existing_set or norm in existing_set:
+                    if _is_in_cache(slug, norm):
                         continue
 
                     _add_to_cache(slug, norm)
@@ -266,7 +268,6 @@ def _worker_epic():
     while _RUNNING:
         try:
             _WORKER_STATUS["epic"]["last_heartbeat"] = time.strftime("%Y-%m-%d %H:%M:%S")
-            existing_set = _get_existing_cache()
             epic_url = "https://store-site-backend-static.ak.epicgames.com/freeGamesPromotions?locale=en-US&country=US&allowCountries=US"
             data = fetch_json(epic_url, timeout=12)
             new_games = []
@@ -281,7 +282,7 @@ def _worker_epic():
                     slug = title_to_slug(title)
                     norm = normalize_title(title)
 
-                    if slug in existing_set or norm in existing_set:
+                    if _is_in_cache(slug, norm):
                         db.execute(
                             """
                             UPDATE canonical_games
@@ -352,7 +353,6 @@ def _worker_xbox():
 
             for pub in publishers:
                 for page in range(1, 6):
-                    existing_set = _get_existing_cache()
                     url = f"https://api.rawg.io/api/games?key={rawg_key}&publishers={pub}&page={page}&page_size=40"
                     data = fetch_json(url, timeout=10)
                     if not data or not isinstance(data, dict):
@@ -366,7 +366,7 @@ def _worker_xbox():
                         slug = title_to_slug(title)
                         norm = normalize_title(title)
 
-                        if slug in existing_set or norm in existing_set:
+                        if _is_in_cache(slug, norm):
                             db.execute(
                                 """
                                 UPDATE canonical_games
