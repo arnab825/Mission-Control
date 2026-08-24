@@ -451,6 +451,8 @@ async def register_node(req: NodeRegisterRequest):
         "platform":        req.platform,
         "status":          "online",
         "auth_token_hash": token_hash,
+        "clerk_id":        req.clerk_id or "",
+        "auth_provider":   req.auth_provider or "",
         "storage_total":   req.storage.total,
         "storage_used":    req.storage.used,
         "storage_free":    req.storage.free,

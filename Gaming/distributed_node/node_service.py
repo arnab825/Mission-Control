@@ -125,6 +125,7 @@ class LibraryNodeService:
 
     # ── Registration ──────────────────────────────────────────────────────────
 
+    def register(self) -> bool:
         # Dynamically discover all active local game libraries and launcher scan paths
         discovered_paths = list(self.cfg.scan_paths) if self.cfg.scan_paths else []
         try:
@@ -220,9 +221,9 @@ class LibraryNodeService:
 
     # ── Heartbeat ─────────────────────────────────────────────────────────────
 
-    def _send_heartbeat(self):
+    def send_heartbeat(self) -> bool:
         if not (self.cfg.node_id and self.cfg.token):
-            return
+            return False
         storage = (
             get_drive_storage(self.cfg.scan_paths)
             if self.cfg.scan_paths
@@ -238,11 +239,13 @@ class LibraryNodeService:
             if command == "scan":
                 logger.info("Server requested immediate scan.")
                 threading.Thread(target=self._run_scan, daemon=True).start()
+            return True
+        return False
 
     def _heartbeat_loop(self):
         while self._running:
             try:
-                self._send_heartbeat()
+                self.send_heartbeat()
             except Exception as exc:
                 logger.error("Heartbeat error: %s", exc)
             time.sleep(self.cfg.heartbeat_interval)
