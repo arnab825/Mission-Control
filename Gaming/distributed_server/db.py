@@ -1,8 +1,11 @@
 """
 Mission Control — Distributed Game Library Server
-db.py: Supabase / PostgreSQL connection manager.
+db.py: Multi-Tier Connection Manager.
 
-Uses the same DATABASE_URL as the existing backend (.env).
+Supports:
+Tier 1: Primary PostgreSQL (DATABASE_URL)
+Tier 2: Secondary PostgreSQL (FALLBACK_DATABASE_URL)
+Tier 3: Local SQLite Replica (catalog_fallback.db)
 """
 
 import hashlib
@@ -10,9 +13,12 @@ import json
 import logging
 import os
 import time
+import sqlite3
+import threading
 from pathlib import Path
 from typing import Any, Dict, List, Optional
-
+import re
+import urllib.parse
 from dotenv import load_dotenv
 
 # Load .env (search local, backend, root) — override=False ensures host/cloud env vars take precedence
@@ -41,10 +47,6 @@ QUERIES_DIR = Path(__file__).parent / "queries"
 
 def _load_sql(name: str) -> str:
     return (QUERIES_DIR / f"{name}.sql").read_text(encoding="utf-8-sig")
-
-
-import re
-import urllib.parse
 
 def _sanitize_db_url(raw_url: str) -> str:
     if not raw_url:
@@ -77,45 +79,159 @@ def _sanitize_db_url(raw_url: str) -> str:
             url = f"{url}{sep}sslmode=require"
         return url
 
-
 class LibraryDB:
     """
-    Thread-safe PostgreSQL connection manager for the distributed library.
-    Reconnects automatically on dropped connections.
+    Thread-safe Multi-Tier PostgreSQL/SQLite connection manager.
     """
 
     def __init__(self, database_url: Optional[str] = None):
-        raw_url = database_url or os.getenv("DATABASE_URL", "")
-        self._url = _sanitize_db_url(raw_url)
+        raw_primary = database_url or os.getenv("DATABASE_URL", "")
+        raw_fallback = os.getenv("FALLBACK_DATABASE_URL", "")
+        
+        self._url_primary = _sanitize_db_url(raw_primary)
+        self._url_fallback = _sanitize_db_url(raw_fallback)
         self._conn = None
+        self._active_tier = 0 # 0=None, 1=Primary, 2=Fallback, 3=SQLite
+        
         self.available = False
-        if not _PSYCOPG2_AVAILABLE or not self._url:
-            logger.warning("LibraryDB: psycopg2 or DATABASE_URL not available.")
+        
+        # Setup Tier 3 SQLite Replica
+        self._sqlite_path = Path(os.path.dirname(__file__)) / "data" / "catalog_fallback.db"
+        self._sqlite_path.parent.mkdir(parents=True, exist_ok=True)
+        self._sqlite_conn = None
+        self._init_sqlite()
+
+        if not _PSYCOPG2_AVAILABLE and not self._url_primary:
+            logger.warning("LibraryDB: psycopg2 or DATABASE_URL not available. Defaulting to Tier 3.")
+            self._active_tier = 3
+            self.available = True
             return
 
-        # Retry loop: Render cold starts can take 10-30s to establish the first connection
+        # Retry loop: Render cold starts can take 10-30s
         for attempt in range(1, 4):
             self._connect()
-            if self.available:
+            if self._active_tier in (1, 2):
                 break
-            logger.warning("LibraryDB: Startup attempt %d/3 failed, retrying in 5s...", attempt)
+            logger.warning("LibraryDB: Cloud Startup attempt %d/3 failed, retrying in 5s...", attempt)
             time.sleep(5)
+            
+        if self._active_tier not in (1, 2):
+            logger.error("LibraryDB: Could not connect to any Cloud PostgreSQL. Falling back to Tier 3 (SQLite).")
+            self._active_tier = 3
+            self.available = True
+
+    # ── Tier 3 SQLite Initialization ──────────────────────────────────────────
+
+    def _init_sqlite(self):
+        try:
+            self._sqlite_conn = sqlite3.connect(self._sqlite_path, check_same_thread=False)
+            self._sqlite_conn.row_factory = sqlite3.Row
+            with self._sqlite_conn:
+                self._sqlite_conn.execute('''
+                    CREATE TABLE IF NOT EXISTS canonical_games (
+                        id TEXT PRIMARY KEY,
+                        title TEXT,
+                        normalized_title TEXT,
+                        developer TEXT,
+                        publisher TEXT,
+                        release_date TEXT,
+                        primary_genre TEXT,
+                        genres TEXT,
+                        tags TEXT,
+                        features TEXT,
+                        platforms TEXT,
+                        launchers TEXT,
+                        cover_url TEXT,
+                        banner_url TEXT,
+                        summary TEXT,
+                        ai_classified BOOLEAN,
+                        ai_confidence REAL,
+                        raw_tags TEXT,
+                        metadata TEXT,
+                        created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+                        updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+                    )
+                ''')
+                self._sqlite_conn.execute('''
+                    CREATE TABLE IF NOT EXISTS library_nodes (
+                        node_id TEXT PRIMARY KEY,
+                        name TEXT,
+                        hostname TEXT,
+                        ip TEXT,
+                        platform TEXT,
+                        status TEXT,
+                        auth_token_hash TEXT,
+                        clerk_id TEXT,
+                        auth_provider TEXT,
+                        storage_total INTEGER,
+                        storage_used INTEGER,
+                        storage_free INTEGER,
+                        scan_paths TEXT,
+                        last_heartbeat TIMESTAMP,
+                        version TEXT,
+                        metadata TEXT,
+                        created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+                        updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+                    )
+                ''')
+                self._sqlite_conn.execute('''
+                    CREATE TABLE IF NOT EXISTS game_installations (
+                        id TEXT PRIMARY KEY,
+                        node_id TEXT,
+                        game_id TEXT,
+                        store TEXT,
+                        store_app_id TEXT,
+                        install_path TEXT,
+                        exe_path TEXT,
+                        version TEXT,
+                        size_bytes INTEGER,
+                        status TEXT,
+                        created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+                        updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+                    )
+                ''')
+            logger.info("LibraryDB: Tier 3 SQLite Replica initialized at %s", self._sqlite_path)
+        except Exception as e:
+            logger.error("LibraryDB: Failed to initialize SQLite replica: %s", e)
 
     # ── Connection Management ────────────────────────────────────────────────
 
     def _connect(self):
-        try:
-            self._conn = psycopg2.connect(self._url, connect_timeout=15)
-            self._conn.autocommit = False
-            self._ensure_schema()
-            self.available = True
-            logger.info("LibraryDB: Connected to Supabase PostgreSQL.")
-        except Exception as exc:
-            logger.error("LibraryDB: Connection failed: %s", exc)
-            self._conn = None
-            self.available = False
+        # Try Tier 1 Primary
+        if self._url_primary:
+            try:
+                self._conn = psycopg2.connect(self._url_primary, connect_timeout=10)
+                self._conn.autocommit = False
+                self._ensure_schema()
+                self.available = True
+                self._active_tier = 1
+                logger.info("LibraryDB: Connected to Tier 1 PostgreSQL (Primary).")
+                return
+            except Exception as exc:
+                logger.error("LibraryDB: Tier 1 Connection failed: %s", exc)
+                self._conn = None
+        
+        # Try Tier 2 Fallback
+        if self._url_fallback:
+            try:
+                self._conn = psycopg2.connect(self._url_fallback, connect_timeout=10)
+                self._conn.autocommit = False
+                self._ensure_schema()
+                self.available = True
+                self._active_tier = 2
+                logger.info("LibraryDB: Connected to Tier 2 PostgreSQL (Hot Standby).")
+                return
+            except Exception as exc:
+                logger.error("LibraryDB: Tier 2 Connection failed: %s", exc)
+                self._conn = None
+                
+        # If both fail, Tier 3 is active
+        self._active_tier = 3
+        self.available = True
 
     def _alive(self) -> bool:
+        if self._active_tier == 3:
+            return True # SQLite is always alive
         if not self._conn:
             return False
         try:
@@ -127,14 +243,16 @@ class LibraryDB:
 
     def _ensure_connected(self) -> bool:
         if not self._alive():
-            logger.info("LibraryDB: Reconnecting...")
+            logger.info("LibraryDB: Connection lost. Re-evaluating Tiers...")
             self._connect()
         return self.available
 
     def ping(self) -> bool:
-        """Pings the database with an active SELECT 1 query to verify health and keep connections/Supabase alive."""
-        if not self._conn:
+        """Pings the database with an active SELECT 1 query to verify health."""
+        if not self._conn and self._active_tier != 3:
             return self._ensure_connected()
+        if self._active_tier == 3:
+            return True
         try:
             with self._conn.cursor() as cur:
                 cur.execute("SELECT 1")
@@ -148,7 +266,7 @@ class LibraryDB:
             with self._conn.cursor() as cur:
                 cur.execute(schema_sql)
             self._conn.commit()
-            logger.info("LibraryDB: Schema verified/created.")
+            logger.info("LibraryDB: Schema verified/created in Cloud Postgres.")
         except Exception as exc:
             if self._conn:
                 try:
@@ -160,9 +278,13 @@ class LibraryDB:
     # ── Generic Query Helpers ────────────────────────────────────────────────
 
     def execute(self, sql: str, params=None, fetch: str = "none") -> Any:
-        """Execute a query and optionally fetch results. fetch: 'none'|'one'|'all'"""
+        """Execute a query against PostgreSQL."""
         if not self._ensure_connected():
             raise RuntimeError("LibraryDB: Not connected.")
+            
+        if self._active_tier == 3:
+            raise RuntimeError("LibraryDB: 'execute' called on Postgres SQL while in Tier 3 mode. Use direct methods instead.")
+
         try:
             with self._conn.cursor(cursor_factory=psycopg2.extras.RealDictCursor) as cur:
                 cur.execute(sql, params or {})
@@ -179,10 +301,63 @@ class LibraryDB:
                     return None
         except Exception as exc:
             self._conn.rollback()
-            logger.error("LibraryDB: Query failed: %s | SQL: %.200s", exc, sql)
+            logger.error("LibraryDB: Query failed on Tier %d: %s | SQL: %.200s", self._active_tier, exc, sql)
+            # Simple connection drop failover
+            self._conn = None
+            raise
+
+    # ── SQLite Query Helpers ──────────────────────────────────────────────────
+
+    def _sqlite_execute(self, sql: str, params: Dict[str, Any] = None, fetch: str = "none") -> Any:
+        try:
+            cur = self._sqlite_conn.execute(sql, params or {})
+            if fetch == "one":
+                row = cur.fetchone()
+                self._sqlite_conn.commit()
+                return dict(row) if row else None
+            elif fetch == "all":
+                rows = cur.fetchall()
+                self._sqlite_conn.commit()
+                return [dict(r) for r in rows]
+            else:
+                self._sqlite_conn.commit()
+                return None
+        except Exception as exc:
+            self._sqlite_conn.rollback()
+            logger.error("LibraryDB: SQLite Query failed: %s | SQL: %s", exc, sql)
             raise
 
     # ── Canonical Games ──────────────────────────────────────────────────────
+
+    def _sqlite_upsert_game(self, payload: Dict[str, Any]) -> None:
+        """Snapshot game to Tier 3."""
+        if not self._sqlite_conn:
+            return
+        sql = '''
+            INSERT INTO canonical_games (
+                id, title, normalized_title, developer, publisher, release_date, primary_genre,
+                genres, tags, features, platforms, launchers, cover_url, banner_url,
+                summary, ai_classified, ai_confidence, raw_tags, metadata, updated_at
+            ) VALUES (
+                :id, :title, :normalized_title, :developer, :publisher, :release_date, :primary_genre,
+                :genres, :tags, :features, :platforms, :launchers, :cover_url, :banner_url,
+                :summary, :ai_classified, :ai_confidence, :raw_tags, :metadata, CURRENT_TIMESTAMP
+            ) ON CONFLICT(id) DO UPDATE SET
+                title=:title, normalized_title=:normalized_title, developer=:developer, publisher=:publisher,
+                release_date=:release_date, primary_genre=:primary_genre, genres=:genres, tags=:tags,
+                features=:features, platforms=:platforms, launchers=:launchers, cover_url=:cover_url,
+                banner_url=:banner_url, summary=:summary, ai_classified=:ai_classified,
+                ai_confidence=:ai_confidence, raw_tags=:raw_tags, metadata=:metadata, updated_at=CURRENT_TIMESTAMP
+        '''
+        sqlite_payload = dict(payload)
+        for k in ["genres", "tags", "features", "platforms", "launchers", "raw_tags"]:
+            sqlite_payload[k] = json.dumps(payload.get(k) or [])
+        if "metadata" not in sqlite_payload or not isinstance(sqlite_payload["metadata"], str):
+             sqlite_payload["metadata"] = json.dumps(payload.get("metadata") or {})
+        try:
+            self._sqlite_execute(sql, sqlite_payload)
+        except Exception as e:
+            logger.warning("LibraryDB: Failed to snapshot game to SQLite: %s", e)
 
     def upsert_game(self, game: Dict[str, Any]) -> None:
         payload = {
@@ -206,21 +381,63 @@ class LibraryDB:
             "raw_tags":         game.get("raw_tags") or game.get("tags") or [],
             "metadata":         json.dumps(game.get("metadata", {})) if isinstance(game.get("metadata"), dict) else (game.get("metadata") or "{}"),
         }
-        sql = _load_sql("upsert_game")
-        self.execute(sql, payload)
+        
+        # Postgres execution
+        if self._active_tier in (1, 2):
+            try:
+                sql = _load_sql("upsert_game")
+                self.execute(sql, payload)
+            except Exception as e:
+                logger.error("LibraryDB: Postgres upsert_game failed: %s", e)
+                
+        # Always snapshot to SQLite
+        threading.Thread(target=self._sqlite_upsert_game, args=(payload,), daemon=True).start()
 
     def upsert_games_bulk(self, games: List[Dict[str, Any]]) -> int:
-        sql = _load_sql("upsert_game")
         saved = 0
         for g in games:
-            try:
-                self.execute(sql, g)
-                saved += 1
-            except Exception as exc:
-                logger.warning("LibraryDB: Failed to upsert game %s: %s", g.get("id"), exc)
+            self.upsert_game(g)
+            saved += 1
         return saved
 
+    def _sqlite_get_game(self, game_id: str) -> Optional[Dict]:
+        game = self._sqlite_execute("SELECT * FROM canonical_games WHERE id = :id", {"id": game_id}, fetch="one")
+        if not game:
+            return None
+        for k in ["genres", "tags", "features", "platforms", "launchers", "raw_tags", "metadata"]:
+            if game.get(k):
+                try:
+                    game[k] = json.loads(game[k])
+                except Exception:
+                    game[k] = [] if k != "metadata" else {}
+                    
+        insts = self._sqlite_execute(
+            """SELECT i.*, n.name AS nodeName, n.status AS nodeStatus
+               FROM game_installations i
+               LEFT JOIN library_nodes n ON n.node_id = i.node_id
+               WHERE i.game_id = :id""", {"id": game_id}, fetch="all"
+        )
+        game["installations"] = []
+        for i in insts:
+            game["installations"].append({
+                "id": i["id"],
+                "nodeId": i["node_id"],
+                "nodeName": i["nodeName"],
+                "nodeStatus": i["nodeStatus"],
+                "store": i["store"],
+                "storeAppId": i["store_app_id"],
+                "installPath": i["install_path"],
+                "exePath": i["exe_path"],
+                "version": i["version"],
+                "sizeBytes": i["size_bytes"],
+                "status": i["status"]
+            })
+        return game
+
     def get_game(self, game_id: str) -> Optional[Dict]:
+        if self._active_tier == 3:
+            return self._sqlite_get_game(game_id)
+            
         sql = """
             SELECT g.*, COALESCE(
                 json_agg(json_build_object(
@@ -236,7 +453,43 @@ class LibraryDB:
             WHERE g.id = %(id)s
             GROUP BY g.id
         """
-        return self.execute(sql, {"id": game_id}, fetch="one")
+        try:
+            return self.execute(sql, {"id": game_id}, fetch="one")
+        except Exception:
+            logger.warning("LibraryDB: Falling back to SQLite for get_game.")
+            return self._sqlite_get_game(game_id)
+
+    def _sqlite_get_catalog(self, search, genre, node_id, clerk_id, store, installed_only, last_seen_id, page, limit) -> List[Dict]:
+        query = "SELECT * FROM canonical_games WHERE 1=1"
+        params = {}
+        if search:
+            query += " AND (title LIKE :search OR normalized_title LIKE :search)"
+            params["search"] = f"%{search}%"
+        if genre:
+            query += " AND (primary_genre LIKE :genre OR genres LIKE :genre)"
+            params["genre"] = f"%{genre}%"
+        if last_seen_id:
+            query += " AND id > :last_seen_id"
+            params["last_seen_id"] = last_seen_id
+            
+        query += " ORDER BY id ASC LIMIT :limit OFFSET :offset"
+        offset = 0 if last_seen_id else (page - 1) * limit
+        params["limit"] = limit
+        params["offset"] = offset
+        
+        games = self._sqlite_execute(query, params, fetch="all")
+        results = []
+        for g in games:
+            for k in ["genres", "tags", "features", "platforms", "launchers", "raw_tags", "metadata"]:
+                if g.get(k):
+                    try:
+                        g[k] = json.loads(g[k])
+                    except Exception:
+                        g[k] = [] if k != "metadata" else {}
+            # We skip heavy install filtering in sqlite fallback for brevity, just attach basic []
+            g["installations"] = []
+            results.append(g)
+        return results
 
     def get_catalog(
         self,
@@ -250,22 +503,32 @@ class LibraryDB:
         page: int = 1,
         limit: int = 48,
     ) -> List[Dict]:
+        if self._active_tier == 3:
+            return self._sqlite_get_catalog(search, genre, node_id, clerk_id, store, installed_only, last_seen_id, page, limit)
+            
         sql = _load_sql("load_catalog")
         offset = 0 if last_seen_id else (page - 1) * limit
-        return self.execute(sql, {
-            "search": search or None,
-            "search_like": (search or "").lower(),
-            "genre": genre or None,
-            "node_id": node_id or None,
-            "clerk_id": clerk_id or None,
-            "store": store or None,
-            "installed_only": installed_only,
-            "last_seen_id": last_seen_id,
-            "limit": limit,
-            "offset": offset,
-        }, fetch="all")
+        try:
+            return self.execute(sql, {
+                "search": search or None,
+                "search_like": (search or "").lower(),
+                "genre": genre or None,
+                "node_id": node_id or None,
+                "clerk_id": clerk_id or None,
+                "store": store or None,
+                "installed_only": installed_only,
+                "last_seen_id": last_seen_id,
+                "limit": limit,
+                "offset": offset,
+            }, fetch="all")
+        except Exception:
+            logger.warning("LibraryDB: Falling back to SQLite for get_catalog.")
+            return self._sqlite_get_catalog(search, genre, node_id, clerk_id, store, installed_only, last_seen_id, page, limit)
 
     def get_installations_for_game(self, game_id: str, clerk_id: Optional[str] = None) -> List[Dict]:
+        if self._active_tier == 3:
+            return [] # Simplified fallback
+            
         if clerk_id:
             sql = """
                 SELECT i.*, n.name AS node_name, n.status AS node_status, n.hostname, n.ip
@@ -285,6 +548,8 @@ class LibraryDB:
         return self.execute(sql, {"game_id": game_id}, fetch="all")
 
     def get_unclassified_games(self, limit: int = 50) -> List[Dict]:
+        if self._active_tier == 3:
+            return []
         sql = """
             SELECT id, title, developer, publisher, raw_tags, genres, tags, metadata
             FROM canonical_games
@@ -305,6 +570,8 @@ class LibraryDB:
         summary: Optional[str] = None,
         release_date: Optional[str] = None,
     ) -> None:
+        if self._active_tier == 3:
+            return # Skip write if tier 3
         sql = """
             UPDATE canonical_games SET
                 primary_genre   = %(primary_genre)s,
@@ -345,6 +612,8 @@ class LibraryDB:
         release_date: Optional[str] = None,
         metadata: Optional[Dict[str, Any]] = None,
     ) -> None:
+        if self._active_tier == 3:
+            return
         sql = """
             UPDATE canonical_games SET
                 summary      = COALESCE(NULLIF(%(summary)s, ''), canonical_games.summary),
@@ -370,8 +639,9 @@ class LibraryDB:
             "metadata": json.dumps(metadata) if metadata else "{}",
         })
 
-
     def log_ai_classification(self, log: Dict[str, Any]) -> None:
+        if self._active_tier == 3:
+            return
         sql = """
             INSERT INTO ai_classification_log
                 (game_id, provider, model, input_tags, output_genre, output_tags, confidence, latency_ms)
@@ -383,7 +653,38 @@ class LibraryDB:
 
     # ── Library Nodes ────────────────────────────────────────────────────────
 
+    def _sqlite_upsert_node(self, node: Dict[str, Any]) -> None:
+        if not self._sqlite_conn:
+            return
+        sql = '''
+            INSERT INTO library_nodes (
+                node_id, name, hostname, ip, platform, status,
+                auth_token_hash, clerk_id, auth_provider, storage_total, storage_used, storage_free,
+                scan_paths, version, metadata, updated_at
+            ) VALUES (
+                :node_id, :name, :hostname, :ip, :platform, :status,
+                :auth_token_hash, :clerk_id, :auth_provider, :storage_total, :storage_used, :storage_free,
+                :scan_paths, :version, :metadata, CURRENT_TIMESTAMP
+            ) ON CONFLICT(node_id) DO UPDATE SET
+                name=:name, hostname=:hostname, ip=:ip, status=:status,
+                clerk_id=:clerk_id, auth_provider=:auth_provider, storage_total=:storage_total,
+                storage_used=:storage_used, storage_free=:storage_free, scan_paths=:scan_paths,
+                version=:version, metadata=:metadata, updated_at=CURRENT_TIMESTAMP
+        '''
+        sqlite_node = dict(node)
+        sqlite_node["scan_paths"] = json.dumps(node.get("scan_paths") or [])
+        sqlite_node["metadata"] = json.dumps(node.get("metadata") or {})
+        try:
+            self._sqlite_execute(sql, sqlite_node)
+        except Exception as e:
+            logger.warning("LibraryDB: Failed to snapshot node to SQLite: %s", e)
+
     def upsert_node(self, node: Dict[str, Any]) -> None:
+        threading.Thread(target=self._sqlite_upsert_node, args=(node,), daemon=True).start()
+        
+        if self._active_tier == 3:
+            return
+
         sql = """
             INSERT INTO library_nodes (
                 node_id, name, hostname, ip, platform, status,
@@ -437,12 +738,19 @@ class LibraryDB:
                 logger.warning("Failed to sync node_scan_paths: %s", e)
 
     def get_node(self, node_id: str) -> Optional[Dict]:
+        if self._active_tier == 3:
+            return self._sqlite_execute("SELECT * FROM library_nodes WHERE node_id = :node_id", {"node_id": node_id}, fetch="one")
         return self.execute(
             "SELECT * FROM library_nodes WHERE node_id = %(node_id)s",
             {"node_id": node_id}, fetch="one"
         )
 
     def get_all_nodes(self, clerk_id: Optional[str] = None) -> List[Dict]:
+        if self._active_tier == 3:
+            if clerk_id:
+                return self._sqlite_execute("SELECT * FROM library_nodes WHERE clerk_id = :clerk_id ORDER BY name ASC", {"clerk_id": clerk_id}, fetch="all")
+            return self._sqlite_execute("SELECT * FROM library_nodes ORDER BY name ASC", fetch="all")
+            
         if clerk_id:
             return self.execute(
                 "SELECT * FROM library_nodes WHERE clerk_id = %(clerk_id)s ORDER BY name ASC",
@@ -452,6 +760,8 @@ class LibraryDB:
         return self.execute("SELECT * FROM library_nodes ORDER BY name ASC", fetch="all")
 
     def heartbeat(self, node_id: str, storage_total: int, storage_used: int, storage_free: int, ip: str) -> None:
+        if self._active_tier == 3:
+            return
         sql = """
             UPDATE library_nodes SET
                 status         = 'online',
@@ -472,7 +782,8 @@ class LibraryDB:
         })
 
     def mark_offline(self, node_id: str) -> None:
-        """Mark a node offline and all its installations unavailable."""
+        if self._active_tier == 3:
+            return
         self.execute(
             "UPDATE library_nodes SET status = 'offline', updated_at = NOW() WHERE node_id = %(id)s",
             {"id": node_id}
@@ -483,13 +794,16 @@ class LibraryDB:
         )
 
     def delete_node(self, node_id: str) -> None:
+        if self._active_tier == 3:
+            return
         self.execute(
             "DELETE FROM library_nodes WHERE node_id = %(id)s",
             {"id": node_id}
         )
 
     def verify_node_token(self, node_id: str, token: str) -> bool:
-        """Verify a node's auth token against stored hash."""
+        if self._active_tier == 3:
+            return False
         row = self.execute(
             "SELECT auth_token_hash FROM library_nodes WHERE node_id = %(id)s",
             {"id": node_id}, fetch="one"
@@ -501,40 +815,77 @@ class LibraryDB:
 
     # ── Installations ────────────────────────────────────────────────────────
 
+    def _sqlite_upsert_installation(self, inst: Dict[str, Any]) -> None:
+        if not self._sqlite_conn:
+            return
+        sql = '''
+            INSERT INTO game_installations (
+                id, node_id, game_id, store, store_app_id, install_path, exe_path, version, size_bytes, status, updated_at
+            ) VALUES (
+                :id, :node_id, :game_id, :store, :store_app_id, :install_path, :exe_path, :version, :size_bytes, :status, CURRENT_TIMESTAMP
+            ) ON CONFLICT(id) DO UPDATE SET
+                node_id=:node_id, game_id=:game_id, store=:store, store_app_id=:store_app_id, install_path=:install_path,
+                exe_path=:exe_path, version=:version, size_bytes=:size_bytes, status=:status, updated_at=CURRENT_TIMESTAMP
+        '''
+        try:
+            self._sqlite_execute(sql, inst)
+        except Exception as e:
+            logger.warning("LibraryDB: Failed to snapshot installation to SQLite: %s", e)
+
     def upsert_installation(self, inst: Dict[str, Any]) -> None:
+        threading.Thread(target=self._sqlite_upsert_installation, args=(inst,), daemon=True).start()
+        if self._active_tier == 3:
+            return
+            
         sql = _load_sql("upsert_installation")
         self.execute(sql, inst)
 
     def upsert_installations_bulk(self, installations: List[Dict[str, Any]]) -> int:
-        sql = _load_sql("upsert_installation")
         saved = 0
         for inst in installations:
-            try:
-                self.execute(sql, inst)
-                saved += 1
-            except Exception as exc:
-                logger.warning("LibraryDB: Failed to upsert installation %s: %s", inst.get("id"), exc)
+            self.upsert_installation(inst)
+            saved += 1
         return saved
 
     def mark_node_installations_unavailable(self, node_id: str) -> None:
+        if self._active_tier == 3:
+            return
         self.execute(
             "UPDATE game_installations SET status = 'unavailable', updated_at = NOW() WHERE node_id = %(id)s",
             {"id": node_id}
         )
 
     def mark_node_installations_available(self, node_id: str) -> None:
+        if self._active_tier == 3:
+            return
         self.execute(
             "UPDATE game_installations SET status = 'available', updated_at = NOW() WHERE node_id = %(id)s",
             {"id": node_id}
         )
 
+    def _sqlite_get_stats(self, clerk_id: Optional[str] = None) -> Dict[str, Any]:
+        return {
+            "total_games": self._sqlite_execute("SELECT count(*) as c FROM canonical_games", fetch="one")["c"],
+            "total_installations": self._sqlite_execute("SELECT count(*) as c FROM game_installations", fetch="one")["c"],
+            "total_nodes": self._sqlite_execute("SELECT count(*) as c FROM library_nodes", fetch="one")["c"],
+            "total_size_bytes": self._sqlite_execute("SELECT sum(size_bytes) as c FROM game_installations", fetch="one")["c"] or 0,
+        }
+
     def get_stats(self, clerk_id: Optional[str] = None) -> Dict[str, Any]:
+        if self._active_tier == 3:
+            return self._sqlite_get_stats(clerk_id)
+            
         sql = _load_sql("stats")
-        return self.execute(sql, {"clerk_id": clerk_id}, fetch="one") or {}
+        try:
+            return self.execute(sql, {"clerk_id": clerk_id}, fetch="one") or {}
+        except Exception:
+            return self._sqlite_get_stats(clerk_id)
 
     # ── Offline Watchdog helper ──────────────────────────────────────────────
 
     def get_stale_nodes(self, timeout_seconds: int = 45) -> List[Dict]:
+        if self._active_tier == 3:
+            return []
         """Return nodes that haven't sent a heartbeat recently and are still 'online'."""
         sql = """
             SELECT node_id FROM library_nodes
@@ -542,3 +893,4 @@ class LibraryDB:
               AND (last_heartbeat IS NULL OR last_heartbeat < NOW() - %(timeout)s * INTERVAL '1 second')
         """
         return self.execute(sql, {"timeout": timeout_seconds}, fetch="all")
+

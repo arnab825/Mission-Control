@@ -47,6 +47,7 @@ Gaming/backend/data/*.db
 Gaming/backend/data/*.db-shm
 Gaming/backend/data/*.db-wal
 data/*.db*
+Gaming/distributed_server/data/
 Gaming/backend/data/ai_gaming_assistant.lock
 
 # ── ML model weights (large binary — share separately) ──────────────

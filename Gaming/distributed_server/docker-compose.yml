@@ -4,54 +4,150 @@ services:
     build: .
     container_name: mc-catalog-service-1
     command: python catalog_service.py --port 8811 --worker
-    restart: always
+    restart: unless-stopped
     env_file:
       - .env
     environment:
       - ENABLE_CATALOG_WORKERS=true
       - REDIS_URL=redis://redis:6379/0
+      - PYTHONUNBUFFERED=1
     volumes:
-      - ./queries:/app/queries
+      - ./queries:/app/queries:ro
+      - catalog-data:/app/data
+    healthcheck:
+      test: ["CMD", "python", "-c", "import urllib.request; sys.exit(0 if urllib.request.urlopen('http://127.0.0.1:8811/health', timeout=2).status == 200 else 1)"]
+      interval: 15s
+      timeout: 5s
+      retries: 3
+      start_period: 10s
+    depends_on:
+      - redis
 
   catalog_service_2:
     build: .
     container_name: mc-catalog-service-2
     command: python catalog_service.py --port 8812
-    restart: always
+    restart: unless-stopped
     env_file:
       - .env
     environment:
       - ENABLE_CATALOG_WORKERS=false
       - REDIS_URL=redis://redis:6379/0
+      - PYTHONUNBUFFERED=1
     volumes:
-      - ./queries:/app/queries
+      - ./queries:/app/queries:ro
+      - catalog-data:/app/data
+    healthcheck:
+      test: ["CMD", "python", "-c", "import urllib.request; sys.exit(0 if urllib.request.urlopen('http://127.0.0.1:8812/health', timeout=2).status == 200 else 1)"]
+      interval: 15s
+      timeout: 5s
+      retries: 3
+      start_period: 10s
+    depends_on:
+      - redis
 
   # ── 2. User Library & Node Sync Service Pool ─────────────────────────────────
   node_service_1:
     build: .
     container_name: mc-node-service-1
     command: python node_service.py --port 8821 --watchdog
-    restart: always
+    restart: unless-stopped
     env_file:
       - .env
     environment:
       - ENABLE_NODE_WATCHDOG=true
+      - PYTHONUNBUFFERED=1
     volumes:
-      - ./queries:/app/queries
+      - ./queries:/app/queries:ro
+      - catalog-data:/app/data
+    healthcheck:
+      test: ["CMD", "python", "-c", "import urllib.request; sys.exit(0 if urllib.request.urlopen('http://127.0.0.1:8821/health', timeout=2).status == 200 else 1)"]
+      interval: 15s
+      timeout: 5s
+      retries: 3
+      start_period: 10s
 
   node_service_2:
     build: .
     container_name: mc-node-service-2
     command: python node_service.py --port 8822
-    restart: always
+    restart: unless-stopped
     env_file:
       - .env
     environment:
       - ENABLE_NODE_WATCHDOG=false
+      - PYTHONUNBUFFERED=1
     volumes:
-      - ./queries:/app/queries
+      - ./queries:/app/queries:ro
+      - catalog-data:/app/data
+    healthcheck:
+      test: ["CMD", "python", "-c", "import urllib.request; sys.exit(0 if urllib.request.urlopen('http://127.0.0.1:8822/health', timeout=2).status == 200 else 1)"]
+      interval: 15s
+      timeout: 5s
+      retries: 3
+      start_period: 10s
 
-  # ── 3. Multi-Pool Load Balancer & API Gateway ───────────────────────────────
+  # ── 3. Dedicated AI Metadata Enricher & Healer (:8831) ───────────────────────
+  ai_enricher:
+    build: .
+    container_name: mc-ai-enricher
+    command: python ai_enricher_service.py --port 8831
+    restart: unless-stopped
+    env_file:
+      - .env
+    environment:
+      - PYTHONUNBUFFERED=1
+    volumes:
+      - ./queries:/app/queries:ro
+      - catalog-data:/app/data
+    healthcheck:
+      test: ["CMD", "python", "-c", "import urllib.request; sys.exit(0 if urllib.request.urlopen('http://127.0.0.1:8831/health', timeout=2).status == 200 else 1)"]
+      interval: 15s
+      timeout: 5s
+      retries: 3
+      start_period: 10s
+
+  # ── 4. Dedicated Multi-Launcher Enricher (:8841) ─────────────────────────────
+  launcher_enricher:
+    build: .
+    container_name: mc-launcher-enricher
+    command: python launcher_enricher_service.py --port 8841
+    restart: unless-stopped
+    env_file:
+      - .env
+    environment:
+      - PYTHONUNBUFFERED=1
+    volumes:
+      - ./queries:/app/queries:ro
+      - catalog-data:/app/data
+    healthcheck:
+      test: ["CMD", "python", "-c", "import urllib.request; sys.exit(0 if urllib.request.urlopen('http://127.0.0.1:8841/health', timeout=2).status == 200 else 1)"]
+      interval: 15s
+      timeout: 5s
+      retries: 3
+      start_period: 10s
+
+  # ── 5. Dedicated Infinite Crawler & Harvester (:8851) ────────────────────────
+  crawler_service:
+    build: .
+    container_name: mc-crawler-service
+    command: python crawler_service.py --port 8851
+    restart: unless-stopped
+    env_file:
+      - .env
+    environment:
+      - PYTHONUNBUFFERED=1
+    volumes:
+      - ./queries:/app/queries:ro
+      - catalog-data:/app/data
+    healthcheck:
+      test: ["CMD", "python", "-c", "import urllib.request; sys.exit(0 if urllib.request.urlopen('http://127.0.0.1:8851/health', timeout=2).status == 200 else 1)"]
+      interval: 15s
+      timeout: 5s
+      retries: 3
+      start_period: 10s
+
+  # ── 6. Multi-Pool Load Balancer & API Gateway (:8800) ────────────────────────
   load_balancer:
     build: .
     container_name: mc-load-balancer
@@ -60,30 +156,53 @@ services:
       --port 8800
       --catalog-servers http://catalog_service_1:8811,http://catalog_service_2:8812
       --node-servers http://node_service_1:8821,http://node_service_2:8822
-    restart: always
+      --enricher-servers http://ai_enricher:8831
+      --launcher-servers http://launcher_enricher:8841
+      --crawler-servers http://crawler_service:8851
+    restart: unless-stopped
     ports:
       - "8800:8800"
     env_file:
       - .env
+    environment:
+      - PYTHONUNBUFFERED=1
     depends_on:
-      - catalog_service_1
-      - catalog_service_2
-      - node_service_1
-      - node_service_2
+      catalog_service_1:
+        condition: service_healthy
+      catalog_service_2:
+        condition: service_healthy
+      node_service_1:
+        condition: service_healthy
+      node_service_2:
+        condition: service_healthy
+      ai_enricher:
+        condition: service_healthy
+      launcher_enricher:
+        condition: service_healthy
+      crawler_service:
+        condition: service_healthy
 
-  # ── 4. Redis Cache ─────────────────────────────────────────────────────────
+  # ── 7. Redis Cache Layer ───────────────────────────────────────────────────
   redis:
     image: redis:7-alpine
     container_name: mc-redis
-    restart: always
+    restart: unless-stopped
     ports:
       - "6379:6379"
+    volumes:
+      - redis-data:/data
 
-  # ── 5. Public Web Tunnel ───────────────────────────────────────────────────
+  # ── 8. Public Cloudflare Web Tunnel (Optional) ──────────────────────────────
   tunnel:
     image: cloudflare/cloudflared:latest
     container_name: mc-library-tunnel
-    restart: always
+    restart: unless-stopped
     command: tunnel --url http://load_balancer:8800 --no-autoupdate
     depends_on:
       - load_balancer
+
+volumes:
+  catalog-data:
+    driver: local
+  redis-data:
+    driver: local
