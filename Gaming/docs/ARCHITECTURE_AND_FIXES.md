@@ -30,9 +30,11 @@ flowchart TD
     end
 
     subgraph DatabaseTier [" 5. Multi-Tier Database & Built-in Backup Architecture"]
-        T1[(" Tier 1: Supabase PostgreSQL (Primary)\n(db.vekqkwwzzamwhitjodld.supabase.co:5432)\n8,150+ Games & 93.5% AI Classified")]
+        T1[(" Tier 1: Supabase PostgreSQL (Primary)\n(db.vekqkwwzzamwhitjodld.supabase.co:5432)\n13,500+ Games & 10,500+ AI Classified")]
         T2[(" Tier 2: Secondary Cloud PostgreSQL (Fallback)\n(Neon Serverless / Cloud Postgres Standby)")]
         T3[(" Tier 3: Local SQLite Backup Replica\n(data/catalog_fallback.db)\nAutonomous Offline Snapshot & Zero-Downtime Engine")]
+        T4[(" Tier 4: MongoDB Atlas NoSQL Standby\n(Document JSON Mirror)")]
+        T5[(" Tier 5: Unlimited JSONL Backup Ledger\n(data/unlimited_catalog_backup.jsonl)\nAppend-Only Immutable Disaster Recovery File")]
         R[" Upstash Redis Cache Layer\n(Sub-millisecond In-Memory Query Cache)"]
     end
 
@@ -47,6 +49,8 @@ flowchart TD
     P1 & P2 & P3 & P4 & P5 --> T1
     T1 -.->|Auto Failover if Cloud Down| T2
     T2 -.->|Auto Fallback if Network Outage| T3
+    T1 -.->|Async NoSQL Document Mirror| T4
+    T1 -.->|Append-Only Local Sync| T5
     T1 -.->|Query Cache| R
 ```
 

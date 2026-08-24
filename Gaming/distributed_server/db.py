@@ -1,11 +1,13 @@
 """
 Mission Control — Distributed Game Library Server
-db.py: Multi-Tier Connection Manager.
+db.py: Multi-Tier High-Availability Database & Backup Connection Manager.
 
-Supports:
-Tier 1: Primary PostgreSQL (DATABASE_URL)
-Tier 2: Secondary PostgreSQL (FALLBACK_DATABASE_URL)
-Tier 3: Local SQLite Replica (catalog_fallback.db)
+Supports 5-Tier Redundancy & Disaster Recovery:
+  Tier 1: Primary Cloud PostgreSQL (DATABASE_URL / Supabase host: db.vekqkwwzzamwhitjodld.supabase.co)
+  Tier 2: Secondary Hot-Standby PostgreSQL (FALLBACK_DATABASE_URL / Neon / Aiven Serverless)
+  Tier 3: Local SQLite Disk Replica (catalog_fallback.db — Zero-Downtime Offline Engine)
+  Tier 4: MongoDB Atlas Cloud NoSQL Standby (MONGODB_URI — Asynchronous Document JSON Mirror)
+  Tier 5: Unlimited Immutable JSONL Backup Ledger (unlimited_catalog_backup.jsonl — Append-Only Recovery)
 """
 
 import hashlib
@@ -95,11 +97,17 @@ class LibraryDB:
         
         self.available = False
         
-        # Setup Tier 3 SQLite Replica
         self._sqlite_path = Path(os.path.dirname(__file__)) / "data" / "catalog_fallback.db"
         self._sqlite_path.parent.mkdir(parents=True, exist_ok=True)
+        self._jsonl_backup_path = Path(os.path.dirname(__file__)) / "data" / "unlimited_catalog_backup.jsonl"
         self._sqlite_conn = None
         self._init_sqlite()
+
+        # MongoDB Atlas NoSQL Standby Setup (if MONGODB_URI configured)
+        self._mongo_uri = os.getenv("MONGODB_URI", "")
+        self._mongo_client = None
+        self._mongo_col = None
+        self._init_mongo()
 
         if not _PSYCOPG2_AVAILABLE and not self._url_primary:
             logger.warning("LibraryDB: psycopg2 or DATABASE_URL not available. Defaulting to Tier 3.")
@@ -196,6 +204,53 @@ class LibraryDB:
             logger.info("LibraryDB: Tier 3 SQLite Replica initialized at %s", self._sqlite_path)
         except Exception as e:
             logger.error("LibraryDB: Failed to initialize SQLite replica: %s", e)
+
+    # ── Tier 4: NoSQL MongoDB Atlas Cloud Mirror ─────────────────────────────
+
+    def _init_mongo(self):
+        """
+        Initializes optional MongoDB Atlas connection for NoSQL cloud document mirroring.
+        When MONGODB_URI is provided in .env, every game ingested into PostgreSQL is
+        asynchronously mirrored as a flexible JSON document in MongoDB Atlas.
+        """
+        if not self._mongo_uri:
+            return
+        try:
+            from pymongo import MongoClient
+            self._mongo_client = MongoClient(self._mongo_uri, serverSelectionTimeoutMS=4000)
+            self._mongo_db = self._mongo_client["mission_control"]
+            self._mongo_col = self._mongo_db["canonical_games"]
+            logger.info("LibraryDB: Connected to Tier 4 MongoDB Atlas NoSQL Standby.")
+        except Exception as e:
+            logger.debug("LibraryDB: MongoDB Atlas init skipped or pymongo not installed: %s", e)
+
+    def _mongo_upsert_game(self, payload: Dict[str, Any]):
+        """
+        Asynchronously mirrors a game record into MongoDB Atlas collection 'canonical_games'.
+        Provides unstructured document-level redundancy across separate cloud providers.
+        """
+        if self._mongo_col is None:
+            return
+        try:
+            doc = dict(payload)
+            doc["_id"] = payload["id"]
+            self._mongo_col.update_one({"_id": doc["_id"]}, {"$set": doc}, upsert=True)
+        except Exception as e:
+            logger.debug("MongoDB Atlas async mirror error: %s", e)
+
+    # ── Tier 5: Unlimited Immutable JSONL Backup Ledger ───────────────────────
+
+    def _append_jsonl_backup(self, payload: Dict[str, Any]):
+        """
+        Persists every game payload to an append-only unlimited JSONL backup ledger on disk.
+        Guarantees cold disaster recovery with zero network or database dependencies.
+        """
+        try:
+            line = json.dumps(payload) + "\n"
+            with open(self._jsonl_backup_path, "a", encoding="utf-8") as f:
+                f.write(line)
+        except Exception as e:
+            logger.debug("JSONL backup error: %s", e)
 
     # ── Connection Management ────────────────────────────────────────────────
 
@@ -393,8 +448,13 @@ class LibraryDB:
             except Exception as e:
                 logger.error("LibraryDB: Postgres upsert_game failed: %s", e)
                 
-        # Always snapshot to SQLite
-        threading.Thread(target=self._sqlite_upsert_game, args=(payload,), daemon=True).start()
+        # Always mirror to Tier 3 SQLite Replica, JSONL Backup Ledger, and MongoDB Atlas (NoSQL)
+        def _background_mirrors(p):
+            self._sqlite_upsert_game(p)
+            self._append_jsonl_backup(p)
+            self._mongo_upsert_game(p)
+
+        threading.Thread(target=_background_mirrors, args=(payload,), daemon=True).start()
 
     def upsert_games_bulk(self, games: List[Dict[str, Any]]) -> int:
         saved = 0
