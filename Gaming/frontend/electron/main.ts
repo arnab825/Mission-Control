@@ -2645,23 +2645,30 @@ function setupAutoUpdater() {
     const backupPath = path.join(app.getPath('userData'), 'rollback_backup');
     const exists = fs.existsSync(backupPath);
     let version = undefined;
+    let hasFiles = false;
     if (exists) {
       try {
         const metaPath = path.join(backupPath, 'rollback_meta.json');
         if (fs.existsSync(metaPath)) {
           const meta = JSON.parse(fs.readFileSync(metaPath, 'utf-8'));
           version = meta.version;
+          hasFiles = true;
         }
         if (!version) {
           const pkgJson = path.join(backupPath, 'app.asar.unpacked', 'package.json');
           if (fs.existsSync(pkgJson)) {
             const content = fs.readFileSync(pkgJson, 'utf-8');
             version = JSON.parse(content).version;
+            hasFiles = true;
           }
+        }
+        if (!hasFiles) {
+          const files = fs.readdirSync(backupPath);
+          hasFiles = files.length > 0;
         }
       } catch (_) {}
     }
-    return { exists, version };
+    return { exists: exists && hasFiles, version };
   });
 
   ipcMain.on('rollback-electron-update', () => {
@@ -2680,14 +2687,26 @@ function setupAutoUpdater() {
       const scriptPath = path.join(userDataPath, 'rollback.ps1');
       const logPath = path.join(userDataPath, 'rollback.log');
       const targetPid = process.pid;
+      const cleanLogPath = logPath.replace(/[/\\]+$/, '');
+      const cleanBackupPath = backupPath.replace(/[/\\]+$/, '');
+      const cleanResourcesPath = resourcesPath.replace(/[/\\]+$/, '');
+      const cleanExePath = exePath;
 
       const psScript = `
 # Mission Control Automated Rollback Script
 $ErrorActionPreference = "Continue"
-$logPath = "${logPath.replace(/\\/g, '\\\\')}"
-$backupPath = "${backupPath.replace(/\\/g, '\\\\')}"
-$resourcesPath = "${resourcesPath.replace(/\\/g, '\\\\')}"
-$exePath = "${exePath.replace(/\\/g, '\\\\')}"
+$logPath = @'
+${cleanLogPath}
+'@
+$backupPath = @'
+${cleanBackupPath}
+'@
+$resourcesPath = @'
+${cleanResourcesPath}
+'@
+$exePath = @'
+${cleanExePath}
+'@
 $parentPid = ${targetPid}
 
 Function Log-Message($msg) {
@@ -2713,8 +2732,8 @@ while ($attempts -lt 20) {
 # Wait additional seconds for file handles to release
 Start-Sleep -Seconds 2
 
-# Force kill any lingering python or electron helper processes
-Get-Process -Name "Mission Control", "MissionControl", "python" -ErrorAction SilentlyContinue | Where-Object { $_.Id -ne $PID } | Stop-Process -Force -ErrorAction SilentlyContinue
+# Force kill any lingering python, electron, or mission control helper processes
+Get-Process -Name "Mission Control", "MissionControl", "electron", "python" -ErrorAction SilentlyContinue | Where-Object { $_.Id -ne $PID } | Stop-Process -Force -ErrorAction SilentlyContinue
 
 Log-Message "Restoring files via robocopy..."
 $robocopyArgs = @(
@@ -2735,12 +2754,14 @@ Log-Message "Robocopy exited with code: $($rc.ExitCode)"
 if ($rc.ExitCode -gt 7) {
     Log-Message "Robocopy reported issues, falling back to PowerShell copy..."
     Get-ChildItem -Path $backupPath -Recurse | ForEach-Object {
-        $rel = $_.FullName.Substring($backupPath.Length).TrimStart('\\\\')
-        $dest = Join-Path $resourcesPath $rel
-        if ($_.PSIsContainer) {
-            if (-not (Test-Path $dest)) { New-Item -ItemType Directory -Path $dest -Force | Out-Null }
-        } else {
-            Copy-Item -Path $_.FullName -Destination $dest -Force -ErrorAction SilentlyContinue
+        if ($_.FullName.Length -gt $backupPath.Length) {
+            $rel = $_.FullName.Substring($backupPath.Length).TrimStart('\\').TrimStart('/')
+            $dest = Join-Path $resourcesPath $rel
+            if ($_.PSIsContainer) {
+                if (-not (Test-Path $dest)) { New-Item -ItemType Directory -Path $dest -Force | Out-Null }
+            } else {
+                Copy-Item -Path $_.FullName -Destination $dest -Force -ErrorAction SilentlyContinue
+            }
         }
     }
 }
@@ -2767,11 +2788,12 @@ Log-Message "=== Rollback completed successfully ==="
 
         if (needsElevation) {
           console.log('[AutoUpdater] Spawning rollback script with UAC elevation (RunAs)...');
+          const launchElevated = `Start-Process powershell.exe -ArgumentList @('-NoProfile', '-ExecutionPolicy', 'Bypass', '-File', "${scriptPath.replace(/"/g, '`"')}") -Verb RunAs`;
           spawn('powershell.exe', [
             '-NoProfile',
             '-ExecutionPolicy', 'Bypass',
             '-Command',
-            `Start-Process powershell.exe -ArgumentList '-NoProfile -ExecutionPolicy Bypass -File \"${scriptPath}\"' -Verb RunAs`
+            launchElevated
           ], {
             detached: true,
             stdio: 'ignore',

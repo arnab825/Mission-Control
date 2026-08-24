@@ -2,6 +2,14 @@
 
 This document contains a detailed history of all patches and updates for the AI Gaming Assistant.
 
+### Patch: 2026-08-24 — v3.2.9: Telemetry & Rollback Subsystem Reliability Hardening
+
+- Fixed PowerShell script path interpolation and quotation parsing under UAC elevation for offline update rollback
+- Preserved 0% metric values in analysis engine to ensure accurate Idle load states and eliminate Unknown health classifications
+- Synchronized effective capture and DirectX FPS telemetry to system tray tooltip
+- Bound RightTelemetry neural metrics and status items to live backend telemetry
+- Fixed DatabaseManager class inheritance and Intel Arc Alchemist/Battlemage architecture profiling heuristics
+
 ### Patch: 2026-08-22 — v3.2.8: OpenCV Resilience & Pipeline Stability Hardening
 
 - Removed unused `import cv2` from `capture/screen.py` that caused crash on OpenCV DLL load failure

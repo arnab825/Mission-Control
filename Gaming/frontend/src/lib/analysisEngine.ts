@@ -125,9 +125,9 @@ export interface AnalysisResult {
 // Internal helpers
 // ─────────────────────────────────────────────────────────────────────────────
 
-/** Returns null when a value is absent, zero, or non-finite. */
+/** Returns null when a value is absent or non-finite. 0 is preserved as a valid metric reading. */
 function safe(v: number | undefined | null): number | null {
-  if (v == null || !isFinite(v) || v === 0) return null;
+  if (v == null || !isFinite(v)) return null;
   return v;
 }
 

@@ -12,7 +12,19 @@ Comprehensive breakdown of major milestone releases, architectural upgrades, and
 
 ---
 
-## 🌟 Version v3.2.6 (Latest) — OpenCV Loader & Supabase Metadata Enrichment Fixes
+## 🌟 Version v3.2.9 (Latest) — Telemetry & Rollback Subsystem Reliability Hardening
+
+### 🛠️ Key Highlights
+1. **Preserved 0% metric values in analysis engine to ensure accurate Idle load states and eliminate Unknown health classifications.**
+2. **Bound RightTelemetry neural metrics and status items to live backend telemetry for real-time monitoring.**
+
+### 📦 Distribution Artifacts
+- **Linux**: `.deb` (Debian/Ubuntu), `.AppImage` (Universal), `.rpm` (Fedora/RHEL), `.tar.gz` (Portable)
+- **Windows**: `.exe` (Setup Installer), `.msi` (Enterprise), `.zip` (Portable)
+
+---
+
+## 📦 Version v3.2.6 — OpenCV Loader & Supabase Metadata Enrichment Fixes
 
 ### 🛠️ Key Highlights
 1. **Resolved missing OpenCV cv2 loader configuration in PyInstaller packages**

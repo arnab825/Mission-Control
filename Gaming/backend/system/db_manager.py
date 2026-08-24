@@ -24,17 +24,6 @@ except ImportError:
     )
 
 
-class DatabaseManager:
-    """
-    Manages a PostgreSQL connection to Supabase for the game library.
-
-    Usage:
-        db = DatabaseManager()
-        if db.available:
-            db.save_games(games, user_id)
-            games = db.load_games(user_id)
-    """
-
 import re
 import urllib.parse
 
@@ -338,6 +327,11 @@ class SupabaseDB:
                 self._conn.close()
             except Exception:
                 pass
+
+
+class DatabaseManager(SupabaseDB):
+    """Alias/subclass for Supabase PostgreSQL database manager."""
+    pass
 
 
 # Module-level singleton — shared across the backend process lifetime

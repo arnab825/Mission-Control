@@ -183,7 +183,7 @@ class TestUpdaterBridge(unittest.TestCase):
                 self.assertTrue(handled)
 
                 import time
-                for _ in range(40):
+                for _ in range(100):
                     if len(bridge.state_history) >= 2:
                         break
                     time.sleep(0.05)

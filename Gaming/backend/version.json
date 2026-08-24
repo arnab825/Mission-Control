@@ -1,8 +1,20 @@
 {
-  "version": "3.2.8",
+  "version": "3.2.9",
   "release_date": "2026-08-22",
   "update_check_url": "https://raw.githubusercontent.com/arnab825/Mission-Control/main/Gaming/backend/version.json",
   "changelog": [
+    {
+      "version": "3.2.9",
+      "date": "2026-08-24",
+      "title": "Telemetry & Rollback Subsystem Reliability Hardening",
+      "highlights": [
+        "Fixed PowerShell script path interpolation and quotation parsing under UAC elevation for offline update rollback",
+        "Preserved 0% metric values in analysis engine to ensure accurate Idle load states and eliminate Unknown health classifications",
+        "Synchronized effective capture and DirectX FPS telemetry to system tray tooltip",
+        "Bound RightTelemetry neural metrics and status items to live backend telemetry",
+        "Fixed DatabaseManager class inheritance and Intel Arc Alchemist/Battlemage architecture profiling heuristics"
+      ]
+    },
     {
       "version": "3.2.8",
       "date": "2026-08-22",
@@ -448,37 +460,6 @@
         "Added public/ads.txt for AdSense site authorization",
         "Updated Controller Mapping documentation wording from HTML5 to Native XInput and DirectInput",
         "Updated Vision AI guide documentation"
-      ]
-    },
-    {
-      "version": "2.8.4",
-      "date": "2026-08-03",
-      "title": "Interactive Controller Mapping, Automated AI Model Downloader & E2EE Alignment",
-      "highlights": [
-        "Added interactive HTML5 & XInput Gamepad Configurator with real-time SVG button highlights, deadzone controls, and vibration haptics",
-        "Implemented in-app automated AI model downloader for YOLOv8 & Whisper-Tiny weights with streaming progress",
-        "Centered E2EE Privacy Shield Verification status overlay and optimized modal responsiveness"
-      ]
-    },
-    {
-      "version": "2.8.3",
-      "date": "2026-08-02",
-      "title": "E2EE Privacy Shield Verification, Responsive UI & TTS Optimization",
-      "highlights": [
-        "Fixed E2EE Cryptographic Verification modal responsiveness and event handling",
-        "Made Privacy Shield chat notice card fully responsive with cursor scaling",
-        "Streamlined NVIDIA DLSS Evolution Guide modal overlay via React portal",
-        "Removed offline Piper TTS dependency for lightweight audio pipeline"
-      ]
-    },
-    {
-      "version": "2.8.2",
-      "date": "2026-08-01",
-      "title": "Exclusive Fullscreen Capture Fix, Agentic Latency Slider & OpenRouter Free Model Updates",
-      "highlights": [
-        "Fixed Exclusive Fullscreen 0 FPS bug via DXCam/BetterCam fallback cascade",
-        "Added UI slider for Agentic Execution Delay (0s latency option)",
-        "Updated OpenRouter AI provider to support active free models"
       ]
     }
   ]
