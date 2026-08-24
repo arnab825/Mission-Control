@@ -52,6 +52,21 @@ DEFAULT_NODE_SERVERS = _parse_server_list(
     ["http://127.0.0.1:8821", "http://127.0.0.1:8822"]
 )
 
+DEFAULT_ENRICHER_SERVERS = _parse_server_list(
+    os.getenv("ENRICHER_SERVERS", ""),
+    ["http://127.0.0.1:8831"]
+)
+
+DEFAULT_LAUNCHER_SERVERS = _parse_server_list(
+    os.getenv("LAUNCHER_SERVERS", ""),
+    ["http://127.0.0.1:8841"]
+)
+
+DEFAULT_CRAWLER_SERVERS = _parse_server_list(
+    os.getenv("CRAWLER_SERVERS", ""),
+    ["http://127.0.0.1:8851"]
+)
+
 
 class UpstreamPool:
     """Manages a pool of upstream servers with round-robin balancing and health checking."""
@@ -64,7 +79,7 @@ class UpstreamPool:
 
     def set_servers(self, servers: List[str]):
         self.servers = list(servers)
-        self.healthy: List[str] = list(servers)
+        self.healthy: List[str] = []
         self.stats: Dict[str, Dict] = {
             s: {"requests": 0, "errors": 0, "latency_ms": 0, "status": "unknown"}
             for s in servers
@@ -72,14 +87,9 @@ class UpstreamPool:
 
     async def get_next(self) -> Optional[str]:
         async with self._lock:
-            if not self.healthy:
-                candidates = self.servers
-            else:
-                candidates = self.healthy
-
+            candidates = self.healthy if self.healthy else self.servers
             if not candidates:
                 return None
-
             server = candidates[self._index % len(candidates)]
             self._index += 1
             if server in self.stats:
@@ -95,6 +105,11 @@ class UpstreamPool:
 
 catalog_pool = UpstreamPool("catalog", DEFAULT_CATALOG_SERVERS)
 node_pool = UpstreamPool("node", DEFAULT_NODE_SERVERS)
+enricher_pool = UpstreamPool("enricher", DEFAULT_ENRICHER_SERVERS)
+launcher_pool = UpstreamPool("launcher", DEFAULT_LAUNCHER_SERVERS)
+crawler_pool = UpstreamPool("crawler", DEFAULT_CRAWLER_SERVERS)
+
+_ALL_POOLS = [catalog_pool, node_pool, enricher_pool, launcher_pool, crawler_pool]
 
 _HTTP_CLIENT: Optional[httpx.AsyncClient] = None
 
@@ -122,33 +137,33 @@ async def _probe_pool(pool: UpstreamPool, client: httpx.AsyncClient):
     pool.healthy = new_healthy
 
 
-
-async def _health_monitor():
-    """Background task: probes all upstreams every 5 seconds."""
+async def _health_check_loop():
+    """Background task: Periodically probes all upstream instances."""
     while True:
         try:
             if _HTTP_CLIENT:
-                await _probe_pool(catalog_pool, _HTTP_CLIENT)
-                await _probe_pool(node_pool, _HTTP_CLIENT)
+                for p in _ALL_POOLS:
+                    await _probe_pool(p, _HTTP_CLIENT)
         except Exception as exc:
-            logger.debug("Health monitor loop error: %s", exc)
-        await asyncio.sleep(5)
+            logger.warning("Health check loop error: %s", exc)
+        await asyncio.sleep(5.0)
 
+
+# ── FastAPI Lifecycle ─────────────────────────────────────────────────────────
 
 @asynccontextmanager
 async def lifespan(app: FastAPI):
     global _HTTP_CLIENT
     _HTTP_CLIENT = httpx.AsyncClient(
-        timeout=httpx.Timeout(45.0, connect=5.0),
-        limits=httpx.Limits(max_keepalive_connections=100, max_connections=200),
+        timeout=httpx.Timeout(connect=1.5, read=30.0, write=10.0, pool=5.0),
+        limits=httpx.Limits(max_keepalive_connections=50, max_connections=200),
+        follow_redirects=True,
     )
-    # Initial immediate probe
-    await _probe_pool(catalog_pool, _HTTP_CLIENT)
-    await _probe_pool(node_pool, _HTTP_CLIENT)
-    asyncio.create_task(_health_monitor())
-    logger.info("Load Balancer active on port %s", os.getenv("LIBRARY_SERVER_PORT", "8800"))
-    logger.info("Catalog Pool instances: %s", catalog_pool.servers)
-    logger.info("Node Pool instances:    %s", node_pool.servers)
+    for p in _ALL_POOLS:
+        await _probe_pool(p, _HTTP_CLIENT)
+    
+    asyncio.create_task(_health_check_loop())
+    logger.info("Load Balancer initialized with %d upstream pools.", len(_ALL_POOLS))
     yield
     await _HTTP_CLIENT.aclose()
 
@@ -173,9 +188,21 @@ app.add_middleware(
 
 def _determine_pool(path: str, query_params: Dict[str, str]) -> UpstreamPool:
     """
-    Decide whether to route request to the Node Sync Service or Catalog Discovery Service.
+    Decide whether to route request to Node Sync, Catalog Discovery, Crawler, Launcher, or Enricher.
     """
-    # 1. Node management & installation endpoints
+    # 1. Crawler microservice endpoints
+    if path.startswith("/api/crawler"):
+        return crawler_pool
+
+    # 2. Launcher enricher endpoints
+    if path.startswith("/api/launchers"):
+        return launcher_pool
+
+    # 3. AI metadata enricher endpoints
+    if path.startswith("/api/enrich"):
+        return enricher_pool
+
+    # 4. Node management & installation endpoints
     if path.startswith("/api/nodes"):
         return node_pool
 
@@ -185,7 +212,7 @@ def _determine_pool(path: str, query_params: Dict[str, str]) -> UpstreamPool:
     if "/installations" in path:
         return node_pool
 
-    # 2. User library queries (installed only)
+    # 5. User library queries (installed only)
     if path == "/api/games":
         installed_only = query_params.get("installed_only", "").lower() in ("true", "1")
         availability = query_params.get("availability")
@@ -193,7 +220,7 @@ def _determine_pool(path: str, query_params: Dict[str, str]) -> UpstreamPool:
         if installed_only or availability or node_id:
             return node_pool
 
-    # 3. Everything else defaults to Catalog Discovery pool
+    # 6. Everything else defaults to Catalog Discovery pool
     # (/api/games/discover, /api/games/seed, /api/games/classify, /api/search, global /api/games)
     return catalog_pool
 
@@ -227,6 +254,21 @@ async def cluster_health():
                 "total": len(node_pool.servers),
                 "healthy": len(node_pool.healthy),
                 "instances": node_pool.stats,
+            },
+            "enricher": {
+                "total": len(enricher_pool.servers),
+                "healthy": len(enricher_pool.healthy),
+                "instances": enricher_pool.stats,
+            },
+            "launcher": {
+                "total": len(launcher_pool.servers),
+                "healthy": len(launcher_pool.healthy),
+                "instances": launcher_pool.stats,
+            },
+            "crawler": {
+                "total": len(crawler_pool.servers),
+                "healthy": len(crawler_pool.healthy),
+                "instances": crawler_pool.stats,
             },
         },
     }
