@@ -340,6 +340,7 @@ def ping_redis() -> Optional[bool]:
 
 # ── Health ────────────────────────────────────────────────────────────────────
 @app.get("/health")
+@app.head("/health")
 async def health():
     """
     Health check endpoint:

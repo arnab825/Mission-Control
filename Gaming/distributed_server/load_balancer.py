@@ -241,6 +241,7 @@ async def root():
 
 
 @app.get("/health")
+@app.head("/health")
 async def cluster_health():
     return {
         "gateway": "ok",
