@@ -28,6 +28,16 @@ import time
 from pathlib import Path
 from dotenv import load_dotenv
 
+# Ensure utf-8 encoding on Windows terminal
+if sys.platform == "win32":
+    try:
+        sys.stdout.reconfigure(encoding="utf-8", errors="replace")
+        sys.stderr.reconfigure(encoding="utf-8", errors="replace")
+    except Exception:
+        pass
+os.environ["PYTHONIOENCODING"] = "utf-8"
+os.environ["PYTHONUTF8"] = "1"
+
 # Load .env (override=False to preserve cloud env vars)
 for _env_path in [
     os.path.join(os.path.dirname(__file__), ".env"),

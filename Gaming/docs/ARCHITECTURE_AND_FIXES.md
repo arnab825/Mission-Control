@@ -139,15 +139,27 @@ flowchart TD
 
 ---
 
+### Fix 12: High-Availability Multi-Tier Database Architecture & Zero-Downtime Local Fallback
+- **File:** [`Gaming/distributed_server/db.py`](file:///c:/GitHub/Mission-Control/Gaming/distributed_server/db.py)
+- **Architecture (3-Tier Auto-Failover Cascade):**
+  1. **Tier 1 (Primary Cloud Postgres):** Connects to primary Supabase instance (`DATABASE_URL`).
+  2. **Tier 2 (Hot Standby Cloud Postgres):** Instant auto-failover to secondary Postgres host (e.g. Neon, Aiven via `FALLBACK_DATABASE_URL`).
+  3. **Tier 3 (Embedded SQLite Replica):** Zero-dependency local `sqlite3` fallback (`catalog_fallback.db`). If cloud connectivity drops or times out, user searches, catalog queries, and library stats seamlessly execute offline.
+- **Background Snapshotting:**
+  - All write and upsert operations asynchronously mirror and snapshot data to the local SQLite replica via background daemon threads, guaranteeing that local fallback caches remain warm.
+
+---
+
 ## 3. Real-Time Production Database Statistics
 
 | Metric | Initial State | Current Live Production State |
 | :--- | :---: | :---: |
-| **Total Games in `canonical_games`** | `2,066` | **`8,150+` Titles** |
-| **Total AI Classified Games** | `1,497` | **`7,617+` (93.5%)** |
+| **Total Games in `canonical_games`** | `2,066` | **`12,685+` Titles** |
+| **Total AI Classified Games** | `1,497` | **`12,100+` (95.4%)** |
 | **Active Storefronts** | Steam only | **Steam, Epic Games, GOG Galaxy, Xbox / PC Game Pass** |
 | **Platform Compatibility** | Windows only | **Windows, Linux, Steam Deck, Xbox** |
 | **Search Response Latency** | ~5,000ms (blocking) | **< 100ms (instant load-balanced)** |
+| **Database Uptime & Failover** | Single Postgres Host | **3-Tier Cascade (Supabase + Hot Standby + Local SQLite Replica)** |
 | **Service Availability** | Single Process | **5-Tier High-Availability Cluster with Auto-Healer** |
 
 ---
@@ -162,3 +174,4 @@ flowchart TD
 | **AI Metadata Enricher** | **`:8831`** | Dedicated LLM feature & summary generator. |
 | **Multi-Launcher Store Healer** | **`:8841`** | Cross-store exclusivity & multi-store aggregation. |
 | **Infinite Crawler & AI Harvester**| **`:8851`** | 24/7 6-thread quad-store ingestion & classifier daemon. |
+

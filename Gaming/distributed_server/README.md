@@ -31,11 +31,16 @@ The **Distributed Game Library Cluster** is the central REST API, load balancer,
 
 ## 🐳 Step-by-Step: Running with Docker Compose
 
-The Docker stack automatically boots the full load-balanced multi-service cluster:
-- **`mc-load-balancer`**: Public API Gateway listening on Port `8800`.
-- **`mc-catalog-service-1` & `mc-catalog-service-2`**: Web & Launcher Discovery Pool (Ports `8811`, `8812`).
-- **`mc-node-service-1` & `mc-node-service-2`**: User Library & Node Sync Pool (Ports `8821`, `8822`).
-- **`mc-library-tunnel`**: Built-in Cloudflare Tunnel for secure remote access without port forwarding.
+The Docker stack automatically boots the full production-grade microservices cluster with persistent storage and health monitoring:
+- **`mc-load-balancer`**: High-throughput reverse proxy & API Gateway on Port `8800`.
+- **`mc-catalog-service-1` & `mc-catalog-service-2`**: Discovery & Search Pool (Ports `8811`, `8812`).
+- **`mc-node-service-1` & `mc-node-service-2`**: Hardware Node & Installation Pool (Ports `8821`, `8822`).
+- **`mc-ai-enricher`**: Dedicated AI Gameplay Feature & Metadata Enricher (`:8831`).
+- **`mc-launcher-enricher`**: Multi-Launcher & Store Exclusivity Healer (`:8841`).
+- **`mc-crawler-service`**: 24/7 Autonomous Harvester & Quad-Store Ingestion (`:8851`).
+- **`mc-redis`**: High-performance in-memory cache layer (`:6379`).
+- **`mc-library-tunnel`**: Secure Cloudflare edge tunnel.
+- **`catalog-data`**: Named persistent volume ensuring local SQLite fallback replica survives rebuilds.
 
 ### Step 1: Configure `.env`
 Navigate to `Gaming/distributed_server` and ensure your `.env` file exists:
@@ -44,7 +49,7 @@ cd Gaming/distributed_server
 # Copy example if not present:
 copy .env.example .env
 ```
-Ensure your `DATABASE_URL` and API keys are populated.
+Ensure your `DATABASE_URL` (and optional `FALLBACK_DATABASE_URL`) and API keys are populated.
 
 ### Step 2: Build and Launch Cluster
 ```bash
@@ -55,7 +60,7 @@ docker compose up -d --build
 ```bash
 docker compose ps
 ```
-You will see 6 healthy containers running.
+You will see 8 healthy containers running.
 
 ### Step 4: Stream Logs
 ```bash
@@ -172,7 +177,8 @@ The node daemons will:
 
 | Variable | Required | Description | Default |
 | :--- | :--- | :--- | :--- |
-| `DATABASE_URL` | **Yes** | Supabase/PostgreSQL connection string | `postgresql://...` |
+| `DATABASE_URL` | **Yes** | Primary Supabase/PostgreSQL connection string (Tier 1) | `postgresql://...` |
+| `FALLBACK_DATABASE_URL`| Optional | Secondary Hot Standby Postgres connection string (Tier 2 - Neon, Aiven) | `""` |
 | `GEMINI_API_KEY` | Optional | Google Gemini Flash for AI taxonomy | `""` |
 | `NVIDIA_API_KEY` | Optional | NVIDIA NIM Meta-Llama 3.3 failover | `""` |
 | `GROQ_API_KEY` | Optional | Groq Llama 3.3 70B failover | `""` |
@@ -184,6 +190,7 @@ The node daemons will:
 | `NODE_SERVERS` | Optional | Comma-separated Node pool URLs | `http://127.0.0.1:8821,http://127.0.0.1:8822` |
 | `HEARTBEAT_TIMEOUT` | Optional | Seconds before marking a Node offline | `45` |
 | `AI_CLASSIFY_INTERVAL`| Optional| Background AI classification interval (seconds) | `20` |
+
 
 ---
 
