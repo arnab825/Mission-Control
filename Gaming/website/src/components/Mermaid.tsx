@@ -6,40 +6,7 @@ interface MermaidProps {
   chart: string;
 }
 
-function decodeHTMLEntities(html: string): string {
-  const map: Record<string, string> = {
-    '&amp;': '&',
-    '&lt;': '<',
-    '&gt;': '>',
-    '&quot;': '"',
-    '&#039;': "'",
-    '&#39;': "'",
-    '&apos;': "'"
-  };
-  return html.replace(/&amp;|&lt;|&gt;|&quot;|&#039;|&#39;|&apos;/g, (m) => map[m] || m);
-}
-
-function sanitizeMermaidCode(code: string): string {
-  let cleaned = code;
-  
-  // 1. Normalize flowchart link arrows with pipe labels (fix spacing, inner padding, & trailing '>')
-  cleaned = cleaned.replace(/(-->|---|==>|-\.->)\s*\|\s*([^|]+?)\s*\|>?\s*/g, "$1|$2| ");
-
-  // 2. Fix unquoted node labels containing spaces/parentheses/brackets by quoting them
-  cleaned = cleaned.replace(/([A-Za-z0-9_]+)\[([^\]\n"]+)\]/g, '$1["$2"]');
-  cleaned = cleaned.replace(/([A-Za-z0-9_]+)\(([^)\n"]+)\)/g, '$1("$2")');
-  cleaned = cleaned.replace(/([A-Za-z0-9_]+)\{([^}\n"]+)\}/g, '$1{"$2"}');
-
-  // 3. Fix unclosed brackets/parentheses/braces (e.g., B[Supporting Talent)
-  cleaned = cleaned.replace(/([A-Za-z0-9_]+)\[([^\]\n"]+)(?=\s*(?:-->|---|==>|\n|$))/g, '$1["$2"]');
-  cleaned = cleaned.replace(/([A-Za-z0-9_]+)\(([^)\n"]+)(?=\s*(?:-->|---|==>|\n|$))/g, '$1("$2")');
-  cleaned = cleaned.replace(/([A-Za-z0-9_]+)\{([^}\n"]+)(?=\s*(?:-->|---|==>|\n|$))/g, '$1{"$2"}');
-
-  // 4. Fix pie chart titles (remove colon)
-  cleaned = cleaned.replace(/^\s*title:\s*(.*)$/gm, "    title $1");
-
-  return cleaned;
-}
+import { sanitizeMermaidCode, decodeHTMLEntities } from "@/lib/mermaidUtils";
 
 export default function Mermaid({ chart }: MermaidProps) {
   const ref = useRef<HTMLDivElement>(null);

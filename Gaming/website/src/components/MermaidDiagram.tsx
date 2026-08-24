@@ -7,24 +7,7 @@ interface MermaidDiagramProps {
   chart: string;
 }
 
-function sanitizeMermaidChart(raw: string): string {
-  if (!raw) return "graph TD\n  A[Empty] --> B[Diagram]";
-  let clean = raw.trim();
-
-  // 1. Decode basic HTML entities
-  clean = clean
-    .replace(/&amp;/g, "&")
-    .replace(/&lt;/g, "<")
-    .replace(/&gt;/g, ">")
-    .replace(/&quot;/g, '"')
-    .replace(/&#039;/g, "'")
-    .replace(/&apos;/g, "'");
-
-  // 2. Fix malformed arrow links with pipe labels e.g. -->|label|> to -->|label|
-  clean = clean.replace(/(-->|---|==>|-\.->)\s*\|\s*([^|]+?)\s*\|>?\s*/g, "$1|$2| ");
-
-  return clean;
-}
+import { sanitizeMermaidCode } from "@/lib/mermaidUtils";
 
 export function MermaidDiagram({ chart }: MermaidDiagramProps) {
   const [svgHtml, setSvgHtml] = useState<string>("");
@@ -65,7 +48,7 @@ export function MermaidDiagram({ chart }: MermaidDiagramProps) {
         });
 
         const uniqueId = `mermaid-svg-${Math.random().toString(36).substring(2, 9)}`;
-        const sanitizedChart = sanitizeMermaidChart(chart);
+        const sanitizedChart = sanitizeMermaidCode(chart);
 
         const res = await mermaid.render(uniqueId, sanitizedChart);
         
