@@ -137,7 +137,7 @@ def _clean_and_normalize_genre(raw_genre: Optional[str]) -> str:
     return "OTHER"
 
 _SYSTEM_PROMPT = f"""You are a precise video game taxonomy expert.
-Given a game title, developer, publisher, raw tags, and summary, classify the game into accurate genres and tags, extract technical/gameplay features, provide an engaging 1-2 sentence summary, and determine its release date.
+Given a game title, developer, publisher, raw tags, and summary, classify the game into accurate genres and tags, extract technical/gameplay features, determine the publisher (or self-published developer name), provide an engaging 1-2 sentence summary, and determine its release date.
 
 You MUST respond with ONLY a valid JSON object (no markdown, no explanation). Use this exact schema:
 {{
@@ -145,6 +145,7 @@ You MUST respond with ONLY a valid JSON object (no markdown, no explanation). Us
   "genres": ["<genre1>", "<genre2>"],
   "tags": ["<tag1>", "<tag2>", ...],
   "features": ["<feature1>", "<feature2>", ...],
+  "publisher": "<publisher name, or the developer name if self-published/indie>",
   "summary": "<1-2 sentence engaging summary of the premise and core gameplay loop>",
   "release_date": "<e.g. 'Oct 24, 2023' or '2023' or null if unknown>",
   "confidence": <float 0.0–1.0>
@@ -158,6 +159,7 @@ Rules:
 - genres may include 1–4 values, including primary_genre.
 - tags should be 4–12 concise gameplay/thematic descriptors (e.g. "Open World", "Dark Fantasy", "Stealth", "Co-op", "Singleplayer", "Rich Story", "Cyberpunk", "Post-Apocalyptic").
 - features should include gameplay & technical capabilities (e.g. "Single-player", "Multi-player", "Co-op", "Full controller support", "Cloud Saves", "Ray Tracing", "DLSS", "DirectX 12", "HDR", "VR Support", "Steam Achievements").
+- publisher: the publishing company or entity. If the game is self-published or an indie game with no separate publisher, return the developer's name. NEVER leave empty.
 - summary: an authentic, engaging 1-2 sentence synopsis of what the game is about (avoid generic template text).
 - release_date: the known release date or release year (e.g., "Nov 10, 2020" or "2020"), or null if completely unknown.
 - confidence: your certainty that this classification is correct (0.0 = unsure, 1.0 = certain).
@@ -289,6 +291,7 @@ def classify_game(
                 "genres":         result.get("genres", []),
                 "tags":           result.get("tags", []),
                 "features":       result.get("features", []),
+                "publisher":      result.get("publisher"),
                 "summary":        result.get("summary"),
                 "release_date":   result.get("release_date"),
                 "confidence":     float(result.get("confidence", 0.5)),
@@ -328,6 +331,7 @@ def classify_batch(
             raw_tags=game.get("raw_tags", []),
             summary=game.get("summary"),
         )
+        pub_to_set = (result.get("publisher") if result else None) or game.get("publisher") or game.get("developer")
         if result and db:
             try:
                 db.mark_game_classified(
@@ -337,6 +341,7 @@ def classify_batch(
                     tags=result["tags"],
                     confidence=result["confidence"],
                     features=result.get("features", []),
+                    publisher=pub_to_set,
                     summary=result.get("summary"),
                     release_date=result.get("release_date"),
                 )
@@ -363,6 +368,7 @@ def classify_batch(
                     tags=game.get("raw_tags", []) or ["Action"],
                     confidence=0.3,
                     features=[],
+                    publisher=pub_to_set,
                     summary=game.get("summary"),
                     release_date=None,
                 )
