@@ -545,8 +545,13 @@ async def search_games(q: str = Query(..., min_length=1)):
             "id":           row["id"],
             "title":        row["title"],
             "primaryGenre": row.get("primary_genre"),
+            "genres":       row.get("genres") or [row.get("primary_genre") or "Action"],
             "coverUrl":     row.get("cover_url"),
+            "bannerUrl":    row.get("banner_url"),
             "releaseDate":  row.get("release_date"),
+            "launchers":    row.get("launchers") or ["Steam"],
+            "platforms":    row.get("platforms") or ["Windows", "Linux"],
+            "summary":      row.get("summary"),
             "installations": [],
         })
     
@@ -565,17 +570,9 @@ async def search_games(q: str = Query(..., min_length=1)):
                 if any(r["id"] == slug for r in results):
                     continue
 
-                # Run immediate AI classification with top priority
+                # Instant store tag extraction (0 ms) & non-blocking insertion
                 raw_tags = deduplicate_tags(item.get("raw_tags", []))
-                ai_res = classify_game(
-                    title=title,
-                    developer=item.get("developer"),
-                    publisher=item.get("publisher"),
-                    raw_tags=raw_tags,
-                    summary=item.get("summary"),
-                )
-                classified_genre = ai_res["primary_genre"] if ai_res else (item.get("genres", [None])[0] if item.get("genres") else "Action")
-                confidence = ai_res["confidence"] if ai_res else 0.0
+                classified_genre = item.get("genres", [None])[0] if item.get("genres") else "Action"
 
                 game_data = {
                     "id":               slug,
@@ -585,38 +582,35 @@ async def search_games(q: str = Query(..., min_length=1)):
                     "publisher":        item.get("publisher"),
                     "release_date":     item.get("release_date"),
                     "primary_genre":    classified_genre,
-                    "genres":           ai_res["genres"] if ai_res else (item.get("genres") or ["Action"]),
-                    "tags":             ai_res["tags"] if ai_res else raw_tags,
-                    "features":         ai_res["features"] if ai_res else [],
+                    "genres":           item.get("genres") or [classified_genre],
+                    "tags":             raw_tags,
+                    "features":         [],
                     "platforms":        ["Windows", "Linux"],
+                    "launchers":        item.get("launchers") or ["Steam"],
                     "cover_url":        item.get("cover_url"),
                     "banner_url":       item.get("banner_url"),
                     "summary":          item.get("summary"),
-                    "ai_classified":    bool(ai_res),
-                    "ai_confidence":    confidence,
+                    "ai_classified":    False,
+                    "ai_confidence":    0.0,
                     "raw_tags":         raw_tags,
                     "metadata":         json.dumps({"source": item.get("store", "web"), "appid": item.get("store_app_id")}),
                 }
-                db.upsert_game(game_data)
-                
-                if ai_res:
-                    db.log_ai_classification({
-                        "game_id":      slug,
-                        "provider":     ai_res["provider"],
-                        "model":        ai_res["model"],
-                        "input_tags":   raw_tags,
-                        "output_genre": ai_res["primary_genre"],
-                        "output_tags":  ai_res["tags"],
-                        "confidence":   ai_res["confidence"],
-                        "latency_ms":   ai_res.get("latency_ms", 0),
-                    })
+                try:
+                    db.upsert_game(game_data)
+                except Exception as e:
+                    logger.debug("Live search upsert: %s", e)
 
                 results.append({
                     "id":           slug,
                     "title":        title,
                     "primaryGenre": classified_genre,
+                    "genres":       game_data["genres"],
                     "coverUrl":     item.get("cover_url"),
+                    "bannerUrl":    item.get("banner_url"),
                     "releaseDate":  item.get("release_date"),
+                    "launchers":    game_data["launchers"],
+                    "platforms":    game_data["platforms"],
+                    "summary":      item.get("summary"),
                     "installations": [],
                 })
         except Exception as exc:
