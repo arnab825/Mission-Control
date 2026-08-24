@@ -617,6 +617,9 @@ class LibraryDB:
             SELECT id, title, developer, publisher, raw_tags, genres, tags, metadata
             FROM canonical_games
             WHERE ai_classified = FALSE
+               OR publisher IS NULL
+               OR publisher = ''
+               OR publisher = 'None'
             ORDER BY created_at ASC
             LIMIT %(limit)s
         """
@@ -630,6 +633,7 @@ class LibraryDB:
         tags: List[str],
         confidence: float,
         features: Optional[List[str]] = None,
+        publisher: Optional[str] = None,
         summary: Optional[str] = None,
         release_date: Optional[str] = None,
     ) -> None:
@@ -640,6 +644,7 @@ class LibraryDB:
                 primary_genre   = %(primary_genre)s,
                 genres          = %(genres)s,
                 tags            = %(tags)s,
+                publisher       = COALESCE(NULLIF(%(publisher)s, ''), NULLIF(canonical_games.publisher, ''), canonical_games.developer),
                 features        = CASE 
                                     WHEN array_length(%(features)s::text[], 1) > 0 THEN %(features)s 
                                     ELSE canonical_games.features 
@@ -661,6 +666,7 @@ class LibraryDB:
             "genres": genres,
             "tags": tags,
             "features": features or [],
+            "publisher": publisher,
             "summary": summary,
             "confidence": confidence,
             "release_date": release_date,
