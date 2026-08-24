@@ -466,9 +466,9 @@ async def register_node(req: NodeRegisterRequest):
 
 
 @app.get("/api/nodes", response_model=List[NodeResponse])
-async def list_nodes():
+async def list_nodes(clerk_id: Optional[str] = Query(default=None)):
     _require_db()
-    rows = db.get_all_nodes()
+    rows = db.get_all_nodes(clerk_id=clerk_id)
     return [_node_row_to_response(r) for r in rows]
 
 
