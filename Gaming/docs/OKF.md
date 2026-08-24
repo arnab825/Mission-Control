@@ -62,25 +62,146 @@ Night City is divided into six main districts: City Center, Heywood, Santo Domin
 
 ---
 
-## Engine Integration (`rag_engine.py`)
+## System Architecture: OKF & Resilient RAG
 
-The OKF parser and retrieval logic are implemented in [`Gaming/backend/ai_brain/rag_engine.py`](file:///e:/AiAssistant/Gaming/backend/ai_brain/rag_engine.py) using the following workflow:
+The RAG architecture in Mission Control connects local OKF authoring, automated distributed catalog enrichment, SQLite persistence, and in-memory BM25 retrieval to fuel in-game real-time AI decisions.
+
+### 1. High-Level Multi-Tier Architecture Diagram
 
 ```mermaid
-graph TD
-    A["Local OKF Files (rag_data/*.md)"] -->|YAML Frontmatter Parser| B["Document Ingestion & Chunking"]
-    C["Distributed Server (/api/catalog)"] -->|Async Background Sync| B
-    B -->|Persist Metadata| D["Local SQLite Storage (rag_documents.db)"]
-    D -->|Index In-Memory| E["BM25 Lexical Retriever"]
-    E -->|Scoped Query (user_query, game_id)| F["AI Overlay & Decision Maker"]
+flowchart TB
+    subgraph DataSources ["Knowledge & Intelligence Sources"]
+        direction TB
+        subgraph OKFLocal ["Local OKF Knowledge Layer"]
+            OKF1["rag_data/*.md (Manual Guides)"]
+            OKF2["data/knowledge/*.okf (Agent Memory)"]
+        end
+        subgraph DistCloud ["Distributed Server (Cloud)"]
+            DS1["Steam API / PCGamingWiki Harvester"]
+            DS2["Catalog Database (PostgreSQL)"]
+            DS3["/api/catalog (REST Endpoint)"]
+            DS1 --> DS2 --> DS3
+        end
+    end
+
+    subgraph IngestionPipeline ["RAG Ingestion & Normalization Layer (rag_engine.py)"]
+        direction TB
+        YAMLParser["OKF Parser (YAML Frontmatter + MD Body)"]
+        HTTPPoller["Async Daemon Worker (5s Timeout)"]
+        Chunker["RecursiveCharacterTextSplitter (1000 chars, 200 overlap)"]
+        Hasher["SHA-256 Content Deduplicator"]
+        
+        OKFLocal --> YAMLParser --> Chunker
+        DS3 -.->|Non-Blocking Thread| HTTPPoller --> Chunker
+        Chunker --> Hasher
+    end
+
+    subgraph StorageLayer ["Persistence & Indexing Layer"]
+        direction TB
+        SQLite[("Local SQLite Cache (rag_documents.db)")]
+        BM25["In-Memory BM25 Lexical Index (LangChain rank_bm25)"]
+        
+        Hasher -->|Upsert Chunks & Metadata| SQLite
+        SQLite -->|Rebuild Index on Seed/Sync| BM25
+    end
+
+    subgraph Consumers ["Real-Time Decision & Inference Layer"]
+        direction TB
+        DecisionMaker["Decision Maker (decision_maker.py)"]
+        GameKnowledge["Game Knowledge Aggregator (game_knowledge.py)"]
+        NVIDIANIM["NVIDIA NIM Reasoning (Llama 3.1 / 3.2 VLM)"]
+        HUDOverlay["Glassmorphic In-Game HUD Overlay"]
+
+        UserQuery["In-Game Event / User Query"] --> DecisionMaker
+        DecisionMaker -->|query(text, game_id, k=3)| BM25
+        BM25 -->|Relevant Context Snippets| DecisionMaker
+        DecisionMaker --> NVIDIANIM
+        NVIDIANIM --> HUDOverlay
+    end
+
+    classDef source fill:#1e293b,stroke:#3b82f6,stroke-width:2px,color:#fff
+    classDef engine fill:#0f172a,stroke:#10b981,stroke-width:2px,color:#fff
+    classDef storage fill:#1e1b4b,stroke:#8b5cf6,stroke-width:2px,color:#fff
+    classDef consumer fill:#31103f,stroke:#ec4899,stroke-width:2px,color:#fff
+
+    class DataSources source
+    class IngestionPipeline engine
+    class StorageLayer storage
+    class Consumers consumer
 ```
 
-### Ingestion Pipeline
-1. **Startup Scanning**: On initialization, `GameRAGEngine` scans the `data_dir` / `rag_data/` directory.
-2. **YAML Frontmatter Extraction**: `parse_okf_content()` separates the YAML metadata header from the markdown body.
-3. **Chunking & Hashing**: `RecursiveCharacterTextSplitter` chunks the body while preserving `game_id`, `source`, and `title`.
-4. **SQLite Caching**: Stores chunks into SQLite (`rag_documents.db`) for instant retrieval.
-5. **In-Memory BM25 Index**: Builds an in-memory lexical index with $O(1)$ query evaluation time.
+---
+
+### 2. Runtime Query & Retrieval Sequence Workflow
+
+The sequence diagram below demonstrates how an in-game query is resolved with zero network latency and localized isolation:
+
+```mermaid
+sequenceDiagram
+    autonumber
+    actor Gamer as Player / Game Event
+    participant HUD as Frontend Overlay
+    participant DM as Decision Maker / Brain
+    participant RAG as GameRAGEngine
+    participant BM25 as BM25 Retriever
+    participant LLM as NVIDIA NIM (Cloud LLM)
+
+    Gamer->>HUD: Trigger tactical query (e.g., "Best boss strategy")
+    HUD->>DM: Route request with active `game_id` (e.g. `elden_ring`)
+    
+    rect rgb(30, 41, 59)
+        note over DM,BM25: Local RAG Retrieval Stage (Sub-millisecond)
+        DM->>RAG: query(user_query, game_id="elden_ring", k=3)
+        RAG->>BM25: invoke(user_query)
+        BM25-->>RAG: Matched documents across catalog
+        RAG->>RAG: Filter by metadata.game_id == "elden_ring"
+        RAG-->>DM: Augmented Context (OKF Guide + Dist Server features)
+    end
+
+    rect rgb(15, 23, 42)
+        note over DM,LLM: LLM Augmentation & Generation
+        DM->>LLM: Prompt + Augmented Game Context + Vision Data
+        LLM-->>DM: Grounded tactical advice & setting tweaks
+    end
+
+    DM-->>HUD: Render real-time recommendation on HUD
+    HUD-->>Gamer: Display guidance on screen
+```
+
+---
+
+### 3. Failover & Self-Healing Lifecycle
+
+If SQLite is corrupted, missing, or if network connectivity drops, the system self-heals automatically:
+
+```mermaid
+stateDiagram-v2
+    [*] --> AppLaunch
+    AppLaunch --> CheckSQLite: Check rag_documents.db
+
+    state CheckSQLite {
+        [*] --> CountDocuments
+        CountDocuments --> DBValid: Count > 0
+        CountDocuments --> DBEmtpy: Count == 0 or Missing
+    }
+
+    DBEmtpy --> SeedOKF: Read rag_data/*.md & data/*.okf
+    SeedOKF --> BuildBM25: Insert Chunks & Build BM25 Index
+    DBValid --> BuildBM25: Load rows into In-Memory BM25
+
+    BuildBM25 --> Ready: Engine Marked Ready (is_ready = True)
+
+    state BackgroundSync {
+        [*] --> PollDistributedServer: GET /api/catalog
+        PollDistributedServer --> ParseRemoteData: 200 OK
+        PollDistributedServer --> OfflineFallback: Timeout / Network Error (5s)
+        ParseRemoteData --> UpsertSQLite: Insert new games
+        UpsertSQLite --> RebuildBM25: Live Update BM25
+        OfflineFallback --> SilentRetry: Sleep & retry next cycle
+    }
+
+    Ready --> BackgroundSync: Launch Daemon Thread
+```
 
 ---
 
