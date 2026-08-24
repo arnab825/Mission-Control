@@ -15,13 +15,23 @@ import "katex/dist/katex.min.css";
 import { headers } from "next/headers";
 import ShareButtons from "@/components/ShareButtons";
 
+import { convertAsciiToMermaid, isAsciiBoxDiagram } from "@/lib/mermaidUtils";
+
 const mdxComponents = {
   pre: ({ children }: any) => {
     const codeProps = children?.props;
-    if (codeProps && codeProps.className === "language-mermaid") {
-      return <Mermaid chart={codeProps.children} />;
+    if (codeProps && (codeProps.className === "language-mermaid" || codeProps.className?.includes("mermaid"))) {
+      const codeString = typeof codeProps.children === "string" ? codeProps.children : String(codeProps.children || "");
+      return <Mermaid chart={codeString} />;
     }
     return <pre>{children}</pre>;
+  },
+  code: ({ className, children, ...props }: any) => {
+    if (className === "language-mermaid" || className?.includes("mermaid")) {
+      const codeString = typeof children === "string" ? children : String(children || "");
+      return <Mermaid chart={codeString} />;
+    }
+    return <code className={className} {...props}>{children}</code>;
   },
   table: ({ children, ...props }: any) => (
     <div className="overflow-x-auto my-6 border border-white/5 rounded-xl bg-white/[0.01] w-full">
@@ -34,9 +44,21 @@ const mdxComponents = {
 
 function cleanMarkdown(content: string): string {
   if (!content) return "";
-  return content
+  let clean = content
     .replace(/```(?:markdown|md)\r?\n([\s\S]*?)\r?\n```/gi, "$1")
     .replace(/```table\r?\n([\s\S]*?)\r?\n```/gi, "$1");
+
+  // Auto-convert and fence ASCII diagrams
+  clean = clean.replace(
+    /(?:^\s*\+[-=]{2,}\+[\s\S]*?\+[-=]{2,}\+)/gm,
+    (match) => {
+      if (match.includes("```")) return match;
+      const converted = convertAsciiToMermaid(match.trim());
+      return `\n\`\`\`mermaid\n${converted}\n\`\`\`\n`;
+    }
+  );
+
+  return clean;
 }
 
 
