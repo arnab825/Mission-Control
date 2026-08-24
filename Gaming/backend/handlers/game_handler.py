@@ -6,6 +6,8 @@ import logging
 import os
 import sys
 import threading
+from pathlib import Path
+from typing import Optional, Any, Dict, List
 
 logger = logging.getLogger(__name__)
 
@@ -16,6 +18,36 @@ import threading as _threading
 _lib_lock = _threading.Lock()
 
 
+_node_daemon_started = False
+_node_daemon_lock = _threading.Lock()
+
+
+def _ensure_local_node_daemon(user_id_str: Optional[str] = None):
+    """Spawns the local node daemon background thread for real-time heartbeat and Supabase presence."""
+    global _node_daemon_started
+    with _node_daemon_lock:
+        if _node_daemon_started:
+            return
+        _node_daemon_started = True
+
+    def _run():
+        try:
+            node_dir = Path(__file__).parent.parent.parent / "distributed_node"
+            if str(node_dir) not in sys.path:
+                sys.path.insert(0, str(node_dir))
+            from node_service import LibraryNodeService, NodeConfig
+            
+            cfg = NodeConfig()
+            if user_id_str:
+                cfg.clerk_id = user_id_str
+            svc = LibraryNodeService(cfg)
+            svc.run()
+        except Exception as exc:
+            logger.warning("[NodeSync] Background node service notice: %s", exc)
+
+    _threading.Thread(target=_run, name="AutonomousNodeDaemon", daemon=True).start()
+
+
 def handle_get_cached_games(payload: dict, pipeline, bridge, config, library_session: dict) -> None:
     try:
         from system.game_scanner import GameScanner
@@ -23,6 +55,9 @@ def handle_get_cached_games(payload: dict, pipeline, bridge, config, library_ses
         user_id = payload.get("userId") if payload else None
         user_id_str = str(user_id) if user_id else None
         force_refresh = bool(payload.get("forceRefresh")) if payload else False
+
+        # Auto-start real-time node heartbeat & registration
+        _ensure_local_node_daemon(user_id_str)
 
         # ── Session cache: avoid repeat Supabase round-trips ──────
         with _lib_lock:

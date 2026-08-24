@@ -175,6 +175,16 @@ flowchart TD
 
 ---
 
+### Fix 14: Real-Time Node Presence & Differential Library Sync Engine
+- **Files:** [`Gaming/backend/handlers/game_handler.py`](file:///e:/AiAssistant/Gaming/backend/handlers/game_handler.py) & [`Gaming/distributed_node/node_service.py`](file:///e:/AiAssistant/Gaming/distributed_node/node_service.py)
+- **Problem:** Opening the desktop app left node status as `offline` in Supabase, and game changes (installations, title updates, uninstalls) were not reflected in real-time.
+- **Resolution:**
+  - Embedded `_ensure_local_node_daemon` inside [`game_handler.py`](file:///e:/AiAssistant/Gaming/backend/handlers/game_handler.py) to automatically spawn the node service whenever the app is opened or a user logs in.
+  - Machine auto-registers in Supabase with status **`online`** and sends live 15-second heartbeats.
+  - Synchronizes local library changes with Supabase in real-time with automated SQL `INSERT`, `UPDATE`, and `DELETE` queries.
+
+---
+
 ## 3. Real-Time Production Database Statistics
 
 | Metric | Initial State | Current Live Production State |
