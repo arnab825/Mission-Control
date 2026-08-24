@@ -216,6 +216,15 @@ class SupabaseDB:
                             # Use high-definition CDN cover or fallback
                             banner = g.get("icon") or f"https://cdn.akamai.steamstatic.com/steam/apps/{game_id}/header.jpg" if str(game_id).isdigit() else "https://images.unsplash.com/photo-1542751371-adc38448a05e?auto=format&fit=crop&w=1200&q=80"
 
+                        # Resolve fallback features (never leave empty [] for launchers or games)
+                        features = g.get("features") or []
+                        item_type = str(g.get("type", "GAME")).upper()
+                        if not features:
+                            if item_type == "LAUNCHER" or "launcher" in str(g.get("name", "")).lower():
+                                features = ["CLOUD_SYNC", "STORE", "OVERLAY", "AUTO_UPDATE"]
+                            else:
+                                features = ["DIRECTX", "CONTROLLER", "64_BIT"]
+
                         records.append((
                             game_id,
                             user_id,
@@ -224,8 +233,8 @@ class SupabaseDB:
                             g.get("install_path", ""),
                             g.get("exe_path", ""),
                             g.get("icon") or banner,
-                            self._serialize(g.get("features", [])),
-                            g.get("type", "GAME"),
+                            self._serialize(features),
+                            item_type,
                             g.get("genre", "Action"),
                             self._serialize(g.get("tags", ["PC", "Gaming"])),
                             source,

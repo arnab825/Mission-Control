@@ -125,8 +125,30 @@ class LibraryNodeService:
 
     # ── Registration ──────────────────────────────────────────────────────────
 
-    def register(self) -> bool:
-        """Register with the central library server."""
+        # Dynamically discover all active local game libraries and launcher scan paths
+        discovered_paths = list(self.cfg.scan_paths) if self.cfg.scan_paths else []
+        try:
+            from system.game_scanner import GameScanner
+            scanner = GameScanner(config={})
+            auto_paths = scanner._get_default_library_paths() if hasattr(scanner, "_get_default_library_paths") else []
+            for p in auto_paths:
+                if str(p) not in discovered_paths and Path(p).exists():
+                    discovered_paths.append(str(p))
+        except Exception:
+            pass
+
+        # Fallback to drive detection if paths are empty
+        if not discovered_paths:
+            import psutil
+            try:
+                for p in psutil.disk_partitions():
+                    if 'fixed' in p.opts or 'cdrom' not in p.opts:
+                        discovered_paths.append(p.mountpoint)
+            except Exception:
+                discovered_paths = ["C:\\", "D:\\"]
+
+        self.cfg.scan_paths = discovered_paths
+
         storage = (
             get_drive_storage(self.cfg.scan_paths)
             if self.cfg.scan_paths

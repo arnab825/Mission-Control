@@ -794,9 +794,21 @@ class LibraryDB:
                 self.execute("DELETE FROM node_scan_paths WHERE node_id = %(node_id)s", {"node_id": node["node_id"]})
                 for p in paths:
                     if p:
+                        p_str = str(p)
+                        p_lower = p_str.lower()
+                        store_hint = "local"
+                        if "steam" in p_lower: store_hint = "steam"
+                        elif "epic" in p_lower: store_hint = "epic"
+                        elif "gog" in p_lower: store_hint = "gog"
+                        elif "ea" in p_lower or "origin" in p_lower: store_hint = "ea"
+                        elif "ubisoft" in p_lower or "uplay" in p_lower: store_hint = "ubisoft"
+                        elif "xbox" in p_lower or "windowsapps" in p_lower: store_hint = "xbox"
+                        elif "riot" in p_lower: store_hint = "riot"
+                        elif "battle.net" in p_lower or "blizzard" in p_lower: store_hint = "battlenet"
+
                         self.execute(
-                            "INSERT INTO node_scan_paths (node_id, path, enabled) VALUES (%(node_id)s, %(path)s, TRUE)",
-                            {"node_id": node["node_id"], "path": str(p)}
+                            "INSERT INTO node_scan_paths (node_id, path, store_hint, enabled) VALUES (%(node_id)s, %(path)s, %(store_hint)s, TRUE)",
+                            {"node_id": node["node_id"], "path": p_str, "store_hint": store_hint}
                         )
             except Exception as e:
                 logger.warning("Failed to sync node_scan_paths: %s", e)
