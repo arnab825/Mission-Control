@@ -113,8 +113,8 @@ flowchart TB
         HUDOverlay["Glassmorphic In-Game HUD Overlay"]
 
         UserQuery["In-Game Event / User Query"] --> DecisionMaker
-        DecisionMaker -->|query(text, game_id, k=3)| BM25
-        BM25 -->|Relevant Context Snippets| DecisionMaker
+        DecisionMaker -->|"query(text, game_id, k=3)"| BM25
+        BM25 -->|"Relevant Context Snippets"| DecisionMaker
         DecisionMaker --> NVIDIANIM
         NVIDIANIM --> HUDOverlay
     end
