@@ -127,6 +127,9 @@ class LibraryDB:
             self._sqlite_conn = sqlite3.connect(self._sqlite_path, check_same_thread=False)
             self._sqlite_conn.row_factory = sqlite3.Row
             with self._sqlite_conn:
+                self._sqlite_conn.execute("PRAGMA cache_size = -2000;")
+                self._sqlite_conn.execute("PRAGMA synchronous = NORMAL;")
+                self._sqlite_conn.execute("PRAGMA temp_store = MEMORY;")
                 self._sqlite_conn.execute('''
                     CREATE TABLE IF NOT EXISTS canonical_games (
                         id TEXT PRIMARY KEY,

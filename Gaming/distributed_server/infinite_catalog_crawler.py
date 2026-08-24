@@ -46,20 +46,22 @@ _LOCK = threading.Lock()
 _EXISTING_CACHE: Set[str] = set()
 
 
-def _get_existing_cache() -> Set[str]:
+def _is_in_cache(slug: str, norm: str) -> bool:
     global _EXISTING_CACHE
     with _LOCK:
         if not _EXISTING_CACHE:
             rows = db.execute("SELECT id, normalized_title FROM canonical_games;", fetch="all") or []
-            _EXISTING_CACHE = {r["normalized_title"] for r in rows} | {r["id"] for r in rows}
-        return set(_EXISTING_CACHE)
+            _EXISTING_CACHE = {r["normalized_title"] for r in rows if r.get("normalized_title")} | {r["id"] for r in rows if r.get("id")}
+            del rows
+        return (slug in _EXISTING_CACHE) or (norm in _EXISTING_CACHE)
 
 
 def _add_to_cache(slug: str, norm: str):
     global _EXISTING_CACHE
     with _LOCK:
-        _EXISTING_CACHE.add(slug)
-        _EXISTING_CACHE.add(norm)
+        if _EXISTING_CACHE is not None:
+            _EXISTING_CACHE.add(slug)
+            _EXISTING_CACHE.add(norm)
 
 
 def fetch_json(url: str, timeout: int = 12):
@@ -73,6 +75,7 @@ def fetch_json(url: str, timeout: int = 12):
 
 
 def _bulk_insert_games(games: List[Dict[str, Any]], store_name: str):
+    import gc
     inserted = 0
     for g in games:
         try:
@@ -83,6 +86,7 @@ def _bulk_insert_games(games: List[Dict[str, Any]], store_name: str):
             logger.debug("Insert error for %s: %s", g.get("id"), e)
     if inserted > 0:
         logger.info("[%s] Successfully inserted %d new games into canonical_games!", store_name, inserted)
+    gc.collect()
 
 
 # ── THREAD 1: STEAM INFINITE LOOP ─────────────────────────────────────────────
@@ -95,7 +99,6 @@ def loop_steam_crawler():
             new_games = []
 
             while True:
-                existing_set = _get_existing_cache()
                 url = f"https://steamspy.com/api.php?request=all&page={page}"
                 data = fetch_json(url, timeout=15)
 
@@ -116,7 +119,7 @@ def loop_steam_crawler():
 
                     slug = title_to_slug(name)
                     norm = normalize_title(name)
-                    if slug in existing_set or norm in existing_set:
+                    if _is_in_cache(slug, norm):
                         continue
 
                     _add_to_cache(slug, norm)
@@ -170,7 +173,6 @@ def loop_gog_crawler():
             new_games = []
 
             while True:
-                existing_set = _get_existing_cache()
                 url = f"https://catalog.gog.com/v1/catalog?limit=48&page={page}&order=desc:bestselling&productType=in:game"
                 data = fetch_json(url, timeout=10)
                 if not data or not isinstance(data, dict):
@@ -188,7 +190,7 @@ def loop_gog_crawler():
 
                     slug = title_to_slug(title)
                     norm = normalize_title(title)
-                    if slug in existing_set or norm in existing_set:
+                    if _is_in_cache(slug, norm):
                         continue
 
                     _add_to_cache(slug, norm)
@@ -239,7 +241,6 @@ def loop_epic_crawler():
     logger.info("Starting continuous Epic Games Store infinite loop...")
     while True:
         try:
-            existing_set = _get_existing_cache()
             epic_url = "https://store-site-backend-static.ak.epicgames.com/freeGamesPromotions?locale=en-US&country=US&allowCountries=US"
             data = fetch_json(epic_url, timeout=12)
             new_games = []
@@ -254,7 +255,7 @@ def loop_epic_crawler():
                     slug = title_to_slug(title)
                     norm = normalize_title(title)
 
-                    if slug in existing_set or norm in existing_set:
+                    if _is_in_cache(slug, norm):
                         db.execute(
                             """
                             UPDATE canonical_games
@@ -330,7 +331,6 @@ def loop_xbox_crawler():
 
             for pub in publishers:
                 for page in range(1, 6):
-                    existing_set = _get_existing_cache()
                     url = f"https://api.rawg.io/api/games?key={rawg_key}&publishers={pub}&page={page}&page_size=40"
                     data = fetch_json(url, timeout=10)
                     if not data or not isinstance(data, dict):
@@ -348,7 +348,7 @@ def loop_xbox_crawler():
                         bg_img = g.get("background_image")
                         genres = [gen.get("name") for gen in g.get("genres", []) if gen.get("name")] or ["Action"]
 
-                        if slug in existing_set or norm in existing_set:
+                        if _is_in_cache(slug, norm):
                             db.execute(
                                 """
                                 UPDATE canonical_games

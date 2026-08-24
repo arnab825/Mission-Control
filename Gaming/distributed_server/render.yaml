@@ -4,15 +4,21 @@ services:
     runtime: python
     rootDir: Gaming/distributed_server
     buildCommand: pip install -r requirements.txt gunicorn
-    startCommand: gunicorn -w 4 -k uvicorn.workers.UvicornWorker server:app --bind 0.0.0.0:$PORT --timeout 120
+    startCommand: gunicorn -w 1 -k uvicorn.workers.UvicornWorker server:app --bind 0.0.0.0:$PORT --timeout 120 --max-requests 1000 --max-requests-jitter 100
     healthCheckPath: /health
     disk:
       name: mc-sqlite-fallback-data
       mountPath: /app/data
-      sizeGB: 5
+      sizeGB: 1
     envVars:
       - key: PYTHON_VERSION
         value: 3.11.9
+      - key: MALLOC_ARENA_MAX
+        value: "2"
+      - key: PYTHONUNBUFFERED
+        value: "1"
+      - key: ENABLE_BACKGROUND_WORKERS
+        value: "false"
       - key: DATABASE_URL
         sync: false
       - key: FALLBACK_DATABASE_URL

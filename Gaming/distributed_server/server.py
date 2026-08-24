@@ -86,9 +86,11 @@ def _offline_watchdog():
 
 # ── AI Classification Background Worker ──────────────────────────────────────
 _CLASSIFY_INTERVAL = int(os.getenv("AI_CLASSIFY_INTERVAL", "20"))  # seconds
+ENABLE_BACKGROUND_WORKERS = os.getenv("ENABLE_BACKGROUND_WORKERS", "true").lower() in ("true", "1")
 
 def _classification_worker():
     """Background thread: periodically refines genres for unclassified games."""
+    import gc
     while True:
         try:
             if db.available:
@@ -96,6 +98,8 @@ def _classification_worker():
                 if batch:
                     logger.info("AI Classifier Worker: Refining genres for %d unclassified games.", len(batch))
                     classify_batch(batch, db=db, delay_between=0.5)
+                    del batch
+                    gc.collect()
         except Exception as exc:
             logger.error("AI Classifier Worker error: %s", exc)
         time.sleep(_CLASSIFY_INTERVAL)
@@ -105,6 +109,7 @@ _ENRICH_INTERVAL = 20  # seconds
 
 def _enrichment_worker():
     """Background thread: periodically fills in missing release dates, summaries, and features from Steam & web."""
+    import gc
     import re
     while True:
         try:
@@ -169,6 +174,8 @@ def _enrichment_worker():
                                 {"id": game_id}
                             )
                         time.sleep(1.2) # Avoid Steam rate limits
+                    del games_to_enrich
+                    gc.collect()
         except Exception as exc:
             logger.error("Enrichment Worker error: %s", exc)
         time.sleep(_ENRICH_INTERVAL)
@@ -178,6 +185,7 @@ def _enrichment_worker():
 # ── Initial Seeding Worker ───────────────────────────────────────────────────
 def _seed_catalog_if_empty():
     """Seed the canonical games catalog on startup if empty."""
+    import gc
     time.sleep(3)
     if not db.available:
         return
@@ -217,6 +225,8 @@ def _seed_catalog_if_empty():
                 except Exception as exc:
                     logger.debug("Initial seed insert error for %s: %s", g.get("title"), exc)
             logger.info("Initial seeding complete: Ingested %d games from renowned launchers.", inserted)
+            del top_games
+            gc.collect()
     except Exception as exc:
         logger.error("Initial seeding error: %s", exc)
 
@@ -224,14 +234,20 @@ def _seed_catalog_if_empty():
 @asynccontextmanager
 async def lifespan(app: FastAPI):
     threading.Thread(target=_offline_watchdog, daemon=True, name="OfflineWatchdog").start()
-    threading.Thread(target=_classification_worker, daemon=True, name="AIClassifier").start()
-    threading.Thread(target=_enrichment_worker, daemon=True, name="EnrichmentWorker").start()
-    threading.Thread(target=_seed_catalog_if_empty, daemon=True, name="InitialSeeder").start()
+    if ENABLE_BACKGROUND_WORKERS:
+        threading.Thread(target=_classification_worker, daemon=True, name="AIClassifier").start()
+        threading.Thread(target=_enrichment_worker, daemon=True, name="EnrichmentWorker").start()
+        threading.Thread(target=_seed_catalog_if_empty, daemon=True, name="InitialSeeder").start()
+        logger.info("Mission Control: Background AI/Enrichment workers active.")
+    else:
+        logger.info("Mission Control: Running in low-memory Web API mode (workers disabled).")
+    
     logger.info("Mission Control Distributed Library Server started.")
     if not db.available:
         logger.warning("DATABASE_URL not configured — running in degraded mode.")
     yield
     logger.info("Library Server shutting down.")
+
 
 app = FastAPI(
     title="Mission Control Distributed Library Server",
