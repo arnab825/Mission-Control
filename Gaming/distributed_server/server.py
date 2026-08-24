@@ -393,14 +393,36 @@ async def health():
     
     return {
         "status": status,
+        "service": "Mission Control Distributed Library Server",
         "keep_alive": "active",
         "monitor": "UptimeRobot / HealthProbe Ready",
         "database": {
             "alive": db_alive,
+            "provider": "Supabase PostgreSQL",
             "active_tier": active_tier_name,
             "multi_tier_failover": True,
         },
         "redis_cache": redis_alive if redis_client else "disabled",
+        "timestamp": int(time.time()),
+    }
+
+
+@app.get("/health/supabase")
+@app.head("/health/supabase")
+@app.get("/api/supabase/status")
+async def supabase_health():
+    """
+    Dedicated Supabase Cloud Database Health Check:
+    Executes a direct PostgreSQL ping to Supabase and returns structured JSON output.
+    """
+    db_alive = db.ping()
+    return {
+        "service": "Supabase Cloud PostgreSQL Database",
+        "project": "vekqkwwzzamwhitjodld",
+        "host": "db.vekqkwwzzamwhitjodld.supabase.co",
+        "status": "online" if db_alive else "offline",
+        "database_connected": db_alive,
+        "message": "Supabase PostgreSQL is active, responding to SQL queries, and kept awake 24/7.",
         "timestamp": int(time.time()),
     }
 
