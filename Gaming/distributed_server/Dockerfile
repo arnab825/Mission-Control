@@ -31,5 +31,5 @@ ENV MALLOC_ARENA_MAX=2
 ENV LIBRARY_SERVER_HOST=0.0.0.0
 ENV LIBRARY_SERVER_PORT=8800
 
-# Default command: launch the full cluster orchestrator
-CMD ["python", "run_cluster.py"]
+# Default command: launch the lightweight single-process ASGI server
+CMD ["python", "run_server.py"]

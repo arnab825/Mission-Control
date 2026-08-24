@@ -51,6 +51,8 @@ def main():
         port=args.port,
         reload=args.reload,
         log_level="info",
+        limit_concurrency=100,
+        timeout_keep_alive=15,
     )
 
 if __name__ == "__main__":
