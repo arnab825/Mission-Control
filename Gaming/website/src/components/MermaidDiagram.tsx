@@ -23,11 +23,6 @@ function sanitizeMermaidChart(raw: string): string {
   // 2. Fix malformed arrow links with pipe labels e.g. -->|label|> to -->|label|
   clean = clean.replace(/(-->|---|==>|-\.->)\s*\|\s*([^|]+?)\s*\|>?\s*/g, "$1|$2| ");
 
-  // 3. Fix unquoted bracket labels containing parentheses or special characters e.g. [Label (info)] -> ["Label (info)"]
-  clean = clean.replace(/([A-Za-z0-9_]+)\[([^"\]\n]+[\(\)\+\/\&:\-][^"\]\n]*)\]/g, '$1["$2"]');
-  clean = clean.replace(/([A-Za-z0-9_]+)\(([^"\)\n]+[\(\)\+\/\&:\-][^"\)\n]*)\)/g, '$1("$2")');
-  clean = clean.replace(/([A-Za-z0-9_]+)\{([^"\}\n]+[\(\)\+\/\&:\-][^"\}\n]*)\}/g, '$1{"$2"}');
-
   return clean;
 }
 
@@ -41,56 +36,58 @@ export function MermaidDiagram({ chart }: MermaidDiagramProps) {
     setIsRendering(true);
     setRenderError(null);
 
-    mermaid.initialize({
-      startOnLoad: false,
-      theme: "dark",
-      securityLevel: "loose",
-      fontFamily: "ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace",
-      fontSize: 13,
-      themeVariables: {
-        darkMode: true,
-        background: "transparent",
-        primaryColor: "#0f172a",
-        primaryTextColor: "#ffffff",
-        primaryBorderColor: "#76b900",
-        lineColor: "#76b900",
-        textColor: "#ffffff",
-        nodeTextColor: "#ffffff",
-        mainBkg: "#0f172a",
-        nodeBorder: "#76b900",
-        clusterBkg: "#090d16",
-        clusterBorder: "#1e293b",
-        secondaryColor: "#1e1b4b",
-        tertiaryColor: "#022c22",
-      },
-    });
+    const renderChart = async () => {
+      try {
+        const mermaid = (await import("mermaid")).default;
+        
+        mermaid.initialize({
+          startOnLoad: false,
+          theme: "dark",
+          securityLevel: "loose",
+          fontFamily: "ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace",
+          fontSize: 13,
+          themeVariables: {
+            darkMode: true,
+            background: "transparent",
+            primaryColor: "#0f172a",
+            primaryTextColor: "#ffffff",
+            primaryBorderColor: "#76b900",
+            lineColor: "#76b900",
+            textColor: "#ffffff",
+            nodeTextColor: "#ffffff",
+            mainBkg: "#0f172a",
+            nodeBorder: "#76b900",
+            clusterBkg: "#090d16",
+            clusterBorder: "#1e293b",
+            secondaryColor: "#1e1b4b",
+            tertiaryColor: "#022c22",
+          },
+        });
 
-    const uniqueId = `mermaid-svg-${Math.random().toString(36).substring(2, 9)}`;
-    const sanitizedChart = sanitizeMermaidChart(chart);
+        const uniqueId = `mermaid-svg-${Math.random().toString(36).substring(2, 9)}`;
+        const sanitizedChart = sanitizeMermaidChart(chart);
 
-    mermaid
-      .render(uniqueId, sanitizedChart)
-      .then((res) => {
+        const res = await mermaid.render(uniqueId, sanitizedChart);
+        
         if (isMounted) {
-          // Ensure SVG viewBox and width allows dynamic responsive scaling without clipping
           const processedSvg = res.svg
             .replace(/max-width:\s*[\d\.]+px;?/gi, "max-width: 100%;")
             .replace(/style="[^"]*"/, (m) => m.replace(/width:\s*[\d\.]+px;?/, "width: 100%;"));
 
           setSvgHtml(processedSvg);
+          setRenderError(null);
           setIsRendering(false);
         }
-      })
-      .catch((err) => {
-        console.warn("Mermaid rendering warning (gracefully recovered):", err);
-        const errEl = document.getElementById("d" + uniqueId) || document.getElementById(uniqueId);
-        if (errEl) errEl.remove();
-
+      } catch (err) {
+        console.warn("Mermaid rendering warning:", err);
         if (isMounted) {
-          setRenderError("Could not render diagram visually.");
+          setRenderError(err instanceof Error ? err.message : "Diagram rendering error");
           setIsRendering(false);
         }
-      });
+      }
+    };
+
+    renderChart();
 
     return () => {
       isMounted = false;
@@ -98,7 +95,15 @@ export function MermaidDiagram({ chart }: MermaidDiagramProps) {
   }, [chart]);
 
   if (renderError) {
-    return null;
+    return (
+      <div className="w-full my-6 rounded-2xl border border-amber-500/30 bg-[#0d0e12] p-4 text-xs font-mono text-gray-300">
+        <div className="flex items-center justify-between pb-2 mb-3 border-b border-white/10 text-amber-400 font-bold uppercase tracking-wider text-[10px]">
+          <span>Diagram Rendering Fallback</span>
+          <span>Mermaid</span>
+        </div>
+        <pre className="overflow-x-auto text-[11px] text-gray-400 font-mono whitespace-pre-wrap">{chart}</pre>
+      </div>
+    );
   }
 
   return (

@@ -8,49 +8,54 @@ This document summarizes the **major architectural transformations, resilience e
 
 ```mermaid
 flowchart TD
-    subgraph Clients [" 1. User & Client Applications"]
-        W[" Next.js Website\n(SSR, Dynamic Catalog & Library)"]
-        D[" Electron Desktop App\n(React UI, Vite, DirectX HUD)"]
+    subgraph Clients ["1. User & Client Applications"]
+        W["Next.js Website (SSR, Catalog & Library)"]
+        D["Electron Desktop App (React UI, DirectX HUD)"]
     end
 
-    subgraph Monitoring [" 2. High-Availability & Keep-Alive"]
-        UR[" UptimeRobot Monitoring\n(5-minute ping to prevent sleep)"]
+    subgraph Monitoring ["2. High-Availability & Keep-Alive"]
+        UR["UptimeRobot Monitoring (5-min ping)"]
     end
 
-    subgraph LoadBalancer [" 3. API Gateway & Load Balancer (:8800)"]
-        LB["Asynchronous Reverse Proxy & Fast Failover\n(Dynamic Pool Routing, < 100ms Latency)"]
+    subgraph LoadBalancer ["3. API Gateway & Load Balancer (:8800)"]
+        LB["Async Reverse Proxy & Fast Failover (< 100ms)"]
     end
 
-    subgraph MicroservicePools [" 4. Upstream Microservice Tier"]
-        P1[" Catalog Discovery Pool (:8811, :8812)\n• Sub-100ms Game Search & Instant Tags\n• Dynamic Live Store Harvesting"]
-        P2[" User Library & Node Sync Pool (:8821, :8822)\n• Local Hardware Detection & Storage Stats\n• Game Executables & Installations"]
-        P3[" AI Metadata Enricher Service (:8831)\n• Gameplay Features & Rich Summaries\n• Autonomous Release Date Healer"]
-        P4[" Multi-Launcher Enricher Service (:8841)\n• Cross-Store Multi-Launcher Sync\n• Exclusivity Detection Engine"]
-        P5[" Infinite Harvester & Crawler Service (:8851)\n• 6 Parallel 24/7 Autonomous Threads\n• Embedded Server Lifespan Auto-Boot\n• 5-Second Supervisor Auto-Revive Watchdog"]
+    subgraph MicroservicePools ["4. Upstream Microservice Tier"]
+        P1["Catalog Discovery Pool (:8811, :8812)"]
+        P2["User Library & Node Sync Pool (:8821, :8822)"]
+        P3["AI Metadata Enricher Service (:8831)"]
+        P4["Multi-Launcher Enricher Service (:8841)"]
+        P5["Infinite Harvester & Crawler Service (:8851)"]
     end
 
-    subgraph DatabaseTier [" 5. Multi-Tier High-Availability Database & Backup Engine"]
-        T1[(" Tier 1: Supabase PostgreSQL (Primary)\n(db.vekqkwwzzamwhitjodld.supabase.co:5432)\n13,500+ Games & 10,500+ AI Classified")]
-        T2[(" Tier 2: Secondary Cloud PostgreSQL (Fallback)\n(Neon Serverless / Cloud Postgres Standby)")]
-        T3[(" Tier 3: Local SQLite Backup Replica\n(data/catalog_fallback.db)\nAutonomous Offline Snapshot & Zero-Downtime Engine")]
-        T4[(" Tier 4: MongoDB Atlas NoSQL Standby\n(Document JSON Mirror)")]
-        T5[(" Tier 5: Unlimited JSONL Backup Ledger\n(data/unlimited_catalog_backup.jsonl)\nAppend-Only Immutable Disaster Recovery File")]
-        R[" Upstash Redis Cache Layer\n(Sub-millisecond In-Memory Query Cache)"]
+    subgraph DatabaseTier ["5. Multi-Tier HA Database & Backup Engine"]
+        T1[("Tier 1: Supabase PostgreSQL Primary")]
+        T2[("Tier 2: Secondary Cloud PostgreSQL Fallback")]
+        T3[("Tier 3: Local SQLite Backup Replica")]
+        T4[("Tier 4: MongoDB Atlas NoSQL Standby")]
+        T5[("Tier 5: Unlimited JSONL Backup Ledger")]
+        R["Upstash Redis Cache Layer"]
     end
 
-    W & D -->|User Requests /api/*| LB
-    UR -->|GET or HEAD /health| LB
-    LB -->|/api/search, /api/games| P1
-    LB -->|/api/nodes, /api/library| P2
-    LB -->|/api/enrich| P3
-    LB -->|/api/launchers| P4
-    LB -->|/api/crawler| P5
-    P1 & P2 & P3 & P4 & P5 --> T1
-    T1 -.->|Auto Failover if Cloud Down| T2
-    T2 -.->|Auto Fallback if Network Outage| T3
-    T1 -.->|Async NoSQL Document Mirror| T4
-    T1 -.->|Append-Only Local Sync| T5
-    T1 -.->|Query Cache| R
+    W --> LB
+    D --> LB
+    UR --> LB
+    LB --> P1
+    LB --> P2
+    LB --> P3
+    LB --> P4
+    LB --> P5
+    P1 --> T1
+    P2 --> T1
+    P3 --> T1
+    P4 --> T1
+    P5 --> T1
+    T1 -.-> T2
+    T2 -.-> T3
+    T1 -.-> T4
+    T1 -.-> T5
+    T1 -.-> R
 ```
 
 ---
