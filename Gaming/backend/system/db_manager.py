@@ -204,20 +204,32 @@ class SupabaseDB:
                     for g in games:
                         game_id = g.get("id", "")
                         valid_ids.append(game_id)
+                        
+                        # Resolve fallback source
+                        source = g.get("source")
+                        if not source or str(source).strip() == "" or str(source).lower() == "none":
+                            source = g.get("platform", "Local").lower()
+                            
+                        # Resolve fallback banner
+                        banner = g.get("local_banner") or g.get("banner_url") or g.get("banner") or g.get("icon")
+                        if not banner or str(banner).strip() == "" or str(banner).lower() == "none":
+                            # Use high-definition CDN cover or fallback
+                            banner = g.get("icon") or f"https://cdn.akamai.steamstatic.com/steam/apps/{game_id}/header.jpg" if str(game_id).isdigit() else "https://images.unsplash.com/photo-1542751371-adc38448a05e?auto=format&fit=crop&w=1200&q=80"
+
                         records.append((
                             game_id,
                             user_id,
                             g.get("name", ""),
-                            g.get("platform", ""),
-                            g.get("install_path"),
-                            g.get("exe_path"),
-                            g.get("icon"),
+                            g.get("platform", "PC"),
+                            g.get("install_path", ""),
+                            g.get("exe_path", ""),
+                            g.get("icon") or banner,
                             self._serialize(g.get("features", [])),
-                            g.get("type"),
-                            g.get("genre"),
-                            self._serialize(g.get("tags", [])),
-                            g.get("source"),
-                            g.get("local_banner"),
+                            g.get("type", "GAME"),
+                            g.get("genre", "Action"),
+                            self._serialize(g.get("tags", ["PC", "Gaming"])),
+                            source,
+                            banner,
                         ))
 
                     psycopg2.extras.execute_values(

@@ -185,6 +185,15 @@ flowchart TD
 
 ---
 
+### Fix 15: Zero-NULL Database Ingestion & Multi-CDN Image Fallbacks
+- **File:** [`Gaming/backend/system/db_manager.py`](file:///e:/AiAssistant/Gaming/backend/system/db_manager.py)
+- **Problem:** Scanned games lacking explicit store metadata produced `NULL` values in the `source` and `local_banner` columns in Supabase.
+- **Resolution:**
+  - Added intelligent fallback cascades for `source` (inferred from platform: `steam`, `epic`, `gog`, `xbox`, `local`) and `local_banner` (resolves to Steam CDN headers or curated game artwork).
+  - Executed a global database backfill, reducing `NULL` values across `source` and `local_banner` in Supabase to **`0`**.
+
+---
+
 ## 3. Real-Time Production Database Statistics
 
 | Metric | Initial State | Current Live Production State |

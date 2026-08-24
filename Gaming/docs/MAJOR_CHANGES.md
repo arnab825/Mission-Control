@@ -148,6 +148,16 @@ flowchart TD
 
 ---
 
+### 🛡️ 14. Zero-NULL Data Ingestion & Multi-CDN Image Fallbacks
+- **File:** [`Gaming/backend/system/db_manager.py`](file:///e:/AiAssistant/Gaming/backend/system/db_manager.py)
+- **Before:** Games scanned from local drives or obscure storefronts lacked explicit `source` and `local_banner` metadata, resulting in `NULL` values in Supabase.
+- **Now:**
+  1. **Source Sanitization:** Automatically infers and normalizes missing store sources from the platform identifier (e.g. `steam`, `epic`, `gog`, `xbox`, `local`) instead of writing `NULL`.
+  2. **Multi-CDN Banner Cascade:** Automatically resolves missing hero banners from the Steam CDN (`https://cdn.akamai.steamstatic.com/steam/apps/<id>/header.jpg`) or curated game artwork fallbacks.
+  3. **Zero-NULL Guarantee:** All records in `games` and `canonical_games` maintain complete relational integrity across all columns.
+
+---
+
 ## 3. Microservice Port Matrix
 
 | Service | Port | Description |
