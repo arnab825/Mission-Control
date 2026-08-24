@@ -81,31 +81,32 @@ const CATEGORY_CONFIG: Record<string, { color: string; bg: string; border: strin
   "Hardware Deep-Dive": { color: "text-blue-400",    bg: "bg-blue-400/10",    border: "border-blue-400/20" },
 };
 
-interface MDXPreProps {
-  children?: React.ReactElement<{
-    className?: string;
-    children?: string;
-  }>;
+// Server-side: extract ```mermaid blocks and replace with inline MDX JSX so that
+// next-mdx-remote/rsc v6 renders them as <Mermaid> without relying on
+// the broken children.props.className interception in the pre component.
+function injectMermaidComponents(content: string): string {
+  return content.replace(
+    /```mermaid\r?\n([\s\S]*?)\r?\n```/g,
+    (_match, code) => {
+      // Escape backticks and backslashes in the chart string for template literal safety
+      const safe = code.trim().replace(/\\/g, "\\\\").replace(/`/g, "\\`").replace(/\$/g, "\\$");
+      return `<MermaidChart chart={\`${safe}\`} />`;
+    }
+  );
+}
+
+function MermaidChart({ chart }: { chart: string }) {
+  return <Mermaid chart={chart} />;
 }
 
 const mdxComponents = {
-  pre: ({ children }: MDXPreProps) => {
-    const codeProps = children?.props;
-    if (codeProps && (codeProps.className === "language-mermaid" || codeProps.className?.includes("mermaid"))) {
-      const codeString = typeof codeProps.children === "string" ? codeProps.children : String(codeProps.children || "");
-      return <Mermaid chart={codeString} />;
-    }
-    return (
-      <pre className="bg-obsidian/90 border border-white/10 rounded-xl p-5 overflow-x-auto font-mono text-sm shadow-2xl my-6 text-gray-200 leading-relaxed">
-        {children}
-      </pre>
-    );
-  },
+  MermaidChart,
+  pre: ({ children, ...rest }: any) => (
+    <pre className="bg-obsidian/90 border border-white/10 rounded-xl p-5 overflow-x-auto font-mono text-sm shadow-2xl my-6 text-gray-200 leading-relaxed" {...rest}>
+      {children}
+    </pre>
+  ),
   code: ({ className, children, ...props }: any) => {
-    if (className === "language-mermaid" || className?.includes("mermaid")) {
-      const codeString = typeof children === "string" ? children : String(children || "");
-      return <Mermaid chart={codeString} />;
-    }
     if (className?.includes("language-")) {
       return <code className={`${className} font-mono text-neon-green text-sm`} {...props}>{children}</code>;
     }
@@ -415,7 +416,7 @@ export default async function GamingBlogPost({ params }: { params: Promise<{ slu
                 try {
                   return (
                     <MDXRemote 
-                      source={cleanMarkdown(post.markdownBody || "")} 
+                      source={injectMermaidComponents(cleanMarkdown(post.markdownBody || ""))} 
                       components={mdxComponents}  
                       options={{
                         mdxOptions: {
