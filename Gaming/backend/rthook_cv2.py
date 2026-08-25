@@ -5,28 +5,30 @@ import sys
 # OpenCV's python loader (__init__.py) calls load_first_config() which checks for
 # physical files: 'config.py', 'config-3.py', 'config-3.X.py', and 'load_config_py3.py'.
 # In frozen PyInstaller environments, this hook ensures those files exist on disk
-# in all possible loader locations before cv2 is imported.
+# inside the cv2 directory before cv2 is imported.
+#
+# CRITICAL: Do NOT insert the cv2 directory into sys.path! cv2 contains a subpackage
+# named 'typing' (cv2.typing), and adding cv2 directly to sys.path hijacks Python's
+# standard library 'typing' module, breaking functools, pkgutil, and numpy._core.
 
 def _ensure_opencv_config():
-    candidates = []
-    
+    cv2_dirs = []
+
     # 1. PyInstaller extraction / bundle directory
     if hasattr(sys, '_MEIPASS'):
-        candidates.append(os.path.join(sys._MEIPASS, 'cv2'))
-        candidates.append(os.path.join(sys._MEIPASS, '_internal', 'cv2'))
-        candidates.append(sys._MEIPASS)
-        
+        cv2_dirs.append(os.path.join(sys._MEIPASS, 'cv2'))
+        cv2_dirs.append(os.path.join(sys._MEIPASS, '_internal', 'cv2'))
+
     # 2. Executable directory
     if hasattr(sys, 'executable') and sys.executable:
         exe_dir = os.path.dirname(os.path.abspath(sys.executable))
-        candidates.append(os.path.join(exe_dir, 'cv2'))
-        candidates.append(os.path.join(exe_dir, '_internal', 'cv2'))
-        candidates.append(exe_dir)
-        
+        cv2_dirs.append(os.path.join(exe_dir, 'cv2'))
+        cv2_dirs.append(os.path.join(exe_dir, '_internal', 'cv2'))
+
     # 3. Current file location
     current_dir = os.path.dirname(os.path.abspath(__file__))
-    candidates.append(os.path.join(current_dir, 'cv2'))
-    candidates.append(os.path.join(current_dir, '_internal', 'cv2'))
+    cv2_dirs.append(os.path.join(current_dir, 'cv2'))
+    cv2_dirs.append(os.path.join(current_dir, '_internal', 'cv2'))
 
     config_py_content = """import os
 BINARIES_PATHS = [
@@ -52,7 +54,7 @@ if sys.version_info[:2] >= (3, 0):
     py_major = sys.version_info[0]
     py_minor = sys.version_info[1]
 
-    for cdir in candidates:
+    for cdir in cv2_dirs:
         if os.path.isdir(cdir):
             try:
                 cfg = os.path.join(cdir, 'config.py')
@@ -74,9 +76,6 @@ if sys.version_info[:2] >= (3, 0):
                 if not os.path.exists(cfg_loader):
                     with open(cfg_loader, 'w', encoding='utf-8') as f:
                         f.write(load_config_content)
-                        
-                if cdir not in sys.path:
-                    sys.path.insert(0, cdir)
             except Exception:
                 pass
 

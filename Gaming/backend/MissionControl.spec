@@ -77,6 +77,16 @@ def find_package_dir(pkg_name):
             return os.path.join(sp, pkg_name)
     return None
 
+# 0. Resolve numpy (ensuring numpy._core binaries and submodules are fully bundled)
+numpy_datas = []
+numpy_binaries = []
+numpy_imports = []
+try:
+    numpy_datas, numpy_binaries, numpy_imports = collect_all('numpy')
+    print(f"INFO: Collected numpy via collect_all: {len(numpy_datas)} datas, {len(numpy_binaries)} binaries, {len(numpy_imports)} submodules")
+except Exception as e:
+    print(f"WARNING: collect_all('numpy') failed: {e}")
+
 # 1. Resolve rapidocr_onnxruntime
 rapidocr_datas = []
 rapidocr_binaries = []
@@ -104,7 +114,7 @@ if not rapidocr_datas:
         rapidocr_imports.append('rapidocr_onnxruntime')
         print(f"INFO: Collected {len(rapidocr_datas)} rapidocr data files via fallback search from {rapid_src}")
 
-# 2. Resolve cv2 (OpenCV - including config.py, config-3.py, binaries, data)
+# 2. Resolve cv2 (OpenCV - including config.py, config-3.py, load_config_py3.py, binaries, data)
 cv2_datas = []
 cv2_binaries = []
 cv2_imports = []
@@ -114,23 +124,17 @@ try:
 except Exception as e:
     print(f"WARNING: collect_all('cv2') failed: {e}")
 
-# ALWAYS ensure OpenCV configuration files (config.py, config-3.py, load_config_py3.py, etc.) are physically bundled as data files
+# Guarantee the critical OpenCV config files are physically included as data files
 cv2_src = find_package_dir('cv2')
 if cv2_src and os.path.isdir(cv2_src):
-    for root, dirs, files in os.walk(cv2_src):
-        if '__pycache__' in root:
-            continue
-        for f in files:
-            full_path = os.path.join(root, f)
-            rel_path = os.path.relpath(root, cv2_src)
-            dest_dir = os.path.join('cv2', rel_path) if rel_path != '.' else 'cv2'
-            # Prevent duplicate tuples in datas
-            if not any(d[0] == full_path for d in cv2_datas):
-                cv2_datas.append((full_path, dest_dir))
-    print(f"INFO: Guaranteed total {len(cv2_datas)} cv2 data/config/binary files physically mapped from {cv2_src}")
+    for cfg_name in ['config.py', 'config-3.py', 'load_config_py3.py', 'load_config_py2.py']:
+        cfg_file = os.path.join(cv2_src, cfg_name)
+        if os.path.isfile(cfg_file) and not any(d[0] == cfg_file for d in cv2_datas):
+            cv2_datas.append((cfg_file, 'cv2'))
+    print(f"INFO: Guaranteed critical cv2 config files mapped from {cv2_src}")
 
-datas += rapidocr_datas + cv2_datas
-extra_binaries = rapidocr_binaries + cv2_binaries
+datas += numpy_datas + rapidocr_datas + cv2_datas
+extra_binaries = numpy_binaries + rapidocr_binaries + cv2_binaries
 
 if sys.platform == 'win32':
     platform_hiddenimports = [
@@ -167,7 +171,7 @@ a = Analysis(
         'websockets.legacy.client',
         # ── PIL ─────────────────────────────────────────────────────────────
         'PIL._tkinter_finder',
-    ] + platform_hiddenimports + mem0_imports + rapidocr_imports + cv2_imports,
+    ] + platform_hiddenimports + mem0_imports + numpy_imports + rapidocr_imports + cv2_imports,
     hookspath=[],
     hooksconfig={},
     runtime_hooks=['rthook_cv2.py'],

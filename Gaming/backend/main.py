@@ -43,8 +43,6 @@ try:
             if not os.path.exists(_cfg_loader):
                 with open(_cfg_loader, 'w', encoding='utf-8') as _f:
                     _f.write("import os, sys\nif sys.version_info[:2] >= (3, 0):\n    def exec_file_wrapper(fpath, g_vars, l_vars):\n        with open(fpath, 'r', encoding='utf-8') as f:\n            exec(compile(f.read(), fpath, 'exec'), g_vars, l_vars)\n")
-            if _cv2_dir not in sys.path:
-                sys.path.insert(0, _cv2_dir)
 except Exception as _cv2_err:
     logger.debug("OpenCV safeguard notice: %s", _cv2_err)
 
