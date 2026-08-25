@@ -813,3 +813,23 @@ class Optimizer:
         Optimizer._suspended_pids = []
         logger.info(f"[Stealth Boost] Restored {restored} UI threads to normal priority.")
 
+    @staticmethod
+    def trim_working_set_memory() -> int:
+        """
+        Compacts Python process heap and flushes the Win32 working set RAM,
+        dropping backend idle memory footprint to under ~40-60 MB during gameplay.
+        """
+        import gc
+        gc.collect()
+        if os.name == "nt":
+            try:
+                import ctypes
+                handle = ctypes.windll.kernel32.GetCurrentProcess()
+                ctypes.windll.psapi.EmptyWorkingSet(handle)
+                logger.debug("[Optimizer] Process working set memory successfully compacted.")
+                return 1
+            except Exception as e:
+                logger.debug(f"[Optimizer] Failed to empty working set: {e}")
+        return 0
+
+

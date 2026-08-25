@@ -139,12 +139,22 @@ $changesFormatted
 "@
             Set-Content -Path $releaseNotesFile -Value $releaseBody -Encoding UTF8
 
-            if ($env:GH_TOKEN -or $env:GITHUB_TOKEN) {
-                Write-Host "[PUBLISH] GH_TOKEN detected! Publishing $releaseTitle (Windows & Linux) to GitHub Releases..." -ForegroundColor Cyan
+            $token = if ($env:GH_TOKEN) { $env:GH_TOKEN } else { $env:GITHUB_TOKEN }
+
+            if ($token) {
+                Write-Host "[PUBLISH] GH_TOKEN detected! Publishing $releaseTitle (Windows & Linux tar.gz) to GitHub Releases..." -ForegroundColor Cyan
                 npx electron-builder --win nsis msi zip --linux tar.gz --publish always --config.extraMetadata.name="$releaseTitle"
             } else {
-                Write-Host "[BUILD] Compiling local Windows installers (NSIS, MSI, ZIP) and Linux packages (tar.gz) in frontend/out/dist..." -ForegroundColor Yellow
+                Write-Host "[BUILD] Compiling local Windows installers (NSIS, MSI, ZIP) and Linux packages in frontend/out/dist..." -ForegroundColor Yellow
                 npx electron-builder --win nsis msi zip --linux tar.gz --publish never
+            }
+
+            # Build Debian package (.deb) directly
+            try {
+                Write-Host "[BUILD] Packaging Linux Debian package (.deb)..." -ForegroundColor Cyan
+                python ../scripts/pack_deb.py "$version"
+            } catch {
+                Write-Warning "Debian packaging encountered an error: $_"
             }
         } catch {
             Write-Host "[WARNING] Binary packaging encountered an error: $_" -ForegroundColor Yellow
@@ -162,19 +172,36 @@ $changesFormatted
             if ($token) {
                 git push "https://x-access-token:${token}@github.com/arnab825/Mission-Control.git" main --tags
                 
-                # Automatically un-draft the release on GitHub so it becomes public and Latest
+                # Upload .deb asset if present and un-draft the release on GitHub
                 try {
-                    Write-Host "[PUBLISH] Publishing draft release v${version} live on GitHub..." -ForegroundColor Cyan
+                    Write-Host "[PUBLISH] Publishing draft release v${version} live on GitHub and uploading extra assets..." -ForegroundColor Cyan
                     $headers = @{ Authorization = "token ${token}"; Accept = "application/vnd.github.v3+json"; "User-Agent" = "MissionControlPublisher" }
                     $releases = Invoke-RestMethod -Uri "https://api.github.com/repos/arnab825/Mission-Control/releases" -Headers $headers
                     $target = $releases | Where-Object { $_.tag_name -eq "v${version}" -or $_.name -like "*${version}*" }
-                    if ($target -and $target.draft) {
-                        $body = @{ draft = $false; name = $releaseTitle } | ConvertTo-Json
-                        Invoke-RestMethod -Uri "https://api.github.com/repos/arnab825/Mission-Control/releases/$($target.id)" -Method Patch -Headers $headers -Body $body -ContentType "application/json" | Out-Null
-                        Write-Host "[SUCCESS] Release v${version} is now LIVE and marked as Latest on GitHub!" -ForegroundColor Green
+                    if ($target) {
+                        # Upload .deb if not already on release
+                        $debFile = Resolve-Path "frontend/out/dist/MissionControl-Linux-${version}.deb" -ErrorAction SilentlyContinue
+                        if ($debFile -and (Test-Path $debFile)) {
+                            $debName = "MissionControl-Linux-${version}.deb"
+                            $existingAssets = Invoke-RestMethod -Uri "https://api.github.com/repos/arnab825/Mission-Control/releases/$($target.id)/assets" -Headers $headers
+                            $debAsset = $existingAssets | Where-Object { $_.name -eq $debName }
+                            if (-not $debAsset) {
+                                Write-Host "[UPLOAD] Uploading $debName to GitHub Release..." -ForegroundColor Cyan
+                                $uploadUrl = "https://uploads.github.com/repos/arnab825/Mission-Control/releases/$($target.id)/assets?name=$debName"
+                                $uploadHeaders = @{ Authorization = "token ${token}"; "Content-Type" = "application/vnd.debian.binary-package"; Accept = "application/vnd.github.v3+json"; "User-Agent" = "MissionControlPublisher" }
+                                Invoke-RestMethod -Uri $uploadUrl -Method Post -Headers $uploadHeaders -InFile $debFile.Path | Out-Null
+                                Write-Host "[SUCCESS] $debName uploaded to GitHub Release!" -ForegroundColor Green
+                            }
+                        }
+
+                        if ($target.draft) {
+                            $body = @{ draft = $false; name = $releaseTitle } | ConvertTo-Json
+                            Invoke-RestMethod -Uri "https://api.github.com/repos/arnab825/Mission-Control/releases/$($target.id)" -Method Patch -Headers $headers -Body $body -ContentType "application/json" | Out-Null
+                            Write-Host "[SUCCESS] Release v${version} is now LIVE and marked as Latest on GitHub!" -ForegroundColor Green
+                        }
                     }
                 } catch {
-                    Write-Host "[WARNING] Release upload complete (manual un-draft on GitHub may be required): $_" -ForegroundColor Yellow
+                    Write-Host "[WARNING] Release post-processing: $_" -ForegroundColor Yellow
                 }
             } else {
                 git push origin main --tags

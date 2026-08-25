@@ -783,7 +783,7 @@ class LibraryDB:
         """
         self.execute(sql, node)
 
-        # Sync normalized scan paths into node_scan_paths table
+        # Sync normalized scan paths into node_scan_paths table without destroying existing user paths
         raw_paths = node.get("scan_paths")
         if isinstance(raw_paths, str):
             try:
@@ -797,10 +797,14 @@ class LibraryDB:
 
         if paths:
             try:
-                self.execute("DELETE FROM node_scan_paths WHERE node_id = %(node_id)s", {"node_id": node["node_id"]})
+                existing_rows = self.execute("SELECT path FROM node_scan_paths WHERE node_id = %(node_id)s", {"node_id": node["node_id"]}, fetch="all") or []
+                existing_set = {str(r["path"]).lower().rstrip("\\/") for r in existing_rows if r.get("path")}
+
                 for p in paths:
                     if p:
-                        p_str = str(p)
+                        p_str = str(p).strip()
+                        if not p_str or p_str.lower().rstrip("\\/") in existing_set:
+                            continue
                         p_lower = p_str.lower()
                         store_hint = "local"
                         if "steam" in p_lower: store_hint = "steam"
@@ -816,6 +820,7 @@ class LibraryDB:
                             "INSERT INTO node_scan_paths (node_id, path, store_hint, enabled) VALUES (%(node_id)s, %(path)s, %(store_hint)s, TRUE)",
                             {"node_id": node["node_id"], "path": p_str, "store_hint": store_hint}
                         )
+                        existing_set.add(p_str.lower().rstrip("\\/"))
             except Exception as e:
                 logger.warning("Failed to sync node_scan_paths: %s", e)
 

@@ -392,19 +392,20 @@ def test_game_scanner_retail_uninstaller():
         scanner = GameScanner()
         
         # 1. Test _deep_scan_folder resolves name to "007 First Light" when pointing to "Retail" folder
-        found_games = set()
+        scanned_game_roots = {}
         scanner._deep_scan_folder_count = 0
         scanner._deep_scan_max_folders = 10
         scanner._deep_scan_folder(
             retail_dir, max_depth=2, current_depth=0,
-            skip_folders=set(), game_patterns=["game", "retail"], found_games=found_games
+            skip_folders=set(), scanned_game_roots=scanned_game_roots
         )
         
-        # Verify that the game added is named "007 First Light" instead of "Retail"
-        assert len(scanner.games) > 0, "Expected at least one game to be found"
-        added_game = scanner.games[0]
-        assert added_game["name"] == "007 First Light", f"Expected name '007 First Light', got '{added_game['name']}'"
-        assert "007FirstLight.exe" in added_game["exe_path"], f"Expected exe_path to point to game executable, got '{added_game['exe_path']}'"
+        # Verify that the game root resolved to "007 First Light" instead of "Retail"
+        assert len(scanned_game_roots) > 0, "Expected at least one game root to be found"
+        resolved_root = list(scanned_game_roots.keys())[0]
+        assert resolved_root.name == "007 First Light", f"Expected root name '007 First Light', got '{resolved_root.name}'"
+        exes = scanned_game_roots[resolved_root]
+        assert any("007FirstLight.exe" in str(e) for e in exes), f"Expected exe_path to contain game executable, got '{exes}'"
         
         print("GameScannerRetailUninstaller Test: PASSED")
     finally:

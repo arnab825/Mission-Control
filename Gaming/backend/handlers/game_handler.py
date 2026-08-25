@@ -257,6 +257,13 @@ def handle_scan_games(payload: dict, pipeline, bridge, config, library_session: 
                 "game_library": games,
                 "scan_state": {"progress": 100, "status": "Complete", "is_running": False},
             })
+
+            # Compact process memory after scan to free memory
+            try:
+                from system.optimizer import Optimizer
+                Optimizer.trim_working_set_memory()
+            except Exception:
+                pass
         except Exception as e:
             logger.error("Game scan failed: %s", e, exc_info=True)
             bridge.update_state({
@@ -278,6 +285,14 @@ def handle_launch_game(payload: dict, pipeline, bridge, config, library_session:
         else:
             import subprocess
             subprocess.Popen(["open"] if sys.platform == "darwin" else ["xdg-open", exe_path])
+        
+        # Flush working set RAM to give maximum system memory to the launched game
+        try:
+            from system.optimizer import Optimizer
+            Optimizer.trim_working_set_memory()
+        except Exception:
+            pass
+
         bridge.update_state({"launch_status": {"success": True, "error": None}})
     except Exception as e:
         logger.error("Failed to launch via backend: %s", e, exc_info=True)

@@ -1,15 +1,5 @@
 {
-  "nodeId": "NODE-25DC4F",
-  "name": "My-PC",
   "serverUrl": "https://mission-control-server-okj7.onrender.com",
-  "token": "BMJ1aRhQOkCfq-_QG1D6Zxj1-zR6ZCukFI5x_LeVA2E",
-  "clerkId": "user_arnab_test",
-  "authProvider": "google",
-  "scanPaths": [
-    "D:\\Games",
-    "D:\\SteamLibrary",
-    "C:\\Program Files\\Epic Games"
-  ],
   "heartbeatInterval": 15,
   "syncInterval": 300
 }
