@@ -82,7 +82,8 @@ graph TD
 
 | Version | Key Feature / Change Description |
 | :--- | :--- |
-| **v3.2.9 (Latest)** | **Telemetry & Rollback Subsystem Reliability Hardening** — The Telemetry & Rollback Subsystem Reliability Hardening update enhances system stability and accuracy by addressing various reliability and performance issues. |
+| **v3.3.0 (Latest)** | **Ecosystem Optimization, Multi-Node Architecture & Dynamic Deduplication** — Added Win32 working set RAM compaction (EmptyWorkingSet) dropping idle background memory to ~40-60 MB during gameplay |
+| **v3.2.9** | **Telemetry & Rollback Subsystem Reliability Hardening** — The Telemetry & Rollback Subsystem Reliability Hardening update enhances system stability and accuracy by addressing various reliability and performance issues. |
 | **v3.2.8** | **OpenCV Resilience & Pipeline Stability Hardening** — Hardened all backend vision modules against OpenCV load failures with try/except guards and NumPy/PIL fallbacks |
 | **v3.2.7** | **Distributed Server Agent and Vision Connection Integration** — Connected Agent and Vision UI pages to the central distributed library server with live node telemetry updates |
 | **v3.2.6** | **OpenCV Loader & Supabase Metadata Enrichment Fixes** — This release addresses critical issues with OpenCV loader and Supabase metadata enrichment, while enhancing AI classifier reliability. |

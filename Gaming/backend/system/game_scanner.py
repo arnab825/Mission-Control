@@ -739,7 +739,77 @@ class GameScanner:
             "origin", "rockstar games", "amazon games",
             "\\games\\", "\\gog games\\", "\\itch\\", "\\humble games\\"
         ]
-        return any(marker in path_lower for marker in common_markers)
+    def _get_default_library_paths(self) -> list[str]:
+        """
+        Dynamically discover and aggregate all standard game library paths across all local drives
+        including Steam libraries, Epic Games, Ubisoft, GOG Galaxy, EA Desktop, Battle.net,
+        Xbox Games, and common custom game folders.
+        """
+        discovered = set()
+        
+        # 1. Fixed drives
+        import psutil
+        try:
+            drives = [p.mountpoint for p in psutil.disk_partitions() if 'fixed' in p.opts or 'cdrom' not in p.opts]
+        except Exception:
+            drives = [f"{d}:\\" for d in "CDEFGHIJKLMNOPQRSTUVWXYZ" if os.path.exists(f"{d}:\\")]
+
+        # 2. Steam Library Folders (from registry and libraryfolders.vdf)
+        try:
+            steam_path_val = None
+            try:
+                key = winreg.OpenKey(winreg.HKEY_CURRENT_USER, r"Software\Valve\Steam")
+                steam_path_val, _ = winreg.QueryValueEx(key, "SteamPath")
+                winreg.CloseKey(key)
+            except Exception:
+                steam_path_val = None
+                
+            if steam_path_val:
+                sp = Path(steam_path_val.replace("/", os.sep))
+                if sp.exists():
+                    discovered.add(str(sp / "steamapps" / "common"))
+                    vdf_file = sp / "steamapps" / "libraryfolders.vdf"
+                    if vdf_file.exists():
+                        import re
+                        with open(vdf_file, "r", encoding="utf-8", errors="ignore") as f:
+                            for match in re.finditer(r'"path"\s+"([^"]+)"', f.read()):
+                                p = Path(match.group(1).replace("\\\\", "\\")) / "steamapps" / "common"
+                                if p.exists():
+                                    discovered.add(str(p))
+        except Exception:
+            pass
+
+        # 3. Known standard directories per drive
+        standard_dirs = [
+            "Games", "SteamLibrary\\steamapps\\common", "SteamLibrary",
+            "Epic Games", "Ubisoft\\Ubisoft Game Launcher\\games",
+            "Ubisoft Games", "GOG Games", "GOG Galaxy\\Games",
+            "EA Games", "Origin Games", "Electronic Arts",
+            "Battle.net", "Riot Games", "XboxGames",
+            "Program Files\\Epic Games", "Program Files (x86)\\Steam\\steamapps\\common",
+            "Program Files (x86)\\Ubisoft\\Ubisoft Game Launcher\\games",
+            "Program Files (x86)\\GOG Galaxy\\Games", "Program Files\\EA Games"
+        ]
+        
+        for drive in drives:
+            drive_path = Path(drive)
+            for s in standard_dirs:
+                cand = drive_path / s
+                if cand.exists() and cand.is_dir():
+                    discovered.add(str(cand))
+
+        # 4. User Public / AppData game paths
+        public_games = Path("C:\\Users\\Public\\Games")
+        if public_games.exists():
+            discovered.add(str(public_games))
+
+        # 5. User custom scan dirs
+        custom_dirs = self.config.get("scanner", {}).get("custom_scan_dirs", [])
+        for cd in custom_dirs:
+            if cd and Path(cd).exists():
+                discovered.add(str(Path(cd)))
+
+        return sorted(list(discovered))
 
     def scan_all(self, progress_callback: Optional[Callable[[int, str], None]] = None):
         """Perform a full scan of all supported platforms."""
@@ -778,6 +848,7 @@ class GameScanner:
             progress_callback(95, "Filtering duplicates and detecting features...")
 
         unique_games = {}
+        path_to_name = {}
         for g in self.games:
             if "name" in g and g["name"]:
                 name = g["name"]
@@ -913,11 +984,31 @@ class GameScanner:
             if not clean_name:
                 clean_name = "".join(filter(str.isalnum, g["name"])).lower()
 
-            if clean_name not in unique_games:
-                unique_games[clean_name] = g
+            # Resolve canonical path key for install directory to eliminate duplicates across different scan methods
+            path_key = None
+            raw_p = g.get("install_path") or (str(Path(g["exe_path"]).parent) if g.get("exe_path") else None)
+            if raw_p and raw_p != "Shortcut":
+                try:
+                    resolved_p = str(Path(raw_p).resolve()).lower().rstrip("\\/")
+                    # Ignore root drives and library containers
+                    if not any(resolved_p.endswith(f":\\{d}".lower()) or resolved_p == f"{d}:".lower() for d in "cdefghijklmnopqrstuvwxyz"):
+                        if Path(resolved_p).name.lower() not in self.library_root_names:
+                            path_key = resolved_p
+                except Exception:
+                    path_key = None
+
+            # Check if this exact installation directory was already registered under a slightly different name
+            target_key = clean_name
+            if path_key and path_key in path_to_name:
+                target_key = path_to_name[path_key]
+
+            if target_key not in unique_games:
+                unique_games[target_key] = g
+                if path_key:
+                    path_to_name[path_key] = target_key
             else:
                 # Prefer launcher-derived entries over Local duplicates
-                existing = unique_games[clean_name]
+                existing = unique_games[target_key]
                 
                 # Merge missing metadata keys between duplicate entries (preserve paths, banners, icons)
                 for key in ["exe_path", "install_path", "icon", "local_banner"]:
@@ -926,24 +1017,32 @@ class GameScanner:
                     elif not g.get(key) and existing.get(key):
                         g[key] = existing[key]
 
+                # Merge discovered features
+                if g.get("features"):
+                    existing_feats = set(existing.get("features") or [])
+                    new_feats = set(g.get("features") or [])
+                    existing["features"] = sorted(list(existing_feats | new_feats))
+
                 platforms_to_prefer = (
                     "Steam", "Epic Games", "GOG Galaxy", 
                     "Battle.net", "Ubisoft Connect", "Riot Games",
                     "EA Desktop", "Origin", "Rockstar Games", "Xbox"
                 )
                 if g["platform"] in platforms_to_prefer and existing["platform"] == "Local":
-                    unique_games[clean_name] = g
+                    unique_games[target_key] = g
                 elif g["platform"] == "Steam" and existing["platform"] != "Steam":
-                    unique_games[clean_name] = g
+                    unique_games[target_key] = g
                 elif g.get("exe_path") and not existing.get("exe_path"):
-                    unique_games[clean_name] = g
+                    unique_games[target_key] = g
                 elif len(g["name"]) > len(existing["name"]) and not (existing.get("exe_path") and not g.get("exe_path")):
                     # Prefer standard full title (e.g. "Grand Theft Auto V Enhanced" over "GTAV Enhanced")
-                    unique_games[clean_name] = g
+                    unique_games[target_key] = g
                 elif g["platform"] == "Local" and existing["platform"] == "Local":
                     # Prefer the entry with a shorter name to drop verbose suffixes like [FitGirl Repack]
                     if len(g["name"]) < len(existing["name"]):
-                        unique_games[clean_name] = g
+                        unique_games[target_key] = g
+                if path_key:
+                    path_to_name[path_key] = target_key
         
         self.games = list(unique_games.values())
         

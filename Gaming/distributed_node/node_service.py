@@ -47,6 +47,62 @@ if _backend_dir.exists():
 
 from storage_calculator import get_drive_storage, get_game_size, get_default_storage
 
+def get_machine_node_id() -> str:
+    """Generate a stable, unique node ID derived from this machine's MAC/hardware identity."""
+    try:
+        import uuid
+        import hashlib
+        raw = f"{socket.gethostname()}-{uuid.getnode()}"
+        h = hashlib.sha256(raw.encode("utf-8")).hexdigest()[:6].upper()
+        return f"NODE-{h}"
+    except Exception:
+        import random
+        return f"NODE-{random.randint(100000, 999999):X}"
+
+
+def _discover_all_scan_paths(configured_paths: Optional[List[str]] = None) -> List[str]:
+    """Discover all game library folders and scan directories across all storage drives."""
+    discovered = set(configured_paths or [])
+    try:
+        from system.game_scanner import GameScanner
+        scanner = GameScanner(config={})
+        if hasattr(scanner, "_get_default_library_paths"):
+            for p in scanner._get_default_library_paths():
+                if Path(p).exists():
+                    discovered.add(str(p))
+    except Exception:
+        pass
+
+    import psutil
+    try:
+        drives = [p.mountpoint for p in psutil.disk_partitions() if 'fixed' in p.opts or 'cdrom' not in p.opts]
+    except Exception:
+        drives = [f"{d}:\\" for d in "CDEFGHIJKLMNOPQRSTUVWXYZ" if os.path.exists(f"{d}:\\")]
+
+    standard_subdirs = [
+        "Games", "SteamLibrary\\steamapps\\common", "SteamLibrary",
+        "Epic Games", "Ubisoft\\Ubisoft Game Launcher\\games",
+        "Ubisoft Games", "GOG Games", "GOG Galaxy\\Games",
+        "EA Games", "Origin Games", "Electronic Arts",
+        "Battle.net", "Riot Games", "XboxGames",
+        "Program Files\\Epic Games", "Program Files (x86)\\Steam\\steamapps\\common",
+        "Program Files (x86)\\Ubisoft\\Ubisoft Game Launcher\\games",
+        "Program Files (x86)\\GOG Galaxy\\Games", "Program Files\\EA Games"
+    ]
+    for drive in drives:
+        drive_path = Path(drive)
+        for s in standard_subdirs:
+            cand = drive_path / s
+            if cand.exists() and cand.is_dir():
+                discovered.add(str(cand))
+
+    if not discovered:
+        for d in drives:
+            discovered.add(d)
+
+    return sorted(list(discovered))
+
+
 # ── Node Configuration ────────────────────────────────────────────────────────
 
 class NodeConfig:
@@ -61,14 +117,22 @@ class NodeConfig:
             self._cfg.get("serverUrl")
             or os.getenv("LIBRARY_SERVER_URL", "https://mission-control-server-okj7.onrender.com")
         ).rstrip("/")
-        self.node_id: str = self._cfg.get("nodeId") or os.getenv("NODE_ID", "")
-        self.node_name: str = (
-            self._cfg.get("name") or os.getenv("NODE_NAME", socket.gethostname())
-        )
+
+        # Ensure we never reuse a hardcoded placeholder node ID across different physical machines
+        loaded_id = self._cfg.get("nodeId") or os.getenv("NODE_ID", "")
+        if not loaded_id or loaded_id in ["NODE-25DC4F", "NODE-000000", "NODE-PLACEHOLDER"]:
+            loaded_id = get_machine_node_id()
+        self.node_id: str = loaded_id
+
+        loaded_name = self._cfg.get("name") or os.getenv("NODE_NAME", "")
+        if not loaded_name or loaded_name in ["My-PC", "Default-PC"]:
+            loaded_name = socket.gethostname()
+        self.node_name: str = loaded_name
+
         self.token: str = self._cfg.get("token") or os.getenv("NODE_TOKEN", "")
         self.clerk_id: str = self._cfg.get("clerkId") or os.getenv("CLERK_ID", "")
         self.auth_provider: str = self._cfg.get("authProvider") or os.getenv("AUTH_PROVIDER", "")
-        self.scan_paths: List[str] = self._cfg.get("scanPaths", [])
+        self.scan_paths: List[str] = _discover_all_scan_paths(self._cfg.get("scanPaths", []))
         self.heartbeat_interval: int = int(self._cfg.get("heartbeatInterval", 15))
         self.sync_interval: int = int(self._cfg.get("syncInterval", 300))
 
@@ -127,28 +191,7 @@ class LibraryNodeService:
 
     def register(self) -> bool:
         # Dynamically discover all active local game libraries and launcher scan paths
-        discovered_paths = list(self.cfg.scan_paths) if self.cfg.scan_paths else []
-        try:
-            from system.game_scanner import GameScanner
-            scanner = GameScanner(config={})
-            auto_paths = scanner._get_default_library_paths() if hasattr(scanner, "_get_default_library_paths") else []
-            for p in auto_paths:
-                if str(p) not in discovered_paths and Path(p).exists():
-                    discovered_paths.append(str(p))
-        except Exception:
-            pass
-
-        # Fallback to drive detection if paths are empty
-        if not discovered_paths:
-            import psutil
-            try:
-                for p in psutil.disk_partitions():
-                    if 'fixed' in p.opts or 'cdrom' not in p.opts:
-                        discovered_paths.append(p.mountpoint)
-            except Exception:
-                discovered_paths = ["C:\\", "D:\\"]
-
-        self.cfg.scan_paths = discovered_paths
+        self.cfg.scan_paths = _discover_all_scan_paths(self.cfg.scan_paths)
 
         storage = (
             get_drive_storage(self.cfg.scan_paths)
@@ -353,9 +396,16 @@ class LibraryNodeService:
         return results
 
     def _sync_to_server(self, installations: List[Dict]):
-        """POST all discovered installations to the central server."""
+        """POST all discovered installations to the central server (delta-hashed to prevent redundant uploads)."""
         if not (self.cfg.node_id and self.cfg.token):
             logger.warning("Cannot sync — not registered.")
+            return
+
+        import hashlib
+        inst_summary = [(i.get("title"), i.get("installPath"), i.get("sizeBytes")) for i in installations]
+        current_hash = hashlib.sha256(json.dumps(inst_summary, sort_keys=True).encode()).hexdigest()
+        if getattr(self, "_last_synced_hash", None) == current_hash:
+            logger.info("Library installations unchanged (%d items) — skipping redundant sync upload.", len(installations))
             return
 
         payload = {"installations": installations}
@@ -366,6 +416,7 @@ class LibraryNodeService:
             timeout=60,
         )
         if result:
+            self._last_synced_hash = current_hash
             logger.info(
                 "Sync complete: %d synced, %d new games, %d AI-queued, %d errors.",
                 result.get("synced", 0), result.get("new_games", 0),

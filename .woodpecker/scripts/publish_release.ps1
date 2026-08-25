@@ -228,6 +228,80 @@ if ($sourceZip) {
   Write-Host "Prepared Portable ZIP archive at: $targetZip"
 }
 
+# Check for generated Linux Debian (.deb) package
+$sourceDeb = Get-ChildItem -Path $candidatePaths -Filter "*.deb" -Recurse -ErrorAction SilentlyContinue |
+  Where-Object { $_.FullName -notlike "*out/release*" -and $_.FullName -notlike "*out\release*" } |
+  Sort-Object LastWriteTime -Descending |
+  Select-Object -First 1
+$targetDeb = $null
+if ($sourceDeb) {
+  $targetDeb = Join-Path $releaseDir "MissionControl-Linux-$semver.deb"
+  if ((Resolve-Path $sourceDeb.FullName).Path -ne (Resolve-Path $targetDeb -ErrorAction SilentlyContinue).Path) {
+    Copy-Item $sourceDeb.FullName $targetDeb -Force
+  }
+  Write-Host "Prepared Linux Debian (.deb) package at: $targetDeb"
+}
+
+# Check for generated Linux AppImage
+$sourceAppImage = Get-ChildItem -Path $candidatePaths -Filter "*.AppImage" -Recurse -ErrorAction SilentlyContinue |
+  Where-Object { $_.FullName -notlike "*out/release*" -and $_.FullName -notlike "*out\release*" } |
+  Sort-Object LastWriteTime -Descending |
+  Select-Object -First 1
+$targetAppImage = $null
+if ($sourceAppImage) {
+  $targetAppImage = Join-Path $releaseDir "MissionControl-Linux-$semver.AppImage"
+  if ((Resolve-Path $sourceAppImage.FullName).Path -ne (Resolve-Path $targetAppImage -ErrorAction SilentlyContinue).Path) {
+    Copy-Item $sourceAppImage.FullName $targetAppImage -Force
+  }
+  Write-Host "Prepared Linux AppImage at: $targetAppImage"
+}
+
+# Check for generated Linux RPM package
+$sourceRpm = Get-ChildItem -Path $candidatePaths -Filter "*.rpm" -Recurse -ErrorAction SilentlyContinue |
+  Where-Object { $_.FullName -notlike "*out/release*" -and $_.FullName -notlike "*out\release*" } |
+  Sort-Object LastWriteTime -Descending |
+  Select-Object -First 1
+$targetRpm = $null
+if ($sourceRpm) {
+  $targetRpm = Join-Path $releaseDir "MissionControl-Linux-$semver.rpm"
+  if ((Resolve-Path $sourceRpm.FullName).Path -ne (Resolve-Path $targetRpm -ErrorAction SilentlyContinue).Path) {
+    Copy-Item $sourceRpm.FullName $targetRpm -Force
+  }
+  Write-Host "Prepared Linux RPM package at: $targetRpm"
+}
+
+# Check for generated Linux Standalone Tarball (.tar.gz)
+$sourceLinuxTar = Get-ChildItem -Path $candidatePaths -Filter "*.tar.gz" -Recurse -ErrorAction SilentlyContinue |
+  Where-Object { 
+    $_.FullName -notlike "*out/release*" -and 
+    $_.FullName -notlike "*out\release*" -and 
+    $_.FullName -notlike "*node_modules*"
+  } |
+  Sort-Object LastWriteTime -Descending |
+  Select-Object -First 1
+$targetLinuxTar = $null
+if ($sourceLinuxTar) {
+  $targetLinuxTar = Join-Path $releaseDir "MissionControl-Linux-$semver.tar.gz"
+  if ((Resolve-Path $sourceLinuxTar.FullName).Path -ne (Resolve-Path $targetLinuxTar -ErrorAction SilentlyContinue).Path) {
+    Copy-Item $sourceLinuxTar.FullName $targetLinuxTar -Force
+  }
+  Write-Host "Prepared Linux standalone tarball at: $targetLinuxTar"
+}
+
+# Check for generated latest-linux.yml
+$sourceLinuxYml = Get-ChildItem -Path $candidatePaths -Filter "latest-linux.yml" -Recurse -ErrorAction SilentlyContinue |
+  Where-Object { $_.FullName -notlike "*out/release*" -and $_.FullName -notlike "*out\release*" } |
+  Sort-Object LastWriteTime -Descending |
+  Select-Object -First 1
+$targetLinuxYml = $null
+if ($sourceLinuxYml) {
+  $targetLinuxYml = Join-Path $releaseDir "latest-linux.yml"
+  if ((Resolve-Path $sourceLinuxYml.FullName).Path -ne (Resolve-Path $targetLinuxYml -ErrorAction SilentlyContinue).Path) {
+    Copy-Item $sourceLinuxYml.FullName $targetLinuxYml -Force
+  }
+  Write-Host "Prepared latest-linux.yml at: $targetLinuxYml"
+}
+
 $hashBytes = [System.Security.Cryptography.SHA512]::Create().ComputeHash(
   [System.IO.File]::ReadAllBytes($sourceInstaller.FullName)
 )
@@ -267,12 +341,25 @@ $headers = @{
   "X-GitHub-Api-Version" = "2022-11-28"
 }
 
+$releaseBodyMarkdown = @"
+$notes
+
+### 📦 Available Downloads & Formats
+- **Linux (.deb - Debian / Ubuntu / Mint)**: [MissionControl-Linux-${semver}.deb](https://github.com/${repo}/releases/download/${tag}/MissionControl-Linux-${semver}.deb)
+- **Linux (.AppImage - Universal Linux)**: [MissionControl-Linux-${semver}.AppImage](https://github.com/${repo}/releases/download/${tag}/MissionControl-Linux-${semver}.AppImage)
+- **Linux (.rpm - Fedora / RHEL / openSUSE)**: [MissionControl-Linux-${semver}.rpm](https://github.com/${repo}/releases/download/${tag}/MissionControl-Linux-${semver}.rpm)
+- **Linux (.tar.gz - Standalone Linux Archive)**: [MissionControl-Linux-${semver}.tar.gz](https://github.com/${repo}/releases/download/${tag}/MissionControl-Linux-${semver}.tar.gz)
+- **Windows (.exe - Setup Installer)**: [MissionControl-Setup.exe](https://github.com/${repo}/releases/download/${tag}/MissionControl-Setup.exe)
+- **Windows (.msi - Enterprise Installer)**: [MissionControl-Setup.msi](https://github.com/${repo}/releases/download/${tag}/MissionControl-Setup.msi)
+- **Windows (.zip - Portable Windows Archive)**: [MissionControl-Portable.zip](https://github.com/${repo}/releases/download/${tag}/MissionControl-Portable.zip)
+"@
+
 Write-Host "Creating release $tag for $repo..."
 $releaseUrl = "https://api.github.com/repos/$repo/releases"
 $releaseBodyJson = @{
   tag_name = $tag
   name = "Release ${tag}: $title"
-  body = $notes
+  body = $releaseBodyMarkdown
   draft = $false
   prerelease = $false
 } | ConvertTo-Json -Depth 10
@@ -295,6 +382,10 @@ try {
     $existingRelease = Invoke-RestMethod -Uri "${releaseUrl}/tags/${tag}" -Method Get -Headers $headers
     $releaseId = $existingRelease.id
     Write-Host "Found existing release with ID: $releaseId"
+    # Update release body
+    $updateData = @{ body = $releaseBodyMarkdown; name = "Release ${tag}: $title"; draft = $false } | ConvertTo-Json -Depth 10
+    $updateBytes = [System.Text.Encoding]::UTF8.GetBytes($updateData)
+    Invoke-RestMethod -Uri "https://api.github.com/repos/$repo/releases/$releaseId" -Method Patch -Headers $headers -Body $updateBytes -ContentType "application/json; charset=utf-8" | Out-Null
   } catch {
     Write-Host "Could not find existing release: $($_.Exception.Message)"
     if ($_.Exception.Response) {
@@ -311,7 +402,7 @@ try {
   $assetsUrl = "https://api.github.com/repos/$repo/releases/$releaseId/assets"
   $existingAssets = Invoke-RestMethod -Uri $assetsUrl -Method Get -Headers $headers
   foreach ($asset in $existingAssets) {
-    if ($asset.name -like "MissionControl*" -or $asset.name -eq "latest.yml") {
+    if ($asset.name -like "MissionControl*" -or $asset.name -like "*latest*.yml") {
       Write-Host "Deleting existing asset: $($asset.name)..."
       Invoke-RestMethod -Uri $asset.url -Method Delete -Headers $headers
     }
@@ -331,6 +422,7 @@ if (-not (Test-Path $targetInstaller)) {
   throw "Installer file not found at: $targetInstaller"
 }
 
+# 1. Windows Installer (.exe)
 Write-Host "Uploading $targetInstaller via Upload-AssetWithRetry..."
 try {
   $uploadResponse = Upload-AssetWithRetry -UploadBaseUrl $uploadBase -AssetName "MissionControl-Setup.exe" -FilePath $targetInstaller -Headers $uploadHeaders -ContentType "application/octet-stream" -Repo $repo -ReleaseId $releaseId
@@ -338,6 +430,7 @@ try {
   Write-Error "Failed to upload NSIS installer: $($_.Exception.Message)"
 }
 
+# 2. Windows MSI (.msi)
 if ($targetMsi -and (Test-Path $targetMsi)) {
   Write-Host "Uploading $targetMsi via Upload-AssetWithRetry..."
   try {
@@ -347,6 +440,7 @@ if ($targetMsi -and (Test-Path $targetMsi)) {
   }
 }
 
+# 3. Windows Portable ZIP (.zip)
 if ($targetZip -and (Test-Path $targetZip)) {
   Write-Host "Uploading $targetZip via Upload-AssetWithRetry..."
   try {
@@ -356,6 +450,47 @@ if ($targetZip -and (Test-Path $targetZip)) {
   }
 }
 
+# 4. Linux Debian (.deb)
+if ($targetDeb -and (Test-Path $targetDeb)) {
+  Write-Host "Uploading $targetDeb via Upload-AssetWithRetry..."
+  try {
+    $uploadDebResponse = Upload-AssetWithRetry -UploadBaseUrl $uploadBase -AssetName "MissionControl-Linux-$semver.deb" -FilePath $targetDeb -Headers $uploadHeaders -ContentType "application/vnd.debian.binary-package" -Repo $repo -ReleaseId $releaseId
+  } catch {
+    Write-Warning "Failed to upload Debian package: $($_.Exception.Message)"
+  }
+}
+
+# 5. Linux AppImage (.AppImage)
+if ($targetAppImage -and (Test-Path $targetAppImage)) {
+  Write-Host "Uploading $targetAppImage via Upload-AssetWithRetry..."
+  try {
+    $uploadAppImageResponse = Upload-AssetWithRetry -UploadBaseUrl $uploadBase -AssetName "MissionControl-Linux-$semver.AppImage" -FilePath $targetAppImage -Headers $uploadHeaders -ContentType "application/octet-stream" -Repo $repo -ReleaseId $releaseId
+  } catch {
+    Write-Warning "Failed to upload AppImage: $($_.Exception.Message)"
+  }
+}
+
+# 6. Linux RPM (.rpm)
+if ($targetRpm -and (Test-Path $targetRpm)) {
+  Write-Host "Uploading $targetRpm via Upload-AssetWithRetry..."
+  try {
+    $uploadRpmResponse = Upload-AssetWithRetry -UploadBaseUrl $uploadBase -AssetName "MissionControl-Linux-$semver.rpm" -FilePath $targetRpm -Headers $uploadHeaders -ContentType "application/x-rpm" -Repo $repo -ReleaseId $releaseId
+  } catch {
+    Write-Warning "Failed to upload RPM package: $($_.Exception.Message)"
+  }
+}
+
+# 7. Linux Standalone Tarball (.tar.gz)
+if ($targetLinuxTar -and (Test-Path $targetLinuxTar)) {
+  Write-Host "Uploading $targetLinuxTar via Upload-AssetWithRetry..."
+  try {
+    $uploadTarResponse = Upload-AssetWithRetry -UploadBaseUrl $uploadBase -AssetName "MissionControl-Linux-$semver.tar.gz" -FilePath $targetLinuxTar -Headers $uploadHeaders -ContentType "application/gzip" -Repo $repo -ReleaseId $releaseId
+  } catch {
+    Write-Warning "Failed to upload Linux tar.gz: $($_.Exception.Message)"
+  }
+}
+
+# 8. Windows Auto-Update metadata (latest.yml)
 Write-Host "Uploading latest.yml via Upload-AssetWithRetry..."
 try {
   $uploadYmlResponse = Upload-AssetWithRetry -UploadBaseUrl $uploadBase -AssetName "latest.yml" -FilePath $latestYmlPath -Headers $uploadHeaders -ContentType "application/x-yaml" -Repo $repo -ReleaseId $releaseId
@@ -364,5 +499,16 @@ try {
   throw
 }
 
-Write-Host "Release published successfully."
+# 9. Linux Auto-Update metadata (latest-linux.yml)
+if ($targetLinuxYml -and (Test-Path $targetLinuxYml)) {
+  Write-Host "Uploading latest-linux.yml via Upload-AssetWithRetry..."
+  try {
+    $uploadLinuxYmlResponse = Upload-AssetWithRetry -UploadBaseUrl $uploadBase -AssetName "latest-linux.yml" -FilePath $targetLinuxYml -Headers $uploadHeaders -ContentType "application/x-yaml" -Repo $repo -ReleaseId $releaseId
+  } catch {
+    Write-Warning "Failed to upload latest-linux.yml: $($_.Exception.Message)"
+  }
+}
+
+Write-Host "Release published successfully with all multiplatform assets."
+
 

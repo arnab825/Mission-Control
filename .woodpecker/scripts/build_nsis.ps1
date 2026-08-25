@@ -21,4 +21,17 @@ if (Test-Path $backendDist) {
 }
 
 Set-Location Gaming/frontend
+
+# 1. Build Windows Installers (NSIS, MSI, Portable ZIP)
+Write-Host "[BUILD] Packaging Windows installers (NSIS, MSI, ZIP)..." -ForegroundColor Cyan
 npx electron-builder --prepackaged "$($prepackaged.FullName)" --win nsis msi zip --publish never
+
+# 2. Build Linux Standalone Archive (.tar.gz)
+Write-Host "[BUILD] Packaging Linux standalone archive (.tar.gz)..." -ForegroundColor Yellow
+npx electron-builder --linux tar.gz --publish never
+
+# 3. Build Linux Debian Package (.deb)
+Write-Host "[BUILD] Packaging Linux Debian package (.deb)..." -ForegroundColor Cyan
+python ../scripts/pack_deb.py
+
+

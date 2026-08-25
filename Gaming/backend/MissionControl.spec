@@ -170,7 +170,7 @@ a = Analysis(
     ] + platform_hiddenimports + mem0_imports + rapidocr_imports + cv2_imports,
     hookspath=[],
     hooksconfig={},
-    runtime_hooks=[],
+    runtime_hooks=['rthook_cv2.py'],
     # Exclude very heavy optional packages that are not needed at runtime
     excludes=[
         'torch',          # only needed for ultralytics; ultralytics auto-loads
