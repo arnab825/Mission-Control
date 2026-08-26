@@ -38,7 +38,13 @@
     background-image: 
       radial-gradient(circle at 50% 0%, rgba(118, 185, 0, 0.08) 0%, transparent 40%),
       linear-gradient(to bottom, rgba(10, 10, 12, 0.95), rgba(10, 10, 12, 1));
-    background-attachment: fixed;
+    background-attachment: scroll;
+  }
+
+  @media (min-width: 1024px) {
+    body {
+      background-attachment: fixed;
+    }
   }
 
   /* Cyber Grid Background Utility */
@@ -49,10 +55,9 @@
     background-size: 40px 40px;
   }
 
-  /* Off-Screen Performance Optimization */
+  /* Smooth Section Rendering */
   section {
-    content-visibility: auto;
-    contain-intrinsic-size: 1px 800px;
+    position: relative;
   }
 }
 
