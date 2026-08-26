@@ -15,13 +15,14 @@ services:
       - ./queries:/app/queries:ro
       - catalog-data:/app/data
     healthcheck:
-      test: ["CMD", "python", "-c", "import urllib.request; sys.exit(0 if urllib.request.urlopen('http://127.0.0.1:8811/health', timeout=2).status == 200 else 1)"]
-      interval: 15s
+      test: ["CMD-SHELL", "curl -f http://127.0.0.1:8811/health || exit 1"]
+      interval: 10s
       timeout: 5s
-      retries: 3
-      start_period: 10s
+      retries: 5
+      start_period: 30s
     depends_on:
       - redis
+      - postgres
 
   catalog_service_2:
     build: .
@@ -38,13 +39,14 @@ services:
       - ./queries:/app/queries:ro
       - catalog-data:/app/data
     healthcheck:
-      test: ["CMD", "python", "-c", "import urllib.request; sys.exit(0 if urllib.request.urlopen('http://127.0.0.1:8812/health', timeout=2).status == 200 else 1)"]
-      interval: 15s
+      test: ["CMD-SHELL", "curl -f http://127.0.0.1:8812/health || exit 1"]
+      interval: 10s
       timeout: 5s
-      retries: 3
-      start_period: 10s
+      retries: 5
+      start_period: 30s
     depends_on:
       - redis
+      - postgres
 
   # ── 2. User Library & Node Sync Service Pool ─────────────────────────────────
   node_service_1:
@@ -61,11 +63,14 @@ services:
       - ./queries:/app/queries:ro
       - catalog-data:/app/data
     healthcheck:
-      test: ["CMD", "python", "-c", "import urllib.request; sys.exit(0 if urllib.request.urlopen('http://127.0.0.1:8821/health', timeout=2).status == 200 else 1)"]
-      interval: 15s
+      test: ["CMD-SHELL", "curl -f http://127.0.0.1:8821/health || exit 1"]
+      interval: 10s
       timeout: 5s
-      retries: 3
-      start_period: 10s
+      retries: 5
+      start_period: 30s
+    depends_on:
+      - redis
+      - postgres
 
   node_service_2:
     build: .
@@ -81,11 +86,14 @@ services:
       - ./queries:/app/queries:ro
       - catalog-data:/app/data
     healthcheck:
-      test: ["CMD", "python", "-c", "import urllib.request; sys.exit(0 if urllib.request.urlopen('http://127.0.0.1:8822/health', timeout=2).status == 200 else 1)"]
-      interval: 15s
+      test: ["CMD-SHELL", "curl -f http://127.0.0.1:8822/health || exit 1"]
+      interval: 10s
       timeout: 5s
-      retries: 3
-      start_period: 10s
+      retries: 5
+      start_period: 30s
+    depends_on:
+      - redis
+      - postgres
 
   # ── 3. Dedicated AI Metadata Enricher & Healer (:8831) ───────────────────────
   ai_enricher:
@@ -101,11 +109,14 @@ services:
       - ./queries:/app/queries:ro
       - catalog-data:/app/data
     healthcheck:
-      test: ["CMD", "python", "-c", "import urllib.request; sys.exit(0 if urllib.request.urlopen('http://127.0.0.1:8831/health', timeout=2).status == 200 else 1)"]
-      interval: 15s
+      test: ["CMD-SHELL", "curl -f http://127.0.0.1:8831/health || exit 1"]
+      interval: 10s
       timeout: 5s
-      retries: 3
-      start_period: 10s
+      retries: 5
+      start_period: 30s
+    depends_on:
+      - redis
+      - postgres
 
   # ── 4. Dedicated Multi-Launcher Enricher (:8841) ─────────────────────────────
   launcher_enricher:
@@ -121,11 +132,14 @@ services:
       - ./queries:/app/queries:ro
       - catalog-data:/app/data
     healthcheck:
-      test: ["CMD", "python", "-c", "import urllib.request; sys.exit(0 if urllib.request.urlopen('http://127.0.0.1:8841/health', timeout=2).status == 200 else 1)"]
-      interval: 15s
+      test: ["CMD-SHELL", "curl -f http://127.0.0.1:8841/health || exit 1"]
+      interval: 10s
       timeout: 5s
-      retries: 3
-      start_period: 10s
+      retries: 5
+      start_period: 30s
+    depends_on:
+      - redis
+      - postgres
 
   # ── 5. Dedicated Infinite Crawler & Harvester (:8851) ────────────────────────
   crawler_service:
@@ -141,11 +155,14 @@ services:
       - ./queries:/app/queries:ro
       - catalog-data:/app/data
     healthcheck:
-      test: ["CMD", "python", "-c", "import urllib.request; sys.exit(0 if urllib.request.urlopen('http://127.0.0.1:8851/health', timeout=2).status == 200 else 1)"]
-      interval: 15s
+      test: ["CMD-SHELL", "curl -f http://127.0.0.1:8851/health || exit 1"]
+      interval: 10s
       timeout: 5s
-      retries: 3
-      start_period: 10s
+      retries: 5
+      start_period: 30s
+    depends_on:
+      - redis
+      - postgres
 
   # ── 6. Multi-Pool Load Balancer & API Gateway (:8800) ────────────────────────
   load_balancer:

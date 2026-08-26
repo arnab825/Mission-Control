@@ -148,7 +148,13 @@ def enrich_game_launchers(game: Dict[str, Any]) -> Optional[List[str]]:
     title = game.get("title", "")
     norm = game.get("normalized_title") or normalize_title(title)
     slug = game.get("id") or title_to_slug(title)
-    existing_launchers = set(game.get("launchers") or ["Steam"])
+    meta = game.get("metadata") or {}
+    if isinstance(meta, str):
+        try:
+            meta = json.loads(meta)
+        except Exception:
+            meta = {}
+    existing_launchers = set(meta.get("launchers") or game.get("launchers") or ["Steam"])
     original_set = set(existing_launchers)
 
     # 1. Check GOG index
@@ -178,6 +184,7 @@ def enrich_game_launchers(game: Dict[str, Any]) -> Optional[List[str]]:
     return None
 
 
+
 def _launcher_healer_loop():
     """Background loop that continuously checks and heals launcher tags."""
     global _RUNNING
@@ -192,12 +199,11 @@ def _launcher_healer_loop():
                 time.sleep(5)
                 continue
 
-            # Fetch batch of games that only have ['Steam'] or unverified launchers
+            # Fetch batch of games to inspect and enrich launcher tags
             rows = db.execute(
                 """
-                SELECT id, title, normalized_title, launchers, metadata, raw_tags
+                SELECT id, title, normalized_title, metadata, raw_tags, tags
                 FROM canonical_games
-                WHERE launchers = ARRAY['Steam']
                 ORDER BY updated_at ASC
                 LIMIT 30;
                 """,
@@ -222,8 +228,16 @@ def _launcher_healer_loop():
                 new_launchers = enrich_game_launchers(game)
                 if new_launchers:
                     db.execute(
-                        "UPDATE canonical_games SET launchers = %(launchers)s, updated_at = NOW() WHERE id = %(id)s;",
-                        {"launchers": new_launchers, "id": game["id"]}
+                        """
+                        UPDATE canonical_games
+                        SET metadata = metadata || %(patch)s::jsonb,
+                            updated_at = NOW()
+                        WHERE id = %(id)s;
+                        """,
+                        {
+                            "patch": json.dumps({"launchers": new_launchers}),
+                            "id": game["id"],
+                        }
                     )
                     batch_updated += 1
                     _STATS["total_updated"] += 1
@@ -280,7 +294,7 @@ async def get_launcher_stats():
     if not db.available:
         raise HTTPException(status_code=503, detail="Database unavailable")
     
-    rows = db.execute("SELECT launchers, COUNT(*) FROM canonical_games GROUP BY launchers ORDER BY count DESC;", fetch="all") or []
+    rows = db.execute("SELECT metadata->'launchers' AS launchers, COUNT(*) FROM canonical_games GROUP BY metadata->'launchers' ORDER BY count DESC LIMIT 50;", fetch="all") or []
     total = sum(r["count"] for r in rows)
     return {
         "total_canonical_games": total,
