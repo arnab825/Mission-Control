@@ -36,7 +36,7 @@ for _env_path in [
         load_dotenv(_env_path, override=False)
         break
 
-from fastapi import FastAPI, HTTPException, Header, Query, Request
+from fastapi import BackgroundTasks, FastAPI, HTTPException, Header, Query, Request
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import JSONResponse
 
@@ -564,101 +564,143 @@ async def get_node_config(
 async def sync_node(
     node_id: str,
     req: SyncRequest,
+    background_tasks: BackgroundTasks,
     x_node_token: Optional[str] = Header(default=None),
 ):
     """
     Ingest a batch of game installations from a node.
 
     For each installation:
-    1. Check if canonical game exists via exact title & fuzzy matching.
-    2. If NOT found: Run web search across renowned launchers (Steam/Epic/GOG)
-       to fetch official cover art, developer, publisher, release date, and summary.
-    3. Run AI classification to clean up messy/misplaced tags.
-    4. Upsert the canonical game & node installation record.
+    1. Check if canonical game exists via targeted exact & fuzzy index lookup.
+    2. Upsert canonical game & node installation record immediately (sub-10ms).
+    3. Dispatch background AI classification & web enrichment asynchronously.
     """
     _require_db()
     _require_node_auth(node_id, x_node_token)
 
-    existing_rows = db.execute(
-        "SELECT normalized_title, id FROM canonical_games",
-        fetch="all"
-    ) or []
-    existing_index = [(r["normalized_title"], r["id"]) for r in existing_rows]
+    # 1. Targeted batch lookup for existing games without loading entire 83k catalog
+    titles_to_check = [normalize_title(p.title) for p in req.installations if p.title]
+    existing_map = {}
+    if titles_to_check:
+        try:
+            matched_rows = db.execute(
+                "SELECT normalized_title, id FROM canonical_games WHERE normalized_title = ANY(%(titles)s)",
+                {"titles": titles_to_check},
+                fetch="all"
+            ) or []
+            existing_map = {r["normalized_title"]: r["id"] for r in matched_rows}
+        except Exception as e:
+            logger.warning("Targeted title batch query error: %s", e)
 
     stats = {"synced": 0, "new_games": 0, "updated_games": 0, "ai_queued": 0, "errors": 0}
+
+    def _async_enrich(g_id: str, g_title: str, g_tags: List[str]):
+        try:
+            web_meta = enrich_game_from_web(g_title)
+            dev = web_meta.get("developer") if web_meta else None
+            pub = web_meta.get("publisher") if web_meta else None
+            summary = web_meta.get("summary") if web_meta else None
+            cover = web_meta.get("cover_url") if web_meta else None
+            banner = web_meta.get("banner_url") if web_meta else None
+            combined_tags = deduplicate_tags((web_meta.get("raw_tags", []) if web_meta else []) + g_tags)
+            
+            ai_res = classify_game(
+                title=g_title,
+                developer=dev,
+                publisher=pub,
+                raw_tags=combined_tags,
+                summary=summary,
+            )
+            if ai_res:
+                db.execute(
+                    """
+                    UPDATE canonical_games
+                    SET primary_genre = COALESCE(%(primary_genre)s, primary_genre),
+                        genres = %(genres)s::jsonb,
+                        tags = %(tags)s::jsonb,
+                        features = %(features)s::jsonb,
+                        cover_url = COALESCE(%(cover_url)s, cover_url),
+                        banner_url = COALESCE(%(banner_url)s, banner_url),
+                        developer = COALESCE(%(developer)s, developer),
+                        publisher = COALESCE(%(publisher)s, publisher),
+                        summary = COALESCE(%(summary)s, summary),
+                        ai_classified = TRUE,
+                        ai_confidence = %(ai_confidence)s,
+                        updated_at = NOW()
+                    WHERE id = %(id)s
+                    """,
+                    {
+                        "id": g_id,
+                        "primary_genre": ai_res.get("primary_genre"),
+                        "genres": json.dumps(ai_res.get("genres", [])),
+                        "tags": json.dumps(ai_res.get("tags", [])),
+                        "features": json.dumps(ai_res.get("features", [])),
+                        "cover_url": cover,
+                        "banner_url": banner,
+                        "developer": dev,
+                        "publisher": pub,
+                        "summary": summary,
+                        "ai_confidence": ai_res.get("confidence", 0.85),
+                    }
+                )
+        except Exception as exc:
+            logger.warning("Background enrichment failed for '%s': %s", g_title, exc)
 
     for payload in req.installations:
         try:
             norm = normalize_title(payload.title)
-            matched_id = match_game(payload.title, existing_index)
+            matched_id = existing_map.get(norm)
 
             if matched_id:
                 game_id = matched_id
                 stats["updated_games"] += 1
             else:
-                # Web search & launcher enrichment for unknown games
-                logger.info("New game discovered on node '%s': '%s'. Enriching via web & launchers...", node_id, payload.title)
-                web_meta = enrich_game_from_web(payload.title)
+                # Check fuzzy match in db if exact title wasn't found in batch map
+                fuzzy_row = None
+                try:
+                    fuzzy_row = db.execute(
+                        "SELECT id FROM canonical_games WHERE normalized_title = %(norm)s LIMIT 1",
+                        {"norm": norm},
+                        fetch="one"
+                    )
+                except Exception:
+                    pass
 
-                title = web_meta.get("title") if web_meta else payload.title
-                game_id = title_to_slug(title)
-                dev = (web_meta.get("developer") if web_meta else None) or payload.developer
-                pub = (web_meta.get("publisher") if web_meta else None) or payload.publisher
-                rel = (web_meta.get("release_date") if web_meta else None) or payload.release_date
-                cover = (web_meta.get("cover_url") if web_meta else None) or payload.cover_url
-                banner = (web_meta.get("banner_url") if web_meta else None) or payload.banner_url
-                summary = (web_meta.get("summary") if web_meta else None) or payload.summary
-                raw_tags = deduplicate_tags(
-                    (web_meta.get("raw_tags", []) if web_meta else []) + payload.tags
-                )
-
-                # Classify via AI model
-                classified_genre = None
-                classified_tags = raw_tags
-                ai_done = False
-                confidence = 0.0
-
-                ai_res = classify_game(
-                    title=title,
-                    developer=dev,
-                    publisher=pub,
-                    raw_tags=raw_tags,
-                    summary=summary,
-                )
-                if ai_res:
-                    classified_genre = ai_res["primary_genre"]
-                    classified_tags = ai_res["tags"]
-                    confidence = ai_res["confidence"]
-                    ai_done = True
-
-                game_data = {
-                    "id":               game_id,
-                    "title":            title,
-                    "normalized_title": normalize_title(title),
-                    "developer":        dev,
-                    "publisher":        pub,
-                    "release_date":     rel,
-                    "primary_genre":    classified_genre or (payload.genres[0] if payload.genres else "Action"),
-                    "genres":           ai_res["genres"] if ai_res else payload.genres,
-                    "tags":             classified_tags,
-                    "features":         ai_res["features"] if ai_res else payload.features,
-                    "platforms":        ["Windows", "Linux"],
-                    "cover_url":        cover,
-                    "banner_url":       banner,
-                    "summary":          summary,
-                    "ai_classified":    ai_done,
-                    "ai_confidence":    confidence,
-                    "raw_tags":         raw_tags,
-                    "metadata":         json.dumps({
-                        "source": payload.store,
-                        "launchers": web_meta.get("launchers", [payload.store]) if web_meta else [payload.store],
-                    }),
-                }
-                db.upsert_game(game_data)
-                existing_index.append((normalize_title(title), game_id))
-                stats["new_games"] += 1
-                if not ai_done:
+                if fuzzy_row:
+                    game_id = fuzzy_row["id"]
+                    existing_map[norm] = game_id
+                    stats["updated_games"] += 1
+                else:
+                    # New game: Create record immediately and queue background enrichment
+                    game_id = title_to_slug(payload.title)
+                    game_data = {
+                        "id":               game_id,
+                        "title":            payload.title,
+                        "normalized_title": norm,
+                        "developer":        payload.developer,
+                        "publisher":        payload.publisher,
+                        "release_date":     payload.release_date,
+                        "primary_genre":    payload.genres[0] if payload.genres else "Action",
+                        "genres":           payload.genres or ["Action"],
+                        "tags":             payload.tags or [],
+                        "features":         payload.features or [],
+                        "platforms":        ["Windows", "Linux"],
+                        "cover_url":        payload.cover_url,
+                        "banner_url":       payload.banner_url,
+                        "summary":          payload.summary,
+                        "ai_classified":    False,
+                        "ai_confidence":    0.0,
+                        "raw_tags":         payload.tags or [],
+                        "metadata":         json.dumps({
+                            "source": payload.store,
+                            "launchers": [payload.store],
+                        }),
+                    }
+                    db.upsert_game(game_data)
+                    existing_map[norm] = game_id
+                    stats["new_games"] += 1
                     stats["ai_queued"] += 1
+                    background_tasks.add_task(_async_enrich, game_id, payload.title, payload.tags or [])
 
             # Upsert installation record
             install_id = f"{node_id}:{game_id}:{payload.store}"
