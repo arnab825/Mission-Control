@@ -530,7 +530,7 @@ const App: React.FC = () => {
 
         {/* Global Scanning Overlay */}
         <AnimatePresence>
-          {state?.scan_state?.is_running && !isScanOverlayDismissed && (
+          {state?.scan_state?.is_running && !(state?.scan_state as any)?.is_background && !isScanOverlayDismissed && (
             <motion.div
               initial={{ opacity: 0 }}
               animate={{ opacity: 1 }}

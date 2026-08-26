@@ -440,8 +440,22 @@ const GamesLibraryContent: React.FC<GamesPageProps> = ({ state, sendCommand, set
   const [showDiscoverModal, setShowDiscoverModal] = useState(false);
   const [installationsModal, setInstallationsModal] = useState<{ title: string; coverUrl?: string; primaryGenre?: string; installations: GameInstallation[] } | null>(null);
   const { stats: distributedStats, serverOnline: libraryServerOnline } = useDistributedStats(userId);
-  const initialGames = (state as any)?.game_library || [];
-  const initialLoaded = (state as any)?.game_library !== undefined;
+  
+  // Instant Local-First Cache: Load from localStorage on Frame-0 to eliminate loading screen delay
+  const getPersistedGames = (): BackendGame[] => {
+    try {
+      const stored = localStorage.getItem(`mc_cached_library_${userId || 'guest'}`);
+      if (stored) {
+        const parsed = JSON.parse(stored);
+        if (Array.isArray(parsed) && parsed.length > 0) return parsed;
+      }
+    } catch { }
+    return [];
+  };
+
+  const persisted = getPersistedGames();
+  const initialGames = (state as any)?.game_library || (persisted.length > 0 ? persisted : []);
+  const initialLoaded = (state as any)?.game_library !== undefined || persisted.length > 0;
 
   const [games, setGames] = useState<BackendGame[]>(initialGames);
   const [scanStatus, setScanStatus] = useState<string>('idle');
@@ -456,6 +470,14 @@ const GamesLibraryContent: React.FC<GamesPageProps> = ({ state, sendCommand, set
   // Tracks previous userId to detect provider switches (userId changes while still signed in)
   const lastUserIdRef = useRef<string | null | undefined>(undefined);
 
+  // Persist library snapshot to localStorage whenever updated
+  useEffect(() => {
+    if (games.length > 0) {
+      try {
+        localStorage.setItem(`mc_cached_library_${userId || 'guest'}`, JSON.stringify(games));
+      } catch { }
+    }
+  }, [games, userId]);
 
   const handlePlatformChange = (p: string) => {
     setFilter(p);
@@ -484,10 +506,9 @@ const GamesLibraryContent: React.FC<GamesPageProps> = ({ state, sendCommand, set
   useEffect(() => {
     if (!state) return;
     const s = state as any;
-    if (s.game_library !== undefined && !libraryServerOnline) {
+    if (s.game_library !== undefined) {
       const newGames = s.game_library || [];
       setGames(newGames);
-      // Mark games as loaded even if the library is empty (backend confirmed no games yet)
       setGamesLoaded(true);
     }
     if (s.scan_state) {
@@ -495,7 +516,7 @@ const GamesLibraryContent: React.FC<GamesPageProps> = ({ state, sendCommand, set
       setScanProgress(s.scan_state.progress || 0);
       setIsScanning(s.scan_state.is_running || false);
     }
-  }, [state, libraryServerOnline]);
+  }, [state]);
 
   // Track scanning logs
   useEffect(() => {
@@ -541,41 +562,49 @@ const GamesLibraryContent: React.FC<GamesPageProps> = ({ state, sendCommand, set
     const isNewAuthState = lastAuthStateRef.current !== authKey;
     if (isNewAuthState) {
       lastAuthStateRef.current = authKey;
-      // Auth state changed — reset loaded flag to trigger a fresh fetch
-      if (isSignedIn) {
+      // Auth state changed — if we have local cache, keep gamesLoaded true!
+      const persistedNow = getPersistedGames();
+      if (persistedNow.length > 0) {
+        setGames(persistedNow);
+        setGamesLoaded(true);
+      } else if (isSignedIn) {
         setGamesLoaded(false);
-        // If the userId itself changed (e.g. switching OAuth provider: Discord → Google),
-        // the scan that was running for the old user is now irrelevant. Reset scan UI
-        // immediately since !isSignedIn never fires during a provider switch.
-        const prevUserId = lastUserIdRef.current;
-        if (prevUserId !== undefined && prevUserId !== userId) {
-          setIsScanning(false);
-          setScanProgress(0);
-          setScanStatus('idle');
-          setScanLogs([]);
-          setGames([]);
-        }
+      }
+      
+      const prevUserId = lastUserIdRef.current;
+      if (prevUserId !== undefined && prevUserId !== userId) {
+        setIsScanning(false);
+        setScanProgress(0);
+        setScanStatus('idle');
+        setScanLogs([]);
       }
       lastUserIdRef.current = userId;
     }
 
-    if (isSignedIn && (s?.game_library !== undefined || gamesLoaded)) {
+    if (isSignedIn && (s?.game_library !== undefined || games.length > 0)) {
       setGamesLoaded(true);
-      // Clear any pending timeouts when games arrive
       if (gamesRequestTimeoutRef.current) {
         clearTimeout(gamesRequestTimeoutRef.current);
         gamesRequestTimeoutRef.current = null;
       }
     } else if (isSignedIn && !gamesLoaded) {
-      // Only request games if not requested recently (debounce: 500ms)
       const now = Date.now();
       if (now - lastGamesRequestRef.current > 500) {
         lastGamesRequestRef.current = now;
+        
+        // Fast parallel request: Query local backend immediately
+        sendCommand('get_cached_games', { userId: userId || undefined });
+
+        // If distributed server is online, fetch with strict 1.5s timeout
         if (libraryServerOnline && userId) {
-          fetch(`${LIBRARY_SERVER_URL}/api/games?installed_only=true&clerk_id=${encodeURIComponent(userId)}`)
+          const controller = new AbortController();
+          const timerId = setTimeout(() => controller.abort(), 1500);
+
+          fetch(`${LIBRARY_SERVER_URL}/api/games?installed_only=true&clerk_id=${encodeURIComponent(userId)}`, { signal: controller.signal })
             .then(res => res.json())
             .then(data => {
-              if (data && Array.isArray(data.games)) {
+              clearTimeout(timerId);
+              if (data && Array.isArray(data.games) && data.games.length > 0) {
                 const mappedGames: BackendGame[] = data.games.map((g: any) => {
                   const firstInst = g.installations?.[0];
                   return {
@@ -596,34 +625,19 @@ const GamesLibraryContent: React.FC<GamesPageProps> = ({ state, sendCommand, set
                 });
                 setGames(mappedGames);
                 setGamesLoaded(true);
-              } else {
-                sendCommand('get_cached_games', { userId: userId || undefined });
               }
             })
-            .catch(err => {
-              console.error("Distributed fetch failed:", err);
-              sendCommand('get_cached_games', { userId: userId || undefined });
+            .catch(() => {
+              clearTimeout(timerId);
             });
-        } else {
-          sendCommand('get_cached_games', {
-            userId: userId || undefined
-          });
         }
       }
 
-      // Set timeout for retry only if not already set
       if (!gamesRequestTimeoutRef.current) {
         gamesRequestTimeoutRef.current = setTimeout(() => {
           gamesRequestTimeoutRef.current = null;
-          // If games still not loaded, request again (single retry)
-          const currentState = state as any;
-          if (currentState?.game_library === undefined && Date.now() - lastGamesRequestRef.current > 500 && !libraryServerOnline) {
-            lastGamesRequestRef.current = Date.now();
-            sendCommand('get_cached_games', {
-              userId: userId || undefined
-            });
-          }
-        }, 1500); // Give backend more time for game library (1.5s instead of 1s)
+          setGamesLoaded(true);
+        }, 1200); // 1.2s safety fallback to never keep screen stuck
       }
     }
 
@@ -633,7 +647,7 @@ const GamesLibraryContent: React.FC<GamesPageProps> = ({ state, sendCommand, set
         gamesRequestTimeoutRef.current = null;
       }
     };
-  }, [state, userId, isSignedIn, gamesLoaded, sendCommand]); // eslint-disable-line react-hooks/exhaustive-deps
+  }, [state, userId, isSignedIn, gamesLoaded, games.length, sendCommand]); // eslint-disable-line react-hooks/exhaustive-deps
 
   // Clear local library and abort any in-progress scan UI when the user signs out
   useEffect(() => {

@@ -173,10 +173,10 @@ def handle_get_cached_games(payload: dict, pipeline, bridge, config, library_ses
             return
 
         if not cached:
-            logger.info("No cached games found — triggering auto-scan for user %s", user_id_str)
+            logger.info("No cached games found — triggering non-blocking background auto-scan for user %s", user_id_str)
             bridge.update_state({
                 "game_library": [],
-                "scan_state": {"progress": 0, "status": "Starting auto-scan...", "is_running": True},
+                "scan_state": {"progress": 0, "status": "Discovering games...", "is_running": False, "is_background": True},
             })
 
             def _do_auto_scan():
@@ -184,7 +184,7 @@ def handle_get_cached_games(payload: dict, pipeline, bridge, config, library_ses
                     sc = GameScanner(config=config, user_id=user_id_str)
 
                     def on_progress(pct, label):
-                        bridge.update_state({"scan_state": {"progress": pct, "status": label, "is_running": True}})
+                        bridge.update_state({"scan_state": {"progress": pct, "status": label, "is_running": False, "is_background": True}})
 
                     games = sc.scan_all(progress_callback=on_progress)
                     logger.info("Auto-scan complete: %d titles found for user %s", len(games), user_id_str)
@@ -195,13 +195,13 @@ def handle_get_cached_games(payload: dict, pipeline, bridge, config, library_ses
                         pipeline.process_watcher.update_game_registry(games)
                     bridge.update_state({
                         "game_library": apply_filters(games),
-                        "scan_state": {"progress": 100, "status": "Complete", "is_running": False},
+                        "scan_state": {"progress": 100, "status": "Complete", "is_running": False, "is_background": False},
                     })
                 except Exception as e:
                     logger.error("Auto-scan failed for user %s: %s", user_id_str, e, exc_info=True)
                     bridge.update_state({
                         "game_library": [],
-                        "scan_state": {"progress": 0, "status": "Error", "is_running": False},
+                        "scan_state": {"progress": 0, "status": "Ready", "is_running": False, "is_background": False},
                     })
 
             threading.Thread(target=_do_auto_scan, name="AutoGameScan", daemon=True).start()
