@@ -94,7 +94,7 @@ CREATE TABLE IF NOT EXISTS node_scan_paths (
 );
 CREATE INDEX IF NOT EXISTS idx_nsp_node_id ON node_scan_paths (node_id);
 
---  5. AI Classification Log 
+-- 5. AI Classification Log 
 CREATE TABLE IF NOT EXISTS ai_classification_log (
     id              SERIAL          PRIMARY KEY,
     game_id         VARCHAR(255)    NOT NULL REFERENCES canonical_games(id) ON DELETE CASCADE,
@@ -107,3 +107,22 @@ CREATE TABLE IF NOT EXISTS ai_classification_log (
     latency_ms      INTEGER,
     created_at      TIMESTAMPTZ     NOT NULL DEFAULT NOW()
 );
+
+-- 6. User Installed Games & Launcher Sync (Frontend / Desktop Sync)
+CREATE TABLE IF NOT EXISTS games (
+    id            VARCHAR(255)    NOT NULL,
+    user_id       VARCHAR(255)    NOT NULL,
+    name          VARCHAR(255),
+    platform      VARCHAR(255),
+    install_path  TEXT,
+    exe_path      TEXT,
+    icon          TEXT,
+    features      TEXT,
+    type          VARCHAR(64),
+    genre         VARCHAR(128),
+    tags          TEXT,
+    source        VARCHAR(128),
+    local_banner  TEXT,
+    PRIMARY KEY (id, user_id)
+);
+CREATE INDEX IF NOT EXISTS idx_games_user_id ON games (user_id);
