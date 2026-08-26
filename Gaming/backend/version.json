@@ -1,8 +1,21 @@
 {
-  "version": "3.3.0",
-  "release_date": "2026-08-25",
+  "version": "3.3.1",
+  "release_date": "2026-08-26",
   "update_check_url": "https://raw.githubusercontent.com/arnab825/Mission-Control/main/Gaming/backend/version.json",
   "changelog": [
+    {
+      "version": "3.3.1",
+      "date": "2026-08-26",
+      "title": "Multi-Cloud High Availability & Instant Zero-Lag Startup Architecture",
+      "highlights": [
+        "Added multi-tier cloud failover topology supporting Supabase (Tier 1), Neon Serverless PostgreSQL (Tier 2), and Local SQLite NVMe replica (Tier 3)",
+        "Implemented automated high-speed migration tool replicating 83.4k+ master games, user games, hardware nodes, and AI logs to Neon",
+        "Optimized game library loading with Local-First Frame-0 instant render and non-blocking background synchronization",
+        "Added fast-abort 1.5s timeout on remote distributed server queries preventing UI cold-start stalls",
+        "Demoted startup auto-scans to non-intrusive background state to eliminate full-screen radar modal lockouts",
+        "Added automated Vercel keep-alive cron job to keep Supabase, Neon, and MongoDB warm 24/7"
+      ]
+    },
     {
       "version": "3.3.0",
       "date": "2026-08-25",
