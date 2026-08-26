@@ -259,7 +259,39 @@ def run_migration(source_url: str, dest_url: str):
     except Exception as e:
         logger.warning("Games table migration notice: %s", e)
 
-    # 7. Verify Totals on Neon
+    # 7. Migrate AI Classification Logs
+    logger.info("Migrating ai_classification_log...")
+    try:
+        with src_conn.cursor(cursor_factory=psycopg2.extras.RealDictCursor) as cur:
+            cur.execute("SELECT * FROM ai_classification_log")
+            ai_logs = cur.fetchall()
+
+        insert_ai_sql = """
+            INSERT INTO ai_classification_log (
+                id, game_id, provider, model, input_tags, output_genre, output_tags, confidence, latency_ms, created_at
+            ) VALUES (
+                %(id)s, %(game_id)s, %(provider)s, %(model)s, %(input_tags)s, %(output_genre)s, %(output_tags)s,
+                %(confidence)s, %(latency_ms)s, %(created_at)s
+            ) ON CONFLICT (id) DO UPDATE SET
+                game_id      = EXCLUDED.game_id,
+                provider     = EXCLUDED.provider,
+                model        = EXCLUDED.model,
+                input_tags   = EXCLUDED.input_tags,
+                output_genre = EXCLUDED.output_genre,
+                output_tags  = EXCLUDED.output_tags,
+                confidence   = EXCLUDED.confidence,
+                latency_ms   = EXCLUDED.latency_ms,
+                created_at   = EXCLUDED.created_at;
+        """
+        with dst_conn.cursor() as cur:
+            psycopg2.extras.execute_batch(cur, insert_ai_sql, ai_logs, page_size=1000)
+            cur.execute("SELECT setval(pg_get_serial_sequence('ai_classification_log', 'id'), COALESCE(max(id), 1)) FROM ai_classification_log;")
+        dst_conn.commit()
+        logger.info("Migrated %d ai_classification_logs to Neon.", len(ai_logs))
+    except Exception as e:
+        logger.warning("AI Classification log migration notice: %s", e)
+
+    # 8. Verify Totals on Neon
     with dst_conn.cursor() as cur:
         cur.execute("SELECT count(*) FROM canonical_games")
         dst_games = cur.fetchone()[0]
@@ -274,17 +306,22 @@ def run_migration(source_url: str, dest_url: str):
             dst_user_games = cur.fetchone()[0]
         except Exception:
             dst_user_games = 0
-        cur.execute("SELECT count(*) FROM game_installations")
-        dst_inst = cur.fetchone()[0]
+        try:
+            cur.execute("SELECT count(*) FROM ai_classification_log")
+            dst_ai_logs = cur.fetchone()[0]
+        except Exception:
+            dst_ai_logs = 0
 
     elapsed = time.time() - start_time
     logger.info("════════════════════════════════════════════════════════════════")
-    logger.info("✅ ALL 5 TABLES MIGRATED TO NEON IN %.2f SECONDS!", elapsed)
+    logger.info("✅ ALL 6 TABLES MIGRATED TO NEON IN %.2f SECONDS!", elapsed)
     logger.info("Neon Database Summary:")
-    logger.info("  - Canonical Games:     %d", dst_games)
-    logger.info("  - Library Nodes:       %d", dst_nodes)
-    logger.info("  - Node Scan Paths:     %d", dst_paths)
-    logger.info("  - Game Installations:  %d", dst_inst)
+    logger.info("  - Canonical Games:        %d", dst_games)
+    logger.info("  - Desktop User Games:     %d", dst_user_games)
+    logger.info("  - Library Nodes:          %d", dst_nodes)
+    logger.info("  - Node Scan Paths:        %d", dst_paths)
+    logger.info("  - Game Installations:     %d", dst_inst)
+    logger.info("  - AI Classification Logs: %d", dst_ai_logs)
     logger.info("════════════════════════════════════════════════════════════════")
 
     src_conn.close()
