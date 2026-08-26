@@ -428,89 +428,97 @@ class GameScanner:
         self.cache_file.parent.mkdir(parents=True, exist_ok=True)
 
     def load_cached_games(self):
-        """Return cached results for instant startup.
+        """Return cached results for instant startup (Local-First Architecture).
 
         Priority order:
-        1. Supabase cloud DB (if configured and user_id is known)
-        2. Local SQLite DB (E2EE/encrypted if Privacy Shield active)
-        3. Local JSON file fallback
+        1. Local JSON cache / Local SQLite DB (Instant <1ms read)
+        2. Cloud Supabase DB / Distributed Server (Fallback if first run or sync in background)
         """
         games = []
-        # --- 1. Try Supabase ---
-        if _DB_MANAGER_AVAILABLE and self.user_id:
+
+        # --- 1. Local JSON cache (Instant NVMe read) ---
+        if self.cache_file.exists():
             try:
-                db = get_db()
-                if db.available:
-                    res = db.load_games(self.user_id)
-                    if res:
-                        logger.info(
-                            "Loaded %d games from Supabase for user %s",
-                            len(res), self.user_id
-                        )
-                        games = res
+                with open(self.cache_file, "r", encoding="utf-8") as f:
+                    cached_json = json.load(f)
+                    if isinstance(cached_json, list) and len(cached_json) > 0:
+                        games = cached_json
+                        logger.debug("Loaded %d games instantly from local JSON cache", len(games))
             except Exception as exc:
-                logger.warning("Supabase load failed, falling back to SQLite: %s", exc)
+                logger.debug("Local JSON cache read error: %s", exc)
 
-        # --- 1b. Try Distributed Library Server ---
-        if not games and self.user_id:
-            library_server_url = os.getenv("LIBRARY_SERVER_URL", "https://mission-control-server-okj7.onrender.com").rstrip("/")
-            if library_server_url:
-                try:
-                    import urllib.request
-                    import urllib.parse
-                    url = f"{library_server_url}/api/games?installed_only=true&clerk_id={urllib.parse.quote(self.user_id)}"
-                    req = urllib.request.Request(url, headers={"User-Agent": "MissionControl-Backend/1.0"})
-                    with urllib.request.urlopen(req, timeout=10) as resp:
-                        data = json.loads(resp.read().decode("utf-8"))
-                        if data and "games" in data:
-                            mapped_games = []
-                            for g in data["games"]:
-                                primary_inst = g.get("installations", [{}])[0] if g.get("installations") else {}
-                                mapped_games.append({
-                                    "id": g["id"],
-                                    "name": g["title"],
-                                    "platform": primary_inst.get("store", "PC").upper(),
-                                    "install_path": primary_inst.get("install_path", ""),
-                                    "exe_path": primary_inst.get("exe_path", ""),
-                                    "icon": g.get("coverUrl", ""),
-                                    "features": g.get("features", []),
-                                    "type": "GAME" if primary_inst.get("store") else "JUNK",
-                                    "genre": g.get("primaryGenre", "Action"),
-                                    "tags": g.get("tags", []),
-                                    "source": primary_inst.get("store", "manual"),
-                                    "local_banner": g.get("bannerUrl", "")
-                                })
-                            if mapped_games:
-                                logger.info(
-                                    "Loaded %d games from Distributed Library Server for user %s",
-                                    len(mapped_games), self.user_id
-                                )
-                                games = mapped_games
-                except Exception as exc:
-                    logger.warning("Distributed library server load failed: %s", exc)
-
-        # --- 2. Try Local SQLite cache (with E2EE capability) ---
+        # --- 2. Try Local SQLite cache (if JSON was empty) ---
         if not games:
             try:
                 from ai_brain.memory import GameMemory
                 mem = GameMemory(config=self.config)
                 res = mem.load_local_games(self.user_id)
                 if res:
-                    logger.info(
-                        "Loaded %d games from local SQLite cache for user %s",
-                        len(res), self.user_id
-                    )
+                    logger.info("Loaded %d games from local SQLite cache for user %s", len(res), self.user_id)
                     games = res
             except Exception as exc:
-                logger.warning("Local SQLite load failed, falling back to JSON: %s", exc)
+                logger.debug("Local SQLite load note: %s", exc)
 
-        # --- 3. Local JSON fallback ---
-        if not games and self.cache_file.exists():
-            try:
-                with open(self.cache_file, "r", encoding="utf-8") as f:
-                    games = json.load(f)
-            except Exception:
-                pass
+        # --- 3. If local cache existed, trigger a non-blocking background cloud sync ---
+        if games and _DB_MANAGER_AVAILABLE and self.user_id:
+            def _async_cloud_refresh():
+                try:
+                    db = get_db()
+                    if db.available:
+                        cloud_res = db.load_games(self.user_id)
+                        if cloud_res and len(cloud_res) != len(games):
+                            logger.info("[BackgroundSync] Synced %d games from Supabase", len(cloud_res))
+                except Exception:
+                    pass
+            threading.Thread(target=_async_cloud_refresh, name="BackgroundCloudGameSync", daemon=True).start()
+
+        # --- 4. Fallback: If NO local games exist at all (first run ever), query Cloud DB with strict fast timeout ---
+        if not games:
+            if _DB_MANAGER_AVAILABLE and self.user_id:
+                try:
+                    db = get_db()
+                    if db.available:
+                        res = db.load_games(self.user_id)
+                        if res:
+                            logger.info("Loaded %d games from Supabase for user %s", len(res), self.user_id)
+                            games = res
+                except Exception as exc:
+                    logger.warning("Supabase load failed: %s", exc)
+
+            # Try Distributed Library Server with strict 2.5s timeout
+            if not games and self.user_id:
+                library_server_url = os.getenv("LIBRARY_SERVER_URL", "https://mission-control-server-okj7.onrender.com").rstrip("/")
+                if library_server_url:
+                    try:
+                        import urllib.request
+                        import urllib.parse
+                        url = f"{library_server_url}/api/games?installed_only=true&clerk_id={urllib.parse.quote(self.user_id)}"
+                        req = urllib.request.Request(url, headers={"User-Agent": "MissionControl-Backend/1.0"})
+                        with urllib.request.urlopen(req, timeout=2.5) as resp:
+                            data = json.loads(resp.read().decode("utf-8"))
+                            if data and "games" in data:
+                                mapped_games = []
+                                for g in data["games"]:
+                                    primary_inst = g.get("installations", [{}])[0] if g.get("installations") else {}
+                                    mapped_games.append({
+                                        "id": g["id"],
+                                        "name": g["title"],
+                                        "platform": primary_inst.get("store", "PC").upper(),
+                                        "install_path": primary_inst.get("install_path", ""),
+                                        "exe_path": primary_inst.get("exe_path", ""),
+                                        "icon": g.get("coverUrl", ""),
+                                        "features": g.get("features", []),
+                                        "type": "GAME" if primary_inst.get("store") else "JUNK",
+                                        "genre": g.get("primaryGenre", "Action"),
+                                        "tags": g.get("tags", []),
+                                        "source": primary_inst.get("store", "manual"),
+                                        "local_banner": g.get("bannerUrl", "")
+                                    })
+                                if mapped_games:
+                                    logger.info("Loaded %d games from Distributed Library Server", len(mapped_games))
+                                    games = mapped_games
+                    except Exception as exc:
+                        logger.debug("Distributed library server quick check: %s", exc)
 
         # Clean trademark symbols, spaces, normalize names, and purge uninstalled/junk games
         if games:
