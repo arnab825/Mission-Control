@@ -225,7 +225,41 @@ def run_migration(source_url: str, dest_url: str):
     dst_conn.commit()
     logger.info("Migrated %d game_installations to Neon.", len(installs))
 
-    # 6. Verify Totals on Neon
+    # 6. Migrate Desktop / Frontend Sync Table (games)
+    logger.info("Migrating desktop user synced games table (games)...")
+    try:
+        with src_conn.cursor(cursor_factory=psycopg2.extras.RealDictCursor) as cur:
+            cur.execute("SELECT * FROM games")
+            user_games = cur.fetchall()
+
+        insert_user_games_sql = """
+            INSERT INTO games (
+                id, user_id, name, platform, install_path, exe_path, icon, features,
+                type, genre, tags, source, local_banner
+            ) VALUES (
+                %(id)s, %(user_id)s, %(name)s, %(platform)s, %(install_path)s, %(exe_path)s, %(icon)s, %(features)s,
+                %(type)s, %(genre)s, %(tags)s, %(source)s, %(local_banner)s
+            ) ON CONFLICT (id, user_id) DO UPDATE SET
+                name         = EXCLUDED.name,
+                platform     = EXCLUDED.platform,
+                install_path = EXCLUDED.install_path,
+                exe_path     = EXCLUDED.exe_path,
+                icon         = EXCLUDED.icon,
+                features     = EXCLUDED.features,
+                type         = EXCLUDED.type,
+                genre        = EXCLUDED.genre,
+                tags         = EXCLUDED.tags,
+                source       = EXCLUDED.source,
+                local_banner = EXCLUDED.local_banner;
+        """
+        with dst_conn.cursor() as cur:
+            psycopg2.extras.execute_batch(cur, insert_user_games_sql, user_games, page_size=100)
+        dst_conn.commit()
+        logger.info("Migrated %d user games to Neon.", len(user_games))
+    except Exception as e:
+        logger.warning("Games table migration notice: %s", e)
+
+    # 7. Verify Totals on Neon
     with dst_conn.cursor() as cur:
         cur.execute("SELECT count(*) FROM canonical_games")
         dst_games = cur.fetchone()[0]
@@ -233,6 +267,13 @@ def run_migration(source_url: str, dest_url: str):
         dst_nodes = cur.fetchone()[0]
         cur.execute("SELECT count(*) FROM node_scan_paths")
         dst_paths = cur.fetchone()[0]
+        cur.execute("SELECT count(*) FROM game_installations")
+        dst_inst = cur.fetchone()[0]
+        try:
+            cur.execute("SELECT count(*) FROM games")
+            dst_user_games = cur.fetchone()[0]
+        except Exception:
+            dst_user_games = 0
         cur.execute("SELECT count(*) FROM game_installations")
         dst_inst = cur.fetchone()[0]
 
