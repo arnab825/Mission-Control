@@ -153,21 +153,26 @@ class RawInstallationPayload(BaseModel):
     """Raw game installation as reported by a node during sync."""
     title: str
     store: str  # 'steam' | 'epic' | 'gog' | 'ubisoft' | 'ea' | 'rockstar' | 'xbox' | 'battlenet' | 'manual'
-    store_app_id: Optional[str] = None
-    install_path: str
-    exe_path: Optional[str] = None
+    store_app_id: Optional[str] = Field(default=None, alias="storeAppId")
+    install_path: str = Field(default="", alias="installPath")
+    exe_path: Optional[str] = Field(default=None, alias="exePath")
     version: Optional[str] = None
-    size_bytes: int = 0         # Real bytes from manifest or os.scandir
+    size_bytes: int = Field(default=0, alias="sizeBytes")         # Real bytes from manifest or os.scandir
     developer: Optional[str] = None
     publisher: Optional[str] = None
-    release_date: Optional[str] = None
+    release_date: Optional[str] = Field(default=None, alias="releaseDate")
     genres: List[str] = []      # Raw genres from web/store (may be noisy)
     tags: List[str] = []        # Raw tags (may be misplaced — AI will refine)
     features: List[str] = []
-    cover_url: Optional[str] = None
-    banner_url: Optional[str] = None
+    cover_url: Optional[str] = Field(default=None, alias="coverUrl")
+    banner_url: Optional[str] = Field(default=None, alias="bannerUrl")
     summary: Optional[str] = None
     metadata: Dict[str, Any] = {}
+
+    class Config:
+        populate_by_name = True
+        extra = "ignore"
+
 
 
 class SyncRequest(BaseModel):
