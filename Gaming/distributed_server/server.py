@@ -912,6 +912,7 @@ async def seed_games(req: SeedRequest):
 # ══════════════════════════════════════════════════════════════════════════════
 
 @app.get("/api/games")
+@app.get("/api/catalog")
 async def get_games(
     page: int = Query(1, ge=1),
     limit: int = Query(48, ge=1, le=200),

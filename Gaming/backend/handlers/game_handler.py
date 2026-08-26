@@ -39,9 +39,22 @@ def _ensure_local_node_daemon(user_id_str: Optional[str] = None):
     def _run():
         global _node_service_instance
         try:
-            node_dir = Path(__file__).parent.parent.parent / "distributed_node"
-            if str(node_dir) not in sys.path:
+            candidates = [
+                Path(getattr(sys, "_MEIPASS", "")) / "distributed_node",
+                Path(sys.executable).parent / "_internal" / "distributed_node",
+                Path(sys.executable).parent / "distributed_node",
+                Path(__file__).resolve().parent.parent.parent / "distributed_node",
+                Path(__file__).resolve().parent.parent / "distributed_node",
+            ]
+            node_dir = None
+            for c in candidates:
+                if c.exists() and (c / "node_service.py").exists():
+                    node_dir = c
+                    break
+
+            if node_dir and str(node_dir) not in sys.path:
                 sys.path.insert(0, str(node_dir))
+                
             from node_service import LibraryNodeService, NodeConfig
             
             cfg = NodeConfig()

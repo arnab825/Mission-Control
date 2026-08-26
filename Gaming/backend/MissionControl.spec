@@ -49,6 +49,12 @@ for d in ['queries', 'vision', 'ai_brain', 'core', 'control',
         dest = d if src.is_dir() else '.'
         datas.append((d, dest))
 
+# Bundle distributed_node service module
+dist_node_path = Path('../distributed_node')
+if dist_node_path.exists():
+    datas.append((str(dist_node_path), 'distributed_node'))
+
+
 from PyInstaller.utils.hooks import collect_all, collect_data_files, collect_submodules
 
 def find_package_dir(pkg_name):
