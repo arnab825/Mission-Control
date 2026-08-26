@@ -201,8 +201,41 @@ services:
     depends_on:
       - load_balancer
 
+  # ── 9. Production-Grade PostgreSQL 16 ──────────────────────────────────────
+  postgres:
+    image: postgres:16-alpine
+    container_name: mc-postgres
+    restart: always
+    environment:
+      POSTGRES_USER: ${POSTGRES_USER:-mission_control}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-SuperSecretSecurePassword123!}
+      POSTGRES_DB: ${POSTGRES_DB:-mission_control}
+      PGDATA: /var/lib/postgresql/data/pgdata
+    volumes:
+      - pg-data:/var/lib/postgresql/data
+      - ./queries/schema.sql:/docker-entrypoint-initdb.d/init.sql:ro
+    ports:
+      - "5432:5432"
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER:-mission_control} -d ${POSTGRES_DB:-mission_control}"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    command: >
+      postgres
+      -c shared_buffers=512MB
+      -c effective_cache_size=1536MB
+      -c work_mem=32MB
+      -c maintenance_work_mem=128MB
+      -c max_connections=200
+      -c wal_level=replica
+      -c checkpoint_completion_target=0.9
+
 volumes:
+  pg-data:
+    driver: local
   catalog-data:
     driver: local
   redis-data:
     driver: local
+
