@@ -87,13 +87,15 @@ class LibraryDB:
     """
 
     def __init__(self, database_url: Optional[str] = None):
-        raw_primary = database_url or os.getenv("DATABASE_URL", "")
-        raw_fallback = os.getenv("FALLBACK_DATABASE_URL", "")
+        raw_primary = database_url or os.getenv("ORACLE_DATABASE_URL") or os.getenv("DATABASE_URL", "")
+        raw_tier2 = os.getenv("SUPABASE_DATABASE_URL") or os.getenv("FALLBACK_DATABASE_URL", "")
+        raw_tier3 = os.getenv("NEON_DATABASE_URL") or os.getenv("FALLBACK_DATABASE_URL_2", "")
         
         self._url_primary = _sanitize_db_url(raw_primary)
-        self._url_fallback = _sanitize_db_url(raw_fallback)
+        self._url_tier2 = _sanitize_db_url(raw_tier2)
+        self._url_tier3 = _sanitize_db_url(raw_tier3)
         self._conn = None
-        self._active_tier = 0 # 0=None, 1=Primary, 2=Fallback, 3=SQLite
+        self._active_tier = 0  # 0=None, 1=Oracle(Primary), 2=Supabase(Hot Standby), 3=Neon(Standby), 4=SQLite, 5=Mongo
         
         self.available = False
         
@@ -110,25 +112,36 @@ class LibraryDB:
         self._init_mongo()
 
         if not _PSYCOPG2_AVAILABLE and not self._url_primary:
-            logger.warning("LibraryDB: psycopg2 or DATABASE_URL not available. Defaulting to Tier 3.")
-            self._active_tier = 3
+            logger.warning("LibraryDB: psycopg2 or DATABASE_URL not available. Defaulting to Tier 4 (SQLite).")
+            self._active_tier = 4
             self.available = True
             return
 
-        # Retry loop: Render cold starts can take 10-30s
+        # Retry loop: Cloud connection negotiation
         for attempt in range(1, 4):
             self._connect()
-            if self._active_tier in (1, 2):
+            if self._active_tier in (1, 2, 3):
                 break
             logger.warning("LibraryDB: Cloud Startup attempt %d/3 failed, retrying in 5s...", attempt)
             time.sleep(5)
             
-        if self._active_tier not in (1, 2):
-            logger.error("LibraryDB: Could not connect to any Cloud PostgreSQL. Falling back to Tier 3 (SQLite).")
-            self._active_tier = 3
+        if self._active_tier not in (1, 2, 3):
+            logger.error("LibraryDB: Could not connect to any Cloud PostgreSQL. Falling back to Tier 4 (SQLite).")
+            self._active_tier = 4
             self.available = True
 
-    # ── Tier 3 SQLite Initialization ──────────────────────────────────────────
+    @property
+    def active_tier_name(self) -> str:
+        names = {
+            1: "Tier 1 (Oracle Cloud PostgreSQL / Primary)",
+            2: "Tier 2 (Supabase Cloud PostgreSQL / Hot Standby)",
+            3: "Tier 3 (Neon Serverless PostgreSQL / Standby)",
+            4: "Tier 4 (SQLite NVMe Disk Replica)",
+            5: "Tier 5 (MongoDB Atlas Mirror)",
+        }
+        return names.get(self._active_tier, f"Tier {self._active_tier}")
+
+    # ── Tier 4 SQLite Initialization ──────────────────────────────────────────
 
     def _init_sqlite(self):
         try:
@@ -255,7 +268,7 @@ class LibraryDB:
     # ── Connection Management ────────────────────────────────────────────────
 
     def _connect(self):
-        # Try Tier 1 Primary
+        # Try Tier 1 (Oracle Cloud / Primary)
         if self._url_primary:
             try:
                 self._conn = psycopg2.connect(self._url_primary, connect_timeout=10)
@@ -263,33 +276,47 @@ class LibraryDB:
                 self._ensure_schema()
                 self.available = True
                 self._active_tier = 1
-                logger.info("LibraryDB: Connected to Tier 1 PostgreSQL (Primary).")
+                logger.info("LibraryDB: Connected to Tier 1 PostgreSQL (Oracle Cloud / Primary).")
                 return
             except Exception as exc:
-                logger.error("LibraryDB: Tier 1 Connection failed: %s", exc)
+                logger.warning("LibraryDB: Tier 1 Connection failed: %s", exc)
                 self._conn = None
         
-        # Try Tier 2 Fallback
-        if self._url_fallback:
+        # Try Tier 2 (Supabase Cloud / Standby #1)
+        if self._url_tier2:
             try:
-                self._conn = psycopg2.connect(self._url_fallback, connect_timeout=10)
+                self._conn = psycopg2.connect(self._url_tier2, connect_timeout=10)
                 self._conn.autocommit = False
                 self._ensure_schema()
                 self.available = True
                 self._active_tier = 2
-                logger.info("LibraryDB: Connected to Tier 2 PostgreSQL (Hot Standby).")
+                logger.info("LibraryDB: Connected to Tier 2 PostgreSQL (Supabase Cloud).")
                 return
             except Exception as exc:
-                logger.error("LibraryDB: Tier 2 Connection failed: %s", exc)
+                logger.warning("LibraryDB: Tier 2 Connection failed: %s", exc)
+                self._conn = None
+
+        # Try Tier 3 (Neon Serverless / Standby #2)
+        if self._url_tier3:
+            try:
+                self._conn = psycopg2.connect(self._url_tier3, connect_timeout=10)
+                self._conn.autocommit = False
+                self._ensure_schema()
+                self.available = True
+                self._active_tier = 3
+                logger.info("LibraryDB: Connected to Tier 3 PostgreSQL (Neon Serverless).")
+                return
+            except Exception as exc:
+                logger.warning("LibraryDB: Tier 3 Connection failed: %s", exc)
                 self._conn = None
                 
-        # If both fail, Tier 3 is active
-        self._active_tier = 3
+        # If all 3 cloud tiers fail, Tier 4 is active (Local SQLite)
+        self._active_tier = 4
         self.available = True
 
     def _alive(self) -> bool:
-        if self._active_tier == 3:
-            return True # SQLite is always alive
+        if self._active_tier >= 4:
+            return True  # SQLite is always alive
         if not self._conn:
             return False
         try:
@@ -307,9 +334,9 @@ class LibraryDB:
 
     def ping(self) -> bool:
         """Pings the database with an active SELECT 1 query to verify health."""
-        if not self._conn and self._active_tier != 3:
+        if not self._conn and self._active_tier < 4:
             return self._ensure_connected()
-        if self._active_tier == 3:
+        if self._active_tier >= 4:
             return True
         try:
             with self._conn.cursor() as cur:
@@ -340,8 +367,8 @@ class LibraryDB:
         if not self._ensure_connected():
             raise RuntimeError("LibraryDB: Not connected.")
             
-        if self._active_tier == 3:
-            raise RuntimeError("LibraryDB: 'execute' called on Postgres SQL while in Tier 3 mode. Use direct methods instead.")
+        if self._active_tier >= 4:
+            raise RuntimeError("LibraryDB: 'execute' called on Postgres SQL while in SQLite mode. Use direct methods instead.")
 
         try:
             with self._conn.cursor(cursor_factory=psycopg2.extras.RealDictCursor) as cur:
@@ -681,7 +708,7 @@ class LibraryDB:
         release_date: Optional[str] = None,
         metadata: Optional[Dict[str, Any]] = None,
     ) -> None:
-        if self._active_tier == 3:
+        if self._active_tier >= 4:
             return
         sql = """
             UPDATE canonical_games SET
@@ -709,7 +736,7 @@ class LibraryDB:
         })
 
     def log_ai_classification(self, log: Dict[str, Any]) -> None:
-        if self._active_tier == 3:
+        if self._active_tier >= 4:
             return
         sql = """
             INSERT INTO ai_classification_log
@@ -751,7 +778,7 @@ class LibraryDB:
     def upsert_node(self, node: Dict[str, Any]) -> None:
         threading.Thread(target=self._sqlite_upsert_node, args=(node,), daemon=True).start()
         
-        if self._active_tier == 3:
+        if self._active_tier >= 4:
             return
 
         sql = """
@@ -825,7 +852,7 @@ class LibraryDB:
                 logger.warning("Failed to sync node_scan_paths: %s", e)
 
     def get_node(self, node_id: str) -> Optional[Dict]:
-        if self._active_tier == 3:
+        if self._active_tier >= 4:
             return self._sqlite_execute("SELECT * FROM library_nodes WHERE node_id = :node_id", {"node_id": node_id}, fetch="one")
         return self.execute(
             "SELECT * FROM library_nodes WHERE node_id = %(node_id)s",
@@ -833,7 +860,7 @@ class LibraryDB:
         )
 
     def get_all_nodes(self, clerk_id: Optional[str] = None) -> List[Dict]:
-        if self._active_tier == 3:
+        if self._active_tier >= 4:
             if clerk_id:
                 return self._sqlite_execute("SELECT * FROM library_nodes WHERE clerk_id = :clerk_id ORDER BY name ASC", {"clerk_id": clerk_id}, fetch="all")
             return self._sqlite_execute("SELECT * FROM library_nodes ORDER BY name ASC", fetch="all")
@@ -847,7 +874,7 @@ class LibraryDB:
         return self.execute("SELECT * FROM library_nodes ORDER BY name ASC", fetch="all")
 
     def heartbeat(self, node_id: str, storage_total: int, storage_used: int, storage_free: int, ip: str) -> None:
-        if self._active_tier == 3:
+        if self._active_tier >= 4:
             return
         sql = """
             UPDATE library_nodes SET
@@ -869,7 +896,7 @@ class LibraryDB:
         })
 
     def mark_offline(self, node_id: str) -> None:
-        if self._active_tier == 3:
+        if self._active_tier >= 4:
             return
         self.execute(
             "UPDATE library_nodes SET status = 'offline', updated_at = NOW() WHERE node_id = %(id)s",
@@ -881,7 +908,7 @@ class LibraryDB:
         )
 
     def delete_node(self, node_id: str) -> None:
-        if self._active_tier == 3:
+        if self._active_tier >= 4:
             return
         self.execute(
             "DELETE FROM library_nodes WHERE node_id = %(id)s",
@@ -889,7 +916,7 @@ class LibraryDB:
         )
 
     def verify_node_token(self, node_id: str, token: str) -> bool:
-        if self._active_tier == 3:
+        if self._active_tier >= 4:
             return False
         row = self.execute(
             "SELECT auth_token_hash FROM library_nodes WHERE node_id = %(id)s",
@@ -921,7 +948,7 @@ class LibraryDB:
 
     def upsert_installation(self, inst: Dict[str, Any]) -> None:
         threading.Thread(target=self._sqlite_upsert_installation, args=(inst,), daemon=True).start()
-        if self._active_tier == 3:
+        if self._active_tier >= 4:
             return
             
         sql = _load_sql("upsert_installation")
@@ -935,7 +962,7 @@ class LibraryDB:
         return saved
 
     def mark_node_installations_unavailable(self, node_id: str) -> None:
-        if self._active_tier == 3:
+        if self._active_tier >= 4:
             return
         self.execute(
             "UPDATE game_installations SET status = 'unavailable', updated_at = NOW() WHERE node_id = %(id)s",
@@ -943,7 +970,7 @@ class LibraryDB:
         )
 
     def mark_node_installations_available(self, node_id: str) -> None:
-        if self._active_tier == 3:
+        if self._active_tier >= 4:
             return
         self.execute(
             "UPDATE game_installations SET status = 'available', updated_at = NOW() WHERE node_id = %(id)s",
@@ -959,7 +986,7 @@ class LibraryDB:
         }
 
     def get_stats(self, clerk_id: Optional[str] = None) -> Dict[str, Any]:
-        if self._active_tier == 3:
+        if self._active_tier >= 4:
             return self._sqlite_get_stats(clerk_id)
             
         sql = _load_sql("stats")
@@ -971,7 +998,7 @@ class LibraryDB:
     # ── Offline Watchdog helper ──────────────────────────────────────────────
 
     def get_stale_nodes(self, timeout_seconds: int = 45) -> List[Dict]:
-        if self._active_tier == 3:
+        if self._active_tier >= 4:
             return []
         """Return nodes that haven't sent a heartbeat recently and are still 'online'."""
         sql = """
