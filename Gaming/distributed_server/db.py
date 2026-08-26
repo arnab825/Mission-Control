@@ -132,14 +132,20 @@ class LibraryDB:
 
     @property
     def active_tier_name(self) -> str:
-        names = {
-            1: "Tier 1 (Oracle Cloud PostgreSQL / Primary)",
-            2: "Tier 2 (Supabase Cloud PostgreSQL / Hot Standby)",
-            3: "Tier 3 (Neon Serverless PostgreSQL / Standby)",
-            4: "Tier 4 (SQLite NVMe Disk Replica)",
-            5: "Tier 5 (MongoDB Atlas Mirror)",
-        }
-        return names.get(self._active_tier, f"Tier {self._active_tier}")
+        if self._active_tier == 1:
+            prov = "Supabase" if "supabase" in self._url_primary.lower() else "Neon Serverless" if "neon.tech" in self._url_primary.lower() else "Primary Cloud Postgres"
+            return f"Tier 1 ({prov} / Primary)"
+        elif self._active_tier == 2:
+            prov = "Neon Serverless" if "neon.tech" in self._url_tier2.lower() else "Supabase" if "supabase" in self._url_tier2.lower() else "Hot Standby Postgres"
+            return f"Tier 2 ({prov} / Hot Standby)"
+        elif self._active_tier == 3:
+            prov = "Neon Serverless" if "neon.tech" in self._url_tier3.lower() else "Cloud Standby Postgres"
+            return f"Tier 3 ({prov})"
+        elif self._active_tier == 4:
+            return "Tier 4 (SQLite NVMe Disk Replica)"
+        elif self._active_tier == 5:
+            return "Tier 5 (MongoDB Atlas Mirror)"
+        return f"Tier {self._active_tier}"
 
     # ── Tier 4 SQLite Initialization ──────────────────────────────────────────
 
