@@ -28,19 +28,21 @@ export async function GET(request: Request) {
     results.services.mongodb = { status: "error", error: err?.message || String(err) };
   }
 
-  // 2. Ping Render Cloud Distributed Server to keep it warm
-  try {
-    const renderUrl = process.env.NEXT_PUBLIC_LIBRARY_SERVER_URL || "https://mission-control-server-okj7.onrender.com";
-    const res = await fetch(`${renderUrl}/health`, {
-      headers: { "User-Agent": "MissionControl-WebsiteCron/1.0" },
-      signal: AbortSignal.timeout(15000),
-    });
-    results.services.distributed_server = {
-      status: res.ok ? "active" : "degraded",
-      http_status: res.status,
-    };
-  } catch (err: any) {
-    results.services.distributed_server = { status: "timeout_or_error", error: err?.message || String(err) };
+  // 2. Ping Render Cloud Distributed Server to keep it warm (if configured)
+  if (process.env.NEXT_PUBLIC_LIBRARY_SERVER_URL) {
+    try {
+      const renderUrl = process.env.NEXT_PUBLIC_LIBRARY_SERVER_URL.replace(/\/$/, "");
+      const res = await fetch(`${renderUrl}/health`, {
+        headers: { "User-Agent": "MissionControl-WebsiteCron/1.0" },
+        signal: AbortSignal.timeout(15000),
+      });
+      results.services.distributed_server = {
+        status: res.ok ? "active" : "degraded",
+        http_status: res.status,
+      };
+    } catch (err: any) {
+      results.services.distributed_server = { status: "timeout_or_error", error: err?.message || String(err) };
+    }
   }
 
   // 3. Ping Supabase if configured
