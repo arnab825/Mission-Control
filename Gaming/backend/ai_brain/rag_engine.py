@@ -163,12 +163,12 @@ class GameRAGEngine:
         import json
         
         base_url = self.server_url.rstrip("/")
-        api_url = f"{base_url}/api/catalog?limit={limit}"
+        api_url = f"{base_url}/api/games?limit={limit}"
         logger.info(f"Syncing game intelligence from distributed server: {api_url}")
         
         try:
             req = urllib.request.Request(api_url, headers={"User-Agent": "MissionControl-RAG/1.0"})
-            with urllib.request.urlopen(req, timeout=5) as resp:
+            with urllib.request.urlopen(req, timeout=12) as resp:
                 data = json.loads(resp.read().decode("utf-8"))
                 games = data.get("games", []) if isinstance(data, dict) else (data if isinstance(data, list) else [])
                 

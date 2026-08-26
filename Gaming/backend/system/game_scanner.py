@@ -460,7 +460,7 @@ class GameScanner:
                     import urllib.parse
                     url = f"{library_server_url}/api/games?installed_only=true&clerk_id={urllib.parse.quote(self.user_id)}"
                     req = urllib.request.Request(url, headers={"User-Agent": "MissionControl-Backend/1.0"})
-                    with urllib.request.urlopen(req, timeout=3) as resp:
+                    with urllib.request.urlopen(req, timeout=10) as resp:
                         data = json.loads(resp.read().decode("utf-8"))
                         if data and "games" in data:
                             mapped_games = []
