@@ -264,4 +264,5 @@ We welcome contributions from developers, gamers, and open-source enthusiasts!
 
 ## 📄 License
 
-This repository and software are maintained under the **Mission Control Custom License & EULA**. See the root [LICENSE](LICENSE) file and [Desktop App EULA](Gaming/frontend/electron/license.txt) for full terms regarding personal, educational, and open-source contributions.
+This repository and open-source codebase are licensed under the **[Apache License 2.0](LICENSE)**. See the root [LICENSE](LICENSE) file and [Desktop App EULA](Gaming/frontend/electron/license.txt) for details.
+

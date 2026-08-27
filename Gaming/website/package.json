@@ -1,6 +1,7 @@
 {
   "name": "mission-control-website",
   "version": "3.3.2",
+  "license": "Apache-2.0",
   "private": true,
   "scripts": {
     "prebuild": "python ../scripts/sync_version.py",
