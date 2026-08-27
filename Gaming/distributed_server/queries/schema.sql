@@ -11,6 +11,9 @@ CREATE TABLE IF NOT EXISTS canonical_games (
     id                VARCHAR(255)    PRIMARY KEY,
     title             VARCHAR(255)    NOT NULL,
     normalized_title  VARCHAR(255)    NOT NULL,
+    slug              VARCHAR(255)    NOT NULL,
+    source            VARCHAR(64)     NOT NULL,
+    source_game_id    VARCHAR(255)    NOT NULL,
     developer         VARCHAR(255),
     publisher         VARCHAR(255),
     release_date      VARCHAR(64),
@@ -21,15 +24,19 @@ CREATE TABLE IF NOT EXISTS canonical_games (
     platforms         TEXT[]          NOT NULL DEFAULT '{Windows}',
     cover_url         TEXT,
     banner_url        TEXT,
-    summary           TEXT,
+    description       TEXT,
     ai_classified     BOOLEAN         NOT NULL DEFAULT FALSE,
     ai_confidence     REAL            NOT NULL DEFAULT 0.0,
     raw_tags          TEXT[]          NOT NULL DEFAULT '{}',
     metadata          JSONB           NOT NULL DEFAULT '{}'::jsonb,
     created_at        TIMESTAMPTZ     NOT NULL DEFAULT NOW(),
-    updated_at        TIMESTAMPTZ     NOT NULL DEFAULT NOW()
+    updated_at        TIMESTAMPTZ     NOT NULL DEFAULT NOW(),
+    last_scanned_at   TIMESTAMPTZ     NOT NULL DEFAULT NOW(),
+    UNIQUE(source, source_game_id)
 );
 CREATE INDEX IF NOT EXISTS idx_cg_normalized_title  ON canonical_games (normalized_title);
+CREATE INDEX IF NOT EXISTS idx_cg_slug              ON canonical_games (slug);
+CREATE INDEX IF NOT EXISTS idx_cg_source_id         ON canonical_games (source, source_game_id);
 CREATE INDEX IF NOT EXISTS idx_cg_trgm_title        ON canonical_games USING gin (normalized_title gin_trgm_ops);
 CREATE INDEX IF NOT EXISTS idx_cg_primary_genre     ON canonical_games (primary_genre);
 CREATE INDEX IF NOT EXISTS idx_cg_ai_classified     ON canonical_games (ai_classified);

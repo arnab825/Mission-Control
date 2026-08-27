@@ -85,12 +85,12 @@ def _enrichment_worker():
         try:
             if db.available:
                 sql = """
-                    SELECT id, title, cover_url, banner_url, metadata, summary, features
+                    SELECT id, title, cover_url, banner_url, metadata, description as summary, features
                     FROM canonical_games
                     WHERE release_date IS NULL
                        OR release_date = ''
-                       OR LEFT(summary, 28) = 'An acclaimed game developed by'
-                       OR summary IS NULL
+                       OR LEFT(description, 28) = 'An acclaimed game developed by'
+                       OR description IS NULL
                        OR features = '{}'
                     LIMIT 10
                 """
@@ -167,6 +167,9 @@ def _seed_catalog_if_empty():
                         "id":               game_id,
                         "title":            g["title"],
                         "normalized_title": norm,
+                        "slug":             game_id,
+                        "source":           g.get("store", "web"),
+                        "source_game_id":   g.get("store_app_id") or game_id,
                         "developer":        g.get("developer"),
                         "publisher":        g.get("publisher"),
                         "release_date":     g.get("release_date"),
@@ -177,7 +180,7 @@ def _seed_catalog_if_empty():
                         "platforms":        ["Windows", "Linux"],
                         "cover_url":        g.get("cover_url"),
                         "banner_url":       g.get("banner_url"),
-                        "summary":          g.get("summary"),
+                        "description":      g.get("summary"),
                         "ai_classified":    False,
                         "ai_confidence":    0.0,
                         "raw_tags":         raw_tags,
@@ -241,117 +244,150 @@ async def discover_games(
     q: str = Query(..., min_length=1, description="Game title or keyword to find on renowned launchers / web"),
     limit: int = Query(15, ge=1, le=50),
 ):
+    cache_key = f"mc:discover:{q}:{limit}"
+    cached_val = _get_from_cache(cache_key)
+    if cached_val:
+        return cached_val
+
     _require_db()
-    raw_results = search_launcher_and_web_games(q, limit=limit)
-    existing_rows = db.execute("SELECT id, normalized_title, primary_genre, ai_classified FROM canonical_games", fetch="all") or []
-    existing_map = {r["normalized_title"]: r for r in existing_rows}
-    existing_ids = {r["id"]: r for r in existing_rows}
 
-    discover_items: List[DiscoverItem] = []
+    discover_items = []
     newly_ingested = 0
+    
+    # Tier 2: Check Supabase
+    local_rows = db.get_catalog(search=q, limit=limit, page=1)
+    
+    if len(local_rows) >= 3:
+        for g in local_rows:
+            discover_items.append({
+                "id": g["id"],
+                "title": g["title"],
+                "developer": g.get("developer"),
+                "publisher": g.get("publisher"),
+                "release_date": g.get("release_date"),
+                "primary_genre": g.get("primary_genre"),
+                "genres": g.get("genres") or [],
+                "tags": g.get("tags") or [],
+                "cover_url": g.get("cover_url"),
+                "banner_url": g.get("banner_url"),
+                "summary": g.get("description") or g.get("summary"),
+                "in_catalog": True,
+                "ai_classified": g.get("ai_classified", False),
+            })
+    else:
+        # Tier 3: External Fetch
+        raw_results = search_launcher_and_web_games(q, limit=limit)
+        existing_rows = db.execute("SELECT id, normalized_title, primary_genre, ai_classified FROM canonical_games", fetch="all") or []
+        existing_map = {r["normalized_title"]: r for r in existing_rows}
+        existing_ids = {r["id"]: r for r in existing_rows}
 
-    for item in raw_results:
-        title = item.get("title", "")
-        if not title:
-            continue
-        norm = normalize_title(title)
-        slug = item.get("slug") or title_to_slug(title)
+        for item in raw_results:
+            title = item.get("title", "")
+            if not title:
+                continue
+            norm = normalize_title(title)
+            slug = item.get("slug") or title_to_slug(title)
+    
+            existing = existing_map.get(norm) or existing_ids.get(slug)
+            in_catalog = existing is not None
+            ai_classified = existing.get("ai_classified", False) if existing else False
+            primary_genre = existing.get("primary_genre") if existing else None
+    
+            if not in_catalog:
+                try:
+                    raw_tags = deduplicate_tags(item.get("raw_tags", []))
+                    
+                    # Run instant priority AI classification
+                    ai_res = classify_game(
+                        title=title,
+                        developer=item.get("developer"),
+                        publisher=item.get("publisher"),
+                        raw_tags=raw_tags,
+                        summary=item.get("summary"),
+                    )
+                    
+                    classified_genre = ai_res["primary_genre"] if ai_res else (item.get("genres", [None])[0] if item.get("genres") else "Action")
+                    classified_tags = ai_res["tags"] if ai_res else raw_tags
+                    confidence = ai_res["confidence"] if ai_res else 0.0
+                    is_classified = bool(ai_res)
+    
+                    game_data = {
+                        "id":               slug,
+                        "title":            title,
+                        "normalized_title": norm,
+                        "slug":             slug,
+                        "source":           item.get("store", "web"),
+                        "source_game_id":   item.get("store_app_id") or slug,
+                        "developer":        item.get("developer"),
+                        "publisher":        item.get("publisher"),
+                        "release_date":     item.get("release_date"),
+                        "primary_genre":    classified_genre,
+                        "genres":           ai_res["genres"] if ai_res else (item.get("genres") or ["Action"]),
+                        "tags":             classified_tags,
+                        "features":         ai_res["features"] if ai_res else [],
+                        "platforms":        ["Windows", "Linux"],
+                        "cover_url":        item.get("cover_url"),
+                        "banner_url":       item.get("banner_url"),
+                        "description":      item.get("summary"),
+                        "ai_classified":    is_classified,
+                        "ai_confidence":    confidence,
+                        "raw_tags":         raw_tags,
+                        "metadata":         json.dumps({
+                            "source": item.get("store", "web"),
+                            "launchers": item.get("launchers", []),
+                            "appid": item.get("store_app_id"),
+                        }),
+                    }
+                    db.upsert_game(game_data)
+                    
+                    if ai_res:
+                        db.log_ai_classification({
+                            "game_id":      slug,
+                            "provider":     ai_res["provider"],
+                            "model":        ai_res["model"],
+                            "input_tags":   raw_tags,
+                            "output_genre": ai_res["primary_genre"],
+                            "output_tags":  ai_res["tags"],
+                            "confidence":   ai_res["confidence"],
+                            "latency_ms":   ai_res.get("latency_ms", 0),
+                        })
+    
+                    in_catalog = True
+                    newly_ingested += 1
+                    ai_classified = is_classified
+                    primary_genre = classified_genre
+                    existing_map[norm] = {"id": slug, "normalized_title": norm, "primary_genre": classified_genre, "ai_classified": is_classified}
+                except Exception as exc:
+                    logger.error("Auto-ingest error for '%s': %s", title, exc)
+    
+                discover_items.append({
+                    "id": slug,
+                    "title": title,
+                    "developer": item.get("developer"),
+                    "publisher": item.get("publisher"),
+                    "release_date": item.get("release_date"),
+                    "primary_genre": primary_genre,
+                    "genres": item.get("genres") or [],
+                    "tags": item.get("tags") or [],
+                    "cover_url": item.get("cover_url"),
+                    "banner_url": item.get("banner_url"),
+                    "summary": item.get("summary"),
+                    "store": item.get("store", "web"),
+                    "store_app_id": item.get("store_app_id"),
+                    "launchers": item.get("launchers", ["Steam"]),
+                    "in_catalog": in_catalog,
+                    "ai_classified": ai_classified,
+                    "installations": [],
+                })
 
-        existing = existing_map.get(norm) or existing_ids.get(slug)
-        in_catalog = existing is not None
-        ai_classified = existing.get("ai_classified", False) if existing else False
-        primary_genre = existing.get("primary_genre") if existing else None
-
-        if not in_catalog:
-            try:
-                raw_tags = deduplicate_tags(item.get("raw_tags", []))
-                
-                # Run instant priority AI classification
-                ai_res = classify_game(
-                    title=title,
-                    developer=item.get("developer"),
-                    publisher=item.get("publisher"),
-                    raw_tags=raw_tags,
-                    summary=item.get("summary"),
-                )
-                
-                classified_genre = ai_res["primary_genre"] if ai_res else (item.get("genres", [None])[0] if item.get("genres") else "Action")
-                classified_tags = ai_res["tags"] if ai_res else raw_tags
-                confidence = ai_res["confidence"] if ai_res else 0.0
-                is_classified = bool(ai_res)
-
-                game_data = {
-                    "id":               slug,
-                    "title":            title,
-                    "normalized_title": norm,
-                    "developer":        item.get("developer"),
-                    "publisher":        item.get("publisher"),
-                    "release_date":     item.get("release_date"),
-                    "primary_genre":    classified_genre,
-                    "genres":           ai_res["genres"] if ai_res else (item.get("genres") or ["Action"]),
-                    "tags":             classified_tags,
-                    "features":         ai_res["features"] if ai_res else [],
-                    "platforms":        ["Windows", "Linux"],
-                    "cover_url":        item.get("cover_url"),
-                    "banner_url":       item.get("banner_url"),
-                    "summary":          item.get("summary"),
-                    "ai_classified":    is_classified,
-                    "ai_confidence":    confidence,
-                    "raw_tags":         raw_tags,
-                    "metadata":         json.dumps({
-                        "source": item.get("store", "web"),
-                        "launchers": item.get("launchers", []),
-                        "appid": item.get("store_app_id"),
-                    }),
-                }
-                db.upsert_game(game_data)
-                
-                if ai_res:
-                    db.log_ai_classification({
-                        "game_id":      slug,
-                        "provider":     ai_res["provider"],
-                        "model":        ai_res["model"],
-                        "input_tags":   raw_tags,
-                        "output_genre": ai_res["primary_genre"],
-                        "output_tags":  ai_res["tags"],
-                        "confidence":   ai_res["confidence"],
-                        "latency_ms":   ai_res.get("latency_ms", 0),
-                    })
-
-                in_catalog = True
-                newly_ingested += 1
-                ai_classified = is_classified
-                primary_genre = classified_genre
-                existing_map[norm] = {"id": slug, "normalized_title": norm, "primary_genre": classified_genre, "ai_classified": is_classified}
-            except Exception as exc:
-                logger.error("Auto-ingest error for '%s': %s", title, exc)
-
-        discover_items.append(DiscoverItem(
-            id=slug,
-            title=title,
-            developer=item.get("developer"),
-            publisher=item.get("publisher"),
-            release_date=item.get("release_date"),
-            primary_genre=primary_genre or (item.get("genres", [None])[0] if item.get("genres") else None),
-            genres=item.get("genres", []),
-            tags=item.get("raw_tags", []),
-            cover_url=item.get("cover_url"),
-            banner_url=item.get("banner_url"),
-            summary=item.get("summary"),
-            store=item.get("store", "steam"),
-            store_app_id=item.get("store_app_id"),
-            launchers=item.get("launchers", ["Steam"]),
-            in_catalog=in_catalog,
-            ai_classified=ai_classified,
-            installations=[],
-        ))
-
-    return DiscoverResponse(
-        query=q,
-        results=discover_items,
-        total=len(discover_items),
-        newly_ingested=newly_ingested,
-    )
+    response_data = {
+        "query": q,
+        "results": discover_items,
+        "total": len(discover_items),
+        "newly_ingested": newly_ingested,
+    }
+    _set_to_cache(cache_key, response_data, _CACHE_TTL)
+    return response_data
 
 
 @app.post("/api/games/seed", response_model=SeedResponse)
@@ -379,6 +415,9 @@ async def seed_games(req: SeedRequest):
             "id":               slug,
             "title":            title,
             "normalized_title": norm,
+            "slug":             slug,
+            "source":           g.get("store", "web"),
+            "source_game_id":   g.get("store_app_id") or slug,
             "developer":        g.get("developer"),
             "publisher":        g.get("publisher"),
             "release_date":     g.get("release_date"),
@@ -389,7 +428,7 @@ async def seed_games(req: SeedRequest):
             "platforms":        ["Windows", "Linux"],
             "cover_url":        g.get("cover_url"),
             "banner_url":       g.get("banner_url"),
-            "summary":          g.get("summary"),
+            "description":      g.get("summary"),
             "ai_classified":    False,
             "ai_confidence":    0.0,
             "raw_tags":         raw_tags,
@@ -535,8 +574,32 @@ if not redis_client and os.getenv("REDIS_URL"):
         logger.warning("Catalog Service: Redis TCP connection failed (%s). Continuing without cache.", exc)
         redis_client = None
 
+def _get_from_cache(key: str) -> Optional[Any]:
+    if not redis_client:
+        return None
+    try:
+        val = redis_client.get(key)
+        if val:
+            return json.loads(val)
+    except Exception as exc:
+        logger.warning("Redis get failed for %s: %s", key, exc)
+    return None
+
+def _set_to_cache(key: str, data: Any, ttl: int = _CACHE_TTL) -> None:
+    if not redis_client:
+        return
+    try:
+        redis_client.setex(key, ttl, json.dumps(data))
+    except Exception as exc:
+        logger.warning("Redis set failed for %s: %s", key, exc)
+
 @app.get("/api/search")
 async def search_games(q: str = Query(..., min_length=1)):
+    cache_key = f"mc:search:{q}"
+    cached_val = _get_from_cache(cache_key)
+    if cached_val:
+        return cached_val
+
     _require_db()
     rows = db.get_catalog(search=q, limit=20, page=1)
     results = []
@@ -551,7 +614,7 @@ async def search_games(q: str = Query(..., min_length=1)):
             "releaseDate":  row.get("release_date"),
             "launchers":    row.get("launchers") or ["Steam"],
             "platforms":    row.get("platforms") or ["Windows", "Linux"],
-            "summary":      row.get("summary"),
+            "summary":      row.get("description") or row.get("summary"),
             "installations": [],
         })
     
@@ -578,6 +641,9 @@ async def search_games(q: str = Query(..., min_length=1)):
                     "id":               slug,
                     "title":            title,
                     "normalized_title": norm,
+                    "slug":             slug,
+                    "source":           item.get("store", "web"),
+                    "source_game_id":   item.get("store_app_id") or slug,
                     "developer":        item.get("developer"),
                     "publisher":        item.get("publisher"),
                     "release_date":     item.get("release_date"),
@@ -589,7 +655,7 @@ async def search_games(q: str = Query(..., min_length=1)):
                     "launchers":        item.get("launchers") or ["Steam"],
                     "cover_url":        item.get("cover_url"),
                     "banner_url":       item.get("banner_url"),
-                    "summary":          item.get("summary"),
+                    "description":      item.get("summary"),
                     "ai_classified":    False,
                     "ai_confidence":    0.0,
                     "raw_tags":         raw_tags,
@@ -616,7 +682,9 @@ async def search_games(q: str = Query(..., min_length=1)):
         except Exception as exc:
             logger.warning("Dynamic search fallback error: %s", exc)
 
-    return {"query": q, "results": results, "total": len(results)}
+    response_data = {"query": q, "results": results, "total": len(results)}
+    _set_to_cache(cache_key, response_data, _CACHE_TTL)
+    return response_data
 
 
 @app.get("/api/games")
@@ -638,13 +706,9 @@ async def get_games(
 
     cache_key = f"mc:catalog:{cursor}:{page}:{limit}:{search}:{genre}:{node_id}:{clerk_id}:{store}:{installed_only}"
     
-    if redis_client:
-        try:
-            cached_val = redis_client.get(cache_key)
-            if cached_val:
-                return json.loads(cached_val)
-        except Exception as exc:
-            logger.warning("Redis get failed: %s", exc)
+    cached_val = _get_from_cache(cache_key)
+    if cached_val:
+        return cached_val
 
 
     rows = db.get_catalog(
@@ -674,7 +738,7 @@ async def get_games(
             "platforms":    row.get("platforms") or ["Windows", "Linux"],
             "coverUrl":     row.get("cover_url"),
             "bannerUrl":    row.get("banner_url"),
-            "summary":      row.get("summary"),
+            "summary":      row.get("description") or row.get("summary"),
             "aiClassified": row.get("ai_classified", False),
             "installations": row.get("installations") or [],
         })
@@ -700,11 +764,7 @@ async def get_games(
 
     if not search and not genre and not clerk_id and not node_id:
         # Cache general hot queries (e.g. top games)
-        if redis_client:
-            try:
-                redis_client.setex(cache_key, _CACHE_TTL, json.dumps(response_data))
-            except Exception as exc:
-                logger.warning("Redis set failed: %s", exc)
+        _set_to_cache(cache_key, response_data, _CACHE_TTL)
 
     return response_data
 

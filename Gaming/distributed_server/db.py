@@ -2,12 +2,11 @@
 Mission Control — Distributed Game Library Server
 db.py: Multi-Tier High-Availability Database & Backup Connection Manager.
 
-Supports 5-Tier Redundancy & Disaster Recovery:
+Supports Redundancy & Disaster Recovery:
   Tier 1: Primary Cloud PostgreSQL (DATABASE_URL / Supabase host: db.vekqkwwzzamwhitjodld.supabase.co)
-  Tier 2: Secondary Hot-Standby PostgreSQL (FALLBACK_DATABASE_URL / Neon / Aiven Serverless)
-  Tier 3: Local SQLite Disk Replica (catalog_fallback.db — Zero-Downtime Offline Engine)
-  Tier 4: MongoDB Atlas Cloud NoSQL Standby (MONGODB_URI — Asynchronous Document JSON Mirror)
-  Tier 5: Unlimited Immutable JSONL Backup Ledger (unlimited_catalog_backup.jsonl — Append-Only Recovery)
+  Tier 2: Local SQLite Disk Replica (catalog_fallback.db — Zero-Downtime Offline Engine)
+  Tier 3: MongoDB Atlas Cloud NoSQL Standby (MONGODB_URI — Asynchronous Document JSON Mirror)
+  Tier 4: Unlimited Immutable JSONL Backup Ledger (unlimited_catalog_backup.jsonl — Append-Only Recovery)
 """
 
 import hashlib
@@ -88,14 +87,10 @@ class LibraryDB:
 
     def __init__(self, database_url: Optional[str] = None):
         raw_primary = database_url or os.getenv("ORACLE_DATABASE_URL") or os.getenv("DATABASE_URL", "")
-        raw_tier2 = os.getenv("SUPABASE_DATABASE_URL") or os.getenv("FALLBACK_DATABASE_URL", "")
-        raw_tier3 = os.getenv("NEON_DATABASE_URL") or os.getenv("FALLBACK_DATABASE_URL_2", "")
         
         self._url_primary = _sanitize_db_url(raw_primary)
-        self._url_tier2 = _sanitize_db_url(raw_tier2)
-        self._url_tier3 = _sanitize_db_url(raw_tier3)
         self._conn = None
-        self._active_tier = 0  # 0=None, 1=Oracle(Primary), 2=Supabase(Hot Standby), 3=Neon(Standby), 4=SQLite, 5=Mongo
+        self._active_tier = 0  # 0=None, 1=Primary, 2=SQLite, 3=Mongo
         
         self.available = False
         
@@ -112,22 +107,22 @@ class LibraryDB:
         self._init_mongo()
 
         if not _PSYCOPG2_AVAILABLE and not self._url_primary:
-            logger.warning("LibraryDB: psycopg2 or DATABASE_URL not available. Defaulting to Tier 4 (SQLite).")
-            self._active_tier = 4
+            logger.warning("LibraryDB: psycopg2 or DATABASE_URL not available. Defaulting to Tier 2 (SQLite).")
+            self._active_tier = 2
             self.available = True
             return
 
         # Retry loop: Cloud connection negotiation
         for attempt in range(1, 4):
             self._connect()
-            if self._active_tier in (1, 2, 3):
+            if self._active_tier == 1:
                 break
             logger.warning("LibraryDB: Cloud Startup attempt %d/3 failed, retrying in 5s...", attempt)
             time.sleep(5)
             
-        if self._active_tier not in (1, 2, 3):
-            logger.error("LibraryDB: Could not connect to any Cloud PostgreSQL. Falling back to Tier 4 (SQLite).")
-            self._active_tier = 4
+        if self._active_tier != 1:
+            logger.error("LibraryDB: Could not connect to Cloud PostgreSQL. Falling back to Tier 2 (SQLite).")
+            self._active_tier = 2
             self.available = True
 
     @property
@@ -136,18 +131,12 @@ class LibraryDB:
             prov = "Supabase" if "supabase" in self._url_primary.lower() else "Neon Serverless" if "neon.tech" in self._url_primary.lower() else "Primary Cloud Postgres"
             return f"Tier 1 ({prov} / Primary)"
         elif self._active_tier == 2:
-            prov = "Neon Serverless" if "neon.tech" in self._url_tier2.lower() else "Supabase" if "supabase" in self._url_tier2.lower() else "Hot Standby Postgres"
-            return f"Tier 2 ({prov} / Hot Standby)"
+            return "Tier 2 (SQLite NVMe Disk Replica)"
         elif self._active_tier == 3:
-            prov = "Neon Serverless" if "neon.tech" in self._url_tier3.lower() else "Cloud Standby Postgres"
-            return f"Tier 3 ({prov})"
-        elif self._active_tier == 4:
-            return "Tier 4 (SQLite NVMe Disk Replica)"
-        elif self._active_tier == 5:
-            return "Tier 5 (MongoDB Atlas Mirror)"
+            return "Tier 3 (MongoDB Atlas Mirror)"
         return f"Tier {self._active_tier}"
 
-    # ── Tier 4 SQLite Initialization ──────────────────────────────────────────
+    # ── Tier 2 SQLite Initialization ──────────────────────────────────────────
 
     def _init_sqlite(self):
         try:
@@ -173,7 +162,11 @@ class LibraryDB:
                         launchers TEXT,
                         cover_url TEXT,
                         banner_url TEXT,
-                        summary TEXT,
+                        description TEXT,
+                        slug TEXT,
+                        source TEXT,
+                        source_game_id TEXT,
+                        last_scanned_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
                         ai_classified BOOLEAN,
                         ai_confidence REAL,
                         raw_tags TEXT,
@@ -220,11 +213,11 @@ class LibraryDB:
                         updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
                     )
                 ''')
-            logger.info("LibraryDB: Tier 3 SQLite Replica initialized at %s", self._sqlite_path)
+            logger.info("LibraryDB: Tier 2 SQLite Replica initialized at %s", self._sqlite_path)
         except Exception as e:
             logger.error("LibraryDB: Failed to initialize SQLite replica: %s", e)
 
-    # ── Tier 4: NoSQL MongoDB Atlas Cloud Mirror ─────────────────────────────
+    # ── Tier 3: NoSQL MongoDB Atlas Cloud Mirror ─────────────────────────────
 
     def _init_mongo(self):
         """
@@ -239,7 +232,7 @@ class LibraryDB:
             self._mongo_client = MongoClient(self._mongo_uri, serverSelectionTimeoutMS=4000)
             self._mongo_db = self._mongo_client["mission_control"]
             self._mongo_col = self._mongo_db["canonical_games"]
-            logger.info("LibraryDB: Connected to Tier 4 MongoDB Atlas NoSQL Standby.")
+            logger.info("LibraryDB: Connected to Tier 3 MongoDB Atlas NoSQL Standby.")
         except Exception as e:
             logger.debug("LibraryDB: MongoDB Atlas init skipped or pymongo not installed: %s", e)
 
@@ -257,7 +250,7 @@ class LibraryDB:
         except Exception as e:
             logger.debug("MongoDB Atlas async mirror error: %s", e)
 
-    # ── Tier 5: Unlimited Immutable JSONL Backup Ledger ───────────────────────
+    # ── Tier 4: Unlimited Immutable JSONL Backup Ledger ───────────────────────
 
     def _append_jsonl_backup(self, payload: Dict[str, Any]):
         """
@@ -274,7 +267,7 @@ class LibraryDB:
     # ── Connection Management ────────────────────────────────────────────────
 
     def _connect(self):
-        # Try Tier 1 (Oracle Cloud / Primary)
+        # Try Tier 1 (Primary)
         if self._url_primary:
             try:
                 self._conn = psycopg2.connect(self._url_primary, connect_timeout=10)
@@ -282,46 +275,18 @@ class LibraryDB:
                 self._ensure_schema()
                 self.available = True
                 self._active_tier = 1
-                logger.info("LibraryDB: Connected to Tier 1 PostgreSQL (Oracle Cloud / Primary).")
+                logger.info("LibraryDB: Connected to Tier 1 PostgreSQL.")
                 return
             except Exception as exc:
                 logger.warning("LibraryDB: Tier 1 Connection failed: %s", exc)
                 self._conn = None
-        
-        # Try Tier 2 (Supabase Cloud / Standby #1)
-        if self._url_tier2:
-            try:
-                self._conn = psycopg2.connect(self._url_tier2, connect_timeout=10)
-                self._conn.autocommit = False
-                self._ensure_schema()
-                self.available = True
-                self._active_tier = 2
-                logger.info("LibraryDB: Connected to Tier 2 PostgreSQL (Supabase Cloud).")
-                return
-            except Exception as exc:
-                logger.warning("LibraryDB: Tier 2 Connection failed: %s", exc)
-                self._conn = None
-
-        # Try Tier 3 (Neon Serverless / Standby #2)
-        if self._url_tier3:
-            try:
-                self._conn = psycopg2.connect(self._url_tier3, connect_timeout=10)
-                self._conn.autocommit = False
-                self._ensure_schema()
-                self.available = True
-                self._active_tier = 3
-                logger.info("LibraryDB: Connected to Tier 3 PostgreSQL (Neon Serverless).")
-                return
-            except Exception as exc:
-                logger.warning("LibraryDB: Tier 3 Connection failed: %s", exc)
-                self._conn = None
                 
-        # If all 3 cloud tiers fail, Tier 4 is active (Local SQLite)
-        self._active_tier = 4
+        # If cloud tier fails, Tier 2 is active (Local SQLite)
+        self._active_tier = 2
         self.available = True
 
     def _alive(self) -> bool:
-        if self._active_tier >= 4:
+        if self._active_tier >= 2:
             return True  # SQLite is always alive
         if not self._conn:
             return False
@@ -340,9 +305,9 @@ class LibraryDB:
 
     def ping(self) -> bool:
         """Pings the database with an active SELECT 1 query to verify health."""
-        if not self._conn and self._active_tier < 4:
+        if not self._conn and self._active_tier < 2:
             return self._ensure_connected()
-        if self._active_tier >= 4:
+        if self._active_tier >= 2:
             return True
         try:
             with self._conn.cursor() as cur:
@@ -373,7 +338,7 @@ class LibraryDB:
         if not self._ensure_connected():
             raise RuntimeError("LibraryDB: Not connected.")
             
-        if self._active_tier >= 4:
+        if self._active_tier >= 2:
             raise RuntimeError("LibraryDB: 'execute' called on Postgres SQL while in SQLite mode. Use direct methods instead.")
 
         try:
@@ -421,23 +386,24 @@ class LibraryDB:
     # ── Canonical Games ──────────────────────────────────────────────────────
 
     def _sqlite_upsert_game(self, payload: Dict[str, Any]) -> None:
-        """Snapshot game to Tier 3."""
+        """Snapshot game to Tier 2."""
         if not self._sqlite_conn:
             return
         sql = '''
             INSERT INTO canonical_games (
                 id, title, normalized_title, developer, publisher, release_date, primary_genre,
                 genres, tags, features, platforms, launchers, cover_url, banner_url,
-                summary, ai_classified, ai_confidence, raw_tags, metadata, updated_at
+                description, slug, source, source_game_id, ai_classified, ai_confidence, raw_tags, metadata, updated_at
             ) VALUES (
                 :id, :title, :normalized_title, :developer, :publisher, :release_date, :primary_genre,
                 :genres, :tags, :features, :platforms, :launchers, :cover_url, :banner_url,
-                :summary, :ai_classified, :ai_confidence, :raw_tags, :metadata, CURRENT_TIMESTAMP
+                :description, :slug, :source, :source_game_id, :ai_classified, :ai_confidence, :raw_tags, :metadata, CURRENT_TIMESTAMP
             ) ON CONFLICT(id) DO UPDATE SET
                 title=:title, normalized_title=:normalized_title, developer=:developer, publisher=:publisher,
                 release_date=:release_date, primary_genre=:primary_genre, genres=:genres, tags=:tags,
                 features=:features, platforms=:platforms, launchers=:launchers, cover_url=:cover_url,
-                banner_url=:banner_url, summary=:summary, ai_classified=:ai_classified,
+                banner_url=:banner_url, description=:description, slug=:slug, source=:source,
+                source_game_id=:source_game_id, ai_classified=:ai_classified,
                 ai_confidence=:ai_confidence, raw_tags=:raw_tags, metadata=:metadata, updated_at=CURRENT_TIMESTAMP
         '''
         sqlite_payload = dict(payload)
@@ -455,6 +421,9 @@ class LibraryDB:
             "id":               game.get("id"),
             "title":            game.get("title"),
             "normalized_title": game.get("normalized_title"),
+            "slug":             game.get("slug") or game.get("id"),
+            "source":           game.get("source") or "web",
+            "source_game_id":   game.get("source_game_id") or game.get("id"),
             "developer":        game.get("developer"),
             "publisher":        game.get("publisher"),
             "release_date":     game.get("release_date"),
@@ -466,7 +435,7 @@ class LibraryDB:
             "launchers":        game.get("launchers") or ["Steam"],
             "cover_url":        game.get("cover_url"),
             "banner_url":       game.get("banner_url"),
-            "summary":          game.get("summary"),
+            "description":      game.get("description") or game.get("summary"),
             "ai_classified":    bool(game.get("ai_classified", False)),
             "ai_confidence":    float(game.get("ai_confidence", 0.0) or 0.0),
             "raw_tags":         game.get("raw_tags") or game.get("tags") or [],
@@ -474,14 +443,14 @@ class LibraryDB:
         }
         
         # Postgres execution
-        if self._active_tier in (1, 2):
+        if self._active_tier == 1:
             try:
                 sql = _load_sql("upsert_game")
                 self.execute(sql, payload)
             except Exception as e:
                 logger.error("LibraryDB: Postgres upsert_game failed: %s", e)
                 
-        # Always mirror to Tier 3 SQLite Replica, JSONL Backup Ledger, and MongoDB Atlas (NoSQL)
+        # Always mirror to SQLite, JSONL Backup Ledger, and MongoDB Atlas (NoSQL)
         def _background_mirrors(p):
             self._sqlite_upsert_game(p)
             self._append_jsonl_backup(p)
@@ -531,7 +500,7 @@ class LibraryDB:
         return game
 
     def get_game(self, game_id: str) -> Optional[Dict]:
-        if self._active_tier == 3:
+        if self._active_tier >= 2:
             return self._sqlite_get_game(game_id)
             
         sql = """
@@ -599,7 +568,7 @@ class LibraryDB:
         page: int = 1,
         limit: int = 48,
     ) -> List[Dict]:
-        if self._active_tier == 3:
+        if self._active_tier >= 2:
             return self._sqlite_get_catalog(search, genre, node_id, clerk_id, store, installed_only, last_seen_id, page, limit)
             
         sql = _load_sql("load_catalog")
@@ -622,7 +591,7 @@ class LibraryDB:
             return self._sqlite_get_catalog(search, genre, node_id, clerk_id, store, installed_only, last_seen_id, page, limit)
 
     def get_installations_for_game(self, game_id: str, clerk_id: Optional[str] = None) -> List[Dict]:
-        if self._active_tier == 3:
+        if self._active_tier >= 2:
             return [] # Simplified fallback
             
         if clerk_id:
@@ -644,10 +613,10 @@ class LibraryDB:
         return self.execute(sql, {"game_id": game_id}, fetch="all")
 
     def get_unclassified_games(self, limit: int = 50) -> List[Dict]:
-        if self._active_tier == 3:
+        if self._active_tier >= 2:
             return []
         sql = """
-            SELECT id, title, developer, publisher, raw_tags, genres, tags, metadata
+            SELECT id, title, developer, publisher, raw_tags, genres, tags, metadata, description as summary
             FROM canonical_games
             WHERE ai_classified = FALSE
                OR publisher IS NULL
@@ -670,8 +639,8 @@ class LibraryDB:
         summary: Optional[str] = None,
         release_date: Optional[str] = None,
     ) -> None:
-        if self._active_tier == 3:
-            return # Skip write if tier 3
+        if self._active_tier >= 2:
+            return # Skip write if tier 2
         sql = """
             UPDATE canonical_games SET
                 primary_genre   = %(primary_genre)s,
@@ -682,10 +651,10 @@ class LibraryDB:
                                     WHEN array_length(%(features)s::text[], 1) > 0 THEN %(features)s 
                                     ELSE canonical_games.features 
                                   END,
-                summary         = CASE 
+                description     = CASE 
                                     WHEN %(summary)s IS NOT NULL AND %(summary)s != '' AND LEFT(%(summary)s, 28) != 'An acclaimed game developed by' 
                                     THEN %(summary)s 
-                                    ELSE canonical_games.summary 
+                                    ELSE canonical_games.description 
                                   END,
                 release_date    = COALESCE(NULLIF(canonical_games.release_date, ''), %(release_date)s),
                 ai_classified   = TRUE,
@@ -714,11 +683,11 @@ class LibraryDB:
         release_date: Optional[str] = None,
         metadata: Optional[Dict[str, Any]] = None,
     ) -> None:
-        if self._active_tier >= 4:
+        if self._active_tier >= 2:
             return
         sql = """
             UPDATE canonical_games SET
-                summary      = COALESCE(NULLIF(%(summary)s, ''), canonical_games.summary),
+                description  = COALESCE(NULLIF(%(summary)s, ''), canonical_games.description),
                 features     = CASE 
                                  WHEN array_length(%(features)s::text[], 1) > 0 THEN %(features)s 
                                  ELSE canonical_games.features 
@@ -742,7 +711,7 @@ class LibraryDB:
         })
 
     def log_ai_classification(self, log: Dict[str, Any]) -> None:
-        if self._active_tier >= 4:
+        if self._active_tier >= 2:
             return
         sql = """
             INSERT INTO ai_classification_log
@@ -784,7 +753,7 @@ class LibraryDB:
     def upsert_node(self, node: Dict[str, Any]) -> None:
         threading.Thread(target=self._sqlite_upsert_node, args=(node,), daemon=True).start()
         
-        if self._active_tier >= 4:
+        if self._active_tier >= 2:
             return
 
         sql = """

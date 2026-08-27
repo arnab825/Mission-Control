@@ -116,12 +116,12 @@ def _enrichment_worker():
             if db.available:
                 # Find games missing release date, features, or with placeholder summary
                 sql = """
-                    SELECT id, title, cover_url, banner_url, metadata, summary, features
+                    SELECT id, title, cover_url, banner_url, metadata, description AS summary, features
                     FROM canonical_games
                     WHERE release_date IS NULL
                        OR release_date = ''
-                       OR LEFT(summary, 28) = 'An acclaimed game developed by'
-                       OR summary IS NULL
+                       OR LEFT(description, 28) = 'An acclaimed game developed by'
+                       OR description IS NULL
                        OR features = '{}'
                     LIMIT 10
                 """
@@ -623,7 +623,7 @@ async def sync_node(
                         banner_url = COALESCE(%(banner_url)s, banner_url),
                         developer = COALESCE(%(developer)s, developer),
                         publisher = COALESCE(%(publisher)s, publisher),
-                        summary = COALESCE(%(summary)s, summary),
+                        description = COALESCE(%(summary)s, description),
                         ai_classified = TRUE,
                         ai_confidence = %(ai_confidence)s,
                         updated_at = NOW()
