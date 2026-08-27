@@ -1,6 +1,7 @@
-# Ensure TLS 1.2 / 1.3 is enabled and disable Expect100Continue to prevent HTTP socket connection drops during large asset uploads
+# Ensure TLS 1.2 / 1.3 is enabled and configure ServicePointManager connection defaults
 [System.Net.ServicePointManager]::SecurityProtocol = [System.Net.SecurityProtocolType]::Tls12 -bor [System.Net.SecurityProtocolType]::Tls13
 [System.Net.ServicePointManager]::Expect100Continue = $false
+[System.Net.ServicePointManager]::DefaultConnectionLimit = 20
 
 function Remove-AssetByName {
   param(
@@ -12,13 +13,72 @@ function Remove-AssetByName {
   try {
     $assetsUrl = "https://api.github.com/repos/$Repo/releases/$ReleaseId/assets"
     $existingAssets = Invoke-RestMethod -Uri $assetsUrl -Method Get -Headers $Headers -ErrorAction SilentlyContinue
-    foreach ($asset in $existingAssets) {
-      if ($asset.name -eq $AssetName) {
-        Write-Host "Cleaning up incomplete/existing asset record: $($asset.name)..."
-        Invoke-RestMethod -Uri $asset.url -Method Delete -Headers $Headers -ErrorAction SilentlyContinue
+    if ($existingAssets) {
+      foreach ($asset in $existingAssets) {
+        if ($asset.name -eq $AssetName) {
+          Write-Host "Cleaning up existing/incomplete asset record: $($asset.name) (ID: $($asset.id))..." -ForegroundColor DarkYellow
+          Invoke-RestMethod -Uri $asset.url -Method Delete -Headers $Headers -ErrorAction SilentlyContinue
+          Start-Sleep -Milliseconds 500
+        }
       }
     }
-  } catch {}
+  } catch {
+    Write-Warning "Could not check/remove asset $AssetName: $($_.Exception.Message)"
+  }
+}
+
+function Upload-FileWithCurl {
+  param (
+    [string]$Uri,
+    [string]$FilePath,
+    [string]$Token,
+    [string]$ContentType
+  )
+  $curlExe = Get-Command curl.exe -ErrorAction SilentlyContinue
+  if (-not $curlExe) { return $null }
+
+  $fileInfo = Get-Item $FilePath
+  $totalBytes = $fileInfo.Length
+  $mb = [math]::round($totalBytes / 1MB, 2)
+  Write-Host "Starting upload of $($fileInfo.Name) ($mb MB) via curl.exe (libcurl stream)..."
+
+  $outputFile = [System.IO.Path]::GetTempFileName()
+  try {
+    $curlArgs = @(
+      "-sS",
+      "-X", "POST",
+      $Uri,
+      "-H", "Authorization: Bearer $Token",
+      "-H", "Content-Type: $ContentType",
+      "-H", "Accept: application/vnd.github.v3+json",
+      "-H", "X-GitHub-Api-Version: 2022-11-28",
+      "--data-binary", "@$FilePath",
+      "--retry", "3",
+      "--retry-delay", "5",
+      "--retry-all-errors",
+      "--connect-timeout", "60",
+      "--max-time", "7200",
+      "--write-out", "`n%{http_code}",
+      "-o", $outputFile
+    )
+    $output = & curl.exe @curlArgs 2>&1
+    $httpCode = 0
+    if ($output) {
+      $lines = ($output | Out-String).Trim() -split "`r?`n"
+      $codeStr = $lines[-1].Trim()
+      [int]::TryParse($codeStr, [ref]$httpCode) | Out-Null
+    }
+    $responseBody = if (Test-Path $outputFile) { Get-Content $outputFile -Raw } else { "" }
+    
+    if ($httpCode -ge 200 -and $httpCode -lt 300) {
+      Write-Host "Upload of $($fileInfo.Name) completed successfully (HTTP $httpCode)." -ForegroundColor Green
+      return $responseBody
+    } else {
+      throw "curl.exe upload failed with HTTP status $httpCode: $responseBody"
+    }
+  } finally {
+    if (Test-Path $outputFile) { Remove-Item -Force $outputFile -ErrorAction SilentlyContinue }
+  }
 }
 
 function Upload-FileWithProgress {
@@ -39,8 +99,8 @@ function Upload-FileWithProgress {
   $request.ReadWriteTimeout = 7200000
   $request.ContentLength = $totalBytes
   $request.ContentType = $ContentType
-  $request.KeepAlive = $true
-  $request.AllowWriteStreamBuffering = $false # Avoid buffering massive files in RAM
+  $request.KeepAlive = $false
+  $request.AllowWriteStreamBuffering = $false
   
   foreach ($key in $Headers.Keys) {
     if ($key -eq "Content-Type") { continue }
@@ -52,13 +112,12 @@ function Upload-FileWithProgress {
   }
 
   $requestStream = $request.GetRequestStream()
-  $buffer = New-Object byte[] 1048576 # 1MB buffer
+  $buffer = New-Object byte[] 4194304 # 4MB buffer
   $bytesRead = 0
   $totalBytesSent = 0
   $lastReportedPercent = 0
 
   Write-Host "Starting upload of $($fileInfo.Name) ($([math]::round($totalBytes/1MB, 2)) MB)..."
-
   $stopwatch = [System.Diagnostics.Stopwatch]::StartNew()
 
   try {
@@ -67,7 +126,7 @@ function Upload-FileWithProgress {
       $totalBytesSent += $bytesRead
       
       $percent = [math]::floor(($totalBytesSent / $totalBytes) * 100)
-      if ($percent -ge ($lastReportedPercent + 5)) {
+      if ($percent -ge ($lastReportedPercent + 10)) {
         $lastReportedPercent = $percent
         $elapsedSec = $stopwatch.Elapsed.TotalSeconds
         $speedMBs = if ($elapsedSec -gt 0) { ([math]::round(($totalBytesSent / 1MB) / $elapsedSec, 2)) } else { 0 }
@@ -100,18 +159,33 @@ function Upload-AssetWithRetry {
     [string]$ContentType,
     [string]$Repo,
     [string]$ReleaseId,
-    [int]$MaxRetries = 3
+    [string]$Token,
+    [int]$MaxRetries = 4
   )
 
   for ($attempt = 1; $attempt -le $MaxRetries; $attempt++) {
     try {
+      # Always clean up any existing or partial asset before uploading to avoid 422 or connection drops
+      Remove-AssetByName -Repo $Repo -ReleaseId $ReleaseId -AssetName $AssetName -Headers $Headers
       if ($attempt -gt 1) {
-        Write-Host "Retry attempt $attempt of $MaxRetries for $AssetName after transport connection error..." -ForegroundColor Yellow
-        Remove-AssetByName -Repo $Repo -ReleaseId $ReleaseId -AssetName $AssetName -Headers $Headers
-        Start-Sleep -Seconds 5
+        $backoff = $attempt * 5
+        Write-Host "Retry attempt $attempt of $MaxRetries for $AssetName (waiting ${backoff}s)..." -ForegroundColor Yellow
+        Start-Sleep -Seconds $backoff
       }
 
       $url = "${UploadBaseUrl}?name=${AssetName}"
+      
+      # Try curl.exe first (native binary streaming with robust libcurl retries)
+      if (Get-Command curl.exe -ErrorAction SilentlyContinue) {
+        $authToken = if ($Token) { $Token } else { $Headers["Authorization"] -replace '^Bearer\s+', '' }
+        $response = Upload-FileWithCurl -Uri $url -FilePath $FilePath -Token $authToken -ContentType $ContentType
+        if ($response) {
+          Write-Host "$AssetName uploaded successfully." -ForegroundColor Green
+          return $response
+        }
+      }
+
+      # Fallback to .NET HttpWebRequest
       $response = Upload-FileWithProgress -Uri $url -FilePath $FilePath -Headers $Headers -ContentType $ContentType
       Write-Host "$AssetName uploaded successfully." -ForegroundColor Green
       return $response
@@ -425,7 +499,7 @@ if (-not (Test-Path $targetInstaller)) {
 # 1. Windows Installer (.exe)
 Write-Host "Uploading $targetInstaller via Upload-AssetWithRetry..."
 try {
-  $uploadResponse = Upload-AssetWithRetry -UploadBaseUrl $uploadBase -AssetName "MissionControl-Setup.exe" -FilePath $targetInstaller -Headers $uploadHeaders -ContentType "application/octet-stream" -Repo $repo -ReleaseId $releaseId
+  $uploadResponse = Upload-AssetWithRetry -UploadBaseUrl $uploadBase -AssetName "MissionControl-Setup.exe" -FilePath $targetInstaller -Headers $uploadHeaders -ContentType "application/octet-stream" -Repo $repo -ReleaseId $releaseId -Token $githubToken
 } catch {
   Write-Error "Failed to upload NSIS installer: $($_.Exception.Message)"
 }
@@ -434,7 +508,7 @@ try {
 if ($targetMsi -and (Test-Path $targetMsi)) {
   Write-Host "Uploading $targetMsi via Upload-AssetWithRetry..."
   try {
-    $uploadMsiResponse = Upload-AssetWithRetry -UploadBaseUrl $uploadBase -AssetName "MissionControl-Setup.msi" -FilePath $targetMsi -Headers $uploadHeaders -ContentType "application/x-msi" -Repo $repo -ReleaseId $releaseId
+    $uploadMsiResponse = Upload-AssetWithRetry -UploadBaseUrl $uploadBase -AssetName "MissionControl-Setup.msi" -FilePath $targetMsi -Headers $uploadHeaders -ContentType "application/x-msi" -Repo $repo -ReleaseId $releaseId -Token $githubToken
   } catch {
     Write-Warning "Failed to upload MSI installer: $($_.Exception.Message)"
   }
@@ -444,7 +518,7 @@ if ($targetMsi -and (Test-Path $targetMsi)) {
 if ($targetZip -and (Test-Path $targetZip)) {
   Write-Host "Uploading $targetZip via Upload-AssetWithRetry..."
   try {
-    $uploadZipResponse = Upload-AssetWithRetry -UploadBaseUrl $uploadBase -AssetName "MissionControl-Portable.zip" -FilePath $targetZip -Headers $uploadHeaders -ContentType "application/zip" -Repo $repo -ReleaseId $releaseId
+    $uploadZipResponse = Upload-AssetWithRetry -UploadBaseUrl $uploadBase -AssetName "MissionControl-Portable.zip" -FilePath $targetZip -Headers $uploadHeaders -ContentType "application/zip" -Repo $repo -ReleaseId $releaseId -Token $githubToken
   } catch {
     Write-Warning "Failed to upload ZIP archive: $($_.Exception.Message)"
   }
@@ -454,7 +528,7 @@ if ($targetZip -and (Test-Path $targetZip)) {
 if ($targetDeb -and (Test-Path $targetDeb)) {
   Write-Host "Uploading $targetDeb via Upload-AssetWithRetry..."
   try {
-    $uploadDebResponse = Upload-AssetWithRetry -UploadBaseUrl $uploadBase -AssetName "MissionControl-Linux-$semver.deb" -FilePath $targetDeb -Headers $uploadHeaders -ContentType "application/vnd.debian.binary-package" -Repo $repo -ReleaseId $releaseId
+    $uploadDebResponse = Upload-AssetWithRetry -UploadBaseUrl $uploadBase -AssetName "MissionControl-Linux-$semver.deb" -FilePath $targetDeb -Headers $uploadHeaders -ContentType "application/vnd.debian.binary-package" -Repo $repo -ReleaseId $releaseId -Token $githubToken
   } catch {
     Write-Warning "Failed to upload Debian package: $($_.Exception.Message)"
   }
@@ -464,7 +538,7 @@ if ($targetDeb -and (Test-Path $targetDeb)) {
 if ($targetAppImage -and (Test-Path $targetAppImage)) {
   Write-Host "Uploading $targetAppImage via Upload-AssetWithRetry..."
   try {
-    $uploadAppImageResponse = Upload-AssetWithRetry -UploadBaseUrl $uploadBase -AssetName "MissionControl-Linux-$semver.AppImage" -FilePath $targetAppImage -Headers $uploadHeaders -ContentType "application/octet-stream" -Repo $repo -ReleaseId $releaseId
+    $uploadAppImageResponse = Upload-AssetWithRetry -UploadBaseUrl $uploadBase -AssetName "MissionControl-Linux-$semver.AppImage" -FilePath $targetAppImage -Headers $uploadHeaders -ContentType "application/octet-stream" -Repo $repo -ReleaseId $releaseId -Token $githubToken
   } catch {
     Write-Warning "Failed to upload AppImage: $($_.Exception.Message)"
   }
@@ -474,7 +548,7 @@ if ($targetAppImage -and (Test-Path $targetAppImage)) {
 if ($targetRpm -and (Test-Path $targetRpm)) {
   Write-Host "Uploading $targetRpm via Upload-AssetWithRetry..."
   try {
-    $uploadRpmResponse = Upload-AssetWithRetry -UploadBaseUrl $uploadBase -AssetName "MissionControl-Linux-$semver.rpm" -FilePath $targetRpm -Headers $uploadHeaders -ContentType "application/x-rpm" -Repo $repo -ReleaseId $releaseId
+    $uploadRpmResponse = Upload-AssetWithRetry -UploadBaseUrl $uploadBase -AssetName "MissionControl-Linux-$semver.rpm" -FilePath $targetRpm -Headers $uploadHeaders -ContentType "application/x-rpm" -Repo $repo -ReleaseId $releaseId -Token $githubToken
   } catch {
     Write-Warning "Failed to upload RPM package: $($_.Exception.Message)"
   }
@@ -484,7 +558,7 @@ if ($targetRpm -and (Test-Path $targetRpm)) {
 if ($targetLinuxTar -and (Test-Path $targetLinuxTar)) {
   Write-Host "Uploading $targetLinuxTar via Upload-AssetWithRetry..."
   try {
-    $uploadTarResponse = Upload-AssetWithRetry -UploadBaseUrl $uploadBase -AssetName "MissionControl-Linux-$semver.tar.gz" -FilePath $targetLinuxTar -Headers $uploadHeaders -ContentType "application/gzip" -Repo $repo -ReleaseId $releaseId
+    $uploadTarResponse = Upload-AssetWithRetry -UploadBaseUrl $uploadBase -AssetName "MissionControl-Linux-$semver.tar.gz" -FilePath $targetLinuxTar -Headers $uploadHeaders -ContentType "application/gzip" -Repo $repo -ReleaseId $releaseId -Token $githubToken
   } catch {
     Write-Warning "Failed to upload Linux tar.gz: $($_.Exception.Message)"
   }
@@ -493,7 +567,7 @@ if ($targetLinuxTar -and (Test-Path $targetLinuxTar)) {
 # 8. Windows Auto-Update metadata (latest.yml)
 Write-Host "Uploading latest.yml via Upload-AssetWithRetry..."
 try {
-  $uploadYmlResponse = Upload-AssetWithRetry -UploadBaseUrl $uploadBase -AssetName "latest.yml" -FilePath $latestYmlPath -Headers $uploadHeaders -ContentType "application/x-yaml" -Repo $repo -ReleaseId $releaseId
+  $uploadYmlResponse = Upload-AssetWithRetry -UploadBaseUrl $uploadBase -AssetName "latest.yml" -FilePath $latestYmlPath -Headers $uploadHeaders -ContentType "application/x-yaml" -Repo $repo -ReleaseId $releaseId -Token $githubToken
 } catch {
   Write-Error "Failed to upload latest.yml: $($_.Exception.Message)"
   throw
@@ -503,7 +577,7 @@ try {
 if ($targetLinuxYml -and (Test-Path $targetLinuxYml)) {
   Write-Host "Uploading latest-linux.yml via Upload-AssetWithRetry..."
   try {
-    $uploadLinuxYmlResponse = Upload-AssetWithRetry -UploadBaseUrl $uploadBase -AssetName "latest-linux.yml" -FilePath $targetLinuxYml -Headers $uploadHeaders -ContentType "application/x-yaml" -Repo $repo -ReleaseId $releaseId
+    $uploadLinuxYmlResponse = Upload-AssetWithRetry -UploadBaseUrl $uploadBase -AssetName "latest-linux.yml" -FilePath $targetLinuxYml -Headers $uploadHeaders -ContentType "application/x-yaml" -Repo $repo -ReleaseId $releaseId -Token $githubToken
   } catch {
     Write-Warning "Failed to upload latest-linux.yml: $($_.Exception.Message)"
   }
