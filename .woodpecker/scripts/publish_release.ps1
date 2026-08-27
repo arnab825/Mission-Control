@@ -23,7 +23,7 @@ function Remove-AssetByName {
       }
     }
   } catch {
-    Write-Warning "Could not check/remove asset $AssetName: $($_.Exception.Message)"
+    Write-Warning "Could not check/remove asset ${AssetName}: $($_.Exception.Message)"
   }
 }
 
@@ -74,7 +74,7 @@ function Upload-FileWithCurl {
       Write-Host "Upload of $($fileInfo.Name) completed successfully (HTTP $httpCode)." -ForegroundColor Green
       return $responseBody
     } else {
-      throw "curl.exe upload failed with HTTP status $httpCode: $responseBody"
+      throw "curl.exe upload failed with HTTP status ${httpCode} - $responseBody"
     }
   } finally {
     if (Test-Path $outputFile) { Remove-Item -Force $outputFile -ErrorAction SilentlyContinue }
