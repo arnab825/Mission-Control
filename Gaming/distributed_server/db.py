@@ -737,6 +737,7 @@ class LibraryDB:
                 :auth_token_hash, :clerk_id, :auth_provider, :storage_total, :storage_used, :storage_free,
                 :scan_paths, :version, :metadata, CURRENT_TIMESTAMP
             ) ON CONFLICT(node_id) DO UPDATE SET
+                auth_token_hash=COALESCE(:auth_token_hash, auth_token_hash),
                 name=:name, hostname=:hostname, ip=:ip, status=:status,
                 clerk_id=:clerk_id, auth_provider=:auth_provider, storage_total=:storage_total,
                 storage_used=:storage_used, storage_free=:storage_free, scan_paths=:scan_paths,
@@ -767,6 +768,7 @@ class LibraryDB:
                 %(scan_paths)s::jsonb, NOW(), NOW(), %(version)s, %(metadata)s::jsonb, NOW()
             )
             ON CONFLICT (node_id) DO UPDATE SET
+                auth_token_hash = COALESCE(EXCLUDED.auth_token_hash, library_nodes.auth_token_hash),
                 name           = EXCLUDED.name,
                 hostname       = EXCLUDED.hostname,
                 ip             = EXCLUDED.ip,
