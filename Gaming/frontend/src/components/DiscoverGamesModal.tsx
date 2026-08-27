@@ -60,6 +60,7 @@ const DiscoverGamesModal: React.FC<DiscoverGamesModalProps> = ({ onClose }) => {
   const [hasSearched, setHasSearched] = useState(false);
   const [seeding, setSeeding] = useState(false);
   const [seedStatus, setSeedStatus] = useState<string | null>(null);
+  const [seedError, setSeedError] = useState(false);
 
   const loadPopularCatalog = async () => {
     setLoading(true);
@@ -72,12 +73,13 @@ const DiscoverGamesModal: React.FC<DiscoverGamesModalProps> = ({ onClose }) => {
           title: g.title,
           developer: g.developer,
           publisher: g.publisher,
-          release_date: g.release_date,
-          primary_genre: g.primary_genre,
+          release_date: g.releaseDate || g.release_date,
+          primary_genre: g.primaryGenre || g.primary_genre,
           genres: g.genres || [],
           tags: g.tags || [],
-          cover_url: g.cover_url,
-          banner_url: g.banner_url,
+          // API returns camelCase coverUrl/bannerUrl — fall back to snake_case just in case
+          cover_url: g.coverUrl || g.cover_url,
+          banner_url: g.bannerUrl || g.banner_url,
           summary: g.summary || g.description,
           store: g.source || 'Steam',
           store_app_id: g.source_game_id || g.id,
@@ -123,6 +125,7 @@ const DiscoverGamesModal: React.FC<DiscoverGamesModalProps> = ({ onClose }) => {
   const handleSeedLaunchers = async () => {
     setSeeding(true);
     setSeedStatus('Harvesting top games from Steam, Epic, & GOG...');
+    setSeedError(false);
     try {
       const res = await fetch(`${LIBRARY_SERVER_URL}/api/games/seed`, {
         method: 'POST',
@@ -131,11 +134,19 @@ const DiscoverGamesModal: React.FC<DiscoverGamesModalProps> = ({ onClose }) => {
       });
       if (res.ok) {
         const data = await res.json();
+        setSeedError(false);
         setSeedStatus(`Successfully ingested ${data.inserted} new games from launchers!`);
-        setTimeout(() => setSeedStatus(null), 4000);
+        setTimeout(() => setSeedStatus(null), 5000);
+        loadPopularCatalog(); // Refresh the grid with new games
+      } else {
+        setSeedError(true);
+        setSeedStatus('Seed request failed. The server may be cold-starting — try again.');
+        setTimeout(() => setSeedStatus(null), 6000);
       }
     } catch {
-      setSeedStatus('Failed to seed catalog.');
+      setSeedError(true);
+      setSeedStatus('Failed to reach the catalog server. Check your connection.');
+      setTimeout(() => setSeedStatus(null), 6000);
     } finally {
       setSeeding(false);
     }
@@ -250,9 +261,15 @@ const DiscoverGamesModal: React.FC<DiscoverGamesModalProps> = ({ onClose }) => {
             <motion.div
               initial={{ opacity: 0, y: -4 }}
               animate={{ opacity: 1, y: 0 }}
-              className="text-[10px] font-bold text-neon-green bg-neon-green/10 border border-neon-green/20 rounded-xl px-3 py-1.5 flex items-center gap-2"
+              className={`text-[10px] font-bold rounded-xl px-3 py-1.5 flex items-center gap-2 ${
+                seedError
+                  ? 'text-red-400 bg-red-500/10 border border-red-500/20'
+                  : 'text-neon-green bg-neon-green/10 border border-neon-green/20'
+              }`}
             >
-              <Check className="w-3.5 h-3.5" />
+              {seedError
+                ? <X className="w-3.5 h-3.5" />
+                : <Check className="w-3.5 h-3.5" />}
               {seedStatus}
             </motion.div>
           )}

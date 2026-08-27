@@ -244,7 +244,8 @@ const NodeManagerModal: React.FC<NodeManagerModalProps> = ({ onClose }) => {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
-  const fetchNodes = useCallback(async () => {
+  const fetchNodes = useCallback(async (isInitial = false) => {
+    if (isInitial) setLoading(true);
     try {
       let data: LibraryNode[] = [];
       if (userId) {
@@ -254,7 +255,7 @@ const NodeManagerModal: React.FC<NodeManagerModalProps> = ({ onClose }) => {
             data = await res.json();
           }
         } catch {
-          // ignore
+          // ignore — fall through to unfiltered fetch
         }
       }
       // If user-specific filter returned no nodes, fallback to fetching all nodes
@@ -267,15 +268,17 @@ const NodeManagerModal: React.FC<NodeManagerModalProps> = ({ onClose }) => {
       setNodes(Array.isArray(data) ? data : []);
       setError(null);
     } catch (e: any) {
+      // On a periodic refresh failure, don't wipe existing node data — just note the error
+      // The error banner only renders when nodes.length === 0 (see JSX below)
       setError(e.message || 'Cannot reach library server.');
     } finally {
-      setLoading(false);
+      if (isInitial) setLoading(false);
     }
   }, [userId]);
 
   useEffect(() => {
-    fetchNodes();
-    const t = setInterval(fetchNodes, 15000); // Refresh every 15s
+    fetchNodes(true); // initial load shows spinner
+    const t = setInterval(() => fetchNodes(false), 15000); // silent background refresh
     return () => clearInterval(t);
   }, [fetchNodes]);
 
@@ -337,14 +340,24 @@ const NodeManagerModal: React.FC<NodeManagerModalProps> = ({ onClose }) => {
             </div>
           )}
 
-          {error && (
+          {/* Error: only shown when we have no node data to display */}
+          {error && nodes.length === 0 && (
             <div className="rounded-xl bg-red-500/10 border border-red-500/20 p-4 text-center">
               <WifiOff className="w-5 h-5 text-red-400 mx-auto mb-2" />
-              <p className="text-xs text-red-400 font-bold">{error}</p>
+              <p className="text-xs text-red-400 font-bold">Failed to fetch</p>
               <p className="text-[10px] text-zinc-500 mt-1">Ensure the library server is running at {LIBRARY_SERVER_URL}</p>
-              <button onClick={fetchNodes} className="mt-3 px-4 py-1.5 bg-white/5 border border-white/10 rounded-xl text-[10px] text-zinc-400 hover:text-white transition-all uppercase tracking-widest">
+              <button onClick={() => fetchNodes(true)} className="mt-3 px-4 py-1.5 bg-white/5 border border-white/10 rounded-xl text-[10px] text-zinc-400 hover:text-white transition-all uppercase tracking-widest">
                 Retry
               </button>
+            </div>
+          )}
+
+          {/* Subtle inline stale-data warning when nodes are showing but last refresh failed */}
+          {error && nodes.length > 0 && (
+            <div className="flex items-center gap-2 px-3 py-2 rounded-xl bg-yellow-500/8 border border-yellow-500/20 text-[9px] text-yellow-400">
+              <WifiOff className="w-3 h-3 shrink-0" />
+              <span>Server unreachable — showing last known data</span>
+              <button onClick={() => fetchNodes(true)} className="ml-auto underline hover:text-yellow-200">Retry</button>
             </div>
           )}
 
