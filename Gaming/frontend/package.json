@@ -5,6 +5,7 @@
     "version":  "3.3.2",
     "description":  "Mission Control desktop app for gamers.",
     "homepage":  "https://github.com/arnab825/Mission-Control",
+    "license": "Apache-2.0",
     "desktopName":  "missioncontrol",
     "author":  "Arnab Contributors \u003csupport@missioncontrol.app\u003e",
     "type":  "module",

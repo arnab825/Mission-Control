@@ -1,11 +1,12 @@
-END USER LICENSE AGREEMENT (EULA) FOR MISSION CONTROL
+END USER LICENSE AGREEMENT (EULA) & TERMS FOR MISSION CONTROL
 
-Please read this End User License Agreement ("Agreement") carefully before installing, copying, or using the "Mission Control" desktop application ("Software").
+Mission Control source code is distributed under the Apache License, Version 2.0.
+Please read this End User License Agreement ("Agreement") carefully before installing, copying, or using packaged "Mission Control" desktop application builds ("Software").
 
 By installing, copying, or otherwise using the Software, you agree to be bound by the terms of this Agreement. If you do not agree to the terms of this Agreement, do not install or use the Software.
 
 1. LICENSE GRANT
-Arnab Contributors grants you a non-exclusive, non-transferable, limited license to install and run one copy of the Software on a single personal computer or device, solely for your personal, non-commercial use.
+Arnab Contributors grants you a non-exclusive, worldwide license to install, build, and run the Software in accordance with the Apache License 2.0.
 
 2. DESCRIPTION OF OTHER RIGHTS AND LIMITATIONS
 - Reverse Engineering: You may not reverse engineer, decompile, or disassemble the binary executables of the Software, except and only to the extent that such activity is expressly permitted by applicable law notwithstanding this limitation.
