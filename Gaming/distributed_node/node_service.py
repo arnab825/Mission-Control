@@ -155,12 +155,17 @@ class NodeConfig:
 # ── HTTP Helpers ──────────────────────────────────────────────────────────────
 
 def _headers(token: str) -> Dict[str, str]:
-    return {"X-Node-Token": token, "Content-Type": "application/json"}
+    headers = {"Content-Type": "application/json"}
+    if token:
+        headers["X-Node-Token"] = token
+    return headers
 
 
 def _post(url: str, data: Any, token: str, timeout: int = 10) -> Optional[Dict]:
     try:
         r = requests.post(url, json=data, headers=_headers(token), timeout=timeout)
+        if r.status_code == 401:
+            return {"_status_code": 401, "_error": "Unauthorized"}
         r.raise_for_status()
         return r.json()
     except Exception as exc:
@@ -171,6 +176,8 @@ def _post(url: str, data: Any, token: str, timeout: int = 10) -> Optional[Dict]:
 def _get(url: str, token: str, timeout: int = 10) -> Optional[Dict]:
     try:
         r = requests.get(url, headers=_headers(token), timeout=timeout)
+        if r.status_code == 401:
+            return {"_status_code": 401, "_error": "Unauthorized"}
         r.raise_for_status()
         return r.json()
     except Exception as exc:
@@ -185,92 +192,94 @@ class LibraryNodeService:
         self.cfg = config
         self._running = False
         self._scan_lock = threading.Lock()
+        self._reg_lock = threading.Lock()
         self._last_scan: float = 0.0
 
     # ── Registration ──────────────────────────────────────────────────────────
 
     def register(self) -> bool:
-        # Dynamically discover all active local game libraries and launcher scan paths
-        self.cfg.scan_paths = _discover_all_scan_paths(self.cfg.scan_paths)
+        with self._reg_lock:
+            # Dynamically discover all active local game libraries and launcher scan paths
+            self.cfg.scan_paths = _discover_all_scan_paths(self.cfg.scan_paths)
 
-        storage = (
-            get_drive_storage(self.cfg.scan_paths)
-            if self.cfg.scan_paths
-            else get_default_storage()
-        )
+            storage = (
+                get_drive_storage(self.cfg.scan_paths)
+                if self.cfg.scan_paths
+                else get_default_storage()
+            )
 
-        # Dynamically discover desktop app version from version.json / package.json across all runtimes
-        app_version = "unknown"
-        candidate_paths = [
-            Path(__file__).parent.parent / "backend" / "version.json",
-            Path(__file__).parent.parent / "frontend" / "package.json",
-            Path(__file__).parent / "version.json",
-            Path(os.getcwd()) / "version.json",
-            Path(os.getcwd()) / "backend" / "version.json",
-        ]
-        # Check PyInstaller bundled temp dir if frozen
-        if getattr(sys, "frozen", False) and hasattr(sys, "_MEIPASS"):
-            candidate_paths.insert(0, Path(sys._MEIPASS) / "version.json")
+            # Dynamically discover desktop app version from version.json / package.json across all runtimes
+            app_version = "unknown"
+            candidate_paths = [
+                Path(__file__).parent.parent / "backend" / "version.json",
+                Path(__file__).parent.parent / "frontend" / "package.json",
+                Path(__file__).parent / "version.json",
+                Path(os.getcwd()) / "version.json",
+                Path(os.getcwd()) / "backend" / "version.json",
+            ]
+            # Check PyInstaller bundled temp dir if frozen
+            if getattr(sys, "frozen", False) and hasattr(sys, "_MEIPASS"):
+                candidate_paths.insert(0, Path(sys._MEIPASS) / "version.json")
 
-        for cp in candidate_paths:
-            try:
-                if cp.exists():
-                    with open(cp, "r", encoding="utf-8") as f:
-                        data = json.load(f)
-                        val = data.get("version")
-                        if val and str(val).strip():
-                            app_version = str(val).strip()
-                            break
-            except Exception:
-                continue
+            for cp in candidate_paths:
+                try:
+                    if cp.exists():
+                        with open(cp, "r", encoding="utf-8") as f:
+                            data = json.load(f)
+                            val = data.get("version")
+                            if val and str(val).strip():
+                                app_version = str(val).strip()
+                                break
+                except Exception:
+                    continue
 
-        clerk_id_val = self.cfg.clerk_id or os.getenv("CLERK_ID", "")
-        auth_provider_val = self.cfg.auth_provider or os.getenv("AUTH_PROVIDER", "clerk")
+            clerk_id_val = self.cfg.clerk_id or os.getenv("CLERK_ID", "")
+            auth_provider_val = self.cfg.auth_provider or os.getenv("AUTH_PROVIDER", "clerk")
 
-        payload = {
-            "nodeId":        self.cfg.node_id or None,
-            "name":          self.cfg.node_name,
-            "hostname":      socket.gethostname(),
-            "ip":            _get_local_ip(),
-            "clerkId":       clerk_id_val,
-            "clerk_id":      clerk_id_val,
-            "authProvider":  auth_provider_val,
-            "auth_provider": auth_provider_val,
-            "platform":      sys.platform,
-            "version":       app_version,
-            "storage":       storage,
-            "scanPaths":     self.cfg.scan_paths,
-            "metadata": {
-                "cpu": _get_cpu_info(),
-                "platform": sys.platform,
-            },
-        }
+            payload = {
+                "nodeId":        self.cfg.node_id or None,
+                "name":          self.cfg.node_name,
+                "hostname":      socket.gethostname(),
+                "ip":            _get_local_ip(),
+                "clerkId":       clerk_id_val,
+                "clerk_id":      clerk_id_val,
+                "authProvider":  auth_provider_val,
+                "auth_provider": auth_provider_val,
+                "platform":      sys.platform,
+                "version":       app_version,
+                "storage":       storage,
+                "scanPaths":     self.cfg.scan_paths,
+                "metadata": {
+                    "cpu": _get_cpu_info(),
+                    "platform": sys.platform,
+                },
+            }
 
-        result = _post(
-            f"{self.cfg.server_url}/api/nodes/register",
-            payload,
-            self.cfg.token,  # may be empty on first registration
-            timeout=15,
-        )
-        if not result:
-            logger.error("Registration failed — server unreachable or rejected request.")
-            return False
+            result = _post(
+                f"{self.cfg.server_url}/api/nodes/register",
+                payload,
+                self.cfg.token,  # may be empty on first registration
+                timeout=15,
+            )
+            if not result or result.get("_status_code") == 401:
+                logger.error("Registration failed — server unreachable or rejected request.")
+                return False
 
-        # Persist assigned node_id and token
-        self.cfg.node_id = result.get("nodeId") or self.cfg.node_id
-        token = result.get("token")
-        if token:
-            self.cfg.token = token
-            self.cfg.save()
-            logger.info("Token received and saved.")
+            # Persist assigned node_id and token
+            self.cfg.node_id = result.get("nodeId") or result.get("node_id") or self.cfg.node_id
+            token = result.get("token")
+            if token:
+                self.cfg.token = token
+                self.cfg.save()
+                logger.info("Token received and saved.")
 
-        logger.info("Registered as %s (%s)", self.cfg.node_id, self.cfg.node_name)
-        return True
+            logger.info("Registered as %s (%s)", self.cfg.node_id, self.cfg.node_name)
+            return True
 
     # ── Heartbeat ─────────────────────────────────────────────────────────────
 
     def send_heartbeat(self) -> bool:
-        if not (self.cfg.node_id and self.cfg.token):
+        if not self.cfg.node_id:
             return False
         storage = (
             get_drive_storage(self.cfg.scan_paths)
@@ -282,7 +291,18 @@ class LibraryNodeService:
             {"ip": _get_local_ip(), "storage": storage, "status": "online"},
             self.cfg.token,
         )
-        if result:
+        if result and result.get("_status_code") == 401:
+            logger.info("[NodeAuth] Heartbeat 401 Unauthorized (token out of sync). Auto-registering node...")
+            if self.register():
+                result = _post(
+                    f"{self.cfg.server_url}/api/nodes/{self.cfg.node_id}/heartbeat",
+                    {"ip": _get_local_ip(), "storage": storage, "status": "online"},
+                    self.cfg.token,
+                )
+            else:
+                return False
+
+        if result and not result.get("_status_code"):
             command = result.get("command")
             if command == "scan":
                 logger.info("Server requested immediate scan.")
@@ -415,7 +435,19 @@ class LibraryNodeService:
             self.cfg.token,
             timeout=60,
         )
-        if result:
+        if result and result.get("_status_code") == 401:
+            logger.info("[NodeAuth] Sync 401 Unauthorized (token out of sync). Auto-registering node...")
+            if self.register():
+                result = _post(
+                    f"{self.cfg.server_url}/api/nodes/{self.cfg.node_id}/sync",
+                    payload,
+                    self.cfg.token,
+                    timeout=60,
+                )
+            else:
+                return
+
+        if result and not result.get("_status_code"):
             self._last_synced_hash = current_hash
             logger.info(
                 "Sync complete: %d synced, %d new games, %d AI-queued, %d errors.",

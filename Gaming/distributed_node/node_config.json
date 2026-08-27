@@ -2,7 +2,7 @@
   "nodeId": "NODE-EE1CD5",
   "name": "VICTUSANI",
   "serverUrl": "https://mission-control-server-okj7.onrender.com",
-  "token": "_wtFEi8h1qmGxUtrC2_Qej018sVoxfztP2RQERILOts",
+  "token": "T6iIarY2QEwV9LUCGl0QGashsZsMPpvgowvd2j0ZthM",
   "clerkId": "",
   "authProvider": "",
   "scanPaths": [
@@ -11,7 +11,11 @@
     "C:\\Program Files\\Epic Games",
     "C:\\Program Files\\Steam\\steamapps\\common",
     "C:\\XboxGames",
-    "c:\\program files\\steam\\steamapps\\common"
+    "D:\\SteamLibrary",
+    "D:\\SteamLibrary\\steamapps\\common",
+    "E:\\Program Files (x86)\\Steam\\steamapps\\common",
+    "c:\\program files\\steam\\steamapps\\common",
+    "e:\\program files (x86)\\steam\\steamapps\\common"
   ],
   "heartbeatInterval": 15,
   "syncInterval": 300
