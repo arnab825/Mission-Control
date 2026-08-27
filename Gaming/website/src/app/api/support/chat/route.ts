@@ -105,8 +105,8 @@ ${patchBullets}
    - **DLSS 4.0/4.5**: Multi-Frame Generation (4x to 6x) with Transformer Super Resolution (Blackwell / RTX 50).
    - **DLSS 5.0**: Full Real-Time Neural Material & Light Synthesis (Fall 2026).
 
-7. 📰 Daily Gaming Intel & Technical Blogs ([/blog](/blog)):
-   - Automated AI-driven blog generation pipeline runs daily at **5:30 AM IST** from IGN, Kotaku, Eurogamer, AnandTech, and Tom's Hardware RSS feeds.
+7. 📰 Weekly Gaming Intel & Technical Blogs ([/blog](/blog)):
+   - Automated AI-driven blog generation pipeline runs weekly on Sundays at **5:30 AM IST** from IGN, Kotaku, Eurogamer, AnandTech, and Tom's Hardware RSS feeds.
    - **4 Core Publishing Categories**:
      • **GPU News**: Architecture breakdowns, VRAM limits, Tensor core benchmarks.
      • **Game News**: Launch performance, patches, DLSS/FSR integration news.
@@ -428,11 +428,11 @@ ${patchList}
       ) {
         const blogList = recentPosts.length > 0
           ? recentPosts.map((p: any) => `• **[${p.title}](/blog/gaming/${p.slug})**\n  *Category: ${p.category}* • Published: ${new Date(p.publishedAt || p.createdAt).toLocaleDateString()}`).join("\n\n")
-          : "• **[Explore Daily Gaming Intel Articles](/blog)**";
+          : "• **[Explore Weekly Gaming Intel Articles](/blog)**";
 
-        replyText = `### 📰 Daily Gaming Intel & Technical Dispatches
+        replyText = `### 📰 Weekly Gaming Intel & Technical Dispatches
 
-Mission Control automatically posts technical gaming insights across **4 daily categories**:
+Mission Control automatically posts technical gaming insights across **4 weekly categories**:
 - **⚡ GPU News**: Next-gen GPU architectures, VRAM optimizations, and driver benchmarks.
 - **🎮 Game News**: Launch performance, DLSS/FSR integration notes, and game updates.
 - **🔬 Hardware Deep-Dive**: Silicon architecture, thermals, and overclocking analysis.
@@ -441,7 +441,7 @@ Mission Control automatically posts technical gaming insights across **4 daily c
 **Latest Published Dispatches:**
 ${blogList}
 
-📖 Browse all daily articles on the **[Gaming Intel Blog](/blog)**!`;
+📖 Browse all weekly articles on the **[Gaming Intel Blog](/blog)**!`;
 
       // 6. App Downloads / Option 1
       } else if (
@@ -539,7 +539,7 @@ Your message doesn't appear related to Mission Control. Here are the core topics
 1. **⚡ GPU & Hardware Compatibility** (Discrete NVIDIA supported; iGPUs not supported yet)
 2. **🎮 Controller Support Status** (Active BETA for Xbox & DualSense)
 3. **🚀 App Versions & Live Patches** (Active **v${versionData.version}** with changelogs)
-4. **📰 Daily Gaming Intel & Technical Blogs** ([Gaming Blogs](/blog/gaming))
+4. **📰 Weekly Gaming Intel & Technical Blogs** ([Gaming Blogs](/blog/gaming))
 5. **📚 Feature Docs & In-Game Overlay** ([Documentation](/docs))
 6. **🛠️ Bug Reporting & Community** ([Community Glitch Tracker](/community) • [Contact Support](/contact))`;
       }

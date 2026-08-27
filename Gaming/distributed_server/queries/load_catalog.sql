@@ -12,7 +12,7 @@ SELECT
     g.platforms,
     g.cover_url,
     g.banner_url,
-    g.summary,
+    g.description AS summary,
     g.ai_classified,
     g.metadata,
     COALESCE(

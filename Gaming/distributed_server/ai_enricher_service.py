@@ -105,17 +105,17 @@ def _autonomous_healer_loop():
     while _RUN_HEALER:
         try:
             if db.available:
-                # Find games with empty features, missing summary, or missing release_date
+                # Find games with empty features, missing description, or missing release_date
                 sql = """
-                    SELECT id, title, developer, publisher, primary_genre, tags, summary, features, release_date, metadata
+                    SELECT id, title, developer, publisher, primary_genre, tags, description, features, release_date, metadata
                     FROM canonical_games
                     WHERE (
                            features = '{}'
                         OR features IS NULL
-                        OR summary IS NULL
-                        OR summary = ''
-                        OR summary = 'EMPTY'
-                        OR summary LIKE 'An acclaimed game developed by%%'
+                        OR description IS NULL
+                        OR description = ''
+                        OR description = 'EMPTY'
+                        OR description LIKE 'An acclaimed game developed by%%'
                         OR release_date IS NULL
                         OR release_date = ''
                         OR release_date = 'None'
@@ -165,7 +165,7 @@ def _autonomous_healer_loop():
                                 publisher=g.get("publisher") or (steam_details.get("publisher") if steam_details else None),
                                 primary_genre=genre,
                                 tags=tags,
-                                existing_summary=g.get("summary"),
+                                existing_summary=g.get("description"),
                             )
                         
                         final_features = (
@@ -245,12 +245,12 @@ async def repair_batch(limit: int = Query(10, ge=1, le=50)):
         raise HTTPException(status_code=503, detail="Database not available.")
     
     sql = """
-        SELECT id, title, developer, primary_genre, tags, summary, features, release_date, metadata
+        SELECT id, title, developer, primary_genre, tags, description, features, release_date, metadata
         FROM canonical_games
         WHERE features = '{}'
-           OR summary IS NULL
-           OR summary = 'EMPTY'
-           OR summary LIKE 'An acclaimed game developed by%%'
+           OR description IS NULL
+           OR description = 'EMPTY'
+           OR description LIKE 'An acclaimed game developed by%%'
         LIMIT %(limit)s;
     """
     games = db.execute(sql, {"limit": limit}, fetch="all") or []

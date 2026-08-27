@@ -3,8 +3,8 @@
     "name": "Steam",
     "platform": "Steam",
     "id": "steam_launcher",
-    "install_path": "e:\\program files (x86)\\steam",
-    "exe_path": "e:/program files (x86)/steam/steam.exe",
+    "install_path": "c:\\program files\\steam",
+    "exe_path": "c:/program files/steam/steam.exe",
     "features": [
       "HDR"
     ],
@@ -13,7 +13,7 @@
     "tags": [
       "SYSTEM"
     ],
-    "icon": "data/icons/steam_launcher.png"
+    "icon": "C:\\GitHub\\Mission-Control\\Gaming\\backend\\data\\icons\\steam_launcher.png"
   },
   {
     "name": "EA Desktop",
@@ -22,7 +22,7 @@
     "install_path": "C:\\Program Files\\Electronic Arts\\EA Desktop\\EA Desktop",
     "exe_path": "C:\\Program Files\\Electronic Arts\\EA Desktop\\EA Desktop\\EADesktop.exe",
     "features": [],
-    "icon": "data/icons/fallback_ea_desktop.png",
+    "icon": "C:\\GitHub\\Mission-Control\\Gaming\\backend\\data\\icons\\fallback_ea_desktop.png",
     "type": "LAUNCHER",
     "genre": "PLATFORM",
     "tags": [
@@ -41,7 +41,7 @@
     "tags": [
       "SYSTEM"
     ],
-    "icon": "data/icons/ubisoft_launcher.png"
+    "icon": "C:\\GitHub\\Mission-Control\\Gaming\\backend\\data\\icons\\ubisoft_launcher.png"
   },
   {
     "name": "Epic Games",
@@ -55,14 +55,28 @@
     "tags": [
       "SYSTEM"
     ],
-    "icon": "data/icons/EpicGamesLauncher.png"
+    "icon": "C:\\GitHub\\Mission-Control\\Gaming\\backend\\data\\icons\\EpicGamesLauncher.png"
+  },
+  {
+    "name": "Rockstar Games",
+    "platform": "Rockstar Games",
+    "id": "Rockstar Games Launcher",
+    "install_path": "C:\\Program Files\\Rockstar Games\\Launcher",
+    "exe_path": "C:\\Program Files\\Rockstar Games\\Launcher\\LauncherPatcher.exe",
+    "icon": "C:\\GitHub\\Mission-Control\\Gaming\\backend\\data\\icons\\RockstarGamesLauncher.png",
+    "features": [],
+    "type": "LAUNCHER",
+    "genre": "PLATFORM",
+    "tags": [
+      "SYSTEM"
+    ]
   },
   {
     "name": "Xbox",
     "platform": "Xbox",
     "id": "Microsoft.GamingApp",
     "install_path": "C:\\Program Files\\WindowsApps\\Microsoft.GamingApp_2608.1001.17.0_x64__8wekyb3d8bbwe",
-    "icon": "data/icons/Xbox_SysTrayLogo.ico",
+    "icon": "C:\\Program Files\\WindowsApps\\Microsoft.GamingApp_2608.1001.17.0_x64__8wekyb3d8bbwe\\Xbox_SysTrayLogo.ico",
     "exe_path": "xbox:",
     "type": "LAUNCHER",
     "features": [],
@@ -72,38 +86,25 @@
     ]
   },
   {
-    "name": "Need for Speed Heat",
-    "platform": "Steam",
-    "id": "1222680",
-    "install_path": "E:\\Program Files (x86)\\Steam\\steamapps\\common\\Need for Speed Heat",
-    "exe_path": "E:\\Program Files (x86)\\Steam\\steamapps\\common\\Need for Speed Heat\\NeedForSpeedHeat.exe",
-    "icon": "data/icons/1222680.png",
+    "name": "The Last of Us Part I",
+    "platform": "Local",
+    "id": "C:\\_The Last of Us - Part I",
+    "install_path": "C:\\Games\\The Last of Us - Part I",
+    "exe_path": "C:\\Games\\The Last of Us - Part I\\tlou-i-l.exe",
+    "source": "common_paths",
     "features": [
-      "HDR"
+      "DLSS",
+      "FRAME_GEN",
+      "FSR",
+      "FSR 2",
+      "FSR 3",
+      "HDR",
+      "REFLEX"
     ],
     "type": "GAME",
-    "genre": "RACING",
-    "tags": [
-      "DRIVING",
-      "MULTIPLAYER"
-    ]
-  },
-  {
-    "name": "Tom Clancy's The Division",
-    "platform": "Steam",
-    "id": "365590",
-    "install_path": "D:\\SteamLibrary\\steamapps\\common\\Tom Clancy's The Division",
-    "exe_path": "D:\\SteamLibrary\\steamapps\\common\\Tom Clancy's The Division\\thedivision.exe",
-    "icon": "data/icons/365590.png",
-    "features": [
-      "ANSEL",
-      "LEGACY"
-    ],
-    "type": "GAME",
-    "genre": "SHOOTER",
-    "tags": [
-      "TPS",
-      "ACTION"
-    ]
+    "genre": "ACTION",
+    "tags": [],
+    "local_banner": "https://cdn.akamai.steamstatic.com/steam/apps/1888930/header.jpg",
+    "icon": "C:\\GitHub\\Mission-Control\\Gaming\\backend\\data\\icons\\C_TheLastofUs-PartI.png"
   }
 ]
