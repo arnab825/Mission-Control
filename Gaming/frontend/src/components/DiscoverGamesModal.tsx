@@ -61,8 +61,46 @@ const DiscoverGamesModal: React.FC<DiscoverGamesModalProps> = ({ onClose }) => {
   const [seeding, setSeeding] = useState(false);
   const [seedStatus, setSeedStatus] = useState<string | null>(null);
 
+  const loadPopularCatalog = async () => {
+    setLoading(true);
+    try {
+      const res = await fetch(`${LIBRARY_SERVER_URL}/api/games?limit=24`);
+      if (res.ok) {
+        const data = await res.json();
+        const games = (data.games || []).map((g: any) => ({
+          id: g.id,
+          title: g.title,
+          developer: g.developer,
+          publisher: g.publisher,
+          release_date: g.release_date,
+          primary_genre: g.primary_genre,
+          genres: g.genres || [],
+          tags: g.tags || [],
+          cover_url: g.cover_url,
+          banner_url: g.banner_url,
+          summary: g.summary || g.description,
+          store: g.source || 'Steam',
+          store_app_id: g.source_game_id || g.id,
+          launchers: g.launchers || ['Steam'],
+          in_catalog: true,
+          ai_classified: g.ai_classified ?? true,
+          installations: g.installations || [],
+        }));
+        setResults(games);
+        setHasSearched(true);
+      }
+    } catch {
+      // Ignore initial background load errors
+    } finally {
+      setLoading(false);
+    }
+  };
+
   const handleSearch = async (searchTerm: string) => {
-    if (!searchTerm.trim()) return;
+    if (!searchTerm.trim()) {
+      loadPopularCatalog();
+      return;
+    }
     setLoading(true);
     setHasSearched(true);
     try {
@@ -103,14 +141,14 @@ const DiscoverGamesModal: React.FC<DiscoverGamesModalProps> = ({ onClose }) => {
     }
   };
 
-  // Trigger initial search for popular games if empty
+  // Preload popular catalog games instantly on open
   useEffect(() => {
-    handleSearch('Top');
+    loadPopularCatalog();
   }, []);
 
   return (
     <motion.div
-      className="fixed inset-0 z-[200] flex items-center justify-center p-4 sm:p-6"
+      className="fixed inset-0 z-200 flex items-center justify-center p-4 sm:p-6"
       initial={{ opacity: 0 }}
       animate={{ opacity: 1 }}
       exit={{ opacity: 0 }}
@@ -120,14 +158,14 @@ const DiscoverGamesModal: React.FC<DiscoverGamesModalProps> = ({ onClose }) => {
 
       {/* Modal Container */}
       <motion.div
-        className="relative z-10 w-full max-w-5xl h-[85vh] bg-zinc-950/98 border border-white/[0.08] rounded-3xl flex flex-col overflow-hidden shadow-2xl"
+        className="relative z-10 w-full max-w-5xl h-[85vh] bg-zinc-950/98 border border-white/8 rounded-3xl flex flex-col overflow-hidden shadow-2xl"
         initial={{ scale: 0.96, opacity: 0, y: 12 }}
         animate={{ scale: 1, opacity: 1, y: 0 }}
         exit={{ scale: 0.96, opacity: 0 }}
         transition={{ type: 'spring', damping: 25, stiffness: 280 }}
       >
         {/* Header */}
-        <div className="px-6 py-5 border-b border-white/[0.06] flex items-center justify-between gap-4 shrink-0 bg-gradient-to-b from-white/[0.02] to-transparent">
+        <div className="px-6 py-5 border-b border-white/6 flex items-center justify-between gap-4 shrink-0 bg-linear-to-b from-white/2 to-transparent">
           <div className="flex items-center gap-3">
             <div className="w-10 h-10 rounded-2xl bg-neon-green/10 border border-neon-green/30 flex items-center justify-center shadow-[0_0_20px_rgba(118,185,0,0.15)]">
               <Globe className="w-5 h-5 text-neon-green" />
@@ -162,7 +200,7 @@ const DiscoverGamesModal: React.FC<DiscoverGamesModalProps> = ({ onClose }) => {
         </div>
 
         {/* Search Bar & Quick Suggestions */}
-        <div className="p-6 pb-4 border-b border-white/[0.04] space-y-3 shrink-0 bg-black/20">
+        <div className="p-6 pb-4 border-b border-white/4 space-y-3 shrink-0 bg-black/20">
           <form
             onSubmit={(e) => {
               e.preventDefault();
@@ -201,7 +239,7 @@ const DiscoverGamesModal: React.FC<DiscoverGamesModalProps> = ({ onClose }) => {
                   setQuery(q);
                   handleSearch(q);
                 }}
-                className="shrink-0 px-2.5 py-1 rounded-lg bg-white/[0.03] hover:bg-white/[0.08] border border-white/5 text-[9px] font-medium text-zinc-400 hover:text-zinc-200 transition-colors"
+                className="shrink-0 px-2.5 py-1 rounded-lg bg-white/3 hover:bg-white/8 border border-white/5 text-[9px] font-medium text-zinc-400 hover:text-zinc-200 transition-colors"
               >
                 {q}
               </button>
@@ -235,7 +273,7 @@ const DiscoverGamesModal: React.FC<DiscoverGamesModalProps> = ({ onClose }) => {
                 return (
                   <div
                     key={game.id}
-                    className="group bg-white/[0.02] hover:bg-white/[0.04] border border-white/[0.06] hover:border-white/[0.12] rounded-2xl p-4 flex flex-col justify-between gap-3 transition-all"
+                    className="group bg-white/2 hover:bg-white/4 border border-white/6 hover:border-white/12 rounded-2xl p-4 flex flex-col justify-between gap-3 transition-all"
                   >
                     <div>
                       {/* Cover & Banner */}
@@ -252,7 +290,7 @@ const DiscoverGamesModal: React.FC<DiscoverGamesModalProps> = ({ onClose }) => {
                             <Gamepad2 className="w-8 h-8 text-zinc-700" />
                           </div>
                         )}
-                        <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-transparent to-black/20" />
+                        <div className="absolute inset-0 bg-linear-to-t from-black/80 via-transparent to-black/20" />
 
                         {/* Store Badge */}
                         <div className="absolute top-2 left-2 flex items-center gap-1">
@@ -304,7 +342,7 @@ const DiscoverGamesModal: React.FC<DiscoverGamesModalProps> = ({ onClose }) => {
                     </div>
 
                     {/* Footer Status */}
-                    <div className="pt-2 border-t border-white/[0.04] flex items-center justify-between text-[9px] text-zinc-500">
+                    <div className="pt-2 border-t border-white/4 flex items-center justify-between text-[9px] text-zinc-500">
                       <div className="flex items-center gap-1">
                         <Check className="w-3 h-3 text-neon-green" />
                         <span>In Master Catalog</span>
