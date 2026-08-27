@@ -133,7 +133,7 @@ const NodeCard: React.FC<{
       initial={{ opacity: 0, y: 8 }}
       animate={{ opacity: 1, y: 0 }}
       exit={{ opacity: 0, scale: 0.97 }}
-      className="bg-white/[0.03] border border-white/[0.06] rounded-2xl p-4 space-y-4"
+      className="bg-white/3 border border-white/6 rounded-2xl p-4 space-y-4"
     >
       {/* Header */}
       <div className="flex items-start justify-between gap-3">
@@ -246,12 +246,24 @@ const NodeManagerModal: React.FC<NodeManagerModalProps> = ({ onClose }) => {
 
   const fetchNodes = useCallback(async () => {
     try {
-      const url = userId
-        ? `${LIBRARY_SERVER_URL}/api/nodes?clerk_id=${encodeURIComponent(userId)}`
-        : `${LIBRARY_SERVER_URL}/api/nodes`;
-      const res = await fetch(url);
-      if (!res.ok) throw new Error(`Server error: ${res.status}`);
-      const data = await res.json();
+      let data: LibraryNode[] = [];
+      if (userId) {
+        try {
+          const res = await fetch(`${LIBRARY_SERVER_URL}/api/nodes?clerk_id=${encodeURIComponent(userId)}`);
+          if (res.ok) {
+            data = await res.json();
+          }
+        } catch {
+          // ignore
+        }
+      }
+      // If user-specific filter returned no nodes, fallback to fetching all nodes
+      if (!Array.isArray(data) || data.length === 0) {
+        const res = await fetch(`${LIBRARY_SERVER_URL}/api/nodes`);
+        if (res.ok) {
+          data = await res.json();
+        }
+      }
       setNodes(Array.isArray(data) ? data : []);
       setError(null);
     } catch (e: any) {
@@ -288,7 +300,7 @@ const NodeManagerModal: React.FC<NodeManagerModalProps> = ({ onClose }) => {
 
   return (
     <motion.div
-      className="fixed inset-0 z-[200] flex items-start justify-end"
+      className="fixed inset-0 z-200 flex items-start justify-end"
       initial={{ opacity: 0 }}
       animate={{ opacity: 1 }}
       exit={{ opacity: 0 }}
@@ -298,14 +310,14 @@ const NodeManagerModal: React.FC<NodeManagerModalProps> = ({ onClose }) => {
 
       {/* Panel */}
       <motion.div
-        className="relative z-10 w-full max-w-md h-full bg-zinc-950/95 border-l border-white/[0.06] overflow-y-auto no-scrollbar"
+        className="relative z-10 w-full max-w-md h-full bg-zinc-950/95 border-l border-white/6 overflow-y-auto no-scrollbar"
         initial={{ x: '100%' }}
         animate={{ x: 0 }}
         exit={{ x: '100%' }}
         transition={{ type: 'spring', damping: 26, stiffness: 260 }}
       >
         {/* Header */}
-        <div className="sticky top-0 z-10 bg-zinc-950/95 backdrop-blur-md border-b border-white/[0.06] px-5 py-4 flex items-center justify-between">
+        <div className="sticky top-0 z-10 bg-zinc-950/95 backdrop-blur-md border-b border-white/6 px-5 py-4 flex items-center justify-between">
           <div>
             <h2 className="text-sm font-black text-white tracking-wide">Library Nodes</h2>
             <p className="text-[10px] text-zinc-500 mt-0.5">
