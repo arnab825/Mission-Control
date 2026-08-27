@@ -567,7 +567,10 @@ class LibraryDB:
         last_seen_id: Optional[str] = None,
         page: int = 1,
         limit: int = 48,
+        need_installations: bool = False,
     ) -> List[Dict]:
+        # Only JOIN installation tables when the caller needs them (saves a heavy json_agg at 26K+ rows)
+        need_installations = need_installations or installed_only or bool(node_id) or bool(clerk_id)
         if self._active_tier >= 2:
             return self._sqlite_get_catalog(search, genre, node_id, clerk_id, store, installed_only, last_seen_id, page, limit)
             
@@ -582,6 +585,7 @@ class LibraryDB:
                 "clerk_id": clerk_id or None,
                 "store": store or None,
                 "installed_only": installed_only,
+                "need_installations": need_installations,
                 "last_seen_id": last_seen_id,
                 "limit": limit,
                 "offset": offset,
@@ -589,6 +593,7 @@ class LibraryDB:
         except Exception:
             logger.warning("LibraryDB: Falling back to SQLite for get_catalog.")
             return self._sqlite_get_catalog(search, genre, node_id, clerk_id, store, installed_only, last_seen_id, page, limit)
+
 
     def get_installations_for_game(self, game_id: str, clerk_id: Optional[str] = None) -> List[Dict]:
         if self._active_tier >= 2:
