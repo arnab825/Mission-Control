@@ -1,4 +1,5 @@
 -- Load paginated catalog with aggregated installation info per game
+-- Pass %(need_installations)s = TRUE to join installation data, FALSE for lean catalog-only browsing
 SELECT
     g.id,
     g.title,
@@ -15,29 +16,31 @@ SELECT
     g.description AS summary,
     g.ai_classified,
     g.metadata,
-    COALESCE(
-        json_agg(
-            json_build_object(
-                'id',           i.id,
-                'nodeId',       i.node_id,
-                'nodeName',     n.name,
-                'nodeStatus',   n.status,
-                'store',        i.store,
-                'storeAppId',   i.store_app_id,
-                'installPath',  i.install_path,
-                'exePath',      i.exe_path,
-                'version',      i.version,
-                'sizeBytes',    i.size_bytes,
-                'status',       i.status
-            ) ORDER BY n.name, i.store
-        ) FILTER (WHERE i.id IS NOT NULL),
-        '[]'::json
-    ) AS installations
+    CASE WHEN %(need_installations)s THEN
+        COALESCE(
+            json_agg(
+                json_build_object(
+                    'id',           i.id,
+                    'nodeId',       i.node_id,
+                    'nodeName',     n.name,
+                    'nodeStatus',   n.status,
+                    'store',        i.store,
+                    'storeAppId',   i.store_app_id,
+                    'installPath',  i.install_path,
+                    'exePath',      i.exe_path,
+                    'version',      i.version,
+                    'sizeBytes',    i.size_bytes,
+                    'status',       i.status
+                ) ORDER BY n.name, i.store
+            ) FILTER (WHERE i.id IS NOT NULL),
+            '[]'::json
+        )
+    ELSE '[]'::json END AS installations
 FROM canonical_games g
 LEFT JOIN (
     game_installations i
     JOIN library_nodes n ON n.node_id = i.node_id AND (%(clerk_id)s IS NULL OR n.clerk_id = %(clerk_id)s)
-) ON i.game_id = g.id
+) ON %(need_installations)s AND i.game_id = g.id
 WHERE
     (%(search)s IS NULL OR to_tsvector('english', g.title) @@ plainto_tsquery('english', %(search)s)
      OR g.normalized_title ILIKE '%%' || %(search_like)s || '%%')

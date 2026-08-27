@@ -684,6 +684,8 @@ async def get_games(
     if cached_val:
         return cached_val
 
+    # Only JOIN installation tables when the caller actually needs them
+    need_installations = bool(installed_only or node_id or clerk_id)
 
     rows = db.get_catalog(
         search=search,
@@ -695,6 +697,7 @@ async def get_games(
         last_seen_id=cursor,
         page=page,
         limit=limit,
+        need_installations=need_installations,
     )
 
     games = []
@@ -717,13 +720,25 @@ async def get_games(
             "installations": row.get("installations") or [],
         })
 
-    # Only count total if it's the first page (no cursor), else we estimate or return existing total logic
+    # Total count: cached in Redis for 10 minutes to avoid repeated full-table scans at 26K+ rows
+    _COUNT_CACHE_KEY = "mc:catalog:total_count"
     total = 0
     if not cursor and not search:
-        count_row = db.execute("SELECT COUNT(*) AS cnt FROM canonical_games", fetch="one")
-        total = count_row["cnt"] if count_row else len(games)
+        # Try cache first
+        cached_count = _get_from_cache(_COUNT_CACHE_KEY)
+        if cached_count is not None:
+            total = int(cached_count)
+        else:
+            try:
+                count_row = db.execute("SELECT COUNT(*) AS cnt FROM canonical_games", fetch="one")
+                total = count_row["cnt"] if count_row else len(games)
+                _set_to_cache(_COUNT_CACHE_KEY, total, _CACHE_TTL)
+            except Exception:
+                total = len(games)
     else:
-        total = len(games)  # Simplified for cursor requests
+        # For cursor/search requests, pull from cached total or use current page size
+        cached_count = _get_from_cache(_COUNT_CACHE_KEY)
+        total = int(cached_count) if cached_count is not None else len(games)
 
     next_cursor = games[-1]["id"] if len(games) == limit else None
 
@@ -737,8 +752,8 @@ async def get_games(
     }
 
     if not search and not genre and not clerk_id and not node_id:
-        # Cache general hot queries (e.g. top games)
-        _set_to_cache(cache_key, response_data, _CACHE_TTL)
+        # Cache general hot queries (e.g. top games) for 2 minutes
+        _set_to_cache(cache_key, response_data, 120)
 
     return response_data
 
