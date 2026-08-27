@@ -1,493 +1,476 @@
 {
-    "version":  "3.3.1",
-    "release_date":  "2026-08-26",
-    "update_check_url":  "https://raw.githubusercontent.com/arnab825/Mission-Control/main/Gaming/backend/version.json",
-    "changelog":  [
-                      {
-                          "version":  "3.3.1",
-                          "date":  "2026-08-26",
-                          "title":  "Multi-Cloud High Availability \u0026 Instant Zero-Lag Startup Architecture",
-                          "highlights":  [
-                                             "Added multi-tier cloud failover topology supporting Supabase (Tier 1), Neon Serverless PostgreSQL (Tier 2), and Local SQLite NVMe replica (Tier 3)",
-                                             "Implemented automated high-speed migration tool replicating 83.4k+ master games, user games, hardware nodes, and AI logs to Neon",
-                                             "Optimized game library loading with Local-First Frame-0 instant render and non-blocking background synchronization",
-                                             "Added fast-abort 1.5s timeout on remote distributed server queries preventing UI cold-start stalls",
-                                             "Demoted startup auto-scans to non-intrusive background state to eliminate full-screen radar modal lockouts",
-                                             "Added automated Vercel keep-alive cron job to keep Supabase, Neon, and MongoDB warm 24/7"
-                                         ]
-                      },
-                      {
-                          "version":  "3.3.0",
-                          "date":  "2026-08-25",
-                          "title":  "Ecosystem Optimization, Multi-Node Architecture \u0026 Dynamic Deduplication",
-                          "highlights":  [
-                                             "Added Win32 working set RAM compaction (EmptyWorkingSet) dropping idle background memory to ~40-60 MB during gameplay",
-                                             "Implemented dynamic machine-unique Node ID derivation (NODE-\u003cMAC_HASH\u003e) and host discovery to prevent multi-device collision",
-                                             "Added canonical path-based deduplication (path_to_name) and feature merging across Steam, Epic, GOG, and custom disk scans",
-                                             "Implemented universal default library path discovery (_get_default_library_paths) across multi-drive storage",
-                                             "Non-destructive node_scan_paths synchronization preserving user custom scan paths across heartbeats",
-                                             "Delta-hashed library synchronization in node_service.py to prevent redundant network uploads",
-                                             "OpenCV configuration loader 3-tier runtime hooks ensuring 100% frozen PyInstaller stability"
-                                         ]
-                      },
-                      {
-                          "version":  "3.2.9",
-                          "date":  "2026-08-24",
-                          "title":  "Telemetry \u0026 Rollback Subsystem Reliability Hardening",
-                          "highlights":  [
-                                             "Fixed PowerShell script path interpolation and quotation parsing under UAC elevation for offline update rollback",
-                                             "Preserved 0% metric values in analysis engine to ensure accurate Idle load states and eliminate Unknown health classifications",
-                                             "Synchronized effective capture and DirectX FPS telemetry to system tray tooltip",
-                                             "Bound RightTelemetry neural metrics and status items to live backend telemetry",
-                                             "Fixed DatabaseManager class inheritance and Intel Arc Alchemist/Battlemage architecture profiling heuristics"
-                                         ]
-                      },
-                      {
-                          "version":  "3.2.8",
-                          "date":  "2026-08-22",
-                          "title":  "OpenCV Resilience \u0026 Pipeline Stability Hardening",
-                          "highlights":  [
-                                             "Removed unused cv2 import from capture/screen.py that caused crash on DLL load failure",
-                                             "Added try/except cv2 import guards in scene_classifier, simple_rules, and trt_inference with graceful NumPy/PIL fallbacks",
-                                             "Guarded all cv2 window management and frame encoding calls in pipeline_host to prevent AttributeError and NoneType crashes",
-                                             "Fixed dangling self._render_preview() call in _display_loop that caused AttributeError at runtime"
-                                         ]
-                      },
-                      {
-                          "version":  "3.2.7",
-                          "date":  "2026-08-22",
-                          "title":  "Distributed Server Agent and Vision Connection Integration",
-                          "highlights":  [
-                                             "Connected Agent and Vision UI pages to the central distributed library server with live node telemetry updates",
-                                             "Added Library Server online/offline pipeline status badges and stats panel overlays",
-                                             "Configured backend game scanner to fall back to distributed library server catalog API when direct DB access is unavailable"
-                                         ]
-                      },
-                      {
-                          "version":  "3.2.6",
-                          "date":  "2026-08-21",
-                          "title":  "OpenCV Loader \u0026 Supabase Metadata Enrichment Fixes",
-                          "highlights":  [
-                                             "Resolved OpenCV cv2 loader missing configuration in PyInstaller packages",
-                                             "Added full Steam features and authentic summaries backfill in Supabase",
-                                             "Streamlined AI classifier with zero-retry multi-provider failover"
-                                         ]
-                      },
-                      {
-                          "version":  "3.2.5",
-                          "date":  "2026-08-21",
-                          "title":  "Distributed Cluster Architecture \u0026 Multi-Tenant User Isolation",
-                          "highlights":  [
-                                             "Implemented high-performance distributed cluster architecture with Load Balancer and multi-instance microservices",
-                                             "Enabled strict multi-tenant library and node isolation per authenticated Clerk ID and OAuth provider",
-                                             "Backfilled release dates across canonical catalog and removed deprecated database schemas",
-                                             "Integrated live Docker Compose orchestration with Windows IPv6 network compatibility",
-                                             "Connected frontend distributed synchronization with automatic server model mapping"
-                                         ]
-                      },
-                      {
-                          "version":  "3.2.4",
-                          "date":  "2026-08-20",
-                          "title":  "OpenCV Config Loader \u0026 PyInstaller Backend Fixes",
-                          "highlights":  [
-                                             "Resolved OpenCV cv2 config loader missing module errors in PyInstaller backend packaging",
-                                             "Dynamic multi-environment package directory discovery fallback for rapidocr and cv2",
-                                             "Verified clean frontend and website production builds"
-                                         ]
-                      },
-                      {
-                          "version":  "3.2.3",
-                          "date":  "2026-08-19",
-                          "title":  "Fix First-Launch Setup Loading \u0026 Backend Process Startup Loop",
-                          "highlights":  [
-                                             "Resolved cascading backend kill-restart loop during cold boot and first launch",
-                                             "Standardized WebSocket bridge host to 127.0.0.1 to avoid Windows dual-stack socket collisions",
-                                             "Added concurrency mutex and graceful process management in Electron main process",
-                                             "Enabled full stdout and stderr traceback forwarding to app.log in production",
-                                             "Added persistent local app data directory creation in NSIS installer"
-                                         ]
-                      },
-                      {
-                          "version":  "3.2.3",
-                          "date":  "2026-08-19",
-                          "title":  "Fix OpenCV config loader missing configuration in PyInstaller backend packaging",
-                          "highlights":  [
-                                             "Dynamically collected OpenCV cv2 config.py runtime files, binaries, and RapidOCR data in PyInstaller spec",
-                                             "Added robust multi-environment package directory discovery fallback"
-                                         ]
-                      },
-                      {
-                          "version":  "3.2.2",
-                          "date":  "2026-08-19",
-                          "title":  "AI Support Assistant, Community Benchmarks \u0026 Live Telemetry Reporting",
-                          "highlights":  [
-                                             "Implemented comprehensive multi-tier AI support chatbot system with conversational assistance and model failovers",
-                                             "Connected live community game ratings, rig reviews, and media uploads to MongoDB persistence layer",
-                                             "Added interactive documentation search, categorized guides, and API key management client",
-                                             "Introduced hardware telemetry reporting modal with automated system spec detection",
-                                             "Refined games tested benchmark profiles, DLSS 4/DLAA upscaler badges, and newsletter subscription pipelines"
-                                         ]
-                      },
-                      {
-                          "version":  "3.2.1",
-                          "date":  "2026-08-16",
-                          "title":  "Library Scanner Sanitation \u0026 Steam Container Optimization",
-                          "highlights":  [
-                                             "Resolved Steam library container false-positives by filtering out steamapps directory entries",
-                                             "Enabled automated steamapps/common recursive game discovery in drive and library scans",
-                                             "Enhanced junk keywords and container validation in library scanner",
-                                             "Connected community review media uploads and navbar active tab synchronization"
-                                         ]
-                      },
-                      {
-                          "version":  "3.2.0",
-                          "date":  "2026-08-16",
-                          "title":  "Dynamic Game Root Resolution \u0026 Subfolder Optimization",
-                          "highlights":  [
-                                             "Dynamic Game Root Resolution \u0026 Subfolder Optimization",
-                                             "Automated upward directory walker past nested engine and architecture folders",
-                                             "Game root scoping preventing orphan sub-games for mod and crash tools",
-                                             "Enhanced executable scoring with auxiliary tool and uninstaller filtering",
-                                             "Universal Windows PE metadata title extraction for ambiguous binaries"
-                                         ]
-                      },
-                      {
-                          "version":  "3.1.9",
-                          "date":  "2026-08-16",
-                          "title":  "Universal Game Scanner \u0026 Dynamic Binary Title Resolution",
-                          "highlights":  [
-                                             "Dynamic PE binary title extraction for 100k+ games",
-                                             "1MB executable threshold for lightweight indie \u0026 retro games",
-                                             "Excluded non-game developer tools \u0026 ZuneVideo UWP app",
-                                             "Auto-purge uninstalled titles \u0026 pre-build version sync"
-                                         ]
-                      },
-                      {
-                          "version":  "3.1.8",
-                          "date":  "2026-08-15",
-                          "title":  "Direct GitHub Releases In-App Updater Fallback \u0026 Elevated Offline Rollback",
-                          "highlights":  [
-                                             "Added direct GitHub Releases API fallback to Electron autoUpdater for seamless in-app downloads when latest.yml is absent",
-                                             "Refactored automated offline rollback system using robocopy retry loops and automatic UAC elevation escalation",
-                                             "Added live Retry Download control to Updates page",
-                                             "Resolved shadowed local variable imports in AI brain memory module and updated Vitest suite"
-                                         ]
-                      },
-                      {
-                          "version":  "3.1.7",
-                          "date":  "2026-08-15",
-                          "title":  "Multi-Vendor GPU Support (AMD \u0026 Intel), Groq Model Updates \u0026 Optimizer Refinements",
-                          "highlights":  [
-                                             "Added full multi-vendor GPU capability detection for AMD Radeon and Intel Arc graphics",
-                                             "Migrated frontend settings and backend optimizer to unified gpu_tuning architecture",
-                                             "Updated Groq AI provider models to GPT OSS 120B and Qwen 3.6 27B",
-                                             "Removed deprecated Custom AI model fallback options"
-                                         ]
-                      },
-                      {
-                          "version":  "3.1.6",
-                          "date":  "2026-08-15",
-                          "title":  "Fixed Alienware CPU temperature telemetry \u0026 optimized backend Pydantic models",
-                          "highlights":  [
-                                             "Fixed Alienware CPU temperature telemetry \u0026 optimized backend Pydantic models"
-                                         ]
-                      },
-                      {
-                          "version":  "3.1.5",
-                          "date":  "2026-08-15",
-                          "title":  "Fixed Alienware CPU temperature telemetry \u0026 optimized backend Pydantic models",
-                          "highlights":  [
-                                             "Fixed Alienware CPU temperature telemetry \u0026 optimized backend Pydantic models"
-                                         ]
-                      },
-                      {
-                          "version":  "3.1.4",
-                          "date":  "2026-08-13",
-                          "title":  "Fixed Linux build pipeline, spec cross-compatibility, and ClerkProvider router props",
-                          "highlights":  [
-                                             "Fixed Linux build pipeline, spec cross-compatibility, and ClerkProvider router props"
-                                         ]
-                      },
-                      {
-                          "version":  "3.1.3",
-                          "date":  "2026-08-13",
-                          "title":  "Fixed Linux build pipeline and spec cross-compatibility",
-                          "highlights":  [
-                                             "Fixed Linux build pipeline and spec cross-compatibility"
-                                         ]
-                      },
-                      {
-                          "version":  "3.1.2",
-                          "date":  "2026-08-13",
-                          "title":  "fixed som e bugs",
-                          "highlights":  [
-                                             "fixed som e bugs"
-                                         ]
-                      },
-                      {
-                          "version":  "3.1.1",
-                          "date":  "2026-08-13",
-                          "title":  "fixed som e bugs",
-                          "highlights":  [
-                                             "fixed som e bugs"
-                                         ]
-                      },
-                      {
-                          "version":  "3.1.0",
-                          "date":  "2026-08-12",
-                          "title":  "Fixes some Bugs for Linux",
-                          "highlights":  [
-                                             "Fixes some Bugs for Linux"
-                                         ]
-                      },
-                      {
-                          "version":  "3.0.9",
-                          "date":  "2026-08-12",
-                          "title":  "Fixes some Bugs for Linux",
-                          "highlights":  [
-                                             "Fixes some Bugs for Linux"
-                                         ]
-                      },
-                      {
-                          "version":  "3.0.8",
-                          "date":  "2026-08-12",
-                          "title":  "Fixes some Bugs for Linux",
-                          "highlights":  [
-                                             "Fixes some Bugs for Linux"
-                                         ]
-                      },
-                      {
-                          "version":  "3.0.7",
-                          "date":  "2026-08-12",
-                          "title":  "Fixes some Bugs for Linux",
-                          "highlights":  [
-                                             "Fixes some Bugs for Linux"
-                                         ]
-                      },
-                      {
-                          "version":  "3.0.6",
-                          "date":  "2026-08-12",
-                          "title":  "Fixes some Bugs for Linux",
-                          "highlights":  [
-                                             "Fixes some Bugs for Linux"
-                                         ]
-                      },
-                      {
-                          "version":  "3.0.5",
-                          "date":  "2026-08-12",
-                          "title":  "Fixes some Bugs for Linux",
-                          "highlights":  [
-                                             "Fixes some Bugs for Linux"
-                                         ]
-                      },
-                      {
-                          "version":  "3.0.4",
-                          "date":  "2026-08-12",
-                          "title":  "Fixes some Bugs for Linux",
-                          "highlights":  [
-                                             "Fixes some Bugs for Linux"
-                                         ]
-                      },
-                      {
-                          "version":  "3.0.3",
-                          "date":  "2026-08-12",
-                          "title":  "Fixes Linux build on WSL",
-                          "highlights":  [
-                                             "Fixes Linux build on WSL"
-                                         ]
-                      },
-                      {
-                          "version":  "3.0.2",
-                          "date":  "2026-08-12",
-                          "title":  "Fixes some Bugs for Linux",
-                          "highlights":  [
-                                             "Fixes some Bugs for Linux"
-                                         ]
-                      },
-                      {
-                          "version":  "3.0.1",
-                          "date":  "2026-08-12",
-                          "title":  "Fixes some Bugs for Linux",
-                          "highlights":  [
-                                             "Fixes some Bugs for Linux"
-                                         ]
-                      },
-                      {
-                          "version":  "3.0.0",
-                          "date":  "2026-08-12",
-                          "title":  "Fixes some issue and bug",
-                          "highlights":  [
-                                             "Fixes some issue and bug"
-                                         ]
-                      },
-                      {
-                          "version":  "2.9.9",
-                          "date":  "2026-08-12",
-                          "title":  "Fixes some issue",
-                          "highlights":  [
-                                             "Fixes some issue"
-                                         ]
-                      },
-                      {
-                          "version":  "2.9.8",
-                          "date":  "2026-08-12",
-                          "title":  "Release v2.9.6: Fix Alienware CPU thermal telemetry \u0026 add Linux build targets",
-                          "highlights":  [
-                                             "Release v2.9.6: Fix Alienware CPU thermal telemetry \u0026 add Linux build targets"
-                                         ]
-                      },
-                      {
-                          "version":  "2.9.7",
-                          "date":  "2026-08-12",
-                          "title":  "Release v2.9.6: Fix Alienware CPU thermal telemetry \u0026 add Linux build targets",
-                          "highlights":  [
-                                             "Release v2.9.6: Fix Alienware CPU thermal telemetry \u0026 add Linux build targets"
-                                         ]
-                      },
-                      {
-                          "version":  "2.9.6",
-                          "date":  "2026-08-12",
-                          "title":  "Fix Alienware CPU thermal telemetry \u0026 add Linux build targets",
-                          "highlights":  [
-                                             "Fixed UnboundLocalError _PS_THERMAL_FAILED scope in thermal telemetry helper",
-                                             "Added Linux AppImage, deb, rpm, tar.gz cross-platform packaging target",
-                                             "Optimized website performance and mobile chatbot UI layout"
-                                         ]
-                      },
-                      {
-                          "version":  "2.9.5",
-                          "date":  "2026-08-12",
-                          "title":  "Fix Alienware CPU thermal telemetry \u0026 add Linux build targets",
-                          "highlights":  [
-                                             "Fixed UnboundLocalError _PS_THERMAL_FAILED scope in thermal telemetry helper",
-                                             "Added Linux AppImage, deb, rpm, tar.gz cross-platform packaging target",
-                                             "Optimized website performance and mobile chatbot UI layout"
-                                         ]
-                      },
-                      {
-                          "version":  "2.9.5",
-                          "date":  "2026-08-12",
-                          "title":  "Release v2.9.5: Add Linux Support",
-                          "highlights":  [
-                                             "Release v2.9.5: Add Linux Support"
-                                         ]
-                      },
-                      {
-                          "version":  "2.9.4",
-                          "date":  "2026-08-12",
-                          "title":  "Fix Alienware CPU temperature telemetry lockouts under heavy gaming loads",
-                          "highlights":  [
-                                             "Fix Alienware CPU temperature telemetry lockouts under heavy gaming loads"
-                                         ]
-                      },
-                      {
-                          "version":  "2.9.3",
-                          "date":  "2026-08-12",
-                          "title":  "Fix Alienware CPU temperature telemetry lockouts and dynamic blog AI cover generation",
-                          "highlights":  [
-                                             "Fix Alienware CPU temperature telemetry lockouts and dynamic blog AI cover generation"
-                                         ]
-                      },
-                      {
-                          "version":  "2.9.2",
-                          "date":  "2026-08-10",
-                          "title":  "Frontend Graph Responsiveness \u0026 Performance Optimizations",
-                          "highlights":  [
-                                             "Fixed responsiveness lag on telemetry graphs by passing explicit parent ResizeObserver dimensions to Recharts",
-                                             "Optimized System and Dashboard pages by extracting graphs into memoized React components",
-                                             "Added history update throttling (200ms) to Dashboard to reduce layout rendering overhead during high-speed telemetry packets"
-                                         ]
-                      },
-                      {
-                          "version":  "2.9.1",
-                          "date":  "2026-08-06",
-                          "title":  "Borderless Fullscreen Window Detection, Multi-GPU Fallback \u0026 Privacy Shield Patch",
-                          "highlights":  [
-                                             "Fixed Need for Speed Heat (Frostbite engine) game window detection by adding Frostbite engine window classes and game keywords",
-                                             "Added hybrid GPU fallback for BetterCam and DXCam screen capture backends",
-                                             "Updated Privacy Shield to black out desktop capture when tabbing to Mission Control, eliminating infinite mirror effect",
-                                             "Demoted normal WebSocket closures (1000 OK) from WARNING to INFO log level"
-                                         ]
-                      },
-                      {
-                          "version":  "2.9.0",
-                          "date":  "2026-08-06",
-                          "title":  "Hardware-Accelerated Borderless Fullscreen Screen Capture Fix",
-                          "highlights":  [
-                                             "Fixed black screen capture issue for borderless fullscreen DirectX/Vulkan games via PW_RENDERFULLCONTENT DirectComposition capture"
-                                         ]
-                      },
-                      {
-                          "version":  "2.8.11",
-                          "date":  "2026-08-05",
-                          "title":  "Library Filter Bar Full Responsiveness Fix",
-                          "highlights":  [
-                                             "Search bar and Filter HUD button now always stack on their own row at all window widths",
-                                             "Platform pills row always scrolls horizontally instead of competing with search for space"
-                                         ]
-                      },
-                      {
-                          "version":  "2.8.10",
-                          "date":  "2026-08-05",
-                          "title":  "Library Responsiveness, Updates Paused Bug Fix \u0026 Vision Privacy Shield Patch",
-                          "highlights":  [
-                                             "Fix Library grid responsiveness and horizontal platform pills scrolling on short viewports",
-                                             "Fix \u0027Update Paused By User\u0027 UI bug on app startup by filtering out stale paused/cancelled states",
-                                             "Fix Vision process black screen after disabling Privacy Shield by clearing annotated frame buffer"
-                                         ]
-                      },
-                      {
-                          "version":  "2.8.9",
-                          "date":  "2026-08-04",
-                          "title":  "Fix Parent Flex Height Chain for Library Windowed Responsiveness",
-                          "highlights":  [
-                                             "Fix Parent Flex Height Chain for Library Windowed Responsiveness"
-                                         ]
-                      },
-                      {
-                          "version":  "2.8.9",
-                          "date":  "2026-08-04",
-                          "title":  "Fix Parent Flex Height Chain for Library Windowed Responsiveness",
-                          "highlights":  [
-                                             "Fix Parent Flex Height Chain for Library Windowed Responsiveness"
-                                         ]
-                      },
-                      {
-                          "version":  "2.8.8",
-                          "date":  "2026-08-04",
-                          "title":  "GTA V Enhanced Title Normalization and Rockstar Games Launcher Deduplication",
-                          "highlights":  [
-                                             "GTA V Enhanced Title Normalization and Rockstar Games Launcher Deduplication"
-                                         ]
-                      },
-                      {
-                          "version":  "2.8.7",
-                          "date":  "2026-08-04",
-                          "title":  "Auto Update Backend Relaunch and Working Directory Recovery",
-                          "highlights":  [
-                                             "Auto Update Backend Relaunch and Working Directory Recovery"
-                                         ]
-                      },
-                      {
-                          "version":  "2.8.6",
-                          "date":  "2026-08-04",
-                          "title":  "Library Fit to Window Responsiveness and Rockstar Games Scanner Path Validation",
-                          "highlights":  [
-                                             "Library Fit to Window Responsiveness and Rockstar Games Scanner Path Validation"
-                                         ]
-                      },
-                      {
-                          "version":  "2.8.5",
-                          "date":  "2026-08-03",
-                          "title":  "Website Docs Render Fix, Google AdSense Integration \u0026 Controller Mapping Wording",
-                          "highlights":  [
-                                             "Fixed inline code and paragraph rendering issue in docs pages",
-                                             "Fixed pagination arrow truncation on Previous/Next article navigation cards",
-                                             "Integrated Google AdSense display ad slots in docs and gaming blog pages",
-                                             "Added public/ads.txt for AdSense site authorization",
-                                             "Updated Controller Mapping documentation wording from HTML5 to Native XInput and DirectInput",
-                                             "Updated Vision AI guide documentation"
-                                         ]
-                      }
-                  ]
+  "version": "3.3.2",
+  "release_date": "2026-08-27",
+  "update_check_url": "https://raw.githubusercontent.com/arnab825/Mission-Control/main/Gaming/backend/version.json",
+  "changelog": [
+    {
+      "version": "3.3.2",
+      "date": "2026-08-27",
+      "title": "Unified Supabase Architecture, Redis Caching Cascade & Weekly Intelligence Pipeline",
+      "highlights": [
+        "Removed Neon dependency and established Supabase PostgreSQL as single source of truth",
+        "Implemented 3-tier Redis caching cascade for ultra-low latency game discovery and search",
+        "Rebuilt canonical_games schema with full launcher, description, and source mapping across PostgreSQL and SQLite replicas",
+        "Updated background microservices and AI Healer with schema alignment and non-blocking enrichment",
+        "Optimized automated blog generation cron schedule to weekly Sunday dispatches"
+      ]
+    },
+    {
+      "version": "3.3.1",
+      "date": "2026-08-26",
+      "title": "Multi-Cloud High Availability & Instant Zero-Lag Startup Architecture",
+      "highlights": [
+        "Added multi-tier cloud failover topology supporting Supabase (Tier 1), Neon Serverless PostgreSQL (Tier 2), and Local SQLite NVMe replica (Tier 3)",
+        "Implemented automated high-speed migration tool replicating 83.4k+ master games, user games, hardware nodes, and AI logs to Neon",
+        "Optimized game library loading with Local-First Frame-0 instant render and non-blocking background synchronization",
+        "Added fast-abort 1.5s timeout on remote distributed server queries preventing UI cold-start stalls",
+        "Demoted startup auto-scans to non-intrusive background state to eliminate full-screen radar modal lockouts",
+        "Added automated Vercel keep-alive cron job to keep Supabase, Neon, and MongoDB warm 24/7"
+      ]
+    },
+    {
+      "version": "3.3.0",
+      "date": "2026-08-25",
+      "title": "Ecosystem Optimization, Multi-Node Architecture & Dynamic Deduplication",
+      "highlights": [
+        "Added Win32 working set RAM compaction (EmptyWorkingSet) dropping idle background memory to ~40-60 MB during gameplay",
+        "Implemented dynamic machine-unique Node ID derivation (NODE-<MAC_HASH>) and host discovery to prevent multi-device collision",
+        "Added canonical path-based deduplication (path_to_name) and feature merging across Steam, Epic, GOG, and custom disk scans",
+        "Implemented universal default library path discovery (_get_default_library_paths) across multi-drive storage",
+        "Non-destructive node_scan_paths synchronization preserving user custom scan paths across heartbeats",
+        "Delta-hashed library synchronization in node_service.py to prevent redundant network uploads",
+        "OpenCV configuration loader 3-tier runtime hooks ensuring 100% frozen PyInstaller stability"
+      ]
+    },
+    {
+      "version": "3.2.9",
+      "date": "2026-08-24",
+      "title": "Telemetry & Rollback Subsystem Reliability Hardening",
+      "highlights": [
+        "Fixed PowerShell script path interpolation and quotation parsing under UAC elevation for offline update rollback",
+        "Preserved 0% metric values in analysis engine to ensure accurate Idle load states and eliminate Unknown health classifications",
+        "Synchronized effective capture and DirectX FPS telemetry to system tray tooltip",
+        "Bound RightTelemetry neural metrics and status items to live backend telemetry",
+        "Fixed DatabaseManager class inheritance and Intel Arc Alchemist/Battlemage architecture profiling heuristics"
+      ]
+    },
+    {
+      "version": "3.2.8",
+      "date": "2026-08-22",
+      "title": "OpenCV Resilience & Pipeline Stability Hardening",
+      "highlights": [
+        "Removed unused cv2 import from capture/screen.py that caused crash on DLL load failure",
+        "Added try/except cv2 import guards in scene_classifier, simple_rules, and trt_inference with graceful NumPy/PIL fallbacks",
+        "Guarded all cv2 window management and frame encoding calls in pipeline_host to prevent AttributeError and NoneType crashes",
+        "Fixed dangling self._render_preview() call in _display_loop that caused AttributeError at runtime"
+      ]
+    },
+    {
+      "version": "3.2.7",
+      "date": "2026-08-22",
+      "title": "Distributed Server Agent and Vision Connection Integration",
+      "highlights": [
+        "Connected Agent and Vision UI pages to the central distributed library server with live node telemetry updates",
+        "Added Library Server online/offline pipeline status badges and stats panel overlays",
+        "Configured backend game scanner to fall back to distributed library server catalog API when direct DB access is unavailable"
+      ]
+    },
+    {
+      "version": "3.2.6",
+      "date": "2026-08-21",
+      "title": "OpenCV Loader & Supabase Metadata Enrichment Fixes",
+      "highlights": [
+        "Resolved OpenCV cv2 loader missing configuration in PyInstaller packages",
+        "Added full Steam features and authentic summaries backfill in Supabase",
+        "Streamlined AI classifier with zero-retry multi-provider failover"
+      ]
+    },
+    {
+      "version": "3.2.5",
+      "date": "2026-08-21",
+      "title": "Distributed Cluster Architecture & Multi-Tenant User Isolation",
+      "highlights": [
+        "Implemented high-performance distributed cluster architecture with Load Balancer and multi-instance microservices",
+        "Enabled strict multi-tenant library and node isolation per authenticated Clerk ID and OAuth provider",
+        "Backfilled release dates across canonical catalog and removed deprecated database schemas",
+        "Integrated live Docker Compose orchestration with Windows IPv6 network compatibility",
+        "Connected frontend distributed synchronization with automatic server model mapping"
+      ]
+    },
+    {
+      "version": "3.2.4",
+      "date": "2026-08-20",
+      "title": "OpenCV Config Loader & PyInstaller Backend Fixes",
+      "highlights": [
+        "Resolved OpenCV cv2 config loader missing module errors in PyInstaller backend packaging",
+        "Dynamic multi-environment package directory discovery fallback for rapidocr and cv2",
+        "Verified clean frontend and website production builds"
+      ]
+    },
+    {
+      "version": "3.2.3",
+      "date": "2026-08-19",
+      "title": "Fix First-Launch Setup Loading & Backend Process Startup Loop",
+      "highlights": [
+        "Resolved cascading backend kill-restart loop during cold boot and first launch",
+        "Standardized WebSocket bridge host to 127.0.0.1 to avoid Windows dual-stack socket collisions",
+        "Added concurrency mutex and graceful process management in Electron main process",
+        "Enabled full stdout and stderr traceback forwarding to app.log in production",
+        "Added persistent local app data directory creation in NSIS installer"
+      ]
+    },
+    {
+      "version": "3.2.3",
+      "date": "2026-08-19",
+      "title": "Fix OpenCV config loader missing configuration in PyInstaller backend packaging",
+      "highlights": [
+        "Dynamically collected OpenCV cv2 config.py runtime files, binaries, and RapidOCR data in PyInstaller spec",
+        "Added robust multi-environment package directory discovery fallback"
+      ]
+    },
+    {
+      "version": "3.2.2",
+      "date": "2026-08-19",
+      "title": "AI Support Assistant, Community Benchmarks & Live Telemetry Reporting",
+      "highlights": [
+        "Implemented comprehensive multi-tier AI support chatbot system with conversational assistance and model failovers",
+        "Connected live community game ratings, rig reviews, and media uploads to MongoDB persistence layer",
+        "Added interactive documentation search, categorized guides, and API key management client",
+        "Introduced hardware telemetry reporting modal with automated system spec detection",
+        "Refined games tested benchmark profiles, DLSS 4/DLAA upscaler badges, and newsletter subscription pipelines"
+      ]
+    },
+    {
+      "version": "3.2.1",
+      "date": "2026-08-16",
+      "title": "Library Scanner Sanitation & Steam Container Optimization",
+      "highlights": [
+        "Resolved Steam library container false-positives by filtering out steamapps directory entries",
+        "Enabled automated steamapps/common recursive game discovery in drive and library scans",
+        "Enhanced junk keywords and container validation in library scanner",
+        "Connected community review media uploads and navbar active tab synchronization"
+      ]
+    },
+    {
+      "version": "3.2.0",
+      "date": "2026-08-16",
+      "title": "Dynamic Game Root Resolution & Subfolder Optimization",
+      "highlights": [
+        "Dynamic Game Root Resolution & Subfolder Optimization",
+        "Automated upward directory walker past nested engine and architecture folders",
+        "Game root scoping preventing orphan sub-games for mod and crash tools",
+        "Enhanced executable scoring with auxiliary tool and uninstaller filtering",
+        "Universal Windows PE metadata title extraction for ambiguous binaries"
+      ]
+    },
+    {
+      "version": "3.1.9",
+      "date": "2026-08-16",
+      "title": "Universal Game Scanner & Dynamic Binary Title Resolution",
+      "highlights": [
+        "Dynamic PE binary title extraction for 100k+ games",
+        "1MB executable threshold for lightweight indie & retro games",
+        "Excluded non-game developer tools & ZuneVideo UWP app",
+        "Auto-purge uninstalled titles & pre-build version sync"
+      ]
+    },
+    {
+      "version": "3.1.8",
+      "date": "2026-08-15",
+      "title": "Direct GitHub Releases In-App Updater Fallback & Elevated Offline Rollback",
+      "highlights": [
+        "Added direct GitHub Releases API fallback to Electron autoUpdater for seamless in-app downloads when latest.yml is absent",
+        "Refactored automated offline rollback system using robocopy retry loops and automatic UAC elevation escalation",
+        "Added live Retry Download control to Updates page",
+        "Resolved shadowed local variable imports in AI brain memory module and updated Vitest suite"
+      ]
+    },
+    {
+      "version": "3.1.7",
+      "date": "2026-08-15",
+      "title": "Multi-Vendor GPU Support (AMD & Intel), Groq Model Updates & Optimizer Refinements",
+      "highlights": [
+        "Added full multi-vendor GPU capability detection for AMD Radeon and Intel Arc graphics",
+        "Migrated frontend settings and backend optimizer to unified gpu_tuning architecture",
+        "Updated Groq AI provider models to GPT OSS 120B and Qwen 3.6 27B",
+        "Removed deprecated Custom AI model fallback options"
+      ]
+    },
+    {
+      "version": "3.1.6",
+      "date": "2026-08-15",
+      "title": "Fixed Alienware CPU temperature telemetry & optimized backend Pydantic models",
+      "highlights": [
+        "Fixed Alienware CPU temperature telemetry & optimized backend Pydantic models"
+      ]
+    },
+    {
+      "version": "3.1.5",
+      "date": "2026-08-15",
+      "title": "Fixed Alienware CPU temperature telemetry & optimized backend Pydantic models",
+      "highlights": [
+        "Fixed Alienware CPU temperature telemetry & optimized backend Pydantic models"
+      ]
+    },
+    {
+      "version": "3.1.4",
+      "date": "2026-08-13",
+      "title": "Fixed Linux build pipeline, spec cross-compatibility, and ClerkProvider router props",
+      "highlights": [
+        "Fixed Linux build pipeline, spec cross-compatibility, and ClerkProvider router props"
+      ]
+    },
+    {
+      "version": "3.1.3",
+      "date": "2026-08-13",
+      "title": "Fixed Linux build pipeline and spec cross-compatibility",
+      "highlights": [
+        "Fixed Linux build pipeline and spec cross-compatibility"
+      ]
+    },
+    {
+      "version": "3.1.2",
+      "date": "2026-08-13",
+      "title": "fixed som e bugs",
+      "highlights": [
+        "fixed som e bugs"
+      ]
+    },
+    {
+      "version": "3.1.1",
+      "date": "2026-08-13",
+      "title": "fixed som e bugs",
+      "highlights": [
+        "fixed som e bugs"
+      ]
+    },
+    {
+      "version": "3.1.0",
+      "date": "2026-08-12",
+      "title": "Fixes some Bugs for Linux",
+      "highlights": [
+        "Fixes some Bugs for Linux"
+      ]
+    },
+    {
+      "version": "3.0.9",
+      "date": "2026-08-12",
+      "title": "Fixes some Bugs for Linux",
+      "highlights": [
+        "Fixes some Bugs for Linux"
+      ]
+    },
+    {
+      "version": "3.0.8",
+      "date": "2026-08-12",
+      "title": "Fixes some Bugs for Linux",
+      "highlights": [
+        "Fixes some Bugs for Linux"
+      ]
+    },
+    {
+      "version": "3.0.7",
+      "date": "2026-08-12",
+      "title": "Fixes some Bugs for Linux",
+      "highlights": [
+        "Fixes some Bugs for Linux"
+      ]
+    },
+    {
+      "version": "3.0.6",
+      "date": "2026-08-12",
+      "title": "Fixes some Bugs for Linux",
+      "highlights": [
+        "Fixes some Bugs for Linux"
+      ]
+    },
+    {
+      "version": "3.0.5",
+      "date": "2026-08-12",
+      "title": "Fixes some Bugs for Linux",
+      "highlights": [
+        "Fixes some Bugs for Linux"
+      ]
+    },
+    {
+      "version": "3.0.4",
+      "date": "2026-08-12",
+      "title": "Fixes some Bugs for Linux",
+      "highlights": [
+        "Fixes some Bugs for Linux"
+      ]
+    },
+    {
+      "version": "3.0.3",
+      "date": "2026-08-12",
+      "title": "Fixes Linux build on WSL",
+      "highlights": [
+        "Fixes Linux build on WSL"
+      ]
+    },
+    {
+      "version": "3.0.2",
+      "date": "2026-08-12",
+      "title": "Fixes some Bugs for Linux",
+      "highlights": [
+        "Fixes some Bugs for Linux"
+      ]
+    },
+    {
+      "version": "3.0.1",
+      "date": "2026-08-12",
+      "title": "Fixes some Bugs for Linux",
+      "highlights": [
+        "Fixes some Bugs for Linux"
+      ]
+    },
+    {
+      "version": "3.0.0",
+      "date": "2026-08-12",
+      "title": "Fixes some issue and bug",
+      "highlights": [
+        "Fixes some issue and bug"
+      ]
+    },
+    {
+      "version": "2.9.9",
+      "date": "2026-08-12",
+      "title": "Fixes some issue",
+      "highlights": [
+        "Fixes some issue"
+      ]
+    },
+    {
+      "version": "2.9.8",
+      "date": "2026-08-12",
+      "title": "Release v2.9.6: Fix Alienware CPU thermal telemetry & add Linux build targets",
+      "highlights": [
+        "Release v2.9.6: Fix Alienware CPU thermal telemetry & add Linux build targets"
+      ]
+    },
+    {
+      "version": "2.9.7",
+      "date": "2026-08-12",
+      "title": "Release v2.9.6: Fix Alienware CPU thermal telemetry & add Linux build targets",
+      "highlights": [
+        "Release v2.9.6: Fix Alienware CPU thermal telemetry & add Linux build targets"
+      ]
+    },
+    {
+      "version": "2.9.6",
+      "date": "2026-08-12",
+      "title": "Fix Alienware CPU thermal telemetry & add Linux build targets",
+      "highlights": [
+        "Fixed UnboundLocalError _PS_THERMAL_FAILED scope in thermal telemetry helper",
+        "Added Linux AppImage, deb, rpm, tar.gz cross-platform packaging target",
+        "Optimized website performance and mobile chatbot UI layout"
+      ]
+    },
+    {
+      "version": "2.9.5",
+      "date": "2026-08-12",
+      "title": "Fix Alienware CPU thermal telemetry & add Linux build targets",
+      "highlights": [
+        "Fixed UnboundLocalError _PS_THERMAL_FAILED scope in thermal telemetry helper",
+        "Added Linux AppImage, deb, rpm, tar.gz cross-platform packaging target",
+        "Optimized website performance and mobile chatbot UI layout"
+      ]
+    },
+    {
+      "version": "2.9.5",
+      "date": "2026-08-12",
+      "title": "Release v2.9.5: Add Linux Support",
+      "highlights": [
+        "Release v2.9.5: Add Linux Support"
+      ]
+    },
+    {
+      "version": "2.9.4",
+      "date": "2026-08-12",
+      "title": "Fix Alienware CPU temperature telemetry lockouts under heavy gaming loads",
+      "highlights": [
+        "Fix Alienware CPU temperature telemetry lockouts under heavy gaming loads"
+      ]
+    },
+    {
+      "version": "2.9.3",
+      "date": "2026-08-12",
+      "title": "Fix Alienware CPU temperature telemetry lockouts and dynamic blog AI cover generation",
+      "highlights": [
+        "Fix Alienware CPU temperature telemetry lockouts and dynamic blog AI cover generation"
+      ]
+    },
+    {
+      "version": "2.9.2",
+      "date": "2026-08-10",
+      "title": "Frontend Graph Responsiveness & Performance Optimizations",
+      "highlights": [
+        "Fixed responsiveness lag on telemetry graphs by passing explicit parent ResizeObserver dimensions to Recharts",
+        "Optimized System and Dashboard pages by extracting graphs into memoized React components",
+        "Added history update throttling (200ms) to Dashboard to reduce layout rendering overhead during high-speed telemetry packets"
+      ]
+    },
+    {
+      "version": "2.9.1",
+      "date": "2026-08-06",
+      "title": "Borderless Fullscreen Window Detection, Multi-GPU Fallback & Privacy Shield Patch",
+      "highlights": [
+        "Fixed Need for Speed Heat (Frostbite engine) game window detection by adding Frostbite engine window classes and game keywords",
+        "Added hybrid GPU fallback for BetterCam and DXCam screen capture backends",
+        "Updated Privacy Shield to black out desktop capture when tabbing to Mission Control, eliminating infinite mirror effect",
+        "Demoted normal WebSocket closures (1000 OK) from WARNING to INFO log level"
+      ]
+    },
+    {
+      "version": "2.9.0",
+      "date": "2026-08-06",
+      "title": "Hardware-Accelerated Borderless Fullscreen Screen Capture Fix",
+      "highlights": [
+        "Fixed black screen capture issue for borderless fullscreen DirectX/Vulkan games via PW_RENDERFULLCONTENT DirectComposition capture"
+      ]
+    },
+    {
+      "version": "2.8.11",
+      "date": "2026-08-05",
+      "title": "Library Filter Bar Full Responsiveness Fix",
+      "highlights": [
+        "Search bar and Filter HUD button now always stack on their own row at all window widths",
+        "Platform pills row always scrolls horizontally instead of competing with search for space"
+      ]
+    },
+    {
+      "version": "2.8.10",
+      "date": "2026-08-05",
+      "title": "Library Responsiveness, Updates Paused Bug Fix & Vision Privacy Shield Patch",
+      "highlights": [
+        "Fix Library grid responsiveness and horizontal platform pills scrolling on short viewports",
+        "Fix 'Update Paused By User' UI bug on app startup by filtering out stale paused/cancelled states",
+        "Fix Vision process black screen after disabling Privacy Shield by clearing annotated frame buffer"
+      ]
+    },
+    {
+      "version": "2.8.9",
+      "date": "2026-08-04",
+      "title": "Fix Parent Flex Height Chain for Library Windowed Responsiveness",
+      "highlights": [
+        "Fix Parent Flex Height Chain for Library Windowed Responsiveness"
+      ]
+    },
+    {
+      "version": "2.8.9",
+      "date": "2026-08-04",
+      "title": "Fix Parent Flex Height Chain for Library Windowed Responsiveness",
+      "highlights": [
+        "Fix Parent Flex Height Chain for Library Windowed Responsiveness"
+      ]
+    },
+    {
+      "version": "2.8.8",
+      "date": "2026-08-04",
+      "title": "GTA V Enhanced Title Normalization and Rockstar Games Launcher Deduplication",
+      "highlights": [
+        "GTA V Enhanced Title Normalization and Rockstar Games Launcher Deduplication"
+      ]
+    }
+  ]
 }

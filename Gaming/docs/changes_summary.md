@@ -12,7 +12,31 @@ Comprehensive breakdown of major milestone releases, architectural upgrades, and
 
 ---
 
-## 🌟 Version v3.2.9 (Latest) — Telemetry & Rollback Subsystem Reliability Hardening
+## 🌟 Version v3.3.2 (Latest) — Unified Supabase Architecture, Redis Caching Cascade & Weekly Intelligence Pipeline
+
+### 🛠️ Key Highlights
+1. **Removed Neon dependency and established Supabase PostgreSQL as single source of truth**
+2. **Implemented 3-tier Redis caching cascade for ultra-low latency game discovery and search**
+3. **Rebuilt canonical_games schema with full launcher, description, and source mapping across PostgreSQL and SQLite replicas**
+4. **Updated background microservices and AI Healer with schema alignment and non-blocking enrichment**
+5. **Optimized automated blog generation cron schedule to weekly Sunday dispatches**
+
+### 📊 Architecture & Data Flow
+```mermaid
+graph TD
+    A["Mobile Client / DevTools (320px+)"] --> B[Responsive CSS & Layout Container]
+    B --> C[DocsClient Component & Cards]
+    C --> D[MobileDocsSidebar Drawer & Header Bar]
+    D --> E[Real-Time Mongo Telemetry & Render]
+```
+
+### 📦 Distribution Artifacts
+- **Linux**: `.deb` (Debian/Ubuntu), `.AppImage` (Universal), `.rpm` (Fedora/RHEL), `.tar.gz` (Portable)
+- **Windows**: `.exe` (Setup Installer), `.msi` (Enterprise), `.zip` (Portable)
+
+---
+
+## 📦 Version v3.2.9 — Telemetry & Rollback Subsystem Reliability Hardening
 
 ### 🛠️ Key Highlights
 1. **Preserved 0% metric values in analysis engine to ensure accurate Idle load states and eliminate Unknown health classifications.**
