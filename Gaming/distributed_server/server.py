@@ -778,21 +778,11 @@ async def discover_games(
         ai_classified = existing.get("ai_classified", False) if existing else False
         primary_genre = existing.get("primary_genre") if existing else None
 
-        # If not in catalog, auto-ingest into canonical_games with immediate top priority AI classification
+        # If not in catalog, auto-ingest into canonical_games immediately with store genres
         if not in_catalog:
             try:
                 raw_tags = deduplicate_tags(item.get("raw_tags", []))
-                
-                ai_res = classify_game(
-                    title=title,
-                    developer=item.get("developer"),
-                    publisher=item.get("publisher"),
-                    raw_tags=raw_tags,
-                    summary=item.get("summary"),
-                )
-                classified_genre = ai_res["primary_genre"] if ai_res else (item.get("genres", [None])[0] if item.get("genres") else "Action")
-                confidence = ai_res["confidence"] if ai_res else 0.0
-                is_classified = bool(ai_res)
+                default_genre = (item.get("genres", [None])[0] if item.get("genres") else None) or "Action"
 
                 game_data = {
                     "id":               slug,
@@ -801,38 +791,26 @@ async def discover_games(
                     "developer":        item.get("developer"),
                     "publisher":        item.get("publisher"),
                     "release_date":     item.get("release_date"),
-                    "primary_genre":    classified_genre,
-                    "genres":           ai_res["genres"] if ai_res else (item.get("genres") or ["Action"]),
-                    "tags":             ai_res["tags"] if ai_res else raw_tags,
-                    "features":         ai_res["features"] if ai_res else [],
+                    "primary_genre":    default_genre,
+                    "genres":           item.get("genres") or [default_genre],
+                    "tags":             raw_tags,
+                    "features":         [],
                     "platforms":        ["Windows", "Linux"],
                     "cover_url":        item.get("cover_url"),
                     "banner_url":       item.get("banner_url"),
                     "summary":          item.get("summary"),
-                    "ai_classified":    is_classified,
-                    "ai_confidence":    confidence,
+                    "ai_classified":    False,
+                    "ai_confidence":    0.0,
                     "raw_tags":         raw_tags,
                     "metadata":         json.dumps({"source": item.get("store", "web"), "launchers": item.get("launchers", [])}),
                 }
                 db.upsert_game(game_data)
 
-                if ai_res:
-                    db.log_ai_classification({
-                        "game_id":      slug,
-                        "provider":     ai_res["provider"],
-                        "model":        ai_res["model"],
-                        "input_tags":   raw_tags,
-                        "output_genre": ai_res["primary_genre"],
-                        "output_tags":  ai_res["tags"],
-                        "confidence":   ai_res["confidence"],
-                        "latency_ms":   ai_res.get("latency_ms", 0),
-                    })
-
                 in_catalog = True
                 newly_ingested += 1
-                ai_classified = is_classified
-                primary_genre = classified_genre
-                existing_map[norm] = {"id": slug, "normalized_title": norm, "primary_genre": classified_genre, "ai_classified": is_classified}
+                ai_classified = False
+                primary_genre = default_genre
+                existing_map[norm] = {"id": slug, "normalized_title": norm, "primary_genre": default_genre, "ai_classified": False}
             except Exception as exc:
                 logger.error("Auto-ingest error for '%s': %s", title, exc)
 
