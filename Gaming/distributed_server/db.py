@@ -839,12 +839,16 @@ class LibraryDB:
     def get_all_nodes(self, clerk_id: Optional[str] = None) -> List[Dict]:
         if self._active_tier >= 4:
             if clerk_id:
-                return self._sqlite_execute("SELECT * FROM library_nodes WHERE clerk_id = :clerk_id ORDER BY name ASC", {"clerk_id": clerk_id}, fetch="all")
+                return self._sqlite_execute(
+                    "SELECT * FROM library_nodes WHERE (clerk_id = :clerk_id OR clerk_id = '' OR clerk_id IS NULL) ORDER BY name ASC",
+                    {"clerk_id": clerk_id},
+                    fetch="all"
+                )
             return self._sqlite_execute("SELECT * FROM library_nodes ORDER BY name ASC", fetch="all")
             
         if clerk_id:
             return self.execute(
-                "SELECT * FROM library_nodes WHERE clerk_id = %(clerk_id)s ORDER BY name ASC",
+                "SELECT * FROM library_nodes WHERE (clerk_id = %(clerk_id)s OR clerk_id = '' OR clerk_id IS NULL) ORDER BY name ASC",
                 {"clerk_id": clerk_id},
                 fetch="all",
             )
