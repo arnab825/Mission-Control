@@ -2,6 +2,14 @@
 
 This document contains a detailed history of all patches and updates for the AI Gaming Assistant.
 
+### Patch: 2026-08-27 — v3.3.2: Unified Supabase Architecture, Redis Caching Cascade & Weekly Intelligence Pipeline
+
+- Removed Neon dependency and established Supabase PostgreSQL as single source of truth
+- Implemented 3-tier Redis caching cascade for ultra-low latency game discovery and search
+- Rebuilt canonical_games schema with full launcher, description, and source mapping across PostgreSQL and SQLite replicas
+- Updated background microservices and AI Healer with schema alignment and non-blocking enrichment
+- Optimized automated blog generation cron schedule to weekly Sunday dispatches
+
 ### Patch: 2026-08-24 — v3.2.9: Telemetry & Rollback Subsystem Reliability Hardening
 
 - Fixed PowerShell script path interpolation and quotation parsing under UAC elevation for offline update rollback
