@@ -1407,6 +1407,7 @@ class GameScanner:
 
     def enrich_with_ai(self):
         """Use GameBrain to classify and tag discovered games."""
+        import threading
         try:
             from ai_brain.decision_maker import GameBrain
             # We initialize a temporary brain for classification
