@@ -154,53 +154,61 @@ class GameRAGEngine:
     def sync_from_distributed_server(self, limit: int = 200):
         """
         Fetches canonical game metadata, summaries, and feature intelligence from the Distributed Server
-        and indexes them into the local RAG engine.
+        and indexes them into the local RAG engine. Supports primary with seamless backup fallback.
         """
-        if not self.server_url:
+        candidate_urls = []
+        if self.server_url:
+            candidate_urls.append(self.server_url.rstrip("/"))
+        backup_url = os.getenv("BACKUP_LIBRARY_SERVER_URL", "https://mission-control-wz0l.onrender.com").rstrip("/")
+        if backup_url and backup_url not in candidate_urls:
+            candidate_urls.append(backup_url)
+
+        if not candidate_urls:
             return
 
         import urllib.request
         import json
-        
-        base_url = self.server_url.rstrip("/")
-        api_url = f"{base_url}/api/games?limit={limit}"
-        logger.info(f"Syncing game intelligence from distributed server: {api_url}")
-        
-        try:
-            req = urllib.request.Request(api_url, headers={"User-Agent": "MissionControl-RAG/1.0"})
-            with urllib.request.urlopen(req, timeout=12) as resp:
-                data = json.loads(resp.read().decode("utf-8"))
-                games = data.get("games", []) if isinstance(data, dict) else (data if isinstance(data, list) else [])
-                
-                remote_docs: List[Document] = []
-                for g in games:
-                    title = g.get("title", "Unknown Game")
-                    summary = g.get("summary", "")
-                    features = g.get("features", [])
-                    game_id = g.get("id", title.lower().replace(" ", "_"))
-                    
-                    if not summary and not features:
-                        continue
 
-                    feat_str = "\n- ".join(features) if isinstance(features, list) else str(features)
-                    content = f"# {title}\n\n## Overview\n{summary}\n\n## Key Features\n- {feat_str}" if feat_str else f"# {title}\n\n## Overview\n{summary}"
+        for base_url in candidate_urls:
+            api_url = f"{base_url}/api/games?limit={limit}"
+            logger.info(f"Syncing game intelligence from distributed server: {api_url}")
+            
+            try:
+                req = urllib.request.Request(api_url, headers={"User-Agent": "MissionControl-RAG/1.0"})
+                with urllib.request.urlopen(req, timeout=5) as resp:
+                    data = json.loads(resp.read().decode("utf-8"))
+                    games = data.get("games", []) if isinstance(data, dict) else (data if isinstance(data, list) else [])
                     
-                    remote_docs.append(Document(
-                        page_content=content,
-                        metadata={
-                            "source": f"distributed_server:{base_url}",
-                            "title": title,
-                            "game_id": str(game_id),
-                            "type": "distributed_catalog_intel"
-                        }
-                    ))
+                    remote_docs: List[Document] = []
+                    for g in games:
+                        title = g.get("title", "Unknown Game")
+                        summary = g.get("summary", "")
+                        features = g.get("features", [])
+                        game_id = g.get("id", title.lower().replace(" ", "_"))
+                        
+                        if not summary and not features:
+                            continue
 
-                if remote_docs:
-                    for doc in remote_docs:
-                        self.add_documents([doc], game_id=doc.metadata.get("game_id", "general"))
-                    logger.info(f"Successfully ingested {len(remote_docs)} games from Distributed Server into local RAG.")
-        except Exception as e:
-            logger.warning(f"Could not sync from distributed server ({base_url}): {e}")
+                        feat_str = "\n- ".join(features) if isinstance(features, list) else str(features)
+                        content = f"# {title}\n\n## Overview\n{summary}\n\n## Key Features\n- {feat_str}" if feat_str else f"# {title}\n\n## Overview\n{summary}"
+                        
+                        remote_docs.append(Document(
+                            page_content=content,
+                            metadata={
+                                "source": f"distributed_server:{base_url}",
+                                "title": title,
+                                "game_id": str(game_id),
+                                "type": "distributed_catalog_intel"
+                            }
+                        ))
+
+                    if remote_docs:
+                        for doc in remote_docs:
+                            self.add_documents([doc], game_id=doc.metadata.get("game_id", "general"))
+                        logger.info(f"Successfully ingested {len(remote_docs)} games from Distributed Server ({base_url}) into local RAG.")
+                        return
+            except Exception as e:
+                logger.debug(f"Could not sync from distributed server ({base_url}): {e}")
 
     def query(self, user_query: str, k: int = 3, game_id: Optional[str] = None) -> str:
         if not self.bm25_retriever:
