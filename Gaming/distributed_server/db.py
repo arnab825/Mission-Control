@@ -834,7 +834,7 @@ class LibraryDB:
                 logger.warning("Failed to sync node_scan_paths: %s", e)
 
     def get_node(self, node_id: str) -> Optional[Dict]:
-        if self._active_tier >= 4:
+        if self._active_tier >= 2:
             return self._sqlite_execute("SELECT * FROM library_nodes WHERE node_id = :node_id", {"node_id": node_id}, fetch="one")
         return self.execute(
             "SELECT * FROM library_nodes WHERE node_id = %(node_id)s",
@@ -842,7 +842,7 @@ class LibraryDB:
         )
 
     def get_all_nodes(self, clerk_id: Optional[str] = None) -> List[Dict]:
-        if self._active_tier >= 4:
+        if self._active_tier >= 2:
             if clerk_id:
                 return self._sqlite_execute(
                     "SELECT * FROM library_nodes WHERE (clerk_id = :clerk_id OR clerk_id = '' OR clerk_id IS NULL) ORDER BY name ASC",
@@ -860,7 +860,28 @@ class LibraryDB:
         return self.execute("SELECT * FROM library_nodes ORDER BY name ASC", fetch="all")
 
     def heartbeat(self, node_id: str, storage_total: int, storage_used: int, storage_free: int, ip: str) -> None:
-        if self._active_tier >= 4:
+        if self._active_tier >= 2:
+            sql = """
+                UPDATE library_nodes SET
+                    status         = 'online',
+                    storage_total  = :total,
+                    storage_used   = :used,
+                    storage_free   = :free,
+                    ip             = :ip,
+                    last_heartbeat = CURRENT_TIMESTAMP,
+                    updated_at     = CURRENT_TIMESTAMP
+                WHERE node_id = :node_id
+            """
+            try:
+                self._sqlite_execute(sql, {
+                    "node_id": node_id,
+                    "total": storage_total,
+                    "used": storage_used,
+                    "free": storage_free,
+                    "ip": ip,
+                })
+            except Exception:
+                pass
             return
         sql = """
             UPDATE library_nodes SET
@@ -882,7 +903,12 @@ class LibraryDB:
         })
 
     def mark_offline(self, node_id: str) -> None:
-        if self._active_tier >= 4:
+        if self._active_tier >= 2:
+            try:
+                self._sqlite_execute("UPDATE library_nodes SET status = 'offline', updated_at = CURRENT_TIMESTAMP WHERE node_id = :id", {"id": node_id})
+                self._sqlite_execute("UPDATE game_installations SET status = 'unavailable', updated_at = CURRENT_TIMESTAMP WHERE node_id = :id", {"id": node_id})
+            except Exception:
+                pass
             return
         self.execute(
             "UPDATE library_nodes SET status = 'offline', updated_at = NOW() WHERE node_id = %(id)s",
@@ -894,7 +920,11 @@ class LibraryDB:
         )
 
     def delete_node(self, node_id: str) -> None:
-        if self._active_tier >= 4:
+        if self._active_tier >= 2:
+            try:
+                self._sqlite_execute("DELETE FROM library_nodes WHERE node_id = :id", {"id": node_id})
+            except Exception:
+                pass
             return
         self.execute(
             "DELETE FROM library_nodes WHERE node_id = %(id)s",
@@ -902,8 +932,12 @@ class LibraryDB:
         )
 
     def verify_node_token(self, node_id: str, token: str) -> bool:
-        if self._active_tier >= 4:
-            return False
+        if self._active_tier >= 2:
+            row = self._sqlite_execute("SELECT auth_token_hash FROM library_nodes WHERE node_id = :id", {"id": node_id}, fetch="one")
+            if not row:
+                return False
+            token_hash = hashlib.sha256(token.encode()).hexdigest()
+            return row.get("auth_token_hash") == token_hash
         row = self.execute(
             "SELECT auth_token_hash FROM library_nodes WHERE node_id = %(id)s",
             {"id": node_id}, fetch="one"
@@ -934,7 +968,7 @@ class LibraryDB:
 
     def upsert_installation(self, inst: Dict[str, Any]) -> None:
         threading.Thread(target=self._sqlite_upsert_installation, args=(inst,), daemon=True).start()
-        if self._active_tier >= 4:
+        if self._active_tier >= 2:
             return
             
         sql = _load_sql("upsert_installation")
@@ -948,7 +982,11 @@ class LibraryDB:
         return saved
 
     def mark_node_installations_unavailable(self, node_id: str) -> None:
-        if self._active_tier >= 4:
+        if self._active_tier >= 2:
+            try:
+                self._sqlite_execute("UPDATE game_installations SET status = 'unavailable', updated_at = CURRENT_TIMESTAMP WHERE node_id = :id", {"id": node_id})
+            except Exception:
+                pass
             return
         self.execute(
             "UPDATE game_installations SET status = 'unavailable', updated_at = NOW() WHERE node_id = %(id)s",
@@ -956,7 +994,11 @@ class LibraryDB:
         )
 
     def mark_node_installations_available(self, node_id: str) -> None:
-        if self._active_tier >= 4:
+        if self._active_tier >= 2:
+            try:
+                self._sqlite_execute("UPDATE game_installations SET status = 'available', updated_at = CURRENT_TIMESTAMP WHERE node_id = :id", {"id": node_id})
+            except Exception:
+                pass
             return
         self.execute(
             "UPDATE game_installations SET status = 'available', updated_at = NOW() WHERE node_id = %(id)s",
@@ -972,7 +1014,7 @@ class LibraryDB:
         }
 
     def get_stats(self, clerk_id: Optional[str] = None) -> Dict[str, Any]:
-        if self._active_tier >= 4:
+        if self._active_tier >= 2:
             return self._sqlite_get_stats(clerk_id)
             
         sql = _load_sql("stats")
@@ -984,8 +1026,16 @@ class LibraryDB:
     # ── Offline Watchdog helper ──────────────────────────────────────────────
 
     def get_stale_nodes(self, timeout_seconds: int = 45) -> List[Dict]:
-        if self._active_tier >= 4:
-            return []
+        if self._active_tier >= 2:
+            try:
+                sql = """
+                    SELECT node_id FROM library_nodes
+                    WHERE status = 'online'
+                      AND (last_heartbeat IS NULL OR last_heartbeat < datetime('now', '-' || :timeout || ' seconds'))
+                """
+                return self._sqlite_execute(sql, {"timeout": timeout_seconds}, fetch="all") or []
+            except Exception:
+                return []
         """Return nodes that haven't sent a heartbeat recently and are still 'online'."""
         sql = """
             SELECT node_id FROM library_nodes
