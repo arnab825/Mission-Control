@@ -234,7 +234,7 @@ def _seed_catalog_if_empty():
 @asynccontextmanager
 async def lifespan(app: FastAPI):
     threading.Thread(target=_offline_watchdog, daemon=True, name="OfflineWatchdog").start()
-    if ENABLE_BACKGROUND_WORKERS or os.getenv("RUN_CRAWLER", "1").lower() in ("1", "true", "yes"):
+    if ENABLE_BACKGROUND_WORKERS and os.getenv("RUN_CRAWLER", "0").lower() in ("1", "true", "yes"):
         threading.Thread(target=_classification_worker, daemon=True, name="AIClassifier").start()
         threading.Thread(target=_enrichment_worker, daemon=True, name="EnrichmentWorker").start()
         threading.Thread(target=_seed_catalog_if_empty, daemon=True, name="InitialSeeder").start()
