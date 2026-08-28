@@ -486,10 +486,13 @@ class GameScanner:
                 except Exception as exc:
                     logger.warning("Supabase load failed: %s", exc)
 
-            # Try Distributed Library Server with strict 2.5s timeout
+            # Try Distributed Library Server with strict 2.5s timeout (Primary + Backup Fallback)
             if not games and self.user_id:
-                library_server_url = os.getenv("LIBRARY_SERVER_URL", "https://mission-control-server-okj7.onrender.com").rstrip("/")
-                if library_server_url:
+                primary_url = os.getenv("LIBRARY_SERVER_URL", "https://mission-control-server-okj7.onrender.com").rstrip("/")
+                backup_url = os.getenv("BACKUP_LIBRARY_SERVER_URL", "https://mission-control-wz0l.onrender.com").rstrip("/")
+                candidate_urls = [u for u in [primary_url, backup_url] if u]
+
+                for library_server_url in candidate_urls:
                     try:
                         import urllib.request
                         import urllib.parse
@@ -503,23 +506,24 @@ class GameScanner:
                                     primary_inst = g.get("installations", [{}])[0] if g.get("installations") else {}
                                     mapped_games.append({
                                         "id": g["id"],
-                                        "name": g["title"],
-                                        "platform": primary_inst.get("store", "PC").upper(),
-                                        "install_path": primary_inst.get("install_path", ""),
+                                        "title": g["title"],
                                         "exe_path": primary_inst.get("exe_path", ""),
-                                        "icon": g.get("coverUrl", ""),
-                                        "features": g.get("features", []),
-                                        "type": "GAME" if primary_inst.get("store") else "JUNK",
-                                        "genre": g.get("primaryGenre", "Action"),
-                                        "tags": g.get("tags", []),
-                                        "source": primary_inst.get("store", "manual"),
-                                        "local_banner": g.get("bannerUrl", "")
+                                        "install_dir": primary_inst.get("install_path", ""),
+                                        "source": primary_inst.get("store", "distributed"),
+                                        "size_bytes": primary_inst.get("size_bytes", 0),
+                                        "version": primary_inst.get("version", ""),
+                                        "last_played": 0,
+                                        "play_time_mins": 0,
+                                        "cover_url": g.get("cover_url", ""),
+                                        "icon_url": g.get("cover_url", ""),
+                                        "node_id": primary_inst.get("node_id", "")
                                     })
                                 if mapped_games:
-                                    logger.info("Loaded %d games from Distributed Library Server", len(mapped_games))
+                                    logger.info("Loaded %d games from Distributed Library Server (%s) for user %s", len(mapped_games), library_server_url, self.user_id)
                                     games = mapped_games
+                                    break
                     except Exception as exc:
-                        logger.debug("Distributed library server quick check: %s", exc)
+                        logger.debug("Library server connection to %s failed: %s", library_server_url, exc)
 
         # Clean trademark symbols, spaces, normalize names, and purge uninstalled/junk games
         if games:

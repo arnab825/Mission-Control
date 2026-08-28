@@ -113,10 +113,17 @@ class NodeConfig:
             with open(cfg_file, encoding="utf-8") as f:
                 self._cfg = json.load(f)
 
-        self.server_url: str = (
+        self.primary_server_url: str = (
             self._cfg.get("serverUrl")
             or os.getenv("LIBRARY_SERVER_URL", "https://mission-control-server-okj7.onrender.com")
         ).rstrip("/")
+
+        self.backup_server_url: str = (
+            self._cfg.get("backupServerUrl")
+            or os.getenv("BACKUP_LIBRARY_SERVER_URL", "https://mission-control-wz0l.onrender.com")
+        ).rstrip("/")
+
+        self.server_url: str = self.primary_server_url
 
         # Ensure we never reuse a hardcoded placeholder node ID across different physical machines
         loaded_id = self._cfg.get("nodeId") or os.getenv("NODE_ID", "")

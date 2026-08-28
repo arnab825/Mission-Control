@@ -1,8 +1,14 @@
 import { useState, useEffect, useCallback } from 'react';
 
-export const LIBRARY_SERVER_URL = (window as any).__LIBRARY_SERVER_URL__
+export const PRIMARY_LIBRARY_SERVER_URL = (window as any).__LIBRARY_SERVER_URL__
   || (import.meta as any).env?.VITE_LIBRARY_SERVER_URL
-  || 'https://mission-control-server-okj7.onrender.com';
+  || '';
+
+export const BACKUP_LIBRARY_SERVER_URL = (window as any).__BACKUP_LIBRARY_SERVER_URL__
+  || (import.meta as any).env?.VITE_BACKUP_LIBRARY_SERVER_URL
+  || '';
+
+export const LIBRARY_SERVER_URL = PRIMARY_LIBRARY_SERVER_URL || BACKUP_LIBRARY_SERVER_URL;
 
 export interface DistributedStats {
   total_master_games: number;
@@ -19,20 +25,27 @@ export function useDistributedStats(userId?: string | null): { stats: Distribute
   const [serverOnline, setServerOnline] = useState(false);
 
   const fetchStats = useCallback(async () => {
-    try {
-      const url = userId
-        ? `${LIBRARY_SERVER_URL}/api/library/stats?clerk_id=${encodeURIComponent(userId)}`
-        : `${LIBRARY_SERVER_URL}/api/library/stats`;
-      const res = await fetch(url, { signal: AbortSignal.timeout(3000) });
-      if (res.ok) {
-        setStats(await res.json());
-        setServerOnline(true);
-      } else {
-        setServerOnline(false);
-      }
-    } catch {
+    const endpoints = [PRIMARY_LIBRARY_SERVER_URL, BACKUP_LIBRARY_SERVER_URL].filter(Boolean);
+    if (endpoints.length === 0) {
       setServerOnline(false);
+      return;
     }
+    for (const baseUrl of endpoints) {
+      try {
+        const url = userId
+          ? `${baseUrl}/api/library/stats?clerk_id=${encodeURIComponent(userId)}`
+          : `${baseUrl}/api/library/stats`;
+        const res = await fetch(url, { signal: AbortSignal.timeout(3000) });
+        if (res.ok) {
+          setStats(await res.json());
+          setServerOnline(true);
+          return;
+        }
+      } catch {
+        // Failover to backup endpoint
+      }
+    }
+    setServerOnline(false);
   }, [userId]);
 
   useEffect(() => {
