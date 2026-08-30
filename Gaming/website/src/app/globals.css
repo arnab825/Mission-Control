@@ -330,7 +330,7 @@ html {
 
 /* Highlight Introduction (first paragraph) of post */
 .prose>p:first-of-type {
-  @apply text-base sm:text-lg text-zinc-100 leading-relaxed font-sans mb-8 border-l-4 border-neon-green pl-5 py-2.5 bg-neon-green/3 rounded-r-xl shadow-sm border-t border-b border-r border-white/3;
+  @apply text-base sm:text-lg text-zinc-100 leading-relaxed font-sans mb-8 border-l-4 border-l-neon-green pl-5 py-2.5 bg-neon-green/3 rounded-r-xl shadow-sm border-t border-b border-r border-t-white/3 border-b-white/3 border-r-white/3;
 }
 
 /* Premium Table Structure Highlight */
@@ -362,7 +362,7 @@ html {
 
 /* blockquote styling */
 .prose blockquote {
-  @apply border-l-4 border-neon-yellow bg-neon-yellow/3 py-5 px-6 rounded-r-xl italic my-8 text-zinc-200 border-t border-b border-r border-white/3 shadow-inner;
+  @apply border-l-4 border-l-neon-yellow bg-neon-yellow/3 py-5 px-6 rounded-r-xl italic my-8 text-zinc-200 border-t border-b border-r border-t-white/3 border-b-white/3 border-r-white/3 shadow-inner;
 }
 
 /* Inline Code Enhancement */
