@@ -12,7 +12,26 @@ Comprehensive breakdown of major milestone releases, architectural upgrades, and
 
 ---
 
-## 🌟 Version v3.3.4 (Latest) — Fix Supabase password URL decode for pooler connection
+## 🌟 Version v3.3.5 (Latest) — Fix update installer: kill running processes before file extraction to prevent app freeze and OpenCV errors
+
+### 🛠️ Key Highlights
+1. **Fix update installer: kill running processes before file extraction to prevent app freeze and OpenCV errors**
+
+### 📊 Architecture & Data Flow
+```mermaid
+graph TD
+    A[Developer Push / Publish Pipeline] --> B[Version Stamping & AI Changelog Enforcer]
+    B --> C[Mission Control System Core]
+    C --> D[Website Documentation & Real-Time Sync]
+```
+
+### 📦 Distribution Artifacts
+- **Linux**: `.deb` (Debian/Ubuntu), `.AppImage` (Universal), `.rpm` (Fedora/RHEL), `.tar.gz` (Portable)
+- **Windows**: `.exe` (Setup Installer), `.msi` (Enterprise), `.zip` (Portable)
+
+---
+
+## 📦 Version v3.3.4 — Fix Supabase password URL decode for pooler connection
 
 ### 🛠️ Key Highlights
 1. **Fix Supabase password URL decode for pooler connection**
