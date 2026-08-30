@@ -139,6 +139,10 @@ $changesFormatted
 "@
             Set-Content -Path $releaseNotesFile -Value $releaseBody -Encoding UTF8
 
+            # Kill any lingering 7za / archiver processes that may lock files in out/dist
+            Get-Process -Name "7za" -ErrorAction SilentlyContinue | Stop-Process -Force -ErrorAction SilentlyContinue
+            Get-ChildItem -Path "$PSScriptRoot/../frontend/out/dist/*.tar*" -ErrorAction SilentlyContinue | Remove-Item -Force -ErrorAction SilentlyContinue
+
             $token = if ($env:GH_TOKEN) { $env:GH_TOKEN } else { $env:GITHUB_TOKEN }
 
             if ($token) {
@@ -157,7 +161,8 @@ $changesFormatted
                 Write-Warning "Debian packaging encountered an error: $_"
             }
         } catch {
-            Write-Host "[WARNING] Binary packaging encountered an error: $_" -ForegroundColor Yellow
+            Write-Host "[ERROR] Binary packaging encountered a fatal error: $_" -ForegroundColor Red
+            exit 1
         } finally {
             if ($releaseNotesFile -and (Test-Path $releaseNotesFile)) {
                 Remove-Item -Force $releaseNotesFile -ErrorAction SilentlyContinue
