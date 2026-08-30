@@ -4,28 +4,59 @@ import GamingPost from "@/models/GamingPost";
 import fs from "fs";
 import path from "path";
 
-function getClean3DPrompt(title: string, category: string): string {
+async function getClean3DPrompt(title: string, category: string): Promise<string> {
   const isHardware = category === "GPU News" || category === "Hardware Deep-Dive";
+  const geminiKey = process.env.GEMINI_API_KEY || process.env.GOOGLE_API_KEY;
 
-  if (isHardware) {
-    const hardwarePrompts = [
-      "futuristic nvidia rtx 5090 gpu graphics card, 3d render, neon green, dark reflective glass, 8k, photorealistic",
-      "high-tech ai workstation PC with custom water cooling loop, neon green lighting, 3d render, photorealistic, 8k",
-      "futuristic gaming laptop with glowing mechanical keyboard and neon accents, 3d render, photorealistic, 8k",
-      "microscopic gpu silicon chip processor with glowing neon circuits, 3d render, 8k, photorealistic",
-      "nvidia blackwell gpu server rack, glowing green LED cables, 3d render, 8k, photorealistic"
-    ];
-    return hardwarePrompts[Math.floor(Math.random() * hardwarePrompts.length)];
-  } else {
-    const gamePrompts = [
-      "hands holding futuristic glowing gaming controller, 3d render, cinematic lighting, photorealistic, 8k",
-      "epic 3d video game warrior in medieval fantasy castle fortress, volumetric lighting, photorealistic, 8k",
-      "futuristic cybernetic game controller on dark desk, neon ambient lighting, 3d render, photorealistic, 8k",
-      "epic sci-fi astronaut looking at alien planet landscape, Unreal Engine 5 render, photorealistic, 8k",
-      "ancient fantasy ruins with glowing magical runes in misty forest, 3d render, 8k, photorealistic"
-    ];
-    return gamePrompts[Math.floor(Math.random() * gamePrompts.length)];
+  if (geminiKey) {
+    const instructions = isHardware
+      ? `You are an AI art director. Convert this article topic into a 15-20 word physical description of a photorealistic 3D render of computer hardware, GPU, processor, or silicon architecture.
+RULES:
+1. STRICTLY NO abstract concepts or words like "analysis", "breakdown", "news", "article", "review", "benchmark", "performance", "leaks".
+2. Describe ONLY physical objects: glowing neon green circuits, dark tempered glass, GPU cooling fans, metallic heatsinks, copper heat pipes, cinematic studio lighting, 8k resolution, photorealistic 3d render.
+3. Return ONLY the image prompt text.`
+      : `You are an AI art director. Convert this gaming article topic into a 15-20 word physical description of a photorealistic 3D video game scene.
+RULES:
+1. STRICTLY NO abstract concepts or words like "analysis", "breakdown", "news", "article", "review", "leaks", "AI-rife", "gameplay", "remake".
+2. Describe ONLY tangible visual elements: concrete game characters, muscle cars on neon-lit city streets, ancient temple ruins, futuristic cyberpunk armor, cinematic volumetric lighting, Unreal Engine 5 render, 8k resolution, photorealistic.
+3. Return ONLY the image prompt text.`;
+
+    const models = ["gemini-3.5-flash-lite", "gemini-3.6-flash", "gemini-flash-lite-latest", "gemini-flash-latest"];
+    for (const model of models) {
+      try {
+        const res = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/${model}:generateContent?key=${geminiKey}`, {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            contents: [{ parts: [{ text: `${instructions}\n\nArticle Topic: "${title}"` }] }],
+            generationConfig: { maxOutputTokens: 120, temperature: 0.4 }
+          }),
+          signal: AbortSignal.timeout(8000)
+        });
+
+        if (res.ok) {
+          const data = await res.json();
+          const text = data?.candidates?.[0]?.content?.parts?.[0]?.text?.trim();
+          if (text && text.length > 10) {
+            return text;
+          }
+        }
+      } catch {}
+    }
   }
+
+  const cleanBase = title
+    .replace(/[\u0300-\u036f]/g, "")
+    .replace(/Why|How|What|When|[:"'\?\!\-\|\(\)\[\]]/gi, " ")
+    .replace(/breakdown|analysis|news|leaks|updates|industry|frontier|gameplay/gi, " ")
+    .replace(/[^\x00-\x7F]/g, "")
+    .replace(/\s+/g, " ")
+    .trim()
+    .slice(0, 100);
+
+  return isHardware
+    ? `futuristic computer hardware 3d render of ${cleanBase}, glowing neon green accents, dark glass, 8k photorealistic`
+    : `cinematic 3d video game concept art of ${cleanBase}, dramatic volumetric lighting, unreal engine 5, 8k photorealistic`;
 }
 
 async function fetch3DPng(prompt: string, seed: number): Promise<Buffer | null> {
@@ -75,7 +106,7 @@ async function run() {
     const post = posts[i];
     console.log(`[${i + 1}/${posts.length}] Converting '${post.title}' to 3D photorealistic PNG...`);
 
-    const prompt = getClean3DPrompt(post.title, post.category);
+    const prompt = await getClean3DPrompt(post.title, post.category);
     const seed = Math.floor(Math.random() * 899999) + 100000;
     
     let buffer = await fetch3DPng(prompt, seed);
