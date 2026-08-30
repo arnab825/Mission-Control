@@ -55,26 +55,31 @@ export async function ensureBenchmarksSeeded(): Promise<void> {
   try {
     await connectDB();
 
-    // Seed Admin Benchmark Profiles if collection is empty
-    const benchmarkCount = await BenchmarkModel.countDocuments();
-    if (benchmarkCount === 0) {
-      const benchmarkDocs = Object.values(BENCHMARK_PROFILES).map((profile) => {
-        const summary = TESTED_GAMES_LIST.find((g) => g.id === profile.id);
-        return {
-          ...profile,
-          coverImage: summary?.coverImage || `/games/${profile.id}.webp`,
-          gameplayGif: summary?.gameplayGif || summary?.coverImage,
-          keyTech: summary?.keyTech || ["DirectX 12", "Reflex", "DLSS"],
-          averageRating: profile.score ? profile.score / 20 : 5.0,
-          totalRatings: 0,
-          recommendationRate: 100,
-          avgReportedFps: parseInt(profile.testedSpecs.avgFps) || 60,
-        };
-      });
+    // Sync/Upsert Admin Benchmark Profiles so new games are always present in MongoDB
+    const syncOps = Object.values(BENCHMARK_PROFILES).map((profile) => {
+      const summary = TESTED_GAMES_LIST.find((g) => g.id === profile.id);
+      return BenchmarkModel.findOneAndUpdate(
+        { id: profile.id },
+        {
+          $set: {
+            ...profile,
+            coverImage: summary?.coverImage || `/games/${profile.id}.webp`,
+            gameplayGif: summary?.gameplayGif || summary?.coverImage,
+            keyTech: summary?.keyTech || ["DirectX 12", "Reflex", "DLSS"],
+          },
+          $setOnInsert: {
+            averageRating: profile.score ? profile.score / 20 : 5.0,
+            totalRatings: 0,
+            recommendationRate: 100,
+            avgReportedFps: parseInt(profile.testedSpecs.avgFps) || 60,
+          },
+        },
+        { upsert: true, returnDocument: 'after' }
+      );
+    });
 
-      await BenchmarkModel.insertMany(benchmarkDocs);
-      console.log(`[MongoDB] Successfully seeded ${benchmarkDocs.length} benchmark profiles.`);
-    }
+    await Promise.all(syncOps);
+    console.log(`[MongoDB] Verified sync for ${syncOps.length} benchmark profiles.`);
   } catch (error) {
     console.warn("[MongoDB] Benchmark profiles seed error (falling back to static defaults):", error);
   }
