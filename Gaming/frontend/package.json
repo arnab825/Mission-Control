@@ -2,7 +2,7 @@
     "name":  "mission-control-frontend",
     "productName":  "Mission Control",
     "private":  true,
-    "version":  "3.3.3",
+    "version":  "3.3.4",
     "description":  "Mission Control desktop app for gamers.",
     "homepage":  "https://github.com/arnab825/Mission-Control",
     "license": "Apache-2.0",
