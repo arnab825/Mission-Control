@@ -8,9 +8,11 @@ import {
   AlertTriangle,
   Cpu,
   ChevronDown,
-  ChevronRight
+  ChevronRight,
+  Send
 } from 'lucide-react';
 import type { TelemetryState } from '../types/telemetry';
+import { ReportGlitchModal } from '../components/ReportGlitchModal';
 
 interface UpdatesPageProps {
   state: TelemetryState | null;
@@ -53,6 +55,7 @@ export const UpdatesPage: React.FC<UpdatesPageProps> = ({
   const manualCheckStatusRef = useRef<'idle' | 'checking'>('idle');
   const [rollbackInfo, setRollbackInfo] = React.useState<{ exists: boolean; version?: string } | null>(null);
   const [rollbackConfirm, setRollbackConfirm] = React.useState(false);
+  const [isReportModalOpen, setIsReportModalOpen] = React.useState(false);
 
 
   useEffect(() => {
@@ -449,7 +452,7 @@ export const UpdatesPage: React.FC<UpdatesPageProps> = ({
                         window.electronAPI?.cancelElectronUpdate?.();
                         setNativeUpdate({ status: 'idle' });
                       }}
-                      className="px-6 py-2.5 bg-red-500/10 hover:bg-red-500/20 border border-red-500/20 hover:border-red-500/30 text-red-400 text-[9px] font-black uppercase tracking-widest rounded-xl transition-all cursor-pointer font-bold"
+                      className="px-6 py-2.5 bg-red-500/10 hover:bg-red-500/20 border border-red-500/20 hover:border-red-500/30 text-red-400 text-[9px] font-black uppercase tracking-widest rounded-xl transition-all cursor-pointer"
                     >
                       Cancel
                     </button>
@@ -784,18 +787,30 @@ export const UpdatesPage: React.FC<UpdatesPageProps> = ({
               {/* Hardware Telemetry Hotfix & Glitch Scanner */}
               {!installState && (
                 <div className="pt-6 border-t border-white/5 space-y-4">
-                  <div className="flex items-center justify-between">
+                  <div className="flex items-center justify-between flex-wrap gap-2">
                     <h5 className="text-[10px] font-black text-neon-green uppercase tracking-widest flex items-center gap-1.5">
                       <Cpu className="w-3.5 h-3.5 text-neon-green" />
                       Telemetry Glitch Scanner
                     </h5>
-                    <button
-                      type="button"
-                      onClick={() => sendCommand('check_patches')}
-                      className="px-2.5 py-1 rounded bg-neon-green/10 hover:bg-neon-green/20 text-neon-green text-[8px] font-black uppercase tracking-wider border border-neon-green/20 transition cursor-pointer"
-                    >
-                      Resync Telemetry
-                    </button>
+                    <div className="flex items-center gap-2">
+                      <button
+                        type="button"
+                        onClick={() => setIsReportModalOpen(true)}
+                        className="px-2.5 py-1 rounded bg-neon-green text-black text-[8px] font-black uppercase tracking-wider hover:bg-neon-green/90 shadow-[0_0_12px_rgba(118,185,0,0.25)] transition cursor-pointer flex items-center gap-1.5"
+                        title="Report a hardware conflict or driver glitch to the community"
+                      >
+                        <Send className="w-2.5 h-2.5" />
+                        Report Glitch / Issue
+                      </button>
+                      <button
+                        type="button"
+                        onClick={() => sendCommand('check_patches')}
+                        className="px-2.5 py-1 rounded bg-neon-green/10 hover:bg-neon-green/20 text-neon-green text-[8px] font-black uppercase tracking-wider border border-neon-green/20 transition cursor-pointer flex items-center gap-1"
+                      >
+                        <RefreshCw className="w-2.5 h-2.5" />
+                        Resync Telemetry
+                      </button>
+                    </div>
                   </div>
                   
                   {state?.patches_sync?.status === 'checking' && (
@@ -820,9 +835,20 @@ export const UpdatesPage: React.FC<UpdatesPageProps> = ({
                       </div>
 
                       {state.patches_sync.matched_issues.length === 0 ? (
-                        <div className="p-4 bg-neon-yellow/5 border border-neon-yellow/15 rounded-2xl flex items-center gap-2.5">
-                          <CheckCircle2 className="w-4 h-4 text-neon-yellow" />
-                          <span className="text-[8px] font-black text-neon-yellow uppercase tracking-widest">0 hardware conflicts matching your specs detected in database.</span>
+                        <div className="p-4 bg-neon-yellow/5 border border-neon-yellow/15 rounded-2xl flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+                          <div className="flex items-center gap-2.5">
+                            <CheckCircle2 className="w-4 h-4 text-neon-yellow shrink-0" />
+                            <span className="text-[8px] font-black text-neon-yellow uppercase tracking-widest">
+                              0 hardware conflicts matching your specs detected in database.
+                            </span>
+                          </div>
+                          <button
+                            type="button"
+                            onClick={() => setIsReportModalOpen(true)}
+                            className="px-3 py-1.5 rounded-xl bg-white/5 hover:bg-white/10 text-zinc-300 hover:text-white border border-white/10 text-[8px] font-black uppercase tracking-wider transition cursor-pointer self-start sm:self-auto shrink-0"
+                          >
+                            Report New Glitch
+                          </button>
                         </div>
                       ) : (
                         <div className="grid grid-cols-1 gap-3 max-h-55 overflow-y-auto custom-scrollbar pr-1">
@@ -910,7 +936,7 @@ export const UpdatesPage: React.FC<UpdatesPageProps> = ({
                       </button>
                     </div>
                   ) : (
-                    <div className="p-5 bg-white/[0.02] border border-white/5 rounded-2xl">
+                    <div className="p-5 bg-white/2 border border-white/5 rounded-2xl">
                       <p className="text-[9px] text-zinc-600 font-bold uppercase">
                         No rollback backup available. A backup is created automatically when you install an update via "Restart & Relaunch".
                       </p>
@@ -1040,6 +1066,19 @@ export const UpdatesPage: React.FC<UpdatesPageProps> = ({
             </button>
           </div>
         )}
+
+        {/* Report Glitch & Hardware Conflict Community Modal */}
+        <ReportGlitchModal
+          isOpen={isReportModalOpen}
+          onClose={() => setIsReportModalOpen(false)}
+          localSpecs={state?.patches_sync?.local_specs}
+          telemetry={state}
+          appVersion={state?.version || currentVersion}
+          onSuccess={() => {
+            sendCommand('check_patches');
+            setToastMessage('Issue submitted to developer community!');
+          }}
+        />
     </div>
   );
 };

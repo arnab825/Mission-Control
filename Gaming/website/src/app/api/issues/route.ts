@@ -24,12 +24,39 @@ export async function GET() {
 export async function POST(request: Request) {
   try {
     const body = await request.json();
-    const { title, description, category, game, specs } = body;
+    const { title, description, category, game, author, specs } = body;
 
-    // Server-side validation
+    // Server-side validation & Anti-Abuse Sanitization
     if (!title || !description || !category || !specs) {
       return NextResponse.json(
         { error: "Missing required fields. title, description, category, and specs are required." },
+        { status: 400 }
+      );
+    }
+
+    const cleanTitle = String(title).replace(/<[^>]*>?/gm, '').trim();
+    const cleanDesc = String(description).replace(/<[^>]*>?/gm, '').trim();
+    const cleanGame = String(game || "General System").replace(/<[^>]*>?/gm, '').trim();
+    const cleanAuthor = String(author || "Operator").replace(/<[^>]*>?/gm, '').trim();
+
+    if (cleanTitle.length < 3 || cleanTitle.length > 150) {
+      return NextResponse.json(
+        { error: "Title must be between 3 and 150 characters." },
+        { status: 400 }
+      );
+    }
+
+    if (cleanDesc.length < 5 || cleanDesc.length > 2500) {
+      return NextResponse.json(
+        { error: "Description must be between 5 and 2500 characters." },
+        { status: 400 }
+      );
+    }
+
+    const allowedCategories = ["hardware", "glitch", "performance", "other"];
+    if (!allowedCategories.includes(category)) {
+      return NextResponse.json(
+        { error: "Invalid category. Must be hardware, glitch, performance, or other." },
         { status: 400 }
       );
     }
@@ -42,10 +69,11 @@ export async function POST(request: Request) {
     }
 
     const newIssue = await createIssue({
-      title,
-      description,
+      title: cleanTitle,
+      description: cleanDesc,
       category,
-      game: game || "General System",
+      game: cleanGame,
+      author: cleanAuthor,
       specs: {
         os: specs.os,
         osVersion: specs.osVersion,

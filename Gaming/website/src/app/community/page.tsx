@@ -34,6 +34,7 @@ interface Issue {
   description: string;
   category: "hardware" | "glitch" | "performance" | "other";
   game?: string;
+  author?: string;
   votes: number;
   createdAt: string;
   specs: {
@@ -368,11 +369,11 @@ export default function CommunityPage() {
   };
 
   return (
-    <main className="flex-1 min-h-screen pt-24 sm:pt-28 pb-20 sm:pb-24 px-3 sm:px-6 lg:px-8 bg-[#0a0a0c] relative overflow-x-hidden w-full max-w-full">
+    <main className="flex-1 min-h-screen pt-24 sm:pt-28 pb-20 sm:pb-24 px-3 sm:px-6 lg:px-8 bg-obsidian relative overflow-x-hidden w-full max-w-full">
       
       {/* Cyber Grid & Ambient Background */}
       <div className="absolute inset-0 cyber-grid opacity-25 pointer-events-none -z-10" />
-      <div className="absolute top-1/4 left-1/2 -translate-x-1/2 w-full max-w-[500px] h-[300px] bg-neon-green/10 blur-[120px] rounded-full pointer-events-none -z-10 animate-pulse-slow" />
+      <div className="absolute top-1/4 left-1/2 -translate-x-1/2 w-full max-w-125 h-75 bg-neon-green/10 blur-[120px] rounded-full pointer-events-none -z-10 animate-pulse-slow" />
 
       <div className="w-full max-w-6xl mx-auto space-y-6 sm:space-y-10">
         
@@ -387,10 +388,10 @@ export default function CommunityPage() {
             <Radio className="w-3 h-3 text-neon-green animate-pulse shrink-0" />
             <span className="truncate">Community Intel & Hardware Hub</span>
           </div>
-          <h1 className="text-2xl sm:text-5xl lg:text-6xl font-black font-display uppercase tracking-tight text-white leading-tight break-words">
+          <h1 className="text-2xl sm:text-5xl lg:text-6xl font-black font-display uppercase tracking-tight text-white leading-tight wrap-break-word">
             COMMUNITY <span className="text-neon-green glow-text-teal">INTEL HUB</span>
           </h1>
-          <p className="text-xs sm:text-sm text-gray-400 leading-relaxed font-sans max-w-xl mx-auto break-words">
+          <p className="text-xs sm:text-sm text-gray-400 leading-relaxed font-sans max-w-xl mx-auto wrap-break-word">
             Read real player game reviews, compare hardware rig setups, or submit system driver glitches to trigger community fixes.
           </p>
         </motion.div>
@@ -486,7 +487,7 @@ export default function CommunityPage() {
                     className={`px-3.5 py-2 rounded-xl font-mono text-[11px] sm:text-xs font-bold uppercase tracking-wider shrink-0 transition-all duration-200 cursor-pointer flex items-center gap-2 ${
                       ratingGenreFilter === "ALL"
                         ? "bg-neon-green text-obsidian shadow-[0_0_15px_rgba(118,185,0,0.5)] scale-[1.02]"
-                        : "bg-white/[0.04] text-gray-400 hover:text-white hover:bg-white/10 border border-white/5"
+                        : "bg-white/4 text-gray-400 hover:text-white hover:bg-white/10 border border-white/5"
                     }`}
                   >
                     <span>All Genres</span>
@@ -505,7 +506,7 @@ export default function CommunityPage() {
                         className={`px-3.5 py-2 rounded-xl font-mono text-[11px] sm:text-xs font-bold uppercase tracking-wider shrink-0 transition-all duration-200 cursor-pointer flex items-center gap-2 ${
                           isSelected
                             ? "bg-neon-green text-obsidian shadow-[0_0_15px_rgba(118,185,0,0.5)] scale-[1.02]"
-                            : "bg-white/[0.04] text-gray-400 hover:text-white hover:bg-white/10 border border-white/5"
+                            : "bg-white/4 text-gray-400 hover:text-white hover:bg-white/10 border border-white/5"
                         }`}
                       >
                         <span>{genre}</span>
@@ -687,10 +688,10 @@ export default function CommunityPage() {
                               {rev.userName ? rev.userName[0] : "A"}
                             </div>
                             <div className="min-w-0">
-                              <div className="text-xs font-bold text-white truncate max-w-[120px] sm:max-w-[180px]">
+                              <div className="text-xs font-bold text-white truncate max-w-30 sm:max-w-45">
                                 {rev.userName}
                               </div>
-                              <span className="text-[9px] text-gray-400 bg-white/5 px-1.5 py-0.5 rounded truncate inline-block max-w-[120px] sm:max-w-[180px]">
+                              <span className="text-[9px] text-gray-400 bg-white/5 px-1.5 py-0.5 rounded truncate inline-block max-w-30 sm:max-w-45">
                                 {rev.gameName}
                               </span>
                             </div>
@@ -712,10 +713,10 @@ export default function CommunityPage() {
 
                         {/* Title & Review Content */}
                         <div>
-                          <h4 className="text-xs sm:text-sm font-bold text-white font-display uppercase tracking-wide leading-snug break-words">
+                          <h4 className="text-xs sm:text-sm font-bold text-white font-display uppercase tracking-wide leading-snug wrap-break-word">
                             {rev.title}
                           </h4>
-                          <p className="text-[11px] sm:text-xs text-gray-300 font-sans leading-relaxed mt-1 break-words">
+                          <p className="text-[11px] sm:text-xs text-gray-300 font-sans leading-relaxed mt-1 wrap-break-word">
                             {rev.review}
                           </p>
                         </div>
@@ -755,13 +756,13 @@ export default function CommunityPage() {
                         {/* Hardware Rig Specs Badge Strip */}
                         <div className="flex flex-wrap gap-1.5 pt-1 text-[9px] sm:text-[10px]">
                           {rev.specs?.gpu && (
-                            <span className="px-2 py-0.5 rounded-md bg-black/60 border border-white/10 text-gray-300 flex items-center gap-1 truncate max-w-[200px]">
+                            <span className="px-2 py-0.5 rounded-md bg-black/60 border border-white/10 text-gray-300 flex items-center gap-1 truncate max-w-50">
                               <Tv className="w-3 h-3 text-neon-green shrink-0" />
                               <span className="truncate">{rev.specs.gpu}</span>
                             </span>
                           )}
                           {rev.specs?.cpu && (
-                            <span className="px-2 py-0.5 rounded-md bg-black/60 border border-white/10 text-gray-300 flex items-center gap-1 truncate max-w-[200px]">
+                            <span className="px-2 py-0.5 rounded-md bg-black/60 border border-white/10 text-gray-300 flex items-center gap-1 truncate max-w-50">
                               <Cpu className="w-3 h-3 text-neon-green shrink-0" />
                               <span className="truncate">{rev.specs.cpu}</span>
                             </span>
@@ -845,7 +846,7 @@ export default function CommunityPage() {
                     className={`px-3 py-1.5 rounded-lg text-[11px] sm:text-xs font-mono font-bold uppercase tracking-wider transition-all duration-200 border cursor-pointer shrink-0 ${
                       categoryFilter === tab.id
                         ? "bg-neon-green text-obsidian border-neon-green shadow-[0_0_12px_rgba(118,185,0,0.4)]"
-                        : "bg-white/[0.03] text-gray-400 border-white/5 hover:bg-white/10 hover:text-white"
+                        : "bg-white/3 text-gray-400 border-white/5 hover:bg-white/10 hover:text-white"
                     }`}
                   >
                     {tab.label}
@@ -943,7 +944,7 @@ export default function CommunityPage() {
                     <div 
                       key={issue.id} 
                       className={`bg-[#0f1015] rounded-xl sm:rounded-2xl border transition-all duration-300 overflow-hidden shadow-lg ${
-                        isExpanded ? "border-neon-green/50 bg-neon-green/[0.02] shadow-[0_0_25px_rgba(118,185,0,0.15)]" : "border-white/10 hover:border-white/20"
+                        isExpanded ? "border-neon-green/50 bg-neon-green/2 shadow-[0_0_25px_rgba(118,185,0,0.15)]" : "border-white/10 hover:border-white/20"
                       }`}
                     >
                       <div className="p-4 sm:p-5 flex flex-col sm:flex-row sm:items-start justify-between gap-3.5 sm:gap-5">
@@ -954,29 +955,34 @@ export default function CommunityPage() {
                               {issue.category}
                             </span>
                             {issue.game && (
-                              <span className="text-[10px] sm:text-xs font-mono text-gray-400 bg-white/5 px-2 py-0.5 rounded border border-white/5 truncate max-w-[160px]">
+                              <span className="text-[10px] sm:text-xs font-mono text-gray-400 bg-white/5 px-2 py-0.5 rounded border border-white/5 truncate max-w-40">
                                 Context: <strong className="text-white">{issue.game}</strong>
                               </span>
                             )}
                             <span className="text-[9px] sm:text-[10px] text-gray-500 font-mono">
                               LOGGED: {new Date(issue.createdAt).toLocaleDateString()}
                             </span>
+                            {issue.author && (
+                              <span className="text-[9px] sm:text-[10px] font-mono text-neon-green/90 bg-neon-green/10 px-2 py-0.5 rounded border border-neon-green/20">
+                                PILOT: <strong>@{issue.author}</strong>
+                              </span>
+                            )}
                           </div>
 
-                          <h3 className="text-sm sm:text-lg font-bold text-white tracking-wide font-display break-words leading-snug">
+                          <h3 className="text-sm sm:text-lg font-bold text-white tracking-wide font-display wrap-break-word leading-snug">
                             {issue.title}
                           </h3>
 
-                          <p className="text-xs sm:text-sm text-gray-300 leading-relaxed max-w-4xl font-sans break-words">
+                          <p className="text-xs sm:text-sm text-gray-300 leading-relaxed max-w-4xl font-sans wrap-break-word">
                             {issue.description}
                           </p>
 
                           {/* Primary specs tags */}
                           <div className="flex flex-wrap gap-1.5 text-[9px] sm:text-[10px] font-mono text-gray-300 pt-1">
-                            <span className="flex items-center gap-1 px-2 py-0.5 rounded-md bg-obsidian border border-white/10 truncate max-w-[200px]">
+                            <span className="flex items-center gap-1 px-2 py-0.5 rounded-md bg-obsidian border border-white/10 truncate max-w-50">
                               <Cpu className="w-3 h-3 text-neon-green shrink-0" /> <span className="truncate">{issue.specs.cpu}</span>
                             </span>
-                            <span className="flex items-center gap-1 px-2 py-0.5 rounded-md bg-obsidian border border-white/10 truncate max-w-[200px]">
+                            <span className="flex items-center gap-1 px-2 py-0.5 rounded-md bg-obsidian border border-white/10 truncate max-w-50">
                               <Tv className="w-3 h-3 text-neon-green shrink-0" /> <span className="truncate">{issue.specs.gpu}</span>
                             </span>
                           </div>
@@ -1024,7 +1030,7 @@ export default function CommunityPage() {
                       </div>
 
                       {/* Expand Specs button for desktop */}
-                      <div className="hidden sm:block border-t border-white/5 px-5 py-2.5 bg-white/[0.01]">
+                      <div className="hidden sm:block border-t border-white/5 px-5 py-2.5 bg-white/1">
                         <button
                           onClick={() => toggleExpandIssue(issue.id)}
                           className="flex items-center gap-1.5 text-[10px] font-mono font-bold uppercase tracking-wider text-neon-green hover:text-white transition cursor-pointer"
@@ -1045,25 +1051,25 @@ export default function CommunityPage() {
                       {isExpanded && (
                         <div className="px-4 sm:px-5 pb-4 sm:pb-5 pt-2.5 border-t border-white/5 bg-obsidian/90 font-mono text-xs text-gray-300">
                           <div className="grid grid-cols-2 lg:grid-cols-4 gap-2 sm:gap-3">
-                            <div className="space-y-1 bg-white/[0.02] p-2 sm:p-2.5 rounded-xl border border-white/5">
+                            <div className="space-y-1 bg-white/2 p-2 sm:p-2.5 rounded-xl border border-white/5">
                               <span className="block text-[8px] sm:text-[9px] uppercase font-bold text-gray-400 tracking-wider">
                                 Operating System
                               </span>
                               <span className="text-white font-bold truncate block text-[11px]">{issue.specs.os} ({issue.specs.osVersion})</span>
                             </div>
-                            <div className="space-y-1 bg-white/[0.02] p-2 sm:p-2.5 rounded-xl border border-white/5">
+                            <div className="space-y-1 bg-white/2 p-2 sm:p-2.5 rounded-xl border border-white/5">
                               <span className="block text-[8px] sm:text-[9px] uppercase font-bold text-gray-400 tracking-wider">
                                 System Memory
                               </span>
                               <span className="text-white font-bold truncate block text-[11px]">{issue.specs.ramGB} GB RAM</span>
                             </div>
-                            <div className="space-y-1 bg-white/[0.02] p-2 sm:p-2.5 rounded-xl border border-white/5">
+                            <div className="space-y-1 bg-white/2 p-2 sm:p-2.5 rounded-xl border border-white/5">
                               <span className="block text-[8px] sm:text-[9px] uppercase font-bold text-gray-400 tracking-wider">
                                 GPU Driver Package
                               </span>
                               <span className="text-neon-green font-bold truncate block text-[11px]">{issue.specs.gpuDriver || "GeForce Game Ready"}</span>
                             </div>
-                            <div className="space-y-1 bg-white/[0.02] p-2 sm:p-2.5 rounded-xl border border-white/5">
+                            <div className="space-y-1 bg-white/2 p-2 sm:p-2.5 rounded-xl border border-white/5">
                               <span className="block text-[8px] sm:text-[9px] uppercase font-bold text-gray-400 tracking-wider">
                                 Build Executable
                               </span>
