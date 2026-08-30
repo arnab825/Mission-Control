@@ -50,6 +50,11 @@ def _load_sql(name: str) -> str:
     return (QUERIES_DIR / f"{name}.sql").read_text(encoding="utf-8-sig")
 
 def _sanitize_db_url(raw_url: str) -> str:
+    """Sanitize and normalize a PostgreSQL connection URL for psycopg2.
+    
+    Handles percent-encoded characters in username/password (e.g. %40 = @),
+    ensures sslmode=require is set, and converts postgres:// -> postgresql://.
+    """
     if not raw_url:
         return ""
     # Strip any enclosing quotes, spaces, tabs, and Windows CRLF (\r\n)
@@ -61,6 +66,17 @@ def _sanitize_db_url(raw_url: str) -> str:
     # Parse and clean query parameters
     try:
         parsed = urllib.parse.urlparse(url)
+
+        # Decode percent-encoded username and password so psycopg2 receives
+        # the literal characters (e.g. missioncontrol%404526 -> missioncontrol@4526)
+        username = urllib.parse.unquote(parsed.username or "")
+        password = urllib.parse.unquote(parsed.password or "")
+
+        # Re-encode credentials properly for URL netloc reconstruction
+        netloc = f"{urllib.parse.quote(username, safe='')}:{urllib.parse.quote(password, safe='')}@{parsed.hostname}"
+        if parsed.port:
+            netloc += f":{parsed.port}"
+
         params = urllib.parse.parse_qs(parsed.query, keep_blank_values=True)
         clean_params = {}
         for k, vals in params.items():
@@ -73,7 +89,7 @@ def _sanitize_db_url(raw_url: str) -> str:
             clean_params["sslmode"] = ["require"]
             
         new_query = urllib.parse.urlencode(clean_params, doseq=True)
-        return urllib.parse.urlunparse(parsed._replace(query=new_query))
+        return urllib.parse.urlunparse(parsed._replace(netloc=netloc, query=new_query))
     except Exception:
         if "sslmode" not in url:
             sep = "&" if "?" in url else "?"
