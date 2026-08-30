@@ -367,6 +367,69 @@ export const BENCHMARK_PROFILES: Record<string, BenchmarkProfile> = {
         desc: "Tactical street corner reconnaissance captured at 93 FPS with 97% GPU load (45W power draw, 3.26 GB / 8.0 GB VRAM allocation)."
       }
     ]
+  },
+  thelastofus: {
+    id: "thelastofus",
+    name: "The Last of Us™ Part I",
+    publisher: "PlayStation / Naughty Dog",
+    releaseYear: "2023 PC Edition",
+    genre: "Action-Adventure / Survival Horror",
+    api: "DirectX 12",
+    score: 99,
+    status: "VERIFIED & OPTIMAL",
+    preset: "Ultra / DLSS Quality",
+    overview: "Set in a post-apocalyptic America ravaged by the Cordyceps fungal outbreak, hardened smuggler Joel is tasked with escorting 14-year-old Ellie across quarantine zones and brutal survivor factions in an emotional quest for a vaccine.",
+    detailedOverview: {
+      story: "Twenty years after a fungal pandemic transforms infected humans into aggressive, mutated creatures and destroys civilization, hardened black-market smuggler Joel is tasked with escorting 14-year-old Ellie out of an authoritarian military Quarantine Zone in Boston. Discovering that Ellie harbors an unprecedented immunity to the Cordyceps brain infection, Joel embarks on a perilous cross-country journey to reach the Fireflies' research lab, confronting infected monstrosities, ruthless bandit hunters, and the heavy moral weight of survival.",
+      gameplayLoop: "Explore atmospheric post-pandemic ruins, scavenge crafting materials and ammunition, utilize dynamic stealth and Listen Mode to track enemy patrols, execute brutal melee takedowns or gunfights, and solve traversal puzzles alongside Ellie.",
+      keyMechanics: [
+        { name: "Dynamic Stealth & Listen Mode", desc: "Crouch-walk through hostile territory utilizing acoustic perception to locate Clickers and human hunters through walls and dense cover." },
+        { name: "Real-Time Backpack Crafting", desc: "Scavenge alcohol, cloth, blades, and explosive powder in real time to assemble shivs, medkits, smoke bombs, and nail bombs under pressure." },
+        { name: "Cordyceps Mutation AI Behaviors", desc: "Adapt tactical combat against distinct infected tiers — blind sound-sensitive Clickers, aggressive Runners, ambush Stalkers, and armored Bloaters." },
+        { name: "Workbench Upgrades & Ballistics", desc: "Customize firearms with salvaged parts and tools to improve weapon sway, reload speed, fire rate, and holster capacity." }
+      ]
+    },
+    testedSpecs: {
+      gpu: "NVIDIA GeForce RTX Series / GTX Series",
+      resolution: "1080p FHD / 1440p QHD",
+      avgFps: "84 FPS",
+      vramUsed: "6.16 GB / 8.0 GB",
+      latency: "11.8 ms",
+      gpuLoad: "85%"
+    },
+    presets: {
+      rtx40: "Ultra Preset + DLSS Quality + Reflex Low Latency",
+      rtx30: "High Preset + DLSS Balanced + Reflex",
+      gtx: "Medium / High Preset + FSR 3 / XeSS (6.1 GB VRAM Opt)"
+    },
+    features: [
+      { name: "NVIDIA DLSS 4", desc: "Super Resolution & Ray Reconstruction", active: true },
+      { name: "NVIDIA Reflex", desc: "Low Latency Input Pass-Through", active: true },
+      { name: "DirectX 12 Engine", desc: "High-Poly Geometric Shading & Volumetric Lighting", active: true },
+      { name: "VRAM Memory Management", desc: "Optimized 6.16 GB Memory Footprint at Ultra Settings", active: true }
+    ],
+    screenshots: [
+      {
+        src: "/games/TheLastOfUs_SS1.webp",
+        title: "Suburban Dawn Traversal & Hardware Telemetry",
+        desc: "Open-world overgrown suburb exploration captured at 131 FPS with 6.16 GB VRAM allocation (96% CPU Load, 59°C GPU temperature, 98% Excellent stability rating)."
+      },
+      {
+        src: "/games/TheLastOfUs_SS2.webp",
+        title: "Cinematic Dialogue & GPU Load Verification",
+        desc: "In-engine cinematic truck dialogue captured at 72 FPS with 71% GPU utilization (54W GPU power draw, 6.26 GB VRAM footprint, 98% Excellent system health)."
+      },
+      {
+        src: "/games/TheLastOfUs_SS3.webp",
+        title: "Lincoln Escape Push & Hardware Telemetry",
+        desc: "Joel and Bill collaborative vehicle push sequence captured at 84 FPS under 85% GPU load (60W power draw, 6.16 GB VRAM allocation, 98% stability)."
+      },
+      {
+        src: "/games/TheLastOfUs_SS4.webp",
+        title: "High-Intensity Combat & Motion Blur Telemetry",
+        desc: "Fast-paced Infected encounter captured at 76 FPS with 65% GPU load (52W power draw, 6.26 GB VRAM allocation, 94% CPU threading)."
+      }
+    ]
   }
 };
 
@@ -386,6 +449,24 @@ export const TESTED_GAMES_LIST: TestedGameSummary[] = [
     api: "DX12 Ultimate",
     coverImage: "/games/SpiderMan_SS1.webp",
     gameplayGif: "/games/SpiderMan_SS1.webp",
+    storeRating: "4.9 ★★★★★",
+    dlssVersion: "DLSS 4"
+  },
+  {
+    id: "thelastofus",
+    name: "The Last of Us™ Part I",
+    publisher: "PlayStation / Naughty Dog",
+    genre: "Action-Adventure / Survival Horror",
+    preset: "Ultra / DLSS",
+    keyTech: ["DLSS 4", "DirectX 12", "Reflex", "VRAM Opt"],
+    status: "VERIFIED BENCHMARK",
+    fps: "84 FPS",
+    vram: "6.16 GB / 8.0 GB",
+    gpuLoad: "85%",
+    latency: "11.8 ms",
+    api: "DirectX 12",
+    coverImage: "/games/TheLastOfUs_SS1.webp",
+    gameplayGif: "/games/TheLastOfUs_SS1.webp",
     storeRating: "4.9 ★★★★★",
     dlssVersion: "DLSS 4"
   },
