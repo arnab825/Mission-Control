@@ -466,10 +466,48 @@ def handle_bridge_update_commands(cmd_type: str, payload: dict, bridge_instance)
                 import urllib.request
                 import json
 
-                # Get local system specs for hardware-matching
+                # Get rich local system hardware telemetry (Zero static mock data)
                 os_name = platform.system()
+                os_ver = platform.version()
+                cpu_name = "Processor"
                 gpu_name = "Unknown"
-                if os_name == "Windows":
+                gpu_driver = "Unknown"
+                ram_gb = 16
+                app_version = bridge_instance._game_state.get("version", "3.3.6")
+
+                # 1. Try pulling from live telemetry game state first
+                sys_specs = bridge_instance._game_state.get("system_specs", {}) or {}
+                hw = sys_specs.get("hardware", {}) if isinstance(sys_specs, dict) else {}
+                gpu_metrics = bridge_instance._game_state.get("gpu_metrics", {}) or {}
+
+                if hw.get("cpu"):
+                    cpu_name = hw.get("cpu")
+                if hw.get("gpu"):
+                    gpu_name = hw.get("gpu")
+                if gpu_metrics.get("gpu_name"):
+                    gpu_name = gpu_metrics.get("gpu_name")
+                if gpu_metrics.get("driver_version"):
+                    gpu_driver = str(gpu_metrics.get("driver_version"))
+
+                # 2. Hardware probes for CPU, RAM, & GPU fallback
+                try:
+                    import psutil
+                    ram_gb = round(psutil.virtual_memory().total / (1024 ** 3))
+                except Exception:
+                    pass
+
+                if (cpu_name == "Processor" or not cpu_name) and os_name == "Windows":
+                    try:
+                        import winreg
+                        key = winreg.OpenKey(winreg.HKEY_LOCAL_MACHINE, r"HARDWARE\DESCRIPTION\System\CentralProcessor\0")
+                        reg_cpu, _ = winreg.QueryValueEx(key, "ProcessorNameString")
+                        winreg.CloseKey(key)
+                        if reg_cpu:
+                            cpu_name = reg_cpu.strip()
+                    except Exception:
+                        pass
+
+                if (gpu_name == "Unknown" or not gpu_name) and os_name == "Windows":
                     try:
                         startupinfo = subprocess.STARTUPINFO()
                         startupinfo.dwFlags |= subprocess.STARTF_USESHOWWINDOW
@@ -489,18 +527,32 @@ def handle_bridge_update_commands(cmd_type: str, payload: dict, bridge_instance)
                     except Exception as e:
                         logger.debug(f"Failed to query GPU via powershell: {e}")
 
-                # Query the Next.js API for issues
-                api_url = os.getenv("TELEMETRY_API_URL", "http://localhost:3000/api/issues")
-                if api_url and not api_url.endswith("/api/issues") and not api_url.endswith("/api/issues/"):
-                    api_url = api_url.rstrip("/") + "/api/issues"
-                req = urllib.request.Request(
-                    api_url, headers={"User-Agent": "MissionControl-Launcher/1.0"}
-                )
-                try:
-                    with urllib.request.urlopen(req, timeout=10) as resp:
-                        issues = json.loads(resp.read().decode("utf-8"))
-                except Exception as req_err:
-                    # Fallback to downloading raw issues.json from GitHub if local/Next.js server is offline
+                # Query candidate telemetry endpoints with automatic failover (Primary -> Backup)
+                primary_telemetry = os.getenv("TELEMETRY_API_URL", "https://mission-control-roan-seven.vercel.app")
+                backup_telemetry = os.getenv("BACKUP_TELEMETRY_API_URL", "https://ai-assistant-five-mu.vercel.app")
+                candidate_endpoints = [primary_telemetry, backup_telemetry]
+
+                issues = []
+                for candidate in candidate_endpoints:
+                    if not candidate:
+                        continue
+                    clean_url = candidate.rstrip("/")
+                    if not clean_url.endswith("/api/issues"):
+                        clean_url += "/api/issues"
+                    try:
+                        req = urllib.request.Request(
+                            clean_url, headers={"User-Agent": "MissionControl-Launcher/1.0"}
+                        )
+                        with urllib.request.urlopen(req, timeout=8) as resp:
+                            issues = json.loads(resp.read().decode("utf-8"))
+                        if issues is not None:
+                            logger.info(f"[UpdaterBridge] Fetched telemetry patches from {clean_url}")
+                            break
+                    except Exception as cand_err:
+                        logger.debug(f"[UpdaterBridge] Failed candidate {clean_url}: {cand_err}. Trying next endpoint...")
+
+                if not issues:
+                    # Fallback to downloading raw issues.json from GitHub if both Vercel endpoints are offline
                     github_fallback_url = "https://raw.githubusercontent.com/arnab825/Mission-Control/main/Gaming/website/data/issues.json"
                     try:
                         github_req = urllib.request.Request(
@@ -557,7 +609,15 @@ def handle_bridge_update_commands(cmd_type: str, payload: dict, bridge_instance)
                 bridge_instance.update_state({
                     "patches_sync": {
                         "status": "success",
-                        "local_specs": {"os": os_name, "gpu": gpu_name},
+                        "local_specs": {
+                            "os": os_name,
+                            "os_version": os_ver,
+                            "gpu": gpu_name,
+                            "gpu_driver": gpu_driver,
+                            "cpu": cpu_name,
+                            "ram_gb": ram_gb,
+                            "app_version": app_version,
+                        },
                         "matched_issues": matched_issues,
                         "total_glitches": len(issues)
                     }
@@ -571,6 +631,71 @@ def handle_bridge_update_commands(cmd_type: str, payload: dict, bridge_instance)
                 })
 
         threading.Thread(target=_patches_run, name="PatchesCheckBG", daemon=True).start()
+        return True
+
+    if cmd_type == "submit_issue":
+        bridge_instance.update_state({"submit_issue_status": {"status": "submitting"}})
+
+        def _submit_issue_run():
+            try:
+                import urllib.request
+                import json
+
+                issue_payload = data if isinstance(data, dict) else {}
+                primary_telemetry = os.getenv("TELEMETRY_API_URL", "https://mission-control-roan-seven.vercel.app")
+                backup_telemetry = os.getenv("BACKUP_TELEMETRY_API_URL", "https://ai-assistant-five-mu.vercel.app")
+                candidate_endpoints = [primary_telemetry, backup_telemetry]
+
+                resp_data = None
+                last_err = None
+                encoded_body = json.dumps(issue_payload).encode("utf-8")
+
+                for candidate in candidate_endpoints:
+                    if not candidate:
+                        continue
+                    clean_url = candidate.rstrip("/")
+                    if not clean_url.endswith("/api/issues"):
+                        clean_url += "/api/issues"
+                    try:
+                        req = urllib.request.Request(
+                            clean_url,
+                            data=encoded_body,
+                            headers={
+                                "Content-Type": "application/json",
+                                "User-Agent": "MissionControl-Launcher/1.0"
+                            },
+                            method="POST"
+                        )
+                        with urllib.request.urlopen(req, timeout=10) as resp:
+                            resp_data = json.loads(resp.read().decode("utf-8"))
+                        if resp_data:
+                            logger.info(f"[UpdaterBridge] Successfully submitted issue to {clean_url}")
+                            break
+                    except Exception as cand_err:
+                        logger.warning(f"[UpdaterBridge] Failed to submit to {clean_url}: {cand_err}. Failing over...")
+                        last_err = cand_err
+
+                if not resp_data:
+                    raise last_err or RuntimeError("All telemetry endpoints unreachable.")
+
+                bridge_instance.update_state({
+                    "submit_issue_status": {
+                        "status": "success",
+                        "issue": resp_data
+                    }
+                })
+                # Re-check patches to reflect the submitted issue
+                handle_bridge_update_commands("check_patches", {}, bridge_instance)
+            except Exception as e:
+                logger.error(f"[UpdaterBridge] Failed to submit issue: {e}")
+                bridge_instance.update_state({
+                    "submit_issue_status": {
+                        "status": "failed",
+                        "error": str(e)
+                    }
+                })
+
+        threading.Thread(target=_submit_issue_run, name="SubmitIssueBG", daemon=True).start()
         return True
 
     return False

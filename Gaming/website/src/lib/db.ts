@@ -7,6 +7,7 @@ export interface Issue {
   description: string;
   category: "hardware" | "glitch" | "performance" | "other";
   game?: string;
+  author?: string;
   votes: number;
   createdAt: string;
   specs: {
@@ -30,6 +31,7 @@ export async function getIssues(): Promise<Issue[]> {
       description: doc.description,
       category: doc.category,
       game: doc.game,
+      author: doc.author || "Operator",
       votes: doc.votes,
       createdAt: doc.createdAt.toISOString(),
       specs: doc.specs,
@@ -55,6 +57,7 @@ export async function createIssue(
       description: doc.description,
       category: doc.category,
       game: doc.game,
+      author: doc.author || "Operator",
       votes: doc.votes,
       createdAt: doc.createdAt.toISOString(),
       specs: doc.specs,

@@ -5,6 +5,7 @@ export interface IIssue extends Document {
   description: string;
   category: "hardware" | "glitch" | "performance" | "other";
   game?: string;
+  author?: string;
   votes: number;
   createdAt: Date;
   updatedAt: Date;
@@ -25,6 +26,7 @@ const IssueSchema = new Schema<IIssue>(
     description: { type: String, required: true },
     category: { type: String, enum: ["hardware", "glitch", "performance", "other"], required: true },
     game: { type: String, default: "General System" },
+    author: { type: String, default: "Operator" },
     votes: { type: Number, default: 1 },
     specs: {
       os: { type: String, required: true },
