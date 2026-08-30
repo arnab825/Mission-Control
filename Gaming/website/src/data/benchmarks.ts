@@ -392,7 +392,7 @@ export const BENCHMARK_PROFILES: Record<string, BenchmarkProfile> = {
     testedSpecs: {
       gpu: "NVIDIA GeForce RTX Series / GTX Series",
       resolution: "1080p FHD / 1440p QHD",
-      avgFps: "84 FPS",
+      avgFps: "131 FPS",
       vramUsed: "6.16 GB / 8.0 GB",
       latency: "11.8 ms",
       gpuLoad: "85%"
@@ -460,7 +460,7 @@ export const TESTED_GAMES_LIST: TestedGameSummary[] = [
     preset: "Ultra / DLSS",
     keyTech: ["DLSS 4", "DirectX 12", "Reflex", "VRAM Opt"],
     status: "VERIFIED BENCHMARK",
-    fps: "84 FPS",
+    fps: "131 FPS",
     vram: "6.16 GB / 8.0 GB",
     gpuLoad: "85%",
     latency: "11.8 ms",
