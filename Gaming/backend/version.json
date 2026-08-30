@@ -1,8 +1,16 @@
 {
-  "version": "3.3.4",
+  "version": "3.3.5",
   "release_date": "2026-08-27",
   "update_check_url": "https://raw.githubusercontent.com/arnab825/Mission-Control/main/Gaming/backend/version.json",
   "changelog": [
+    {
+      "version": "3.3.5",
+      "date": "2026-08-31",
+      "title": "Fix update installer: kill running processes before file extraction to prevent app freeze and OpenCV errors",
+      "highlights": [
+        "Fix update installer: kill running processes before file extraction to prevent app freeze and OpenCV errors"
+      ]
+    },
     {
       "version": "3.3.4",
       "date": "2026-08-31",
@@ -462,14 +470,6 @@
         "Fix Library grid responsiveness and horizontal platform pills scrolling on short viewports",
         "Fix 'Update Paused By User' UI bug on app startup by filtering out stale paused/cancelled states",
         "Fix Vision process black screen after disabling Privacy Shield by clearing annotated frame buffer"
-      ]
-    },
-    {
-      "version": "2.8.9",
-      "date": "2026-08-04",
-      "title": "Fix Parent Flex Height Chain for Library Windowed Responsiveness",
-      "highlights": [
-        "Fix Parent Flex Height Chain for Library Windowed Responsiveness"
       ]
     }
   ]

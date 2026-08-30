@@ -2,6 +2,10 @@
 
 This document contains a detailed history of all patches and updates for the AI Gaming Assistant.
 
+### Patch: 2026-08-31 — v3.3.5: Fix update installer: kill running processes before file extraction to prevent app freeze and OpenCV errors
+
+- Fix update installer: kill running processes before file extraction to prevent app freeze and OpenCV errors
+
 ### Patch: 2026-08-31 — v3.3.4: Fix Supabase password URL decode for pooler connection
 
 - Fix Supabase password URL decode for pooler connection
