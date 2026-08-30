@@ -174,27 +174,30 @@ ${diagramCode}`;
 
   // Try Gemini Flash
   if (geminiKey) {
-    try {
-      const response = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key=${geminiKey}`, {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          contents: [{ parts: [{ text: prompt }] }],
-          generationConfig: { maxOutputTokens: 1024, temperature: 0.2 }
-        }),
-        signal: AbortSignal.timeout(8000)
-      });
-      if (response.ok) {
-        const data = await response.json();
-        const rawText = data.candidates?.[0]?.content?.parts?.[0]?.text?.trim();
-        const m = rawText?.match(/```(?:mermaid)?([\s\S]*?)```/i);
-        if (m && m[1]) return m[1].trim();
-        if (rawText && (rawText.startsWith("graph") || rawText.startsWith("flowchart") || rawText.startsWith("sequenceDiagram"))) {
-          return rawText.trim();
+    const models = ["gemini-3.5-flash-lite", "gemini-3.6-flash", "gemini-flash-lite-latest", "gemini-flash-latest"];
+    for (const model of models) {
+      try {
+        const response = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/${model}:generateContent?key=${geminiKey}`, {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            contents: [{ parts: [{ text: prompt }] }],
+            generationConfig: { maxOutputTokens: 1024, temperature: 0.2 }
+          }),
+          signal: AbortSignal.timeout(8000)
+        });
+        if (response.ok) {
+          const data = await response.json();
+          const rawText = data.candidates?.[0]?.content?.parts?.[0]?.text?.trim();
+          const m = rawText?.match(/```(?:mermaid)?([\s\S]*?)```/i);
+          if (m && m[1]) return m[1].trim();
+          if (rawText && (rawText.startsWith("graph") || rawText.startsWith("flowchart") || rawText.startsWith("sequenceDiagram"))) {
+            return rawText.trim();
+          }
         }
+      } catch (e) {
+        console.warn(`[BlogGen] AI Mermaid fixer Gemini (${model}) attempt failed:`, e);
       }
-    } catch (e) {
-      console.warn("[BlogGen] AI Mermaid fixer Gemini attempt failed:", e);
     }
   }
 
@@ -448,14 +451,12 @@ async function generateBlogPostWithGemini(
   const prompt = buildPromptForItems(items, postType, targetDate);
   const modelsToTry = [
     process.env.GEMINI_MODEL,
-    "gemini-flash-lite-latest",
-    "gemini-flash-latest",
     "gemini-3.6-flash",
     "gemini-3.5-flash",
     "gemini-3.5-flash-lite",
-    "gemini-3-flash-preview",
-    "gemini-2.0-flash",
-    "gemini-1.5-flash-latest"
+    "gemini-flash-latest",
+    "gemini-flash-lite-latest",
+    "gemini-3-flash-preview"
   ].filter(Boolean) as string[];
 
   for (const modelId of modelsToTry) {
@@ -715,6 +716,79 @@ export function generateHighTechSVGCover(title: string, category: string): strin
 </svg>`;
 }
 
+/**
+ * Synthesize a clean, tangible, photorealistic 3D visual scene prompt using Gemini Flash
+ * Converts complex/abstract blog titles into pure physical scene descriptions for image generators
+ */
+export async function synthesizeVisualPromptWithAI(
+  rawTopic: string,
+  category: string,
+  geminiKey?: string
+): Promise<string> {
+  const activeKey = geminiKey || process.env.GEMINI_API_KEY || process.env.GOOGLE_API_KEY;
+  if (!activeKey) {
+    return cleanPromptFallback(rawTopic, category);
+  }
+
+  const isHardware = category === "GPU News" || category === "Hardware Deep-Dive";
+  const instructions = isHardware
+    ? `You are an AI art director. Convert this article topic into a 15-20 word physical description of a photorealistic 3D render of computer hardware, GPU, processor, or silicon architecture.
+RULES:
+1. STRICTLY NO abstract concepts or words like "analysis", "breakdown", "news", "article", "review", "benchmark", "performance", "leaks".
+2. Describe ONLY physical objects: glowing neon green circuits, dark tempered glass, GPU cooling fans, metallic heatsinks, copper heat pipes, cinematic studio lighting, 8k resolution, photorealistic 3d render.
+3. Return ONLY the image prompt text.`
+    : `You are an AI art director. Convert this gaming article topic into a 15-20 word physical description of a photorealistic 3D video game scene.
+RULES:
+1. STRICTLY NO abstract concepts or words like "analysis", "breakdown", "news", "article", "review", "leaks", "AI-rife", "gameplay", "remake".
+2. Describe ONLY tangible visual elements: concrete game characters, muscle cars on neon-lit city streets, ancient temple ruins, futuristic cyberpunk armor, cinematic volumetric lighting, Unreal Engine 5 render, 8k resolution, photorealistic.
+3. Return ONLY the image prompt text.`;
+
+  const models = ["gemini-3.5-flash-lite", "gemini-3.6-flash", "gemini-flash-lite-latest", "gemini-flash-latest"];
+
+  for (const model of models) {
+    try {
+      const res = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/${model}:generateContent?key=${activeKey}`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          contents: [{ parts: [{ text: `${instructions}\n\nArticle Topic: "${rawTopic}"` }] }],
+          generationConfig: { maxOutputTokens: 120, temperature: 0.4 }
+        }),
+        signal: AbortSignal.timeout(8000)
+      });
+
+      if (res.ok) {
+        const data = await res.json();
+        const text = data?.candidates?.[0]?.content?.parts?.[0]?.text?.trim();
+        if (text && text.length > 10) {
+          console.log(`[BlogGen][ImagePrompt] Synthesized visual prompt with ${model}: "${text.slice(0, 70)}..."`);
+          return text;
+        }
+      }
+    } catch (err: any) {
+      console.warn(`[BlogGen][ImagePrompt] Synthesis attempt with ${model} failed: ${err?.message || err}`);
+    }
+  }
+
+  return cleanPromptFallback(rawTopic, category);
+}
+
+function cleanPromptFallback(rawTopic: string, category: string): string {
+  const isHardware = category === "GPU News" || category === "Hardware Deep-Dive";
+  const cleanBase = rawTopic
+    .replace(/[\u0300-\u036f]/g, "")
+    .replace(/Why|How|What|When|[:"'\?\!\-\|\(\)\[\]]/gi, " ")
+    .replace(/breakdown|analysis|news|leaks|updates|industry|frontier|gameplay/gi, " ")
+    .replace(/[^\x00-\x7F]/g, "")
+    .replace(/\s+/g, " ")
+    .trim()
+    .slice(0, 100);
+
+  return isHardware
+    ? `futuristic computer hardware 3d render of ${cleanBase}, glowing neon green accents, dark glass, 8k photorealistic`
+    : `cinematic 3d video game concept art of ${cleanBase}, dramatic volumetric lighting, unreal engine 5, 8k photorealistic`;
+}
+
 export async function generateImageWithPollinations(prompt: string): Promise<Buffer | null> {
   // Strip out brackets, special punctuation, and symbols that break Pollinations path routing
   const sanitizedPrompt = prompt
@@ -740,7 +814,7 @@ export async function generateImageWithPollinations(prompt: string): Promise<Buf
 
       const response = await fetch(url, {
         headers: { "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64)" },
-        signal: AbortSignal.timeout(12000)
+        signal: AbortSignal.timeout(15000)
       });
 
       if (response.ok) {
@@ -770,10 +844,15 @@ export async function generateBlogCoverImage(
     fs.mkdirSync(publicDir, { recursive: true });
   }
 
-  // Tier 1: Pollinations AI (Free, high performance, no rate-limit quota, 100% reliable with sanitized prompts)
+  const geminiKey = process.env.GEMINI_API_KEY || process.env.GOOGLE_API_KEY || process.env.GEMINI_IMAGE_API_KEY;
+
+  // Step 1: Synthesize a photorealistic visual scene description using Gemini Flash if raw prompt is abstract/editorial
+  const visualPrompt = await synthesizeVisualPromptWithAI(prompt, category, geminiKey);
+
+  // Tier 1: Pollinations AI with Gemini-synthesized concrete visual prompt (Free, high performance, photorealistic output)
   try {
-    console.log(`[BlogGen][${category}] Attempting Pollinations AI...`);
-    const buffer = await generateImageWithPollinations(prompt);
+    console.log(`[BlogGen][${category}] Attempting Pollinations AI with synthesized prompt...`);
+    const buffer = await generateImageWithPollinations(visualPrompt);
     if (buffer && buffer.length > 4000) {
       const savedPath = await saveImageBuffer(buffer, slug, "png");
       console.log(`[BlogGen][${category}] [IMAGE OK] Pollinations AI saved: ${savedPath}`);
@@ -783,40 +862,46 @@ export async function generateBlogCoverImage(
     console.warn(`[BlogGen][${category}] Pollinations AI attempt failed:`, polErr);
   }
 
-  // Tier 2: Google Gemini (Gemini 2.5 Flash Image) API if key configured
-  const geminiKey = process.env.GEMINI_API_KEY || process.env.GOOGLE_API_KEY || process.env.GEMINI_IMAGE_API_KEY;
+  // Tier 2: Google Gemini Flash Image API if key configured and quota available
   if (geminiKey) {
-    try {
-      console.log(`[BlogGen][${category}] Attempting Google Gemini Image Generation...`);
-      const res = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash-image:generateContent?key=${geminiKey}`, {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          contents: [{ parts: [{ text: prompt }] }],
-          generationConfig: { responseModalities: ["IMAGE"] }
-        }),
-        signal: AbortSignal.timeout(12000)
-      });
+    const imageModels = [
+      "gemini-3.1-flash-image",
+      "gemini-3.1-flash-image-preview",
+      "gemini-3-pro-image",
+      "gemini-2.5-flash-image",
+      "imagen-3.0-generate-002"
+    ];
 
-      if (res.ok) {
-        const data = await res.json();
-        const parts = data?.candidates?.[0]?.content?.parts || [];
-        for (const part of parts) {
-          if (part.inlineData?.data) {
-            const buffer = Buffer.from(part.inlineData.data, "base64");
-            if (buffer.length > 5000) {
-              const savedPath = await saveImageBuffer(buffer, slug, "png");
-              console.log(`[BlogGen][${category}] [IMAGE OK] Gemini Flash Image saved: ${savedPath}`);
-              return savedPath;
+    for (const imgModel of imageModels) {
+      try {
+        console.log(`[BlogGen][${category}] Attempting Google Gemini Image Generation (${imgModel})...`);
+        const res = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/${imgModel}:generateContent?key=${geminiKey}`, {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            contents: [{ parts: [{ text: visualPrompt }] }],
+            generationConfig: { responseModalities: ["IMAGE"] }
+          }),
+          signal: AbortSignal.timeout(15000)
+        });
+
+        if (res.ok) {
+          const data = await res.json();
+          const parts = data?.candidates?.[0]?.content?.parts || [];
+          for (const part of parts) {
+            if (part.inlineData?.data) {
+              const buffer = Buffer.from(part.inlineData.data, "base64");
+              if (buffer.length > 5000) {
+                const savedPath = await saveImageBuffer(buffer, slug, "png");
+                console.log(`[BlogGen][${category}] [IMAGE OK] Gemini Image (${imgModel}) saved: ${savedPath}`);
+                return savedPath;
+              }
             }
           }
         }
-      } else {
-        const errJson = await res.json().catch(() => ({}));
-        console.warn(`[BlogGen][${category}] Gemini Flash Image API returned ${res.status}: ${errJson?.error?.message || res.statusText}`);
+      } catch (err: any) {
+        console.warn(`[BlogGen][${category}] Gemini Image (${imgModel}) attempt failed: ${err?.message || err}`);
       }
-    } catch (err: any) {
-      console.warn(`[BlogGen][${category}] Gemini Flash Image attempt failed: ${err?.message || err}`);
     }
   }
 
@@ -828,7 +913,7 @@ export async function generateBlogCoverImage(
       const hf = new InferenceClient(activeHfToken);
       const resBlob: any = await hf.textToImage({
         model: "black-forest-labs/FLUX.1-schnell",
-        inputs: prompt,
+        inputs: visualPrompt,
       });
       let buffer: Buffer;
       if (Buffer.isBuffer(resBlob)) {
