@@ -82,7 +82,8 @@ graph TD
 
 | Version | Key Feature / Change Description |
 | :--- | :--- |
-| **v3.3.5 (Latest)** | **Fix update installer: kill running processes before file extraction to prevent app freeze and OpenCV errors** — Fix update installer: kill running processes before file extraction to prevent app freeze and OpenCV errors. |
+| **v3.3.6 (Latest)** | **Fix Supabase password URL decode for pooler connection** — Fix Supabase password URL decode for pooler connection. |
+| **v3.3.5** | **Fix update installer: kill running processes before file extraction to prevent app freeze and OpenCV errors** — Fix update installer: kill running processes before file extraction to prevent app freeze and OpenCV errors. |
 | **v3.3.4** | **Fix Supabase password URL decode for pooler connection** — Fix Supabase password URL decode for pooler connection. |
 | **v3.3.3** | **Fixes some issue and bug of server** — Fixes some issue and bug of server. |
 | **v3.3.2** | **Unified Supabase Architecture, Redis Caching Cascade & Weekly Intelligence Pipeline** — Removed Neon dependency and established Supabase PostgreSQL as single source of truth. |
