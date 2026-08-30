@@ -1,8 +1,16 @@
 {
-  "version": "3.3.2",
+  "version": "3.3.3",
   "release_date": "2026-08-27",
   "update_check_url": "https://raw.githubusercontent.com/arnab825/Mission-Control/main/Gaming/backend/version.json",
   "changelog": [
+    {
+      "version": "3.3.3",
+      "date": "2026-08-30",
+      "title": "Fixes some issue and bug of server",
+      "highlights": [
+        "Fixes some issue and bug of server"
+      ]
+    },
     {
       "version": "3.3.2",
       "date": "2026-08-27",
@@ -462,14 +470,6 @@
       "title": "Fix Parent Flex Height Chain for Library Windowed Responsiveness",
       "highlights": [
         "Fix Parent Flex Height Chain for Library Windowed Responsiveness"
-      ]
-    },
-    {
-      "version": "2.8.8",
-      "date": "2026-08-04",
-      "title": "GTA V Enhanced Title Normalization and Rockstar Games Launcher Deduplication",
-      "highlights": [
-        "GTA V Enhanced Title Normalization and Rockstar Games Launcher Deduplication"
       ]
     }
   ]

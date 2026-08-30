@@ -82,7 +82,8 @@ graph TD
 
 | Version | Key Feature / Change Description |
 | :--- | :--- |
-| **v3.3.2 (Latest)** | **Unified Supabase Architecture, Redis Caching Cascade & Weekly Intelligence Pipeline** — Removed Neon dependency and established Supabase PostgreSQL as single source of truth. |
+| **v3.3.3 (Latest)** | **Fixes some issue and bug of server** — Fixes some issue and bug of server. |
+| **v3.3.2** | **Unified Supabase Architecture, Redis Caching Cascade & Weekly Intelligence Pipeline** — Removed Neon dependency and established Supabase PostgreSQL as single source of truth. |
 | **v3.3.1** | **Multi-Cloud High Availability & Instant Zero-Lag Startup Architecture** — Added multi-tier cloud failover topology supporting Supabase (Tier 1), Neon Serverless PostgreSQL (Tier 2), and Local SQLite NVMe replica (Tier 3) |
 | **v3.3.0** | **Ecosystem Optimization, Multi-Node Architecture & Dynamic Deduplication** — Added Win32 working set RAM compaction (EmptyWorkingSet) dropping idle background memory to ~40-60 MB during gameplay |
 | **v3.2.9** | **Telemetry & Rollback Subsystem Reliability Hardening** — The Telemetry & Rollback Subsystem Reliability Hardening update enhances system stability and accuracy by addressing various reliability and performance issues. |
@@ -138,5 +139,5 @@ graph TD
 
 ---
 
-*Last Updated: 27/08/2026*
+*Last Updated: 30/08/2026*
 
