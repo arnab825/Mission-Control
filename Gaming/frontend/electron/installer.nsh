@@ -11,6 +11,18 @@
   ${EndIf}
 !macroend
 
+; ── Pre-install: Kill all running Mission Control processes before extracting files ──
+; This prevents file-lock errors (app.exe / MissionControlBackend.exe can't be
+; overwritten while running), which cause "app not responding" and OpenCV corruption.
+!macro customInstallMode
+  ; Silently kill the Electron shell and Python backend before the installer writes files.
+  ; /F = force kill, /IM = by image name, /T = kill child tree (covers spawned subprocesses)
+  DetailPrint "Stopping any running Mission Control processes..."
+  nsExec::ExecToStack `"$SYSDIR\WindowsPowerShell\v1.0\powershell.exe" -NonInteractive -NoProfile -Command "& { Stop-Process -Name 'MissionControlBackend' -Force -ErrorAction SilentlyContinue; Stop-Process -Name 'Mission Control' -Force -ErrorAction SilentlyContinue; Start-Sleep -Milliseconds 800 }"`
+  Pop $0
+  Pop $1
+!macroend
+
 ; Define welcome page macro for assisted installer wizard
 !macro customWelcomePage
   !insertmacro MUI_PAGE_WELCOME
@@ -22,6 +34,12 @@
 !macroend
 
 !macro customInstall
+  ; Safety: Kill any remaining Mission Control processes before writing files.
+  ; (customInstallMode already fires early, but this catches edge cases.)
+  nsExec::ExecToStack `"$SYSDIR\WindowsPowerShell\v1.0\powershell.exe" -NonInteractive -NoProfile -Command "& { Stop-Process -Name 'MissionControlBackend' -Force -ErrorAction SilentlyContinue; Stop-Process -Name 'Mission Control' -Force -ErrorAction SilentlyContinue; Start-Sleep -Milliseconds 500 }"`
+  Pop $0
+  Pop $1
+
   ; Clean up duplicate user-specific shortcuts from previous installations (per-user layout)
   ; Since the installer runs elevated as Admin, SetShellVarContext current resolves to the Admin profile.
   ; We use PowerShell to clean up the shortcuts across all user directories under C:\Users.
