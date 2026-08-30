@@ -12,7 +12,26 @@ Comprehensive breakdown of major milestone releases, architectural upgrades, and
 
 ---
 
-## 🌟 Version v3.3.2 (Latest) — Unified Supabase Architecture, Redis Caching Cascade & Weekly Intelligence Pipeline
+## 🌟 Version v3.3.3 (Latest) — Fixes some issue and bug of server
+
+### 🛠️ Key Highlights
+1. **Fixes some issue and bug of server**
+
+### 📊 Architecture & Data Flow
+```mermaid
+graph TD
+    A[Developer Push / Publish Pipeline] --> B[Version Stamping & AI Changelog Enforcer]
+    B --> C[Mission Control System Core]
+    C --> D[Website Documentation & Real-Time Sync]
+```
+
+### 📦 Distribution Artifacts
+- **Linux**: `.deb` (Debian/Ubuntu), `.AppImage` (Universal), `.rpm` (Fedora/RHEL), `.tar.gz` (Portable)
+- **Windows**: `.exe` (Setup Installer), `.msi` (Enterprise), `.zip` (Portable)
+
+---
+
+## 📦 Version v3.3.2 — Unified Supabase Architecture, Redis Caching Cascade & Weekly Intelligence Pipeline
 
 ### 🛠️ Key Highlights
 1. **Removed Neon dependency and established Supabase PostgreSQL as single source of truth**

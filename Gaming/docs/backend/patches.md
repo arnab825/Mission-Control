@@ -2,6 +2,10 @@
 
 This document contains a detailed history of all patches and updates for the AI Gaming Assistant.
 
+### Patch: 2026-08-30 — v3.3.3: Fixes some issue and bug of server
+
+- Fixes some issue and bug of server
+
 ### Patch: 2026-08-27 — v3.3.2: Unified Supabase Architecture, Redis Caching Cascade & Weekly Intelligence Pipeline
 
 - Removed Neon dependency and established Supabase PostgreSQL as single source of truth
