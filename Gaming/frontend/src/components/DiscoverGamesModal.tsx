@@ -13,7 +13,7 @@ import {
   X, Search, Sparkles, Check, Loader2, Globe, Flame, Gamepad2
 } from 'lucide-react';
 
-import { LIBRARY_SERVER_URL } from '../hooks/useDistributedStats';
+import { fetchWithFailover } from '../hooks/useDistributedStats';
 
 interface DiscoverItem {
   id: string;
@@ -65,7 +65,7 @@ const DiscoverGamesModal: React.FC<DiscoverGamesModalProps> = ({ onClose }) => {
   const loadPopularCatalog = async () => {
     setLoading(true);
     try {
-      const res = await fetch(`${LIBRARY_SERVER_URL}/api/games?limit=24`);
+      const res = await fetchWithFailover(`/api/games?limit=24`);
       if (res.ok) {
         const data = await res.json();
         const games = (data.games || []).map((g: any) => ({
@@ -106,8 +106,8 @@ const DiscoverGamesModal: React.FC<DiscoverGamesModalProps> = ({ onClose }) => {
     setLoading(true);
     setHasSearched(true);
     try {
-      const res = await fetch(
-        `${LIBRARY_SERVER_URL}/api/games/discover?q=${encodeURIComponent(searchTerm.trim())}&limit=20`
+      const res = await fetchWithFailover(
+        `/api/games/discover?q=${encodeURIComponent(searchTerm.trim())}&limit=20`
       );
       if (res.ok) {
         const data = await res.json();
@@ -127,7 +127,7 @@ const DiscoverGamesModal: React.FC<DiscoverGamesModalProps> = ({ onClose }) => {
     setSeedStatus('Harvesting top games from Steam, Epic, & GOG...');
     setSeedError(false);
     try {
-      const res = await fetch(`${LIBRARY_SERVER_URL}/api/games/seed`, {
+      const res = await fetchWithFailover(`/api/games/seed`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ limit_per_launcher: 30, classify_immediately: true }),

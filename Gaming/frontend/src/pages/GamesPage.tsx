@@ -29,7 +29,7 @@ import { motion, AnimatePresence } from 'framer-motion';
 import type { TelemetryState } from '../types/telemetry';
 
 // ── Distributed Library Server Hook & URL ────────────────────────────────────
-import { useDistributedStats, LIBRARY_SERVER_URL } from '../hooks/useDistributedStats';
+import { useDistributedStats, fetchWithFailover } from '../hooks/useDistributedStats';
 
 function formatBytes(bytes: number): string {
   if (!bytes) return '0 B';
@@ -183,7 +183,7 @@ const GameCard: React.FC<{ game: BackendGame; sendCommand: (type: string, payloa
       animate={{ opacity: 1, scale: 1 }}
       exit={{ opacity: 0, scale: 0.95 }}
       whileHover={{ y: -4 }}
-      className="group bg-white/[0.03] hover:border-neon-green/30 rounded-3xl overflow-hidden transition-all duration-500 border border-white/5 flex flex-col justify-between"
+      className="group bg-white/3 hover:border-neon-green/30 rounded-3xl overflow-hidden transition-all duration-500 border border-white/5 flex flex-col justify-between"
     >
       {/* Cover Image */}
       <div
@@ -315,10 +315,10 @@ const ScanningDashboard: React.FC<ScanningDashboardProps> = ({ scanProgress, sca
     >
       <div className="bg-black/30 backdrop-blur-xl border border-neon-green/10 rounded-3xl p-6 sm:p-10 flex flex-col lg:flex-row items-center gap-10 max-w-5xl w-full shadow-[0_0_80px_rgba(118, 185, 0,0.1)] relative overflow-hidden">
         {/* Background grid accent */}
-        <div className="absolute inset-0 bg-[linear-gradient(rgba(255,255,255,0.02)_1px,transparent_1px),linear-gradient(90deg,rgba(255,255,255,0.02)_1px,transparent_1px)] bg-[size:20px_20px] pointer-events-none opacity-50" />
+        <div className="absolute inset-0 bg-[linear-gradient(rgba(255,255,255,0.02)_1px,transparent_1px),linear-gradient(90deg,rgba(255,255,255,0.02)_1px,transparent_1px)] bg-size-[20px_20px] pointer-events-none opacity-50" />
 
         {/* Left: Progress Visualization */}
-        <div className="relative flex-shrink-0 flex flex-col items-center z-10">
+        <div className="relative shrink-0 flex flex-col items-center z-10">
           <div className="relative w-48 h-48 flex items-center justify-center">
             {/* Outer spinning ring */}
             <svg className="absolute inset-0 w-full h-full transform -rotate-90">
@@ -600,7 +600,7 @@ const GamesLibraryContent: React.FC<GamesPageProps> = ({ state, sendCommand, set
           const controller = new AbortController();
           const timerId = setTimeout(() => controller.abort(), 1500);
 
-          fetch(`${LIBRARY_SERVER_URL}/api/games?installed_only=true&clerk_id=${encodeURIComponent(userId)}`, { signal: controller.signal })
+          fetchWithFailover(`/api/games?installed_only=true&clerk_id=${encodeURIComponent(userId)}`, { signal: controller.signal })
             .then(res => res.json())
             .then(data => {
               clearTimeout(timerId);
@@ -739,7 +739,7 @@ const GamesLibraryContent: React.FC<GamesPageProps> = ({ state, sendCommand, set
         <motion.div
           initial={{ opacity: 0, y: -6 }}
           animate={{ opacity: 1, y: 0 }}
-          className="flex flex-wrap items-center gap-3 px-4 py-2.5 bg-white/[0.03] border border-white/[0.06] rounded-2xl"
+          className="flex flex-wrap items-center gap-3 px-4 py-2.5 bg-white/3 border border-white/6 rounded-2xl"
         >
           {/* Stats Pills */}
           <div className="flex items-center gap-1.5">
@@ -869,7 +869,7 @@ const GamesLibraryContent: React.FC<GamesPageProps> = ({ state, sendCommand, set
       ) : (
         <>
           {/* HUD Tactical Filters Console */}
-          <div className="bg-white/[0.03] border border-white/5 rounded-3xl p-4 sm:p-5 space-y-4">
+          <div className="bg-white/3 border border-white/5 rounded-3xl p-4 sm:p-5 space-y-4">
             {/* Tier 1: Platform Pills & Search */}
             <div className="flex flex-col gap-3">
               {/* Pills row — always horizontal, scrolls if overflowing */}
@@ -946,7 +946,7 @@ const GamesLibraryContent: React.FC<GamesPageProps> = ({ state, sendCommand, set
                   className="overflow-hidden space-y-4 pt-2"
                 >
                   {/* Separator line */}
-                  <div className="h-[1px] bg-white/5 mb-4" />
+                  <div className="h-px bg-white/5 mb-4" />
 
                   {/* Tier 2: AI Classification & Nvidia Tech Filters */}
                   <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-4">
@@ -962,11 +962,11 @@ const GamesLibraryContent: React.FC<GamesPageProps> = ({ state, sendCommand, set
                           <select
                             value={selectedGenre}
                             onChange={(e) => handleGenreChange(e.target.value)}
-                            className="appearance-none bg-black/40 border border-white/5 hover:border-neon-green/20 text-zinc-300 focus:text-white rounded-xl pl-3 pr-8 py-1.5 text-[9px] font-black uppercase tracking-widest focus:outline-none transition-all cursor-pointer min-w-[120px]"
+                            className="appearance-none bg-black/40 border border-white/5 hover:border-neon-green/20 text-zinc-300 focus:text-white rounded-xl pl-3 pr-8 py-1.5 text-[9px] font-black uppercase tracking-widest focus:outline-none transition-all cursor-pointer min-w-30"
                           >
-                            <option value="All" className="bg-[#0a0a0a]">All Genres</option>
+                            <option value="All" className="bg-obsidian">All Genres</option>
                             {genres.map(g => (
-                              <option key={g} value={g} className="bg-[#0a0a0a]">{g}</option>
+                              <option key={g} value={g} className="bg-obsidian">{g}</option>
                             ))}
                           </select>
                           <ChevronDown className="w-3 h-3 text-zinc-500 absolute right-2.5 top-1/2 -translate-y-1/2 pointer-events-none" />
@@ -983,13 +983,13 @@ const GamesLibraryContent: React.FC<GamesPageProps> = ({ state, sendCommand, set
                           <select
                             value={selectedFeature}
                             onChange={(e) => handleFeatureChange(e.target.value)}
-                            className="appearance-none bg-black/40 border border-neon-yellow/10 hover:border-neon-yellow/30 text-neon-yellow focus:text-white rounded-xl pl-3 pr-8 py-1.5 text-[9px] font-black uppercase tracking-widest focus:outline-none transition-all cursor-pointer min-w-[120px]"
+                            className="appearance-none bg-black/40 border border-neon-yellow/10 hover:border-neon-yellow/30 text-neon-yellow focus:text-white rounded-xl pl-3 pr-8 py-1.5 text-[9px] font-black uppercase tracking-widest focus:outline-none transition-all cursor-pointer min-w-30"
                           >
-                            <option value="All" className="bg-[#0a0a0a] text-zinc-400">All Tech</option>
-                            <option value="DLSS" className="bg-[#0a0a0a] text-neon-yellow font-bold">Nvidia DLSS</option>
-                            <option value="RTX" className="bg-[#0a0a0a] text-neon-yellow font-bold">Nvidia RTX</option>
-                            <option value="REFLEX" className="bg-[#0a0a0a] text-neon-yellow font-bold">Nvidia Reflex</option>
-                            <option value="LEGACY" className="bg-[#0a0a0a] text-neon-yellow font-bold">Nvidia Legacy (GTX)</option>
+                            <option value="All" className="bg-obsidian text-zinc-400">All Tech</option>
+                            <option value="DLSS" className="bg-obsidian text-neon-yellow font-bold">Nvidia DLSS</option>
+                            <option value="RTX" className="bg-obsidian text-neon-yellow font-bold">Nvidia RTX</option>
+                            <option value="REFLEX" className="bg-obsidian text-neon-yellow font-bold">Nvidia Reflex</option>
+                            <option value="LEGACY" className="bg-obsidian text-neon-yellow font-bold">Nvidia Legacy (GTX)</option>
                           </select>
                           <ChevronDown className="w-3 h-3 text-neon-yellow absolute right-2.5 top-1/2 -translate-y-1/2 pointer-events-none" />
                         </div>

@@ -14,7 +14,7 @@ import {
 } from 'lucide-react';
 import { useAuth } from '@clerk/clerk-react';
 
-import { LIBRARY_SERVER_URL } from '../hooks/useDistributedStats';
+import { fetchWithFailover, getActiveLibraryServerUrl } from '../hooks/useDistributedStats';
 
 interface NodeStorage {
   storage_total: number;
@@ -250,7 +250,7 @@ const NodeManagerModal: React.FC<NodeManagerModalProps> = ({ onClose }) => {
       let data: LibraryNode[] = [];
       if (userId) {
         try {
-          const res = await fetch(`${LIBRARY_SERVER_URL}/api/nodes?clerk_id=${encodeURIComponent(userId)}`);
+          const res = await fetchWithFailover(`/api/nodes?clerk_id=${encodeURIComponent(userId)}`);
           if (res.ok) {
             data = await res.json();
           }
@@ -260,7 +260,7 @@ const NodeManagerModal: React.FC<NodeManagerModalProps> = ({ onClose }) => {
       }
       // If user-specific filter returned no nodes, fallback to fetching all nodes
       if (!Array.isArray(data) || data.length === 0) {
-        const res = await fetch(`${LIBRARY_SERVER_URL}/api/nodes`);
+        const res = await fetchWithFailover(`/api/nodes`);
         if (res.ok) {
           data = await res.json();
         }
@@ -283,17 +283,17 @@ const NodeManagerModal: React.FC<NodeManagerModalProps> = ({ onClose }) => {
   }, [fetchNodes]);
 
   const handleScan = async (nodeId: string) => {
-    await fetch(`${LIBRARY_SERVER_URL}/api/nodes/${nodeId}/scan`, { method: 'POST' });
+    await fetchWithFailover(`/api/nodes/${nodeId}/scan`, { method: 'POST' });
   };
 
   const handleDelete = async (nodeId: string) => {
     if (!confirm(`Remove node ${nodeId} from the library? Its game installations will be deleted.`)) return;
-    await fetch(`${LIBRARY_SERVER_URL}/api/nodes/${nodeId}`, { method: 'DELETE' });
+    await fetchWithFailover(`/api/nodes/${nodeId}`, { method: 'DELETE' });
     setNodes(prev => prev.filter(n => n.node_id !== nodeId));
   };
 
   const handleRename = async (nodeId: string, name: string) => {
-    await fetch(`${LIBRARY_SERVER_URL}/api/nodes/${nodeId}`, {
+    await fetchWithFailover(`/api/nodes/${nodeId}`, {
       method: 'PATCH',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ name }),
@@ -345,7 +345,7 @@ const NodeManagerModal: React.FC<NodeManagerModalProps> = ({ onClose }) => {
             <div className="rounded-xl bg-red-500/10 border border-red-500/20 p-4 text-center">
               <WifiOff className="w-5 h-5 text-red-400 mx-auto mb-2" />
               <p className="text-xs text-red-400 font-bold">Failed to fetch</p>
-              <p className="text-[10px] text-zinc-500 mt-1">Ensure the library server is running at {LIBRARY_SERVER_URL}</p>
+              <p className="text-[10px] text-zinc-500 mt-1">Unable to reach library servers ({getActiveLibraryServerUrl()})</p>
               <button onClick={() => fetchNodes(true)} className="mt-3 px-4 py-1.5 bg-white/5 border border-white/10 rounded-xl text-[10px] text-zinc-400 hover:text-white transition-all uppercase tracking-widest">
                 Retry
               </button>
