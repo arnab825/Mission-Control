@@ -147,7 +147,7 @@ $changesFormatted
 
             if ($token) {
                 Write-Host "[PUBLISH] GH_TOKEN detected! Publishing $releaseTitle (Windows & Linux tar.gz) to GitHub Releases..." -ForegroundColor Cyan
-                npx electron-builder --win nsis msi zip --linux tar.gz --publish always --config.extraMetadata.name="$releaseTitle"
+                npx electron-builder --win nsis msi zip --linux tar.gz --publish always
             } else {
                 Write-Host "[BUILD] Compiling local Windows installers (NSIS, MSI, ZIP) and Linux packages in frontend/out/dist..." -ForegroundColor Yellow
                 npx electron-builder --win nsis msi zip --linux tar.gz --publish never

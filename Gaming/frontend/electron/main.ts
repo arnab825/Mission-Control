@@ -1933,6 +1933,7 @@ function setupAutoUpdater() {
   let directUpdateInfo: GitHubReleaseFallback | null = null;
   let directDownloadRequest: http.ClientRequest | null = null;
   let directDownloadAborted = false;
+  let activeDirectInstallerPath: string | null = null;
 
   function isNewerSemver(remote: string, local: string): boolean {
     const parse = (v: string) => v.replace(/^v/i, '').split('.').map(Number);
@@ -2138,6 +2139,7 @@ function setupAutoUpdater() {
               };
               saveUpdateState(downloadedState);
               sendToAllWindows('electron-update-status', downloadedState);
+              activeDirectInstallerPath = targetFile;
               resolve(targetFile);
             });
           });
@@ -2217,6 +2219,13 @@ function setupAutoUpdater() {
       if (isStale) {
         console.log(`[AutoUpdater] Clearing stale update state for v${savedState.version} (current: v${app.getVersion()})`);
         saveUpdateState({ status: 'idle', percent: 0 });
+        activeDirectInstallerPath = null;
+        try {
+          const stalePendingDir = path.join(app.getPath('userData'), '../mission-control-updater/pending');
+          if (fs.existsSync(stalePendingDir)) {
+            fs.rmSync(stalePendingDir, { recursive: true, force: true });
+          }
+        } catch (_) {}
       }
     }
   } catch (_) {}
@@ -2281,10 +2290,15 @@ function setupAutoUpdater() {
     }
   });
 
-  autoUpdater.on('update-not-available', () => {
-    console.log('[AutoUpdater] No updates available via electron-updater.');
+  autoUpdater.on('update-not-available', (info: any) => {
+    const latestKnown = info?.version || app.getVersion();
+    console.log(`[AutoUpdater] No updates available via electron-updater (current: v${app.getVersion()}, latest: v${latestKnown}).`);
     stopUpdateAnimation();
-    const state = { status: 'up-to-date', message: 'Application is up to date.' };
+    const state = { 
+      status: 'up-to-date', 
+      version: latestKnown,
+      message: 'Application is up to date.' 
+    };
     saveUpdateState(state);
     sendToAllWindows('electron-update-status', state);
     if (isManualUpdateCheck) {
@@ -2491,32 +2505,25 @@ function setupAutoUpdater() {
         pythonProcess = null;
       }
 
-      // Check for downloaded installer executable in pending directory
-      const updaterDir = path.join(app.getPath('userData'), '../mission-control-updater');
-      const candidates = [
-        path.join(updaterDir, 'pending', 'MissionControl-Setup.exe'),
-        path.join(updaterDir, 'pending', 'installer.exe'),
-        path.join(updaterDir, 'installer.exe'),
-      ];
-      const installerExe = candidates.find(p => fs.existsSync(p));
-
-      if (installerExe) {
-        console.log(`[AutoUpdater] Launching downloaded installer with UAC elevation: ${installerExe}`);
+      // If a verified direct fallback installer was explicitly downloaded in this session:
+      if (activeDirectInstallerPath && fs.existsSync(activeDirectInstallerPath)) {
+        console.log(`[AutoUpdater] Launching verified direct downloaded installer with UAC elevation: ${activeDirectInstallerPath}`);
         try {
-          spawn('cmd.exe', ['/c', 'start', '""', installerExe], {
+          spawn('cmd.exe', ['/c', 'start', '""', activeDirectInstallerPath], {
             detached: true,
             stdio: 'ignore',
             windowsHide: false,
           }).unref();
           setTimeout(() => app.quit(), 1500);
+          return;
         } catch (spawnErr) {
-          console.error('[AutoUpdater] Failed to spawn installer via cmd:', spawnErr);
-          autoUpdater.quitAndInstall(false, true);
+          console.error('[AutoUpdater] Failed to spawn direct installer via cmd:', spawnErr);
         }
-      } else {
-        console.warn('[AutoUpdater] No pending installer found on disk, using autoUpdater.quitAndInstall');
-        autoUpdater.quitAndInstall(false, true);
       }
+
+      // Default and official: execute autoUpdater.quitAndInstall for electron-updater staged payloads
+      console.log('[AutoUpdater] Executing autoUpdater.quitAndInstall(false, true)...');
+      autoUpdater.quitAndInstall(false, true);
     } catch (err: any) {
       console.error('[AutoUpdater] quitAndInstall failed:', err);
     }
@@ -2629,6 +2636,10 @@ function setupAutoUpdater() {
     };
     saveUpdateState(state);
     sendToAllWindows('electron-update-status', state);
+  });
+
+  ipcMain.handle('get-app-version', () => {
+    return app.getVersion();
   });
 
   ipcMain.handle('get-electron-update-state', () => {

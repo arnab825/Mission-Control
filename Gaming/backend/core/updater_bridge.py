@@ -120,8 +120,20 @@ def _is_newer_patch(local: dict, remote: dict) -> bool:
 
 
 def load_local_version() -> dict:
-    with open(VERSION_FILE, "r", encoding="utf-8") as f:
-        return json.load(f)
+    candidates = [
+        VERSION_FILE,
+        os.path.join(getattr(sys, '_MEIPASS', ''), 'version.json'),
+        os.path.join(os.path.dirname(sys.executable), '_internal', 'version.json'),
+        os.path.join(os.path.dirname(sys.executable), 'version.json'),
+    ]
+    for c in candidates:
+        if c and os.path.isfile(c):
+            try:
+                with open(c, "r", encoding="utf-8") as f:
+                    return json.load(f)
+            except Exception:
+                pass
+    return {"version": "0.0.0"}
 
 
 def handle_bridge_update_commands(cmd_type: str, payload: dict, bridge_instance) -> bool:

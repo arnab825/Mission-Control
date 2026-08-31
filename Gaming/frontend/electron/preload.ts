@@ -17,6 +17,7 @@ contextBridge.exposeInMainWorld('electronAPI', {
   selectDirectory: () => ipcRenderer.invoke('select-directory'),
   getDesktopPath: () => ipcRenderer.invoke('get-desktop-path'),
   createDesktopShortcut: () => ipcRenderer.invoke('create-desktop-shortcut'),
+  getAppVersion: () => ipcRenderer.invoke('get-app-version'),
   checkElectronUpdates: () => ipcRenderer.send('check-electron-updates'),
   downloadElectronUpdate: () => ipcRenderer.send('download-electron-update'),
   quitAndInstallElectronUpdate: () => ipcRenderer.send('quit-and-install-update'),

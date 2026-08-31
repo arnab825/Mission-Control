@@ -18,6 +18,7 @@ declare global {
       updateTrayTelemetry?: (data: { fps?: number; gpuLoad?: number; gpuTemp?: number; isActive?: boolean }) => void;
       moveHUDWindow?: (deltaX: number, deltaY: number) => void;
       onHUDMoved?: (callback: (coords: { x: number; y: number }) => void) => () => void;
+      getAppVersion?: () => Promise<string>;
       checkElectronUpdates?: () => void;
       downloadElectronUpdate?: () => void;
       quitAndInstallElectronUpdate?: () => void;
