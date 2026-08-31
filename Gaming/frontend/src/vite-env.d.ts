@@ -23,6 +23,7 @@ interface Window {
     quitAndInstallElectronUpdate?: () => void;
     fetchGamingNews?: () => Promise<{ success: boolean; items: any[]; totalItems: number }>;
     fetchSteamTrending?: () => Promise<{ success: boolean; games: any[] }>;
+    fetchLauncherTrending?: () => Promise<{ success: boolean; games: any[] }>;
     onElectronUpdateStatus?: (callback: (event: any, status: any) => void) => () => void;
     setProgressBar?: (value: number) => void;
     onNetworkStatusChanged?: (isOnline: boolean) => void;

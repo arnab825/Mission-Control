@@ -2747,78 +2747,184 @@ function setupAutoUpdater() {
     return { success: cachedNewsItems.length > 0, items: cachedNewsItems, totalItems: cachedNewsItems.length };
   });
 
-  // Dedicated in-memory cache for live dynamic Steam trending & top sellers
-  let cachedSteamGames: any[] = [];
-  let lastSteamFetchTime = 0;
-  const STEAM_CACHE_TTL_MS = 15 * 60 * 1000;
+  // Dedicated in-memory cache for live dynamic multi-launcher trending (Steam, Epic Games, GOG)
+  let cachedLauncherGames: any[] = [];
+  let lastLauncherFetchTime = 0;
+  const LAUNCHER_CACHE_TTL_MS = 15 * 60 * 1000;
 
-  ipcMain.handle('fetch-steam-trending', async () => {
+  async function getLiveLauncherTrending() {
     const now = Date.now();
-    if (cachedSteamGames.length > 0 && now - lastSteamFetchTime < STEAM_CACHE_TTL_MS) {
-      return { success: true, games: cachedSteamGames };
+    if (cachedLauncherGames.length > 0 && now - lastLauncherFetchTime < LAUNCHER_CACHE_TTL_MS) {
+      return { success: true, games: cachedLauncherGames };
     }
 
-    try {
-      const controller = new AbortController();
-      const timeout = setTimeout(() => controller.abort(), 7000);
-      const res = await fetch('https://store.steampowered.com/api/featuredcategories/?cc=us&l=en', {
-        signal: controller.signal,
-        headers: { 'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) MissionControl/3.3' }
-      });
-      clearTimeout(timeout);
+    const allGames: any[] = [];
+    const seenNames = new Set<string>();
 
-      if (res.ok) {
+    const safeAdd = (game: any) => {
+      const norm = (game.title || '').toLowerCase().trim();
+      if (!norm || seenNames.has(norm) || /Steam Deck|Valve Index|Soundtrack|Controller/i.test(norm)) return;
+      seenNames.add(norm);
+      allGames.push(game);
+    };
+
+    // 1. Fetch Steam live trending & top sellers
+    const fetchSteam = async () => {
+      try {
+        const controller = new AbortController();
+        const timeout = setTimeout(() => controller.abort(), 6000);
+        const res = await fetch('https://store.steampowered.com/api/featuredcategories/?cc=us&l=en', {
+          signal: controller.signal,
+          headers: { 'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) MissionControl/3.3' }
+        });
+        clearTimeout(timeout);
+        if (!res.ok) return;
         const data = (await res.json()) as any;
         const topSellers = data.top_sellers?.items || [];
         const newReleases = data.new_releases?.items || [];
-        const featured = data.featured_win || [];
 
-        // Combine items deduplicated by ID, filtering out hardware like Steam Deck
-        const seenIds = new Set<string>();
-        const dynamicGames: any[] = [];
-
-        const addItem = (item: any, defaultGenre: string) => {
-          const strId = String(item.id);
-          const name = item.name || '';
-          if (seenIds.has(strId) || !name || /Steam Deck|Valve Index|Soundtrack|Controller/i.test(name)) return;
-          seenIds.add(strId);
-
-          dynamicGames.push({
-            id: `steam-${strId}`,
-            title: name,
+        topSellers.slice(0, 10).forEach((item: any) => {
+          safeAdd({
+            id: `steam-${item.id}`,
+            title: item.name,
             developer: 'Steam Verified',
             publisher: 'Steam Verified',
             release_date: new Date().getFullYear().toString(),
-            primary_genre: defaultGenre,
-            genres: [defaultGenre, 'Trending', 'Popular'],
+            primary_genre: 'Top Seller',
+            genres: ['Action', 'Trending', 'Steam'],
             tags: ['Trending', 'Top Seller', 'Steam'],
             cover_url: item.header_image,
             banner_url: item.header_image,
             summary: item.discount_percent > 0
-              ? `Live trending Steam hit! Currently on sale: ${item.discount_percent}% off.`
-              : `Live bestselling title trending globally on Steam.`,
+              ? `Steam Top Seller — currently ${item.discount_percent}% off on Steam Store.`
+              : `Bestselling title trending globally on Steam.`,
             store: 'Steam',
-            store_app_id: strId,
+            store_app_id: String(item.id),
             launchers: ['Steam'],
             in_catalog: true,
             ai_classified: true,
             installations: [],
           });
-        };
+        });
 
-        topSellers.slice(0, 12).forEach((item: any) => addItem(item, 'Top Seller'));
-        newReleases.slice(0, 8).forEach((item: any) => addItem(item, 'New Release'));
-        featured.slice(0, 8).forEach((item: any) => addItem(item, 'Featured'));
+        newReleases.slice(0, 6).forEach((item: any) => {
+          safeAdd({
+            id: `steam-${item.id}`,
+            title: item.name,
+            developer: 'Steam Verified',
+            publisher: 'Steam Verified',
+            release_date: new Date().getFullYear().toString(),
+            primary_genre: 'New Release',
+            genres: ['Action', 'New Release', 'Steam'],
+            tags: ['New Release', 'Steam'],
+            cover_url: item.header_image,
+            banner_url: item.header_image,
+            summary: `Newly released hit trending on Steam.`,
+            store: 'Steam',
+            store_app_id: String(item.id),
+            launchers: ['Steam'],
+            in_catalog: true,
+            ai_classified: true,
+            installations: [],
+          });
+        });
+      } catch (_) {}
+    };
 
-        if (dynamicGames.length > 0) {
-          cachedSteamGames = dynamicGames;
-          lastSteamFetchTime = now;
-          return { success: true, games: dynamicGames };
-        }
-      }
-    } catch (_) {}
+    // 2. Fetch Epic Games Store live trending & promotions
+    const fetchEpic = async () => {
+      try {
+        const controller = new AbortController();
+        const timeout = setTimeout(() => controller.abort(), 6000);
+        const res = await fetch('https://store-site-backend-static-ipv4.ak.epicgames.com/freeGamesPromotions?locale=en-US&country=US&allowCountries=US', {
+          signal: controller.signal,
+          headers: { 'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) MissionControl/3.3' }
+        });
+        clearTimeout(timeout);
+        if (!res.ok) return;
+        const data = (await res.json()) as any;
+        const elements = data?.data?.Catalog?.searchStore?.elements || [];
 
-    return { success: cachedSteamGames.length > 0, games: cachedSteamGames };
+        elements.slice(0, 10).forEach((item: any) => {
+          const imgObj = (item.keyImages || []).find((i: any) => i.type === 'OfferImageWide' || i.type === 'Thumbnail' || i.type === 'DieselStoreFrontWide');
+          safeAdd({
+            id: `epic-${item.id}`,
+            title: item.title,
+            developer: item.seller?.name || 'Epic Games Partner',
+            publisher: item.seller?.name || 'Epic Games',
+            release_date: item.releaseDate ? item.releaseDate.split('T')[0] : new Date().getFullYear().toString(),
+            primary_genre: 'Epic Featured',
+            genres: ['Action', 'Epic Games', 'Featured'],
+            tags: ['Epic Games Store', 'Promotion'],
+            cover_url: imgObj?.url,
+            banner_url: imgObj?.url,
+            summary: item.description || `Trending headline title featured on the Epic Games Store.`,
+            store: 'Epic Games',
+            store_app_id: item.id,
+            launchers: ['Epic Games'],
+            in_catalog: true,
+            ai_classified: true,
+            installations: [],
+          });
+        });
+      } catch (_) {}
+    };
+
+    // 3. Fetch GOG Galaxy live bestsellers
+    const fetchGOG = async () => {
+      try {
+        const controller = new AbortController();
+        const timeout = setTimeout(() => controller.abort(), 6000);
+        const res = await fetch('https://catalog.gog.com/v1/catalog?limit=12&order=desc:bestselling&productType=in:game', {
+          signal: controller.signal,
+          headers: { 'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) MissionControl/3.3' }
+        });
+        clearTimeout(timeout);
+        if (!res.ok) return;
+        const data = (await res.json()) as any;
+        const products = data?.products || [];
+
+        products.forEach((prod: any) => {
+          safeAdd({
+            id: `gog-${prod.id}`,
+            title: prod.title,
+            developer: prod.developers?.[0] || 'GOG Partner',
+            publisher: prod.publishers?.[0] || 'GOG',
+            release_date: prod.releaseDate ? prod.releaseDate.split('T')[0] : '',
+            primary_genre: prod.genres?.[0]?.name || 'GOG Classic',
+            genres: (prod.genres || []).map((g: any) => g.name || g),
+            tags: ['DRM-Free', 'GOG Galaxy', 'Bestseller'],
+            cover_url: prod.coverHorizontal || prod.coverVertical,
+            banner_url: prod.coverHorizontal || prod.coverVertical,
+            summary: `Bestselling DRM-free classic trending on GOG Galaxy.`,
+            store: 'GOG Galaxy',
+            store_app_id: String(prod.id),
+            launchers: ['GOG Galaxy'],
+            in_catalog: true,
+            ai_classified: true,
+            installations: [],
+          });
+        });
+      } catch (_) {}
+    };
+
+    await Promise.allSettled([fetchSteam(), fetchEpic(), fetchGOG()]);
+
+    if (allGames.length > 0) {
+      cachedLauncherGames = allGames;
+      lastLauncherFetchTime = now;
+      return { success: true, games: allGames };
+    }
+
+    return { success: cachedLauncherGames.length > 0, games: cachedLauncherGames };
+  }
+
+  ipcMain.handle('fetch-steam-trending', async () => {
+    return await getLiveLauncherTrending();
+  });
+
+  ipcMain.handle('fetch-launcher-trending', async () => {
+    return await getLiveLauncherTrending();
   });
 
   ipcMain.handle('get-electron-update-state', () => {
