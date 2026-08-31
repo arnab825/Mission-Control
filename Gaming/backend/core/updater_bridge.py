@@ -485,12 +485,14 @@ def handle_bridge_update_commands(cmd_type: str, payload: dict, bridge_instance)
                 gpu_name = "Unknown"
                 gpu_driver = "Unknown"
                 ram_gb = 16
-                app_version = bridge_instance._game_state.get("version", "3.3.6")
+                # Get rich local system hardware telemetry from the BridgeServer state dict
+                _bridge_state = bridge_instance._state if hasattr(bridge_instance, "_state") else {}
+                app_version = _bridge_state.get("version", "3.3.6")
 
                 # 1. Try pulling from live telemetry game state first
-                sys_specs = bridge_instance._game_state.get("system_specs", {}) or {}
+                sys_specs = _bridge_state.get("system_specs", {}) or {}
                 hw = sys_specs.get("hardware", {}) if isinstance(sys_specs, dict) else {}
-                gpu_metrics = bridge_instance._game_state.get("gpu_metrics", {}) or {}
+                gpu_metrics = _bridge_state.get("gpu_metrics", {}) or {}
 
                 if hw.get("cpu"):
                     cpu_name = hw.get("cpu")
