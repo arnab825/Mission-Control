@@ -21,6 +21,7 @@ interface Window {
     checkElectronUpdates?: () => void;
     downloadElectronUpdate?: () => void;
     quitAndInstallElectronUpdate?: () => void;
+    fetchGamingNews?: () => Promise<{ success: boolean; items: any[]; totalItems: number }>;
     onElectronUpdateStatus?: (callback: (event: any, status: any) => void) => () => void;
     setProgressBar?: (value: number) => void;
     onNetworkStatusChanged?: (isOnline: boolean) => void;
