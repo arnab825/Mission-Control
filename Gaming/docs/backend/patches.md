@@ -2,6 +2,10 @@
 
 This document contains a detailed history of all patches and updates for the AI Gaming Assistant.
 
+### Patch: 2026-08-31 — v3.3.7: Fixes some issue and bug of server
+
+- Fixes some issue and bug of server
+
 ### Patch: 2026-08-31 — v3.3.6: Fix Supabase password URL decode for pooler connection
 
 - Fix Supabase password URL decode for pooler connection
