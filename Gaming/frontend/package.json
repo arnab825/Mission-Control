@@ -76,7 +76,8 @@
                   "publish":  {
                                   "provider":  "github",
                                   "owner":  "arnab825",
-                                  "repo":  "Mission-Control"
+                                  "repo":  "Mission-Control",
+                                  "releaseType":  "release"
                               },
                   "nsis":  {
                                "oneClick":  false,
