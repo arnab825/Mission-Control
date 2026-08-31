@@ -2725,6 +2725,14 @@ function setupAutoUpdater() {
       const psScript = `
 # Mission Control Automated Rollback Script
 $ErrorActionPreference = "Continue"
+
+# Self-elevate to Administrator if not already elevated
+$isAdmin = ([Security.Principal.WindowsPrincipal][Security.Principal.WindowsIdentity]::GetCurrent()).IsInRole([Security.Principal.WindowsBuiltInRole]::Administrator)
+if (-not $isAdmin) {
+    Start-Process powershell.exe -ArgumentList "-NoProfile", "-ExecutionPolicy", "Bypass", "-File", "\`"$PSCommandPath\`"" -Verb RunAs
+    exit
+}
+
 $logPath = @'
 ${cleanLogPath}
 '@
@@ -2760,17 +2768,17 @@ while ($attempts -lt 20) {
 }
 
 # Wait additional seconds for file handles to release
-Start-Sleep -Seconds 2
+Start-Sleep -Seconds 1
 
-# Force kill any lingering python, electron, or mission control helper processes
-Get-Process -Name "Mission Control", "MissionControl", "electron", "python" -ErrorAction SilentlyContinue | Where-Object { $_.Id -ne $PID } | Stop-Process -Force -ErrorAction SilentlyContinue
+# Force kill any lingering python, backend, electron, or mission control helper processes
+Get-Process -Name "Mission Control", "MissionControl", "MissionControlBackend", "electron", "python" -ErrorAction SilentlyContinue | Where-Object { $_.Id -ne $PID } | Stop-Process -Force -ErrorAction SilentlyContinue
 
 Log-Message "Restoring files via robocopy..."
 $robocopyArgs = @(
     $backupPath,
     $resourcesPath,
     "/E",
-    "/R:15",
+    "/R:2",
     "/W:1",
     "/NP",
     "/NFL",
@@ -2782,7 +2790,7 @@ Log-Message "Robocopy exited with code: $($rc.ExitCode)"
 
 # In robocopy, exit code <= 7 means success (0=no change, 1=copied, 2=extra, 3=copied+extra)
 if ($rc.ExitCode -gt 7) {
-    Log-Message "Robocopy reported issues, falling back to PowerShell copy..."
+    Log-Message "Robocopy reported issues ($($rc.ExitCode)), falling back to PowerShell copy..."
     Get-ChildItem -Path $backupPath -Recurse | ForEach-Object {
         if ($_.FullName.Length -gt $backupPath.Length) {
             $rel = $_.FullName.Substring($backupPath.Length).TrimStart('\\').TrimStart('/')
@@ -2805,49 +2813,38 @@ Log-Message "=== Rollback completed successfully ==="
       try {
         fs.writeFileSync(scriptPath, psScript, 'utf-8');
 
-        // Test write access to resourcesPath to determine if elevation is required
-        let needsElevation = false;
-        try {
-          const testFile = path.join(resourcesPath, `_perm_test_${Date.now()}.tmp`);
-          fs.writeFileSync(testFile, 'test');
-          fs.unlinkSync(testFile);
-        } catch (permErr) {
-          needsElevation = true;
-          console.log('[AutoUpdater] Write test to resourcesPath failed, elevation required for rollback.');
+        // Always launch with UAC elevation so Program Files write access succeeds
+        console.log('[AutoUpdater] Spawning rollback script with UAC elevation (RunAs)...');
+        spawn('powershell.exe', [
+          '-NoProfile',
+          '-ExecutionPolicy', 'Bypass',
+          '-Command',
+          `Start-Process powershell.exe -ArgumentList '-NoProfile', '-ExecutionPolicy', 'Bypass', '-File', \`"${scriptPath}\`" -Verb RunAs`
+        ], {
+          detached: true,
+          stdio: 'ignore',
+          windowsHide: true
+        }).unref();
+
+        // 1. Hide window immediately
+        if (win && !win.isDestroyed()) {
+          try { win.hide(); } catch (_) { }
         }
 
-        if (needsElevation) {
-          console.log('[AutoUpdater] Spawning rollback script with UAC elevation (RunAs)...');
-          const launchElevated = `Start-Process powershell.exe -ArgumentList @('-NoProfile', '-ExecutionPolicy', 'Bypass', '-File', "${scriptPath.replace(/"/g, '`"')}") -Verb RunAs`;
-          spawn('powershell.exe', [
-            '-NoProfile',
-            '-ExecutionPolicy', 'Bypass',
-            '-Command',
-            launchElevated
-          ], {
-            detached: true,
-            stdio: 'ignore',
-            windowsHide: false
-          }).unref();
-        } else {
-          console.log('[AutoUpdater] Spawning rollback script directly...');
-          spawn('powershell.exe', [
-            '-NoProfile',
-            '-ExecutionPolicy', 'Bypass',
-            '-File', scriptPath
-          ], {
-            detached: true,
-            stdio: 'ignore',
-            windowsHide: true
-          }).unref();
-        }
-
+        // 2. Kill Python backend
         if (pythonProcess && pythonProcess.pid) {
-          try { execSync(`taskkill /pid ${pythonProcess.pid} /f /t`, { windowsHide: true }); } catch (_) {}
+          try { execSync(`taskkill /pid ${pythonProcess.pid} /f /t`, { windowsHide: true }); } catch (_) { }
           pythonProcess = null;
         }
 
-        setTimeout(() => app.quit(), 500);
+        // 3. Terminate worker
+        if (telemetryWorker) {
+          try { telemetryWorker.terminate(); } catch (_) { }
+          telemetryWorker = null;
+        }
+
+        // 4. Force exit
+        setTimeout(() => app.exit(0), 400);
       } catch (err: any) {
         console.error('[AutoUpdater] Failed to execute rollback:', err);
         sendToAllWindows('electron-update-status', { status: 'error', message: 'Rollback failed: ' + err.message });
