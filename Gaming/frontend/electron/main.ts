@@ -2661,6 +2661,92 @@ function setupAutoUpdater() {
     return app.getVersion();
   });
 
+  // Dedicated in-memory cache for live external gaming news RSS (IGN, Eurogamer, PC Gamer, etc.)
+  let cachedNewsItems: any[] = [];
+  let lastNewsFetchTime = 0;
+  const NEWS_CACHE_TTL_MS = 10 * 60 * 1000;
+
+  ipcMain.handle('fetch-gaming-news', async () => {
+    const now = Date.now();
+    if (cachedNewsItems.length > 0 && now - lastNewsFetchTime < NEWS_CACHE_TTL_MS) {
+      return { success: true, items: cachedNewsItems, totalItems: cachedNewsItems.length };
+    }
+
+    const feeds = [
+      { url: 'https://www.pcgamer.com/rss/', label: 'PC Gamer', type: 'Gaming' },
+      { url: 'https://www.eurogamer.net/?format=rss', label: 'Eurogamer', type: 'Gaming' },
+      { url: 'https://www.ign.com/feeds/news.xml', label: 'IGN', type: 'Gaming' },
+      { url: 'https://kotaku.com/rss', label: 'Kotaku', type: 'Gaming' },
+      { url: 'https://www.tomshardware.com/feeds/all', label: "Tom's Hardware", type: 'Hardware' },
+    ];
+
+    const results: any[] = [];
+
+    await Promise.allSettled(
+      feeds.map(async (feed) => {
+        try {
+          const controller = new AbortController();
+          const timeout = setTimeout(() => controller.abort(), 6000);
+          const response = await fetch(feed.url, {
+            signal: controller.signal,
+            headers: { 'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) MissionControl/3.3' }
+          });
+          clearTimeout(timeout);
+          if (!response.ok) return;
+          const xml = await response.text();
+
+          const itemRegex = /<item>([\s\S]*?)<\/item>/g;
+          let match;
+          let count = 0;
+          while ((match = itemRegex.exec(xml)) !== null && count < 8) {
+            const block = match[1];
+            const titleMatch = /<title><!\[CDATA\[(.*?)\]\]><\/title>/.exec(block) || /<title>(.*?)<\/title>/.exec(block);
+            const linkMatch = /<link>(.*?)<\/link>/.exec(block) || /<link href="(.*?)"/.exec(block);
+            const descMatch = /<description><!\[CDATA\[(.*?)\]\]><\/description>/.exec(block) || /<description>(.*?)<\/description>/.exec(block);
+            const dateMatch = /<pubDate>(.*?)<\/pubDate>/.exec(block);
+
+            // Extract thumbnail image if present
+            const imgMatch = /<enclosure[^>]+url=["'](.*?)["']/i.exec(block) ||
+                             /<media:content[^>]+url=["'](.*?)["']/i.exec(block) ||
+                             /<media:thumbnail[^>]+url=["'](.*?)["']/i.exec(block) ||
+                             /<img[^>]+src=["'](.*?)["']/i.exec(block);
+
+            const title = titleMatch
+              ? titleMatch[1].replace(/&#8217;/g, "'").replace(/&#8216;/g, "'").replace(/&amp;/g, '&').replace(/&#038;/g, '&').trim()
+              : '';
+            const link = linkMatch ? linkMatch[1].trim() : '';
+            let description = descMatch
+              ? descMatch[1].replace(/<[^>]*>/g, '').replace(/&amp;/g, '&').replace(/&#8217;/g, "'").trim()
+              : '';
+            if (description.length > 200) description = description.slice(0, 200) + '...';
+
+            if (title && link) {
+              results.push({
+                id: link,
+                title,
+                link,
+                description,
+                source: feed.label,
+                category: feed.type,
+                pubDate: dateMatch ? dateMatch[1].trim() : '',
+                imageUrl: imgMatch ? imgMatch[1] : null,
+              });
+              count++;
+            }
+          }
+        } catch (_) {}
+      })
+    );
+
+    if (results.length > 0) {
+      cachedNewsItems = results;
+      lastNewsFetchTime = now;
+      return { success: true, items: results, totalItems: results.length };
+    }
+
+    return { success: cachedNewsItems.length > 0, items: cachedNewsItems, totalItems: cachedNewsItems.length };
+  });
+
   ipcMain.handle('get-electron-update-state', () => {
     const state = loadUpdateState();
     if (state.status === 'downloading' || state.status === 'checking') {
