@@ -10,7 +10,7 @@ import React, { useState, useEffect, useCallback } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import {
   X, Server, WifiOff, RefreshCw, Trash2,
-  Clock, Network, FolderSearch, Pencil, Check
+  Clock, Network, FolderSearch, Pencil, Check, HardDrive
 } from 'lucide-react';
 import { useAuth } from '@clerk/clerk-react';
 
@@ -41,6 +41,7 @@ interface LibraryNode {
 
 interface NodeManagerModalProps {
   onClose: () => void;
+  sendCommand?: (type: string, payload?: any) => void;
 }
 
 function formatBytes(bytes: number): string {
@@ -238,11 +239,12 @@ const NodeCard: React.FC<{
 
 // ── Main Modal ────────────────────────────────────────────────────────────────
 
-const NodeManagerModal: React.FC<NodeManagerModalProps> = ({ onClose }) => {
+const NodeManagerModal: React.FC<NodeManagerModalProps> = ({ onClose, sendCommand }) => {
   const { userId } = useAuth();
   const [nodes, setNodes] = useState<LibraryNode[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const [registering, setRegistering] = useState(false);
 
   const fetchNodes = useCallback(async (isInitial = false) => {
     if (isInitial) setLoading(true);
@@ -270,6 +272,21 @@ const NodeManagerModal: React.FC<NodeManagerModalProps> = ({ onClose }) => {
     const t = setInterval(() => fetchNodes(false), 15000); // silent background refresh
     return () => clearInterval(t);
   }, [fetchNodes]);
+
+  const handleRegisterThisPC = useCallback(async () => {
+    setRegistering(true);
+    try {
+      if (sendCommand) {
+        sendCommand('register_local_node', { userId });
+      }
+      setTimeout(() => {
+        fetchNodes(true);
+        setRegistering(false);
+      }, 2500);
+    } catch {
+      setRegistering(false);
+    }
+  }, [sendCommand, userId, fetchNodes]);
 
   const handleScan = async (nodeId: string) => {
     await fetchWithFailover(`/api/nodes/${nodeId}/scan`, { method: 'POST' });
@@ -316,9 +333,22 @@ const NodeManagerModal: React.FC<NodeManagerModalProps> = ({ onClose }) => {
               {nodes.filter(n => n.status === 'online').length} online · {nodes.length} total
             </p>
           </div>
-          <button onClick={onClose} className="p-1.5 hover:bg-white/5 rounded-lg text-zinc-500 hover:text-white transition-colors">
-            <X className="w-4 h-4" />
-          </button>
+          <div className="flex items-center gap-2">
+            {nodes.length > 0 && (
+              <button
+                onClick={handleRegisterThisPC}
+                disabled={registering}
+                title="Sync / Connect this machine as a local node"
+                className="flex items-center gap-1.5 px-2.5 py-1 rounded-lg bg-neon-green/10 border border-neon-green/20 hover:bg-neon-green/20 text-neon-green text-[10px] font-bold tracking-wider transition-all disabled:opacity-50"
+              >
+                {registering ? <RefreshCw className="w-3 h-3 animate-spin" /> : <HardDrive className="w-3 h-3" />}
+                <span>Sync PC</span>
+              </button>
+            )}
+            <button onClick={onClose} className="p-1.5 hover:bg-white/5 rounded-lg text-zinc-500 hover:text-white transition-colors">
+              <X className="w-4 h-4" />
+            </button>
+          </div>
         </div>
 
         <div className="p-4 space-y-3">
@@ -351,11 +381,24 @@ const NodeManagerModal: React.FC<NodeManagerModalProps> = ({ onClose }) => {
           )}
 
           {!loading && !error && nodes.length === 0 && (
-            <div className="py-16 flex flex-col items-center justify-center text-zinc-600">
-              <Server className="w-8 h-8 mb-3 opacity-30" />
-              <p className="text-xs font-bold uppercase tracking-widest mb-1">No Nodes Registered</p>
-              <p className="text-[10px] text-zinc-600 text-center px-4">
-                Run <code className="bg-white/5 px-1 py-0.5 rounded text-zinc-400">python run_node.py</code> on each machine to register it.
+            <div className="py-12 flex flex-col items-center justify-center text-center px-4">
+              <div className="w-14 h-14 rounded-2xl bg-neon-green/10 border border-neon-green/20 flex items-center justify-center mb-4 text-neon-green">
+                <Server className="w-7 h-7" />
+              </div>
+              <p className="text-xs font-black text-white uppercase tracking-widest mb-1">No Nodes Connected</p>
+              <p className="text-[11px] text-zinc-400 max-w-xs mb-5 leading-relaxed">
+                Connect this PC to automatically index your installed game libraries, track storage drives, and sync library telemetry across your devices.
+              </p>
+              <button
+                onClick={handleRegisterThisPC}
+                disabled={registering}
+                className="w-full flex items-center justify-center gap-2 py-3 px-4 rounded-xl bg-neon-green/15 border border-neon-green/30 hover:bg-neon-green/25 text-neon-green font-black text-xs uppercase tracking-widest transition-all shadow-[0_0_20px_rgba(34,197,94,0.15)] disabled:opacity-50"
+              >
+                {registering ? <RefreshCw className="w-4 h-4 animate-spin" /> : <HardDrive className="w-4 h-4" />}
+                {registering ? 'Connecting Local Node...' : 'Connect This PC (1-Click)'}
+              </button>
+              <p className="text-[10px] text-zinc-600 mt-4">
+                No Python installation required. Mission Control runs node synchronization natively.
               </p>
             </div>
           )}

@@ -45,6 +45,15 @@ class BridgeServer:
         self._game_pending_time: float = 0.0
         self._flush_scheduled: bool = False
 
+    @property
+    def _game_state(self) -> Dict[str, Any]:
+        """Backward-compatibility alias so any caller accessing bridge._game_state resolves cleanly."""
+        return self._state
+
+    @_game_state.setter
+    def _game_state(self, val: Dict[str, Any]):
+        self._state = val
+
     def start(self):
         """Start the WebSocket server in a separate thread."""
         if self.thread and self.thread.is_alive():

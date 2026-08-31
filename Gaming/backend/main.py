@@ -499,6 +499,13 @@ Ready and monitoring. Launch your game to initiate automatic HUD lock.
         except Exception as e:
             logger.error(f"Failed to trigger initial telemetry glitch scan: {e}")
 
+        # Auto-register local PC as a Library Node on startup (no Python installation required by user)
+        try:
+            game_handler._ensure_local_node_daemon()
+            logger.info("Auto-registered local machine as a distributed library node daemon on startup.")
+        except Exception as e:
+            logger.warning(f"Local node auto-registration notice: {e}")
+
         pipeline = GamingAssistantPipeline(config)
         pw = None
         lib_watcher = None
@@ -588,6 +595,8 @@ Ready and monitoring. Launch your game to initiate automatic HUD lock.
                 game_handler.handle_logout_user(payload, pipeline, bridge, config, _library_session)
             elif cmd_type == "delete_account":
                 game_handler.handle_delete_account(payload, pipeline, bridge, config, _library_session)
+            elif cmd_type == "register_local_node":
+                game_handler.handle_register_local_node(payload, pipeline, bridge, config)
 
             # ── System / hardware / config commands ───────────────────────
             elif cmd_type == "optimize_system":
