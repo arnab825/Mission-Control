@@ -98,7 +98,7 @@ try {
 
         if ($isGitRepo) {
             Write-Host "[SYNC] Staging version release files..." -ForegroundColor Cyan
-            git add backend/version.json frontend/package.json website/package.json backend/pyproject.toml docs/backend/patches.md docs/changes_summary.md docs/SUMMARY.md readme.md 2>$null
+            git add backend/version.json frontend/package.json website/package.json backend/pyproject.toml backend/uv.lock docs/backend/patches.md docs/changes_summary.md docs/SUMMARY.md readme.md 2>$null
             
             # 5. Commit and Tag
             Write-Host "[COMMIT] Creating release v${version}" -ForegroundColor Cyan
@@ -181,6 +181,13 @@ $changesFormatted
 
         # 7. Push code and tags to GitHub (if in a git repository)
         if ($isGitRepo) {
+            # Include any lockfiles updated by build tools (like uv.lock)
+            git add backend/uv.lock backend/pyproject.toml frontend/package.json 2>$null
+            $stagedDiff = git diff --staged --name-only 2>$null
+            if ($stagedDiff) {
+                git commit --amend --no-edit 2>$null
+            }
+
             Write-Host "[PUSH] Pushing to main and syncing tags..." -ForegroundColor Cyan
             $token = if ($env:GH_TOKEN) { $env:GH_TOKEN } else { $env:GITHUB_TOKEN }
             if ($token) {
