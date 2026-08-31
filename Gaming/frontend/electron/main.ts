@@ -252,6 +252,8 @@ function restartAsAdmin() {
 
 // Spawns background Node.js worker threads to parse telemetry, game stats, and metrics
 // without blocking high-frequency main thread UI cycles (Electron Roadmap Item 5).
+let telemetryWorker: Worker | null = null;
+
 function runTelemetryWorker() {
   try {
     // Use eval mode with CJS-compatible require calls.
@@ -281,6 +283,7 @@ function runTelemetryWorker() {
     ].join('\n');
 
     const worker = new Worker(workerScript, { eval: true });
+    telemetryWorker = worker;
     worker.on('message', (data) => {
       if (data.type === 'telemetry_tick') {
         // sendToAllWindows is declared later via function declaration — it hoists correctly
@@ -1133,6 +1136,11 @@ app.on('before-quit', () => {
   if (tray && !tray.isDestroyed()) {
     try { tray.destroy(); } catch (_) { }
     tray = null;
+  }
+  // Terminate background telemetry worker thread so it does not block app exit
+  if (telemetryWorker) {
+    try { telemetryWorker.terminate(); } catch (_) { }
+    telemetryWorker = null;
   }
   if (pythonProcess && pythonProcess.pid) {
     console.log('[Electron] Killing Python backend process tree...')
@@ -2465,67 +2473,78 @@ function setupAutoUpdater() {
   ipcMain.on('quit-and-install-update', () => {
     isAppQuitting = true;
     console.log('[AutoUpdater] Quitting and installing update...');
-    try {
-      // 1. BACKUP RESOURCES DIRECTORY FOR OFFLINE ROLLBACK
-      const resourcesPath = process.resourcesPath;
-      const backupPath = path.join(app.getPath('userData'), 'rollback_backup');
-      
-      console.log(`[AutoUpdater] Backing up current version for rollback from ${resourcesPath} to ${backupPath}...`);
-      try {
-        if (fs.existsSync(backupPath)) {
-          fs.rmSync(backupPath, { recursive: true, force: true });
-        }
-        fs.mkdirSync(backupPath, { recursive: true });
-        
-        // Copy directory tree using Node's native cross-platform fs.cpSync
-        fs.cpSync(resourcesPath, backupPath, { recursive: true, force: true });
-        
-        // Write rollback metadata
-        const metaPath = path.join(backupPath, 'rollback_meta.json');
-        fs.writeFileSync(metaPath, JSON.stringify({
-          version: app.getVersion(),
-          date: new Date().toISOString(),
-          resourcesPath: resourcesPath,
-          execPath: process.execPath
-        }, null, 2), 'utf-8');
-        
-        console.log('[AutoUpdater] Rollback backup completed successfully for v' + app.getVersion());
-      } catch (err) {
-        console.error('[AutoUpdater] Failed to create rollback backup:', err);
-      }
 
-      // Force kill python before NSIS tries to uninstall, preventing file lock crashes
+    // 1. Immediately hide window so user doesn't experience a "(Not Responding)" freeze
+    if (win && !win.isDestroyed()) {
+      try { win.hide(); } catch (_) { }
+    }
+
+    try {
+      // 2. Kill Python backend process tree immediately so NSIS does not hit file locks
       if (pythonProcess && pythonProcess.pid) {
         console.log('[AutoUpdater] Killing Python backend process tree before update...');
         if (process.platform === 'win32') {
-          try { execSync(`taskkill /pid ${pythonProcess.pid} /f /t`, { windowsHide: true }) } catch (err) {}
+          try { execSync(`taskkill /pid ${pythonProcess.pid} /f /t`, { windowsHide: true }); } catch (_) { }
         } else {
-          try { pythonProcess.kill('SIGKILL') } catch (_) {}
+          try { pythonProcess.kill('SIGKILL'); } catch (_) { }
         }
         pythonProcess = null;
       }
 
-      // If a verified direct fallback installer was explicitly downloaded in this session:
-      if (activeDirectInstallerPath && fs.existsSync(activeDirectInstallerPath)) {
-        console.log(`[AutoUpdater] Launching verified direct downloaded installer with UAC elevation: ${activeDirectInstallerPath}`);
+      // 3. Terminate background telemetry worker thread
+      if (telemetryWorker) {
+        try { telemetryWorker.terminate(); } catch (_) { }
+        telemetryWorker = null;
+      }
+
+      // 4. Clean up system tray
+      if (tray && !tray.isDestroyed()) {
+        try { tray.destroy(); } catch (_) { }
+        tray = null;
+      }
+
+      // 5. Check for any downloaded/staged installer on disk
+      const localAppData = process.env.LOCALAPPDATA || '';
+      const candidateInstallers = [
+        activeDirectInstallerPath,
+        path.join(localAppData, 'mission-control-frontend-updater', 'pending', 'MissionControl-Setup.exe'),
+        path.join(localAppData, 'mission-control-updater', 'pending', 'MissionControl-Setup.exe'),
+        path.join(app.getPath('userData'), '..', 'mission-control-frontend-updater', 'pending', 'MissionControl-Setup.exe'),
+        path.join(app.getPath('userData'), '..', 'mission-control-updater', 'pending', 'MissionControl-Setup.exe')
+      ];
+
+      const existingInstaller = candidateInstallers.find(p => p && fs.existsSync(p));
+      if (existingInstaller) {
+        console.log(`[AutoUpdater] Launching verified installer executable: ${existingInstaller}`);
         try {
-          spawn('cmd.exe', ['/c', 'start', '""', activeDirectInstallerPath], {
+          spawn('cmd.exe', ['/c', 'start', '""', existingInstaller], {
             detached: true,
             stdio: 'ignore',
             windowsHide: false,
           }).unref();
-          setTimeout(() => app.quit(), 1500);
+          // Exit Electron immediately so NSIS installer has zero file locks
+          setTimeout(() => {
+            console.log('[AutoUpdater] Exiting Electron cleanly for installer execution...');
+            app.exit(0);
+          }, 500);
           return;
         } catch (spawnErr) {
-          console.error('[AutoUpdater] Failed to spawn direct installer via cmd:', spawnErr);
+          console.error('[AutoUpdater] Direct spawn failed, falling back to autoUpdater.quitAndInstall:', spawnErr);
         }
       }
 
-      // Default and official: execute autoUpdater.quitAndInstall for electron-updater staged payloads
+      // 6. Fallback to electron-updater built-in quitAndInstall
       console.log('[AutoUpdater] Executing autoUpdater.quitAndInstall(false, true)...');
       autoUpdater.quitAndInstall(false, true);
+
+      // Force process exit if electron-updater stalls
+      setTimeout(() => {
+        console.log('[AutoUpdater] Forcing process termination via app.exit(0)...');
+        app.exit(0);
+      }, 1200);
     } catch (err: any) {
       console.error('[AutoUpdater] quitAndInstall failed:', err);
+      app.exit(0);
     }
   });
 
