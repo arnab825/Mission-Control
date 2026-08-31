@@ -16,21 +16,29 @@ param(
 
 Write-Host "[PUBLISH] Starting release process..." -ForegroundColor Cyan
 
-# Auto-load GH_TOKEN from .env files if not in environment
-if (-not $env:GH_TOKEN -and -not $env:GITHUB_TOKEN) {
-    foreach ($envPath in @("$PSScriptRoot/../.env", "$PSScriptRoot/../backend/.env", "$PSScriptRoot/../website/.env.local")) {
-        if (Test-Path $envPath) {
-            Get-Content $envPath | ForEach-Object {
-                if ($_ -match '^(GH_TOKEN|GITHUB_TOKEN)\s*=\s*(.+)$') {
-                    $tokenVal = $matches[2].Trim().Trim('"').Trim("'")
-                    if ($tokenVal -and $tokenVal -notlike 'your_*') {
-                        $env:GH_TOKEN = $tokenVal
-                    }
-                }
+# Auto-load ALL secrets from .env files into this session
+foreach ($envPath in @(
+    "$PSScriptRoot/../backend/.env",
+    "$PSScriptRoot/../.env",
+    "$PSScriptRoot/../website/.env.local"
+)) {
+    if (Test-Path $envPath) {
+        Write-Host "[ENV] Loading secrets from $envPath..." -ForegroundColor DarkGray
+        Get-Content $envPath | ForEach-Object {
+            # Skip blank lines and comments
+            if ($_ -match '^\s*#' -or $_ -notmatch '=') { return }
+            $parts = $_ -split '=', 2
+            $key   = $parts[0].Trim()
+            $value = $parts[1].Trim().Trim('"').Trim("'")
+            # Only set if key is valid and value is not a placeholder
+            if ($key -and $value -and $value -notlike '*your_*' -and $value -notlike '*_here') {
+                [System.Environment]::SetEnvironmentVariable($key, $value, 'Process')
             }
         }
+        break  # Use first .env file found; stop looking
     }
 }
+
 
 Push-Location "$PSScriptRoot/.."
 try {
