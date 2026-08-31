@@ -82,7 +82,8 @@ graph TD
 
 | Version | Key Feature / Change Description |
 | :--- | :--- |
-| **v3.3.8 (Latest)** | **Fixes some issue and bug of server update .Also fix the setup app** — Fixes some issue and bug of server update .Also fix the setup app. |
+| **v3.3.9 (Latest)** | **Fix telemetry scanner bridge state and enable native 1-click node registration** — Fix telemetry scanner bridge state and enable native 1-click node registration. |
+| **v3.3.8** | **Fixes some issue and bug of server update .Also fix the setup app** — Fixes some issue and bug of server update .Also fix the setup app. |
 | **v3.3.7** | **Fixes some issue and bug of server** — Fixes some issue and bug of server. |
 | **v3.3.6** | **Fix Supabase password URL decode for pooler connection** — Fix Supabase password URL decode for pooler connection. |
 | **v3.3.5** | **Fix update installer: kill running processes before file extraction to prevent app freeze and OpenCV errors** — Fix update installer: kill running processes before file extraction to prevent app freeze and OpenCV errors. |

@@ -2,6 +2,10 @@
 
 This document contains a detailed history of all patches and updates for the AI Gaming Assistant.
 
+### Patch: 2026-08-31 — v3.3.9: Fix telemetry scanner bridge state and enable native 1-click node registration
+
+- Fix telemetry scanner bridge state and enable native 1-click node registration
+
 ### Patch: 2026-08-31 — v3.3.8: Fixes some issue and bug of server update .Also fix the setup app
 
 - Fixes some issue and bug of server update .Also fix the setup app
