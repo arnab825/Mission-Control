@@ -310,6 +310,7 @@ const DiscoverGamesModal: React.FC<DiscoverGamesModalProps> = ({ onClose }) => {
   const [newsItems, setNewsItems] = useState<NewsItem[]>([]);
   const [newsLoading, setNewsLoading] = useState(false);
   const [selectedSource, setSelectedSource] = useState<string>('All');
+  const [selectedTopic, setSelectedTopic] = useState<string>('All');
   const [brokenImages, setBrokenImages] = useState<Record<string, boolean>>({});
 
   // Fetch Live Gaming News (from external RSS via Electron IPC)
@@ -349,15 +350,27 @@ const DiscoverGamesModal: React.FC<DiscoverGamesModalProps> = ({ onClose }) => {
   const loadPopularCatalog = async () => {
     setLoading(true);
     try {
+      // 1. Fetch live dynamic Steam trending & top sellers first
+      let dynamicSteamList: DiscoverItem[] = [];
+      if (typeof window !== 'undefined' && window.electronAPI?.fetchSteamTrending) {
+        try {
+          const steamRes = await window.electronAPI.fetchSteamTrending();
+          if (steamRes && steamRes.success && Array.isArray(steamRes.games) && steamRes.games.length > 0) {
+            dynamicSteamList = steamRes.games;
+          }
+        } catch (_) {}
+      }
+
+      // 2. Fetch distributed catalog
       const res = await fetchWithFailover(`/api/games?limit=30`);
+      let cleanCatalog: DiscoverItem[] = [];
       if (res.ok) {
         const data = await res.json();
         const rawGames = data.games || [];
         
         // Filter out games with obscure symbolic or non-alphanumeric titles
-        const cleanCatalog = rawGames.filter((g: any) => {
+        cleanCatalog = rawGames.filter((g: any) => {
           const t = (g.title || '').trim();
-          // Exclude titles starting with numbers/symbols like 0°N, 03.04, +1%, etc.
           return !/^[^a-zA-Z]/.test(t) || t.length > 8;
         }).map((g: any) => ({
           id: g.id,
@@ -378,18 +391,41 @@ const DiscoverGamesModal: React.FC<DiscoverGamesModalProps> = ({ onClose }) => {
           ai_classified: g.ai_classified ?? true,
           installations: g.installations || [],
         }));
-
-        // Merge curated AAA titles at the top, avoiding duplicate IDs
-        const existingIds = new Set(cleanCatalog.map((g: any) => g.id.toLowerCase()));
-        const merged = [
-          ...CURATED_FEATURED_GAMES.filter(g => !existingIds.has(g.id.toLowerCase())),
-          ...cleanCatalog,
-        ];
-        setResults(merged.length > 0 ? merged : CURATED_FEATURED_GAMES);
-        setHasSearched(true);
-      } else {
-        setResults(CURATED_FEATURED_GAMES);
       }
+
+      // 3. Combine: Live Steam Trending first, then Curated, then Catalog
+      const existingNames = new Set<string>();
+      const combined: DiscoverItem[] = [];
+
+      // Add dynamic steam games
+      for (const g of dynamicSteamList) {
+        const key = g.title.toLowerCase().trim();
+        if (!existingNames.has(key)) {
+          existingNames.add(key);
+          combined.push(g);
+        }
+      }
+
+      // Add curated games as baseline
+      for (const g of CURATED_FEATURED_GAMES) {
+        const key = g.title.toLowerCase().trim();
+        if (!existingNames.has(key)) {
+          existingNames.add(key);
+          combined.push(g);
+        }
+      }
+
+      // Add catalog games
+      for (const g of cleanCatalog) {
+        const key = g.title.toLowerCase().trim();
+        if (!existingNames.has(key)) {
+          existingNames.add(key);
+          combined.push(g);
+        }
+      }
+
+      setResults(combined.length > 0 ? combined : CURATED_FEATURED_GAMES);
+      setHasSearched(true);
     } catch {
       setResults(CURATED_FEATURED_GAMES);
     } finally {
@@ -414,7 +450,7 @@ const DiscoverGamesModal: React.FC<DiscoverGamesModalProps> = ({ onClose }) => {
         if (remoteResults.length > 0) {
           setResults(remoteResults);
         } else {
-          // Client-side search across curated list if backend yields nothing
+          // Client-side search across current games list if backend yields nothing
           const term = searchTerm.toLowerCase();
           const filtered = CURATED_FEATURED_GAMES.filter(
             g => g.title.toLowerCase().includes(term) ||
@@ -496,18 +532,45 @@ const DiscoverGamesModal: React.FC<DiscoverGamesModalProps> = ({ onClose }) => {
     return results;
   }, [results, activeTab]);
 
-  // Filter news articles based on selected source & search query
+  // Dynamically extract hot trending topics/games from the real live incoming news headlines
+  const dynamicNewsTopics = useMemo(() => {
+    if (newsItems.length === 0) return [];
+    const topicCandidates = [
+      'GTA', 'Grand Theft Auto', 'PlayStation', 'PS5', 'Xbox', 'Nintendo', 'Switch',
+      'Cyberpunk', 'Elden Ring', 'Black Myth', 'Wukong', 'Witcher', 'Capcom', 'Valve',
+      'Steam', 'GeForce', 'RTX', 'AMD', 'Radeon', 'Intel', 'Unreal Engine', 'Doom',
+      'Monster Hunter', 'Call of Duty', 'Pokemon', 'Star Wars', 'Overwatch', 'Final Fantasy',
+      'Resident Evil', 'Silent Hill', 'Kingdom Come', "Assassin's Creed", 'Dragon Age'
+    ];
+
+    const detected = new Set<string>();
+    for (const item of newsItems) {
+      const text = `${item.title} ${item.description}`.toLowerCase();
+      for (const cand of topicCandidates) {
+        if (text.includes(cand.toLowerCase())) {
+          detected.add(cand);
+        }
+      }
+    }
+    return Array.from(detected).slice(0, 10);
+  }, [newsItems]);
+
+  // Filter news articles based on selected source, selected dynamic topic & search query
   const displayedNews = useMemo(() => {
     let list = newsItems;
     if (selectedSource !== 'All') {
       list = list.filter(item => item.source.toLowerCase() === selectedSource.toLowerCase());
+    }
+    if (selectedTopic !== 'All') {
+      const topicLower = selectedTopic.toLowerCase();
+      list = list.filter(item => `${item.title} ${item.description}`.toLowerCase().includes(topicLower));
     }
     if (query.trim()) {
       const q = query.toLowerCase();
       list = list.filter(item => item.title.toLowerCase().includes(q) || item.description.toLowerCase().includes(q));
     }
     return list;
-  }, [newsItems, selectedSource, query]);
+  }, [newsItems, selectedSource, selectedTopic, query]);
 
   const uniqueSources = useMemo(() => {
     const s = new Set(newsItems.map(n => n.source));
@@ -675,36 +738,74 @@ const DiscoverGamesModal: React.FC<DiscoverGamesModalProps> = ({ onClose }) => {
             )}
           </form>
 
-          {/* Quick Suggestions for Games OR Source Filters for News */}
+          {/* Quick Suggestions for Games OR Dynamic Filters for News */}
           {activeTab === 'news' ? (
-            <div className="flex items-center gap-1.5 overflow-x-auto no-scrollbar pt-1">
-              <span className="text-[8px] font-black text-zinc-500 uppercase tracking-widest mr-1 shrink-0">
-                Outlets:
-              </span>
-              {uniqueSources.map((source) => (
+            <div className="space-y-2 pt-1">
+              {/* Outlets Row */}
+              <div className="flex items-center gap-1.5 overflow-x-auto no-scrollbar">
+                <span className="text-[8px] font-black text-zinc-500 uppercase tracking-widest mr-1 shrink-0">
+                  Outlets:
+                </span>
+                {uniqueSources.map((source) => (
+                  <button
+                    key={source}
+                    type="button"
+                    onClick={() => setSelectedSource(source)}
+                    className={`shrink-0 px-2.5 py-1 rounded-lg text-[9px] font-bold uppercase transition-all cursor-pointer ${
+                      selectedSource === source
+                        ? 'bg-cyan-500 text-black shadow-[0_0_10px_rgba(6,182,212,0.2)]'
+                        : 'bg-white/3 hover:bg-white/8 border border-white/5 text-zinc-400 hover:text-zinc-200'
+                    }`}
+                  >
+                    {source}
+                  </button>
+                ))}
                 <button
-                  key={source}
                   type="button"
-                  onClick={() => setSelectedSource(source)}
-                  className={`shrink-0 px-2.5 py-1 rounded-lg text-[9px] font-bold uppercase transition-all cursor-pointer ${
-                    selectedSource === source
-                      ? 'bg-cyan-500 text-black shadow-[0_0_10px_rgba(6,182,212,0.2)]'
-                      : 'bg-white/3 hover:bg-white/8 border border-white/5 text-zinc-400 hover:text-zinc-200'
-                  }`}
+                  onClick={loadGamingNews}
+                  disabled={newsLoading}
+                  className="ml-auto shrink-0 px-2 py-1 rounded-lg bg-white/5 hover:bg-white/10 text-zinc-400 hover:text-white text-[9px] font-bold flex items-center gap-1 cursor-pointer"
+                  title="Refresh Live News"
                 >
-                  {source}
+                  <RefreshCw className={`w-3 h-3 ${newsLoading ? 'animate-spin' : ''}`} />
+                  <span>Refresh</span>
                 </button>
-              ))}
-              <button
-                type="button"
-                onClick={loadGamingNews}
-                disabled={newsLoading}
-                className="ml-auto shrink-0 px-2 py-1 rounded-lg bg-white/5 hover:bg-white/10 text-zinc-400 hover:text-white text-[9px] font-bold flex items-center gap-1 cursor-pointer"
-                title="Refresh Live News"
-              >
-                <RefreshCw className={`w-3 h-3 ${newsLoading ? 'animate-spin' : ''}`} />
-                <span>Refresh</span>
-              </button>
+              </div>
+
+              {/* Dynamic Live Trending Topics extracted from breaking news */}
+              {dynamicNewsTopics.length > 0 && (
+                <div className="flex items-center gap-1.5 overflow-x-auto no-scrollbar pt-0.5 border-t border-white/4">
+                  <span className="text-[8px] font-black text-orange-400 uppercase tracking-widest mr-1 shrink-0 flex items-center gap-1">
+                    <Flame className="w-2.5 h-2.5" />
+                    Hot in News:
+                  </span>
+                  <button
+                    type="button"
+                    onClick={() => setSelectedTopic('All')}
+                    className={`shrink-0 px-2 py-0.5 rounded-md text-[8px] font-bold uppercase transition-all cursor-pointer ${
+                      selectedTopic === 'All'
+                        ? 'bg-orange-500/20 text-orange-300 border border-orange-500/30'
+                        : 'bg-white/2 hover:bg-white/5 text-zinc-500 hover:text-zinc-300 border border-white/5'
+                    }`}
+                  >
+                    All Topics
+                  </button>
+                  {dynamicNewsTopics.map((topic) => (
+                    <button
+                      key={topic}
+                      type="button"
+                      onClick={() => setSelectedTopic(topic === selectedTopic ? 'All' : topic)}
+                      className={`shrink-0 px-2 py-0.5 rounded-md text-[8px] font-bold uppercase transition-all cursor-pointer ${
+                        selectedTopic === topic
+                          ? 'bg-orange-500 text-black font-black shadow-[0_0_10px_rgba(249,115,22,0.3)]'
+                          : 'bg-orange-500/10 hover:bg-orange-500/20 text-orange-300 border border-orange-500/20'
+                      }`}
+                    >
+                      {topic}
+                    </button>
+                  ))}
+                </div>
+              )}
             </div>
           ) : (
             <div className="flex items-center gap-1.5 overflow-x-auto no-scrollbar pt-1">
