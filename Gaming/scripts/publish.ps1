@@ -162,12 +162,19 @@ $changesFormatted
                 npx electron-builder --win nsis msi zip --linux tar.gz --publish never
             }
 
-            # Build Debian package (.deb) directly
+            # Build Debian package (.deb) and Universal Linux (.AppImage) directly
             try {
                 Write-Host "[BUILD] Packaging Linux Debian package (.deb)..." -ForegroundColor Cyan
                 python ../scripts/pack_deb.py "$version"
             } catch {
                 Write-Warning "Debian packaging encountered an error: $_"
+            }
+
+            try {
+                Write-Host "[BUILD] Packaging Universal Linux package (.AppImage)..." -ForegroundColor Cyan
+                python ../scripts/pack_appimage.py "$version"
+            } catch {
+                Write-Warning "AppImage packaging encountered an error: $_"
             }
         } catch {
             Write-Host "[ERROR] Binary packaging encountered a fatal error: $_" -ForegroundColor Red
@@ -212,6 +219,21 @@ $changesFormatted
                                 $uploadHeaders = @{ Authorization = "token ${token}"; "Content-Type" = "application/vnd.debian.binary-package"; Accept = "application/vnd.github.v3+json"; "User-Agent" = "MissionControlPublisher" }
                                 Invoke-RestMethod -Uri $uploadUrl -Method Post -Headers $uploadHeaders -InFile $debFile.Path | Out-Null
                                 Write-Host "[SUCCESS] $debName uploaded to GitHub Release!" -ForegroundColor Green
+                            }
+                        }
+
+                        # Upload .AppImage if not already on release
+                        $appImageFile = Resolve-Path "frontend/out/dist/MissionControl-Linux-${version}.AppImage" -ErrorAction SilentlyContinue
+                        if ($appImageFile -and (Test-Path $appImageFile)) {
+                            $appImageName = "MissionControl-Linux-${version}.AppImage"
+                            $existingAssets = Invoke-RestMethod -Uri "https://api.github.com/repos/arnab825/Mission-Control/releases/$($target.id)/assets" -Headers $headers
+                            $appImageAsset = $existingAssets | Where-Object { $_.name -eq $appImageName }
+                            if (-not $appImageAsset) {
+                                Write-Host "[UPLOAD] Uploading $appImageName to GitHub Release..." -ForegroundColor Cyan
+                                $uploadUrl = "https://uploads.github.com/repos/arnab825/Mission-Control/releases/$($target.id)/assets?name=$appImageName"
+                                $uploadHeaders = @{ Authorization = "token ${token}"; "Content-Type" = "application/x-executable"; Accept = "application/vnd.github.v3+json"; "User-Agent" = "MissionControlPublisher" }
+                                Invoke-RestMethod -Uri $uploadUrl -Method Post -Headers $uploadHeaders -InFile $appImageFile.Path | Out-Null
+                                Write-Host "[SUCCESS] $appImageName uploaded to GitHub Release!" -ForegroundColor Green
                             }
                         }
 
