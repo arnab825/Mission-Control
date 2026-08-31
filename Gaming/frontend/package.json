@@ -24,6 +24,8 @@
                     "make:win:all":  "electron-builder --win nsis msi zip --x64",
                     "make:linux":  "electron-builder --linux tar.gz --x64",
                     "make:all":  "electron-builder --win nsis msi zip --linux tar.gz --x64",
+                    "publish:win":  "electron-builder --win nsis msi zip --publish always",
+                    "publish:all":  "electron-builder --win nsis msi zip --linux tar.gz --publish always",
                     "doctor":  "react-doctor",
                     "postinstall":  "node patch-nsis.mjs"
                 },
