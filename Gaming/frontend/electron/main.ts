@@ -2747,6 +2747,80 @@ function setupAutoUpdater() {
     return { success: cachedNewsItems.length > 0, items: cachedNewsItems, totalItems: cachedNewsItems.length };
   });
 
+  // Dedicated in-memory cache for live dynamic Steam trending & top sellers
+  let cachedSteamGames: any[] = [];
+  let lastSteamFetchTime = 0;
+  const STEAM_CACHE_TTL_MS = 15 * 60 * 1000;
+
+  ipcMain.handle('fetch-steam-trending', async () => {
+    const now = Date.now();
+    if (cachedSteamGames.length > 0 && now - lastSteamFetchTime < STEAM_CACHE_TTL_MS) {
+      return { success: true, games: cachedSteamGames };
+    }
+
+    try {
+      const controller = new AbortController();
+      const timeout = setTimeout(() => controller.abort(), 7000);
+      const res = await fetch('https://store.steampowered.com/api/featuredcategories/?cc=us&l=en', {
+        signal: controller.signal,
+        headers: { 'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) MissionControl/3.3' }
+      });
+      clearTimeout(timeout);
+
+      if (res.ok) {
+        const data = (await res.json()) as any;
+        const topSellers = data.top_sellers?.items || [];
+        const newReleases = data.new_releases?.items || [];
+        const featured = data.featured_win || [];
+
+        // Combine items deduplicated by ID, filtering out hardware like Steam Deck
+        const seenIds = new Set<string>();
+        const dynamicGames: any[] = [];
+
+        const addItem = (item: any, defaultGenre: string) => {
+          const strId = String(item.id);
+          const name = item.name || '';
+          if (seenIds.has(strId) || !name || /Steam Deck|Valve Index|Soundtrack|Controller/i.test(name)) return;
+          seenIds.add(strId);
+
+          dynamicGames.push({
+            id: `steam-${strId}`,
+            title: name,
+            developer: 'Steam Verified',
+            publisher: 'Steam Verified',
+            release_date: new Date().getFullYear().toString(),
+            primary_genre: defaultGenre,
+            genres: [defaultGenre, 'Trending', 'Popular'],
+            tags: ['Trending', 'Top Seller', 'Steam'],
+            cover_url: item.header_image,
+            banner_url: item.header_image,
+            summary: item.discount_percent > 0
+              ? `Live trending Steam hit! Currently on sale: ${item.discount_percent}% off.`
+              : `Live bestselling title trending globally on Steam.`,
+            store: 'Steam',
+            store_app_id: strId,
+            launchers: ['Steam'],
+            in_catalog: true,
+            ai_classified: true,
+            installations: [],
+          });
+        };
+
+        topSellers.slice(0, 12).forEach((item: any) => addItem(item, 'Top Seller'));
+        newReleases.slice(0, 8).forEach((item: any) => addItem(item, 'New Release'));
+        featured.slice(0, 8).forEach((item: any) => addItem(item, 'Featured'));
+
+        if (dynamicGames.length > 0) {
+          cachedSteamGames = dynamicGames;
+          lastSteamFetchTime = now;
+          return { success: true, games: dynamicGames };
+        }
+      }
+    } catch (_) {}
+
+    return { success: cachedSteamGames.length > 0, games: cachedSteamGames };
+  });
+
   ipcMain.handle('get-electron-update-state', () => {
     const state = loadUpdateState();
     if (state.status === 'downloading' || state.status === 'checking') {

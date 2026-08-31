@@ -22,6 +22,7 @@ contextBridge.exposeInMainWorld('electronAPI', {
   downloadElectronUpdate: () => ipcRenderer.send('download-electron-update'),
   quitAndInstallElectronUpdate: () => ipcRenderer.send('quit-and-install-update'),
   fetchGamingNews: () => ipcRenderer.invoke('fetch-gaming-news'),
+  fetchSteamTrending: () => ipcRenderer.invoke('fetch-steam-trending'),
   setProgressBar: (value: number) => ipcRenderer.send('set-progress-bar', value),
   restartBackend: () => ipcRenderer.send('restart-backend'),
   onNetworkStatusChanged: (isOnline: boolean) => ipcRenderer.send('network-status-changed', isOnline),
