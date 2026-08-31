@@ -139,11 +139,10 @@ $changesFormatted
 ### 📦 Available Downloads & Formats
 - **Linux (.deb - Debian / Ubuntu / Mint)**: [MissionControl-Linux-${version}.deb](https://github.com/arnab825/Mission-Control/releases/download/v${version}/MissionControl-Linux-${version}.deb)
 - **Linux (.AppImage - Universal Linux)**: [MissionControl-Linux-${version}.AppImage](https://github.com/arnab825/Mission-Control/releases/download/v${version}/MissionControl-Linux-${version}.AppImage)
-- **Linux (.rpm - Fedora / RHEL / openSUSE)**: [MissionControl-Linux-${version}.rpm](https://github.com/arnab825/Mission-Control/releases/download/v${version}/MissionControl-Linux-${version}.rpm)
 - **Linux (.tar.gz - Standalone Linux Archive)**: [MissionControl-Linux-${version}.tar.gz](https://github.com/arnab825/Mission-Control/releases/download/v${version}/MissionControl-Linux-${version}.tar.gz)
 - **Windows (.exe - Setup Installer)**: [MissionControl-Setup.exe](https://github.com/arnab825/Mission-Control/releases/download/v${version}/MissionControl-Setup.exe)
 - **Windows (.msi - Enterprise Installer)**: [MissionControl-Setup.msi](https://github.com/arnab825/Mission-Control/releases/download/v${version}/MissionControl-Setup.msi)
-- **Windows (.zip - Portable Windows Archive)**: [MissionControl-Windows-${version}.zip](https://github.com/arnab825/Mission-Control/releases/download/v${version}/MissionControl-Windows-${version}.zip)
+- **Windows (.zip - Portable Windows Archive)**: [MissionControl-Setup.zip](https://github.com/arnab825/Mission-Control/releases/download/v${version}/MissionControl-Setup.zip)
 "@
             Set-Content -Path $releaseNotesFile -Value $releaseBody -Encoding UTF8
 
