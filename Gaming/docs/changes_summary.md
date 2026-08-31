@@ -12,7 +12,26 @@ Comprehensive breakdown of major milestone releases, architectural upgrades, and
 
 ---
 
-## 🌟 Version v3.3.9 (Latest) — Fix telemetry scanner bridge state and enable native 1-click node registration
+## 🌟 Version v3.4.0 (Latest) — Upgrade Discover with Live Steam, Epic, GOG, Xbox Game Pass & Breaking News Intelligence
+
+### 🛠️ Key Highlights
+1. **Upgrade Discover with Live Steam, Epic, GOG, Xbox Game Pass & Breaking News Intelligence**
+
+### 📊 Architecture & Data Flow
+```mermaid
+graph TD
+    A[Developer Push / Publish Pipeline] --> B[Version Stamping & AI Changelog Enforcer]
+    B --> C[Mission Control System Core]
+    C --> D[Website Documentation & Real-Time Sync]
+```
+
+### 📦 Distribution Artifacts
+- **Linux**: `.deb` (Debian/Ubuntu), `.AppImage` (Universal), `.rpm` (Fedora/RHEL), `.tar.gz` (Portable)
+- **Windows**: `.exe` (Setup Installer), `.msi` (Enterprise), `.zip` (Portable)
+
+---
+
+## 📦 Version v3.3.9 — Fix telemetry scanner bridge state and enable native 1-click node registration
 
 ### 🛠️ Key Highlights
 1. **Fix telemetry scanner bridge state and enable native 1-click node registration**
