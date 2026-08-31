@@ -249,18 +249,7 @@ const NodeManagerModal: React.FC<NodeManagerModalProps> = ({ onClose }) => {
     try {
       let data: LibraryNode[] = [];
       if (userId) {
-        try {
-          const res = await fetchWithFailover(`/api/nodes?clerk_id=${encodeURIComponent(userId)}`);
-          if (res.ok) {
-            data = await res.json();
-          }
-        } catch {
-          // ignore — fall through to unfiltered fetch
-        }
-      }
-      // If user-specific filter returned no nodes, fallback to fetching all nodes
-      if (!Array.isArray(data) || data.length === 0) {
-        const res = await fetchWithFailover(`/api/nodes`);
+        const res = await fetchWithFailover(`/api/nodes?clerk_id=${encodeURIComponent(userId)}`);
         if (res.ok) {
           data = await res.json();
         }

@@ -1,22 +1,12 @@
 {
-  "nodeId": "NODE-EE1CD5",
-  "name": "VICTUSANI",
-  "serverUrl": "https://mission-control-server-okj7.onrender.com",
-  "token": "T6iIarY2QEwV9LUCGl0QGashsZsMPpvgowvd2j0ZthM",
+  "nodeId": "",
+  "name": "",
+  "serverUrl": "https://mission-control-wz0l.onrender.com",
+  "backupServerUrl": "https://mission-control-server-okj7.onrender.com",
+  "token": "",
   "clerkId": "",
   "authProvider": "",
-  "scanPaths": [
-    "C:\\Games",
-    "C:\\Program Files\\EA Games",
-    "C:\\Program Files\\Epic Games",
-    "C:\\Program Files\\Steam\\steamapps\\common",
-    "C:\\XboxGames",
-    "D:\\SteamLibrary",
-    "D:\\SteamLibrary\\steamapps\\common",
-    "E:\\Program Files (x86)\\Steam\\steamapps\\common",
-    "c:\\program files\\steam\\steamapps\\common",
-    "e:\\program files (x86)\\steam\\steamapps\\common"
-  ],
+  "scanPaths": [],
   "heartbeatInterval": 15,
   "syncInterval": 300
 }
