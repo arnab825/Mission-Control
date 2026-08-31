@@ -215,11 +215,10 @@ $changesFormatted
                             }
                         }
 
-                        if ($target.draft) {
-                            $body = @{ draft = $false; name = $releaseTitle } | ConvertTo-Json
-                            Invoke-RestMethod -Uri "https://api.github.com/repos/arnab825/Mission-Control/releases/$($target.id)" -Method Patch -Headers $headers -Body $body -ContentType "application/json" | Out-Null
-                            Write-Host "[SUCCESS] Release v${version} is now LIVE and marked as Latest on GitHub!" -ForegroundColor Green
-                        }
+                        # Always ensure the full release title is set on GitHub
+                        $body = @{ draft = $false; name = $releaseTitle } | ConvertTo-Json
+                        Invoke-RestMethod -Uri "https://api.github.com/repos/arnab825/Mission-Control/releases/$($target.id)" -Method Patch -Headers $headers -Body $body -ContentType "application/json" | Out-Null
+                        Write-Host "[SUCCESS] Release v${version} title updated to '$releaseTitle' and marked as Latest on GitHub!" -ForegroundColor Green
                     }
                 } catch {
                     Write-Host "[WARNING] Release post-processing: $_" -ForegroundColor Yellow
