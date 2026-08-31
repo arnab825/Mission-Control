@@ -2675,7 +2675,8 @@ function setupAutoUpdater() {
     const feeds = [
       { url: 'https://www.pcgamer.com/rss/', label: 'PC Gamer', type: 'Gaming' },
       { url: 'https://www.eurogamer.net/?format=rss', label: 'Eurogamer', type: 'Gaming' },
-      { url: 'https://www.ign.com/feeds/news.xml', label: 'IGN', type: 'Gaming' },
+      { url: 'http://feeds.ign.com/ign/news', label: 'IGN', type: 'Gaming' },
+      { url: 'https://www.gamespot.com/feeds/mashup/', label: 'GameSpot', type: 'Gaming' },
       { url: 'https://kotaku.com/rss', label: 'Kotaku', type: 'Gaming' },
       { url: 'https://www.tomshardware.com/feeds/all', label: "Tom's Hardware", type: 'Hardware' },
     ];
@@ -2908,7 +2909,63 @@ function setupAutoUpdater() {
       } catch (_) {}
     };
 
-    await Promise.allSettled([fetchSteam(), fetchEpic(), fetchGOG()]);
+    // 4. Fetch Xbox & PC Game Pass live titles
+    const fetchXbox = async () => {
+      try {
+        const controller = new AbortController();
+        const timeout = setTimeout(() => controller.abort(), 6000);
+        const res = await fetch('https://catalog.gamepass.com/sigls/v2?id=fdd9e2a7-0fee-49f6-ad69-4354098401ff&language=en-us&market=US', {
+          signal: controller.signal,
+          headers: { 'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) MissionControl/3.3' }
+        });
+        clearTimeout(timeout);
+        if (!res.ok) return;
+        const data = (await res.json()) as any;
+        const idList: string[] = (Array.isArray(data) ? data : [])
+          .filter((item: any) => item?.id && typeof item.id === 'string')
+          .slice(0, 10)
+          .map((item: any) => item.id);
+
+        if (idList.length > 0) {
+          const detailRes = await fetch(`https://displaycatalog.mp.microsoft.com/v7.0/products?bigIds=${idList.join(',')}&market=US&languages=en-us`);
+          if (detailRes.ok) {
+            const detailData = (await detailRes.json()) as any;
+            const products = detailData?.Products || [];
+            products.forEach((p: any) => {
+              const props = p.LocalizedProperties?.[0];
+              const title = props?.ProductTitle;
+              const imgObj = props?.Images?.find((i: any) => i.ImagePurpose === 'BoxArt' || i.ImagePurpose === 'Poster' || i.ImagePurpose === 'BrandedKeyArt');
+              let imgUrl = imgObj?.Uri;
+              if (imgUrl && imgUrl.startsWith('//')) {
+                imgUrl = `https:${imgUrl}`;
+              }
+
+              safeAdd({
+                id: `xbox-${p.ProductId}`,
+                title: title || 'Xbox Game Pass Title',
+                developer: props?.DeveloperName || 'Xbox Game Studios',
+                publisher: props?.PublisherName || 'Microsoft',
+                release_date: p.MarketProperties?.[0]?.OriginalReleaseDate ? p.MarketProperties[0].OriginalReleaseDate.split('T')[0] : new Date().getFullYear().toString(),
+                primary_genre: 'Game Pass',
+                genres: ['Xbox', 'PC Game Pass', 'Action'],
+                tags: ['Xbox', 'PC Game Pass', 'Microsoft Store'],
+                cover_url: imgUrl,
+                banner_url: imgUrl,
+                summary: props?.ShortDescription || `Available to play on PC with Xbox Game Pass and Microsoft Store.`,
+                store: 'Xbox',
+                store_app_id: p.ProductId,
+                launchers: ['Xbox'],
+                in_catalog: true,
+                ai_classified: true,
+                installations: [],
+              });
+            });
+          }
+        }
+      } catch (_) {}
+    };
+
+    await Promise.allSettled([fetchSteam(), fetchEpic(), fetchGOG(), fetchXbox()]);
 
     if (allGames.length > 0) {
       cachedLauncherGames = allGames;

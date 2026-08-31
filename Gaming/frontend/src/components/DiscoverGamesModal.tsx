@@ -60,6 +60,8 @@ const LAUNCHER_STYLES: Record<string, { bg: string; text: string; border: string
   'Epic Games':  { bg: 'bg-purple-950/80', text: 'text-purple-300', border: 'border-purple-500/30' },
   'GOG Galaxy':  { bg: 'bg-violet-950/80', text: 'text-violet-300', border: 'border-violet-500/30' },
   'GOG':         { bg: 'bg-violet-950/80', text: 'text-violet-300', border: 'border-violet-500/30' },
+  'Xbox':        { bg: 'bg-emerald-950/80', text: 'text-emerald-400', border: 'border-emerald-500/30' },
+  'Xbox Game Pass': { bg: 'bg-emerald-950/80', text: 'text-emerald-400', border: 'border-emerald-500/30' },
   'Web':         { bg: 'bg-zinc-800/80', text: 'text-zinc-300', border: 'border-zinc-500/30' },
 };
 
@@ -67,7 +69,8 @@ const SOURCE_COLORS: Record<string, { bg: string; text: string; border: string }
   'PC Gamer':        { bg: 'bg-red-500/15', text: 'text-red-400', border: 'border-red-500/30' },
   'Eurogamer':       { bg: 'bg-blue-500/15', text: 'text-blue-400', border: 'border-blue-500/30' },
   'IGN':             { bg: 'bg-rose-500/15', text: 'text-rose-400', border: 'border-rose-500/30' },
-  'Kotaku':          { bg: 'bg-amber-500/15', text: 'text-amber-400', border: 'border-amber-500/30' },
+  'GameSpot':        { bg: 'bg-amber-500/15', text: 'text-amber-400', border: 'border-amber-500/30' },
+  'Kotaku':          { bg: 'bg-yellow-500/15', text: 'text-yellow-400', border: 'border-yellow-500/30' },
   "Tom's Hardware":  { bg: 'bg-cyan-500/15', text: 'text-cyan-400', border: 'border-cyan-500/30' },
 };
 
@@ -835,6 +838,7 @@ const DiscoverGamesModal: React.FC<DiscoverGamesModalProps> = ({ onClose }) => {
                   { id: 'Steam', label: 'Steam', style: 'bg-[#1b2838] text-[#66c0f4] border-[#66c0f4]/40' },
                   { id: 'Epic Games', label: 'Epic Games Store', style: 'bg-purple-950 text-purple-300 border-purple-500/40' },
                   { id: 'GOG', label: 'GOG Galaxy', style: 'bg-violet-950 text-violet-300 border-violet-500/40' },
+                  { id: 'Xbox', label: 'Xbox Game Pass', style: 'bg-emerald-950 text-emerald-400 border-emerald-500/40' },
                 ].map((launcher) => {
                   const isActive = selectedLauncher === launcher.id;
                   return (
