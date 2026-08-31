@@ -1089,7 +1089,7 @@ const GamesLibraryContent: React.FC<GamesPageProps> = ({ state, sendCommand, set
 
       {/* Node Manager Modal */}
       <AnimatePresence>
-        {showNodeManager && <NodeManagerModal onClose={() => setShowNodeManager(false)} />}
+        {showNodeManager && <NodeManagerModal onClose={() => setShowNodeManager(false)} sendCommand={sendCommand} />}
       </AnimatePresence>
 
       {/* Discover Games Modal */}

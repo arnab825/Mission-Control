@@ -150,6 +150,7 @@ $changesFormatted
             # Kill any lingering 7za / archiver processes that may lock files in out/dist
             Get-Process -Name "7za" -ErrorAction SilentlyContinue | Stop-Process -Force -ErrorAction SilentlyContinue
             Get-ChildItem -Path "$PSScriptRoot/../frontend/out/dist/*.tar*" -ErrorAction SilentlyContinue | Remove-Item -Force -ErrorAction SilentlyContinue
+            Remove-Item -Force -Recurse "$PSScriptRoot/../frontend/out/dist/__msi-x64" -ErrorAction SilentlyContinue
 
             $token = if ($env:GH_TOKEN) { $env:GH_TOKEN } else { $env:GITHUB_TOKEN }
 

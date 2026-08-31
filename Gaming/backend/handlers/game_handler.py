@@ -69,6 +69,20 @@ def _ensure_local_node_daemon(user_id_str: Optional[str] = None):
     _threading.Thread(target=_run, name="AutonomousNodeDaemon", daemon=True).start()
 
 
+def handle_register_local_node(payload: dict, pipeline, bridge, config) -> None:
+    """Manually or automatically triggers local node registration and heartbeat daemon."""
+    user_id = payload.get("userId") if payload else None
+    user_id_str = str(user_id) if user_id else (getattr(pipeline, "active_user_id", None) if pipeline else None)
+    _ensure_local_node_daemon(user_id_str)
+    if _node_service_instance:
+        if user_id_str:
+            _node_service_instance.cfg.clerk_id = user_id_str
+            _node_service_instance.cfg.save()
+        _threading.Thread(target=_node_service_instance.register, daemon=True).start()
+    if bridge:
+        bridge.update_state({"node_registration_status": "registered"})
+
+
 def handle_get_cached_games(payload: dict, pipeline, bridge, config, library_session: dict) -> None:
     try:
         from system.game_scanner import GameScanner
