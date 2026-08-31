@@ -12,7 +12,26 @@ Comprehensive breakdown of major milestone releases, architectural upgrades, and
 
 ---
 
-## 🌟 Version v3.3.7 (Latest) — Fixes some issue and bug of server
+## 🌟 Version v3.3.8 (Latest) — Fixes some issue and bug of server update .Also fix the setup app
+
+### 🛠️ Key Highlights
+1. **Fixes some issue and bug of server update .Also fix the setup app**
+
+### 📊 Architecture & Data Flow
+```mermaid
+graph TD
+    A[Developer Push / Publish Pipeline] --> B[Version Stamping & AI Changelog Enforcer]
+    B --> C[Mission Control System Core]
+    C --> D[Website Documentation & Real-Time Sync]
+```
+
+### 📦 Distribution Artifacts
+- **Linux**: `.deb` (Debian/Ubuntu), `.AppImage` (Universal), `.rpm` (Fedora/RHEL), `.tar.gz` (Portable)
+- **Windows**: `.exe` (Setup Installer), `.msi` (Enterprise), `.zip` (Portable)
+
+---
+
+## 📦 Version v3.3.7 — Fixes some issue and bug of server
 
 ### 🛠️ Key Highlights
 1. **Fixes some issue and bug of server**

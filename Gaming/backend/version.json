@@ -1,8 +1,16 @@
 {
-  "version": "3.3.7",
+  "version": "3.3.8",
   "release_date": "2026-08-27",
   "update_check_url": "https://raw.githubusercontent.com/arnab825/Mission-Control/main/Gaming/backend/version.json",
   "changelog": [
+    {
+      "version": "3.3.8",
+      "date": "2026-08-31",
+      "title": "Fixes some issue and bug of server update .Also fix the setup app",
+      "highlights": [
+        "Fixes some issue and bug of server update .Also fix the setup app"
+      ]
+    },
     {
       "version": "3.3.7",
       "date": "2026-08-31",
@@ -459,14 +467,6 @@
         "Added hybrid GPU fallback for BetterCam and DXCam screen capture backends",
         "Updated Privacy Shield to black out desktop capture when tabbing to Mission Control, eliminating infinite mirror effect",
         "Demoted normal WebSocket closures (1000 OK) from WARNING to INFO log level"
-      ]
-    },
-    {
-      "version": "2.9.0",
-      "date": "2026-08-06",
-      "title": "Hardware-Accelerated Borderless Fullscreen Screen Capture Fix",
-      "highlights": [
-        "Fixed black screen capture issue for borderless fullscreen DirectX/Vulkan games via PW_RENDERFULLCONTENT DirectComposition capture"
       ]
     }
   ]

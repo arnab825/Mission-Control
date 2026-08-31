@@ -2,6 +2,10 @@
 
 This document contains a detailed history of all patches and updates for the AI Gaming Assistant.
 
+### Patch: 2026-08-31 — v3.3.8: Fixes some issue and bug of server update .Also fix the setup app
+
+- Fixes some issue and bug of server update .Also fix the setup app
+
 ### Patch: 2026-08-31 — v3.3.7: Fixes some issue and bug of server
 
 - Fixes some issue and bug of server
