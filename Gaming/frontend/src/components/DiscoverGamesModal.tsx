@@ -311,6 +311,7 @@ const DiscoverGamesModal: React.FC<DiscoverGamesModalProps> = ({ onClose }) => {
   const [newsLoading, setNewsLoading] = useState(false);
   const [selectedSource, setSelectedSource] = useState<string>('All');
   const [selectedTopic, setSelectedTopic] = useState<string>('All');
+  const [selectedLauncher, setSelectedLauncher] = useState<string>('All');
   const [brokenImages, setBrokenImages] = useState<Record<string, boolean>>({});
 
   // Fetch Live Gaming News (from external RSS via Electron IPC)
@@ -350,13 +351,20 @@ const DiscoverGamesModal: React.FC<DiscoverGamesModalProps> = ({ onClose }) => {
   const loadPopularCatalog = async () => {
     setLoading(true);
     try {
-      // 1. Fetch live dynamic Steam trending & top sellers first
-      let dynamicSteamList: DiscoverItem[] = [];
-      if (typeof window !== 'undefined' && window.electronAPI?.fetchSteamTrending) {
+      // 1. Fetch live dynamic multi-launcher trending (Steam, Epic Games, GOG)
+      let dynamicLauncherList: DiscoverItem[] = [];
+      if (typeof window !== 'undefined' && window.electronAPI?.fetchLauncherTrending) {
         try {
-          const steamRes = await window.electronAPI.fetchSteamTrending();
-          if (steamRes && steamRes.success && Array.isArray(steamRes.games) && steamRes.games.length > 0) {
-            dynamicSteamList = steamRes.games;
+          const lRes = await window.electronAPI.fetchLauncherTrending();
+          if (lRes && lRes.success && Array.isArray(lRes.games) && lRes.games.length > 0) {
+            dynamicLauncherList = lRes.games;
+          }
+        } catch (_) {}
+      } else if (typeof window !== 'undefined' && window.electronAPI?.fetchSteamTrending) {
+        try {
+          const sRes = await window.electronAPI.fetchSteamTrending();
+          if (sRes && sRes.success && Array.isArray(sRes.games)) {
+            dynamicLauncherList = sRes.games;
           }
         } catch (_) {}
       }
@@ -393,12 +401,12 @@ const DiscoverGamesModal: React.FC<DiscoverGamesModalProps> = ({ onClose }) => {
         }));
       }
 
-      // 3. Combine: Live Steam Trending first, then Curated, then Catalog
+      // 3. Combine: Live Multi-Launcher Trending (Steam, Epic, GOG) first, then Curated, then Catalog
       const existingNames = new Set<string>();
       const combined: DiscoverItem[] = [];
 
-      // Add dynamic steam games
-      for (const g of dynamicSteamList) {
+      // Add dynamic multi-launcher games (Steam, Epic, GOG)
+      for (const g of dynamicLauncherList) {
         const key = g.title.toLowerCase().trim();
         if (!existingNames.has(key)) {
           existingNames.add(key);
@@ -507,30 +515,38 @@ const DiscoverGamesModal: React.FC<DiscoverGamesModalProps> = ({ onClose }) => {
     loadGamingNews();
   }, []);
 
-  // Filter games based on genre tabs
+  // Filter games based on genre tabs and selected launcher
   const displayedGames = useMemo(() => {
+    let list = results;
+    if (selectedLauncher !== 'All') {
+      const target = selectedLauncher.toLowerCase();
+      list = list.filter(g =>
+        g.store?.toLowerCase().includes(target) ||
+        g.launchers?.some(l => l.toLowerCase().includes(target))
+      );
+    }
     if (activeTab === 'action') {
-      return results.filter(g =>
+      return list.filter(g =>
         g.primary_genre?.toLowerCase().includes('action') ||
         g.primary_genre?.toLowerCase().includes('rpg') ||
         g.genres.some(gen => /action|rpg|adventure/i.test(gen))
       );
     }
     if (activeTab === 'openworld') {
-      return results.filter(g =>
+      return list.filter(g =>
         g.primary_genre?.toLowerCase().includes('open') ||
         g.primary_genre?.toLowerCase().includes('racing') ||
         g.genres.some(gen => /open world|racing|driving/i.test(gen))
       );
     }
     if (activeTab === 'shooter') {
-      return results.filter(g =>
+      return list.filter(g =>
         g.primary_genre?.toLowerCase().includes('shooter') ||
         g.genres.some(gen => /shooter|fps|tactical|combat/i.test(gen))
       );
     }
-    return results;
-  }, [results, activeTab]);
+    return list;
+  }, [results, activeTab, selectedLauncher]);
 
   // Dynamically extract hot trending topics/games from the real live incoming news headlines
   const dynamicNewsTopics = useMemo(() => {
@@ -808,23 +824,55 @@ const DiscoverGamesModal: React.FC<DiscoverGamesModalProps> = ({ onClose }) => {
               )}
             </div>
           ) : (
-            <div className="flex items-center gap-1.5 overflow-x-auto no-scrollbar pt-1">
-              <span className="text-[8px] font-black text-zinc-600 uppercase tracking-widest mr-1 shrink-0">
-                Popular:
-              </span>
-              {SUGGESTED_QUERIES.map((q) => (
-                <button
-                  key={q}
-                  type="button"
-                  onClick={() => {
-                    setQuery(q);
-                    handleSearch(q);
-                  }}
-                  className="shrink-0 px-2.5 py-1 rounded-lg bg-white/3 hover:bg-white/8 border border-white/5 text-[9px] font-medium text-zinc-400 hover:text-zinc-200 transition-colors cursor-pointer"
-                >
-                  {q}
-                </button>
-              ))}
+            <div className="space-y-2 pt-1">
+              {/* Row 1: Multi-Launcher Platform Switcher */}
+              <div className="flex items-center gap-1.5 overflow-x-auto no-scrollbar">
+                <span className="text-[8px] font-black text-zinc-500 uppercase tracking-widest mr-1 shrink-0">
+                  Launchers:
+                </span>
+                {[
+                  { id: 'All', label: 'All Stores', style: 'bg-neon-green text-black font-black' },
+                  { id: 'Steam', label: 'Steam', style: 'bg-[#1b2838] text-[#66c0f4] border-[#66c0f4]/40' },
+                  { id: 'Epic Games', label: 'Epic Games Store', style: 'bg-purple-950 text-purple-300 border-purple-500/40' },
+                  { id: 'GOG', label: 'GOG Galaxy', style: 'bg-violet-950 text-violet-300 border-violet-500/40' },
+                ].map((launcher) => {
+                  const isActive = selectedLauncher === launcher.id;
+                  return (
+                    <button
+                      key={launcher.id}
+                      type="button"
+                      onClick={() => setSelectedLauncher(launcher.id)}
+                      className={`shrink-0 px-2.5 py-1 rounded-lg text-[9px] font-bold uppercase transition-all cursor-pointer border ${
+                        isActive
+                          ? `${launcher.style} shadow-[0_0_12px_rgba(255,255,255,0.15)]`
+                          : 'bg-white/3 hover:bg-white/8 border-white/5 text-zinc-400 hover:text-zinc-200'
+                      }`}
+                    >
+                      {launcher.label}
+                    </button>
+                  );
+                })}
+              </div>
+
+              {/* Row 2: Popular Queries */}
+              <div className="flex items-center gap-1.5 overflow-x-auto no-scrollbar">
+                <span className="text-[8px] font-black text-zinc-600 uppercase tracking-widest mr-1 shrink-0">
+                  Popular:
+                </span>
+                {SUGGESTED_QUERIES.map((q) => (
+                  <button
+                    key={q}
+                    type="button"
+                    onClick={() => {
+                      setQuery(q);
+                      handleSearch(q);
+                    }}
+                    className="shrink-0 px-2.5 py-0.5 rounded-md bg-white/3 hover:bg-white/8 border border-white/5 text-[9px] font-medium text-zinc-400 hover:text-zinc-200 transition-colors cursor-pointer"
+                  >
+                    {q}
+                  </button>
+                ))}
+              </div>
             </div>
           )}
 
