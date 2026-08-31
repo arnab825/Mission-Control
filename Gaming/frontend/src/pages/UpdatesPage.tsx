@@ -56,6 +56,15 @@ export const UpdatesPage: React.FC<UpdatesPageProps> = ({
   const [rollbackInfo, setRollbackInfo] = React.useState<{ exists: boolean; version?: string } | null>(null);
   const [rollbackConfirm, setRollbackConfirm] = React.useState(false);
   const [isReportModalOpen, setIsReportModalOpen] = React.useState(false);
+  const [electronVersion, setElectronVersion] = React.useState<string>('');
+
+  useEffect(() => {
+    if (window.electronAPI?.getAppVersion) {
+      window.electronAPI.getAppVersion().then((v: string) => {
+        if (v) setElectronVersion(v);
+      }).catch(() => {});
+    }
+  }, []);
 
 
   useEffect(() => {
@@ -187,7 +196,7 @@ export const UpdatesPage: React.FC<UpdatesPageProps> = ({
     }
   }, [installState?.status]);
 
-  const currentVersion = (state?.version || '---').replace(/^v/i, '');
+  const currentVersion = (electronVersion || state?.version || '---').replace(/^v/i, '');
 
   const getReleaseHighlightsForVersion = (version: string) => {
     if (!version || version === '---') return null;

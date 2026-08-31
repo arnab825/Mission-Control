@@ -50,6 +50,15 @@ const Sidebar: React.FC<SidebarProps> = ({
     })[0];
   }
   
+  const [electronVer, setElectronVer] = React.useState<string>('');
+  React.useEffect(() => {
+    if ((window as any).electronAPI?.getAppVersion) {
+      (window as any).electronAPI.getAppVersion().then((v: string) => {
+        if (v) setElectronVer(v);
+      }).catch(() => {});
+    }
+  }, []);
+  
   const navItems = [
     { id: 'dashboard', label: 'Dashboard', icon: Activity, color: 'text-neon-green' },
     { id: 'vision', label: 'Vision', icon: Monitor, color: 'text-neon-yellow' },
@@ -240,7 +249,7 @@ const Sidebar: React.FC<SidebarProps> = ({
         <div className="pt-4 border-t border-white/5 space-y-3">
           <div className="flex items-center justify-between px-2">
             <span className="text-[10px] font-bold text-zinc-500 uppercase tracking-widest">Mission Control</span>
-            <span className="text-[10px] font-black text-neon-green font-mono">v{state?.version || '---'}</span>
+            <span className="text-[10px] font-black text-neon-green font-mono">v{(electronVer || state?.version || '---').replace(/^v/i, '')}</span>
           </div>
 
           <div className="grid grid-cols-2 gap-2">
