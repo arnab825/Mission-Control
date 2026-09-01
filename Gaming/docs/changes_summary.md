@@ -12,7 +12,28 @@ Comprehensive breakdown of major milestone releases, architectural upgrades, and
 
 ---
 
-## 🌟 Version v3.4.0 (Latest) — Upgrade Discover with Live Steam, Epic, GOG, Xbox Game Pass & Breaking News Intelligence
+## 🌟 Version v3.4.1 (Latest) — Fix OpenCV in-memory loader and enable Gaming Readiness assessment system
+
+### 🛠️ Key Highlights
+1. **Implement zero-disk in-memory fallback loader for OpenCV to prevent missing config crashes on read-only installations**
+2. **Integrate AI-driven Gaming Readiness assessment engine and IPC bridge with real-time hardware telemetry**
+3. **Enhance PyInstaller spec to guarantee recursive collection of OpenCV runtime configurations**
+
+### 📊 Architecture & Data Flow
+```mermaid
+graph TD
+    A[Developer Push / Publish Pipeline] --> B[Version Stamping & AI Changelog Enforcer]
+    B --> C[Mission Control System Core]
+    C --> D[Website Documentation & Real-Time Sync]
+```
+
+### 📦 Distribution Artifacts
+- **Linux**: `.deb` (Debian/Ubuntu), `.AppImage` (Universal), `.rpm` (Fedora/RHEL), `.tar.gz` (Portable)
+- **Windows**: `.exe` (Setup Installer), `.msi` (Enterprise), `.zip` (Portable)
+
+---
+
+## 📦 Version v3.4.0 — Upgrade Discover with Live Steam, Epic, GOG, Xbox Game Pass & Breaking News Intelligence
 
 ### 🛠️ Key Highlights
 1. **Upgrade Discover with Live Steam, Epic, GOG, Xbox Game Pass & Breaking News Intelligence**
