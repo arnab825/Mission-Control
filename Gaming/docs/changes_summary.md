@@ -12,7 +12,29 @@ Comprehensive breakdown of major milestone releases, architectural upgrades, and
 
 ---
 
-## 🌟 Version v3.4.1 (Latest) — Fix OpenCV in-memory loader and enable Gaming Readiness assessment system
+## 🌟 Version v3.4.2 (Latest) — Multi-Launcher Support, Omni-Search & Dynamic AI Resolver
+
+### 🛠️ Key Highlights
+1. **Added EA App, Ubisoft Connect, PlayStation PC, Rockstar Games, and Battle.net launcher support**
+2. **Engineered dynamic GameModeResolver with keyword & Jaccard token matching**
+3. **Added with_game_context decorator & auto_switch_mode universal wrapper function**
+4. **Implemented curated multi-launcher catalog for instant Discover Games & Intel Hub visibility**
+
+### 📊 Architecture & Data Flow
+```mermaid
+graph TD
+    A[Developer Push / Publish Pipeline] --> B[Version Stamping & AI Changelog Enforcer]
+    B --> C[Mission Control System Core]
+    C --> D[Website Documentation & Real-Time Sync]
+```
+
+### 📦 Distribution Artifacts
+- **Linux**: `.deb` (Debian/Ubuntu), `.AppImage` (Universal), `.rpm` (Fedora/RHEL), `.tar.gz` (Portable)
+- **Windows**: `.exe` (Setup Installer), `.msi` (Enterprise), `.zip` (Portable)
+
+---
+
+## 📦 Version v3.4.1 — Fix OpenCV in-memory loader and enable Gaming Readiness assessment system
 
 ### 🛠️ Key Highlights
 1. **Implement zero-disk in-memory fallback loader for OpenCV to prevent missing config crashes on read-only installations**

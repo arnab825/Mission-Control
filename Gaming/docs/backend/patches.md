@@ -2,6 +2,13 @@
 
 This document contains a detailed history of all patches and updates for the AI Gaming Assistant.
 
+### Patch: 2026-09-01 — v3.4.2: Multi-Launcher Support, Omni-Search & Dynamic AI Resolver
+
+- Added EA App, Ubisoft Connect, PlayStation PC, Rockstar Games, and Battle.net launcher support
+- Engineered dynamic GameModeResolver with keyword & Jaccard token matching
+- Added with_game_context decorator & auto_switch_mode universal wrapper function
+- Implemented curated multi-launcher catalog for instant Discover Games & Intel Hub visibility
+
 ### Patch: 2026-09-01 — v3.4.1: Fix OpenCV in-memory loader and enable Gaming Readiness assessment system
 
 - Implement zero-disk in-memory fallback loader for OpenCV to prevent missing config crashes on read-only installations
