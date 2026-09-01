@@ -55,6 +55,10 @@ export async function ensureBenchmarksSeeded(): Promise<void> {
   try {
     await connectDB();
 
+    // Clean up any stale/deleted games not in BENCHMARK_PROFILES
+    const validIds = Object.keys(BENCHMARK_PROFILES);
+    await BenchmarkModel.deleteMany({ id: { $nin: validIds } });
+
     // Sync/Upsert Admin Benchmark Profiles so new games are always present in MongoDB
     const syncOps = Object.values(BENCHMARK_PROFILES).map((profile) => {
       const summary = TESTED_GAMES_LIST.find((g) => g.id === profile.id);
