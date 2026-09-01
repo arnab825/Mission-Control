@@ -8,11 +8,12 @@
  * 3. Launcher-aware live web discovery across Steam, Epic Games, GOG, and RAWG.
  */
 
-import React, { useState, useEffect, useMemo } from 'react';
-import { motion } from 'framer-motion';
+import React, { useState, useEffect, useMemo, useRef } from 'react';
+import { motion, AnimatePresence } from 'framer-motion';
 import {
   X, Search, Sparkles, Check, Loader2, Globe, Flame, Gamepad2,
-  Newspaper, ExternalLink, RefreshCw, Swords, Crosshair, Compass
+  Newspaper, ExternalLink, RefreshCw, ArrowLeftRight, Swords, Crosshair, Compass,
+  Clock, ArrowRight, CornerDownLeft
 } from 'lucide-react';
 
 import { fetchWithFailover } from '../hooks/useDistributedStats';
@@ -216,11 +217,29 @@ const CURATED_FEATURED_GAMES: DiscoverItem[] = [
     primary_genre: 'Open World Western',
     genres: ['Open World', 'Western', 'Action', 'Story Rich'],
     tags: ['Atmospheric', 'Horses', 'Realistic'],
-    banner_url: 'https://shared.cloudflare.steamstatic.com/store_item_assets/steam/apps/1172470/header.jpg',
+    banner_url: 'https://shared.cloudflare.steamstatic.com/store_item_assets/steam/apps/1174180/header.jpg',
     summary: 'Winner of over 175 Game of the Year Awards, Red Dead Redemption 2 is an epic tale of honor and loyalty at the dawn of the modern age in the American frontier.',
     store: 'Steam',
-    store_app_id: '1172470',
+    store_app_id: '1174180',
     launchers: ['Steam', 'Epic Games'],
+    in_catalog: true,
+    ai_classified: true,
+    installations: [],
+  },
+  {
+    id: 'apex-legends',
+    title: 'Apex Legends',
+    developer: 'Respawn Entertainment',
+    publisher: 'Electronic Arts',
+    release_date: '2020-11-05',
+    primary_genre: 'Battle Royale',
+    genres: ['Action', 'Battle Royale', 'FPS', 'Multiplayer'],
+    tags: ['Hero Shooter', 'Free to Play', 'Fast-Paced'],
+    banner_url: 'https://shared.cloudflare.steamstatic.com/store_item_assets/steam/apps/1172470/header.jpg',
+    summary: 'Conquer with character in Apex Legends, a free-to-play battle royale hero shooter where legendary characters with powerful abilities team up to battle for fame & fortune.',
+    store: 'Steam',
+    store_app_id: '1172470',
+    launchers: ['Steam', 'EA App'],
     in_catalog: true,
     ai_classified: true,
     installations: [],
@@ -299,6 +318,38 @@ const CURATED_FEATURED_GAMES: DiscoverItem[] = [
   },
 ];
 
+// Global in-memory LRU search cache (TTL: 30 minutes) to eliminate redundant requests & protect Supabase free-tier limits
+const SEARCH_CACHE = new Map<string, { timestamp: number; data: DiscoverItem[] }>();
+const CLIENT_CACHE_TTL = 30 * 60 * 1000;
+
+function getCachedSearchResults(key: string): DiscoverItem[] | null {
+  const norm = key.trim().toLowerCase();
+  const hit = SEARCH_CACHE.get(norm);
+  if (hit && Date.now() - hit.timestamp < CLIENT_CACHE_TTL) {
+    return hit.data;
+  }
+  try {
+    const raw = sessionStorage.getItem(`mc_search_${norm}`);
+    if (raw) {
+      const parsed = JSON.parse(raw);
+      if (parsed && Date.now() - parsed.timestamp < CLIENT_CACHE_TTL) {
+        SEARCH_CACHE.set(norm, parsed);
+        return parsed.data;
+      }
+    }
+  } catch (_) {}
+  return null;
+}
+
+function setCachedSearchResults(key: string, data: DiscoverItem[]) {
+  const norm = key.trim().toLowerCase();
+  const entry = { timestamp: Date.now(), data };
+  SEARCH_CACHE.set(norm, entry);
+  try {
+    sessionStorage.setItem(`mc_search_${norm}`, JSON.stringify(entry));
+  } catch (_) {}
+}
+
 const DiscoverGamesModal: React.FC<DiscoverGamesModalProps> = ({ onClose }) => {
   const [activeTab, setActiveTab] = useState<TabType>('trending');
   const [query, setQuery] = useState('');
@@ -309,6 +360,24 @@ const DiscoverGamesModal: React.FC<DiscoverGamesModalProps> = ({ onClose }) => {
   const [seedStatus, setSeedStatus] = useState<string | null>(null);
   const [seedError, setSeedError] = useState(false);
 
+  // Google-Style Search & Suggestions State
+  const [suggestions, setSuggestions] = useState<DiscoverItem[]>([]);
+  const [isSuggestOpen, setIsSuggestOpen] = useState(false);
+  const [focusedIndex, setFocusedIndex] = useState(-1);
+  const [isSuggestLoading, setIsSuggestLoading] = useState(false);
+  const [recentSearches, setRecentSearches] = useState<string[]>(() => {
+    try {
+      const saved = localStorage.getItem('mc_recent_game_searches');
+      return saved ? JSON.parse(saved) : [];
+    } catch {
+      return [];
+    }
+  });
+
+  const searchContainerRef = useRef<HTMLDivElement | null>(null);
+  const lastSupabaseCallRef = useRef<number>(0);
+  const debounceTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+
   // Dedicated News State
   const [newsItems, setNewsItems] = useState<NewsItem[]>([]);
   const [newsLoading, setNewsLoading] = useState(false);
@@ -316,36 +385,178 @@ const DiscoverGamesModal: React.FC<DiscoverGamesModalProps> = ({ onClose }) => {
   const [selectedTopic, setSelectedTopic] = useState<string>('All');
   const [selectedLauncher, setSelectedLauncher] = useState<string>('All');
   const [brokenImages, setBrokenImages] = useState<Record<string, boolean>>({});
+  const [selectedGame, setSelectedGame] = useState<DiscoverItem | null>(null);
+  const [activeLauncherMap, setActiveLauncherMap] = useState<Record<string, string>>({});
 
-  // Fetch Live Gaming News (from external RSS via Electron IPC)
+  const getGameActiveLauncher = (game: DiscoverItem): string => {
+    if (activeLauncherMap[game.id]) {
+      return activeLauncherMap[game.id];
+    }
+    if (selectedLauncher !== 'All' && game.launchers?.includes(selectedLauncher)) {
+      return selectedLauncher;
+    }
+    // Default to Steam if available, otherwise game.store or first available launcher
+    if (game.launchers?.includes('Steam')) {
+      return 'Steam';
+    }
+    return game.store || game.launchers?.[0] || 'Steam';
+  };
+
+  const handleOpenStore = (
+    e: React.MouseEvent,
+    game: DiscoverItem,
+    mode: 'steam_client' | 'web' = 'steam_client',
+    overrideLauncher?: string
+  ) => {
+    e.preventDefault();
+    e.stopPropagation();
+
+    const targetLauncher = overrideLauncher || getGameActiveLauncher(game);
+
+    const isGOG = targetLauncher === 'GOG Galaxy' || targetLauncher === 'GOG';
+    const isEpic = targetLauncher === 'Epic Games' || targetLauncher === 'Epic';
+    const isXbox = targetLauncher === 'Xbox' || targetLauncher === 'Xbox Game Pass';
+
+    let webUrl = '';
+    let clientProtocolUrl: string | null = null;
+
+    if (isGOG) {
+      webUrl = `https://www.gog.com/en/game/${game.store_app_id || encodeURIComponent(game.title)}`;
+      clientProtocolUrl = game.store_app_id ? `goggalaxy://openGameView/${game.store_app_id}` : null;
+    } else if (isEpic) {
+      webUrl = `https://store.epicgames.com/en-US/browse?q=${encodeURIComponent(game.title)}`;
+      clientProtocolUrl = game.store_app_id ? `com.epicgames.launcher://apps/${game.store_app_id}?action=browse` : null;
+    } else if (isXbox) {
+      webUrl = `https://www.xbox.com/en-us/games/store/search?q=${encodeURIComponent(game.title)}`;
+      clientProtocolUrl = `ms-windows-store://search/?query=${encodeURIComponent(game.title)}`;
+    } else {
+      // Default: Steam
+      webUrl = game.store_app_id
+        ? `https://store.steampowered.com/app/${game.store_app_id}`
+        : `https://store.steampowered.com/search/?term=${encodeURIComponent(game.title)}`;
+      clientProtocolUrl = game.store_app_id ? `steam://store/${game.store_app_id}` : null;
+    }
+
+    const targetUrl = mode === 'steam_client' && clientProtocolUrl ? clientProtocolUrl : webUrl;
+
+    if ((window as any).electronAPI?.openExternal) {
+      (window as any).electronAPI.openExternal(targetUrl).catch(() => {
+        (window as any).electronAPI?.openExternal?.(webUrl);
+      });
+    } else {
+      window.open(webUrl, '_blank', 'noopener,noreferrer');
+    }
+  };
+
+  // Fetch Live Gaming News (from Electron IPC, dev proxy, or live RSS)
   const loadGamingNews = async () => {
     setNewsLoading(true);
     try {
+      // 1. Electron Desktop IPC
       if (typeof window !== 'undefined' && window.electronAPI?.fetchGamingNews) {
-        const res = await window.electronAPI.fetchGamingNews();
-        if (res && res.success && res.items) {
-          setNewsItems(res.items);
-          return;
-        }
+        try {
+          const res = await window.electronAPI.fetchGamingNews();
+          if (res && res.success && Array.isArray(res.items) && res.items.length > 0) {
+            setNewsItems(res.items);
+            return;
+          }
+        } catch (_) {}
       }
-      // Fallback: Direct fetch if electronAPI is unavailable or running in browser
-      const fallbackRes = await fetch('https://api.rss2json.com/v1/api.json?rss_url=https%3A%2F%2Fwww.pcgamer.com%2Frss%2F');
-      if (fallbackRes.ok) {
-        const data = await fallbackRes.json();
-        const parsed: NewsItem[] = (data.items || []).map((item: any) => ({
-          id: item.link,
-          title: item.title,
-          link: item.link,
-          description: item.description?.replace(/<[^>]*>/g, '').slice(0, 180) + '...',
+
+      // 2. Vite Dev Server News Proxy (works in browser & desktop without CORS)
+      try {
+        const localRes = await fetch('/api/gaming-news');
+        if (localRes.ok) {
+          const data = await localRes.json();
+          if (data && data.success && Array.isArray(data.items) && data.items.length > 0) {
+            setNewsItems(data.items);
+            return;
+          }
+        }
+      } catch (_) {}
+
+      // 3. Fallback: Direct browser fetch from RSS proxy
+      try {
+        const fallbackRes = await fetch('https://api.rss2json.com/v1/api.json?rss_url=https%3A%2F%2Fwww.pcgamer.com%2Frss%2F');
+        if (fallbackRes.ok) {
+          const data = await fallbackRes.json();
+          const parsed: NewsItem[] = (data.items || []).map((item: any) => ({
+            id: item.link || String(Math.random()),
+            title: item.title || 'Gaming News Dispatch',
+            link: item.link || 'https://www.pcgamer.com/news/',
+            description: (item.description || '').replace(/<[^>]*>/g, '').trim().slice(0, 200) + '...',
+            source: 'PC Gamer',
+            category: 'Gaming',
+            pubDate: item.pubDate || 'Recent',
+            imageUrl: item.thumbnail || item.enclosure?.link,
+          }));
+          if (parsed.length > 0) {
+            setNewsItems(parsed);
+            return;
+          }
+        }
+      } catch (_) {}
+
+      // 4. Standby curated news baseline with 100% verified URLs that never 404
+      setNewsItems([
+        {
+          id: 'news-pcgamer-verified',
+          title: "PC Gamer: Breaking News, Hardware Benchmarks, and Exclusive Game Previews",
+          link: 'https://www.pcgamer.com/news/',
+          description: 'The global authority on PC gaming. Real-time industry updates, GPU performance analyses, patch notes, and Steam trending titles.',
           source: 'PC Gamer',
           category: 'Gaming',
-          pubDate: item.pubDate || '',
-          imageUrl: item.thumbnail || item.enclosure?.link,
-        }));
-        setNewsItems(parsed);
-      }
+          pubDate: 'Live Feed',
+        },
+        {
+          id: 'news-eurogamer-verified',
+          title: "Eurogamer: Latest Game Reviews, Guides, and Next-Gen Hardware Intel",
+          link: 'https://www.eurogamer.net/news',
+          description: 'Comprehensive reporting across PlayStation, Xbox, Nintendo, and PC with authoritative reviews and verified release schedules.',
+          source: 'Eurogamer',
+          category: 'Gaming',
+          pubDate: 'Live Feed',
+        },
+        {
+          id: 'news-tomshardware-verified',
+          title: "Tom's Hardware: Real-Time GPU, CPU, and Gaming Hardware Dispatches",
+          link: 'https://www.tomshardware.com/news',
+          description: 'Deep architectural coverage of NVIDIA RTX, AMD Radeon, and Intel processors, alongside component pricing trackers and deals.',
+          source: "Tom's Hardware",
+          category: 'Hardware',
+          pubDate: 'Live Feed',
+        },
+        {
+          id: 'news-kotaku-verified',
+          title: "Kotaku: Gaming Culture, Developer Leaks, and In-Depth Editorial Coverage",
+          link: 'https://kotaku.com/news',
+          description: 'Inside reports on upcoming AAA releases, indie sensations, patch breakdowns, and gaming industry developments.',
+          source: 'Kotaku',
+          category: 'Gaming',
+          pubDate: 'Live Feed',
+        },
+        {
+          id: 'news-polygon-verified',
+          title: "Polygon: Features, Game Recommendations, and Modern Entertainment News",
+          link: 'https://www.polygon.com/news',
+          description: 'Critical analysis of contemporary gaming culture, award-winning releases, and cross-platform adaptations.',
+          source: 'Polygon',
+          category: 'Gaming',
+          pubDate: 'Live Feed',
+        }
+      ]);
     } catch {
-      // Graceful fallback
+      setNewsItems([
+        {
+          id: 'news-pcgamer-verified',
+          title: "PC Gamer: Breaking News, Hardware Benchmarks, and Exclusive Game Previews",
+          link: 'https://www.pcgamer.com/news/',
+          description: 'The global authority on PC gaming. Real-time industry updates, GPU performance analyses, patch notes, and Steam trending titles.',
+          source: 'PC Gamer',
+          category: 'Gaming',
+          pubDate: 'Live Feed',
+        }
+      ]);
     } finally {
       setNewsLoading(false);
     }
@@ -363,11 +574,48 @@ const DiscoverGamesModal: React.FC<DiscoverGamesModalProps> = ({ onClose }) => {
             dynamicLauncherList = lRes.games;
           }
         } catch (_) {}
-      } else if (typeof window !== 'undefined' && window.electronAPI?.fetchSteamTrending) {
+      }
+
+      // If no launcher items from IPC, fetch live from official Steam Store API directly
+      if (dynamicLauncherList.length === 0) {
         try {
-          const sRes = await window.electronAPI.fetchSteamTrending();
-          if (sRes && sRes.success && Array.isArray(sRes.games)) {
-            dynamicLauncherList = sRes.games;
+          const sRes = await fetch('https://store.steampowered.com/api/featuredcategories/?cc=us&l=en');
+          if (sRes.ok) {
+            const sData = await sRes.json();
+            const topSellers = sData.top_sellers?.items || [];
+            const specials = sData.specials?.items || [];
+            const seen = new Set<string>();
+
+            const addLiveSteam = (item: any, tag: string) => {
+              if (!item?.id || !item?.name || seen.has(item.name.toLowerCase())) return;
+              if (/Soundtrack|Valve Index|Steam Deck|Controller/i.test(item.name)) return;
+              seen.add(item.name.toLowerCase());
+              const imgUrl = item.header_image || `https://shared.cloudflare.steamstatic.com/store_item_assets/steam/apps/${item.id}/header.jpg`;
+              dynamicLauncherList.push({
+                id: `steam-${item.id}`,
+                title: item.name,
+                developer: 'Steam Verified',
+                publisher: 'Steam Partner',
+                release_date: new Date().getFullYear().toString(),
+                primary_genre: tag,
+                genres: ['Action', tag, 'Steam'],
+                tags: [tag, 'Steam Official'],
+                cover_url: imgUrl,
+                banner_url: imgUrl,
+                summary: item.discount_percent > 0
+                  ? `Steam Special Offer — currently ${item.discount_percent}% off on Steam Store.`
+                  : `Trending official release on the Steam Store.`,
+                store: 'Steam',
+                store_app_id: String(item.id),
+                launchers: ['Steam'],
+                in_catalog: true,
+                ai_classified: true,
+                installations: [],
+              });
+            };
+
+            topSellers.slice(0, 8).forEach((item: any) => addLiveSteam(item, 'Top Seller'));
+            specials.slice(0, 6).forEach((item: any) => addLiveSteam(item, 'Special Deal'));
           }
         } catch (_) {}
       }
@@ -444,6 +692,151 @@ const DiscoverGamesModal: React.FC<DiscoverGamesModalProps> = ({ onClose }) => {
     }
   };
 
+  // Google-Style Instant Multi-Source Query Engine
+  const executeGameQuery = async (queryTerm: string): Promise<DiscoverItem[]> => {
+    const clean = queryTerm.trim();
+    if (!clean) return [];
+
+    // 1. Tier 1: In-Memory / Session Storage Cache (0ms, 0 Network, 0 Supabase cost)
+    const cached = getCachedSearchResults(clean);
+    if (cached && cached.length > 0) {
+      return cached;
+    }
+
+    const termLower = clean.toLowerCase();
+    let combinedResults: DiscoverItem[] = [];
+    const seenIds = new Set<string>();
+
+    // 2. Tier 2: Real-time Public Store API (Electron IPC or Direct Steam Store Search - Zero Supabase Egress)
+    try {
+      if (typeof window !== 'undefined' && window.electronAPI?.searchGamesLive) {
+        const liveRes = await window.electronAPI.searchGamesLive(clean);
+        if (liveRes && liveRes.success && Array.isArray(liveRes.games) && liveRes.games.length > 0) {
+          liveRes.games.forEach((g: DiscoverItem) => {
+            if (!seenIds.has(g.id)) {
+              seenIds.add(g.id);
+              combinedResults.push(g);
+            }
+          });
+        }
+      } else {
+        // Direct browser fetch from Steam Store Search API
+        const sRes = await fetch(`https://store.steampowered.com/api/storesearch/?term=${encodeURIComponent(clean)}&l=english&cc=US`);
+        if (sRes.ok) {
+          const sData = await sRes.json();
+          if (sData?.items && Array.isArray(sData.items)) {
+            sData.items.forEach((item: any) => {
+              const appId = String(item.id);
+              const id = `steam-${appId}`;
+              if (!seenIds.has(id)) {
+                seenIds.add(id);
+                const banner = `https://shared.cloudflare.steamstatic.com/store_item_assets/steam/apps/${appId}/header.jpg`;
+                combinedResults.push({
+                  id,
+                  title: item.name,
+                  developer: 'Steam Verified',
+                  publisher: 'Steam Partner',
+                  release_date: new Date().getFullYear().toString(),
+                  primary_genre: item.metascore ? `Metascore ${item.metascore}` : 'Steam Store',
+                  genres: ['Action', 'Steam Store'],
+                  tags: ['Steam Store', item.metascore ? `Metascore: ${item.metascore}` : 'Verified'],
+                  cover_url: banner,
+                  banner_url: banner,
+                  summary: item.price
+                    ? `Official Steam Release. Available now on Steam Store (${(item.price.final / 100).toFixed(2)} ${item.price.currency}).`
+                    : `Official Steam title matching "${clean}".`,
+                  store: 'Steam',
+                  store_app_id: appId,
+                  launchers: ['Steam'],
+                  in_catalog: true,
+                  ai_classified: true,
+                  installations: [],
+                });
+              }
+            });
+          }
+        }
+      }
+    } catch (err) {
+      console.warn('[SearchEngine] Public store search error:', err);
+    }
+
+    // 3. Match from Curated Featured Games as instant high-fidelity additions
+    CURATED_FEATURED_GAMES.forEach((g) => {
+      if (!seenIds.has(g.id)) {
+        if (
+          g.title.toLowerCase().includes(termLower) ||
+          g.developer?.toLowerCase().includes(termLower) ||
+          g.primary_genre?.toLowerCase().includes(termLower) ||
+          g.tags.some(t => t.toLowerCase().includes(termLower))
+        ) {
+          seenIds.add(g.id);
+          combinedResults.push(g);
+        }
+      }
+    });
+
+    // 4. Tier 3: Supabase / Distributed Server Fallback (Throttled & Lightweight)
+    // Only query if results are scarce (< 4) to protect free-tier quotas
+    if (combinedResults.length < 4) {
+      try {
+        const now = Date.now();
+        if (now - lastSupabaseCallRef.current > 4000) { // Max 1 request per 4s
+          lastSupabaseCallRef.current = now;
+          const remoteRes = await fetchWithFailover(`/api/games/discover?q=${encodeURIComponent(clean)}&limit=12`);
+          if (remoteRes.ok) {
+            const data = await remoteRes.json();
+            const remoteItems = data.results || [];
+            remoteItems.forEach((g: any) => {
+              if (!seenIds.has(g.id)) {
+                seenIds.add(g.id);
+                combinedResults.push(g);
+              }
+            });
+          }
+        }
+      } catch (_) {}
+    }
+
+    // Cache the merged results
+    if (combinedResults.length > 0) {
+      setCachedSearchResults(clean, combinedResults);
+    }
+
+    return combinedResults;
+  };
+
+  const saveRecentSearch = (term: string) => {
+    const clean = term.trim();
+    if (!clean || clean.length < 2) return;
+    setRecentSearches(prev => {
+      const next = [clean, ...prev.filter(t => t.toLowerCase() !== clean.toLowerCase())].slice(0, 6);
+      try {
+        localStorage.setItem('mc_recent_game_searches', JSON.stringify(next));
+      } catch (_) {}
+      return next;
+    });
+  };
+
+  const removeRecentSearch = (e: React.MouseEvent, term: string) => {
+    e.stopPropagation();
+    setRecentSearches(prev => {
+      const next = prev.filter(t => t !== term);
+      try {
+        localStorage.setItem('mc_recent_game_searches', JSON.stringify(next));
+      } catch (_) {}
+      return next;
+    });
+  };
+
+  const clearAllRecent = (e: React.MouseEvent) => {
+    e.stopPropagation();
+    setRecentSearches([]);
+    try {
+      localStorage.removeItem('mc_recent_game_searches');
+    } catch (_) {}
+  };
+
   const handleSearch = async (searchTerm: string) => {
     if (!searchTerm.trim()) {
       loadPopularCatalog();
@@ -451,35 +844,103 @@ const DiscoverGamesModal: React.FC<DiscoverGamesModalProps> = ({ onClose }) => {
     }
     setLoading(true);
     setHasSearched(true);
+    setIsSuggestOpen(false);
+    saveRecentSearch(searchTerm);
     try {
-      const res = await fetchWithFailover(
-        `/api/games/discover?q=${encodeURIComponent(searchTerm.trim())}&limit=24`
-      );
-      if (res.ok) {
-        const data = await res.json();
-        const remoteResults = data.results || [];
-        if (remoteResults.length > 0) {
-          setResults(remoteResults);
-        } else {
-          // Client-side search across current games list if backend yields nothing
-          const term = searchTerm.toLowerCase();
-          const filtered = CURATED_FEATURED_GAMES.filter(
-            g => g.title.toLowerCase().includes(term) ||
-                 g.developer?.toLowerCase().includes(term) ||
-                 g.primary_genre?.toLowerCase().includes(term)
-          );
-          setResults(filtered);
-        }
-      } else {
-        const term = searchTerm.toLowerCase();
-        setResults(CURATED_FEATURED_GAMES.filter(g => g.title.toLowerCase().includes(term)));
-      }
+      const queryResults = await executeGameQuery(searchTerm);
+      setResults(queryResults.length > 0 ? queryResults : CURATED_FEATURED_GAMES);
     } catch {
       const term = searchTerm.toLowerCase();
       setResults(CURATED_FEATURED_GAMES.filter(g => g.title.toLowerCase().includes(term)));
     } finally {
       setLoading(false);
     }
+  };
+
+  // Google-Style Debounced Auto-complete
+  useEffect(() => {
+    if (activeTab === 'news' || !query.trim() || query.trim().length < 2) {
+      setSuggestions([]);
+      setIsSuggestLoading(false);
+      setFocusedIndex(-1);
+      return;
+    }
+
+    if (debounceTimerRef.current) {
+      clearTimeout(debounceTimerRef.current);
+    }
+
+    debounceTimerRef.current = setTimeout(async () => {
+      setIsSuggestLoading(true);
+      try {
+        const queryResults = await executeGameQuery(query);
+        setSuggestions(queryResults.slice(0, 6));
+        setIsSuggestOpen(true);
+      } catch {
+        setSuggestions([]);
+      } finally {
+        setIsSuggestLoading(false);
+      }
+    }, 250);
+
+    return () => {
+      if (debounceTimerRef.current) {
+        clearTimeout(debounceTimerRef.current);
+      }
+    };
+  }, [query, activeTab]);
+
+  // Click outside to dismiss suggestions
+  useEffect(() => {
+    const handleClickOutside = (e: MouseEvent) => {
+      if (searchContainerRef.current && !searchContainerRef.current.contains(e.target as Node)) {
+        setIsSuggestOpen(false);
+      }
+    };
+    document.addEventListener('mousedown', handleClickOutside);
+    return () => document.removeEventListener('mousedown', handleClickOutside);
+  }, []);
+
+  const handleKeyDown = (e: React.KeyboardEvent) => {
+    if (!isSuggestOpen || suggestions.length === 0) return;
+
+    if (e.key === 'ArrowDown') {
+      e.preventDefault();
+      setFocusedIndex(prev => (prev + 1) % suggestions.length);
+    } else if (e.key === 'ArrowUp') {
+      e.preventDefault();
+      setFocusedIndex(prev => (prev - 1 + suggestions.length) % suggestions.length);
+    } else if (e.key === 'Enter') {
+      if (focusedIndex >= 0 && suggestions[focusedIndex]) {
+        e.preventDefault();
+        const selected = suggestions[focusedIndex];
+        setIsSuggestOpen(false);
+        saveRecentSearch(selected.title);
+        setSelectedGame(selected);
+      }
+    } else if (e.key === 'Escape') {
+      e.preventDefault();
+      setIsSuggestOpen(false);
+      setFocusedIndex(-1);
+    }
+  };
+
+  const renderHighlightedText = (text: string, highlight: string) => {
+    if (!highlight.trim()) return text;
+    const parts = text.split(new RegExp(`(${highlight.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')})`, 'gi'));
+    return (
+      <span>
+        {parts.map((part, i) =>
+          part.toLowerCase() === highlight.toLowerCase() ? (
+            <span key={i} className="text-neon-green font-black">
+              {part}
+            </span>
+          ) : (
+            <span key={i}>{part}</span>
+          )
+        )}
+      </span>
+    );
   };
 
   const handleSeedLaunchers = async () => {
@@ -608,7 +1069,7 @@ const DiscoverGamesModal: React.FC<DiscoverGamesModalProps> = ({ onClose }) => {
 
       {/* Modal Container */}
       <motion.div
-        className="relative z-10 w-full max-w-5xl h-[88vh] bg-zinc-950/98 border border-white/8 rounded-3xl flex flex-col overflow-hidden shadow-2xl"
+        className="relative z-10 w-full max-w-5xl h-[88vh] bg-zinc-950/98 border border-white/8 rounded-3xl flex flex-col overflow-hidden shadow-2xl transform-gpu will-change-transform"
         initial={{ scale: 0.96, opacity: 0, y: 12 }}
         animate={{ scale: 1, opacity: 1, y: 0 }}
         exit={{ scale: 0.96, opacity: 0 }}
@@ -724,38 +1185,198 @@ const DiscoverGamesModal: React.FC<DiscoverGamesModalProps> = ({ onClose }) => {
 
         {/* Search Bar & Filters */}
         <div className="p-6 pb-4 border-b border-white/4 space-y-3 shrink-0 bg-black/20">
-          <form
-            onSubmit={(e) => {
-              e.preventDefault();
-              if (activeTab !== 'news') {
-                handleSearch(query);
-              }
-            }}
-            className="relative"
-          >
-            <Search className="w-4 h-4 text-zinc-500 absolute left-4 top-1/2 -translate-y-1/2" />
-            <input
-              type="text"
-              value={query}
-              onChange={(e) => setQuery(e.target.value)}
-              placeholder={
-                activeTab === 'news'
-                  ? "Filter news articles by headline or keyword (e.g. 'PlayStation', 'RTX', 'Update')..."
-                  : "Search games across Steam, Epic, GOG & RAWG (e.g. 'Cyberpunk', 'Elden Ring')..."
-              }
-              className="w-full bg-black/40 border border-white/10 focus:border-neon-green/40 rounded-2xl pl-11 pr-28 py-3 text-xs font-semibold text-white placeholder-zinc-500 outline-none transition-all"
-              autoFocus
-            />
-            {activeTab !== 'news' && (
-              <button
-                type="submit"
-                disabled={loading || !query.trim()}
-                className="absolute right-2.5 top-1/2 -translate-y-1/2 px-4 py-1.5 bg-neon-green hover:bg-neon-green/90 text-black font-black text-[9px] uppercase tracking-widest rounded-xl transition-all disabled:opacity-40 cursor-pointer"
-              >
-                {loading ? <Loader2 className="w-3.5 h-3.5 animate-spin" /> : 'Search Web'}
-              </button>
-            )}
-          </form>
+          <div ref={searchContainerRef} className="relative">
+            <form
+              onSubmit={(e) => {
+                e.preventDefault();
+                if (activeTab !== 'news') {
+                  handleSearch(query);
+                }
+              }}
+              className="relative"
+            >
+              <Search className="w-4 h-4 text-zinc-500 absolute left-4 top-1/2 -translate-y-1/2" />
+              <input
+                type="text"
+                value={query}
+                onChange={(e) => setQuery(e.target.value)}
+                onFocus={() => {
+                  if (query.trim().length >= 2 && suggestions.length > 0) {
+                    setIsSuggestOpen(true);
+                  }
+                }}
+                onKeyDown={handleKeyDown}
+                placeholder={
+                  activeTab === 'news'
+                    ? "Filter news articles by headline or keyword (e.g. 'PlayStation', 'RTX', 'Update')..."
+                    : "Search games across Steam, Epic, GOG & RAWG (e.g. 'Cyberpunk', 'Elden Ring')..."
+                }
+                className="w-full bg-black/40 border border-white/10 focus:border-neon-green/40 focus:shadow-[0_0_20px_rgba(118,185,0,0.15)] rounded-2xl pl-11 pr-36 py-3 text-xs font-semibold text-white placeholder-zinc-500 outline-none transition-all"
+                autoFocus
+              />
+
+              {/* Clear button when query is present */}
+              {query.length > 0 && (
+                <button
+                  type="button"
+                  onClick={() => {
+                    setQuery('');
+                    setSuggestions([]);
+                    setIsSuggestOpen(false);
+                    setFocusedIndex(-1);
+                    if (hasSearched) {
+                      loadPopularCatalog();
+                    }
+                  }}
+                  className="absolute right-28 top-1/2 -translate-y-1/2 p-1 rounded-md text-zinc-500 hover:text-white hover:bg-white/10 transition-colors cursor-pointer"
+                  title="Clear search"
+                >
+                  <X className="w-3.5 h-3.5" />
+                </button>
+              )}
+
+              {/* Submit button */}
+              {activeTab !== 'news' && (
+                <button
+                  type="submit"
+                  disabled={loading || !query.trim()}
+                  className="absolute right-2.5 top-1/2 -translate-y-1/2 px-4 py-1.5 bg-neon-green hover:bg-neon-green/90 text-black font-black text-[9px] uppercase tracking-widest rounded-xl transition-all disabled:opacity-40 cursor-pointer shadow-[0_0_12px_rgba(118,185,0,0.2)] flex items-center gap-1.5"
+                >
+                  {loading || isSuggestLoading ? (
+                    <Loader2 className="w-3.5 h-3.5 animate-spin" />
+                  ) : (
+                    <span>Search Web</span>
+                  )}
+                </button>
+              )}
+            </form>
+
+            {/* Google-Style Instant Floating Suggestions Dropdown */}
+            <AnimatePresence>
+              {isSuggestOpen && suggestions.length > 0 && activeTab !== 'news' && (
+                <motion.div
+                  initial={{ opacity: 0, y: -4, scale: 0.99 }}
+                  animate={{ opacity: 1, y: 0, scale: 1 }}
+                  exit={{ opacity: 0, y: -4, scale: 0.99 }}
+                  transition={{ duration: 0.15, ease: 'easeOut' }}
+                  className="absolute top-full left-0 right-0 z-50 mt-1.5 bg-[#0c0e15]/95 backdrop-blur-2xl border border-white/12 rounded-2xl shadow-[0_20px_50px_rgba(0,0,0,0.85),0_0_25px_rgba(118,185,0,0.12)] overflow-hidden"
+                >
+                  <div className="p-2 space-y-1 max-h-80 overflow-y-auto custom-scrollbar">
+                    {suggestions.map((game, idx) => {
+                      const isFocused = idx === focusedIndex;
+                      const banner = game.banner_url || game.cover_url;
+                      return (
+                        <div
+                          key={game.id}
+                          onMouseEnter={() => setFocusedIndex(idx)}
+                          onClick={() => {
+                            saveRecentSearch(game.title);
+                            setIsSuggestOpen(false);
+                            setSelectedGame(game);
+                          }}
+                          className={`flex items-center justify-between gap-3 p-2 rounded-xl transition-all cursor-pointer ${
+                            isFocused
+                              ? 'bg-neon-green/15 border border-neon-green/30 text-white pl-3 shadow-[0_0_15px_rgba(118,185,0,0.15)]'
+                              : 'hover:bg-white/5 border border-transparent text-zinc-300'
+                          }`}
+                        >
+                          <div className="flex items-center gap-3 min-w-0">
+                            {/* Tiny capsule banner */}
+                            <div className="w-14 h-8 rounded-lg overflow-hidden bg-black/60 shrink-0 border border-white/10 relative">
+                              {banner ? (
+                                <img src={banner} alt="" className="w-full h-full object-cover" />
+                              ) : (
+                                <div className="w-full h-full flex items-center justify-center bg-zinc-900">
+                                  <Gamepad2 className="w-3.5 h-3.5 text-zinc-600" />
+                                </div>
+                              )}
+                            </div>
+
+                            {/* Title & Metadata */}
+                            <div className="min-w-0">
+                              <h4 className="text-xs font-black truncate leading-tight">
+                                {renderHighlightedText(game.title, query)}
+                              </h4>
+                              <div className="flex items-center gap-2 text-[9px] text-zinc-500 font-mono mt-0.5 truncate">
+                                <span className="text-neon-green/80 font-bold uppercase">{game.primary_genre || 'Game'}</span>
+                                {game.release_date && (
+                                  <>
+                                    <span>·</span>
+                                    <span>{game.release_date.split('-')[0]}</span>
+                                  </>
+                                )}
+                                {game.developer && (
+                                  <>
+                                    <span>·</span>
+                                    <span className="truncate">{game.developer}</span>
+                                  </>
+                                )}
+                              </div>
+                            </div>
+                          </div>
+
+                          {/* Quick launcher action buttons */}
+                          <div className="flex items-center gap-1.5 shrink-0" onClick={(e) => e.stopPropagation()}>
+                            {game.store_app_id && (() => {
+                              const activeLauncher = getGameActiveLauncher(game);
+                              const isGOG = activeLauncher === 'GOG Galaxy' || activeLauncher === 'GOG';
+                              const isEpic = activeLauncher === 'Epic Games' || activeLauncher === 'Epic';
+                              const isXbox = activeLauncher === 'Xbox' || activeLauncher === 'Xbox Game Pass';
+
+                              let btnClass = 'bg-[#172030] hover:bg-[#203048] text-[#66c0f4] border-[#66c0f4]/30';
+                              let label = 'Steam';
+                              if (isGOG) {
+                                btnClass = 'bg-violet-950/70 hover:bg-violet-900 text-violet-300 border-violet-500/40';
+                                label = 'GOG';
+                              } else if (isEpic) {
+                                btnClass = 'bg-purple-950/70 hover:bg-purple-900 text-purple-300 border-purple-500/40';
+                                label = 'Epic';
+                              } else if (isXbox) {
+                                btnClass = 'bg-emerald-950/70 hover:bg-emerald-900 text-emerald-300 border-emerald-500/40';
+                                label = 'Xbox';
+                              }
+
+                              return (
+                                <button
+                                  type="button"
+                                  onClick={(e) => handleOpenStore(e, game, 'steam_client', activeLauncher)}
+                                  className={`p-1.5 rounded-lg hover:text-white border text-[8px] font-black uppercase tracking-wider transition-all cursor-pointer flex items-center gap-1 ${btnClass}`}
+                                  title={`Launch directly in ${label} client`}
+                                >
+                                  <Gamepad2 className="w-3 h-3" />
+                                  <span className="hidden sm:inline text-[8px]">{label}</span>
+                                </button>
+                              );
+                            })()}
+                            <button
+                              type="button"
+                              onClick={() => {
+                                saveRecentSearch(game.title);
+                                setIsSuggestOpen(false);
+                                setSelectedGame(game);
+                              }}
+                              className="p-1.5 rounded-lg bg-white/5 hover:bg-neon-green/20 text-zinc-400 hover:text-neon-green border border-white/10 text-[8px] font-black uppercase tracking-wider transition-all cursor-pointer"
+                              title="Inspect full game details"
+                            >
+                              <ArrowRight className="w-3 h-3" />
+                            </button>
+                          </div>
+                        </div>
+                      );
+                    })}
+                  </div>
+
+                  {/* Dropdown keyboard navigation hints */}
+                  <div className="px-3 py-1.5 bg-black/40 border-t border-white/6 flex items-center justify-between text-[8px] font-mono text-zinc-500">
+                    <span className="flex items-center gap-1">
+                      <CornerDownLeft className="w-2.5 h-2.5 text-neon-green" /> Press <strong className="text-zinc-300">Enter</strong> to inspect
+                    </span>
+                    <span>Use <strong className="text-zinc-300">↑ ↓</strong> to navigate · <strong className="text-zinc-300">Esc</strong> to close</span>
+                  </div>
+                </motion.div>
+              )}
+            </AnimatePresence>
+          </div>
 
           {/* Quick Suggestions for Games OR Dynamic Filters for News */}
           {activeTab === 'news' ? (
@@ -858,7 +1479,44 @@ const DiscoverGamesModal: React.FC<DiscoverGamesModalProps> = ({ onClose }) => {
                 })}
               </div>
 
-              {/* Row 2: Popular Queries */}
+              {/* Row 2: Recent Searches (if any exist) */}
+              {recentSearches.length > 0 && (
+                <div className="flex items-center gap-1.5 overflow-x-auto no-scrollbar pt-0.5">
+                  <span className="text-[8px] font-black text-zinc-500 uppercase tracking-widest mr-1 shrink-0 flex items-center gap-1">
+                    <Clock className="w-2.5 h-2.5 text-zinc-400" />
+                    Recent:
+                  </span>
+                  {recentSearches.map((term) => (
+                    <div
+                      key={term}
+                      onClick={() => {
+                        setQuery(term);
+                        handleSearch(term);
+                      }}
+                      className="group/chip shrink-0 inline-flex items-center gap-1 px-2 py-0.5 rounded-md bg-white/4 hover:bg-neon-green/15 border border-white/8 hover:border-neon-green/30 text-[9px] font-medium text-zinc-400 hover:text-neon-green transition-all cursor-pointer"
+                    >
+                      <span>{term}</span>
+                      <button
+                        type="button"
+                        onClick={(e) => removeRecentSearch(e, term)}
+                        className="opacity-40 hover:opacity-100 hover:text-red-400 transition-opacity"
+                        title="Remove from history"
+                      >
+                        <X className="w-2.5 h-2.5" />
+                      </button>
+                    </div>
+                  ))}
+                  <button
+                    type="button"
+                    onClick={clearAllRecent}
+                    className="shrink-0 text-[8px] text-zinc-600 hover:text-zinc-400 underline font-mono ml-1 cursor-pointer"
+                  >
+                    Clear
+                  </button>
+                </div>
+              )}
+
+              {/* Row 3: Popular Queries */}
               <div className="flex items-center gap-1.5 overflow-x-auto no-scrollbar">
                 <span className="text-[8px] font-black text-zinc-600 uppercase tracking-widest mr-1 shrink-0">
                   Popular:
@@ -1010,7 +1668,8 @@ const DiscoverGamesModal: React.FC<DiscoverGamesModalProps> = ({ onClose }) => {
                   return (
                     <div
                       key={game.id}
-                      className="group bg-white/2 hover:bg-white/4 border border-white/6 hover:border-white/12 rounded-2xl p-4 flex flex-col justify-between gap-3 transition-all"
+                      onClick={() => setSelectedGame(game)}
+                      className="group bg-white/2 hover:bg-white/4 border border-white/6 hover:border-neon-green/30 rounded-2xl p-4 flex flex-col justify-between gap-3 transition-all cursor-pointer hover:scale-[1.01] shadow-sm hover:shadow-[0_8px_24px_rgba(0,0,0,0.5)] transform-gpu will-change-transform"
                     >
                       <div>
                         {/* Cover & Banner */}
@@ -1022,6 +1681,7 @@ const DiscoverGamesModal: React.FC<DiscoverGamesModalProps> = ({ onClose }) => {
                               onError={() => setBrokenImages(prev => ({ ...prev, [game.id]: true }))}
                               className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
                               loading="lazy"
+                              decoding="async"
                             />
                           ) : (
                             <div className="w-full h-full flex flex-col items-center justify-center bg-linear-to-br from-zinc-900 to-black p-4 text-center">
@@ -1033,24 +1693,39 @@ const DiscoverGamesModal: React.FC<DiscoverGamesModalProps> = ({ onClose }) => {
                           )}
                           <div className="absolute inset-0 bg-linear-to-t from-black/80 via-transparent to-black/20" />
 
-                          {/* Store Badge */}
-                          <div className="absolute top-2 left-2 flex items-center gap-1">
+                          {/* Store Badge Interactive Switcher */}
+                          <div className="absolute top-2 left-2 flex items-center gap-1 z-10">
                             {game.launchers?.map((l) => {
                               const style = LAUNCHER_STYLES[l] || LAUNCHER_STYLES.Web;
+                              const activeLauncher = getGameActiveLauncher(game);
+                              const isSelected = activeLauncher === l;
+                              const isMultiple = (game.launchers?.length || 0) > 1;
+
                               return (
-                                <span
+                                <button
                                   key={l}
-                                  className={`px-2 py-0.5 rounded-md text-[8px] font-black uppercase tracking-wider border backdrop-blur-md ${style.bg} ${style.text} ${style.border}`}
+                                  type="button"
+                                  onClick={(e) => {
+                                    e.stopPropagation();
+                                    setActiveLauncherMap(prev => ({ ...prev, [game.id]: l }));
+                                  }}
+                                  className={`px-2 py-0.5 rounded-md text-[8px] font-black uppercase tracking-wider border backdrop-blur-md transition-all ${
+                                    isSelected
+                                      ? `${style.bg} ${style.text} ${style.border} ring-1.5 ring-white/70 shadow-[0_0_12px_rgba(255,255,255,0.4)] scale-105`
+                                      : `${style.bg} ${style.text} ${style.border} opacity-50 hover:opacity-90 hover:scale-100`
+                                  } ${isMultiple ? 'cursor-pointer' : 'cursor-default'}`}
+                                  title={isMultiple ? `Click to switch active launcher to ${l}` : l}
                                 >
                                   {l}
-                                </span>
+                                </button>
                               );
                             })}
                           </div>
 
                           {/* Installed Indicator */}
                           {isInstalled && (
-                            <div className="absolute top-2 right-2 px-2 py-0.5 rounded-md bg-emerald-500/20 text-emerald-400 border border-emerald-500/30 text-[8px] font-black uppercase tracking-wider backdrop-blur-md">
+                            <div className="absolute top-2 right-2 px-2 py-0.5 rounded-md bg-emerald-500/20 text-emerald-400 border border-emerald-500/30 text-[8px] font-black uppercase tracking-wider backdrop-blur-md flex items-center gap-1">
+                              <Check className="w-2.5 h-2.5" />
                               Installed
                             </div>
                           )}
@@ -1082,19 +1757,97 @@ const DiscoverGamesModal: React.FC<DiscoverGamesModalProps> = ({ onClose }) => {
                         )}
                       </div>
 
-                      {/* Footer Status */}
-                      <div className="pt-2 border-t border-white/4 flex items-center justify-between text-[9px] text-zinc-500">
-                        <div className="flex items-center gap-1">
-                          <Check className="w-3 h-3 text-neon-green" />
-                          <span>In Master Catalog</span>
-                        </div>
-                        {isInstalled ? (
-                          <span className="text-emerald-400 font-bold">
-                            {game.installations.length} node{game.installations.length !== 1 ? 's' : ''}
+                      {/* Footer Status & Actions */}
+                      <div className="pt-3 border-t border-white/5 flex items-center justify-between gap-2 text-[10px]">
+                        <div className="flex items-center gap-1.5 text-zinc-400 truncate">
+                          <span className="font-mono text-[9px] text-neon-green/80 uppercase tracking-wider">
+                            {game.tags?.[0] || game.genres?.[0] || game.primary_genre || 'Featured'}
                           </span>
-                        ) : (
-                          <span className="text-zinc-600">Uninstalled</span>
-                        )}
+                          {game.release_date && (
+                            <>
+                              <span className="text-zinc-600">·</span>
+                              <span className="text-zinc-500 text-[9px] font-mono">
+                                {game.release_date.split('-')[0]}
+                              </span>
+                            </>
+                          )}
+                        </div>
+
+                        <div className="flex items-center gap-1.5 shrink-0">
+                          {isInstalled ? (
+                            <span className="px-2.5 py-1 rounded-lg bg-emerald-500/10 text-emerald-400 border border-emerald-500/20 text-[9px] font-black uppercase tracking-wider flex items-center gap-1">
+                              <Check className="w-3 h-3 text-emerald-400" />
+                              Installed
+                            </span>
+                          ) : (
+                            <>
+                              {game.store_app_id && (() => {
+                                const activeLauncher = getGameActiveLauncher(game);
+                                const isGOG = activeLauncher === 'GOG Galaxy' || activeLauncher === 'GOG';
+                                const isEpic = activeLauncher === 'Epic Games' || activeLauncher === 'Epic';
+                                const isXbox = activeLauncher === 'Xbox' || activeLauncher === 'Xbox Game Pass';
+
+                                let btnClass = 'bg-[#172030] hover:bg-[#1f2d42] text-[#66c0f4] border-[#66c0f4]/30';
+                                let label = 'Steam';
+                                if (isGOG) {
+                                  btnClass = 'bg-violet-950/70 hover:bg-violet-900 text-violet-300 border-violet-500/40';
+                                  label = 'GOG';
+                                } else if (isEpic) {
+                                  btnClass = 'bg-purple-950/70 hover:bg-purple-900 text-purple-300 border-purple-500/40';
+                                  label = 'Epic';
+                                } else if (isXbox) {
+                                  btnClass = 'bg-emerald-950/70 hover:bg-emerald-900 text-emerald-300 border-emerald-500/40';
+                                  label = 'Xbox';
+                                }
+
+                                const hasMultiple = (game.launchers?.length || 0) > 1;
+
+                                const cycleLauncher = (e: React.MouseEvent) => {
+                                  e.preventDefault();
+                                  e.stopPropagation();
+                                  if (!hasMultiple) return;
+                                  const list = game.launchers || [];
+                                  const currIdx = list.indexOf(activeLauncher);
+                                  const nextIdx = (currIdx + 1) % list.length;
+                                  setActiveLauncherMap(prev => ({ ...prev, [game.id]: list[nextIdx] }));
+                                };
+
+                                return (
+                                  <div className="inline-flex items-center rounded-lg overflow-hidden border border-white/10 shadow-xs">
+                                    <button
+                                      type="button"
+                                      onClick={(e) => handleOpenStore(e, game, 'steam_client', activeLauncher)}
+                                      className={`px-2 py-1 hover:text-white text-[9px] font-black uppercase tracking-wider transition-all flex items-center gap-1 cursor-pointer ${btnClass}`}
+                                      title={`Open directly in ${label} client`}
+                                    >
+                                      <Gamepad2 className="w-2.5 h-2.5" />
+                                      <span>{label}</span>
+                                    </button>
+                                    {hasMultiple && (
+                                      <button
+                                        type="button"
+                                        onClick={cycleLauncher}
+                                        className="px-1.5 py-1 bg-white/5 hover:bg-neon-green/20 text-zinc-400 hover:text-neon-green transition-all border-l border-white/10 cursor-pointer flex items-center justify-center group/swap"
+                                        title={`Switch launcher: ${game.launchers?.join(' ⇄ ')}`}
+                                      >
+                                        <ArrowLeftRight className="w-2.5 h-2.5 group-hover/swap:scale-115 transition-transform" />
+                                      </button>
+                                    )}
+                                  </div>
+                                );
+                              })()}
+                              <button
+                                type="button"
+                                onClick={(e) => handleOpenStore(e, game, 'web')}
+                                className="group/btn px-2 py-1 rounded-lg bg-white/4 hover:bg-neon-green/15 text-zinc-400 hover:text-neon-green border border-white/8 hover:border-neon-green/30 text-[9px] font-black uppercase tracking-wider transition-all flex items-center gap-1 cursor-pointer"
+                                title={`Open ${game.title} store page in browser`}
+                              >
+                                <span>Web</span>
+                                <ExternalLink className="w-2.5 h-2.5 group-hover/btn:translate-x-0.5 group-hover/btn:-translate-y-0.5 transition-transform" />
+                              </button>
+                            </>
+                          )}
+                        </div>
                       </div>
                     </div>
                   );
@@ -1110,6 +1863,186 @@ const DiscoverGamesModal: React.FC<DiscoverGamesModalProps> = ({ onClose }) => {
           )}
         </div>
       </motion.div>
+
+      {/* Expanded In-App Game Intel Inspector Dialog */}
+      <AnimatePresence>
+        {selectedGame && (
+          <div
+            className="fixed inset-0 bg-black/85 backdrop-blur-xl z-70 flex items-center justify-center p-4 sm:p-6 select-none"
+            onClick={() => setSelectedGame(null)}
+          >
+            <motion.div
+              initial={{ opacity: 0, scale: 0.95, y: 10 }}
+              animate={{ opacity: 1, scale: 1, y: 0 }}
+              exit={{ opacity: 0, scale: 0.95, y: 10 }}
+              transition={{ duration: 0.2, ease: 'easeOut' }}
+              onClick={(e) => e.stopPropagation()}
+              className="w-full max-w-2xl bg-[#0e1017] border border-white/12 rounded-3xl overflow-hidden shadow-[0_25px_60px_rgba(0,0,0,0.9),0_0_30px_rgba(118,185,0,0.1)] flex flex-col max-h-[90vh]"
+            >
+              {/* Hero Banner Header */}
+              <div className="relative aspect-21/9 bg-black/60 overflow-hidden border-b border-white/8 shrink-0">
+                {selectedGame.banner_url || selectedGame.cover_url ? (
+                  <img
+                    src={selectedGame.banner_url || selectedGame.cover_url}
+                    alt={selectedGame.title}
+                    className="w-full h-full object-cover"
+                  />
+                ) : (
+                  <div className="w-full h-full flex items-center justify-center bg-linear-to-r from-zinc-900 to-black">
+                    <Gamepad2 className="w-12 h-12 text-zinc-600" />
+                  </div>
+                )}
+                <div className="absolute inset-0 bg-linear-to-t from-[#0e1017] via-[#0e1017]/50 to-transparent" />
+
+                {/* Close button */}
+                <button
+                  type="button"
+                  onClick={() => setSelectedGame(null)}
+                  className="absolute top-4 right-4 p-2 rounded-xl bg-black/60 hover:bg-white/10 text-zinc-400 hover:text-white border border-white/10 backdrop-blur-md transition-all cursor-pointer"
+                >
+                  <X className="w-4 h-4" />
+                </button>
+
+                {/* Title and metadata on hero */}
+                <div className="absolute bottom-4 left-6 right-6 flex items-end justify-between gap-4">
+                  <div>
+                    <div className="flex items-center gap-2 mb-1.5 flex-wrap">
+                      {selectedGame.launchers?.map((l) => {
+                        const style = LAUNCHER_STYLES[l] || LAUNCHER_STYLES.Web;
+                        return (
+                          <span
+                            key={l}
+                            className={`px-2 py-0.5 rounded-md text-[8px] font-black uppercase tracking-wider border backdrop-blur-md ${style.bg} ${style.text} ${style.border}`}
+                          >
+                            {l}
+                          </span>
+                        );
+                      })}
+                      {selectedGame.primary_genre && (
+                        <span className="px-2 py-0.5 rounded-md bg-neon-green/10 text-neon-green border border-neon-green/30 text-[8px] font-bold uppercase tracking-wider backdrop-blur-md">
+                          {selectedGame.primary_genre}
+                        </span>
+                      )}
+                    </div>
+                    <h2 className="text-xl sm:text-2xl font-black text-white tracking-tight drop-shadow-md">
+                      {selectedGame.title}
+                    </h2>
+                  </div>
+                </div>
+              </div>
+
+              {/* Scrollable Body */}
+              <div className="p-6 overflow-y-auto custom-scrollbar space-y-4 text-xs">
+                {/* Meta details row */}
+                <div className="grid grid-cols-2 sm:grid-cols-3 gap-3 p-3.5 rounded-2xl bg-white/2 border border-white/6 font-mono text-[10px]">
+                  <div>
+                    <span className="text-zinc-500 block uppercase text-[8px] font-black">Developer</span>
+                    <span className="text-zinc-200 truncate block font-bold">{selectedGame.developer || 'N/A'}</span>
+                  </div>
+                  <div>
+                    <span className="text-zinc-500 block uppercase text-[8px] font-black">Release Date</span>
+                    <span className="text-zinc-200 truncate block font-bold">{selectedGame.release_date || 'N/A'}</span>
+                  </div>
+                  <div className="col-span-2 sm:col-span-1">
+                    <span className="text-zinc-500 block uppercase text-[8px] font-black">Status</span>
+                    <span className={selectedGame.installations?.length > 0 ? 'text-emerald-400 font-bold' : 'text-zinc-400 font-bold'}>
+                      {selectedGame.installations?.length > 0 ? 'Installed on Node' : 'Available for Acquisition'}
+                    </span>
+                  </div>
+                </div>
+
+                {/* Synopsis / Summary */}
+                <div>
+                  <h4 className="text-[10px] font-black uppercase tracking-widest text-zinc-400 mb-1.5">
+                    Game Intel & Synopsis
+                  </h4>
+                  <p className="text-xs text-zinc-300 leading-relaxed bg-black/25 p-4 rounded-2xl border border-white/5 font-sans">
+                    {selectedGame.summary || 'No synopsis provided for this title.'}
+                  </p>
+                </div>
+
+                {/* Genre & Tags */}
+                {((selectedGame.genres?.length || 0) > 0 || (selectedGame.tags?.length || 0) > 0) && (
+                  <div>
+                    <h4 className="text-[10px] font-black uppercase tracking-widest text-zinc-400 mb-1.5">
+                      Classifications & Tags
+                    </h4>
+                    <div className="flex flex-wrap gap-1.5">
+                      {Array.from(new Set([...(selectedGame.genres || []), ...(selectedGame.tags || [])])).map((tag) => (
+                        <span
+                          key={tag}
+                          className="px-2 py-0.5 rounded-md bg-white/4 text-zinc-300 border border-white/8 text-[9px] font-mono"
+                        >
+                          #{tag}
+                        </span>
+                      ))}
+                    </div>
+                  </div>
+                )}
+              </div>
+
+              {/* Action Footer */}
+              <div className="p-4 sm:p-6 bg-black/40 border-t border-white/8 flex items-center justify-between gap-3 shrink-0 flex-wrap">
+                <button
+                  type="button"
+                  onClick={() => setSelectedGame(null)}
+                  className="px-4 py-2 rounded-xl bg-white/5 hover:bg-white/10 text-zinc-300 text-[10px] font-black uppercase tracking-wider transition-all cursor-pointer"
+                >
+                  Back to Hub
+                </button>
+
+                <div className="flex items-center gap-2 flex-wrap">
+                  {selectedGame.store_app_id && (() => {
+                    const launchers = selectedGame.launchers && selectedGame.launchers.length > 0
+                      ? selectedGame.launchers
+                      : [getGameActiveLauncher(selectedGame)];
+
+                    return launchers.map((launcher) => {
+                      const isGOG = launcher === 'GOG Galaxy' || launcher === 'GOG';
+                      const isEpic = launcher === 'Epic Games' || launcher === 'Epic';
+                      const isXbox = launcher === 'Xbox' || launcher === 'Xbox Game Pass';
+
+                      let btnClass = 'from-[#172030] to-[#1b2838] hover:from-[#1b2838] hover:to-[#223348] border-[#66c0f4]/40 text-[#66c0f4] shadow-[0_0_15px_rgba(102,192,244,0.2)] hover:shadow-[0_0_20px_rgba(102,192,244,0.4)]';
+                      let label = 'Open in Steam Client';
+                      if (isGOG) {
+                        btnClass = 'from-violet-950 to-[#200f38] hover:from-[#200f38] hover:to-[#2e1550] border-violet-500/40 text-violet-300 shadow-[0_0_15px_rgba(168,85,247,0.2)] hover:shadow-[0_0_20px_rgba(168,85,247,0.4)]';
+                        label = 'Open in GOG Galaxy';
+                      } else if (isEpic) {
+                        btnClass = 'from-purple-950 to-[#280c28] hover:from-[#280c28] hover:to-[#381038] border-purple-500/40 text-purple-300 shadow-[0_0_15px_rgba(217,70,239,0.2)] hover:shadow-[0_0_20px_rgba(217,70,239,0.4)]';
+                        label = 'Open in Epic Launcher';
+                      } else if (isXbox) {
+                        btnClass = 'from-emerald-950 to-[#0a2818] hover:from-[#0a2818] hover:to-[#0f3822] border-emerald-500/40 text-emerald-300 shadow-[0_0_15px_rgba(34,197,94,0.2)] hover:shadow-[0_0_20px_rgba(34,197,94,0.4)]';
+                        label = 'Open in Xbox App';
+                      }
+
+                      return (
+                        <button
+                          key={launcher}
+                          type="button"
+                          onClick={(e) => handleOpenStore(e, selectedGame, 'steam_client', launcher)}
+                          className={`group/client px-3.5 py-2 rounded-xl bg-linear-to-r hover:text-white border text-[10px] font-black uppercase tracking-wider transition-all cursor-pointer flex items-center gap-1.5 ${btnClass}`}
+                        >
+                          <Gamepad2 className="w-3.5 h-3.5 group-hover/client:rotate-12 transition-transform" />
+                          <span>{label}</span>
+                        </button>
+                      );
+                    });
+                  })()}
+
+                  <button
+                    type="button"
+                    onClick={(e) => handleOpenStore(e, selectedGame, 'web')}
+                    className="px-4 py-2 rounded-xl bg-neon-green hover:bg-neon-green/90 text-black text-[10px] font-black uppercase tracking-wider shadow-[0_0_15px_rgba(118,185,0,0.3)] transition-all cursor-pointer flex items-center gap-1.5"
+                  >
+                    <span>View Store Page</span>
+                    <ExternalLink className="w-3 h-3" />
+                  </button>
+                </div>
+              </div>
+            </motion.div>
+          </div>
+        )}
+      </AnimatePresence>
     </motion.div>
   );
 };

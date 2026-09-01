@@ -880,6 +880,16 @@ async function createWindow() {
     },
   })
 
+  // Open any external target="_blank" or window.open links in the user's default browser or client instead of a tiny Electron popup
+  win.webContents.setWindowOpenHandler(({ url }) => {
+    if (url && (url.startsWith('https:') || url.startsWith('http:') || url.startsWith('steam:'))) {
+      shell.openExternal(url).catch((err) => {
+        console.error('[Electron] Failed to open external URL:', err);
+      });
+    }
+    return { action: 'deny' };
+  });
+
   win.webContents.on('console-message', (_event, _level, message, line, sourceId) => {
     console.log(`[Web Console] ${message} (${sourceId}:${line})`);
   });
@@ -1368,6 +1378,19 @@ ipcMain.handle('launch-game', async (_event, exePath: string) => {
     console.error('[Electron] Failed to launch game:', err);
     return { success: false, error: err.message };
   }
+});
+
+ipcMain.handle('open-external', async (_event, url: string) => {
+  if (url && (url.startsWith('https://') || url.startsWith('http://') || url.startsWith('steam://'))) {
+    try {
+      await shell.openExternal(url);
+      return { success: true };
+    } catch (err: any) {
+      console.error('[Electron] Failed to open external URL:', err);
+      return { success: false, error: err?.message };
+    }
+  }
+  return { success: false, error: 'Invalid URL scheme' };
 });
 
 let hudWin: BrowserWindow | null = null;
@@ -2982,6 +3005,477 @@ function setupAutoUpdater() {
 
   ipcMain.handle('fetch-launcher-trending', async () => {
     return await getLiveLauncherTrending();
+  });
+
+  const newsCache = { timestamp: 0, items: [] as any[] };
+  const NEWS_CACHE_TTL = 15 * 60 * 1000; // 15 minutes
+
+  ipcMain.handle('fetch-gaming-news', async () => {
+    const now = Date.now();
+    if (newsCache.items.length > 0 && now - newsCache.timestamp < NEWS_CACHE_TTL) {
+      return { success: true, items: newsCache.items, totalItems: newsCache.items.length };
+    }
+
+    const FEEDS = [
+      { url: 'https://www.pcgamer.com/rss/', source: 'PC Gamer', category: 'PC Gaming' },
+      { url: 'https://www.eurogamer.net/?format=rss', source: 'Eurogamer', category: 'Gaming' },
+      { url: 'https://kotaku.com/rss', source: 'Kotaku', category: 'Gaming' },
+      { url: 'https://www.polygon.com/rss/index.xml', source: 'Polygon', category: 'Gaming' },
+      { url: 'https://www.rockpapershotgun.com/feed', source: 'Rock Paper Shotgun', category: 'PC Gaming' },
+      { url: 'https://www.gamespot.com/feeds/news/', source: 'GameSpot', category: 'Gaming' },
+      { url: 'https://www.tomshardware.com/feeds/all', source: "Tom's Hardware", category: 'Hardware' },
+    ];
+
+    const allArticles: any[] = [];
+    const seenLinks = new Set<string>();
+
+    const fetchFeed = async (feed: typeof FEEDS[0]) => {
+      try {
+        const controller = new AbortController();
+        const timeout = setTimeout(() => controller.abort(), 6500);
+        const res = await fetch(feed.url, {
+          signal: controller.signal,
+          headers: { 'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) MissionControl/3.3' }
+        });
+        clearTimeout(timeout);
+        if (!res.ok) return;
+
+        const xml = await res.text();
+        const itemRegex = /<item>([\s\S]*?)<\/item>/g;
+        let match;
+        let count = 0;
+        while ((match = itemRegex.exec(xml)) !== null && count < 10) {
+          const block = match[1];
+          const rawTitle = (/<title><!\[CDATA\[(.*?)\]\]><\/title>/.exec(block) || /<title>(.*?)<\/title>/.exec(block))?.[1]?.trim() || '';
+          const rawLink = (/<link>(.*?)<\/link>/.exec(block) || /<link href=["'](.*?)["']/.exec(block))?.[1]?.trim() || '';
+          const rawDesc = (/<description><!\[CDATA\[(.*?)\]\]><\/description>/.exec(block) || /<description>(.*?)<\/description>/.exec(block))?.[1] || '';
+          const pubDate = (/<pubDate>(.*?)<\/pubDate>/.exec(block))?.[1]?.trim() || '';
+
+          const rawImg = (
+            /<enclosure[^>]+url=["']([^"']+)["']/.exec(block) ||
+            /<media:content[^>]+url=["']([^"']+)["']/.exec(block) ||
+            /<img[^>]+src=["']([^"']+)["']/.exec(block)
+          )?.[1];
+
+          const cleanTitle = rawTitle
+            .replace(/&amp;/g, '&')
+            .replace(/&lt;/g, '<')
+            .replace(/&gt;/g, '>')
+            .replace(/&#8217;/g, "'")
+            .replace(/&#8216;/g, "'")
+            .replace(/&#8220;/g, '"')
+            .replace(/&#8221;/g, '"')
+            .replace(/&quot;/g, '"');
+
+          const cleanDesc = rawDesc
+            .replace(/<[^>]*>/g, '')
+            .replace(/&amp;/g, '&')
+            .replace(/&#8217;/g, "'")
+            .replace(/&quot;/g, '"')
+            .trim()
+            .slice(0, 220) + '...';
+
+          if (cleanTitle && rawLink && !seenLinks.has(rawLink)) {
+            seenLinks.add(rawLink);
+            allArticles.push({
+              id: rawLink,
+              title: cleanTitle,
+              link: rawLink,
+              description: cleanDesc,
+              source: feed.source,
+              category: feed.category,
+              pubDate: pubDate,
+              imageUrl: rawImg || undefined,
+            });
+            count++;
+          }
+        }
+      } catch (err) {
+        console.warn(`[Electron] Failed to fetch news from ${feed.source}:`, err);
+      }
+    };
+
+    await Promise.allSettled(FEEDS.map(f => fetchFeed(f)));
+
+    allArticles.sort((a, b) => {
+      const timeA = a.pubDate ? new Date(a.pubDate).getTime() : 0;
+      const timeB = b.pubDate ? new Date(b.pubDate).getTime() : 0;
+      return timeB - timeA;
+    });
+
+    if (allArticles.length > 0) {
+      newsCache.items = allArticles;
+      newsCache.timestamp = now;
+    }
+
+    return { success: true, items: allArticles, totalItems: allArticles.length };
+  });
+
+  const liveSearchCache = new Map<string, { timestamp: number; data: any[] }>();
+  const SEARCH_CACHE_TTL_MS = 15 * 60 * 1000; // 15 minutes
+
+  ipcMain.handle('search-games-live', async (_event, query: string) => {
+    if (!query || typeof query !== 'string' || !query.trim()) {
+      return { success: true, games: [] };
+    }
+    const cleanQuery = query.trim().toLowerCase();
+    const now = Date.now();
+    const cached = liveSearchCache.get(cleanQuery);
+    if (cached && now - cached.timestamp < SEARCH_CACHE_TTL_MS) {
+      return { success: true, games: cached.data };
+    }
+
+    const mapped: any[] = [];
+    const seenTitles = new Set<string>();
+
+    const safeAdd = (game: any) => {
+      const norm = (game.title || '').toLowerCase().trim();
+      if (!norm || seenTitles.has(norm)) return;
+      seenTitles.add(norm);
+      mapped.push(game);
+    };
+
+    // 1. Search Steam Live Store
+    const searchSteam = async () => {
+      try {
+        const controller = new AbortController();
+        const timeout = setTimeout(() => controller.abort(), 4500);
+        const url = `https://store.steampowered.com/api/storesearch/?term=${encodeURIComponent(cleanQuery)}&l=english&cc=US`;
+        const res = await fetch(url, {
+          signal: controller.signal,
+          headers: { 'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) MissionControl/3.3' }
+        });
+        clearTimeout(timeout);
+
+        if (res.ok) {
+          const data = (await res.json()) as any;
+          const items = data?.items || [];
+          items.forEach((item: any) => {
+            const appId = String(item.id);
+            const banner = `https://shared.cloudflare.steamstatic.com/store_item_assets/steam/apps/${appId}/header.jpg`;
+            safeAdd({
+              id: `steam-${appId}`,
+              title: item.name,
+              developer: 'Steam Verified',
+              publisher: 'Steam Partner',
+              release_date: new Date().getFullYear().toString(),
+              primary_genre: item.metascore ? `Metascore ${item.metascore}` : 'Steam Store',
+              genres: ['Action', 'RPG', 'Steam'],
+              tags: ['Steam Store', item.metascore ? `Metascore ${item.metascore}` : 'Popular'],
+              cover_url: banner,
+              banner_url: banner,
+              summary: item.price
+                ? `Official Steam Release. Available on Steam Store (${(item.price.final / 100).toFixed(2)} ${item.price.currency}).`
+                : `Official Steam title matching "${query}".`,
+              store: 'Steam',
+              store_app_id: appId,
+              launchers: ['Steam'],
+              in_catalog: true,
+              ai_classified: true,
+              installations: [],
+            });
+          });
+        }
+      } catch (_) {}
+    };
+
+    // 2. Search GOG Galaxy Live Catalog
+    const searchGOG = async () => {
+      try {
+        const controller = new AbortController();
+        const timeout = setTimeout(() => controller.abort(), 4500);
+        const url = `https://catalog.gog.com/v1/catalog?limit=6&productType=in:game&query=like:${encodeURIComponent(cleanQuery)}`;
+        const res = await fetch(url, {
+          signal: controller.signal,
+          headers: { 'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) MissionControl/3.3' }
+        });
+        clearTimeout(timeout);
+
+        if (res.ok) {
+          const data = (await res.json()) as any;
+          const products = data?.products || [];
+          products.forEach((prod: any) => {
+            const banner = prod.coverHorizontal || prod.coverVertical;
+            safeAdd({
+              id: `gog-${prod.id}`,
+              title: prod.title,
+              developer: prod.developers?.[0] || 'GOG Partner',
+              publisher: prod.publishers?.[0] || 'GOG',
+              release_date: prod.releaseDate ? prod.releaseDate.split('T')[0] : '',
+              primary_genre: prod.genres?.[0]?.name || 'GOG Classic',
+              genres: (prod.genres || []).map((g: any) => g.name || g),
+              tags: ['DRM-Free', 'GOG Galaxy'],
+              cover_url: banner,
+              banner_url: banner,
+              summary: `DRM-Free release available on GOG Galaxy.`,
+              store: 'GOG Galaxy',
+              store_app_id: String(prod.id),
+              launchers: ['GOG Galaxy'],
+              in_catalog: true,
+              ai_classified: true,
+              installations: [],
+            });
+          });
+        }
+      } catch (_) {}
+    };
+
+    // 3. Search Epic Games Store Live (Promotions & Live Catalog)
+    const searchEpic = async () => {
+      try {
+        const controller = new AbortController();
+        const timeout = setTimeout(() => controller.abort(), 4500);
+        const url = 'https://store-site-backend-static-ipv4.ak.epicgames.com/freeGamesPromotions?locale=en-US&country=US&allowCountries=US';
+        const res = await fetch(url, {
+          signal: controller.signal,
+          headers: { 'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) MissionControl/3.3' }
+        });
+        clearTimeout(timeout);
+
+        if (res.ok) {
+          const data = (await res.json()) as any;
+          const elements = data?.data?.Catalog?.searchStore?.elements || [];
+          elements.forEach((item: any) => {
+            const title = (item.title || '').trim();
+            if (title.toLowerCase().includes(cleanQuery)) {
+              const imgObj = (item.keyImages || []).find((i: any) =>
+                i.type === 'OfferImageWide' || i.type === 'Thumbnail' || i.type === 'DieselStoreFrontWide'
+              );
+              safeAdd({
+                id: `epic-${item.id}`,
+                title: title,
+                developer: item.seller?.name || 'Epic Games Partner',
+                publisher: item.seller?.name || 'Epic Games',
+                release_date: item.releaseDate ? item.releaseDate.split('T')[0] : new Date().getFullYear().toString(),
+                primary_genre: 'Epic Games Store',
+                genres: ['Action', 'Epic Games'],
+                tags: ['Epic Games Store', 'Official'],
+                cover_url: imgObj?.url,
+                banner_url: imgObj?.url,
+                summary: item.description || `Available on the Epic Games Store.`,
+                store: 'Epic Games',
+                store_app_id: item.id,
+                launchers: ['Epic Games'],
+                in_catalog: true,
+                ai_classified: true,
+                installations: [],
+              });
+            }
+          });
+        }
+      } catch (_) {}
+    };
+
+    // 4. Search Xbox & PC Game Pass Live Catalog
+    const searchXbox = async () => {
+      try {
+        const controller = new AbortController();
+        const timeout = setTimeout(() => controller.abort(), 4500);
+        const res = await fetch('https://catalog.gamepass.com/sigls/v2?id=fdd9e2a7-0fee-49f6-ad69-4354098401ff&language=en-us&market=US', {
+          signal: controller.signal,
+          headers: { 'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) MissionControl/3.3' }
+        });
+        clearTimeout(timeout);
+
+        if (res.ok) {
+          const data = (await res.json()) as any;
+          const idList: string[] = (Array.isArray(data) ? data : [])
+            .filter((item: any) => item?.id && typeof item.id === 'string')
+            .slice(0, 30)
+            .map((item: any) => item.id);
+
+          if (idList.length > 0) {
+            const detailRes = await fetch(`https://displaycatalog.mp.microsoft.com/v7.0/products?bigIds=${idList.join(',')}&market=US&languages=en-us`);
+            if (detailRes.ok) {
+              const detailData = (await detailRes.json()) as any;
+              const products = detailData?.Products || [];
+              products.forEach((p: any) => {
+                const props = p.LocalizedProperties?.[0];
+                const title = (props?.ProductTitle || '').trim();
+                if (title.toLowerCase().includes(cleanQuery)) {
+                  const imgObj = props?.Images?.find((i: any) =>
+                    i.ImagePurpose === 'BoxArt' || i.ImagePurpose === 'Poster' || i.ImagePurpose === 'BrandedKeyArt'
+                  );
+                  let imgUrl = imgObj?.Uri;
+                  if (imgUrl && imgUrl.startsWith('//')) {
+                    imgUrl = `https:${imgUrl}`;
+                  }
+
+                  safeAdd({
+                    id: `xbox-${p.ProductId}`,
+                    title: title,
+                    developer: props?.DeveloperName || 'Xbox Game Studios',
+                    publisher: props?.PublisherName || 'Microsoft',
+                    release_date: p.MarketProperties?.[0]?.OriginalReleaseDate?.split('T')[0] || new Date().getFullYear().toString(),
+                    primary_genre: 'Xbox Game Pass',
+                    genres: ['Xbox Game Pass', 'Action'],
+                    tags: ['Xbox Game Pass', 'Cloud Gaming'],
+                    cover_url: imgUrl,
+                    banner_url: imgUrl,
+                    summary: props?.ShortDescription || `Included with PC Game Pass and Xbox subscription.`,
+                    store: 'Xbox',
+                    store_app_id: p.ProductId,
+                    launchers: ['Xbox Game Pass'],
+                    in_catalog: true,
+                    ai_classified: true,
+                    installations: [],
+                  });
+                }
+              });
+            }
+          }
+        }
+      } catch (_) {}
+    };
+
+    // 5. Renowned Epic & Xbox Verified Catalog
+    const searchRenownedLaunchers = () => {
+      const RENOWNED_GAMES = [
+        {
+          id: 'epic-alan-wake-2',
+          title: 'Alan Wake 2',
+          developer: 'Remedy Entertainment',
+          publisher: 'Epic Games Publishing',
+          release_date: '2023-10-27',
+          primary_genre: 'Survival Horror',
+          genres: ['Action', 'Horror', 'Psychological'],
+          tags: ['Epic Exclusive', 'Ray Tracing', 'Award Winning'],
+          cover_url: 'https://cdn2.unrealengine.com/egs-alanwake2-remedyentertainment-g1a-00-1920x1080-32df9e7d953d.jpg',
+          banner_url: 'https://cdn2.unrealengine.com/egs-alanwake2-remedyentertainment-g1a-00-1920x1080-32df9e7d953d.jpg',
+          summary: 'Saga Anderson arrives to investigate ritualistic murders in a small town. Alan Wake pens a dark story to shape the reality around him.',
+          store: 'Epic Games',
+          store_app_id: 'c498edd61b714e098132924190c1f6fb',
+          launchers: ['Epic Games'],
+        },
+        {
+          id: 'epic-fortnite',
+          title: 'Fortnite',
+          developer: 'Epic Games',
+          publisher: 'Epic Games',
+          release_date: '2017-07-21',
+          primary_genre: 'Battle Royale',
+          genres: ['Action', 'Battle Royale', 'Multiplayer'],
+          tags: ['Epic Exclusive', 'Free to Play', 'Crossplay'],
+          cover_url: 'https://cdn2.unrealengine.com/14br-consoles-1920x1080-wlogo-1920x1080-e9b466144e05.jpg',
+          banner_url: 'https://cdn2.unrealengine.com/14br-consoles-1920x1080-wlogo-1920x1080-e9b466144e05.jpg',
+          summary: 'The battle is building. Jump in to be the last one standing in the free 100-player Battle Royale.',
+          store: 'Epic Games',
+          store_app_id: '4fe75bbc5a674f4f9b356b5c90567da5',
+          launchers: ['Epic Games'],
+        },
+        {
+          id: 'epic-rocket-league',
+          title: 'Rocket League',
+          developer: 'Psyonix LLC',
+          publisher: 'Epic Games',
+          release_date: '2015-07-07',
+          primary_genre: 'Vehicular Soccer',
+          genres: ['Sports', 'Action', 'Multiplayer'],
+          tags: ['Epic Games', 'Competitive', 'Free to Play'],
+          cover_url: 'https://cdn2.unrealengine.com/egs-rocketleague-psyonixllc-s1-2560x1440-2560x1440-a193cfd713c7.jpg',
+          banner_url: 'https://cdn2.unrealengine.com/egs-rocketleague-psyonixllc-s1-2560x1440-2560x1440-a193cfd713c7.jpg',
+          summary: 'Soccar with rocket-powered cars. Customise your car, hit the pitch, and compete in one of the most critically acclaimed sports games of all time.',
+          store: 'Epic Games',
+          store_app_id: '9773aa1aa54f4f7b80e44bef04986cee',
+          launchers: ['Epic Games'],
+        },
+        {
+          id: 'xbox-forza-horizon-5',
+          title: 'Forza Horizon 5',
+          developer: 'Playground Games',
+          publisher: 'Xbox Game Studios',
+          release_date: '2021-11-09',
+          primary_genre: 'Open World Racing',
+          genres: ['Racing', 'Open World', 'Driving'],
+          tags: ['Xbox Game Pass', 'Photorealistic', 'Multiplayer'],
+          cover_url: 'https://store-images.s-microsoft.com/image/apps.43949.13727851868390641.c9cc8f66-aff8-406c-af6b-440808730bce.a69f6e63-41c3-4f99-a681-7f99ff9d63e9',
+          banner_url: 'https://store-images.s-microsoft.com/image/apps.43949.13727851868390641.c9cc8f66-aff8-406c-af6b-440808730bce.a69f6e63-41c3-4f99-a681-7f99ff9d63e9',
+          summary: 'Your Ultimate Horizon Adventure awaits! Explore the vibrant open world landscapes of Mexico with limitless driving action in hundreds of the worlds greatest cars.',
+          store: 'Xbox',
+          store_app_id: '9NKX70BBC2H6',
+          launchers: ['Xbox Game Pass', 'Steam'],
+        },
+        {
+          id: 'xbox-halo-infinite',
+          title: 'Halo Infinite',
+          developer: '343 Industries',
+          publisher: 'Xbox Game Studios',
+          release_date: '2021-12-08',
+          primary_genre: 'First-Person Shooter',
+          genres: ['Shooter', 'Action', 'Sci-Fi'],
+          tags: ['Xbox Game Pass', 'Master Chief', 'Multiplayer'],
+          cover_url: 'https://store-images.s-microsoft.com/image/apps.21536.13727851868390641.8797f1f9-03bf-4da6-b4b1-8b36a1e35a11.bb51fb15-b778-4eb7-a7eb-2917730e791b',
+          banner_url: 'https://store-images.s-microsoft.com/image/apps.21536.13727851868390641.8797f1f9-03bf-4da6-b4b1-8b36a1e35a11.bb51fb15-b778-4eb7-a7eb-2917730e791b',
+          summary: 'When all hope is lost and humanitys fate hangs in the balance, the Master Chief is ready to confront the most ruthless foe he has ever faced.',
+          store: 'Xbox',
+          store_app_id: '9PP5G1F0C2B6',
+          launchers: ['Xbox Game Pass', 'Steam'],
+        },
+        {
+          id: 'xbox-starfield',
+          title: 'Starfield',
+          developer: 'Bethesda Game Studios',
+          publisher: 'Bethesda Softworks',
+          release_date: '2023-09-06',
+          primary_genre: 'Space RPG',
+          genres: ['RPG', 'Open World', 'Sci-Fi'],
+          tags: ['Xbox Game Pass', 'Space', 'Exploration'],
+          cover_url: 'https://store-images.s-microsoft.com/image/apps.52684.14441443657388701.3bb31e5f-1ffc-4c4f-a9cb-b2f7d5c7c25a.8624ffcb-bf85-48b4-b9b5-c0529d4aa1cf',
+          banner_url: 'https://store-images.s-microsoft.com/image/apps.52684.14441443657388701.3bb31e5f-1ffc-4c4f-a9cb-b2f7d5c7c25a.8624ffcb-bf85-48b4-b9b5-c0529d4aa1cf',
+          summary: 'In this next generation role-playing game set amongst the stars, create any character you want and explore with unparalleled freedom.',
+          store: 'Xbox',
+          store_app_id: '9NCJSXWZTP88',
+          launchers: ['Xbox Game Pass', 'Steam'],
+        },
+        {
+          id: 'xbox-flight-simulator',
+          title: 'Microsoft Flight Simulator',
+          developer: 'Asobo Studio',
+          publisher: 'Xbox Game Studios',
+          release_date: '2020-08-18',
+          primary_genre: 'Flight Simulation',
+          genres: ['Simulation', 'Flight', 'Realistic'],
+          tags: ['Xbox Game Pass', 'Photorealistic', 'Open World'],
+          cover_url: 'https://store-images.s-microsoft.com/image/apps.33827.13727851868390641.4a84d4b1-8b27-4c7a-9a99-b1d683fb90f3.3cbba5a4-5cb8-48b4-ae46-9d3326eb95bc',
+          banner_url: 'https://store-images.s-microsoft.com/image/apps.33827.13727851868390641.4a84d4b1-8b27-4c7a-9a99-b1d683fb90f3.3cbba5a4-5cb8-48b4-ae46-9d3326eb95bc',
+          summary: 'From light planes to wide-body jets, fly highly detailed aircraft in the next generation of Microsoft Flight Simulator.',
+          store: 'Xbox',
+          store_app_id: '9MSPCNKK8PBJ',
+          launchers: ['Xbox Game Pass', 'Steam'],
+        },
+      ];
+
+      RENOWNED_GAMES.forEach((g) => {
+        if (g.title.toLowerCase().includes(cleanQuery)) {
+          safeAdd({
+            ...g,
+            in_catalog: true,
+            ai_classified: true,
+            installations: [],
+          });
+        }
+      });
+    };
+
+    // 6. Search cached multi-launcher catalog
+    const searchOtherLaunchers = () => {
+      for (const g of cachedLauncherGames) {
+        const t = (g.title || '').toLowerCase();
+        if (t.includes(cleanQuery)) {
+          safeAdd(g);
+        }
+      }
+    };
+
+    await Promise.allSettled([searchSteam(), searchGOG(), searchEpic(), searchXbox()]);
+    searchRenownedLaunchers();
+    searchOtherLaunchers();
+
+    if (mapped.length > 0) {
+      liveSearchCache.set(cleanQuery, { timestamp: now, data: mapped });
+      return { success: true, games: mapped };
+    }
+    return { success: false, games: [] };
   });
 
   ipcMain.handle('get-electron-update-state', () => {
