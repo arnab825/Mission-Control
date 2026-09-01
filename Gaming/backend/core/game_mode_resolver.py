@@ -344,6 +344,112 @@ class GameModeResolver:
 
         return results
 
+    def resolve_from_texts(
+        self,
+        texts: List[str],
+        user_id: Optional[str] = None,
+    ) -> Optional[ResolvedGameContext]:
+        """
+        Scans a sequence of texts (e.g. chat messages in reverse chronological order)
+        and extracts the first matching game title from the database catalog.
+        """
+        if not texts:
+            return None
+
+        catalog = self._ensure_catalog(user_id)
+        if not catalog:
+            return None
+
+        for text in texts:
+            if not text or not str(text).strip():
+                continue
+            text_lower = str(text).lower()
+
+            for item in catalog:
+                title = item.get("name") or item.get("title", "")
+                if not title:
+                    continue
+                title_clean = normalize_title(title)
+                if not title_clean:
+                    continue
+
+                # Exact word-boundary match or high-confidence substring match
+                pattern = r'\b' + re.escape(title_clean) + r'\b'
+                if re.search(pattern, text_lower) or title_clean in text_lower:
+                    genre = item.get("genre") or item.get("primary_genre") or "Action"
+                    tags = item.get("tags") or item.get("genres") or []
+                    mode, persona = derive_mode_and_persona(genre, tags)
+                    return ResolvedGameContext(
+                        title=title,
+                        genre=genre,
+                        mode=mode,
+                        persona=persona,
+                        matched_from=item.get("_source", "database"),
+                        raw_entry=item,
+                    )
+
+        return None
+
 
 # Global singleton instance
 game_mode_resolver = GameModeResolver()
+
+
+# ── Standalone Wrapper Functions & Decorators ──────────────────────────────────
+
+def auto_switch_mode(
+    target: Any,
+    raw_title_or_process: str,
+    explicit_genre: Optional[str] = None,
+    user_id: Optional[str] = None,
+) -> ResolvedGameContext:
+    """
+    Universal wrapper function that resolves game records from the database
+    and dynamically applies the mode & persona to a PipelineHost, GameBrain, or state dict.
+    """
+    ctx = game_mode_resolver.resolve(raw_title_or_process, explicit_genre=explicit_genre, user_id=user_id)
+    
+    # 1. If target is PipelineHost
+    if hasattr(target, "_apply_mode_and_persona"):
+        target._apply_mode_and_persona(ctx.mode, ctx.persona, ctx.title, ctx.genre)
+    elif hasattr(target, "brain") and hasattr(target.brain, "set_mode"):
+        target.brain.set_mode(ctx.mode)
+        if hasattr(target, "config") and isinstance(target.config, dict):
+            if "ai_agent" not in target.config:
+                target.config["ai_agent"] = {}
+            target.config["ai_agent"]["assistant_mode"] = ctx.mode
+            target.config["ai_agent"]["personality"] = ctx.persona
+
+    # 2. If target is GameBrain directly
+    elif hasattr(target, "set_mode"):
+        target.set_mode(ctx.mode)
+        if hasattr(target, "config") and isinstance(target.config, dict):
+            if "ai_agent" not in target.config:
+                target.config["ai_agent"] = {}
+            target.config["ai_agent"]["assistant_mode"] = ctx.mode
+            target.config["ai_agent"]["personality"] = ctx.persona
+
+    return ctx
+
+
+def with_game_context(fn):
+    """
+    Decorator that intercepts function calls with a game name or prompt,
+    dynamically resolves the database-backed game context, and injects it.
+    """
+    import functools
+
+    @functools.wraps(fn)
+    def wrapper(*args, **kwargs):
+        game_hint = kwargs.get("game_name") or kwargs.get("title") or kwargs.get("game_title")
+        if not game_hint and args and len(args) > 1 and isinstance(args[1], str):
+            game_hint = args[1]
+
+        user_id = kwargs.get("user_id")
+        ctx = game_mode_resolver.resolve(game_hint or "", user_id=user_id) if game_hint else None
+        if ctx:
+            kwargs["resolved_game_context"] = ctx
+        return fn(*args, **kwargs)
+
+    return wrapper
+

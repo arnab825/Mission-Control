@@ -722,53 +722,19 @@ class GameBrain:
             else:
                 active_game = self._session_active_games.get(session_id, "")
 
-        # Scanning chat history for active game if still empty
+        # Scanning chat history for active game if still empty via dynamic database resolver
         if not active_game and session_id and self.memory:
             try:
+                from core.game_mode_resolver import game_mode_resolver
                 history = self.memory.get_chat_history(session_id)
-                all_texts = [msg["content"] for msg in history] + [prompt]
-                
-                from system.game_scanner import GameScanner
-                scanner = GameScanner(config=self.config)
-                games = scanner.load_cached_games() or []
-                game_names = [g.get("name") for g in games if g.get("name")]
-                
-                from core.state_models import TITLE_GENRE_MAP
-                predefined_games = list(TITLE_GENRE_MAP.keys())
-                all_game_titles = set(game_names + predefined_games)
-                
-                game_aliases = {}
-                for title in all_game_titles:
-                    if not title:
-                        continue
-                    for alias in _get_game_aliases(title):
-                        if alias not in game_aliases or len(title) > len(game_aliases[alias]):
-                            game_aliases[alias] = title
-                
-                found_game = None
-                import re
-                sorted_aliases = sorted(game_aliases.items(), key=lambda x: len(x[0]), reverse=True)
-                for text in reversed(all_texts):
-                    if not text:
-                        continue
-                    text_lower = text.lower()
-                    for alias, canonical in sorted_aliases:
-                        if re.search(r'\b' + re.escape(alias) + r'\b', text_lower):
-                            found_game = canonical
-                            break
-                    if found_game:
-                        break
-                    for name in game_names:
-                        if re.search(r'\b' + re.escape(name.lower()) + r'\b', text_lower):
-                            found_game = name
-                            break
-                    if found_game:
-                        break
-                
-                if found_game:
-                    active_game = found_game
+                all_texts = [prompt] + [msg["content"] for msg in reversed(history or [])]
+                resolved_ctx = game_mode_resolver.resolve_from_texts(all_texts, user_id=user_id)
+                if resolved_ctx:
+                    active_game = resolved_ctx.title
                     self._session_active_games[session_id] = active_game
-                    logger.info(f"Inferred active game '{active_game}' from chat history.")
+                    logger.info(f"Inferred active game '{active_game}' ({resolved_ctx.genre}) from chat history.")
+                    if self.mode != resolved_ctx.mode:
+                        self.set_mode(resolved_ctx.mode)
             except Exception as e:
                 logger.debug(f"Failed to infer game name from history: {e}")
 
