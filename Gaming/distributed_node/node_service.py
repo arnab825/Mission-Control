@@ -62,7 +62,10 @@ def get_machine_node_id() -> str:
 
 def _discover_all_scan_paths(configured_paths: Optional[List[str]] = None) -> List[str]:
     """Discover all game library folders and scan directories across all storage drives."""
-    discovered = set(configured_paths or [])
+    discovered = set()
+    for cp in (configured_paths or []):
+        if cp and os.path.exists(cp):
+            discovered.add(str(cp))
     try:
         from system.game_scanner import GameScanner
         scanner = GameScanner(config={})
