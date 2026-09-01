@@ -133,10 +133,11 @@ except Exception as e:
 # Guarantee the critical OpenCV config files are physically included as data files
 cv2_src = find_package_dir('cv2')
 if cv2_src and os.path.isdir(cv2_src):
-    for cfg_name in ['config.py', 'config-3.py', 'load_config_py3.py', 'load_config_py2.py']:
-        cfg_file = os.path.join(cv2_src, cfg_name)
-        if os.path.isfile(cfg_file) and not any(d[0] == cfg_file for d in cv2_datas):
-            cv2_datas.append((cfg_file, 'cv2'))
+    for f in os.listdir(cv2_src):
+        if (f.startswith('config') and f.endswith('.py')) or (f.startswith('load_config') and f.endswith('.py')):
+            cfg_file = os.path.join(cv2_src, f)
+            if os.path.isfile(cfg_file) and not any(d[0] == cfg_file for d in cv2_datas):
+                cv2_datas.append((cfg_file, 'cv2'))
     print(f"INFO: Guaranteed critical cv2 config files mapped from {cv2_src}")
 
 datas += numpy_datas + rapidocr_datas + cv2_datas

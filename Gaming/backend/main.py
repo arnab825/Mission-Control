@@ -22,27 +22,74 @@ logger = logging.getLogger("main")
 
 sys.dont_write_bytecode = True
 
-# ── Early OpenCV (cv2) Configuration Safeguard ───────────────────────────────
+# ── Early OpenCV (cv2) Zero-Disk Configuration Safeguard ──────────────────────
 try:
+    import types
+    _orig_os_exists = os.path.exists
+    def _patched_cv2_exists(path):
+        try:
+            if isinstance(path, (str, bytes)):
+                p_str = path if isinstance(path, str) else path.decode('utf-8', errors='ignore')
+                norm = os.path.normpath(p_str)
+                parts = norm.replace('\\', '/').split('/')
+                if len(parts) >= 2 and parts[-2] == 'cv2' and parts[-1].startswith('config') and parts[-1].endswith('.py'):
+                    return True
+                if len(parts) >= 2 and parts[-2] == 'cv2' and parts[-1] in ('load_config_py3.py', 'load_config_py2.py'):
+                    return True
+        except Exception:
+            pass
+        return _orig_os_exists(path)
+    os.path.exists = _patched_cv2_exists
+
+    def _make_cv2_load_module(mod_name):
+        mod = types.ModuleType(mod_name)
+        def exec_file_wrapper(fpath, g_vars, l_vars):
+            loader_dir = l_vars.get('LOADER_DIR', os.path.dirname(os.path.abspath(fpath)))
+            if _orig_os_exists(fpath):
+                try:
+                    with open(fpath, 'r', encoding='utf-8') as f:
+                        code = compile(f.read(), fpath, 'exec')
+                        exec(code, g_vars, l_vars)
+                        return
+                except Exception:
+                    pass
+            fname = os.path.basename(fpath)
+            if fname == 'config.py':
+                if 'BINARIES_PATHS' in l_vars:
+                    vc_bin = os.path.join(loader_dir, '../../x64/vc17/bin')
+                    l_vars['BINARIES_PATHS'] = [loader_dir, vc_bin] + l_vars['BINARIES_PATHS']
+            elif fname.startswith('config-'):
+                if 'PYTHON_EXTENSIONS_PATHS' in l_vars:
+                    l_vars['PYTHON_EXTENSIONS_PATHS'] = [loader_dir] + l_vars['PYTHON_EXTENSIONS_PATHS']
+        mod.exec_file_wrapper = exec_file_wrapper
+        return mod
+
+    for m in ['cv2.load_config_py3', 'cv2.load_config_py2']:
+        if m not in sys.modules:
+            sys.modules[m] = _make_cv2_load_module(m)
+
     _base_dir = getattr(sys, '_MEIPASS', os.path.dirname(os.path.abspath(__file__)))
     for _cv2_dir in [os.path.join(_base_dir, 'cv2'), os.path.join(_base_dir, '_internal', 'cv2')]:
         if os.path.isdir(_cv2_dir):
-            _cfg = os.path.join(_cv2_dir, 'config.py')
-            if not os.path.exists(_cfg):
-                with open(_cfg, 'w', encoding='utf-8') as _f:
-                    _f.write("import os\nBINARIES_PATHS = [LOADER_DIR] + BINARIES_PATHS\n")
-            _cfg3 = os.path.join(_cv2_dir, f'config-{sys.version_info[0]}.py')
-            if not os.path.exists(_cfg3):
-                with open(_cfg3, 'w', encoding='utf-8') as _f:
-                    _f.write("PYTHON_EXTENSIONS_PATHS = [LOADER_DIR] + PYTHON_EXTENSIONS_PATHS\n")
-            _cfg_ver = os.path.join(_cv2_dir, f'config-{sys.version_info[0]}.{sys.version_info[1]}.py')
-            if not os.path.exists(_cfg_ver):
-                with open(_cfg_ver, 'w', encoding='utf-8') as _f:
-                    _f.write("PYTHON_EXTENSIONS_PATHS = [LOADER_DIR] + PYTHON_EXTENSIONS_PATHS\n")
-            _cfg_loader = os.path.join(_cv2_dir, 'load_config_py3.py')
-            if not os.path.exists(_cfg_loader):
-                with open(_cfg_loader, 'w', encoding='utf-8') as _f:
-                    _f.write("import os, sys\nif sys.version_info[:2] >= (3, 0):\n    def exec_file_wrapper(fpath, g_vars, l_vars):\n        with open(fpath, 'r', encoding='utf-8') as f:\n            exec(compile(f.read(), fpath, 'exec'), g_vars, l_vars)\n")
+            try:
+                _cfg = os.path.join(_cv2_dir, 'config.py')
+                if not _orig_os_exists(_cfg):
+                    with open(_cfg, 'w', encoding='utf-8') as _f:
+                        _f.write("import os\nBINARIES_PATHS = [LOADER_DIR] + BINARIES_PATHS\n")
+                _cfg3 = os.path.join(_cv2_dir, f'config-{sys.version_info[0]}.py')
+                if not _orig_os_exists(_cfg3):
+                    with open(_cfg3, 'w', encoding='utf-8') as _f:
+                        _f.write("PYTHON_EXTENSIONS_PATHS = [LOADER_DIR] + PYTHON_EXTENSIONS_PATHS\n")
+                _cfg_ver = os.path.join(_cv2_dir, f'config-{sys.version_info[0]}.{sys.version_info[1]}.py')
+                if not _orig_os_exists(_cfg_ver):
+                    with open(_cfg_ver, 'w', encoding='utf-8') as _f:
+                        _f.write("PYTHON_EXTENSIONS_PATHS = [LOADER_DIR] + PYTHON_EXTENSIONS_PATHS\n")
+                _cfg_loader = os.path.join(_cv2_dir, 'load_config_py3.py')
+                if not _orig_os_exists(_cfg_loader):
+                    with open(_cfg_loader, 'w', encoding='utf-8') as _f:
+                        _f.write("import os, sys\nif sys.version_info[:2] >= (3, 0):\n    def exec_file_wrapper(fpath, g_vars, l_vars):\n        with open(fpath, 'r', encoding='utf-8') as _f:\n            exec(compile(_f.read(), fpath, 'exec'), g_vars, l_vars)\n")
+            except Exception:
+                pass
 except Exception as _cv2_err:
     logger.debug("OpenCV safeguard notice: %s", _cv2_err)
 
