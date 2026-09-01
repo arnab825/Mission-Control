@@ -2533,6 +2533,12 @@ class GamingAssistantPipeline:
             else:
                 self._game_state["game_minimized"] = False
 
+        if game_info:
+            try:
+                self._auto_switch_mode(game_info.get("genre", ""), game_info.get("name", ""))
+            except Exception as e:
+                logger.debug(f"update_game_info: auto mode switch failed: {e}")
+
         # Switch capture backend to per-window capture ONLY if explicitly configured
         capture_backend = self.config.get("capture", {}).get("backend", "auto")
         if capture_backend == "window":
@@ -2582,20 +2588,23 @@ class GamingAssistantPipeline:
         if self.voice_manager:
             self.voice_manager.stop_speaking()
 
-    def _auto_switch_mode(self, genre: str, title: str):
-        """Intelligently switch assistant mode and persona based on game genre."""
-        mode = GENRE_MODE_MAP.get(genre, "hybrid")
+    def _auto_switch_mode(self, raw_title_or_genre: str, title: Optional[str] = None):
+        """Dynamically resolves game records from the database and switches assistant mode and persona."""
+        from core.game_mode_resolver import game_mode_resolver
         
-        # Map modes to Personas
-        mode_to_persona = {
-            "competitive": "tactical",
-            "story": "immersive",
-            "hybrid": "friendly"
-        }
-        persona = mode_to_persona.get(mode, "tactical")
+        # Support both (genre, title) and (title, genre) call signatures gracefully
+        if title:
+            ctx = game_mode_resolver.resolve(title, explicit_genre=raw_title_or_genre, user_id=getattr(self, "active_user_id", None))
+        else:
+            ctx = game_mode_resolver.resolve(raw_title_or_genre, user_id=getattr(self, "active_user_id", None))
+
+        mode = ctx.mode
+        persona = ctx.persona
+        resolved_title = ctx.title
+        resolved_genre = ctx.genre
         
         if self.brain.mode != mode or self.config.get("ai_agent", {}).get("personality") != persona:
-            logger.info(f"[AUTO-MODE] Switching Mode to '{mode}' and Persona to '{persona}' for {title} ({genre})")
+            logger.info(f"[AUTO-MODE] Database-Resolved: Mode '{mode}' & Persona '{persona}' for {resolved_title} ({resolved_genre}) via {ctx.matched_from}")
             if hasattr(self.brain, 'set_mode'):
                 self.brain.set_mode(mode)
             
@@ -2608,9 +2617,28 @@ class GamingAssistantPipeline:
             if hasattr(self.brain, 'config'):
                 self.brain.config = self.config
             
+            with self._state_lock:
+                self._game_state["active_mode_info"] = {
+                    "mode": mode,
+                    "persona": persona,
+                    "title": resolved_title,
+                    "genre": resolved_genre,
+                    "source": ctx.matched_from,
+                }
+            
             # Notify UI if in headless mode
             if self.headless:
-                bridge.update_state({"assistant_mode": mode, "personality": persona})
+                bridge.update_state({
+                    "assistant_mode": mode,
+                    "personality": persona,
+                    "active_mode_info": {
+                        "mode": mode,
+                        "persona": persona,
+                        "title": resolved_title,
+                        "genre": resolved_genre,
+                        "source": ctx.matched_from,
+                    }
+                })
 
     def set_overlay_lock(self, locked: bool):
         """Overlay lock is applied in Electron; keep hook for API compatibility."""
