@@ -12,7 +12,29 @@ Comprehensive breakdown of major milestone releases, architectural upgrades, and
 
 ---
 
-## 🌟 Version v3.4.2 (Latest) — Multi-Launcher Support, Omni-Search & Dynamic AI Resolver
+## 🌟 Version v3.4.3 (Latest) — Distributed Fleet Command & Node Management
+
+### 🛠️ Key Highlights
+1. **Enabled full local host node discovery and real-time disk storage metrics**
+2. **Added interactive scan directory management and native folder selection**
+3. **Integrated backend bridge commands for node scanning, renaming, and path synchronization**
+4. **Enhanced Discover Games and Intel Hub multi-launcher support**
+
+### 📊 Architecture & Data Flow
+```mermaid
+graph TD
+    A[Electron Main IPC Engine] --> B[FastAPI Backend Host]
+    B --> C[NVIDIA NIM AI Cloud Inference]
+    C --> D[Directive Stream & Telemetry Bridge]
+```
+
+### 📦 Distribution Artifacts
+- **Linux**: `.deb` (Debian/Ubuntu), `.AppImage` (Universal), `.rpm` (Fedora/RHEL), `.tar.gz` (Portable)
+- **Windows**: `.exe` (Setup Installer), `.msi` (Enterprise), `.zip` (Portable)
+
+---
+
+## 📦 Version v3.4.2 — Multi-Launcher Support, Omni-Search & Dynamic AI Resolver
 
 ### 🛠️ Key Highlights
 1. **Added EA App, Ubisoft Connect, PlayStation PC, Rockstar Games, and Battle.net launcher support**

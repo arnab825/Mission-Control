@@ -2,6 +2,13 @@
 
 This document contains a detailed history of all patches and updates for the AI Gaming Assistant.
 
+### Patch: 2026-09-01 — v3.4.3: Distributed Fleet Command & Node Management
+
+- Enabled full local host node discovery and real-time disk storage metrics
+- Added interactive scan directory management and native folder selection
+- Integrated backend bridge commands for node scanning, renaming, and path synchronization
+- Enhanced Discover Games and Intel Hub multi-launcher support
+
 ### Patch: 2026-09-01 — v3.4.2: Multi-Launcher Support, Omni-Search & Dynamic AI Resolver
 
 - Added EA App, Ubisoft Connect, PlayStation PC, Rockstar Games, and Battle.net launcher support
