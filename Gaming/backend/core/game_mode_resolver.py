@@ -294,22 +294,28 @@ class GameModeResolver:
     ) -> List[Dict[str, Any]]:
         """
         Fetch dynamically formatted discover items for the frontend Discover Games & Intel Hub.
+        - Browse Mode (no query): displays curated, high-quality games without mandatory bloat.
+        - Search Mode (with query): searches across ALL database records and launchers if it exists.
         """
         catalog = self._ensure_catalog(user_id)
         results: List[Dict[str, Any]] = []
 
         norm_q = normalize_title(query) if query else ""
+        is_search_mode = bool(norm_q)
 
         for item in catalog:
-            # Skip pure system/platform launcher entries from the user's game showcase
-            if item.get("type") == "LAUNCHER" or item.get("genre") == "PLATFORM":
+            # In default browse mode, omit pure system launcher processes to keep hub curated
+            if not is_search_mode and (item.get("type") == "LAUNCHER" or item.get("genre") == "PLATFORM"):
                 continue
 
             title = item.get("name") or item.get("title", "")
-            if norm_q:
+            if is_search_mode:
                 score = _compute_match_score(norm_q, title)
-                if score < 0.35:
-                    continue
+                # Also check aliases, developer, publisher, and genre in search mode
+                if score < 0.3:
+                    item_text = f"{title} {item.get('genre', '')} {item.get('developer', '')} {item.get('platform', '')}".lower()
+                    if norm_q not in item_text:
+                        continue
 
             game_id = item.get("id") or normalize_title(title).replace(" ", "-")
             genre = item.get("genre") or item.get("primary_genre") or "Action"
@@ -317,7 +323,35 @@ class GameModeResolver:
             tags_list = item.get("tags") or ["Verified"]
             cover_url = item.get("cover_url") or item.get("coverUrl") or item.get("icon")
             banner_url = item.get("banner_url") or item.get("bannerUrl") or cover_url
-            store = item.get("platform") or item.get("store") or "Steam"
+            
+            # Detect multi-launcher availability
+            platform_str = str(item.get("platform") or item.get("store") or "").lower()
+            install_str = str(item.get("install_path") or item.get("exe_path") or "").lower()
+            detected_launchers = set(item.get("launchers") or [])
+
+            if "steam" in platform_str or "steam" in install_str:
+                detected_launchers.add("Steam")
+            if "epic" in platform_str or "epic" in install_str:
+                detected_launchers.add("Epic Games")
+            if "gog" in platform_str or "gog" in install_str:
+                detected_launchers.add("GOG Galaxy")
+            if "xbox" in platform_str or "xbox" in install_str or "gamepass" in install_str:
+                detected_launchers.add("Xbox Game Pass")
+            if "ea" in platform_str or "origin" in platform_str or "ea desktop" in install_str or "electronic arts" in install_str:
+                detected_launchers.add("EA App")
+            if "ubisoft" in platform_str or "uplay" in platform_str or "ubisoft game launcher" in install_str:
+                detected_launchers.add("Ubisoft Connect")
+            if "playstation" in platform_str or "sony" in platform_str or "ps pc" in platform_str:
+                detected_launchers.add("PlayStation")
+            if "rockstar" in platform_str or "social club" in install_str or "rockstar games" in install_str:
+                detected_launchers.add("Rockstar Games")
+            if "battle.net" in platform_str or "battlenet" in platform_str or "blizzard" in install_str:
+                detected_launchers.add("Battle.net")
+
+            if not detected_launchers:
+                detected_launchers.add("Steam")
+
+            primary_store = list(detected_launchers)[0]
 
             results.append({
                 "id": str(game_id),
@@ -331,9 +365,9 @@ class GameModeResolver:
                 "cover_url": cover_url,
                 "banner_url": banner_url,
                 "summary": item.get("summary") or item.get("description") or f"Dynamic database record for {title}.",
-                "store": store,
+                "store": primary_store,
                 "store_app_id": item.get("store_app_id") or str(game_id),
-                "launchers": [store] if store else ["Steam"],
+                "launchers": sorted(list(detected_launchers)),
                 "in_catalog": True,
                 "ai_classified": True,
                 "installations": item.get("installations") or [],

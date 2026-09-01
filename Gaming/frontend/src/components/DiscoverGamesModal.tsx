@@ -57,13 +57,23 @@ interface DiscoverGamesModalProps {
 type TabType = 'trending' | 'news' | 'action' | 'openworld' | 'shooter';
 
 const LAUNCHER_STYLES: Record<string, { bg: string; text: string; border: string }> = {
-  'Steam':       { bg: 'bg-[#1b2838]/80', text: 'text-[#66c0f4]', border: 'border-[#66c0f4]/30' },
-  'Epic Games':  { bg: 'bg-purple-950/80', text: 'text-purple-300', border: 'border-purple-500/30' },
-  'GOG Galaxy':  { bg: 'bg-violet-950/80', text: 'text-violet-300', border: 'border-violet-500/30' },
-  'GOG':         { bg: 'bg-violet-950/80', text: 'text-violet-300', border: 'border-violet-500/30' },
-  'Xbox':        { bg: 'bg-emerald-950/80', text: 'text-emerald-400', border: 'border-emerald-500/30' },
-  'Xbox Game Pass': { bg: 'bg-emerald-950/80', text: 'text-emerald-400', border: 'border-emerald-500/30' },
-  'Web':         { bg: 'bg-zinc-800/80', text: 'text-zinc-300', border: 'border-zinc-500/30' },
+  'Steam':            { bg: 'bg-[#1b2838]/80', text: 'text-[#66c0f4]', border: 'border-[#66c0f4]/30' },
+  'Epic Games':       { bg: 'bg-purple-950/80', text: 'text-purple-300', border: 'border-purple-500/30' },
+  'GOG Galaxy':       { bg: 'bg-violet-950/80', text: 'text-violet-300', border: 'border-violet-500/30' },
+  'GOG':              { bg: 'bg-violet-950/80', text: 'text-violet-300', border: 'border-violet-500/30' },
+  'Xbox':             { bg: 'bg-emerald-950/80', text: 'text-emerald-400', border: 'border-emerald-500/30' },
+  'Xbox Game Pass':   { bg: 'bg-emerald-950/80', text: 'text-emerald-400', border: 'border-emerald-500/30' },
+  'EA App':           { bg: 'bg-red-950/80', text: 'text-red-400', border: 'border-red-500/30' },
+  'EA Desktop':       { bg: 'bg-red-950/80', text: 'text-red-400', border: 'border-red-500/30' },
+  'EA':               { bg: 'bg-red-950/80', text: 'text-red-400', border: 'border-red-500/30' },
+  'Ubisoft Connect':  { bg: 'bg-blue-950/80', text: 'text-blue-400', border: 'border-blue-500/30' },
+  'Ubisoft':          { bg: 'bg-blue-950/80', text: 'text-blue-400', border: 'border-blue-500/30' },
+  'PlayStation':      { bg: 'bg-sky-950/80', text: 'text-sky-400', border: 'border-sky-500/30' },
+  'PlayStation PC':   { bg: 'bg-sky-950/80', text: 'text-sky-400', border: 'border-sky-500/30' },
+  'Rockstar Games':   { bg: 'bg-amber-950/80', text: 'text-amber-400', border: 'border-amber-500/30' },
+  'Rockstar':         { bg: 'bg-amber-950/80', text: 'text-amber-400', border: 'border-amber-500/30' },
+  'Battle.net':       { bg: 'bg-cyan-950/80', text: 'text-cyan-400', border: 'border-cyan-500/30' },
+  'Web':              { bg: 'bg-zinc-800/80', text: 'text-zinc-300', border: 'border-zinc-500/30' },
 };
 
 const SOURCE_COLORS: Record<string, { bg: string; text: string; border: string }> = {
@@ -416,6 +426,11 @@ const DiscoverGamesModal: React.FC<DiscoverGamesModalProps> = ({ onClose }) => {
     const isGOG = targetLauncher === 'GOG Galaxy' || targetLauncher === 'GOG';
     const isEpic = targetLauncher === 'Epic Games' || targetLauncher === 'Epic';
     const isXbox = targetLauncher === 'Xbox' || targetLauncher === 'Xbox Game Pass';
+    const isEA = targetLauncher === 'EA App' || targetLauncher === 'EA Desktop' || targetLauncher === 'EA' || targetLauncher === 'Origin';
+    const isUbisoft = targetLauncher === 'Ubisoft Connect' || targetLauncher === 'Ubisoft' || targetLauncher === 'Uplay';
+    const isPlaystation = targetLauncher === 'PlayStation' || targetLauncher === 'PlayStation PC' || targetLauncher === 'PS PC' || targetLauncher === 'Sony';
+    const isRockstar = targetLauncher === 'Rockstar Games' || targetLauncher === 'Rockstar';
+    const isBattlenet = targetLauncher === 'Battle.net' || targetLauncher === 'Blizzard';
 
     let webUrl = '';
     let clientProtocolUrl: string | null = null;
@@ -429,6 +444,21 @@ const DiscoverGamesModal: React.FC<DiscoverGamesModalProps> = ({ onClose }) => {
     } else if (isXbox) {
       webUrl = `https://www.xbox.com/en-us/games/store/search?q=${encodeURIComponent(game.title)}`;
       clientProtocolUrl = `ms-windows-store://search/?query=${encodeURIComponent(game.title)}`;
+    } else if (isEA) {
+      webUrl = `https://www.ea.com/games/library/browse?search=${encodeURIComponent(game.title)}`;
+      clientProtocolUrl = game.store_app_id ? `eaapp://launch/${game.store_app_id}` : 'eaapp://';
+    } else if (isUbisoft) {
+      webUrl = `https://store.ubisoft.com/search?q=${encodeURIComponent(game.title)}`;
+      clientProtocolUrl = game.store_app_id ? `uplay://launch/${game.store_app_id}/0` : 'uplay://';
+    } else if (isPlaystation) {
+      webUrl = `https://store.playstation.com/en-us/search/${encodeURIComponent(game.title)}`;
+      clientProtocolUrl = null;
+    } else if (isRockstar) {
+      webUrl = `https://store.rockstargames.com/search?q=${encodeURIComponent(game.title)}`;
+      clientProtocolUrl = 'rockstar://';
+    } else if (isBattlenet) {
+      webUrl = `https://shop.battle.net/search?q=${encodeURIComponent(game.title)}`;
+      clientProtocolUrl = 'battlenet://';
     } else {
       // Default: Steam
       webUrl = game.store_app_id
@@ -1460,6 +1490,11 @@ const DiscoverGamesModal: React.FC<DiscoverGamesModalProps> = ({ onClose }) => {
                   { id: 'Epic Games', label: 'Epic Games Store', style: 'bg-purple-950 text-purple-300 border-purple-500/40' },
                   { id: 'GOG', label: 'GOG Galaxy', style: 'bg-violet-950 text-violet-300 border-violet-500/40' },
                   { id: 'Xbox', label: 'Xbox Game Pass', style: 'bg-emerald-950 text-emerald-400 border-emerald-500/40' },
+                  { id: 'EA App', label: 'EA App', style: 'bg-red-950 text-red-400 border-red-500/40' },
+                  { id: 'Ubisoft Connect', label: 'Ubisoft Connect', style: 'bg-blue-950 text-blue-400 border-blue-500/40' },
+                  { id: 'PlayStation', label: 'PlayStation PC', style: 'bg-sky-950 text-sky-400 border-sky-500/40' },
+                  { id: 'Rockstar Games', label: 'Rockstar Games', style: 'bg-amber-950 text-amber-400 border-amber-500/40' },
+                  { id: 'Battle.net', label: 'Battle.net', style: 'bg-cyan-950 text-cyan-400 border-cyan-500/40' },
                 ].map((launcher) => {
                   const isActive = selectedLauncher === launcher.id;
                   return (
