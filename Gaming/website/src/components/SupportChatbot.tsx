@@ -499,7 +499,7 @@ export default function SupportChatbot() {
                     <h3 className="font-mono text-[9px] font-black text-white uppercase tracking-tight leading-none overflow-hidden text-ellipsis whitespace-nowrap">
                       MISSION CONTROL AI
                     </h3>
-                    <p style={{ fontSize: "7px" }} className="font-mono text-neon-green/80 uppercase tracking-tight leading-none mt-[2px] overflow-hidden text-ellipsis whitespace-nowrap flex items-center gap-1">
+                    <p style={{ fontSize: "7px" }} className="font-mono text-neon-green/80 uppercase tracking-tight leading-none mt-0.5 overflow-hidden text-ellipsis whitespace-nowrap flex items-center gap-1">
                       <span>24/7 SUPPORT ASSISTANT</span>
                       <span style={{ fontSize: "6px", padding: "0.5px 3px", borderRadius: "2px", background: "rgba(245,158,11,0.2)", color: "#fcd34d", fontWeight: 800, letterSpacing: "0.05em", border: "0.5px solid rgba(245,158,11,0.4)" }} className="shrink-0">BETA</span>
                     </p>
