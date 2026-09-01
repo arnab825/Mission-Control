@@ -796,7 +796,7 @@ export const UpdatesPage: React.FC<UpdatesPageProps> = ({
               {/* Hardware Telemetry Hotfix & Glitch Scanner */}
               {!installState && (
                 <div className="pt-6 border-t border-white/5 space-y-4">
-                  <div className="flex items-center justify-between flex-wrap gap-2">
+                  <div className="flex items-center justify-between flex-wrap gap-2.5">
                     <h5 className="text-[10px] font-black text-neon-green uppercase tracking-widest flex items-center gap-1.5">
                       <Cpu className="w-3.5 h-3.5 text-neon-green" />
                       Telemetry Glitch Scanner
@@ -805,19 +805,24 @@ export const UpdatesPage: React.FC<UpdatesPageProps> = ({
                       <button
                         type="button"
                         onClick={() => setIsReportModalOpen(true)}
-                        className="px-2.5 py-1 rounded bg-neon-green text-black text-[8px] font-black uppercase tracking-wider hover:bg-neon-green/90 shadow-[0_0_12px_rgba(118,185,0,0.25)] transition cursor-pointer flex items-center gap-1.5"
+                        className="group relative overflow-hidden h-7 sm:h-8 px-3.5 rounded-xl bg-linear-to-r from-neon-green via-[#8ce500] to-neon-green border border-neon-green/60 text-zinc-950 text-[9px] sm:text-[10px] font-black uppercase tracking-wider shadow-[0_0_16px_rgba(118,185,0,0.35),inset_0_1px_1px_rgba(255,255,255,0.4)] hover:shadow-[0_0_24px_rgba(118,185,0,0.55),inset_0_1px_1px_rgba(255,255,255,0.6)] hover:scale-[1.02] active:scale-[0.98] transition-all cursor-pointer flex items-center gap-2"
                         title="Report a hardware conflict or driver glitch to the community"
                       >
-                        <Send className="w-2.5 h-2.5" />
-                        Report Glitch / Issue
+                        <div className="absolute inset-0 -translate-x-full group-hover:translate-x-full bg-linear-to-r from-transparent via-white/35 to-transparent transition-transform duration-700 pointer-events-none" />
+                        <div className="p-1 rounded-md bg-black/15 group-hover:translate-x-0.5 group-hover:-translate-y-0.5 transition-transform duration-300">
+                          <Send className="w-2.5 h-2.5 text-zinc-950" />
+                        </div>
+                        <span>Report Glitch / Issue</span>
                       </button>
+
                       <button
                         type="button"
                         onClick={() => sendCommand('check_patches')}
-                        className="px-2.5 py-1 rounded bg-neon-green/10 hover:bg-neon-green/20 text-neon-green text-[8px] font-black uppercase tracking-wider border border-neon-green/20 transition cursor-pointer flex items-center gap-1"
+                        className="group h-7 sm:h-8 px-3.5 rounded-xl bg-white/4 hover:bg-white/8 text-zinc-300 hover:text-white border border-white/10 hover:border-neon-green/40 shadow-[0_4px_12px_rgba(0,0,0,0.4)] hover:shadow-[0_0_16px_rgba(118,185,0,0.2)] text-[9px] sm:text-[10px] font-black uppercase tracking-wider hover:scale-[1.02] active:scale-[0.98] transition-all cursor-pointer flex items-center gap-1.5"
+                        title="Resync telemetry with hotfix database"
                       >
-                        <RefreshCw className="w-2.5 h-2.5" />
-                        Resync Telemetry
+                        <RefreshCw className="w-3 h-3 text-neon-green group-hover:rotate-180 transition-transform duration-500" />
+                        <span>Resync Telemetry</span>
                       </button>
                     </div>
                   </div>
@@ -843,7 +848,7 @@ export const UpdatesPage: React.FC<UpdatesPageProps> = ({
                         <span className="text-neon-green">{state.patches_sync.matched_issues.length} MATCHES</span>
                       </div>
 
-                      {state.patches_sync.matched_issues.length === 0 ? (
+                      {state?.patches_sync?.matched_issues.length === 0 ? (
                         <div className="p-4 bg-neon-yellow/5 border border-neon-yellow/15 rounded-2xl flex flex-col sm:flex-row sm:items-center justify-between gap-3">
                           <div className="flex items-center gap-2.5">
                             <CheckCircle2 className="w-4 h-4 text-neon-yellow shrink-0" />
@@ -854,9 +859,10 @@ export const UpdatesPage: React.FC<UpdatesPageProps> = ({
                           <button
                             type="button"
                             onClick={() => setIsReportModalOpen(true)}
-                            className="px-3 py-1.5 rounded-xl bg-white/5 hover:bg-white/10 text-zinc-300 hover:text-white border border-white/10 text-[8px] font-black uppercase tracking-wider transition cursor-pointer self-start sm:self-auto shrink-0"
+                            className="group h-7 px-3 rounded-xl bg-neon-green/10 hover:bg-neon-green/20 text-neon-green hover:text-white border border-neon-green/30 hover:border-neon-green/60 text-[9px] font-black uppercase tracking-wider transition-all shadow-[0_0_12px_rgba(118,185,0,0.15)] flex items-center gap-1.5 cursor-pointer self-start sm:self-auto shrink-0"
                           >
-                            Report New Glitch
+                            <Send className="w-2.5 h-2.5" />
+                            <span>Report New Glitch</span>
                           </button>
                         </div>
                       ) : (

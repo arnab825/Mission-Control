@@ -1,9 +1,10 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import {
   X, AlertTriangle, Cpu, CheckCircle2, Send,
   ExternalLink, Loader2, HardDrive, Monitor, Layers,
-  User, Sparkles, Bot, Wand2, Lightbulb, PenTool
+  User, Sparkles, Bot, Wand2, Lightbulb, PenTool,
+  ChevronDown, Check, Zap, Activity
 } from 'lucide-react';
 import { useUser } from '@clerk/clerk-react';
 
@@ -40,6 +41,45 @@ const QUICK_DIAGNOSTIC_TAGS = [
   'DLSS 3.5 Frame Gen Artifacts',
 ];
 
+const CATEGORY_OPTIONS = [
+  {
+    value: 'glitch' as const,
+    label: 'Driver / Glitch',
+    desc: 'Display artifacts, TDR crashes, driver timeouts',
+    icon: Zap,
+    color: 'text-purple-400',
+    badgeBg: 'bg-purple-500/15',
+    badgeBorder: 'border-purple-500/30',
+  },
+  {
+    value: 'hardware' as const,
+    label: 'Hardware Conflict',
+    desc: 'VRAM exhaustion, PCIe errors, thermal throttling',
+    icon: Cpu,
+    color: 'text-neon-yellow',
+    badgeBg: 'bg-neon-yellow/15',
+    badgeBorder: 'border-neon-yellow/30',
+  },
+  {
+    value: 'performance' as const,
+    label: 'Performance Stutter / Drop',
+    desc: '1% low frame dips, shader stutter, latency spikes',
+    icon: Activity,
+    color: 'text-orange-400',
+    badgeBg: 'bg-orange-500/15',
+    badgeBorder: 'border-orange-500/30',
+  },
+  {
+    value: 'other' as const,
+    label: 'General / Other',
+    desc: 'UI/UX anomaly, telemetry sync or config issues',
+    icon: Layers,
+    color: 'text-neon-green',
+    badgeBg: 'bg-neon-green/15',
+    badgeBorder: 'border-neon-green/30',
+  },
+];
+
 export const ReportGlitchModal: React.FC<ReportGlitchModalProps> = ({
   isOpen,
   onClose,
@@ -62,12 +102,39 @@ export const ReportGlitchModal: React.FC<ReportGlitchModalProps> = ({
 
   const [title, setTitle] = useState('');
   const [category, setCategory] = useState<'hardware' | 'glitch' | 'performance' | 'other'>('glitch');
+  const [isCategoryOpen, setIsCategoryOpen] = useState(false);
+  const categoryRef = useRef<HTMLDivElement>(null);
   const [game, setGame] = useState('General System');
   const [description, setDescription] = useState('');
   const [submitting, setSubmitting] = useState(false);
   const [submitted, setSubmitted] = useState(false);
   const [activeCommunityUrl, setActiveCommunityUrl] = useState(`${PRIMARY_SITE}/community`);
   const [error, setError] = useState<string | null>(null);
+
+  useEffect(() => {
+    const handleClickOutside = (event: MouseEvent) => {
+      if (categoryRef.current && !categoryRef.current.contains(event.target as Node)) {
+        setIsCategoryOpen(false);
+      }
+    };
+    if (isCategoryOpen) {
+      document.addEventListener('mousedown', handleClickOutside);
+    }
+    return () => document.removeEventListener('mousedown', handleClickOutside);
+  }, [isCategoryOpen]);
+
+  useEffect(() => {
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if (e.key === 'Escape' && isCategoryOpen) {
+        setIsCategoryOpen(false);
+      }
+    };
+    window.addEventListener('keydown', handleKeyDown);
+    return () => window.removeEventListener('keydown', handleKeyDown);
+  }, [isCategoryOpen]);
+
+  const activeCategoryOpt = CATEGORY_OPTIONS.find((c) => c.value === category) || CATEGORY_OPTIONS[0];
+  const ActiveCategoryIcon = activeCategoryOpt.icon;
 
   useEffect(() => {
     if (detectedUser && detectedUser !== 'Operator' && (!author || author === 'Operator')) {
@@ -527,20 +594,87 @@ export const ReportGlitchModal: React.FC<ReportGlitchModalProps> = ({
                         className="w-full px-3 py-2.5 rounded-xl bg-black/40 border border-white/8 focus:border-neon-green/40 text-xs text-white placeholder:text-zinc-600 focus:outline-none transition-all"
                       />
                     </div>
-                    <div>
+                    <div ref={categoryRef} className="relative">
                       <label className="block text-[9px] font-black text-zinc-400 uppercase tracking-widest mb-1.5">
                         Category
                       </label>
-                      <select
-                        value={category}
-                        onChange={(e) => setCategory(e.target.value as any)}
-                        className="w-full px-3 py-2.5 rounded-xl bg-black/40 border border-white/8 focus:border-neon-green/40 text-xs text-zinc-200 focus:outline-none transition-all cursor-pointer"
+                      <button
+                        type="button"
+                        onClick={() => setIsCategoryOpen(!isCategoryOpen)}
+                        className={`w-full px-3 py-2 rounded-xl bg-black/40 border transition-all duration-200 cursor-pointer flex items-center justify-between text-xs text-zinc-200 ${
+                          isCategoryOpen
+                            ? 'border-neon-green/50 bg-[#0c0c14] shadow-[0_0_15px_rgba(118,185,0,0.15)] ring-1 ring-neon-green/30'
+                            : 'border-white/8 hover:border-white/20 hover:bg-white/3'
+                        }`}
                       >
-                        <option value="glitch">Driver / Glitch</option>
-                        <option value="hardware">Hardware Conflict</option>
-                        <option value="performance">Performance Stutter / Drop</option>
-                        <option value="other">General / Other</option>
-                      </select>
+                        <div className="flex items-center gap-2 min-w-0">
+                          <div className={`p-1 rounded-lg ${activeCategoryOpt.badgeBg} ${activeCategoryOpt.badgeBorder} border shrink-0`}>
+                            <ActiveCategoryIcon className={`w-3.5 h-3.5 ${activeCategoryOpt.color}`} />
+                          </div>
+                          <span className="font-bold text-white truncate text-[11px]">
+                            {activeCategoryOpt.label}
+                          </span>
+                        </div>
+                        <ChevronDown
+                          className={`w-3.5 h-3.5 text-zinc-400 transition-transform duration-200 shrink-0 ml-1.5 ${
+                            isCategoryOpen ? 'rotate-180 text-neon-green' : ''
+                          }`}
+                        />
+                      </button>
+
+                      {/* Dropdown Menu */}
+                      <AnimatePresence>
+                        {isCategoryOpen && (
+                          <motion.div
+                            initial={{ opacity: 0, y: -4, scale: 0.98 }}
+                            animate={{ opacity: 1, y: 0, scale: 1 }}
+                            exit={{ opacity: 0, y: -4, scale: 0.98 }}
+                            transition={{ duration: 0.15, ease: 'easeOut' }}
+                            className="absolute top-full left-0 right-0 sm:w-72 mt-1.5 bg-[#0d0d14]/95 backdrop-blur-2xl border border-white/10 rounded-2xl shadow-[0_20px_40px_rgba(0,0,0,0.9),0_0_20px_rgba(118,185,0,0.05)] z-50 p-1.5 flex flex-col gap-1 ring-1 ring-white/5"
+                          >
+                            <div className="px-2.5 py-1 text-[8px] font-black uppercase tracking-[0.2em] text-zinc-500 border-b border-white/5 flex items-center justify-between">
+                              <span>Select Issue Category</span>
+                              <span className="text-[7px] text-neon-green font-mono">Telemetry Class</span>
+                            </div>
+                            {CATEGORY_OPTIONS.map((opt) => {
+                              const isSelected = category === opt.value;
+                              const OptIcon = opt.icon;
+                              return (
+                                <button
+                                  key={opt.value}
+                                  type="button"
+                                  onClick={() => {
+                                    setCategory(opt.value);
+                                    setIsCategoryOpen(false);
+                                  }}
+                                  className={`w-full text-left p-2 rounded-xl transition-all flex items-start gap-2.5 cursor-pointer ${
+                                    isSelected
+                                      ? 'bg-neon-green/10 border border-neon-green/25 shadow-[inset_0_0_12px_rgba(118,185,0,0.08)]'
+                                      : 'hover:bg-white/5 border border-transparent hover:border-white/5'
+                                  }`}
+                                >
+                                  <div className={`p-1.5 rounded-lg ${opt.badgeBg} ${opt.badgeBorder} border shrink-0 mt-0.5`}>
+                                    <OptIcon className={`w-3.5 h-3.5 ${opt.color}`} />
+                                  </div>
+                                  <div className="flex-1 min-w-0">
+                                    <div className="flex items-center justify-between gap-1">
+                                      <span className={`text-[11px] font-bold ${isSelected ? 'text-neon-green' : 'text-white'}`}>
+                                        {opt.label}
+                                      </span>
+                                      {isSelected && (
+                                        <Check className="w-3.5 h-3.5 text-neon-green shrink-0" />
+                                      )}
+                                    </div>
+                                    <p className="text-[9px] text-zinc-400 leading-tight mt-0.5">
+                                      {opt.desc}
+                                    </p>
+                                  </div>
+                                </button>
+                              );
+                            })}
+                          </motion.div>
+                        )}
+                      </AnimatePresence>
                     </div>
                     <div>
                       <label className="block text-[9px] font-black text-zinc-400 uppercase tracking-widest mb-1.5">

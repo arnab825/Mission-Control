@@ -114,7 +114,8 @@ const ReadinessPage: React.FC<ReadinessPageProps> = ({ state, connected, sendCom
   }
 
   return (
-    <div className="flex-1 p-4 md:p-8 overflow-y-auto custom-scrollbar flex flex-col gap-6">
+    <div className="flex-1 min-w-0 p-4 md:p-8 overflow-y-auto overflow-x-hidden custom-scrollbar flex flex-col gap-6">
+      {/* Header */}
       <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between border-b border-white/5 pb-4">
         <div>
           <h2 className="text-2xl font-black tracking-tight text-white uppercase flex items-center gap-3">
@@ -131,19 +132,20 @@ const ReadinessPage: React.FC<ReadinessPageProps> = ({ state, connected, sendCom
             setIsReevaluating(true);
             sendCommand('get_gaming_readiness', { forceRefresh: true });
           }}
-          className="mt-3 sm:mt-0 px-4 py-2 bg-white/5 border border-white/10 hover:bg-white/10 hover:border-white/20 text-white rounded-xl text-xs font-black uppercase tracking-wider transition-all flex items-center gap-2 group"
+          className="mt-3 sm:mt-0 px-4 py-2 bg-white/5 border border-white/10 hover:bg-white/10 hover:border-white/20 text-white rounded-xl text-xs font-black uppercase tracking-wider transition-all flex items-center gap-2 group cursor-pointer"
         >
           <RefreshCw className="w-3.5 h-3.5 text-neon-green group-hover:rotate-180 transition-transform duration-500" />
           Re-evaluate
         </button>
       </div>
 
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 items-start">
+      {/* Top Grid: Left (Score & Driver Analysis) + Right (Hardware Breakdown) */}
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 items-stretch">
         {/* Left Column: Score Card & Driver Analysis */}
         <div className="lg:col-span-1 flex flex-col gap-6">
           {/* Score Card */}
-          <div className="bg-white/[0.02] border border-white/5 rounded-[2rem] p-6 flex flex-col items-center justify-center relative overflow-hidden shadow-2xl">
-            <div className="absolute inset-0 bg-gradient-to-b from-neon-green/5 to-transparent pointer-events-none" />
+          <div className="bg-white/2 border border-white/5 rounded-4xl p-6 flex flex-col items-center justify-center relative overflow-hidden shadow-2xl flex-1">
+            <div className="absolute inset-0 bg-linear-to-b from-neon-green/5 to-transparent pointer-events-none" />
             <h3 className="text-[10px] font-black text-zinc-500 uppercase tracking-[0.2em] mb-6 relative z-10">Gaming Readiness</h3>
 
             <div className={`w-36 h-36 rounded-full border-4 flex items-center justify-center mb-6 relative z-10 transition-all duration-1000 ${getScoreColor(score)}`}>
@@ -175,8 +177,8 @@ const ReadinessPage: React.FC<ReadinessPageProps> = ({ state, connected, sendCom
           </div>
 
           {/* Driver Analysis */}
-          <div className="bg-white/[0.03] border border-white/5 rounded-3xl p-6 shadow-xl flex flex-col">
-            <h3 className="text-xs font-black text-white uppercase tracking-widest mb-6 flex items-center gap-2">
+          <div className="bg-white/3 border border-white/5 rounded-3xl p-6 shadow-xl flex flex-col">
+            <h3 className="text-xs font-black text-white uppercase tracking-widest mb-4 flex items-center gap-2">
               <Zap className="w-4 h-4 text-purple-400" />
               Driver Analysis
             </h3>
@@ -189,15 +191,15 @@ const ReadinessPage: React.FC<ReadinessPageProps> = ({ state, connected, sendCom
 
               <ul className="space-y-3">
                 <li className="flex items-center gap-3 text-[10px] text-zinc-300">
-                  <div className="w-1.5 h-1.5 rounded-full bg-purple-400" />
+                  <div className="w-1.5 h-1.5 rounded-full bg-purple-400 shrink-0" />
                   Improved game stability
                 </li>
                 <li className="flex items-center gap-3 text-[10px] text-zinc-300">
-                  <div className="w-1.5 h-1.5 rounded-full bg-purple-400" />
+                  <div className="w-1.5 h-1.5 rounded-full bg-purple-400 shrink-0" />
                   DLSS and Frame Generation support
                 </li>
                 <li className="flex items-center gap-3 text-[10px] text-zinc-300">
-                  <div className="w-1.5 h-1.5 rounded-full bg-purple-400" />
+                  <div className="w-1.5 h-1.5 rounded-full bg-purple-400 shrink-0" />
                   Optimized Tensor core utilization
                 </li>
               </ul>
@@ -205,84 +207,109 @@ const ReadinessPage: React.FC<ReadinessPageProps> = ({ state, connected, sendCom
           </div>
         </div>
 
-        {/* Right Column: Hardware Breakdown & Feature Compatibility */}
-        <div className="lg:col-span-2 flex flex-col gap-6">
-          <div className="flex flex-col gap-4">
-            <h3 className="text-xs font-black text-white uppercase tracking-widest mb-2 px-2 border-l-2 border-neon-green">Hardware Breakdown</h3>
+        {/* Right Column: Hardware Breakdown */}
+        <div className="lg:col-span-2 flex flex-col gap-4">
+          <h3 className="text-xs font-black text-white uppercase tracking-widest mb-1 px-2 border-l-2 border-neon-green">
+            Hardware Breakdown
+          </h3>
 
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-              {[
-                { id: 'cpu', icon: Cpu, label: 'CPU', data: components.cpu },
-                { id: 'gpu', icon: Zap, label: 'GPU', data: components.gpu },
-                { id: 'ram', icon: Box, label: 'Memory', data: components.ram },
-                { id: 'storage', icon: Database, label: 'Storage', data: components.storage },
-                { id: 'os', icon: Monitor, label: 'Operating System', data: components.os }
-              ].map((comp) => (
-                comp.data && (
-                  <div key={comp.id} className={`p-5 rounded-2xl border bg-white/[0.03] transition-all flex flex-col gap-3 ${comp.data.status === 'pass' ? 'border-neon-yellow/20' :
-                    comp.data.status === 'warn' ? 'border-orange-500/20' : 'border-red-500/20'
-                    }`}>
-                    <div className="flex items-center justify-between">
-                      <div className="flex items-center gap-2.5">
-                        <div className="p-1.5 rounded-lg bg-black/40 border border-white/5">
-                          <comp.icon className="w-4 h-4 text-zinc-400" />
-                        </div>
-                        <span className="text-[11px] font-black text-zinc-300 uppercase tracking-wider">{comp.label}</span>
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            {[
+              { id: 'cpu', icon: Cpu, label: 'CPU', data: components.cpu },
+              { id: 'gpu', icon: Zap, label: 'GPU', data: components.gpu },
+              { id: 'ram', icon: Box, label: 'Memory', data: components.ram },
+              { id: 'storage', icon: Database, label: 'Storage', data: components.storage },
+              { id: 'os', icon: Monitor, label: 'Operating System', data: components.os }
+            ].map((comp) => (
+              comp.data && (
+                <div
+                  key={comp.id}
+                  className={`p-5 rounded-2xl border bg-white/3 transition-all flex flex-col gap-3 ${
+                    comp.id === 'os' ? 'md:col-span-2' : ''
+                  } ${
+                    comp.data.status === 'pass' ? 'border-neon-yellow/20 hover:border-neon-yellow/40' :
+                    comp.data.status === 'warn' ? 'border-orange-500/20 hover:border-orange-500/40' : 
+                    'border-red-500/20 hover:border-red-500/40'
+                  }`}
+                >
+                  <div className="flex items-center justify-between">
+                    <div className="flex items-center gap-2.5">
+                      <div className="p-1.5 rounded-lg bg-black/40 border border-white/5">
+                        <comp.icon className="w-4 h-4 text-zinc-400" />
                       </div>
-                      {getStatusIcon(comp.data.status)}
+                      <span className="text-[11px] font-black text-zinc-300 uppercase tracking-wider">{comp.label}</span>
                     </div>
+                    {getStatusIcon(comp.data.status)}
+                  </div>
 
-                    <div>
-                      <div className="text-sm font-black text-white truncate" title={comp.data.name}>{comp.data.name}</div>
-                      <div className="flex items-center gap-4 mt-2">
-                        <div>
-                          <span className="text-[8px] text-zinc-500 uppercase block">Minimum</span>
-                          <span className="text-[10px] font-bold text-zinc-400">{comp.data.min_req}</span>
-                        </div>
-                        <div>
-                          <span className="text-[8px] text-zinc-500 uppercase block">Recommended</span>
-                          <span className="text-[10px] font-bold text-zinc-400">{comp.data.rec_req}</span>
-                        </div>
+                  <div>
+                    <div className="text-sm font-black text-white truncate" title={comp.data.name}>{comp.data.name}</div>
+                    <div className="flex items-center gap-4 mt-2">
+                      <div>
+                        <span className="text-[8px] text-zinc-500 uppercase block">Minimum</span>
+                        <span className="text-[10px] font-bold text-zinc-400">{comp.data.min_req}</span>
                       </div>
-                    </div>
-
-                    <div className="mt-auto pt-3 border-t border-white/5">
-                      <p className="text-[10px] text-zinc-400 leading-relaxed font-medium">
-                        <span className="font-bold text-zinc-300">Reason:</span> {comp.data.reason}
-                      </p>
+                      <div>
+                        <span className="text-[8px] text-zinc-500 uppercase block">Recommended</span>
+                        <span className="text-[10px] font-bold text-zinc-400">{comp.data.rec_req}</span>
+                      </div>
                     </div>
                   </div>
-                )
-              ))}
-            </div>
-          </div>
 
-          {/* Feature Compatibility */}
-          <div className="bg-white/[0.03] border border-white/5 rounded-3xl p-6 shadow-xl">
-            <h3 className="text-xs font-black text-white uppercase tracking-widest mb-6 flex items-center gap-2">
-              <Monitor className="w-4 h-4 text-neon-green" />
-              Feature Compatibility
-            </h3>
-            <div className="space-y-4">
-              {features.map((feat: any, i: number) => (
-                <div key={i} className="flex items-start gap-4 p-3 rounded-xl hover:bg-white/5 transition-colors">
-                  <div className="mt-0.5">{getFeatureIcon(feat.status)}</div>
-                  <div>
-                    <div className="flex items-center gap-2">
-                      <span className="text-xs font-bold text-white">{feat.name}</span>
-                      <span className={`text-[9px] font-black uppercase tracking-wider px-1.5 py-0.5 rounded border ${feat.status === 'Fully Supported' ? 'bg-neon-yellow/10 text-neon-yellow border-neon-yellow/20' :
-                        feat.status === 'Reduced Performance' || feat.status === 'Limited Support' ? 'bg-orange-500/10 text-orange-400 border-orange-500/20' :
-                          'bg-red-500/10 text-red-400 border-red-500/20'
-                        }`}>
-                        {feat.status}
-                      </span>
-                    </div>
-                    <p className="text-[10px] text-zinc-500 mt-1 font-medium">{feat.reason}</p>
+                  <div className="mt-auto pt-3 border-t border-white/5">
+                    <p className="text-[10px] text-zinc-400 leading-relaxed font-medium">
+                      <span className="font-bold text-zinc-300">Reason:</span> {comp.data.reason}
+                    </p>
                   </div>
                 </div>
-              ))}
-            </div>
+              )
+            ))}
           </div>
+        </div>
+      </div>
+
+      {/* Full-Width Bottom Section: Feature Compatibility */}
+      <div className="bg-white/3 border border-white/5 rounded-3xl p-6 shadow-xl w-full">
+        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 mb-6">
+          <h3 className="text-xs font-black text-white uppercase tracking-widest flex items-center gap-2">
+            <Monitor className="w-4 h-4 text-neon-green" />
+            Feature Compatibility
+          </h3>
+          <span className="text-[10px] font-bold text-zinc-500 uppercase tracking-widest">
+            {features.filter((feat: any) => feat.status === 'Fully Supported').length} of {features.length} Features Supported
+          </span>
+        </div>
+
+        <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-4">
+          {features.map((feat: any, i: number) => (
+            <div
+              key={i}
+              className="flex items-start gap-3.5 p-4 rounded-2xl bg-white/2 border border-white/5 hover:bg-white/5 hover:border-white/10 transition-all group"
+            >
+              <div className="mt-0.5 shrink-0">{getFeatureIcon(feat.status)}</div>
+              <div className="flex-1 min-w-0">
+                <div className="flex items-center justify-between gap-2 flex-wrap mb-1">
+                  <span className="text-xs font-bold text-white group-hover:text-neon-green transition-colors truncate">
+                    {feat.name}
+                  </span>
+                  <span
+                    className={`text-[9px] font-black uppercase tracking-wider px-1.5 py-0.5 rounded border shrink-0 ${
+                      feat.status === 'Fully Supported'
+                        ? 'bg-neon-yellow/10 text-neon-yellow border-neon-yellow/20'
+                        : feat.status === 'Reduced Performance' || feat.status === 'Limited Support'
+                        ? 'bg-orange-500/10 text-orange-400 border-orange-500/20'
+                        : 'bg-red-500/10 text-red-400 border-red-500/20'
+                    }`}
+                  >
+                    {feat.status}
+                  </span>
+                </div>
+                <p className="text-[10px] text-zinc-400 leading-relaxed font-medium">
+                  {feat.reason}
+                </p>
+              </div>
+            </div>
+          ))}
         </div>
       </div>
     </div>
