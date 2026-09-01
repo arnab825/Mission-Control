@@ -1,8 +1,19 @@
 {
-  "version": "3.4.1",
+  "version": "3.4.2",
   "release_date": "2026-08-27",
   "update_check_url": "https://raw.githubusercontent.com/arnab825/Mission-Control/main/Gaming/backend/version.json",
   "changelog": [
+    {
+      "version": "3.4.2",
+      "date": "2026-09-01",
+      "title": "Multi-Launcher Support, Omni-Search & Dynamic AI Resolver",
+      "highlights": [
+        "Added EA App, Ubisoft Connect, PlayStation PC, Rockstar Games, and Battle.net launcher support",
+        "Engineered dynamic GameModeResolver with keyword & Jaccard token matching",
+        "Added with_game_context decorator & auto_switch_mode universal wrapper function",
+        "Implemented curated multi-launcher catalog for instant Discover Games & Intel Hub visibility"
+      ]
+    },
     {
       "version": "3.4.1",
       "date": "2026-09-01",
@@ -456,14 +467,6 @@
       "title": "Release v2.9.5: Add Linux Support",
       "highlights": [
         "Release v2.9.5: Add Linux Support"
-      ]
-    },
-    {
-      "version": "2.9.4",
-      "date": "2026-08-12",
-      "title": "Fix Alienware CPU temperature telemetry lockouts under heavy gaming loads",
-      "highlights": [
-        "Fix Alienware CPU temperature telemetry lockouts under heavy gaming loads"
       ]
     }
   ]
