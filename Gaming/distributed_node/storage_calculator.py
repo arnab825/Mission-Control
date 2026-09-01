@@ -39,12 +39,19 @@ def get_drive_storage(paths: List[str]) -> Dict[str, int]:
 
     for path in paths:
         try:
+            if not path or not str(path).strip():
+                continue
             p = Path(path)
             # Find drive root
             root = p.anchor  # e.g. 'D:\\' on Windows, '/dev/sda' context on Linux
-            if root in seen_roots:
+            if not root or root in seen_roots:
                 continue
             seen_roots.add(root)
+
+            # Skip drives that are unmounted or disconnected (e.g. unplugged external drives)
+            if not os.path.exists(root):
+                logger.debug("storage_calculator: Drive root '%s' is not mounted or accessible. Skipping.", root)
+                continue
 
             usage = shutil.disk_usage(root)
             total += usage.total
@@ -52,7 +59,10 @@ def get_drive_storage(paths: List[str]) -> Dict[str, int]:
             used  += (usage.total - usage.free)
             logger.debug("Drive %s: total=%.1fGB, free=%.1fGB", root, usage.total/1e9, usage.free/1e9)
         except Exception as exc:
-            logger.warning("storage_calculator: Could not measure drive for '%s': %s", path, exc)
+            logger.debug("storage_calculator: Could not measure drive for '%s': %s", path, exc)
+
+    if total == 0:
+        return get_default_storage()
 
     return {"total": total, "used": used, "free": free}
 
