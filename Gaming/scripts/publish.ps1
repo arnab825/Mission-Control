@@ -35,7 +35,6 @@ foreach ($envPath in @(
                 [System.Environment]::SetEnvironmentVariable($key, $value, 'Process')
             }
         }
-        break  # Use first .env file found; stop looking
     }
 }
 
