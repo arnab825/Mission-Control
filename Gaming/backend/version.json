@@ -1,8 +1,18 @@
 {
-  "version": "3.4.0",
+  "version": "3.4.1",
   "release_date": "2026-08-27",
   "update_check_url": "https://raw.githubusercontent.com/arnab825/Mission-Control/main/Gaming/backend/version.json",
   "changelog": [
+    {
+      "version": "3.4.1",
+      "date": "2026-09-01",
+      "title": "Fix OpenCV in-memory loader and enable Gaming Readiness assessment system",
+      "highlights": [
+        "Implement zero-disk in-memory fallback loader for OpenCV to prevent missing config crashes on read-only installations",
+        "Integrate AI-driven Gaming Readiness assessment engine and IPC bridge with real-time hardware telemetry",
+        "Enhance PyInstaller spec to guarantee recursive collection of OpenCV runtime configurations"
+      ]
+    },
     {
       "version": "3.4.0",
       "date": "2026-08-31",
@@ -454,14 +464,6 @@
       "title": "Fix Alienware CPU temperature telemetry lockouts under heavy gaming loads",
       "highlights": [
         "Fix Alienware CPU temperature telemetry lockouts under heavy gaming loads"
-      ]
-    },
-    {
-      "version": "2.9.3",
-      "date": "2026-08-12",
-      "title": "Fix Alienware CPU temperature telemetry lockouts and dynamic blog AI cover generation",
-      "highlights": [
-        "Fix Alienware CPU temperature telemetry lockouts and dynamic blog AI cover generation"
       ]
     }
   ]
