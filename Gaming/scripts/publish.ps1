@@ -18,9 +18,13 @@ Write-Host "[PUBLISH] Starting release process..." -ForegroundColor Cyan
 
 # Auto-load ALL secrets from .env files into this session
 foreach ($envPath in @(
+    "$PSScriptRoot/../publisher-gui/.env",
     "$PSScriptRoot/../backend/.env",
+    "$PSScriptRoot/../frontend/.env",
+    "$PSScriptRoot/../website/.env",
+    "$PSScriptRoot/../website/.env.local",
     "$PSScriptRoot/../.env",
-    "$PSScriptRoot/../website/.env.local"
+    "$PSScriptRoot/../../.env"
 )) {
     if (Test-Path $envPath) {
         Write-Host "[ENV] Loading secrets from $envPath..." -ForegroundColor DarkGray
