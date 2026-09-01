@@ -202,8 +202,41 @@ class LibraryNodeService:
         self.cfg = config
         self._running = False
         self._scan_lock = threading.Lock()
-        self._reg_lock = threading.Lock()
         self._last_scan: float = 0.0
+
+    def get_node_info(self) -> Dict[str, Any]:
+        """Returns aggregated node metrics, disk capacity, scan paths, and game count for Fleet Command."""
+        storage = (
+            get_drive_storage(self.cfg.scan_paths)
+            if self.cfg.scan_paths
+            else get_default_storage()
+        )
+        game_count = 0
+        try:
+            from system.game_scanner import GameScanner
+            scanner = GameScanner(config={}, user_id=self.cfg.clerk_id)
+            cached_games = scanner.load_cached_games() or []
+            game_count = len(cached_games)
+        except Exception:
+            pass
+
+        return {
+            "node_id": self.cfg.node_id or get_machine_node_id(),
+            "name": self.cfg.node_name or socket.gethostname(),
+            "hostname": socket.gethostname(),
+            "ip_address": _get_local_ip(),
+            "status": "online",
+            "storage_used": storage.get("used", 0),
+            "storage_total": storage.get("total", 0),
+            "storage_free": storage.get("free", 0),
+            "scan_paths": list(self.cfg.scan_paths),
+            "game_count": game_count,
+            "last_heartbeat": time.strftime("%Y-%m-%dT%H:%M:%SZ", time.gmtime()),
+            "last_scan": time.strftime("%Y-%m-%dT%H:%M:%SZ", time.gmtime(self._last_scan)) if self._last_scan else None,
+            "is_local": True,
+            "clerk_id": self.cfg.clerk_id,
+            "platform": sys.platform,
+        }
 
     # ── Registration ──────────────────────────────────────────────────────────
 

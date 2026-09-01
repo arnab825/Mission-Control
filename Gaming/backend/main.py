@@ -646,6 +646,14 @@ Ready and monitoring. Launch your game to initiate automatic HUD lock.
                 game_handler.handle_delete_account(payload, pipeline, bridge, config, _library_session)
             elif cmd_type == "register_local_node":
                 game_handler.handle_register_local_node(payload, pipeline, bridge, config)
+            elif cmd_type == "get_nodes":
+                game_handler.handle_get_nodes(payload, pipeline, bridge, config)
+            elif cmd_type == "update_node_paths":
+                game_handler.handle_update_node_paths(payload, pipeline, bridge, config, _library_session)
+            elif cmd_type == "rename_node":
+                game_handler.handle_rename_node(payload, pipeline, bridge, config)
+            elif cmd_type == "trigger_node_scan":
+                game_handler.handle_trigger_node_scan(payload, pipeline, bridge, config, _library_session)
 
             # ── System / hardware / config commands ───────────────────────
             elif cmd_type == "optimize_system":

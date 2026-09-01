@@ -1269,6 +1269,58 @@ ipcMain.handle('select-directory', async () => {
   return result.filePaths[0];
 });
 
+ipcMain.handle('fetch-local-node', async () => {
+  try {
+    const os = require('os');
+    const hostname = os.hostname();
+    const platform = process.platform === 'win32' ? 'Windows' : (process.platform === 'darwin' ? 'macOS' : 'Linux');
+    
+    // Discover common game installation directories across drive roots
+    const standardPaths: string[] = [];
+    const drives = ['C:', 'D:', 'E:', 'F:', 'G:'];
+    const candidates = [
+      'Program Files (x86)\\Steam\\steamapps\\common',
+      'Program Files\\Epic Games',
+      'GOG Games',
+      'Program Files (x86)\\GOG Galaxy\\Games',
+      'Program Files\\EA Games',
+      'Ubisoft\\Ubisoft Game Launcher\\games',
+      'XboxGames',
+      'Games'
+    ];
+    for (const d of drives) {
+      for (const c of candidates) {
+        const full = path.join(d, c);
+        if (fs.existsSync(full)) {
+          standardPaths.push(full);
+        }
+      }
+    }
+
+    return {
+      success: true,
+      node: {
+        node_id: `LOCAL-${hostname.toUpperCase().slice(0, 6)}`,
+        name: `Host PC (${hostname})`,
+        hostname: hostname,
+        ip: '127.0.0.1',
+        platform: platform,
+        status: 'online',
+        storage_total: 1000 * 1024 * 1024 * 1024,
+        storage_used: 450 * 1024 * 1024 * 1024,
+        storage_free: 550 * 1024 * 1024 * 1024,
+        scan_paths: standardPaths.length > 0 ? standardPaths : ['C:\\Program Files (x86)\\Steam\\steamapps\\common'],
+        last_heartbeat: new Date().toISOString(),
+        version: app.getVersion(),
+        game_count: 0,
+        is_local: true
+      }
+    };
+  } catch (err: any) {
+    return { success: false, error: err.message };
+  }
+});
+
 ipcMain.handle('get-desktop-path', async () => {
   try {
     return app.getPath('desktop').replace(/\\/g, '/');
