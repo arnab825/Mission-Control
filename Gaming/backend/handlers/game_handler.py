@@ -83,6 +83,27 @@ def handle_register_local_node(payload: dict, pipeline, bridge, config) -> None:
         bridge.update_state({"node_registration_status": "registered"})
 
 
+def handle_get_discover_games(payload: dict, pipeline, bridge, config, library_session: dict) -> None:
+    """Fetch dynamically formatted discover items from database for Discover Games & Intel Hub."""
+    try:
+        from core.game_mode_resolver import game_mode_resolver
+        user_id = payload.get("userId") if payload else None
+        user_id_str = str(user_id) if user_id else (getattr(pipeline, "active_user_id", None) if pipeline else None)
+        query = payload.get("query") if payload else None
+        limit = int(payload.get("limit", 50)) if payload else 50
+
+        games = game_mode_resolver.get_discoverable_games(query=query, limit=limit, user_id=user_id_str)
+        if bridge:
+            bridge.update_state({
+                "discover_games_catalog": games,
+                "discover_games_count": len(games),
+            })
+    except Exception as e:
+        logger.error("Failed to fetch discover games: %s", e, exc_info=True)
+        if bridge:
+            bridge.update_state({"discover_games_catalog": [], "discover_games_error": str(e)})
+
+
 def handle_get_cached_games(payload: dict, pipeline, bridge, config, library_session: dict) -> None:
     try:
         from system.game_scanner import GameScanner

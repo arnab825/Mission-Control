@@ -634,6 +634,8 @@ Ready and monitoring. Launch your game to initiate automatic HUD lock.
             # ── Game library / scanning commands ──────────────────────────
             elif cmd_type == "get_cached_games":
                 game_handler.handle_get_cached_games(payload, pipeline, bridge, config, _library_session)
+            elif cmd_type == "get_discover_games":
+                game_handler.handle_get_discover_games(payload, pipeline, bridge, config, _library_session)
             elif cmd_type == "scan_games":
                 game_handler.handle_scan_games(payload, pipeline, bridge, config, _library_session)
             elif cmd_type == "launch_game":

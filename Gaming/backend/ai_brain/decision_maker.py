@@ -229,6 +229,13 @@ class GameBrain:
                 import logging
                 logging.getLogger(__name__).error(f"Failed to start Context Engine: {e}")
 
+    def set_mode(self, mode: str):
+        """Set active assistant mode (competitive, story, hybrid)."""
+        self.mode = mode
+        if "ai_agent" not in self.config:
+            self.config["ai_agent"] = {}
+        self.config["ai_agent"]["assistant_mode"] = mode
+
     def get_game_library_context(self, user_id: str = None) -> str:
         """Load scanned games from cache and format it as context for the agent."""
         cache_key = user_id or "guest"
