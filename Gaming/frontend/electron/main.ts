@@ -2988,7 +2988,160 @@ function setupAutoUpdater() {
       } catch (_) {}
     };
 
-    await Promise.allSettled([fetchSteam(), fetchEpic(), fetchGOG(), fetchXbox()]);
+    // 5. Add EA App trending titles
+    const fetchEA = async () => {
+      const eaTitles = [
+        { id: 'ea-fc25', title: 'EA SPORTS FC 25', genre: 'Sports & Football', banner: 'https://media.contentapi.ea.com/content/dam/ea/ea-sports-fc/fc-25/common/fc25-keyart-16x9.jpg.adapt.crop16x9.1023w.jpg', summary: 'Experience more ways to win with EA SPORTS FC 25 and 5v5 Rush.' },
+        { id: 'ea-apex', title: 'Apex Legends', genre: 'Battle Royale', banner: 'https://media.contentapi.ea.com/content/dam/apex-legends/common/apex-section-bg-breakpoint-md.jpg.adapt.1920w.jpg', summary: 'Master an expanding roster of powerful Legends with unique abilities in tactical battle royale.' },
+        { id: 'ea-jedi-survivor', title: 'STAR WARS Jedi: Survivor', genre: 'Action Adventure', banner: 'https://media.contentapi.ea.com/content/dam/star-wars-ea-games/star-wars-jedi/jedi-survivor/common/sw-jedi-survivor-keyart-16x9.jpg.adapt.crop16x9.1023w.jpg', summary: 'The story of Cal Kestis continues in STAR WARS Jedi: Survivor from Respawn Entertainment.' },
+        { id: 'ea-bf2042', title: 'Battlefield 2042', genre: 'FPS Multiplayer', banner: 'https://media.contentapi.ea.com/content/dam/battlefield/battlefield-2042/common/battlefield-2042-key-art-16x9.jpg.adapt.crop16x9.1023w.jpg', summary: 'Unleash your combat creativity in near-future all-out warfare sandbox battles.' },
+      ];
+      eaTitles.forEach(g => {
+        safeAdd({
+          id: g.id,
+          title: g.title,
+          developer: 'Electronic Arts',
+          publisher: 'EA',
+          release_date: '2024',
+          primary_genre: g.genre,
+          genres: ['EA App', g.genre, 'Action'],
+          tags: ['EA App', 'Official Store'],
+          cover_url: g.banner,
+          banner_url: g.banner,
+          summary: g.summary,
+          store: 'EA App',
+          store_app_id: g.id,
+          launchers: ['EA App'],
+          in_catalog: true,
+          ai_classified: true,
+          installations: [],
+        });
+      });
+    };
+
+    // 6. Add Ubisoft Connect trending titles
+    const fetchUbisoft = async () => {
+      const ubiTitles = [
+        { id: 'ubi-ac-mirage', title: "Assassin's Creed Mirage", genre: 'Stealth Action', banner: 'https://staticctf.ubisoft.com/J3yhrsx3go0BizamdaEU&t/3uS1pQ6E7yN7r1qVzY3vK0/acm-keyart.jpg', summary: 'Experience the story of Basim in ninth-century Baghdad during the Golden Age of Islam.' },
+        { id: 'ubi-r6-siege', title: "Tom Clancy's Rainbow Six Siege", genre: 'Tactical Shooter', banner: 'https://staticctf.ubisoft.com/J3yhrsx3go0BizamdaEU&t/4a4Z3UfI7eW6w1qVzY3vK0/r6s-keyart.jpg', summary: 'Master the art of destruction and gadgetry in intense close-quarters tactical team combat.' },
+        { id: 'ubi-crew-motorfest', title: 'The Crew Motorfest', genre: 'Open World Racing', banner: 'https://staticctf.ubisoft.com/J3yhrsx3go0BizamdaEU&t/7b8C9D0E1F2G3H4I5J6K7L/motorfest-keyart.jpg', summary: 'Celebrate the best of car culture in Hawaii with open-world racing festivals.' },
+      ];
+      ubiTitles.forEach(g => {
+        safeAdd({
+          id: g.id,
+          title: g.title,
+          developer: 'Ubisoft Montreal',
+          publisher: 'Ubisoft',
+          release_date: '2024',
+          primary_genre: g.genre,
+          genres: ['Ubisoft Connect', g.genre],
+          tags: ['Ubisoft Connect', 'Uplay', 'Official'],
+          cover_url: g.banner,
+          banner_url: g.banner,
+          summary: g.summary,
+          store: 'Ubisoft Connect',
+          store_app_id: g.id,
+          launchers: ['Ubisoft Connect'],
+          in_catalog: true,
+          ai_classified: true,
+          installations: [],
+        });
+      });
+    };
+
+    // 7. Add PlayStation PC trending titles
+    const fetchPlayStation = async () => {
+      const psTitles = [
+        { id: 'ps-gow-ragnarok', title: 'God of War Ragnarök', genre: 'Action Adventure', banner: 'https://shared.cloudflare.steamstatic.com/store_item_assets/steam/apps/2322010/header.jpg', summary: 'Kratos and Atreus must journey to each of the Nine Realms in search of answers as Asgardian forces prepare for a prophesied battle.' },
+        { id: 'ps-spiderman-remastered', title: "Marvel's Spider-Man Remastered", genre: 'Superhero Action', banner: 'https://shared.cloudflare.steamstatic.com/store_item_assets/steam/apps/1817070/header.jpg', summary: 'Play as Peter Parker fighting iconic Marvel villains across vibrant open-world New York.' },
+        { id: 'ps-ghost-of-tsushima', title: "Ghost of Tsushima DIRECTOR'S CUT", genre: 'Open World Samurai', banner: 'https://shared.cloudflare.steamstatic.com/store_item_assets/steam/apps/2215430/header.jpg', summary: 'Forge a new path and wage an unconventional war for the freedom of Tsushima.' },
+        { id: 'ps-tlou-part1', title: 'The Last of Us Part I', genre: 'Cinematic Story', banner: 'https://shared.cloudflare.steamstatic.com/store_item_assets/steam/apps/1888930/header.jpg', summary: 'Experience the emotional storytelling and unforgettable characters in The Last of Us.' },
+      ];
+      psTitles.forEach(g => {
+        safeAdd({
+          id: g.id,
+          title: g.title,
+          developer: 'PlayStation Studios',
+          publisher: 'Sony Interactive Entertainment',
+          release_date: '2024',
+          primary_genre: g.genre,
+          genres: ['PlayStation', 'Action RPG', 'Story Rich'],
+          tags: ['PlayStation PC', 'Sony', 'Blockbuster'],
+          cover_url: g.banner,
+          banner_url: g.banner,
+          summary: g.summary,
+          store: 'PlayStation',
+          store_app_id: g.id,
+          launchers: ['PlayStation', 'Steam', 'Epic Games'],
+          in_catalog: true,
+          ai_classified: true,
+          installations: [],
+        });
+      });
+    };
+
+    // 8. Add Rockstar Games trending titles
+    const fetchRockstar = async () => {
+      const rkTitles = [
+        { id: 'rk-gta-v', title: 'Grand Theft Auto V', genre: 'Open World Action', banner: 'https://shared.cloudflare.steamstatic.com/store_item_assets/steam/apps/271590/header.jpg', summary: 'Enter the lives of three very different criminals as they risk it all in a series of daring heists in Los Santos.' },
+        { id: 'rk-rdr2', title: 'Red Dead Redemption 2', genre: 'Open World Western', banner: 'https://shared.cloudflare.steamstatic.com/store_item_assets/steam/apps/1174180/header.jpg', summary: 'Arthur Morgan and the Van der Linde gang are outlaws on the run across the rugged heartland of America.' },
+      ];
+      rkTitles.forEach(g => {
+        safeAdd({
+          id: g.id,
+          title: g.title,
+          developer: 'Rockstar North',
+          publisher: 'Rockstar Games',
+          release_date: '2019',
+          primary_genre: g.genre,
+          genres: ['Rockstar Games', 'Open World', 'Story Rich'],
+          tags: ['Rockstar Games', 'Rockstar Games Launcher'],
+          cover_url: g.banner,
+          banner_url: g.banner,
+          summary: g.summary,
+          store: 'Rockstar Games',
+          store_app_id: g.id,
+          launchers: ['Rockstar Games', 'Steam', 'Epic Games'],
+          in_catalog: true,
+          ai_classified: true,
+          installations: [],
+        });
+      });
+    };
+
+    // 9. Add Battle.net trending titles
+    const fetchBattlenet = async () => {
+      const bnTitles = [
+        { id: 'bn-diablo4', title: 'Diablo IV', genre: 'Action RPG', banner: 'https://shared.cloudflare.steamstatic.com/store_item_assets/steam/apps/2344520/header.jpg', summary: 'Endless evil to slaughter, countless abilities to master, nightmarish dungeons, and legendary loot.' },
+        { id: 'bn-overwatch2', title: 'Overwatch 2', genre: 'Hero Shooter', banner: 'https://shared.cloudflare.steamstatic.com/store_item_assets/steam/apps/2357570/header.jpg', summary: 'An optimistic future worth fighting for in this team-based action title featuring an ever-expanding roster.' },
+      ];
+      bnTitles.forEach(g => {
+        safeAdd({
+          id: g.id,
+          title: g.title,
+          developer: 'Blizzard Entertainment',
+          publisher: 'Blizzard Entertainment',
+          release_date: '2023',
+          primary_genre: g.genre,
+          genres: ['Battle.net', 'Action RPG', 'Multiplayer'],
+          tags: ['Battle.net', 'Blizzard'],
+          cover_url: g.banner,
+          banner_url: g.banner,
+          summary: g.summary,
+          store: 'Battle.net',
+          store_app_id: g.id,
+          launchers: ['Battle.net'],
+          in_catalog: true,
+          ai_classified: true,
+          installations: [],
+        });
+      });
+    };
+
+    await Promise.allSettled([
+      fetchSteam(), fetchEpic(), fetchGOG(), fetchXbox(),
+      fetchEA(), fetchUbisoft(), fetchPlayStation(), fetchRockstar(), fetchBattlenet()
+    ]);
 
     if (allGames.length > 0) {
       cachedLauncherGames = allGames;
