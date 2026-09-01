@@ -305,8 +305,8 @@ export default function GamesTestedPage() {
   return (
     <div className="min-h-screen bg-[#070709] text-white pt-20 sm:pt-24 pb-16 sm:pb-20 selection:bg-neon-green selection:text-black overflow-x-hidden w-full max-w-full">
       {/* Background Glow Accents */}
-      <div className="fixed top-0 left-1/2 -translate-x-1/2 w-[600px] sm:w-[1000px] h-[350px] sm:h-[500px] bg-neon-green/5 blur-[90px] sm:blur-[120px] pointer-events-none rounded-full" />
-      <div className="fixed bottom-0 right-0 w-[350px] sm:w-[600px] h-[350px] sm:h-[600px] bg-purple-500/5 blur-[100px] sm:blur-[150px] pointer-events-none rounded-full" />
+      <div className="fixed top-0 left-1/2 -translate-x-1/2 w-150 sm:w-250 h-87.5 sm:h-125 bg-neon-green/5 blur-[90px] sm:blur-[120px] pointer-events-none rounded-full" />
+      <div className="fixed bottom-0 right-0 w-87.5 sm:w-150 h-87.5 sm:h-150 bg-purple-500/5 blur-[100px] sm:blur-[150px] pointer-events-none rounded-full" />
 
       <div className="max-w-7xl mx-auto px-3 sm:px-6 relative z-10 w-full overflow-hidden">
         
@@ -316,29 +316,29 @@ export default function GamesTestedPage() {
             <Gamepad2 className="w-3.5 h-3.5 shrink-0" /> <span className="truncate">Hardware Compatibility Audit</span>
           </div>
 
-          <h1 className="text-2xl xs:text-3xl sm:text-5xl md:text-6xl font-black font-display tracking-tight text-white uppercase leading-tight break-words px-1">
-            Tested Games & <span className="text-transparent bg-clip-text bg-gradient-to-r from-neon-green via-emerald-400 to-teal-300 drop-shadow-[0_0_25px_rgba(118,185,0,0.4)]">Performance Benchmarks</span>
+          <h1 className="text-2xl xs:text-3xl sm:text-5xl md:text-6xl font-black font-display tracking-tight text-white uppercase leading-tight wrap-break-word px-1">
+            Tested Games & <span className="text-transparent bg-clip-text bg-linear-to-r from-neon-green via-emerald-400 to-teal-300 drop-shadow-[0_0_25px_rgba(118,185,0,0.4)]">Performance Benchmarks</span>
           </h1>
 
-          <p className="text-gray-400 text-xs sm:text-sm md:text-base font-mono max-w-2xl mx-auto leading-relaxed px-2 break-words">
+          <p className="text-gray-400 text-xs sm:text-sm md:text-base font-mono max-w-2xl mx-auto leading-relaxed px-2 wrap-break-word">
             Real-world gaming benchmarks, NVIDIA DLSS / Frame Generation telemetry, and AI-driven preset recommendations tested by Mission Control.
           </p>
 
           {/* Quick Metrics Pills */}
           <div className="grid grid-cols-2 sm:grid-cols-4 gap-2 sm:gap-3 pt-3 sm:pt-6 max-w-3xl mx-auto font-mono w-full">
-            <div className="p-2.5 sm:p-3 rounded-xl sm:rounded-2xl bg-white/[0.03] border border-white/10 text-center">
+            <div className="p-2.5 sm:p-3 rounded-xl sm:rounded-2xl bg-white/3 border border-white/10 text-center">
               <div className="text-neon-green font-black text-lg sm:text-2xl truncate">100%</div>
               <div className="text-gray-400 text-[9px] sm:text-[10px] uppercase font-bold tracking-wider truncate">Local Verified</div>
             </div>
-            <div className="p-2.5 sm:p-3 rounded-xl sm:rounded-2xl bg-white/[0.03] border border-white/10 text-center">
+            <div className="p-2.5 sm:p-3 rounded-xl sm:rounded-2xl bg-white/3 border border-white/10 text-center">
               <div className="text-emerald-400 font-black text-lg sm:text-2xl truncate">DX12 / VK</div>
               <div className="text-gray-400 text-[9px] sm:text-[10px] uppercase font-bold tracking-wider truncate">Render Engine</div>
             </div>
-            <div className="p-2.5 sm:p-3 rounded-xl sm:rounded-2xl bg-white/[0.03] border border-white/10 text-center">
+            <div className="p-2.5 sm:p-3 rounded-xl sm:rounded-2xl bg-white/3 border border-white/10 text-center">
               <div className="text-teal-300 font-black text-lg sm:text-2xl truncate">{featuredGame.testedSpecs.latency}</div>
               <div className="text-gray-400 text-[9px] sm:text-[10px] uppercase font-bold tracking-wider truncate">System Latency</div>
             </div>
-            <div className="p-2.5 sm:p-3 rounded-xl sm:rounded-2xl bg-white/[0.03] border border-white/10 text-center">
+            <div className="p-2.5 sm:p-3 rounded-xl sm:rounded-2xl bg-white/3 border border-white/10 text-center">
               <div className="text-neon-yellow font-black text-lg sm:text-2xl truncate">{featuredGame.testedSpecs.vramUsed.split(' / ')[0]}</div>
               <div className="text-gray-400 text-[9px] sm:text-[10px] uppercase font-bold tracking-wider truncate">VRAM Memory</div>
             </div>
@@ -349,7 +349,7 @@ export default function GamesTestedPage() {
         <div id="featured-benchmark" className="mb-14 sm:mb-20 scroll-mt-24 sm:scroll-mt-28">
           <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 mb-4 sm:mb-6">
             <div className="flex items-center gap-3">
-              <h2 className="text-lg sm:text-2xl font-black font-display uppercase tracking-wider text-white break-words">
+              <h2 className="text-lg sm:text-2xl font-black font-display uppercase tracking-wider text-white wrap-break-word">
                 Benchmark Profile: <span className="text-neon-green">{featuredGame.name}</span>
               </h2>
             </div>
@@ -363,7 +363,7 @@ export default function GamesTestedPage() {
             className="relative rounded-2xl sm:rounded-3xl bg-[#0c0d12] border border-white/15 p-4 sm:p-8 lg:p-10 shadow-2xl overflow-hidden group"
           >
             {/* Background Glow */}
-            <div className="absolute top-0 right-0 w-[300px] sm:w-[500px] h-[300px] sm:h-[500px] bg-neon-green/10 blur-[80px] sm:blur-[100px] pointer-events-none rounded-full" />
+            <div className="absolute top-0 right-0 w-75 sm:w-125 h-75 sm:h-125 bg-neon-green/10 blur-[80px] sm:blur-[100px] pointer-events-none rounded-full" />
             
             <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 sm:gap-8 items-center relative z-10">
               
@@ -373,10 +373,10 @@ export default function GamesTestedPage() {
                   <div className="flex items-center gap-1.5 text-[10px] sm:text-xs font-mono font-bold text-neon-green uppercase tracking-widest mb-2 flex-wrap">
                     <ShieldCheck className="w-3.5 h-3.5 shrink-0" /> <span>{featuredGame.publisher}</span> • <span>{featuredGame.api}</span>
                   </div>
-                  <h3 className="text-2xl sm:text-4xl font-black font-display text-white uppercase tracking-tight break-words">
+                  <h3 className="text-2xl sm:text-4xl font-black font-display text-white uppercase tracking-tight wrap-break-word">
                     {featuredGame.name}
                   </h3>
-                  <p className="text-gray-300 text-xs sm:text-sm font-sans mt-2.5 sm:mt-3 leading-relaxed border-l-2 border-neon-green/40 pl-2.5 sm:pl-3 break-words">
+                  <p className="text-gray-300 text-xs sm:text-sm font-sans mt-2.5 sm:mt-3 leading-relaxed border-l-2 border-neon-green/40 pl-2.5 sm:pl-3 wrap-break-word">
                     {featuredGame.overview}
                   </p>
                 </div>
@@ -418,22 +418,22 @@ export default function GamesTestedPage() {
                 </div>
 
                 {/* Recommended Presets breakdown */}
-                <div className="p-3 sm:p-4 rounded-xl sm:rounded-2xl bg-white/[0.03] border border-white/10 space-y-2 font-mono text-xs">
+                <div className="p-3 sm:p-4 rounded-xl sm:rounded-2xl bg-white/3 border border-white/10 space-y-2 font-mono text-xs">
                   <div className="font-bold text-white uppercase tracking-wider flex items-center gap-2 text-[11px] sm:text-xs">
                     <Sliders className="w-3.5 h-3.5 text-neon-green shrink-0" /> <span>Recommended Presets</span>
                   </div>
                   <div className="space-y-1.5 text-gray-300 text-[10px] sm:text-[11px]">
                     <div className="flex flex-col xs:flex-row xs:justify-between border-b border-white/5 pb-1 gap-0.5">
                       <span className="text-gray-400">RTX 40 / 50:</span>
-                      <span className="font-bold text-neon-green break-words">{featuredGame.presets.rtx40}</span>
+                      <span className="font-bold text-neon-green wrap-break-word">{featuredGame.presets.rtx40}</span>
                     </div>
                     <div className="flex flex-col xs:flex-row xs:justify-between border-b border-white/5 pb-1 gap-0.5">
                       <span className="text-gray-400">RTX 30:</span>
-                      <span className="font-bold text-emerald-400 break-words">{featuredGame.presets.rtx30}</span>
+                      <span className="font-bold text-emerald-400 wrap-break-word">{featuredGame.presets.rtx30}</span>
                     </div>
                     <div className="flex flex-col xs:flex-row xs:justify-between gap-0.5">
                       <span className="text-gray-400">GTX 10 / 16:</span>
-                      <span className="font-bold text-neon-yellow break-words">{featuredGame.presets.gtx}</span>
+                      <span className="font-bold text-neon-yellow wrap-break-word">{featuredGame.presets.gtx}</span>
                     </div>
                   </div>
                 </div>
@@ -460,7 +460,7 @@ export default function GamesTestedPage() {
                       alt={screenshots[0].title}
                       className="w-full h-full object-cover group-hover/img:scale-105 transition-transform duration-500"
                     />
-                    <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-transparent to-transparent flex items-end p-3 sm:p-4">
+                    <div className="absolute inset-0 bg-linear-to-t from-black/80 via-transparent to-transparent flex items-end p-3 sm:p-4">
                       <div className="w-full flex items-end justify-between gap-2">
                         <div>
                           <div className="text-white font-mono text-[11px] sm:text-xs font-bold flex items-center gap-1.5 sm:gap-2">
@@ -492,7 +492,7 @@ export default function GamesTestedPage() {
                         alt={ss.title}
                         className="w-full h-full object-cover group-hover/img:scale-105 transition-transform duration-500"
                       />
-                      <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-transparent to-transparent flex items-end p-2 sm:p-3">
+                      <div className="absolute inset-0 bg-linear-to-t from-black/80 via-transparent to-transparent flex items-end p-2 sm:p-3">
                         <div className="text-white font-mono text-[10px] sm:text-[11px] font-bold truncate flex items-center gap-1 sm:gap-1.5">
                           <Maximize2 className="w-2.5 h-2.5 sm:w-3 sm:h-3 text-neon-green shrink-0" />
                           <span className="truncate">{ss.title}</span>
@@ -511,7 +511,7 @@ export default function GamesTestedPage() {
                   {/* Section 1: Cinematic Story & Narrative */}
                   <div className="space-y-3 sm:space-y-4">
                     <div className="flex items-center justify-between gap-2">
-                      <h4 className="text-lg sm:text-3xl font-black font-display text-amber-300 uppercase tracking-wider drop-shadow-[0_0_20px_rgba(251,191,36,0.35)] break-words">
+                      <h4 className="text-lg sm:text-3xl font-black font-display text-amber-300 uppercase tracking-wider drop-shadow-[0_0_20px_rgba(251,191,36,0.35)] wrap-break-word">
                         A Thrilling Cinematic Narrative
                       </h4>
                       <span className="hidden xs:inline-flex items-center gap-1 px-2.5 py-1 rounded-full bg-amber-400/10 border border-amber-400/30 text-amber-300 text-[10px] sm:text-[11px] font-mono font-bold uppercase tracking-wider shrink-0">
@@ -519,7 +519,7 @@ export default function GamesTestedPage() {
                       </span>
                     </div>
 
-                    <p className="text-gray-300 text-xs sm:text-base font-sans leading-relaxed max-w-4xl break-words">
+                    <p className="text-gray-300 text-xs sm:text-base font-sans leading-relaxed max-w-4xl wrap-break-word">
                       {featuredGame.detailedOverview.story}
                     </p>
 
@@ -527,14 +527,14 @@ export default function GamesTestedPage() {
                     {screenshots.length > 0 && (
                       <div 
                         onClick={() => openSlideshow(0)}
-                        className="relative w-full aspect-[16/9] sm:aspect-[21/9] rounded-xl sm:rounded-2xl overflow-hidden border border-amber-400/20 bg-black/60 shadow-2xl cursor-pointer group/banner mt-2 sm:mt-4"
+                        className="relative w-full aspect-video sm:aspect-21/9 rounded-xl sm:rounded-2xl overflow-hidden border border-amber-400/20 bg-black/60 shadow-2xl cursor-pointer group/banner mt-2 sm:mt-4"
                       >
                         <img
                           src={screenshots[0].src}
                           alt={featuredGame.name}
                           className="w-full h-full object-cover group-hover/banner:scale-105 transition-transform duration-700 ease-out"
                         />
-                        <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-transparent to-transparent flex flex-col sm:flex-row items-start sm:items-end justify-between p-3 sm:p-6 gap-2">
+                        <div className="absolute inset-0 bg-linear-to-t from-black/80 via-transparent to-transparent flex flex-col sm:flex-row items-start sm:items-end justify-between p-3 sm:p-6 gap-2">
                           <div className="text-white font-mono text-[11px] sm:text-sm font-bold flex items-center gap-1.5">
                             <Maximize2 className="w-3.5 h-3.5 text-amber-300 shrink-0" />
                             <span className="truncate">{screenshots[0].title}</span>
@@ -550,7 +550,7 @@ export default function GamesTestedPage() {
                   {/* Section 2: Core Gameplay Loop & Dynamic Traversal */}
                   <div className="space-y-3 sm:space-y-4 pt-2 sm:pt-4">
                     <div className="flex items-center justify-between gap-2">
-                      <h4 className="text-lg sm:text-3xl font-black font-display text-emerald-400 uppercase tracking-wider drop-shadow-[0_0_20px_rgba(52,211,153,0.35)] break-words">
+                      <h4 className="text-lg sm:text-3xl font-black font-display text-emerald-400 uppercase tracking-wider drop-shadow-[0_0_20px_rgba(52,211,153,0.35)] wrap-break-word">
                         Dynamic Gameplay & Combat Systems
                       </h4>
                       <span className="hidden xs:inline-flex items-center gap-1 px-2.5 py-1 rounded-full bg-emerald-400/10 border border-emerald-400/30 text-emerald-400 text-[10px] sm:text-[11px] font-mono font-bold uppercase tracking-wider shrink-0">
@@ -558,7 +558,7 @@ export default function GamesTestedPage() {
                       </span>
                     </div>
 
-                    <p className="text-gray-300 text-xs sm:text-base font-sans leading-relaxed max-w-4xl break-words">
+                    <p className="text-gray-300 text-xs sm:text-base font-sans leading-relaxed max-w-4xl wrap-break-word">
                       {featuredGame.detailedOverview.gameplayLoop}
                     </p>
 
@@ -566,14 +566,14 @@ export default function GamesTestedPage() {
                     {screenshots.length > 1 && (
                       <div 
                         onClick={() => openSlideshow(1)}
-                        className="relative w-full aspect-[16/9] sm:aspect-[21/9] rounded-xl sm:rounded-2xl overflow-hidden border border-emerald-400/20 bg-black/60 shadow-2xl cursor-pointer group/banner mt-2 sm:mt-4"
+                        className="relative w-full aspect-video sm:aspect-21/9 rounded-xl sm:rounded-2xl overflow-hidden border border-emerald-400/20 bg-black/60 shadow-2xl cursor-pointer group/banner mt-2 sm:mt-4"
                       >
                         <img
                           src={screenshots[1].src}
                           alt={featuredGame.name}
                           className="w-full h-full object-cover group-hover/banner:scale-105 transition-transform duration-700 ease-out"
                         />
-                        <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-transparent to-transparent flex flex-col sm:flex-row items-start sm:items-end justify-between p-3 sm:p-6 gap-2">
+                        <div className="absolute inset-0 bg-linear-to-t from-black/80 via-transparent to-transparent flex flex-col sm:flex-row items-start sm:items-end justify-between p-3 sm:p-6 gap-2">
                           <div className="text-white font-mono text-[11px] sm:text-sm font-bold flex items-center gap-1.5">
                             <Maximize2 className="w-3.5 h-3.5 text-emerald-400 shrink-0" />
                             <span className="truncate">{screenshots[1].title}</span>
@@ -590,19 +590,19 @@ export default function GamesTestedPage() {
                   <div className="space-y-3 sm:space-y-4 pt-2 sm:pt-4">
                     <div className="flex items-center gap-2">
                       <Sliders className="w-4 h-4 text-neon-yellow shrink-0" />
-                      <h4 className="text-lg sm:text-2xl font-black font-display text-white uppercase tracking-wider break-words">
+                      <h4 className="text-lg sm:text-2xl font-black font-display text-white uppercase tracking-wider wrap-break-word">
                         Signature Mechanics & Combat Innovations
                       </h4>
                     </div>
 
                     <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 sm:gap-4">
                       {featuredGame.detailedOverview.keyMechanics.map((mech, idx) => (
-                        <div key={idx} className="p-4 sm:p-5 rounded-xl sm:rounded-2xl bg-white/[0.03] border border-white/10 hover:border-neon-yellow/40 transition-colors font-mono space-y-1.5 sm:space-y-2 group/card">
+                        <div key={idx} className="p-4 sm:p-5 rounded-xl sm:rounded-2xl bg-white/3 border border-white/10 hover:border-neon-yellow/40 transition-colors font-mono space-y-1.5 sm:space-y-2 group/card">
                           <div className="text-neon-yellow font-bold text-xs sm:text-sm uppercase tracking-wide flex items-center gap-2">
                             <span className="w-2 h-2 rounded-full bg-neon-yellow shadow-[0_0_8px_rgba(250,204,21,0.8)] shrink-0" />
                             <span className="truncate">{mech.name}</span>
                           </div>
-                          <p className="text-gray-300 text-xs sm:text-sm font-sans leading-relaxed break-words">
+                          <p className="text-gray-300 text-xs sm:text-sm font-sans leading-relaxed wrap-break-word">
                             {mech.desc}
                           </p>
                         </div>
@@ -625,7 +625,7 @@ export default function GamesTestedPage() {
                       <button
                         type="button"
                         onClick={() => setIsRateModalOpen(true)}
-                        className="inline-flex items-center justify-center gap-2 px-4 sm:px-5 py-2.5 rounded-xl bg-neon-green text-obsidian font-mono text-xs font-bold uppercase tracking-wider hover:bg-white transition-all shadow-[0_0_20px_rgba(118,185,0,0.4)] cursor-pointer shrink-0"
+                        className="inline-flex items-center justify-center gap-2 px-4 sm:px-5 py-2.5 rounded-xl btn-premium-primary font-mono text-xs font-bold uppercase tracking-wider shadow-[0_0_20px_rgba(118,185,0,0.4)] cursor-pointer shrink-0"
                       >
                         <Plus className="w-4 h-4 shrink-0" />
                         <span>Share Review & Rig Log</span>
@@ -634,7 +634,7 @@ export default function GamesTestedPage() {
 
                     {/* Community Metrics Summary Card */}
                     <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 font-mono">
-                      <div className="p-4 rounded-2xl bg-white/[0.03] border border-white/10 space-y-1">
+                      <div className="p-4 rounded-2xl bg-white/3 border border-white/10 space-y-1">
                         <span className="text-[10px] text-gray-400 font-bold uppercase block">Community Score</span>
                         <div className="flex items-baseline gap-1.5">
                           <span className="text-2xl sm:text-3xl font-black text-amber-400">
@@ -651,7 +651,7 @@ export default function GamesTestedPage() {
                         </div>
                       </div>
 
-                      <div className="p-4 rounded-2xl bg-white/[0.03] border border-white/10 space-y-1">
+                      <div className="p-4 rounded-2xl bg-white/3 border border-white/10 space-y-1">
                         <span className="text-[10px] text-gray-400 font-bold uppercase block">Recommendation</span>
                         <div className="text-2xl sm:text-3xl font-black text-neon-green">
                           {ratingStats?.recommendationRate ?? 98}%
@@ -661,7 +661,7 @@ export default function GamesTestedPage() {
                         </span>
                       </div>
 
-                      <div className="p-4 rounded-2xl bg-white/[0.03] border border-white/10 space-y-1">
+                      <div className="p-4 rounded-2xl bg-white/3 border border-white/10 space-y-1">
                         <span className="text-[10px] text-gray-400 font-bold uppercase block">Avg Community FPS</span>
                         <div className="text-2xl sm:text-3xl font-black text-emerald-400">
                           {ratingStats?.avgReportedFps || 84} FPS
@@ -671,7 +671,7 @@ export default function GamesTestedPage() {
                         </span>
                       </div>
 
-                      <div className="p-4 rounded-2xl bg-white/[0.03] border border-white/10 space-y-1">
+                      <div className="p-4 rounded-2xl bg-white/3 border border-white/10 space-y-1">
                         <span className="text-[10px] text-gray-400 font-bold uppercase block">Telemetry Engine</span>
                         <div className="text-base sm:text-lg font-bold text-white truncate">
                           DirectX 12 / Vulkan
@@ -684,7 +684,7 @@ export default function GamesTestedPage() {
 
                     {/* Star Rating Distribution Bar Chart */}
                     {ratingStats && (
-                      <div className="p-4 sm:p-5 rounded-2xl bg-white/[0.02] border border-white/10 space-y-2 font-mono">
+                      <div className="p-4 sm:p-5 rounded-2xl bg-white/2 border border-white/10 space-y-2 font-mono">
                         <div className="text-xs font-bold text-gray-300 uppercase tracking-wider mb-2">
                           Rating Score Distribution
                         </div>
@@ -698,7 +698,7 @@ export default function GamesTestedPage() {
                               </span>
                               <div className="flex-1 h-2 rounded-full bg-white/5 overflow-hidden border border-white/10">
                                 <div
-                                  className="h-full bg-gradient-to-r from-amber-400 to-neon-green rounded-full transition-all duration-500"
+                                  className="h-full bg-linear-to-r from-amber-400 to-neon-green rounded-full transition-all duration-500"
                                   style={{ width: `${pct}%` }}
                                 />
                               </div>
@@ -749,7 +749,7 @@ export default function GamesTestedPage() {
                         <p>Loading verified community telemetry logs...</p>
                       </div>
                     ) : reviews.length === 0 ? (
-                      <div className="p-8 text-center rounded-2xl bg-white/[0.02] border border-white/10 space-y-3 font-mono">
+                      <div className="p-8 text-center rounded-2xl bg-white/2 border border-white/10 space-y-3 font-mono">
                         <Star className="w-8 h-8 text-gray-600 mx-auto" />
                         <div className="text-sm font-bold text-white uppercase">No Community Logs Yet</div>
                         <p className="text-xs text-gray-400 max-w-md mx-auto">
@@ -758,7 +758,7 @@ export default function GamesTestedPage() {
                         <button
                           type="button"
                           onClick={() => setIsRateModalOpen(true)}
-                          className="px-4 py-2 rounded-xl bg-neon-green text-obsidian font-bold text-xs uppercase tracking-wider hover:bg-white transition-all cursor-pointer"
+                          className="px-4 py-2 rounded-xl btn-premium-primary font-bold text-xs uppercase tracking-wider cursor-pointer"
                         >
                           Submit First Review
                         </button>
@@ -770,7 +770,7 @@ export default function GamesTestedPage() {
                           return (
                             <div
                               key={rev.id}
-                              className="p-4 sm:p-5 rounded-2xl bg-white/[0.02] border border-white/10 hover:border-white/20 transition-all space-y-3 font-mono flex flex-col justify-between"
+                              className="p-4 sm:p-5 rounded-2xl bg-white/2 border border-white/10 hover:border-white/20 transition-all space-y-3 font-mono flex flex-col justify-between"
                             >
                               <div className="space-y-2.5">
                                 {/* Reviewer Header */}
@@ -780,7 +780,7 @@ export default function GamesTestedPage() {
                                       {rev.userName ? rev.userName[0] : "A"}
                                     </div>
                                     <div>
-                                      <div className="text-xs font-bold text-white truncate max-w-[140px] sm:max-w-[200px]">
+                                      <div className="text-xs font-bold text-white truncate max-w-35 sm:max-w-50">
                                         {rev.userName}
                                       </div>
                                       <span className="text-[10px] text-gray-500">
@@ -842,13 +842,13 @@ export default function GamesTestedPage() {
                                 {/* Rig Specs Pill Badges */}
                                 <div className="flex flex-wrap gap-1.5 text-[10px] pt-1">
                                   {rev.specs?.gpu && (
-                                    <span className="px-2 py-0.5 rounded-md bg-black/60 border border-white/10 text-gray-300 flex items-center gap-1 truncate max-w-[200px]">
+                                    <span className="px-2 py-0.5 rounded-md bg-black/60 border border-white/10 text-gray-300 flex items-center gap-1 truncate max-w-50">
                                       <Tv className="w-2.5 h-2.5 text-neon-green shrink-0" />
                                       <span className="truncate">{rev.specs.gpu}</span>
                                     </span>
                                   )}
                                   {rev.specs?.cpu && (
-                                    <span className="px-2 py-0.5 rounded-md bg-black/60 border border-white/10 text-gray-300 flex items-center gap-1 truncate max-w-[200px]">
+                                    <span className="px-2 py-0.5 rounded-md bg-black/60 border border-white/10 text-gray-300 flex items-center gap-1 truncate max-w-50">
                                       <Cpu className="w-2.5 h-2.5 text-neon-green shrink-0" />
                                       <span className="truncate">{rev.specs.cpu}</span>
                                     </span>
@@ -903,10 +903,10 @@ export default function GamesTestedPage() {
               <div className="flex items-center gap-2 text-xs font-mono font-bold text-neon-green uppercase tracking-widest mb-1">
                 <Sparkles className="w-3.5 h-3.5 shrink-0" /> Microsoft Store-Style Live Previews
               </div>
-              <h2 className="text-xl sm:text-3xl font-black font-display uppercase tracking-wider text-white break-words">
+              <h2 className="text-xl sm:text-3xl font-black font-display uppercase tracking-wider text-white wrap-break-word">
                 Verified Tested Games Library
               </h2>
-              <p className="text-gray-400 text-xs font-mono mt-1 break-words">
+              <p className="text-gray-400 text-xs font-mono mt-1 wrap-break-word">
                 Hover over any game to trigger animated previews, real-time FPS benchmarks, and hardware telemetry.
               </p>
             </div>
@@ -918,7 +918,7 @@ export default function GamesTestedPage() {
           </div>
 
           {/* Unified Search, Sort & Scalable Horizontal Genre Bar */}
-          <div className="space-y-3 sm:space-y-4 bg-white/[0.02] border border-white/10 rounded-xl sm:rounded-2xl p-3 sm:p-5 backdrop-blur-md w-full">
+          <div className="space-y-3 sm:space-y-4 bg-white/2 border border-white/10 rounded-xl sm:rounded-2xl p-3 sm:p-5 backdrop-blur-md w-full">
             <div className="flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-2.5 sm:gap-3">
               
               {/* Search Bar */}
@@ -1057,14 +1057,14 @@ export default function GamesTestedPage() {
                     setFilterGenre("ALL");
                     setVisibleCount(12);
                   }}
-                  className={`px-3 py-1.5 rounded-xl font-mono text-[11px] sm:text-xs font-bold uppercase tracking-wider shrink-0 transition-all cursor-pointer flex items-center gap-1.5 ${
+                  className={`px-3.5 py-1.5 rounded-xl font-mono text-[11px] sm:text-xs font-bold uppercase tracking-wider shrink-0 transition-all cursor-pointer flex items-center gap-1.5 ${
                     filterGenre === "ALL"
-                      ? "bg-neon-green text-obsidian shadow-[0_0_15px_rgba(118,185,0,0.5)] scale-105"
-                      : "bg-white/5 text-gray-400 hover:text-white hover:bg-white/10"
+                      ? "btn-premium-primary shadow-[0_0_20px_rgba(118,185,0,0.55)] scale-105"
+                      : "bg-white/5 text-gray-400 hover:text-white hover:bg-white/10 border border-transparent hover:border-white/10"
                   }`}
                 >
                   <span>All</span>
-                  <span className={`text-[10px] px-1.5 py-0.2 rounded-full ${filterGenre === "ALL" ? "bg-black/30 text-obsidian" : "bg-white/10 text-gray-400"}`}>
+                  <span className={`text-[10px] px-1.5 py-0.2 rounded-full ${filterGenre === "ALL" ? "bg-black/40 text-black font-black" : "bg-white/10 text-gray-400"}`}>
                     {gamesList.length}
                   </span>
                 </button>
@@ -1079,14 +1079,14 @@ export default function GamesTestedPage() {
                         setFilterGenre(isSelected ? "ALL" : genre);
                         setVisibleCount(12);
                       }}
-                      className={`px-3 py-1.5 rounded-xl font-mono text-[11px] sm:text-xs font-bold uppercase tracking-wider shrink-0 transition-all cursor-pointer flex items-center gap-1.5 ${
+                      className={`px-3.5 py-1.5 rounded-xl font-mono text-[11px] sm:text-xs font-bold uppercase tracking-wider shrink-0 transition-all cursor-pointer flex items-center gap-1.5 ${
                         isSelected
-                          ? "bg-neon-green text-obsidian shadow-[0_0_15px_rgba(118,185,0,0.5)] scale-105"
-                          : "bg-white/5 text-gray-400 hover:text-white hover:bg-white/10"
+                          ? "btn-premium-primary shadow-[0_0_20px_rgba(118,185,0,0.55)] scale-105"
+                          : "bg-white/5 text-gray-400 hover:text-white hover:bg-white/10 border border-transparent hover:border-white/10"
                       }`}
                     >
                       <span>{genre}</span>
-                      <span className={`text-[10px] px-1.5 py-0.2 rounded-full ${isSelected ? "bg-black/30 text-obsidian" : "bg-white/10 text-gray-400"}`}>
+                      <span className={`text-[10px] px-1.5 py-0.2 rounded-full ${isSelected ? "bg-black/40 text-black font-black" : "bg-white/10 text-gray-400"}`}>
                         {count}
                       </span>
                     </button>
@@ -1124,7 +1124,7 @@ export default function GamesTestedPage() {
                         alt={game.name}
                         className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-700 ease-out"
                       />
-                      <div className="absolute inset-0 bg-gradient-to-t from-[#0b0c10] via-black/20 to-black/40" />
+                      <div className="absolute inset-0 bg-linear-to-t from-[#0b0c10] via-black/20 to-black/40" />
                       
                       {/* Top Badges */}
                       <div className="absolute top-2.5 left-2.5 right-2.5 flex items-center justify-between gap-1.5">
@@ -1153,12 +1153,12 @@ export default function GamesTestedPage() {
                           <div className="text-[10px] sm:text-[11px] font-mono text-gray-400 font-bold uppercase tracking-wider mb-1 truncate">
                             {game.publisher}
                           </div>
-                          <h3 className="text-lg sm:text-xl font-black font-display text-white uppercase tracking-tight group-hover:text-neon-green transition-colors line-clamp-1 break-words">
+                          <h3 className="text-lg sm:text-xl font-black font-display text-white uppercase tracking-tight group-hover:text-neon-green transition-colors line-clamp-1 wrap-break-word">
                             {game.name}
                           </h3>
                         </div>
 
-                        <div className="p-3 sm:p-3.5 rounded-xl sm:rounded-2xl bg-white/[0.03] border border-white/10 space-y-1.5 sm:space-y-2 font-mono text-xs">
+                        <div className="p-3 sm:p-3.5 rounded-xl sm:rounded-2xl bg-white/3 border border-white/10 space-y-1.5 sm:space-y-2 font-mono text-xs">
                           <div className="flex justify-between text-[10px] sm:text-[11px] border-b border-white/5 pb-1">
                             <span className="text-gray-400">Target Benchmark:</span>
                             <span className="font-black text-neon-green truncate">{game.fps}</span>
@@ -1182,12 +1182,12 @@ export default function GamesTestedPage() {
                         onClick={() => handleSelectGame(game.id)}
                         className={`w-full py-2.5 sm:py-3 px-3 sm:px-4 rounded-xl font-mono text-[11px] sm:text-xs font-bold uppercase tracking-wider transition-all cursor-pointer flex items-center justify-center gap-2 whitespace-nowrap shrink-0 ${
                           isSelected
-                            ? "bg-neon-green text-obsidian shadow-[0_0_20px_rgba(118,185,0,0.5)]"
-                            : "bg-white/5 text-gray-300 hover:bg-white/10 hover:text-white border border-white/10 hover:border-neon-green/40"
+                            ? "btn-premium-primary shadow-[0_0_20px_rgba(118,185,0,0.5)]"
+                            : "btn-premium-glass text-white hover:text-neon-green"
                         }`}
                       >
                         <span className="truncate">{isSelected ? "Viewing Profile & Gallery" : "View Benchmark & Gameplay"}</span>
-                        <ArrowRight className="w-3.5 h-3.5 shrink-0" />
+                        <ArrowRight className="w-3.5 h-3.5 shrink-0 text-neon-green" />
                       </button>
                     </div>
                   </div>
@@ -1200,8 +1200,8 @@ export default function GamesTestedPage() {
               <div className="w-10 h-10 sm:w-12 sm:h-12 rounded-full bg-white/5 border border-white/10 flex items-center justify-center mx-auto text-gray-400">
                 <Search className="w-5 h-5 sm:w-6 sm:h-6" />
               </div>
-              <h3 className="text-lg sm:text-xl font-bold font-display uppercase text-white break-words">No Matching Games Found</h3>
-              <p className="text-gray-400 text-xs font-mono leading-relaxed break-words">
+              <h3 className="text-lg sm:text-xl font-bold font-display uppercase text-white wrap-break-word">No Matching Games Found</h3>
+              <p className="text-gray-400 text-xs font-mono leading-relaxed wrap-break-word">
                 We couldn&apos;t find any verified benchmark profiles matching &ldquo;<span className="text-neon-green">{searchQuery}</span>&rdquo; in the <span className="text-white">{filterGenre}</span> genre.
               </p>
               <button
@@ -1211,7 +1211,7 @@ export default function GamesTestedPage() {
                   setSortBy("featured");
                   setVisibleCount(12);
                 }}
-                className="px-4 py-2 sm:px-5 sm:py-2.5 rounded-xl bg-neon-green text-obsidian font-mono text-xs font-bold uppercase tracking-wider hover:bg-white transition-all shadow-lg cursor-pointer"
+                className="px-4 py-2 sm:px-5 sm:py-2.5 rounded-xl btn-premium-primary font-mono text-xs font-bold uppercase tracking-wider shadow-lg cursor-pointer"
               >
                 Clear Search & Filters
               </button>
@@ -1223,7 +1223,7 @@ export default function GamesTestedPage() {
             <div className="pt-6 sm:pt-8 text-center">
               <button
                 onClick={() => setVisibleCount((prev) => prev + 12)}
-                className="w-full sm:w-auto px-6 sm:px-8 py-3 sm:py-3.5 rounded-xl sm:rounded-2xl bg-white/5 hover:bg-neon-green hover:text-obsidian border border-white/15 hover:border-neon-green font-mono text-xs font-bold uppercase tracking-wider text-white transition-all shadow-xl cursor-pointer"
+                className="w-full sm:w-auto px-6 sm:px-8 py-3 sm:py-3.5 rounded-xl sm:rounded-2xl btn-premium-glass font-mono text-xs font-bold uppercase tracking-wider text-white hover:text-neon-green transition-all shadow-xl cursor-pointer"
               >
                 Load More Tested Games ({filteredAndSortedGames.length - visibleCount} remaining)
               </button>
@@ -1232,21 +1232,21 @@ export default function GamesTestedPage() {
         </div>
 
         {/* CTA Download Banner */}
-        <div className="mt-12 sm:mt-20 p-5 sm:p-12 rounded-2xl sm:rounded-3xl bg-gradient-to-r from-neon-green/15 via-emerald-500/10 to-transparent border border-neon-green/30 text-center space-y-3 sm:space-y-4 relative overflow-hidden">
+        <div className="mt-12 sm:mt-20 p-5 sm:p-12 rounded-2xl sm:rounded-3xl border-gradient-cyber text-center space-y-3 sm:space-y-4 relative overflow-hidden shadow-[0_0_50px_rgba(118,185,0,0.15)]">
           <div className="relative z-10 max-w-2xl mx-auto space-y-2 sm:space-y-3">
-            <h2 className="text-lg xs:text-xl sm:text-3xl font-black font-display uppercase text-white tracking-tight break-words">
+            <h2 className="text-lg xs:text-xl sm:text-3xl font-black font-display uppercase text-white tracking-tight wrap-break-word">
               Ready to Optimize Your PC for Tested Games?
             </h2>
-            <p className="text-gray-300 text-xs sm:text-sm font-mono break-words">
+            <p className="text-gray-300 text-xs sm:text-sm font-mono wrap-break-word">
               Download Mission Control to automatically detect installed games, configure hardware presets, and monitor thermals in real time.
             </p>
             <div className="pt-2 flex justify-center">
               <a
                 href={os === "linux" ? LINUX_INSTALLER_URL : (os === "windows" ? WINDOWS_INSTALLER_URL : AUTO_DOWNLOAD_URL)}
                 suppressHydrationWarning
-                className="inline-flex items-center gap-2 px-5 py-2.5 sm:px-6 sm:py-3 rounded-xl bg-neon-green text-obsidian font-black font-mono text-xs uppercase tracking-wider hover:bg-white transition-all shadow-[0_0_30px_rgba(118,185,0,0.5)]"
+                className="inline-flex items-center gap-2.5 px-6 py-3 sm:px-8 sm:py-3.5 rounded-xl btn-premium-primary font-black font-mono text-xs uppercase tracking-wider shadow-[0_0_35px_rgba(118,185,0,0.5)] group cursor-pointer"
               >
-                <Download className="w-3.5 h-3.5 sm:w-4 sm:h-4 shrink-0" />
+                <Download className="w-4 h-4 shrink-0 transition-transform group-hover:translate-y-0.5" />
                 <span suppressHydrationWarning>Download Mission Control {os === "linux" ? "(Linux)" : os === "windows" ? "(Windows)" : ""}</span>
               </a>
             </div>
@@ -1262,12 +1262,12 @@ export default function GamesTestedPage() {
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
-            className="fixed inset-0 z-[100] flex flex-col justify-between p-2 sm:p-6 bg-black/95 backdrop-blur-xl selection:bg-neon-green selection:text-black overflow-hidden w-full h-full max-w-full max-h-full"
+            className="fixed inset-0 z-100 flex flex-col justify-between p-2 sm:p-6 bg-black/95 backdrop-blur-xl selection:bg-neon-green selection:text-black overflow-hidden w-full h-full max-w-full max-h-full"
           >
             {/* Modal Header Controls */}
             <div className="relative z-50 flex items-center justify-between w-full max-w-7xl mx-auto font-mono text-xs gap-2 min-w-0">
               <div className="flex items-center gap-1.5 sm:gap-3 min-w-0">
-                <span className="font-bold text-white uppercase text-xs sm:text-sm font-display tracking-wider truncate max-w-[120px] xs:max-w-[200px] sm:max-w-none">
+                <span className="font-bold text-white uppercase text-xs sm:text-sm font-display tracking-wider truncate max-w-30 xs:max-w-[200px] sm:max-w-none">
                   {featuredGame.name}
                 </span>
                 <span className="px-2 py-0.5 rounded-full bg-white/10 border border-white/15 text-[10px] sm:text-[11px] font-bold text-neon-green shrink-0">
@@ -1366,7 +1366,7 @@ export default function GamesTestedPage() {
                     <Maximize2 className="w-3.5 h-3.5 sm:w-4 sm:h-4 text-neon-green shrink-0" />
                     <span className="truncate block min-w-0">{currentSlide.title}</span>
                   </div>
-                  <p className="text-gray-300 text-[10px] sm:text-xs font-mono mt-0.5 sm:mt-1 leading-relaxed max-w-3xl line-clamp-2 sm:line-clamp-none break-words">
+                  <p className="text-gray-300 text-[10px] sm:text-xs font-mono mt-0.5 sm:mt-1 leading-relaxed max-w-3xl line-clamp-2 sm:line-clamp-none wrap-break-word">
                     {currentSlide.desc}
                   </p>
                 </div>

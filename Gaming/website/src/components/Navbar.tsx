@@ -32,6 +32,7 @@ import {
   FileText,
   Star,
   Sparkles,
+  ArrowRight,
 } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 import { WINDOWS_INSTALLER_URL, LINUX_INSTALLER_URL, AUTO_DOWNLOAD_URL } from "@/lib/download";
@@ -208,19 +209,22 @@ export default function Navbar() {
       <header
         className={`fixed top-0 left-0 w-full h-20 z-50 transition-all duration-300 ${
           isScrolled
-            ? "bg-[#0a0a0c]/95 backdrop-blur-xl border-b border-white/10 shadow-[0_4px_30px_rgba(0,0,0,0.8)]"
-            : "bg-[#0a0a0c]/85 backdrop-blur-md border-b border-white/[0.08]"
+            ? "bg-obsidian/95 backdrop-blur-xl border-b border-white/10 shadow-[0_4px_30px_rgba(0,0,0,0.8)]"
+            : "bg-obsidian/85 backdrop-blur-md border-b border-white/8"
         }`}
       >
+        {/* Luminous Cybernetic Gradient Line along Navbar bottom */}
+        <div className="absolute bottom-0 left-0 w-full h-px bg-linear-to-r from-transparent via-neon-green/40 to-transparent pointer-events-none shadow-[0_0_12px_rgba(118,185,0,0.3)]" />
+
         <div className="max-w-7xl mx-auto h-full px-4 sm:px-6 flex items-center justify-between relative">
 
           {/* Brand Logo */}
           <Link href="/" className="flex items-center gap-2 sm:gap-3 group z-10">
-            <div className="w-10 h-10 sm:w-12 sm:h-12 rounded-xl border border-neon-green/40 flex items-center justify-center bg-neon-green/10 group-hover:border-neon-green group-hover:shadow-[0_0_20px_rgba(118,185,0,0.6)] shadow-[0_0_10px_rgba(118,185,0,0.2)] transition-all duration-300 overflow-hidden p-1.5 shrink-0">
+            <div className="w-10 h-10 sm:w-12 sm:h-12 rounded-xl border border-neon-green/40 flex items-center justify-center bg-linear-to-br from-neon-green/20 via-neon-green/10 to-transparent group-hover:border-neon-green group-hover:shadow-[0_0_25px_rgba(118,185,0,0.6)] shadow-[0_0_12px_rgba(118,185,0,0.25)] transition-all duration-300 overflow-hidden p-1.5 shrink-0">
               <img src="/logo.png" alt="Mission Control" className="w-full h-full object-contain" />
             </div>
             <span className="text-sm min-[375px]:text-base sm:text-xl font-black font-display tracking-wider text-white group-hover:text-neon-green transition-colors duration-300 whitespace-nowrap">
-              MISSION <span className="text-neon-green drop-shadow-[0_0_8px_rgba(118,185,0,0.5)]">CONTROL</span>
+              MISSION <span className="text-neon-green drop-shadow-[0_0_10px_rgba(118,185,0,0.6)]">CONTROL</span>
             </span>
           </Link>
 
@@ -240,7 +244,7 @@ export default function Navbar() {
                     <Icon className="w-3.5 h-3.5 text-neon-green/70 group-hover:text-neon-green transition-colors" />
                     <span>{link.name}</span>
                     <ChevronDown className="w-3 h-3 text-gray-500 group-hover:text-white transition-transform duration-300 group-hover:rotate-180" />
-                    <span className={`absolute bottom-0 left-0 h-[2px] bg-neon-green shadow-[0_0_8px_rgba(118,185,0,0.8)] rounded transition-all duration-300 ${isActive ? "w-full" : "w-0 group-hover:w-full"}`} />
+                    <span className={`absolute bottom-0 left-0 h-0.5 bg-neon-green shadow-[0_0_8px_rgba(118,185,0,0.8)] rounded transition-all duration-300 ${isActive ? "w-full" : "w-0 group-hover:w-full"}`} />
                   </Link>
 
                   <div className="absolute top-full left-0 pt-2 w-56 opacity-0 scale-95 pointer-events-none group-hover:opacity-100 group-hover:scale-100 group-hover:pointer-events-auto transition-all duration-200 origin-top-left z-50">
@@ -251,7 +255,7 @@ export default function Navbar() {
                           <Link
                             key={sub.name}
                             href={sub.href}
-                            className="flex items-center gap-2.5 px-3 py-2 rounded-xl text-[11px] font-mono tracking-wider uppercase text-gray-400 hover:text-neon-green hover:bg-white/[0.04] transition-all text-left"
+                            className="flex items-center gap-2.5 px-3 py-2 rounded-xl text-[11px] font-mono tracking-wider uppercase text-gray-400 hover:text-neon-green hover:bg-white/4 transition-all text-left"
                           >
                             <SubIcon className="w-3.5 h-3.5 text-neon-green/80 shrink-0" />
                             <span>{sub.name}</span>
@@ -280,7 +284,7 @@ export default function Navbar() {
                         key={link.name}
                         href={link.href}
                         className={`flex items-center gap-2 px-3 py-2 rounded-xl text-[11px] font-mono tracking-wider uppercase transition-all ${
-                          isActive ? "bg-neon-green/10 text-neon-green font-bold" : "text-gray-400 hover:text-white hover:bg-white/[0.04]"
+                          isActive ? "bg-neon-green/10 text-neon-green font-bold" : "text-gray-400 hover:text-white hover:bg-white/4"
                         }`}
                       >
                         <Icon className="w-3.5 h-3.5 text-neon-green/80" />
@@ -294,7 +298,7 @@ export default function Navbar() {
           </div>
 
           {/* Search Bar - Desktop Layout */}
-          <div className="hidden md:block relative max-w-[210px] xl:max-w-[260px] w-full mx-4 z-10">
+          <div className="hidden md:block relative max-w-52.5 xl:max-w-65 w-full mx-4 z-10">
             <div className="relative flex items-center">
               <input
                 ref={desktopSearchRef}
@@ -337,29 +341,50 @@ export default function Navbar() {
 
             {/* Search Results Dropdown */}
             {isSearchFocused && (
-              <div className="absolute top-11 left-0 w-80 sm:w-96 bg-[#0d0e12]/98 backdrop-blur-2xl border border-white/15 rounded-2xl p-2 z-50 max-h-96 overflow-y-auto shadow-2xl">
+              <div className="absolute top-11 left-0 w-80 sm:w-96 bg-[#0d0e12]/98 backdrop-blur-2xl border border-white/15 rounded-2xl p-2.5 z-50 max-h-96 overflow-y-auto shadow-2xl space-y-2">
                 {searchResults.length > 0 ? (
                   <>
                     <div className="text-[10px] font-mono font-bold text-neon-green uppercase tracking-widest px-3 py-1.5 border-b border-white/10 flex items-center justify-between">
-                      <span>Search Results</span>
+                      <span className="flex items-center gap-1.5">
+                        <SearchIcon className="w-3 h-3 text-neon-green" /> Search Results
+                      </span>
                       <span className="text-gray-500">{searchResults.length} matches</span>
                     </div>
-                    {(showAllResults ? searchResults : searchResults.slice(0, 6)).map((res: any, idx: number) => (
-                      <Link
-                        key={idx}
-                        href={res.url}
-                        onClick={closeSearch}
-                        className="block p-3 hover:bg-white/[0.05] rounded-xl transition-colors text-left font-mono border-b border-white/5 last:border-0"
-                      >
-                        <div className="flex items-center justify-between gap-2 mb-1">
-                          <span className="text-[9px] font-bold text-neon-green uppercase tracking-wider bg-neon-green/10 border border-neon-green/30 px-1.5 py-0.5 rounded">
-                            {res.category || res.type}
-                          </span>
-                        </div>
-                        <div className="text-xs font-bold text-white truncate">{res.title}</div>
-                        <div className="text-[11px] text-gray-400 truncate mt-0.5">{res.description}</div>
-                      </Link>
-                    ))}
+                    {(showAllResults ? searchResults : searchResults.slice(0, 6)).map((res: any, idx: number) => {
+                      const c = ((res.category || res.type || "") as string).toLowerCase();
+                      const Icon = c.includes("arch") || c.includes("engine") || c.includes("hardware")
+                        ? Cpu
+                        : c.includes("doc") || c.includes("guide") || c.includes("api")
+                        ? BookOpen
+                        : c.includes("game") || c.includes("benchmark")
+                        ? Gamepad2
+                        : c.includes("blog") || c.includes("news") || c.includes("intel")
+                        ? Newspaper
+                        : c.includes("comm") || c.includes("review") || c.includes("operator")
+                        ? Users
+                        : c.includes("perf") || c.includes("dlss") || c.includes("fps")
+                        ? Zap
+                        : Sparkles;
+
+                      return (
+                        <Link
+                          key={idx}
+                          href={res.url}
+                          onClick={closeSearch}
+                          className="block p-2.5 hover:bg-white/5 rounded-xl transition-all text-left font-mono border-b border-white/5 last:border-0 group/res hover:border-neon-green/30"
+                        >
+                          <div className="flex items-center justify-between gap-2 mb-1">
+                            <span className="text-[9px] font-bold text-neon-green uppercase tracking-wider bg-neon-green/10 border border-neon-green/30 px-2 py-0.5 rounded-full flex items-center gap-1.5 shadow-sm">
+                              <Icon className="w-3 h-3 text-neon-green shrink-0" />
+                              <span>{res.category || res.type}</span>
+                            </span>
+                            <ArrowRight className="w-3 h-3 text-gray-600 group-hover/res:text-neon-green transition-colors shrink-0" />
+                          </div>
+                          <div className="text-xs font-bold text-white group-hover/res:text-neon-green transition-colors truncate">{res.title}</div>
+                          <div className="text-[11px] text-gray-400 truncate mt-0.5">{res.description}</div>
+                        </Link>
+                      );
+                    })}
                     {searchResults.length > 6 && !showAllResults && (
                       <button
                         onMouseDown={(e) => {
@@ -373,28 +398,46 @@ export default function Navbar() {
                     )}
                   </>
                 ) : (
-                  <div className="p-3 space-y-2 font-mono">
-                    <div className="text-[10px] font-bold text-gray-400 uppercase tracking-widest border-b border-white/10 pb-1.5 flex items-center justify-between">
-                      <span>Suggested Searches</span>
-                      <span className="text-[9px] text-neon-green">Live Index</span>
+                  <div className="p-2 space-y-2 font-mono">
+                    <div className="text-[10px] font-bold text-gray-400 uppercase tracking-widest border-b border-white/10 pb-2 flex items-center justify-between">
+                      <span className="flex items-center gap-1.5">
+                        <Sparkles className="w-3 h-3 text-neon-green" /> Suggested Searches
+                      </span>
+                      <span className="text-[9px] text-neon-green flex items-center gap-1">
+                        <span className="w-1.5 h-1.5 rounded-full bg-neon-green animate-pulse" /> Live Index
+                      </span>
                     </div>
-                    <div className="space-y-1">
+                    <div className="space-y-1 pt-1">
                       {[
-                        { title: "DirectX 12 Overlay Swapchain", category: "Architecture", href: "/architecture#directx-presentation" },
-                        { title: "NVIDIA DLSS Frame Generation", category: "Docs", href: "/docs/nvidia_ai_guide" },
-                        { title: "Project Summary & Roadmap", category: "Docs", href: "/docs/summary" },
-                        { title: "Parallel Hardware Diagnostics", category: "Architecture", href: "/architecture#parallel-hardware" },
-                      ].map((s, idx) => (
-                        <Link
-                          key={idx}
-                          href={s.href}
-                          onClick={closeSearch}
-                          className="w-full flex items-center justify-between p-2 rounded-lg hover:bg-white/10 text-xs text-gray-300 hover:text-neon-green text-left transition-colors cursor-pointer"
-                        >
-                          <span className="truncate pr-2">{s.title}</span>
-                          <span className="text-[9px] px-1.5 py-0.5 rounded bg-white/10 border border-white/10 text-gray-400 font-mono shrink-0">{s.category}</span>
-                        </Link>
-                      ))}
+                        { title: "DirectX 12 Overlay Swapchain", category: "Architecture", icon: Cpu, href: "/architecture#directx-presentation" },
+                        { title: "NVIDIA DLSS Frame Generation", category: "Docs", icon: Zap, href: "/docs/nvidia_ai_guide" },
+                        { title: "Project Summary & Roadmap", category: "Docs", icon: BookOpen, href: "/docs/summary" },
+                        { title: "Parallel Hardware Diagnostics", category: "Architecture", icon: Activity, href: "/architecture#parallel-hardware" },
+                        { title: "Tested Games & Telemetry", category: "Benchmarks", icon: Gamepad2, href: "/games-tested" },
+                        { title: "AI Intelligence Dispatch", category: "News", icon: Newspaper, href: "/blog" },
+                      ].map((s, idx) => {
+                        const Icon = s.icon;
+                        return (
+                          <Link
+                            key={idx}
+                            href={s.href}
+                            onClick={closeSearch}
+                            className="w-full flex items-center justify-between p-2 rounded-xl hover:bg-white/8 text-xs text-gray-300 hover:text-white text-left transition-all cursor-pointer group/item border border-transparent hover:border-white/10"
+                          >
+                            <div className="flex items-center gap-2.5 min-w-0 pr-2">
+                              <div className="w-6 h-6 rounded-lg bg-white/5 group-hover/item:bg-neon-green/10 border border-white/10 group-hover/item:border-neon-green/30 flex items-center justify-center text-gray-400 group-hover/item:text-neon-green shrink-0 transition-colors">
+                                <Icon className="w-3.5 h-3.5" />
+                              </div>
+                              <span className="truncate group-hover/item:text-neon-green transition-colors font-sans text-xs text-gray-200">
+                                {s.title}
+                              </span>
+                            </div>
+                            <span className="text-[9px] px-2 py-0.5 rounded-full bg-white/5 group-hover/item:bg-neon-green/15 border border-white/10 group-hover/item:border-neon-green/30 text-gray-400 group-hover/item:text-neon-green font-mono shrink-0 transition-colors uppercase tracking-wider">
+                              {s.category}
+                            </span>
+                          </Link>
+                        );
+                      })}
                     </div>
                   </div>
                 )}
@@ -415,15 +458,15 @@ export default function Navbar() {
                 <a
                   href={os === "linux" ? LINUX_INSTALLER_URL : (os === "windows" ? WINDOWS_INSTALLER_URL : AUTO_DOWNLOAD_URL)}
                   suppressHydrationWarning
-                  className="relative inline-flex items-center justify-center px-4.5 py-2.5 font-mono text-xs font-black tracking-wider uppercase btn-cyber-primary rounded-xl transition-all duration-300 gap-2 whitespace-nowrap shrink-0 cursor-pointer shadow-[0_0_20px_rgba(118,185,0,0.35)]"
+                  className="relative inline-flex items-center justify-center px-5 py-2.5 font-mono text-xs font-black tracking-wider uppercase btn-premium-primary transition-all duration-300 gap-2 whitespace-nowrap shrink-0 cursor-pointer shadow-[0_0_30px_rgba(118,185,0,0.45)] group"
                 >
-                  <Download className="w-4 h-4 shrink-0" />
+                  <Download className="w-4 h-4 shrink-0 transition-transform duration-300 group-hover:translate-y-0.5" />
                   <span>DOWNLOAD</span>
                 </a>
               )}
             </div>
 
-            {/* Search Trigger for Mobile */}
+            {/* Mobile Search Button */}
             <button
               onClick={() => {
                 const nextState = !isMobileSearchOpen;
@@ -433,7 +476,7 @@ export default function Navbar() {
                   setTimeout(() => mobileSearchRef.current?.focus(), 150);
                 }
               }}
-              className="md:hidden p-2.5 text-gray-300 hover:text-neon-green active:scale-95 focus:outline-none transition-all rounded-xl bg-white/[0.04] border border-white/10 touch-manipulation cursor-pointer"
+              className="md:hidden p-2.5 text-gray-300 hover:text-neon-green active:scale-95 focus:outline-none transition-all rounded-xl bg-white/4 border border-white/10 touch-manipulation cursor-pointer"
               aria-label="Toggle Mobile Search"
             >
               <SearchIcon className="w-5 h-5" />
@@ -446,7 +489,7 @@ export default function Navbar() {
                 setIsOpen(nextState);
                 if (nextState) setIsMobileSearchOpen(false);
               }}
-              className="lg:hidden p-2.5 text-gray-300 hover:text-neon-green active:scale-95 focus:outline-none transition-all rounded-xl bg-white/[0.04] border border-white/10 touch-manipulation cursor-pointer"
+              className="lg:hidden p-2.5 text-gray-300 hover:text-neon-green active:scale-95 focus:outline-none transition-all rounded-xl bg-white/4 border border-white/10 touch-manipulation cursor-pointer"
               aria-label="Toggle Navigation Menu"
             >
               {isOpen ? (
@@ -465,7 +508,7 @@ export default function Navbar() {
                 animate={{ opacity: 1, y: 0 }}
                 exit={{ opacity: 0, y: -10 }}
                 transition={{ duration: 0.2 }}
-                className="absolute inset-0 bg-[#0a0a0c] z-30 flex items-center px-3 sm:px-4 gap-2 sm:gap-3 border-b border-neon-green/40 shadow-2xl"
+                className="absolute inset-0 bg-obsidian z-30 flex items-center px-3 sm:px-4 gap-2 sm:gap-3 border-b border-neon-green/40 shadow-2xl"
               >
                 <SearchIcon className="w-5 h-5 text-neon-green shrink-0" />
                 <div className="flex-1 relative flex items-center">
@@ -501,18 +544,41 @@ export default function Navbar() {
                 {/* Mobile Search Results Popover */}
                 {searchResults.length > 0 && (
                   <div className="absolute top-20 left-0 right-0 bg-[#0d0e12]/98 backdrop-blur-xl border-b border-white/10 max-h-[calc(100dvh-5rem)] overflow-y-auto p-4 space-y-2.5 shadow-2xl z-40 font-mono overscroll-contain">
-                    {searchResults.map((res: any, idx: number) => (
-                      <Link
-                        key={idx}
-                        href={res.url}
-                        onClick={closeSearch}
-                        className="block p-3 bg-white/[0.04] border border-white/10 hover:border-neon-green/50 active:bg-white/[0.08] rounded-xl transition-all"
-                      >
-                        <div className="text-[10px] font-bold text-neon-green uppercase tracking-widest mb-1">{res.category || res.type}</div>
-                        <div className="text-sm font-bold text-white">{res.title}</div>
-                        <div className="text-xs text-gray-400 mt-1 line-clamp-2">{res.description}</div>
-                      </Link>
-                    ))}
+                    {searchResults.map((res: any, idx: number) => {
+                      const c = ((res.category || res.type || "") as string).toLowerCase();
+                      const Icon = c.includes("arch") || c.includes("engine") || c.includes("hardware")
+                        ? Cpu
+                        : c.includes("doc") || c.includes("guide") || c.includes("api")
+                        ? BookOpen
+                        : c.includes("game") || c.includes("benchmark")
+                        ? Gamepad2
+                        : c.includes("blog") || c.includes("news") || c.includes("intel")
+                        ? Newspaper
+                        : c.includes("comm") || c.includes("review") || c.includes("operator")
+                        ? Users
+                        : c.includes("perf") || c.includes("dlss") || c.includes("fps")
+                        ? Zap
+                        : Sparkles;
+
+                      return (
+                        <Link
+                          key={idx}
+                          href={res.url}
+                          onClick={closeSearch}
+                          className="block p-3 bg-white/4 border border-white/10 hover:border-neon-green/50 active:bg-white/8 rounded-xl transition-all"
+                        >
+                          <div className="flex items-center justify-between mb-1">
+                            <span className="text-[10px] font-bold text-neon-green uppercase tracking-widest flex items-center gap-1.5 bg-neon-green/10 px-2 py-0.5 rounded-full border border-neon-green/30">
+                              <Icon className="w-3 h-3 text-neon-green shrink-0" />
+                              <span>{res.category || res.type}</span>
+                            </span>
+                            <ArrowRight className="w-3.5 h-3.5 text-gray-500" />
+                          </div>
+                          <div className="text-sm font-bold text-white">{res.title}</div>
+                          <div className="text-xs text-gray-400 mt-1 line-clamp-2">{res.description}</div>
+                        </Link>
+                      );
+                    })}
                   </div>
                 )}
               </motion.div>
@@ -543,7 +609,7 @@ export default function Navbar() {
               animate={{ opacity: 1, y: 0 }}
               exit={{ opacity: 0, y: -8 }}
               transition={{ duration: 0.22, ease: "easeOut" }}
-              className="lg:hidden fixed top-20 left-0 right-0 w-full bg-[#0a0a0c]/98 backdrop-blur-xl border-b border-neon-green/30 shadow-[0_20px_50px_rgba(0,0,0,0.95)] max-h-[calc(100dvh-5rem)] overflow-y-auto z-40 overscroll-contain"
+              className="lg:hidden fixed top-20 left-0 right-0 w-full bg-obsidian/98 backdrop-blur-xl border-b border-neon-green/30 shadow-[0_20px_50px_rgba(0,0,0,0.95)] max-h-[calc(100dvh-5rem)] overflow-y-auto z-40 overscroll-contain"
               style={{
                 WebkitOverflowScrolling: "touch",
                 willChange: "transform, opacity",
@@ -561,10 +627,10 @@ export default function Navbar() {
                   return (
                     <div
                       key={link.name}
-                      className={`bg-white/[0.03] border rounded-2xl p-3 sm:p-3.5 transition-colors ${
+                      className={`bg-white/3 border rounded-2xl p-3 sm:p-3.5 transition-colors ${
                         isActive
-                          ? "border-neon-green/40 bg-neon-green/[0.04]"
-                          : "border-white/10 hover:border-white/20 active:bg-white/[0.06]"
+                          ? "border-neon-green/40 bg-neon-green/4"
+                          : "border-white/10 hover:border-white/20 active:bg-white/6"
                       }`}
                     >
                       <div className="flex items-center justify-between w-full">
@@ -646,7 +712,7 @@ export default function Navbar() {
                       href={os === "linux" ? LINUX_INSTALLER_URL : (os === "windows" ? WINDOWS_INSTALLER_URL : AUTO_DOWNLOAD_URL)}
                       suppressHydrationWarning
                       onClick={() => setIsOpen(false)}
-                      className="w-full text-center py-3.5 rounded-xl font-black text-xs sm:text-sm uppercase tracking-wider btn-cyber-primary transition-all flex items-center justify-center gap-2.5 shadow-[0_0_25px_rgba(118,185,0,0.4)] cursor-pointer touch-manipulation active:scale-[0.99]"
+                      className="w-full text-center py-3.5 rounded-xl font-black text-xs sm:text-sm uppercase tracking-wider btn-premium-primary transition-all flex items-center justify-center gap-2.5 shadow-[0_0_30px_rgba(118,185,0,0.5)] cursor-pointer touch-manipulation active:scale-[0.99]"
                     >
                       <Download className="w-4 h-4 sm:w-5 sm:h-5 shrink-0" />
                       <span>DOWNLOAD MISSION CONTROL</span>
