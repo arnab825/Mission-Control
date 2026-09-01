@@ -25,6 +25,7 @@ declare global {
       fetchGamingNews?: () => Promise<{ success: boolean; items: any[]; totalItems: number }>;
       fetchSteamTrending?: () => Promise<{ success: boolean; games: any[] }>;
       fetchLauncherTrending?: () => Promise<{ success: boolean; games: any[] }>;
+      fetchLocalNode?: () => Promise<{ success: boolean; node?: any; error?: string }>;
       searchGamesLive?: (query: string) => Promise<{ success: boolean; games: any[] }>;
       openExternal?: (url: string) => Promise<{ success: boolean; error?: string }>;
       onElectronUpdateStatus?: (callback: (event: any, status: any) => void) => () => void;

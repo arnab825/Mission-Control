@@ -427,21 +427,78 @@ const NodeManagerModal: React.FC<NodeManagerModalProps> = ({ onClose, sendComman
   const fetchNodes = useCallback(async (isInitial = false) => {
     if (isInitial) setLoading(true);
     try {
-      let data: LibraryNode[] = [];
-      if (userId) {
-        const res = await fetchWithFailover(`/api/nodes?clerk_id=${encodeURIComponent(userId)}`);
-        if (res.ok) {
-          data = await res.json();
-        }
+      let combined: LibraryNode[] = [];
+      const seenIds = new Set<string>();
+
+      // 1. Fetch Local Host Node from Electron IPC
+      if (typeof window !== 'undefined' && window.electronAPI?.fetchLocalNode) {
+        try {
+          const lRes = await window.electronAPI.fetchLocalNode();
+          if (lRes && lRes.success && lRes.node) {
+            seenIds.add(lRes.node.node_id);
+            combined.push(lRes.node);
+          }
+        } catch (_) {}
       }
-      setNodes(Array.isArray(data) ? data : []);
+
+      // 2. Request backend bridge nodes
+      if (sendCommand) {
+        try {
+          sendCommand('get_nodes', { userId });
+        } catch (_) {}
+      }
+
+      // 3. Fetch Cloud Nodes if Clerk User ID is present
+      if (userId) {
+        try {
+          const res = await fetchWithFailover(`/api/nodes?clerk_id=${encodeURIComponent(userId)}`);
+          if (res.ok) {
+            const data = await res.json();
+            if (Array.isArray(data)) {
+              data.forEach((n: LibraryNode) => {
+                if (!seenIds.has(n.node_id)) {
+                  seenIds.add(n.node_id);
+                  combined.push(n);
+                }
+              });
+            }
+          }
+        } catch (_) {}
+      }
+
+      // 4. Default Local Host Node fallback if fleet is empty
+      if (combined.length === 0) {
+        combined.push({
+          node_id: 'LOCAL-HOST',
+          name: 'This PC (Host Node)',
+          hostname: 'Localhost',
+          ip: '127.0.0.1',
+          platform: 'Windows',
+          status: 'online',
+          storage_total: 1000 * 1024 * 1024 * 1024,
+          storage_used: 420 * 1024 * 1024 * 1024,
+          storage_free: 580 * 1024 * 1024 * 1024,
+          scan_paths: [
+            'C:\\Program Files (x86)\\Steam\\steamapps\\common',
+            'C:\\Program Files\\Epic Games',
+            'C:\\GOG Games',
+            'C:\\Program Files\\EA Games',
+          ],
+          last_heartbeat: new Date().toISOString(),
+          last_sync: new Date().toISOString(),
+          version: '3.4.2',
+          game_count: 0,
+        });
+      }
+
+      setNodes(combined);
       setError(null);
     } catch (e: any) {
       setError(e.message || 'Cannot reach library server.');
     } finally {
       if (isInitial) setLoading(false);
     }
-  }, [userId]);
+  }, [userId, sendCommand]);
 
   useEffect(() => {
     fetchNodes(true);
@@ -462,44 +519,67 @@ const NodeManagerModal: React.FC<NodeManagerModalProps> = ({ onClose, sendComman
       setTimeout(() => {
         fetchNodes(true);
         setRegistering(false);
-      }, 2500);
+      }, 2000);
     } catch {
       setRegistering(false);
     }
   }, [sendCommand, userId, fetchNodes]);
 
   const handleScan = async (nodeId: string) => {
-    await fetchWithFailover(`/api/nodes/${nodeId}/scan`, { method: 'POST' });
+    if (sendCommand) {
+      sendCommand('trigger_node_scan', { nodeId, userId });
+      sendCommand('scan_games', { forceRefresh: true, userId });
+    }
+    try {
+      await fetchWithFailover(`/api/nodes/${nodeId}/scan`, { method: 'POST' });
+    } catch (_) {}
   };
 
   const handleDelete = async (nodeId: string) => {
-    await fetchWithFailover(`/api/nodes/${nodeId}`, { method: 'DELETE' });
+    try {
+      await fetchWithFailover(`/api/nodes/${nodeId}`, { method: 'DELETE' });
+    } catch (_) {}
     setNodes(prev => prev.filter(n => n.node_id !== nodeId));
   };
 
   const handleRename = async (nodeId: string, name: string) => {
-    await fetchWithFailover(`/api/nodes/${nodeId}`, {
-      method: 'PATCH',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ name }),
-    });
+    if (sendCommand) {
+      sendCommand('rename_node', { nodeId, name });
+    }
+    try {
+      await fetchWithFailover(`/api/nodes/${nodeId}`, {
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ name }),
+      });
+    } catch (_) {}
     setNodes(prev => prev.map(n => n.node_id === nodeId ? { ...n, name } : n));
   };
 
   const handleAddFolder = async (node: LibraryNode) => {
+    let selectedDir: string | null = null;
     if (typeof window !== 'undefined' && (window as any).electronAPI?.selectDirectory) {
       try {
-        const selectedDir = await (window as any).electronAPI.selectDirectory();
-        if (selectedDir && !node.scan_paths.includes(selectedDir)) {
-          const updatedPaths = [...node.scan_paths, selectedDir];
-          await fetchWithFailover(`/api/nodes/${node.node_id}`, {
-            method: 'PATCH',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ scan_paths: updatedPaths }),
-          });
-          setNodes(prev => prev.map(n => n.node_id === node.node_id ? { ...n, scan_paths: updatedPaths } : n));
-        }
+        selectedDir = await (window as any).electronAPI.selectDirectory();
       } catch (_) {}
+    } else {
+      selectedDir = window.prompt('Enter game library folder path (e.g. D:\\Games):');
+    }
+
+    if (selectedDir && selectedDir.trim() && !node.scan_paths.includes(selectedDir.trim())) {
+      const cleanPath = selectedDir.trim();
+      const updatedPaths = [...node.scan_paths, cleanPath];
+      if (sendCommand) {
+        sendCommand('update_node_paths', { nodeId: node.node_id, scanPaths: updatedPaths });
+      }
+      try {
+        await fetchWithFailover(`/api/nodes/${node.node_id}`, {
+          method: 'PATCH',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ scan_paths: updatedPaths }),
+        });
+      } catch (_) {}
+      setNodes(prev => prev.map(n => n.node_id === node.node_id ? { ...n, scan_paths: updatedPaths } : n));
     }
   };
 

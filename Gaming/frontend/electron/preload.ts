@@ -25,6 +25,7 @@ contextBridge.exposeInMainWorld('electronAPI', {
   fetchGamingNews: () => ipcRenderer.invoke('fetch-gaming-news'),
   fetchSteamTrending: () => ipcRenderer.invoke('fetch-steam-trending'),
   fetchLauncherTrending: () => ipcRenderer.invoke('fetch-launcher-trending'),
+  fetchLocalNode: () => ipcRenderer.invoke('fetch-local-node'),
   searchGamesLive: (query: string) => ipcRenderer.invoke('search-games-live', query),
   setProgressBar: (value: number) => ipcRenderer.send('set-progress-bar', value),
   restartBackend: () => ipcRenderer.send('restart-backend'),

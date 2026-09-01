@@ -81,6 +81,68 @@ def handle_register_local_node(payload: dict, pipeline, bridge, config) -> None:
         _threading.Thread(target=_node_service_instance.register, daemon=True).start()
     if bridge:
         bridge.update_state({"node_registration_status": "registered"})
+    handle_get_nodes(payload, pipeline, bridge, config)
+
+
+def handle_get_nodes(payload: dict, pipeline, bridge, config) -> None:
+    """Retrieve all fleet and local nodes for Node Manager."""
+    user_id = payload.get("userId") if payload else None
+    user_id_str = str(user_id) if user_id else (getattr(pipeline, "active_user_id", None) if pipeline else None)
+    _ensure_local_node_daemon(user_id_str)
+
+    nodes = []
+    if _node_service_instance and hasattr(_node_service_instance, "get_node_info"):
+        local_info = _node_service_instance.get_node_info()
+        nodes.append(local_info)
+    else:
+        import socket
+        from distributed_node.node_service import get_machine_node_id, _discover_all_scan_paths, _get_local_ip
+        from distributed_node.storage_calculator import get_default_storage
+        storage = get_default_storage()
+        nodes.append({
+            "node_id": get_machine_node_id(),
+            "name": f"Host PC ({socket.gethostname()})",
+            "hostname": socket.gethostname(),
+            "ip_address": _get_local_ip(),
+            "status": "online",
+            "storage_used": storage.get("used", 0),
+            "storage_total": storage.get("total", 0),
+            "storage_free": storage.get("free", 0),
+            "scan_paths": _discover_all_scan_paths(),
+            "game_count": 0,
+            "is_local": True,
+        })
+
+    if bridge:
+        bridge.update_state({"nodes": nodes, "local_node": nodes[0] if nodes else None})
+
+
+def handle_update_node_paths(payload: dict, pipeline, bridge, config, library_session: dict) -> None:
+    """Add or remove scan paths for a node and trigger rescan."""
+    paths = payload.get("scanPaths") or payload.get("scan_paths") or []
+    if _node_service_instance:
+        _node_service_instance.cfg.scan_paths = list(paths)
+        _node_service_instance.cfg.save()
+        _threading.Thread(target=_node_service_instance._run_scan, daemon=True).start()
+    handle_get_nodes(payload, pipeline, bridge, config)
+
+
+def handle_rename_node(payload: dict, pipeline, bridge, config) -> None:
+    """Rename a local node."""
+    name = (payload.get("name") or "").strip()
+    if name and _node_service_instance:
+        _node_service_instance.cfg.node_name = name
+        _node_service_instance.cfg.save()
+    handle_get_nodes(payload, pipeline, bridge, config)
+
+
+def handle_trigger_node_scan(payload: dict, pipeline, bridge, config, library_session: dict) -> None:
+    """Trigger an immediate full game library scan for the local node."""
+    if _node_service_instance:
+        _threading.Thread(target=_node_service_instance._run_scan, daemon=True).start()
+    handle_scan_games(payload, pipeline, bridge, config, library_session)
+    handle_get_nodes(payload, pipeline, bridge, config)
+
 
 
 def handle_get_discover_games(payload: dict, pipeline, bridge, config, library_session: dict) -> None:
