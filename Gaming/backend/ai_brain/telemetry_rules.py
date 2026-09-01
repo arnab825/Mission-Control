@@ -19,18 +19,11 @@ class TelemetryAdvisor:
         """
         Generate game/genre specific advice based on custom telemetry fields.
         """
-        from core.state_models import TITLE_GENRE_MAP
+        from core.game_mode_resolver import game_mode_resolver
         
-        genre = "Unknown"
+        ctx = game_mode_resolver.resolve(game_title) if game_title else None
+        genre = ctx.genre if ctx else state.get("genre", "Unknown")
         game_title_lower = (game_title or "").lower()
-        
-        for title, g in TITLE_GENRE_MAP.items():
-            if title.lower() == game_title_lower:
-                genre = g
-                break
-                
-        if genre == "Unknown":
-            genre = state.get("genre", "Unknown")
             
         advice_parts = []
         priority = "low"
