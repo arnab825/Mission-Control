@@ -9,10 +9,10 @@ import SafeBlogImage from "@/components/SafeBlogImage";
 import { Calendar, ArrowUpRight, Zap, Clock, Gamepad2, Bot, Radio, ChevronDown, ChevronLeft, ChevronRight } from "lucide-react";
 
 const CATEGORY_CONFIG: Record<string, { color: string; activeBg: string; shadow: string; icon: string; hoverBorder: string }> = {
-  "Game News": { color: "text-neon-green", activeBg: "bg-neon-green text-obsidian border-neon-green", shadow: "shadow-[0_0_15px_rgba(118,185,0,0.4)]", icon: "🎮", hoverBorder: "hover:border-neon-green/40 shadow-[0_0_25px_rgba(118,185,0,0.1)]" },
-  "GPU News": { color: "text-neon-purple", activeBg: "bg-neon-purple text-white border-neon-purple", shadow: "shadow-[0_0_15px_rgba(168,85,247,0.4)]", icon: "⚡", hoverBorder: "hover:border-neon-purple/40" },
-  "Game Revisit": { color: "text-amber-400", activeBg: "bg-amber-400 text-obsidian border-amber-400", shadow: "shadow-[0_0_15px_rgba(251,191,36,0.4)]", icon: "🕹️", hoverBorder: "hover:border-amber-400/40" },
-  "Hardware Deep-Dive": { color: "text-blue-400", activeBg: "bg-blue-500 text-white border-blue-500", shadow: "shadow-[0_0_15px_rgba(59,130,246,0.4)]", icon: "🔧", hoverBorder: "hover:border-blue-400/40" },
+  "Game News": { color: "text-neon-green", activeBg: "btn-premium-primary text-obsidian border-neon-green/60 font-black scale-105", shadow: "shadow-[0_0_20px_rgba(118,185,0,0.5)]", icon: "🎮", hoverBorder: "hover:border-neon-green/40 shadow-[0_0_25px_rgba(118,185,0,0.1)]" },
+  "GPU News": { color: "text-neon-purple", activeBg: "bg-gradient-to-r from-purple-500 via-purple-600 to-indigo-600 text-white border-purple-400 font-black scale-105", shadow: "shadow-[0_0_20px_rgba(168,85,247,0.5)]", icon: "⚡", hoverBorder: "hover:border-neon-purple/40" },
+  "Game Revisit": { color: "text-amber-400", activeBg: "bg-gradient-to-r from-amber-400 via-amber-500 to-orange-500 text-obsidian border-amber-400 font-black scale-105", shadow: "shadow-[0_0_20px_rgba(251,191,36,0.5)]", icon: "🕹️", hoverBorder: "hover:border-amber-400/40" },
+  "Hardware Deep-Dive": { color: "text-cyan-400", activeBg: "btn-premium-cyan text-obsidian border-cyan-400 font-black scale-105", shadow: "shadow-[0_0_20px_rgba(6,182,212,0.5)]", icon: "🔧", hoverBorder: "hover:border-cyan-400/40" },
 };
 
 const GAMING_CATEGORIES = ["Game News", "GPU News", "Game Revisit", "Hardware Deep-Dive"] as const;
@@ -77,11 +77,11 @@ export default async function BlogListing({
   }));
 
   return (
-    <div className="min-h-screen pt-24 sm:pt-28 pb-12 px-3 sm:px-6 max-w-6xl mx-auto w-full relative z-10 bg-[#0a0a0c] overflow-hidden">
+    <div className="min-h-screen pt-24 sm:pt-28 pb-12 px-3 sm:px-6 max-w-6xl mx-auto w-full relative z-10 bg-obsidian overflow-hidden">
 
       {/* Cyber Grid & Ambient Radial Glows */}
       <div className="absolute inset-0 cyber-grid opacity-25 pointer-events-none -z-10" />
-      <div className="absolute top-1/4 left-1/2 -translate-x-1/2 w-[800px] h-[400px] bg-neon-green/10 blur-[150px] rounded-full pointer-events-none -z-10 animate-pulse-slow" />
+      <div className="absolute top-1/4 left-1/2 -translate-x-1/2 w-200 h-100 bg-neon-green/10 blur-[150px] rounded-full pointer-events-none -z-10 animate-pulse-slow" />
 
       {/* Header */}
       <div className="text-left mb-12 max-w-3xl">
@@ -106,7 +106,7 @@ export default async function BlogListing({
           className={`px-3 py-2.5 rounded-xl font-mono text-xs tracking-wider uppercase font-bold transition-all duration-300 border flex items-center justify-center gap-2 ${
             currentTab === "intel"
               ? "bg-amber-400 text-obsidian border-amber-400 shadow-[0_0_20px_rgba(251,191,36,0.4)]"
-              : "bg-white/[0.03] border-white/5 text-gray-400 hover:text-white hover:bg-white/10"
+              : "bg-white/3 border-white/5 text-gray-400 hover:text-white hover:bg-white/10"
           }`}
         >
           <Gamepad2 className="w-3.5 h-3.5 shrink-0" />
@@ -118,7 +118,7 @@ export default async function BlogListing({
           className={`px-3 py-2.5 rounded-xl font-mono text-xs tracking-wider uppercase font-bold transition-all duration-300 border flex items-center justify-center gap-2 ${
             currentTab === "logs"
               ? "bg-white text-obsidian border-white shadow-[0_0_20px_rgba(255,255,255,0.4)]"
-              : "bg-white/[0.03] border-white/5 text-gray-400 hover:text-white hover:bg-white/10"
+              : "bg-white/3 border-white/5 text-gray-400 hover:text-white hover:bg-white/10"
           }`}
         >
           <Radio className="w-3.5 h-3.5 shrink-0" />
@@ -130,9 +130,9 @@ export default async function BlogListing({
       {/* ── Gaming Intel (MongoDB + MDX) ── */}
       {currentTab === "intel" && (
         <Suspense fallback={
-          <div className="py-20 flex flex-col items-center justify-center gap-4 border border-white/5 bg-white/[0.01] rounded-2xl p-4">
+          <div className="py-20 flex flex-col items-center justify-center gap-4 border border-white/5 bg-white/1 rounded-2xl p-4">
             <Radio className="w-8 h-8 text-amber-400 animate-pulse" />
-            <p className="text-amber-400 font-mono text-xs uppercase tracking-widest animate-pulse text-center max-w-full px-6 break-words">Establishing Secure Connection to Intelligence Database...</p>
+            <p className="text-amber-400 font-mono text-xs uppercase tracking-widest animate-pulse text-center max-w-full px-6 wrap-break-word">Establishing Secure Connection to Intelligence Database...</p>
           </div>
         }>
           <GamingIntelData activeCategory={activeCategory} localGamingPosts={localGamingPosts} currentPage={currentPage} />
@@ -146,7 +146,7 @@ export default async function BlogListing({
             {paginatedLogs.map((post, idx) => (
               <Link href={`/blog/${post.version}`} key={`${post.version}-${idx}`} className="block group">
                 <article className="glass-card glass-card-hover p-5 sm:p-8 border border-white/10 rounded-2xl relative overflow-hidden h-full flex flex-col justify-between shadow-[0_0_30px_rgba(0,0,0,0.5)]">
-                  <div className="absolute top-0 left-0 w-full h-[2px] bg-gradient-to-r from-white to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
+                  <div className="absolute top-0 left-0 w-full h-0.5 bg-linear-to-r from-white to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
                   <div>
                     <div className="flex items-center gap-4 text-xs font-mono text-white mb-4 uppercase tracking-widest flex-wrap">
                       <span className="flex items-center gap-1.5">
@@ -188,7 +188,7 @@ export default async function BlogListing({
               {validLogPage > 1 && (
                 <Link
                   href={`/blog?tab=logs&page=${validLogPage - 1}`}
-                  className="px-3.5 py-2 rounded-xl bg-white/[0.03] border border-white/10 hover:border-white/40 hover:text-white text-gray-400 transition-all flex items-center gap-1 uppercase tracking-wider font-bold"
+                  className="px-3.5 py-2 rounded-xl bg-white/3 border border-white/10 hover:border-white/40 hover:text-white text-gray-400 transition-all flex items-center gap-1 uppercase tracking-wider font-bold"
                 >
                   <ChevronLeft className="w-4 h-4" /> Prev
                 </Link>
@@ -201,7 +201,7 @@ export default async function BlogListing({
                   className={`w-9 h-9 rounded-xl flex items-center justify-center border font-bold transition-all ${
                     p === validLogPage
                       ? "bg-white text-obsidian border-white shadow-[0_0_15px_rgba(255,255,255,0.4)]"
-                      : "bg-white/[0.03] border-white/10 text-gray-400 hover:border-white/30 hover:text-white"
+                      : "bg-white/3 border-white/10 text-gray-400 hover:border-white/30 hover:text-white"
                   }`}
                 >
                   {p}
@@ -211,7 +211,7 @@ export default async function BlogListing({
               {validLogPage < totalLogPages && (
                 <Link
                   href={`/blog?tab=logs&page=${validLogPage + 1}`}
-                  className="px-3.5 py-2 rounded-xl bg-white/[0.03] border border-white/10 hover:border-white/40 hover:text-white text-gray-400 transition-all flex items-center gap-1 uppercase tracking-wider font-bold"
+                  className="px-3.5 py-2 rounded-xl bg-white/3 border border-white/10 hover:border-white/40 hover:text-white text-gray-400 transition-all flex items-center gap-1 uppercase tracking-wider font-bold"
                 >
                   Next <ChevronRight className="w-4 h-4" />
                 </Link>
@@ -350,8 +350,8 @@ async function GamingIntelData({ activeCategory, localGamingPosts, currentPage }
             href="/blog?tab=intel&category=all"
             className={`px-3.5 sm:px-4 py-2 rounded-xl text-xs font-mono font-bold uppercase tracking-wider border transition-all shrink-0 flex items-center gap-1.5 cursor-pointer ${
               activeCategory === "all"
-                ? "bg-amber-400 text-obsidian border-amber-400 shadow-[0_0_15px_rgba(251,191,36,0.35)]"
-                : "border-white/10 text-gray-400 hover:border-white/30 hover:text-white bg-white/[0.03]"
+                ? "bg-linear-to-r from-amber-400 via-amber-500 to-orange-500 text-obsidian border-amber-400 font-black scale-105 shadow-[0_0_20px_rgba(251,191,36,0.45)]"
+                : "border-white/10 text-gray-400 hover:border-white/30 hover:text-white bg-white/3"
             }`}
           >
             <span>All Intel</span>
@@ -370,7 +370,7 @@ async function GamingIntelData({ activeCategory, localGamingPosts, currentPage }
                 className={`px-3.5 sm:px-4 py-2 rounded-xl text-xs font-mono font-bold uppercase tracking-wider border transition-all shrink-0 flex items-center gap-1.5 cursor-pointer ${
                   activeCategory === cat
                     ? `${cfg.activeBg} ${cfg.shadow}`
-                    : "border-white/10 text-gray-400 hover:border-white/30 hover:text-white bg-white/[0.03]"
+                    : "border-white/10 text-gray-400 hover:border-white/30 hover:text-white bg-white/3"
                 }`}
               >
                 <span>{cfg.icon} {cat}</span>
@@ -401,7 +401,7 @@ async function GamingIntelData({ activeCategory, localGamingPosts, currentPage }
                 className={`glass-card glass-card-hover border border-white/10 ${cfg.hoverBorder} rounded-3xl relative overflow-hidden h-full flex flex-col justify-between shadow-[0_0_35px_rgba(0,0,0,0.8)] backdrop-blur-2xl transition-all duration-300`}
               >
                 {/* Cyber Laser Accent Line on Hover */}
-                <div className="absolute top-0 left-0 w-full h-[2.5px] bg-gradient-to-r from-neon-green via-neon-yellow to-amber-400 opacity-0 group-hover:opacity-100 transition-opacity duration-500 z-10" />
+                <div className="absolute top-0 left-0 w-full h-[2.5px] bg-linear-to-r from-neon-green via-neon-yellow to-amber-400 opacity-0 group-hover:opacity-100 transition-opacity duration-500 z-10" />
 
                 <div className="w-full h-52 sm:h-56 overflow-hidden relative border-b border-white/10 bg-obsidian">
                   <SafeBlogImage
@@ -410,7 +410,7 @@ async function GamingIntelData({ activeCategory, localGamingPosts, currentPage }
                     category={post.category}
                     className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-700 upscale-crisp opacity-90 group-hover:opacity-100"
                   />
-                  <div className="absolute inset-0 bg-gradient-to-t from-obsidian via-transparent to-transparent opacity-80 pointer-events-none" />
+                  <div className="absolute inset-0 bg-linear-to-t from-obsidian via-transparent to-transparent opacity-80 pointer-events-none" />
                 </div>
 
                 <div className="p-4 min-[400px]:p-6 sm:p-8 flex-1 flex flex-col justify-between relative z-10">
@@ -445,7 +445,7 @@ async function GamingIntelData({ activeCategory, localGamingPosts, currentPage }
                         {post.tags.slice(0, 4).map((tag: string) => (
                           <span
                             key={tag}
-                            className="text-[10px] font-mono uppercase tracking-wider px-2.5 py-1 rounded-md bg-white/[0.04] border border-white/10 text-gray-400 group-hover:border-amber-400/30 group-hover:text-gray-200 transition-colors"
+                            className="text-[10px] font-mono uppercase tracking-wider px-2.5 py-1 rounded-md bg-white/4 border border-white/10 text-gray-400 group-hover:border-amber-400/30 group-hover:text-gray-200 transition-colors"
                           >
                             #{tag}
                           </span>
@@ -487,7 +487,7 @@ async function GamingIntelData({ activeCategory, localGamingPosts, currentPage }
           {validPage > 1 && (
             <Link
               href={`/blog?tab=intel&category=${encodeURIComponent(activeCategory)}&page=${validPage - 1}`}
-              className="px-3.5 py-2 rounded-xl bg-white/[0.03] border border-white/10 hover:border-amber-400/50 hover:text-white text-gray-400 transition-all flex items-center gap-1 uppercase tracking-wider font-bold"
+              className="px-3.5 py-2 rounded-xl bg-white/3 border border-white/10 hover:border-amber-400/50 hover:text-white text-gray-400 transition-all flex items-center gap-1 uppercase tracking-wider font-bold"
             >
               <ChevronLeft className="w-4 h-4" /> Prev
             </Link>
@@ -500,7 +500,7 @@ async function GamingIntelData({ activeCategory, localGamingPosts, currentPage }
               className={`w-9 h-9 rounded-xl flex items-center justify-center border font-bold transition-all ${
                 p === validPage
                   ? "bg-amber-400 text-obsidian border-amber-400 shadow-[0_0_15px_rgba(251,191,36,0.4)]"
-                  : "bg-white/[0.03] border-white/10 text-gray-400 hover:border-white/30 hover:text-white"
+                  : "bg-white/3 border-white/10 text-gray-400 hover:border-white/30 hover:text-white"
               }`}
             >
               {p}
@@ -510,7 +510,7 @@ async function GamingIntelData({ activeCategory, localGamingPosts, currentPage }
           {validPage < totalPages && (
             <Link
               href={`/blog?tab=intel&category=${encodeURIComponent(activeCategory)}&page=${validPage + 1}`}
-              className="px-3.5 py-2 rounded-xl bg-white/[0.03] border border-white/10 hover:border-amber-400/50 hover:text-white text-gray-400 transition-all flex items-center gap-1 uppercase tracking-wider font-bold"
+              className="px-3.5 py-2 rounded-xl bg-white/3 border border-white/10 hover:border-amber-400/50 hover:text-white text-gray-400 transition-all flex items-center gap-1 uppercase tracking-wider font-bold"
             >
               Next <ChevronRight className="w-4 h-4" />
             </Link>
