@@ -1,8 +1,21 @@
 {
-  "version": "3.4.4",
+  "version": "3.4.5",
   "release_date": "2026-09-02",
   "update_check_url": "https://raw.githubusercontent.com/arnab825/Mission-Control/main/Gaming/backend/version.json",
   "changelog": [
+    {
+      "version": "3.4.5",
+      "date": "2026-09-02",
+      "title": "Distributed Fleet Scan Fixes, Real Host Telemetry & Catalog Asset Resilience",
+      "highlights": [
+        "Fixed 0 Games 0 B Storage issue with smart cache fallback to master database for Clerk users",
+        "Fixed Manage Nodes scan issue by replacing static mocks with real storage and detected game telemetry",
+        "Added resilient candidate server failover and auto-recovery in LibraryNodeService daemon",
+        "Replaced broken EA App and Ubisoft Connect image URLs with guaranteed high-resolution Steam CDN assets",
+        "Added title-based Steam CDN failover mapping and styled fallback cards in Discover Games",
+        "Aligned distributed server SQLite get_stats schema with PostgreSQL stats query"
+      ]
+    },
     {
       "version": "3.4.4",
       "date": "2026-09-02",

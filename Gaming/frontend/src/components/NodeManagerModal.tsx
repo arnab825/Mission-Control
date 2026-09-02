@@ -38,6 +38,7 @@ interface LibraryNode {
   last_sync: string | null;
   version: string;
   game_count?: number;
+  is_local?: boolean;
 }
 
 interface NodeManagerModalProps {
@@ -456,7 +457,19 @@ const NodeManagerModal: React.FC<NodeManagerModalProps> = ({ onClose, sendComman
             const data = await res.json();
             if (Array.isArray(data)) {
               data.forEach((n: LibraryNode) => {
-                if (!seenIds.has(n.node_id)) {
+                const existingIdx = combined.findIndex(ex => ex.node_id === n.node_id || (ex.hostname && n.hostname && ex.hostname.toLowerCase() === n.hostname.toLowerCase()));
+                if (existingIdx >= 0) {
+                  combined[existingIdx] = {
+                    ...combined[existingIdx],
+                    ...n,
+                    game_count: Math.max(combined[existingIdx].game_count || 0, n.game_count || 0),
+                    storage_total: combined[existingIdx].storage_total || n.storage_total,
+                    storage_used: combined[existingIdx].storage_used || n.storage_used,
+                    storage_free: combined[existingIdx].storage_free || n.storage_free,
+                    scan_paths: Array.from(new Set([...(combined[existingIdx].scan_paths || []), ...(n.scan_paths || [])])),
+                    is_local: true,
+                  };
+                } else if (!seenIds.has(n.node_id)) {
                   seenIds.add(n.node_id);
                   combined.push(n);
                 }
@@ -486,7 +499,7 @@ const NodeManagerModal: React.FC<NodeManagerModalProps> = ({ onClose, sendComman
           ],
           last_heartbeat: new Date().toISOString(),
           last_sync: new Date().toISOString(),
-          version: '3.4.2',
+          version: '3.4.4',
           game_count: 0,
         });
       }
@@ -503,9 +516,7 @@ const NodeManagerModal: React.FC<NodeManagerModalProps> = ({ onClose, sendComman
   useEffect(() => {
     fetchNodes(true);
     const t = setInterval(() => {
-      if (typeof document !== 'undefined' && document.visibilityState === 'visible') {
-        fetchNodes(false);
-      }
+      fetchNodes(false);
     }, 15000);
     return () => clearInterval(t);
   }, [fetchNodes]);
@@ -533,6 +544,10 @@ const NodeManagerModal: React.FC<NodeManagerModalProps> = ({ onClose, sendComman
     try {
       await fetchWithFailover(`/api/nodes/${nodeId}/scan`, { method: 'POST' });
     } catch (_) {}
+    // Proactively poll local and fleet nodes to reflect detected games immediately
+    setTimeout(() => fetchNodes(false), 1500);
+    setTimeout(() => fetchNodes(false), 4000);
+    setTimeout(() => fetchNodes(false), 8000);
   };
 
   const handleDelete = async (nodeId: string) => {

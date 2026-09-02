@@ -2,11 +2,11 @@ import { useState, useEffect, useCallback } from 'react';
 
 export const PRIMARY_LIBRARY_SERVER_URL = (window as any).__LIBRARY_SERVER_URL__
   || (import.meta as any).env?.VITE_LIBRARY_SERVER_URL
-  || 'https://mission-control-server-okj7.onrender.com';
+  || 'https://mission-control-wz0l.onrender.com';
 
 export const BACKUP_LIBRARY_SERVER_URL = (window as any).__BACKUP_LIBRARY_SERVER_URL__
   || (import.meta as any).env?.VITE_BACKUP_LIBRARY_SERVER_URL
-  || 'https://mission-control-wz0l.onrender.com';
+  || 'https://mission-control-server-okj7.onrender.com';
 
 // Candidate endpoints ordered by priority
 export const CANDIDATE_LIBRARY_SERVER_URLS = [
@@ -82,7 +82,7 @@ export interface DistributedStats {
   online_nodes: number;
   total_storage_bytes: number;
   used_storage_bytes: number;
-  nodes: Array<{ node_id: string; name: string; status: string; storage_total: number; storage_used: number }>;
+  nodes: Array<{ node_id: string; name: string; status: string; storage_total: number; storage_used: number; game_count?: number }>;
 }
 
 export function useDistributedStats(userId?: string | null): { stats: DistributedStats | null; serverOnline: boolean; activeUrl: string } {
@@ -97,7 +97,29 @@ export function useDistributedStats(userId?: string | null): { stats: Distribute
         : `/api/library/stats`;
       const res = await fetchWithFailover(path);
       if (res.ok) {
-        const data = await res.json();
+        let data = await res.json();
+        // If endpoint returned empty stats (0 games and 0 nodes), check other candidates to see if one has populated data
+        if (data && data.total_master_games === 0 && (!data.nodes || data.nodes.length === 0)) {
+          for (const cand of CANDIDATE_LIBRARY_SERVER_URLS) {
+            const cleanCand = cand.replace(/\/+$/, '');
+            if (cleanCand !== _activeServerUrl) {
+              try {
+                const altController = new AbortController();
+                const altTimeout = setTimeout(() => altController.abort(), 6000);
+                const altRes = await fetch(`${cleanCand}${path}`, { signal: altController.signal });
+                clearTimeout(altTimeout);
+                if (altRes.ok) {
+                  const altData = await altRes.json();
+                  if (altData && (altData.total_master_games > 0 || (altData.nodes && altData.nodes.length > 0))) {
+                    data = altData;
+                    _activeServerUrl = cleanCand;
+                    break;
+                  }
+                }
+              } catch (_) {}
+            }
+          }
+        }
         setStats(data);
         setServerOnline(true);
         setActiveUrl(_activeServerUrl);

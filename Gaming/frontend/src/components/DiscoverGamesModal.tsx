@@ -85,6 +85,30 @@ const SOURCE_COLORS: Record<string, { bg: string; text: string; border: string }
   "Tom's Hardware":  { bg: 'bg-cyan-500/15', text: 'text-cyan-400', border: 'border-cyan-500/30' },
 };
 
+const TITLE_TO_STEAM_APPID: Record<string, string> = {
+  'ea sports fc 25': '2669320',
+  'apex legends': '1172470',
+  'star wars jedi: survivor': '1774580',
+  'star wars jedi survivor': '1774580',
+  'battlefield 2042': '1517290',
+  "assassin's creed mirage": '2842100',
+  "tom clancy's rainbow six siege": '359550',
+  'rainbow six siege': '359550',
+  'the crew motorfest': '2698940',
+  'diablo iv': '2344520',
+  'diablo 4': '2344520',
+  'overwatch 2': '2357570',
+  'god of war ragnarök': '2322010',
+  'god of war ragnarok': '2322010',
+  "marvel's spider-man remastered": '1817070',
+  "ghost of tsushima director's cut": '2215430',
+  'the last of us part i': '1888930',
+  'grand theft auto v': '271590',
+  'red dead redemption 2': '1174180',
+  'need for speed heat': '1222680',
+  "tom clancy's the division": '365590',
+};
+
 const SUGGESTED_QUERIES = [
   'Black Myth Wukong', 'Cyberpunk 2077', 'Elden Ring', 'Baldur\'s Gate 3',
   'God of War Ragnarok', 'Grand Theft Auto V', 'Red Dead Redemption 2', 'Forza Horizon 5'
@@ -1866,10 +1890,18 @@ const DiscoverGamesModal: React.FC<DiscoverGamesModalProps> = ({ onClose }) => {
                               alt={game.title}
                               onError={(e) => {
                                 const target = e.target as HTMLImageElement;
-                                const steamAppId = (game.store === 'steam' || game.store === 'Steam') && game.store_app_id ? game.store_app_id : (/^\d+$/.test(game.id) ? game.id : null);
-                                const steamHeader = steamAppId ? `https://cdn.akamai.steamstatic.com/steam/apps/${steamAppId}/header.jpg` : null;
+                                const titleKey = (game.title || '').toLowerCase().trim();
+                                const mappedAppId = TITLE_TO_STEAM_APPID[titleKey];
+                                const steamAppId = mappedAppId || (
+                                  (game.store === 'steam' || game.store === 'Steam') && game.store_app_id
+                                    ? game.store_app_id
+                                    : (/^\d+$/.test(game.id) ? game.id : (/^\d+$/.test(game.store_app_id || '') ? game.store_app_id : null))
+                                );
+                                const steamHeader = steamAppId ? `https://shared.cloudflare.steamstatic.com/store_item_assets/steam/apps/${steamAppId}/header.jpg` : null;
                                 if (steamHeader && target.src !== steamHeader) {
                                   target.src = steamHeader;
+                                } else if (game.cover_url && target.src !== game.cover_url && !game.cover_url.includes('contentapi.ea') && !game.cover_url.includes('staticctf.ubisoft')) {
+                                  target.src = game.cover_url;
                                 } else {
                                   setBrokenImages(prev => ({ ...prev, [game.id]: true }));
                                 }
@@ -1879,14 +1911,20 @@ const DiscoverGamesModal: React.FC<DiscoverGamesModalProps> = ({ onClose }) => {
                               decoding="async"
                             />
                           ) : (
-                            <div className="w-full h-full flex flex-col items-center justify-center bg-linear-to-br from-zinc-900 to-black p-4 text-center">
-                              <Gamepad2 className="w-8 h-8 text-zinc-600 mb-1" />
-                              <span className="text-[10px] font-black text-zinc-400 uppercase tracking-wider line-clamp-1">
+                            <div className="w-full h-full flex flex-col items-center justify-center bg-linear-to-br from-zinc-900 via-zinc-850 to-black p-4 text-center border border-white/10 relative overflow-hidden">
+                              <div className="absolute -right-6 -bottom-6 w-24 h-24 rounded-full bg-white/5 blur-xl pointer-events-none" />
+                              <Gamepad2 className="w-8 h-8 text-white/40 mb-2 relative z-10" />
+                              <span className="text-[11px] font-black text-white/90 uppercase tracking-wider line-clamp-2 relative z-10 px-2">
                                 {game.title}
                               </span>
+                              {game.primary_genre && (
+                                <span className="text-[9px] font-bold text-white/50 uppercase tracking-widest mt-1 relative z-10">
+                                  {game.primary_genre}
+                                </span>
+                              )}
                             </div>
                           )}
-                          <div className="absolute inset-0 bg-linear-to-t from-black/80 via-transparent to-black/20" />
+                          {bannerSrc && <div className="absolute inset-0 bg-linear-to-t from-black/80 via-transparent to-black/20 pointer-events-none" />}
 
                           {/* Store Badge Interactive Switcher */}
                           <div className="absolute top-2 left-2 flex items-center gap-1 z-10">

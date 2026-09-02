@@ -448,6 +448,25 @@ class GameScanner:
             except Exception as exc:
                 logger.debug("Local JSON cache read error: %s", exc)
 
+        # Fallback to master/machine games_db.json if user cache is empty/missing
+        if not games:
+            master_cache = self.cache_file.parent / "games_db.json"
+            if master_cache.exists() and master_cache != self.cache_file:
+                try:
+                    with open(master_cache, "r", encoding="utf-8") as f:
+                        cached_json = json.load(f)
+                        if isinstance(cached_json, list) and len(cached_json) > 0:
+                            games = cached_json
+                            logger.info("Loaded %d games from master machine cache for user %s", len(games), self.user_id)
+                            # Seed user cache file so it stays populated
+                            try:
+                                with open(self.cache_file, "w", encoding="utf-8") as uf:
+                                    json.dump(games, uf, indent=2)
+                            except Exception:
+                                pass
+                except Exception as exc:
+                    logger.debug("Master JSON cache read error: %s", exc)
+
         # --- 2. Try Local SQLite cache (if JSON was empty) ---
         if not games:
             try:
@@ -488,15 +507,10 @@ class GameScanner:
 
             # Try Distributed Library Server with strict 2.5s timeout (Primary + Backup Fallback)
             if not games and self.user_id:
-                primary_url = os.getenv("LIBRARY_SERVER_URL", "https://mission-control-server-okj7.onrender.com").rstrip("/")
-                backup_url = os.getenv("BACKUP_LIBRARY_SERVER_URL", "https://mission-control-wz0l.onrender.com").rstrip("/")
-                candidate_urls = [u for u in [primary_url, backup_url] if u]
-
-                for library_server_url in candidate_urls:
+                for library_server_url in ["https://mission-control-wz0l.onrender.com", "https://mission-control-server-okj7.onrender.com"]:
                     try:
                         import urllib.request
-                        import urllib.parse
-                        url = f"{library_server_url}/api/games?installed_only=true&clerk_id={urllib.parse.quote(self.user_id)}"
+                        url = f"{library_server_url}/api/games?clerk_id={urllib.parse.quote(self.user_id)}&limit=100"
                         req = urllib.request.Request(url, headers={"User-Agent": "MissionControl-Backend/1.0"})
                         with urllib.request.urlopen(req, timeout=2.5) as resp:
                             data = json.loads(resp.read().decode("utf-8"))
@@ -506,8 +520,11 @@ class GameScanner:
                                     primary_inst = g.get("installations", [{}])[0] if g.get("installations") else {}
                                     mapped_games.append({
                                         "id": g["id"],
-                                        "title": g["title"],
+                                        "name": g.get("name") or g.get("title", ""),
+                                        "title": g.get("title") or g.get("name", ""),
+                                        "platform": primary_inst.get("store", "distributed"),
                                         "exe_path": primary_inst.get("exe_path", ""),
+                                        "install_path": primary_inst.get("install_path", ""),
                                         "install_dir": primary_inst.get("install_path", ""),
                                         "source": primary_inst.get("store", "distributed"),
                                         "size_bytes": primary_inst.get("size_bytes", 0),
@@ -515,6 +532,7 @@ class GameScanner:
                                         "last_played": 0,
                                         "play_time_mins": 0,
                                         "cover_url": g.get("cover_url", ""),
+                                        "icon": g.get("cover_url", ""),
                                         "icon_url": g.get("cover_url", ""),
                                         "node_id": primary_inst.get("node_id", "")
                                     })
@@ -529,9 +547,9 @@ class GameScanner:
         if games:
             cleaned_games = []
             for g in games:
-                if not isinstance(g, dict) or not g.get("name"):
+                if not isinstance(g, dict) or not (g.get("name") or g.get("title")):
                     continue
-                name = g["name"]
+                name = g.get("name") or g.get("title", "")
                 for symbol in ["™", "®", "\u2122", "\u00ae"]:
                     name = name.replace(symbol, "")
                 name = " ".join(name.split())

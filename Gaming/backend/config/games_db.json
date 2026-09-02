@@ -3,8 +3,8 @@
     "name": "Steam",
     "platform": "Steam",
     "id": "steam_launcher",
-    "install_path": "e:\\program files (x86)\\steam",
-    "exe_path": "e:/program files (x86)/steam/steam.exe",
+    "install_path": "c:\\program files\\steam",
+    "exe_path": "c:/program files/steam/steam.exe",
     "features": [
       "HDR"
     ],
@@ -13,7 +13,7 @@
     "tags": [
       "SYSTEM"
     ],
-    "icon": "E:\\AiAssistant\\Gaming\\backend\\data\\icons\\steam_launcher.png"
+    "icon": "C:\\GitHub\\Mission-Control\\Gaming\\backend\\data\\icons\\steam_launcher.png"
   },
   {
     "name": "EA Desktop",
@@ -22,7 +22,7 @@
     "install_path": "C:\\Program Files\\Electronic Arts\\EA Desktop\\EA Desktop",
     "exe_path": "C:\\Program Files\\Electronic Arts\\EA Desktop\\EA Desktop\\EADesktop.exe",
     "features": [],
-    "icon": "E:\\AiAssistant\\Gaming\\backend\\data\\icons\\fallback_ea_desktop.png",
+    "icon": "C:\\GitHub\\Mission-Control\\Gaming\\backend\\data\\icons\\fallback_ea_desktop.png",
     "type": "LAUNCHER",
     "genre": "PLATFORM",
     "tags": [
@@ -41,7 +41,7 @@
     "tags": [
       "SYSTEM"
     ],
-    "icon": "E:\\AiAssistant\\Gaming\\backend\\data\\icons\\ubisoft_launcher.png"
+    "icon": "C:\\GitHub\\Mission-Control\\Gaming\\backend\\data\\icons\\ubisoft_launcher.png"
   },
   {
     "name": "Epic Games",
@@ -55,7 +55,21 @@
     "tags": [
       "SYSTEM"
     ],
-    "icon": "E:\\AiAssistant\\Gaming\\backend\\data\\icons\\EpicGamesLauncher.png"
+    "icon": "C:\\GitHub\\Mission-Control\\Gaming\\backend\\data\\icons\\EpicGamesLauncher.png"
+  },
+  {
+    "name": "Rockstar Games",
+    "platform": "Rockstar Games",
+    "id": "Rockstar Games Launcher",
+    "install_path": "C:\\Program Files\\Rockstar Games\\Launcher",
+    "exe_path": "C:\\Program Files\\Rockstar Games\\Launcher\\LauncherPatcher.exe",
+    "icon": "C:\\GitHub\\Mission-Control\\Gaming\\backend\\data\\icons\\RockstarGamesLauncher.png",
+    "features": [],
+    "type": "LAUNCHER",
+    "genre": "PLATFORM",
+    "tags": [
+      "SYSTEM"
+    ]
   },
   {
     "name": "Xbox",
@@ -66,44 +80,51 @@
     "exe_path": "xbox:",
     "type": "LAUNCHER",
     "features": [],
-    "genre": "PLATFORM",
-    "tags": [
-      "SYSTEM"
-    ]
+    "genre": "CLASSIC"
   },
   {
-    "name": "Need for Speed Heat",
-    "platform": "Steam",
-    "id": "1222680",
-    "install_path": "E:\\Program Files (x86)\\Steam\\steamapps\\common\\Need for Speed Heat",
-    "exe_path": "E:\\Program Files (x86)\\Steam\\steamapps\\common\\Need for Speed Heat\\NeedForSpeedHeat.exe",
-    "icon": "E:\\AiAssistant\\Gaming\\backend\\data\\icons\\1222680.png",
+    "name": "007 First Light",
+    "platform": "Local",
+    "id": "C:\\_007 First Light",
+    "install_path": "C:\\Games\\007 First Light",
+    "exe_path": "C:\\Games\\007 First Light\\Retail\\007FirstLight.exe",
+    "source": "common_paths",
     "features": [
-      "HDR"
+      "DLSS",
+      "FRAME_GEN",
+      "FSR",
+      "FSR 3",
+      "HDR",
+      "PATH_TRACING",
+      "PHYSX",
+      "RAY_TRACING",
+      "REFLEX"
     ],
     "type": "GAME",
-    "genre": "RACING",
-    "tags": [
-      "DRIVING",
-      "MULTIPLAYER"
-    ]
+    "genre": "CLASSIC",
+    "tags": [],
+    "icon": "C:\\GitHub\\Mission-Control\\Gaming\\backend\\data\\icons\\C_007FirstLight.png"
   },
   {
-    "name": "Tom Clancy's The Division",
-    "platform": "Steam",
-    "id": "365590",
-    "install_path": "D:\\SteamLibrary\\steamapps\\common\\Tom Clancy's The Division",
-    "exe_path": "D:\\SteamLibrary\\steamapps\\common\\Tom Clancy's The Division\\thedivision.exe",
-    "icon": "E:\\AiAssistant\\Gaming\\backend\\data\\icons\\365590.png",
+    "name": "The Last of Us Part I",
+    "platform": "Local",
+    "id": "C:\\_The Last of Us - Part I",
+    "install_path": "C:\\Games\\The Last of Us - Part I",
+    "exe_path": "C:\\Games\\The Last of Us - Part I\\tlou-i-l.exe",
+    "source": "common_paths",
     "features": [
-      "ANSEL",
-      "LEGACY"
+      "DLSS",
+      "FRAME_GEN",
+      "FSR",
+      "FSR 2",
+      "FSR 3",
+      "HDR",
+      "REFLEX"
     ],
     "type": "GAME",
-    "genre": "SHOOTER",
-    "tags": [
-      "TPS",
-      "ACTION"
-    ]
+    "genre": "CLASSIC",
+    "tags": [],
+    "local_banner": "https://cdn.akamai.steamstatic.com/steam/apps/1888930/header.jpg",
+    "icon": "C:\\GitHub\\Mission-Control\\Gaming\\backend\\data\\icons\\C_TheLastofUs-PartI.png"
   }
 ]

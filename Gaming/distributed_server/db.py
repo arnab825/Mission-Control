@@ -1022,11 +1022,34 @@ class LibraryDB:
         )
 
     def _sqlite_get_stats(self, clerk_id: Optional[str] = None) -> Dict[str, Any]:
+        where_clerk = " WHERE clerk_id = :cid" if clerk_id else ""
+        params = {"cid": clerk_id} if clerk_id else {}
+        
+        master_games = (self._sqlite_execute("SELECT count(*) as c FROM canonical_games", fetch="one") or {}).get("c", 0)
+        installations = (self._sqlite_execute(f"SELECT count(DISTINCT game_id) as c FROM game_installations{where_clerk}", params, fetch="one") or {}).get("c", 0)
+        total_nodes = (self._sqlite_execute(f"SELECT count(*) as c FROM library_nodes{where_clerk}", params, fetch="one") or {}).get("c", 0)
+        online_nodes = (self._sqlite_execute(f"SELECT count(*) as c FROM library_nodes WHERE status = 'online'{' AND clerk_id = :cid' if clerk_id else ''}", params, fetch="one") or {}).get("c", 0)
+        
+        storage_row = self._sqlite_execute(
+            f"SELECT COALESCE(sum(storage_total), 0) as st, COALESCE(sum(storage_used), 0) as su, COALESCE(sum(storage_free), 0) as sf FROM library_nodes{where_clerk}",
+            params, fetch="one"
+        ) or {}
+        
+        nodes_rows = self._sqlite_execute(
+            f"SELECT node_id, name, hostname, ip, status, storage_total, storage_used, storage_free, last_heartbeat FROM library_nodes{where_clerk}",
+            params, fetch="all"
+        ) or []
+
         return {
-            "total_games": self._sqlite_execute("SELECT count(*) as c FROM canonical_games", fetch="one")["c"],
-            "total_installations": self._sqlite_execute("SELECT count(*) as c FROM game_installations", fetch="one")["c"],
-            "total_nodes": self._sqlite_execute("SELECT count(*) as c FROM library_nodes", fetch="one")["c"],
-            "total_size_bytes": self._sqlite_execute("SELECT sum(size_bytes) as c FROM game_installations", fetch="one")["c"] or 0,
+            "total_master_games": master_games,
+            "total_installed_games": installations,
+            "total_nodes": total_nodes,
+            "online_nodes": online_nodes,
+            "total_storage_bytes": storage_row.get("st", 0),
+            "used_storage_bytes": storage_row.get("su", 0),
+            "free_storage_bytes": storage_row.get("sf", 0),
+            "nodes": nodes_rows,
+            "store_distribution": {},
         }
 
     def get_stats(self, clerk_id: Optional[str] = None) -> Dict[str, Any]:
