@@ -202,7 +202,9 @@ class LibraryNodeService:
         self.cfg = config
         self._running = False
         self._scan_lock = threading.Lock()
+        self._reg_lock = threading.Lock()
         self._last_scan: float = 0.0
+        self._last_synced_hash: Optional[str] = None
 
     def get_node_info(self) -> Dict[str, Any]:
         """Returns aggregated node metrics, disk capacity, scan paths, and game count for Fleet Command."""

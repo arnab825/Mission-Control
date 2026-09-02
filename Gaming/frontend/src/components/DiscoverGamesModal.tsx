@@ -1453,7 +1453,19 @@ const DiscoverGamesModal: React.FC<DiscoverGamesModalProps> = ({ onClose }) => {
                             {/* Tiny capsule banner */}
                             <div className="w-14 h-8 rounded-lg overflow-hidden bg-black/60 shrink-0 border border-white/10 relative">
                               {banner ? (
-                                <img src={banner} alt="" className="w-full h-full object-cover" />
+                                <img
+                                  src={banner}
+                                  alt=""
+                                  className="w-full h-full object-cover"
+                                  onError={(e) => {
+                                    const target = e.target as HTMLImageElement;
+                                    const steamAppId = (game.store === 'steam' || game.store === 'Steam') && game.store_app_id ? game.store_app_id : (/^\d+$/.test(game.id) ? game.id : null);
+                                    const steamHeader = steamAppId ? `https://cdn.akamai.steamstatic.com/steam/apps/${steamAppId}/header.jpg` : null;
+                                    if (steamHeader && target.src !== steamHeader) {
+                                      target.src = steamHeader;
+                                    }
+                                  }}
+                                />
                               ) : (
                                 <div className="w-full h-full flex items-center justify-center bg-zinc-900">
                                   <Gamepad2 className="w-3.5 h-3.5 text-zinc-600" />
@@ -1852,7 +1864,16 @@ const DiscoverGamesModal: React.FC<DiscoverGamesModalProps> = ({ onClose }) => {
                             <img
                               src={bannerSrc}
                               alt={game.title}
-                              onError={() => setBrokenImages(prev => ({ ...prev, [game.id]: true }))}
+                              onError={(e) => {
+                                const target = e.target as HTMLImageElement;
+                                const steamAppId = (game.store === 'steam' || game.store === 'Steam') && game.store_app_id ? game.store_app_id : (/^\d+$/.test(game.id) ? game.id : null);
+                                const steamHeader = steamAppId ? `https://cdn.akamai.steamstatic.com/steam/apps/${steamAppId}/header.jpg` : null;
+                                if (steamHeader && target.src !== steamHeader) {
+                                  target.src = steamHeader;
+                                } else {
+                                  setBrokenImages(prev => ({ ...prev, [game.id]: true }));
+                                }
+                              }}
                               className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
                               loading="lazy"
                               decoding="async"
@@ -2059,6 +2080,14 @@ const DiscoverGamesModal: React.FC<DiscoverGamesModalProps> = ({ onClose }) => {
                   <img
                     src={selectedGame.banner_url || selectedGame.cover_url}
                     alt={selectedGame.title}
+                    onError={(e) => {
+                      const target = e.target as HTMLImageElement;
+                      const steamAppId = (selectedGame.store === 'steam' || selectedGame.store === 'Steam') && selectedGame.store_app_id ? selectedGame.store_app_id : (/^\d+$/.test(selectedGame.id) ? selectedGame.id : null);
+                      const steamHeader = steamAppId ? `https://cdn.akamai.steamstatic.com/steam/apps/${steamAppId}/header.jpg` : null;
+                      if (steamHeader && target.src !== steamHeader) {
+                        target.src = steamHeader;
+                      }
+                    }}
                     className="w-full h-full object-cover"
                   />
                 ) : (

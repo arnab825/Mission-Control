@@ -1,8 +1,20 @@
 {
-  "version": "3.4.3",
-  "release_date": "2026-08-27",
+  "version": "3.4.4",
+  "release_date": "2026-09-02",
   "update_check_url": "https://raw.githubusercontent.com/arnab825/Mission-Control/main/Gaming/backend/version.json",
   "changelog": [
+    {
+      "version": "3.4.4",
+      "date": "2026-09-02",
+      "title": "NodeSync Lock Fix, Post-Update Clerk Auth Stability & Image Fallbacks",
+      "highlights": [
+        "Resolved NodeSync background daemon _reg_lock AttributeError in LibraryNodeService",
+        "Enforced strict port 43221 retry mechanism to prevent post-update Clerk authentication breaks",
+        "Cleaned up local UI HTTP server and connections on updater launch and app exit",
+        "Upgraded Steam cover and banner endpoints to 100% guaranteed header assets",
+        "Implemented multi-tier image error fallbacks across desktop games library and website"
+      ]
+    },
     {
       "version": "3.4.3",
       "date": "2026-09-01",

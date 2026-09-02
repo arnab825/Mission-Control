@@ -1122,6 +1122,12 @@ export default function GamesTestedPage() {
                       <img
                         src={game.coverImage}
                         alt={game.name}
+                        onError={(e) => {
+                          const target = e.target as HTMLImageElement;
+                          if (target.src !== "/images/game-placeholder.png") {
+                            target.src = "/images/game-placeholder.png";
+                          }
+                        }}
                         className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-700 ease-out"
                       />
                       <div className="absolute inset-0 bg-linear-to-t from-[#0b0c10] via-black/20 to-black/40" />
@@ -1339,6 +1345,12 @@ export default function GamesTestedPage() {
                   <img
                     src={currentSlide.src}
                     alt={currentSlide.title}
+                    onError={(e) => {
+                      const target = e.target as HTMLImageElement;
+                      if (target.src !== "/images/game-placeholder.png") {
+                        target.src = "/images/game-placeholder.png";
+                      }
+                    }}
                     className="max-w-full max-h-[44vh] sm:max-h-[56vh] w-auto h-auto object-contain rounded-xl sm:rounded-2xl border border-white/20 shadow-[0_0_60px_rgba(0,0,0,0.9)]"
                   />
                 </motion.div>

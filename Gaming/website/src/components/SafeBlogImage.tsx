@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 
 interface SafeBlogImageProps {
   src?: string;
@@ -21,6 +21,10 @@ export default function SafeBlogImage({
       : "/images/game-placeholder.png";
 
   const [imgSrc, setImgSrc] = useState<string>(src || fallbackSrc);
+
+  useEffect(() => {
+    setImgSrc(src || fallbackSrc);
+  }, [src, fallbackSrc]);
 
   return (
     <img
