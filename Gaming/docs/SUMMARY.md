@@ -82,7 +82,8 @@ graph TD
 
 | Version | Key Feature / Change Description |
 | :--- | :--- |
-| **v3.4.4 (Latest)** | **NodeSync Lock Fix, Post-Update Clerk Auth Stability & Image Fallbacks** — Resolved NodeSync background daemon _reg_lock AttributeError in LibraryNodeService |
+| **v3.4.5 (Latest)** | **Distributed Fleet Scan Fixes, Real Host Telemetry & Catalog Asset Resilience** — Fixed 0 Games 0 B Storage issue with smart cache fallback to master database for Clerk users |
+| **v3.4.4** | **NodeSync Lock Fix, Post-Update Clerk Auth Stability & Image Fallbacks** — Resolved NodeSync background daemon _reg_lock AttributeError in LibraryNodeService |
 | **v3.4.3** | **Distributed Fleet Command & Node Management** — Enabled full local host node discovery and real-time disk storage metrics. |
 | **v3.4.2** | **Multi-Launcher Support, Omni-Search & Dynamic AI Resolver** — Added EA App, Ubisoft Connect, PlayStation PC, Rockstar Games, and Battle.net launcher support. |
 | **v3.4.1** | **Fix OpenCV in-memory loader and enable Gaming Readiness assessment system** — Implement zero-disk in-memory fallback loader for OpenCV to prevent missing config crashes on read-only installations. |

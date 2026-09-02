@@ -300,15 +300,36 @@ class LibraryNodeService:
                 },
             }
 
-            result = _post(
-                f"{self.cfg.server_url}/api/nodes/register",
-                payload,
-                self.cfg.token,  # may be empty on first registration
-                timeout=15,
-            )
+            candidate_urls = [
+                self.cfg.server_url,
+                "https://mission-control-wz0l.onrender.com",
+                "https://mission-control-server-okj7.onrender.com",
+            ]
+            seen_urls = set()
+            result = None
+            working_url = self.cfg.server_url
+
+            for s_url in candidate_urls:
+                if not s_url or s_url in seen_urls:
+                    continue
+                seen_urls.add(s_url)
+                clean_url = s_url.rstrip("/")
+                res = _post(
+                    f"{clean_url}/api/nodes/register",
+                    payload,
+                    self.cfg.token,
+                    timeout=15,
+                )
+                if res and res.get("_status_code") != 401 and not res.get("error"):
+                    result = res
+                    working_url = clean_url
+                    break
+
             if not result or result.get("_status_code") == 401:
                 logger.error("Registration failed — server unreachable or rejected request.")
                 return False
+
+            self.cfg.server_url = working_url
 
             # Persist assigned node_id and token
             self.cfg.node_id = result.get("nodeId") or result.get("node_id") or self.cfg.node_id
@@ -318,7 +339,7 @@ class LibraryNodeService:
                 self.cfg.save()
                 logger.info("Token received and saved.")
 
-            logger.info("Registered as %s (%s)", self.cfg.node_id, self.cfg.node_name)
+            logger.info("Registered as %s (%s) with server %s", self.cfg.node_id, self.cfg.node_name, working_url)
             return True
 
     # ── Heartbeat ─────────────────────────────────────────────────────────────
@@ -386,14 +407,22 @@ class LibraryNodeService:
         installations = []
         try:
             from system.game_scanner import GameScanner
-            scanner = GameScanner(config={})
+            scanner = GameScanner(config={}, user_id=self.cfg.clerk_id)
 
             # Override scan paths if configured
             if self.cfg.scan_paths:
                 scanner.config = {"additional_library_paths": self.cfg.scan_paths}
 
-            games = scanner.scan_all()
-            logger.info("GameScanner found %d games.", len(games))
+            games = []
+            try:
+                games = scanner.scan_all()
+            except Exception as exc:
+                logger.warning("GameScanner.scan_all encountered error: %s — falling back to cached games", exc)
+
+            if not games:
+                games = scanner.load_cached_games() or []
+
+            logger.info("GameScanner found/loaded %d games for node sync.", len(games))
 
             for game in games:
                 install_path = game.get("install_path", "")
@@ -401,7 +430,7 @@ class LibraryNodeService:
                 size_bytes = get_game_size(install_path, store)
 
                 installations.append({
-                    "title":        game.get("name", ""),
+                    "title":        game.get("name") or game.get("title", ""),
                     "store":        store,
                     "store_app_id": game.get("id") if game.get("id") != game.get("name") else None,
                     "install_path": install_path,
@@ -414,13 +443,13 @@ class LibraryNodeService:
                     "genres":       [game.get("genre")] if game.get("genre") else [],
                     "tags":         game.get("tags") or [],
                     "features":     game.get("features") or [],
-                    "cover_url":    game.get("local_banner") or None,
-                    "banner_url":   None,
+                    "cover_url":    game.get("local_banner") or game.get("cover_url") or None,
+                    "banner_url":   game.get("cover_url") or None,
                     "summary":      None,
                     "metadata":     {"source": store},
                 })
-        except ImportError:
-            logger.warning("GameScanner not available — scanning configured paths directly.")
+        except Exception as exc:
+            logger.warning("Game discovery encountered exception (%s) — scanning configured paths directly.", exc)
             for scan_path in self.cfg.scan_paths:
                 installations.extend(self._scan_directory(scan_path))
 
@@ -515,9 +544,16 @@ class LibraryNodeService:
         """Start the node service."""
         logger.info("Starting Library Node: %s", self.cfg.node_name)
 
-        if not self.register():
-            logger.error("Could not register with server at %s. Exiting.", self.cfg.server_url)
-            sys.exit(1)
+        # Attempt registration with multi-tier retry
+        registered = False
+        for attempt in range(3):
+            if self.register():
+                registered = True
+                break
+            time.sleep(2)
+
+        if not registered:
+            logger.warning("Initial server registration deferred — node running locally, will retry during heartbeat loop.")
 
         self._running = True
 

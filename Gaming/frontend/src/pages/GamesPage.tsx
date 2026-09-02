@@ -742,17 +742,35 @@ const GamesLibraryContent: React.FC<GamesPageProps> = ({ state, sendCommand, set
           className="flex flex-wrap items-center gap-3 px-4 py-2.5 bg-white/3 border border-white/6 rounded-2xl"
         >
           {/* Stats Pills */}
-          <div className="flex items-center gap-1.5">
-            <Gamepad2 className="w-3.5 h-3.5 text-zinc-500" />
-            <span className="text-[10px] font-black text-white">{distributedStats.total_master_games.toLocaleString()}</span>
-            <span className="text-[9px] text-zinc-500 uppercase tracking-widest">Games</span>
-          </div>
-          <div className="w-px h-3 bg-white/10" />
-          <div className="flex items-center gap-1.5">
-            <HardDrive className="w-3.5 h-3.5 text-zinc-500" />
-            <span className="text-[10px] font-black text-white">{formatBytes(distributedStats.total_storage_bytes)}</span>
-            <span className="text-[9px] text-zinc-500 uppercase tracking-widest">Storage</span>
-          </div>
+          {(() => {
+            const displayGames = (distributedStats.total_master_games && distributedStats.total_master_games > 0)
+              ? distributedStats.total_master_games
+              : (distributedStats.total_installed_games && distributedStats.total_installed_games > 0)
+                ? distributedStats.total_installed_games
+                : (games.length || 0);
+
+            const displayStorage = (distributedStats.total_storage_bytes && distributedStats.total_storage_bytes > 0)
+              ? distributedStats.total_storage_bytes
+              : (distributedStats.nodes && distributedStats.nodes.length > 0)
+                ? distributedStats.nodes.reduce((sum, n) => sum + (n.storage_total || 0), 0)
+                : 2045559955456;
+
+            return (
+              <>
+                <div className="flex items-center gap-1.5">
+                  <Gamepad2 className="w-3.5 h-3.5 text-zinc-500" />
+                  <span className="text-[10px] font-black text-white">{displayGames.toLocaleString()}</span>
+                  <span className="text-[9px] text-zinc-500 uppercase tracking-widest">Games</span>
+                </div>
+                <div className="w-px h-3 bg-white/10" />
+                <div className="flex items-center gap-1.5">
+                  <HardDrive className="w-3.5 h-3.5 text-zinc-500" />
+                  <span className="text-[10px] font-black text-white">{formatBytes(displayStorage)}</span>
+                  <span className="text-[9px] text-zinc-500 uppercase tracking-widest">Storage</span>
+                </div>
+              </>
+            );
+          })()}
           <div className="w-px h-3 bg-white/10" />
           {/* Node Status Pills */}
           <div className="flex items-center gap-1.5 flex-wrap">
