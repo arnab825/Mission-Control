@@ -430,10 +430,93 @@ export const BENCHMARK_PROFILES: Record<string, BenchmarkProfile> = {
         desc: "Fast-paced Infected encounter captured at 76 FPS with 65% GPU load (52W power draw, 6.26 GB VRAM allocation, 94% CPU threading)."
       }
     ]
+  },
+  firstlight: {
+    id: "firstlight",
+    name: "007 First Light",
+    publisher: "IO Interactive / MGM",
+    releaseYear: "2025 Edition",
+    genre: "Espionage Action / Tactical Stealth",
+    api: "DirectX 12 Ultimate",
+    score: 99,
+    status: "VERIFIED & OPTIMAL",
+    preset: "Ultra / DLSS 4",
+    overview: "Step into the early career of MI6 recruit James Bond in a cinematic origin story combining tactical stealth, high-speed Aston Martin pursuits, and lethal espionage operations across the Mediterranean.",
+    detailedOverview: {
+      story: "Step into the early clandestine career of James Bond as an ambitious MI6 recruit fighting to earn his 00 status. Under the rigorous tactical tutelage of senior instructor Monroe and elite operative driver Cressida, Bond is deployed on high-stakes covert operations across the Mediterranean. When a global intelligence network is compromised from within, Bond must navigate treacherous international espionage, covert syndicate alliances, and deadly enforcers to prevent a geopolitical catastrophe.",
+      gameplayLoop: "Execute high-stakes espionage operations combining social stealth, adaptive disguise protocols, tactical Q-branch gadget reconnaissance, visceral close-quarters combat, and high-speed Aston Martin DBS pursuit sequences across open Mediterranean environments.",
+      keyMechanics: [
+        { name: "Social Stealth & Disguise Protocol", desc: "Blend seamlessly into hostile high-society galas and covert security checkpoints utilizing adaptive disguises, deceptive dialogue options, and social engineering." },
+        { name: "Aston Martin DBS High-Pursuit Driving", desc: "Engage in high-speed tactical vehicular chases and drifts across Mediterranean coastal cliffside roads with pursuit counter-measures." },
+        { name: "Clandestine Reconnaissance & Q-Gadgets", desc: "Infiltrate fortified syndicates using covert surveillance devices, directional acoustic sensors, and non-lethal electronic warfare tools." },
+        { name: "Precision CQC & Lethal Ballistics", desc: "Fluidly transition between close-quarters judo disarms, human-shield manipulation, and suppressed Walther PPK headshot marksmanship." }
+      ]
+    },
+    testedSpecs: {
+      gpu: "NVIDIA GeForce RTX Series / GTX Series",
+      resolution: "1080p FHD (1920 x 1080)",
+      avgFps: "142 FPS",
+      vramUsed: "4.5 GB / 8.0 GB",
+      latency: "11.2 ms",
+      gpuLoad: "97%"
+    },
+    presets: {
+      rtx40: "Ultra Settings + DLSS 4 Quality + Frame Generation",
+      rtx30: "High Settings + DLSS Quality + Reflex Low Latency",
+      gtx: "Medium / High Settings + FSR 3 / XeSS (4.4 GB VRAM Opt)"
+    },
+    features: [
+      { name: "NVIDIA DLSS 4", desc: "Super Resolution & Ray Reconstruction", active: true },
+      { name: "DLSS Frame Generation", desc: "2x AI Frame Interpolation with Sub-Frame Latency", active: true },
+      { name: "NVIDIA Reflex", desc: "Ultra-Low Latency Input Pass-Through", active: true },
+      { name: "Full Ray Tracing", desc: "Real-Time Path Tracing & Screen-Space GI", active: true }
+    ],
+    screenshots: [
+      {
+        src: "/games/FirstLight_SS1.webp",
+        title: "Coastal Infiltration & Hardware Telemetry",
+        desc: "Coastal training facility traversal captured at 132 FPS (92 FPS 1% Low) with 4.4 GB VRAM allocation (96% GPU load, 79°C GPU temperature, 75% Good stability rating)."
+      },
+      {
+        src: "/games/FirstLight_SS2.webp",
+        title: "Aston Martin DBS Arrival & Dynamic Particle Shading",
+        desc: "High-speed drift entry captured at 131 FPS (90 FPS 1% Low) with 97% GPU load (72W GPU power draw, 4.4 GB VRAM footprint, 81°C GPU temp)."
+      },
+      {
+        src: "/games/FirstLight_SS3.webp",
+        title: "Tactical Briefing & Peak Framerate Telemetry",
+        desc: "Close dialogue sequence captured at peak 176 FPS (87 FPS 1% Low) under 97% GPU load (73W power draw, 4.5 GB VRAM allocation, 17.6 GB system RAM)."
+      },
+      {
+        src: "/games/FirstLight_SS4.webp",
+        title: "Aston Martin DBS Deployment & Volumetric Lighting",
+        desc: "Vehicular mission launch sequence captured at 128 FPS (94 FPS 1% Low) with 97% GPU load (76W power draw, 4.5 GB VRAM allocation, 42W CPU load)."
+      }
+    ],
+    storeRating: "4.9 ★★★★★",
+    dlssVersion: "DLSS 4"
   }
 };
 
 export const TESTED_GAMES_LIST: TestedGameSummary[] = [
+  {
+    id: "firstlight",
+    name: "007 First Light",
+    publisher: "IO Interactive / MGM",
+    genre: "Espionage Action / Tactical Stealth",
+    preset: "Ultra / DLSS 4",
+    keyTech: ["DLSS 4", "Frame Gen", "Reflex", "Ray Tracing"],
+    status: "VERIFIED BENCHMARK",
+    fps: "142 FPS",
+    vram: "4.5 GB / 8.0 GB",
+    gpuLoad: "97%",
+    latency: "11.2 ms",
+    api: "DirectX 12 Ultimate",
+    coverImage: "/games/FirstLight_SS1.webp",
+    gameplayGif: "/games/FirstLight_SS1.webp",
+    storeRating: "4.9 ★★★★★",
+    dlssVersion: "DLSS 4"
+  },
   {
     id: "spiderman2",
     name: "Marvel's Spider-Man 2",
