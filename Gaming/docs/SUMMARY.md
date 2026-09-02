@@ -82,7 +82,8 @@ graph TD
 
 | Version | Key Feature / Change Description |
 | :--- | :--- |
-| **v3.4.6 (Latest)** | **Library Features Restoration, Official Launcher Logos & Scanner Resilience** — Restored official vector launcher logos for EA App, Epic Games, Xbox, Battle.net, PlayStation, and Ubisoft Connect |
+| **v3.4.7 (Latest)** | **Fixed launcher icons and cleaned CSS warnings** — Fixed launcher icons and cleaned CSS warnings. |
+| **v3.4.6** | **Library Features Restoration, Official Launcher Logos & Scanner Resilience** — Restored official vector launcher logos for EA App, Epic Games, Xbox, Battle.net, PlayStation, and Ubisoft Connect |
 | **v3.4.5** | **Distributed Fleet Scan Fixes, Real Host Telemetry & Catalog Asset Resilience** — Fixed 0 Games 0 B Storage issue with smart cache fallback to master database for Clerk users |
 | **v3.4.4** | **NodeSync Lock Fix, Post-Update Clerk Auth Stability & Image Fallbacks** — Resolved NodeSync background daemon _reg_lock AttributeError in LibraryNodeService |
 | **v3.4.3** | **Distributed Fleet Command & Node Management** — Enabled full local host node discovery and real-time disk storage metrics. |
@@ -152,5 +153,5 @@ graph TD
 
 ---
 
-*Last Updated: 01/09/2026*
+*Last Updated: 02/09/2026*
 
