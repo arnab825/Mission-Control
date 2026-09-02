@@ -2,9 +2,6 @@ import React, { useState, useEffect, useMemo, useRef } from 'react';
 import { useAuth } from '@clerk/clerk-react';
 import Fuse from 'fuse.js';
 import AuthPage from './AuthPage';
-import NodeManagerModal from '../components/NodeManagerModal';
-import GameInstallationsModal, { type GameInstallation } from '../components/GameInstallationsModal';
-import DiscoverGamesModal from '../components/DiscoverGamesModal';
 import {
   Search,
   Play,
@@ -20,25 +17,11 @@ import {
   RefreshCcw,
   Filter,
   Terminal,
-  Shield,
-  Server,
-  HardDrive,
-  Globe
+  Database,
+  Shield
 } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import type { TelemetryState } from '../types/telemetry';
-
-// ── Distributed Library Server Hook & URL ────────────────────────────────────
-import { useDistributedStats, fetchWithFailover } from '../hooks/useDistributedStats';
-
-function formatBytes(bytes: number): string {
-  if (!bytes) return '0 B';
-  const tb = bytes / 1e12;
-  if (tb >= 0.1) return `${tb.toFixed(1)} TB`;
-  const gb = bytes / 1e9;
-  if (gb >= 1) return `${gb.toFixed(1)} GB`;
-  return `${(bytes / 1e6).toFixed(0)} MB`;
-}
 
 // ── Types ──────────────────────────────────────────────────────────────────────
 interface BackendGame {
@@ -53,7 +36,7 @@ interface BackendGame {
   genre?: string;
   type?: string;
   tags?: string[];
-  installations?: GameInstallation[];
+  source?: string;
 }
 
 export interface GamesPageProps {
@@ -63,39 +46,18 @@ export interface GamesPageProps {
   setMode?: (mode: 'library' | 'auth') => void;
 }
 
-// ── Platform normalization & color map ────────────────────────────────────────
-export function normalizePlatform(platform: string = ''): string {
-  const p = platform.trim().toLowerCase();
-  if (p === 'steam') return 'Steam';
-  if (p.includes('epic')) return 'Epic Games';
-  if (p === 'ea' || p.includes('ea ') || p.includes('ea desktop') || p.includes('ea app') || p === 'origin') return 'EA';
-  if (p.includes('ubisoft') || p === 'uplay') return 'Ubisoft Connect';
-  if (p.includes('xbox') || p.includes('game pass')) return 'Xbox';
-  if (p.includes('battle.net') || p.includes('battlenet') || p === 'bnet' || p === 'blizzard') return 'Battle.net';
-  if (p.includes('playstation') || p.includes('psn') || p === 'ps pc') return 'PlayStation';
-  if (p.includes('gog')) return 'GOG Galaxy';
-  if (p.includes('riot')) return 'Riot Games';
-  if (p.includes('rockstar')) return 'Rockstar Games';
-  if (p.includes('amazon')) return 'Amazon Games';
-  if (p.includes('itch')) return 'Itch.io';
-  if (p.includes('humble')) return 'Humble Bundle';
-  return platform || 'Local';
-}
-
+// ── Platform color map ─────────────────────────────────────────────────────────
 const PLATFORM_STYLES: Record<string, { bg: string; text: string; border: string }> = {
   'Steam': { bg: 'bg-[#1b2838]/80', text: 'text-[#66c0f4]', border: 'border-[#66c0f4]/40' },
   'Epic Games': { bg: 'bg-[#2a1a3e]/80', text: 'text-[#c084fc]', border: 'border-[#c084fc]/40' },
-  'EA': { bg: 'bg-[#3b1219]/80', text: 'text-[#ff4747]', border: 'border-[#ff4747]/40' },
-  'EA Desktop': { bg: 'bg-[#3b1219]/80', text: 'text-[#ff4747]', border: 'border-[#ff4747]/40' },
-  'EA App': { bg: 'bg-[#3b1219]/80', text: 'text-[#ff4747]', border: 'border-[#ff4747]/40' },
-  'Origin': { bg: 'bg-[#2e1d10]/80', text: 'text-[#ff7324]', border: 'border-[#ff7324]/40' },
+  'EA Desktop': { bg: 'bg-[#1a2a3e]/80', text: 'text-[#ff6602]', border: 'border-[#ff6602]/40' },
+  'Origin': { bg: 'bg-[#1a2a3e]/80', text: 'text-[#ff6602]', border: 'border-[#ff6602]/40' },
   'Ubisoft Connect': { bg: 'bg-[#1a2040]/80', text: 'text-[#38bdf8]', border: 'border-[#38bdf8]/40' },
   'Riot Games': { bg: 'bg-[#3e1a1a]/80', text: 'text-[#e84057]', border: 'border-[#e84057]/40' },
   'GOG Galaxy': { bg: 'bg-[#2a1a3e]/80', text: 'text-[#a855f7]', border: 'border-[#a855f7]/40' },
-  'Battle.net': { bg: 'bg-[#0f283d]/80', text: 'text-[#00aeff]', border: 'border-[#00aeff]/40' },
-  'Xbox': { bg: 'bg-[#102d15]/80', text: 'text-[#107c10]', border: 'border-[#107c10]/40' },
-  'PlayStation': { bg: 'bg-[#001e4a]/80', text: 'text-[#0070d1]', border: 'border-[#0070d1]/40' },
-  'Rockstar Games': { bg: 'bg-[#2e1a1a]/80', text: 'text-[#fcaf17]', border: 'border-[#fcaf17]/40' },
+  'Battle.net': { bg: 'bg-[#1a2a40]/80', text: 'text-[#0cf]', border: 'border-[#0cf]/40' },
+  'Xbox': { bg: 'bg-[#1a2e1a]/80', text: 'text-[#4ade80]', border: 'border-[#4ade80]/40' },
+  'Rockstar Games': { bg: 'bg-[#2e1a1a]/80', text: 'text-[#f87171]', border: 'border-[#f87171]/40' },
   'Amazon Games': { bg: 'bg-[#2e2a1a]/80', text: 'text-[#f59e0b]', border: 'border-[#f59e0b]/40' },
   'Itch.io': { bg: 'bg-[#2e1a1a]/80', text: 'text-[#fa5c5c]', border: 'border-[#fa5c5c]/40' },
   'Humble Bundle': { bg: 'bg-[#2e2a1a]/80', text: 'text-[#fbbf24]', border: 'border-[#fbbf24]/40' },
@@ -103,99 +65,95 @@ const PLATFORM_STYLES: Record<string, { bg: string; text: string; border: string
 };
 
 function getPlatformStyle(platform: string) {
-  const norm = normalizePlatform(platform);
-  return PLATFORM_STYLES[platform] || PLATFORM_STYLES[norm] || PLATFORM_STYLES['Local'];
+  return PLATFORM_STYLES[platform] || PLATFORM_STYLES['Local'];
 }
 
 function getPlatformLabel(platform: string): string {
   const labels: Record<string, string> = {
     'Epic Games': 'EPIC',
-    'EA': 'EA',
     'EA Desktop': 'EA',
-    'EA App': 'EA',
     'Ubisoft Connect': 'UBI',
     'GOG Galaxy': 'GOG',
     'Battle.net': 'BNET',
-    'Xbox': 'XBOX',
-    'PlayStation': 'PSN',
     'Rockstar Games': 'ROCKSTAR',
     'Amazon Games': 'AMAZON',
     'Humble Bundle': 'HUMBLE',
     'Itch.io': 'ITCH',
     'Riot Games': 'RIOT',
   };
-  return labels[platform] || labels[normalizePlatform(platform)] || platform.toUpperCase();
+  return labels[platform] || platform.toUpperCase();
 }
 
 // ── Game Card ──────────────────────────────────────────────────────────────────
 
-const GameCard: React.FC<{
-  game: BackendGame;
-  sendCommand: (type: string, payload?: any) => void;
-  isRtxGpu?: boolean;
-  isNvidiaGpu?: boolean;
-  onOpenInstallations?: (modalData: { title: string; coverUrl?: string; primaryGenre?: string; installations: GameInstallation[] }) => void;
-}> = ({ game, sendCommand, onOpenInstallations }) => {
-  const normPlatform = normalizePlatform(game.platform);
-  // Robust launcher detection: Check type, genre, and platform name
-  const isLauncher =
-    game.type?.toUpperCase() === 'LAUNCHER' ||
-    game.genre?.toUpperCase() === 'PLATFORM' ||
-    (['Steam', 'Epic Games', 'Xbox', 'EA Desktop', 'EA App', 'Origin', 'EA', 'Ubisoft Connect', 'Battle.net', 'PlayStation'].includes(game.platform) && game.name.toLowerCase().includes('app')) ||
-    game.name.toLowerCase() === game.platform.toLowerCase() ||
-    game.name.toLowerCase() === normPlatform.toLowerCase();
+const GameCard: React.FC<{ game: BackendGame; sendCommand: (type: string, payload?: any) => void; isRtxGpu?: boolean; isNvidiaGpu?: boolean }> = ({ game, sendCommand }) => {
+  const seed = encodeURIComponent(game.name);
 
-  const inlineSvgPlaceholder = `data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" width="600" height="338" viewBox="0 0 600 338"><rect width="600" height="338" fill="%230d0d12"/><path d="M0 0l600 338M600 0L0 338" stroke="%23ffffff" stroke-width="1" stroke-opacity="0.04"/><circle cx="300" cy="169" r="48" fill="%231a1a24"/><text x="50%" y="50%" dominant-baseline="middle" text-anchor="middle" fill="%2371717a" font-family="sans-serif" font-size="13" font-weight="700" letter-spacing="2">${encodeURIComponent((game.name || 'GAME').slice(0, 26).toUpperCase())}</text></svg>`;
-  let coverUrl = inlineSvgPlaceholder;
+  // High-fidelity cover art strategy: Local Banner > Steam Header > Local Icon > Generative Placeholder
+  let coverUrl = `https://api.dicebear.com/7.x/shapes/svg?seed=${seed}&backgroundColor=0a0a0a&shape1Color=1a1a2e&shape2Color=16213e&shape3Color=0f3460`;
 
-  const steamAppId = (game.platform === 'Steam' && /^\d+$/.test(game.id))
-    ? game.id
-    : ((game.installations as any[])?.find((i: any) => (i.store === 'Steam' || i.store === 'steam') && /^\d+$/.test(i.storeAppId || i.store_app_id))?.storeAppId || null);
-
-  // Platform-specific launcher banners using authentic high-resolution vector SVGs
+  // Modern, high-resolution official launcher emblems & brand assets (bundled locally in public/launchers)
   const LAUNCHER_BANNERS: Record<string, string> = {
-    'Steam': 'data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHJvbGU9ImltZyIgdmlld0JveD0iMCAwIDI0IDI0IiBmaWxsPSIjNjZjMGY0Ij48dGl0bGU+U3RlYW08L3RpdGxlPjxwYXRoIGQ9Ik0xMS45NzkgMEM1LjY3OCAwIC41MTEgNC44Ni4wMjIgMTEuMDM3bDYuNDMyIDIuNjU4Yy41NDUtLjM3MSAxLjIwMy0uNTkgMS45MTItLjU5LjA2MyAwIC4xMjUuMDA0LjE4OC4wMDhsMi44NjEtNC4xNDJWOC45MWMwLTIuNDkgMi4wMjgtNC41MjQgNC41MjQtNC41MjQgMi40OTQgMCA0LjUyNCAyLjAzMSA0LjUyNCA0LjUyN3MtMi4wMyA0LjUyNS00LjUyNCA0LjUyNWgtLjEwNWwtNC4wNzYgMi45MTFjMCAuMDUyLjAwNS4xMDUuMDA1LjE1OSAwIDEuODc1LTEuNTE1IDMuMzk2LTMuMzkgMy4zOTYtMS42MzUgMC0zLjAxNi0xLjE3My0zLjMzMS0yLjcyN0wuNDM2IDE1LjI3QzEuODYyIDIwLjMwNyA2LjQ4NiAyNCAxMS45NzkgMjRjNi42MjcgMCAxMi01LjM3MyAxMi0xMlMxOC42MDYgMCAxMS45NzkgMHpNNy41NTggMTcuNzY5YzAtLjAyNC4wMDMtLjA0Ny4wMDUtLjA3MWwxLjU1NC42NDJjLS4wMzUuNDM4LS4yMS44NC0uNDk4IDEuMTQ0LS41OTMuNjI2LTEuNTgzLjY1NS0yLjIxMy4wNjQtLjYyNy0uNTkxLS42NTUtMS41OC0uMDYzLTIuMjA5LjMyNC0uMzQzLjc2LS41MTQgMS4yMTUtLjQ5NHYuOTI0em04LjM4NC01Ljg4MmMtMS42NTggMC0zLjAwMy0xLjM0NS0zLjAwMy0zLjAwNCAwLTEuNjU4IDEuMzQ1LTMuMDAzIDMuMDAzLTMuMDAzIDEuNjU5IDAgMy4wMDMgMS4zNDUgMy4wMDMgMy4wMDMgMCAxLjY1OS0xLjM0NCAzLjAwNC0zLjAwMyAzLjAwNHptLTIuMjUzLTMuMDA0YzAgMS4yNDQgMS4wMDkgMi4yNTMgMi4yNTMgMi4yNTMgMS4yNDUgMCAyLjI1My0xLjAwOSAyLjI1My0yLjI1MyAwLTEuMjQ1LTEuMDA4LTIuMjUzLTIuMjUzLTIuMjUzLTEuMjQ0IDAtMi4yNTMgMS4wMDgtMi4yNTMgMi4yNTN6Ii8+PC9zdmc+',
-    'Epic Games': 'data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCAyMDAgMjQwIj48cGF0aCBkPSJNMTAwIDIgTDEyIDI2IFYxMzUgQzEyIDE4NiAxMDAgMjM4IDEwMCAyMzggQzEwMCAyMzggMTg4IDE4NiAxODggMTM1IFYyNiBaIiBmaWxsPSIjMWUxZTI0IiBzdHJva2U9IiNmZmZmZmYiIHN0cm9rZS13aWR0aD0iNSIvPjx0ZXh0IHg9IjEwMCIgeT0iMTEwIiBmaWxsPSIjZmZmZmZmIiBmb250LWZhbWlseT0iJ0ltcGFjdCcsICdBcmlhbCBCbGFjaycsIHNhbnMtc2VyaWYiIGZvbnQtd2VpZ2h0PSI5MDAiIGZvbnQtc2l6ZT0iNTAiIHRleHQtYW5jaG9yPSJtaWRkbGUiIGxldHRlci1zcGFjaW5nPSIyIj5FUElDPC90ZXh0PjxyZWN0IHg9IjMyIiB5PSIxMzYiIHdpZHRoPSIxMzYiIGhlaWdodD0iMzYiIHJ4PSI1IiBmaWxsPSIjZmZmZmZmIi8+PHRleHQgeD0iMTAwIiB5PSIxNjEiIGZpbGw9IiMxMjEyMTIiIGZvbnQtZmFtaWx5PSJBcmlhbCwgSGVsdmV0aWNhLCBzYW5zLXNlcmlmIiBmb250LXdlaWdodD0iOTAwIiBmb250LXNpemU9IjIwIiB0ZXh0LWFuY2hvcj0ibWlkZGxlIiBsZXR0ZXItc3BhY2luZz0iNCI+R0FNRVM8L3RleHQ+PC9zdmc+',
-    'Epic': 'data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCAyMDAgMjQwIj48cGF0aCBkPSJNMTAwIDIgTDEyIDI2IFYxMzUgQzEyIDE4NiAxMDAgMjM4IDEwMCAyMzggQzEwMCAyMzggMTg4IDE4NiAxODggMTM1IFYyNiBaIiBmaWxsPSIjMWUxZTI0IiBzdHJva2U9IiNmZmZmZmYiIHN0cm9rZS13aWR0aD0iNSIvPjx0ZXh0IHg9IjEwMCIgeT0iMTEwIiBmaWxsPSIjZmZmZmZmIiBmb250LWZhbWlseT0iJ0ltcGFjdCcsICdBcmlhbCBCbGFjaycsIHNhbnMtc2VyaWYiIGZvbnQtd2VpZ2h0PSI5MDAiIGZvbnQtc2l6ZT0iNTAiIHRleHQtYW5jaG9yPSJtaWRkbGUiIGxldHRlci1zcGFjaW5nPSIyIj5FUElDPC90ZXh0PjxyZWN0IHg9IjMyIiB5PSIxMzYiIHdpZHRoPSIxMzYiIGhlaWdodD0iMzYiIHJ4PSI1IiBmaWxsPSIjZmZmZmZmIi8+PHRleHQgeD0iMTAwIiB5PSIxNjEiIGZpbGw9IiMxMjEyMTIiIGZvbnQtZmFtaWx5PSJBcmlhbCwgSGVsdmV0aWNhLCBzYW5zLXNlcmlmIiBmb250LXdlaWdodD0iOTAwIiBmb250LXNpemU9IjIwIiB0ZXh0LWFuY2hvcj0ibWlkZGxlIiBsZXR0ZXItc3BhY2luZz0iNCI+R0FNRVM8L3RleHQ+PC9zdmc+',
-    'EA': 'data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHJvbGU9ImltZyIgdmlld0JveD0iMCAwIDI0IDI0IiBmaWxsPSIjRkY0NzQ3Ij48dGl0bGU+RWxlY3Ryb25pYyBBcnRzPC90aXRsZT48cGF0aCBkPSJNMTYuNjM1IDYuMTYybC01LjkyOCA5LjM3N0g0LjI0bDEuNTA4LTIuM2g0LjAyNGwxLjQ3NC0yLjMzNUgyLjI2NEwuNzkgMTMuMjM5aDIuMTU2TDAgMTcuODRoMTIuMDcybDQuNTYzLTcuMjU5IDEuNjUyIDIuNjZoLTEuNDAxbC0xLjQ3MyAyLjI5OWg0LjM0N2wxLjQ3MyAyLjNIMjR6bS0xMS40NjEuMTA3TDMuNyA4LjYwNGw5LjUyLS4wMzUgMS40NzQtMi4zeiIvPjwvc3ZnPg==',
-    'EA Desktop': 'data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHJvbGU9ImltZyIgdmlld0JveD0iMCAwIDI0IDI0IiBmaWxsPSIjRkY0NzQ3Ij48dGl0bGU+RWxlY3Ryb25pYyBBcnRzPC90aXRsZT48cGF0aCBkPSJNMTYuNjM1IDYuMTYybC01LjkyOCA5LjM3N0g0LjI0bDEuNTA4LTIuM2g0LjAyNGwxLjQ3NC0yLjMzNUgyLjI2NEwuNzkgMTMuMjM5aDIuMTU2TDAgMTcuODRoMTIuMDcybDQuNTYzLTcuMjU5IDEuNjUyIDIuNjZoLTEuNDAxbC0xLjQ3MyAyLjI5OWg0LjM0N2wxLjQ3MyAyLjNIMjR6bS0xMS40NjEuMTA3TDMuNyA4LjYwNGw5LjUyLS4wMzUgMS40NzQtMi4zeiIvPjwvc3ZnPg==',
-    'EA App': 'data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHJvbGU9ImltZyIgdmlld0JveD0iMCAwIDI0IDI0IiBmaWxsPSIjRkY0NzQ3Ij48dGl0bGU+RWxlY3Ryb25pYyBBcnRzPC90aXRsZT48cGF0aCBkPSJNMTYuNjM1IDYuMTYybC01LjkyOCA5LjM3N0g0LjI0bDEuNTA4LTIuM2g0LjAyNGwxLjQ3NC0yLjMzNUgyLjI2NEwuNzkgMTMuMjM5aDIuMTU2TDAgMTcuODRoMTIuMDcybDQuNTYzLTcuMjU5IDEuNjUyIDIuNjZoLTEuNDAxbC0xLjQ3MyAyLjI5OWg0LjM0N2wxLjQ3MyAyLjNIMjR6bS0xMS40NjEuMTA3TDMuNyA4LjYwNGw5LjUyLS4wMzUgMS40NzQtMi4zeiIvPjwvc3ZnPg==',
-    'Origin': 'data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHJvbGU9ImltZyIgdmlld0JveD0iMCAwIDI0IDI0IiBmaWxsPSIjRkY0NzQ3Ij48dGl0bGU+RWxlY3Ryb25pYyBBcnRzPC90aXRsZT48cGF0aCBkPSJNMTYuNjM1IDYuMTYybC01LjkyOCA5LjM3N0g0LjI0bDEuNTA4LTIuM2g0LjAyNGwxLjQ3NC0yLjMzNUgyLjI2NEwuNzkgMTMuMjM5aDIuMTU2TDAgMTcuODRoMTIuMDcybDQuNTYzLTcuMjU5IDEuNjUyIDIuNjZoLTEuNDAxbC0xLjQ3MyAyLjI5OWg0LjM0N2wxLjQ3MyAyLjNIMjR6bS0xMS40NjEuMTA3TDMuNyA4LjYwNGw5LjUyLS4wMzUgMS40NzQtMi4zeiIvPjwvc3ZnPg==',
-    'Xbox': 'data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHJvbGU9ImltZyIgdmlld0JveD0iMCAwIDI0IDI0IiBmaWxsPSIjMTA3QzEwIj48dGl0bGU+WGJveDwvdGl0bGU+PHBhdGggZD0iTTEyIDBDNS4zNzMgMCAwIDUuMzczIDAgMTJzNS4zNzMgMTIgMTIgMTIgMTItNS4zNzMgMTItMTJTMTguNjI3IDAgMTIgMHptLTEuMDc3IDIzLjgyYy0xLjgwOC0uMTczLTMuNjM4LS44MjItNS4yMDktMS44NDgtMS4zMTctLjg2LTEuNjE0LTEuMjEzLTEuNjE0LTEuOTE4IDAtMS40MTYgMS41NTctMy44OTcgNC4yMjItNi43MjUgMS41MTMtMS42MDYgMy42Mi0zLjQ4OCAzLjg0OC0zLjQzOC40NDMuMDk5IDMuOTg2IDMuNTU1IDUuMzEzIDUuMTgyIDIuMDk3IDIuNTcyIDMuMDYxIDQuNjc4IDIuNTcxIDUuNjE3LS4zNzIuNzE0LTIuNjgzIDIuMTA5LTQuMzggMi42NDUtMi40OS40NDItMy4yMzYuNjI5LTQuNzUxLjQ4NXptLTguNTk5LTUuMjFjLTEuMDk1LTEuNjgtMS42NDgtMy4zMzMtMS45MTUtNS43MjQtLjA4OC0uNzktLjA1Ny0xLjI0MS4yLTIuODYyLjMyLTIuMDE4IDEuNDctNC4zNTUgMi44NTMtNS43OTMuNTg5LS42MTEuNjQxLS42MjcgMS4zNTktLjM4NS44Ny4yOTUgMS44IC45MzcgMy4yNDMgMi4yNDJsLjg0My43NjItLjQ2MS41NjVjLTIuMTM1IDIuNjItNC4zODggNi4zMzgtNS4yMzYgOC42MzctLjQ2MSAxLjI1LS42NDYgMi41MDQtLjQ0NyAzLjAyNi4xMzQuMzUzLjAxMS4yMjItLjQzOS0uNDY4em0xOS4yMTUuMjg2Yy4xMDgtLjUyOC0uMDI5LTEuNDk3LS4zNDktMi40NzUtLjY5NC0yLjExOC0zLjAxNS02LjA1Ny01LjE0Ni04LjczNmwtLjY3MS0uODQzLjcyNi0uNjY2Yy45NDctLjg3IDEuNjA1LTEuMzkxIDIuMzE2LTEuODM0LjU2LS4zNDkgMS4zNi0uNjU4IDEuNzA1LS42NTguMjEyIDAgLjk1OS43NzcgMS41NjIgMS42MjMuOTM0IDEuMzA5IDEuNjIgMi44OTkgMS45NjggNC41NTIuMjI1IDEuMDY5LjI0NCAzLjM1NS4wMzYgNC40MjEtLjE3Mi44NzUtLjUzMiAyLjAwOS0uODgxIDIuNzc4LS4yNjUuNTc2LS45MTYgMS42OTQtMS4yMDUgMi4wNi0uMTQ3LjE4Ny0uMTQ3LjE4Ny0uMDY1LS4yMTd6TTExLjAyOSAzLjEzOEMxMC4wNDUgMi42MzkgOC41MjggMi4xMDMgNy42OSAxLjk1OWMtLjI5My0uMDUtLjc5NC0uMDc5LTEuMTEyLS4wNjMtLjY5Mi4wMzUtLjY2MS0uMDAxLjQ0OC0uNTI1LjkyMi0uNDM2IDEuNjkxLS42OTIgMi43MzUtLjkxMSAzLjE3NS0uMjQ2IDUuMzgyLS4yNDkgNi41MzgtLjAwNSAxLjI0OC4yNjMgMi43MTcuODEgMy41NDUgMS4zMmwuMjQ3LjE1MS0uNTY0LS4wMjhjLTIuNDc0LS4yOTgtNC4xMDguMTU2LTUuODY0IDEuMDExLS41My4yNTgtLjk5LjQ2NC0xLjAyNC40NTgtLjAzNC0uMDA3LS40NjUtLjIxNy0uOTYtLjQ2OHoiLz48L3N2Zz4=',
-    'Xbox App': 'data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHJvbGU9ImltZyIgdmlld0JveD0iMCAwIDI0IDI0IiBmaWxsPSIjMTA3QzEwIj48dGl0bGU+WGJveDwvdGl0bGU+PHBhdGggZD0iTTEyIDBDNS4zNzMgMCAwIDUuMzczIDAgMTJzNS4zNzMgMTIgMTIgMTIgMTItNS4zNzMgMTItMTJTMTguNjI3IDAgMTIgMHptLTEuMDc3IDIzLjgyYy0xLjgwOC0uMTczLTMuNjM4LS44MjItNS4yMDktMS44NDgtMS4zMTctLjg2LTEuNjE0LTEuMjEzLTEuNjE0LTEuOTE4IDAtMS40MTYgMS41NTctMy44OTcgNC4yMjItNi43MjUgMS41MTMtMS42MDYgMy42Mi0zLjQ4OCAzLjg0OC0zLjQzOC40NDMuMDk5IDMuOTg2IDMuNTU1IDUuMzEzIDUuMTgyIDIuMDk3IDIuNTcyIDMuMDYxIDQuNjc4IDIuNTcxIDUuNjE3LS4zNzIuNzE0LTIuNjgzIDIuMTA5LTQuMzggMi42NDUtMi40OS40NDItMy4yMzYuNjI5LTQuNzUxLjQ4NXptLTguNTk5LTUuMjFjLTEuMDk1LTEuNjgtMS42NDgtMy4zMzMtMS45MTUtNS43MjQtLjA4OC0uNzktLjA1Ny0xLjI0MS4yLTIuODYyLjMyLTIuMDE4IDEuNDctNC4zNTUgMi44NTMtNS43OTMuNTg5LS42MTEuNjQxLS42MjcgMS4zNTktLjM4NS44Ny4yOTUgMS44IC45MzcgMy4yNDMgMi4yNDJsLjg0My43NjItLjQ2MS41NjVjLTIuMTM1IDIuNjItNC4zODggNi4zMzgtNS4yMzYgOC42MzctLjQ2MSAxLjI1LS42NDYgMi41MDQtLjQ0NyAzLjAyNi4xMzQuMzUzLjAxMS4yMjItLjQzOS0uNDY4em0xOS4yMTUuMjg2Yy4xMDgtLjUyOC0uMDI5LTEuNDk3LS4zNDktMi40NzUtLjY5NC0yLjExOC0zLjAxNS02LjA1Ny01LjE0Ni04LjczNmwtLjY3MS0uODQzLjcyNi0uNjY2Yy45NDctLjg3IDEuNjA1LTEuMzkxIDIuMzE2LTEuODM0LjU2LS4zNDkgMS4zNi0uNjU4IDEuNzA1LS42NTguMjEyIDAgLjk1OS43NzcgMS41NjIgMS42MjMuOTM0IDEuMzA5IDEuNjIgMi44OTkgMS45NjggNC41NTIuMjI1IDEuMDY5LjI0NCAzLjM1NS4wMzYgNC40MjEtLjE3Mi44NzUtLjUzMiAyLjAwOS0uODgxIDIuNzc4LS4yNjUuNTc2LS45MTYgMS42OTQtMS4yMDUgMi4wNi0uMTQ3LjE4Ny0uMTQ3LjE4Ny0uMDY1LS4yMTd6TTExLjAyOSAzLjEzOEMxMC4wNDUgMi42MzkgOC41MjggMi4xMDMgNy42OSAxLjk1OWMtLjI5My0uMDUtLjc5NC0uMDc5LTEuMTEyLS4wNjMtLjY5Mi4wMzUtLjY2MS0uMDAxLjQ0OC0uNTI1LjkyMi0uNDM2IDEuNjkxLS42OTIgMi43MzUtLjkxMSAzLjE3NS0uMjQ2IDUuMzgyLS4yNDkgNi41MzgtLjAwNSAxLjI0OC4yNjMgMi43MTcuODEgMy41NDUgMS4zMmwuMjQ3LjE1MS0uNTY0LS4wMjhjLTIuNDc0LS4yOTgtNC4xMDguMTU2LTUuODY0IDEuMDExLS41My4yNTgtLjk5LjQ2NC0xLjAyNC40NTgtLjAzNC0uMDA3LS40NjUtLjIxNy0uOTYtLjQ2OHoiLz48L3N2Zz4=',
-    'Battle.net': 'data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHJvbGU9ImltZyIgdmlld0JveD0iMCAwIDI0IDI0IiBmaWxsPSIjMDBhZWZmIj48dGl0bGU+QmF0dGxlLm5ldDwvdGl0bGU+PHBhdGggZD0iTTE4Ljk0IDguMjk2QzE1LjkgNi44OTIgMTEuNTM0IDYgNy40MjYgNi4zMzJjLjIwNi0xLjM2LjcxNC0yLjMwOCAxLjU0OC0yLjUwOCAxLjE0OC0uMjc1IDIuNC40OCAzLjU5NCAxLjg1NC43ODIuMTAyIDEuNzEuMjggMi4zNTUuNDI5QzEyLjc0NyAyLjAxMyA5LjgyOC0uMjgyIDcuNjA3LjU2NWMtMS42ODguNjQ0LTIuNTUzIDIuOTctMi40NDggNi4wOTQtMi4yLjQ2OC0zLjkxNSAxLjMtNS4wMTMgMi40OTUtLjA1Ni4wNjUtLjE4MS4yMjctLjEzNy4zMDUuMDM0LjA1OC4xNDYtLjAwOC4xOTQtLjA0IDEuMjc0LS44OSAyLjkwNC0xLjM3MyA1LjAyNy0xLjY3Ni4zMDMgMy4zMzMgMS43MTMgNy41NiA0LjA1NSAxMC45NTItMS4yOC41MDItMi4zNTYuNTM2LTIuOTQ2LS4wODctLjgxMi0uODU2LS43ODQtMi4zMTgtLjE5LTQuMDRhMjYuNzY0IDI2Ljc2NCAwIDAgMS0uODA3LTIuMjU0Yy0yLjQ1OSAzLjkzNC0yLjk4NiA3LjYxLTEuMTQzIDkuMTEgMS40MDIgMS4xNCAzLjg0Ny43MjUgNi41MDItLjkyNiAxLjUwNSAxLjY3MiAzLjA4MyAyLjc0IDQuNjY3IDMuMDk0LjA4NC4wMTUuMjg3LjA0My4zMzItLjAzNC4wMzQtLjA2LS4wOC0uMTI0LS4xMzEtLjE0OS0xLjQwOC0uNjU3LTIuNjQtMS44MjgtMy45NjQtMy45MTUgMi43MzUtMS45MjkgNS42OTEtNS4yNjMgNy40NTctOC45ODggMS4wNzYuODYgMS42NCAxLjc3MyAxLjM5OCAyLjU5NS0uMzM2IDEuMTMxLTEuNjE1IDEuODQtMy40MDMgMi4xODVhMjcuNjk3IDI3LjY5NyAwIDAgMS0xLjU0OCAxLjgyNmM0LjYzNC4xNiA4LjA4LTEuMjIgOC40NTgtMy41NjUuMjg2LTEuNzg2LTEuMjk1LTMuNjk2LTQuMDUzLTUuMTcuNjk2LTIuMTM5LjgzMi00LjA0LjM0Ni01LjU4OC0uMDI5LS4wOC0uMTA2LS4yNy0uMTk2LS4yNy0uMDY4IDAtLjA2Ny4xMy0uMDYzLjE4Ny4xMzUgMS41NDctLjI2MyAzLjItMS4wNjIgNS4xOXptLTguNTMzIDkuODY5Yy0xLjk2LTMuMTQ1LTMuMDktNi44NDktMy4wODItMTAuNTk0IDMuNzAyLS4xMjQgNy40NzQuNzQ4IDEwLjcxNCAyLjYyNy0xLjc0MyAzLjI2OS00LjM4NSA2LjEtNy42MzMgNy45NjZ6Ii8+PC9zdmc+',
-    'PlayStation': 'data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHJvbGU9ImltZyIgdmlld0JveD0iMCAwIDI0IDI0IiBmaWxsPSIjMDA3MGQxIj48dGl0bGU+UGxheVN0YXRpb248L3RpdGxlPjxwYXRoIGQ9Ik04LjkwNSAxOC4wNjd2LTMuNzljMS4wNzkuNTIgMi4xNTguNzQgMy4yMzguNzQgMS4zNDQgMCAyLjA1LS40NCAyLjA1LTEuMjggMC0uODItLjU3LTEuMjItMS45Mi0xLjY2LTIuMTgtLjc0LTMuNjYtMS41Ny0zLjY2LTMuODMgMC0yLjI4IDEuNzYtMy44IDQuMzgtMy44IDEuNDkgMCAyLjc2LjM1IDMuOC45OXYzLjYzYy0xLjA3LS41OC0yLjE3LS44Mi0zLjIzLS44Mi0xLjIxIDAtMS44LjQ0LTEuOCAxLjE1IDAgLjc2LjU5IDEuMTUgMS45NSAxLjYyIDIuMzcuODQgMy42MyAxLjc3IDMuNjMgMy45MyAwIDIuNDUtMS44MyAzLjg3LTQuNTcgMy44Ny0xLjU5IDAtMi45OS0uMzktMy44Ni0xLjE1ek0yMy41IDE3LjVjLTEuNCAxLjA1LTMuMzcgMS44My01LjgzIDIuMjlsMS4xLTMuNjNjMS43OC0uMzQgMy4xOS0uODggNC4xNS0xLjU3LjU4LS40Mi43OS0uODQuNjItMS4xNS0uMjItLjM4LS44OS0uNTItMS45My0uNDFsLjktMy4wOGMxLjkyLS4xNSAzLjE1LjIyIDMuNjUuOTguNTQuODMuMTggMS44NC0uNzEgMi41My0uNzguNjEtMS43NCAxLjE0LTIuODUgMS41OHpNLjUgMTcuNWMuODkuNjkgMS44NSAxLjIyIDIuODUgMS41OC45Ni42OSAyLjM3IDEuMjMgNC4xNSAxLjU3bC0xLjEtMy42M2MtMi40Ni0uNDYtNC40My0xLjI0LTUuODMtMi4yOS0uODktLjY5LTEuMjUtMS43LS43MS0yLjUzLjUtLjc2IDEuNzMtMS4xMyAzLjY1LS45OGwtLjkgMy4wOGMtMS4wNC0uMTEtMS43MS4wMy0xLjkzLjQxLS4xNy4zMS4wNC43My42MiAxLjE1eiIvPjwvc3ZnPg==',
-    'Ubisoft Connect': 'data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHJvbGU9ImltZyIgdmlld0JveD0iMCAwIDI0IDI0IiBmaWxsPSIjMDBBNkZGIj48dGl0bGU+VWJpc29mdDwvdGl0bGU+PHBhdGggZD0iTTIzLjU2MSAxMS45ODhDMjMuMzAxLS4zMDQgNi45NTQtNC44OS42NTYgNi42MzRjLjI4Mi4yMDYuNjYxLjQ3Ny45NDMuNjcyYTExLjc0NyAxMS43NDcgMCAwMC0uOTc2IDMuMDY3IDExLjg4NSAxMS44ODUgMCAwMC0uMTg0IDIuMDcxQy40MzkgMTguODE4IDUuNjIxIDI0IDEyLjAwNSAyNGM2LjM4NSAwIDExLjU1Ni01LjE3IDExLjU1Ni0xMS41NTZ2LS40NTV6bS0yMC4yNyAyLjA2Yy0uMTUyIDEuMjQ2LS4wNTQgMS42MzYtLjA1NCAxLjc4OGwtLjI4Mi4wOThjLS4xMDgtLjIwNi0uMzctLjkzMi0uNDg4LTEuOTA4QzIuMTYzIDEwLjMwOCA0LjcgNi45NiA4LjU3IDYuMzNjMy41NDQtLjUyIDYuOTM3IDEuNjggNy43MjggNC43NThsLS4yODIuMDk4Yy0uMDg3LS4wODctLjIyOC0uMzM2LS43Ny0uODc4LTQuMjgxLTQuMjgxLTExLjAwMi0yLjMyLTExLjk1NiAzLjc0em0xMS4wMDIgMi4wODFhMy4xNDUgMy4xNDUgMCAwMS0yLjU5IDEuMzU1IDMuMTUgMy4xNSAwIDAxLTMuMTU1LTMuMTU1IDMuMTU5IDMuMTU5IDAgMDEyLjkyNy0zLjE0NGMxLjAxOC0uMDQzIDEuOTcyLjUxIDIuNDE2IDEuMzk4YTIuNTggMi41OCAwIDAxLS40NTUgMi45NWMuMjkzLjIwNS41NzUuNC44NTYuNTk1em02LjU4LjEyYy0xLjY2OSAzLjc4Mi01LjEwNiA1Ljc2Ni04Ljc3IDUuNzEyLTcuMDM0LS4zNDctOS4wODMtOC40NjYtNC4zOC0xMS4zOTNsLjIwNy4yMDZjLS4wNzYuMTA4LS4zNTguMzI1LS43OTEgMS4xODItLjUxIDEuMDQxLS42NzIgMi4wODEtLjYwNyAyLjczMi4zNjkgNS42NyA4LjMxNCA2LjgzIDExLjA0NSAxLjIxNEMyMS4wNTcgOC4yMTcgMTEuODIyLjQwMSAzLjYyNiA2LjM3NGwtLjE4NC0uMTg0QzUuNTk5IDIuODA4IDkuODE2IDEuMyAxMy44MzcgMi4zMDljNi4xNDcgMS4xNSA5LjQ1MyA3Ljk1NiA3LjAzNSAxMy45NHoiLz48L3N2Zz4=',
-    'GOG Galaxy': 'data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHJvbGU9ImltZyIgdmlld0JveD0iMCAwIDI0IDI0IiBmaWxsPSIjYTg1NWY3Ij48dGl0bGU+R09HLmNvbTwvdGl0bGU+PHBhdGggZD0iTTcuMTUgMTUuMjRINC4zNmEuNC40IDAgMCAwLS40LjR2MmMwIC4yMS4xOC40LjQuNGgyLjh2MS4zMmgtMy41Yy0uNTYgMC0xLjAyLS40Ni0xLjAyLTEuMDN2LTMuMzljMC0uNTYuNDYtMS4wMiAxLjAzLTEuMDJoMy40OHYxLjMyek04LjE2IDExLjU0YzAgLjU4LS42NyAxLjA1LTEuMDUgMS4wNUguNjN2LTEuMzVoMy43OGEuNC40IDAgMCAwIC40LS40VjYuMzlhLjQuNCAwIDAgMC0uNC0uNEg0LjM5YS40LjQgMCAwIDAtLjQxLjR2Mi4wMmMwIC4yMy4xMTguNC40LjRoNnYxLjM1SDMuNjhjLS41OCAwLTEuMDUtLjQ2LTEuMDUtMS4wNFY1LjY4YzAtLjU3LjQ3LTEuMDQgMS4wNS0xLjA0SDcuMWMuNTggMCAxLjA1LjQ3IDEuMDUgMS4wNHY1Ljg2ek0yMS4zNiAxOS4zNmgtMS4zMnYtNC4xMmgtLjkzYS40LjQgMCAwIDAtLjQuNHYzLjcyaC0xLjMzdi00LjEyaC0uOTNhLjQuNCAwIDAgMC0uNC40djMuNzJoLTEuMzN2bTQuNDJjMC0uNTYuNDYtMS4wMiAxLjAzLTEuMDJoNS42MXY1LjQ0ek0yMS4zNyAxMS41NGMwIC41OC0uNDcgMS4wNS0xLjA1IDEuMDVoLTQuNDh2LTEuMzVoMy43OGEuNC40IDAgMCAwIC40LS40VjYuMzlhLjQuNCAwIDAgMC0uNC0uNGgtMi4wM2EuNC40IDAgMCAwLS40LjR2Mi4wMmMwIC4yMy4xOC40LjQuNGgxLjYydjEuMzVIMTYuOWMtLjU4IDAtMS4wNS0uNDYtMS4wNS0xLjA0VjUuNjhjMC0uNTcuNDctMS4wNCAxLjA1LTEuMDRoMy40M2MuNTggMCAxLjA1LjQ3IDEuMDUgMS4wNHY1Ljg2ek0xMy43MiA0LjY0aC0zLjQ0Yy0uNTggMC0xLjA0LjQ3LTEuMDQgMS4wNHYzLjQ0YzAgLjU4LjQ2IDEuMDQgMS4wNCAxLjA0aDMuNDRjLjU3IDAgMS4wNC0uNDYgMS4wNC0xLjA0VjUuNjhjMC0uNTctLjQ3LTEuMDQtMS4wNC0xLjA0bS0uMyAxLjc1djIuMDJhLjQuNCAwIDAgMS0uNC40aC0yLjAzYS40LjQgMCAwIDEtLjQtLjRWNi40YzAtLjIyLjE3LS40LjQtLjRIMTNjLjIzIDAgLjE4LjQuNHpNMTIuNjMgMTMuOTJIOS4yNGMtLjU3IDAtMS4wMy40Ni0xLjAzIDEuMDJ2My4zOWMwIC41Ny40NiAxLjAzIDEuMDMgMS4wM2gzLjM5Yy41NyAwIDEuMDMtLjQ2IDEuMDMtMS4wM3YtMy4zOWMwLS41Ni0uNDYtMS4wMi0xLjAzLTEuMDJtLS4zIDEuNzJ2MmEuNC40IDAgMCAxLS40LjR2LS4wMUg5Ljk0YS40LjQgMCAwIDEtLjQtLjR2LTEuOTljMC0uMjIuMTgtLjQuNC0uNGgyYy4yMiAwIC40LjE4LjQuNHpNMjMuNDkgMS4xYTEuNzQgMS43NCAwIDAgMC0xLjI0LS41MkgxLjc1QTEuNzQgMS43NCAwIDAgMCAwIDIuMzN2MTkuMzRhMS43NCAxLjc0IDAgMCAwIDEuNzUgMS43NWgyMC41QTEuNzQgMS43NCAwIDAgMCAyNCAyMS42N1YyLjMzYzAtLjQ4LS4yLS45Mi0uNTEtMS4yNG0wIDIwLjU4YTEuMjMgMS4yMyAwIDAgMS0xLjI0MS4yNEgxLjc1QTEuMjMgMS4yMyAwIDAgMSAuNSAyMS42N1YyLjMzYTEuMjMgMS4yMyAwIDAgMSAxLjI0LTEuMjRoMjAuNWExLjI0IDEuMjQgMCAwIDEgMS4yNCAxLjI0djE5LjM0eiIvPjwvc3ZnPg==',
-    'Riot Games': 'data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHJvbGU9ImltZyIgdmlld0JveD0iMCAwIDI0IDI0IiBmaWxsPSIjZWIwMDI5Ij48dGl0bGU+UmlvdCBHYW1lczwvdGl0bGU+PHBhdGggZD0iTTEzLjQ1OC44NiAwIDcuMDkzbDMuMzUzIDEyLjc2MSAyLjU1Mi0uMzEzLS43MDEtOC4wMjQuODM4LS4zNzMgMS40NDcgOC4yMDIgNC4zNjEtLjUzNS0uNzc1LTguODU3LjgzLS4zNyAxLjU5MSA5LjAyNSA0LjQxMi0uNTQyLS44NDktOS43MDguODQtLjM3NCAxLjc0IDkuODdMMjQgMTcuMzE4VjMuNVptLjMxNiAxOS4zNTYuMjIyIDEuMjU2TDI0IDIzLjE0di00LjE4bC0xMC4yMiAxLjI1NloiLz48L3N2Zz4=',
-    'Rockstar Games': 'data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHJvbGU9ImltZyIgdmlld0JveD0iMCAwIDI0IDI0IiBmaWxsPSIjZmNhZjE3Ij48dGl0bGU+Um9ja3N0YXIgR2FtZXM8L3RpdGxlPjxwYXRoIGQ9Ik01Ljk3MSA2LjgxNmgzLjI0MWMxLjQ2OSAwIDIuNzQxLS40NDggMi43NDEtMi4wODQgMC0xLjMtMS4xMTctMS41NzYtMi4xOS0xLjU3Nkg2Ljc0OGwtLjc3NyAzLjY2Wm0xMi44MzQgOC43NTNoNS4xNjhsLTQuNjY0IDMuMjI4Ljc1NSA1LjA4Ny00LjA0MS0zLjA3TDEwLjU5OSAyNGwyLjUzNi01LjM5MnMtMi45NS0zLjA3NS0yLjk0Ny0zLjA3NWMtLjE5OC0uMjYyLS4yNjUtLjkzNi0uMjY1LTEuMjI2IDAtLjM2Ny4wMjQtLjczOS4wNDktMS4xMzQuMDI4LS40NTEuMDU4LS45MzMuMDU4LTEuNDc2IDAtMS4zMzgtLjU5LTIuMDM4LTIuMDM2LTIuMDM4SDUuMjgzbC0xLjE4IDUuNTI1SC4wMjZMMy4yNjkgMGg3LjY3MmMyLjg1MiAwIDUuMDI3LjcwMiA1LjAyNyAzLjkzNiAwIDIuMjc2LTEuMTIgMy44OTQtMy41OTIgNC4yMzN2LjA0NWMxLjE2Mi4yNzYgMS41OTggMS4wNjIgMS41OTggMi41MjcgMCAuNTg1LS4wMTggMS4wOTgtLjAzNCAxLjU4MS0uMDE1LjQyOC0uMDMuODM0LS4wMyAxLjI0MyAwIC41MjUuMTM3IDEuMzgyLjQ4IDEuOTY4aC41NjdsMy4wMjgtNS4wNi44MiA1LjA5NlptLTEuMjMzLTIuOTQ4LTIuMTg3IDMuNjU0aC0zLjQ1N2wyLjEwMyAyLjE4OS0xLjczIDMuNjcyIDMuNzc3LTIuMjE4IDIuOTc2IDIuMjYzLS41NTMtMy43MzEgMy4wOTMtMi4xMzloLTMuNDNsLS41OTItMy42OVoiLz48L3N2Zz4='
+    'Steam': '/launchers/steam.png',
+    'Epic Games': '/launchers/epic-games.png',
+    'Epic': '/launchers/epic-games.png',
+    'Xbox': '/launchers/xbox.png',
+    'Xbox App': '/launchers/xbox.png',
+    'EA Desktop': '/launchers/ea.png',
+    'Origin': '/launchers/ea.png',
+    'Ubisoft Connect': '/launchers/ubisoft.png',
+    'Battle.net': '/launchers/battlenet.svg',
+    'GOG Galaxy': '/launchers/gog.svg',
+    'Riot Games': '/launchers/riot.svg',
+    'Rockstar Games': '/launchers/rockstar.png'
   };
 
-  const launcherBanner = LAUNCHER_BANNERS[game.platform] || LAUNCHER_BANNERS[normPlatform];
+  // Explicit launcher detection: Only true if it is the actual launcher application, not a game
+  const isLauncher =
+    game.type?.toUpperCase() === 'LAUNCHER' ||
+    (game.genre?.toUpperCase() === 'PLATFORM' && !game.id?.match(/^\d+$/)) ||
+    (game.name.toLowerCase() === game.platform?.toLowerCase() && !game.id?.match(/^\d+$/));
 
-  if (game.local_banner && game.local_banner !== 'null') {
-    coverUrl = game.local_banner.startsWith('http') ? game.local_banner : `asset:///${game.local_banner.replace(/\\/g, '/')}`;
-  } else if (steamAppId && !isLauncher) {
-    coverUrl = `https://cdn.akamai.steamstatic.com/steam/apps/${steamAppId}/header.jpg`;
-  } else if (isLauncher && launcherBanner) {
+  // Normalized lookup helper for launcher banners (Only for actual launchers)
+  const normPlatform = game.platform?.trim();
+  const launcherBanner = isLauncher ? (
+    LAUNCHER_BANNERS[game.platform] ||
+    LAUNCHER_BANNERS[normPlatform] ||
+    (normPlatform?.toLowerCase().includes('epic') ? LAUNCHER_BANNERS['Epic Games'] : null) ||
+    (normPlatform?.toLowerCase().includes('ea') || normPlatform?.toLowerCase().includes('origin') ? LAUNCHER_BANNERS['EA Desktop'] : null) ||
+    (normPlatform?.toLowerCase().includes('ubisoft') || normPlatform?.toLowerCase().includes('uplay') ? LAUNCHER_BANNERS['Ubisoft Connect'] : null) ||
+    (normPlatform?.toLowerCase().includes('steam') ? LAUNCHER_BANNERS['Steam'] : null) ||
+    (normPlatform?.toLowerCase().includes('xbox') ? LAUNCHER_BANNERS['Xbox'] : null) ||
+    (normPlatform?.toLowerCase().includes('rockstar') ? LAUNCHER_BANNERS['Rockstar Games'] : null) ||
+    (normPlatform?.toLowerCase().includes('battle') ? LAUNCHER_BANNERS['Battle.net'] : null) ||
+    (normPlatform?.toLowerCase().includes('gog') ? LAUNCHER_BANNERS['GOG Galaxy'] : null) ||
+    (normPlatform?.toLowerCase().includes('riot') ? LAUNCHER_BANNERS['Riot Games'] : null)
+  ) : null;
+
+  if (isLauncher && launcherBanner) {
     coverUrl = launcherBanner;
+  } else if (game.local_banner) {
+    coverUrl = game.local_banner.startsWith('http') ? game.local_banner : `asset:///${game.local_banner.replace(/\\/g, '/')}`;
+  } else if (game.platform === 'Steam' && game.id && !isLauncher) {
+    coverUrl = `https://cdn.akamai.steamstatic.com/steam/apps/${game.id}/header.jpg`;
   } else if (game.icon && game.icon !== 'null') {
     coverUrl = game.icon.startsWith('http') ? game.icon : `asset:///${game.icon.replace(/\\/g, '/')}`;
-  } else if (launcherBanner) {
-    coverUrl = launcherBanner;
   }
 
   const getLaunchUri = () => {
-    if (game.platform === 'Steam' && steamAppId && !isLauncher) return `steam://rungameid/${steamAppId}`;
+    // Prefer launcher protocol paths over local exe paths for launcher games to ensure social overlays, cloud saves, and features load correctly
+    if (game.platform === 'Steam' && game.id && !isLauncher) return `steam://rungameid/${game.id}`;
     if ((game.platform === 'Epic Games' || game.platform === 'Epic') && game.id && !isLauncher) return `com.epicgames.launcher://apps/${game.id}?action=launch&silent=true`;
-    if ((game.platform === 'EA Desktop' || game.platform === 'EA App' || game.platform === 'Origin' || game.platform === 'EA') && game.id && !isLauncher) return `origin://launchgame/${game.id}`;
+    if ((game.platform === 'EA Desktop' || game.platform === 'Origin') && game.id && !isLauncher) return `origin://launchgame/${game.id}`;
     if (game.platform === 'Ubisoft Connect' && game.id && !isLauncher) return `uplay://launch/${game.id}`;
     if (game.platform === 'GOG Galaxy' && game.id && !isLauncher) return `goggalaxy://openGameView/${game.id}`;
     if (game.platform === 'Battle.net' && game.id && !isLauncher) return `battlenet://play/${game.id}`;
+
     if (game.exe_path) return game.exe_path;
+
     if (game.platform === 'Steam') return 'steam://open/main';
     if (game.platform === 'Epic Games' || game.platform === 'Epic') return 'com.epicgames.launcher://store';
-    if (game.platform === 'EA Desktop' || game.platform === 'EA App' || game.platform === 'Origin' || game.platform === 'EA') return 'origin://';
+    if (game.platform === 'EA Desktop' || game.platform === 'Origin') return 'origin://';
     if (game.platform === 'Ubisoft Connect') return 'uplay://';
     if (game.platform === 'GOG Galaxy') return 'goggalaxy://';
     if (game.platform === 'Battle.net') return 'battlenet://';
@@ -204,22 +162,17 @@ const GameCard: React.FC<{
   };
 
   const launchUri = getLaunchUri();
-  const [isLaunching, setIsLaunching] = useState(false);
 
-  const handleLaunch = (e?: React.MouseEvent) => {
-    e?.stopPropagation();
-    if (launchUri && !isLaunching) {
-      setIsLaunching(true);
+  const handleLaunch = () => {
+    if (launchUri) {
+      // Invoke through Electron if available, otherwise fallback/trigger via WebSocket command to Python backend
       if ((window as any).electronAPI?.launchGame) {
         (window as any).electronAPI.launchGame(launchUri);
       } else {
         sendCommand('launch_game', { exe_path: launchUri });
       }
-      setTimeout(() => setIsLaunching(false), 2500);
     }
   };
-
-  const platformStyle = getPlatformStyle(game.platform);
 
   return (
     <motion.div
@@ -228,178 +181,80 @@ const GameCard: React.FC<{
       animate={{ opacity: 1, scale: 1 }}
       exit={{ opacity: 0, scale: 0.95 }}
       whileHover={{ y: -4 }}
-      className="group bg-white/3 hover:border-neon-green/30 rounded-3xl overflow-hidden transition-all duration-500 border border-white/5 flex flex-col justify-between shadow-lg"
+      className="group bg-white/3 hover:border-neon-green/30 rounded-3xl overflow-hidden transition-all duration-500 border border-white/5"
     >
       {/* Cover Image */}
-      <div
-        onClick={handleLaunch}
-        className="aspect-video relative overflow-hidden bg-black/40 flex items-center justify-center cursor-pointer"
-      >
+      <div className="aspect-video relative overflow-hidden bg-black/40 flex items-center justify-center">
         <img
           src={coverUrl}
           alt={game.name}
-          className={`w-full h-full transition-transform duration-700 group-hover:scale-110 opacity-75 group-hover:opacity-100 ${isLauncher ? 'object-contain p-8' : 'object-cover'}`}
+          className={`w-full h-full transition-transform duration-700 group-hover:scale-105 ${isLauncher ? 'object-contain p-6 drop-shadow-xl opacity-90 group-hover:opacity-100' : 'object-cover opacity-80 group-hover:opacity-100'}`}
           onError={(e) => {
             const target = e.target as HTMLImageElement;
-            const steamFallback = steamAppId ? `https://cdn.akamai.steamstatic.com/steam/apps/${steamAppId}/header.jpg` : null;
             const fallbackIcon = game.icon && game.icon !== 'null' ? (game.icon.startsWith('http') ? game.icon : `asset:///${game.icon.replace(/\\/g, '/')}`) : null;
+            const dicebearUrl = `https://api.dicebear.com/7.x/shapes/svg?seed=${seed}&backgroundColor=0a0a0a&shape1Color=1a1a2e&shape2Color=16213e&shape3Color=0f3460`;
 
-            if (steamFallback && target.src !== steamFallback) {
-              target.src = steamFallback;
-            } else if (launcherBanner && target.src !== launcherBanner) {
+            if (isLauncher && launcherBanner && target.src !== launcherBanner) {
               target.src = launcherBanner;
-            } else if (fallbackIcon && target.src !== fallbackIcon && target.src !== inlineSvgPlaceholder) {
+            } else if (fallbackIcon && target.src !== fallbackIcon) {
               target.src = fallbackIcon;
-            } else if (target.src !== inlineSvgPlaceholder) {
-              target.src = inlineSvgPlaceholder;
+            } else if (target.src !== dicebearUrl) {
+              target.src = dicebearUrl;
             }
           }}
         />
         <div className="absolute inset-0 bg-linear-to-t from-black/80 via-transparent to-transparent pointer-events-none" />
 
         {/* Platform Badge */}
-        <div className={`absolute top-3 left-3 px-2 py-0.5 rounded-lg border backdrop-blur-md shadow-lg ${platformStyle.bg} ${platformStyle.text} ${platformStyle.border}`}>
-          <span className="text-[8px] font-black uppercase tracking-widest">{getPlatformLabel(game.platform)}</span>
+        <div className={`absolute top-3 left-3 px-2 py-0.5 rounded-lg border backdrop-blur-md shadow-lg ${PLATFORM_STYLES[game.platform]?.bg || 'bg-white/10'} ${PLATFORM_STYLES[game.platform]?.text || 'text-white'} ${PLATFORM_STYLES[game.platform]?.border || 'border-white/20'}`}>
+          <span className="text-[8px] font-black uppercase tracking-widest">{game.platform}</span>
         </div>
-
-        {/* Multi-Node Installations Badge */}
-        {game.installations && game.installations.length > 0 && (
-          <button
-            type="button"
-            onClick={(e) => {
-              e.stopPropagation();
-              onOpenInstallations?.({
-                title: game.name,
-                coverUrl,
-                primaryGenre: game.genre,
-                installations: game.installations || [],
-              });
-            }}
-            className="absolute top-3 right-3 flex items-center gap-1.5 px-2.5 py-1 rounded-lg border border-cyan-500/30 bg-[#071d2b]/80 backdrop-blur-md shadow-lg text-cyan-400 hover:text-cyan-200 hover:border-cyan-400/60 transition-all cursor-pointer z-10"
-            title="Inspect Installations Across Distributed Nodes"
-          >
-            <Server className="w-3 h-3 text-cyan-400" />
-            <span className="text-[8px] font-black tracking-wider uppercase">
-              {game.installations.length} {game.installations.length === 1 ? 'Node' : 'Nodes'}
-            </span>
-          </button>
-        )}
       </div>
 
       {/* Info */}
-      <div className="p-4 space-y-3 flex-1 flex flex-col justify-between">
-        <div className="space-y-2">
-          <div
-            onClick={handleLaunch}
-            className="min-h-10 cursor-pointer"
-          >
-            <h4 className="text-sm font-black text-white tracking-tight group-hover:text-neon-green transition-colors truncate leading-tight">
-              {game.name}
-            </h4>
-            <p className="text-[9px] font-bold text-zinc-500 uppercase tracking-widest mt-0.5">
-              {game.genre === 'N/A' || !game.genre ? (isLauncher ? 'GAMING PLATFORM' : 'GAME') : game.genre}
-            </p>
-          </div>
-
-          {/* Hardware Feature Badges (NVIDIA DLSS, Frame Gen, RTX, Reflex, HDR, FSR) */}
-          {game.features && game.features.length > 0 && (
-            <div className="flex gap-1 flex-wrap pt-0.5">
-              {game.features.map((feat) => {
-                const f = feat.toUpperCase();
-                let colorClass = 'bg-white/5 text-zinc-300 border-white/10';
-                if (f.includes('DLSS') || f.includes('FRAME_GEN') || f.includes('FRAME GEN')) {
-                  colorClass = 'bg-neon-yellow/10 text-neon-yellow border-neon-yellow/30 shadow-[0_0_8px_rgba(223,255,0,0.12)]';
-                } else if (f.includes('RTX') || f.includes('RAY_TRACING') || f.includes('PATH_TRACING')) {
-                  colorClass = 'bg-neon-green/10 text-neon-green border-neon-green/30 shadow-[0_0_8px_rgba(118,185,0,0.12)]';
-                } else if (f.includes('REFLEX')) {
-                  colorClass = 'bg-amber-500/10 text-amber-400 border-amber-500/30';
-                } else if (f.includes('HDR')) {
-                  colorClass = 'bg-cyan-500/10 text-cyan-300 border-cyan-500/30';
-                } else if (f.includes('FSR')) {
-                  colorClass = 'bg-rose-500/10 text-rose-300 border-rose-500/30';
-                }
-                const label = feat.replace('_', ' ');
-                return (
-                  <span
-                    key={feat}
-                    className={`text-[7px] font-black px-1.5 py-0.5 rounded uppercase tracking-wider border ${colorClass}`}
-                  >
-                    {label}
-                  </span>
-                );
-              })}
-            </div>
-          )}
-
-          {/* AI Genre/Mode Tags */}
-          {game.tags && game.tags.length > 0 && (
-            <div className="flex gap-1 flex-wrap min-h-4">
-              {game.tags.map((tag, i) => (
-                <span key={`t-${i}`} className="text-[7px] font-black px-1.5 py-0.5 rounded bg-white/5 text-zinc-400 uppercase tracking-tighter border border-white/5">
-                  {tag}
-                </span>
-              ))}
-            </div>
-          )}
+      <div className="p-4 space-y-3">
+        <div className="min-h-10">
+          <h4 className="text-sm font-black text-white tracking-tight group-hover:text-neon-green transition-colors truncate leading-tight">
+            {game.name}
+          </h4>
+          <p className="text-[9px] font-bold text-zinc-500 uppercase tracking-widest mt-0.5">
+            {game.genre === 'N/A' || !game.genre ? (game.type === 'LAUNCHER' ? 'GAMING PLATFORM' : 'GAME') : game.genre}
+          </p>
         </div>
 
-        {/* Action buttons */}
-        <div className="flex items-center gap-2 pt-1">
-          <button aria-label="button" type="button"
-            onClick={handleLaunch}
-            disabled={!launchUri || isLaunching}
-            className="relative flex-1 flex items-center justify-center gap-1.5 py-2 bg-neon-green hover:bg-[#8aff00] text-black font-black uppercase text-[9px] tracking-widest rounded-xl transition-all duration-300 shadow-[0_0_15px_rgba(118,185,0,0.25)] hover:shadow-[0_0_25px_rgba(118,185,0,0.45)] disabled:opacity-80 disabled:cursor-wait cursor-pointer overflow-hidden group"
-          >
-            {isLaunching && (
-              <motion.div
-                className="absolute inset-0 bg-black/20"
-                initial={{ x: '-100%' }}
-                animate={{ x: '100%' }}
-                transition={{ repeat: Infinity, duration: 1, ease: 'linear' }}
-              />
-            )}
-            <div className="relative z-10 flex items-center gap-1.5">
-              {isLaunching ? (
-                <>
-                  <Loader2 className="w-3.5 h-3.5 animate-spin text-black" />
-                  <span>Executing...</span>
-                </>
-              ) : (
-                <>
-                  <Play className="w-3.5 h-3.5 fill-current" />
-                  <span>{launchUri ? (isLauncher ? 'Launch Platform' : 'Execute') : 'Unavailable'}</span>
-                </>
-              )}
-            </div>
-          </button>
-
-          {game.installations && game.installations.length > 1 && (
-            <button aria-label="button" type="button"
-              onClick={() => onOpenInstallations?.({
-                title: game.name,
-                coverUrl,
-                primaryGenre: game.genre,
-                installations: game.installations || [],
-              })}
-              className="px-3 py-2 bg-white/5 hover:bg-white/10 text-cyan-400 border border-white/10 hover:border-cyan-500/40 rounded-xl transition-all text-[9px] font-black uppercase tracking-wider flex items-center gap-1.5"
-              title="Inspect All Node Installations"
-            >
-              <Server className="w-3.5 h-3.5" />
-            </button>
-          )}
+        {/* AI Genre/Mode Tags */}
+        <div className="flex gap-1 flex-wrap min-h-4">
+          {game.tags && game.tags.map((tag, i) => (
+            <span key={`t-${i}`} className="text-[7px] font-black px-1.5 py-0.5 rounded bg-white/5 text-zinc-400 uppercase tracking-tighter border border-white/5">
+              {tag}
+            </span>
+          ))}
         </div>
+
+        {/* Launch button */}
+        <button aria-label="button" type="button"
+          onClick={handleLaunch}
+          disabled={!launchUri}
+          className="w-full flex items-center justify-center gap-2 py-2 bg-white/4 hover:bg-neon-green hover:text-black rounded-xl transition-all duration-300 border border-white/6 hover:border-neon-green disabled:opacity-40 disabled:cursor-not-allowed group/btn"
+        >
+          <Play className="w-3.5 h-3.5 fill-current transition-transform group-hover/btn:translate-x-0.5" />
+          <span className="text-[9px] font-black uppercase tracking-widest">
+            {launchUri ? 'Execute' : 'Unavailable'}
+          </span>
+        </button>
       </div>
     </motion.div>
   );
 };
 
+// ── Loading & Scanning Subcomponents ───────────────────────────────────────────
 const CacheLoadingScreen: React.FC = () => (
   <div className="flex-1 flex flex-col items-center justify-center p-8">
     <div className="bg-black/20 backdrop-blur-md border border-white/5 rounded-3xl p-10 flex flex-col items-center max-w-md w-full shadow-[0_0_50px_rgba(118, 185, 0,0.05)]">
       <div className="relative w-20 h-20 flex items-center justify-center mb-6">
         <div className="absolute inset-0 rounded-full border-t border-neon-green animate-spin [animation-duration:1.5s]" />
         <div className="absolute inset-2 rounded-full border-b border-indigo-500 animate-spin [animation-duration:2s]" />
-        <img src="/logo.png" className="w-10 h-10 object-contain animate-pulse" alt="Mission Control Logo" />
+        <Database className="w-8 h-8 text-neon-green animate-pulse" />
       </div>
       <h3 className="text-sm font-black tracking-[0.3em] text-white uppercase text-center mb-2">
         Retrieving Neural Archive
@@ -554,26 +409,8 @@ const GamesLibraryContent: React.FC<GamesPageProps> = ({ state, sendCommand, set
   const [selectedType, setSelectedType] = useState('All');
   const [searchQuery, setSearchQuery] = useState('');
   const [showAdvanced, setShowAdvanced] = useState(false);
-  const [showNodeManager, setShowNodeManager] = useState(false);
-  const [showDiscoverModal, setShowDiscoverModal] = useState(false);
-  const [installationsModal, setInstallationsModal] = useState<{ title: string; coverUrl?: string; primaryGenre?: string; installations: GameInstallation[] } | null>(null);
-  const { stats: distributedStats, serverOnline: libraryServerOnline } = useDistributedStats(userId);
-  
-  // Instant Local-First Cache: Load from localStorage on Frame-0 to eliminate loading screen delay
-  const getPersistedGames = (): BackendGame[] => {
-    try {
-      const stored = localStorage.getItem(`mc_cached_library_${userId || 'guest'}`);
-      if (stored) {
-        const parsed = JSON.parse(stored);
-        if (Array.isArray(parsed) && parsed.length > 0) return parsed;
-      }
-    } catch { }
-    return [];
-  };
-
-  const persisted = getPersistedGames();
-  const initialGames = (state as any)?.game_library || (persisted.length > 0 ? persisted : []);
-  const initialLoaded = (state as any)?.game_library !== undefined || persisted.length > 0;
+  const initialGames = (state as any)?.game_library || [];
+  const initialLoaded = (state as any)?.game_library !== undefined;
 
   const [games, setGames] = useState<BackendGame[]>(initialGames);
   const [scanStatus, setScanStatus] = useState<string>('idle');
@@ -585,17 +422,6 @@ const GamesLibraryContent: React.FC<GamesPageProps> = ({ state, sendCommand, set
   const gamesRequestTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   // Tracks the auth state at which we last requested games, to fire a re-request when isSignedIn resolves
   const lastAuthStateRef = useRef<string>('');
-  // Tracks previous userId to detect provider switches (userId changes while still signed in)
-  const lastUserIdRef = useRef<string | null | undefined>(undefined);
-
-  // Persist library snapshot to localStorage whenever updated
-  useEffect(() => {
-    if (games.length > 0) {
-      try {
-        localStorage.setItem(`mc_cached_library_${userId || 'guest'}`, JSON.stringify(games));
-      } catch { }
-    }
-  }, [games, userId]);
 
   const handlePlatformChange = (p: string) => {
     setFilter(p);
@@ -627,6 +453,7 @@ const GamesLibraryContent: React.FC<GamesPageProps> = ({ state, sendCommand, set
     if (s.game_library !== undefined) {
       const newGames = s.game_library || [];
       setGames(newGames);
+      // Mark games as loaded even if the library is empty (backend confirmed no games yet)
       setGamesLoaded(true);
     }
     if (s.scan_state) {
@@ -680,82 +507,42 @@ const GamesLibraryContent: React.FC<GamesPageProps> = ({ state, sendCommand, set
     const isNewAuthState = lastAuthStateRef.current !== authKey;
     if (isNewAuthState) {
       lastAuthStateRef.current = authKey;
-      // Auth state changed — if we have local cache, keep gamesLoaded true!
-      const persistedNow = getPersistedGames();
-      if (persistedNow.length > 0) {
-        setGames(persistedNow);
-        setGamesLoaded(true);
-      } else if (isSignedIn) {
+      // Auth state changed (e.g. Clerk resolved) — reset loaded flag to trigger a fresh fetch
+      if (isSignedIn) {
         setGamesLoaded(false);
       }
-      
-      const prevUserId = lastUserIdRef.current;
-      if (prevUserId !== undefined && prevUserId !== userId) {
-        setIsScanning(false);
-        setScanProgress(0);
-        setScanStatus('idle');
-        setScanLogs([]);
-      }
-      lastUserIdRef.current = userId;
     }
 
-    if (isSignedIn && (s?.game_library !== undefined || games.length > 0)) {
+    if (isSignedIn && (s?.game_library !== undefined || gamesLoaded)) {
       setGamesLoaded(true);
+      // Clear any pending timeouts when games arrive
       if (gamesRequestTimeoutRef.current) {
         clearTimeout(gamesRequestTimeoutRef.current);
         gamesRequestTimeoutRef.current = null;
       }
     } else if (isSignedIn && !gamesLoaded) {
+      // Only request games if not requested recently (debounce: 500ms)
       const now = Date.now();
       if (now - lastGamesRequestRef.current > 500) {
         lastGamesRequestRef.current = now;
-        
-        // Fast parallel request: Query local backend immediately
-        sendCommand('get_cached_games', { userId: userId || undefined });
-
-        // If distributed server is online, fetch with strict 1.5s timeout
-        if (libraryServerOnline && userId) {
-          const controller = new AbortController();
-          const timerId = setTimeout(() => controller.abort(), 1500);
-
-          fetchWithFailover(`/api/games?installed_only=true&clerk_id=${encodeURIComponent(userId)}`, { signal: controller.signal })
-            .then(res => res.json())
-            .then(data => {
-              clearTimeout(timerId);
-              if (data && Array.isArray(data.games) && data.games.length > 0) {
-                const mappedGames: BackendGame[] = data.games.map((g: any) => {
-                  const firstInst = g.installations?.[0];
-                  return {
-                    id: firstInst?.storeAppId || g.id,
-                    name: g.title || g.name,
-                    platform: firstInst?.store || (Array.isArray(g.platforms) ? g.platforms[0] : g.platforms) || 'Local',
-                    genre: g.primaryGenre || g.primary_genre || g.genre || 'Action',
-                    features: g.features || [],
-                    tags: g.tags || [],
-                    type: g.type || 'GAME',
-                    icon: g.coverUrl || g.cover_url || g.icon,
-                    local_banner: g.bannerUrl || g.banner_url || g.coverUrl || g.cover_url || g.local_banner,
-                    install_path: firstInst?.installPath || firstInst?.install_path || g.install_path,
-                    exe_path: firstInst?.exePath || firstInst?.exe_path || g.exe_path,
-                    source: firstInst?.store || g.source,
-                    installations: g.installations || [],
-                  };
-                });
-                setGames(mappedGames);
-                setGamesLoaded(true);
-              }
-            })
-            .catch(() => {
-              clearTimeout(timerId);
-            });
-        }
+        sendCommand('get_cached_games', {
+          userId: userId || undefined
+        });
       }
 
+      // Set timeout for retry only if not already set
       if (!gamesRequestTimeoutRef.current) {
         gamesRequestTimeoutRef.current = setTimeout(() => {
           gamesRequestTimeoutRef.current = null;
-          setGamesLoaded(true);
-        }, 1200); // 1.2s safety fallback to never keep screen stuck
+          // If games still not loaded, request again (single retry)
+          const currentState = state as any;
+          if (currentState?.game_library === undefined && Date.now() - lastGamesRequestRef.current > 500) {
+            lastGamesRequestRef.current = Date.now();
+            sendCommand('get_cached_games', {
+              userId: userId || undefined
+            });
+          }
+        }, 1500); // Give backend more time for game library (1.5s instead of 1s)
       }
     }
 
@@ -765,16 +552,13 @@ const GamesLibraryContent: React.FC<GamesPageProps> = ({ state, sendCommand, set
         gamesRequestTimeoutRef.current = null;
       }
     };
-  }, [state, userId, isSignedIn, gamesLoaded, games.length, sendCommand]); // eslint-disable-line react-hooks/exhaustive-deps
+  }, [state, userId, isSignedIn, gamesLoaded, sendCommand]); // eslint-disable-line react-hooks/exhaustive-deps
 
-  // Clear local library and abort any in-progress scan UI when the user signs out
+  // Clear local library when the user signs out so stale cards don't persist
   useEffect(() => {
     if (!isSignedIn) {
       setGames([]);
       setScanStatus('idle');
-      setScanProgress(0);
-      setIsScanning(false);
-      setScanLogs([]);
     }
   }, [isSignedIn]);
 
@@ -797,9 +581,6 @@ const GamesLibraryContent: React.FC<GamesPageProps> = ({ state, sendCommand, set
     const unique = [...new Set(games.map(g => g.genre))].filter(Boolean);
     return unique.sort();
   }, [games]);
-
-  const gamesOnlyCount = useMemo(() => games.filter(g => g.type !== 'LAUNCHER' && g.genre !== 'PLATFORM').length, [games]);
-  const launchersCount = useMemo(() => games.filter(g => g.type === 'LAUNCHER' || g.genre === 'PLATFORM').length, [games]);
 
   // ── Local Filtering ────────────────────────────────────────────────────────────
   const filteredGames = useMemo(() => {
@@ -853,7 +634,7 @@ const GamesLibraryContent: React.FC<GamesPageProps> = ({ state, sendCommand, set
   }, [games, filter, selectedGenre, selectedFeature, selectedType, searchQuery]);
 
   return (
-    <div className="flex-1 min-h-0 p-4 sm:p-6 flex flex-col overflow-y-auto custom-scrollbar gap-y-4 sm:gap-y-6">
+    <div className="flex-1 p-4 sm:p-6 flex flex-col overflow-y-auto custom-scrollbar gap-y-4 sm:gap-y-6">
 
       {/* Header */}
       <div className="flex flex-col md:flex-row md:items-end justify-between gap-4">
@@ -865,53 +646,24 @@ const GamesLibraryContent: React.FC<GamesPageProps> = ({ state, sendCommand, set
         </div>
 
         <div className="flex flex-wrap gap-2.5 items-center md:justify-end">
-          {/* Web Discovery button — always accessible */}
-          <button
-            id="discover-games-btn"
-            type="button"
-            onClick={() => setShowDiscoverModal(true)}
-            className="flex items-center gap-2 px-4 py-2.5 bg-neon-green/10 hover:bg-neon-green/20 border border-neon-green/30 hover:border-neon-green/50 text-neon-green font-black text-[10px] uppercase tracking-widest rounded-2xl transition-all shadow-[0_0_15px_rgba(118,185,0,0.15)] cursor-pointer shrink-0"
-            title="Search and add games from Steam, Epic, GOG, and RAWG"
-          >
-            <Globe className="w-3.5 h-3.5" />
-            <span className="whitespace-nowrap">Discover from Web</span>
-          </button>
-
-          {/* Node Manager button — always accessible */}
-          <button
-            id="manage-nodes-btn"
-            type="button"
-            onClick={() => setShowNodeManager(true)}
-            className="flex items-center gap-2 px-4 py-2.5 bg-white/5 hover:bg-white/10 border border-white/10 hover:border-white/20 text-zinc-300 hover:text-white font-black text-[10px] uppercase tracking-widest rounded-2xl transition-all cursor-pointer shrink-0"
-            title="Manage Local & Remote Cluster Nodes"
-          >
-            <Server className="w-3.5 h-3.5" />
-            <span className="whitespace-nowrap">Manage Nodes</span>
-          </button>
-
           {!isSignedIn ? (
             <button aria-label="button" type="button"
               onClick={() => setMode?.('auth')}
-              className="flex items-center gap-2 px-4 py-2 border border-neon-green/20 text-neon-green hover:bg-neon-green/10 hover:border-neon-green/40 font-black text-[9px] uppercase tracking-widest rounded-xl transition-all shadow-[0_0_15px_rgba(118, 185, 0,0.1)] hover:shadow-[0_0_20px_rgba(118, 185, 0,0.2)] cursor-pointer"
+              className="flex items-center gap-2 px-4 py-2 border border-neon-green/20 text-neon-green hover:bg-neon-green/10 hover:border-neon-green/40 font-black text-[9px] uppercase tracking-widest rounded-xl transition-all mr-2 shadow-[0_0_15px_rgba(118, 185, 0,0.1)] hover:shadow-[0_0_20px_rgba(118, 185, 0,0.2)]"
             >
               Link Neural Node
             </button>
           ) : (
             <button aria-label="button" type="button"
               onClick={() => {
-                setIsScanning(false);
-                setScanProgress(0);
-                setScanStatus('idle');
-                setScanLogs([]);
                 sendCommand('logout_user', { userId });
                 signOut();
               }}
-              className="flex items-center gap-2 px-4 py-2 border border-red-500/20 text-red-400 hover:bg-red-500/10 hover:border-red-500/40 font-black text-[9px] uppercase tracking-widest rounded-xl transition-all cursor-pointer"
+              className="flex items-center gap-2 px-4 py-2 border border-red-500/20 text-red-400 hover:bg-red-500/10 hover:border-red-500/40 font-black text-[9px] uppercase tracking-widest rounded-xl transition-all mr-2"
             >
               Sign Out
             </button>
           )}
-
           {/* Scan progress indicator */}
           {isScanning && (
             <div className="flex items-center gap-2 px-3 py-1.5 bg-neon-green/10 border border-neon-green/20 rounded-xl max-w-full">
@@ -925,7 +677,7 @@ const GamesLibraryContent: React.FC<GamesPageProps> = ({ state, sendCommand, set
             <div className="flex items-center gap-2 px-3 py-1.5 bg-neon-yellow/10 border border-neon-yellow/20 rounded-xl max-w-full">
               <CheckCircle2 className="w-3.5 h-3.5 text-neon-yellow shrink-0" />
               <span className="text-[9px] font-black text-neon-yellow uppercase tracking-widest truncate">
-                {games.length} Found
+                {games.length} Games Found
               </span>
             </div>
           )}
@@ -933,83 +685,13 @@ const GamesLibraryContent: React.FC<GamesPageProps> = ({ state, sendCommand, set
           <button aria-label="button" type="button"
             onClick={triggerFullScan}
             disabled={isScanning}
-            className="flex items-center gap-2 px-5 py-2.5 bg-neon-green text-black font-black text-[10px] uppercase tracking-widest rounded-2xl shadow-[0_0_20px_rgba(118, 185, 0,0.3)] hover:shadow-[0_0_30px_rgba(118, 185, 0,0.5)] transition-all disabled:opacity-60 disabled:cursor-not-allowed shrink-0 cursor-pointer"
+            className="flex items-center gap-2 px-5 py-2.5 bg-neon-green text-black font-black text-[10px] uppercase tracking-widest rounded-2xl shadow-[0_0_20px_rgba(118, 185, 0,0.3)] hover:shadow-[0_0_30px_rgba(118, 185, 0,0.5)] transition-all disabled:opacity-60 disabled:cursor-not-allowed shrink-0"
           >
             <RefreshCw className={`w-3.5 h-3.5 shrink-0 ${isScanning ? 'animate-spin' : ''}`} />
             <span className="whitespace-nowrap">{isScanning ? 'Scanning...' : 'Full Scan'}</span>
           </button>
         </div>
       </div>
-
-      {/* Distributed Fleet Telemetry Bar */}
-      {distributedStats && (
-        <motion.div
-          initial={{ opacity: 0, y: -6 }}
-          animate={{ opacity: 1, y: 0 }}
-          className="flex flex-wrap items-center gap-3 px-4 py-2.5 bg-white/3 border border-white/6 rounded-2xl"
-        >
-          {/* Stats Pills */}
-          {(() => {
-            const displayGames = (distributedStats.total_master_games && distributedStats.total_master_games > 0)
-              ? distributedStats.total_master_games
-              : (distributedStats.total_installed_games && distributedStats.total_installed_games > 0)
-                ? distributedStats.total_installed_games
-                : (games.length || 0);
-
-            const displayStorage = (distributedStats.total_storage_bytes && distributedStats.total_storage_bytes > 0)
-              ? distributedStats.total_storage_bytes
-              : (distributedStats.nodes && distributedStats.nodes.length > 0)
-                ? distributedStats.nodes.reduce((sum, n) => sum + (n.storage_total || 0), 0)
-                : 2045559955456;
-
-            return (
-              <>
-                <div className="flex items-center gap-1.5">
-                  <Gamepad2 className="w-3.5 h-3.5 text-zinc-500" />
-                  <span className="text-[10px] font-black text-white">{displayGames.toLocaleString()}</span>
-                  <span className="text-[9px] text-zinc-500 uppercase tracking-widest">Games</span>
-                </div>
-                <div className="w-px h-3 bg-white/10" />
-                <div className="flex items-center gap-1.5">
-                  <HardDrive className="w-3.5 h-3.5 text-zinc-500" />
-                  <span className="text-[10px] font-black text-white">{formatBytes(displayStorage)}</span>
-                  <span className="text-[9px] text-zinc-500 uppercase tracking-widest">Storage</span>
-                </div>
-              </>
-            );
-          })()}
-          <div className="w-px h-3 bg-white/10" />
-          {/* Node Status Pills */}
-          <div className="flex items-center gap-1.5 flex-wrap">
-            <Server className="w-3.5 h-3.5 text-zinc-500" />
-            {distributedStats.nodes && distributedStats.nodes.length > 0 ? (
-              distributedStats.nodes.map(n => (
-                <span
-                  key={n.node_id}
-                  className={`inline-flex items-center gap-1 px-2 py-0.5 rounded-full border text-[9px] font-black uppercase tracking-widest transition-all ${
-                    n.status === 'online'
-                      ? 'bg-emerald-500/10 text-emerald-400 border-emerald-500/25'
-                      : 'bg-red-500/10 text-red-400 border-red-500/20 opacity-60'
-                  }`}
-                >
-                  <span className={`w-1.5 h-1.5 rounded-full ${ n.status === 'online' ? 'bg-emerald-400 animate-pulse' : 'bg-red-400' }`} />
-                  {n.name}
-                </span>
-              ))
-            ) : (
-              <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full border text-[9px] font-black uppercase tracking-widest bg-white/5 text-zinc-400 border-white/10">
-                <span className="w-1.5 h-1.5 rounded-full bg-neon-green" />
-                Local Machine Node
-              </span>
-            )}
-          </div>
-          <div className="ml-auto flex items-center gap-2">
-            <span className={`text-[8.5px] font-black uppercase tracking-widest px-2.5 py-0.5 rounded-full border ${libraryServerOnline ? 'bg-emerald-500/10 text-emerald-400 border-emerald-500/20' : 'bg-white/5 text-zinc-400 border-white/10'}`}>
-              {libraryServerOnline ? 'Fleet Sync: Online' : 'Fleet Sync: Standalone Mode'}
-            </span>
-          </div>
-        </motion.div>
-      )}
 
       {isScanning ? (
         <ScanningDashboard
@@ -1024,71 +706,43 @@ const GamesLibraryContent: React.FC<GamesPageProps> = ({ state, sendCommand, set
       ) : (
         <>
           {/* HUD Tactical Filters Console */}
-          <div className="bg-white/3 border border-white/5 rounded-3xl p-4 sm:p-5 space-y-4">
-            {/* Tier 1: Quick Type Toggle, Platform Pills & Search */}
-            <div className="flex flex-col gap-3">
-              {/* Type Switcher & Platform Pills */}
-              <div className="flex flex-wrap items-center justify-between gap-3">
-                {/* Quick Type Filter */}
-                <div className="flex items-center gap-1 p-1 bg-black/40 rounded-xl border border-white/5 shrink-0">
-                  <span className="text-[8px] font-black text-zinc-500 uppercase tracking-widest px-2 flex items-center gap-1">
-                    <Layers className="w-3 h-3 text-zinc-500" />
-                    View:
-                  </span>
-                  {[
-                    { id: 'All', label: 'All', count: games.length },
-                    { id: 'GAME', label: 'Games', count: gamesOnlyCount },
-                    { id: 'LAUNCHER', label: 'Launchers', count: launchersCount },
-                  ].map(t => (
-                    <button
-                      key={t.id}
-                      type="button"
-                      onClick={() => handleTypeChange(t.id)}
-                      className={`px-3 py-1 rounded-lg text-[8.5px] font-black uppercase tracking-widest transition-all cursor-pointer ${
-                        selectedType === t.id
-                          ? 'bg-neon-green/15 text-neon-green border border-neon-green/30 shadow-[0_0_10px_rgba(118,185,0,0.15)]'
-                          : 'text-zinc-400 hover:text-zinc-200 border border-transparent'
-                      }`}
+          <div className="bg-white/3 backdrop-blur-xl border border-white/5 rounded-2xl p-3 space-y-3">
+            {/* Tier 1: Platform Pills & Search */}
+            <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-4">
+              <div className="flex flex-wrap lg:flex-nowrap gap-1.5 items-center lg:overflow-x-auto no-scrollbar lg:whitespace-nowrap pb-1 lg:pb-0 shrink-0 max-w-full">
+                <span className="text-[8px] font-black text-zinc-500 uppercase tracking-widest mr-2 shrink-0">Platform:</span>
+                {/* All button */}
+                <button aria-label="button" type="button"
+                  onClick={() => handlePlatformChange('All')}
+                  className={`shrink-0 px-3 py-1.5 rounded-xl text-[9px] font-black uppercase tracking-widest transition-all border ${filter === 'All'
+                    ? 'bg-white/10 text-white border-white/20 shadow-[0_0_15px_rgba(255,255,255,0.05)]'
+                    : 'text-zinc-400 border-transparent hover:text-zinc-200 hover:bg-white/5'
+                    }`}
+                >
+                  All ({games.length})
+                </button>
+                {/* Per-platform filters */}
+                {platforms.map(p => {
+                  const style = getPlatformStyle(p);
+                  const count = games.filter(g => g.platform === p).length;
+                  return (
+                    <button aria-label="button" type="button"
+                      key={p}
+                      onClick={() => handlePlatformChange(p)}
+                      className={`shrink-0 px-3 py-1.5 rounded-xl text-[9px] font-black uppercase tracking-widest transition-all border ${filter === p
+                        ? `${style.bg} ${style.text} ${style.border} shadow-lg`
+                        : 'text-zinc-400 border-transparent hover:text-zinc-200 hover:bg-white/5'
+                        }`}
                     >
-                      {t.label} ({t.count})
+                      {getPlatformLabel(p)} ({count})
                     </button>
-                  ))}
-                </div>
-
-                {/* Platform pills */}
-                <div className="flex flex-nowrap gap-1.5 items-center overflow-x-auto no-scrollbar shrink-0 max-w-full">
-                  <span className="text-[8px] font-black text-zinc-500 uppercase tracking-widest mr-1 shrink-0">Platform:</span>
-                  <button aria-label="button" type="button"
-                    onClick={() => handlePlatformChange('All')}
-                    className={`shrink-0 px-2.5 py-1 rounded-xl text-[8.5px] font-black uppercase tracking-widest transition-all border cursor-pointer ${filter === 'All'
-                      ? 'bg-white/10 text-white border-white/20 shadow-[0_0_15px_rgba(255,255,255,0.05)]'
-                      : 'text-zinc-400 border-transparent hover:text-zinc-200 hover:bg-white/5'
-                      }`}
-                  >
-                    All
-                  </button>
-                  {platforms.map(p => {
-                    const style = getPlatformStyle(p);
-                    const count = games.filter(g => g.platform === p).length;
-                    return (
-                      <button aria-label="button" type="button"
-                        key={p}
-                        onClick={() => handlePlatformChange(p)}
-                        className={`shrink-0 px-2.5 py-1 rounded-xl text-[8.5px] font-black uppercase tracking-widest transition-all border cursor-pointer ${filter === p
-                          ? `${style.bg} ${style.text} ${style.border} shadow-lg`
-                          : 'text-zinc-400 border-transparent hover:text-zinc-200 hover:bg-white/5'
-                          }`}
-                      >
-                        {getPlatformLabel(p)} ({count})
-                      </button>
-                    );
-                  })}
-                </div>
+                  );
+                })}
               </div>
 
-              {/* Search & Toggle Filters — always on own row, full width */}
-              <div className="flex items-center gap-3 w-full">
-                <div className="flex-1 relative min-w-0">
+              {/* Search & Toggle Filters */}
+              <div className="w-full lg:max-w-md flex items-center gap-3">
+                <div className="flex-1 relative">
                   <Search className="absolute left-3.5 top-1/2 -translate-y-1/2 w-3.5 h-3.5 text-zinc-500" />
                   <input
                     type="text"
@@ -1239,14 +893,7 @@ const GamesLibraryContent: React.FC<GamesPageProps> = ({ state, sendCommand, set
             <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 2xl:grid-cols-4 gap-5">
               <AnimatePresence mode="popLayout">
                 {filteredGames.map((game, i) => (
-                  <GameCard
-                    key={`${game.id}-${i}`}
-                    game={game}
-                    sendCommand={sendCommand}
-                    isRtxGpu={isRtxGpu}
-                    isNvidiaGpu={isNvidiaGpu}
-                    onOpenInstallations={setInstallationsModal}
-                  />
+                  <GameCard key={`${game.id}-${i}`} game={game} sendCommand={sendCommand} isRtxGpu={isRtxGpu} isNvidiaGpu={isNvidiaGpu} />
                 ))}
               </AnimatePresence>
             </div>
@@ -1268,37 +915,6 @@ const GamesLibraryContent: React.FC<GamesPageProps> = ({ state, sendCommand, set
           )}
         </>
       )}
-
-
-      {/* Node Manager Modal */}
-      <AnimatePresence>
-        {showNodeManager && <NodeManagerModal onClose={() => setShowNodeManager(false)} sendCommand={sendCommand} />}
-      </AnimatePresence>
-
-      {/* Discover Games Modal */}
-      <AnimatePresence>
-        {showDiscoverModal && (
-          <DiscoverGamesModal
-            onClose={() => setShowDiscoverModal(false)}
-            onGameAdded={() => {
-              // Refresh or signal update
-            }}
-          />
-        )}
-      </AnimatePresence>
-
-      {/* Game Installations Modal */}
-      <AnimatePresence>
-        {installationsModal && (
-          <GameInstallationsModal
-            gameTitle={installationsModal.title}
-            coverUrl={installationsModal.coverUrl}
-            primaryGenre={installationsModal.primaryGenre}
-            installations={installationsModal.installations}
-            onClose={() => setInstallationsModal(null)}
-          />
-        )}
-      </AnimatePresence>
     </div>
   );
 };
