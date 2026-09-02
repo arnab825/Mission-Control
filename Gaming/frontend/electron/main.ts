@@ -2222,7 +2222,10 @@ function setupAutoUpdater() {
   function downloadDirectUpdatePayload(downloadUrl: string, version: string): Promise<string> {
     return new Promise((resolve, reject) => {
       directDownloadAborted = false;
-      const updaterDir = path.join(app.getPath('userData'), '../mission-control-updater/pending');
+      const localAppData = process.env.LOCALAPPDATA || '';
+      const updaterDir = (process.platform === 'win32' && localAppData)
+        ? path.join(localAppData, 'mission-control-updater', 'pending')
+        : path.join(app.getPath('userData'), '../mission-control-updater/pending');
       try { fs.mkdirSync(updaterDir, { recursive: true }); } catch (_) {}
       
       const fileName = path.basename(downloadUrl.split('?')[0]) || 'MissionControl-Setup.exe';
@@ -2405,12 +2408,22 @@ function setupAutoUpdater() {
         console.log(`[AutoUpdater] Clearing stale update state for v${savedState.version} (current: v${app.getVersion()})`);
         saveUpdateState({ status: 'idle', percent: 0 });
         activeDirectInstallerPath = null;
-        try {
-          const stalePendingDir = path.join(app.getPath('userData'), '../mission-control-updater/pending');
-          if (fs.existsSync(stalePendingDir)) {
-            fs.rmSync(stalePendingDir, { recursive: true, force: true });
-          }
-        } catch (_) {}
+        const localAppData = process.env.LOCALAPPDATA || '';
+        const pendingDirsToClean = [
+          path.join(localAppData, 'mission-control-updater', 'pending'),
+          path.join(localAppData, 'mission-control-frontend-updater'),
+          path.join(app.getPath('userData'), '../mission-control-updater/pending'),
+          path.join(app.getPath('userData'), '../mission-control-frontend-updater'),
+          path.join(app.getPath('userData'), '..', 'mission-control-updater', 'pending'),
+          path.join(app.getPath('userData'), '..', 'mission-control-frontend-updater')
+        ];
+        for (const dir of pendingDirsToClean) {
+          try {
+            if (dir && fs.existsSync(dir)) {
+              fs.rmSync(dir, { recursive: true, force: true });
+            }
+          } catch (_) {}
+        }
       }
     }
   } catch (_) {}
@@ -2692,17 +2705,39 @@ function setupAutoUpdater() {
 
       // 5. Check for any downloaded/staged installer on disk
       const localAppData = process.env.LOCALAPPDATA || '';
-      const candidateInstallers = [
-        activeDirectInstallerPath,
-        path.join(localAppData, 'mission-control-frontend-updater', 'pending', 'MissionControl-Setup.exe'),
-        path.join(localAppData, 'mission-control-updater', 'pending', 'MissionControl-Setup.exe'),
-        path.join(app.getPath('userData'), '..', 'mission-control-frontend-updater', 'pending', 'MissionControl-Setup.exe'),
-        path.join(app.getPath('userData'), '..', 'mission-control-updater', 'pending', 'MissionControl-Setup.exe')
-      ];
+      // Clean up legacy mission-control-frontend-updater immediately to avoid stale version hijacking
+      try {
+        const legacyDirs = [
+          path.join(localAppData, 'mission-control-frontend-updater'),
+          path.join(app.getPath('userData'), '..', 'mission-control-frontend-updater')
+        ];
+        for (const ld of legacyDirs) {
+          if (ld && fs.existsSync(ld)) {
+            fs.rmSync(ld, { recursive: true, force: true });
+          }
+        }
+      } catch (_) {}
 
-      const existingInstaller = candidateInstallers.find(p => p && fs.existsSync(p));
+      // Prioritize the official configured updaterCacheDirName (mission-control-updater)
+      const rawCandidates = [
+        activeDirectInstallerPath,
+        path.join(localAppData, 'mission-control-updater', 'pending', 'MissionControl-Setup.exe'),
+        path.join(app.getPath('userData'), '..', 'mission-control-updater', 'pending', 'MissionControl-Setup.exe'),
+        path.join(app.getPath('userData'), '../mission-control-updater/pending', 'MissionControl-Setup.exe')
+      ].filter((p): p is string => Boolean(p && fs.existsSync(p)));
+
+      // If multiple candidates exist, sort by newest modification time so the most recently downloaded build wins
+      rawCandidates.sort((a, b) => {
+        try {
+          return fs.statSync(b).mtimeMs - fs.statSync(a).mtimeMs;
+        } catch (_) {
+          return 0;
+        }
+      });
+
+      const existingInstaller = rawCandidates[0];
       if (existingInstaller) {
-        console.log(`[AutoUpdater] Launching verified installer executable: ${existingInstaller}`);
+        console.log(`[AutoUpdater] Launching verified newest installer executable: ${existingInstaller}`);
         try {
           spawn('cmd.exe', ['/c', 'start', '""', existingInstaller], {
             detached: true,
