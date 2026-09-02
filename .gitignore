@@ -50,6 +50,7 @@ data/*.db*
 Gaming/distributed_server/data/
 Gaming/distributed_node/data/
 Gaming/backend/data/ai_gaming_assistant.lock
+Gaming/backend/config/games_db_user_*.json
 
 # ── ML model weights (large binary — share separately) ──────────────
 Gaming/backend/models/*.pt

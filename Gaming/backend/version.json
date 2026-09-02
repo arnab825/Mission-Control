@@ -1,8 +1,21 @@
 {
-  "version": "3.4.5",
+  "version": "3.4.6",
   "release_date": "2026-09-02",
   "update_check_url": "https://raw.githubusercontent.com/arnab825/Mission-Control/main/Gaming/backend/version.json",
   "changelog": [
+    {
+      "version": "3.4.6",
+      "date": "2026-09-02",
+      "title": "Library Features Restoration, Official Launcher Logos & Scanner Resilience",
+      "highlights": [
+        "Restored official vector launcher logos for EA App, Epic Games, Xbox, Battle.net, PlayStation, and Ubisoft Connect",
+        "Moved Discover from Web and Node Manager to persistent top action bar for 100% offline & local accessibility",
+        "Surfaced quick Type filter (All, Games, Launchers) directly on top filter bar",
+        "Integrated hardware feature badges (DLSS, Frame Gen, RTX, Reflex, HDR, FSR) and node installation viewer on GameCard",
+        "Hardened game scanner with atomic cache writing and corrupt cache auto-recovery",
+        "Normalized en-dashes and added 64-bit Steam paths in local common discovery"
+      ]
+    },
     {
       "version": "3.4.5",
       "date": "2026-09-02",
