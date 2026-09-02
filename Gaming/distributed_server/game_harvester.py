@@ -89,8 +89,8 @@ class SteamHarvester:
             results.append({
                 "title": name,
                 "slug": _slugify(name),
-                "cover_url": f"https://shared.akamai.steamstatic.com/store_item_assets/steam/apps/{appid}/library_600x900_2x.jpg",
-                "banner_url": f"https://shared.akamai.steamstatic.com/store_item_assets/steam/apps/{appid}/library_hero.jpg",
+                "cover_url": f"https://cdn.akamai.steamstatic.com/steam/apps/{appid}/header.jpg",
+                "banner_url": f"https://cdn.akamai.steamstatic.com/steam/apps/{appid}/header.jpg",
                 "developer": None,
                 "publisher": None,
                 "release_date": None,
@@ -132,14 +132,16 @@ class SteamHarvester:
         if not platforms:
             platforms = ["Windows"]
 
+        header_img = d.get("header_image") or f"https://cdn.akamai.steamstatic.com/steam/apps/{appid}/header.jpg"
+
         return {
             "title": d.get("name"),
             "slug": _slugify(d.get("name", "")),
             "developer": (d.get("developers") or [None])[0],
             "publisher": (d.get("publishers") or [None])[0],
             "release_date": d.get("release_date", {}).get("date"),
-            "cover_url": f"https://shared.akamai.steamstatic.com/store_item_assets/steam/apps/{appid}/library_600x900_2x.jpg",
-            "banner_url": f"https://shared.akamai.steamstatic.com/store_item_assets/steam/apps/{appid}/library_hero.jpg",
+            "cover_url": header_img,
+            "banner_url": header_img,
             "summary": _clean_text(d.get("short_description", "")),
             "genres": genres,
             "raw_tags": raw_tags,
@@ -167,8 +169,8 @@ class SteamHarvester:
             results.append({
                 "title": name,
                 "slug": _slugify(name),
-                "cover_url": f"https://shared.akamai.steamstatic.com/store_item_assets/steam/apps/{appid}/library_600x900_2x.jpg",
-                "banner_url": f"https://shared.akamai.steamstatic.com/store_item_assets/steam/apps/{appid}/library_hero.jpg",
+                "cover_url": f"https://cdn.akamai.steamstatic.com/steam/apps/{appid}/header.jpg",
+                "banner_url": f"https://cdn.akamai.steamstatic.com/steam/apps/{appid}/header.jpg",
                 "developer": item.get("developer"),
                 "publisher": item.get("publisher"),
                 "release_date": None,

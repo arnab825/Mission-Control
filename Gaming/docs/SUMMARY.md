@@ -82,7 +82,8 @@ graph TD
 
 | Version | Key Feature / Change Description |
 | :--- | :--- |
-| **v3.4.3 (Latest)** | **Distributed Fleet Command & Node Management** — Enabled full local host node discovery and real-time disk storage metrics. |
+| **v3.4.4 (Latest)** | **NodeSync Lock Fix, Post-Update Clerk Auth Stability & Image Fallbacks** — Resolved NodeSync background daemon _reg_lock AttributeError in LibraryNodeService |
+| **v3.4.3** | **Distributed Fleet Command & Node Management** — Enabled full local host node discovery and real-time disk storage metrics. |
 | **v3.4.2** | **Multi-Launcher Support, Omni-Search & Dynamic AI Resolver** — Added EA App, Ubisoft Connect, PlayStation PC, Rockstar Games, and Battle.net launcher support. |
 | **v3.4.1** | **Fix OpenCV in-memory loader and enable Gaming Readiness assessment system** — Implement zero-disk in-memory fallback loader for OpenCV to prevent missing config crashes on read-only installations. |
 | **v3.4.0** | **Upgrade Discover with Live Steam, Epic, GOG, Xbox Game Pass & Breaking News Intelligence** — Upgrade Discover with Live Steam, Epic, GOG, Xbox Game Pass & Breaking News Intelligence. |

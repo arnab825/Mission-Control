@@ -545,6 +545,12 @@ export default function Home() {
                 <img
                   src={game.coverImage}
                   alt={game.name}
+                  onError={(e) => {
+                    const target = e.target as HTMLImageElement;
+                    if (target.src !== "/images/game-placeholder.png") {
+                      target.src = "/images/game-placeholder.png";
+                    }
+                  }}
                   className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
                 />
                 <div className="absolute inset-0 bg-linear-to-t from-[#0b0c10] via-[#0b0c10]/50 to-black/30" />

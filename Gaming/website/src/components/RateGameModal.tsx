@@ -160,7 +160,7 @@ export default function RateGameModal({
       gpuLoad: "100%",
       latency: "10 ms",
       api: "DX12",
-      coverImage: "/games/game-placeholder.webp",
+      coverImage: "/images/game-placeholder.png",
     });
     setCustomGameName(trimmed);
     setGameSearchQuery("");
@@ -422,7 +422,9 @@ export default function RateGameModal({
                         alt={selectedGame.name}
                         className="w-full h-full object-cover"
                         onError={(e: any) => {
-                          e.target.src = "/games/SpiderMan_SS1.webp";
+                          if (e.target.src !== "/images/game-placeholder.png") {
+                            e.target.src = "/images/game-placeholder.png";
+                          }
                         }}
                       />
                     </div>
@@ -488,7 +490,9 @@ export default function RateGameModal({
                                 alt={game.name}
                                 className="w-full h-full object-cover group-hover:scale-105 transition-transform"
                                 onError={(e: any) => {
-                                  e.target.src = "/games/SpiderMan_SS1.webp";
+                                  if (e.target.src !== "/images/game-placeholder.png") {
+                                    e.target.src = "/images/game-placeholder.png";
+                                  }
                                 }}
                               />
                             </div>

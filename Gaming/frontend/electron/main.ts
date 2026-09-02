@@ -753,8 +753,9 @@ let localServerPort = 0
 // Fixed port for the local UI server — must be stable across restarts so Clerk's
 // localStorage origin (http://127.0.0.1:43221) never changes and sessions persist.
 const FIXED_UI_PORT = 43221;
+let localHttpServer: http.Server | null = null;
 
-function startLocalServer(distPath: string, port = FIXED_UI_PORT, retries = 3): Promise<number> {
+function startLocalServer(distPath: string, port = FIXED_UI_PORT, retries = 5): Promise<number> {
   return new Promise((resolve) => {
     try {
       const server = http.createServer((req, res) => {
@@ -803,9 +804,13 @@ function startLocalServer(distPath: string, port = FIXED_UI_PORT, retries = 3): 
 
       server.on('error', (err: any) => {
         if ((err as any).code === 'EADDRINUSE' && retries > 0) {
-          console.warn(`[Electron Server] Port ${port} in use, retrying on ${port + 1}...`);
-          server.close();
-          resolve(startLocalServer(distPath, port + 1, retries - 1));
+          console.warn(`[Electron Server] Port ${port} in use (e.g. previous instance closing or TIME_WAIT). Retrying port ${port} in 500ms (${retries} retries left)...`);
+          try {
+            server.close();
+          } catch (_) {}
+          setTimeout(() => {
+            resolve(startLocalServer(distPath, port, retries - 1));
+          }, 500);
         } else {
           console.error('[Electron Server] Server error occurred:', err);
           resolve(0);
@@ -815,6 +820,7 @@ function startLocalServer(distPath: string, port = FIXED_UI_PORT, retries = 3): 
       server.listen(port, '127.0.0.1', () => {
         const addr = server.address();
         const p = typeof addr === 'string' ? port : (addr ? addr.port : 0);
+        localHttpServer = server;
         console.log(`[Electron] Production local server running at http://127.0.0.1:${p}`)
         resolve(p);
       })
@@ -1151,6 +1157,14 @@ app.on('before-quit', () => {
   if (telemetryWorker) {
     try { telemetryWorker.terminate(); } catch (_) { }
     telemetryWorker = null;
+  }
+  // Clean up local UI HTTP server so port FIXED_UI_PORT (43221) is freed immediately
+  if (localHttpServer) {
+    try {
+      localHttpServer.close();
+      (localHttpServer as any).closeAllConnections?.();
+    } catch (_) { }
+    localHttpServer = null;
   }
   if (pythonProcess && pythonProcess.pid) {
     console.log('[Electron] Killing Python backend process tree...')
@@ -2576,6 +2590,16 @@ function setupAutoUpdater() {
       if (tray && !tray.isDestroyed()) {
         try { tray.destroy(); } catch (_) { }
         tray = null;
+      }
+
+      // 4b. Clean up local UI HTTP server immediately so port FIXED_UI_PORT (43221) is freed for the updated instance
+      if (localHttpServer) {
+        console.log('[AutoUpdater] Closing local UI HTTP server before update execution...');
+        try {
+          localHttpServer.close();
+          (localHttpServer as any).closeAllConnections?.();
+        } catch (_) { }
+        localHttpServer = null;
       }
 
       // 5. Check for any downloaded/staged installer on disk
