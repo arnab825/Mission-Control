@@ -2,6 +2,10 @@
 
 This document contains a detailed history of all patches and updates for the AI Gaming Assistant.
 
+### Patch: 2026-09-03 — v3.4.8: Fixed launcher icons and cleaned CSS warnings
+
+- Fixed launcher icons and cleaned CSS warnings
+
 ### Patch: 2026-09-02 — v3.4.7: Fixed launcher icons and cleaned CSS warnings
 
 - Fixed launcher icons and cleaned CSS warnings
