@@ -440,13 +440,20 @@ class GameScanner:
         # --- 1. Local JSON cache (Instant NVMe read) ---
         if self.cache_file.exists():
             try:
-                with open(self.cache_file, "r", encoding="utf-8") as f:
-                    cached_json = json.load(f)
-                    if isinstance(cached_json, list) and len(cached_json) > 0:
-                        games = cached_json
-                        logger.debug("Loaded %d games instantly from local JSON cache", len(games))
+                if self.cache_file.stat().st_size == 0:
+                    self.cache_file.unlink(missing_ok=True)
+                else:
+                    with open(self.cache_file, "r", encoding="utf-8") as f:
+                        cached_json = json.load(f)
+                        if isinstance(cached_json, list) and len(cached_json) > 0:
+                            games = cached_json
+                            logger.debug("Loaded %d games instantly from local JSON cache", len(games))
             except Exception as exc:
                 logger.debug("Local JSON cache read error: %s", exc)
+                try:
+                    self.cache_file.unlink(missing_ok=True)
+                except Exception:
+                    pass
 
         # Fallback to master/machine games_db.json if user cache is empty/missing
         if not games:
@@ -550,8 +557,9 @@ class GameScanner:
                 if not isinstance(g, dict) or not (g.get("name") or g.get("title")):
                     continue
                 name = g.get("name") or g.get("title", "")
-                for symbol in ["™", "®", "\u2122", "\u00ae"]:
+                for symbol in ["™", "®", "\u2122", "\u00ae", "\x99"]:
                     name = name.replace(symbol, "")
+                name = name.replace("–", "-").replace("—", "-").replace("\x96", "-").replace("\u2013", "-").replace("\u2014", "-")
                 name = " ".join(name.split())
                 
                 # Dynamically resolve official commercial title from executable binary metadata
@@ -599,10 +607,12 @@ class GameScanner:
                 logger.warning("Failed to delete plaintext JSON cache: %s", exc)
         else:
             try:
-                with open(self.cache_file, "w", encoding="utf-8") as f:
+                tmp_cache = self.cache_file.with_suffix(".tmp")
+                with open(tmp_cache, "w", encoding="utf-8") as f:
                     json.dump(games, f, indent=2)
-            except Exception:
-                pass
+                tmp_cache.replace(self.cache_file)
+            except Exception as exc:
+                logger.debug("Failed to write JSON cache atomically: %s", exc)
 
     def _detect_features(self, game_path):
         """Check for NVIDIA technologies and HDR in the game files."""
@@ -885,6 +895,7 @@ class GameScanner:
                 name = g["name"]
                 for symbol in ["™", "®", "\u2122", "\u00ae", "\x99"]:
                     name = name.replace(symbol, "")
+                name = name.replace("–", "-").replace("—", "-").replace("\x96", "-").replace("\u2013", "-").replace("\u2014", "-")
                 g["name"] = " ".join(name.split())
 
                 name_lower_clean = g["name"].lower().strip()
@@ -2601,6 +2612,7 @@ class GameScanner:
             ("EA Desktop", r"C:\Program Files\Electronic Arts\EA Desktop\EA Desktop\EA Launcher.exe"),
             ("Ubisoft Connect", r"C:\Program Files (x86)\Ubisoft\Ubisoft Game Launcher\UbisoftConnect.exe"),
             ("Steam", r"C:\Program Files (x86)\Steam\steam.exe"),
+            ("Steam", r"C:\Program Files\Steam\steam.exe"),
             ("Epic Games", r"C:\Program Files (x86)\Epic Games\Launcher\Portal\Binaries\Win64\EpicGamesLauncher.exe"),
             ("Epic Games", r"C:\Program Files\Epic Games\Launcher\Portal\Binaries\Win64\EpicGamesLauncher.exe"),
             ("Battle.net", r"C:\Program Files (x86)\Battle.net\Battle.net.exe"),
@@ -2618,7 +2630,10 @@ class GameScanner:
                         "platform": name,
                         "id": f"fallback_{name.lower().replace(' ', '_')}",
                         "install_path": str(path.parent),
-                        "exe_path": str(path)
+                        "exe_path": str(path),
+                        "type": "LAUNCHER",
+                        "genre": "PLATFORM",
+                        "tags": ["SYSTEM"]
                     })
 
     def _scan_common_paths(self):
@@ -2634,6 +2649,7 @@ class GameScanner:
             "Origin Games", "EA Games", "Riot Games", "Battle.net", 
             "Program Files\\Games", "Program Files (x86)\\Games",
             "Program Files\\EA Games", "Program Files (x86)\\Origin Games",
+            "Program Files\\Steam\\steamapps\\common", "Program Files (x86)\\Steam\\steamapps\\common",
             "XboxGames"
         ]
         
