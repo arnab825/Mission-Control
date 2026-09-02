@@ -2,6 +2,10 @@
 
 This document contains a detailed history of all patches and updates for the AI Gaming Assistant.
 
+### Patch: 2026-09-02 — v3.4.7: Fixed launcher icons and cleaned CSS warnings
+
+- Fixed launcher icons and cleaned CSS warnings
+
 ### Patch: 2026-09-01 — v3.4.3: Distributed Fleet Command & Node Management
 
 - Enabled full local host node discovery and real-time disk storage metrics

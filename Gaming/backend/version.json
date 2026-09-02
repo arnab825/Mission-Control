@@ -1,8 +1,16 @@
 {
-  "version": "3.4.6",
+  "version": "3.4.7",
   "release_date": "2026-09-02",
   "update_check_url": "https://raw.githubusercontent.com/arnab825/Mission-Control/main/Gaming/backend/version.json",
   "changelog": [
+    {
+      "version": "3.4.7",
+      "date": "2026-09-02",
+      "title": "Fixed launcher icons and cleaned CSS warnings",
+      "highlights": [
+        "Fixed launcher icons and cleaned CSS warnings"
+      ]
+    },
     {
       "version": "3.4.6",
       "date": "2026-09-02",
@@ -472,42 +480,6 @@
       "title": "Fixes some issue",
       "highlights": [
         "Fixes some issue"
-      ]
-    },
-    {
-      "version": "2.9.8",
-      "date": "2026-08-12",
-      "title": "Release v2.9.6: Fix Alienware CPU thermal telemetry & add Linux build targets",
-      "highlights": [
-        "Release v2.9.6: Fix Alienware CPU thermal telemetry & add Linux build targets"
-      ]
-    },
-    {
-      "version": "2.9.7",
-      "date": "2026-08-12",
-      "title": "Release v2.9.6: Fix Alienware CPU thermal telemetry & add Linux build targets",
-      "highlights": [
-        "Release v2.9.6: Fix Alienware CPU thermal telemetry & add Linux build targets"
-      ]
-    },
-    {
-      "version": "2.9.6",
-      "date": "2026-08-12",
-      "title": "Fix Alienware CPU thermal telemetry & add Linux build targets",
-      "highlights": [
-        "Fixed UnboundLocalError _PS_THERMAL_FAILED scope in thermal telemetry helper",
-        "Added Linux AppImage, deb, rpm, tar.gz cross-platform packaging target",
-        "Optimized website performance and mobile chatbot UI layout"
-      ]
-    },
-    {
-      "version": "2.9.5",
-      "date": "2026-08-12",
-      "title": "Fix Alienware CPU thermal telemetry & add Linux build targets",
-      "highlights": [
-        "Fixed UnboundLocalError _PS_THERMAL_FAILED scope in thermal telemetry helper",
-        "Added Linux AppImage, deb, rpm, tar.gz cross-platform packaging target",
-        "Optimized website performance and mobile chatbot UI layout"
       ]
     }
   ]
