@@ -12,7 +12,27 @@ Comprehensive breakdown of major milestone releases, architectural upgrades, and
 
 ---
 
-## 🌟 Version v3.4.7 (Latest) — Fixed launcher icons and cleaned CSS warnings
+## 🌟 Version v3.4.8 (Latest) — Fixed launcher icons and cleaned CSS warnings
+
+### 🛠️ Key Highlights
+1. **Fixed launcher icons and cleaned CSS warnings**
+
+### 📊 Architecture & Data Flow
+```mermaid
+graph TD
+    A["Mobile Client / DevTools (320px+)"] --> B[Responsive CSS & Layout Container]
+    B --> C[DocsClient Component & Cards]
+    C --> D[MobileDocsSidebar Drawer & Header Bar]
+    D --> E[Real-Time Mongo Telemetry & Render]
+```
+
+### 📦 Distribution Artifacts
+- **Linux**: `.deb` (Debian/Ubuntu), `.AppImage` (Universal), `.rpm` (Fedora/RHEL), `.tar.gz` (Portable)
+- **Windows**: `.exe` (Setup Installer), `.msi` (Enterprise), `.zip` (Portable)
+
+---
+
+## 📦 Version v3.4.7 — Fixed launcher icons and cleaned CSS warnings
 
 ### 🛠️ Key Highlights
 1. **Fixed launcher icons and cleaned CSS warnings**
