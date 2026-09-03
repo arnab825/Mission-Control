@@ -12,7 +12,33 @@ Comprehensive breakdown of major milestone releases, architectural upgrades, and
 
 ---
 
-## 🌟 Version v3.4.9 (Latest) — Restored Discover from Web, Manage Nodes, and Fixed Library Unresponsiveness
+## 🌟 Version v3.5.0 (Latest) — Fixed Auto-Updater Stale Version Downloads, False Up-to-Date, and Upgrade Now UI Flash
+
+### 🛠️ Key Highlights
+1. **Fixed stale directUpdateInfo cache causing old version downloads when skipping multiple releases**
+2. **Fixed Upgrade Now button triggering a UI refresh flash by removing intermediate checking status**
+3. **Fixed Check Again falsely showing up to date due to electron-updater internal session cache**
+4. **Added GitHub Releases API cross-check fallback on manual update-not-available events**
+5. **Filtered pre-releases and sorted by semver descending in GitHub release resolver**
+6. **Always re-fetch latest GitHub release URL before download to prevent stale version hijacking**
+7. **Prevented native up-to-date status from overriding backend-confirmed available updates in React UI**
+
+### 📊 Architecture & Data Flow
+```mermaid
+graph TD
+    A["Mobile Client / DevTools (320px+)"] --> B[Responsive CSS & Layout Container]
+    B --> C[DocsClient Component & Cards]
+    C --> D[MobileDocsSidebar Drawer & Header Bar]
+    D --> E[Real-Time Mongo Telemetry & Render]
+```
+
+### 📦 Distribution Artifacts
+- **Linux**: `.deb` (Debian/Ubuntu), `.AppImage` (Universal), `.rpm` (Fedora/RHEL), `.tar.gz` (Portable)
+- **Windows**: `.exe` (Setup Installer), `.msi` (Enterprise), `.zip` (Portable)
+
+---
+
+## 📦 Version v3.4.9 — Restored Discover from Web, Manage Nodes, and Fixed Library Unresponsiveness
 
 ### 🛠️ Key Highlights
 1. **Restored persistent Discover from Web and Manage Nodes actions on Library header**
