@@ -48,30 +48,25 @@ export interface RatingStats {
 }
 
 /**
- * Ensures MongoDB is populated with initial verified benchmark profiles (admin-curated).
- * Community posts and user ratings are strictly user-generated without mock data.
+ * Ensures MongoDB is populated with initial seed benchmark profiles if not present.
+ * Database data is ALWAYS the first priority — existing database records are never
+ * overwritten or deleted by static seed definitions.
  */
 export async function ensureBenchmarksSeeded(): Promise<void> {
   try {
     await connectDB();
 
-    // Clean up any stale/deleted games not in BENCHMARK_PROFILES
-    const validIds = Object.keys(BENCHMARK_PROFILES);
-    await BenchmarkModel.deleteMany({ id: { $nin: validIds } });
-
-    // Sync/Upsert Admin Benchmark Profiles so new games are always present in MongoDB
-    const syncOps = Object.values(BENCHMARK_PROFILES).map((profile) => {
+    // Check existing benchmarks in database to ensure we do not overwrite database-first records
+    const seedOps = Object.values(BENCHMARK_PROFILES).map((profile) => {
       const summary = TESTED_GAMES_LIST.find((g) => g.id === profile.id);
       return BenchmarkModel.findOneAndUpdate(
         { id: profile.id },
         {
-          $set: {
+          $setOnInsert: {
             ...profile,
             coverImage: summary?.coverImage || `/games/${profile.id}.webp`,
             gameplayGif: summary?.gameplayGif || summary?.coverImage,
             keyTech: summary?.keyTech || ["DirectX 12", "Reflex", "DLSS"],
-          },
-          $setOnInsert: {
             averageRating: profile.score ? profile.score / 20 : 5.0,
             totalRatings: 0,
             recommendationRate: 100,
@@ -82,8 +77,7 @@ export async function ensureBenchmarksSeeded(): Promise<void> {
       );
     });
 
-    await Promise.all(syncOps);
-    console.log(`[MongoDB] Verified sync for ${syncOps.length} benchmark profiles.`);
+    await Promise.all(seedOps);
   } catch (error) {
     console.warn("[MongoDB] Benchmark profiles seed error (falling back to static defaults):", error);
   }

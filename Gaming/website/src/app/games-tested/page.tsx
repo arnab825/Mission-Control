@@ -39,11 +39,19 @@ import {
 } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 import { WINDOWS_INSTALLER_URL, LINUX_INSTALLER_URL, AUTO_DOWNLOAD_URL } from "@/lib/download";
-import { BENCHMARK_PROFILES, TESTED_GAMES_LIST, getBenchmarkProfileById, TestedGameSummary, BenchmarkProfile } from "@/data/benchmarks";
+import {
+  BENCHMARK_PROFILES,
+  TESTED_GAMES_LIST,
+  getBenchmarkProfileById,
+  TestedGameSummary,
+  BenchmarkProfile,
+  fetchBenchmarks as fetchLiveBenchmarks,
+  updateLiveBenchmarks,
+} from "@/data/benchmarks";
 import RateGameModal from "@/components/RateGameModal";
 
 export default function GamesTestedPage() {
-  const [selectedGameId, setSelectedGameId] = useState<string>("spiderman2");
+  const [selectedGameId, setSelectedGameId] = useState<string>(TESTED_GAMES_LIST[0]?.id || "firstlight");
   const [slideshowIndex, setSlideshowIndex] = useState<number | null>(null);
   const [isPlaying, setIsPlaying] = useState<boolean>(false);
   const [filterGenre, setFilterGenre] = useState<string>("ALL");
@@ -78,11 +86,12 @@ export default function GamesTestedPage() {
 
   const fetchBenchmarks = async () => {
     try {
-      const res = await fetch("/api/benchmarks");
-      if (res.ok) {
-        const data = await res.json();
-        if (data.profiles) setProfiles(data.profiles);
-        if (data.testedGames) setGamesList(data.testedGames);
+      const data = await fetchLiveBenchmarks();
+      if (data.profiles && Object.keys(data.profiles).length > 0) {
+        setProfiles(data.profiles);
+      }
+      if (data.testedGames && data.testedGames.length > 0) {
+        setGamesList(data.testedGames);
       }
     } catch (e) {
       console.warn("Failed to fetch live benchmarks from API:", e);
@@ -169,7 +178,7 @@ export default function GamesTestedPage() {
 
       const params = new URLSearchParams(window.location.search);
       const gameParam = params.get("game");
-      if (gameParam && TESTED_GAMES_LIST.some((g) => g.id === gameParam)) {
+      if (gameParam && (profiles[gameParam] || gamesList.some((g) => g.id === gameParam) || TESTED_GAMES_LIST.some((g) => g.id === gameParam))) {
         setSelectedGameId(gameParam);
       }
     }
@@ -263,7 +272,7 @@ export default function GamesTestedPage() {
     return Array.from(counts.entries()).sort((a, b) => b[1] - a[1]);
   }, [gamesList]);
 
-  // Filter and Sort Games (Optimized for 100,000+ games)
+  // Filter and Sort Games
   const filteredAndSortedGames = useMemo(() => {
     const q = searchQuery.trim().toLowerCase();
     const result = gamesList.filter((g) => {
@@ -327,11 +336,11 @@ export default function GamesTestedPage() {
           {/* Quick Metrics Pills */}
           <div className="grid grid-cols-2 sm:grid-cols-4 gap-2 sm:gap-3 pt-3 sm:pt-6 max-w-3xl mx-auto font-mono w-full">
             <div className="p-2.5 sm:p-3 rounded-xl sm:rounded-2xl bg-white/3 border border-white/10 text-center">
-              <div className="text-neon-green font-black text-lg sm:text-2xl truncate">100%</div>
+              <div className="text-neon-green font-black text-lg sm:text-2xl truncate">{featuredGame.score ? `${featuredGame.score}%` : "100%"}</div>
               <div className="text-gray-400 text-[9px] sm:text-[10px] uppercase font-bold tracking-wider truncate">Local Verified</div>
             </div>
             <div className="p-2.5 sm:p-3 rounded-xl sm:rounded-2xl bg-white/3 border border-white/10 text-center">
-              <div className="text-emerald-400 font-black text-lg sm:text-2xl truncate">DX12 / VK</div>
+              <div className="text-emerald-400 font-black text-lg sm:text-2xl truncate" title={featuredGame.api}>{featuredGame.api}</div>
               <div className="text-gray-400 text-[9px] sm:text-[10px] uppercase font-bold tracking-wider truncate">Render Engine</div>
             </div>
             <div className="p-2.5 sm:p-3 rounded-xl sm:rounded-2xl bg-white/3 border border-white/10 text-center">
@@ -443,7 +452,7 @@ export default function GamesTestedPage() {
               {/* Right Column: Screenshot Gallery Preview */}
               <div className="lg:col-span-7 space-y-3 sm:space-y-4">
                 <div className="text-[11px] sm:text-xs font-mono font-bold text-gray-300 uppercase tracking-wider flex items-center justify-between">
-                  <span>Captured 4K Screenshots</span>
+                  <span>Captured Telemetry Screenshots</span>
                   <span className="text-neon-green text-[10px] font-bold flex items-center gap-1">
                     <Play className="w-2.5 h-2.5 fill-neon-green" /> Interactive Slideshow
                   </span>
@@ -638,15 +647,31 @@ export default function GamesTestedPage() {
                         <span className="text-[10px] text-gray-400 font-bold uppercase block">Community Score</span>
                         <div className="flex items-baseline gap-1.5">
                           <span className="text-2xl sm:text-3xl font-black text-amber-400">
-                            {ratingStats?.averageRating ? ratingStats.averageRating.toFixed(1) : "4.9"}
+                            {ratingStats && ratingStats.totalRatings > 0
+                              ? ratingStats.averageRating.toFixed(1)
+                              : featuredGame.storeRating
+                              ? parseFloat(featuredGame.storeRating).toFixed(1)
+                              : (featuredGame.score ? (featuredGame.score / 20).toFixed(1) : "5.0")}
                           </span>
                           <span className="text-xs text-gray-500 font-bold">/ 5.0</span>
                         </div>
                         <div className="flex items-center gap-0.5 text-amber-400 text-xs">
-                          {"★".repeat(Math.floor(ratingStats?.averageRating || 5))}
-                          {"☆".repeat(5 - Math.floor(ratingStats?.averageRating || 5))}
+                          {(() => {
+                            const scoreNum = ratingStats && ratingStats.totalRatings > 0
+                              ? ratingStats.averageRating
+                              : featuredGame.storeRating
+                              ? parseFloat(featuredGame.storeRating)
+                              : (featuredGame.score ? featuredGame.score / 20 : 5);
+                            const fullStars = Math.min(5, Math.max(0, Math.floor(scoreNum)));
+                            return (
+                              <>
+                                {"★".repeat(fullStars)}
+                                {"☆".repeat(5 - fullStars)}
+                              </>
+                            );
+                          })()}
                           <span className="text-gray-400 text-[10px] ml-1">
-                            ({ratingStats?.totalRatings || reviews.length} logs)
+                            ({ratingStats?.totalRatings ?? reviews.length} logs)
                           </span>
                         </div>
                       </div>
@@ -654,7 +679,9 @@ export default function GamesTestedPage() {
                       <div className="p-4 rounded-2xl bg-white/3 border border-white/10 space-y-1">
                         <span className="text-[10px] text-gray-400 font-bold uppercase block">Recommendation</span>
                         <div className="text-2xl sm:text-3xl font-black text-neon-green">
-                          {ratingStats?.recommendationRate ?? 98}%
+                          {ratingStats && ratingStats.totalRatings > 0
+                            ? `${ratingStats.recommendationRate}%`
+                            : `${featuredGame.score || 100}%`}
                         </div>
                         <span className="text-[10px] text-gray-400 block truncate">
                           Verified with Mission Control
@@ -664,17 +691,21 @@ export default function GamesTestedPage() {
                       <div className="p-4 rounded-2xl bg-white/3 border border-white/10 space-y-1">
                         <span className="text-[10px] text-gray-400 font-bold uppercase block">Avg Community FPS</span>
                         <div className="text-2xl sm:text-3xl font-black text-emerald-400">
-                          {ratingStats?.avgReportedFps || 84} FPS
+                          {ratingStats && ratingStats.totalRatings > 0 && ratingStats.avgReportedFps > 0
+                            ? `${ratingStats.avgReportedFps} FPS`
+                            : featuredGame.testedSpecs.avgFps}
                         </div>
                         <span className="text-[10px] text-gray-400 block truncate">
-                          Captured across player rigs
+                          {ratingStats && ratingStats.totalRatings > 0 && ratingStats.avgReportedFps > 0
+                            ? "Captured across player rigs"
+                            : "Verified benchmark telemetry"}
                         </span>
                       </div>
 
                       <div className="p-4 rounded-2xl bg-white/3 border border-white/10 space-y-1">
                         <span className="text-[10px] text-gray-400 font-bold uppercase block">Telemetry Engine</span>
-                        <div className="text-base sm:text-lg font-bold text-white truncate">
-                          DirectX 12 / Vulkan
+                        <div className="text-base sm:text-lg font-bold text-white truncate" title={featuredGame.api}>
+                          {featuredGame.api}
                         </div>
                         <span className="text-[10px] text-neon-green block truncate">
                           Zero-Latency Local Overlay
@@ -931,7 +962,7 @@ export default function GamesTestedPage() {
                     setSearchQuery(e.target.value);
                     setVisibleCount(12);
                   }}
-                  placeholder="Search 100,000+ games..."
+                  placeholder={`Search ${gamesList.length} tested games...`}
                   className="w-full pl-9 pr-9 py-2 sm:py-2.5 bg-black/60 border border-white/15 focus:border-neon-green rounded-xl text-xs sm:text-sm font-mono text-white placeholder-gray-500 focus:outline-none transition-all"
                 />
                 {searchQuery && (
@@ -1138,7 +1169,7 @@ export default function GamesTestedPage() {
                           <Gamepad2 className="w-2.5 h-2.5 sm:w-3 sm:h-3 text-neon-green shrink-0" /> {game.genre.split('/')[0]}
                         </span>
                         <span className="text-[9px] sm:text-[10px] font-mono font-bold text-amber-300 bg-black/85 px-2 py-0.5 sm:px-2.5 sm:py-1 rounded-full border border-amber-400/30 uppercase backdrop-blur-md shadow-md shrink-0">
-                          {game.storeRating || "4.9 ★★★★★"}
+                          {game.storeRating || (profiles[game.id]?.storeRating) || "Verified"}
                         </span>
                       </div>
 
@@ -1148,7 +1179,7 @@ export default function GamesTestedPage() {
                           <Zap className="w-2.5 h-2.5 sm:w-3 sm:h-3 fill-neon-green shrink-0" /> {game.fps}
                         </span>
                         <span className="px-2 py-0.5 sm:px-2.5 sm:py-1 rounded-lg bg-black/80 border border-white/20 text-white text-[9px] sm:text-[10px] font-mono font-bold backdrop-blur-md truncate">
-                          {game.dlssVersion || "Verified DX12"}
+                          {game.dlssVersion || game.api || "Verified"}
                         </span>
                       </div>
                     </div>
@@ -1429,6 +1460,7 @@ export default function GamesTestedPage() {
           fetchBenchmarks();
         }}
         initialGameId={selectedGameId}
+        availableGames={gamesList}
       />
     </div>
   );

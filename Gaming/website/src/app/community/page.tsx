@@ -26,7 +26,7 @@ import {
 import { motion, AnimatePresence } from "framer-motion";
 import ReportModal from "@/components/ReportModal";
 import RateGameModal from "@/components/RateGameModal";
-import { TESTED_GAMES_LIST } from "@/data/benchmarks";
+import { TESTED_GAMES_LIST, TestedGameSummary, getLiveTestedGames, fetchBenchmarks } from "@/data/benchmarks";
 
 interface Issue {
   id: string;
@@ -95,6 +95,7 @@ export default function CommunityPage() {
     recommendationRate: 100,
     avgReportedFps: 0
   });
+  const [testedGames, setTestedGames] = useState<TestedGameSummary[]>(getLiveTestedGames());
 
   // Glitches / Issues State
   const [issues, setIssues] = useState<Issue[]>([]);
@@ -120,7 +121,7 @@ export default function CommunityPage() {
   const availableGenres = useMemo(() => {
     const genreMap = new Map<string, number>();
     
-    TESTED_GAMES_LIST.forEach((g) => {
+    testedGames.forEach((g) => {
       const parts = g.genre.split(/[\/,]/).map(s => s.trim()).filter(Boolean);
       parts.forEach(p => {
         genreMap.set(p, (genreMap.get(p) || 0) + 1);
@@ -128,6 +129,14 @@ export default function CommunityPage() {
     });
 
     return Array.from(genreMap.entries()).sort((a, b) => b[1] - a[1]);
+  }, [testedGames]);
+
+  useEffect(() => {
+    fetchBenchmarks().then((data) => {
+      if (data.testedGames && data.testedGames.length > 0) {
+        setTestedGames(data.testedGames);
+      }
+    }).catch(() => {});
   }, []);
 
   const scrollGenres = (dir: "left" | "right") => {
@@ -308,7 +317,7 @@ export default function CommunityPage() {
     if (ratingGenreFilter !== "ALL") {
       const gNorm = ratingGenreFilter.toLowerCase();
       list = list.filter((r) => {
-        const game = TESTED_GAMES_LIST.find(
+        const game = testedGames.find(
           (g) => g.id === r.gameId || g.name.toLowerCase() === r.gameName?.toLowerCase()
         );
         if (game) {
@@ -342,7 +351,7 @@ export default function CommunityPage() {
     }
 
     return list;
-  }, [reviews, ratingGenreFilter, ratingSearchQuery, ratingSortBy]);
+  }, [reviews, ratingGenreFilter, ratingSearchQuery, ratingSortBy, testedGames]);
 
   const processedIssues = useMemo(() => {
     return [...issues]
@@ -1100,7 +1109,8 @@ export default function CommunityPage() {
         isOpen={isRateModalOpen}
         onClose={() => setIsRateModalOpen(false)}
         onSuccess={fetchRatings}
-        initialGameId="spiderman2"
+        initialGameId={testedGames[0]?.id || "firstlight"}
+        availableGames={testedGames}
       />
     </main>
   );
