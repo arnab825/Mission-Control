@@ -12,7 +12,30 @@ Comprehensive breakdown of major milestone releases, architectural upgrades, and
 
 ---
 
-## 🌟 Version v3.4.8 (Latest) — Fixed launcher icons and cleaned CSS warnings
+## 🌟 Version v3.4.9 (Latest) — Restored Discover from Web, Manage Nodes, and Fixed Library Unresponsiveness
+
+### 🛠️ Key Highlights
+1. **Restored persistent Discover from Web and Manage Nodes actions on Library header**
+2. **Resolved UI unresponsiveness and telemetry re-render thrashing on Library page**
+3. **Restored multi-node Game Installations viewer, hardware tech badges, and quick type switcher**
+4. **Optimized fuzzy search indexing and safe local storage serialization**
+
+### 📊 Architecture & Data Flow
+```mermaid
+graph TD
+    A["Frontend React Library"] --> B["Library State Change Detector"]
+    B -->|Content Unchanged| C["Skip Re-render & Preserve 60 FPS"]
+    B -->|Content Changed| D["Instant Local Cache & Telemetry Sync"]
+    D --> E["Cluster Nodes & Web Discovery Hub"]
+```
+
+### 📦 Distribution Artifacts
+- **Linux**: `.deb` (Debian/Ubuntu), `.AppImage` (Universal), `.rpm` (Fedora/RHEL), `.tar.gz` (Portable)
+- **Windows**: `.exe` (Setup Installer), `.msi` (Enterprise), `.zip` (Portable)
+
+---
+
+## 📦 Version v3.4.8 — Fixed launcher icons and cleaned CSS warnings
 
 ### 🛠️ Key Highlights
 1. **Fixed launcher icons and cleaned CSS warnings**

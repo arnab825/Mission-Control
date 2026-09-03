@@ -82,7 +82,8 @@ graph TD
 
 | Version | Key Feature / Change Description |
 | :--- | :--- |
-| **v3.4.8 (Latest)** | **Fixed launcher icons and cleaned CSS warnings** — Fixed launcher icons and cleaned CSS warnings. |
+| **v3.4.9 (Latest)** | **Restored Discover from Web, Manage Nodes, and Fixed Library Unresponsiveness** — Restored persistent Discover from Web and Manage Nodes actions on Library header |
+| **v3.4.8** | **Fixed launcher icons and cleaned CSS warnings** — Fixed launcher icons and cleaned CSS warnings. |
 | **v3.4.7** | **Fixed launcher icons and cleaned CSS warnings** — Fixed launcher icons and cleaned CSS warnings. |
 | **v3.4.6** | **Library Features Restoration, Official Launcher Logos & Scanner Resilience** — Restored official vector launcher logos for EA App, Epic Games, Xbox, Battle.net, PlayStation, and Ubisoft Connect |
 | **v3.4.5** | **Distributed Fleet Scan Fixes, Real Host Telemetry & Catalog Asset Resilience** — Fixed 0 Games 0 B Storage issue with smart cache fallback to master database for Clerk users |
