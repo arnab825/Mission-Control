@@ -45,7 +45,7 @@ function Upload-FileWithCurl {
   $outputFile = [System.IO.Path]::GetTempFileName()
   try {
     $curlArgs = @(
-      "-sS",
+      "-#",
       "-X", "POST",
       $Uri,
       "-H", "Authorization: Bearer $Token",
@@ -175,7 +175,18 @@ function Upload-AssetWithRetry {
 
       $url = "${UploadBaseUrl}?name=${AssetName}"
       
-      # Try curl.exe first (native binary streaming with robust libcurl retries)
+      # Try .NET HttpWebRequest first with active chunked progress logs (keeps CI runner alive)
+      try {
+        $response = Upload-FileWithProgress -Uri $url -FilePath $FilePath -Headers $Headers -ContentType $ContentType
+        if ($response) {
+          Write-Host "$AssetName uploaded successfully." -ForegroundColor Green
+          return $response
+        }
+      } catch {
+        Write-Warning "Upload-FileWithProgress failed ($($_.Exception.Message)). Trying curl.exe fallback..."
+      }
+
+      # Fallback to curl.exe with progress bar
       if (Get-Command curl.exe -ErrorAction SilentlyContinue) {
         $authToken = if ($Token) { $Token } else { $Headers["Authorization"] -replace '^Bearer\s+', '' }
         $response = Upload-FileWithCurl -Uri $url -FilePath $FilePath -Token $authToken -ContentType $ContentType
@@ -184,11 +195,6 @@ function Upload-AssetWithRetry {
           return $response
         }
       }
-
-      # Fallback to .NET HttpWebRequest
-      $response = Upload-FileWithProgress -Uri $url -FilePath $FilePath -Headers $Headers -ContentType $ContentType
-      Write-Host "$AssetName uploaded successfully." -ForegroundColor Green
-      return $response
     } catch {
       Write-Warning "Attempt $attempt failed uploading ${AssetName}: $($_.Exception.Message)"
       if ($attempt -eq $MaxRetries) {
