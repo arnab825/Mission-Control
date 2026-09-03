@@ -2,6 +2,13 @@
 
 This document contains a detailed history of all patches and updates for the AI Gaming Assistant.
 
+### Patch: 2026-09-03 — v3.4.9: Restored Discover from Web, Manage Nodes, and Fixed Library Unresponsiveness
+
+- Restored persistent Discover from Web and Manage Nodes actions on Library header
+- Resolved UI unresponsiveness and telemetry re-render thrashing on Library page
+- Restored multi-node Game Installations viewer, hardware tech badges, and quick type switcher
+- Optimized fuzzy search indexing and safe local storage serialization
+
 ### Patch: 2026-09-03 — v3.4.8: Fixed launcher icons and cleaned CSS warnings
 
 - Fixed launcher icons and cleaned CSS warnings
