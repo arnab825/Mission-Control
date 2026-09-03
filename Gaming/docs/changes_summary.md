@@ -12,24 +12,31 @@ Comprehensive breakdown of major milestone releases, architectural upgrades, and
 
 ---
 
-## 🌟 Version v3.5.0 (Latest) — Fixed Auto-Updater Stale Version Downloads, False Up-to-Date, and Upgrade Now UI Flash
+## 🌟 Version v3.5.0 (Latest) — Auto-Updater Seamless Relaunch, Installer Elevation, and Stale Cache Fixes
 
 ### 🛠️ Key Highlights
-1. **Fixed stale directUpdateInfo cache causing old version downloads when skipping multiple releases**
-2. **Fixed Upgrade Now button triggering a UI refresh flash by removing intermediate checking status**
-3. **Fixed Check Again falsely showing up to date due to electron-updater internal session cache**
-4. **Added GitHub Releases API cross-check fallback on manual update-not-available events**
-5. **Filtered pre-releases and sorted by semver descending in GitHub release resolver**
-6. **Always re-fetch latest GitHub release URL before download to prevent stale version hijacking**
-7. **Prevented native up-to-date status from overriding backend-confirmed available updates in React UI**
+1. **Fixed auto-update restart deadlock where the application closed without installing or relaunching**
+2. **Configured elevated silent installation via elevate.exe and PowerShell with `/S --updated --force-run` flags**
+3. **Added multi-directory installer candidate resolution across `mission-control-updater` and legacy cache folders**
+4. **Eliminated premature cache cleanup that purged downloaded update installers prior to execution**
+5. **Added defensive update state validation to gracefully prompt re-download if staged installer is missing**
+6. **Fixed stale directUpdateInfo cache causing old version downloads when skipping multiple releases**
+7. **Fixed Upgrade Now button triggering a UI refresh flash by removing intermediate checking status**
+8. **Fixed Check Again falsely showing up to date due to electron-updater internal session cache**
+9. **Added GitHub Releases API cross-check fallback on manual update-not-available events**
+10. **Filtered pre-releases and sorted by semver descending in GitHub release resolver**
+11. **Always re-fetch latest GitHub release URL before download to prevent stale version hijacking**
+12. **Prevented native up-to-date status from overriding backend-confirmed available updates in React UI**
 
 ### 📊 Architecture & Data Flow
 ```mermaid
 graph TD
-    A["Mobile Client / DevTools (320px+)"] --> B[Responsive CSS & Layout Container]
-    B --> C[DocsClient Component & Cards]
-    C --> D[MobileDocsSidebar Drawer & Header Bar]
-    D --> E[Real-Time Mongo Telemetry & Render]
+    A["Renderer UI (Updates Page)"] -->|IPC: quit-and-install-update| B["Main Process (AutoUpdater)"]
+    B --> C{"Check Installer on Disk"}
+    C -->|Missing| D["Reset State to Available & Notify UI"]
+    C -->|Found| E["Close HTTP & Terminate Subprocesses"]
+    E --> F["Elevated Spawn: NSIS /S --updated --force-run"]
+    F --> G["NSIS Replaces Files & Relaunches App Cleanly"]
 ```
 
 ### 📦 Distribution Artifacts

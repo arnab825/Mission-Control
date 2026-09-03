@@ -74,6 +74,7 @@
     "build":  {
                   "appId":  "com.missioncontrol.app",
                   "productName":  "Mission Control",
+                  "updaterCacheDirName":  "mission-control-updater",
                   "compression":  "normal",
                   "publish":  {
                                   "provider":  "github",

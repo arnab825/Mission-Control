@@ -2,8 +2,13 @@
 
 This document contains a detailed history of all patches and updates for the AI Gaming Assistant.
 
-### Patch: 2026-09-03 — v3.5.0: Fixed Auto-Updater Stale Version Downloads, False Up-to-Date, and Upgrade Now UI Flash
+### Patch: 2026-09-03 — v3.5.0: Auto-Updater Seamless Relaunch, Installer Elevation, and Stale Cache Fixes
 
+- Fixed auto-update restart deadlock where the application closed without installing or relaunching
+- Configured elevated silent installation via elevate.exe and PowerShell with `/S --updated --force-run` flags
+- Added multi-directory installer candidate resolution across `mission-control-updater` and legacy cache folders
+- Eliminated premature cache cleanup that purged downloaded update installers prior to execution
+- Added defensive update state validation to gracefully prompt re-download if staged installer is missing
 - Fixed stale directUpdateInfo cache causing old version downloads when skipping multiple releases
 - Fixed Upgrade Now button triggering a UI refresh flash by removing intermediate checking status
 - Fixed Check Again falsely showing up to date due to electron-updater internal session cache

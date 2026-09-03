@@ -82,7 +82,7 @@ graph TD
 
 | Version | Key Feature / Change Description |
 | :--- | :--- |
-| **v3.5.0 (Latest)** | **Fixed Auto-Updater Stale Version Downloads, False Up-to-Date, and Upgrade Now UI Flash** — Fixed stale directUpdateInfo cache causing old version downloads when skipping multiple releases. |
+| **v3.5.0 (Latest)** | **Auto-Updater Seamless Relaunch, Installer Elevation, and Stale Cache Fixes** — Fixed auto-update restart deadlock, elevated silent install with auto-relaunch, and resolved stale directUpdateInfo cache. |
 | **v3.4.9** | **Restored Discover from Web, Manage Nodes, and Fixed Library Unresponsiveness** — Restored persistent Discover from Web and Manage Nodes actions on Library header |
 | **v3.4.8** | **Fixed launcher icons and cleaned CSS warnings** — Fixed launcher icons and cleaned CSS warnings. |
 | **v3.4.7** | **Fixed launcher icons and cleaned CSS warnings** — Fixed launcher icons and cleaned CSS warnings. |

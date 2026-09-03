@@ -6,8 +6,13 @@
     {
       "version": "3.5.0",
       "date": "2026-09-03",
-      "title": "Fixed Auto-Updater Stale Version Downloads, False Up-to-Date, and Upgrade Now UI Flash",
+      "title": "Auto-Updater Seamless Relaunch, Installer Elevation, and Stale Cache Fixes",
       "highlights": [
+        "Fixed auto-update restart deadlock where the application closed without installing or relaunching",
+        "Configured elevated silent installation via elevate.exe and PowerShell with /S --updated --force-run flags",
+        "Added multi-directory installer candidate resolution across mission-control-updater and legacy cache folders",
+        "Eliminated premature cache cleanup that purged downloaded update installers prior to execution",
+        "Added defensive update state validation to gracefully prompt re-download if staged installer is missing",
         "Fixed stale directUpdateInfo cache causing old version downloads when skipping multiple releases",
         "Fixed Upgrade Now button triggering a UI refresh flash by removing intermediate checking status",
         "Fixed Check Again falsely showing up to date due to electron-updater internal session cache",

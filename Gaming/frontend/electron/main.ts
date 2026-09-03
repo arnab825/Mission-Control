@@ -2366,6 +2366,52 @@ function setupAutoUpdater() {
     });
   }
 
+  function getCandidateInstallerPaths(): string[] {
+    const localAppData = process.env.LOCALAPPDATA || '';
+    const candidateDirs = [
+      activeDirectInstallerPath ? path.dirname(activeDirectInstallerPath) : null,
+      localAppData ? path.join(localAppData, 'mission-control-updater', 'pending') : null,
+      localAppData ? path.join(localAppData, 'mission-control-frontend-updater', 'pending') : null,
+      path.join(app.getPath('userData'), '..', 'mission-control-updater', 'pending'),
+      path.join(app.getPath('userData'), '..', 'mission-control-frontend-updater', 'pending'),
+      path.join(app.getPath('userData'), '../mission-control-updater/pending'),
+      path.join(app.getPath('userData'), '../mission-control-frontend-updater/pending'),
+    ].filter((d): d is string => Boolean(d && fs.existsSync(d)));
+
+    const candidates = new Set<string>();
+    if (activeDirectInstallerPath && fs.existsSync(activeDirectInstallerPath)) {
+      candidates.add(activeDirectInstallerPath);
+    }
+
+    for (const dir of candidateDirs) {
+      try {
+        const entries = fs.readdirSync(dir);
+        for (const entry of entries) {
+          if (entry.endsWith('.exe')) {
+            const fullPath = path.join(dir, entry);
+            try {
+              const stat = fs.statSync(fullPath);
+              if (stat.size > 10 * 1024 * 1024) {
+                candidates.add(fullPath);
+              }
+            } catch (_) {}
+          }
+        }
+      } catch (_) {}
+    }
+
+    const sorted = Array.from(candidates);
+    sorted.sort((a, b) => {
+      try {
+        return fs.statSync(b).mtimeMs - fs.statSync(a).mtimeMs;
+      } catch (_) {
+        return 0;
+      }
+    });
+
+    return sorted;
+  }
+
   function saveUpdateState(state: any) {
     try {
       fs.writeFileSync(UPDATE_STATE_PATH, JSON.stringify(state, null, 2), 'utf-8');
@@ -2378,7 +2424,22 @@ function setupAutoUpdater() {
     try {
       if (fs.existsSync(UPDATE_STATE_PATH)) {
         const data = fs.readFileSync(UPDATE_STATE_PATH, 'utf-8');
-        return JSON.parse(data);
+        const state = JSON.parse(data);
+        if (state.status === 'downloaded') {
+          const candidates = getCandidateInstallerPaths();
+          const hasElectronUpdaterFile = Boolean(
+            (autoUpdater as any).downloadedUpdateHelper?.file &&
+            fs.existsSync((autoUpdater as any).downloadedUpdateHelper.file)
+          );
+          if (candidates.length === 0 && !hasElectronUpdaterFile) {
+            console.warn('[AutoUpdater] Saved state is downloaded, but installer file is missing from disk. Resetting state to available.');
+            state.status = 'available';
+            state.percent = 0;
+            state.message = `Update v${state.version || app.getVersion()} available.`;
+            saveUpdateState(state);
+          }
+        }
+        return state;
       }
     } catch (err) {
       console.warn('[AutoUpdater] Failed to load update state:', err);
@@ -2425,11 +2486,11 @@ function setupAutoUpdater() {
         const localAppData = process.env.LOCALAPPDATA || '';
         const pendingDirsToClean = [
           path.join(localAppData, 'mission-control-updater', 'pending'),
-          path.join(localAppData, 'mission-control-frontend-updater'),
+          path.join(localAppData, 'mission-control-frontend-updater', 'pending'),
           path.join(app.getPath('userData'), '../mission-control-updater/pending'),
-          path.join(app.getPath('userData'), '../mission-control-frontend-updater'),
+          path.join(app.getPath('userData'), '../mission-control-frontend-updater/pending'),
           path.join(app.getPath('userData'), '..', 'mission-control-updater', 'pending'),
-          path.join(app.getPath('userData'), '..', 'mission-control-frontend-updater')
+          path.join(app.getPath('userData'), '..', 'mission-control-frontend-updater', 'pending')
         ];
         for (const dir of pendingDirsToClean) {
           try {
@@ -2700,16 +2761,37 @@ function setupAutoUpdater() {
   });
 
   ipcMain.on('quit-and-install-update', () => {
-    isAppQuitting = true;
     console.log('[AutoUpdater] Quitting and installing update...');
 
-    // 1. Immediately hide window so user doesn't experience a "(Not Responding)" freeze
+    // 1. Verify that a valid downloaded installer exists on disk before terminating services
+    const rawCandidates = getCandidateInstallerPaths();
+    const existingInstaller = rawCandidates[0];
+    const hasElectronUpdaterFile = Boolean(
+      (autoUpdater as any).downloadedUpdateHelper?.file &&
+      fs.existsSync((autoUpdater as any).downloadedUpdateHelper.file)
+    );
+
+    if (!existingInstaller && !hasElectronUpdaterFile) {
+      console.warn('[AutoUpdater] quit-and-install-update called but no installer file exists on disk.');
+      const state = {
+        status: 'available',
+        message: 'Update installer was not found on disk. Please download the update again.',
+        percent: 0,
+      };
+      saveUpdateState(state);
+      sendToAllWindows('electron-update-status', state);
+      return;
+    }
+
+    isAppQuitting = true;
+
+    // 2. Immediately hide window so user doesn't experience a "(Not Responding)" freeze
     if (win && !win.isDestroyed()) {
       try { win.hide(); } catch (_) { }
     }
 
     try {
-      // 2. Kill Python backend process tree immediately so NSIS does not hit file locks
+      // 3. Kill Python backend process tree immediately so NSIS does not hit file locks
       if (pythonProcess && pythonProcess.pid) {
         console.log('[AutoUpdater] Killing Python backend process tree before update...');
         if (process.platform === 'win32') {
@@ -2720,19 +2802,19 @@ function setupAutoUpdater() {
         pythonProcess = null;
       }
 
-      // 3. Terminate background telemetry worker thread
+      // 4. Terminate background telemetry worker thread
       if (telemetryWorker) {
         try { telemetryWorker.terminate(); } catch (_) { }
         telemetryWorker = null;
       }
 
-      // 4. Clean up system tray
+      // 5. Clean up system tray
       if (tray && !tray.isDestroyed()) {
         try { tray.destroy(); } catch (_) { }
         tray = null;
       }
 
-      // 4b. Clean up local UI HTTP server immediately so port FIXED_UI_PORT (43221) is freed for the updated instance
+      // 6. Clean up local UI HTTP server immediately so port FIXED_UI_PORT (43221) is freed for the updated instance
       if (localHttpServer) {
         console.log('[AutoUpdater] Closing local UI HTTP server before update execution...');
         try {
@@ -2742,67 +2824,57 @@ function setupAutoUpdater() {
         localHttpServer = null;
       }
 
-      // 5. Check for any downloaded/staged installer on disk
-      const localAppData = process.env.LOCALAPPDATA || '';
-      // Clean up legacy mission-control-frontend-updater immediately to avoid stale version hijacking
-      try {
-        const legacyDirs = [
-          path.join(localAppData, 'mission-control-frontend-updater'),
-          path.join(app.getPath('userData'), '..', 'mission-control-frontend-updater')
-        ];
-        for (const ld of legacyDirs) {
-          if (ld && fs.existsSync(ld)) {
-            fs.rmSync(ld, { recursive: true, force: true });
-          }
-        }
-      } catch (_) {}
-
-      // Prioritize the official configured updaterCacheDirName (mission-control-updater)
-      const rawCandidates = [
-        activeDirectInstallerPath,
-        path.join(localAppData, 'mission-control-updater', 'pending', 'MissionControl-Setup.exe'),
-        path.join(app.getPath('userData'), '..', 'mission-control-updater', 'pending', 'MissionControl-Setup.exe'),
-        path.join(app.getPath('userData'), '../mission-control-updater/pending', 'MissionControl-Setup.exe')
-      ].filter((p): p is string => Boolean(p && fs.existsSync(p)));
-
-      // If multiple candidates exist, sort by newest modification time so the most recently downloaded build wins
-      rawCandidates.sort((a, b) => {
-        try {
-          return fs.statSync(b).mtimeMs - fs.statSync(a).mtimeMs;
-        } catch (_) {
-          return 0;
-        }
-      });
-
-      const existingInstaller = rawCandidates[0];
+      // 7. Launch verified installer if present
       if (existingInstaller) {
-        console.log(`[AutoUpdater] Launching verified newest installer executable: ${existingInstaller}`);
+        console.log(`[AutoUpdater] Launching verified installer executable: ${existingInstaller}`);
         try {
-          spawn('cmd.exe', ['/c', 'start', '""', existingInstaller], {
-            detached: true,
-            stdio: 'ignore',
-            windowsHide: false,
-          }).unref();
-          // Exit Electron immediately so NSIS installer has zero file locks
+          const args = ['/S', '--updated', '--force-run'];
+
+          if (process.platform === 'win32') {
+            const elevateExe = path.join(process.resourcesPath, 'elevate.exe');
+            if (fs.existsSync(elevateExe)) {
+              console.log(`[AutoUpdater] Launching installer via elevate.exe: ${elevateExe}`);
+              spawn(elevateExe, [existingInstaller, ...args], {
+                detached: true,
+                stdio: 'ignore',
+                windowsHide: false,
+              }).unref();
+            } else {
+              console.log('[AutoUpdater] Launching installer via PowerShell Start-Process RunAs...');
+              const psArgs = `Start-Process -FilePath "${existingInstaller}" -ArgumentList '/S', '--updated', '--force-run' -Verb RunAs`;
+              spawn('powershell.exe', ['-NonInteractive', '-NoProfile', '-Command', psArgs], {
+                detached: true,
+                stdio: 'ignore',
+                windowsHide: true,
+              }).unref();
+            }
+          } else {
+            spawn(existingInstaller, args, {
+              detached: true,
+              stdio: 'ignore',
+            }).unref();
+          }
+
+          // Exit Electron cleanly once installer process is detached
           setTimeout(() => {
             console.log('[AutoUpdater] Exiting Electron cleanly for installer execution...');
             app.exit(0);
-          }, 500);
+          }, 800);
           return;
         } catch (spawnErr) {
           console.error('[AutoUpdater] Direct spawn failed, falling back to autoUpdater.quitAndInstall:', spawnErr);
         }
       }
 
-      // 6. Fallback to electron-updater built-in quitAndInstall
-      console.log('[AutoUpdater] Executing autoUpdater.quitAndInstall(false, true)...');
-      autoUpdater.quitAndInstall(false, true);
+      // 8. Fallback to electron-updater built-in quitAndInstall with silent=true and forceRunAfter=true
+      console.log('[AutoUpdater] Executing autoUpdater.quitAndInstall(true, true)...');
+      autoUpdater.quitAndInstall(true, true);
 
       // Force process exit if electron-updater stalls
       setTimeout(() => {
         console.log('[AutoUpdater] Forcing process termination via app.exit(0)...');
         app.exit(0);
-      }, 1200);
+      }, 3000);
     } catch (err: any) {
       console.error('[AutoUpdater] quitAndInstall failed:', err);
       app.exit(0);
