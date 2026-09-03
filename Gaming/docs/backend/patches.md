@@ -2,6 +2,16 @@
 
 This document contains a detailed history of all patches and updates for the AI Gaming Assistant.
 
+### Patch: 2026-09-03 — v3.5.0: Fixed Auto-Updater Stale Version Downloads, False Up-to-Date, and Upgrade Now UI Flash
+
+- Fixed stale directUpdateInfo cache causing old version downloads when skipping multiple releases
+- Fixed Upgrade Now button triggering a UI refresh flash by removing intermediate checking status
+- Fixed Check Again falsely showing up to date due to electron-updater internal session cache
+- Added GitHub Releases API cross-check fallback on manual update-not-available events
+- Filtered pre-releases and sorted by semver descending in GitHub release resolver
+- Always re-fetch latest GitHub release URL before download to prevent stale version hijacking
+- Prevented native up-to-date status from overriding backend-confirmed available updates in React UI
+
 ### Patch: 2026-09-03 — v3.4.9: Restored Discover from Web, Manage Nodes, and Fixed Library Unresponsiveness
 
 - Restored persistent Discover from Web and Manage Nodes actions on Library header

@@ -82,7 +82,8 @@ graph TD
 
 | Version | Key Feature / Change Description |
 | :--- | :--- |
-| **v3.4.9 (Latest)** | **Restored Discover from Web, Manage Nodes, and Fixed Library Unresponsiveness** — Restored persistent Discover from Web and Manage Nodes actions on Library header |
+| **v3.5.0 (Latest)** | **Fixed Auto-Updater Stale Version Downloads, False Up-to-Date, and Upgrade Now UI Flash** — Fixed stale directUpdateInfo cache causing old version downloads when skipping multiple releases. |
+| **v3.4.9** | **Restored Discover from Web, Manage Nodes, and Fixed Library Unresponsiveness** — Restored persistent Discover from Web and Manage Nodes actions on Library header |
 | **v3.4.8** | **Fixed launcher icons and cleaned CSS warnings** — Fixed launcher icons and cleaned CSS warnings. |
 | **v3.4.7** | **Fixed launcher icons and cleaned CSS warnings** — Fixed launcher icons and cleaned CSS warnings. |
 | **v3.4.6** | **Library Features Restoration, Official Launcher Logos & Scanner Resilience** — Restored official vector launcher logos for EA App, Epic Games, Xbox, Battle.net, PlayStation, and Ubisoft Connect |

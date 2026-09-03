@@ -1,8 +1,22 @@
 {
-  "version": "3.4.9",
+  "version": "3.5.0",
   "release_date": "2026-09-03",
   "update_check_url": "https://raw.githubusercontent.com/arnab825/Mission-Control/main/Gaming/backend/version.json",
   "changelog": [
+    {
+      "version": "3.5.0",
+      "date": "2026-09-03",
+      "title": "Fixed Auto-Updater Stale Version Downloads, False Up-to-Date, and Upgrade Now UI Flash",
+      "highlights": [
+        "Fixed stale directUpdateInfo cache causing old version downloads when skipping multiple releases",
+        "Fixed Upgrade Now button triggering a UI refresh flash by removing intermediate checking status",
+        "Fixed Check Again falsely showing up to date due to electron-updater internal session cache",
+        "Added GitHub Releases API cross-check fallback on manual update-not-available events",
+        "Filtered pre-releases and sorted by semver descending in GitHub release resolver",
+        "Always re-fetch latest GitHub release URL before download to prevent stale version hijacking",
+        "Prevented native up-to-date status from overriding backend-confirmed available updates in React UI"
+      ]
+    },
     {
       "version": "3.4.9",
       "date": "2026-09-03",
@@ -475,22 +489,6 @@
       "title": "Fixes some Bugs for Linux",
       "highlights": [
         "Fixes some Bugs for Linux"
-      ]
-    },
-    {
-      "version": "3.0.1",
-      "date": "2026-08-12",
-      "title": "Fixes some Bugs for Linux",
-      "highlights": [
-        "Fixes some Bugs for Linux"
-      ]
-    },
-    {
-      "version": "3.0.0",
-      "date": "2026-08-12",
-      "title": "Fixes some issue and bug",
-      "highlights": [
-        "Fixes some issue and bug"
       ]
     }
   ]
