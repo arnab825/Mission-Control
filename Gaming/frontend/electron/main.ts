@@ -2233,7 +2233,7 @@ function setupAutoUpdater() {
     });
   }
 
-  function downloadDirectUpdatePayload(downloadUrl: string, version: string): Promise<string> {
+  function downloadDirectUpdatePayload(downloadUrl: string, version: string, expectedSize?: number): Promise<string> {
     return new Promise((resolve, reject) => {
       directDownloadAborted = false;
       const localAppData = process.env.LOCALAPPDATA || '';
@@ -2242,9 +2242,18 @@ function setupAutoUpdater() {
         : path.join(app.getPath('userData'), '../mission-control-updater/pending');
       try { fs.mkdirSync(updaterDir, { recursive: true }); } catch (_) {}
       
-      const fileName = path.basename(downloadUrl.split('?')[0]) || 'MissionControl-Setup.exe';
-      const targetFile = path.join(updaterDir, fileName.endsWith('.exe') ? fileName : 'MissionControl-Setup.exe');
-      const tempFile = path.join(updaterDir, 'MissionControl-Setup.tmp');
+      // Clean up any stale or partial installer files in updaterDir before starting fresh download
+      try {
+        const existingFiles = fs.readdirSync(updaterDir);
+        for (const f of existingFiles) {
+          try { fs.unlinkSync(path.join(updaterDir, f)); } catch (_) {}
+        }
+      } catch (_) {}
+
+      const ext = path.extname(downloadUrl.split('?')[0]) || '.exe';
+      const targetFileName = `MissionControl-Setup-${version}${ext}`;
+      const targetFile = path.join(updaterDir, targetFileName);
+      const tempFile = path.join(updaterDir, `MissionControl-Setup-${version}.tmp`);
 
       if (fs.existsSync(tempFile)) {
         try { fs.unlinkSync(tempFile); } catch (_) {}
@@ -2279,7 +2288,8 @@ function setupAutoUpdater() {
             return reject(new Error(`Download failed with server status ${res.statusCode}`));
           }
 
-          const totalBytes = parseInt(res.headers['content-length'] || '0', 10);
+          const headerContentLength = parseInt(res.headers['content-length'] || '0', 10);
+          const targetTotalSize = (expectedSize && expectedSize > 0) ? expectedSize : headerContentLength;
           let downloadedBytes = 0;
           let lastReportedPercent = -1;
           let lastReportTime = 0;
@@ -2294,13 +2304,13 @@ function setupAutoUpdater() {
               return;
             }
             downloadedBytes += chunk.length;
-            const percent = totalBytes > 0 ? Math.min(100, Math.round((downloadedBytes / totalBytes) * 100)) : 0;
+            const percent = targetTotalSize > 0 ? Math.min(100, Math.round((downloadedBytes / targetTotalSize) * 100)) : 0;
             const now = Date.now();
             if (percent !== lastReportedPercent && (now - lastReportTime > 200 || percent === 100)) {
               lastReportedPercent = percent;
               lastReportTime = now;
               const downloadedMB = (downloadedBytes / (1024 * 1024)).toFixed(1);
-              const totalMB = totalBytes > 0 ? (totalBytes / (1024 * 1024)).toFixed(1) : '?';
+              const totalMB = targetTotalSize > 0 ? (targetTotalSize / (1024 * 1024)).toFixed(1) : '?';
               const progressState = {
                 status: 'downloading',
                 version: version,
@@ -2320,6 +2330,29 @@ function setupAutoUpdater() {
                 try { fs.unlinkSync(tempFile); } catch (_) {}
                 return reject(new Error('Download cancelled by user.'));
               }
+
+              if (!fs.existsSync(tempFile)) {
+                return reject(new Error('Downloaded payload file missing on disk.'));
+              }
+
+              const stats = fs.statSync(tempFile);
+
+              // Strict size verification: check downloaded bytes against expected asset size
+              if (expectedSize && expectedSize > 0 && stats.size !== expectedSize) {
+                try { fs.unlinkSync(tempFile); } catch (_) {}
+                const errMsg = `Installer file size mismatch: received ${stats.size} bytes, expected ${expectedSize} bytes. Update discarded.`;
+                console.error(`[AutoUpdater] ${errMsg}`);
+                return reject(new Error(errMsg));
+              }
+
+              // Minimum sanity verification: valid installer must be at least 10MB
+              if (stats.size < 10 * 1024 * 1024) {
+                try { fs.unlinkSync(tempFile); } catch (_) {}
+                const errMsg = `Downloaded installer is corrupted or truncated (${(stats.size / 1024).toFixed(0)} KB).`;
+                console.error(`[AutoUpdater] ${errMsg}`);
+                return reject(new Error(errMsg));
+              }
+
               try {
                 if (fs.existsSync(targetFile)) {
                   fs.unlinkSync(targetFile);
@@ -2329,20 +2362,36 @@ function setupAutoUpdater() {
                 console.warn('[AutoUpdater] Failed to rename temp download file, keeping temp path:', renameErr);
               }
 
-              console.log('[AutoUpdater] Direct installer download completed:', targetFile);
+              const finalPath = fs.existsSync(targetFile) ? targetFile : tempFile;
+
+              // Save installer metadata alongside
+              const metaFile = path.join(updaterDir, 'installer_meta.json');
+              try {
+                fs.writeFileSync(metaFile, JSON.stringify({
+                  version: version,
+                  fileName: path.basename(finalPath),
+                  filePath: finalPath,
+                  fileSize: stats.size,
+                  downloadedAt: new Date().toISOString()
+                }, null, 2), 'utf-8');
+              } catch (metaErr) {
+                console.warn('[AutoUpdater] Failed to write installer_meta.json:', metaErr);
+              }
+
+              console.log(`[AutoUpdater] Direct installer verified and ready (${(stats.size / (1024 * 1024)).toFixed(1)} MB):`, finalPath);
               stopUpdateAnimation();
               const downloadedState = {
                 status: 'downloaded',
                 version: version,
                 date: directUpdateInfo?.releaseDate || new Date().toISOString(),
                 notes: directUpdateInfo?.releaseNotes || '',
-                message: `Update v${version} downloaded and ready to install.`,
+                message: `Update v${version} downloaded and verified (${(stats.size / (1024 * 1024)).toFixed(1)} MB). Ready to install.`,
                 percent: 100
               };
               saveUpdateState(downloadedState);
               sendToAllWindows('electron-update-status', downloadedState);
-              activeDirectInstallerPath = targetFile;
-              resolve(targetFile);
+              activeDirectInstallerPath = finalPath;
+              resolve(finalPath);
             });
           });
 
@@ -2422,19 +2471,37 @@ function setupAutoUpdater() {
         console.log(`[AutoUpdater] Clearing stale update state for v${savedState.version} (current: v${app.getVersion()})`);
         saveUpdateState({ status: 'idle', percent: 0 });
         activeDirectInstallerPath = null;
-        const localAppData = process.env.LOCALAPPDATA || '';
-        const pendingDirsToClean = [
-          path.join(localAppData, 'mission-control-updater', 'pending'),
-          path.join(localAppData, 'mission-control-frontend-updater'),
-          path.join(app.getPath('userData'), '../mission-control-updater/pending'),
-          path.join(app.getPath('userData'), '../mission-control-frontend-updater'),
-          path.join(app.getPath('userData'), '..', 'mission-control-updater', 'pending'),
-          path.join(app.getPath('userData'), '..', 'mission-control-frontend-updater')
-        ];
-        for (const dir of pendingDirsToClean) {
+      }
+    }
+
+    // Always inspect pending updater directories on startup to prevent old installers from lingering
+    const localAppData = process.env.LOCALAPPDATA || '';
+    const pendingDirsToClean = [
+      path.join(localAppData, 'mission-control-updater', 'pending'),
+      path.join(localAppData, 'mission-control-frontend-updater'),
+      path.join(app.getPath('userData'), '../mission-control-updater/pending'),
+      path.join(app.getPath('userData'), '../mission-control-frontend-updater'),
+      path.join(app.getPath('userData'), '..', 'mission-control-updater', 'pending'),
+      path.join(app.getPath('userData'), '..', 'mission-control-frontend-updater')
+    ];
+    for (const dir of pendingDirsToClean) {
+      if (dir && fs.existsSync(dir)) {
+        const metaPath = path.join(dir, 'installer_meta.json');
+        let isVerifiedNewer = false;
+        if (fs.existsSync(metaPath)) {
           try {
-            if (dir && fs.existsSync(dir)) {
-              fs.rmSync(dir, { recursive: true, force: true });
+            const meta = JSON.parse(fs.readFileSync(metaPath, 'utf-8'));
+            if (meta.version && isNewerSemver(meta.version, app.getVersion())) {
+              isVerifiedNewer = true;
+            }
+          } catch (_) {}
+        }
+        // If not verified newer than current running app, purge the directory to prevent old installer execution
+        if (!isVerifiedNewer) {
+          try {
+            const files = fs.readdirSync(dir);
+            for (const f of files) {
+              try { fs.unlinkSync(path.join(dir, f)); } catch (_) {}
             }
           } catch (_) {}
         }
@@ -2595,7 +2662,7 @@ function setupAutoUpdater() {
           }
           if (autoDownloadEnabled && !isManualUpdateCheck) {
             console.log('[AutoUpdater] Auto-downloading direct update payload...');
-            downloadDirectUpdatePayload(ghRelease.assetUrl, ghRelease.version).catch(dlErr => {
+            downloadDirectUpdatePayload(ghRelease.assetUrl, ghRelease.version, ghRelease.assetSize).catch(dlErr => {
               console.error('[AutoUpdater] Direct auto-download failed:', dlErr);
             });
           }
@@ -2757,28 +2824,60 @@ function setupAutoUpdater() {
         }
       } catch (_) {}
 
-      // Prioritize the official configured updaterCacheDirName (mission-control-updater)
-      const rawCandidates = [
-        activeDirectInstallerPath,
-        path.join(localAppData, 'mission-control-updater', 'pending', 'MissionControl-Setup.exe'),
-        path.join(app.getPath('userData'), '..', 'mission-control-updater', 'pending', 'MissionControl-Setup.exe'),
-        path.join(app.getPath('userData'), '../mission-control-updater/pending', 'MissionControl-Setup.exe')
-      ].filter((p): p is string => Boolean(p && fs.existsSync(p)));
+      // 5. Check for any verified downloaded/staged installer on disk
+      const updaterPendingDir = (process.platform === 'win32' && localAppData)
+        ? path.join(localAppData, 'mission-control-updater', 'pending')
+        : path.join(app.getPath('userData'), '../mission-control-updater/pending');
 
-      // If multiple candidates exist, sort by newest modification time so the most recently downloaded build wins
-      rawCandidates.sort((a, b) => {
+      const metaPath = path.join(updaterPendingDir, 'installer_meta.json');
+      let verifiedInstaller: string | null = null;
+
+      if (fs.existsSync(metaPath)) {
         try {
-          return fs.statSync(b).mtimeMs - fs.statSync(a).mtimeMs;
-        } catch (_) {
-          return 0;
+          const meta = JSON.parse(fs.readFileSync(metaPath, 'utf-8'));
+          if (meta.filePath && fs.existsSync(meta.filePath) && meta.version) {
+            // Strict guard: ensure installer version is strictly newer than current app version
+            if (isNewerSemver(meta.version, app.getVersion())) {
+              const stats = fs.statSync(meta.filePath);
+              // Verify size matches recorded size and passes minimum sanity
+              if (meta.fileSize && stats.size === meta.fileSize && stats.size > 10 * 1024 * 1024) {
+                verifiedInstaller = meta.filePath;
+                console.log(`[AutoUpdater] Verified installer v${meta.version} ready for execution: ${verifiedInstaller} (${stats.size} bytes)`);
+              } else {
+                console.warn(`[AutoUpdater] Installer size mismatch (disk: ${stats.size}, expected: ${meta.fileSize}). Purging corrupt installer.`);
+                try { fs.unlinkSync(meta.filePath); } catch (_) {}
+                try { fs.unlinkSync(metaPath); } catch (_) {}
+              }
+            } else {
+              console.warn(`[AutoUpdater] Stale installer v${meta.version} <= current app v${app.getVersion()}. Purging old installer.`);
+              try { fs.unlinkSync(meta.filePath); } catch (_) {}
+              try { fs.unlinkSync(metaPath); } catch (_) {}
+            }
+          }
+        } catch (metaErr) {
+          console.warn('[AutoUpdater] Failed to read installer_meta.json:', metaErr);
         }
-      });
+      }
 
-      const existingInstaller = rawCandidates[0];
-      if (existingInstaller) {
-        console.log(`[AutoUpdater] Launching verified newest installer executable: ${existingInstaller}`);
+      // If activeDirectInstallerPath was set in this session and verified newer
+      if (!verifiedInstaller && activeDirectInstallerPath && fs.existsSync(activeDirectInstallerPath)) {
+        const stats = fs.statSync(activeDirectInstallerPath);
+        if (stats.size > 10 * 1024 * 1024) {
+          verifiedInstaller = activeDirectInstallerPath;
+        }
+      }
+
+      // Purge any unverified legacy MissionControl-Setup.exe to avoid accidentally launching an old build
+      const legacySetupPath = path.join(updaterPendingDir, 'MissionControl-Setup.exe');
+      if (fs.existsSync(legacySetupPath) && legacySetupPath !== verifiedInstaller) {
+        console.warn('[AutoUpdater] Unverified legacy MissionControl-Setup.exe found in pending folder. Purging to prevent running wrong version.');
+        try { fs.unlinkSync(legacySetupPath); } catch (_) {}
+      }
+
+      if (verifiedInstaller) {
+        console.log(`[AutoUpdater] Launching verified newest installer executable: ${verifiedInstaller}`);
         try {
-          spawn('cmd.exe', ['/c', 'start', '""', existingInstaller], {
+          spawn('cmd.exe', ['/c', 'start', '""', verifiedInstaller], {
             detached: true,
             stdio: 'ignore',
             windowsHide: false,
@@ -2856,7 +2955,7 @@ function setupAutoUpdater() {
       // If we have a valid direct download URL from GitHub releases:
       if (directUpdateInfo && directUpdateInfo.assetUrl && directUpdateInfo.version) {
         console.log(`[AutoUpdater] Starting direct download for v${directUpdateInfo.version} from: ${directUpdateInfo.assetUrl}`);
-        await downloadDirectUpdatePayload(directUpdateInfo.assetUrl, directUpdateInfo.version);
+        await downloadDirectUpdatePayload(directUpdateInfo.assetUrl, directUpdateInfo.version, directUpdateInfo.assetSize);
         return;
       }
 
@@ -2877,7 +2976,7 @@ function setupAutoUpdater() {
         const ghRelease = await fetchGitHubReleaseUpdate();
         if (ghRelease.available && ghRelease.assetUrl && ghRelease.version) {
           directUpdateInfo = ghRelease;
-          await downloadDirectUpdatePayload(ghRelease.assetUrl, ghRelease.version);
+          await downloadDirectUpdatePayload(ghRelease.assetUrl, ghRelease.version, ghRelease.assetSize);
           return;
         }
         throw autoErr;
