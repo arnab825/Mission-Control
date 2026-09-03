@@ -23,13 +23,14 @@ import {
   Play
 } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
-import { TESTED_GAMES_LIST, TestedGameSummary } from "@/data/benchmarks";
+import { TESTED_GAMES_LIST, TestedGameSummary, getLiveTestedGames, fetchBenchmarks } from "@/data/benchmarks";
 
 interface RateGameModalProps {
   isOpen: boolean;
   onClose: () => void;
   onSuccess?: () => void;
   initialGameId?: string;
+  availableGames?: TestedGameSummary[];
 }
 
 interface AttachedMedia {
@@ -54,8 +55,10 @@ export default function RateGameModal({
   isOpen,
   onClose,
   onSuccess,
-  initialGameId = "spiderman2",
+  initialGameId = "firstlight",
+  availableGames,
 }: RateGameModalProps) {
+  const [games, setGames] = useState<TestedGameSummary[]>(availableGames || getLiveTestedGames());
   const [selectedGame, setSelectedGame] = useState<TestedGameSummary | null>(null);
   const [customGameName, setCustomGameName] = useState<string>("");
   const [gameSearchQuery, setGameSearchQuery] = useState<string>("");
@@ -87,19 +90,33 @@ export default function RateGameModal({
   const [error, setError] = useState<string | null>(null);
   const [success, setSuccess] = useState<boolean>(false);
 
+  // Sync games from availableGames or database
+  useEffect(() => {
+    if (availableGames && availableGames.length > 0) {
+      setGames(availableGames);
+    } else {
+      fetchBenchmarks().then((res) => {
+        if (res.testedGames && res.testedGames.length > 0) {
+          setGames(res.testedGames);
+        }
+      });
+    }
+  }, [availableGames]);
+
   // Initial game setup
   useEffect(() => {
+    const list = games.length > 0 ? games : (availableGames || TESTED_GAMES_LIST);
     if (initialGameId) {
-      const match = TESTED_GAMES_LIST.find((g) => g.id === initialGameId);
+      const match = list.find((g) => g.id === initialGameId);
       if (match) {
         setSelectedGame(match);
         setCustomGameName(match.name);
       }
-    } else if (TESTED_GAMES_LIST.length > 0) {
-      setSelectedGame(TESTED_GAMES_LIST[0]);
-      setCustomGameName(TESTED_GAMES_LIST[0].name);
+    } else if (list.length > 0) {
+      setSelectedGame(list[0]);
+      setCustomGameName(list[0].name);
     }
-  }, [initialGameId]);
+  }, [initialGameId, games]);
 
   // Click outside to close search dropdown
   useEffect(() => {
@@ -126,7 +143,7 @@ export default function RateGameModal({
   }, []);
 
   // Filtered games for searchbar
-  const searchResults = TESTED_GAMES_LIST.filter((g) => {
+  const searchResults = games.filter((g) => {
     const q = gameSearchQuery.trim().toLowerCase();
     if (!q) return true;
     return (

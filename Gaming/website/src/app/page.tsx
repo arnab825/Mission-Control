@@ -18,7 +18,7 @@ import {
 } from "@/lib/download";
 import { ScreenshotGallery } from "@/components/ScreenshotGallery";
 import { BeforeAfterSlider } from "@/components/BeforeAfterSlider";
-import { TESTED_GAMES_LIST } from "@/data/benchmarks";
+import { TESTED_GAMES_LIST, TestedGameSummary, getLiveTestedGames, fetchBenchmarks } from "@/data/benchmarks";
 import {
   Users,
   Search,
@@ -89,6 +89,7 @@ export default function Home() {
   type OS = "windows" | "linux" | "mac" | "other" | null;
   const [os, setOs] = useState<OS>(null);
   const [appVersion, setAppVersion] = useState("2.9.4");
+  const [testedGames, setTestedGames] = useState<TestedGameSummary[]>(getLiveTestedGames());
 
   useEffect(() => {
     let isMounted = true;
@@ -104,6 +105,14 @@ export default function Home() {
       .then((res) => res.json())
       .then((data) => {
         if (isMounted && data?.version) setAppVersion(data.version);
+      })
+      .catch(() => {});
+
+    fetchBenchmarks()
+      .then((data) => {
+        if (isMounted && data.testedGames && data.testedGames.length > 0) {
+          setTestedGames(data.testedGames);
+        }
       })
       .catch(() => {});
 
@@ -535,7 +544,7 @@ export default function Home() {
 
         {/* Display Verified Tested Games */}
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 sm:gap-8 mb-12">
-          {TESTED_GAMES_LIST.map((game) => (
+          {testedGames.map((game) => (
             <div
               key={game.id}
               className="rounded-3xl border border-white/15 bg-[#0b0c10] hover:border-neon-green/60 flex flex-col justify-between group relative overflow-hidden shadow-[0_10px_35px_rgba(0,0,0,0.6)] hover:shadow-[0_0_30px_rgba(118,185,0,0.25)] transition-all duration-300"
@@ -562,7 +571,7 @@ export default function Home() {
                     <span className="truncate">{game.publisher}</span>
                   </span>
                   <span className="text-[10px] font-mono font-bold text-amber-300 bg-black/80 px-2.5 py-1 rounded-full border border-amber-400/30 backdrop-blur-md uppercase tracking-wider shadow-lg shrink-0 whitespace-nowrap">
-                    {game.storeRating || "4.9 ★★★★★"}
+                    {game.storeRating || "Verified"}
                   </span>
                 </div>
               </div>

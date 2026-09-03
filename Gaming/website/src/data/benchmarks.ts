@@ -77,7 +77,12 @@ export interface TestedGameSummary {
   dlssVersion?: string;
 }
 
-export const BENCHMARK_PROFILES: Record<string, BenchmarkProfile> = {
+/**
+ * Offline / Seed Fallback Profiles.
+ * Note: Data fetched from MongoDB database (via /api/benchmarks or MongoDB query) is ALWAYS
+ * the first priority. These definitions serve strictly as initial seed data and offline fallbacks.
+ */
+export const FALLBACK_BENCHMARK_PROFILES: Record<string, BenchmarkProfile> = {
   spiderman2: {
     id: "spiderman2",
     name: "Marvel's Spider-Man 2",
@@ -440,7 +445,7 @@ export const BENCHMARK_PROFILES: Record<string, BenchmarkProfile> = {
     api: "DirectX 12 Ultimate",
     score: 99,
     status: "VERIFIED & OPTIMAL",
-    preset: "Ultra / DLSS 4",
+    preset: "Ultra / DLSS 4.5",
     overview: "Step into the early career of MI6 recruit James Bond in a cinematic origin story combining tactical stealth, high-speed Aston Martin pursuits, and lethal espionage operations across the Mediterranean.",
     detailedOverview: {
       story: "Step into the early clandestine career of James Bond as an ambitious MI6 recruit fighting to earn his 00 status. Under the rigorous tactical tutelage of senior instructor Monroe and elite operative driver Cressida, Bond is deployed on high-stakes covert operations across the Mediterranean. When a global intelligence network is compromised from within, Bond must navigate treacherous international espionage, covert syndicate alliances, and deadly enforcers to prevent a geopolitical catastrophe.",
@@ -461,12 +466,12 @@ export const BENCHMARK_PROFILES: Record<string, BenchmarkProfile> = {
       gpuLoad: "97%"
     },
     presets: {
-      rtx40: "Ultra Settings + DLSS 4 Quality + Frame Generation",
+      rtx40: "Ultra Settings + DLSS 4.5 Quality + Frame Generation",
       rtx30: "High Settings + DLSS Quality + Reflex Low Latency",
       gtx: "Medium / High Settings + FSR 3 / XeSS (4.4 GB VRAM Opt)"
     },
     features: [
-      { name: "NVIDIA DLSS 4", desc: "Super Resolution & Ray Reconstruction", active: true },
+      { name: "NVIDIA DLSS 4.5", desc: "Super Resolution & Ray Reconstruction", active: true },
       { name: "DLSS Frame Generation", desc: "2x AI Frame Interpolation with Sub-Frame Latency", active: true },
       { name: "NVIDIA Reflex", desc: "Ultra-Low Latency Input Pass-Through", active: true },
       { name: "Full Ray Tracing", desc: "Real-Time Path Tracing & Screen-Space GI", active: true }
@@ -494,18 +499,20 @@ export const BENCHMARK_PROFILES: Record<string, BenchmarkProfile> = {
       }
     ],
     storeRating: "4.9 ★★★★★",
-    dlssVersion: "DLSS 4"
+    dlssVersion: "DLSS 4.5"
   }
 };
 
-export const TESTED_GAMES_LIST: TestedGameSummary[] = [
+export const BENCHMARK_PROFILES: Record<string, BenchmarkProfile> = FALLBACK_BENCHMARK_PROFILES;
+
+export const FALLBACK_TESTED_GAMES_LIST: TestedGameSummary[] = [
   {
     id: "firstlight",
     name: "007 First Light",
     publisher: "IO Interactive / MGM",
     genre: "Espionage Action / Tactical Stealth",
-    preset: "Ultra / DLSS 4",
-    keyTech: ["DLSS 4", "Frame Gen", "Reflex", "Ray Tracing"],
+    preset: "Ultra / DLSS 4.5",
+    keyTech: ["DLSS 4.5", "Frame Gen", "Reflex", "Ray Tracing"],
     status: "VERIFIED BENCHMARK",
     fps: "142 FPS",
     vram: "4.5 GB / 8.0 GB",
@@ -515,7 +522,7 @@ export const TESTED_GAMES_LIST: TestedGameSummary[] = [
     coverImage: "/games/FirstLight_SS1.webp",
     gameplayGif: "/games/FirstLight_SS1.webp",
     storeRating: "4.9 ★★★★★",
-    dlssVersion: "DLSS 4"
+    dlssVersion: "DLSS 4.5"
   },
   {
     id: "spiderman2",
@@ -627,10 +634,115 @@ export const TESTED_GAMES_LIST: TestedGameSummary[] = [
   }
 ];
 
+export const TESTED_GAMES_LIST: TestedGameSummary[] = FALLBACK_TESTED_GAMES_LIST;
+
+// Live in-memory cache populated from database (first priority)
+let liveProfilesCache: Record<string, BenchmarkProfile> | null = null;
+let liveTestedGamesCache: TestedGameSummary[] | null = null;
+
+/**
+ * Updates the live in-memory cache from database fetch results.
+ */
+export function updateLiveBenchmarks(
+  profiles: Record<string, BenchmarkProfile>,
+  testedGames: TestedGameSummary[]
+): void {
+  liveProfilesCache = profiles;
+  liveTestedGamesCache = testedGames;
+}
+
+/**
+ * Returns live tested games if fetched from database, otherwise static fallback.
+ */
+export function getLiveTestedGames(): TestedGameSummary[] {
+  return liveTestedGamesCache || TESTED_GAMES_LIST;
+}
+
+/**
+ * Returns live benchmark profiles if fetched from database, otherwise static fallback.
+ */
+export function getLiveBenchmarkProfiles(): Record<string, BenchmarkProfile> {
+  return liveProfilesCache || BENCHMARK_PROFILES;
+}
+
+/**
+ * Fetches all benchmarks with database as the primary source of truth.
+ * Falls back to offline static defaults only if database/network is unreachable.
+ */
+export async function fetchBenchmarks(): Promise<{
+  profiles: Record<string, BenchmarkProfile>;
+  testedGames: TestedGameSummary[];
+}> {
+  try {
+    const res = await fetch("/api/benchmarks", { cache: "no-store" });
+    if (res.ok) {
+      const data = await res.json();
+      if (data.profiles && data.testedGames && data.testedGames.length > 0) {
+        liveProfilesCache = data.profiles;
+        liveTestedGamesCache = data.testedGames;
+        return {
+          profiles: data.profiles,
+          testedGames: data.testedGames,
+        };
+      }
+    }
+  } catch (e) {
+    console.warn("[benchmarks.ts] Failed to fetch benchmarks from database, using fallback:", e);
+  }
+
+  return {
+    profiles: liveProfilesCache || BENCHMARK_PROFILES,
+    testedGames: liveTestedGamesCache || TESTED_GAMES_LIST,
+  };
+}
+
+/**
+ * Fetches a single benchmark profile by ID, prioritizing database data.
+ */
+export async function fetchBenchmarkProfileById(id: string): Promise<BenchmarkProfile> {
+  // Check live cache first
+  if (liveProfilesCache && liveProfilesCache[id]) {
+    return liveProfilesCache[id];
+  }
+
+  try {
+    const res = await fetch(`/api/benchmarks?id=${encodeURIComponent(id)}`, { cache: "no-store" });
+    if (res.ok) {
+      const data = await res.json();
+      if (data && !data.error && data.id) {
+        if (!liveProfilesCache) liveProfilesCache = { ...BENCHMARK_PROFILES };
+        liveProfilesCache[id] = data;
+        return data;
+      }
+    }
+  } catch (e) {
+    console.warn(`[benchmarks.ts] Failed to fetch benchmark ${id} from database, using fallback:`, e);
+  }
+
+  return getBenchmarkProfileById(id);
+}
+
+/**
+ * Returns all benchmark profiles, checking live database cache first.
+ */
 export function getAllBenchmarkProfiles(): BenchmarkProfile[] {
+  if (liveProfilesCache && Object.keys(liveProfilesCache).length > 0) {
+    return Object.values(liveProfilesCache);
+  }
   return Object.values(BENCHMARK_PROFILES);
 }
 
+/**
+ * Returns a benchmark profile by ID, checking live database cache first.
+ */
 export function getBenchmarkProfileById(id: string): BenchmarkProfile {
-  return BENCHMARK_PROFILES[id] || BENCHMARK_PROFILES.spiderman2;
+  if (liveProfilesCache && liveProfilesCache[id]) {
+    return liveProfilesCache[id];
+  }
+  return (
+    BENCHMARK_PROFILES[id] ||
+    (liveProfilesCache ? Object.values(liveProfilesCache)[0] : null) ||
+    Object.values(BENCHMARK_PROFILES)[0] ||
+    BENCHMARK_PROFILES.firstlight
+  );
 }
