@@ -98,11 +98,21 @@ export const UpdatesPage: React.FC<UpdatesPageProps> = ({
   }, [defaultTab]);
 
 
+  const updateState = state?.update_state || { status: 'idle' };
+  const installState = state?.update_install_state;
+  const changelogsData = state?.changelogs;
+
   useEffect(() => {
     if (window.electronAPI?.onElectronUpdateStatus) {
       const cleanup = window.electronAPI.onElectronUpdateStatus((_event, data) => {
         console.log('[React NativeUpdate] Received event data:', data);
         if (data) {
+          // Fix 7: Don't let electron-updater's stale 'up-to-date' override the UI
+          // when the Python backend already confirmed a newer version is available.
+          if (data.status === 'up-to-date' && updateState?.status === 'available') {
+            console.log('[React NativeUpdate] Ignoring native up-to-date — backend confirmed update available.');
+            return;
+          }
           setNativeUpdate(data);
         }
       });
@@ -110,11 +120,8 @@ export const UpdatesPage: React.FC<UpdatesPageProps> = ({
         cleanup();
       };
     }
-  }, []);
+  }, [updateState?.status]);
 
-  const updateState = state?.update_state || { status: 'idle' };
-  const installState = state?.update_install_state;
-  const changelogsData = state?.changelogs;
 
   useEffect(() => {
     if (changelogsData?.changelog && changelogsData.changelog.length > 0) {
@@ -524,8 +531,8 @@ export const UpdatesPage: React.FC<UpdatesPageProps> = ({
                 </div>
               )}
 
-              {/* Scenario 1: Checking for updates */}
-              {updateState?.status === 'checking' && !isManualChecking && (
+              {/* Scenario 1: Checking for updates (backend OR native) */}
+              {(updateState?.status === 'checking' && !isManualChecking) || (nativeUpdate.status === 'checking' as any) ? (
                 <div className="flex flex-col items-center justify-center py-12 gap-y-6">
                   <div className="relative">
                     {/* Ring Pulse scanner */}
@@ -539,7 +546,7 @@ export const UpdatesPage: React.FC<UpdatesPageProps> = ({
                     <p className="text-[10px] text-zinc-500 font-bold uppercase tracking-wider">Verifying checksum values with remote hub...</p>
                   </div>
                 </div>
-              )}
+              ) : null}
 
               {/* Scenario 2 & 3: Unified Update Available / Up to Date layout */}
               {(!updateState || updateState.status === 'available' || updateState.status === 'up_to_date' || updateState.status === 'idle') && updateState?.status !== 'checking' && !installState && (

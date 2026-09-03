@@ -2161,7 +2161,21 @@ function setupAutoUpdater() {
               return resolve({ available: false });
             }
 
-            const latestRelease = releases.find((r: any) => !r.draft);
+            // Filter out drafts AND pre-releases, then sort by semver descending
+            // so we always pick the truly latest stable release regardless of API order
+            const stableReleases = releases
+              .filter((r: any) => !r.draft && !r.prerelease && r.tag_name)
+              .sort((a: any, b: any) => {
+                const va = a.tag_name.replace(/^v/i, '').split('.').map(Number);
+                const vb = b.tag_name.replace(/^v/i, '').split('.').map(Number);
+                for (let i = 0; i < Math.max(va.length, vb.length); i++) {
+                  const na = va[i] || 0;
+                  const nb = vb[i] || 0;
+                  if (na !== nb) return nb - na; // descending
+                }
+                return 0;
+              });
+            const latestRelease = stableReleases[0];
             if (!latestRelease || !latestRelease.tag_name) {
               return resolve({ available: false });
             }
@@ -2488,10 +2502,36 @@ function setupAutoUpdater() {
     }
   });
 
-  autoUpdater.on('update-not-available', (info: any) => {
+  autoUpdater.on('update-not-available', async (info: any) => {
     const latestKnown = info?.version || app.getVersion();
     console.log(`[AutoUpdater] No updates available via electron-updater (current: v${app.getVersion()}, latest: v${latestKnown}).`);
     stopUpdateAnimation();
+
+    // Fix 5: electron-updater's internal cache may return stale "not-available" on manual re-checks.
+    // Cross-reference with the GitHub Releases API to verify there truly is no newer version.
+    if (isManualUpdateCheck) {
+      isManualUpdateCheck = false;
+      try {
+        const ghRelease = await fetchGitHubReleaseUpdate();
+        if (ghRelease.available && ghRelease.version && ghRelease.assetUrl) {
+          console.log(`[AutoUpdater] GitHub Releases fallback found newer version v${ghRelease.version} despite electron-updater cache.`);
+          directUpdateInfo = ghRelease;
+          const availState = {
+            status: 'available',
+            version: ghRelease.version,
+            notes: ghRelease.releaseNotes || '',
+            message: `Update v${ghRelease.version} available.`,
+            percent: 0
+          };
+          saveUpdateState(availState);
+          sendToAllWindows('electron-update-status', availState);
+          return;
+        }
+      } catch (fallbackErr) {
+        console.warn('[AutoUpdater] GitHub fallback during manual not-available check failed:', fallbackErr);
+      }
+    }
+
     const state = { 
       status: 'up-to-date', 
       version: latestKnown,
@@ -2499,9 +2539,6 @@ function setupAutoUpdater() {
     };
     saveUpdateState(state);
     sendToAllWindows('electron-update-status', state);
-    if (isManualUpdateCheck) {
-      isManualUpdateCheck = false;
-    }
   });
 
   function sanitizeUpdateErrorMessage(rawMsg: string): string {
@@ -2622,6 +2659,8 @@ function setupAutoUpdater() {
   // ── IPC Commands from frontend ───────────────────────────────────────────
   ipcMain.on('check-electron-updates', () => {
     isManualUpdateCheck = true;
+    // Fix 1: Clear stale directUpdateInfo so a fresh check always fetches the latest version
+    directUpdateInfo = null;
     startUpdateAnimation();
     autoUpdater.checkForUpdates().catch(async (err: any) => {
       console.warn('[AutoUpdater] checkForUpdates failed, trying direct GitHub fallback...', err);
@@ -2796,9 +2835,25 @@ function setupAutoUpdater() {
   ipcMain.on('download-electron-update', async () => {
     console.log('[AutoUpdater] User manually triggered download-electron-update');
     try {
-      sendToAllWindows('electron-update-status', { status: 'checking', message: 'Verifying update package...' });
+      // Fix 4: Don't send 'checking' status — go straight to 'downloading' to avoid UI flash
+      sendToAllWindows('electron-update-status', { status: 'downloading', percent: 0, message: 'Initializing update download...' });
       
-      // If we already resolved a valid direct download URL from GitHub releases:
+      // Fix 2: Always re-fetch from GitHub to verify we have the latest version URL.
+      // The cached directUpdateInfo may be stale if the user skipped versions.
+      try {
+        const freshRelease = await fetchGitHubReleaseUpdate();
+        if (freshRelease.available && freshRelease.version && freshRelease.assetUrl) {
+          // If the fresh release is newer than the cached one, update the cache
+          if (!directUpdateInfo || !directUpdateInfo.version || isNewerSemver(freshRelease.version, directUpdateInfo.version)) {
+            console.log(`[AutoUpdater] Refreshed directUpdateInfo: v${directUpdateInfo?.version || 'none'} → v${freshRelease.version}`);
+            directUpdateInfo = freshRelease;
+          }
+        }
+      } catch (refreshErr) {
+        console.warn('[AutoUpdater] Failed to refresh GitHub release info, using cached data:', refreshErr);
+      }
+
+      // If we have a valid direct download URL from GitHub releases:
       if (directUpdateInfo && directUpdateInfo.assetUrl && directUpdateInfo.version) {
         console.log(`[AutoUpdater] Starting direct download for v${directUpdateInfo.version} from: ${directUpdateInfo.assetUrl}`);
         await downloadDirectUpdatePayload(directUpdateInfo.assetUrl, directUpdateInfo.version);
