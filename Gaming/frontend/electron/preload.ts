@@ -87,5 +87,22 @@ contextBridge.exposeInMainWorld('electronAPI', {
     return () => {
       ipcRenderer.off('toggle-agentic-hotkey', subscription)
     }
-  }
+  },
+  exitAuthToApp: () => ipcRenderer.send('exit-auth-to-app'),
 })
+
+// Listen for custom window control events dispatched by injected auth exit bars on external pages
+try {
+  const g = globalThis as any;
+  if (typeof g.addEventListener === 'function') {
+    g.addEventListener('mc-auth-window-control', (event: any) => {
+      const cmd = event.detail?.command;
+      if (cmd === 'minimize' || cmd === 'maximize' || cmd === 'close') {
+        ipcRenderer.send('window-controls', cmd);
+      } else if (cmd === 'exit') {
+        ipcRenderer.send('exit-auth-to-app');
+      }
+    });
+  }
+} catch (_) {}
+
