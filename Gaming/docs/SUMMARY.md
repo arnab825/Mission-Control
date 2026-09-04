@@ -82,7 +82,8 @@ graph TD
 
 | Version | Key Feature / Change Description |
 | :--- | :--- |
-| **v3.5.1 (Latest)** | **Nemotron 3 Ultra, Gemini 3.8, Settings Cleanup & Library UI Polish** — Added NVIDIA Nemotron 3 Ultra to Neural Backbone, OpenRouter, and NIM failover cascades. |
+| **v3.5.2 (Latest)** | **Discover Web Dynamic Trending, Weekly News Engine, Render Shield & Code Modularization** — Added dynamic Steam trending storefront integration via Electron IPC, ISO-week news scheduling, strict Render credit shield, and modularized discovery datasets. |
+| **v3.5.1** | **Nemotron 3 Ultra, Gemini 3.8, Settings Cleanup & Library UI Polish** — Added NVIDIA Nemotron 3 Ultra to Neural Backbone, OpenRouter, and NIM failover cascades. |
 | **v3.5.0** | **Auto-Updater Seamless Relaunch, Installer Elevation, and Stale Cache Fixes** — Fixed auto-update restart deadlock, elevated silent install with auto-relaunch, and resolved stale directUpdateInfo cache. |
 | **v3.4.9** | **Restored Discover from Web, Manage Nodes, and Fixed Library Unresponsiveness** — Restored persistent Discover from Web and Manage Nodes actions on Library header |
 | **v3.4.8** | **Fixed launcher icons and cleaned CSS warnings** — Fixed launcher icons and cleaned CSS warnings. |

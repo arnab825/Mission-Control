@@ -1,0 +1,30 @@
+export const LAUNCHER_STYLES: Record<string, { bg: string; text: string; border: string }> = {
+  'Steam':            { bg: 'bg-[#1b2838]/90', text: 'text-[#66c0f4]', border: 'border-[#66c0f4]/40' },
+  'Epic Games':       { bg: 'bg-purple-950/90', text: 'text-purple-300', border: 'border-purple-500/40' },
+  'GOG Galaxy':       { bg: 'bg-violet-950/90', text: 'text-violet-300', border: 'border-violet-500/40' },
+  'GOG':              { bg: 'bg-violet-950/90', text: 'text-violet-300', border: 'border-violet-500/40' },
+  'Xbox':             { bg: 'bg-emerald-950/90', text: 'text-emerald-400', border: 'border-emerald-500/40' },
+  'Xbox Game Pass':   { bg: 'bg-emerald-950/90', text: 'text-emerald-400', border: 'border-emerald-500/40' },
+  'EA App':           { bg: 'bg-red-950/90', text: 'text-red-400', border: 'border-red-500/40' },
+  'EA Desktop':       { bg: 'bg-red-950/90', text: 'text-red-400', border: 'border-red-500/40' },
+  'EA':               { bg: 'bg-red-950/90', text: 'text-red-400', border: 'border-red-500/40' },
+  'Ubisoft Connect':  { bg: 'bg-blue-950/90', text: 'text-blue-400', border: 'border-blue-500/40' },
+  'Ubisoft':          { bg: 'bg-blue-950/90', text: 'text-blue-400', border: 'border-blue-500/40' },
+  'PlayStation':      { bg: 'bg-sky-950/90', text: 'text-sky-400', border: 'border-sky-500/40' },
+  'PlayStation PC':   { bg: 'bg-sky-950/90', text: 'text-sky-400', border: 'border-sky-500/40' },
+  'Rockstar Games':   { bg: 'bg-amber-950/90', text: 'text-amber-400', border: 'border-amber-500/40' },
+  'Rockstar':         { bg: 'bg-amber-950/90', text: 'text-amber-400', border: 'border-amber-500/40' },
+  'Battle.net':       { bg: 'bg-cyan-950/90', text: 'text-cyan-400', border: 'border-cyan-500/40' },
+  'Web':              { bg: 'bg-zinc-800/90', text: 'text-zinc-300', border: 'border-zinc-500/40' },
+};
+
+export const SOURCE_COLORS: Record<string, { bg: string; text: string; border: string }> = {
+  'PC Gamer':        { bg: 'bg-red-500/20', text: 'text-red-400', border: 'border-red-500/40' },
+  'Eurogamer':       { bg: 'bg-blue-500/20', text: 'text-blue-400', border: 'border-blue-500/40' },
+  'IGN':             { bg: 'bg-rose-500/20', text: 'text-rose-400', border: 'border-rose-500/40' },
+  'GameSpot':        { bg: 'bg-amber-500/20', text: 'text-amber-400', border: 'border-amber-500/40' },
+  'Kotaku':          { bg: 'bg-yellow-500/20', text: 'text-yellow-400', border: 'border-yellow-500/40' },
+  'Polygon':         { bg: 'bg-purple-500/20', text: 'text-purple-400', border: 'border-purple-500/40' },
+  'Rock Paper Shotgun': { bg: 'bg-emerald-500/20', text: 'text-emerald-400', border: 'border-emerald-500/40' },
+  "Tom's Hardware":  { bg: 'bg-cyan-500/20', text: 'text-cyan-400', border: 'border-cyan-500/40' },
+};
