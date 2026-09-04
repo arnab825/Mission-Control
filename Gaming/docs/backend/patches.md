@@ -2,6 +2,13 @@
 
 This document contains a detailed history of all patches and updates for the AI Gaming Assistant.
 
+### Patch: 2026-09-04 — v3.5.4: Injected External OAuth Exit Bar, ESC Key Handler & Clerk Redirect Escape Hatches
+
+- Injected top-level Mission Control Exit Bar on external OAuth pages (Google, Discord, Clerk) with drag region and window controls
+- Added global ESC and Alt+Left keyboard shortcuts in Electron to instantly return to Mission Control from external auth screens
+- Added DOM MutationObserver ensuring exit bar permanence during third-party single-page app DOM re-renders
+- Wired IPC and CustomEvents between preload and main process for seamless authentication cancellation
+
 ### Patch: 2026-09-04 — v3.5.3: Clerk Auth Exit & Session Persistence, Vision Model Uninstallation, AI Backbone Models & Build Freshness
 
 - Added Exit/Cancel buttons on Clerk Auth modal and SSO callback redirect
