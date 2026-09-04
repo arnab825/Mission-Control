@@ -12,7 +12,23 @@ Comprehensive breakdown of major milestone releases, architectural upgrades, and
 
 ---
 
-## 🌟 Version v3.5.2 (Latest) — Discover Web Dynamic Trending, Weekly News Engine, Render Shield & Code Modularization
+## 🌟 Version v3.5.3 (Latest) — Clerk Auth Exit & Session Persistence, Vision Model Uninstallation, AI Backbone Models & Build Freshness
+
+### 🛠️ Key Highlights
+1. **Clerk Authentication Exit & Cancellation**: Added Exit and Close buttons to Auth modal and SSO callback redirect to allow cancelling sign-in without closing the app.
+2. **Account Switching Redirection**: Cleaned up the account switch flow to sign out and route to `/?show_auth=1` allowing users to select any provider or credentials freely.
+3. **Session Persistence**: Configured persistent Electron session partition (`persist:mission-control`) and on-quit cookie flushing to keep users logged in across app restarts.
+4. **Vision Model Uninstallation**: Implemented full lifecycle uninstallation in the Python backend and UI for vision models (`.pt`, `.engine`, `.onnx`, `.bin`).
+5. **AI Neural Backbone Updates**: Expanded supported models with Nemotron 4 340B, Llama 3.1 405B, Mistral Large 2, DeepSeek R1, and Gemini 3.8/3.7 Flash.
+6. **Clean TypeScript Build**: Fixed strict compilation errors and ensured production bundle freshness.
+
+### 📦 Distribution Artifacts
+- **Linux**: `.deb` (Debian/Ubuntu), `.AppImage` (Universal), `.rpm` (Fedora/RHEL), `.tar.gz` (Portable)
+- **Windows**: `.exe` (Setup Installer), `.msi` (Enterprise), `.zip` (Portable)
+
+---
+
+## 🌟 Version v3.5.2 — Discover Web Dynamic Trending, Weekly News Engine, Render Shield & Code Modularization
 
 ### 🛠️ Key Highlights
 1. **Periodic Weekly News Topic Engine**: Dynamic ISO-calendar-week thematic rotation with 52 curated topics and live headline entity extraction.

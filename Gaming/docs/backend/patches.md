@@ -2,6 +2,15 @@
 
 This document contains a detailed history of all patches and updates for the AI Gaming Assistant.
 
+### Patch: 2026-09-04 — v3.5.3: Clerk Auth Exit & Session Persistence, Vision Model Uninstallation, AI Backbone Models & Build Freshness
+
+- Added Exit/Cancel buttons on Clerk Auth modal and SSO callback redirect
+- Fixed account switching with clean sign-out routing directly to account selection
+- Enabled persistent Electron partition session and cookie flush on shutdown to keep users signed in
+- Added Vision model uninstallation capability in backend and UI to free local disk space
+- Expanded AI Neural Backbone with Nemotron 4 340B, Llama 3.1 405B, Mistral Large 2, and DeepSeek R1
+- Resolved strict TypeScript compiler errors and generated clean production bundles
+
 ### Patch: 2026-09-04 — v3.5.2: Discover Web Dynamic Trending, Weekly News Engine, Render Shield & Code Modularization
 
 - Added ISO-calendar-week dynamic news topic engine with 52-week thematic schedule and RSS entity extraction
