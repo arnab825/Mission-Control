@@ -28,6 +28,8 @@ const AuthPage: React.FC<AuthPageProps> = ({ onBackToLibrary }) => {
   // Handle OAuth Sign In/Up
   const handleOAuth = async (strategy: 'oauth_google' | 'oauth_discord') => {
     if (!isSignInLoaded || !isSignUpLoaded) return;
+    setIsLoading(true);
+    setError('');
     try {
       localStorage.setItem('mission_control_active_provider', strategy);
       // Use absolute URLs so Clerk can whitelist them in the dashboard.
@@ -57,6 +59,7 @@ const AuthPage: React.FC<AuthPageProps> = ({ onBackToLibrary }) => {
         await signUp.authenticateWithRedirect(options);
       }
     } catch (err: any) {
+      setIsLoading(false);
       setError(err.errors?.[0]?.longMessage || 'OAuth connection failed.');
     }
   };

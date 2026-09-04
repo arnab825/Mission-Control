@@ -831,6 +831,253 @@ function startLocalServer(distPath: string, port = FIXED_UI_PORT, retries = 5): 
   })
 }
 
+/**
+ * Checks whether a URL is part of the local Mission Control application.
+ * Returns false for external authentication providers (e.g. Google, Discord, Clerk).
+ */
+function isAppUrl(urlStr?: string): boolean {
+  if (!urlStr) return true;
+  try {
+    const u = new URL(urlStr);
+    if (u.protocol === 'file:') return true;
+    if (u.hostname === '127.0.0.1' || u.hostname === 'localhost') return true;
+  } catch (_) {}
+  return false;
+}
+
+/**
+ * Returns the URL to navigate back to Mission Control when an auth flow is cancelled or exited.
+ */
+function getAppReturnUrl(): string {
+  if (VITE_DEV_SERVER_URL) {
+    return `${VITE_DEV_SERVER_URL}?auth_cancelled=1`;
+  }
+  const port = localServerPort || FIXED_UI_PORT;
+  return `http://127.0.0.1:${port}/?auth_cancelled=1`;
+}
+
+/**
+ * Injects a persistent, high-contrast Mission Control top bar with an Exit/Cancel button
+ * and native window controls into any external authentication webpage (such as Google OAuth).
+ */
+async function injectAuthExitBar(targetWebContents: electron.WebContents) {
+  if (!targetWebContents || targetWebContents.isDestroyed()) return;
+  const currentUrl = targetWebContents.getURL();
+  if (isAppUrl(currentUrl)) {
+    return; // Never inject on local app pages
+  }
+
+  console.log('[Electron] External auth page detected, injecting Exit Bar:', currentUrl);
+  const returnUrl = getAppReturnUrl();
+
+  const css = `
+    #mc-auth-exit-bar {
+      position: fixed !important;
+      top: 0 !important;
+      left: 0 !important;
+      right: 0 !important;
+      width: 100vw !important;
+      height: 48px !important;
+      background: #090a0f !important;
+      border-bottom: 2px solid #76b900 !important;
+      box-shadow: 0 4px 24px rgba(0, 0, 0, 0.85) !important;
+      display: flex !important;
+      align-items: center !important;
+      justify-content: space-between !important;
+      padding: 0 16px !important;
+      box-sizing: border-box !important;
+      z-index: 2147483647 !important;
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif !important;
+      color: #ffffff !important;
+      user-select: none !important;
+      -webkit-app-region: drag !important;
+    }
+    #mc-auth-exit-bar * {
+      box-sizing: border-box !important;
+    }
+    #mc-auth-exit-bar button {
+      -webkit-app-region: no-drag !important;
+      cursor: pointer !important;
+      outline: none !important;
+    }
+    #mc-auth-exit-btn {
+      display: flex !important;
+      align-items: center !important;
+      gap: 8px !important;
+      background: rgba(255, 255, 255, 0.08) !important;
+      border: 1px solid rgba(255, 255, 255, 0.25) !important;
+      color: #ffffff !important;
+      padding: 6px 14px !important;
+      border-radius: 10px !important;
+      font-size: 11px !important;
+      font-weight: 800 !important;
+      text-transform: uppercase !important;
+      letter-spacing: 0.08em !important;
+      transition: all 0.15s ease !important;
+    }
+    #mc-auth-exit-btn:hover {
+      background: rgba(239, 68, 68, 0.25) !important;
+      border-color: #ef4444 !important;
+      color: #fca5a5 !important;
+      box-shadow: 0 0 12px rgba(239, 68, 68, 0.4) !important;
+    }
+    .mc-auth-kbd {
+      background: rgba(0, 0, 0, 0.5) !important;
+      border: 1px solid rgba(255, 255, 255, 0.3) !important;
+      border-radius: 4px !important;
+      padding: 2px 5px !important;
+      font-size: 9px !important;
+      color: #d4d4d8 !important;
+      font-family: monospace !important;
+      font-weight: 700 !important;
+    }
+    #mc-auth-title {
+      display: flex !important;
+      align-items: center !important;
+      gap: 8px !important;
+      font-size: 11px !important;
+      font-weight: 800 !important;
+      letter-spacing: 0.12em !important;
+      text-transform: uppercase !important;
+      color: #a1a1aa !important;
+    }
+    .mc-pulse-dot {
+      width: 8px !important;
+      height: 8px !important;
+      border-radius: 50% !important;
+      background: #76b900 !important;
+      box-shadow: 0 0 8px #76b900 !important;
+      display: inline-block !important;
+    }
+    #mc-auth-actions {
+      display: flex !important;
+      align-items: center !important;
+      gap: 8px !important;
+    }
+    #mc-auth-cancel-btn {
+      background: rgba(255, 255, 255, 0.05) !important;
+      border: 1px solid rgba(255, 255, 255, 0.15) !important;
+      color: #a1a1aa !important;
+      padding: 6px 14px !important;
+      border-radius: 10px !important;
+      font-size: 11px !important;
+      font-weight: 700 !important;
+      text-transform: uppercase !important;
+      letter-spacing: 0.05em !important;
+      transition: all 0.15s ease !important;
+    }
+    #mc-auth-cancel-btn:hover {
+      background: rgba(255, 255, 255, 0.12) !important;
+      color: #ffffff !important;
+      border-color: rgba(255, 255, 255, 0.3) !important;
+    }
+    .mc-win-btn {
+      width: 28px !important;
+      height: 28px !important;
+      display: flex !important;
+      align-items: center !important;
+      justify-content: center !important;
+      background: rgba(255, 255, 255, 0.05) !important;
+      border: 1px solid rgba(255, 255, 255, 0.15) !important;
+      border-radius: 8px !important;
+      color: #d4d4d8 !important;
+      font-size: 12px !important;
+      font-weight: bold !important;
+      transition: all 0.15s ease !important;
+    }
+    .mc-win-btn:hover {
+      background: rgba(255, 255, 255, 0.2) !important;
+      color: #ffffff !important;
+    }
+    .mc-win-close:hover {
+      background: rgba(239, 68, 68, 0.35) !important;
+      color: #ef4444 !important;
+      border-color: #ef4444 !important;
+    }
+    html, body {
+      padding-top: 48px !important;
+    }
+  `;
+
+  try {
+    await targetWebContents.insertCSS(css);
+  } catch (_) {}
+
+  const js = `
+    (function() {
+      if (document.getElementById('mc-auth-exit-bar')) return;
+      
+      const bar = document.createElement('div');
+      bar.id = 'mc-auth-exit-bar';
+      bar.innerHTML = \`
+        <div style="display: flex; align-items: center; gap: 8px;">
+          <button id="mc-auth-exit-btn" type="button" title="Exit to Mission Control (Esc)">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+              <line x1="19" y1="12" x2="5" y2="12"></line>
+              <polyline points="12 19 5 12 12 5"></polyline>
+            </svg>
+            <span>Exit to Mission Control</span>
+            <span class="mc-auth-kbd">ESC</span>
+          </button>
+        </div>
+        <div id="mc-auth-title">
+          <span class="mc-pulse-dot"></span>
+          <span>Mission Control · Secure Authentication</span>
+        </div>
+        <div id="mc-auth-actions">
+          <button id="mc-auth-cancel-btn" type="button">Cancel</button>
+          <button id="mc-auth-min-btn" class="mc-win-btn" type="button" title="Minimize">—</button>
+          <button id="mc-auth-close-btn" class="mc-win-btn mc-win-close" type="button" title="Exit to App">✕</button>
+        </div>
+      \`;
+
+      const appendBar = () => {
+        if (!document.getElementById('mc-auth-exit-bar')) {
+          (document.body || document.documentElement).appendChild(bar);
+        }
+      };
+
+      appendBar();
+
+      const returnUrl = ${JSON.stringify(returnUrl)};
+      const exitToApp = () => {
+        try {
+          window.dispatchEvent(new CustomEvent('mc-auth-window-control', { detail: { command: 'exit' } }));
+        } catch (_) {}
+        window.location.replace(returnUrl);
+      };
+
+      document.getElementById('mc-auth-exit-btn')?.addEventListener('click', exitToApp);
+      document.getElementById('mc-auth-cancel-btn')?.addEventListener('click', exitToApp);
+      document.getElementById('mc-auth-close-btn')?.addEventListener('click', exitToApp);
+      document.getElementById('mc-auth-min-btn')?.addEventListener('click', () => {
+        try {
+          window.dispatchEvent(new CustomEvent('mc-auth-window-control', { detail: { command: 'minimize' } }));
+        } catch (_) {}
+      });
+
+      window.addEventListener('keydown', (e) => {
+        if (e.key === 'Escape') {
+          exitToApp();
+        }
+      });
+
+      try {
+        const observer = new MutationObserver(() => {
+          if (!document.getElementById('mc-auth-exit-bar')) {
+            appendBar();
+          }
+        });
+        observer.observe(document.documentElement, { childList: true, subtree: true });
+      } catch (_) {}
+    })();
+  `;
+
+  try {
+    await targetWebContents.executeJavaScript(js);
+  } catch (_) {}
+}
+
 let splash: BrowserWindow | null = null;
 async function createWindow() {
   splash = new BrowserWindow({
@@ -899,6 +1146,43 @@ async function createWindow() {
 
   win.webContents.on('console-message', (_event, _level, message, line, sourceId) => {
     console.log(`[Web Console] ${message} (${sourceId}:${line})`);
+  });
+
+  // Inject Exit Bar & Esc listener whenever the window navigates to an external authentication URL
+  win.webContents.on('dom-ready', () => {
+    if (win && !win.isDestroyed()) {
+      injectAuthExitBar(win.webContents);
+    }
+  });
+
+  win.webContents.on('did-finish-load', () => {
+    if (win && !win.isDestroyed()) {
+      injectAuthExitBar(win.webContents);
+    }
+  });
+
+  win.webContents.on('did-navigate', (_event, url) => {
+    if (win && !win.isDestroyed() && !isAppUrl(url)) {
+      injectAuthExitBar(win.webContents);
+    }
+  });
+
+  win.webContents.on('did-navigate-in-page', (_event, url) => {
+    if (win && !win.isDestroyed() && !isAppUrl(url)) {
+      injectAuthExitBar(win.webContents);
+    }
+  });
+
+  win.webContents.on('before-input-event', (_event, input) => {
+    if (input.type === 'keyDown') {
+      if (input.key === 'Escape' || (input.alt && input.key === 'ArrowLeft')) {
+        const curUrl = win?.webContents.getURL() || '';
+        if (!isAppUrl(curUrl)) {
+          console.log('[Electron] Escape/Back pressed on external auth page. Returning to Mission Control.');
+          win?.loadURL(getAppReturnUrl());
+        }
+      }
+    }
   });
 
   // Safety timeout: if ready-to-show never fires (renderer stall / load failure),
@@ -1207,6 +1491,13 @@ ipcMain.on('window-controls', (_event, command) => {
     case 'close':
       win.close()
       break
+  }
+})
+
+ipcMain.on('exit-auth-to-app', () => {
+  if (win && !win.isDestroyed()) {
+    console.log('[Electron] exit-auth-to-app triggered, returning to Mission Control.');
+    win.loadURL(getAppReturnUrl());
   }
 })
 
