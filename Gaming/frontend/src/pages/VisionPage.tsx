@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { Eye, Play, Square, Activity, Radar, AlertTriangle, CheckCircle, Clock, ArrowRight, Download, Server, HardDrive, Gamepad2 } from 'lucide-react';
+import { Eye, Play, Square, Activity, Radar, AlertTriangle, CheckCircle, Clock, ArrowRight, Download, Server, HardDrive, Gamepad2, Trash2 } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import type { TelemetryState } from '../types/telemetry';
 import { useAuth } from '@clerk/clerk-react';
@@ -789,18 +789,35 @@ const VisionPage: React.FC<VisionPageProps> = ({ state, sendCommand }) => {
                         >
                           {installed ? '✓ Installed' : isErr ? 'Download Failed' : 'Not Installed'}
                         </span>
-                        <button
-                          type="button"
-                          onClick={() => sendCommand('download_ai_model', { model_id: m.id })}
-                          className={`flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-[9px] font-black uppercase tracking-wider border transition-all cursor-pointer ${
-                            installed
-                              ? 'bg-neon-green/10 border-neon-green/30 text-neon-green hover:bg-neon-green/20'
-                              : 'bg-white/5 border-white/15 text-zinc-200 hover:border-neon-green/40 hover:text-neon-green shadow-[0_2px_8px_rgba(0,0,0,0.4)]'
-                          }`}
-                        >
-                          <Download className="w-3 h-3" />
-                          {installed ? 'Re-Download / Update' : 'Download Now'}
-                        </button>
+                        <div className="flex items-center gap-1.5">
+                          {installed && (
+                            <button
+                              type="button"
+                              onClick={() => {
+                                if (window.confirm(`Uninstall ${m.name} to free disk space?`)) {
+                                  sendCommand('uninstall_ai_model', { model_id: m.id });
+                                }
+                              }}
+                              className="flex items-center gap-1 px-2.5 py-1.5 rounded-xl text-[9px] font-black uppercase tracking-wider bg-red-500/10 border border-red-500/25 text-red-400 hover:bg-red-500/20 hover:border-red-500/50 hover:text-red-300 transition-all cursor-pointer shadow-[0_2px_8px_rgba(0,0,0,0.3)]"
+                              title="Uninstall model weights from local disk"
+                            >
+                              <Trash2 className="w-3 h-3" />
+                              Uninstall
+                            </button>
+                          )}
+                          <button
+                            type="button"
+                            onClick={() => sendCommand('download_ai_model', { model_id: m.id })}
+                            className={`flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-[9px] font-black uppercase tracking-wider border transition-all cursor-pointer ${
+                              installed
+                                ? 'bg-neon-green/10 border-neon-green/30 text-neon-green hover:bg-neon-green/20'
+                                : 'bg-white/5 border-white/15 text-zinc-200 hover:border-neon-green/40 hover:text-neon-green shadow-[0_2px_8px_rgba(0,0,0,0.4)]'
+                            }`}
+                          >
+                            <Download className="w-3 h-3" />
+                            {installed ? 'Re-Download' : 'Download Now'}
+                          </button>
+                        </div>
                       </div>
                     )}
                   </div>

@@ -41,9 +41,12 @@ const App: React.FC = () => {
   }, [activePage]);
 
   const lastLaunchTimeRef = React.useRef<number>(0);
-  // If the user cancelled OAuth, pre-open the auth page so they can try again.
+  // If the user cancelled OAuth or explicitly requested account switching/auth, open auth page.
   const wasAuthCancelled = new URLSearchParams(window.location.search).get('auth_cancelled') === '1';
-  const [gamesPageMode, setGamesPageMode] = useState<'library' | 'auth'>(wasAuthCancelled ? 'auth' : 'library');
+  const showAuthParam = new URLSearchParams(window.location.search).get('show_auth') === '1';
+  const [gamesPageMode, setGamesPageMode] = useState<'library' | 'auth'>(
+    (wasAuthCancelled || showAuthParam) ? 'auth' : 'library'
+  );
   const [systemCategory, setSystemCategory] = useState('CPU');
   const [showHUD, setShowHUD] = useState(false);
   const { state, connected, sendCommand } = useBridge() as { state: AppTelemetryState | null; connected: boolean; sendCommand: (type: string, payload?: any) => void };
@@ -55,10 +58,10 @@ const App: React.FC = () => {
   const [isAgentic, setIsAgentic] = useState(false);
   const [personality, setPersonality] = useState('Tactical');
 
-  // Strip the ?auth_cancelled param from the URL immediately so it doesn't
+  // Strip ?auth_cancelled and ?show_auth params from the URL immediately so they don't
   // persist across refreshes or confuse any other logic.
   useEffect(() => {
-    if (wasAuthCancelled) {
+    if (wasAuthCancelled || showAuthParam) {
       // Navigate to games page showing the auth panel
       setActivePage('games');
       const cleanUrl = window.location.origin + window.location.pathname;

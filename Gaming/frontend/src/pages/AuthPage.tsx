@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { useSignIn, useSignUp } from '@clerk/clerk-react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Lock, Mail, User, ArrowRight, Zap, Loader2, ShieldAlert, X } from 'lucide-react';
+import { Lock, Mail, User, ArrowRight, Zap, Loader2, ShieldAlert, X, ArrowLeft } from 'lucide-react';
 
 interface AuthPageProps {
   onBackToLibrary?: () => void;
@@ -16,6 +16,14 @@ const AuthPage: React.FC<AuthPageProps> = ({ onBackToLibrary }) => {
   const [password, setPassword] = useState('');
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState('');
+
+  const handleExit = () => {
+    if (onBackToLibrary) {
+      onBackToLibrary();
+    } else {
+      window.location.replace('/');
+    }
+  };
 
   // Handle OAuth Sign In/Up
   const handleOAuth = async (strategy: 'oauth_google' | 'oauth_discord') => {
@@ -122,15 +130,25 @@ const AuthPage: React.FC<AuthPageProps> = ({ onBackToLibrary }) => {
         animate={{ opacity: 1, y: 0 }}
         className="relative z-10 w-full max-w-md bg-zinc-900/80 backdrop-blur-2xl border border-white/10 rounded-3xl p-8 shadow-xl"
       >
-        {onBackToLibrary && (
-          <button aria-label="button" type="button"
-            onClick={onBackToLibrary}
-            className="absolute top-6 right-6 p-1.5 rounded-xl bg-white/5 border border-white/10 text-zinc-400 hover:text-white hover:bg-white/10 hover:border-white/20 transition-all z-20"
-            title="Back to Library"
+        <div className="absolute top-6 left-6 right-6 flex items-center justify-between z-20">
+          <button
+            type="button"
+            onClick={handleExit}
+            className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-white/5 border border-white/10 text-zinc-400 hover:text-white hover:bg-white/10 hover:border-white/20 text-[10px] font-black uppercase tracking-wider transition-all cursor-pointer shadow-[0_2px_8px_rgba(0,0,0,0.3)]"
+            title="Exit / Back to App"
+          >
+            <ArrowLeft className="w-3.5 h-3.5" />
+            <span>Exit</span>
+          </button>
+          <button
+            type="button"
+            onClick={handleExit}
+            className="p-1.5 rounded-xl bg-white/5 border border-white/10 text-zinc-400 hover:text-white hover:bg-white/10 hover:border-white/20 transition-all cursor-pointer shadow-[0_2px_8px_rgba(0,0,0,0.3)]"
+            title="Close"
           >
             <X className="w-4 h-4" />
           </button>
-        )}
+        </div>
         <div className="flex flex-col items-center mb-8">
           <div className="w-12 h-12 bg-neon-green/10 rounded-xl flex items-center justify-center border border-neon-green/20 mb-4 shadow-[0_0_15px_rgba(118, 185, 0,0.2)]">
             <Zap className="w-6 h-6 text-neon-green" />
@@ -234,6 +252,17 @@ const AuthPage: React.FC<AuthPageProps> = ({ onBackToLibrary }) => {
               {isLogin ? 'Request Access' : 'Login'}
             </button>
           </p>
+        </div>
+
+        <div className="mt-6 pt-4 border-t border-white/5">
+          <button
+            type="button"
+            onClick={handleExit}
+            className="w-full py-2.5 px-4 rounded-xl bg-white/5 hover:bg-white/10 border border-white/10 hover:border-white/20 text-zinc-400 hover:text-white font-black text-[10px] uppercase tracking-wider transition-all cursor-pointer flex items-center justify-center gap-2"
+          >
+            <X className="w-3.5 h-3.5" />
+            <span>Cancel & Continue Without Signing In</span>
+          </button>
         </div>
       </motion.div>
     </div>

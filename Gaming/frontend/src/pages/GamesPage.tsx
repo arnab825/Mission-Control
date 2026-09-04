@@ -26,7 +26,7 @@ import {
 } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import type { TelemetryState } from '../types/telemetry';
-import { useDistributedStats } from '../hooks/useDistributedStats';
+import { useDistributedStats, fetchWithFailover } from '../hooks/useDistributedStats';
 
 // ── Types ──────────────────────────────────────────────────────────────────────
 interface BackendGame {
@@ -452,7 +452,7 @@ const CacheLoadingScreen: React.FC = () => (
 );
 
 // ── Main Library Content ───────────────────────────────────────────────────────
-const GamesLibraryContent: React.FC<GamesPageProps> = ({ state, sendCommand, setMode }) => {
+const GamesLibraryContent: React.FC<GamesPageProps> = ({ state, sendCommand, setMode: _setMode }) => {
   const { isSignedIn, userId } = useAuth();
 
   // Detect GPU tier for library feature badge coloring
@@ -632,8 +632,8 @@ const GamesLibraryContent: React.FC<GamesPageProps> = ({ state, sendCommand, set
           const timerId = setTimeout(() => controller.abort(), 1500);
 
           fetchWithFailover(`/api/games?installed_only=true&clerk_id=${encodeURIComponent(userId)}`, { signal: controller.signal })
-            .then(res => res.json())
-            .then(data => {
+            .then((res: Response) => res.json())
+            .then((data: any) => {
               clearTimeout(timerId);
               if (data && Array.isArray(data.games) && data.games.length > 0) {
                 const mappedGames: BackendGame[] = data.games.map((g: any) => {

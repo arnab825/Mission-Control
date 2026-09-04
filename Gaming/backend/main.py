@@ -682,6 +682,8 @@ Ready and monitoring. Launch your game to initiate automatic HUD lock.
                 system_handler.handle_install_yolo_deps(payload, pipeline, bridge, config)
             elif cmd_type == "download_ai_model":
                 system_handler.handle_download_ai_model(payload, pipeline, bridge, config)
+            elif cmd_type == "uninstall_ai_model":
+                system_handler.handle_uninstall_ai_model(payload, pipeline, bridge, config)
             elif cmd_type == "fetch_nvidia_models":
                 system_handler.handle_fetch_nvidia_models(payload, pipeline, bridge, config)
             elif cmd_type == "get_controller_config":
