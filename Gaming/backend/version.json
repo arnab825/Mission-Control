@@ -1,8 +1,19 @@
 {
-  "version": "3.5.3",
+  "version": "3.5.4",
   "release_date": "2026-09-04",
   "update_check_url": "https://raw.githubusercontent.com/arnab825/Mission-Control/main/Gaming/backend/version.json",
   "changelog": [
+    {
+      "version": "3.5.4",
+      "date": "2026-09-04",
+      "title": "Injected External OAuth Exit Bar, ESC Key Handler & Clerk Redirect Escape Hatches",
+      "highlights": [
+        "Injected top-level Mission Control Exit Bar on external OAuth pages (Google, Discord, Clerk) with drag region and window controls",
+        "Added global ESC and Alt+Left keyboard shortcuts in Electron to instantly return to Mission Control from external auth screens",
+        "Added DOM MutationObserver ensuring exit bar permanence during third-party single-page app DOM re-renders",
+        "Wired IPC and CustomEvents between preload and main process for seamless authentication cancellation"
+      ]
+    },
     {
       "version": "3.5.3",
       "date": "2026-09-04",

@@ -12,7 +12,21 @@ Comprehensive breakdown of major milestone releases, architectural upgrades, and
 
 ---
 
-## 🌟 Version v3.5.3 (Latest) — Clerk Auth Exit & Session Persistence, Vision Model Uninstallation, AI Backbone Models & Build Freshness
+## 🌟 Version v3.5.4 (Latest) — Injected External OAuth Exit Bar, ESC Key Handler & Clerk Redirect Escape Hatches
+
+### 🛠️ Key Highlights
+1. **Persistent External OAuth Exit Bar**: Injected a top-level Mission Control navigation bar (`z-index: 2147483647`) on external authentication pages (Google, Discord, Clerk) with an immediate Exit button and window controls.
+2. **Global Keyboard Escape Hatches**: Added `Escape` and `Alt + ArrowLeft` hooks in Electron's `before-input-event` to instantly escape external sign-in pages back to Mission Control.
+3. **Frameless Window Draggability**: Added `-webkit-app-region: drag` to the injected header so the frameless window can be moved freely while viewing third-party OAuth flows.
+4. **DOM Mutation Resilience**: Built-in `MutationObserver` ensures the exit bar remains present across single-page client-side transitions on Google accounts.
+
+### 📦 Distribution Artifacts
+- **Linux**: `.deb` (Debian/Ubuntu), `.AppImage` (Universal), `.rpm` (Fedora/RHEL), `.tar.gz` (Portable)
+- **Windows**: `.exe` (Setup Installer), `.msi` (Enterprise), `.zip` (Portable)
+
+---
+
+## 🌟 Version v3.5.3 — Clerk Auth Exit & Session Persistence, Vision Model Uninstallation, AI Backbone Models & Build Freshness
 
 ### 🛠️ Key Highlights
 1. **Clerk Authentication Exit & Cancellation**: Added Exit and Close buttons to Auth modal and SSO callback redirect to allow cancelling sign-in without closing the app.
