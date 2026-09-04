@@ -883,6 +883,7 @@ async function createWindow() {
       nodeIntegration: false,
       contextIsolation: true,
       backgroundThrottling: false, // Keep timers alive when app is behind the game window
+      partition: 'persist:mission-control',
     },
   })
 
@@ -999,6 +1000,16 @@ async function createWindow() {
 // Quit when all windows are closed, except on macOS. There, it's common
 // for applications and their menu bar to stay active until the user quits
 // explicitly with Cmd + Q.
+app.on('before-quit', () => {
+  try {
+    const ses = session.fromPartition('persist:mission-control');
+    ses.cookies.flushStore().catch(() => {});
+    if (session.defaultSession) {
+      session.defaultSession.cookies.flushStore().catch(() => {});
+    }
+  } catch (_) {}
+});
+
 app.on('window-all-closed', () => {
   if (process.platform !== 'darwin') {
     app.quit()
@@ -1701,6 +1712,7 @@ async function createHUDWindow(showOnReady: boolean = false) {
       nodeIntegration: false,
       contextIsolation: true,
       backgroundThrottling: false, // Never throttle timers — keep HUD refresh alive behind the game
+      partition: 'persist:mission-control',
     },
   });
 

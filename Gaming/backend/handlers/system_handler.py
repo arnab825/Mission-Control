@@ -769,6 +769,64 @@ def handle_download_ai_model(payload: dict, pipeline, bridge, config) -> None:
     threading.Thread(target=_do_download, name=f"DownloadModel_{model_id}", daemon=True).start()
 
 
+def handle_uninstall_ai_model(payload: dict, pipeline, bridge, config) -> None:
+    model_id = payload.get("model_id") or payload.get("model")
+    if not model_id or model_id not in AVAILABLE_AI_MODELS:
+        logger.warning("Uninstall requested for unknown model_id: %s", model_id)
+        return
+
+    info = AVAILABLE_AI_MODELS[model_id]
+    logger.info("Starting model uninstall for %s (%s)", info["name"], info["filename"])
+
+    try:
+        models_dir = get_models_dir()
+        dev_dir = Path(__file__).resolve().parent.parent / "models"
+        root_dir = Path(__file__).resolve().parent.parent
+
+        base_stem = Path(info["filename"]).stem
+        candidates = [
+            info["filename"],
+            f"{base_stem}.pt",
+            f"{base_stem}.engine",
+            f"{base_stem}.onnx",
+            f"{base_stem}.bin",
+            f"{base_stem}.tmp"
+        ]
+
+        deleted_count = 0
+        for d in [models_dir, dev_dir, root_dir]:
+            for c in candidates:
+                fp = d / c
+                if fp.exists() and fp.is_file():
+                    try:
+                        fp.unlink()
+                        deleted_count += 1
+                        logger.info("Uninstalled model file: %s", fp)
+                    except Exception as del_err:
+                        logger.warning("Failed to delete model file %s: %s", fp, del_err)
+
+        bridge.update_state({
+            "installed_models": check_installed_models(),
+            "model_download_status": {
+                "model_id": model_id,
+                "status": "idle",
+                "progress_pct": 0,
+                "message": f"{info['name']} uninstalled successfully."
+            }
+        })
+        logger.info("Successfully uninstalled model %s (%d files removed)", model_id, deleted_count)
+    except Exception as e:
+        logger.error("Exception while uninstalling model %s: %s", model_id, e, exc_info=True)
+        bridge.update_state({
+            "model_download_status": {
+                "model_id": model_id,
+                "status": "error",
+                "message": f"Failed to uninstall {info['name']}: {str(e)}"
+            }
+        })
+
+
+
 def _get_active_game(pipeline):
     """Extract the current active game from the pipeline."""
     if pipeline and hasattr(pipeline, "current_game"):

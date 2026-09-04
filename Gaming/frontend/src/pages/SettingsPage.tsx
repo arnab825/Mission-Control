@@ -376,8 +376,12 @@ const AI_PROVIDER_OPTIONS = [
 
 const AI_NEURAL_BACKBONE_OPTIONS = [
   { value: 'nvidia/nemotron-3-ultra', label: 'Nemotron 3 Ultra · Frontier Reasoning', group: 'NVIDIA NIM (Free Tier)', isMono: true },
+  { value: 'nvidia/nemotron-4-340b-instruct', label: 'Nemotron 4 340B · Synthetic Reasoning', group: 'NVIDIA NIM (Free Tier)', isMono: true },
   { value: 'meta/llama-3.3-70b-instruct', label: 'Llama 3.3 70B · Advanced', group: 'NVIDIA NIM (Free Tier)', isMono: true },
-  { value: 'meta/llama-3.1-8b-instruct', label: 'Llama 3.1 8B · Free / Fast', group: 'NVIDIA NIM (Free Tier)', isMono: true }
+  { value: 'meta/llama-3.1-405b-instruct', label: 'Llama 3.1 405B · Ultra Scale', group: 'NVIDIA NIM (Free Tier)', isMono: true },
+  { value: 'meta/llama-3.1-8b-instruct', label: 'Llama 3.1 8B · Free / Fast', group: 'NVIDIA NIM (Free Tier)', isMono: true },
+  { value: 'mistralai/mistral-large-2-instruct', label: 'Mistral Large 2 · High Reasoning', group: 'NVIDIA NIM (Free Tier)', isMono: true },
+  { value: 'deepseek-ai/deepseek-r1', label: 'DeepSeek R1 · Reasoning Engine', group: 'NVIDIA NIM (Free Tier)', isMono: true }
 ];
 
 const MEMORY_MODE_OPTIONS = [
@@ -690,21 +694,10 @@ const SettingsPage: React.FC<{ state: TelemetryState | null, sendCommand: (type:
 
 
   const handleSwitchAccount = async () => {
-    let targetProvider = 'oauth_google';
-    const activeProvider = localStorage.getItem('mission_control_active_provider');
-    if (activeProvider) {
-      targetProvider = activeProvider === 'oauth_google' ? 'oauth_discord' : 'oauth_google';
-    } else if (user) {
-      const isGoogle = user.externalAccounts.some((acc: any) => acc.provider === 'google');
-      targetProvider = isGoogle ? 'oauth_discord' : 'oauth_google';
-    }
-
     localStorage.removeItem('mission_control_active_provider');
-
-    // Sign out and redirect to initiate OAuth for the target provider
-    signOut(() => {
-      window.location.replace(window.location.origin + `/?trigger_oauth=${targetProvider}`);
-    });
+    // Sign out cleanly and navigate to login modal / auth screen so user can choose ANY account freely
+    await signOut();
+    window.location.replace(window.location.origin + '/?show_auth=1');
   };
 
   const libraryStats = useMemo(() => {
@@ -800,16 +793,18 @@ const SettingsPage: React.FC<{ state: TelemetryState | null, sendCommand: (type:
       ];
     } else if (provider === 'gemini') {
       options = [
-        { value: 'gemini-flash-latest', label: 'Gemini Flash (Latest)', group: 'Google GenAI', isMono: true },
-        { value: 'gemini-3.8-flash', label: 'Gemini 3.8 Flash (Latest)', group: 'Google GenAI', isMono: true },
-        { value: 'gemini-3.7-flash', label: 'Gemini 3.7 Flash', group: 'Google GenAI', isMono: true },
-        { value: 'gemini-3.6-flash', label: 'Gemini 3.6 Flash', group: 'Google GenAI', isMono: true },
-        { value: 'gemini-2.0-flash', label: 'Gemini 2.0 Flash', group: 'Google GenAI', isMono: true }
+        { value: 'gemini-3.8-flash', label: 'Gemini 3.8 Flash · Frontier Multimodal', group: 'Google GenAI', isMono: true },
+        { value: 'gemini-3.7-flash', label: 'Gemini 3.7 Flash · Hybrid Reasoning', group: 'Google GenAI', isMono: true },
+        { value: 'gemini-3.6-flash', label: 'Gemini 3.6 Flash · Fast Dialogue', group: 'Google GenAI', isMono: true },
+        { value: 'gemini-2.5-flash', label: 'Gemini 2.5 Flash', group: 'Google GenAI', isMono: true },
+        { value: 'gemini-2.0-flash', label: 'Gemini 2.0 Flash', group: 'Google GenAI', isMono: true },
+        { value: 'gemini-flash-latest', label: 'Gemini Flash (Latest Stable)', group: 'Google GenAI', isMono: true }
       ];
     } else if (provider === 'groq') {
       options = [
         { value: 'gpt-oss-120b', label: 'GPT OSS 120B · Groq (Free)', group: 'Groq Cloud', isMono: true },
         { value: 'qwen-3.6-27b', label: 'Qwen 3.6 27B · Groq (Free)', group: 'Groq Cloud', isMono: true },
+        { value: 'llama-3.3-70b-versatile', label: 'Llama 3.3 70B · Groq (Free)', group: 'Groq Cloud', isMono: true },
         { value: 'llama-3.1-8b-instant', label: 'Llama 3.1 8B · Groq (Free)', group: 'Groq Cloud', isMono: true },
         { value: 'deepseek-r1-distill-llama-70b', label: 'DeepSeek R1 70B · Groq (Free)', group: 'Groq Cloud', isMono: true }
       ];

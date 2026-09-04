@@ -81,6 +81,36 @@ const SSOCallback: React.FC = () => {
         Verifying Identity…
       </p>
 
+      <button
+        onClick={() => { window.location.replace('/?auth_cancelled=1'); }}
+        style={{
+          marginTop: '12px',
+          padding: '8px 18px',
+          backgroundColor: 'rgba(255, 255, 255, 0.06)',
+          border: '1px solid rgba(255, 255, 255, 0.15)',
+          borderRadius: '12px',
+          color: '#a1a1aa',
+          fontSize: '11px',
+          fontWeight: 800,
+          textTransform: 'uppercase',
+          letterSpacing: '0.1em',
+          cursor: 'pointer',
+          transition: 'all 0.2s ease',
+        }}
+        onMouseEnter={(e) => {
+          e.currentTarget.style.color = '#ffffff';
+          e.currentTarget.style.backgroundColor = 'rgba(255, 255, 255, 0.12)';
+          e.currentTarget.style.borderColor = 'rgba(255, 255, 255, 0.3)';
+        }}
+        onMouseLeave={(e) => {
+          e.currentTarget.style.color = '#a1a1aa';
+          e.currentTarget.style.backgroundColor = 'rgba(255, 255, 255, 0.06)';
+          e.currentTarget.style.borderColor = 'rgba(255, 255, 255, 0.15)';
+        }}
+      >
+        Cancel & Return to App
+      </button>
+
       <AuthenticateWithRedirectCallback
         afterSignInUrl="/"
         afterSignUpUrl="/"

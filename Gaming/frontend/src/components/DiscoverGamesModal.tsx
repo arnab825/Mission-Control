@@ -971,7 +971,7 @@ const DiscoverGamesModal: React.FC<DiscoverGamesModalProps> = ({ onClose }) => {
                   All Weekly Intel
                 </button>
 
-                {weeklyNewsTopics.map((topic) => {
+                {weeklyNewsTopics.map((topic: string) => {
                   const isSelected = selectedTopic.toLowerCase() === topic.toLowerCase();
                   return (
                     <button
