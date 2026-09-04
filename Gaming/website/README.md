@@ -13,7 +13,7 @@ The official high-performance web platform for **Mission Control**, built with N
 - **📰 Automated AI Gaming Intel Blog Pipeline (`/api/blogs/generate`)**:
   - Automatically fetches real-time updates from 5 major RSS feeds: IGN, Kotaku, Eurogamer, AnandTech, and Tom's Hardware.
   - Generates technical gaming articles daily across 4 core categories: `GPU News`, `Game News`, `Hardware Deep-Dive`, and `Game Revisit`.
-  - **3-Tier Failover LLM Pipeline**: Google Gemini (`gemini-3.6-flash`) ➔ Hugging Face (`Llama-3.1-8B-Instruct`) ➔ NVIDIA NIM (`meta/llama-3.3-70b-instruct`).
+  - **3-Tier Failover LLM Pipeline**: Google Gemini (`gemini-3.8-flash`) ➔ Hugging Face (`Llama-3.1-8B-Instruct`) ➔ NVIDIA NIM (`nvidia/nemotron-3-ultra` / `meta/llama-3.3-70b-instruct`).
   - **4-Tier Image Failover Pipeline**: Imagen 3 via Gemini ➔ Hugging Face (`FLUX.1-schnell`) ➔ Pollinations AI ➔ Fallback 3D PNG artwork assets.
   - **MongoDB Atlas Persistence**: Saves posts directly into MongoDB Atlas to guarantee zero content loss across serverless Vercel function lifecycles.
 - **🎮 Interactive Game Benchmark Library**: Dynamic rendering of GPU performance profiles, CPU bottleneck metrics, story overviews, and gameplay mechanics across top titles.

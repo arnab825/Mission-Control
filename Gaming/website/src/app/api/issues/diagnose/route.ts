@@ -65,60 +65,67 @@ Respond ONLY with valid JSON in this exact structure without markdown formatting
 
     let parsedResult = null;
 
-    // TIER 1: Google Gemini 2.0 Flash
+    // TIER 1: Google Gemini Flash (3.8 / 3.7 / 2.0)
     const geminiKey = process.env.GEMINI_API_KEY;
     if (geminiKey) {
-      try {
-        const geminiRes = await fetch(
-          `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key=${geminiKey}`,
-          {
-            method: "POST",
-            headers: { "Content-Type": "application/json" },
-            body: JSON.stringify({
-              contents: [{ role: "user", parts: [{ text: prompt }] }],
-              generationConfig: { temperature: 0.2, responseMimeType: "application/json" },
-            }),
-          }
-        );
+      const geminiModels = [process.env.GEMINI_MODEL, "gemini-3.8-flash", "gemini-3.7-flash", "gemini-2.0-flash"].filter(Boolean) as string[];
+      for (const modelId of geminiModels) {
+        try {
+          const geminiRes = await fetch(
+            `https://generativelanguage.googleapis.com/v1beta/models/${modelId}:generateContent?key=${geminiKey}`,
+            {
+              method: "POST",
+              headers: { "Content-Type": "application/json" },
+              body: JSON.stringify({
+                contents: [{ role: "user", parts: [{ text: prompt }] }],
+                generationConfig: { temperature: 0.2, responseMimeType: "application/json" },
+              }),
+            }
+          );
 
-        if (geminiRes.ok) {
-          const gData = await geminiRes.json();
-          const rawText = gData?.candidates?.[0]?.content?.parts?.[0]?.text || "";
-          if (rawText) {
-            parsedResult = JSON.parse(rawText.replace(/```json/g, "").replace(/```/g, "").trim());
+          if (geminiRes.ok) {
+            const gData = await geminiRes.json();
+            const rawText = gData?.candidates?.[0]?.content?.parts?.[0]?.text || "";
+            if (rawText) {
+              parsedResult = JSON.parse(rawText.replace(/```json/g, "").replace(/```/g, "").trim());
+              if (parsedResult) break;
+            }
           }
+        } catch {
+          // try next model
         }
-      } catch (err) {
-        console.warn("[DiagnoseAPI] Gemini Flash Tier failed:", err);
       }
     }
 
-    // TIER 2: NVIDIA NIM (Llama 3.3 70B)
+    // TIER 2: NVIDIA NIM (Nemotron 3 Ultra / Llama 3.3 70B)
     if (!parsedResult && process.env.NVIDIA_API_KEY) {
-      try {
-        const nimRes = await fetch("https://integrate.api.nvidia.com/v1/chat/completions", {
-          method: "POST",
-          headers: {
-            "Content-Type": "application/json",
-            Authorization: `Bearer ${process.env.NVIDIA_API_KEY}`,
-          },
-          body: JSON.stringify({
-            model: "meta/llama-3.3-70b-instruct",
-            messages: [{ role: "user", content: prompt }],
-            temperature: 0.2,
-            response_format: { type: "json_object" },
-          }),
-        });
+      for (const nimModel of ["nvidia/nemotron-3-ultra", "meta/llama-3.3-70b-instruct"]) {
+        try {
+          const nimRes = await fetch("https://integrate.api.nvidia.com/v1/chat/completions", {
+            method: "POST",
+            headers: {
+              "Content-Type": "application/json",
+              Authorization: `Bearer ${process.env.NVIDIA_API_KEY}`,
+            },
+            body: JSON.stringify({
+              model: nimModel,
+              messages: [{ role: "user", content: prompt }],
+              temperature: 0.2,
+              response_format: { type: "json_object" },
+            }),
+          });
 
-        if (nimRes.ok) {
-          const nData = await nimRes.json();
-          const content = nData.choices?.[0]?.message?.content;
-          if (content) {
-            parsedResult = JSON.parse(content.replace(/```json/g, "").replace(/```/g, "").trim());
+          if (nimRes.ok) {
+            const nData = await nimRes.json();
+            const content = nData.choices?.[0]?.message?.content;
+            if (content) {
+              parsedResult = JSON.parse(content.replace(/```json/g, "").replace(/```/g, "").trim());
+              break;
+            }
           }
+        } catch (err) {
+          console.warn(`[DiagnoseAPI] NVIDIA NIM Tier (${nimModel}) failed:`, err);
         }
-      } catch (err) {
-        console.warn("[DiagnoseAPI] NVIDIA NIM Tier failed:", err);
       }
     }
 

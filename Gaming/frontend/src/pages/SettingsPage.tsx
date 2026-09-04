@@ -284,7 +284,7 @@ const CustomSelect: React.FC<{
   }, []);
 
   const selectedOption = options.find(opt => opt.value === value) || options.find(opt => opt.label === value);
-  const displayLabel = selectedOption ? selectedOption.label : value;
+  const displayLabel = selectedOption ? selectedOption.label : (options[0]?.label || value);
 
   const renderedItems: React.ReactNode[] = [];
   let currentGroup = '';
@@ -375,8 +375,9 @@ const AI_PROVIDER_OPTIONS = [
 ];
 
 const AI_NEURAL_BACKBONE_OPTIONS = [
-  { value: 'meta/llama-3.1-8b-instruct', label: 'Llama 3.1 8B · Free / Fast', group: 'NVIDIA NIM (Free Tier)', isMono: true },
-  { value: 'meta/llama-3.3-70b-instruct', label: 'Llama 3.3 70B · Advanced', group: 'NVIDIA NIM (Free Tier)', isMono: true }
+  { value: 'nvidia/nemotron-3-ultra', label: 'Nemotron 3 Ultra · Frontier Reasoning', group: 'NVIDIA NIM (Free Tier)', isMono: true },
+  { value: 'meta/llama-3.3-70b-instruct', label: 'Llama 3.3 70B · Advanced', group: 'NVIDIA NIM (Free Tier)', isMono: true },
+  { value: 'meta/llama-3.1-8b-instruct', label: 'Llama 3.1 8B · Free / Fast', group: 'NVIDIA NIM (Free Tier)', isMono: true }
 ];
 
 const MEMORY_MODE_OPTIONS = [
@@ -800,6 +801,8 @@ const SettingsPage: React.FC<{ state: TelemetryState | null, sendCommand: (type:
     } else if (provider === 'gemini') {
       options = [
         { value: 'gemini-flash-latest', label: 'Gemini Flash (Latest)', group: 'Google GenAI', isMono: true },
+        { value: 'gemini-3.8-flash', label: 'Gemini 3.8 Flash (Latest)', group: 'Google GenAI', isMono: true },
+        { value: 'gemini-3.7-flash', label: 'Gemini 3.7 Flash', group: 'Google GenAI', isMono: true },
         { value: 'gemini-3.6-flash', label: 'Gemini 3.6 Flash', group: 'Google GenAI', isMono: true },
         { value: 'gemini-2.0-flash', label: 'Gemini 2.0 Flash', group: 'Google GenAI', isMono: true }
       ];
@@ -813,22 +816,33 @@ const SettingsPage: React.FC<{ state: TelemetryState | null, sendCommand: (type:
     } else if (provider === 'openrouter') {
       options = [
         { value: 'openrouter/free', label: 'OpenRouter Free Auto · OpenRouter (Free)', group: 'OpenRouter Free', isMono: true },
+        { value: 'nvidia/nemotron-3-ultra:free', label: 'Nemotron 3 Ultra · OpenRouter (Free)', group: 'OpenRouter Free', isMono: true },
         { value: 'deepseek/deepseek-chat:free', label: 'DeepSeek V3 · OpenRouter (Free)', group: 'OpenRouter Free', isMono: true },
         { value: 'meta-llama/llama-3.3-70b-instruct:free', label: 'Llama 3.3 70B · OpenRouter (Free)', group: 'OpenRouter Free', isMono: true },
         { value: 'google/gemini-2.0-flash-exp:free', label: 'Gemini 2.0 Flash · OpenRouter (Free)', group: 'OpenRouter Free', isMono: true }
       ];
     }
-    
-    const currentVal = localConfig?.ai_agent?.model_id;
-    if (currentVal && currentVal !== 'custom' && !options.some(opt => opt.value === currentVal)) {
-      return [
-        { value: currentVal, label: `Deprecated: ${currentVal.split('/').pop() || currentVal}`, isMono: true },
-        ...options
-      ];
-    }
 
     return options;
-  }, [localConfig?.ai_agent?.provider, localConfig?.ai_agent?.model_id]);
+  }, [localConfig?.ai_agent?.provider]);
+
+  // Keep model_id synchronized with available options for active provider and eliminate deprecated selections
+  useEffect(() => {
+    if (!localConfig?.ai_agent) return;
+    const currentModel = localConfig.ai_agent?.model_id;
+    if (currentModel && !dynamicNeuralOptions.some(opt => opt.value === currentModel)) {
+      setLocalConfig((prev: any) => {
+        if (!prev || !prev.ai_agent) return prev;
+        return {
+          ...prev,
+          ai_agent: {
+            ...prev.ai_agent,
+            model_id: dynamicNeuralOptions[0]?.value || 'nvidia/nemotron-3-ultra'
+          }
+        };
+      });
+    }
+  }, [dynamicNeuralOptions, localConfig?.ai_agent?.model_id]);
   const [isSaving, setIsSaving] = useState(false);
   const [newDirInput, setNewDirInput] = useState('');
   const [configLoaded, setConfigLoaded] = useState(false);
@@ -1125,7 +1139,7 @@ const SettingsPage: React.FC<{ state: TelemetryState | null, sendCommand: (type:
         const customId = localConfig.ai_agent?.custom_model_id || 'Custom';
         return `Vision Model (${customId})`;
       }
-      const modelLabel = AI_NEURAL_BACKBONE_OPTIONS.find(o => o.value === model)?.label || 'Llama 3.3 70B';
+      const modelLabel = AI_NEURAL_BACKBONE_OPTIONS.find(o => o.value === model)?.label || 'Nemotron 3 Ultra';
       return `Vision Model (${modelLabel})`;
     }
     if (label === 'AI OCR Dialogue Reader') {
@@ -2699,10 +2713,11 @@ const SettingsPage: React.FC<{ state: TelemetryState | null, sendCommand: (type:
                   <CustomSelect
                     value={localConfig.ai_agent?.provider || 'nvidia'}
                     onChange={(val) => {
-                      let defaultModel = 'meta/llama-3.1-8b-instruct';
-                      if (val === 'gemini') defaultModel = 'gemini-3.6-flash';
+                      let defaultModel = 'nvidia/nemotron-3-ultra';
+                      if (val === 'gemini') defaultModel = 'gemini-3.8-flash';
                       else if (val === 'groq') defaultModel = 'gpt-oss-120b';
                       else if (val === 'openrouter') defaultModel = 'openrouter/free';
+                      else if (val === 'auto') defaultModel = 'auto';
                       setLocalConfig({ ...localConfig, ai_agent: { ...localConfig.ai_agent, provider: val, model_id: defaultModel } })
                     }}
                     options={AI_PROVIDER_OPTIONS}
@@ -2711,7 +2726,11 @@ const SettingsPage: React.FC<{ state: TelemetryState | null, sendCommand: (type:
                 </div>
                 <div className="flex-1 min-w-0 w-full">
                   <CustomSelect
-                    value={localConfig.ai_agent?.model_id || 'meta/llama-3.1-8b-instruct'}
+                    value={
+                      dynamicNeuralOptions.some(opt => opt.value === localConfig.ai_agent?.model_id)
+                        ? localConfig.ai_agent?.model_id
+                        : (dynamicNeuralOptions[0]?.value || 'nvidia/nemotron-3-ultra')
+                    }
                     onChange={(val) => setLocalConfig({ ...localConfig, ai_agent: { ...localConfig.ai_agent, model_id: val } })}
                     options={dynamicNeuralOptions}
                     isMono={true}

@@ -95,9 +95,9 @@ To avoid creating duplicate posts for the same day (e.g. if the generation scrip
 
 * **3-Tier LLM Failover for Busy Schedules / Quota Limits**:
   * If Google Gemini is busy or rate-limited during scheduled cron executions, the system automatically cascades to:
-    1. **Google Gemini Flash** (`gemini-3.6-flash`, `gemini-3.5-flash`, `gemini-2.0-flash`)
+    1. **Google Gemini Flash** (`gemini-3.8-flash`, `gemini-3.7-flash`, `gemini-3.6-flash`, `gemini-3.5-flash`)
     2. **Hugging Face LLMs** (`meta-llama/Llama-3.1-8B-Instruct`, `mistralai/Mistral-7B-Instruct-v0.3`, `Qwen/Qwen2.5-72B-Instruct` via `HF_TOKEN`)
-    3. **NVIDIA NIM LLMs** (`meta/llama-3.3-70b-instruct` via `NVIDIA_API_KEY`)
+    3. **NVIDIA NIM LLMs** (`nvidia/nemotron-3-ultra`, `meta/llama-3.3-70b-instruct` via `NVIDIA_API_KEY`)
   * This guarantees 100% uptime for automated daily blog generation under high traffic or API quota limits.
 
 

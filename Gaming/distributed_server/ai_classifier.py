@@ -40,14 +40,14 @@ _PROVIDERS = [
         "label": "Google Gemini Flash",
         "base_url": "https://generativelanguage.googleapis.com/v1beta/openai/",
         "env_key": "GEMINI_API_KEY",
-        "models": ["gemini-flash-lite-latest", "gemini-flash-latest"],
+        "models": ["gemini-3.8-flash", "gemini-3.7-flash", "gemini-flash-lite-latest", "gemini-flash-latest"],
     },
     {
         "name": "nvidia",
         "label": "NVIDIA NIM",
         "base_url": "https://integrate.api.nvidia.com/v1",
         "env_key": "NVIDIA_API_KEY",
-        "models": ["meta/llama-3.3-70b-instruct"],
+        "models": ["nvidia/nemotron-3-ultra", "meta/llama-3.3-70b-instruct"],
     },
     {
         "name": "groq",
@@ -61,7 +61,7 @@ _PROVIDERS = [
         "label": "OpenRouter",
         "base_url": "https://openrouter.ai/api/v1",
         "env_key": "OPENROUTER_API_KEY",
-        "models": ["meta-llama/llama-3.3-70b-instruct"],
+        "models": ["nvidia/nemotron-3-ultra", "meta-llama/llama-3.3-70b-instruct"],
     },
 ]
 
@@ -207,7 +207,7 @@ def _call_provider(
     logging.getLogger("httpx").setLevel(logging.WARNING)
 
     client = OpenAI(api_key=api_key, base_url=provider["base_url"], max_retries=0)
-    models = provider.get("models") or [provider.get("model", "gemini-3.6-flash")]
+    models = provider.get("models") or [provider.get("model", "gemini-3.8-flash")]
 
     for model in models:
         t0 = time.time()

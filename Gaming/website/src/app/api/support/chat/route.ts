@@ -305,17 +305,25 @@ How can I assist you with our **Documentation**, **System Architecture**, **App 
           { role: "user", parts: [{ text: userPrompt }] }
         ];
 
-        const geminiRes = await fetch(
-          `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key=${geminiKey}`,
-          {
-            method: "POST",
-            headers: { "Content-Type": "application/json" },
-            body: JSON.stringify({ contents })
+        const geminiModels = [process.env.GEMINI_MODEL, "gemini-3.8-flash", "gemini-3.7-flash", "gemini-2.0-flash"].filter(Boolean) as string[];
+        for (const modelId of geminiModels) {
+          try {
+            const geminiRes = await fetch(
+              `https://generativelanguage.googleapis.com/v1beta/models/${modelId}:generateContent?key=${geminiKey}`,
+              {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({ contents })
+              }
+            );
+            if (geminiRes.ok) {
+              const gData = await geminiRes.json();
+              replyText = gData?.candidates?.[0]?.content?.parts?.[0]?.text || "";
+              if (replyText) break;
+            }
+          } catch {
+            // try next model
           }
-        );
-        if (geminiRes.ok) {
-          const gData = await geminiRes.json();
-          replyText = gData?.candidates?.[0]?.content?.parts?.[0]?.text || "";
         }
       } catch (gErr) {
         console.warn("Gemini support fallback notice:", gErr);

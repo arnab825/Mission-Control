@@ -174,7 +174,7 @@ ${diagramCode}`;
 
   // Try Gemini Flash
   if (geminiKey) {
-    const models = ["gemini-3.5-flash-lite", "gemini-3.6-flash", "gemini-flash-lite-latest", "gemini-flash-latest"];
+    const models = ["gemini-3.8-flash", "gemini-3.7-flash", "gemini-3.6-flash", "gemini-3.5-flash-lite", "gemini-flash-lite-latest", "gemini-flash-latest"];
     for (const model of models) {
       try {
         const response = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/${model}:generateContent?key=${geminiKey}`, {
@@ -451,6 +451,8 @@ async function generateBlogPostWithGemini(
   const prompt = buildPromptForItems(items, postType, targetDate);
   const modelsToTry = [
     process.env.GEMINI_MODEL,
+    "gemini-3.8-flash",
+    "gemini-3.7-flash",
     "gemini-3.6-flash",
     "gemini-3.5-flash",
     "gemini-3.5-flash-lite",
@@ -562,10 +564,15 @@ export async function generateBlogPost(
     }
   }
 
-  // Tier 3: NVIDIA NIM (meta/llama-3.3-70b-instruct / meta/llama-3.1-8b-instruct)
+  // Tier 3: NVIDIA NIM (nvidia/nemotron-3-ultra / meta/llama-3.3-70b-instruct / meta/llama-3.1-8b-instruct)
   if (apiKey) {
-    console.log(`[BlogGen][${postType}] Falling back to NVIDIA NIM (meta/llama-3.3-70b-instruct)...`);
-    let result = await generateBlogPostWithModel(items, postType, apiKey, targetDate, "meta/llama-3.3-70b-instruct");
+    console.log(`[BlogGen][${postType}] Falling back to NVIDIA NIM (nvidia/nemotron-3-ultra)...`);
+    let result = await generateBlogPostWithModel(items, postType, apiKey, targetDate, "nvidia/nemotron-3-ultra");
+
+    if (!result) {
+      console.log(`[BlogGen][${postType}] Falling back to NVIDIA NIM (meta/llama-3.3-70b-instruct)...`);
+      result = await generateBlogPostWithModel(items, postType, apiKey, targetDate, "meta/llama-3.3-70b-instruct");
+    }
 
     if (!result) {
       console.log(`[BlogGen][${postType}] Falling back to NVIDIA NIM (meta/llama-3.1-8b-instruct)...`);
@@ -743,7 +750,7 @@ RULES:
 2. Describe ONLY tangible visual elements: concrete game characters, muscle cars on neon-lit city streets, ancient temple ruins, futuristic cyberpunk armor, cinematic volumetric lighting, Unreal Engine 5 render, 8k resolution, photorealistic.
 3. Return ONLY the image prompt text.`;
 
-  const models = ["gemini-3.5-flash-lite", "gemini-3.6-flash", "gemini-flash-lite-latest", "gemini-flash-latest"];
+  const models = ["gemini-3.8-flash", "gemini-3.7-flash", "gemini-3.6-flash", "gemini-3.5-flash-lite", "gemini-flash-lite-latest", "gemini-flash-latest"];
 
   for (const model of models) {
     try {
