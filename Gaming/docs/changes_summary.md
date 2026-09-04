@@ -12,7 +12,30 @@ Comprehensive breakdown of major milestone releases, architectural upgrades, and
 
 ---
 
-## 🌟 Version v3.5.0 (Latest) — Fixed Auto-Updater Stale Version Downloads, False Up-to-Date, and Upgrade Now UI Flash
+## 🌟 Version v3.5.1 (Latest) — Nemotron 3 Ultra, Gemini 3.8, Settings Cleanup & Library UI Polish
+
+### 🛠️ Key Highlights
+1. **Added NVIDIA Nemotron 3 Ultra to Neural Backbone, OpenRouter, and NIM failover cascades**
+2. **Upgraded Google Gemini models to 3.7 and 3.8 Flash across website and app**
+3. **Removed deprecated model dropdown injection and added auto-synchronization in Settings**
+4. **Cleaned up Games Library header: removed storage/count pills and aligned buttons**
+
+### 📊 Architecture & Data Flow
+```mermaid
+graph TD
+    A["Mobile Client / DevTools (320px+)"] --> B[Responsive CSS & Layout Container]
+    B --> C[DocsClient Component & Cards]
+    C --> D[MobileDocsSidebar Drawer & Header Bar]
+    D --> E[Real-Time Mongo Telemetry & Render]
+```
+
+### 📦 Distribution Artifacts
+- **Linux**: `.deb` (Debian/Ubuntu), `.AppImage` (Universal), `.rpm` (Fedora/RHEL), `.tar.gz` (Portable)
+- **Windows**: `.exe` (Setup Installer), `.msi` (Enterprise), `.zip` (Portable)
+
+---
+
+## 📦 Version v3.5.0 — Auto-Updater Seamless Relaunch, Installer Elevation, and Stale Cache Fixes
 
 ### 🛠️ Key Highlights
 1. **Fixed stale directUpdateInfo cache causing old version downloads when skipping multiple releases**

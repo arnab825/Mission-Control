@@ -2,7 +2,14 @@
 
 This document contains a detailed history of all patches and updates for the AI Gaming Assistant.
 
-### Patch: 2026-09-03 — v3.5.0: Fixed Auto-Updater Stale Version Downloads, False Up-to-Date, and Upgrade Now UI Flash
+### Patch: 2026-09-04 — v3.5.1: Nemotron 3 Ultra, Gemini 3.8, Settings Cleanup & Library UI Polish
+
+- Added NVIDIA Nemotron 3 Ultra to Neural Backbone, OpenRouter, and NIM failover cascades
+- Upgraded Google Gemini models to 3.7 and 3.8 Flash across website and app
+- Removed deprecated model dropdown injection and added auto-synchronization in Settings
+- Cleaned up Games Library header: removed storage/count pills and aligned buttons
+
+### Patch: 2026-09-03 — v3.5.0: Auto-Updater Seamless Relaunch, Installer Elevation, and Stale Cache Fixes
 
 - Fixed stale directUpdateInfo cache causing old version downloads when skipping multiple releases
 - Fixed Upgrade Now button triggering a UI refresh flash by removing intermediate checking status

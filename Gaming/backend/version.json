@@ -1,8 +1,19 @@
 {
-  "version": "3.5.0",
+  "version": "3.5.1",
   "release_date": "2026-09-03",
   "update_check_url": "https://raw.githubusercontent.com/arnab825/Mission-Control/main/Gaming/backend/version.json",
   "changelog": [
+    {
+      "version": "3.5.1",
+      "date": "2026-09-04",
+      "title": "Nemotron 3 Ultra, Gemini 3.8, Settings Cleanup & Library UI Polish",
+      "highlights": [
+        "Added NVIDIA Nemotron 3 Ultra to Neural Backbone, OpenRouter, and NIM failover cascades",
+        "Upgraded Google Gemini models to 3.7 and 3.8 Flash across website and app",
+        "Removed deprecated model dropdown injection and added auto-synchronization in Settings",
+        "Cleaned up Games Library header: removed storage/count pills and aligned buttons"
+      ]
+    },
     {
       "version": "3.5.0",
       "date": "2026-09-03",
@@ -481,14 +492,6 @@
       "title": "Fixes Linux build on WSL",
       "highlights": [
         "Fixes Linux build on WSL"
-      ]
-    },
-    {
-      "version": "3.0.2",
-      "date": "2026-08-12",
-      "title": "Fixes some Bugs for Linux",
-      "highlights": [
-        "Fixes some Bugs for Linux"
       ]
     }
   ]

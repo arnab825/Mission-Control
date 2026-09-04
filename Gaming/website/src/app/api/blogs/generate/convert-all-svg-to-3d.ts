@@ -21,7 +21,7 @@ RULES:
 2. Describe ONLY tangible visual elements: concrete game characters, muscle cars on neon-lit city streets, ancient temple ruins, futuristic cyberpunk armor, cinematic volumetric lighting, Unreal Engine 5 render, 8k resolution, photorealistic.
 3. Return ONLY the image prompt text.`;
 
-    const models = ["gemini-3.5-flash-lite", "gemini-3.6-flash", "gemini-flash-lite-latest", "gemini-flash-latest"];
+    const models = ["gemini-3.8-flash", "gemini-3.7-flash", "gemini-3.6-flash", "gemini-3.5-flash-lite", "gemini-flash-lite-latest", "gemini-flash-latest"];
     for (const model of models) {
       try {
         const res = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/${model}:generateContent?key=${geminiKey}`, {

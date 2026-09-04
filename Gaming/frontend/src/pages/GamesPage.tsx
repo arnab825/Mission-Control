@@ -22,21 +22,11 @@ import {
   Terminal,
   Shield,
   Server,
-  Globe,
-  HardDrive
+  Globe
 } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import type { TelemetryState } from '../types/telemetry';
-import { useDistributedStats, fetchWithFailover } from '../hooks/useDistributedStats';
-
-function formatBytes(bytes: number): string {
-  if (!bytes) return '0 B';
-  const tb = bytes / 1e12;
-  if (tb >= 0.1) return `${tb.toFixed(1)} TB`;
-  const gb = bytes / 1e9;
-  if (gb >= 1) return `${gb.toFixed(1)} GB`;
-  return `${(bytes / 1e6).toFixed(0)} MB`;
-}
+import { useDistributedStats } from '../hooks/useDistributedStats';
 
 // ── Types ──────────────────────────────────────────────────────────────────────
 interface BackendGame {
@@ -463,7 +453,7 @@ const CacheLoadingScreen: React.FC = () => (
 
 // ── Main Library Content ───────────────────────────────────────────────────────
 const GamesLibraryContent: React.FC<GamesPageProps> = ({ state, sendCommand, setMode }) => {
-  const { isSignedIn, userId, signOut } = useAuth();
+  const { isSignedIn, userId } = useAuth();
 
   // Detect GPU tier for library feature badge coloring
   const gpuCaps = state?.system_specs?.hardware?.gpu_capabilities;
@@ -847,42 +837,19 @@ const GamesLibraryContent: React.FC<GamesPageProps> = ({ state, sendCommand, set
             <span className="whitespace-nowrap">Manage Nodes</span>
           </button>
 
-          {!isSignedIn ? (
-            <button aria-label="button" type="button"
-              onClick={() => setMode?.('auth')}
-              className="flex items-center gap-2 px-4 py-2 border border-neon-green/20 text-neon-green hover:bg-neon-green/10 hover:border-neon-green/40 font-black text-[9px] uppercase tracking-widest rounded-xl transition-all shadow-[0_0_15px_rgba(118,185,0,0.1)] hover:shadow-[0_0_20px_rgba(118,185,0,0.2)] cursor-pointer"
-            >
-              Link Neural Node
-            </button>
-          ) : (
-            <button aria-label="button" type="button"
-              onClick={() => {
-                setIsScanning(false);
-                setScanProgress(0);
-                setScanStatus('idle');
-                setScanLogs([]);
-                sendCommand('logout_user', { userId });
-                signOut();
-              }}
-              className="flex items-center gap-2 px-4 py-2 border border-red-500/20 text-red-400 hover:bg-red-500/10 hover:border-red-500/40 font-black text-[9px] uppercase tracking-widest rounded-xl transition-all cursor-pointer"
-            >
-              Sign Out
-            </button>
-          )}
-
           {/* Scan progress indicator */}
           {isScanning && (
-            <div className="flex items-center gap-2 px-3 py-1.5 bg-neon-green/10 border border-neon-green/20 rounded-xl max-w-full">
+            <div className="flex items-center gap-2 px-3.5 py-2.5 bg-neon-green/10 border border-neon-green/20 rounded-2xl max-w-full shrink-0">
               <Loader2 className="w-3.5 h-3.5 text-neon-green animate-spin shrink-0" />
-              <span className="text-[9px] font-black text-neon-green uppercase tracking-widest truncate">
+              <span className="text-[10px] font-black text-neon-green uppercase tracking-widest truncate">
                 {scanProgress}% — {scanStatus}
               </span>
             </div>
           )}
           {scanStatus === 'done' && (
-            <div className="flex items-center gap-2 px-3 py-1.5 bg-neon-yellow/10 border border-neon-yellow/20 rounded-xl max-w-full">
+            <div className="flex items-center gap-2 px-3.5 py-2.5 bg-neon-yellow/10 border border-neon-yellow/20 rounded-2xl max-w-full shrink-0">
               <CheckCircle2 className="w-3.5 h-3.5 text-neon-yellow shrink-0" />
-              <span className="text-[9px] font-black text-neon-yellow uppercase tracking-widest truncate">
+              <span className="text-[10px] font-black text-neon-yellow uppercase tracking-widest truncate">
                 {games.length} Games Found
               </span>
             </div>
@@ -899,67 +866,29 @@ const GamesLibraryContent: React.FC<GamesPageProps> = ({ state, sendCommand, set
         </div>
       </div>
 
-      {/* Distributed Fleet Telemetry Bar */}
-      {distributedStats && (
+      {/* Multi-Node Cluster Status Bar (Only shown when remote cluster nodes exist) */}
+      {distributedStats?.nodes && distributedStats.nodes.length > 1 && (
         <motion.div
           initial={{ opacity: 0, y: -6 }}
           animate={{ opacity: 1, y: 0 }}
           className="flex flex-wrap items-center gap-3 px-4 py-2.5 bg-white/3 border border-white/6 rounded-2xl"
         >
-          {/* Stats Pills */}
-          {(() => {
-            const displayGames = (distributedStats.total_master_games && distributedStats.total_master_games > 0)
-              ? distributedStats.total_master_games
-              : (distributedStats.total_installed_games && distributedStats.total_installed_games > 0)
-                ? distributedStats.total_installed_games
-                : (games.length || 0);
-
-            const displayStorage = (distributedStats.total_storage_bytes && distributedStats.total_storage_bytes > 0)
-              ? distributedStats.total_storage_bytes
-              : (distributedStats.nodes && distributedStats.nodes.length > 0)
-                ? distributedStats.nodes.reduce((sum, n) => sum + (n.storage_total || 0), 0)
-                : 2045559955456;
-
-            return (
-              <>
-                <div className="flex items-center gap-1.5">
-                  <Gamepad2 className="w-3.5 h-3.5 text-zinc-500" />
-                  <span className="text-[10px] font-black text-white">{displayGames.toLocaleString()}</span>
-                  <span className="text-[9px] text-zinc-500 uppercase tracking-widest">Games</span>
-                </div>
-                <div className="w-px h-3 bg-white/10" />
-                <div className="flex items-center gap-1.5">
-                  <HardDrive className="w-3.5 h-3.5 text-zinc-500" />
-                  <span className="text-[10px] font-black text-white">{formatBytes(displayStorage)}</span>
-                  <span className="text-[9px] text-zinc-500 uppercase tracking-widest">Storage</span>
-                </div>
-              </>
-            );
-          })()}
-          <div className="w-px h-3 bg-white/10" />
-          {/* Node Status Pills */}
-          <div className="flex items-center gap-1.5 flex-wrap">
+          <div className="flex items-center gap-2 flex-wrap">
             <Server className="w-3.5 h-3.5 text-zinc-500" />
-            {distributedStats.nodes && distributedStats.nodes.length > 0 ? (
-              distributedStats.nodes.map(n => (
-                <span
-                  key={n.node_id}
-                  className={`inline-flex items-center gap-1 px-2 py-0.5 rounded-full border text-[9px] font-black uppercase tracking-widest transition-all ${
-                    n.status === 'online'
-                      ? 'bg-emerald-500/10 text-emerald-400 border-emerald-500/25'
-                      : 'bg-red-500/10 text-red-400 border-red-500/20 opacity-60'
-                  }`}
-                >
-                  <span className={`w-1.5 h-1.5 rounded-full ${n.status === 'online' ? 'bg-emerald-400 animate-pulse' : 'bg-red-400'}`} />
-                  {n.name}
-                </span>
-              ))
-            ) : (
-              <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full border text-[9px] font-black uppercase tracking-widest bg-white/5 text-zinc-400 border-white/10">
-                <span className="w-1.5 h-1.5 rounded-full bg-neon-green" />
-                Host Node (Active)
+            <span className="text-[9px] font-black text-zinc-500 uppercase tracking-widest mr-1">Cluster Nodes:</span>
+            {distributedStats.nodes.map(n => (
+              <span
+                key={n.node_id}
+                className={`inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full border text-[9px] font-black uppercase tracking-widest transition-all ${
+                  n.status === 'online'
+                    ? 'bg-emerald-500/10 text-emerald-400 border-emerald-500/25'
+                    : 'bg-red-500/10 text-red-400 border-red-500/20 opacity-60'
+                }`}
+              >
+                <span className={`w-1.5 h-1.5 rounded-full ${n.status === 'online' ? 'bg-emerald-400 animate-pulse' : 'bg-red-400'}`} />
+                {n.name}
               </span>
-            )}
+            ))}
           </div>
         </motion.div>
       )}

@@ -21,9 +21,9 @@ The website features an automated AI-driven blog generation pipeline at `/api/bl
 - **Scheduling**: The blog generation runs automatically every day at **5:30 AM IST** via Vercel cron jobs.
 - **Tone**: Technical, authoritative, and analytical. Avoid generic AI catchphrases.
 - **LLM Text Generation (3-Tier Failover)**: Uses a 3-tier LLM cascade for 100% uptime:
-  1. **Google Gemini Flash** (`gemini-3.6-flash`, `gemini-3.5-flash`, `gemini-2.0-flash` via `GEMINI_API_KEY`)
+  1. **Google Gemini Flash** (`gemini-3.8-flash`, `gemini-3.7-flash`, `gemini-3.6-flash`, `gemini-3.5-flash` via `GEMINI_API_KEY`)
   2. **Hugging Face LLM** (`Llama-3.1-8B-Instruct`, `Mistral-7B-Instruct`, `Qwen2.5-72B-Instruct` via `HF_TOKEN`)
-  3. **NVIDIA NIM** (`meta/llama-3.3-70b-instruct` via `NVIDIA_API_KEY`)
+  3. **NVIDIA NIM** (`nvidia/nemotron-3-ultra`, `meta/llama-3.3-70b-instruct` via `NVIDIA_API_KEY`)
 - **Image Generation (4-Tier Failover & Vercel Blob CDN)**: Uses the parsed `image_prompt` from frontmatter via a 4-tier pipeline: **Google Gemini (Imagen 3)** (`GEMINI_API_KEY`), **Hugging Face (`FLUX.1-schnell`)** (`HF_TOKEN`), **Pollinations AI**, or **High-Resolution Photorealistic 3D PNG Artwork** category fallbacks. All generated images are stored persistently on **Vercel Blob CDN** via `BLOB_READ_WRITE_TOKEN` to prevent serverless 404 errors.
 
 
