@@ -335,21 +335,42 @@ export default function GamesTestedPage() {
 
           {/* Quick Metrics Pills */}
           <div className="grid grid-cols-2 sm:grid-cols-4 gap-2 sm:gap-3 pt-3 sm:pt-6 max-w-3xl mx-auto font-mono w-full">
-            <div className="p-2.5 sm:p-3 rounded-xl sm:rounded-2xl bg-white/3 border border-white/10 text-center">
+            <div className="p-2.5 sm:p-3 rounded-xl sm:rounded-2xl bg-white/3 border border-white/10 text-center flex flex-col justify-center min-h-[4.5rem] sm:min-h-[5.25rem]">
               <div className="text-neon-green font-black text-lg sm:text-2xl truncate">{featuredGame.score ? `${featuredGame.score}%` : "100%"}</div>
-              <div className="text-gray-400 text-[9px] sm:text-[10px] uppercase font-bold tracking-wider truncate">Local Verified</div>
+              <div className="text-gray-400 text-[9px] sm:text-[10px] uppercase font-bold tracking-wider truncate mt-1">Local Verified</div>
             </div>
-            <div className="p-2.5 sm:p-3 rounded-xl sm:rounded-2xl bg-white/3 border border-white/10 text-center">
-              <div className="text-emerald-400 font-black text-lg sm:text-2xl truncate" title={featuredGame.api}>{featuredGame.api}</div>
-              <div className="text-gray-400 text-[9px] sm:text-[10px] uppercase font-bold tracking-wider truncate">Render Engine</div>
+            <div className="p-2.5 sm:p-3 rounded-xl sm:rounded-2xl bg-white/3 border border-white/10 text-center flex flex-col justify-center min-h-[4.5rem] sm:min-h-[5.25rem]">
+              <div className="flex items-center justify-center" title={featuredGame.api}>
+                {(() => {
+                  const rawApi = (featuredGame.api || "DirectX 12").trim();
+                  const isUltimate = /ultimate/i.test(rawApi);
+                  let base = rawApi.replace(/\s*ultimate/i, '').trim();
+                  if (/^dx\s*12/i.test(base)) base = "DirectX 12";
+                  if (/^dx\s*11/i.test(base)) base = "DirectX 11";
+
+                  return (
+                    <div className="flex items-center justify-center gap-1.5 flex-wrap">
+                      <span className="text-emerald-400 font-black text-sm xs:text-base sm:text-lg lg:text-xl tracking-tight leading-none whitespace-nowrap">
+                        {base}
+                      </span>
+                      {isUltimate && (
+                        <span className="px-1.5 py-0.5 rounded text-[8px] sm:text-[9px] font-mono font-black uppercase tracking-wider bg-emerald-500/15 text-emerald-300 border border-emerald-500/30 shrink-0">
+                          ULT
+                        </span>
+                      )}
+                    </div>
+                  );
+                })()}
+              </div>
+              <div className="text-gray-400 text-[9px] sm:text-[10px] uppercase font-bold tracking-wider truncate mt-1">Render Engine</div>
             </div>
-            <div className="p-2.5 sm:p-3 rounded-xl sm:rounded-2xl bg-white/3 border border-white/10 text-center">
+            <div className="p-2.5 sm:p-3 rounded-xl sm:rounded-2xl bg-white/3 border border-white/10 text-center flex flex-col justify-center min-h-[4.5rem] sm:min-h-[5.25rem]">
               <div className="text-teal-300 font-black text-lg sm:text-2xl truncate">{featuredGame.testedSpecs.latency}</div>
-              <div className="text-gray-400 text-[9px] sm:text-[10px] uppercase font-bold tracking-wider truncate">System Latency</div>
+              <div className="text-gray-400 text-[9px] sm:text-[10px] uppercase font-bold tracking-wider truncate mt-1">System Latency</div>
             </div>
-            <div className="p-2.5 sm:p-3 rounded-xl sm:rounded-2xl bg-white/3 border border-white/10 text-center">
+            <div className="p-2.5 sm:p-3 rounded-xl sm:rounded-2xl bg-white/3 border border-white/10 text-center flex flex-col justify-center min-h-[4.5rem] sm:min-h-[5.25rem]">
               <div className="text-neon-yellow font-black text-lg sm:text-2xl truncate">{featuredGame.testedSpecs.vramUsed.split(' / ')[0]}</div>
-              <div className="text-gray-400 text-[9px] sm:text-[10px] uppercase font-bold tracking-wider truncate">VRAM Memory</div>
+              <div className="text-gray-400 text-[9px] sm:text-[10px] uppercase font-bold tracking-wider truncate mt-1">VRAM Memory</div>
             </div>
           </div>
         </div>
