@@ -12,7 +12,21 @@ Comprehensive breakdown of major milestone releases, architectural upgrades, and
 
 ---
 
-## 🌟 Version v3.5.1 (Latest) — Nemotron 3 Ultra, Gemini 3.8, Settings Cleanup & Library UI Polish
+## 🌟 Version v3.5.2 (Latest) — Discover Web Dynamic Trending, Weekly News Engine, Render Shield & Code Modularization
+
+### 🛠️ Key Highlights
+1. **Periodic Weekly News Topic Engine**: Dynamic ISO-calendar-week thematic rotation with 52 curated topics and live headline entity extraction.
+2. **Direct Electron Steam Trending Storefront**: Real-time Top Sellers, Specials, and New Releases fetched directly from Steam public CDN (0 Render egress).
+3. **Strict Render Free-Tier Shield**: Keystroke debouncing runs 100% locally; Render proxy only triggers on manual submit when results < 2 with 1-hour cache and 15s cooldown.
+4. **Decoupled & Modular Architecture**: Extracted static datasets and style mappings into clean `src/data/` and `src/types/` modules with `verbatimModuleSyntax` compliance.
+
+### 📦 Distribution Artifacts
+- **Linux**: `.deb` (Debian/Ubuntu), `.AppImage` (Universal), `.rpm` (Fedora/RHEL), `.tar.gz` (Portable)
+- **Windows**: `.exe` (Setup Installer), `.msi` (Enterprise), `.zip` (Portable)
+
+---
+
+## 🌟 Version v3.5.1 — Nemotron 3 Ultra, Gemini 3.8, Settings Cleanup & Library UI Polish
 
 ### 🛠️ Key Highlights
 1. **Added NVIDIA Nemotron 3 Ultra to Neural Backbone, OpenRouter, and NIM failover cascades**

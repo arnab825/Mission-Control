@@ -1,8 +1,19 @@
 {
-  "version": "3.5.1",
-  "release_date": "2026-09-03",
+  "version": "3.5.2",
+  "release_date": "2026-09-04",
   "update_check_url": "https://raw.githubusercontent.com/arnab825/Mission-Control/main/Gaming/backend/version.json",
   "changelog": [
+    {
+      "version": "3.5.2",
+      "date": "2026-09-04",
+      "title": "Discover Web Dynamic Trending, Weekly News Engine, Render Shield & Code Modularization",
+      "highlights": [
+        "Added ISO-calendar-week dynamic news topic engine with 52-week thematic schedule and RSS entity extraction",
+        "Direct Electron public Steam trending storefront integration (Top Sellers, Specials, New Releases) with 0 Render egress",
+        "Strict Render Free-Tier Shield: local fuzzy search & store querying with 1-hour cache and 15s cooldown",
+        "Decoupled Discover datasets into modular data/types files with verbatimModuleSyntax compliance"
+      ]
+    },
     {
       "version": "3.5.1",
       "date": "2026-09-04",

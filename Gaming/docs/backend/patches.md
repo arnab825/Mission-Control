@@ -2,6 +2,13 @@
 
 This document contains a detailed history of all patches and updates for the AI Gaming Assistant.
 
+### Patch: 2026-09-04 — v3.5.2: Discover Web Dynamic Trending, Weekly News Engine, Render Shield & Code Modularization
+
+- Added ISO-calendar-week dynamic news topic engine with 52-week thematic schedule and RSS entity extraction
+- Direct Electron public Steam trending storefront integration (Top Sellers, Specials, New Releases) with 0 Render egress
+- Strict Render Free-Tier Shield: local fuzzy search & store querying with 1-hour cache and 15s cooldown
+- Decoupled Discover datasets into modular data/types files with verbatimModuleSyntax compliance
+
 ### Patch: 2026-09-04 — v3.5.1: Nemotron 3 Ultra, Gemini 3.8, Settings Cleanup & Library UI Polish
 
 - Added NVIDIA Nemotron 3 Ultra to Neural Backbone, OpenRouter, and NIM failover cascades

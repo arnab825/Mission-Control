@@ -3037,92 +3037,6 @@ function setupAutoUpdater() {
     return app.getVersion();
   });
 
-  // Dedicated in-memory cache for live external gaming news RSS (IGN, Eurogamer, PC Gamer, etc.)
-  let cachedNewsItems: any[] = [];
-  let lastNewsFetchTime = 0;
-  const NEWS_CACHE_TTL_MS = 10 * 60 * 1000;
-
-  ipcMain.handle('fetch-gaming-news', async () => {
-    const now = Date.now();
-    if (cachedNewsItems.length > 0 && now - lastNewsFetchTime < NEWS_CACHE_TTL_MS) {
-      return { success: true, items: cachedNewsItems, totalItems: cachedNewsItems.length };
-    }
-
-    const feeds = [
-      { url: 'https://www.pcgamer.com/rss/', label: 'PC Gamer', type: 'Gaming' },
-      { url: 'https://www.eurogamer.net/?format=rss', label: 'Eurogamer', type: 'Gaming' },
-      { url: 'http://feeds.ign.com/ign/news', label: 'IGN', type: 'Gaming' },
-      { url: 'https://www.gamespot.com/feeds/mashup/', label: 'GameSpot', type: 'Gaming' },
-      { url: 'https://kotaku.com/rss', label: 'Kotaku', type: 'Gaming' },
-      { url: 'https://www.tomshardware.com/feeds/all', label: "Tom's Hardware", type: 'Hardware' },
-    ];
-
-    const results: any[] = [];
-
-    await Promise.allSettled(
-      feeds.map(async (feed) => {
-        try {
-          const controller = new AbortController();
-          const timeout = setTimeout(() => controller.abort(), 6000);
-          const response = await fetch(feed.url, {
-            signal: controller.signal,
-            headers: { 'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) MissionControl/3.3' }
-          });
-          clearTimeout(timeout);
-          if (!response.ok) return;
-          const xml = await response.text();
-
-          const itemRegex = /<item>([\s\S]*?)<\/item>/g;
-          let match;
-          let count = 0;
-          while ((match = itemRegex.exec(xml)) !== null && count < 8) {
-            const block = match[1];
-            const titleMatch = /<title><!\[CDATA\[(.*?)\]\]><\/title>/.exec(block) || /<title>(.*?)<\/title>/.exec(block);
-            const linkMatch = /<link>(.*?)<\/link>/.exec(block) || /<link href="(.*?)"/.exec(block);
-            const descMatch = /<description><!\[CDATA\[(.*?)\]\]><\/description>/.exec(block) || /<description>(.*?)<\/description>/.exec(block);
-            const dateMatch = /<pubDate>(.*?)<\/pubDate>/.exec(block);
-
-            // Extract thumbnail image if present
-            const imgMatch = /<enclosure[^>]+url=["'](.*?)["']/i.exec(block) ||
-                             /<media:content[^>]+url=["'](.*?)["']/i.exec(block) ||
-                             /<media:thumbnail[^>]+url=["'](.*?)["']/i.exec(block) ||
-                             /<img[^>]+src=["'](.*?)["']/i.exec(block);
-
-            const title = titleMatch
-              ? titleMatch[1].replace(/&#8217;/g, "'").replace(/&#8216;/g, "'").replace(/&amp;/g, '&').replace(/&#038;/g, '&').trim()
-              : '';
-            const link = linkMatch ? linkMatch[1].trim() : '';
-            let description = descMatch
-              ? descMatch[1].replace(/<[^>]*>/g, '').replace(/&amp;/g, '&').replace(/&#8217;/g, "'").trim()
-              : '';
-            if (description.length > 200) description = description.slice(0, 200) + '...';
-
-            if (title && link) {
-              results.push({
-                id: link,
-                title,
-                link,
-                description,
-                source: feed.label,
-                category: feed.type,
-                pubDate: dateMatch ? dateMatch[1].trim() : '',
-                imageUrl: imgMatch ? imgMatch[1] : null,
-              });
-              count++;
-            }
-          }
-        } catch (_) {}
-      })
-    );
-
-    if (results.length > 0) {
-      cachedNewsItems = results;
-      lastNewsFetchTime = now;
-      return { success: true, items: results, totalItems: results.length };
-    }
-
-    return { success: cachedNewsItems.length > 0, items: cachedNewsItems, totalItems: cachedNewsItems.length };
-  });
 
   // Dedicated in-memory cache for live dynamic multi-launcher trending (Steam, Epic Games, GOG)
   let cachedLauncherGames: any[] = [];
@@ -3617,6 +3531,76 @@ function setupAutoUpdater() {
     return { success: true, items: allArticles, totalItems: allArticles.length };
   });
 
+  let trendingCache: { timestamp: number; games: any[] } | null = null;
+  const TRENDING_CACHE_TTL_MS = 30 * 60 * 1000; // 30 minutes
+
+  ipcMain.handle('fetch-steam-trending', async () => {
+    const now = Date.now();
+    if (trendingCache && now - trendingCache.timestamp < TRENDING_CACHE_TTL_MS) {
+      return { success: true, games: trendingCache.games };
+    }
+
+    try {
+      const controller = new AbortController();
+      const timeout = setTimeout(() => controller.abort(), 6000);
+      const res = await fetch('https://store.steampowered.com/api/featuredcategories/?l=english&cc=US', {
+        signal: controller.signal,
+        headers: { 'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) MissionControl/3.5' }
+      });
+      clearTimeout(timeout);
+
+      if (res.ok) {
+        const data = (await res.json()) as any;
+        const mapped: any[] = [];
+        const seenIds = new Set<string>();
+
+        const processItems = (items: any[], categoryName: string) => {
+          if (!Array.isArray(items)) return;
+          for (const item of items) {
+            const appId = String(item.id);
+            if (!appId || seenIds.has(appId)) continue;
+            seenIds.add(appId);
+
+            const banner = item.header_image || `https://shared.cloudflare.steamstatic.com/store_item_assets/steam/apps/${appId}/header.jpg`;
+            mapped.push({
+              id: `steam-${appId}`,
+              title: item.name,
+              developer: 'Steam Verified',
+              publisher: 'Steam Partner',
+              release_date: new Date().getFullYear().toString(),
+              primary_genre: categoryName,
+              genres: [categoryName, 'Action', 'Popular'],
+              tags: [categoryName, 'Top Seller', 'Steam'],
+              rating: item.discount_percent ? 85 : 90,
+              banner_url: banner,
+              cover_url: item.large_capsule_image || banner,
+              summary: item.discount_percent ? `Currently on sale (-${item.discount_percent}%) on Steam.` : 'Featured trending title on Steam Store.',
+              store: 'Steam',
+              store_app_id: appId,
+              launchers: ['Steam'],
+              in_catalog: true,
+              ai_classified: true,
+              installations: [],
+            });
+          }
+        };
+
+        processItems(data?.top_sellers?.items, 'Top Seller');
+        processItems(data?.specials?.items, 'Special Offer');
+        processItems(data?.new_releases?.items, 'New Release');
+
+        if (mapped.length > 0) {
+          trendingCache = { timestamp: now, games: mapped };
+          return { success: true, games: mapped };
+        }
+      }
+    } catch (err) {
+      console.warn('[Electron] Failed to fetch live Steam trending categories:', err);
+    }
+
+    return { success: false, games: [] };
+  });
+
   const liveSearchCache = new Map<string, { timestamp: number; data: any[] }>();
   const SEARCH_CACHE_TTL_MS = 15 * 60 * 1000; // 15 minutes
 
@@ -3630,6 +3614,45 @@ function setupAutoUpdater() {
     if (cached && now - cached.timestamp < SEARCH_CACHE_TTL_MS) {
       return { success: true, games: cached.data };
     }
+
+    const ALIAS_MAP: Record<string, string> = {
+      'gta': 'grand theft auto',
+      'gta 5': 'grand theft auto v',
+      'gta v': 'grand theft auto v',
+      'gta 6': 'grand theft auto vi',
+      'gta vi': 'grand theft auto vi',
+      'rdr': 'red dead redemption',
+      'rdr2': 'red dead redemption 2',
+      'rdr 2': 'red dead redemption 2',
+      'cp2077': 'cyberpunk 2077',
+      'cyberpunk': 'cyberpunk 2077',
+      'gow': 'god of war',
+      'gow ragnarok': 'god of war ragnarok',
+      'cod': 'call of duty',
+      'warzone': 'call of duty warzone',
+      'mw3': 'call of duty modern warfare iii',
+      're4': 'resident evil 4',
+      're2': 'resident evil 2',
+      'ac': "assassin's creed",
+      'ac mirage': "assassin's creed mirage",
+      'ac valhalla': "assassin's creed valhalla",
+      'wukong': 'black myth wukong',
+      'bmw': 'black myth wukong',
+      'elden': 'elden ring',
+      'bg3': "baldur's gate 3",
+      'baldurs gate': "baldur's gate 3",
+      'witcher': 'the witcher 3',
+      'witcher 3': 'the witcher 3',
+      'nfs': 'need for speed',
+      'ff7': 'final fantasy vii',
+      'ffvii': 'final fantasy vii',
+      'ff16': 'final fantasy xvi',
+      'tes': 'the elder scrolls',
+      'skyrim': 'the elder scrolls v skyrim',
+      'civ': 'civilization',
+      'civ 7': 'sid meier civilization vii',
+    };
+    const targetSearchTerm = ALIAS_MAP[cleanQuery] || cleanQuery;
 
     const mapped: any[] = [];
     const seenTitles = new Set<string>();
@@ -3646,7 +3669,7 @@ function setupAutoUpdater() {
       try {
         const controller = new AbortController();
         const timeout = setTimeout(() => controller.abort(), 4500);
-        const url = `https://store.steampowered.com/api/storesearch/?term=${encodeURIComponent(cleanQuery)}&l=english&cc=US`;
+        const url = `https://store.steampowered.com/api/storesearch/?term=${encodeURIComponent(targetSearchTerm)}&l=english&cc=US`;
         const res = await fetch(url, {
           signal: controller.signal,
           headers: { 'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) MissionControl/3.3' }
@@ -3690,7 +3713,7 @@ function setupAutoUpdater() {
       try {
         const controller = new AbortController();
         const timeout = setTimeout(() => controller.abort(), 4500);
-        const url = `https://catalog.gog.com/v1/catalog?limit=6&productType=in:game&query=like:${encodeURIComponent(cleanQuery)}`;
+        const url = `https://catalog.gog.com/v1/catalog?limit=6&productType=in:game&query=like:${encodeURIComponent(targetSearchTerm)}`;
         const res = await fetch(url, {
           signal: controller.signal,
           headers: { 'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) MissionControl/3.3' }
@@ -3743,7 +3766,8 @@ function setupAutoUpdater() {
           const elements = data?.data?.Catalog?.searchStore?.elements || [];
           elements.forEach((item: any) => {
             const title = (item.title || '').trim();
-            if (title.toLowerCase().includes(cleanQuery)) {
+            const lowerTitle = title.toLowerCase();
+            if (lowerTitle.includes(cleanQuery) || lowerTitle.includes(targetSearchTerm)) {
               const imgObj = (item.keyImages || []).find((i: any) =>
                 i.type === 'OfferImageWide' || i.type === 'Thumbnail' || i.type === 'DieselStoreFrontWide'
               );
