@@ -874,13 +874,23 @@ function closeAuthWindow() {
   authWindow = null;
 }
 
+const CHROME_OAUTH_USER_AGENT = 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/131.0.0.0 Safari/537.36';
+
 function openAuthPopupWindow(targetUrl: string): Promise<{ success: boolean; error?: string }> {
   return new Promise((resolve) => {
+    let hasResolved = false;
+    const safeResolve = (val: { success: boolean; error?: string }) => {
+      if (!hasResolved) {
+        hasResolved = true;
+        resolve(val);
+      }
+    };
+
     try {
       if (authWindow && !authWindow.isDestroyed()) {
         authWindow.focus();
         authWindow.loadURL(targetUrl);
-        return resolve({ success: true });
+        return safeResolve({ success: true });
       }
 
       const parentBounds = win && !win.isDestroyed() ? win.getBounds() : null;
@@ -914,10 +924,33 @@ function openAuthPopupWindow(targetUrl: string): Promise<{ success: boolean; err
         },
       });
 
+      // Set standard Chrome User-Agent to bypass Google 403 disallowed_useragent block
+      authWindow.webContents.setUserAgent(CHROME_OAUTH_USER_AGENT);
+
+      // Ensure any outgoing request from the auth window to Google or Clerk uses standard Chrome UA
+      authWindow.webContents.session.webRequest.onBeforeSendHeaders(
+        { urls: ['https://accounts.google.com/*', 'https://*.google.com/*', 'https://*.clerk.accounts.dev/*'] },
+        (details, callback) => {
+          details.requestHeaders['User-Agent'] = CHROME_OAUTH_USER_AGENT;
+          callback({ cancel: false, requestHeaders: details.requestHeaders });
+        }
+      );
+
+      // Keep auth redirects and OAuth dialogs inside the auth popup window
+      authWindow.webContents.setWindowOpenHandler(({ url }) => {
+        if (url && (url.includes('google.com') || url.includes('clerk') || url.includes('discord.com') || url.includes('accounts.google'))) {
+          authWindow?.loadURL(url);
+          return { action: 'deny' };
+        }
+        shell.openExternal(url).catch(() => {});
+        return { action: 'deny' };
+      });
+
       authWindow.once('ready-to-show', () => {
         if (authWindow && !authWindow.isDestroyed()) {
           authWindow.show();
           authWindow.focus();
+          safeResolve({ success: true });
         }
       });
 
@@ -926,18 +959,18 @@ function openAuthPopupWindow(targetUrl: string): Promise<{ success: boolean; err
         if (win && !win.isDestroyed()) {
           win.webContents.send('auth-popup-closed');
         }
-        resolve({ success: false, error: 'cancelled' });
+        safeResolve({ success: false, error: 'cancelled' });
       });
 
       authWindow.loadURL(targetUrl).catch((err) => {
         console.error('[Electron] Failed to load auth popup URL:', err);
         closeAuthWindow();
-        resolve({ success: false, error: err.message });
+        safeResolve({ success: false, error: err.message });
       });
     } catch (err: any) {
       console.error('[Electron] Error creating auth popup window:', err);
       closeAuthWindow();
-      resolve({ success: false, error: err?.message || 'Failed to open auth window' });
+      safeResolve({ success: false, error: err?.message || 'Failed to open auth window' });
     }
   });
 }

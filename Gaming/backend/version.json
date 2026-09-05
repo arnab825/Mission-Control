@@ -1,8 +1,21 @@
 {
-  "version": "3.5.5",
+  "version": "3.5.6",
   "release_date": "2026-09-05",
   "update_check_url": "https://raw.githubusercontent.com/arnab825/Mission-Control/main/Gaming/backend/version.json",
   "changelog": [
+    {
+      "version": "3.5.6",
+      "date": "2026-09-05",
+      "title": "Google OAuth Hang Resolution & Persistent Library Cache Across Sessions",
+      "highlights": [
+        "Resolved Electron IPC ready-to-show promise resolution hanging Google OAuth popup indefinitely",
+        "Configured standard Chrome 131 User-Agent header spoofing for Google and Clerk OAuth endpoints eliminating disallowed_useragent block",
+        "Redirected Clerk OAuth completion URL to root auth_completed handler to eliminate infinite identity verification loops",
+        "Preloaded cached game library on backend startup and seeded Frame-0 bridge state",
+        "Added multi-tier fallback to master games_db.json and SQLite for offline and guest user sessions",
+        "Replaced raw live library reads in Settings with effectiveLibrary persistent storage binding and added Rescan Library trigger"
+      ]
+    },
     {
       "version": "3.5.5",
       "date": "2026-09-05",
@@ -501,46 +514,6 @@
       "title": "Fixes some Bugs for Linux",
       "highlights": [
         "Fixes some Bugs for Linux"
-      ]
-    },
-    {
-      "version": "3.0.7",
-      "date": "2026-08-12",
-      "title": "Fixes some Bugs for Linux",
-      "highlights": [
-        "Fixes some Bugs for Linux"
-      ]
-    },
-    {
-      "version": "3.0.6",
-      "date": "2026-08-12",
-      "title": "Fixes some Bugs for Linux",
-      "highlights": [
-        "Fixes some Bugs for Linux"
-      ]
-    },
-    {
-      "version": "3.0.5",
-      "date": "2026-08-12",
-      "title": "Fixes some Bugs for Linux",
-      "highlights": [
-        "Fixes some Bugs for Linux"
-      ]
-    },
-    {
-      "version": "3.0.4",
-      "date": "2026-08-12",
-      "title": "Fixes some Bugs for Linux",
-      "highlights": [
-        "Fixes some Bugs for Linux"
-      ]
-    },
-    {
-      "version": "3.0.3",
-      "date": "2026-08-12",
-      "title": "Fixes Linux build on WSL",
-      "highlights": [
-        "Fixes Linux build on WSL"
       ]
     }
   ]

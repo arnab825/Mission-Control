@@ -539,6 +539,19 @@ Ready and monitoring. Launch your game to initiate automatic HUD lock.
         except Exception as e:
             logger.error(f"Failed to broadcast installed_models: {e}")
 
+        # Preload cached game library on startup for instant zero-latency UI display
+        try:
+            from system.game_scanner import GameScanner
+            initial_scanner = GameScanner(config=config)
+            cached_games = initial_scanner.load_cached_games()
+            if cached_games:
+                bridge.update_state({"game_library": cached_games})
+                logger.info("Preloaded %d cached games into bridge state on startup.", len(cached_games))
+                if pipeline and hasattr(pipeline, "process_watcher") and pipeline.process_watcher:
+                    pipeline.process_watcher.update_game_registry(cached_games)
+        except Exception as e:
+            logger.warning("Failed to preload cached games on startup: %s", e)
+
         # Trigger initial telemetry glitch scan once on startup
         try:
             handle_bridge_update_commands("check_patches", {}, bridge)

@@ -723,6 +723,11 @@ class GameMemory:
                 (user_id or "guest",)
             )
             row = cur.fetchone()
+            # If not found for specific user, fall back to the most recent machine entry
+            if not row:
+                cur.execute("SELECT data FROM local_games_cache ORDER BY updated_at DESC LIMIT 1")
+                row = cur.fetchone()
+
             if row:
                 decrypted_payload = self._decrypt(row["data"])
                 if decrypted_payload:

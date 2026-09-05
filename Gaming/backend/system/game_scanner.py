@@ -474,6 +474,38 @@ class GameScanner:
                 except Exception as exc:
                     logger.debug("Master JSON cache read error: %s", exc)
 
+        # Fallback to any existing games_db_*.json in the config directory (most recently modified)
+        if not games and self.cache_file.parent.exists():
+            try:
+                candidate_files = sorted(
+                    self.cache_file.parent.glob("games_db_*.json"),
+                    key=lambda p: p.stat().st_mtime,
+                    reverse=True
+                )
+                for cand in candidate_files:
+                    if cand == self.cache_file:
+                        continue
+                    try:
+                        with open(cand, "r", encoding="utf-8") as cf:
+                            cand_json = json.load(cf)
+                            if isinstance(cand_json, list) and len(cand_json) > 0:
+                                games = cand_json
+                                logger.info("Loaded %d games from sibling cache (%s) for user %s", len(games), cand.name, self.user_id)
+                                # Seed master and current cache files
+                                try:
+                                    master_cache = self.cache_file.parent / "games_db.json"
+                                    with open(master_cache, "w", encoding="utf-8") as mf:
+                                        json.dump(games, mf, indent=2)
+                                    with open(self.cache_file, "w", encoding="utf-8") as uf:
+                                        json.dump(games, uf, indent=2)
+                                except Exception:
+                                    pass
+                                break
+                    except Exception:
+                        continue
+            except Exception as exc:
+                logger.debug("Sibling JSON cache search note: %s", exc)
+
         # --- 2. Try Local SQLite cache (if JSON was empty) ---
         if not games:
             try:
@@ -483,6 +515,15 @@ class GameScanner:
                 if res:
                     logger.info("Loaded %d games from local SQLite cache for user %s", len(res), self.user_id)
                     games = res
+                    # Re-seed JSON cache from SQLite
+                    try:
+                        master_cache = self.cache_file.parent / "games_db.json"
+                        with open(master_cache, "w", encoding="utf-8") as mf:
+                            json.dump(games, mf, indent=2)
+                        with open(self.cache_file, "w", encoding="utf-8") as uf:
+                            json.dump(games, uf, indent=2)
+                    except Exception:
+                        pass
             except Exception as exc:
                 logger.debug("Local SQLite load note: %s", exc)
 
@@ -593,26 +634,32 @@ class GameScanner:
             from ai_brain.memory import GameMemory
             mem = GameMemory(config=self.config)
             mem.save_local_games(self.user_id, games)
+            # Also save a copy for 'guest' / machine default so unauthenticated state finds it
+            if self.user_id and self.user_id != "guest":
+                try:
+                    mem.save_local_games("guest", games)
+                except Exception:
+                    pass
         except Exception as exc:
             logger.warning("Local SQLite save failed: %s", exc)
 
-        # --- 3. Write legacy JSON only if Privacy Shield is disabled.
-        # Otherwise, delete it to prevent unencrypted leakage.
-        if self.config.get("privacy", {}).get("enabled", False):
-            try:
-                if self.cache_file.exists():
-                    self.cache_file.unlink()
-                    logger.info("Deleted legacy plaintext JSON cache to protect privacy under E2EE.")
-            except Exception as exc:
-                logger.warning("Failed to delete plaintext JSON cache: %s", exc)
-        else:
-            try:
-                tmp_cache = self.cache_file.with_suffix(".tmp")
-                with open(tmp_cache, "w", encoding="utf-8") as f:
-                    json.dump(games, f, indent=2)
-                tmp_cache.replace(self.cache_file)
-            except Exception as exc:
-                logger.debug("Failed to write JSON cache atomically: %s", exc)
+        # --- 3. Write persistent local JSON cache (atomic write) ---
+        try:
+            self._ensure_cache_dir()
+            tmp_cache = self.cache_file.with_suffix(".tmp")
+            with open(tmp_cache, "w", encoding="utf-8") as f:
+                json.dump(games, f, indent=2)
+            tmp_cache.replace(self.cache_file)
+
+            # Always maintain machine-level master cache games_db.json
+            master_cache = self.cache_file.parent / "games_db.json"
+            if self.cache_file != master_cache:
+                tmp_master = master_cache.with_suffix(".tmp")
+                with open(tmp_master, "w", encoding="utf-8") as mf:
+                    json.dump(games, mf, indent=2)
+                tmp_master.replace(master_cache)
+        except Exception as exc:
+            logger.debug("Failed to write JSON cache atomically: %s", exc)
 
     def _detect_features(self, game_path):
         """Check for NVIDIA technologies and HDR in the game files."""

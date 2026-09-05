@@ -30,7 +30,8 @@ import {
   ArrowRight,
   BookOpen,
   Info,
-  Gamepad2
+  Gamepad2,
+  RefreshCw
 } from 'lucide-react';
 import type { TelemetryState } from '../types/telemetry';
 import { ControllerMapping } from '../components/ControllerMapping';
@@ -700,8 +701,62 @@ const SettingsPage: React.FC<{ state: TelemetryState | null, sendCommand: (type:
     window.location.replace(window.location.origin + '/?show_auth=1');
   };
 
+  // Multi-tier persistent cache loader for scanned library games
+  const getPersistedLibrary = React.useCallback((): any[] => {
+    try {
+      const keys = [
+        `mc_cached_library_${userId || 'guest'}`,
+        'mc_cached_library_guest',
+      ];
+      for (let i = 0; i < localStorage.length; i++) {
+        const k = localStorage.key(i);
+        if (k && k.startsWith('mc_cached_library_') && !keys.includes(k)) {
+          keys.push(k);
+        }
+      }
+      for (const k of keys) {
+        const val = localStorage.getItem(k);
+        if (val) {
+          const parsed = JSON.parse(val);
+          if (Array.isArray(parsed) && parsed.length > 0) {
+            return parsed;
+          }
+        }
+      }
+    } catch (_) {}
+    return [];
+  }, [userId]);
+
+  // Combined library: live WebSocket bridge state preferred, falling back to persistent localStorage
+  const effectiveLibrary = React.useMemo((): any[] => {
+    const live = (state as any)?.game_library;
+    if (Array.isArray(live) && live.length > 0) {
+      return live;
+    }
+    return getPersistedLibrary();
+  }, [state, getPersistedLibrary]);
+
+  // Keep localStorage cache updated whenever live library arrives from bridge
+  useEffect(() => {
+    const live = (state as any)?.game_library;
+    if (Array.isArray(live) && live.length > 0) {
+      try {
+        localStorage.setItem(`mc_cached_library_${userId || 'guest'}`, JSON.stringify(live));
+        localStorage.setItem('mc_cached_library_guest', JSON.stringify(live));
+      } catch (_) {}
+    }
+  }, [state, userId]);
+
+  // On mount, if live game_library is missing, request get_cached_games from backend
+  useEffect(() => {
+    const live = (state as any)?.game_library;
+    if (!live || !Array.isArray(live) || live.length === 0) {
+      sendCommand('get_cached_games', { userId: userId || undefined, forceRefresh: false });
+    }
+  }, [sendCommand, userId]);
+
   const libraryStats = useMemo(() => {
-    const library = (state as any)?.game_library || [];
+    const library = effectiveLibrary;
     const stats = {
       hasDlss: false,
       hasFg: false,
@@ -909,7 +964,7 @@ const SettingsPage: React.FC<{ state: TelemetryState | null, sendCommand: (type:
     const fgMultiplier = gpuCaps?.max_fg || (gpuNameStr.toLowerCase().includes('50') ? '4x' : '2x');
 
     if (preset === 'auto') {
-      const library = (state as any)?.game_library || [];
+      const library = effectiveLibrary;
 
       let bestKey = 'balanced';
       if (library.length > 0) {
@@ -999,7 +1054,7 @@ const SettingsPage: React.FC<{ state: TelemetryState | null, sendCommand: (type:
     let updatedPowerMode = currentTuning.power_management_mode ?? 'adaptive';
 
     const bestKey = preset === 'auto' ? (function () {
-      const library = (state as any)?.game_library || [];
+      const library = effectiveLibrary;
       let bk = 'balanced';
       if (library.length > 0) {
         const counts: Record<string, number> = {};
@@ -1049,8 +1104,8 @@ const SettingsPage: React.FC<{ state: TelemetryState | null, sendCommand: (type:
 
   useEffect(() => {
     const currentTuning = localConfig?.gpu_tuning || localConfig?.nvidia;
-    if (currentTuning?.preset === 'auto' && (state as any)?.game_library?.length > 0) {
-      const library = (state as any)?.game_library || [];
+    if (currentTuning?.preset === 'auto' && effectiveLibrary.length > 0) {
+      const library = effectiveLibrary;
       const gpuCaps = state?.system_specs?.hardware?.gpu_capabilities;
       const gpuNameStr = state?.system_specs?.hardware?.gpu || state?.gpu_metrics?.gpu_name || '';
 
@@ -1124,7 +1179,7 @@ const SettingsPage: React.FC<{ state: TelemetryState | null, sendCommand: (type:
         sendCommand('update_config', { nvidia: nextTuning, gpu_tuning: nextTuning });
       }
     }
-  }, [(state as any)?.game_library, localConfig?.gpu_tuning?.preset, localConfig?.nvidia?.preset]);
+  }, [effectiveLibrary, localConfig?.gpu_tuning?.preset, localConfig?.nvidia?.preset]);
 
   useEffect(() => {
     if ((window as any).electronAPI?.getDesktopPath) {
@@ -1172,7 +1227,7 @@ const SettingsPage: React.FC<{ state: TelemetryState | null, sendCommand: (type:
 
   // Dynamically compile recommended target games purely from the user's active library
   const dynamicTargetGames = useMemo(() => {
-    const library = (state as any)?.game_library || [];
+    const library = effectiveLibrary;
 
     const mapping = {
       competitive: [] as string[],
@@ -1523,7 +1578,7 @@ const SettingsPage: React.FC<{ state: TelemetryState | null, sendCommand: (type:
   const targetGames = dynamicTargetGames[activeModeKey as keyof typeof dynamicTargetGames] || [];
 
   const activeGame = (state as any)?.game_info?.name || (state as any)?.pipeline?.current_game?.name;
-  const activeGameInfo = activeGame ? ((state as any)?.game_library || []).find((g: any) => g.name === activeGame) : null;
+  const activeGameInfo = activeGame ? effectiveLibrary.find((g: any) => g.name === activeGame) : null;
   const activeFeatures = activeGameInfo ? (activeGameInfo.features || []) : null;
 
   return (
@@ -3082,21 +3137,49 @@ const SettingsPage: React.FC<{ state: TelemetryState | null, sendCommand: (type:
 
           {/* Game Compatibility & Feature Matrix */}
           <div className="border-t border-white/5 pt-6 mt-6 space-y-4">
-            <div>
-              <p className="text-[10px] font-black text-neon-green uppercase tracking-widest mb-1">Library Hardware Feature Matrix</p>
-              <p className="text-[10px] font-medium text-zinc-500 leading-relaxed">
-                AI analyzed features for scanned games in your library, indicating GTX (Legacy) and RTX (Deep Learning/Ray Tracing) compatibility.
-              </p>
+            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+              <div>
+                <p className="text-[10px] font-black text-neon-green uppercase tracking-widest mb-1">Library Hardware Feature Matrix</p>
+                <p className="text-[10px] font-medium text-zinc-500 leading-relaxed">
+                  AI analyzed features for scanned games in your library, indicating GTX (Legacy) and RTX (Deep Learning/Ray Tracing) compatibility.
+                </p>
+              </div>
+              <div className="flex items-center gap-2.5 shrink-0">
+                {effectiveLibrary.length > 0 && (
+                  <span className="text-[9px] font-black uppercase tracking-widest px-2.5 py-1 rounded-lg bg-neon-green/10 text-neon-green border border-neon-green/20">
+                    {effectiveLibrary.length} Games Cached
+                  </span>
+                )}
+                <button
+                  type="button"
+                  onClick={() => sendCommand('scan_games', { userId: userId || undefined })}
+                  disabled={Boolean(state?.scan_state?.is_running)}
+                  className="px-3 py-1.5 rounded-xl bg-white/5 hover:bg-white/10 border border-white/10 hover:border-white/20 text-zinc-300 hover:text-white text-[9px] font-black uppercase tracking-wider transition-all cursor-pointer flex items-center gap-1.5 disabled:opacity-50 shadow-sm"
+                  title="Trigger a fresh scan of installed games"
+                >
+                  <RefreshCw className={`w-3 h-3 ${state?.scan_state?.is_running ? 'animate-spin text-neon-green' : ''}`} />
+                  <span>{state?.scan_state?.is_running ? 'Scanning...' : 'Rescan Library'}</span>
+                </button>
+              </div>
             </div>
 
             {(() => {
-              const gameLibrary = (state as any)?.game_library || [];
+              const gameLibrary = effectiveLibrary;
               const playableGames = gameLibrary.filter((g: any) => g.type?.toUpperCase() !== 'LAUNCHER' && g.genre?.toUpperCase() !== 'PLATFORM');
 
               if (playableGames.length === 0) {
                 return (
-                  <div className="p-4 bg-white/2 border border-white/5 rounded-2xl text-center">
+                  <div className="p-6 bg-white/2 border border-white/5 rounded-2xl text-center space-y-3">
                     <p className="text-[10px] text-zinc-500 italic">No games scanned in library yet. Run a library scan to populate feature matrix.</p>
+                    <button
+                      type="button"
+                      onClick={() => sendCommand('scan_games', { userId: userId || undefined })}
+                      disabled={Boolean(state?.scan_state?.is_running)}
+                      className="px-4 py-2 bg-neon-green text-black font-black text-[9px] uppercase tracking-widest rounded-xl hover:shadow-[0_0_15px_rgba(118,185,0,0.3)] transition-all cursor-pointer inline-flex items-center gap-2 disabled:opacity-50"
+                    >
+                      <RefreshCw className={`w-3 h-3 ${state?.scan_state?.is_running ? 'animate-spin' : ''}`} />
+                      <span>{state?.scan_state?.is_running ? 'Scanning Library...' : 'Scan Library Now'}</span>
+                    </button>
                   </div>
                 );
               }
