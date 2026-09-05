@@ -38,10 +38,15 @@ const AuthPage: React.FC<AuthPageProps> = ({ onBackToLibrary }) => {
     if (window.electronAPI?.onAuthCompleted) {
       const unsub = window.electronAPI.onAuthCompleted(() => {
         setIsLoading(false);
+        if (onBackToLibrary) {
+          onBackToLibrary();
+        } else {
+          window.location.replace('/');
+        }
       });
       return unsub;
     }
-  }, []);
+  }, [onBackToLibrary]);
 
   // Handle OAuth Sign In/Up
   const handleOAuth = async (strategy: 'oauth_google' | 'oauth_discord') => {

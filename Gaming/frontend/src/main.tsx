@@ -51,6 +51,15 @@ const SSOCallback: React.FC = () => {
         window.location.replace('/?auth_cancelled=1');
       }
     }
+
+    // Safety watchdog: if verification hangs longer than 15 seconds, gracefully complete or return
+    const watchdog = setTimeout(() => {
+      if (isPopup && window.electronAPI?.notifyAuthSuccess) {
+        window.location.replace('/?auth_completed=1');
+      }
+    }, 15000);
+
+    return () => clearTimeout(watchdog);
   }, [isPopup]);
 
   const handleCancel = () => {

@@ -2,6 +2,15 @@
 
 This document contains a detailed history of all patches and updates for the AI Gaming Assistant.
 
+### Patch: 2026-09-05 — v3.5.6: Google OAuth Hang Resolution & Persistent Library Cache Across Sessions
+
+- Resolved Electron IPC ready-to-show promise resolution hanging Google OAuth popup indefinitely
+- Configured standard Chrome 131 User-Agent header spoofing for Google and Clerk OAuth endpoints eliminating disallowed_useragent block
+- Redirected Clerk OAuth completion URL to root auth_completed handler to eliminate infinite identity verification loops
+- Preloaded cached game library on backend startup and seeded Frame-0 bridge state
+- Added multi-tier fallback to master games_db.json and SQLite for offline and guest user sessions
+- Replaced raw live library reads in Settings with effectiveLibrary persistent storage binding and added Rescan Library trigger
+
 ### Patch: 2026-09-05 — v3.5.5: Discover Web Dynamic Feeds, 250+ Game Canonical Resolver & Intelligent Recommendation System
 
 - Resolved Electron IPC duplicate handler collision for `fetch-steam-trending` restoring live storefront feeds

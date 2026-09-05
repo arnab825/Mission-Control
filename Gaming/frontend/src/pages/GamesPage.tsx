@@ -497,10 +497,22 @@ const GamesLibraryContent: React.FC<GamesPageProps> = ({ state, sendCommand, set
   // Instant Local-First Cache: Load from localStorage on Frame-0 to eliminate loading screen delay
   const getPersistedGames = useCallback((): BackendGame[] => {
     try {
-      const stored = localStorage.getItem(`mc_cached_library_${userId || 'guest'}`);
-      if (stored) {
-        const parsed = JSON.parse(stored);
-        if (Array.isArray(parsed) && parsed.length > 0) return parsed;
+      const keys = [
+        `mc_cached_library_${userId || 'guest'}`,
+        'mc_cached_library_guest',
+      ];
+      for (let i = 0; i < localStorage.length; i++) {
+        const k = localStorage.key(i);
+        if (k && k.startsWith('mc_cached_library_') && !keys.includes(k)) {
+          keys.push(k);
+        }
+      }
+      for (const k of keys) {
+        const stored = localStorage.getItem(k);
+        if (stored) {
+          const parsed = JSON.parse(stored);
+          if (Array.isArray(parsed) && parsed.length > 0) return parsed;
+        }
       }
     } catch { }
     return [];
@@ -627,13 +639,13 @@ const GamesLibraryContent: React.FC<GamesPageProps> = ({ state, sendCommand, set
       lastUserIdRef.current = userId;
     }
 
-    if (isSignedIn && (s?.game_library !== undefined || games.length > 0)) {
+    if (s?.game_library !== undefined || games.length > 0) {
       setGamesLoaded(true);
       if (gamesRequestTimeoutRef.current) {
         clearTimeout(gamesRequestTimeoutRef.current);
         gamesRequestTimeoutRef.current = null;
       }
-    } else if (isSignedIn && !gamesLoaded) {
+    } else if (!gamesLoaded) {
       const now = Date.now();
       if (now - lastGamesRequestRef.current > 500) {
         lastGamesRequestRef.current = now;
@@ -698,16 +710,19 @@ const GamesLibraryContent: React.FC<GamesPageProps> = ({ state, sendCommand, set
     };
   }, [state, userId, isSignedIn, games.length, gamesLoaded, sendCommand, libraryServerOnline, getPersistedGames]);
 
-  // Clear local library when the user signs out
+  // On sign-out, switch to guest cache without blanking out locally installed games
   useEffect(() => {
     if (!isSignedIn) {
-      setGames([]);
+      const guestGames = getPersistedGames();
+      if (guestGames.length > 0) {
+        setGames(guestGames);
+      }
       setScanStatus('idle');
       setScanProgress(0);
       setIsScanning(false);
       setScanLogs([]);
     }
-  }, [isSignedIn]);
+  }, [isSignedIn, getPersistedGames]);
 
   const triggerFullScan = () => {
     setScanStatus('Starting scan...');

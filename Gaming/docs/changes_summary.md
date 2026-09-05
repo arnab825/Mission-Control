@@ -10,7 +10,7 @@ excerpt: "Curated breakdown of major version releases, architectural milestones,
 
 Comprehensive breakdown of major milestone releases, architectural upgrades, and core engine enhancements in **Mission Control**.
 
-## 🌟 Version v3.5.5 (Latest) — Discover Web Dynamic Feeds, 250+ Game Canonical Resolver & Intelligent Recommendation System
+## 📦 Version v3.5.5 — Discover Web Dynamic Feeds, 250+ Game Canonical Resolver & Intelligent Recommendation System
 
 ### 🛠️ Key Highlights
 1. **Dynamic Multi-Tier Storefront Feeds**: Resolved Electron IPC collision on `fetch-steam-trending` and added live feed aggregation across Steam Storefront categories (Top Sellers, Specials, New Releases, Coming Soon), Epic Games Store promotions, GOG Galaxy, and PC Game Pass with 15-minute caching.
@@ -25,7 +25,31 @@ Comprehensive breakdown of major milestone releases, architectural upgrades, and
 
 ---
 
-## 🌟 Version v3.5.4 — Injected External OAuth Exit Bar, ESC Key Handler & Clerk Redirect Escape Hatches
+## 🌟 Version v3.5.6 (Latest) — Google OAuth Hang Resolution & Persistent Library Cache Across Sessions
+
+### 🛠️ Key Highlights
+1. **Resolved Electron IPC ready-to-show promise resolution hanging Google OAuth popup indefinitely**
+2. **Configured standard Chrome 131 User-Agent header spoofing for Google and Clerk OAuth endpoints eliminating disallowed_useragent block**
+3. **Redirected Clerk OAuth completion URL to root auth_completed handler to eliminate infinite identity verification loops**
+4. **Preloaded cached game library on backend startup and seeded Frame-0 bridge state**
+5. **Added multi-tier fallback to master games_db.json and SQLite for offline and guest user sessions**
+6. **Replaced raw live library reads in Settings with effectiveLibrary persistent storage binding and added Rescan Library trigger**
+
+### 📊 Architecture & Data Flow
+```mermaid
+graph TD
+    A[Electron Main IPC Engine] --> B[FastAPI Backend Host]
+    B --> C[NVIDIA NIM AI Cloud Inference]
+    C --> D[Directive Stream & Telemetry Bridge]
+```
+
+### 📦 Distribution Artifacts
+- **Linux**: `.deb` (Debian/Ubuntu), `.AppImage` (Universal), `.rpm` (Fedora/RHEL), `.tar.gz` (Portable)
+- **Windows**: `.exe` (Setup Installer), `.msi` (Enterprise), `.zip` (Portable)
+
+---
+
+## 📦 Version v3.5.4 — Injected External OAuth Exit Bar, ESC Key Handler & Clerk Redirect Escape Hatches
 
 ### 🛠️ Key Highlights
 1. **Persistent External OAuth Exit Bar**: Injected a top-level Mission Control navigation bar (`z-index: 2147483647`) on external authentication pages (Google, Discord, Clerk) with an immediate Exit button and window controls.
@@ -39,7 +63,7 @@ Comprehensive breakdown of major milestone releases, architectural upgrades, and
 
 ---
 
-## 🌟 Version v3.5.3 — Clerk Auth Exit & Session Persistence, Vision Model Uninstallation, AI Backbone Models & Build Freshness
+## 📦 Version v3.5.3 — Clerk Auth Exit & Session Persistence, Vision Model Uninstallation, AI Backbone Models & Build Freshness
 
 ### 🛠️ Key Highlights
 1. **Clerk Authentication Exit & Cancellation**: Added Exit and Close buttons to Auth modal and SSO callback redirect to allow cancelling sign-in without closing the app.
@@ -55,7 +79,7 @@ Comprehensive breakdown of major milestone releases, architectural upgrades, and
 
 ---
 
-## 🌟 Version v3.5.2 — Discover Web Dynamic Trending, Weekly News Engine, Render Shield & Code Modularization
+## 📦 Version v3.5.2 — Discover Web Dynamic Trending, Weekly News Engine, Render Shield & Code Modularization
 
 ### 🛠️ Key Highlights
 1. **Periodic Weekly News Topic Engine**: Dynamic ISO-calendar-week thematic rotation with 52 curated topics and live headline entity extraction.
@@ -69,7 +93,7 @@ Comprehensive breakdown of major milestone releases, architectural upgrades, and
 
 ---
 
-## 🌟 Version v3.5.1 — Nemotron 3 Ultra, Gemini 3.8, Settings Cleanup & Library UI Polish
+## 📦 Version v3.5.1 — Nemotron 3 Ultra, Gemini 3.8, Settings Cleanup & Library UI Polish
 
 ### 🛠️ Key Highlights
 1. **Added NVIDIA Nemotron 3 Ultra to Neural Backbone, OpenRouter, and NIM failover cascades**

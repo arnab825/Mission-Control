@@ -100,7 +100,7 @@ const App: React.FC = () => {
       const options: any = {
         strategy,
         redirectUrl: `${origin}/sso-callback?popup=1`,
-        redirectUrlComplete: `${origin}/sso-callback?popup=1`,
+        redirectUrlComplete: `${origin}/?auth_completed=1`,
       };
       if (strategy === 'oauth_google') {
         options.additionalData = { prompt: 'select_account' };
@@ -119,6 +119,20 @@ const App: React.FC = () => {
       }
     }
   }, [isAuthPopup, isAuthCompleted, isSignInLoaded, isSignUpLoaded, signIn, signUp]);
+
+  // Listen for auth completion from popup in the main window
+  useEffect(() => {
+    if (window.electronAPI?.onAuthCompleted) {
+      const unsub = window.electronAPI.onAuthCompleted(() => {
+        setGamesPageMode('library');
+        // Smoothly reload session from shared storage partition
+        setTimeout(() => {
+          window.location.replace('/');
+        }, 150);
+      });
+      return unsub;
+    }
+  }, []);
 
   // Notify Electron of online/offline status changes (Roadmap Item 11)
   useEffect(() => {
