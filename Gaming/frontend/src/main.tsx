@@ -27,6 +27,8 @@ const isSSOCallback = window.location.pathname === '/sso-callback'
  * can detect the cancellation and show the AuthPage again automatically.
  */
 const SSOCallback: React.FC = () => {
+  const isPopup = typeof window !== 'undefined' && new URLSearchParams(window.location.search).get('popup') === '1';
+
   React.useEffect(() => {
     // Check if there is an error in the query parameters or hash fragment (e.g. from a cancelled OAuth flow)
     const urlParams = new URLSearchParams(window.location.search);
@@ -43,10 +45,21 @@ const SSOCallback: React.FC = () => {
         queryError: urlParams.get('error') || urlParams.get('error_description'),
         hashError: hashParams.get('error') || hashParams.get('error_description')
       });
-      // Redirect back to root, signalling that auth was cancelled/failed.
+      if (isPopup && window.electronAPI?.closeAuthPopup) {
+        window.electronAPI.closeAuthPopup();
+      } else {
+        window.location.replace('/?auth_cancelled=1');
+      }
+    }
+  }, [isPopup]);
+
+  const handleCancel = () => {
+    if (isPopup && window.electronAPI?.closeAuthPopup) {
+      window.electronAPI.closeAuthPopup();
+    } else {
       window.location.replace('/?auth_cancelled=1');
     }
-  }, []);
+  };
 
   return (
     <div
@@ -82,7 +95,7 @@ const SSOCallback: React.FC = () => {
       </p>
 
       <button
-        onClick={() => { window.location.replace('/?auth_cancelled=1'); }}
+        onClick={handleCancel}
         style={{
           marginTop: '12px',
           padding: '8px 18px',
@@ -108,12 +121,12 @@ const SSOCallback: React.FC = () => {
           e.currentTarget.style.borderColor = 'rgba(255, 255, 255, 0.15)';
         }}
       >
-        Cancel & Return to App
+        {isPopup ? 'Close Window' : 'Cancel & Return to App'}
       </button>
 
       <AuthenticateWithRedirectCallback
-        afterSignInUrl="/"
-        afterSignUpUrl="/"
+        afterSignInUrl={isPopup ? '/?auth_completed=1' : '/'}
+        afterSignUpUrl={isPopup ? '/?auth_completed=1' : '/'}
       />
     </div>
   )

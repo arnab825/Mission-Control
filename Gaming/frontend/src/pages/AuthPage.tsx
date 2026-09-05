@@ -25,6 +25,24 @@ const AuthPage: React.FC<AuthPageProps> = ({ onBackToLibrary }) => {
     }
   };
 
+  React.useEffect(() => {
+    if (window.electronAPI?.onAuthPopupClosed) {
+      const unsub = window.electronAPI.onAuthPopupClosed(() => {
+        setIsLoading(false);
+      });
+      return unsub;
+    }
+  }, []);
+
+  React.useEffect(() => {
+    if (window.electronAPI?.onAuthCompleted) {
+      const unsub = window.electronAPI.onAuthCompleted(() => {
+        setIsLoading(false);
+      });
+      return unsub;
+    }
+  }, []);
+
   // Handle OAuth Sign In/Up
   const handleOAuth = async (strategy: 'oauth_google' | 'oauth_discord') => {
     if (!isSignInLoaded || !isSignUpLoaded) return;
@@ -32,8 +50,23 @@ const AuthPage: React.FC<AuthPageProps> = ({ onBackToLibrary }) => {
     setError('');
     try {
       localStorage.setItem('mission_control_active_provider', strategy);
-      // Use absolute URLs so Clerk can whitelist them in the dashboard.
-      // In Electron dev: http://localhost:5173/sso-callback
+
+      // In Electron environment, open a dedicated centered popup window with native window frame & cross button
+      if (window.electronAPI?.openAuthPopup) {
+        const res = await window.electronAPI.openAuthPopup({
+          strategy,
+          mode: isLogin ? 'login' : 'signup',
+        });
+        if (!res?.success) {
+          setIsLoading(false);
+          if (res?.error && res.error !== 'cancelled') {
+            setError(res.error);
+          }
+        }
+        return;
+      }
+
+      // Web browser fallback
       const origin = window.location.origin;
       if (isLogin) {
         const options: any = {

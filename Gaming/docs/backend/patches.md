@@ -2,6 +2,16 @@
 
 This document contains a detailed history of all patches and updates for the AI Gaming Assistant.
 
+### Patch: 2026-09-05 — v3.5.5: Discover Web Dynamic Feeds, 250+ Game Canonical Resolver & Intelligent Recommendation System
+
+- Resolved Electron IPC duplicate handler collision for `fetch-steam-trending` restoring live storefront feeds
+- Added multi-tier live catalog pipeline with Steam storefront categories, Epic Games, GOG, and PC Game Pass
+- Added Vite dev server web proxy endpoints (`/api/games-trending` and `/api/games-search`) for CORS-free browser discovery
+- Implemented library-aware search recommendation engine analyzing user installed games, hardware showcases, and recent searches
+- Expanded canonical game catalog to 250+ titles with high-res Steam CDN artwork resolution, alias expansion, and rich autocomplete preview
+- Expanded offline curated baseline from 24 to 100+ AAA and indie benchmark titles
+- Refined Clerk persistent session state, vision model uninstall states, and crossbar authentication UI
+
 ### Patch: 2026-09-04 — v3.5.4: Injected External OAuth Exit Bar, ESC Key Handler & Clerk Redirect Escape Hatches
 
 - Injected top-level Mission Control Exit Bar on external OAuth pages (Google, Discord, Clerk) with drag region and window controls

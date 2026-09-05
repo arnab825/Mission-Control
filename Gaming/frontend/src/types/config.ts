@@ -120,4 +120,6 @@ export interface AppConfig {
     insecure_tls_windows_fallback?: boolean;
     [key: string]: any;
   };
+  nvidia?: any;
+  [key: string]: any;
 }

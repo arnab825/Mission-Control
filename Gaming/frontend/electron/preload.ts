@@ -89,6 +89,24 @@ contextBridge.exposeInMainWorld('electronAPI', {
     }
   },
   exitAuthToApp: () => ipcRenderer.send('exit-auth-to-app'),
+  openAuthPopup: (params: { strategy: string; mode?: 'login' | 'signup' }) => ipcRenderer.invoke('open-auth-popup', params),
+  openAuthPopupUrl: (url: string) => ipcRenderer.invoke('open-auth-popup-url', url),
+  notifyAuthSuccess: () => ipcRenderer.send('notify-auth-success'),
+  closeAuthPopup: () => ipcRenderer.send('close-auth-popup'),
+  onAuthCompleted: (callback: () => void) => {
+    const subscription = () => callback();
+    ipcRenderer.on('auth-completed', subscription);
+    return () => {
+      ipcRenderer.off('auth-completed', subscription);
+    };
+  },
+  onAuthPopupClosed: (callback: () => void) => {
+    const subscription = () => callback();
+    ipcRenderer.on('auth-popup-closed', subscription);
+    return () => {
+      ipcRenderer.off('auth-popup-closed', subscription);
+    };
+  },
 })
 
 // Listen for custom window control events dispatched by injected auth exit bars on external pages
