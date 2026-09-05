@@ -139,6 +139,13 @@ def handle_update_config(payload: dict, pipeline, bridge, config, save_config_fn
             config[k].update(v)
         else:
             config[k] = v
+
+    if "gpu_tuning" in config or "nvidia" in config:
+        tuning = config.get("gpu_tuning") or config.get("nvidia")
+        if tuning:
+            config["gpu_tuning"] = tuning
+            config["nvidia"] = tuning
+
     save_config_fn(config)
     enforce_security_fn(config, pipeline)
     logger.info("Configuration updated via update_config bridge command")
@@ -156,6 +163,13 @@ def handle_save_settings(payload: dict, pipeline, bridge, config, save_config_fn
             config[k].update(v)
         else:
             config[k] = v
+
+    if "gpu_tuning" in config or "nvidia" in config:
+        tuning = config.get("gpu_tuning") or config.get("nvidia")
+        if tuning:
+            config["gpu_tuning"] = tuning
+            config["nvidia"] = tuning
+
     save_config_fn(config)
     enforce_security_fn(config, pipeline)
     logger.info("Configuration saved via save_settings bridge command")
@@ -163,7 +177,7 @@ def handle_save_settings(payload: dict, pipeline, bridge, config, save_config_fn
         pipeline.update_config(config)
 
     # ── Apply Real Hardware Controls ──────────────────────────────────────────
-    nvidia_cfg = config.get("nvidia", {})
+    nvidia_cfg = config.get("gpu_tuning") or config.get("nvidia", {})
     _apply_hardware_controls(nvidia_cfg)
 
     bridge.update_state({"config": config})

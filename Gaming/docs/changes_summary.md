@@ -10,9 +10,22 @@ excerpt: "Curated breakdown of major version releases, architectural milestones,
 
 Comprehensive breakdown of major milestone releases, architectural upgrades, and core engine enhancements in **Mission Control**.
 
+## 🌟 Version v3.5.5 (Latest) — Discover Web Dynamic Feeds, 250+ Game Canonical Resolver & Intelligent Recommendation System
+
+### 🛠️ Key Highlights
+1. **Dynamic Multi-Tier Storefront Feeds**: Resolved Electron IPC collision on `fetch-steam-trending` and added live feed aggregation across Steam Storefront categories (Top Sellers, Specials, New Releases, Coming Soon), Epic Games Store promotions, GOG Galaxy, and PC Game Pass with 15-minute caching.
+2. **Vite Dev Server Web Proxy**: Added `/api/games-trending` and `/api/games-search` endpoints in `vite.config.ts`, providing seamless, CORS-free game discovery when developing or running in standard web browsers.
+3. **Intelligent Library-Aware Recommendations**: Implemented `getSmartSearchRecommendations` to dynamically analyze installed game genres and suggest curated categories (e.g. Soulslikes, Shooters, Hardware Showcases, Community Hot Picks) alongside user search history.
+4. **Canonical 250+ Game Database & High-Res Artwork**: Expanded `searchCanonicalCatalog` across 250+ titles with acronym expansion (`gta`, `rdr2`, `cp2077`, `wukong`), automatic title normalization, official Steam CDN artwork resolution, and rich auto-complete previews.
+5. **Expanded Curated Baseline**: Increased offline fallback catalog from 24 to 100+ critically-acclaimed benchmark AAA and indie titles.
+
+### 📦 Distribution Artifacts
+- **Linux**: `.deb` (Debian/Ubuntu), `.AppImage` (Universal), `.rpm` (Fedora/RHEL), `.tar.gz` (Portable)
+- **Windows**: `.exe` (Setup Installer), `.msi` (Enterprise), `.zip` (Portable)
+
 ---
 
-## 🌟 Version v3.5.4 (Latest) — Injected External OAuth Exit Bar, ESC Key Handler & Clerk Redirect Escape Hatches
+## 🌟 Version v3.5.4 — Injected External OAuth Exit Bar, ESC Key Handler & Clerk Redirect Escape Hatches
 
 ### 🛠️ Key Highlights
 1. **Persistent External OAuth Exit Bar**: Injected a top-level Mission Control navigation bar (`z-index: 2147483647`) on external authentication pages (Google, Discord, Clerk) with an immediate Exit button and window controls.

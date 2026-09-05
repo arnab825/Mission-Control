@@ -114,7 +114,7 @@ const VisionPage: React.FC<VisionPageProps> = ({ state, sendCommand }) => {
   const totalVal = preVal + infVal + postVal;
 
   return (
-    <div className="flex-1 flex flex-col p-6 pb-20 gap-y-5 overflow-y-auto custom-scrollbar font-['Inter',system-ui,sans-serif]">
+    <div className="flex-1 flex flex-col p-4 sm:p-6 pb-20 gap-y-4 sm:gap-y-5 overflow-y-auto custom-scrollbar font-['Inter',system-ui,sans-serif]">
 
       {/* Self-contained animations style injector */}
       <style dangerouslySetInnerHTML={{
@@ -152,21 +152,21 @@ const VisionPage: React.FC<VisionPageProps> = ({ state, sendCommand }) => {
       `}} />
 
       {/* Header */}
-      <div className="flex items-center justify-between flex-wrap gap-3">
-        <div>
-          <h2 className="text-3xl font-black text-transparent bg-clip-text bg-gradient-to-r from-neon-green to-white tracking-tighter uppercase drop-shadow-[0_0_12px_rgba(118, 185, 0,0.8)]">Vision Command Center</h2>
-          <p className="text-[10px] text-zinc-600 font-bold uppercase tracking-widest mt-0.5">
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+        <div className="min-w-0">
+          <h2 className="text-2xl sm:text-3xl font-black text-transparent bg-clip-text bg-gradient-to-r from-neon-green to-white tracking-tighter uppercase drop-shadow-[0_0_12px_rgba(118, 185, 0,0.8)] truncate">Vision Command Center</h2>
+          <p className="text-[10px] text-zinc-500 font-bold uppercase tracking-widest mt-0.5">
             Real-time AI game vision · YOLOv8n · TensorRT inference
           </p>
         </div>
-        <div className="flex items-center gap-4">
+        <div className="flex flex-wrap items-center gap-2 sm:gap-4">
           <PipelineBadge active={libraryServerOnline} label="Library Server" />
           <PipelineBadge active={pipelineRunning} label={pipelineLabel} />
           <motion.button
             whileHover={{ scale: 1.03 }} whileTap={{ scale: 0.97 }}
             onClick={handleForceActivate}
             disabled={forceActivating}
-            className={`flex items-center gap-2 px-4 py-2 rounded-xl text-[10px] font-black uppercase tracking-widest border transition-all duration-300 disabled:opacity-50 disabled:cursor-not-allowed ${manualActive
+            className={`flex items-center gap-2 px-3.5 sm:px-4 py-2 rounded-xl text-[10px] font-black uppercase tracking-widest border transition-all duration-300 disabled:opacity-50 disabled:cursor-not-allowed shrink-0 ${manualActive
                 ? 'bg-red-500/15 border-red-500/30 text-red-400 hover:bg-red-500/25 shadow-[0_0_12px_rgba(239,68,68,0.1)]'
                 : 'bg-neon-green/10 border-neon-green/25 text-neon-green hover:bg-neon-green/20 shadow-[0_0_12px_rgba(118, 185, 0,0.1)]'
               }`}
@@ -185,33 +185,33 @@ const VisionPage: React.FC<VisionPageProps> = ({ state, sendCommand }) => {
         <motion.div
           initial={{ opacity: 0, y: -6 }}
           animate={{ opacity: 1, y: 0 }}
-          className="flex flex-wrap items-center gap-3 px-4 py-2.5 bg-white/[0.03] border border-white/[0.06] rounded-2xl"
+          className="flex flex-wrap items-center gap-2 sm:gap-3 px-3.5 sm:px-4 py-2 sm:py-2.5 bg-white/[0.03] border border-white/[0.06] rounded-2xl min-w-0"
         >
           <div className="flex items-center gap-1.5 font-mono">
             <Gamepad2 className="w-3.5 h-3.5 text-zinc-500" />
             <span className="text-[10px] font-black text-white">{distributedStats.total_master_games.toLocaleString()}</span>
             <span className="text-[9px] text-zinc-500 uppercase tracking-widest">Games</span>
           </div>
-          <div className="w-px h-3 bg-white/10" />
+          <div className="hidden sm:block w-px h-3 bg-white/10" />
           <div className="flex items-center gap-1.5 font-mono">
             <HardDrive className="w-3.5 h-3.5 text-zinc-500" />
             <span className="text-[10px] font-black text-white">{formatBytes(distributedStats.total_storage_bytes)}</span>
             <span className="text-[9px] text-zinc-500 uppercase tracking-widest">Storage</span>
           </div>
-          <div className="w-px h-3 bg-white/10" />
-          <div className="flex items-center gap-1.5 flex-wrap font-mono">
+          <div className="hidden sm:block w-px h-3 bg-white/10" />
+          <div className="flex items-center gap-1.5 flex-wrap font-mono min-w-0">
             <Server className="w-3.5 h-3.5 text-zinc-500" />
             {distributedStats.nodes.map(n => (
               <span
                 key={n.node_id}
-                className={`inline-flex items-center gap-1 px-2 py-0.5 rounded-full border text-[9px] font-black uppercase tracking-widest transition-all ${
+                className={`inline-flex items-center gap-1 px-2 py-0.5 rounded-full border text-[9px] font-black uppercase tracking-widest transition-all max-w-[180px] truncate ${
                   n.status === 'online'
                     ? 'bg-emerald-500/10 text-emerald-400 border-emerald-500/25'
                     : 'bg-red-500/10 text-red-400 border-red-500/20 opacity-60'
                 }`}
               >
-                <span className={`w-1.5 h-1.5 rounded-full ${ n.status === 'online' ? 'bg-emerald-400 animate-pulse' : 'bg-red-400' }`} />
-                {n.name}
+                <span className={`w-1.5 h-1.5 rounded-full shrink-0 ${ n.status === 'online' ? 'bg-emerald-400 animate-pulse' : 'bg-red-400' }`} />
+                <span className="truncate">{n.name}</span>
               </span>
             ))}
           </div>
@@ -223,7 +223,7 @@ const VisionPage: React.FC<VisionPageProps> = ({ state, sendCommand }) => {
         {diagnosisMsg && (
           <motion.div
             initial={{ opacity: 0, y: -8 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -8 }}
-            className="flex items-start gap-3 bg-amber-500/8 border border-amber-500/20 rounded-2xl px-5 py-3"
+            className="flex items-start gap-3 bg-amber-500/8 border border-amber-500/20 rounded-2xl px-4 sm:px-5 py-3"
           >
             <AlertTriangle className="w-4 h-4 text-amber-400 mt-0.5 shrink-0" />
             <div>
@@ -235,13 +235,13 @@ const VisionPage: React.FC<VisionPageProps> = ({ state, sendCommand }) => {
       </AnimatePresence>
 
       {/* Main Grid: Feed + Radar + Controls */}
-      <div className="grid grid-cols-1 xl:grid-cols-4 gap-5">
+      <div className="grid grid-cols-1 xl:grid-cols-4 gap-4 sm:gap-5 min-w-0">
 
         {/* Column 1-3: HUD Video Feed & Comms */}
-        <div className="xl:col-span-3 flex flex-col gap-5">
+        <div className="xl:col-span-3 flex flex-col gap-4 sm:gap-5 min-w-0">
 
           {/* Feed Card */}
-          <div className="bg-zinc-950 border border-white/10 rounded-3xl overflow-hidden relative aspect-video shadow-[0_0_30px_rgba(118, 185, 0,0.02)] group">
+          <div className="bg-zinc-950 border border-white/10 rounded-2xl sm:rounded-3xl overflow-hidden relative aspect-video shadow-[0_0_30px_rgba(118, 185, 0,0.02)] group w-full">
             {pipelineRunning && hasFrame ? (
               <div className="absolute inset-0 overflow-hidden">
                 <img
@@ -284,21 +284,21 @@ const VisionPage: React.FC<VisionPageProps> = ({ state, sendCommand }) => {
                   </div>
                 </div>
 
-                <div className="absolute top-4 left-4 bg-black/85 backdrop-blur-md px-3 py-1.5 border border-neon-green/30 rounded-full flex items-center gap-2">
-                  <span className="w-1.5 h-1.5 rounded-full bg-red-400 animate-pulse" />
-                  <span className="text-[9px] font-black text-neon-green tracking-wider uppercase font-mono">
+                <div className="absolute top-2 left-2 sm:top-4 sm:left-4 bg-black/85 backdrop-blur-md px-2.5 sm:px-3 py-1 sm:py-1.5 border border-neon-green/30 rounded-full flex items-center gap-2">
+                  <span className="w-1.5 h-1.5 rounded-full bg-red-400 animate-pulse shrink-0" />
+                  <span className="text-[8px] sm:text-[9px] font-black text-neon-green tracking-wider uppercase font-mono truncate max-w-[140px] sm:max-w-none">
                     Live · {currentGameName || 'Game Feed'}
                   </span>
                 </div>
 
-                <div className="absolute bottom-4 right-4 bg-black/85 backdrop-blur-md px-3 py-1.5 border border-neon-green/25 rounded-xl flex items-center gap-4 font-mono text-[9px] text-zinc-400">
+                <div className="absolute bottom-2 right-2 sm:bottom-4 sm:right-4 bg-black/85 backdrop-blur-md px-2.5 sm:px-3 py-1 sm:py-1.5 border border-neon-green/25 rounded-xl flex items-center gap-2 sm:gap-4 font-mono text-[8px] sm:text-[9px] text-zinc-400">
                   <div>CAP: <span className="text-white font-bold">{captureFps > 0 ? captureFps.toFixed(0) : state?.fps ?? 0}</span></div>
                   <div>VIS: <span className="text-neon-green font-bold">{visionFps.toFixed(0)}</span> fps</div>
                   <div>TARGETS: <span className="text-neon-green font-bold">{detectionsCount}</span></div>
                 </div>
               </div>
             ) : pipelineRunning ? (
-              <div className="absolute inset-0 flex flex-col items-center justify-center gap-3 text-center">
+              <div className="absolute inset-0 flex flex-col items-center justify-center gap-3 text-center p-4">
                 <div className="absolute inset-0 bg-[repeating-linear-gradient(0deg,transparent,transparent_2px,rgba(118, 185, 0,0.015)_2px,rgba(118, 185, 0,0.015)_4px)] pointer-events-none" />
                 {privacyShieldActive ? (
                   <>
@@ -321,15 +321,15 @@ const VisionPage: React.FC<VisionPageProps> = ({ state, sendCommand }) => {
                 )}
               </div>
             ) : (
-              <div className="absolute inset-0 flex flex-col items-center justify-center gap-4 text-center">
+              <div className="absolute inset-0 flex flex-col items-center justify-center gap-4 text-center p-4">
                 <div className="absolute inset-0 bg-[radial-gradient(circle_at_center,rgba(118, 185, 0,0.04),transparent)] pointer-events-none" />
                 <div className="z-10 flex flex-col items-center gap-3">
                   <Eye className="w-8 h-8 text-neon-green/40 animate-pulse" />
-                  <h3 className="text-2xl font-black text-white/70 tracking-tighter uppercase">Awaiting Game Launch</h3>
+                  <h3 className="text-xl sm:text-2xl font-black text-white/70 tracking-tighter uppercase">Awaiting Game Launch</h3>
                   <p className="text-zinc-600 text-[11px] font-bold max-w-xs leading-relaxed">
                     Launch a game from your Library. Mission Control activates automatically when a game is in the foreground.
                   </p>
-                  <p className="text-[10px] text-zinc-700 tracking-[0.2em]">VISION PIPELINE · TACTICAL ANALYSIS · NEURAL COACHING</p>
+                  <p className="text-[9px] sm:text-[10px] text-zinc-700 tracking-[0.2em]">VISION PIPELINE · TACTICAL ANALYSIS · NEURAL COACHING</p>
                   <motion.button
                     whileHover={{ scale: 1.04 }} whileTap={{ scale: 0.97 }}
                     onClick={handleForceActivate}
@@ -345,7 +345,7 @@ const VisionPage: React.FC<VisionPageProps> = ({ state, sendCommand }) => {
           {/* HUD Filter Toggles */}
           {pipelineRunning && hasFrame && (
             <div className="flex items-center justify-between flex-wrap gap-2 px-1">
-              <div className="flex items-center gap-3">
+              <div className="flex flex-wrap items-center gap-2 sm:gap-3">
                 <button
                   onClick={() => setNightVision(!nightVision)}
                   className={`px-3 py-1.5 rounded-lg border text-[8px] font-black uppercase tracking-wider transition-all duration-200 ${nightVision
@@ -387,10 +387,10 @@ const VisionPage: React.FC<VisionPageProps> = ({ state, sendCommand }) => {
           )}
 
           {/* Bottom Grid Split: OCR Comms Stream & YOLO Latency bar charts */}
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4 sm:gap-5 min-w-0">
 
             {/* VLM Comms Console (OCR output) */}
-            <div className="bg-white/[0.04] border border-white/10 rounded-3xl p-5 flex flex-col gap-3 font-mono shadow-[0_0_15px_rgba(118, 185, 0,0.02)]">
+            <div className="bg-white/[0.04] border border-white/10 rounded-2xl sm:rounded-3xl p-4 sm:p-5 flex flex-col gap-3 font-mono shadow-[0_0_15px_rgba(118, 185, 0,0.02)] min-w-0">
               <div className="flex items-center justify-between">
                 <span className="text-[10px] font-black text-zinc-500 uppercase tracking-widest">VLM Comms Data Stream</span>
                 <span className="text-[8px] bg-neon-green/10 text-neon-green border border-neon-green/20 px-2 py-0.5 rounded font-black uppercase tracking-wider animate-pulse">
@@ -398,28 +398,28 @@ const VisionPage: React.FC<VisionPageProps> = ({ state, sendCommand }) => {
                 </span>
               </div>
 
-              <div className="space-y-3 h-[110px] overflow-y-auto custom-scrollbar text-[11px] leading-relaxed">
+              <div className="space-y-3 min-h-[110px] max-h-[140px] overflow-y-auto custom-scrollbar text-[11px] leading-relaxed">
                 {pipelineRunning ? (
                   <>
-                    <div className="border-l-2 border-neon-green/30 pl-3 py-0.5">
+                    <div className="border-l-2 border-neon-green/30 pl-3 py-0.5 min-w-0">
                       <span className="text-neon-green font-black tracking-wider uppercase block text-[9px] mb-1">
                         [DIALOGUE READOUT]
                       </span>
-                      <p className={dialogueText ? "text-zinc-300 font-medium" : "text-zinc-500 italic"}>
+                      <p className={dialogueText ? "text-zinc-300 font-medium break-words" : "text-zinc-500 italic"}>
                         {dialogueText ? `"${dialogueText}"` : "Waiting for active game dialogue..."}
                       </p>
                     </div>
 
-                    <div className="border-l-2 border-purple-500/30 pl-3 py-0.5">
+                    <div className="border-l-2 border-purple-500/30 pl-3 py-0.5 min-w-0">
                       <span className="text-purple-400 font-black tracking-wider uppercase block text-[9px] mb-1">
                         [QUEST TRACKERS]
                       </span>
                       {questTexts.length > 0 ? (
                         <ul className="space-y-1 text-zinc-300">
                           {questTexts.map((q, idx) => (
-                            <li key={idx} className="flex items-center gap-1.5">
+                            <li key={idx} className="flex items-center gap-1.5 min-w-0">
                               <ArrowRight className="w-3 h-3 text-purple-400 shrink-0" />
-                              <span>{q}</span>
+                              <span className="break-words">{q}</span>
                             </li>
                           ))}
                         </ul>
@@ -429,7 +429,7 @@ const VisionPage: React.FC<VisionPageProps> = ({ state, sendCommand }) => {
                     </div>
                   </>
                 ) : (
-                  <div className="h-full flex items-center justify-center text-zinc-600 text-xs italic">
+                  <div className="h-full min-h-[100px] flex items-center justify-center text-zinc-600 text-xs italic text-center p-2">
                     Mission Control Comms Offline. Standby for active session.
                   </div>
                 )}
@@ -437,7 +437,7 @@ const VisionPage: React.FC<VisionPageProps> = ({ state, sendCommand }) => {
             </div>
 
             {/* YOLO Speed Diagnostic */}
-            <div className="bg-white/[0.04] border border-white/10 rounded-3xl p-5 flex flex-col gap-3 font-mono shadow-[0_0_15px_rgba(118, 185, 0,0.02)]">
+            <div className="bg-white/[0.04] border border-white/10 rounded-2xl sm:rounded-3xl p-4 sm:p-5 flex flex-col gap-3 font-mono shadow-[0_0_15px_rgba(118, 185, 0,0.02)] min-w-0">
               <span className="text-[10px] font-black text-zinc-500 uppercase tracking-widest">YOLO INF SPEED DIAGNOSTIC</span>
 
               <div className="space-y-3 mt-1">
@@ -482,10 +482,10 @@ const VisionPage: React.FC<VisionPageProps> = ({ state, sendCommand }) => {
         </div>
 
         {/* Column 4: Side Panel Metrics & Radar */}
-        <div className="xl:col-span-1 flex flex-col gap-5">
+        <div className="xl:col-span-1 flex flex-col gap-4 sm:gap-5 min-w-0">
 
           {/* Diagnostic Stats Panel */}
-          <div className="bg-white/[0.04] border border-white/10 rounded-3xl p-5 flex flex-col gap-y-4 shadow-[0_0_15px_rgba(118, 185, 0,0.02)]">
+          <div className="bg-white/[0.04] border border-white/10 rounded-2xl sm:rounded-3xl p-4 sm:p-5 flex flex-col gap-y-4 shadow-[0_0_15px_rgba(118, 185, 0,0.02)] min-w-0">
             <span className="text-[10px] font-black text-zinc-500 uppercase tracking-widest font-mono">AI Analysis</span>
             <div className="space-y-3">
               <StatRow label="Target Tracking" value={trackingLabel} color={trackingColor} />
@@ -494,10 +494,8 @@ const VisionPage: React.FC<VisionPageProps> = ({ state, sendCommand }) => {
             </div>
           </div>
 
-
-
           {/* Detections list & slider */}
-          <div className="bg-white/[0.04] border border-white/10 rounded-3xl p-5 flex flex-col gap-3 font-mono shadow-[0_0_15px_rgba(118, 185, 0,0.02)]">
+          <div className="bg-white/[0.04] border border-white/10 rounded-2xl sm:rounded-3xl p-4 sm:p-5 flex flex-col gap-3 font-mono shadow-[0_0_15px_rgba(118, 185, 0,0.02)] min-w-0">
             <div className="flex items-center justify-between">
               <span className="text-[10px] font-black text-zinc-500 uppercase tracking-widest">Targets List</span>
               <span className="text-[8px] text-zinc-400 font-bold bg-white/5 border border-white/10 px-1.5 py-0.5 rounded">
@@ -533,21 +531,21 @@ const VisionPage: React.FC<VisionPageProps> = ({ state, sendCommand }) => {
                   return (
                     <div
                       key={`${det.label}-${idx}`}
-                      className="p-2.5 bg-white/[0.02] border border-white/5 hover:border-neon-green/20 hover:bg-neon-green/[0.02] rounded-xl flex flex-col gap-1.5 transition-all group"
+                      className="p-2.5 bg-white/[0.02] border border-white/5 hover:border-neon-green/20 hover:bg-neon-green/[0.02] rounded-xl flex flex-col gap-1.5 transition-all group min-w-0"
                     >
-                      <div className="flex justify-between items-center text-[10px]">
-                        <div className="flex items-center gap-1.5">
-                          <span className="w-1.5 h-1.5 rounded-full bg-neon-green shadow-[0_0_6px_#76b900]" />
-                          <span className="text-white font-black uppercase">{det.label ?? 'target'}</span>
+                      <div className="flex justify-between items-center text-[10px] min-w-0">
+                        <div className="flex items-center gap-1.5 min-w-0">
+                          <span className="w-1.5 h-1.5 rounded-full bg-neon-green shadow-[0_0_6px_#76b900] shrink-0" />
+                          <span className="text-white font-black uppercase truncate">{det.label ?? 'target'}</span>
                         </div>
-                        <span className="text-neon-green font-bold text-[9px]">
+                        <span className="text-neon-green font-bold text-[9px] shrink-0">
                           {confPct.toFixed(0)}%
                         </span>
                       </div>
 
-                      <div className="flex justify-between items-center text-[8px] text-zinc-500">
-                        <span>BOUNDS: {boxLabel}</span>
-                        <span className="opacity-0 group-hover:opacity-100 transition-opacity text-[7px] text-neon-green uppercase tracking-widest font-black">
+                      <div className="flex justify-between items-center text-[8px] text-zinc-500 min-w-0">
+                        <span className="truncate max-w-[130px] sm:max-w-none">BOUNDS: {boxLabel}</span>
+                        <span className="opacity-0 group-hover:opacity-100 transition-opacity text-[7px] text-neon-green uppercase tracking-widest font-black shrink-0">
                           TRACKING
                         </span>
                       </div>
@@ -572,26 +570,26 @@ const VisionPage: React.FC<VisionPageProps> = ({ state, sendCommand }) => {
           </div>
 
           {/* Quick Telemetry Cards in Right Sidebar */}
-          <div className="grid grid-cols-2 gap-2 font-mono">
-            <div className="bg-white/[0.04] border border-white/10 rounded-xl p-2.5 shadow-[0_0_10px_rgba(118,185,0,0.02)]">
-              <p className="text-[7px] font-black text-zinc-500 uppercase tracking-widest mb-0.5">Inference Latency</p>
-              <p className={`text-[10px] font-black uppercase ${pipelineRunning ? 'text-neon-green' : 'text-white/25'}`}>{latencyVal}</p>
+          <div className="grid grid-cols-2 gap-2 font-mono min-w-0">
+            <div className="bg-white/[0.04] border border-white/10 rounded-xl p-2.5 shadow-[0_0_10px_rgba(118,185,0,0.02)] min-w-0">
+              <p className="text-[7px] font-black text-zinc-500 uppercase tracking-widest mb-0.5 truncate">Inference Latency</p>
+              <p className={`text-[10px] font-black uppercase truncate ${pipelineRunning ? 'text-neon-green' : 'text-white/25'}`}>{latencyVal}</p>
             </div>
-            <div className="bg-white/[0.04] border border-white/10 rounded-xl p-2.5 shadow-[0_0_10px_rgba(118,185,0,0.02)]">
-              <p className="text-[7px] font-black text-zinc-500 uppercase tracking-widest mb-0.5">Vision Model</p>
-              <p className="text-[10px] font-black text-neon-green uppercase">YOLOv8n</p>
+            <div className="bg-white/[0.04] border border-white/10 rounded-xl p-2.5 shadow-[0_0_10px_rgba(118,185,0,0.02)] min-w-0">
+              <p className="text-[7px] font-black text-zinc-500 uppercase tracking-widest mb-0.5 truncate">Vision Model</p>
+              <p className="text-[10px] font-black text-neon-green uppercase truncate">YOLOv8n</p>
             </div>
-            <div className="bg-white/[0.04] border border-white/10 rounded-xl p-2.5 shadow-[0_0_10px_rgba(118,185,0,0.02)]">
-              <p className="text-[7px] font-black text-zinc-500 uppercase tracking-widest mb-0.5">Strategic AI</p>
+            <div className="bg-white/[0.04] border border-white/10 rounded-xl p-2.5 shadow-[0_0_10px_rgba(118,185,0,0.02)] min-w-0">
+              <p className="text-[7px] font-black text-zinc-500 uppercase tracking-widest mb-0.5 truncate">Strategic AI</p>
               <p className="text-[10px] font-black text-purple-400 uppercase truncate">{(state as any)?.strategic_model || 'Nemotron-4'}</p>
             </div>
-            <div className={`bg-white/[0.04] border rounded-xl p-2.5 ${pipelineRunning ? 'border-neon-yellow/30 shadow-[0_0_10px_rgba(191,255,0,0.1)]' : 'border-white/10 shadow-[0_0_10px_rgba(118,185,0,0.02)]'}`}>
-              <p className="text-[7px] font-black text-zinc-500 uppercase tracking-widest mb-0.5">Pipeline Health</p>
-              <div className="flex items-center gap-1.5">
+            <div className={`bg-white/[0.04] border rounded-xl p-2.5 min-w-0 ${pipelineRunning ? 'border-neon-yellow/30 shadow-[0_0_10px_rgba(191,255,0,0.1)]' : 'border-white/10 shadow-[0_0_10px_rgba(118,185,0,0.02)]'}`}>
+              <p className="text-[7px] font-black text-zinc-500 uppercase tracking-widest mb-0.5 truncate">Pipeline Health</p>
+              <div className="flex items-center gap-1.5 min-w-0">
                 {pipelineRunning
-                  ? <CheckCircle className="w-3 h-3 text-neon-yellow" />
-                  : <Clock className="w-3 h-3 text-zinc-600" />}
-                <p className={`text-[9px] font-black uppercase ${pipelineRunning ? 'text-neon-yellow' : 'text-zinc-600'}`}>
+                  ? <CheckCircle className="w-3 h-3 text-neon-yellow shrink-0" />
+                  : <Clock className="w-3 h-3 text-zinc-600 shrink-0" />}
+                <p className={`text-[9px] font-black uppercase truncate ${pipelineRunning ? 'text-neon-yellow' : 'text-zinc-600'}`}>
                   {pipelineRunning ? 'Nominal' : 'Standby'}
                 </p>
               </div>
@@ -603,8 +601,8 @@ const VisionPage: React.FC<VisionPageProps> = ({ state, sendCommand }) => {
       </div>
 
       {/* Model Setup Checks */}
-      <div className="bg-white/[0.04] border border-white/10 rounded-3xl p-6 shadow-[0_0_15px_rgba(118, 185, 0,0.02)]">
-        <div className="flex items-center justify-between mb-4">
+      <div className="bg-white/[0.04] border border-white/10 rounded-2xl sm:rounded-3xl p-4 sm:p-6 shadow-[0_0_15px_rgba(118, 185, 0,0.02)] min-w-0">
+        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 mb-4">
           <span className="text-[10px] font-black text-zinc-500 uppercase tracking-widest font-mono">AI Model Dependencies</span>
           <div className="flex items-center gap-2 text-[9px] text-zinc-400 font-mono">
             <span className="text-zinc-600">STATUS:</span>
@@ -622,7 +620,7 @@ const VisionPage: React.FC<VisionPageProps> = ({ state, sendCommand }) => {
                 : isYoloChecking
                   ? <div className="w-5 h-5 shrink-0 rounded-full border-2 border-zinc-600 border-t-zinc-300 animate-spin" />
                   : <AlertTriangle className="w-5 h-5 text-amber-400 shrink-0" />}
-              <div>
+              <div className="min-w-0 flex-1">
                 <h4 className={`text-sm font-black uppercase tracking-tight mb-1 ${isYoloReady ? 'text-neon-green' : isYoloChecking ? 'text-zinc-400' : 'text-amber-400'}`}>
                   {isYoloActive ? 'YOLO Inference Active' : isYoloReady ? 'YOLO Backend Ready' : isYoloChecking ? 'Verifying AI Dependencies...' : 'YOLO Module Not Installed'}
                 </h4>
@@ -677,15 +675,15 @@ const VisionPage: React.FC<VisionPageProps> = ({ state, sendCommand }) => {
                         </button>
                       </div>
                     ) : (
-                      <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 p-3 bg-black/40 rounded-xl border border-white/5 font-mono text-[10px]">
+                      <div className="flex flex-col lg:flex-row items-start lg:items-center justify-between gap-3 p-3.5 bg-black/40 rounded-xl border border-white/5 font-mono text-[10px]">
                         <div className="space-y-1 min-w-0">
                           <div className="text-zinc-400 font-sans font-bold">Install optional Vision AI engine on-demand (Winget / Python):</div>
-                          <code className="text-amber-400 select-all block break-all">winget install Python.Python.3.11 ; pip install torch torchvision ultralytics</code>
+                          <code className="text-amber-400 select-all block break-all text-[9px] sm:text-[10px]">winget install Python.Python.3.11 ; pip install torch torchvision ultralytics</code>
                         </div>
                         <button
                           type="button"
                           onClick={() => sendCommand('install_yolo_deps')}
-                          className="px-4 py-2.5 bg-linear-to-r from-purple-500/20 to-neon-green/20 hover:from-purple-500/30 hover:to-neon-green/30 text-neon-green text-[9px] font-black uppercase tracking-widest rounded-xl border border-neon-green/30 hover:border-neon-green/50 transition cursor-pointer shrink-0"
+                          className="w-full sm:w-auto px-4 py-2.5 bg-linear-to-r from-purple-500/20 to-neon-green/20 hover:from-purple-500/30 hover:to-neon-green/30 text-neon-green text-[9px] font-black uppercase tracking-widest rounded-xl border border-neon-green/30 hover:border-neon-green/50 transition cursor-pointer shrink-0 flex items-center justify-center"
                         >
                           ⚡ 1-Click Install Vision Engine
                         </button>
@@ -699,16 +697,16 @@ const VisionPage: React.FC<VisionPageProps> = ({ state, sendCommand }) => {
 
           {/* On-Demand Neural Model Weights Downloader */}
           <div className="mt-4 pt-4 border-t border-white/10 space-y-3">
-            <div className="flex items-center justify-between">
+            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-1">
               <span className="text-[10px] font-black text-zinc-400 uppercase tracking-widest font-mono">
                 On-Demand AI Model Weights
               </span>
               <span className="text-[9px] text-zinc-500 font-mono">
-                One-click download directly to <b>Gaming/backend/models</b>
+                Stored locally in <b>AppData / backend</b> · Zero cloud dependency
               </span>
             </div>
 
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
+            <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-3.5">
               {[
                 {
                   id: 'yolov8n',
@@ -741,22 +739,22 @@ const VisionPage: React.FC<VisionPageProps> = ({ state, sendCommand }) => {
                 return (
                   <div
                     key={m.id}
-                    className={`p-3.5 rounded-2xl border flex flex-col justify-between gap-3 transition-all ${
+                    className={`p-3.5 sm:p-4 rounded-2xl border flex flex-col justify-between gap-3.5 transition-all min-w-0 ${
                       installed
-                        ? 'bg-neon-green/5 border-neon-green/20'
+                        ? 'bg-neon-green/[0.04] border-neon-green/25 shadow-[0_4px_20px_rgba(118,185,0,0.04)]'
                         : isDownloading
-                        ? 'bg-purple-500/10 border-purple-500/30'
+                        ? 'bg-purple-500/10 border-purple-500/30 shadow-[0_4px_20px_rgba(168,85,247,0.06)]'
                         : 'bg-white/[0.02] border-white/10 hover:border-white/20'
                     }`}
                   >
-                    <div className="flex items-start justify-between gap-2">
-                      <div className="flex items-center gap-2.5">
-                        <div className={`p-2 rounded-xl border ${installed ? 'bg-neon-green/10 border-neon-green/30 text-neon-green' : 'bg-white/5 border-white/10 text-zinc-400'}`}>
+                    <div className="flex items-start justify-between gap-2 min-w-0">
+                      <div className="flex items-center gap-2.5 min-w-0">
+                        <div className={`p-2 rounded-xl border shrink-0 ${installed ? 'bg-neon-green/10 border-neon-green/30 text-neon-green' : 'bg-white/5 border-white/10 text-zinc-400'}`}>
                           <Icon className="w-4 h-4" />
                         </div>
-                        <div>
-                          <h5 className="text-[11px] font-black text-white uppercase tracking-tight">{m.name}</h5>
-                          <p className="text-[9px] text-zinc-500">{m.desc}</p>
+                        <div className="min-w-0">
+                          <h5 className="text-[11px] font-black text-white uppercase tracking-tight truncate">{m.name}</h5>
+                          <p className="text-[9px] text-zinc-500 line-clamp-1">{m.desc}</p>
                         </div>
                       </div>
                       <span className="text-[9px] font-bold text-zinc-400 font-mono px-2 py-0.5 bg-white/5 rounded-md shrink-0">
@@ -782,14 +780,14 @@ const VisionPage: React.FC<VisionPageProps> = ({ state, sendCommand }) => {
                         )}
                       </div>
                     ) : (
-                      <div className="flex items-center justify-between pt-1 border-t border-white/5">
+                      <div className="flex flex-wrap items-center justify-between gap-2 pt-2.5 border-t border-white/5">
                         <span 
-                          className={`text-[9px] font-black uppercase font-mono ${installed ? 'text-neon-green' : isErr ? 'text-red-500' : 'text-zinc-500'}`}
+                          className={`text-[9px] font-black uppercase font-mono shrink-0 ${installed ? 'text-neon-green' : isErr ? 'text-red-500' : 'text-zinc-500'}`}
                           title={isErr ? dlStatus?.message : undefined}
                         >
                           {installed ? '✓ Installed' : isErr ? 'Download Failed' : 'Not Installed'}
                         </span>
-                        <div className="flex items-center gap-1.5">
+                        <div className="flex items-center gap-1.5 flex-wrap">
                           {installed && (
                             <button
                               type="button"

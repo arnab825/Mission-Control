@@ -183,6 +183,11 @@ def load_config(path: str | None = None) -> Dict[str, Any]:
             merged[k] = v
     config = merged
 
+    # Ensure gpu_tuning and nvidia are unified and always in sync
+    gpu_tuning = config.get("gpu_tuning") or config.get("nvidia") or DEFAULT_CONFIG.get("nvidia", {})
+    config["gpu_tuning"] = gpu_tuning
+    config["nvidia"] = gpu_tuning
+
     # If persistent settings did not exist, save the default config immediately
     if not path and not os.path.exists(persistent):
         save_config(config, persistent)
@@ -228,6 +233,13 @@ def save_config(config_dict: Dict[str, Any], path: str | None = None) -> bool:
 
         # Ensure schema_version is always written
         config_dict.setdefault("schema_version", CURRENT_SCHEMA_VERSION)
+
+        # Ensure gpu_tuning and nvidia stay synchronized on disk
+        if "gpu_tuning" in config_dict or "nvidia" in config_dict:
+            tuning = config_dict.get("gpu_tuning") or config_dict.get("nvidia")
+            if tuning:
+                config_dict["gpu_tuning"] = tuning
+                config_dict["nvidia"] = tuning
 
         with open(persistent, "w", encoding="utf-8") as f:
             yaml.dump(config_dict, f, default_flow_style=False, sort_keys=False)

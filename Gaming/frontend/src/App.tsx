@@ -58,9 +58,18 @@ const App: React.FC = () => {
   const [isAgentic, setIsAgentic] = useState(false);
   const [personality, setPersonality] = useState('Tactical');
 
+  const isAuthPopup = typeof window !== 'undefined' && new URLSearchParams(window.location.search).get('auth_popup') === '1';
+  const isAuthCompleted = typeof window !== 'undefined' && new URLSearchParams(window.location.search).get('auth_completed') === '1';
+
   // Strip ?auth_cancelled and ?show_auth params from the URL immediately so they don't
   // persist across refreshes or confuse any other logic.
   useEffect(() => {
+    // Purge any rogue exit bar elements that might have leaked into the DOM
+    try {
+      const rogue = document.getElementById('mc-auth-exit-bar');
+      if (rogue) rogue.remove();
+    } catch (_) {}
+
     if (wasAuthCancelled || showAuthParam) {
       // Navigate to games page showing the auth panel
       setActivePage('games');
@@ -69,6 +78,47 @@ const App: React.FC = () => {
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
+
+  // Handle auth popup completion or auto-redirect trigger inside popup window
+  useEffect(() => {
+    if (isAuthCompleted) {
+      if (window.electronAPI?.notifyAuthSuccess) {
+        window.electronAPI.notifyAuthSuccess();
+      }
+      try {
+        window.close();
+      } catch (_) {}
+      return;
+    }
+
+    if (isAuthPopup && isSignInLoaded && isSignUpLoaded && signIn && signUp) {
+      const params = new URLSearchParams(window.location.search);
+      const strategy = (params.get('strategy') || 'oauth_google') as 'oauth_google' | 'oauth_discord';
+      const mode = params.get('mode') || 'login';
+      const origin = window.location.origin;
+
+      const options: any = {
+        strategy,
+        redirectUrl: `${origin}/sso-callback?popup=1`,
+        redirectUrlComplete: `${origin}/sso-callback?popup=1`,
+      };
+      if (strategy === 'oauth_google') {
+        options.additionalData = { prompt: 'select_account' };
+        options.customOAuthOptions = { prompt: 'select_account' };
+      }
+
+      console.log(`[AuthPopup] Triggering ${mode} OAuth redirect for ${strategy}...`);
+      if (mode === 'signup') {
+        signUp.authenticateWithRedirect(options).catch(err => {
+          console.error('[AuthPopup] SignUp redirect failed:', err);
+        });
+      } else {
+        signIn.authenticateWithRedirect(options).catch(err => {
+          console.error('[AuthPopup] SignIn redirect failed:', err);
+        });
+      }
+    }
+  }, [isAuthPopup, isAuthCompleted, isSignInLoaded, isSignUpLoaded, signIn, signUp]);
 
   // Notify Electron of online/offline status changes (Roadmap Item 11)
   useEffect(() => {
@@ -331,7 +381,24 @@ const App: React.FC = () => {
     );
   }
 
-
+  if (isAuthPopup || isAuthCompleted) {
+    const params = new URLSearchParams(window.location.search);
+    const strategyName = params.get('strategy') === 'oauth_discord' ? 'Discord' : 'Google';
+    return (
+      <div className="w-screen h-screen flex flex-col items-center justify-center bg-zinc-950 text-white font-['Inter',system-ui,sans-serif] p-6 select-none">
+        <div className="relative w-16 h-16 flex items-center justify-center mb-4">
+          <div className="absolute inset-0 rounded-full border-2 border-neon-green/20 border-t-neon-green animate-spin" />
+          <img src="/logo.png" className="w-8 h-8 object-contain" alt="Mission Control Logo" />
+        </div>
+        <h2 className="text-sm font-black uppercase tracking-widest text-zinc-300 mb-1">
+          Connecting to {strategyName}…
+        </h2>
+        <p className="text-xs text-zinc-500 font-medium">
+          Completing secure authentication handshake
+        </p>
+      </div>
+    );
+  }
 
   const toggleAgentic = () => {
     const next = !isAgentic;

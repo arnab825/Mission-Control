@@ -848,23 +848,125 @@ function isAppUrl(urlStr?: string): boolean {
 /**
  * Returns the URL to navigate back to Mission Control when an auth flow is cancelled or exited.
  */
-function getAppReturnUrl(): string {
+function getAppOrigin(): string {
   if (VITE_DEV_SERVER_URL) {
-    return `${VITE_DEV_SERVER_URL}?auth_cancelled=1`;
+    return VITE_DEV_SERVER_URL.replace(/\/$/, '');
   }
   const port = localServerPort || FIXED_UI_PORT;
-  return `http://127.0.0.1:${port}/?auth_cancelled=1`;
+  return `http://127.0.0.1:${port}`;
+}
+
+/**
+ * Returns the URL to navigate back to Mission Control when an auth flow is cancelled or exited.
+ */
+function getAppReturnUrl(): string {
+  return `${getAppOrigin()}/?auth_cancelled=1`;
+}
+
+let authWindow: BrowserWindow | null = null;
+
+function closeAuthWindow() {
+  if (authWindow && !authWindow.isDestroyed()) {
+    try {
+      authWindow.close();
+    } catch (_) {}
+  }
+  authWindow = null;
+}
+
+function openAuthPopupWindow(targetUrl: string): Promise<{ success: boolean; error?: string }> {
+  return new Promise((resolve) => {
+    try {
+      if (authWindow && !authWindow.isDestroyed()) {
+        authWindow.focus();
+        authWindow.loadURL(targetUrl);
+        return resolve({ success: true });
+      }
+
+      const parentBounds = win && !win.isDestroyed() ? win.getBounds() : null;
+      let posX = undefined;
+      let posY = undefined;
+      if (parentBounds) {
+        posX = Math.round(parentBounds.x + (parentBounds.width - 520) / 2);
+        posY = Math.round(parentBounds.y + (parentBounds.height - 720) / 2);
+      }
+
+      authWindow = new BrowserWindow({
+        width: 520,
+        height: 720,
+        minWidth: 460,
+        minHeight: 580,
+        x: posX,
+        y: posY,
+        parent: win && !win.isDestroyed() ? win : undefined,
+        modal: false,
+        show: false,
+        title: 'Sign In · Mission Control',
+        backgroundColor: '#0d0f14',
+        frame: true, // Native OS title bar with Minimize, Maximize, and Close (✕) button!
+        autoHideMenuBar: true,
+        icon: getWindowIcon(),
+        webPreferences: {
+          preload: path.join(_dirname, 'preload.cjs'),
+          nodeIntegration: false,
+          contextIsolation: true,
+          partition: 'persist:mission-control', // Crucial: shares cookies and Clerk tokens with main window
+        },
+      });
+
+      authWindow.once('ready-to-show', () => {
+        if (authWindow && !authWindow.isDestroyed()) {
+          authWindow.show();
+          authWindow.focus();
+        }
+      });
+
+      authWindow.on('closed', () => {
+        authWindow = null;
+        if (win && !win.isDestroyed()) {
+          win.webContents.send('auth-popup-closed');
+        }
+        resolve({ success: false, error: 'cancelled' });
+      });
+
+      authWindow.loadURL(targetUrl).catch((err) => {
+        console.error('[Electron] Failed to load auth popup URL:', err);
+        closeAuthWindow();
+        resolve({ success: false, error: err.message });
+      });
+    } catch (err: any) {
+      console.error('[Electron] Error creating auth popup window:', err);
+      closeAuthWindow();
+      resolve({ success: false, error: err?.message || 'Failed to open auth window' });
+    }
+  });
+}
+
+/**
+ * Removes any injected auth exit bar if present on local application pages.
+ */
+async function cleanupAuthExitBar(targetWebContents: electron.WebContents) {
+  if (!targetWebContents || targetWebContents.isDestroyed()) return;
+  try {
+    await targetWebContents.executeJavaScript(`
+      try {
+        const el = document.getElementById('mc-auth-exit-bar');
+        if (el) el.remove();
+      } catch (_) {}
+    `);
+  } catch (_) {}
 }
 
 /**
  * Injects a persistent, high-contrast Mission Control top bar with an Exit/Cancel button
- * and native window controls into any external authentication webpage (such as Google OAuth).
+ * and native window controls into any external authentication webpage (such as Google OAuth fallback).
  */
 async function injectAuthExitBar(targetWebContents: electron.WebContents) {
   if (!targetWebContents || targetWebContents.isDestroyed()) return;
   const currentUrl = targetWebContents.getURL();
   if (isAppUrl(currentUrl)) {
-    return; // Never inject on local app pages
+    cleanupAuthExitBar(targetWebContents);
+    return;
   }
 
   console.log('[Electron] External auth page detected, injecting Exit Bar:', currentUrl);
@@ -1000,7 +1102,7 @@ async function injectAuthExitBar(targetWebContents: electron.WebContents) {
   `;
 
   try {
-    await targetWebContents.insertCSS(css);
+    await targetWebContents.insertCSS(css, { cssOrigin: 'user' });
   } catch (_) {}
 
   const js = `
@@ -1031,13 +1133,7 @@ async function injectAuthExitBar(targetWebContents: electron.WebContents) {
         </div>
       \`;
 
-      const appendBar = () => {
-        if (!document.getElementById('mc-auth-exit-bar')) {
-          (document.body || document.documentElement).appendChild(bar);
-        }
-      };
-
-      appendBar();
+      (document.body || document.documentElement).appendChild(bar);
 
       const returnUrl = ${JSON.stringify(returnUrl)};
       const exitToApp = () => {
@@ -1061,15 +1157,6 @@ async function injectAuthExitBar(targetWebContents: electron.WebContents) {
           exitToApp();
         }
       });
-
-      try {
-        const observer = new MutationObserver(() => {
-          if (!document.getElementById('mc-auth-exit-bar')) {
-            appendBar();
-          }
-        });
-        observer.observe(document.documentElement, { childList: true, subtree: true });
-      } catch (_) {}
     })();
   `;
 
@@ -1148,28 +1235,46 @@ async function createWindow() {
     console.log(`[Web Console] ${message} (${sourceId}:${line})`);
   });
 
-  // Inject Exit Bar & Esc listener whenever the window navigates to an external authentication URL
+  // Inject Exit Bar on external auth URLs or cleanup on local app pages
   win.webContents.on('dom-ready', () => {
     if (win && !win.isDestroyed()) {
-      injectAuthExitBar(win.webContents);
+      const curUrl = win.webContents.getURL();
+      if (isAppUrl(curUrl)) {
+        cleanupAuthExitBar(win.webContents);
+      } else {
+        injectAuthExitBar(win.webContents);
+      }
     }
   });
 
   win.webContents.on('did-finish-load', () => {
     if (win && !win.isDestroyed()) {
-      injectAuthExitBar(win.webContents);
+      const curUrl = win.webContents.getURL();
+      if (isAppUrl(curUrl)) {
+        cleanupAuthExitBar(win.webContents);
+      } else {
+        injectAuthExitBar(win.webContents);
+      }
     }
   });
 
   win.webContents.on('did-navigate', (_event, url) => {
-    if (win && !win.isDestroyed() && !isAppUrl(url)) {
-      injectAuthExitBar(win.webContents);
+    if (win && !win.isDestroyed()) {
+      if (isAppUrl(url)) {
+        cleanupAuthExitBar(win.webContents);
+      } else {
+        injectAuthExitBar(win.webContents);
+      }
     }
   });
 
   win.webContents.on('did-navigate-in-page', (_event, url) => {
-    if (win && !win.isDestroyed() && !isAppUrl(url)) {
-      injectAuthExitBar(win.webContents);
+    if (win && !win.isDestroyed()) {
+      if (isAppUrl(url)) {
+        cleanupAuthExitBar(win.webContents);
+      } else {
+        injectAuthExitBar(win.webContents);
+      }
     }
   });
 
@@ -1500,6 +1605,29 @@ ipcMain.on('exit-auth-to-app', () => {
     win.loadURL(getAppReturnUrl());
   }
 })
+
+ipcMain.handle('open-auth-popup', async (_event, params: { strategy: string; mode?: 'login' | 'signup' }) => {
+  const { strategy, mode = 'login' } = params || {};
+  const origin = getAppOrigin();
+  const targetUrl = `${origin}/?auth_popup=1&strategy=${encodeURIComponent(strategy)}&mode=${encodeURIComponent(mode)}`;
+  return openAuthPopupWindow(targetUrl);
+});
+
+ipcMain.handle('open-auth-popup-url', async (_event, targetUrl: string) => {
+  return openAuthPopupWindow(targetUrl);
+});
+
+ipcMain.on('notify-auth-success', () => {
+  console.log('[Electron] notify-auth-success received — closing auth popup and notifying main window.');
+  closeAuthWindow();
+  if (win && !win.isDestroyed()) {
+    win.webContents.send('auth-completed');
+  }
+});
+
+ipcMain.on('close-auth-popup', () => {
+  closeAuthWindow();
+});
 
 // === IPC Handlers for System Intel ===
 let cachedSystemStats: any = null;
@@ -3362,67 +3490,59 @@ function setupAutoUpdater() {
       allGames.push(game);
     };
 
-    // 1. Fetch Steam live trending & top sellers
+    // 1. Fetch Steam live trending, top sellers, specials & releases
     const fetchSteam = async () => {
       try {
         const controller = new AbortController();
-        const timeout = setTimeout(() => controller.abort(), 6000);
-        const res = await fetch('https://store.steampowered.com/api/featuredcategories/?cc=us&l=en', {
+        const timeout = setTimeout(() => controller.abort(), 6500);
+        const res = await fetch('https://store.steampowered.com/api/featuredcategories/?l=english&cc=US', {
           signal: controller.signal,
-          headers: { 'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) MissionControl/3.3' }
+          headers: { 'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) MissionControl/3.5' }
         });
         clearTimeout(timeout);
         if (!res.ok) return;
         const data = (await res.json()) as any;
-        const topSellers = data.top_sellers?.items || [];
-        const newReleases = data.new_releases?.items || [];
 
-        topSellers.slice(0, 10).forEach((item: any) => {
-          safeAdd({
-            id: `steam-${item.id}`,
-            title: item.name,
-            developer: 'Steam Verified',
-            publisher: 'Steam Verified',
-            release_date: new Date().getFullYear().toString(),
-            primary_genre: 'Top Seller',
-            genres: ['Action', 'Trending', 'Steam'],
-            tags: ['Trending', 'Top Seller', 'Steam'],
-            cover_url: item.header_image,
-            banner_url: item.header_image,
-            summary: item.discount_percent > 0
-              ? `Steam Top Seller — currently ${item.discount_percent}% off on Steam Store.`
-              : `Bestselling title trending globally on Steam.`,
-            store: 'Steam',
-            store_app_id: String(item.id),
-            launchers: ['Steam'],
-            in_catalog: true,
-            ai_classified: true,
-            installations: [],
-          });
-        });
+        const processSteamGroup = (items: any[], categoryGenre: string, defaultTag: string) => {
+          if (!Array.isArray(items)) return;
+          items.forEach((item: any) => {
+            const appId = String(item.id);
+            if (!appId || !item.name) return;
+            const banner = item.header_image || `https://shared.cloudflare.steamstatic.com/store_item_assets/steam/apps/${appId}/header.jpg`;
+            const cover = item.large_capsule_image || banner;
 
-        newReleases.slice(0, 6).forEach((item: any) => {
-          safeAdd({
-            id: `steam-${item.id}`,
-            title: item.name,
-            developer: 'Steam Verified',
-            publisher: 'Steam Verified',
-            release_date: new Date().getFullYear().toString(),
-            primary_genre: 'New Release',
-            genres: ['Action', 'New Release', 'Steam'],
-            tags: ['New Release', 'Steam'],
-            cover_url: item.header_image,
-            banner_url: item.header_image,
-            summary: `Newly released hit trending on Steam.`,
-            store: 'Steam',
-            store_app_id: String(item.id),
-            launchers: ['Steam'],
-            in_catalog: true,
-            ai_classified: true,
-            installations: [],
+            safeAdd({
+              id: `steam-${appId}`,
+              title: item.name,
+              developer: 'Steam Verified Partner',
+              publisher: 'Steam Verified',
+              release_date: new Date().getFullYear().toString(),
+              primary_genre: categoryGenre,
+              genres: [categoryGenre, 'Trending', 'Steam'],
+              tags: [defaultTag, 'Steam', item.discount_percent ? `${item.discount_percent}% Off` : 'Featured'],
+              rating: item.discount_percent ? 85 : 90,
+              cover_url: cover,
+              banner_url: banner,
+              summary: item.discount_percent > 0
+                ? `Steam ${defaultTag} — currently ${item.discount_percent}% off on Steam Store.`
+                : `Trending ${categoryGenre.toLowerCase()} title featured globally on Steam.`,
+              store: 'Steam',
+              store_app_id: appId,
+              launchers: ['Steam'],
+              in_catalog: true,
+              ai_classified: true,
+              installations: [],
+            });
           });
-        });
-      } catch (_) {}
+        };
+
+        processSteamGroup((data.top_sellers?.items || []).slice(0, 16), 'Top Seller', 'Top Seller');
+        processSteamGroup((data.specials?.items || []).slice(0, 12), 'Special Offer', 'Special Offer');
+        processSteamGroup((data.new_releases?.items || []).slice(0, 12), 'New Release', 'New Release');
+        processSteamGroup((data.coming_soon?.items || []).slice(0, 8), 'Coming Soon', 'Anticipated');
+      } catch (err) {
+        console.warn('[Electron] Steam trending fetch error:', err);
+      }
     };
 
     // 2. Fetch Epic Games Store live trending & promotions
@@ -3834,75 +3954,6 @@ function setupAutoUpdater() {
     return { success: true, items: allArticles, totalItems: allArticles.length };
   });
 
-  let trendingCache: { timestamp: number; games: any[] } | null = null;
-  const TRENDING_CACHE_TTL_MS = 30 * 60 * 1000; // 30 minutes
-
-  ipcMain.handle('fetch-steam-trending', async () => {
-    const now = Date.now();
-    if (trendingCache && now - trendingCache.timestamp < TRENDING_CACHE_TTL_MS) {
-      return { success: true, games: trendingCache.games };
-    }
-
-    try {
-      const controller = new AbortController();
-      const timeout = setTimeout(() => controller.abort(), 6000);
-      const res = await fetch('https://store.steampowered.com/api/featuredcategories/?l=english&cc=US', {
-        signal: controller.signal,
-        headers: { 'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) MissionControl/3.5' }
-      });
-      clearTimeout(timeout);
-
-      if (res.ok) {
-        const data = (await res.json()) as any;
-        const mapped: any[] = [];
-        const seenIds = new Set<string>();
-
-        const processItems = (items: any[], categoryName: string) => {
-          if (!Array.isArray(items)) return;
-          for (const item of items) {
-            const appId = String(item.id);
-            if (!appId || seenIds.has(appId)) continue;
-            seenIds.add(appId);
-
-            const banner = item.header_image || `https://shared.cloudflare.steamstatic.com/store_item_assets/steam/apps/${appId}/header.jpg`;
-            mapped.push({
-              id: `steam-${appId}`,
-              title: item.name,
-              developer: 'Steam Verified',
-              publisher: 'Steam Partner',
-              release_date: new Date().getFullYear().toString(),
-              primary_genre: categoryName,
-              genres: [categoryName, 'Action', 'Popular'],
-              tags: [categoryName, 'Top Seller', 'Steam'],
-              rating: item.discount_percent ? 85 : 90,
-              banner_url: banner,
-              cover_url: item.large_capsule_image || banner,
-              summary: item.discount_percent ? `Currently on sale (-${item.discount_percent}%) on Steam.` : 'Featured trending title on Steam Store.',
-              store: 'Steam',
-              store_app_id: appId,
-              launchers: ['Steam'],
-              in_catalog: true,
-              ai_classified: true,
-              installations: [],
-            });
-          }
-        };
-
-        processItems(data?.top_sellers?.items, 'Top Seller');
-        processItems(data?.specials?.items, 'Special Offer');
-        processItems(data?.new_releases?.items, 'New Release');
-
-        if (mapped.length > 0) {
-          trendingCache = { timestamp: now, games: mapped };
-          return { success: true, games: mapped };
-        }
-      }
-    } catch (err) {
-      console.warn('[Electron] Failed to fetch live Steam trending categories:', err);
-    }
-
-    return { success: false, games: [] };
-  });
 
   const liveSearchCache = new Map<string, { timestamp: number; data: any[] }>();
   const SEARCH_CACHE_TTL_MS = 15 * 60 * 1000; // 15 minutes

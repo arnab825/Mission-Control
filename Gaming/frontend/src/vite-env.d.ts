@@ -36,5 +36,11 @@ interface Window {
     rollbackElectronUpdate?: () => void;
     getElectronUpdateState?: () => Promise<any>;
     onOpenDashboard?: (callback: () => void) => () => void;
+    openAuthPopup?: (params: { strategy: string; mode?: 'login' | 'signup' }) => Promise<{ success: boolean; error?: string }>;
+    openAuthPopupUrl?: (url: string) => Promise<{ success: boolean; error?: string }>;
+    notifyAuthSuccess?: () => void;
+    closeAuthPopup?: () => void;
+    onAuthCompleted?: (callback: () => void) => () => void;
+    onAuthPopupClosed?: (callback: () => void) => () => void;
   };
 }

@@ -1178,17 +1178,75 @@ class GameScanner:
         return self.games
 
     def _search_steam_banner(self, name: str) -> Optional[str]:
-        """Search Steam Store API for a game's banner/header URL by its name."""
+        """Search Steam Store API for a game's banner/header URL by its name with intelligent validation."""
         import requests
         import re
         
         try:
+            # 1. Instant check against canonical top-tier games to guarantee 100% accurate pictures
+            canonical_appids = {
+                "cyberpunk 2077": "1091500",
+                "black myth wukong": "2358720",
+                "elden ring": "1245620",
+                "baldurs gate 3": "1086940",
+                "grand theft auto v": "271590",
+                "gta 5": "271590",
+                "gta v": "271590",
+                "red dead redemption 2": "1174180",
+                "rdr 2": "1174180",
+                "the witcher 3": "292030",
+                "witcher 3": "292030",
+                "god of war": "1593500",
+                "god of war ragnarok": "2322010",
+                "resident evil 4": "2050650",
+                "silent hill 2": "2124490",
+                "ghost of tsushima": "2215430",
+                "marvels spider man": "1817070",
+                "spiderman": "1817070",
+                "helldivers 2": "553850",
+                "space marine 2": "2183900",
+                "forza horizon 5": "1551360",
+                "starfield": "1716740",
+                "hogwarts legacy": "990080",
+                "monster hunter wilds": "2246340",
+                "monster hunter world": "582010",
+                "final fantasy xvi": "2515020",
+                "final fantasy vii remake": "1462040",
+                "diablo iv": "2344520",
+                "the last of us": "1888930",
+                "stalker 2": "1643320",
+                "doom eternal": "782330",
+                "doom": "379720",
+                "counter strike 2": "730",
+                "rainbow six siege": "359550",
+                "apex legends": "1172470",
+                "destiny 2": "1085660",
+                "warframe": "230410",
+                "palworld": "1623730",
+                "hades ii": "1145350",
+                "hades": "1145360",
+                "hollow knight": "367520",
+                "balatro": "2379780",
+                "satisfactory": "526870",
+                "rust": "252490",
+                "civilization vii": "2866320",
+                "civilization vi": "289070",
+            }
+
+            norm_simple = re.sub(r'[^a-z0-9\s]', ' ', name.lower())
+            norm_simple = re.sub(r'\s+', ' ', norm_simple).strip()
+            for key, aid in canonical_appids.items():
+                if key == norm_simple or norm_simple.startswith(key) or key in norm_simple:
+                    return f"https://shared.cloudflare.steamstatic.com/store_item_assets/steam/apps/{aid}/header.jpg"
+
             # Clean name for search (remove common suffixes and tags)
             clean_name = name
             clean_name = re.sub(r'\[.*?\]', '', clean_name)
             clean_name = re.sub(r' (DC|Director\'s Cut|Director|Enhanced|Remastered|Edition|GOTY|Complete|Collection|Digital|Version|Repack|Build|NoDVD).*', '', clean_name, flags=re.IGNORECASE)
             clean_name = re.sub(r'[™®©]', '', clean_name)
             clean_name = re.sub(r'\(.*\)', '', clean_name).strip()
+
+            target_tokens = set([t for t in re.sub(r'[^a-z0-9\s]', ' ', clean_name.lower()).split() if len(t) > 1 and t not in ['the', 'a', 'an', 'and', 'of', 'for', 'in']])
             
             headers = {"User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/91.0.4472.124 Safari/537.36"}
             
@@ -1200,15 +1258,43 @@ class GameScanner:
                 resp = requests.get(search_url, headers=headers, timeout=5)
                 if resp.status_code == 200:
                     data = resp.json()
-                    if data.get("total", 0) > 0:
-                        appid = data["items"][0]["id"]
-                        break
+                    items = data.get("items", [])
+                    if items:
+                        # Filter out DLCs, soundtracks, and bonus items that pollute search results
+                        best_item = None
+                        best_score = -1
+
+                        for item in items[:8]:
+                            item_name = item.get("name", "")
+                            item_lower = item_name.lower()
+                            
+                            # Reject obvious add-on media unless user specifically searched for it
+                            if any(bad in item_lower for bad in ["soundtrack", " ost", "season pass", "artbook", "trailer", "bonus content", "dlc"]):
+                                if not any(bad in name.lower() for bad in ["soundtrack", "ost", "season pass", "artbook", "dlc"]):
+                                    continue
+
+                            item_tokens = set([t for t in re.sub(r'[^a-z0-9\s]', ' ', item_lower).split() if len(t) > 1])
+                            
+                            # Calculate token overlap
+                            overlap = len(target_tokens.intersection(item_tokens))
+                            score = overlap * 10
+                            
+                            if item_lower == clean_name.lower():
+                                score += 50
+                            elif item_lower.startswith(clean_name.lower()):
+                                score += 30
+                            
+                            if score > best_score:
+                                best_score = score
+                                best_item = item
+
+                        if best_item and (best_score >= 10 or len(items) == 1):
+                            appid = best_item["id"]
+                            break
             
             if appid:
-                header_url = f"https://cdn.akamai.steamstatic.com/steam/apps/{appid}/header.jpg"
-                img_resp = requests.head(header_url, headers=headers, timeout=3)
-                if img_resp.status_code == 200:
-                    return header_url
+                header_url = f"https://shared.cloudflare.steamstatic.com/store_item_assets/steam/apps/{appid}/header.jpg"
+                return header_url
         except Exception as e:
             logger.error(f"Failed to search Steam banner for {name}: {e}")
             

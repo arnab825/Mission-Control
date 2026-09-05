@@ -27,6 +27,7 @@ import {
 import { motion, AnimatePresence } from 'framer-motion';
 import type { TelemetryState } from '../types/telemetry';
 import { useDistributedStats, fetchWithFailover } from '../hooks/useDistributedStats';
+import { getSteamAppIdForTitle } from '../data/discoverCatalog';
 
 // ── Types ──────────────────────────────────────────────────────────────────────
 interface BackendGame {
@@ -148,12 +149,16 @@ const GameCard: React.FC<{
     (normPlatform?.toLowerCase().includes('riot') ? LAUNCHER_BANNERS['Riot Games'] : null)
   ) : null;
 
+  const steamAppId = (!isLauncher && game.platform === 'Steam' && /^\d+$/.test(game.id))
+    ? game.id
+    : (!isLauncher ? getSteamAppIdForTitle(game.name) : null);
+
   if (isLauncher && launcherBanner) {
     coverUrl = launcherBanner;
   } else if (game.local_banner && game.local_banner !== 'null') {
     coverUrl = game.local_banner.startsWith('http') ? game.local_banner : `asset:///${game.local_banner.replace(/\\/g, '/')}`;
-  } else if (game.platform === 'Steam' && game.id && !isLauncher) {
-    coverUrl = `https://cdn.akamai.steamstatic.com/steam/apps/${game.id}/header.jpg`;
+  } else if (steamAppId) {
+    coverUrl = `https://shared.cloudflare.steamstatic.com/store_item_assets/steam/apps/${steamAppId}/header.jpg`;
   } else if (game.icon && game.icon !== 'null') {
     coverUrl = game.icon.startsWith('http') ? game.icon : `asset:///${game.icon.replace(/\\/g, '/')}`;
   } else if (launcherBanner) {
@@ -212,6 +217,16 @@ const GameCard: React.FC<{
             const target = e.target as HTMLImageElement;
             if (launcherBanner && target.src !== launcherBanner) {
               target.src = launcherBanner;
+            } else if (!isLauncher) {
+              const fallbackAppId = getSteamAppIdForTitle(game.name);
+              const fallbackHeader = fallbackAppId ? `https://shared.cloudflare.steamstatic.com/store_item_assets/steam/apps/${fallbackAppId}/header.jpg` : null;
+              if (fallbackHeader && target.src !== fallbackHeader) {
+                target.src = fallbackHeader;
+                return;
+              }
+              if (!target.src.includes('dicebear')) {
+                target.src = `https://api.dicebear.com/7.x/shapes/svg?seed=${seed}&backgroundColor=0a0a0a&shape1Color=1a1a2e&shape2Color=16213e&shape3Color=0f3460`;
+              }
             } else if (!target.src.includes('dicebear')) {
               target.src = `https://api.dicebear.com/7.x/shapes/svg?seed=${seed}&backgroundColor=0a0a0a&shape1Color=1a1a2e&shape2Color=16213e&shape3Color=0f3460`;
             }
@@ -1123,6 +1138,7 @@ const GamesLibraryContent: React.FC<GamesPageProps> = ({ state, sendCommand, set
         {showDiscoverModal && (
           <DiscoverGamesModal
             onClose={() => setShowDiscoverModal(false)}
+            installedGames={games}
             onGameAdded={() => {
               // Trigger reload or signal update
               sendCommand('get_cached_games', { userId: userId || undefined });

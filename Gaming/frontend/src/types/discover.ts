@@ -30,9 +30,19 @@ export interface NewsItem {
   imageUrl?: string | null;
 }
 
+export interface SearchRecommendation {
+  id: string;
+  label: string;
+  query: string;
+  reason: string;
+  category: 'library' | 'trending' | 'hardware' | 'recent';
+}
+
 export interface DiscoverGamesModalProps {
   onClose: () => void;
   onGameAdded?: () => void;
+  installedGames?: Array<{ name: string; genre?: string; platform?: string }>;
 }
 
-export type TabType = 'trending' | 'toprated' | 'news' | 'action' | 'openworld' | 'shooter';
+export type TabType = 'trending' | 'toprated' | 'news';
+

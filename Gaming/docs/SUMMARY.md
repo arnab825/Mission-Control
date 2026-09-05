@@ -82,7 +82,8 @@ graph TD
 
 | Version | Key Feature / Change Description |
 | :--- | :--- |
-| **v3.5.4 (Latest)** | **Injected External OAuth Exit Bar, ESC Key Handler & Clerk Redirect Escape Hatches** — Injected top-level Mission Control Exit Bar on external OAuth pages (Google, Discord, Clerk) with drag region and window controls |
+| **v3.5.5 (Latest)** | **Discover Web Dynamic Feeds, 250+ Game Canonical Resolver & Intelligent Recommendation System** — Resolved Electron IPC duplicate handler collision for fetch-steam-trending restoring live storefront feeds |
+| **v3.5.4** | **Injected External OAuth Exit Bar, ESC Key Handler & Clerk Redirect Escape Hatches** — Injected top-level Mission Control Exit Bar on external OAuth pages (Google, Discord, Clerk) with drag region and window controls |
 | **v3.5.3** | **Clerk Auth Exit & Session Persistence, Vision Model Uninstallation, AI Backbone Models & Build Freshness** — Added Exit/Cancel buttons on Clerk Auth modal and SSO callback redirect |
 | **v3.5.2** | **Discover Web Dynamic Trending, Weekly News Engine, Render Shield & Code Modularization** — Added dynamic Steam trending storefront integration via Electron IPC, ISO-week news scheduling, strict Render credit shield, and modularized discovery datasets. |
 | **v3.5.1** | **Nemotron 3 Ultra, Gemini 3.8, Settings Cleanup & Library UI Polish** — Added NVIDIA Nemotron 3 Ultra to Neural Backbone, OpenRouter, and NIM failover cascades. |
