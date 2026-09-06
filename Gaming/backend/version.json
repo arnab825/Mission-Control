@@ -1,8 +1,21 @@
 {
-  "version": "3.5.6",
-  "release_date": "2026-09-05",
+  "version": "3.5.7",
+  "release_date": "2026-09-06",
   "update_check_url": "https://raw.githubusercontent.com/arnab825/Mission-Control/main/Gaming/backend/version.json",
   "changelog": [
+    {
+      "version": "3.5.7",
+      "date": "2026-09-06",
+      "title": "007 First Light Artwork Resolution, Hardware Matrix Icons & Post-Update Auth Persistence",
+      "highlights": [
+        "Resolved 007 First Light artwork resolution and added HTTP status verification in Steam store banner scanner to prevent 404 cache poisoning",
+        "Restored high-resolution game cover and capsule fallbacks in library GameCard and Discover catalog for non-Steam/local titles",
+        "Fixed game thumbnail resolution in Settings Library Hardware Feature Matrix for local games and added missing feature badge micro-icons",
+        "Restored Lucide micro-icons for DLSS, Frame Gen, RTX, Reflex, HDR, and FSR across library game cards and hardware feature pills",
+        "Added session cookies and storage data flushing prior to update execution ensuring Clerk authentication tokens and JWTs persist across application upgrades",
+        "Configured SO_REUSEADDR and increased local static HTTP server retries on restart to eliminate TCP TIME_WAIT port conflicts and prevent silent fallback to file:///"
+      ]
+    },
     {
       "version": "3.5.6",
       "date": "2026-09-05",
