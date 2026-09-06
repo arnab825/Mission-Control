@@ -2,6 +2,12 @@
 
 This document contains a detailed history of all patches and updates for the AI Gaming Assistant.
 
+### Patch: 2026-09-06 — v3.5.9: Generic Dynamic Icon Resolution & Hardcoded Game Removal
+
+- Removed developer hardcoded 007 First Light overrides from game_scanner.py
+- Added generic dynamic game icon resolution via sanitized ID and executable stem lookup
+- Added generic local banner validation and automatic cleanup of invalid or stale paths
+
 ### Patch: 2026-09-06 — v3.5.8: 007 First Light Full-Bleed Artwork Resolution & Cache Sanitization
 
 - Restored authentic 007 First Light game artwork with full-bleed widescreen aspect ratio matching standard library cards

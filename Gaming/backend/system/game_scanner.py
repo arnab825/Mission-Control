@@ -610,21 +610,37 @@ class GameScanner:
                         name = exe_meta
                 g["name"] = name
 
-                # Purge any erroneous benchmark screenshot from local_banner
-                if g.get("local_banner") and "firstlight.webp" in str(g.get("local_banner", "")):
-                    g["local_banner"] = None
+                # Validate and resolve local_banner generically
+                if g.get("local_banner"):
+                    banner_str = str(g["local_banner"]).strip()
+                    if banner_str.lower() in ["null", "none", ""]:
+                        g["local_banner"] = None
+                    elif not banner_str.startswith("http") and not os.path.exists(banner_str):
+                        g["local_banner"] = None
 
-                # Ensure 007 First Light always points to its extracted game icon
-                if "007" in name.lower() and "light" in name.lower():
-                    if g.get("genre") == "CLASSIC":
-                        g["genre"] = "ACTION"
-                    if not g.get("icon") or not os.path.exists(str(g.get("icon", ""))):
-                        icons_dir = Path(__file__).parent.parent / "data" / "icons"
-                        for cand_icon in ["C_007FirstLight.png", "007_First_Light.png"]:
-                            cand_path = icons_dir / cand_icon
-                            if cand_path.exists():
-                                g["icon"] = str(cand_path)
-                                break
+                # Dynamically resolve missing or stale game icons from extracted icon repository
+                has_valid_icon = False
+                if g.get("icon"):
+                    icon_str = str(g["icon"]).strip()
+                    if icon_str.startswith("http") or (icon_str.lower() not in ["null", "none", ""] and os.path.exists(icon_str)):
+                        has_valid_icon = True
+
+                if not has_valid_icon:
+                    icons_dir = Path(__file__).parent.parent / "data" / "icons"
+                    game_id = g.get("id") or ""
+                    safe_id = "".join(c for c in game_id if c.isalnum() or c in ("_", "-")).rstrip()
+                    candidates = []
+                    if safe_id:
+                        candidates.append(icons_dir / f"{safe_id}.png")
+                    if g.get("exe_path"):
+                        exe_stem = Path(g["exe_path"]).stem
+                        candidates.append(icons_dir / f"{exe_stem}.png")
+                        candidates.append(icons_dir / f"C_{exe_stem}.png")
+
+                    for cand in candidates:
+                        if cand.exists():
+                            g["icon"] = str(cand)
+                            break
 
                 # Validate whether game is still installed and is not software junk
                 if self._is_game_valid_and_installed(g):
