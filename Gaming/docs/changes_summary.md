@@ -25,7 +25,28 @@ Comprehensive breakdown of major milestone releases, architectural upgrades, and
 
 ---
 
-## 🌟 Version v3.5.8 (Latest) — 007 First Light Full-Bleed Artwork Resolution & Cache Sanitization
+## 🌟 Version v3.5.9 (Latest) — Generic Dynamic Icon Resolution & Hardcoded Game Removal
+
+### 🛠️ Key Highlights
+1. **Removed developer hardcoded 007 First Light overrides from game_scanner.py**
+2. **Added generic dynamic game icon resolution via sanitized ID and executable stem lookup**
+3. **Added generic local banner validation and automatic cleanup of invalid or stale paths**
+
+### 📊 Architecture & Data Flow
+```mermaid
+graph TD
+    A[Developer Push / Publish Pipeline] --> B[Version Stamping & AI Changelog Enforcer]
+    B --> C[Mission Control System Core]
+    C --> D[Website Documentation & Real-Time Sync]
+```
+
+### 📦 Distribution Artifacts
+- **Linux**: `.deb` (Debian/Ubuntu), `.AppImage` (Universal), `.rpm` (Fedora/RHEL), `.tar.gz` (Portable)
+- **Windows**: `.exe` (Setup Installer), `.msi` (Enterprise), `.zip` (Portable)
+
+---
+
+## 📦 Version v3.5.8 — 007 First Light Full-Bleed Artwork Resolution & Cache Sanitization
 
 ### 🛠️ Key Highlights
 1. **Restored authentic 007 First Light game artwork with full-bleed widescreen aspect ratio matching standard library cards**
