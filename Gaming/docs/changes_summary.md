@@ -25,7 +25,22 @@ Comprehensive breakdown of major milestone releases, architectural upgrades, and
 
 ---
 
-## 🌟 Version v3.5.6 (Latest) — Google OAuth Hang Resolution & Persistent Library Cache Across Sessions
+## 🌟 Version v3.5.7 (Latest) — 007 First Light Artwork Resolution, Hardware Matrix Icons & Post-Update Auth Persistence
+
+### 🛠️ Key Highlights
+1. **007 First Light Artwork Resolution & 404 Guard**: Mapped 007 First Light directly to verified high-res artwork (`firstlight.webp`) and added HTTP status checks in `_search_steam_banner()` to prevent unreleased/dummy Steam app IDs from poisoning the banner cache.
+2. **Library Hardware Feature Matrix Icons**: Resolved game thumbnails for local games using `getSteamAppIdForTitle()` and curated CDN art, eliminating fallback to the 2-letter neon-green placeholder square.
+3. **Restored Hardware Feature Badge Micro-Icons**: Restored Lucide micro-icons (`Sparkles`, `Layers`, `Flame`, `Zap`, `Sun`, `Cpu`) inside the hardware feature badge pills in both library game cards and the Settings hardware matrix.
+4. **Post-Update Session Persistence**: Added asynchronous flushing of Chromium session cookies (`flushStore()`) and LevelDB storage data (`flushStorageData()`) in Electron before executing installer updates, preventing loss of Clerk authentication tokens and user state.
+5. **Port 43221 Binding & TCP TIME_WAIT Resilience**: Configured `SO_REUSEADDR` (`exclusive: false`) and increased retries from 5 to 15 on local HTTP static server initialization, preventing `EADDRINUSE` failures and ensuring the app never silently drops to `file:///`.
+
+### 📦 Distribution Artifacts
+- **Linux**: `.deb` (Debian/Ubuntu), `.AppImage` (Universal), `.rpm` (Fedora/RHEL), `.tar.gz` (Portable)
+- **Windows**: `.exe` (Setup Installer), `.msi` (Enterprise), `.zip` (Portable)
+
+---
+
+## 📦 Version v3.5.6 — Google OAuth Hang Resolution & Persistent Library Cache Across Sessions
 
 ### 🛠️ Key Highlights
 1. **Resolved Electron IPC ready-to-show promise resolution hanging Google OAuth popup indefinitely**

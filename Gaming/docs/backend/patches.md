@@ -2,6 +2,15 @@
 
 This document contains a detailed history of all patches and updates for the AI Gaming Assistant.
 
+### Patch: 2026-09-06 — v3.5.7: 007 First Light Artwork Resolution, Hardware Matrix Icons & Post-Update Auth Persistence
+
+- Resolved 007 First Light artwork resolution and added HTTP status verification in Steam store banner scanner to prevent 404 cache poisoning
+- Restored high-resolution game cover and capsule fallbacks in library GameCard and Discover catalog for non-Steam/local titles
+- Fixed game thumbnail resolution in Settings Library Hardware Feature Matrix for local games and added missing feature badge micro-icons
+- Restored Lucide micro-icons for DLSS, Frame Gen, RTX, Reflex, HDR, and FSR across library game cards and hardware feature pills
+- Added session cookies and storage data flushing prior to update execution ensuring Clerk authentication tokens and JWTs persist across application upgrades
+- Configured SO_REUSEADDR and increased local static HTTP server retries on restart to eliminate TCP TIME_WAIT port conflicts and prevent silent fallback to file:///
+
 ### Patch: 2026-09-05 — v3.5.6: Google OAuth Hang Resolution & Persistent Library Cache Across Sessions
 
 - Resolved Electron IPC ready-to-show promise resolution hanging Google OAuth popup indefinitely

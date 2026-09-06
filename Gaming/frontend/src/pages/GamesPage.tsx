@@ -15,6 +15,10 @@ import {
   X,
   Cpu,
   Layers,
+  Sparkles,
+  Zap,
+  Sun,
+  Flame,
   Tag,
   ChevronDown,
   RefreshCcw,
@@ -153,8 +157,13 @@ const GameCard: React.FC<{
     ? game.id
     : (!isLauncher ? getSteamAppIdForTitle(game.name) : null);
 
+  const is007 = !isLauncher && (game.name || '').toLowerCase().includes('007') && ((game.name || '').toLowerCase().includes('first light') || (game.name || '').toLowerCase().includes('firstlight') || (game.name || '').toLowerCase().includes('light'));
+  const firstLightCover = is007 ? 'https://mission-control-roan-seven.vercel.app/games/firstlight.webp' : null;
+
   if (isLauncher && launcherBanner) {
     coverUrl = launcherBanner;
+  } else if (firstLightCover) {
+    coverUrl = firstLightCover;
   } else if (game.local_banner && game.local_banner !== 'null') {
     coverUrl = game.local_banner.startsWith('http') ? game.local_banner : `asset:///${game.local_banner.replace(/\\/g, '/')}`;
   } else if (steamAppId) {
@@ -218,6 +227,10 @@ const GameCard: React.FC<{
             if (launcherBanner && target.src !== launcherBanner) {
               target.src = launcherBanner;
             } else if (!isLauncher) {
+              if (firstLightCover && target.src !== firstLightCover) {
+                target.src = firstLightCover;
+                return;
+              }
               const fallbackAppId = getSteamAppIdForTitle(game.name);
               const fallbackHeader = fallbackAppId ? `https://shared.cloudflare.steamstatic.com/store_item_assets/steam/apps/${fallbackAppId}/header.jpg` : null;
               if (fallbackHeader && target.src !== fallbackHeader) {
@@ -281,16 +294,22 @@ const GameCard: React.FC<{
               {game.features.map((feat) => {
                 const f = feat.toUpperCase();
                 let colorClass = 'bg-white/5 text-zinc-300 border-white/10';
+                let IconComp = Cpu;
                 if (f.includes('DLSS') || f.includes('FRAME_GEN') || f.includes('FRAME GEN')) {
                   colorClass = 'bg-neon-yellow/10 text-neon-yellow border-neon-yellow/30 shadow-[0_0_8px_rgba(223,255,0,0.12)]';
+                  IconComp = f.includes('FRAME') ? Layers : Sparkles;
                 } else if (f.includes('RTX') || f.includes('RAY_TRACING') || f.includes('PATH_TRACING')) {
                   colorClass = 'bg-neon-green/10 text-neon-green border-neon-green/30 shadow-[0_0_8px_rgba(118,185,0,0.12)]';
+                  IconComp = Flame;
                 } else if (f.includes('REFLEX')) {
                   colorClass = 'bg-amber-500/10 text-amber-400 border-amber-500/30';
+                  IconComp = Zap;
                 } else if (f.includes('HDR')) {
                   colorClass = 'bg-cyan-500/10 text-cyan-300 border-cyan-500/30';
+                  IconComp = Sun;
                 } else if (f.includes('FSR')) {
                   colorClass = 'bg-rose-500/10 text-rose-300 border-rose-500/30';
+                  IconComp = Cpu;
                 }
                 const label = feat.replace('_', ' ');
                 return (
@@ -298,7 +317,8 @@ const GameCard: React.FC<{
                     key={feat}
                     className={`inline-flex items-center gap-1 px-1.5 py-0.5 rounded text-[8px] font-black uppercase tracking-wider border ${colorClass}`}
                   >
-                    {label}
+                    <IconComp className="w-2.5 h-2.5 shrink-0" />
+                    <span>{label}</span>
                   </span>
                 );
               })}

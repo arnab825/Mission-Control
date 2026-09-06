@@ -1282,6 +1282,9 @@ class GameScanner:
 
             norm_simple = re.sub(r'[^a-z0-9\s]', ' ', name.lower())
             norm_simple = re.sub(r'\s+', ' ', norm_simple).strip()
+            if "007" in norm_simple and "first" in norm_simple and "light" in norm_simple:
+                return "https://mission-control-roan-seven.vercel.app/games/firstlight.webp"
+
             for key, aid in canonical_appids.items():
                 if key == norm_simple or norm_simple.startswith(key) or key in norm_simple:
                     return f"https://shared.cloudflare.steamstatic.com/store_item_assets/steam/apps/{aid}/header.jpg"
@@ -1341,7 +1344,12 @@ class GameScanner:
             
             if appid:
                 header_url = f"https://shared.cloudflare.steamstatic.com/store_item_assets/steam/apps/{appid}/header.jpg"
-                return header_url
+                try:
+                    head_res = requests.head(header_url, headers=headers, timeout=3)
+                    if head_res.status_code == 200:
+                        return header_url
+                except Exception:
+                    return header_url
         except Exception as e:
             logger.error(f"Failed to search Steam banner for {name}: {e}")
             

@@ -31,10 +31,13 @@ import {
   BookOpen,
   Info,
   Gamepad2,
-  RefreshCw
+  RefreshCw,
+  Layers,
+  Sun
 } from 'lucide-react';
 import type { TelemetryState } from '../types/telemetry';
 import { ControllerMapping } from '../components/ControllerMapping';
+import { getSteamAppIdForTitle } from '../data/discoverCatalog';
 
 const HotkeyRecorder: React.FC<{
   value: string;
@@ -3227,20 +3230,30 @@ const SettingsPage: React.FC<{ state: TelemetryState | null, sendCommand: (type:
 
                                   const useLocalIcon = game.icon && game.icon !== 'null' && !isLauncherExe && !hasLauncherIcon;
 
+                                  const nameLower = (game.name || '').toLowerCase();
+                                  const is007 = nameLower.includes('007') && (nameLower.includes('first light') || nameLower.includes('firstlight') || nameLower.includes('light'));
+                                  const curatedArtwork = is007
+                                    ? 'https://mission-control-roan-seven.vercel.app/games/firstlight.webp'
+                                    : null;
+
+                                  const resolvedSteamId = (game.platform === 'Steam' && /^\d+$/.test(game.id))
+                                    ? game.id
+                                    : getSteamAppIdForTitle(game.name);
+
+                                  const steamBannerUrl = resolvedSteamId
+                                    ? `https://shared.cloudflare.steamstatic.com/store_item_assets/steam/apps/${resolvedSteamId}/header.jpg`
+                                    : null;
+
                                   let fallbackUrl = null;
-                                  if (!game.id && game.name) {
-                                    if (game.name.toLowerCase().includes('ghost of tsushima')) {
-                                      fallbackUrl = 'https://cdn.akamai.steamstatic.com/steam/apps/2215430/header.jpg';
-                                    }
+                                  if (!game.id && game.name && nameLower.includes('ghost of tsushima')) {
+                                    fallbackUrl = 'https://cdn.akamai.steamstatic.com/steam/apps/2215430/header.jpg';
                                   }
 
-                                  const iconUrl = useLocalIcon
-                                    ? (game.icon.startsWith('http') ? game.icon : `asset:///${game.icon.replace(/\\/g, '/')}`)
-                                    : game.local_banner && game.local_banner !== 'null'
-                                      ? (game.local_banner.startsWith('http') ? game.local_banner : `asset:///${game.local_banner.replace(/\\/g, '/')}`)
-                                      : game.platform === 'Steam' && game.id
-                                        ? `https://cdn.akamai.steamstatic.com/steam/apps/${game.id}/header.jpg`
-                                        : fallbackUrl;
+                                  const iconUrl = curatedArtwork
+                                    || (useLocalIcon ? (game.icon.startsWith('http') ? game.icon : `asset:///${game.icon.replace(/\\/g, '/')}`) : null)
+                                    || (game.local_banner && game.local_banner !== 'null' ? (game.local_banner.startsWith('http') ? game.local_banner : `asset:///${game.local_banner.replace(/\\/g, '/')}`) : null)
+                                    || steamBannerUrl
+                                    || fallbackUrl;
 
                                   if (iconUrl) {
                                     return (
@@ -3251,17 +3264,17 @@ const SettingsPage: React.FC<{ state: TelemetryState | null, sendCommand: (type:
                                           className="w-7 h-7 rounded-lg object-cover bg-white/5 border border-white/10"
                                           onError={(e) => {
                                             const img = e.target as HTMLImageElement;
-                                            const steamUrl = game.platform === 'Steam' && game.id
-                                              ? `https://cdn.akamai.steamstatic.com/steam/apps/${game.id}/header.jpg`
-                                              : null;
-
-                                            if (steamUrl && img.src !== steamUrl) {
-                                              img.src = steamUrl;
-                                            } else {
-                                              img.style.display = 'none';
-                                              const fallback = img.nextElementSibling as HTMLElement;
-                                              if (fallback) fallback.style.display = 'flex';
+                                            if (curatedArtwork && img.src !== curatedArtwork) {
+                                              img.src = curatedArtwork;
+                                              return;
                                             }
+                                            if (steamBannerUrl && img.src !== steamBannerUrl) {
+                                              img.src = steamBannerUrl;
+                                              return;
+                                            }
+                                            img.style.display = 'none';
+                                            const fallback = img.nextElementSibling as HTMLElement;
+                                            if (fallback) fallback.style.display = 'flex';
                                           }}
                                         />
                                         <div style={{ display: 'none' }} className="absolute inset-0 rounded-lg bg-neon-green/10 border border-neon-green/20 flex items-center justify-center text-neon-green font-black text-[9px] uppercase tracking-wider shadow-[0_0_8px_rgba(118, 185, 0,0.1)]">
@@ -3301,14 +3314,28 @@ const SettingsPage: React.FC<{ state: TelemetryState | null, sendCommand: (type:
                             <td className="p-3">
                               {(hasRtx || hasGtx) ? (
                                 <div className="flex gap-1 flex-wrap max-w-[140px]">
-                                  {[...rtxFeatures, ...gtxFeatures].slice(0, 3).map((f: string, i: number) => (
-                                    <span key={i} className={`px-1.5 py-0.5 rounded text-[8px] font-black uppercase tracking-tighter border ${GPU_RTX_FEATURES.includes(f.toUpperCase())
-                                      ? (isAdvancedGpu ? 'bg-neon-green/10 border-neon-green/20 text-neon-green' : 'bg-zinc-800 border-zinc-700 text-zinc-500')
-                                      : 'bg-neon-yellow/10 border-neon-yellow/20 text-neon-yellow'
-                                      }`}>
-                                      {f}
-                                    </span>
-                                  ))}
+                                  {[...rtxFeatures, ...gtxFeatures].slice(0, 3).map((f: string, i: number) => {
+                                    const featUpper = f.toUpperCase();
+                                    let IconComp = Cpu;
+                                    if (featUpper.includes('DLSS') || featUpper.includes('FRAME_GEN') || featUpper.includes('FRAME GEN')) {
+                                      IconComp = featUpper.includes('FRAME') ? Layers : Sparkles;
+                                    } else if (featUpper.includes('RTX') || featUpper.includes('RAY_TRACING') || featUpper.includes('PATH_TRACING')) {
+                                      IconComp = Flame;
+                                    } else if (featUpper.includes('REFLEX')) {
+                                      IconComp = Zap;
+                                    } else if (featUpper.includes('HDR')) {
+                                      IconComp = Sun;
+                                    }
+                                    return (
+                                      <span key={i} className={`inline-flex items-center gap-1 px-1.5 py-0.5 rounded text-[8px] font-black uppercase tracking-tighter border ${GPU_RTX_FEATURES.includes(featUpper)
+                                        ? (isAdvancedGpu ? 'bg-neon-green/10 border-neon-green/20 text-neon-green' : 'bg-zinc-800 border-zinc-700 text-zinc-500')
+                                        : 'bg-neon-yellow/10 border-neon-yellow/20 text-neon-yellow'
+                                        }`}>
+                                        <IconComp className="w-2.5 h-2.5 shrink-0" />
+                                        <span>{f}</span>
+                                      </span>
+                                    );
+                                  })}
                                   {([...rtxFeatures, ...gtxFeatures].length > 3) && (
                                     <span className="px-1.5 py-0.5 rounded text-[8px] font-black border bg-zinc-800 border-zinc-700 text-zinc-500">
                                       +{([...rtxFeatures, ...gtxFeatures].length - 3)}

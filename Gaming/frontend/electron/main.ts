@@ -755,7 +755,7 @@ let localServerPort = 0
 const FIXED_UI_PORT = 43221;
 let localHttpServer: http.Server | null = null;
 
-function startLocalServer(distPath: string, port = FIXED_UI_PORT, retries = 5): Promise<number> {
+function startLocalServer(distPath: string, port = FIXED_UI_PORT, retries = 15): Promise<number> {
   return new Promise((resolve) => {
     try {
       const server = http.createServer((req, res) => {
@@ -817,7 +817,7 @@ function startLocalServer(distPath: string, port = FIXED_UI_PORT, retries = 5): 
         }
       });
 
-      server.listen(port, '127.0.0.1', () => {
+      server.listen({ port, host: '127.0.0.1', exclusive: false }, () => {
         const addr = server.address();
         const p = typeof addr === 'string' ? port : (addr ? addr.port : 0);
         localHttpServer = server;
@@ -1576,6 +1576,10 @@ app.whenReady().then(async () => {
 app.on('before-quit', () => {
   isAppQuitting = true;
   globalShortcut.unregisterAll()
+  try {
+    session.defaultSession.cookies.flushStore().catch(() => {});
+    session.defaultSession.flushStorageData();
+  } catch (_) {}
   // Clean up OSR offscreen window
   if (osrWin && !osrWin.isDestroyed()) {
     try { osrWin.close(); } catch (_) { }
@@ -3230,11 +3234,22 @@ function setupAutoUpdater() {
     });
   });
 
-  ipcMain.on('quit-and-install-update', () => {
+  ipcMain.on('quit-and-install-update', async () => {
     isAppQuitting = true;
     console.log('[AutoUpdater] Quitting and installing update...');
 
-    // 1. Immediately hide window so user doesn't experience a "(Not Responding)" freeze
+    // 1. Flush Chromium session storage and cookies so Clerk auth tokens/JWTs are committed to disk
+    try {
+      if (session.defaultSession) {
+        console.log('[AutoUpdater] Flushing session cookies and storage data before update...');
+        await session.defaultSession.cookies.flushStore();
+        session.defaultSession.flushStorageData();
+      }
+    } catch (flushErr) {
+      console.warn('[AutoUpdater] Session flush warning:', flushErr);
+    }
+
+    // 2. Immediately hide window so user doesn't experience a "(Not Responding)" freeze
     if (win && !win.isDestroyed()) {
       try { win.hide(); } catch (_) { }
     }

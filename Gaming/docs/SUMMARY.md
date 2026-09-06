@@ -82,7 +82,8 @@ graph TD
 
 | Version | Key Feature / Change Description |
 | :--- | :--- |
-| **v3.5.6 (Latest)** | **Google OAuth Hang Resolution & Persistent Library Cache Across Sessions** — Resolved Electron IPC ready-to-show promise resolution hanging Google OAuth popup indefinitely. |
+| **v3.5.7 (Latest)** | **007 First Light Artwork Resolution, Hardware Matrix Icons & Post-Update Auth Persistence** — Resolved 007 First Light artwork resolution and added HTTP status verification in Steam store banner scanner to prevent 404 cache poisoning |
+| **v3.5.6** | **Google OAuth Hang Resolution & Persistent Library Cache Across Sessions** — Resolved Electron IPC ready-to-show promise resolution hanging Google OAuth popup indefinitely. |
 | **v3.5.5** | **Discover Web Dynamic Feeds, 250+ Game Canonical Resolver & Intelligent Recommendation System** — Resolved Electron IPC duplicate handler collision for fetch-steam-trending restoring live storefront feeds |
 | **v3.5.4** | **Injected External OAuth Exit Bar, ESC Key Handler & Clerk Redirect Escape Hatches** — Injected top-level Mission Control Exit Bar on external OAuth pages (Google, Discord, Clerk) with drag region and window controls |
 | **v3.5.3** | **Clerk Auth Exit & Session Persistence, Vision Model Uninstallation, AI Backbone Models & Build Freshness** — Added Exit/Cancel buttons on Clerk Auth modal and SSO callback redirect |
