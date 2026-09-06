@@ -2,17 +2,16 @@
   "nodeId": "NODE-0F6642",
   "name": "ARNAB-TECH-2026",
   "serverUrl": "https://mission-control-wz0l.onrender.com",
-  "token": "cdTJDnq8YzwNKq2ZmmRmqP2ii3y5o-e9YH4mwGjrWFM",
-  "clerkId": "user_3ElomWyS7UUUQxHLvkDod330GTz",
+  "token": "HeC_YlBQ_wHg4e1pYbIBcb15XV1F-NTHSVRY6xxB4lY",
+  "clerkId": "user_3E7zwiWrt7XmjYOwMAbdwmo7psq",
   "authProvider": "",
   "scanPaths": [
+    "C:\\Games",
     "C:\\Program Files\\EA Games",
     "C:\\Program Files\\Epic Games",
+    "C:\\Program Files\\Steam\\steamapps\\common",
     "C:\\XboxGames",
-    "D:\\SteamLibrary",
-    "D:\\SteamLibrary\\steamapps\\common",
-    "E:\\Program Files (x86)\\Steam\\steamapps\\common",
-    "e:\\program files (x86)\\steam\\steamapps\\common"
+    "c:\\program files\\steam\\steamapps\\common"
   ],
   "heartbeatInterval": 15,
   "syncInterval": 300

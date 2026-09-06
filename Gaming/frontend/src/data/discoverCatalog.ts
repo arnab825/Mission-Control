@@ -418,15 +418,6 @@ export function getGameArtwork(
   customCover?: string | null,
   storeAppId?: string | null
 ): { bannerUrl: string; coverUrl: string; steamAppId?: string } {
-  const normLower = (title || '').toLowerCase().trim();
-  if (normLower.includes('007') && (normLower.includes('first light') || normLower.includes('firstlight') || normLower.includes('light'))) {
-    const firstLightBanner = 'https://mission-control-roan-seven.vercel.app/games/firstlight.webp';
-    return {
-      bannerUrl: customBanner && customBanner.startsWith('http') && !customBanner.includes('dicebear') ? customBanner : firstLightBanner,
-      coverUrl: customCover && customCover.startsWith('http') && !customCover.includes('dicebear') ? customCover : firstLightBanner,
-    };
-  }
-
   const numericId = storeAppId && /^\d+$/.test(storeAppId) ? storeAppId : null;
   const resolvedAppId = numericId || getSteamAppIdForTitle(title);
 

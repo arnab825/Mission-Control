@@ -722,7 +722,33 @@ const SettingsPage: React.FC<{ state: TelemetryState | null, sendCommand: (type:
         if (val) {
           const parsed = JSON.parse(val);
           if (Array.isArray(parsed) && parsed.length > 0) {
-            return parsed;
+            let changed = false;
+            const sanitized = parsed.map((g: any) => {
+              let item = g;
+              const nameLower = (g.name || '').toLowerCase();
+              const is007 = nameLower.includes('007') && (nameLower.includes('first light') || nameLower.includes('firstlight') || nameLower.includes('light'));
+              if (is007) {
+                if (!item.icon || item.icon === 'null' || item.icon.includes('firstlight.webp')) {
+                  item = { ...item, icon: '/games/007firstlight.png' };
+                  changed = true;
+                }
+                if (item.genre === 'CLASSIC') {
+                  item = { ...item, genre: 'ACTION' };
+                  changed = true;
+                }
+              }
+              if (item.local_banner && typeof item.local_banner === 'string' && item.local_banner.includes('firstlight.webp')) {
+                item = { ...item, local_banner: null };
+                changed = true;
+              }
+              return item;
+            });
+            if (changed) {
+              try {
+                localStorage.setItem(k, JSON.stringify(sanitized));
+              } catch (_) {}
+            }
+            return sanitized;
           }
         }
       }
@@ -3229,12 +3255,9 @@ const SettingsPage: React.FC<{ state: TelemetryState | null, sendCommand: (type:
                                   );
 
                                   const useLocalIcon = game.icon && game.icon !== 'null' && !isLauncherExe && !hasLauncherIcon;
-
                                   const nameLower = (game.name || '').toLowerCase();
                                   const is007 = nameLower.includes('007') && (nameLower.includes('first light') || nameLower.includes('firstlight') || nameLower.includes('light'));
-                                  const curatedArtwork = is007
-                                    ? 'https://mission-control-roan-seven.vercel.app/games/firstlight.webp'
-                                    : null;
+                                  const default007 = '/games/007firstlight.png';
 
                                   const resolvedSteamId = (game.platform === 'Steam' && /^\d+$/.test(game.id))
                                     ? game.id
@@ -3249,9 +3272,18 @@ const SettingsPage: React.FC<{ state: TelemetryState | null, sendCommand: (type:
                                     fallbackUrl = 'https://cdn.akamai.steamstatic.com/steam/apps/2215430/header.jpg';
                                   }
 
-                                  const iconUrl = curatedArtwork
-                                    || (useLocalIcon ? (game.icon.startsWith('http') ? game.icon : `asset:///${game.icon.replace(/\\/g, '/')}`) : null)
-                                    || (game.local_banner && game.local_banner !== 'null' ? (game.local_banner.startsWith('http') ? game.local_banner : `asset:///${game.local_banner.replace(/\\/g, '/')}`) : null)
+                                  const localBannerUrl = game.local_banner && game.local_banner !== 'null' && !game.local_banner.includes('firstlight.webp')
+                                    ? (game.local_banner.startsWith('http') ? game.local_banner : (game.local_banner.startsWith('/') ? game.local_banner : `asset:///${game.local_banner.replace(/\\/g, '/')}`))
+                                    : null;
+
+                                  const localIconUrl = (useLocalIcon || is007)
+                                    ? (game.icon && game.icon !== 'null'
+                                        ? (game.icon.startsWith('http') ? game.icon : (game.icon.startsWith('/') ? game.icon : `asset:///${game.icon.replace(/\\/g, '/')}`))
+                                        : default007)
+                                    : null;
+
+                                  const iconUrl = localIconUrl
+                                    || localBannerUrl
                                     || steamBannerUrl
                                     || fallbackUrl;
 
@@ -3264,8 +3296,8 @@ const SettingsPage: React.FC<{ state: TelemetryState | null, sendCommand: (type:
                                           className="w-7 h-7 rounded-lg object-cover bg-white/5 border border-white/10"
                                           onError={(e) => {
                                             const img = e.target as HTMLImageElement;
-                                            if (curatedArtwork && img.src !== curatedArtwork) {
-                                              img.src = curatedArtwork;
+                                            if (is007 && !img.src.includes('007firstlight.png')) {
+                                              img.src = default007;
                                               return;
                                             }
                                             if (steamBannerUrl && img.src !== steamBannerUrl) {

@@ -610,6 +610,22 @@ class GameScanner:
                         name = exe_meta
                 g["name"] = name
 
+                # Purge any erroneous benchmark screenshot from local_banner
+                if g.get("local_banner") and "firstlight.webp" in str(g.get("local_banner", "")):
+                    g["local_banner"] = None
+
+                # Ensure 007 First Light always points to its extracted game icon
+                if "007" in name.lower() and "light" in name.lower():
+                    if g.get("genre") == "CLASSIC":
+                        g["genre"] = "ACTION"
+                    if not g.get("icon") or not os.path.exists(str(g.get("icon", ""))):
+                        icons_dir = Path(__file__).parent.parent / "data" / "icons"
+                        for cand_icon in ["C_007FirstLight.png", "007_First_Light.png"]:
+                            cand_path = icons_dir / cand_icon
+                            if cand_path.exists():
+                                g["icon"] = str(cand_path)
+                                break
+
                 # Validate whether game is still installed and is not software junk
                 if self._is_game_valid_and_installed(g):
                     cleaned_games.append(g)
@@ -1282,8 +1298,6 @@ class GameScanner:
 
             norm_simple = re.sub(r'[^a-z0-9\s]', ' ', name.lower())
             norm_simple = re.sub(r'\s+', ' ', norm_simple).strip()
-            if "007" in norm_simple and "first" in norm_simple and "light" in norm_simple:
-                return "https://mission-control-roan-seven.vercel.app/games/firstlight.webp"
 
             for key, aid in canonical_appids.items():
                 if key == norm_simple or norm_simple.startswith(key) or key in norm_simple:
