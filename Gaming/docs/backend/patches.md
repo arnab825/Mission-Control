@@ -2,6 +2,12 @@
 
 This document contains a detailed history of all patches and updates for the AI Gaming Assistant.
 
+### Patch: 2026-09-06 — v3.5.8: 007 First Light Full-Bleed Artwork Resolution & Cache Sanitization
+
+- Restored authentic 007 First Light game artwork with full-bleed widescreen aspect ratio matching standard library cards
+- Added automatic Frame-0 cache healing in GamesPage and SettingsPage to purge legacy stale null-icon and CLASSIC-genre cache entries
+- Bundled static official artwork asset in frontend public games directory for resilient offline rendering
+
 ### Patch: 2026-09-06 — v3.5.7: 007 First Light Artwork Resolution, Hardware Matrix Icons & Post-Update Auth Persistence
 
 - Resolved 007 First Light artwork resolution and added HTTP status verification in Steam store banner scanner to prevent 404 cache poisoning

@@ -25,7 +25,28 @@ Comprehensive breakdown of major milestone releases, architectural upgrades, and
 
 ---
 
-## 🌟 Version v3.5.7 (Latest) — 007 First Light Artwork Resolution, Hardware Matrix Icons & Post-Update Auth Persistence
+## 🌟 Version v3.5.8 (Latest) — 007 First Light Full-Bleed Artwork Resolution & Cache Sanitization
+
+### 🛠️ Key Highlights
+1. **Restored authentic 007 First Light game artwork with full-bleed widescreen aspect ratio matching standard library cards**
+2. **Added automatic Frame-0 cache healing in GamesPage and SettingsPage to purge legacy stale null-icon and CLASSIC-genre cache entries**
+3. **Bundled static official artwork asset in frontend public games directory for resilient offline rendering**
+
+### 📊 Architecture & Data Flow
+```mermaid
+graph TD
+    A[Developer Push / Publish Pipeline] --> B[Version Stamping & AI Changelog Enforcer]
+    B --> C[Mission Control System Core]
+    C --> D[Website Documentation & Real-Time Sync]
+```
+
+### 📦 Distribution Artifacts
+- **Linux**: `.deb` (Debian/Ubuntu), `.AppImage` (Universal), `.rpm` (Fedora/RHEL), `.tar.gz` (Portable)
+- **Windows**: `.exe` (Setup Installer), `.msi` (Enterprise), `.zip` (Portable)
+
+---
+
+## 📦 Version v3.5.7 — 007 First Light Artwork Resolution, Hardware Matrix Icons & Post-Update Auth Persistence
 
 ### 🛠️ Key Highlights
 1. **007 First Light Artwork Resolution & 404 Guard**: Mapped 007 First Light directly to verified high-res artwork (`firstlight.webp`) and added HTTP status checks in `_search_steam_banner()` to prevent unreleased/dummy Steam app IDs from poisoning the banner cache.

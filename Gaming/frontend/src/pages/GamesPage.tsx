@@ -157,19 +157,28 @@ const GameCard: React.FC<{
     ? game.id
     : (!isLauncher ? getSteamAppIdForTitle(game.name) : null);
 
-  const is007 = !isLauncher && (game.name || '').toLowerCase().includes('007') && ((game.name || '').toLowerCase().includes('first light') || (game.name || '').toLowerCase().includes('firstlight') || (game.name || '').toLowerCase().includes('light'));
-  const firstLightCover = is007 ? 'https://mission-control-roan-seven.vercel.app/games/firstlight.webp' : null;
+  const nameLower = (game.name || '').toLowerCase();
+  const is007 = !isLauncher && nameLower.includes('007') && (nameLower.includes('first light') || nameLower.includes('firstlight') || nameLower.includes('light'));
+  const default007Icon = '/games/007firstlight.png';
+
+  const localBannerUrl = game.local_banner && game.local_banner !== 'null' && !game.local_banner.includes('firstlight.webp')
+    ? (game.local_banner.startsWith('http') ? game.local_banner : (game.local_banner.startsWith('/') ? game.local_banner : `asset:///${game.local_banner.replace(/\\/g, '/')}`))
+    : null;
+
+  const localIconUrl = (game.icon && game.icon !== 'null')
+    ? (game.icon.startsWith('http') ? game.icon : (game.icon.startsWith('/') ? game.icon : `asset:///${game.icon.replace(/\\/g, '/')}`))
+    : (is007 ? default007Icon : null);
 
   if (isLauncher && launcherBanner) {
     coverUrl = launcherBanner;
-  } else if (firstLightCover) {
-    coverUrl = firstLightCover;
-  } else if (game.local_banner && game.local_banner !== 'null') {
-    coverUrl = game.local_banner.startsWith('http') ? game.local_banner : `asset:///${game.local_banner.replace(/\\/g, '/')}`;
+  } else if (localBannerUrl) {
+    coverUrl = localBannerUrl;
   } else if (steamAppId) {
     coverUrl = `https://shared.cloudflare.steamstatic.com/store_item_assets/steam/apps/${steamAppId}/header.jpg`;
-  } else if (game.icon && game.icon !== 'null') {
-    coverUrl = game.icon.startsWith('http') ? game.icon : `asset:///${game.icon.replace(/\\/g, '/')}`;
+  } else if (localIconUrl) {
+    coverUrl = localIconUrl;
+  } else if (is007) {
+    coverUrl = default007Icon;
   } else if (launcherBanner) {
     coverUrl = launcherBanner;
   }
@@ -221,14 +230,18 @@ const GameCard: React.FC<{
         <img
           src={coverUrl}
           alt={game.name}
-          className={`w-full h-full ${isLauncher ? 'object-contain p-8 group-hover:scale-105' : 'object-cover group-hover:scale-105'} transition-transform duration-500`}
+          className={`w-full h-full ${isLauncher ? 'object-contain p-8 group-hover:scale-105' : 'object-cover object-[center_25%] group-hover:scale-105'} transition-transform duration-500`}
           onError={(e) => {
             const target = e.target as HTMLImageElement;
             if (launcherBanner && target.src !== launcherBanner) {
               target.src = launcherBanner;
             } else if (!isLauncher) {
-              if (firstLightCover && target.src !== firstLightCover) {
-                target.src = firstLightCover;
+              if (is007 && !target.src.includes('007firstlight.png')) {
+                target.src = default007Icon;
+                return;
+              }
+              if (localIconUrl && target.src !== localIconUrl) {
+                target.src = localIconUrl;
                 return;
               }
               const fallbackAppId = getSteamAppIdForTitle(game.name);
@@ -245,10 +258,10 @@ const GameCard: React.FC<{
             }
           }}
         />
-        <div className="absolute inset-0 bg-linear-to-t from-black/80 via-transparent to-transparent pointer-events-none" />
+        <div className="absolute inset-0 bg-linear-to-t from-black/80 via-transparent to-transparent pointer-events-none z-10" />
 
         {/* Platform Badge */}
-        <div className={`absolute top-3 left-3 px-2 py-0.5 rounded-lg border backdrop-blur-md shadow-lg ${platformStyle.bg} ${platformStyle.text} ${platformStyle.border}`}>
+        <div className={`absolute top-3 left-3 px-2 py-0.5 rounded-lg border backdrop-blur-md shadow-lg ${platformStyle.bg} ${platformStyle.text} ${platformStyle.border} z-20`}>
           <span className="text-[8px] font-black uppercase tracking-widest">{getPlatformLabel(game.platform)}</span>
         </div>
 
@@ -531,7 +544,35 @@ const GamesLibraryContent: React.FC<GamesPageProps> = ({ state, sendCommand, set
         const stored = localStorage.getItem(k);
         if (stored) {
           const parsed = JSON.parse(stored);
-          if (Array.isArray(parsed) && parsed.length > 0) return parsed;
+          if (Array.isArray(parsed) && parsed.length > 0) {
+            let changed = false;
+            const sanitized = parsed.map((g: any) => {
+              let item = g;
+              const nameLower = (g.name || '').toLowerCase();
+              const is007 = nameLower.includes('007') && (nameLower.includes('first light') || nameLower.includes('firstlight') || nameLower.includes('light'));
+              if (is007) {
+                if (!item.icon || item.icon === 'null' || item.icon.includes('firstlight.webp')) {
+                  item = { ...item, icon: '/games/007firstlight.png' };
+                  changed = true;
+                }
+                if (item.genre === 'CLASSIC') {
+                  item = { ...item, genre: 'ACTION' };
+                  changed = true;
+                }
+              }
+              if (item.local_banner && typeof item.local_banner === 'string' && item.local_banner.includes('firstlight.webp')) {
+                item = { ...item, local_banner: null };
+                changed = true;
+              }
+              return item;
+            });
+            if (changed) {
+              try {
+                localStorage.setItem(k, JSON.stringify(sanitized));
+              } catch (_) {}
+            }
+            return sanitized;
+          }
         }
       }
     } catch { }
