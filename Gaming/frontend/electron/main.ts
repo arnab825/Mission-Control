@@ -709,6 +709,24 @@ function startPythonBackend(forceRestart = false) {
 
       if (!isAppQuitting && backendRestartCount < MAX_BACKEND_RESTARTS) {
         backendRestartCount++;
+        
+        if (backendRestartCount >= 3) {
+           const healthPath = path.join(app.getPath('userData'), 'release_health.json');
+           try {
+             if (fs.existsSync(healthPath)) {
+               const stored = JSON.parse(fs.readFileSync(healthPath, 'utf8'));
+               stored.status = 'unstable';
+               stored.lastCrashReason = 'Backend restart loop detected';
+               fs.writeFileSync(healthPath, JSON.stringify(stored, null, 2));
+               sendToAllWindows('runtime-anomaly-detected', {
+                 description: 'The AI backend process has crashed repeatedly.',
+                 mitigation: 'Consider rolling back to the previous stable release.',
+                 health: stored
+               });
+             }
+           } catch (_) {}
+        }
+
         const backoffMs = Math.min(2000 * backendRestartCount, 10000);
         console.warn(`[Electron] Backend exited unexpectedly (code ${code}). Scheduling auto-restart (${backendRestartCount}/${MAX_BACKEND_RESTARTS}) in ${backoffMs}ms...`);
         if (backendRestartTimer) clearTimeout(backendRestartTimer);
@@ -1482,7 +1500,63 @@ app.on('certificate-error', (event, _webContents, url, _error, _certificate, cal
   }
 });
 
+function initReleaseHealth() {
+  const healthPath = path.join(app.getPath('userData'), 'release_health.json');
+  const currentVer = app.getVersion();
+  let releaseHealth: any = {
+    currentVersion: currentVer,
+    previousVersion: '',
+    launchCount: 1,
+    crashCount: 0,
+    status: 'evaluating',
+    knownBugs: [],
+    lastCrashReason: '',
+    bootCompleted: false
+  };
+
+  if (fs.existsSync(healthPath)) {
+    try {
+      const stored = JSON.parse(fs.readFileSync(healthPath, 'utf8'));
+      if (stored.currentVersion !== currentVer) {
+        releaseHealth.previousVersion = stored.currentVersion || '';
+      } else {
+        releaseHealth = stored;
+        releaseHealth.launchCount = (stored.launchCount || 0) + 1;
+        if (!releaseHealth.bootCompleted) {
+          releaseHealth.crashCount = (stored.crashCount || 0) + 1;
+          releaseHealth.lastCrashReason = 'Crashed during previous boot sequence';
+        }
+        releaseHealth.bootCompleted = false;
+        if (releaseHealth.crashCount >= 2) {
+          releaseHealth.status = 'unstable';
+        } else {
+          releaseHealth.status = 'evaluating';
+        }
+      }
+    } catch (e) {
+      console.warn('Failed to parse release_health.json', e);
+    }
+  }
+  
+  fs.writeFileSync(healthPath, JSON.stringify(releaseHealth, null, 2));
+
+  if (releaseHealth.status === 'evaluating') {
+    setTimeout(() => {
+      try {
+        const stored = JSON.parse(fs.readFileSync(healthPath, 'utf8'));
+        stored.bootCompleted = true;
+        stored.status = 'stable';
+        stored.crashCount = 0;
+        fs.writeFileSync(healthPath, JSON.stringify(stored, null, 2));
+        sendToAllWindows('release-stability-status', stored);
+        console.log('[Release Health] App stabilized. Marked as stable.');
+      } catch (err) {}
+    }, 25000);
+  }
+}
+
 app.whenReady().then(async () => {
+  initReleaseHealth();
   // Clear Chromium cache on startup to ensure updated assets load immediately
   try {
     await session.defaultSession.clearCache();
@@ -1965,6 +2039,113 @@ ipcMain.handle('create-desktop-shortcut', async () => {
   } catch (err) {
     console.error('[Electron] Failed to create desktop shortcut:', err);
     return false;
+  }
+});
+
+// === IPC Handlers for Pre-flight and Release Stability ===
+
+ipcMain.handle('audit-preflight-risks', async () => {
+  const result: { safe: boolean, warnings: string[], errors: string[] } = { safe: true, warnings: [], errors: [] };
+  try {
+    const stat = fs.statfsSync(app.getPath('userData'));
+    const freeSpaceGB = (stat.bfree * stat.bsize) / (1024 * 1024 * 1024);
+    if (freeSpaceGB < 1.0) {
+      result.safe = false;
+      result.errors.push(`Only ${freeSpaceGB.toFixed(2)} GB free on installation drive. At least 1 GB is recommended.`);
+    }
+  } catch (e) {
+    result.warnings.push('Could not verify free disk space.');
+  }
+
+  if (process.platform === 'win32') {
+    try {
+      const tasklist = execSync('tasklist /FO CSV /NH', { encoding: 'utf8' });
+      const processCounts: Record<string, number> = {};
+      const lines = tasklist.split('\n');
+      for (const line of lines) {
+        if (!line.trim()) continue;
+        const cols = line.split('","');
+        if (cols.length > 0) {
+          const pName = cols[0].replace('"', '').toLowerCase();
+          processCounts[pName] = (processCounts[pName] || 0) + 1;
+        }
+      }
+      if ((processCounts['missioncontrolbackend.exe'] || 0) > 1) {
+         result.warnings.push('Multiple instances of MissionControlBackend detected.');
+      }
+      if ((processCounts['python.exe'] || 0) > 3) {
+         result.warnings.push('Multiple python processes running which may lock backend files.');
+      }
+    } catch (e) {
+      result.warnings.push('Failed to check background processes.');
+    }
+  }
+  return result;
+});
+
+ipcMain.handle('get-release-stability', async () => {
+  const healthPath = path.join(app.getPath('userData'), 'release_health.json');
+  if (fs.existsSync(healthPath)) {
+    try {
+      return JSON.parse(fs.readFileSync(healthPath, 'utf8'));
+    } catch (e) {
+      return null;
+    }
+  }
+  return null;
+});
+
+ipcMain.handle('mark-release-unstable', async () => {
+  const healthPath = path.join(app.getPath('userData'), 'release_health.json');
+  if (fs.existsSync(healthPath)) {
+    try {
+      const stored = JSON.parse(fs.readFileSync(healthPath, 'utf8'));
+      stored.status = 'unstable';
+      fs.writeFileSync(healthPath, JSON.stringify(stored, null, 2));
+      sendToAllWindows('release-stability-status', stored);
+      return true;
+    } catch (e) {
+      return false;
+    }
+  }
+  return false;
+});
+
+ipcMain.handle('rollback-electron-update', async () => {
+  try {
+    const rollbackDir = path.join(app.getPath('userData'), 'rollback_backup');
+    if (!fs.existsSync(rollbackDir)) {
+      return { success: false, error: 'No rollback backup found.' };
+    }
+    const resourcesDir = (process as any).resourcesPath;
+    if (!resourcesDir) {
+      return { success: false, error: 'Cannot determine resources path.' };
+    }
+    
+    const exePath = process.execPath;
+    const script = `
+      @echo off
+      timeout /t 2 /nobreak >nul
+      rmdir /s /q "${resourcesDir}"
+      mkdir "${resourcesDir}"
+      xcopy /s /e /h /y /c "${rollbackDir}\\*" "${resourcesDir}\\"
+      start "" "${exePath}"
+      exit
+    `;
+    const scriptPath = path.join(app.getPath('userData'), 'rollback_script.cmd');
+    fs.writeFileSync(scriptPath, script);
+    
+    spawn('cmd.exe', ['/c', scriptPath], {
+      detached: true,
+      windowsHide: true,
+      stdio: 'ignore'
+    }).unref();
+    
+    app.quit();
+    return { success: true };
+  } catch (err: any) {
+    console.error('Rollback failed:', err);
+    return { success: false, error: err.message };
   }
 });
 
@@ -2581,6 +2762,8 @@ function setupAutoUpdater() {
     assetUrl?: string;
     assetName?: string;
     assetSize?: number;
+    advisories?: string[];
+    knownIssues?: string[];
   }
 
   let directUpdateInfo: GitHubReleaseFallback | null = null;
@@ -2668,14 +2851,54 @@ function setupAutoUpdater() {
             }
 
             if (matchingAsset && matchingAsset.browser_download_url) {
+              const releaseBody = typeof latestRelease.body === 'string' ? latestRelease.body : '';
+              
+              const advisories: string[] = [];
+              const knownIssues: string[] = [];
+              const lines = releaseBody.split('\n');
+              let inAdvisorySection = false;
+              let inKnownIssuesSection = false;
+              
+              for (const line of lines) {
+                const trimmed = line.trim();
+                
+                // Advisory extraction
+                if (trimmed.match(/^#{2,}\s+(Bug Alerts|Breaking Changes)/i) || trimmed.includes('⚠️')) {
+                  inAdvisorySection = true;
+                  inKnownIssuesSection = false;
+                  if (trimmed.includes('⚠️')) advisories.push(trimmed.replace(/^#+\s*/, '').trim());
+                  continue;
+                }
+                
+                // Known issues extraction
+                if (trimmed.match(/^#{2,}\s+(Known Issues)/i)) {
+                  inKnownIssuesSection = true;
+                  inAdvisorySection = false;
+                  continue;
+                }
+                
+                if (trimmed.startsWith('#')) {
+                  inAdvisorySection = false;
+                  inKnownIssuesSection = false;
+                }
+                
+                if (inAdvisorySection && trimmed.startsWith('-')) {
+                  advisories.push(trimmed.substring(1).trim());
+                } else if (inKnownIssuesSection && trimmed.startsWith('-')) {
+                  knownIssues.push(trimmed.substring(1).trim());
+                }
+              }
+
               return resolve({
                 available: true,
                 version: remoteVer,
-                releaseNotes: typeof latestRelease.body === 'string' ? latestRelease.body : '',
+                releaseNotes: releaseBody,
                 releaseDate: latestRelease.published_at || latestRelease.created_at,
                 assetUrl: matchingAsset.browser_download_url,
                 assetName: matchingAsset.name,
-                assetSize: matchingAsset.size
+                assetSize: matchingAsset.size,
+                advisories: advisories.length > 0 ? advisories : undefined,
+                knownIssues: knownIssues.length > 0 ? knownIssues : undefined
               });
             }
 
@@ -3356,6 +3579,28 @@ function setupAutoUpdater() {
       if (verifiedInstaller) {
         console.log(`[AutoUpdater] Launching verified newest installer executable: ${verifiedInstaller}`);
         try {
+          // --- AUTOMATIC BACKUP LOGIC ---
+          const rollbackDir = path.join(app.getPath('userData'), 'rollback_backup');
+          try {
+            if (fs.existsSync(rollbackDir)) {
+              fs.rmSync(rollbackDir, { recursive: true, force: true });
+            }
+            fs.mkdirSync(rollbackDir, { recursive: true });
+            
+            const resourcesDir = (process as any).resourcesPath;
+            if (resourcesDir && fs.existsSync(resourcesDir)) {
+              console.log('[AutoUpdater] Creating rollback backup of resources...');
+              fs.cpSync(resourcesDir, rollbackDir, { recursive: true });
+              
+              const meta = { backupVersion: app.getVersion(), timestamp: new Date().toISOString() };
+              fs.writeFileSync(path.join(rollbackDir, 'rollback_meta.json'), JSON.stringify(meta));
+              console.log('[AutoUpdater] Rollback backup complete.');
+            }
+          } catch (bkpErr) {
+            console.error('[AutoUpdater] Rollback backup failed:', bkpErr);
+          }
+          // -----------------------------
+
           spawn('cmd.exe', ['/c', 'start', '""', verifiedInstaller], {
             detached: true,
             stdio: 'ignore',
@@ -3364,7 +3609,7 @@ function setupAutoUpdater() {
           // Exit Electron immediately so NSIS installer has zero file locks
           setTimeout(() => {
             console.log('[AutoUpdater] Exiting Electron cleanly for installer execution...');
-            app.exit(0);
+            app.quit();
           }, 500);
           return;
         } catch (spawnErr) {
@@ -3379,11 +3624,11 @@ function setupAutoUpdater() {
       // Force process exit if electron-updater stalls
       setTimeout(() => {
         console.log('[AutoUpdater] Forcing process termination via app.exit(0)...');
-        app.exit(0);
+        app.quit();
       }, 1200);
     } catch (err: any) {
       console.error('[AutoUpdater] quitAndInstall failed:', err);
-      app.exit(0);
+      app.quit();
     }
   });
 

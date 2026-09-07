@@ -68,13 +68,28 @@ def handle_execute(payload: dict, pipeline, bridge, config) -> None:
             
         if pipeline and pipeline.memory:
             pipeline.memory.add_chat_message(session_id, "agent", full_response, user_id=user_id)
+
+        state_updates = {"agent_response": full_response}
         if "🎮 **Agentic Launcher**" in full_response:
-            bridge.update_state({
-                "agent_response": full_response,
-                "launch_status": {"success": True, "game_name": "Application", "trigger": "agent"}
-            })
-        else:
-            bridge.update_state({"agent_response": full_response})
+            state_updates["launch_status"] = {"success": True, "game_name": "Application", "trigger": "agent"}
+        if "🖥️ **Agentic Navigation**" in full_response:
+            target = "dashboard"
+            if "Dashboard" in full_response: target = "dashboard"
+            elif "Vision" in full_response: target = "vision"
+            elif "Lab" in full_response: target = "lab"
+            elif "Agent" in full_response: target = "agent"
+            elif "Library" in full_response: target = "library"
+            elif "System" in full_response: target = "system"
+            elif "Settings" in full_response: target = "settings"
+            state_updates["navigate_to"] = target
+        if "🔄 **Update Check**" in full_response:
+            state_updates["trigger_action"] = "check_updates"
+        if "⚠️ **Emergency Rollback**" in full_response:
+            state_updates["trigger_action"] = "rollback_release"
+        if "🔍 **Library Scan**" in full_response:
+            state_updates["trigger_action"] = "scan_library"
+            
+        bridge.update_state(state_updates)
         # Speak the response via TTS only if the user is in an active voice session (is_listening)
         # OR chat TTS is explicitly unmuted. This prevents ghost voice during typed-chat sessions.
         try:
@@ -393,13 +408,28 @@ def handle_retry_message(payload: dict, pipeline, bridge, config) -> None:
             response = pipeline.handle_directive(text, user_id=user_id)
             if pipeline and pipeline.memory:
                 pipeline.memory.add_chat_message(session_id, "agent", response, user_id=user_id)
+
+            state_updates = {"agent_response": response}
             if "🎮 **Agentic Launcher**" in response:
-                bridge.update_state({
-                    "agent_response": response,
-                    "launch_status": {"success": True, "game_name": "Application", "trigger": "agent"}
-                })
-            else:
-                bridge.update_state({"agent_response": response})
+                state_updates["launch_status"] = {"success": True, "game_name": "Application", "trigger": "agent"}
+            if "🖥️ **Agentic Navigation**" in response:
+                target = "dashboard"
+                if "Dashboard" in response: target = "dashboard"
+                elif "Vision" in response: target = "vision"
+                elif "Lab" in response: target = "lab"
+                elif "Agent" in response: target = "agent"
+                elif "Library" in response: target = "library"
+                elif "System" in response: target = "system"
+                elif "Settings" in response: target = "settings"
+                state_updates["navigate_to"] = target
+            if "🔄 **Update Check**" in response:
+                state_updates["trigger_action"] = "check_updates"
+            if "⚠️ **Emergency Rollback**" in response:
+                state_updates["trigger_action"] = "rollback_release"
+            if "🔍 **Library Scan**" in response:
+                state_updates["trigger_action"] = "scan_library"
+                
+            bridge.update_state(state_updates)
         except Exception as e:
             logger.error("Error during agent retry execution: %s", e)
             bridge.update_state({"agent_response": f"Neural link retry error: {e}"})

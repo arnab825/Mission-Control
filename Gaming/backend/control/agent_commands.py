@@ -298,19 +298,21 @@ class AgentCommandProcessor:
     @staticmethod
     def process_system_command(response: str, agentic_mode_active: bool = False) -> str:
         """Parse the response for [SYSTEM_COMMAND:...] and execute app-level configurations."""
-        if not response or "[SYSTEM_COMMAND:" not in response:
+        if not response:
             return response
             
-        try:
-            start_idx = response.find("[SYSTEM_COMMAND:")
-            end_idx = response.find("]", start_idx)
-            if start_idx != -1 and end_idx != -1:
-                cmd_raw = response[start_idx + 16:end_idx].strip()
-                actual_reply = (response[:start_idx] + " " + response[end_idx + 1:]).strip()
+        import re
+        match = re.search(r'\[\s*SYSTEM_COMMAND:([^\]]+)\]', response)
+        if match:
+            try:
+                cmd_raw = match.group(1).strip()
+                start_idx = match.start()
+                end_idx = match.end()
+                actual_reply = (response[:start_idx] + " " + response[end_idx:]).strip()
                 
                 parts = cmd_raw.split(":")
-                cmd_type = parts[0]
-                value = parts[1] if len(parts) > 1 else None
+                cmd_type = parts[0].strip()
+                value = parts[1].strip() if len(parts) > 1 else None
                 
                 # Check for agentic mode before executing system modifications (set_cooling_mode, optimize_system)
                 is_navigation = cmd_type == "open_page"
@@ -338,10 +340,18 @@ class AgentCommandProcessor:
                         status_msg = "⚡ **Neural Pulse**: System optimized! VRAM cleared and background processes suspended."
                 elif cmd_type == "open_page":
                     status_msg = f"🖥️ **Agentic Navigation**: Redirecting you to the **{value.capitalize()}** panel..."
+                elif cmd_type == "check_updates":
+                    status_msg = f"🔄 **Update Check**: Initiating update check..."
+                elif cmd_type == "rollback_release":
+                    status_msg = f"⚠️ **Emergency Rollback**: Initiating rollback to the previous stable release..."
+                elif cmd_type == "scan_library":
+                    status_msg = f"🔍 **Library Scan**: Scanning system for installed games..."
+                elif cmd_type == "system_status":
+                    status_msg = f"📊 **System Status**: Triggering system diagnostics..."
 
                 if status_msg:
                     return f"{status_msg}\n\n{actual_reply}"
                 return actual_reply
-        except Exception as e:
-            logger.error(f"Failed to process system command: {e}")
+            except Exception as e:
+                logger.error(f"Failed to process system command: {e}")
         return response

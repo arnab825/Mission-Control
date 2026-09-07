@@ -183,9 +183,9 @@ class GameBrain:
             logger.info("Web search disabled: Offline mode active.")
 
         # RAG Engine (Always enabled, uses Local ONNX fallback if offline/no key)
-        from ai_brain.rag_engine import GameRAGEngine
         self._rag_engine = None
         try:
+            from ai_brain.rag_engine import GameRAGEngine
             base_dir = os.path.dirname(os.path.abspath(__file__))
             data_dir = os.path.join(base_dir, "rag_data")
             persist_dir = os.path.join(base_dir, "rag_index")
@@ -361,24 +361,10 @@ class GameBrain:
             needs_insecure_fallback = False
             if sys.platform == "win32" and not getattr(sys, "frozen", False) and agent_cfg.get("insecure_tls_windows_fallback", True):
                 try:
-                    import subprocess
-                    code = (
-                        "import sys\n"
-                        "import ssl\n"
-                        "try:\n"
-                        "    ctx = ssl.create_default_context()\n"
-                        "    ctx.load_default_certs()\n"
-                        "    sys.exit(0)\n"
-                        "except Exception:\n"
-                        "    sys.exit(0)\n"
-                    )
-                    result = subprocess.run(
-                        [sys.executable, "-c", code],
-                        capture_output=True,
-                        timeout=1.5,
-                        creationflags=0x08000000
-                    )
-                    needs_insecure_fallback = (result.returncode != 0)
+                    import ssl
+                    ctx = ssl.create_default_context()
+                    ctx.load_default_certs()
+                    needs_insecure_fallback = False
                 except Exception:
                     needs_insecure_fallback = True
 
@@ -926,9 +912,14 @@ class GameBrain:
                 f"   - Toggle Vision: `[SYSTEM_COMMAND:toggle_vision:<on|off>]` (refer to 'Vision Panel')\n"
                 f"   - Clear VRAM/Optimize: `[SYSTEM_COMMAND:optimize_system]`\n"
                 f"   - Open HUD/Settings: `[SYSTEM_COMMAND:open_page:<dashboard|vision|lab|agent|library|system|settings>]` (refer to 'HUD' or 'Tabs')\n"
+                f"   - Check Updates: `[SYSTEM_COMMAND:check_updates]`\n"
+                f"   - Rollback Update: `[SYSTEM_COMMAND:rollback_release]`\n"
+                f"   - Scan Game Library: `[SYSTEM_COMMAND:scan_library]`\n"
+                f"   - App/System Status: `[SYSTEM_COMMAND:system_status]`\n"
                 f"2. LAUNCHER: If the user asks to open/launch/start a game or app (Steam, OBS, GTA V), "
                 f"you MUST prefix your response with: `[LAUNCH_COMMAND:<target>]` where `<target>` is the target name or executable. "
                 f"Example: `[LAUNCH_COMMAND:obs]`, `[LAUNCH_COMMAND:steam]`, or the exact game name from library. "
+                f"3. RELEASE & STABILITY: If asked 'Are there bugs?', 'Is this release stable?', or 'Run diagnostics', trigger `[SYSTEM_COMMAND:system_status]` and advise them based on the response. If they explicitly request a rollback due to bugs, trigger `[SYSTEM_COMMAND:rollback_release]`.\n"
                 f"CRITICAL: Do NOT mention these hidden system tags to the user in your conversational reply! They are invisible triggers."
             )
 

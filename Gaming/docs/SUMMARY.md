@@ -82,7 +82,8 @@ graph TD
 
 | Version | Key Feature / Change Description |
 | :--- | :--- |
-| **v3.5.9 (Latest)** | **Generic Dynamic Icon Resolution & Hardcoded Game Removal** — Removed developer hardcoded 007 First Light overrides from game_scanner.py. |
+| **v3.6.0 (Latest)** | **Agentic System Control, Pre-Update Bug Warnings & Emergency Rollback** — Enabled Agentic system control with actionable intents for library scanning and updates |
+| **v3.5.9** | **Generic Dynamic Icon Resolution & Hardcoded Game Removal** — Removed developer hardcoded 007 First Light overrides from game_scanner.py. |
 | **v3.5.8** | **007 First Light Full-Bleed Artwork Resolution & Cache Sanitization** — Restored authentic 007 First Light game artwork with full-bleed widescreen aspect ratio matching standard library cards. |
 | **v3.5.7** | **007 First Light Artwork Resolution, Hardware Matrix Icons & Post-Update Auth Persistence** — Resolved 007 First Light artwork resolution and added HTTP status verification in Steam store banner scanner to prevent 404 cache poisoning |
 | **v3.5.6** | **Google OAuth Hang Resolution & Persistent Library Cache Across Sessions** — Resolved Electron IPC ready-to-show promise resolution hanging Google OAuth popup indefinitely. |

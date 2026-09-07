@@ -16,7 +16,7 @@ import HUD from './components/HUD';
 import { useBridge } from './hooks/useBridge';
 import type { TelemetryState } from './types/telemetry';
 import { UpdatesPage } from './pages/UpdatesPage';
-import { Sparkles, ChevronDown, ToggleRight, ToggleLeft, Menu } from 'lucide-react';
+import { Sparkles, ChevronDown, ToggleRight, ToggleLeft, Menu, AlertTriangle } from 'lucide-react';
 import { useAuth, useSignIn, useSignUp } from '@clerk/clerk-react';
 import { motion, AnimatePresence, MotionConfig } from 'framer-motion';
 
@@ -26,6 +26,8 @@ interface AppTelemetryState extends TelemetryState {
     status: string;
     is_running: boolean;
   };
+  navigate_to?: string;
+  trigger_action?: string;
 }
 
 const App: React.FC = () => {
@@ -54,9 +56,10 @@ const App: React.FC = () => {
   const { isLoaded: isSignInLoaded, signIn } = useSignIn();
   const { isLoaded: isSignUpLoaded, signUp } = useSignUp();
 
-  const [updaterTab, setUpdaterTab] = useState<'check' | 'changelogs'>('check');
+  const [updaterTab, setUpdaterTab] = useState<'check' | 'rollback' | 'changelogs'>('check');
   const [isAgentic, setIsAgentic] = useState(false);
   const [personality, setPersonality] = useState('Tactical');
+  const [globalToast, setGlobalToast] = useState<{message: string; type?: 'info'|'warning'} | null>(null);
 
   const isAuthPopup = typeof window !== 'undefined' && new URLSearchParams(window.location.search).get('auth_popup') === '1';
   const isAuthCompleted = typeof window !== 'undefined' && new URLSearchParams(window.location.search).get('auth_completed') === '1';
@@ -381,6 +384,37 @@ const App: React.FC = () => {
     }
   }, [sendCommand]);
 
+  // Synchronize agent command triggers and navigation
+  useEffect(() => {
+    if (state?.navigate_to) {
+      handleNavigate(state.navigate_to);
+      setGlobalToast({ message: `Agent Navigation: Redirecting to ${state.navigate_to}` });
+    }
+    if (state?.trigger_action) {
+      if (state.trigger_action === 'check_updates') {
+         setUpdaterTab('check');
+         setActivePage('updates');
+         window.electronAPI?.checkElectronUpdates?.();
+         setGlobalToast({ message: 'Agent Action: Checking for updates...' });
+      } else if (state.trigger_action === 'rollback_release') {
+         setUpdaterTab('rollback');
+         setActivePage('updates');
+         setGlobalToast({ message: 'Agent Action: Preparing emergency rollback...', type: 'warning' });
+      } else if (state.trigger_action === 'scan_library') {
+         setActivePage('games');
+         if (userId) sendCommand('scan_games', { userId });
+         setGlobalToast({ message: 'Agent Action: Scanning game library...' });
+      }
+    }
+  }, [state?.navigate_to, state?.trigger_action, userId]);
+
+  useEffect(() => {
+    if (globalToast) {
+      const timer = setTimeout(() => setGlobalToast(null), 3500);
+      return () => clearTimeout(timer);
+    }
+  }, [globalToast]);
+
   if (isHUDWindow) {
     if (!isHUDVisibleState) {
       return <div className="w-screen h-screen bg-transparent" />;
@@ -681,6 +715,25 @@ const App: React.FC = () => {
                   Run in Background
                 </button>
               </div>
+            </motion.div>
+          )}
+        </AnimatePresence>
+
+        {/* Global Toast Notification */}
+        <AnimatePresence>
+          {globalToast && (
+            <motion.div
+              initial={{ opacity: 0, y: 50 }}
+              animate={{ opacity: 1, y: 0 }}
+              exit={{ opacity: 0, y: 50 }}
+              className={`fixed bottom-8 left-1/2 -translate-x-1/2 z-[100] px-4 py-2 rounded-xl flex items-center gap-2 shadow-2xl border ${
+                globalToast.type === 'warning' 
+                  ? 'bg-amber-500/10 border-amber-500/30 text-amber-400' 
+                  : 'bg-neon-green/10 border-neon-green/30 text-neon-green'
+              }`}
+            >
+              {globalToast.type === 'warning' ? <AlertTriangle className="w-4 h-4" /> : <Sparkles className="w-4 h-4" />}
+              <span className="text-[10px] font-black uppercase tracking-widest">{globalToast.message}</span>
             </motion.div>
           )}
         </AnimatePresence>

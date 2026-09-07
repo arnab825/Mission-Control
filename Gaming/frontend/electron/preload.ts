@@ -71,9 +71,26 @@ contextBridge.exposeInMainWorld('electronAPI', {
   },
   pauseElectronUpdate: () => ipcRenderer.send('pause-electron-update'),
   cancelElectronUpdate: () => ipcRenderer.send('cancel-electron-update'),
-  rollbackElectronUpdate: () => ipcRenderer.send('rollback-electron-update'),
+  rollbackElectronUpdate: () => ipcRenderer.invoke('rollback-electron-update'),
   getElectronUpdateState: () => ipcRenderer.invoke('get-electron-update-state'),
   checkRollbackBackup: () => ipcRenderer.invoke('check-rollback-backup'),
+  getReleaseStability: () => ipcRenderer.invoke('get-release-stability'),
+  auditPreflightRisks: () => ipcRenderer.invoke('audit-preflight-risks'),
+  markReleaseUnstable: () => ipcRenderer.invoke('mark-release-unstable'),
+  onReleaseStabilityStatus: (callback: (status: any) => void) => {
+    const subscription = (_event: any, status: any) => callback(status);
+    ipcRenderer.on('release-stability-status', subscription);
+    return () => {
+      ipcRenderer.off('release-stability-status', subscription);
+    }
+  },
+  onRuntimeAnomaly: (callback: (event: any, payload: any) => void) => {
+    const subscription = (event: any, payload: any) => callback(event, payload);
+    ipcRenderer.on('runtime-anomaly-detected', subscription);
+    return () => {
+      ipcRenderer.off('runtime-anomaly-detected', subscription);
+    }
+  },
   onOpenDashboard: (callback: () => void) => {
     const subscription = () => callback()
     ipcRenderer.on('open-dashboard', subscription)
