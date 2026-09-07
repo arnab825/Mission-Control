@@ -17,7 +17,7 @@ import { ReportGlitchModal } from '../components/ReportGlitchModal';
 interface UpdatesPageProps {
   state: TelemetryState | null;
   sendCommand: (type: string, payload?: any) => void;
-  defaultTab?: 'check' | 'changelogs';
+  defaultTab?: 'check' | 'rollback' | 'changelogs';
 }
 
 const compareSemVer = (a: string, b: string): number => {
@@ -39,7 +39,7 @@ export const UpdatesPage: React.FC<UpdatesPageProps> = ({
   sendCommand,
   defaultTab = 'check'
 }) => {
-  const [activeTab, setActiveTab] = React.useState<'check' | 'changelogs'>(defaultTab);
+  const [activeTab, setActiveTab] = React.useState<'check' | 'rollback' | 'changelogs'>(defaultTab);
   const [expandedVersions, setExpandedVersions] = React.useState<Record<string, boolean>>({});
   const logEndRef = useRef<HTMLDivElement>(null);
   const [nativeUpdate, setNativeUpdate] = React.useState<{
@@ -57,6 +57,8 @@ export const UpdatesPage: React.FC<UpdatesPageProps> = ({
   const [rollbackConfirm, setRollbackConfirm] = React.useState(false);
   const [isReportModalOpen, setIsReportModalOpen] = React.useState(false);
   const [electronVersion, setElectronVersion] = React.useState<string>('');
+  const [releaseHealth, setReleaseHealth] = React.useState<{ stable: boolean; crashes: number } | null>(null);
+  const [preflightRisks, setPreflightRisks] = React.useState<{ riskLevel: string; warnings: string[] } | null>(null);
 
   useEffect(() => {
     if (window.electronAPI?.getAppVersion) {
@@ -249,6 +251,21 @@ export const UpdatesPage: React.FC<UpdatesPageProps> = ({
   const rawTargetVersion = nativeUpdate?.version || updateState?.latest_version || (changelogsData?.changelog?.[0]?.version);
   const targetVersion = rawTargetVersion ? rawTargetVersion.replace(/^v/i, '') : currentVersion;
 
+  useEffect(() => {
+    if (targetVersion && targetVersion !== currentVersion) {
+      if ((window.electronAPI as any)?.getReleaseStability) {
+        (window.electronAPI as any).getReleaseStability(`v${targetVersion}`).then((health: any) => {
+          setReleaseHealth(health);
+        }).catch(() => {});
+      }
+      if ((window.electronAPI as any)?.auditPreflightRisks) {
+        (window.electronAPI as any).auditPreflightRisks(`v${targetVersion}`).then((risks: any) => {
+          setPreflightRisks(risks);
+        }).catch(() => {});
+      }
+    }
+  }, [targetVersion, currentVersion]);
+
   const isNativeStale = Boolean(
     nativeUpdate?.status === 'downloaded' &&
     nativeUpdate?.version &&
@@ -291,6 +308,22 @@ export const UpdatesPage: React.FC<UpdatesPageProps> = ({
             <span className="flex items-center justify-center gap-2">
               <Sparkles className="w-3.5 h-3.5" />
               Intelligence Core Check
+            </span>
+          </button>
+          
+          <button aria-label="button" type="button"
+            onClick={() => {
+              setActiveTab('rollback');
+            }}
+            className={`flex-1 py-3 text-center text-[10px] font-black uppercase tracking-widest border-r border-b-2 transition-all ${
+              activeTab === 'rollback' 
+                ? 'border-r-white/5 border-b-amber-500 text-amber-500 bg-amber-500/5' 
+                : 'border-r-white/5 border-b-transparent text-zinc-500 hover:text-zinc-300 hover:bg-white/1'
+            }`}
+          >
+            <span className="flex items-center justify-center gap-2">
+              <AlertTriangle className="w-3.5 h-3.5" />
+              Uninstall / Rollback
             </span>
           </button>
           
@@ -384,6 +417,28 @@ export const UpdatesPage: React.FC<UpdatesPageProps> = ({
                       </p>
                     </div>
                   </div>
+
+                  {releaseHealth && !releaseHealth.stable && (
+                    <div className="p-4 bg-red-500/10 border border-red-500/30 rounded-2xl flex items-start gap-3">
+                      <AlertTriangle className="w-5 h-5 text-red-400 shrink-0 mt-0.5" />
+                      <div className="space-y-1">
+                        <h5 className="text-[10px] font-black uppercase tracking-widest text-red-400">Unstable Release Detected</h5>
+                        <p className="text-[9px] text-red-300 font-medium">This version has been marked as unstable due to {releaseHealth.crashes} reported crashes. Proceed with caution.</p>
+                      </div>
+                    </div>
+                  )}
+
+                  {preflightRisks && preflightRisks.warnings && preflightRisks.warnings.length > 0 && (
+                    <div className="p-4 bg-orange-500/10 border border-orange-500/30 rounded-2xl flex items-start gap-3">
+                      <AlertTriangle className="w-5 h-5 text-orange-400 shrink-0 mt-0.5" />
+                      <div className="space-y-1">
+                        <h5 className="text-[10px] font-black uppercase tracking-widest text-orange-400">Pre-Update Advisories</h5>
+                        <ul className="text-[9px] text-orange-300 font-medium list-disc pl-4 space-y-0.5">
+                          {preflightRisks.warnings.map((w, i) => <li key={i}>{w}</li>)}
+                        </ul>
+                      </div>
+                    </div>
+                  )}
 
                   {nativeUpdate.notes && (
                     <div className="bg-black/60 border border-white/5 rounded-2xl p-4 space-y-2 mt-2">
@@ -588,6 +643,28 @@ export const UpdatesPage: React.FC<UpdatesPageProps> = ({
                           Upgrade Now
                         </button>
                       </div>
+
+                      {releaseHealth && !releaseHealth.stable && (
+                        <div className="p-4 bg-red-500/10 border border-red-500/30 rounded-2xl flex items-start gap-3">
+                          <AlertTriangle className="w-5 h-5 text-red-400 shrink-0 mt-0.5" />
+                          <div className="space-y-1">
+                            <h5 className="text-[10px] font-black uppercase tracking-widest text-red-400">Unstable Release Detected</h5>
+                            <p className="text-[9px] text-red-300 font-medium">This version has been marked as unstable due to {releaseHealth.crashes} reported crashes. Proceed with caution.</p>
+                          </div>
+                        </div>
+                      )}
+
+                      {preflightRisks && preflightRisks.warnings && preflightRisks.warnings.length > 0 && (
+                        <div className="p-4 bg-orange-500/10 border border-orange-500/30 rounded-2xl flex items-start gap-3">
+                          <AlertTriangle className="w-5 h-5 text-orange-400 shrink-0 mt-0.5" />
+                          <div className="space-y-1">
+                            <h5 className="text-[10px] font-black uppercase tracking-widest text-orange-400">Pre-Update Advisories</h5>
+                            <ul className="text-[9px] text-orange-300 font-medium list-disc pl-4 space-y-0.5">
+                              {preflightRisks.warnings.map((w, i) => <li key={i}>{w}</li>)}
+                            </ul>
+                          </div>
+                        </div>
+                      )}
 
                       {nativeUpdate.status === 'error' && (
                         <div className="p-4 bg-red-500/10 border border-red-500/25 rounded-2xl flex flex-col sm:flex-row sm:items-center justify-between gap-3 text-red-400">
@@ -966,11 +1043,70 @@ export const UpdatesPage: React.FC<UpdatesPageProps> = ({
                   )}
                 </div>
               )}
-
+              {/* System Recovery Section - Moved to Tab */}
             </div>
           )}
 
-          {/* TAB 2: Historical Patch Notes */}
+          {/* TAB 2: Uninstall / Rollback */}
+          {activeTab === 'rollback' && (
+            <div className="space-y-6">
+              {rollbackConfirm ? (
+                <div className="p-5 bg-red-500/10 border border-red-500/30 rounded-2xl space-y-3">
+                  <p className="text-[10px] font-black text-red-300 uppercase tracking-wide">⚠ Confirm Rollback</p>
+                  <p className="text-[9px] text-zinc-400 font-bold uppercase leading-relaxed">
+                    The app will close, restore the previous backup
+                    {rollbackInfo?.version ? ` (v${rollbackInfo.version})` : ''}, and relaunch.
+                    Unsaved changes will be lost.
+                  </p>
+                  <div className="flex gap-3 pt-1">
+                    <button
+                      type="button"
+                      onClick={() => {
+                        setRollbackConfirm(false);
+                        window.electronAPI?.rollbackElectronUpdate?.();
+                      }}
+                      className="flex-1 px-4 py-2.5 bg-red-500/20 hover:bg-red-500/30 text-red-300 text-[8px] font-black uppercase tracking-widest rounded-xl border border-red-500/30 transition cursor-pointer"
+                    >
+                      Yes, Rollback & Restart
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => setRollbackConfirm(false)}
+                      className="px-4 py-2.5 bg-white/5 hover:bg-white/10 text-zinc-400 text-[8px] font-black uppercase tracking-widest rounded-xl transition cursor-pointer"
+                    >
+                      Cancel
+                    </button>
+                  </div>
+                </div>
+              ) : rollbackInfo?.exists && rollbackInfo?.version ? (
+                <div className="p-6 bg-amber-500/10 border border-amber-500/30 rounded-3xl flex flex-col items-center justify-center text-center gap-4 shadow-[0_0_40px_rgba(245,158,11,0.1)] py-12">
+                  <div className="w-16 h-16 rounded-full bg-amber-500/20 border border-amber-500/40 flex items-center justify-center mb-2">
+                    <AlertTriangle className="w-8 h-8 text-amber-400" />
+                  </div>
+                  <div className="space-y-2 max-w-md">
+                    <h5 className="text-sm font-black uppercase tracking-widest text-amber-400">Emergency Rollback System</h5>
+                    <p className="text-[10px] text-amber-300/80 leading-relaxed font-medium">
+                      If the current version is experiencing critical instability, you can instantly uninstall the current update and revert to the last known stable version (v{rollbackInfo.version}).
+                    </p>
+                  </div>
+                  <button aria-label="button" type="button"
+                    onClick={() => setRollbackConfirm(true)}
+                    className="mt-4 px-8 py-4 bg-amber-500 hover:bg-amber-400 text-black text-[10px] font-black uppercase tracking-widest rounded-xl transition-all hover:scale-105 shadow-[0_0_20px_rgba(245,158,11,0.3)] cursor-pointer"
+                  >
+                    Uninstall Update & Rollback
+                  </button>
+                </div>
+              ) : (
+                <div className="flex flex-col items-center justify-center h-full min-h-[400px] text-zinc-500 space-y-4">
+                  <CheckCircle2 className="w-12 h-12 opacity-50" />
+                  <p className="text-xs font-bold uppercase tracking-widest">No Rollback Available</p>
+                  <p className="text-[10px] text-zinc-600">The current build is stable and no previous backups are detected.</p>
+                </div>
+              )}
+            </div>
+          )}
+
+          {/* TAB 3: Changelogs */}
           {activeTab === 'changelogs' && (
             <div className="space-y-6">
               {!changelogsData ? (

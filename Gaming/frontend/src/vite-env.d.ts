@@ -33,8 +33,13 @@ interface Window {
     toggleOffscreenRendering?: (enable: boolean) => void;
     onHUDStatus?: (callback: (isVisible: boolean) => void) => () => void;
     cancelElectronUpdate?: () => void;
-    rollbackElectronUpdate?: () => void;
+    rollbackElectronUpdate?: () => Promise<{ success: boolean; error?: string }>;
     getElectronUpdateState?: () => Promise<any>;
+    getReleaseStability?: () => Promise<any>;
+    auditPreflightRisks?: () => Promise<{ safe: boolean; warnings: string[]; errors: string[] }>;
+    markReleaseUnstable?: () => Promise<boolean>;
+    onReleaseStabilityStatus?: (callback: (status: any) => void) => () => void;
+    onRuntimeAnomaly?: (callback: (event: any, payload: any) => void) => () => void;
     onOpenDashboard?: (callback: () => void) => () => void;
     openAuthPopup?: (params: { strategy: string; mode?: 'login' | 'signup' }) => Promise<{ success: boolean; error?: string }>;
     openAuthPopupUrl?: (url: string) => Promise<{ success: boolean; error?: string }>;

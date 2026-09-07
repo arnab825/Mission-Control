@@ -130,6 +130,8 @@ class GameScanner:
             "battle.net", "riot games", "rockstar games", "rockstar", 
             "xbox", "xbox app", "gog galaxy", "amazon games", "itch.io", "humble"
         ]
+        
+        self._validation_cache = {}
 
     def _is_game_valid_and_installed(self, g: dict) -> bool:
         """Verify that a game entry is a valid game and actually exists on disk (not uninstalled/corrupted)."""
@@ -137,11 +139,19 @@ class GameScanner:
             return False
             
         name = g.get("name", "").strip()
+        install_path = g.get("install_path")
+        exe_path = g.get("exe_path")
+        
+        cache_key = f"{name}_{install_path}_{exe_path}"
+        if hasattr(self, '_validation_cache') and cache_key in self._validation_cache:
+            return self._validation_cache[cache_key]
+
         name_lower = name.lower()
         platform = g.get("platform", "")
         
         # 0. Container and system directories are NEVER games
         if name_lower in ["steamapps", "steamlibrary", "common", "my games", "games"]:
+            if hasattr(self, '_validation_cache'): self._validation_cache[cache_key] = False
             return False
 
         # 1. Allow Whitelisted Platform Launchers (e.g. Steam, Epic, Xbox)
@@ -149,24 +159,30 @@ class GameScanner:
         if is_launcher:
             exe = g.get("exe_path")
             if exe and not exe.startswith("shell:") and not exe.endswith(":") and not os.path.exists(exe):
+                if hasattr(self, '_validation_cache'): self._validation_cache[cache_key] = False
                 return False
+            if hasattr(self, '_validation_cache'): self._validation_cache[cache_key] = True
             return True
 
         # Check against library root folder names (e.g. "epic games", "ubisoft games", "program files")
         if name_lower in self.library_root_names:
+            if hasattr(self, '_validation_cache'): self._validation_cache[cache_key] = False
             return False
 
         # 2. Check Universal Non-Game & Junk Filter
         if any(junk in name_lower for junk in self.junk_keywords):
+            if hasattr(self, '_validation_cache'): self._validation_cache[cache_key] = False
             return False
 
         # 3. Handle UWP / Xbox games
         if platform == "Xbox":
             if any(x in name_lower for x in ["zune", "media", "calculator", "camera", "maps", "weather", "phone", "terminal"]):
+                if hasattr(self, '_validation_cache'): self._validation_cache[cache_key] = False
                 return False
-            install_path = g.get("install_path")
             if install_path and not os.path.exists(install_path):
+                if hasattr(self, '_validation_cache'): self._validation_cache[cache_key] = False
                 return False
+            if hasattr(self, '_validation_cache'): self._validation_cache[cache_key] = True
             return True
 
         # 4. Verify Local / Steam / Epic / Ubisoft / EA / GOG / Rockstar installation on disk
@@ -175,6 +191,7 @@ class GameScanner:
 
         if install_path and install_path != "Shortcut":
             if not os.path.exists(install_path):
+                if hasattr(self, '_validation_cache'): self._validation_cache[cache_key] = False
                 return False  # Install directory deleted -> Uninstalled!
 
             # Check if directory is empty or has zero executable binaries
@@ -193,15 +210,17 @@ class GameScanner:
                                 has_exe = True
                                 break
                     if not has_exe:
+                        if hasattr(self, '_validation_cache'): self._validation_cache[cache_key] = False
                         return False  # Empty directory without executables -> Uninstalled remnant!
             except Exception:
                 pass
 
         if exe_path and not exe_path.startswith("shell:") and not exe_path.endswith(":"):
             if not os.path.exists(exe_path):
-                if not install_path or not os.path.exists(install_path):
-                    return False
-
+                if hasattr(self, '_validation_cache'): self._validation_cache[cache_key] = False
+                return False
+        
+        if hasattr(self, '_validation_cache'): self._validation_cache[cache_key] = True
         return True
 
     def _get_exe_product_name(self, exe_path: str) -> Optional[str]:

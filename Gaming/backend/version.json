@@ -1,8 +1,20 @@
 {
-  "version": "3.5.9",
-  "release_date": "2026-09-06",
+  "version": "3.6.0",
+  "release_date": "2026-09-07",
   "update_check_url": "https://raw.githubusercontent.com/arnab825/Mission-Control/main/Gaming/backend/version.json",
   "changelog": [
+    {
+      "version": "3.6.0",
+      "date": "2026-09-07",
+      "title": "Agentic System Control, Pre-Update Bug Warnings & Emergency Rollback",
+      "highlights": [
+        "Enabled Agentic system control with actionable intents for library scanning and updates",
+        "Added real-time Release Stability scoring based on telemetry anomaly detection",
+        "Introduced visual Pre-Update Bug & Advisory risk banners during electron updates",
+        "Added Emergency Instant Rollback system for unstable releases via one-click or Agent prompt",
+        "Optimized game scanner validation with caching to improve library load times"
+      ]
+    },
     {
       "version": "3.5.9",
       "date": "2026-09-06",
