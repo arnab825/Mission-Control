@@ -2111,43 +2111,6 @@ ipcMain.handle('mark-release-unstable', async () => {
   return false;
 });
 
-ipcMain.handle('rollback-electron-update', async () => {
-  try {
-    const rollbackDir = path.join(app.getPath('userData'), 'rollback_backup');
-    if (!fs.existsSync(rollbackDir)) {
-      return { success: false, error: 'No rollback backup found.' };
-    }
-    const resourcesDir = (process as any).resourcesPath;
-    if (!resourcesDir) {
-      return { success: false, error: 'Cannot determine resources path.' };
-    }
-    
-    const exePath = process.execPath;
-    const script = `
-      @echo off
-      timeout /t 2 /nobreak >nul
-      rmdir /s /q "${resourcesDir}"
-      mkdir "${resourcesDir}"
-      xcopy /s /e /h /y /c "${rollbackDir}\\*" "${resourcesDir}\\"
-      start "" "${exePath}"
-      exit
-    `;
-    const scriptPath = path.join(app.getPath('userData'), 'rollback_script.cmd');
-    fs.writeFileSync(scriptPath, script);
-    
-    spawn('cmd.exe', ['/c', scriptPath], {
-      detached: true,
-      windowsHide: true,
-      stdio: 'ignore'
-    }).unref();
-    
-    app.quit();
-    return { success: true };
-  } catch (err: any) {
-    console.error('Rollback failed:', err);
-    return { success: false, error: err.message };
-  }
-});
 
 // === IPC Handlers for Game Library ===
 // Note: The actual game scan is now handled by the Python backend via WebSocket.
@@ -2782,6 +2745,35 @@ function setupAutoUpdater() {
       if (rv < lv) return false;
     }
     return false;
+  }
+
+  function createRollbackBackup() {
+    try {
+      const rollbackDir = path.join(app.getPath('userData'), 'rollback_backup');
+      if (fs.existsSync(rollbackDir)) {
+        fs.rmSync(rollbackDir, { recursive: true, force: true });
+      }
+      fs.mkdirSync(rollbackDir, { recursive: true });
+
+      const resourcesDir = (process as any).resourcesPath;
+      if (resourcesDir && fs.existsSync(resourcesDir)) {
+        console.log('[AutoUpdater] Creating rollback backup of resources...');
+        fs.cpSync(resourcesDir, rollbackDir, { recursive: true });
+
+        const meta = {
+          version: app.getVersion(),
+          backupVersion: app.getVersion(),
+          timestamp: new Date().toISOString(),
+          date: new Date().toISOString(),
+          resourcesPath: resourcesDir,
+          execPath: process.execPath
+        };
+        fs.writeFileSync(path.join(rollbackDir, 'rollback_meta.json'), JSON.stringify(meta, null, 2));
+        console.log('[AutoUpdater] Rollback backup complete for v' + app.getVersion());
+      }
+    } catch (bkpErr) {
+      console.error('[AutoUpdater] Rollback backup failed:', bkpErr);
+    }
   }
 
   function fetchGitHubReleaseUpdate(): Promise<GitHubReleaseFallback> {
@@ -3576,31 +3568,13 @@ function setupAutoUpdater() {
         try { fs.unlinkSync(legacySetupPath); } catch (_) {}
       }
 
+      // --- AUTOMATIC BACKUP LOGIC: snapshot current resources before applying update ---
+      createRollbackBackup();
+      // ----------------------------------------------------------------------------------
+
       if (verifiedInstaller) {
         console.log(`[AutoUpdater] Launching verified newest installer executable: ${verifiedInstaller}`);
         try {
-          // --- AUTOMATIC BACKUP LOGIC ---
-          const rollbackDir = path.join(app.getPath('userData'), 'rollback_backup');
-          try {
-            if (fs.existsSync(rollbackDir)) {
-              fs.rmSync(rollbackDir, { recursive: true, force: true });
-            }
-            fs.mkdirSync(rollbackDir, { recursive: true });
-            
-            const resourcesDir = (process as any).resourcesPath;
-            if (resourcesDir && fs.existsSync(resourcesDir)) {
-              console.log('[AutoUpdater] Creating rollback backup of resources...');
-              fs.cpSync(resourcesDir, rollbackDir, { recursive: true });
-              
-              const meta = { backupVersion: app.getVersion(), timestamp: new Date().toISOString() };
-              fs.writeFileSync(path.join(rollbackDir, 'rollback_meta.json'), JSON.stringify(meta));
-              console.log('[AutoUpdater] Rollback backup complete.');
-            }
-          } catch (bkpErr) {
-            console.error('[AutoUpdater] Rollback backup failed:', bkpErr);
-          }
-          // -----------------------------
-
           spawn('cmd.exe', ['/c', 'start', '""', verifiedInstaller], {
             detached: true,
             stdio: 'ignore',
@@ -4675,7 +4649,7 @@ function setupAutoUpdater() {
         const metaPath = path.join(backupPath, 'rollback_meta.json');
         if (fs.existsSync(metaPath)) {
           const meta = JSON.parse(fs.readFileSync(metaPath, 'utf-8'));
-          version = meta.version;
+          version = meta.version || meta.backupVersion;
           hasFiles = true;
         }
         if (!version) {
@@ -4695,7 +4669,7 @@ function setupAutoUpdater() {
     return { exists: exists && hasFiles, version };
   });
 
-  ipcMain.on('rollback-electron-update', () => {
+  const handleRollback = async () => {
     console.log('[AutoUpdater] Offline rollback triggered.');
     const backupPath = path.join(app.getPath('userData'), 'rollback_backup');
     const resourcesPath = process.resourcesPath;
@@ -4704,7 +4678,7 @@ function setupAutoUpdater() {
     
     if (!fs.existsSync(backupPath)) {
       sendToAllWindows('electron-update-status', { status: 'error', message: 'No previous version backup found.' });
-      return;
+      return { success: false, error: 'No previous version backup found.' };
     }
 
     if (process.platform === 'win32') {
@@ -4839,9 +4813,11 @@ Log-Message "=== Rollback completed successfully ==="
 
         // 4. Force exit
         setTimeout(() => app.exit(0), 400);
+        return { success: true };
       } catch (err: any) {
         console.error('[AutoUpdater] Failed to execute rollback:', err);
         sendToAllWindows('electron-update-status', { status: 'error', message: 'Rollback failed: ' + err.message });
+        return { success: false, error: err.message };
       }
     } else {
       // Non-Windows (Linux/macOS)
@@ -4859,11 +4835,16 @@ cp -R "${backupPath}/." "${resourcesPath}/"
           try { pythonProcess.kill('SIGKILL'); } catch (_) {}
         }
         setTimeout(() => app.quit(), 500);
+        return { success: true };
       } catch (err: any) {
         sendToAllWindows('electron-update-status', { status: 'error', message: 'Rollback failed: ' + err.message });
+        return { success: false, error: err.message };
       }
     }
-  });
+  };
+
+  ipcMain.handle('rollback-electron-update', handleRollback);
+  ipcMain.on('rollback-electron-update', handleRollback);
 
   // Automatic check 5 seconds after startup
   setTimeout(() => {
