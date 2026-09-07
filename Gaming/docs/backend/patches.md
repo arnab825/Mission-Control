@@ -2,6 +2,15 @@
 
 This document contains a detailed history of all patches and updates for the AI Gaming Assistant.
 
+### Patch: 2026-09-07 — v3.6.0: Agentic System Control, Pre-Update Bug Warnings & Emergency Rollback
+
+- Enabled Agentic system control with actionable intents for library scanning and updates
+- Added real-time Release Stability scoring based on telemetry anomaly detection
+- Introduced visual Pre-Update Bug & Advisory risk banners during electron updates
+- Added Emergency Instant Rollback system for unstable releases via one-click or Agent prompt
+- Fixed rollback version resolution, unified rollback IPC handlers, and ensured pre-update resource backups
+- Optimized game scanner validation with caching to improve library load times
+
 ### Patch: 2026-09-06 — v3.5.9: Generic Dynamic Icon Resolution & Hardcoded Game Removal
 
 - Removed developer hardcoded 007 First Light overrides from game_scanner.py

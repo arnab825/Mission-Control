@@ -25,7 +25,33 @@ Comprehensive breakdown of major milestone releases, architectural upgrades, and
 
 ---
 
-## 🌟 Version v3.5.9 (Latest) — Generic Dynamic Icon Resolution & Hardcoded Game Removal
+## 🌟 Version v3.6.0 (Latest) — Agentic System Control, Pre-Update Bug Warnings & Emergency Rollback
+
+### 🛠️ Key Highlights
+1. **Agentic System Control**: Enabled autonomous agentic execution with actionable intents for library scanning, system diagnostics, and update lifecycle control.
+2. **Real-Time Release Stability Scoring**: Implemented telemetry anomaly detection and telemetry worker monitoring to calculate and expose release health metrics.
+3. **Pre-Update Bug & Advisory Risk Banners**: Introduced real-time GitHub Release changelog parsing that highlights bug alerts, breaking changes, and known issues directly in the update modal before upgrading.
+4. **Emergency Instant Rollback System**: Added one-click offline rollback mechanism that reliably restores previous resources via UAC-elevated PowerShell and robocopy.
+5. **Robust Rollback Metadata & Automatic Backup**: Unified IPC handlers for elevated execution, synchronized schema versions (`meta.version || meta.backupVersion`), and ensured pre-update snapshots before every update.
+6. **Optimized Game Scanner Validation**: Added caching to game icon and banner validation pipelines, significantly cutting startup library loading times.
+
+### 📊 Architecture & Data Flow
+```mermaid
+graph TD
+    A[Electron Main Process] --> B[Telemetry & Release Health Tracker]
+    B --> C[GitHub Advisory Parser]
+    C --> D[Updates UI / Risk Advisory Modal]
+    D --> E[Automatic Pre-Update Resource Snapshot]
+    E --> F[Installer Execution / Elevated Rollback Target]
+```
+
+### 📦 Distribution Artifacts
+- **Linux**: `.deb` (Debian/Ubuntu), `.tar.gz` (Portable)
+- **Windows**: `.exe` (Setup Installer), `.msi` (Enterprise), `.zip` (Portable)
+
+---
+
+## 📦 Version v3.5.9 — Generic Dynamic Icon Resolution & Hardcoded Game Removal
 
 ### 🛠️ Key Highlights
 1. **Removed developer hardcoded 007 First Light overrides from game_scanner.py**
