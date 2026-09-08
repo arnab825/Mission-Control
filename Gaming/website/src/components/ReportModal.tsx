@@ -27,7 +27,7 @@ export default function ReportModal({ isOpen, onClose, onSuccess }: ReportModalP
   const [gpu, setGpu] = useState("");
   const [gpuDriver, setGpuDriver] = useState("");
   const [ramGB, setRamGB] = useState(16);
-  const [appVersion, setAppVersion] = useState("2.8.4");
+  const [appVersion, setAppVersion] = useState("3.6.1");
   
   // Telemetry Sharing Setting
   const [includeTelemetry, setIncludeTelemetry] = useState(true);

@@ -1,0 +1,190 @@
+# 🚀 Automated Publishing Process
+
+This document outlines the step-by-step process for releasing a new version of the **AI Gaming Assistant**. The entire pipeline is automated using PowerShell and Python to handle versioning, changelog generation, and GitHub deployment.
+
+---
+
+## 🏁 Quick Release Workflow (Cheat Sheet)
+
+Always execute all commands from the **project root directory** (`Mission-Control`):
+
+### 🪟 Windows (PowerShell)
+```powershell
+# Bumps version, compiles PyInstaller backend & Electron packages, tags commit, and pushes to GitHub
+.\Gaming\scripts\publish.ps1 "Fixed Alienware CPU thermals & optimized website"
+```
+
+### 🐧 Linux (Bash Terminal)
+```bash
+# Bumps version, compiles Linux AppImage/deb/rpm packages, tags commit, and pushes to GitHub
+./Gaming/scripts/publish.sh "Fixed Alienware CPU thermals & optimized website"
+```
+
+---
+
+## 🛠️ Step 1: Prepare Your Release
+Before triggering a publish, ensure you have:
+1.  **Verified Stability**: Ensure the application launches without errors.
+2.  **Media (Optional)**: If you want to include a visual preview in the release notes, have an image URL or local path ready.
+3.  **Clean Workspace**: It's recommended to commit large binary changes separately before running the release script.
+
+## 📦 Step 2: Run the Publish Script
+The `publish.ps1` script is your one-stop tool for all release types. Open PowerShell in the **project root directory** (`Mission-Control`) and choose a mode:
+
+### Mode A: Simple Patch (Recommended for quick fixes)
+If you just have a single fix or small update, use the simplified one-argument syntax. This automatically bumps the **patch** version.
+```powershell
+.\Gaming\scripts\publish.ps1 "Fixed WiFi SSID detection logic"
+```
+
+### Mode B: Multi-line & Detailed Release Notes (Semicolons & Arguments)
+Include multi-line bullet points in your release notes by separating items with semicolons `;`, pipes `|`, or by passing multiple quoted arguments:
+
+```powershell
+# Option 1: Semicolon-separated single string (headline + bullet points)
+.\Gaming\scripts\publish.ps1 "Fixed Update Pause Flow; Unlocked Hardware Max TGP; Suppressed Terminal Popups"
+
+# Option 2: Multiple quoted arguments
+.\Gaming\scripts\publish.ps1 "v2.1.0 Major Update" "Fixed Update Pause/Cancel flow" "Unlocked hardware TGP on laptops" "Removed chassis TGP tag in UI"
+
+# Option 3: Explicit -Changes parameter
+.\Gaming\scripts\publish.ps1 -Title "Performance Release" -Changes "Improved fan curve response", "Optimized VRAM monitoring"
+```
+
+### Mode C: Major / Minor Feature Release
+Use this mode for major or minor updates where you want to specify the version bump type (`minor` or `major`):
+```powershell
+.\Gaming\scripts\publish.ps1 "Agentic AI Update" "Integrated NVIDIA NIM" "Added Racing genre support" -Type minor
+```
+
+### Mode D: Visual Release (With Optional Image)
+Include an image in your release notes by using the `-Image` parameter:
+```powershell
+.\Gaming\scripts\publish.ps1 "New HUD Aesthetics" -Image "https://i.imgur.com/example.png"
+```
+
+### Mode E: Manual Version Release (Override Auto-Bump)
+If you want to set an **exact, specific version number** (e.g., forcing a jump to `2.2.0` or resetting versions), use the `-Version` parameter:
+```powershell
+.\Gaming\scripts\publish.ps1 "Forcing release version" -Version "2.2.0"
+```
+
+---
+
+## 🤖 AI Release Notes & Mermaid Diagram Generation
+
+Whenever you trigger `.\Gaming\scripts\publish.ps1 "Your Update Summary"`, the pipeline executes `bump_version.py` which includes an integrated **AI Release Notes Enricher**:
+
+1. **NVIDIA NIM AI Integration**:
+   - Queries `meta/llama-3.1-8b-instruct` using `NVIDIA_API_KEY` (from environment or `.env` files).
+   - Automatically expands your raw update notes into technical feature bullet points, architectural decisions, and a file changes table.
+2. **Mermaid Flowchart Generator**:
+   - Automatically generates a dynamic **Mermaid system architecture diagram** (e.g. ````mermaid graph TD ... ````) illustrating the workflow of your changes.
+3. **Real-Time Website Documentation Sync**:
+   - Appends the enriched release entry directly to [`Gaming/docs/changes_summary.md`](./changes_summary.md), which streams into MongoDB and updates the website's `/docs/changes_summary` page in real time.
+
+---
+
+## 🏗️ Release Build Architecture (Woodpecker CI)
+
+When you trigger `.\run_local.ps1`, the pipeline executes the following sequence:
+
+1. **`backend-deps`**: Creates an isolated virtual environment and installs dependencies using `uv`.
+2. **`stamp-version`** (Critical Order): Bumps and syncs the release version in `Gaming/backend/version.json`, `Gaming/frontend/package.json`, `Gaming/website/package.json`, and `Gaming/docs/changes_summary.md`.
+   > [!NOTE]
+   > Stamping automatically appends the new release patch notes directly into `Gaming/docs/changes_summary.md`. On runtime request or deployment, the website's `/docs/changes_summary` page syncs these changes into MongoDB in real time so release notes are always up to date.
+3. **`compile-backend`**: Bundles the Python code into a standalone binary using PyInstaller via `build_app.ps1`.
+   * **Bundle Optimization**: To avoid compilation stutters, dynamic import errors (such as ChromaDB telemetry/posthog failures), and package bloat, the [MissionControl.spec](file:///c:/GitHub/Mission-Control/Gaming/backend/MissionControl.spec) file dynamically walks ChromaDB to include all submodules while explicitly excluding unused vector adapters from `mem0` (like Weaviate, Pinecone, Milvus) and `chromadb` testing packages.
+   * **Standalone Execution**: You can also trigger backend compilation and sync directly via:
+     ```powershell
+     powershell -ExecutionPolicy Bypass -File .\Gaming\scripts\build_app.ps1
+     ```
+4. **`move-backend`**: Copies `dist/MissionControlBackend` to `Gaming/frontend/backend/MissionControlBackend`. Note: `electron-builder` reads the backend directly from `../backend/dist/MissionControlBackend` via `extraResources` — this step also mirrors it into the `frontend/backend/` folder as a legacy artefact.
+5. **`compile-frontend`**: Executes `npm run build` (`tsc -b && vite build`) inside `Gaming/frontend` to ensure the TypeScript type-checks pass and the latest React UI bundles are emitted to `dist/` and `dist-electron/`.
+6. **`package-electron`**: Packages the Electron application containing the compiled backend and frontend:
+   * **Windows (`publish.ps1`)**: Packages Windows installers (`nsis`, `msi`, `zip`).
+   * **Linux (`publish.sh`)**: Packages Linux distributions (`AppImage`, `deb`, `rpm`, `tar.gz`).
+   > [!NOTE]
+   > `electron-builder` cannot build Linux `AppImage` targets on a native Windows host without Administrator/Developer Mode symlink privileges, as Node.js encounters `EPERM: operation not permitted, symlink` errors. Therefore, `publish.ps1` automatically builds Windows targets (`--win`) on Windows hosts, while `publish.sh` builds Linux targets (`--linux`) on Linux environments.
+7. **`build-nsis & linux-targets`**: Generates `MissionControl-Setup.exe` (Windows) and `MissionControl-Linux.AppImage` (Linux) release artifacts.
+8. **`release`**: Publishes compiled setup installers and `latest.yml` release manifest assets directly onto GitHub.
+
+### Cross-Platform Linux Publishing
+To execute the automated release workflow on Linux machines, run:
+```bash
+./Gaming/scripts/publish.sh "Release v2.9.6: Add Linux Support"
+```
+
+---
+
+## ⚙️ C# Telemetry Helper (`HardwareMonitor`)
+
+The application queries hardware telemetries (temperature, frequency, power) on Windows via a native C# sub-process located at [Gaming/backend/system/hardware_monitor](file:///c:/GitHub/Mission-Control/Gaming/backend/system/hardware_monitor).
+
+### Rebuilding the DLL
+If you modify [Program.cs](file:///c:/GitHub/Mission-Control/Gaming/backend/system/hardware_monitor/Program.cs):
+1. Rebuild the Release binary from the project root:
+   ```powershell
+   cd Gaming/backend/system/hardware_monitor
+   dotnet build -c Release
+   ```
+2. Re-staging and committing the output DLL (`bin/Release/net10.0/HardwareMonitor.dll`) is required for the changes to take effect in the PyInstaller bundler.
+
+### CPU Telemetry Logic
+* **Utilization**: Gathered via standard `psutil.cpu_percent` to match Windows Task Manager and AWCC exactly.
+* **Frequency**: Prioritizes direct CPU Core clocks (MSR readings) retrieved from the C# helper process.
+* **Temperature**: Prioritizes AMD `Tdie` over `Tctl` to bypass the artificial +20°C offset on AMD Ryzen CPUs. When the C# helper's driver is blocked (e.g. by VBS), it falls back to PDH thermal zone counters. High Precision (`High Precision Temperature` = Kelvin * 10) and raw Kelvin (`Temperature`) readings are supported and corrected. The paths are formatted as `\Thermal Zone Information(\_TZ.TZ01)\Temperature` to match the exact WMI instance namespaces.
+
+### GPU Telemetry Logic
+* **Configured Power Limit**: Gathered via `nvmlDeviceGetPowerManagementLimit()` to show the active user/preset limit.
+* **Chassis TGP Ceiling**: Gathered via `nvmlDeviceGetPowerManagementLimitConstraints()` (`max_limit`) to show the absolute hardware-enforced limit from the manufacturer.
+
+---
+
+## 🔍 Parameters Reference
+
+| Parameter | Type | Description |
+| :--- | :--- | :--- |
+| `Title` | String | (Mandatory) The main headline for the release. |
+| `Changes` | List | (Optional) Multi-line bullet points for the changelog. |
+| `-Type` | Enum | Bumps `patch` (default), `minor`, or `major` version. |
+| `-Image` | String | URL or local path to a preview image for the patch notes. |
+| `-Version` | String | (Optional) Explicit version number to force (e.g., `2.2.0`), bypassing auto-bump. |
+
+---
+
+## 💡 Troubleshooting
+
+### Terminal Compatibility
+The scripts use text-based status markers (e.g., `[BUMP]`, `[SYNC]`) instead of emojis to ensure they work in all Windows terminal environments without encoding issues.
+
+### Version Mismatch
+If the version in `version.json` gets out of sync with your Git tags, you can manually set a version using the Python script directly:
+```powershell
+uv run python scripts/bump_version.py --set 0.4.0 --title "Reset" --changes "Manual reset"
+```
+
+### EPERM Symlink Error on Windows (`electron-builder`)
+If packaging fails on Windows with `EPERM: operation not permitted, symlink`:
+* **Cause**: `electron-builder` was invoked with `--linux` (AppImage target) on a Windows host OS without symlink creation privileges.
+* **Fix**: Run Windows builds via `.\Gaming\scripts\publish.ps1` (which automatically passes `--win`). Run Linux builds via `./scripts/publish.sh` on Linux hosts or WSL.
+* **Cleanup**: Delete any lingering temporary directory:
+  ```powershell
+  Remove-Item -Recurse -Force Gaming\frontend\out\dist\__appImage-x64
+  ```
+
+---
+
+## 🖥️ Application UI Demos
+
+Here are visual reference screenshots of the compiled **Mission Control** interface:
+
+### 1. Central System Dashboard
+Displays active telemetry indicators (CPU utilization, GPU load, RAM constraints, and Disk diagnostics) in a clean dark UI, alongside strategic agent event logs.
+
+![Central Dashboard](./images/dashboard_demo.png)
+
+### 2. Game Library Launcher
+Aggregates local system launchers (Xbox App, EA Desktop, Epic Games) in one centralized interface for easy deployment.
+
+![Library Launcher](./images/library_demo.png)

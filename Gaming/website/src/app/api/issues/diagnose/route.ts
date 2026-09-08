@@ -33,7 +33,7 @@ export async function POST(request: Request) {
     const ram = specs.ramGB ? `${specs.ramGB} GB RAM` : "16 GB RAM";
     const os = specs.os || "Windows 11";
     const driver = specs.gpuDriver || "Latest Available";
-    const appVer = specs.appVersion || "v3.3.6";
+    const appVer = specs.appVersion || "v3.6.1";
 
     const prompt = `You are the Lead Systems & Graphics Engine Diagnostic AI for Mission Control in 2026.
 A PC gamer encountered a hardware/software problem and needs an authoritative, technical bug report draft for the developer triage board.
