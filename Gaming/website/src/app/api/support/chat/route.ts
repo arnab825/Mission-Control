@@ -8,15 +8,17 @@ import path from "path";
 
 // Helper to dynamically load live version metadata and patch changelogs from version.json
 function getDynamicVersionData() {
-  const versionFile = path.join(process.cwd(), "..", "backend", "version.json");
+  const localVersionFile = path.join(process.cwd(), "version.json");
+  const parentVersionFile = path.join(process.cwd(), "..", "backend", "version.json");
+  const versionFile = fs.existsSync(localVersionFile) ? localVersionFile : parentVersionFile;
 
   if (fs.existsSync(versionFile)) {
     try {
       const raw = fs.readFileSync(versionFile, "utf-8");
       const data = JSON.parse(raw);
       return {
-        version: data.version || "3.2.8",
-        releaseDate: data.release_date || "2026-08-22",
+        version: data.version || "3.6.1",
+        releaseDate: data.release_date || "2026-09-08",
         changelog: Array.isArray(data.changelog) ? data.changelog : []
       };
     } catch (e) {
@@ -25,19 +27,20 @@ function getDynamicVersionData() {
   }
 
   return {
-    version: "3.2.2",
-    releaseDate: "2026-08-19",
+    version: "3.6.1",
+    releaseDate: "2026-09-08",
     changelog: [
       {
-        version: "3.2.2",
-        date: "2026-08-19",
-        title: "AI Support Assistant, Community Benchmarks & Live Telemetry Reporting",
+        version: "3.6.1",
+        date: "2026-09-08",
+        title: "Rockstar Games Launcher HUD Exclusion & Voice Agent DLSS Sanitization",
         highlights: [
-          "Implemented comprehensive multi-tier AI support chatbot system with conversational assistance and model failovers",
-          "Connected live community game ratings, rig reviews, and media uploads to MongoDB persistence layer",
-          "Added interactive documentation search, categorized guides, and API key management client",
-          "Introduced hardware telemetry reporting modal with automated system spec detection",
-          "Refined games tested benchmark profiles, DLSS 4/DLAA upscaler badges, and newsletter subscription pipelines"
+          "Resolved Rockstar Games Launcher (Launcher.exe) falsely triggering the in-game HUD overlay and FPS readings",
+          "Added Rockstar executables and window titles to process watcher, window detector, and pipeline exclusions",
+          "Filtered out launcher entries and platforms from library scan caches and foreground heuristics",
+          "Removed legacy mock optimize command regex handler that intercepted voice requests with hardcoded DLSS readings",
+          "Expanded GameBrain telemetry exclusion keys to prevent internal DLSS tips and advisor diagnostics from leaking into prompt context",
+          "Integrated AgentCommandProcessor into voice pipeline and enhanced speech sanitization in VoiceManager"
         ]
       }
     ]
@@ -463,7 +466,7 @@ ${blogList}
         q.includes("rpm") ||
         q.includes("install")
       ) {
-        replyText = `### 📥 Mission Control App Downloads (v3.2.2)
+        replyText = `### 📥 Mission Control App Downloads (v3.6.1)
 Download the latest binaries on our **[Downloads](/#download)** page:
 
 **🪟 Windows Packages**:

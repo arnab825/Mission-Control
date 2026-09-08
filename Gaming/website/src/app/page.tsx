@@ -88,7 +88,7 @@ export default function Home() {
 
   type OS = "windows" | "linux" | "mac" | "other" | null;
   const [os, setOs] = useState<OS>(null);
-  const [appVersion, setAppVersion] = useState("2.9.4");
+  const [appVersion, setAppVersion] = useState("3.6.1");
   const [testedGames, setTestedGames] = useState<TestedGameSummary[]>(getLiveTestedGames());
 
   useEffect(() => {

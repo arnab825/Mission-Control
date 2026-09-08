@@ -13,7 +13,7 @@ export function DocsVersionBadge() {
     staleTime: 1000 * 60 * 10,
   });
 
-  const version = data?.version || "2.8.4";
+  const version = data?.version || "3.6.1";
 
   return (
     <div className="border-t border-white/10 pt-4 mt-auto">

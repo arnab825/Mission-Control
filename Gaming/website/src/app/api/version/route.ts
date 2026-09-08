@@ -14,11 +14,11 @@ export async function GET() {
     );
     if (res.ok) {
       const data = await res.json();
-      const version = data.tag_name ? data.tag_name.replace(/^v/, "") : "2.9.4";
+      const version = data.tag_name ? data.tag_name.replace(/^v/, "") : "3.6.1";
       return NextResponse.json({ version });
     }
-    return NextResponse.json({ version: "2.9.4" });
+    return NextResponse.json({ version: "3.6.1" });
   } catch (error) {
-    return NextResponse.json({ version: "2.9.4" });
+    return NextResponse.json({ version: "3.6.1" });
   }
 }

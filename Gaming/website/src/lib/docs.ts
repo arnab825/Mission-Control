@@ -4,7 +4,21 @@ import fs from "fs";
 import path from "path";
 import matter from "gray-matter";
 
-const docsDirectory = path.join(process.cwd(), "..", "docs");
+function getDocsDirectory(): string {
+  const localDocs = path.join(process.cwd(), "docs");
+  if (fs.existsSync(localDocs)) {
+    return localDocs;
+  }
+  const parentDocs = path.join(process.cwd(), "..", "docs");
+  if (fs.existsSync(parentDocs)) {
+    return parentDocs;
+  }
+  const contentDocs = path.join(process.cwd(), "content", "docs");
+  if (fs.existsSync(contentDocs)) {
+    return contentDocs;
+  }
+  return localDocs;
+}
 
 export interface DocData {
   slug: string;
@@ -19,12 +33,15 @@ export interface DocData {
 const DOCS_ORDER = [
   "summary",
   "changes_summary",
+  "architecture_and_fixes",
+  "major_changes",
   "distributed_library",
   "design",
   "process",
   "agentic_logic",
   "agents",
   "controller_mapping",
+  "okf",
   "nvidia_ai_guide",
   "nvidia",
   "dlss_guide",
@@ -39,13 +56,16 @@ const DOCS_ORDER = [
 
 const METADATA_FALLBACKS: Record<string, { category?: string; title?: string; badge?: string; badgeColor?: string }> = {
   "summary": { category: "Overview", title: "Project Summary", badge: "Core", badgeColor: "text-neon-green" },
-  "changes_summary": { category: "Overview", title: "Recent Updates" },
+  "changes_summary": { category: "Overview", title: "Recent Updates & Major Releases" },
+  "architecture_and_fixes": { category: "Architecture", title: "Distributed Architecture & Fixes", badge: "Microservices", badgeColor: "text-neon-green" },
+  "major_changes": { category: "Architecture", title: "Major Upgrades & Infrastructure", badge: "Infrastructure", badgeColor: "text-neon-green" },
   "distributed_library": { category: "Architecture", title: "Distributed Library & Load Balancer", badge: "Cluster Engine", badgeColor: "text-neon-green" },
   "design": { category: "Architecture", title: "System Architecture" },
   "process": { category: "Architecture", title: "Process & Threading" },
   "agentic_logic": { category: "Core Logic", title: "Agentic AI Controller" },
   "agents": { category: "Core Logic", title: "AI Personalities" },
   "controller_mapping": { category: "Core Logic", title: "Controller & Gamepad Input Mapping", badge: "Input Engine", badgeColor: "text-neon-green" },
+  "okf": { category: "Core Logic", title: "Open Knowledge Format (OKF)", badge: "Knowledge Engine", badgeColor: "text-neon-yellow" },
   "nvidia_ai_guide": { category: "Integrations", title: "NVIDIA NIM Guide" },
   "nvidia": { category: "Integrations", title: "NVIDIA Integration" },
   "dlss_guide": { category: "Integrations", title: "Evolution of DLSS" },
@@ -67,6 +87,7 @@ export async function getAllDocs(): Promise<DocData[]> {
   }
 
   try {
+    const docsDirectory = getDocsDirectory();
     // 1. If local docs directory exists, read directly without blocking on MongoDB sync
     if (fs.existsSync(docsDirectory)) {
       const fileNames = fs.readdirSync(docsDirectory);
@@ -114,8 +135,6 @@ export async function getAllDocs(): Promise<DocData[]> {
             }
           }
           
-          const order = DOCS_ORDER.indexOf(slug) === -1 ? 999 : DOCS_ORDER.indexOf(slug);
-          
           fileDocs.push({
             slug,
             title,
@@ -128,6 +147,12 @@ export async function getAllDocs(): Promise<DocData[]> {
         });
 
       if (fileDocs.length > 0) {
+        fileDocs.sort((a, b) => {
+          const orderA = DOCS_ORDER.indexOf(a.slug) === -1 ? 999 : DOCS_ORDER.indexOf(a.slug);
+          const orderB = DOCS_ORDER.indexOf(b.slug) === -1 ? 999 : DOCS_ORDER.indexOf(b.slug);
+          if (orderA !== orderB) return orderA - orderB;
+          return a.title.localeCompare(b.title);
+        });
         cachedDocs = fileDocs;
         return fileDocs;
       }
