@@ -25,7 +25,19 @@ Comprehensive breakdown of major milestone releases, architectural upgrades, and
 
 ---
 
-## 🌟 Version v3.6.0 (Latest) — Agentic System Control, Pre-Update Bug Warnings & Emergency Rollback
+## 🌟 Version v3.6.1 (Latest) — Rockstar Games Launcher HUD Exclusion & Voice Agent DLSS Sanitization
+
+### 🛠️ Key Highlights
+1. **Rockstar Games Launcher HUD Exclusion**: Added Rockstar executables (`launcher.exe`, `rockstargameslauncher.exe`, `rockstarservice.exe`, `launcherentry.exe`, `socialclubhelper.exe`) and titles to exclusion lists, eliminating false HUD activations and FPS readings on the launcher.
+2. **Library Scanner Launcher Filtering**: Filtered out launcher-type apps (`game.get("type") == "LAUNCHER"` and `game.get("genre") == "PLATFORM"`) from library caches, background process checks, and foreground heuristics.
+3. **Legacy Voice Mock Removal**: Removed the legacy `optimize\s+(.+)` regex and `_optimize_game` mock method that intercepted voice inputs with hardcoded `"Display: Borderless, DLSS: on, Reflex: on..."` voice readings.
+4. **AI Decision Brain Telemetry Sanitization**: Centralized `STANDARD_KEYS` in `GameBrain` to exclude internal telemetry (`nvidia_tip`, `perf_advisor_analysis`, `perf_score`, etc.) from leaking into `custom_telemetry` and prompt context.
+5. **Agentic Voice Command Processing**: Routed streaming voice replies through `AgentCommandProcessor.process_launch_command` and `process_system_command` to execute system directives and update UI bridge state.
+6. **TTS Speech Sanitization**: Upgraded `VoiceManager.speak()` to strip bracket tags (`[SYSTEM_COMMAND:...]`, `[LAUNCH_COMMAND:...]`, `[WebSearchTrigger:...]`), pronounce markdown link labels (`[Label](url)` $\to$ `Label`), strip raw URLs, normalize punctuation spacing, and ignore empty/tag-only utterances.
+
+---
+
+## 🌟 Version v3.6.0 — Agentic System Control, Pre-Update Bug Warnings & Emergency Rollback
 
 ### 🛠️ Key Highlights
 1. **Agentic System Control**: Enabled autonomous agentic execution with actionable intents for library scanning, system diagnostics, and update lifecycle control.

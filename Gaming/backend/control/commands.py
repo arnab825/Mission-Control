@@ -21,13 +21,7 @@ class CommandHandler:
         text = text.lower()
         logger.info(f"Processing command: {text}")
 
-        # 1. Optimize Game
-        match = re.search(r"optimize\s+(.+)", text)
-        if match:
-            game_name = match.group(1).strip()
-            return self._optimize_game(game_name)
-
-        # 2. Streaming Mode
+        # 1. Streaming Mode
         if "enable streaming mode" in text or "start streaming mode" in text:
             return self._enable_streaming_mode()
 
@@ -61,19 +55,6 @@ class CommandHandler:
             return "\n".join(lines)
         except Exception as e:
             return f"Could not load macros: {e}"
-
-    def _optimize_game(self, game_name):
-        metrics = self.gpu_monitor.poll_once()
-        preset = self.advisor.get_settings_preset(metrics, game_name=game_name)
-        
-        # In a real app, we'd interact with game config files or NVIDIA profile manager
-        msg = f"Optimizing {game_name}. Display: {preset.get('display_mode', 'borderless').capitalize()}, " \
-              f"DLSS: {preset['dlss_mode']}, Reflex: {preset['reflex']}, Texture: {preset['texture_quality']}."
-        
-        if self.main_window:
-            self.main_window.append_log(f"AI: {msg}")
-        
-        return msg
 
     def _enable_streaming_mode(self):
         # Mock action: set NVENC to high quality, disable background tasks

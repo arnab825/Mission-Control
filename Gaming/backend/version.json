@@ -1,8 +1,21 @@
 {
-  "version": "3.6.0",
-  "release_date": "2026-09-07",
+  "version": "3.6.1",
+  "release_date": "2026-09-08",
   "update_check_url": "https://raw.githubusercontent.com/arnab825/Mission-Control/main/Gaming/backend/version.json",
   "changelog": [
+    {
+      "version": "3.6.1",
+      "date": "2026-09-08",
+      "title": "Rockstar Games Launcher HUD Exclusion & Voice Agent DLSS Sanitization",
+      "highlights": [
+        "Resolved Rockstar Games Launcher (Launcher.exe) falsely triggering the in-game HUD overlay and FPS readings",
+        "Added Rockstar executables and window titles to process watcher, window detector, and pipeline exclusions",
+        "Filtered out launcher entries and platforms from library scan caches and foreground heuristics",
+        "Removed legacy mock optimize command regex handler that intercepted voice requests with hardcoded DLSS readings",
+        "Expanded GameBrain telemetry exclusion keys to prevent internal DLSS tips and advisor diagnostics from leaking into prompt context",
+        "Integrated AgentCommandProcessor into voice pipeline and enhanced speech sanitization in VoiceManager"
+      ]
+    },
     {
       "version": "3.6.0",
       "date": "2026-09-07",

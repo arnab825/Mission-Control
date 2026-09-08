@@ -983,6 +983,8 @@ class GamingAssistantPipeline:
             "electron.exe", "xbox.exe", "xboxapp.exe", "xboxpcapp.exe", "xboxgamingapp.exe",
             "microsoft.gamingapp.exe", "ea.exe", "eaapp.exe", "goggalaxy.exe",
             "battlenet.exe", "ubisoftconnect.exe", "applicationframehost.exe", "settings.exe",
+            "launcher.exe", "rockstargameslauncher.exe", "rockstar games launcher.exe",
+            "rockstarservice.exe", "launcherentry.exe", "socialclubhelper.exe",
             "node.exe", "python.exe", "py.exe", "wscript.exe", "cscript.exe", "git.exe",
             "hp.omen.omencommandcenter.exe", "lghub.exe", "razer synapse.exe", "rzcommon.exe",
             "rzcortex.exe", "armourywebhelper.exe", "armourycontrol.exe", "armourycrate.exe",
@@ -998,6 +1000,7 @@ class GamingAssistantPipeline:
             "microsoft store", "epic games launcher", "steam", "origin", "ubisoft connect",
             "battle.net", "galaxy", "gog", "discord", "spotify", "chrome", "firefox", "edge",
             "brave", "opera", "vivaldi", "xbox", "xbox app", "ea app", "ea desktop",
+            "rockstar games launcher", "rockstar games", "social club", "rockstar games social club",
             "omen gaming hub", "logitech g hub", "razer synapse", "razer cortex",
             "armoury crate", "msi center", "alienware command center", "icue",
             "nzxt cam", "nvidia geforce experience", "geforce experience"
@@ -1053,6 +1056,16 @@ class GamingAssistantPipeline:
             
             import re as _re
             for g in getattr(self, "_cached_library_games", []):
+                if (
+                    g.get("type") == "LAUNCHER"
+                    or g.get("genre") == "PLATFORM"
+                    or g.get("name") in (
+                        "Xbox App", "Steam", "Epic Games Launcher", "EA Desktop", 
+                        "Ubisoft Connect", "Battle.net", "GOG Galaxy",
+                        "Rockstar Games", "Rockstar Games Launcher", "Social Club"
+                    )
+                ):
+                    continue
                 g_name = g.get("name", "")
                 _g_lower = g_name.lower()
                 # Whole-word match — prevents music player titles containing game-name words
@@ -2228,6 +2241,30 @@ class GamingAssistantPipeline:
                                 bridge.update_state({"voice_prompt": text + new_ts, "agent_response": final_response + new_ts})
                             except Exception:
                                 pass
+
+                    # Route through AgentCommandProcessor for action execution and tag stripping
+                    try:
+                        from control.agent_commands import AgentCommandProcessor
+                        processed_response = AgentCommandProcessor.process_launch_command(
+                            final_response,
+                            agentic_mode_active=self.agentic_mode_active,
+                            config=self.config,
+                            is_launch_request=True,
+                            prompt=text
+                        )
+                        processed_response = AgentCommandProcessor.process_system_command(
+                            processed_response,
+                            agentic_mode_active=self.agentic_mode_active
+                        )
+                        final_response = processed_response
+                    except Exception as ex_proc:
+                        logger.error(f"Failed to process agent commands in voice pipeline: {ex_proc}")
+
+                    try:
+                        new_ts = f"\u200b{time.time()}"
+                        bridge.update_state({"voice_prompt": text + new_ts, "agent_response": final_response + new_ts})
+                    except Exception:
+                        pass
 
                     if self.memory:
                         self.memory.add_chat_message(active_sid, "agent", final_response, user_id=user_id)

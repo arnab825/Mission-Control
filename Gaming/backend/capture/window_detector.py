@@ -53,6 +53,8 @@ class WindowDetector:
         "electron.exe", "antigravity ide.exe", "xbox.exe", "xboxapp.exe", 
         "xboxpcapp.exe", "xboxgamingapp.exe", "microsoft.gamingapp.exe", 
         "ea.exe", "eaapp.exe", "goggalaxy.exe", "battlenet.exe", "ubisoftconnect.exe",
+        "launcher.exe", "rockstargameslauncher.exe", "rockstar games launcher.exe",
+        "rockstarservice.exe", "launcherentry.exe", "socialclubhelper.exe",
         "applicationframehost.exe", "settings.exe", "node.exe", "python.exe", "py.exe",
         "wscript.exe", "cscript.exe", "git.exe", "hp.omen.omencommandcenter.exe",
         "lghub.exe", "razer synapse.exe", "rzcommon.exe", "rzcortex.exe",
@@ -70,6 +72,7 @@ class WindowDetector:
         "microsoft store", "epic games launcher", "steam", "origin", "ubisoft connect",
         "battle.net", "galaxy", "gog", "discord", "spotify", "chrome", "firefox", "edge",
         "brave", "opera", "vivaldi", "xbox", "xbox app", "ea app", "ea desktop",
+        "rockstar games launcher", "rockstar games", "social club", "rockstar games social club",
         "omen gaming hub", "logitech g hub", "razer synapse", "razer cortex",
         "armoury crate", "msi center", "alienware command center", "icue",
         "nzxt cam", "nvidia geforce experience", "geforce experience"
@@ -288,6 +291,16 @@ class WindowDetector:
             games = scanner.load_cached_games()
             
             for game in games:
+                if (
+                    game.get("type") == "LAUNCHER"
+                    or game.get("genre") == "PLATFORM"
+                    or game.get("name") in (
+                        "Xbox App", "Steam", "Epic Games Launcher", "EA Desktop", 
+                        "Ubisoft Connect", "Battle.net", "GOG Galaxy",
+                        "Rockstar Games", "Rockstar Games Launcher", "Social Club"
+                    )
+                ):
+                    continue
                 # Extract the executable base name
                 exe_path = game.get("exe_path")
                 if exe_path:
