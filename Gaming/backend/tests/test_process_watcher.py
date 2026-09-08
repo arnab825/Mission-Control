@@ -65,7 +65,7 @@ class TestProcessWatcher(unittest.TestCase):
 
     @patch("psutil.process_iter")
     def test_ignore_browsers_and_launchers(self, mock_iter):
-        # Chrome.exe and steam.exe are running, but should be ignored
+        # Chrome.exe, steam.exe, and rockstar launcher.exe are running, but should be ignored
         proc_chrome = MagicMock()
         proc_chrome.info = {'name': 'chrome.exe'}
         proc_chrome.pid = 1111
@@ -73,12 +73,49 @@ class TestProcessWatcher(unittest.TestCase):
         proc_steam = MagicMock()
         proc_steam.info = {'name': 'steam.exe'}
         proc_steam.pid = 2222
+
+        proc_rockstar = MagicMock()
+        proc_rockstar.info = {'name': 'launcher.exe'}
+        proc_rockstar.pid = 3333
         
-        mock_iter.return_value = [proc_chrome, proc_steam]
+        mock_iter.return_value = [proc_chrome, proc_steam, proc_rockstar]
 
         watcher = ProcessWatcher(game_registry=self.registry)
         game_info = watcher._detect_running_game()
         
+        self.assertIsNone(game_info)
+
+    @patch("psutil.process_iter")
+    def test_ignore_launcher_registry_entry(self, mock_iter):
+        # Even if a launcher is in the game registry with type LAUNCHER, it should be ignored
+        launcher_registry = list(self.registry) + [
+            {
+                "name": "Rockstar Games Launcher",
+                "exe_path": "C:\\Program Files\\Rockstar Games\\Launcher\\Launcher.exe",
+                "install_path": "C:\\Program Files\\Rockstar Games\\Launcher",
+                "type": "LAUNCHER"
+            }
+        ]
+        proc_rockstar = MagicMock()
+        proc_rockstar.info = {'name': 'launcher.exe'}
+        proc_rockstar.pid = 4444
+        mock_iter.return_value = [proc_rockstar]
+
+        watcher = ProcessWatcher(game_registry=launcher_registry)
+        game_info = watcher._detect_running_game()
+        self.assertIsNone(game_info)
+
+    @patch("win32gui.GetForegroundWindow", return_value=12345)
+    @patch("win32gui.GetWindowText", return_value="Rockstar Games Launcher")
+    @patch("win32process.GetWindowThreadProcessId", return_value=(0, 5555))
+    @patch("psutil.Process")
+    def test_ignore_rockstar_foreground_window(self, mock_psutil_proc, mock_pid, mock_text, mock_fg):
+        mock_proc_instance = MagicMock()
+        mock_proc_instance.name.return_value = "Launcher.exe"
+        mock_psutil_proc.return_value = mock_proc_instance
+
+        watcher = ProcessWatcher(game_registry=self.registry)
+        game_info = watcher._detect_running_game()
         self.assertIsNone(game_info)
 
     @patch("psutil.process_iter")

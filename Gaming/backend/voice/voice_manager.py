@@ -267,15 +267,37 @@ class VoiceManager:
             self._tts_thread = threading.Thread(target=self._tts_loop, daemon=True, name="VoiceTTS")
             self._tts_thread.start()
         
-        # Remove markdown formatting characters (*, _, `, ~, #) that TTS might pronounce
-        clean_text = re.sub(r'[*_`~#]', '', text)
+        if not text or not str(text).strip():
+            return
+
+        # 1. Strip bracket command tags (e.g. [SYSTEM_COMMAND:...], [LAUNCH_COMMAND:...], [WebSearchTrigger:...])
+        clean_text = re.sub(r'\[\s*(?:SYSTEM_COMMAND|LAUNCH_COMMAND|WebSearchTrigger|[A-Z_]{3,}):[^\]]*\]', '', text, flags=re.IGNORECASE)
+        # Also strip any generic square bracket commands [cmd: ...]
+        clean_text = re.sub(r'\[\s*[a-zA-Z0-9_-]+:[^\]]*\]', '', clean_text)
         
+        # 2. Convert markdown links [Label](url) -> Label so TTS reads the label rather than a URL
+        clean_text = re.sub(r'\[([^\]]+)\]\([^\)]+\)', r'\1', clean_text)
+        
+        # 3. Strip standalone URLs (http://, https://, www.)
+        clean_text = re.sub(r'https?://\S+|www\.\S+', '', clean_text)
+
+        # 4. Remove markdown formatting characters (*, `, ~, #, >, |, etc.) that TTS might pronounce
+        clean_text = re.sub(r'[*`~]', '', clean_text)
+        clean_text = re.sub(r'[_#|>]', ' ', clean_text)
+        
+        # 5. Remove emojis
         try:
             import emoji
             clean_text = emoji.replace_emoji(clean_text, replace='')
         except ImportError:
             pass
         
+        # 6. Normalize whitespace and fix punctuation spacing (e.g. avoid 'Pulse :' -> 'Pulse:')
+        clean_text = re.sub(r'\s+', ' ', clean_text)
+        clean_text = re.sub(r'\s+([:,\.\?!])', r'\1', clean_text).strip()
+        if not clean_text:
+            return
+
         self.speech_queue.put(clean_text)
 
     def _tts_loop(self):

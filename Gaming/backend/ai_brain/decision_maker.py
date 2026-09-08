@@ -139,6 +139,22 @@ class GameBrain:
 
     PERSONALITY_PROFILES = PERSONALITY_PROFILES
 
+    STANDARD_KEYS = {
+        "health", "enemies_count", "scene_type", "dialogue_text", "quest_texts",
+        "story_advice", "ammo", "position", "game_info", "current_game",
+        "active_window_title", "vlm_description", "input_device", "detections_count",
+        "detections", "scene_confidence", "player_profile", "tilt_detected",
+        "deaths_this_session", "playtime_seconds",
+        # Internal system, telemetry, and hardware keys that shouldn't leak into custom prompt variables:
+        "nvidia_tip", "perf_advisor_analysis", "perf_score", "ai_analytic", "neural_status",
+        "proximity_data", "system_specs", "fps", "capture_fps", "vision_fps", "game_fps",
+        "cpu_pct", "cpu_temp", "cpu_power_w", "cpu_freq", "gpu_metrics", "mem_pct", "mem_used_gb",
+        "cooling_mode", "cooling_applied", "game_loading", "game_minimized", "game_mode_manual",
+        "is_game_active", "is_game_focused", "net_util", "net_speed", "awcc_status", "yolo_supported",
+        "last_voiced_advice", "last_voiced_time", "last_voiced_dialogue", "agent_intent", "agent_action",
+        "frametimes", "min_avg_fps", "max_avg_fps", "one_percent_low", "config", "hardware"
+    }
+
 
     def __init__(self, mode="competitive", config=None, memory=None):
         self.mode = mode
@@ -748,13 +764,7 @@ class GameBrain:
         ammo = game_state.get("ammo") or "120/120"
         
         # Standard keys to exclude from dynamic custom telemetry description
-        standard_keys = {
-            "health", "enemies_count", "scene_type", "dialogue_text", "quest_texts",
-            "story_advice", "ammo", "position", "game_info", "current_game",
-            "active_window_title", "vlm_description", "input_device", "detections_count",
-            "detections", "scene_confidence", "player_profile", "tilt_detected",
-            "deaths_this_session", "playtime_seconds"
-        }
+        standard_keys = self.STANDARD_KEYS
         
         # Feed and retrieve Layer 2 Context Engine
         if hasattr(self, 'context_engine') and self.context_engine:
@@ -1126,7 +1136,8 @@ class GameBrain:
                         import threading
                         threading.Thread(target=self.memory.extract_and_store_semantic_memory, args=(session_id, user_id or "guest"), daemon=True).start()
                         
-                    response = self._process_system_command(response.strip(), agentic_mode_active=agentic_mode_active)
+                    resp_text = response.strip() if isinstance(response, str) else response
+                    response = self._process_system_command(resp_text, agentic_mode_active=agentic_mode_active)
                     return self._process_launch_command(response, agentic_mode_active=agentic_mode_active, is_launch_request=is_launch_request, prompt=prompt)
             
             # Check if live NIM is available
@@ -1244,6 +1255,8 @@ class GameBrain:
 
     def _process_launch_command(self, response: str, agentic_mode_active: bool = False, is_launch_request: bool = False, prompt=None) -> str:
         """Parse the generated response for launch directives and execute them natively."""
+        if not response or not isinstance(response, str):
+            return response
         return AgentCommandProcessor.process_launch_command(
             config=self.config,
             response=response,
@@ -1254,6 +1267,8 @@ class GameBrain:
 
     def _process_system_command(self, response: str, agentic_mode_active: bool = False) -> str:
         """Parse the response for [SYSTEM_COMMAND:...] and execute app-level configurations."""
+        if not response or not isinstance(response, str):
+            return response
         return AgentCommandProcessor.process_system_command(response, agentic_mode_active)
 
     def _agentic_analyze(self, state):
@@ -1325,13 +1340,7 @@ class GameBrain:
             input_dev = state.get("input_device", "Keyboard + Mouse")
             
             # Standard keys to exclude from dynamic custom telemetry description
-            standard_keys = {
-                "health", "enemies_count", "scene_type", "dialogue_text", "quest_texts",
-                "story_advice", "ammo", "position", "game_info", "current_game",
-                "active_window_title", "vlm_description", "input_device", "detections_count",
-                "detections", "scene_confidence", "player_profile", "tilt_detected",
-                "deaths_this_session", "playtime_seconds"
-            }
+            standard_keys = self.STANDARD_KEYS
             
             custom_telemetry = {}
             for k, v in state.items():

@@ -82,7 +82,8 @@ graph TD
 
 | Version | Key Feature / Change Description |
 | :--- | :--- |
-| **v3.6.0 (Latest)** | **Agentic System Control, Pre-Update Bug Warnings & Emergency Rollback** — Enabled Agentic system control with actionable intents for library scanning and updates |
+| **v3.6.1 (Latest)** | **Rockstar Games Launcher HUD Exclusion & Voice Agent DLSS Sanitization** — Resolved Rockstar Games Launcher (Launcher.exe) falsely triggering the in-game HUD overlay and FPS readings |
+| **v3.6.0** | **Agentic System Control, Pre-Update Bug Warnings & Emergency Rollback** — Enabled Agentic system control with actionable intents for library scanning and updates |
 | **v3.5.9** | **Generic Dynamic Icon Resolution & Hardcoded Game Removal** — Removed developer hardcoded 007 First Light overrides from game_scanner.py. |
 | **v3.5.8** | **007 First Light Full-Bleed Artwork Resolution & Cache Sanitization** — Restored authentic 007 First Light game artwork with full-bleed widescreen aspect ratio matching standard library cards. |
 | **v3.5.7** | **007 First Light Artwork Resolution, Hardware Matrix Icons & Post-Update Auth Persistence** — Resolved 007 First Light artwork resolution and added HTTP status verification in Steam store banner scanner to prevent 404 cache poisoning |

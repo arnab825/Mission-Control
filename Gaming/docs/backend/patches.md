@@ -2,6 +2,16 @@
 
 This document contains a detailed history of all patches and updates for the AI Gaming Assistant.
 
+### Patch: 2026-09-08 — v3.6.1: Rockstar Games Launcher HUD Exclusion & Voice Agent DLSS Sanitization
+
+- Resolved Rockstar Games Launcher (`Launcher.exe`) falsely triggering the in-game HUD overlay and FPS readings
+- Added Rockstar processes (`launcher.exe`, `rockstargameslauncher.exe`, `rockstarservice.exe`, `launcherentry.exe`, `socialclubhelper.exe`) and titles to exclusion lists
+- Filtered out launcher-type applications (`type == "LAUNCHER"` and `genre == "PLATFORM"`) from library scanner caches and foreground heuristics
+- Removed legacy mock `optimize` regex command handler that intercepted voice queries with hardcoded DLSS readings
+- Centralized `STANDARD_KEYS` in `GameBrain` to prevent internal telemetry and DLSS advice from leaking into prompt context
+- Integrated `AgentCommandProcessor` into voice streaming pipeline to execute system directives
+- Upgraded `VoiceManager.speak()` to sanitize bracket command tags, markdown links, and raw URLs
+
 ### Patch: 2026-09-07 — v3.6.0: Agentic System Control, Pre-Update Bug Warnings & Emergency Rollback
 
 - Enabled Agentic system control with actionable intents for library scanning and updates
