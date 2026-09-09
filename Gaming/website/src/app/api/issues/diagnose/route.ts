@@ -97,9 +97,9 @@ Respond ONLY with valid JSON in this exact structure without markdown formatting
       }
     }
 
-    // TIER 2: NVIDIA NIM (Nemotron 3 Ultra / Llama 3.3 70B)
+    // TIER 2: NVIDIA NIM (Llama 3.2 11B Vision / Nemotron 3 Super 120B)
     if (!parsedResult && process.env.NVIDIA_API_KEY) {
-      for (const nimModel of ["nvidia/nemotron-3-ultra", "meta/llama-3.3-70b-instruct"]) {
+      for (const nimModel of ["meta/llama-3.2-11b-vision-instruct", "nvidia/nemotron-3-super-120b-a12b"]) {
         try {
           const nimRes = await fetch("https://integrate.api.nvidia.com/v1/chat/completions", {
             method: "POST",

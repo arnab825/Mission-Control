@@ -379,11 +379,10 @@ const AI_PROVIDER_OPTIONS = [
 ];
 
 const AI_NEURAL_BACKBONE_OPTIONS = [
-  { value: 'nvidia/nemotron-3-ultra', label: 'Nemotron 3 Ultra · Frontier Reasoning', group: 'NVIDIA NIM (Free Tier)', isMono: true },
-  { value: 'nvidia/nemotron-4-340b-instruct', label: 'Nemotron 4 340B · Synthetic Reasoning', group: 'NVIDIA NIM (Free Tier)', isMono: true },
-  { value: 'meta/llama-3.3-70b-instruct', label: 'Llama 3.3 70B · Advanced', group: 'NVIDIA NIM (Free Tier)', isMono: true },
-  { value: 'meta/llama-3.1-405b-instruct', label: 'Llama 3.1 405B · Ultra Scale', group: 'NVIDIA NIM (Free Tier)', isMono: true },
-  { value: 'meta/llama-3.1-8b-instruct', label: 'Llama 3.1 8B · Free / Fast', group: 'NVIDIA NIM (Free Tier)', isMono: true },
+  { value: 'meta/llama-3.2-11b-vision-instruct', label: 'Llama 3.2 11B Vision · High Speed', group: 'NVIDIA NIM (Free Tier)', isMono: true },
+  { value: 'nvidia/nemotron-3-super-120b-a12b', label: 'Nemotron 3 Super 120B · Frontier Reasoning', group: 'NVIDIA NIM (Free Tier)', isMono: true },
+  { value: 'nvidia/nemotron-3.5-lightning-30b-a3b', label: 'Nemotron 3.5 Lightning 30B · Ultra Low Latency', group: 'NVIDIA NIM (Free Tier)', isMono: true },
+  { value: 'meta/llama-3.2-90b-vision-instruct', label: 'Llama 3.2 90B Vision · Flagship Vision', group: 'NVIDIA NIM (Free Tier)', isMono: true },
   { value: 'mistralai/mistral-large-2-instruct', label: 'Mistral Large 2 · High Reasoning', group: 'NVIDIA NIM (Free Tier)', isMono: true },
   { value: 'deepseek-ai/deepseek-r1', label: 'DeepSeek R1 · Reasoning Engine', group: 'NVIDIA NIM (Free Tier)', isMono: true }
 ];
@@ -916,7 +915,7 @@ const SettingsPage: React.FC<{ state: TelemetryState | null, sendCommand: (type:
           ...prev,
           ai_agent: {
             ...prev.ai_agent,
-            model_id: dynamicNeuralOptions[0]?.value || 'nvidia/nemotron-3-ultra'
+            model_id: dynamicNeuralOptions[0]?.value || 'meta/llama-3.2-11b-vision-instruct'
           }
         };
       });
@@ -2850,7 +2849,7 @@ const SettingsPage: React.FC<{ state: TelemetryState | null, sendCommand: (type:
                   <CustomSelect
                     value={localConfig.ai_agent?.provider || 'nvidia'}
                     onChange={(val) => {
-                      let defaultModel = 'nvidia/nemotron-3-ultra';
+                      let defaultModel = 'meta/llama-3.2-11b-vision-instruct';
                       if (val === 'gemini') defaultModel = 'gemini-3.8-flash';
                       else if (val === 'groq') defaultModel = 'gpt-oss-120b';
                       else if (val === 'openrouter') defaultModel = 'openrouter/free';
@@ -2866,7 +2865,7 @@ const SettingsPage: React.FC<{ state: TelemetryState | null, sendCommand: (type:
                     value={
                       dynamicNeuralOptions.some(opt => opt.value === localConfig.ai_agent?.model_id)
                         ? localConfig.ai_agent?.model_id
-                        : (dynamicNeuralOptions[0]?.value || 'nvidia/nemotron-3-ultra')
+                        : (dynamicNeuralOptions[0]?.value || 'meta/llama-3.2-11b-vision-instruct')
                     }
                     onChange={(val) => setLocalConfig({ ...localConfig, ai_agent: { ...localConfig.ai_agent, model_id: val } })}
                     options={dynamicNeuralOptions}

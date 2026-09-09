@@ -99,7 +99,7 @@ class SemanticMapper:
             """
             
             response = client.chat.completions.create(
-                model="meta/llama-3.3-70b-instruct",
+                model="meta/llama-3.2-11b-vision-instruct",
                 messages=[{"role": "user", "content": prompt}],
                 temperature=0.1,
                 max_tokens=500

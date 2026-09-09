@@ -126,12 +126,10 @@ class TestAgentMemoryComprehensive(unittest.TestCase):
             nvidia_api_key="mock_key"
         )
         engine.embeddings = MockEmbeddings()
-        engine._initialize_vector_store()
-        
-        self.assertTrue(engine.is_ready)
-        
         engine.add_text("Cyberpunk 2077 tips: Upgrade your cyberdeck early. Use quickhacks like Short Circuit.", source="guide_a", game_id="cyberpunk_2077")
         engine.add_text("GTA V advice: Steal the laser jet from Fort Zancudo by using a fast car.", source="guide_b", game_id="gta_v")
+        
+        self.assertTrue(engine.is_ready)
         
         res_cyberpunk = engine.query("quickhacks", k=5, game_id="cyberpunk_2077")
         self.assertIn("cyberdeck", res_cyberpunk)
@@ -274,8 +272,8 @@ class TestAgentMemoryComprehensive(unittest.TestCase):
         custom_config = {
             "ai_agent": {
                 "nvidia_api_key": "mock_api_key",
-                "model_id": "meta/llama-3.3-70b-instruct",
-                "tactical_model": "meta/llama-3.3-tactical-mock",
+                "model_id": "meta/llama-3.2-11b-vision-instruct",
+                "tactical_model": "meta/llama-3.2-tactical-mock",
                 "prompts": {
                     "welcome_fallback": "Custom fallback greeting."
                 }
@@ -289,7 +287,7 @@ class TestAgentMemoryComprehensive(unittest.TestCase):
         with patch("system.hw_checker.check_internet", return_value=True):
             brain = GameBrain(config=custom_config)
             
-        self.assertEqual(brain.task_models["strategic"], "meta/llama-3.3-70b-instruct")
+        self.assertEqual(brain.task_models["strategic"], "meta/llama-3.2-11b-vision-instruct")
         
         brain.client = None
         resp_welcome = brain.reply_to_prompt("greet the user", user_id="test_user")
