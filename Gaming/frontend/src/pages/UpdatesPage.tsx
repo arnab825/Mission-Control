@@ -57,7 +57,7 @@ export const UpdatesPage: React.FC<UpdatesPageProps> = ({
   const [rollbackConfirm, setRollbackConfirm] = React.useState(false);
   const [isReportModalOpen, setIsReportModalOpen] = React.useState(false);
   const [electronVersion, setElectronVersion] = React.useState<string>('');
-  const [releaseHealth, setReleaseHealth] = React.useState<{ stable: boolean; crashes: number } | null>(null);
+  const [releaseHealth, setReleaseHealth] = React.useState<{ status?: string; stable?: boolean; crashes?: number; crashCount?: number } | null>(null);
   const [preflightRisks, setPreflightRisks] = React.useState<{ riskLevel: string; warnings: string[] } | null>(null);
 
   useEffect(() => {
@@ -263,6 +263,9 @@ export const UpdatesPage: React.FC<UpdatesPageProps> = ({
           setPreflightRisks(risks);
         }).catch(() => {});
       }
+    } else {
+      setReleaseHealth(null);
+      setPreflightRisks(null);
     }
   }, [targetVersion, currentVersion]);
 
@@ -418,12 +421,12 @@ export const UpdatesPage: React.FC<UpdatesPageProps> = ({
                     </div>
                   </div>
 
-                  {releaseHealth && !releaseHealth.stable && (
+                  {releaseHealth && releaseHealth.status === 'unstable' && (
                     <div className="p-4 bg-red-500/10 border border-red-500/30 rounded-2xl flex items-start gap-3">
                       <AlertTriangle className="w-5 h-5 text-red-400 shrink-0 mt-0.5" />
                       <div className="space-y-1">
                         <h5 className="text-[10px] font-black uppercase tracking-widest text-red-400">Unstable Release Detected</h5>
-                        <p className="text-[9px] text-red-300 font-medium">This version has been marked as unstable due to {releaseHealth.crashes} reported crashes. Proceed with caution.</p>
+                        <p className="text-[9px] text-red-300 font-medium">This version has been marked as unstable due to {releaseHealth.crashes ?? releaseHealth.crashCount ?? 0} reported crashes. Proceed with caution.</p>
                       </div>
                     </div>
                   )}
@@ -644,12 +647,12 @@ export const UpdatesPage: React.FC<UpdatesPageProps> = ({
                         </button>
                       </div>
 
-                      {releaseHealth && !releaseHealth.stable && (
+                      {releaseHealth && releaseHealth.status === 'unstable' && (
                         <div className="p-4 bg-red-500/10 border border-red-500/30 rounded-2xl flex items-start gap-3">
                           <AlertTriangle className="w-5 h-5 text-red-400 shrink-0 mt-0.5" />
                           <div className="space-y-1">
                             <h5 className="text-[10px] font-black uppercase tracking-widest text-red-400">Unstable Release Detected</h5>
-                            <p className="text-[9px] text-red-300 font-medium">This version has been marked as unstable due to {releaseHealth.crashes} reported crashes. Proceed with caution.</p>
+                            <p className="text-[9px] text-red-300 font-medium">This version has been marked as unstable due to {releaseHealth.crashes ?? releaseHealth.crashCount ?? 0} reported crashes. Proceed with caution.</p>
                           </div>
                         </div>
                       )}

@@ -2083,16 +2083,44 @@ ipcMain.handle('audit-preflight-risks', async () => {
   return result;
 });
 
-ipcMain.handle('get-release-stability', async () => {
+ipcMain.handle('get-release-stability', async (_event, version?: string) => {
   const healthPath = path.join(app.getPath('userData'), 'release_health.json');
+  const currentVer = app.getVersion();
+
+  // If querying stability for an incoming remote update version that differs from the
+  // locally installed app, the target build has not run on this machine yet.
+  const target = version ? version.replace(/^v/i, '').trim() : '';
+  if (target && target !== currentVer.replace(/^v/i, '').trim()) {
+    return {
+      currentVersion: target,
+      status: 'stable',
+      stable: true,
+      crashCount: 0,
+      crashes: 0,
+      knownBugs: []
+    };
+  }
+
   if (fs.existsSync(healthPath)) {
     try {
-      return JSON.parse(fs.readFileSync(healthPath, 'utf8'));
+      const stored = JSON.parse(fs.readFileSync(healthPath, 'utf8'));
+      return {
+        ...stored,
+        stable: stored.status !== 'unstable',
+        crashes: stored.crashCount || 0
+      };
     } catch (e) {
       return null;
     }
   }
-  return null;
+  return {
+    currentVersion: currentVer,
+    status: 'stable',
+    stable: true,
+    crashCount: 0,
+    crashes: 0,
+    knownBugs: []
+  };
 });
 
 ipcMain.handle('mark-release-unstable', async () => {
