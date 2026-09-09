@@ -10,7 +10,7 @@ excerpt: "Curated breakdown of major version releases, architectural milestones,
 
 Comprehensive breakdown of major milestone releases, architectural upgrades, and core engine enhancements in **Mission Control**.
 
-## 🌟 Version v3.6.1 (Latest) — Rockstar Games Launcher HUD Exclusion & Voice Agent DLSS Sanitization
+## 📦 Version v3.6.1 — Rockstar Games Launcher HUD Exclusion & Voice Agent DLSS Sanitization
 
 ### 🛠️ Key Highlights
 1. **Rockstar Games Launcher HUD Exclusion**: Added Rockstar executables (`launcher.exe`, `rockstargameslauncher.exe`, `rockstarservice.exe`, `launcherentry.exe`, `socialclubhelper.exe`) and titles to exclusion lists, eliminating false HUD activations and FPS readings on the launcher.
@@ -22,7 +22,42 @@ Comprehensive breakdown of major milestone releases, architectural upgrades, and
 
 ---
 
-## 🌟 Version v3.6.0 — Agentic System Control, Pre-Update Bug Warnings & Emergency Rollback
+## 🌟 Version v3.6.3 (Latest) — Release Health Schema Normalization & False-Positive Unstable Banner Fix
+
+### 🛠️ Key Highlights
+1. **Fixed false-positive Unstable Release Detected banner on clean update checks**
+2. **Normalized release stability schema across Electron IPC and React UpdatesPage**
+3. **Added version-targeted stability auditing to differentiate local crashes from incoming remote releases**
+
+### 📦 Distribution Artifacts
+- **Linux**: `.deb` (Debian/Ubuntu), `.AppImage` (Universal), `.rpm` (Fedora/RHEL), `.tar.gz` (Portable)
+- **Windows**: `.exe` (Setup Installer), `.msi` (Enterprise), `.zip` (Portable)
+
+---
+
+## 📦 Version v3.6.2 — NVIDIA NIM Decommissioning Fix & Multi-Model Cascade Failover
+
+### 🛠️ Key Highlights
+1. **Replaced decommissioned EOL model meta/llama-3.3-70b-instruct with active meta/llama-3.2-11b-vision-instruct**
+2. **Implemented multi-model cascade failover in FeedbackLoop across Llama 3.2 11B Vision and Nemotron 3 Super 120B**
+3. **Resolved ChatNVIDIA parameter validation error by stripping unsupported timeout kwarg**
+4. **Updated Tier 3 NVIDIA NIM cascades across website blog generator, diagnostics, and desktop settings**
+
+### 📊 Architecture & Data Flow
+```mermaid
+graph TD
+    A[Game Screen Frame Capture] --> B[YOLO Vision Inference Engine]
+    B --> C[Detection Telemetry & Bounding Boxes]
+    C --> D[Electron HUD Overlay]
+```
+
+### 📦 Distribution Artifacts
+- **Linux**: `.deb` (Debian/Ubuntu), `.AppImage` (Universal), `.rpm` (Fedora/RHEL), `.tar.gz` (Portable)
+- **Windows**: `.exe` (Setup Installer), `.msi` (Enterprise), `.zip` (Portable)
+
+---
+
+## 📦 Version v3.6.0 — Agentic System Control, Pre-Update Bug Warnings & Emergency Rollback
 
 ### 🛠️ Key Highlights
 1. **Agentic System Control**: Enabled autonomous agentic execution with actionable intents for library scanning, system diagnostics, and update lifecycle control.

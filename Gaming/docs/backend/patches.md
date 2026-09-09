@@ -2,6 +2,13 @@
 
 This document contains a detailed history of all patches and updates for the AI Gaming Assistant.
 
+### Patch: 2026-09-09 — v3.6.3: Release Health Schema Normalization & False-Positive Unstable Banner Fix
+
+- Fixed false-positive Unstable Release Detected banner on clean update checks
+- Normalized release stability schema across Electron IPC and React UpdatesPage
+- Added version-targeted stability auditing to differentiate local crashes from incoming remote releases
+- Updated type definitions in global and vite-env declarations
+
 ### Patch: 2026-09-09 — v3.6.2: NVIDIA NIM Decommissioning Fix & Multi-Model Cascade Failover
 
 - Replaced decommissioned EOL model meta/llama-3.3-70b-instruct with active meta/llama-3.2-11b-vision-instruct

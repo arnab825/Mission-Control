@@ -78,6 +78,22 @@ def sync():
                 f.write(content)
             print(" -> docs/SUMMARY.md synchronized")
 
+    # 5. Website version.json & docs
+    import shutil
+    website_ver_json = os.path.join(BASE_DIR, "website", "version.json")
+    if os.path.exists(os.path.dirname(website_ver_json)):
+        shutil.copy2(VERSION_FILE, website_ver_json)
+        print(" -> website/version.json synchronized")
+
+    website_docs_dir = os.path.join(BASE_DIR, "website", "docs")
+    if os.path.exists(website_docs_dir):
+        for doc in ["SUMMARY.md", "changes_summary.md"]:
+            src = os.path.join(BASE_DIR, "docs", doc)
+            dst = os.path.join(website_docs_dir, doc)
+            if os.path.exists(src):
+                shutil.copy2(src, dst)
+        print(" -> website/docs synchronized")
+
     print(f"[SUCCESS] All modules & docs fully synchronized to v{latest_ver}")
 
 if __name__ == "__main__":

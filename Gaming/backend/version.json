@@ -1,8 +1,19 @@
 {
-  "version": "3.6.2",
+  "version": "3.6.3",
   "release_date": "2026-09-08",
   "update_check_url": "https://raw.githubusercontent.com/arnab825/Mission-Control/main/Gaming/backend/version.json",
   "changelog": [
+    {
+      "version": "3.6.3",
+      "date": "2026-09-09",
+      "title": "Release Health Schema Normalization & False-Positive Unstable Banner Fix",
+      "highlights": [
+        "Fixed false-positive Unstable Release Detected banner on clean update checks",
+        "Normalized release stability schema across Electron IPC and React UpdatesPage",
+        "Added version-targeted stability auditing to differentiate local crashes from incoming remote releases",
+        "Updated type definitions in global and vite-env declarations"
+      ]
+    },
     {
       "version": "3.6.2",
       "date": "2026-09-09",
@@ -527,14 +538,6 @@
       "title": "Fixed Alienware CPU temperature telemetry & optimized backend Pydantic models",
       "highlights": [
         "Fixed Alienware CPU temperature telemetry & optimized backend Pydantic models"
-      ]
-    },
-    {
-      "version": "3.1.4",
-      "date": "2026-08-13",
-      "title": "Fixed Linux build pipeline, spec cross-compatibility, and ClerkProvider router props",
-      "highlights": [
-        "Fixed Linux build pipeline, spec cross-compatibility, and ClerkProvider router props"
       ]
     }
   ]
