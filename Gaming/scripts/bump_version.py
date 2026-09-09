@@ -328,7 +328,7 @@ Respond ONLY with valid JSON:
                     "Content-Type": "application/json"
                 },
                 data=json.dumps({
-                    "model": "meta/llama-3.1-8b-instruct",
+                    "model": "meta/llama-3.2-11b-vision-instruct",
                     "messages": [{"role": "user", "content": prompt}],
                     "temperature": 0.1,
                     "max_tokens": 250

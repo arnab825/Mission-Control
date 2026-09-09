@@ -13,7 +13,7 @@ try:
     client = OpenAI(base_url="https://integrate.api.nvidia.com/v1", api_key=api_key)
     print("Sending request to integrate.api.nvidia.com...")
     response = client.chat.completions.create(
-        model="meta/llama-3.3-70b-instruct",
+        model="meta/llama-3.2-11b-vision-instruct",
         messages=[{"role": "user", "content": "Say hello"}],
         max_tokens=10
     )

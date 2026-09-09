@@ -65,7 +65,7 @@ class CoreOptimizationEngine:
         agent_cfg = self.config.get("ai_agent", {})
         api_key = agent_cfg.get("nvidia_api_key") or os.environ.get("NVIDIA_API_KEY") or os.environ.get("AI_GAMING_ASSISTANT_NVIDIA_API_KEY")
         base_url = agent_cfg.get("endpoint_url") or os.environ.get("NVIDIA_ENDPOINT_URL", "https://integrate.api.nvidia.com/v1")
-        self.model_id = agent_cfg.get("model_id") or "meta/llama-3.3-70b-instruct"
+        self.model_id = agent_cfg.get("model_id") or "meta/llama-3.2-11b-vision-instruct"
         
         invalid_keys = ["YOUR_NVIDIA_API_KEY_HERE", "your_nvidia_api_key_here", "", None]
         if api_key and api_key.strip() not in invalid_keys:

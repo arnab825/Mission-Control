@@ -180,7 +180,7 @@ The node daemons will:
 | `DATABASE_URL` | **Yes** | Primary Supabase/PostgreSQL connection string (Tier 1) | `postgresql://...` |
 | `FALLBACK_DATABASE_URL`| Optional | Secondary Hot Standby Postgres connection string (Tier 2 - Neon, Aiven) | `""` |
 | `GEMINI_API_KEY` | Optional | Google Gemini Flash for AI taxonomy | `""` |
-| `NVIDIA_API_KEY` | Optional | NVIDIA NIM Meta-Llama 3.3 failover | `""` |
+| `NVIDIA_API_KEY` | Optional | NVIDIA NIM Meta-Llama 3.2 Vision / Nemotron failover | `""` |
 | `GROQ_API_KEY` | Optional | Groq Llama 3.3 70B failover | `""` |
 | `OPENROUTER_API_KEY` | Optional | OpenRouter Free tier failover | `""` |
 | `RAWG_API_KEY` | Optional | RAWG video game metadata enrichment | `""` |

@@ -184,8 +184,8 @@ class GameBrain:
 
         # Task-specific Nemotron model assignments
         self.task_models = TaskModelsContainer(self)
-        self.task_models["strategic"] = "meta/llama-3.3-70b-instruct"
-        self.task_models["tactical"] = "meta/llama-3.3-70b-instruct"
+        self.task_models["strategic"] = "meta/llama-3.2-11b-vision-instruct"
+        self.task_models["tactical"] = "nvidia/nemotron-3-super-120b-a12b"
         self.task_models["vision"] = "meta/llama-3.2-11b-vision-instruct"
 
         # Load initial models from config if available

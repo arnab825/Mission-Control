@@ -2,6 +2,13 @@
 
 This document contains a detailed history of all patches and updates for the AI Gaming Assistant.
 
+### Patch: 2026-09-09 — v3.6.2: NVIDIA NIM Decommissioning Fix & Multi-Model Cascade Failover
+
+- Replaced decommissioned EOL model meta/llama-3.3-70b-instruct with active meta/llama-3.2-11b-vision-instruct
+- Implemented multi-model cascade failover in FeedbackLoop across Llama 3.2 11B Vision and Nemotron 3 Super 120B
+- Resolved ChatNVIDIA parameter validation error by stripping unsupported timeout kwarg
+- Updated Tier 3 NVIDIA NIM cascades across website blog generator, diagnostics, and desktop settings
+
 ### Patch: 2026-09-08 — v3.6.1: Rockstar Games Launcher HUD Exclusion & Voice Agent DLSS Sanitization
 
 - Resolved Rockstar Games Launcher (`Launcher.exe`) falsely triggering the in-game HUD overlay and FPS readings

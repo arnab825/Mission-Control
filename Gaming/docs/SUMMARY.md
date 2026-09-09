@@ -82,7 +82,8 @@ graph TD
 
 | Version | Key Feature / Change Description |
 | :--- | :--- |
-| **v3.6.1 (Latest)** | **Rockstar Games Launcher HUD Exclusion & Voice Agent DLSS Sanitization** — Resolved Rockstar Games Launcher (Launcher.exe) falsely triggering the in-game HUD overlay and FPS readings |
+| **v3.6.2 (Latest)** | **NVIDIA NIM Decommissioning Fix & Multi-Model Cascade Failover** — Replaced decommissioned EOL model meta/llama-3.3-70b-instruct with active meta/llama-3.2-11b-vision-instruct. |
+| **v3.6.1** | **Rockstar Games Launcher HUD Exclusion & Voice Agent DLSS Sanitization** — Resolved Rockstar Games Launcher (Launcher.exe) falsely triggering the in-game HUD overlay and FPS readings |
 | **v3.6.0** | **Agentic System Control, Pre-Update Bug Warnings & Emergency Rollback** — Enabled Agentic system control with actionable intents for library scanning and updates |
 | **v3.5.9** | **Generic Dynamic Icon Resolution & Hardcoded Game Removal** — Removed developer hardcoded 007 First Light overrides from game_scanner.py. |
 | **v3.5.8** | **007 First Light Full-Bleed Artwork Resolution & Cache Sanitization** — Restored authentic 007 First Light game artwork with full-bleed widescreen aspect ratio matching standard library cards. |
@@ -167,5 +168,5 @@ graph TD
 
 ---
 
-*Last Updated: 06/09/2026*
+*Last Updated: 09/09/2026*
 

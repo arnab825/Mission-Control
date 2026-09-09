@@ -385,7 +385,7 @@ class GameConfigWatcher:
 
         try:
             response = self._nim_client.chat.completions.create(
-                model=self._nim_model or "meta/llama-3.3-70b-instruct",
+                model=self._nim_model or "meta/llama-3.2-11b-vision-instruct",
                 messages=[{"role": "user", "content": prompt}],
                 temperature=0.1,
                 max_tokens=800,
@@ -418,7 +418,7 @@ class GameConfigWatcher:
             invalid = {"YOUR_NVIDIA_API_KEY_HERE", "your_nvidia_api_key_here", "", None}
             if api_key and api_key.strip() not in invalid:
                 self._nim_client = OpenAI(base_url=base_url, api_key=api_key)
-                self._nim_model = agent_cfg.get("model_id") or "meta/llama-3.3-70b-instruct"
+                self._nim_model = agent_cfg.get("model_id") or "meta/llama-3.2-11b-vision-instruct"
         except Exception as e:
             logger.debug(f"[ConfigWatcher] NIM client init failed: {e}")
 

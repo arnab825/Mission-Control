@@ -47,7 +47,7 @@ _PROVIDERS = [
         "label": "NVIDIA NIM",
         "base_url": "https://integrate.api.nvidia.com/v1",
         "env_key": "NVIDIA_API_KEY",
-        "models": ["nvidia/nemotron-3-ultra", "meta/llama-3.3-70b-instruct"],
+        "models": ["meta/llama-3.2-11b-vision-instruct", "nvidia/nemotron-3-super-120b-a12b"],
     },
     {
         "name": "groq",
@@ -61,7 +61,7 @@ _PROVIDERS = [
         "label": "OpenRouter",
         "base_url": "https://openrouter.ai/api/v1",
         "env_key": "OPENROUTER_API_KEY",
-        "models": ["nvidia/nemotron-3-ultra", "meta-llama/llama-3.3-70b-instruct"],
+        "models": ["meta-llama/llama-3.3-70b-instruct:free", "nvidia/nemotron-3-ultra:free"],
     },
 ]
 

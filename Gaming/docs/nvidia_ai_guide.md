@@ -156,8 +156,8 @@ power = pynvml.nvmlDeviceGetPowerUsage(handle) / 1000   # Power in watts
 ### Options:
 *   **Local (Heavy):** Download models like `Nemotron-Mini` or `Llama-3-8B` and run them using the NeMo toolkit. Requires 8GB+ VRAM.
 *   **API (Production):** Use **NVIDIA NIM** (NVIDIA Inference Microservices). Integrated via the OpenAI Python client.
-    *   **Reasoning:** `meta/llama-3.1-70b-instruct` or `nvidia/nemotron-4-340b-instruct`.
-    *   **VLM (Vision):** `nvidia/vlm-vila-1.5-40b` for visual game context.
+    *   **Reasoning:** `meta/llama-3.2-11b-vision-instruct` or `nvidia/nemotron-3-super-120b-a12b`.
+    *   **VLM (Vision):** `meta/llama-3.2-11b-vision-instruct` for visual game context.
     *   **Implementation:** See `ai_brain/decision_maker.py` for the agentic reasoning layer.
 
 

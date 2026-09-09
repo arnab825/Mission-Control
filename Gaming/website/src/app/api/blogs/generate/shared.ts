@@ -564,19 +564,19 @@ export async function generateBlogPost(
     }
   }
 
-  // Tier 3: NVIDIA NIM (nvidia/nemotron-3-ultra / meta/llama-3.3-70b-instruct / meta/llama-3.1-8b-instruct)
+  // Tier 3: NVIDIA NIM (meta/llama-3.2-11b-vision-instruct / nvidia/nemotron-3-super-120b-a12b / nvidia/nemotron-3.5-lightning-30b-a3b)
   if (apiKey) {
-    console.log(`[BlogGen][${postType}] Falling back to NVIDIA NIM (nvidia/nemotron-3-ultra)...`);
-    let result = await generateBlogPostWithModel(items, postType, apiKey, targetDate, "nvidia/nemotron-3-ultra");
+    console.log(`[BlogGen][${postType}] Falling back to NVIDIA NIM (meta/llama-3.2-11b-vision-instruct)...`);
+    let result = await generateBlogPostWithModel(items, postType, apiKey, targetDate, "meta/llama-3.2-11b-vision-instruct");
 
     if (!result) {
-      console.log(`[BlogGen][${postType}] Falling back to NVIDIA NIM (meta/llama-3.3-70b-instruct)...`);
-      result = await generateBlogPostWithModel(items, postType, apiKey, targetDate, "meta/llama-3.3-70b-instruct");
+      console.log(`[BlogGen][${postType}] Falling back to NVIDIA NIM (nvidia/nemotron-3-super-120b-a12b)...`);
+      result = await generateBlogPostWithModel(items, postType, apiKey, targetDate, "nvidia/nemotron-3-super-120b-a12b");
     }
 
     if (!result) {
-      console.log(`[BlogGen][${postType}] Falling back to NVIDIA NIM (meta/llama-3.1-8b-instruct)...`);
-      result = await generateBlogPostWithModel(items, postType, apiKey, targetDate, "meta/llama-3.1-8b-instruct");
+      console.log(`[BlogGen][${postType}] Falling back to NVIDIA NIM (nvidia/nemotron-3.5-lightning-30b-a3b)...`);
+      result = await generateBlogPostWithModel(items, postType, apiKey, targetDate, "nvidia/nemotron-3.5-lightning-30b-a3b");
     }
 
     if (result) {
