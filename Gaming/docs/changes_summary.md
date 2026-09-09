@@ -22,7 +22,20 @@ Comprehensive breakdown of major milestone releases, architectural upgrades, and
 
 ---
 
-## 🌟 Version v3.6.2 (Latest) — NVIDIA NIM Decommissioning Fix & Multi-Model Cascade Failover
+## 🌟 Version v3.6.3 (Latest) — Release Health Schema Normalization & False-Positive Unstable Banner Fix
+
+### 🛠️ Key Highlights
+1. **Fixed false-positive Unstable Release Detected banner on clean update checks**
+2. **Normalized release stability schema across Electron IPC and React UpdatesPage**
+3. **Added version-targeted stability auditing to differentiate local crashes from incoming remote releases**
+
+### 📦 Distribution Artifacts
+- **Linux**: `.deb` (Debian/Ubuntu), `.AppImage` (Universal), `.rpm` (Fedora/RHEL), `.tar.gz` (Portable)
+- **Windows**: `.exe` (Setup Installer), `.msi` (Enterprise), `.zip` (Portable)
+
+---
+
+## 📦 Version v3.6.2 — NVIDIA NIM Decommissioning Fix & Multi-Model Cascade Failover
 
 ### 🛠️ Key Highlights
 1. **Replaced decommissioned EOL model meta/llama-3.3-70b-instruct with active meta/llama-3.2-11b-vision-instruct**

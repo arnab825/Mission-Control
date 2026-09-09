@@ -1,554 +1,544 @@
 {
-    "version":  "3.6.1",
-    "release_date":  "2026-09-08",
-    "update_check_url":  "https://raw.githubusercontent.com/arnab825/Mission-Control/main/Gaming/backend/version.json",
-    "changelog":  [
-                      {
-                          "version":  "3.6.1",
-                          "date":  "2026-09-08",
-                          "title":  "Rockstar Games Launcher HUD Exclusion \u0026 Voice Agent DLSS Sanitization",
-                          "highlights":  [
-                                             "Resolved Rockstar Games Launcher (Launcher.exe) falsely triggering the in-game HUD overlay and FPS readings",
-                                             "Added Rockstar executables and window titles to process watcher, window detector, and pipeline exclusions",
-                                             "Filtered out launcher entries and platforms from library scan caches and foreground heuristics",
-                                             "Removed legacy mock optimize command regex handler that intercepted voice requests with hardcoded DLSS readings",
-                                             "Expanded GameBrain telemetry exclusion keys to prevent internal DLSS tips and advisor diagnostics from leaking into prompt context",
-                                             "Integrated AgentCommandProcessor into voice pipeline and enhanced speech sanitization in VoiceManager"
-                                         ]
-                      },
-                      {
-                          "version":  "3.6.0",
-                          "date":  "2026-09-07",
-                          "title":  "Agentic System Control, Pre-Update Bug Warnings \u0026 Emergency Rollback",
-                          "highlights":  [
-                                             "Enabled Agentic system control with actionable intents for library scanning and updates",
-                                             "Added real-time Release Stability scoring based on telemetry anomaly detection",
-                                             "Introduced visual Pre-Update Bug \u0026 Advisory risk banners during electron updates",
-                                             "Added Emergency Instant Rollback system for unstable releases via one-click or Agent prompt",
-                                             "Optimized game scanner validation with caching to improve library load times"
-                                         ]
-                      },
-                      {
-                          "version":  "3.5.9",
-                          "date":  "2026-09-06",
-                          "title":  "Generic Dynamic Icon Resolution \u0026 Hardcoded Game Removal",
-                          "highlights":  [
-                                             "Removed developer hardcoded 007 First Light overrides from game_scanner.py",
-                                             "Added generic dynamic game icon resolution via sanitized ID and executable stem lookup",
-                                             "Added generic local banner validation and automatic cleanup of invalid or stale paths"
-                                         ]
-                      },
-                      {
-                          "version":  "3.5.8",
-                          "date":  "2026-09-06",
-                          "title":  "007 First Light Full-Bleed Artwork Resolution \u0026 Cache Sanitization",
-                          "highlights":  [
-                                             "Restored authentic 007 First Light game artwork with full-bleed widescreen aspect ratio matching standard library cards",
-                                             "Added automatic Frame-0 cache healing in GamesPage and SettingsPage to purge legacy stale null-icon and CLASSIC-genre cache entries",
-                                             "Bundled static official artwork asset in frontend public games directory for resilient offline rendering"
-                                         ]
-                      },
-                      {
-                          "version":  "3.5.7",
-                          "date":  "2026-09-06",
-                          "title":  "007 First Light Artwork Resolution, Hardware Matrix Icons \u0026 Post-Update Auth Persistence",
-                          "highlights":  [
-                                             "Resolved 007 First Light artwork resolution and added HTTP status verification in Steam store banner scanner to prevent 404 cache poisoning",
-                                             "Restored high-resolution game cover and capsule fallbacks in library GameCard and Discover catalog for non-Steam/local titles",
-                                             "Fixed game thumbnail resolution in Settings Library Hardware Feature Matrix for local games and added missing feature badge micro-icons",
-                                             "Restored Lucide micro-icons for DLSS, Frame Gen, RTX, Reflex, HDR, and FSR across library game cards and hardware feature pills",
-                                             "Added session cookies and storage data flushing prior to update execution ensuring Clerk authentication tokens and JWTs persist across application upgrades",
-                                             "Configured SO_REUSEADDR and increased local static HTTP server retries on restart to eliminate TCP TIME_WAIT port conflicts and prevent silent fallback to file:///"
-                                         ]
-                      },
-                      {
-                          "version":  "3.5.6",
-                          "date":  "2026-09-05",
-                          "title":  "Google OAuth Hang Resolution \u0026 Persistent Library Cache Across Sessions",
-                          "highlights":  [
-                                             "Resolved Electron IPC ready-to-show promise resolution hanging Google OAuth popup indefinitely",
-                                             "Configured standard Chrome 131 User-Agent header spoofing for Google and Clerk OAuth endpoints eliminating disallowed_useragent block",
-                                             "Redirected Clerk OAuth completion URL to root auth_completed handler to eliminate infinite identity verification loops",
-                                             "Preloaded cached game library on backend startup and seeded Frame-0 bridge state",
-                                             "Added multi-tier fallback to master games_db.json and SQLite for offline and guest user sessions",
-                                             "Replaced raw live library reads in Settings with effectiveLibrary persistent storage binding and added Rescan Library trigger"
-                                         ]
-                      },
-                      {
-                          "version":  "3.5.5",
-                          "date":  "2026-09-05",
-                          "title":  "Discover Web Dynamic Feeds, 250+ Game Canonical Resolver \u0026 Intelligent Recommendation System",
-                          "highlights":  [
-                                             "Resolved Electron IPC duplicate handler collision for fetch-steam-trending restoring live storefront feeds",
-                                             "Added multi-tier live catalog pipeline with Steam storefront categories, Epic Games, GOG, and PC Game Pass",
-                                             "Added Vite dev server web proxy endpoints (/api/games-trending and /api/games-search) for CORS-free browser discovery",
-                                             "Implemented library-aware search recommendation engine analyzing user installed games, hardware showcases, and recent searches",
-                                             "Expanded canonical game catalog to 250+ titles with high-res Steam CDN artwork resolution, alias expansion, and rich autocomplete preview",
-                                             "Expanded offline curated baseline from 24 to 100+ AAA and indie benchmark titles",
-                                             "Refined Clerk persistent session state, vision model uninstall states, and crossbar authentication UI"
-                                         ]
-                      },
-                      {
-                          "version":  "3.5.4",
-                          "date":  "2026-09-04",
-                          "title":  "Injected External OAuth Exit Bar, ESC Key Handler \u0026 Clerk Redirect Escape Hatches",
-                          "highlights":  [
-                                             "Injected top-level Mission Control Exit Bar on external OAuth pages (Google, Discord, Clerk) with drag region and window controls",
-                                             "Added global ESC and Alt+Left keyboard shortcuts in Electron to instantly return to Mission Control from external auth screens",
-                                             "Added DOM MutationObserver ensuring exit bar permanence during third-party single-page app DOM re-renders",
-                                             "Wired IPC and CustomEvents between preload and main process for seamless authentication cancellation"
-                                         ]
-                      },
-                      {
-                          "version":  "3.5.3",
-                          "date":  "2026-09-04",
-                          "title":  "Clerk Auth Exit \u0026 Session Persistence, Vision Model Uninstallation, AI Backbone Models \u0026 Build Freshness",
-                          "highlights":  [
-                                             "Added Exit/Cancel buttons on Clerk Auth modal and SSO callback redirect",
-                                             "Fixed account switching with clean sign-out routing directly to account selection",
-                                             "Enabled persistent Electron partition session and cookie flush on shutdown to keep users signed in",
-                                             "Added Vision model uninstallation capability in backend and UI to free local disk space",
-                                             "Expanded AI Neural Backbone with Nemotron 4 340B, Llama 3.1 405B, Mistral Large 2, and DeepSeek R1",
-                                             "Resolved strict TypeScript compiler errors and generated clean production bundles"
-                                         ]
-                      },
-                      {
-                          "version":  "3.5.2",
-                          "date":  "2026-09-04",
-                          "title":  "Discover Web Dynamic Trending, Weekly News Engine, Render Shield \u0026 Code Modularization",
-                          "highlights":  [
-                                             "Added ISO-calendar-week dynamic news topic engine with 52-week thematic schedule and RSS entity extraction",
-                                             "Direct Electron public Steam trending storefront integration (Top Sellers, Specials, New Releases) with 0 Render egress",
-                                             "Strict Render Free-Tier Shield: local fuzzy search \u0026 store querying with 1-hour cache and 15s cooldown",
-                                             "Decoupled Discover datasets into modular data/types files with verbatimModuleSyntax compliance"
-                                         ]
-                      },
-                      {
-                          "version":  "3.5.1",
-                          "date":  "2026-09-04",
-                          "title":  "Nemotron 3 Ultra, Gemini 3.8, Settings Cleanup \u0026 Library UI Polish",
-                          "highlights":  [
-                                             "Added NVIDIA Nemotron 3 Ultra to Neural Backbone, OpenRouter, and NIM failover cascades",
-                                             "Upgraded Google Gemini models to 3.7 and 3.8 Flash across website and app",
-                                             "Removed deprecated model dropdown injection and added auto-synchronization in Settings",
-                                             "Cleaned up Games Library header: removed storage/count pills and aligned buttons"
-                                         ]
-                      },
-                      {
-                          "version":  "3.5.0",
-                          "date":  "2026-09-03",
-                          "title":  "Fixed Auto-Updater Stale Version Downloads, False Up-to-Date, and Upgrade Now UI Flash",
-                          "highlights":  [
-                                             "Fixed stale directUpdateInfo cache causing old version downloads when skipping multiple releases",
-                                             "Fixed Upgrade Now button triggering a UI refresh flash by removing intermediate checking status",
-                                             "Fixed Check Again falsely showing up to date due to electron-updater internal session cache",
-                                             "Added GitHub Releases API cross-check fallback on manual update-not-available events",
-                                             "Filtered pre-releases and sorted by semver descending in GitHub release resolver",
-                                             "Always re-fetch latest GitHub release URL before download to prevent stale version hijacking",
-                                             "Prevented native up-to-date status from overriding backend-confirmed available updates in React UI"
-                                         ]
-                      },
-                      {
-                          "version":  "3.4.9",
-                          "date":  "2026-09-03",
-                          "title":  "Restored Discover from Web, Manage Nodes, and Fixed Library Unresponsiveness",
-                          "highlights":  [
-                                             "Restored persistent Discover from Web and Manage Nodes actions on Library header",
-                                             "Resolved UI unresponsiveness and telemetry re-render thrashing on Library page",
-                                             "Restored multi-node Game Installations viewer, hardware tech badges, and quick type switcher",
-                                             "Optimized fuzzy search indexing and safe local storage serialization"
-                                         ]
-                      },
-                      {
-                          "version":  "3.4.8",
-                          "date":  "2026-09-03",
-                          "title":  "Fixed launcher icons and cleaned CSS warnings",
-                          "highlights":  [
-                                             "Fixed launcher icons and cleaned CSS warnings"
-                                         ]
-                      },
-                      {
-                          "version":  "3.4.7",
-                          "date":  "2026-09-02",
-                          "title":  "Fixed launcher icons and cleaned CSS warnings",
-                          "highlights":  [
-                                             "Fixed launcher icons and cleaned CSS warnings"
-                                         ]
-                      },
-                      {
-                          "version":  "3.4.6",
-                          "date":  "2026-09-02",
-                          "title":  "Library Features Restoration, Official Launcher Logos \u0026 Scanner Resilience",
-                          "highlights":  [
-                                             "Restored official vector launcher logos for EA App, Epic Games, Xbox, Battle.net, PlayStation, and Ubisoft Connect",
-                                             "Moved Discover from Web and Node Manager to persistent top action bar for 100% offline \u0026 local accessibility",
-                                             "Surfaced quick Type filter (All, Games, Launchers) directly on top filter bar",
-                                             "Integrated hardware feature badges (DLSS, Frame Gen, RTX, Reflex, HDR, FSR) and node installation viewer on GameCard",
-                                             "Hardened game scanner with atomic cache writing and corrupt cache auto-recovery",
-                                             "Normalized en-dashes and added 64-bit Steam paths in local common discovery"
-                                         ]
-                      },
-                      {
-                          "version":  "3.4.5",
-                          "date":  "2026-09-02",
-                          "title":  "Distributed Fleet Scan Fixes, Real Host Telemetry \u0026 Catalog Asset Resilience",
-                          "highlights":  [
-                                             "Fixed 0 Games 0 B Storage issue with smart cache fallback to master database for Clerk users",
-                                             "Fixed Manage Nodes scan issue by replacing static mocks with real storage and detected game telemetry",
-                                             "Added resilient candidate server failover and auto-recovery in LibraryNodeService daemon",
-                                             "Replaced broken EA App and Ubisoft Connect image URLs with guaranteed high-resolution Steam CDN assets",
-                                             "Added title-based Steam CDN failover mapping and styled fallback cards in Discover Games",
-                                             "Aligned distributed server SQLite get_stats schema with PostgreSQL stats query"
-                                         ]
-                      },
-                      {
-                          "version":  "3.4.4",
-                          "date":  "2026-09-02",
-                          "title":  "NodeSync Lock Fix, Post-Update Clerk Auth Stability \u0026 Image Fallbacks",
-                          "highlights":  [
-                                             "Resolved NodeSync background daemon _reg_lock AttributeError in LibraryNodeService",
-                                             "Enforced strict port 43221 retry mechanism to prevent post-update Clerk authentication breaks",
-                                             "Cleaned up local UI HTTP server and connections on updater launch and app exit",
-                                             "Upgraded Steam cover and banner endpoints to 100% guaranteed header assets",
-                                             "Implemented multi-tier image error fallbacks across desktop games library and website"
-                                         ]
-                      },
-                      {
-                          "version":  "3.4.3",
-                          "date":  "2026-09-01",
-                          "title":  "Distributed Fleet Command \u0026 Node Management",
-                          "highlights":  [
-                                             "Enabled full local host node discovery and real-time disk storage metrics",
-                                             "Added interactive scan directory management and native folder selection",
-                                             "Integrated backend bridge commands for node scanning, renaming, and path synchronization",
-                                             "Enhanced Discover Games and Intel Hub multi-launcher support"
-                                         ]
-                      },
-                      {
-                          "version":  "3.4.2",
-                          "date":  "2026-09-01",
-                          "title":  "Multi-Launcher Support, Omni-Search \u0026 Dynamic AI Resolver",
-                          "highlights":  [
-                                             "Added EA App, Ubisoft Connect, PlayStation PC, Rockstar Games, and Battle.net launcher support",
-                                             "Engineered dynamic GameModeResolver with keyword \u0026 Jaccard token matching",
-                                             "Added with_game_context decorator \u0026 auto_switch_mode universal wrapper function",
-                                             "Implemented curated multi-launcher catalog for instant Discover Games \u0026 Intel Hub visibility"
-                                         ]
-                      },
-                      {
-                          "version":  "3.4.1",
-                          "date":  "2026-09-01",
-                          "title":  "Fix OpenCV in-memory loader and enable Gaming Readiness assessment system",
-                          "highlights":  [
-                                             "Implement zero-disk in-memory fallback loader for OpenCV to prevent missing config crashes on read-only installations",
-                                             "Integrate AI-driven Gaming Readiness assessment engine and IPC bridge with real-time hardware telemetry",
-                                             "Enhance PyInstaller spec to guarantee recursive collection of OpenCV runtime configurations"
-                                         ]
-                      },
-                      {
-                          "version":  "3.4.0",
-                          "date":  "2026-08-31",
-                          "title":  "Upgrade Discover with Live Steam, Epic, GOG, Xbox Game Pass \u0026 Breaking News Intelligence",
-                          "highlights":  [
-                                             "Upgrade Discover with Live Steam, Epic, GOG, Xbox Game Pass \u0026 Breaking News Intelligence"
-                                         ]
-                      },
-                      {
-                          "version":  "3.3.9",
-                          "date":  "2026-08-31",
-                          "title":  "Fix telemetry scanner bridge state and enable native 1-click node registration",
-                          "highlights":  [
-                                             "Fix telemetry scanner bridge state and enable native 1-click node registration"
-                                         ]
-                      },
-                      {
-                          "version":  "3.3.8",
-                          "date":  "2026-08-31",
-                          "title":  "Fixes some issue and bug of server update .Also fix the setup app",
-                          "highlights":  [
-                                             "Fixes some issue and bug of server update .Also fix the setup app"
-                                         ]
-                      },
-                      {
-                          "version":  "3.3.7",
-                          "date":  "2026-08-31",
-                          "title":  "Fixes some issue and bug of server",
-                          "highlights":  [
-                                             "Fixes some issue and bug of server"
-                                         ]
-                      },
-                      {
-                          "version":  "3.3.6",
-                          "date":  "2026-08-31",
-                          "title":  "Fix Supabase password URL decode for pooler connection",
-                          "highlights":  [
-                                             "Fix Supabase password URL decode for pooler connection"
-                                         ]
-                      },
-                      {
-                          "version":  "3.3.5",
-                          "date":  "2026-08-31",
-                          "title":  "Fix update installer: kill running processes before file extraction to prevent app freeze and OpenCV errors",
-                          "highlights":  [
-                                             "Fix update installer: kill running processes before file extraction to prevent app freeze and OpenCV errors"
-                                         ]
-                      },
-                      {
-                          "version":  "3.3.4",
-                          "date":  "2026-08-31",
-                          "title":  "Fix Supabase password URL decode for pooler connection",
-                          "highlights":  [
-                                             "Fix Supabase password URL decode for pooler connection"
-                                         ]
-                      },
-                      {
-                          "version":  "3.3.3",
-                          "date":  "2026-08-30",
-                          "title":  "Fixes some issue and bug of server",
-                          "highlights":  [
-                                             "Fixes some issue and bug of server"
-                                         ]
-                      },
-                      {
-                          "version":  "3.3.2",
-                          "date":  "2026-08-27",
-                          "title":  "Unified Supabase Architecture, Redis Caching Cascade \u0026 Weekly Intelligence Pipeline",
-                          "highlights":  [
-                                             "Removed Neon dependency and established Supabase PostgreSQL as single source of truth",
-                                             "Implemented 3-tier Redis caching cascade for ultra-low latency game discovery and search",
-                                             "Rebuilt canonical_games schema with full launcher, description, and source mapping across PostgreSQL and SQLite replicas",
-                                             "Updated background microservices and AI Healer with schema alignment and non-blocking enrichment",
-                                             "Optimized automated blog generation cron schedule to weekly Sunday dispatches"
-                                         ]
-                      },
-                      {
-                          "version":  "3.3.1",
-                          "date":  "2026-08-26",
-                          "title":  "Multi-Cloud High Availability \u0026 Instant Zero-Lag Startup Architecture",
-                          "highlights":  [
-                                             "Added multi-tier cloud failover topology supporting Supabase (Tier 1), Neon Serverless PostgreSQL (Tier 2), and Local SQLite NVMe replica (Tier 3)",
-                                             "Implemented automated high-speed migration tool replicating 83.4k+ master games, user games, hardware nodes, and AI logs to Neon",
-                                             "Optimized game library loading with Local-First Frame-0 instant render and non-blocking background synchronization",
-                                             "Added fast-abort 1.5s timeout on remote distributed server queries preventing UI cold-start stalls",
-                                             "Demoted startup auto-scans to non-intrusive background state to eliminate full-screen radar modal lockouts",
-                                             "Added automated Vercel keep-alive cron job to keep Supabase, Neon, and MongoDB warm 24/7"
-                                         ]
-                      },
-                      {
-                          "version":  "3.3.0",
-                          "date":  "2026-08-25",
-                          "title":  "Ecosystem Optimization, Multi-Node Architecture \u0026 Dynamic Deduplication",
-                          "highlights":  [
-                                             "Added Win32 working set RAM compaction (EmptyWorkingSet) dropping idle background memory to ~40-60 MB during gameplay",
-                                             "Implemented dynamic machine-unique Node ID derivation (NODE-\u003cMAC_HASH\u003e) and host discovery to prevent multi-device collision",
-                                             "Added canonical path-based deduplication (path_to_name) and feature merging across Steam, Epic, GOG, and custom disk scans",
-                                             "Implemented universal default library path discovery (_get_default_library_paths) across multi-drive storage",
-                                             "Non-destructive node_scan_paths synchronization preserving user custom scan paths across heartbeats",
-                                             "Delta-hashed library synchronization in node_service.py to prevent redundant network uploads",
-                                             "OpenCV configuration loader 3-tier runtime hooks ensuring 100% frozen PyInstaller stability"
-                                         ]
-                      },
-                      {
-                          "version":  "3.2.9",
-                          "date":  "2026-08-24",
-                          "title":  "Telemetry \u0026 Rollback Subsystem Reliability Hardening",
-                          "highlights":  [
-                                             "Fixed PowerShell script path interpolation and quotation parsing under UAC elevation for offline update rollback",
-                                             "Preserved 0% metric values in analysis engine to ensure accurate Idle load states and eliminate Unknown health classifications",
-                                             "Synchronized effective capture and DirectX FPS telemetry to system tray tooltip",
-                                             "Bound RightTelemetry neural metrics and status items to live backend telemetry",
-                                             "Fixed DatabaseManager class inheritance and Intel Arc Alchemist/Battlemage architecture profiling heuristics"
-                                         ]
-                      },
-                      {
-                          "version":  "3.2.8",
-                          "date":  "2026-08-22",
-                          "title":  "OpenCV Resilience \u0026 Pipeline Stability Hardening",
-                          "highlights":  [
-                                             "Removed unused cv2 import from capture/screen.py that caused crash on DLL load failure",
-                                             "Added try/except cv2 import guards in scene_classifier, simple_rules, and trt_inference with graceful NumPy/PIL fallbacks",
-                                             "Guarded all cv2 window management and frame encoding calls in pipeline_host to prevent AttributeError and NoneType crashes",
-                                             "Fixed dangling self._render_preview() call in _display_loop that caused AttributeError at runtime"
-                                         ]
-                      },
-                      {
-                          "version":  "3.2.7",
-                          "date":  "2026-08-22",
-                          "title":  "Distributed Server Agent and Vision Connection Integration",
-                          "highlights":  [
-                                             "Connected Agent and Vision UI pages to the central distributed library server with live node telemetry updates",
-                                             "Added Library Server online/offline pipeline status badges and stats panel overlays",
-                                             "Configured backend game scanner to fall back to distributed library server catalog API when direct DB access is unavailable"
-                                         ]
-                      },
-                      {
-                          "version":  "3.2.6",
-                          "date":  "2026-08-21",
-                          "title":  "OpenCV Loader \u0026 Supabase Metadata Enrichment Fixes",
-                          "highlights":  [
-                                             "Resolved OpenCV cv2 loader missing configuration in PyInstaller packages",
-                                             "Added full Steam features and authentic summaries backfill in Supabase",
-                                             "Streamlined AI classifier with zero-retry multi-provider failover"
-                                         ]
-                      },
-                      {
-                          "version":  "3.2.5",
-                          "date":  "2026-08-21",
-                          "title":  "Distributed Cluster Architecture \u0026 Multi-Tenant User Isolation",
-                          "highlights":  [
-                                             "Implemented high-performance distributed cluster architecture with Load Balancer and multi-instance microservices",
-                                             "Enabled strict multi-tenant library and node isolation per authenticated Clerk ID and OAuth provider",
-                                             "Backfilled release dates across canonical catalog and removed deprecated database schemas",
-                                             "Integrated live Docker Compose orchestration with Windows IPv6 network compatibility",
-                                             "Connected frontend distributed synchronization with automatic server model mapping"
-                                         ]
-                      },
-                      {
-                          "version":  "3.2.4",
-                          "date":  "2026-08-20",
-                          "title":  "OpenCV Config Loader \u0026 PyInstaller Backend Fixes",
-                          "highlights":  [
-                                             "Resolved OpenCV cv2 config loader missing module errors in PyInstaller backend packaging",
-                                             "Dynamic multi-environment package directory discovery fallback for rapidocr and cv2",
-                                             "Verified clean frontend and website production builds"
-                                         ]
-                      },
-                      {
-                          "version":  "3.2.3",
-                          "date":  "2026-08-19",
-                          "title":  "Fix First-Launch Setup Loading \u0026 Backend Process Startup Loop",
-                          "highlights":  [
-                                             "Resolved cascading backend kill-restart loop during cold boot and first launch",
-                                             "Standardized WebSocket bridge host to 127.0.0.1 to avoid Windows dual-stack socket collisions",
-                                             "Added concurrency mutex and graceful process management in Electron main process",
-                                             "Enabled full stdout and stderr traceback forwarding to app.log in production",
-                                             "Added persistent local app data directory creation in NSIS installer"
-                                         ]
-                      },
-                      {
-                          "version":  "3.2.3",
-                          "date":  "2026-08-19",
-                          "title":  "Fix OpenCV config loader missing configuration in PyInstaller backend packaging",
-                          "highlights":  [
-                                             "Dynamically collected OpenCV cv2 config.py runtime files, binaries, and RapidOCR data in PyInstaller spec",
-                                             "Added robust multi-environment package directory discovery fallback"
-                                         ]
-                      },
-                      {
-                          "version":  "3.2.2",
-                          "date":  "2026-08-19",
-                          "title":  "AI Support Assistant, Community Benchmarks \u0026 Live Telemetry Reporting",
-                          "highlights":  [
-                                             "Implemented comprehensive multi-tier AI support chatbot system with conversational assistance and model failovers",
-                                             "Connected live community game ratings, rig reviews, and media uploads to MongoDB persistence layer",
-                                             "Added interactive documentation search, categorized guides, and API key management client",
-                                             "Introduced hardware telemetry reporting modal with automated system spec detection",
-                                             "Refined games tested benchmark profiles, DLSS 4/DLAA upscaler badges, and newsletter subscription pipelines"
-                                         ]
-                      },
-                      {
-                          "version":  "3.2.1",
-                          "date":  "2026-08-16",
-                          "title":  "Library Scanner Sanitation \u0026 Steam Container Optimization",
-                          "highlights":  [
-                                             "Resolved Steam library container false-positives by filtering out steamapps directory entries",
-                                             "Enabled automated steamapps/common recursive game discovery in drive and library scans",
-                                             "Enhanced junk keywords and container validation in library scanner",
-                                             "Connected community review media uploads and navbar active tab synchronization"
-                                         ]
-                      },
-                      {
-                          "version":  "3.2.0",
-                          "date":  "2026-08-16",
-                          "title":  "Dynamic Game Root Resolution \u0026 Subfolder Optimization",
-                          "highlights":  [
-                                             "Dynamic Game Root Resolution \u0026 Subfolder Optimization",
-                                             "Automated upward directory walker past nested engine and architecture folders",
-                                             "Game root scoping preventing orphan sub-games for mod and crash tools",
-                                             "Enhanced executable scoring with auxiliary tool and uninstaller filtering",
-                                             "Universal Windows PE metadata title extraction for ambiguous binaries"
-                                         ]
-                      },
-                      {
-                          "version":  "3.1.9",
-                          "date":  "2026-08-16",
-                          "title":  "Universal Game Scanner \u0026 Dynamic Binary Title Resolution",
-                          "highlights":  [
-                                             "Dynamic PE binary title extraction for 100k+ games",
-                                             "1MB executable threshold for lightweight indie \u0026 retro games",
-                                             "Excluded non-game developer tools \u0026 ZuneVideo UWP app",
-                                             "Auto-purge uninstalled titles \u0026 pre-build version sync"
-                                         ]
-                      },
-                      {
-                          "version":  "3.1.8",
-                          "date":  "2026-08-15",
-                          "title":  "Direct GitHub Releases In-App Updater Fallback \u0026 Elevated Offline Rollback",
-                          "highlights":  [
-                                             "Added direct GitHub Releases API fallback to Electron autoUpdater for seamless in-app downloads when latest.yml is absent",
-                                             "Refactored automated offline rollback system using robocopy retry loops and automatic UAC elevation escalation",
-                                             "Added live Retry Download control to Updates page",
-                                             "Resolved shadowed local variable imports in AI brain memory module and updated Vitest suite"
-                                         ]
-                      },
-                      {
-                          "version":  "3.1.7",
-                          "date":  "2026-08-15",
-                          "title":  "Multi-Vendor GPU Support (AMD \u0026 Intel), Groq Model Updates \u0026 Optimizer Refinements",
-                          "highlights":  [
-                                             "Added full multi-vendor GPU capability detection for AMD Radeon and Intel Arc graphics",
-                                             "Migrated frontend settings and backend optimizer to unified gpu_tuning architecture",
-                                             "Updated Groq AI provider models to GPT OSS 120B and Qwen 3.6 27B",
-                                             "Removed deprecated Custom AI model fallback options"
-                                         ]
-                      },
-                      {
-                          "version":  "3.1.6",
-                          "date":  "2026-08-15",
-                          "title":  "Fixed Alienware CPU temperature telemetry \u0026 optimized backend Pydantic models",
-                          "highlights":  [
-                                             "Fixed Alienware CPU temperature telemetry \u0026 optimized backend Pydantic models"
-                                         ]
-                      },
-                      {
-                          "version":  "3.1.5",
-                          "date":  "2026-08-15",
-                          "title":  "Fixed Alienware CPU temperature telemetry \u0026 optimized backend Pydantic models",
-                          "highlights":  [
-                                             "Fixed Alienware CPU temperature telemetry \u0026 optimized backend Pydantic models"
-                                         ]
-                      },
-                      {
-                          "version":  "3.1.4",
-                          "date":  "2026-08-13",
-                          "title":  "Fixed Linux build pipeline, spec cross-compatibility, and ClerkProvider router props",
-                          "highlights":  [
-                                             "Fixed Linux build pipeline, spec cross-compatibility, and ClerkProvider router props"
-                                         ]
-                      },
-                      {
-                          "version":  "3.1.3",
-                          "date":  "2026-08-13",
-                          "title":  "Fixed Linux build pipeline and spec cross-compatibility",
-                          "highlights":  [
-                                             "Fixed Linux build pipeline and spec cross-compatibility"
-                                         ]
-                      },
-                      {
-                          "version":  "3.1.2",
-                          "date":  "2026-08-13",
-                          "title":  "fixed som e bugs",
-                          "highlights":  [
-                                             "fixed som e bugs"
-                                         ]
-                      },
-                      {
-                          "version":  "3.1.1",
-                          "date":  "2026-08-13",
-                          "title":  "fixed som e bugs",
-                          "highlights":  [
-                                             "fixed som e bugs"
-                                         ]
-                      }
-                  ]
+  "version": "3.6.3",
+  "release_date": "2026-09-08",
+  "update_check_url": "https://raw.githubusercontent.com/arnab825/Mission-Control/main/Gaming/backend/version.json",
+  "changelog": [
+    {
+      "version": "3.6.3",
+      "date": "2026-09-09",
+      "title": "Release Health Schema Normalization & False-Positive Unstable Banner Fix",
+      "highlights": [
+        "Fixed false-positive Unstable Release Detected banner on clean update checks",
+        "Normalized release stability schema across Electron IPC and React UpdatesPage",
+        "Added version-targeted stability auditing to differentiate local crashes from incoming remote releases",
+        "Updated type definitions in global and vite-env declarations"
+      ]
+    },
+    {
+      "version": "3.6.2",
+      "date": "2026-09-09",
+      "title": "NVIDIA NIM Decommissioning Fix & Multi-Model Cascade Failover",
+      "highlights": [
+        "Replaced decommissioned EOL model meta/llama-3.3-70b-instruct with active meta/llama-3.2-11b-vision-instruct",
+        "Implemented multi-model cascade failover in FeedbackLoop across Llama 3.2 11B Vision and Nemotron 3 Super 120B",
+        "Resolved ChatNVIDIA parameter validation error by stripping unsupported timeout kwarg",
+        "Updated Tier 3 NVIDIA NIM cascades across website blog generator, diagnostics, and desktop settings"
+      ]
+    },
+    {
+      "version": "3.6.1",
+      "date": "2026-09-08",
+      "title": "Rockstar Games Launcher HUD Exclusion & Voice Agent DLSS Sanitization",
+      "highlights": [
+        "Resolved Rockstar Games Launcher (Launcher.exe) falsely triggering the in-game HUD overlay and FPS readings",
+        "Added Rockstar executables and window titles to process watcher, window detector, and pipeline exclusions",
+        "Filtered out launcher entries and platforms from library scan caches and foreground heuristics",
+        "Removed legacy mock optimize command regex handler that intercepted voice requests with hardcoded DLSS readings",
+        "Expanded GameBrain telemetry exclusion keys to prevent internal DLSS tips and advisor diagnostics from leaking into prompt context",
+        "Integrated AgentCommandProcessor into voice pipeline and enhanced speech sanitization in VoiceManager"
+      ]
+    },
+    {
+      "version": "3.6.0",
+      "date": "2026-09-07",
+      "title": "Agentic System Control, Pre-Update Bug Warnings & Emergency Rollback",
+      "highlights": [
+        "Enabled Agentic system control with actionable intents for library scanning and updates",
+        "Added real-time Release Stability scoring based on telemetry anomaly detection",
+        "Introduced visual Pre-Update Bug & Advisory risk banners during electron updates",
+        "Added Emergency Instant Rollback system for unstable releases via one-click or Agent prompt",
+        "Optimized game scanner validation with caching to improve library load times"
+      ]
+    },
+    {
+      "version": "3.5.9",
+      "date": "2026-09-06",
+      "title": "Generic Dynamic Icon Resolution & Hardcoded Game Removal",
+      "highlights": [
+        "Removed developer hardcoded 007 First Light overrides from game_scanner.py",
+        "Added generic dynamic game icon resolution via sanitized ID and executable stem lookup",
+        "Added generic local banner validation and automatic cleanup of invalid or stale paths"
+      ]
+    },
+    {
+      "version": "3.5.8",
+      "date": "2026-09-06",
+      "title": "007 First Light Full-Bleed Artwork Resolution & Cache Sanitization",
+      "highlights": [
+        "Restored authentic 007 First Light game artwork with full-bleed widescreen aspect ratio matching standard library cards",
+        "Added automatic Frame-0 cache healing in GamesPage and SettingsPage to purge legacy stale null-icon and CLASSIC-genre cache entries",
+        "Bundled static official artwork asset in frontend public games directory for resilient offline rendering"
+      ]
+    },
+    {
+      "version": "3.5.7",
+      "date": "2026-09-06",
+      "title": "007 First Light Artwork Resolution, Hardware Matrix Icons & Post-Update Auth Persistence",
+      "highlights": [
+        "Resolved 007 First Light artwork resolution and added HTTP status verification in Steam store banner scanner to prevent 404 cache poisoning",
+        "Restored high-resolution game cover and capsule fallbacks in library GameCard and Discover catalog for non-Steam/local titles",
+        "Fixed game thumbnail resolution in Settings Library Hardware Feature Matrix for local games and added missing feature badge micro-icons",
+        "Restored Lucide micro-icons for DLSS, Frame Gen, RTX, Reflex, HDR, and FSR across library game cards and hardware feature pills",
+        "Added session cookies and storage data flushing prior to update execution ensuring Clerk authentication tokens and JWTs persist across application upgrades",
+        "Configured SO_REUSEADDR and increased local static HTTP server retries on restart to eliminate TCP TIME_WAIT port conflicts and prevent silent fallback to file:///"
+      ]
+    },
+    {
+      "version": "3.5.6",
+      "date": "2026-09-05",
+      "title": "Google OAuth Hang Resolution & Persistent Library Cache Across Sessions",
+      "highlights": [
+        "Resolved Electron IPC ready-to-show promise resolution hanging Google OAuth popup indefinitely",
+        "Configured standard Chrome 131 User-Agent header spoofing for Google and Clerk OAuth endpoints eliminating disallowed_useragent block",
+        "Redirected Clerk OAuth completion URL to root auth_completed handler to eliminate infinite identity verification loops",
+        "Preloaded cached game library on backend startup and seeded Frame-0 bridge state",
+        "Added multi-tier fallback to master games_db.json and SQLite for offline and guest user sessions",
+        "Replaced raw live library reads in Settings with effectiveLibrary persistent storage binding and added Rescan Library trigger"
+      ]
+    },
+    {
+      "version": "3.5.5",
+      "date": "2026-09-05",
+      "title": "Discover Web Dynamic Feeds, 250+ Game Canonical Resolver & Intelligent Recommendation System",
+      "highlights": [
+        "Resolved Electron IPC duplicate handler collision for fetch-steam-trending restoring live storefront feeds",
+        "Added multi-tier live catalog pipeline with Steam storefront categories, Epic Games, GOG, and PC Game Pass",
+        "Added Vite dev server web proxy endpoints (/api/games-trending and /api/games-search) for CORS-free browser discovery",
+        "Implemented library-aware search recommendation engine analyzing user installed games, hardware showcases, and recent searches",
+        "Expanded canonical game catalog to 250+ titles with high-res Steam CDN artwork resolution, alias expansion, and rich autocomplete preview",
+        "Expanded offline curated baseline from 24 to 100+ AAA and indie benchmark titles",
+        "Refined Clerk persistent session state, vision model uninstall states, and crossbar authentication UI"
+      ]
+    },
+    {
+      "version": "3.5.4",
+      "date": "2026-09-04",
+      "title": "Injected External OAuth Exit Bar, ESC Key Handler & Clerk Redirect Escape Hatches",
+      "highlights": [
+        "Injected top-level Mission Control Exit Bar on external OAuth pages (Google, Discord, Clerk) with drag region and window controls",
+        "Added global ESC and Alt+Left keyboard shortcuts in Electron to instantly return to Mission Control from external auth screens",
+        "Added DOM MutationObserver ensuring exit bar permanence during third-party single-page app DOM re-renders",
+        "Wired IPC and CustomEvents between preload and main process for seamless authentication cancellation"
+      ]
+    },
+    {
+      "version": "3.5.3",
+      "date": "2026-09-04",
+      "title": "Clerk Auth Exit & Session Persistence, Vision Model Uninstallation, AI Backbone Models & Build Freshness",
+      "highlights": [
+        "Added Exit/Cancel buttons on Clerk Auth modal and SSO callback redirect",
+        "Fixed account switching with clean sign-out routing directly to account selection",
+        "Enabled persistent Electron partition session and cookie flush on shutdown to keep users signed in",
+        "Added Vision model uninstallation capability in backend and UI to free local disk space",
+        "Expanded AI Neural Backbone with Nemotron 4 340B, Llama 3.1 405B, Mistral Large 2, and DeepSeek R1",
+        "Resolved strict TypeScript compiler errors and generated clean production bundles"
+      ]
+    },
+    {
+      "version": "3.5.2",
+      "date": "2026-09-04",
+      "title": "Discover Web Dynamic Trending, Weekly News Engine, Render Shield & Code Modularization",
+      "highlights": [
+        "Added ISO-calendar-week dynamic news topic engine with 52-week thematic schedule and RSS entity extraction",
+        "Direct Electron public Steam trending storefront integration (Top Sellers, Specials, New Releases) with 0 Render egress",
+        "Strict Render Free-Tier Shield: local fuzzy search & store querying with 1-hour cache and 15s cooldown",
+        "Decoupled Discover datasets into modular data/types files with verbatimModuleSyntax compliance"
+      ]
+    },
+    {
+      "version": "3.5.1",
+      "date": "2026-09-04",
+      "title": "Nemotron 3 Ultra, Gemini 3.8, Settings Cleanup & Library UI Polish",
+      "highlights": [
+        "Added NVIDIA Nemotron 3 Ultra to Neural Backbone, OpenRouter, and NIM failover cascades",
+        "Upgraded Google Gemini models to 3.7 and 3.8 Flash across website and app",
+        "Removed deprecated model dropdown injection and added auto-synchronization in Settings",
+        "Cleaned up Games Library header: removed storage/count pills and aligned buttons"
+      ]
+    },
+    {
+      "version": "3.5.0",
+      "date": "2026-09-03",
+      "title": "Fixed Auto-Updater Stale Version Downloads, False Up-to-Date, and Upgrade Now UI Flash",
+      "highlights": [
+        "Fixed stale directUpdateInfo cache causing old version downloads when skipping multiple releases",
+        "Fixed Upgrade Now button triggering a UI refresh flash by removing intermediate checking status",
+        "Fixed Check Again falsely showing up to date due to electron-updater internal session cache",
+        "Added GitHub Releases API cross-check fallback on manual update-not-available events",
+        "Filtered pre-releases and sorted by semver descending in GitHub release resolver",
+        "Always re-fetch latest GitHub release URL before download to prevent stale version hijacking",
+        "Prevented native up-to-date status from overriding backend-confirmed available updates in React UI"
+      ]
+    },
+    {
+      "version": "3.4.9",
+      "date": "2026-09-03",
+      "title": "Restored Discover from Web, Manage Nodes, and Fixed Library Unresponsiveness",
+      "highlights": [
+        "Restored persistent Discover from Web and Manage Nodes actions on Library header",
+        "Resolved UI unresponsiveness and telemetry re-render thrashing on Library page",
+        "Restored multi-node Game Installations viewer, hardware tech badges, and quick type switcher",
+        "Optimized fuzzy search indexing and safe local storage serialization"
+      ]
+    },
+    {
+      "version": "3.4.8",
+      "date": "2026-09-03",
+      "title": "Fixed launcher icons and cleaned CSS warnings",
+      "highlights": [
+        "Fixed launcher icons and cleaned CSS warnings"
+      ]
+    },
+    {
+      "version": "3.4.7",
+      "date": "2026-09-02",
+      "title": "Fixed launcher icons and cleaned CSS warnings",
+      "highlights": [
+        "Fixed launcher icons and cleaned CSS warnings"
+      ]
+    },
+    {
+      "version": "3.4.6",
+      "date": "2026-09-02",
+      "title": "Library Features Restoration, Official Launcher Logos & Scanner Resilience",
+      "highlights": [
+        "Restored official vector launcher logos for EA App, Epic Games, Xbox, Battle.net, PlayStation, and Ubisoft Connect",
+        "Moved Discover from Web and Node Manager to persistent top action bar for 100% offline & local accessibility",
+        "Surfaced quick Type filter (All, Games, Launchers) directly on top filter bar",
+        "Integrated hardware feature badges (DLSS, Frame Gen, RTX, Reflex, HDR, FSR) and node installation viewer on GameCard",
+        "Hardened game scanner with atomic cache writing and corrupt cache auto-recovery",
+        "Normalized en-dashes and added 64-bit Steam paths in local common discovery"
+      ]
+    },
+    {
+      "version": "3.4.5",
+      "date": "2026-09-02",
+      "title": "Distributed Fleet Scan Fixes, Real Host Telemetry & Catalog Asset Resilience",
+      "highlights": [
+        "Fixed 0 Games 0 B Storage issue with smart cache fallback to master database for Clerk users",
+        "Fixed Manage Nodes scan issue by replacing static mocks with real storage and detected game telemetry",
+        "Added resilient candidate server failover and auto-recovery in LibraryNodeService daemon",
+        "Replaced broken EA App and Ubisoft Connect image URLs with guaranteed high-resolution Steam CDN assets",
+        "Added title-based Steam CDN failover mapping and styled fallback cards in Discover Games",
+        "Aligned distributed server SQLite get_stats schema with PostgreSQL stats query"
+      ]
+    },
+    {
+      "version": "3.4.4",
+      "date": "2026-09-02",
+      "title": "NodeSync Lock Fix, Post-Update Clerk Auth Stability & Image Fallbacks",
+      "highlights": [
+        "Resolved NodeSync background daemon _reg_lock AttributeError in LibraryNodeService",
+        "Enforced strict port 43221 retry mechanism to prevent post-update Clerk authentication breaks",
+        "Cleaned up local UI HTTP server and connections on updater launch and app exit",
+        "Upgraded Steam cover and banner endpoints to 100% guaranteed header assets",
+        "Implemented multi-tier image error fallbacks across desktop games library and website"
+      ]
+    },
+    {
+      "version": "3.4.3",
+      "date": "2026-09-01",
+      "title": "Distributed Fleet Command & Node Management",
+      "highlights": [
+        "Enabled full local host node discovery and real-time disk storage metrics",
+        "Added interactive scan directory management and native folder selection",
+        "Integrated backend bridge commands for node scanning, renaming, and path synchronization",
+        "Enhanced Discover Games and Intel Hub multi-launcher support"
+      ]
+    },
+    {
+      "version": "3.4.2",
+      "date": "2026-09-01",
+      "title": "Multi-Launcher Support, Omni-Search & Dynamic AI Resolver",
+      "highlights": [
+        "Added EA App, Ubisoft Connect, PlayStation PC, Rockstar Games, and Battle.net launcher support",
+        "Engineered dynamic GameModeResolver with keyword & Jaccard token matching",
+        "Added with_game_context decorator & auto_switch_mode universal wrapper function",
+        "Implemented curated multi-launcher catalog for instant Discover Games & Intel Hub visibility"
+      ]
+    },
+    {
+      "version": "3.4.1",
+      "date": "2026-09-01",
+      "title": "Fix OpenCV in-memory loader and enable Gaming Readiness assessment system",
+      "highlights": [
+        "Implement zero-disk in-memory fallback loader for OpenCV to prevent missing config crashes on read-only installations",
+        "Integrate AI-driven Gaming Readiness assessment engine and IPC bridge with real-time hardware telemetry",
+        "Enhance PyInstaller spec to guarantee recursive collection of OpenCV runtime configurations"
+      ]
+    },
+    {
+      "version": "3.4.0",
+      "date": "2026-08-31",
+      "title": "Upgrade Discover with Live Steam, Epic, GOG, Xbox Game Pass & Breaking News Intelligence",
+      "highlights": [
+        "Upgrade Discover with Live Steam, Epic, GOG, Xbox Game Pass & Breaking News Intelligence"
+      ]
+    },
+    {
+      "version": "3.3.9",
+      "date": "2026-08-31",
+      "title": "Fix telemetry scanner bridge state and enable native 1-click node registration",
+      "highlights": [
+        "Fix telemetry scanner bridge state and enable native 1-click node registration"
+      ]
+    },
+    {
+      "version": "3.3.8",
+      "date": "2026-08-31",
+      "title": "Fixes some issue and bug of server update .Also fix the setup app",
+      "highlights": [
+        "Fixes some issue and bug of server update .Also fix the setup app"
+      ]
+    },
+    {
+      "version": "3.3.7",
+      "date": "2026-08-31",
+      "title": "Fixes some issue and bug of server",
+      "highlights": [
+        "Fixes some issue and bug of server"
+      ]
+    },
+    {
+      "version": "3.3.6",
+      "date": "2026-08-31",
+      "title": "Fix Supabase password URL decode for pooler connection",
+      "highlights": [
+        "Fix Supabase password URL decode for pooler connection"
+      ]
+    },
+    {
+      "version": "3.3.5",
+      "date": "2026-08-31",
+      "title": "Fix update installer: kill running processes before file extraction to prevent app freeze and OpenCV errors",
+      "highlights": [
+        "Fix update installer: kill running processes before file extraction to prevent app freeze and OpenCV errors"
+      ]
+    },
+    {
+      "version": "3.3.4",
+      "date": "2026-08-31",
+      "title": "Fix Supabase password URL decode for pooler connection",
+      "highlights": [
+        "Fix Supabase password URL decode for pooler connection"
+      ]
+    },
+    {
+      "version": "3.3.3",
+      "date": "2026-08-30",
+      "title": "Fixes some issue and bug of server",
+      "highlights": [
+        "Fixes some issue and bug of server"
+      ]
+    },
+    {
+      "version": "3.3.2",
+      "date": "2026-08-27",
+      "title": "Unified Supabase Architecture, Redis Caching Cascade & Weekly Intelligence Pipeline",
+      "highlights": [
+        "Removed Neon dependency and established Supabase PostgreSQL as single source of truth",
+        "Implemented 3-tier Redis caching cascade for ultra-low latency game discovery and search",
+        "Rebuilt canonical_games schema with full launcher, description, and source mapping across PostgreSQL and SQLite replicas",
+        "Updated background microservices and AI Healer with schema alignment and non-blocking enrichment",
+        "Optimized automated blog generation cron schedule to weekly Sunday dispatches"
+      ]
+    },
+    {
+      "version": "3.3.1",
+      "date": "2026-08-26",
+      "title": "Multi-Cloud High Availability & Instant Zero-Lag Startup Architecture",
+      "highlights": [
+        "Added multi-tier cloud failover topology supporting Supabase (Tier 1), Neon Serverless PostgreSQL (Tier 2), and Local SQLite NVMe replica (Tier 3)",
+        "Implemented automated high-speed migration tool replicating 83.4k+ master games, user games, hardware nodes, and AI logs to Neon",
+        "Optimized game library loading with Local-First Frame-0 instant render and non-blocking background synchronization",
+        "Added fast-abort 1.5s timeout on remote distributed server queries preventing UI cold-start stalls",
+        "Demoted startup auto-scans to non-intrusive background state to eliminate full-screen radar modal lockouts",
+        "Added automated Vercel keep-alive cron job to keep Supabase, Neon, and MongoDB warm 24/7"
+      ]
+    },
+    {
+      "version": "3.3.0",
+      "date": "2026-08-25",
+      "title": "Ecosystem Optimization, Multi-Node Architecture & Dynamic Deduplication",
+      "highlights": [
+        "Added Win32 working set RAM compaction (EmptyWorkingSet) dropping idle background memory to ~40-60 MB during gameplay",
+        "Implemented dynamic machine-unique Node ID derivation (NODE-<MAC_HASH>) and host discovery to prevent multi-device collision",
+        "Added canonical path-based deduplication (path_to_name) and feature merging across Steam, Epic, GOG, and custom disk scans",
+        "Implemented universal default library path discovery (_get_default_library_paths) across multi-drive storage",
+        "Non-destructive node_scan_paths synchronization preserving user custom scan paths across heartbeats",
+        "Delta-hashed library synchronization in node_service.py to prevent redundant network uploads",
+        "OpenCV configuration loader 3-tier runtime hooks ensuring 100% frozen PyInstaller stability"
+      ]
+    },
+    {
+      "version": "3.2.9",
+      "date": "2026-08-24",
+      "title": "Telemetry & Rollback Subsystem Reliability Hardening",
+      "highlights": [
+        "Fixed PowerShell script path interpolation and quotation parsing under UAC elevation for offline update rollback",
+        "Preserved 0% metric values in analysis engine to ensure accurate Idle load states and eliminate Unknown health classifications",
+        "Synchronized effective capture and DirectX FPS telemetry to system tray tooltip",
+        "Bound RightTelemetry neural metrics and status items to live backend telemetry",
+        "Fixed DatabaseManager class inheritance and Intel Arc Alchemist/Battlemage architecture profiling heuristics"
+      ]
+    },
+    {
+      "version": "3.2.8",
+      "date": "2026-08-22",
+      "title": "OpenCV Resilience & Pipeline Stability Hardening",
+      "highlights": [
+        "Removed unused cv2 import from capture/screen.py that caused crash on DLL load failure",
+        "Added try/except cv2 import guards in scene_classifier, simple_rules, and trt_inference with graceful NumPy/PIL fallbacks",
+        "Guarded all cv2 window management and frame encoding calls in pipeline_host to prevent AttributeError and NoneType crashes",
+        "Fixed dangling self._render_preview() call in _display_loop that caused AttributeError at runtime"
+      ]
+    },
+    {
+      "version": "3.2.7",
+      "date": "2026-08-22",
+      "title": "Distributed Server Agent and Vision Connection Integration",
+      "highlights": [
+        "Connected Agent and Vision UI pages to the central distributed library server with live node telemetry updates",
+        "Added Library Server online/offline pipeline status badges and stats panel overlays",
+        "Configured backend game scanner to fall back to distributed library server catalog API when direct DB access is unavailable"
+      ]
+    },
+    {
+      "version": "3.2.6",
+      "date": "2026-08-21",
+      "title": "OpenCV Loader & Supabase Metadata Enrichment Fixes",
+      "highlights": [
+        "Resolved OpenCV cv2 loader missing configuration in PyInstaller packages",
+        "Added full Steam features and authentic summaries backfill in Supabase",
+        "Streamlined AI classifier with zero-retry multi-provider failover"
+      ]
+    },
+    {
+      "version": "3.2.5",
+      "date": "2026-08-21",
+      "title": "Distributed Cluster Architecture & Multi-Tenant User Isolation",
+      "highlights": [
+        "Implemented high-performance distributed cluster architecture with Load Balancer and multi-instance microservices",
+        "Enabled strict multi-tenant library and node isolation per authenticated Clerk ID and OAuth provider",
+        "Backfilled release dates across canonical catalog and removed deprecated database schemas",
+        "Integrated live Docker Compose orchestration with Windows IPv6 network compatibility",
+        "Connected frontend distributed synchronization with automatic server model mapping"
+      ]
+    },
+    {
+      "version": "3.2.4",
+      "date": "2026-08-20",
+      "title": "OpenCV Config Loader & PyInstaller Backend Fixes",
+      "highlights": [
+        "Resolved OpenCV cv2 config loader missing module errors in PyInstaller backend packaging",
+        "Dynamic multi-environment package directory discovery fallback for rapidocr and cv2",
+        "Verified clean frontend and website production builds"
+      ]
+    },
+    {
+      "version": "3.2.3",
+      "date": "2026-08-19",
+      "title": "Fix First-Launch Setup Loading & Backend Process Startup Loop",
+      "highlights": [
+        "Resolved cascading backend kill-restart loop during cold boot and first launch",
+        "Standardized WebSocket bridge host to 127.0.0.1 to avoid Windows dual-stack socket collisions",
+        "Added concurrency mutex and graceful process management in Electron main process",
+        "Enabled full stdout and stderr traceback forwarding to app.log in production",
+        "Added persistent local app data directory creation in NSIS installer"
+      ]
+    },
+    {
+      "version": "3.2.3",
+      "date": "2026-08-19",
+      "title": "Fix OpenCV config loader missing configuration in PyInstaller backend packaging",
+      "highlights": [
+        "Dynamically collected OpenCV cv2 config.py runtime files, binaries, and RapidOCR data in PyInstaller spec",
+        "Added robust multi-environment package directory discovery fallback"
+      ]
+    },
+    {
+      "version": "3.2.2",
+      "date": "2026-08-19",
+      "title": "AI Support Assistant, Community Benchmarks & Live Telemetry Reporting",
+      "highlights": [
+        "Implemented comprehensive multi-tier AI support chatbot system with conversational assistance and model failovers",
+        "Connected live community game ratings, rig reviews, and media uploads to MongoDB persistence layer",
+        "Added interactive documentation search, categorized guides, and API key management client",
+        "Introduced hardware telemetry reporting modal with automated system spec detection",
+        "Refined games tested benchmark profiles, DLSS 4/DLAA upscaler badges, and newsletter subscription pipelines"
+      ]
+    },
+    {
+      "version": "3.2.1",
+      "date": "2026-08-16",
+      "title": "Library Scanner Sanitation & Steam Container Optimization",
+      "highlights": [
+        "Resolved Steam library container false-positives by filtering out steamapps directory entries",
+        "Enabled automated steamapps/common recursive game discovery in drive and library scans",
+        "Enhanced junk keywords and container validation in library scanner",
+        "Connected community review media uploads and navbar active tab synchronization"
+      ]
+    },
+    {
+      "version": "3.2.0",
+      "date": "2026-08-16",
+      "title": "Dynamic Game Root Resolution & Subfolder Optimization",
+      "highlights": [
+        "Dynamic Game Root Resolution & Subfolder Optimization",
+        "Automated upward directory walker past nested engine and architecture folders",
+        "Game root scoping preventing orphan sub-games for mod and crash tools",
+        "Enhanced executable scoring with auxiliary tool and uninstaller filtering",
+        "Universal Windows PE metadata title extraction for ambiguous binaries"
+      ]
+    },
+    {
+      "version": "3.1.9",
+      "date": "2026-08-16",
+      "title": "Universal Game Scanner & Dynamic Binary Title Resolution",
+      "highlights": [
+        "Dynamic PE binary title extraction for 100k+ games",
+        "1MB executable threshold for lightweight indie & retro games",
+        "Excluded non-game developer tools & ZuneVideo UWP app",
+        "Auto-purge uninstalled titles & pre-build version sync"
+      ]
+    },
+    {
+      "version": "3.1.8",
+      "date": "2026-08-15",
+      "title": "Direct GitHub Releases In-App Updater Fallback & Elevated Offline Rollback",
+      "highlights": [
+        "Added direct GitHub Releases API fallback to Electron autoUpdater for seamless in-app downloads when latest.yml is absent",
+        "Refactored automated offline rollback system using robocopy retry loops and automatic UAC elevation escalation",
+        "Added live Retry Download control to Updates page",
+        "Resolved shadowed local variable imports in AI brain memory module and updated Vitest suite"
+      ]
+    },
+    {
+      "version": "3.1.7",
+      "date": "2026-08-15",
+      "title": "Multi-Vendor GPU Support (AMD & Intel), Groq Model Updates & Optimizer Refinements",
+      "highlights": [
+        "Added full multi-vendor GPU capability detection for AMD Radeon and Intel Arc graphics",
+        "Migrated frontend settings and backend optimizer to unified gpu_tuning architecture",
+        "Updated Groq AI provider models to GPT OSS 120B and Qwen 3.6 27B",
+        "Removed deprecated Custom AI model fallback options"
+      ]
+    },
+    {
+      "version": "3.1.6",
+      "date": "2026-08-15",
+      "title": "Fixed Alienware CPU temperature telemetry & optimized backend Pydantic models",
+      "highlights": [
+        "Fixed Alienware CPU temperature telemetry & optimized backend Pydantic models"
+      ]
+    },
+    {
+      "version": "3.1.5",
+      "date": "2026-08-15",
+      "title": "Fixed Alienware CPU temperature telemetry & optimized backend Pydantic models",
+      "highlights": [
+        "Fixed Alienware CPU temperature telemetry & optimized backend Pydantic models"
+      ]
+    }
+  ]
 }
