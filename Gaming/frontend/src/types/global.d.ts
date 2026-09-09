@@ -36,7 +36,7 @@ declare global {
       cancelElectronUpdate?: () => void;
       rollbackElectronUpdate?: () => Promise<{ success: boolean; error?: string }>;
       getElectronUpdateState?: () => Promise<any>;
-      getReleaseStability?: () => Promise<any>;
+      getReleaseStability?: (version?: string) => Promise<any>;
       auditPreflightRisks?: () => Promise<{ safe: boolean; warnings: string[]; errors: string[] }>;
       markReleaseUnstable?: () => Promise<boolean>;
       onReleaseStabilityStatus?: (callback: (status: any) => void) => () => void;

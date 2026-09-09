@@ -74,7 +74,7 @@ contextBridge.exposeInMainWorld('electronAPI', {
   rollbackElectronUpdate: () => ipcRenderer.invoke('rollback-electron-update'),
   getElectronUpdateState: () => ipcRenderer.invoke('get-electron-update-state'),
   checkRollbackBackup: () => ipcRenderer.invoke('check-rollback-backup'),
-  getReleaseStability: () => ipcRenderer.invoke('get-release-stability'),
+  getReleaseStability: (version?: string) => ipcRenderer.invoke('get-release-stability', version),
   auditPreflightRisks: () => ipcRenderer.invoke('audit-preflight-risks'),
   markReleaseUnstable: () => ipcRenderer.invoke('mark-release-unstable'),
   onReleaseStabilityStatus: (callback: (status: any) => void) => {
