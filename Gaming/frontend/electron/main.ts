@@ -4007,7 +4007,8 @@ function setupAutoUpdater() {
     // 6. Add Ubisoft Connect trending titles (using official verified high-resolution CDN assets)
     const fetchUbisoft = async () => {
       const ubiTitles = [
-        { id: 'ubi-ac-mirage', title: "Assassin's Creed Mirage", genre: 'Stealth Action', banner: 'https://shared.cloudflare.steamstatic.com/store_item_assets/steam/apps/2842100/header.jpg', summary: 'Experience the story of Basim in ninth-century Baghdad during the Golden Age of Islam.' },
+        { id: 'ubi-ac-mirage', title: "Assassin's Creed Mirage", genre: 'Stealth Action', banner: 'https://shared.cloudflare.steamstatic.com/store_item_assets/steam/apps/3035570/header.jpg', summary: 'Experience the story of Basim in ninth-century Baghdad during the Golden Age of Islam.' },
+        { id: 'ubi-ac-shadows', title: "Assassin's Creed Shadows", genre: 'Stealth Action', banner: 'https://shared.cloudflare.steamstatic.com/store_item_assets/steam/apps/3159330/header.jpg', summary: 'Live the intertwined stories of Naoe, an adept shinobi Assassin, and Yasuke, a powerful African samurai in late Sengoku-period Japan.' },
         { id: 'ubi-r6-siege', title: "Tom Clancy's Rainbow Six Siege", genre: 'Tactical Shooter', banner: 'https://shared.cloudflare.steamstatic.com/store_item_assets/steam/apps/359550/header.jpg', summary: 'Master the art of destruction and gadgetry in intense close-quarters tactical team combat.' },
         { id: 'ubi-crew-motorfest', title: 'The Crew Motorfest', genre: 'Open World Racing', banner: 'https://shared.cloudflare.steamstatic.com/store_item_assets/steam/apps/2698940/header.jpg', summary: 'Celebrate the best of car culture in Hawaii with open-world racing festivals.' },
       ];

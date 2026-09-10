@@ -27,6 +27,10 @@ describe('Game Artwork & Title Normalization Engine', () => {
     expect(getSteamAppIdForTitle("Baldur's Gate 3")).toBe('1086940');
     expect(getSteamAppIdForTitle('God of War Ragnarök')).toBe('2322010');
     expect(getSteamAppIdForTitle('Forza Horizon 5')).toBe('1551360');
+    expect(getSteamAppIdForTitle("Assassin's Creed Mirage")).toBe('3035570');
+    expect(getSteamAppIdForTitle("Assassin's Creed Shadows")).toBe('3159330');
+    expect(getSteamAppIdForTitle('DOOM: The Dark Ages')).toBe('3017860');
+    expect(getSteamAppIdForTitle('Forza Motorsport')).toBe('2440510');
   });
 
   it('resolves official Steam CDN artwork when given a title', () => {
@@ -94,6 +98,19 @@ describe('Smart Search Recommendations & Canonical Search Engine', () => {
     const personaResults = searchCanonicalCatalog('persona 5 royal');
     expect(personaResults.length).toBeGreaterThan(0);
     expect(personaResults[0].store_app_id).toBe('1687950');
+
+    // 5. Assassin's Creed Mirage resolves to 3035570 and official banner (not 2842100 Minotauros)
+    const mirageResults = searchCanonicalCatalog("Assassin's Creed Mirage");
+    expect(mirageResults.length).toBeGreaterThan(0);
+    expect(mirageResults[0].store_app_id).toBe('3035570');
+    expect(mirageResults[0].banner_url).toContain('3035570/header.jpg');
+    expect(mirageResults[0].banner_url).not.toContain('2842100');
+
+    // 6. Assassin's Creed Shadows resolves to 3159330 and official banner
+    const shadowsResults = searchCanonicalCatalog("Assassin's Creed Shadows");
+    expect(shadowsResults.length).toBeGreaterThan(0);
+    expect(shadowsResults[0].store_app_id).toBe('3159330');
+    expect(shadowsResults[0].banner_url).toContain('3159330/header.jpg');
   });
 });
 
