@@ -97,8 +97,8 @@ export const TITLE_TO_STEAM_APPID: Record<string, string> = {
   'stalker shadow of chernobyl': '4500',
   'stalker clear sky': '20510',
   'stalker call of pripyat': '41700',
-  'doom the dark ages': '2799300',
-  'doom: the dark ages': '2799300',
+  'doom the dark ages': '3017860',
+  'doom: the dark ages': '3017860',
   'doom eternal': '782330',
   'doom': '379720',
   'monster hunter wilds': '2246340',
@@ -130,13 +130,14 @@ export const TITLE_TO_STEAM_APPID: Record<string, string> = {
   'warhammer 40000 space marine 2': '2183900',
   'warhammer 40,000: space marine 2': '2183900',
   'space marine 2': '2183900',
-  'assassins creed mirage': '2842100',
-  "assassin's creed mirage": '2842100',
+  'assassins creed mirage': '3035570',
+  "assassin's creed mirage": '3035570',
   'assassins creed valhalla': '2208920',
   "assassin's creed valhalla": '2208920',
   'assassins creed odyssey': '812140',
   'assassins creed origins': '582160',
-  'assassins creed shadows': '2842100',
+  'assassins creed shadows': '3159330',
+  "assassin's creed shadows": '3159330',
   'dragons dogma 2': '2054970',
   "dragon's dogma 2": '2054970',
   'diablo iv': '2344520',
@@ -165,7 +166,7 @@ export const TITLE_TO_STEAM_APPID: Record<string, string> = {
   'returnal': '1895810',
   'forza horizon 5': '1551360',
   'forza horizon 4': '1293830',
-  'forza motorsport': '2438070',
+  'forza motorsport': '2440510',
   'hogwarts legacy': '990080',
   'starfield': '1716740',
   'kingdom come deliverance ii': '1771300',
@@ -630,10 +631,10 @@ export const CURATED_FEATURED_GAMES: DiscoverItem[] = [
     genres: ['FPS', 'Action', 'Gore', 'Demons'],
     tags: ['Heavy Metal', 'Brutal', 'Singleplayer'],
     rating: 91,
-    banner_url: 'https://shared.cloudflare.steamstatic.com/store_item_assets/steam/apps/2799300/header.jpg',
+    banner_url: 'https://shared.cloudflare.steamstatic.com/store_item_assets/steam/apps/3017860/header.jpg',
     summary: 'The prequel to DOOM (2016) and DOOM Eternal. Witness the origin of the DOOM Slayer rage in a dark, sinister medieval war against Hell.',
     store: 'Steam',
-    store_app_id: '2799300',
+    store_app_id: '3017860',
     launchers: ['Steam', 'Xbox Game Pass'],
     in_catalog: true,
     ai_classified: true,
@@ -1523,10 +1524,29 @@ export const CURATED_FEATURED_GAMES: DiscoverItem[] = [
     genres: ['Stealth', 'Action Adventure', 'Parkour', 'Historical'],
     tags: ['Open World', 'Story Rich', 'Assassins'],
     rating: 77,
-    banner_url: 'https://shared.cloudflare.steamstatic.com/store_item_assets/steam/apps/2842100/header.jpg',
+    banner_url: 'https://shared.cloudflare.steamstatic.com/store_item_assets/steam/apps/3035570/header.jpg',
     summary: 'Experience the story of Basim, a cunning street thief with nightmarish visions, seeking answers and justice as he navigates the bustling streets of Baghdad.',
     store: 'Steam',
-    store_app_id: '2842100',
+    store_app_id: '3035570',
+    launchers: ['Steam', 'Ubisoft Connect', 'Epic Games'],
+    in_catalog: true,
+    ai_classified: true,
+    installations: [],
+  },
+  {
+    id: 'assassins-creed-shadows',
+    title: "Assassin's Creed Shadows",
+    developer: 'Ubisoft Quebec',
+    publisher: 'Ubisoft',
+    release_date: '2025-03-20',
+    primary_genre: 'Stealth Action',
+    genres: ['Stealth', 'Action Adventure', 'Parkour', 'Historical'],
+    tags: ['Open World', 'Story Rich', 'Assassins', 'Ninja', 'Samurai'],
+    rating: 80,
+    banner_url: 'https://shared.cloudflare.steamstatic.com/store_item_assets/steam/apps/3159330/header.jpg',
+    summary: 'Live the intertwined stories of Naoe, an adept shinobi Assassin, and Yasuke, a powerful African samurai in late Sengoku-period Japan.',
+    store: 'Steam',
+    store_app_id: '3159330',
     launchers: ['Steam', 'Ubisoft Connect', 'Epic Games'],
     in_catalog: true,
     ai_classified: true,
@@ -1749,11 +1769,18 @@ const CLIENT_CACHE_TTL = 60 * 60 * 1000;
 export function getCachedSearchResults(key: string): DiscoverItem[] | null {
   const norm = key.trim().toLowerCase();
   try {
-    const raw = localStorage.getItem(`mc_search_v2_${norm}`);
+    const raw = localStorage.getItem(`mc_search_v3_${norm}`);
     if (raw) {
       const parsed = JSON.parse(raw);
       if (parsed && Date.now() - parsed.timestamp < CLIENT_CACHE_TTL && Array.isArray(parsed.data)) {
-        return parsed.data;
+        // Sanity check: purge any stale Minotauros app id (2842100) mapped to Assassin's Creed
+        const hasStaleAppId = parsed.data.some((g: DiscoverItem) =>
+          (g.id?.includes('mirage') || g.title?.toLowerCase().includes('mirage')) &&
+          (g.store_app_id === '2842100' || g.banner_url?.includes('2842100'))
+        );
+        if (!hasStaleAppId) {
+          return parsed.data;
+        }
       }
     }
   } catch (_) {}
@@ -1764,7 +1791,7 @@ export function setCachedSearchResults(key: string, data: DiscoverItem[]) {
   const norm = key.trim().toLowerCase();
   const entry = { timestamp: Date.now(), data };
   try {
-    localStorage.setItem(`mc_search_v2_${norm}`, JSON.stringify(entry));
+    localStorage.setItem(`mc_search_v3_${norm}`, JSON.stringify(entry));
   } catch (_) {}
 }
 

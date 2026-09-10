@@ -132,6 +132,11 @@ export default function Footer() {
                 </Link>
               </li>
               <li>
+                <Link href="/server" className="text-gray-400 hover:text-white hover:translate-x-1 transition-all duration-300 text-sm cursor-pointer text-left flex items-center gap-2 group">
+                  <span className="w-1.5 h-1.5 rounded-full bg-neon-green/40 group-hover:bg-neon-green group-hover:shadow-[0_0_8px_rgba(118,185,0,0.8)] transition-all duration-300"></span> Distributed Server
+                </Link>
+              </li>
+              <li>
                 <Link href="/contact" className="text-gray-400 hover:text-white hover:translate-x-1 transition-all duration-300 text-sm cursor-pointer text-left flex items-center gap-2 group">
                   <span className="w-1.5 h-1.5 rounded-full bg-neon-green/40 group-hover:bg-neon-green group-hover:shadow-[0_0_8px_rgba(118,185,0,0.8)] transition-all duration-300"></span> Contact Support
                 </Link>

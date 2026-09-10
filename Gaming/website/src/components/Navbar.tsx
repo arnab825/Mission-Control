@@ -33,6 +33,7 @@ import {
   Star,
   Sparkles,
   ArrowRight,
+  Server,
 } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 import { WINDOWS_INSTALLER_URL, LINUX_INSTALLER_URL, AUTO_DOWNLOAD_URL } from "@/lib/download";
@@ -164,6 +165,7 @@ export default function Navbar() {
       href: "/architecture",
       icon: Cpu,
       subLinks: [
+        { name: "Distributed Server Cluster", href: "/server", icon: Server },
         { name: "NIM Core Integration", href: "/architecture#nim-core", icon: Zap },
         { name: "DirectX Presentation", href: "/architecture#directx-presentation", icon: Tv },
         { name: "Hardware Diagnostics", href: "/architecture#parallel-hardware", icon: Activity },
@@ -409,6 +411,7 @@ export default function Navbar() {
                     </div>
                     <div className="space-y-1 pt-1">
                       {[
+                        { title: "Distributed Server & Node Mesh", category: "Architecture", icon: Server, href: "/server" },
                         { title: "DirectX 12 Overlay Swapchain", category: "Architecture", icon: Cpu, href: "/architecture#directx-presentation" },
                         { title: "NVIDIA DLSS Frame Generation", category: "Docs", icon: Zap, href: "/docs/nvidia_ai_guide" },
                         { title: "Project Summary & Roadmap", category: "Docs", icon: BookOpen, href: "/docs/summary" },
