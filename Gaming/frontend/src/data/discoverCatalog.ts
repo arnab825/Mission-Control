@@ -410,8 +410,28 @@ export function getSteamAppIdForTitle(title: string): string | null {
 }
 
 /**
+ * Validates whether a custom banner or cover URL is genuinely custom and non-placeholder,
+ * and ensures it does not point to a conflicting/stale Steam App ID.
+ */
+function isValidCustomArtworkUrl(url?: string | null, canonicalAppId?: string | null): boolean {
+  if (!url || typeof url !== 'string' || !url.startsWith('http') || url.includes('dicebear')) {
+    return false;
+  }
+  // Filter out known stale Minotauros app ID (2842100) when title is not Minotauros
+  if (url.includes('2842100') && canonicalAppId !== '2842100') {
+    return false;
+  }
+  // If canonical Steam App ID is known and custom URL is a Steam static asset, verify app ID matches
+  const steamAppMatch = url.match(/\/apps\/(\d+)\//);
+  if (canonicalAppId && steamAppMatch && steamAppMatch[1] !== canonicalAppId) {
+    return false;
+  }
+  return true;
+}
+
+/**
  * Resolves verified high-resolution artwork URLs for any game title.
- * Provides guaranteed Steam CDN headers and capsules, bypassing placeholder shapes.
+ * Provides guaranteed Steam CDN headers and capsules, bypassing placeholder shapes and stale App IDs.
  */
 export function getGameArtwork(
   title: string,
@@ -419,27 +439,31 @@ export function getGameArtwork(
   customCover?: string | null,
   storeAppId?: string | null
 ): { bannerUrl: string; coverUrl: string; steamAppId?: string } {
+  const canonicalAppId = getSteamAppIdForTitle(title);
   const numericId = storeAppId && /^\d+$/.test(storeAppId) ? storeAppId : null;
-  const resolvedAppId = numericId || getSteamAppIdForTitle(title);
+  // If title is known in canonical catalog, prefer canonicalAppId over outdated storeAppId (e.g. 2842100)
+  const resolvedAppId = canonicalAppId || numericId;
 
   if (resolvedAppId) {
     const steamHeader = `https://shared.cloudflare.steamstatic.com/store_item_assets/steam/apps/${resolvedAppId}/header.jpg`;
     const steamCapsule = `https://shared.cloudflare.steamstatic.com/store_item_assets/steam/apps/${resolvedAppId}/capsule_616x353.jpg`;
     return {
-      bannerUrl: customBanner && customBanner.startsWith('http') && !customBanner.includes('dicebear')
-        ? customBanner
+      bannerUrl: isValidCustomArtworkUrl(customBanner, canonicalAppId || resolvedAppId)
+        ? (customBanner as string)
         : steamHeader,
-      coverUrl: customCover && customCover.startsWith('http') && !customCover.includes('dicebear')
-        ? customCover
+      coverUrl: isValidCustomArtworkUrl(customCover, canonicalAppId || resolvedAppId)
+        ? (customCover as string)
         : steamCapsule,
       steamAppId: resolvedAppId,
     };
   }
 
-  const fallback = customBanner || customCover || '';
+  const fallback = isValidCustomArtworkUrl(customBanner)
+    ? (customBanner as string)
+    : (isValidCustomArtworkUrl(customCover) ? (customCover as string) : '');
   return {
     bannerUrl: fallback,
-    coverUrl: customCover || customBanner || '',
+    coverUrl: isValidCustomArtworkUrl(customCover) ? (customCover as string) : fallback,
   };
 }
 
@@ -1766,6 +1790,111 @@ export const CURATED_FEATURED_GAMES: DiscoverItem[] = [
 // Persistent Local Search Cache (1-hour TTL) to eliminate repeated network calls
 const CLIENT_CACHE_TTL = 60 * 60 * 1000;
 
+/**
+ * Sanitizes discover items against legacy or mismatched Steam App IDs (e.g. 2842100 Minotauros).
+ */
+export function sanitizeDiscoverItem(game: DiscoverItem): DiscoverItem {
+  if (!game) return game;
+  const titleLower = (game.title || '').toLowerCase().trim();
+  const idLower = (game.id || '').toLowerCase().trim();
+  const isMirage = (titleLower.includes('mirage') && (titleLower.includes('assassin') || titleLower.includes('ac '))) || idLower.includes('mirage');
+
+  if (isMirage) {
+    let changed = false;
+    let storeAppId = game.store_app_id;
+    let bannerUrl = game.banner_url;
+    let coverUrl = game.cover_url;
+
+    if (storeAppId === '2842100' || !storeAppId || storeAppId === 'ubi-ac-mirage') {
+      storeAppId = '3035570';
+      changed = true;
+    }
+    if (bannerUrl?.includes('2842100') || !bannerUrl) {
+      bannerUrl = 'https://shared.cloudflare.steamstatic.com/store_item_assets/steam/apps/3035570/header.jpg';
+      changed = true;
+    }
+    if (coverUrl?.includes('2842100')) {
+      coverUrl = 'https://shared.cloudflare.steamstatic.com/store_item_assets/steam/apps/3035570/capsule_616x353.jpg';
+      changed = true;
+    }
+    if (changed) {
+      return {
+        ...game,
+        store_app_id: storeAppId,
+        banner_url: bannerUrl,
+        cover_url: coverUrl,
+      };
+    }
+  }
+
+  // Canonical cross-verification
+  const canonicalId = getSteamAppIdForTitle(game.title);
+  if (canonicalId) {
+    const steamAppMatch = game.banner_url?.match(/\/apps\/(\d+)\//);
+    if (steamAppMatch && steamAppMatch[1] !== canonicalId) {
+      return {
+        ...game,
+        store_app_id: canonicalId,
+        banner_url: `https://shared.cloudflare.steamstatic.com/store_item_assets/steam/apps/${canonicalId}/header.jpg`,
+        cover_url: `https://shared.cloudflare.steamstatic.com/store_item_assets/steam/apps/${canonicalId}/capsule_616x353.jpg`,
+      };
+    }
+  }
+
+  return game;
+}
+
+/**
+ * Proactively purges any stale localStorage caches containing legacy/mismatched App IDs.
+ */
+export function purgeStaleAppStorage(): void {
+  if (typeof window === 'undefined' || typeof localStorage === 'undefined') return;
+  try {
+    const keysToClean: string[] = [];
+    for (let i = 0; i < localStorage.length; i++) {
+      const k = localStorage.key(i);
+      if (k && (k.startsWith('mc_search_v3_') || k.startsWith('mc_cached_library_') || k === 'mc_recent_game_searches')) {
+        keysToClean.push(k);
+      }
+    }
+    for (const key of keysToClean) {
+      const itemStr = localStorage.getItem(key);
+      if (!itemStr) continue;
+      if (itemStr.includes('2842100')) {
+        try {
+          const parsed = JSON.parse(itemStr);
+          if (Array.isArray(parsed)) {
+            const fixed = parsed.map(g => {
+              const nameLower = (g.name || g.title || '').toLowerCase();
+              if (nameLower.includes('mirage') || g.id?.includes('mirage')) {
+                return {
+                  ...g,
+                  local_banner: g.local_banner?.includes('2842100') ? 'https://shared.cloudflare.steamstatic.com/store_item_assets/steam/apps/3035570/header.jpg' : g.local_banner,
+                  banner_url: g.banner_url?.includes('2842100') ? 'https://shared.cloudflare.steamstatic.com/store_item_assets/steam/apps/3035570/header.jpg' : g.banner_url,
+                  cover_url: g.cover_url?.includes('2842100') ? 'https://shared.cloudflare.steamstatic.com/store_item_assets/steam/apps/3035570/capsule_616x353.jpg' : g.cover_url,
+                  store_app_id: g.store_app_id === '2842100' ? '3035570' : g.store_app_id,
+                };
+              }
+              return g;
+            });
+            localStorage.setItem(key, JSON.stringify(fixed));
+          } else if (parsed && Array.isArray(parsed.data)) {
+            const fixedData = parsed.data.map((g: DiscoverItem) => sanitizeDiscoverItem(g));
+            localStorage.setItem(key, JSON.stringify({ ...parsed, data: fixedData }));
+          }
+        } catch (_) {}
+      }
+    }
+  } catch (_) {}
+}
+
+// Auto-run storage cleanup on initial script execution
+if (typeof window !== 'undefined') {
+  try {
+    purgeStaleAppStorage();
+  } catch (_) {}
+}
+
 export function getCachedSearchResults(key: string): DiscoverItem[] | null {
   const norm = key.trim().toLowerCase();
   try {
@@ -1773,14 +1902,21 @@ export function getCachedSearchResults(key: string): DiscoverItem[] | null {
     if (raw) {
       const parsed = JSON.parse(raw);
       if (parsed && Date.now() - parsed.timestamp < CLIENT_CACHE_TTL && Array.isArray(parsed.data)) {
-        // Sanity check: purge any stale Minotauros app id (2842100) mapped to Assassin's Creed
-        const hasStaleAppId = parsed.data.some((g: DiscoverItem) =>
-          (g.id?.includes('mirage') || g.title?.toLowerCase().includes('mirage')) &&
-          (g.store_app_id === '2842100' || g.banner_url?.includes('2842100'))
-        );
-        if (!hasStaleAppId) {
-          return parsed.data;
+        let modified = false;
+        const sanitizedData = parsed.data.map((g: DiscoverItem) => {
+          const sanitized = sanitizeDiscoverItem(g);
+          if (sanitized !== g) {
+            modified = true;
+          }
+          return sanitized;
+        });
+
+        if (modified) {
+          try {
+            localStorage.setItem(`mc_search_v3_${norm}`, JSON.stringify({ timestamp: parsed.timestamp, data: sanitizedData }));
+          } catch (_) {}
         }
+        return sanitizedData;
       }
     }
   } catch (_) {}
@@ -1789,7 +1925,8 @@ export function getCachedSearchResults(key: string): DiscoverItem[] | null {
 
 export function setCachedSearchResults(key: string, data: DiscoverItem[]) {
   const norm = key.trim().toLowerCase();
-  const entry = { timestamp: Date.now(), data };
+  const sanitized = (data || []).map(g => sanitizeDiscoverItem(g));
+  const entry = { timestamp: Date.now(), data: sanitized };
   try {
     localStorage.setItem(`mc_search_v3_${norm}`, JSON.stringify(entry));
   } catch (_) {}

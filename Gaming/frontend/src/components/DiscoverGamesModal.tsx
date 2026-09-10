@@ -34,7 +34,8 @@ import {
   getGameArtwork,
   getSteamAppIdForTitle,
   getSmartSearchRecommendations,
-  searchCanonicalCatalog
+  searchCanonicalCatalog,
+  purgeStaleAppStorage
 } from '../data/discoverCatalog';
 
 // Re-export for backward compatibility
@@ -597,6 +598,7 @@ const DiscoverGamesModal: React.FC<DiscoverGamesModalProps> = ({ onClose, instal
   };
 
   useEffect(() => {
+    purgeStaleAppStorage();
     loadPopularCatalog();
     loadGamingNews();
   }, []);
@@ -1539,8 +1541,13 @@ const DiscoverGamesModal: React.FC<DiscoverGamesModalProps> = ({ onClose, instal
                       alt={selectedGame.title}
                       onError={(e) => {
                         const target = e.target as HTMLImageElement;
-                        const steamAppId = getSteamAppIdForTitle(selectedGame.title) || selectedGame.store_app_id;
-                        const steamHeader = steamAppId ? `https://shared.cloudflare.steamstatic.com/store_item_assets/steam/apps/${steamAppId}/header.jpg` : null;
+                        const steamAppId = getSteamAppIdForTitle(selectedGame.title) || (
+                          (selectedGame.store === 'steam' || selectedGame.store === 'Steam') && selectedGame.store_app_id
+                            ? selectedGame.store_app_id
+                            : (/^\d+$/.test(selectedGame.id) ? selectedGame.id : (/^\d+$/.test(selectedGame.store_app_id || '') ? selectedGame.store_app_id : null))
+                        );
+                        const cleanAppId = steamAppId === '2842100' ? (getSteamAppIdForTitle(selectedGame.title) || '3035570') : steamAppId;
+                        const steamHeader = cleanAppId ? `https://shared.cloudflare.steamstatic.com/store_item_assets/steam/apps/${cleanAppId}/header.jpg` : null;
                         if (steamHeader && target.src !== steamHeader) {
                           target.src = steamHeader;
                         }
