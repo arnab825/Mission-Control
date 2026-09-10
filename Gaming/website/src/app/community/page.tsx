@@ -377,6 +377,8 @@ export default function CommunityPage() {
     }
   };
 
+
+  
   return (
     <main className="flex-1 min-h-screen pt-24 sm:pt-28 pb-20 sm:pb-24 px-3 sm:px-6 lg:px-8 bg-obsidian relative overflow-x-hidden w-full max-w-full">
       
