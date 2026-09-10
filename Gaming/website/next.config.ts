@@ -13,10 +13,21 @@ try {
   console.warn("Failed to load env-public.json:", e);
 }
 
-const rootDir = path.resolve(process.cwd(), "../..");
+const rootDir = process.cwd();
 
 const nextConfig: NextConfig = {
   outputFileTracingRoot: rootDir,
+  outputFileTracingExcludes: {
+    "*": [
+      "public/games/*.png",
+      "public/screenshots/*.png",
+      "node_modules/@swc/core-linux-x64-gnu",
+      "node_modules/@swc/core-linux-x64-musl",
+      "node_modules/@esbuild",
+      "generate.log",
+      "*.log"
+    ],
+  },
   compress: true,
   reactStrictMode: true,
   turbopack: {
@@ -48,10 +59,12 @@ const nextConfig: NextConfig = {
         ]
       },
       {
-        source: "/(fonts|images|screenshots|logo.png)/:path*",
+        source: "/(fonts|images|screenshots|games|logo.png)/:path*",
         headers: [
           { key: "Access-Control-Allow-Origin", value: "*" },
-          { key: "Cache-Control", value: "public, max-age=31536000, immutable" }
+          { key: "Cache-Control", value: "public, max-age=31536000, s-maxage=31536000, stale-while-revalidate=86400, immutable" },
+          { key: "CDN-Cache-Control", value: "public, s-maxage=31536000, stale-while-revalidate=86400, immutable" },
+          { key: "Vercel-CDN-Cache-Control", value: "public, s-maxage=31536000, stale-while-revalidate=86400, immutable" }
         ]
       }
     ];

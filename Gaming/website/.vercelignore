@@ -1,0 +1,13 @@
+# Vercel Ignore File - Drastically reduces Deployment Storage and Build Bandwidth
+.next
+node_modules
+*.log
+generate.log
+*.py
+upscale_hud_images.py
+docs/
+scripts/
+public/games/*.png
+*.tsbuildinfo
+.git
+.env*.local
