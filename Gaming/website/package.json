@@ -4,7 +4,7 @@
   "license": "Apache-2.0",
   "private": true,
   "scripts": {
-    "prebuild": "python ../scripts/sync_version.py",
+    "prebuild": "node -e \"if(require('fs').existsSync('../scripts/sync_version.py')) try{require('child_process').execSync('python ../scripts/sync_version.py', {stdio:'inherit'})}catch(e){}\"",
     "dev": "next dev",
     "build": "next build",
     "start": "next start",
