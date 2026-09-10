@@ -54,7 +54,9 @@ export async function GET(request: NextRequest) {
 
     const responseHeaders = new Headers();
     responseHeaders.set("Content-Type", contentType);
-    responseHeaders.set("Cache-Control", "public, max-age=31536000, immutable");
+    responseHeaders.set("Cache-Control", "public, max-age=31536000, s-maxage=31536000, stale-while-revalidate=86400, immutable");
+    responseHeaders.set("CDN-Cache-Control", "public, s-maxage=31536000, stale-while-revalidate=86400, immutable");
+    responseHeaders.set("Vercel-CDN-Cache-Control", "public, s-maxage=31536000, stale-while-revalidate=86400, immutable");
 
     return new NextResponse(stream, {
       status: 200,

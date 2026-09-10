@@ -1,0 +1,12 @@
+# Repository Root Vercel Ignore
+Gaming/frontend
+Gaming/backend
+Gaming/distributed_server
+.git
+.github
+.agents
+*.log
+*.py
+*.tsbuildinfo
+node_modules
+.next
