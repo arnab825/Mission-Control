@@ -47,6 +47,23 @@ describe('Game Artwork & Title Normalization Engine', () => {
     expect(artwork.coverUrl).toContain('1245620/capsule_616x353.jpg');
   });
 
+  it('rejects stale or mismatched Steam App IDs (like 2842100 Minotauros) for Assassin\'s Creed Mirage', () => {
+    // Stale Minotauros banner URL passed
+    const staleBanner = 'https://shared.cloudflare.steamstatic.com/store_item_assets/steam/apps/2842100/header.jpg';
+    const staleCover = 'https://shared.cloudflare.steamstatic.com/store_item_assets/steam/apps/2842100/capsule_616x353.jpg';
+    const artworkFromStaleBanner = getGameArtwork("Assassin's Creed Mirage", staleBanner, staleCover);
+    expect(artworkFromStaleBanner.steamAppId).toBe('3035570');
+    expect(artworkFromStaleBanner.bannerUrl).toBe('https://shared.cloudflare.steamstatic.com/store_item_assets/steam/apps/3035570/header.jpg');
+    expect(artworkFromStaleBanner.coverUrl).toBe('https://shared.cloudflare.steamstatic.com/store_item_assets/steam/apps/3035570/capsule_616x353.jpg');
+    expect(artworkFromStaleBanner.bannerUrl).not.toContain('2842100');
+
+    // Stale store_app_id passed
+    const artworkFromStaleId = getGameArtwork("Assassin's Creed Mirage", null, null, '2842100');
+    expect(artworkFromStaleId.steamAppId).toBe('3035570');
+    expect(artworkFromStaleId.bannerUrl).toContain('3035570/header.jpg');
+    expect(artworkFromStaleId.bannerUrl).not.toContain('2842100');
+  });
+
   it('contains over 150 verified games in TITLE_TO_STEAM_APPID', () => {
     const totalEntries = Object.keys(TITLE_TO_STEAM_APPID).length;
     expect(totalEntries).toBeGreaterThan(150);
