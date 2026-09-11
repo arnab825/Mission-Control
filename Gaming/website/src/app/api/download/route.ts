@@ -1,10 +1,24 @@
 import { NextRequest, NextResponse } from "next/server";
+import { DownloadTypeSchema } from "@/lib/api-validation";
 
 export const dynamic = "force-dynamic";
 
 export async function GET(request: NextRequest) {
   const { searchParams } = new URL(request.url);
   let rawType = searchParams.get("type");
+
+  // Validate type against strict enum schema if provided
+  if (rawType && rawType !== "auto") {
+    const parseResult = DownloadTypeSchema.safeParse(rawType.toLowerCase());
+    if (!parseResult.success) {
+      return NextResponse.json(
+        {
+          error: "Validation Error: Unsupported download format specified. Supported options include exe, msi, zip, linux, appimage, deb, rpm, and tar.gz.",
+        },
+        { status: 400 }
+      );
+    }
+  }
 
   // Automatic OS detection if type is unspecified or auto
   if (!rawType || rawType === "auto") {

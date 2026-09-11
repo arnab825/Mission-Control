@@ -270,6 +270,58 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
+# ── Dynamic Rate Limiting Middleware ─────────────────────────────────────────
+_rate_limits: Dict[str, Dict[str, Any]] = {}
+_RATE_WINDOW = int(os.getenv("RATE_LIMIT_SERVER_WINDOW", "60"))
+_RATE_MAX_SENSITIVE = int(os.getenv("RATE_LIMIT_SERVER_MAX_SENSITIVE", "20"))
+_RATE_MAX_PUBLIC = int(os.getenv("RATE_LIMIT_SERVER_MAX_PUBLIC", "120"))
+
+@app.middleware("http")
+async def rate_limit_middleware(request: Request, call_next):
+    client_ip = request.client.host if request.client else "127.0.0.1"
+    path = request.url.path
+    now = time.time()
+
+    # Determine tier
+    is_sensitive = path.startswith(("/api/nodes/register", "/api/games/seed", "/api/games/classify"))
+    max_requests = _RATE_MAX_SENSITIVE if is_sensitive else _RATE_MAX_PUBLIC
+
+    rate_key = f"{'sensitive' if is_sensitive else 'public'}:{client_ip}"
+    record = _rate_limits.get(rate_key)
+
+    if not record or (now - record["window_start"]) > _RATE_WINDOW:
+        _rate_limits[rate_key] = {"count": 1, "window_start": now, "backoff_until": 0}
+    else:
+        if record["backoff_until"] > now:
+            retry_after = int(record["backoff_until"] - now) + 1
+            return JSONResponse(
+                status_code=429,
+                content={"detail": "Rate limit exceeded. Exponential backoff active.", "retry_after": retry_after},
+                headers={"Retry-After": str(retry_after)},
+            )
+        record["count"] += 1
+        if record["count"] > max_requests:
+            record["violations"] = record.get("violations", 0) + 1
+            backoff = min(600, 15 * (2 ** (record["violations"] - 1)))
+            record["backoff_until"] = now + backoff
+            return JSONResponse(
+                status_code=429,
+                content={"detail": "Rate limit exceeded. Exponential backoff active.", "retry_after": backoff},
+                headers={"Retry-After": str(backoff)},
+            )
+
+    return await call_next(request)
+
+# ── Global Error Shielding Exception Handler ──────────────────────────────────
+@app.exception_handler(Exception)
+async def global_exception_handler(request: Request, exc: Exception):
+    logger.error("Unhandled exception processing %s %s: %s", request.method, request.url.path, exc, exc_info=True)
+    return JSONResponse(
+        status_code=500,
+        content={"detail": "An internal server error occurred. Please try again later."},
+    )
+
+
 # ── Auth Helpers ──────────────────────────────────────────────────────────────
 
 def _require_node_auth(node_id: str, x_node_token: Optional[str]) -> None:

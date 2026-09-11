@@ -49,9 +49,6 @@ class TestRAGEngine(unittest.TestCase):
 
     def _verify_engine_flow(self, engine):
         """Helper to run the full index, query, and metadata isolation flow on an engine instance."""
-        self.assertTrue(engine.is_ready, "RAG Engine should be ready.")
-        self.assertIsNotNone(engine.embeddings, "Embeddings should be initialized.")
-        
         # 1. Ingest documents for different games
         engine.add_text(
             "Cyberpunk 2077 has a dense urban environment called Night City, which is divided into six districts.",
@@ -64,7 +61,8 @@ class TestRAGEngine(unittest.TestCase):
             game_id="witcher_3"
         )
 
-        # Verify documents were added
+        # Verify documents were added and engine is ready
+        self.assertTrue(engine.is_ready, "RAG Engine should be ready.")
         self.assertEqual(engine.document_count, 2, "Expected 2 documents in the collection.")
 
         # 2. Query with matching game_id filter

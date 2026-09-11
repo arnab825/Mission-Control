@@ -5,11 +5,12 @@ import connectDB from "@/lib/mongodb";
 import GamingPost from "@/models/GamingPost";
 import fs from "fs";
 import path from "path";
+import { handleApiError } from "@/lib/api-validation";
 
 export async function GET(request: Request) {
   try {
     const { searchParams } = new URL(request.url);
-    const query = searchParams.get("q")?.toLowerCase().trim() || "";
+    const query = searchParams.get("q")?.toLowerCase().trim().slice(0, 100) || "";
 
     if (!query) {
       return NextResponse.json({ results: [] });
@@ -141,11 +142,6 @@ export async function GET(request: Request) {
 
     return NextResponse.json({ results });
   } catch (error: unknown) {
-    console.error("Search API failed:", error);
-    const message = error instanceof Error ? error.message : "Search query failed.";
-    return NextResponse.json(
-      { error: "Search query failed.", details: message },
-      { status: 500 }
-    );
+    return handleApiError("GET /api/search", error, 500, "Failed to perform search.");
   }
 }

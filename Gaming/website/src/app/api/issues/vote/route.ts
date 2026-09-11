@@ -1,33 +1,27 @@
 import { NextResponse } from "next/server";
 import { voteIssue } from "@/lib/db";
+import { IssueVoteSchema, validateRequestBody, handleApiError } from "@/lib/api-validation";
 
 export async function POST(request: Request) {
   try {
-    const body = await request.json();
-    const { issueId } = body;
-
-    if (!issueId) {
-      return NextResponse.json(
-        { error: "Missing required field: issueId is required." },
-        { status: 400 }
-      );
+    const rawBody = await request.json();
+    const validation = validateRequestBody(IssueVoteSchema, rawBody);
+    if (!validation.success) {
+      return validation.response;
     }
 
+    const { issueId } = validation.data;
     const updatedIssue = await voteIssue(issueId);
 
     if (!updatedIssue) {
       return NextResponse.json(
-        { error: `Issue with ID ${issueId} not found.` },
+        { error: "Specified issue not found." },
         { status: 404 }
       );
     }
 
     return NextResponse.json({ success: true, issue: updatedIssue });
-  } catch (error: any) {
-    console.error("Error in POST /api/issues/vote:", error);
-    return NextResponse.json(
-      { error: "Failed to submit vote", details: error.message },
-      { status: 500 }
-    );
+  } catch (error: unknown) {
+    return handleApiError("POST /api/issues/vote", error, 500, "Failed to register vote.");
   }
 }

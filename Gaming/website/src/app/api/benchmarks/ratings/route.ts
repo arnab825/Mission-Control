@@ -1,5 +1,6 @@
 import { NextResponse } from "next/server";
 import { getGameRatings, getRatingSummary, createGameRating } from "@/lib/benchmarks-db";
+import { handleApiError } from "@/lib/api-validation";
 
 export async function GET(request: Request) {
   try {
@@ -14,12 +15,8 @@ export async function GET(request: Request) {
     ]);
 
     return NextResponse.json({ ratings, summary });
-  } catch (error: any) {
-    console.error("Error in GET /api/benchmarks/ratings:", error);
-    return NextResponse.json(
-      { error: "Failed to fetch ratings", details: error.message },
-      { status: 500 }
-    );
+  } catch (error: unknown) {
+    return handleApiError("GET /api/benchmarks/ratings", error, 500, "Failed to retrieve ratings.");
   }
 }
 
@@ -90,11 +87,7 @@ export async function POST(request: Request) {
     const summary = await getRatingSummary(gameId);
 
     return NextResponse.json({ rating: newRating, summary }, { status: 201 });
-  } catch (error: any) {
-    console.error("Error in POST /api/benchmarks/ratings:", error);
-    return NextResponse.json(
-      { error: "Failed to create rating", details: error.message },
-      { status: 500 }
-    );
+  } catch (error: unknown) {
+    return handleApiError("POST /api/benchmarks/ratings", error, 500, "Failed to register game rating.");
   }
 }

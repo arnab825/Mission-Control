@@ -3,6 +3,7 @@ import connectDB from "@/lib/mongodb";
 import Subscriber from "@/models/Subscriber";
 import GamingPost from "@/models/GamingPost";
 import nodemailer from "nodemailer";
+import { SubscribeSchema, validateRequestBody, handleApiError, checkAccountRateLimit } from "@/lib/api-validation";
 
 function escapeHtml(str: string): string {
   return String(str)
@@ -15,24 +16,19 @@ function escapeHtml(str: string): string {
 
 export async function POST(request: Request) {
   try {
-    const body = await request.json();
-    const { email } = body;
-
-    // Strict Email Validation
-    if (!email || typeof email !== "string") {
-      return NextResponse.json(
-        { error: "Validation Error: Email address is required." },
-        { status: 400 }
-      );
+    const rawBody = await request.json();
+    const validation = validateRequestBody(SubscribeSchema, rawBody);
+    if (!validation.success) {
+      return validation.response;
     }
 
-    const cleanEmail = email.trim().toLowerCase();
-    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-    if (!emailRegex.test(cleanEmail)) {
-      return NextResponse.json(
-        { error: "Validation Error: Please provide a valid email format." },
-        { status: 400 }
-      );
+    const { email } = validation.data;
+    const cleanEmail = email.toLowerCase();
+
+    // Enforce per-account exponential backoff rate limiting
+    const accountCheck = checkAccountRateLimit(`sub:${cleanEmail}`);
+    if (!accountCheck.allowed && accountCheck.response) {
+      return accountCheck.response;
     }
 
     let isNewSubscriber = false;
@@ -365,12 +361,8 @@ export async function POST(request: Request) {
         : "Email already active in weekly telemetry feed.",
       previewUrl,
     });
-  } catch (error: any) {
-    console.error("Subscription API error:", error);
-    return NextResponse.json(
-      { error: error.message || "Failed to process subscription request." },
-      { status: 500 }
-    );
+  } catch (error: unknown) {
+    return handleApiError("POST /api/subscribe", error, 500, "Failed to process subscription request. Please try again later.");
   }
 }
 
@@ -386,7 +378,15 @@ export async function DELETE(request: Request) {
       );
     }
 
-    const cleanEmail = email.trim().toLowerCase();
+    const validation = SubscribeSchema.safeParse({ email });
+    if (!validation.success) {
+      return NextResponse.json(
+        { error: "Validation Error: Please provide a valid email format." },
+        { status: 400 }
+      );
+    }
+
+    const cleanEmail = validation.data.email.toLowerCase();
     await connectDB();
 
     const sub = await Subscriber.findOne({ email: cleanEmail });
@@ -399,11 +399,7 @@ export async function DELETE(request: Request) {
       success: true,
       message: `Successfully unsubscribed ${cleanEmail} from weekly telemetry feed.`,
     });
-  } catch (error: any) {
-    console.error("Unsubscribe API error:", error);
-    return NextResponse.json(
-      { error: error.message || "Failed to process unsubscribe request." },
-      { status: 500 }
-    );
+  } catch (error: unknown) {
+    return handleApiError("DELETE /api/subscribe", error, 500, "Failed to process unsubscribe request. Please try again later.");
   }
 }

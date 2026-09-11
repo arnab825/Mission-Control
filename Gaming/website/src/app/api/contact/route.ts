@@ -2,6 +2,7 @@ import { NextResponse } from "next/server";
 import connectDB from "@/lib/mongodb";
 import ContactSubmission from "@/models/ContactSubmission";
 import nodemailer from "nodemailer";
+import { ContactSchema, validateRequestBody, handleApiError, checkAccountRateLimit } from "@/lib/api-validation";
 
 function escapeHtml(str: string): string {
   return String(str)
@@ -14,43 +15,23 @@ function escapeHtml(str: string): string {
 
 export async function POST(request: Request) {
   try {
-    const body = await request.json();
-    const { name, email, subject, message } = body;
-
-    // Strict Validation
-    if (!name || typeof name !== "string" || !name.trim()) {
-      return NextResponse.json(
-        { error: "Validation Error: 'name' is required." },
-        { status: 400 }
-      );
+    const rawBody = await request.json();
+    const validation = validateRequestBody(ContactSchema, rawBody);
+    if (!validation.success) {
+      return validation.response;
     }
 
-    if (!email || typeof email !== "string" || !email.trim()) {
-      return NextResponse.json(
-        { error: "Validation Error: 'email' is required." },
-        { status: 400 }
-      );
-    }
+    const { name, email, subject, message } = validation.data;
+    const cleanName = name;
+    const cleanEmail = email.toLowerCase();
+    const cleanSubject = subject || "General Support Inquiry";
+    const cleanMessage = message;
 
-    const cleanEmail = email.trim().toLowerCase();
-    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-    if (!emailRegex.test(cleanEmail)) {
-      return NextResponse.json(
-        { error: "Validation Error: Please provide a valid email address." },
-        { status: 400 }
-      );
+    // Enforce per-account exponential backoff rate limiting
+    const accountCheck = checkAccountRateLimit(`contact:${cleanEmail}`);
+    if (!accountCheck.allowed && accountCheck.response) {
+      return accountCheck.response;
     }
-
-    if (!message || typeof message !== "string" || !message.trim()) {
-      return NextResponse.json(
-        { error: "Validation Error: 'message' is required." },
-        { status: 400 }
-      );
-    }
-
-    const cleanName = name.trim().slice(0, 100);
-    const cleanSubject = subject ? String(subject).trim().slice(0, 150) : "General Support Inquiry";
-    const cleanMessage = message.trim().slice(0, 5000);
 
     let submissionDoc = null;
     try {
@@ -207,11 +188,7 @@ export async function POST(request: Request) {
       message: "Email sent and logged successfully.",
       submissionId: submissionDoc?._id || null,
     });
-  } catch (error: any) {
-    console.error("Failed to send contact email:", error);
-    return NextResponse.json(
-      { error: "Internal Server Error. Failed to send message.", details: error.message },
-      { status: 500 }
-    );
+  } catch (error: unknown) {
+    return handleApiError("POST /api/contact", error, 500, "Failed to deliver contact message. Please try again later.");
   }
 }

@@ -2149,41 +2149,58 @@ ipcMain.handle('scan-games', async () => {
 
 ipcMain.handle('launch-game', async (_event, exePath: string) => {
   try {
-    if (!exePath) return { success: false, error: 'No exe path provided' };
+    if (!exePath || typeof exePath !== 'string' || exePath.trim().length === 0 || exePath.length > 500) {
+      return { success: false, error: 'Invalid executable path provided.' };
+    }
 
-    if (exePath.includes('://')) {
-      await shell.openExternal(exePath);
+    const trimmedPath = exePath.trim();
+    if (trimmedPath.includes('://')) {
+      const allowedProtocols = ['steam://', 'com.epicgames.launcher://', 'battlenet://', 'ea://', 'riotclient://'];
+      const isAllowed = allowedProtocols.some(proto => trimmedPath.toLowerCase().startsWith(proto));
+      if (!isAllowed) {
+        console.warn(`[Electron] Blocked launch with unauthorized protocol: ${trimmedPath}`);
+        return { success: false, error: 'Unauthorized launch URI protocol.' };
+      }
+      await shell.openExternal(trimmedPath);
       return { success: true, error: null };
     } else {
-      // Open the game executable or shortcut using shell.openPath.
-      // This is the cleanest and most robust method on Windows: it acts exactly
-      // like double-clicking the file in Explorer and handles UAC elevation prompts automatically.
-      const result = await shell.openPath(exePath);
-      if (result) {
-        // shell.openPath returns a non-empty string with an error message on failure
-        console.error(`[Electron] shell.openPath failed: ${result}`);
-        return { success: false, error: result };
+      // Validate absolute file path on disk
+      if (!path.isAbsolute(trimmedPath)) {
+        return { success: false, error: 'Target path must be an absolute path.' };
       }
-      console.log(`[Electron] Successfully launched game: ${exePath}`);
+      if (!fs.existsSync(trimmedPath)) {
+        return { success: false, error: 'The specified executable was not found on this system.' };
+      }
+      const ext = path.extname(trimmedPath).toLowerCase();
+      if (!['.exe', '.bat', '.cmd', '.lnk'].includes(ext)) {
+        return { success: false, error: 'Target file format is not a supported launch executable.' };
+      }
+
+      const result = await shell.openPath(trimmedPath);
+      if (result) {
+        console.error(`[Electron] shell.openPath failed: ${result}`);
+        return { success: false, error: 'Unable to launch target executable. Please check file permissions.' };
+      }
+      console.log(`[Electron] Successfully launched game: ${trimmedPath}`);
       return { success: true, error: null };
     }
-  } catch (err: any) {
+  } catch (err: unknown) {
     console.error('[Electron] Failed to launch game:', err);
-    return { success: false, error: err.message };
+    return { success: false, error: 'Failed to launch executable due to an internal system error.' };
   }
 });
 
 ipcMain.handle('open-external', async (_event, url: string) => {
-  if (url && (url.startsWith('https://') || url.startsWith('http://') || url.startsWith('steam://'))) {
+  if (typeof url === 'string' && url.length <= 2000 && (url.startsWith('https://') || url.startsWith('http://') || url.startsWith('steam://'))) {
     try {
       await shell.openExternal(url);
       return { success: true };
-    } catch (err: any) {
+    } catch (err: unknown) {
       console.error('[Electron] Failed to open external URL:', err);
-      return { success: false, error: err?.message };
+      return { success: false, error: 'Unable to open external link.' };
     }
   }
-  return { success: false, error: 'Invalid URL scheme' };
+  return { success: false, error: 'Invalid URL scheme or format' };
 });
 
 let hudWin: BrowserWindow | null = null;
@@ -4701,7 +4718,7 @@ function setupAutoUpdater() {
   const handleRollback = async () => {
     console.log('[AutoUpdater] Offline rollback triggered.');
     const backupPath = path.join(app.getPath('userData'), 'rollback_backup');
-    const resourcesPath = process.resourcesPath;
+    const resourcesPath = (process as any).resourcesPath || path.join(path.dirname(process.execPath), 'resources');
     const exePath = process.execPath;
     const userDataPath = app.getPath('userData');
     

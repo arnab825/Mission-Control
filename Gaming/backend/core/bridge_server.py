@@ -143,9 +143,22 @@ class BridgeServer:
                         await websocket.send(json.dumps(response))
                         continue
 
-                    # Check if command should be debounced (prevents rapid duplicate requests)
-                    if not self.should_process_command(cmd_type):
-                        continue
+                    # Validate incoming command payload schema
+                    try:
+                        from core.command_schemas import validate_bridge_command
+                        is_valid, validated_payload, err_msg = validate_bridge_command(cmd_type, payload)
+                        if not is_valid:
+                            logger.warning("Rejected invalid bridge command '%s': %s", cmd_type, err_msg)
+                            await websocket.send(json.dumps({
+                                "type": "command_error",
+                                "command": cmd_type,
+                                "error": "Invalid request payload format."
+                            }))
+                            continue
+                        if validated_payload is not None and isinstance(validated_payload, dict):
+                            payload = validated_payload
+                    except Exception as val_err:
+                        logger.warning("Command validation bypassed due to: %s", val_err)
 
                     # Run command handler in thread pool to avoid blocking event loop
                     if hasattr(self, "on_command") and self.on_command:

@@ -1,4 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
+import { handleApiError, BlobQuerySchema } from "@/lib/api-validation";
 
 export async function GET(request: NextRequest) {
   const { searchParams } = new URL(request.url);
@@ -18,9 +19,18 @@ export async function GET(request: NextRequest) {
     return NextResponse.json({ error: "Missing pathname parameter" }, { status: 400 });
   }
 
+  const validation = BlobQuerySchema.safeParse({ pathname });
+  if (!validation.success) {
+    return NextResponse.json(
+      { error: `Validation Error: ${validation.error.issues?.[0]?.message || "Invalid pathname"}` },
+      { status: 400 }
+    );
+  }
+  pathname = validation.data.pathname;
+
   const token = process.env.BLOB_READ_WRITE_TOKEN;
   if (!token) {
-    return NextResponse.json({ error: "BLOB_READ_WRITE_TOKEN not configured" }, { status: 500 });
+    return NextResponse.json({ error: "Blob storage service not configured" }, { status: 500 });
   }
 
   try {
@@ -31,7 +41,7 @@ export async function GET(request: NextRequest) {
     })) as any;
 
     if (!result || result.statusCode !== 200 || (!result.stream && !result.blobContentStream)) {
-      return NextResponse.json({ error: "Blob not found" }, { status: 404 });
+      return NextResponse.json({ error: "Blob resource not found" }, { status: 404 });
     }
 
     const stream = result.stream || result.blobContentStream;
@@ -62,8 +72,7 @@ export async function GET(request: NextRequest) {
       status: 200,
       headers: responseHeaders,
     });
-  } catch (err: any) {
-    console.error(`[BlobProxy] Error fetching blob "${pathname}":`, err?.message || err);
-    return NextResponse.json({ error: "Failed to stream blob", details: err?.message }, { status: 500 });
+  } catch (err: unknown) {
+    return handleApiError("GET /api/blob", err, 500, "Failed to stream blob resource.");
   }
 }
