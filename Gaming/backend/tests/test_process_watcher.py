@@ -109,7 +109,8 @@ class TestProcessWatcher(unittest.TestCase):
     @patch("win32gui.GetWindowText", return_value="Rockstar Games Launcher")
     @patch("win32process.GetWindowThreadProcessId", return_value=(0, 5555))
     @patch("psutil.Process")
-    def test_ignore_rockstar_foreground_window(self, mock_psutil_proc, mock_pid, mock_text, mock_fg):
+    @patch("psutil.process_iter", return_value=[])
+    def test_ignore_rockstar_foreground_window(self, mock_iter, mock_psutil_proc, mock_pid, mock_text, mock_fg):
         mock_proc_instance = MagicMock()
         mock_proc_instance.name.return_value = "Launcher.exe"
         mock_psutil_proc.return_value = mock_proc_instance

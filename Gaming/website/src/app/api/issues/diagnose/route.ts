@@ -1,4 +1,5 @@
 import { NextResponse } from "next/server";
+import { handleApiError } from "@/lib/api-validation";
 
 interface DiagnosePayload {
   rawError?: string;
@@ -165,11 +166,7 @@ Respond ONLY with valid JSON in this exact structure without markdown formatting
     }
 
     return NextResponse.json(parsedResult);
-  } catch (error: any) {
-    console.error("[DiagnoseAPI] Critical error:", error);
-    return NextResponse.json(
-      { error: "Diagnostic service error", details: error?.message || "Unknown error" },
-      { status: 500 }
-    );
+  } catch (error: unknown) {
+    return handleApiError("POST /api/issues/diagnose", error, 500, "Diagnostic telemetry service encountered an error. Please try again later.");
   }
 }

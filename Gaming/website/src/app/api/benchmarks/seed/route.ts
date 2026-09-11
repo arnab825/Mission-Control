@@ -1,5 +1,6 @@
 import { NextResponse } from "next/server";
 import { ensureBenchmarksSeeded } from "@/lib/benchmarks-db";
+import { handleApiError } from "@/lib/api-validation";
 
 export async function GET() {
   try {
@@ -8,12 +9,8 @@ export async function GET() {
       success: true,
       message: "MongoDB benchmark profiles and initial community ratings seeded successfully.",
     });
-  } catch (error: any) {
-    console.error("Error in GET /api/benchmarks/seed:", error);
-    return NextResponse.json(
-      { error: "Failed to seed benchmarks", details: error.message },
-      { status: 500 }
-    );
+  } catch (error: unknown) {
+    return handleApiError("GET /api/benchmarks/seed", error, 500, "Failed to seed benchmarks.");
   }
 }
 

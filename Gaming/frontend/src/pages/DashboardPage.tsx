@@ -25,17 +25,31 @@ interface StatCardProps {
   onClick?: () => void;
 }
 
+/**
+ * Calculates SVG line and fill paths for the sparkline chart.
+ * Extracted into a straightforward pure function for clarity and performance.
+ */
+function calculateSparklinePaths(history: number[], width: number, height: number): { linePath: string; areaPath: string } {
+  if (!history || history.length < 2) {
+    return { linePath: '', areaPath: '' };
+  }
+  const step = width / (history.length - 1);
+  const points = history.map((val, i) => {
+    const clamped = Math.max(0, Math.min(100, val));
+    const x = Math.round(i * step);
+    const y = Math.round(height - (clamped / 100) * height);
+    return `${i === 0 ? 'M' : 'L'}${x},${y}`;
+  });
+  const linePath = points.join(' ');
+  const areaPath = `${linePath} L${width},${height} L0,${height} Z`;
+  return { linePath, areaPath };
+}
+
 const StatCard = React.memo<StatCardProps>(({ label, value, percent, subtext, icon: Icon, color, history, onClick }) => {
   const chartWidth = 200;
   const chartHeight = 40;
 
-  const linePath = useMemo(() => history.map((p, i) => {
-    const x = i * (chartWidth / (history.length - 1));
-    const y = chartHeight - (p / 100 * chartHeight);
-    return `${i === 0 ? 'M' : 'L'}${x},${y}`;
-  }).join(' '), [history]);
-
-  const areaPath = useMemo(() => `${linePath} L${chartWidth},${chartHeight} L0,${chartHeight} Z`, [linePath]);
+  const { linePath, areaPath } = calculateSparklinePaths(history, chartWidth, chartHeight);
 
   const colorMap: Record<string, string> = {
     cyan: '#76b900',
@@ -87,7 +101,7 @@ const StatCard = React.memo<StatCardProps>(({ label, value, percent, subtext, ic
   return (
     <div role="button" tabIndex={0} onKeyDown={(e) => e.key === 'Enter' && e.currentTarget.click()}
       onClick={onClick}
-      className={`bg-white/[0.03] border border-white/5 rounded-3xl p-5 flex-1 relative overflow-hidden group hover:bg-white/4 transition-all duration-500 min-w-0 ${onClick ? 'cursor-pointer hover:border-neon-green/30' : ''}`}
+      className={`bg-white/3 border border-white/5 rounded-3xl p-5 flex-1 relative overflow-hidden group hover:bg-white/4 transition-all duration-500 min-w-0 ${onClick ? 'cursor-pointer hover:border-neon-green/30' : ''}`}
     >
       <div className="relative z-10">
         <div className="flex items-center justify-between mb-4">
@@ -301,7 +315,7 @@ const DashboardPage: React.FC<DashboardPageProps> = ({ state, onCommand, onNavig
             <img src="/logo.png" className="w-full h-full object-contain" alt="Logo" />
           </div>
           <div>
-            <h2 className="text-3xl lg:text-4xl font-black text-transparent bg-clip-text bg-gradient-to-r from-neon-green to-purple-500 tracking-tighter leading-tight uppercase drop-shadow-[0_0_15px_rgba(118, 185, 0,0.8)]">Mission Control</h2>
+            <h2 className="text-3xl lg:text-4xl font-black text-transparent bg-clip-text bg-linear-to-r from-neon-green to-purple-500 tracking-tighter leading-tight uppercase drop-shadow-[0_0_15px_rgba(118, 185, 0,0.8)]">Mission Control</h2>
             <p className="text-[10px] font-black text-neon-green uppercase tracking-[0.3em] mt-1">Status: System Nominal</p>
           </div>
         </div>
@@ -361,7 +375,7 @@ const DashboardPage: React.FC<DashboardPageProps> = ({ state, onCommand, onNavig
       <div className="flex flex-col lg:flex-row gap-6 lg:gap-8 items-stretch lg:flex-1 min-h-0 overflow-visible lg:overflow-hidden pb-4 lg:pb-0">
         
         {/* === BRANDED AI ASSISTANT PORTION (Left/Center) === */}
-        <div className="flex-1 flex flex-col min-h-[350px] lg:min-h-0 min-w-0 bg-white/[0.06] border border-white/15 rounded-3xl p-5 relative overflow-hidden shadow-[0_0_20px_rgba(118, 185, 0,0.05)]">
+        <div className="flex-1 flex flex-col min-h-87.5 lg:min-h-0 min-w-0 bg-white/6 border border-white/15 rounded-3xl p-5 relative overflow-hidden shadow-[0_0_20px_rgba(118, 185, 0,0.05)]">
           
           {/* Header block with fully responsive layout to protect against squishing/truncation */}
           <div className="flex flex-col sm:flex-row lg:flex-col xl:flex-row justify-between lg:items-start xl:items-center gap-3 border-b border-white/5 pb-3 shrink-0">
@@ -369,7 +383,7 @@ const DashboardPage: React.FC<DashboardPageProps> = ({ state, onCommand, onNavig
               <div className="p-1.5 rounded-lg bg-neon-green/10 border border-neon-green/20 shrink-0">
                 <BrainCircuit className="w-3.5 h-3.5 text-neon-green" />
               </div>
-              <span className="text-xs font-black text-transparent bg-clip-text bg-gradient-to-r from-neon-green to-white uppercase tracking-widest truncate drop-shadow-[0_0_10px_rgba(118, 185, 0,0.8)]">Mission Control </span>
+              <span className="text-xs font-black text-transparent bg-clip-text bg-linear-to-r from-neon-green to-white uppercase tracking-widest truncate drop-shadow-[0_0_10px_rgba(118, 185, 0,0.8)]">Mission Control </span>
               <div className="px-1.5 py-0.5 rounded bg-neon-green/10 border border-neon-green/20 flex items-center gap-1 shrink-0">
                 <span className="w-1 h-1 rounded-full bg-neon-green animate-pulse shadow-[0_0_5px_#76b900]" />
                 <span className="text-[7px] font-black text-neon-green uppercase tracking-widest leading-none">Core Sync</span>
@@ -458,7 +472,7 @@ const DashboardPage: React.FC<DashboardPageProps> = ({ state, onCommand, onNavig
                       initial={{ opacity: 0, y: -6 }}
                       animate={{ opacity: 1, y: 0 }}
                       transition={{ duration: 0.2 }}
-                      className="flex items-start gap-3 bg-white/[0.03] hover:bg-white/4 border border-white/5 rounded-2xl px-4 py-3 group transition-colors relative overflow-hidden"
+                      className="flex items-start gap-3 bg-white/3 hover:bg-white/4 border border-white/5 rounded-2xl px-4 py-3 group transition-colors relative overflow-hidden"
                     >
                       {/* Left accent bar */}
                       <div className={`absolute left-0 top-3 bottom-3 w-0.5 rounded-full ${bar}`} />
@@ -503,9 +517,9 @@ const DashboardPage: React.FC<DashboardPageProps> = ({ state, onCommand, onNavig
         </div>
 
         {/* === TACTICAL CONTROLS & DIAGNOSTICS (Right) === */}
-        <div className="w-full lg:w-[340px] shrink-0 flex flex-col gap-4 min-h-[380px] lg:min-h-0 lg:overflow-hidden pr-1">
+        <div className="w-full lg:w-85 shrink-0 flex flex-col gap-4 min-h-95 lg:min-h-0 lg:overflow-hidden pr-1">
           <div className="flex items-center shrink-0">
-            <span className="text-[11px] font-black text-transparent bg-clip-text bg-gradient-to-r from-neon-green to-fuchsia-400 uppercase tracking-[0.25em] filter drop-shadow-[0_0_12px_rgba(118, 185, 0,0.8)]">Tactical Diagnostics</span>
+            <span className="text-[11px] font-black text-transparent bg-clip-text bg-linear-to-r from-neon-green to-fuchsia-400 uppercase tracking-[0.25em] filter drop-shadow-[0_0_12px_rgba(118, 185, 0,0.8)]">Tactical Diagnostics</span>
           </div>
           
           {/* Action Trigger Deck */}
@@ -541,7 +555,7 @@ const DashboardPage: React.FC<DashboardPageProps> = ({ state, onCommand, onNavig
           </div>
 
           {/* Compact Telemetry Plot Visualizer (flexes to fill remaining column space) */}
-          <div className="flex-1 bg-white/[0.06] border border-white/15 rounded-3xl p-4 flex flex-col gap-2 min-h-0 shadow-[0_0_20px_rgba(232,121,249,0.05)]">
+          <div className="flex-1 bg-white/6 border border-white/15 rounded-3xl p-4 flex flex-col gap-2 min-h-0 shadow-[0_0_20px_rgba(232,121,249,0.05)]">
             <div className="flex items-center justify-between shrink-0">
               <div className="flex items-center gap-1.5">
                 <TrendingUp className="w-3.5 h-3.5 text-neon-yellow" />
@@ -565,7 +579,7 @@ const DashboardPage: React.FC<DashboardPageProps> = ({ state, onCommand, onNavig
             </div>
 
             {/* Recharts AreaChart (flexes to fill exactly remaining vertical space) */}
-            <div className="flex-1 min-h-[160px] lg:min-h-0 relative">
+            <div className="flex-1 min-h-40 lg:min-h-0 relative">
               <DashboardAreaChart data={chartData} />
             </div>
           </div>

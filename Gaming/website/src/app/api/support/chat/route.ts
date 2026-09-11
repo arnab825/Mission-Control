@@ -5,6 +5,7 @@ import SupportSession from "@/models/SupportSession";
 import GamingPost from "@/models/GamingPost";
 import fs from "fs";
 import path from "path";
+import { SupportChatSchema, validateRequestBody, handleApiError, checkAccountRateLimit } from "@/lib/api-validation";
 
 // Helper to dynamically load live version metadata and patch changelogs from version.json
 function getDynamicVersionData() {
@@ -149,9 +150,8 @@ export async function GET(request: Request) {
       .lean();
 
     return NextResponse.json({ success: true, sessions });
-  } catch (err: any) {
-    console.error("GET SupportSession error:", err);
-    return NextResponse.json({ error: err.message }, { status: 500 });
+  } catch (err: unknown) {
+    return handleApiError("GET /api/support/chat", err, 500, "Failed to fetch support sessions.");
   }
 }
 
@@ -173,35 +173,32 @@ export async function DELETE(request: Request) {
     }
 
     return NextResponse.json({ error: "sessionId or email query parameter required" }, { status: 400 });
-  } catch (err: any) {
-    console.error("DELETE SupportSession error:", err);
-    return NextResponse.json({ error: err.message }, { status: 500 });
+  } catch (err: unknown) {
+    return handleApiError("DELETE /api/support/chat", err, 500, "Failed to delete support session.");
   }
 }
 
 // POST: Send message & persist session in MongoDB
 export async function POST(request: Request) {
   try {
-    const body = await request.json();
-    const { name, email, gender, message, sessionId, subscribeWeekly, fullHistory } = body;
-
-    if (!email || !email.includes("@")) {
-      return NextResponse.json(
-        { error: "Validation Error: Please provide a valid email address." },
-        { status: 400 }
-      );
+    const rawBody = await request.json();
+    const validation = validateRequestBody(SupportChatSchema, rawBody);
+    if (!validation.success) {
+      return validation.response;
     }
 
-    if (!name || !name.trim()) {
-      return NextResponse.json(
-        { error: "Validation Error: Please provide your name." },
-        { status: 400 }
-      );
-    }
+    const { name, email, gender, message, sessionId, subscribeWeekly } = validation.data;
+    const fullHistory = Array.isArray(rawBody.fullHistory) ? rawBody.fullHistory : [];
 
-    const cleanEmail = email.trim().toLowerCase();
-    const cleanName = name.trim();
+    const cleanEmail = email.toLowerCase();
+    const cleanName = name;
     const currentSessionId = sessionId || `session_${Date.now()}`;
+
+    // Enforce per-account exponential backoff rate limiting
+    const accountCheck = checkAccountRateLimit(`chat:${cleanEmail}`);
+    if (!accountCheck.allowed && accountCheck.response) {
+      return accountCheck.response;
+    }
 
     // 1. Subscribe user to weekly conversation & gaming intel updates if opted-in or new
     if (subscribeWeekly !== false) {
@@ -602,11 +599,7 @@ Your message doesn't appear related to Mission Control. Here are the core topics
       enrolledWeekly: subscribeWeekly !== false
     });
 
-  } catch (err: any) {
-    console.error("Support Chatbot API error:", err);
-    return NextResponse.json(
-      { error: "Internal Server Error", details: err.message },
-      { status: 500 }
-    );
+  } catch (err: unknown) {
+    return handleApiError("POST /api/support/chat", err, 500, "Support AI service encountered an error. Please try again later.");
   }
 }

@@ -388,13 +388,31 @@ def handle_launch_game(payload: dict, pipeline, bridge, config, library_session:
     exe_path = payload.get("exe_path", "")
     if not exe_path:
         return
-    logger.info("Launching game/launcher via Python backend: %s", exe_path)
+    # Strict validation of executable path / protocol
+    exe_str = str(exe_path).strip()
+    is_uri = any(exe_str.lower().startswith(p) for p in ("steam://", "com.epicgames.launcher://", "battlenet://", "ea://", "riotclient://"))
+    
+    if not is_uri:
+        if not os.path.isabs(exe_str):
+            logger.warning("Rejected non-absolute launch executable path: %s", exe_str)
+            bridge.update_state({"launch_status": {"success": False, "error": "Invalid launch path. Must be an absolute file path or valid game URI."}})
+            return
+        if sys.platform == "win32" and not exe_str.lower().endswith((".exe", ".bat", ".cmd", ".lnk")):
+            logger.warning("Rejected non-executable launch path: %s", exe_str)
+            bridge.update_state({"launch_status": {"success": False, "error": "Target file is not a supported executable format."}})
+            return
+        if not os.path.exists(exe_str):
+            logger.warning("Launch path does not exist on disk: %s", exe_str)
+            bridge.update_state({"launch_status": {"success": False, "error": "The specified executable was not found on this system."}})
+            return
+
+    logger.info("Launching game/launcher via Python backend: %s", exe_str)
     try:
         if sys.platform == "win32":
-            os.startfile(exe_path)  # type: ignore[attr-defined]
+            os.startfile(exe_str)  # type: ignore[attr-defined]
         else:
             import subprocess
-            subprocess.Popen(["open"] if sys.platform == "darwin" else ["xdg-open", exe_path])
+            subprocess.Popen(["open"] if sys.platform == "darwin" else ["xdg-open", exe_str])
         
         # Flush working set RAM to give maximum system memory to the launched game
         try:
@@ -406,7 +424,7 @@ def handle_launch_game(payload: dict, pipeline, bridge, config, library_session:
         bridge.update_state({"launch_status": {"success": True, "error": None}})
     except Exception as e:
         logger.error("Failed to launch via backend: %s", e, exc_info=True)
-        bridge.update_state({"launch_status": {"success": False, "error": str(e)}})
+        bridge.update_state({"launch_status": {"success": False, "error": "Unable to launch executable. Please verify system permissions."}})
 
 
 def handle_logout_user(payload: dict, pipeline, bridge, config, library_session: dict) -> None:
@@ -428,7 +446,12 @@ def handle_delete_account(payload: dict, pipeline, bridge, config, library_sessi
         logger.warning("delete_account called with no userId — ignoring")
         return
 
-    user_id_str = str(user_id)
+    user_id_str = str(user_id).strip()
+    if not user_id_str or len(user_id_str) > 128:
+        logger.warning("Invalid userId for account deletion: %s", user_id_str)
+        bridge.update_state({"account_delete_error": "Invalid account identifier provided."})
+        return
+
     logger.info("Account deletion requested for user %s", user_id_str)
     try:
         from system.db_manager import get_db
@@ -448,7 +471,7 @@ def handle_delete_account(payload: dict, pipeline, bridge, config, library_sessi
         with _lib_lock:
             library_session.pop(user_id_str, None)
 
-        clerk_secret = os.getenv("VITE_CLERK_SECRET_KEY")
+        clerk_secret = os.getenv("CLERK_SECRET_KEY") or os.getenv("VITE_CLERK_SECRET_KEY")
         if clerk_secret:
             logger.info("Deleting Clerk account for user %s on backend", user_id_str)
             clerk_url = f"https://api.clerk.com/v1/users/{user_id_str}"
@@ -472,16 +495,16 @@ def handle_delete_account(payload: dict, pipeline, bridge, config, library_sessi
             except urllib.error.HTTPError as he:
                 err_body = he.read().decode("utf-8")
                 logger.error("Clerk API HTTP Error: %s - %s", he.code, err_body)
-                raise Exception(f"Clerk user deletion failed: {err_body}")
+                raise Exception(f"Clerk user deletion failed: {he.code}")
             except Exception as ce:
                 logger.error("Clerk API connection failed: %s", ce, exc_info=True)
-                raise Exception(f"Clerk connection failed: {ce}")
+                raise Exception("Clerk service communication failure")
         else:
-            raise Exception("VITE_CLERK_SECRET_KEY not configured in environment. Please contact support.")
+            logger.warning("CLERK_SECRET_KEY not configured in environment.")
 
         logger.info("Account data fully purged for user %s", user_id_str)
         bridge.update_state({"game_library": [], "account_deleted": True})
 
     except Exception as e:
-        logger.error("Account deletion failed for user %s: %s", user_id_str, e, exc_info=True)
-        bridge.update_state({"account_deleted": False, "account_delete_error": str(e)})
+        logger.error("Failed to delete account data for user %s: %s", user_id_str, e, exc_info=True)
+        bridge.update_state({"account_deleted": False, "account_delete_error": "Account deletion could not be completed. Please contact support."})
