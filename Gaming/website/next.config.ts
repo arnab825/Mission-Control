@@ -77,7 +77,25 @@ const nextConfig: NextConfig = {
         permanent: false,
       },
     ];
-  }
+  },
+  async rewrites() {
+    // If running on Vercel and RENDER_BACKEND_URL is configured,
+    // proxy API and heavy download routes directly to Render backend
+    const renderBackend = process.env.RENDER_BACKEND_URL?.replace(/\/$/, "");
+    if (renderBackend) {
+      return [
+        {
+          source: "/api/:path*",
+          destination: `${renderBackend}/api/:path*`,
+        },
+        {
+          source: "/downloads/:path*",
+          destination: `${renderBackend}/downloads/:path*`,
+        },
+      ];
+    }
+    return [];
+  },
 };
 
 export default nextConfig;
