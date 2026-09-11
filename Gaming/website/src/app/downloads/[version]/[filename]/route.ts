@@ -18,6 +18,7 @@ export async function GET(
   return NextResponse.redirect(targetUrl, { status: 302 });
 }
 
+
 export async function HEAD(
   request: NextRequest,
   context: { params: Promise<{ version: string; filename: string }> }
