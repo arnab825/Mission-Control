@@ -131,9 +131,17 @@ export const TITLE_TO_STEAM_APPID: Record<string, string> = {
   'warhammer 40,000: space marine 2': '2183900',
   'space marine 2': '2183900',
   'assassins creed mirage': '3035570',
+  'assassin s creed mirage': '3035570',
   "assassin's creed mirage": '3035570',
+  "assassin’s creed mirage": '3035570',
+  "assassin's creed: mirage": '3035570',
+  "assassin’s creed: mirage": '3035570',
+  "assassin's creed® mirage": '3035570',
+  "assassin’s creed® mirage": '3035570',
   'assassins creed valhalla': '2208920',
+  'assassin s creed valhalla': '2208920',
   "assassin's creed valhalla": '2208920',
+  "assassin’s creed valhalla": '2208920',
   'assassins creed odyssey': '812140',
   'assassins creed origins': '582160',
   'assassins creed shadows': '3159330',
@@ -343,6 +351,9 @@ export function normalizeGameTitle(title: string): string {
   if (!title) return '';
   let clean = title.trim().toLowerCase();
 
+  // Normalize curly quotes and apostrophes to standard straight apostrophe
+  clean = clean.replace(/[’‘`]/g, "'");
+
   // Strip file extension if executable path leaked
   clean = clean.replace(/\.exe$/i, '');
 
@@ -358,8 +369,8 @@ export function normalizeGameTitle(title: string): string {
   clean = clean.replace(/\s*[-–:]\s*(director's cut|goty|game of the year|complete edition|definitive edition|enhanced edition|anniversary edition|special edition|deluxe edition|digital deluxe|ultimate edition|premium edition|standard edition|gold edition|remastered|remake|collection|vr edition|windows edition).*$/i, '');
   clean = clean.replace(/\s+(director's cut|goty|game of the year|complete edition|definitive edition|enhanced edition|anniversary edition|special edition|deluxe edition|digital deluxe|ultimate edition|premium edition|gold edition|remastered|remake).*$/i, '');
 
-  // Normalize punctuation and symbols to spaces
-  clean = clean.replace(/['":,\-–—/\\_.]/g, ' ');
+  // Normalize punctuation and symbols to spaces (including curly quotes, dashes, colons)
+  clean = clean.replace(/['’‘`":,\-–—/\\_.]/g, ' ');
 
   // Collapse multiple spaces
   clean = clean.replace(/\s+/g, ' ').trim();
@@ -377,10 +388,14 @@ export function normalizeGameTitle(title: string): string {
 export function getSteamAppIdForTitle(title: string): string | null {
   if (!title) return null;
   const rawLower = title.toLowerCase().trim();
+  const rawClean = rawLower.replace(/[’‘`]/g, "'").replace(/[™®©]/g, '').trim();
 
-  // 1. Direct match on raw title
+  // 1. Direct match on raw title or cleaned title
   if (TITLE_TO_STEAM_APPID[rawLower]) {
     return TITLE_TO_STEAM_APPID[rawLower];
+  }
+  if (TITLE_TO_STEAM_APPID[rawClean]) {
+    return TITLE_TO_STEAM_APPID[rawClean];
   }
 
   // 2. Normalized match
@@ -389,8 +404,20 @@ export function getSteamAppIdForTitle(title: string): string | null {
     return TITLE_TO_STEAM_APPID[norm];
   }
 
+  // 2b. Collapsed apostrophe-space variations (e.g. "assassin s creed" -> "assassins creed")
+  const normNoApos = norm.replace(/\b(\w+)\s+s\b/g, '$1s');
+  if (normNoApos && TITLE_TO_STEAM_APPID[normNoApos]) {
+    return TITLE_TO_STEAM_APPID[normNoApos];
+  }
+  const normNoSpace = norm.replace(/\s+/g, '');
+  for (const [k, id] of Object.entries(TITLE_TO_STEAM_APPID)) {
+    if (k.replace(/['’‘`\s]/g, '') === normNoSpace) {
+      return id;
+    }
+  }
+
   // 3. Alias dictionary check
-  const aliasExpansions = GAME_ALIASES[norm] || GAME_ALIASES[rawLower] || [];
+  const aliasExpansions = GAME_ALIASES[norm] || GAME_ALIASES[rawLower] || GAME_ALIASES[rawClean] || GAME_ALIASES[normNoApos] || [];
   for (const alias of aliasExpansions) {
     const aliasNorm = normalizeGameTitle(alias);
     if (TITLE_TO_STEAM_APPID[aliasNorm]) {
@@ -411,7 +438,7 @@ export function getSteamAppIdForTitle(title: string): string | null {
 
 /**
  * Validates whether a custom banner or cover URL is genuinely custom and non-placeholder,
- * and ensures it does not point to a conflicting/stale Steam App ID.
+ * and ensures it does not point to a conflicting/stale Steam App ID or known 404 endpoint.
  */
 function isValidCustomArtworkUrl(url?: string | null, canonicalAppId?: string | null): boolean {
   if (!url || typeof url !== 'string' || !url.startsWith('http') || url.includes('dicebear')) {
@@ -419,6 +446,10 @@ function isValidCustomArtworkUrl(url?: string | null, canonicalAppId?: string | 
   }
   // Filter out known stale Minotauros app ID (2842100) when title is not Minotauros
   if (url.includes('2842100') && canonicalAppId !== '2842100') {
+    return false;
+  }
+  // Filter out non-existent capsule_616x353.jpg for Assassin's Creed Mirage (3035570)
+  if (url.includes('3035570') && url.includes('capsule_616x353')) {
     return false;
   }
   // If canonical Steam App ID is known and custom URL is a Steam static asset, verify app ID matches
@@ -445,15 +476,18 @@ export function getGameArtwork(
   const resolvedAppId = canonicalAppId || numericId;
 
   if (resolvedAppId) {
-    const steamHeader = `https://shared.cloudflare.steamstatic.com/store_item_assets/steam/apps/${resolvedAppId}/header.jpg`;
-    const steamCapsule = `https://shared.cloudflare.steamstatic.com/store_item_assets/steam/apps/${resolvedAppId}/capsule_616x353.jpg`;
+    const steamHeader = `https://cdn.cloudflare.steamstatic.com/steam/apps/${resolvedAppId}/header.jpg`;
+    // For AC Mirage (3035570) and newer titles, library_600x900_2x.jpg is the verified high-res portrait cover, while capsule_616x353 may 404
+    const steamCover = resolvedAppId === '3035570'
+      ? `https://cdn.cloudflare.steamstatic.com/steam/apps/${resolvedAppId}/library_600x900_2x.jpg`
+      : `https://shared.cloudflare.steamstatic.com/store_item_assets/steam/apps/${resolvedAppId}/capsule_616x353.jpg`;
     return {
       bannerUrl: isValidCustomArtworkUrl(customBanner, canonicalAppId || resolvedAppId)
         ? (customBanner as string)
         : steamHeader,
       coverUrl: isValidCustomArtworkUrl(customCover, canonicalAppId || resolvedAppId)
         ? (customCover as string)
-        : steamCapsule,
+        : steamCover,
       steamAppId: resolvedAppId,
     };
   }
@@ -1548,7 +1582,8 @@ export const CURATED_FEATURED_GAMES: DiscoverItem[] = [
     genres: ['Stealth', 'Action Adventure', 'Parkour', 'Historical'],
     tags: ['Open World', 'Story Rich', 'Assassins'],
     rating: 77,
-    banner_url: 'https://shared.cloudflare.steamstatic.com/store_item_assets/steam/apps/3035570/header.jpg',
+    cover_url: 'https://cdn.cloudflare.steamstatic.com/steam/apps/3035570/library_600x900_2x.jpg',
+    banner_url: 'https://cdn.cloudflare.steamstatic.com/steam/apps/3035570/header.jpg',
     summary: 'Experience the story of Basim, a cunning street thief with nightmarish visions, seeking answers and justice as he navigates the bustling streets of Baghdad.',
     store: 'Steam',
     store_app_id: '3035570',
@@ -1810,11 +1845,11 @@ export function sanitizeDiscoverItem(game: DiscoverItem): DiscoverItem {
       changed = true;
     }
     if (bannerUrl?.includes('2842100') || !bannerUrl) {
-      bannerUrl = 'https://shared.cloudflare.steamstatic.com/store_item_assets/steam/apps/3035570/header.jpg';
+      bannerUrl = 'https://cdn.cloudflare.steamstatic.com/steam/apps/3035570/header.jpg';
       changed = true;
     }
-    if (coverUrl?.includes('2842100')) {
-      coverUrl = 'https://shared.cloudflare.steamstatic.com/store_item_assets/steam/apps/3035570/capsule_616x353.jpg';
+    if (coverUrl?.includes('2842100') || coverUrl?.includes('capsule_616x353') || !coverUrl) {
+      coverUrl = 'https://cdn.cloudflare.steamstatic.com/steam/apps/3035570/library_600x900_2x.jpg';
       changed = true;
     }
     if (changed) {
@@ -1832,11 +1867,14 @@ export function sanitizeDiscoverItem(game: DiscoverItem): DiscoverItem {
   if (canonicalId) {
     const steamAppMatch = game.banner_url?.match(/\/apps\/(\d+)\//);
     if (steamAppMatch && steamAppMatch[1] !== canonicalId) {
+      const isMirageId = canonicalId === '3035570';
       return {
         ...game,
         store_app_id: canonicalId,
-        banner_url: `https://shared.cloudflare.steamstatic.com/store_item_assets/steam/apps/${canonicalId}/header.jpg`,
-        cover_url: `https://shared.cloudflare.steamstatic.com/store_item_assets/steam/apps/${canonicalId}/capsule_616x353.jpg`,
+        banner_url: `https://cdn.cloudflare.steamstatic.com/steam/apps/${canonicalId}/header.jpg`,
+        cover_url: isMirageId
+          ? `https://cdn.cloudflare.steamstatic.com/steam/apps/${canonicalId}/library_600x900_2x.jpg`
+          : `https://shared.cloudflare.steamstatic.com/store_item_assets/steam/apps/${canonicalId}/capsule_616x353.jpg`,
       };
     }
   }
@@ -1860,7 +1898,7 @@ export function purgeStaleAppStorage(): void {
     for (const key of keysToClean) {
       const itemStr = localStorage.getItem(key);
       if (!itemStr) continue;
-      if (itemStr.includes('2842100')) {
+      if (itemStr.includes('2842100') || (itemStr.includes('3035570') && itemStr.includes('capsule_616x353'))) {
         try {
           const parsed = JSON.parse(itemStr);
           if (Array.isArray(parsed)) {
@@ -1869,10 +1907,10 @@ export function purgeStaleAppStorage(): void {
               if (nameLower.includes('mirage') || g.id?.includes('mirage')) {
                 return {
                   ...g,
-                  local_banner: g.local_banner?.includes('2842100') ? 'https://shared.cloudflare.steamstatic.com/store_item_assets/steam/apps/3035570/header.jpg' : g.local_banner,
-                  banner_url: g.banner_url?.includes('2842100') ? 'https://shared.cloudflare.steamstatic.com/store_item_assets/steam/apps/3035570/header.jpg' : g.banner_url,
-                  cover_url: g.cover_url?.includes('2842100') ? 'https://shared.cloudflare.steamstatic.com/store_item_assets/steam/apps/3035570/capsule_616x353.jpg' : g.cover_url,
-                  store_app_id: g.store_app_id === '2842100' ? '3035570' : g.store_app_id,
+                  local_banner: (g.local_banner?.includes('2842100') || !g.local_banner) ? 'https://cdn.cloudflare.steamstatic.com/steam/apps/3035570/header.jpg' : g.local_banner,
+                  banner_url: (g.banner_url?.includes('2842100') || !g.banner_url) ? 'https://cdn.cloudflare.steamstatic.com/steam/apps/3035570/header.jpg' : g.banner_url,
+                  cover_url: 'https://cdn.cloudflare.steamstatic.com/steam/apps/3035570/library_600x900_2x.jpg',
+                  store_app_id: '3035570',
                 };
               }
               return g;

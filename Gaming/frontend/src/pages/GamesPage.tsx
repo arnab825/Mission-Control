@@ -174,7 +174,11 @@ const GameCard: React.FC<{
   } else if (localBannerUrl) {
     coverUrl = localBannerUrl;
   } else if (steamAppId) {
-    coverUrl = `https://shared.cloudflare.steamstatic.com/store_item_assets/steam/apps/${steamAppId}/header.jpg`;
+    coverUrl = `https://cdn.cloudflare.steamstatic.com/steam/apps/${steamAppId}/header.jpg`;
+  } else if ((game as any).banner_url && typeof (game as any).banner_url === 'string' && !(game as any).banner_url.includes('2842100')) {
+    coverUrl = (game as any).banner_url;
+  } else if ((game as any).cover_url && typeof (game as any).cover_url === 'string' && !(game as any).cover_url.includes('2842100') && !(game as any).cover_url.includes('capsule_616x353')) {
+    coverUrl = (game as any).cover_url;
   } else if (localIconUrl) {
     coverUrl = localIconUrl;
   } else if (is007) {
@@ -244,10 +248,15 @@ const GameCard: React.FC<{
                 target.src = localIconUrl;
                 return;
               }
-              const fallbackAppId = getSteamAppIdForTitle(game.name);
-              const fallbackHeader = fallbackAppId ? `https://shared.cloudflare.steamstatic.com/store_item_assets/steam/apps/${fallbackAppId}/header.jpg` : null;
+              const fallbackAppId = getSteamAppIdForTitle(game.name) || steamAppId;
+              const fallbackHeader = fallbackAppId ? `https://cdn.cloudflare.steamstatic.com/steam/apps/${fallbackAppId}/header.jpg` : null;
+              const fallbackCover = fallbackAppId ? `https://cdn.cloudflare.steamstatic.com/steam/apps/${fallbackAppId}/library_600x900_2x.jpg` : null;
               if (fallbackHeader && target.src !== fallbackHeader) {
                 target.src = fallbackHeader;
+                return;
+              }
+              if (fallbackCover && target.src !== fallbackCover) {
+                target.src = fallbackCover;
                 return;
               }
               if (!target.src.includes('dicebear')) {
@@ -567,19 +576,19 @@ const GamesLibraryContent: React.FC<GamesPageProps> = ({ state, sendCommand, set
 
               const isMirage = (nameLower.includes('mirage') && (nameLower.includes('assassin') || nameLower.includes('ac '))) || (item.id || '').includes('mirage');
               if (isMirage) {
-                if (item.local_banner && typeof item.local_banner === 'string' && item.local_banner.includes('2842100')) {
-                  item = { ...item, local_banner: 'https://shared.cloudflare.steamstatic.com/store_item_assets/steam/apps/3035570/header.jpg' };
+                if (!item.local_banner || (typeof item.local_banner === 'string' && item.local_banner.includes('2842100'))) {
+                  item = { ...item, local_banner: 'https://cdn.cloudflare.steamstatic.com/steam/apps/3035570/header.jpg' };
                   changed = true;
                 }
-                if (item.banner_url && typeof item.banner_url === 'string' && item.banner_url.includes('2842100')) {
-                  item = { ...item, banner_url: 'https://shared.cloudflare.steamstatic.com/store_item_assets/steam/apps/3035570/header.jpg' };
+                if (!item.banner_url || (typeof item.banner_url === 'string' && item.banner_url.includes('2842100'))) {
+                  item = { ...item, banner_url: 'https://cdn.cloudflare.steamstatic.com/steam/apps/3035570/header.jpg' };
                   changed = true;
                 }
-                if (item.cover_url && typeof item.cover_url === 'string' && item.cover_url.includes('2842100')) {
-                  item = { ...item, cover_url: 'https://shared.cloudflare.steamstatic.com/store_item_assets/steam/apps/3035570/capsule_616x353.jpg' };
+                if (!item.cover_url || (typeof item.cover_url === 'string' && (item.cover_url.includes('2842100') || item.cover_url.includes('capsule_616x353')))) {
+                  item = { ...item, cover_url: 'https://cdn.cloudflare.steamstatic.com/steam/apps/3035570/library_600x900_2x.jpg' };
                   changed = true;
                 }
-                if (item.store_app_id === '2842100') {
+                if (item.store_app_id === '2842100' || !item.store_app_id) {
                   item = { ...item, store_app_id: '3035570' };
                   changed = true;
                 }
