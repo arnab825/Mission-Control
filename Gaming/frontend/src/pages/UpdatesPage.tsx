@@ -13,6 +13,7 @@ import {
 } from 'lucide-react';
 import type { TelemetryState } from '../types/telemetry';
 import { ReportGlitchModal } from '../components/ReportGlitchModal';
+import { UpdateSetupModal } from '../components/UpdateSetupModal';
 
 interface UpdatesPageProps {
   state: TelemetryState | null;
@@ -59,6 +60,8 @@ export const UpdatesPage: React.FC<UpdatesPageProps> = ({
   const [electronVersion, setElectronVersion] = React.useState<string>('');
   const [releaseHealth, setReleaseHealth] = React.useState<{ status?: string; stable?: boolean; crashes?: number; crashCount?: number } | null>(null);
   const [preflightRisks, setPreflightRisks] = React.useState<{ riskLevel: string; warnings: string[] } | null>(null);
+  const [isSetupModalOpen, setIsSetupModalOpen] = React.useState(false);
+  const [setupModalMode, setSetupModalMode] = React.useState<'install' | 'rollback'>('install');
 
   useEffect(() => {
     if (window.electronAPI?.getAppVersion) {
@@ -385,7 +388,10 @@ export const UpdatesPage: React.FC<UpdatesPageProps> = ({
                         {isManualChecking ? 'Checking...' : 'Check Again'}
                       </button>
                       <button aria-label="button" type="button"
-                        onClick={() => window.electronAPI?.quitAndInstallElectronUpdate?.()}
+                        onClick={() => {
+                          setSetupModalMode('install');
+                          setIsSetupModalOpen(true);
+                        }}
                         className="flex items-center gap-2 px-6 py-3 bg-linear-to-r from-purple-500 to-neon-green hover:from-purple-400 hover:to-neon-green text-black text-[9px] font-black uppercase tracking-widest rounded-xl shadow-[0_0_20px_rgba(118, 185, 0,0.3)] transition-all hover:scale-[1.02] cursor-pointer"
                       >
                         <RefreshCw className="w-3.5 h-3.5" />
@@ -1001,7 +1007,8 @@ export const UpdatesPage: React.FC<UpdatesPageProps> = ({
                           type="button"
                           onClick={() => {
                             setRollbackConfirm(false);
-                            window.electronAPI?.rollbackElectronUpdate?.();
+                            setSetupModalMode('rollback');
+                            setIsSetupModalOpen(true);
                           }}
                           className="flex-1 px-4 py-2.5 bg-red-500/20 hover:bg-red-500/30 text-red-300 text-[8px] font-black uppercase tracking-widest rounded-xl border border-red-500/30 transition cursor-pointer"
                         >
@@ -1031,7 +1038,10 @@ export const UpdatesPage: React.FC<UpdatesPageProps> = ({
                       </div>
                       <button
                         type="button"
-                        onClick={() => setRollbackConfirm(true)}
+                        onClick={() => {
+                          setSetupModalMode('rollback');
+                          setIsSetupModalOpen(true);
+                        }}
                         className="px-4 py-2.5 bg-red-500/10 hover:bg-red-500/20 text-red-400 text-[8px] font-black uppercase tracking-widest rounded-xl border border-red-500/20 hover:border-red-500/30 transition cursor-pointer shrink-0"
                       >
                         Rollback Core Version
@@ -1066,7 +1076,8 @@ export const UpdatesPage: React.FC<UpdatesPageProps> = ({
                       type="button"
                       onClick={() => {
                         setRollbackConfirm(false);
-                        window.electronAPI?.rollbackElectronUpdate?.();
+                        setSetupModalMode('rollback');
+                        setIsSetupModalOpen(true);
                       }}
                       className="flex-1 px-4 py-2.5 bg-red-500/20 hover:bg-red-500/30 text-red-300 text-[8px] font-black uppercase tracking-widest rounded-xl border border-red-500/30 transition cursor-pointer"
                     >
@@ -1093,7 +1104,10 @@ export const UpdatesPage: React.FC<UpdatesPageProps> = ({
                     </p>
                   </div>
                   <button aria-label="button" type="button"
-                    onClick={() => setRollbackConfirm(true)}
+                    onClick={() => {
+                      setSetupModalMode('rollback');
+                      setIsSetupModalOpen(true);
+                    }}
                     className="mt-4 px-8 py-4 bg-amber-500 hover:bg-amber-400 text-black text-[10px] font-black uppercase tracking-widest rounded-xl transition-all hover:scale-105 shadow-[0_0_20px_rgba(245,158,11,0.3)] cursor-pointer"
                   >
                     Uninstall Update & Rollback
@@ -1238,6 +1252,23 @@ export const UpdatesPage: React.FC<UpdatesPageProps> = ({
           onSuccess={() => {
             sendCommand('check_patches');
             setToastMessage('Issue submitted to developer community!');
+          }}
+        />
+
+        {/* Dedicated Setup UI for Updates & Rollback */}
+        <UpdateSetupModal
+          isOpen={isSetupModalOpen}
+          onClose={() => setIsSetupModalOpen(false)}
+          mode={setupModalMode}
+          version={setupModalMode === 'install' ? (nativeUpdate.version || targetVersion) : currentVersion}
+          backupVersion={rollbackInfo?.version || 'Previous'}
+          onProceed={() => {
+            setIsSetupModalOpen(false);
+            if (setupModalMode === 'install') {
+              window.electronAPI?.quitAndInstallElectronUpdate?.();
+            } else {
+              window.electronAPI?.rollbackElectronUpdate?.();
+            }
           }}
         />
     </div>

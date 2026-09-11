@@ -53,15 +53,24 @@ describe('Game Artwork & Title Normalization Engine', () => {
     const staleCover = 'https://shared.cloudflare.steamstatic.com/store_item_assets/steam/apps/2842100/capsule_616x353.jpg';
     const artworkFromStaleBanner = getGameArtwork("Assassin's Creed Mirage", staleBanner, staleCover);
     expect(artworkFromStaleBanner.steamAppId).toBe('3035570');
-    expect(artworkFromStaleBanner.bannerUrl).toBe('https://shared.cloudflare.steamstatic.com/store_item_assets/steam/apps/3035570/header.jpg');
-    expect(artworkFromStaleBanner.coverUrl).toBe('https://shared.cloudflare.steamstatic.com/store_item_assets/steam/apps/3035570/capsule_616x353.jpg');
+    expect(artworkFromStaleBanner.bannerUrl).toContain('3035570/header.jpg');
+    // AC Mirage must resolve to verified 600x900 cover art instead of 404 capsule
+    expect(artworkFromStaleBanner.coverUrl).toBe('https://cdn.cloudflare.steamstatic.com/steam/apps/3035570/library_600x900_2x.jpg');
     expect(artworkFromStaleBanner.bannerUrl).not.toContain('2842100');
 
     // Stale store_app_id passed
     const artworkFromStaleId = getGameArtwork("Assassin's Creed Mirage", null, null, '2842100');
     expect(artworkFromStaleId.steamAppId).toBe('3035570');
     expect(artworkFromStaleId.bannerUrl).toContain('3035570/header.jpg');
+    expect(artworkFromStaleId.coverUrl).toBe('https://cdn.cloudflare.steamstatic.com/steam/apps/3035570/library_600x900_2x.jpg');
     expect(artworkFromStaleId.bannerUrl).not.toContain('2842100');
+  });
+
+  it('normalizes curly apostrophes and registered trademarks for title lookups', () => {
+    expect(getSteamAppIdForTitle("Assassin’s Creed Mirage")).toBe('3035570');
+    expect(getSteamAppIdForTitle("Assassin's Creed® Mirage")).toBe('3035570');
+    expect(getSteamAppIdForTitle("Assassin’s Creed® Mirage")).toBe('3035570');
+    expect(getSteamAppIdForTitle("Assassin's Creed Mirage Deluxe Edition")).toBe('3035570');
   });
 
   it('contains over 150 verified games in TITLE_TO_STEAM_APPID', () => {

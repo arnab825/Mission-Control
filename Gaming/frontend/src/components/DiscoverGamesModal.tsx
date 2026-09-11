@@ -875,10 +875,14 @@ const DiscoverGamesModal: React.FC<DiscoverGamesModalProps> = ({ onClose, instal
                                       className="w-full h-full object-cover"
                                       onError={(e) => {
                                         const target = e.target as HTMLImageElement;
-                                        const steamAppId = getSteamAppIdForTitle(game.title) || game.store_app_id;
-                                        const steamHeader = steamAppId ? `https://shared.cloudflare.steamstatic.com/store_item_assets/steam/apps/${steamAppId}/header.jpg` : null;
+                                        const rawAppId = getSteamAppIdForTitle(game.title) || game.store_app_id;
+                                        const steamAppId = rawAppId === '2842100' ? (getSteamAppIdForTitle(game.title) || '3035570') : rawAppId;
+                                        const steamHeader = steamAppId ? `https://cdn.cloudflare.steamstatic.com/steam/apps/${steamAppId}/header.jpg` : null;
+                                        const steamCover = steamAppId ? `https://cdn.cloudflare.steamstatic.com/steam/apps/${steamAppId}/library_600x900_2x.jpg` : null;
                                         if (steamHeader && target.src !== steamHeader) {
                                           target.src = steamHeader;
+                                        } else if (steamCover && target.src !== steamCover) {
+                                          target.src = steamCover;
                                         }
                                       }}
                                     />
@@ -1382,14 +1386,18 @@ const DiscoverGamesModal: React.FC<DiscoverGamesModalProps> = ({ onClose, instal
                                 alt={game.title}
                                 onError={(e) => {
                                   const target = e.target as HTMLImageElement;
-                                  const steamAppId = getSteamAppIdForTitle(game.title) || (
+                                  const rawAppId = getSteamAppIdForTitle(game.title) || (
                                     (game.store === 'steam' || game.store === 'Steam') && game.store_app_id
                                       ? game.store_app_id
                                       : (/^\d+$/.test(game.id) ? game.id : (/^\d+$/.test(game.store_app_id || '') ? game.store_app_id : null))
                                   );
-                                  const steamHeader = steamAppId ? `https://shared.cloudflare.steamstatic.com/store_item_assets/steam/apps/${steamAppId}/header.jpg` : null;
+                                  const steamAppId = rawAppId === '2842100' ? (getSteamAppIdForTitle(game.title) || '3035570') : rawAppId;
+                                  const steamHeader = steamAppId ? `https://cdn.cloudflare.steamstatic.com/steam/apps/${steamAppId}/header.jpg` : null;
+                                  const steamCover = steamAppId ? `https://cdn.cloudflare.steamstatic.com/steam/apps/${steamAppId}/library_600x900_2x.jpg` : null;
                                   if (steamHeader && target.src !== steamHeader) {
                                     target.src = steamHeader;
+                                  } else if (steamCover && target.src !== steamCover) {
+                                    target.src = steamCover;
                                   } else {
                                     setBrokenImages(prev => ({ ...prev, [game.id]: true }));
                                   }
@@ -1547,9 +1555,12 @@ const DiscoverGamesModal: React.FC<DiscoverGamesModalProps> = ({ onClose, instal
                             : (/^\d+$/.test(selectedGame.id) ? selectedGame.id : (/^\d+$/.test(selectedGame.store_app_id || '') ? selectedGame.store_app_id : null))
                         );
                         const cleanAppId = steamAppId === '2842100' ? (getSteamAppIdForTitle(selectedGame.title) || '3035570') : steamAppId;
-                        const steamHeader = cleanAppId ? `https://shared.cloudflare.steamstatic.com/store_item_assets/steam/apps/${cleanAppId}/header.jpg` : null;
+                        const steamHeader = cleanAppId ? `https://cdn.cloudflare.steamstatic.com/steam/apps/${cleanAppId}/header.jpg` : null;
+                        const steamCover = cleanAppId ? `https://cdn.cloudflare.steamstatic.com/steam/apps/${cleanAppId}/library_600x900_2x.jpg` : null;
                         if (steamHeader && target.src !== steamHeader) {
                           target.src = steamHeader;
+                        } else if (steamCover && target.src !== steamCover) {
+                          target.src = steamCover;
                         }
                       }}
                       className="w-full h-full object-cover"

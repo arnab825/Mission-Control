@@ -4726,7 +4726,7 @@ $ErrorActionPreference = "Continue"
 # Self-elevate to Administrator if not already elevated
 $isAdmin = ([Security.Principal.WindowsPrincipal][Security.Principal.WindowsIdentity]::GetCurrent()).IsInRole([Security.Principal.WindowsBuiltInRole]::Administrator)
 if (-not $isAdmin) {
-    Start-Process powershell.exe -ArgumentList "-NoProfile", "-ExecutionPolicy", "Bypass", "-File", "\`"$PSCommandPath\`"" -Verb RunAs
+    Start-Process powershell.exe -ArgumentList "-NoProfile", "-ExecutionPolicy", "Bypass", "-WindowStyle", "Hidden", "-File", "\`"$PSCommandPath\`"" -Verb RunAs
     exit
 }
 
@@ -4754,73 +4754,152 @@ Log-Message "=== Rollback process started ==="
 Log-Message "Target resources path: $resourcesPath"
 Log-Message "Source backup path: $backupPath"
 
-# Wait for calling Electron process to exit
-Log-Message "Waiting for parent PID $parentPid to terminate..."
-$attempts = 0
-while ($attempts -lt 20) {
-    $proc = Get-Process -Id $parentPid -ErrorAction SilentlyContinue
-    if (-not $proc) { break }
-    Start-Sleep -Milliseconds 500
-    $attempts++
-}
+# Initialize native Setup UI Dialog
+Add-Type -AssemblyName System.Windows.Forms
+Add-Type -AssemblyName System.Drawing
 
-# Wait additional seconds for file handles to release
-Start-Sleep -Seconds 1
+[System.Windows.Forms.Application]::EnableVisualStyles()
 
-# Force kill any lingering python, backend, electron, or mission control helper processes
-Get-Process -Name "Mission Control", "MissionControl", "MissionControlBackend", "electron", "python" -ErrorAction SilentlyContinue | Where-Object { $_.Id -ne $PID } | Stop-Process -Force -ErrorAction SilentlyContinue
+$form = New-Object System.Windows.Forms.Form
+$form.Text = "Mission Control Setup - Rollback Recovery"
+$form.Size = New-Object System.Drawing.Size(540, 240)
+$form.StartPosition = "CenterScreen"
+$form.FormBorderStyle = "FixedDialog"
+$form.MaximizeBox = $false
+$form.MinimizeBox = $false
+$form.TopMost = $true
+$form.BackColor = [System.Drawing.Color]::FromArgb(15, 15, 20)
+$form.ForeColor = [System.Drawing.Color]::White
 
-Log-Message "Restoring files via robocopy..."
-$robocopyArgs = @(
-    $backupPath,
-    $resourcesPath,
-    "/E",
-    "/R:2",
-    "/W:1",
-    "/NP",
-    "/NFL",
-    "/NDL",
-    "/XF", "rollback_meta.json", "rollback.log", "rollback.ps1"
-)
-$rc = Start-Process -FilePath "robocopy.exe" -ArgumentList $robocopyArgs -Wait -PassThru -NoNewWindow
-Log-Message "Robocopy exited with code: $($rc.ExitCode)"
+$titleLabel = New-Object System.Windows.Forms.Label
+$titleLabel.Text = "Mission Control Setup"
+$titleLabel.Font = New-Object System.Drawing.Font("Segoe UI", 12, [System.Drawing.FontStyle]::Bold)
+$titleLabel.ForeColor = [System.Drawing.Color]::FromArgb(245, 158, 11)
+$titleLabel.Location = New-Object System.Drawing.Point(24, 20)
+$titleLabel.Size = New-Object System.Drawing.Size(480, 26)
+$form.Controls.Add($titleLabel)
 
-# In robocopy, exit code <= 7 means success (0=no change, 1=copied, 2=extra, 3=copied+extra)
-if ($rc.ExitCode -gt 7) {
-    Log-Message "Robocopy reported issues ($($rc.ExitCode)), falling back to PowerShell copy..."
-    Get-ChildItem -Path $backupPath -Recurse | ForEach-Object {
-        if ($_.FullName.Length -gt $backupPath.Length) {
-            $rel = $_.FullName.Substring($backupPath.Length).TrimStart('\\').TrimStart('/')
-            $dest = Join-Path $resourcesPath $rel
-            if ($_.PSIsContainer) {
-                if (-not (Test-Path $dest)) { New-Item -ItemType Directory -Path $dest -Force | Out-Null }
-            } else {
-                Copy-Item -Path $_.FullName -Destination $dest -Force -ErrorAction SilentlyContinue
+$statusLabel = New-Object System.Windows.Forms.Label
+$statusLabel.Text = "Initializing rollback setup wizard..."
+$statusLabel.Font = New-Object System.Drawing.Font("Segoe UI", 9, [System.Drawing.FontStyle]::Regular)
+$statusLabel.ForeColor = [System.Drawing.Color]::FromArgb(210, 210, 215)
+$statusLabel.Location = New-Object System.Drawing.Point(24, 52)
+$statusLabel.Size = New-Object System.Drawing.Size(480, 22)
+$form.Controls.Add($statusLabel)
+
+$progressBar = New-Object System.Windows.Forms.ProgressBar
+$progressBar.Location = New-Object System.Drawing.Point(24, 82)
+$progressBar.Size = New-Object System.Drawing.Size(475, 22)
+$progressBar.Minimum = 0
+$progressBar.Maximum = 100
+$progressBar.Value = 10
+$form.Controls.Add($progressBar)
+
+$subLabel = New-Object System.Windows.Forms.Label
+$subLabel.Text = "Please wait while previous version files are safely restored."
+$subLabel.Font = New-Object System.Drawing.Font("Segoe UI", 8, [System.Drawing.FontStyle]::Regular)
+$subLabel.ForeColor = [System.Drawing.Color]::FromArgb(120, 120, 130)
+$subLabel.Location = New-Object System.Drawing.Point(24, 112)
+$subLabel.Size = New-Object System.Drawing.Size(480, 20)
+$form.Controls.Add($subLabel)
+
+$form.Add_Shown({
+    $form.Refresh()
+    [System.Windows.Forms.Application]::DoEvents()
+
+    # Step 1: Wait for parent process
+    $statusLabel.Text = "Stopping active Mission Control session (PID $parentPid)..."
+    $progressBar.Value = 20
+    $form.Refresh()
+    [System.Windows.Forms.Application]::DoEvents()
+
+    Log-Message "Waiting for parent PID $parentPid to terminate..."
+    $attempts = 0
+    while ($attempts -lt 20) {
+        $proc = Get-Process -Id $parentPid -ErrorAction SilentlyContinue
+        if (-not $proc) { break }
+        Start-Sleep -Milliseconds 500
+        $attempts++
+    }
+    Start-Sleep -Seconds 1
+
+    # Step 2: Stop any remaining background processes
+    $statusLabel.Text = "Releasing system handles & terminating background workers..."
+    $progressBar.Value = 40
+    $form.Refresh()
+    [System.Windows.Forms.Application]::DoEvents()
+
+    Get-Process -Name "Mission Control", "MissionControl", "MissionControlBackend", "electron", "python" -ErrorAction SilentlyContinue | Where-Object { $_.Id -ne $PID } | Stop-Process -Force -ErrorAction SilentlyContinue
+
+    # Step 3: Robocopy file restoration
+    $statusLabel.Text = "Restoring certified stable core from snapshot..."
+    $progressBar.Value = 65
+    $form.Refresh()
+    [System.Windows.Forms.Application]::DoEvents()
+
+    Log-Message "Restoring files via robocopy..."
+    $robocopyArgs = @(
+        $backupPath,
+        $resourcesPath,
+        "/E",
+        "/R:2",
+        "/W:1",
+        "/NP",
+        "/NFL",
+        "/NDL",
+        "/XF", "rollback_meta.json", "rollback.log", "rollback.ps1"
+    )
+    $rc = Start-Process -FilePath "robocopy.exe" -ArgumentList $robocopyArgs -Wait -PassThru -NoNewWindow
+    Log-Message "Robocopy exited with code: $($rc.ExitCode)"
+
+    # In robocopy, exit code <= 7 means success
+    if ($rc.ExitCode -gt 7) {
+        Log-Message "Robocopy reported issues ($($rc.ExitCode)), falling back to PowerShell copy..."
+        Get-ChildItem -Path $backupPath -Recurse | ForEach-Object {
+            if ($_.FullName.Length -gt $backupPath.Length) {
+                $rel = $_.FullName.Substring($backupPath.Length).TrimStart('\\').TrimStart('/')
+                $dest = Join-Path $resourcesPath $rel
+                if ($_.PSIsContainer) {
+                    if (-not (Test-Path $dest)) { New-Item -ItemType Directory -Path $dest -Force | Out-Null }
+                } else {
+                    Copy-Item -Path $_.FullName -Destination $dest -Force -ErrorAction SilentlyContinue
+                }
             }
         }
     }
-}
 
-Log-Message "Relaunching application at: $exePath"
-Start-Process -FilePath $exePath
+    # Step 4: Verification & Relaunch
+    $statusLabel.Text = "Rollback successful! Relaunching Mission Control..."
+    $progressBar.Value = 100
+    $subLabel.Text = "Starting restored application..."
+    $form.Refresh()
+    [System.Windows.Forms.Application]::DoEvents()
+    Start-Sleep -Milliseconds 800
 
-Log-Message "=== Rollback completed successfully ==="
+    Log-Message "Relaunching application at: $exePath"
+    Start-Process -FilePath $exePath
+    Log-Message "=== Rollback completed successfully ==="
+
+    $form.Close()
+})
+
+$form.ShowDialog() | Out-Null
 `;
 
       try {
         fs.writeFileSync(scriptPath, psScript, 'utf-8');
 
         // Always launch with UAC elevation so Program Files write access succeeds
-        console.log('[AutoUpdater] Spawning rollback script with UAC elevation (RunAs)...');
+        console.log('[AutoUpdater] Spawning rollback script with dedicated Setup UI and UAC elevation (RunAs)...');
         spawn('powershell.exe', [
           '-NoProfile',
           '-ExecutionPolicy', 'Bypass',
           '-Command',
-          `Start-Process powershell.exe -ArgumentList '-NoProfile', '-ExecutionPolicy', 'Bypass', '-File', \`"${scriptPath}\`" -Verb RunAs`
+          `Start-Process powershell.exe -ArgumentList '-NoProfile', '-ExecutionPolicy', 'Bypass', '-WindowStyle', 'Hidden', '-File', \`"${scriptPath}\`" -Verb RunAs`
         ], {
           detached: true,
           stdio: 'ignore',
-          windowsHide: true
+          windowsHide: false
         }).unref();
 
         // 1. Hide window immediately

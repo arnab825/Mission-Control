@@ -392,6 +392,9 @@ def main():
     parser.add_argument("--port", type=int, default=default_port)
     parser.add_argument("--catalog-servers", default=None, help="Comma-separated URLs for Catalog Discovery pool")
     parser.add_argument("--node-servers", default=None, help="Comma-separated URLs for Node Sync pool")
+    parser.add_argument("--enricher-servers", default=None, help="Comma-separated URLs for AI Enricher pool")
+    parser.add_argument("--launcher-servers", default=None, help="Comma-separated URLs for Multi-Launcher pool")
+    parser.add_argument("--crawler-servers", default=None, help="Comma-separated URLs for Crawler pool")
     args = parser.parse_args()
 
     if getattr(args, "catalog_servers", None):
@@ -400,7 +403,14 @@ def main():
     if getattr(args, "node_servers", None):
         node_pool.set_servers(_parse_server_list(args.node_servers, node_pool.servers))
 
+    if getattr(args, "enricher_servers", None):
+        enricher_pool.set_servers(_parse_server_list(args.enricher_servers, enricher_pool.servers))
 
+    if getattr(args, "launcher_servers", None):
+        launcher_pool.set_servers(_parse_server_list(args.launcher_servers, launcher_pool.servers))
+
+    if getattr(args, "crawler_servers", None):
+        crawler_pool.set_servers(_parse_server_list(args.crawler_servers, crawler_pool.servers))
 
     try:
         import uvicorn
@@ -413,6 +423,9 @@ def main():
     print(f"  Listening:        http://{args.host}:{args.port}")
     print(f"  Catalog Pool:     {catalog_pool.servers}")
     print(f"  Node Sync Pool:   {node_pool.servers}")
+    print(f"  Enricher Pool:    {enricher_pool.servers}")
+    print(f"  Launcher Pool:    {launcher_pool.servers}")
+    print(f"  Crawler Pool:     {crawler_pool.servers}")
     print(f"  Cluster Status:   http://localhost:{args.port}/cluster/status")
     print(f"{'='*65}\n")
 
