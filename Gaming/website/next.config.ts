@@ -19,13 +19,15 @@ const nextConfig: NextConfig = {
   outputFileTracingRoot: rootDir,
   outputFileTracingExcludes: {
     "*": [
-      "public/games/*.png",
-      "public/screenshots/*.png",
-      "node_modules/@swc/core-linux-x64-gnu",
-      "node_modules/@swc/core-linux-x64-musl",
-      "node_modules/@esbuild",
+      "public/games/**",
+      "public/screenshots/**",
+      "public/images/**",
+      "node_modules/@swc/**",
+      "node_modules/@esbuild/**",
+      "node_modules/typescript/**",
       "generate.log",
-      "*.log"
+      "*.log",
+      "*.tsbuildinfo"
     ],
   },
   compress: true,
@@ -80,17 +82,15 @@ const nextConfig: NextConfig = {
   },
   async rewrites() {
     // If running on Vercel and RENDER_BACKEND_URL is configured,
-    // proxy API and heavy download routes directly to Render backend
+    // proxy API routes directly to Render backend.
+    // Note: /downloads is intentionally NOT proxied so it directly triggers
+    // the local 302 redirect to GitHub Releases CDN without burning Vercel origin bandwidth.
     const renderBackend = process.env.RENDER_BACKEND_URL?.replace(/\/$/, "");
     if (renderBackend) {
       return [
         {
           source: "/api/:path*",
           destination: `${renderBackend}/api/:path*`,
-        },
-        {
-          source: "/downloads/:path*",
-          destination: `${renderBackend}/downloads/:path*`,
         },
       ];
     }
