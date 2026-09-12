@@ -543,8 +543,10 @@ def handle_bridge_update_commands(cmd_type: str, payload: dict, bridge_instance)
 
                 # Query candidate telemetry endpoints with automatic failover (Primary -> Backup)
                 primary_telemetry = os.getenv("TELEMETRY_API_URL", "https://mission-control-roan-seven.vercel.app")
-                backup_telemetry = os.getenv("BACKUP_TELEMETRY_API_URL", "https://ai-assistant-five-mu.vercel.app")
-                candidate_endpoints = [primary_telemetry, backup_telemetry]
+                backup_telemetry = os.getenv("BACKUP_TELEMETRY_API_URL", "https://mission-control-taupe-mu.vercel.app")
+                candidate_endpoints = [ep for ep in [primary_telemetry, backup_telemetry] if ep]
+                seen_eps = set()
+                candidate_endpoints = [x for x in candidate_endpoints if not (x in seen_eps or seen_eps.add(x))]
 
                 issues = []
                 for candidate in candidate_endpoints:
@@ -657,8 +659,10 @@ def handle_bridge_update_commands(cmd_type: str, payload: dict, bridge_instance)
 
                 issue_payload = data if isinstance(data, dict) else {}
                 primary_telemetry = os.getenv("TELEMETRY_API_URL", "https://mission-control-roan-seven.vercel.app")
-                backup_telemetry = os.getenv("BACKUP_TELEMETRY_API_URL", "https://ai-assistant-five-mu.vercel.app")
-                candidate_endpoints = [primary_telemetry, backup_telemetry]
+                backup_telemetry = os.getenv("BACKUP_TELEMETRY_API_URL", "https://mission-control-taupe-mu.vercel.app")
+                candidate_endpoints = [ep for ep in [primary_telemetry, backup_telemetry] if ep]
+                seen_submit_eps = set()
+                candidate_endpoints = [x for x in candidate_endpoints if not (x in seen_submit_eps or seen_submit_eps.add(x))]
 
                 resp_data = None
                 last_err = None
