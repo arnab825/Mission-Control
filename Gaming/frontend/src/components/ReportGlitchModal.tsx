@@ -30,8 +30,8 @@ interface ReportGlitchModalProps {
 }
 
 const PRIMARY_SITE = (import.meta as any).env?.VITE_TELEMETRY_API_URL || 'https://mission-control-roan-seven.vercel.app';
-const BACKUP_SITE = (import.meta as any).env?.VITE_BACKUP_TELEMETRY_API_URL || 'https://ai-assistant-five-mu.vercel.app';
-const CANDIDATE_SITES = [PRIMARY_SITE, BACKUP_SITE].filter(Boolean);
+const BACKUP_SITE = (import.meta as any).env?.VITE_BACKUP_TELEMETRY_API_URL || 'https://mission-control-taupe-mu.vercel.app';
+const CANDIDATE_SITES = Array.from(new Set([PRIMARY_SITE, BACKUP_SITE].filter(Boolean)));
 
 const QUICK_DIAGNOSTIC_TAGS = [
   'DirectX 12 Device Removed Crash',
