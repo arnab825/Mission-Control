@@ -3,20 +3,13 @@ import DocModel from "@/models/Doc";
 import fs from "fs";
 import path from "path";
 import matter from "gray-matter";
+import { FALLBACK_DOCS } from "./docs-fallback";
 
 function getDocsDirectory(): string {
   const localDocs = path.join(process.cwd(), "docs");
-  if (fs.existsSync(localDocs)) {
-    return localDocs;
-  }
+  if (fs.existsSync(localDocs)) return localDocs;
   const parentDocs = path.join(process.cwd(), "..", "docs");
-  if (fs.existsSync(parentDocs)) {
-    return parentDocs;
-  }
-  const contentDocs = path.join(process.cwd(), "content", "docs");
-  if (fs.existsSync(contentDocs)) {
-    return contentDocs;
-  }
+  if (fs.existsSync(parentDocs)) return parentDocs;
   return localDocs;
 }
 
@@ -159,24 +152,33 @@ export async function getAllDocs(): Promise<DocData[]> {
     }
 
     // 2. Fallback to MongoDB query if no local files found
-    await connectDB();
-    let docs = await DocModel.find({}).sort({ order: 1 }).lean();
+    try {
+      await connectDB();
+      let docs = await DocModel.find({}).sort({ order: 1 }).lean();
 
-    const result = docs.map((d: any) => ({
-      slug: d.slug,
-      title: d.title,
-      content: d.content,
-      category: d.category,
-      excerpt: d.excerpt,
-      badge: d.badge,
-      badgeColor: d.badgeColor,
-    }));
+      if (docs && docs.length > 0) {
+        const result = docs.map((d: any) => ({
+          slug: d.slug,
+          title: d.title,
+          content: d.content,
+          category: d.category,
+          excerpt: d.excerpt,
+          badge: d.badge,
+          badgeColor: d.badgeColor,
+        }));
+        cachedDocs = result;
+        return result;
+      }
+    } catch (mongoErr) {
+      console.warn("[Docs] MongoDB connection/query failed, falling back to embedded docs:", mongoErr);
+    }
 
-    cachedDocs = result;
-    return result;
+    // 3. Resilient embedded fallback so /docs and /docs/[slug] NEVER return 404
+    cachedDocs = FALLBACK_DOCS as DocData[];
+    return cachedDocs;
   } catch (error) {
     console.error("Error loading docs:", error);
-    return [];
+    return FALLBACK_DOCS as DocData[];
   }
 }
 
@@ -184,9 +186,17 @@ export async function getDocBySlug(slug: string): Promise<DocData | null> {
   try {
     const all = await getAllDocs();
     const found = all.find((d) => d.slug.toLowerCase() === slug.toLowerCase());
-    return found || null;
+    if (found) return found;
+
+    const fallbackFound = (FALLBACK_DOCS as DocData[]).find(
+      (d) => d.slug.toLowerCase() === slug.toLowerCase()
+    );
+    return fallbackFound || null;
   } catch (error) {
-    console.error(`Error loading doc ${slug} from MongoDB:`, error);
-    return null;
+    console.error(`Error loading doc ${slug}:`, error);
+    const fallbackFound = (FALLBACK_DOCS as DocData[]).find(
+      (d) => d.slug.toLowerCase() === slug.toLowerCase()
+    );
+    return fallbackFound || null;
   }
 }

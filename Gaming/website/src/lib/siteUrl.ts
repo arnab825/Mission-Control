@@ -15,7 +15,7 @@ export function getBaseUrl(): string {
   if (process.env.VERCEL_URL) {
     return `https://${process.env.VERCEL_URL}`;
   }
-  return "https://mission-control-roan-seven.vercel.app";
+  return "https://mission-control-taupe-mu.vercel.app";
 }
 
 export const BASE_SITE_URL = getBaseUrl();
