@@ -142,14 +142,14 @@ export default function Footer() {
                 </Link>
               </li>
               <li>
-                <button onClick={() => setActiveModal('terms')} className="text-gray-400 hover:text-white hover:translate-x-1 transition-all duration-300 text-sm cursor-pointer text-left flex items-center gap-2 group">
+                <Link href="/terms" className="text-gray-400 hover:text-white hover:translate-x-1 transition-all duration-300 text-sm cursor-pointer text-left flex items-center gap-2 group">
                   <span className="w-1.5 h-1.5 rounded-full bg-neon-green/40 group-hover:bg-neon-green group-hover:shadow-[0_0_8px_rgba(118,185,0,0.8)] transition-all duration-300"></span> Terms & Conditions
-                </button>
+                </Link>
               </li>
               <li>
-                <button onClick={() => setActiveModal('privacy')} className="text-gray-400 hover:text-white hover:translate-x-1 transition-all duration-300 text-sm cursor-pointer text-left flex items-center gap-2 group">
+                <Link href="/privacy" className="text-gray-400 hover:text-white hover:translate-x-1 transition-all duration-300 text-sm cursor-pointer text-left flex items-center gap-2 group">
                   <span className="w-1.5 h-1.5 rounded-full bg-neon-green/40 group-hover:bg-neon-green group-hover:shadow-[0_0_8px_rgba(118,185,0,0.8)] transition-all duration-300"></span> Privacy Policy
-                </button>
+                </Link>
               </li>
               <li>
                 <button onClick={() => setActiveModal('cookies')} className="text-gray-400 hover:text-white hover:translate-x-1 transition-all duration-300 text-sm cursor-pointer text-left flex items-center gap-2 group">

@@ -17,6 +17,11 @@ const rootDir = process.cwd();
 
 const nextConfig: NextConfig = {
   outputFileTracingRoot: rootDir,
+  outputFileTracingIncludes: {
+    "/docs": ["./docs/**/*"],
+    "/docs/[slug]": ["./docs/**/*"],
+    "/api/**": ["./docs/**/*"],
+  },
   outputFileTracingExcludes: {
     "*": [
       "public/games/**",
@@ -83,14 +88,14 @@ const nextConfig: NextConfig = {
   async rewrites() {
     // If running on Vercel and RENDER_BACKEND_URL is configured,
     // proxy API routes directly to Render backend.
-    // Note: /downloads is intentionally NOT proxied so it directly triggers
-    // the local 302 redirect to GitHub Releases CDN without burning Vercel origin bandwidth.
+    // Note: /api/download and /downloads are intentionally NOT proxied so they directly
+    // trigger the local 302 redirect to GitHub Releases CDN without burning Vercel origin bandwidth.
     const renderBackend = process.env.RENDER_BACKEND_URL?.replace(/\/$/, "");
     if (renderBackend) {
       return [
         {
-          source: "/api/:path*",
-          destination: `${renderBackend}/api/:path*`,
+          source: "/api/:path((?!download).*)",
+          destination: `${renderBackend}/api/:path`,
         },
       ];
     }
