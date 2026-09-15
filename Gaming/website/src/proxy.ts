@@ -47,8 +47,9 @@ function getTierConfig(tier: "auth" | "authenticated" | "public") {
   };
 }
 
-// Cleanup stale records periodically to avoid memory leaks
-setInterval(() => {
+// Cleanup stale records on-demand without background timers
+function cleanupStaleRecords() {
+  if (ipRateLimitMap.size < 500 && accountRateLimitMap.size < 500) return;
   const now = Date.now();
   for (const [key, record] of ipRateLimitMap.entries()) {
     if (record.backoffUntil < now && now - record.windowStart > 10 * 60 * 1000) {
@@ -60,7 +61,7 @@ setInterval(() => {
       accountRateLimitMap.delete(key);
     }
   }
-}, 5 * 60 * 1000);
+}
 
 // ── Rate Limit Evaluator with Exponential Backoff ────────────────────────────
 function checkRateLimit(
@@ -146,114 +147,120 @@ function getEndpointTier(pathname: string, request: NextRequest): "auth" | "auth
 }
 
 export function proxy(request: NextRequest) {
-  const { pathname } = request.nextUrl;
+  try {
+    cleanupStaleRecords();
+    const { pathname } = request.nextUrl;
 
-  // 1. Block common malicious scanner probes and vulnerability scanners
-  const blockedPatterns = [
-    /\.env/i,
-    /\.git/i,
-    /wp-admin/i,
-    /wp-login/i,
-    /xmlrpc\.php/i,
-    /phpmyadmin/i,
-    /\.sql$/i,
-    /\.bak$/i,
-    /\.config$/i,
-    /\/_profiler/i,
-    /\/actuator/i,
-  ];
+    // 1. Block common malicious scanner probes and vulnerability scanners
+    const blockedPatterns = [
+      /\.env/i,
+      /\.git/i,
+      /wp-admin/i,
+      /wp-login/i,
+      /xmlrpc\.php/i,
+      /phpmyadmin/i,
+      /\.sql$/i,
+      /\.bak$/i,
+      /\.config$/i,
+      /\/_profiler/i,
+      /\/actuator/i,
+    ];
 
-  if (blockedPatterns.some((pattern) => pattern.test(pathname))) {
-    return new NextResponse("Access Denied: Blocked by Security Policy", {
-      status: 403,
-      headers: {
-        "Content-Type": "text/plain",
-        "X-Robots-Tag": "noindex, nofollow",
-      },
-    });
-  }
-
-  // 2. Dynamic Tiered Rate Limiting for API routes
-  if (pathname.startsWith("/api/")) {
-    const tier = getEndpointTier(pathname, request);
-    const tierConfig = getTierConfig(tier);
-
-    // Identify Client IP
-    const ip =
-      request.headers.get("x-forwarded-for")?.split(",")[0]?.trim() ||
-      request.headers.get("x-real-ip") ||
-      "127.0.0.1";
-
-    // 2a. IP-based Rate Limit Check
-    const ipResult = checkRateLimit(ipRateLimitMap, `${tier}:${ip}`, tierConfig);
-    if (!ipResult.allowed) {
-      return new NextResponse(
-        JSON.stringify({
-          error: "Too Many Requests",
-          message:
-            tier === "auth"
-              ? "Authentication rate limit exceeded. Exponential backoff delay active."
-              : "Rate limit exceeded. Please try again later.",
-          retryAfter: ipResult.retryAfter,
-        }),
-        {
-          status: 429,
-          headers: {
-            "Content-Type": "application/json",
-            "Retry-After": String(ipResult.retryAfter || 60),
-          },
-        }
-      );
+    if (blockedPatterns.some((pattern) => pattern.test(pathname))) {
+      return new NextResponse("Access Denied: Blocked by Security Policy", {
+        status: 403,
+        headers: {
+          "Content-Type": "text/plain",
+          "X-Robots-Tag": "noindex, nofollow",
+        },
+      });
     }
 
-    // 2b. Account-based Rate Limit Check for auth routes (per-account tracking)
-    if (tier === "auth") {
-      const accountIdentifier =
-        request.headers.get("x-user-email") ||
-        request.headers.get("x-account-id") ||
-        request.nextUrl.searchParams.get("email") ||
-        request.nextUrl.searchParams.get("account");
+    // 2. Dynamic Tiered Rate Limiting for API routes
+    if (pathname.startsWith("/api/")) {
+      const tier = getEndpointTier(pathname, request);
+      const tierConfig = getTierConfig(tier);
 
-      if (accountIdentifier) {
-        const cleanAccount = accountIdentifier.trim().toLowerCase();
-        const accountResult = checkRateLimit(
-          accountRateLimitMap,
-          `auth_acc:${cleanAccount}`,
-          tierConfig
+      // Identify Client IP
+      const ip =
+        request.headers.get("x-forwarded-for")?.split(",")[0]?.trim() ||
+        request.headers.get("x-real-ip") ||
+        "127.0.0.1";
+
+      // 2a. IP-based Rate Limit Check
+      const ipResult = checkRateLimit(ipRateLimitMap, `${tier}:${ip}`, tierConfig);
+      if (!ipResult.allowed) {
+        return new NextResponse(
+          JSON.stringify({
+            error: "Too Many Requests",
+            message:
+              tier === "auth"
+                ? "Authentication rate limit exceeded. Exponential backoff delay active."
+                : "Rate limit exceeded. Please try again later.",
+            retryAfter: ipResult.retryAfter,
+          }),
+          {
+            status: 429,
+            headers: {
+              "Content-Type": "application/json",
+              "Retry-After": String(ipResult.retryAfter || 60),
+            },
+          }
         );
+      }
 
-        if (!accountResult.allowed) {
-          return new NextResponse(
-            JSON.stringify({
-              error: "Too Many Requests",
-              message: "Rate limit exceeded for this account. Exponential backoff delay active.",
-              retryAfter: accountResult.retryAfter,
-            }),
-            {
-              status: 429,
-              headers: {
-                "Content-Type": "application/json",
-                "Retry-After": String(accountResult.retryAfter || 60),
-              },
-            }
+      // 2b. Account-based Rate Limit Check for auth routes (per-account tracking)
+      if (tier === "auth") {
+        const accountIdentifier =
+          request.headers.get("x-user-email") ||
+          request.headers.get("x-account-id") ||
+          request.nextUrl.searchParams.get("email") ||
+          request.nextUrl.searchParams.get("account");
+
+        if (accountIdentifier) {
+          const cleanAccount = accountIdentifier.trim().toLowerCase();
+          const accountResult = checkRateLimit(
+            accountRateLimitMap,
+            `auth_acc:${cleanAccount}`,
+            tierConfig
           );
+
+          if (!accountResult.allowed) {
+            return new NextResponse(
+              JSON.stringify({
+                error: "Too Many Requests",
+                message: "Rate limit exceeded for this account. Exponential backoff delay active.",
+                retryAfter: accountResult.retryAfter,
+              }),
+              {
+                status: 429,
+                headers: {
+                  "Content-Type": "application/json",
+                  "Retry-After": String(accountResult.retryAfter || 60),
+                },
+              }
+            );
+          }
         }
       }
     }
+
+    const response = NextResponse.next();
+
+    // 3. Reinforce Edge Security Headers
+    response.headers.set("X-Content-Type-Options", "nosniff");
+    response.headers.set("X-Frame-Options", "DENY");
+    response.headers.set("Referrer-Policy", "strict-origin-when-cross-origin");
+    response.headers.set(
+      "Permissions-Policy",
+      "camera=(), microphone=(), geolocation=(), interest-cohort=()"
+    );
+
+    return response;
+  } catch (err) {
+    console.error("[Proxy Fatal Error]", err);
+    return NextResponse.next();
   }
-
-  const response = NextResponse.next();
-
-  // 3. Reinforce Edge Security Headers
-  response.headers.set("X-Content-Type-Options", "nosniff");
-  response.headers.set("X-Frame-Options", "DENY");
-  response.headers.set("Referrer-Policy", "strict-origin-when-cross-origin");
-  response.headers.set(
-    "Permissions-Policy",
-    "camera=(), microphone=(), geolocation=(), interest-cohort=()"
-  );
-
-  return response;
 }
 
 // Keep export default and export middleware for backwards compatibility
