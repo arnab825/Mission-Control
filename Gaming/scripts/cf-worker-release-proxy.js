@@ -49,14 +49,19 @@ export default {
     let targetUrl;
 
     if (parts.length >= 2) {
-      const version = parts[0];
+      const rawVersion = parts[0];
       const filename = parts.slice(1).join('/');
-      targetUrl = `https://github.com/${GITHUB_REPO}/releases/download/${version}/${filename}`;
+      if (rawVersion.toLowerCase() === 'latest') {
+        targetUrl = `https://github.com/${GITHUB_REPO}/releases/latest/download/${filename}`;
+      } else {
+        const normalizedVersion = rawVersion.startsWith('v') ? rawVersion : `v${rawVersion}`;
+        targetUrl = `https://github.com/${GITHUB_REPO}/releases/download/${normalizedVersion}/${filename}`;
+      }
     } else if (parts.length === 1 && parts[0].endsWith('.exe')) {
       // Default to version v3.6.3 if only the executable filename is requested
       targetUrl = `https://github.com/${GITHUB_REPO}/releases/download/v3.6.3/${parts[0]}`;
     } else {
-      return new Response('Invalid release asset path. Expected: /:version/:filename (e.g. /v3.6.3/MissionControl-Setup.exe)', {
+      return new Response('Invalid release asset path. Expected: /:version/:filename (e.g. /v3.6.3/MissionControl-Setup.exe or /latest/MissionControl-Setup.exe)', {
         status: 400,
         headers: { 'Content-Type': 'text/plain' }
       });

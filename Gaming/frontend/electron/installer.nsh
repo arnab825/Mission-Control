@@ -18,7 +18,7 @@
   ; Silently kill the Electron shell and Python backend before the installer writes files.
   ; /F = force kill, /IM = by image name, /T = kill child tree (covers spawned subprocesses)
   DetailPrint "Stopping any running Mission Control processes..."
-  nsExec::ExecToStack `"$SYSDIR\WindowsPowerShell\v1.0\powershell.exe" -NonInteractive -NoProfile -Command "& { Stop-Process -Name 'MissionControlBackend' -Force -ErrorAction SilentlyContinue; Stop-Process -Name 'Mission Control' -Force -ErrorAction SilentlyContinue; Start-Sleep -Milliseconds 800 }"`
+  nsExec::ExecToStack `"$SYSDIR\WindowsPowerShell\v1.0\powershell.exe" -ExecutionPolicy Bypass -NonInteractive -NoProfile -Command "& { Stop-Process -Name 'MissionControlBackend' -Force -ErrorAction SilentlyContinue; Stop-Process -Name 'Mission Control' -Force -ErrorAction SilentlyContinue; Start-Sleep -Milliseconds 800 }"`
   Pop $0
   Pop $1
 !macroend
@@ -40,14 +40,14 @@
 !macro customInstall
   ; Safety: Kill any remaining Mission Control processes before writing files.
   ; (customInstallMode already fires early, but this catches edge cases.)
-  nsExec::ExecToStack `"$SYSDIR\WindowsPowerShell\v1.0\powershell.exe" -NonInteractive -NoProfile -Command "& { Stop-Process -Name 'MissionControlBackend' -Force -ErrorAction SilentlyContinue; Stop-Process -Name 'Mission Control' -Force -ErrorAction SilentlyContinue; Start-Sleep -Milliseconds 500 }"`
+  nsExec::ExecToStack `"$SYSDIR\WindowsPowerShell\v1.0\powershell.exe" -ExecutionPolicy Bypass -NonInteractive -NoProfile -Command "& { Stop-Process -Name 'MissionControlBackend' -Force -ErrorAction SilentlyContinue; Stop-Process -Name 'Mission Control' -Force -ErrorAction SilentlyContinue; Start-Sleep -Milliseconds 500 }"`
   Pop $0
   Pop $1
 
   ; Clean up duplicate user-specific shortcuts from previous installations (per-user layout)
   ; Since the installer runs elevated as Admin, SetShellVarContext current resolves to the Admin profile.
   ; We use PowerShell to clean up the shortcuts across all user directories under C:\Users.
-  nsExec::ExecToStack `"$SYSDIR\WindowsPowerShell\v1.0\powershell.exe" -NonInteractive -NoProfile -Command "Get-ChildItem -Path 'C:\Users' -Directory | Where-Object { $$_.Name -notin @('Public', 'Default', 'Default User', 'All Users') } | ForEach-Object { $$lnk1 = Join-Path $$_.FullName 'AppData\Roaming\Microsoft\Windows\Start Menu\Programs\Mission Control.lnk'; if (Test-Path $$lnk1) { Remove-Item $$lnk1 -Force }; $$lnk2 = Join-Path $$_.FullName 'Desktop\Mission Control.lnk'; if (Test-Path $$lnk2) { Remove-Item $$lnk2 -Force }; $$uninst = Join-Path $$_.FullName 'AppData\Local\Programs\mission-control\Uninstall Mission Control.exe'; if (Test-Path $$uninst) { Start-Process -FilePath $$uninst -ArgumentList '/S' -Wait -NoNewWindow } }"`
+  nsExec::ExecToStack `"$SYSDIR\WindowsPowerShell\v1.0\powershell.exe" -ExecutionPolicy Bypass -NonInteractive -NoProfile -Command "& { Get-ChildItem -Path 'C:\Users' -Directory -ErrorAction SilentlyContinue | Where-Object { $$_.Name -notin @('Public', 'Default', 'Default User', 'All Users') } | ForEach-Object { $$lnk1 = Join-Path $$_.FullName 'AppData\Roaming\Microsoft\Windows\Start Menu\Programs\Mission Control.lnk'; if (Test-Path $$lnk1) { Remove-Item $$lnk1 -Force -ErrorAction SilentlyContinue }; $$lnk2 = Join-Path $$_.FullName 'Desktop\Mission Control.lnk'; if (Test-Path $$lnk2) { Remove-Item $$lnk2 -Force -ErrorAction SilentlyContinue }; $$uninst = Join-Path $$_.FullName 'AppData\Local\Programs\mission-control\Uninstall Mission Control.exe'; if (Test-Path $$uninst) { Start-Process -FilePath $$uninst -ArgumentList '/S' -Wait -NoNewWindow -ErrorAction SilentlyContinue } } }"`
   Pop $0
   Pop $1
 
@@ -70,7 +70,7 @@
   CreateDirectory "$LOCALAPPDATA\MissionControl\Electron"
 
   DetailPrint "Adding to system PATH..."
-  nsExec::ExecToStack `"$SYSDIR\WindowsPowerShell\v1.0\powershell.exe" -NonInteractive -NoProfile -Command "$$p = [Environment]::GetEnvironmentVariable('Path', 'Machine'); if (($$p -split ';') -notcontains '$INSTDIR') { [Environment]::SetEnvironmentVariable('Path', ($$p + ';$INSTDIR').Replace(';;', ';'), 'Machine') }"`
+  nsExec::ExecToStack `"$SYSDIR\WindowsPowerShell\v1.0\powershell.exe" -ExecutionPolicy Bypass -NonInteractive -NoProfile -Command "& { $$p = [Environment]::GetEnvironmentVariable('Path', 'Machine'); if (($$p -split ';') -notcontains '$INSTDIR') { [Environment]::SetEnvironmentVariable('Path', ($$p + ';$INSTDIR').Replace(';;', ';'), 'Machine') } }"`
   Pop $0
   Pop $1
 
@@ -102,7 +102,7 @@
   DeleteRegKey HKLM "Software\Classes\AppUserModelId\com.missioncontrol.app"
 
   DetailPrint "Removing from system PATH..."
-  nsExec::ExecToStack `"$SYSDIR\WindowsPowerShell\v1.0\powershell.exe" -NonInteractive -NoProfile -Command "$$p = [Environment]::GetEnvironmentVariable('Path', 'Machine'); $$newP = ($$p -split ';' | Where-Object { $$_ -ne '$INSTDIR' }) -join ';'; [Environment]::SetEnvironmentVariable('Path', $$newP, 'Machine')"`
+  nsExec::ExecToStack `"$SYSDIR\WindowsPowerShell\v1.0\powershell.exe" -ExecutionPolicy Bypass -NonInteractive -NoProfile -Command "& { $$p = [Environment]::GetEnvironmentVariable('Path', 'Machine'); $$newP = ($$p -split ';' | Where-Object { $$_ -ne '$INSTDIR' }) -join ';'; [Environment]::SetEnvironmentVariable('Path', $$newP, 'Machine') }"`
   Pop $0
   Pop $1
 
