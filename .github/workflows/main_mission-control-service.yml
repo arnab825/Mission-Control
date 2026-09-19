@@ -76,13 +76,13 @@ jobs:
           tenant-id: ${{ secrets.AZUREAPPSERVICE_TENANTID_E4B859F2FB3045B8A1982D527970EF9F }}
           subscription-id: ${{ secrets.AZUREAPPSERVICE_SUBSCRIPTIONID_3D49FFBC56FB4887B3D9741BB7ED80D2 }}
 
-      - name: Reset Deployment Status & Deploy with Azure CLI
+      - name: Reset SCM Deployment Lock & Deploy
         run: |
-          echo "Resetting any stuck Kudu active status..."
-          az webapp config appsettings set \
-            --resource-group "mission-control-rg" \
-            --name mission-control-service \
-            --settings WEBSITE_RUN_FROM_PACKAGE="1" SCM_COMMAND_IDLE_TIMEOUT="600" || true
+          echo "Terminating any stuck Kudu deployment daemon..."
+          az rest --method post \
+            --uri "/subscriptions/${{ secrets.AZUREAPPSERVICE_SUBSCRIPTIONID_3D49FFBC56FB4887B3D9741BB7ED80D2 }}/resourceGroups/mission-control-rg/providers/Microsoft.Web/sites/mission-control-service/restart?api-version=2022-03-01" || true
+          
+          sleep 20
 
           echo "Deploying zip package directly using Azure CLI..."
           az webapp deploy \
