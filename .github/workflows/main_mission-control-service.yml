@@ -36,21 +36,19 @@ jobs:
           npm install
           npm run build --if-present
 
-      - name: Prepare Standalone Deployment Package
+      - name: Prepare Standalone Deployment Directory
         working-directory: Gaming/website
         run: |
           mkdir -p ../../deploy-pkg/.next
           cp -r .next/standalone/* ../../deploy-pkg/ || true
           cp -r .next/static ../../deploy-pkg/.next/static || true
           cp -r public ../../deploy-pkg/public || true
-          cd ../../deploy-pkg
-          zip -r ../release.zip .
 
       - name: Upload artifact for deployment job
         uses: actions/upload-artifact@v4
         with:
           name: node-app
-          path: release.zip
+          path: deploy-pkg
 
   deploy:
     runs-on: ubuntu-latest
@@ -64,6 +62,7 @@ jobs:
         uses: actions/download-artifact@v4
         with:
           name: node-app
+          path: deploy-pkg
       
       - name: Login to Azure
         uses: azure/login@v2
@@ -79,11 +78,11 @@ jobs:
         with:
           app-name: 'mission-control-service'
           slot-name: 'Production'
-          package: release.zip
+          package: deploy-pkg
 
       - name: Wait before retrying deployment
         if: steps.deploy-1.outcome == 'failure'
-        run: sleep 45
+        run: sleep 30
 
       - name: Deploy to Azure Web App (attempt 2)
         id: deploy-2
@@ -93,11 +92,11 @@ jobs:
         with:
           app-name: 'mission-control-service'
           slot-name: 'Production'
-          package: release.zip
+          package: deploy-pkg
 
       - name: Wait before final deployment attempt
         if: steps.deploy-2.outcome == 'failure'
-        run: sleep 60
+        run: sleep 45
 
       - name: Deploy to Azure Web App (attempt 3)
         if: steps.deploy-1.outcome == 'failure' && steps.deploy-2.outcome == 'failure'
@@ -105,4 +104,4 @@ jobs:
         with:
           app-name: 'mission-control-service'
           slot-name: 'Production'
-          package: release.zip
+          package: deploy-pkg
