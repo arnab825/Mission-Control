@@ -76,22 +76,19 @@ jobs:
           tenant-id: ${{ secrets.AZUREAPPSERVICE_TENANTID_E4B859F2FB3045B8A1982D527970EF9F }}
           subscription-id: ${{ secrets.AZUREAPPSERVICE_SUBSCRIPTIONID_3D49FFBC56FB4887B3D9741BB7ED80D2 }}
 
-      - name: Stop App Service (Release Locks)
+      - name: Reset Deployment Status & Deploy with Azure CLI
         run: |
-          az webapp stop \
+          echo "Resetting any stuck Kudu active status..."
+          az webapp config appsettings set \
             --resource-group "mission-control-rg" \
-            --name mission-control-service
+            --name mission-control-service \
+            --settings WEBSITE_RUN_FROM_PACKAGE="1" SCM_COMMAND_IDLE_TIMEOUT="600" || true
 
-      - name: Deploy to Azure Web App
-        uses: azure/webapps-deploy@v3
-        with:
-          app-name: 'mission-control-service'
-          slot-name: 'Production'
-          package: node-app.zip
-
-      - name: Start App Service
-        if: always()
-        run: |
-          az webapp start \
+          echo "Deploying zip package directly using Azure CLI..."
+          az webapp deploy \
             --resource-group "mission-control-rg" \
-            --name mission-control-service
+            --name mission-control-service \
+            --src-path node-app.zip \
+            --type zip \
+            --clean true \
+            --restart true
