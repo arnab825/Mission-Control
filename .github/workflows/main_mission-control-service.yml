@@ -91,41 +91,43 @@ jobs:
             --skip-authorization-header || true
           sleep 5
 
-      - name: Configure App for Run-From-Package
+      - name: Configure App Settings
         run: |
           az webapp config appsettings set \
             --resource-group "mission-control-rg" \
             --name mission-control-service \
             --settings \
-              WEBSITE_RUN_FROM_PACKAGE=1 \
               HOSTNAME=0.0.0.0 \
               NODE_ENV=production \
               PORT=8080 \
               WEBSITES_PORT=8080 \
-              SCM_DO_BUILD_DURING_DEPLOYMENT=false
+              SCM_DO_BUILD_DURING_DEPLOYMENT=false \
+              MONGODB_URI="${{ secrets.MONGODB_URI }}"
 
-      - name: Deploy via Run-From-Package (bypasses Kudu entirely)
+      - name: Deploy ZIP to App Service
         run: |
-          echo "Deploying ZIP using az webapp deploy --type zip (Run-From-Package mode)..."
+          echo "Deploying ZIP package..."
           az webapp deploy \
             --resource-group "mission-control-rg" \
             --name mission-control-service \
             --src-path node-app.zip \
             --type zip \
             --clean true \
-            --restart true
+            --restart false \
+            --async true
 
-      - name: Set startup command and start app
+      - name: Set startup command and restart
         run: |
           az webapp config set \
             --resource-group "mission-control-rg" \
             --name mission-control-service \
             --startup-file "node server.js"
           
-          az webapp start --resource-group "mission-control-rg" --name mission-control-service
+          echo "Restarting app..."
+          az webapp restart --resource-group "mission-control-rg" --name mission-control-service
           
-          echo "Deployment complete. Verifying health..."
-          sleep 20
+          echo "Waiting for app to start..."
+          sleep 30
           HTTP_STATUS=$(curl -s -o /dev/null -w "%{http_code}" \
             "https://mission-control-service-g7hfgye5hcamc9f2.centralindia-01.azurewebsites.net/" || echo "000")
           echo "Health check status: $HTTP_STATUS"
