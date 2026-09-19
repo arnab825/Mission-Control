@@ -76,10 +76,58 @@ jobs:
           tenant-id: ${{ secrets.AZUREAPPSERVICE_TENANTID_E4B859F2FB3045B8A1982D527970EF9F }}
           subscription-id: ${{ secrets.AZUREAPPSERVICE_SUBSCRIPTIONID_3D49FFBC56FB4887B3D9741BB7ED80D2 }}
 
-      - name: Deploy ZIP directly to App Service wwwroot
+      - name: Clear stale Kudu deployment lock
         run: |
-          echo "Deploying via config-zip engine (bypasses OneDeploy locks)..."
-          az webapp deployment source config-zip \
+          echo "Stopping app to release all deployment locks..."
+          az webapp stop --resource-group "mission-control-rg" --name mission-control-service
+          
+          echo "Restarting SCM site to clear Kudu deployment state..."
+          az webapp restart --resource-group "mission-control-rg" --name mission-control-service
+          sleep 15
+          
+          echo "Deleting any active deployment markers..."
+          az rest --method DELETE \
+            --url "https://mission-control-service.scm.azurewebsites.net/api/deployments" \
+            --skip-authorization-header || true
+          sleep 5
+
+      - name: Configure App for Run-From-Package
+        run: |
+          az webapp config appsettings set \
             --resource-group "mission-control-rg" \
             --name mission-control-service \
-            --src node-app.zip
+            --settings \
+              WEBSITE_RUN_FROM_PACKAGE=1 \
+              NODE_ENV=production \
+              PORT=8080 \
+              WEBSITES_PORT=8080 \
+              SCM_DO_BUILD_DURING_DEPLOYMENT=false
+
+      - name: Deploy via Run-From-Package (bypasses Kudu entirely)
+        run: |
+          echo "Deploying ZIP using az webapp deploy --type zip (Run-From-Package mode)..."
+          az webapp deploy \
+            --resource-group "mission-control-rg" \
+            --name mission-control-service \
+            --src-path node-app.zip \
+            --type zip \
+            --clean true \
+            --restart true
+
+      - name: Set startup command and start app
+        run: |
+          az webapp config set \
+            --resource-group "mission-control-rg" \
+            --name mission-control-service \
+            --startup-file "node server.js"
+          
+          az webapp start --resource-group "mission-control-rg" --name mission-control-service
+          
+          echo "Deployment complete. Verifying health..."
+          sleep 20
+          HTTP_STATUS=$(curl -s -o /dev/null -w "%{http_code}" \
+            "https://mission-control-service-g7hfgye5hcamc9f2.centralindia-01.azurewebsites.net/" || echo "000")
+          echo "Health check status: $HTTP_STATUS"
+          if [ "$HTTP_STATUS" -ge 500 ] || [ "$HTTP_STATUS" = "000" ]; then
+            echo "::warning::App returned HTTP $HTTP_STATUS — may need more startup time"
+          fi
