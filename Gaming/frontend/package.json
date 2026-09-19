@@ -21,6 +21,7 @@
                     "package":  "electron-forge package",
                     "make":  "electron-forge make",
                     "make:win":  "electron-builder --win nsis --x64",
+                    "make:store":  "electron-builder --win appx --x64",
                     "make:win:all":  "electron-builder --win nsis msi zip --x64",
                     "make:linux":  "electron-builder --linux tar.gz --x64",
                     "make:all":  "electron-builder --win nsis msi zip --linux tar.gz --x64",
