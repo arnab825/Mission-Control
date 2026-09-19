@@ -10,8 +10,8 @@ on:
   workflow_dispatch:
 
 concurrency:
-  group: azure-deploy
-  cancel-in-progress: true
+  group: mission-control-service-production
+  cancel-in-progress: false
 
 jobs:
   build:
@@ -39,16 +39,22 @@ jobs:
       - name: Prepare Standalone Deployment Directory
         working-directory: Gaming/website
         run: |
+          rm -rf ../../deploy-pkg
           mkdir -p ../../deploy-pkg/.next
-          cp -r .next/standalone/* ../../deploy-pkg/ || true
-          cp -r .next/static ../../deploy-pkg/.next/static || true
-          cp -r public ../../deploy-pkg/public || true
+          cp -r .next/standalone/. ../../deploy-pkg/
+          cp -r .next/static ../../deploy-pkg/.next/static
+          cp -r public ../../deploy-pkg/public
+
+      - name: Create deployment ZIP package
+        run: |
+          cd deploy-pkg
+          zip -r ../node-app.zip .
 
       - name: Upload artifact for deployment job
         uses: actions/upload-artifact@v4
         with:
           name: node-app
-          path: deploy-pkg
+          path: node-app.zip
 
   deploy:
     runs-on: ubuntu-latest
@@ -62,7 +68,6 @@ jobs:
         uses: actions/download-artifact@v4
         with:
           name: node-app
-          path: deploy-pkg
       
       - name: Login to Azure
         uses: azure/login@v2
@@ -71,37 +76,22 @@ jobs:
           tenant-id: ${{ secrets.AZUREAPPSERVICE_TENANTID_E4B859F2FB3045B8A1982D527970EF9F }}
           subscription-id: ${{ secrets.AZUREAPPSERVICE_SUBSCRIPTIONID_3D49FFBC56FB4887B3D9741BB7ED80D2 }}
 
-      - name: Deploy to Azure Web App (attempt 1)
-        id: deploy-1
-        continue-on-error: true
+      - name: Stop App Service (Release Locks)
+        run: |
+          az webapp stop \
+            --resource-group "mission-control-rg" \
+            --name mission-control-service
+
+      - name: Deploy to Azure Web App
         uses: azure/webapps-deploy@v3
         with:
           app-name: 'mission-control-service'
           slot-name: 'Production'
-          package: deploy-pkg
+          package: node-app.zip
 
-      - name: Wait before retrying deployment
-        if: steps.deploy-1.outcome == 'failure'
-        run: sleep 30
-
-      - name: Deploy to Azure Web App (attempt 2)
-        id: deploy-2
-        if: steps.deploy-1.outcome == 'failure'
-        continue-on-error: true
-        uses: azure/webapps-deploy@v3
-        with:
-          app-name: 'mission-control-service'
-          slot-name: 'Production'
-          package: deploy-pkg
-
-      - name: Wait before final deployment attempt
-        if: steps.deploy-2.outcome == 'failure'
-        run: sleep 45
-
-      - name: Deploy to Azure Web App (attempt 3)
-        if: steps.deploy-1.outcome == 'failure' && steps.deploy-2.outcome == 'failure'
-        uses: azure/webapps-deploy@v3
-        with:
-          app-name: 'mission-control-service'
-          slot-name: 'Production'
-          package: deploy-pkg
+      - name: Start App Service
+        if: always()
+        run: |
+          az webapp start \
+            --resource-group "mission-control-rg" \
+            --name mission-control-service
