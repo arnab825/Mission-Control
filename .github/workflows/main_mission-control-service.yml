@@ -76,19 +76,10 @@ jobs:
           tenant-id: ${{ secrets.AZUREAPPSERVICE_TENANTID_E4B859F2FB3045B8A1982D527970EF9F }}
           subscription-id: ${{ secrets.AZUREAPPSERVICE_SUBSCRIPTIONID_3D49FFBC56FB4887B3D9741BB7ED80D2 }}
 
-      - name: Reset SCM Deployment Lock & Deploy
+      - name: Deploy ZIP directly to App Service wwwroot
         run: |
-          echo "Terminating any stuck Kudu deployment daemon..."
-          az rest --method post \
-            --uri "/subscriptions/${{ secrets.AZUREAPPSERVICE_SUBSCRIPTIONID_3D49FFBC56FB4887B3D9741BB7ED80D2 }}/resourceGroups/mission-control-rg/providers/Microsoft.Web/sites/mission-control-service/restart?api-version=2022-03-01" || true
-          
-          sleep 20
-
-          echo "Deploying zip package directly using Azure CLI..."
-          az webapp deploy \
+          echo "Deploying via config-zip engine (bypasses OneDeploy locks)..."
+          az webapp deployment source config-zip \
             --resource-group "mission-control-rg" \
             --name mission-control-service \
-            --src-path node-app.zip \
-            --type zip \
-            --clean true \
-            --restart true
+            --src node-app.zip
