@@ -49,6 +49,25 @@ jobs:
           fi
           cp -r .next/static ../../deploy-pkg/.next/static
           cp -r public ../../deploy-pkg/public
+          
+          echo "=== Deploy Package Contents ==="
+          ls -la ../../deploy-pkg
+          echo "=== Deploy Package .next Contents ==="
+          ls -la ../../deploy-pkg/.next
+
+      - name: Verify Standalone Server Runs
+        run: |
+          cd deploy-pkg
+          PORT=3000 node server.js &
+          SERVER_PID=$!
+          sleep 4
+          if kill -0 $SERVER_PID 2>/dev/null; then
+            echo "Standalone server started successfully!"
+            kill $SERVER_PID
+          else
+            echo "Standalone server failed to start!"
+            exit 1
+          fi
 
       - name: Create deployment ZIP package
         run: |
@@ -121,14 +140,33 @@ jobs:
             --name mission-control-service \
             --startup-file "node server.js"
           
-          echo "Starting web app (ensures state is Running)..."
+          echo "Starting web app..."
           az webapp start --resource-group "mission-control-rg" --name mission-control-service
           
-          echo "Restarting app to pick up latest code and env vars..."
+          echo "Restarting app to boot container..."
           az webapp restart --resource-group "mission-control-rg" --name mission-control-service
-          
-          echo "Waiting 25 seconds for cold start..."
-          sleep 25
-          HTTP_STATUS=$(curl -s -o /dev/null -w "%{http_code}" \
-            "https://mission-control-service-g7hfgye5hcamc9f2.centralindia-01.azurewebsites.net/" || echo "000")
-          echo "Health check status: $HTTP_STATUS"
+
+      - name: Warmup and Health Check
+        run: |
+          echo "Polling app health (waiting for container warmup)..."
+          for i in {1..12}; do
+            HTTP_STATUS=$(curl -s -o /dev/null -w "%{http_code}" \
+              "https://mission-control-service-g7hfgye5hcamc9f2.centralindia-01.azurewebsites.net/" || echo "000")
+            echo "Attempt $i: HTTP $HTTP_STATUS"
+            if [ "$HTTP_STATUS" = "200" ] || [ "$HTTP_STATUS" = "301" ] || [ "$HTTP_STATUS" = "302" ]; then
+              echo "App is healthy and responding!"
+              exit 0
+            fi
+            sleep 10
+          done
+          echo "App did not respond with 200 within 120 seconds. Fetching container logs..."
+
+      - name: Fetch Azure Diagnostics
+        if: always()
+        run: |
+          echo "Fetching Azure App Service logs..."
+          az webapp log download --resource-group "mission-control-rg" --name mission-control-service --log-file azure-logs.zip 2>/dev/null || true
+          if [ -f azure-logs.zip ]; then
+            unzip -q -o azure-logs.zip -d azure-logs 2>/dev/null || true
+            find azure-logs -type f \( -name "*docker.log" -o -name "*default_docker.log" \) -exec echo "=== LOG FILE: {} ===" \; -exec tail -n 80 {} \; 2>/dev/null || true
+          fi
