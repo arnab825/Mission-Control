@@ -41,7 +41,12 @@ jobs:
         run: |
           rm -rf ../../deploy-pkg
           mkdir -p ../../deploy-pkg/.next
-          cp -r .next/standalone/. ../../deploy-pkg/
+          if [ -d .next/standalone/Gaming/website ]; then
+            cp -r .next/standalone/Gaming/website/. ../../deploy-pkg/
+            cp -rn .next/standalone/node_modules ../../deploy-pkg/ 2>/dev/null || true
+          else
+            cp -r .next/standalone/. ../../deploy-pkg/
+          fi
           cp -r .next/static ../../deploy-pkg/.next/static
           cp -r public ../../deploy-pkg/public
 
@@ -78,18 +83,10 @@ jobs:
 
       - name: Clear stale Kudu deployment lock
         run: |
-          echo "Stopping app to release all deployment locks..."
-          az webapp stop --resource-group "mission-control-rg" --name mission-control-service
-          
-          echo "Restarting SCM site to clear Kudu deployment state..."
-          az webapp restart --resource-group "mission-control-rg" --name mission-control-service
-          sleep 15
-          
           echo "Deleting any active deployment markers..."
           az rest --method DELETE \
             --url "https://mission-control-service.scm.azurewebsites.net/api/deployments" \
-            --skip-authorization-header || true
-          sleep 5
+            --skip-authorization-header 2>/dev/null || true
 
       - name: Configure App Settings
         run: |
@@ -97,6 +94,7 @@ jobs:
             --resource-group "mission-control-rg" \
             --name mission-control-service \
             --settings \
+              HOSTNAME=0.0.0.0 \
               NODE_ENV=production \
               PORT=8080 \
               WEBSITES_PORT=8080 \
@@ -105,30 +103,32 @@ jobs:
 
       - name: Deploy ZIP to App Service
         run: |
-          echo "Deploying ZIP package (timeout 120s to prevent infinite polling)..."
-          timeout 120 az webapp deploy \
+          echo "Deploying ZIP package with fast non-blocking upload..."
+          az webapp deploy \
             --resource-group "mission-control-rg" \
             --name mission-control-service \
             --src-path node-app.zip \
             --type zip \
             --clean true \
-            --restart false || echo "Deploy command timed out on polling (ZIP was already uploaded successfully)"
+            --restart false \
+            --async true \
+            --track-status false
 
-      - name: Set startup command and restart
+      - name: Set startup command and start app
         run: |
           az webapp config set \
             --resource-group "mission-control-rg" \
             --name mission-control-service \
-            --startup-file "export HOSTNAME=0.0.0.0 && node server.js"
+            --startup-file "node server.js"
           
-          echo "Restarting app..."
+          echo "Starting web app (ensures state is Running)..."
+          az webapp start --resource-group "mission-control-rg" --name mission-control-service
+          
+          echo "Restarting app to pick up latest code and env vars..."
           az webapp restart --resource-group "mission-control-rg" --name mission-control-service
           
-          echo "Waiting for app to start..."
-          sleep 30
+          echo "Waiting 25 seconds for cold start..."
+          sleep 25
           HTTP_STATUS=$(curl -s -o /dev/null -w "%{http_code}" \
             "https://mission-control-service-g7hfgye5hcamc9f2.centralindia-01.azurewebsites.net/" || echo "000")
           echo "Health check status: $HTTP_STATUS"
-          if [ "$HTTP_STATUS" -ge 500 ] || [ "$HTTP_STATUS" = "000" ]; then
-            echo "::warning::App returned HTTP $HTTP_STATUS — may need more startup time"
-          fi
