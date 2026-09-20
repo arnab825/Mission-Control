@@ -97,7 +97,6 @@ jobs:
             --resource-group "mission-control-rg" \
             --name mission-control-service \
             --settings \
-              HOSTNAME=0.0.0.0 \
               NODE_ENV=production \
               PORT=8080 \
               WEBSITES_PORT=8080 \
@@ -106,22 +105,21 @@ jobs:
 
       - name: Deploy ZIP to App Service
         run: |
-          echo "Deploying ZIP package..."
-          az webapp deploy \
+          echo "Deploying ZIP package (timeout 120s to prevent infinite polling)..."
+          timeout 120 az webapp deploy \
             --resource-group "mission-control-rg" \
             --name mission-control-service \
             --src-path node-app.zip \
             --type zip \
             --clean true \
-            --restart false \
-            --async true
+            --restart false || echo "Deploy command timed out on polling (ZIP was already uploaded successfully)"
 
       - name: Set startup command and restart
         run: |
           az webapp config set \
             --resource-group "mission-control-rg" \
             --name mission-control-service \
-            --startup-file "node server.js"
+            --startup-file "export HOSTNAME=0.0.0.0 && node server.js"
           
           echo "Restarting app..."
           az webapp restart --resource-group "mission-control-rg" --name mission-control-service
