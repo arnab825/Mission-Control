@@ -30,9 +30,6 @@ const nextConfig: NextConfig = {
       "public/games/**",
       "public/screenshots/**",
       "public/images/**",
-      "node_modules/@swc/**",
-      "node_modules/@esbuild/**",
-      "node_modules/typescript/**",
       "generate.log",
       "*.log",
       "*.tsbuildinfo"
