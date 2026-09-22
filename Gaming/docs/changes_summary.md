@@ -22,7 +22,22 @@ Comprehensive breakdown of major milestone releases, architectural upgrades, and
 
 ---
 
-## 🌟 Version v3.6.3 (Latest) — Release Health Schema Normalization & False-Positive Unstable Banner Fix
+## 🌟 Version v3.6.4 (Latest) — Settings Architecture Modularization, Microsoft Store Certification & Edge Release Proxy
+
+### 🛠️ Key Highlights
+1. **Modularized Settings Architecture**: Decomposed monolithic 4,260-line `SettingsPage` into focused components in `src/components/settings/`, eliminating recursive virtual-DOM inspection overhead.
+2. **Category Navigation Tabs**: Added 6 high-visibility category tabs (GPU & Hardware, AI Brain, Tactical Overlay, Library, Account, Controller) with instantaneous global search.
+3. **Microsoft Store Certification & Edge Proxy**: Built and configured Cloudflare Worker edge release proxy for zero-redirect binary streaming required by Microsoft Store Partner Center.
+4. **Standalone Azure Deployment & Security Auditing**: Added production containerization, health audits, and strict schema validation across REST/WebSocket pipelines.
+5. **Desktop Wizard & Game Discovery**: Enhanced custom directory scanning, auto-startup control, and Windows desktop shortcut generation.
+
+### 📦 Distribution Artifacts
+- **Linux**: `.deb` (Debian/Ubuntu), `.AppImage` (Universal), `.rpm` (Fedora/RHEL), `.tar.gz` (Portable)
+- **Windows**: `.exe` (Setup Installer), `.msi` (Enterprise), `.zip` (Portable)
+
+---
+
+## 📦 Version v3.6.3 — Release Health Schema Normalization & False-Positive Unstable Banner Fix
 
 ### 🛠️ Key Highlights
 1. **Fixed false-positive Unstable Release Detected banner on clean update checks**

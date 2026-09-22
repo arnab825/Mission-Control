@@ -1,8 +1,21 @@
 {
-  "version": "3.6.3",
-  "release_date": "2026-09-08",
+  "version": "3.6.4",
+  "release_date": "2026-09-22",
   "update_check_url": "https://raw.githubusercontent.com/arnab825/Mission-Control/main/Gaming/backend/version.json",
   "changelog": [
+    {
+      "version": "3.6.4",
+      "date": "2026-09-22",
+      "title": "Settings Architecture Modularization, Microsoft Store Certification & Edge Release Proxy",
+      "highlights": [
+        "Modularized monolithic SettingsPage (4,260 lines) into dedicated domain components under src/components/settings/",
+        "Introduced 6 categorized navigation tabs (GPU & Hardware, AI Brain, Overlay, Library, Account, Controller) with instantaneous global search",
+        "Replaced recursive virtual-DOM search inspection with O(1) keyword indexing, eliminating re-render lag",
+        "Configured Cloudflare Worker edge release proxy for direct Microsoft Store non-redirecting downloads",
+        "Added Azure standalone container deployment, system health audits, and strict schema validation",
+        "Updated desktop update setup wizard, custom game discovery, and shortcut integration"
+      ]
+    },
     {
       "version": "3.6.3",
       "date": "2026-09-09",

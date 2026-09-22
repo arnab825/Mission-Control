@@ -13,7 +13,7 @@
  * 2. Name it: `mission-control-release-proxy` -> Deploy
  * 3. Click "Edit Code", replace with this file's code, and click "Deploy".
  * 4. Your direct download URL in Partner Center will be:
- *    https://<your-worker-name>.<your-subdomain>.workers.dev/v3.6.3/MissionControl-Setup.exe
+ *    https://<your-worker-name>.<your-subdomain>.workers.dev/v3.6.4/MissionControl-Setup.exe
  */
 
 const GITHUB_REPO = 'arnab825/Mission-Control';
@@ -30,7 +30,7 @@ export default {
           status: 'online',
           service: 'Mission Control Release Proxy',
           repository: GITHUB_REPO,
-          usage: '/<version>/<filename> (e.g. /v3.6.3/MissionControl-Setup.exe)'
+          usage: '/<version>/<filename> (e.g. /v3.6.4/MissionControl-Setup.exe)'
         }, null, 2),
         {
           status: 200,
@@ -58,10 +58,10 @@ export default {
         targetUrl = `https://github.com/${GITHUB_REPO}/releases/download/${normalizedVersion}/${filename}`;
       }
     } else if (parts.length === 1 && parts[0].endsWith('.exe')) {
-      // Default to version v3.6.3 if only the executable filename is requested
-      targetUrl = `https://github.com/${GITHUB_REPO}/releases/download/v3.6.3/${parts[0]}`;
+      // Default to version v3.6.4 if only the executable filename is requested
+      targetUrl = `https://github.com/${GITHUB_REPO}/releases/download/v3.6.4/${parts[0]}`;
     } else {
-      return new Response('Invalid release asset path. Expected: /:version/:filename (e.g. /v3.6.3/MissionControl-Setup.exe or /latest/MissionControl-Setup.exe)', {
+      return new Response('Invalid release asset path. Expected: /:version/:filename (e.g. /v3.6.4/MissionControl-Setup.exe or /latest/MissionControl-Setup.exe)', {
         status: 400,
         headers: { 'Content-Type': 'text/plain' }
       });
@@ -69,7 +69,7 @@ export default {
 
     // Prepare headers to forward upstream
     const forwardHeaders = new Headers();
-    forwardHeaders.set('User-Agent', 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) MissionControlProxy/3.6.3');
+    forwardHeaders.set('User-Agent', 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) MissionControlProxy/3.6.4');
     
     // Crucial: Forward byte-range requests if Microsoft Store checks resumable downloads
     if (request.headers.has('range')) {
