@@ -671,6 +671,8 @@ Ready and monitoring. Launch your game to initiate automatic HUD lock.
             # ── System / hardware / config commands ───────────────────────
             elif cmd_type == "optimize_system":
                 system_handler.handle_optimize_system(payload, pipeline, bridge, config)
+            elif cmd_type == "toggle_vision_pipeline":
+                system_handler.handle_toggle_vision_pipeline(payload, pipeline, bridge, config)
             elif cmd_type == "revert_optimization":
                 system_handler.handle_revert_optimization(payload, pipeline, bridge, config)
             elif cmd_type == "set_cooling_mode":

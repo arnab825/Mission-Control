@@ -22,7 +22,30 @@ Comprehensive breakdown of major milestone releases, architectural upgrades, and
 
 ---
 
-## 🌟 Version v3.6.5 (Latest) — GTA V Icon Fixes & Seamless Account Switching
+## 🌟 Version v3.6.6 (Latest) — Vision Command Center Fixes, Rate-Limited Streams & Pipeline Overrides
+
+### 🛠️ Key Highlights
+1. **Resolved VisionPage force activate command routing by introducing dedicated toggle_vision_pipeline bridge command**
+2. **Added backend manual vision override mode allowing full desktop screen preview and YOLO inference on demand**
+3. **Fixed Privacy Shield blocking manual vision testing frames when games are not focused or in background**
+4. **Implemented monotonic timestamp rate-limiting (~15 FPS) on base64 annotated frame WebSocket broadcasts**
+5. **Added automatic vision manual override teardown on page unmount to prevent resource drain**
+
+### 📊 Architecture & Data Flow
+```mermaid
+graph TD
+    A[Game Screen Frame Capture] --> B[YOLO Vision Inference Engine]
+    B --> C[Detection Telemetry & Bounding Boxes]
+    C --> D[Electron HUD Overlay]
+```
+
+### 📦 Distribution Artifacts
+- **Linux**: `.deb` (Debian/Ubuntu), `.AppImage` (Universal), `.rpm` (Fedora/RHEL), `.tar.gz` (Portable)
+- **Windows**: `.exe` (Setup Installer), `.msi` (Enterprise), `.zip` (Portable)
+
+---
+
+## 📦 Version v3.6.5 — GTA V Icon Fixes & Seamless Account Switching
 
 ### 🛠️ Key Highlights
 1. **Resolved GTA V icon and artwork resolution issues in the Library and Hardware Feature Matrix.**

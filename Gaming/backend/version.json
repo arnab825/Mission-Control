@@ -1,8 +1,20 @@
 {
-  "version": "3.6.5",
+  "version": "3.6.6",
   "release_date": "2026-09-22",
   "update_check_url": "https://raw.githubusercontent.com/arnab825/Mission-Control/main/Gaming/backend/version.json",
   "changelog": [
+    {
+      "version": "3.6.6",
+      "date": "2026-09-23",
+      "title": "Vision Command Center Fixes, Rate-Limited Streams & Pipeline Overrides",
+      "highlights": [
+        "Resolved VisionPage force activate command routing by introducing dedicated toggle_vision_pipeline bridge command",
+        "Added backend manual vision override mode allowing full desktop screen preview and YOLO inference on demand",
+        "Fixed Privacy Shield blocking manual vision testing frames when games are not focused or in background",
+        "Implemented monotonic timestamp rate-limiting (~15 FPS) on base64 annotated frame WebSocket broadcasts",
+        "Added automatic vision manual override teardown on page unmount to prevent resource drain"
+      ]
+    },
     {
       "version": "3.6.5",
       "date": "2026-09-23",
@@ -534,17 +546,6 @@
         "Refactored automated offline rollback system using robocopy retry loops and automatic UAC elevation escalation",
         "Added live Retry Download control to Updates page",
         "Resolved shadowed local variable imports in AI brain memory module and updated Vitest suite"
-      ]
-    },
-    {
-      "version": "3.1.7",
-      "date": "2026-08-15",
-      "title": "Multi-Vendor GPU Support (AMD & Intel), Groq Model Updates & Optimizer Refinements",
-      "highlights": [
-        "Added full multi-vendor GPU capability detection for AMD Radeon and Intel Arc graphics",
-        "Migrated frontend settings and backend optimizer to unified gpu_tuning architecture",
-        "Updated Groq AI provider models to GPT OSS 120B and Qwen 3.6 27B",
-        "Removed deprecated Custom AI model fallback options"
       ]
     }
   ]

@@ -48,6 +48,10 @@ class ConfigPayload(BaseCommandPayload):
     settings: Optional[Dict[str, Any]] = None
 
 
+class ToggleVisionPipelinePayload(BaseCommandPayload):
+    enabled: Optional[bool] = True
+
+
 COMMAND_SCHEMA_MAP = {
     "execute": ExecutePayload,
     "launch_game": LaunchGamePayload,
@@ -58,6 +62,7 @@ COMMAND_SCHEMA_MAP = {
     "submit_feedback": FeedbackPayload,
     "update_config": ConfigPayload,
     "save_settings": ConfigPayload,
+    "toggle_vision_pipeline": ToggleVisionPipelinePayload,
 }
 
 

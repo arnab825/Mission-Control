@@ -94,4 +94,5 @@ class TelemetryState(BaseModel):
     # compatibility badge when Alienware Command Center is detected.
     awcc_status: Optional[Dict[str, Any]] = None
     yolo_supported: bool = False
+    vision_manual_override: bool = False
 

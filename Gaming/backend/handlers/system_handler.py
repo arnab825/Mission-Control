@@ -75,6 +75,26 @@ def handle_revert_optimization(payload: dict, pipeline, bridge, config) -> None:
     threading.Thread(target=_do_revert, name="BoostModeRevert", daemon=True).start()
 
 
+def handle_toggle_vision_pipeline(payload: dict, pipeline, bridge, config) -> None:
+    """Toggle manual override for on-demand desktop screen vision capture and YOLO inference."""
+    enabled = payload.get("enabled", True) if isinstance(payload, dict) else True
+    logger.info("Vision pipeline manual toggle requested: enabled=%s", enabled)
+
+    if pipeline and hasattr(pipeline, "_game_state"):
+        with pipeline._state_lock:
+            pipeline._game_state["vision_manual_override"] = bool(enabled)
+            if not enabled:
+                # Reset visual frame and detections on stop so UI returns to clean standby
+                pipeline._game_state["annotated_frame"] = None
+                pipeline._game_state["detections"] = []
+                pipeline._game_state["detections_count"] = 0
+
+    bridge.update_state({
+        "vision_manual_override": bool(enabled),
+        **({} if enabled else {"annotated_frame": None, "detections": [], "detections_count": 0})
+    })
+
+
 def handle_set_cooling_mode(payload: dict, pipeline, bridge, config) -> None:
     mode = payload.get("mode", "balanced")
     logger.info("Cooling mode change requested: %s", mode)

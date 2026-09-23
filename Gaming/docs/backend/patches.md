@@ -2,6 +2,14 @@
 
 This document contains a detailed history of all patches and updates for the AI Gaming Assistant.
 
+### Patch: 2026-09-23 — v3.6.6: Vision Command Center Fixes, Rate-Limited Streams & Pipeline Overrides
+
+- Resolved VisionPage force activate command routing by introducing dedicated toggle_vision_pipeline bridge command
+- Added backend manual vision override mode allowing full desktop screen preview and YOLO inference on demand
+- Fixed Privacy Shield blocking manual vision testing frames when games are not focused or in background
+- Implemented monotonic timestamp rate-limiting (~15 FPS) on base64 annotated frame WebSocket broadcasts
+- Added automatic vision manual override teardown on page unmount to prevent resource drain
+
 ### Patch: 2026-09-23 — v3.6.5: GTA V Icon Fixes & Seamless Account Switching
 
 - Resolved GTA V icon and artwork resolution in Library and Hardware Feature Matrix

@@ -1356,12 +1356,13 @@ class GamingAssistantPipeline:
             try:
                 is_active, is_focused, title = self._is_game_active()
                 is_minimized = self._game_state.get("game_minimized", False)
+                is_manual_vision = self._game_state.get("vision_manual_override", False)
                 
                 with self._state_lock:
                     self._game_state["is_game_active"] = is_active
-                    self._game_state["is_game_focused"] = is_focused
-                    self._game_state["capture_fps"] = self.frame_buffer.capture_fps if is_active else 0.0
-                    self._game_state["vision_fps"] = fps_counter.fps if is_active else 0.0
+                    self._game_state["is_game_focused"] = is_focused if not is_manual_vision else True
+                    self._game_state["capture_fps"] = self.frame_buffer.capture_fps if (is_active or is_manual_vision) else 0.0
+                    self._game_state["vision_fps"] = fps_counter.fps if (is_active or is_manual_vision) else 0.0
                     if is_active:
                         avg_fps = self.frame_buffer.average_fps
                         self._game_state["game_fps"] = avg_fps
@@ -1415,9 +1416,9 @@ class GamingAssistantPipeline:
                 # ADAPTIVE THROTTLING: 
                 # 2. GPU Load Throttling (>90%)
                 # 3. Thermal Throttling (>82C)
-                # 4. Idle Throttling (If no game is active)
+                # 4. Idle Throttling (If no game is active and manual vision is off)
                 
-                if not is_active:
+                if not (is_active or is_manual_vision):
                     v_hz = min(2, self.vision_hz)
                 elif is_minimized:
                     v_hz = 2 # Heavy throttle only when explicitly minimized
@@ -1432,7 +1433,7 @@ class GamingAssistantPipeline:
                 
                 throttle_needed = gpu_load > 92 or gpu_temp > 82 or cpu_temp > 85
                 
-                if is_active:
+                if is_active or is_manual_vision:
                     self._last_game_active_time = time.time()
                     # If system is hot or overloaded, skip processing on every other frame
                     if throttle_needed and self._vision_frame_count % 2 != 0:
@@ -1441,7 +1442,7 @@ class GamingAssistantPipeline:
                     else:
                         # Intelligent Monitor Focus (Only switch if game is actually focused!)
                         focus_mode = self.config.get("capture", {}).get("focus_mode", "Primary Only")
-                        if focus_mode in ("Auto-Follow", "Auto-Follow Game") and is_focused:
+                        if focus_mode in ("Auto-Follow", "Auto-Follow Game") and is_focused and not is_manual_vision:
                             target_out = self._get_monitor_of_window()
                             if target_out != self.capture._output_index:
                                 logger.info(f"Auto-Follow: Switching focus to Monitor {target_out}")
@@ -1451,8 +1452,8 @@ class GamingAssistantPipeline:
                         fps_counter.tick()
                     
                     with self._state_lock:
-                        self._game_state["is_game_active"] = True
-                        self._game_state["is_game_focused"] = is_focused
+                        self._game_state["is_game_active"] = is_active
+                        self._game_state["is_game_focused"] = is_focused if not is_manual_vision else True
                 else:
                     if not hasattr(self, "_last_is_focused"):
                         self._last_is_focused = None
@@ -1620,12 +1621,13 @@ class GamingAssistantPipeline:
             is_focused    = self._game_state.get("is_game_focused", False)
             is_active     = self._game_state.get("is_game_active", False)
             is_minimized  = self._game_state.get("game_minimized", False)
+            is_manual_vision = self._game_state.get("vision_manual_override", False)
 
         capture_backend = getattr(self.capture, "backend_name", "dxcam")
         is_desktop_capture = capture_backend in ("dxcam", "mss", "bettercam")
 
         privacy_enabled = self.config.get("privacy", {}).get("enabled", True)
-        privacy_shield_active = privacy_enabled and (
+        privacy_shield_active = not is_manual_vision and privacy_enabled and (
             (is_desktop_capture and not is_focused) or not is_active or is_minimized
         )
 
@@ -1710,7 +1712,13 @@ class GamingAssistantPipeline:
                 )
         
         # ── Visual Bounding Box & Diagnostic Stream ──
-        if self._vision_frame_count % 3 == 0:  # Stream around ~10-15 FPS to avoid saturating Websocket
+        # Stream around ~12-15 FPS (min 66ms interval) to avoid saturating Websocket
+        now_ts = time.monotonic()
+        last_frame_ts = getattr(self, "_last_frame_broadcast_ts", 0.0)
+        should_render_frame = (now_ts - last_frame_ts >= 0.066) or (self._vision_frame_count % 3 == 0)
+
+        if should_render_frame:
+            self._last_frame_broadcast_ts = now_ts
             if privacy_shield_active:
                 # Privacy Shield is active: clear annotated_frame so the frontend
                 # shows the correct "Awaiting Game Launch" placeholder instead of
@@ -1798,8 +1806,8 @@ class GamingAssistantPipeline:
             self._game_state["vision_model"] = self.brain.task_models.get("vision", "Nemotron-Nano")
 
         # Push the vision frame and all updated stats immediately to the bridge
-        # (every 3rd frame, ~10 FPS) to bypass the slow brain loop throttling
-        if self._vision_frame_count % 3 == 0:
+        # (throttled to ~15 FPS max) to bypass the slow brain loop throttling
+        if should_render_frame:
             with self._state_lock:
                 bridge.update_state({
                     "annotated_frame": self._game_state.get("annotated_frame"),

@@ -1,5 +1,5 @@
 import { describe, it, expect, vi } from 'vitest';
-import { render, screen } from '@testing-library/react';
+import { render, screen, act } from '@testing-library/react';
 import '@testing-library/jest-dom/vitest';
 import VisionPage from '../VisionPage';
 import type { TelemetryState } from '../../types/telemetry';
@@ -105,5 +105,60 @@ describe('VisionPage Component', () => {
       <VisionPage state={{ ...mockActiveState, detections_count: 5 } as any} sendCommand={mockSendCommand} />
     );
     expect(screen.getByText('HIGH')).toBeInTheDocument();
+  });
+
+  it('handles Force Activate and Stop Manual by dispatching toggle_vision_pipeline', async () => {
+    const { rerender } = render(<VisionPage state={mockStandbyState} sendCommand={mockSendCommand} />);
+
+    // Click Force Activate Pipeline button
+    const forceBtn = screen.getAllByRole('button', { name: /force activate/i })[0];
+    act(() => {
+      forceBtn.click();
+    });
+
+    expect(mockSendCommand).toHaveBeenCalledWith('toggle_vision_pipeline', { enabled: true });
+
+    // Rerender with state reflecting active manual override and live frame
+    act(() => {
+      rerender(
+        <VisionPage
+          state={{
+            ...mockStandbyState,
+            vision_manual_override: true,
+            annotated_frame: 'iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR42mNkYAAAAAYAAjCB0C8AAAAASUVORK5CYII=',
+            vision_fps: 30,
+          } as unknown as TelemetryState}
+          sendCommand={mockSendCommand}
+        />
+      );
+    });
+
+    // Header badge should now say Manual Override
+    expect(screen.getByText('Manual Override')).toBeInTheDocument();
+    expect(screen.getByText(/Live · Manual Desktop Preview/i)).toBeInTheDocument();
+
+    // Click Stop Manual button
+    const stopBtn = screen.getByRole('button', { name: /stop manual/i });
+    act(() => {
+      stopBtn.click();
+    });
+
+    expect(mockSendCommand).toHaveBeenCalledWith('toggle_vision_pipeline', { enabled: false });
+  });
+
+  it('cleans up manual override on unmount if manual override was active', () => {
+    const cleanupMock = vi.fn();
+    const { unmount } = render(
+      <VisionPage
+        state={{
+          ...mockStandbyState,
+          vision_manual_override: true,
+        } as unknown as TelemetryState}
+        sendCommand={cleanupMock}
+      />
+    );
+
+    unmount();
+    expect(cleanupMock).toHaveBeenCalledWith('toggle_vision_pipeline', { enabled: false });
   });
 });

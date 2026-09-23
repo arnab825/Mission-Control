@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Eye, Play, Square, Activity, Radar, AlertTriangle, CheckCircle, Clock, ArrowRight, Download, Server, HardDrive, Gamepad2, Trash2 } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import type { TelemetryState } from '../types/telemetry';
@@ -38,15 +38,31 @@ function formatBytes(bytes: number): string {
 const VisionPage: React.FC<VisionPageProps> = ({ state, sendCommand }) => {
   const { userId } = useAuth();
   const { stats: distributedStats, serverOnline: libraryServerOnline } = useDistributedStats(userId);
-  const [manualActive, setManualActive] = useState(false);
+  const [manualActive, setManualActive] = useState(Boolean(state?.vision_manual_override));
   const [forceActivating, setForceActivating] = useState(false);
+
+  // Sync manual active state if backend updates
+  useEffect(() => {
+    if (state?.vision_manual_override !== undefined) {
+      setManualActive(Boolean(state.vision_manual_override));
+      setForceActivating(false);
+    }
+  }, [state?.vision_manual_override]);
+
+  // Teardown manual vision stream on unmount
+  useEffect(() => {
+    return () => {
+      if (manualActive) {
+        sendCommand('toggle_vision_pipeline', { enabled: false });
+      }
+    };
+  }, [manualActive, sendCommand]);
 
   // HUD filters and interactive controls
   const [nightVision, setNightVision] = useState(false);
   const [scanlines, setScanlines] = useState(true);
   const [crtCurve, setCrtCurve] = useState(false);
   const [minConfidence, setMinConfidence] = useState(0.4);
-
 
   const isGameActive = state?.is_game_active === true;
   const hasFrame = !!state?.annotated_frame;
@@ -59,10 +75,10 @@ const VisionPage: React.FC<VisionPageProps> = ({ state, sendCommand }) => {
   const currentGameName = state?.current_game ?? null;
 
   // Privacy Shield awareness: config.privacy.enabled defaults to true on the backend.
-  // When the shield is active, annotated_frame is cleared to null (not a black frame).
+  // When manualActive is enabled, privacy shield is bypassed for testing/preview.
   const privacyEnabled = (state?.config as any)?.privacy?.enabled !== false;
   const isGameMinimized = state?.game_minimized === true;
-  const privacyShieldActive = privacyEnabled && isGameActive && (!state?.is_game_focused || isGameMinimized);
+  const privacyShieldActive = !manualActive && privacyEnabled && isGameActive && (!state?.is_game_focused || isGameMinimized);
 
   const dialogueText = state?.dialogue_text ?? '';
   const questTexts = state?.quest_texts ?? [];
@@ -89,10 +105,11 @@ const VisionPage: React.FC<VisionPageProps> = ({ state, sendCommand }) => {
   const handleForceActivate = () => {
     if (manualActive) {
       setManualActive(false);
+      setForceActivating(false);
+      sendCommand('toggle_vision_pipeline', { enabled: false });
     } else {
       setForceActivating(true);
-      sendCommand('optimize_system', { userId });
-      setTimeout(() => { setManualActive(true); setForceActivating(false); }, 800);
+      sendCommand('toggle_vision_pipeline', { enabled: true });
     }
   };
 
@@ -287,7 +304,7 @@ const VisionPage: React.FC<VisionPageProps> = ({ state, sendCommand }) => {
                 <div className="absolute top-2 left-2 sm:top-4 sm:left-4 bg-black/85 backdrop-blur-md px-2.5 sm:px-3 py-1 sm:py-1.5 border border-neon-green/30 rounded-full flex items-center gap-2">
                   <span className="w-1.5 h-1.5 rounded-full bg-red-400 animate-pulse shrink-0" />
                   <span className="text-[8px] sm:text-[9px] font-black text-neon-green tracking-wider uppercase font-mono truncate max-w-[140px] sm:max-w-none">
-                    Live · {currentGameName || 'Game Feed'}
+                    Live · {currentGameName || (manualActive ? 'Manual Desktop Preview' : 'Game Feed')}
                   </span>
                 </div>
 
@@ -316,7 +333,9 @@ const VisionPage: React.FC<VisionPageProps> = ({ state, sendCommand }) => {
                       <Radar className="w-8 h-8 text-neon-green/50" />
                     </motion.div>
                     <h3 className="text-sm font-black text-white tracking-tighter uppercase">Scanning…</h3>
-                    <p className="text-[11px] text-zinc-600 font-bold">Pipeline active — bring your game window to the foreground</p>
+                    <p className="text-[11px] text-zinc-600 font-bold">
+                      {manualActive ? 'Initializing desktop screen capture stream…' : 'Pipeline active — bring your game window to the foreground'}
+                    </p>
                   </>
                 )}
               </div>

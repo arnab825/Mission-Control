@@ -203,5 +203,44 @@ class TestOptimizations(unittest.TestCase):
         self.assertEqual(estimate_cpu_max_freq("Unknown Processor Model", 3600), 3600)
         self.assertEqual(estimate_cpu_max_freq("Unknown Processor Model", 1800), 2400)
 
+    def test_toggle_vision_pipeline_handler(self):
+        from handlers.system_handler import handle_toggle_vision_pipeline
+        import threading
+
+        class MockPipeline:
+            def __init__(self):
+                self._state_lock = threading.Lock()
+                self._game_state = {
+                    "vision_manual_override": False,
+                    "annotated_frame": "frame_data",
+                    "detections": ["mock_target"],
+                    "detections_count": 1,
+                }
+
+        class MockBridge:
+            def __init__(self):
+                self.last_update = None
+
+            def update_state(self, state):
+                self.last_update = state
+
+        pipeline = MockPipeline()
+        bridge = MockBridge()
+
+        # Enable manual override
+        handle_toggle_vision_pipeline({"enabled": True}, pipeline, bridge, {})
+        self.assertTrue(pipeline._game_state["vision_manual_override"])
+        self.assertTrue(bridge.last_update["vision_manual_override"])
+
+        # Disable manual override
+        handle_toggle_vision_pipeline({"enabled": False}, pipeline, bridge, {})
+        self.assertFalse(pipeline._game_state["vision_manual_override"])
+        self.assertIsNone(pipeline._game_state["annotated_frame"])
+        self.assertEqual(pipeline._game_state["detections"], [])
+        self.assertEqual(pipeline._game_state["detections_count"], 0)
+        self.assertFalse(bridge.last_update["vision_manual_override"])
+        self.assertIsNone(bridge.last_update["annotated_frame"])
+
 if __name__ == "__main__":
     unittest.main()
+

@@ -131,6 +131,7 @@ export interface TelemetryState {
   changelogs?: any;
   patches_sync?: any;
   annotated_frame?: string;
+  vision_manual_override?: boolean;
   installed_models?: Record<string, boolean>;
   model_download_status?: {
     model_id: string;
