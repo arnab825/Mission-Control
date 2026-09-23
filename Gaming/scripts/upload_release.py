@@ -144,32 +144,41 @@ def main():
     existing_assets = {a["name"]: a["id"] for a in target_rel.get("assets", [])}
     print(f"[*] Already uploaded assets: {list(existing_assets.keys())}", flush=True)
 
-    # Identify files to upload from frontend/out/dist
+    # Identify files to upload from frontend/out/release or frontend/out/dist
+    release_dir = Path(__file__).resolve().parent / ".." / "frontend" / "out" / "release"
     dist_dir = Path(__file__).resolve().parent / ".." / "frontend" / "out" / "dist"
-    if not dist_dir.exists():
-        print(f"[ERROR] Dist directory not found: {dist_dir}", file=sys.stderr, flush=True)
-        sys.exit(1)
 
     target_filenames = [
         "MissionControl-Setup.exe",
-        "MissionControl-Setup.exe.blockmap",
+        "latest.yml",
         "MissionControl-Setup.msi",
         "MissionControl-Setup.zip",
-        f"MissionControl-Linux-{version}.AppImage",
+        "MissionControl-Portable.zip",
         f"MissionControl-Linux-{version}.deb",
         f"MissionControl-Linux-{version}.tar.gz",
-        "latest.yml",
+        f"MissionControl-Linux-{version}.AppImage",
+        "latest-linux.yml",
     ]
 
     for fname in target_filenames:
-        fpath = dist_dir / fname
-        if not fpath.exists():
-            print(f"[WARNING] Asset file {fname} not found in {dist_dir}. Skipping.", flush=True)
+        fpath = None
+        if release_dir.exists() and (release_dir / fname).exists():
+            fpath = release_dir / fname
+        elif dist_dir.exists() and (dist_dir / fname).exists():
+            fpath = dist_dir / fname
+
+        if not fpath or not fpath.exists():
+            print(f"[WARNING] Asset file {fname} not found in release or dist. Skipping.", flush=True)
             continue
 
         if fname in existing_assets:
-            print(f"[OK] Asset {fname} already uploaded. Skipping.", flush=True)
-            continue
+            print(f"[*] Removing existing asset {fname} (ID: {existing_assets[fname]}) to replace with fresh build...", flush=True)
+            try:
+                del_url = f"https://api.github.com/repos/{repo}/releases/assets/{existing_assets[fname]}"
+                github_request(del_url, token, method="DELETE")
+                print(f"[OK] Removed existing {fname}.", flush=True)
+            except Exception as e:
+                print(f"[WARNING] Could not delete existing asset {fname}: {e}", flush=True)
 
         size_mb = fpath.stat().st_size / (1024 * 1024)
         print(f"[*] Uploading {fname} ({size_mb:.2f} MB)...", flush=True)

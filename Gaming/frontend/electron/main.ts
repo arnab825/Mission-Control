@@ -3575,8 +3575,9 @@ function setupAutoUpdater() {
         try {
           const meta = JSON.parse(fs.readFileSync(metaPath, 'utf-8'));
           if (meta.filePath && fs.existsSync(meta.filePath) && meta.version) {
-            // Strict guard: ensure installer version is strictly newer than current app version
-            if (isNewerSemver(meta.version, app.getVersion())) {
+            // Guard: allow if installer version is >= current app version
+            const isOlder = isNewerSemver(app.getVersion(), meta.version);
+            if (!isOlder) {
               const stats = fs.statSync(meta.filePath);
               // Verify size matches recorded size and passes minimum sanity
               if (meta.fileSize && stats.size === meta.fileSize && stats.size > 10 * 1024 * 1024) {
@@ -3588,7 +3589,7 @@ function setupAutoUpdater() {
                 try { fs.unlinkSync(metaPath); } catch (_) {}
               }
             } else {
-              console.warn(`[AutoUpdater] Stale installer v${meta.version} <= current app v${app.getVersion()}. Purging old installer.`);
+              console.warn(`[AutoUpdater] Stale installer v${meta.version} < current app v${app.getVersion()}. Purging old installer.`);
               try { fs.unlinkSync(meta.filePath); } catch (_) {}
               try { fs.unlinkSync(metaPath); } catch (_) {}
             }
@@ -3598,7 +3599,7 @@ function setupAutoUpdater() {
         }
       }
 
-      // If activeDirectInstallerPath was set in this session and verified newer
+      // If activeDirectInstallerPath was set in this session and verified valid
       if (!verifiedInstaller && activeDirectInstallerPath && fs.existsSync(activeDirectInstallerPath)) {
         const stats = fs.statSync(activeDirectInstallerPath);
         if (stats.size > 10 * 1024 * 1024) {
@@ -3618,18 +3619,18 @@ function setupAutoUpdater() {
       // ----------------------------------------------------------------------------------
 
       if (verifiedInstaller) {
-        console.log(`[AutoUpdater] Launching verified newest installer executable: ${verifiedInstaller}`);
+        console.log(`[AutoUpdater] Launching verified installer executable: ${verifiedInstaller}`);
         try {
           spawn('cmd.exe', ['/c', 'start', '""', verifiedInstaller], {
             detached: true,
             stdio: 'ignore',
             windowsHide: false,
           }).unref();
-          // Exit Electron immediately so NSIS installer has zero file locks
+          // Exit Electron cleanly so NSIS installer has zero file locks
           setTimeout(() => {
             console.log('[AutoUpdater] Exiting Electron cleanly for installer execution...');
             app.quit();
-          }, 500);
+          }, 600);
           return;
         } catch (spawnErr) {
           console.error('[AutoUpdater] Direct spawn failed, falling back to autoUpdater.quitAndInstall:', spawnErr);
@@ -3637,17 +3638,36 @@ function setupAutoUpdater() {
       }
 
       // 6. Fallback to electron-updater built-in quitAndInstall
-      console.log('[AutoUpdater] Executing autoUpdater.quitAndInstall(false, true)...');
-      autoUpdater.quitAndInstall(false, true);
+      console.log('[AutoUpdater] No direct installer on disk, falling back to electron-updater...');
+      try {
+        autoUpdater.quitAndInstall(false, true);
+      } catch (autoErr) {
+        console.error('[AutoUpdater] electron-updater quitAndInstall error:', autoErr);
+      }
 
-      // Force process exit if electron-updater stalls
+      // If neither direct installer nor electron-updater had a package ready, don't leave the user in the dark
       setTimeout(() => {
-        console.log('[AutoUpdater] Forcing process termination via app.exit(0)...');
-        app.quit();
-      }, 1200);
+        if (!isAppQuitting) return;
+        console.warn('[AutoUpdater] Neither direct installer nor autoUpdater proceeded. Restoring window.');
+        isAppQuitting = false;
+        if (win && !win.isDestroyed()) {
+          try { win.show(); } catch (_) {}
+        }
+        sendToAllWindows('electron-update-status', {
+          status: 'error',
+          message: 'No update package is ready to install. Please check for updates again.'
+        });
+      }, 3000);
     } catch (err: any) {
       console.error('[AutoUpdater] quitAndInstall failed:', err);
-      app.quit();
+      isAppQuitting = false;
+      if (win && !win.isDestroyed()) {
+        try { win.show(); } catch (_) {}
+      }
+      sendToAllWindows('electron-update-status', {
+        status: 'error',
+        message: sanitizeUpdateErrorMessage(err?.message || String(err))
+      });
     }
   });
 

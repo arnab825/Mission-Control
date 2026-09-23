@@ -79,14 +79,17 @@ function patchNsis() {
     const installSectionNsh = path.join(__dirname, 'node_modules/app-builder-lib/templates/nsis/installSection.nsh');
     if (fs.existsSync(installSectionNsh)) {
       let content = fs.readFileSync(installSectionNsh, 'utf8');
-      const patchMarker2 = '; patch: force kill child procs elevated';
+      const patchMarker2 = '; patch: force kill child procs elevated v2';
+      // Clean up any older patch marker if present
+      content = content.replace(/;\s*patch:\s*force kill child procs elevated[\s\S]*?Sleep \d+/g, '');
       if (!content.includes(patchMarker2)) {
         const killMacro = `
   ${patchMarker2}
-  nsExec::ExecToStack \`"$SYSDIR\\WindowsPowerShell\\v1.0\\powershell.exe" -ExecutionPolicy Bypass -NonInteractive -NoProfile -Command "& { Get-CimInstance Win32_Process -ErrorAction SilentlyContinue | Where-Object { $$$$_.ExecutablePath -and $$$$_.ExecutablePath.ToLower().StartsWith('$INSTDIR'.ToLower()) } | ForEach-Object { Stop-Process -Id $$$$_.ProcessId -Force -ErrorAction SilentlyContinue } }"\`
-  Pop $$0
-  Pop $$1
-  nsExec::ExecToStack \`"$SYSDIR\\WindowsPowerShell\\v1.0\\powershell.exe" -ExecutionPolicy Bypass -NonInteractive -NoProfile -Command "& { Get-Process -Name 'Uninstall*' -ErrorAction SilentlyContinue | Where-Object { $$$$_.Path -and $$$$_.Path.StartsWith('$INSTDIR') } | Stop-Process -Force -ErrorAction SilentlyContinue }"\`
+  nsExec::Exec \`taskkill.exe /F /IM "Mission Control.exe" /T\`
+  nsExec::Exec \`taskkill.exe /F /IM "MissionControlBackend.exe" /T\`
+  nsExec::Exec \`taskkill.exe /F /IM "MissionControl.exe" /T\`
+  nsExec::Exec \`taskkill.exe /F /IM "HardwareMonitor.exe" /T\`
+  nsExec::ExecToStack \`"$SYSDIR\\WindowsPowerShell\\v1.0\\powershell.exe" -ExecutionPolicy Bypass -NonInteractive -NoProfile -Command "& { Get-Process -ErrorAction SilentlyContinue | Where-Object { $$$$_.Path -and $$$$_.Path.ToLower().StartsWith('$INSTDIR'.ToLower()) } | Stop-Process -Force -ErrorAction SilentlyContinue }"\`
   Pop $$0
   Pop $$1
   Sleep 1000
@@ -96,7 +99,7 @@ function patchNsis() {
           killMacro + '\n  $1'
         );
         fs.writeFileSync(installSectionNsh, content);
-        console.log('Patched installSection.nsh (force kill child procs elevated)');
+        console.log('Patched installSection.nsh (force kill child procs elevated v2)');
       } else {
         console.log('installSection.nsh already patched for child procs, skipping');
       }
