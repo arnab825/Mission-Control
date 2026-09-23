@@ -89,7 +89,7 @@
                                "packElevateHelper":  true,
                                "allowElevation":  true,
                                "shortcutName":  "Mission Control",
-                               "runAfterFinish":  false,
+                               "runAfterFinish":  true,
                                "createDesktopShortcut":  "always",
                                "createStartMenuShortcut":  true,
                                "license":  "electron/license.txt",
@@ -98,7 +98,7 @@
                   "msi":  {
                               "oneClick":  false,
                               "perMachine":  true,
-                              "runAfterFinish":  false
+                              "runAfterFinish":  true
                           },
                   "directories":  {
                                       "output":  "out/dist"

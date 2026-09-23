@@ -104,6 +104,34 @@ function patchNsis() {
         console.log('installSection.nsh already patched for child procs, skipping');
       }
     }
+
+    // FIX: StartApp robust fallback — if StdUtils::ExecShellAsUser fails to de-elevate or launch
+    // the shortcut (e.g. explorer shell token lookup error), fall back directly to ExecShell with the main executable.
+    const assistedInstallerNsh = path.join(__dirname, 'node_modules/app-builder-lib/templates/nsis/assistedInstaller.nsh');
+    if (fs.existsSync(assistedInstallerNsh)) {
+      let content = fs.readFileSync(assistedInstallerNsh, 'utf8');
+      if (!content.includes('; patch: fallback StartApp')) {
+        content = content.replace(
+          /\${StdUtils\.ExecShellAsUser}\s+\$0\s+"\$launchLink"\s+"open"\s+"\$1"/,
+          `\${StdUtils.ExecShellAsUser} $0 "$launchLink" "open" "$1"\n        ; patch: fallback StartApp\n        \${if} $0 != "ok"\n        \${andIf} $0 != "0"\n        \${andIf} $0 != ""\n          ExecShell "open" "$INSTDIR\\\${APP_EXECUTABLE_FILENAME}" "$1"\n        \${endif}`
+        );
+        fs.writeFileSync(assistedInstallerNsh, content);
+        console.log('Patched assistedInstaller.nsh (StartApp robust fallback)');
+      }
+    }
+
+    const commonNsh = path.join(__dirname, 'node_modules/app-builder-lib/templates/nsis/common.nsh');
+    if (fs.existsSync(commonNsh)) {
+      let content = fs.readFileSync(commonNsh, 'utf8');
+      if (!content.includes('; patch: fallback StartApp')) {
+        content = content.replace(
+          /\${StdUtils\.ExecShellAsUser}\s+\$0\s+"\$launchLink"\s+"open"\s+"\$startAppArgs"/,
+          `\${StdUtils.ExecShellAsUser} $0 "$launchLink" "open" "$startAppArgs"\n  ; patch: fallback StartApp\n  \${if} $0 != "ok"\n  \${andIf} $0 != "0"\n  \${andIf} $0 != ""\n    ExecShell "open" "$INSTDIR\\\${APP_EXECUTABLE_FILENAME}" "$startAppArgs"\n  \${endif}`
+        );
+        fs.writeFileSync(commonNsh, content);
+        console.log('Patched common.nsh (StartApp robust fallback)');
+      }
+    }
   } catch (e) {
     console.error('Failed to patch NSIS:', e);
   }

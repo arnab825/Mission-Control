@@ -3251,6 +3251,7 @@ function setupAutoUpdater() {
     console.warn('[AutoUpdater] Failed to read auto_download_updates setting:', err);
   }
   autoUpdater.autoDownload = false; // MUST be false to allow pausing/cancelling via CancellationToken
+  autoUpdater.autoRunAppAfterInstall = true;
   console.log(`[AutoUpdater] Initialized autoDownload to: ${autoUpdater.autoDownload} (autoDownloadEnabled config: ${autoDownloadEnabled})`);
 
   // Disable code signature verification for unsigned development/self-built updates
@@ -3621,7 +3622,7 @@ function setupAutoUpdater() {
       if (verifiedInstaller) {
         console.log(`[AutoUpdater] Launching verified installer executable: ${verifiedInstaller}`);
         try {
-          spawn('cmd.exe', ['/c', 'start', '""', verifiedInstaller], {
+          spawn('cmd.exe', ['/c', 'start', '""', verifiedInstaller, '--updated', '--force-run'], {
             detached: true,
             stdio: 'ignore',
             windowsHide: false,

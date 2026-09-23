@@ -42,6 +42,7 @@
 
 ; Define welcome page macro for assisted installer wizard
 !macro customWelcomePage
+  !insertmacro skipPageIfUpdated
   !define MUI_WELCOMEPAGE_TITLE "Mission Control Setup"
   !define MUI_WELCOMEPAGE_TEXT "Welcome to the Mission Control Setup Wizard.$\r$\n$\r$\nThis wizard will guide you through installing or updating the Mission Control platform engine, neural telemetry backend, and gaming optimization runtime.$\r$\n$\r$\nClick Next to continue."
   !insertmacro MUI_PAGE_WELCOME
