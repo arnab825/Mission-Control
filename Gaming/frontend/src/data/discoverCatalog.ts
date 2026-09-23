@@ -6,6 +6,16 @@ export const GAME_ALIASES: Record<string, string[]> = {
   'gta5': ['Grand Theft Auto V'],
   'gta 5': ['Grand Theft Auto V'],
   'gta v': ['Grand Theft Auto V'],
+  'gtav': ['Grand Theft Auto V'],
+  'gtav enhanced': ['Grand Theft Auto V'],
+  'gta v enhanced': ['Grand Theft Auto V'],
+  'gta 5 enhanced': ['Grand Theft Auto V'],
+  'grand theft auto v enhanced': ['Grand Theft Auto V'],
+  'grand theft auto 5 enhanced': ['Grand Theft Auto V'],
+  'gtav legacy': ['Grand Theft Auto V'],
+  'gta v legacy': ['Grand Theft Auto V'],
+  'gta online': ['Grand Theft Auto V'],
+  'grand theft auto online': ['Grand Theft Auto V'],
   'gta6': ['Grand Theft Auto VI'],
   'gta 6': ['Grand Theft Auto VI'],
   'gta vi': ['Grand Theft Auto VI'],
@@ -75,8 +85,19 @@ export const TITLE_TO_STEAM_APPID: Record<string, string> = {
   'god of war ragnarök': '2322010',
   'grand theft auto v': '271590',
   'grand theft auto 5': '271590',
+  'grand theft auto v enhanced': '271590',
+  'grand theft auto 5 enhanced': '271590',
+  'grand theft auto v legacy': '271590',
+  'grand theft auto online': '271590',
   'gta 5': '271590',
   'gta v': '271590',
+  'gtav': '271590',
+  'gtav enhanced': '271590',
+  'gta v enhanced': '271590',
+  'gta 5 enhanced': '271590',
+  'gtav legacy': '271590',
+  'gta v legacy': '271590',
+  'gta online': '271590',
   'grand theft auto iv': '12210',
   'grand theft auto 4': '12210',
   'grand theft auto san andreas': '12120',
@@ -366,8 +387,8 @@ export function normalizeGameTitle(title: string): string {
   clean = clean.replace(/\(\s*\d{4}\s*\)/g, ' ');
 
   // Strip common edition, remaster and packaging suffixes
-  clean = clean.replace(/\s*[-–:]\s*(director's cut|goty|game of the year|complete edition|definitive edition|enhanced edition|anniversary edition|special edition|deluxe edition|digital deluxe|ultimate edition|premium edition|standard edition|gold edition|remastered|remake|collection|vr edition|windows edition).*$/i, '');
-  clean = clean.replace(/\s+(director's cut|goty|game of the year|complete edition|definitive edition|enhanced edition|anniversary edition|special edition|deluxe edition|digital deluxe|ultimate edition|premium edition|gold edition|remastered|remake).*$/i, '');
+  clean = clean.replace(/\s*[-–:]\s*(director's cut|goty|game of the year|complete edition|definitive edition|enhanced edition|enhanced|legacy edition|legacy|online edition|online|anniversary edition|special edition|deluxe edition|digital deluxe|ultimate edition|premium edition|standard edition|gold edition|remastered|remake|collection|vr edition|windows edition).*$/i, '');
+  clean = clean.replace(/\s+(director's cut|goty|game of the year|complete edition|definitive edition|enhanced edition|enhanced|legacy edition|legacy|online edition|anniversary edition|special edition|deluxe edition|digital deluxe|ultimate edition|premium edition|gold edition|remastered|remake).*$/i, '');
 
   // Normalize punctuation and symbols to spaces (including curly quotes, dashes, colons)
   clean = clean.replace(/['’‘`":,\-–—/\\_.]/g, ' ');

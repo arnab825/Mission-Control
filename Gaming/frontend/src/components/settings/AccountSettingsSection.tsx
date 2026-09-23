@@ -3,6 +3,7 @@ import { useUser, useAuth, UserButton } from '@clerk/clerk-react';
 import { KeyRound, Fingerprint, Calendar, Shield, Copy, Check, Link, Trash2 } from 'lucide-react';
 import { SettingsSection } from './common/SettingsSection';
 import { OAUTH_PROVIDERS } from '../../data/settingsConstants';
+import { AccountSwitcherModal } from '../AccountSwitcherModal';
 
 interface AccountSettingsSectionProps {
   searchQuery?: string;
@@ -29,6 +30,7 @@ export const AccountSettingsSection: React.FC<AccountSettingsSectionProps> = ({
   const [deleteInput, setDeleteInput] = useState('');
   const [isDeleting, setIsDeleting] = useState(false);
   const [deleteError, setDeleteError] = useState<string | null>(null);
+  const [isAccountSwitcherOpen, setIsAccountSwitcherOpen] = useState(false);
 
   useEffect(() => {
     if (accountDeleted === true) {
@@ -42,32 +44,37 @@ export const AccountSettingsSection: React.FC<AccountSettingsSectionProps> = ({
 
   if (!isSignedIn || !user) {
     return (
-      <SettingsSection
-        searchQuery={searchQuery}
-        title="Linked Account"
-        icon={KeyRound}
-        searchTerms="account profile login auth clerk user google discord"
-      >
-        <div className="p-4 bg-white/5 border border-white/10 rounded-2xl text-center">
-          <p className="text-xs text-zinc-400 font-medium">
-            You are currently browsing in guest mode. Sign in to link accounts and sync your game telemetry.
-          </p>
-          <button
-            type="button"
-            onClick={() => window.location.replace(window.location.origin + '/?show_auth=1')}
-            className="mt-3 px-4 py-2 bg-neon-green/20 border border-neon-green/40 text-neon-green font-black text-[9px] uppercase tracking-widest rounded-xl hover:bg-neon-green/30 transition-all"
-          >
-            Sign In
-          </button>
-        </div>
-      </SettingsSection>
+      <>
+        <SettingsSection
+          searchQuery={searchQuery}
+          title="Linked Account"
+          icon={KeyRound}
+          searchTerms="account profile login auth clerk user google discord"
+        >
+          <div className="p-4 bg-white/5 border border-white/10 rounded-2xl text-center">
+            <p className="text-xs text-zinc-400 font-medium">
+              You are currently browsing in guest mode. Sign in to link accounts and sync your game telemetry.
+            </p>
+            <button
+              type="button"
+              onClick={() => setIsAccountSwitcherOpen(true)}
+              className="mt-3 px-4 py-2 bg-neon-green/20 border border-neon-green/40 text-neon-green font-black text-[9px] uppercase tracking-widest rounded-xl hover:bg-neon-green/30 transition-all cursor-pointer"
+            >
+              Sign In / Connect
+            </button>
+          </div>
+        </SettingsSection>
+        <AccountSwitcherModal
+          isOpen={isAccountSwitcherOpen}
+          onClose={() => setIsAccountSwitcherOpen(false)}
+          sendCommand={sendCommand}
+        />
+      </>
     );
   }
 
-  const handleSwitchAccount = async () => {
-    localStorage.removeItem('mission_control_active_provider');
-    await signOut();
-    window.location.replace(window.location.origin + '/?show_auth=1');
+  const handleSwitchAccount = () => {
+    setIsAccountSwitcherOpen(true);
   };
 
   const handleLinkProvider = async (strategy: string) => {
@@ -140,7 +147,8 @@ export const AccountSettingsSection: React.FC<AccountSettingsSectionProps> = ({
   };
 
   return (
-    <SettingsSection
+    <>
+      <SettingsSection
       searchQuery={searchQuery}
       title="Linked Account"
       icon={KeyRound}
@@ -187,11 +195,18 @@ export const AccountSettingsSection: React.FC<AccountSettingsSectionProps> = ({
           <button
             aria-label="Sign Out"
             type="button"
-            onClick={() => {
-              sendCommand('logout_user', { userId });
-              signOut();
+            onClick={async () => {
+              if (userId && sendCommand) {
+                sendCommand('logout_user', { userId });
+              }
+              try {
+                if (typeof window !== 'undefined' && typeof window.localStorage?.removeItem === 'function') {
+                  window.localStorage.removeItem('mission_control_active_provider');
+                }
+              } catch (_) {}
+              await signOut();
             }}
-            className="px-3 py-1.5 bg-red-500/10 border border-red-500/20 text-red-400 hover:bg-red-500/20 hover:border-red-500/40 text-[8px] font-black uppercase tracking-widest rounded-xl transition-all"
+            className="px-3 py-1.5 bg-red-500/10 border border-red-500/20 text-red-400 hover:bg-red-500/20 hover:border-red-500/40 text-[8px] font-black uppercase tracking-widest rounded-xl transition-all cursor-pointer"
           >
             Sign Out
           </button>
@@ -490,5 +505,12 @@ export const AccountSettingsSection: React.FC<AccountSettingsSectionProps> = ({
         )}
       </div>
     </SettingsSection>
+
+    <AccountSwitcherModal
+      isOpen={isAccountSwitcherOpen}
+      onClose={() => setIsAccountSwitcherOpen(false)}
+      sendCommand={sendCommand}
+    />
+    </>
   );
 };

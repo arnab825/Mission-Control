@@ -2,6 +2,12 @@
 
 This document contains a detailed history of all patches and updates for the AI Gaming Assistant.
 
+### Patch: 2026-09-23 — v3.6.5: GTA V Icon Fixes & Seamless Account Switching
+
+- Resolved GTA V icon and artwork resolution in Library and Hardware Feature Matrix
+- Implemented smooth cyberpunk account switcher modal and non-destructive session transitions
+- Fixed Vitest DOM matchers typing and extended test timeout to 15s
+
 ### Patch: 2026-09-09 — v3.6.3: Release Health Schema Normalization & False-Positive Unstable Banner Fix
 
 - Fixed false-positive Unstable Release Detected banner on clean update checks

@@ -1,5 +1,6 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest';
 import { render, screen, fireEvent } from '@testing-library/react';
+import '@testing-library/jest-dom/vitest';
 import Sidebar from '../SidebarLeft';
 
 const mockUseUser = vi.fn();
@@ -10,6 +11,7 @@ const mockSignOut = vi.fn();
 vi.mock('@clerk/clerk-react', () => ({
   useUser: () => mockUseUser(),
   useClerk: () => mockUseClerk(),
+  useSignIn: () => ({ isLoaded: true, signIn: null }),
 }));
 
 describe('SidebarLeft Component', () => {

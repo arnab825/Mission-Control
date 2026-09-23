@@ -1,8 +1,18 @@
 {
-  "version": "3.6.4",
+  "version": "3.6.5",
   "release_date": "2026-09-22",
   "update_check_url": "https://raw.githubusercontent.com/arnab825/Mission-Control/main/Gaming/backend/version.json",
   "changelog": [
+    {
+      "version": "3.6.5",
+      "date": "2026-09-23",
+      "title": "GTA V Icon Fixes & Seamless Account Switching",
+      "highlights": [
+        "Resolved GTA V icon and artwork resolution in Library and Hardware Feature Matrix",
+        "Implemented smooth cyberpunk account switcher modal and non-destructive session transitions",
+        "Fixed Vitest DOM matchers typing and extended test timeout to 15s"
+      ]
+    },
     {
       "version": "3.6.4",
       "date": "2026-09-22",
@@ -535,22 +545,6 @@
         "Migrated frontend settings and backend optimizer to unified gpu_tuning architecture",
         "Updated Groq AI provider models to GPT OSS 120B and Qwen 3.6 27B",
         "Removed deprecated Custom AI model fallback options"
-      ]
-    },
-    {
-      "version": "3.1.6",
-      "date": "2026-08-15",
-      "title": "Fixed Alienware CPU temperature telemetry & optimized backend Pydantic models",
-      "highlights": [
-        "Fixed Alienware CPU temperature telemetry & optimized backend Pydantic models"
-      ]
-    },
-    {
-      "version": "3.1.5",
-      "date": "2026-08-15",
-      "title": "Fixed Alienware CPU temperature telemetry & optimized backend Pydantic models",
-      "highlights": [
-        "Fixed Alienware CPU temperature telemetry & optimized backend Pydantic models"
       ]
     }
   ]

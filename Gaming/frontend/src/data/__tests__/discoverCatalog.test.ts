@@ -20,7 +20,18 @@ describe('Game Artwork & Title Normalization Engine', () => {
   it('accurately resolves verified Steam App IDs for major franchises', () => {
     expect(getSteamAppIdForTitle('Cyberpunk 2077')).toBe('1091500');
     expect(getSteamAppIdForTitle('Grand Theft Auto V')).toBe('271590');
+    expect(getSteamAppIdForTitle('Grand Theft Auto V Enhanced')).toBe('271590');
+    expect(getSteamAppIdForTitle('GTA V')).toBe('271590');
+    expect(getSteamAppIdForTitle('GTA V Enhanced')).toBe('271590');
+    expect(getSteamAppIdForTitle('GTAV')).toBe('271590');
+    expect(getSteamAppIdForTitle('GTAV Enhanced')).toBe('271590');
     expect(getSteamAppIdForTitle('GTA 5')).toBe('271590');
+    expect(getSteamAppIdForTitle('GTA 5 Enhanced')).toBe('271590');
+    expect(getSteamAppIdForTitle('Grand Theft Auto 5')).toBe('271590');
+    expect(getSteamAppIdForTitle('Grand Theft Auto 5 Enhanced')).toBe('271590');
+    expect(getSteamAppIdForTitle('GTA Online')).toBe('271590');
+    expect(getSteamAppIdForTitle('Grand Theft Auto Online')).toBe('271590');
+    expect(getSteamAppIdForTitle('GTAV Legacy')).toBe('271590');
     expect(getSteamAppIdForTitle('Red Dead Redemption 2')).toBe('1174180');
     expect(getSteamAppIdForTitle('Elden Ring')).toBe('1245620');
     expect(getSteamAppIdForTitle('Black Myth: Wukong')).toBe('2358720');

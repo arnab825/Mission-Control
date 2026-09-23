@@ -10,9 +10,11 @@ import {
   History,
   LogOut,
   Link as LinkIcon,
-  ShieldCheck
+  ShieldCheck,
+  ArrowLeftRight
 } from 'lucide-react';
 import { useUser, useClerk } from '@clerk/clerk-react';
+import { AccountSwitcherModal } from './AccountSwitcherModal';
 
 interface SidebarProps {
   isOpen?: boolean;
@@ -22,6 +24,7 @@ interface SidebarProps {
   state: any;
   onTriggerUpdateCheck: () => void;
   onTriggerChangelogs: () => void;
+  sendCommand?: (type: string, payload?: any) => void;
 }
 
 const Sidebar: React.FC<SidebarProps> = ({ 
@@ -31,10 +34,12 @@ const Sidebar: React.FC<SidebarProps> = ({
   onNavigate,
   state,
   onTriggerUpdateCheck,
-  onTriggerChangelogs
+  onTriggerChangelogs,
+  sendCommand
 }) => {
   const { user, isSignedIn } = useUser();
   const { signOut } = useClerk();
+  const [isAccountSwitcherOpen, setIsAccountSwitcherOpen] = React.useState(false);
   
   // Find the exact external account the user just logged in with (saved in localStorage during sign in)
   const activeProvider = typeof window !== 'undefined' && typeof window.localStorage?.getItem === 'function' ? window.localStorage.getItem('mission_control_active_provider') : null;
@@ -155,15 +160,15 @@ const Sidebar: React.FC<SidebarProps> = ({
             )}
           </div>
 
-          {isSignedIn && user ? (
+            {isSignedIn && user ? (
             <div role="button" tabIndex={0} onKeyDown={(e) => e.key === 'Enter' && e.currentTarget.click()} 
               onClick={(e) => {
                 const target = e.target as HTMLElement;
                 if (target.closest('button')) return;
-                onNavigate('games');
+                setIsAccountSwitcherOpen(true);
                 if (window.innerWidth < 1024 && onClose) onClose();
               }}
-              className="flex items-center justify-between p-2.5 rounded-xl bg-white/2 hover:bg-white/5 border border-white/4 hover:border-white/10 backdrop-blur-sm cursor-pointer transition-all"
+              className="flex items-center justify-between p-2.5 rounded-xl bg-white/2 hover:bg-white/5 border border-white/4 hover:border-white/10 backdrop-blur-sm cursor-pointer transition-all group"
             >
               <div className="flex items-center gap-2.5 min-w-0">
                 {(() => {
@@ -209,28 +214,52 @@ const Sidebar: React.FC<SidebarProps> = ({
                 </div>
 
               </div>
-              <button aria-label="button" type="button"
-                onClick={async (e) => {
-                  e.preventDefault();
-                  e.stopPropagation();
-                  await signOut();
-                  // Hard-reload to root so Clerk clears all session state and
-                  // the next sign-in gets a fresh avatar/profile load
-                  window.location.replace('/');
-                }}
-                className="p-2 hover:bg-red-500/10 border border-transparent hover:border-red-500/20 text-zinc-400 hover:text-red-400 rounded-lg transition-all"
-                title="Sign Out"
-              >
-                <LogOut className="w-3.5 h-3.5" />
-              </button>
+              <div className="flex items-center gap-1 shrink-0">
+                <button
+                  aria-label="Switch Account"
+                  type="button"
+                  onClick={(e) => {
+                    e.preventDefault();
+                    e.stopPropagation();
+                    setIsAccountSwitcherOpen(true);
+                  }}
+                  className="p-1.5 hover:bg-neon-green/10 border border-transparent hover:border-neon-green/30 text-zinc-400 hover:text-neon-green rounded-lg transition-all cursor-pointer"
+                  title="Switch Account"
+                >
+                  <ArrowLeftRight className="w-3.5 h-3.5" />
+                </button>
+                <button
+                  aria-label="Sign Out"
+                  type="button"
+                  onClick={async (e) => {
+                    e.preventDefault();
+                    e.stopPropagation();
+                    if (user?.id && sendCommand) {
+                      sendCommand('logout_user', { userId: user.id });
+                    }
+                    try {
+                      if (typeof window !== 'undefined' && typeof window.localStorage?.removeItem === 'function') {
+                        window.localStorage.removeItem('mission_control_active_provider');
+                      }
+                    } catch (_) {}
+                    await signOut();
+                  }}
+                  className="p-1.5 hover:bg-red-500/10 border border-transparent hover:border-red-500/20 text-zinc-400 hover:text-red-400 rounded-lg transition-all cursor-pointer"
+                  title="Sign Out"
+                >
+                  <LogOut className="w-3.5 h-3.5" />
+                </button>
+              </div>
             </div>
           ) : (
-            <button aria-label="button" type="button"
+            <button
+              aria-label="button"
+              type="button"
               onClick={() => {
-                onNavigate('games', { showAuth: true });
+                setIsAccountSwitcherOpen(true);
                 if (window.innerWidth < 1024 && onClose) onClose();
               }}
-              className="w-full flex items-center justify-between p-2.5 rounded-xl bg-neon-green/5 hover:bg-neon-green/10 border border-neon-green/10 hover:border-neon-green/20 transition-all text-left group"
+              className="w-full flex items-center justify-between p-2.5 rounded-xl bg-neon-green/5 hover:bg-neon-green/10 border border-neon-green/10 hover:border-neon-green/20 transition-all text-left group cursor-pointer"
             >
               <div className="flex items-center gap-2.5">
                 <div className="w-8 h-8 rounded-lg bg-neon-green/10 flex items-center justify-center text-neon-green group-hover:bg-neon-green/20 transition-all">
@@ -270,6 +299,15 @@ const Sidebar: React.FC<SidebarProps> = ({
           </div>
         </div>
       </div>
+
+      {isAccountSwitcherOpen && (
+        <AccountSwitcherModal
+          isOpen={isAccountSwitcherOpen}
+          onClose={() => setIsAccountSwitcherOpen(false)}
+          sendCommand={sendCommand}
+          onNavigate={onNavigate}
+        />
+      )}
     </>
   );
 };

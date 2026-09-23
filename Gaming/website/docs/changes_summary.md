@@ -22,7 +22,20 @@ Comprehensive breakdown of major milestone releases, architectural upgrades, and
 
 ---
 
-## 🌟 Version v3.6.4 (Latest) — Settings Architecture Modularization, Microsoft Store Certification & Edge Release Proxy
+## 🌟 Version v3.6.5 (Latest) — GTA V Icon Fixes & Seamless Account Switching
+
+### 🛠️ Key Highlights
+1. **Resolved GTA V icon and artwork resolution issues in the Library and Hardware Feature Matrix.**
+2. **Implemented a smooth cyberpunk account switcher modal and non-destructive session transitions.**
+3. **Fixed Vitest DOM matchers typing and extended test timeout to 15 seconds.**
+
+### 📦 Distribution Artifacts
+- **Linux**: `.deb` (Debian/Ubuntu), `.AppImage` (Universal), `.rpm` (Fedora/RHEL), `.tar.gz` (Portable)
+- **Windows**: `.exe` (Setup Installer), `.msi` (Enterprise), `.zip` (Portable)
+
+---
+
+## 📦 Version v3.6.4 — Settings Architecture Modularization, Microsoft Store Certification & Edge Release Proxy
 
 ### 🛠️ Key Highlights
 1. **Modularized Settings Architecture**: Decomposed monolithic 4,260-line `SettingsPage` into focused components in `src/components/settings/`, eliminating recursive virtual-DOM inspection overhead.

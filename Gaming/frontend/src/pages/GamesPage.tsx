@@ -153,13 +153,20 @@ const GameCard: React.FC<{
     (normPlatform?.toLowerCase().includes('riot') ? LAUNCHER_BANNERS['Riot Games'] : null)
   ) : null;
 
-  const steamAppId = (!isLauncher && game.platform === 'Steam' && /^\d+$/.test(game.id))
-    ? game.id
-    : (!isLauncher ? getSteamAppIdForTitle(game.name) : null);
-
   const nameLower = (game.name || '').toLowerCase();
   const is007 = !isLauncher && nameLower.includes('007') && (nameLower.includes('first light') || nameLower.includes('firstlight') || nameLower.includes('light'));
   const default007Icon = '/games/007firstlight.png';
+
+  const isGtaV = !isLauncher && (
+    nameLower.includes('gta') ||
+    nameLower.includes('grand theft auto') ||
+    (Boolean(game.exe_path) && (game.exe_path!.toLowerCase().includes('gta5') || game.exe_path!.toLowerCase().includes('gtav')))
+  );
+  const defaultGtaVIcon = '/games/gtav.png';
+
+  const steamAppId = (!isLauncher && game.platform === 'Steam' && /^\d+$/.test(game.id))
+    ? game.id
+    : (!isLauncher ? (getSteamAppIdForTitle(game.name) || (isGtaV ? '271590' : null)) : null);
 
   const localBannerUrl = game.local_banner && game.local_banner !== 'null' && !game.local_banner.includes('firstlight.webp')
     ? (game.local_banner.startsWith('http') ? game.local_banner : (game.local_banner.startsWith('/') ? game.local_banner : `asset:///${game.local_banner.replace(/\\/g, '/')}`))
@@ -167,14 +174,14 @@ const GameCard: React.FC<{
 
   const localIconUrl = (game.icon && game.icon !== 'null')
     ? (game.icon.startsWith('http') ? game.icon : (game.icon.startsWith('/') ? game.icon : `asset:///${game.icon.replace(/\\/g, '/')}`))
-    : (is007 ? default007Icon : null);
+    : (is007 ? default007Icon : isGtaV ? defaultGtaVIcon : null);
 
   if (isLauncher && launcherBanner) {
     coverUrl = launcherBanner;
   } else if (localBannerUrl) {
     coverUrl = localBannerUrl;
   } else if (steamAppId) {
-    coverUrl = `https://cdn.cloudflare.steamstatic.com/steam/apps/${steamAppId}/header.jpg`;
+    coverUrl = `https://shared.cloudflare.steamstatic.com/store_item_assets/steam/apps/${steamAppId}/header.jpg`;
   } else if ((game as any).banner_url && typeof (game as any).banner_url === 'string' && !(game as any).banner_url.includes('2842100')) {
     coverUrl = (game as any).banner_url;
   } else if ((game as any).cover_url && typeof (game as any).cover_url === 'string' && !(game as any).cover_url.includes('2842100') && !(game as any).cover_url.includes('capsule_616x353')) {
@@ -183,6 +190,8 @@ const GameCard: React.FC<{
     coverUrl = localIconUrl;
   } else if (is007) {
     coverUrl = default007Icon;
+  } else if (isGtaV) {
+    coverUrl = defaultGtaVIcon;
   } else if (launcherBanner) {
     coverUrl = launcherBanner;
   }
@@ -244,12 +253,16 @@ const GameCard: React.FC<{
                 target.src = default007Icon;
                 return;
               }
+              if (isGtaV && !target.src.includes('gtav.png')) {
+                target.src = defaultGtaVIcon;
+                return;
+              }
               if (localIconUrl && target.src !== localIconUrl) {
                 target.src = localIconUrl;
                 return;
               }
               const fallbackAppId = getSteamAppIdForTitle(game.name) || steamAppId;
-              const fallbackHeader = fallbackAppId ? `https://cdn.cloudflare.steamstatic.com/steam/apps/${fallbackAppId}/header.jpg` : null;
+              const fallbackHeader = fallbackAppId ? `https://shared.cloudflare.steamstatic.com/store_item_assets/steam/apps/${fallbackAppId}/header.jpg` : null;
               const fallbackCover = fallbackAppId ? `https://cdn.cloudflare.steamstatic.com/steam/apps/${fallbackAppId}/library_600x900_2x.jpg` : null;
               if (fallbackHeader && target.src !== fallbackHeader) {
                 target.src = fallbackHeader;
@@ -257,6 +270,10 @@ const GameCard: React.FC<{
               }
               if (fallbackCover && target.src !== fallbackCover) {
                 target.src = fallbackCover;
+                return;
+              }
+              if (isGtaV) {
+                target.src = defaultGtaVIcon;
                 return;
               }
               if (!target.src.includes('dicebear')) {

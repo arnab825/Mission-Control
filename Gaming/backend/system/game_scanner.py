@@ -648,13 +648,26 @@ class GameScanner:
                     icons_dir = Path(__file__).parent.parent / "data" / "icons"
                     game_id = g.get("id") or ""
                     safe_id = "".join(c for c in game_id if c.isalnum() or c in ("_", "-")).rstrip()
+                    name_clean = "".join(c for c in g.get("name", "") if c.isalnum())
                     candidates = []
                     if safe_id:
                         candidates.append(icons_dir / f"{safe_id}.png")
+                    if name_clean:
+                        candidates.append(icons_dir / f"{name_clean}.png")
+                        candidates.append(icons_dir / f"C_{name_clean}.png")
+                        # Also check GTA V / 5 abbreviations
+                        gta_variant = name_clean.replace("GrandTheftAuto", "GTA").replace("5", "V")
+                        if gta_variant != name_clean:
+                            candidates.append(icons_dir / f"{gta_variant}.png")
+                            candidates.append(icons_dir / f"C_{gta_variant}.png")
                     if g.get("exe_path"):
                         exe_stem = Path(g["exe_path"]).stem
                         candidates.append(icons_dir / f"{exe_stem}.png")
                         candidates.append(icons_dir / f"C_{exe_stem}.png")
+                        exe_clean = "".join(c for c in exe_stem if c.isalnum())
+                        if exe_clean != exe_stem:
+                            candidates.append(icons_dir / f"{exe_clean}.png")
+                            candidates.append(icons_dir / f"C_{exe_clean}.png")
 
                     for cand in candidates:
                         if cand.exists():

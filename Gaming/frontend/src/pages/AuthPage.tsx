@@ -20,6 +20,8 @@ const AuthPage: React.FC<AuthPageProps> = ({ onBackToLibrary }) => {
   const handleExit = () => {
     if (onBackToLibrary) {
       onBackToLibrary();
+    } else if (window.history.length > 1) {
+      window.history.back();
     } else {
       window.location.replace('/');
     }
@@ -40,8 +42,6 @@ const AuthPage: React.FC<AuthPageProps> = ({ onBackToLibrary }) => {
         setIsLoading(false);
         if (onBackToLibrary) {
           onBackToLibrary();
-        } else {
-          window.location.replace('/');
         }
       });
       return unsub;
@@ -54,7 +54,11 @@ const AuthPage: React.FC<AuthPageProps> = ({ onBackToLibrary }) => {
     setIsLoading(true);
     setError('');
     try {
-      localStorage.setItem('mission_control_active_provider', strategy);
+      try {
+        if (typeof window !== 'undefined' && typeof window.localStorage?.setItem === 'function') {
+          localStorage.setItem('mission_control_active_provider', strategy);
+        }
+      } catch (_) {}
 
       // In Electron environment, open a dedicated centered popup window with native window frame & cross button
       if (window.electronAPI?.openAuthPopup) {
@@ -82,6 +86,9 @@ const AuthPage: React.FC<AuthPageProps> = ({ onBackToLibrary }) => {
         if (strategy === 'oauth_google') {
           options.additionalData = { prompt: 'select_account' };
           options.customOAuthOptions = { prompt: 'select_account' };
+        } else if (strategy === 'oauth_discord') {
+          options.additionalData = { prompt: 'consent' };
+          options.customOAuthOptions = { prompt: 'consent' };
         }
         await signIn.authenticateWithRedirect(options);
       } else {
@@ -93,6 +100,9 @@ const AuthPage: React.FC<AuthPageProps> = ({ onBackToLibrary }) => {
         if (strategy === 'oauth_google') {
           options.additionalData = { prompt: 'select_account' };
           options.customOAuthOptions = { prompt: 'select_account' };
+        } else if (strategy === 'oauth_discord') {
+          options.additionalData = { prompt: 'consent' };
+          options.customOAuthOptions = { prompt: 'consent' };
         }
         await signUp.authenticateWithRedirect(options);
       }

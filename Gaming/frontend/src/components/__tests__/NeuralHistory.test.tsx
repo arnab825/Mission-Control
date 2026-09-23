@@ -1,5 +1,6 @@
 import { describe, it, expect, vi, afterEach } from 'vitest';
 import { render, screen, fireEvent } from '@testing-library/react';
+import '@testing-library/jest-dom/vitest';
 import NeuralHistory from '../NeuralHistory';
 import type { HistoryItem } from '../NeuralHistory';
 

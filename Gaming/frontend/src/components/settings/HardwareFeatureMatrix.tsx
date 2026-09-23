@@ -111,10 +111,16 @@ export const HardwareFeatureMatrix: React.FC<HardwareFeatureMatrixProps> = memo(
                 const is007 = nameLower.includes('007') && (nameLower.includes('first light') || nameLower.includes('firstlight') || nameLower.includes('light'));
                 const default007 = '/games/007firstlight.png';
 
+                const isGtaV =
+                  nameLower.includes('gta') ||
+                  nameLower.includes('grand theft auto') ||
+                  (game.exe_path && (game.exe_path.toLowerCase().includes('gta5') || game.exe_path.toLowerCase().includes('gtav')));
+                const defaultGtaV = '/games/gtav.png';
+
                 const resolvedSteamId =
                   game.platform === 'Steam' && /^\d+$/.test(game.id)
                     ? game.id
-                    : getSteamAppIdForTitle(game.name);
+                    : (getSteamAppIdForTitle(game.name) || (isGtaV ? '271590' : null));
 
                 const steamBannerUrl = resolvedSteamId
                   ? `https://shared.cloudflare.steamstatic.com/store_item_assets/steam/apps/${resolvedSteamId}/header.jpg`
@@ -123,6 +129,8 @@ export const HardwareFeatureMatrix: React.FC<HardwareFeatureMatrixProps> = memo(
                 let fallbackUrl = null;
                 if (!game.id && game.name && nameLower.includes('ghost of tsushima')) {
                   fallbackUrl = 'https://cdn.akamai.steamstatic.com/steam/apps/2215430/header.jpg';
+                } else if (isGtaV) {
+                  fallbackUrl = defaultGtaV;
                 }
 
                 const localBannerUrl =
@@ -135,14 +143,14 @@ export const HardwareFeatureMatrix: React.FC<HardwareFeatureMatrixProps> = memo(
                     : null;
 
                 const localIconUrl =
-                  useLocalIcon || is007
+                  useLocalIcon || is007 || isGtaV
                     ? game.icon && game.icon !== 'null'
                       ? game.icon.startsWith('http')
                         ? game.icon
                         : game.icon.startsWith('/')
                           ? game.icon
                           : `asset:///${game.icon.replace(/\\/g, '/')}`
-                      : default007
+                      : (is007 ? default007 : isGtaV ? defaultGtaV : null)
                     : null;
 
                 const iconUrl = localIconUrl || localBannerUrl || steamBannerUrl || fallbackUrl;
@@ -165,6 +173,10 @@ export const HardwareFeatureMatrix: React.FC<HardwareFeatureMatrixProps> = memo(
                                 const img = e.target as HTMLImageElement;
                                 if (is007 && !img.src.includes('007firstlight.png')) {
                                   img.src = default007;
+                                  return;
+                                }
+                                if (isGtaV && !img.src.includes('gtav.png')) {
+                                  img.src = defaultGtaV;
                                   return;
                                 }
                                 if (steamBannerUrl && img.src !== steamBannerUrl) {

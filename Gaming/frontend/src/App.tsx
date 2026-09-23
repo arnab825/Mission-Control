@@ -17,7 +17,7 @@ import { useBridge } from './hooks/useBridge';
 import type { TelemetryState } from './types/telemetry';
 import { UpdatesPage } from './pages/UpdatesPage';
 import { Sparkles, ChevronDown, ToggleRight, ToggleLeft, Menu, AlertTriangle } from 'lucide-react';
-import { useAuth, useSignIn, useSignUp } from '@clerk/clerk-react';
+import { useAuth, useSignIn, useSignUp, useClerk } from '@clerk/clerk-react';
 import { motion, AnimatePresence, MotionConfig } from 'framer-motion';
 
 interface AppTelemetryState extends TelemetryState {
@@ -33,7 +33,18 @@ interface AppTelemetryState extends TelemetryState {
 const App: React.FC = () => {
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
   const [isIntelOpen, setIsIntelOpen] = useState(typeof window !== 'undefined' ? window.innerWidth >= 1280 : true);
-  const [activePage, setActivePage] = useState('dashboard');
+  const [activePage, setActivePage] = useState(() => {
+    if (typeof window !== 'undefined') {
+      try {
+        const saved = sessionStorage.getItem('mc_restore_page');
+        if (saved) {
+          sessionStorage.removeItem('mc_restore_page');
+          return saved;
+        }
+      } catch (_) {}
+    }
+    return 'dashboard';
+  });
   const [isScanOverlayDismissed, setIsScanOverlayDismissed] = useState(false);
   const [visitedPages, setVisitedPages] = useState<Record<string, boolean>>({ dashboard: true });
 
@@ -53,6 +64,7 @@ const App: React.FC = () => {
   const [showHUD, setShowHUD] = useState(false);
   const { state, connected, sendCommand } = useBridge() as { state: AppTelemetryState | null; connected: boolean; sendCommand: (type: string, payload?: any) => void };
   const { isSignedIn, userId } = useAuth();
+  const clerk = useClerk();
   const { isLoaded: isSignInLoaded, signIn } = useSignIn();
   const { isLoaded: isSignUpLoaded, signUp } = useSignUp();
 
@@ -108,6 +120,9 @@ const App: React.FC = () => {
       if (strategy === 'oauth_google') {
         options.additionalData = { prompt: 'select_account' };
         options.customOAuthOptions = { prompt: 'select_account' };
+      } else if (strategy === 'oauth_discord') {
+        options.additionalData = { prompt: 'consent' };
+        options.customOAuthOptions = { prompt: 'consent' };
       }
 
       console.log(`[AuthPopup] Triggering ${mode} OAuth redirect for ${strategy}...`);
@@ -126,16 +141,32 @@ const App: React.FC = () => {
   // Listen for auth completion from popup in the main window
   useEffect(() => {
     if (window.electronAPI?.onAuthCompleted) {
-      const unsub = window.electronAPI.onAuthCompleted(() => {
+      const unsub = window.electronAPI.onAuthCompleted(async () => {
         setGamesPageMode('library');
-        // Smoothly reload session from shared storage partition
+        // Attempt in-memory session synchronization first with zero window reload
+        try {
+          if (clerk?.client) {
+            const updatedClient = await clerk.client.reload();
+            if (updatedClient?.lastActiveSessionId) {
+              await clerk.setActive({ session: updatedClient.lastActiveSessionId });
+              return; // Seamless in-memory session update! Zero flash or flicker!
+            }
+          }
+        } catch (err) {
+          console.warn('[Auth] In-memory session sync failed, falling back to soft reload:', err);
+        }
+
+        // Safe fallback preserving current view:
+        try {
+          sessionStorage.setItem('mc_restore_page', activePage);
+        } catch (_) {}
         setTimeout(() => {
-          window.location.replace('/');
+          window.location.reload();
         }, 150);
       });
       return unsub;
     }
-  }, []);
+  }, [clerk, activePage]);
 
   // Notify Electron of online/offline status changes (Roadmap Item 11)
   useEffect(() => {
@@ -255,6 +286,9 @@ const App: React.FC = () => {
         if (triggerOauth === 'oauth_google') {
           options.additionalData = { prompt: 'select_account' };
           options.customOAuthOptions = { prompt: 'select_account' };
+        } else if (triggerOauth === 'oauth_discord') {
+          options.additionalData = { prompt: 'consent' };
+          options.customOAuthOptions = { prompt: 'consent' };
         }
 
         console.log(`[Clerk] Auto-triggering OAuth switch to: ${triggerOauth}`);
@@ -478,6 +512,7 @@ const App: React.FC = () => {
             activePage={activePage}
             onNavigate={handleNavigate}
             state={state}
+            sendCommand={sendCommand}
             onTriggerUpdateCheck={() => {
               setUpdaterTab('check');
               setActivePage('updates');

@@ -1,5 +1,6 @@
 import { describe, it, expect, vi } from 'vitest';
 import { render, screen, fireEvent } from '@testing-library/react';
+import '@testing-library/jest-dom/vitest';
 import SystemPage from '../SystemPage';
 import type { TelemetryState } from '../../types/telemetry';
 

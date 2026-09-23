@@ -82,7 +82,8 @@ graph TD
 
 | Version | Key Feature / Change Description |
 | :--- | :--- |
-| **v3.6.4 (Latest)** | **Settings Architecture Modularization, Microsoft Store Certification & Edge Release Proxy** — Modularized monolithic SettingsPage (4,260 lines) into dedicated domain components under src/components/settings/ |
+| **v3.6.5 (Latest)** | **GTA V Icon Fixes & Seamless Account Switching** — This release enhances the user experience with improved GTA V icon and artwork resolution, seamless account switching, and optimized testing. |
+| **v3.6.4** | **Settings Architecture Modularization, Microsoft Store Certification & Edge Release Proxy** — Modularized monolithic SettingsPage (4,260 lines) into dedicated domain components under src/components/settings/ |
 | **v3.6.3** | **Release Health Schema Normalization & False-Positive Unstable Banner Fix** — This release normalizes the release stability schema and fixes false-positive Unstable Release Detected banners. |
 | **v3.6.2** | **NVIDIA NIM Decommissioning Fix & Multi-Model Cascade Failover** — Replaced decommissioned EOL model meta/llama-3.3-70b-instruct with active meta/llama-3.2-11b-vision-instruct. |
 | **v3.6.1** | **Rockstar Games Launcher HUD Exclusion & Voice Agent DLSS Sanitization** — Resolved Rockstar Games Launcher (Launcher.exe) falsely triggering the in-game HUD overlay and FPS readings |
@@ -170,5 +171,5 @@ graph TD
 
 ---
 
-*Last Updated: 09/09/2026*
+*Last Updated: 23/09/2026*
 

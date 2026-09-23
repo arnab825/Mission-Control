@@ -178,19 +178,22 @@ def main():
             content_type = "application/octet-stream"
 
         upload_url = f"https://uploads.github.com/repos/{repo}/releases/{release_id}/assets?name={urllib.parse.quote(fname)}"
+        import requests
         with open(fpath, "rb") as f:
-            file_data = f.read()
-
-        github_request(
-            upload_url,
-            token,
-            method="POST",
-            data=file_data,
-            headers={
-                "Content-Type": content_type,
-                "Content-Length": str(len(file_data))
-            }
-        )
+            resp = requests.post(
+                upload_url,
+                data=f,
+                headers={
+                    "Authorization": f"Bearer {token}",
+                    "Content-Type": content_type,
+                    "Accept": "application/vnd.github.v3+json",
+                    "User-Agent": "MissionControl-ReleasePublisher",
+                },
+                timeout=1800,
+            )
+            if resp.status_code >= 400:
+                print(f"[HTTP {resp.status_code}] Failed to upload {fname}: {resp.text}", file=sys.stderr, flush=True)
+                resp.raise_for_status()
         print(f"[SUCCESS] Uploaded {fname} ({size_mb:.2f} MB) successfully!", flush=True)
 
     print(f"\n========================================================", flush=True)
