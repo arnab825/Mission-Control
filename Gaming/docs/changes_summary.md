@@ -22,7 +22,20 @@ Comprehensive breakdown of major milestone releases, architectural upgrades, and
 
 ---
 
-## 🌟 Version v3.6.8 (Latest) — Fixed Version Not Updating After Install
+## 🌟 Version v3.6.9 (Latest) — Fixed Version Not Updating After Install
+
+### 🛠️ Key Highlights
+1. **Fixed inverted semver guard to prevent running outdated installers without upgrading.**
+2. **Added installed status handler to refresh version badge and show success toast on upgrade.**
+3. **Resolved NSIS build failure caused by unreferenced warning.**
+
+### 📦 Distribution Artifacts
+- **Linux**: `.deb` (Debian/Ubuntu), `.AppImage` (Universal), `.rpm` (Fedora/RHEL), `.tar.gz` (Portable)
+- **Windows**: `.exe` (Setup Installer), `.msi` (Enterprise), `.zip` (Portable)
+
+---
+
+## 📦 Version v3.6.8 — Fixed Version Not Updating After Install
 
 ### 🛠️ Key Highlights
 1. **Fixed inverted semver guard to prevent running outdated installers.**

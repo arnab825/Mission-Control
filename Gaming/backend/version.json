@@ -1,8 +1,19 @@
 {
-  "version": "3.6.8",
+  "version": "3.6.9",
   "release_date": "2026-09-24",
   "update_check_url": "https://raw.githubusercontent.com/arnab825/Mission-Control/main/Gaming/backend/version.json",
   "changelog": [
+    {
+      "version": "3.6.9",
+      "date": "2026-09-25",
+      "title": "Fixed Version Not Updating After Install",
+      "highlights": [
+        "Fixed inverted semver guard that allowed same-version or older installers to run without upgrading",
+        "Fixed post-install first boot not emitting version change to UI — app now fires installed event on startup",
+        "Added installed status handler in UpdatesPage to refresh version badge and show success toast on upgrade",
+        "Fixed NSIS build failure caused by unreferenced un.CenterInstallerWindow warning treated as error"
+      ]
+    },
     {
       "version": "3.6.8",
       "date": "2026-09-25",
@@ -534,18 +545,6 @@
         "Enabled automated steamapps/common recursive game discovery in drive and library scans",
         "Enhanced junk keywords and container validation in library scanner",
         "Connected community review media uploads and navbar active tab synchronization"
-      ]
-    },
-    {
-      "version": "3.2.0",
-      "date": "2026-08-16",
-      "title": "Dynamic Game Root Resolution & Subfolder Optimization",
-      "highlights": [
-        "Dynamic Game Root Resolution & Subfolder Optimization",
-        "Automated upward directory walker past nested engine and architecture folders",
-        "Game root scoping preventing orphan sub-games for mod and crash tools",
-        "Enhanced executable scoring with auxiliary tool and uninstaller filtering",
-        "Universal Windows PE metadata title extraction for ambiguous binaries"
       ]
     }
   ]
