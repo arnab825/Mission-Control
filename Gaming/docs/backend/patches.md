@@ -2,6 +2,14 @@
 
 This document contains a detailed history of all patches and updates for the AI Gaming Assistant.
 
+### Patch: 2026-09-24 — v3.6.7: Centered Installer Window, Branded Setup Wizard & Release Notes Text Wrapping
+
+- Fixed installer window opening offset by centering window coordinates in NSIS GUI initialization via Windows API
+- Restored custom Mission Control Setup Wizard welcome and finish pages during installation and upgrade flows
+- Wired dedicated UpdateSetupModal to trigger on download completion and integrated setup wizard launcher
+- Fixed release notes and patch notes text wrapping with break-words, whitespace-pre-wrap, and max-height scrolling containers
+- Enhanced Library Hardware Feature Matrix artwork resolution cascade and refined SettingsPage UI status indicators
+
 ### Patch: 2026-09-23 — v3.6.6: Vision Command Center Fixes, Rate-Limited Streams & Pipeline Overrides
 
 - Resolved VisionPage force activate command routing by introducing dedicated toggle_vision_pipeline bridge command

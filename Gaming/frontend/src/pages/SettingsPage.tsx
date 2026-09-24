@@ -812,7 +812,7 @@ export const SettingsPage: React.FC<SettingsPageProps> = ({ state, sendCommand }
   return (
     <div className="flex-1 p-8 overflow-y-auto custom-scrollbar gap-y-12 bg-[#050505]/40">
       {/* Redesigned Premium Tech Header */}
-      <div className="relative p-6 sm:p-8 rounded-3xl border border-white/4 bg-[#0c0c12]/40 backdrop-blur-md flex flex-col md:flex-row md:items-center justify-between gap-6 overflow-hidden shadow-2xl">
+      <div className="relative p-6 sm:p-8 rounded-3xl border border-white/10 bg-[#0c0c12]/60 backdrop-blur-xl flex flex-col md:flex-row md:items-center justify-between gap-6 overflow-hidden shadow-[0_8px_32px_rgba(0,0,0,0.5)]">
         <div className="absolute top-0 right-1/4 w-96 h-96 bg-neon-green/10 rounded-full blur-[100px] pointer-events-none -translate-y-1/2" />
         <div className="absolute bottom-0 left-10 w-64 h-64 bg-purple-500/5 rounded-full blur-[80px] pointer-events-none translate-y-1/2" />
 
@@ -838,10 +838,10 @@ export const SettingsPage: React.FC<SettingsPageProps> = ({ state, sendCommand }
 
         {/* Action Controls */}
         <div className="flex items-center relative z-10 shrink-0 self-end md:self-center w-full md:w-auto">
-          <div className="flex flex-col sm:flex-row items-stretch bg-[#0c0c12]/80 border border-white/10 rounded-2xl overflow-hidden backdrop-blur-md shadow-lg w-full sm:w-auto transition-all">
+          <div className="flex flex-col sm:flex-row items-stretch bg-[#0c0c12]/90 border border-white/15 rounded-2xl overflow-hidden backdrop-blur-xl shadow-lg w-full sm:w-auto transition-all">
             {/* Auto-Save Toggle */}
             <div className="flex items-center justify-between sm:justify-start gap-3 px-5 py-3 sm:py-0 border-b sm:border-b-0 sm:border-r border-white/10 bg-white/[0.02]">
-              <span className="text-[10px] font-black text-zinc-400 uppercase tracking-widest mt-0.5">
+              <span className="text-[10px] font-black text-zinc-300 uppercase tracking-widest mt-0.5">
                 Auto-Save
               </span>
               <div
@@ -851,12 +851,13 @@ export const SettingsPage: React.FC<SettingsPageProps> = ({ state, sendCommand }
                 onClick={handleAutoSaveToggle}
                 className={`w-10 h-5 rounded-full relative p-0.5 cursor-pointer transition-colors shrink-0 ${
                   isAutoSave
-                    ? 'bg-neon-green shadow-[0_0_10px_rgba(118,185,0,0.3)]'
-                    : 'bg-zinc-800'
+                    ? 'bg-neon-green shadow-[0_0_12px_rgba(118,185,0,0.4)]'
+                    : 'bg-zinc-800 hover:bg-zinc-700'
                 }`}
+                title={isAutoSave ? 'Auto-Save enabled: changes save automatically' : 'Auto-Save disabled: manual save required'}
               >
                 <div
-                  className={`w-4 h-4 rounded-full absolute transition-all bg-black top-0.5 ${
+                  className={`w-4 h-4 rounded-full absolute transition-all bg-black top-0.5 shadow-sm ${
                     isAutoSave ? 'right-0.5' : 'left-0.5'
                   }`}
                 />
@@ -865,16 +866,17 @@ export const SettingsPage: React.FC<SettingsPageProps> = ({ state, sendCommand }
 
             {/* Save Status Indicator / Button */}
             {isAutoSave ? (
-              <div className="flex-1 flex items-center justify-center gap-2.5 px-7 py-3 text-zinc-400 font-black text-[10px] uppercase tracking-widest min-w-[160px] bg-white/[0.01]">
+              <div className="flex-1 flex items-center justify-center gap-2.5 px-6 py-3 text-zinc-300 font-black text-[10px] uppercase tracking-widest min-w-[160px] bg-white/[0.01]">
                 {isSaving ? (
                   <>
-                    <div className="w-3.5 h-3.5 border-2 border-neon-green/20 border-t-neon-green rounded-full animate-spin" />
-                    <span className="text-neon-green">Saving...</span>
+                    <div className="w-3.5 h-3.5 border-2 border-neon-green/30 border-t-neon-green rounded-full animate-spin" />
+                    <span className="text-neon-green tracking-wider">Saving Changes...</span>
                   </>
                 ) : (
                   <>
-                    <Check className="w-3.5 h-3.5 text-neon-yellow" />
-                    <span>Auto-Saved</span>
+                    <div className="w-1.5 h-1.5 rounded-full bg-neon-green shadow-[0_0_8px_rgba(118,185,0,0.8)] animate-pulse" />
+                    <Check className="w-3.5 h-3.5 text-neon-green" />
+                    <span className="text-zinc-300">Auto-Saved</span>
                   </>
                 )}
               </div>
@@ -884,7 +886,7 @@ export const SettingsPage: React.FC<SettingsPageProps> = ({ state, sendCommand }
                 type="button"
                 onClick={handleSave}
                 disabled={isSaving}
-                className="flex-1 flex items-center justify-center gap-2.5 px-7 py-3 bg-gradient-to-r from-neon-green to-blue-600 hover:from-neon-green hover:to-blue-500 text-black font-black text-[10px] uppercase tracking-widest transition-all disabled:opacity-50 min-w-[160px]"
+                className="flex-1 flex items-center justify-center gap-2.5 px-6 py-3 bg-gradient-to-r from-neon-green to-emerald-500 hover:from-neon-green hover:to-emerald-400 text-black font-black text-[10px] uppercase tracking-widest transition-all disabled:opacity-50 min-w-[160px] shadow-[0_0_20px_rgba(118,185,0,0.25)] hover:shadow-[0_0_25px_rgba(118,185,0,0.4)] cursor-pointer active:scale-[0.98]"
               >
                 <Save className="w-3.5 h-3.5 text-black" />
                 <span>{isSaving ? 'Saving...' : 'Save Settings'}</span>
@@ -905,7 +907,7 @@ export const SettingsPage: React.FC<SettingsPageProps> = ({ state, sendCommand }
           value={searchQuery}
           onChange={(e) => setSearchQuery(e.target.value)}
           placeholder="Search all settings (e.g. DLSS, Frame Gen, Voice, Hotkeys)... (Ctrl+F)"
-          className="w-full bg-white/[0.04] border border-white/15 hover:border-neon-green/35 focus:border-neon-green rounded-2xl py-3.5 pl-12 pr-12 text-[11px] font-bold text-white focus:outline-none focus:ring-1 focus:ring-neon-green/30 transition-all shadow-[inset_0_1px_1px_rgba(255,255,255,0.02),0_4px_20px_rgba(0,0,0,0.4)] focus:shadow-[0_0_20px_rgba(118,185,0,0.1)] backdrop-blur-md placeholder-zinc-400"
+          className="w-full bg-white/[0.04] border border-white/15 hover:border-neon-green/35 focus:border-neon-green rounded-2xl py-3.5 pl-12 pr-12 text-[11px] font-bold text-white focus:outline-none focus:ring-2 focus:ring-neon-green/20 transition-all shadow-[inset_0_1px_1px_rgba(255,255,255,0.02),0_4px_20px_rgba(0,0,0,0.4)] focus:shadow-[0_0_20px_rgba(118,185,0,0.15)] backdrop-blur-md placeholder-zinc-400"
         />
         {searchQuery && (
           <button
@@ -922,7 +924,7 @@ export const SettingsPage: React.FC<SettingsPageProps> = ({ state, sendCommand }
       </div>
 
       {/* Category Navigation Tabs */}
-      <div className="flex items-center gap-2 overflow-x-auto pb-2 scrollbar-none border-b border-white/5 mb-6">
+      <div className="flex items-center gap-2 overflow-x-auto pb-2 scrollbar-none border-b border-white/10 mb-6">
         {CATEGORY_TABS.map((tab) => {
           const Icon = tab.icon;
           const isActive = activeCategory === tab.id && !isSearching;
@@ -934,20 +936,24 @@ export const SettingsPage: React.FC<SettingsPageProps> = ({ state, sendCommand }
                 setActiveCategory(tab.id);
                 if (isSearching) setSearchQuery('');
               }}
-              className={`flex items-center gap-2 px-4 py-2.5 rounded-xl text-[10px] font-black uppercase tracking-wider transition-all whitespace-nowrap border ${
+              className={`flex items-center gap-2 px-4 py-2.5 rounded-xl text-[10px] font-black uppercase tracking-wider transition-all whitespace-nowrap border cursor-pointer ${
                 isActive
-                  ? 'bg-neon-green/15 text-neon-green border-neon-green/30 shadow-[0_0_15px_rgba(118,185,0,0.15)]'
-                  : 'bg-white/5 text-zinc-400 border-white/5 hover:bg-white/10 hover:text-white'
+                  ? 'bg-neon-green/15 text-neon-green border-neon-green/40 shadow-[0_0_20px_rgba(118,185,0,0.2)]'
+                  : 'bg-white/[0.03] text-zinc-400 border-white/5 hover:bg-white/[0.08] hover:text-zinc-100 hover:border-white/15'
               }`}
             >
               <Icon className={`w-3.5 h-3.5 ${isActive ? 'text-neon-green' : 'text-zinc-400'}`} />
-              {tab.label}
+              <span>{tab.label}</span>
+              {isActive && (
+                <span className="w-1.5 h-1.5 rounded-full bg-neon-green shadow-[0_0_6px_rgba(118,185,0,0.8)]" />
+              )}
             </button>
           );
         })}
 
         {isSearching && (
-          <div className="ml-auto px-3 py-1 bg-neon-yellow/10 border border-neon-yellow/20 rounded-xl text-neon-yellow text-[9px] font-bold uppercase tracking-wider">
+          <div className="ml-auto px-3 py-1 bg-neon-yellow/10 border border-neon-yellow/20 rounded-xl text-neon-yellow text-[9px] font-bold uppercase tracking-wider flex items-center gap-1.5">
+            <span className="w-1.5 h-1.5 rounded-full bg-neon-yellow animate-pulse" />
             Searching Everywhere
           </div>
         )}

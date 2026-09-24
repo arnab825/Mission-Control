@@ -2,7 +2,7 @@ import React, { memo } from 'react';
 import { RefreshCw, Cpu, Layers, Sparkles, Flame, Zap, Sun } from 'lucide-react';
 import { GPU_RTX_FEATURES, GPU_NVIDIA_FEATURES } from '../../data/settingsConstants';
 import { getRecommendedPreset } from '../../utils/gpuPresetEngine';
-import { getSteamAppIdForTitle } from '../../data/discoverCatalog';
+import { getSteamAppIdForTitle, getGameArtwork } from '../../data/discoverCatalog';
 import type { TelemetryState } from '../../types/telemetry';
 
 interface HardwareFeatureMatrixProps {
@@ -91,22 +91,6 @@ export const HardwareFeatureMatrix: React.FC<HardwareFeatureMatrixProps> = memo(
                 const hasRtx = rtxFeatures.length > 0;
                 const hasHdr = features.some((f: string) => f.toUpperCase() === 'HDR');
 
-                const exeLower = (game.exe_path || '').toLowerCase();
-                const isLauncherExe =
-                  exeLower.includes('ubisoftconnect') ||
-                  exeLower.includes('uplay') ||
-                  exeLower.includes('steam.exe') ||
-                  exeLower.includes('epicgameslauncher') ||
-                  exeLower.includes('origin.exe') ||
-                  exeLower.includes('galaxyclient');
-
-                const hasLauncherIcon =
-                  game.icon &&
-                  (game.icon.toLowerCase().includes('steam_launcher') ||
-                    game.icon.toLowerCase().includes('fallback_ea_desktop') ||
-                    game.icon.toLowerCase().includes('fallback_epic_games'));
-
-                const useLocalIcon = game.icon && game.icon !== 'null' && !isLauncherExe && !hasLauncherIcon;
                 const nameLower = (game.name || '').toLowerCase();
                 const is007 = nameLower.includes('007') && (nameLower.includes('first light') || nameLower.includes('firstlight') || nameLower.includes('light'));
                 const default007 = '/games/007firstlight.png';
@@ -114,7 +98,7 @@ export const HardwareFeatureMatrix: React.FC<HardwareFeatureMatrixProps> = memo(
                 const isGtaV =
                   nameLower.includes('gta') ||
                   nameLower.includes('grand theft auto') ||
-                  (game.exe_path && (game.exe_path.toLowerCase().includes('gta5') || game.exe_path.toLowerCase().includes('gtav')));
+                  (Boolean(game.exe_path) && (game.exe_path.toLowerCase().includes('gta5') || game.exe_path.toLowerCase().includes('gtav')));
                 const defaultGtaV = '/games/gtav.png';
 
                 const resolvedSteamId =
@@ -122,19 +106,29 @@ export const HardwareFeatureMatrix: React.FC<HardwareFeatureMatrixProps> = memo(
                     ? game.id
                     : (getSteamAppIdForTitle(game.name) || (isGtaV ? '271590' : null));
 
+                const artwork = getGameArtwork(
+                  game.name,
+                  game.banner_url || game.banner,
+                  game.cover_url || game.coverUrl,
+                  resolvedSteamId || (game.id && /^\d+$/.test(game.id) ? game.id : null)
+                );
+
                 const steamBannerUrl = resolvedSteamId
                   ? `https://shared.cloudflare.steamstatic.com/store_item_assets/steam/apps/${resolvedSteamId}/header.jpg`
-                  : null;
+                  : (artwork.bannerUrl || null);
 
-                let fallbackUrl = null;
-                if (!game.id && game.name && nameLower.includes('ghost of tsushima')) {
-                  fallbackUrl = 'https://cdn.akamai.steamstatic.com/steam/apps/2215430/header.jpg';
-                } else if (isGtaV) {
-                  fallbackUrl = defaultGtaV;
-                }
+                const steamCoverUrl = resolvedSteamId
+                  ? `https://cdn.cloudflare.steamstatic.com/steam/apps/${resolvedSteamId}/library_600x900_2x.jpg`
+                  : (artwork.coverUrl || null);
+
+                const isImageExt = (str?: string | null) =>
+                  Boolean(str && str !== 'null' && /\.(png|jpe?g|webp|ico|svg|bmp|gif)$/i.test(str));
+
+                const isExecutable = (str?: string | null) =>
+                  Boolean(str && /\.exe$/i.test(str));
 
                 const localBannerUrl =
-                  game.local_banner && game.local_banner !== 'null' && !game.local_banner.includes('firstlight.webp')
+                  isImageExt(game.local_banner) && !game.local_banner.includes('firstlight.webp')
                     ? game.local_banner.startsWith('http')
                       ? game.local_banner
                       : game.local_banner.startsWith('/')
@@ -143,17 +137,24 @@ export const HardwareFeatureMatrix: React.FC<HardwareFeatureMatrixProps> = memo(
                     : null;
 
                 const localIconUrl =
-                  useLocalIcon || is007 || isGtaV
-                    ? game.icon && game.icon !== 'null'
-                      ? game.icon.startsWith('http')
+                  isImageExt(game.icon) && !isExecutable(game.icon)
+                    ? game.icon.startsWith('http')
+                      ? game.icon
+                      : game.icon.startsWith('/')
                         ? game.icon
-                        : game.icon.startsWith('/')
-                          ? game.icon
-                          : `asset:///${game.icon.replace(/\\/g, '/')}`
-                      : (is007 ? default007 : isGtaV ? defaultGtaV : null)
+                        : `asset:///${game.icon.replace(/\\/g, '/')}`
                     : null;
 
-                const iconUrl = localIconUrl || localBannerUrl || steamBannerUrl || fallbackUrl;
+                const dicebearUrl = `https://api.dicebear.com/7.x/shapes/svg?seed=${encodeURIComponent(game.name || 'game')}&backgroundColor=0a0a0a&shape1Color=1a1a2e&shape2Color=16213e&shape3Color=0f3460`;
+
+                const iconUrl =
+                  (isGtaV ? defaultGtaV : null) ||
+                  (is007 ? default007 : null) ||
+                  localIconUrl ||
+                  steamBannerUrl ||
+                  localBannerUrl ||
+                  steamCoverUrl ||
+                  dicebearUrl;
 
                 const gpuCaps = state?.system_specs?.hardware?.gpu_capabilities;
                 const gpuNameStr = state?.system_specs?.hardware?.gpu || state?.gpu_metrics?.gpu_name || '';
@@ -163,43 +164,45 @@ export const HardwareFeatureMatrix: React.FC<HardwareFeatureMatrixProps> = memo(
                   <tr key={idx} className="hover:bg-white/[0.01] transition-all text-[10px] font-medium text-zinc-300">
                     <td className="p-3 pl-5 font-black text-white">
                       <div className="flex items-center gap-3">
-                        {iconUrl ? (
-                          <div className="relative w-7 h-7 shrink-0">
-                            <img
-                              src={iconUrl}
-                              alt=""
-                              className="w-7 h-7 rounded-lg object-cover bg-white/5 border border-white/10"
-                              onError={(e) => {
-                                const img = e.target as HTMLImageElement;
-                                if (is007 && !img.src.includes('007firstlight.png')) {
-                                  img.src = default007;
-                                  return;
-                                }
-                                if (isGtaV && !img.src.includes('gtav.png')) {
-                                  img.src = defaultGtaV;
-                                  return;
-                                }
-                                if (steamBannerUrl && img.src !== steamBannerUrl) {
-                                  img.src = steamBannerUrl;
-                                  return;
-                                }
-                                img.style.display = 'none';
-                                const fallback = img.nextElementSibling as HTMLElement;
-                                if (fallback) fallback.style.display = 'flex';
-                              }}
-                            />
-                            <div
-                              style={{ display: 'none' }}
-                              className="absolute inset-0 rounded-lg bg-neon-green/10 border border-neon-green/20 flex items-center justify-center text-neon-green font-black text-[9px] uppercase tracking-wider shadow-[0_0_8px_rgba(118,185,0,0.1)]"
-                            >
-                              {game.name.substring(0, 2)}
-                            </div>
-                          </div>
-                        ) : (
-                          <div className="w-7 h-7 rounded-lg bg-neon-green/10 border border-neon-green/20 flex items-center justify-center text-neon-green font-black text-[9px] uppercase tracking-wider shrink-0 shadow-[0_0_8px_rgba(118,185,0,0.1)]">
+                        <div className="relative w-7 h-7 shrink-0">
+                          <img
+                            src={iconUrl}
+                            alt=""
+                            className="w-7 h-7 rounded-lg object-cover bg-white/5 border border-white/10"
+                            onError={(e) => {
+                              const img = e.target as HTMLImageElement;
+                              if (isGtaV && !img.src.includes('gtav.png')) {
+                                img.src = defaultGtaV;
+                                return;
+                              }
+                              if (is007 && !img.src.includes('007firstlight.png')) {
+                                img.src = default007;
+                                return;
+                              }
+                              if (steamBannerUrl && img.src !== steamBannerUrl) {
+                                img.src = steamBannerUrl;
+                                return;
+                              }
+                              if (steamCoverUrl && img.src !== steamCoverUrl) {
+                                img.src = steamCoverUrl;
+                                return;
+                              }
+                              if (!img.src.includes('dicebear')) {
+                                img.src = dicebearUrl;
+                                return;
+                              }
+                              img.style.display = 'none';
+                              const fallback = img.nextElementSibling as HTMLElement;
+                              if (fallback) fallback.style.display = 'flex';
+                            }}
+                          />
+                          <div
+                            style={{ display: 'none' }}
+                            className="absolute inset-0 rounded-lg bg-neon-green/10 border border-neon-green/20 flex items-center justify-center text-neon-green font-black text-[9px] uppercase tracking-wider shadow-[0_0_8px_rgba(118,185,0,0.1)]"
+                          >
                             {game.name.substring(0, 2)}
                           </div>
-                        )}
+                        </div>
                         <span className="truncate max-w-[200px]" title={game.name}>
                           {game.name}
                         </span>

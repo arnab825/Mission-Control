@@ -119,6 +119,10 @@ export const UpdatesPage: React.FC<UpdatesPageProps> = ({
             return;
           }
           setNativeUpdate(data);
+          if (data.status === 'downloaded') {
+            setSetupModalMode('install');
+            setIsSetupModalOpen(true);
+          }
         }
       });
       return () => {
@@ -395,16 +399,16 @@ export const UpdatesPage: React.FC<UpdatesPageProps> = ({
                         className="flex items-center gap-2 px-6 py-3 bg-linear-to-r from-purple-500 to-neon-green hover:from-purple-400 hover:to-neon-green text-black text-[9px] font-black uppercase tracking-widest rounded-xl shadow-[0_0_20px_rgba(118, 185, 0,0.3)] transition-all hover:scale-[1.02] cursor-pointer"
                       >
                         <RefreshCw className="w-3.5 h-3.5" />
-                        Restart & Relaunch
+                        Launch Setup Wizard
                       </button>
                     </div>
                   </div>
 
                   {nativeUpdate.notes && (
-                    <div className="bg-black/40 border border-white/5 rounded-2xl p-4 space-y-2">
+                    <div className="bg-black/40 border border-white/5 rounded-2xl p-4 space-y-2 overflow-hidden">
                       <h5 className="text-[8px] font-black text-neon-green uppercase tracking-widest">Wrapper Release Notes:</h5>
                       <div 
-                        className="text-[9px] text-zinc-500 leading-relaxed font-mono [&_ul]:list-disc [&_ul]:pl-4 [&_ul]:space-y-1 [&_li]:mt-1"
+                        className="text-[9px] text-zinc-400 leading-relaxed font-mono max-h-48 overflow-y-auto custom-scrollbar break-words break-all whitespace-pre-wrap [word-break:break-word] [&_ul]:list-disc [&_ul]:pl-4 [&_ul]:space-y-1 [&_li]:mt-1"
                         dangerouslySetInnerHTML={{ __html: nativeUpdate.notes }}
                       />
                     </div>
@@ -450,10 +454,10 @@ export const UpdatesPage: React.FC<UpdatesPageProps> = ({
                   )}
 
                   {nativeUpdate.notes && (
-                    <div className="bg-black/60 border border-white/5 rounded-2xl p-4 space-y-2 mt-2">
+                    <div className="bg-black/60 border border-white/5 rounded-2xl p-4 space-y-2 mt-2 overflow-hidden">
                       <h5 className="text-[8px] font-black text-neon-green uppercase tracking-widest">Patch Notes:</h5>
                       <div 
-                        className="text-[10px] text-zinc-300 leading-relaxed font-mono max-h-32 overflow-y-auto custom-scrollbar [&_ul]:list-disc [&_ul]:pl-4 [&_ul]:space-y-1 [&_li]:mt-1"
+                        className="text-[10px] text-zinc-300 leading-relaxed font-mono max-h-40 overflow-y-auto custom-scrollbar break-words break-all whitespace-pre-wrap [word-break:break-word] [&_ul]:list-disc [&_ul]:pl-4 [&_ul]:space-y-1 [&_li]:mt-1"
                         dangerouslySetInnerHTML={{ __html: nativeUpdate.notes }}
                       />
                     </div>
@@ -639,7 +643,10 @@ export const UpdatesPage: React.FC<UpdatesPageProps> = ({
 
                         <button aria-label="button" type="button"
                           onClick={() => {
-                            if (window.electronAPI?.downloadElectronUpdate) {
+                            if (nativeUpdate.status === 'downloaded') {
+                              setSetupModalMode('install');
+                              setIsSetupModalOpen(true);
+                            } else if (window.electronAPI?.downloadElectronUpdate) {
                               setNativeUpdate({ status: 'downloading', percent: 0, message: 'Starting update download...' });
                               window.electronAPI.downloadElectronUpdate();
                             } else {
@@ -649,7 +656,7 @@ export const UpdatesPage: React.FC<UpdatesPageProps> = ({
                           className="flex items-center gap-2 px-6 py-3 bg-neon-green hover:bg-neon-green text-black text-[9px] font-black uppercase tracking-widest rounded-xl shadow-[0_0_20px_rgba(118, 185, 0,0.3)] hover:shadow-[0_0_30px_rgba(118, 185, 0,0.5)] transition-all shrink-0 hover:scale-[1.02] cursor-pointer"
                         >
                           <Download className="w-3.5 h-3.5" />
-                          Upgrade Now
+                          {nativeUpdate.status === 'downloaded' ? 'Launch Setup Wizard' : 'Upgrade Now'}
                         </button>
                       </div>
 
@@ -791,7 +798,7 @@ export const UpdatesPage: React.FC<UpdatesPageProps> = ({
                               {highlightsData.highlights.map((change: string, idx: number) => (
                                 <li key={idx} className="flex gap-2.5 items-start text-[10px] text-zinc-400 font-medium leading-relaxed">
                                   <span className="w-1.5 h-1.5 rounded-full bg-neon-green/60 mt-1.5 shrink-0" />
-                                  <span>{change}</span>
+                                  <span className="break-words break-all min-w-0 flex-1 [word-break:break-word]">{change}</span>
                                 </li>
                               ))}
                             </ul>
@@ -1201,7 +1208,7 @@ export const UpdatesPage: React.FC<UpdatesPageProps> = ({
                                 {entry.highlights?.map((change: string, idx: number) => (
                                   <li key={idx} className="flex gap-2.5 items-start text-[10px] text-zinc-400 font-medium leading-relaxed">
                                     <span className="w-1.5 h-1.5 rounded-full bg-neon-green/50 mt-1.5 shrink-0" />
-                                    <span>{change}</span>
+                                    <span className="break-words break-all min-w-0 flex-1 [word-break:break-word]">{change}</span>
                                   </li>
                                 ))}
                               </ul>

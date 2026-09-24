@@ -1,8 +1,20 @@
 {
-  "version": "3.6.6",
-  "release_date": "2026-09-22",
+  "version": "3.6.7",
+  "release_date": "2026-09-24",
   "update_check_url": "https://raw.githubusercontent.com/arnab825/Mission-Control/main/Gaming/backend/version.json",
   "changelog": [
+    {
+      "version": "3.6.7",
+      "date": "2026-09-24",
+      "title": "Centered Installer Window, Branded Setup Wizard & Release Notes Text Wrapping",
+      "highlights": [
+        "Fixed installer window opening offset by centering window coordinates in NSIS GUI initialization via Windows API",
+        "Restored custom Mission Control Setup Wizard welcome and finish pages during installation and upgrade flows",
+        "Wired dedicated UpdateSetupModal to trigger on download completion and integrated setup wizard launcher",
+        "Fixed release notes and patch notes text wrapping with break-words, whitespace-pre-wrap, and max-height scrolling containers",
+        "Enhanced Library Hardware Feature Matrix artwork resolution cascade and refined SettingsPage UI status indicators"
+      ]
+    },
     {
       "version": "3.6.6",
       "date": "2026-09-23",

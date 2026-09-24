@@ -1,6 +1,85 @@
+Function CenterInstallerWindow
+  Push $0
+  Push $1
+  Push $2
+  Push $3
+  Push $4
+  Push $5
+  Push $6
+
+  ; Allocate RECT structure (left, top, right, bottom)
+  System::Call "*(i 0, i 0, i 0, i 0) p .r0"
+  System::Call "User32::GetWindowRect(p $HWNDPARENT, p r0)"
+  System::Call "*$0(i .r1, i .r2, i .r3, i .r4)"
+  System::Free $0
+
+  ; Width = right - left, Height = bottom - top
+  IntOp $3 $3 - $1
+  IntOp $4 $4 - $2
+
+  ; Screen metrics
+  System::Call "User32::GetSystemMetrics(i 0) i .r5" ; SM_CXSCREEN
+  System::Call "User32::GetSystemMetrics(i 1) i .r6" ; SM_CYSCREEN
+
+  ; Calculate centered X and Y
+  IntOp $5 $5 - $3
+  IntOp $5 $5 / 2
+  IntOp $6 $6 - $4
+  IntOp $6 $6 / 2
+
+  ; Reposition window with SWP_NOSIZE (0x0001) | SWP_NOZORDER (0x0004) = 0x0005
+  System::Call "User32::SetWindowPos(p $HWNDPARENT, p 0, i $5, i $6, i 0, i 0, i 0x0005)"
+
+  Pop $6
+  Pop $5
+  Pop $4
+  Pop $3
+  Pop $2
+  Pop $1
+  Pop $0
+FunctionEnd
+
+Function un.CenterInstallerWindow
+  Push $0
+  Push $1
+  Push $2
+  Push $3
+  Push $4
+  Push $5
+  Push $6
+
+  System::Call "*(i 0, i 0, i 0, i 0) p .r0"
+  System::Call "User32::GetWindowRect(p $HWNDPARENT, p r0)"
+  System::Call "*$0(i .r1, i .r2, i .r3, i .r4)"
+  System::Free $0
+
+  IntOp $3 $3 - $1
+  IntOp $4 $4 - $2
+
+  System::Call "User32::GetSystemMetrics(i 0) i .r5"
+  System::Call "User32::GetSystemMetrics(i 1) i .r6"
+
+  IntOp $5 $5 - $3
+  IntOp $5 $5 / 2
+  IntOp $6 $6 - $4
+  IntOp $6 $6 / 2
+
+  System::Call "User32::SetWindowPos(p $HWNDPARENT, p 0, i $5, i $6, i 0, i 0, i 0x0005)"
+
+  Pop $6
+  Pop $5
+  Pop $4
+  Pop $3
+  Pop $2
+  Pop $1
+  Pop $0
+FunctionEnd
+
 !macro customHeader
   ShowInstDetails show
   ShowUninstDetails show
+  !define MUI_CUSTOMFUNCTION_GUIINIT CenterInstallerWindow
+  !define MUI_CUSTOMFUNCTION_UNGUIINIT un.CenterInstallerWindow
 !macroend
 
 !macro customInit
@@ -42,10 +121,18 @@
 
 ; Define welcome page macro for assisted installer wizard
 !macro customWelcomePage
-  !insertmacro skipPageIfUpdated
   !define MUI_WELCOMEPAGE_TITLE "Mission Control Setup"
   !define MUI_WELCOMEPAGE_TEXT "Welcome to the Mission Control Setup Wizard.$\r$\n$\r$\nThis wizard will guide you through installing or updating the Mission Control platform engine, neural telemetry backend, and gaming optimization runtime.$\r$\n$\r$\nClick Next to continue."
   !insertmacro MUI_PAGE_WELCOME
+!macroend
+
+; Define finish page macro for assisted installer wizard
+!macro customFinishPage
+  !define MUI_FINISHPAGE_TITLE "Mission Control Setup Complete"
+  !define MUI_FINISHPAGE_TEXT "Mission Control has been successfully installed on your computer.$\r$\n$\r$\nClick Finish to exit the wizard and launch Mission Control."
+  !define MUI_FINISHPAGE_RUN
+  !define MUI_FINISHPAGE_RUN_FUNCTION "StartApp"
+  !insertmacro MUI_PAGE_FINISH
 !macroend
 
 ; Define welcome page macro for assisted uninstaller wizard
@@ -53,6 +140,13 @@
   !define MUI_UNWELCOMEPAGE_TITLE "Uninstall Mission Control"
   !define MUI_UNWELCOMEPAGE_TEXT "Welcome to the Mission Control Uninstaller Wizard.$\r$\n$\r$\nThis wizard will guide you through removing Mission Control core application files from your computer.$\r$\n$\r$\nClick Next to continue."
   !insertmacro MUI_UNPAGE_WELCOME
+!macroend
+
+; Define finish page macro for assisted uninstaller wizard
+!macro customUninstallPage
+  !define MUI_FINISHPAGE_TITLE "Mission Control Uninstalled"
+  !define MUI_FINISHPAGE_TEXT "Mission Control has been successfully removed from your computer.$\r$\n$\r$\nClick Finish to close this wizard."
+  !insertmacro MUI_UNPAGE_FINISH
 !macroend
 
 !macro customInstall

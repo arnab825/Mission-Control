@@ -82,7 +82,8 @@ graph TD
 
 | Version | Key Feature / Change Description |
 | :--- | :--- |
-| **v3.6.6 (Latest)** | **Vision Command Center Fixes, Rate-Limited Streams & Pipeline Overrides** — Resolved VisionPage force activate command routing by introducing dedicated toggle_vision_pipeline bridge command. |
+| **v3.6.7 (Latest)** | **Centered Installer Window, Branded Setup Wizard & Release Notes Text Wrapping** — Fixed installer window opening offset by centering window coordinates in NSIS GUI initialization via Windows API |
+| **v3.6.6** | **Vision Command Center Fixes, Rate-Limited Streams & Pipeline Overrides** — Resolved VisionPage force activate command routing by introducing dedicated toggle_vision_pipeline bridge command. |
 | **v3.6.5** | **GTA V Icon Fixes & Seamless Account Switching** — This release enhances the user experience with improved GTA V icon and artwork resolution, seamless account switching, and optimized testing. |
 | **v3.6.4** | **Settings Architecture Modularization, Microsoft Store Certification & Edge Release Proxy** — Modularized monolithic SettingsPage (4,260 lines) into dedicated domain components under src/components/settings/ |
 | **v3.6.3** | **Release Health Schema Normalization & False-Positive Unstable Banner Fix** — This release normalizes the release stability schema and fixes false-positive Unstable Release Detected banners. |

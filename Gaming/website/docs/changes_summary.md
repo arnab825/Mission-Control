@@ -22,7 +22,18 @@ Comprehensive breakdown of major milestone releases, architectural upgrades, and
 
 ---
 
-## 🌟 Version v3.6.6 (Latest) — Vision Command Center Fixes, Rate-Limited Streams & Pipeline Overrides
+## 🌟 Version v3.6.7 (Latest) — Centered Installer Window, Branded Setup Wizard & Release Notes Text Wrapping
+
+### 🛠️ Key Highlights
+1. **Centered Installer Window Positioning**: Implemented NSIS Modern UI 2 window centering using `User32::GetWindowRect`, screen metrics (`SM_CXSCREEN`, `SM_CYSCREEN`), and `SetWindowPos` (`SWP_NOSIZE | SWP_NOZORDER`), eliminating left-offset window positioning.
+2. **Restored Branded Setup Wizard**: Removed premature `skipPageIfUpdated` abort in `installer.nsh` to preserve the Mission Control Setup Wizard welcome and finish pages during installation and upgrade flows.
+3. **Seamless In-App Update Wizard Handoff**: Wired dedicated `UpdateSetupModal` to automatically trigger upon download completion and routed "Upgrade Now" directly to the setup wizard when packages are staged.
+4. **Release Notes Text Wrapping Fixes**: Fixed text overflow across Wrapper Release Notes, Patch Notes, Release Highlights, and historical changelogs using `break-words`, `break-all`, `whitespace-pre-wrap`, and scrollable constraints.
+5. **Library Artwork & Status Polish**: Enhanced Library Hardware Feature Matrix artwork resolution cascade and refined SettingsPage UI status indicators.
+
+---
+
+## 📦 Version v3.6.6 — Vision Command Center Fixes, Rate-Limited Streams & Pipeline Overrides
 
 ### 🛠️ Key Highlights
 1. **Resolved VisionPage force activate command routing by introducing dedicated toggle_vision_pipeline bridge command**
