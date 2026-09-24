@@ -44,7 +44,7 @@ export const UpdatesPage: React.FC<UpdatesPageProps> = ({
   const [expandedVersions, setExpandedVersions] = React.useState<Record<string, boolean>>({});
   const logEndRef = useRef<HTMLDivElement>(null);
   const [nativeUpdate, setNativeUpdate] = React.useState<{
-    status: 'idle' | 'checking' | 'available' | 'downloading' | 'paused' | 'up-to-date' | 'downloaded' | 'error' | 'not-supported' | 'cancelled';
+    status: 'idle' | 'checking' | 'available' | 'downloading' | 'paused' | 'up-to-date' | 'downloaded' | 'installed' | 'error' | 'not-supported' | 'cancelled';
     version?: string;
     date?: string;
     notes?: string;
@@ -112,10 +112,18 @@ export const UpdatesPage: React.FC<UpdatesPageProps> = ({
       const cleanup = window.electronAPI.onElectronUpdateStatus((_event, data) => {
         console.log('[React NativeUpdate] Received event data:', data);
         if (data) {
-          // Fix 7: Don't let electron-updater's stale 'up-to-date' override the UI
+          // Don't let electron-updater's stale 'up-to-date' override the UI
           // when the Python backend already confirmed a newer version is available.
           if (data.status === 'up-to-date' && updateState?.status === 'available') {
             console.log('[React NativeUpdate] Ignoring native up-to-date — backend confirmed update available.');
+            return;
+          }
+          // First boot after a successful upgrade: refresh the displayed version
+          // and show a toast so the user sees the new version number immediately.
+          if (data.status === 'installed' && data.version) {
+            setElectronVersion(data.version);
+            setToastMessage(`\u2713 Successfully updated to v${data.version}`);
+            setNativeUpdate({ status: 'idle' });
             return;
           }
           setNativeUpdate(data);

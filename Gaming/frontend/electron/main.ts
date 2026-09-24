@@ -3178,25 +3178,38 @@ function setupAutoUpdater() {
     return;
   }
 
-  // Clear stale update state if it's for a different (old) version or if already installed.
+  // Clear stale update state if it's for an older version.
+  // If saved version EQUALS the running version, the update was just installed on this boot —
+  // emit an 'installed' event so the UI shows the correct new version, then clear the state.
   try {
     const savedState = loadUpdateState();
     if (savedState.status === 'downloaded' && savedState.version) {
-      const isStale = (() => {
-        const parse = (v: string) => v.replace(/^v/i, '').split('.').map(Number);
-        const savedParts = parse(savedState.version);
-        const currentParts = parse(app.getVersion());
-        for (let i = 0; i < Math.max(savedParts.length, currentParts.length); i++) {
-          const s = savedParts[i] || 0;
-          const c = currentParts[i] || 0;
-          if (s > c) return false; // saved is newer, not stale
-          if (s < c) return true;  // saved is older, stale
-        }
-        return true; // versions are equal, so it's already installed
-      })();
+      const parse = (v: string) => v.replace(/^v/i, '').split('.').map(Number);
+      const savedParts = parse(savedState.version);
+      const currentParts = parse(app.getVersion());
+      let comparison = 0; // 0 = equal, -1 = saved older, 1 = saved newer
+      for (let i = 0; i < Math.max(savedParts.length, currentParts.length); i++) {
+        const s = savedParts[i] || 0;
+        const c = currentParts[i] || 0;
+        if (s > c) { comparison = 1; break; } // saved is newer — update not yet installed
+        if (s < c) { comparison = -1; break; } // saved is older — stale
+      }
 
-      if (isStale) {
-        console.log(`[AutoUpdater] Clearing stale update state for v${savedState.version} (current: v${app.getVersion()})`);
+      if (comparison <= 0) {
+        if (comparison === 0) {
+          // versions are equal: first boot after a successful upgrade
+          console.log(`[AutoUpdater] Detected first boot after upgrade to v${app.getVersion()}. Emitting installed event.`);
+          // Delay so the renderer has time to load and attach listeners
+          setTimeout(() => {
+            sendToAllWindows('electron-update-status', {
+              status: 'installed',
+              version: app.getVersion(),
+              message: `Successfully updated to v${app.getVersion()}.`
+            });
+          }, 3000);
+        } else {
+          console.log(`[AutoUpdater] Clearing stale update state for v${savedState.version} (current: v${app.getVersion()}).`);
+        }
         saveUpdateState({ status: 'idle', percent: 0 });
         activeDirectInstallerPath = null;
       }
@@ -3576,11 +3589,13 @@ function setupAutoUpdater() {
         try {
           const meta = JSON.parse(fs.readFileSync(metaPath, 'utf-8'));
           if (meta.filePath && fs.existsSync(meta.filePath) && meta.version) {
-            // Guard: allow if installer version is >= current app version
-            const isOlder = isNewerSemver(app.getVersion(), meta.version);
-            if (!isOlder) {
+            // Guard: allow only if installer version is strictly NEWER than the current app.
+            // isNewerSemver(remote, local) returns true when remote > local.
+            // So isNewerSemver(meta.version, app.getVersion()) is true when installer > app.
+            const installerIsNewer = isNewerSemver(meta.version, app.getVersion());
+            if (installerIsNewer) {
               const stats = fs.statSync(meta.filePath);
-              // Verify size matches recorded size and passes minimum sanity
+              // Verify size matches recorded size and passes minimum sanity (>10 MB)
               if (meta.fileSize && stats.size === meta.fileSize && stats.size > 10 * 1024 * 1024) {
                 verifiedInstaller = meta.filePath;
                 console.log(`[AutoUpdater] Verified installer v${meta.version} ready for execution: ${verifiedInstaller} (${stats.size} bytes)`);
@@ -3590,7 +3605,8 @@ function setupAutoUpdater() {
                 try { fs.unlinkSync(metaPath); } catch (_) {}
               }
             } else {
-              console.warn(`[AutoUpdater] Stale installer v${meta.version} < current app v${app.getVersion()}. Purging old installer.`);
+              // Installer is same version or older — purge it so we don't re-install unnecessarily
+              console.warn(`[AutoUpdater] Installer v${meta.version} is not newer than current app v${app.getVersion()}. Purging stale installer.`);
               try { fs.unlinkSync(meta.filePath); } catch (_) {}
               try { fs.unlinkSync(metaPath); } catch (_) {}
             }
