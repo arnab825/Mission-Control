@@ -91,12 +91,17 @@ def pack_appimage(version: str, dist_dir: Path):
     return output_appimage
 
 if __name__ == "__main__":
-    if len(sys.argv) < 2:
-        print("Usage: python pack_appimage.py <version>")
-        sys.exit(1)
-
-    version_arg = sys.argv[1].lstrip('v')
     script_dir = Path(__file__).resolve().parent
     dist_directory = script_dir.parent / "frontend" / "out" / "dist"
+
+    if len(sys.argv) >= 2:
+        version_arg = sys.argv[1].lstrip('v')
+    else:
+        version_file = script_dir.parent / "backend" / "version.json"
+        version_arg = "3.6.7"
+        if version_file.exists():
+            import json
+            with open(version_file, "r", encoding="utf-8") as f:
+                version_arg = json.load(f).get("version", version_arg)
 
     pack_appimage(version_arg, dist_directory)

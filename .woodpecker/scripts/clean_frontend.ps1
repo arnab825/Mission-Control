@@ -39,4 +39,14 @@ if (Test-Path $outDir) {
   }
 }
 
+$outRoot = [System.IO.Path]::GetFullPath((Join-Path $PSScriptRoot "../../Gaming/frontend/out"))
+if (Test-Path $outRoot) {
+  @("release", "make", "dist-msix-test", "test_zip") | ForEach-Object {
+    $sub = Join-Path $outRoot $_
+    if (Test-Path $sub) {
+      Remove-Item $sub -Recurse -Force -ErrorAction SilentlyContinue
+    }
+  }
+}
+
 exit 0

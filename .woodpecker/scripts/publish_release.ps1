@@ -421,10 +421,11 @@ $headers = @{
   "X-GitHub-Api-Version" = "2022-11-28"
 }
 
+$boxEmoji = [char]::ConvertFromUtf32(0x1F4E6)
 $releaseBodyMarkdown = @"
 $notes
 
-### 📦 Available Downloads & Formats
+### $boxEmoji Available Downloads & Formats
 - **Linux (.deb - Debian / Ubuntu / Mint)**: [MissionControl-Linux-${semver}.deb](https://github.com/${repo}/releases/download/${tag}/MissionControl-Linux-${semver}.deb)
 - **Linux (.AppImage - Universal Linux)**: [MissionControl-Linux-${semver}.AppImage](https://github.com/${repo}/releases/download/${tag}/MissionControl-Linux-${semver}.AppImage)
 - **Linux (.rpm - Fedora / RHEL / openSUSE)**: [MissionControl-Linux-${semver}.rpm](https://github.com/${repo}/releases/download/${tag}/MissionControl-Linux-${semver}.rpm)

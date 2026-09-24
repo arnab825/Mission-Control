@@ -134,12 +134,13 @@ try {
             $releaseTitle = "Release v${version}: $cleanTitle"
             $releaseNotesFile = "$PSScriptRoot/../frontend/release-notes.md"
             $changesFormatted = ($Changes | ForEach-Object { "- $_" }) -join "`n"
+            $boxEmoji = [char]::ConvertFromUtf32(0x1F4E6)
             $releaseBody = @"
 # $releaseTitle
 
 $changesFormatted
 
-### 📦 Available Downloads & Formats
+### $boxEmoji Available Downloads & Formats
 - **Linux (.deb - Debian / Ubuntu / Mint)**: [MissionControl-Linux-${version}.deb](https://github.com/arnab825/Mission-Control/releases/download/v${version}/MissionControl-Linux-${version}.deb)
 - **Linux (.AppImage - Universal Linux)**: [MissionControl-Linux-${version}.AppImage](https://github.com/arnab825/Mission-Control/releases/download/v${version}/MissionControl-Linux-${version}.AppImage)
 - **Linux (.tar.gz - Standalone Linux Archive)**: [MissionControl-Linux-${version}.tar.gz](https://github.com/arnab825/Mission-Control/releases/download/v${version}/MissionControl-Linux-${version}.tar.gz)
@@ -147,7 +148,7 @@ $changesFormatted
 - **Windows (.msi - Enterprise Installer)**: [MissionControl-Setup.msi](https://github.com/arnab825/Mission-Control/releases/download/v${version}/MissionControl-Setup.msi)
 - **Windows (.zip - Portable Windows Archive)**: [MissionControl-Setup.zip](https://github.com/arnab825/Mission-Control/releases/download/v${version}/MissionControl-Setup.zip)
 "@
-            Set-Content -Path $releaseNotesFile -Value $releaseBody -Encoding UTF8
+            [System.IO.File]::WriteAllText($releaseNotesFile, $releaseBody, [System.Text.UTF8Encoding]::new($false))
 
             # Kill any lingering 7za / archiver processes that may lock files in out/dist
             Get-Process -Name "7za" -ErrorAction SilentlyContinue | Stop-Process -Force -ErrorAction SilentlyContinue

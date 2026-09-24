@@ -34,4 +34,8 @@ npx electron-builder --linux tar.gz --publish never
 Write-Host "[BUILD] Packaging Linux Debian package (.deb)..." -ForegroundColor Cyan
 python ../scripts/pack_deb.py
 
+# 4. Build Universal Linux Package (.AppImage)
+Write-Host "[BUILD] Packaging Universal Linux package (.AppImage)..." -ForegroundColor Cyan
+python ../scripts/pack_appimage.py
+
 
