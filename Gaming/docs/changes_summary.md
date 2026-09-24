@@ -22,7 +22,20 @@ Comprehensive breakdown of major milestone releases, architectural upgrades, and
 
 ---
 
-## 🌟 Version v3.6.9 (Latest) — Fixed NSIS installer build failure
+## 🌟 Version v3.7.0 (Latest) — Security Patch & Version Update Fix
+
+### 🛠️ Key Highlights
+1. **Purged leaked NVIDIA API key from entire git history using git filter-repo.**
+2. **Fixed post-install first boot not emitting installed event and added installed status handler in UpdatesPage.**
+3. **Resolved NSIS two-pass build failure and missing StartApp function.**
+
+### 📦 Distribution Artifacts
+- **Linux**: `.deb` (Debian/Ubuntu), `.AppImage` (Universal), `.rpm` (Fedora/RHEL), `.tar.gz` (Portable)
+- **Windows**: `.exe` (Setup Installer), `.msi` (Enterprise), `.zip` (Portable)
+
+---
+
+## 📦 Version v3.6.9 — Fixed NSIS installer build failure
 
 ### 🛠️ Key Highlights
 1. **Fixed NSIS installer build failure**

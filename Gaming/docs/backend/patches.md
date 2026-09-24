@@ -2,6 +2,16 @@
 
 This document contains a detailed history of all patches and updates for the AI Gaming Assistant.
 
+### Patch: 2026-09-25 — v3.7.0: Security Patch & Version Update Fix
+
+- Purged leaked NVIDIA API key from entire git history using git filter-repo
+- settings.yaml removed from all 1011 commits
+- Fixed inverted semver guard in autoUpdater — isNewerSemver args were swapped causing same-version installer to re-run without upgrading
+- Fixed post-install first boot not emitting installed event — app now notifies UI of successful upgrade on next launch
+- Added installed status handler in UpdatesPage to refresh version badge and show success toast after upgrade
+- Fixed NSIS two-pass build failure — removed CenterInstallerWindow functions incompatible with BUILD_UNINSTALLER pass
+- Fixed missing StartApp function — replaced MUI_FINISHPAGE_RUN_FUNCTION with direct executable path to avoid dead-code warning
+
 ### Patch: 2026-09-25 — v3.6.9: Fixed NSIS installer build failure
 
 - Fixed NSIS installer build failure

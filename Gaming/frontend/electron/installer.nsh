@@ -40,35 +40,6 @@
   Sleep 500
 !macroend
 
-; Define welcome page macro for assisted installer wizard
-!macro customWelcomePage
-  !define MUI_WELCOMEPAGE_TITLE "Mission Control Setup"
-  !define MUI_WELCOMEPAGE_TEXT "Welcome to the Mission Control Setup Wizard.$\r$\n$\r$\nThis wizard will guide you through installing or updating the Mission Control platform engine, neural telemetry backend, and gaming optimization runtime.$\r$\n$\r$\nClick Next to continue."
-  !insertmacro MUI_PAGE_WELCOME
-!macroend
-
-; Define finish page macro for assisted installer wizard
-!macro customFinishPage
-  !define MUI_FINISHPAGE_TITLE "Mission Control Setup Complete"
-  !define MUI_FINISHPAGE_TEXT "Mission Control has been successfully installed on your computer.$\r$\n$\r$\nClick Finish to exit the wizard and launch Mission Control."
-  !define MUI_FINISHPAGE_RUN
-  !define MUI_FINISHPAGE_RUN_FUNCTION "StartApp"
-  !insertmacro MUI_PAGE_FINISH
-!macroend
-
-; Define welcome page macro for assisted uninstaller wizard
-!macro customUnWelcomePage
-  !define MUI_UNWELCOMEPAGE_TITLE "Uninstall Mission Control"
-  !define MUI_UNWELCOMEPAGE_TEXT "Welcome to the Mission Control Uninstaller Wizard.$\r$\n$\r$\nThis wizard will guide you through removing Mission Control core application files from your computer.$\r$\n$\r$\nClick Next to continue."
-  !insertmacro MUI_UNPAGE_WELCOME
-!macroend
-
-; Define finish page macro for assisted uninstaller wizard
-!macro customUninstallPage
-  !define MUI_FINISHPAGE_TITLE "Mission Control Uninstalled"
-  !define MUI_FINISHPAGE_TEXT "Mission Control has been successfully removed from your computer.$\r$\n$\r$\nClick Finish to close this wizard."
-  !insertmacro MUI_UNPAGE_FINISH
-!macroend
 
 !macro customInstall
   DetailPrint "Stopping any background Mission Control tasks..."

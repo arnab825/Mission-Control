@@ -22,7 +22,41 @@ Comprehensive breakdown of major milestone releases, architectural upgrades, and
 
 ---
 
-## 🌟 Version v3.6.9 (Latest) — Fixed Version Not Updating After Install
+## 🌟 Version v3.7.0 (Latest) — Security Patch & Version Update Fix
+
+### 🛠️ Key Highlights
+1. **Purged leaked NVIDIA API key from entire git history using git filter-repo.**
+2. **Fixed post-install first boot not emitting installed event and added installed status handler in UpdatesPage.**
+3. **Resolved NSIS two-pass build failure and missing StartApp function.**
+
+### 📦 Distribution Artifacts
+- **Linux**: `.deb` (Debian/Ubuntu), `.AppImage` (Universal), `.rpm` (Fedora/RHEL), `.tar.gz` (Portable)
+- **Windows**: `.exe` (Setup Installer), `.msi` (Enterprise), `.zip` (Portable)
+
+---
+
+## 📦 Version v3.6.9 — Fixed NSIS installer build failure
+
+### 🛠️ Key Highlights
+1. **Fixed NSIS installer build failure**
+2. **installer window centering removed to fix fatal NSIS warning 6010 in two-pass build**
+
+### 📊 Architecture & Data Flow
+```mermaid
+graph TD
+    A["Mobile Client / DevTools (320px+)"] --> B[Responsive CSS & Layout Container]
+    B --> C[DocsClient Component & Cards]
+    C --> D[MobileDocsSidebar Drawer & Header Bar]
+    D --> E[Real-Time Mongo Telemetry & Render]
+```
+
+### 📦 Distribution Artifacts
+- **Linux**: `.deb` (Debian/Ubuntu), `.AppImage` (Universal), `.rpm` (Fedora/RHEL), `.tar.gz` (Portable)
+- **Windows**: `.exe` (Setup Installer), `.msi` (Enterprise), `.zip` (Portable)
+
+---
+
+## 📦 Version v3.6.9 — Fixed Version Not Updating After Install
 
 ### 🛠️ Key Highlights
 1. **Fixed inverted semver guard to prevent running outdated installers without upgrading.**

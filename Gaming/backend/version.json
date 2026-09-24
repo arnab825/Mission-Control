@@ -1,8 +1,22 @@
 {
-  "version": "3.6.9",
+  "version": "3.7.0",
   "release_date": "2026-09-24",
   "update_check_url": "https://raw.githubusercontent.com/arnab825/Mission-Control/main/Gaming/backend/version.json",
   "changelog": [
+    {
+      "version": "3.7.0",
+      "date": "2026-09-25",
+      "title": "Security Patch & Version Update Fix",
+      "highlights": [
+        "Purged leaked NVIDIA API key from entire git history using git filter-repo",
+        "settings.yaml removed from all 1011 commits",
+        "Fixed inverted semver guard in autoUpdater — isNewerSemver args were swapped causing same-version installer to re-run without upgrading",
+        "Fixed post-install first boot not emitting installed event — app now notifies UI of successful upgrade on next launch",
+        "Added installed status handler in UpdatesPage to refresh version badge and show success toast after upgrade",
+        "Fixed NSIS two-pass build failure — removed CenterInstallerWindow functions incompatible with BUILD_UNINSTALLER pass",
+        "Fixed missing StartApp function — replaced MUI_FINISHPAGE_RUN_FUNCTION with direct executable path to avoid dead-code warning"
+      ]
+    },
     {
       "version": "3.6.9",
       "date": "2026-09-25",
@@ -531,18 +545,6 @@
       "highlights": [
         "Dynamically collected OpenCV cv2 config.py runtime files, binaries, and RapidOCR data in PyInstaller spec",
         "Added robust multi-environment package directory discovery fallback"
-      ]
-    },
-    {
-      "version": "3.2.2",
-      "date": "2026-08-19",
-      "title": "AI Support Assistant, Community Benchmarks & Live Telemetry Reporting",
-      "highlights": [
-        "Implemented comprehensive multi-tier AI support chatbot system with conversational assistance and model failovers",
-        "Connected live community game ratings, rig reviews, and media uploads to MongoDB persistence layer",
-        "Added interactive documentation search, categorized guides, and API key management client",
-        "Introduced hardware telemetry reporting modal with automated system spec detection",
-        "Refined games tested benchmark profiles, DLSS 4/DLAA upscaler badges, and newsletter subscription pipelines"
       ]
     }
   ]

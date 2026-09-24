@@ -106,7 +106,7 @@ try {
             # 5. Commit and Tag
             Write-Host "[COMMIT] Creating release v${version}" -ForegroundColor Cyan
             git commit -m "Release v${version}: $Title"
-            git tag -a "v${version}" -m "Release v${version}: $Title"
+            git tag -fa "v${version}" -m "Release v${version}: $Title"
         } else {
             Write-Host "[NOTE] Not a Git repository; skipping Git staging, commit, and tags." -ForegroundColor Yellow
         }
