@@ -626,7 +626,7 @@ export const UpdatesPage: React.FC<UpdatesPageProps> = ({
                         <div className="space-y-1">
                           <div className="flex items-center gap-2">
                             <span className="px-2 py-0.5 rounded bg-neon-green/10 text-neon-green text-[8px] font-black tracking-widest uppercase">
-                              {updateState.is_patch ? 'PATCH UPDATE' : 'UPGRADE AVAILABLE'}
+                              {updateState.is_patch ? 'HOTFIX' : 'NEW BUILD'}
                             </span>
                             <h4 className="text-xs font-black uppercase tracking-widest text-white">
                               {updateState.is_patch ? 'Patch Update Available' : 'Upgrade Available'}

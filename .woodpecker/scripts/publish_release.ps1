@@ -255,8 +255,25 @@ $candidatePaths = @(
 $sourceInstaller = $null
 foreach ($path in $candidatePaths) {
   if (Test-Path $path) {
-    $match = Get-ChildItem -Path $path -Filter "*.exe" -Recurse -ErrorAction SilentlyContinue |
-      Where-Object { $_.FullName -notlike "*out/release*" -and $_.FullName -notlike "*out\release*" -and $_.Name -notlike "*__uninstaller*" -and $_.Name -notlike "*Uninstall*" -and $_.Name -notlike "*builder*" } |
+    $exactSetup = Join-Path $path "MissionControl-Setup.exe"
+    if ((Test-Path $exactSetup) -and ((Get-Item $exactSetup).Length -gt 10MB)) {
+      $sourceInstaller = Get-Item $exactSetup
+      break
+    }
+
+    $match = Get-ChildItem -Path $path -Filter "*Setup*.exe" -Recurse -ErrorAction SilentlyContinue |
+      Where-Object { 
+        $_.FullName -notlike "*out/release*" -and 
+        $_.FullName -notlike "*out\release*" -and 
+        $_.FullName -notlike "*win-unpacked*" -and 
+        $_.FullName -notlike "*linux-unpacked*" -and 
+        $_.FullName -notlike "*resources*" -and 
+        $_.FullName -notlike "*_internal*" -and 
+        $_.Name -notlike "*__uninstaller*" -and 
+        $_.Name -notlike "*Uninstall*" -and 
+        $_.Name -notlike "*builder*" -and
+        $_.Length -gt 10MB
+      } |
       Sort-Object LastWriteTime -Descending |
       Select-Object -First 1
     if ($match) {
@@ -268,6 +285,9 @@ foreach ($path in $candidatePaths) {
 if (-not $sourceInstaller) {
   throw "Windows installer was not generated in the expected output directories."
 }
+if ($sourceInstaller.Length -lt 10MB) {
+  throw "Selected Windows installer candidate ($($sourceInstaller.FullName)) is invalid or truncated ($($sourceInstaller.Length) bytes)."
+}
 
 $targetInstaller = Join-Path $releaseDir 'MissionControl-Setup.exe'
 if ((Resolve-Path $sourceInstaller.FullName).Path -ne (Resolve-Path $targetInstaller -ErrorAction SilentlyContinue).Path) {
@@ -275,10 +295,31 @@ if ((Resolve-Path $sourceInstaller.FullName).Path -ne (Resolve-Path $targetInsta
 }
 
 # Check for generated MSI installer
-$sourceMsi = Get-ChildItem -Path $candidatePaths -Filter "*.msi" -Recurse -ErrorAction SilentlyContinue |
-  Where-Object { $_.FullName -notlike "*out/release*" -and $_.FullName -notlike "*out\release*" } |
-  Sort-Object LastWriteTime -Descending |
-  Select-Object -First 1
+$sourceMsi = $null
+foreach ($path in $candidatePaths) {
+  if (Test-Path $path) {
+    $exactMsi = Join-Path $path "MissionControl-Setup.msi"
+    if ((Test-Path $exactMsi) -and ((Get-Item $exactMsi).Length -gt 10MB)) {
+      $sourceMsi = Get-Item $exactMsi
+      break
+    }
+
+    $matchMsi = Get-ChildItem -Path $path -Filter "*.msi" -Recurse -ErrorAction SilentlyContinue |
+      Where-Object { 
+        $_.FullName -notlike "*out/release*" -and 
+        $_.FullName -notlike "*out\release*" -and 
+        $_.FullName -notlike "*win-unpacked*" -and 
+        $_.FullName -notlike "*linux-unpacked*" -and
+        $_.Length -gt 10MB
+      } |
+      Sort-Object LastWriteTime -Descending |
+      Select-Object -First 1
+    if ($matchMsi) {
+      $sourceMsi = $matchMsi
+      break
+    }
+  }
+}
 $targetMsi = $null
 if ($sourceMsi) {
   $targetMsi = Join-Path $releaseDir 'MissionControl-Setup.msi'
@@ -289,16 +330,36 @@ if ($sourceMsi) {
 }
 
 # Check for generated ZIP archive
-$sourceZip = Get-ChildItem -Path $candidatePaths -Filter "*.zip" -Recurse -ErrorAction SilentlyContinue |
-  Where-Object { 
-    $_.FullName -notlike "*out/release*" -and 
-    $_.FullName -notlike "*out\release*" -and 
-    $_.FullName -notlike "*_internal*" -and 
-    $_.FullName -notlike "*win-unpacked*" -and 
-    $_.Name -ne "base_library.zip" 
-  } |
-  Sort-Object LastWriteTime -Descending |
-  Select-Object -First 1
+$sourceZip = $null
+foreach ($path in $candidatePaths) {
+  if (Test-Path $path) {
+    $exactZip = Join-Path $path "MissionControl-Portable.zip"
+    if (-not (Test-Path $exactZip)) {
+      $exactZip = Join-Path $path "MissionControl-Setup.zip"
+    }
+    if ((Test-Path $exactZip) -and ((Get-Item $exactZip).Length -gt 10MB)) {
+      $sourceZip = Get-Item $exactZip
+      break
+    }
+
+    $matchZip = Get-ChildItem -Path $path -Filter "*.zip" -Recurse -ErrorAction SilentlyContinue |
+      Where-Object { 
+        $_.FullName -notlike "*out/release*" -and 
+        $_.FullName -notlike "*out\release*" -and 
+        $_.FullName -notlike "*_internal*" -and 
+        $_.FullName -notlike "*win-unpacked*" -and 
+        $_.FullName -notlike "*linux-unpacked*" -and 
+        $_.Name -ne "base_library.zip" -and
+        $_.Length -gt 10MB
+      } |
+      Sort-Object LastWriteTime -Descending |
+      Select-Object -First 1
+    if ($matchZip) {
+      $sourceZip = $matchZip
+      break
+    }
+  }
+}
 $targetZip = $null
 if ($sourceZip) {
   $targetZip = Join-Path $releaseDir 'MissionControl-Portable.zip'
@@ -309,10 +370,31 @@ if ($sourceZip) {
 }
 
 # Check for generated Linux Debian (.deb) package
-$sourceDeb = Get-ChildItem -Path $candidatePaths -Filter "*.deb" -Recurse -ErrorAction SilentlyContinue |
-  Where-Object { $_.FullName -notlike "*out/release*" -and $_.FullName -notlike "*out\release*" } |
-  Sort-Object LastWriteTime -Descending |
-  Select-Object -First 1
+$sourceDeb = $null
+foreach ($path in $candidatePaths) {
+  if (Test-Path $path) {
+    $exactDeb = Join-Path $path "MissionControl-Linux-$semver.deb"
+    if ((Test-Path $exactDeb) -and ((Get-Item $exactDeb).Length -gt 10MB)) {
+      $sourceDeb = Get-Item $exactDeb
+      break
+    }
+
+    $matchDeb = Get-ChildItem -Path $path -Filter "*.deb" -Recurse -ErrorAction SilentlyContinue |
+      Where-Object { 
+        $_.FullName -notlike "*out/release*" -and 
+        $_.FullName -notlike "*out\release*" -and 
+        $_.FullName -notlike "*win-unpacked*" -and 
+        $_.FullName -notlike "*linux-unpacked*" -and
+        $_.Length -gt 10MB
+      } |
+      Sort-Object LastWriteTime -Descending |
+      Select-Object -First 1
+    if ($matchDeb) {
+      $sourceDeb = $matchDeb
+      break
+    }
+  }
+}
 $targetDeb = $null
 if ($sourceDeb) {
   $targetDeb = Join-Path $releaseDir "MissionControl-Linux-$semver.deb"
@@ -323,10 +405,31 @@ if ($sourceDeb) {
 }
 
 # Check for generated Linux AppImage
-$sourceAppImage = Get-ChildItem -Path $candidatePaths -Filter "*.AppImage" -Recurse -ErrorAction SilentlyContinue |
-  Where-Object { $_.FullName -notlike "*out/release*" -and $_.FullName -notlike "*out\release*" } |
-  Sort-Object LastWriteTime -Descending |
-  Select-Object -First 1
+$sourceAppImage = $null
+foreach ($path in $candidatePaths) {
+  if (Test-Path $path) {
+    $exactAppImage = Join-Path $path "MissionControl-Linux-$semver.AppImage"
+    if ((Test-Path $exactAppImage) -and ((Get-Item $exactAppImage).Length -gt 10MB)) {
+      $sourceAppImage = Get-Item $exactAppImage
+      break
+    }
+
+    $matchAppImage = Get-ChildItem -Path $path -Filter "*.AppImage" -Recurse -ErrorAction SilentlyContinue |
+      Where-Object { 
+        $_.FullName -notlike "*out/release*" -and 
+        $_.FullName -notlike "*out\release*" -and 
+        $_.FullName -notlike "*win-unpacked*" -and 
+        $_.FullName -notlike "*linux-unpacked*" -and
+        $_.Length -gt 10MB
+      } |
+      Sort-Object LastWriteTime -Descending |
+      Select-Object -First 1
+    if ($matchAppImage) {
+      $sourceAppImage = $matchAppImage
+      break
+    }
+  }
+}
 $targetAppImage = $null
 if ($sourceAppImage) {
   $targetAppImage = Join-Path $releaseDir "MissionControl-Linux-$semver.AppImage"
@@ -338,7 +441,12 @@ if ($sourceAppImage) {
 
 # Check for generated Linux RPM package
 $sourceRpm = Get-ChildItem -Path $candidatePaths -Filter "*.rpm" -Recurse -ErrorAction SilentlyContinue |
-  Where-Object { $_.FullName -notlike "*out/release*" -and $_.FullName -notlike "*out\release*" } |
+  Where-Object { 
+    $_.FullName -notlike "*out/release*" -and 
+    $_.FullName -notlike "*out\release*" -and 
+    $_.FullName -notlike "*win-unpacked*" -and 
+    $_.FullName -notlike "*linux-unpacked*" 
+  } |
   Sort-Object LastWriteTime -Descending |
   Select-Object -First 1
 $targetRpm = $null
@@ -351,14 +459,32 @@ if ($sourceRpm) {
 }
 
 # Check for generated Linux Standalone Tarball (.tar.gz)
-$sourceLinuxTar = Get-ChildItem -Path $candidatePaths -Filter "*.tar.gz" -Recurse -ErrorAction SilentlyContinue |
-  Where-Object { 
-    $_.FullName -notlike "*out/release*" -and 
-    $_.FullName -notlike "*out\release*" -and 
-    $_.FullName -notlike "*node_modules*"
-  } |
-  Sort-Object LastWriteTime -Descending |
-  Select-Object -First 1
+$sourceLinuxTar = $null
+foreach ($path in $candidatePaths) {
+  if (Test-Path $path) {
+    $exactTar = Join-Path $path "MissionControl-Linux-$semver.tar.gz"
+    if ((Test-Path $exactTar) -and ((Get-Item $exactTar).Length -gt 10MB)) {
+      $sourceLinuxTar = Get-Item $exactTar
+      break
+    }
+
+    $matchTar = Get-ChildItem -Path $path -Filter "*.tar.gz" -Recurse -ErrorAction SilentlyContinue |
+      Where-Object { 
+        $_.FullName -notlike "*out/release*" -and 
+        $_.FullName -notlike "*out\release*" -and 
+        $_.FullName -notlike "*win-unpacked*" -and 
+        $_.FullName -notlike "*linux-unpacked*" -and 
+        $_.FullName -notlike "*node_modules*" -and
+        $_.Length -gt 10MB
+      } |
+      Sort-Object LastWriteTime -Descending |
+      Select-Object -First 1
+    if ($matchTar) {
+      $sourceLinuxTar = $matchTar
+      break
+    }
+  }
+}
 $targetLinuxTar = $null
 if ($sourceLinuxTar) {
   $targetLinuxTar = Join-Path $releaseDir "MissionControl-Linux-$semver.tar.gz"
