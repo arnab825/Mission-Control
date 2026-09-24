@@ -22,7 +22,19 @@ Comprehensive breakdown of major milestone releases, architectural upgrades, and
 
 ---
 
-## 🌟 Version v3.6.7 (Latest) — Centered Installer Window, Branded Setup Wizard & Release Notes Text Wrapping
+## 🌟 Version v3.6.8 (Latest) — Fixed Version Not Updating After Install
+
+### 🛠️ Key Highlights
+1. **Fixed inverted semver guard to prevent running outdated installers.**
+2. **Added installed status handler to refresh version badge and show success toast on upgrade.**
+
+### 📦 Distribution Artifacts
+- **Linux**: `.deb` (Debian/Ubuntu), `.AppImage` (Universal), `.rpm` (Fedora/RHEL), `.tar.gz` (Portable)
+- **Windows**: `.exe` (Setup Installer), `.msi` (Enterprise), `.zip` (Portable)
+
+---
+
+## 📦 Version v3.6.7 — Centered Installer Window, Branded Setup Wizard & Release Notes Text Wrapping
 
 ### 🛠️ Key Highlights
 1. **Centered Installer Window Positioning**: Implemented NSIS Modern UI 2 window centering using `User32::GetWindowRect`, screen metrics (`SM_CXSCREEN`, `SM_CYSCREEN`), and `SetWindowPos` (`SWP_NOSIZE | SWP_NOZORDER`), eliminating left-offset window positioning.

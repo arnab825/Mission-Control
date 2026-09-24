@@ -2,6 +2,12 @@
 
 This document contains a detailed history of all patches and updates for the AI Gaming Assistant.
 
+### Patch: 2026-09-25 — v3.6.8: Fixed Version Not Updating After Install
+
+- Fixed inverted semver guard that allowed same-version or older installers to run without upgrading
+- Fixed post-install first boot not emitting version change to UI — app now fires installed event on startup
+- Added installed status handler in UpdatesPage to refresh version badge and show success toast on upgrade
+
 ### Patch: 2026-09-24 — v3.6.7: Centered Installer Window, Branded Setup Wizard & Release Notes Text Wrapping
 
 - Fixed installer window opening offset by centering window coordinates in NSIS GUI initialization via Windows API
