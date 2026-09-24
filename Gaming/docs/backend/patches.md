@@ -4,6 +4,12 @@ This document contains a detailed history of all patches and updates for the AI 
 
 ### Patch: 2026-09-25 — v3.7.0: Security Patch & Version Update Fix
 
+- Purged leaked keys
+- Fixed version update installer semver guard
+- Fixed NSIS installer build
+
+### Patch: 2026-09-25 — v3.7.0: Security Patch & Version Update Fix
+
 - Purged leaked NVIDIA API key from entire git history using git filter-repo
 - settings.yaml removed from all 1011 commits
 - Fixed inverted semver guard in autoUpdater — isNewerSemver args were swapped causing same-version installer to re-run without upgrading

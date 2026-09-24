@@ -25,6 +25,28 @@ Comprehensive breakdown of major milestone releases, architectural upgrades, and
 ## 🌟 Version v3.7.0 (Latest) — Security Patch & Version Update Fix
 
 ### 🛠️ Key Highlights
+1. **Purged leaked keys**
+2. **Fixed version update installer semver guard**
+3. **Fixed NSIS installer build**
+
+### 📊 Architecture & Data Flow
+```mermaid
+graph TD
+    A["Mobile Client / DevTools (320px+)"] --> B[Responsive CSS & Layout Container]
+    B --> C[DocsClient Component & Cards]
+    C --> D[MobileDocsSidebar Drawer & Header Bar]
+    D --> E[Real-Time Mongo Telemetry & Render]
+```
+
+### 📦 Distribution Artifacts
+- **Linux**: `.deb` (Debian/Ubuntu), `.AppImage` (Universal), `.rpm` (Fedora/RHEL), `.tar.gz` (Portable)
+- **Windows**: `.exe` (Setup Installer), `.msi` (Enterprise), `.zip` (Portable)
+
+---
+
+## 📦 Version v3.7.0 — Security Patch & Version Update Fix
+
+### 🛠️ Key Highlights
 1. **Purged leaked NVIDIA API key from entire git history using git filter-repo.**
 2. **Fixed post-install first boot not emitting installed event and added installed status handler in UpdatesPage.**
 3. **Resolved NSIS two-pass build failure and missing StartApp function.**

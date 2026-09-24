@@ -8,6 +8,16 @@
       "date": "2026-09-25",
       "title": "Security Patch & Version Update Fix",
       "highlights": [
+        "Purged leaked keys",
+        "Fixed version update installer semver guard",
+        "Fixed NSIS installer build"
+      ]
+    },
+    {
+      "version": "3.7.0",
+      "date": "2026-09-25",
+      "title": "Security Patch & Version Update Fix",
+      "highlights": [
         "Purged leaked NVIDIA API key from entire git history using git filter-repo",
         "settings.yaml removed from all 1011 commits",
         "Fixed inverted semver guard in autoUpdater — isNewerSemver args were swapped causing same-version installer to re-run without upgrading",
@@ -536,15 +546,6 @@
         "Added concurrency mutex and graceful process management in Electron main process",
         "Enabled full stdout and stderr traceback forwarding to app.log in production",
         "Added persistent local app data directory creation in NSIS installer"
-      ]
-    },
-    {
-      "version": "3.2.3",
-      "date": "2026-08-19",
-      "title": "Fix OpenCV config loader missing configuration in PyInstaller backend packaging",
-      "highlights": [
-        "Dynamically collected OpenCV cv2 config.py runtime files, binaries, and RapidOCR data in PyInstaller spec",
-        "Added robust multi-environment package directory discovery fallback"
       ]
     }
   ]
