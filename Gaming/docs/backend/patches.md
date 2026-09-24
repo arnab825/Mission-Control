@@ -2,6 +2,11 @@
 
 This document contains a detailed history of all patches and updates for the AI Gaming Assistant.
 
+### Patch: 2026-09-25 — v3.6.9: Fixed NSIS installer build failure
+
+- Fixed NSIS installer build failure
+- installer window centering removed to fix fatal NSIS warning 6010 in two-pass build
+
 ### Patch: 2026-09-25 — v3.6.9: Fixed Version Not Updating After Install
 
 - Fixed inverted semver guard that allowed same-version or older installers to run without upgrading

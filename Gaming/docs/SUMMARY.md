@@ -82,7 +82,8 @@ graph TD
 
 | Version | Key Feature / Change Description |
 | :--- | :--- |
-| **v3.6.9 (Latest)** | **Fixed Version Not Updating After Install** — This release fixes issues with installer version updates, ensuring correct versioning and UI updates after installation changes. |
+| **v3.6.9 (Latest)** | **Fixed NSIS installer build failure** — Fixed NSIS installer build failure. |
+| **v3.6.9** | **Fixed Version Not Updating After Install** — This release fixes issues with installer version updates, ensuring correct versioning and UI updates after installation changes. |
 | **v3.6.8** | **Fixed Version Not Updating After Install** — Fixed version update issues by resolving semver guard and post-installation logic to ensure accurate versioning and UI updates. |
 | **v3.6.7** | **Centered Installer Window, Branded Setup Wizard & Release Notes Text Wrapping** — Fixed installer window opening offset by centering window coordinates in NSIS GUI initialization via Windows API |
 | **v3.6.6** | **Vision Command Center Fixes, Rate-Limited Streams & Pipeline Overrides** — Resolved VisionPage force activate command routing by introducing dedicated toggle_vision_pipeline bridge command. |
