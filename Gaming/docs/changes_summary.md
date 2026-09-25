@@ -22,7 +22,20 @@ Comprehensive breakdown of major milestone releases, architectural upgrades, and
 
 ---
 
-## 🌟 Version v3.7.3 (Latest) — Fixed Account Unlink Flow & Redesigned Settings Navigation
+## 🌟 Version v3.7.4 (Latest) — Fixed Account Unlink Flow & Redesigned Settings Navigation
+
+### 🛠️ Key Highlights
+1. **Fixed provider unlink failing with 'additional verification' error by adding session token refresh and auto-retry.**
+2. **Replaced native alert dialogs with inline styled error banners for improved user experience.**
+3. **Added one-click 'Sign Out & Re-authenticate' fallback button for seamless session reverification.**
+
+### 📦 Distribution Artifacts
+- **Linux**: `.deb` (Debian/Ubuntu), `.AppImage` (Universal), `.rpm` (Fedora/RHEL), `.tar.gz` (Portable)
+- **Windows**: `.exe` (Setup Installer), `.msi` (Enterprise), `.zip` (Portable)
+
+---
+
+## 📦 Version v3.7.3 — Fixed Account Unlink Flow & Redesigned Settings Navigation
 
 ### 🛠️ Key Highlights
 1. **Fixed provider unlink failing with 'additional verification' error by adding session token refresh and auto-retry.**

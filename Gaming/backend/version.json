@@ -1,8 +1,20 @@
 {
-  "version": "3.7.3",
+  "version": "3.7.4",
   "release_date": "2026-09-25",
   "update_check_url": "https://raw.githubusercontent.com/arnab825/Mission-Control/main/Gaming/backend/version.json",
   "changelog": [
+    {
+      "version": "3.7.4",
+      "date": "2026-09-25",
+      "title": "Fixed Account Unlink Flow & Redesigned Settings Navigation",
+      "highlights": [
+        "Fixed provider unlink failing with 'additional verification' error by adding session token refresh and auto-retry before destroy()",
+        "Replaced all native alert() dialogs with inline styled error banners matching the app design system",
+        "Added one-click 'Sign Out & Re-authenticate' fallback button when session reverification is required",
+        "Redesigned Settings search bar and category tabs into unified tactical command deck with responsive 6-module grid",
+        "Upgraded SettingsSection headers with illuminated icon badges and gradient dividers"
+      ]
+    },
     {
       "version": "3.7.3",
       "date": "2026-09-25",
@@ -536,16 +548,6 @@
         "Connected Agent and Vision UI pages to the central distributed library server with live node telemetry updates",
         "Added Library Server online/offline pipeline status badges and stats panel overlays",
         "Configured backend game scanner to fall back to distributed library server catalog API when direct DB access is unavailable"
-      ]
-    },
-    {
-      "version": "3.2.6",
-      "date": "2026-08-21",
-      "title": "OpenCV Loader & Supabase Metadata Enrichment Fixes",
-      "highlights": [
-        "Resolved OpenCV cv2 loader missing configuration in PyInstaller packages",
-        "Added full Steam features and authentic summaries backfill in Supabase",
-        "Streamlined AI classifier with zero-retry multi-provider failover"
       ]
     }
   ]
