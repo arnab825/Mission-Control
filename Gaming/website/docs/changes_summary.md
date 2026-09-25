@@ -22,7 +22,20 @@ Comprehensive breakdown of major milestone releases, architectural upgrades, and
 
 ---
 
-## 🌟 Version v3.7.2 (Latest) — Seamless OAuth Handshake & Account Switcher Flow
+## 🌟 Version v3.7.3 (Latest) — Fixed Account Unlink Flow & Redesigned Settings Navigation
+
+### 🛠️ Key Highlights
+1. **Fixed provider unlink failing with 'additional verification' error by adding session token refresh and auto-retry.**
+2. **Replaced native alert dialogs with inline styled error banners for a consistent design system.**
+3. **Added one-click 'Sign Out & Re-authenticate' fallback button for seamless session reverification.**
+
+### 📦 Distribution Artifacts
+- **Linux**: `.deb` (Debian/Ubuntu), `.AppImage` (Universal), `.rpm` (Fedora/RHEL), `.tar.gz` (Portable)
+- **Windows**: `.exe` (Setup Installer), `.msi` (Enterprise), `.zip` (Portable)
+
+---
+
+## 📦 Version v3.7.2 — Seamless OAuth Handshake & Account Switcher Flow
 
 ### 🛠️ Key Highlights
 1. **Resolved OAuth Popup Infinite Spin**: Ensured child auth popup waits for Clerk authentication and user context states (`isAuthLoaded`, `isUserLoaded`, `isSignInLoaded`) before initiating handshake, preventing stalled unauthenticated loops.

@@ -1,8 +1,20 @@
 {
-  "version": "3.7.2",
+  "version": "3.7.3",
   "release_date": "2026-09-25",
   "update_check_url": "https://raw.githubusercontent.com/arnab825/Mission-Control/main/Gaming/backend/version.json",
   "changelog": [
+    {
+      "version": "3.7.3",
+      "date": "2026-09-25",
+      "title": "Fixed Account Unlink Flow & Redesigned Settings Navigation",
+      "highlights": [
+        "Fixed provider unlink failing with 'additional verification' error by adding session token refresh and auto-retry before destroy()",
+        "Replaced all native alert() dialogs with inline styled error banners matching the app design system",
+        "Added one-click 'Sign Out & Re-authenticate' fallback button when session reverification is required",
+        "Redesigned Settings search bar and category tabs into unified tactical command deck with responsive 6-module grid",
+        "Upgraded SettingsSection headers with illuminated icon badges and gradient dividers"
+      ]
+    },
     {
       "version": "3.7.2",
       "date": "2026-09-25",
@@ -534,28 +546,6 @@
         "Resolved OpenCV cv2 loader missing configuration in PyInstaller packages",
         "Added full Steam features and authentic summaries backfill in Supabase",
         "Streamlined AI classifier with zero-retry multi-provider failover"
-      ]
-    },
-    {
-      "version": "3.2.5",
-      "date": "2026-08-21",
-      "title": "Distributed Cluster Architecture & Multi-Tenant User Isolation",
-      "highlights": [
-        "Implemented high-performance distributed cluster architecture with Load Balancer and multi-instance microservices",
-        "Enabled strict multi-tenant library and node isolation per authenticated Clerk ID and OAuth provider",
-        "Backfilled release dates across canonical catalog and removed deprecated database schemas",
-        "Integrated live Docker Compose orchestration with Windows IPv6 network compatibility",
-        "Connected frontend distributed synchronization with automatic server model mapping"
-      ]
-    },
-    {
-      "version": "3.2.4",
-      "date": "2026-08-20",
-      "title": "OpenCV Config Loader & PyInstaller Backend Fixes",
-      "highlights": [
-        "Resolved OpenCV cv2 config loader missing module errors in PyInstaller backend packaging",
-        "Dynamic multi-environment package directory discovery fallback for rapidocr and cv2",
-        "Verified clean frontend and website production builds"
       ]
     }
   ]

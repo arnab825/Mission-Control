@@ -9,6 +9,8 @@ import {
   Search,
   Check,
   Save,
+  X,
+  Sparkles,
 } from 'lucide-react';
 import { useAuth } from '@clerk/clerk-react';
 import { GpuPipelineSection } from '../components/settings/GpuPipelineSection';
@@ -896,65 +898,94 @@ export const SettingsPage: React.FC<SettingsPageProps> = ({ state, sendCommand }
         </div>
       </div>
 
-      {/* Search Bar */}
-      <div className="relative w-full z-20 mt-8 mb-4 group">
-        <div className="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none">
-          <Search className="w-4 h-4 text-zinc-400 group-focus-within:text-neon-green transition-colors" />
+      {/* Unified Tactical Navigation & Search Deck */}
+      <div className="relative z-20 mt-6 mb-8 rounded-3xl bg-[#0c0c14]/80 border border-white/10 backdrop-blur-2xl p-3.5 sm:p-4 shadow-[0_16px_40px_rgba(0,0,0,0.6)]">
+        {/* Top: High-tech Search Input */}
+        <div className="relative w-full group">
+          <div className="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none">
+            <Search className="w-4 h-4 text-zinc-400 group-focus-within:text-neon-green transition-colors" />
+          </div>
+          <input
+            ref={searchInputRef}
+            type="text"
+            value={searchQuery}
+            onChange={(e) => setSearchQuery(e.target.value)}
+            onKeyDown={(e) => {
+              if (e.key === 'Escape') setSearchQuery('');
+            }}
+            placeholder="Search all settings (e.g. DLSS, Frame Gen, Voice, Hotkeys)..."
+            className="w-full bg-black/40 border border-white/10 hover:border-white/20 focus:border-neon-green/60 rounded-2xl py-3 pl-11 pr-24 text-xs font-semibold text-white focus:outline-none focus:ring-2 focus:ring-neon-green/20 transition-all shadow-[inset_0_1px_2px_rgba(0,0,0,0.6)] placeholder-zinc-500"
+          />
+          <div className="absolute inset-y-0 right-0 pr-3.5 flex items-center gap-2">
+            {searchQuery ? (
+              <button
+                aria-label="Clear Search"
+                type="button"
+                onClick={() => setSearchQuery('')}
+                className="flex items-center gap-1 px-2.5 py-1 bg-white/10 hover:bg-white/15 text-zinc-300 hover:text-white rounded-lg text-[10px] font-bold transition-colors cursor-pointer"
+              >
+                <X className="w-3 h-3" />
+                <span>Clear</span>
+              </button>
+            ) : (
+              <kbd className="hidden sm:inline-flex items-center gap-0.5 px-2 py-1 rounded-lg bg-white/5 border border-white/10 text-[9px] font-mono font-bold text-zinc-400 shadow-sm pointer-events-none">
+                <span className="text-[10px]">Ctrl</span>
+                <span>+</span>
+                <span>F</span>
+              </kbd>
+            )}
+          </div>
         </div>
-        <input
-          ref={searchInputRef}
-          type="text"
-          value={searchQuery}
-          onChange={(e) => setSearchQuery(e.target.value)}
-          placeholder="Search all settings (e.g. DLSS, Frame Gen, Voice, Hotkeys)... (Ctrl+F)"
-          className="w-full bg-white/[0.04] border border-white/15 hover:border-neon-green/35 focus:border-neon-green rounded-2xl py-3.5 pl-12 pr-12 text-[11px] font-bold text-white focus:outline-none focus:ring-2 focus:ring-neon-green/20 transition-all shadow-[inset_0_1px_1px_rgba(255,255,255,0.02),0_4px_20px_rgba(0,0,0,0.4)] focus:shadow-[0_0_20px_rgba(118,185,0,0.15)] backdrop-blur-md placeholder-zinc-400"
-        />
-        {searchQuery && (
-          <button
-            aria-label="Clear Search"
-            type="button"
-            onClick={() => setSearchQuery('')}
-            className="absolute inset-y-0 right-0 pr-4 flex items-center text-zinc-400 hover:text-white transition-colors"
-          >
-            <div className="w-5 h-5 bg-white/10 hover:bg-white/15 rounded-full flex items-center justify-center text-[10px] font-bold">
-              ✕
-            </div>
-          </button>
-        )}
-      </div>
 
-      {/* Category Navigation Tabs */}
-      <div className="flex items-center gap-2 overflow-x-auto pb-2 scrollbar-none border-b border-white/10 mb-6">
-        {CATEGORY_TABS.map((tab) => {
-          const Icon = tab.icon;
-          const isActive = activeCategory === tab.id && !isSearching;
-          return (
-            <button
-              key={tab.id}
-              type="button"
-              onClick={() => {
-                setActiveCategory(tab.id);
-                if (isSearching) setSearchQuery('');
-              }}
-              className={`flex items-center gap-2 px-4 py-2.5 rounded-xl text-[10px] font-black uppercase tracking-wider transition-all whitespace-nowrap border cursor-pointer ${
-                isActive
-                  ? 'bg-neon-green/15 text-neon-green border-neon-green/40 shadow-[0_0_20px_rgba(118,185,0,0.2)]'
-                  : 'bg-white/[0.03] text-zinc-400 border-white/5 hover:bg-white/[0.08] hover:text-zinc-100 hover:border-white/15'
-              }`}
-            >
-              <Icon className={`w-3.5 h-3.5 ${isActive ? 'text-neon-green' : 'text-zinc-400'}`} />
-              <span>{tab.label}</span>
-              {isActive && (
-                <span className="w-1.5 h-1.5 rounded-full bg-neon-green shadow-[0_0_6px_rgba(118,185,0,0.8)]" />
-              )}
-            </button>
-          );
-        })}
+        {/* Tactical Divider */}
+        <div className="h-px bg-gradient-to-r from-transparent via-white/10 to-transparent my-3.5" />
 
+        {/* Bottom: 6-Module Segmented Navigation Deck */}
+        <div className="grid grid-cols-2 sm:grid-cols-3 xl:grid-cols-6 gap-2">
+          {CATEGORY_TABS.map((tab) => {
+            const Icon = tab.icon;
+            const isActive = activeCategory === tab.id && !isSearching;
+            return (
+              <button
+                key={tab.id}
+                type="button"
+                onClick={() => {
+                  setActiveCategory(tab.id);
+                  if (isSearching) setSearchQuery('');
+                }}
+                className={`group relative flex items-center justify-center gap-2 px-3 py-2.5 rounded-xl text-[10px] font-black uppercase tracking-wider transition-all cursor-pointer border ${
+                  isActive
+                    ? 'bg-gradient-to-b from-neon-green/20 to-neon-green/5 text-neon-green border-neon-green/40 shadow-[0_0_20px_rgba(118,185,0,0.18)]'
+                    : 'bg-white/[0.02] text-zinc-400 border-white/5 hover:bg-white/[0.06] hover:text-zinc-100 hover:border-white/15'
+                }`}
+              >
+                <Icon className={`w-3.5 h-3.5 transition-transform group-hover:scale-110 ${isActive ? 'text-neon-green' : 'text-zinc-400'}`} />
+                <span className="truncate">{tab.label}</span>
+                {isActive && (
+                  <span className="w-1.5 h-1.5 rounded-full bg-neon-green shadow-[0_0_8px_rgba(118,185,0,0.9)] animate-pulse shrink-0" />
+                )}
+              </button>
+            );
+          })}
+        </div>
+
+        {/* Live Search Filter Banner */}
         {isSearching && (
-          <div className="ml-auto px-3 py-1 bg-neon-yellow/10 border border-neon-yellow/20 rounded-xl text-neon-yellow text-[9px] font-bold uppercase tracking-wider flex items-center gap-1.5">
-            <span className="w-1.5 h-1.5 rounded-full bg-neon-yellow animate-pulse" />
-            Searching Everywhere
+          <div className="mt-3.5 flex items-center justify-between p-3 rounded-2xl bg-neon-yellow/10 border border-neon-yellow/20 text-neon-yellow shadow-[0_0_20px_rgba(255,230,0,0.08)]">
+            <div className="flex items-center gap-2.5 text-[10px] font-black uppercase tracking-wider">
+              <span className="relative flex h-2 w-2">
+                <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-neon-yellow opacity-75" />
+                <span className="relative inline-flex rounded-full h-2 w-2 bg-neon-yellow" />
+              </span>
+              <span>Scanning All Modules &mdash; Showing results for &ldquo;{searchQuery}&rdquo;</span>
+            </div>
+            <button
+              type="button"
+              onClick={() => setSearchQuery('')}
+              className="px-3 py-1 bg-neon-yellow/15 hover:bg-neon-yellow/25 text-neon-yellow border border-neon-yellow/30 rounded-xl text-[9px] font-black uppercase tracking-widest transition-all cursor-pointer"
+            >
+              Reset to Module View
+            </button>
           </div>
         )}
       </div>

@@ -79,13 +79,16 @@ export const SettingsSection: React.FC<{
 
   return (
     <div className={`space-y-6 ${className}`}>
-      <div className="flex items-center gap-3">
+      <div className="flex items-center gap-3.5">
         {Icon && (
-          <div className="w-8 h-8 rounded-lg bg-white/5 flex items-center justify-center border border-white/10">
-            <Icon className="w-4 h-4 text-zinc-400" />
+          <div className="w-8 h-8 rounded-xl bg-neon-green/10 flex items-center justify-center border border-neon-green/25 text-neon-green shadow-[0_0_12px_rgba(118,185,0,0.15)] shrink-0">
+            <Icon className="w-4 h-4 text-neon-green" />
           </div>
         )}
-        <h3 className="text-[11px] font-black text-neon-green uppercase tracking-[0.2em]">{title}</h3>
+        <div className="flex items-center gap-3 flex-1 min-w-0">
+          <h3 className="text-xs font-black text-neon-green uppercase tracking-[0.2em] whitespace-nowrap">{title}</h3>
+          <div className="flex-1 h-px bg-gradient-to-r from-neon-green/30 via-white/5 to-transparent" />
+        </div>
       </div>
       <div className="bg-[#0c0c10]/60 border border-white/15 rounded-3xl p-8 space-y-8 backdrop-blur-md shadow-[0_0_20px_rgba(118,185,0,0.05)]">
         {children}

@@ -1,6 +1,6 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { useUser, useAuth, UserButton } from '@clerk/clerk-react';
-import { KeyRound, Fingerprint, Calendar, Shield, Copy, Check, Link, Trash2 } from 'lucide-react';
+import { KeyRound, Fingerprint, Calendar, Shield, Copy, Check, Link, Trash2, AlertTriangle, X, LogOut } from 'lucide-react';
 import { SettingsSection } from './common/SettingsSection';
 import { OAUTH_PROVIDERS } from '../../data/settingsConstants';
 import { AccountSwitcherModal } from '../AccountSwitcherModal';
@@ -21,16 +21,30 @@ export const AccountSettingsSection: React.FC<AccountSettingsSectionProps> = ({
   accountDeleteError,
 }) => {
   const { user } = useUser();
-  const { userId, signOut, isSignedIn } = useAuth();
+  const { userId, signOut, isSignedIn, getToken } = useAuth();
 
   const [copiedId, setCopiedId] = useState(false);
   const [linkingProvider, setLinkingProvider] = useState<string | null>(null);
   const [unlinkingProvider, setUnlinkingProvider] = useState<string | null>(null);
+  const [unlinkError, setUnlinkError] = useState<string | null>(null);
+  const [needsReauth, setNeedsReauth] = useState(false);
   const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
   const [deleteInput, setDeleteInput] = useState('');
   const [isDeleting, setIsDeleting] = useState(false);
   const [deleteError, setDeleteError] = useState<string | null>(null);
   const [isAccountSwitcherOpen, setIsAccountSwitcherOpen] = useState(false);
+  const unlinkErrorTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+
+  // Auto-dismiss unlink error after 6 seconds
+  useEffect(() => {
+    if (unlinkError) {
+      if (unlinkErrorTimerRef.current) clearTimeout(unlinkErrorTimerRef.current);
+      unlinkErrorTimerRef.current = setTimeout(() => setUnlinkError(null), 6000);
+    }
+    return () => {
+      if (unlinkErrorTimerRef.current) clearTimeout(unlinkErrorTimerRef.current);
+    };
+  }, [unlinkError]);
 
   useEffect(() => {
     if (accountDeleted === true) {
@@ -132,19 +146,53 @@ export const AccountSettingsSection: React.FC<AccountSettingsSectionProps> = ({
 
     const hasPassword = (user as any).passwordEnabled;
     if (user.externalAccounts.length <= 1 && !hasPassword) {
-      alert(
+      setUnlinkError(
         'Security constraint: You cannot disconnect your only login method. Please register a password or add another provider first.'
       );
+      setNeedsReauth(false);
       return;
     }
 
     setUnlinkingProvider(strategy);
+    setUnlinkError(null);
+    setNeedsReauth(false);
+
+    // Force a fresh session token before attempting the sensitive operation
+    try {
+      await getToken({ skipCache: true });
+    } catch (_) {
+      // Token refresh failed silently — proceed anyway and let destroy() report the real error
+    }
+
     try {
       await extAcc.destroy();
       await user.reload();
     } catch (err: any) {
-      console.error('Failed to unlink provider:', err);
-      alert(err.errors?.[0]?.longMessage || 'Failed to disconnect account.');
+      console.error('Failed to unlink provider (attempt 1):', err);
+      const msg = err.errors?.[0]?.longMessage || 'Failed to disconnect account.';
+
+      if (msg.toLowerCase().includes('additional verification')) {
+        // Auto-retry: reload user to get a fresh object, refresh token, then retry destroy()
+        try {
+          await user.reload();
+          await getToken({ skipCache: true });
+          const freshExtAcc = user.externalAccounts.find((acc: any) => acc.provider === providerKey);
+          if (freshExtAcc) {
+            await freshExtAcc.destroy();
+            await user.reload();
+            return; // Retry succeeded
+          }
+        } catch (retryErr: any) {
+          console.error('Failed to unlink provider (retry):', retryErr);
+        }
+        // Both attempts failed — show error with re-auth action
+        setUnlinkError(
+          'Session verification required. Your current session needs to be refreshed before unlinking a provider.'
+        );
+        setNeedsReauth(true);
+      } else {
+        setUnlinkError(msg);
+      }
     } finally {
       setUnlinkingProvider(null);
     }
@@ -321,6 +369,42 @@ export const AccountSettingsSection: React.FC<AccountSettingsSectionProps> = ({
           </button>
         </div>
 
+        {/* Inline unlink error banner */}
+        {unlinkError && (
+          <div className="flex items-start gap-3 p-3.5 rounded-xl bg-red-950/40 border border-red-500/25 animate-[fadeIn_0.2s_ease-out]">
+            <div className="w-7 h-7 rounded-lg bg-red-500/15 border border-red-500/25 flex items-center justify-center shrink-0 mt-0.5">
+              <AlertTriangle className="w-3.5 h-3.5 text-red-400" />
+            </div>
+            <div className="flex-1 pt-0.5 space-y-2">
+              <p className="text-[10px] font-medium text-red-300/90 leading-relaxed">
+                {unlinkError}
+              </p>
+              {needsReauth && (
+                <button
+                  type="button"
+                  onClick={async () => {
+                    setUnlinkError(null);
+                    setNeedsReauth(false);
+                    await signOut();
+                  }}
+                  className="flex items-center gap-1.5 px-3 py-1.5 bg-red-500/15 hover:bg-red-500/25 border border-red-500/30 text-red-300 hover:text-red-200 font-black text-[9px] uppercase tracking-widest rounded-lg transition-all cursor-pointer"
+                >
+                  <LogOut className="w-3 h-3" />
+                  Sign Out & Re-authenticate
+                </button>
+              )}
+            </div>
+            <button
+              type="button"
+              aria-label="Dismiss error"
+              onClick={() => { setUnlinkError(null); setNeedsReauth(false); }}
+              className="p-1 rounded-lg hover:bg-red-500/15 text-red-400/60 hover:text-red-300 transition-colors shrink-0"
+            >
+              <X className="w-3.5 h-3.5" />
+            </button>
+          </div>
+        )}
+
         <div className="grid grid-cols-1 gap-3">
           {OAUTH_PROVIDERS.map((provider) => {
             const providerKey = provider.id.replace('oauth_', '');
@@ -389,7 +473,7 @@ export const AccountSettingsSection: React.FC<AccountSettingsSectionProps> = ({
                       type="button"
                       onClick={() => handleLinkProvider(provider.id)}
                       disabled={isUnlinking || isLinking}
-                      className={`w-full sm:w-auto flex items-center justify-center gap-2 px-4 py-2 bg-gradient-to-r ${provider.color} font-black text-[9px] uppercase tracking-widest rounded-xl transition-all border disabled:opacity-40 disabled:cursor-not-allowed`}
+                      className={`w-full sm:w-auto flex items-center justify-center gap-2 px-4 py-2 bg-linear-to-r ${provider.color} font-black text-[9px] uppercase tracking-widest rounded-xl transition-all border disabled:opacity-40 disabled:cursor-not-allowed`}
                     >
                       {isLinking ? (
                         <span className="flex items-center gap-1.5">
