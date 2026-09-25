@@ -7,13 +7,13 @@ import connectDB from "@/lib/mongodb";
 import GamingPost from "@/models/GamingPost";
 import { getPostData, getSortedPostsData, formatDateToIST, parseBlogDate } from "@/lib/blog";
 import { ArrowLeft, Calendar, Clock, Share2, Tag, Bot } from "lucide-react";
-import Mermaid from "@/components/Mermaid";
+import Mermaid from "@/components/docs/Mermaid";
 import remarkGfm from "remark-gfm";
 import remarkMath from "remark-math";
 import rehypeKatex from "rehype-katex";
 import "katex/dist/katex.min.css";
 import { headers } from "next/headers";
-import ShareButtons from "@/components/ShareButtons";
+import ShareButtons from "@/components/blog/ShareButtons";
 
 import { convertAsciiToMermaid, isAsciiBoxDiagram } from "@/lib/mermaidUtils";
 

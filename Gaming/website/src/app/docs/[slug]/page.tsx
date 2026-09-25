@@ -6,9 +6,8 @@ import React from "react";
 import { ChevronLeft, ChevronRight, BookOpen, Clock, Tag, Share2, Sparkles } from "lucide-react";
 import ReactMarkdown from 'react-markdown';
 import remarkGfm from 'remark-gfm';
-import { TableOfContents } from "@/components/TableOfContents";
-import { CodeBlock } from "@/components/CodeBlock";
-import { AdSenseAdSlot } from "@/components/GoogleAdSense";
+import { TableOfContents, CodeBlock } from "@/components/docs";
+import { AdSenseAdSlot } from "@/components/integrations";
 
 export async function generateStaticParams() {
   const docs = await getAllDocs();

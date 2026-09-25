@@ -48,7 +48,7 @@ import {
   fetchBenchmarks as fetchLiveBenchmarks,
   updateLiveBenchmarks,
 } from "@/data/benchmarks";
-import RateGameModal from "@/components/RateGameModal";
+import RateGameModal from "@/components/modals/RateGameModal";
 
 export default function GamesTestedPage() {
   const [selectedGameId, setSelectedGameId] = useState<string>(TESTED_GAMES_LIST[0]?.id || "firstlight");

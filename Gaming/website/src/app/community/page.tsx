@@ -24,8 +24,8 @@ import {
   CheckCircle2
 } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
-import ReportModal from "@/components/ReportModal";
-import RateGameModal from "@/components/RateGameModal";
+import ReportModal from "@/components/modals/ReportModal";
+import RateGameModal from "@/components/modals/RateGameModal";
 import { TESTED_GAMES_LIST, TestedGameSummary, getLiveTestedGames, fetchBenchmarks } from "@/data/benchmarks";
 
 interface Issue {

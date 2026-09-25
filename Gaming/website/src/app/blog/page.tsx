@@ -5,7 +5,7 @@ import React, { Suspense } from "react";
 import { getSortedPostsData, formatDateToIST, parseBlogDate } from "@/lib/blog";
 import connectDB from "@/lib/mongodb";
 import GamingPost from "@/models/GamingPost";
-import SafeBlogImage from "@/components/SafeBlogImage";
+import SafeBlogImage from "@/components/blog/SafeBlogImage";
 import { Calendar, ArrowUpRight, Zap, Clock, Gamepad2, Bot, Radio, ChevronDown, ChevronLeft, ChevronRight } from "lucide-react";
 
 const CATEGORY_CONFIG: Record<string, { color: string; activeBg: string; shadow: string; icon: string; hoverBorder: string }> = {

@@ -1,9 +1,7 @@
 import Link from "next/link";
 import { BookOpen, Terminal, Sparkles, ChevronLeft } from "lucide-react";
 import { getAllDocs } from "@/lib/docs";
-import { DocsSidebarNav } from "@/components/DocsSidebarNav";
-import { DocsVersionBadge } from "@/components/DocsVersionBadge";
-import MobileDocsSidebar from "@/components/MobileDocsSidebar";
+import { DocsSidebarNav, DocsVersionBadge, MobileDocsSidebar } from "@/components/docs";
 
 export default async function DocsLayout({
   children,
