@@ -2,6 +2,13 @@
 
 This document contains a detailed history of all patches and updates for the AI Gaming Assistant.
 
+### Patch: 2026-09-25 — v3.7.5: Fixed Provider Link Security Dialog & Re-auth Flow
+
+- Replaced blocking native OS alert popups with inline tactical banners across all provider link and unlink operations
+- Added pre-flight token refresh and auto-retry to handleLinkProvider
+- Added one-click Sign Out & Re-authenticate and Switch Account action buttons
+- Increased distributed node registration timeout for cloud server cold starts
+
 ### Patch: 2026-09-25 — v3.7.4: Fixed Account Unlink Flow & Redesigned Settings Navigation
 
 - Fixed provider unlink failing with 'additional verification' error by adding session token refresh and auto-retry before destroy()
