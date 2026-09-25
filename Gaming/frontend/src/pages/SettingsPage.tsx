@@ -10,7 +10,6 @@ import {
   Check,
   Save,
   X,
-  Sparkles,
 } from 'lucide-react';
 import { useAuth } from '@clerk/clerk-react';
 import { GpuPipelineSection } from '../components/settings/GpuPipelineSection';
