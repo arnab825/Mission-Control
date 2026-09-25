@@ -8,9 +8,14 @@ export const BACKUP_LIBRARY_SERVER_URL = (window as any).__BACKUP_LIBRARY_SERVER
   || (import.meta as any).env?.VITE_BACKUP_LIBRARY_SERVER_URL
   || 'https://mission-control-server-okj7.onrender.com';
 
-// Candidate endpoints ordered by priority
+export const AZURE_LIBRARY_SERVER_URL = (window as any).__AZURE_LIBRARY_SERVER_URL__
+  || (import.meta as any).env?.VITE_AZURE_SERVER_URL
+  || 'https://mission-control-service-g7hfgye5hcamc9f2.centralindia-01.azurewebsites.net';
+
+// Candidate endpoints ordered by priority: Primary Render -> Azure High Availability -> Secondary Render
 export const CANDIDATE_LIBRARY_SERVER_URLS = [
   PRIMARY_LIBRARY_SERVER_URL,
+  AZURE_LIBRARY_SERVER_URL,
   BACKUP_LIBRARY_SERVER_URL,
 ].filter(Boolean);
 
@@ -28,8 +33,8 @@ export function setActiveLibraryServerUrl(url: string) {
 export const LIBRARY_SERVER_URL = _activeServerUrl;
 
 /**
- * Universal multi-tier HTTP client with automatic failover.
- * Queries primary endpoint first; if down (network error, timeout, 5xx, or 503),
+ * Universal multi-tier HTTP client with automatic failover across Render and Azure.
+ * Queries primary endpoint first; if down (network error, timeout, 429, or 5xx),
  * instantly transparently retries on the backup server and remembers the working host.
  */
 export async function fetchWithFailover(path: string, options: RequestInit = {}): Promise<Response> {
@@ -57,14 +62,14 @@ export async function fetchWithFailover(path: string, options: RequestInit = {})
       });
       clearTimeout(timeoutId);
 
-      // If server responds with OK or 4xx (valid HTTP logic from an alive server)
-      if (res.status < 500) {
+      // If server responds with OK or standard 4xx client errors (excluding 429 rate limits)
+      if (res.status < 500 && res.status !== 429) {
         _activeServerUrl = cleanBase;
         return res;
       }
 
-      // If server returns 5xx (502, 503 Service Unavailable, 504 Gateway Timeout), failover to backup
-      console.warn(`[Failover] Endpoint ${cleanBase} returned ${res.status}. Trying backup server...`);
+      // If server returns 429 (Too Many Requests) or 5xx (502, 503, 504), failover to Azure or next backup
+      console.warn(`[Failover] Endpoint ${cleanBase} returned ${res.status}. Trying next backup server...`);
       lastError = new Error(`Server returned status ${res.status}`);
     } catch (err: any) {
       console.warn(`[Failover] Failed to connect to ${cleanBase}:`, err?.message || err);

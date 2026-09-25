@@ -572,9 +572,12 @@ class GameScanner:
                 except Exception as exc:
                     logger.warning("Supabase load failed: %s", exc)
 
-            # Try Distributed Library Server with strict 2.5s timeout (Primary + Backup Fallback)
             if not games and self.user_id:
-                for library_server_url in ["https://mission-control-wz0l.onrender.com", "https://mission-control-server-okj7.onrender.com"]:
+                for library_server_url in [
+                    "https://mission-control-wz0l.onrender.com",
+                    "https://mission-control-service-g7hfgye5hcamc9f2.centralindia-01.azurewebsites.net",
+                    "https://mission-control-server-okj7.onrender.com",
+                ]:
                     try:
                         import urllib.request
                         url = f"{library_server_url}/api/games?clerk_id={urllib.parse.quote(self.user_id)}&limit=100"

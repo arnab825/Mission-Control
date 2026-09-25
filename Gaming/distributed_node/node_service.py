@@ -116,14 +116,19 @@ class NodeConfig:
             with open(cfg_file, encoding="utf-8") as f:
                 self._cfg = json.load(f)
 
+        self.azure_server_url: str = (
+            self._cfg.get("azureServerUrl")
+            or os.getenv("AZURE_LIBRARY_SERVER_URL", "https://mission-control-service-g7hfgye5hcamc9f2.centralindia-01.azurewebsites.net")
+        ).rstrip("/")
+
         self.primary_server_url: str = (
             self._cfg.get("serverUrl")
-            or os.getenv("LIBRARY_SERVER_URL", "https://mission-control-server-okj7.onrender.com")
+            or os.getenv("LIBRARY_SERVER_URL", "https://mission-control-wz0l.onrender.com")
         ).rstrip("/")
 
         self.backup_server_url: str = (
             self._cfg.get("backupServerUrl")
-            or os.getenv("BACKUP_LIBRARY_SERVER_URL", "https://mission-control-wz0l.onrender.com")
+            or os.getenv("BACKUP_LIBRARY_SERVER_URL", "https://mission-control-server-okj7.onrender.com")
         ).rstrip("/")
 
         self.server_url: str = self.primary_server_url
@@ -146,19 +151,31 @@ class NodeConfig:
         self.heartbeat_interval: int = int(self._cfg.get("heartbeatInterval", 15))
         self.sync_interval: int = int(self._cfg.get("syncInterval", 300))
 
+    def get_candidate_servers(self) -> List[str]:
+        """Ordered candidate list: active first, then azure backup, then render fallbacks."""
+        cands = []
+        for url in [self.server_url, self.azure_server_url, self.primary_server_url, self.backup_server_url]:
+            if url:
+                clean = url.rstrip("/")
+                if clean not in cands:
+                    cands.append(clean)
+        return cands
+
     def save(self, config_path: Optional[str] = None):
         cfg_file = config_path or os.path.join(os.path.dirname(__file__), "node_config.json")
         with open(cfg_file, "w", encoding="utf-8") as f:
             json.dump({
-                "nodeId":    self.node_id,
-                "name":      self.node_name,
-                "serverUrl": self.server_url,
-                "token":     self.token,
-                "clerkId":   self.clerk_id,
-                "authProvider": self.auth_provider,
-                "scanPaths": self.scan_paths,
+                "nodeId":          self.node_id,
+                "name":            self.node_name,
+                "serverUrl":       self.server_url,
+                "azureServerUrl":  self.azure_server_url,
+                "backupServerUrl": self.backup_server_url,
+                "token":           self.token,
+                "clerkId":         self.clerk_id,
+                "authProvider":    self.auth_provider,
+                "scanPaths":       self.scan_paths,
                 "heartbeatInterval": self.heartbeat_interval,
-                "syncInterval":      self.sync_interval,
+                "syncInterval":    self.sync_interval,
             }, f, indent=2)
 
 
@@ -205,6 +222,66 @@ class LibraryNodeService:
         self._reg_lock = threading.Lock()
         self._last_scan: float = 0.0
         self._last_synced_hash: Optional[str] = None
+
+    def _request_with_failover(
+        self,
+        method: str,
+        path: str,
+        data: Any = None,
+        timeout: int = 15,
+    ) -> Optional[Dict]:
+        """
+        Sends HTTP request with multi-tier automatic failover across Azure and Render.
+        If a server returns 429 (Too Many Requests), 503 (Service Unavailable), or network errors,
+        it automatically fails over to Azure or the next healthy candidate and promotes that
+        endpoint to be the active serverUrl.
+        """
+        candidates = self.cfg.get_candidate_servers()
+        clean_path = path if path.startswith("/") else f"/{path}"
+        last_error = None
+
+        for base_url in candidates:
+            url = f"{base_url}{clean_path}"
+            try:
+                if method.upper() == "POST":
+                    r = requests.post(url, json=data, headers=_headers(self.cfg.token), timeout=timeout)
+                else:
+                    r = requests.get(url, headers=_headers(self.cfg.token), timeout=timeout)
+
+                # If token was rejected
+                if r.status_code == 401:
+                    return {"_status_code": 401, "_error": "Unauthorized"}
+
+                # If rate-limited (429)
+                if r.status_code == 429:
+                    logger.warning("[RateLimit 429] %s returned Too Many Requests. Failing over to backup server...", base_url)
+                    continue
+
+                # If 5xx service unavailable / bad gateway
+                if r.status_code >= 500:
+                    logger.warning("[ServerError %s] %s unavailable (%s). Failing over to backup server...", r.status_code, base_url, getattr(r, "reason", "Unavailable"))
+                    continue
+
+                r.raise_for_status()
+                res_data = r.json()
+
+                # If we succeeded on a backup server, promote it to active serverUrl
+                if base_url != self.cfg.server_url:
+                    logger.info("Successfully failed over from %s to backup server %s.", self.cfg.server_url, base_url)
+                    self.cfg.server_url = base_url
+                    self.cfg.save()
+
+                return res_data
+
+            except (requests.ConnectionError, requests.Timeout) as net_err:
+                logger.warning("[NetworkError] %s unreachable (%s). Trying next backup candidate...", base_url, net_err)
+                last_error = net_err
+            except Exception as exc:
+                logger.warning("[RequestError] %s failed: %s. Trying next backup candidate...", base_url, exc)
+                last_error = exc
+
+        logger.error("All candidate servers (%s) failed for %s. Last error: %s", candidates, clean_path, last_error)
+        return None
 
     def get_node_info(self) -> Dict[str, Any]:
         """Returns aggregated node metrics, disk capacity, scan paths, and game count for Fleet Command."""
@@ -262,7 +339,6 @@ class LibraryNodeService:
                 Path(os.getcwd()) / "version.json",
                 Path(os.getcwd()) / "backend" / "version.json",
             ]
-            # Check PyInstaller bundled temp dir if frozen
             if getattr(sys, "frozen", False) and hasattr(sys, "_MEIPASS"):
                 candidate_paths.insert(0, Path(sys._MEIPASS) / "version.json")
 
@@ -300,36 +376,11 @@ class LibraryNodeService:
                 },
             }
 
-            candidate_urls = [
-                self.cfg.server_url,
-                "https://mission-control-wz0l.onrender.com",
-                "https://mission-control-server-okj7.onrender.com",
-            ]
-            seen_urls = set()
-            result = None
-            working_url = self.cfg.server_url
+            result = self._request_with_failover("POST", "/api/nodes/register", payload, timeout=15)
 
-            for s_url in candidate_urls:
-                if not s_url or s_url in seen_urls:
-                    continue
-                seen_urls.add(s_url)
-                clean_url = s_url.rstrip("/")
-                res = _post(
-                    f"{clean_url}/api/nodes/register",
-                    payload,
-                    self.cfg.token,
-                    timeout=15,
-                )
-                if res and res.get("_status_code") != 401 and not res.get("error"):
-                    result = res
-                    working_url = clean_url
-                    break
-
-            if not result or result.get("_status_code") == 401:
+            if not result or result.get("_status_code") == 401 or result.get("error"):
                 logger.error("Registration failed — server unreachable or rejected request.")
                 return False
-
-            self.cfg.server_url = working_url
 
             # Persist assigned node_id and token
             self.cfg.node_id = result.get("nodeId") or result.get("node_id") or self.cfg.node_id
@@ -339,7 +390,7 @@ class LibraryNodeService:
                 self.cfg.save()
                 logger.info("Token received and saved.")
 
-            logger.info("Registered as %s (%s) with server %s", self.cfg.node_id, self.cfg.node_name, working_url)
+            logger.info("Registered as %s (%s) with server %s", self.cfg.node_id, self.cfg.node_name, self.cfg.server_url)
             return True
 
     # ── Heartbeat ─────────────────────────────────────────────────────────────
@@ -352,23 +403,25 @@ class LibraryNodeService:
             if self.cfg.scan_paths
             else get_default_storage()
         )
-        result = _post(
-            f"{self.cfg.server_url}/api/nodes/{self.cfg.node_id}/heartbeat",
+        result = self._request_with_failover(
+            "POST",
+            f"/api/nodes/{self.cfg.node_id}/heartbeat",
             {"ip": _get_local_ip(), "storage": storage, "status": "online"},
-            self.cfg.token,
+            timeout=15,
         )
         if result and result.get("_status_code") == 401:
             logger.info("[NodeAuth] Heartbeat 401 Unauthorized (token out of sync). Auto-registering node...")
             if self.register():
-                result = _post(
-                    f"{self.cfg.server_url}/api/nodes/{self.cfg.node_id}/heartbeat",
+                result = self._request_with_failover(
+                    "POST",
+                    f"/api/nodes/{self.cfg.node_id}/heartbeat",
                     {"ip": _get_local_ip(), "storage": storage, "status": "online"},
-                    self.cfg.token,
+                    timeout=15,
                 )
             else:
                 return False
 
-        if result and not result.get("_status_code"):
+        if result and not result.get("_status_code") and not result.get("error"):
             command = result.get("command")
             if command == "scan":
                 logger.info("Server requested immediate scan.")
@@ -503,25 +556,25 @@ class LibraryNodeService:
             return
 
         payload = {"installations": installations}
-        result = _post(
-            f"{self.cfg.server_url}/api/nodes/{self.cfg.node_id}/sync",
+        result = self._request_with_failover(
+            "POST",
+            f"/api/nodes/{self.cfg.node_id}/sync",
             payload,
-            self.cfg.token,
             timeout=60,
         )
         if result and result.get("_status_code") == 401:
             logger.info("[NodeAuth] Sync 401 Unauthorized (token out of sync). Auto-registering node...")
             if self.register():
-                result = _post(
-                    f"{self.cfg.server_url}/api/nodes/{self.cfg.node_id}/sync",
+                result = self._request_with_failover(
+                    "POST",
+                    f"/api/nodes/{self.cfg.node_id}/sync",
                     payload,
-                    self.cfg.token,
                     timeout=60,
                 )
             else:
                 return
 
-        if result and not result.get("_status_code"):
+        if result and not result.get("_status_code") and not result.get("error"):
             self._last_synced_hash = current_hash
             logger.info(
                 "Sync complete: %d synced, %d new games, %d AI-queued, %d errors.",

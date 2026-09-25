@@ -305,3 +305,65 @@ export function validateRequestBody<T>(schema: z.ZodType<T>, data: unknown): { s
   return { success: true, data: result.data };
 }
 
+// ── Distributed Node & Library Sync Schemas ────────────────────────────────
+export const NodeStorageSchema = z.object({
+  total: z.coerce.number().nonnegative().default(0),
+  used: z.coerce.number().nonnegative().default(0),
+  free: z.coerce.number().nonnegative().default(0),
+}).passthrough();
+
+export const NodeRegisterSchema = z.object({
+  nodeId: z.string().trim().max(64).optional().nullable(),
+  node_id: z.string().trim().max(64).optional().nullable(),
+  name: z.string().trim().min(1, "Node name is required").max(100),
+  hostname: z.string().trim().max(100).optional().default(""),
+  ip: z.string().trim().max(45).optional().default(""),
+  clerkId: z.string().trim().max(100).optional().default(""),
+  clerk_id: z.string().trim().max(100).optional().default(""),
+  authProvider: z.string().trim().max(50).optional().default(""),
+  auth_provider: z.string().trim().max(50).optional().default(""),
+  platform: z.string().trim().max(50).optional().default("win32"),
+  version: z.string().trim().max(50).optional().default("1.0.0"),
+  storage: NodeStorageSchema.default({ total: 0, used: 0, free: 0 }),
+  scanPaths: z.array(z.string().max(500)).max(100).optional().default([]),
+  metadata: z.record(z.string(), z.any()).optional().default({}),
+}).passthrough();
+
+export const NodeHeartbeatSchema = z.object({
+  ip: z.string().trim().max(45).optional().default(""),
+  storage: NodeStorageSchema.optional().default({ total: 0, used: 0, free: 0 }),
+  status: z.enum(["online", "offline", "syncing"]).optional().default("online"),
+}).passthrough();
+
+export const NodeSyncInstallationSchema = z.object({
+  title: z.string().trim().min(1).max(250),
+  store: z.string().trim().max(50).optional().default("manual"),
+  store_app_id: z.any().optional(),
+  storeAppId: z.any().optional(),
+  install_path: z.string().trim().max(1000).optional(),
+  installPath: z.string().trim().max(1000).optional(),
+  exe_path: z.string().trim().max(1000).optional().nullable(),
+  exePath: z.string().trim().max(1000).optional().nullable(),
+  version: z.string().trim().max(50).optional().nullable(),
+  size_bytes: z.coerce.number().nonnegative().optional().default(0),
+  sizeBytes: z.coerce.number().nonnegative().optional().default(0),
+  developer: z.string().trim().max(150).optional().nullable(),
+  publisher: z.string().trim().max(150).optional().nullable(),
+  release_date: z.string().trim().max(50).optional().nullable(),
+  releaseDate: z.string().trim().max(50).optional().nullable(),
+  genres: z.array(z.string().max(50)).max(20).optional().default([]),
+  tags: z.array(z.string().max(50)).max(50).optional().default([]),
+  features: z.array(z.string().max(50)).max(50).optional().default([]),
+  cover_url: z.string().trim().max(1000).optional().nullable(),
+  coverUrl: z.string().trim().max(1000).optional().nullable(),
+  banner_url: z.string().trim().max(1000).optional().nullable(),
+  bannerUrl: z.string().trim().max(1000).optional().nullable(),
+  summary: z.string().max(5000).optional().nullable(),
+  metadata: z.record(z.string(), z.any()).optional().default({}),
+}).passthrough();
+
+export const NodeSyncSchema = z.object({
+  installations: z.array(NodeSyncInstallationSchema).max(5000),
+}).passthrough();
+
+

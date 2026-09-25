@@ -372,6 +372,45 @@ async def proxy_request(request: Request, path: str):
             logger.warning("Upstream %s failed for %s: %s. Retrying next instance in %s pool...", upstream_base, path, exc, pool.name)
             last_exc = exc
 
+    # Final tier failover: If all pool instances failed, route to Azure Cloud Backup
+    azure_backup = os.getenv(
+        "AZURE_BACKUP_SERVER",
+        "https://mission-control-service-g7hfgye5hcamc9f2.centralindia-01.azurewebsites.net"
+    ).rstrip("/")
+    if azure_backup:
+        try:
+            logger.info("Failing over to Azure Cloud Backup (%s) for /%s", azure_backup, path)
+            azure_url = f"{azure_backup}/{path}"
+            if request.url.query:
+                azure_url += f"?{request.url.query}"
+
+            headers = dict(request.headers)
+            headers.pop("host", None)
+            headers.pop("content-length", None)
+            headers["x-routed-pool"] = f"{pool.name}-azure-backup"
+
+            body = await request.body()
+            azure_res = await _HTTP_CLIENT.request(
+                method=request.method,
+                url=azure_url,
+                headers=headers,
+                content=body if body else None,
+                timeout=10.0,
+            )
+            if azure_res.status_code < 500:
+                response_headers = dict(azure_res.headers)
+                response_headers.pop("content-encoding", None)
+                response_headers.pop("content-length", None)
+                response_headers["x-routed-pool"] = f"{pool.name}-azure-backup"
+                return Response(
+                    content=azure_res.content,
+                    status_code=azure_res.status_code,
+                    headers=response_headers,
+                    media_type=azure_res.headers.get("content-type"),
+                )
+        except Exception as azure_exc:
+            logger.warning("Azure Cloud Backup fallback failed: %s", azure_exc)
+
     logger.error("All upstream instances in '%s' pool failed for /%s", pool.name, path)
     return JSONResponse(
         status_code=503,
