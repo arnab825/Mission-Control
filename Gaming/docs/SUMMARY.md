@@ -82,7 +82,8 @@ graph TD
 
 | Version | Key Feature / Change Description |
 | :--- | :--- |
-| **v3.7.1 (Latest)** | **OAuth Popup Handshake Fix & Secret Sanitization** — Resolved OAuth popup infinite spinning and non-reactive redirection in Account Switcher, ensuring a seamless user experience. |
+| **v3.7.2 (Latest)** | **Seamless OAuth Handshake & Account Switcher Flow** — Resolved OAuth popup infinite spinning and non-reactive redirection in Account Switcher |
+| **v3.7.1** | **OAuth Popup Handshake Fix & Secret Sanitization** — Resolved OAuth popup infinite spinning and non-reactive redirection in Account Switcher, ensuring a seamless user experience. |
 | **v3.7.0** | **Security Patch & Version Update Fix** — Purged leaked keys. |
 | **v3.7.0** | **Security Patch & Version Update Fix** — Mission Control v3.7.0 addresses critical security vulnerabilities and resolves key functionality issues. |
 | **v3.6.9** | **Fixed NSIS installer build failure** — Fixed NSIS installer build failure. |

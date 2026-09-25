@@ -942,21 +942,39 @@ function openAuthPopupWindow(targetUrl: string): Promise<{ success: boolean; err
         },
       });
 
-      // Set standard Chrome User-Agent to bypass Google 403 disallowed_useragent block
+      // Set standard Chrome User-Agent to bypass Google & Discord disallowed_useragent blocks
       authWindow.webContents.setUserAgent(CHROME_OAUTH_USER_AGENT);
 
-      // Ensure any outgoing request from the auth window to Google or Clerk uses standard Chrome UA
+      // Ensure any outgoing request from the auth window to Google, Discord, or Clerk uses standard Chrome UA
       authWindow.webContents.session.webRequest.onBeforeSendHeaders(
-        { urls: ['https://accounts.google.com/*', 'https://*.google.com/*', 'https://*.clerk.accounts.dev/*'] },
+        {
+          urls: [
+            'https://accounts.google.com/*',
+            'https://*.google.com/*',
+            'https://*.clerk.accounts.dev/*',
+            'https://discord.com/*',
+            'https://*.discord.com/*',
+          ],
+        },
         (details, callback) => {
           details.requestHeaders['User-Agent'] = CHROME_OAUTH_USER_AGENT;
           callback({ cancel: false, requestHeaders: details.requestHeaders });
         }
       );
 
+      // Pipe auth window console logs to main console for diagnostics
+      authWindow.webContents.on('console-message', (_event, level, message, line, sourceId) => {
+        console.log(`[AuthPopup Console] [${level}] ${message} (${sourceId}:${line})`);
+      });
+
+      authWindow.webContents.on('did-fail-load', (_event, errorCode, errorDescription, validatedURL) => {
+        if (errorCode === -3) return; // Ignore aborted navigations
+        console.error(`[AuthPopup] did-fail-load: ${errorCode} ${errorDescription} — URL: ${validatedURL}`);
+      });
+
       // Keep auth redirects and OAuth dialogs inside the auth popup window
       authWindow.webContents.setWindowOpenHandler(({ url }) => {
-        if (url && (url.includes('google.com') || url.includes('clerk') || url.includes('discord.com') || url.includes('accounts.google'))) {
+        if (url && (url.includes('google') || url.includes('clerk') || url.includes('discord'))) {
           authWindow?.loadURL(url);
           return { action: 'deny' };
         }
@@ -965,22 +983,28 @@ function openAuthPopupWindow(targetUrl: string): Promise<{ success: boolean; err
       });
 
       authWindow.webContents.on('did-navigate', (_event, url) => {
-        if (url && url.includes('auth_completed=1')) {
-          console.log('[Electron] authWindow navigated to auth_completed=1 — closing popup.');
+        if (url && (url.includes('auth_completed=1') || url.includes('auth_completed'))) {
+          console.log('[Electron] authWindow navigated to auth_completed — closing popup.');
           closeAuthWindow();
           if (win && !win.isDestroyed()) {
             win.webContents.send('auth-completed');
           }
+        } else if (url && (url.includes('auth_cancelled=1') || url.includes('auth_cancelled'))) {
+          console.log('[Electron] authWindow navigated to auth_cancelled — closing popup.');
+          closeAuthWindow();
         }
       });
 
       authWindow.webContents.on('did-navigate-in-page', (_event, url) => {
-        if (url && url.includes('auth_completed=1')) {
-          console.log('[Electron] authWindow in-page navigated to auth_completed=1 — closing popup.');
+        if (url && (url.includes('auth_completed=1') || url.includes('auth_completed'))) {
+          console.log('[Electron] authWindow in-page navigated to auth_completed — closing popup.');
           closeAuthWindow();
           if (win && !win.isDestroyed()) {
             win.webContents.send('auth-completed');
           }
+        } else if (url && (url.includes('auth_cancelled=1') || url.includes('auth_cancelled'))) {
+          console.log('[Electron] authWindow in-page navigated to auth_cancelled — closing popup.');
+          closeAuthWindow();
         }
       });
 

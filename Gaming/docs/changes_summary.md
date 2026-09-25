@@ -22,7 +22,22 @@ Comprehensive breakdown of major milestone releases, architectural upgrades, and
 
 ---
 
-## 🌟 Version v3.7.1 (Latest) — OAuth Popup Handshake Fix & Secret Sanitization
+## 🌟 Version v3.7.2 (Latest) — Seamless OAuth Handshake & Account Switcher Flow
+
+### 🛠️ Key Highlights
+1. **Resolved OAuth Popup Infinite Spin**: Ensured child auth popup waits for Clerk authentication and user context states (`isAuthLoaded`, `isUserLoaded`, `isSignInLoaded`) before initiating handshake, preventing stalled unauthenticated loops.
+2. **Instant Account Switching**: Account Switcher now checks `user.externalAccounts` and fast-switches active profile instantly if the provider is already linked, bypassing unnecessary popups.
+3. **Direct OAuth Authorization**: Switched Account Switcher linking to generate provider authorization URLs directly via `user.createExternalAccount` and launch `openAuthPopupUrl`, opening directly to Discord/Google without intermediate local loading screens.
+4. **Interactive Auth Popup UI**: Added error diagnostics, strategy-tailored visual themes (Discord blurple / Google accent), retry actions, and a persistent Cancel & Close button.
+5. **Navigation Lifecycle Hardening**: Added auto-dismissal on auth completion or user cancellation in Electron main process.
+
+### 📦 Distribution Artifacts
+- **Linux**: `.deb` (Debian/Ubuntu), `.AppImage` (Universal), `.rpm` (Fedora/RHEL), `.tar.gz` (Portable)
+- **Windows**: `.exe` (Setup Installer), `.msi` (Enterprise), `.zip` (Portable)
+
+---
+
+## 📦 Version v3.7.1 — OAuth Popup Handshake Fix & Secret Sanitization
 
 ### 🛠️ Key Highlights
 1. **Purged exposed NVIDIA API key and personal node tokens from tracked repository files to enhance security.**

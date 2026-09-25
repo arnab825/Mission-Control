@@ -108,11 +108,91 @@ export const AccountSwitcherModal: React.FC<AccountSwitcherModalProps> = ({
         }
       } catch (_) {}
 
-      // In Electron environment, open the native centered popup window
+      // Fast-path: Check if current account already has this provider linked
+      const isAlreadyLinked = user?.externalAccounts?.some(
+        (acc: any) =>
+          acc.provider === strategy ||
+          acc.verification?.strategy === strategy ||
+          acc.provider?.replace('oauth_', '') === strategy.replace('oauth_', '')
+      );
+
+      if (isAlreadyLinked) {
+        console.log(`[AccountSwitcher] Strategy ${strategy} is already linked. Fast-switching active profile.`);
+        setLoadingStrategy(null);
+        onClose();
+        return;
+      }
+
+      // If signed in, link account directly via user.createExternalAccount without intermediate local screen
+      if (isSignedIn && user) {
+        try {
+          const options: any = {
+            strategy,
+            redirectUrl: `${window.location.origin}/sso-callback?popup=1`,
+          };
+          if (strategy === 'oauth_google') {
+            options.additionalData = { prompt: 'select_account' };
+          } else if (strategy === 'oauth_discord') {
+            options.additionalData = { prompt: 'consent' };
+          }
+
+          console.log(`[AccountSwitcher] Requesting external account creation URL for ${strategy}...`);
+          const extAccount = await user.createExternalAccount(options);
+          const verification = (extAccount as any)?.verification;
+          const redirectUrl =
+            verification?.externalVerificationRedirectURL?.toString() ||
+            verification?.externalVerificationRedirectUrl?.toString();
+
+          if (redirectUrl) {
+            console.log(`[AccountSwitcher] Direct redirectUrl obtained. Opening popup window directly to provider.`);
+            if (window.electronAPI?.openAuthPopupUrl) {
+              const res = await window.electronAPI.openAuthPopupUrl(redirectUrl);
+              setLoadingStrategy(null);
+              if (!res?.success && res?.error && res.error !== 'cancelled') {
+                setActionError(res.error);
+              }
+              return;
+            } else {
+              window.location.href = redirectUrl;
+              return;
+            }
+          }
+        } catch (linkErr: any) {
+          console.warn('[AccountSwitcher] Direct linking returned error, checking if switch is required:', linkErr);
+          const msg = linkErr.errors?.[0]?.longMessage || linkErr.message || '';
+          if (
+            msg.toLowerCase().includes('already exists') ||
+            msg.toLowerCase().includes('belong') ||
+            msg.toLowerCase().includes('conflict') ||
+            msg.toLowerCase().includes('taken')
+          ) {
+            // Provider is tied to another user -> sign out and open auth popup to login with that user
+            await clerk.signOut();
+            if (window.electronAPI?.openAuthPopup) {
+              const res = await window.electronAPI.openAuthPopup({ strategy, mode: 'login' });
+              setLoadingStrategy(null);
+              if (!res?.success && res?.error && res.error !== 'cancelled') {
+                setActionError(res.error);
+              }
+              return;
+            }
+          } else if (msg.toLowerCase().includes('additional verification')) {
+            setActionError('Security Lock Active: To connect this provider, please log out, log back in, and try again.');
+            setLoadingStrategy(null);
+            return;
+          } else {
+            setActionError(msg || 'Failed to initiate account linking.');
+            setLoadingStrategy(null);
+            return;
+          }
+        }
+      }
+
+      // Default Electron popup flow (e.g. not signed in or fallback)
       if (window.electronAPI?.openAuthPopup) {
         const res = await window.electronAPI.openAuthPopup({
           strategy,
-          mode: 'login'
+          mode: 'login',
         });
         if (!res?.success) {
           setLoadingStrategy(null);
@@ -129,7 +209,7 @@ export const AccountSwitcherModal: React.FC<AccountSwitcherModalProps> = ({
         const options: any = {
           strategy,
           redirectUrl: `${origin}/sso-callback`,
-          redirectUrlComplete: `${origin}/`
+          redirectUrlComplete: `${origin}/`,
         };
         if (strategy === 'oauth_google') {
           options.additionalData = { prompt: 'select_account' };

@@ -83,15 +83,19 @@ export const AccountSettingsSection: React.FC<AccountSettingsSectionProps> = ({
     try {
       const options: any = {
         strategy: strategy as any,
-        redirectUrl: `${window.location.origin}/sso-callback`,
+        redirectUrl: `${window.location.origin}/sso-callback?popup=1`,
       };
       if (strategy === 'oauth_google') {
         options.additionalData = { prompt: 'select_account' };
+      } else if (strategy === 'oauth_discord') {
+        options.additionalData = { prompt: 'consent' };
       }
       const extAccount = await user.createExternalAccount(options);
 
-      const verification = (extAccount as any).verification;
-      const redirectUrl = verification?.externalVerificationRedirectUrl;
+      const verification = (extAccount as any)?.verification;
+      const redirectUrl =
+        verification?.externalVerificationRedirectURL?.toString() ||
+        verification?.externalVerificationRedirectUrl?.toString();
 
       if (redirectUrl) {
         if ((window as any).electronAPI?.openAuthPopupUrl) {

@@ -1,8 +1,20 @@
 {
-  "version": "3.7.1",
+  "version": "3.7.2",
   "release_date": "2026-09-25",
   "update_check_url": "https://raw.githubusercontent.com/arnab825/Mission-Control/main/Gaming/backend/version.json",
   "changelog": [
+    {
+      "version": "3.7.2",
+      "date": "2026-09-25",
+      "title": "Seamless OAuth Handshake & Account Switcher Flow",
+      "highlights": [
+        "Resolved OAuth popup infinite spinning and non-reactive redirection in Account Switcher",
+        "Added instant fast-path switching for already-linked accounts without spawning popups",
+        "Implemented direct external account authorization via openAuthPopupUrl",
+        "Added interactive error banner, retry controls, and persistent cancel & close button to auth popup UI",
+        "Enhanced window navigation listeners in Electron to auto-dismiss on auth cancellation or completion"
+      ]
+    },
     {
       "version": "3.7.1",
       "date": "2026-09-25",

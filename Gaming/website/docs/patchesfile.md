@@ -2,6 +2,14 @@
 
 This document contains a detailed history of all patches and updates for the AI Gaming Assistant.
 
+### Patch: 2026-09-25 — v3.7.2: Seamless OAuth Handshake & Account Switcher Flow
+
+- Resolved OAuth popup infinite spinning and non-reactive redirection in Account Switcher
+- Added instant fast-path switching for already-linked accounts without spawning popups
+- Implemented direct external account authorization via openAuthPopupUrl
+- Added interactive error banner, retry controls, and persistent cancel & close button to auth popup UI
+- Enhanced window navigation listeners in Electron to auto-dismiss on auth cancellation or completion
+
 ### Patch: 2026-09-25 — v3.7.1: OAuth Popup Handshake Fix & Secret Sanitization
 
 - Resolved OAuth popup infinite spinning and non-reactive redirection in Account Switcher

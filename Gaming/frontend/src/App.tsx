@@ -17,7 +17,7 @@ import { useBridge } from './hooks/useBridge';
 import type { TelemetryState } from './types/telemetry';
 import { UpdatesPage } from './pages/UpdatesPage';
 import { Sparkles, ChevronDown, ToggleRight, ToggleLeft, Menu, AlertTriangle } from 'lucide-react';
-import { useAuth, useSignIn, useSignUp, useClerk } from '@clerk/clerk-react';
+import { useAuth, useSignIn, useSignUp, useClerk, useUser } from '@clerk/clerk-react';
 import { motion, AnimatePresence, MotionConfig } from 'framer-motion';
 
 interface AppTelemetryState extends TelemetryState {
@@ -63,7 +63,8 @@ const App: React.FC = () => {
   const [systemCategory, setSystemCategory] = useState('CPU');
   const [showHUD, setShowHUD] = useState(false);
   const { state, connected, sendCommand } = useBridge() as { state: AppTelemetryState | null; connected: boolean; sendCommand: (type: string, payload?: any) => void };
-  const { isSignedIn, userId } = useAuth();
+  const { isLoaded: isAuthLoaded, isSignedIn, userId } = useAuth();
+  const { isLoaded: isUserLoaded, user } = useUser();
   const clerk = useClerk();
   const { isLoaded: isSignInLoaded, signIn } = useSignIn();
   const { isLoaded: isSignUpLoaded, signUp } = useSignUp();
@@ -75,6 +76,8 @@ const App: React.FC = () => {
 
   const isAuthPopup = typeof window !== 'undefined' && new URLSearchParams(window.location.search).get('auth_popup') === '1';
   const isAuthCompleted = typeof window !== 'undefined' && new URLSearchParams(window.location.search).get('auth_completed') === '1';
+  const [authPopupError, setAuthPopupError] = useState<string | null>(null);
+  const [authPopupRetryCount, setAuthPopupRetryCount] = useState<number>(0);
 
   // Strip ?auth_cancelled and ?show_auth params from the URL immediately so they don't
   // persist across refreshes or confuse any other logic.
@@ -100,43 +103,145 @@ const App: React.FC = () => {
       if (window.electronAPI?.notifyAuthSuccess) {
         window.electronAPI.notifyAuthSuccess();
       }
+      if (window.electronAPI?.closeAuthPopup) {
+        window.electronAPI.closeAuthPopup();
+      }
       try {
         window.close();
       } catch (_) {}
       return;
     }
 
-    if (isAuthPopup && isSignInLoaded && isSignUpLoaded && signIn && signUp) {
-      const params = new URLSearchParams(window.location.search);
-      const strategy = (params.get('strategy') || 'oauth_google') as 'oauth_google' | 'oauth_discord';
-      const mode = params.get('mode') || 'login';
-      const origin = window.location.origin;
+    if (!isAuthPopup) return;
 
-      const options: any = {
-        strategy,
-        redirectUrl: `${origin}/sso-callback?popup=1`,
-        redirectUrlComplete: `${origin}/?auth_completed=1`,
-      };
-      if (strategy === 'oauth_google') {
-        options.additionalData = { prompt: 'select_account' };
-        options.customOAuthOptions = { prompt: 'select_account' };
-      } else if (strategy === 'oauth_discord') {
-        options.additionalData = { prompt: 'consent' };
-        options.customOAuthOptions = { prompt: 'consent' };
-      }
-
-      console.log(`[AuthPopup] Triggering ${mode} OAuth redirect for ${strategy}...`);
-      if (mode === 'signup') {
-        signUp.authenticateWithRedirect(options).catch(err => {
-          console.error('[AuthPopup] SignUp redirect failed:', err);
-        });
-      } else {
-        signIn.authenticateWithRedirect(options).catch(err => {
-          console.error('[AuthPopup] SignIn redirect failed:', err);
-        });
-      }
+    // WAIT until Clerk authentication hooks have completely loaded before determining auth state
+    if (!clerk.loaded || !isAuthLoaded || !isUserLoaded || !isSignInLoaded || !isSignUpLoaded) {
+      return;
     }
-  }, [isAuthPopup, isAuthCompleted, isSignInLoaded, isSignUpLoaded, signIn, signUp]);
+
+    let isMounted = true;
+    const params = new URLSearchParams(window.location.search);
+    const strategy = (params.get('strategy') || 'oauth_google') as 'oauth_google' | 'oauth_discord';
+    const mode = params.get('mode') || 'login';
+    const origin = window.location.origin;
+
+    // Safety timeout: if after 12 seconds redirect hasn't happened, show actionable fallback
+    const timeoutTimer = setTimeout(() => {
+      if (isMounted) {
+        setAuthPopupError('Connection to authentication provider is taking longer than expected.');
+      }
+    }, 12000);
+
+    const initiateAuth = async () => {
+      try {
+        setAuthPopupError(null);
+
+        // Case 1: If user is ALREADY signed in on this partition
+        if (isSignedIn && user) {
+          const isAlreadyLinked = user.externalAccounts?.some(
+            (acc: any) =>
+              acc.provider === strategy ||
+              acc.verification?.strategy === strategy ||
+              acc.provider?.replace('oauth_', '') === strategy.replace('oauth_', '')
+          );
+
+          if (isAlreadyLinked) {
+            console.log(`[AuthPopup] Provider ${strategy} is already linked to user ${user.id}.`);
+            try {
+              localStorage.setItem('mission_control_active_provider', strategy);
+            } catch (_) {}
+            if (window.electronAPI?.notifyAuthSuccess) {
+              window.electronAPI.notifyAuthSuccess();
+            }
+            if (window.electronAPI?.closeAuthPopup) {
+              window.electronAPI.closeAuthPopup();
+            }
+            try { window.close(); } catch (_) {}
+            return;
+          }
+
+          // Provider not linked yet -> Attempt linking with user.createExternalAccount
+          try {
+            console.log(`[AuthPopup] Linking ${strategy} to current user ${user.id}...`);
+            const options: any = {
+              strategy,
+              redirectUrl: `${origin}/sso-callback?popup=1`,
+            };
+            if (strategy === 'oauth_google') {
+              options.additionalData = { prompt: 'select_account' };
+            } else if (strategy === 'oauth_discord') {
+              options.additionalData = { prompt: 'consent' };
+            }
+            const ext = await user.createExternalAccount(options);
+            const verification = (ext as any)?.verification;
+            const redirectUrl =
+              verification?.externalVerificationRedirectURL?.toString() ||
+              verification?.externalVerificationRedirectUrl?.toString();
+            if (redirectUrl) {
+              window.location.href = redirectUrl;
+              return;
+            } else {
+              throw new Error('OAuth verification URL was not returned by provider.');
+            }
+          } catch (linkErr: any) {
+            console.warn(`[AuthPopup] Linking failed, falling back to sign-in switch:`, linkErr);
+            // If linking failed (e.g. account belongs to another user), sign out first so sign-in is unblocked
+            await clerk.signOut();
+          }
+        }
+
+        // Case 2: User is not signed in, or just signed out to switch accounts
+        const options: any = {
+          strategy,
+          redirectUrl: `${origin}/sso-callback?popup=1`,
+          redirectUrlComplete: `${origin}/?auth_completed=1`,
+        };
+        if (strategy === 'oauth_google') {
+          options.additionalData = { prompt: 'select_account' };
+          options.customOAuthOptions = { prompt: 'select_account' };
+        } else if (strategy === 'oauth_discord') {
+          options.additionalData = { prompt: 'consent' };
+          options.customOAuthOptions = { prompt: 'consent' };
+        }
+
+        console.log(`[AuthPopup] Triggering ${mode} OAuth redirect for ${strategy}...`);
+        if (mode === 'signup' && signUp) {
+          await signUp.authenticateWithRedirect(options);
+        } else if (signIn) {
+          await signIn.authenticateWithRedirect(options);
+        } else if (clerk.client?.signIn) {
+          await clerk.client.signIn.authenticateWithRedirect(options);
+        } else {
+          throw new Error('Authentication client unavailable. Please retry.');
+        }
+      } catch (err: any) {
+        console.error('[AuthPopup] Handshake error:', err);
+        if (isMounted) {
+          setAuthPopupError(err?.errors?.[0]?.longMessage || err?.message || 'Authentication handshake encountered an issue.');
+        }
+      }
+    };
+
+    initiateAuth();
+
+    return () => {
+      isMounted = false;
+      clearTimeout(timeoutTimer);
+    };
+  }, [
+    isAuthPopup,
+    isAuthCompleted,
+    isAuthLoaded,
+    isUserLoaded,
+    isSignInLoaded,
+    isSignUpLoaded,
+    signIn,
+    signUp,
+    isSignedIn,
+    user,
+    clerk.loaded,
+    authPopupRetryCount
+  ]);
 
   // Listen for auth completion from popup in the main window
   useEffect(() => {
@@ -483,19 +588,87 @@ const App: React.FC = () => {
 
   if (isAuthPopup) {
     const params = new URLSearchParams(window.location.search);
-    const strategyName = params.get('strategy') === 'oauth_discord' ? 'Discord' : 'Google';
+    const strategy = (params.get('strategy') || 'oauth_google') as 'oauth_google' | 'oauth_discord';
+    const strategyName = strategy === 'oauth_discord' ? 'Discord' : 'Google';
+    const isDiscord = strategy === 'oauth_discord';
+    const brandColor = isDiscord ? '#5865F2' : '#76B900';
+    const brandGlow = isDiscord ? 'rgba(88, 101, 242, 0.25)' : 'rgba(118, 185, 0, 0.25)';
+
+    const handleClosePopup = () => {
+      if (window.electronAPI?.closeAuthPopup) {
+        window.electronAPI.closeAuthPopup();
+      }
+      try {
+        window.close();
+      } catch (_) {}
+    };
+
+    const handleRetryPopup = () => {
+      setAuthPopupError(null);
+      setAuthPopupRetryCount((prev) => prev + 1);
+    };
+
     return (
-      <div className="w-screen h-screen flex flex-col items-center justify-center bg-zinc-950 text-white font-['Inter',system-ui,sans-serif] p-6 select-none">
-        <div className="relative w-16 h-16 flex items-center justify-center mb-4">
-          <div className="absolute inset-0 rounded-full border-2 border-neon-green/20 border-t-neon-green animate-spin" />
-          <img src="/logo.png" className="w-8 h-8 object-contain" alt="Mission Control Logo" />
+      <div className="w-screen h-screen flex flex-col items-center justify-center bg-zinc-950 text-white font-['Inter',system-ui,sans-serif] p-6 select-none relative overflow-hidden">
+        {/* Glow ambient background */}
+        <div
+          className="absolute w-72 h-72 rounded-full blur-[100px] pointer-events-none opacity-20"
+          style={{ backgroundColor: brandColor }}
+        />
+
+        <div className="relative z-10 flex flex-col items-center max-w-sm text-center">
+          {/* Animated Spinner or Error Icon */}
+          <div className="relative w-16 h-16 flex items-center justify-center mb-5">
+            {authPopupError ? (
+              <div className="w-14 h-14 rounded-full bg-red-500/10 border border-red-500/30 flex items-center justify-center text-red-400 shadow-[0_0_25px_rgba(239,68,68,0.2)]">
+                <AlertTriangle className="w-7 h-7" />
+              </div>
+            ) : (
+              <>
+                <div
+                  className="absolute inset-0 rounded-full border-2 border-t-transparent animate-spin"
+                  style={{
+                    borderColor: `${brandColor}33`,
+                    borderTopColor: brandColor,
+                    boxShadow: `0 0 20px ${brandGlow}`
+                  }}
+                />
+                <img src="/logo.png" className="w-8 h-8 object-contain" alt="Mission Control Logo" />
+              </>
+            )}
+          </div>
+
+          <h2 className="text-sm font-black uppercase tracking-widest text-zinc-100 mb-1">
+            {authPopupError ? 'Authentication Stalled' : `Connecting to ${strategyName}…`}
+          </h2>
+          <p className="text-xs text-zinc-400 font-medium mb-6 leading-relaxed">
+            {authPopupError || 'Completing secure authentication handshake with Mission Control'}
+          </p>
+
+          {/* Action Buttons */}
+          <div className="flex items-center gap-3">
+            {authPopupError && (
+              <button
+                type="button"
+                onClick={handleRetryPopup}
+                className="px-4 py-2 rounded-xl text-xs font-bold uppercase tracking-wider bg-white/10 hover:bg-white/15 text-zinc-100 border border-white/20 transition-all hover:scale-105 active:scale-95 cursor-pointer"
+              >
+                Retry
+              </button>
+            )}
+            <button
+              type="button"
+              onClick={handleClosePopup}
+              className={`px-4 py-2 rounded-xl text-xs font-bold uppercase tracking-wider transition-all hover:scale-105 active:scale-95 cursor-pointer ${
+                authPopupError
+                  ? 'bg-red-500/20 hover:bg-red-500/30 text-red-200 border border-red-500/30'
+                  : 'bg-zinc-800/80 hover:bg-zinc-700/80 text-zinc-300 border border-zinc-700/60'
+              }`}
+            >
+              Cancel & Close
+            </button>
+          </div>
         </div>
-        <h2 className="text-sm font-black uppercase tracking-widest text-zinc-300 mb-1">
-          Connecting to {strategyName}…
-        </h2>
-        <p className="text-xs text-zinc-500 font-medium">
-          Completing secure authentication handshake
-        </p>
       </div>
     );
   }
