@@ -22,7 +22,19 @@ Comprehensive breakdown of major milestone releases, architectural upgrades, and
 
 ---
 
-## 🌟 Version v3.7.0 (Latest) — Security Patch & Version Update Fix
+## 🌟 Version v3.7.1 (Latest) — OAuth Popup Handshake Fix & Secret Sanitization
+
+### 🛠️ Key Highlights
+1. **Purged exposed NVIDIA API key and personal node tokens from tracked repository files to enhance security.**
+2. **Verified standalone Next.js deployment to improve scalability and reliability.**
+
+### 📦 Distribution Artifacts
+- **Linux**: `.deb` (Debian/Ubuntu), `.AppImage` (Universal), `.rpm` (Fedora/RHEL), `.tar.gz` (Portable)
+- **Windows**: `.exe` (Setup Installer), `.msi` (Enterprise), `.zip` (Portable)
+
+---
+
+## 📦 Version v3.7.0 — Security Patch & Version Update Fix
 
 ### 🛠️ Key Highlights
 1. **Purged leaked keys**

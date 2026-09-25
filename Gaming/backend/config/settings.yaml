@@ -1,5 +1,5 @@
 ai_agent:
-  nvidia_api_key: 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
+  nvidia_api_key: ""
   prompts:
     welcome_prompt: Greet the user as their AI Gaming Assistant. Give a very brief,
       friendly welcome message. Explain that you can monitor their gameplay, provide

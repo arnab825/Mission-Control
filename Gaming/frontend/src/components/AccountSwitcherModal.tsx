@@ -45,6 +45,25 @@ export const AccountSwitcherModal: React.FC<AccountSwitcherModalProps> = ({
   const currentSessionId = clerk.session?.id;
   const otherSessions = sessions.filter((s) => s.id !== currentSessionId);
 
+  // Listen for auth events from Electron popup so modal closes seamlessly
+  React.useEffect(() => {
+    if (!isOpen) return;
+
+    const unsubCompleted = window.electronAPI?.onAuthCompleted?.(() => {
+      setLoadingStrategy(null);
+      onClose();
+    });
+
+    const unsubClosed = window.electronAPI?.onAuthPopupClosed?.(() => {
+      setLoadingStrategy(null);
+    });
+
+    return () => {
+      unsubCompleted?.();
+      unsubClosed?.();
+    };
+  }, [isOpen, onClose]);
+
   // Extract active provider for display
   const activeProvider =
     typeof window !== 'undefined' && typeof window.localStorage?.getItem === 'function'

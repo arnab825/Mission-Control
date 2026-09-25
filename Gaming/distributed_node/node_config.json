@@ -1,11 +1,11 @@
 {
-  "nodeId": "NODE-0F6642",
-  "name": "ARNAB-TECH-2026",
+  "nodeId": "NODE-000000",
+  "name": "My-Gaming-Rig",
   "serverUrl": "https://mission-control-wz0l.onrender.com",
   "azureServerUrl": "https://mission-control-service-g7hfgye5hcamc9f2.centralindia-01.azurewebsites.net",
   "backupServerUrl": "https://mission-control-server-okj7.onrender.com",
-  "token": "HeC_YlBQ_wHg4e1pYbIBcb15XV1F-NTHSVRY6xxB4lY",
-  "clerkId": "user_3E7zwiWrt7XmjYOwMAbdwmo7psq",
+  "token": "",
+  "clerkId": "",
   "authProvider": "",
   "scanPaths": [
     "C:\\Games",

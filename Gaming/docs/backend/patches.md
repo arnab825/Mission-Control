@@ -2,6 +2,12 @@
 
 This document contains a detailed history of all patches and updates for the AI Gaming Assistant.
 
+### Patch: 2026-09-25 — v3.7.1: OAuth Popup Handshake Fix & Secret Sanitization
+
+- Resolved OAuth popup infinite spinning and non-reactive redirection in Account Switcher
+- Purged exposed NVIDIA API key and personal node tokens from tracked repository files
+- Verified standalone Next.js deployment and updated Azure credentials
+
 ### Patch: 2026-09-25 — v3.7.0: Security Patch & Version Update Fix
 
 - Purged leaked keys

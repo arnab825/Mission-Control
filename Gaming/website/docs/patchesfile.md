@@ -2,6 +2,23 @@
 
 This document contains a detailed history of all patches and updates for the AI Gaming Assistant.
 
+### Patch: 2026-09-25 — v3.7.1: OAuth Popup Handshake Fix & Secret Sanitization
+
+- Resolved OAuth popup infinite spinning and non-reactive redirection in Account Switcher
+- Purged exposed NVIDIA API key and personal node tokens from tracked repository files
+- Verified standalone Next.js deployment and updated Azure credentials
+
+### Patch: 2026-09-25 — v3.7.0: Security Patch & Version Update Fix
+
+- Purged leaked keys
+- Fixed version update installer semver guard
+- Fixed NSIS installer build
+
+### Patch: 2026-09-25 — v3.6.9: Fixed NSIS installer build failure
+
+- Fixed NSIS installer build failure
+- Installer window centering removed to fix fatal NSIS warning 6010 in two-pass build
+
 ### Patch: 2026-09-08 — v3.6.1: Rockstar Games Launcher HUD Exclusion & Voice Agent DLSS Sanitization
 
 - Resolved Rockstar Games Launcher (`Launcher.exe`) falsely triggering the in-game HUD overlay and FPS readings

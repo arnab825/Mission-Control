@@ -964,6 +964,26 @@ function openAuthPopupWindow(targetUrl: string): Promise<{ success: boolean; err
         return { action: 'deny' };
       });
 
+      authWindow.webContents.on('did-navigate', (_event, url) => {
+        if (url && url.includes('auth_completed=1')) {
+          console.log('[Electron] authWindow navigated to auth_completed=1 — closing popup.');
+          closeAuthWindow();
+          if (win && !win.isDestroyed()) {
+            win.webContents.send('auth-completed');
+          }
+        }
+      });
+
+      authWindow.webContents.on('did-navigate-in-page', (_event, url) => {
+        if (url && url.includes('auth_completed=1')) {
+          console.log('[Electron] authWindow in-page navigated to auth_completed=1 — closing popup.');
+          closeAuthWindow();
+          if (win && !win.isDestroyed()) {
+            win.webContents.send('auth-completed');
+          }
+        }
+      });
+
       authWindow.once('ready-to-show', () => {
         if (authWindow && !authWindow.isDestroyed()) {
           authWindow.show();

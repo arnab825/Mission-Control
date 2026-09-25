@@ -96,9 +96,9 @@ jobs:
       - name: Login to Azure
         uses: azure/login@v2
         with:
-          client-id: ${{ secrets.AZURE_CLIENT_ID || secrets.AZUREAPPSERVICE_CLIENTID_A6EEEEFF61A44DC4848BBD877F94CA28 }}
-          tenant-id: ${{ secrets.AZURE_TENANT_ID || secrets.AZUREAPPSERVICE_TENANTID_228CFBF26CDB4FA9A2BA2699FCA1C94E }}
-          subscription-id: ${{ secrets.AZURE_SUBSCRIPTION_ID || secrets.AZUREAPPSERVICE_SUBSCRIPTIONID_3A6EDBDC567D4F70BCBA27F173CEF944 }}
+          client-id: ${{ secrets.AZUREAPPSERVICE_CLIENTID_A6EEEEFF61A44DC4848BBD877F94CA28 }}
+          tenant-id: ${{ secrets.AZUREAPPSERVICE_TENANTID_228CFBF26CDB4FA9A2BA2699FCA1C94E }}
+          subscription-id: ${{ secrets.AZUREAPPSERVICE_SUBSCRIPTIONID_3A6EDBDC567D4F70BCBA27F173CEF944 }}
 
       - name: Clear stale Kudu deployment lock
         run: |

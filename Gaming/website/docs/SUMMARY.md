@@ -82,7 +82,8 @@ graph TD
 
 | Version | Key Feature / Change Description |
 | :--- | :--- |
-| **v3.7.0 (Latest)** | **Security Patch & Version Update Fix** — Purged leaked keys. |
+| **v3.7.1 (Latest)** | **OAuth Popup Handshake Fix & Secret Sanitization** — Resolved OAuth popup infinite spinning and non-reactive redirection in Account Switcher, ensuring a seamless user experience. |
+| **v3.7.0** | **Security Patch & Version Update Fix** — Purged leaked keys. |
 | **v3.7.0** | **Security Patch & Version Update Fix** — Mission Control v3.7.0 addresses critical security vulnerabilities and resolves key functionality issues. |
 | **v3.6.9** | **Fixed NSIS installer build failure** — Fixed NSIS installer build failure. |
 | **v3.6.9** | **Fixed Version Not Updating After Install** — This release fixes issues with installer version updates, ensuring correct versioning and UI updates after installation changes. |

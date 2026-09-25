@@ -1,8 +1,18 @@
 {
-  "version": "3.7.0",
-  "release_date": "2026-09-24",
+  "version": "3.7.1",
+  "release_date": "2026-09-25",
   "update_check_url": "https://raw.githubusercontent.com/arnab825/Mission-Control/main/Gaming/backend/version.json",
   "changelog": [
+    {
+      "version": "3.7.1",
+      "date": "2026-09-25",
+      "title": "OAuth Popup Handshake Fix & Secret Sanitization",
+      "highlights": [
+        "Resolved OAuth popup infinite spinning and non-reactive redirection in Account Switcher",
+        "Purged exposed NVIDIA API key and personal node tokens from tracked repository files",
+        "Verified standalone Next.js deployment and updated Azure credentials"
+      ]
+    },
     {
       "version": "3.7.0",
       "date": "2026-09-25",
@@ -534,18 +544,6 @@
         "Resolved OpenCV cv2 config loader missing module errors in PyInstaller backend packaging",
         "Dynamic multi-environment package directory discovery fallback for rapidocr and cv2",
         "Verified clean frontend and website production builds"
-      ]
-    },
-    {
-      "version": "3.2.3",
-      "date": "2026-08-19",
-      "title": "Fix First-Launch Setup Loading & Backend Process Startup Loop",
-      "highlights": [
-        "Resolved cascading backend kill-restart loop during cold boot and first launch",
-        "Standardized WebSocket bridge host to 127.0.0.1 to avoid Windows dual-stack socket collisions",
-        "Added concurrency mutex and graceful process management in Electron main process",
-        "Enabled full stdout and stderr traceback forwarding to app.log in production",
-        "Added persistent local app data directory creation in NSIS installer"
       ]
     }
   ]

@@ -463,7 +463,25 @@ const App: React.FC = () => {
     );
   }
 
-  if (isAuthPopup || isAuthCompleted) {
+  if (isAuthCompleted) {
+    return (
+      <div className="w-screen h-screen flex flex-col items-center justify-center bg-zinc-950 text-white font-['Inter',system-ui,sans-serif] p-6 select-none">
+        <div className="relative w-16 h-16 flex items-center justify-center mb-4 rounded-full bg-neon-green/10 border border-neon-green/30 text-neon-green shadow-[0_0_30px_rgba(118,185,0,0.2)]">
+          <svg className="w-8 h-8" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M5 13l4 4L19 7" />
+          </svg>
+        </div>
+        <h2 className="text-sm font-black uppercase tracking-widest text-zinc-200 mb-1">
+          Authentication Successful
+        </h2>
+        <p className="text-xs text-zinc-400 font-medium">
+          Returning to Mission Control…
+        </p>
+      </div>
+    );
+  }
+
+  if (isAuthPopup) {
     const params = new URLSearchParams(window.location.search);
     const strategyName = params.get('strategy') === 'oauth_discord' ? 'Discord' : 'Google';
     return (

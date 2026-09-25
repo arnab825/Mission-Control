@@ -112,7 +112,7 @@ const API_EXAMPLES: ApiEndpointExample[] = [
       },
       storage_total_gb: 4096,
       storage_free_gb: 1840,
-      auth_token: "node_sec_994b2fe1a87c"
+      auth_token: "node_sec_example_mock_token"
     },
     responseBody: {
       success: true,
