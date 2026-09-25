@@ -5,7 +5,7 @@ import connectDB from "@/lib/mongodb";
 import GamingPost from "@/models/GamingPost";
 import fs from "fs";
 import path from "path";
-import { handleApiError } from "@/lib/api-validation";
+import { handleApiError, escapeRegex } from "@/lib/api-validation";
 
 export async function GET(request: Request) {
   try {
@@ -57,12 +57,13 @@ export async function GET(request: Request) {
     // 2. Search MongoDB Gaming Intel Posts
     try {
       await connectDB();
+      const safeRegex = escapeRegex(query);
       const dbPosts = await GamingPost.find({
         $or: [
-          { title: { $regex: query, $options: "i" } },
-          { excerpt: { $regex: query, $options: "i" } },
-          { tags: { $regex: query, $options: "i" } },
-          { category: { $regex: query, $options: "i" } },
+          { title: { $regex: safeRegex, $options: "i" } },
+          { excerpt: { $regex: safeRegex, $options: "i" } },
+          { tags: { $regex: safeRegex, $options: "i" } },
+          { category: { $regex: safeRegex, $options: "i" } },
         ],
       }).limit(8).lean();
 

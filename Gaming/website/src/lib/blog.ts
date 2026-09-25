@@ -9,7 +9,7 @@ export function parseBlogDate(dateStr: any): Date {
   
   if (dateStr instanceof Date) return isNaN(dateStr.getTime()) ? new Date() : dateStr;
   
-  let str = String(dateStr);
+  const str = String(dateStr);
   
   // Clean string and check for IST timezone
   let cleanStr = str.trim();

@@ -1,6 +1,6 @@
 import connectDB from "./mongodb";
-import BenchmarkModel, { IBenchmark } from "@/models/Benchmark";
-import GameRatingModel, { IGameRating } from "@/models/GameRating";
+import BenchmarkModel from "@/models/Benchmark";
+import GameRatingModel from "@/models/GameRating";
 import {
   BENCHMARK_PROFILES,
   TESTED_GAMES_LIST,

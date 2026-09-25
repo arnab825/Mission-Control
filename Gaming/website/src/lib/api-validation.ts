@@ -7,7 +7,7 @@ export const ContactSchema = z.object({
   email: z.string().trim().email("Invalid email address").max(254, "Email too long"),
   subject: z.string().trim().max(150, "Subject too long").default("General Support Inquiry"),
   message: z.string().trim().min(5, "Message must be at least 5 characters").max(5000, "Message too long"),
-});
+}).strict();
 
 // ── Issue Tracker Schemas ────────────────────────────────────────────────────
 export const IssueSpecsSchema = z.object({
@@ -18,7 +18,7 @@ export const IssueSpecsSchema = z.object({
   gpuDriver: z.string().trim().max(100).default("Unknown"),
   ramGB: z.coerce.number().positive("RAM must be positive").max(1024, "RAM exceeds realistic boundary"),
   appVersion: z.string().trim().min(1, "App Version is required").max(50),
-});
+}).strict();
 
 export const IssueCreateSchema = z.object({
   title: z.string().trim().min(3, "Title must be at least 3 characters").max(150, "Title too long"),
@@ -27,19 +27,26 @@ export const IssueCreateSchema = z.object({
   game: z.string().trim().max(100).default("General System"),
   author: z.string().trim().max(100).default("Operator"),
   specs: IssueSpecsSchema,
-});
+}).strict();
 
 export const IssueVoteSchema = z.object({
   issueId: z.string().trim().min(1, "Issue ID is required").max(64, "Invalid issue ID length"),
   voteType: z.enum(["up", "down"]),
-});
+}).strict();
 
 // ── Newsletter Subscription Schema ───────────────────────────────────────────
 export const SubscribeSchema = z.object({
   email: z.string().trim().email("Invalid email address format").max(254, "Email too long"),
-});
+}).strict();
 
 // ── Support Chat Schema ──────────────────────────────────────────────────────
+export const SupportChatMessageSchema = z.object({
+  id: z.string().max(100).optional(),
+  sender: z.enum(["user", "assistant", "system", "model"]),
+  text: z.string().max(10000),
+  timestamp: z.string().max(50).optional(),
+}).strict();
+
 export const SupportChatSchema = z.object({
   message: z.string().trim().max(4000, "Message exceeds 4000 characters limit").default(""),
   name: z.string().trim().min(1, "Name is required").max(100, "Name too long"),
@@ -47,13 +54,14 @@ export const SupportChatSchema = z.object({
   sessionId: z.string().trim().max(100).optional(),
   gender: z.enum(["male", "female", "unspecified"]).default("unspecified"),
   subscribeWeekly: z.boolean().default(true),
-});
+  fullHistory: z.array(SupportChatMessageSchema).max(50).optional(),
+}).strict();
 
 // ── Benchmark Rating Schemas ─────────────────────────────────────────────────
 export const BenchmarkVoteSchema = z.object({
   ratingId: z.string().trim().min(1, "Rating ID is required").max(64),
   voteType: z.enum(["up", "down"]),
-});
+}).strict();
 
 export const BenchmarkRatingCreateSchema = z.object({
   gameSlug: z.string().trim().min(1, "Game slug is required").max(100),
@@ -63,7 +71,65 @@ export const BenchmarkRatingCreateSchema = z.object({
   preset: z.string().trim().max(50).optional(),
   comment: z.string().trim().max(1000).optional(),
   specs: z.record(z.string(), z.unknown()).optional(),
-});
+}).strict();
+
+export const GameRatingSpecsSchema = z.object({
+  gpu: z.string().trim().min(1, "GPU is required").max(100),
+  cpu: z.string().trim().min(1, "CPU is required").max(100),
+  ramGB: z.coerce.number().min(1).max(1024).default(16),
+  resolution: z.string().trim().max(50).default("1440p"),
+  fpsReported: z.coerce.number().min(0).max(1000).default(60),
+  os: z.string().trim().max(100).default("Windows 11"),
+  presetUsed: z.string().trim().max(100).default("Optimal Preset"),
+}).strict();
+
+export const GameRatingMediaItemSchema = z.object({
+  url: z.string().trim().min(1, "Media url is required").max(2000),
+  type: z.enum(["image", "gif", "video"]),
+  name: z.string().trim().max(100).optional(),
+}).strict();
+
+export const GameRatingCreateSchema = z.object({
+  gameId: z.string().trim().min(1, "gameId is required").max(100),
+  gameName: z.string().trim().min(1, "gameName is required").max(150),
+  userName: z.string().trim().max(100).default("Aero Operator"),
+  rating: z.coerce.number().int("Rating must be an integer").min(1).max(5),
+  title: z.string().trim().min(1, "title is required").max(120),
+  review: z.string().trim().min(1, "review is required").max(2000),
+  specs: GameRatingSpecsSchema,
+  media: z.array(GameRatingMediaItemSchema).max(10).optional().default([]),
+  recommend: z.boolean().default(true),
+}).strict();
+
+export const GameRatingVoteSchema = z.object({
+  ratingId: z.string().trim().min(1, "ratingId is required").max(64),
+  voterId: z.string().trim().max(64).default("anonymous"),
+}).strict();
+
+// ── Issue Diagnostic Schema ──────────────────────────────────────────────────
+export const DiagnoseSpecsSchema = z.object({
+  os: z.string().trim().max(100).optional(),
+  osVersion: z.string().trim().max(100).optional(),
+  cpu: z.string().trim().max(150).optional(),
+  gpu: z.string().trim().max(150).optional(),
+  gpuDriver: z.string().trim().max(100).optional(),
+  ramGB: z.coerce.number().max(1024).optional(),
+  appVersion: z.string().trim().max(50).optional(),
+}).strict();
+
+export const DiagnoseMetricsSchema = z.object({
+  fps: z.coerce.number().max(1000).optional(),
+  vramUsed: z.coerce.number().max(131072).optional(),
+  cpuPct: z.coerce.number().max(100).optional(),
+  gpuTemp: z.coerce.number().max(150).optional(),
+}).strict();
+
+export const DiagnoseSchema = z.object({
+  rawError: z.string().trim().max(5000).optional().default(""),
+  game: z.string().trim().max(150).optional().default("General System"),
+  specs: DiagnoseSpecsSchema.optional().default({}),
+  metrics: DiagnoseMetricsSchema.optional().default({}),
+}).strict();
 
 // ── Download Type Schema ─────────────────────────────────────────────────────
 export const DownloadTypeSchema = z.enum([
@@ -94,7 +160,12 @@ export const BlobQuerySchema = z.object({
     .max(256, "Pathname exceeds 256 characters")
     .regex(/^[a-zA-Z0-9_./-]+$/, "Invalid characters in pathname")
     .refine((val) => !val.includes(".."), "Directory traversal sequences not permitted"),
-});
+}).strict();
+
+// ── Utility to Escape Regex Inputs ───────────────────────────────────────────
+export function escapeRegex(str: string): string {
+  return str.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
+}
 
 // ── Per-Account Dynamic Rate Limiter with Exponential Backoff ────────────────
 interface AccountRateRecord {
@@ -122,7 +193,7 @@ export function checkAccountRateLimit(
 
   const now = Date.now();
   const normalizedKey = accountKey.trim().toLowerCase();
-  let record = accountStore.get(normalizedKey);
+  const record = accountStore.get(normalizedKey);
 
   if (!record) {
     accountStore.set(normalizedKey, {

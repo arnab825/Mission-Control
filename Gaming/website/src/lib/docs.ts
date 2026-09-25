@@ -96,11 +96,11 @@ export async function getAllDocs(): Promise<DocData[]> {
           const fallback = METADATA_FALLBACKS[slug] || {};
           
           let title = matterResult.data.title || fallback.title;
-          let category = matterResult.data.category || fallback.category || "Documentation";
+          const category = matterResult.data.category || fallback.category || "Documentation";
           let content = matterResult.content;
           let excerpt = matterResult.data.excerpt || "";
-          let badge = matterResult.data.badge || fallback.badge || "";
-          let badgeColor = matterResult.data.badgeColor || fallback.badgeColor || "";
+          const badge = matterResult.data.badge || fallback.badge || "";
+          const badgeColor = matterResult.data.badgeColor || fallback.badgeColor || "";
 
           if (!title) {
             const match = content.match(/^#\s+(.*)/m);
@@ -154,7 +154,7 @@ export async function getAllDocs(): Promise<DocData[]> {
     // 2. Fallback to MongoDB query if no local files found
     try {
       await connectDB();
-      let docs = await DocModel.find({}).sort({ order: 1 }).lean();
+      const docs = await DocModel.find({}).sort({ order: 1 }).lean();
 
       if (docs && docs.length > 0) {
         const result = docs.map((d: any) => ({

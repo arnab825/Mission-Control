@@ -24,8 +24,9 @@ export async function GET(request: Request) {
     const mongooseInstance = await connectDB();
     const isReady = mongooseInstance.connection.readyState === 1;
     results.services.mongodb = { status: isReady ? "active" : "connecting", readyState: mongooseInstance.connection.readyState };
-  } catch (err: any) {
-    results.services.mongodb = { status: "error", error: err?.message || String(err) };
+  } catch (err: unknown) {
+    console.error("[Keepalive] MongoDB check failed:", err);
+    results.services.mongodb = { status: "error", message: "Database connection check failed." };
   }
 
   // 2. Ping Render Cloud Distributed Server to keep it warm (if configured)
@@ -40,8 +41,9 @@ export async function GET(request: Request) {
         status: res.ok ? "active" : "degraded",
         http_status: res.status,
       };
-    } catch (err: any) {
-      results.services.distributed_server = { status: "timeout_or_error", error: err?.message || String(err) };
+    } catch (err: unknown) {
+      console.error("[Keepalive] Distributed server check failed:", err);
+      results.services.distributed_server = { status: "timeout_or_error", message: "Remote service ping timed out or failed." };
     }
   }
 
@@ -60,8 +62,9 @@ export async function GET(request: Request) {
         status: res.ok ? "active" : "degraded",
         http_status: res.status,
       };
-    } catch (err: any) {
-      results.services.supabase = { status: "error", error: err?.message || String(err) };
+    } catch (err: unknown) {
+      console.error("[Keepalive] Supabase check failed:", err);
+      results.services.supabase = { status: "error", message: "Supabase connection check failed." };
     }
   }
 

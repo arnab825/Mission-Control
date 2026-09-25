@@ -1,40 +1,23 @@
 import { NextResponse } from "next/server";
-import { handleApiError } from "@/lib/api-validation";
-
-interface DiagnosePayload {
-  rawError?: string;
-  game?: string;
-  specs?: {
-    os?: string;
-    osVersion?: string;
-    cpu?: string;
-    gpu?: string;
-    gpuDriver?: string;
-    ramGB?: number;
-    appVersion?: string;
-  };
-  metrics?: {
-    fps?: number;
-    vramUsed?: number;
-    cpuPct?: number;
-    gpuTemp?: number;
-  };
-}
+import { handleApiError, validateRequestBody, DiagnoseSchema } from "@/lib/api-validation";
 
 export async function POST(request: Request) {
   try {
-    const body: DiagnosePayload = await request.json();
-    const rawError = (body.rawError || "").trim();
-    const targetGame = (body.game || "General System").trim();
-    const specs = body.specs || {};
-    const metrics = body.metrics || {};
+    const rawBody = await request.json();
+    const validation = validateRequestBody(DiagnoseSchema, rawBody);
+    if (!validation.success) {
+      return validation.response;
+    }
 
-    const gpu = specs.gpu || "NVIDIA GeForce GPU";
-    const cpu = specs.cpu || "Multi-Core Processor";
-    const ram = specs.ramGB ? `${specs.ramGB} GB RAM` : "16 GB RAM";
-    const os = specs.os || "Windows 11";
-    const driver = specs.gpuDriver || "Latest Available";
-    const appVer = specs.appVersion || "v3.6.1";
+    const { rawError, game, specs, metrics } = validation.data;
+    const targetGame = game;
+
+    const gpu = specs?.gpu || "NVIDIA GeForce GPU";
+    const cpu = specs?.cpu || "Multi-Core Processor";
+    const ram = specs?.ramGB ? `${specs.ramGB} GB RAM` : "16 GB RAM";
+    const os = specs?.os || "Windows 11";
+    const driver = specs?.gpuDriver || "Latest Available";
+    const appVer = specs?.appVersion || "v3.6.1";
 
     const prompt = `You are the Lead Systems & Graphics Engine Diagnostic AI for Mission Control in 2026.
 A PC gamer encountered a hardware/software problem and needs an authoritative, technical bug report draft for the developer triage board.

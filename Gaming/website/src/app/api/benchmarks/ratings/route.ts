@@ -1,13 +1,13 @@
 import { NextResponse } from "next/server";
 import { getGameRatings, getRatingSummary, createGameRating } from "@/lib/benchmarks-db";
-import { handleApiError } from "@/lib/api-validation";
+import { handleApiError, validateRequestBody, GameRatingCreateSchema } from "@/lib/api-validation";
 
 export async function GET(request: Request) {
   try {
     const { searchParams } = new URL(request.url);
     const gameId = searchParams.get("gameId") || undefined;
     const sortBy = (searchParams.get("sortBy") as "top" | "latest") || "top";
-    const limit = parseInt(searchParams.get("limit") || "50", 10);
+    const limit = Math.min(100, Math.max(1, parseInt(searchParams.get("limit") || "50", 10) || 50));
 
     const [ratings, summary] = await Promise.all([
       getGameRatings(gameId, sortBy, limit),
@@ -22,55 +22,35 @@ export async function GET(request: Request) {
 
 export async function POST(request: Request) {
   try {
-    const body = await request.json();
-    const { gameId, gameName, userName, rating, title, review, specs, media, recommend } = body;
-
-    // Validation
-    if (!gameId || !gameName || !title || !review || !rating) {
-      return NextResponse.json(
-        { error: "Missing required fields: gameId, gameName, title, review, rating" },
-        { status: 400 }
-      );
+    const rawBody = await request.json();
+    const validation = validateRequestBody(GameRatingCreateSchema, rawBody);
+    if (!validation.success) {
+      return validation.response;
     }
 
-    const numRating = Number(rating);
-    if (isNaN(numRating) || numRating < 1 || numRating > 5) {
-      return NextResponse.json(
-        { error: "Rating must be an integer between 1 and 5" },
-        { status: 400 }
-      );
-    }
+    const { gameId, gameName, userName, rating, title, review, specs, media, recommend } = validation.data;
 
-    if (!specs || !specs.gpu || !specs.cpu) {
-      return NextResponse.json(
-        { error: "Hardware specifications (gpu, cpu) are required" },
-        { status: 400 }
-      );
-    }
-
-    const formattedMedia = Array.isArray(media)
-      ? media.map((m: any) => ({
-          url: String(m.url),
-          type: m.type === "video" ? ("video" as const) : m.type === "gif" ? ("gif" as const) : ("image" as const),
-          name: m.name ? String(m.name).slice(0, 100) : undefined,
-        }))
-      : [];
+    const formattedMedia = (media || []).map((m) => ({
+      url: m.url,
+      type: m.type,
+      name: m.name,
+    }));
 
     const newRating = await createGameRating({
       gameId,
       gameName,
-      userName: userName ? String(userName).trim().slice(0, 40) : "Aero Operator",
-      rating: Math.round(numRating),
-      title: String(title).trim().slice(0, 120),
-      review: String(review).trim().slice(0, 2000),
+      userName: userName || "Aero Operator",
+      rating: Math.round(rating),
+      title,
+      review,
       specs: {
-        gpu: String(specs.gpu).trim(),
-        cpu: String(specs.cpu).trim(),
-        ramGB: Number(specs.ramGB) || 16,
-        resolution: specs.resolution || "1440p",
-        fpsReported: Number(specs.fpsReported) || 60,
-        os: specs.os || "Windows 11",
-        presetUsed: specs.presetUsed || "Optimal Preset",
+        gpu: specs.gpu,
+        cpu: specs.cpu,
+        ramGB: specs.ramGB,
+        resolution: specs.resolution,
+        fpsReported: specs.fpsReported,
+        os: specs.os,
+        presetUsed: specs.presetUsed,
       },
       media: formattedMedia,
       recommend: recommend !== false,

@@ -42,7 +42,7 @@ export function convertAsciiToMermaid(text: string): string {
   const links: { from: string; to: string; label?: string }[] = [];
 
   const addNode = (rawText: string) => {
-    let clean = rawText
+    const clean = rawText
       .replace(/^[\+\-\|\=\s]+|[\+\-\|\=\s]+$/g, "")
       .replace(/^\[+|\]+$/g, "")
       .replace(/^\(+|\)+$/g, "")
