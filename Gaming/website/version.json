@@ -1,8 +1,19 @@
 {
-  "version": "3.7.4",
+  "version": "3.7.5",
   "release_date": "2026-09-25",
   "update_check_url": "https://raw.githubusercontent.com/arnab825/Mission-Control/main/Gaming/backend/version.json",
   "changelog": [
+    {
+      "version": "3.7.5",
+      "date": "2026-09-25",
+      "title": "Fixed Provider Link Security Dialog & Re-auth Flow",
+      "highlights": [
+        "Replaced blocking native OS alert popups with inline tactical banners across all provider link and unlink operations",
+        "Added pre-flight token refresh and auto-retry to handleLinkProvider",
+        "Added one-click Sign Out & Re-authenticate and Switch Account action buttons",
+        "Increased distributed node registration timeout for cloud server cold starts"
+      ]
+    },
     {
       "version": "3.7.4",
       "date": "2026-09-25",
@@ -538,16 +549,6 @@
         "Added try/except cv2 import guards in scene_classifier, simple_rules, and trt_inference with graceful NumPy/PIL fallbacks",
         "Guarded all cv2 window management and frame encoding calls in pipeline_host to prevent AttributeError and NoneType crashes",
         "Fixed dangling self._render_preview() call in _display_loop that caused AttributeError at runtime"
-      ]
-    },
-    {
-      "version": "3.2.7",
-      "date": "2026-08-22",
-      "title": "Distributed Server Agent and Vision Connection Integration",
-      "highlights": [
-        "Connected Agent and Vision UI pages to the central distributed library server with live node telemetry updates",
-        "Added Library Server online/offline pipeline status badges and stats panel overlays",
-        "Configured backend game scanner to fall back to distributed library server catalog API when direct DB access is unavailable"
       ]
     }
   ]

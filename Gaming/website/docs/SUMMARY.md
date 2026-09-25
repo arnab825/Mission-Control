@@ -82,7 +82,8 @@ graph TD
 
 | Version | Key Feature / Change Description |
 | :--- | :--- |
-| **v3.7.4 (Latest)** | **Fixed Account Unlink Flow & Redesigned Settings Navigation** — Mission Control v3.7.4 enhances user experience with improved account unlink flow, redesigned settings navigation, and optimized error handling. |
+| **v3.7.5 (Latest)** | **Fixed Provider Link Security Dialog & Re-auth Flow** — Enhanced provider link security and re-authentication flow with improved user experience and reliability. |
+| **v3.7.4** | **Fixed Account Unlink Flow & Redesigned Settings Navigation** — Mission Control v3.7.4 enhances user experience with improved account unlink flow, redesigned settings navigation, and optimized error handling. |
 | **v3.7.3** | **Fixed Account Unlink Flow & Redesigned Settings Navigation** — Mission Control v3.7.3 enhances user experience with improved account unlink flow and redesigned settings navigation. |
 | **v3.7.2** | **Seamless OAuth Handshake & Account Switcher Flow** — Resolved OAuth popup infinite spinning and non-reactive redirection in Account Switcher |
 | **v3.7.1** | **OAuth Popup Handshake Fix & Secret Sanitization** — Resolved OAuth popup infinite spinning and non-reactive redirection in Account Switcher, ensuring a seamless user experience. |

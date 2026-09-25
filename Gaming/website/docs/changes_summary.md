@@ -22,7 +22,20 @@ Comprehensive breakdown of major milestone releases, architectural upgrades, and
 
 ---
 
-## 🌟 Version v3.7.4 (Latest) — Fixed Account Unlink Flow & Redesigned Settings Navigation
+## 🌟 Version v3.7.5 (Latest) — Fixed Provider Link Security Dialog & Re-auth Flow
+
+### 🛠️ Key Highlights
+1. **Replaced blocking native OS alert popups with inline tactical banners for provider link and unlink operations.**
+2. **Added pre-flight token refresh and auto-retry to handleLinkProvider for improved reliability.**
+3. **Introduced one-click Sign Out & Re-authenticate and Switch Account action buttons for streamlined user experience.**
+
+### 📦 Distribution Artifacts
+- **Linux**: `.deb` (Debian/Ubuntu), `.AppImage` (Universal), `.rpm` (Fedora/RHEL), `.tar.gz` (Portable)
+- **Windows**: `.exe` (Setup Installer), `.msi` (Enterprise), `.zip` (Portable)
+
+---
+
+## 📦 Version v3.7.4 — Fixed Account Unlink Flow & Redesigned Settings Navigation
 
 ### 🛠️ Key Highlights
 1. **Fixed provider unlink failing with 'additional verification' error by adding session token refresh and auto-retry.**
