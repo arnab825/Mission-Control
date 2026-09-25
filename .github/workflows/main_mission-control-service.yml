@@ -173,3 +173,4 @@ jobs:
             unzip -q -o azure-logs.zip -d azure-logs 2>/dev/null || true
             find azure-logs -type f \( -name "*docker.log" -o -name "*default_docker.log" \) -exec echo "=== LOG FILE: {} ===" \; -exec sed -E 's/(mongodb(\+srv)?:\/\/[^:]+:)[^@]+@/\1***@/gI; s/(password|secret|key|token)=[^ &]+/ \1=***/gI' {} \; -exec tail -n 80 {} \; 2>/dev/null || true
           fi
+          
