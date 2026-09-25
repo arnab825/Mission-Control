@@ -9,15 +9,11 @@ on:
       - main
   workflow_dispatch:
 
-concurrency:
-  group: mission-control-service-production
-  cancel-in-progress: false
-
 jobs:
   build:
     runs-on: ubuntu-latest
     permissions:
-      contents: read
+      contents: read #This is required for actions/checkout
 
     steps:
       - uses: actions/checkout@v4
@@ -25,67 +21,20 @@ jobs:
       - name: Set up Node.js version
         uses: actions/setup-node@v3
         with:
-          node-version: '20.x'
-
-      - name: npm install and build
-        working-directory: Gaming/website
-        env:
-          MONGODB_URI: ${{ secrets.MONGODB_URI }}
-          NEXT_PUBLIC_SITE_URL: "https://mission-control-service-g7hfgye5hcamc9f2.centralindia-01.azurewebsites.net"
-        run: |
-          npm install
-          npm run build --if-present
-
-      - name: Prepare Standalone Deployment Directory
-        working-directory: Gaming/website
-        run: |
-          rm -rf ../../deploy-pkg
-          mkdir -p ../../deploy-pkg/.next
-          if [ -d .next/standalone/Gaming/website ]; then
-            cp -r .next/standalone/Gaming/website/. ../../deploy-pkg/
-            cp -rn .next/standalone/node_modules ../../deploy-pkg/ 2>/dev/null || true
-          else
-            cp -r .next/standalone/. ../../deploy-pkg/
-          fi
-          cp -r .next/static ../../deploy-pkg/.next/static
-          cp -r public ../../deploy-pkg/public
-          
-          echo "=== Deploy Package Contents ==="
-          ls -la ../../deploy-pkg
-          echo "=== Deploy Package .next Contents ==="
-          ls -la ../../deploy-pkg/.next
-
-      - name: Verify Standalone Server Runs
-        run: |
-          cd deploy-pkg
-          PORT=3000 node server.js &
-          SERVER_PID=$!
-          sleep 4
-          if kill -0 $SERVER_PID 2>/dev/null; then
-            echo "Standalone server started successfully!"
-            kill $SERVER_PID
-          else
-            echo "Standalone server failed to start!"
-            exit 1
-          fi
-
-      - name: Create deployment ZIP package
-        run: |
-          cd deploy-pkg
-          zip -r ../node-app.zip .
+          node-version: '22.x'
 
       - name: Upload artifact for deployment job
         uses: actions/upload-artifact@v4
         with:
           name: node-app
-          path: node-app.zip
+          path: .
 
   deploy:
     runs-on: ubuntu-latest
     needs: build
     permissions:
-      id-token: write
-      contents: read
+      id-token: write #This is required for requesting the JWT
+      contents: read #This is required for actions/checkout
 
     steps:
       - name: Download artifact from build job
@@ -96,80 +45,15 @@ jobs:
       - name: Login to Azure
         uses: azure/login@v2
         with:
-          client-id: ${{ secrets.AZURE_CLIENT_ID }}
-          tenant-id: ${{ secrets.AZURE_TENANT_ID }}
-          subscription-id: ${{ secrets.AZURE_SUBSCRIPTION_ID }}
+          client-id: ${{ secrets.AZUREAPPSERVICE_CLIENTID_A6EEEEFF61A44DC4848BBD877F94CA28 }}
+          tenant-id: ${{ secrets.AZUREAPPSERVICE_TENANTID_228CFBF26CDB4FA9A2BA2699FCA1C94E }}
+          subscription-id: ${{ secrets.AZUREAPPSERVICE_SUBSCRIPTIONID_3A6EDBDC567D4F70BCBA27F173CEF944 }}
 
-      - name: Clear stale Kudu deployment lock
-        run: |
-          echo "Deleting any active deployment markers..."
-          az rest --method DELETE \
-            --url "https://mission-control-service.scm.azurewebsites.net/api/deployments" \
-            --skip-authorization-header 2>/dev/null || true
-
-      - name: Configure App Settings
-        env:
-          MONGODB_URI: ${{ secrets.MONGODB_URI }}
-        run: |
-          az webapp config appsettings set \
-            --resource-group "mission-control-rg" \
-            --name mission-control-service \
-            --settings \
-              HOSTNAME=0.0.0.0 \
-              NODE_ENV=production \
-              PORT=8080 \
-              WEBSITES_PORT=8080 \
-              SCM_DO_BUILD_DURING_DEPLOYMENT=false \
-              MONGODB_URI="$MONGODB_URI" \
-            --output none
-
-      - name: Deploy ZIP to App Service
-        run: |
-          echo "Deploying ZIP package with fast non-blocking upload..."
-          az webapp deploy \
-            --resource-group "mission-control-rg" \
-            --name mission-control-service \
-            --src-path node-app.zip \
-            --type zip \
-            --clean true \
-            --restart false \
-            --async true \
-            --track-status false
-
-      - name: Set startup command and start app
-        run: |
-          az webapp config set \
-            --resource-group "mission-control-rg" \
-            --name mission-control-service \
-            --startup-file "node server.js"
+      - name: 'Deploy to Azure Web App'
+        id: deploy-to-webapp
+        uses: azure/webapps-deploy@v3
+        with:
+          app-name: 'mission-control-service'
+          slot-name: 'Production'
+          package: .
           
-          echo "Starting web app..."
-          az webapp start --resource-group "mission-control-rg" --name mission-control-service
-          
-          echo "Restarting app to boot container..."
-          az webapp restart --resource-group "mission-control-rg" --name mission-control-service
-
-      - name: Warmup and Health Check
-        run: |
-          echo "Polling app health (waiting for container warmup)..."
-          for i in {1..12}; do
-            HTTP_STATUS=$(curl -s -o /dev/null -w "%{http_code}" \
-              "https://mission-control-service-g7hfgye5hcamc9f2.centralindia-01.azurewebsites.net/" || echo "000")
-            echo "Attempt $i: HTTP $HTTP_STATUS"
-            if [ "$HTTP_STATUS" = "200" ] || [ "$HTTP_STATUS" = "301" ] || [ "$HTTP_STATUS" = "302" ]; then
-              echo "App is healthy and responding!"
-              exit 0
-            fi
-            sleep 10
-          done
-          echo "App did not respond with 200 within 120 seconds. Fetching container logs..."
-
-      - name: Fetch Azure Diagnostics
-        if: failure()
-        run: |
-          echo "Fetching Azure App Service logs on deployment failure..."
-          az webapp log download --resource-group "mission-control-rg" --name mission-control-service --log-file azure-logs.zip 2>/dev/null || true
-          if [ -f azure-logs.zip ]; then
-            unzip -q -o azure-logs.zip -d azure-logs 2>/dev/null || true
-            find azure-logs -type f \( -name "*docker.log" -o -name "*default_docker.log" \) -exec echo "=== LOG FILE: {} ===" \; -exec sed -E 's/(mongodb(\+srv)?:\/\/[^:]+:)[^@]+@/\1***@/gI; s/(password|secret|key|token)=[^ &]+/ \1=***/gI' {} \; -exec tail -n 80 {} \; 2>/dev/null || true
-          fi
