@@ -96,9 +96,9 @@ jobs:
       - name: Login to Azure
         uses: azure/login@v2
         with:
-          client-id: ${{ secrets.AZUREAPPSERVICE_CLIENTID_FE506E0915EB42A68DE45EB7F0DB2707 }}
-          tenant-id: ${{ secrets.AZUREAPPSERVICE_TENANTID_E4B859F2FB3045B8A1982D527970EF9F }}
-          subscription-id: ${{ secrets.AZUREAPPSERVICE_SUBSCRIPTIONID_3D49FFBC56FB4887B3D9741BB7ED80D2 }}
+          client-id: ${{ secrets.AZURE_CLIENT_ID || secrets.AZUREAPPSERVICE_CLIENTID_FE506E0915EB42A68DE45EB7F0DB2707 }}
+          tenant-id: ${{ secrets.AZURE_TENANT_ID || secrets.AZUREAPPSERVICE_TENANTID_E4B859F2FB3045B8A1982D527970EF9F }}
+          subscription-id: ${{ secrets.AZURE_SUBSCRIPTION_ID || secrets.AZUREAPPSERVICE_SUBSCRIPTIONID_3D49FFBC56FB4887B3D9741BB7ED80D2 }}
 
       - name: Clear stale Kudu deployment lock
         run: |
@@ -108,6 +108,8 @@ jobs:
             --skip-authorization-header 2>/dev/null || true
 
       - name: Configure App Settings
+        env:
+          MONGODB_URI: ${{ secrets.MONGODB_URI }}
         run: |
           az webapp config appsettings set \
             --resource-group "mission-control-rg" \
@@ -118,7 +120,8 @@ jobs:
               PORT=8080 \
               WEBSITES_PORT=8080 \
               SCM_DO_BUILD_DURING_DEPLOYMENT=false \
-              MONGODB_URI="${{ secrets.MONGODB_URI }}"
+              MONGODB_URI="$MONGODB_URI" \
+            --output none
 
       - name: Deploy ZIP to App Service
         run: |
@@ -162,11 +165,11 @@ jobs:
           echo "App did not respond with 200 within 120 seconds. Fetching container logs..."
 
       - name: Fetch Azure Diagnostics
-        if: always()
+        if: failure()
         run: |
-          echo "Fetching Azure App Service logs..."
+          echo "Fetching Azure App Service logs on deployment failure..."
           az webapp log download --resource-group "mission-control-rg" --name mission-control-service --log-file azure-logs.zip 2>/dev/null || true
           if [ -f azure-logs.zip ]; then
             unzip -q -o azure-logs.zip -d azure-logs 2>/dev/null || true
-            find azure-logs -type f \( -name "*docker.log" -o -name "*default_docker.log" \) -exec echo "=== LOG FILE: {} ===" \; -exec tail -n 80 {} \; 2>/dev/null || true
+            find azure-logs -type f \( -name "*docker.log" -o -name "*default_docker.log" \) -exec echo "=== LOG FILE: {} ===" \; -exec sed -E 's/(mongodb(\+srv)?:\/\/[^:]+:)[^@]+@/\1***@/gI; s/(password|secret|key|token)=[^ &]+/ \1=***/gI' {} \; -exec tail -n 80 {} \; 2>/dev/null || true
           fi
