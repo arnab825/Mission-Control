@@ -2,6 +2,14 @@
 
 This document contains a detailed history of all patches and updates for the AI Gaming Assistant.
 
+### Patch: 2026-09-25 — v3.7.3: Fixed Account Unlink Flow & Redesigned Settings Navigation
+
+- Fixed provider unlink failing with 'additional verification' error by adding session token refresh and auto-retry before destroy()
+- Replaced all native alert() dialogs with inline styled error banners matching the app design system
+- Added one-click 'Sign Out & Re-authenticate' fallback button when session reverification is required
+- Redesigned Settings search bar and category tabs into unified tactical command deck with responsive 6-module grid
+- Upgraded SettingsSection headers with illuminated icon badges and gradient dividers
+
 ### Patch: 2026-09-25 — v3.7.2: Seamless OAuth Handshake & Account Switcher Flow
 
 - Resolved OAuth popup infinite spinning and non-reactive redirection in Account Switcher

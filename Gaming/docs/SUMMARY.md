@@ -82,7 +82,8 @@ graph TD
 
 | Version | Key Feature / Change Description |
 | :--- | :--- |
-| **v3.7.2 (Latest)** | **Seamless OAuth Handshake & Account Switcher Flow** — Resolved OAuth popup infinite spinning and non-reactive redirection in Account Switcher |
+| **v3.7.3 (Latest)** | **Fixed Account Unlink Flow & Redesigned Settings Navigation** — Mission Control v3.7.3 enhances user experience with improved account unlink flow and redesigned settings navigation. |
+| **v3.7.2** | **Seamless OAuth Handshake & Account Switcher Flow** — Resolved OAuth popup infinite spinning and non-reactive redirection in Account Switcher |
 | **v3.7.1** | **OAuth Popup Handshake Fix & Secret Sanitization** — Resolved OAuth popup infinite spinning and non-reactive redirection in Account Switcher, ensuring a seamless user experience. |
 | **v3.7.0** | **Security Patch & Version Update Fix** — Purged leaked keys. |
 | **v3.7.0** | **Security Patch & Version Update Fix** — Mission Control v3.7.0 addresses critical security vulnerabilities and resolves key functionality issues. |
