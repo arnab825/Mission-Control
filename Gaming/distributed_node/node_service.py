@@ -376,7 +376,7 @@ class LibraryNodeService:
                 },
             }
 
-            result = self._request_with_failover("POST", "/api/nodes/register", payload, timeout=15)
+            result = self._request_with_failover("POST", "/api/nodes/register", payload, timeout=35)
 
             if not result or result.get("_status_code") == 401 or result.get("error"):
                 logger.error("Registration failed — server unreachable or rejected request.")

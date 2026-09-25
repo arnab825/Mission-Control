@@ -26,25 +26,25 @@ export const AccountSettingsSection: React.FC<AccountSettingsSectionProps> = ({
   const [copiedId, setCopiedId] = useState(false);
   const [linkingProvider, setLinkingProvider] = useState<string | null>(null);
   const [unlinkingProvider, setUnlinkingProvider] = useState<string | null>(null);
-  const [unlinkError, setUnlinkError] = useState<string | null>(null);
+  const [accountError, setAccountError] = useState<string | null>(null);
   const [needsReauth, setNeedsReauth] = useState(false);
   const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
   const [deleteInput, setDeleteInput] = useState('');
   const [isDeleting, setIsDeleting] = useState(false);
   const [deleteError, setDeleteError] = useState<string | null>(null);
   const [isAccountSwitcherOpen, setIsAccountSwitcherOpen] = useState(false);
-  const unlinkErrorTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const accountErrorTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
-  // Auto-dismiss unlink error after 6 seconds
+  // Auto-dismiss account error after 8 seconds
   useEffect(() => {
-    if (unlinkError) {
-      if (unlinkErrorTimerRef.current) clearTimeout(unlinkErrorTimerRef.current);
-      unlinkErrorTimerRef.current = setTimeout(() => setUnlinkError(null), 6000);
+    if (accountError) {
+      if (accountErrorTimerRef.current) clearTimeout(accountErrorTimerRef.current);
+      accountErrorTimerRef.current = setTimeout(() => setAccountError(null), 8000);
     }
     return () => {
-      if (unlinkErrorTimerRef.current) clearTimeout(unlinkErrorTimerRef.current);
+      if (accountErrorTimerRef.current) clearTimeout(accountErrorTimerRef.current);
     };
-  }, [unlinkError]);
+  }, [accountError]);
 
   useEffect(() => {
     if (accountDeleted === true) {
@@ -94,6 +94,16 @@ export const AccountSettingsSection: React.FC<AccountSettingsSectionProps> = ({
   const handleLinkProvider = async (strategy: string) => {
     if (!user) return;
     setLinkingProvider(strategy);
+    setAccountError(null);
+    setNeedsReauth(false);
+
+    // Pre-flight session token refresh to minimize step-up verification errors
+    try {
+      await getToken({ skipCache: true });
+    } catch (_) {
+      // Proceed even if background token refresh fails
+    }
+
     try {
       const options: any = {
         strategy: strategy as any,
@@ -104,7 +114,26 @@ export const AccountSettingsSection: React.FC<AccountSettingsSectionProps> = ({
       } else if (strategy === 'oauth_discord') {
         options.additionalData = { prompt: 'consent' };
       }
-      const extAccount = await user.createExternalAccount(options);
+
+      let extAccount: any;
+      try {
+        extAccount = await user.createExternalAccount(options);
+      } catch (firstErr: any) {
+        const firstMsg = firstErr.errors?.[0]?.longMessage || firstErr.message || '';
+        if (firstMsg.toLowerCase().includes('additional verification')) {
+          // Auto-retry once: refresh user and token before second attempt
+          try {
+            await user.reload();
+            await getToken({ skipCache: true });
+            extAccount = await user.createExternalAccount(options);
+          } catch (retryErr: any) {
+            console.error('Failed to link provider (retry):', retryErr);
+            throw retryErr;
+          }
+        } else {
+          throw firstErr;
+        }
+      }
 
       const verification = (extAccount as any)?.verification;
       const redirectUrl =
@@ -121,17 +150,18 @@ export const AccountSettingsSection: React.FC<AccountSettingsSectionProps> = ({
           window.location.href = redirectUrl.toString();
         }
       } else {
-        alert('OAuth flow initialization succeeded, but redirect URL was missing.');
+        setAccountError('OAuth flow initialization succeeded, but the redirect URL was missing from Clerk.');
       }
     } catch (err: any) {
       console.error('Failed to link provider:', err);
-      const msg = err.errors?.[0]?.longMessage || 'OAuth connection initiation failed.';
+      const msg = err.errors?.[0]?.longMessage || err.message || 'OAuth connection initiation failed.';
       if (msg.toLowerCase().includes('additional verification')) {
-        alert(
-          'Security Lock Active:\n\nTo link a new authentication gateway, Clerk requires a fresh session. Please log out, log back in, and try connecting this provider again.'
+        setAccountError(
+          'Security verification required: To connect a new authentication provider, Clerk requires a fresh session.'
         );
+        setNeedsReauth(true);
       } else {
-        alert(msg);
+        setAccountError(msg);
       }
     } finally {
       setLinkingProvider(null);
@@ -146,7 +176,7 @@ export const AccountSettingsSection: React.FC<AccountSettingsSectionProps> = ({
 
     const hasPassword = (user as any).passwordEnabled;
     if (user.externalAccounts.length <= 1 && !hasPassword) {
-      setUnlinkError(
+      setAccountError(
         'Security constraint: You cannot disconnect your only login method. Please register a password or add another provider first.'
       );
       setNeedsReauth(false);
@@ -154,7 +184,7 @@ export const AccountSettingsSection: React.FC<AccountSettingsSectionProps> = ({
     }
 
     setUnlinkingProvider(strategy);
-    setUnlinkError(null);
+    setAccountError(null);
     setNeedsReauth(false);
 
     // Force a fresh session token before attempting the sensitive operation
@@ -186,12 +216,12 @@ export const AccountSettingsSection: React.FC<AccountSettingsSectionProps> = ({
           console.error('Failed to unlink provider (retry):', retryErr);
         }
         // Both attempts failed — show error with re-auth action
-        setUnlinkError(
-          'Session verification required. Your current session needs to be refreshed before unlinking a provider.'
+        setAccountError(
+          'Session verification required: Your current session needs to be refreshed before disconnecting a provider.'
         );
         setNeedsReauth(true);
       } else {
-        setUnlinkError(msg);
+        setAccountError(msg);
       }
     } finally {
       setUnlinkingProvider(null);
@@ -369,35 +399,53 @@ export const AccountSettingsSection: React.FC<AccountSettingsSectionProps> = ({
           </button>
         </div>
 
-        {/* Inline unlink error banner */}
-        {unlinkError && (
-          <div className="flex items-start gap-3 p-3.5 rounded-xl bg-red-950/40 border border-red-500/25 animate-[fadeIn_0.2s_ease-out]">
-            <div className="w-7 h-7 rounded-lg bg-red-500/15 border border-red-500/25 flex items-center justify-center shrink-0 mt-0.5">
-              <AlertTriangle className="w-3.5 h-3.5 text-red-400" />
+        {/* Inline account error banner */}
+        {accountError && (
+          <div className="flex items-start gap-3 p-4 rounded-xl bg-red-950/40 border border-red-500/25 shadow-[0_0_20px_rgba(239,68,68,0.1)] animate-[fadeIn_0.2s_ease-out]">
+            <div className="w-8 h-8 rounded-lg bg-red-500/15 border border-red-500/30 flex items-center justify-center shrink-0 mt-0.5">
+              <AlertTriangle className="w-4 h-4 text-red-400" />
             </div>
-            <div className="flex-1 pt-0.5 space-y-2">
-              <p className="text-[10px] font-medium text-red-300/90 leading-relaxed">
-                {unlinkError}
-              </p>
+            <div className="flex-1 pt-0.5 space-y-2.5">
+              <div>
+                <p className="text-[10px] font-black uppercase tracking-wider text-red-400 mb-0.5">
+                  Security Gateway Notice
+                </p>
+                <p className="text-[11px] font-medium text-red-200/90 leading-relaxed">
+                  {accountError}
+                </p>
+              </div>
               {needsReauth && (
-                <button
-                  type="button"
-                  onClick={async () => {
-                    setUnlinkError(null);
-                    setNeedsReauth(false);
-                    await signOut();
-                  }}
-                  className="flex items-center gap-1.5 px-3 py-1.5 bg-red-500/15 hover:bg-red-500/25 border border-red-500/30 text-red-300 hover:text-red-200 font-black text-[9px] uppercase tracking-widest rounded-lg transition-all cursor-pointer"
-                >
-                  <LogOut className="w-3 h-3" />
-                  Sign Out & Re-authenticate
-                </button>
+                <div className="flex items-center gap-2 pt-1 flex-wrap">
+                  <button
+                    type="button"
+                    onClick={async () => {
+                      setAccountError(null);
+                      setNeedsReauth(false);
+                      await signOut();
+                    }}
+                    className="flex items-center gap-1.5 px-3 py-1.5 bg-red-500/20 hover:bg-red-500/30 border border-red-500/40 text-red-200 hover:text-white font-black text-[9px] uppercase tracking-widest rounded-lg transition-all cursor-pointer shadow-sm"
+                  >
+                    <LogOut className="w-3 h-3" />
+                    Sign Out & Re-authenticate
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => {
+                      setAccountError(null);
+                      setNeedsReauth(false);
+                      handleSwitchAccount();
+                    }}
+                    className="px-3 py-1.5 bg-white/5 hover:bg-white/10 border border-white/10 text-zinc-300 hover:text-white font-black text-[9px] uppercase tracking-widest rounded-lg transition-all cursor-pointer"
+                  >
+                    Switch Account
+                  </button>
+                </div>
               )}
             </div>
             <button
               type="button"
               aria-label="Dismiss error"
-              onClick={() => { setUnlinkError(null); setNeedsReauth(false); }}
+              onClick={() => { setAccountError(null); setNeedsReauth(false); }}
               className="p-1 rounded-lg hover:bg-red-500/15 text-red-400/60 hover:text-red-300 transition-colors shrink-0"
             >
               <X className="w-3.5 h-3.5" />
