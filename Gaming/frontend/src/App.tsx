@@ -136,61 +136,32 @@ const App: React.FC = () => {
       try {
         setAuthPopupError(null);
 
-        // Case 1: If user is ALREADY signed in on this partition
-        if (isSignedIn && user) {
-          const isAlreadyLinked = user.externalAccounts?.some(
-            (acc: any) =>
-              acc.provider === strategy ||
-              acc.verification?.strategy === strategy ||
-              acc.provider?.replace('oauth_', '') === strategy.replace('oauth_', '')
-          );
-
-          if (isAlreadyLinked) {
-            console.log(`[AuthPopup] Provider ${strategy} is already linked to user ${user.id}.`);
-            try {
-              localStorage.setItem('mission_control_active_provider', strategy);
-            } catch (_) {}
-            if (window.electronAPI?.notifyAuthSuccess) {
-              window.electronAPI.notifyAuthSuccess();
-            }
-            if (window.electronAPI?.closeAuthPopup) {
-              window.electronAPI.closeAuthPopup();
-            }
-            try { window.close(); } catch (_) {}
-            return;
+        // Case 1: Only if explicitly in 'link' mode, attempt to link provider to current user
+        if (mode === 'link' && isSignedIn && user) {
+          console.log(`[AuthPopup] Linking ${strategy} to current user ${user.id}...`);
+          const options: any = {
+            strategy,
+            redirectUrl: `${origin}/sso-callback?popup=1`,
+          };
+          if (strategy === 'oauth_google') {
+            options.additionalData = { prompt: 'select_account' };
+          } else if (strategy === 'oauth_discord') {
+            options.additionalData = { prompt: 'consent' };
           }
-
-          // Provider not linked yet -> Attempt linking with user.createExternalAccount
-          try {
-            console.log(`[AuthPopup] Linking ${strategy} to current user ${user.id}...`);
-            const options: any = {
-              strategy,
-              redirectUrl: `${origin}/sso-callback?popup=1`,
-            };
-            if (strategy === 'oauth_google') {
-              options.additionalData = { prompt: 'select_account' };
-            } else if (strategy === 'oauth_discord') {
-              options.additionalData = { prompt: 'consent' };
-            }
-            const ext = await user.createExternalAccount(options);
-            const verification = (ext as any)?.verification;
-            const redirectUrl =
-              verification?.externalVerificationRedirectURL?.toString() ||
-              verification?.externalVerificationRedirectUrl?.toString();
-            if (redirectUrl) {
-              window.location.href = redirectUrl;
-              return;
-            } else {
-              throw new Error('OAuth verification URL was not returned by provider.');
-            }
-          } catch (linkErr: any) {
-            console.warn(`[AuthPopup] Linking failed, falling back to sign-in switch:`, linkErr);
-            // If linking failed (e.g. account belongs to another user), sign out first so sign-in is unblocked
-            await clerk.signOut();
+          const ext = await user.createExternalAccount(options);
+          const verification = (ext as any)?.verification;
+          const redirectUrl =
+            verification?.externalVerificationRedirectURL?.toString() ||
+            verification?.externalVerificationRedirectUrl?.toString();
+          if (redirectUrl) {
+            window.location.href = redirectUrl;
+            return;
+          } else {
+            throw new Error('OAuth verification URL was not returned by provider.');
           }
         }
 
-        // Case 2: User is not signed in, or just signed out to switch accounts
+        // Case 2: Standard Login, Switch, or Sign-up OAuth redirect
         const options: any = {
           strategy,
           redirectUrl: `${origin}/sso-callback?popup=1`,
@@ -205,14 +176,28 @@ const App: React.FC = () => {
         }
 
         console.log(`[AuthPopup] Triggering ${mode} OAuth redirect for ${strategy}...`);
-        if (mode === 'signup' && signUp) {
-          await signUp.authenticateWithRedirect(options);
-        } else if (signIn) {
-          await signIn.authenticateWithRedirect(options);
-        } else if (clerk.client?.signIn) {
-          await clerk.client.signIn.authenticateWithRedirect(options);
-        } else {
-          throw new Error('Authentication client unavailable. Please retry.');
+        try {
+          if (mode === 'signup' && signUp) {
+            await signUp.authenticateWithRedirect(options);
+          } else if (signIn) {
+            await signIn.authenticateWithRedirect(options);
+          } else if (clerk.client?.signIn) {
+            await clerk.client.signIn.authenticateWithRedirect(options);
+          } else {
+            throw new Error('Authentication client unavailable. Please retry.');
+          }
+        } catch (authErr: any) {
+          console.warn('[AuthPopup] Initial auth redirect failed, retrying after signOut:', authErr);
+          try {
+            await clerk.signOut();
+          } catch (_) {}
+          if (signIn) {
+            await signIn.authenticateWithRedirect(options);
+          } else if (clerk.client?.signIn) {
+            await clerk.client.signIn.authenticateWithRedirect(options);
+          } else {
+            throw authErr;
+          }
         }
       } catch (err: any) {
         console.error('[AuthPopup] Handshake error:', err);

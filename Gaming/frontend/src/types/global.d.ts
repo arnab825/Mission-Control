@@ -42,7 +42,7 @@ declare global {
       onReleaseStabilityStatus?: (callback: (status: any) => void) => () => void;
       onRuntimeAnomaly?: (callback: (event: any, payload: any) => void) => () => void;
       onOpenDashboard?: (callback: () => void) => () => void;
-      openAuthPopup?: (params: { strategy: string; mode?: 'login' | 'signup' }) => Promise<{ success: boolean; error?: string }>;
+      openAuthPopup?: (params: { strategy: string; mode?: 'login' | 'signup' | 'switch' | 'link' }) => Promise<{ success: boolean; error?: string }>;
       openAuthPopupUrl?: (url: string) => Promise<{ success: boolean; error?: string }>;
       notifyAuthSuccess?: () => void;
       closeAuthPopup?: () => void;

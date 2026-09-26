@@ -11,6 +11,10 @@ import argparse
 import logging
 import os
 import sys
+import threading
+import time
+import traceback
+import warnings
 
 # Configure basic logging immediately so early imports and .env loading logs are visible
 logging.basicConfig(
@@ -19,84 +23,14 @@ logging.basicConfig(
     datefmt="%H:%M:%S",
 )
 logger = logging.getLogger("main")
-
 sys.dont_write_bytecode = True
 
 # ── Early OpenCV (cv2) Zero-Disk Configuration Safeguard ──────────────────────
 try:
-    import types
-    _orig_os_exists = os.path.exists
-    def _patched_cv2_exists(path):
-        try:
-            if isinstance(path, (str, bytes)):
-                p_str = path if isinstance(path, str) else path.decode('utf-8', errors='ignore')
-                norm = os.path.normpath(p_str)
-                parts = norm.replace('\\', '/').split('/')
-                if len(parts) >= 2 and parts[-2] == 'cv2' and parts[-1].startswith('config') and parts[-1].endswith('.py'):
-                    return True
-                if len(parts) >= 2 and parts[-2] == 'cv2' and parts[-1] in ('load_config_py3.py', 'load_config_py2.py'):
-                    return True
-        except Exception:
-            pass
-        return _orig_os_exists(path)
-    os.path.exists = _patched_cv2_exists
-
-    def _make_cv2_load_module(mod_name):
-        mod = types.ModuleType(mod_name)
-        def exec_file_wrapper(fpath, g_vars, l_vars):
-            loader_dir = l_vars.get('LOADER_DIR', os.path.dirname(os.path.abspath(fpath)))
-            if _orig_os_exists(fpath):
-                try:
-                    with open(fpath, 'r', encoding='utf-8') as f:
-                        code = compile(f.read(), fpath, 'exec')
-                        exec(code, g_vars, l_vars)
-                        return
-                except Exception:
-                    pass
-            fname = os.path.basename(fpath)
-            if fname == 'config.py':
-                if 'BINARIES_PATHS' in l_vars:
-                    vc_bin = os.path.join(loader_dir, '../../x64/vc17/bin')
-                    l_vars['BINARIES_PATHS'] = [loader_dir, vc_bin] + l_vars['BINARIES_PATHS']
-            elif fname.startswith('config-'):
-                if 'PYTHON_EXTENSIONS_PATHS' in l_vars:
-                    l_vars['PYTHON_EXTENSIONS_PATHS'] = [loader_dir] + l_vars['PYTHON_EXTENSIONS_PATHS']
-        mod.exec_file_wrapper = exec_file_wrapper
-        return mod
-
-    for m in ['cv2.load_config_py3', 'cv2.load_config_py2']:
-        if m not in sys.modules:
-            sys.modules[m] = _make_cv2_load_module(m)
-
-    _base_dir = getattr(sys, '_MEIPASS', os.path.dirname(os.path.abspath(__file__)))
-    for _cv2_dir in [os.path.join(_base_dir, 'cv2'), os.path.join(_base_dir, '_internal', 'cv2')]:
-        if os.path.isdir(_cv2_dir):
-            try:
-                _cfg = os.path.join(_cv2_dir, 'config.py')
-                if not _orig_os_exists(_cfg):
-                    with open(_cfg, 'w', encoding='utf-8') as _f:
-                        _f.write("import os\nBINARIES_PATHS = [LOADER_DIR] + BINARIES_PATHS\n")
-                _cfg3 = os.path.join(_cv2_dir, f'config-{sys.version_info[0]}.py')
-                if not _orig_os_exists(_cfg3):
-                    with open(_cfg3, 'w', encoding='utf-8') as _f:
-                        _f.write("PYTHON_EXTENSIONS_PATHS = [LOADER_DIR] + PYTHON_EXTENSIONS_PATHS\n")
-                _cfg_ver = os.path.join(_cv2_dir, f'config-{sys.version_info[0]}.{sys.version_info[1]}.py')
-                if not _orig_os_exists(_cfg_ver):
-                    with open(_cfg_ver, 'w', encoding='utf-8') as _f:
-                        _f.write("PYTHON_EXTENSIONS_PATHS = [LOADER_DIR] + PYTHON_EXTENSIONS_PATHS\n")
-                _cfg_loader = os.path.join(_cv2_dir, 'load_config_py3.py')
-                if not _orig_os_exists(_cfg_loader):
-                    with open(_cfg_loader, 'w', encoding='utf-8') as _f:
-                        _f.write("import os, sys\nif sys.version_info[:2] >= (3, 0):\n    def exec_file_wrapper(fpath, g_vars, l_vars):\n        with open(fpath, 'r', encoding='utf-8') as _f:\n            exec(compile(_f.read(), fpath, 'exec'), g_vars, l_vars)\n")
-            except Exception:
-                pass
+    import rthook_cv2
 except Exception as _cv2_err:
     logger.debug("OpenCV safeguard notice: %s", _cv2_err)
 
-import threading
-import time
-import traceback
-import warnings
 warnings.filterwarnings("ignore", category=SyntaxWarning)
 warnings.filterwarnings("ignore", category=DeprecationWarning)
 warnings.filterwarnings("ignore", category=UserWarning)
@@ -106,39 +40,32 @@ warnings.filterwarnings("ignore", category=DeprecationWarning, module="torch")
 warnings.filterwarnings("ignore", message=".*torch.ao.quantization.*")
 logging.getLogger("easyocr").setLevel(logging.ERROR)
 logging.getLogger("rapidocr_onnxruntime").setLevel(logging.ERROR)
+logging.getLogger("dxcam").setLevel(logging.ERROR)
 
 from dotenv import load_dotenv
 
-# Look for .env in various possible locations, ordered from lowest to highest priority
+# Look for .env in prioritized locations: AppData > local dir > bundled temp
 env_search_paths = []
-
-# 1. Bundled PyInstaller temp dir (sys._MEIPASS)
 mei_dir = getattr(sys, '_MEIPASS', None)
 if mei_dir:
     env_search_paths.append(os.path.join(mei_dir, ".env"))
-
-# 2. Executable folder and parent (Packaged production mode)
 if getattr(sys, 'frozen', False):
     exe_dir = os.path.dirname(sys.executable)
     env_search_paths.append(os.path.join(os.path.dirname(exe_dir), ".env"))
     env_search_paths.append(os.path.join(exe_dir, ".env"))
 
-# 3. Script directory and parent directories (Dev mode)
 base_backend = os.path.dirname(os.path.abspath(__file__))
 env_search_paths.append(os.path.abspath(os.path.join(base_backend, "..", "..", ".env")))
 env_search_paths.append(os.path.abspath(os.path.join(base_backend, "..", ".env")))
 env_search_paths.append(os.path.join(base_backend, ".env"))
-
-# 4. User AppData directory (highest priority for installed production instances)
 env_search_paths.append(os.path.expandvars(r"%LOCALAPPDATA%\MissionControl\.env"))
 env_search_paths.append(os.path.expandvars(r"%APPDATA%\MissionControl\.env"))
 
-# Load all existing .env files in priority order so later paths override earlier ones
 env_loaded = False
 for path_to_try in env_search_paths:
     if os.path.exists(path_to_try):
         load_dotenv(path_to_try, override=True)
-        logger.info(f"[Env] Loaded .env from: {path_to_try}")
+        logger.info("[Env] Loaded .env from: %s", path_to_try)
         env_loaded = True
 
 if not env_loaded:
@@ -146,18 +73,10 @@ if not env_loaded:
     logger.warning("[Env] No .env file found in search paths, falling back to default load_dotenv().")
 
 try:
-    import psutil
-
-    _PSUTIL_AVAILABLE = True
-except ImportError:
-    _PSUTIL_AVAILABLE = False
-
-try:
     from system.process_watcher import ProcessWatcher
-
     _PROCESS_WATCHER_AVAILABLE = True
 except ImportError:
-    ProcessWatcher = None  # type: ignore
+    ProcessWatcher = None
     _PROCESS_WATCHER_AVAILABLE = False
 
 try:
@@ -167,74 +86,40 @@ except ImportError:
     LibraryWatcher = None
     _LIBRARY_WATCHER_AVAILABLE = False
 
-
 from core.bridge_server import bridge
 from core.config_loader import load_config, save_config
 from core.pipeline_host import GamingAssistantPipeline
 from core.runtime_helpers import HotReloader, _ChildProcessLogger
 from core.updater_bridge import handle_bridge_update_commands, load_local_version
+from core.process_guard import (
+    acquire_instance_lock,
+    release_instance_lock,
+    lower_process_priority,
+    start_orphan_monitor,
+    request_admin_elevation,
+)
+from core.logging_handler import BridgeLogHandler
+from handlers import game_handler, system_handler
+from handlers.command_router import dispatch_bridge_command
 
-# Silence verbose, transient warnings from the dxcam screen-capture library
-logging.getLogger("dxcam").setLevel(logging.ERROR)
-
-# ── Per-user in-memory library session cache ───────────────────────────────────
-# Keyed by Clerk user_id. Populated on first get_cached_games per login session.
-# Cleared on logout_user / delete_account so the next login re-fetches cleanly.
+# Per-user in-memory library session cache
 _library_session: dict = {}
-
-# Import handler modules (extracted command domains)
-from handlers import chat_handler, game_handler, system_handler, agent_handler
-
-
-class BridgeLogHandler(logging.Handler):
-    """Custom logging handler to route logs over the WebSocket bridge."""
-
-    def __init__(self, bridge_server):
-        super().__init__()
-        self.bridge = bridge_server
-        self.setFormatter(logging.Formatter("%(message)s", "%H:%M:%S"))
-
-    def emit(self, record):
-        import time
-        name = record.name
-        # Bypass websockets/asyncio/bridge_server records to avoid infinite feedback loops
-        if name.startswith("websockets") or name.startswith("bridge_server") or name.startswith("asyncio"):
-            return
-        try:
-            log_type = record.levelname
-            # Highlight AI reasoning/coaching outputs in teal as AGENT log entries
-            if name.startswith("ai_brain") or name.startswith("pipeline_host"):
-                if log_type == "INFO":
-                    log_type = "AGENT"
-
-            log_entry = {
-                "time": self.formatter.formatTime(record, "%H:%M:%S") if self.formatter else time.strftime("%H:%M:%S", time.localtime(record.created)),
-                "type": log_type,
-                "msg": record.getMessage()
-            }
-            self.bridge.add_log(log_entry)
-        except Exception:
-            self.handleError(record)
-
 
 if sys.platform == "win32":
     try:
         import ctypes
-
         ctypes.windll.shell32.SetCurrentProcessExplicitAppUserModelID("MissionControl.MissionControl.Desktop.v1")
     except Exception:
         pass
 
 
-
 def enforce_neural_security(config, pipeline=None):
     from core.security import verify_uuid_lock
     privacy_cfg = config.get("privacy", {})
-    
     verified = True
     if privacy_cfg.get("uuid_lock", False):
         verified = verify_uuid_lock(config)
-        
+
     if pipeline:
         if not verified:
             pipeline.neural_security_lock = True
@@ -253,46 +138,11 @@ def enforce_neural_security(config, pipeline=None):
 
 def main():
     parent_pid = os.getppid()
-    if parent_pid > 1:
-
-        def monitor_parent():
-            import ctypes
-
-            while True:
-                time.sleep(3)
-                try:
-                    if os.name == "nt":
-                        PROCESS_QUERY_INFORMATION = 0x0400
-                        SYNCHRONIZE = 0x00100000
-                        handle = ctypes.windll.kernel32.OpenProcess(
-                            PROCESS_QUERY_INFORMATION | SYNCHRONIZE, False, parent_pid
-                        )
-                        if handle == 0:
-                            os._exit(0)
-                        exit_code = ctypes.c_ulong()
-                        ctypes.windll.kernel32.GetExitCodeProcess(handle, ctypes.byref(exit_code))
-                        STILL_ACTIVE = 259
-                        if exit_code.value != STILL_ACTIVE:
-                            os._exit(0)
-                        ctypes.windll.kernel32.CloseHandle(handle)
-                    elif os.getppid() != parent_pid:
-                        os._exit(0)
-                except Exception:
-                    pass
-
-        threading.Thread(target=monitor_parent, daemon=True, name="OrphanMonitor").start()
+    start_orphan_monitor(parent_pid)
 
     parser = argparse.ArgumentParser(description="AI Gaming Assistant")
-    parser.add_argument(
-        "--dev",
-        action="store_true",
-        help="Enable hot reload (restarts on file change)",
-    )
-    parser.add_argument(
-        "--no-admin",
-        action="store_true",
-        help="Skip requesting Administrator privileges on Windows",
-    )
+    parser.add_argument("--dev", action="store_true", help="Enable hot reload (restarts on file change)")
+    parser.add_argument("--no-admin", action="store_true", help="Skip requesting Administrator privileges on Windows")
     args = parser.parse_args()
 
     config = load_config()
@@ -300,30 +150,10 @@ def main():
     base_dir = os.path.dirname(os.path.abspath(__file__))
     enforce_neural_security(config)
 
-    # ── Lower process priority so the backend never competes with the game ──────
-    # BELOW_NORMAL on Windows (0x4000) ensures the OS always prefers the game
-    # process (which runs at Normal priority) for CPU scheduling.
-    try:
-        if _PSUTIL_AVAILABLE:
-            import psutil as _psutil
-            _proc = _psutil.Process(os.getpid())
-            if os.name == "nt":
-                _proc.nice(_psutil.BELOW_NORMAL_PRIORITY_CLASS)
-            else:
-                _proc.nice(10)  # Unix nice value: 10 = noticeably lower priority
-            logger.info("[Perf] Backend process priority set to BELOW_NORMAL — game performance protected.")
-        elif os.name == "nt":
-            import ctypes as _ctypes
-            BELOW_NORMAL_PRIORITY_CLASS = 0x00004000
-            _ctypes.windll.kernel32.SetPriorityClass(
-                _ctypes.windll.kernel32.GetCurrentProcess(),
-                BELOW_NORMAL_PRIORITY_CLASS
-            )
-            logger.info("[Perf] Backend process priority set to BELOW_NORMAL via WinAPI.")
-    except Exception as _prio_err:
-        logger.debug("[Perf] Could not lower process priority: %s", _prio_err)
+    # Lower process priority so game FPS is protected
+    lower_process_priority()
 
-
+    # Clean temporary audio cache
     try:
         temp_dir = os.path.join(base_dir, "data", "temp_audio")
         if os.path.exists(temp_dir):
@@ -333,99 +163,13 @@ def main():
                     if os.path.isfile(file_path):
                         os.unlink(file_path)
                 except Exception as e:
-                    logger.debug(f"Could not clean temp audio file {filename}: {e}")
+                    logger.debug("Could not clean temp audio file %s: %s", filename, e)
     except Exception:
         pass
 
-    lock_fd = None
-    # Use a user-writable path for the lock file. In a PyInstaller onedir build,
-    # base_dir resolves to _internal/ inside Program Files which is read-only.
-    # %LOCALAPPDATA%\MissionControl\ is always writable without admin rights.
+    # Acquire user-writable instance lock
     _default_lock_dir = os.path.expandvars(r"%LOCALAPPDATA%\MissionControl")
     lock_path = config.get("instance_lock_path", os.path.join(_default_lock_dir, "ai_gaming_assistant.lock"))
-    try:
-        os.makedirs(os.path.dirname(lock_path), exist_ok=True)
-    except Exception:
-        pass
-
-    def _acquire_lock(path):
-        try:
-            fd = os.open(path, os.O_CREAT | os.O_EXCL | os.O_RDWR)
-            os.write(fd, str(os.getpid()).encode())
-            return fd
-        except FileExistsError:
-            pid = None
-            try:
-                with open(path, "r") as f:
-                    txt = f.read().strip()
-                    pid = int(txt) if txt else None
-            except Exception:
-                pid = None
-
-            if pid and _PSUTIL_AVAILABLE:
-                try:
-                    if psutil.pid_exists(pid):
-                        proc = psutil.Process(pid)
-                        curr_proc = psutil.Process(os.getpid())
-
-                        proc_name = proc.name().lower()
-                        curr_name = curr_proc.name().lower()
-
-                        is_same_app = False
-                        if "python" in proc_name and "python" in curr_name:
-                            proc_cmd = proc.cmdline()
-                            curr_cmd = curr_proc.cmdline()
-                            proc_main = any("main.py" in arg for arg in proc_cmd)
-                            curr_main = any("main.py" in arg for arg in curr_cmd)
-                            if proc_main and curr_main:
-                                is_same_app = True
-                        elif proc_name == curr_name:
-                            is_same_app = True
-                        # Also match old binary name to handle rename upgrades
-                        elif "missioncontrol" in proc_name and "missioncontrol" in curr_name:
-                            is_same_app = True
-
-                        if is_same_app:
-                            try:
-                                proc.kill()
-                                proc.wait(timeout=3)
-                            except Exception:
-                                pass
-                    else:
-                        # PID is dead — stale lock. Remove it immediately.
-                        logger.warning("[Lock] Stale lock found (PID %s is dead). Removing.", pid)
-                        try:
-                            os.remove(path)
-                        except Exception as _rm_err:
-                            logger.error("[Lock] Could not remove stale lock at %s: %s", path, _rm_err)
-                except (psutil.NoSuchProcess, psutil.AccessDenied):
-                    pass
-                except Exception:
-                    pass
-            elif not _PSUTIL_AVAILABLE:
-                # No psutil: assume stale and force remove
-                try:
-                    os.remove(path)
-                except Exception:
-                    pass
-
-            import time
-            for attempt in range(10):
-                try:
-                    try:
-                        os.remove(path)
-                    except FileNotFoundError:
-                        pass
-                    except Exception:
-                        pass
-
-                    fd = os.open(path, os.O_CREAT | os.O_EXCL | os.O_RDWR)
-                    os.write(fd, str(os.getpid()).encode())
-                    return fd
-                except Exception:
-                    if attempt < 9:
-                        time.sleep(0.5)
-            return None
 
     def exception_hook(exctype, value, tb):
         err_msg = "".join(traceback.format_exception(exctype, value, tb))
@@ -434,7 +178,7 @@ def main():
 
     sys.excepthook = exception_hook
 
-    lock_fd = _acquire_lock(lock_path)
+    lock_fd = acquire_instance_lock(lock_path)
     if not lock_fd:
         logger.error("Another instance appears to be running; exiting.")
         print("Another instance appears to be running; exiting.")
@@ -466,7 +210,6 @@ def main():
 
     try:
         logger.info("Starting server (Electron/React UI — WebSocket bridge enabled)")
-
         bridge.start()
 
         # Attach custom bridge logging handler to stream logs live to frontend
@@ -489,7 +232,6 @@ def main():
         except Exception:
             pass
 
-        # Print a highly aesthetic ANSI startup banner to stdout for direct terminal clarity
         banner = f"""
 \033[95m======================================================================\033[0m
 \033[92m🚀 Mission Control BACKEND SERVER — ACTIVE & LISTENING\033[0m
@@ -505,7 +247,6 @@ def main():
         try:
             print(banner, flush=True)
         except UnicodeEncodeError:
-            # Fallback plain banner for raw CP1252 consoles
             safe_banner = f"""
 ======================================================================
 [+] Mission Control BACKEND SERVER -- ACTIVE & LISTENING
@@ -520,8 +261,6 @@ Ready and monitoring. Launch your game to initiate automatic HUD lock.
 """
             print(safe_banner, flush=True)
 
-        # Send initial config state to frontend IMMEDIATELY (includes privacy settings)
-        # This ensures frontend receives config as part of the initial state broadcast
         logger.info("Broadcasting initial config with privacy settings: %s", config.get("privacy", {}))
         bridge.update_state({"config": config})
 
@@ -537,7 +276,7 @@ Ready and monitoring. Launch your game to initiate automatic HUD lock.
             bridge.update_state({"installed_models": check_installed_models()})
             logger.info("Broadcasted initial installed_models status.")
         except Exception as e:
-            logger.error(f"Failed to broadcast installed_models: {e}")
+            logger.error("Failed to broadcast installed_models: %s", e)
 
         # Preload cached game library on startup for instant zero-latency UI display
         try:
@@ -557,181 +296,52 @@ Ready and monitoring. Launch your game to initiate automatic HUD lock.
             handle_bridge_update_commands("check_patches", {}, bridge)
             logger.info("Triggered initial telemetry glitch scan on startup.")
         except Exception as e:
-            logger.error(f"Failed to trigger initial telemetry glitch scan: {e}")
+            logger.error("Failed to trigger initial telemetry glitch scan: %s", e)
 
-        # Auto-register local PC as a Library Node on startup (no Python installation required by user)
+        # Auto-register local PC as a Library Node on startup
         try:
             game_handler._ensure_local_node_daemon()
             logger.info("Auto-registered local machine as a distributed library node daemon on startup.")
         except Exception as e:
-            logger.warning(f"Local node auto-registration notice: {e}")
+            logger.warning("Local node auto-registration notice: %s", e)
 
         pipeline = GamingAssistantPipeline(config)
-        pw = None
-        lib_watcher = None
 
-        # Initialize Local Vision Analyzer (instantiated lazily; actual loading is deferred to first use)
+        # Initialize Local Vision Analyzer
         local_vision = None
         try:
             from vision.local_analyzer import LocalVisionAnalyzer
             local_vision = LocalVisionAnalyzer()
         except Exception as e:
-            logger.error(f"Failed to instantiate Local Vision Analyzer: {e}")
+            logger.error("Failed to instantiate Local Vision Analyzer: %s", e)
 
-        def on_action_confirm(text, delay):
-            logger.info("ACTION CONFIRMATION: %s", text)
-            bridge.update_state({"confirmation_required": {"text": text, "delay": delay}})
-            return True
+        pipeline.action_confirm_callback = lambda text, delay: (
+            bridge.update_state({"confirmation_required": {"text": text, "delay": delay}}),
+            True,
+        )[1]
+        pipeline.thermal_alert_callback = lambda title, msg, dur: bridge.update_state(
+            {"alert": {"title": title, "message": msg}}
+        )
 
-        def on_thermal_alert(title, msg, dur):
-            logger.warning("THERMAL ALERT: %s - %s", title, msg)
-            bridge.update_state({"alert": {"title": title, "message": msg}})
-
-        pipeline.action_confirm_callback = on_action_confirm
-        pipeline.thermal_alert_callback = on_thermal_alert
-
-        def _handle_bridge_command(cmd_type, payload):
-            # Sync user_id to pipeline on every command that carries one
-            if payload and "userId" in payload and pipeline:
-                pipeline.active_user_id = payload.get("userId")
-
-            # ── Updater commands (handled separately) ─────────────────────
-            if handle_bridge_update_commands(cmd_type, payload, bridge):
-                return
-
-            # ── Context bundles passed into handlers ──────────────────────
-            _sys_ctx = dict(pipeline=pipeline, bridge=bridge, config=config)
-            _game_ctx = dict(**_sys_ctx, library_session=_library_session)
-            _cfg_ctx = dict(**_sys_ctx, save_config_fn=save_config, enforce_security_fn=enforce_neural_security)
-
-            # ── Chat / Conversation commands ──────────────────────────────
-            if cmd_type == "execute":
-                chat_handler.handle_execute(payload, pipeline, bridge, config)
-            elif cmd_type == "stop_tts":
-                if pipeline and hasattr(pipeline, "voice_manager") and pipeline.voice_manager:
-                    pipeline.voice_manager.mute_chat_tts()
-            elif cmd_type == "set_tts_muted":
-                muted = payload.get("muted", True)
-                if pipeline and hasattr(pipeline, "voice_manager") and pipeline.voice_manager:
-                    if muted:
-                        pipeline.voice_manager.mute_chat_tts()
-                    else:
-                        pipeline.voice_manager.unmute_chat_tts()
-            elif cmd_type == "speak_text":
-                text = payload.get("text", "")
-                if text and pipeline and hasattr(pipeline, "voice_manager") and pipeline.voice_manager:
-                    pipeline.voice_manager.speak(text, force=True)
-            elif cmd_type == "migrate_local_history":
-                chat_handler.handle_migrate_local_history(payload, pipeline, bridge, config)
-            elif cmd_type == "get_chat_sessions":
-                chat_handler.handle_get_chat_sessions(payload, pipeline, bridge, config)
-            elif cmd_type == "get_chat_history":
-                chat_handler.handle_get_chat_history(payload, pipeline, bridge, config)
-            elif cmd_type == "get_session_history":
-                chat_handler.handle_get_session_history(payload, pipeline, bridge, config)
-            elif cmd_type == "create_chat_session":
-                chat_handler.handle_create_chat_session(payload, pipeline, bridge, config)
-            elif cmd_type == "delete_chat_session":
-                chat_handler.handle_delete_chat_session(payload, pipeline, bridge, config)
-            elif cmd_type == "clear_chat_sessions":
-                chat_handler.handle_clear_chat_sessions(payload, pipeline, bridge, config)
-            elif cmd_type == "rename_chat_session":
-                chat_handler.handle_rename_chat_session(payload, pipeline, bridge, config)
-            elif cmd_type == "suggest_session_title":
-                chat_handler.handle_suggest_session_title(payload, pipeline, bridge, config)
-            elif cmd_type == "retry_message":
-                chat_handler.handle_retry_message(payload, pipeline, bridge, config)
-            elif cmd_type == "submit_feedback":
-                chat_handler.handle_submit_feedback(payload, pipeline, bridge, config)
-
-            # ── Game library / scanning commands ──────────────────────────
-            elif cmd_type == "get_cached_games":
-                game_handler.handle_get_cached_games(payload, pipeline, bridge, config, _library_session)
-            elif cmd_type == "get_discover_games":
-                game_handler.handle_get_discover_games(payload, pipeline, bridge, config, _library_session)
-            elif cmd_type == "scan_games":
-                game_handler.handle_scan_games(payload, pipeline, bridge, config, _library_session)
-            elif cmd_type == "launch_game":
-                game_handler.handle_launch_game(payload, pipeline, bridge, config, _library_session)
-            elif cmd_type == "logout_user":
-                game_handler.handle_logout_user(payload, pipeline, bridge, config, _library_session)
-            elif cmd_type == "delete_account":
-                game_handler.handle_delete_account(payload, pipeline, bridge, config, _library_session)
-            elif cmd_type == "register_local_node":
-                game_handler.handle_register_local_node(payload, pipeline, bridge, config)
-            elif cmd_type == "get_nodes":
-                game_handler.handle_get_nodes(payload, pipeline, bridge, config)
-            elif cmd_type == "update_node_paths":
-                game_handler.handle_update_node_paths(payload, pipeline, bridge, config, _library_session)
-            elif cmd_type == "rename_node":
-                game_handler.handle_rename_node(payload, pipeline, bridge, config)
-            elif cmd_type == "trigger_node_scan":
-                game_handler.handle_trigger_node_scan(payload, pipeline, bridge, config, _library_session)
-
-            # ── System / hardware / config commands ───────────────────────
-            elif cmd_type == "optimize_system":
-                system_handler.handle_optimize_system(payload, pipeline, bridge, config)
-            elif cmd_type == "toggle_vision_pipeline":
-                system_handler.handle_toggle_vision_pipeline(payload, pipeline, bridge, config)
-            elif cmd_type == "revert_optimization":
-                system_handler.handle_revert_optimization(payload, pipeline, bridge, config)
-            elif cmd_type == "set_cooling_mode":
-                system_handler.handle_set_cooling_mode(payload, pipeline, bridge, config)
-            elif cmd_type == "update_config":
-                system_handler.handle_update_config(payload, pipeline, bridge, config, save_config, enforce_neural_security)
-            elif cmd_type == "save_settings":
-                system_handler.handle_save_settings(payload, pipeline, bridge, config, save_config, enforce_neural_security)
-            elif cmd_type == "get_settings":
-                system_handler.handle_get_settings(payload, pipeline, bridge, config)
-            elif cmd_type == "analyze_screen_local":
-                system_handler.handle_analyze_screen_local(payload, pipeline, bridge, config, local_vision)
-            elif cmd_type == "clear_logs":
-                system_handler.handle_clear_logs(payload, pipeline, bridge, config)
-            elif cmd_type == "get_core_optimization":
-                system_handler.handle_get_core_optimization(payload, pipeline, bridge, config)
-            elif cmd_type == "scan_preset_optimizer":
-                system_handler.handle_scan_preset_optimizer(payload, pipeline, bridge, config)
-            elif cmd_type == "get_gaming_readiness":
-                system_handler.handle_get_gaming_readiness(payload, pipeline, bridge, config)
-            elif cmd_type == "install_yolo_deps":
-                system_handler.handle_install_yolo_deps(payload, pipeline, bridge, config)
-            elif cmd_type == "download_ai_model":
-                system_handler.handle_download_ai_model(payload, pipeline, bridge, config)
-            elif cmd_type == "uninstall_ai_model":
-                system_handler.handle_uninstall_ai_model(payload, pipeline, bridge, config)
-            elif cmd_type == "fetch_nvidia_models":
-                system_handler.handle_fetch_nvidia_models(payload, pipeline, bridge, config)
-            elif cmd_type == "get_controller_config":
-                system_handler.handle_get_controller_config(payload, pipeline, bridge, config)
-            elif cmd_type == "save_controller_mappings":
-                system_handler.handle_save_controller_mappings(payload, pipeline, bridge, config, save_config, enforce_neural_security)
-            elif cmd_type == "trigger_controller_rumble":
-                system_handler.handle_trigger_controller_rumble(payload, pipeline, bridge, config)
-            # ── Agent mode / voice commands ───────────────────────────────
-            elif cmd_type == "toggle_agent_mode":
-                agent_handler.handle_toggle_agent_mode(payload, pipeline, bridge, config)
-            elif cmd_type == "set_personality":
-                agent_handler.handle_set_personality(payload, pipeline, bridge, config)
-            elif cmd_type == "toggle_voice":
-                agent_handler.handle_toggle_voice(payload, pipeline, bridge, config)
-            elif cmd_type == "stop_voice":
-                agent_handler.handle_stop_voice(payload, pipeline, bridge, config)
-
-            else:
-                logger.debug("Unknown bridge command: %s", cmd_type)
-
-        bridge.on_command = _handle_bridge_command
+        # Attach unified command router dispatcher
+        bridge.on_command = lambda cmd_type, payload: dispatch_bridge_command(
+            cmd_type=cmd_type,
+            payload=payload,
+            pipeline=pipeline,
+            bridge=bridge,
+            config=config,
+            library_session=_library_session,
+            local_vision=local_vision,
+            enforce_security_fn=enforce_neural_security,
+        )
 
         if _PROCESS_WATCHER_AVAILABLE:
             from system.game_scanner import GameScanner
-
             scanner = GameScanner(config=config)
             known_games = scanner.load_cached_games()
 
             def on_game_detected(game_info):
                 logger.info("Game detected: %s - Starting pipeline", game_info.get("name"))
-                
-                # Dynamic Icon Extraction/Update for Running Games
                 try:
                     exe_path = game_info.get("exe_path")
                     game_name = game_info.get("name")
@@ -739,61 +349,51 @@ Ready and monitoring. Launch your game to initiate automatic HUD lock.
                         user_id_str = str(pipeline.active_user_id) if pipeline and getattr(pipeline, "active_user_id", None) else None
                         scanner_with_user = GameScanner(config=config, user_id=user_id_str)
                         cached_games = scanner_with_user.load_cached_games()
-                        
-                        # Match by clean name
                         import re
                         def clean(n):
                             n_clean = re.sub(r'\[.*?\]', '', n.lower())
                             n_clean = re.sub(r'\(.*?\)', '', n_clean)
                             return "".join(c for c in n_clean if c.isalnum())
-                        
                         target_clean = clean(game_name)
                         updated = False
                         for g in cached_games:
                             if clean(g.get("name", "")) == target_clean:
-                                # Update exe_path if missing
                                 if not g.get("exe_path"):
                                     g["exe_path"] = exe_path
                                     updated = True
-                                
-                                # Extract icon if missing
                                 if not g.get("icon") or not os.path.exists(g.get("icon", "")):
                                     icon_file = scanner_with_user._extract_exe_icon(exe_path, g.get("id", g.get("name")))
                                     if icon_file:
                                         g["icon"] = icon_file
                                         updated = True
                                 break
-                        
                         if updated:
-                            logger.info(f"Updated icon/exe path for running game {game_name}")
+                            logger.info("Updated icon/exe path for running game %s", game_name)
                             scanner_with_user.save_games_to_cache(cached_games)
-                            # Update library session cache
                             if user_id_str:
                                 with game_handler._lib_lock:
                                     _library_session[user_id_str] = cached_games
-                            # Push updated state to frontend
                             bridge.update_state({"game_library": cached_games})
                 except Exception as e:
-                    logger.error(f"Failed to dynamically update game icon: {e}", exc_info=True)
+                    logger.error("Failed to dynamically update game icon: %s", e, exc_info=True)
+
                 if config.get("auto_optimize_on_detect", False):
                     from system.optimizer import Optimizer
                     success, results = Optimizer.optimize_game(game_info, config)
                     if success:
                         logger.info("Auto-Optimization Applied")
-                
-                # Activate Stealth Boost Mode for VRAM Defragmentation & Suspender
+
                 try:
                     from system.optimizer import Optimizer
                     Optimizer.enable_stealth_boost()
                 except Exception as e:
-                    logger.error(f"Failed to enable Stealth Boost Mode: {e}")
+                    logger.error("Failed to enable Stealth Boost Mode: %s", e)
 
                 if pipeline:
                     pipeline.update_game_info(game_info)
                     with pipeline._state_lock:
                         pipeline._game_state["is_game_active"] = True
 
-                # Auto-scan preset optimizer when game is detected
                 try:
                     current_preset = config.get("nvidia", {}).get("preset", "quality")
                     system_handler.handle_scan_preset_optimizer(
@@ -801,11 +401,11 @@ Ready and monitoring. Launch your game to initiate automatic HUD lock.
                         pipeline,
                         bridge,
                         config,
-                        game_entry=game_info,  # pass full game_info dict directly
+                        game_entry=game_info,
                     )
                     logger.info("[PresetOptimizer] Auto-scan triggered for '%s'", game_info.get("name"))
-                except Exception as _po_err:
-                    logger.debug("[PresetOptimizer] Auto-scan skipped: %s", _po_err)
+                except Exception as po_err:
+                    logger.debug("[PresetOptimizer] Auto-scan skipped: %s", po_err)
 
                 if pipeline and hasattr(pipeline, "session_recorder"):
                     pipeline.session_recorder.start_session(game_info.get("name", "Unknown Game"))
@@ -817,23 +417,21 @@ Ready and monitoring. Launch your game to initiate automatic HUD lock.
                     from system.optimizer import Optimizer
                     Optimizer.revert_optimization(pw.current_game)
                     logger.info("Auto-Optimization Reverted")
-                
-                # Deactivate Stealth Boost Mode
+
                 try:
                     from system.optimizer import Optimizer
                     Optimizer.disable_stealth_boost()
                 except Exception as e:
-                    logger.error(f"Failed to disable Stealth Boost Mode: {e}")
+                    logger.error("Failed to disable Stealth Boost Mode: %s", e)
 
-                # Win32 Memory flush (Aggressive reclamation on exit)
                 if sys.platform == "win32":
                     try:
                         import ctypes
                         import psutil
                         process = psutil.Process()
                         ctypes.windll.psapi.EmptyWorkingSet(process.pid)
-                        logger.info(f"RAM Reclaimed: Triggered EmptyWorkingSet for PID {process.pid} on game exit")
-                    except Exception as e:
+                        logger.info("RAM Reclaimed: Triggered EmptyWorkingSet for PID %s on game exit", process.pid)
+                    except Exception:
                         pass
 
                 if pipeline:
@@ -845,19 +443,19 @@ Ready and monitoring. Launch your game to initiate automatic HUD lock.
                     summary = pipeline.session_recorder.end_session()
                     if summary:
                         avg_fps = summary.get("fps", {}).get("avg", 0)
-                        logger.info(f"Session Recorded. Avg FPS: {avg_fps}")
+                        logger.info("Session Recorded. Avg FPS: %s", avg_fps)
                         if hasattr(pipeline, "memory"):
                             user_id = getattr(pipeline, "active_user_id", "guest")
                             pipeline.session_recorder.save_to_db(pipeline.memory, user_id=user_id)
                 pipeline.stop()
 
             def on_game_crashed(game_info):
-                logger.warning(f"Crash Detected: {game_info.get('name')}")
+                logger.warning("Crash Detected: %s", game_info.get('name'))
                 bridge.update_state({"alert": {"title": "Game Crashed", "message": f"{game_info.get('name')} stopped unexpectedly."}})
                 on_game_exited()
-                
+
             def on_game_hung(game_info):
-                logger.warning(f"Game Hung: {game_info.get('name')}")
+                logger.warning("Game Hung: %s", game_info.get('name'))
                 bridge.update_state({"alert": {"title": "Game Not Responding", "message": f"{game_info.get('name')} is not responding."}})
 
             pw = ProcessWatcher(poll_interval=3.0, game_registry=known_games)
@@ -865,20 +463,11 @@ Ready and monitoring. Launch your game to initiate automatic HUD lock.
             pw.on_game_exited = on_game_exited
             pw.on_game_crashed = on_game_crashed
             pw.on_game_hung = on_game_hung
-
-            def on_game_status_changed(game_info):
-                """Fires every poll cycle while game is running — propagates hwnd and minimization state."""
-                if pipeline and pipeline.running:
-                    pipeline.update_game_info(game_info)
-
-            pw.on_game_status_changed = on_game_status_changed
+            pw.on_game_status_changed = lambda game_info: pipeline.update_game_info(game_info) if (pipeline and pipeline.running) else None
             pw.start()
             if pipeline:
                 pipeline.process_watcher = pw
             logger.info("Server: Ready (process watcher enabled)")
-
-            # NOTE: No startup scan is performed. Library data is user-scoped (Clerk user_id);
-            # the authenticated user's games load from Supabase when they log in.
         else:
             pipeline.start()
 
@@ -887,7 +476,7 @@ Ready and monitoring. Launch your game to initiate automatic HUD lock.
                 pipeline=pipeline,
                 bridge=bridge,
                 config=config,
-                library_session=_library_session
+                library_session=_library_session,
             )
             lib_watcher.start()
 
@@ -911,19 +500,7 @@ Ready and monitoring. Launch your game to initiate automatic HUD lock.
             reloader.stop()
         if proc_logger:
             proc_logger.stop()
-        try:
-            if lock_fd:
-                try:
-                    os.close(lock_fd)
-                except Exception:
-                    pass
-                if os.path.exists(lock_path):
-                    try:
-                        os.remove(lock_path)
-                    except Exception:
-                        pass
-        except Exception:
-            logger.debug("Failed to cleanup instance lock", exc_info=True)
+        release_instance_lock(lock_fd, lock_path)
 
     if restart_requested or (reloader and reloader.restart_requested):
         python = sys.executable
@@ -934,18 +511,6 @@ Ready and monitoring. Launch your game to initiate automatic HUD lock.
 
 if __name__ == "__main__":
     multiprocessing.freeze_support()
-    
-    # Request UAC elevation on Windows if not running as admin.
-    if sys.platform == "win32" and "--no-admin" not in sys.argv and "--dev" not in sys.argv:
-        import ctypes
-        try:
-            if not ctypes.windll.shell32.IsUserAnAdmin():
-                # Not admin, attempt to elevate
-                params = " ".join([f'"{arg}"' for arg in sys.argv])
-                print("Requesting Administrator privileges for native ETW hooks...")
-                ctypes.windll.shell32.ShellExecuteW(None, "runas", sys.executable, params, os.getcwd(), 1)
-                sys.exit(0)
-        except Exception as e:
-            print(f"Failed to elevate to Administrator: {e}")
-            
+    request_admin_elevation()
     main()
+

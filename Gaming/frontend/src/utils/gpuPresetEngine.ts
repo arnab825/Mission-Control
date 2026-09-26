@@ -11,12 +11,12 @@ export const getRecommendedPreset = (
   const upperFeatures = (features || []).map(f => String(f).toUpperCase());
 
   // 1. Detect GPU Architecture (GTX vs RTX, Generation & Tier)
-  let isAdvancedGpu = false;
+  let isAdvancedGpu: boolean;
   let isHighEndRtx = false;
   let is40SeriesOrNewer = false;
 
   if (typeof gpuInfo === 'object' && gpuInfo !== null) {
-    isAdvancedGpu = gpuInfo.is_rtx ?? false;
+    isAdvancedGpu = Boolean(gpuInfo.is_rtx);
     isHighEndRtx = isAdvancedGpu && (gpuInfo.tier === 'high');
     is40SeriesOrNewer = isAdvancedGpu && (gpuInfo.generation_number >= 40 || gpuInfo.architecture === 'Ada Lovelace' || gpuInfo.architecture === 'Blackwell' || (gpuInfo.architecture && !['Turing', 'Ampere'].includes(gpuInfo.architecture)));
   } else {

@@ -91,6 +91,18 @@ export const AccountSettingsSection: React.FC<AccountSettingsSectionProps> = ({
     setIsAccountSwitcherOpen(true);
   };
 
+  const handleReauthenticate = async () => {
+    setAccountError(null);
+    setNeedsReauth(false);
+    const primaryProvider = user?.externalAccounts?.[0]?.provider?.replace('oauth_', '') || 'google';
+    const strategy = primaryProvider === 'discord' ? 'oauth_discord' : 'oauth_google';
+    if ((window as any).electronAPI?.openAuthPopup) {
+      await (window as any).electronAPI.openAuthPopup({ strategy, mode: 'login' });
+    } else {
+      await signOut();
+    }
+  };
+
   const handleLinkProvider = async (strategy: string) => {
     if (!user) return;
     setLinkingProvider(strategy);
@@ -418,15 +430,11 @@ export const AccountSettingsSection: React.FC<AccountSettingsSectionProps> = ({
                 <div className="flex items-center gap-2 pt-1 flex-wrap">
                   <button
                     type="button"
-                    onClick={async () => {
-                      setAccountError(null);
-                      setNeedsReauth(false);
-                      await signOut();
-                    }}
-                    className="flex items-center gap-1.5 px-3 py-1.5 bg-red-500/20 hover:bg-red-500/30 border border-red-500/40 text-red-200 hover:text-white font-black text-[9px] uppercase tracking-widest rounded-lg transition-all cursor-pointer shadow-sm"
+                    onClick={handleReauthenticate}
+                    className="flex items-center gap-1.5 px-3 py-1.5 bg-neon-green/20 hover:bg-neon-green/30 border border-neon-green/40 text-neon-green hover:text-white font-black text-[9px] uppercase tracking-widest rounded-lg transition-all cursor-pointer shadow-sm"
                   >
-                    <LogOut className="w-3 h-3" />
-                    Sign Out & Re-authenticate
+                    <KeyRound className="w-3 h-3" />
+                    Re-verify Session
                   </button>
                   <button
                     type="button"
@@ -438,6 +446,18 @@ export const AccountSettingsSection: React.FC<AccountSettingsSectionProps> = ({
                     className="px-3 py-1.5 bg-white/5 hover:bg-white/10 border border-white/10 text-zinc-300 hover:text-white font-black text-[9px] uppercase tracking-widest rounded-lg transition-all cursor-pointer"
                   >
                     Switch Account
+                  </button>
+                  <button
+                    type="button"
+                    onClick={async () => {
+                      setAccountError(null);
+                      setNeedsReauth(false);
+                      await signOut();
+                    }}
+                    className="flex items-center gap-1.5 px-3 py-1.5 bg-red-500/10 hover:bg-red-500/20 border border-red-500/30 text-red-300 hover:text-white font-black text-[9px] uppercase tracking-widest rounded-lg transition-all cursor-pointer"
+                  >
+                    <LogOut className="w-3 h-3" />
+                    Sign Out
                   </button>
                 </div>
               )}

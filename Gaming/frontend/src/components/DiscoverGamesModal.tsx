@@ -481,10 +481,12 @@ const DiscoverGamesModal: React.FC<DiscoverGamesModalProps> = ({ onClose, instal
   // Keystroke Debounced Auto-complete (100% LOCAL — NEVER TOUCHES RENDER)
   useEffect(() => {
     if (activeTab === 'news' || !query.trim() || query.trim().length < 2) {
-      setSuggestions([]);
-      setIsSuggestLoading(false);
-      setFocusedIndex(-1);
-      return;
+      const clearTimer = setTimeout(() => {
+        setSuggestions([]);
+        setIsSuggestLoading(false);
+        setFocusedIndex(-1);
+      }, 0);
+      return () => clearTimeout(clearTimer);
     }
 
     if (debounceTimerRef.current) {
