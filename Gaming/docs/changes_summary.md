@@ -22,7 +22,31 @@ Comprehensive breakdown of major milestone releases, architectural upgrades, and
 
 ---
 
-## 🌟 Version v3.7.5 (Latest) — Fixed Provider Link Security Dialog & Re-auth Flow
+## 🌟 Version v3.7.6 (Latest) — Account Switching & Authentication Gateway Upgrades
+
+### 🛠️ Key Highlights
+1. **Seamless Account Linking: Added pre-flight token refresh and automated retries when connecting Discord or Google accounts**
+2. **Eliminated Native Alert Dialogs: Replaced blocking OS message boxes with inline tactical HUD banners matching the app design system**
+3. **Enhanced Session Reverification: Added one-click 'Sign Out & Re-authenticate' and 'Switch Account' action buttons when Clerk requires step-up verification**
+4. **Fixed UI Lockup: Resolved issue where connecting buttons remained frozen in 'CONNECTING...' state during authentication failures**
+5. **Settings Navigation Polish: Unified tactical command deck with illuminated module headers and responsive quick-switch controls**
+
+### 📊 Architecture & Data Flow
+```mermaid
+graph TD
+    A["Mobile Client / DevTools (320px+)"] --> B[Responsive CSS & Layout Container]
+    B --> C[DocsClient Component & Cards]
+    C --> D[MobileDocsSidebar Drawer & Header Bar]
+    D --> E[Real-Time Mongo Telemetry & Render]
+```
+
+### 📦 Distribution Artifacts
+- **Linux**: `.deb` (Debian/Ubuntu), `.AppImage` (Universal), `.rpm` (Fedora/RHEL), `.tar.gz` (Portable)
+- **Windows**: `.exe` (Setup Installer), `.msi` (Enterprise), `.zip` (Portable)
+
+---
+
+## 📦 Version v3.7.5 — Fixed Provider Link Security Dialog & Re-auth Flow
 
 ### 🛠️ Key Highlights
 1. **Replaced blocking native OS alert popups with inline tactical banners for provider link and unlink operations.**

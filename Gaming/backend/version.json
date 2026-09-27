@@ -1,8 +1,20 @@
 {
-  "version": "3.7.5",
+  "version": "3.7.6",
   "release_date": "2026-09-25",
   "update_check_url": "https://raw.githubusercontent.com/arnab825/Mission-Control/main/Gaming/backend/version.json",
   "changelog": [
+    {
+      "version": "3.7.6",
+      "date": "2026-09-28",
+      "title": "Account Switching & Authentication Gateway Upgrades",
+      "highlights": [
+        "Seamless Account Linking: Added pre-flight token refresh and automated retries when connecting Discord or Google accounts",
+        "Eliminated Native Alert Dialogs: Replaced blocking OS message boxes with inline tactical HUD banners matching the app design system",
+        "Enhanced Session Reverification: Added one-click 'Sign Out & Re-authenticate' and 'Switch Account' action buttons when Clerk requires step-up verification",
+        "Fixed UI Lockup: Resolved issue where connecting buttons remained frozen in 'CONNECTING...' state during authentication failures",
+        "Settings Navigation Polish: Unified tactical command deck with illuminated module headers and responsive quick-switch controls"
+      ]
+    },
     {
       "version": "3.7.5",
       "date": "2026-09-25",
@@ -538,17 +550,6 @@
         "Synchronized effective capture and DirectX FPS telemetry to system tray tooltip",
         "Bound RightTelemetry neural metrics and status items to live backend telemetry",
         "Fixed DatabaseManager class inheritance and Intel Arc Alchemist/Battlemage architecture profiling heuristics"
-      ]
-    },
-    {
-      "version": "3.2.8",
-      "date": "2026-08-22",
-      "title": "OpenCV Resilience & Pipeline Stability Hardening",
-      "highlights": [
-        "Removed unused cv2 import from capture/screen.py that caused crash on DLL load failure",
-        "Added try/except cv2 import guards in scene_classifier, simple_rules, and trt_inference with graceful NumPy/PIL fallbacks",
-        "Guarded all cv2 window management and frame encoding calls in pipeline_host to prevent AttributeError and NoneType crashes",
-        "Fixed dangling self._render_preview() call in _display_loop that caused AttributeError at runtime"
       ]
     }
   ]
