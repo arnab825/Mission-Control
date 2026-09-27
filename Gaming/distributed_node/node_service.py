@@ -228,7 +228,7 @@ class LibraryNodeService:
         method: str,
         path: str,
         data: Any = None,
-        timeout: int = 15,
+        timeout: int = 30,
     ) -> Optional[Dict]:
         """
         Sends HTTP request with multi-tier automatic failover across Azure and Render.
@@ -407,7 +407,7 @@ class LibraryNodeService:
             "POST",
             f"/api/nodes/{self.cfg.node_id}/heartbeat",
             {"ip": _get_local_ip(), "storage": storage, "status": "online"},
-            timeout=15,
+            timeout=30,
         )
         if result and result.get("_status_code") == 401:
             logger.info("[NodeAuth] Heartbeat 401 Unauthorized (token out of sync). Auto-registering node...")
@@ -416,7 +416,7 @@ class LibraryNodeService:
                     "POST",
                     f"/api/nodes/{self.cfg.node_id}/heartbeat",
                     {"ip": _get_local_ip(), "storage": storage, "status": "online"},
-                    timeout=15,
+                    timeout=30,
                 )
             else:
                 return False
