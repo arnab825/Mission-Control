@@ -2,6 +2,15 @@
 
 This document contains a detailed history of all patches and updates for the AI Gaming Assistant.
 
+### Patch: 2026-09-28 — v3.7.7: Custom Cyberpunk Security Portal & Authentication Gateway Enhancements
+
+- Custom Mission Control dark cyberpunk theme for Clerk Security Portal and UserButton
+- Removed development mode watermark badges and footers
+- Enhanced account switching and OAuth popup lifecycles
+- Modernized Clerk fallback redirect URLs
+- Resolved Aero Bridge WebSocket 1001 false-positive disconnect warnings
+- Hardened distributed node heartbeat network resilience
+
 ### Patch: 2026-09-28 — v3.7.6: Account Switching & Authentication Gateway Upgrades
 
 - Seamless Account Linking: Added pre-flight token refresh and automated retries when connecting Discord or Google accounts

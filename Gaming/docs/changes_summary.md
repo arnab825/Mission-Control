@@ -22,7 +22,31 @@ Comprehensive breakdown of major milestone releases, architectural upgrades, and
 
 ---
 
-## 🌟 Version v3.7.6 (Latest) — Account Switching & Authentication Gateway Upgrades
+## 🌟 Version v3.7.7 (Latest) — Custom Cyberpunk Security Portal & Authentication Gateway Enhancements
+
+### 🛠️ Key Highlights
+1. **Custom Mission Control dark cyberpunk theme for Clerk Security Portal and UserButton**
+2. **Removed development mode watermark badges and footers**
+3. **Enhanced account switching and OAuth popup lifecycles**
+4. **Modernized Clerk fallback redirect URLs**
+5. **Resolved Aero Bridge WebSocket 1001 false-positive disconnect warnings**
+6. **Hardened distributed node heartbeat network resilience**
+
+### 📊 Architecture & Data Flow
+```mermaid
+graph TD
+    A[Developer Push / Publish Pipeline] --> B[Version Stamping & AI Changelog Enforcer]
+    B --> C[Mission Control System Core]
+    C --> D[Website Documentation & Real-Time Sync]
+```
+
+### 📦 Distribution Artifacts
+- **Linux**: `.deb` (Debian/Ubuntu), `.AppImage` (Universal), `.rpm` (Fedora/RHEL), `.tar.gz` (Portable)
+- **Windows**: `.exe` (Setup Installer), `.msi` (Enterprise), `.zip` (Portable)
+
+---
+
+## 📦 Version v3.7.6 — Account Switching & Authentication Gateway Upgrades
 
 ### 🛠️ Key Highlights
 1. **Seamless Account Linking: Added pre-flight token refresh and automated retries when connecting Discord or Google accounts**
