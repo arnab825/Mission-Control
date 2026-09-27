@@ -117,3 +117,27 @@
   from { opacity: 0; transform: translateY(-4px); }
   to { opacity: 1; transform: translateY(0); }
 }
+
+/* Clerk development mode badge & footer watermark suppression */
+.cl-footer,
+.cl-footerAction,
+.cl-footerActionLink,
+.cl-footerActionText,
+.cl-footerPages,
+.cl-footerPagesLink,
+.cl-developmentModeBadge,
+.cl-devModeBadge,
+.cl-navbar > div:last-child:has(a[href*="clerk"]),
+.cl-navbar > div:last-child:has([class*="development"]),
+.cl-navbar > div:last-child:has([class*="Development"]),
+[class*="developmentMode"],
+[class*="DevelopmentMode"],
+[class*="devMode"],
+[data-localization-key*="developmentMode"],
+[data-localization-key*="securedBy"] {
+  display: none !important;
+  visibility: hidden !important;
+  opacity: 0 !important;
+  pointer-events: none !important;
+}
+

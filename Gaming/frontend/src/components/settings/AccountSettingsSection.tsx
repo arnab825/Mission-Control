@@ -4,6 +4,7 @@ import { KeyRound, Fingerprint, Calendar, Shield, Copy, Check, Link, Trash2, Ale
 import { SettingsSection } from './common/SettingsSection';
 import { OAUTH_PROVIDERS } from '../../data/settingsConstants';
 import { AccountSwitcherModal } from '../AccountSwitcherModal';
+import { missionControlClerkTheme } from '../../styles/clerkTheme';
 
 interface AccountSettingsSectionProps {
   searchQuery?: string;
@@ -275,20 +276,8 @@ export const AccountSettingsSection: React.FC<AccountSettingsSectionProps> = ({
         <div className="flex items-center gap-4">
           <UserButton
             userProfileMode="modal"
-            appearance={{
-              elements: {
-                userButtonAvatarBox:
-                  'w-12 h-12 rounded-2xl border border-white/10 shadow-[0_0_15px_rgba(255,255,255,0.05)]',
-                userButtonPopoverCard:
-                  'bg-zinc-950/95 border border-white/10 backdrop-blur-xl shadow-2xl',
-                userButtonPopoverActionButton:
-                  'hover:bg-white/10 text-zinc-300 hover:text-white transition-colors',
-                userButtonPopoverActionButtonText: 'text-xs font-semibold',
-                userButtonPopoverFooter: 'border-t border-white/10',
-                userPreviewMainIdentifier: 'text-white font-bold',
-                userPreviewSecondaryIdentifier: 'text-zinc-400 font-mono text-xs',
-              },
-            }}
+            userProfileProps={{ appearance: missionControlClerkTheme }}
+            appearance={missionControlClerkTheme}
           />
           <div>
             <div className="flex items-center gap-2">
@@ -427,7 +416,7 @@ export const AccountSettingsSection: React.FC<AccountSettingsSectionProps> = ({
             <button
               aria-label="Security Portal"
               type="button"
-              onClick={() => clerk.openUserProfile()}
+              onClick={() => clerk.openUserProfile({ appearance: missionControlClerkTheme })}
               className="px-3.5 py-2 bg-neon-green/10 hover:bg-neon-green/20 border border-neon-green/30 text-neon-green font-black text-[9px] uppercase tracking-widest rounded-xl transition-all whitespace-nowrap shrink-0 flex items-center gap-1.5 cursor-pointer"
               title="Open Clerk Security & Accounts"
             >
@@ -464,7 +453,7 @@ export const AccountSettingsSection: React.FC<AccountSettingsSectionProps> = ({
                 <div className="flex items-center gap-2 pt-1 flex-wrap">
                   <button
                     type="button"
-                    onClick={() => clerk.openUserProfile()}
+                    onClick={() => clerk.openUserProfile({ appearance: missionControlClerkTheme })}
                     className="flex items-center gap-1.5 px-3 py-1.5 bg-neon-green/20 hover:bg-neon-green/30 border border-neon-green/40 text-neon-green hover:text-white font-black text-[9px] uppercase tracking-widest rounded-lg transition-all cursor-pointer shadow-sm"
                   >
                     <Shield className="w-3 h-3" />

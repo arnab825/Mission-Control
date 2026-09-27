@@ -325,10 +325,21 @@ class BridgeServer:
                 return None
             except Exception as e:
                 err_str = str(e)
-                if "1000" in err_str or "OK" in err_str:
-                    logger.info("Client disconnected gracefully: %s", e)
+                code = getattr(e, "code", None)
+                is_graceful = (
+                    code in (1000, 1001)
+                    or "1000" in err_str
+                    or "1001" in err_str
+                    or "going away" in err_str.lower()
+                    or "ok" in err_str.lower()
+                    or (hasattr(websockets.exceptions, "ConnectionClosedOK") and isinstance(e, websockets.exceptions.ConnectionClosedOK))
+                )
+                if is_graceful:
+                    logger.debug("Client disconnected gracefully: %s", e)
+                elif isinstance(e, asyncio.TimeoutError):
+                    logger.warning("Dropping client due to send timeout (>3.0s)")
                 else:
-                    logger.warning("Dropping client due to send failure/timeout: %s", e)
+                    logger.warning("Dropping client due to send failure: %s", e)
                 try:
                     await client.close()
                 except Exception:
