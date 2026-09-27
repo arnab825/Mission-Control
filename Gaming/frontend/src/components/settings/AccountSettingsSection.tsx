@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useRef } from 'react';
-import { useUser, useAuth, UserButton } from '@clerk/clerk-react';
+import { useUser, useAuth, useClerk, useReverification, UserButton } from '@clerk/clerk-react';
 import { KeyRound, Fingerprint, Calendar, Shield, Copy, Check, Link, Trash2, AlertTriangle, X, LogOut } from 'lucide-react';
 import { SettingsSection } from './common/SettingsSection';
 import { OAUTH_PROVIDERS } from '../../data/settingsConstants';
@@ -87,6 +87,14 @@ export const AccountSettingsSection: React.FC<AccountSettingsSectionProps> = ({
     );
   }
 
+  const clerk = useClerk();
+  const reverifiedDestroy = useReverification(async (account: any) => {
+    return await account.destroy();
+  });
+  const reverifiedCreateExternalAccount = useReverification(async (options: any) => {
+    return await user?.createExternalAccount(options);
+  });
+
   const handleSwitchAccount = () => {
     setIsAccountSwitcherOpen(true);
   };
@@ -109,13 +117,6 @@ export const AccountSettingsSection: React.FC<AccountSettingsSectionProps> = ({
     setAccountError(null);
     setNeedsReauth(false);
 
-    // Pre-flight session token refresh to minimize step-up verification errors
-    try {
-      await getToken({ skipCache: true });
-    } catch (_) {
-      // Proceed even if background token refresh fails
-    }
-
     try {
       const options: any = {
         strategy: strategy as any,
@@ -127,13 +128,13 @@ export const AccountSettingsSection: React.FC<AccountSettingsSectionProps> = ({
         options.additionalData = { prompt: 'consent' };
       }
 
+      // Attempt creation wrapped with Clerk step-up reverification
       let extAccount: any;
       try {
-        extAccount = await user.createExternalAccount(options);
+        extAccount = await reverifiedCreateExternalAccount(options);
       } catch (firstErr: any) {
         const firstMsg = firstErr.errors?.[0]?.longMessage || firstErr.message || '';
-        if (firstMsg.toLowerCase().includes('additional verification')) {
-          // Auto-retry once: refresh user and token before second attempt
+        if (firstMsg.toLowerCase().includes('additional verification') || firstMsg.toLowerCase().includes('reverification')) {
           try {
             await user.reload();
             await getToken({ skipCache: true });
@@ -154,20 +155,47 @@ export const AccountSettingsSection: React.FC<AccountSettingsSectionProps> = ({
 
       if (redirectUrl) {
         if ((window as any).electronAPI?.openAuthPopupUrl) {
+          // Listen for completion or popup closing without prematurely reloading the main window
+          let unsubSuccess: (() => void) | undefined;
+          let unsubClosed: (() => void) | undefined;
+
+          const cleanupListeners = () => {
+            unsubSuccess?.();
+            unsubClosed?.();
+          };
+
+          unsubSuccess = (window as any).electronAPI?.onAuthCompleted?.(async () => {
+            cleanupListeners();
+            try {
+              await user.reload();
+            } catch (_) {}
+            setLinkingProvider(null);
+          });
+
+          unsubClosed = (window as any).electronAPI?.onAuthPopupClosed?.(async () => {
+            cleanupListeners();
+            try {
+              await user.reload();
+            } catch (_) {}
+            setLinkingProvider(null);
+          });
+
           const res = await (window as any).electronAPI.openAuthPopupUrl(redirectUrl.toString());
-          if (res?.success) {
-            window.location.reload();
+          if (!res?.success && res?.error && res.error !== 'cancelled') {
+            setAccountError(res.error);
+            setLinkingProvider(null);
           }
         } else {
           window.location.href = redirectUrl.toString();
         }
       } else {
         setAccountError('OAuth flow initialization succeeded, but the redirect URL was missing from Clerk.');
+        setLinkingProvider(null);
       }
     } catch (err: any) {
       console.error('Failed to link provider:', err);
       const msg = err.errors?.[0]?.longMessage || err.message || 'OAuth connection initiation failed.';
-      if (msg.toLowerCase().includes('additional verification')) {
+      if (msg.toLowerCase().includes('additional verification') || msg.toLowerCase().includes('reverification')) {
         setAccountError(
           'Security verification required: To connect a new authentication provider, Clerk requires a fresh session.'
         );
@@ -175,7 +203,6 @@ export const AccountSettingsSection: React.FC<AccountSettingsSectionProps> = ({
       } else {
         setAccountError(msg);
       }
-    } finally {
       setLinkingProvider(null);
     }
   };
@@ -199,35 +226,30 @@ export const AccountSettingsSection: React.FC<AccountSettingsSectionProps> = ({
     setAccountError(null);
     setNeedsReauth(false);
 
-    // Force a fresh session token before attempting the sensitive operation
     try {
-      await getToken({ skipCache: true });
-    } catch (_) {
-      // Token refresh failed silently — proceed anyway and let destroy() report the real error
-    }
-
-    try {
-      await extAcc.destroy();
-      await user.reload();
-    } catch (err: any) {
-      console.error('Failed to unlink provider (attempt 1):', err);
-      const msg = err.errors?.[0]?.longMessage || 'Failed to disconnect account.';
-
-      if (msg.toLowerCase().includes('additional verification')) {
-        // Auto-retry: reload user to get a fresh object, refresh token, then retry destroy()
-        try {
+      try {
+        await reverifiedDestroy(extAcc);
+      } catch (err: any) {
+        const msg = err.errors?.[0]?.longMessage || err.message || '';
+        if (msg.toLowerCase().includes('additional verification') || msg.toLowerCase().includes('reverification')) {
           await user.reload();
           await getToken({ skipCache: true });
           const freshExtAcc = user.externalAccounts.find((acc: any) => acc.provider === providerKey);
           if (freshExtAcc) {
             await freshExtAcc.destroy();
-            await user.reload();
-            return; // Retry succeeded
+          } else {
+            throw err;
           }
-        } catch (retryErr: any) {
-          console.error('Failed to unlink provider (retry):', retryErr);
+        } else {
+          throw err;
         }
-        // Both attempts failed — show error with re-auth action
+      }
+      await user.reload();
+    } catch (err: any) {
+      console.error('Failed to unlink provider:', err);
+      const msg = err.errors?.[0]?.longMessage || err.message || 'Failed to disconnect account.';
+
+      if (msg.toLowerCase().includes('additional verification') || msg.toLowerCase().includes('reverification')) {
         setAccountError(
           'Session verification required: Your current session needs to be refreshed before disconnecting a provider.'
         );
@@ -401,14 +423,26 @@ export const AccountSettingsSection: React.FC<AccountSettingsSectionProps> = ({
               Link secondary multi-factor authentication providers to authenticate on other systems or sign in securely.
             </p>
           </div>
-          <button
-            aria-label="Switch Account"
-            type="button"
-            onClick={handleSwitchAccount}
-            className="px-4 py-2 bg-white/5 border border-white/10 hover:bg-white/10 text-white font-black text-[9px] uppercase tracking-widest rounded-xl transition-all whitespace-nowrap shrink-0"
-          >
-            Switch Account
-          </button>
+          <div className="flex items-center gap-2 flex-wrap">
+            <button
+              aria-label="Security Portal"
+              type="button"
+              onClick={() => clerk.openUserProfile()}
+              className="px-3.5 py-2 bg-neon-green/10 hover:bg-neon-green/20 border border-neon-green/30 text-neon-green font-black text-[9px] uppercase tracking-widest rounded-xl transition-all whitespace-nowrap shrink-0 flex items-center gap-1.5 cursor-pointer"
+              title="Open Clerk Security & Accounts"
+            >
+              <Shield className="w-3.5 h-3.5" />
+              Security Portal
+            </button>
+            <button
+              aria-label="Switch Account"
+              type="button"
+              onClick={handleSwitchAccount}
+              className="px-4 py-2 bg-white/5 border border-white/10 hover:bg-white/10 text-white font-black text-[9px] uppercase tracking-widest rounded-xl transition-all whitespace-nowrap shrink-0"
+            >
+              Switch Account
+            </button>
+          </div>
         </div>
 
         {/* Inline account error banner */}
@@ -430,8 +464,16 @@ export const AccountSettingsSection: React.FC<AccountSettingsSectionProps> = ({
                 <div className="flex items-center gap-2 pt-1 flex-wrap">
                   <button
                     type="button"
-                    onClick={handleReauthenticate}
+                    onClick={() => clerk.openUserProfile()}
                     className="flex items-center gap-1.5 px-3 py-1.5 bg-neon-green/20 hover:bg-neon-green/30 border border-neon-green/40 text-neon-green hover:text-white font-black text-[9px] uppercase tracking-widest rounded-lg transition-all cursor-pointer shadow-sm"
+                  >
+                    <Shield className="w-3 h-3" />
+                    Open Security Portal
+                  </button>
+                  <button
+                    type="button"
+                    onClick={handleReauthenticate}
+                    className="flex items-center gap-1.5 px-3 py-1.5 bg-white/10 hover:bg-white/15 border border-white/20 text-white font-black text-[9px] uppercase tracking-widest rounded-lg transition-all cursor-pointer shadow-sm"
                   >
                     <KeyRound className="w-3 h-3" />
                     Re-verify Session

@@ -21,7 +21,11 @@ const PUBLISHABLE_KEY = import.meta.env.VITE_CLERK_PUBLISHABLE_KEY;
  * and notifies Electron to close the popup seamlessly.
  */
 const SSOCallback: React.FC = () => {
-  const isPopup = typeof window !== 'undefined' && new URLSearchParams(window.location.search).get('popup') === '1';
+  const isPopup =
+    Boolean(window.electronAPI?.isAuthPopup) ||
+    (typeof window !== 'undefined' &&
+      (new URLSearchParams(window.location.search).get('popup') === '1' ||
+        new URLSearchParams(window.location.search).get('auth_popup') === '1'));
   const clerk = useClerk();
   const [authStatus, setAuthStatus] = React.useState<'verifying' | 'success' | 'error'>('verifying');
   const [errorMessage, setErrorMessage] = React.useState<string | null>(null);
@@ -51,17 +55,23 @@ const SSOCallback: React.FC = () => {
     const processHandshake = async () => {
       try {
         console.log('[SSOCallback] Finalizing OAuth redirect handshake...');
-        await clerk.handleRedirectCallback({
-          afterSignInUrl: isPopup ? '/?auth_completed=1' : '/',
-          afterSignUpUrl: isPopup ? '/?auth_completed=1' : '/',
+        await (clerk as any).handleRedirectCallback({
+          fallbackRedirectUrl: isPopup ? '/?auth_completed=1' : '/',
+          signInFallbackRedirectUrl: isPopup ? '/?auth_completed=1' : '/',
+          signUpFallbackRedirectUrl: isPopup ? '/?auth_completed=1' : '/',
         });
 
         if (isCancelled) return;
         console.log('[SSOCallback] OAuth handshake succeeded!');
         setAuthStatus('success');
 
-        if (isPopup && window.electronAPI?.notifyAuthSuccess) {
-          window.electronAPI.notifyAuthSuccess();
+        if (isPopup) {
+          if (window.electronAPI?.notifyAuthSuccess) {
+            window.electronAPI.notifyAuthSuccess();
+          }
+          if (window.electronAPI?.closeAuthPopup) {
+            window.electronAPI.closeAuthPopup();
+          }
           try {
             window.close();
           } catch (_) { }
@@ -76,8 +86,13 @@ const SSOCallback: React.FC = () => {
         if (clerk.session || clerk.client?.lastActiveSessionId) {
           console.log('[SSOCallback] Active session confirmed, proceeding as success.');
           setAuthStatus('success');
-          if (isPopup && window.electronAPI?.notifyAuthSuccess) {
-            window.electronAPI.notifyAuthSuccess();
+          if (isPopup) {
+            if (window.electronAPI?.notifyAuthSuccess) {
+              window.electronAPI.notifyAuthSuccess();
+            }
+            if (window.electronAPI?.closeAuthPopup) {
+              window.electronAPI.closeAuthPopup();
+            }
             try {
               window.close();
             } catch (_) { }
@@ -359,8 +374,8 @@ if (!PUBLISHABLE_KEY) {
         publishableKey={PUBLISHABLE_KEY}
         signInUrl="/"
         signUpUrl="/"
-        afterSignInUrl="/"
-        afterSignUpUrl="/"
+        signInFallbackRedirectUrl="/"
+        signUpFallbackRedirectUrl="/"
       >
         <MainRouter />
       </ClerkProvider>

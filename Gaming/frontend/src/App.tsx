@@ -74,7 +74,9 @@ const App: React.FC = () => {
   const [personality, setPersonality] = useState('Tactical');
   const [globalToast, setGlobalToast] = useState<{message: string; type?: 'info'|'warning'} | null>(null);
 
-  const isAuthPopup = typeof window !== 'undefined' && new URLSearchParams(window.location.search).get('auth_popup') === '1';
+  const isAuthPopup =
+    Boolean((window as any).electronAPI?.isAuthPopup) ||
+    (typeof window !== 'undefined' && new URLSearchParams(window.location.search).get('auth_popup') === '1');
   const isAuthCompleted = typeof window !== 'undefined' && new URLSearchParams(window.location.search).get('auth_completed') === '1';
   const [authPopupError, setAuthPopupError] = useState<string | null>(null);
   const [authPopupRetryCount, setAuthPopupRetryCount] = useState<number>(0);
@@ -99,7 +101,7 @@ const App: React.FC = () => {
 
   // Handle auth popup completion or auto-redirect trigger inside popup window
   useEffect(() => {
-    if (isAuthCompleted) {
+    if (isAuthCompleted || (isAuthPopup && isSignedIn && user)) {
       if (window.electronAPI?.notifyAuthSuccess) {
         window.electronAPI.notifyAuthSuccess();
       }
@@ -937,7 +939,7 @@ const App: React.FC = () => {
               initial={{ opacity: 0, y: 50 }}
               animate={{ opacity: 1, y: 0 }}
               exit={{ opacity: 0, y: 50 }}
-              className={`fixed bottom-8 left-1/2 -translate-x-1/2 z-[100] px-4 py-2 rounded-xl flex items-center gap-2 shadow-2xl border ${
+              className={`fixed bottom-8 left-1/2 -translate-x-1/2 z-100 px-4 py-2 rounded-xl flex items-center gap-2 shadow-2xl border ${
                 globalToast.type === 'warning' 
                   ? 'bg-amber-500/10 border-amber-500/30 text-amber-400' 
                   : 'bg-neon-green/10 border-neon-green/30 text-neon-green'

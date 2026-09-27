@@ -107,6 +107,7 @@ contextBridge.exposeInMainWorld('electronAPI', {
   },
   exitAuthToApp: () => ipcRenderer.send('exit-auth-to-app'),
   openAuthPopup: (params: { strategy: string; mode?: 'login' | 'signup' }) => ipcRenderer.invoke('open-auth-popup', params),
+  isAuthPopup: process.argv.includes('--is-auth-popup'),
   openAuthPopupUrl: (url: string) => ipcRenderer.invoke('open-auth-popup-url', url),
   notifyAuthSuccess: () => ipcRenderer.send('notify-auth-success'),
   closeAuthPopup: () => ipcRenderer.send('close-auth-popup'),

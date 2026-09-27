@@ -939,6 +939,7 @@ function openAuthPopupWindow(targetUrl: string): Promise<{ success: boolean; err
           nodeIntegration: false,
           contextIsolation: true,
           partition: 'persist:mission-control', // Crucial: shares cookies and Clerk tokens with main window
+          additionalArguments: ['--is-auth-popup'],
         },
       });
 
@@ -982,30 +983,45 @@ function openAuthPopupWindow(targetUrl: string): Promise<{ success: boolean; err
         return { action: 'deny' };
       });
 
-      authWindow.webContents.on('did-navigate', (_event, url) => {
-        if (url && (url.includes('auth_completed=1') || url.includes('auth_completed'))) {
-          console.log('[Electron] authWindow navigated to auth_completed — closing popup.');
+      let hasLeftAppOrigin = false;
+      const appOrigin = getAppOrigin();
+
+      const handlePotentialCompletion = (navUrl: string) => {
+        if (!navUrl) return;
+        if (!navUrl.startsWith(appOrigin)) {
+          hasLeftAppOrigin = true;
+          return;
+        }
+
+        // If returned to app origin from external OAuth, or contains completion marker
+        if (
+          hasLeftAppOrigin ||
+          navUrl.includes('auth_completed=1') ||
+          navUrl.includes('auth_completed') ||
+          (!navUrl.includes('auth_popup=1') && !navUrl.includes('sso-callback'))
+        ) {
+          console.log('[Electron] authWindow reached completion or returned to app origin — closing popup.');
           closeAuthWindow();
           if (win && !win.isDestroyed()) {
             win.webContents.send('auth-completed');
           }
-        } else if (url && (url.includes('auth_cancelled=1') || url.includes('auth_cancelled'))) {
+          return true;
+        }
+
+        if (navUrl.includes('auth_cancelled=1') || navUrl.includes('auth_cancelled')) {
           console.log('[Electron] authWindow navigated to auth_cancelled — closing popup.');
           closeAuthWindow();
+          return true;
         }
+        return false;
+      };
+
+      authWindow.webContents.on('did-navigate', (_event, url) => {
+        handlePotentialCompletion(url);
       });
 
       authWindow.webContents.on('did-navigate-in-page', (_event, url) => {
-        if (url && (url.includes('auth_completed=1') || url.includes('auth_completed'))) {
-          console.log('[Electron] authWindow in-page navigated to auth_completed — closing popup.');
-          closeAuthWindow();
-          if (win && !win.isDestroyed()) {
-            win.webContents.send('auth-completed');
-          }
-        } else if (url && (url.includes('auth_cancelled=1') || url.includes('auth_cancelled'))) {
-          console.log('[Electron] authWindow in-page navigated to auth_cancelled — closing popup.');
-          closeAuthWindow();
-        }
+        handlePotentialCompletion(url);
       });
 
       authWindow.once('ready-to-show', () => {
