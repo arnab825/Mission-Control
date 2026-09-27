@@ -2,6 +2,14 @@
 
 This document contains a detailed history of all patches and updates for the AI Gaming Assistant.
 
+### Patch: 2026-09-28 — v3.7.6: Account Switching & Authentication Gateway Upgrades
+
+- Seamless Account Linking: Added pre-flight token refresh and automated retries when connecting Discord or Google accounts
+- Eliminated Native Alert Dialogs: Replaced blocking OS message boxes with inline tactical HUD banners matching the app design system
+- Enhanced Session Reverification: Added one-click 'Sign Out & Re-authenticate' and 'Switch Account' action buttons when Clerk requires step-up verification
+- Fixed UI Lockup: Resolved issue where connecting buttons remained frozen in 'CONNECTING...' state during authentication failures
+- Settings Navigation Polish: Unified tactical command deck with illuminated module headers and responsive quick-switch controls
+
 ### Patch: 2026-09-25 — v3.7.5: Fixed Provider Link Security Dialog & Re-auth Flow
 
 - Replaced blocking native OS alert popups with inline tactical banners across all provider link and unlink operations
