@@ -208,12 +208,69 @@ npm install
 npm run dev
 ```
 
-### 4. Running Automated Local Build Script
+### 4. Running Automated Packaging & Deployment Pipeline
 
 ```powershell
-# Run the local packaging & release pipeline
-.\run_local.ps1
+# Run the single-command multi-platform release script
+.\Gaming\scripts\publish.ps1 -Type "patch" -Title "Release Title" -Changes "Feature description 1; Feature description 2"
 ```
+
+---
+
+## 📅 Roadmap Progress
+
+- [x] Phase 1–10: Screen capture, YOLO vision, multi-threaded pipeline, story/quest support, memory, input devices, NVIDIA tech, TensorRT, Blackwell
+- [x] Phase 11: System & Hardware Dashboard + Full Settings Page
+- [x] Phase 12: In-App Auto-Update System
+- [x] Phase 13: Agentic AI Assistant (G-Assist interface + Stability Lab)
+- [x] Phase 14: NVIDIA NIM full reasoning integration
+- [x] Phase 15: Agent mode with autonomous co-pilot
+- [x] Phase 16: Multi-model pipeline optimization
+- [x] Phase 17: Multi-modal vision (VLM + Deep Scene Analysis)
+- [x] Phase 18: Adaptive Agent Personalities
+- [x] Phase 19: High-Reliability Voice Engine (ElevenLabs + Google + SAPI5)
+- [x] Phase 20: Autonomous Gameplay Validation + Safety Lab
+- [x] Phase 21: **Gaming Web Search Intelligence (Wikipedia + RAWG + SteamSpy + DDG)**
+- [x] Phase 22: **Hotkey Recorder UI + Auto Model Routing**
+- [x] Phase 23: **UX Reusability & Logging Stability (React hooks, formatting, log fix)**
+- [x] Phase 24: **Hardware Diagnostics & Testing Integration (Vitest, RTL, HW Telemetry Overhaul)**
+- [x] Phase 25: **Electron autoUpdater & Squirrel Windows/Mac Installation Hooks**
+- [x] Phase 26: **Electron Forge Multi-Platform Packing Configuration (Squirrel, DEB, RPM)**
+- [x] Phase 27: **Dynamic Clerk SSO/OAuth Linked Accounts (Google, Discord, Microsoft)**
+- [x] Phase 28: **Motherboard Hardware UUID & Dynamic Cryptographic E2EE Binds**
+- [x] Phase 29: **Bytecode-Free Pycache-Bypass Guard & Zombie Process Fail-Fast**
+- [x] Phase 30: **2-Column Glassmorphic Privacy & Neural Security Grid Upgrade**
+- [x] Phase 31: **Active Backend Security Enforcer & Dynamic Motherboard UUID Lock**
+- [x] Phase 32: **Sleek Telemetry UI, Dynamic Library Presets & Substring Genre Matching**
+- [x] Phase 33: **DirectX C++ FPS Engine, Precision HUD Telemetry & Python 3.13 Warning Filters**
+- [x] Phase 34: **TensorRT Integration & Aggressive Win32 Working Set RAM Flushing**
+- [x] Phase 35: **Electron Build & Package Automation and Website Installer Direct Downloads**
+- [x] Phase 36: **Distributed Autonomous Library Node Network (`distributed_node`)**
+  - Autonomous `node_service.py` daemon with deterministic MAC-derived hardware IDs (`NODE-XXXXXX`).
+  - Deep local drive multi-launcher scanning across Steam, Epic Games, GOG Galaxy, Xbox App, Battle.net, Riot Games, and Ubisoft Connect.
+  - Byte-exact game storage calculation (`storage_calculator.py`) and periodic heartbeats with Azure/Render multi-tier cloud gateway failover.
+- [x] Phase 37: **Automated AI Gaming Intel Pipeline & RSS Feed Ingestion**
+  - Daily 5:30 AM IST automated cron pipeline on Next.js 15 App Router at `/api/blogs/generate`.
+  - Ingestion across IGN, Kotaku, Eurogamer, Tom's Hardware, and AnandTech RSS feeds.
+  - 3-tier LLM text generation failover (Google Gemini Flash → Hugging Face LLM → NVIDIA NIM).
+  - 4-tier image generation pipeline (Gemini Imagen 3 → Hugging Face FLUX.1 → Pollinations AI → 3D artwork fallback) with persistent Vercel Blob CDN upload.
+- [x] Phase 38: **Tactical Settings Command Deck & Inline Notification System**
+  - Elimination of blocking native OS alerts, replacing them with inline glowing tactical HUD banners.
+  - Unified 6-module settings navigation deck with category filters, search debouncing, and glowing icon badges.
+  - Seamless one-click session reverification and secondary identity management.
+- [x] Phase 39: **Custom Cyberpunk Clerk Theme Engine (`clerkTheme.ts`)**
+  - Full Mission Control theme integration across Clerk's `<UserProfile />` modal, `<UserButton />`, and authentication gateways.
+  - Signature `#0b0d13` tactical canvas, `#76b900` neon green active indicators, glassmorphic `backdrop-blur-md bg-black/85`, and rounded-3xl borders.
+  - Total suppression of development-mode watermark badges, diagonal striped banners, and footers via `unsafe_disableDevelopmentModeWarnings: true` and CSS overrides.
+- [x] Phase 40: **Aero Bridge WebSocket Resilience & Graceful Disconnects**
+  - WebSocket engine updated to recognize RFC 6455 code `1001` (`CLOSE_GOING_AWAY`) and `ConnectionClosedOK` during Vite Hot Module Reloading and route navigation, eliminating false-positive warning alerts.
+  - Outbound message queue buffering during reconnects and instant socket reconnection.
+- [x] Phase 41: **Bulletproof CI/CD Release Pipeline & Automated `uv.lock` Sync (`publish.ps1`)**
+  - Automated `uv lock` synchronization right after semver bump in `backend/pyproject.toml`.
+  - Comprehensive staging of all manifests, lockfiles, and markdown documentation (`docs/`, `website/docs/`, `website/version.json`).
+  - Automatic commit amending and Git release tag realignment (`vX.Y.Z`) ensuring 100% of artifacts and notes are published to GitHub Releases.
+
+
 
 ---
 
