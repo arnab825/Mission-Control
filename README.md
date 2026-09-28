@@ -99,80 +99,86 @@ Mission-Control /
 
 ### 🧱 System Workflow Architecture
 
-<table align="center" width="100%">
-  <tr>
-    <th colspan="3" style="text-align:center; background:#0f172a; color:#38bdf8; font-size:16px;">
-      👤 USER / GAMER INTERACTION LAYER
-    </th>
-  </tr>
-  <tr>
-    <td width="33%" align="center"><b>🖥️ Electron Desktop Dashboard</b><br/>React + Vite HUD & Telemetry</td>
-    <td width="33%" align="center"><b>📦 Publisher GUI Client</b><br/>Builds, Packaging & Releases</td>
-    <td width="33%" align="center"><b>🎙️ Voice & Hotkey Controls</b><br/>Mic Toggle & Global Shortcuts</td>
-  </tr>
-  <tr>
-    <th colspan="3" style="text-align:center; background:#111827; color:#a855f7; font-size:16px;">
-      🧠 AI DECISION ENGINE & TASK AUTO-ROUTER
-    </th>
-  </tr>
-  <tr>
-    <td colspan="3" align="center">
-      <b>Task Classifier ➔ Dynamic Web Search Engine</b> (Wikipedia | RAWG.io | SteamSpy | DuckDuckGo)<br/>
-      <b>Model Router ➔ NVIDIA NIM Cloud AI</b> (Llama 3.1 8B/70B Strategic + Llama 3.2 11B Vision VLM)
-    </td>
-  </tr>
-  <tr>
-    <th colspan="3" style="text-align:center; background:#064e3b; color:#10b981; font-size:16px;">
-      ⚡ REAL-TIME EXECUTION & TELEMETRY PIPELINES
-    </th>
-  </tr>
-  <tr>
-    <td width="33%" align="center"><b>🎮 Game Vision Pipeline</b><br/>dxcam 60fps ➔ TensorRT YOLOv8 ➔ OCR</td>
-    <td width="33%" align="center"><b>🎙️ Voice Engine</b><br/>Google / Sphinx STT ➔ ElevenLabs / SAPI5 TTS</td>
-    <td width="33%" align="center"><b>🔧 Hardware Telemetry</b><br/>C++ DirectX FPS DLL + PyNVML + WMI/PDH</td>
-  </tr>
-  <tr>
-    <th colspan="3" style="text-align:center; background:#312e81; color:#818cf8; font-size:16px;">
-      📟 GLASSMORPHIC HUD OVERLAY STREAM
-    </th>
-  </tr>
-  <tr>
-    <td colspan="3" align="center">
-      <b>Tactical Alerts Cards • Real-time Min/Max FPS & Thermal Bar • Live Subtitles Strip</b>
-    </td>
-  </tr>
-</table>
-
 ```mermaid
-graph TD
-    classDef client fill:#1e293b,stroke:#38bdf8,stroke-width:2px,color:#f8fafc;
-    classDef ai fill:#0f172a,stroke:#a855f7,stroke-width:2px,color:#f8fafc;
-    classDef cloud fill:#022c22,stroke:#10b981,stroke-width:2px,color:#f8fafc;
-    classDef output fill:#1c1917,stroke:#f59e0b,stroke-width:2px,color:#f8fafc;
-
-    User["👤 USER / GAMER"] --> UI["🖥️ ELECTRON CLIENT & INTERFACES<br/><i>Dashboard • Library • Agent Chat • HUD • Settings</i>"]:::client
-
-    subgraph ENGINE ["🧠 MISSION CONTROL ENGINE ARCHITECTURE"]
+graph TB
+    subgraph CLIENT ["🖥️ DESKTOP CLIENT LAYER (Electron + React 18 + Vite)"]
         direction TB
-
-        UI --> Router["🔍 Task Classifier & Web Search Engine<br/><i>RAG Router • DuckDuckGo • RAWG.io • SteamSpy</i>"]:::ai
-        Router --> NIM["⚡ NVIDIA NIM CLOUD AI<br/><i>Llama 3.1 8B/70B Strategic + Llama 3.2 11B Vision VLM</i>"]:::cloud
-
-        NIM --> Voice["🎙️ Voice & Subtitle Engine<br/><i>Google STT • ElevenLabs / SAPI5 TTS</i>"]:::output
-        NIM --> Advice["💬 Agent Co-Pilot Advice & Tactical Cards"]:::output
-
-        FrameCap["📸 dxcam 60 FPS Capture"] --> YOLO["🎯 TensorRT YOLOv8 + OCR Vision Engine"]:::ai
-        YOLO --> HUD["📟 Glassmorphic HUD Overlay<br/><i>Live Telemetry • Tactical Hints • Min/Max FPS</i>"]:::output
+        UI["React 18 Single-Page Application<br/><i>Dashboard • HUD • Lab • Vision • Readiness • Settings</i>"]
+        Hook["useBridge Hook<br/><i>Adaptive Throttle (100ms idle / 150ms game)<br/>Outbound Queue • Heartbeat Ping</i>"]
+        Clerk["Clerk Security Portal<br/><i>Custom Cyberpunk Theme (#0b0d13 / #76b900)<br/>Multi-Account Switching & OAuth Links</i>"]
+        IPC["Electron Main Process<br/><i>Frameless Titlebar IPC • --is-auth-popup Lifecycle<br/>Child Process Supervisor</i>"]
         
-        HW["🔧 Native Hardware Telemetry<br/><i>LibreHardwareMonitor • PyNVML • C++ ETW DLL</i>"]:::ai --> HUD
-        Voice --> HUD
-        Advice --> HUD
+        UI <--> Hook
+        UI <--> Clerk
+        UI <--> IPC
     end
 
-    class UI client;
-    class Router,YOLO,HW ai;
-    class NIM cloud;
-    class Voice,Advice,HUD output;
+    subgraph BRIDGE ["⚡ AERO WEBSOCKET BRIDGE PROTOCOL (Port 8765)"]
+        direction TB
+        WS["WebSocket Server (core/bridge_server.py)<br/><i>Origin Validation • Command Debouncing<br/>Graceful 1000/1001 Close Detection</i>"]
+        Bypass["Bypass Filter<br/><i>Voice • Agent Advice • Crashes • Vision FPS</i>"]
+        Router["Command Dispatcher (handlers/command_router.py)<br/><i>Validated Command Schemas & Async ThreadPool</i>"]
+        
+        WS --> Bypass
+        WS <--> Router
+    end
+
+    subgraph ENGINE ["🐍 LOCAL PYTHON BACKEND RUNTIME (Python 3.12)"]
+        direction TB
+        subgraph TELEMETRY ["Hardware & Game Monitoring"]
+            ETW["C++ DirectX Present Hook<br/><i>Instant FPS • 1% Lows • Frame Times</i>"]
+            NVML["PyNVML Monitor<br/><i>Clocks • Temp • Fan • VRAM MB • Watts</i>"]
+            CPU["WMI / CIM / PDH Chain<br/><i>CPU Temp • Clock Freq • Core Util</i>"]
+            RAM["Win32 Memory Manager<br/><i>Aggressive Working Set Trimming</i>"]
+        end
+
+        subgraph VISION ["Real-Time Vision Stack"]
+            Cap["dxcam Screen Capture<br/><i>120 FPS Zero-Copy DXGI Buffers</i>"]
+            TRT["TensorRT 10.x YOLOv8 Engine<br/><i>Zero-VRAM PyTorch Bypass (~1GB Saved)</i>"]
+            OCR["RapidOCR / Tesseract<br/><i>Dynamic Quest & Dialogue ROI Extraction</i>"]
+            Scene["Scene Classifier<br/><i>Combat • Cutscene • Menu • Loading</i>"]
+            
+            Cap --> TRT
+            Cap --> OCR
+            Cap --> Scene
+        end
+
+        subgraph AGENTIC ["Autonomous AI & Voice Engine"]
+            Intent["Intent & Task Classifier<br/><i>Wiki • Patch • Strategy • Real-time</i>"]
+            RAG["Gaming RAG Web Search<br/><i>Wikipedia • SteamSpy • DuckDuckGo • RAWG</i>"]
+            NIM["NVIDIA NIM Cloud AI<br/><i>Llama 3.1 8B/70B + Llama 3.2 11B Vision VLM</i>"]
+            Voice["Dual-Engine Voice Suite<br/><i>Google/Sphinx STT • ElevenLabs/SAPI5 TTS</i>"]
+            Exec["Autonomous Control Engine<br/><i>Game Launching • Hardware Tuning • Input Simulation</i>"]
+            
+            Intent --> RAG --> NIM --> Voice
+            NIM --> Exec
+        end
+    end
+
+    subgraph CLUSTER ["🌐 DISTRIBUTED NODE NETWORK & CLOUD WEB PLATFORM"]
+        direction TB
+        Node["Autonomous Library Node Daemon (distributed_node)<br/><i>Hardware UUID Identity • Multi-Launcher Game Scanner<br/>Exact Disk Byte Sizing • Azure/Render Failover</i>"]
+        Web["Mission Control Web Portal (Next.js 15 App Router)<br/><i>MongoDB Atlas • Centralized Node Clustering<br/>Automated AI Gaming Intel RSS Pipeline (5:30 AM IST)</i>"]
+        
+        Node <-->|Heartbeat & Game Sync| Web
+    end
+
+    subgraph RELEASE ["📦 PACKAGING & MULTI-PLATFORM DISTRIBUTION"]
+        direction TB
+        Pub["scripts/publish.ps1 Pipeline<br/><i>bump_version.py • sync_version.py • uv lock</i>"]
+        PyInst["PyInstaller Backend Build (build_app.ps1)<br/><i>Standalone MissionControl.exe + logo.ico</i>"]
+        ElPack["electron-builder Packaging<br/><i>Windows NSIS (.exe) • MSI (.msi) • ZIP (.zip) • Linux (.tar.gz)</i>"]
+        LinPack["Linux Native Packagers<br/><i>pack_deb.py (.deb) • pack_appimage.py (.AppImage)</i>"]
+        GH["GitHub Releases API<br/><i>Automated Release Notes & Multi-Asset Upload</i>"]
+
+        Pub --> PyInst --> ElPack --> LinPack --> GH
+    end
+
+    Hook <-->|ws://127.0.0.1:8765| WS
+    Router <--> TELEMETRY
+    Router <--> VISION
+    Router <--> AGENTIC
+    UI -.->|Direct Node Sync| Node
 ```
 
 ---

@@ -85,83 +85,154 @@ Impact: these changes improve reliability, reduce crashes, enable higher-perform
 
 ---
 
-## 🧱 Full App Workflow Architecture
-
-<table align="center" width="100%">
-  <tr>
-    <th colspan="3" style="text-align:center; background:#0f172a; color:#38bdf8; font-size:16px;">
-      👤 USER / GAMER INTERACTION LAYER
-    </th>
-  </tr>
-  <tr>
-    <td width="33%" align="center"><b>🖥️ Electron Desktop Dashboard</b><br/>React + Vite HUD & Telemetry</td>
-    <td width="33%" align="center"><b>📦 Publisher GUI Client</b><br/>Builds, Packaging & Releases</td>
-    <td width="33%" align="center"><b>🎙️ Voice & Hotkey Controls</b><br/>Mic Toggle & Global Shortcuts</td>
-  </tr>
-  <tr>
-    <th colspan="3" style="text-align:center; background:#111827; color:#a855f7; font-size:16px;">
-      🧠 AI DECISION ENGINE & TASK AUTO-ROUTER
-    </th>
-  </tr>
-  <tr>
-    <td colspan="3" align="center">
-      <b>Task Classifier ➔ Dynamic Web Search Engine</b> (Wikipedia | RAWG.io | SteamSpy | DuckDuckGo)<br/>
-      <b>Model Router ➔ NVIDIA NIM Cloud AI</b> (Llama 3.1 8B/70B Strategic + Llama 3.2 11B Vision VLM)
-    </td>
-  </tr>
-  <tr>
-    <th colspan="3" style="text-align:center; background:#064e3b; color:#10b981; font-size:16px;">
-      ⚡ REAL-TIME EXECUTION & TELEMETRY PIPELINES
-    </th>
-  </tr>
-  <tr>
-    <td width="33%" align="center"><b>🎮 Game Vision Pipeline</b><br/>dxcam 60fps ➔ TensorRT YOLOv8 ➔ OCR</td>
-    <td width="33%" align="center"><b>🎙️ Voice Engine</b><br/>Google / Sphinx STT ➔ ElevenLabs / SAPI5 TTS</td>
-    <td width="33%" align="center"><b>🔧 Hardware Telemetry</b><br/>C++ DirectX FPS DLL + PyNVML + WMI/PDH</td>
-  </tr>
-  <tr>
-    <th colspan="3" style="text-align:center; background:#312e81; color:#818cf8; font-size:16px;">
-      📟 GLASSMORPHIC HUD OVERLAY STREAM
-    </th>
-  </tr>
-  <tr>
-    <td colspan="3" align="center">
-      <b>Tactical Alerts Cards • Real-time Min/Max FPS & Thermal Bar • Live Subtitles Strip</b>
-    </td>
-  </tr>
-</table>
+## 🧱 Full System Architecture & Process Workflow
 
 ```mermaid
-graph TD
-    classDef client fill:#1e293b,stroke:#38bdf8,stroke-width:2px,color:#f8fafc;
-    classDef ai fill:#0f172a,stroke:#a855f7,stroke-width:2px,color:#f8fafc;
-    classDef cloud fill:#022c22,stroke:#10b981,stroke-width:2px,color:#f8fafc;
-    classDef output fill:#1c1917,stroke:#f59e0b,stroke-width:2px,color:#f8fafc;
-
-    User["👤 USER / GAMER"] --> UI["🖥️ ELECTRON CLIENT & INTERFACES<br/><i>Dashboard • Library • Agent Chat • HUD • Settings</i>"]:::client
-
-    subgraph ENGINE ["🧠 MISSION CONTROL ENGINE ARCHITECTURE"]
+graph TB
+    subgraph CLIENT ["🖥️ DESKTOP CLIENT LAYER (Electron + React 18 + Vite)"]
         direction TB
-
-        UI --> Router["🔍 Task Classifier & Web Search Engine<br/><i>RAG Router • DuckDuckGo • RAWG.io • SteamSpy</i>"]:::ai
-        Router --> NIM["⚡ NVIDIA NIM CLOUD AI<br/><i>Llama 3.1 8B/70B Strategic + Llama 3.2 11B Vision VLM</i>"]:::cloud
-
-        NIM --> Voice["🎙️ Voice & Subtitle Engine<br/><i>Google STT • ElevenLabs / SAPI5 TTS</i>"]:::output
-        NIM --> Advice["💬 Agent Co-Pilot Advice & Tactical Cards"]:::output
-
-        FrameCap["📸 dxcam 60 FPS Capture"] --> YOLO["🎯 TensorRT YOLOv8 + OCR Vision Engine"]:::ai
-        YOLO --> HUD["📟 Glassmorphic HUD Overlay<br/><i>Live Telemetry • Tactical Hints • Min/Max FPS</i>"]:::output
+        UI["React 18 Single-Page Application<br/><i>Dashboard • HUD • Lab • Vision • Readiness • Settings</i>"]
+        Hook["useBridge Hook<br/><i>Adaptive Throttle (100ms idle / 150ms game)<br/>Outbound Queue • Heartbeat Ping</i>"]
+        Clerk["Clerk Security Portal<br/><i>Custom Cyberpunk Theme (#0b0d13 / #76b900)<br/>Multi-Account Switching & OAuth Links</i>"]
+        IPC["Electron Main Process<br/><i>Frameless Titlebar IPC • --is-auth-popup Lifecycle<br/>Child Process Supervisor</i>"]
         
-        HW["🔧 Native Hardware Telemetry<br/><i>LibreHardwareMonitor • PyNVML • C++ ETW DLL</i>"]:::ai --> HUD
-        Voice --> HUD
-        Advice --> HUD
+        UI <--> Hook
+        UI <--> Clerk
+        UI <--> IPC
     end
 
-    class UI client;
-    class Router,YOLO,HW ai;
-    class NIM cloud;
-    class Voice,Advice,HUD output;
+    subgraph BRIDGE ["⚡ AERO WEBSOCKET BRIDGE PROTOCOL (Port 8765)"]
+        direction TB
+        WS["WebSocket Server (core/bridge_server.py)<br/><i>Origin Validation • Command Debouncing<br/>Graceful 1000/1001 Close Detection</i>"]
+        Bypass["Bypass Filter<br/><i>Voice • Agent Advice • Crashes • Vision FPS</i>"]
+        Router["Command Dispatcher (handlers/command_router.py)<br/><i>Validated Command Schemas & Async ThreadPool</i>"]
+        
+        WS --> Bypass
+        WS <--> Router
+    end
+
+    subgraph ENGINE ["🐍 LOCAL PYTHON BACKEND RUNTIME (Python 3.12)"]
+        direction TB
+        subgraph TELEMETRY ["Hardware & Game Monitoring"]
+            ETW["C++ DirectX Present Hook<br/><i>Instant FPS • 1% Lows • Frame Times</i>"]
+            NVML["PyNVML Monitor<br/><i>Clocks • Temp • Fan • VRAM MB • Watts</i>"]
+            CPU["WMI / CIM / PDH Chain<br/><i>CPU Temp • Clock Freq • Core Util</i>"]
+            RAM["Win32 Memory Manager<br/><i>Aggressive Working Set Trimming</i>"]
+        end
+
+        subgraph VISION ["Real-Time Vision Stack"]
+            Cap["dxcam Screen Capture<br/><i>120 FPS Zero-Copy DXGI Buffers</i>"]
+            TRT["TensorRT 10.x YOLOv8 Engine<br/><i>Zero-VRAM PyTorch Bypass (~1GB Saved)</i>"]
+            OCR["RapidOCR / Tesseract<br/><i>Dynamic Quest & Dialogue ROI Extraction</i>"]
+            Scene["Scene Classifier<br/><i>Combat • Cutscene • Menu • Loading</i>"]
+            
+            Cap --> TRT
+            Cap --> OCR
+            Cap --> Scene
+        end
+
+        subgraph AGENTIC ["Autonomous AI & Voice Engine"]
+            Intent["Intent & Task Classifier<br/><i>Wiki • Patch • Strategy • Real-time</i>"]
+            RAG["Gaming RAG Web Search<br/><i>Wikipedia • SteamSpy • DuckDuckGo • RAWG</i>"]
+            NIM["NVIDIA NIM Cloud AI<br/><i>Llama 3.1 8B/70B + Llama 3.2 11B Vision VLM</i>"]
+            Voice["Dual-Engine Voice Suite<br/><i>Google/Sphinx STT • ElevenLabs/SAPI5 TTS</i>"]
+            Exec["Autonomous Control Engine<br/><i>Game Launching • Hardware Tuning • Input Simulation</i>"]
+            
+            Intent --> RAG --> NIM --> Voice
+            NIM --> Exec
+        end
+    end
+
+    subgraph CLUSTER ["🌐 DISTRIBUTED NODE NETWORK & CLOUD WEB PLATFORM"]
+        direction TB
+        Node["Autonomous Library Node Daemon (distributed_node)<br/><i>Hardware UUID Identity • Multi-Launcher Game Scanner<br/>Exact Disk Byte Sizing • Azure/Render Failover</i>"]
+        Web["Mission Control Web Portal (Next.js 15 App Router)<br/><i>MongoDB Atlas • Centralized Node Clustering<br/>Automated AI Gaming Intel RSS Pipeline (5:30 AM IST)</i>"]
+        
+        Node <-->|Heartbeat & Game Sync| Web
+    end
+
+    subgraph RELEASE ["📦 PACKAGING & MULTI-PLATFORM DISTRIBUTION"]
+        direction TB
+        Pub["scripts/publish.ps1 Pipeline<br/><i>bump_version.py • sync_version.py • uv lock</i>"]
+        PyInst["PyInstaller Backend Build (build_app.ps1)<br/><i>Standalone MissionControl.exe + logo.ico</i>"]
+        ElPack["electron-builder Packaging<br/><i>Windows NSIS (.exe) • MSI (.msi) • ZIP (.zip) • Linux (.tar.gz)</i>"]
+        LinPack["Linux Native Packagers<br/><i>pack_deb.py (.deb) • pack_appimage.py (.AppImage)</i>"]
+        GH["GitHub Releases API<br/><i>Automated Release Notes & Multi-Asset Upload</i>"]
+
+        Pub --> PyInst --> ElPack --> LinPack --> GH
+    end
+
+    Hook <-->|ws://127.0.0.1:8765| WS
+    Router <--> TELEMETRY
+    Router <--> VISION
+    Router <--> AGENTIC
+    UI -.->|Direct Node Sync| Node
 ```
+
+---
+
+## 🔄 Core Operational Processes: How the System Works
+
+Mission Control operates as an interconnected ecosystem of background threads, asynchronous pipelines, and real-time streaming sockets. Below is the precise operational lifecycle of every subsystem:
+
+### 1. Boot & Security Enforcement Process
+- **Process Guard & Instance Lock:** On startup ([`main.py`](backend/main.py)), the backend acquires an exclusive file lock (`ai_gaming_assistant.lock`) via `core/process_guard.py` in `%LOCALAPPDATA%\MissionControl\` to guarantee single-instance execution.
+- **Orphan Watchdog:** An orphan monitor thread periodically verifies the parent Electron process ID; if the frontend crashes or exits unexpectedly, the backend terminates automatically within 3 seconds to prevent zombie processes.
+- **Process Priority Adjustment:** The backend calls Windows `SetPriorityClass` to lower its own process priority to `BELOW_NORMAL_PRIORITY_CLASS`, ensuring background telemetry and AI threads never steal frame rendering cycles from active games.
+- **Motherboard Hardware UUID Lock:** If neural security is enabled, `core/security.py` queries system SMBIOS hardware UUIDs to enforce hardware-bound cryptographic execution.
+
+### 2. Aero WebSocket Bridge & IPC Protocol (`bridge_server.py` & `useBridge.ts`)
+- **Bidirectional Streaming:** Operates on `ws://127.0.0.1:8765` using Python's `websockets` engine. The server validates origin headers (`localhost`, `127.0.0.1`, `file`, `vscode-webview`) and rejects unauthorized connections.
+- **Adaptive Telemetry Throttling:** When idle, React state updates are batched every 100ms. When an active game is focused, telemetry drops to 150ms batches, minimizing CPU context switching.
+- **Critical Key Bypass:** High-priority events (e.g., `voice_prompt`, `agent_response`, `chat_history`, `game_crash_alert`, `vision_fps`) bypass the throttling window and are broadcast immediately across the bridge.
+- **Graceful Disconnect Resilience:** Standard RFC 6455 disconnect codes `1000` (`NORMAL_CLOSURE`) and `1001` (`CLOSE_GOING_AWAY`) — emitted during Vite Hot Module Reloading or page navigation — are handled as clean departures (`logger.debug`), preventing false-positive server warnings.
+- **Outbound Command Buffering:** If the frontend issues a command while the socket is temporarily reconnecting, `useBridge.ts` buffers commands in `pendingQueue` and automatically drains them the moment the socket re-opens.
+
+### 3. Ultra-Low Latency Telemetry & DirectX C++ Hooking
+- **DirectX Presentation Hooking:** Uses `fps_counter_dx.py` and ETW (Event Tracing for Windows) DLL hooks to measure real-time presentation events directly from the graphics pipeline, delivering accurate instant FPS, 1% low metrics, and frame time variance.
+- **Native GPU Telemetry:** The `GPUMonitor` subsystem taps directly into NVIDIA's `pynvml` (NVML C-API) to sample GPU core/memory clock speeds, VRAM allocation (MB), core temperature, fan speed percentage, and power consumption (Watts).
+- **CPU Thermal & Frequency Fallback Chain:** System telemetry queries Windows Management Instrumentation (WMI) → Common Information Model (CIM) → Performance Data Helper (PDH) to guarantee CPU package thermal metrics even on locked OEM motherboards.
+- **Aggressive RAM Management:** Win32 API `SetProcessWorkingSetSize(-1, -1)` is invoked periodically to flush unused memory pages back to the operating system, keeping the backend's footprint under ~120 MB.
+
+### 4. Vision AI & On-Demand TensorRT Engine
+- **Zero-Copy Screen Capture:** `capture/screen.py` leverages `dxcam` (DirectX Desktop Duplication API) to capture gameplay frames at up to 120 FPS directly into system memory with sub-millisecond capture overhead. Fallbacks to `d3dshot` and `mss` ensure compatibility across multi-monitor setups.
+- **Pure TensorRT 10.x Inference:** `vision/yolo_detector.py` executes object detection using a compiled TensorRT engine (`yolov8n.engine`). This completely bypasses PyTorch's runtime memory manager, saving approximately 1 GB of VRAM for the game.
+- **Dynamic OCR & Dialogue Parsing:** RapidOCR and Tesseract target dynamic Regions of Interest (ROI) such as quest logs, minimaps, and subtitles, translating in-game text into structured context for the decision engine.
+- **Scene Classifier:** Automatically classifies the current screen state into `combat`, `cutscene`, `menu`, `loading`, or `exploration`, automatically modulating agent verbosity so the user is never distracted during high-intensity combat.
+
+### 5. Autonomous AI Agent & Multimodal Web Intelligence
+- **Task-Aware Query Classification:** The AI engine inspects player inputs and gameplay state, dynamically classifying queries into categories (`wiki`, `patch`, `strategy`, `real_time`, or `game_info`).
+- **Live RAG Web Search Engine:** A built-in multi-source search engine retrieves real-time game wikis, Steam player counts, and patch notes across Wikipedia, SteamSpy, DuckDuckGo, and RAWG.io without requiring paid API keys.
+- **NVIDIA NIM Cloud Reasoning:** Dispatches queries to optimized NIM cloud endpoints — routing tactical queries to low-latency models (`Llama 3.1 8B Instruct`) and deep analytical queries to high-parameter models (`Llama 3.1 70B/405B`). Screenshots can be fed directly to `Llama 3.2 11B Vision VLM` for visual troubleshooting.
+- **Dual-Engine Voice Suite:** Voice commands are processed via Google Speech-to-Text (with an offline CMU Sphinx fallback). Spoken responses are rendered through ElevenLabs, Google Cloud TTS, or Windows SAPI5 voice profiles.
+- **Autonomous Co-Pilot Controls:** With user authorization, the agent can launch game executables, apply hardware power presets, and simulate input keystrokes.
+
+### 6. Desktop Frontend & Clerk Cyberpunk Security Portal
+- **React 18 + Vite + Tailwind CSS v4:** Modern, hardware-accelerated user interface featuring glassmorphic HUD overlays, live frame time sparklines, and telemetry Bento grids.
+- **Custom Cyberpunk Clerk Theme ([`clerkTheme.ts`](frontend/src/styles/clerkTheme.ts)):** Overrides Clerk's default light theme with Mission Control's signature aesthetic: deep tactical canvas (`#0b0d13`), neon green accents (`#76b900`), `rounded-3xl` glassmorphic cards, and high-contrast typography.
+- **Development Mode & Branding Suppression:** Suppresses development mode watermark banners, diagonal striped badges, and branding footers via `unsafe_disableDevelopmentModeWarnings: true` and CSS overrides.
+- **Multi-Account Switching & OAuth Lifecycle:** Seamlessly handles Google, Discord, and Microsoft SSO account linking in Electron via `--is-auth-popup` flags, auto-redirecting and closing popup windows upon handshake completion.
+
+### 7. Autonomous Distributed Library Node Cluster
+- **Hardware-Derived Identity:** Each node daemon ([`distributed_node/node_service.py`](distributed_node/node_service.py)) generates a deterministic hardware ID (`NODE-XXXXXX`) based on system MAC address and hostname.
+- **Multi-Launcher Auto-Discovery:** The scanner traverses local storage for installations across Steam, Epic Games Store, GOG Galaxy, Xbox App, Battle.net, Riot Games, and Ubisoft Connect.
+- **Byte-Exact Storage Calculation:** Uses [`storage_calculator.py`](backend/storage_calculator.py) to calculate exact disk usage per game title.
+- **Multi-Tier Cloud Failover:** Periodically transmits node heartbeats and library manifests to centralized endpoints (Azure App Service with automatic failover to Render) with 30s/35s timeout resilience.
+
+### 8. Single-Command Multi-Platform Publishing Pipeline ([`publish.ps1`](scripts/publish.ps1))
+- **Semver Management:** `scripts/bump_version.py` updates the canonical version in `backend/version.json` and prepends formatted release notes.
+- **Cross-Project Manifest Synchronization:** `scripts/sync_version.py` automatically updates `frontend/package.json`, `website/package.json`, `backend/pyproject.toml`, `website/version.json`, `docs/SUMMARY.md`, and `website/docs/`.
+- **Automatic `uv.lock` Synchronization:** Explicitly runs `uv lock` in `backend/` immediately after version bump, preventing lockfile drift.
+- **PyInstaller Backend Compilation:** `scripts/build_app.ps1` compiles the Python backend into a standalone, branded Windows executable (`dist/MissionControl.exe`).
+- **Multi-Format Packaging:** `electron-builder` packages Windows NSIS (`.exe`), MSI (`.msi`), and portable ZIP (`.zip`), alongside Linux archives (`.tar.gz`).
+- **Linux Native Packaging:** `scripts/pack_deb.py` packages Debian `.deb`, while `scripts/pack_appimage.py` packages universal Linux `.AppImage`.
+- **Atomic Git Release & Tagging:** Stages all manifests, lockfiles, and documentation directories (`docs/`, `website/docs/`). Amends the release commit post-build, realigns the Git tag (`vX.Y.Z`), and uploads all artifacts directly to GitHub Releases via `GH_TOKEN`.
+
+### 9. Next.js Website & Automated AI Gaming Intel Pipeline
+- **Next.js 15 App Router:** High-performance web portal built with Next.js 15, TypeScript, and MongoDB Atlas.
+- **Automated AI Blog Generation (`/api/blogs/generate`):** Runs daily at 5:30 AM IST via Vercel cron jobs. Ingests RSS feeds from IGN, Kotaku, Eurogamer, Tom's Hardware, and AnandTech.
+- **3-Tier Failover LLM Pipeline:** Text generation cascades across Google Gemini Flash (`gemini-2.5-flash`), Hugging Face Inference (`Llama-3.1-8B-Instruct`), and NVIDIA NIM (`nemotron-3-super-120b`).
+- **4-Tier Image Generation & Blob CDN:** Featured blog artwork generates through Gemini Imagen 3, Hugging Face FLUX.1, Pollinations AI, or procedural 3D fallbacks, stored permanently on Vercel Blob CDN (`BLOB_READ_WRITE_TOKEN`).
 
 ---
 
@@ -189,16 +260,6 @@ Mission Control includes a **gaming-optimized, multi-source web search engine** 
 | *"is the server down?"* | `real_time` | SteamSpy + DuckDuckGo | Tactical (fast) |
 | *"game rating and genre"* | `game_info` | RAWG + SteamSpy | Strategic (deep) |
 
-### Setup (Optional Keys)
-
-```bash
-# .env file — only needed for enhanced sources
-RAWG_API_KEY=your-key       # Free at: https://rawg.io/apidocs (20k/month)
-TAVILY_API_KEY=tvly-xxxxx   # Free at: https://app.tavily.com (1000/month)
-
-# DuckDuckGo, Wikipedia, SteamSpy — NO KEY NEEDED, auto-enabled always
-```
-
 ---
 
 ## 🎮 Game Modes
@@ -225,88 +286,93 @@ TAVILY_API_KEY=tvly-xxxxx   # Free at: https://app.tavily.com (1000/month)
 
 ---
 
-## 🛠️ Tech Stack
+## 🛠️ Complete Monorepo Tech Stack
 
-| Layer | Technology |
-|---|---|
-| **AI Vision** | Pure TensorRT 10.x (YOLOv8 Engine) |
-| **Screen Capture** | dxcam (DXGI 120fps+) / d3dshot / MSS fallback |
-| **Text Detection** | RapidOCR / Tesseract (GPU/ONNX-accelerated) |
-| **Web Search** | Wikipedia + SteamSpy + DuckDuckGo + RAWG.io |
-| **Cloud AI** | NVIDIA NIM (Llama 3.1/3.2, Vision Models) |
-| **Voice STT** | Google Cloud / Sphinx (offline) |
-| **Voice TTS** | ElevenLabs / Google Cloud TTS / SAPI5 |
-| **UI / Overlay** | PyQt6 + Native Win32 API |
-| **GPU Monitoring** | pynvml (NVML) / PowerShell CIM fallback |
-| **Hotkeys** | pynput GlobalHotKeys + Win32 GetAsyncKeyState |
-| **Serialization** | orjson (ultra-fast) |
-| **Config** | PyYAML (settings.yaml + .env) |
-| **Testing** | Vitest + React Testing Library (RTL) + jsdom |
-| **Auto-Updater:** `git pull` + `uv sync` via background thread |
-| **Version Control:** `version.json` + `publish.ps1` (CI/CD pipeline) |
+| Subsystem | Layer | Technology |
+|---|---|---|
+| **Frontend UI** | Desktop Shell | Electron 43 + React 18 + Vite 8 + TypeScript 5.8 |
+| **Frontend UI** | Styling & Icons | Tailwind CSS v4 + Lucide React + Glassmorphism |
+| **Frontend UI** | Authentication | Clerk React 5.61 + Custom Cyberpunk Dark HUD Theme |
+| **Backend Core** | Runtime & Server | Python 3.12 + FastAPI + Uvicorn + uv Package Manager |
+| **Backend Core** | IPC Bridge | WebSocket Server (`core/bridge_server.py`) on port 8765 |
+| **AI Vision** | Inference Engine | Pure TensorRT 10.x Engine (YOLOv8) + ONNX Runtime fallback |
+| **AI Vision** | Screen Capture | dxcam (DirectX DXGI 120 FPS) + d3dshot + mss |
+| **AI Vision** | OCR & Detection | RapidOCR (ONNX-accelerated) + Tesseract OCR |
+| **Telemetry** | Frame Performance | C++ DirectX ETW DLL + Frame Time Variance Math |
+| **Telemetry** | Hardware Sensors | PyNVML (NVIDIA NVML) + WMI / CIM / PDH fallback |
+| **Agentic AI** | Cloud Reasoning | NVIDIA NIM (Llama 3.1 8B/70B + Llama 3.2 11B Vision VLM) |
+| **Agentic AI** | Voice Engine | Google Cloud Speech + CMU Sphinx STT \| ElevenLabs + SAPI5 TTS |
+| **Agentic AI** | Web Intelligence | Wikipedia API + SteamSpy API + DuckDuckGo + RAWG.io |
+| **Distributed Node** | Client Daemon | Python autonomous daemon + MAC UUID identification |
+| **Web Platform** | Portal & Docs | Next.js 15 (App Router) + Tailwind CSS + MongoDB Atlas |
+| **Web Platform** | AI News Generator | Vercel Cron (5:30 AM IST) + Gemini Flash + HuggingFace + Vercel Blob |
+| **Packaging & CI/CD** | Installers | PyInstaller + electron-builder (NSIS .exe, .msi, .zip, .deb, .AppImage) |
+| **Packaging & CI/CD** | Pipeline Script | PowerShell (`scripts/publish.ps1`) with atomic sync & GitHub Release |
 
 ---
 
-## ⚙️ Installation & Setup
+## ⚙️ Installation & Running Locally
 
 ### 1. Prerequisites
-- NVIDIA GPU (RTX 20, 30, 40, or 50 series)
-- [NVIDIA Drivers](https://www.nvidia.com/download/index.aspx) (R580+ for Blackwell)
-- [CUDA Toolkit 12.x+](https://developer.nvidia.com/cuda-downloads)
-- [TensorRT 10.x](https://developer.nvidia.com/tensorrt) (optional, for max performance)
+- **Hardware:** NVIDIA GeForce RTX GPU (20, 30, 40, or 50 series)
+- **OS:** Windows 10/11 (64-bit) or Linux (Ubuntu 22.04+, Debian 12+)
+- **NVIDIA Drivers:** R580+ (Game Ready / Studio)
+- **Tools:** Python 3.12 (via `uv`), Node.js 20+, and Git
 
-### 2. Install Dependencies
+### 2. Environment Setup
 ```bash
-uv python pin 3.12
+# Clone the repository
+git clone https://github.com/arnab825/Mission-Control.git
+cd Mission-Control
+
+# Configure environment secrets
+cp .env.example .env
+```
+
+### 3. Launching the Desktop Application
+```powershell
+# Terminal 1: Launch Backend (from Gaming/backend)
+cd Gaming/backend
 uv sync
-```
-
-### 3. Configure API Keys (`.env`)
-```bash
-# Required for cloud AI
-NVIDIA_API_KEY=nvapi-xxxxx      # https://build.nvidia.com/
-
-# Optional: Enhanced web search
-RAWG_API_KEY=your-key           # https://rawg.io/apidocs (free, 20k/month)
-TAVILY_API_KEY=tvly-xxxxx       # https://app.tavily.com (free, 1k/month)
-
-# Optional: Premium voice
-ELEVENLABS_API_KEY=your-key     # https://elevenlabs.io
-```
-
-### 4. Run
-```bash
-# Standard run
-uv run main.py
-
-# Developer mode (Hot Reload enabled)
 uv run main.py --dev
 
-# Run as Administrator (required for hardware FPS tracking and full thermal sensors)
-# Note: -NoExit keeps the window open so you can clearly see any error logs if it crashes
-Start-Process powershell -ArgumentList "-NoExit -Command uv run main.py" -Verb RunAs
+# Terminal 2: Launch Electron Frontend (from Gaming/frontend)
+cd Gaming/frontend
+npm install
+npm run dev
+```
+
+### 4. Running the Distributed Library Node
+```powershell
+cd Gaming/distributed_node
+uv run python node_service.py
+```
+
+### 5. Launching the Web Portal
+```bash
+cd Gaming/website
+npm install
+npm run dev
 ```
 
 ---
 
-## 🚀 Deployment Stages
+## 🚀 Publishing & Releasing (`publish.ps1`)
 
-There are two main tracks for deploying updates:
+Mission Control includes a fully automated release pipeline in [`Gaming/scripts/publish.ps1`](scripts/publish.ps1). A single command handles everything:
 
-### 1. Website Deployment (Vercel)
-To deploy the frontend website to Vercel, push your commits directly to the `main` branch:
-```bash
-git push origin main
+```powershell
+.\Gaming\scripts\publish.ps1 -Type "patch" -Title "Your Release Title" -Changes "Feature description 1; Feature description 2"
 ```
 
-### 2. Desktop App Deployment (Woodpecker CI / Local Pipeline)
-To package, build the NSIS installer, and publish a new desktop app release to GitHub:
-1. Make sure you have the Woodpecker CLI installed (or let the local run script fetch it automatically).
-2. Run the local build script:
-   ```powershell
-   .\run_local.ps1
-   ```
-3. Enter the tag version (e.g., `v2.0.0`) and enter your GitHub Personal Access Token (with **Contents: Read & write** access to `arnab825/Mission-Control`) when prompted.
+**What the publish script executes automatically:**
+1. **Version Bumping:** Increments semver in `backend/version.json` via `bump_version.py`.
+2. **Manifest Synchronization:** Updates `package.json`, `pyproject.toml`, `version.json`, and all docs via `sync_version.py`.
+3. **Lockfile Alignment:** Runs `uv lock` in `backend/` to guarantee lockfile consistency.
+4. **PyInstaller Backend Compilation:** Packages the Python core into a standalone executable (`build_app.ps1`).
+5. **Electron Frontend Packaging:** Builds the production React app and packages Windows (`.exe`, `.msi`, `.zip`) and Linux (`.tar.gz`) binaries.
+6. **Native Linux Packaging:** Builds `.deb` and `.AppImage` packages.
+7. **Git Staging & Tagging:** Stages all manifests, lockfiles, and documentation directories, amends the release commit, aligns the Git tag (`vX.Y.Z`), and uploads all binaries to GitHub Releases.
 
 ---
 
