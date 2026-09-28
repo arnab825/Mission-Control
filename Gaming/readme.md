@@ -87,86 +87,45 @@ Impact: these changes improve reliability, reduce crashes, enable higher-perform
 
 ## 🧱 Full System Architecture & Process Workflow
 
+<div align="center">
+
+| Layer | Subsystem & Technologies | Responsibilities & Capabilities |
+| :--- | :--- | :--- |
+| **👤 Client UI** | <img src="https://img.shields.io/badge/Electron-43-47848F?style=flat-square&logo=electron&logoColor=white" /> <img src="https://img.shields.io/badge/React-18-20232A?style=flat-square&logo=react&logoColor=61DAFB" /> <img src="https://img.shields.io/badge/Vite-8-646CFF?style=flat-square&logo=vite&logoColor=white" /> <img src="https://img.shields.io/badge/Tailwind-v4-06B6D4?style=flat-square&logo=tailwindcss&logoColor=white" /><br/>**Desktop Client & Glassmorphic HUD** | • Frameless titlebar IPC & `--is-auth-popup` lifecycle<br/>• Performance Lab, System Telemetry & Game Library<br/>• Adaptive `useBridge` hook with 100ms/150ms state batching |
+| **🔒 Identity** | <img src="https://img.shields.io/badge/Clerk-Authentication-6C47FF?style=flat-square&logo=clerk&logoColor=white" /> <img src="https://img.shields.io/badge/OAuth-Google%20%7C%20Discord-4285F4?style=flat-square&logo=google&logoColor=white" /><br/>**Cyberpunk Security Portal** | • Signature `#0b0d13` tactical canvas & `#76b900` neon green HUD theme<br/>• Watermarks, striped dev badges & footers suppressed<br/>• Seamless multi-account switching & secondary identity linking |
+| **⚡ Protocol** | <img src="https://img.shields.io/badge/WebSocket-RFC_6455-010101?style=flat-square&logo=socketdotio&logoColor=white" /> <img src="https://img.shields.io/badge/Port-8765-76B900?style=flat-square" /><br/>**Aero Real-Time WebSocket Bridge** | • Origin validation (`localhost`, `127.0.0.1`, `file`, `vscode-webview`)<br/>• Clean RFC 6455 1000/1001 ("going away") graceful disconnects<br/>• Critical bypass filter for voice prompts, alerts & vision frames |
+| **🔧 Telemetry** | <img src="https://img.shields.io/badge/DirectX-C%2B%2B_ETW-0078D6?style=flat-square&logo=windows&logoColor=white" /> <img src="https://img.shields.io/badge/NVIDIA-NVML-76B900?style=flat-square&logo=nvidia&logoColor=white" /><br/>**Hardware Engine & Present Hook** | • C++ DirectX presentation hook for instant FPS & 1% low metrics<br/>• PyNVML monitor for GPU clocks, VRAM MB, thermals & power Watts<br/>• WMI / CIM / PDH CPU query chain & Win32 working set RAM compaction |
+| **🎯 Vision AI** | <img src="https://img.shields.io/badge/TensorRT-10.x-76B900?style=flat-square&logo=nvidia&logoColor=white" /> <img src="https://img.shields.io/badge/YOLO-v8_Engine-00FFFF?style=flat-square" /> <img src="https://img.shields.io/badge/Capture-DXGI_120FPS-FF6F00?style=flat-square" /><br/>**On-Demand Vision Pipeline** | • `dxcam` zero-copy DirectX Desktop Duplication capture at 120 FPS<br/>• Pure TensorRT YOLOv8 inference saving ~1 GB PyTorch VRAM<br/>• RapidOCR / Tesseract dynamic dialogue and quest ROI extraction |
+| **🧠 Agent Brain** | <img src="https://img.shields.io/badge/NVIDIA-NIM_Cloud-76B900?style=flat-square&logo=nvidia&logoColor=white" /> <img src="https://img.shields.io/badge/LLM-Llama_3.1-4285F4?style=flat-square&logo=meta&logoColor=white" /> <img src="https://img.shields.io/badge/Voice-ElevenLabs%20%7C%20SAPI5-FF8000?style=flat-square" /><br/>**Autonomous Copilot & Web RAG** | • Multi-source RAG search across Wikipedia, SteamSpy, DuckDuckGo & RAWG<br/>• Strategic NIM reasoning (`Llama 3.1 8B/70B` + `Llama 3.2 11B Vision VLM`)<br/>• Dual voice engine with Google STT and ElevenLabs / SAPI5 TTS |
+| **🌐 Node Cluster** | <img src="https://img.shields.io/badge/Daemon-Node_Service-3776AB?style=flat-square&logo=python&logoColor=white" /> <img src="https://img.shields.io/badge/Cloud-Azure%20%7C%20Render-0089D6?style=flat-square&logo=microsoftazure&logoColor=white" /><br/>**Distributed Library Network** | • Local `node_service.py` daemon with deterministic MAC-derived IDs<br/>• Multi-launcher game detection across Steam, Epic, GOG, Xbox & Riot<br/>• Byte-exact disk sizing and multi-tier cloud failover (30s/35s timeout) |
+| **📦 Packaging** | <img src="https://img.shields.io/badge/PyInstaller-Backend-FFD43B?style=flat-square&logo=python&logoColor=3776AB" /> <img src="https://img.shields.io/badge/electron--builder-Packager-2F3241?style=flat-square&logo=electron&logoColor=white" /><br/>**Multi-Platform Release Pipeline** | • Single-command `publish.ps1` with semver bumping & `uv lock` alignment<br/>• Windows NSIS (`.exe`), MSI (`.msi`), ZIP (`.zip`) & Linux archives (`.tar.gz`)<br/>• Native Debian (`.deb`) and Universal Linux (`.AppImage`) packaging |
+
+</div>
+
+<br/>
+
 ```mermaid
-graph TB
-    subgraph CLIENT ["🖥️ DESKTOP CLIENT LAYER (Electron + React 18 + Vite)"]
-        direction TB
-        UI["React 18 Single-Page Application<br/><i>Dashboard • HUD • Lab • Vision • Readiness • Settings</i>"]
-        Hook["useBridge Hook<br/><i>Adaptive Throttle (100ms idle / 150ms game)<br/>Outbound Queue • Heartbeat Ping</i>"]
-        Clerk["Clerk Security Portal<br/><i>Custom Cyberpunk Theme (#0b0d13 / #76b900)<br/>Multi-Account Switching & OAuth Links</i>"]
-        IPC["Electron Main Process<br/><i>Frameless Titlebar IPC • --is-auth-popup Lifecycle<br/>Child Process Supervisor</i>"]
-        
-        UI <--> Hook
-        UI <--> Clerk
-        UI <--> IPC
-    end
+flowchart TD
+    classDef client fill:#0f172a,stroke:#38bdf8,stroke-width:2px,color:#f8fafc;
+    classDef bridge fill:#1e1b4b,stroke:#818cf8,stroke-width:2px,color:#f8fafc;
+    classDef telemetry fill:#022c22,stroke:#10b981,stroke-width:2px,color:#f8fafc;
+    classDef vision fill:#14532d,stroke:#4ade80,stroke-width:2px,color:#f8fafc;
+    classDef ai fill:#3b0764,stroke:#c084fc,stroke-width:2px,color:#f8fafc;
+    classDef cluster fill:#1e293b,stroke:#f59e0b,stroke-width:2px,color:#f8fafc;
+    classDef release fill:#312e81,stroke:#ec4899,stroke-width:2px,color:#f8fafc;
 
-    subgraph BRIDGE ["⚡ AERO WEBSOCKET BRIDGE PROTOCOL (Port 8765)"]
-        direction TB
-        WS["WebSocket Server (core/bridge_server.py)<br/><i>Origin Validation • Command Debouncing<br/>Graceful 1000/1001 Close Detection</i>"]
-        Bypass["Bypass Filter<br/><i>Voice • Agent Advice • Crashes • Vision FPS</i>"]
-        Router["Command Dispatcher (handlers/command_router.py)<br/><i>Validated Command Schemas & Async ThreadPool</i>"]
-        
-        WS --> Bypass
-        WS <--> Router
-    end
+    User(["👤 GAMER / USER"]) --> Desktop["🖥️ DESKTOP CLIENT (Electron + React 18 + Vite)<br/>HUD Overlay • Telemetry Bento • Clerk Cyberpunk Auth"]:::client
+    
+    Desktop <-->|"ws://127.0.0.1:8765<br/>Adaptive Throttling: 100ms idle / 150ms game"| Bridge["⚡ AERO WEBSOCKET BRIDGE (bridge_server.py)<br/>Origin Guard • Priority Bypass • Graceful 1000/1001 Close"]:::bridge
 
-    subgraph ENGINE ["🐍 LOCAL PYTHON BACKEND RUNTIME (Python 3.12)"]
-        direction TB
-        subgraph TELEMETRY ["Hardware & Game Monitoring"]
-            ETW["C++ DirectX Present Hook<br/><i>Instant FPS • 1% Lows • Frame Times</i>"]
-            NVML["PyNVML Monitor<br/><i>Clocks • Temp • Fan • VRAM MB • Watts</i>"]
-            CPU["WMI / CIM / PDH Chain<br/><i>CPU Temp • Clock Freq • Core Util</i>"]
-            RAM["Win32 Memory Manager<br/><i>Aggressive Working Set Trimming</i>"]
-        end
+    Bridge <-->|"FPS, Temps & Power Draw"| Telemetry["🔧 HARDWARE TELEMETRY ENGINE<br/>DirectX C++ Present Hook • PyNVML • WMI/PDH Chain • RAM Compaction"]:::telemetry
+    Bridge <-->|"120 FPS Frame Stream"| Vision["🎯 REAL-TIME VISION STACK<br/>dxcam Capture • Pure TensorRT 10.x YOLOv8 • RapidOCR"]:::vision
+    Bridge <-->|"Tactical Voice & Chat"| Agent["🧠 AUTONOMOUS AGENT & AI BRAIN<br/>Intent Router • Gaming RAG Web Search • NVIDIA NIM Cloud VLM"]:::ai
 
-        subgraph VISION ["Real-Time Vision Stack"]
-            Cap["dxcam Screen Capture<br/><i>120 FPS Zero-Copy DXGI Buffers</i>"]
-            TRT["TensorRT 10.x YOLOv8 Engine<br/><i>Zero-VRAM PyTorch Bypass (~1GB Saved)</i>"]
-            OCR["RapidOCR / Tesseract<br/><i>Dynamic Quest & Dialogue ROI Extraction</i>"]
-            Scene["Scene Classifier<br/><i>Combat • Cutscene • Menu • Loading</i>"]
-            
-            Cap --> TRT
-            Cap --> OCR
-            Cap --> Scene
-        end
+    Desktop -.->|"Local Node Sync"| NodeDaemon["🌐 DISTRIBUTED LIBRARY NODE<br/>MAC Hardware ID • Multi-Launcher Game Scanner • Cloud Gateway"]:::cluster
+    NodeDaemon <-->|"Sync Manifests"| WebPortal["🌐 WEB PLATFORM (Next.js 15 + MongoDB)<br/>Node Clustering • AI Gaming Intel RSS Pipeline"]:::cluster
 
-        subgraph AGENTIC ["Autonomous AI & Voice Engine"]
-            Intent["Intent & Task Classifier<br/><i>Wiki • Patch • Strategy • Real-time</i>"]
-            RAG["Gaming RAG Web Search<br/><i>Wikipedia • SteamSpy • DuckDuckGo • RAWG</i>"]
-            NIM["NVIDIA NIM Cloud AI<br/><i>Llama 3.1 8B/70B + Llama 3.2 11B Vision VLM</i>"]
-            Voice["Dual-Engine Voice Suite<br/><i>Google/Sphinx STT • ElevenLabs/SAPI5 TTS</i>"]
-            Exec["Autonomous Control Engine<br/><i>Game Launching • Hardware Tuning • Input Simulation</i>"]
-            
-            Intent --> RAG --> NIM --> Voice
-            NIM --> Exec
-        end
-    end
-
-    subgraph CLUSTER ["🌐 DISTRIBUTED NODE NETWORK & CLOUD WEB PLATFORM"]
-        direction TB
-        Node["Autonomous Library Node Daemon (distributed_node)<br/><i>Hardware UUID Identity • Multi-Launcher Game Scanner<br/>Exact Disk Byte Sizing • Azure/Render Failover</i>"]
-        Web["Mission Control Web Portal (Next.js 15 App Router)<br/><i>MongoDB Atlas • Centralized Node Clustering<br/>Automated AI Gaming Intel RSS Pipeline (5:30 AM IST)</i>"]
-        
-        Node <-->|Heartbeat & Game Sync| Web
-    end
-
-    subgraph RELEASE ["📦 PACKAGING & MULTI-PLATFORM DISTRIBUTION"]
-        direction TB
-        Pub["scripts/publish.ps1 Pipeline<br/><i>bump_version.py • sync_version.py • uv lock</i>"]
-        PyInst["PyInstaller Backend Build (build_app.ps1)<br/><i>Standalone MissionControl.exe + logo.ico</i>"]
-        ElPack["electron-builder Packaging<br/><i>Windows NSIS (.exe) • MSI (.msi) • ZIP (.zip) • Linux (.tar.gz)</i>"]
-        LinPack["Linux Native Packagers<br/><i>pack_deb.py (.deb) • pack_appimage.py (.AppImage)</i>"]
-        GH["GitHub Releases API<br/><i>Automated Release Notes & Multi-Asset Upload</i>"]
-
-        Pub --> PyInst --> ElPack --> LinPack --> GH
-    end
-
-    Hook <-->|ws://127.0.0.1:8765| WS
-    Router <--> TELEMETRY
-    Router <--> VISION
-    Router <--> AGENTIC
-    UI -.->|Direct Node Sync| Node
+    Desktop -.->|"publish.ps1"| Packaging["📦 PACKAGING & MULTI-PLATFORM DISTRIBUTION<br/>PyInstaller .exe • electron-builder NSIS/MSI • deb & AppImage"]:::release
 ```
 
 ---
