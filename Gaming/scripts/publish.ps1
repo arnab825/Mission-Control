@@ -87,6 +87,45 @@ try {
         Write-Host "[SYNC] Synchronizing documentation and package manifests..." -ForegroundColor Cyan
         python scripts/sync_version.py
 
+        # Synchronize backend/uv.lock immediately so it matches the bumped pyproject.toml version
+        if (Get-Command uv -ErrorAction SilentlyContinue) {
+            Write-Host "[SYNC] Synchronizing backend/uv.lock..." -ForegroundColor Cyan
+            Push-Location "backend"
+            try {
+                uv lock
+            } catch {
+                Write-Warning "uv lock update encountered an error: $_"
+            } finally {
+                Pop-Location
+            }
+        }
+
+        # Helper script block to stage all release manifests, lockfiles, and markdown documentation
+        $stageReleaseFiles = {
+            $pathsToStage = @(
+                "backend/version.json",
+                "website/version.json",
+                "backend/pyproject.toml",
+                "backend/uv.lock",
+                "frontend/package.json",
+                "frontend/package-lock.json",
+                "website/package.json",
+                "docs",
+                "website/docs",
+                "readme.md",
+                "README.md",
+                "../readme.md",
+                "../README.md"
+            )
+            foreach ($p in $pathsToStage) {
+                if (Test-Path $p) {
+                    git add -A $p 2>$null
+                }
+            }
+            # Automatically stage any modified documentation files across the tree
+            git add "*.md" "docs/**/*.md" "website/docs/**/*.md" 2>$null
+        }
+
         # 3. Stage version release files
         $isGitRepo = $false
         try {
@@ -100,8 +139,8 @@ try {
         $version = (Get-Content backend/version.json | ConvertFrom-Json).version
 
         if ($isGitRepo) {
-            Write-Host "[SYNC] Staging version release files..." -ForegroundColor Cyan
-            git add backend/version.json frontend/package.json website/package.json backend/pyproject.toml backend/uv.lock docs/backend/patches.md docs/changes_summary.md docs/SUMMARY.md readme.md 2>$null
+            Write-Host "[SYNC] Staging version release files, lockfiles, and documentation..." -ForegroundColor Cyan
+            & $stageReleaseFiles
             
             # 5. Commit and Tag
             Write-Host "[COMMIT] Creating release v${version}" -ForegroundColor Cyan
@@ -191,11 +230,14 @@ $changesFormatted
 
         # 7. Push code and tags to GitHub (if in a git repository)
         if ($isGitRepo) {
-            # Include any lockfiles updated by build tools (like uv.lock)
-            git add backend/uv.lock backend/pyproject.toml frontend/package.json 2>$null
+            # Re-stage all release files, documentation, and lockfiles (including any updated during packaging)
+            & $stageReleaseFiles
             $stagedDiff = git diff --staged --name-only 2>$null
             if ($stagedDiff) {
+                Write-Host "[SYNC] Amending release commit with build artifacts ($($stagedDiff -join ', '))..." -ForegroundColor Cyan
                 git commit --amend --no-edit 2>$null
+                # Re-tag so git tag points to the final amended commit with all assets & docs included
+                git tag -fa "v${version}" -m "Release v${version}: $Title"
             }
 
             Write-Host "[PUSH] Pushing to main and syncing tags..." -ForegroundColor Cyan

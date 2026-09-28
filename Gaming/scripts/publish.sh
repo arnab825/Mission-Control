@@ -29,11 +29,16 @@ fi
 
 # 1. Bump version and sync version files
 python3 scripts/bump_version.py --bump patch --title "$TITLE" --changes "$TITLE"
+python3 scripts/sync_version.py
+if command -v uv >/dev/null 2>&1; then
+    (cd backend && uv lock) || true
+fi
 
 # 2. Stage version release files for commit (if in a git repository)
 VERSION=$(python3 -c "import json; print(json.load(open('backend/version.json'))['version'])")
 if git rev-parse --is-inside-work-tree >/dev/null 2>&1; then
-    git add backend/version.json frontend/package.json website/package.json backend/pyproject.toml docs/backend/patches.md docs/changes_summary.md docs/SUMMARY.md readme.md 2>/dev/null || true
+    git add -A backend/version.json website/version.json frontend/package.json frontend/package-lock.json website/package.json backend/pyproject.toml backend/uv.lock docs website/docs readme.md README.md 2>/dev/null || true
+    git add "*.md" "docs/**/*.md" "website/docs/**/*.md" 2>/dev/null || true
     echo -e "\033[0;36m[COMMIT] Creating release v${VERSION}\033[0m"
     git commit -m "Release v${VERSION}: $TITLE" || true
     git tag -a "v${VERSION}" -m "Release v${VERSION}: $TITLE" || true
