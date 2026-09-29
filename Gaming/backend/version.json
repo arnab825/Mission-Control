@@ -1,8 +1,19 @@
 {
-  "version": "3.7.7",
+  "version": "3.7.3",
   "release_date": "2026-09-25",
   "update_check_url": "https://raw.githubusercontent.com/arnab825/Mission-Control/main/Gaming/backend/version.json",
   "changelog": [
+    {
+      "version": "3.7.3",
+      "date": "2026-09-29",
+      "title": "Responsive Setup Screen, Custom Windows Setup Wizard & Winget Setup Pipeline",
+      "highlights": [
+        "Fixed setup screen centering and responsive scaling across non-fullscreen window sizes",
+        "Customized Windows setup wizard with branded Welcome, Finish, and Uninstaller dialogs",
+        "Added dedicated Winget installation pipeline with verified manifests and install automation",
+        "Added Winget 1-click CLI installer block to website download matrix"
+      ]
+    },
     {
       "version": "3.7.7",
       "date": "2026-09-28",
@@ -537,20 +548,6 @@
         "Added fast-abort 1.5s timeout on remote distributed server queries preventing UI cold-start stalls",
         "Demoted startup auto-scans to non-intrusive background state to eliminate full-screen radar modal lockouts",
         "Added automated Vercel keep-alive cron job to keep Supabase, Neon, and MongoDB warm 24/7"
-      ]
-    },
-    {
-      "version": "3.3.0",
-      "date": "2026-08-25",
-      "title": "Ecosystem Optimization, Multi-Node Architecture & Dynamic Deduplication",
-      "highlights": [
-        "Added Win32 working set RAM compaction (EmptyWorkingSet) dropping idle background memory to ~40-60 MB during gameplay",
-        "Implemented dynamic machine-unique Node ID derivation (NODE-<MAC_HASH>) and host discovery to prevent multi-device collision",
-        "Added canonical path-based deduplication (path_to_name) and feature merging across Steam, Epic, GOG, and custom disk scans",
-        "Implemented universal default library path discovery (_get_default_library_paths) across multi-drive storage",
-        "Non-destructive node_scan_paths synchronization preserving user custom scan paths across heartbeats",
-        "Delta-hashed library synchronization in node_service.py to prevent redundant network uploads",
-        "OpenCV configuration loader 3-tier runtime hooks ensuring 100% frozen PyInstaller stability"
       ]
     }
   ]

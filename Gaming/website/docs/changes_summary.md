@@ -22,7 +22,20 @@ Comprehensive breakdown of major milestone releases, architectural upgrades, and
 
 ---
 
-## 🌟 Version v3.7.7 (Latest) — Custom Cyberpunk Security Portal & Authentication Gateway Enhancements
+## 🌟 Version v3.7.3 (Latest) — Responsive Setup Screen, Custom Windows Setup Wizard & Winget Setup Pipeline
+
+### 🛠️ Key Highlights
+1. **Fixed setup screen centering and responsive scaling across non-fullscreen window sizes**
+2. **Added dedicated Winget installation pipeline with verified manifests and install automation**
+3. **Integrated Winget 1-click CLI installer block to website download matrix**
+
+### 📦 Distribution Artifacts
+- **Linux**: `.deb` (Debian/Ubuntu), `.AppImage` (Universal), `.rpm` (Fedora/RHEL), `.tar.gz` (Portable)
+- **Windows**: `.exe` (Setup Installer), `.msi` (Enterprise), `.zip` (Portable)
+
+---
+
+## 📦 Version v3.7.7 — Custom Cyberpunk Security Portal & Authentication Gateway Enhancements
 
 ### 🛠️ Key Highlights
 1. **Custom Mission Control dark cyberpunk theme for Clerk Security Portal and UserButton**

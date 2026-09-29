@@ -82,7 +82,8 @@ graph TD
 
 | Version | Key Feature / Change Description |
 | :--- | :--- |
-| **v3.7.7 (Latest)** | **Custom Cyberpunk Security Portal & Authentication Gateway Enhancements** — Custom Mission Control dark cyberpunk theme for Clerk Security Portal and UserButton. |
+| **v3.7.3 (Latest)** | **Responsive Setup Screen, Custom Windows Setup Wizard & Winget Setup Pipeline** — Mission Control v3.7.3 enhances the setup experience with a responsive setup screen, customized Windows setup wizard, and streamlined Winget installation pipeline. |
+| **v3.7.7** | **Custom Cyberpunk Security Portal & Authentication Gateway Enhancements** — Custom Mission Control dark cyberpunk theme for Clerk Security Portal and UserButton. |
 | **v3.7.6** | **Account Switching & Authentication Gateway Upgrades** — Seamless Account Linking: Added pre-flight token refresh and automated retries when connecting Discord or Google accounts. |
 | **v3.7.5** | **Fixed Provider Link Security Dialog & Re-auth Flow** — Enhanced provider link security and re-authentication flow with improved user experience and reliability. |
 | **v3.7.4** | **Fixed Account Unlink Flow & Redesigned Settings Navigation** — Mission Control v3.7.4 enhances user experience with improved account unlink flow, redesigned settings navigation, and optimized error handling. |
@@ -185,5 +186,5 @@ graph TD
 
 ---
 
-*Last Updated: 28/09/2026*
+*Last Updated: 29/09/2026*
 

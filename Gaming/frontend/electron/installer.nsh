@@ -1,6 +1,66 @@
+Function CenterInstallerWindow
+  Push $0
+  Push $1
+  Push $2
+  Push $3
+  Push $4
+  Push $5
+  Push $6
+
+  ; Allocate RECT structure (left, top, right, bottom)
+  System::Call "*(i 0, i 0, i 0, i 0) p .r0"
+  System::Call "User32::GetWindowRect(p $HWNDPARENT, p r0)"
+  System::Call "*$0(i .r1, i .r2, i .r3, i .r4)"
+  System::Free $0
+
+  ; Width = right - left, Height = bottom - top
+  IntOp $3 $3 - $1
+  IntOp $4 $4 - $2
+
+  ; Screen metrics
+  System::Call "User32::GetSystemMetrics(i 0) i .r5" ; SM_CXSCREEN
+  System::Call "User32::GetSystemMetrics(i 1) i .r6" ; SM_CYSCREEN
+
+  ; Calculate centered X and Y
+  IntOp $5 $5 - $3
+  IntOp $5 $5 / 2
+  IntOp $6 $6 - $4
+  IntOp $6 $6 / 2
+
+  ; Reposition window with SWP_NOSIZE (0x0001) | SWP_NOZORDER (0x0004) = 0x0005
+  System::Call "User32::SetWindowPos(p $HWNDPARENT, p 0, i $5, i $6, i 0, i 0, i 0x0005)"
+
+  Pop $6
+  Pop $5
+  Pop $4
+  Pop $3
+  Pop $2
+  Pop $1
+  Pop $0
+FunctionEnd
+
+; Branded Setup Wizard Titles & Texts
+!define MUI_FINISHPAGE_TITLE "Mission Control Installation Complete"
+!define MUI_FINISHPAGE_TEXT "Mission Control has been successfully installed on your computer.$\r$\n$\r$\nDesktop and Start Menu shortcuts have been configured. The AI telemetry engine and game optimization services are ready to launch."
+!define MUI_FINISHPAGE_RUN_TEXT "Launch Mission Control now"
+
+!macro customWelcomePage
+  !define MUI_WELCOMEPAGE_TITLE "Welcome to Mission Control"
+  !define MUI_WELCOMEPAGE_TEXT "Setup will guide you through installing Mission Control — the ultimate real-time AI gaming command deck and hardware telemetry system.$\r$\n$\r$\nKey Features:$\r$\n  • Real-time GPU/CPU FPS & Hardware Telemetry$\r$\n  • Local LLM Gaming Assistant & Voice Intel$\r$\n  • Game Optimization Profiles & Neural Presets$\r$\n  • Low-latency background performance monitoring$\r$\n$\r$\nClick Next to continue."
+  !insertmacro MUI_PAGE_WELCOME
+!macroend
+
+!macro customUnWelcomePage
+  !define MUI_WELCOMEPAGE_TITLE "Uninstall Mission Control"
+  !define MUI_WELCOMEPAGE_TEXT "This wizard will remove Mission Control from your computer.$\r$\n$\r$\nNote: Your game benchmarks, custom neural profiles, and AI settings in %APPDATA%\MissionControl are preserved so you don't lose your data if you decide to reinstall later.$\r$\n$\r$\nClick Next to continue."
+  !insertmacro MUI_UNPAGE_WELCOME
+!macroend
+
 !macro customHeader
+  BrandingText "Mission Control — AI Gaming Command Deck"
   ShowInstDetails show
   ShowUninstDetails show
+  !define MUI_CUSTOMFUNCTION_GUIINIT CenterInstallerWindow
 !macroend
 
 !macro customInit

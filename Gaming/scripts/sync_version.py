@@ -94,6 +94,38 @@ def sync():
                 shutil.copy2(src, dst)
         print(" -> website/docs synchronized")
 
+    # 6. Winget Manifests
+    winget_dir = os.path.join(BASE_DIR, "winget")
+    if os.path.exists(winget_dir):
+        singleton_path = os.path.join(winget_dir, "arnab825.MissionControl.singleton.yaml")
+        if os.path.exists(singleton_path):
+            with open(singleton_path, "r", encoding="utf-8") as f:
+                s_content = f.read()
+            s_content = re.sub(r'PackageVersion:\s*[^\r\n]+', f'PackageVersion: {latest_ver}', s_content)
+            s_content = re.sub(r'/v[0-9\.]+/MissionControl-Setup\.exe', f'/v{latest_ver}/MissionControl-Setup.exe', s_content)
+            with open(singleton_path, "w", encoding="utf-8") as f:
+                f.write(s_content)
+            print(" -> winget/arnab825.MissionControl.singleton.yaml synchronized")
+
+        multi_manifest_base = os.path.join(winget_dir, "manifests", "a", "arnab825", "MissionControl")
+        if os.path.exists(multi_manifest_base):
+            new_version_dir = os.path.join(multi_manifest_base, latest_ver)
+            if not os.path.exists(new_version_dir):
+                existing_dirs = [d for d in os.listdir(multi_manifest_base) if os.path.isdir(os.path.join(multi_manifest_base, d))]
+                if existing_dirs:
+                    src_dir = os.path.join(multi_manifest_base, existing_dirs[-1])
+                    shutil.copytree(src_dir, new_version_dir)
+            if os.path.exists(new_version_dir):
+                for fname in os.listdir(new_version_dir):
+                    fpath = os.path.join(new_version_dir, fname)
+                    with open(fpath, "r", encoding="utf-8") as f:
+                        fcontent = f.read()
+                    fcontent = re.sub(r'PackageVersion:\s*[^\r\n]+', f'PackageVersion: {latest_ver}', fcontent)
+                    fcontent = re.sub(r'/v[0-9\.]+/MissionControl-Setup\.exe', f'/v{latest_ver}/MissionControl-Setup.exe', fcontent)
+                    with open(fpath, "w", encoding="utf-8") as f:
+                        f.write(fcontent)
+                print(f" -> winget multi-manifest v{latest_ver} synchronized")
+
     print(f"[SUCCESS] All modules & docs fully synchronized to v{latest_ver}")
 
 if __name__ == "__main__":
