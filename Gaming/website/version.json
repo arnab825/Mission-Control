@@ -1,8 +1,19 @@
 {
-  "version": "3.7.3",
+  "version": "3.7.8",
   "release_date": "2026-09-25",
   "update_check_url": "https://raw.githubusercontent.com/arnab825/Mission-Control/main/Gaming/backend/version.json",
   "changelog": [
+    {
+      "version": "3.7.8",
+      "date": "2026-09-29",
+      "title": "Responsive Setup Screen, Custom Windows Setup Wizard & Winget Setup Pipeline",
+      "highlights": [
+        "Fixed setup screen centering and responsive scaling across non-fullscreen window sizes",
+        "Customized Windows setup wizard with branded Welcome, Finish, and Uninstaller dialogs",
+        "Added dedicated Winget installation pipeline with verified manifests and install automation",
+        "Added Winget 1-click CLI installer block to website download matrix"
+      ]
+    },
     {
       "version": "3.7.3",
       "date": "2026-09-29",
@@ -535,19 +546,6 @@
         "Rebuilt canonical_games schema with full launcher, description, and source mapping across PostgreSQL and SQLite replicas",
         "Updated background microservices and AI Healer with schema alignment and non-blocking enrichment",
         "Optimized automated blog generation cron schedule to weekly Sunday dispatches"
-      ]
-    },
-    {
-      "version": "3.3.1",
-      "date": "2026-08-26",
-      "title": "Multi-Cloud High Availability & Instant Zero-Lag Startup Architecture",
-      "highlights": [
-        "Added multi-tier cloud failover topology supporting Supabase (Tier 1), Neon Serverless PostgreSQL (Tier 2), and Local SQLite NVMe replica (Tier 3)",
-        "Implemented automated high-speed migration tool replicating 83.4k+ master games, user games, hardware nodes, and AI logs to Neon",
-        "Optimized game library loading with Local-First Frame-0 instant render and non-blocking background synchronization",
-        "Added fast-abort 1.5s timeout on remote distributed server queries preventing UI cold-start stalls",
-        "Demoted startup auto-scans to non-intrusive background state to eliminate full-screen radar modal lockouts",
-        "Added automated Vercel keep-alive cron job to keep Supabase, Neon, and MongoDB warm 24/7"
       ]
     }
   ]

@@ -7,7 +7,7 @@ param (
     [ValidateSet('Validate', 'Install', 'UpdateHash', 'Help')]
     [string]$Action = 'Validate',
 
-    [string]$Version = '3.7.3'
+    [string]$Version = '3.7.8'
 )
 
 $ScriptDir = Split-Path -Parent $MyInvocation.MyCommand.Definition

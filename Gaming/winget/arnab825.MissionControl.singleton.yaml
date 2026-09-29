@@ -1,7 +1,7 @@
 # yaml-language-server: $schema=https://aka.ms/winget-manifest.singleton.1.6.0.schema.json
 
 PackageIdentifier: arnab825.MissionControl
-PackageVersion: 3.7.3
+PackageVersion: 3.7.8
 PackageLocale: en-US
 PackageName: Mission Control
 Publisher: Arnab Contributors
@@ -39,7 +39,7 @@ Commands:
   - MissionControl
 Installers:
   - Architecture: x64
-    InstallerUrl: https://github.com/arnab825/Mission-Control/releases/download/v3.7.3/MissionControl-Setup.exe
+    InstallerUrl: https://github.com/arnab825/Mission-Control/releases/download/v3.7.8/MissionControl-Setup.exe
     InstallerSha256: C9B389BDFB2A55E38AD4857478C1DC09D13C6DD04F6C2B33909AB29900BC769F
 ManifestType: singleton
 ManifestVersion: 1.6.0
