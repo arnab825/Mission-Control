@@ -171,15 +171,19 @@ winget install arnab825.MissionControl
     ]
 
     for fname in target_filenames:
-        fpath = None
+        candidates = []
         if release_dir.exists() and (release_dir / fname).exists():
-            fpath = release_dir / fname
-        elif dist_dir.exists() and (dist_dir / fname).exists():
-            fpath = dist_dir / fname
+            candidates.append(release_dir / fname)
+        if dist_dir.exists() and (dist_dir / fname).exists():
+            candidates.append(dist_dir / fname)
 
-        if not fpath or not fpath.exists():
+        if not candidates:
             print(f"[WARNING] Asset file {fname} not found in release or dist. Skipping.", flush=True)
             continue
+
+        # Choose the latest modified file among candidates
+        fpath = max(candidates, key=lambda p: p.stat().st_mtime)
+
 
         if fname in existing_assets:
             print(f"[*] Removing existing asset {fname} (ID: {existing_assets[fname]}) to replace with fresh build...", flush=True)
