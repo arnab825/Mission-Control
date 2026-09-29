@@ -89,6 +89,11 @@ def main():
 
 {highlights_md}
 
+### 🚀 Fast Install via Windows Package Manager (Winget)
+```powershell
+winget install arnab825.MissionControl
+```
+
 ### 📦 Downloads & Installers
 - **Windows (.exe - Setup Installer)**: [{f"MissionControl-Setup.exe"}](https://github.com/arnab825/Mission-Control/releases/download/{tag_name}/MissionControl-Setup.exe)
 - **Windows (.msi - Enterprise Installer)**: [{f"MissionControl-Setup.msi"}](https://github.com/arnab825/Mission-Control/releases/download/{tag_name}/MissionControl-Setup.msi)

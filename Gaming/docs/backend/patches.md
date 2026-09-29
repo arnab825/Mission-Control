@@ -9,13 +9,6 @@ This document contains a detailed history of all patches and updates for the AI 
 - Added dedicated Winget installation pipeline with verified manifests and install automation
 - Added Winget 1-click CLI installer block to website download matrix
 
-### Patch: 2026-09-29 — v3.7.3: Responsive Setup Screen, Custom Windows Setup Wizard & Winget Setup Pipeline
-
-- Fixed setup screen centering and responsive scaling across non-fullscreen window sizes
-- Customized Windows setup wizard with branded Welcome, Finish, and Uninstaller dialogs
-- Added dedicated Winget installation pipeline with verified manifests and install automation
-- Added Winget 1-click CLI installer block to website download matrix
-
 ### Patch: 2026-09-28 — v3.7.7: Custom Cyberpunk Security Portal & Authentication Gateway Enhancements
 
 - Custom Mission Control dark cyberpunk theme for Clerk Security Portal and UserButton
