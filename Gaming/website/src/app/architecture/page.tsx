@@ -1,6 +1,4 @@
 import React from "react";
-import connectDB from "@/lib/mongodb";
-import ArchitectureComponentModel from "@/models/ArchitectureComponent";
 import ArchitectureClient from "./ArchitectureClient";
 
 const DEFAULT_COMPONENTS = [
@@ -62,36 +60,6 @@ const DEFAULT_COMPONENTS = [
   },
 ];
 
-export default async function ArchitecturePage() {
-  let components = [];
-
-  try {
-    await connectDB();
-    const docs = await ArchitectureComponentModel.find({}).sort({ order: 1 }).lean();
-
-    if (docs.length === 0) {
-      console.log("Architecture collection is empty. Seeding defaults...");
-      await ArchitectureComponentModel.insertMany(DEFAULT_COMPONENTS);
-      components = DEFAULT_COMPONENTS;
-    } else {
-      components = docs.map((doc: any) => ({
-        id: doc.id,
-        num: doc.num,
-        iconName: doc.iconName,
-        title: doc.title,
-        subTitle: doc.subTitle,
-        desc: doc.desc,
-        specs: doc.specs.map((s: any) => ({
-          label: s.label,
-          val: s.val,
-        })),
-      }));
-    }
-  } catch (error) {
-    console.error("Failed to load architecture components from MongoDB:", error);
-    // Fallback to static list if database connection fails entirely
-    components = DEFAULT_COMPONENTS;
-  }
-
-  return <ArchitectureClient components={components} />;
+export default function ArchitecturePage() {
+  return <ArchitectureClient components={DEFAULT_COMPONENTS} />;
 }

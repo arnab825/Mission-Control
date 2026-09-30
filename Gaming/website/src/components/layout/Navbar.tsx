@@ -251,6 +251,7 @@ export default function Navbar() {
                 <div key={link.name} className="relative group">
                   <Link
                     href={link.href}
+                    prefetch={true}
                     className={`relative font-mono text-xs tracking-wider uppercase transition-colors duration-300 py-2 flex items-center gap-1.5 whitespace-nowrap ${
                       isActive ? "text-neon-green font-bold" : "text-gray-400 hover:text-white"
                     }`}
@@ -271,6 +272,7 @@ export default function Navbar() {
                           <Link
                             key={sub.name}
                             href={sub.href}
+                            prefetch={true}
                             className="flex items-center gap-2.5 px-3 py-2 rounded-xl text-[11px] font-mono tracking-wider uppercase text-gray-400 hover:text-neon-green hover:bg-white/4 transition-all text-left"
                           >
                             <SubIcon className="w-3.5 h-3.5 text-neon-green/80 shrink-0" />
@@ -299,6 +301,7 @@ export default function Navbar() {
                       <Link
                         key={link.name}
                         href={link.href}
+                        prefetch={true}
                         className={`flex items-center gap-2 px-3 py-2 rounded-xl text-[11px] font-mono tracking-wider uppercase transition-all ${
                           isActive
                             ? "bg-neon-green/10 text-neon-green font-bold"
@@ -703,6 +706,7 @@ export default function Navbar() {
                       <div className="flex items-center justify-between w-full">
                         <Link
                           href={link.href}
+                          prefetch={true}
                           onClick={() => setIsOpen(false)}
                           className={`flex items-center gap-3 text-sm font-bold uppercase tracking-wider flex-1 py-0.5 ${
                             isActive
@@ -750,6 +754,7 @@ export default function Navbar() {
                                   <Link
                                     key={sub.name}
                                     href={sub.href}
+                                    prefetch={true}
                                     onClick={() => setIsOpen(false)}
                                     className={`flex items-center gap-2.5 py-2 px-2 rounded-lg text-xs uppercase tracking-wider transition-colors active:bg-white/5 ${
                                       isSubActive

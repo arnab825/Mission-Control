@@ -34,7 +34,8 @@ async function connectDB(): Promise<typeof mongoose> {
   if (!cached.promise) {
     const opts = {
       bufferCommands: false,
-      serverSelectionTimeoutMS: 5000, // Increased to 5000ms to prevent connection timeouts during Vercel serverless cold starts
+      serverSelectionTimeoutMS: 2500, // Fast failover to prevent blocking page transitions
+      connectTimeoutMS: 2500,
     };
 
     cached.promise = mongoose.connect(MONGODB_URI!, opts).then((mongooseInstance) => {
