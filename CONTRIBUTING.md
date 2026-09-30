@@ -4,11 +4,13 @@ Thank you for your interest in contributing to **Mission Control**! Whether you 
 
 ---
 
-## 📜 Code of Conduct & Guidelines
+## 📜 Code of Conduct & Security Guidelines
 
-1. **Be Respectful**: Treat all contributors and community members with respect.
-2. **Quality Code**: Follow the coding standards specified in the repository (TypeScript strict mode, Clean CSS/Tailwind, and Python 3.12+ async standards).
-3. **Open Issues First**: Before submitting a major feature or architectural rewrite, please open an issue to discuss your proposal with the maintainers.
+1. **Code of Conduct**: All participants, contributors, and maintainers are expected to adhere to our [Code of Conduct](CODE_OF_CONDUCT.md).
+2. **Security & Secrets**: Please review our [Security Policy](SECURITY.md). Never commit real secrets, environment keys, or credentials to Git.
+3. **Be Respectful**: Treat all contributors and community members with empathy and respect.
+4. **Quality Code**: Follow the coding standards specified in the repository (TypeScript strict mode, Clean CSS/Tailwind, and Python 3.12+ async standards).
+5. **Open Issues First**: Before submitting a major feature or architectural rewrite, please open an issue to discuss your proposal with the maintainers.
 
 ---
 
