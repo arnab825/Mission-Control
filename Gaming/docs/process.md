@@ -173,6 +173,55 @@ If packaging fails on Windows with `EPERM: operation not permitted, symlink`:
   Remove-Item -Recurse -Force Gaming\frontend\out\dist\__appImage-x64
   ```
 
+### App Update Version Loop / Stale Release Binary Fix
+* **Symptom**: The desktop app updates to a new version (e.g. `v3.7.9`), but after restarting or reinstalling, it still displays the previous version (e.g. `v3.7.8`) and repeatedly prompts to update in an infinite loop.
+* **Cause**: The GitHub Release assets (`MissionControl-Setup.exe` and `latest.yml`) were uploaded from an older local build artifact before the new version was compiled.
+* **One-Command Fix (Rebuild & Re-upload to GitHub Release)**:
+  Run this PowerShell command from the repository root:
+  ```powershell
+  # 1. Rebuild frontend bundle & fresh NSIS Windows installer
+  cd Gaming\frontend; npm run build; npx electron-builder --win nsis --x64 --publish never; cd ..\..
+
+  # 2. Upload the freshly built binary to the existing GitHub release tag
+  python -c "
+  import urllib.request, json
+  from Gaming.scripts.upload_release import find_token, get_latest_version_info
+
+  token = find_token()
+  version, _ = get_latest_version_info()
+  headers = {'Authorization': f'Bearer {token}', 'Accept': 'application/vnd.github.v3+json', 'User-Agent': 'MissionControlPublisher'}
+
+  # Get release ID
+  req = urllib.request.Request(f'https://api.github.com/repos/arnab825/Mission-Control/releases/tags/v{version}', headers=headers)
+  with urllib.request.urlopen(req) as r:
+      rel = json.loads(r.read())
+  rel_id = rel['id']
+
+  # Delete stale installer and latest.yml
+  for a in rel.get('assets', []):
+      if a['name'] in ['MissionControl-Setup.exe', 'latest.yml']:
+          d_req = urllib.request.Request(f'https://api.github.com/repos/arnab825/Mission-Control/releases/assets/{a[\"id\"]}', method='DELETE', headers=headers)
+          urllib.request.urlopen(d_req)
+          print(f'Deleted stale {a[\"name\"]}')
+
+  # Upload fresh latest.yml
+  with open(r'Gaming\frontend\out\dist\latest.yml', 'rb') as f:
+      u_yml = urllib.request.Request(f'https://uploads.github.com/repos/arnab825/Mission-Control/releases/{rel_id}/assets?name=latest.yml', data=f.read(), headers={'Authorization': f'Bearer {token}', 'Content-Type': 'application/x-yaml', 'Accept': 'application/vnd.github.v3+json', 'User-Agent': 'MissionControlPublisher'})
+      urllib.request.urlopen(u_yml)
+      print('Uploaded fresh latest.yml')
+
+  # Upload fresh MissionControl-Setup.exe
+  with open(r'Gaming\frontend\out\dist\MissionControl-Setup.exe', 'rb') as f:
+      u_exe = urllib.request.Request(f'https://uploads.github.com/repos/arnab825/Mission-Control/releases/{rel_id}/assets?name=MissionControl-Setup.exe', data=f.read(), headers={'Authorization': f'Bearer {token}', 'Content-Type': 'application/vnd.microsoft.portable-executable', 'Accept': 'application/vnd.github.v3+json', 'User-Agent': 'MissionControlPublisher'})
+      urllib.request.urlopen(u_exe)
+      print('Uploaded fresh MissionControl-Setup.exe')
+  print('Release assets updated successfully!')
+  "
+
+  # 3. Clear local pending updater cache
+  Remove-Item -Recurse -Force "$env:LOCALAPPDATA\mission-control-updater\pending" -ErrorAction SilentlyContinue
+  ```
+
 ---
 
 ## 🖥️ Application UI Demos
