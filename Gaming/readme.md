@@ -19,17 +19,10 @@
 [![Security Policy](https://img.shields.io/badge/Security-Policy-blueviolet.svg?style=for-the-badge)](../SECURITY.md)
 [![License](https://img.shields.io/badge/License-MIT-blue.svg?style=for-the-badge)](../LICENSE)
 
-<br/>
-<br/>
-
-<table>
-  <tr>
-    <td align="center">
-      <b>⚡ Quick Terminal Install (Windows 10 / 11)</b><br/><br/>
-      <code>winget install arnab825.MissionControl</code>
-    </td>
-  </tr>
-</table>
+```bash
+# ⚡ Install with 1 command via Windows Package Manager (Windows 10 / 11)
+winget install arnab825.MissionControl
+```
 
 </div>
 
