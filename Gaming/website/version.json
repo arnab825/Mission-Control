@@ -1,17 +1,30 @@
 {
-  "version": "3.7.8",
+  "version": "3.7.9",
   "release_date": "2026-09-25",
   "update_check_url": "https://raw.githubusercontent.com/arnab825/Mission-Control/main/Gaming/backend/version.json",
   "changelog": [
+    {
+      "version": "3.7.9",
+      "date": "2026-09-30",
+      "title": "Comprehensive Setup Wizard Enhancements & Complete Release History",
+      "highlights": [
+        "Enriched In-App Setup Wizard with multi-stage deployment descriptions for installation and rollback",
+        "Branded Windows NSIS installer with complete EULA, Directory, and File Extraction directives",
+        "Documented automatic session flushing and %APPDATA% data preservation across upgrades",
+        "Backfilled comprehensive release notes and patch history across documentation archives",
+        "Included patchesfile.md into automated version synchronization workflow"
+      ]
+    },
     {
       "version": "3.7.8",
       "date": "2026-09-29",
       "title": "Responsive Setup Screen, Custom Windows Setup Wizard & Winget Setup Pipeline",
       "highlights": [
-        "Fixed setup screen centering and responsive scaling across non-fullscreen window sizes",
-        "Customized Windows setup wizard with branded Welcome, Finish, and Uninstaller dialogs",
-        "Added dedicated Winget installation pipeline with verified manifests and install automation",
-        "Added Winget 1-click CLI installer block to website download matrix"
+        "Responsive In-App Setup Wizard: Enhanced UpdateSetupModal with responsive viewport scaling, custom scrollbars, and comprehensive multi-stage deployment descriptions for install and rollback operations",
+        "Branded Windows Setup Wizard: Customized NSIS installer with branded Welcome, License, Directory Selection, File Extraction, and Uninstaller dialogs detailing system requirements and data preservation",
+        "Safety & State Preservation: Documented automated session token flushing, neural profile preservation in %APPDATA%\\MissionControl, and graceful backend process shutdown prior to binary updates",
+        "Official Winget Installation Pipeline: Added verified Microsoft Windows Package Manager manifests (singleton and multi-manifest v1.6.0) with automated installation scripting",
+        "Website Download Matrix Integration: Added copy-to-clipboard 1-click Winget CLI installation command block to the official website download section"
       ]
     },
     {

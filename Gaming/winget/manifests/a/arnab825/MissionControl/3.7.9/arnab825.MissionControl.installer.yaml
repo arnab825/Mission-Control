@@ -1,7 +1,7 @@
 # yaml-language-server: $schema=https://aka.ms/winget-manifest.installer.1.6.0.schema.json
 
 PackageIdentifier: arnab825.MissionControl
-PackageVersion: 3.7.8
+PackageVersion: 3.7.9
 InstallerType: nullsoft
 Scope: machine
 InstallModes:
@@ -16,7 +16,7 @@ Commands:
   - MissionControl
 Installers:
   - Architecture: x64
-    InstallerUrl: https://github.com/arnab825/Mission-Control/releases/download/v3.7.8/MissionControl-Setup.exe
+    InstallerUrl: https://github.com/arnab825/Mission-Control/releases/download/v3.7.9/MissionControl-Setup.exe
     InstallerSha256: 4853046B4313821B2DCFBB68D3DD9A224FB80048213E9AB0B1C2A8400786A9CB
 ManifestType: installer
 ManifestVersion: 1.6.0

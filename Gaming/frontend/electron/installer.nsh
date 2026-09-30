@@ -39,20 +39,29 @@ Function CenterInstallerWindow
   Pop $0
 FunctionEnd
 
-; Branded Setup Wizard Titles & Texts
+; ── Branded Setup Wizard Titles & Descriptions ──────────────────────────────
+!define MUI_LICENSEPAGE_TEXT_TOP "Please review the license terms before proceeding with the installation of Mission Control."
+!define MUI_LICENSEPAGE_TEXT_BOTTOM "If you accept the terms of the agreement, click I Agree to continue. You must accept the agreement to install Mission Control."
+
+!define MUI_DIRECTORYPAGE_TEXT_TOP "Setup will install Mission Control application binaries and neural telemetry services into the folder specified below.$\r$\n$\r$\nNote: User benchmarks, game neural profiles, and model configurations will be securely stored in %APPDATA%\MissionControl so they persist across updates."
+!define MUI_DIRECTORYPAGE_TEXT_DESTINATION "Destination Folder (Application Binaries):"
+
+!define MUI_INSTFILESPAGE_FINISHHEADER_TEXT "Installation Successful"
+!define MUI_INSTFILESPAGE_FINISHHEADER_SUBTEXT "Mission Control binaries, neural telemetry services, and desktop integrations have been deployed."
+
 !define MUI_FINISHPAGE_TITLE "Mission Control Installation Complete"
-!define MUI_FINISHPAGE_TEXT "Mission Control has been successfully installed on your computer.$\r$\n$\r$\nDesktop and Start Menu shortcuts have been configured. The AI telemetry engine and game optimization services are ready to launch."
+!define MUI_FINISHPAGE_TEXT "Mission Control has been successfully installed on your computer.$\r$\n$\r$\nSystem integrations, low-latency GPU/CPU monitoring hooks, and Start Menu/Desktop shortcuts have been configured. The AI telemetry engine and game optimization services are ready to launch."
 !define MUI_FINISHPAGE_RUN_TEXT "Launch Mission Control now"
 
 !macro customWelcomePage
   !define MUI_WELCOMEPAGE_TITLE "Welcome to Mission Control"
-  !define MUI_WELCOMEPAGE_TEXT "Setup will guide you through installing Mission Control — the ultimate real-time AI gaming command deck and hardware telemetry system.$\r$\n$\r$\nKey Features:$\r$\n  • Real-time GPU/CPU FPS & Hardware Telemetry$\r$\n  • Local LLM Gaming Assistant & Voice Intel$\r$\n  • Game Optimization Profiles & Neural Presets$\r$\n  • Low-latency background performance monitoring$\r$\n$\r$\nClick Next to continue."
+  !define MUI_WELCOMEPAGE_TEXT "Setup will guide you through installing Mission Control — the ultimate real-time AI gaming command deck and hardware telemetry system.$\r$\n$\r$\nCore Capabilities:$\r$\n  • Real-time GPU/CPU FPS & Hardware Telemetry (NVIDIA GeForce/RTX & AMD)$\r$\n  • Local LLM Gaming Assistant, Voice Intel & In-Game Dynamic HUD$\r$\n  • AI Game Optimization Profiles, Graphic Presets & Latency Tuning$\r$\n  • Low-overhead background monitoring and distributed telemetry fleet$\r$\n$\r$\nSystem Requirements:$\r$\n  • Windows 10 / 11 (64-bit)$\r$\n  • Dedicated GPU recommended for local neural inference & real-time frame tracking$\r$\n$\r$\nClick Next to continue."
   !insertmacro MUI_PAGE_WELCOME
 !macroend
 
 !macro customUnWelcomePage
   !define MUI_WELCOMEPAGE_TITLE "Uninstall Mission Control"
-  !define MUI_WELCOMEPAGE_TEXT "This wizard will remove Mission Control from your computer.$\r$\n$\r$\nNote: Your game benchmarks, custom neural profiles, and AI settings in %APPDATA%\MissionControl are preserved so you don't lose your data if you decide to reinstall later.$\r$\n$\r$\nClick Next to continue."
+  !define MUI_WELCOMEPAGE_TEXT "This wizard will remove Mission Control application executables, background services, and shortcuts from your computer.$\r$\n$\r$\nPreserved User Data:$\r$\nYour custom game benchmarks, trained neural profiles, library scanner states, and account settings in %APPDATA%\MissionControl are safely preserved so you don't lose any data if you choose to reinstall later.$\r$\n$\r$\nClick Next to continue."
   !insertmacro MUI_UNPAGE_WELCOME
 !macroend
 

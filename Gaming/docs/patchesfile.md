@@ -2,6 +2,94 @@
 
 This document contains a detailed history of all patches and updates for the AI Gaming Assistant.
 
+### Patch: 2026-09-29 — v3.7.8: Responsive Setup Screen, Custom Windows Setup Wizard & Winget Setup Pipeline
+
+- Responsive In-App Setup Wizard: Enhanced `UpdateSetupModal` with responsive viewport scaling, custom scrollbars, and detailed step-by-step progress tracking for upgrades and emergency rollbacks
+- Branded Windows Setup Wizard: Customized NSIS installer with branded Welcome, License, Directory Selection, File Extraction, and Uninstaller dialogs detailing 64-bit hardware requirements and data preservation
+- Safe Cache & Session Flushing: Automatically persist Clerk authentication tokens, game library states, and custom presets in `%APPDATA%\MissionControl` prior to binary extraction
+- Graceful Subprocess Shutdown: Releasing active file locks on core C++ DLLs, Python telemetry worker, and WebSocket bridges before updater file replacement
+- Winget Installation Pipeline: Added verified Microsoft Windows Package Manager manifests (singleton and multi-manifest v1.6.0) with automated installation scripting (`install.ps1`)
+- Download Matrix CLI Integration: Added 1-click copy-to-clipboard Winget install snippet (`winget install arnab825.MissionControl`) to the official website download section
+
+### Patch: 2026-09-28 — v3.7.7: Custom Cyberpunk Security Portal & Authentication Gateway Enhancements
+
+- Custom Mission Control dark cyberpunk theme for Clerk Security Portal and UserButton
+- Removed development mode watermark badges and footers
+- Enhanced account switching and OAuth popup lifecycles
+- Modernized Clerk fallback redirect URLs
+- Resolved Aero Bridge WebSocket 1001 false-positive disconnect warnings
+- Hardened distributed node heartbeat network resilience
+
+### Patch: 2026-09-28 — v3.7.6: Account Switching & Authentication Gateway Upgrades
+
+- Seamless Account Linking: Added pre-flight token refresh and automated retries when connecting Discord or Google accounts
+- Eliminated Native Alert Dialogs: Replaced blocking OS message boxes with inline tactical HUD banners matching the app design system
+- Enhanced Session Reverification: Added one-click 'Sign Out & Re-authenticate' and 'Switch Account' action buttons when Clerk requires step-up verification
+- Fixed UI Lockup: Resolved issue where connecting buttons remained frozen in 'CONNECTING...' state during authentication failures
+- Settings Navigation Polish: Unified tactical command deck with illuminated module headers and responsive quick-switch controls
+
+### Patch: 2026-09-25 — v3.7.5: Fixed Provider Link Security Dialog & Re-auth Flow
+
+- Replaced blocking native OS alert popups with inline tactical banners across all provider link and unlink operations
+- Added pre-flight token refresh and auto-retry to handleLinkProvider
+- Added one-click Sign Out & Re-authenticate and Switch Account action buttons
+- Increased distributed node registration timeout for cloud server cold starts
+
+### Patch: 2026-09-25 — v3.7.4: Fixed Account Unlink Flow & Redesigned Settings Navigation
+
+- Fixed provider unlink failing with 'additional verification' error by adding session token refresh and auto-retry before destroy()
+- Replaced all native alert() dialogs with inline styled error banners matching the app design system
+- Added one-click 'Sign Out & Re-authenticate' fallback button when session reverification is required
+- Redesigned Settings search bar and category tabs into unified tactical command deck with responsive 6-module grid
+- Upgraded SettingsSection headers with illuminated icon badges and gradient dividers
+
+### Patch: 2026-09-25 — v3.7.3: Fixed Account Unlink Flow & Redesigned Settings Navigation
+
+- Fixed provider unlink failing with 'additional verification' error by adding session token refresh and auto-retry before destroy()
+- Replaced all native alert() dialogs with inline styled error banners matching the app design system
+- Added one-click 'Sign Out & Re-authenticate' fallback button when session reverification is required
+- Redesigned Settings search bar and category tabs into unified tactical command deck with responsive 6-module grid
+- Upgraded SettingsSection headers with illuminated icon badges and gradient dividers
+
+### Patch: 2026-09-25 — v3.7.2: Seamless OAuth Handshake & Account Switcher Flow
+
+- Resolved OAuth popup infinite spinning and non-reactive redirection in Account Switcher
+- Added instant fast-path switching for already-linked accounts without spawning popups
+- Implemented direct external account authorization via openAuthPopupUrl
+- Added interactive error banner, retry controls, and persistent cancel & close button to auth popup UI
+- Enhanced window navigation listeners in Electron to auto-dismiss on auth cancellation or completion
+
+### Patch: 2026-09-25 — v3.7.1: OAuth Popup Handshake Fix & Secret Sanitization
+
+- Resolved OAuth popup infinite spinning and non-reactive redirection in Account Switcher
+- Purged exposed NVIDIA API key and personal node tokens from tracked repository files
+- Verified standalone Next.js deployment and updated Azure credentials
+
+### Patch: 2026-09-25 — v3.7.0: Security Patch & Version Update Fix
+
+- Purged leaked keys
+- Fixed version update installer semver guard
+- Fixed NSIS installer build
+
+### Patch: 2026-09-25 — v3.6.9: Fixed NSIS installer build failure
+
+- Fixed NSIS installer build failure
+- Installer window centering removed to fix fatal NSIS warning 6010 in two-pass build
+
+### Patch: 2026-09-09 — v3.6.3: Release Health Schema Normalization & False-Positive Unstable Banner Fix
+
+- Fixed false-positive Unstable Release Detected banner on clean update checks
+- Normalized release stability schema across Electron IPC and React UpdatesPage
+- Added version-targeted stability auditing to differentiate local crashes from incoming remote releases
+- Updated type definitions in global and vite-env declarations
+
+### Patch: 2026-09-09 — v3.6.2: NVIDIA NIM Decommissioning Fix & Multi-Model Cascade Failover
+
+- Replaced decommissioned EOL model meta/llama-3.3-70b-instruct with active meta/llama-3.2-11b-vision-instruct
+- Implemented multi-model cascade failover in FeedbackLoop across Llama 3.2 11B Vision and Nemotron 3 Super 120B
+- Resolved ChatNVIDIA parameter validation error by stripping unsupported timeout kwarg
+- Updated Tier 3 NVIDIA NIM cascades across website blog generator, diagnostics, and desktop settings
+
 ### Patch: 2026-09-08 — v3.6.1: Rockstar Games Launcher HUD Exclusion & Voice Agent DLSS Sanitization
 
 - Resolved Rockstar Games Launcher (`Launcher.exe`) falsely triggering the in-game HUD overlay and FPS readings

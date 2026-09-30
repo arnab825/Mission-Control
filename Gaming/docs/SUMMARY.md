@@ -82,7 +82,8 @@ graph TD
 
 | Version | Key Feature / Change Description |
 | :--- | :--- |
-| **v3.7.8 (Latest)** | **Responsive Setup Screen, Custom Windows Setup Wizard & Winget Setup Pipeline** — Mission Control v3.7.8 enhances the setup experience with a responsive setup screen, customized Windows setup wizard, and streamlined Winget installation pipeline. |
+| **v3.7.9 (Latest)** | **Comprehensive Setup Wizard Enhancements & Complete Release History** — Mission Control v3.7.9 introduces a revamped setup wizard with enhanced deployment descriptions, branded installer, and improved session management. |
+| **v3.7.8** | **Responsive Setup Screen, Custom Windows Setup Wizard & Winget Setup Pipeline** — Mission Control v3.7.8 enhances the setup experience with a responsive setup screen, customized Windows setup wizard, and streamlined Winget installation pipeline. |
 | **v3.7.3** | **Responsive Setup Screen, Custom Windows Setup Wizard & Winget Setup Pipeline** — Mission Control v3.7.3 enhances the setup experience with a responsive setup screen, customized Windows setup wizard, and streamlined Winget installation pipeline. |
 | **v3.7.7** | **Custom Cyberpunk Security Portal & Authentication Gateway Enhancements** — Custom Mission Control dark cyberpunk theme for Clerk Security Portal and UserButton. |
 | **v3.7.6** | **Account Switching & Authentication Gateway Upgrades** — Seamless Account Linking: Added pre-flight token refresh and automated retries when connecting Discord or Google accounts. |
@@ -187,5 +188,5 @@ graph TD
 
 ---
 
-*Last Updated: 29/09/2026*
+*Last Updated: 30/09/2026*
 

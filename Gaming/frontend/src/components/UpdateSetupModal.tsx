@@ -52,51 +52,51 @@ export const UpdateSetupModal: React.FC<UpdateSetupModalProps> = ({
   const steps: StepItem[] = mode === 'install' ? [
     {
       id: 'flush',
-      title: 'Flushing Session & State Cache',
-      desc: 'Committing auth tokens, game library states, and preferences to persistent storage.',
+      title: 'Flushing Session State & Game Cache',
+      desc: 'Safely persisting active authentication tokens, discovered game library indices, and custom graphics preferences to persistent local storage.',
       icon: <Layers className="w-4 h-4 text-cyan-400" />
     },
     {
       id: 'shutdown',
-      title: 'Stopping Neural Backend & IPC Listeners',
-      desc: 'Gracefully closing Python telemetry worker, WebSocket bridges, and process locks.',
+      title: 'Stopping Neural Backend & Hardware Services',
+      desc: 'Gracefully terminating Python AI worker daemons, IPC WebSocket bridges, and releasing active DLL file locks to prevent extraction conflicts.',
       icon: <Server className="w-4 h-4 text-yellow-400" />
     },
     {
       id: 'handoff',
       title: 'Deploying Standalone Setup Engine',
-      desc: `Transferring execution to Mission Control Setup (v${version}) for binary extraction.`,
+      desc: `Launching verified Mission Control Setup (v${version}) with administrative rights for background binary replacement and dependency alignment.`,
       icon: <Download className="w-4 h-4 text-neon-green" />
     },
     {
       id: 'relaunch',
-      title: 'System Handshake & Relaunch',
-      desc: 'Finalizing installation and rebooting Mission Control into the new version.',
+      title: 'System Handshake & Verified Relaunch',
+      desc: 'Validating binary checksums, re-initializing low-latency hardware monitors, and rebooting Mission Control into the updated version.',
       icon: <Cpu className="w-4 h-4 text-purple-400" />
     }
   ] : [
     {
       id: 'backup_check',
-      title: 'Verifying Stable Snapshot',
-      desc: `Validating offline rollback archive (v${backupVersion}) and checksum integrity.`,
+      title: 'Verifying Stable Snapshot Archive',
+      desc: `Inspecting local rollback snapshot repository (v${backupVersion}), validating executable binaries, and verifying archive checksum integrity.`,
       icon: <ShieldCheck className="w-4 h-4 text-cyan-400" />
     },
     {
       id: 'process_kill',
-      title: 'Terminating Active Subprocesses',
-      desc: 'Releasing file locks on core DLLs, Python environment, and UI bundles.',
+      title: 'Terminating Active Subprocesses & Hooks',
+      desc: 'Releasing active file locks on core C++ hardware monitor DLLs, Python telemetry environment, and background worker threads.',
       icon: <Terminal className="w-4 h-4 text-yellow-400" />
     },
     {
       id: 'restore',
-      title: 'Uninstalling Update & Restoring Core',
-      desc: `Overwriting current files with certified v${backupVersion} stable build.`,
+      title: 'Restoring Core Binaries & Fallback Baseline',
+      desc: `Safely overwriting current binaries with certified stable v${backupVersion} build while preserving all user neural profiles and game library configs in %APPDATA%.`,
       icon: <RotateCcw className="w-4 h-4 text-neon-green" />
     },
     {
       id: 'restart',
-      title: 'Restoring System Baseline',
-      desc: 'Launching Mission Control with previous stable configuration.',
+      title: 'Restoring System Baseline & Rebooting',
+      desc: 'Re-initializing hardware monitors, re-establishing secure local IPC sockets, and restarting Mission Control under the previous stable configuration.',
       icon: <Cpu className="w-4 h-4 text-purple-400" />
     }
   ];
@@ -222,7 +222,7 @@ export const UpdateSetupModal: React.FC<UpdateSetupModalProps> = ({
               <div className="mt-3.5 sm:mt-4">
                 <div className="flex items-center justify-between text-[9px] sm:text-[10px] font-mono mb-1.5 gap-2">
                   <span className="text-zinc-400 uppercase tracking-wider truncate">
-                    {isExecuting ? steps[currentStepIndex]?.title : 'Ready to begin deployment'}
+                    {isExecuting ? steps[currentStepIndex]?.title : 'Ready to deploy • Benchmarks, game configs, and neural profiles preserved'}
                   </span>
                   <span className="text-neon-green font-bold shrink-0">{progressPercent}%</span>
                 </div>
@@ -289,8 +289,8 @@ export const UpdateSetupModal: React.FC<UpdateSetupModalProps> = ({
                 <AlertTriangle className="w-3.5 h-3.5 text-yellow-400 shrink-0" />
                 <span className="leading-tight">
                   {mode === 'install'
-                    ? 'Application will close temporarily and launch the setup installer.'
-                    : 'Current binaries will be safely replaced with the previous release snapshot.'}
+                    ? 'Mission Control will close temporarily to execute the setup installer. Custom neural presets, game benchmarks, and account sessions will be preserved.'
+                    : 'Current binaries will be safely replaced with the previous certified release snapshot. User configurations and telemetry databases remain untouched.'}
                 </span>
               </div>
 

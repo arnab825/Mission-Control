@@ -2,12 +2,22 @@
 
 This document contains a detailed history of all patches and updates for the AI Gaming Assistant.
 
+### Patch: 2026-09-30 — v3.7.9: Comprehensive Setup Wizard Enhancements & Complete Release History
+
+- Enriched In-App Setup Wizard with multi-stage deployment descriptions for installation and rollback
+- Branded Windows NSIS installer with complete EULA, Directory, and File Extraction directives
+- Documented automatic session flushing and %APPDATA% data preservation across upgrades
+- Backfilled comprehensive release notes and patch history across documentation archives
+- Included patchesfile.md into automated version synchronization workflow
+
 ### Patch: 2026-09-29 — v3.7.8: Responsive Setup Screen, Custom Windows Setup Wizard & Winget Setup Pipeline
 
-- Fixed setup screen centering and responsive scaling across non-fullscreen window sizes
-- Customized Windows setup wizard with branded Welcome, Finish, and Uninstaller dialogs
-- Added dedicated Winget installation pipeline with verified manifests and install automation
-- Added Winget 1-click CLI installer block to website download matrix
+- Responsive In-App Setup Wizard: Enhanced `UpdateSetupModal` with responsive viewport scaling, custom scrollbars, and detailed step-by-step progress tracking for upgrades and emergency rollbacks
+- Branded Windows Setup Wizard: Customized NSIS installer with branded Welcome, License, Directory Selection, File Extraction, and Uninstaller dialogs detailing 64-bit hardware requirements and data preservation
+- Safe Cache & Session Flushing: Automatically persist Clerk authentication tokens, game library states, and custom presets in `%APPDATA%\MissionControl` prior to binary extraction
+- Graceful Subprocess Shutdown: Releasing active file locks on core C++ DLLs, Python telemetry worker, and WebSocket bridges before updater file replacement
+- Winget Installation Pipeline: Added verified Microsoft Windows Package Manager manifests (singleton and multi-manifest v1.6.0) with automated installation scripting (`install.ps1`)
+- Download Matrix CLI Integration: Added 1-click copy-to-clipboard Winget install snippet (`winget install arnab825.MissionControl`) to the official website download section
 
 ### Patch: 2026-09-28 — v3.7.7: Custom Cyberpunk Security Portal & Authentication Gateway Enhancements
 

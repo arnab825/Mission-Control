@@ -2,7 +2,7 @@ param (
     [ValidateSet('Validate', 'Install', 'UpdateHash', 'Help')]
     [string]$Action = 'Validate',
 
-    [string]$Version = '3.7.8'
+    [string]$Version = '3.7.9'
 )
 
 $ErrorActionPreference = 'Stop'

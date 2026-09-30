@@ -87,7 +87,7 @@ def sync():
 
     website_docs_dir = os.path.join(BASE_DIR, "website", "docs")
     if os.path.exists(website_docs_dir):
-        for doc in ["SUMMARY.md", "changes_summary.md"]:
+        for doc in ["SUMMARY.md", "changes_summary.md", "patchesfile.md"]:
             src = os.path.join(BASE_DIR, "docs", doc)
             dst = os.path.join(website_docs_dir, doc)
             if os.path.exists(src):
