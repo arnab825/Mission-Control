@@ -29,23 +29,33 @@ nvidia-ml-py     # NVIDIA Management Library for GPU metrics
 
 # vgamepad        # Virtual gamepad for AI agent controller output
 
+# Imaging & HTTP Clients
+Pillow               # Image manipulation and fallback frame encoding
+httpx                # Async & high-speed HTTP client
+
 # Voice Assistant (STT/TTS)
-pyttsx3          # Text-to-Speech
-SpeechRecognition # Speech-to-Text
-pyaudio          # Required by SpeechRecognition for microphone input
+pyttsx3              # Text-to-Speech (offline SAPI5)
+edge-tts             # Microsoft Edge Neural TTS
+SpeechRecognition    # Speech-to-Text
+sounddevice          # Audio capture backend (drop-in cross-platform / Python 3.14 support)
+emoji                # Emoji sanitization for clean TTS speech
+
+# Web Search & Intelligence
+duckduckgo-search    # Unlimited DuckDuckGo search
+tavily-python        # Tavily AI Search client (optional enhancement)
 
 # System/Hardware Check
-psutil           # RAM/CPU monitoring
-WMI              # Windows hardware names/info
-pywin32          # Required for WMI
-orjson           # Ultra-fast JSON
-pydantic>=2.10.0         # High-speed Pydantic v2 Data Models
+psutil               # RAM/CPU monitoring
+WMI                  # Windows hardware names/info
+pywin32              # Required for WMI & Win32 APIs
+orjson               # Ultra-fast JSON
+pydantic>=2.10.0     # High-speed Pydantic v2 Data Models
 pydantic-settings>=2.7.0 # Pydantic v2 Settings management
-packaging        # Version parsing
-openai           # NVIDIA NIM / OpenAI API Client
-requests         # HTTP Requests for voice/game updates
-python-dotenv    # Environment variable management
-websockets>=17.0.1
+packaging            # Version parsing
+openai               # NVIDIA NIM / OpenAI API Client
+requests             # HTTP Requests for voice/game updates
+python-dotenv        # Environment variable management
+websockets>=13.0.0,<17.0
 
 # Production Database (Supabase / PostgreSQL)
 psycopg2-binary>=2.9.9  # PostgreSQL adapter (binary wheel, no local Postgres required)
@@ -60,3 +70,4 @@ rank_bm25
 tiktoken
 mem0ai
 google-genai==2.17.0
+

@@ -32,6 +32,66 @@ with warnings.catch_warnings():
     warnings.filterwarnings("ignore", category=DeprecationWarning)
     import speech_recognition as sr
 
+try:
+    import sounddevice as sd
+except ImportError:
+    sd = None
+
+
+class SoundDeviceMicrophone(sr.AudioSource):
+    """Clean microphone audio source powered by sounddevice for Python 3.14+."""
+    def __init__(self, device_index=None, sample_rate=16000, chunk_size=1024):
+        self.device_index = device_index
+        self.SAMPLE_RATE = sample_rate
+        self.CHUNK = chunk_size
+        self.SAMPLE_WIDTH = 2
+        self.stream = None
+
+    def __enter__(self):
+        if sd is None:
+            raise RuntimeError("sounddevice is not installed.")
+        self.raw_stream = sd.RawInputStream(
+            samplerate=self.SAMPLE_RATE,
+            blocksize=self.CHUNK,
+            device=self.device_index,
+            channels=1,
+            dtype='int16'
+        )
+        self.raw_stream.start()
+
+        class _StreamWrapper:
+            def __init__(self, raw_stream):
+                self.raw_stream = raw_stream
+
+            def read(self, size):
+                buf, _ = self.raw_stream.read(size)
+                return bytes(buf)
+
+            def close(self):
+                try:
+                    if not self.raw_stream.stopped:
+                        self.raw_stream.stop()
+                finally:
+                    self.raw_stream.close()
+
+        self.stream = _StreamWrapper(self.raw_stream)
+        return self
+
+    def __exit__(self, exc_type, exc_val, exc_tb):
+        if self.stream:
+            self.stream.close()
+            self.stream = None
+
+
+def get_microphone_source(device_index=None):
+    """Instantiate a working microphone source using PyAudio or sounddevice."""
+    try:
+        return sr.Microphone(device_index=device_index)
+    except Exception:
+        if sd is not None:
+            return SoundDeviceMicrophone(device_index=device_index)
+        raise
+
 
 logger = logging.getLogger(__name__)
 
@@ -482,7 +542,7 @@ class VoiceManager:
 
     def _stt_loop(self):
         try:
-            with sr.Microphone() as source:
+            with get_microphone_source() as source:
                 self.recognizer.adjust_for_ambient_noise(source, duration=0.5)
                 self.recognizer.dynamic_energy_threshold = False
                 self._stt_ready = True

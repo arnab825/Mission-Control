@@ -608,7 +608,10 @@ class WebSearchEngine:
         results = []
         answer = ""
         try:
-            from ddgs import DDGS
+            try:
+                from duckduckgo_search import DDGS
+            except ImportError:
+                from ddgs import DDGS
             with DDGS() as ddgs:
                 hits = list(ddgs.text(query, max_results=max_results))
                 results = [{"title": h["title"], "url": h["href"], "content": h["body"]} for h in hits]
