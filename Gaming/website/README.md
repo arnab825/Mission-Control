@@ -4,7 +4,7 @@
   <img src="public/logo.png" width="80" alt="Mission Control Website Logo" />
 </p>
 
-The official high-performance web platform for **Mission Control**, built with Next.js 15 (App Router), TypeScript, Tailwind CSS, and MongoDB Atlas. It hosts the interactive game benchmark dataset, documentation center, community glitch tracker, and an automated AI-driven gaming news generation engine (`Gaming Intel`).
+The official high-performance web platform for **Mission Control**, built with Next.js 16 (App Router), TypeScript, Tailwind CSS, and MongoDB Atlas. It hosts the interactive game benchmark dataset, documentation center, community glitch tracker, and an automated AI-driven gaming news generation engine (`Gaming Intel`).
 
 ---
 
@@ -25,7 +25,7 @@ The official high-performance web platform for **Mission Control**, built with N
 
 ## 🛠️ Tech Stack
 
-- **Framework**: Next.js 15 (App Router)
+- **Framework**: Next.js 16 (App Router)
 - **Language**: TypeScript
 - **Styling**: Tailwind CSS + Custom Design Tokens
 - **Database**: MongoDB Atlas (via Mongoose)

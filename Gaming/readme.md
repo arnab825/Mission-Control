@@ -222,7 +222,7 @@ Mission Control operates as an interconnected ecosystem of background threads, a
 - **Atomic Git Release & Tagging:** Stages all manifests, lockfiles, and documentation directories (`docs/`, `website/docs/`). Amends the release commit post-build, realigns the Git tag (`vX.Y.Z`), and uploads all artifacts directly to GitHub Releases via `GH_TOKEN`.
 
 ### 9. Next.js Website & Automated AI Gaming Intel Pipeline
-- **Next.js 15 App Router:** High-performance web portal built with Next.js 15, TypeScript, and MongoDB Atlas.
+- **Next.js 16 App Router:** High-performance web portal built with Next.js 16, TypeScript, and MongoDB Atlas.
 - **Automated AI Blog Generation (`/api/blogs/generate`):** Runs daily at 5:30 AM IST via Vercel cron jobs. Ingests RSS feeds from IGN, Kotaku, Eurogamer, Tom's Hardware, and AnandTech.
 - **3-Tier Failover LLM Pipeline:** Text generation cascades across Google Gemini Flash (`gemini-2.5-flash`), Hugging Face Inference (`Llama-3.1-8B-Instruct`), and NVIDIA NIM (`nemotron-3-super-120b`).
 - **4-Tier Image Generation & Blob CDN:** Featured blog artwork generates through Gemini Imagen 3, Hugging Face FLUX.1, Pollinations AI, or procedural 3D fallbacks, stored permanently on Vercel Blob CDN (`BLOB_READ_WRITE_TOKEN`).
@@ -297,7 +297,7 @@ Mission Control includes a **gaming-optimized, multi-source web search engine** 
 | **Agentic AI** | Voice Engine | Google Cloud Speech + CMU Sphinx STT \| ElevenLabs + SAPI5 TTS |
 | **Agentic AI** | Web Intelligence | Wikipedia API + SteamSpy API + DuckDuckGo + RAWG.io |
 | **Distributed Node** | Client Daemon | Python autonomous daemon + MAC UUID identification |
-| **Web Platform** | Portal & Docs | Next.js 15 (App Router) + Tailwind CSS + MongoDB Atlas |
+| **Web Platform** | Portal & Docs | Next.js 16 (App Router) + Tailwind CSS + MongoDB Atlas |
 | **Web Platform** | AI News Generator | Vercel Cron (5:30 AM IST) + Gemini Flash + HuggingFace + Vercel Blob |
 | **Packaging & CI/CD** | Installers | PyInstaller + electron-builder (NSIS .exe, .msi, .zip, .deb, .AppImage) |
 | **Packaging & CI/CD** | Pipeline Script | PowerShell (`scripts/publish.ps1`) with atomic sync & GitHub Release |
@@ -404,7 +404,7 @@ Mission Control includes a fully automated release pipeline in [`Gaming/scripts/
   - Deep local drive multi-launcher scanning across Steam, Epic Games, GOG Galaxy, Xbox App, Battle.net, Riot Games, and Ubisoft Connect.
   - Byte-exact game storage calculation (`storage_calculator.py`) and periodic heartbeats with Azure/Render multi-tier cloud gateway failover.
 - [x] Phase 37: **Automated AI Gaming Intel Pipeline & RSS Feed Ingestion**
-  - Daily 5:30 AM IST automated cron pipeline on Next.js 15 App Router at `/api/blogs/generate`.
+  - Daily 5:30 AM IST automated cron pipeline on Next.js 16 App Router at `/api/blogs/generate`.
   - Ingestion across IGN, Kotaku, Eurogamer, Tom's Hardware, and AnandTech RSS feeds.
   - 3-tier LLM text generation failover (Google Gemini Flash → Hugging Face LLM → NVIDIA NIM).
   - 4-tier image generation pipeline (Gemini Imagen 3 → Hugging Face FLUX.1 → Pollinations AI → 3D artwork fallback) with persistent Vercel Blob CDN upload.

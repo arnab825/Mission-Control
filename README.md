@@ -99,23 +99,17 @@ winget install arnab825.MissionControl
 
 **Mission Control** is an integrated platform split into three primary sub-projects designed to deliver ultra-low latency hardware monitoring, local AI vision, and high-performance gaming intelligence:
 
-```
-Mission-Control /
-├── 🌐 Gaming/website/        # Next.js 15 (App Router) + Tailwind CSS + MongoDB
-│                             # Web platform, documentation hub, and automated AI Gaming Intel blog pipeline.
-│
-├── 🖥️ Gaming/frontend/       # Electron + React + Vite + TypeScript
-│                             # Desktop dashboard, glassmorphic HUD overlay, hotkeys engine, and telemetry UI.
-│
-├── 📦 Gaming/publisher-gui/  # Electron + Vite + Tailwind CSS
-│                             # Build manager, installer generator, & release publishing client GUI.
-│
-├── 🐍 Gaming/backend/        # Python 3.12 + FastAPI + PyNVML + TensorRT + C++ DirectX DLL
-│                             # Local AI brain, C++ FPS engine, TensorRT YOLO vision, hardware monitoring, & voice TTS/STT.
-│
-├── 📜 run_local.ps1          # Automated local build, package & release runner script.
-└── ⚙️ .woodpecker/           # CI/CD pipelines for automated multi-platform desktop releases.
-```
+<div align="center">
+
+| Module | Tech Stack | Role & Core Capabilities |
+| :--- | :--- | :--- |
+| **🌐 Web Platform**<br/>`Gaming/website/` | <img src="https://img.shields.io/badge/Next.js-16.3-black?style=flat-square&logo=next.js" /> <img src="https://img.shields.io/badge/Tailwind-v4-06B6D4?style=flat-square&logo=tailwindcss&logoColor=white" /> <img src="https://img.shields.io/badge/MongoDB-Atlas-47A248?style=flat-square&logo=mongodb&logoColor=white" /> | High-performance web portal, documentation station, and automated 4-tier AI Gaming Intel RSS blog pipeline. |
+| **🖥️ Desktop Client**<br/>`Gaming/frontend/` | <img src="https://img.shields.io/badge/Electron-43-47848F?style=flat-square&logo=electron&logoColor=white" /> <img src="https://img.shields.io/badge/React-18-20232A?style=flat-square&logo=react&logoColor=61DAFB" /> <img src="https://img.shields.io/badge/Vite-8-646CFF?style=flat-square&logo=vite&logoColor=white" /> | Real-time gaming dashboard, frameless glassmorphic HUD overlay, hotkey recorder, and hardware telemetry Bento UI. |
+| **🐍 AI & Telemetry Engine**<br/>`Gaming/backend/` | <img src="https://img.shields.io/badge/Python-3.12-3776AB?style=flat-square&logo=python&logoColor=white" /> <img src="https://img.shields.io/badge/TensorRT-10.x-76B900?style=flat-square&logo=nvidia&logoColor=white" /> <img src="https://img.shields.io/badge/DirectX-C%2B%2B_DLL-0078D6?style=flat-square&logo=windows&logoColor=white" /> | Autonomous AI brain, zero-copy DXGI desktop frame capture at 120 FPS, YOLOv8 vision, C++ Present hook, and PyNVML. |
+| **📦 Publisher Studio**<br/>`Gaming/publisher-gui/` | <img src="https://img.shields.io/badge/Electron-Vite-646CFF?style=flat-square&logo=vite&logoColor=white" /> <img src="https://img.shields.io/badge/Tailwind-CSS-38BDF8?style=flat-square&logo=tailwindcss&logoColor=white" /> | Internal packaging GUI, semver version bumper, installer compiler, and GitHub Releases distribution manager. |
+| **⚙️ Pipeline & Distribution**<br/>`run_local.ps1` & `.woodpecker/` | <img src="https://img.shields.io/badge/PowerShell-7-5391FE?style=flat-square&logo=powershell&logoColor=white" /> <img src="https://img.shields.io/badge/CI%2FCD-Woodpecker-00D26A?style=flat-square" /> | Multi-platform packaging automation generating Windows (`.exe`, `.msi`, `.zip`) and Linux (`.deb`, `.AppImage`). |
+
+</div>
 
 ### 🧱 System Workflow Architecture
 
@@ -155,7 +149,7 @@ flowchart TD
     Bridge <-->|"Tactical Voice & Chat"| Agent["🧠 AUTONOMOUS AGENT & AI BRAIN<br/>Intent Router • Gaming RAG Web Search • NVIDIA NIM Cloud VLM"]:::ai
 
     Desktop -.->|"Local Node Sync"| NodeDaemon["🌐 DISTRIBUTED LIBRARY NODE<br/>MAC Hardware ID • Multi-Launcher Game Scanner • Cloud Gateway"]:::cluster
-    NodeDaemon <-->|"Sync Manifests"| WebPortal["🌐 WEB PLATFORM (Next.js 15 + MongoDB)<br/>Node Clustering • AI Gaming Intel RSS Pipeline"]:::cluster
+    NodeDaemon <-->|"Sync Manifests"| WebPortal["🌐 WEB PLATFORM (Next.js 16 + MongoDB)<br/>Node Clustering • AI Gaming Intel RSS Pipeline"]:::cluster
 
     Desktop -.->|"publish.ps1"| Packaging["📦 PACKAGING & MULTI-PLATFORM DISTRIBUTION<br/>PyInstaller .exe • electron-builder NSIS/MSI • deb & AppImage"]:::release
 ```
@@ -166,7 +160,7 @@ flowchart TD
 
 | Component | Stack | Description | Documentation |
 |---|---|---|---|
-| **Web Platform** | Next.js 15, TypeScript, Tailwind CSS, MongoDB | Live gaming intelligence web app, benchmark profiles, documentation, and RSS AI blog generator. | [Website README](Gaming/website/README.md) |
+| **Web Platform** | Next.js 16, TypeScript, Tailwind CSS, MongoDB | Live gaming intelligence web app, benchmark profiles, documentation, and RSS AI blog generator. | [Website README](Gaming/website/README.md) |
 | **Desktop App** | Electron, React, Vite, Tailwind CSS | Real-time desktop application with glassmorphic HUD overlay, hardware telemetry, & keybindings. | [Frontend README](Gaming/frontend/README.md) |
 | **Publisher GUI** | Electron, Vite, Tailwind CSS | Release packaging, installer generation, release manifest sync & asset publisher client. | [Publisher GUI README](Gaming/publisher-gui/README.md) |
 | **Python Backend** | Python 3.12, FastAPI, C++, PyNVML, TensorRT | High-frequency telemetry service, native DirectX frame queue monitoring, and NVIDIA AI models. | [Backend README](Gaming/backend/README.md) |
@@ -282,7 +276,7 @@ npm run dev
   - Deep local drive multi-launcher scanning across Steam, Epic Games, GOG Galaxy, Xbox App, Battle.net, Riot Games, and Ubisoft Connect.
   - Byte-exact game storage calculation (`storage_calculator.py`) and periodic heartbeats with Azure/Render multi-tier cloud gateway failover.
 - [x] Phase 37: **Automated AI Gaming Intel Pipeline & RSS Feed Ingestion**
-  - Daily 5:30 AM IST automated cron pipeline on Next.js 15 App Router at `/api/blogs/generate`.
+  - Daily 5:30 AM IST automated cron pipeline on Next.js 16 App Router at `/api/blogs/generate`.
   - Ingestion across IGN, Kotaku, Eurogamer, Tom's Hardware, and AnandTech RSS feeds.
   - 3-tier LLM text generation failover (Google Gemini Flash → Hugging Face LLM → NVIDIA NIM).
   - 4-tier image generation pipeline (Gemini Imagen 3 → Hugging Face FLUX.1 → Pollinations AI → 3D artwork fallback) with persistent Vercel Blob CDN upload.
