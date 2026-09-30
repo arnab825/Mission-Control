@@ -46,10 +46,7 @@ export async function POST(request: Request) {
     });
 
     if (!newIssue) {
-      return NextResponse.json(
-        { error: "Failed to record issue into registry." },
-        { status: 500 }
-      );
+      return NextResponse.json({ error: "Failed to record issue into registry." }, { status: 500 });
     }
 
     return NextResponse.json(newIssue, { status: 201 });

@@ -5,7 +5,8 @@ import { Metadata } from "next";
 
 export const metadata: Metadata = {
   title: "Privacy Policy — Mission Control Gaming AI",
-  description: "Mission Control Labs privacy policy, data practices, local-first telemetry, and user privacy commitment.",
+  description:
+    "Mission Control Labs privacy policy, data practices, local-first telemetry, and user privacy commitment.",
 };
 
 export default function PrivacyPolicyPage() {
@@ -53,7 +54,10 @@ export default function PrivacyPolicyPage() {
               <span>1. Zero Sale of Personal Data</span>
             </h2>
             <p className="mb-3">
-              Mission Control Labs does not sell, rent, monetize, or trade your personal information, gaming habits, or telemetry data to any third-party advertisers, data brokers, or commercial aggregators. Mission Control is completely open-source and funded by engineering excellence.
+              Mission Control Labs does not sell, rent, monetize, or trade your personal
+              information, gaming habits, or telemetry data to any third-party advertisers, data
+              brokers, or commercial aggregators. Mission Control is completely open-source and
+              funded by engineering excellence.
             </p>
           </section>
 
@@ -64,13 +68,18 @@ export default function PrivacyPolicyPage() {
               <span>2. Local-First Processing & AI Inference</span>
             </h2>
             <p className="mb-3">
-              - <strong>DirectX 12 HUD Overlay:</strong> Operates 100% locally on your machine via user-space DirectX presentation hooks. No gameplay video, webcam, or microphone streams are transmitted to remote servers.
+              - <strong>DirectX 12 HUD Overlay:</strong> Operates 100% locally on your machine via
+              user-space DirectX presentation hooks. No gameplay video, webcam, or microphone
+              streams are transmitted to remote servers.
             </p>
             <p className="mb-3">
-              - <strong>TensorRT & CUDA:</strong> In-game vision recognition and FPS metrics are calculated entirely on your local GPU without cloud roundtrips.
+              - <strong>TensorRT & CUDA:</strong> In-game vision recognition and FPS metrics are
+              calculated entirely on your local GPU without cloud roundtrips.
             </p>
             <p>
-              - <strong>NVIDIA NIM & AI Assistant:</strong> User-initiated voice and chat inquiries are routed through encrypted HTTPS pipelines strictly to process tactical guidance and return answers to your client.
+              - <strong>NVIDIA NIM & AI Assistant:</strong> User-initiated voice and chat inquiries
+              are routed through encrypted HTTPS pipelines strictly to process tactical guidance and
+              return answers to your client.
             </p>
           </section>
 
@@ -81,11 +90,14 @@ export default function PrivacyPolicyPage() {
               <span>3. Telemetry & Anonymous Diagnostics</span>
             </h2>
             <p className="mb-3">
-              When reporting glitches or viewing stability scores, only non-personally identifiable diagnostic information is collected:
+              When reporting glitches or viewing stability scores, only non-personally identifiable
+              diagnostic information is collected:
             </p>
             <ul className="list-disc pl-6 space-y-1.5 text-gray-300 font-mono text-xs sm:text-sm">
               <li>Operating system name and build number (e.g. Windows 11 23H2)</li>
-              <li>Graphics hardware model and display driver version (e.g. RTX 4080, Driver 560.81)</li>
+              <li>
+                Graphics hardware model and display driver version (e.g. RTX 4080, Driver 560.81)
+              </li>
               <li>DirectX error crash code (e.g. DXGI_ERROR_DEVICE_REMOVED)</li>
               <li>Installed application version number</li>
             </ul>
@@ -98,7 +110,10 @@ export default function PrivacyPolicyPage() {
               <span>4. Data Security & Storage</span>
             </h2>
             <p className="mb-3">
-              All network communications are protected using Transport Layer Security (TLS 1.3). Any optional user preferences and game library indexes are cached locally in your application data directory and can be purged at any time by uninstalling or resetting application state.
+              All network communications are protected using Transport Layer Security (TLS 1.3). Any
+              optional user preferences and game library indexes are cached locally in your
+              application data directory and can be purged at any time by uninstalling or resetting
+              application state.
             </p>
           </section>
 
@@ -109,7 +124,8 @@ export default function PrivacyPolicyPage() {
               <span>5. Support & Contact Information</span>
             </h2>
             <p className="mb-3">
-              If you have any questions or data removal requests regarding this Privacy Policy, contact Mission Control Labs:
+              If you have any questions or data removal requests regarding this Privacy Policy,
+              contact Mission Control Labs:
             </p>
             <div className="flex flex-col sm:flex-row gap-3 pt-2 font-mono text-xs">
               <a

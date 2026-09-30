@@ -5,7 +5,12 @@ import SupportSession from "@/models/SupportSession";
 import GamingPost from "@/models/GamingPost";
 import fs from "fs";
 import path from "path";
-import { SupportChatSchema, validateRequestBody, handleApiError, checkAccountRateLimit } from "@/lib/api-validation";
+import {
+  SupportChatSchema,
+  validateRequestBody,
+  handleApiError,
+  checkAccountRateLimit,
+} from "@/lib/api-validation";
 
 // Helper to dynamically load live version metadata and patch changelogs from version.json
 function getDynamicVersionData() {
@@ -20,7 +25,7 @@ function getDynamicVersionData() {
       return {
         version: data.version || "3.6.1",
         releaseDate: data.release_date || "2026-09-08",
-        changelog: Array.isArray(data.changelog) ? data.changelog : []
+        changelog: Array.isArray(data.changelog) ? data.changelog : [],
       };
     } catch (e) {
       console.warn("Failed reading version.json:", e);
@@ -41,10 +46,10 @@ function getDynamicVersionData() {
           "Filtered out launcher entries and platforms from library scan caches and foreground heuristics",
           "Removed legacy mock optimize command regex handler that intercepted voice requests with hardcoded DLSS readings",
           "Expanded GameBrain telemetry exclusion keys to prevent internal DLSS tips and advisor diagnostics from leaking into prompt context",
-          "Integrated AgentCommandProcessor into voice pipeline and enhanced speech sanitization in VoiceManager"
-        ]
-      }
-    ]
+          "Integrated AgentCommandProcessor into voice pipeline and enhanced speech sanitization in VoiceManager",
+        ],
+      },
+    ],
   };
 }
 
@@ -54,13 +59,25 @@ function buildSupportSystemPrompt(
   recentPosts: any[] = []
 ) {
   const latestChangelogs = versionData.changelog.slice(0, 4);
-  const patchBullets = latestChangelogs.map((c: any) => 
-    `• **v${c.version}** (${c.date}): *${c.title}*\n  ${(c.highlights || []).slice(0, 2).map((h: string) => `- ${h}`).join("\n  ")}`
-  ).join("\n");
+  const patchBullets = latestChangelogs
+    .map(
+      (c: any) =>
+        `• **v${c.version}** (${c.date}): *${c.title}*\n  ${(c.highlights || [])
+          .slice(0, 2)
+          .map((h: string) => `- ${h}`)
+          .join("\n  ")}`
+    )
+    .join("\n");
 
-  const blogBullets = recentPosts.length > 0
-    ? recentPosts.map((p: any) => `• [${p.title}](/blog/gaming/${p.slug}) — *${p.category}* (${new Date(p.publishedAt || p.createdAt).toLocaleDateString()})`).join("\n")
-    : "• [GPU & Hardware Intel Articles](/blog/gaming)";
+  const blogBullets =
+    recentPosts.length > 0
+      ? recentPosts
+          .map(
+            (p: any) =>
+              `• [${p.title}](/blog/gaming/${p.slug}) — *${p.category}* (${new Date(p.publishedAt || p.createdAt).toLocaleDateString()})`
+          )
+          .join("\n")
+      : "• [GPU & Hardware Intel Articles](/blog/gaming)";
 
   return `You are "Mission Control 24/7 Support AI", the official intelligent technical assistant, architectural guide, policy advisor & developer ambassador for the Mission Control ecosystem.
 
@@ -193,9 +210,17 @@ export async function DELETE(request: Request) {
       return NextResponse.json({ success: true, message: "All sessions deleted" });
     }
 
-    return NextResponse.json({ error: "sessionId or email query parameter required" }, { status: 400 });
+    return NextResponse.json(
+      { error: "sessionId or email query parameter required" },
+      { status: 400 }
+    );
   } catch (err: unknown) {
-    return handleApiError("DELETE /api/support/chat", err, 500, "Failed to delete support session.");
+    return handleApiError(
+      "DELETE /api/support/chat",
+      err,
+      500,
+      "Failed to delete support session."
+    );
   }
 }
 
@@ -233,7 +258,7 @@ export async function POST(request: Request) {
             status: "active",
             source: "support_chatbot_weekly",
             subscribedAt: new Date(),
-            metadata: { gender: gender || "unspecified" }
+            metadata: { gender: gender || "unspecified" },
           },
           { upsert: true, returnDocument: "after", setDefaultsOnInsert: true }
         );
@@ -254,8 +279,8 @@ How can I assist you with our **Documentation**, **System Architecture**, **App 
           id: "welcome-1",
           sender: "assistant",
           text: welcomeReply,
-          timestamp: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })
-        }
+          timestamp: new Date().toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" }),
+        },
       ];
 
       try {
@@ -268,7 +293,7 @@ How can I assist you with our **Documentation**, **System Architecture**, **App 
             userName: cleanName,
             gender: gender || "male",
             title: "New Support Session",
-            messages: initialMsgs
+            messages: initialMsgs,
           },
           { upsert: true, returnDocument: "after", setDefaultsOnInsert: true }
         );
@@ -281,7 +306,7 @@ How can I assist you with our **Documentation**, **System Architecture**, **App 
         sessionId: currentSessionId,
         reply: welcomeReply,
         messages: initialMsgs,
-        enrolledWeekly: subscribeWeekly !== false
+        enrolledWeekly: subscribeWeekly !== false,
       });
     }
 
@@ -311,7 +336,7 @@ How can I assist you with our **Documentation**, **System Architecture**, **App 
     const recentHistory = Array.isArray(fullHistory)
       ? fullHistory.slice(-4).map((m: any) => ({
           role: m.sender === "user" ? "user" : "model",
-          parts: [{ text: m.text }]
+          parts: [{ text: m.text }],
         }))
       : [];
 
@@ -320,13 +345,32 @@ How can I assist you with our **Documentation**, **System Architecture**, **App 
     if (geminiKey) {
       try {
         const contents = [
-          { role: "user", parts: [{ text: `${dynamicSystemPrompt}\n\nYou are chatting with operator: ${cleanName}. Provide concise, authoritative technical assistance.` }] },
-          { role: "model", parts: [{ text: `Understood. I am Mission Control 24/7 Support AI running with active v${versionData.version} intelligence, ready to assist ${cleanName} with concise, technical, and accurate guidance.` }] },
+          {
+            role: "user",
+            parts: [
+              {
+                text: `${dynamicSystemPrompt}\n\nYou are chatting with operator: ${cleanName}. Provide concise, authoritative technical assistance.`,
+              },
+            ],
+          },
+          {
+            role: "model",
+            parts: [
+              {
+                text: `Understood. I am Mission Control 24/7 Support AI running with active v${versionData.version} intelligence, ready to assist ${cleanName} with concise, technical, and accurate guidance.`,
+              },
+            ],
+          },
           ...recentHistory,
-          { role: "user", parts: [{ text: userPrompt }] }
+          { role: "user", parts: [{ text: userPrompt }] },
         ];
 
-        const geminiModels = [process.env.GEMINI_MODEL, "gemini-3.8-flash", "gemini-3.7-flash", "gemini-2.0-flash"].filter(Boolean) as string[];
+        const geminiModels = [
+          process.env.GEMINI_MODEL,
+          "gemini-3.8-flash",
+          "gemini-3.7-flash",
+          "gemini-2.0-flash",
+        ].filter(Boolean) as string[];
         for (const modelId of geminiModels) {
           try {
             const geminiRes = await fetch(
@@ -334,7 +378,7 @@ How can I assist you with our **Documentation**, **System Architecture**, **App 
               {
                 method: "POST",
                 headers: { "Content-Type": "application/json" },
-                body: JSON.stringify({ contents })
+                body: JSON.stringify({ contents }),
               }
             );
             if (geminiRes.ok) {
@@ -360,10 +404,30 @@ How can I assist you with our **Documentation**, **System Architecture**, **App 
       const selectedNum = numMatch ? numMatch[2] : null;
 
       // 1. Developer / Author / Creator
-      const devRegex = /(who|whos|who's)\s*(is|was|has)?\s*(the)?\s*(dveloped|devloped|developed|created|built|made|engineered|designed|author|creator|developer|owner|founder|contributor|contributors)/i;
-      const devKeywords = ["who developed", "who devloped", "who dveloped", "who created", "who built", "who made", "developer of", "creator of", "built by", "developed by", "arnab", "arnab roy", "arnab825", "anirudha", "anirudha basu thakur", "ani0811", "contributors", "github"];
+      const devRegex =
+        /(who|whos|who's)\s*(is|was|has)?\s*(the)?\s*(dveloped|devloped|developed|created|built|made|engineered|designed|author|creator|developer|owner|founder|contributor|contributors)/i;
+      const devKeywords = [
+        "who developed",
+        "who devloped",
+        "who dveloped",
+        "who created",
+        "who built",
+        "who made",
+        "developer of",
+        "creator of",
+        "built by",
+        "developed by",
+        "arnab",
+        "arnab roy",
+        "arnab825",
+        "anirudha",
+        "anirudha basu thakur",
+        "ani0811",
+        "contributors",
+        "github",
+      ];
 
-      if (selectedNum === "3" || devRegex.test(q) || devKeywords.some(k => q.includes(k))) {
+      if (selectedNum === "3" || devRegex.test(q) || devKeywords.some((k) => q.includes(k))) {
         replyText = `### 👨‍💻 Project Developers & GitHub Contributors
 **Mission Control** is architected and maintained by **Arnab Roy** and **Anirudha Basu Thakur**:
 
@@ -372,7 +436,7 @@ How can I assist you with our **Documentation**, **System Architecture**, **App 
 
 🐙 Repository: **[github.com/arnab825/Mission-Control](https://github.com/arnab825/Mission-Control)**`;
 
-      // 2. Hardware / GPU / iGPU Compatibility
+        // 2. Hardware / GPU / iGPU Compatibility
       } else if (
         q.includes("igpu") ||
         q.includes("integrated") ||
@@ -396,7 +460,7 @@ How can I assist you with our **Documentation**, **System Architecture**, **App 
 - **📊 Benchmarks & Tested Titles**:
   - Check tested FPS performance across GPU rigs on our **[Games Tested Benchmarks](/games-tested)** page.`;
 
-      // 3. Controller Support Status (Beta)
+        // 3. Controller Support Status (Beta)
       } else if (
         q.includes("controller") ||
         q.includes("gamepad") ||
@@ -419,7 +483,7 @@ How can I assist you with our **Documentation**, **System Architecture**, **App 
   - \`SELECT / SHARE\`: HUD Visibility toggle
 - Have suggestions or encountered gamepad glitches? Let us know on the **[Community Glitch Tracker](/community)**!`;
 
-      // 4. Dynamic Versions & Live Developer Patches
+        // 4. Dynamic Versions & Live Developer Patches
       } else if (
         q.includes("version") ||
         q.includes("patch") ||
@@ -432,9 +496,15 @@ How can I assist you with our **Documentation**, **System Architecture**, **App 
         q.includes("v2")
       ) {
         const topPatches = versionData.changelog.slice(0, 3);
-        const patchList = topPatches.map((p: any) => 
-          `#### 🚀 v${p.version} (${p.date}) — ${p.title}\n${(p.highlights || []).slice(0, 3).map((h: string) => `• ${h}`).join("\n")}`
-        ).join("\n\n");
+        const patchList = topPatches
+          .map(
+            (p: any) =>
+              `#### 🚀 v${p.version} (${p.date}) — ${p.title}\n${(p.highlights || [])
+                .slice(0, 3)
+                .map((h: string) => `• ${h}`)
+                .join("\n")}`
+          )
+          .join("\n\n");
 
         replyText = `### 🚀 Mission Control Dynamic Versions & Live Patches
 
@@ -445,7 +515,7 @@ ${patchList}
 
 📥 Download the latest build on our **[Downloads Section](/#download)** or explore full release notes in the **[Docs Hub](/docs)**!`;
 
-      // 5. Gaming Intel & Technical Blogs
+        // 5. Gaming Intel & Technical Blogs
       } else if (
         q.includes("blog") ||
         q.includes("article") ||
@@ -455,9 +525,15 @@ ${patchList}
         q.includes("deep dive") ||
         q.includes("revisit")
       ) {
-        const blogList = recentPosts.length > 0
-          ? recentPosts.map((p: any) => `• **[${p.title}](/blog/gaming/${p.slug})**\n  *Category: ${p.category}* • Published: ${new Date(p.publishedAt || p.createdAt).toLocaleDateString()}`).join("\n\n")
-          : "• **[Explore Weekly Gaming Intel Articles](/blog)**";
+        const blogList =
+          recentPosts.length > 0
+            ? recentPosts
+                .map(
+                  (p: any) =>
+                    `• **[${p.title}](/blog/gaming/${p.slug})**\n  *Category: ${p.category}* • Published: ${new Date(p.publishedAt || p.createdAt).toLocaleDateString()}`
+                )
+                .join("\n\n")
+            : "• **[Explore Weekly Gaming Intel Articles](/blog)**";
 
         replyText = `### 📰 Weekly Gaming Intel & Technical Dispatches
 
@@ -472,7 +548,7 @@ ${blogList}
 
 📖 Browse all weekly articles on the **[Gaming Intel Blog](/blog)**!`;
 
-      // 6. App Downloads / Option 1
+        // 6. App Downloads / Option 1
       } else if (
         selectedNum === "1" ||
         q.includes("download") ||
@@ -496,7 +572,7 @@ Download the latest binaries on our **[Downloads](/#download)** page:
 - **🚀 .AppImage**: Universal standalone binary for Ubuntu, Debian, Fedora, Arch.
 - **📦 Native Packages**: **.DEB**, **.RPM**, and **.TAR.GZ** archives.`;
 
-      // 7. Features, HUD Overlay, YOLO Vision, AI Personalities & Docs / Option 4
+        // 7. Features, HUD Overlay, YOLO Vision, AI Personalities & Docs / Option 4
       } else if (
         selectedNum === "4" ||
         q.includes("doc") ||
@@ -523,7 +599,7 @@ Here is how Mission Control works directly on your rig:
 
 📖 Read comprehensive setup guides and API architecture on the **[Documentation Hub](/docs)**.`;
 
-      // 8. Technical Issues / Bugs / Glitches / Community Support
+        // 8. Technical Issues / Bugs / Glitches / Community Support
       } else if (
         q.includes("issue") ||
         q.includes("bug") ||
@@ -543,7 +619,7 @@ Facing a technical issue or crash? Here is how to resolve it:
 2. **Direct Developer Support**: Message Arnab and Anirudha directly using our **[Contact Support](/contact)** form.
 3. **GPU Driver Check**: Ensure latest NVIDIA Game Ready drivers are installed and run the application as Administrator.`;
 
-      // 9. Contact Support / Option 2
+        // 9. Contact Support / Option 2
       } else if (
         selectedNum === "2" ||
         q.includes("contact") ||
@@ -559,7 +635,7 @@ Have questions, doubts, or custom setup inquiries?
 - **Community Glitch Tracker**: View driver fixes and user logs at **[Community](/community)**.
 - **Docs Hub**: Explore APIs and architecture at **[Documentation](/docs)**.`;
 
-      // 10. Intelligent Handling for Off-Topic / Unrelated / Random / Gibberish Messages
+        // 10. Intelligent Handling for Off-Topic / Unrelated / Random / Gibberish Messages
       } else {
         replyText = `Hello **${cleanName}**! I specialize in **Mission Control** technical support, documentation, hardware compatibility, app downloads, and gaming intel blogs.
 
@@ -575,15 +651,27 @@ Your message doesn't appear related to Mission Control. Here are the core topics
     }
 
     // Prepare updated message list safely without duplication
-    const timestampStr = new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
-    const userMsgObj = { id: `u_${Date.now()}`, sender: "user" as const, text: userPrompt, timestamp: timestampStr };
-    const assistantMsgObj = { id: `a_${Date.now() + 1}`, sender: "assistant" as const, text: replyText, timestamp: timestampStr };
+    const timestampStr = new Date().toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" });
+    const userMsgObj = {
+      id: `u_${Date.now()}`,
+      sender: "user" as const,
+      text: userPrompt,
+      timestamp: timestampStr,
+    };
+    const assistantMsgObj = {
+      id: `a_${Date.now() + 1}`,
+      sender: "assistant" as const,
+      text: replyText,
+      timestamp: timestampStr,
+    };
 
-    let updatedMessages = Array.isArray(fullHistory) && fullHistory.length > 0 ? [...fullHistory] : [];
-    
+    let updatedMessages =
+      Array.isArray(fullHistory) && fullHistory.length > 0 ? [...fullHistory] : [];
+
     // Check if the last message in fullHistory is already the user's current message
     const lastMsg = updatedMessages[updatedMessages.length - 1];
-    const userMsgAlreadyPresent = lastMsg && lastMsg.sender === "user" && lastMsg.text === userPrompt;
+    const userMsgAlreadyPresent =
+      lastMsg && lastMsg.sender === "user" && lastMsg.text === userPrompt;
 
     if (!userMsgAlreadyPresent) {
       updatedMessages.push(userMsgObj);
@@ -604,7 +692,7 @@ Your message doesn't appear related to Mission Control. Here are the core topics
           userName: cleanName,
           gender: gender || "male",
           title: sessionTitle,
-          messages: updatedMessages
+          messages: updatedMessages,
         },
         { upsert: true, returnDocument: "after", setDefaultsOnInsert: true }
       );
@@ -617,10 +705,14 @@ Your message doesn't appear related to Mission Control. Here are the core topics
       sessionId: currentSessionId,
       reply: replyText,
       messages: updatedMessages,
-      enrolledWeekly: subscribeWeekly !== false
+      enrolledWeekly: subscribeWeekly !== false,
     });
-
   } catch (err: unknown) {
-    return handleApiError("POST /api/support/chat", err, 500, "Support AI service encountered an error. Please try again later.");
+    return handleApiError(
+      "POST /api/support/chat",
+      err,
+      500,
+      "Support AI service encountered an error. Please try again later."
+    );
   }
 }

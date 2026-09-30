@@ -16,7 +16,7 @@ export interface IBenchmark extends Document {
   dlssVersion?: string;
   aiVisionStatus?: string;
   storeRating?: string;
-  
+
   // Detailed Game Narrative & Systems
   detailedOverview: {
     story: string;

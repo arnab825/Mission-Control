@@ -9,7 +9,11 @@ const GAMING_RSS_FEEDS = [
   { url: "https://www.gamespot.com/feeds/news/", label: "GameSpot", type: "gaming" },
   { url: "https://www.rockpapershotgun.com/feed", label: "Rock Paper Shotgun", type: "gaming" },
   { url: "https://wccftech.com/feed/", label: "Wccftech", type: "hardware" },
-  { url: "https://feeds.anandtech.com/anandtech/anandtech.xml", label: "AnandTech", type: "hardware" },
+  {
+    url: "https://feeds.anandtech.com/anandtech/anandtech.xml",
+    label: "AnandTech",
+    type: "hardware",
+  },
   { url: "https://www.tomshardware.com/feeds/all", label: "Tom's Hardware", type: "hardware" },
 ];
 
@@ -22,21 +26,29 @@ async function fetchRSSFeed(feedUrl: string, label: string, type: string) {
     if (!response.ok) return { items: [], label, type };
     const xml = await response.text();
 
-    const items: { title: string; link: string; description: string; source: string; type: string }[] = [];
+    const items: {
+      title: string;
+      link: string;
+      description: string;
+      source: string;
+      type: string;
+    }[] = [];
     const itemRegex = /<item>([\s\S]*?)<\/item>/g;
     let match;
     while ((match = itemRegex.exec(xml)) !== null && items.length < 6) {
       const block = match[1];
-      const title = (/<title><!\[CDATA\[(.*?)\]\]><\/title>/.exec(block) ||
-        /<title>(.*?)<\/title>/.exec(block))?.[1]?.trim() ?? "";
-      const link = (/<link>(.*?)<\/link>/.exec(block) ||
-        /<link href="(.*?)"/.exec(block))?.[1]?.trim() ?? "";
-      const desc = (/<description><!\[CDATA\[(.*?)\]\]><\/description>/.exec(block) ||
-        /<description>(.*?)<\/description>/.exec(block))?.[1]
-        ?.replace(/<[^>]*>/g, "")
-        ?.trim()
-        ?.slice(0, 300) ?? "";
-      const pubDate = (/<pubDate>(.*?)<\/pubDate>/.exec(block))?.[1]?.trim() ?? "";
+      const title =
+        (/<title><!\[CDATA\[(.*?)\]\]><\/title>/.exec(block) ||
+          /<title>(.*?)<\/title>/.exec(block))?.[1]?.trim() ?? "";
+      const link =
+        (/<link>(.*?)<\/link>/.exec(block) || /<link href="(.*?)"/.exec(block))?.[1]?.trim() ?? "";
+      const desc =
+        (/<description><!\[CDATA\[(.*?)\]\]><\/description>/.exec(block) ||
+          /<description>(.*?)<\/description>/.exec(block))?.[1]
+          ?.replace(/<[^>]*>/g, "")
+          ?.trim()
+          ?.slice(0, 300) ?? "";
+      const pubDate = /<pubDate>(.*?)<\/pubDate>/.exec(block)?.[1]?.trim() ?? "";
       if (title) items.push({ title, link, description: desc, source: label, type });
     }
     return { items, label, type };

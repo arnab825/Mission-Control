@@ -32,10 +32,6 @@ export const metadata: Metadata = {
   },
 };
 
-export default function GamesTestedLayout({
-  children,
-}: {
-  children: React.ReactNode;
-}) {
+export default function GamesTestedLayout({ children }: { children: React.ReactNode }) {
   return <>{children}</>;
 }

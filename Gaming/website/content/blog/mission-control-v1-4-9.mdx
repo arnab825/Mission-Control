@@ -17,6 +17,7 @@ We are excited to deploy **Mission Control v1.4.9** to production. This build fo
 ## Technical Highlights
 
 ### 1. Anti-Ghosting Speech Control
+
 To prevent the Text-To-Speech (TTS) engine from outputting spontaneous spoken text while you are actively typing or focus-shifting, we introduced a strict state-gate. The sound-generation thread now queries the global audio manager state:
 
 ```mermaid
@@ -27,13 +28,14 @@ graph TD
 ```
 
 ### 2. Hotkey Conflict Resolution
+
 The global microphone toggle has been re-bound to avoid keyboard conflict layout crashes.
 
-| Command Function | Old Shortcut | New Production Shortcut |
-| :--- | :--- | :--- |
-| Microphone Session Toggle | `Ctrl` + `V` | `Ctrl` + `Alt` + `M` |
-| HUD Overlay Viewport | `Ctrl` + `\`` | `Ctrl` + `Alt` + `` ` `` |
-| Standby RAM Flush | — | `Ctrl` + `Alt` + `F` |
+| Command Function          | Old Shortcut  | New Production Shortcut  |
+| :------------------------ | :------------ | :----------------------- |
+| Microphone Session Toggle | `Ctrl` + `V`  | `Ctrl` + `Alt` + `M`     |
+| HUD Overlay Viewport      | `Ctrl` + `\`` | `Ctrl` + `Alt` + `` ` `` |
+| Standby RAM Flush         | —             | `Ctrl` + `Alt` + `F`     |
 
 ---
 
@@ -57,6 +59,7 @@ def apply_eager_quantization(model):
 ---
 
 ## Hardware-Locked Security Boundaries
-To protect user prompts and private game telemetry, credentials are now locked using a dynamic verification signature generated directly from your local hardware properties. 
+
+To protect user prompts and private game telemetry, credentials are now locked using a dynamic verification signature generated directly from your local hardware properties.
 
 By combining the motherboard UUID and system MAC addresses into a salted SHA-256 fingerprint, we ensure configuration files cannot be ported or read on external devices.

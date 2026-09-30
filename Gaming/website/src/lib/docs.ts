@@ -44,33 +44,75 @@ const DOCS_ORDER = [
   "productroadmap",
   "electronroadmap",
   "aero_ai_full_prompt",
-  "patchesfile"
+  "patchesfile",
 ];
 
-const METADATA_FALLBACKS: Record<string, { category?: string; title?: string; badge?: string; badgeColor?: string }> = {
-  "summary": { category: "Overview", title: "Project Summary", badge: "Core", badgeColor: "text-neon-green" },
-  "changes_summary": { category: "Overview", title: "Recent Updates & Major Releases" },
-  "architecture_and_fixes": { category: "Architecture", title: "Distributed Architecture & Fixes", badge: "Microservices", badgeColor: "text-neon-green" },
-  "major_changes": { category: "Architecture", title: "Major Upgrades & Infrastructure", badge: "Infrastructure", badgeColor: "text-neon-green" },
-  "distributed_library": { category: "Architecture", title: "Distributed Library & Load Balancer", badge: "Cluster Engine", badgeColor: "text-neon-green" },
-  "design": { category: "Architecture", title: "System Architecture" },
-  "process": { category: "Architecture", title: "Process & Threading" },
-  "agentic_logic": { category: "Core Logic", title: "Agentic AI Controller" },
-  "agents": { category: "Core Logic", title: "AI Personalities" },
-  "controller_mapping": { category: "Core Logic", title: "Controller & Gamepad Input Mapping", badge: "Input Engine", badgeColor: "text-neon-green" },
-  "okf": { category: "Core Logic", title: "Open Knowledge Format (OKF)", badge: "Knowledge Engine", badgeColor: "text-neon-yellow" },
-  "nvidia_ai_guide": { category: "Integrations", title: "NVIDIA NIM Guide" },
-  "nvidia": { category: "Integrations", title: "NVIDIA Integration" },
-  "dlss_guide": { category: "Integrations", title: "Evolution of DLSS" },
-  "on_demand_ai_weights": { category: "AI Models", title: "On-Demand AI Model Weights", badge: "AI Engine", badgeColor: "text-neon-green" },
-  "vision_ai_guide": { category: "AI Models", title: "Vision On-Demand AI & Perception Models", badge: "Vision Engine", badgeColor: "text-neon-yellow" },
-  "fps": { category: "Performance", title: "FPS & VRAM Optimization" },
-  "patchesfile": { category: "Reference", title: "Patches & Version History" },
-  "aero_ai_full_prompt": { category: "Reference", title: "Aero AI Prompt" },
-  "electronroadmap": { category: "Roadmaps", title: "Electron App Roadmap" },
-  "productroadmap": { category: "Roadmaps", title: "Product Roadmap" },
+const METADATA_FALLBACKS: Record<
+  string,
+  { category?: string; title?: string; badge?: string; badgeColor?: string }
+> = {
+  summary: {
+    category: "Overview",
+    title: "Project Summary",
+    badge: "Core",
+    badgeColor: "text-neon-green",
+  },
+  changes_summary: { category: "Overview", title: "Recent Updates & Major Releases" },
+  architecture_and_fixes: {
+    category: "Architecture",
+    title: "Distributed Architecture & Fixes",
+    badge: "Microservices",
+    badgeColor: "text-neon-green",
+  },
+  major_changes: {
+    category: "Architecture",
+    title: "Major Upgrades & Infrastructure",
+    badge: "Infrastructure",
+    badgeColor: "text-neon-green",
+  },
+  distributed_library: {
+    category: "Architecture",
+    title: "Distributed Library & Load Balancer",
+    badge: "Cluster Engine",
+    badgeColor: "text-neon-green",
+  },
+  design: { category: "Architecture", title: "System Architecture" },
+  process: { category: "Architecture", title: "Process & Threading" },
+  agentic_logic: { category: "Core Logic", title: "Agentic AI Controller" },
+  agents: { category: "Core Logic", title: "AI Personalities" },
+  controller_mapping: {
+    category: "Core Logic",
+    title: "Controller & Gamepad Input Mapping",
+    badge: "Input Engine",
+    badgeColor: "text-neon-green",
+  },
+  okf: {
+    category: "Core Logic",
+    title: "Open Knowledge Format (OKF)",
+    badge: "Knowledge Engine",
+    badgeColor: "text-neon-yellow",
+  },
+  nvidia_ai_guide: { category: "Integrations", title: "NVIDIA NIM Guide" },
+  nvidia: { category: "Integrations", title: "NVIDIA Integration" },
+  dlss_guide: { category: "Integrations", title: "Evolution of DLSS" },
+  on_demand_ai_weights: {
+    category: "AI Models",
+    title: "On-Demand AI Model Weights",
+    badge: "AI Engine",
+    badgeColor: "text-neon-green",
+  },
+  vision_ai_guide: {
+    category: "AI Models",
+    title: "Vision On-Demand AI & Perception Models",
+    badge: "Vision Engine",
+    badgeColor: "text-neon-yellow",
+  },
+  fps: { category: "Performance", title: "FPS & VRAM Optimization" },
+  patchesfile: { category: "Reference", title: "Patches & Version History" },
+  aero_ai_full_prompt: { category: "Reference", title: "Aero AI Prompt" },
+  electronroadmap: { category: "Roadmaps", title: "Electron App Roadmap" },
+  productroadmap: { category: "Roadmaps", title: "Product Roadmap" },
 };
-
 
 let cachedDocs: DocData[] | null = null;
 
@@ -94,7 +136,7 @@ export async function getAllDocs(): Promise<DocData[]> {
           const fileContents = fs.readFileSync(fullPath, "utf8");
           const matterResult = matter(fileContents);
           const fallback = METADATA_FALLBACKS[slug] || {};
-          
+
           let title = matterResult.data.title || fallback.title;
           const category = matterResult.data.category || fallback.category || "Documentation";
           let content = matterResult.content;
@@ -116,9 +158,21 @@ export async function getAllDocs(): Promise<DocData[]> {
             const paragraphs = content.split(/\n\n/);
             for (let p of paragraphs) {
               p = p.trim();
-              const isCodeLike = /^(```|cpp|python|bash|javascript|cl\s|#include|import\s|PYBIND11|extern\s|\/\/|\/\*)/i.test(p);
-              if (p && !p.startsWith("#") && !p.startsWith("-") && !p.startsWith("*") && !isCodeLike) {
-                const plain = p.replace(/[*_#`\[\]()]/g, "").replace(/\s+/g, " ").trim();
+              const isCodeLike =
+                /^(```|cpp|python|bash|javascript|cl\s|#include|import\s|PYBIND11|extern\s|\/\/|\/\*)/i.test(
+                  p
+                );
+              if (
+                p &&
+                !p.startsWith("#") &&
+                !p.startsWith("-") &&
+                !p.startsWith("*") &&
+                !isCodeLike
+              ) {
+                const plain = p
+                  .replace(/[*_#`\[\]()]/g, "")
+                  .replace(/\s+/g, " ")
+                  .trim();
                 if (plain.length > 20) {
                   excerpt = plain.substring(0, 160);
                   if (plain.length > 160) excerpt += "...";
@@ -127,7 +181,7 @@ export async function getAllDocs(): Promise<DocData[]> {
               }
             }
           }
-          
+
           fileDocs.push({
             slug,
             title,
@@ -170,7 +224,10 @@ export async function getAllDocs(): Promise<DocData[]> {
         return result;
       }
     } catch (mongoErr) {
-      console.warn("[Docs] MongoDB connection/query failed, falling back to embedded docs:", mongoErr);
+      console.warn(
+        "[Docs] MongoDB connection/query failed, falling back to embedded docs:",
+        mongoErr
+      );
     }
 
     // 3. Resilient embedded fallback so /docs and /docs/[slug] NEVER return 404

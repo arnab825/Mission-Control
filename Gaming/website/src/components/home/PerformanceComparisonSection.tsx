@@ -16,7 +16,8 @@ export function PerformanceComparisonSection() {
           REPLACE THE <span className="text-neon-green glow-text-teal">BLOATWARE</span>
         </h2>
         <p className="text-gray-400 text-sm sm:text-lg leading-relaxed font-sans">
-          Standard game launchers consume hundreds of megabytes of RAM and harvest user telemetry. See how Mission Control stacks up.
+          Standard game launchers consume hundreds of megabytes of RAM and harvest user telemetry.
+          See how Mission Control stacks up.
         </p>
       </div>
 
@@ -27,7 +28,9 @@ export function PerformanceComparisonSection() {
           <div className="flex items-center justify-between mb-6 flex-wrap gap-2">
             <div>
               <h3 className="text-2xl font-bold text-white font-display">Legacy Overlays</h3>
-              <p className="text-gray-400 text-xs font-mono uppercase tracking-wider mt-1">MSI Afterburner • RTSS • Discord / Steam Overlays</p>
+              <p className="text-gray-400 text-xs font-mono uppercase tracking-wider mt-1">
+                MSI Afterburner • RTSS • Discord / Steam Overlays
+              </p>
             </div>
             <span className="px-3.5 py-1 bg-red-500/20 text-red-400 border border-red-500/30 rounded-full text-xs font-mono font-bold uppercase">
               Static &amp; Obsolete
@@ -56,9 +59,18 @@ export function PerformanceComparisonSection() {
             </div>
 
             <ul className="pt-4 border-t border-white/10 space-y-3 text-xs sm:text-sm text-gray-400 font-sans">
-              <li className="flex items-center gap-2.5"><span className="text-red-500 font-bold shrink-0">✕</span> Zero AI coaching, voice control, or in-game vision</li>
-              <li className="flex items-center gap-2.5"><span className="text-red-500 font-bold shrink-0">✕</span> Outdated 2000s Windows 98/XP style interfaces</li>
-              <li className="flex items-center gap-2.5"><span className="text-red-500 font-bold shrink-0">✕</span> Frequent anti-cheat flags and invasive hook crashes</li>
+              <li className="flex items-center gap-2.5">
+                <span className="text-red-500 font-bold shrink-0">✕</span> Zero AI coaching, voice
+                control, or in-game vision
+              </li>
+              <li className="flex items-center gap-2.5">
+                <span className="text-red-500 font-bold shrink-0">✕</span> Outdated 2000s Windows
+                98/XP style interfaces
+              </li>
+              <li className="flex items-center gap-2.5">
+                <span className="text-red-500 font-bold shrink-0">✕</span> Frequent anti-cheat flags
+                and invasive hook crashes
+              </li>
             </ul>
           </div>
         </div>
@@ -72,15 +84,21 @@ export function PerformanceComparisonSection() {
           <div className="flex items-center justify-between mb-6 mt-2 sm:mt-0">
             <div>
               <h3 className="text-2xl font-bold text-white font-display">Mission Control</h3>
-              <p className="text-xs font-mono text-neon-green uppercase tracking-wider mt-1">Pure TensorRT • C++ Direct Present • Agent Co-Pilot</p>
+              <p className="text-xs font-mono text-neon-green uppercase tracking-wider mt-1">
+                Pure TensorRT • C++ Direct Present • Agent Co-Pilot
+              </p>
             </div>
           </div>
 
           <div className="space-y-6">
             <div>
               <div className="flex justify-between text-xs sm:text-sm mb-2 font-mono">
-                <span className="text-gray-300 font-medium">Tactical AI &amp; Real-Time Coaching</span>
-                <span className="text-neon-green font-bold glow-text-teal">Sub-15ms Local CUDA Inference</span>
+                <span className="text-gray-300 font-medium">
+                  Tactical AI &amp; Real-Time Coaching
+                </span>
+                <span className="text-neon-green font-bold glow-text-teal">
+                  Sub-15ms Local CUDA Inference
+                </span>
               </div>
               <div className="w-full bg-white/10 rounded-full h-3 overflow-hidden">
                 <div className="bg-neon-green h-full w-full shadow-[0_0_12px_rgba(118,185,0,0.9)]" />
@@ -90,7 +108,9 @@ export function PerformanceComparisonSection() {
             <div>
               <div className="flex justify-between text-xs sm:text-sm mb-2 font-mono">
                 <span className="text-gray-300 font-medium">Safe Transparent Hooking</span>
-                <span className="text-neon-green font-bold glow-text-teal">Zero Anti-Cheat Bans (DXGI Duplicate)</span>
+                <span className="text-neon-green font-bold glow-text-teal">
+                  Zero Anti-Cheat Bans (DXGI Duplicate)
+                </span>
               </div>
               <div className="w-full bg-white/10 rounded-full h-3 overflow-hidden">
                 <div className="bg-neon-green h-full w-full shadow-[0_0_12px_rgba(118,185,0,0.9)]" />
@@ -98,9 +118,18 @@ export function PerformanceComparisonSection() {
             </div>
 
             <ul className="pt-4 border-t border-white/10 space-y-3 text-xs sm:text-sm text-gray-200 font-sans">
-              <li className="flex items-center gap-2.5"><span className="text-neon-green font-black shrink-0">✓</span> Autonomous AI voice co-pilot with live patch notes &amp; RAG search</li>
-              <li className="flex items-center gap-2.5"><span className="text-neon-green font-black shrink-0">✓</span> Cyberpunk glassmorphic HUD with custom font scaling &amp; metrics</li>
-              <li className="flex items-center gap-2.5"><span className="text-neon-green font-black shrink-0">✓</span> Zero PyTorch VRAM penalty via pure NVIDIA TensorRT execution</li>
+              <li className="flex items-center gap-2.5">
+                <span className="text-neon-green font-black shrink-0">✓</span> Autonomous AI voice
+                co-pilot with live patch notes &amp; RAG search
+              </li>
+              <li className="flex items-center gap-2.5">
+                <span className="text-neon-green font-black shrink-0">✓</span> Cyberpunk
+                glassmorphic HUD with custom font scaling &amp; metrics
+              </li>
+              <li className="flex items-center gap-2.5">
+                <span className="text-neon-green font-black shrink-0">✓</span> Zero PyTorch VRAM
+                penalty via pure NVIDIA TensorRT execution
+              </li>
             </ul>
           </div>
         </div>

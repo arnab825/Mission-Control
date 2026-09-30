@@ -4,8 +4,8 @@ import Script from "next/script";
 import Link from "next/link";
 import React from "react";
 import { ChevronLeft, ChevronRight, BookOpen, Clock, Tag, Share2, Sparkles } from "lucide-react";
-import ReactMarkdown from 'react-markdown';
-import remarkGfm from 'remark-gfm';
+import ReactMarkdown from "react-markdown";
+import remarkGfm from "remark-gfm";
 import { TableOfContents, CodeBlock } from "@/components/docs";
 import { AdSenseAdSlot } from "@/components/integrations";
 
@@ -17,14 +17,14 @@ export async function generateStaticParams() {
 }
 
 function getChildrenText(children: any): string {
-  if (typeof children === 'string') return children;
-  if (Array.isArray(children)) return children.map(getChildrenText).join('');
+  if (typeof children === "string") return children;
+  if (Array.isArray(children)) return children.map(getChildrenText).join("");
   if (React.isValidElement(children)) return getChildrenText((children.props as any).children);
-  return '';
+  return "";
 }
 
 function removeAlertPrefix(children: any): any {
-  if (typeof children === 'string') {
+  if (typeof children === "string") {
     return children
       .replace(/\[!NOTE\]/gi, "")
       .replace(/\[!IMPORTANT\]/gi, "")
@@ -38,11 +38,7 @@ function removeAlertPrefix(children: any): any {
   }
   if (React.isValidElement(children)) {
     const element = children as React.ReactElement<any>;
-    return React.cloneElement(
-      element,
-      element.props,
-      removeAlertPrefix(element.props.children)
-    );
+    return React.cloneElement(element, element.props, removeAlertPrefix(element.props.children));
   }
   return children;
 }
@@ -64,9 +60,7 @@ function extractHeadings(content: string): { id: string; text: string; level: nu
   while ((match = headingRegex.exec(content)) !== null) {
     const level = 2;
     const rawText = match[1].trim();
-    const text = rawText
-      .replace(/\[([^\]]+)\]\([^)]+\)/g, "$1")
-      .replace(/[*_`]/g, "");
+    const text = rawText.replace(/\[([^\]]+)\]\([^)]+\)/g, "$1").replace(/[*_`]/g, "");
     const id = slugify(text);
     headings.push({ id, text, level });
   }
@@ -95,23 +89,32 @@ export default async function DocPage({ params }: { params: Promise<{ slug: stri
   const docsSchema = {
     "@context": "https://schema.org",
     "@type": "TechArticle",
-    "headline": doc.title,
-    "description": doc.excerpt,
+    headline: doc.title,
+    description: doc.excerpt,
   };
 
   return (
     <div className="flex items-start gap-8 lg:gap-12 w-full relative font-sans pt-20 sm:pt-28">
       <div className="flex-1 min-w-0 max-w-4xl">
-        <Script id="docs-schema" type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(docsSchema) }} />
-        
+        <Script
+          id="docs-schema"
+          type="application/ld+json"
+          dangerouslySetInnerHTML={{ __html: JSON.stringify(docsSchema) }}
+        />
+
         {/* Breadcrumbs Navigation */}
         <div className="flex items-center gap-2 text-[10px] font-mono text-gray-400 uppercase tracking-widest mb-6 flex-wrap bg-[#0c0d12]/80 border border-white/10 px-4 py-2 rounded-xl backdrop-blur-md w-fit shadow-md">
-          <Link href="/docs" className="hover:text-neon-green transition-colors flex items-center gap-1.5 font-bold">
+          <Link
+            href="/docs"
+            className="hover:text-neon-green transition-colors flex items-center gap-1.5 font-bold"
+          >
             <BookOpen className="w-3.5 h-3.5 text-neon-green" />
             <span>Docs Portal</span>
           </Link>
           <span className="text-neon-green/40 select-none">/</span>
-          <span className="text-gray-400 font-semibold select-none">{doc.category || "Documentation"}</span>
+          <span className="text-gray-400 font-semibold select-none">
+            {doc.category || "Documentation"}
+          </span>
           <span className="text-neon-green/40 select-none">/</span>
           <span className="text-neon-green font-bold truncate max-w-[220px]">{doc.title}</span>
         </div>
@@ -153,7 +156,9 @@ export default async function DocPage({ params }: { params: Promise<{ slug: stri
             remarkPlugins={[remarkGfm]}
             components={{
               p: ({ children }: any) => (
-                <p className="my-4 text-gray-300 leading-relaxed font-sans text-sm sm:text-base">{children}</p>
+                <p className="my-4 text-gray-300 leading-relaxed font-sans text-sm sm:text-base">
+                  {children}
+                </p>
               ),
               img: ({ src, alt, ...props }: any) => {
                 let resolvedSrc = src;
@@ -177,7 +182,10 @@ export default async function DocPage({ params }: { params: Promise<{ slug: stri
                 </div>
               ),
               th: ({ children, ...props }: any) => (
-                <th className="bg-white/[0.04] py-3.5 px-4 font-mono font-bold text-xs uppercase tracking-wider text-neon-green border-b border-white/10" {...props}>
+                <th
+                  className="bg-white/[0.04] py-3.5 px-4 font-mono font-bold text-xs uppercase tracking-wider text-neon-green border-b border-white/10"
+                  {...props}
+                >
                   {children}
                 </th>
               ),
@@ -188,14 +196,17 @@ export default async function DocPage({ params }: { params: Promise<{ slug: stri
 
                 if (isChecked || isUnchecked) {
                   const cleanedChildren = React.Children.map(children, (child) => {
-                    if (typeof child === 'string') {
-                      return child.replace(/^\[[xX\s]\]\s*/, '');
+                    if (typeof child === "string") {
+                      return child.replace(/^\[[xX\s]\]\s*/, "");
                     }
                     return child;
                   });
 
                   return (
-                    <li className="list-none flex items-start gap-2.5 my-2.5 text-gray-300 font-sans text-sm sm:text-base" {...props}>
+                    <li
+                      className="list-none flex items-start gap-2.5 my-2.5 text-gray-300 font-sans text-sm sm:text-base"
+                      {...props}
+                    >
                       {isChecked ? (
                         <span className="inline-flex items-center justify-center w-4.5 h-4.5 rounded bg-neon-green/20 border border-neon-green text-neon-green text-[10px] font-bold shrink-0 mt-0.5 shadow-[0_0_8px_rgba(118,185,0,0.4)]">
                           ✓
@@ -208,10 +219,17 @@ export default async function DocPage({ params }: { params: Promise<{ slug: stri
                   );
                 }
 
-                return <li className="my-2 text-gray-300 font-sans text-sm sm:text-base" {...props}>{children}</li>;
+                return (
+                  <li className="my-2 text-gray-300 font-sans text-sm sm:text-base" {...props}>
+                    {children}
+                  </li>
+                );
               },
               td: ({ children, ...props }: any) => (
-                <td className="py-3 px-4 text-xs sm:text-sm text-gray-300 font-sans border-b border-white/5" {...props}>
+                <td
+                  className="py-3 px-4 text-xs sm:text-sm text-gray-300 font-sans border-b border-white/5"
+                  {...props}
+                >
                   {children}
                 </td>
               ),
@@ -219,7 +237,11 @@ export default async function DocPage({ params }: { params: Promise<{ slug: stri
                 const text = getChildrenText(children);
                 const id = slugify(text);
                 return (
-                  <h2 id={id} className="scroll-mt-28 text-2xl sm:text-3xl font-bold font-display text-white mt-12 mb-4 pb-3 border-b border-white/10 border-l-4 border-l-neon-green pl-3 flex items-center gap-2 flex-wrap" {...props}>
+                  <h2
+                    id={id}
+                    className="scroll-mt-28 text-2xl sm:text-3xl font-bold font-display text-white mt-12 mb-4 pb-3 border-b border-white/10 border-l-4 border-l-neon-green pl-3 flex items-center gap-2 flex-wrap"
+                    {...props}
+                  >
                     {children}
                   </h2>
                 );
@@ -228,27 +250,29 @@ export default async function DocPage({ params }: { params: Promise<{ slug: stri
                 const text = getChildrenText(children);
                 const id = slugify(text);
                 return (
-                  <h3 id={id} className="scroll-mt-28 text-lg sm:text-xl font-bold font-display text-neon-green mt-8 mb-3 uppercase tracking-wider" {...props}>
+                  <h3
+                    id={id}
+                    className="scroll-mt-28 text-lg sm:text-xl font-bold font-display text-neon-green mt-8 mb-3 uppercase tracking-wider"
+                    {...props}
+                  >
                     {children}
                   </h3>
                 );
               },
               code: ({ node, inline, className, children, ...props }: any) => {
-                const match = /language-(\w+)/.exec(className || '');
-                const contentStr = String(children).replace(/\n$/, '');
-                const isMultiLine = contentStr.includes('\n');
-                
+                const match = /language-(\w+)/.exec(className || "");
+                const contentStr = String(children).replace(/\n$/, "");
+                const isMultiLine = contentStr.includes("\n");
+
                 if (isMultiLine || (match && !inline)) {
-                  return (
-                    <CodeBlock
-                      code={contentStr}
-                      language={match ? match[1] : 'text'}
-                    />
-                  );
+                  return <CodeBlock code={contentStr} language={match ? match[1] : "text"} />;
                 }
-                
+
                 return (
-                  <code className="bg-white/10 border border-white/15 px-1.5 py-0.5 rounded text-xs font-mono text-neon-yellow font-semibold inline mx-0.5 whitespace-normal break-words" {...props}>
+                  <code
+                    className="bg-white/10 border border-white/15 px-1.5 py-0.5 rounded text-xs font-mono text-neon-yellow font-semibold inline mx-0.5 whitespace-normal break-words"
+                    {...props}
+                  >
                     {children}
                   </code>
                 );
@@ -256,33 +280,63 @@ export default async function DocPage({ params }: { params: Promise<{ slug: stri
               blockquote: ({ children, ...props }) => {
                 const text = getChildrenText(children);
                 let type: "note" | "important" | "warning" | "tip" | "caution" | null = null;
-                
+
                 if (/\[!NOTE\]/i.test(text)) type = "note";
                 else if (/\[!IMPORTANT\]/i.test(text)) type = "important";
                 else if (/\[!WARNING\]/i.test(text)) type = "warning";
                 else if (/\[!TIP\]/i.test(text)) type = "tip";
                 else if (/\[!CAUTION\]/i.test(text)) type = "caution";
-                
+
                 if (!type) {
                   return (
-                    <blockquote className="border-l-4 border-neon-green bg-[#0d0e12] py-4 px-5 my-6 rounded-r-2xl text-gray-300 shadow-md font-mono text-xs" {...props}>
+                    <blockquote
+                      className="border-l-4 border-neon-green bg-[#0d0e12] py-4 px-5 my-6 rounded-r-2xl text-gray-300 shadow-md font-mono text-xs"
+                      {...props}
+                    >
                       {children}
                     </blockquote>
                   );
                 }
-                
+
                 const styles = {
-                  note: { border: "border-l-4 border-blue-500", bg: "bg-blue-950/20 text-blue-200 border-blue-500/30", label: "Note", icon: "ℹ️" },
-                  important: { border: "border-l-4 border-neon-green", bg: "bg-neon-green/10 text-gray-200 border-neon-green/30", label: "Important", icon: "⚠️" },
-                  warning: { border: "border-l-4 border-neon-yellow", bg: "bg-amber-950/20 text-amber-200 border-amber-500/30", label: "Warning", icon: "🚨" },
-                  tip: { border: "border-l-4 border-emerald-500", bg: "bg-emerald-950/20 text-emerald-200 border-emerald-500/30", label: "Tip", icon: "💡" },
-                  caution: { border: "border-l-4 border-red-500", bg: "bg-red-950/20 text-red-200 border-red-500/30", label: "Caution", icon: "🔥" }
+                  note: {
+                    border: "border-l-4 border-blue-500",
+                    bg: "bg-blue-950/20 text-blue-200 border-blue-500/30",
+                    label: "Note",
+                    icon: "ℹ️",
+                  },
+                  important: {
+                    border: "border-l-4 border-neon-green",
+                    bg: "bg-neon-green/10 text-gray-200 border-neon-green/30",
+                    label: "Important",
+                    icon: "⚠️",
+                  },
+                  warning: {
+                    border: "border-l-4 border-neon-yellow",
+                    bg: "bg-amber-950/20 text-amber-200 border-amber-500/30",
+                    label: "Warning",
+                    icon: "🚨",
+                  },
+                  tip: {
+                    border: "border-l-4 border-emerald-500",
+                    bg: "bg-emerald-950/20 text-emerald-200 border-emerald-500/30",
+                    label: "Tip",
+                    icon: "💡",
+                  },
+                  caution: {
+                    border: "border-l-4 border-red-500",
+                    bg: "bg-red-950/20 text-red-200 border-red-500/30",
+                    label: "Caution",
+                    icon: "🔥",
+                  },
                 }[type];
-                
+
                 const cleanedChildren = removeAlertPrefix(children);
-                
+
                 return (
-                  <div className={`p-5 my-6 rounded-r-2xl border ${styles.border} ${styles.bg} backdrop-blur-md shadow-lg`}>
+                  <div
+                    className={`p-5 my-6 rounded-r-2xl border ${styles.border} ${styles.bg} backdrop-blur-md shadow-lg`}
+                  >
                     <div className="flex items-center gap-2 mb-2 font-mono text-[10px] uppercase tracking-widest font-bold text-white">
                       <span className="text-sm">{styles.icon}</span>
                       <span>{styles.label}</span>
@@ -292,7 +346,7 @@ export default async function DocPage({ params }: { params: Promise<{ slug: stri
                     </div>
                   </div>
                 );
-              }
+              },
             }}
           >
             {doc.content}
@@ -300,7 +354,10 @@ export default async function DocPage({ params }: { params: Promise<{ slug: stri
         </div>
 
         {/* Google AdSense Display Slot */}
-        <AdSenseAdSlot slotId="3942234105" className="my-8 w-full flex justify-center border-t border-white/10 pt-6" />
+        <AdSenseAdSlot
+          slotId="3942234105"
+          className="my-8 w-full flex justify-center border-t border-white/10 pt-6"
+        />
 
         {/* Previous / Next Article Pagination Cards */}
         {(prevDoc || nextDoc) && (
@@ -314,8 +371,12 @@ export default async function DocPage({ params }: { params: Promise<{ slug: stri
                   <ChevronLeft className="w-4 h-4 group-hover:-translate-x-0.5 transition-transform" />
                 </div>
                 <div className="min-w-0 flex-1 overflow-hidden">
-                  <span className="text-[10px] uppercase tracking-wider text-gray-500 font-bold block mb-1">Previous Article</span>
-                  <span className="text-xs sm:text-sm font-bold text-white group-hover:text-neon-green transition-colors block truncate">{prevDoc.title}</span>
+                  <span className="text-[10px] uppercase tracking-wider text-gray-500 font-bold block mb-1">
+                    Previous Article
+                  </span>
+                  <span className="text-xs sm:text-sm font-bold text-white group-hover:text-neon-green transition-colors block truncate">
+                    {prevDoc.title}
+                  </span>
                 </div>
               </Link>
             ) : (
@@ -328,8 +389,12 @@ export default async function DocPage({ params }: { params: Promise<{ slug: stri
                 className="flex-1 min-w-0 flex items-center justify-between gap-3.5 p-4 sm:p-5 rounded-2xl border border-white/10 bg-[#0c0d12] hover:bg-[#12141c] hover:border-neon-green/40 transition-all duration-200 group text-right shadow-lg overflow-hidden"
               >
                 <div className="min-w-0 flex-1 overflow-hidden">
-                  <span className="text-[10px] uppercase tracking-wider text-gray-500 font-bold block mb-1">Next Article</span>
-                  <span className="text-xs sm:text-sm font-bold text-white group-hover:text-neon-green transition-colors block truncate">{nextDoc.title}</span>
+                  <span className="text-[10px] uppercase tracking-wider text-gray-500 font-bold block mb-1">
+                    Next Article
+                  </span>
+                  <span className="text-xs sm:text-sm font-bold text-white group-hover:text-neon-green transition-colors block truncate">
+                    {nextDoc.title}
+                  </span>
                 </div>
                 <div className="w-8 h-8 rounded-xl bg-neon-green/10 border border-neon-green/20 flex items-center justify-center text-neon-green group-hover:bg-neon-green group-hover:text-black transition-all shrink-0">
                   <ChevronRight className="w-4 h-4 group-hover:translate-x-0.5 transition-transform" />

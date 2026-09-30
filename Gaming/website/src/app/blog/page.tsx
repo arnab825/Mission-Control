@@ -6,13 +6,53 @@ import { getSortedPostsData, formatDateToIST, parseBlogDate } from "@/lib/blog";
 import connectDB from "@/lib/mongodb";
 import GamingPost from "@/models/GamingPost";
 import SafeBlogImage from "@/components/blog/SafeBlogImage";
-import { Calendar, ArrowUpRight, Zap, Clock, Gamepad2, Bot, Radio, ChevronDown, ChevronLeft, ChevronRight } from "lucide-react";
+import {
+  Calendar,
+  ArrowUpRight,
+  Zap,
+  Clock,
+  Gamepad2,
+  Bot,
+  Radio,
+  ChevronDown,
+  ChevronLeft,
+  ChevronRight,
+} from "lucide-react";
 
-const CATEGORY_CONFIG: Record<string, { color: string; activeBg: string; shadow: string; icon: string; hoverBorder: string }> = {
-  "Game News": { color: "text-neon-green", activeBg: "btn-premium-primary text-obsidian border-neon-green/60 font-black scale-105", shadow: "shadow-[0_0_20px_rgba(118,185,0,0.5)]", icon: "🎮", hoverBorder: "hover:border-neon-green/40 shadow-[0_0_25px_rgba(118,185,0,0.1)]" },
-  "GPU News": { color: "text-neon-purple", activeBg: "bg-gradient-to-r from-purple-500 via-purple-600 to-indigo-600 text-white border-purple-400 font-black scale-105", shadow: "shadow-[0_0_20px_rgba(168,85,247,0.5)]", icon: "⚡", hoverBorder: "hover:border-neon-purple/40" },
-  "Game Revisit": { color: "text-amber-400", activeBg: "bg-gradient-to-r from-amber-400 via-amber-500 to-orange-500 text-obsidian border-amber-400 font-black scale-105", shadow: "shadow-[0_0_20px_rgba(251,191,36,0.5)]", icon: "🕹️", hoverBorder: "hover:border-amber-400/40" },
-  "Hardware Deep-Dive": { color: "text-cyan-400", activeBg: "btn-premium-cyan text-obsidian border-cyan-400 font-black scale-105", shadow: "shadow-[0_0_20px_rgba(6,182,212,0.5)]", icon: "🔧", hoverBorder: "hover:border-cyan-400/40" },
+const CATEGORY_CONFIG: Record<
+  string,
+  { color: string; activeBg: string; shadow: string; icon: string; hoverBorder: string }
+> = {
+  "Game News": {
+    color: "text-neon-green",
+    activeBg: "btn-premium-primary text-obsidian border-neon-green/60 font-black scale-105",
+    shadow: "shadow-[0_0_20px_rgba(118,185,0,0.5)]",
+    icon: "🎮",
+    hoverBorder: "hover:border-neon-green/40 shadow-[0_0_25px_rgba(118,185,0,0.1)]",
+  },
+  "GPU News": {
+    color: "text-neon-purple",
+    activeBg:
+      "bg-gradient-to-r from-purple-500 via-purple-600 to-indigo-600 text-white border-purple-400 font-black scale-105",
+    shadow: "shadow-[0_0_20px_rgba(168,85,247,0.5)]",
+    icon: "⚡",
+    hoverBorder: "hover:border-neon-purple/40",
+  },
+  "Game Revisit": {
+    color: "text-amber-400",
+    activeBg:
+      "bg-gradient-to-r from-amber-400 via-amber-500 to-orange-500 text-obsidian border-amber-400 font-black scale-105",
+    shadow: "shadow-[0_0_20px_rgba(251,191,36,0.5)]",
+    icon: "🕹️",
+    hoverBorder: "hover:border-amber-400/40",
+  },
+  "Hardware Deep-Dive": {
+    color: "text-cyan-400",
+    activeBg: "btn-premium-cyan text-obsidian border-cyan-400 font-black scale-105",
+    shadow: "shadow-[0_0_20px_rgba(6,182,212,0.5)]",
+    icon: "🔧",
+    hoverBorder: "hover:border-cyan-400/40",
+  },
 };
 
 const GAMING_CATEGORIES = ["Game News", "GPU News", "Game Revisit", "Hardware Deep-Dive"] as const;
@@ -26,10 +66,7 @@ export default async function BlogListing({
   searchParams: Promise<{ tab?: string; category?: string; page?: string }>;
 }) {
   const resolvedParams = await searchParams;
-  const currentTab =
-    resolvedParams?.tab === "logs"
-      ? "logs"
-      : "intel";
+  const currentTab = resolvedParams?.tab === "logs" ? "logs" : "intel";
   const activeCategory = resolvedParams?.category ?? "all";
   const currentPage = Math.max(1, parseInt(resolvedParams?.page || "1", 10));
 
@@ -49,36 +86,38 @@ export default async function BlogListing({
     const allLogs = (data.changelog || []) as ChangelogLog[];
     const now = new Date();
     logs = allLogs.filter((log) => new Date(log.date) <= now);
-  } catch { }
+  } catch {}
 
   // Pagination for Transmission Logs
   const LOGS_PER_PAGE = 6;
   const totalLogPages = Math.ceil(logs.length / LOGS_PER_PAGE);
   const validLogPage = Math.min(currentPage, totalLogPages || 1);
-  const paginatedLogs = logs.slice((validLogPage - 1) * LOGS_PER_PAGE, validLogPage * LOGS_PER_PAGE);
+  const paginatedLogs = logs.slice(
+    (validLogPage - 1) * LOGS_PER_PAGE,
+    validLogPage * LOGS_PER_PAGE
+  );
 
   // Get all local MDX posts
   const allMdxPosts = getSortedPostsData();
 
   // Local gaming posts (MDX) are fetched synchronously and don't block
-  const localGamingPosts = allMdxPosts.filter(
-    (p) => p.category && p.category !== "Mission Brief"
-  ).map((p) => ({
-    _id: p.id,
-    title: p.title,
-    slug: { current: p.id },
-    category: p.category,
-    excerpt: p.excerpt,
-    tags: p.tags,
-    author: p.author,
-    aiGenerated: p.aiGenerated,
-    publishedAt: p.date,
-    coverImage: p.coverImage,
-  }));
+  const localGamingPosts = allMdxPosts
+    .filter((p) => p.category && p.category !== "Mission Brief")
+    .map((p) => ({
+      _id: p.id,
+      title: p.title,
+      slug: { current: p.id },
+      category: p.category,
+      excerpt: p.excerpt,
+      tags: p.tags,
+      author: p.author,
+      aiGenerated: p.aiGenerated,
+      publishedAt: p.date,
+      coverImage: p.coverImage,
+    }));
 
   return (
     <div className="min-h-screen pt-24 sm:pt-28 pb-12 px-3 sm:px-6 max-w-6xl mx-auto w-full relative z-10 bg-obsidian overflow-hidden">
-
       {/* Cyber Grid & Ambient Radial Glows */}
       <div className="absolute inset-0 cyber-grid opacity-25 pointer-events-none -z-10" />
       <div className="absolute top-1/4 left-1/2 -translate-x-1/2 w-200 h-100 bg-neon-green/10 blur-[150px] rounded-full pointer-events-none -z-10 animate-pulse-slow" />
@@ -95,7 +134,8 @@ export default async function BlogListing({
           MISSION CONTROL <span className="text-neon-green glow-text-teal">INTELLIGENCE</span>
         </h1>
         <p className="text-gray-400 text-xs sm:text-base leading-relaxed font-mono">
-          Stay up to date with core engine optimizations, hardware firmware patches, GPU news, and game telemetry intelligence.
+          Stay up to date with core engine optimizations, hardware firmware patches, GPU news, and
+          game telemetry intelligence.
         </p>
       </div>
 
@@ -129,13 +169,21 @@ export default async function BlogListing({
 
       {/* ── Gaming Intel (MongoDB + MDX) ── */}
       {currentTab === "intel" && (
-        <Suspense fallback={
-          <div className="py-20 flex flex-col items-center justify-center gap-4 border border-white/5 bg-white/1 rounded-2xl p-4">
-            <Radio className="w-8 h-8 text-amber-400 animate-pulse" />
-            <p className="text-amber-400 font-mono text-xs uppercase tracking-widest animate-pulse text-center max-w-full px-6 wrap-break-word">Establishing Secure Connection to Intelligence Database...</p>
-          </div>
-        }>
-          <GamingIntelData activeCategory={activeCategory} localGamingPosts={localGamingPosts} currentPage={currentPage} />
+        <Suspense
+          fallback={
+            <div className="py-20 flex flex-col items-center justify-center gap-4 border border-white/5 bg-white/1 rounded-2xl p-4">
+              <Radio className="w-8 h-8 text-amber-400 animate-pulse" />
+              <p className="text-amber-400 font-mono text-xs uppercase tracking-widest animate-pulse text-center max-w-full px-6 wrap-break-word">
+                Establishing Secure Connection to Intelligence Database...
+              </p>
+            </div>
+          }
+        >
+          <GamingIntelData
+            activeCategory={activeCategory}
+            localGamingPosts={localGamingPosts}
+            currentPage={currentPage}
+          />
         </Suspense>
       )}
 
@@ -144,7 +192,11 @@ export default async function BlogListing({
         <div className="flex flex-col gap-8">
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
             {paginatedLogs.map((post, idx) => (
-              <Link href={`/blog/${post.version}`} key={`${post.version}-${idx}`} className="block group">
+              <Link
+                href={`/blog/${post.version}`}
+                key={`${post.version}-${idx}`}
+                className="block group"
+              >
                 <article className="glass-card glass-card-hover p-5 sm:p-8 border border-white/10 rounded-2xl relative overflow-hidden h-full flex flex-col justify-between shadow-[0_0_30px_rgba(0,0,0,0.5)]">
                   <div className="absolute top-0 left-0 w-full h-0.5 bg-linear-to-r from-white to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
                   <div>
@@ -237,7 +289,15 @@ interface DBPost {
   coverImage?: string;
 }
 
-async function GamingIntelData({ activeCategory, localGamingPosts, currentPage }: { activeCategory: string; localGamingPosts: any[]; currentPage: number }) {
+async function GamingIntelData({
+  activeCategory,
+  localGamingPosts,
+  currentPage,
+}: {
+  activeCategory: string;
+  localGamingPosts: any[];
+  currentPage: number;
+}) {
   // Fetch from MongoDB (with graceful fallback for unwhitelisted IPs)
   let dbPosts: DBPost[] = [];
   try {
@@ -246,7 +306,9 @@ async function GamingIntelData({ activeCategory, localGamingPosts, currentPage }
     if (activeCategory !== "all") {
       query.category = activeCategory;
     }
-    dbPosts = (await GamingPost.find(query).sort({ publishedAt: -1 }).lean()) as unknown as DBPost[];
+    dbPosts = (await GamingPost.find(query)
+      .sort({ publishedAt: -1 })
+      .lean()) as unknown as DBPost[];
   } catch (error) {
     console.warn("MongoDB Connection Error: IP not whitelisted. Falling back to local posts.");
   }
@@ -261,7 +323,9 @@ async function GamingIntelData({ activeCategory, localGamingPosts, currentPage }
     }
     const isPlaceholder = !resolvedCover || resolvedCover.includes("placeholder");
     if (isPlaceholder) {
-      const localMdx = localGamingPosts.find((lp) => lp.slug?.current === p.slug || lp._id === p.slug);
+      const localMdx = localGamingPosts.find(
+        (lp) => lp.slug?.current === p.slug || lp._id === p.slug
+      );
       if (localMdx?.coverImage && !localMdx.coverImage.includes("placeholder")) {
         resolvedCover = localMdx.coverImage;
       } else {
@@ -275,12 +339,12 @@ async function GamingIntelData({ activeCategory, localGamingPosts, currentPage }
     }
     return {
       _id: p._id?.toString() || Math.random().toString(),
-      title: p.title || 'Untitled Intel',
-      slug: { current: p.slug || 'unknown-slug' },
-      category: p.category || 'Mission Brief',
-      excerpt: p.excerpt || '',
+      title: p.title || "Untitled Intel",
+      slug: { current: p.slug || "unknown-slug" },
+      category: p.category || "Mission Brief",
+      excerpt: p.excerpt || "",
       tags: p.tags || [],
-      author: p.author || 'Mission Control',
+      author: p.author || "Mission Control",
       aiGenerated: p.aiGenerated || false,
       publishedAt: p.publishedAt ? new Date(p.publishedAt).toISOString() : new Date().toISOString(),
       coverImage: resolvedCover,
@@ -288,9 +352,10 @@ async function GamingIntelData({ activeCategory, localGamingPosts, currentPage }
   });
 
   // Filter local posts by activeCategory if selected
-  const filteredLocalGaming = activeCategory !== "all"
-    ? localGamingPosts.filter((p) => p.category === activeCategory)
-    : localGamingPosts;
+  const filteredLocalGaming =
+    activeCategory !== "all"
+      ? localGamingPosts.filter((p) => p.category === activeCategory)
+      : localGamingPosts;
 
   // Combine and deduplicate by slug/id to prevent double rendering
   const seenSlugs = new Set<string>();
@@ -313,7 +378,7 @@ async function GamingIntelData({ activeCategory, localGamingPosts, currentPage }
   const getCategoryCount = (catName: string) => {
     if (catName === "all") {
       const seen = new Set();
-      return [...mappedDbPosts, ...localGamingPosts].filter(p => {
+      return [...mappedDbPosts, ...localGamingPosts].filter((p) => {
         const slug = p.slug?.current || p._id;
         if (seen.has(slug)) return false;
         seen.add(slug);
@@ -322,8 +387,8 @@ async function GamingIntelData({ activeCategory, localGamingPosts, currentPage }
     }
     const seen = new Set();
     return [...mappedDbPosts, ...localGamingPosts]
-      .filter(p => p.category === catName)
-      .filter(p => {
+      .filter((p) => p.category === catName)
+      .filter((p) => {
         const slug = p.slug?.current || p._id;
         if (seen.has(slug)) return false;
         seen.add(slug);
@@ -331,15 +396,19 @@ async function GamingIntelData({ activeCategory, localGamingPosts, currentPage }
       }).length;
   };
 
-  const activeCategoryConfig = activeCategory !== "all" 
-    ? CATEGORY_CONFIG[activeCategory] 
-    : { color: "text-amber-400", icon: "📰" };
+  const activeCategoryConfig =
+    activeCategory !== "all"
+      ? CATEGORY_CONFIG[activeCategory]
+      : { color: "text-amber-400", icon: "📰" };
 
   // Pagination calculations (6 posts per page for concise vertical height)
   const POSTS_PER_PAGE = 6;
   const totalPages = Math.ceil(gamingPosts.length / POSTS_PER_PAGE);
   const validPage = Math.min(currentPage, totalPages || 1);
-  const paginatedPosts = gamingPosts.slice((validPage - 1) * POSTS_PER_PAGE, validPage * POSTS_PER_PAGE);
+  const paginatedPosts = gamingPosts.slice(
+    (validPage - 1) * POSTS_PER_PAGE,
+    validPage * POSTS_PER_PAGE
+  );
 
   return (
     <div>
@@ -355,9 +424,11 @@ async function GamingIntelData({ activeCategory, localGamingPosts, currentPage }
             }`}
           >
             <span>All Intel</span>
-            <span className={`text-[10px] px-1.5 py-0.5 rounded-full ml-1 font-bold ${
-              activeCategory === "all" ? "bg-black/25 text-current" : "bg-white/10 text-gray-300"
-            }`}>
+            <span
+              className={`text-[10px] px-1.5 py-0.5 rounded-full ml-1 font-bold ${
+                activeCategory === "all" ? "bg-black/25 text-current" : "bg-white/10 text-gray-300"
+              }`}
+            >
               {getCategoryCount("all")}
             </span>
           </Link>
@@ -373,10 +444,16 @@ async function GamingIntelData({ activeCategory, localGamingPosts, currentPage }
                     : "border-white/10 text-gray-400 hover:border-white/30 hover:text-white bg-white/3"
                 }`}
               >
-                <span>{cfg.icon} {cat}</span>
-                <span className={`text-[10px] px-1.5 py-0.5 rounded-full ml-1 font-bold ${
-                  activeCategory === cat ? "bg-black/25 text-current" : "bg-white/10 text-gray-300"
-                }`}>
+                <span>
+                  {cfg.icon} {cat}
+                </span>
+                <span
+                  className={`text-[10px] px-1.5 py-0.5 rounded-full ml-1 font-bold ${
+                    activeCategory === cat
+                      ? "bg-black/25 text-current"
+                      : "bg-white/10 text-gray-300"
+                  }`}
+                >
                   {getCategoryCount(cat)}
                 </span>
               </Link>
@@ -387,7 +464,9 @@ async function GamingIntelData({ activeCategory, localGamingPosts, currentPage }
 
       <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-12">
         {paginatedPosts.map((post) => {
-          const cfg = (post.category ? CATEGORY_CONFIG[post.category as keyof typeof CATEGORY_CONFIG] : null) ?? {
+          const cfg = (post.category
+            ? CATEGORY_CONFIG[post.category as keyof typeof CATEGORY_CONFIG]
+            : null) ?? {
             color: "text-neon-green",
             icon: "📰",
             hoverBorder: "hover:border-neon-green/40",
@@ -432,9 +511,7 @@ async function GamingIntelData({ activeCategory, localGamingPosts, currentPage }
                         <Calendar className="w-3.5 h-3.5 text-neon-green" /> {formatDateToIST(date)}
                       </span>
                     </div>
-                    <h2
-                      className="text-xl sm:text-2xl font-bold mb-3 text-white group-hover:text-amber-400 transition-colors font-display line-clamp-2 leading-snug"
-                    >
+                    <h2 className="text-xl sm:text-2xl font-bold mb-3 text-white group-hover:text-amber-400 transition-colors font-display line-clamp-2 leading-snug">
                       {post.title}
                     </h2>
                     <p className="text-gray-300 text-xs sm:text-sm leading-relaxed mb-5 line-clamp-3 font-sans">
@@ -458,11 +535,11 @@ async function GamingIntelData({ activeCategory, localGamingPosts, currentPage }
                       <div className="w-7 h-7 rounded-full bg-obsidian border border-amber-400/50 flex items-center justify-center text-amber-400 text-[10px] font-bold shadow-[0_0_10px_rgba(251,191,36,0.2)]">
                         AI
                       </div>
-                      <span className="font-semibold text-gray-300">{post.author ?? "Mission Control Neural Brief"}</span>
+                      <span className="font-semibold text-gray-300">
+                        {post.author ?? "Mission Control Neural Brief"}
+                      </span>
                     </div>
-                    <span
-                      className="text-xs font-mono font-bold text-amber-400 flex items-center gap-1.5 uppercase tracking-wider group-hover:translate-x-1 transition-transform self-end min-[380px]:self-auto shrink-0 bg-amber-400/10 border border-amber-400/30 px-3 py-1.5 rounded-xl group-hover:bg-amber-400 group-hover:text-obsidian shadow-[0_0_12px_rgba(251,191,36,0.15)]"
-                    >
+                    <span className="text-xs font-mono font-bold text-amber-400 flex items-center gap-1.5 uppercase tracking-wider group-hover:translate-x-1 transition-transform self-end min-[380px]:self-auto shrink-0 bg-amber-400/10 border border-amber-400/30 px-3 py-1.5 rounded-xl group-hover:bg-amber-400 group-hover:text-obsidian shadow-[0_0_12px_rgba(251,191,36,0.15)]">
                       Read Intel <ArrowUpRight className="w-4 h-4" />
                     </span>
                   </div>

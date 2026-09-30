@@ -1,1 +1,1 @@
-export * from './integrations/GoogleAnalytics';
+export * from "./integrations/GoogleAnalytics";

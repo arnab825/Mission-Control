@@ -3,7 +3,8 @@ import { Metadata } from "next";
 import ServerArchitectureClient from "./ServerArchitectureClient";
 
 export const metadata: Metadata = {
-  title: "Distributed Server Architecture — Discover From Web & Multi-PC Node Management | Mission Control",
+  title:
+    "Distributed Server Architecture — Discover From Web & Multi-PC Node Management | Mission Control",
   description:
     "Comprehensive technical breakdown of Mission Control's distributed server cluster, multi-pool load balancer, 3-tier Discover From Web engine, and multi-PC Manage Nodes mesh.",
   keywords: [
@@ -19,7 +20,7 @@ export const metadata: Metadata = {
     "Steam Deck Sync",
     "LAN Gaming Cluster",
     "Supabase Gaming Database",
-    "Hardware Telemetry"
+    "Hardware Telemetry",
   ],
   openGraph: {
     title: "Distributed Server Architecture — Discover From Web & Manage Nodes | Mission Control",

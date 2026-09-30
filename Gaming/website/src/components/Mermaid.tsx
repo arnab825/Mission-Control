@@ -1,2 +1,2 @@
-export { default } from './docs/Mermaid';
-export * from './docs/Mermaid';
+export { default } from "./docs/Mermaid";
+export * from "./docs/Mermaid";

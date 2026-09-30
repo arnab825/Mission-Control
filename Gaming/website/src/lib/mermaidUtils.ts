@@ -30,14 +30,20 @@ export function isAsciiBoxDiagram(text: string): boolean {
   const hasArrows = /(?:--->|-->|->|==>|<---|<-|\^|\||\b[vV]\b)/.test(text);
   const pipeCount = (text.match(/\|/g) || []).length;
   const plusCount = (text.match(/\+/g) || []).length;
-  return (hasBoxBorders && (hasArrows || plusCount >= 4)) || (hasVerticalPipes && (hasArrows || pipeCount >= 4));
+  return (
+    (hasBoxBorders && (hasArrows || plusCount >= 4)) ||
+    (hasVerticalPipes && (hasArrows || pipeCount >= 4))
+  );
 }
 
 /**
  * Converts ASCII box diagrams and flowchart text into clean, valid Mermaid syntax
  */
 export function convertAsciiToMermaid(text: string): string {
-  const lines = text.split(/\r?\n/).map((l) => l.trim()).filter(Boolean);
+  const lines = text
+    .split(/\r?\n/)
+    .map((l) => l.trim())
+    .filter(Boolean);
   const nodes: { id: string; label: string }[] = [];
   const links: { from: string; to: string; label?: string }[] = [];
 
@@ -48,7 +54,13 @@ export function convertAsciiToMermaid(text: string): string {
       .replace(/^\(+|\)+$/g, "")
       .replace(/\s+/g, " ")
       .trim();
-    if (!clean || clean.length < 2 || /^[-=~#^vV\+]+$/.test(clean) || /^(?:--->|-->|->|v|\^)$/i.test(clean)) return null;
+    if (
+      !clean ||
+      clean.length < 2 ||
+      /^[-=~#^vV\+]+$/.test(clean) ||
+      /^(?:--->|-->|->|v|\^)$/i.test(clean)
+    )
+      return null;
     let found = nodes.find((n) => n.label.toLowerCase() === clean.toLowerCase());
     if (!found) {
       found = { id: `N${nodes.length + 1}`, label: clean };
@@ -66,8 +78,11 @@ export function convertAsciiToMermaid(text: string): string {
 
     // Split line by '|'
     if (line.includes("|")) {
-      const rawSegments = line.split("|").map(s => s.trim()).filter(Boolean);
-      const rowTokens = rawSegments.filter(s => !/^[-=\+]+$/.test(s));
+      const rawSegments = line
+        .split("|")
+        .map((s) => s.trim())
+        .filter(Boolean);
+      const rowTokens = rawSegments.filter((s) => !/^[-=\+]+$/.test(s));
       if (rowTokens.length > 0) {
         rowCells.push(rowTokens);
       }
@@ -148,12 +163,18 @@ export function sanitizeMermaidCode(code: string): string {
   let clean = decodeHTMLEntities(code.trim());
 
   // Check if entire block is ASCII art or contains +----+ lines
-  if (isAsciiBoxDiagram(clean) || (clean.includes("+----") && !clean.startsWith("graph") && !clean.startsWith("flowchart"))) {
+  if (
+    isAsciiBoxDiagram(clean) ||
+    (clean.includes("+----") && !clean.startsWith("graph") && !clean.startsWith("flowchart"))
+  ) {
     return convertAsciiToMermaid(clean);
   }
 
   // 1. Remove markdown fences if still nested
-  clean = clean.replace(/^```(?:mermaid)?\r?\n?/i, "").replace(/```$/i, "").trim();
+  clean = clean
+    .replace(/^```(?:mermaid)?\r?\n?/i, "")
+    .replace(/```$/i, "")
+    .trim();
 
   // If after fence removal it's ASCII art
   if (isAsciiBoxDiagram(clean)) {
@@ -161,7 +182,11 @@ export function sanitizeMermaidCode(code: string): string {
   }
 
   // 2. Default graph orientation if missing
-  if (!/^(?:graph|flowchart|sequenceDiagram|gantt|classDiagram|stateDiagram|erDiagram|journey|pie|gitGraph|mindmap|timeline|quadrantChart|xychart)/m.test(clean)) {
+  if (
+    !/^(?:graph|flowchart|sequenceDiagram|gantt|classDiagram|stateDiagram|erDiagram|journey|pie|gitGraph|mindmap|timeline|quadrantChart|xychart)/m.test(
+      clean
+    )
+  ) {
     clean = `flowchart TD\n${clean}`;
   }
 

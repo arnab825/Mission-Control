@@ -7,6 +7,7 @@
 ## Project Context
 
 **Mission Control** is a Python/PyQt6 desktop application (v1.1.7) for Windows that acts as an AI-powered gaming assistant. It uses:
+
 - **dxCam** for screen capture
 - **YOLO + TensorRT** for real-time object detection
 - **NVIDIA NIM** (FastPitch / HiFi-GAN) for voice synthesis
@@ -22,6 +23,7 @@ The current version is functional but needs significant UX polish, new features,
 ## SECTION 1 — UX & ONBOARDING
 
 ### 1.1 First-Run Setup Wizard
+
 - Detect if it's the user's first launch (no config file present)
 - Show a multi-step modal wizard:
   - Step 1: Welcome screen with Mission Control branding
@@ -33,6 +35,7 @@ The current version is functional but needs significant UX polish, new features,
 - Allow skipping all steps
 
 ### 1.2 Live Log Streaming on Dashboard
+
 - The Dashboard log area is currently blank with placeholder text
 - Wire it to a real log stream from the Python backend via IPC/WebSocket
 - Implement color-coded log levels:
@@ -46,6 +49,7 @@ The current version is functional but needs significant UX polish, new features,
 - Add a severity filter dropdown (All / Info / Warn / Error / Agent)
 
 ### 1.3 Keyboard Shortcut Panel
+
 - Add a `?` icon button in the top bar
 - Opens a modal showing all global hotkeys:
   - Toggle HUD overlay
@@ -58,6 +62,7 @@ The current version is functional but needs significant UX polish, new features,
 - Store bindings in `config/settings.yaml`
 
 ### 1.4 Notification Center
+
 - Add a bell icon (`🔔`) in the top bar with an unread badge count
 - Clicking opens a slide-in notification panel from the right
 - Notification types: AI Intervention, Thermal Alert, Agent Action, Crash Detected, Update Available
@@ -66,6 +71,7 @@ The current version is functional but needs significant UX polish, new features,
 - Persist notifications across the session (clear on app restart)
 
 ### 1.5 Collapsible Sidebar
+
 - Add a toggle button at the top of the sidebar (`⟨` / `⟩`)
 - Collapsed state: show only icons (40px wide rail)
 - Expanded state: full labels (current, 260px wide)
@@ -73,6 +79,7 @@ The current version is functional but needs significant UX polish, new features,
 - Remember state in localStorage
 
 ### 1.6 Dark / Light / Auto Theme
+
 - Add theme selector in Settings under a new "Appearance" section
 - Options: Dark (current), Light, System (auto)
 - Implement a full light mode CSS variable override set
@@ -84,6 +91,7 @@ The current version is functional but needs significant UX polish, new features,
 ## SECTION 2 — HUD & OVERLAY
 
 ### 2.1 HUD Layout Editor
+
 - Add a "Configure HUD" button in the Vision section and Settings
 - Opens a full-screen canvas editor showing a 1920×1080 preview area
 - Draggable widget blocks:
@@ -99,17 +107,20 @@ The current version is functional but needs significant UX polish, new features,
 - Save as named profiles (see 2.2)
 
 ### 2.2 Per-Game HUD Profiles
+
 - In the HUD Layout Editor, allow saving the current layout as a named profile
 - In Library, each game card shows which HUD profile is assigned
 - Dropdown on the game card to assign a profile
 - On game detection, auto-load the assigned HUD profile
 
 ### 2.3 Opacity & Scale Controls
+
 - In HUD settings: global opacity slider (10%–100%)
 - Per-widget scale control (50%–200%)
 - "Reset all" button to restore defaults
 
 ### 2.4 Agent Speech Bubble Widget
+
 - When the agent generates a tip, warning, or answer, render it as a speech bubble in the HUD overlay
 - Bubble fades in over 300ms, displays for 5 seconds (configurable), fades out
 - Position configurable in HUD editor
@@ -117,6 +128,7 @@ The current version is functional but needs significant UX polish, new features,
 - Clicking the bubble opens the full Agent panel
 
 ### 2.5 FPS + Frametime Graph Widget
+
 - Rolling 60-second sparkline showing FPS history
 - Second line (dashed) showing frametime in ms
 - Color-coded zones: green (smooth), amber (variable), red (stuttering)
@@ -127,6 +139,7 @@ The current version is functional but needs significant UX polish, new features,
 ## SECTION 3 — VISION PIPELINE
 
 ### 3.1 Interactive Region Selector
+
 - In the Vision section, replace manual coordinate input with a drag-to-select region tool
 - When activated, dim the screen and show a crosshair cursor
 - User clicks and drags to define the capture bounding box
@@ -135,6 +148,7 @@ The current version is functional but needs significant UX polish, new features,
 - Support named region presets (save/load)
 
 ### 3.2 Per-Class YOLO Confidence Sliders
+
 - In Vision settings, after model selection, show a list of all detected class names
 - Each class has:
   - A confidence threshold slider (0.1 – 1.0, step 0.05)
@@ -144,6 +158,7 @@ The current version is functional but needs significant UX polish, new features,
 - "Reset to defaults" button per class
 
 ### 3.3 Frame Drop Detection & Alerts
+
 - Monitor capture FPS in real time
 - If FPS drops >20% below target for more than 2 seconds, show a toast notification
 - Toast includes: current FPS, target FPS, and a "Fix suggestions" expandable:
@@ -153,6 +168,7 @@ The current version is functional but needs significant UX polish, new features,
   - Lower TensorRT batch size
 
 ### 3.4 Custom YOLO Model Loader
+
 - In Vision settings, add a "Custom Models" section
 - "Import Model" button opens file picker for `.pt` or `.engine` files
 - On import:
@@ -163,6 +179,7 @@ The current version is functional but needs significant UX polish, new features,
 - Option to delete custom models
 
 ### 3.5 OCR Text Extraction Layer
+
 - Add an optional OCR pipeline stage (after YOLO detection)
 - Uses Tesseract or NVIDIA OCR to read text within detected bounding boxes
 - Useful for ammo counters, quest names, minimap labels
@@ -171,6 +188,7 @@ The current version is functional but needs significant UX polish, new features,
 - Performance warning shown when enabled (estimated FPS cost)
 
 ### 3.6 Detection Heatmap (Post-Session)
+
 - After a session ends, generate a heatmap PNG showing where detections were concentrated
 - Overlay on a semi-transparent screenshot of the game
 - Show in a "Session Report" modal that appears when pipeline stops
@@ -181,6 +199,7 @@ The current version is functional but needs significant UX polish, new features,
 ## SECTION 4 — AGENT & AI
 
 ### 4.1 Agentic Action Confirmation Toast
+
 - Before executing any mouse movement, click, or key press in Agentic Mode:
   - Show a toast in the bottom-right with: action description, a 2-second countdown bar, and an "Undo / Cancel" button
   - If no input within 2 seconds, execute the action
@@ -188,6 +207,7 @@ The current version is functional but needs significant UX polish, new features,
 - Add a setting: "Agentic confirmation delay" (0s = instant, 1s, 2s, 5s)
 
 ### 4.2 Agent Action Log Tab
+
 - Add a second tab in the Agent panel: "Action Log"
 - Each entry shows:
   - Timestamp
@@ -198,6 +218,7 @@ The current version is functional but needs significant UX polish, new features,
 - Export log as CSV or JSON
 
 ### 4.3 Session Export
+
 - "Export Session" button in Agent panel header
 - Exports:
   - Full conversation history (markdown format)
@@ -206,6 +227,7 @@ The current version is functional but needs significant UX polish, new features,
 - File named: `aero-session-YYYY-MM-DD-HH-MM.zip`
 
 ### 4.4 Per-Game Agent Profiles
+
 - In Library, each game card has an "Agent Profile" dropdown
 - Profiles store: assistant mode (Competitive/Story/Hybrid/Agent), system prompt prefix, default voice, agentic mode on/off
 - On game detection, automatically load the assigned profile
@@ -213,6 +235,7 @@ The current version is functional but needs significant UX polish, new features,
 - "Create Profile" button opens a profile editor modal
 
 ### 4.5 Wake Word Trigger
+
 - Add "Wake Word" toggle in Settings > Agent
 - Default wake word: "Hey Aero" (configurable text field)
 - Uses the existing audio input stream to detect the phrase via Whisper or keyword spotting
@@ -221,6 +244,7 @@ The current version is functional but needs significant UX polish, new features,
 - Only active when pipeline is running
 
 ### 4.6 Agent Memory / Notes System
+
 - Agent maintains a persistent memory file (`agent_memory.json`) per game
 - After each session, agent extracts key facts: preferred routes, loadout choices, recurring fail points
 - At session start, agent loads relevant memories and references them in context
@@ -228,6 +252,7 @@ The current version is functional but needs significant UX polish, new features,
 - Toggle: "Enable cross-session memory" in Settings > Agent
 
 ### 4.7 Multi-Agent Pipeline Mode
+
 - New setting: "Multi-Agent Mode" (toggle, default off)
 - When enabled, spawns 3 specialized sub-agents:
   - **Vision Agent**: handles YOLO detection results, narrates what it sees
@@ -238,6 +263,7 @@ The current version is functional but needs significant UX polish, new features,
 - Master orchestrator routes user messages to the appropriate agent
 
 ### 4.8 Emotion-Aware Coaching Mode
+
 - Monitor gameplay signals for tilt indicators:
   - Rapid successive deaths (>3 in 60 seconds)
   - Unusually fast input cadence (keyboard spam detection via WMI)
@@ -253,6 +279,7 @@ The current version is functional but needs significant UX polish, new features,
 ## SECTION 5 — STABILITY LAB
 
 ### 5.1 One-Click Game Mode Button
+
 - Add a prominent "Game Mode" button on the Dashboard and Stability Lab
 - On click, execute in sequence:
   1. Kill non-essential background processes (configurable exclusion list)
@@ -264,6 +291,7 @@ The current version is functional but needs significant UX polish, new features,
 - "Undo Game Mode" button appears after activation to reverse all changes
 
 ### 5.2 Thermal Alert System
+
 - In Settings > Stability: user-configurable temp thresholds for GPU and CPU
 - When threshold exceeded:
   - Show a toast notification with current temp and threshold
@@ -273,6 +301,7 @@ The current version is functional but needs significant UX polish, new features,
 - Thermal history chart in Stability Lab showing temps over the session
 
 ### 5.3 Per-Session Stability History
+
 - Record stability index, avg FPS, and thermal data per gaming session
 - Store in `session_history.json` keyed by game and date
 - In Stability Lab, show a "History" tab with:
@@ -281,12 +310,14 @@ The current version is functional but needs significant UX polish, new features,
   - Best session / worst session callouts
 
 ### 5.4 RAM Pressure Warning
+
 - On app start and before pipeline start: check available RAM
 - If RAM usage >80%: show a warning banner on Dashboard
 - Banner lists top 3 RAM-consuming non-game processes with their usage in MB
 - "Clean up" button attempts to clear standby memory and suggests closing named apps
 
 ### 5.5 Driver Update Checker
+
 - On app start (max once per day): query NVIDIA API for latest Game Ready Driver version
 - Compare to installed driver version via WMI
 - If out of date: show a notification in the notification center
@@ -294,6 +325,7 @@ The current version is functional but needs significant UX polish, new features,
 - Can be disabled in Settings > System
 
 ### 5.6 Crash Report Analyzer
+
 - After an unexpected game close / crash is detected:
   - Parse Windows Event Viewer logs for related error entries
   - Parse NVIDIA crash dump if present (`%localappdata%\NVIDIA`)
@@ -306,6 +338,7 @@ The current version is functional but needs significant UX polish, new features,
 - Store crash reports in `crash_history.json`
 
 ### 5.7 Power Plan Scheduler
+
 - Add setting: "Auto power plan switching" (toggle)
 - On game process detection: switch to High Performance
 - On game close: revert to previous power plan
@@ -316,6 +349,7 @@ The current version is functional but needs significant UX polish, new features,
 ## SECTION 6 — GAME LIBRARY
 
 ### 6.1 Cover Art Fetching
+
 - On game scan, for each detected game:
   - Query SteamGridDB API (requires user API key in Settings > Library) by game name
   - Fallback to IGDB if SteamGridDB returns nothing
@@ -324,6 +358,7 @@ The current version is functional but needs significant UX polish, new features,
 - Add an "Edit Art" button to manually upload or replace art
 
 ### 6.2 Optimization Summary Card
+
 - After clicking "Optimize" on a game card:
   - Show a modal with a before/after table:
     - DLSS Mode: Off → Quality
@@ -334,23 +369,27 @@ The current version is functional but needs significant UX polish, new features,
   - "Auto-apply on next launch" checkbox
 
 ### 6.3 Session Stats Per Game
+
 - Track per game: total play time, number of sessions, avg FPS, AI interventions count, crash count
 - Show on library card as a compact stats row below the tag badges:
   - `⏱ 14h 23m  📈 87 avg FPS  🤖 42 assists`
 - Clicking opens a full stats modal with charts
 
 ### 6.4 Favorite / Pin Games
+
 - Star icon on each game card to pin it
 - Pinned games sort to the top of the library
 - Pinned games also appear in a "Quick Launch" section on the Dashboard
 
 ### 6.5 Launch Game from App
+
 - "Launch" button on each game card (next to "Optimize")
 - Detects the game's executable path (from Steam/Epic manifest)
 - Launches the game process and simultaneously starts the Mission Control pipeline
 - Shows a "Launching..." spinner with live pipeline startup logs
 
 ### 6.6 Game-Specific NVIDIA Tips
+
 - For each detected game, fetch NVIDIA Game Ready release notes (scrape or API)
 - Show a "NVIDIA Tips" section in the game card modal:
   - Recommended DLSS preset
@@ -362,23 +401,27 @@ The current version is functional but needs significant UX polish, new features,
 ## SECTION 7 — SETTINGS
 
 ### 7.1 Settings Search Bar
+
 - Add a search input at the top of the Settings page
 - Filters visible settings sections/options in real time as user types
 - Highlights matching labels
 - "No results" state with a suggestion to check spelling
 
 ### 7.2 Import / Export Configuration
+
 - "Export Config" button: saves full `config/settings.yaml` to a user-chosen path
 - "Import Config" button: opens file picker, validates JSON schema, applies settings
 - On import: show a diff of what changed before confirming
 - Version compatibility check (warn if config from older version)
 
 ### 7.3 Per-Section Reset to Defaults
+
 - Each settings section (Screen Capture, Processing Pipeline, Agent, etc.) has a "Reset section" button
 - Only resets that section's keys in `config/settings.yaml`
 - Confirmation dialog before reset
 
 ### 7.4 Named Config Profiles
+
 - Profile selector dropdown at the top of Settings
 - Built-in profiles: Competitive (low latency, minimal HUD), Streaming (quality DLSS, detailed HUD), Casual (balanced)
 - "Save current as profile" button — name + save
@@ -386,6 +429,7 @@ The current version is functional but needs significant UX polish, new features,
 - Profiles stored in `profiles/` directory
 
 ### 7.5 Startup Behavior Options
+
 - New "Startup" section in Settings:
   - "Launch on Windows startup" toggle (writes registry key)
   - "Start minimized to tray" toggle
@@ -397,6 +441,7 @@ The current version is functional but needs significant UX polish, new features,
 ## SECTION 8 — BOLD / FUTURE FEATURES
 
 ### 8.1 Replay Analyzer
+
 - Record a rolling 90-second video buffer of the capture stream (compressed, GPU-accelerated)
 - On notable event detection (kill, death, crash, FPS spike >50%):
   - Save the clip to `%appdata%/MissionControl/clips/`
@@ -407,6 +452,7 @@ The current version is functional but needs significant UX polish, new features,
   - Export clip as MP4
 
 ### 8.2 Community Benchmark Compare
+
 - After each session, compute a performance score: weighted average of FPS, stability index, and thermal efficiency
 - Send anonymized score + GPU model to a cloud leaderboard API (opt-in only)
 - Show "Your Score vs. Community" comparison card:
@@ -415,6 +461,7 @@ The current version is functional but needs significant UX polish, new features,
 - Toggle in Settings > Privacy
 
 ### 8.3 Co-Pilot Share Mode
+
 - "Share Session" button in Agent panel
 - Generates a time-limited share code (e.g. `AERO-X7K2`)
 - Remote viewer enters code in their Mission Control instance and sees:
@@ -424,6 +471,7 @@ The current version is functional but needs significant UX polish, new features,
 - Viewer can send text suggestions that appear as "[Co-Pilot]: ..." in the agent chat
 
 ### 8.4 Twitch / OBS Stream Overlay Export
+
 - "Stream Overlay" section in Settings
 - Generates a localhost browser source URL (e.g. `http://localhost:9142/overlay`)
 - OBS/Streamlabs users add it as a browser source
@@ -432,6 +480,7 @@ The current version is functional but needs significant UX polish, new features,
 - Updates in real time via WebSocket
 
 ### 8.5 AI Playstyle Analyzer
+
 - After 5+ sessions on a game, unlock "Playstyle Report" in the Library game modal
 - Report includes (AI-generated from session data):
   - Aggression Index (passive / balanced / aggressive)
@@ -442,6 +491,7 @@ The current version is functional but needs significant UX polish, new features,
 - Shareable as a PNG card
 
 ### 8.6 Mobile Companion App (React Native)
+
 - Separate React Native app (iOS + Android) that connects to the desktop app via local WebSocket
 - Features:
   - Live stats dashboard (FPS, GPU temp, stability)
@@ -452,6 +502,7 @@ The current version is functional but needs significant UX polish, new features,
 - Setup: show QR code in desktop app Settings > Mobile to connect
 
 ### 8.7 Plugin / Mod Marketplace
+
 - New "Extensions" section in navigation
 - Extension types:
   - YOLO Models (`.engine` / `.pt`)
@@ -463,6 +514,7 @@ The current version is functional but needs significant UX polish, new features,
 - "Install", "Update", "Remove" per extension
 
 ### 8.8 LAN Tournament Mode
+
 - "Tournament Mode" toggle in Settings (requires LAN connection)
 - Discovers other Mission Control instances on the LAN via mDNS
 - Features:
@@ -477,6 +529,7 @@ The current version is functional but needs significant UX polish, new features,
 ## Implementation Notes
 
 ### Technology Stack (assumed)
+
 - **UI**: PyQt6 desktop interface with Qt Widgets and custom overlay rendering
 - **Backend**: Python services and worker threads communicating with the UI via Qt signals/slots and local sockets where needed
 - **Vision**: YOLOv8 + TensorRT + dxCam
@@ -484,6 +537,7 @@ The current version is functional but needs significant UX polish, new features,
 - **System**: WMI (Python `wmi` library), `psutil`, Windows registry via `winreg`
 
 ### Architecture Guidelines
+
 - All new features must be gated behind their own toggle in Settings — nothing forced on by default
 - Follow existing Qt signal naming — snake_case method names on worker threads, e.g. `log_received`, `pipeline_started`
 - All persistent data stored in `%appdata%/MissionControl/` with clear subdirectory structure
@@ -493,6 +547,7 @@ The current version is functional but needs significant UX polish, new features,
 - Performance: any new background process must be profiled to add <2% CPU overhead
 
 ### Overlay Rendering Notes
+
 - Overlay rendering is Windows-specific and uses `overlay_window.py`
 - `overlay_window.py` uses `WS_EX_LAYERED` + `WS_EX_TRANSPARENT` for click-through behavior
 - Never call Qt UI methods from background threads — always emit signals to the UI thread
@@ -500,6 +555,7 @@ The current version is functional but needs significant UX polish, new features,
 - `agent_memory.json` path: `%appdata%/MissionControl/memory/<game_name>.json`
 
 ### File Structure for New Features
+
 ```
 ai_brain/
   decision_maker.py
@@ -548,6 +604,7 @@ voice/
 ```
 
 ### Priority Order for Implementation
+
 1. Live log streaming (Dashboard)
 2. One-click Game Mode button
 3. Agentic action confirmation toast
@@ -567,4 +624,4 @@ voice/
 
 ---
 
-*Generated for Mission Control v1.1.7 — May 2026*
+_Generated for Mission Control v1.1.7 — May 2026_

@@ -61,7 +61,7 @@ export function TableOfContents({ headings }: TableOfContentsProps) {
       activeEl.scrollIntoView({
         block: "nearest",
         inline: "nearest",
-        behavior: "smooth"
+        behavior: "smooth",
       });
     }
   }, [activeId]);
@@ -78,7 +78,9 @@ export function TableOfContents({ headings }: TableOfContentsProps) {
               className="relative"
             >
               <a
-                ref={(el) => { itemRefs.current[h.id] = el; }}
+                ref={(el) => {
+                  itemRefs.current[h.id] = el;
+                }}
                 href={`#${h.id}`}
                 onClick={(e) => {
                   e.preventDefault();
@@ -96,13 +98,21 @@ export function TableOfContents({ headings }: TableOfContentsProps) {
                 }`}
               >
                 {h.level === 3 ? (
-                  <CornerDownRight className={`w-3 h-3 shrink-0 transition-colors ${
-                    isActive ? "text-neon-green animate-pulse" : "text-gray-600 group-hover:text-neon-green"
-                  }`} />
+                  <CornerDownRight
+                    className={`w-3 h-3 shrink-0 transition-colors ${
+                      isActive
+                        ? "text-neon-green animate-pulse"
+                        : "text-gray-600 group-hover:text-neon-green"
+                    }`}
+                  />
                 ) : (
-                  <ChevronRight className={`w-3.5 h-3.5 shrink-0 transition-transform duration-150 ${
-                    isActive ? "text-neon-green translate-x-0.5" : "text-gray-500 group-hover:text-neon-green"
-                  }`} />
+                  <ChevronRight
+                    className={`w-3.5 h-3.5 shrink-0 transition-transform duration-150 ${
+                      isActive
+                        ? "text-neon-green translate-x-0.5"
+                        : "text-gray-500 group-hover:text-neon-green"
+                    }`}
+                  />
                 )}
                 <span className="truncate">{h.text}</span>
               </a>

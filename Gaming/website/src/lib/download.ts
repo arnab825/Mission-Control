@@ -12,4 +12,3 @@ export const LINUX_RPM_URL = `${GITHUB_BASE}/MissionControl-Linux.rpm`;
 export const LINUX_TAR_URL = `${GITHUB_BASE}/MissionControl-Linux.tar.gz`;
 export const LINUX_ZIP_URL = `${GITHUB_BASE}/MissionControl-Linux.zip`;
 export const LINUX_INSTALLER_URL = `${GITHUB_BASE}/MissionControl-Linux.AppImage`;
-

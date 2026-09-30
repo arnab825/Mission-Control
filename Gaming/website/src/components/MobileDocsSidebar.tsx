@@ -1,2 +1,2 @@
-export { default } from './docs/MobileDocsSidebar';
-export * from './docs/MobileDocsSidebar';
+export { default } from "./docs/MobileDocsSidebar";
+export * from "./docs/MobileDocsSidebar";

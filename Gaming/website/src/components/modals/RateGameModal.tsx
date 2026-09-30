@@ -20,10 +20,15 @@ import {
   Film,
   UploadCloud,
   Trash2,
-  Play
+  Play,
 } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
-import { TESTED_GAMES_LIST, TestedGameSummary, getLiveTestedGames, fetchBenchmarks } from "@/data/benchmarks";
+import {
+  TESTED_GAMES_LIST,
+  TestedGameSummary,
+  getLiveTestedGames,
+  fetchBenchmarks,
+} from "@/data/benchmarks";
 
 interface RateGameModalProps {
   isOpen: boolean;
@@ -105,7 +110,7 @@ export default function RateGameModal({
 
   // Initial game setup
   useEffect(() => {
-    const list = games.length > 0 ? games : (availableGames || TESTED_GAMES_LIST);
+    const list = games.length > 0 ? games : availableGames || TESTED_GAMES_LIST;
     if (initialGameId) {
       const match = list.find((g) => g.id === initialGameId);
       if (match) {
@@ -273,7 +278,8 @@ export default function RateGameModal({
     setError(null);
 
     const activeGameName = selectedGame?.name || customGameName.trim();
-    const activeGameId = selectedGame?.id || activeGameName.toLowerCase().replace(/[^a-z0-9]+/g, "-");
+    const activeGameId =
+      selectedGame?.id || activeGameName.toLowerCase().replace(/[^a-z0-9]+/g, "-");
 
     if (!activeGameName) {
       setError("Please search or enter the title of the game you are reviewing.");
@@ -401,7 +407,10 @@ export default function RateGameModal({
           </div>
 
           {/* Form Body */}
-          <form onSubmit={handleSubmit} className="space-y-4 pt-4 overflow-y-auto flex-1 pr-1 custom-scrollbar relative z-10">
+          <form
+            onSubmit={handleSubmit}
+            className="space-y-4 pt-4 overflow-y-auto flex-1 pr-1 custom-scrollbar relative z-10"
+          >
             {error && (
               <div className="p-3 bg-rose-500/10 border border-rose-500/30 rounded-xl text-rose-400 text-xs flex items-center gap-2">
                 <AlertCircle className="w-4 h-4 shrink-0" />
@@ -553,9 +562,7 @@ export default function RateGameModal({
                 <label className="text-[11px] uppercase font-bold text-gray-300 tracking-wider">
                   Your Overall Star Rating
                 </label>
-                <span className={`text-xs font-bold ${ratingInfo.color}`}>
-                  {ratingInfo.label}
-                </span>
+                <span className={`text-xs font-bold ${ratingInfo.color}`}>{ratingInfo.label}</span>
               </div>
 
               <div className="flex items-center gap-2 pt-1">
@@ -632,7 +639,8 @@ export default function RateGameModal({
             <div className="space-y-2.5 p-3.5 rounded-2xl bg-white/[0.02] border border-white/10">
               <div className="flex items-center justify-between">
                 <label className="text-[11px] uppercase font-bold text-gray-300 tracking-wider flex items-center gap-1.5">
-                  <UploadCloud className="w-3.5 h-3.5 text-neon-green" /> Media Attachments (Screenshots, GIFs, Gameplay Videos)
+                  <UploadCloud className="w-3.5 h-3.5 text-neon-green" /> Media Attachments
+                  (Screenshots, GIFs, Gameplay Videos)
                 </label>
                 <span className="text-[10px] text-gray-400 font-mono">
                   {mediaList.length}/4 Files (Max 25MB each)

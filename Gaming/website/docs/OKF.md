@@ -11,16 +11,16 @@ In **Mission Control**, OKF serves as the structured knowledge and offline failo
 ## Why OKF in Mission Control?
 
 1. **Zero Binary & C++ Dependency Overhead**:
-   * Eliminates the need for heavy, compilation-prone vector database binaries (e.g., ChromaDB, FAISS C++ wheels) during PyInstaller packaging.
-   * Avoids dynamic runtime linking issues on Windows and Linux release distributions.
+   - Eliminates the need for heavy, compilation-prone vector database binaries (e.g., ChromaDB, FAISS C++ wheels) during PyInstaller packaging.
+   - Avoids dynamic runtime linking issues on Windows and Linux release distributions.
 
 2. **Human & Agent Co-Authoring**:
-   * Knowledge files are clean, readable Markdown documents with YAML frontmatter.
-   * Developers, gamers, and AI agents can create, edit, or patch game intelligence directly via text editors or Git.
+   - Knowledge files are clean, readable Markdown documents with YAML frontmatter.
+   - Developers, gamers, and AI agents can create, edit, or patch game intelligence directly via text editors or Git.
 
 3. **Dual-Tier Resilient Retrieval**:
-   * **Tier 1 (Distributed Cloud Sync)**: Fetches live catalog intelligence, game features, and summaries from the central Distributed Server (`/api/catalog`).
-   * **Tier 2 (Local OKF Markdown & SQLite/BM25)**: Loads and indexes structured `.md` files directly from `backend/rag_data/` and `backend/data/` for 100% offline, zero-latency in-game guidance.
+   - **Tier 1 (Distributed Cloud Sync)**: Fetches live catalog intelligence, game features, and summaries from the central Distributed Server (`/api/catalog`).
+   - **Tier 2 (Local OKF Markdown & SQLite/BM25)**: Loads and indexes structured `.md` files directly from `backend/rag_data/` and `backend/data/` for 100% offline, zero-latency in-game guidance.
 
 ---
 
@@ -41,9 +41,11 @@ last_updated: "2026-08-24"
 ---
 
 # Cyberpunk 2077 Intel
+
 Night City is divided into six main districts: City Center, Heywood, Santo Domingo, Pacifica, Watson, and Westbrook.
 
 ## Performance & Optimization Guidelines
+
 - **Crowd Density**: Reduce to Medium on 6-core CPUs to alleviate draw-call bottlenecks in dense downtown areas.
 - **DLSS & Ray Tracing**: Enable DLSS Super Resolution in Quality mode for 1440p / 4K. Combine with Frame Generation for smooth 100+ FPS output.
 - **Path Tracing**: Recommended only on NVIDIA RTX 4070 Ti / 5070 and above.
@@ -51,14 +53,14 @@ Night City is divided into six main districts: City Center, Heywood, Santo Domin
 
 ### Supported Metadata Schema (YAML Frontmatter)
 
-| Field | Type | Description |
-| :--- | :--- | :--- |
-| `type` | string | Document categorization (e.g., `game_intel`, `hardware_profile`, `patch_notes`). |
-| `title` | string | Human-readable title of the knowledge document. |
-| `game_id` | string | Unique identifier for game-scoped RAG filtering (e.g., `cp2077`, `witcher3`, `general`). |
-| `tags` | list | List of indexing keywords used to assist lexical search matching. |
-| `version` | string | Semantic version of the knowledge asset. |
-| `last_updated` | string | Timestamp of last modification. |
+| Field          | Type   | Description                                                                              |
+| :------------- | :----- | :--------------------------------------------------------------------------------------- |
+| `type`         | string | Document categorization (e.g., `game_intel`, `hardware_profile`, `patch_notes`).         |
+| `title`        | string | Human-readable title of the knowledge document.                                          |
+| `game_id`      | string | Unique identifier for game-scoped RAG filtering (e.g., `cp2077`, `witcher3`, `general`). |
+| `tags`         | list   | List of indexing keywords used to assist lexical search matching.                        |
+| `version`      | string | Semantic version of the knowledge asset.                                                 |
+| `last_updated` | string | Timestamp of last modification.                                                          |
 
 ---
 
@@ -90,7 +92,7 @@ flowchart TB
         HTTPPoller["Async Daemon Worker (5s Timeout)"]
         Chunker["RecursiveCharacterTextSplitter (1000 chars, 200 overlap)"]
         Hasher["SHA-256 Content Deduplicator"]
-        
+
         OKFLocal --> YAMLParser --> Chunker
         DS3 -.->|Non-Blocking Thread| HTTPPoller --> Chunker
         Chunker --> Hasher
@@ -100,7 +102,7 @@ flowchart TB
         direction TB
         SQLite[("Local SQLite Cache (rag_documents.db)")]
         BM25["In-Memory BM25 Lexical Index (LangChain rank_bm25)"]
-        
+
         Hasher -->|Upsert Chunks & Metadata| SQLite
         SQLite -->|Rebuild Index on Seed/Sync| BM25
     end
@@ -148,7 +150,7 @@ sequenceDiagram
 
     Gamer->>HUD: Trigger tactical query (e.g., "Best boss strategy")
     HUD->>DM: Route request with active `game_id` (e.g. `elden_ring`)
-    
+
     rect rgb(30, 41, 59)
         note over DM,BM25: Local RAG Retrieval Stage (Sub-millisecond)
         DM->>RAG: query(user_query, game_id="elden_ring", k=3)
@@ -207,7 +209,7 @@ stateDiagram-v2
 
 ## Build & Deployment Compatibility
 
-* **PyInstaller (`MissionControl.spec`)**: The `rag_data` folder is bundled as a physical data asset:
+- **PyInstaller (`MissionControl.spec`)**: The `rag_data` folder is bundled as a physical data asset:
   ```python
   datas = [
       ('data', 'data'),
@@ -215,5 +217,5 @@ stateDiagram-v2
       ...
   ]
   ```
-* **Packaging**: No third-party C++ libraries or binary wheels are required. PyInstaller bundles the pure Python parser cleanly with zero build warnings.
-* **Electron Builder (`package.json`)**: Packed directly into `extraResources` as part of the backend bundle.
+- **Packaging**: No third-party C++ libraries or binary wheels are required. PyInstaller bundles the pure Python parser cleanly with zero build warnings.
+- **Electron Builder (`package.json`)**: Packed directly into `extraResources` as part of the backend bundle.

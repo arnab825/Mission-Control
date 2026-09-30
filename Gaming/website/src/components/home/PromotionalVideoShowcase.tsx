@@ -1,7 +1,18 @@
 "use client";
 
 import React, { useState } from "react";
-import { Play, Video, Film, Sparkles, Monitor, Share2, Layers, ExternalLink, X, CheckCircle2 } from "lucide-react";
+import {
+  Play,
+  Video,
+  Film,
+  Sparkles,
+  Monitor,
+  Share2,
+  Layers,
+  ExternalLink,
+  X,
+  CheckCircle2,
+} from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 
 interface VideoItem {
@@ -25,7 +36,7 @@ const PROMOTIONAL_VIDEOS: VideoItem[] = [
     thumbnail: "/screenshots/dashboard.webp",
     youtubeId: "dQw4w9WgXcQ", // Placeholder YouTube ID - easily replaceable with user's video link
     views: "24.8K Views",
-    desc: "Experience sub-0.8ms local CUDA AI inference, real-time VRAM memory cleanup, and DirectX 12 hardware overlay presentation."
+    desc: "Experience sub-0.8ms local CUDA AI inference, real-time VRAM memory cleanup, and DirectX 12 hardware overlay presentation.",
   },
   {
     id: "gameplay-hud",
@@ -35,7 +46,7 @@ const PROMOTIONAL_VIDEOS: VideoItem[] = [
     thumbnail: "/screenshots/before.png",
     youtubeId: "dQw4w9WgXcQ",
     views: "18.2K Views",
-    desc: "Real-time telemetry tracking and voice command macros executing with 0% CPU impact during heavy ray-tracing gameplay."
+    desc: "Real-time telemetry tracking and voice command macros executing with 0% CPU impact during heavy ray-tracing gameplay.",
   },
   {
     id: "vram-benchmark",
@@ -45,8 +56,8 @@ const PROMOTIONAL_VIDEOS: VideoItem[] = [
     thumbnail: "/screenshots/after.png",
     youtubeId: "dQw4w9WgXcQ",
     views: "15.4K Views",
-    desc: "Demonstrating 1.8GB VRAM recovery on NVIDIA RTX 4090 without closing background game processes."
-  }
+    desc: "Demonstrating 1.8GB VRAM recovery on NVIDIA RTX 4090 without closing background game processes.",
+  },
 ];
 
 export function PromotionalVideoShowcase() {
@@ -54,7 +65,10 @@ export function PromotionalVideoShowcase() {
   const [isPlayingModalOpen, setIsPlayingModalOpen] = useState(false);
 
   return (
-    <section id="video-showcase" className="w-full max-w-7xl px-4 sm:px-6 my-20 sm:my-32 relative z-10 mx-auto">
+    <section
+      id="video-showcase"
+      className="w-full max-w-7xl px-4 sm:px-6 my-20 sm:my-32 relative z-10 mx-auto"
+    >
       {/* Header */}
       <div className="text-center max-w-3xl mx-auto mb-12">
         <div className="inline-flex items-center gap-2 border border-neon-green/40 rounded-full px-4 py-1.5 bg-neon-green/10 mb-4 backdrop-blur-md shadow-[0_0_20px_rgba(118,185,0,0.2)]">
@@ -67,7 +81,8 @@ export function PromotionalVideoShowcase() {
           PROMOTIONAL <span className="text-neon-green glow-text-teal">DEMO & TRAILERS</span>
         </h2>
         <p className="text-gray-400 text-xs sm:text-base leading-relaxed font-mono">
-          Watch real-time gameplay clips, hardware benchmark video stress tests, and local CUDA AI voice companion demonstrations.
+          Watch real-time gameplay clips, hardware benchmark video stress tests, and local CUDA AI
+          voice companion demonstrations.
         </p>
       </div>
 
@@ -76,16 +91,16 @@ export function PromotionalVideoShowcase() {
         {/* Featured Large Video Player Card (7 Columns) */}
         <div className="lg:col-span-7">
           <div className="relative aspect-video rounded-3xl overflow-hidden border border-neon-green/40 bg-obsidian shadow-[0_0_50px_rgba(0,0,0,0.9)] group">
-            <img 
-              src={activeVideo.thumbnail} 
-              alt={activeVideo.title} 
-              className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-700 opacity-90" 
+            <img
+              src={activeVideo.thumbnail}
+              alt={activeVideo.title}
+              className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-700 opacity-90"
             />
             <div className="absolute inset-0 bg-gradient-to-t from-obsidian via-obsidian/40 to-transparent" />
 
             {/* Play Overlay Button */}
             <div className="absolute inset-0 flex items-center justify-center">
-              <button 
+              <button
                 onClick={() => setIsPlayingModalOpen(true)}
                 className="w-16 h-16 sm:w-20 sm:h-20 rounded-full bg-neon-green text-obsidian flex items-center justify-center shadow-[0_0_40px_rgba(118,185,0,0.8)] hover:scale-110 transition-transform cursor-pointer group/btn"
               >
@@ -102,9 +117,7 @@ export function PromotionalVideoShowcase() {
                 <span className="bg-black/60 text-gray-300 px-2.5 py-1 rounded-full border border-white/10 text-[10px]">
                   ⏱ {activeVideo.duration}
                 </span>
-                <span className="text-neon-yellow text-[10px] font-bold">
-                  {activeVideo.views}
-                </span>
+                <span className="text-neon-yellow text-[10px] font-bold">{activeVideo.views}</span>
               </div>
               <h3 className="text-lg sm:text-xl font-bold font-display uppercase text-white line-clamp-2">
                 {activeVideo.title}
@@ -140,7 +153,9 @@ export function PromotionalVideoShowcase() {
 
                 <div className="flex-1 min-w-0">
                   <div className="flex items-center justify-between font-mono text-[9px] text-gray-400 mb-1 uppercase">
-                    <span className={isSelected ? "text-neon-green font-bold" : "text-gray-400"}>{vid.category}</span>
+                    <span className={isSelected ? "text-neon-green font-bold" : "text-gray-400"}>
+                      {vid.category}
+                    </span>
                     <span>{vid.duration}</span>
                   </div>
                   <h4 className="text-xs font-bold font-display text-white uppercase line-clamp-1">
@@ -160,7 +175,7 @@ export function PromotionalVideoShowcase() {
               <Sparkles className="w-4 h-4 text-neon-green shrink-0 animate-pulse" />
               <span>RECORDING CUSTOM VIDEO POSTS?</span>
             </div>
-            <a 
+            <a
               href="#sponsor-section"
               className="text-[10px] font-bold text-obsidian bg-neon-green px-3 py-1.5 rounded-full hover:bg-neon-yellow transition-colors shrink-0 uppercase"
             >
@@ -180,7 +195,7 @@ export function PromotionalVideoShowcase() {
             onClick={() => setIsPlayingModalOpen(false)}
             className="fixed inset-0 z-50 bg-black/95 backdrop-blur-md p-4 sm:p-8 flex items-center justify-center cursor-pointer"
           >
-            <div 
+            <div
               onClick={(e) => e.stopPropagation()}
               className="relative max-w-5xl w-full aspect-video rounded-3xl overflow-hidden border border-neon-green/50 shadow-[0_0_60px_rgba(118,185,0,0.4)] bg-obsidian"
             >

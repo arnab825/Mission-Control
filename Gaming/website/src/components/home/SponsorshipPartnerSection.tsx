@@ -2,7 +2,18 @@
 
 import React, { useState } from "react";
 import { useMutation } from "@tanstack/react-query";
-import { Zap, ShieldCheck, Cpu, Award, Mail, Sparkles, CheckCircle2, ArrowRight, X, Send } from "lucide-react";
+import {
+  Zap,
+  ShieldCheck,
+  Cpu,
+  Award,
+  Mail,
+  Sparkles,
+  CheckCircle2,
+  ArrowRight,
+  X,
+  Send,
+} from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 
 export function SponsorshipPartnerSection() {
@@ -13,7 +24,7 @@ export function SponsorshipPartnerSection() {
     contactEmail: "",
     websiteUrl: "",
     partnershipType: "Hardware Sponsor",
-    message: ""
+    message: "",
   });
 
   const sponsorMutation = useMutation({
@@ -30,8 +41,8 @@ export function SponsorshipPartnerSection() {
   const submitStatus = sponsorMutation.isPending
     ? "loading"
     : sponsorMutation.isSuccess
-    ? "success"
-    : "idle";
+      ? "success"
+      : "idle";
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
@@ -39,12 +50,15 @@ export function SponsorshipPartnerSection() {
       name: sponsorForm.companyName,
       email: sponsorForm.contactEmail,
       subject: `[SPONSOR INQUIRY] ${sponsorForm.partnershipType} - ${sponsorForm.companyName}`,
-      message: `Company Web: ${sponsorForm.websiteUrl}\nType: ${sponsorForm.partnershipType}\n\n${sponsorForm.message}`
+      message: `Company Web: ${sponsorForm.websiteUrl}\nType: ${sponsorForm.partnershipType}\n\n${sponsorForm.message}`,
     });
   };
 
   return (
-    <section id="sponsor-section" className="w-full max-w-7xl px-4 sm:px-6 my-24 sm:my-36 relative z-10 mx-auto">
+    <section
+      id="sponsor-section"
+      className="w-full max-w-7xl px-4 sm:px-6 my-24 sm:my-36 relative z-10 mx-auto"
+    >
       {/* Background Cyber Ambient Glow */}
       <div className="absolute inset-0 bg-neon-green/[0.02] border border-neon-green/20 rounded-[32px] sm:rounded-[48px] pointer-events-none -z-10 backdrop-blur-3xl" />
 
@@ -58,10 +72,12 @@ export function SponsorshipPartnerSection() {
             </span>
           </div>
           <h2 className="text-3xl sm:text-5xl font-black font-display uppercase tracking-tight text-white mb-4">
-            PARTNER & <span className="text-neon-yellow glow-text-teal">SPONSOR MISSION CONTROL</span>
+            PARTNER &{" "}
+            <span className="text-neon-yellow glow-text-teal">SPONSOR MISSION CONTROL</span>
           </h2>
           <p className="text-gray-300 text-xs sm:text-base leading-relaxed font-mono">
-            Elevate your hardware brand, gaming studio, or GPU architecture in front of thousands of high-intent PC gamers, developers, and hardware enthusiasts.
+            Elevate your hardware brand, gaming studio, or GPU architecture in front of thousands of
+            high-intent PC gamers, developers, and hardware enthusiasts.
           </p>
         </div>
 
@@ -73,12 +89,15 @@ export function SponsorshipPartnerSection() {
               <div className="w-12 h-12 rounded-2xl bg-neon-green/10 border border-neon-green/30 flex items-center justify-center text-neon-green mb-6 group-hover:scale-110 transition-transform">
                 <Sparkles className="w-6 h-6" />
               </div>
-              <span className="text-gray-400 font-mono text-[10px] uppercase font-bold tracking-widest">TIER 01</span>
+              <span className="text-gray-400 font-mono text-[10px] uppercase font-bold tracking-widest">
+                TIER 01
+              </span>
               <h3 className="text-xl font-bold font-display uppercase text-white mb-3 group-hover:text-neon-green transition-colors">
                 VIDEO & CONTENT REELS
               </h3>
               <p className="text-gray-400 text-xs leading-relaxed mb-6 font-mono">
-                Featured logo placement & custom verbal shoutouts in promotional video reels, gameplay benchmarks, and AI companion showcase videos.
+                Featured logo placement & custom verbal shoutouts in promotional video reels,
+                gameplay benchmarks, and AI companion showcase videos.
               </p>
               <ul className="space-y-2.5 font-mono text-xs text-gray-300 mb-8">
                 <li className="flex items-center gap-2">
@@ -115,12 +134,15 @@ export function SponsorshipPartnerSection() {
               <div className="w-12 h-12 rounded-2xl bg-neon-yellow/20 border border-neon-yellow/40 flex items-center justify-center text-neon-yellow mb-6 group-hover:scale-110 transition-transform">
                 <Cpu className="w-6 h-6" />
               </div>
-              <span className="text-neon-yellow font-mono text-[10px] uppercase font-bold tracking-widest">TIER 02</span>
+              <span className="text-neon-yellow font-mono text-[10px] uppercase font-bold tracking-widest">
+                TIER 02
+              </span>
               <h3 className="text-xl font-bold font-display uppercase text-white mb-3">
                 HARDWARE & BENCHMARK OEM
               </h3>
               <p className="text-gray-300 text-xs leading-relaxed mb-6 font-mono">
-                Official hardware telemetry verification for graphics cards, CPUs, and motherboard ecosystems on our verified benchmark profile pages.
+                Official hardware telemetry verification for graphics cards, CPUs, and motherboard
+                ecosystems on our verified benchmark profile pages.
               </p>
               <ul className="space-y-2.5 font-mono text-xs text-gray-200 mb-8">
                 <li className="flex items-center gap-2">
@@ -154,12 +176,15 @@ export function SponsorshipPartnerSection() {
               <div className="w-12 h-12 rounded-2xl bg-white/10 border border-white/20 flex items-center justify-center text-white mb-6 group-hover:scale-110 transition-transform">
                 <ShieldCheck className="w-6 h-6" />
               </div>
-              <span className="text-gray-400 font-mono text-[10px] uppercase font-bold tracking-widest">TIER 03</span>
+              <span className="text-gray-400 font-mono text-[10px] uppercase font-bold tracking-widest">
+                TIER 03
+              </span>
               <h3 className="text-xl font-bold font-display uppercase text-white mb-3 group-hover:text-neon-green transition-colors">
                 TITLE & GAMING STUDIO
               </h3>
               <p className="text-gray-400 text-xs leading-relaxed mb-6 font-mono">
-                Full title partnership with custom in-game AI companion profiles, direct brand integration, and press release announcements.
+                Full title partnership with custom in-game AI companion profiles, direct brand
+                integration, and press release announcements.
               </p>
               <ul className="space-y-2.5 font-mono text-xs text-gray-300 mb-8">
                 <li className="flex items-center gap-2">
@@ -225,9 +250,12 @@ export function SponsorshipPartnerSection() {
               {submitStatus === "success" ? (
                 <div className="py-8 text-center space-y-4">
                   <CheckCircle2 className="w-12 h-12 text-neon-green mx-auto animate-bounce" />
-                  <h4 className="text-xl font-bold font-display uppercase text-white">PROPOSAL TRANSMITTED!</h4>
+                  <h4 className="text-xl font-bold font-display uppercase text-white">
+                    PROPOSAL TRANSMITTED!
+                  </h4>
                   <p className="text-gray-300 text-xs font-mono max-w-sm mx-auto">
-                    Our partnership team has received your inquiry. We will respond within 24 business hours.
+                    Our partnership team has received your inquiry. We will respond within 24
+                    business hours.
                   </p>
                   <button
                     onClick={() => {
@@ -242,42 +270,56 @@ export function SponsorshipPartnerSection() {
               ) : (
                 <form onSubmit={handleSubmit} className="space-y-4 font-mono text-xs">
                   <div>
-                    <label className="block text-gray-400 text-[10px] uppercase mb-1">Company / Channel Name</label>
+                    <label className="block text-gray-400 text-[10px] uppercase mb-1">
+                      Company / Channel Name
+                    </label>
                     <input
                       type="text"
                       required
                       placeholder="e.g. NVIDIA, ASUS ROG, PC Gamer"
                       value={sponsorForm.companyName}
-                      onChange={(e) => setSponsorForm({ ...sponsorForm, companyName: e.target.value })}
+                      onChange={(e) =>
+                        setSponsorForm({ ...sponsorForm, companyName: e.target.value })
+                      }
                       className="w-full p-3 rounded-xl bg-white/[0.03] border border-white/10 text-white focus:border-neon-yellow focus:outline-none transition-colors"
                     />
                   </div>
 
                   <div>
-                    <label className="block text-gray-400 text-[10px] uppercase mb-1">Business Contact Email</label>
+                    <label className="block text-gray-400 text-[10px] uppercase mb-1">
+                      Business Contact Email
+                    </label>
                     <input
                       type="email"
                       required
                       placeholder="partner@yourcompany.com"
                       value={sponsorForm.contactEmail}
-                      onChange={(e) => setSponsorForm({ ...sponsorForm, contactEmail: e.target.value })}
+                      onChange={(e) =>
+                        setSponsorForm({ ...sponsorForm, contactEmail: e.target.value })
+                      }
                       className="w-full p-3 rounded-xl bg-white/[0.03] border border-white/10 text-white focus:border-neon-yellow focus:outline-none transition-colors"
                     />
                   </div>
 
                   <div>
-                    <label className="block text-gray-400 text-[10px] uppercase mb-1">Website or Channel URL</label>
+                    <label className="block text-gray-400 text-[10px] uppercase mb-1">
+                      Website or Channel URL
+                    </label>
                     <input
                       type="url"
                       placeholder="https://yourcompany.com"
                       value={sponsorForm.websiteUrl}
-                      onChange={(e) => setSponsorForm({ ...sponsorForm, websiteUrl: e.target.value })}
+                      onChange={(e) =>
+                        setSponsorForm({ ...sponsorForm, websiteUrl: e.target.value })
+                      }
                       className="w-full p-3 rounded-xl bg-white/[0.03] border border-white/10 text-white focus:border-neon-yellow focus:outline-none transition-colors"
                     />
                   </div>
 
                   <div>
-                    <label className="block text-gray-400 text-[10px] uppercase mb-1">Sponsorship Goals & Message</label>
+                    <label className="block text-gray-400 text-[10px] uppercase mb-1">
+                      Sponsorship Goals & Message
+                    </label>
                     <textarea
                       rows={3}
                       required
@@ -294,7 +336,11 @@ export function SponsorshipPartnerSection() {
                     className="w-full py-3.5 rounded-xl bg-neon-yellow text-obsidian font-mono text-xs font-bold hover:bg-white transition-all uppercase shadow-[0_0_25px_rgba(255,255,0,0.3)] flex items-center justify-center gap-2 cursor-pointer mt-2"
                   >
                     <Send className="w-4 h-4" />
-                    <span>{submitStatus === "loading" ? "TRANSMITTING..." : "SUBMIT SPONSORSHIP INQUIRY ↗"}</span>
+                    <span>
+                      {submitStatus === "loading"
+                        ? "TRANSMITTING..."
+                        : "SUBMIT SPONSORSHIP INQUIRY ↗"}
+                    </span>
                   </button>
                 </form>
               )}

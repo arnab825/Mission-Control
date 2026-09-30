@@ -13,7 +13,8 @@ export const FALLBACK_DOCS: FallbackDoc[] = [
     slug: "summary",
     title: "Project Summary: Mission Control Gaming AI",
     category: "Overview",
-    excerpt: "Comprehensive architectural summary of Mission Control, an autonomous DirectX 12 telemetry overlay and AI co-pilot.",
+    excerpt:
+      "Comprehensive architectural summary of Mission Control, an autonomous DirectX 12 telemetry overlay and AI co-pilot.",
     badge: "Core",
     badgeColor: "text-neon-green",
     content: `# 📊 Project Summary: Mission Control Gaming Assistant
@@ -52,7 +53,8 @@ A gaming-optimized, multi-source search engine that enriches AI responses with l
     slug: "architecture_and_fixes",
     title: "Distributed Architecture & System Resilience",
     category: "Architecture",
-    excerpt: "Deep dive into the distributed microservices, failover cascades, and runtime stability hardening in Mission Control.",
+    excerpt:
+      "Deep dive into the distributed microservices, failover cascades, and runtime stability hardening in Mission Control.",
     badge: "Microservices",
     badgeColor: "text-neon-green",
     content: `# 🏗️ Distributed Architecture & Fixes
@@ -76,7 +78,8 @@ If remote cloud endpoints or specific API models become unreachable:
     slug: "agentic_logic",
     title: "Agentic AI Controller & Automation",
     category: "Core Logic",
-    excerpt: "Autonomous agent execution loop, safety limits, game state awareness, and user intent parsing.",
+    excerpt:
+      "Autonomous agent execution loop, safety limits, game state awareness, and user intent parsing.",
     badge: "Engine",
     badgeColor: "text-neon-yellow",
     content: `# 🤖 Agentic AI Controller
@@ -98,7 +101,8 @@ The agentic controller provides intelligent, hands-free assistance:
     slug: "fps",
     title: "FPS & VRAM Optimization Engine",
     category: "Performance",
-    excerpt: "DirectX 12 overlay performance tuning, zero-copy buffer sharing, and memory compaction.",
+    excerpt:
+      "DirectX 12 overlay performance tuning, zero-copy buffer sharing, and memory compaction.",
     badge: "Performance",
     badgeColor: "text-neon-green",
     content: `# 🚀 FPS & VRAM Optimization
@@ -115,7 +119,8 @@ Mission Control is engineered specifically for competitive gaming:
     slug: "nvidia_ai_guide",
     title: "NVIDIA NIM & TensorRT Integration Guide",
     category: "Integrations",
-    excerpt: "How Mission Control leverages NVIDIA NIM cloud models and local TensorRT CUDA acceleration.",
+    excerpt:
+      "How Mission Control leverages NVIDIA NIM cloud models and local TensorRT CUDA acceleration.",
     badge: "NVIDIA",
     badgeColor: "text-neon-green",
     content: `# 🟢 NVIDIA AI Integration Guide

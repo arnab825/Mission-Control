@@ -14,10 +14,7 @@ export async function POST(request: Request) {
     const updatedIssue = await voteIssue(issueId);
 
     if (!updatedIssue) {
-      return NextResponse.json(
-        { error: "Specified issue not found." },
-        { status: 404 }
-      );
+      return NextResponse.json({ error: "Specified issue not found." }, { status: 404 });
     }
 
     return NextResponse.json({ success: true, issue: updatedIssue });

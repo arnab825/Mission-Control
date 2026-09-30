@@ -50,7 +50,9 @@ export function FaqSection() {
             <div
               key={idx}
               className={`glass-card transition-all duration-300 overflow-hidden ${
-                isOpen ? "border-gradient-cyber shadow-[0_0_25px_rgba(118,185,0,0.2)]" : "hover:border-white/25"
+                isOpen
+                  ? "border-gradient-cyber shadow-[0_0_25px_rgba(118,185,0,0.2)]"
+                  : "hover:border-white/25"
               }`}
             >
               <button

@@ -8,7 +8,7 @@ excerpt: "Complete guide to Mission Control's interactive Native XInput & Direct
 
 # Controller & Gamepad Input Mapping
 
-*Unified Hardware Gamepad Abstraction, Real-Time Polling & Custom Haptics*
+_Unified Hardware Gamepad Abstraction, Real-Time Polling & Custom Haptics_
 
 ![Controller Mapping Diagram](/images/controller_mapping.png)
 
@@ -33,11 +33,11 @@ excerpt: "Complete guide to Mission Control's interactive Native XInput & Direct
 
 ## Supported Controller Architectures
 
-| Controller Family | Detection Mechanism | Native Vibration | Special Features |
-| :--- | :--- | :--- | :--- |
-| **Xbox Wireless / Elite** | Native XInput & Windows Input API | Dual Impulse Motors | Full Guide Button & Trigger Haptics |
-| **PlayStation DualSense / DS4** | DirectInput & Pygame Daemon | Dual Actuators | Adaptive Trigger telemetry mapping |
-| **Generic DirectInput** | Pygame / WinMM Fallback | Single Motor | Auto-mapping fallback profile |
+| Controller Family               | Detection Mechanism               | Native Vibration    | Special Features                    |
+| :------------------------------ | :-------------------------------- | :------------------ | :---------------------------------- |
+| **Xbox Wireless / Elite**       | Native XInput & Windows Input API | Dual Impulse Motors | Full Guide Button & Trigger Haptics |
+| **PlayStation DualSense / DS4** | DirectInput & Pygame Daemon       | Dual Actuators      | Adaptive Trigger telemetry mapping  |
+| **Generic DirectInput**         | Pygame / WinMM Fallback           | Single Motor        | Auto-mapping fallback profile       |
 
 ---
 

@@ -78,7 +78,9 @@ export default function Navbar() {
 
     // OS Detection
     const ua = (
-      (typeof window !== "undefined" && (window.navigator.userAgent || window.navigator.platform)) || ""
+      (typeof window !== "undefined" &&
+        (window.navigator.userAgent || window.navigator.platform)) ||
+      ""
     ).toLowerCase();
     if (ua.includes("win")) setOs("windows");
     else if (ua.includes("linux") || ua.includes("x11")) setOs("linux");
@@ -170,7 +172,7 @@ export default function Navbar() {
         { name: "DirectX Presentation", href: "/architecture#directx-presentation", icon: Tv },
         { name: "Hardware Diagnostics", href: "/architecture#parallel-hardware", icon: Activity },
         { name: "Process Watcher Thread", href: "/architecture#process-watcher", icon: Terminal },
-      ]
+      ],
     },
     {
       name: "Docs",
@@ -183,7 +185,7 @@ export default function Navbar() {
         { name: "NVIDIA NIM Guide", href: "/docs/nvidia_ai_guide", icon: Zap },
         { name: "FPS & VRAM Optimization", href: "/docs/fps", icon: Activity },
         { name: "On-Demand AI Weights", href: "/docs/on_demand_ai_weights", icon: ShieldCheck },
-      ]
+      ],
     },
     {
       name: "Community",
@@ -191,10 +193,18 @@ export default function Navbar() {
       icon: Users,
       subLinks: [
         { name: "Community Game Reviews", href: "/community?tab=ratings", icon: Star },
-        { name: "Share Review & Rig Setup", href: "/community?tab=ratings&rate=true", icon: Sparkles },
+        {
+          name: "Share Review & Rig Setup",
+          href: "/community?tab=ratings&rate=true",
+          icon: Sparkles,
+        },
         { name: "Kernel Glitch Tracker", href: "/community?tab=glitches", icon: AlertTriangle },
-        { name: "Submit Telemetry Report", href: "/community?tab=glitches&report=true", icon: Send },
-      ]
+        {
+          name: "Submit Telemetry Report",
+          href: "/community?tab=glitches&report=true",
+          icon: Send,
+        },
+      ],
     },
   ];
 
@@ -219,14 +229,16 @@ export default function Navbar() {
         <div className="absolute bottom-0 left-0 w-full h-px bg-linear-to-r from-transparent via-neon-green/40 to-transparent pointer-events-none shadow-[0_0_12px_rgba(118,185,0,0.3)]" />
 
         <div className="max-w-7xl mx-auto h-full px-4 sm:px-6 flex items-center justify-between relative">
-
           {/* Brand Logo */}
           <Link href="/" className="flex items-center gap-2 sm:gap-3 group z-10">
             <div className="w-10 h-10 sm:w-12 sm:h-12 rounded-xl border border-neon-green/40 flex items-center justify-center bg-linear-to-br from-neon-green/20 via-neon-green/10 to-transparent group-hover:border-neon-green group-hover:shadow-[0_0_25px_rgba(118,185,0,0.6)] shadow-[0_0_12px_rgba(118,185,0,0.25)] transition-all duration-300 overflow-hidden p-1.5 shrink-0">
               <img src="/logo.png" alt="Mission Control" className="w-full h-full object-contain" />
             </div>
             <span className="text-sm min-[375px]:text-base sm:text-xl font-black font-display tracking-wider text-white group-hover:text-neon-green transition-colors duration-300 whitespace-nowrap">
-              MISSION <span className="text-neon-green drop-shadow-[0_0_10px_rgba(118,185,0,0.6)]">CONTROL</span>
+              MISSION{" "}
+              <span className="text-neon-green drop-shadow-[0_0_10px_rgba(118,185,0,0.6)]">
+                CONTROL
+              </span>
             </span>
           </Link>
 
@@ -246,7 +258,9 @@ export default function Navbar() {
                     <Icon className="w-3.5 h-3.5 text-neon-green/70 group-hover:text-neon-green transition-colors" />
                     <span>{link.name}</span>
                     <ChevronDown className="w-3 h-3 text-gray-500 group-hover:text-white transition-transform duration-300 group-hover:rotate-180" />
-                    <span className={`absolute bottom-0 left-0 h-0.5 bg-neon-green shadow-[0_0_8px_rgba(118,185,0,0.8)] rounded transition-all duration-300 ${isActive ? "w-full" : "w-0 group-hover:w-full"}`} />
+                    <span
+                      className={`absolute bottom-0 left-0 h-0.5 bg-neon-green shadow-[0_0_8px_rgba(118,185,0,0.8)] rounded transition-all duration-300 ${isActive ? "w-full" : "w-0 group-hover:w-full"}`}
+                    />
                   </Link>
 
                   <div className="absolute top-full left-0 pt-2 w-56 opacity-0 scale-95 pointer-events-none group-hover:opacity-100 group-hover:scale-100 group-hover:pointer-events-auto transition-all duration-200 origin-top-left z-50">
@@ -286,7 +300,9 @@ export default function Navbar() {
                         key={link.name}
                         href={link.href}
                         className={`flex items-center gap-2 px-3 py-2 rounded-xl text-[11px] font-mono tracking-wider uppercase transition-all ${
-                          isActive ? "bg-neon-green/10 text-neon-green font-bold" : "text-gray-400 hover:text-white hover:bg-white/4"
+                          isActive
+                            ? "bg-neon-green/10 text-neon-green font-bold"
+                            : "text-gray-400 hover:text-white hover:bg-white/4"
                         }`}
                       >
                         <Icon className="w-3.5 h-3.5 text-neon-green/80" />
@@ -352,41 +368,50 @@ export default function Navbar() {
                       </span>
                       <span className="text-gray-500">{searchResults.length} matches</span>
                     </div>
-                    {(showAllResults ? searchResults : searchResults.slice(0, 6)).map((res: any, idx: number) => {
-                      const c = ((res.category || res.type || "") as string).toLowerCase();
-                      const Icon = c.includes("arch") || c.includes("engine") || c.includes("hardware")
-                        ? Cpu
-                        : c.includes("doc") || c.includes("guide") || c.includes("api")
-                        ? BookOpen
-                        : c.includes("game") || c.includes("benchmark")
-                        ? Gamepad2
-                        : c.includes("blog") || c.includes("news") || c.includes("intel")
-                        ? Newspaper
-                        : c.includes("comm") || c.includes("review") || c.includes("operator")
-                        ? Users
-                        : c.includes("perf") || c.includes("dlss") || c.includes("fps")
-                        ? Zap
-                        : Sparkles;
+                    {(showAllResults ? searchResults : searchResults.slice(0, 6)).map(
+                      (res: any, idx: number) => {
+                        const c = ((res.category || res.type || "") as string).toLowerCase();
+                        const Icon =
+                          c.includes("arch") || c.includes("engine") || c.includes("hardware")
+                            ? Cpu
+                            : c.includes("doc") || c.includes("guide") || c.includes("api")
+                              ? BookOpen
+                              : c.includes("game") || c.includes("benchmark")
+                                ? Gamepad2
+                                : c.includes("blog") || c.includes("news") || c.includes("intel")
+                                  ? Newspaper
+                                  : c.includes("comm") ||
+                                      c.includes("review") ||
+                                      c.includes("operator")
+                                    ? Users
+                                    : c.includes("perf") || c.includes("dlss") || c.includes("fps")
+                                      ? Zap
+                                      : Sparkles;
 
-                      return (
-                        <Link
-                          key={idx}
-                          href={res.url}
-                          onClick={closeSearch}
-                          className="block p-2.5 hover:bg-white/5 rounded-xl transition-all text-left font-mono border-b border-white/5 last:border-0 group/res hover:border-neon-green/30"
-                        >
-                          <div className="flex items-center justify-between gap-2 mb-1">
-                            <span className="text-[9px] font-bold text-neon-green uppercase tracking-wider bg-neon-green/10 border border-neon-green/30 px-2 py-0.5 rounded-full flex items-center gap-1.5 shadow-sm">
-                              <Icon className="w-3 h-3 text-neon-green shrink-0" />
-                              <span>{res.category || res.type}</span>
-                            </span>
-                            <ArrowRight className="w-3 h-3 text-gray-600 group-hover/res:text-neon-green transition-colors shrink-0" />
-                          </div>
-                          <div className="text-xs font-bold text-white group-hover/res:text-neon-green transition-colors truncate">{res.title}</div>
-                          <div className="text-[11px] text-gray-400 truncate mt-0.5">{res.description}</div>
-                        </Link>
-                      );
-                    })}
+                        return (
+                          <Link
+                            key={idx}
+                            href={res.url}
+                            onClick={closeSearch}
+                            className="block p-2.5 hover:bg-white/5 rounded-xl transition-all text-left font-mono border-b border-white/5 last:border-0 group/res hover:border-neon-green/30"
+                          >
+                            <div className="flex items-center justify-between gap-2 mb-1">
+                              <span className="text-[9px] font-bold text-neon-green uppercase tracking-wider bg-neon-green/10 border border-neon-green/30 px-2 py-0.5 rounded-full flex items-center gap-1.5 shadow-sm">
+                                <Icon className="w-3 h-3 text-neon-green shrink-0" />
+                                <span>{res.category || res.type}</span>
+                              </span>
+                              <ArrowRight className="w-3 h-3 text-gray-600 group-hover/res:text-neon-green transition-colors shrink-0" />
+                            </div>
+                            <div className="text-xs font-bold text-white group-hover/res:text-neon-green transition-colors truncate">
+                              {res.title}
+                            </div>
+                            <div className="text-[11px] text-gray-400 truncate mt-0.5">
+                              {res.description}
+                            </div>
+                          </Link>
+                        );
+                      }
+                    )}
                     {searchResults.length > 6 && !showAllResults && (
                       <button
                         onMouseDown={(e) => {
@@ -406,18 +431,54 @@ export default function Navbar() {
                         <Sparkles className="w-3 h-3 text-neon-green" /> Suggested Searches
                       </span>
                       <span className="text-[9px] text-neon-green flex items-center gap-1">
-                        <span className="w-1.5 h-1.5 rounded-full bg-neon-green animate-pulse" /> Live Index
+                        <span className="w-1.5 h-1.5 rounded-full bg-neon-green animate-pulse" />{" "}
+                        Live Index
                       </span>
                     </div>
                     <div className="space-y-1 pt-1">
                       {[
-                        { title: "Distributed Server & Node Mesh", category: "Architecture", icon: Server, href: "/server" },
-                        { title: "DirectX 12 Overlay Swapchain", category: "Architecture", icon: Cpu, href: "/architecture#directx-presentation" },
-                        { title: "NVIDIA DLSS Frame Generation", category: "Docs", icon: Zap, href: "/docs/nvidia_ai_guide" },
-                        { title: "Project Summary & Roadmap", category: "Docs", icon: BookOpen, href: "/docs/summary" },
-                        { title: "Parallel Hardware Diagnostics", category: "Architecture", icon: Activity, href: "/architecture#parallel-hardware" },
-                        { title: "Tested Games & Telemetry", category: "Benchmarks", icon: Gamepad2, href: "/games-tested" },
-                        { title: "AI Intelligence Dispatch", category: "News", icon: Newspaper, href: "/blog" },
+                        {
+                          title: "Distributed Server & Node Mesh",
+                          category: "Architecture",
+                          icon: Server,
+                          href: "/server",
+                        },
+                        {
+                          title: "DirectX 12 Overlay Swapchain",
+                          category: "Architecture",
+                          icon: Cpu,
+                          href: "/architecture#directx-presentation",
+                        },
+                        {
+                          title: "NVIDIA DLSS Frame Generation",
+                          category: "Docs",
+                          icon: Zap,
+                          href: "/docs/nvidia_ai_guide",
+                        },
+                        {
+                          title: "Project Summary & Roadmap",
+                          category: "Docs",
+                          icon: BookOpen,
+                          href: "/docs/summary",
+                        },
+                        {
+                          title: "Parallel Hardware Diagnostics",
+                          category: "Architecture",
+                          icon: Activity,
+                          href: "/architecture#parallel-hardware",
+                        },
+                        {
+                          title: "Tested Games & Telemetry",
+                          category: "Benchmarks",
+                          icon: Gamepad2,
+                          href: "/games-tested",
+                        },
+                        {
+                          title: "AI Intelligence Dispatch",
+                          category: "News",
+                          icon: Newspaper,
+                          href: "/blog",
+                        },
                       ].map((s, idx) => {
                         const Icon = s.icon;
                         return (
@@ -452,14 +513,18 @@ export default function Navbar() {
           <div className="flex items-center gap-2 sm:gap-3 z-10 shrink-0">
             <div className="hidden lg:block">
               {os === "mac" || os === "other" ? (
-                <div
-                  className="relative inline-flex items-center justify-center px-3.5 py-2 font-mono text-[10px] font-bold tracking-wider uppercase border border-white/20 text-gray-400 rounded-xl bg-white/5 cursor-not-allowed text-center leading-tight whitespace-nowrap"
-                >
+                <div className="relative inline-flex items-center justify-center px-3.5 py-2 font-mono text-[10px] font-bold tracking-wider uppercase border border-white/20 text-gray-400 rounded-xl bg-white/5 cursor-not-allowed text-center leading-tight whitespace-nowrap">
                   OS Unsupported
                 </div>
               ) : (
                 <a
-                  href={os === "linux" ? LINUX_INSTALLER_URL : (os === "windows" ? WINDOWS_INSTALLER_URL : AUTO_DOWNLOAD_URL)}
+                  href={
+                    os === "linux"
+                      ? LINUX_INSTALLER_URL
+                      : os === "windows"
+                        ? WINDOWS_INSTALLER_URL
+                        : AUTO_DOWNLOAD_URL
+                  }
                   suppressHydrationWarning
                   className="relative inline-flex items-center justify-center px-5 py-2.5 font-mono text-xs font-black tracking-wider uppercase btn-premium-primary transition-all duration-300 gap-2 whitespace-nowrap shrink-0 cursor-pointer shadow-[0_0_30px_rgba(118,185,0,0.45)] group"
                 >
@@ -495,11 +560,7 @@ export default function Navbar() {
               className="lg:hidden p-2.5 text-gray-300 hover:text-neon-green active:scale-95 focus:outline-none transition-all rounded-xl bg-white/4 border border-white/10 touch-manipulation cursor-pointer"
               aria-label="Toggle Navigation Menu"
             >
-              {isOpen ? (
-                <X className="w-6 h-6 text-neon-green" />
-              ) : (
-                <Menu className="w-6 h-6" />
-              )}
+              {isOpen ? <X className="w-6 h-6 text-neon-green" /> : <Menu className="w-6 h-6" />}
             </button>
           </div>
 
@@ -549,19 +610,22 @@ export default function Navbar() {
                   <div className="absolute top-20 left-0 right-0 bg-[#0d0e12]/98 backdrop-blur-xl border-b border-white/10 max-h-[calc(100dvh-5rem)] overflow-y-auto p-4 space-y-2.5 shadow-2xl z-40 font-mono overscroll-contain">
                     {searchResults.map((res: any, idx: number) => {
                       const c = ((res.category || res.type || "") as string).toLowerCase();
-                      const Icon = c.includes("arch") || c.includes("engine") || c.includes("hardware")
-                        ? Cpu
-                        : c.includes("doc") || c.includes("guide") || c.includes("api")
-                        ? BookOpen
-                        : c.includes("game") || c.includes("benchmark")
-                        ? Gamepad2
-                        : c.includes("blog") || c.includes("news") || c.includes("intel")
-                        ? Newspaper
-                        : c.includes("comm") || c.includes("review") || c.includes("operator")
-                        ? Users
-                        : c.includes("perf") || c.includes("dlss") || c.includes("fps")
-                        ? Zap
-                        : Sparkles;
+                      const Icon =
+                        c.includes("arch") || c.includes("engine") || c.includes("hardware")
+                          ? Cpu
+                          : c.includes("doc") || c.includes("guide") || c.includes("api")
+                            ? BookOpen
+                            : c.includes("game") || c.includes("benchmark")
+                              ? Gamepad2
+                              : c.includes("blog") || c.includes("news") || c.includes("intel")
+                                ? Newspaper
+                                : c.includes("comm") ||
+                                    c.includes("review") ||
+                                    c.includes("operator")
+                                  ? Users
+                                  : c.includes("perf") || c.includes("dlss") || c.includes("fps")
+                                    ? Zap
+                                    : Sparkles;
 
                       return (
                         <Link
@@ -578,7 +642,9 @@ export default function Navbar() {
                             <ArrowRight className="w-3.5 h-3.5 text-gray-500" />
                           </div>
                           <div className="text-sm font-bold text-white">{res.title}</div>
-                          <div className="text-xs text-gray-400 mt-1 line-clamp-2">{res.description}</div>
+                          <div className="text-xs text-gray-400 mt-1 line-clamp-2">
+                            {res.description}
+                          </div>
                         </Link>
                       );
                     })}
@@ -587,7 +653,6 @@ export default function Navbar() {
               </motion.div>
             )}
           </AnimatePresence>
-
         </div>
       </header>
 
@@ -620,7 +685,6 @@ export default function Navbar() {
               }}
             >
               <div className="px-4 py-5 flex flex-col gap-2.5 font-mono">
-
                 {mobileNavLinks.map((link: any) => {
                   const isActive = pathname === link.href;
                   const Icon = link.icon;
@@ -641,7 +705,9 @@ export default function Navbar() {
                           href={link.href}
                           onClick={() => setIsOpen(false)}
                           className={`flex items-center gap-3 text-sm font-bold uppercase tracking-wider flex-1 py-0.5 ${
-                            isActive ? "text-neon-green glow-text-teal" : "text-white active:text-neon-green"
+                            isActive
+                              ? "text-neon-green glow-text-teal"
+                              : "text-white active:text-neon-green"
                           }`}
                         >
                           <div className="w-8 h-8 rounded-xl bg-neon-green/10 border border-neon-green/30 flex items-center justify-center text-neon-green shrink-0">
@@ -686,7 +752,9 @@ export default function Navbar() {
                                     href={sub.href}
                                     onClick={() => setIsOpen(false)}
                                     className={`flex items-center gap-2.5 py-2 px-2 rounded-lg text-xs uppercase tracking-wider transition-colors active:bg-white/5 ${
-                                      isSubActive ? "text-neon-green font-bold bg-neon-green/10" : "text-gray-300 hover:text-white"
+                                      isSubActive
+                                        ? "text-neon-green font-bold bg-neon-green/10"
+                                        : "text-gray-300 hover:text-white"
                                     }`}
                                   >
                                     <SubIcon className="w-3.5 h-3.5 text-neon-green/80 shrink-0" />
@@ -705,14 +773,18 @@ export default function Navbar() {
                 {/* Mobile Download CTA */}
                 <div className="pt-2">
                   {os === "mac" || os === "other" ? (
-                    <div
-                      className="w-full text-center py-3.5 rounded-xl bg-white/5 text-gray-400 font-bold text-xs uppercase tracking-wider border border-white/10 flex items-center justify-center px-4"
-                    >
+                    <div className="w-full text-center py-3.5 rounded-xl bg-white/5 text-gray-400 font-bold text-xs uppercase tracking-wider border border-white/10 flex items-center justify-center px-4">
                       This app will not support this operating system.
                     </div>
                   ) : (
                     <a
-                      href={os === "linux" ? LINUX_INSTALLER_URL : (os === "windows" ? WINDOWS_INSTALLER_URL : AUTO_DOWNLOAD_URL)}
+                      href={
+                        os === "linux"
+                          ? LINUX_INSTALLER_URL
+                          : os === "windows"
+                            ? WINDOWS_INSTALLER_URL
+                            : AUTO_DOWNLOAD_URL
+                      }
                       suppressHydrationWarning
                       onClick={() => setIsOpen(false)}
                       className="w-full text-center py-3.5 rounded-xl font-black text-xs sm:text-sm uppercase tracking-wider btn-premium-primary transition-all flex items-center justify-center gap-2.5 shadow-[0_0_30px_rgba(118,185,0,0.5)] cursor-pointer touch-manipulation active:scale-[0.99]"
@@ -722,7 +794,6 @@ export default function Navbar() {
                     </a>
                   )}
                 </div>
-
               </div>
             </motion.div>
           </>

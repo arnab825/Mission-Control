@@ -32,7 +32,8 @@ export function InteractiveHudSection() {
             </h2>
 
             <p className="text-gray-300 text-xs sm:text-base leading-relaxed font-sans">
-              Mission Control injects a transparent heads-up display. Summon real-time tactical advice, monitor thermals, or launch system macros without leaving your game.
+              Mission Control injects a transparent heads-up display. Summon real-time tactical
+              advice, monitor thermals, or launch system macros without leaving your game.
             </p>
 
             {/* Dynamic HUD Mode Tabs */}
@@ -54,9 +55,18 @@ export function InteractiveHudSection() {
 
             <div className="space-y-4 pt-2 font-sans">
               {[
-                { title: "Zero Frame Loss", desc: "Native DirectX 12 & Vulkan swapchain hook rendering." },
-                { title: "Customizable Transparency", desc: "Adjust position, opacity, scale, and color profiles." },
-                { title: "Hotkeys & Voice Triggers", desc: "Bind macros to key combinations or voice phrases." },
+                {
+                  title: "Zero Frame Loss",
+                  desc: "Native DirectX 12 & Vulkan swapchain hook rendering.",
+                },
+                {
+                  title: "Customizable Transparency",
+                  desc: "Adjust position, opacity, scale, and color profiles.",
+                },
+                {
+                  title: "Hotkeys & Voice Triggers",
+                  desc: "Bind macros to key combinations or voice phrases.",
+                },
               ].map((item, idx) => (
                 <div key={idx} className="flex items-start gap-3.5">
                   <div className="w-6 h-6 rounded-full bg-neon-green/10 border border-neon-green/40 flex items-center justify-center text-neon-green shrink-0 mt-0.5">

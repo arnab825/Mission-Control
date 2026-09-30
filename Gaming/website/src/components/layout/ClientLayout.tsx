@@ -1,13 +1,13 @@
-'use client'
+"use client";
 
-import { usePathname } from 'next/navigation'
-import Navbar from './Navbar'
-import Footer from './Footer'
-import ScrollToTop from './ScrollToTop'
-import SupportChatbot from '@/components/support/SupportChatbot'
-import { AnimatePresence, motion } from 'framer-motion'
-import InteractiveNetwork from '@/components/ui/InteractiveNetwork'
-import QueryProvider from '@/components/integrations/QueryProvider'
+import { usePathname } from "next/navigation";
+import Navbar from "./Navbar";
+import Footer from "./Footer";
+import ScrollToTop from "./ScrollToTop";
+import SupportChatbot from "@/components/support/SupportChatbot";
+import { AnimatePresence, motion } from "framer-motion";
+import InteractiveNetwork from "@/components/ui/InteractiveNetwork";
+import QueryProvider from "@/components/integrations/QueryProvider";
 
 export default function ClientLayout({ children }: { children: React.ReactNode }) {
   const pathname = usePathname();

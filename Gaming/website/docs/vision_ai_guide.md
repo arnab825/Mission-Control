@@ -8,7 +8,7 @@ excerpt: "Architectural overview of Mission Control's AI Vision pipeline, YOLOv8
 
 # Vision On-Demand AI & Perception Models
 
-*Real-Time Game Screen Analysis, Object Bounding Boxes & On-Demand Model Downloader*
+_Real-Time Game Screen Analysis, Object Bounding Boxes & On-Demand Model Downloader_
 
 ![TensorRT YOLO Vision Detection](/screenshots/vision.webp)
 
@@ -23,11 +23,11 @@ Instead of bundling heavy GGUF/PyTorch model weights into the initial installer,
 
 ### Supported Models
 
-| Model ID | Task | Size | Precision | Download Source |
-| :--- | :--- | :--- | :--- | :--- |
-| **YOLOv8n** | Real-time Object & HUD Detection | 6.2 MB | FP16 / INT8 | In-App Direct Download |
-| **YOLOv8s** | High-Accuracy Tactical Recon | 22.5 MB | FP16 | In-App Direct Download |
-| **Whisper-Tiny** | Voice AI & Offline Speech Commands | 75.0 MB | FP16 | In-App Direct Download |
+| Model ID         | Task                               | Size    | Precision   | Download Source        |
+| :--------------- | :--------------------------------- | :------ | :---------- | :--------------------- |
+| **YOLOv8n**      | Real-time Object & HUD Detection   | 6.2 MB  | FP16 / INT8 | In-App Direct Download |
+| **YOLOv8s**      | High-Accuracy Tactical Recon       | 22.5 MB | FP16        | In-App Direct Download |
+| **Whisper-Tiny** | Voice AI & Offline Speech Commands | 75.0 MB | FP16        | In-App Direct Download |
 
 ---
 
@@ -37,7 +37,7 @@ When an AI model weight update is available, the Vision interface streams model 
 
 ```typescript
 // Trigger in-app streaming download without external browser redirects
-sendCommand('download_ai_model', { model_id: 'yolov8n' });
+sendCommand("download_ai_model", { model_id: "yolov8n" });
 ```
 
 > [!IMPORTANT]

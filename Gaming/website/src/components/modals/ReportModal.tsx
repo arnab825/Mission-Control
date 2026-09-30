@@ -17,7 +17,9 @@ export default function ReportModal({ isOpen, onClose, onSuccess }: ReportModalP
   // Form states
   const [title, setTitle] = useState("");
   const [description, setDescription] = useState("");
-  const [category, setCategory] = useState<"hardware" | "glitch" | "performance" | "other">("glitch");
+  const [category, setCategory] = useState<"hardware" | "glitch" | "performance" | "other">(
+    "glitch"
+  );
   const [game, setGame] = useState("");
 
   // Specs states
@@ -28,7 +30,7 @@ export default function ReportModal({ isOpen, onClose, onSuccess }: ReportModalP
   const [gpuDriver, setGpuDriver] = useState("");
   const [ramGB, setRamGB] = useState(16);
   const [appVersion, setAppVersion] = useState("3.6.1");
-  
+
   // Telemetry Sharing Setting
   const [includeTelemetry, setIncludeTelemetry] = useState(true);
 
@@ -106,7 +108,7 @@ export default function ReportModal({ isOpen, onClose, onSuccess }: ReportModalP
         if ((window.navigator as any).deviceMemory) {
           setRamGB((window.navigator as any).deviceMemory);
         }
-        
+
         const cores = window.navigator.hardwareConcurrency;
         if (cores) {
           setCpu(`${cores}-Core CPU (Auto-Detected)`);
@@ -116,11 +118,11 @@ export default function ReportModal({ isOpen, onClose, onSuccess }: ReportModalP
 
         // 3. Detect GPU using WebGL (Request High-Performance Discrete GPU)
         const canvas = document.createElement("canvas");
-        const gl = (
-          canvas.getContext("webgl2", { powerPreference: "high-performance" }) ||
+        const gl = (canvas.getContext("webgl2", { powerPreference: "high-performance" }) ||
           canvas.getContext("webgl", { powerPreference: "high-performance" }) ||
-          canvas.getContext("experimental-webgl", { powerPreference: "high-performance" })
-        ) as WebGLRenderingContext | null;
+          canvas.getContext("experimental-webgl", {
+            powerPreference: "high-performance",
+          })) as WebGLRenderingContext | null;
 
         if (gl) {
           const debugInfo = gl.getExtension("WEBGL_debug_renderer_info");
@@ -128,7 +130,7 @@ export default function ReportModal({ isOpen, onClose, onSuccess }: ReportModalP
             const renderer = gl.getParameter((debugInfo as any).UNMASKED_RENDERER_WEBGL);
             if (renderer) {
               let cleanRenderer = renderer;
-              
+
               // Remove ANGLE prefix if present
               if (cleanRenderer.startsWith("ANGLE (")) {
                 const match = cleanRenderer.match(/^ANGLE \([^,]+,\s*([^,]+)/);
@@ -141,7 +143,7 @@ export default function ReportModal({ isOpen, onClose, onSuccess }: ReportModalP
                   }
                 }
               }
-              
+
               // Clean up common WebGL driver / API noise
               cleanRenderer = cleanRenderer
                 .replace(/Direct3D\s*\d+/gi, "")
@@ -150,22 +152,21 @@ export default function ReportModal({ isOpen, onClose, onSuccess }: ReportModalP
                 .replace(/WebGL\s+\d+\.\d+/gi, "")
                 .replace(/D3D11-\d+\.\d+\.\d+\.\d+/gi, "")
                 .trim();
-                
+
               // Remove matching parentheses for PCIe IDs if they look like (0x...)
               cleanRenderer = cleanRenderer.replace(/\(0x[0-9a-fA-F]+\)/gi, "");
-              
+
               // Remove any trailing parentheses or commas
               cleanRenderer = cleanRenderer.replace(/[,)\s]+$/, "").trim();
-              
+
               setGpu(cleanRenderer);
-              
+
               if (cleanRenderer.toLowerCase().includes("nvidia")) {
                 setGpuDriver("555.99 (Simulated Hotfix)");
               }
             }
           }
         }
-
       } catch (e) {
         console.warn("Failed to auto-detect system specs via WebGL:", e);
       }
@@ -221,7 +222,6 @@ export default function ReportModal({ isOpen, onClose, onSuccess }: ReportModalP
         clearTimeout(timeoutId);
         runWebGLFallback();
       };
-
     } catch (e) {
       runWebGLFallback();
     }
@@ -243,30 +243,31 @@ export default function ReportModal({ isOpen, onClose, onSuccess }: ReportModalP
       description,
       category,
       game: game.trim() || undefined,
-      specs: includeTelemetry ? {
-        os,
-        osVersion,
-        cpu: cpu || "AMD Ryzen 7 7800X3D (Simulated)",
-        gpu: gpu || "NVIDIA GeForce RTX 4070",
-        gpuDriver: gpuDriver || "555.99",
-        ramGB: Number(ramGB) || 16,
-        appVersion,
-      } : {
-        os: "Anonymous",
-        osVersion: "Anonymous",
-        cpu: "Anonymous",
-        gpu: "Anonymous",
-        gpuDriver: "Anonymous",
-        ramGB: 0,
-        appVersion,
-      },
+      specs: includeTelemetry
+        ? {
+            os,
+            osVersion,
+            cpu: cpu || "AMD Ryzen 7 7800X3D (Simulated)",
+            gpu: gpu || "NVIDIA GeForce RTX 4070",
+            gpuDriver: gpuDriver || "555.99",
+            ramGB: Number(ramGB) || 16,
+            appVersion,
+          }
+        : {
+            os: "Anonymous",
+            osVersion: "Anonymous",
+            cpu: "Anonymous",
+            gpu: "Anonymous",
+            gpuDriver: "Anonymous",
+            ramGB: 0,
+            appVersion,
+          },
     });
   };
 
   return createPortal(
     <div className="fixed inset-0 z-[100] flex items-center justify-center p-2.5 sm:p-4 bg-black/80 backdrop-blur-md">
       <div className="relative w-full max-w-2xl max-h-[90vh] overflow-y-auto glass-panel glow-green rounded-2xl border border-white/10 text-white p-4 sm:p-6 md:p-8 scrollbar-thin">
-        
         {/* Header */}
         <div className="flex items-start justify-between pb-3 sm:pb-4 border-b border-white/10 gap-2 sm:gap-4">
           <div className="flex items-start gap-2 pt-0.5 min-w-0">
@@ -308,7 +309,7 @@ export default function ReportModal({ isOpen, onClose, onSuccess }: ReportModalP
                 className="w-full bg-graphite/50 border border-white/10 rounded-lg px-3 py-2 text-sm focus:border-neon-green focus:outline-none transition text-white"
               />
             </div>
-            
+
             <div>
               <label className="block text-xs uppercase font-semibold text-white/50 tracking-wider mb-1">
                 Category
@@ -318,10 +319,18 @@ export default function ReportModal({ isOpen, onClose, onSuccess }: ReportModalP
                 onChange={(e: any) => setCategory(e.target.value)}
                 className="w-full bg-graphite border border-white/10 rounded-lg px-3 py-2 text-sm focus:border-neon-green focus:outline-none transition text-white cursor-pointer"
               >
-                <option className="bg-obsidian text-white" value="glitch">Glitch / Rendering Bug</option>
-                <option className="bg-obsidian text-white" value="hardware">Hardware / Sensor Read Error</option>
-                <option className="bg-obsidian text-white" value="performance">Performance / FPS Drop</option>
-                <option className="bg-obsidian text-white" value="other">Other Issue</option>
+                <option className="bg-obsidian text-white" value="glitch">
+                  Glitch / Rendering Bug
+                </option>
+                <option className="bg-obsidian text-white" value="hardware">
+                  Hardware / Sensor Read Error
+                </option>
+                <option className="bg-obsidian text-white" value="performance">
+                  Performance / FPS Drop
+                </option>
+                <option className="bg-obsidian text-white" value="other">
+                  Other Issue
+                </option>
               </select>
             </div>
 
@@ -373,14 +382,17 @@ export default function ReportModal({ isOpen, onClose, onSuccess }: ReportModalP
                 Include Diagnostic Telemetry
               </label>
               <span className="block text-[10px] text-white/50 leading-relaxed">
-                Send hardware specifications (CPU, GPU, RAM, OS version) to help developers patch target components.
+                Send hardware specifications (CPU, GPU, RAM, OS version) to help developers patch
+                target components.
               </span>
             </div>
             <button
               type="button"
               onClick={() => setIncludeTelemetry(!includeTelemetry)}
               className={`w-10 h-5 rounded-full relative p-0.5 cursor-pointer transition-colors shrink-0 ${
-                includeTelemetry ? "bg-neon-green shadow-[0_0_10px_rgba(118, 185, 0,0.3)]" : "bg-white/10"
+                includeTelemetry
+                  ? "bg-neon-green shadow-[0_0_10px_rgba(118, 185, 0,0.3)]"
+                  : "bg-white/10"
               }`}
             >
               <div
@@ -408,83 +420,83 @@ export default function ReportModal({ isOpen, onClose, onSuccess }: ReportModalP
               </div>
 
               <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-3">
-              <div>
-                <label className="block text-[10px] uppercase font-semibold text-white/40 tracking-wider mb-0.5">
-                  Operating System
-                </label>
-                <input
-                  type="text"
-                  value={os}
-                  onChange={(e) => setOs(e.target.value)}
-                  className="w-full bg-obsidian border border-white/5 rounded px-2 py-1 text-xs focus:border-neon-green focus:outline-none transition"
-                />
-              </div>
+                <div>
+                  <label className="block text-[10px] uppercase font-semibold text-white/40 tracking-wider mb-0.5">
+                    Operating System
+                  </label>
+                  <input
+                    type="text"
+                    value={os}
+                    onChange={(e) => setOs(e.target.value)}
+                    className="w-full bg-obsidian border border-white/5 rounded px-2 py-1 text-xs focus:border-neon-green focus:outline-none transition"
+                  />
+                </div>
 
-              <div>
-                <label className="block text-[10px] uppercase font-semibold text-white/40 tracking-wider mb-0.5">
-                  OS Version
-                </label>
-                <input
-                  type="text"
-                  value={osVersion}
-                  onChange={(e) => setOsVersion(e.target.value)}
-                  className="w-full bg-obsidian border border-white/5 rounded px-2 py-1 text-xs focus:border-neon-green focus:outline-none transition"
-                />
-              </div>
+                <div>
+                  <label className="block text-[10px] uppercase font-semibold text-white/40 tracking-wider mb-0.5">
+                    OS Version
+                  </label>
+                  <input
+                    type="text"
+                    value={osVersion}
+                    onChange={(e) => setOsVersion(e.target.value)}
+                    className="w-full bg-obsidian border border-white/5 rounded px-2 py-1 text-xs focus:border-neon-green focus:outline-none transition"
+                  />
+                </div>
 
-              <div>
-                <label className="block text-[10px] uppercase font-semibold text-white/40 tracking-wider mb-0.5">
-                  RAM Size (GB)
-                </label>
-                <input
-                  type="number"
-                  value={ramGB}
-                  onChange={(e) => setRamGB(Number(e.target.value))}
-                  className="w-full bg-obsidian border border-white/5 rounded px-2 py-1 text-xs focus:border-neon-green focus:outline-none transition"
-                />
-              </div>
+                <div>
+                  <label className="block text-[10px] uppercase font-semibold text-white/40 tracking-wider mb-0.5">
+                    RAM Size (GB)
+                  </label>
+                  <input
+                    type="number"
+                    value={ramGB}
+                    onChange={(e) => setRamGB(Number(e.target.value))}
+                    className="w-full bg-obsidian border border-white/5 rounded px-2 py-1 text-xs focus:border-neon-green focus:outline-none transition"
+                  />
+                </div>
 
-              <div className="sm:col-span-2 md:col-span-1">
-                <label className="block text-[10px] uppercase font-semibold text-white/40 tracking-wider mb-0.5">
-                  Processor (CPU)
-                </label>
-                <input
-                  type="text"
-                  value={cpu}
-                  onChange={(e) => setCpu(e.target.value)}
-                  placeholder="e.g. AMD Ryzen 7 7800X3D"
-                  className="w-full bg-obsidian border border-white/5 rounded px-2 py-1 text-xs focus:border-neon-green focus:outline-none transition"
-                />
-              </div>
+                <div className="sm:col-span-2 md:col-span-1">
+                  <label className="block text-[10px] uppercase font-semibold text-white/40 tracking-wider mb-0.5">
+                    Processor (CPU)
+                  </label>
+                  <input
+                    type="text"
+                    value={cpu}
+                    onChange={(e) => setCpu(e.target.value)}
+                    placeholder="e.g. AMD Ryzen 7 7800X3D"
+                    className="w-full bg-obsidian border border-white/5 rounded px-2 py-1 text-xs focus:border-neon-green focus:outline-none transition"
+                  />
+                </div>
 
-              <div>
-                <label className="block text-[10px] uppercase font-semibold text-white/40 tracking-wider mb-0.5">
-                  Graphics Card (GPU)
-                </label>
-                <input
-                  type="text"
-                  value={gpu}
-                  onChange={(e) => setGpu(e.target.value)}
-                  placeholder="e.g. NVIDIA GeForce RTX 4070"
-                  className="w-full bg-obsidian border border-white/5 rounded px-2 py-1 text-xs focus:border-neon-green focus:outline-none transition"
-                />
-              </div>
+                <div>
+                  <label className="block text-[10px] uppercase font-semibold text-white/40 tracking-wider mb-0.5">
+                    Graphics Card (GPU)
+                  </label>
+                  <input
+                    type="text"
+                    value={gpu}
+                    onChange={(e) => setGpu(e.target.value)}
+                    placeholder="e.g. NVIDIA GeForce RTX 4070"
+                    className="w-full bg-obsidian border border-white/5 rounded px-2 py-1 text-xs focus:border-neon-green focus:outline-none transition"
+                  />
+                </div>
 
-              <div>
-                <label className="block text-[10px] uppercase font-semibold text-white/40 tracking-wider mb-0.5">
-                  GPU Driver Version
-                </label>
-                <input
-                  type="text"
-                  value={gpuDriver}
-                  onChange={(e) => setGpuDriver(e.target.value)}
-                  placeholder="e.g. 555.99"
-                  className="w-full bg-obsidian border border-white/5 rounded px-2 py-1 text-xs focus:border-neon-green focus:outline-none transition"
-                />
+                <div>
+                  <label className="block text-[10px] uppercase font-semibold text-white/40 tracking-wider mb-0.5">
+                    GPU Driver Version
+                  </label>
+                  <input
+                    type="text"
+                    value={gpuDriver}
+                    onChange={(e) => setGpuDriver(e.target.value)}
+                    placeholder="e.g. 555.99"
+                    className="w-full bg-obsidian border border-white/5 rounded px-2 py-1 text-xs focus:border-neon-green focus:outline-none transition"
+                  />
+                </div>
+              </div>
             </div>
-          </div>
-        </div>
-      )}
+          )}
 
           {/* Footer Actions */}
           <div className="flex flex-col-reverse sm:flex-row items-stretch sm:items-center justify-end gap-3 pt-4 border-t border-white/10">

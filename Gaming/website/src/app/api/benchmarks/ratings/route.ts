@@ -28,7 +28,8 @@ export async function POST(request: Request) {
       return validation.response;
     }
 
-    const { gameId, gameName, userName, rating, title, review, specs, media, recommend } = validation.data;
+    const { gameId, gameName, userName, rating, title, review, specs, media, recommend } =
+      validation.data;
 
     const formattedMedia = (media || []).map((m) => ({
       url: m.url,
@@ -57,10 +58,7 @@ export async function POST(request: Request) {
     });
 
     if (!newRating) {
-      return NextResponse.json(
-        { error: "Failed to save rating to database" },
-        { status: 500 }
-      );
+      return NextResponse.json({ error: "Failed to save rating to database" }, { status: 500 });
     }
 
     // Also fetch updated summary to return to client
@@ -68,6 +66,11 @@ export async function POST(request: Request) {
 
     return NextResponse.json({ rating: newRating, summary }, { status: 201 });
   } catch (error: unknown) {
-    return handleApiError("POST /api/benchmarks/ratings", error, 500, "Failed to register game rating.");
+    return handleApiError(
+      "POST /api/benchmarks/ratings",
+      error,
+      500,
+      "Failed to register game rating."
+    );
   }
 }

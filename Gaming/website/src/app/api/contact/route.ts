@@ -2,7 +2,12 @@ import { NextResponse } from "next/server";
 import connectDB from "@/lib/mongodb";
 import ContactSubmission from "@/models/ContactSubmission";
 import nodemailer from "nodemailer";
-import { ContactSchema, validateRequestBody, handleApiError, checkAccountRateLimit } from "@/lib/api-validation";
+import {
+  ContactSchema,
+  validateRequestBody,
+  handleApiError,
+  checkAccountRateLimit,
+} from "@/lib/api-validation";
 
 function escapeHtml(str: string): string {
   return String(str)
@@ -44,7 +49,10 @@ export async function POST(request: Request) {
         emailSent: false,
       });
     } catch (dbErr: any) {
-      console.warn("MongoDB ContactSubmission save warning (continuing email dispatch):", dbErr.message);
+      console.warn(
+        "MongoDB ContactSubmission save warning (continuing email dispatch):",
+        dbErr.message
+      );
     }
 
     const host = process.env.SMTP_HOST;
@@ -63,9 +71,11 @@ export async function POST(request: Request) {
         auth: { user, pass },
       });
     } else {
-      console.log("No SMTP credentials detected in environment. Initializing Ethereal Test Account...");
+      console.log(
+        "No SMTP credentials detected in environment. Initializing Ethereal Test Account..."
+      );
       const testAccount = await nodemailer.createTestAccount();
-      
+
       transporter = nodemailer.createTransport({
         host: "smtp.ethereal.email",
         port: 587,
@@ -164,7 +174,10 @@ export async function POST(request: Request) {
     const info = await transporter.sendMail(mailOptions);
 
     if (submissionDoc) {
-      await ContactSubmission.updateOne({ _id: submissionDoc._id }, { $set: { emailSent: true } }).catch(() => {});
+      await ContactSubmission.updateOne(
+        { _id: submissionDoc._id },
+        { $set: { emailSent: true } }
+      ).catch(() => {});
     }
 
     if (!host) {
@@ -174,7 +187,7 @@ export async function POST(request: Request) {
       console.log("Message ID:", info.messageId);
       console.log("Ethereal Preview URL:", previewUrl);
       console.log("-----------------------------------------");
-      
+
       return NextResponse.json({
         success: true,
         message: "Message logged & processed via Ethereal fallback.",
@@ -189,6 +202,11 @@ export async function POST(request: Request) {
       submissionId: submissionDoc?._id || null,
     });
   } catch (error: unknown) {
-    return handleApiError("POST /api/contact", error, 500, "Failed to deliver contact message. Please try again later.");
+    return handleApiError(
+      "POST /api/contact",
+      error,
+      500,
+      "Failed to deliver contact message. Please try again later."
+    );
   }
 }

@@ -65,7 +65,9 @@ export async function GET(request: Request) {
           { tags: { $regex: safeRegex, $options: "i" } },
           { category: { $regex: safeRegex, $options: "i" } },
         ],
-      }).limit(8).lean();
+      })
+        .limit(8)
+        .lean();
 
       dbPosts.forEach((post: any) => {
         const postUrl = `/blog/gaming/${post.slug}`;

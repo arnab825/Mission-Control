@@ -15,7 +15,7 @@ import {
   ArrowRight,
   Plus,
   Clock,
-  ChevronLeft
+  ChevronLeft,
 } from "lucide-react";
 
 interface ChatMessage {
@@ -112,8 +112,8 @@ export default function SupportChatbot() {
             id: `welcome-init-${Date.now()}`,
             sender: "assistant",
             text: welcomeText,
-            timestamp: new Date().toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" })
-          }
+            timestamp: new Date().toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" }),
+          },
         ]);
 
         fetchBackendSessions(parsed.email, parsed.name);
@@ -145,14 +145,14 @@ export default function SupportChatbot() {
       name: inputName.trim(),
       email: inputEmail.trim().toLowerCase(),
       gender: selectedGender,
-      subscribeWeekly
+      subscribeWeekly,
     };
 
     const initialWelcome: ChatMessage = {
       id: `welcome-${Date.now()}`,
       sender: "assistant",
       text: `Welcome **${profile.name}**! I'm your 24/7 Mission Control Support Assistant. How can I assist you with **Documentation**, **GPU/iGPU Compatibility**, **Controller Beta**, **App Versions**, or **Community Glitch Tracker** today?`,
-      timestamp: new Date().toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" })
+      timestamp: new Date().toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" }),
     };
 
     setUserProfile(profile);
@@ -171,8 +171,8 @@ export default function SupportChatbot() {
           gender: profile.gender,
           subscribeWeekly: profile.subscribeWeekly,
           sessionId: newSessId,
-          message: ""
-        })
+          message: "",
+        }),
       });
       const data = await res.json();
       if (data.messages && data.messages.length > 0) {
@@ -197,8 +197,8 @@ export default function SupportChatbot() {
         id: `welcome-${Date.now()}`,
         sender: "assistant",
         text: `Welcome **${userProfile.name}**! I'm your 24/7 Mission Control Support Assistant. How can I assist you with **Documentation**, **GPU/iGPU Compatibility**, **Controller Beta**, **App Versions**, or **Community Glitch Tracker** today?`,
-        timestamp: new Date().toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" })
-      }
+        timestamp: new Date().toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" }),
+      },
     ]);
   };
 
@@ -213,7 +213,9 @@ export default function SupportChatbot() {
   const handleDeleteSession = async (sessId: string, e: React.MouseEvent) => {
     e.stopPropagation();
     try {
-      await fetch(`/api/support/chat?sessionId=${encodeURIComponent(sessId)}`, { method: "DELETE" });
+      await fetch(`/api/support/chat?sessionId=${encodeURIComponent(sessId)}`, {
+        method: "DELETE",
+      });
       setSavedSessions((prev) => prev.filter((s) => s.sessionId !== sessId));
       if (currentSessionId === sessId) {
         handleNewChat();
@@ -228,7 +230,9 @@ export default function SupportChatbot() {
     if (!userProfile) return;
     if (currentSessionId) {
       try {
-        await fetch(`/api/support/chat?sessionId=${encodeURIComponent(currentSessionId)}`, { method: "DELETE" });
+        await fetch(`/api/support/chat?sessionId=${encodeURIComponent(currentSessionId)}`, {
+          method: "DELETE",
+        });
         setSavedSessions((prev) => prev.filter((s) => s.sessionId !== currentSessionId));
       } catch (err) {
         console.warn("Error deleting current session:", err);
@@ -241,7 +245,9 @@ export default function SupportChatbot() {
   const handleClearAllHistory = async () => {
     if (!userProfile) return;
     try {
-      await fetch(`/api/support/chat?email=${encodeURIComponent(userProfile.email)}`, { method: "DELETE" });
+      await fetch(`/api/support/chat?email=${encodeURIComponent(userProfile.email)}`, {
+        method: "DELETE",
+      });
       setSavedSessions([]);
       handleNewChat();
     } catch (err) {
@@ -262,7 +268,7 @@ export default function SupportChatbot() {
       id: Date.now().toString(),
       sender: "user",
       text: query.trim(),
-      timestamp: timestampStr
+      timestamp: timestampStr,
     };
 
     const updatedList = [...messages, userMsg];
@@ -281,8 +287,8 @@ export default function SupportChatbot() {
           subscribeWeekly: userProfile.subscribeWeekly,
           sessionId: sessId,
           message: query.trim(),
-          fullHistory: updatedList
-        })
+          fullHistory: updatedList,
+        }),
       });
       const data = await res.json();
       if (data.messages) {
@@ -294,8 +300,8 @@ export default function SupportChatbot() {
             id: (Date.now() + 1).toString(),
             sender: "assistant",
             text: data.reply || "Processing your query...",
-            timestamp: timestampStr
-          }
+            timestamp: timestampStr,
+          },
         ]);
       }
       fetchBackendSessions(userProfile.email);
@@ -306,8 +312,8 @@ export default function SupportChatbot() {
           id: (Date.now() + 1).toString(),
           sender: "assistant",
           text: "Brief hiccup connecting to backend. Please check your network connection.",
-          timestamp: timestampStr
-        }
+          timestamp: timestampStr,
+        },
       ]);
     } finally {
       setIsLoading(false);
@@ -346,7 +352,10 @@ export default function SupportChatbot() {
         itemIndex = 0;
         const headerText = trimmed.replace(/^#+\s*/, "");
         return (
-          <span key={lIdx} className="block font-mono font-bold text-neon-green uppercase text-[11px] mt-2 mb-1">
+          <span
+            key={lIdx}
+            className="block font-mono font-bold text-neon-green uppercase text-[11px] mt-2 mb-1"
+          >
             {headerText}
           </span>
         );
@@ -409,7 +418,10 @@ export default function SupportChatbot() {
           // Match Inline Code `code`
           if (token.startsWith("`") && token.endsWith("`")) {
             return (
-              <code key={idx} className="px-1 py-0.5 rounded bg-white/10 text-cyan-300 font-mono text-[10px]">
+              <code
+                key={idx}
+                className="px-1 py-0.5 rounded bg-white/10 text-cyan-300 font-mono text-[10px]"
+              >
                 {token.slice(1, -1)}
               </code>
             );
@@ -442,12 +454,28 @@ export default function SupportChatbot() {
 
   return createPortal(
     /* Single top-level overlay with maximum z-index via inline style */
-    <div style={{ position: "fixed", top: 0, left: 0, right: 0, bottom: 0, zIndex: 2147483647, pointerEvents: "none" }}>
+    <div
+      style={{
+        position: "fixed",
+        top: 0,
+        left: 0,
+        right: 0,
+        bottom: 0,
+        zIndex: 2147483647,
+        pointerEvents: "none",
+      }}
+    >
       {/* ── Trigger Button ── Locked to Bottom-Right */}
       <button
         type="button"
         onClick={() => setIsOpen((prev) => !prev)}
-        style={{ position: "fixed", bottom: 16, right: 16, zIndex: 2147483647, pointerEvents: "auto" }}
+        style={{
+          position: "fixed",
+          bottom: 16,
+          right: 16,
+          zIndex: 2147483647,
+          pointerEvents: "auto",
+        }}
         className="bg-[#080c14] border-2 border-neon-green/80 text-neon-green p-3 sm:p-3.5 rounded-full shadow-[0_0_35px_rgba(118,185,0,0.5)] hover:shadow-[0_0_50px_rgba(118,185,0,0.8)] hover:scale-105 active:scale-95 transition-all cursor-pointer flex items-center justify-center select-none"
         aria-label="24/7 AI Support Assistant"
       >
@@ -455,7 +483,11 @@ export default function SupportChatbot() {
           <X className="w-5 h-5 sm:w-6 sm:h-6 text-white" />
         ) : (
           <span className="relative flex items-center justify-center w-6 h-6 sm:w-7 sm:h-7">
-            <img src="/logo.png" alt="Mission Control Chatbot" className="w-full h-full object-contain drop-shadow-[0_0_10px_rgba(118,185,0,0.8)]" />
+            <img
+              src="/logo.png"
+              alt="Mission Control Chatbot"
+              className="w-full h-full object-contain drop-shadow-[0_0_10px_rgba(118,185,0,0.8)]"
+            />
           </span>
         )}
       </button>
@@ -475,7 +507,7 @@ export default function SupportChatbot() {
             zIndex: 2147483647,
             pointerEvents: "auto",
             backdropFilter: "blur(32px)",
-            WebkitBackdropFilter: "blur(32px)"
+            WebkitBackdropFilter: "blur(32px)",
           }}
           className="bg-[#070a12]/95 border-2 border-neon-green/60 rounded-2xl shadow-[0_0_80px_rgba(0,0,0,0.95)] flex flex-col overflow-hidden text-foreground select-none"
         >
@@ -493,15 +525,36 @@ export default function SupportChatbot() {
               ) : (
                 <>
                   <div className="w-6 h-6 rounded-lg bg-neon-green/15 border border-neon-green/50 flex items-center justify-center overflow-hidden p-0.5 shadow-[0_0_10px_rgba(118,185,0,0.35)] shrink-0">
-                    <img src="/logo.png" alt="Mission Control" className="w-full h-full object-contain" />
+                    <img
+                      src="/logo.png"
+                      alt="Mission Control"
+                      className="w-full h-full object-contain"
+                    />
                   </div>
                   <div className="min-w-0 overflow-hidden">
                     <h3 className="font-mono text-[9px] font-black text-white uppercase tracking-tight leading-none overflow-hidden text-ellipsis whitespace-nowrap">
                       MISSION CONTROL AI
                     </h3>
-                    <p style={{ fontSize: "7px" }} className="font-mono text-neon-green/80 uppercase tracking-tight leading-none mt-0.5 overflow-hidden text-ellipsis whitespace-nowrap flex items-center gap-1">
+                    <p
+                      style={{ fontSize: "7px" }}
+                      className="font-mono text-neon-green/80 uppercase tracking-tight leading-none mt-0.5 overflow-hidden text-ellipsis whitespace-nowrap flex items-center gap-1"
+                    >
                       <span>24/7 SUPPORT ASSISTANT</span>
-                      <span style={{ fontSize: "6px", padding: "0.5px 3px", borderRadius: "2px", background: "rgba(245,158,11,0.2)", color: "#fcd34d", fontWeight: 800, letterSpacing: "0.05em", border: "0.5px solid rgba(245,158,11,0.4)" }} className="shrink-0">BETA</span>
+                      <span
+                        style={{
+                          fontSize: "6px",
+                          padding: "0.5px 3px",
+                          borderRadius: "2px",
+                          background: "rgba(245,158,11,0.2)",
+                          color: "#fcd34d",
+                          fontWeight: 800,
+                          letterSpacing: "0.05em",
+                          border: "0.5px solid rgba(245,158,11,0.4)",
+                        }}
+                        className="shrink-0"
+                      >
+                        BETA
+                      </span>
                     </p>
                   </div>
                 </>
@@ -558,10 +611,18 @@ export default function SupportChatbot() {
               <div>
                 <div className="text-center mb-3">
                   <div className="w-9 h-9 sm:w-10 sm:h-10 mx-auto mb-2 rounded-xl bg-neon-green/15 border border-neon-green/40 flex items-center justify-center p-1 shadow-[0_0_15px_rgba(118,185,0,0.25)] overflow-hidden">
-                    <img src="/logo.png" alt="Mission Control" className="w-full h-full object-contain" />
+                    <img
+                      src="/logo.png"
+                      alt="Mission Control"
+                      className="w-full h-full object-contain"
+                    />
                   </div>
-                  <h4 className="text-xs font-black text-white uppercase tracking-tight">24/7 SUPPORT SESSION</h4>
-                  <p className="text-[10px] text-gray-400 mt-0.5">Enter details to unlock assistant chat.</p>
+                  <h4 className="text-xs font-black text-white uppercase tracking-tight">
+                    24/7 SUPPORT SESSION
+                  </h4>
+                  <p className="text-[10px] text-gray-400 mt-0.5">
+                    Enter details to unlock assistant chat.
+                  </p>
                 </div>
                 {formError && (
                   <div className="mb-2 p-2 bg-red-500/20 border border-red-500/40 text-red-400 text-[10px] rounded-lg text-center font-bold">
@@ -570,7 +631,9 @@ export default function SupportChatbot() {
                 )}
                 <form onSubmit={handleStartChat} className="space-y-2.5">
                   <div>
-                    <label className="block text-[9px] font-bold text-neon-green uppercase mb-1">Your Name</label>
+                    <label className="block text-[9px] font-bold text-neon-green uppercase mb-1">
+                      Your Name
+                    </label>
                     <input
                       type="text"
                       value={inputName}
@@ -581,7 +644,9 @@ export default function SupportChatbot() {
                     />
                   </div>
                   <div>
-                    <label className="block text-[9px] font-bold text-neon-green uppercase mb-1">Your Email</label>
+                    <label className="block text-[9px] font-bold text-neon-green uppercase mb-1">
+                      Your Email
+                    </label>
                     <input
                       type="email"
                       value={inputEmail}
@@ -592,7 +657,9 @@ export default function SupportChatbot() {
                     />
                   </div>
                   <div>
-                    <label className="block text-[9px] font-bold text-neon-green uppercase mb-1">Gamer Profile</label>
+                    <label className="block text-[9px] font-bold text-neon-green uppercase mb-1">
+                      Gamer Profile
+                    </label>
                     <div className="grid grid-cols-2 gap-1.5">
                       <button
                         type="button"
@@ -646,7 +713,9 @@ export default function SupportChatbot() {
                   </button>
                 </form>
               </div>
-              <p className="text-[9px] text-gray-500 text-center mt-3 font-mono">🔒 Encrypted Session • Zero Spam</p>
+              <p className="text-[9px] text-gray-500 text-center mt-3 font-mono">
+                🔒 Encrypted Session • Zero Spam
+              </p>
             </div>
           ) : showHistoryView ? (
             /* Backend Saved Chat History Drawer */
@@ -654,7 +723,8 @@ export default function SupportChatbot() {
               <div>
                 <div className="flex items-center justify-between border-b border-white/10 pb-2 mb-3">
                   <h4 className="text-[11px] font-black text-white uppercase flex items-center gap-1.5">
-                    <Clock className="w-3.5 h-3.5 text-neon-green" /> CHAT HISTORY ({savedSessions.length})
+                    <Clock className="w-3.5 h-3.5 text-neon-green" /> CHAT HISTORY (
+                    {savedSessions.length})
                   </h4>
                   {savedSessions.length > 0 && (
                     <button
@@ -667,7 +737,9 @@ export default function SupportChatbot() {
                 </div>
 
                 {savedSessions.length === 0 ? (
-                  <p className="text-[10px] text-gray-500 text-center py-8">No saved chat sessions in database.</p>
+                  <p className="text-[10px] text-gray-500 text-center py-8">
+                    No saved chat sessions in database.
+                  </p>
                 ) : (
                   <div className="space-y-2">
                     {savedSessions.map((sess) => (
@@ -681,10 +753,14 @@ export default function SupportChatbot() {
                         }`}
                       >
                         <div className="truncate pr-2">
-                          <p className="font-bold text-[10px] truncate">{sess.title || "Support Chat"}</p>
+                          <p className="font-bold text-[10px] truncate">
+                            {sess.title || "Support Chat"}
+                          </p>
                           <p className="text-[8px] text-gray-500 mt-0.5">
-                            {sess.updatedAt ? new Date(sess.updatedAt).toLocaleDateString() : "Recent"} •{" "}
-                            {sess.messages?.length || 0} messages
+                            {sess.updatedAt
+                              ? new Date(sess.updatedAt).toLocaleDateString()
+                              : "Recent"}{" "}
+                            • {sess.messages?.length || 0} messages
                           </p>
                         </div>
                         <button
@@ -718,7 +794,11 @@ export default function SupportChatbot() {
                   >
                     {msg.sender === "assistant" && (
                       <div className="w-6 h-6 sm:w-7 sm:h-7 rounded-lg bg-neon-green/15 border border-neon-green/40 flex items-center justify-center shrink-0 mt-0.5 overflow-hidden p-0.5 shadow-[0_0_8px_rgba(118,185,0,0.25)]">
-                        <img src="/logo.png" alt="Mission Control" className="w-full h-full object-contain" />
+                        <img
+                          src="/logo.png"
+                          alt="Mission Control"
+                          className="w-full h-full object-contain"
+                        />
                       </div>
                     )}
                     <div
@@ -729,7 +809,9 @@ export default function SupportChatbot() {
                       }`}
                     >
                       <div>{renderFormattedText(msg.text)}</div>
-                      <div className="text-[8px] text-gray-500 mt-1 text-right font-mono">{msg.timestamp}</div>
+                      <div className="text-[8px] text-gray-500 mt-1 text-right font-mono">
+                        {msg.timestamp}
+                      </div>
                     </div>
                     {msg.sender === "user" && renderUserAvatar()}
                   </div>
@@ -738,7 +820,11 @@ export default function SupportChatbot() {
                 {isLoading && (
                   <div className="flex gap-2 items-center">
                     <div className="w-6 h-6 sm:w-7 sm:h-7 rounded-lg bg-neon-green/15 border border-neon-green/40 flex items-center justify-center shrink-0 overflow-hidden p-0.5 shadow-[0_0_8px_rgba(118,185,0,0.25)]">
-                      <img src="/logo.png" alt="Mission Control" className="w-full h-full object-contain animate-spin" />
+                      <img
+                        src="/logo.png"
+                        alt="Mission Control"
+                        className="w-full h-full object-contain animate-spin"
+                      />
                     </div>
                     <span className="text-neon-green/80 font-mono text-[9px] sm:text-[10px] animate-pulse">
                       Analyzing website docs...
@@ -757,7 +843,7 @@ export default function SupportChatbot() {
                       "🌐 Distributed Server Architecture",
                       "⚡ GPU & Hardware Compatibility",
                       "💬 Have Doubts? Contact / Community",
-                      "🚀 Versions & Live Patches"
+                      "🚀 Versions & Live Patches",
                     ].map((chip) => (
                       <button
                         key={chip}

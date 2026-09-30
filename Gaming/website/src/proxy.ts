@@ -113,7 +113,10 @@ function checkRateLimit(
 }
 
 // ── Endpoint Tier Detection ──────────────────────────────────────────────────
-function getEndpointTier(pathname: string, request: NextRequest): "auth" | "authenticated" | "public" {
+function getEndpointTier(
+  pathname: string,
+  request: NextRequest
+): "auth" | "authenticated" | "public" {
   // Check if request is authenticated via session cookie or Authorization header
   const authHeader = request.headers.get("authorization");
   const userIdHeader = request.headers.get("x-user-id");

@@ -1,32 +1,37 @@
 "use client";
 
 import { useEffect, useState, useRef, useMemo } from "react";
-import { 
-  ChevronDown, 
+import {
+  ChevronDown,
   ChevronUp,
-  Filter, 
-  Cpu, 
-  Radio, 
-  Plus, 
-  Star, 
-  ThumbsUp, 
+  Filter,
+  Cpu,
+  Radio,
+  Plus,
+  Star,
+  ThumbsUp,
   Clock,
-  Sparkles, 
-  Search, 
-  X, 
-  ArrowUpDown, 
-  Check, 
-  ChevronLeft, 
+  Sparkles,
+  Search,
+  X,
+  ArrowUpDown,
+  Check,
+  ChevronLeft,
   ChevronRight,
   Zap,
   AlertTriangle,
   Tv,
-  CheckCircle2
+  CheckCircle2,
 } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 import ReportModal from "@/components/modals/ReportModal";
 import RateGameModal from "@/components/modals/RateGameModal";
-import { TESTED_GAMES_LIST, TestedGameSummary, getLiveTestedGames, fetchBenchmarks } from "@/data/benchmarks";
+import {
+  TESTED_GAMES_LIST,
+  TestedGameSummary,
+  getLiveTestedGames,
+  fetchBenchmarks,
+} from "@/data/benchmarks";
 
 interface Issue {
   id: string;
@@ -93,7 +98,7 @@ export default function CommunityPage() {
     totalRatings: 0,
     averageRating: 0,
     recommendationRate: 100,
-    avgReportedFps: 0
+    avgReportedFps: 0,
   });
   const [testedGames, setTestedGames] = useState<TestedGameSummary[]>(getLiveTestedGames());
 
@@ -110,7 +115,7 @@ export default function CommunityPage() {
     total: 0,
     glitches: 0,
     hardware: 0,
-    performance: 0
+    performance: 0,
   });
 
   const genreScrollRef = useRef<HTMLDivElement>(null);
@@ -120,10 +125,13 @@ export default function CommunityPage() {
   // Dynamic Genre Aggregation from tested games library
   const availableGenres = useMemo(() => {
     const genreMap = new Map<string, number>();
-    
+
     testedGames.forEach((g) => {
-      const parts = g.genre.split(/[\/,]/).map(s => s.trim()).filter(Boolean);
-      parts.forEach(p => {
+      const parts = g.genre
+        .split(/[\/,]/)
+        .map((s) => s.trim())
+        .filter(Boolean);
+      parts.forEach((p) => {
         genreMap.set(p, (genreMap.get(p) || 0) + 1);
       });
     });
@@ -132,11 +140,13 @@ export default function CommunityPage() {
   }, [testedGames]);
 
   useEffect(() => {
-    fetchBenchmarks().then((data) => {
-      if (data.testedGames && data.testedGames.length > 0) {
-        setTestedGames(data.testedGames);
-      }
-    }).catch(() => {});
+    fetchBenchmarks()
+      .then((data) => {
+        if (data.testedGames && data.testedGames.length > 0) {
+          setTestedGames(data.testedGames);
+        }
+      })
+      .catch(() => {});
   }, []);
 
   const scrollGenres = (dir: "left" | "right") => {
@@ -172,7 +182,7 @@ export default function CommunityPage() {
             totalRatings: data.summary.totalRatings || data.ratings?.length || 0,
             averageRating: data.summary.averageRating || 0,
             recommendationRate: data.summary.recommendationRate ?? 100,
-            avgReportedFps: data.summary.avgReportedFps || 0
+            avgReportedFps: data.summary.avgReportedFps || 0,
           });
         }
       }
@@ -191,15 +201,18 @@ export default function CommunityPage() {
       if (res.ok) {
         const data = await res.json();
         setIssues(data);
-        
-        const counts = data.reduce((acc: any, curr: Issue) => {
-          acc.total++;
-          if (curr.category === "glitch") acc.glitches++;
-          else if (curr.category === "hardware") acc.hardware++;
-          else if (curr.category === "performance") acc.performance++;
-          return acc;
-        }, { total: 0, glitches: 0, hardware: 0, performance: 0 });
-        
+
+        const counts = data.reduce(
+          (acc: any, curr: Issue) => {
+            acc.total++;
+            if (curr.category === "glitch") acc.glitches++;
+            else if (curr.category === "hardware") acc.hardware++;
+            else if (curr.category === "performance") acc.performance++;
+            return acc;
+          },
+          { total: 0, glitches: 0, hardware: 0, performance: 0 }
+        );
+
         setIssueStats(counts);
       }
     } catch (e) {
@@ -215,7 +228,7 @@ export default function CommunityPage() {
 
   useEffect(() => {
     fetchIssues();
-    
+
     const storedIssueVotes = localStorage.getItem("aero_voted_issues");
     if (storedIssueVotes) {
       try {
@@ -263,12 +276,10 @@ export default function CommunityPage() {
       });
 
       if (res.ok) {
-        setIssues(prev => 
-          prev.map(issue => 
-            issue.id === issueId ? { ...issue, votes: issue.votes + 1 } : issue
-          )
+        setIssues((prev) =>
+          prev.map((issue) => (issue.id === issueId ? { ...issue, votes: issue.votes + 1 } : issue))
         );
-        
+
         const newVoted = [...votedIssueIds, issueId];
         setVotedIssueIds(newVoted);
         localStorage.setItem("aero_voted_issues", JSON.stringify(newVoted));
@@ -282,7 +293,8 @@ export default function CommunityPage() {
     if (votedReviewIds.includes(reviewId)) return;
 
     try {
-      const voterId = localStorage.getItem("aero_voter_id") || `voter_${Math.random().toString(36).slice(2, 10)}`;
+      const voterId =
+        localStorage.getItem("aero_voter_id") || `voter_${Math.random().toString(36).slice(2, 10)}`;
       localStorage.setItem("aero_voter_id", voterId);
 
       const res = await fetch("/api/benchmarks/ratings/vote", {
@@ -294,7 +306,9 @@ export default function CommunityPage() {
       if (res.ok) {
         const data = await res.json();
         setReviews((prev) =>
-          prev.map((r) => (r.id === reviewId ? { ...r, upvotes: data.upvotes || r.upvotes + 1 } : r))
+          prev.map((r) =>
+            r.id === reviewId ? { ...r, upvotes: data.upvotes || r.upvotes + 1 } : r
+          )
         );
         const newVoted = [...votedReviewIds, reviewId];
         setVotedReviewIds(newVoted);
@@ -370,26 +384,26 @@ export default function CommunityPage() {
 
   const getCategoryColor = (cat: string) => {
     switch (cat) {
-      case "hardware": return "text-[#76b900] bg-[#76b900]/10 border-[#76b900]/30";
-      case "glitch": return "text-neon-green bg-neon-green/10 border-neon-green/30 shadow-[0_0_10px_rgba(118, 185, 0,0.15)]";
-      case "performance": return "text-amber-400 bg-amber-400/10 border-amber-400/30";
-      default: return "text-gray-300 bg-white/5 border-white/10";
+      case "hardware":
+        return "text-[#76b900] bg-[#76b900]/10 border-[#76b900]/30";
+      case "glitch":
+        return "text-neon-green bg-neon-green/10 border-neon-green/30 shadow-[0_0_10px_rgba(118, 185, 0,0.15)]";
+      case "performance":
+        return "text-amber-400 bg-amber-400/10 border-amber-400/30";
+      default:
+        return "text-gray-300 bg-white/5 border-white/10";
     }
   };
 
-
-  
   return (
     <main className="flex-1 min-h-screen pt-24 sm:pt-28 pb-20 sm:pb-24 px-3 sm:px-6 lg:px-8 bg-obsidian relative overflow-x-hidden w-full max-w-full">
-      
       {/* Cyber Grid & Ambient Background */}
       <div className="absolute inset-0 cyber-grid opacity-25 pointer-events-none -z-10" />
       <div className="absolute top-1/4 left-1/2 -translate-x-1/2 w-full max-w-125 h-75 bg-neon-green/10 blur-[120px] rounded-full pointer-events-none -z-10 animate-pulse-slow" />
 
       <div className="w-full max-w-6xl mx-auto space-y-6 sm:space-y-10">
-        
         {/* Title & Header */}
-        <motion.div 
+        <motion.div
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.5 }}
@@ -403,7 +417,8 @@ export default function CommunityPage() {
             COMMUNITY <span className="text-neon-green glow-text-teal">INTEL HUB</span>
           </h1>
           <p className="text-xs sm:text-sm text-gray-400 leading-relaxed font-sans max-w-xl mx-auto wrap-break-word">
-            Read real player game reviews, compare hardware rig setups, or submit system driver glitches to trigger community fixes.
+            Read real player game reviews, compare hardware rig setups, or submit system driver
+            glitches to trigger community fixes.
           </p>
         </motion.div>
 
@@ -442,32 +457,40 @@ export default function CommunityPage() {
             {/* Rating Stats Grid */}
             <div className="grid grid-cols-2 lg:grid-cols-4 gap-2 sm:gap-3 w-full">
               {[
-                { 
-                  label: "Community Reviews", 
-                  count: ratingStats.totalRatings || reviews.length, 
-                  color: "text-white" 
+                {
+                  label: "Community Reviews",
+                  count: ratingStats.totalRatings || reviews.length,
+                  color: "text-white",
                 },
-                { 
-                  label: "Average Rating", 
-                  count: ratingStats.averageRating > 0 ? `${ratingStats.averageRating.toFixed(1)} / 5.0` : "Unrated", 
-                  color: "text-amber-400" 
+                {
+                  label: "Average Rating",
+                  count:
+                    ratingStats.averageRating > 0
+                      ? `${ratingStats.averageRating.toFixed(1)} / 5.0`
+                      : "Unrated",
+                  color: "text-amber-400",
                 },
-                { 
-                  label: "Player Recommended", 
-                  count: `${ratingStats.recommendationRate}%`, 
-                  color: "text-neon-green glow-text-teal" 
+                {
+                  label: "Player Recommended",
+                  count: `${ratingStats.recommendationRate}%`,
+                  color: "text-neon-green glow-text-teal",
                 },
-                { 
-                  label: "Avg Rig FPS", 
-                  count: ratingStats.avgReportedFps > 0 ? `${ratingStats.avgReportedFps} FPS` : "—", 
-                  color: "text-emerald-400" 
-                }
+                {
+                  label: "Avg Rig FPS",
+                  count: ratingStats.avgReportedFps > 0 ? `${ratingStats.avgReportedFps} FPS` : "—",
+                  color: "text-emerald-400",
+                },
               ].map((item, idx) => (
-                <div key={idx} className="min-w-0 w-full bg-[#111217]/90 border border-white/10 rounded-xl p-2.5 sm:p-4 flex flex-col items-center justify-center text-center space-y-1 shadow-md overflow-hidden">
+                <div
+                  key={idx}
+                  className="min-w-0 w-full bg-[#111217]/90 border border-white/10 rounded-xl p-2.5 sm:p-4 flex flex-col items-center justify-center text-center space-y-1 shadow-md overflow-hidden"
+                >
                   <span className="text-[9px] min-[360px]:text-[10px] sm:text-xs uppercase font-mono font-bold text-gray-400 tracking-wider truncate block w-full max-w-full">
                     {item.label}
                   </span>
-                  <span className={`text-base min-[360px]:text-lg sm:text-2xl font-black font-mono truncate max-w-full ${item.color}`}>
+                  <span
+                    className={`text-base min-[360px]:text-lg sm:text-2xl font-black font-mono truncate max-w-full ${item.color}`}
+                  >
                     {loadingRatings ? "..." : item.count}
                   </span>
                 </div>
@@ -475,7 +498,6 @@ export default function CommunityPage() {
             </div>
             {/* Scalable Dynamic Genre Filter Bar & Search/Actions Hub */}
             <div className="space-y-3 sm:space-y-4 p-3.5 sm:p-5 rounded-2xl bg-[#0e0f14]/90 border border-white/15 shadow-[0_10px_30px_rgba(0,0,0,0.5)] backdrop-blur-xl">
-              
               {/* Scalable Horizontal-Scrolling Dynamic Genre Bar */}
               <div className="flex items-center gap-1.5 sm:gap-2 w-full">
                 <button
@@ -502,7 +524,9 @@ export default function CommunityPage() {
                     }`}
                   >
                     <span>All Genres</span>
-                    <span className={`text-[10px] px-1.5 py-0.5 rounded-md font-mono ${ratingGenreFilter === "ALL" ? "bg-black/30 text-obsidian font-black" : "bg-white/10 text-gray-400"}`}>
+                    <span
+                      className={`text-[10px] px-1.5 py-0.5 rounded-md font-mono ${ratingGenreFilter === "ALL" ? "bg-black/30 text-obsidian font-black" : "bg-white/10 text-gray-400"}`}
+                    >
                       {reviews.length}
                     </span>
                   </button>
@@ -521,7 +545,9 @@ export default function CommunityPage() {
                         }`}
                       >
                         <span>{genre}</span>
-                        <span className={`text-[10px] px-1.5 py-0.5 rounded-md font-mono ${isSelected ? "bg-black/30 text-obsidian font-black" : "bg-white/10 text-gray-400"}`}>
+                        <span
+                          className={`text-[10px] px-1.5 py-0.5 rounded-md font-mono ${isSelected ? "bg-black/30 text-obsidian font-black" : "bg-white/10 text-gray-400"}`}
+                        >
                           {count}
                         </span>
                       </button>
@@ -541,7 +567,6 @@ export default function CommunityPage() {
 
               {/* Premium Search, Glassmorphic Sort Dropdown & Action Controls */}
               <div className="flex flex-col lg:flex-row items-stretch lg:items-center justify-between gap-2.5 sm:gap-3 pt-3 border-t border-white/10">
-                
                 {/* Premium Cybernetic Search Bar */}
                 <div className="relative flex-1 group">
                   <div className="absolute inset-y-0 left-0 pl-3.5 sm:pl-4 flex items-center pointer-events-none text-gray-400 group-focus-within:text-neon-green transition-colors">
@@ -585,10 +610,16 @@ export default function CommunityPage() {
                           <ArrowUpDown className="w-3 h-3 text-neon-green" />
                         </div>
                         <span className="truncate">
-                          {ratingSortBy === "top" ? "Most Helpful" : ratingSortBy === "latest" ? "Latest Logged" : "Highest Rating"}
+                          {ratingSortBy === "top"
+                            ? "Most Helpful"
+                            : ratingSortBy === "latest"
+                              ? "Latest Logged"
+                              : "Highest Rating"}
                         </span>
                       </div>
-                      <ChevronDown className={`w-3.5 h-3.5 text-gray-400 transition-transform duration-300 shrink-0 ${isRatingSortOpen ? "rotate-180 text-neon-green" : ""}`} />
+                      <ChevronDown
+                        className={`w-3.5 h-3.5 text-gray-400 transition-transform duration-300 shrink-0 ${isRatingSortOpen ? "rotate-180 text-neon-green" : ""}`}
+                      />
                     </button>
 
                     <AnimatePresence>
@@ -606,9 +637,24 @@ export default function CommunityPage() {
                           </div>
 
                           {[
-                            { id: "top", label: "Most Helpful", desc: "Ranked by player upvotes", icon: ThumbsUp },
-                            { id: "latest", label: "Latest Logged", desc: "Most recent community posts", icon: Clock },
-                            { id: "rating", label: "Highest Rating", desc: "Top score benchmarks (5.0★)", icon: Star },
+                            {
+                              id: "top",
+                              label: "Most Helpful",
+                              desc: "Ranked by player upvotes",
+                              icon: ThumbsUp,
+                            },
+                            {
+                              id: "latest",
+                              label: "Latest Logged",
+                              desc: "Most recent community posts",
+                              icon: Clock,
+                            },
+                            {
+                              id: "rating",
+                              label: "Highest Rating",
+                              desc: "Top score benchmarks (5.0★)",
+                              icon: Star,
+                            },
                           ].map((opt) => {
                             const isSelected = ratingSortBy === opt.id;
                             const Icon = opt.icon;
@@ -627,15 +673,21 @@ export default function CommunityPage() {
                                 }`}
                               >
                                 <div className="flex items-center gap-2.5 min-w-0">
-                                  <Icon className={`w-3.5 h-3.5 shrink-0 ${isSelected ? "text-obsidian" : "text-neon-green"}`} />
+                                  <Icon
+                                    className={`w-3.5 h-3.5 shrink-0 ${isSelected ? "text-obsidian" : "text-neon-green"}`}
+                                  />
                                   <div className="min-w-0">
                                     <div className="truncate font-bold">{opt.label}</div>
-                                    <div className={`text-[9px] truncate ${isSelected ? "text-obsidian/70" : "text-gray-500"}`}>
+                                    <div
+                                      className={`text-[9px] truncate ${isSelected ? "text-obsidian/70" : "text-gray-500"}`}
+                                    >
                                       {opt.desc}
                                     </div>
                                   </div>
                                 </div>
-                                {isSelected && <Check className="w-3.5 h-3.5 text-obsidian shrink-0 font-bold" />}
+                                {isSelected && (
+                                  <Check className="w-3.5 h-3.5 text-obsidian shrink-0 font-bold" />
+                                )}
                               </button>
                             );
                           })}
@@ -653,25 +705,27 @@ export default function CommunityPage() {
                     <span className="whitespace-nowrap">Share Review</span>
                   </button>
                 </div>
-
               </div>
-
             </div>
 
             {/* Ratings Feed */}
             {loadingRatings ? (
               <div className="flex flex-col items-center justify-center py-16 space-y-3">
                 <div className="w-8 h-8 border-3 border-neon-green border-t-transparent rounded-full animate-spin"></div>
-                <p className="text-xs text-neon-green font-mono tracking-wider uppercase">Loading community reviews...</p>
+                <p className="text-xs text-neon-green font-mono tracking-wider uppercase">
+                  Loading community reviews...
+                </p>
               </div>
             ) : processedReviews.length === 0 ? (
               <div className="text-center py-12 sm:py-16 bg-[#111217] rounded-xl sm:rounded-2xl border border-white/10 space-y-2.5 font-mono p-4">
                 <Star className="w-8 h-8 text-gray-500 mx-auto" />
                 <h3 className="text-sm sm:text-base font-bold text-white font-display uppercase leading-tight">
-                  {ratingSearchQuery ? "No matching community posts" : "No community reviews posted yet"}
+                  {ratingSearchQuery
+                    ? "No matching community posts"
+                    : "No community reviews posted yet"}
                 </h3>
                 <p className="text-xs text-gray-400 max-w-sm mx-auto">
-                  {ratingSearchQuery 
+                  {ratingSearchQuery
                     ? "Try adjusting your search terms or clearing the filter."
                     : "Be the first community member to share your gameplay impressions and rig setup."}
                 </p>
@@ -781,7 +835,10 @@ export default function CommunityPage() {
                           {rev.specs?.fpsReported && (
                             <span className="px-2 py-0.5 rounded-md bg-neon-green/10 border border-neon-green/30 text-neon-green font-bold flex items-center gap-1 shrink-0">
                               <Zap className="w-3 h-3 shrink-0" />
-                              {rev.specs.fpsReported} FPS {rev.specs.resolution ? `@ ${rev.specs.resolution.split(' ')[0]}` : ""}
+                              {rev.specs.fpsReported} FPS{" "}
+                              {rev.specs.resolution
+                                ? `@ ${rev.specs.resolution.split(" ")[0]}`
+                                : ""}
                             </span>
                           )}
                         </div>
@@ -807,7 +864,9 @@ export default function CommunityPage() {
                               : "bg-white/5 hover:bg-white/10 text-gray-300 hover:text-white border border-white/10"
                           }`}
                         >
-                          <ThumbsUp className={`w-3 h-3 ${hasVoted ? "fill-neon-green text-neon-green" : ""}`} />
+                          <ThumbsUp
+                            className={`w-3 h-3 ${hasVoted ? "fill-neon-green text-neon-green" : ""}`}
+                          />
                           <span>Helpful ({rev.upvotes || 0})</span>
                         </button>
                       </div>
@@ -826,15 +885,32 @@ export default function CommunityPage() {
             <div className="grid grid-cols-2 lg:grid-cols-4 gap-2 sm:gap-3 w-full">
               {[
                 { label: "Active Telemetry", count: issueStats.total, color: "text-white" },
-                { label: "Rendering Glitches", count: issueStats.glitches, color: "text-neon-green glow-text-teal" },
-                { label: "Hardware & Sensors", count: issueStats.hardware, color: "text-[#76b900]" },
-                { label: "Performance Drops", count: issueStats.performance, color: "text-amber-400" }
+                {
+                  label: "Rendering Glitches",
+                  count: issueStats.glitches,
+                  color: "text-neon-green glow-text-teal",
+                },
+                {
+                  label: "Hardware & Sensors",
+                  count: issueStats.hardware,
+                  color: "text-[#76b900]",
+                },
+                {
+                  label: "Performance Drops",
+                  count: issueStats.performance,
+                  color: "text-amber-400",
+                },
               ].map((item, idx) => (
-                <div key={idx} className="min-w-0 w-full bg-[#111217]/90 border border-white/10 rounded-xl p-2.5 sm:p-4 flex flex-col items-center justify-center text-center space-y-1 shadow-md overflow-hidden">
+                <div
+                  key={idx}
+                  className="min-w-0 w-full bg-[#111217]/90 border border-white/10 rounded-xl p-2.5 sm:p-4 flex flex-col items-center justify-center text-center space-y-1 shadow-md overflow-hidden"
+                >
                   <span className="text-[9px] min-[360px]:text-[10px] sm:text-xs uppercase font-mono font-bold text-gray-400 tracking-wider truncate block w-full max-w-full">
                     {item.label}
                   </span>
-                  <span className={`text-base min-[360px]:text-lg sm:text-2xl font-black font-mono truncate max-w-full ${item.color}`}>
+                  <span
+                    className={`text-base min-[360px]:text-lg sm:text-2xl font-black font-mono truncate max-w-full ${item.color}`}
+                  >
                     {loadingIssues ? "..." : item.count}
                   </span>
                 </div>
@@ -849,7 +925,7 @@ export default function CommunityPage() {
                   { id: "all", label: "All Logs" },
                   { id: "glitch", label: "Glitches" },
                   { id: "hardware", label: "Hardware" },
-                  { id: "performance", label: "Performance" }
+                  { id: "performance", label: "Performance" },
                 ].map((tab) => (
                   <button
                     key={tab.id}
@@ -876,9 +952,13 @@ export default function CommunityPage() {
                   >
                     <div className="flex items-center gap-1.5 truncate">
                       <Filter className="w-3 h-3 text-neon-green shrink-0" />
-                      <span className="truncate">{issueSortBy === "votes" ? "Most Voted" : "Latest"}</span>
+                      <span className="truncate">
+                        {issueSortBy === "votes" ? "Most Voted" : "Latest"}
+                      </span>
                     </div>
-                    <ChevronDown className={`w-3 h-3 text-gray-400 transition-transform duration-200 shrink-0 ${isIssueSortOpen ? "rotate-180 text-neon-green" : ""}`} />
+                    <ChevronDown
+                      className={`w-3 h-3 text-gray-400 transition-transform duration-200 shrink-0 ${isIssueSortOpen ? "rotate-180 text-neon-green" : ""}`}
+                    />
                   </button>
 
                   <AnimatePresence>
@@ -928,7 +1008,8 @@ export default function CommunityPage() {
                   onClick={() => setIsIssueModalOpen(true)}
                   className="flex-1 px-3 py-2 text-[11px] sm:text-xs font-black uppercase tracking-wider rounded-xl bg-neon-green text-obsidian hover:bg-white hover:shadow-[0_0_15px_rgba(118,185,0,0.4)] transition-all duration-300 cursor-pointer font-mono flex items-center justify-center gap-1.5 shadow shrink-0"
                 >
-                  <Plus className="w-3.5 h-3.5 shrink-0" /> <span className="truncate">Log Glitch</span>
+                  <Plus className="w-3.5 h-3.5 shrink-0" />{" "}
+                  <span className="truncate">Log Glitch</span>
                 </button>
               </div>
             </div>
@@ -937,13 +1018,19 @@ export default function CommunityPage() {
             {loadingIssues ? (
               <div className="flex flex-col items-center justify-center py-16 space-y-3">
                 <div className="w-8 h-8 border-3 border-neon-green border-t-transparent rounded-full animate-spin"></div>
-                <p className="text-xs text-neon-green font-mono tracking-wider uppercase">Loading telemetry feed...</p>
+                <p className="text-xs text-neon-green font-mono tracking-wider uppercase">
+                  Loading telemetry feed...
+                </p>
               </div>
             ) : processedIssues.length === 0 ? (
               <div className="text-center py-12 sm:py-16 bg-[#111217] rounded-xl sm:rounded-2xl border border-white/10 space-y-2.5 p-4 font-mono">
                 <AlertTriangle className="w-8 h-8 text-gray-500 mx-auto" />
-                <h3 className="text-sm sm:text-base font-bold text-white font-display uppercase leading-tight">No telemetry reports match filters</h3>
-                <p className="text-[11px] sm:text-xs text-gray-400 max-w-sm mx-auto">Be the first operator to dispatch a hardware or rendering fault.</p>
+                <h3 className="text-sm sm:text-base font-bold text-white font-display uppercase leading-tight">
+                  No telemetry reports match filters
+                </h3>
+                <p className="text-[11px] sm:text-xs text-gray-400 max-w-sm mx-auto">
+                  Be the first operator to dispatch a hardware or rendering fault.
+                </p>
               </div>
             ) : (
               <div className="space-y-3 sm:space-y-4">
@@ -952,17 +1039,21 @@ export default function CommunityPage() {
                   const isExpanded = expandedIssueId === issue.id;
 
                   return (
-                    <div 
-                      key={issue.id} 
+                    <div
+                      key={issue.id}
                       className={`bg-[#0f1015] rounded-xl sm:rounded-2xl border transition-all duration-300 overflow-hidden shadow-lg ${
-                        isExpanded ? "border-neon-green/50 bg-neon-green/2 shadow-[0_0_25px_rgba(118,185,0,0.15)]" : "border-white/10 hover:border-white/20"
+                        isExpanded
+                          ? "border-neon-green/50 bg-neon-green/2 shadow-[0_0_25px_rgba(118,185,0,0.15)]"
+                          : "border-white/10 hover:border-white/20"
                       }`}
                     >
                       <div className="p-4 sm:p-5 flex flex-col sm:flex-row sm:items-start justify-between gap-3.5 sm:gap-5">
                         {/* Content Section */}
                         <div className="space-y-2.5 flex-1 min-w-0">
                           <div className="flex flex-wrap items-center gap-2">
-                            <span className={`px-2.5 py-0.5 rounded-md text-[10px] font-mono uppercase font-bold tracking-wider border ${getCategoryColor(issue.category)}`}>
+                            <span
+                              className={`px-2.5 py-0.5 rounded-md text-[10px] font-mono uppercase font-bold tracking-wider border ${getCategoryColor(issue.category)}`}
+                            >
                               {issue.category}
                             </span>
                             {issue.game && (
@@ -991,10 +1082,12 @@ export default function CommunityPage() {
                           {/* Primary specs tags */}
                           <div className="flex flex-wrap gap-1.5 text-[9px] sm:text-[10px] font-mono text-gray-300 pt-1">
                             <span className="flex items-center gap-1 px-2 py-0.5 rounded-md bg-obsidian border border-white/10 truncate max-w-50">
-                              <Cpu className="w-3 h-3 text-neon-green shrink-0" /> <span className="truncate">{issue.specs.cpu}</span>
+                              <Cpu className="w-3 h-3 text-neon-green shrink-0" />{" "}
+                              <span className="truncate">{issue.specs.cpu}</span>
                             </span>
                             <span className="flex items-center gap-1 px-2 py-0.5 rounded-md bg-obsidian border border-white/10 truncate max-w-50">
-                              <Tv className="w-3 h-3 text-neon-green shrink-0" /> <span className="truncate">{issue.specs.gpu}</span>
+                              <Tv className="w-3 h-3 text-neon-green shrink-0" />{" "}
+                              <span className="truncate">{issue.specs.gpu}</span>
                             </span>
                           </div>
                         </div>
@@ -1022,7 +1115,8 @@ export default function CommunityPage() {
                             >
                               {hasVoted ? (
                                 <>
-                                  <CheckCircle2 className="w-3 h-3 text-neon-green shrink-0" /> Verified
+                                  <CheckCircle2 className="w-3 h-3 text-neon-green shrink-0" />{" "}
+                                  Verified
                                 </>
                               ) : (
                                 "Confirm Fault"
@@ -1034,7 +1128,11 @@ export default function CommunityPage() {
                               className="p-1.5 rounded-xl bg-white/5 hover:bg-white/10 text-gray-400 hover:text-white transition sm:hidden shrink-0"
                               aria-label="Toggle details"
                             >
-                              {isExpanded ? <ChevronUp className="w-3.5 h-3.5" /> : <ChevronDown className="w-3.5 h-3.5" />}
+                              {isExpanded ? (
+                                <ChevronUp className="w-3.5 h-3.5" />
+                              ) : (
+                                <ChevronDown className="w-3.5 h-3.5" />
+                              )}
                             </button>
                           </div>
                         </div>
@@ -1052,7 +1150,8 @@ export default function CommunityPage() {
                             </>
                           ) : (
                             <>
-                              <ChevronDown className="w-3 h-3" /> Inspect Rig Context ({issue.specs.os} / {issue.specs.ramGB}GB RAM)
+                              <ChevronDown className="w-3 h-3" /> Inspect Rig Context (
+                              {issue.specs.os} / {issue.specs.ramGB}GB RAM)
                             </>
                           )}
                         </button>
@@ -1066,25 +1165,33 @@ export default function CommunityPage() {
                               <span className="block text-[8px] sm:text-[9px] uppercase font-bold text-gray-400 tracking-wider">
                                 Operating System
                               </span>
-                              <span className="text-white font-bold truncate block text-[11px]">{issue.specs.os} ({issue.specs.osVersion})</span>
+                              <span className="text-white font-bold truncate block text-[11px]">
+                                {issue.specs.os} ({issue.specs.osVersion})
+                              </span>
                             </div>
                             <div className="space-y-1 bg-white/2 p-2 sm:p-2.5 rounded-xl border border-white/5">
                               <span className="block text-[8px] sm:text-[9px] uppercase font-bold text-gray-400 tracking-wider">
                                 System Memory
                               </span>
-                              <span className="text-white font-bold truncate block text-[11px]">{issue.specs.ramGB} GB RAM</span>
+                              <span className="text-white font-bold truncate block text-[11px]">
+                                {issue.specs.ramGB} GB RAM
+                              </span>
                             </div>
                             <div className="space-y-1 bg-white/2 p-2 sm:p-2.5 rounded-xl border border-white/5">
                               <span className="block text-[8px] sm:text-[9px] uppercase font-bold text-gray-400 tracking-wider">
                                 GPU Driver Package
                               </span>
-                              <span className="text-neon-green font-bold truncate block text-[11px]">{issue.specs.gpuDriver || "GeForce Game Ready"}</span>
+                              <span className="text-neon-green font-bold truncate block text-[11px]">
+                                {issue.specs.gpuDriver || "GeForce Game Ready"}
+                              </span>
                             </div>
                             <div className="space-y-1 bg-white/2 p-2 sm:p-2.5 rounded-xl border border-white/5">
                               <span className="block text-[8px] sm:text-[9px] uppercase font-bold text-gray-400 tracking-wider">
                                 Build Executable
                               </span>
-                              <span className="text-white font-bold truncate block text-[11px]">v{issue.specs.appVersion} Stealth</span>
+                              <span className="text-white font-bold truncate block text-[11px]">
+                                v{issue.specs.appVersion} Stealth
+                              </span>
                             </div>
                           </div>
                         </div>
@@ -1096,7 +1203,6 @@ export default function CommunityPage() {
             )}
           </div>
         )}
-
       </div>
 
       {/* Submit Report Modal */}

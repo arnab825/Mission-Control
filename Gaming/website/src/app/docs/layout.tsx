@@ -3,16 +3,11 @@ import { BookOpen, Terminal, Sparkles, ChevronLeft } from "lucide-react";
 import { getAllDocs } from "@/lib/docs";
 import { DocsSidebarNav, DocsVersionBadge, MobileDocsSidebar } from "@/components/docs";
 
-export default async function DocsLayout({
-  children,
-}: {
-  children: React.ReactNode;
-}) {
+export default async function DocsLayout({ children }: { children: React.ReactNode }) {
   const docs = await getAllDocs();
 
   return (
     <div className="flex-1 w-full relative pt-20 bg-[#070709] text-gray-300 flex flex-col min-h-screen overflow-x-clip">
-
       {/* Ambient background glows */}
       <div className="absolute top-20 left-10 w-72 sm:w-[500px] h-72 sm:h-[500px] bg-neon-green/5 blur-[120px] sm:blur-[180px] rounded-full pointer-events-none -z-10" />
       <div className="absolute top-1/2 right-10 w-72 sm:w-[400px] h-72 sm:h-[400px] bg-emerald-500/3 blur-[120px] sm:blur-[160px] rounded-full pointer-events-none -z-10" />
@@ -21,10 +16,8 @@ export default async function DocsLayout({
       <MobileDocsSidebar docs={docs} />
 
       <div className="max-w-[90rem] mx-auto px-4 sm:px-6 md:px-8 flex-1 flex items-start w-full gap-8">
-
         {/* ── Left Sidebar ─────────────────────────────────────────────── */}
         <aside className="sticky top-24 hidden lg:flex flex-col w-64 pt-2 pb-8 h-[calc(100vh-7rem)] overflow-y-auto border-r border-white/10 pr-4 gap-5 scrollbar-none shrink-0 self-start z-30">
-
           {/* Navigation Controls */}
           <div className="space-y-2 pb-4 border-b border-white/10">
             <Link
@@ -57,9 +50,7 @@ export default async function DocsLayout({
         </aside>
 
         {/* ── Main Content ─────────────────────────────────────────────── */}
-        <main className="w-full pt-4 pb-16 pr-0 xl:pr-4 min-w-0 flex-1">
-          {children}
-        </main>
+        <main className="w-full pt-4 pb-16 pr-0 xl:pr-4 min-w-0 flex-1">{children}</main>
       </div>
     </div>
   );

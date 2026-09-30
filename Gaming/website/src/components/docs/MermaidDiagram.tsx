@@ -21,7 +21,7 @@ export function MermaidDiagram({ chart }: MermaidDiagramProps) {
     const renderChart = async () => {
       try {
         const mermaid = (await import("mermaid")).default;
-        
+
         mermaid.initialize({
           startOnLoad: false,
           theme: "dark",
@@ -50,7 +50,7 @@ export function MermaidDiagram({ chart }: MermaidDiagramProps) {
         const sanitizedChart = sanitizeMermaidCode(chart);
 
         const res = await mermaid.render(uniqueId, sanitizedChart);
-        
+
         if (isMounted) {
           const processedSvg = res.svg
             .replace(/max-width:\s*[\d\.]+px;?/gi, "max-width: 100%;")
@@ -83,7 +83,9 @@ export function MermaidDiagram({ chart }: MermaidDiagramProps) {
           <span>Diagram Rendering Fallback</span>
           <span>Mermaid</span>
         </div>
-        <pre className="overflow-x-auto text-[11px] text-gray-400 font-mono whitespace-pre-wrap">{chart}</pre>
+        <pre className="overflow-x-auto text-[11px] text-gray-400 font-mono whitespace-pre-wrap">
+          {chart}
+        </pre>
       </div>
     );
   }

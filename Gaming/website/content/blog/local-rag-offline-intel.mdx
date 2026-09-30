@@ -27,6 +27,7 @@ graph LR
 ```
 
 The database indices are stored under your local installation folder:
+
 - **Index Store**: `backend/ai_brain/rag_index/`
 - **Game Document Cache**: `backend/ai_brain/rag_data/`
 
@@ -53,6 +54,6 @@ def cosine_similarity(a, b):
 
 ## Privacy and Bandwidth Optimization
 
-Because RAG runs entirely locally on your hardware, no prompts are sent to external databases or cloud miners. 
+Because RAG runs entirely locally on your hardware, no prompts are sent to external databases or cloud miners.
 
 If internet connectivity is detected and an `NVIDIA_API_KEY` is provided, the overlay can securely interface with cloud NIM endpoints, but the document chunking and search matching phases remain 100% sandboxed inside your local motherboard UUID security boundary.

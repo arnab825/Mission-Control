@@ -1,1 +1,1 @@
-export * from './home/ScreenshotGallery';
+export * from "./home/ScreenshotGallery";

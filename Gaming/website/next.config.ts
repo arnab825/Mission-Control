@@ -32,7 +32,7 @@ const nextConfig: NextConfig = {
       "public/images/**",
       "generate.log",
       "*.log",
-      "*.tsbuildinfo"
+      "*.tsbuildinfo",
     ],
   },
   compress: true,
@@ -45,13 +45,15 @@ const nextConfig: NextConfig = {
       { protocol: "https", hostname: "images.unsplash.com" },
       { protocol: "https", hostname: "blob.vercel-storage.com" },
       { protocol: "https", hostname: "*.public.blob.vercel-storage.com" },
-      { protocol: "https", hostname: "pollinations.ai" }
+      { protocol: "https", hostname: "pollinations.ai" },
     ],
     formats: ["image/avif", "image/webp"],
     minimumCacheTTL: 86400,
   },
   env: Object.fromEntries(
-    Object.entries(publicEnv).filter(([_, val]) => typeof val === "string" && !val.startsWith("your_"))
+    Object.entries(publicEnv).filter(
+      ([_, val]) => typeof val === "string" && !val.startsWith("your_")
+    )
   ) as Record<string, string>,
   async headers() {
     return [
@@ -62,18 +64,31 @@ const nextConfig: NextConfig = {
           { key: "X-Content-Type-Options", value: "nosniff" },
           { key: "Referrer-Policy", value: "strict-origin-when-cross-origin" },
           { key: "X-XSS-Protection", value: "1; mode=block" },
-          { key: "Permissions-Policy", value: "camera=(), microphone=(), geolocation=(), interest-cohort=()" }
-        ]
+          {
+            key: "Permissions-Policy",
+            value: "camera=(), microphone=(), geolocation=(), interest-cohort=()",
+          },
+        ],
       },
       {
         source: "/(fonts|images|screenshots|games|logo.png)/:path*",
         headers: [
           { key: "Access-Control-Allow-Origin", value: "*" },
-          { key: "Cache-Control", value: "public, max-age=31536000, s-maxage=31536000, stale-while-revalidate=86400, immutable" },
-          { key: "CDN-Cache-Control", value: "public, s-maxage=31536000, stale-while-revalidate=86400, immutable" },
-          { key: "Vercel-CDN-Cache-Control", value: "public, s-maxage=31536000, stale-while-revalidate=86400, immutable" }
-        ]
-      }
+          {
+            key: "Cache-Control",
+            value:
+              "public, max-age=31536000, s-maxage=31536000, stale-while-revalidate=86400, immutable",
+          },
+          {
+            key: "CDN-Cache-Control",
+            value: "public, s-maxage=31536000, stale-while-revalidate=86400, immutable",
+          },
+          {
+            key: "Vercel-CDN-Cache-Control",
+            value: "public, s-maxage=31536000, stale-while-revalidate=86400, immutable",
+          },
+        ],
+      },
     ];
   },
   async redirects() {
@@ -88,4 +103,3 @@ const nextConfig: NextConfig = {
 };
 
 export default nextConfig;
-

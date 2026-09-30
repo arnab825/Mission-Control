@@ -102,7 +102,8 @@ function validateMediaMagicBytes(buffer: Buffer): MagicByteValidationResult {
 
   return {
     valid: false,
-    error: "File content failed deep binary inspection: signature does not match allowed image or video formats.",
+    error:
+      "File content failed deep binary inspection: signature does not match allowed image or video formats.",
   };
 }
 
@@ -127,10 +128,7 @@ export async function POST(request: Request) {
     }
 
     if (file.size > MAX_SIZE_BYTES) {
-      return NextResponse.json(
-        { error: "File size exceeds the 25MB limit." },
-        { status: 400 }
-      );
+      return NextResponse.json({ error: "File size exceeds the 25MB limit." }, { status: 400 });
     }
 
     // 2. Read array buffer and perform deep binary magic-bytes inspection
@@ -192,7 +190,10 @@ export async function POST(request: Request) {
           });
         }
       } catch (blobErr: unknown) {
-        console.warn("[Upload API] Vercel Blob upload failed, falling back to base64 data URI:", blobErr);
+        console.warn(
+          "[Upload API] Vercel Blob upload failed, falling back to base64 data URI:",
+          blobErr
+        );
       }
     }
 

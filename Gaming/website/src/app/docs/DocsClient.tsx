@@ -38,14 +38,50 @@ import { DocData } from "@/lib/docs";
 function getDocIcon(category: string, slug: string) {
   const catLower = (category || "").toLowerCase();
   const slugLower = (slug || "").toLowerCase();
-  if (slugLower.includes("nvidia") || slugLower.includes("nim") || slugLower.includes("ai") || slugLower.includes("weights")) return Bot;
-  if (slugLower.includes("prompt") || slugLower.includes("terminal") || catLower.includes("logic")) return Terminal;
-  if (slugLower.includes("patch") || slugLower.includes("version") || slugLower.includes("update") || slugLower.includes("roadmap")) return GitBranch;
-  if (slugLower.includes("telemetry") || slugLower.includes("sensor") || slugLower.includes("hardware") || slugLower.includes("fps") || slugLower.includes("vram")) return Cpu;
-  if (slugLower.includes("overlay") || slugLower.includes("directx") || slugLower.includes("hud") || slugLower.includes("dlss")) return Activity;
-  if (slugLower.includes("gamepad") || slugLower.includes("controller") || slugLower.includes("game")) return Gamepad2;
+  if (
+    slugLower.includes("nvidia") ||
+    slugLower.includes("nim") ||
+    slugLower.includes("ai") ||
+    slugLower.includes("weights")
+  )
+    return Bot;
+  if (slugLower.includes("prompt") || slugLower.includes("terminal") || catLower.includes("logic"))
+    return Terminal;
+  if (
+    slugLower.includes("patch") ||
+    slugLower.includes("version") ||
+    slugLower.includes("update") ||
+    slugLower.includes("roadmap")
+  )
+    return GitBranch;
+  if (
+    slugLower.includes("telemetry") ||
+    slugLower.includes("sensor") ||
+    slugLower.includes("hardware") ||
+    slugLower.includes("fps") ||
+    slugLower.includes("vram")
+  )
+    return Cpu;
+  if (
+    slugLower.includes("overlay") ||
+    slugLower.includes("directx") ||
+    slugLower.includes("hud") ||
+    slugLower.includes("dlss")
+  )
+    return Activity;
+  if (
+    slugLower.includes("gamepad") ||
+    slugLower.includes("controller") ||
+    slugLower.includes("game")
+  )
+    return Gamepad2;
   if (catLower.includes("reference") || slugLower.includes("key")) return KeyRound;
-  if (catLower.includes("architecture") || slugLower.includes("process") || slugLower.includes("design")) return Layers;
+  if (
+    catLower.includes("architecture") ||
+    slugLower.includes("process") ||
+    slugLower.includes("design")
+  )
+    return Layers;
   if (catLower.includes("security") || catLower.includes("shield")) return ShieldCheck;
   return BookOpen;
 }
@@ -151,7 +187,9 @@ export default function DocsClient({ docs }: { docs: DocData[] }) {
   const [query, setQuery] = useState("");
   const [copiedKey, setCopiedKey] = useState<string | null>(null);
   const [isSearchFocused, setIsSearchFocused] = useState(false);
-  const [suggestedDocs, setSuggestedDocs] = useState<DocData[]>(() => (docs ? docs.slice(0, 5) : []));
+  const [suggestedDocs, setSuggestedDocs] = useState<DocData[]>(() =>
+    docs ? docs.slice(0, 5) : []
+  );
   const searchInputRef = useRef<HTMLInputElement>(null);
   const searchContainerRef = useRef<HTMLDivElement>(null);
 
@@ -233,17 +271,7 @@ export default function DocsClient({ docs }: { docs: DocData[] }) {
       categoriesMap[cat].push(doc);
     });
 
-    const icons = [
-      BookOpen,
-      Terminal,
-      Sliders,
-      Cpu,
-      Layers,
-      Activity,
-      Bot,
-      Globe,
-      ScrollText,
-    ];
+    const icons = [BookOpen, Terminal, Sliders, Cpu, Layers, Activity, Bot, Globe, ScrollText];
     let iconIdx = 0;
 
     return Object.keys(categoriesMap).map((category) => {
@@ -278,13 +306,15 @@ export default function DocsClient({ docs }: { docs: DocData[] }) {
   const liveSearchResults = useMemo(() => {
     if (!query.trim()) return [];
     const q = query.toLowerCase();
-    return docs.filter(
-      (d) =>
-        d.title.toLowerCase().includes(q) ||
-        d.excerpt.toLowerCase().includes(q) ||
-        d.category.toLowerCase().includes(q) ||
-        d.slug.toLowerCase().includes(q)
-    ).slice(0, 8);
+    return docs
+      .filter(
+        (d) =>
+          d.title.toLowerCase().includes(q) ||
+          d.excerpt.toLowerCase().includes(q) ||
+          d.category.toLowerCase().includes(q) ||
+          d.slug.toLowerCase().includes(q)
+      )
+      .slice(0, 8);
   }, [docs, query]);
 
   const totalDocsCount = useMemo(() => {
@@ -292,7 +322,10 @@ export default function DocsClient({ docs }: { docs: DocData[] }) {
   }, [filtered]);
 
   return (
-    <div className="w-full max-w-6xl mx-auto py-6 px-2 sm:px-4 relative z-10 font-sans" suppressHydrationWarning>
+    <div
+      className="w-full max-w-6xl mx-auto py-6 px-2 sm:px-4 relative z-10 font-sans"
+      suppressHydrationWarning
+    >
       {/* Background ambience */}
       <div className="absolute inset-0 cyber-grid opacity-15 pointer-events-none -z-10" />
       <div className="absolute top-1/4 left-1/2 -translate-x-1/2 w-full max-w-200 h-87.5 bg-neon-green/5 blur-[180px] rounded-full pointer-events-none -z-10 animate-pulse-slow" />
@@ -313,17 +346,18 @@ export default function DocsClient({ docs }: { docs: DocData[] }) {
         </div>
 
         <h1 className="text-lg min-[340px]:text-xl min-[380px]:text-2xl sm:text-5xl lg:text-6xl font-black tracking-normal sm:tracking-tight text-white mb-3 sm:mb-4 font-display uppercase leading-tight wrap-break-word">
-          DOCUMENTATION{" "}
-          <span className="text-neon-green">
-            PORTAL
-          </span>
+          DOCUMENTATION <span className="text-neon-green">PORTAL</span>
         </h1>
         <p className="text-xs sm:text-base text-gray-400 max-w-2xl mx-auto leading-relaxed font-mono px-2">
-          Complete technical reference, API integration guides, system telemetry setup,
-          and NVIDIA NIM AI models for production deployments.
+          Complete technical reference, API integration guides, system telemetry setup, and NVIDIA
+          NIM AI models for production deployments.
         </p>
         {/* Command Search Bar & Dynamic Suggestions Dropdown */}
-        <div className="relative mt-5 sm:mt-8 max-w-xl mx-auto px-1" ref={searchContainerRef} suppressHydrationWarning>
+        <div
+          className="relative mt-5 sm:mt-8 max-w-xl mx-auto px-1"
+          ref={searchContainerRef}
+          suppressHydrationWarning
+        >
           <div className="relative group" suppressHydrationWarning>
             <Search className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-neon-green/70 group-focus-within:text-neon-green group-focus-within:drop-shadow-[0_0_8px_rgba(118,185,0,0.8)] transition-all pointer-events-none" />
             <input
@@ -380,7 +414,9 @@ export default function DocsClient({ docs }: { docs: DocData[] }) {
                 <div className="px-3 py-2 border-b border-white/10 flex items-center justify-between text-[10px] font-bold uppercase tracking-wider text-gray-400">
                   <span className="flex items-center gap-1.5 text-neon-green">
                     <Sparkles className="w-3.5 h-3.5 text-neon-green" />
-                    {query ? `Search Results (${liveSearchResults.length})` : "Recommended Docs & Topics"}
+                    {query
+                      ? `Search Results (${liveSearchResults.length})`
+                      : "Recommended Docs & Topics"}
                   </span>
                   {!query && (
                     <button
@@ -402,7 +438,8 @@ export default function DocsClient({ docs }: { docs: DocData[] }) {
                 <div className="py-1 space-y-1">
                   {(query ? liveSearchResults : suggestedDocs).length === 0 ? (
                     <div className="p-6 text-center text-xs text-gray-500 font-mono">
-                      No matching documentation topics found for &ldquo;<span className="text-white">{query}</span>&rdquo;.
+                      No matching documentation topics found for &ldquo;
+                      <span className="text-white">{query}</span>&rdquo;.
                     </div>
                   ) : (
                     (query ? liveSearchResults : suggestedDocs).map((doc) => {
@@ -427,7 +464,8 @@ export default function DocsClient({ docs }: { docs: DocData[] }) {
                               </span>
                             </div>
                             <p className="text-[11px] text-gray-400 group-hover/item:text-gray-300 transition-colors line-clamp-1 font-sans">
-                              {doc.excerpt || "Read technical reference and implementation details."}
+                              {doc.excerpt ||
+                                "Read technical reference and implementation details."}
                             </p>
                           </div>
                           <ArrowRight className="w-3.5 h-3.5 text-gray-600 group-hover/item:text-neon-green group-hover/item:translate-x-0.5 transition-all self-center shrink-0" />
@@ -439,7 +477,10 @@ export default function DocsClient({ docs }: { docs: DocData[] }) {
 
                 {/* Footer hint */}
                 <div className="px-3 py-1.5 border-t border-white/5 flex items-center justify-between text-[9px] text-gray-500">
-                  <span>Press <kbd className="px-1 py-0.5 bg-white/5 rounded text-gray-300">Esc</kbd> to dismiss</span>
+                  <span>
+                    Press <kbd className="px-1 py-0.5 bg-white/5 rounded text-gray-300">Esc</kbd> to
+                    dismiss
+                  </span>
                   <span className="text-neon-green">Live Index</span>
                 </div>
               </motion.div>
@@ -452,12 +493,10 @@ export default function DocsClient({ docs }: { docs: DocData[] }) {
       {query && (
         <div className="mb-6 flex items-center justify-between text-xs font-mono text-gray-400 border-b border-white/10 pb-3">
           <span>
-            Showing <strong className="text-neon-green">{totalDocsCount}</strong> matching document(s)
+            Showing <strong className="text-neon-green">{totalDocsCount}</strong> matching
+            document(s)
           </span>
-          <button
-            onClick={() => setQuery("")}
-            className="text-neon-green hover:underline text-xs"
-          >
+          <button onClick={() => setQuery("")} className="text-neon-green hover:underline text-xs">
             Clear Search
           </button>
         </div>
@@ -631,9 +670,17 @@ export default function DocsClient({ docs }: { docs: DocData[] }) {
                   {/* Copy snippet container */}
                   <div className="p-5 bg-black/40 border-t border-white/5">
                     <pre className="text-xs font-mono text-gray-400 overflow-x-auto whitespace-pre-wrap leading-relaxed">
-                      <span className="text-gray-600"># Cloud AI Inference (NVIDIA NIM Llama 3.1 / 3.2)</span>{"\n"}
-                      <span className="text-neon-yellow font-bold">NVIDIA_API_KEY</span>=<span className="text-neon-green">nvapi-xxxxxxxxxxxxxxxxxxxxxxxxx</span>{"\n\n"}
-                      <span className="text-gray-600"># Game Knowledge Graph & Search Enrichment</span>{"\n"}
+                      <span className="text-gray-600">
+                        # Cloud AI Inference (NVIDIA NIM Llama 3.1 / 3.2)
+                      </span>
+                      {"\n"}
+                      <span className="text-neon-yellow font-bold">NVIDIA_API_KEY</span>=
+                      <span className="text-neon-green">nvapi-xxxxxxxxxxxxxxxxxxxxxxxxx</span>
+                      {"\n\n"}
+                      <span className="text-gray-600">
+                        # Game Knowledge Graph & Search Enrichment
+                      </span>
+                      {"\n"}
                       <span className="text-white/60">RAWG_API_KEY</span>=your_rawg_key{"\n"}
                       <span className="text-white/60">TAVILY_API_KEY</span>=tvly-xxxxxxxxxxxx
                     </pre>
@@ -685,28 +732,63 @@ export default function DocsClient({ docs }: { docs: DocData[] }) {
                       <tbody className="divide-y divide-white/5">
                         {[
                           ["AI Computer Vision", "Pure TensorRT 10.x (YOLOv8 Engine)", "Active"],
-                          ["Frame Screen Capture", "dxcam (DXGI 120fps+) / D3DShot / MSS fallback", "Active"],
-                          ["Cloud LLM / Vision", "NVIDIA NIM — Llama 3.1 8B / 3.2 11B Vision", "Active"],
-                          ["OCR Text Extraction", "RapidOCR / Tesseract (GPU/ONNX-accelerated)", "Active"],
-                          ["Web Search Enrichment", "Wikipedia + SteamSpy + DuckDuckGo + RAWG.io", "Active"],
-                          ["Voice STT Processing", "Google Cloud Speech / Sphinx (offline fallback)", "Active"],
-                          ["Voice Speech Synthesis", "ElevenLabs / Google Cloud TTS / SAPI5", "Active"],
-                          ["UI & Overlay Engine", "Electron + React (HUD) + PyQt6 (Desktop)", "Active"],
-                          ["Telemetry & Hardware", "pynvml (NVML) + DirectX C++ FPS Engine", "Active"],
-                          ["Hotkey Intercept", "pynput GlobalHotKeys + Win32 GetAsyncKeyState", "Active"],
+                          [
+                            "Frame Screen Capture",
+                            "dxcam (DXGI 120fps+) / D3DShot / MSS fallback",
+                            "Active",
+                          ],
+                          [
+                            "Cloud LLM / Vision",
+                            "NVIDIA NIM — Llama 3.1 8B / 3.2 11B Vision",
+                            "Active",
+                          ],
+                          [
+                            "OCR Text Extraction",
+                            "RapidOCR / Tesseract (GPU/ONNX-accelerated)",
+                            "Active",
+                          ],
+                          [
+                            "Web Search Enrichment",
+                            "Wikipedia + SteamSpy + DuckDuckGo + RAWG.io",
+                            "Active",
+                          ],
+                          [
+                            "Voice STT Processing",
+                            "Google Cloud Speech / Sphinx (offline fallback)",
+                            "Active",
+                          ],
+                          [
+                            "Voice Speech Synthesis",
+                            "ElevenLabs / Google Cloud TTS / SAPI5",
+                            "Active",
+                          ],
+                          [
+                            "UI & Overlay Engine",
+                            "Electron + React (HUD) + PyQt6 (Desktop)",
+                            "Active",
+                          ],
+                          [
+                            "Telemetry & Hardware",
+                            "pynvml (NVML) + DirectX C++ FPS Engine",
+                            "Active",
+                          ],
+                          [
+                            "Hotkey Intercept",
+                            "pynput GlobalHotKeys + Win32 GetAsyncKeyState",
+                            "Active",
+                          ],
                           ["Configuration", "PyYAML (settings.yaml) + dotenv (.env)", "Active"],
-                          ["Security & Binding", "Motherboard UUID binding + AES-256 E2EE", "Active"],
+                          [
+                            "Security & Binding",
+                            "Motherboard UUID binding + AES-256 E2EE",
+                            "Active",
+                          ],
                         ].map(([layer, tech, status], i) => (
-                          <tr
-                            key={i}
-                            className="hover:bg-white/2 transition-colors"
-                          >
+                          <tr key={i} className="hover:bg-white/2 transition-colors">
                             <td className="py-3.5 px-6 text-xs font-mono font-bold text-gray-300 uppercase tracking-wide">
                               {layer}
                             </td>
-                            <td className="py-3.5 px-6 text-xs text-gray-400 font-sans">
-                              {tech}
-                            </td>
+                            <td className="py-3.5 px-6 text-xs text-gray-400 font-sans">{tech}</td>
                             <td className="py-3.5 px-6 text-[10px] font-mono font-bold text-neon-green text-right">
                               <span className="inline-flex items-center gap-1.5 bg-neon-green/10 border border-neon-green/20 px-2.5 py-0.5 rounded-full">
                                 <span className="w-1.5 h-1.5 rounded-full bg-neon-green animate-pulse" />
@@ -743,7 +825,8 @@ export default function DocsClient({ docs }: { docs: DocData[] }) {
                     Something missing in documentation?
                   </h3>
                   <p className="text-gray-400 text-xs sm:text-sm leading-relaxed max-w-xl mx-auto mb-8 font-sans">
-                    Mission Control is completely open source. Contribute new documentation, propose features, or inspect the codebase on GitHub.
+                    Mission Control is completely open source. Contribute new documentation, propose
+                    features, or inspect the codebase on GitHub.
                   </p>
                   <a
                     href="https://github.com/arnab825/Mission-Control"

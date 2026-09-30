@@ -7,8 +7,12 @@ export async function POST(request: NextRequest) {
   if (process.env.NODE_ENV === "production") {
     const authHeader = request.headers.get("authorization");
     const userAgent = request.headers.get("user-agent") || "";
-    const isVercelCron = request.headers.get("x-vercel-cron") === "1" || userAgent.toLowerCase().includes("vercel-cron");
-    const isValidCronSecret = Boolean(process.env.CRON_SECRET && authHeader === `Bearer ${process.env.CRON_SECRET}`);
+    const isVercelCron =
+      request.headers.get("x-vercel-cron") === "1" ||
+      userAgent.toLowerCase().includes("vercel-cron");
+    const isValidCronSecret = Boolean(
+      process.env.CRON_SECRET && authHeader === `Bearer ${process.env.CRON_SECRET}`
+    );
 
     if (!isVercelCron && !isValidCronSecret) {
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
@@ -34,15 +38,19 @@ export async function POST(request: NextRequest) {
   }
 
   const allPostTypes = ["GPU News", "Game News", "Hardware Deep-Dive", "Game Revisit"] as const;
-  
+
   let postTypes: ("GPU News" | "Game News" | "Hardware Deep-Dive" | "Game Revisit")[];
 
   if (batch === "1") {
     postTypes = ["GPU News", "Game News"];
   } else if (batch === "2") {
     postTypes = ["Hardware Deep-Dive", "Game Revisit"];
-  } else if (requestedCategory && requestedCategory !== "all" && allPostTypes.includes(requestedCategory as any)) {
-    postTypes = [requestedCategory as typeof allPostTypes[number]];
+  } else if (
+    requestedCategory &&
+    requestedCategory !== "all" &&
+    allPostTypes.includes(requestedCategory as any)
+  ) {
+    postTypes = [requestedCategory as (typeof allPostTypes)[number]];
   } else {
     postTypes = [...allPostTypes];
   }
@@ -71,8 +79,12 @@ export async function GET(request: NextRequest) {
   if (process.env.NODE_ENV === "production") {
     const authHeader = request.headers.get("authorization");
     const userAgent = request.headers.get("user-agent") || "";
-    const isVercelCron = request.headers.get("x-vercel-cron") === "1" || userAgent.toLowerCase().includes("vercel-cron");
-    const isValidCronSecret = Boolean(process.env.CRON_SECRET && authHeader === `Bearer ${process.env.CRON_SECRET}`);
+    const isVercelCron =
+      request.headers.get("x-vercel-cron") === "1" ||
+      userAgent.toLowerCase().includes("vercel-cron");
+    const isValidCronSecret = Boolean(
+      process.env.CRON_SECRET && authHeader === `Bearer ${process.env.CRON_SECRET}`
+    );
 
     if (!isVercelCron && !isValidCronSecret) {
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 });

@@ -5,7 +5,8 @@ import { Metadata } from "next";
 
 export const metadata: Metadata = {
   title: "Terms of Service — Mission Control Gaming AI",
-  description: "Mission Control Labs terms of service, open-source usage rights, and software license agreement.",
+  description:
+    "Mission Control Labs terms of service, open-source usage rights, and software license agreement.",
 };
 
 export default function TermsOfServicePage() {
@@ -48,7 +49,9 @@ export default function TermsOfServicePage() {
               <span>1. Open-Source License & Usage</span>
             </h2>
             <p className="mb-3">
-              Mission Control is released as free and open-source software under the MIT/GNU licensing framework. You are granted permission to download, install, run, modify, and redistribute the application in accordance with the repository license terms.
+              Mission Control is released as free and open-source software under the MIT/GNU
+              licensing framework. You are granted permission to download, install, run, modify, and
+              redistribute the application in accordance with the repository license terms.
             </p>
           </section>
 
@@ -58,7 +61,10 @@ export default function TermsOfServicePage() {
               <span>2. Fair Play & Anti-Cheat Compliance</span>
             </h2>
             <p className="mb-3">
-              Mission Control is intended as an informational hardware telemetry dashboard, performance diagnostic optimizer, and tactical game companion. It does not modify game executable files, alter protected memory spaces, inject unfair exploits, or bypass digital rights management (DRM).
+              Mission Control is intended as an informational hardware telemetry dashboard,
+              performance diagnostic optimizer, and tactical game companion. It does not modify game
+              executable files, alter protected memory spaces, inject unfair exploits, or bypass
+              digital rights management (DRM).
             </p>
           </section>
 
@@ -68,7 +74,10 @@ export default function TermsOfServicePage() {
               <span>3. Warranty Disclaimer</span>
             </h2>
             <p className="mb-3">
-              Mission Control is provided &quot;as is&quot;, without warranty of any kind, express or implied. In no event shall Mission Control Labs or its contributors be liable for any hardware defects, overclocking instabilities, software conflicts, or loss of data arising from the use of the application.
+              Mission Control is provided &quot;as is&quot;, without warranty of any kind, express
+              or implied. In no event shall Mission Control Labs or its contributors be liable for
+              any hardware defects, overclocking instabilities, software conflicts, or loss of data
+              arising from the use of the application.
             </p>
           </section>
         </div>

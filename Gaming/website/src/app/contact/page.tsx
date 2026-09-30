@@ -18,12 +18,7 @@ import {
   Sparkles,
 } from "lucide-react";
 
-const QUICK_TOPICS = [
-  "Bug Report",
-  "GPU Telemetry",
-  "Feature Hook",
-  "Partnership",
-];
+const QUICK_TOPICS = ["Bug Report", "GPU Telemetry", "Feature Hook", "Partnership"];
 
 export default function ContactPage() {
   const [selectedTopic, setSelectedTopic] = useState<string | null>(null);
@@ -37,7 +32,12 @@ export default function ContactPage() {
   });
 
   const contactMutation = useMutation({
-    mutationFn: async (payload: { name: string; email: string; subject?: string; message: string }) => {
+    mutationFn: async (payload: {
+      name: string;
+      email: string;
+      subject?: string;
+      message: string;
+    }) => {
       const response = await fetch("/api/contact", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
@@ -50,7 +50,14 @@ export default function ContactPage() {
       return data;
     },
     onSuccess: () => {
-      setFormData({ firstName: "", middleName: "", lastName: "", email: "", subject: "", message: "" });
+      setFormData({
+        firstName: "",
+        middleName: "",
+        lastName: "",
+        email: "",
+        subject: "",
+        message: "",
+      });
       setSelectedTopic(null);
     },
   });
@@ -58,7 +65,10 @@ export default function ContactPage() {
   const status = contactMutation.isPending
     ? { type: "loading" as const, message: "Encrypting & Transmitting Payload..." }
     : contactMutation.isSuccess
-      ? { type: "success" as const, message: "Transmission received and logged in core developer dispatch queue." }
+      ? {
+          type: "success" as const,
+          message: "Transmission received and logged in core developer dispatch queue.",
+        }
       : contactMutation.isError
         ? { type: "error" as const, message: contactMutation.error.message }
         : { type: "idle" as const, message: "" };
@@ -74,7 +84,11 @@ export default function ContactPage() {
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    const fullName = [formData.firstName.trim(), formData.middleName.trim(), formData.lastName.trim()]
+    const fullName = [
+      formData.firstName.trim(),
+      formData.middleName.trim(),
+      formData.lastName.trim(),
+    ]
       .filter(Boolean)
       .join(" ");
 
@@ -83,8 +97,10 @@ export default function ContactPage() {
     }
 
     const finalSubject = selectedTopic
-      ? (formData.subject.trim() ? `${selectedTopic} - ${formData.subject.trim()}` : selectedTopic)
-      : (formData.subject.trim() || "General Support Inquiry");
+      ? formData.subject.trim()
+        ? `${selectedTopic} - ${formData.subject.trim()}`
+        : selectedTopic
+      : formData.subject.trim() || "General Support Inquiry";
 
     contactMutation.mutate({
       name: fullName,
@@ -96,7 +112,6 @@ export default function ContactPage() {
 
   return (
     <div className="min-h-screen pt-24 sm:pt-28 pb-12 sm:pb-16 px-3 min-[400px]:px-4 sm:px-6 max-w-6xl mx-auto w-full relative z-10 flex flex-col items-center">
-      
       {/* Background Graphic Illustration */}
       <div className="absolute top-4 sm:top-6 left-1/2 -translate-x-1/2 w-full max-w-5xl h-44 sm:h-64 lg:h-80 rounded-3xl overflow-hidden pointer-events-none -z-10 border border-neon-green/15 opacity-25 shadow-[0_0_60px_rgba(118,185,0,0.12)]">
         <img
@@ -130,10 +145,8 @@ export default function ContactPage() {
 
       {/* Main Grid: Telemetry Info + Form Terminal */}
       <div className="grid grid-cols-1 lg:grid-cols-12 gap-5 lg:gap-6 w-full max-w-5xl items-start">
-        
         {/* Left Side: Telemetry Station Info Card */}
         <div className="order-2 lg:order-1 lg:col-span-4 flex flex-col gap-3.5 w-full">
-          
           {/* Status HUD Card */}
           <div className="glass-premium p-4 sm:p-5 rounded-2xl border border-white/10 relative overflow-hidden">
             <div className="flex items-center justify-between mb-4 border-b border-white/10 pb-3">
@@ -142,7 +155,9 @@ export default function ContactPage() {
                   <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-neon-green opacity-75"></span>
                   <span className="relative inline-flex rounded-full h-2.5 w-2.5 bg-neon-green"></span>
                 </span>
-                <span className="text-[11px] font-mono font-bold uppercase tracking-wider text-white">GATEWAY STATUS</span>
+                <span className="text-[11px] font-mono font-bold uppercase tracking-wider text-white">
+                  GATEWAY STATUS
+                </span>
               </div>
               <span className="text-[9px] font-mono font-bold bg-neon-green/20 text-neon-green border border-neon-green/30 px-2 py-0.5 rounded-full">
                 ONLINE
@@ -261,7 +276,8 @@ export default function ContactPage() {
               {/* Operator Identity */}
               <div className="space-y-1">
                 <label className="text-[10px] sm:text-[11px] uppercase font-mono font-bold tracking-wider text-zinc-300 flex items-center gap-1.5">
-                  <User className="w-3 h-3 text-neon-green shrink-0" /> Operator Name <span className="text-neon-green">*</span>
+                  <User className="w-3 h-3 text-neon-green shrink-0" /> Operator Name{" "}
+                  <span className="text-neon-green">*</span>
                 </label>
 
                 <div className="grid grid-cols-1 sm:grid-cols-3 gap-2 sm:gap-2.5">
@@ -301,7 +317,8 @@ export default function ContactPage() {
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-2.5 sm:gap-3">
                 <div className="space-y-1">
                   <label className="text-[10px] sm:text-[11px] uppercase font-mono font-bold tracking-wider text-zinc-300 flex items-center gap-1.5">
-                    <Mail className="w-3 h-3 text-neon-green shrink-0" /> Dispatch Email <span className="text-neon-green">*</span>
+                    <Mail className="w-3 h-3 text-neon-green shrink-0" /> Dispatch Email{" "}
+                    <span className="text-neon-green">*</span>
                   </label>
                   <input
                     type="email"
@@ -324,7 +341,11 @@ export default function ContactPage() {
                     name="subject"
                     value={formData.subject}
                     onChange={handleChange}
-                    placeholder={selectedTopic ? `Details for ${selectedTopic}...` : "e.g. Frame latency spike analysis"}
+                    placeholder={
+                      selectedTopic
+                        ? `Details for ${selectedTopic}...`
+                        : "e.g. Frame latency spike analysis"
+                    }
                     disabled={status.type === "loading"}
                     className="w-full cyber-input rounded-xl px-3 py-2 text-xs sm:text-sm font-mono text-white placeholder-zinc-500 disabled:opacity-50 truncate"
                   />
@@ -334,7 +355,8 @@ export default function ContactPage() {
               {/* Message Payload */}
               <div className="space-y-1">
                 <label className="text-[10px] sm:text-[11px] uppercase font-mono font-bold tracking-wider text-zinc-300 flex items-center gap-1.5">
-                  <MessageSquare className="w-3 h-3 text-neon-green shrink-0" /> Payload Details <span className="text-neon-green">*</span>
+                  <MessageSquare className="w-3 h-3 text-neon-green shrink-0" /> Payload Details{" "}
+                  <span className="text-neon-green">*</span>
                 </label>
                 <textarea
                   name="message"

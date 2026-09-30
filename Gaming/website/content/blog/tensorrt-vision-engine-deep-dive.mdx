@@ -37,7 +37,7 @@ if (SUCCEEDED(hr)) {
 
 ## YOLOv8 TensorRT 10.x Compilation
 
-To classify game scenes (in-menu vs. in-combat) and detect HUD coordinates in real-time, the vision engine compiles the underlying PyTorch weights to a serialized TensorRT `.engine` file. 
+To classify game scenes (in-menu vs. in-combat) and detect HUD coordinates in real-time, the vision engine compiles the underlying PyTorch weights to a serialized TensorRT `.engine` file.
 
 This process matches your graphics card's physical dimensions (FP16/INT8 precision, Tensor Cores, and GPU architecture version).
 
@@ -45,11 +45,11 @@ This process matches your graphics card's physical dimensions (FP16/INT8 precisi
 
 The graph below represents typical inference latencies across various execution providers:
 
-| Provider | Precision | Memory (VRAM) | Average Inference Latency |
-| :--- | :--- | :--- | :--- |
-| PyTorch CPU | FP32 | 0 MB (System) | 120.4 ms |
-| PyTorch CUDA | FP32 | 412 MB | 14.8 ms |
-| **TensorRT Engine** | **FP16** | **98 MB** | **0.8 ms** |
+| Provider            | Precision | Memory (VRAM) | Average Inference Latency |
+| :------------------ | :-------- | :------------ | :------------------------ |
+| PyTorch CPU         | FP32      | 0 MB (System) | 120.4 ms                  |
+| PyTorch CUDA        | FP32      | 412 MB        | 14.8 ms                   |
+| **TensorRT Engine** | **FP16**  | **98 MB**     | **0.8 ms**                |
 
 ```mermaid
 pie title VRAM Allocation (TensorRT vs PyTorch)

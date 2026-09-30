@@ -14,7 +14,11 @@ export async function POST(request: Request) {
     const result = await voteGameRating(ratingId, voterId);
     return NextResponse.json(result);
   } catch (error: unknown) {
-    return handleApiError("POST /api/benchmarks/ratings/vote", error, 500, "Failed to register rating vote.");
+    return handleApiError(
+      "POST /api/benchmarks/ratings/vote",
+      error,
+      500,
+      "Failed to register rating vote."
+    );
   }
 }
-

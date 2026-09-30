@@ -29,7 +29,7 @@ We have successfully implemented and verified the **Enriched Agentic AI Mode & V
    - When the AI generates raw actions or custom key combinations (e.g., `press_q`, `key_caps_lock`), the coordinator extracts the raw keys, strips prefixes, and fires them directly via `input_manager.execute_key(raw_key, mode="click")` cleanly.
 
 5. **Search Query Enrichment**:
-   - Expanded search-routing keywords in `reply_to_prompt` to intercept questions about `tutorial`, `predict`, `forecast`, `walkthrough`, `strategy`, `tactics`, `mission`, `quest`, and `boss`. 
+   - Expanded search-routing keywords in `reply_to_prompt` to intercept questions about `tutorial`, `predict`, `forecast`, `walkthrough`, `strategy`, `tactics`, `mission`, `quest`, and `boss`.
    - Lookups are automatically routed to the DuckDuckGo/Wikipedia engines for optimal, real-time strategic assistance.
 
 6. **Latent Bug Resolution**:
@@ -42,6 +42,7 @@ We have successfully implemented and verified the **Enriched Agentic AI Mode & V
 We created and successfully ran a dedicated unit-test suite (`test_key_fallback.py`) validating the standard action triggers alongside the new raw key fallback simulator.
 
 ### Test Log Output:
+
 ```
 Initializing MockPipelineHost...
 

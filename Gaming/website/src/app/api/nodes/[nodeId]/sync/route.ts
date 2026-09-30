@@ -6,10 +6,7 @@ import { NodeSyncSchema, validateRequestBody, handleApiError } from "@/lib/api-v
 
 export const dynamic = "force-dynamic";
 
-export async function POST(
-  req: NextRequest,
-  { params }: { params: Promise<{ nodeId: string }> }
-) {
+export async function POST(req: NextRequest, { params }: { params: Promise<{ nodeId: string }> }) {
   try {
     const { nodeId } = await params;
     if (!nodeId) {
@@ -40,7 +37,10 @@ export async function POST(
       const bulkOps = installations.map((item) => {
         const installPath = item.installPath || item.install_path || item.title;
         const sizeBytes = item.sizeBytes ?? item.size_bytes ?? 0;
-        const storeAppId = item.storeAppId || item.store_app_id ? String(item.storeAppId || item.store_app_id) : undefined;
+        const storeAppId =
+          item.storeAppId || item.store_app_id
+            ? String(item.storeAppId || item.store_app_id)
+            : undefined;
         const exePath = item.exePath || item.exe_path || undefined;
         const coverUrl = item.coverUrl || item.cover_url || undefined;
         const bannerUrl = item.bannerUrl || item.banner_url || undefined;
@@ -81,10 +81,7 @@ export async function POST(
       newGamesCount = bulkRes.upsertedCount || 0;
     }
 
-    await LibraryNode.updateOne(
-      { nodeId },
-      { $set: { lastSync: new Date(), status: "online" } }
-    );
+    await LibraryNode.updateOne({ nodeId }, { $set: { lastSync: new Date(), status: "online" } });
 
     return NextResponse.json({
       status: "ok",

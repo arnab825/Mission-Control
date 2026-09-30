@@ -30,9 +30,9 @@ const SupportSessionSchema = new Schema<ISupportSession>(
         id: { type: String, required: true },
         sender: { type: String, enum: ["user", "assistant"], required: true },
         text: { type: String, required: true },
-        timestamp: { type: String, required: true }
-      }
-    ]
+        timestamp: { type: String, required: true },
+      },
+    ],
   },
   { timestamps: true }
 );

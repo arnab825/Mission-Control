@@ -3,7 +3,12 @@ import connectDB from "@/lib/mongodb";
 import Subscriber from "@/models/Subscriber";
 import GamingPost from "@/models/GamingPost";
 import nodemailer from "nodemailer";
-import { SubscribeSchema, validateRequestBody, handleApiError, checkAccountRateLimit } from "@/lib/api-validation";
+import {
+  SubscribeSchema,
+  validateRequestBody,
+  handleApiError,
+  checkAccountRateLimit,
+} from "@/lib/api-validation";
 
 function escapeHtml(str: string): string {
   return String(str)
@@ -89,34 +94,61 @@ export async function POST(request: Request) {
 
     // Category colors
     const categoryColors: Record<string, { color: string; bg: string; border: string }> = {
-      "Game News": { color: "#76b900", bg: "rgba(118, 185, 0, 0.12)", border: "rgba(118, 185, 0, 0.3)" },
-      "GPU News": { color: "#c084fc", bg: "rgba(192, 132, 252, 0.12)", border: "rgba(192, 132, 252, 0.3)" },
-      "Hardware Deep-Dive": { color: "#38bdf8", bg: "rgba(56, 189, 248, 0.12)", border: "rgba(56, 189, 248, 0.3)" },
-      "Game Revisit": { color: "#fbbf24", bg: "rgba(251, 191, 36, 0.12)", border: "rgba(251, 191, 36, 0.3)" },
+      "Game News": {
+        color: "#76b900",
+        bg: "rgba(118, 185, 0, 0.12)",
+        border: "rgba(118, 185, 0, 0.3)",
+      },
+      "GPU News": {
+        color: "#c084fc",
+        bg: "rgba(192, 132, 252, 0.12)",
+        border: "rgba(192, 132, 252, 0.3)",
+      },
+      "Hardware Deep-Dive": {
+        color: "#38bdf8",
+        bg: "rgba(56, 189, 248, 0.12)",
+        border: "rgba(56, 189, 248, 0.3)",
+      },
+      "Game Revisit": {
+        color: "#fbbf24",
+        bg: "rgba(251, 191, 36, 0.12)",
+        border: "rgba(251, 191, 36, 0.3)",
+      },
     };
 
     // Render blogs section
     let blogsHtml = "";
     if (recentBlogs && recentBlogs.length > 0) {
-      const cards = recentBlogs.map((post: any) => {
-        const catCfg = categoryColors[post.category] || { color: "#76b900", bg: "rgba(118, 185, 0, 0.12)", border: "rgba(118, 185, 0, 0.3)" };
-        
-        let coverImgUrl = post.coverImage || "";
-        if (coverImgUrl.startsWith("/")) {
-          coverImgUrl = `${baseUrl}${coverImgUrl}`;
-        } else if (!coverImgUrl || coverImgUrl.includes("placeholder")) {
-          coverImgUrl = `${baseUrl}/api/blob?pathname=images%2Fblog%2F${encodeURIComponent(post.slug)}.png`;
-        }
+      const cards = recentBlogs
+        .map((post: any) => {
+          const catCfg = categoryColors[post.category] || {
+            color: "#76b900",
+            bg: "rgba(118, 185, 0, 0.12)",
+            border: "rgba(118, 185, 0, 0.3)",
+          };
 
-        const safeTitle = escapeHtml(post.title || "Gaming Intel Dispatch");
-        const safeExcerpt = escapeHtml(
-          post.excerpt ? (post.excerpt.length > 130 ? `${post.excerpt.substring(0, 130)}...` : post.excerpt) : "Read our in-depth technical analysis and benchmarks."
-        );
-        const postLink = `${baseUrl}/blog/gaming/${encodeURIComponent(post.slug)}`;
+          let coverImgUrl = post.coverImage || "";
+          if (coverImgUrl.startsWith("/")) {
+            coverImgUrl = `${baseUrl}${coverImgUrl}`;
+          } else if (!coverImgUrl || coverImgUrl.includes("placeholder")) {
+            coverImgUrl = `${baseUrl}/api/blob?pathname=images%2Fblog%2F${encodeURIComponent(post.slug)}.png`;
+          }
 
-        return `
+          const safeTitle = escapeHtml(post.title || "Gaming Intel Dispatch");
+          const safeExcerpt = escapeHtml(
+            post.excerpt
+              ? post.excerpt.length > 130
+                ? `${post.excerpt.substring(0, 130)}...`
+                : post.excerpt
+              : "Read our in-depth technical analysis and benchmarks."
+          );
+          const postLink = `${baseUrl}/blog/gaming/${encodeURIComponent(post.slug)}`;
+
+          return `
           <table role="presentation" width="100%" cellspacing="0" cellpadding="0" border="0" style="margin-bottom: 18px; background-color: #0c0f17; border: 1px solid rgba(255,255,255,0.09); border-radius: 12px; overflow: hidden; box-shadow: 0 4px 20px rgba(0,0,0,0.4);">
-            ${coverImgUrl ? `
+            ${
+              coverImgUrl
+                ? `
             <tr>
               <td style="padding: 0; line-height: 0;">
                 <a href="${postLink}" target="_blank" style="display: block; text-decoration: none;">
@@ -124,7 +156,9 @@ export async function POST(request: Request) {
                 </a>
               </td>
             </tr>
-            ` : ""}
+            `
+                : ""
+            }
             <tr>
               <td style="padding: 18px 22px;">
                 <table role="presentation" width="100%" cellspacing="0" cellpadding="0" border="0">
@@ -151,7 +185,8 @@ export async function POST(request: Request) {
             </tr>
           </table>
         `;
-      }).join("");
+        })
+        .join("");
 
       blogsHtml = `
         <div style="margin-top: 26px;">
@@ -362,7 +397,12 @@ export async function POST(request: Request) {
       previewUrl,
     });
   } catch (error: unknown) {
-    return handleApiError("POST /api/subscribe", error, 500, "Failed to process subscription request. Please try again later.");
+    return handleApiError(
+      "POST /api/subscribe",
+      error,
+      500,
+      "Failed to process subscription request. Please try again later."
+    );
   }
 }
 
@@ -400,6 +440,11 @@ export async function DELETE(request: Request) {
       message: `Successfully unsubscribed ${cleanEmail} from weekly telemetry feed.`,
     });
   } catch (error: unknown) {
-    return handleApiError("DELETE /api/subscribe", error, 500, "Failed to process unsubscribe request. Please try again later.");
+    return handleApiError(
+      "DELETE /api/subscribe",
+      error,
+      500,
+      "Failed to process unsubscribe request. Please try again later."
+    );
   }
 }

@@ -26,7 +26,9 @@ async function connectDB(): Promise<typeof mongoose> {
   }
 
   if (cached.failed) {
-    throw new Error("MongoDB connection previously failed. Skipping to prevent blocking local development rendering.");
+    throw new Error(
+      "MongoDB connection previously failed. Skipping to prevent blocking local development rendering."
+    );
   }
 
   if (!cached.promise) {

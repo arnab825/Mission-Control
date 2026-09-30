@@ -24,7 +24,11 @@ const IssueSchema = new Schema<IIssue>(
   {
     title: { type: String, required: true },
     description: { type: String, required: true },
-    category: { type: String, enum: ["hardware", "glitch", "performance", "other"], required: true },
+    category: {
+      type: String,
+      enum: ["hardware", "glitch", "performance", "other"],
+      required: true,
+    },
     game: { type: String, default: "General System" },
     author: { type: String, default: "Operator" },
     votes: { type: Number, default: 1 },

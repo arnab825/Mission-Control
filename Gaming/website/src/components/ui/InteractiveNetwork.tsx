@@ -21,9 +21,10 @@ export default function InteractiveNetwork() {
     const maxParticles = isMobile ? 14 : Math.min(65, Math.floor((width * height) / 22000));
     const connectionDistance = isMobile ? 80 : 130;
     const mouse = { x: -1000, y: -1000, active: false };
-    
+
     // Ripple effect state
-    const ripples: { x: number, y: number, radius: number, maxRadius: number, opacity: number }[] = [];
+    const ripples: { x: number; y: number; radius: number; maxRadius: number; opacity: number }[] =
+      [];
 
     // High-tech labels for simulation
     const techLabels = [
@@ -38,7 +39,7 @@ export default function InteractiveNetwork() {
       "LATENCY_0.8ms",
       "UUID_SECURE",
       "WMI_TEMP_NORM",
-      "NVML_OPTIMIZED"
+      "NVML_OPTIMIZED",
     ];
 
     class Particle {
@@ -56,7 +57,10 @@ export default function InteractiveNetwork() {
         this.vx = (Math.random() - 0.5) * (isMobile ? 0.25 : 0.4);
         this.vy = (Math.random() - 0.5) * (isMobile ? 0.25 : 0.4);
         this.radius = Math.random() * 1.5 + 1;
-        this.label = (!isMobile && index % 6 === 0) ? techLabels[Math.floor(Math.random() * techLabels.length)] : null;
+        this.label =
+          !isMobile && index % 6 === 0
+            ? techLabels[Math.floor(Math.random() * techLabels.length)]
+            : null;
         this.labelPulseOffset = Math.random() * Math.PI * 2;
       }
 
@@ -91,7 +95,7 @@ export default function InteractiveNetwork() {
             this.vy += Math.sin(angle) * force * 1.5;
           }
         }
-        
+
         // Dampen velocity back to normal
         this.vx *= 0.98;
         this.vy *= 0.98;
@@ -122,7 +126,8 @@ export default function InteractiveNetwork() {
     }
 
     // Floating streams for desktop
-    const streams: Array<{ x: number; y: number; speed: number; chars: string[]; size: number }> = [];
+    const streams: Array<{ x: number; y: number; speed: number; chars: string[]; size: number }> =
+      [];
     if (!isMobile) {
       const maxStreams = 12;
       for (let i = 0; i < maxStreams; i++) {
@@ -131,7 +136,7 @@ export default function InteractiveNetwork() {
           y: Math.random() * height - height,
           speed: Math.random() * 1.5 + 0.5,
           size: Math.floor(Math.random() * 3) + 8,
-          chars: Array.from({ length: 10 }, () => Math.random() > 0.5 ? "1" : "0")
+          chars: Array.from({ length: 10 }, () => (Math.random() > 0.5 ? "1" : "0")),
         });
       }
     }
@@ -163,7 +168,7 @@ export default function InteractiveNetwork() {
         y: e.clientY,
         radius: 0,
         maxRadius: 250,
-        opacity: 0.8
+        opacity: 0.8,
       });
     };
 
@@ -218,7 +223,7 @@ export default function InteractiveNetwork() {
         ctx.clip();
 
         for (let i = 0; i <= numLines; i++) {
-          const baseX = -width * 0.5 + (width * 2 / numLines) * i;
+          const baseX = -width * 0.5 + ((width * 2) / numLines) * i;
           ctx.beginPath();
           ctx.moveTo(vanishingX, horizonY);
           ctx.lineTo(baseX, height);
@@ -248,7 +253,7 @@ export default function InteractiveNetwork() {
         ctx.clip();
 
         for (let i = 0; i <= numLines; i++) {
-          const baseX = -width * 0.5 + (width * 2 / numLines) * i;
+          const baseX = -width * 0.5 + ((width * 2) / numLines) * i;
           ctx.beginPath();
           ctx.moveTo(vanishingX, horizonY);
           ctx.lineTo(baseX, 0);
@@ -339,7 +344,7 @@ export default function InteractiveNetwork() {
           ctx.strokeStyle = `rgba(118, 185, 0, ${r.opacity * 0.4})`;
           ctx.lineWidth = 1.5;
           ctx.stroke();
-          
+
           r.radius += 10;
           r.opacity -= 0.025;
 

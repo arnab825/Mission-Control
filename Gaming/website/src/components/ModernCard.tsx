@@ -1,2 +1,2 @@
-export { default } from './ui/ModernCard';
-export * from './ui/ModernCard';
+export { default } from "./ui/ModernCard";
+export * from "./ui/ModernCard";

@@ -52,7 +52,12 @@ Respond ONLY with valid JSON in this exact structure without markdown formatting
     // TIER 1: Google Gemini Flash (3.8 / 3.7 / 2.0)
     const geminiKey = process.env.GEMINI_API_KEY;
     if (geminiKey) {
-      const geminiModels = [process.env.GEMINI_MODEL, "gemini-3.8-flash", "gemini-3.7-flash", "gemini-2.0-flash"].filter(Boolean) as string[];
+      const geminiModels = [
+        process.env.GEMINI_MODEL,
+        "gemini-3.8-flash",
+        "gemini-3.7-flash",
+        "gemini-2.0-flash",
+      ].filter(Boolean) as string[];
       for (const modelId of geminiModels) {
         try {
           const geminiRes = await fetch(
@@ -71,7 +76,12 @@ Respond ONLY with valid JSON in this exact structure without markdown formatting
             const gData = await geminiRes.json();
             const rawText = gData?.candidates?.[0]?.content?.parts?.[0]?.text || "";
             if (rawText) {
-              parsedResult = JSON.parse(rawText.replace(/```json/g, "").replace(/```/g, "").trim());
+              parsedResult = JSON.parse(
+                rawText
+                  .replace(/```json/g, "")
+                  .replace(/```/g, "")
+                  .trim()
+              );
               if (parsedResult) break;
             }
           }
@@ -83,7 +93,10 @@ Respond ONLY with valid JSON in this exact structure without markdown formatting
 
     // TIER 2: NVIDIA NIM (Llama 3.2 11B Vision / Nemotron 3 Super 120B)
     if (!parsedResult && process.env.NVIDIA_API_KEY) {
-      for (const nimModel of ["meta/llama-3.2-11b-vision-instruct", "nvidia/nemotron-3-super-120b-a12b"]) {
+      for (const nimModel of [
+        "meta/llama-3.2-11b-vision-instruct",
+        "nvidia/nemotron-3-super-120b-a12b",
+      ]) {
         try {
           const nimRes = await fetch("https://integrate.api.nvidia.com/v1/chat/completions", {
             method: "POST",
@@ -103,7 +116,12 @@ Respond ONLY with valid JSON in this exact structure without markdown formatting
             const nData = await nimRes.json();
             const content = nData.choices?.[0]?.message?.content;
             if (content) {
-              parsedResult = JSON.parse(content.replace(/```json/g, "").replace(/```/g, "").trim());
+              parsedResult = JSON.parse(
+                content
+                  .replace(/```json/g, "")
+                  .replace(/```/g, "")
+                  .trim()
+              );
               break;
             }
           }
@@ -121,21 +139,37 @@ Respond ONLY with valid JSON in this exact structure without markdown formatting
       let technicalInsight = `Telemetry indicates GPU driver synchronization failure on Driver ${driver}.`;
       let suggestedFix = "Perform a clean driver reinstall and verify shader cache integrity.";
 
-      if (lowerErr.includes("vram") || lowerErr.includes("memory") || lowerErr.includes("out of memory")) {
+      if (
+        lowerErr.includes("vram") ||
+        lowerErr.includes("memory") ||
+        lowerErr.includes("out of memory")
+      ) {
         category = "hardware";
         title = `VRAM Allocation Exhaustion on ${gpu} (${targetGame})`;
         technicalInsight = `DirectX 12 buffer allocation exceeded local VRAM buffer capacity on ${gpu}.`;
-        suggestedFix = "Reduce texture resolution, shadow maps, or switch DLSS/FSR to Performance mode.";
-      } else if (lowerErr.includes("fps") || lowerErr.includes("stutter") || lowerErr.includes("drop") || lowerErr.includes("lag")) {
+        suggestedFix =
+          "Reduce texture resolution, shadow maps, or switch DLSS/FSR to Performance mode.";
+      } else if (
+        lowerErr.includes("fps") ||
+        lowerErr.includes("stutter") ||
+        lowerErr.includes("drop") ||
+        lowerErr.includes("lag")
+      ) {
         category = "performance";
         title = `Shader Compilation Frame Pacing Stutter in ${targetGame}`;
         technicalInsight = `Asynchronous compute bottlenecks observed on ${cpu} during runtime PSO caching.`;
-        suggestedFix = "Enable Reflex Low Latency, lock framerate to display refresh, or toggle Frame Generation.";
-      } else if (lowerErr.includes("dxgi") || lowerErr.includes("crash") || lowerErr.includes("black screen")) {
+        suggestedFix =
+          "Enable Reflex Low Latency, lock framerate to display refresh, or toggle Frame Generation.";
+      } else if (
+        lowerErr.includes("dxgi") ||
+        lowerErr.includes("crash") ||
+        lowerErr.includes("black screen")
+      ) {
         category = "glitch";
         title = `TDR Crash / DXGI Device Removal on Driver ${driver}`;
         technicalInsight = `Windows Graphics Kernel TDR timeout triggered under high compute queue load.`;
-        suggestedFix = "Disable aggressive GPU overclocks, verify system power limit, and update DirectX runtime.";
+        suggestedFix =
+          "Disable aggressive GPU overclocks, verify system power limit, and update DirectX runtime.";
       }
 
       parsedResult = {
@@ -150,6 +184,11 @@ Respond ONLY with valid JSON in this exact structure without markdown formatting
 
     return NextResponse.json(parsedResult);
   } catch (error: unknown) {
-    return handleApiError("POST /api/issues/diagnose", error, 500, "Diagnostic telemetry service encountered an error. Please try again later.");
+    return handleApiError(
+      "POST /api/issues/diagnose",
+      error,
+      500,
+      "Diagnostic telemetry service encountered an error. Please try again later."
+    );
   }
 }

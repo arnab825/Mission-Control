@@ -46,7 +46,8 @@ export async function GET(request: NextRequest) {
     }
 
     const type = rawType.toLowerCase();
-    const fallbackUrl = DIRECT_DOWNLOAD_FALLBACKS[type] || DIRECT_DOWNLOAD_FALLBACKS.exe || GITHUB_LATEST_RELEASE_URL;
+    const fallbackUrl =
+      DIRECT_DOWNLOAD_FALLBACKS[type] || DIRECT_DOWNLOAD_FALLBACKS.exe || GITHUB_LATEST_RELEASE_URL;
 
     try {
       // Abort fast (3s) to prevent gateway timeouts on serverless cold starts
@@ -86,9 +87,7 @@ export async function GET(request: NextRequest) {
       const isWinAsset = (name: string) => {
         const n = name.toLowerCase();
         return (
-          n.endsWith(".exe") ||
-          n.endsWith(".msi") ||
-          (n.endsWith(".zip") && !n.includes("linux"))
+          n.endsWith(".exe") || n.endsWith(".msi") || (n.endsWith(".zip") && !n.includes("linux"))
         );
       };
 
@@ -102,23 +101,33 @@ export async function GET(request: NextRequest) {
       } else if (type === "rpm") {
         targetAsset = assets.find((a) => a.name.toLowerCase().endsWith(".rpm"));
       } else if (type === "tar.gz" || type === "tar" || type === "tgz") {
-        targetAsset = assets.find((a) => a.name.toLowerCase().endsWith(".tar.gz") || a.name.toLowerCase().endsWith(".tgz"));
+        targetAsset = assets.find(
+          (a) => a.name.toLowerCase().endsWith(".tar.gz") || a.name.toLowerCase().endsWith(".tgz")
+        );
       } else if (type === "linux-zip" || type === "linux_zip") {
-        targetAsset = assets.find((a) => a.name.toLowerCase().includes("linux") && a.name.toLowerCase().endsWith(".zip"));
+        targetAsset = assets.find(
+          (a) => a.name.toLowerCase().includes("linux") && a.name.toLowerCase().endsWith(".zip")
+        );
       } else if (type === "linux") {
         targetAsset =
           assets.find((a) => a.name.toLowerCase().endsWith(".appimage")) ||
-          assets.find((a) => a.name.toLowerCase().endsWith(".tar.gz") || a.name.toLowerCase().endsWith(".tgz")) ||
+          assets.find(
+            (a) => a.name.toLowerCase().endsWith(".tar.gz") || a.name.toLowerCase().endsWith(".tgz")
+          ) ||
           assets.find((a) => a.name.toLowerCase().endsWith(".deb")) ||
           assets.find((a) => a.name.toLowerCase().endsWith(".rpm")) ||
-          assets.find((a) => a.name.toLowerCase().includes("linux") && a.name.toLowerCase().endsWith(".zip")) ||
+          assets.find(
+            (a) => a.name.toLowerCase().includes("linux") && a.name.toLowerCase().endsWith(".zip")
+          ) ||
           assets.find((a) => isLinuxAsset(a.name));
       } else if (type === "exe") {
         targetAsset = assets.find((a) => a.name.toLowerCase().endsWith(".exe"));
       } else if (type === "msi") {
         targetAsset = assets.find((a) => a.name.toLowerCase().endsWith(".msi"));
       } else if (type === "zip" || type === "win-zip") {
-        targetAsset = assets.find((a) => a.name.toLowerCase().endsWith(".zip") && !a.name.toLowerCase().includes("linux"));
+        targetAsset = assets.find(
+          (a) => a.name.toLowerCase().endsWith(".zip") && !a.name.toLowerCase().includes("linux")
+        );
       } else if (type === "windows" || type === "win") {
         targetAsset =
           assets.find((a) => a.name.toLowerCase().endsWith(".exe")) ||
@@ -128,7 +137,10 @@ export async function GET(request: NextRequest) {
 
       // 2. Generic fallback within OS family
       if (!targetAsset) {
-        if (type.includes("linux") || ["appimage", "deb", "rpm", "tar.gz", "tar", "tgz"].includes(type)) {
+        if (
+          type.includes("linux") ||
+          ["appimage", "deb", "rpm", "tar.gz", "tar", "tgz"].includes(type)
+        ) {
           targetAsset = assets.find((a) => isLinuxAsset(a.name));
         } else if (type.includes("win") || ["exe", "msi", "zip"].includes(type)) {
           targetAsset = assets.find((a) => isWinAsset(a.name));

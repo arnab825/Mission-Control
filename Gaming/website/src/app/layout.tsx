@@ -33,9 +33,10 @@ export const metadata: Metadata = {
   metadataBase: new URL(BASE_SITE_URL),
   title: {
     default: "Mission Control Gaming AI — Autonomous Assistant & Telemetry Overlay",
-    template: "%s | Mission Control Gaming AI"
+    template: "%s | Mission Control Gaming AI",
   },
-  description: "Mission Control Gaming AI is an autonomous PC gaming assistant, real-time DirectX telemetry overlay, and GPU optimization dashboard powered by NVIDIA NIM.",
+  description:
+    "Mission Control Gaming AI is an autonomous PC gaming assistant, real-time DirectX telemetry overlay, and GPU optimization dashboard powered by NVIDIA NIM.",
   keywords: [
     "mission control gaming ai",
     "mission control gaming",
@@ -62,13 +63,13 @@ export const metadata: Metadata = {
     "GPU FPS Monitor Overlay",
     "Game Benchmark Diagnostics",
     "Hardware Telemetry Logger",
-    "Autonomous Gaming Co-Pilot"
+    "Autonomous Gaming Co-Pilot",
   ],
   authors: [{ name: "Mission Control Team" }],
   icons: {
     icon: [
       { url: "/logo.png", type: "image/png" },
-      { url: "/favicon.ico", sizes: "any" }
+      { url: "/favicon.ico", sizes: "any" },
     ],
     shortcut: "/logo.png",
     apple: "/logo.png",
@@ -84,7 +85,8 @@ export const metadata: Metadata = {
   },
   openGraph: {
     title: "Mission Control - Autonomous Gaming Assistant & Telemetry Control",
-    description: "Advanced agentic HUD overlay, technical coach, and hardware performance diagnostics optimized by NVIDIA NIM.",
+    description:
+      "Advanced agentic HUD overlay, technical coach, and hardware performance diagnostics optimized by NVIDIA NIM.",
     url: "https://mission-control-roan-seven.vercel.app",
     siteName: "Mission Control",
     locale: "en_US",
@@ -133,53 +135,51 @@ export default function RootLayout({
                 {
                   "@type": "WebSite",
                   "@id": `${BASE_SITE_URL}/#website`,
-                  "name": "Mission Control Gaming",
-                  "alternateName": ["Mission Control AI", "Mission Control", "MissionControl GG"],
-                  "url": BASE_SITE_URL,
-                  "potentialAction": {
+                  name: "Mission Control Gaming",
+                  alternateName: ["Mission Control AI", "Mission Control", "MissionControl GG"],
+                  url: BASE_SITE_URL,
+                  potentialAction: {
                     "@type": "SearchAction",
-                    "target": `${BASE_SITE_URL}/blog?search={search_term_string}`,
-                    "query-input": "required name=search_term_string"
-                  }
+                    target: `${BASE_SITE_URL}/blog?search={search_term_string}`,
+                    "query-input": "required name=search_term_string",
+                  },
                 },
                 {
                   "@type": "Organization",
                   "@id": `${BASE_SITE_URL}/#organization`,
-                  "name": "Mission Control Gaming",
-                  "url": BASE_SITE_URL,
-                  "logo": `${BASE_SITE_URL}/logo.png`,
-                  "description": "Autonomous AI gaming telemetry, DirectX HUD overlay, and real-time PC performance assistant.",
-                  "sameAs": [
-                    "https://github.com/arnab825/Mission-Control"
-                  ]
+                  name: "Mission Control Gaming",
+                  url: BASE_SITE_URL,
+                  logo: `${BASE_SITE_URL}/logo.png`,
+                  description:
+                    "Autonomous AI gaming telemetry, DirectX HUD overlay, and real-time PC performance assistant.",
+                  sameAs: ["https://github.com/arnab825/Mission-Control"],
                 },
                 {
                   "@type": "SoftwareApplication",
                   "@id": `${BASE_SITE_URL}/#software`,
-                  "name": "Mission Control Gaming AI",
-                  "operatingSystem": "Windows 10, Windows 11, Linux",
-                  "applicationCategory": "GameApplication, UtilityApplication",
-                  "offers": {
+                  name: "Mission Control Gaming AI",
+                  operatingSystem: "Windows 10, Windows 11, Linux",
+                  applicationCategory: "GameApplication, UtilityApplication",
+                  offers: {
                     "@type": "Offer",
-                    "price": "0.00",
-                    "priceCurrency": "USD"
+                    price: "0.00",
+                    priceCurrency: "USD",
                   },
-                  "description": "Autonomous AI gaming assistant, DirectX 12 telemetry overlay, and hardware diagnostic optimizer.",
-                  "featureList": [
+                  description:
+                    "Autonomous AI gaming assistant, DirectX 12 telemetry overlay, and hardware diagnostic optimizer.",
+                  featureList: [
                     "Real-time DirectX HUD overlay",
                     "AI Agentic Auto-Play Co-pilot",
                     "Physical WMI and NVML GPU/CPU telemetry logging",
-                    "Community-voted hardware conflict and hotfix repository"
-                  ]
-                }
-              ]
-            })
+                    "Community-voted hardware conflict and hotfix repository",
+                  ],
+                },
+              ],
+            }),
           }}
         />
 
-        <ClientLayout>
-          {children}
-        </ClientLayout>
+        <ClientLayout>{children}</ClientLayout>
         <Analytics />
         <SpeedInsights />
       </body>

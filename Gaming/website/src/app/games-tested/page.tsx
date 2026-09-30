@@ -35,7 +35,7 @@ import {
   MessageSquare,
   Plus,
   Users,
-  Check
+  Check,
 } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 import { WINDOWS_INSTALLER_URL, LINUX_INSTALLER_URL, AUTO_DOWNLOAD_URL } from "@/lib/download";
@@ -51,7 +51,9 @@ import {
 import RateGameModal from "@/components/modals/RateGameModal";
 
 export default function GamesTestedPage() {
-  const [selectedGameId, setSelectedGameId] = useState<string>(TESTED_GAMES_LIST[0]?.id || "firstlight");
+  const [selectedGameId, setSelectedGameId] = useState<string>(
+    TESTED_GAMES_LIST[0]?.id || "firstlight"
+  );
   const [slideshowIndex, setSlideshowIndex] = useState<number | null>(null);
   const [isPlaying, setIsPlaying] = useState<boolean>(false);
   const [filterGenre, setFilterGenre] = useState<string>("ALL");
@@ -134,7 +136,8 @@ export default function GamesTestedPage() {
     if (votedReviewIds.includes(reviewId)) return;
 
     try {
-      const voterId = localStorage.getItem("aero_voter_id") || `voter_${Math.random().toString(36).slice(2, 10)}`;
+      const voterId =
+        localStorage.getItem("aero_voter_id") || `voter_${Math.random().toString(36).slice(2, 10)}`;
       localStorage.setItem("aero_voter_id", voterId);
 
       const res = await fetch("/api/benchmarks/ratings/vote", {
@@ -146,7 +149,9 @@ export default function GamesTestedPage() {
       if (res.ok) {
         const data = await res.json();
         setReviews((prev) =>
-          prev.map((r) => (r.id === reviewId ? { ...r, upvotes: data.upvotes || r.upvotes + 1 } : r))
+          prev.map((r) =>
+            r.id === reviewId ? { ...r, upvotes: data.upvotes || r.upvotes + 1 } : r
+          )
         );
         const newVoted = [...votedReviewIds, reviewId];
         setVotedReviewIds(newVoted);
@@ -178,7 +183,12 @@ export default function GamesTestedPage() {
 
       const params = new URLSearchParams(window.location.search);
       const gameParam = params.get("game");
-      if (gameParam && (profiles[gameParam] || gamesList.some((g) => g.id === gameParam) || TESTED_GAMES_LIST.some((g) => g.id === gameParam))) {
+      if (
+        gameParam &&
+        (profiles[gameParam] ||
+          gamesList.some((g) => g.id === gameParam) ||
+          TESTED_GAMES_LIST.some((g) => g.id === gameParam))
+      ) {
         setSelectedGameId(gameParam);
       }
     }
@@ -276,9 +286,7 @@ export default function GamesTestedPage() {
   const filteredAndSortedGames = useMemo(() => {
     const q = searchQuery.trim().toLowerCase();
     const result = gamesList.filter((g) => {
-      const matchesGenre =
-        filterGenre === "ALL" ||
-        g.genre.toUpperCase().includes(filterGenre);
+      const matchesGenre = filterGenre === "ALL" || g.genre.toUpperCase().includes(filterGenre);
       const matchesSearch =
         !q ||
         g.name.toLowerCase().includes(q) ||
@@ -309,7 +317,8 @@ export default function GamesTestedPage() {
     }
   };
 
-  const currentSlide = slideshowIndex !== null && screenshots[slideshowIndex] ? screenshots[slideshowIndex] : null;
+  const currentSlide =
+    slideshowIndex !== null && screenshots[slideshowIndex] ? screenshots[slideshowIndex] : null;
 
   return (
     <div className="min-h-screen bg-[#070709] text-white pt-20 sm:pt-24 pb-16 sm:pb-20 selection:bg-neon-green selection:text-black overflow-x-hidden w-full max-w-full">
@@ -318,33 +327,41 @@ export default function GamesTestedPage() {
       <div className="fixed bottom-0 right-0 w-87.5 sm:w-150 h-87.5 sm:h-150 bg-purple-500/5 blur-[100px] sm:blur-[150px] pointer-events-none rounded-full" />
 
       <div className="max-w-7xl mx-auto px-3 sm:px-6 relative z-10 w-full overflow-hidden">
-        
         {/* Header / Hero Section */}
         <div className="text-center max-w-4xl mx-auto space-y-3 sm:space-y-4 mb-10 sm:mb-16">
           <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-neon-green/10 border border-neon-green/30 text-neon-green text-[10px] sm:text-xs font-mono font-bold tracking-widest uppercase shadow-[0_0_15px_rgba(118,185,0,0.2)] max-w-full truncate">
-            <Gamepad2 className="w-3.5 h-3.5 shrink-0" /> <span className="truncate">Hardware Compatibility Audit</span>
+            <Gamepad2 className="w-3.5 h-3.5 shrink-0" />{" "}
+            <span className="truncate">Hardware Compatibility Audit</span>
           </div>
 
           <h1 className="text-2xl xs:text-3xl sm:text-5xl md:text-6xl font-black font-display tracking-tight text-white uppercase leading-tight wrap-break-word px-1">
-            Tested Games & <span className="text-transparent bg-clip-text bg-linear-to-r from-neon-green via-emerald-400 to-teal-300 drop-shadow-[0_0_25px_rgba(118,185,0,0.4)]">Performance Benchmarks</span>
+            Tested Games &{" "}
+            <span className="text-transparent bg-clip-text bg-linear-to-r from-neon-green via-emerald-400 to-teal-300 drop-shadow-[0_0_25px_rgba(118,185,0,0.4)]">
+              Performance Benchmarks
+            </span>
           </h1>
 
           <p className="text-gray-400 text-xs sm:text-sm md:text-base font-mono max-w-2xl mx-auto leading-relaxed px-2 wrap-break-word">
-            Real-world gaming benchmarks, NVIDIA DLSS / Frame Generation telemetry, and AI-driven preset recommendations tested by Mission Control.
+            Real-world gaming benchmarks, NVIDIA DLSS / Frame Generation telemetry, and AI-driven
+            preset recommendations tested by Mission Control.
           </p>
 
           {/* Quick Metrics Pills */}
           <div className="grid grid-cols-2 sm:grid-cols-4 gap-2 sm:gap-3 pt-3 sm:pt-6 max-w-3xl mx-auto font-mono w-full">
             <div className="p-2.5 sm:p-3 rounded-xl sm:rounded-2xl bg-white/3 border border-white/10 text-center flex flex-col justify-center min-h-[4.5rem] sm:min-h-[5.25rem]">
-              <div className="text-neon-green font-black text-lg sm:text-2xl truncate">{featuredGame.score ? `${featuredGame.score}%` : "100%"}</div>
-              <div className="text-gray-400 text-[9px] sm:text-[10px] uppercase font-bold tracking-wider truncate mt-1">Local Verified</div>
+              <div className="text-neon-green font-black text-lg sm:text-2xl truncate">
+                {featuredGame.score ? `${featuredGame.score}%` : "100%"}
+              </div>
+              <div className="text-gray-400 text-[9px] sm:text-[10px] uppercase font-bold tracking-wider truncate mt-1">
+                Local Verified
+              </div>
             </div>
             <div className="p-2.5 sm:p-3 rounded-xl sm:rounded-2xl bg-white/3 border border-white/10 text-center flex flex-col justify-center min-h-[4.5rem] sm:min-h-[5.25rem]">
               <div className="flex items-center justify-center" title={featuredGame.api}>
                 {(() => {
                   const rawApi = (featuredGame.api || "DirectX 12").trim();
                   const isUltimate = /ultimate/i.test(rawApi);
-                  let base = rawApi.replace(/\s*ultimate/i, '').trim();
+                  let base = rawApi.replace(/\s*ultimate/i, "").trim();
                   if (/^dx\s*12/i.test(base)) base = "DirectX 12";
                   if (/^dx\s*11/i.test(base)) base = "DirectX 11";
 
@@ -362,15 +379,25 @@ export default function GamesTestedPage() {
                   );
                 })()}
               </div>
-              <div className="text-gray-400 text-[9px] sm:text-[10px] uppercase font-bold tracking-wider truncate mt-1">Render Engine</div>
+              <div className="text-gray-400 text-[9px] sm:text-[10px] uppercase font-bold tracking-wider truncate mt-1">
+                Render Engine
+              </div>
             </div>
             <div className="p-2.5 sm:p-3 rounded-xl sm:rounded-2xl bg-white/3 border border-white/10 text-center flex flex-col justify-center min-h-[4.5rem] sm:min-h-[5.25rem]">
-              <div className="text-teal-300 font-black text-lg sm:text-2xl truncate">{featuredGame.testedSpecs.latency}</div>
-              <div className="text-gray-400 text-[9px] sm:text-[10px] uppercase font-bold tracking-wider truncate mt-1">System Latency</div>
+              <div className="text-teal-300 font-black text-lg sm:text-2xl truncate">
+                {featuredGame.testedSpecs.latency}
+              </div>
+              <div className="text-gray-400 text-[9px] sm:text-[10px] uppercase font-bold tracking-wider truncate mt-1">
+                System Latency
+              </div>
             </div>
             <div className="p-2.5 sm:p-3 rounded-xl sm:rounded-2xl bg-white/3 border border-white/10 text-center flex flex-col justify-center min-h-[4.5rem] sm:min-h-[5.25rem]">
-              <div className="text-neon-yellow font-black text-lg sm:text-2xl truncate">{featuredGame.testedSpecs.vramUsed.split(' / ')[0]}</div>
-              <div className="text-gray-400 text-[9px] sm:text-[10px] uppercase font-bold tracking-wider truncate mt-1">VRAM Memory</div>
+              <div className="text-neon-yellow font-black text-lg sm:text-2xl truncate">
+                {featuredGame.testedSpecs.vramUsed.split(" / ")[0]}
+              </div>
+              <div className="text-gray-400 text-[9px] sm:text-[10px] uppercase font-bold tracking-wider truncate mt-1">
+                VRAM Memory
+              </div>
             </div>
           </div>
         </div>
@@ -394,14 +421,14 @@ export default function GamesTestedPage() {
           >
             {/* Background Glow */}
             <div className="absolute top-0 right-0 w-75 sm:w-125 h-75 sm:h-125 bg-neon-green/10 blur-[80px] sm:blur-[100px] pointer-events-none rounded-full" />
-            
+
             <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 sm:gap-8 items-center relative z-10">
-              
               {/* Left Column: Game Info & Metrics */}
               <div className="lg:col-span-5 space-y-4 sm:space-y-6">
                 <div>
                   <div className="flex items-center gap-1.5 text-[10px] sm:text-xs font-mono font-bold text-neon-green uppercase tracking-widest mb-2 flex-wrap">
-                    <ShieldCheck className="w-3.5 h-3.5 shrink-0" /> <span>{featuredGame.publisher}</span> • <span>{featuredGame.api}</span>
+                    <ShieldCheck className="w-3.5 h-3.5 shrink-0" />{" "}
+                    <span>{featuredGame.publisher}</span> • <span>{featuredGame.api}</span>
                   </div>
                   <h3 className="text-2xl sm:text-4xl font-black font-display text-white uppercase tracking-tight wrap-break-word">
                     {featuredGame.name}
@@ -414,26 +441,44 @@ export default function GamesTestedPage() {
                 {/* Tested Specs Grid - Actual Captured Data */}
                 <div className="grid grid-cols-2 gap-2 sm:gap-3 font-mono">
                   <div className="p-2.5 sm:p-3 bg-white/5 border border-white/10 rounded-xl">
-                    <div className="text-[9px] sm:text-[10px] text-gray-400 font-bold uppercase truncate">Avg FPS</div>
-                    <div className="text-lg sm:text-xl font-black text-neon-green truncate">{featuredGame.testedSpecs.avgFps}</div>
+                    <div className="text-[9px] sm:text-[10px] text-gray-400 font-bold uppercase truncate">
+                      Avg FPS
+                    </div>
+                    <div className="text-lg sm:text-xl font-black text-neon-green truncate">
+                      {featuredGame.testedSpecs.avgFps}
+                    </div>
                   </div>
                   <div className="p-2.5 sm:p-3 bg-white/5 border border-white/10 rounded-xl">
-                    <div className="text-[9px] sm:text-[10px] text-gray-400 font-bold uppercase truncate">Input Latency</div>
-                    <div className="text-lg sm:text-xl font-black text-emerald-400 truncate">{featuredGame.testedSpecs.latency}</div>
+                    <div className="text-[9px] sm:text-[10px] text-gray-400 font-bold uppercase truncate">
+                      Input Latency
+                    </div>
+                    <div className="text-lg sm:text-xl font-black text-emerald-400 truncate">
+                      {featuredGame.testedSpecs.latency}
+                    </div>
                   </div>
                   <div className="p-2.5 sm:p-3 bg-white/5 border border-white/10 rounded-xl">
-                    <div className="text-[9px] sm:text-[10px] text-gray-400 font-bold uppercase truncate">VRAM Allocation</div>
-                    <div className="text-xs sm:text-sm font-bold text-white truncate">{featuredGame.testedSpecs.vramUsed}</div>
+                    <div className="text-[9px] sm:text-[10px] text-gray-400 font-bold uppercase truncate">
+                      VRAM Allocation
+                    </div>
+                    <div className="text-xs sm:text-sm font-bold text-white truncate">
+                      {featuredGame.testedSpecs.vramUsed}
+                    </div>
                   </div>
                   <div className="p-2.5 sm:p-3 bg-white/5 border border-white/10 rounded-xl">
-                    <div className="text-[9px] sm:text-[10px] text-gray-400 font-bold uppercase truncate">GPU Usage</div>
-                    <div className="text-xs sm:text-sm font-bold text-neon-yellow truncate">{featuredGame.testedSpecs.gpuLoad}</div>
+                    <div className="text-[9px] sm:text-[10px] text-gray-400 font-bold uppercase truncate">
+                      GPU Usage
+                    </div>
+                    <div className="text-xs sm:text-sm font-bold text-neon-yellow truncate">
+                      {featuredGame.testedSpecs.gpuLoad}
+                    </div>
                   </div>
                 </div>
 
                 {/* Key Technologies Verified */}
                 <div className="space-y-2">
-                  <div className="text-[11px] sm:text-xs font-mono font-bold text-gray-300 uppercase tracking-wider">Verified Key Technologies</div>
+                  <div className="text-[11px] sm:text-xs font-mono font-bold text-gray-300 uppercase tracking-wider">
+                    Verified Key Technologies
+                  </div>
                   <div className="flex flex-wrap gap-1.5 sm:gap-2">
                     {featuredGame.features.map((feat, idx) => (
                       <span
@@ -450,24 +495,30 @@ export default function GamesTestedPage() {
                 {/* Recommended Presets breakdown */}
                 <div className="p-3 sm:p-4 rounded-xl sm:rounded-2xl bg-white/3 border border-white/10 space-y-2 font-mono text-xs">
                   <div className="font-bold text-white uppercase tracking-wider flex items-center gap-2 text-[11px] sm:text-xs">
-                    <Sliders className="w-3.5 h-3.5 text-neon-green shrink-0" /> <span>Recommended Presets</span>
+                    <Sliders className="w-3.5 h-3.5 text-neon-green shrink-0" />{" "}
+                    <span>Recommended Presets</span>
                   </div>
                   <div className="space-y-1.5 text-gray-300 text-[10px] sm:text-[11px]">
                     <div className="flex flex-col xs:flex-row xs:justify-between border-b border-white/5 pb-1 gap-0.5">
                       <span className="text-gray-400">RTX 40 / 50:</span>
-                      <span className="font-bold text-neon-green wrap-break-word">{featuredGame.presets.rtx40}</span>
+                      <span className="font-bold text-neon-green wrap-break-word">
+                        {featuredGame.presets.rtx40}
+                      </span>
                     </div>
                     <div className="flex flex-col xs:flex-row xs:justify-between border-b border-white/5 pb-1 gap-0.5">
                       <span className="text-gray-400">RTX 30:</span>
-                      <span className="font-bold text-emerald-400 wrap-break-word">{featuredGame.presets.rtx30}</span>
+                      <span className="font-bold text-emerald-400 wrap-break-word">
+                        {featuredGame.presets.rtx30}
+                      </span>
                     </div>
                     <div className="flex flex-col xs:flex-row xs:justify-between gap-0.5">
                       <span className="text-gray-400">GTX 10 / 16:</span>
-                      <span className="font-bold text-neon-yellow wrap-break-word">{featuredGame.presets.gtx}</span>
+                      <span className="font-bold text-neon-yellow wrap-break-word">
+                        {featuredGame.presets.gtx}
+                      </span>
                     </div>
                   </div>
                 </div>
-
               </div>
 
               {/* Right Column: Screenshot Gallery Preview */}
@@ -481,7 +532,7 @@ export default function GamesTestedPage() {
 
                 {/* Primary Large Screenshot */}
                 {screenshots.length > 0 && (
-                  <div 
+                  <div
                     onClick={() => openSlideshow(0)}
                     className="relative aspect-video rounded-xl sm:rounded-2xl overflow-hidden border border-white/15 bg-black cursor-pointer group/img shadow-2xl"
                   >
@@ -531,13 +582,11 @@ export default function GamesTestedPage() {
                     </div>
                   ))}
                 </div>
-
               </div>
 
               {/* Storefront Deep-Dive Inspiration Section */}
               {featuredGame.detailedOverview && (
                 <div className="col-span-1 lg:col-span-12 mt-6 sm:mt-10 pt-6 sm:pt-10 border-t border-white/15 space-y-8 sm:space-y-12">
-                  
                   {/* Section 1: Cinematic Story & Narrative */}
                   <div className="space-y-3 sm:space-y-4">
                     <div className="flex items-center justify-between gap-2">
@@ -555,7 +604,7 @@ export default function GamesTestedPage() {
 
                     {/* Cinematic Story Image Banner */}
                     {screenshots.length > 0 && (
-                      <div 
+                      <div
                         onClick={() => openSlideshow(0)}
                         className="relative w-full aspect-video sm:aspect-21/9 rounded-xl sm:rounded-2xl overflow-hidden border border-amber-400/20 bg-black/60 shadow-2xl cursor-pointer group/banner mt-2 sm:mt-4"
                       >
@@ -594,7 +643,7 @@ export default function GamesTestedPage() {
 
                     {/* Cinematic Gameplay Loop Banner */}
                     {screenshots.length > 1 && (
-                      <div 
+                      <div
                         onClick={() => openSlideshow(1)}
                         className="relative w-full aspect-video sm:aspect-21/9 rounded-xl sm:rounded-2xl overflow-hidden border border-emerald-400/20 bg-black/60 shadow-2xl cursor-pointer group/banner mt-2 sm:mt-4"
                       >
@@ -627,7 +676,10 @@ export default function GamesTestedPage() {
 
                     <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 sm:gap-4">
                       {featuredGame.detailedOverview.keyMechanics.map((mech, idx) => (
-                        <div key={idx} className="p-4 sm:p-5 rounded-xl sm:rounded-2xl bg-white/3 border border-white/10 hover:border-neon-yellow/40 transition-colors font-mono space-y-1.5 sm:space-y-2 group/card">
+                        <div
+                          key={idx}
+                          className="p-4 sm:p-5 rounded-xl sm:rounded-2xl bg-white/3 border border-white/10 hover:border-neon-yellow/40 transition-colors font-mono space-y-1.5 sm:space-y-2 group/card"
+                        >
                           <div className="text-neon-yellow font-bold text-xs sm:text-sm uppercase tracking-wide flex items-center gap-2">
                             <span className="w-2 h-2 rounded-full bg-neon-yellow shadow-[0_0_8px_rgba(250,204,21,0.8)] shrink-0" />
                             <span className="truncate">{mech.name}</span>
@@ -645,7 +697,8 @@ export default function GamesTestedPage() {
                     <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
                       <div className="space-y-1">
                         <div className="flex items-center gap-2 text-xs font-mono font-bold text-neon-green uppercase tracking-widest">
-                          <Users className="w-4 h-4 text-neon-green shrink-0" /> Community Telemetry & Rig Audits
+                          <Users className="w-4 h-4 text-neon-green shrink-0" /> Community Telemetry
+                          & Rig Audits
                         </div>
                         <h4 className="text-lg sm:text-2xl font-black font-display text-white uppercase tracking-wider">
                           Player Ratings & Hardware Logs
@@ -665,24 +718,31 @@ export default function GamesTestedPage() {
                     {/* Community Metrics Summary Card */}
                     <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 font-mono">
                       <div className="p-4 rounded-2xl bg-white/3 border border-white/10 space-y-1">
-                        <span className="text-[10px] text-gray-400 font-bold uppercase block">Community Score</span>
+                        <span className="text-[10px] text-gray-400 font-bold uppercase block">
+                          Community Score
+                        </span>
                         <div className="flex items-baseline gap-1.5">
                           <span className="text-2xl sm:text-3xl font-black text-amber-400">
                             {ratingStats && ratingStats.totalRatings > 0
                               ? ratingStats.averageRating.toFixed(1)
                               : featuredGame.storeRating
-                              ? parseFloat(featuredGame.storeRating).toFixed(1)
-                              : (featuredGame.score ? (featuredGame.score / 20).toFixed(1) : "5.0")}
+                                ? parseFloat(featuredGame.storeRating).toFixed(1)
+                                : featuredGame.score
+                                  ? (featuredGame.score / 20).toFixed(1)
+                                  : "5.0"}
                           </span>
                           <span className="text-xs text-gray-500 font-bold">/ 5.0</span>
                         </div>
                         <div className="flex items-center gap-0.5 text-amber-400 text-xs">
                           {(() => {
-                            const scoreNum = ratingStats && ratingStats.totalRatings > 0
-                              ? ratingStats.averageRating
-                              : featuredGame.storeRating
-                              ? parseFloat(featuredGame.storeRating)
-                              : (featuredGame.score ? featuredGame.score / 20 : 5);
+                            const scoreNum =
+                              ratingStats && ratingStats.totalRatings > 0
+                                ? ratingStats.averageRating
+                                : featuredGame.storeRating
+                                  ? parseFloat(featuredGame.storeRating)
+                                  : featuredGame.score
+                                    ? featuredGame.score / 20
+                                    : 5;
                             const fullStars = Math.min(5, Math.max(0, Math.floor(scoreNum)));
                             return (
                               <>
@@ -698,7 +758,9 @@ export default function GamesTestedPage() {
                       </div>
 
                       <div className="p-4 rounded-2xl bg-white/3 border border-white/10 space-y-1">
-                        <span className="text-[10px] text-gray-400 font-bold uppercase block">Recommendation</span>
+                        <span className="text-[10px] text-gray-400 font-bold uppercase block">
+                          Recommendation
+                        </span>
                         <div className="text-2xl sm:text-3xl font-black text-neon-green">
                           {ratingStats && ratingStats.totalRatings > 0
                             ? `${ratingStats.recommendationRate}%`
@@ -710,22 +772,33 @@ export default function GamesTestedPage() {
                       </div>
 
                       <div className="p-4 rounded-2xl bg-white/3 border border-white/10 space-y-1">
-                        <span className="text-[10px] text-gray-400 font-bold uppercase block">Avg Community FPS</span>
+                        <span className="text-[10px] text-gray-400 font-bold uppercase block">
+                          Avg Community FPS
+                        </span>
                         <div className="text-2xl sm:text-3xl font-black text-emerald-400">
-                          {ratingStats && ratingStats.totalRatings > 0 && ratingStats.avgReportedFps > 0
+                          {ratingStats &&
+                          ratingStats.totalRatings > 0 &&
+                          ratingStats.avgReportedFps > 0
                             ? `${ratingStats.avgReportedFps} FPS`
                             : featuredGame.testedSpecs.avgFps}
                         </div>
                         <span className="text-[10px] text-gray-400 block truncate">
-                          {ratingStats && ratingStats.totalRatings > 0 && ratingStats.avgReportedFps > 0
+                          {ratingStats &&
+                          ratingStats.totalRatings > 0 &&
+                          ratingStats.avgReportedFps > 0
                             ? "Captured across player rigs"
                             : "Verified benchmark telemetry"}
                         </span>
                       </div>
 
                       <div className="p-4 rounded-2xl bg-white/3 border border-white/10 space-y-1">
-                        <span className="text-[10px] text-gray-400 font-bold uppercase block">Telemetry Engine</span>
-                        <div className="text-base sm:text-lg font-bold text-white truncate" title={featuredGame.api}>
+                        <span className="text-[10px] text-gray-400 font-bold uppercase block">
+                          Telemetry Engine
+                        </span>
+                        <div
+                          className="text-base sm:text-lg font-bold text-white truncate"
+                          title={featuredGame.api}
+                        >
                           {featuredGame.api}
                         </div>
                         <span className="text-[10px] text-neon-green block truncate">
@@ -742,7 +815,10 @@ export default function GamesTestedPage() {
                         </div>
                         {[5, 4, 3, 2, 1].map((star) => {
                           const count = ratingStats.distribution[star] || 0;
-                          const pct = ratingStats.totalRatings > 0 ? (count / ratingStats.totalRatings) * 100 : 0;
+                          const pct =
+                            ratingStats.totalRatings > 0
+                              ? (count / ratingStats.totalRatings) * 100
+                              : 0;
                           return (
                             <div key={star} className="flex items-center gap-3 text-xs">
                               <span className="w-10 text-gray-400 font-bold flex items-center gap-0.5 shrink-0">
@@ -766,7 +842,8 @@ export default function GamesTestedPage() {
                     {/* Community Reviews Feed Header */}
                     <div className="flex items-center justify-between gap-2 pt-2">
                       <div className="text-xs font-bold text-gray-300 uppercase font-mono flex items-center gap-1.5">
-                        <MessageSquare className="w-3.5 h-3.5 text-neon-green" /> Verified Operator Reviews ({reviews.length})
+                        <MessageSquare className="w-3.5 h-3.5 text-neon-green" /> Verified Operator
+                        Reviews ({reviews.length})
                       </div>
                       <div className="flex items-center gap-1 bg-black/60 border border-white/10 rounded-xl p-1 text-[11px] font-mono">
                         <button
@@ -803,9 +880,12 @@ export default function GamesTestedPage() {
                     ) : reviews.length === 0 ? (
                       <div className="p-8 text-center rounded-2xl bg-white/2 border border-white/10 space-y-3 font-mono">
                         <Star className="w-8 h-8 text-gray-600 mx-auto" />
-                        <div className="text-sm font-bold text-white uppercase">No Community Logs Yet</div>
+                        <div className="text-sm font-bold text-white uppercase">
+                          No Community Logs Yet
+                        </div>
                         <p className="text-xs text-gray-400 max-w-md mx-auto">
-                          Be the first pilot to benchmark your GPU rig and log performance telemetry for {featuredGame.name}.
+                          Be the first pilot to benchmark your GPU rig and log performance telemetry
+                          for {featuredGame.name}.
                         </p>
                         <button
                           type="button"
@@ -908,7 +988,10 @@ export default function GamesTestedPage() {
                                   {rev.specs?.fpsReported && (
                                     <span className="px-2 py-0.5 rounded-md bg-neon-green/10 border border-neon-green/30 text-neon-green font-bold flex items-center gap-1 shrink-0">
                                       <Zap className="w-2.5 h-2.5 shrink-0" />
-                                      {rev.specs.fpsReported} FPS {rev.specs.resolution ? `@ ${rev.specs.resolution.split(' ')[0]}` : ""}
+                                      {rev.specs.fpsReported} FPS{" "}
+                                      {rev.specs.resolution
+                                        ? `@ ${rev.specs.resolution.split(" ")[0]}`
+                                        : ""}
                                     </span>
                                   )}
                                 </div>
@@ -930,8 +1013,12 @@ export default function GamesTestedPage() {
                                       : "bg-white/5 hover:bg-white/10 text-gray-300 hover:text-white border border-white/10"
                                   }`}
                                 >
-                                  <ThumbsUp className={`w-3 h-3 ${hasVoted ? "fill-neon-green text-neon-green" : ""}`} />
-                                  <span>{hasVoted ? "Helpful" : "Helpful"} ({rev.upvotes || 0})</span>
+                                  <ThumbsUp
+                                    className={`w-3 h-3 ${hasVoted ? "fill-neon-green text-neon-green" : ""}`}
+                                  />
+                                  <span>
+                                    {hasVoted ? "Helpful" : "Helpful"} ({rev.upvotes || 0})
+                                  </span>
                                 </button>
                               </div>
                             </div>
@@ -940,10 +1027,8 @@ export default function GamesTestedPage() {
                       </div>
                     )}
                   </div>
-
                 </div>
               )}
-
             </div>
           </motion.div>
         </div>
@@ -959,20 +1044,23 @@ export default function GamesTestedPage() {
                 Verified Tested Games Library
               </h2>
               <p className="text-gray-400 text-xs font-mono mt-1 wrap-break-word">
-                Hover over any game to trigger animated previews, real-time FPS benchmarks, and hardware telemetry.
+                Hover over any game to trigger animated previews, real-time FPS benchmarks, and
+                hardware telemetry.
               </p>
             </div>
 
             {/* Quick Stats Counter */}
             <div className="text-xs font-mono text-gray-400 flex items-center gap-2">
-              <span>Showing <strong className="text-neon-green">{paginatedGames.length}</strong> of <strong className="text-white">{filteredAndSortedGames.length}</strong> tested games</span>
+              <span>
+                Showing <strong className="text-neon-green">{paginatedGames.length}</strong> of{" "}
+                <strong className="text-white">{filteredAndSortedGames.length}</strong> tested games
+              </span>
             </div>
           </div>
 
           {/* Unified Search, Sort & Scalable Horizontal Genre Bar */}
           <div className="space-y-3 sm:space-y-4 bg-white/2 border border-white/10 rounded-xl sm:rounded-2xl p-3 sm:p-5 backdrop-blur-md w-full">
             <div className="flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-2.5 sm:gap-3">
-              
               {/* Search Bar */}
               <div className="relative flex-1">
                 <Search className="w-4 h-4 text-gray-400 absolute left-3 top-1/2 -translate-y-1/2 pointer-events-none" />
@@ -1006,10 +1094,16 @@ export default function GamesTestedPage() {
                     className="w-full sm:w-auto justify-between bg-black/70 hover:bg-black/90 border border-white/15 hover:border-neon-green/50 rounded-xl px-3.5 py-2 sm:py-2.5 text-xs font-mono font-bold text-gray-200 uppercase tracking-wider flex items-center gap-2 transition-all shadow-lg cursor-pointer select-none"
                   >
                     <div className="flex items-center gap-2 truncate">
-                      {sortBy === "featured" && <Sparkles className="w-3.5 h-3.5 text-neon-green shrink-0" />}
+                      {sortBy === "featured" && (
+                        <Sparkles className="w-3.5 h-3.5 text-neon-green shrink-0" />
+                      )}
                       {sortBy === "fps" && <Zap className="w-3.5 h-3.5 text-neon-green shrink-0" />}
-                      {sortBy === "latency" && <Activity className="w-3.5 h-3.5 text-neon-green shrink-0" />}
-                      {sortBy === "name" && <ArrowUpDown className="w-3.5 h-3.5 text-neon-green shrink-0" />}
+                      {sortBy === "latency" && (
+                        <Activity className="w-3.5 h-3.5 text-neon-green shrink-0" />
+                      )}
+                      {sortBy === "name" && (
+                        <ArrowUpDown className="w-3.5 h-3.5 text-neon-green shrink-0" />
+                      )}
                       <span className="truncate">
                         {sortBy === "featured" && "Featured"}
                         {sortBy === "fps" && "Highest FPS"}
@@ -1017,7 +1111,9 @@ export default function GamesTestedPage() {
                         {sortBy === "name" && "Title (A-Z)"}
                       </span>
                     </div>
-                    <ChevronDown className={`w-3.5 h-3.5 text-gray-400 transition-transform duration-200 shrink-0 ${isSortOpen ? "rotate-180 text-neon-green" : ""}`} />
+                    <ChevronDown
+                      className={`w-3.5 h-3.5 text-gray-400 transition-transform duration-200 shrink-0 ${isSortOpen ? "rotate-180 text-neon-green" : ""}`}
+                    />
                   </button>
 
                   {/* Dropdown Menu Popup */}
@@ -1038,7 +1134,7 @@ export default function GamesTestedPage() {
                           { value: "featured", label: "Featured Benchmarks", icon: Sparkles },
                           { value: "fps", label: "Highest FPS", icon: Zap },
                           { value: "latency", label: "Lowest Latency", icon: Activity },
-                          { value: "name", label: "Title (A-Z)", icon: ArrowUpDown }
+                          { value: "name", label: "Title (A-Z)", icon: ArrowUpDown },
                         ].map((opt) => {
                           const isCurrent = sortBy === opt.value;
                           const IconComp = opt.icon;
@@ -1057,10 +1153,14 @@ export default function GamesTestedPage() {
                               }`}
                             >
                               <div className="flex items-center gap-2.5 truncate">
-                                <IconComp className={`w-3.5 h-3.5 shrink-0 ${isCurrent ? "text-neon-green" : "text-gray-400"}`} />
+                                <IconComp
+                                  className={`w-3.5 h-3.5 shrink-0 ${isCurrent ? "text-neon-green" : "text-gray-400"}`}
+                                />
                                 <span className="truncate">{opt.label}</span>
                               </div>
-                              {isCurrent && <CheckCircle2 className="w-3.5 h-3.5 text-neon-green shrink-0" />}
+                              {isCurrent && (
+                                <CheckCircle2 className="w-3.5 h-3.5 text-neon-green shrink-0" />
+                              )}
                             </button>
                           );
                         })}
@@ -1116,7 +1216,9 @@ export default function GamesTestedPage() {
                   }`}
                 >
                   <span>All</span>
-                  <span className={`text-[10px] px-1.5 py-0.2 rounded-full ${filterGenre === "ALL" ? "bg-black/40 text-black font-black" : "bg-white/10 text-gray-400"}`}>
+                  <span
+                    className={`text-[10px] px-1.5 py-0.2 rounded-full ${filterGenre === "ALL" ? "bg-black/40 text-black font-black" : "bg-white/10 text-gray-400"}`}
+                  >
                     {gamesList.length}
                   </span>
                 </button>
@@ -1138,7 +1240,9 @@ export default function GamesTestedPage() {
                       }`}
                     >
                       <span>{genre}</span>
-                      <span className={`text-[10px] px-1.5 py-0.2 rounded-full ${isSelected ? "bg-black/40 text-black font-black" : "bg-white/10 text-gray-400"}`}>
+                      <span
+                        className={`text-[10px] px-1.5 py-0.2 rounded-full ${isSelected ? "bg-black/40 text-black font-black" : "bg-white/10 text-gray-400"}`}
+                      >
                         {count}
                       </span>
                     </button>
@@ -1166,7 +1270,9 @@ export default function GamesTestedPage() {
                   <div
                     key={game.id}
                     className={`rounded-2xl sm:rounded-3xl bg-[#0b0c10] border transition-all duration-300 flex flex-col justify-between group overflow-hidden ${
-                      isSelected ? "border-neon-green shadow-[0_0_30px_rgba(118,185,0,0.25)]" : "border-white/10 hover:border-neon-green/50 hover:shadow-[0_0_25px_rgba(118,185,0,0.15)] shadow-xl"
+                      isSelected
+                        ? "border-neon-green shadow-[0_0_30px_rgba(118,185,0,0.25)]"
+                        : "border-white/10 hover:border-neon-green/50 hover:shadow-[0_0_25px_rgba(118,185,0,0.15)] shadow-xl"
                     }`}
                   >
                     {/* Card Cover Header with Microsoft Store Hover Preview */}
@@ -1183,21 +1289,23 @@ export default function GamesTestedPage() {
                         className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-700 ease-out"
                       />
                       <div className="absolute inset-0 bg-linear-to-t from-[#0b0c10] via-black/20 to-black/40" />
-                      
+
                       {/* Top Badges */}
                       <div className="absolute top-2.5 left-2.5 right-2.5 flex items-center justify-between gap-1.5">
                         <span className="text-[9px] sm:text-[10px] font-mono font-bold text-gray-200 px-2 py-0.5 sm:px-2.5 sm:py-1 rounded-full bg-black/85 border border-white/20 backdrop-blur-md uppercase tracking-wider flex items-center gap-1 shadow-md truncate">
-                          <Gamepad2 className="w-2.5 h-2.5 sm:w-3 sm:h-3 text-neon-green shrink-0" /> {game.genre.split('/')[0]}
+                          <Gamepad2 className="w-2.5 h-2.5 sm:w-3 sm:h-3 text-neon-green shrink-0" />{" "}
+                          {game.genre.split("/")[0]}
                         </span>
                         <span className="text-[9px] sm:text-[10px] font-mono font-bold text-amber-300 bg-black/85 px-2 py-0.5 sm:px-2.5 sm:py-1 rounded-full border border-amber-400/30 uppercase backdrop-blur-md shadow-md shrink-0">
-                          {game.storeRating || (profiles[game.id]?.storeRating) || "Verified"}
+                          {game.storeRating || profiles[game.id]?.storeRating || "Verified"}
                         </span>
                       </div>
 
                       {/* Bottom Floating Live Telemetry Badge */}
                       <div className="absolute bottom-2.5 left-2.5 right-2.5 flex items-center justify-between pointer-events-none gap-2">
                         <span className="px-2 py-0.5 sm:px-2.5 sm:py-1 rounded-lg bg-neon-green/20 border border-neon-green/40 text-neon-green text-[9px] sm:text-[10px] font-mono font-bold backdrop-blur-md flex items-center gap-1 shadow-lg truncate">
-                          <Zap className="w-2.5 h-2.5 sm:w-3 sm:h-3 fill-neon-green shrink-0" /> {game.fps}
+                          <Zap className="w-2.5 h-2.5 sm:w-3 sm:h-3 fill-neon-green shrink-0" />{" "}
+                          {game.fps}
                         </span>
                         <span className="px-2 py-0.5 sm:px-2.5 sm:py-1 rounded-lg bg-black/80 border border-white/20 text-white text-[9px] sm:text-[10px] font-mono font-bold backdrop-blur-md truncate">
                           {game.dlssVersion || game.api || "Verified"}
@@ -1227,7 +1335,9 @@ export default function GamesTestedPage() {
                           </div>
                           <div className="flex justify-between text-[10px] sm:text-[11px] border-b border-white/5 pb-1">
                             <span className="text-gray-400">Latency & Load:</span>
-                            <span className="font-bold text-emerald-400 truncate">{game.latency} • {game.gpuLoad}</span>
+                            <span className="font-bold text-emerald-400 truncate">
+                              {game.latency} • {game.gpuLoad}
+                            </span>
                           </div>
                           <div className="flex justify-between text-[10px] sm:text-[11px]">
                             <span className="text-gray-400">Graphics API:</span>
@@ -1244,7 +1354,9 @@ export default function GamesTestedPage() {
                             : "btn-premium-glass text-white hover:text-neon-green"
                         }`}
                       >
-                        <span className="truncate">{isSelected ? "Viewing Profile & Gallery" : "View Benchmark & Gameplay"}</span>
+                        <span className="truncate">
+                          {isSelected ? "Viewing Profile & Gallery" : "View Benchmark & Gameplay"}
+                        </span>
                         <ArrowRight className="w-3.5 h-3.5 shrink-0 text-neon-green" />
                       </button>
                     </div>
@@ -1258,9 +1370,13 @@ export default function GamesTestedPage() {
               <div className="w-10 h-10 sm:w-12 sm:h-12 rounded-full bg-white/5 border border-white/10 flex items-center justify-center mx-auto text-gray-400">
                 <Search className="w-5 h-5 sm:w-6 sm:h-6" />
               </div>
-              <h3 className="text-lg sm:text-xl font-bold font-display uppercase text-white wrap-break-word">No Matching Games Found</h3>
+              <h3 className="text-lg sm:text-xl font-bold font-display uppercase text-white wrap-break-word">
+                No Matching Games Found
+              </h3>
               <p className="text-gray-400 text-xs font-mono leading-relaxed wrap-break-word">
-                We couldn&apos;t find any verified benchmark profiles matching &ldquo;<span className="text-neon-green">{searchQuery}</span>&rdquo; in the <span className="text-white">{filterGenre}</span> genre.
+                We couldn&apos;t find any verified benchmark profiles matching &ldquo;
+                <span className="text-neon-green">{searchQuery}</span>&rdquo; in the{" "}
+                <span className="text-white">{filterGenre}</span> genre.
               </p>
               <button
                 onClick={() => {
@@ -1296,21 +1412,30 @@ export default function GamesTestedPage() {
               Ready to Optimize Your PC for Tested Games?
             </h2>
             <p className="text-gray-300 text-xs sm:text-sm font-mono wrap-break-word">
-              Download Mission Control to automatically detect installed games, configure hardware presets, and monitor thermals in real time.
+              Download Mission Control to automatically detect installed games, configure hardware
+              presets, and monitor thermals in real time.
             </p>
             <div className="pt-2 flex justify-center">
               <a
-                href={os === "linux" ? LINUX_INSTALLER_URL : (os === "windows" ? WINDOWS_INSTALLER_URL : AUTO_DOWNLOAD_URL)}
+                href={
+                  os === "linux"
+                    ? LINUX_INSTALLER_URL
+                    : os === "windows"
+                      ? WINDOWS_INSTALLER_URL
+                      : AUTO_DOWNLOAD_URL
+                }
                 suppressHydrationWarning
                 className="inline-flex items-center gap-2.5 px-6 py-3 sm:px-8 sm:py-3.5 rounded-xl btn-premium-primary font-black font-mono text-xs uppercase tracking-wider shadow-[0_0_35px_rgba(118,185,0,0.5)] group cursor-pointer"
               >
                 <Download className="w-4 h-4 shrink-0 transition-transform group-hover:translate-y-0.5" />
-                <span suppressHydrationWarning>Download Mission Control {os === "linux" ? "(Linux)" : os === "windows" ? "(Windows)" : ""}</span>
+                <span suppressHydrationWarning>
+                  Download Mission Control{" "}
+                  {os === "linux" ? "(Linux)" : os === "windows" ? "(Windows)" : ""}
+                </span>
               </a>
             </div>
           </div>
         </div>
-
       </div>
 
       {/* Full-Screen Interactive Slideshow Lightbox Modal */}
@@ -1343,7 +1468,11 @@ export default function GamesTestedPage() {
                       ? "bg-neon-green text-obsidian border-neon-green shadow-[0_0_15px_rgba(118,185,0,0.6)]"
                       : "bg-white/10 border-white/20 text-gray-200 hover:bg-white/20 hover:text-white"
                   }`}
-                  title={isPlaying ? "Pause automatic slideshow (Space)" : "Initiate automatic slideshow (Space)"}
+                  title={
+                    isPlaying
+                      ? "Pause automatic slideshow (Space)"
+                      : "Initiate automatic slideshow (Space)"
+                  }
                 >
                   {isPlaying ? (
                     <>
@@ -1436,7 +1565,18 @@ export default function GamesTestedPage() {
                 </div>
 
                 <div className="hidden sm:block text-[10px] text-gray-400 shrink-0 self-end sm:self-center font-mono">
-                  Use <kbd className="px-1.5 py-0.5 bg-white/10 rounded border border-white/20 text-white">←</kbd> <kbd className="px-1.5 py-0.5 bg-white/10 rounded border border-white/20 text-white">→</kbd> to navigate • <kbd className="px-1.5 py-0.5 bg-white/10 rounded border border-white/20 text-white">Space</kbd> to pause
+                  Use{" "}
+                  <kbd className="px-1.5 py-0.5 bg-white/10 rounded border border-white/20 text-white">
+                    ←
+                  </kbd>{" "}
+                  <kbd className="px-1.5 py-0.5 bg-white/10 rounded border border-white/20 text-white">
+                    →
+                  </kbd>{" "}
+                  to navigate •{" "}
+                  <kbd className="px-1.5 py-0.5 bg-white/10 rounded border border-white/20 text-white">
+                    Space
+                  </kbd>{" "}
+                  to pause
                 </div>
               </div>
 
@@ -1467,7 +1607,6 @@ export default function GamesTestedPage() {
                 </div>
               )}
             </div>
-
           </motion.div>
         )}
       </AnimatePresence>

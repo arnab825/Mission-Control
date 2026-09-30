@@ -14,9 +14,9 @@ const DEFAULT_COMPONENTS = [
     specs: [
       { label: "Polling Rate", val: "60 Hz Active" },
       { label: "CPU Overhead", val: "< 0.2%" },
-      { label: "Protocol", val: "Local WebSocket IPC" }
+      { label: "Protocol", val: "Local WebSocket IPC" },
     ],
-    order: 1
+    order: 1,
   },
   {
     id: "nim-core",
@@ -28,9 +28,9 @@ const DEFAULT_COMPONENTS = [
     specs: [
       { label: "Inference Latency", val: "12.4 ms" },
       { label: "Precision Engine", val: "FP16 / INT8 Quantized" },
-      { label: "Privacy Rating", val: "100% Local / Sandbox" }
+      { label: "Privacy Rating", val: "100% Local / Sandbox" },
     ],
-    order: 2
+    order: 2,
   },
   {
     id: "directx-presentation",
@@ -42,9 +42,9 @@ const DEFAULT_COMPONENTS = [
     specs: [
       { label: "Render Overhead", val: "0 FPS Drop" },
       { label: "Hook Protocols", val: "DirectX 11/12, Vulkan" },
-      { label: "Input Pass-Through", val: "Sub-millisecond" }
+      { label: "Input Pass-Through", val: "Sub-millisecond" },
     ],
-    order: 3
+    order: 3,
   },
   {
     id: "process-watcher",
@@ -56,10 +56,10 @@ const DEFAULT_COMPONENTS = [
     specs: [
       { label: "Detection Engine", val: "Kernel Event Hook" },
       { label: "Action Response", val: "< 5 ms" },
-      { label: "Safety Verification", val: "Memory Read-Only" }
+      { label: "Safety Verification", val: "Memory Read-Only" },
     ],
-    order: 4
-  }
+    order: 4,
+  },
 ];
 
 export default async function ArchitecturePage() {
@@ -83,8 +83,8 @@ export default async function ArchitecturePage() {
         desc: doc.desc,
         specs: doc.specs.map((s: any) => ({
           label: s.label,
-          val: s.val
-        }))
+          val: s.val,
+        })),
       }));
     }
   } catch (error) {

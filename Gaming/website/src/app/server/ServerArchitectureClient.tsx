@@ -32,7 +32,7 @@ import {
   Clock,
   Sparkles,
   Sliders,
-  AlertTriangle
+  AlertTriangle,
 } from "lucide-react";
 
 type ActiveTab = "overview" | "discover" | "nodes" | "resilience" | "api";
@@ -76,20 +76,21 @@ const API_EXAMPLES: ApiEndpointExample[] = [
           tags: ["Open World", "Story Rich", "Assassins", "Singleplayer"],
           store: "Steam",
           store_app_id: "3035570",
-          cover_url: "https://cdn.cloudflare.steamstatic.com/steam/apps/3035570/library_600x900_2x.jpg",
+          cover_url:
+            "https://cdn.cloudflare.steamstatic.com/steam/apps/3035570/library_600x900_2x.jpg",
           banner_url: "https://cdn.cloudflare.steamstatic.com/steam/apps/3035570/header.jpg",
           in_catalog: true,
           ai_classified: true,
           launchers: ["Steam", "Ubisoft Connect", "Epic Games"],
           store_availability: {
             steam: { available: true, store_app_id: "3035570" },
-            ubisoft: { available: true, store_app_id: "ubi-ac-mirage" }
-          }
-        }
+            ubisoft: { available: true, store_app_id: "ubi-ac-mirage" },
+          },
+        },
       ],
       cached: true,
-      compute_credits_used: 0
-    }
+      compute_credits_used: 0,
+    },
   },
   {
     method: "POST",
@@ -108,11 +109,11 @@ const API_EXAMPLES: ApiEndpointExample[] = [
       specs: {
         cpu: "AMD Ryzen 9 7950X3D (16 Cores, 32 Threads)",
         gpu: "NVIDIA GeForce RTX 4090 (24GB GDDR6X)",
-        ram_gb: 64
+        ram_gb: 64,
       },
       storage_total_gb: 4096,
       storage_free_gb: 1840,
-      auth_token: "node_sec_example_mock_token"
+      auth_token: "node_sec_example_mock_token",
     },
     responseBody: {
       success: true,
@@ -120,8 +121,8 @@ const API_EXAMPLES: ApiEndpointExample[] = [
       status: "online",
       heartbeat_interval_sec: 15,
       offline_timeout_sec: 45,
-      message: "Node registered to cluster. Awaiting initial launcher sync."
-    }
+      message: "Node registered to cluster. Awaiting initial launcher sync.",
+    },
   },
   {
     method: "POST",
@@ -142,17 +143,17 @@ const API_EXAMPLES: ApiEndpointExample[] = [
           install_path: "D:\\SteamLibrary\\steamapps\\common\\Assassin's Creed Mirage",
           size_bytes: 41249780000,
           executable: "ACMirage.exe",
-          last_played: "2026-09-08T18:30:00Z"
-        }
-      ]
+          last_played: "2026-09-08T18:30:00Z",
+        },
+      ],
     },
     responseBody: {
       success: true,
       synced_games: 24,
       linked_canonical: 24,
       cluster_installations_total: 68,
-      timestamp: "2026-09-10T05:45:00Z"
-    }
+      timestamp: "2026-09-10T05:45:00Z",
+    },
   },
   {
     method: "GET",
@@ -170,11 +171,29 @@ const API_EXAMPLES: ApiEndpointExample[] = [
       total_cluster_storage_gb: 8192,
       free_cluster_storage_gb: 3410,
       nodes: [
-        { id: "node_774a10fc", name: "Desktop-Battlestation", status: "online", installed_count: 38, last_seen_seconds_ago: 3 },
-        { id: "node_882b99ea", name: "Razer-Blade-Laptop", status: "online", installed_count: 18, last_seen_seconds_ago: 8 },
-        { id: "node_114c00ab", name: "Steam-Deck-OLED", status: "online", installed_count: 12, last_seen_seconds_ago: 12 }
-      ]
-    }
+        {
+          id: "node_774a10fc",
+          name: "Desktop-Battlestation",
+          status: "online",
+          installed_count: 38,
+          last_seen_seconds_ago: 3,
+        },
+        {
+          id: "node_882b99ea",
+          name: "Razer-Blade-Laptop",
+          status: "online",
+          installed_count: 18,
+          last_seen_seconds_ago: 8,
+        },
+        {
+          id: "node_114c00ab",
+          name: "Steam-Deck-OLED",
+          status: "online",
+          installed_count: 12,
+          last_seen_seconds_ago: 12,
+        },
+      ],
+    },
   },
   {
     method: "GET",
@@ -193,21 +212,21 @@ const API_EXAMPLES: ApiEndpointExample[] = [
           active_instances: 2,
           targets: [
             { url: "http://127.0.0.1:8811", healthy: true, latency_ms: 2.1 },
-            { url: "http://127.0.0.1:8812", healthy: true, latency_ms: 1.9 }
-          ]
+            { url: "http://127.0.0.1:8812", healthy: true, latency_ms: 1.9 },
+          ],
         },
         user_library_sync: {
           strategy: "round-robin",
           active_instances: 2,
           targets: [
             { url: "http://127.0.0.1:8821", healthy: true, latency_ms: 0.8 },
-            { url: "http://127.0.0.1:8822", healthy: true, latency_ms: 0.7 }
-          ]
-        }
+            { url: "http://127.0.0.1:8822", healthy: true, latency_ms: 0.7 },
+          ],
+        },
       },
-      database: { tier: 1, provider: "Supabase PostgreSQL", fallback_sqlite_ready: true }
-    }
-  }
+      database: { tier: 1, provider: "Supabase PostgreSQL", fallback_sqlite_ready: true },
+    },
+  },
 ];
 
 export default function ServerArchitectureClient() {
@@ -264,7 +283,11 @@ export default function ServerArchitectureClient() {
             transition={{ delay: 0.1 }}
             className="text-4xl sm:text-6xl lg:text-7xl font-black font-display tracking-tight text-white max-w-5xl leading-[1.08]"
           >
-            WHAT OUR <span className="text-neon-green drop-shadow-[0_0_25px_rgba(118,185,0,0.35)]">SERVER</span> ACTUALLY DOES
+            WHAT OUR{" "}
+            <span className="text-neon-green drop-shadow-[0_0_25px_rgba(118,185,0,0.35)]">
+              SERVER
+            </span>{" "}
+            ACTUALLY DOES
           </motion.h1>
 
           {/* Subtitle */}
@@ -274,7 +297,11 @@ export default function ServerArchitectureClient() {
             transition={{ delay: 0.2 }}
             className="text-base sm:text-xl text-zinc-400 max-w-3xl leading-relaxed"
           >
-            Discover how Mission Control decouples heavy web scraping, game launcher crawling, and AI taxonomy classification from real-time client gameplay. A dual-pool microservice architecture specifically engineered for <strong className="text-white">Discover From Web</strong> and <strong className="text-white">Manage Nodes</strong>.
+            Discover how Mission Control decouples heavy web scraping, game launcher crawling, and
+            AI taxonomy classification from real-time client gameplay. A dual-pool microservice
+            architecture specifically engineered for{" "}
+            <strong className="text-white">Discover From Web</strong> and{" "}
+            <strong className="text-white">Manage Nodes</strong>.
           </motion.p>
 
           {/* Live System Metrics Strip */}
@@ -298,7 +325,9 @@ export default function ServerArchitectureClient() {
                 <span>DISCOVERY POOL</span>
                 <Globe className="w-3.5 h-3.5 text-cyan-400" />
               </div>
-              <div className="text-xl sm:text-2xl font-black text-white font-mono">Ports :8811–12</div>
+              <div className="text-xl sm:text-2xl font-black text-white font-mono">
+                Ports :8811–12
+              </div>
               <p className="text-[11px] text-zinc-500 mt-1">5-Store Live Harvester</p>
             </div>
 
@@ -307,7 +336,9 @@ export default function ServerArchitectureClient() {
                 <span>NODE SYNC POOL</span>
                 <HardDrive className="w-3.5 h-3.5 text-purple-400" />
               </div>
-              <div className="text-xl sm:text-2xl font-black text-white font-mono">Ports :8821–22</div>
+              <div className="text-xl sm:text-2xl font-black text-white font-mono">
+                Ports :8821–22
+              </div>
               <p className="text-[11px] text-zinc-500 mt-1">15s Heartbeat Watchdog</p>
             </div>
 
@@ -316,7 +347,9 @@ export default function ServerArchitectureClient() {
                 <span>LOCAL FAILOVER</span>
                 <ShieldCheck className="w-3.5 h-3.5 text-emerald-400" />
               </div>
-              <div className="text-xl sm:text-2xl font-black text-white font-mono">100% Offline</div>
+              <div className="text-xl sm:text-2xl font-black text-white font-mono">
+                100% Offline
+              </div>
               <p className="text-[11px] text-zinc-500 mt-1">Zero Cloud Dependency</p>
             </div>
           </motion.div>
@@ -343,8 +376,8 @@ export default function ServerArchitectureClient() {
                   isActive
                     ? "bg-neon-green text-black shadow-[0_0_20px_rgba(118,185,0,0.35)]"
                     : tab.highlight
-                    ? "bg-white/[0.06] text-white hover:bg-white/10 border border-white/10"
-                    : "text-zinc-400 hover:text-white hover:bg-white/5"
+                      ? "bg-white/[0.06] text-white hover:bg-white/10 border border-white/10"
+                      : "text-zinc-400 hover:text-white hover:bg-white/5"
                 }`}
               >
                 <Icon className="w-4 h-4" />
@@ -393,7 +426,8 @@ export default function ServerArchitectureClient() {
                     </div>
                     <h3 className="font-bold text-white text-base">Client Interfaces</h3>
                     <p className="text-xs text-zinc-400 mt-2 leading-relaxed">
-                      Desktop Electron apps, in-game HUD overlays, and background Node Daemons query the unified cluster.
+                      Desktop Electron apps, in-game HUD overlays, and background Node Daemons query
+                      the unified cluster.
                     </p>
                   </div>
                   <div className="mt-4 pt-4 border-t border-white/5 text-[11px] font-mono text-zinc-500 space-y-1">
@@ -412,7 +446,8 @@ export default function ServerArchitectureClient() {
                     </div>
                     <h3 className="font-bold text-white text-base">Multi-Pool Gateway</h3>
                     <p className="text-xs text-zinc-300 mt-2 leading-relaxed">
-                      Reverse proxy dispatching incoming queries based on path rules. Balances load and isolates scraper spikes from client sync.
+                      Reverse proxy dispatching incoming queries based on path rules. Balances load
+                      and isolates scraper spikes from client sync.
                     </p>
                   </div>
                   <div className="mt-4 pt-4 border-t border-neon-green/20 text-[11px] font-mono text-neon-green/80 space-y-1">
@@ -458,7 +493,8 @@ export default function ServerArchitectureClient() {
                     </div>
                     <h3 className="font-bold text-white text-base">Persistence Tier</h3>
                     <p className="text-xs text-zinc-400 mt-2 leading-relaxed">
-                      Primary high-concurrency Supabase PostgreSQL cluster backed by a zero-overhead local SQLite fallback database.
+                      Primary high-concurrency Supabase PostgreSQL cluster backed by a zero-overhead
+                      local SQLite fallback database.
                     </p>
                   </div>
                   <div className="mt-4 pt-4 border-t border-white/5 text-[11px] font-mono text-zinc-500 space-y-1">
@@ -479,10 +515,15 @@ export default function ServerArchitectureClient() {
                   <span>Why Decouple From the Gaming Client?</span>
                 </h3>
                 <p className="text-sm text-zinc-400 leading-relaxed mb-4">
-                  Traditional gaming dashboards execute heavy storefront scraping, SQLite writes, and web image downloading directly in the client application thread. When downloading hundreds of manifest files or processing AI tags, this causes micro-stutters, FPS drops, and memory spikes in running games.
+                  Traditional gaming dashboards execute heavy storefront scraping, SQLite writes,
+                  and web image downloading directly in the client application thread. When
+                  downloading hundreds of manifest files or processing AI tags, this causes
+                  micro-stutters, FPS drops, and memory spikes in running games.
                 </p>
                 <p className="text-sm text-zinc-400 leading-relaxed">
-                  Mission Control delegates all ingestion and clustering to background worker pools. Your local gaming PC stays 100% focused on rendering frames at maximum clock rates with sub-millisecond telemetry.
+                  Mission Control delegates all ingestion and clustering to background worker pools.
+                  Your local gaming PC stays 100% focused on rendering frames at maximum clock rates
+                  with sub-millisecond telemetry.
                 </p>
               </div>
 
@@ -492,10 +533,14 @@ export default function ServerArchitectureClient() {
                   <span>Zero Single Point of Failure (SPOF)</span>
                 </h3>
                 <p className="text-sm text-zinc-400 leading-relaxed mb-4">
-                  Even if cloud networks drop or external internet connections fail, Mission Control operates in complete autonomy. The client maintains an in-memory 250+ canonical database and an embedded SQLite replica (<code className="text-neon-green">catalog_fallback.db</code>).
+                  Even if cloud networks drop or external internet connections fail, Mission Control
+                  operates in complete autonomy. The client maintains an in-memory 250+ canonical
+                  database and an embedded SQLite replica (
+                  <code className="text-neon-green">catalog_fallback.db</code>).
                 </p>
                 <p className="text-sm text-zinc-400 leading-relaxed">
-                  You can search your library, view high-definition CDN posters, monitor cluster storage, and launch games offline without waiting for external server handshakes.
+                  You can search your library, view high-definition CDN posters, monitor cluster
+                  storage, and launch games offline without waiting for external server handshakes.
                 </p>
               </div>
             </div>
@@ -521,7 +566,9 @@ export default function ServerArchitectureClient() {
                   Discover From Web: Beyond Single-Storefront Search
                 </h2>
                 <p className="text-zinc-300 text-sm sm:text-base mt-3 leading-relaxed">
-                  When you search for a game in Mission Control, you aren't just querying a local folder. You are querying an intelligent multi-source ingestion engine that cross-references Steam, Epic Games, GOG Galaxy, Xbox PC, and RAWG in real time.
+                  When you search for a game in Mission Control, you aren't just querying a local
+                  folder. You are querying an intelligent multi-source ingestion engine that
+                  cross-references Steam, Epic Games, GOG Galaxy, Xbox PC, and RAWG in real time.
                 </p>
               </div>
             </div>
@@ -544,7 +591,12 @@ export default function ServerArchitectureClient() {
                   </div>
                   <h4 className="text-lg font-bold text-white">Local Persistent Canonical Index</h4>
                   <p className="text-xs text-zinc-400 mt-2 leading-relaxed">
-                    Over 250+ top AAA &amp; acclaimed indie titles are stored directly in the frontend memory. As you type, acronyms like <code className="text-white bg-white/5 px-1 py-0.5 rounded">gta</code>, <code className="text-white bg-white/5 px-1 py-0.5 rounded">cp2077</code>, and <code className="text-white bg-white/5 px-1 py-0.5 rounded">ac mirage</code> expand instantaneously with zero network latency and zero render credit egress.
+                    Over 250+ top AAA &amp; acclaimed indie titles are stored directly in the
+                    frontend memory. As you type, acronyms like{" "}
+                    <code className="text-white bg-white/5 px-1 py-0.5 rounded">gta</code>,{" "}
+                    <code className="text-white bg-white/5 px-1 py-0.5 rounded">cp2077</code>, and{" "}
+                    <code className="text-white bg-white/5 px-1 py-0.5 rounded">ac mirage</code>{" "}
+                    expand instantaneously with zero network latency and zero render credit egress.
                   </p>
                 </div>
 
@@ -556,9 +608,14 @@ export default function ServerArchitectureClient() {
                     </span>
                     <Globe className="w-4 h-4 text-cyan-400" />
                   </div>
-                  <h4 className="text-lg font-bold text-white">Native Client Storefront Connectors</h4>
+                  <h4 className="text-lg font-bold text-white">
+                    Native Client Storefront Connectors
+                  </h4>
                   <p className="text-xs text-zinc-400 mt-2 leading-relaxed">
-                    If a title isn't in the curated list, the desktop app leverages native Electron IPC to query Steam Store and Epic Games APIs directly from your machine. Bypasses cloud bottlenecks and ensures current sale prices and Metascores are accurate.
+                    If a title isn't in the curated list, the desktop app leverages native Electron
+                    IPC to query Steam Store and Epic Games APIs directly from your machine.
+                    Bypasses cloud bottlenecks and ensures current sale prices and Metascores are
+                    accurate.
                   </p>
                 </div>
 
@@ -570,9 +627,13 @@ export default function ServerArchitectureClient() {
                     </span>
                     <ShieldCheck className="w-4 h-4 text-purple-400" />
                   </div>
-                  <h4 className="text-lg font-bold text-white">Distributed Harvester &amp; AI Worker</h4>
+                  <h4 className="text-lg font-bold text-white">
+                    Distributed Harvester &amp; AI Worker
+                  </h4>
                   <p className="text-xs text-zinc-400 mt-2 leading-relaxed">
-                    Only invoked when local tiers produce fewer than two matches. Guarded by a strict 15-second cooldown to preserve free-tier compute credits. Performs deep web harvesting across 5 stores and classifies metadata in the background.
+                    Only invoked when local tiers produce fewer than two matches. Guarded by a
+                    strict 15-second cooldown to preserve free-tier compute credits. Performs deep
+                    web harvesting across 5 stores and classifies metadata in the background.
                   </p>
                 </div>
               </div>
@@ -585,9 +646,14 @@ export default function ServerArchitectureClient() {
                 <div className="w-10 h-10 rounded-xl bg-neon-green/10 border border-neon-green/30 flex items-center justify-center text-neon-green">
                   <Layers className="w-5 h-5" />
                 </div>
-                <h4 className="text-lg font-bold text-white">Multi-Storefront Exclusivity Detection</h4>
+                <h4 className="text-lg font-bold text-white">
+                  Multi-Storefront Exclusivity Detection
+                </h4>
                 <p className="text-sm text-zinc-400 leading-relaxed">
-                  Games are often exclusive or released across multiple stores under different IDs. The server checks simultaneous existence across Steam, Epic Games, Xbox PC, and GOG. If a game is an Epic Exclusive (like <em>Alan Wake 2</em>), or available on PC Game Pass, it tags the storefront badges accordingly.
+                  Games are often exclusive or released across multiple stores under different IDs.
+                  The server checks simultaneous existence across Steam, Epic Games, Xbox PC, and
+                  GOG. If a game is an Epic Exclusive (like <em>Alan Wake 2</em>), or available on
+                  PC Game Pass, it tags the storefront badges accordingly.
                 </p>
               </div>
 
@@ -598,7 +664,11 @@ export default function ServerArchitectureClient() {
                 </div>
                 <h4 className="text-lg font-bold text-white">Multi-Tier AI Taxonomy Pipeline</h4>
                 <p className="text-sm text-zinc-400 leading-relaxed">
-                  Raw store tags can be chaotic or misleading. The server runs an asynchronous background queue powered by a 3-tier LLM failover (Google Gemini Flash $\rightarrow$ Hugging Face Llama 3.1 $\rightarrow$ NVIDIA NIM). It automatically extracts normalized genres, deep gameplay loops, and hardware features (Ray Tracing, DLSS 3, Path Tracing).
+                  Raw store tags can be chaotic or misleading. The server runs an asynchronous
+                  background queue powered by a 3-tier LLM failover (Google Gemini Flash
+                  $\rightarrow$ Hugging Face Llama 3.1 $\rightarrow$ NVIDIA NIM). It automatically
+                  extracts normalized genres, deep gameplay loops, and hardware features (Ray
+                  Tracing, DLSS 3, Path Tracing).
                 </p>
               </div>
 
@@ -607,9 +677,14 @@ export default function ServerArchitectureClient() {
                 <div className="w-10 h-10 rounded-xl bg-purple-500/10 border border-purple-500/30 flex items-center justify-center text-purple-400">
                   <Activity className="w-5 h-5" />
                 </div>
-                <h4 className="text-lg font-bold text-white">Verified High-Resolution CDN Asset Resolution</h4>
+                <h4 className="text-lg font-bold text-white">
+                  Verified High-Resolution CDN Asset Resolution
+                </h4>
                 <p className="text-sm text-zinc-400 leading-relaxed">
-                  Replaces low-res generic shapes with verified official CDN assets. Maps game IDs to Steam's official Cloudflare and Akamai content delivery networks, fetching 600x900 vertical posters, 460x215 horizontal capsules, and 1920x620 hero banners with zero image hosting costs.
+                  Replaces low-res generic shapes with verified official CDN assets. Maps game IDs
+                  to Steam's official Cloudflare and Akamai content delivery networks, fetching
+                  600x900 vertical posters, 460x215 horizontal capsules, and 1920x620 hero banners
+                  with zero image hosting costs.
                 </p>
               </div>
 
@@ -618,9 +693,14 @@ export default function ServerArchitectureClient() {
                 <div className="w-10 h-10 rounded-xl bg-amber-500/10 border border-amber-500/30 flex items-center justify-center text-amber-400">
                   <Terminal className="w-5 h-5" />
                 </div>
-                <h4 className="text-lg font-bold text-white">Title Normalization &amp; Alias Expansion</h4>
+                <h4 className="text-lg font-bold text-white">
+                  Title Normalization &amp; Alias Expansion
+                </h4>
                 <p className="text-sm text-zinc-400 leading-relaxed">
-                  Games with complex editions, subtitles, and release tags (e.g. <em>The Witcher 3: Wild Hunt - Game of the Year Edition</em> or <em>Marvel's Spider-Man Remastered</em>) are stripped to canonical stems. This guarantees that duplicate store entries map back to one unified game profile.
+                  Games with complex editions, subtitles, and release tags (e.g.{" "}
+                  <em>The Witcher 3: Wild Hunt - Game of the Year Edition</em> or{" "}
+                  <em>Marvel's Spider-Man Remastered</em>) are stripped to canonical stems. This
+                  guarantees that duplicate store entries map back to one unified game profile.
                 </p>
               </div>
             </div>
@@ -646,7 +726,10 @@ export default function ServerArchitectureClient() {
                   Manage Nodes: Your Multi-PC Gaming Mesh
                 </h2>
                 <p className="text-zinc-300 text-sm sm:text-base mt-3 leading-relaxed">
-                  Gamers rarely play on just one device. You might have a primary liquid-cooled desktop, a portable gaming laptop, a Steam Deck or ROG Ally, and a living room TV rig. Manage Nodes transforms your disjointed rigs into a unified, synchronized cluster.
+                  Gamers rarely play on just one device. You might have a primary liquid-cooled
+                  desktop, a portable gaming laptop, a Steam Deck or ROG Ally, and a living room TV
+                  rig. Manage Nodes transforms your disjointed rigs into a unified, synchronized
+                  cluster.
                 </p>
               </div>
             </div>
@@ -658,9 +741,17 @@ export default function ServerArchitectureClient() {
                 <div className="w-8 h-8 rounded-xl bg-purple-500/10 border border-purple-500/30 flex items-center justify-center text-purple-400 text-xs font-mono font-black mb-3">
                   01
                 </div>
-                <h4 className="text-lg font-bold text-white">Hardware &amp; Storage Registration</h4>
+                <h4 className="text-lg font-bold text-white">
+                  Hardware &amp; Storage Registration
+                </h4>
                 <p className="text-xs text-zinc-400 mt-2 leading-relaxed">
-                  When a PC runs Mission Control or the <code className="text-white bg-white/5 px-1 py-0.5 rounded">distributed_node</code> daemon, it registers with the server using a secure token. It transmits hostname, IP address, GPU architecture, and physical drive volumes via native OS calls (<code className="text-neon-green">shutil.disk_usage</code>).
+                  When a PC runs Mission Control or the{" "}
+                  <code className="text-white bg-white/5 px-1 py-0.5 rounded">
+                    distributed_node
+                  </code>{" "}
+                  daemon, it registers with the server using a secure token. It transmits hostname,
+                  IP address, GPU architecture, and physical drive volumes via native OS calls (
+                  <code className="text-neon-green">shutil.disk_usage</code>).
                 </p>
               </div>
 
@@ -671,7 +762,12 @@ export default function ServerArchitectureClient() {
                 </div>
                 <h4 className="text-lg font-bold text-white">Zero-Effort Manifest Harvesting</h4>
                 <p className="text-xs text-zinc-400 mt-2 leading-relaxed">
-                  The node automatically deep-scans your local storage. It parses Steam <code className="text-white bg-white/5 px-1 py-0.5 rounded">appmanifest.acf</code> files, Epic Games <code className="text-white bg-white/5 px-1 py-0.5 rounded">.item</code> JSONs, GOG Galaxy SQLite databases, and Xbox App packages without needing you to manually input executable paths.
+                  The node automatically deep-scans your local storage. It parses Steam{" "}
+                  <code className="text-white bg-white/5 px-1 py-0.5 rounded">appmanifest.acf</code>{" "}
+                  files, Epic Games{" "}
+                  <code className="text-white bg-white/5 px-1 py-0.5 rounded">.item</code> JSONs,
+                  GOG Galaxy SQLite databases, and Xbox App packages without needing you to manually
+                  input executable paths.
                 </p>
               </div>
 
@@ -682,7 +778,11 @@ export default function ServerArchitectureClient() {
                 </div>
                 <h4 className="text-lg font-bold text-white">Cluster Availability Matrix</h4>
                 <p className="text-xs text-zinc-400 mt-2 leading-relaxed">
-                  All installations are linked to the master <code className="text-neon-green">canonical_games</code> registry. Your game cards indicate where copies exist (e.g. <em>Available on Desktop Rig [D:\] and Steam Deck [MicroSD]</em>) alongside aggregated cluster storage stats.
+                  All installations are linked to the master{" "}
+                  <code className="text-neon-green">canonical_games</code> registry. Your game cards
+                  indicate where copies exist (e.g.{" "}
+                  <em>Available on Desktop Rig [D:\] and Steam Deck [MicroSD]</em>) alongside
+                  aggregated cluster storage stats.
                 </p>
               </div>
             </div>
@@ -707,18 +807,32 @@ export default function ServerArchitectureClient() {
               <div className="grid grid-cols-1 md:grid-cols-2 gap-6 text-sm text-zinc-400 leading-relaxed">
                 <div>
                   <p className="mb-3">
-                    To prevent ghost game launches on sleeping or powered-down computers, every active node streams an encrypted heartbeat packet to the <code className="text-white bg-white/5 px-1 py-0.5 rounded">Node Pool (:8821/:8822)</code> every 15 seconds.
+                    To prevent ghost game launches on sleeping or powered-down computers, every
+                    active node streams an encrypted heartbeat packet to the{" "}
+                    <code className="text-white bg-white/5 px-1 py-0.5 rounded">
+                      Node Pool (:8821/:8822)
+                    </code>{" "}
+                    every 15 seconds.
                   </p>
                   <p>
-                    The packet carries current CPU load, active thermals, and available drive space. The server continuously updates the node's <code className="text-white bg-white/5 px-1 py-0.5 rounded">last_heartbeat</code> timestamp in the cluster registry.
+                    The packet carries current CPU load, active thermals, and available drive space.
+                    The server continuously updates the node's{" "}
+                    <code className="text-white bg-white/5 px-1 py-0.5 rounded">
+                      last_heartbeat
+                    </code>{" "}
+                    timestamp in the cluster registry.
                   </p>
                 </div>
                 <div>
                   <p className="mb-3">
-                    In the background, a threaded <strong>Offline Watchdog</strong> audits all registered nodes. If a computer shuts down, disconnects from Wi-Fi, or suspends for longer than 45 seconds, the watchdog immediately updates its status to <span className="text-red-400 font-bold">offline</span>.
+                    In the background, a threaded <strong>Offline Watchdog</strong> audits all
+                    registered nodes. If a computer shuts down, disconnects from Wi-Fi, or suspends
+                    for longer than 45 seconds, the watchdog immediately updates its status to{" "}
+                    <span className="text-red-400 font-bold">offline</span>.
                   </p>
                   <p>
-                    Games installed solely on that offline machine are flagged gracefully in the UI with a badge explaining that the host machine is currently unavailable.
+                    Games installed solely on that offline machine are flagged gracefully in the UI
+                    with a badge explaining that the host machine is currently unavailable.
                   </p>
                 </div>
               </div>
@@ -742,31 +856,45 @@ export default function ServerArchitectureClient() {
                 Engineered to Protect Free-Tier Cloud Egress
               </h2>
               <p className="text-zinc-400 text-sm sm:text-base max-w-3xl leading-relaxed">
-                Most cloud-hosted gaming tools incur steep API bills or exhaust compute limits whenever users type keystrokes in a search bar. Mission Control was architected with a strict multi-tier caching and cooldown policy that eliminates unnecessary compute.
+                Most cloud-hosted gaming tools incur steep API bills or exhaust compute limits
+                whenever users type keystrokes in a search bar. Mission Control was architected with
+                a strict multi-tier caching and cooldown policy that eliminates unnecessary compute.
               </p>
 
               <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mt-8">
                 <div className="p-5 rounded-2xl bg-black/40 border border-white/8">
-                  <div className="text-neon-green font-mono font-bold text-xs mb-2">01 • Bounded Cooldowns</div>
+                  <div className="text-neon-green font-mono font-bold text-xs mb-2">
+                    01 • Bounded Cooldowns
+                  </div>
                   <h4 className="font-bold text-white text-base">15-Second Hard Rate Limit</h4>
                   <p className="text-xs text-zinc-400 mt-2 leading-relaxed">
-                    The cluster discovery endpoint enforces a strict 15-second client-side cooldown. Keystroke debouncing runs 100% in local browser/Electron memory.
+                    The cluster discovery endpoint enforces a strict 15-second client-side cooldown.
+                    Keystroke debouncing runs 100% in local browser/Electron memory.
                   </p>
                 </div>
 
                 <div className="p-5 rounded-2xl bg-black/40 border border-white/8">
-                  <div className="text-cyan-400 font-mono font-bold text-xs mb-2">02 • Edge CDN Assets</div>
+                  <div className="text-cyan-400 font-mono font-bold text-xs mb-2">
+                    02 • Edge CDN Assets
+                  </div>
                   <h4 className="font-bold text-white text-base">Direct Steam CDN Routing</h4>
                   <p className="text-xs text-zinc-400 mt-2 leading-relaxed">
-                    Game cover art and banners are routed directly to Cloudflare and Akamai Steam edge CDNs. Your server never consumes egress bandwidth streaming multi-megabyte images.
+                    Game cover art and banners are routed directly to Cloudflare and Akamai Steam
+                    edge CDNs. Your server never consumes egress bandwidth streaming multi-megabyte
+                    images.
                   </p>
                 </div>
 
                 <div className="p-5 rounded-2xl bg-black/40 border border-white/8">
-                  <div className="text-purple-400 font-mono font-bold text-xs mb-2">03 • Local SQLite Shadow</div>
+                  <div className="text-purple-400 font-mono font-bold text-xs mb-2">
+                    03 • Local SQLite Shadow
+                  </div>
                   <h4 className="font-bold text-white text-base">Autonomous SQLite Replica</h4>
                   <p className="text-xs text-zinc-400 mt-2 leading-relaxed">
-                    If the primary Supabase PostgreSQL connection encounters transient latency or connection timeouts, the server drops down to <code className="text-white">catalog_fallback.db</code> instantly without throwing 500 errors.
+                    If the primary Supabase PostgreSQL connection encounters transient latency or
+                    connection timeouts, the server drops down to{" "}
+                    <code className="text-white">catalog_fallback.db</code> instantly without
+                    throwing 500 errors.
                   </p>
                 </div>
               </div>
@@ -783,35 +911,57 @@ export default function ServerArchitectureClient() {
                   <thead className="bg-white/[0.04] text-xs font-mono text-zinc-400 uppercase tracking-wider border-b border-white/8">
                     <tr>
                       <th className="py-4 px-6">Capability</th>
-                      <th className="py-4 px-6 text-zinc-500">Standalone Client (Steam/Epic/GOG)</th>
-                      <th className="py-4 px-6 text-neon-green font-bold">Mission Control Distributed Server</th>
+                      <th className="py-4 px-6 text-zinc-500">
+                        Standalone Client (Steam/Epic/GOG)
+                      </th>
+                      <th className="py-4 px-6 text-neon-green font-bold">
+                        Mission Control Distributed Server
+                      </th>
                     </tr>
                   </thead>
                   <tbody className="divide-y divide-white/5 font-sans">
                     <tr>
                       <td className="py-4 px-6 font-bold text-white">Multi-Store Search</td>
                       <td className="py-4 px-6 text-zinc-400">Locked to single store ecosystem</td>
-                      <td className="py-4 px-6 text-emerald-400 font-bold">Parallel harvest (Steam, Epic, GOG, Xbox, RAWG)</td>
+                      <td className="py-4 px-6 text-emerald-400 font-bold">
+                        Parallel harvest (Steam, Epic, GOG, Xbox, RAWG)
+                      </td>
                     </tr>
                     <tr>
                       <td className="py-4 px-6 font-bold text-white">Cross-Device PC Mesh</td>
-                      <td className="py-4 px-6 text-zinc-400">No cross-PC awareness or storage tracking</td>
-                      <td className="py-4 px-6 text-emerald-400 font-bold">Live multi-PC node registration with drive telemetry</td>
+                      <td className="py-4 px-6 text-zinc-400">
+                        No cross-PC awareness or storage tracking
+                      </td>
+                      <td className="py-4 px-6 text-emerald-400 font-bold">
+                        Live multi-PC node registration with drive telemetry
+                      </td>
                     </tr>
                     <tr>
                       <td className="py-4 px-6 font-bold text-white">AI Taxonomy &amp; Tags</td>
-                      <td className="py-4 px-6 text-zinc-400">User-voted or generic marketing tags</td>
-                      <td className="py-4 px-6 text-emerald-400 font-bold">3-tier LLM classification (Gemini, Llama, NVIDIA NIM)</td>
+                      <td className="py-4 px-6 text-zinc-400">
+                        User-voted or generic marketing tags
+                      </td>
+                      <td className="py-4 px-6 text-emerald-400 font-bold">
+                        3-tier LLM classification (Gemini, Llama, NVIDIA NIM)
+                      </td>
                     </tr>
                     <tr>
                       <td className="py-4 px-6 font-bold text-white">Offline Capability</td>
-                      <td className="py-4 px-6 text-zinc-400">Restricted offline modes with authentication timeouts</td>
-                      <td className="py-4 px-6 text-emerald-400 font-bold">100% autonomous local canonical index + SQLite fallback</td>
+                      <td className="py-4 px-6 text-zinc-400">
+                        Restricted offline modes with authentication timeouts
+                      </td>
+                      <td className="py-4 px-6 text-emerald-400 font-bold">
+                        100% autonomous local canonical index + SQLite fallback
+                      </td>
                     </tr>
                     <tr>
                       <td className="py-4 px-6 font-bold text-white">Client FPS Overhead</td>
-                      <td className="py-4 px-6 text-zinc-400">Heavy Electron/Chromium CPU &amp; RAM footprint</td>
-                      <td className="py-4 px-6 text-emerald-400 font-bold">Zero render overhead; heavy workers isolated to server</td>
+                      <td className="py-4 px-6 text-zinc-400">
+                        Heavy Electron/Chromium CPU &amp; RAM footprint
+                      </td>
+                      <td className="py-4 px-6 text-emerald-400 font-bold">
+                        Zero render overhead; heavy workers isolated to server
+                      </td>
                     </tr>
                   </tbody>
                 </table>
@@ -833,7 +983,8 @@ export default function ServerArchitectureClient() {
                 Interactive API Payload Explorer
               </h2>
               <p className="text-zinc-400 text-sm mt-1">
-                Inspect real HTTP request and response structures served by the API Gateway and worker pools.
+                Inspect real HTTP request and response structures served by the API Gateway and
+                worker pools.
               </p>
             </div>
 
@@ -865,7 +1016,9 @@ export default function ServerArchitectureClient() {
                   <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-4 pb-6 border-b border-white/8">
                     <div>
                       <div className="flex items-center gap-2 mb-2">
-                        <span className={`px-2.5 py-0.5 rounded text-[10px] font-mono font-black uppercase border ${current.badgeColor}`}>
+                        <span
+                          className={`px-2.5 py-0.5 rounded text-[10px] font-mono font-black uppercase border ${current.badgeColor}`}
+                        >
                           {current.badge}
                         </span>
                         <span className="px-2.5 py-0.5 rounded text-[10px] font-mono bg-white/5 border border-white/10 text-zinc-300">
@@ -873,21 +1026,27 @@ export default function ServerArchitectureClient() {
                         </span>
                       </div>
                       <div className="flex items-center gap-3 font-mono text-sm sm:text-base text-white font-bold">
-                        <span className={current.method === "GET" ? "text-emerald-400" : "text-amber-400"}>
+                        <span
+                          className={
+                            current.method === "GET" ? "text-emerald-400" : "text-amber-400"
+                          }
+                        >
                           {current.method}
                         </span>
                         <span className="text-zinc-200">{current.path}</span>
                       </div>
-                      <p className="text-xs text-zinc-400 mt-2 max-w-2xl">
-                        {current.description}
-                      </p>
+                      <p className="text-xs text-zinc-400 mt-2 max-w-2xl">{current.description}</p>
                     </div>
 
                     <button
                       onClick={handleCopyApi}
                       className="inline-flex items-center gap-2 px-4 py-2 rounded-xl bg-white/5 hover:bg-white/10 border border-white/10 text-zinc-300 hover:text-white text-xs font-mono transition-all self-start lg:self-center cursor-pointer"
                     >
-                      {copiedCode ? <Check className="w-3.5 h-3.5 text-neon-green" /> : <Copy className="w-3.5 h-3.5" />}
+                      {copiedCode ? (
+                        <Check className="w-3.5 h-3.5 text-neon-green" />
+                      ) : (
+                        <Copy className="w-3.5 h-3.5" />
+                      )}
                       <span>{copiedCode ? "Copied Payload" : "Copy Response JSON"}</span>
                     </button>
                   </div>
@@ -945,18 +1104,24 @@ export default function ServerArchitectureClient() {
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4 font-mono text-xs">
             {/* Step A */}
             <div className="p-4 rounded-xl bg-black/60 border border-white/8">
-              <div className="text-zinc-500 mb-2"># 1. Start the entire cluster with load balancing</div>
+              <div className="text-zinc-500 mb-2">
+                # 1. Start the entire cluster with load balancing
+              </div>
               <div className="text-neon-green font-bold select-all">
-                cd Gaming/distributed_server<br />
+                cd Gaming/distributed_server
+                <br />
                 python run_cluster.py --catalog-instances 2 --node-instances 2
               </div>
             </div>
 
             {/* Step B */}
             <div className="p-4 rounded-xl bg-black/60 border border-white/8">
-              <div className="text-zinc-500 mb-2"># 2. Connect a secondary PC or handheld to the cluster</div>
+              <div className="text-zinc-500 mb-2">
+                # 2. Connect a secondary PC or handheld to the cluster
+              </div>
               <div className="text-cyan-400 font-bold select-all">
-                cd Gaming/distributed_server<br />
+                cd Gaming/distributed_server
+                <br />
                 python distributed_node.py --server http://192.168.1.100:8800
               </div>
             </div>
@@ -971,7 +1136,8 @@ export default function ServerArchitectureClient() {
             Ready to Experience Unified Gaming Orchestration?
           </h2>
           <p className="text-sm sm:text-base text-zinc-400 max-w-xl mx-auto mt-3 mb-8 leading-relaxed">
-            Download Mission Control for Windows &amp; Linux. Access Discover From Web and Manage Nodes with 100% offline fallback and zero cloud dependency.
+            Download Mission Control for Windows &amp; Linux. Access Discover From Web and Manage
+            Nodes with 100% offline fallback and zero cloud dependency.
           </p>
 
           <div className="flex flex-wrap items-center justify-center gap-4">

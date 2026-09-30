@@ -5,7 +5,11 @@ import fs from "fs";
 import path from "path";
 import { formatDateToIST } from "@/lib/blog";
 
-async function saveImageBuffer(buffer: Buffer, slug: string, extension: string = "png"): Promise<string> {
+async function saveImageBuffer(
+  buffer: Buffer,
+  slug: string,
+  extension: string = "png"
+): Promise<string> {
   const publicDir = path.join(process.cwd(), "public/images/blog");
   const fileName = `${slug}.${extension}`;
   const localPath = path.join(process.cwd(), "public/images/blog", fileName);
@@ -30,7 +34,12 @@ async function saveImageBuffer(buffer: Buffer, slug: string, extension: string =
         }
       } catch (accessErr: any) {
         const msg = String(accessErr?.message || "").toLowerCase();
-        if (msg.includes("private") || msg.includes("private store") || msg.includes("private access") || msg.includes("already exists")) {
+        if (
+          msg.includes("private") ||
+          msg.includes("private store") ||
+          msg.includes("private access") ||
+          msg.includes("already exists")
+        ) {
           // Store is private; upload with explicit 'private' access and serve via /api/blob proxy
           blob = await put(`images/blog/${fileName}`, buffer, {
             access: "private",
@@ -39,7 +48,9 @@ async function saveImageBuffer(buffer: Buffer, slug: string, extension: string =
           });
           if (blob?.pathname) {
             const proxyUrl = `/api/blob?pathname=${encodeURIComponent(blob.pathname)}`;
-            console.log(`[BlogGen] [BLOB OK] Uploaded private image to Vercel Blob (served via proxy): ${proxyUrl}`);
+            console.log(
+              `[BlogGen] [BLOB OK] Uploaded private image to Vercel Blob (served via proxy): ${proxyUrl}`
+            );
             return proxyUrl;
           }
         } else {
@@ -47,7 +58,10 @@ async function saveImageBuffer(buffer: Buffer, slug: string, extension: string =
         }
       }
     } catch (blobErr: any) {
-      console.warn(`[BlogGen] Vercel Blob upload failed, using proxy fallback:`, blobErr?.message || blobErr);
+      console.warn(
+        `[BlogGen] Vercel Blob upload failed, using proxy fallback:`,
+        blobErr?.message || blobErr
+      );
     }
   }
 
@@ -66,7 +80,7 @@ export function safeWriteFileSync(filePath: string, content: string | Buffer, op
       try {
         const tmpPath = path.join("/tmp", path.basename(filePath));
         fs.writeFileSync(tmpPath, content, options);
-      } catch { }
+      } catch {}
     } else {
       console.warn(`[SafeWrite] Failed to write file ${filePath}:`, err?.message || err);
     }
@@ -84,7 +98,7 @@ export function safeAppendFileSync(filePath: string, content: string) {
     if (err?.code === "EROFS") {
       try {
         fs.appendFileSync(path.join("/tmp", path.basename(filePath)), content);
-      } catch { }
+      } catch {}
     } else {
       console.warn(`[SafeWrite] Failed to append to file ${filePath}:`, err?.message || err);
     }
@@ -92,8 +106,16 @@ export function safeAppendFileSync(filePath: string, content: string) {
 }
 
 export const GAMING_RSS_FEEDS = [
-  { url: "https://news.google.com/rss/search?q=gaming+video+games+news&hl=en-US&gl=US&ceid=US:en", label: "Google News (Gaming)", type: "gaming" },
-  { url: "https://news.google.com/rss/search?q=NVIDIA+AMD+GPU+hardware+graphics+news&hl=en-US&gl=US&ceid=US:en", label: "Google News (Hardware)", type: "hardware" },
+  {
+    url: "https://news.google.com/rss/search?q=gaming+video+games+news&hl=en-US&gl=US&ceid=US:en",
+    label: "Google News (Gaming)",
+    type: "gaming",
+  },
+  {
+    url: "https://news.google.com/rss/search?q=NVIDIA+AMD+GPU+hardware+graphics+news&hl=en-US&gl=US&ceid=US:en",
+    label: "Google News (Hardware)",
+    type: "hardware",
+  },
   { url: "https://www.ign.com/feeds/news.xml", label: "IGN", type: "gaming" },
   { url: "https://kotaku.com/rss", label: "Kotaku", type: "gaming" },
   { url: "https://www.eurogamer.net/?format=rss", label: "Eurogamer", type: "gaming" },
@@ -102,7 +124,11 @@ export const GAMING_RSS_FEEDS = [
   { url: "https://www.gamespot.com/feeds/news/", label: "GameSpot", type: "gaming" },
   { url: "https://www.rockpapershotgun.com/feed", label: "Rock Paper Shotgun", type: "gaming" },
   { url: "https://wccftech.com/feed/", label: "Wccftech", type: "hardware" },
-  { url: "https://feeds.anandtech.com/anandtech/anandtech.xml", label: "AnandTech", type: "hardware" },
+  {
+    url: "https://feeds.anandtech.com/anandtech/anandtech.xml",
+    label: "AnandTech",
+    type: "hardware",
+  },
   { url: "https://www.tomshardware.com/feeds/all", label: "Tom's Hardware", type: "hardware" },
 ];
 
@@ -117,7 +143,8 @@ export async function fetchRSSFeed(feedUrl: string, label: string): Promise<Feed
   try {
     const response = await fetch(feedUrl, {
       headers: {
-        "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36",
+        "User-Agent":
+          "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36",
       },
       next: { revalidate: 3600 },
       signal: AbortSignal.timeout(8000),
@@ -134,8 +161,7 @@ export async function fetchRSSFeed(feedUrl: string, label: string): Promise<Feed
         (/<title><!\[CDATA\[(.*?)\]\]><\/title>/.exec(block) ||
           /<title>(.*?)<\/title>/.exec(block))?.[1]?.trim() ?? "";
       const link =
-        (/<link>(.*?)<\/link>/.exec(block) ||
-          /<link href="(.*?)"/.exec(block))?.[1]?.trim() ?? "";
+        (/<link>(.*?)<\/link>/.exec(block) || /<link href="(.*?)"/.exec(block))?.[1]?.trim() ?? "";
       const desc =
         (/<description><!\[CDATA\[(.*?)\]\]><\/description>/.exec(block) ||
           /<description>(.*?)<\/description>/.exec(block))?.[1]
@@ -174,24 +200,39 @@ ${diagramCode}`;
 
   // Try Gemini Flash
   if (geminiKey) {
-    const models = ["gemini-3.8-flash", "gemini-3.7-flash", "gemini-3.6-flash", "gemini-3.5-flash-lite", "gemini-flash-lite-latest", "gemini-flash-latest"];
+    const models = [
+      "gemini-3.8-flash",
+      "gemini-3.7-flash",
+      "gemini-3.6-flash",
+      "gemini-3.5-flash-lite",
+      "gemini-flash-lite-latest",
+      "gemini-flash-latest",
+    ];
     for (const model of models) {
       try {
-        const response = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/${model}:generateContent?key=${geminiKey}`, {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({
-            contents: [{ parts: [{ text: prompt }] }],
-            generationConfig: { maxOutputTokens: 1024, temperature: 0.2 }
-          }),
-          signal: AbortSignal.timeout(8000)
-        });
+        const response = await fetch(
+          `https://generativelanguage.googleapis.com/v1beta/models/${model}:generateContent?key=${geminiKey}`,
+          {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({
+              contents: [{ parts: [{ text: prompt }] }],
+              generationConfig: { maxOutputTokens: 1024, temperature: 0.2 },
+            }),
+            signal: AbortSignal.timeout(8000),
+          }
+        );
         if (response.ok) {
           const data = await response.json();
           const rawText = data.candidates?.[0]?.content?.parts?.[0]?.text?.trim();
           const m = rawText?.match(/```(?:mermaid)?([\s\S]*?)```/i);
           if (m && m[1]) return m[1].trim();
-          if (rawText && (rawText.startsWith("graph") || rawText.startsWith("flowchart") || rawText.startsWith("sequenceDiagram"))) {
+          if (
+            rawText &&
+            (rawText.startsWith("graph") ||
+              rawText.startsWith("flowchart") ||
+              rawText.startsWith("sequenceDiagram"))
+          ) {
             return rawText.trim();
           }
         }
@@ -238,9 +279,9 @@ function buildPromptForItems(
     day: "2-digit",
   });
   const parts = istFormatter.formatToParts(targetDate);
-  const istYear = parts.find(p => p.type === 'year')?.value;
-  const istMonth = parts.find(p => p.type === 'month')?.value;
-  const istDay = parts.find(p => p.type === 'day')?.value;
+  const istYear = parts.find((p) => p.type === "year")?.value;
+  const istMonth = parts.find((p) => p.type === "month")?.value;
+  const istDay = parts.find((p) => p.type === "day")?.value;
   const today = `${istYear}-${istMonth}-${istDay}`;
   const headlines = items
     .slice(0, 8)
@@ -248,10 +289,14 @@ function buildPromptForItems(
     .join("\n\n");
 
   const categoryInstructions = {
-    "GPU News": "Focus on current news, releases, product specifications, performance benchmarks, and leaks about graphics processors, CPUs, memory, or fabrication technology.",
-    "Game News": "Focus on current news about game releases, launch dates, developer announcements, game engine updates, patches, or graphics API features.",
-    "Hardware Deep-Dive": "Focus on a detailed, technical, or architectural deep-dive explaining the underlying physics, science, or computer architecture of a hardware technology (e.g. how ray tracing pipelines operate, memory controller physics, CUDA/Tensor core operation, or thermal throttles). Do not just write a news report.",
-    "Game Revisit": "Focus on a retrospective look, post-mortem, or engine design analysis of a classic, retro, or older game. Discuss its historical rendering engine architecture, how it bypassed physical console/system constraints, or code-level development triumphs."
+    "GPU News":
+      "Focus on current news, releases, product specifications, performance benchmarks, and leaks about graphics processors, CPUs, memory, or fabrication technology.",
+    "Game News":
+      "Focus on current news about game releases, launch dates, developer announcements, game engine updates, patches, or graphics API features.",
+    "Hardware Deep-Dive":
+      "Focus on a detailed, technical, or architectural deep-dive explaining the underlying physics, science, or computer architecture of a hardware technology (e.g. how ray tracing pipelines operate, memory controller physics, CUDA/Tensor core operation, or thermal throttles). Do not just write a news report.",
+    "Game Revisit":
+      "Focus on a retrospective look, post-mortem, or engine design analysis of a classic, retro, or older game. Discuss its historical rendering engine architecture, how it bypassed physical console/system constraints, or code-level development triumphs.",
   }[postType];
 
   return `You are an expert gaming journalist, technical writer, and SEO specialist writing for a high-quality developer and gamer audience.
@@ -334,12 +379,18 @@ export async function generateBlogPostWithModel(
   apiKey: string,
   targetDate: Date,
   modelId: string
-): Promise<{ slug: string; title: string; excerpt: string; tags: string[]; content: string; imagePrompt?: string } | null> {
+): Promise<{
+  slug: string;
+  title: string;
+  excerpt: string;
+  tags: string[];
+  content: string;
+  imagePrompt?: string;
+} | null> {
   const prompt = buildPromptForItems(items, postType, targetDate);
 
   try {
     const response = await fetch("https://integrate.api.nvidia.com/v1/chat/completions", {
-
       method: "POST",
       headers: {
         "Content-Type": "application/json",
@@ -356,8 +407,13 @@ export async function generateBlogPostWithModel(
 
     if (!response.ok) {
       const errText = await response.text();
-      safeAppendFileSync(path.join(process.cwd(), "generate.log"), `[BlogGen][${postType}][${modelId}] NIM API error: ${response.status} ${errText}\n`);
-      console.error(`[BlogGen][${postType}][${modelId}] NIM API error: ${response.status} ${errText}`);
+      safeAppendFileSync(
+        path.join(process.cwd(), "generate.log"),
+        `[BlogGen][${postType}][${modelId}] NIM API error: ${response.status} ${errText}\n`
+      );
+      console.error(
+        `[BlogGen][${postType}][${modelId}] NIM API error: ${response.status} ${errText}`
+      );
       return null;
     }
 
@@ -366,7 +422,10 @@ export async function generateBlogPostWithModel(
     return parseGeneratedBlogResponse(rawContent, postType, targetDate);
   } catch (err: unknown) {
     const errMsg = err instanceof Error ? err.message : String(err);
-    safeAppendFileSync(path.join(process.cwd(), "generate.log"), `[BlogGen][${postType}][${modelId}] Generation error: ${errMsg}\n`);
+    safeAppendFileSync(
+      path.join(process.cwd(), "generate.log"),
+      `[BlogGen][${postType}][${modelId}] Generation error: ${errMsg}\n`
+    );
     console.error(`[BlogGen][${postType}][${modelId}] Generation error:`, err);
     return null;
   }
@@ -377,7 +436,6 @@ function parseGeneratedBlogResponse(
   postType: "Game News" | "GPU News" | "Game Revisit" | "Hardware Deep-Dive",
   targetDate: Date
 ) {
-
   const formatter = new Intl.DateTimeFormat("en-US", {
     timeZone: "Asia/Kolkata",
     year: "numeric",
@@ -385,9 +443,9 @@ function parseGeneratedBlogResponse(
     day: "2-digit",
   });
   const parts = formatter.formatToParts(targetDate);
-  const year = parts.find(p => p.type === 'year')?.value;
-  const month = parts.find(p => p.type === 'month')?.value;
-  const day = parts.find(p => p.type === 'day')?.value;
+  const year = parts.find((p) => p.type === "year")?.value;
+  const month = parts.find((p) => p.type === "month")?.value;
+  const day = parts.find((p) => p.type === "day")?.value;
   const today = `${year}-${month}-${day}`;
 
   const frontmatterRegex = /^---\r?\n([\s\S]*?)\r?\n---\r?\n([\s\S]*)$/;
@@ -398,11 +456,26 @@ function parseGeneratedBlogResponse(
 
   const fmText = match[1];
   const content = match[2].trim();
-  const title = fmText.match(/^title:\s*(.*)$/m)?.[1]?.replace(/^["']|["']$/g, "").trim() ?? `${postType} — ${today}`;
-  const excerpt = (fmText.match(/^meta_description:\s*(.*)$/m)?.[1] ?? fmText.match(/^excerpt:\s*(.*)$/m)?.[1])?.replace(/^["']|["']$/g, "").trim() ?? "";
-  let rawSlug = fmText.match(/^slug:\s*(.*)$/m)?.[1]?.replace(/^["']|["']$/g, "").trim() ?? `${postType.toLowerCase().replace(/\s+/g, "-")}`;
+  const title =
+    fmText
+      .match(/^title:\s*(.*)$/m)?.[1]
+      ?.replace(/^["']|["']$/g, "")
+      .trim() ?? `${postType} — ${today}`;
+  const excerpt =
+    (fmText.match(/^meta_description:\s*(.*)$/m)?.[1] ?? fmText.match(/^excerpt:\s*(.*)$/m)?.[1])
+      ?.replace(/^["']|["']$/g, "")
+      .trim() ?? "";
+  let rawSlug =
+    fmText
+      .match(/^slug:\s*(.*)$/m)?.[1]
+      ?.replace(/^["']|["']$/g, "")
+      .trim() ?? `${postType.toLowerCase().replace(/\s+/g, "-")}`;
 
-  let baseSlug = rawSlug.replace(new RegExp(`-${today}$`), "").replace(/[^a-z0-9-]/gi, "-").toLowerCase().replace(/-+/g, "-");
+  let baseSlug = rawSlug
+    .replace(new RegExp(`-${today}$`), "")
+    .replace(/[^a-z0-9-]/gi, "-")
+    .toLowerCase()
+    .replace(/-+/g, "-");
 
   const categoryTag = postType.toLowerCase().replace(/\s+/g, "-");
   if (!baseSlug.includes(categoryTag)) {
@@ -411,8 +484,13 @@ function parseGeneratedBlogResponse(
 
   let slug = `${baseSlug}-${today}`;
 
-  const imagePrompt = fmText.match(/^image_prompt:\s*(.*)$/m)?.[1]?.replace(/^["']|["']$/g, "").trim() ?? "";
-  const tagsRaw = fmText.match(/^tags:\s*\[(.*?)\]/m)?.[1] ?? fmText.match(/^tags:\s*(.*)$/m)?.[1] ?? "";
+  const imagePrompt =
+    fmText
+      .match(/^image_prompt:\s*(.*)$/m)?.[1]
+      ?.replace(/^["']|["']$/g, "")
+      .trim() ?? "";
+  const tagsRaw =
+    fmText.match(/^tags:\s*\[(.*?)\]/m)?.[1] ?? fmText.match(/^tags:\s*(.*)$/m)?.[1] ?? "";
   const tags = tagsRaw
     .replace(/[\[\]]/g, "")
     .split(",")
@@ -458,21 +536,24 @@ async function generateBlogPostWithGemini(
     "gemini-3.5-flash-lite",
     "gemini-flash-latest",
     "gemini-flash-lite-latest",
-    "gemini-3-flash-preview"
+    "gemini-3-flash-preview",
   ].filter(Boolean) as string[];
 
   for (const modelId of modelsToTry) {
     try {
       console.log(`[BlogGen][${postType}] Requesting Gemini model (${modelId})...`);
-      const response = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/${modelId}:generateContent?key=${geminiKey}`, {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          contents: [{ parts: [{ text: prompt }] }],
-          generationConfig: { maxOutputTokens: 8192, temperature: 0.7 }
-        }),
-        signal: AbortSignal.timeout(18000)
-      });
+      const response = await fetch(
+        `https://generativelanguage.googleapis.com/v1beta/models/${modelId}:generateContent?key=${geminiKey}`,
+        {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            contents: [{ parts: [{ text: prompt }] }],
+            generationConfig: { maxOutputTokens: 8192, temperature: 0.7 },
+          }),
+          signal: AbortSignal.timeout(18000),
+        }
+      );
 
       if (response.ok) {
         const data = await response.json();
@@ -484,7 +565,9 @@ async function generateBlogPostWithGemini(
         }
       } else {
         const errText = await response.text();
-        console.warn(`[BlogGen][${postType}][Gemini ${modelId}] HTTP ${response.status}: ${errText.slice(0, 150)}`);
+        console.warn(
+          `[BlogGen][${postType}][Gemini ${modelId}] HTTP ${response.status}: ${errText.slice(0, 150)}`
+        );
       }
     } catch (err) {
       console.warn(`[BlogGen][${postType}][Gemini ${modelId}] Attempt failed:`, err);
@@ -493,7 +576,6 @@ async function generateBlogPostWithGemini(
 
   return null;
 }
-
 
 async function generateBlogPostWithHuggingFace(
   items: FeedItem[],
@@ -505,7 +587,7 @@ async function generateBlogPostWithHuggingFace(
   const modelsToTry = [
     "meta-llama/Llama-3.1-8B-Instruct",
     "mistralai/Mistral-7B-Instruct-v0.3",
-    "Qwen/Qwen2.5-72B-Instruct"
+    "Qwen/Qwen2.5-72B-Instruct",
   ];
 
   for (const modelId of modelsToTry) {
@@ -539,8 +621,14 @@ export async function generateBlogPost(
   postType: "Game News" | "GPU News" | "Game Revisit" | "Hardware Deep-Dive",
   apiKey: string,
   targetDate: Date = new Date()
-): Promise<{ slug: string; title: string; excerpt: string; tags: string[]; content: string; imagePrompt?: string } | null> {
-
+): Promise<{
+  slug: string;
+  title: string;
+  excerpt: string;
+  tags: string[];
+  content: string;
+  imagePrompt?: string;
+} | null> {
   const geminiKey = process.env.GEMINI_API_KEY || process.env.GOOGLE_API_KEY;
   const hfToken = process.env.HF_TOKEN;
 
@@ -549,47 +637,79 @@ export async function generateBlogPost(
     console.log(`[BlogGen][${postType}] Attempting LLM generation via Gemini Flash...`);
     const res = await generateBlogPostWithGemini(items, postType, geminiKey, targetDate);
     if (res) {
-      safeAppendFileSync(path.join(process.cwd(), "generate.log"), `[BlogGen][${postType}] [LLM OK] Content generated via Gemini Flash.\n`);
+      safeAppendFileSync(
+        path.join(process.cwd(), "generate.log"),
+        `[BlogGen][${postType}] [LLM OK] Content generated via Gemini Flash.\n`
+      );
       return res;
     }
   }
 
   // Tier 2: Hugging Face LLM (Llama 3.1 8B / Mistral 7B / Qwen 2.5) if Gemini busy or quota exceeded
   if (hfToken) {
-    console.log(`[BlogGen][${postType}] Gemini unavailable/busy. Falling back to Hugging Face LLM...`);
+    console.log(
+      `[BlogGen][${postType}] Gemini unavailable/busy. Falling back to Hugging Face LLM...`
+    );
     const hfRes = await generateBlogPostWithHuggingFace(items, postType, hfToken, targetDate);
     if (hfRes) {
-      safeAppendFileSync(path.join(process.cwd(), "generate.log"), `[BlogGen][${postType}] [LLM OK] Content generated via Hugging Face LLM.\n`);
+      safeAppendFileSync(
+        path.join(process.cwd(), "generate.log"),
+        `[BlogGen][${postType}] [LLM OK] Content generated via Hugging Face LLM.\n`
+      );
       return hfRes;
     }
   }
 
   // Tier 3: NVIDIA NIM (meta/llama-3.2-11b-vision-instruct / nvidia/nemotron-3-super-120b-a12b / nvidia/nemotron-3.5-lightning-30b-a3b)
   if (apiKey) {
-    console.log(`[BlogGen][${postType}] Falling back to NVIDIA NIM (meta/llama-3.2-11b-vision-instruct)...`);
-    let result = await generateBlogPostWithModel(items, postType, apiKey, targetDate, "meta/llama-3.2-11b-vision-instruct");
+    console.log(
+      `[BlogGen][${postType}] Falling back to NVIDIA NIM (meta/llama-3.2-11b-vision-instruct)...`
+    );
+    let result = await generateBlogPostWithModel(
+      items,
+      postType,
+      apiKey,
+      targetDate,
+      "meta/llama-3.2-11b-vision-instruct"
+    );
 
     if (!result) {
-      console.log(`[BlogGen][${postType}] Falling back to NVIDIA NIM (nvidia/nemotron-3-super-120b-a12b)...`);
-      result = await generateBlogPostWithModel(items, postType, apiKey, targetDate, "nvidia/nemotron-3-super-120b-a12b");
+      console.log(
+        `[BlogGen][${postType}] Falling back to NVIDIA NIM (nvidia/nemotron-3-super-120b-a12b)...`
+      );
+      result = await generateBlogPostWithModel(
+        items,
+        postType,
+        apiKey,
+        targetDate,
+        "nvidia/nemotron-3-super-120b-a12b"
+      );
     }
 
     if (!result) {
-      console.log(`[BlogGen][${postType}] Falling back to NVIDIA NIM (nvidia/nemotron-3.5-lightning-30b-a3b)...`);
-      result = await generateBlogPostWithModel(items, postType, apiKey, targetDate, "nvidia/nemotron-3.5-lightning-30b-a3b");
+      console.log(
+        `[BlogGen][${postType}] Falling back to NVIDIA NIM (nvidia/nemotron-3.5-lightning-30b-a3b)...`
+      );
+      result = await generateBlogPostWithModel(
+        items,
+        postType,
+        apiKey,
+        targetDate,
+        "nvidia/nemotron-3.5-lightning-30b-a3b"
+      );
     }
 
     if (result) {
-      safeAppendFileSync(path.join(process.cwd(), "generate.log"), `[BlogGen][${postType}] [LLM OK] Content generated via NVIDIA NIM.\n`);
+      safeAppendFileSync(
+        path.join(process.cwd(), "generate.log"),
+        `[BlogGen][${postType}] [LLM OK] Content generated via NVIDIA NIM.\n`
+      );
       return result;
     }
   }
 
   return null;
 }
-
-
-
 
 export async function writeToMongoDB(
   post: { slug: string; title: string; excerpt: string; tags: string[]; content: string },
@@ -605,8 +725,11 @@ export async function writeToMongoDB(
     const existing = await GamingPost.findOne({ slug: finalSlug });
     if (existing) {
       const suffix = Math.floor(Math.random() * 899 + 100);
-      finalSlug = `${post.slug.replace(/-\d+$/, '')}-${postType.toLowerCase().replace(/\s+/g, '-')}-${suffix}`;
-      safeAppendFileSync(logFilePath, `[BlogGen][${postType}] Slug collision detected for '${post.slug}', resolved as '${finalSlug}'\n`);
+      finalSlug = `${post.slug.replace(/-\d+$/, "")}-${postType.toLowerCase().replace(/\s+/g, "-")}-${suffix}`;
+      safeAppendFileSync(
+        logFilePath,
+        `[BlogGen][${postType}] Slug collision detected for '${post.slug}', resolved as '${finalSlug}'\n`
+      );
     }
 
     await GamingPost.create({
@@ -622,10 +745,16 @@ export async function writeToMongoDB(
       aiGenerated: true,
       coverImage: coverImage || `/images/blog/${finalSlug}.png`,
     });
-    safeAppendFileSync(logFilePath, `[BlogGen][${postType}] [SAVED] Saved to MongoDB: ${finalSlug}\n`);
+    safeAppendFileSync(
+      logFilePath,
+      `[BlogGen][${postType}] [SAVED] Saved to MongoDB: ${finalSlug}\n`
+    );
     return true;
   } catch (err: any) {
-    safeAppendFileSync(logFilePath, `[BlogGen][${postType}] [ERROR] MongoDB write error: ${err.message}\n`);
+    safeAppendFileSync(
+      logFilePath,
+      `[BlogGen][${postType}] [ERROR] MongoDB write error: ${err.message}\n`
+    );
     console.error(`[BlogGen][${postType}] MongoDB write error:`, err);
     return false;
   }
@@ -653,7 +782,10 @@ ${post.content}
 `;
   const filePath = path.join(contentDir, `${post.slug}.mdx`);
   safeWriteFileSync(filePath, mdxContent, "utf8");
-  safeAppendFileSync(path.join(process.cwd(), "generate.log"), `[BlogGen][${postType}] [SAVED] Saved to local MDX: ${filePath}\n`);
+  safeAppendFileSync(
+    path.join(process.cwd(), "generate.log"),
+    `[BlogGen][${postType}] [SAVED] Saved to local MDX: ${filePath}\n`
+  );
 }
 
 export function generateHighTechSVGCover(title: string, category: string): string {
@@ -688,8 +820,12 @@ export function generateHighTechSVGCover(title: string, category: string): strin
   <rect width="1024" height="576" fill="url(#bgGrad)" />
 
   <g opacity="0.15" stroke="${primaryColor}" stroke-width="1">
-    ${Array.from({ length: 24 }).map((_, i) => `<line x1="0" y1="${i * 24}" x2="1024" y2="${i * 24}" />`).join("")}
-    ${Array.from({ length: 42 }).map((_, i) => `<line x1="${i * 24}" y1="0" x2="${i * 24}" y2="576" />`).join("")}
+    ${Array.from({ length: 24 })
+      .map((_, i) => `<line x1="0" y1="${i * 24}" x2="1024" y2="${i * 24}" />`)
+      .join("")}
+    ${Array.from({ length: 42 })
+      .map((_, i) => `<line x1="${i * 24}" y1="0" x2="${i * 24}" y2="576" />`)
+      .join("")}
   </g>
 
   <g opacity="0.4" stroke="${accentColor}" stroke-width="2" fill="none">
@@ -702,18 +838,22 @@ export function generateHighTechSVGCover(title: string, category: string): strin
   </g>
 
   <g transform="translate(512, 288)" filter="url(#glow)">
-    ${isHardware ? `
+    ${
+      isHardware
+        ? `
       <rect x="-140" y="-140" width="280" height="280" rx="20" fill="#0b0d13" stroke="${primaryColor}" stroke-width="4" opacity="0.9" />
       <rect x="-100" y="-100" width="200" height="200" rx="12" fill="url(#coreGlow)" stroke="${secondaryColor}" stroke-width="2" />
       <circle cx="0" cy="0" r="45" fill="none" stroke="${primaryColor}" stroke-width="4" />
       <path d="M -30 0 L 30 0 M 0 -30 L 0 30" stroke="${primaryColor}" stroke-width="3" />
-    ` : `
+    `
+        : `
       <polygon points="0,-130 115,-65 115,65 0,130 -115,65 -115,-65" fill="#0b0d13" stroke="${primaryColor}" stroke-width="4" opacity="0.9" />
       <polygon points="0,-90 80,-45 80,45 0,90 -80,45 -80,-45" fill="url(#coreGlow)" stroke="${secondaryColor}" stroke-width="2" />
       <circle cx="-35" cy="0" r="18" fill="none" stroke="${primaryColor}" stroke-width="3" />
       <circle cx="35" cy="-15" r="10" fill="${accentColor}" />
       <circle cx="35" cy="15" r="10" fill="${primaryColor}" />
-    `}
+    `
+    }
   </g>
 
   <rect x="0" y="360" width="1024" height="216" fill="url(#bgGrad)" opacity="0.85" />
@@ -750,30 +890,44 @@ RULES:
 2. Describe ONLY tangible visual elements: concrete game characters, muscle cars on neon-lit city streets, ancient temple ruins, futuristic cyberpunk armor, cinematic volumetric lighting, Unreal Engine 5 render, 8k resolution, photorealistic.
 3. Return ONLY the image prompt text.`;
 
-  const models = ["gemini-3.8-flash", "gemini-3.7-flash", "gemini-3.6-flash", "gemini-3.5-flash-lite", "gemini-flash-lite-latest", "gemini-flash-latest"];
+  const models = [
+    "gemini-3.8-flash",
+    "gemini-3.7-flash",
+    "gemini-3.6-flash",
+    "gemini-3.5-flash-lite",
+    "gemini-flash-lite-latest",
+    "gemini-flash-latest",
+  ];
 
   for (const model of models) {
     try {
-      const res = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/${model}:generateContent?key=${activeKey}`, {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          contents: [{ parts: [{ text: `${instructions}\n\nArticle Topic: "${rawTopic}"` }] }],
-          generationConfig: { maxOutputTokens: 120, temperature: 0.4 }
-        }),
-        signal: AbortSignal.timeout(8000)
-      });
+      const res = await fetch(
+        `https://generativelanguage.googleapis.com/v1beta/models/${model}:generateContent?key=${activeKey}`,
+        {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            contents: [{ parts: [{ text: `${instructions}\n\nArticle Topic: "${rawTopic}"` }] }],
+            generationConfig: { maxOutputTokens: 120, temperature: 0.4 },
+          }),
+          signal: AbortSignal.timeout(8000),
+        }
+      );
 
       if (res.ok) {
         const data = await res.json();
         const text = data?.candidates?.[0]?.content?.parts?.[0]?.text?.trim();
         if (text && text.length > 10) {
-          console.log(`[BlogGen][ImagePrompt] Synthesized visual prompt with ${model}: "${text.slice(0, 70)}..."`);
+          console.log(
+            `[BlogGen][ImagePrompt] Synthesized visual prompt with ${model}: "${text.slice(0, 70)}..."`
+          );
           return text;
         }
       }
     } catch (err: any) {
-      console.warn(`[BlogGen][ImagePrompt] Synthesis attempt with ${model} failed: ${err?.message || err}`);
+      console.warn(
+        `[BlogGen][ImagePrompt] Synthesis attempt with ${model} failed: ${err?.message || err}`
+      );
     }
   }
 
@@ -817,17 +971,21 @@ export async function generateImageWithPollinations(prompt: string): Promise<Buf
       const seed = Math.floor(Math.random() * 899999) + 100000;
       const modelParam = model === "default" ? "" : `&model=${model}`;
       const url = `https://image.pollinations.ai/prompt/${cleanPrompt}?nologo=true&width=1024&height=576&seed=${seed}${modelParam}`;
-      console.log(`[BlogGen][Pollinations ${model}] Generating AI image: "${sanitizedPrompt.slice(0, 60)}..."`);
+      console.log(
+        `[BlogGen][Pollinations ${model}] Generating AI image: "${sanitizedPrompt.slice(0, 60)}..."`
+      );
 
       const response = await fetch(url, {
         headers: { "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64)" },
-        signal: AbortSignal.timeout(15000)
+        signal: AbortSignal.timeout(15000),
       });
 
       if (response.ok) {
         const arrayBuffer = await response.arrayBuffer();
         if (arrayBuffer.byteLength > 4000) {
-          console.log(`[BlogGen][Pollinations ${model}] [IMAGE OK] Generated ${arrayBuffer.byteLength} bytes`);
+          console.log(
+            `[BlogGen][Pollinations ${model}] [IMAGE OK] Generated ${arrayBuffer.byteLength} bytes`
+          );
           return Buffer.from(arrayBuffer);
         }
       }
@@ -851,7 +1009,8 @@ export async function generateBlogCoverImage(
     fs.mkdirSync(publicDir, { recursive: true });
   }
 
-  const geminiKey = process.env.GEMINI_API_KEY || process.env.GOOGLE_API_KEY || process.env.GEMINI_IMAGE_API_KEY;
+  const geminiKey =
+    process.env.GEMINI_API_KEY || process.env.GOOGLE_API_KEY || process.env.GEMINI_IMAGE_API_KEY;
 
   // Step 1: Synthesize a photorealistic visual scene description using Gemini Flash if raw prompt is abstract/editorial
   const visualPrompt = await synthesizeVisualPromptWithAI(prompt, category, geminiKey);
@@ -876,21 +1035,26 @@ export async function generateBlogCoverImage(
       "gemini-3.1-flash-image-preview",
       "gemini-3-pro-image",
       "gemini-2.5-flash-image",
-      "imagen-3.0-generate-002"
+      "imagen-3.0-generate-002",
     ];
 
     for (const imgModel of imageModels) {
       try {
-        console.log(`[BlogGen][${category}] Attempting Google Gemini Image Generation (${imgModel})...`);
-        const res = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/${imgModel}:generateContent?key=${geminiKey}`, {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({
-            contents: [{ parts: [{ text: visualPrompt }] }],
-            generationConfig: { responseModalities: ["IMAGE"] }
-          }),
-          signal: AbortSignal.timeout(15000)
-        });
+        console.log(
+          `[BlogGen][${category}] Attempting Google Gemini Image Generation (${imgModel})...`
+        );
+        const res = await fetch(
+          `https://generativelanguage.googleapis.com/v1beta/models/${imgModel}:generateContent?key=${geminiKey}`,
+          {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({
+              contents: [{ parts: [{ text: visualPrompt }] }],
+              generationConfig: { responseModalities: ["IMAGE"] },
+            }),
+            signal: AbortSignal.timeout(15000),
+          }
+        );
 
         if (res.ok) {
           const data = await res.json();
@@ -900,14 +1064,18 @@ export async function generateBlogCoverImage(
               const buffer = Buffer.from(part.inlineData.data, "base64");
               if (buffer.length > 5000) {
                 const savedPath = await saveImageBuffer(buffer, slug, "png");
-                console.log(`[BlogGen][${category}] [IMAGE OK] Gemini Image (${imgModel}) saved: ${savedPath}`);
+                console.log(
+                  `[BlogGen][${category}] [IMAGE OK] Gemini Image (${imgModel}) saved: ${savedPath}`
+                );
                 return savedPath;
               }
             }
           }
         }
       } catch (err: any) {
-        console.warn(`[BlogGen][${category}] Gemini Image (${imgModel}) attempt failed: ${err?.message || err}`);
+        console.warn(
+          `[BlogGen][${category}] Gemini Image (${imgModel}) attempt failed: ${err?.message || err}`
+        );
       }
     }
   }
@@ -937,13 +1105,17 @@ export async function generateBlogCoverImage(
         return savedPath;
       }
     } catch (hfErr: any) {
-      console.warn(`[BlogGen][${category}] Hugging Face attempt failed: ${hfErr?.message || hfErr}`);
+      console.warn(
+        `[BlogGen][${category}] Hugging Face attempt failed: ${hfErr?.message || hfErr}`
+      );
     }
   }
 
   // Tier 4: Dynamic High-Tech Article Cover Art (Unique per Title & Category)
   try {
-    console.log(`[BlogGen][${category}] Generating dynamic high-tech cover art for "${title.slice(0, 40)}..."`);
+    console.log(
+      `[BlogGen][${category}] Generating dynamic high-tech cover art for "${title.slice(0, 40)}..."`
+    );
     const svgCode = generateHighTechSVGCover(title, category);
     const buffer = Buffer.from(svgCode, "utf8");
     const savedPath = await saveImageBuffer(buffer, slug, "svg");
@@ -972,18 +1144,19 @@ export async function generateBlogCoverImage(
   return `/images/blog/${slug}.svg`;
 }
 
-
-
 export async function generateAndSavePost(
   currentTopic: "Game News" | "GPU News" | "Game Revisit" | "Hardware Deep-Dive",
   targetDate: Date,
   apiKey: string,
   hfToken?: string
 ): Promise<{ type: string; slug: string; saved: boolean } | null> {
-  const isHardware = (currentTopic === "GPU News" || currentTopic === "Hardware Deep-Dive");
+  const isHardware = currentTopic === "GPU News" || currentTopic === "Hardware Deep-Dive";
   const logFile = path.join(process.cwd(), "generate.log");
 
-  safeAppendFileSync(logFile, `[${new Date().toISOString()}] [START] Generating post for ${currentTopic}\n`);
+  safeAppendFileSync(
+    logFile,
+    `[${new Date().toISOString()}] [START] Generating post for ${currentTopic}\n`
+  );
 
   // Fetch all RSS feeds in parallel
   const feedResults = await Promise.allSettled(
@@ -1002,15 +1175,17 @@ export async function generateAndSavePost(
       {
         title: "NVIDIA RTX 5090 Blackwell Architecture Specs Leaked",
         link: "https://www.tomshardware.com/",
-        description: "Recent leaks suggest the upcoming Blackwell RTX 5090 will feature 24,576 CUDA cores, 32GB of GDDR7 memory, and a 512-bit bus width, yielding significant performance gains over Ada Lovelace.",
-        source: "Tom's Hardware"
+        description:
+          "Recent leaks suggest the upcoming Blackwell RTX 5090 will feature 24,576 CUDA cores, 32GB of GDDR7 memory, and a 512-bit bus width, yielding significant performance gains over Ada Lovelace.",
+        source: "Tom's Hardware",
       },
       {
         title: "AMD Radeon RX 8000 Series to Target Mid-Range GPU Market",
         link: "https://www.eurogamer.net/",
-        description: "Reports indicate AMD is shifting focus away from extreme high-end graphics cards, aiming instead to capture the bulk of the market with aggressive pricing on RDNA4 mid-range models.",
-        source: "Eurogamer"
-      }
+        description:
+          "Reports indicate AMD is shifting focus away from extreme high-end graphics cards, aiming instead to capture the bulk of the market with aggressive pricing on RDNA4 mid-range models.",
+        source: "Eurogamer",
+      },
     ];
   }
 
@@ -1020,15 +1195,17 @@ export async function generateAndSavePost(
       {
         title: "GTA VI Release Window Confirmed for Fall 2025 by Take-Two",
         link: "http://feeds.ign.com/ign/all",
-        description: "Take-Two Interactive narrowed the release window for Rockstar Games' highly anticipated Grand Theft Auto VI during its latest earnings report, confirming a launch in Fall 2025.",
-        source: "IGN"
+        description:
+          "Take-Two Interactive narrowed the release window for Rockstar Games' highly anticipated Grand Theft Auto VI during its latest earnings report, confirming a launch in Fall 2025.",
+        source: "IGN",
       },
       {
         title: "Elden Ring: Shadow of the Erdtree DLC Reviews Praised as Masterpiece",
         link: "https://kotaku.com/rss",
-        description: "FromSoftware's massive expansion Shadow of the Erdtree has received critical acclaim, with reviewers hailing its challenging boss fights, intricate level design, and deep lore additions.",
-        source: "Kotaku"
-      }
+        description:
+          "FromSoftware's massive expansion Shadow of the Erdtree has received critical acclaim, with reviewers hailing its challenging boss fights, intricate level design, and deep lore additions.",
+        source: "Kotaku",
+      },
     ];
   }
 
@@ -1040,7 +1217,8 @@ export async function generateAndSavePost(
     itemsToUse = gpuItems.slice(Math.floor(gpuItems.length / 2));
   } else if (currentTopic === "Game News") {
     itemsToUse = gameItems.slice(0, Math.ceil(gameItems.length / 2));
-  } else { // Game Revisit
+  } else {
+    // Game Revisit
     itemsToUse = gameItems.slice(Math.floor(gameItems.length / 2));
   }
 
@@ -1053,7 +1231,8 @@ export async function generateAndSavePost(
     const post = await generateBlogPost(itemsToUse, currentTopic, apiKey, targetDate);
     if (post) {
       // Dynamic prompt tailored specifically to post.imagePrompt or post.title
-      const rawPrompt = post.imagePrompt && post.imagePrompt.length > 15 ? post.imagePrompt : post.title;
+      const rawPrompt =
+        post.imagePrompt && post.imagePrompt.length > 15 ? post.imagePrompt : post.title;
       const cleanBase = rawPrompt
         .replace(/[\u0300-\u036f]/g, "")
         .replace(/Why|How|What|When|[:"'\?\!\-\|\(\)\[\]]/gi, " ")
@@ -1062,11 +1241,12 @@ export async function generateAndSavePost(
         .trim()
         .slice(0, 140);
 
-      const finalPrompt = post.imagePrompt && post.imagePrompt.length > 15
-        ? `${cleanBase}, photorealistic 3d render, 8k resolution, no text`
-        : isHardware
-          ? `photorealistic 3d render of ${cleanBase}, high tech computer hardware architecture, 8k resolution, no text`
-          : `photorealistic 3d concept art depicting ${cleanBase}, cinematic volumetric lighting, 8k resolution, no text`;
+      const finalPrompt =
+        post.imagePrompt && post.imagePrompt.length > 15
+          ? `${cleanBase}, photorealistic 3d render, 8k resolution, no text`
+          : isHardware
+            ? `photorealistic 3d render of ${cleanBase}, high tech computer hardware architecture, 8k resolution, no text`
+            : `photorealistic 3d concept art depicting ${cleanBase}, cinematic volumetric lighting, 8k resolution, no text`;
 
       const localCoverPath = await generateBlogCoverImage(
         finalPrompt,
@@ -1076,8 +1256,10 @@ export async function generateAndSavePost(
         hfToken
       );
 
-      safeAppendFileSync(logFile, `[BlogGen][${currentTopic}] [IMAGE OK] Cover image configured: ${localCoverPath}\n`);
-
+      safeAppendFileSync(
+        logFile,
+        `[BlogGen][${currentTopic}] [IMAGE OK] Cover image configured: ${localCoverPath}\n`
+      );
 
       // Get the target date components in IST (Asia/Kolkata)
       const formatter = new Intl.DateTimeFormat("en-US", {
@@ -1087,23 +1269,31 @@ export async function generateAndSavePost(
         day: "numeric",
       });
       const parts = formatter.formatToParts(targetDate);
-      const istYear = Number(parts.find(p => p.type === 'year')?.value);
-      const istMonth = Number(parts.find(p => p.type === 'month')?.value);
-      const istDay = Number(parts.find(p => p.type === 'day')?.value);
+      const istYear = Number(parts.find((p) => p.type === "year")?.value);
+      const istMonth = Number(parts.find((p) => p.type === "month")?.value);
+      const istDay = Number(parts.find((p) => p.type === "day")?.value);
 
       // Normalize publication time to exactly 05:30 AM IST (00:00 UTC of same day)
-      const postDate = new Date(Date.UTC(istYear, istMonth - 1, istDay, 5, 30, 0, 0) - 5.5 * 60 * 60 * 1000);
+      const postDate = new Date(
+        Date.UTC(istYear, istMonth - 1, istDay, 5, 30, 0, 0) - 5.5 * 60 * 60 * 1000
+      );
       const publishedAt = postDate.toISOString();
 
       const saved = await writeToMongoDB(post, currentTopic, publishedAt, localCoverPath);
       saveLocalMDX(post, currentTopic, publishedAt, localCoverPath);
 
       if (!saved) {
-        safeAppendFileSync(logFile, `[BlogGen][${currentTopic}] [FAILED] Post was generated but DB write returned false.\n`);
+        safeAppendFileSync(
+          logFile,
+          `[BlogGen][${currentTopic}] [FAILED] Post was generated but DB write returned false.\n`
+        );
       }
       return { type: currentTopic, slug: post.slug, saved };
     } else {
-      safeAppendFileSync(logFile, `[BlogGen][${currentTopic}] [FAILED] No post returned from LLM.\n`);
+      safeAppendFileSync(
+        logFile,
+        `[BlogGen][${currentTopic}] [FAILED] No post returned from LLM.\n`
+      );
     }
   } else {
     safeAppendFileSync(logFile, `[BlogGen][${currentTopic}] [FAILED] Not enough feed items.\n`);

@@ -6,8 +6,11 @@ export const dynamic = "force-dynamic";
 export async function GET(request: Request) {
   const authHeader = request.headers.get("authorization");
   const userAgent = request.headers.get("user-agent") || "";
-  const isVercelCron = request.headers.get("x-vercel-cron") === "1" || userAgent.toLowerCase().includes("vercel-cron");
-  const isValidCronSecret = Boolean(process.env.CRON_SECRET && authHeader === `Bearer ${process.env.CRON_SECRET}`);
+  const isVercelCron =
+    request.headers.get("x-vercel-cron") === "1" || userAgent.toLowerCase().includes("vercel-cron");
+  const isValidCronSecret = Boolean(
+    process.env.CRON_SECRET && authHeader === `Bearer ${process.env.CRON_SECRET}`
+  );
 
   if (!isVercelCron && !isValidCronSecret && process.env.NODE_ENV === "production") {
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
@@ -23,7 +26,10 @@ export async function GET(request: Request) {
   try {
     const mongooseInstance = await connectDB();
     const isReady = mongooseInstance.connection.readyState === 1;
-    results.services.mongodb = { status: isReady ? "active" : "connecting", readyState: mongooseInstance.connection.readyState };
+    results.services.mongodb = {
+      status: isReady ? "active" : "connecting",
+      readyState: mongooseInstance.connection.readyState,
+    };
   } catch (err: unknown) {
     console.error("[Keepalive] MongoDB check failed:", err);
     results.services.mongodb = { status: "error", message: "Database connection check failed." };
@@ -43,7 +49,10 @@ export async function GET(request: Request) {
       };
     } catch (err: unknown) {
       console.error("[Keepalive] Distributed server check failed:", err);
-      results.services.distributed_server = { status: "timeout_or_error", message: "Remote service ping timed out or failed." };
+      results.services.distributed_server = {
+        status: "timeout_or_error",
+        message: "Remote service ping timed out or failed.",
+      };
     }
   }
 

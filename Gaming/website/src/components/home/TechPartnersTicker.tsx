@@ -3,11 +3,26 @@
 import { Sparkles, Cpu, Flame, Layers, Zap, Crosshair, Radio, ExternalLink } from "lucide-react";
 
 export const TECH_PARTNERS = [
-  { name: "NVIDIA TensorRT", tag: "Local CUDA Engine", url: "https://developer.nvidia.com/tensorrt", icon: Cpu },
+  {
+    name: "NVIDIA TensorRT",
+    tag: "Local CUDA Engine",
+    url: "https://developer.nvidia.com/tensorrt",
+    icon: Cpu,
+  },
   { name: "PyTorch 2.4", tag: "Neural Inference", url: "https://pytorch.org/", icon: Flame },
-  { name: "Electron Native", tag: "Hardware IPC", url: "https://www.electronjs.org/", icon: Layers },
+  {
+    name: "Electron Native",
+    tag: "Hardware IPC",
+    url: "https://www.electronjs.org/",
+    icon: Layers,
+  },
   { name: "Next.js 16", tag: "Vite UI Engine", url: "https://nextjs.org/", icon: Zap },
-  { name: "DirectX 12 Ultimate", tag: "Swapchain Injection", url: "https://devblogs.microsoft.com/directx/announcing-directx-12-ultimate/", icon: Crosshair },
+  {
+    name: "DirectX 12 Ultimate",
+    tag: "Swapchain Injection",
+    url: "https://devblogs.microsoft.com/directx/announcing-directx-12-ultimate/",
+    icon: Crosshair,
+  },
   { name: "Vulkan 1.3", tag: "Zero Latency Hook", url: "https://www.vulkan.org/", icon: Radio },
 ];
 
@@ -33,7 +48,9 @@ export function TechPartnersTicker() {
                 <Icon className="w-4 h-4" />
               </div>
               <div className="flex flex-col">
-                <span className="text-white font-bold text-xs sm:text-sm group-hover:text-neon-green transition-colors">{partner.name}</span>
+                <span className="text-white font-bold text-xs sm:text-sm group-hover:text-neon-green transition-colors">
+                  {partner.name}
+                </span>
                 <span className="text-gray-400 text-[10px] font-semibold">{partner.tag}</span>
               </div>
               <ExternalLink className="w-3.5 h-3.5 text-gray-500 group-hover:text-neon-green group-hover:translate-x-0.5 transition-all ml-1" />

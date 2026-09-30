@@ -16,22 +16,11 @@ import {
   Maximize2,
   X,
 } from "lucide-react";
-import {
-  WINDOWS_INSTALLER_URL,
-  LINUX_INSTALLER_URL,
-  AUTO_DOWNLOAD_URL,
-} from "@/lib/download";
+import { WINDOWS_INSTALLER_URL, LINUX_INSTALLER_URL, AUTO_DOWNLOAD_URL } from "@/lib/download";
 
 function GithubIcon(props: React.SVGProps<SVGSVGElement>) {
   return (
-    <svg
-      role="img"
-      viewBox="0 0 24 24"
-      fill="currentColor"
-      width="1em"
-      height="1em"
-      {...props}
-    >
+    <svg role="img" viewBox="0 0 24 24" fill="currentColor" width="1em" height="1em" {...props}>
       <path d="M12 0C5.37 0 0 5.37 0 12c0 5.31 3.435 9.795 8.205 11.385.6.105.825-.255.825-.57 0-.285-.015-1.23-.015-2.235-3.015.555-3.795-.735-4.035-1.41-.135-.345-.72-1.41-1.23-1.695-.42-.225-1.02-.78-.015-.795.945-.015 1.62.87 1.845 1.23 1.08 1.815 2.805 1.305 3.495.99.105-.78.42-1.305.765-1.605-2.67-.3-5.46-1.335-5.46-5.925 0-1.305.465-2.385 1.23-3.225-.12-.3-.54-1.53.12-3.18 0 0 1.005-.315 3.3 1.23.96-.27 1.98-.405 3-.405s2.04.135 3 .405c2.295-1.56 3.3-1.23 3.3-1.23.66 1.65.24 2.88.12 3.18.765.84 1.23 1.905 1.23 3.225 0 4.605-2.805 5.625-5.475 5.925.435.375.81 1.095.81 2.22 0 1.605-.015 2.895-.015 3.3 0 .315.225.69.825.57A12.02 12.02 0 0024 12c0-6.63-5.37-12-12-12z" />
     </svg>
   );
@@ -87,7 +76,9 @@ export function HeroSection({ os, appVersion }: HeroSectionProps) {
             transition={{ duration: 0.7, ease: "easeOut" }}
             className="lg:col-span-6 flex flex-col items-center lg:items-start text-center lg:text-left"
           >
-            <h1 className="sr-only">Mission Control — Autonomous AI Gaming Assistant & Telemetry Overlay</h1>
+            <h1 className="sr-only">
+              Mission Control — Autonomous AI Gaming Assistant & Telemetry Overlay
+            </h1>
 
             {/* Glowing Category Badge */}
             <div className="inline-flex items-center gap-2 border border-neon-green/60 rounded-full px-3.5 py-1.5 bg-linear-to-r from-neon-green/25 via-neon-green/10 to-transparent backdrop-blur-xl mb-6 shadow-[0_0_30px_rgba(118,185,0,0.3)] flex-wrap justify-center lg:justify-start">
@@ -95,7 +86,9 @@ export function HeroSection({ os, appVersion }: HeroSectionProps) {
                 <Sparkles className="w-3 h-3 text-neon-yellow" /> TACTICAL ENGINE v{appVersion}
               </span>
               <span className="text-white/30 hidden sm:inline">•</span>
-              <span className="text-gray-300 text-xs font-mono font-semibold hidden sm:inline">LOCAL CUDA</span>
+              <span className="text-gray-300 text-xs font-mono font-semibold hidden sm:inline">
+                LOCAL CUDA
+              </span>
               <span className="text-white/30 hidden sm:inline">•</span>
               <span className="text-neon-yellow text-xs font-mono font-bold uppercase flex items-center gap-1 bg-neon-yellow/10 px-2 py-0.5 rounded-full border border-neon-yellow/30">
                 <Bot className="w-3 h-3 text-neon-yellow" /> AGENT CO-PILOT
@@ -106,10 +99,12 @@ export function HeroSection({ os, appVersion }: HeroSectionProps) {
             <h1 className="text-3xl sm:text-5xl lg:text-6xl font-black font-display tracking-tight text-white mb-4 uppercase leading-[1.05] select-none text-center lg:text-left">
               <span className="bg-clip-text text-transparent bg-linear-to-r from-white via-gray-200 to-gray-400">
                 THE ULTIMATE
-              </span> <br />
+              </span>{" "}
+              <br />
               <span className="bg-clip-text text-transparent bg-linear-to-r from-neon-green via-emerald-400 to-cyan-400 font-black drop-shadow-[0_0_35px_rgba(118,185,0,0.6)]">
                 GAMING AI
-              </span> <br />
+              </span>{" "}
+              <br />
               <span className="bg-clip-text text-transparent bg-linear-to-r from-gray-100 via-white to-gray-300">
                 DASHBOARD
               </span>
@@ -117,7 +112,14 @@ export function HeroSection({ os, appVersion }: HeroSectionProps) {
 
             {/* Subtitle */}
             <p className="text-xs sm:text-sm text-gray-300 max-w-xl mb-6 leading-relaxed font-sans text-center lg:text-left">
-              Engineered by <strong className="text-neon-green font-bold">Mission Control Labs</strong> for high-performance rigs. Monitor thermals in real-time, trigger agentic system macros, and receive <span className="text-neon-yellow font-mono font-bold px-1.5 py-0.5 rounded bg-neon-yellow/10 border border-neon-yellow/30 text-[11px]">sub-15ms</span> local AI tactics directly inside your game.
+              Engineered by{" "}
+              <strong className="text-neon-green font-bold">Mission Control Labs</strong> for
+              high-performance rigs. Monitor thermals in real-time, trigger agentic system macros,
+              and receive{" "}
+              <span className="text-neon-yellow font-mono font-bold px-1.5 py-0.5 rounded bg-neon-yellow/10 border border-neon-yellow/30 text-[11px]">
+                sub-15ms
+              </span>{" "}
+              local AI tactics directly inside your game.
             </p>
 
             {/* Unified Action Buttons & Telemetry Grid Container */}
@@ -130,12 +132,20 @@ export function HeroSection({ os, appVersion }: HeroSectionProps) {
                   </div>
                 ) : (
                   <a
-                    href={os === "linux" ? LINUX_INSTALLER_URL : (os === "windows" ? WINDOWS_INSTALLER_URL : AUTO_DOWNLOAD_URL)}
+                    href={
+                      os === "linux"
+                        ? LINUX_INSTALLER_URL
+                        : os === "windows"
+                          ? WINDOWS_INSTALLER_URL
+                          : AUTO_DOWNLOAD_URL
+                    }
                     suppressHydrationWarning
                     className="w-full sm:flex-1 inline-flex items-center justify-center gap-2.5 btn-premium-primary px-6 h-12.5 rounded-xl font-black uppercase tracking-wider text-center shadow-[0_0_35px_rgba(118,185,0,0.5)] whitespace-nowrap group cursor-pointer"
                   >
                     <Download className="w-4 h-4 shrink-0 transition-transform duration-300 group-hover:translate-y-0.5" />
-                    <span suppressHydrationWarning>DOWNLOAD NOW ({os === "linux" ? "LINUX" : "WINDOWS"})</span>
+                    <span suppressHydrationWarning>
+                      DOWNLOAD NOW ({os === "linux" ? "LINUX" : "WINDOWS"})
+                    </span>
                   </a>
                 )}
 
@@ -202,28 +212,36 @@ export function HeroSection({ os, appVersion }: HeroSectionProps) {
                     <Zap className="w-3.5 h-3.5 text-neon-yellow" />
                   </div>
                   <span className="text-neon-green font-black text-xs">&lt;15ms</span>
-                  <span className="text-gray-400 text-[10px] uppercase tracking-wider font-semibold mt-0.5 text-center">Local CUDA Latency</span>
+                  <span className="text-gray-400 text-[10px] uppercase tracking-wider font-semibold mt-0.5 text-center">
+                    Local CUDA Latency
+                  </span>
                 </div>
                 <div className="p-3 rounded-xl bg-white/3 border border-white/10 backdrop-blur-md flex flex-col items-center justify-center text-center shadow-md hover:border-neon-green/50 hover:shadow-[0_0_20px_rgba(118,185,0,0.2)] transition-all h-full min-h-18 group">
                   <div className="w-7 h-7 rounded-lg icon-badge-premium mb-1 shrink-0">
                     <Shield className="w-3.5 h-3.5 text-neon-green" />
                   </div>
                   <span className="text-neon-green font-black text-xs">100% SAFE</span>
-                  <span className="text-gray-400 text-[10px] uppercase tracking-wider font-semibold mt-0.5 text-center">Overlay Hooking</span>
+                  <span className="text-gray-400 text-[10px] uppercase tracking-wider font-semibold mt-0.5 text-center">
+                    Overlay Hooking
+                  </span>
                 </div>
                 <div className="p-3 rounded-xl bg-white/3 border border-white/10 backdrop-blur-md flex flex-col items-center justify-center text-center shadow-md hover:border-purple-500/50 hover:shadow-[0_0_20px_rgba(168,85,247,0.2)] transition-all h-full min-h-18 group">
                   <div className="w-7 h-7 rounded-lg icon-badge-purple mb-1 shrink-0">
                     <Cpu className="w-3.5 h-3.5 text-purple-400" />
                   </div>
                   <span className="text-purple-400 font-black text-xs">TENSORRT</span>
-                  <span className="text-gray-400 text-[10px] uppercase tracking-wider font-semibold mt-0.5 text-center">NVIDIA Engine</span>
+                  <span className="text-gray-400 text-[10px] uppercase tracking-wider font-semibold mt-0.5 text-center">
+                    NVIDIA Engine
+                  </span>
                 </div>
                 <div className="p-3 rounded-xl bg-white/3 border border-white/10 backdrop-blur-md flex flex-col items-center justify-center text-center shadow-md hover:border-cyan-400/50 hover:shadow-[0_0_20px_rgba(6,182,212,0.2)] transition-all h-full min-h-18 group">
                   <div className="w-7 h-7 rounded-lg icon-badge-cyan mb-1 shrink-0">
                     <Globe className="w-3.5 h-3.5 text-cyan-400" />
                   </div>
                   <span className="text-cyan-400 font-black text-xs">100% FREE</span>
-                  <span className="text-gray-400 text-[10px] uppercase tracking-wider font-semibold mt-0.5 text-center">Open Source GitHub</span>
+                  <span className="text-gray-400 text-[10px] uppercase tracking-wider font-semibold mt-0.5 text-center">
+                    Open Source GitHub
+                  </span>
                 </div>
               </div>
             </div>
@@ -242,10 +260,15 @@ export function HeroSection({ os, appVersion }: HeroSectionProps) {
                 <div className="flex items-center gap-2 sm:gap-3 overflow-hidden">
                   <div className="flex items-center gap-2 overflow-hidden">
                     <div className="w-5 h-5 sm:w-6 sm:h-6 rounded-lg bg-neon-green/10 border border-neon-green/40 flex items-center justify-center p-0.5 shrink-0 shadow-[0_0_10px_rgba(118,185,0,0.4)] overflow-hidden">
-                      <img src="/logo.png" alt="Mission Control Logo" className="w-full h-full object-contain" />
+                      <img
+                        src="/logo.png"
+                        alt="Mission Control Logo"
+                        className="w-full h-full object-contain"
+                      />
                     </div>
                     <span className="text-gray-200 font-bold tracking-wider text-[11px] sm:text-xs truncate">
-                      MISSION CONTROL v{appVersion} <span className="hidden sm:inline">— TACTICAL STATION</span>
+                      MISSION CONTROL v{appVersion}{" "}
+                      <span className="hidden sm:inline">— TACTICAL STATION</span>
                     </span>
                   </div>
                   <div className="hidden sm:flex items-center gap-1.5 text-neon-green font-bold text-[10px] bg-neon-green/10 border border-neon-green/30 px-2.5 py-0.5 rounded-full shrink-0 whitespace-nowrap">

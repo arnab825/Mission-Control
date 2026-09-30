@@ -5,10 +5,7 @@ import { NodeHeartbeatSchema, validateRequestBody, handleApiError } from "@/lib/
 
 export const dynamic = "force-dynamic";
 
-export async function POST(
-  req: NextRequest,
-  { params }: { params: Promise<{ nodeId: string }> }
-) {
+export async function POST(req: NextRequest, { params }: { params: Promise<{ nodeId: string }> }) {
   try {
     const { nodeId } = await params;
     if (!nodeId) {

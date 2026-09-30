@@ -34,7 +34,7 @@ export function AdSenseAdSlot({
   slotId = "3942234105",
   format = "auto",
   responsive = true,
-  className = "my-6 w-full flex justify-center min-h-[90px]"
+  className = "my-6 w-full flex justify-center min-h-[90px]",
 }: AdSlotProps) {
   const publisherId = process.env.NEXT_PUBLIC_ADSENSE_CLIENT_ID;
   const containerRef = useRef<HTMLDivElement>(null);
@@ -79,5 +79,3 @@ export function AdSenseAdSlot({
     </div>
   );
 }
-
-

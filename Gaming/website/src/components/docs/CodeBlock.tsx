@@ -43,18 +43,19 @@ export function CodeBlock({ code, language }: CodeBlockProps) {
     );
   }
 
-  const displayLanguage = {
-    text: "Console Output",
-    plaintext: "Output Log",
-    powershell: "PowerShell",
-    cpp: "C++",
-    c: "C",
-    python: "Python",
-    bash: "Bash / Terminal",
-    json: "JSON Config",
-    typescript: "TypeScript",
-    javascript: "JavaScript",
-  }[language.toLowerCase()] || language.toUpperCase();
+  const displayLanguage =
+    {
+      text: "Console Output",
+      plaintext: "Output Log",
+      powershell: "PowerShell",
+      cpp: "C++",
+      c: "C",
+      python: "Python",
+      bash: "Bash / Terminal",
+      json: "JSON Config",
+      typescript: "TypeScript",
+      javascript: "JavaScript",
+    }[language.toLowerCase()] || language.toUpperCase();
 
   return (
     <div className="relative group/code my-6 rounded-2xl overflow-hidden border border-white/10 bg-[#08090c] font-sans shadow-xl">
@@ -90,7 +91,7 @@ export function CodeBlock({ code, language }: CodeBlockProps) {
           )}
         </button>
       </div>
-      
+
       {/* Code Body with clean typography & zero text-shadow/blur */}
       <div className="overflow-x-auto p-4 sm:p-5 text-[13px] font-mono leading-relaxed [&_span]:!shadow-none [&_span]:!text-shadow-none [&_code]:!bg-transparent [&_code]:!border-none [&_code]:!p-0 [&_code]:!shadow-none">
         <SyntaxHighlighter
@@ -103,7 +104,8 @@ export function CodeBlock({ code, language }: CodeBlockProps) {
             margin: 0,
             fontSize: "13px",
             lineHeight: "1.7",
-            fontFamily: "ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, 'Liberation Mono', 'Courier New', monospace",
+            fontFamily:
+              "ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, 'Liberation Mono', 'Courier New', monospace",
             textShadow: "none",
             boxShadow: "none",
           }}
@@ -113,7 +115,7 @@ export function CodeBlock({ code, language }: CodeBlockProps) {
               textShadow: "none",
               boxShadow: "none",
               border: "none",
-            }
+            },
           }}
         >
           {code}

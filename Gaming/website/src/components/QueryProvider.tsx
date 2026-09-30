@@ -1,2 +1,2 @@
-export { default } from './integrations/QueryProvider';
-export * from './integrations/QueryProvider';
+export { default } from "./integrations/QueryProvider";
+export * from "./integrations/QueryProvider";

@@ -1,1 +1,1 @@
-export * from './home/BeforeAfterSlider';
+export * from "./home/BeforeAfterSlider";

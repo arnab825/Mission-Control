@@ -55,7 +55,9 @@ export default function ModernCard({ children, className = "" }: ModernCardProps
         transform: isHovered
           ? "perspective(1000px) rotateX(var(--rotate-x, 0deg)) rotateY(var(--rotate-y, 0deg)) scale3d(1.02, 1.02, 1.02)"
           : "perspective(1000px) rotateX(0deg) rotateY(0deg) scale3d(1, 1, 1)",
-        transition: isHovered ? "none" : "transform 0.5s cubic-bezier(0.25, 1, 0.5, 1), border-color 0.3s",
+        transition: isHovered
+          ? "none"
+          : "transform 0.5s cubic-bezier(0.25, 1, 0.5, 1), border-color 0.3s",
       }}
       className={`glass-panel p-6 sm:p-8 border border-white/5 relative overflow-hidden rounded-xl group cursor-pointer ${className}`}
     >
@@ -79,9 +81,7 @@ export default function ModernCard({ children, className = "" }: ModernCardProps
         }}
       />
 
-      <div className="relative z-20 w-full h-full flex flex-col">
-        {children}
-      </div>
+      <div className="relative z-20 w-full h-full flex flex-col">{children}</div>
     </div>
   );
 }

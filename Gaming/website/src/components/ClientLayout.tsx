@@ -1,2 +1,2 @@
-export { default } from './layout/ClientLayout';
-export * from './layout/ClientLayout';
+export { default } from "./layout/ClientLayout";
+export * from "./layout/ClientLayout";

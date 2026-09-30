@@ -136,6 +136,7 @@ The web platform interacts with our distributed backend cluster (located in `Gam
 ### Running the Backend Cluster Locally
 
 To simulate the production load-balanced environment, you can run the backend cluster using Docker Compose. The cluster spawns multiple instances of:
+
 1. **Catalog & Web Discovery Service** (Serving `/api/games`, `/api/games/discover`, `/api/games/seed`)
 2. **User Library & Node Sync Service** (Serving `/api/nodes/register`, `/api/nodes/{id}/sync`)
 3. **AI Classification Service** (Serving `/api/games/classify`)
@@ -152,7 +153,7 @@ docker-compose up --build -d
 > [!IMPORTANT]
 > **Windows Docker Desktop Users (IPv6 Warning)**
 > Supabase's PostgreSQL instances often utilize IPv6. If you receive connection timeouts (e.g., `TimeoutError`, `Host is unreachable`) when connecting from the Docker containers to Supabase on a Windows machine, you must enable IPv6 in the Docker engine.
-> 
+>
 > 1. Open Docker Desktop -> Settings -> Docker Engine
 > 2. Add `"ipv6": true` to the JSON configuration:
 >    ```json

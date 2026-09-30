@@ -9,23 +9,26 @@ excerpt: "Accurate DirectX frame timing, pybind11 C++ bindings, and CUDA/TensorR
 # 🎯 Accurate FPS Counter & Hardware Telemetry (DirectX, C++, CUDA/TensorRT)
 
 ## Objective
+
 Build a hybrid FPS counter system for a gaming application with a Python backend. Ensure accurate frame timing via DirectX (C++), expose results to Python via pybind11, and integrate CUDA/TensorRT timing separately. Package the solution as a DLL, compiled with MSVC, and distribute with the Microsoft Visual C++ Redistributable.
 
 ---
 
 ## 📸 Real-Time Telemetry & HUD Overlay
 
-| 📟 **Glassmorphic HUD Overlay** | 📊 **Real-Time Hardware Telemetry** |
-| :---: | :---: |
+|          📟 **Glassmorphic HUD Overlay**           |       📊 **Real-Time Hardware Telemetry**       |
+| :------------------------------------------------: | :---------------------------------------------: |
 | ![Glassmorphic HUD Overlay](/screenshots/hud.webp) | ![Hardware Telemetry](/screenshots/system.webp) |
 
 ---
 
 ## 1. Core FPS Measurement (C++ / DirectX)
+
 Hook into `swapchain->Present()` in DirectX 11/12.
-* Use `QueryPerformanceCounter` for high‑precision timestamps.
-* Maintain a rolling buffer of frame times (e.g., 128 frames).
-* Compute FPS as `1 / average_frame_time`.
+
+- Use `QueryPerformanceCounter` for high‑precision timestamps.
+- Maintain a rolling buffer of frame times (e.g., 128 frames).
+- Compute FPS as `1 / average_frame_time`.
 
 ```cpp
 // fps_counter.cpp
@@ -66,6 +69,7 @@ extern "C" __declspec(dllexport) double GetFPS() {
 ---
 
 ## 2. Python Binding (pybind11)
+
 Create a binding module with pybind11:
 
 ```cpp
@@ -88,26 +92,32 @@ PYBIND11_MODULE(fps_counter, m) {
 ## 3. Compilation (MSVC on Windows 11)
 
 ### Requirements:
-* Microsoft Visual Studio 2022 (with MSVC toolset).
-* pybind11 installed (`pip install pybind11`).
-* Python development headers (ensure Python is installed with dev tools).
+
+- Microsoft Visual Studio 2022 (with MSVC toolset).
+- pybind11 installed (`pip install pybind11`).
+- Python development headers (ensure Python is installed with dev tools).
 
 ### Compile commands (Developer Command Prompt):
+
 ```bash
 cl /LD fps_counter.cpp pybind_fps.cpp /I"path\to\pybind11\include" /I"path\to\Python\include" /link /OUT:fps_counter.pyd /LIBPATH:"path\to\Python\libs"
 ```
+
 Output: `fps_counter.pyd` (Python extension DLL).
 
 ---
 
 ## 4. DLL Linking & Redistributable
+
 The compiled DLL depends on Microsoft Visual C++ Redistributable (matching your MSVC version).
-* Ensure users install the x64 VC++ Redistributable for Visual Studio 2022.
-* Without it, Python will throw `ImportError: DLL load failed`.
+
+- Ensure users install the x64 VC++ Redistributable for Visual Studio 2022.
+- Without it, Python will throw `ImportError: DLL load failed`.
 
 ---
 
 ## 5. Python HUD Integration
+
 ```python
 import fps_counter
 
@@ -121,6 +131,7 @@ def hud_loop():
 ---
 
 ## 6. CUDA/TensorRT Timing (Optional)
+
 Use CUDA events for kernel timing:
 
 ```cpp
@@ -136,13 +147,15 @@ cudaEventSynchronize(stop);
 float ms = 0.0f;
 cudaEventElapsedTime(&ms, start, stop);
 ```
+
 Expose these timings separately to Python for ML workload profiling.
 
 ---
 
 ## 🔒 Deliverables & Verification
-* `fps_counter.pyd` (Python extension DLL).
-* Redistributable installer (VC++ 2022 x64).
-* Complete documentation for compilation, Python usage, and CUDA/TensorRT timing integration.
+
+- `fps_counter.pyd` (Python extension DLL).
+- Redistributable installer (VC++ 2022 x64).
+- Complete documentation for compilation, Python usage, and CUDA/TensorRT timing integration.
 
 With this setup, your HUD will show true FPS measured at DirectX `Present`, while Python displays the value directly on your screen.

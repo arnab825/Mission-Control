@@ -23,13 +23,16 @@ export function VerifiedTestedGamesSection({ testedGames }: VerifiedTestedGamesS
     <section className="w-full max-w-7xl px-4 sm:px-6 mb-24 sm:mb-36 relative z-10 mx-auto">
       <div className="text-center mb-12 max-w-3xl mx-auto">
         <div className="inline-block border border-neon-green/30 rounded-full px-4 py-1.5 bg-neon-green/10 mb-3 backdrop-blur-md">
-          <span className="text-neon-green text-xs font-bold font-mono tracking-widest uppercase">VERIFIED HARDWARE BENCHMARKS</span>
+          <span className="text-neon-green text-xs font-bold font-mono tracking-widest uppercase">
+            VERIFIED HARDWARE BENCHMARKS
+          </span>
         </div>
         <h2 className="text-3xl sm:text-5xl font-black font-display uppercase tracking-tight text-white">
           SUPPORTED <span className="text-neon-green glow-text-teal">AAA TITLES</span>
         </h2>
         <p className="text-gray-400 text-sm sm:text-base font-sans mt-2">
-          Real hardware benchmark profiles verified natively on local NVIDIA GPUs with zero game latency.
+          Real hardware benchmark profiles verified natively on local NVIDIA GPUs with zero game
+          latency.
         </p>
       </div>
 
@@ -84,23 +87,44 @@ export function VerifiedTestedGamesSection({ testedGames }: VerifiedTestedGamesS
               {/* Real Telemetry Benchmark Grid */}
               <div className="grid grid-cols-2 gap-2 sm:gap-2.5 p-2.5 sm:p-3 bg-white/3 border border-white/10 rounded-2xl font-mono text-xs">
                 <div className="p-2 rounded-xl bg-black/40 border border-white/5">
-                  <span className="text-gray-400 text-[9px] sm:text-[10px] block font-bold uppercase">Avg FPS</span>
-                  <span className="text-neon-green font-black text-sm sm:text-base">{game.fps}</span>
+                  <span className="text-gray-400 text-[9px] sm:text-[10px] block font-bold uppercase">
+                    Avg FPS
+                  </span>
+                  <span className="text-neon-green font-black text-sm sm:text-base">
+                    {game.fps}
+                  </span>
                 </div>
                 <div className="p-2 rounded-xl bg-black/40 border border-white/5 min-w-0">
-                  <span className="text-gray-400 text-[9px] sm:text-[10px] block font-bold uppercase">VRAM Used</span>
-                  <span className="text-white font-bold text-[11px] sm:text-sm tracking-tight whitespace-nowrap block" title={game.vram}>
-                    <span className="sm:hidden">{game.vram.replace(/(\d+\.?\d*)\s*GB\s*\/\s*(\d+\.?\d*)\s*GB/i, "$1/$2 GB").replace(/\.00/g, "")}</span>
+                  <span className="text-gray-400 text-[9px] sm:text-[10px] block font-bold uppercase">
+                    VRAM Used
+                  </span>
+                  <span
+                    className="text-white font-bold text-[11px] sm:text-sm tracking-tight whitespace-nowrap block"
+                    title={game.vram}
+                  >
+                    <span className="sm:hidden">
+                      {game.vram
+                        .replace(/(\d+\.?\d*)\s*GB\s*\/\s*(\d+\.?\d*)\s*GB/i, "$1/$2 GB")
+                        .replace(/\.00/g, "")}
+                    </span>
                     <span className="hidden sm:inline">{game.vram}</span>
                   </span>
                 </div>
                 <div className="p-2 rounded-xl bg-black/40 border border-white/5">
-                  <span className="text-gray-400 text-[9px] sm:text-[10px] block font-bold uppercase">Latency</span>
-                  <span className="text-amber-400 font-bold text-xs sm:text-sm">{game.latency}</span>
+                  <span className="text-gray-400 text-[9px] sm:text-[10px] block font-bold uppercase">
+                    Latency
+                  </span>
+                  <span className="text-amber-400 font-bold text-xs sm:text-sm">
+                    {game.latency}
+                  </span>
                 </div>
                 <div className="p-2 rounded-xl bg-black/40 border border-white/5">
-                  <span className="text-gray-400 text-[9px] sm:text-[10px] block font-bold uppercase">GPU Load</span>
-                  <span className="text-emerald-400 font-bold text-xs sm:text-sm">{game.gpuLoad}</span>
+                  <span className="text-gray-400 text-[9px] sm:text-[10px] block font-bold uppercase">
+                    GPU Load
+                  </span>
+                  <span className="text-emerald-400 font-bold text-xs sm:text-sm">
+                    {game.gpuLoad}
+                  </span>
                 </div>
               </div>
 
@@ -123,13 +147,27 @@ export function VerifiedTestedGamesSection({ testedGames }: VerifiedTestedGamesS
                   } else if (lower.includes("ray tracing") || lower.includes("path")) {
                     IconComponent = Sparkles;
                     iconColor = "text-purple-400";
-                  } else if (lower.includes("frostbite") || lower.includes("snowdrop") || lower.includes("engine") || lower.includes("unreal")) {
+                  } else if (
+                    lower.includes("frostbite") ||
+                    lower.includes("snowdrop") ||
+                    lower.includes("engine") ||
+                    lower.includes("unreal")
+                  ) {
                     IconComponent = Flame;
                     iconColor = "text-amber-400";
-                  } else if (lower.includes("shader") || lower.includes("volumetric") || lower.includes("render") || lower.includes("heat")) {
+                  } else if (
+                    lower.includes("shader") ||
+                    lower.includes("volumetric") ||
+                    lower.includes("render") ||
+                    lower.includes("heat")
+                  ) {
                     IconComponent = Eye;
                     iconColor = "text-violet-400";
-                  } else if (lower.includes("dx12") || lower.includes("vulkan") || lower.includes("directx")) {
+                  } else if (
+                    lower.includes("dx12") ||
+                    lower.includes("vulkan") ||
+                    lower.includes("directx")
+                  ) {
                     IconComponent = Cpu;
                     iconColor = "text-emerald-400";
                   } else if (lower.includes("fullscreen") || lower.includes("etw")) {
@@ -138,7 +176,10 @@ export function VerifiedTestedGamesSection({ testedGames }: VerifiedTestedGamesS
                   }
 
                   return (
-                    <span key={i} className="px-2.5 py-1 bg-white/5 border border-white/10 hover:border-white/20 rounded-lg text-gray-200 flex items-center gap-1.5 transition-colors font-semibold">
+                    <span
+                      key={i}
+                      className="px-2.5 py-1 bg-white/5 border border-white/10 hover:border-white/20 rounded-lg text-gray-200 flex items-center gap-1.5 transition-colors font-semibold"
+                    >
                       <IconComponent className={`w-3 h-3 ${iconColor} shrink-0`} />
                       <span>{tech}</span>
                     </span>

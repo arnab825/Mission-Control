@@ -64,7 +64,9 @@ export default function Home() {
   useEffect(() => {
     let isMounted = true;
     const ua = (
-      (typeof window !== "undefined" && (window.navigator.userAgent || window.navigator.platform)) || ""
+      (typeof window !== "undefined" &&
+        (window.navigator.userAgent || window.navigator.platform)) ||
+      ""
     ).toLowerCase();
     if (ua.includes("win")) setOs("windows");
     else if (ua.includes("linux") || ua.includes("x11")) setOs("linux");
@@ -94,8 +96,16 @@ export default function Home() {
   return (
     <div className="min-h-screen flex flex-col items-center justify-start w-full relative overflow-hidden pt-20 sm:pt-24 bg-obsidian text-white">
       {/* JSON-LD Schemas */}
-      <Script id="faq-schema" type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(faqSchema) }} />
-      <Script id="software-schema" type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(softwareSchema) }} />
+      <Script
+        id="faq-schema"
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{ __html: JSON.stringify(faqSchema) }}
+      />
+      <Script
+        id="software-schema"
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{ __html: JSON.stringify(softwareSchema) }}
+      />
 
       {/* Background Cybernetic Grid & Ambient Aurora Spotlights */}
       <div className="absolute inset-0 cyber-grid opacity-20 pointer-events-none z-0" />

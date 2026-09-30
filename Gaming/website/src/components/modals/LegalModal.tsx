@@ -16,7 +16,7 @@ import {
   ChevronRight,
   Sparkles,
   Info,
-  Scale
+  Scale,
 } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 import Link from "next/link";
@@ -30,12 +30,7 @@ interface LegalModalProps {
   onTabChange: (tab: LegalModalTab) => void;
 }
 
-export default function LegalModal({
-  isOpen,
-  activeTab,
-  onClose,
-  onTabChange,
-}: LegalModalProps) {
+export default function LegalModal({ isOpen, activeTab, onClose, onTabChange }: LegalModalProps) {
   const [searchQuery, setSearchQuery] = useState("");
   const [cookieSettings, setCookieSettings] = useState({
     essential: true, // Always locked
@@ -440,7 +435,9 @@ export default function LegalModal({
                     <div className="flex items-center justify-between p-2.5 sm:p-3 rounded-lg bg-white/[0.02] border border-white/5 gap-2">
                       <div className="min-w-0">
                         <div className="flex items-center gap-1.5 flex-wrap">
-                          <span className="text-xs font-bold text-white">Essential Session Data</span>
+                          <span className="text-xs font-bold text-white">
+                            Essential Session Data
+                          </span>
                           <span className="text-[9px] uppercase font-mono px-1 py-0.2 rounded bg-white/10 text-gray-400">
                             Required
                           </span>
@@ -458,7 +455,9 @@ export default function LegalModal({
                     <div className="flex items-center justify-between p-2.5 sm:p-3 rounded-lg bg-white/[0.02] border border-white/5 gap-2">
                       <div className="min-w-0">
                         <div className="flex items-center gap-1.5 flex-wrap">
-                          <span className="text-xs font-bold text-white">Hardware Benchmark Cache</span>
+                          <span className="text-xs font-bold text-white">
+                            Hardware Benchmark Cache
+                          </span>
                           <span className="text-[9px] uppercase font-mono px-1 py-0.2 rounded bg-neon-green/10 text-neon-green">
                             Accelerated
                           </span>
@@ -495,7 +494,9 @@ export default function LegalModal({
                     <div className="flex items-center justify-between p-2.5 sm:p-3 rounded-lg bg-white/[0.02] border border-white/5 gap-2">
                       <div className="min-w-0">
                         <div className="flex items-center gap-1.5 flex-wrap">
-                          <span className="text-xs font-bold text-white">Anonymous Diagnostics</span>
+                          <span className="text-xs font-bold text-white">
+                            Anonymous Diagnostics
+                          </span>
                           <span className="text-[9px] uppercase font-mono px-1 py-0.2 rounded bg-white/10 text-gray-400">
                             Optional
                           </span>
@@ -583,9 +584,12 @@ export default function LegalModal({
                 <div className="flex items-center gap-2.5">
                   <Sparkles className="w-4 h-4 sm:w-5 sm:h-5 text-neon-green shrink-0" />
                   <div>
-                    <h5 className="font-bold text-white text-xs">Have questions regarding our compliance?</h5>
+                    <h5 className="font-bold text-white text-xs">
+                      Have questions regarding our compliance?
+                    </h5>
                     <p className="text-gray-400 text-[10px] sm:text-[11px]">
-                      Our engineering and legal team provides direct clarification on telemetry architecture.
+                      Our engineering and legal team provides direct clarification on telemetry
+                      architecture.
                     </p>
                   </div>
                 </div>
@@ -594,7 +598,8 @@ export default function LegalModal({
                   onClick={onClose}
                   className="text-xs font-bold text-neon-green hover:text-white flex items-center gap-1 shrink-0 group transition-colors"
                 >
-                  Contact Support <ChevronRight className="w-3.5 h-3.5 group-hover:translate-x-1 transition-transform" />
+                  Contact Support{" "}
+                  <ChevronRight className="w-3.5 h-3.5 group-hover:translate-x-1 transition-transform" />
                 </Link>
               </div>
             </div>

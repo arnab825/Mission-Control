@@ -1,1 +1,1 @@
-export * from './integrations/GoogleAdSense';
+export * from "./integrations/GoogleAdSense";

@@ -21,7 +21,11 @@ import rehypeKatex from "rehype-katex";
 import "katex/dist/katex.min.css";
 import { BASE_SITE_URL, getBaseUrl } from "@/lib/siteUrl";
 
-export async function generateMetadata({ params }: { params: Promise<{ slug: string }> }): Promise<Metadata> {
+export async function generateMetadata({
+  params,
+}: {
+  params: Promise<{ slug: string }>;
+}): Promise<Metadata> {
   const { slug } = await params;
   const baseUrl = getBaseUrl();
 
@@ -30,9 +34,10 @@ export async function generateMetadata({ params }: { params: Promise<{ slug: str
     const dbPost: any = await GamingPost.findOne({ slug }).lean();
 
     if (dbPost) {
-      const coverUrl = dbPost.coverImage && dbPost.coverImage.startsWith("http")
-        ? dbPost.coverImage
-        : `${baseUrl}/images/blog/${slug}.png`;
+      const coverUrl =
+        dbPost.coverImage && dbPost.coverImage.startsWith("http")
+          ? dbPost.coverImage
+          : `${baseUrl}/images/blog/${slug}.png`;
 
       return {
         title: `${dbPost.title} | Mission Control Gaming Intel`,
@@ -55,7 +60,9 @@ export async function generateMetadata({ params }: { params: Promise<{ slug: str
             },
           ],
           type: "article",
-          publishedTime: dbPost.publishedAt ? new Date(dbPost.publishedAt).toISOString() : undefined,
+          publishedTime: dbPost.publishedAt
+            ? new Date(dbPost.publishedAt).toISOString()
+            : undefined,
         },
         twitter: {
           card: "summary_large_image",
@@ -71,26 +78,47 @@ export async function generateMetadata({ params }: { params: Promise<{ slug: str
 
   return {
     title: "Gaming Intel & Hardware Analysis | Mission Control",
-    description: "In-depth gaming benchmarks, GPU architecture deep-dives, and real-time PC gaming telemetry.",
+    description:
+      "In-depth gaming benchmarks, GPU architecture deep-dives, and real-time PC gaming telemetry.",
   };
 }
 
 const CATEGORY_CONFIG: Record<string, { color: string; bg: string; border: string }> = {
   "Game News": { color: "text-neon-green", bg: "bg-neon-green/10", border: "border-neon-green/20" },
-  "GPU News": { color: "text-neon-purple", bg: "bg-neon-purple/10", border: "border-neon-purple/20" },
-  "Game Revisit": { color: "text-neon-yellow", bg: "bg-neon-yellow/10", border: "border-neon-yellow/20" },
-  "Hardware Deep-Dive": { color: "text-blue-400", bg: "bg-blue-400/10", border: "border-blue-400/20" },
+  "GPU News": {
+    color: "text-neon-purple",
+    bg: "bg-neon-purple/10",
+    border: "border-neon-purple/20",
+  },
+  "Game Revisit": {
+    color: "text-neon-yellow",
+    bg: "bg-neon-yellow/10",
+    border: "border-neon-yellow/20",
+  },
+  "Hardware Deep-Dive": {
+    color: "text-blue-400",
+    bg: "bg-blue-400/10",
+    border: "border-blue-400/20",
+  },
 };
 
 const mdxComponents = {
   pre: ({ children }: any) => {
     const codeChild = children?.props ? children : null;
     const className = codeChild?.props?.className || "";
-    const rawText = typeof codeChild?.props?.children === "string"
-      ? codeChild.props.children
-      : (typeof children === "string" ? children : "");
+    const rawText =
+      typeof codeChild?.props?.children === "string"
+        ? codeChild.props.children
+        : typeof children === "string"
+          ? children
+          : "";
 
-    if (className.includes("mermaid") || className.includes("language-mermaid") || rawText.trim().startsWith("flowchart") || rawText.trim().startsWith("graph")) {
+    if (
+      className.includes("mermaid") ||
+      className.includes("language-mermaid") ||
+      rawText.trim().startsWith("flowchart") ||
+      rawText.trim().startsWith("graph")
+    ) {
       return <Mermaid chart={rawText} />;
     }
 
@@ -101,18 +129,30 @@ const mdxComponents = {
   },
   code: ({ className, children, ...props }: any) => {
     const rawText = typeof children === "string" ? children : String(children || "");
-    if (className?.includes("mermaid") || className === "language-mermaid" || rawText.trim().startsWith("flowchart") || rawText.trim().startsWith("graph")) {
+    if (
+      className?.includes("mermaid") ||
+      className === "language-mermaid" ||
+      rawText.trim().startsWith("flowchart") ||
+      rawText.trim().startsWith("graph")
+    ) {
       return <Mermaid chart={rawText} />;
     }
     // Plain code span inside CodeBlock syntax highlighter or simple inline text
     if (!className || !className.includes("language-")) {
       return (
-        <code className="text-neon-green font-mono text-xs px-1.5 py-0.5 rounded bg-black/40 border border-white/10" {...props}>
+        <code
+          className="text-neon-green font-mono text-xs px-1.5 py-0.5 rounded bg-black/40 border border-white/10"
+          {...props}
+        >
           {children}
         </code>
       );
     }
-    return <code className={className} {...props}>{children}</code>;
+    return (
+      <code className={className} {...props}>
+        {children}
+      </code>
+    );
   },
   table: ({ children, ...props }: any) => (
     <div className="overflow-x-auto my-8 border border-neon-green/20 rounded-2xl bg-[#090b10] shadow-[0_0_30px_rgba(118,185,0,0.05)] w-full">
@@ -122,7 +162,10 @@ const mdxComponents = {
     </div>
   ),
   thead: ({ children, ...props }: any) => (
-    <thead className="bg-white/5 border-b border-white/10 text-xs font-mono uppercase tracking-wider text-neon-green" {...props}>
+    <thead
+      className="bg-white/5 border-b border-white/10 text-xs font-mono uppercase tracking-wider text-neon-green"
+      {...props}
+    >
       {children}
     </thead>
   ),
@@ -137,12 +180,18 @@ const mdxComponents = {
     </tr>
   ),
   th: ({ children, ...props }: any) => (
-    <th className="px-5 py-3.5 font-bold text-gray-200 border-r border-white/5 last:border-r-0" {...props}>
+    <th
+      className="px-5 py-3.5 font-bold text-gray-200 border-r border-white/5 last:border-r-0"
+      {...props}
+    >
       {children}
     </th>
   ),
   td: ({ children, ...props }: any) => (
-    <td className="px-5 py-3.5 text-gray-300 border-r border-white/5 last:border-r-0 leading-relaxed" {...props}>
+    <td
+      className="px-5 py-3.5 text-gray-300 border-r border-white/5 last:border-r-0 leading-relaxed"
+      {...props}
+    >
       {children}
     </td>
   ),
@@ -190,16 +239,10 @@ function cleanMarkdown(content: string): string {
 
   // Strip leftover ASCII connector fragments that appear outside boxes
   // Only match if line contains arrows (^, v, --->) or plus-borders (+---+), never table delimiters (:---)
-  clean = clean.replace(
-    /^[ \t]*(?:\^|v|V|\+[-=]{2,}\+)[ \t\|\^vV\[\]\-=+.>:]*$/gm,
-    ""
-  );
+  clean = clean.replace(/^[ \t]*(?:\^|v|V|\+[-=]{2,}\+)[ \t\|\^vV\[\]\-=+.>:]*$/gm, "");
 
   // Strip leftover inline ASCII connector rows: | Label | ---> | Label | (must contain -> or --->)
-  clean = clean.replace(
-    /^[ \t]*\|[^\n|]+\|(?:[ \t]*[-=]+>[ \t]*\|[^\n|]+\|)+[ \t]*$/gm,
-    ""
-  );
+  clean = clean.replace(/^[ \t]*\|[^\n|]+\|(?:[ \t]*[-=]+>[ \t]*\|[^\n|]+\|)+[ \t]*$/gm, "");
 
   // Collapse multiple blank lines into max two
   clean = clean.replace(/\n{3,}/g, "\n\n");
@@ -232,7 +275,9 @@ function cleanMarkdown(content: string): string {
       .trim();
 
     // Separate plain text preamble from align*/equation math blocks
-    const alignMatch = text.match(/(\\begin\{(?:align\*?|equation\*?|gather\*?)\}[\s\S]*?\\end\{(?:align\*?|equation\*?|gather\*?)\})/i);
+    const alignMatch = text.match(
+      /(\\begin\{(?:align\*?|equation\*?|gather\*?)\}[\s\S]*?\\end\{(?:align\*?|equation\*?|gather\*?)\})/i
+    );
     if (alignMatch) {
       const mathPart = alignMatch[1];
       const plainTextBefore = text.slice(0, alignMatch.index).trim();
@@ -277,7 +322,6 @@ export default async function GamingBlogPost({ params }: { params: Promise<{ slu
     await connectDB();
     dbPost = await GamingPost.findOne({ slug }).lean();
 
-
     if (dbPost) {
       const prevDb = await GamingPost.findOne({ publishedAt: { $lt: dbPost.publishedAt } })
         .sort({ publishedAt: -1 })
@@ -308,7 +352,6 @@ export default async function GamingBlogPost({ params }: { params: Promise<{ slu
         if (oldestDb) nextPost = { slug: (oldestDb as any).slug, title: (oldestDb as any).title };
       }
     }
-
   } catch (error) {
     console.warn("MongoDB Connection Error: IP not whitelisted. Falling back to local post.");
   }
@@ -320,7 +363,7 @@ export default async function GamingBlogPost({ params }: { params: Promise<{ slu
       try {
         const parsed = new URL(dbCover);
         dbCover = `/api/blob?pathname=${encodeURIComponent(parsed.pathname.replace(/^\//, ""))}`;
-      } catch { }
+      } catch {}
     } else if (!dbCover || dbCover.includes("placeholder")) {
       dbCover = `/api/blob?pathname=${encodeURIComponent(`images/blog/${slug}.png`)}`;
     }
@@ -364,10 +407,9 @@ export default async function GamingBlogPost({ params }: { params: Promise<{ slu
           redirect(`/blog/${slug}`);
         }
       }
-    } catch { }
+    } catch {}
     notFound();
   }
-
 
   const date = post.publishedAt ?? "";
   const readTime = Math.max(1, Math.ceil((post.markdownBody?.split(" ").length || 1) / 200));
@@ -375,7 +417,7 @@ export default async function GamingBlogPost({ params }: { params: Promise<{ slu
   const cfg = CATEGORY_CONFIG[post.category] ?? {
     color: "text-neon-green",
     bg: "bg-neon-green/10",
-    border: "border-neon-green/20"
+    border: "border-neon-green/20",
   };
 
   const headersList = await headers();
@@ -386,18 +428,19 @@ export default async function GamingBlogPost({ params }: { params: Promise<{ slu
 
   return (
     <div className="min-h-screen pt-32 pb-24 px-4 sm:px-6 max-w-6xl mx-auto w-full relative z-10">
-
       {/* Reading Progress Indicator */}
       <div className="fixed top-0 left-0 w-full h-[2px] bg-gradient-to-r from-neon-green via-neon-purple to-neon-green z-50"></div>
 
       {/* Top Navigation */}
-      <Link href="/blog?tab=intel" className="text-gray-400 hover:text-neon-green transition-colors mb-8 inline-flex items-center gap-2 font-display text-sm group">
+      <Link
+        href="/blog?tab=intel"
+        className="text-gray-400 hover:text-neon-green transition-colors mb-8 inline-flex items-center gap-2 font-display text-sm group"
+      >
         <ArrowLeft className="w-4 h-4 group-hover:-translate-x-1 transition-transform" />
         Back to Gaming Intel
       </Link>
 
       <div className="grid grid-cols-1 lg:grid-cols-4 gap-8 xl:gap-12">
-
         {/* Main Content Column */}
         <div className="lg:col-span-3">
           <article className="glass-panel p-6 sm:p-8 md:p-12 relative overflow-hidden rounded-xl border border-white/5">
@@ -405,7 +448,9 @@ export default async function GamingBlogPost({ params }: { params: Promise<{ slu
 
             <header className="mb-10 border-b border-white/10 pb-8 relative z-10">
               <div className="flex flex-wrap items-center gap-3 mb-6">
-                <span className={`${cfg.bg} ${cfg.color} border ${cfg.border} px-3.5 py-1 rounded-full text-xs font-display font-bold tracking-widest uppercase`}>
+                <span
+                  className={`${cfg.bg} ${cfg.color} border ${cfg.border} px-3.5 py-1 rounded-full text-xs font-display font-bold tracking-widest uppercase`}
+                >
                   {post.category || "Intel"}
                 </span>
 
@@ -416,11 +461,15 @@ export default async function GamingBlogPost({ params }: { params: Promise<{ slu
                 )}
               </div>
 
-              <h1 className="text-3xl sm:text-4xl md:text-5xl font-bold font-display mb-6 text-white leading-tight">{post.title}</h1>
+              <h1 className="text-3xl sm:text-4xl md:text-5xl font-bold font-display mb-6 text-white leading-tight">
+                {post.title}
+              </h1>
 
               <div className="flex flex-wrap items-center gap-6 text-xs sm:text-sm text-gray-400 font-mono">
                 <div className="flex items-center gap-2">
-                  <div className="w-8 h-8 rounded-full bg-graphite border border-white/10 flex items-center justify-center text-neon-green font-bold text-xs">AI</div>
+                  <div className="w-8 h-8 rounded-full bg-graphite border border-white/10 flex items-center justify-center text-neon-green font-bold text-xs">
+                    AI
+                  </div>
                   <span>{post.author || "Mission Control Intel"}</span>
                 </div>
                 <div className="flex items-center gap-2">
@@ -453,7 +502,7 @@ export default async function GamingBlogPost({ params }: { params: Promise<{ slu
                         mdxOptions: {
                           remarkPlugins: [remarkGfm, remarkMath],
                           rehypePlugins: [rehypeKatex],
-                        }
+                        },
                       }}
                     />
                   );
@@ -471,25 +520,38 @@ export default async function GamingBlogPost({ params }: { params: Promise<{ slu
             {/* Prev / Next Navigation */}
             <footer className="mt-8 pt-8 border-t border-white/10 flex flex-col sm:flex-row justify-between gap-4 relative z-10">
               {prevPost ? (
-                <Link href={`/blog/gaming/${prevPost.slug}`} className="flex-1 glass-panel p-4 hover:border-neon-green/50 hover:bg-white/5 transition-all group flex flex-col items-start rounded-xl border border-white/10">
+                <Link
+                  href={`/blog/gaming/${prevPost.slug}`}
+                  className="flex-1 glass-panel p-4 hover:border-neon-green/50 hover:bg-white/5 transition-all group flex flex-col items-start rounded-xl border border-white/10"
+                >
                   <span className="text-[10px] text-gray-400 font-display uppercase tracking-widest mb-1 flex items-center gap-1 group-hover:text-neon-green transition-colors">
                     &larr; Previous Post
                   </span>
-                  <span className="font-bold text-xs sm:text-sm text-gray-200 group-hover:text-white line-clamp-1">{prevPost.title}</span>
+                  <span className="font-bold text-xs sm:text-sm text-gray-200 group-hover:text-white line-clamp-1">
+                    {prevPost.title}
+                  </span>
                 </Link>
-              ) : <div className="flex-1"></div>}
+              ) : (
+                <div className="flex-1"></div>
+              )}
 
               {nextPost ? (
-                <Link href={`/blog/gaming/${nextPost.slug}`} className="flex-1 glass-panel p-4 hover:border-neon-green/50 hover:bg-white/5 transition-all group flex flex-col items-end text-right rounded-xl border border-white/10">
+                <Link
+                  href={`/blog/gaming/${nextPost.slug}`}
+                  className="flex-1 glass-panel p-4 hover:border-neon-green/50 hover:bg-white/5 transition-all group flex flex-col items-end text-right rounded-xl border border-white/10"
+                >
                   <span className="text-[10px] text-gray-400 font-display uppercase tracking-widest mb-1 flex items-center gap-1 group-hover:text-neon-green transition-colors">
                     Next Post &rarr;
                   </span>
-                  <span className="font-bold text-xs sm:text-sm text-gray-200 group-hover:text-white line-clamp-1">{nextPost.title}</span>
+                  <span className="font-bold text-xs sm:text-sm text-gray-200 group-hover:text-white line-clamp-1">
+                    {nextPost.title}
+                  </span>
                 </Link>
-              ) : <div className="flex-1"></div>}
+              ) : (
+                <div className="flex-1"></div>
+              )}
             </footer>
           </article>
-
         </div>
 
         {/* Sidebar */}
@@ -506,16 +568,24 @@ export default async function GamingBlogPost({ params }: { params: Promise<{ slu
             <div className="flex flex-wrap gap-2">
               {post.tags && post.tags.length > 0
                 ? post.tags.map((tag: string) => (
-                  <span key={tag} className="bg-white/5 border border-white/10 text-gray-400 px-2 py-1 rounded text-[10px] uppercase font-mono tracking-wider">{tag}</span>
-                ))
+                    <span
+                      key={tag}
+                      className="bg-white/5 border border-white/10 text-gray-400 px-2 py-1 rounded text-[10px] uppercase font-mono tracking-wider"
+                    >
+                      {tag}
+                    </span>
+                  ))
                 : ["Gaming", "News"].map((tag) => (
-                  <span key={tag} className="bg-white/5 border border-white/10 text-gray-400 px-2 py-1 rounded text-[10px] uppercase font-mono tracking-wider">{tag}</span>
-                ))
-              }
+                    <span
+                      key={tag}
+                      className="bg-white/5 border border-white/10 text-gray-400 px-2 py-1 rounded text-[10px] uppercase font-mono tracking-wider"
+                    >
+                      {tag}
+                    </span>
+                  ))}
             </div>
           </div>
         </div>
-
       </div>
     </div>
   );

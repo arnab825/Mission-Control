@@ -1,17 +1,17 @@
-import { NextResponse } from 'next/server';
-import { getBenchmarksFromDB, getBenchmarkByIdFromDB } from '@/lib/benchmarks-db';
-import { handleApiError } from '@/lib/api-validation';
+import { NextResponse } from "next/server";
+import { getBenchmarksFromDB, getBenchmarkByIdFromDB } from "@/lib/benchmarks-db";
+import { handleApiError } from "@/lib/api-validation";
 
 export async function GET(request: Request) {
   try {
     const { searchParams } = new URL(request.url);
-    const id = searchParams.get('id');
+    const id = searchParams.get("id");
 
     if (id) {
       const cleanId = id.trim().slice(0, 100);
       const profile = await getBenchmarkByIdFromDB(cleanId);
       if (!profile) {
-        return NextResponse.json({ error: 'Benchmark profile not found' }, { status: 404 });
+        return NextResponse.json({ error: "Benchmark profile not found" }, { status: 404 });
       }
       return NextResponse.json(profile);
     }

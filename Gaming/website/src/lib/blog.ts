@@ -6,11 +6,11 @@ const contentDirectory = path.join(process.cwd(), "content/blog");
 
 export function parseBlogDate(dateStr: any): Date {
   if (!dateStr) return new Date();
-  
+
   if (dateStr instanceof Date) return isNaN(dateStr.getTime()) ? new Date() : dateStr;
-  
+
   const str = String(dateStr);
-  
+
   // Clean string and check for IST timezone
   let cleanStr = str.trim();
   let isIST = false;
@@ -18,7 +18,7 @@ export function parseBlogDate(dateStr: any): Date {
     isIST = true;
     cleanStr = cleanStr.substring(0, cleanStr.length - 3).trim();
   }
-  
+
   // Try standard ISO-8601 or other standard parsing first (e.g. yyyy-mm-dd)
   if (cleanStr.match(/^\d{4}-\d{2}-\d{2}/)) {
     const d = new Date(cleanStr);
@@ -30,7 +30,7 @@ export function parseBlogDate(dateStr: any): Date {
       return d;
     }
   }
-  
+
   // Match dd/mm/yyyy hh:mm or dd/mm/yyyy
   const regex = /^(\d{1,2})\/(\d{1,2})\/(\d{4})(?:\s+(\d{1,2}):(\d{1,2}))?/;
   const match = cleanStr.match(regex);
@@ -40,15 +40,15 @@ export function parseBlogDate(dateStr: any): Date {
     const year = parseInt(match[3], 10);
     const hour = match[4] ? parseInt(match[4], 10) : 0;
     const minute = match[5] ? parseInt(match[5], 10) : 0;
-    
+
     if (isIST) {
-      const utcTime = Date.UTC(year, month, day, hour, minute) - (5.5 * 60 * 60 * 1000);
+      const utcTime = Date.UTC(year, month, day, hour, minute) - 5.5 * 60 * 60 * 1000;
       return new Date(utcTime);
     } else {
       return new Date(year, month, day, hour, minute);
     }
   }
-  
+
   const finalFallback = new Date(dateStr);
   return isNaN(finalFallback.getTime()) ? new Date() : finalFallback;
 }
@@ -56,29 +56,25 @@ export function parseBlogDate(dateStr: any): Date {
 export function formatDateToIST(dateString: string): string {
   if (!dateString) return "";
   const d = parseBlogDate(dateString);
-  
+
   // Format to IST
   const options: Intl.DateTimeFormatOptions = {
-    timeZone: 'Asia/Kolkata',
-    day: '2-digit',
-    month: '2-digit',
-    year: 'numeric',
-    hour: '2-digit',
-    minute: '2-digit',
-    hour12: false
+    timeZone: "Asia/Kolkata",
+    day: "2-digit",
+    month: "2-digit",
+    year: "numeric",
+    hour: "2-digit",
+    minute: "2-digit",
+    hour12: false,
   };
-  
-  const formatter = new Intl.DateTimeFormat('en-IN', options);
+
+  const formatter = new Intl.DateTimeFormat("en-IN", options);
   const formatted = formatter.format(d); // e.g. "29/06/2026, 05:30"
-  return formatted.replace(', ', ' ') + ' IST';
+  return formatted.replace(", ", " ") + " IST";
 }
 
 export type BlogCategory =
-  | "Game News"
-  | "GPU News"
-  | "Game Revisit"
-  | "Hardware Deep-Dive"
-  | "Mission Brief";
+  "Game News" | "GPU News" | "Game Revisit" | "Hardware Deep-Dive" | "Mission Brief";
 
 export interface BlogPostData {
   id: string;
@@ -104,10 +100,10 @@ export function getSortedPostsData(category?: BlogCategory | "all"): BlogPostDat
       const fileContents = fs.readFileSync(fullPath, "utf8");
       const matterResult = matter(fileContents);
       const data = matterResult.data as Omit<BlogPostData, "id" | "author">;
-      return { 
-        id, 
+      return {
+        id,
         author: matterResult.data.author || "Mission Control Intel",
-        ...data 
+        ...data,
       };
     })
     .filter((p) => parseBlogDate(p.date) <= now); // Post scheduler: hide future posts
@@ -117,7 +113,9 @@ export function getSortedPostsData(category?: BlogCategory | "all"): BlogPostDat
       ? allPostsData.filter((p) => p.category === category)
       : allPostsData;
 
-  return filtered.sort((a, b) => (parseBlogDate(a.date).getTime() < parseBlogDate(b.date).getTime() ? 1 : -1));
+  return filtered.sort((a, b) =>
+    parseBlogDate(a.date).getTime() < parseBlogDate(b.date).getTime() ? 1 : -1
+  );
 }
 
 export function getGamingPosts(): BlogPostData[] {

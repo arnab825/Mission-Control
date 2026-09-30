@@ -6,10 +6,7 @@ import { handleApiError } from "@/lib/api-validation";
 
 export const dynamic = "force-dynamic";
 
-export async function GET(
-  _req: NextRequest,
-  { params }: { params: Promise<{ nodeId: string }> }
-) {
+export async function GET(_req: NextRequest, { params }: { params: Promise<{ nodeId: string }> }) {
   try {
     const { nodeId } = await params;
     await connectDB();

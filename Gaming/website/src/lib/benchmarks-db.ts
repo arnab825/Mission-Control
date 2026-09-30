@@ -73,13 +73,16 @@ export async function ensureBenchmarksSeeded(): Promise<void> {
             avgReportedFps: parseInt(profile.testedSpecs.avgFps) || 60,
           },
         },
-        { upsert: true, returnDocument: 'after' }
+        { upsert: true, returnDocument: "after" }
       );
     });
 
     await Promise.all(seedOps);
   } catch (error) {
-    console.warn("[MongoDB] Benchmark profiles seed error (falling back to static defaults):", error);
+    console.warn(
+      "[MongoDB] Benchmark profiles seed error (falling back to static defaults):",
+      error
+    );
   }
 }
 
@@ -191,7 +194,10 @@ export async function getBenchmarksFromDB(): Promise<{
       return { profiles, testedGames };
     }
   } catch (error) {
-    console.warn("[MongoDB] Error fetching benchmarks from MongoDB (using static fallback):", error);
+    console.warn(
+      "[MongoDB] Error fetching benchmarks from MongoDB (using static fallback):",
+      error
+    );
   }
 
   // Fallback to static definitions
@@ -256,13 +262,9 @@ export async function getGameRatings(
       query.gameId = gameId;
     }
 
-    const sortOrder: any =
-      sortBy === "top" ? { upvotes: -1, createdAt: -1 } : { createdAt: -1 };
+    const sortOrder: any = sortBy === "top" ? { upvotes: -1, createdAt: -1 } : { createdAt: -1 };
 
-    const docs = await GameRatingModel.find(query)
-      .sort(sortOrder)
-      .limit(limit)
-      .lean();
+    const docs = await GameRatingModel.find(query).sort(sortOrder).limit(limit).lean();
 
     return docs.map((doc: any) => ({
       id: doc._id.toString(),

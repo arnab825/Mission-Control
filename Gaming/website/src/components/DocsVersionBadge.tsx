@@ -1,1 +1,1 @@
-export * from './docs/DocsVersionBadge';
+export * from "./docs/DocsVersionBadge";

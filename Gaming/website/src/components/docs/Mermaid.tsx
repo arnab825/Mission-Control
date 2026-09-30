@@ -10,4 +10,3 @@ export default function Mermaid({ chart }: MermaidProps) {
   if (!chart || !chart.trim()) return null;
   return <MermaidDiagram chart={chart} />;
 }
-

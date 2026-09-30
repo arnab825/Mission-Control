@@ -26,22 +26,26 @@ export const PERSONALITY_DATA: Record<
 > = {
   Tactical: {
     desc: "Precision tactical analysis focusing on positioning, weapon cooldowns, enemy shield status, and squad callouts.",
-    quote: '"Enemy shields cracked on squad B. Recommending immediate high-ground flank before thermal reset."',
+    quote:
+      '"Enemy shields cracked on squad B. Recommending immediate high-ground flank before thermal reset."',
     stats: { tactical: 95, aggression: 65, immersion: 85, sass: 15 },
   },
   Immersive: {
     desc: "Lore-infused roleplay commentary designed to deepen your narrative bond with the campaign world.",
-    quote: '"By the Ancient Flame, the corruption spreads! Maintain defensive shield perimeter at all costs!"',
+    quote:
+      '"By the Ancient Flame, the corruption spreads! Maintain defensive shield perimeter at all costs!"',
     stats: { tactical: 70, aggression: 45, immersion: 100, sass: 20 },
   },
   Friendly: {
     desc: "Supportive, encouraging co-pilot offering calm gameplay advice and moral support during intense boss encounters.",
-    quote: '"Incredible shot! Let\'s pop a shield cell and regroup before the next wave arrives, buddy."',
+    quote:
+      '"Incredible shot! Let\'s pop a shield cell and regroup before the next wave arrives, buddy."',
     stats: { tactical: 75, aggression: 25, immersion: 80, sass: 10 },
   },
   Sarcastic: {
     desc: "Witty, dry, and brutally honest tactical roasts when you miss shots or trigger alarms.",
-    quote: '"Oh brilliant accuracy. I\'m currently calculating our survival odds... 0.04%. Great job."',
+    quote:
+      '"Oh brilliant accuracy. I\'m currently calculating our survival odds... 0.04%. Great job."',
     stats: { tactical: 85, aggression: 75, immersion: 60, sass: 100 },
   },
   Aggressive: {
@@ -102,13 +106,16 @@ export function HardwareSuiteBentoSection() {
       {/* Section Header */}
       <div className="text-center mb-12 sm:mb-16 max-w-3xl mx-auto">
         <div className="inline-block border border-neon-green/30 rounded-full px-4 py-1.5 bg-neon-green/10 mb-4 backdrop-blur-md">
-          <span className="text-neon-green text-xs font-bold font-mono tracking-widest uppercase">TACTICAL HARDWARE SUITE</span>
+          <span className="text-neon-green text-xs font-bold font-mono tracking-widest uppercase">
+            TACTICAL HARDWARE SUITE
+          </span>
         </div>
         <h2 className="text-3xl sm:text-5xl lg:text-6xl font-black mb-4 font-display uppercase tracking-tight text-white">
           GAIN THE <span className="text-neon-green glow-text-teal">UNFAIR</span> ADVANTAGE
         </h2>
         <p className="text-gray-400 text-sm sm:text-lg leading-relaxed font-sans">
-          Engineered by <strong className="text-neon-green">Mission Control Labs</strong> for zero CPU bottlenecking.
+          Engineered by <strong className="text-neon-green">Mission Control Labs</strong> for zero
+          CPU bottlenecking.
         </p>
       </div>
 
@@ -123,8 +130,12 @@ export function HardwareSuiteBentoSection() {
                   <Users className="w-6 h-6" />
                 </div>
                 <div>
-                  <h3 className="text-2xl font-bold font-display text-white">5 Adaptive AI Personalities</h3>
-                  <p className="text-xs font-mono text-neon-green uppercase tracking-wider">Dynamic Voice & Guidance Modes</p>
+                  <h3 className="text-2xl font-bold font-display text-white">
+                    5 Adaptive AI Personalities
+                  </h3>
+                  <p className="text-xs font-mono text-neon-green uppercase tracking-wider">
+                    Dynamic Voice & Guidance Modes
+                  </p>
                 </div>
               </div>
               <span className="text-[10px] sm:text-[11px] font-mono font-bold text-neon-green px-3.5 py-1 rounded-full bg-neon-green/10 border border-neon-green/30 uppercase tracking-wider">
@@ -161,7 +172,9 @@ export function HardwareSuiteBentoSection() {
               <div className="flex items-center justify-between flex-wrap gap-2 mb-3 text-xs font-mono text-gray-400">
                 <div className="flex items-center gap-2">
                   <Volume2 className="w-4 h-4 text-neon-green animate-pulse shrink-0" />
-                  <span className="text-white font-bold uppercase">{activePersonality} VOICE MATRIX</span>
+                  <span className="text-white font-bold uppercase">
+                    {activePersonality} VOICE MATRIX
+                  </span>
                 </div>
                 {/* Equalizer frequency bars */}
                 <div className="flex items-end gap-1 h-4 shrink-0">
@@ -184,37 +197,57 @@ export function HardwareSuiteBentoSection() {
                 <div>
                   <div className="flex justify-between items-center mb-1">
                     <span className="text-gray-400">TACTICAL:</span>
-                    <span className="text-neon-green font-bold">{PERSONALITY_DATA[activePersonality].stats.tactical}%</span>
+                    <span className="text-neon-green font-bold">
+                      {PERSONALITY_DATA[activePersonality].stats.tactical}%
+                    </span>
                   </div>
                   <div className="w-full bg-white/10 h-1.5 rounded-full overflow-hidden">
-                    <div className="bg-neon-green h-full transition-all duration-500" style={{ width: `${PERSONALITY_DATA[activePersonality].stats.tactical}%` }} />
+                    <div
+                      className="bg-neon-green h-full transition-all duration-500"
+                      style={{ width: `${PERSONALITY_DATA[activePersonality].stats.tactical}%` }}
+                    />
                   </div>
                 </div>
                 <div>
                   <div className="flex justify-between items-center mb-1">
                     <span className="text-gray-400">AGGRESSION:</span>
-                    <span className="text-red-400 font-bold">{PERSONALITY_DATA[activePersonality].stats.aggression}%</span>
+                    <span className="text-red-400 font-bold">
+                      {PERSONALITY_DATA[activePersonality].stats.aggression}%
+                    </span>
                   </div>
                   <div className="w-full bg-white/10 h-1.5 rounded-full overflow-hidden">
-                    <div className="bg-red-400 h-full transition-all duration-500" style={{ width: `${PERSONALITY_DATA[activePersonality].stats.aggression}%` }} />
+                    <div
+                      className="bg-red-400 h-full transition-all duration-500"
+                      style={{ width: `${PERSONALITY_DATA[activePersonality].stats.aggression}%` }}
+                    />
                   </div>
                 </div>
                 <div>
                   <div className="flex justify-between items-center mb-1">
                     <span className="text-gray-400">IMMERSION:</span>
-                    <span className="text-neon-yellow font-bold">{PERSONALITY_DATA[activePersonality].stats.immersion}%</span>
+                    <span className="text-neon-yellow font-bold">
+                      {PERSONALITY_DATA[activePersonality].stats.immersion}%
+                    </span>
                   </div>
                   <div className="w-full bg-white/10 h-1.5 rounded-full overflow-hidden">
-                    <div className="bg-neon-yellow h-full transition-all duration-500" style={{ width: `${PERSONALITY_DATA[activePersonality].stats.immersion}%` }} />
+                    <div
+                      className="bg-neon-yellow h-full transition-all duration-500"
+                      style={{ width: `${PERSONALITY_DATA[activePersonality].stats.immersion}%` }}
+                    />
                   </div>
                 </div>
                 <div>
                   <div className="flex justify-between items-center mb-1">
                     <span className="text-gray-400">SASS LEVEL:</span>
-                    <span className="text-purple-400 font-bold">{PERSONALITY_DATA[activePersonality].stats.sass}%</span>
+                    <span className="text-purple-400 font-bold">
+                      {PERSONALITY_DATA[activePersonality].stats.sass}%
+                    </span>
                   </div>
                   <div className="w-full bg-white/10 h-1.5 rounded-full overflow-hidden">
-                    <div className="bg-purple-400 h-full transition-all duration-500" style={{ width: `${PERSONALITY_DATA[activePersonality].stats.sass}%` }} />
+                    <div
+                      className="bg-purple-400 h-full transition-all duration-500"
+                      style={{ width: `${PERSONALITY_DATA[activePersonality].stats.sass}%` }}
+                    />
                   </div>
                 </div>
               </div>
@@ -234,9 +267,12 @@ export function HardwareSuiteBentoSection() {
               </span>
             </div>
             <h3 className="text-2xl font-bold font-display text-white mb-1">Deep Game Scanner</h3>
-            <div className="text-xs font-mono text-neon-green uppercase tracking-wider mb-3 font-semibold">NVIDIA DLSS & Path Tracing</div>
+            <div className="text-xs font-mono text-neon-green uppercase tracking-wider mb-3 font-semibold">
+              NVIDIA DLSS & Path Tracing
+            </div>
             <p className="text-gray-400 text-sm leading-relaxed font-sans mb-6">
-              Scans game directories up to 3 subfolders deep to auto-configure DLSS 4 Multi-Frame Gen & Reflex low latency.
+              Scans game directories up to 3 subfolders deep to auto-configure DLSS 4 Multi-Frame
+              Gen & Reflex low latency.
             </p>
           </div>
 
@@ -266,10 +302,15 @@ export function HardwareSuiteBentoSection() {
                 ZERO LATENCY
               </span>
             </div>
-            <h3 className="text-2xl font-bold font-display text-white mb-1">Agentic System Hooks</h3>
-            <div className="text-xs font-mono text-neon-green uppercase tracking-wider mb-3 font-semibold">Autonomous System Commands</div>
+            <h3 className="text-2xl font-bold font-display text-white mb-1">
+              Agentic System Hooks
+            </h3>
+            <div className="text-xs font-mono text-neon-green uppercase tracking-wider mb-3 font-semibold">
+              Autonomous System Commands
+            </div>
             <p className="text-gray-400 text-sm leading-relaxed font-sans mb-4">
-              Executes background PyTorch CUDA VRAM purges, triggers custom hardware cooling curves, and runs macro scripts headlessly.
+              Executes background PyTorch CUDA VRAM purges, triggers custom hardware cooling curves,
+              and runs macro scripts headlessly.
             </p>
           </div>
 
@@ -306,9 +347,12 @@ export function HardwareSuiteBentoSection() {
               </span>
             </div>
             <h3 className="text-2xl font-bold font-display text-white mb-1">Hardware Privacy</h3>
-            <div className="text-xs font-mono text-neon-green uppercase tracking-wider mb-3 font-semibold">Motherboard UUID Sandbox</div>
+            <div className="text-xs font-mono text-neon-green uppercase tracking-wider mb-3 font-semibold">
+              Motherboard UUID Sandbox
+            </div>
             <p className="text-gray-400 text-sm leading-relaxed font-sans mb-4">
-              Custom prompts and performance telemetry are encrypted directly to your physical PC UUID. 100% offline local processing.
+              Custom prompts and performance telemetry are encrypted directly to your physical PC
+              UUID. 100% offline local processing.
             </p>
           </div>
 
@@ -316,7 +360,9 @@ export function HardwareSuiteBentoSection() {
             <Lock className="w-5 h-5 text-neon-green shrink-0 animate-pulse" />
             <div className="truncate">
               <div className="text-[10px] text-gray-500">ENCRYPTED HARDWARE HASH</div>
-              <div className="text-white font-bold text-[11px] truncate">UUID: 8F2A-94B1-0021-CUDA</div>
+              <div className="text-white font-bold text-[11px] truncate">
+                UUID: 8F2A-94B1-0021-CUDA
+              </div>
             </div>
           </div>
         </div>
@@ -333,9 +379,12 @@ export function HardwareSuiteBentoSection() {
               </span>
             </div>
             <h3 className="text-2xl font-bold font-display text-white mb-1">Stealth Boost Mode</h3>
-            <div className="text-xs font-mono text-neon-green uppercase tracking-wider mb-3 font-semibold">Aggressive Resource Purge</div>
+            <div className="text-xs font-mono text-neon-green uppercase tracking-wider mb-3 font-semibold">
+              Aggressive Resource Purge
+            </div>
             <p className="text-gray-400 text-sm leading-relaxed font-sans mb-4">
-              Suspends unnecessary Windows background services and standby cache memory during active gameplay loops.
+              Suspends unnecessary Windows background services and standby cache memory during
+              active gameplay loops.
             </p>
           </div>
 
@@ -359,8 +408,12 @@ export function HardwareSuiteBentoSection() {
                   <Globe className="w-6 h-6" />
                 </div>
                 <div>
-                  <h3 className="text-2xl font-bold font-display text-white">Live Web Context Scraper</h3>
-                  <p className="text-xs font-mono text-neon-green uppercase tracking-wider">Real External Site News & Guide Engine</p>
+                  <h3 className="text-2xl font-bold font-display text-white">
+                    Live Web Context Scraper
+                  </h3>
+                  <p className="text-xs font-mono text-neon-green uppercase tracking-wider">
+                    Real External Site News & Guide Engine
+                  </p>
                 </div>
               </div>
 
@@ -371,13 +424,17 @@ export function HardwareSuiteBentoSection() {
                 className="w-full sm:w-auto justify-center inline-flex items-center gap-2 btn-premium-primary px-5 py-2.5 rounded-xl font-mono text-xs font-bold uppercase tracking-wider shadow-[0_0_25px_rgba(118,185,0,0.4)] cursor-pointer disabled:opacity-50"
               >
                 <RefreshCw className={`w-3.5 h-3.5 ${isFetchingExternal ? "animate-spin" : ""}`} />
-                <span>{isFetchingExternal ? "FETCHING EXTERNAL SITES..." : "FETCH EXTERNAL SITE DATA"}</span>
+                <span>
+                  {isFetchingExternal ? "FETCHING EXTERNAL SITES..." : "FETCH EXTERNAL SITE DATA"}
+                </span>
                 <ExternalLink className="w-3.5 h-3.5" />
               </button>
             </div>
 
             <p className="text-gray-400 text-sm leading-relaxed font-sans mb-6">
-              Connects directly to external sites (IGN, Kotaku, Eurogamer, AnandTech, Tom's Hardware) to stream real-time gaming news and boss mechanics directly into your tactical HUD.
+              Connects directly to external sites (IGN, Kotaku, Eurogamer, AnandTech, Tom's
+              Hardware) to stream real-time gaming news and boss mechanics directly into your
+              tactical HUD.
             </p>
           </div>
 
@@ -385,9 +442,15 @@ export function HardwareSuiteBentoSection() {
             <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-1.5 sm:gap-2 border-b border-white/10 pb-2.5">
               <span className="text-neon-green font-bold flex items-center gap-2 text-xs">
                 <span className="w-2 h-2 rounded-full bg-neon-green animate-ping shrink-0" />
-                <span className="truncate">{hasFetched ? "LIVE EXTERNAL RSS FEEDS (4 ARTICLES FETCHED)" : "PARSED EXTERNAL SITE FEEDS"}</span>
+                <span className="truncate">
+                  {hasFetched
+                    ? "LIVE EXTERNAL RSS FEEDS (4 ARTICLES FETCHED)"
+                    : "PARSED EXTERNAL SITE FEEDS"}
+                </span>
               </span>
-              <span className="text-[10px] text-gray-400 font-mono tracking-wider">IGN • KOTAKU • EUROGAMER</span>
+              <span className="text-[10px] text-gray-400 font-mono tracking-wider">
+                IGN • KOTAKU • EUROGAMER
+              </span>
             </div>
 
             {hasFetched && externalNews.length > 0 ? (
@@ -416,11 +479,17 @@ export function HardwareSuiteBentoSection() {
               <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
                 <div className="p-3 bg-white/2 border border-white/10 rounded-lg">
                   <div className="text-gray-300 text-[11px] font-bold">ELDEN RING WIKI SCRAPER</div>
-                  <div className="text-neon-yellow text-xs mt-1">"Malenia Phase 2 Waterfowl Dodge Timings"</div>
+                  <div className="text-neon-yellow text-xs mt-1">
+                    "Malenia Phase 2 Waterfowl Dodge Timings"
+                  </div>
                 </div>
                 <div className="p-3 bg-white/2 border border-white/10 rounded-lg">
-                  <div className="text-gray-300 text-[11px] font-bold">CYBERPUNK 2077 WIKI SCRAPER</div>
-                  <div className="text-white text-xs mt-1">"Patch 2.12 Frame Generation Driver Fixes"</div>
+                  <div className="text-gray-300 text-[11px] font-bold">
+                    CYBERPUNK 2077 WIKI SCRAPER
+                  </div>
+                  <div className="text-white text-xs mt-1">
+                    "Patch 2.12 Frame Generation Driver Fixes"
+                  </div>
                 </div>
               </div>
             )}
