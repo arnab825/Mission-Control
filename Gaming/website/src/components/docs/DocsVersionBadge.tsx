@@ -1,6 +1,7 @@
 "use client";
 
 import { useQuery } from "@tanstack/react-query";
+import { APP_VERSION } from "@/lib/version";
 
 export function DocsVersionBadge() {
   const { data } = useQuery({
@@ -13,7 +14,7 @@ export function DocsVersionBadge() {
     staleTime: 1000 * 60 * 10,
   });
 
-  const version = data?.version || "3.6.1";
+  const version = data?.version || APP_VERSION;
 
   return (
     <div className="border-t border-white/10 pt-4 mt-auto">

@@ -3,6 +3,7 @@
 import { useState, useEffect } from "react";
 import Script from "next/script";
 import { TestedGameSummary, getLiveTestedGames, fetchBenchmarks } from "@/data/benchmarks";
+import { APP_VERSION } from "@/lib/version";
 import {
   HeroSection,
   TechPartnersTicker,
@@ -58,7 +59,7 @@ const softwareSchema = {
 
 export default function Home() {
   const [os, setOs] = useState<OS>(null);
-  const [appVersion, setAppVersion] = useState("3.6.1");
+  const [appVersion, setAppVersion] = useState(APP_VERSION);
   const [testedGames, setTestedGames] = useState<TestedGameSummary[]>(getLiveTestedGames());
 
   useEffect(() => {

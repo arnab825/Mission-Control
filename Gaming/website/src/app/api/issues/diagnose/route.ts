@@ -1,5 +1,6 @@
 import { NextResponse } from "next/server";
 import { handleApiError, validateRequestBody, DiagnoseSchema } from "@/lib/api-validation";
+import { APP_VERSION } from "@/lib/version";
 
 export async function POST(request: Request) {
   try {
@@ -17,7 +18,7 @@ export async function POST(request: Request) {
     const ram = specs?.ramGB ? `${specs.ramGB} GB RAM` : "16 GB RAM";
     const os = specs?.os || "Windows 11";
     const driver = specs?.gpuDriver || "Latest Available";
-    const appVer = specs?.appVersion || "v3.6.1";
+    const appVer = specs?.appVersion || `v${APP_VERSION}`;
 
     const prompt = `You are the Lead Systems & Graphics Engine Diagnostic AI for Mission Control in 2026.
 A PC gamer encountered a hardware/software problem and needs an authoritative, technical bug report draft for the developer triage board.

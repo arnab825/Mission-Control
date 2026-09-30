@@ -5,6 +5,7 @@ import SupportSession from "@/models/SupportSession";
 import GamingPost from "@/models/GamingPost";
 import fs from "fs";
 import path from "path";
+import { APP_VERSION } from "@/lib/version";
 import {
   SupportChatSchema,
   validateRequestBody,
@@ -23,8 +24,8 @@ function getDynamicVersionData() {
       const raw = fs.readFileSync(versionFile, "utf-8");
       const data = JSON.parse(raw);
       return {
-        version: data.version || "3.6.1",
-        releaseDate: data.release_date || "2026-09-08",
+        version: data.version || APP_VERSION,
+        releaseDate: data.release_date || "2026-09-30",
         changelog: Array.isArray(data.changelog) ? data.changelog : [],
       };
     } catch (e) {
@@ -33,8 +34,8 @@ function getDynamicVersionData() {
   }
 
   return {
-    version: "3.6.1",
-    releaseDate: "2026-09-08",
+    version: APP_VERSION,
+    releaseDate: "2026-09-30",
     changelog: [
       {
         version: "3.6.1",
@@ -560,7 +561,7 @@ ${blogList}
         q.includes("rpm") ||
         q.includes("install")
       ) {
-        replyText = `### 📥 Mission Control App Downloads (v3.6.1)
+        replyText = `### 📥 Mission Control App Downloads (v${versionData.version})
 Download the latest binaries on our **[Downloads](/#download)** page:
 
 **🪟 Windows Packages**:

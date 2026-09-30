@@ -952,17 +952,17 @@ This document contains a detailed history of all patches and updates for the AI 
 
 - Fix duplicate start menu shortcuts and update overlay blocking
 
-### Patch: 2026-07-15 — v1.5.9: Fixed the USE DESKTOP UPGRADE 
+### Patch: 2026-07-15 — v1.5.9: Fixed the USE DESKTOP UPGRADE
 
-- Fixed the USE DESKTOP UPGRADE 
+- Fixed the USE DESKTOP UPGRADE
 
-### Patch: 2026-07-15 — v1.5.8: Fixed the Frozen Update. 
+### Patch: 2026-07-15 — v1.5.8: Fixed the Frozen Update.
 
-- Fixed the Frozen Update. 
+- Fixed the Frozen Update.
 
-### Patch: 2026-07-15 — v1.5.7: Fixed the Frozen Update and making soe issue. 
+### Patch: 2026-07-15 — v1.5.7: Fixed the Frozen Update and making soe issue.
 
-- Fixed the Frozen Update and making soe issue. 
+- Fixed the Frozen Update and making soe issue.
 
 ### Patch: 2026-07-15 — v1.5.6: Fixed the OCR
 
@@ -1972,17 +1972,17 @@ This document contains a detailed history of all patches and updates for the AI 
 - **New file `ui/settings_page.py`**: Replaced the empty Settings tab with a fully functional configuration UI.
   - **Reads and writes** `config/settings.yaml` live — changes persist across app restarts.
   - **Eight configuration sections**:
-    | Section | Controls |
-    |---|---|
-    | 🎮 Game Mode | `competitive / story / hybrid` dropdown |
-    | 📸 Screen Capture | Target window, backend, FPS cap, GPU adapter & display output indices |
-    | ⚙️ Processing Pipeline | Capture Hz, Vision Hz, AI Brain Hz, threading toggle |
-    | 👁️ Vision Detection | Detector backend, YOLO model path, GPU device |
-    | 🔤 OCR | Enable/disable, dynamic mode, backend, run-every-N-frames |
-    | 🖥️ Overlay | Toggle FPS counter, GPU stats, DLSS tips, scene type, input device |
-    | 🎙️ Voice | TTS enable, speech rate (WPM) |
-    | 🧠 Memory | Session memory enable, save path, auto-save interval |
-    | ⚡ NVIDIA Advisor | Target FPS, low/critical thresholds, GPU%, VRAM%, temp limits |
+    | Section                | Controls                                                              |
+    | ---------------------- | --------------------------------------------------------------------- |
+    | 🎮 Game Mode           | `competitive / story / hybrid` dropdown                               |
+    | 📸 Screen Capture      | Target window, backend, FPS cap, GPU adapter & display output indices |
+    | ⚙️ Processing Pipeline | Capture Hz, Vision Hz, AI Brain Hz, threading toggle                  |
+    | 👁️ Vision Detection    | Detector backend, YOLO model path, GPU device                         |
+    | 🔤 OCR                 | Enable/disable, dynamic mode, backend, run-every-N-frames             |
+    | 🖥️ Overlay             | Toggle FPS counter, GPU stats, DLSS tips, scene type, input device    |
+    | 🎙️ Voice               | TTS enable, speech rate (WPM)                                         |
+    | 🧠 Memory              | Session memory enable, save path, auto-save interval                  |
+    | ⚡ NVIDIA Advisor      | Target FPS, low/critical thresholds, GPU%, VRAM%, temp limits         |
   - **TickCheckBox**: Custom `QCheckBox` subclass using `QPainter` to draw a crisp white tick mark when checked — replaces plain blue squares.
   - **Styled SpinBoxes**: Full `▲ ▼` arrow buttons with hover highlight, triangle CSS arrows, proper sizing so arrows are never clipped.
   - **💾 Save bar**: Pinned to bottom with live `✔ Saved successfully!` / `✘ Error` feedback toast that clears after 3 seconds.

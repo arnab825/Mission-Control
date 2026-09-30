@@ -4,6 +4,7 @@ import { useState, useEffect } from "react";
 import { useQuery, useMutation } from "@tanstack/react-query";
 import { createPortal } from "react-dom";
 import { X, RefreshCw, Cpu, Monitor, Zap } from "lucide-react";
+import { APP_VERSION } from "@/lib/version";
 
 interface ReportModalProps {
   isOpen: boolean;
@@ -29,7 +30,7 @@ export default function ReportModal({ isOpen, onClose, onSuccess }: ReportModalP
   const [gpu, setGpu] = useState("");
   const [gpuDriver, setGpuDriver] = useState("");
   const [ramGB, setRamGB] = useState(16);
-  const [appVersion, setAppVersion] = useState("3.6.1");
+  const [appVersion, setAppVersion] = useState(APP_VERSION);
 
   // Telemetry Sharing Setting
   const [includeTelemetry, setIncludeTelemetry] = useState(true);
@@ -266,13 +267,13 @@ export default function ReportModal({ isOpen, onClose, onSuccess }: ReportModalP
   };
 
   return createPortal(
-    <div className="fixed inset-0 z-[100] flex items-center justify-center p-2.5 sm:p-4 bg-black/80 backdrop-blur-md">
+    <div className="fixed inset-0 z-100 flex items-center justify-center p-2.5 sm:p-4 bg-black/80 backdrop-blur-md">
       <div className="relative w-full max-w-2xl max-h-[90vh] overflow-y-auto glass-panel glow-green rounded-2xl border border-white/10 text-white p-4 sm:p-6 md:p-8 scrollbar-thin">
         {/* Header */}
         <div className="flex items-start justify-between pb-3 sm:pb-4 border-b border-white/10 gap-2 sm:gap-4">
           <div className="flex items-start gap-2 pt-0.5 min-w-0">
             <Zap className="w-4 h-4 text-neon-green animate-pulse shrink-0 mt-0.5" />
-            <h2 className="text-xs min-[375px]:text-sm sm:text-base md:text-lg font-bold font-display uppercase tracking-wider text-neon-green leading-tight break-words">
+            <h2 className="text-xs min-[375px]:text-sm sm:text-base md:text-lg font-bold font-display uppercase tracking-wider text-neon-green leading-tight wrap-break-word">
               Transmit Telemetry / Glitch Report
             </h2>
           </div>

@@ -1,4 +1,5 @@
 import { NextResponse } from "next/server";
+import { APP_VERSION } from "@/lib/version";
 
 export async function GET() {
   try {
@@ -8,17 +9,17 @@ export async function GET() {
         headers: {
           "User-Agent": "MissionControl-Website",
         },
-        signal: AbortSignal.timeout(3000),
+        signal: AbortSignal.timeout(2000),
         next: { revalidate: 300 }, // Cache for 5 minutes
       }
     );
     if (res.ok) {
       const data = await res.json();
-      const version = data.tag_name ? data.tag_name.replace(/^v/, "") : "3.6.1";
+      const version = data.tag_name ? data.tag_name.replace(/^v/, "") : APP_VERSION;
       return NextResponse.json({ version });
     }
-    return NextResponse.json({ version: "3.6.1" });
+    return NextResponse.json({ version: APP_VERSION });
   } catch (error) {
-    return NextResponse.json({ version: "3.6.1" });
+    return NextResponse.json({ version: APP_VERSION });
   }
 }

@@ -392,17 +392,13 @@
       "version": "3.4.8",
       "date": "2026-09-03",
       "title": "Fixed launcher icons and cleaned CSS warnings",
-      "highlights": [
-        "Fixed launcher icons and cleaned CSS warnings"
-      ]
+      "highlights": ["Fixed launcher icons and cleaned CSS warnings"]
     },
     {
       "version": "3.4.7",
       "date": "2026-09-02",
       "title": "Fixed launcher icons and cleaned CSS warnings",
-      "highlights": [
-        "Fixed launcher icons and cleaned CSS warnings"
-      ]
+      "highlights": ["Fixed launcher icons and cleaned CSS warnings"]
     },
     {
       "version": "3.4.6",
@@ -494,25 +490,19 @@
       "version": "3.3.8",
       "date": "2026-08-31",
       "title": "Fixes some issue and bug of server update .Also fix the setup app",
-      "highlights": [
-        "Fixes some issue and bug of server update .Also fix the setup app"
-      ]
+      "highlights": ["Fixes some issue and bug of server update .Also fix the setup app"]
     },
     {
       "version": "3.3.7",
       "date": "2026-08-31",
       "title": "Fixes some issue and bug of server",
-      "highlights": [
-        "Fixes some issue and bug of server"
-      ]
+      "highlights": ["Fixes some issue and bug of server"]
     },
     {
       "version": "3.3.6",
       "date": "2026-08-31",
       "title": "Fix Supabase password URL decode for pooler connection",
-      "highlights": [
-        "Fix Supabase password URL decode for pooler connection"
-      ]
+      "highlights": ["Fix Supabase password URL decode for pooler connection"]
     },
     {
       "version": "3.3.5",
@@ -526,17 +516,13 @@
       "version": "3.3.4",
       "date": "2026-08-31",
       "title": "Fix Supabase password URL decode for pooler connection",
-      "highlights": [
-        "Fix Supabase password URL decode for pooler connection"
-      ]
+      "highlights": ["Fix Supabase password URL decode for pooler connection"]
     },
     {
       "version": "3.3.3",
       "date": "2026-08-30",
       "title": "Fixes some issue and bug of server",
-      "highlights": [
-        "Fixes some issue and bug of server"
-      ]
+      "highlights": ["Fixes some issue and bug of server"]
     },
     {
       "version": "3.3.2",
