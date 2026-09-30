@@ -175,52 +175,105 @@ If packaging fails on Windows with `EPERM: operation not permitted, symlink`:
 
 ### App Update Version Loop / Stale Release Binary Fix
 * **Symptom**: The desktop app updates to a new version (e.g. `v3.7.9`), but after restarting or reinstalling, it still displays the previous version (e.g. `v3.7.8`) and repeatedly prompts to update in an infinite loop.
-* **Cause**: The GitHub Release assets (`MissionControl-Setup.exe` and `latest.yml`) were uploaded from an older local build artifact before the new version was compiled.
-* **One-Command Fix (Rebuild & Re-upload to GitHub Release)**:
-  Run this PowerShell command from the repository root:
-  ```powershell
-  # 1. Rebuild frontend bundle & fresh NSIS Windows installer
-  cd Gaming\frontend; npm run build; npx electron-builder --win nsis --x64 --publish never; cd ..\..
+* **Cause**: The GitHub Release assets (`MissionControl-Setup.exe` on Windows, or `.AppImage` / `.deb` / `.tar.gz` on Linux) were uploaded from an older local build artifact before the new version was compiled.
 
-  # 2. Upload the freshly built binary to the existing GitHub release tag
-  python -c "
-  import urllib.request, json
-  from Gaming.scripts.upload_release import find_token, get_latest_version_info
+#### 🪟 Windows Fix (PowerShell):
+Run from the repository root:
+```powershell
+# 1. Rebuild frontend bundle & fresh NSIS Windows installer
+cd Gaming\frontend; npm run build; npx electron-builder --win nsis --x64 --publish never; cd ..\..
 
-  token = find_token()
-  version, _ = get_latest_version_info()
-  headers = {'Authorization': f'Bearer {token}', 'Accept': 'application/vnd.github.v3+json', 'User-Agent': 'MissionControlPublisher'}
+# 2. Upload the freshly built binary to the existing GitHub release tag
+python -c "
+import urllib.request, json
+from Gaming.scripts.upload_release import find_token, get_latest_version_info
 
-  # Get release ID
-  req = urllib.request.Request(f'https://api.github.com/repos/arnab825/Mission-Control/releases/tags/v{version}', headers=headers)
-  with urllib.request.urlopen(req) as r:
-      rel = json.loads(r.read())
-  rel_id = rel['id']
+token = find_token()
+version, _ = get_latest_version_info()
+headers = {'Authorization': f'Bearer {token}', 'Accept': 'application/vnd.github.v3+json', 'User-Agent': 'MissionControlPublisher'}
 
-  # Delete stale installer and latest.yml
-  for a in rel.get('assets', []):
-      if a['name'] in ['MissionControl-Setup.exe', 'latest.yml']:
-          d_req = urllib.request.Request(f'https://api.github.com/repos/arnab825/Mission-Control/releases/assets/{a[\"id\"]}', method='DELETE', headers=headers)
-          urllib.request.urlopen(d_req)
-          print(f'Deleted stale {a[\"name\"]}')
+# Get release ID
+req = urllib.request.Request(f'https://api.github.com/repos/arnab825/Mission-Control/releases/tags/v{version}', headers=headers)
+with urllib.request.urlopen(req) as r:
+    rel = json.loads(r.read())
+rel_id = rel['id']
 
-  # Upload fresh latest.yml
-  with open(r'Gaming\frontend\out\dist\latest.yml', 'rb') as f:
-      u_yml = urllib.request.Request(f'https://uploads.github.com/repos/arnab825/Mission-Control/releases/{rel_id}/assets?name=latest.yml', data=f.read(), headers={'Authorization': f'Bearer {token}', 'Content-Type': 'application/x-yaml', 'Accept': 'application/vnd.github.v3+json', 'User-Agent': 'MissionControlPublisher'})
-      urllib.request.urlopen(u_yml)
-      print('Uploaded fresh latest.yml')
+# Delete stale installer and latest.yml
+for a in rel.get('assets', []):
+    if a['name'] in ['MissionControl-Setup.exe', 'latest.yml']:
+        d_req = urllib.request.Request(f'https://api.github.com/repos/arnab825/Mission-Control/releases/assets/{a[\"id\"]}', method='DELETE', headers=headers)
+        urllib.request.urlopen(d_req)
+        print(f'Deleted stale {a[\"name\"]}')
 
-  # Upload fresh MissionControl-Setup.exe
-  with open(r'Gaming\frontend\out\dist\MissionControl-Setup.exe', 'rb') as f:
-      u_exe = urllib.request.Request(f'https://uploads.github.com/repos/arnab825/Mission-Control/releases/{rel_id}/assets?name=MissionControl-Setup.exe', data=f.read(), headers={'Authorization': f'Bearer {token}', 'Content-Type': 'application/vnd.microsoft.portable-executable', 'Accept': 'application/vnd.github.v3+json', 'User-Agent': 'MissionControlPublisher'})
-      urllib.request.urlopen(u_exe)
-      print('Uploaded fresh MissionControl-Setup.exe')
-  print('Release assets updated successfully!')
-  "
+# Upload fresh latest.yml
+with open(r'Gaming\frontend\out\dist\latest.yml', 'rb') as f:
+    u_yml = urllib.request.Request(f'https://uploads.github.com/repos/arnab825/Mission-Control/releases/{rel_id}/assets?name=latest.yml', data=f.read(), headers={'Authorization': f'Bearer {token}', 'Content-Type': 'application/x-yaml', 'Accept': 'application/vnd.github.v3+json', 'User-Agent': 'MissionControlPublisher'})
+    urllib.request.urlopen(u_yml)
+    print('Uploaded fresh latest.yml')
 
-  # 3. Clear local pending updater cache
-  Remove-Item -Recurse -Force "$env:LOCALAPPDATA\mission-control-updater\pending" -ErrorAction SilentlyContinue
-  ```
+# Upload fresh MissionControl-Setup.exe
+with open(r'Gaming\frontend\out\dist\MissionControl-Setup.exe', 'rb') as f:
+    u_exe = urllib.request.Request(f'https://uploads.github.com/repos/arnab825/Mission-Control/releases/{rel_id}/assets?name=MissionControl-Setup.exe', data=f.read(), headers={'Authorization': f'Bearer {token}', 'Content-Type': 'application/vnd.microsoft.portable-executable', 'Accept': 'application/vnd.github.v3+json', 'User-Agent': 'MissionControlPublisher'})
+    urllib.request.urlopen(u_exe)
+    print('Uploaded fresh MissionControl-Setup.exe')
+print('Release assets updated successfully!')
+"
+
+# 3. Clear local pending updater cache
+Remove-Item -Recurse -Force "$env:LOCALAPPDATA\mission-control-updater\pending" -ErrorAction SilentlyContinue
+```
+
+#### 🐧 Linux Fix (Bash Terminal):
+Run from the repository root:
+```bash
+# 1. Rebuild frontend bundle & Linux packages (.tar.gz, .deb, .AppImage)
+cd Gaming/frontend && npm run build && npx electron-builder --linux tar.gz --publish never && cd ../..
+python3 Gaming/scripts/pack_deb.py $(python3 -c "import json; print(json.load(open('Gaming/backend/version.json'))['version'])")
+python3 Gaming/scripts/pack_appimage.py $(python3 -c "import json; print(json.load(open('Gaming/backend/version.json'))['version'])")
+
+# 2. Upload the freshly built Linux binaries to the existing GitHub release tag
+python3 -c "
+import urllib.request, json, os
+from Gaming.scripts.upload_release import find_token, get_latest_version_info
+
+token = find_token()
+version, _ = get_latest_version_info()
+headers = {'Authorization': f'Bearer {token}', 'Accept': 'application/vnd.github.v3+json', 'User-Agent': 'MissionControlPublisher'}
+
+req = urllib.request.Request(f'https://api.github.com/repos/arnab825/Mission-Control/releases/tags/v{version}', headers=headers)
+with urllib.request.urlopen(req) as r:
+    rel = json.loads(r.read())
+rel_id = rel['id']
+
+linux_files = [
+    (f'MissionControl-Linux-{version}.AppImage', 'application/x-executable'),
+    (f'MissionControl-Linux-{version}.deb', 'application/vnd.debian.binary-package'),
+    (f'MissionControl-Linux-{version}.tar.gz', 'application/gzip'),
+]
+
+# Delete stale Linux assets
+for a in rel.get('assets', []):
+    for fname, _ in linux_files:
+        if a['name'] == fname:
+            d_req = urllib.request.Request(f'https://api.github.com/repos/arnab825/Mission-Control/releases/assets/{a[\"id\"]}', method='DELETE', headers=headers)
+            urllib.request.urlopen(d_req)
+            print(f'Deleted stale {fname}')
+
+# Upload freshly built Linux assets
+for fname, mime in linux_files:
+    fpath = os.path.join('Gaming/frontend/out/dist', fname)
+    if os.path.exists(fpath):
+        with open(fpath, 'rb') as f:
+            u_req = urllib.request.Request(f'https://uploads.github.com/repos/arnab825/Mission-Control/releases/{rel_id}/assets?name={fname}', data=f.read(), headers={'Authorization': f'Bearer {token}', 'Content-Type': mime, 'Accept': 'application/vnd.github.v3+json', 'User-Agent': 'MissionControlPublisher'})
+            urllib.request.urlopen(u_req)
+            print(f'Uploaded fresh {fname}')
+print('Linux release assets updated successfully!')
+"
+
+# 3. Clear local updater cache
+rm -rf ~/.config/mission-control-updater/pending
+```
+
 
 ---
 
