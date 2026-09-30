@@ -9,12 +9,30 @@
 </p>
 
 <p align="center">
+  <a href="https://github.com/arnab825/Mission-Control/releases/latest"><img src="https://img.shields.io/github/v/release/arnab825/Mission-Control?style=for-the-badge&color=76B900&label=RELEASE&logo=github" alt="Latest Release" /></a>
   <a href="https://github.com/arnab825/Mission-Control/stargazers"><img src="https://img.shields.io/github/stars/arnab825/Mission-Control?style=for-the-badge&color=76B900&logo=github" alt="GitHub Stars" /></a>
-  <a href="https://github.com/arnab825/Mission-Control/network/members"><img src="https://img.shields.io/github/forks/arnab825/Mission-Control?style=for-the-badge&color=blue&logo=github" alt="GitHub Forks" /></a>
+  <a href="https://developer.nvidia.com/tensorrt"><img src="https://img.shields.io/badge/NVIDIA-TensorRT%2010.x-76B900.svg?style=for-the-badge&logo=nvidia&logoColor=white" alt="NVIDIA" /></a>
+  <a href="https://learn.microsoft.com/en-us/windows/package-manager/winget/"><img src="https://img.shields.io/badge/winget-install-0078D4.svg?style=for-the-badge&logo=windows&logoColor=white" alt="Winget" /></a>
   <a href="CONTRIBUTING.md"><img src="https://img.shields.io/badge/PRs-Welcome-brightgreen.svg?style=for-the-badge" alt="PRs Welcome" /></a>
-  <a href="https://developer.nvidia.com/cuda-toolkit"><img src="https://img.shields.io/badge/GPU-NVIDIA%20TensorRT%20%2B%20NIM-76B900.svg?style=for-the-badge&logo=nvidia" alt="NVIDIA" /></a>
-  <a href="https://github.com/arnab825/Mission-Control/releases"><img src="https://img.shields.io/badge/GitHub-Releases-brightgreen.svg?style=for-the-badge" alt="Releases" /></a>
 </p>
+
+```bash
+# ⚡ Install instantly via Windows Package Manager
+winget install arnab825.MissionControl
+```
+
+> **The Future of PC Gaming Stations:** Move beyond archaic overlays like MSI Afterburner & RTSS. Mission Control combines **autonomous AI co-pilot reasoning (NVIDIA NIM)**, **sub-15ms TensorRT vision**, DXGI zero-copy game screen capture, and dynamic live patch search into an ultra-sleek cyberpunk HUD that operates with **zero PyTorch VRAM overhead**.
+
+### 🥊 Feature Breakdown vs Traditional Setups
+
+| Feature | 🦖 MSI Afterburner / RTSS | 👾 Discord / Game Launchers | 🚀 **Mission Control** |
+| :--- | :---: | :---: | :---: |
+| **Tactical AI Co-Pilot** | ❌ None | ❌ None | ✅ **Autonomous AI (NVIDIA NIM & Llama 3.1)** |
+| **Real-Time Computer Vision** | ❌ None | ❌ None | ✅ **Pure TensorRT YOLOv8 (Sub-15ms)** |
+| **VRAM & Memory Penalty** | Static / Clunky | 1,200 MB+ RAM | ✅ **0 MB PyTorch VRAM Penalty (TensorRT C++)** |
+| **Live Patch & Game Intel** | ❌ None | ❌ None | ✅ **Automated Multi-Source Web RAG Search** |
+| **Anti-Cheat Safety** | ⚠️ Invasive D3D Injections | Clunky Overlay | ✅ **Safe DirectX Desktop Duplication Hook** |
+| **Design & Aesthetics** | 1998 Windows Form | Heavy Webview Wrapper | ✅ **Cyberpunk Glassmorphic HUD with Custom Font Scale** |
 
 ---
 

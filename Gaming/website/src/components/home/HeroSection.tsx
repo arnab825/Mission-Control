@@ -46,6 +46,7 @@ interface HeroSectionProps {
 
 export function HeroSection({ os, appVersion }: HeroSectionProps) {
   const [isZoomModalOpen, setIsZoomModalOpen] = useState(false);
+  const [copied, setCopied] = useState(false);
 
   return (
     <>
@@ -159,6 +160,39 @@ export function HeroSection({ os, appVersion }: HeroSectionProps) {
                     <GithubIcon className="w-4.5 h-4.5 text-neon-green group-hover:scale-110 transition-transform" />
                   </a>
                 </div>
+              </div>
+
+              {/* Instant Winget 1-Line Command Bar */}
+              <div className="w-full flex items-center justify-between bg-black/60 border border-neon-green/30 hover:border-neon-green/60 transition-all rounded-xl px-3.5 py-2 font-mono text-[11px] shadow-[0_0_20px_rgba(118,185,0,0.15)] group/cli">
+                <div className="flex items-center gap-2 overflow-hidden text-left">
+                  <span className="text-neon-green font-bold shrink-0">$</span>
+                  <span className="text-gray-400 shrink-0 hidden sm:inline">fast install:</span>
+                  <code className="text-gray-200 group-hover/cli:text-neon-green transition-colors select-all truncate font-semibold">
+                    winget install arnab825.MissionControl
+                  </code>
+                </div>
+                <button
+                  type="button"
+                  onClick={() => {
+                    navigator.clipboard.writeText("winget install arnab825.MissionControl");
+                    setCopied(true);
+                    setTimeout(() => setCopied(false), 2000);
+                  }}
+                  className="ml-2 px-2.5 py-1 rounded-lg bg-neon-green/10 border border-neon-green/30 hover:bg-neon-green hover:text-obsidian text-neon-green transition-all shrink-0 flex items-center gap-1.5 text-[10px] font-bold cursor-pointer"
+                  title="Copy winget command"
+                >
+                  {copied ? (
+                    <>
+                      <Sparkles className="w-3 h-3 text-neon-yellow" />
+                      <span>COPIED!</span>
+                    </>
+                  ) : (
+                    <>
+                      <Zap className="w-3 h-3" />
+                      <span>COPY</span>
+                    </>
+                  )}
+                </button>
               </div>
 
               {/* High-Tech Telemetry Stats Counter Grid */}

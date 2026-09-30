@@ -1,6 +1,38 @@
 # 🧠 🎮 Mission Control Gaming Assistant (NVIDIA-Powered)
 
-An advanced, real-time AI gaming assistant that provides tactical coaching, vision-based detection, story tracking, autonomous co-pilot capabilities, and **live web-powered game intelligence** — all running locally on NVIDIA GPUs.
+<p align="center">
+  <img src="frontend/public/logo.png" width="100" alt="Mission Control Logo" />
+</p>
+
+<p align="center">
+  <b>The Next-Generation Real-Time AI Gaming Co-Pilot, Zero-Overhead Hardware HUD & Autonomous Tactical Station. Powered by NVIDIA TensorRT, Local CUDA, and DirectX Desktop Duplication.</b>
+</p>
+
+<p align="center">
+  <a href="https://github.com/arnab825/Mission-Control/releases/latest"><img src="https://img.shields.io/github/v/release/arnab825/Mission-Control?style=for-the-badge&color=76B900&label=RELEASE&logo=github" alt="Latest Release" /></a>
+  <a href="https://github.com/arnab825/Mission-Control/stargazers"><img src="https://img.shields.io/github/stars/arnab825/Mission-Control?style=for-the-badge&color=76B900&logo=github" alt="GitHub Stars" /></a>
+  <a href="https://developer.nvidia.com/tensorrt"><img src="https://img.shields.io/badge/NVIDIA-TensorRT%2010.x-76B900.svg?style=for-the-badge&logo=nvidia&logoColor=white" alt="NVIDIA TensorRT" /></a>
+  <a href="https://learn.microsoft.com/en-us/windows/package-manager/winget/"><img src="https://img.shields.io/badge/winget-install-0078D4.svg?style=for-the-badge&logo=windows&logoColor=white" alt="Winget Available" /></a>
+  <a href="LICENSE"><img src="https://img.shields.io/badge/License-MIT-blue.svg?style=for-the-badge" alt="License" /></a>
+</p>
+
+```bash
+# ⚡ Instant 1-Line Installation via Windows Package Manager
+winget install arnab825.MissionControl
+```
+
+> **Why Mission Control?** Unlike legacy 2000s overlays (MSI Afterburner, RTSS) that show static numbers with invasive injection hooks, **Mission Control** gives you an **autonomous AI voice co-pilot**, **real-time TensorRT computer vision**, dynamic game lore/quest tracking, and transparent DXGI glassmorphic telemetry with **zero frame drops** and **zero PyTorch VRAM waste**.
+
+### 🥊 Mission Control vs Legacy Gaming Overlays
+
+| Feature | 🦖 MSI Afterburner / RTSS | 👾 Discord / Game Launchers | 🚀 **Mission Control** |
+| :--- | :---: | :---: | :---: |
+| **Tactical AI Co-Pilot** | ❌ None | ❌ None | ✅ **Autonomous AI (NVIDIA NIM & Llama 3.1)** |
+| **Real-Time Computer Vision** | ❌ None | ❌ None | ✅ **Pure TensorRT YOLOv8 (Sub-15ms)** |
+| **VRAM & Memory Penalty** | Static / Clunky | 1,200 MB+ RAM | ✅ **0 MB PyTorch VRAM Penalty (TensorRT C++)** |
+| **Live Patch & Game Intel** | ❌ None | ❌ None | ✅ **Automated Multi-Source Web RAG Search** |
+| **Anti-Cheat Safety** | ⚠️ Invasive D3D Injections | Clunky Overlay | ✅ **Safe DirectX Desktop Duplication Hook** |
+| **Design & Aesthetics** | 1998 Windows Form | Heavy Webview Wrapper | ✅ **Cyberpunk Glassmorphic HUD with Custom Font Scale** |
 
 ---
 
