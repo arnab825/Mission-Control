@@ -25,21 +25,34 @@ git clone https://github.com/YOUR_USERNAME/Mission-Control.git
 cd Mission-Control
 ```
 
-### 2. Frontend & Electron Setup
+### 2. Environment Configuration (.env files)
+
+> [!IMPORTANT]
+> **Never commit real API keys or `.env` files to Git.** Real credentials are strictly gitignored to protect infrastructure security.
+
+Each sub-project includes an `.env.example` template:
+* **Frontend**: `cp Gaming/frontend/.env.example Gaming/frontend/.env`
+  * Add your own free development key from [clerk.com](https://clerk.com/) (`VITE_CLERK_PUBLISHABLE_KEY=pk_test_...`).
+* **Website**: `cp Gaming/website/.env.example Gaming/website/.env`
+  * Add your local MongoDB URI or a free [MongoDB Atlas cluster URI](https://www.mongodb.com/cloud/atlas/register).
+* **Backend**: `cp Gaming/backend/.env.example Gaming/backend/.env`
+  * Add your free API keys for local inference (NVIDIA NIM or Google Gemini).
+
+### 3. Frontend & Electron Setup
 ```bash
 cd Gaming/frontend
 npm install
 npm run dev
 ```
 
-### 3. Backend Setup
+### 4. Backend Setup
 ```bash
 cd Gaming/backend
 uv sync
 uv run main.py --dev
 ```
 
-### 4. Next.js Web Platform Setup
+### 5. Next.js Web Platform Setup
 ```bash
 cd Gaming/website
 npm install
