@@ -1,27 +1,37 @@
-# 🧠 🎮 Mission Control Gaming Assistant (NVIDIA-Powered)
+<div align="center">
+
+# 🧠 🎮 Mission Control Gaming Assistant
+### NVIDIA-Powered Real-Time Tactical AI Co-Pilot & Hardware Telemetry Station
 
 <p align="center">
-  <img src="frontend/public/logo.png" width="100" alt="Mission Control Logo" />
+  <img src="frontend/public/logo.png" width="110" alt="Mission Control Tactical Logo" />
 </p>
 
-<p align="center">
-  <b>The Next-Generation Real-Time AI Gaming Co-Pilot, Zero-Overhead Hardware HUD & Autonomous Tactical Station. Powered by NVIDIA TensorRT, Local CUDA, and DirectX Desktop Duplication.</b>
-</p>
+**Pure TensorRT Inference • DirectX Desktop Duplication • Zero-VRAM HUD Telemetry**
 
-<p align="center">
-  <a href="https://github.com/arnab825/Mission-Control/releases/latest"><img src="https://img.shields.io/github/v/release/arnab825/Mission-Control?style=for-the-badge&color=76B900&label=RELEASE&logo=github" alt="Latest Release" /></a>
-  <a href="https://github.com/arnab825/Mission-Control/stargazers"><img src="https://img.shields.io/github/stars/arnab825/Mission-Control?style=for-the-badge&color=76B900&logo=github" alt="GitHub Stars" /></a>
-  <a href="https://developer.nvidia.com/tensorrt"><img src="https://img.shields.io/badge/NVIDIA-TensorRT%2010.x-76B900.svg?style=for-the-badge&logo=nvidia&logoColor=white" alt="NVIDIA TensorRT" /></a>
-  <a href="https://learn.microsoft.com/en-us/windows/package-manager/winget/"><img src="https://img.shields.io/badge/winget-install-0078D4.svg?style=for-the-badge&logo=windows&logoColor=white" alt="Winget Available" /></a>
-  <a href="../CODE_OF_CONDUCT.md"><img src="https://img.shields.io/badge/Contributor%20Covenant-2.1-4baaaa.svg?style=for-the-badge" alt="Code of Conduct" /></a>
-  <a href="../SECURITY.md"><img src="https://img.shields.io/badge/Security-Policy-blueviolet.svg?style=for-the-badge" alt="Security Policy" /></a>
-  <a href="../LICENSE"><img src="https://img.shields.io/badge/License-MIT-blue.svg?style=for-the-badge" alt="License" /></a>
-</p>
+<br/>
 
-```bash
-# ⚡ Instant 1-Line Installation via Windows Package Manager
-winget install arnab825.MissionControl
-```
+[![Latest Release](https://img.shields.io/github/v/release/arnab825/Mission-Control?style=for-the-badge&color=76B900&label=RELEASE&logo=github)](https://github.com/arnab825/Mission-Control/releases/latest)
+[![Stars](https://img.shields.io/github/stars/arnab825/Mission-Control?style=for-the-badge&color=76B900&logo=github)](https://github.com/arnab825/Mission-Control/stargazers)
+[![NVIDIA TensorRT](https://img.shields.io/badge/NVIDIA-TensorRT%2010.x-76B900.svg?style=for-the-badge&logo=nvidia&logoColor=white)](https://developer.nvidia.com/tensorrt)
+[![Winget](https://img.shields.io/badge/winget-install-0078D4.svg?style=for-the-badge&logo=windows&logoColor=white)](https://learn.microsoft.com/en-us/windows/package-manager/winget/)
+[![Code of Conduct](https://img.shields.io/badge/Contributor%20Covenant-2.1-4baaaa.svg?style=for-the-badge)](../CODE_OF_CONDUCT.md)
+[![Security Policy](https://img.shields.io/badge/Security-Policy-blueviolet.svg?style=for-the-badge)](../SECURITY.md)
+[![License](https://img.shields.io/badge/License-MIT-blue.svg?style=for-the-badge)](../LICENSE)
+
+<br/>
+<br/>
+
+<table>
+  <tr>
+    <td align="center">
+      <b>⚡ Quick Terminal Install (Windows 10 / 11)</b><br/><br/>
+      <code>winget install arnab825.MissionControl</code>
+    </td>
+  </tr>
+</table>
+
+</div>
 
 > **Why Mission Control?** Unlike legacy 2000s overlays (MSI Afterburner, RTSS) that show static numbers with invasive injection hooks, **Mission Control** gives you an **autonomous AI voice co-pilot**, **real-time TensorRT computer vision**, dynamic game lore/quest tracking, and transparent DXGI glassmorphic telemetry with **zero frame drops** and **zero PyTorch VRAM waste**.
 

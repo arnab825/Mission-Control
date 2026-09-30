@@ -752,12 +752,12 @@ export default function SupportChatbot() {
                 <div className="p-2 border-t border-white/10 bg-[#0b101d]/90">
                   <div className="grid grid-cols-2 gap-1.5">
                     {[
-                      "⚡ GPU & iGPU Support",
-                      "📰 Daily Gaming Intel Blogs",
-                      "🎮 Controller Beta Status",
-                      "🚀 Versions & Live Patches",
-                      "📚 Explain Features & Docs",
-                      "🛠️ Report Bug on Community"
+                      "🛡️ Policies, Rules & Anti-Cheat",
+                      "🔮 Future Roadmap & New Features",
+                      "🌐 Distributed Server Architecture",
+                      "⚡ GPU & Hardware Compatibility",
+                      "💬 Have Doubts? Contact / Community",
+                      "🚀 Versions & Live Patches"
                     ].map((chip) => (
                       <button
                         key={chip}
