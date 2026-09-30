@@ -363,9 +363,24 @@ const MainRouter: React.FC = () => {
 
 if (!PUBLISHABLE_KEY) {
   ReactDOM.createRoot(document.getElementById('root')!).render(
-    <div style={{ color: '#ef4444', backgroundColor: '#0f0f11', padding: '32px', fontFamily: 'sans-serif', minHeight: '100vh', display: 'flex', flexDirection: 'column', justifyContent: 'center', alignItems: 'center' }}>
-      <h1 style={{ margin: '0 0 16px 0', fontSize: '24px', fontWeight: '900', letterSpacing: '-0.05em' }}>CONFIGURATION ERROR</h1>
-      <p style={{ margin: 0, fontSize: '14px', color: '#a1a1aa' }}>Missing VITE_CLERK_PUBLISHABLE_KEY in frontend/.env file.</p>
+    <div style={{ color: '#f4f4f5', backgroundColor: '#090a0f', padding: '32px', fontFamily: 'monospace', minHeight: '100vh', display: 'flex', flexDirection: 'column', justifyContent: 'center', alignItems: 'center', textAlign: 'center' }}>
+      <div style={{ maxWidth: '640px', padding: '32px', border: '1px solid rgba(118, 185, 0, 0.4)', borderRadius: '16px', backgroundColor: 'rgba(255, 255, 255, 0.03)', boxShadow: '0 0 40px rgba(118, 185, 0, 0.15)' }}>
+        <div style={{ display: 'inline-block', color: '#76b900', border: '1px solid rgba(118, 185, 0, 0.3)', borderRadius: '9999px', padding: '4px 14px', fontSize: '11px', fontWeight: 'bold', marginBottom: '16px', letterSpacing: '0.1em' }}>
+          DEVELOPER ENVIRONMENT SETUP
+        </div>
+        <h1 style={{ margin: '0 0 12px 0', fontSize: '22px', fontWeight: '900', color: '#ffffff', letterSpacing: '-0.02em' }}>
+          VITE_CLERK_PUBLISHABLE_KEY Not Found
+        </h1>
+        <p style={{ margin: '0 0 24px 0', fontSize: '13px', color: '#a1a1aa', lineHeight: '1.6' }}>
+          To run the app locally, copy the template and configure your free test key:
+        </p>
+        <div style={{ backgroundColor: '#000000', padding: '14px 18px', borderRadius: '8px', border: '1px solid #27272a', textAlign: 'left', fontSize: '12px', color: '#76b900', marginBottom: '20px', overflowX: 'auto' }}>
+          <code>cp Gaming/frontend/.env.example Gaming/frontend/.env</code>
+        </div>
+        <p style={{ margin: 0, fontSize: '11px', color: '#71717a' }}>
+          Get a 100% free development key at <a href="https://clerk.com" target="_blank" rel="noreferrer" style={{ color: '#76b900', textDecoration: 'underline' }}>clerk.com</a>. Production secrets remain safe and are never shared.
+        </p>
+      </div>
     </div>
   )
 } else {

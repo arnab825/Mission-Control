@@ -310,15 +310,17 @@ Mission Control includes a **gaming-optimized, multi-source web search engine** 
 - **NVIDIA Drivers:** R580+ (Game Ready / Studio)
 - **Tools:** Python 3.12 (via `uv`), Node.js 20+, and Git
 
-### 2. Environment Setup
+### 2. Environment Setup (Zero-Secrets Policy)
 ```bash
 # Clone the repository
 git clone https://github.com/arnab825/Mission-Control.git
 cd Mission-Control
 
-# Configure environment secrets
-cp .env.example .env
+# Initialize all local development environments from safe templates:
+cd Gaming/website
+npm run setup
 ```
+> All generated `.env` / `.env.local` files are strictly gitignored. Real production secrets live exclusively in deployment settings (Vercel, Render, Azure). Contributors can test locally with free development tiers without requesting private credentials.
 
 ### 3. Launching the Desktop Application
 ```powershell

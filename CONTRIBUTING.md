@@ -28,12 +28,18 @@ cd Mission-Control
 ### 2. Environment Configuration (.env files)
 
 > [!IMPORTANT]
-> **Never commit real API keys or `.env` files to Git.** Real credentials are strictly gitignored to protect infrastructure security.
+> **Never commit real API keys or `.env` files to Git.** Real credentials are strictly gitignored to protect infrastructure security. Production secrets remain secured in deployment dashboards (Vercel / Render / Azure) and are never shared.
 
-Each sub-project includes an `.env.example` template:
+You can initialize all local templates with a single command:
+```bash
+# From Gaming/frontend or Gaming/website:
+npm run setup
+```
+
+Or copy manually:
 * **Frontend**: `cp Gaming/frontend/.env.example Gaming/frontend/.env`
   * Add your own free development key from [clerk.com](https://clerk.com/) (`VITE_CLERK_PUBLISHABLE_KEY=pk_test_...`).
-* **Website**: `cp Gaming/website/.env.example Gaming/website/.env`
+* **Website**: `cp Gaming/website/.env.example Gaming/website/.env.local`
   * Add your local MongoDB URI or a free [MongoDB Atlas cluster URI](https://www.mongodb.com/cloud/atlas/register).
 * **Backend**: `cp Gaming/backend/.env.example Gaming/backend/.env`
   * Add your free API keys for local inference (NVIDIA NIM or Google Gemini).

@@ -11,6 +11,7 @@
     "type": "module",
     "main": "dist-electron/main.cjs",
     "scripts": {
+        "setup": "node ../scripts/setup_env.mjs",
         "prebuild": "python ../scripts/sync_version.py",
         "dev": "vite",
         "build": "tsc -b && vite build",

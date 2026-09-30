@@ -203,7 +203,19 @@ git clone https://github.com/arnab825/Mission-Control.git
 cd Mission-Control
 ```
 
-### 2. Running the Next.js Web Platform
+### 2. Contributor Environment Setup (Zero-Secrets Policy)
+
+To protect production infrastructure and let developers work without sharing credentials, Mission Control provides an automated setup command that initializes safe local environment templates:
+
+```bash
+# Initialize local development environment files (.env / .env.local)
+cd Gaming/website
+npm run setup
+```
+
+> **Security Note:** All created `.env` and `.env.local` files are strictly gitignored. Real production API keys remain securely configured in deployment platforms (Vercel, Render, Azure) and are never committed.
+
+### 3. Running the Next.js Web Platform
 
 ```bash
 cd Gaming/website
@@ -212,7 +224,7 @@ npm run dev
 # Web app runs at http://localhost:3000
 ```
 
-### 3. Running the Electron Desktop App & Backend
+### 4. Running the Electron Desktop App & Backend
 
 ```bash
 # Terminal 1: Run Python Backend
