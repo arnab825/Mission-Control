@@ -1,4 +1,4 @@
-name: Contributor Milestone Recognition & Rewards
+name: "Contributor Milestone Recognition & Rewards"
 
 on:
   pull_request_target:
@@ -11,16 +11,20 @@ permissions:
 
 jobs:
   recognize-contributor:
-    if: github.event.pull_request.merged
+    if: github.event.pull_request.merged == true
     runs-on: ubuntu-latest
 
     steps:
-      - name: Process Contributor Milestone & Post Recognition
+      - name: "Process Contributor Milestone & Post Recognition"
         uses: actions/github-script@v7
         with:
           github-token: ${{ secrets.GITHUB_TOKEN }}
           script: |
             const pr = context.payload.pull_request;
+            if (!pr || !pr.user) {
+              console.log('No pull request found in event payload. Skipping.');
+              return;
+            }
             const author = pr.user.login;
 
             // 1. Exclude project founders, core maintainers, and automated bots.
@@ -133,45 +137,48 @@ jobs:
               tierLogoColor = 'black';
             }
 
+            const prUrl = `https://github.com/${context.repo.owner}/${context.repo.repo}/pull/${pr.number}`;
             const badgeUrl = `https://img.shields.io/static/v1?label=Mission%20Control&message=${encodeURIComponent(tierName)}&color=${tierBadgeColor}&style=for-the-badge&logo=${tierLogo}&logoColor=${tierLogoColor}`;
-            const badgeMarkdown = `[![Mission Control ${tierName}](${badgeUrl})](https://github.com/${context.repo.owner}/${context.repo.repo})`;
+            const badgeMarkdown = `[![Mission Control ${tierName}](${badgeUrl})](${prUrl})`;
 
             // 6. Construct celebratory PR comment
-            const commentBody = `## 🎉 Congratulations, ${fullName}! (@${author})
-
-Thank you for contributing to **Mission Control**! Your pull request **#${pr.number}** has been successfully merged into \`main\`.
-
----
-
-### 🎖️ Earned Milestone Perk & Official Profile Badge
-
-You have officially unlocked the **${tierEmoji} ${tierName}** perk tier!
-
-${badgeMarkdown}
-
-| Contributor | GitHub Handle | Earned Tier | Milestone / Scope |
-| :--- | :--- | :--- | :--- |
-| **${fullName}** | [@${author}](https://github.com/${author}) | ${tierEmoji} **${tierName}** | ${milestoneDisplay} |
-
----
-
-### 📋 Add Your Badge to Your GitHub Profile
-
-Proudly showcase your contribution on your personal GitHub profile \`README.md\` or personal website by copying this snippet:
-
-\`\`\`markdown
-${badgeMarkdown}
-\`\`\`
-
----
-
-### 🎁 Automatic Contributor Recognition Unlocked:
-- [x] **Git Attribution**: Permanent commit attribution on the \`main\` branch.
-- [x] **Contributors Graph**: Automatically indexed into the [Official Contributors Graph](https://github.com/${context.repo.owner}/${context.repo.repo}/graphs/contributors).
-- [x] **Hall of Fame**: Added to the Mission Control Contributor Registry.
-- [x] **Release Notes**: Automatically credited in the upcoming release notes under **New Contributors**.
-
-Keep building with us! Check out active [Milestones](https://github.com/${context.repo.owner}/${context.repo.repo}/milestones) and [Good First Issues](https://github.com/${context.repo.owner}/${context.repo.repo}/blob/main/GOOD_FIRST_ISSUES.md) for future perks! 🚀`;
+            const commentBody = [
+              `## 🎉 Congratulations, ${fullName}! (@${author})`,
+              '',
+              `Thank you for contributing to **Mission Control**! Your pull request **#${pr.number}** has been successfully merged into \`main\`.`,
+              '',
+              '---',
+              '',
+              '### 🎖️ Earned Milestone Perk & Official Profile Badge',
+              '',
+              `You have officially unlocked the **${tierEmoji} ${tierName}** perk tier!`,
+              '',
+              badgeMarkdown,
+              '',
+              '| Contributor | GitHub Handle | Earned Tier | Milestone / Scope | Verification |',
+              '| :--- | :--- | :--- | :--- | :--- |',
+              `| **${fullName}** | [@${author}](https://github.com/${author}) | ${tierEmoji} **${tierName}** | ${milestoneDisplay} | [Verified PR #${pr.number}](${prUrl}) |`,
+              '',
+              '---',
+              '',
+              '### 📋 Add Your Verified Badge to Your GitHub Profile',
+              '',
+              'Proudly showcase your contribution on your personal GitHub profile `README.md` or personal portfolio. This badge is cryptographically verified and links directly to this merged PR:',
+              '',
+              '```markdown',
+              badgeMarkdown,
+              '```',
+              '',
+              '---',
+              '',
+              '### 🎁 Automatic Contributor Recognition Unlocked:',
+              '- [x] **Git Attribution**: Permanent commit attribution on the `main` branch.',
+              `- [x] **Contributors Graph**: Automatically indexed into the [Official Contributors Graph](https://github.com/${context.repo.owner}/${context.repo.repo}/graphs/contributors).`,
+              '- [x] **Hall of Fame**: Added to the Mission Control Contributor Registry.',
+              '- [x] **Release Notes**: Automatically credited in the upcoming release notes under **New Contributors**.',
+              '',
+              `Keep building with us! Check out active [Milestones](https://github.com/${context.repo.owner}/${context.repo.repo}/milestones) and [Good First Issues](https://github.com/${context.repo.owner}/${context.repo.repo}/blob/main/GOOD_FIRST_ISSUES.md) for future perks! 🚀`
+            ].join('\n');
 
             // 7. Post comment to the PR
             try {
@@ -213,6 +220,8 @@ Keep building with us! Check out active [Milestones](https://github.com/${contex
                 tier: tierName,
                 badge: `${tierEmoji} ${tierName}`,
                 badge_url: badgeUrl,
+                pr_number: pr.number,
+                pr_url: prUrl,
                 avatar_url: avatarUrl,
                 profile_url: `https://github.com/${author}`,
                 merged_prs: authorMergedCount,

@@ -328,25 +328,12 @@ To recognize and engage external developers and community contributors who help 
 
 > ⚡ **100% Automated Recognition:** No manual claim required! Our [Contributor Milestone Workflow](.github/workflows/contributor_recognition.yml) automatically detects merged milestone PRs, resolves your **Full Name** and **GitHub @Username**, posts your custom badge on your PR, and registers you in [`CONTRIBUTORS.json`](CONTRIBUTORS.json) and the Website Support Bot registry.
 
-#### 🎖️ Display Your Earned Badge on Your GitHub Profile
+#### 🛡️ Anti-Bypass & Verified Credential Issuance
 
-Once your pull request is merged, copy the markdown snippet below and display your earned credential on your personal GitHub profile `README.md` or portfolio website:
-
-<details>
-<summary>📋 <b>Click to copy your Contributor Badge Markdown Snippets</b></summary>
-
-```markdown
-<!-- 🥉 First-Time Contributor Badge -->
-[![Mission Control Contributor](https://img.shields.io/badge/Mission%20Control-First--Time%20Contributor-cd7f32?style=for-the-badge&logo=github&logoColor=white)](https://github.com/arnab825/Mission-Control)
-
-<!-- 🥈 Milestone Builder Badge -->
-[![Mission Control Milestone Builder](https://img.shields.io/badge/Mission%20Control-Milestone%20Builder-C0C0C0?style=for-the-badge&logo=target&logoColor=black)](https://github.com/arnab825/Mission-Control)
-
-<!-- 🥇 Core Subsystem Maintainer Badge -->
-[![Mission Control Core Maintainer](https://img.shields.io/badge/Mission%20Control-Core%20Maintainer-FFD700?style=for-the-badge&logo=nvidia&logoColor=black)](https://github.com/arnab825/Mission-Control)
-```
-
-</details>
+> 🔒 **Tamper-Proof Contributor Badges:**
+> To protect milestone integrity and prevent unauthorized badge claiming, **raw copy-paste badge markdown is strictly not provided in this public README**.
+> 
+> Official contributor badges and personalized markdown snippets are **generated and issued exclusively by GitHub Actions directly inside your merged Pull Request comment**. Each issued badge is cryptographically linked to your specific merged Pull Request (`#PR_NUMBER`) and indexed in the [Official Contributor Registry (`CONTRIBUTORS.json`)](CONTRIBUTORS.json). Badges displayed without a valid merged PR link or registry record are unverified.
 
 ---
 
