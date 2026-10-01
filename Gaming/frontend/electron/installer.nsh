@@ -41,7 +41,10 @@ FunctionEnd
 
 ; ── Branded Setup Wizard Titles & Descriptions ──────────────────────────────
 !define MUI_LICENSEPAGE_TEXT_TOP "Please review the license terms before proceeding with the installation of Mission Control."
-!define MUI_LICENSEPAGE_TEXT_BOTTOM "If you accept the terms of the agreement, click I Agree to continue. You must accept the agreement to install Mission Control."
+!define MUI_LICENSEPAGE_TEXT_BOTTOM "If you accept the terms of the agreement, select the first option below. You must accept the agreement to install Mission Control."
+!define MUI_LICENSEPAGE_RADIOBUTTONS
+!define MUI_LICENSEPAGE_RADIOBUTTONS_TEXT_ACCEPT "I accept the terms of the License Agreement"
+!define MUI_LICENSEPAGE_RADIOBUTTONS_TEXT_DECLINE "I do not accept the terms of the License Agreement"
 
 !define MUI_DIRECTORYPAGE_TEXT_TOP "Setup will install Mission Control application binaries and neural telemetry services into the folder specified below.$\r$\n$\r$\nNote: User benchmarks, game neural profiles, and model configurations will be securely stored in %APPDATA%\MissionControl so they persist across updates."
 !define MUI_DIRECTORYPAGE_TEXT_DESTINATION "Destination Folder (Application Binaries):"
@@ -55,7 +58,7 @@ FunctionEnd
 
 !macro customWelcomePage
   !define MUI_WELCOMEPAGE_TITLE "Welcome to Mission Control"
-  !define MUI_WELCOMEPAGE_TEXT "Setup will guide you through installing Mission Control — the ultimate real-time AI gaming command deck and hardware telemetry system.$\r$\n$\r$\nCore Capabilities:$\r$\n  • Real-time GPU/CPU FPS & Hardware Telemetry (NVIDIA GeForce/RTX & AMD)$\r$\n  • Local LLM Gaming Assistant, Voice Intel & In-Game Dynamic HUD$\r$\n  • AI Game Optimization Profiles, Graphic Presets & Latency Tuning$\r$\n  • Low-overhead background monitoring and distributed telemetry fleet$\r$\n$\r$\nSystem Requirements:$\r$\n  • Windows 10 / 11 (64-bit)$\r$\n  • Dedicated GPU recommended for local neural inference & real-time frame tracking$\r$\n$\r$\nClick Next to continue."
+  !define MUI_WELCOMEPAGE_TEXT "Setup will guide you through installing Mission Control — the ultimate real-time AI gaming command deck and hardware telemetry system.$\r$\n$\r$\nCore Capabilities:$\r$\n  • Real-time GPU/CPU FPS & Hardware Telemetry (NVIDIA & AMD)$\r$\n  • Local LLM Gaming Assistant, Voice Intel & In-Game Dynamic HUD$\r$\n  • AI Game Optimization Profiles, Graphic Presets & Latency Tuning$\r$\n$\r$\nSystem Requirements:$\r$\n  • Windows 10 / 11 (64-bit)$\r$\n$\r$\nClick Next to review the License Agreement and continue."
   !insertmacro MUI_PAGE_WELCOME
 !macroend
 

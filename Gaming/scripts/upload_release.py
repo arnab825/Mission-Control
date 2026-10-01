@@ -161,6 +161,7 @@ winget install arnab825.MissionControl
     target_filenames = [
         "MissionControl-Setup.exe",
         "latest.yml",
+        "version.json",
         "MissionControl-Setup.msi",
         "MissionControl-Setup.zip",
         "MissionControl-Portable.zip",
@@ -170,54 +171,90 @@ winget install arnab825.MissionControl
         "latest-linux.yml",
     ]
 
+    import time
+    import requests
+
+    backend_dir = Path(__file__).resolve().parent / ".." / "backend"
+
     for fname in target_filenames:
         candidates = []
         if release_dir.exists() and (release_dir / fname).exists():
             candidates.append(release_dir / fname)
         if dist_dir.exists() and (dist_dir / fname).exists():
             candidates.append(dist_dir / fname)
+        if backend_dir.exists() and (backend_dir / fname).exists():
+            candidates.append(backend_dir / fname)
 
         if not candidates:
-            print(f"[WARNING] Asset file {fname} not found in release or dist. Skipping.", flush=True)
+            print(f"[WARNING] Asset file {fname} not found in release, dist, or backend. Skipping.", flush=True)
             continue
 
         # Choose the latest modified file among candidates
         fpath = max(candidates, key=lambda p: p.stat().st_mtime)
+        file_size = fpath.stat().st_size
+        size_mb = file_size / (1024 * 1024)
 
+        # Refresh existing assets from GitHub API to handle retries and prevent state conflicts
+        current_assets = {}
+        try:
+            assets_url = f"https://api.github.com/repos/{repo}/releases/{release_id}/assets"
+            asset_list = github_request(assets_url, token)
+            for a in asset_list:
+                current_assets[a["name"]] = a
+        except Exception as e:
+            print(f"[WARNING] Could not list current release assets: {e}", flush=True)
 
-        if fname in existing_assets:
-            print(f"[*] Removing existing asset {fname} (ID: {existing_assets[fname]}) to replace with fresh build...", flush=True)
-            try:
-                del_url = f"https://api.github.com/repos/{repo}/releases/assets/{existing_assets[fname]}"
-                github_request(del_url, token, method="DELETE")
-                print(f"[OK] Removed existing {fname}.", flush=True)
-            except Exception as e:
-                print(f"[WARNING] Could not delete existing asset {fname}: {e}", flush=True)
+        if fname in current_assets:
+            existing_asset = current_assets[fname]
+            if existing_asset.get("state") == "uploaded" and existing_asset.get("size") == file_size:
+                print(f"[OK] {fname} ({size_mb:.2f} MB) is already completely uploaded and verified. Skipping.", flush=True)
+                continue
+            else:
+                print(f"[*] Removing incomplete/outdated asset {fname} (ID: {existing_asset['id']}, State: {existing_asset.get('state')})...", flush=True)
+                try:
+                    del_url = f"https://api.github.com/repos/{repo}/releases/assets/{existing_asset['id']}"
+                    github_request(del_url, token, method="DELETE")
+                    time.sleep(1)
+                    print(f"[OK] Removed existing {fname}.", flush=True)
+                except Exception as e:
+                    print(f"[WARNING] Could not delete existing asset {fname}: {e}", flush=True)
 
-        size_mb = fpath.stat().st_size / (1024 * 1024)
-        print(f"[*] Uploading {fname} ({size_mb:.2f} MB)...", flush=True)
         content_type, _ = mimetypes.guess_type(str(fpath))
         if not content_type:
             content_type = "application/octet-stream"
 
         upload_url = f"https://uploads.github.com/repos/{repo}/releases/{release_id}/assets?name={urllib.parse.quote(fname)}"
-        import requests
-        with open(fpath, "rb") as f:
-            resp = requests.post(
-                upload_url,
-                data=f,
-                headers={
-                    "Authorization": f"Bearer {token}",
-                    "Content-Type": content_type,
-                    "Accept": "application/vnd.github.v3+json",
-                    "User-Agent": "MissionControl-ReleasePublisher",
-                },
-                timeout=1800,
-            )
-            if resp.status_code >= 400:
-                print(f"[HTTP {resp.status_code}] Failed to upload {fname}: {resp.text}", file=sys.stderr, flush=True)
-                resp.raise_for_status()
-        print(f"[SUCCESS] Uploaded {fname} ({size_mb:.2f} MB) successfully!", flush=True)
+        
+        uploaded = False
+        for attempt in range(1, 4):
+            print(f"[*] Uploading {fname} ({size_mb:.2f} MB) [Attempt {attempt}/3]...", flush=True)
+            try:
+                with open(fpath, "rb") as f:
+                    resp = requests.post(
+                        upload_url,
+                        data=f,
+                        headers={
+                            "Authorization": f"Bearer {token}",
+                            "Content-Type": content_type,
+                            "Accept": "application/vnd.github.v3+json",
+                            "User-Agent": "MissionControl-ReleasePublisher",
+                        },
+                        timeout=1800,
+                    )
+                if resp.status_code in (200, 201):
+                    print(f"[SUCCESS] Uploaded {fname} ({size_mb:.2f} MB) successfully!", flush=True)
+                    uploaded = True
+                    time.sleep(2)
+                    break
+                else:
+                    print(f"[HTTP {resp.status_code}] Failed to upload {fname}: {resp.text}", file=sys.stderr, flush=True)
+                    time.sleep(3)
+            except Exception as ex:
+                print(f"[ERROR] Exception during {fname} upload: {ex}", file=sys.stderr, flush=True)
+                time.sleep(5)
+
+        if not uploaded:
+            print(f"[ERROR] Failed to upload {fname} after 3 attempts.", file=sys.stderr, flush=True)
 
     print(f"\n========================================================", flush=True)
     print(f"[ALL DONE] Release {tag_name} is now published and live!", flush=True)
