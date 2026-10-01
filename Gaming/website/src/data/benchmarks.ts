@@ -827,7 +827,7 @@ export async function fetchBenchmarks(): Promise<{
   testedGames: TestedGameSummary[];
 }> {
   try {
-    const res = await fetch("/api/benchmarks", { cache: "no-store" });
+    const res = await fetch("/api/benchmarks", { next: { revalidate: 300 } });
     if (res.ok) {
       const data = await res.json();
       if (data.profiles && data.testedGames && data.testedGames.length > 0) {

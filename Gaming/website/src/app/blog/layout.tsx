@@ -1,21 +1,22 @@
 import { Metadata } from "next";
+import { BASE_SITE_URL } from "@/lib/siteUrl";
 
 export const metadata: Metadata = {
   title: "Gaming Intel & Hardware News | Mission Control",
   description:
     "Daily AI-curated technical breakdowns, GPU architecture analysis, game updates, and deep-dive telemetry reports.",
   alternates: {
-    canonical: "https://mission-control-roan-seven.vercel.app/blog",
+    canonical: `${BASE_SITE_URL}/blog`,
   },
   openGraph: {
     title: "Gaming Intel & Hardware News | Mission Control",
     description:
       "Daily AI-curated technical breakdowns, GPU architecture analysis, game updates, and deep-dive telemetry reports.",
-    url: "https://mission-control-roan-seven.vercel.app/blog",
+    url: `${BASE_SITE_URL}/blog`,
     siteName: "Mission Control",
     images: [
       {
-        url: "https://mission-control-roan-seven.vercel.app/og-image.png",
+        url: `${BASE_SITE_URL}/og-image.png`,
         width: 1200,
         height: 630,
         alt: "Mission Control Gaming Intel",
@@ -28,7 +29,7 @@ export const metadata: Metadata = {
     title: "Gaming Intel & Hardware News | Mission Control",
     description:
       "Daily AI-curated technical breakdowns, GPU architecture analysis, and game telemetry reports.",
-    images: ["https://mission-control-roan-seven.vercel.app/og-image.png"],
+    images: [`${BASE_SITE_URL}/og-image.png`],
   },
 };
 

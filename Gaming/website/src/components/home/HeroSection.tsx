@@ -2,6 +2,7 @@
 
 import { useState } from "react";
 import Link from "next/link";
+import Image from "next/image";
 import { motion, AnimatePresence } from "framer-motion";
 import {
   Download,
@@ -283,9 +284,13 @@ export function HeroSection({ os, appVersion }: HeroSectionProps) {
                 onClick={() => setIsZoomModalOpen(true)}
                 className="relative rounded-2xl overflow-hidden border border-white/15 group select-none cursor-pointer shadow-2xl"
               >
-                <img
+                <Image
                   src="/screenshots/dashboard.webp"
                   alt="Mission Control Tactical Interface"
+                  width={1280}
+                  height={720}
+                  priority
+                  sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 640px"
                   className="w-full h-auto object-cover rounded-2xl upscale-crisp group-hover:scale-[1.02] transition-transform duration-700"
                 />
                 <div className="absolute inset-0 opacity-0 group-hover:opacity-100 transition-opacity duration-300 flex items-center justify-center gap-2 font-mono text-xs font-bold text-neon-green bg-black/70 backdrop-blur-xs">

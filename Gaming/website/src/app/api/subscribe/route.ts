@@ -3,6 +3,7 @@ import connectDB from "@/lib/mongodb";
 import Subscriber from "@/models/Subscriber";
 import GamingPost from "@/models/GamingPost";
 import nodemailer from "nodemailer";
+import { BASE_SITE_URL } from "@/lib/siteUrl";
 import {
   SubscribeSchema,
   validateRequestBody,
@@ -90,7 +91,7 @@ export async function POST(request: Request) {
     }
 
     const safeEmail = escapeHtml(cleanEmail);
-    const baseUrl = "https://mission-control-roan-seven.vercel.app";
+    const baseUrl = BASE_SITE_URL;
 
     // Category colors
     const categoryColors: Record<string, { color: string; bg: string; border: string }> = {

@@ -87,7 +87,7 @@ export const metadata: Metadata = {
     title: "Mission Control - Autonomous Gaming Assistant & Telemetry Control",
     description:
       "Advanced agentic HUD overlay, technical coach, and hardware performance diagnostics optimized by NVIDIA NIM.",
-    url: "https://mission-control-roan-seven.vercel.app",
+    url: BASE_SITE_URL,
     siteName: "Mission Control",
     locale: "en_US",
     type: "website",

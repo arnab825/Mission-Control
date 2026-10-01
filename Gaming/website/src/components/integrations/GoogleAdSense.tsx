@@ -13,11 +13,23 @@ export function GoogleAdSenseScript({ publisherId }: GoogleAdSenseProps) {
     if (!client) return;
     if (document.querySelector('script[src*="adsbygoogle.js"]')) return;
 
-    const script = document.createElement("script");
-    script.src = `https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=${client}`;
-    script.async = true;
-    script.crossOrigin = "anonymous";
-    document.head.appendChild(script);
+    const injectScript = () => {
+      if (document.querySelector('script[src*="adsbygoogle.js"]')) return;
+      const script = document.createElement("script");
+      script.src = `https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=${client}`;
+      script.async = true;
+      script.crossOrigin = "anonymous";
+      document.head.appendChild(script);
+    };
+
+    // Load after main thread becomes idle so it never delays First Contentful Paint
+    if (typeof window !== "undefined" && "requestIdleCallback" in window) {
+      const idleId = (window as any).requestIdleCallback(injectScript, { timeout: 2500 });
+      return () => (window as any).cancelIdleCallback(idleId);
+    } else {
+      const timer = setTimeout(injectScript, 2000);
+      return () => clearTimeout(timer);
+    }
   }, [client]);
 
   return null;

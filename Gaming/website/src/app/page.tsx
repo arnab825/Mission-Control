@@ -4,19 +4,33 @@ import { useState, useEffect } from "react";
 import Script from "next/script";
 import { TestedGameSummary, getLiveTestedGames, fetchBenchmarks } from "@/data/benchmarks";
 import { APP_VERSION } from "@/lib/version";
-import {
-  HeroSection,
-  TechPartnersTicker,
-  VerifiedTestedGamesSection,
-  HardwareSuiteBentoSection,
-  ScreenshotGallerySection,
-  BeforeAfterSection,
-  InteractiveHudSection,
-  PerformanceComparisonSection,
-  DownloadSection,
-  FaqSection,
-  OS,
-} from "@/components/home";
+import dynamic from "next/dynamic";
+import { HeroSection, TechPartnersTicker, OS } from "@/components/home";
+
+const VerifiedTestedGamesSection = dynamic(
+  () => import("@/components/home").then((m) => m.VerifiedTestedGamesSection)
+);
+const HardwareSuiteBentoSection = dynamic(
+  () => import("@/components/home").then((m) => m.HardwareSuiteBentoSection)
+);
+const ScreenshotGallerySection = dynamic(
+  () => import("@/components/home").then((m) => m.ScreenshotGallerySection)
+);
+const BeforeAfterSection = dynamic(
+  () => import("@/components/home").then((m) => m.BeforeAfterSection)
+);
+const InteractiveHudSection = dynamic(
+  () => import("@/components/home").then((m) => m.InteractiveHudSection)
+);
+const PerformanceComparisonSection = dynamic(
+  () => import("@/components/home").then((m) => m.PerformanceComparisonSection)
+);
+const DownloadSection = dynamic(
+  () => import("@/components/home").then((m) => m.DownloadSection)
+);
+const FaqSection = dynamic(
+  () => import("@/components/home").then((m) => m.FaqSection)
+);
 
 const faqSchema = {
   "@context": "https://schema.org",
