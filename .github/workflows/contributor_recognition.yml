@@ -1,0 +1,210 @@
+name: Contributor Milestone Recognition & Rewards
+
+on:
+  pull_request_target:
+    types: [closed]
+
+permissions:
+  pull-requests: write
+  issues: write
+  contents: write
+
+jobs:
+  recognize-contributor:
+    if: github.event.pull_request.merged == true
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Process Contributor Milestone & Post Recognition
+        uses: actions/github-script@v7
+        with:
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+          script: |
+            const pr = context.payload.pull_request;
+            const author = pr.user.login;
+
+            // Exclude project founders, existing core team, and automated bots.
+            // Milestone perks and rewards are exclusively reserved to engage external/community developers!
+            const EXCLUDED_ACCOUNTS = ['arnab825', 'ani0811'];
+
+            if (
+              pr.user.type === 'Bot' || 
+              author.endsWith('[bot]') || 
+              EXCLUDED_ACCOUNTS.includes(author.toLowerCase())
+            ) {
+              console.log(`Skipping core team maintainer or bot contributor: ${author}`);
+              return;
+            }
+
+            // 1. Fetch user's public GitHub profile details (Full Name, Avatar, etc.)
+            let fullName = author;
+            let avatarUrl = pr.user.avatar_url;
+            try {
+              const userProfile = await github.rest.users.getByUsername({ username: author });
+              if (userProfile.data && userProfile.data.name) {
+                fullName = userProfile.data.name;
+              }
+              if (userProfile.data && userProfile.data.avatar_url) {
+                avatarUrl = userProfile.data.avatar_url;
+              }
+            } catch (err) {
+              console.warn('Could not fetch user profile details:', err);
+            }
+
+            // 2. Query merged PR count by this author in the repository
+            let mergedPrCount = 1;
+            try {
+              const searchResp = await github.rest.search.issuesAndPullRequests({
+                q: `repo:${context.repo.owner}/${context.repo.repo} is:pr is:merged author:${author}`
+              });
+              mergedPrCount = searchResp.data.total_count || 1;
+            } catch (err) {
+              console.warn('Could not query search API for PR count:', err);
+            }
+
+            // 3. Determine Milestone & Labels
+            const milestoneTitle = pr.milestone ? pr.milestone.title : 'Active Sprint Milestone';
+            const labels = (pr.labels || []).map(l => (typeof l === 'string' ? l : l.name).toLowerCase());
+
+            const isCoreSubsystem = labels.some(l => 
+              l.includes('core') || 
+              l.includes('telemetry') || 
+              l.includes('directstorage') || 
+              l.includes('ai') || 
+              l.includes('adlx') || 
+              l.includes('tensorrt') || 
+              l.includes('subsystem')
+            );
+
+            // 4. Calculate Milestone Reward Tier
+            let tierName = 'First-Time Contributor';
+            let tierEmoji = '🥉';
+            let tierBadgeText = 'First--Time Contributor';
+            let tierBadgeColor = 'cd7f32';
+            let tierLogo = 'github';
+            let tierLogoColor = 'white';
+
+            if (isCoreSubsystem) {
+              tierName = 'Core Subsystem Maintainer';
+              tierEmoji = '🥇';
+              tierBadgeText = 'Core Maintainer';
+              tierBadgeColor = 'FFD700';
+              tierLogo = 'nvidia';
+              tierLogoColor = 'black';
+            } else if (mergedPrCount >= 2 || pr.milestone) {
+              tierName = 'Milestone Builder';
+              tierEmoji = '🥈';
+              tierBadgeText = 'Milestone Builder';
+              tierBadgeColor = 'C0C0C0';
+              tierLogo = 'target';
+              tierLogoColor = 'black';
+            }
+
+            const badgeUrl = `https://img.shields.io/badge/Mission%20Control-${encodeURIComponent(tierBadgeText)}-${tierBadgeColor}?style=for-the-badge&logo=${tierLogo}&logoColor=${tierLogoColor}`;
+            const badgeMarkdown = `[![Mission Control ${tierName}](${badgeUrl})](https://github.com/arnab825/Mission-Control)`;
+
+            // 5. Construct celebratory PR comment
+            const commentBody = `## 🎉 Congratulations, ${fullName}! (@${author})
+
+Thank you for contributing to **Mission Control**! Your pull request **#${pr.number}** has been successfully merged into \`main\`.
+
+---
+
+### 🎖️ Earned Milestone Perk & Official Profile Badge
+
+You have officially unlocked the **${tierEmoji} ${tierName}** perk tier!
+
+${badgeMarkdown}
+
+| Contributor | GitHub Handle | Earned Tier | Milestone / Scope |
+| :--- | :--- | :--- | :--- |
+| **${fullName}** | [@${author}](https://github.com/${author}) | ${tierEmoji} **${tierName}** | ${milestoneTitle} |
+
+---
+
+### 📋 Add Your Badge to Your GitHub Profile
+
+Proudly showcase your milestone achievement on your personal GitHub profile \`README.md\` or personal website by copying this snippet:
+
+\`\`\`markdown
+${badgeMarkdown}
+\`\`\`
+
+---
+
+### 🎁 Automatic Contributor Recognition Unlocked:
+- [x] **Git Attribution**: Permanent commit attribution on the \`main\` branch.
+- [x] **Contributors Graph**: Automatically indexed into the [Official Contributors Graph](https://github.com/${context.repo.owner}/${context.repo.repo}/graphs/contributors).
+- [x] **Hall of Fame**: Added to the Mission Control Contributor Registry.
+- [x] **Release Notes**: Automatically credited in the upcoming release notes under **New Contributors**.
+
+Keep building with us! Check out active [Milestones](https://github.com/${context.repo.owner}/${context.repo.repo}/milestones) and [Good First Issues](https://github.com/${context.repo.owner}/${context.repo.repo}/blob/main/GOOD_FIRST_ISSUES.md) for future perks! 🚀`;
+
+            // 6. Post comment to the PR
+            try {
+              await github.rest.issues.createComment({
+                owner: context.repo.owner,
+                repo: context.repo.repo,
+                issue_number: pr.number,
+                body: commentBody
+              });
+              console.log('Successfully posted milestone recognition comment on PR #' + pr.number);
+            } catch (err) {
+              console.error('Failed to post PR comment:', err);
+            }
+
+            // 7. Update CONTRIBUTORS.json via GitHub Contents API
+            try {
+              const filePath = 'CONTRIBUTORS.json';
+              let currentSha = null;
+              let contributorsList = [];
+
+              try {
+                const fileData = await github.rest.repos.getContent({
+                  owner: context.repo.owner,
+                  repo: context.repo.repo,
+                  path: filePath
+                });
+                currentSha = fileData.data.sha;
+                const contentStr = Buffer.from(fileData.data.content, 'base64').toString('utf-8');
+                contributorsList = JSON.parse(contentStr);
+              } catch (e) {
+                console.log('CONTRIBUTORS.json not found or empty, creating new list.');
+              }
+
+              const existingIndex = contributorsList.findIndex(c => c.username.toLowerCase() === author.toLowerCase());
+              const entry = {
+                username: author,
+                name: fullName,
+                tier: tierName,
+                badge: `${tierEmoji} ${tierName}`,
+                badge_url: badgeUrl,
+                avatar_url: avatarUrl,
+                profile_url: `https://github.com/${author}`,
+                merged_prs: mergedPrCount,
+                last_milestone: milestoneTitle,
+                last_updated: new Date().toISOString()
+              };
+
+              if (existingIndex >= 0) {
+                contributorsList[existingIndex] = { ...contributorsList[existingIndex], ...entry };
+              } else {
+                contributorsList.push(entry);
+              }
+
+              const updatedJson = JSON.stringify(contributorsList, null, 2) + '\n';
+              const encodedContent = Buffer.from(updatedJson).toString('base64');
+
+              await github.rest.repos.createOrUpdateFileContents({
+                owner: context.repo.owner,
+                repo: context.repo.repo,
+                path: filePath,
+                message: `chore(contributors): recognize ${fullName} (@${author}) [skip ci]`,
+                content: encodedContent,
+                sha: currentSha || undefined
+              });
+
+              console.log(`Successfully updated CONTRIBUTORS.json with ${fullName} (@${author})`);
+            } catch (err) {
+              console.error('Failed updating CONTRIBUTORS.json:', err);
+            }

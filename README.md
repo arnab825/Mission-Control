@@ -13,6 +13,8 @@
 
 [![Latest Release](https://img.shields.io/github/v/release/arnab825/Mission-Control?style=for-the-badge&color=76B900&label=RELEASE&logo=github)](https://github.com/arnab825/Mission-Control/releases/latest)
 [![Stars](https://img.shields.io/github/stars/arnab825/Mission-Control?style=for-the-badge&color=76B900&logo=github)](https://github.com/arnab825/Mission-Control/stargazers)
+[![Active Milestones](https://img.shields.io/github/milestones/open/arnab825/Mission-Control?style=for-the-badge&color=76B900&label=MILESTONES&logo=target)](https://github.com/arnab825/Mission-Control/milestones)
+[![Contributors](https://img.shields.io/github/contributors/arnab825/Mission-Control?style=for-the-badge&color=76B900&label=CONTRIBUTORS&logo=github)](https://github.com/arnab825/Mission-Control/graphs/contributors)
 [![NVIDIA TensorRT](https://img.shields.io/badge/NVIDIA-TensorRT%2010.x-76B900.svg?style=for-the-badge&logo=nvidia&logoColor=white)](https://developer.nvidia.com/tensorrt)
 [![Winget](https://img.shields.io/badge/winget-install-0078D4.svg?style=for-the-badge&logo=windows&logoColor=white)](https://learn.microsoft.com/en-us/windows/package-manager/winget/)
 [![Code of Conduct](https://img.shields.io/badge/Contributor%20Covenant-2.1-4baaaa.svg?style=for-the-badge)](CODE_OF_CONDUCT.md)
@@ -312,13 +314,51 @@ We actively welcome contributions from developers, gamers, and open-source enthu
 
 ### 🎁 Milestone Developer Benefits & Contributor Rewards
 
-To recognize developers and contributors who help achieve project milestones, Mission Control offers the following milestone benefits:
+To recognize and engage external developers and community contributors who help achieve project milestones, Mission Control offers the following milestone benefits and official profile badges:
 
-| Tier | Requirement | Milestone Benefits & Perks |
-| :--- | :--- | :--- |
-| 🥉 **First-Time Contributor** | 1 merged PR on any `good-first-issue` | • Listed in the official GitHub Release Notes.<br>• Featured in the [Website Support Bot](https://mission-control-taupe-mu.vercel.app) Contributor Registry.<br>• `@Contributor` role in community discussions. |
-| 🥈 **Milestone Builder** | 2+ merged PRs tied to an active **GitHub Milestone** | • Co-author credits (`Co-authored-by:`) on the major version tag.<br>• Permanent shoutout in [`docs/changes_summary.md`](docs/changes_summary.md).<br>• Fast-track review on future Pull Requests. |
-| 🥇 **Core Subsystem Maintainer** | Lead author on a core milestone objective (e.g. AMD ADLX telemetry, DirectStorage hook, or AI model integration) | • GitHub **Triage / Collaborator** invitation.<br>• Core Team badge on your GitHub profile.<br>• Direct influence on the upcoming [System Roadmap](ROADMAP.md).<br>• Professional technical recommendation on LinkedIn / GitHub. |
+> 🎯 **Community-First Eligibility:** Milestone benefits and contributor rewards are designed exclusively to recognize and empower **new and community developers**. Founding maintainers (`@arnab825`, `@Ani0811`) and automated bots (`dependabot[bot]`) are excluded from claiming milestone reward tiers to ensure all perks, registry spots, and badges go directly to community contributors!
+
+| Tier | Official Profile Badge | Requirement | Milestone Benefits & Perks |
+| :--- | :---: | :--- | :--- |
+| 🥉 **First-Time Contributor** | [![Mission Control Contributor](https://img.shields.io/badge/Mission%20Control-First--Time%20Contributor-cd7f32?style=for-the-badge&logo=github&logoColor=white)](https://github.com/arnab825/Mission-Control) | 1 merged PR on any `good-first-issue` | • Listed in the official GitHub Release Notes.<br>• Featured in the [Website Support Bot](https://mission-control-taupe-mu.vercel.app) Contributor Registry.<br>• `@Contributor` role in community discussions. |
+| 🥈 **Milestone Builder** | [![Mission Control Milestone Builder](https://img.shields.io/badge/Mission%20Control-Milestone%20Builder-C0C0C0?style=for-the-badge&logo=target&logoColor=black)](https://github.com/arnab825/Mission-Control) | 2+ merged PRs tied to an active **GitHub Milestone** | • Co-author credits (`Co-authored-by:`) on the major version tag.<br>• Permanent shoutout in [`docs/changes_summary.md`](docs/changes_summary.md).<br>• Fast-track review on future Pull Requests. |
+| 🥇 **Core Subsystem Maintainer** | [![Mission Control Core Maintainer](https://img.shields.io/badge/Mission%20Control-Core%20Maintainer-FFD700?style=for-the-badge&logo=nvidia&logoColor=black)](https://github.com/arnab825/Mission-Control) | Lead author on a core milestone objective (e.g. AMD ADLX telemetry, DirectStorage hook, or AI model integration) | • GitHub **Triage / Collaborator** invitation.<br>• Core Team badge on your GitHub profile.<br>• Direct influence on the upcoming [System Roadmap](ROADMAP.md).<br>• Professional technical recommendation on LinkedIn / GitHub. |
+
+---
+
+> ⚡ **100% Automated Recognition:** No manual claim required! Our [Contributor Milestone Workflow](.github/workflows/contributor_recognition.yml) automatically detects merged milestone PRs, resolves your **Full Name** and **GitHub @Username**, posts your custom badge on your PR, and registers you in [`CONTRIBUTORS.json`](CONTRIBUTORS.json) and the Website Support Bot registry.
+
+#### 🎖️ Display Your Earned Badge on Your GitHub Profile
+
+Once your pull request is merged, copy the markdown snippet below and display your earned credential on your personal GitHub profile `README.md` or portfolio website:
+
+<details>
+<summary>📋 <b>Click to copy your Contributor Badge Markdown Snippets</b></summary>
+
+```markdown
+<!-- 🥉 First-Time Contributor Badge -->
+[![Mission Control Contributor](https://img.shields.io/badge/Mission%20Control-First--Time%20Contributor-cd7f32?style=for-the-badge&logo=github&logoColor=white)](https://github.com/arnab825/Mission-Control)
+
+<!-- 🥈 Milestone Builder Badge -->
+[![Mission Control Milestone Builder](https://img.shields.io/badge/Mission%20Control-Milestone%20Builder-C0C0C0?style=for-the-badge&logo=target&logoColor=black)](https://github.com/arnab825/Mission-Control)
+
+<!-- 🥇 Core Subsystem Maintainer Badge -->
+[![Mission Control Core Maintainer](https://img.shields.io/badge/Mission%20Control-Core%20Maintainer-FFD700?style=for-the-badge&logo=nvidia&logoColor=black)](https://github.com/arnab825/Mission-Control)
+```
+
+</details>
+
+---
+
+### 👥 Contributor Hall of Fame
+
+A heartfelt thank you to everyone pushing code, improving documentation, and reporting benchmarks for **Mission Control**:
+
+<p align="center">
+  <a href="https://github.com/arnab825/Mission-Control/graphs/contributors">
+    <img src="https://contrib.rocks/image?repo=arnab825/Mission-Control" alt="Mission Control Contributors" />
+  </a>
+</p>
 
 ---
 
