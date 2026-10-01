@@ -1,4 +1,4 @@
-import connectDB from "./mongodb";
+import connectDB, { isDbFailed } from "./mongodb";
 import BenchmarkModel from "@/models/Benchmark";
 import GameRatingModel from "@/models/GameRating";
 import {
@@ -53,6 +53,7 @@ export interface RatingStats {
  * overwritten or deleted by static seed definitions.
  */
 export async function ensureBenchmarksSeeded(): Promise<void> {
+  if (isDbFailed()) return;
   try {
     await connectDB();
 
@@ -79,10 +80,7 @@ export async function ensureBenchmarksSeeded(): Promise<void> {
 
     await Promise.all(seedOps);
   } catch (error) {
-    console.warn(
-      "[MongoDB] Benchmark profiles seed error (falling back to static defaults):",
-      error
-    );
+    // Silently fall back to static definitions when database is offline
   }
 }
 
@@ -103,6 +101,13 @@ export async function getBenchmarksFromDB(): Promise<{
   profiles: Record<string, BenchmarkProfile>;
   testedGames: TestedGameSummary[];
 }> {
+  if (isDbFailed()) {
+    return {
+      profiles: BENCHMARK_PROFILES,
+      testedGames: TESTED_GAMES_LIST,
+    };
+  }
+
   try {
     await connectDB();
     await ensureBenchmarksSeeded();
@@ -194,10 +199,7 @@ export async function getBenchmarksFromDB(): Promise<{
       return { profiles, testedGames };
     }
   } catch (error) {
-    console.warn(
-      "[MongoDB] Error fetching benchmarks from MongoDB (using static fallback):",
-      error
-    );
+    // Silently fall back to static benchmark definitions
   }
 
   // Fallback to static definitions
@@ -211,6 +213,10 @@ export async function getBenchmarksFromDB(): Promise<{
  * Fetches a single benchmark profile by ID from MongoDB with static fallback.
  */
 export async function getBenchmarkByIdFromDB(id: string): Promise<BenchmarkProfile> {
+  if (isDbFailed()) {
+    return getBenchmarkProfileById(id);
+  }
+
   try {
     await connectDB();
     const doc = await BenchmarkModel.findOne({ id }).lean();
@@ -239,7 +245,7 @@ export async function getBenchmarkByIdFromDB(id: string): Promise<BenchmarkProfi
       };
     }
   } catch (error) {
-    console.warn(`[MongoDB] Error fetching benchmark ${id}:`, error);
+    // Fallback silently to static benchmark profile
   }
 
   return getBenchmarkProfileById(id);

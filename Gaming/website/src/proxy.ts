@@ -273,8 +273,8 @@ export const middleware = proxy;
 export const config = {
   matcher: [
     /*
-     * Match all request paths except static assets and Next.js internals
+     * Match all request paths except static assets, images, fonts, and Next.js internals
      */
-    "/((?!_next/static|_next/image|favicon.ico|logo.png|images/|screenshots/).*)",
+    "/((?!_next/static|_next/image|_next/data|favicon.ico|robots.txt|sitemap.xml|ads.txt|.*\\.(?:svg|png|jpg|jpeg|gif|webp|ico|woff|woff2|ttf|eot)$).*)",
   ],
 };

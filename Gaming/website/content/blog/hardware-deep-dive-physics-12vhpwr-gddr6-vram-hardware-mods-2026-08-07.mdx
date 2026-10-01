@@ -27,16 +27,16 @@ $$P_{\text{loss}} = (50\text{ A})^2 \times 0.05\,\Omega = 125\text{ W}$$
 
 This concentrated heat causes thermal runaway, melting the connector housing long before the main Power Supply Unit (PSU) trips its over-current protection (OCP), as aggregate system current remains within overall tolerance limits.
 
-```
+```text
                     12VHPWR Thermal Runaway Loop
 
-+-------------------+      Contact Resistance ($R$)      +------------------+
++-------------------+      Contact Resistance (R)        +------------------+
 | Poor Pin Seating  | ---------------------------------> | Increased Joule  |
-| or Bending Stress |                                    | Heating ($I^2R$) |
+| or Bending Stress |                                    | Heating (I^2R)   |
 +-------------------+                                    +------------------+
           ^                                                        |
           |               Thermal Expansion & Material             |
-          +------------------ Softening ($>105^\circ\text{C}$) <---+
+          +------------------ Softening (>105 deg C) <-------------+
 ```
 
 To prevent connector failure, open-source utilities now interface directly with GPU telemetry via vendor management APIs to poll internal sensor buses, continuously monitoring line voltages and power draw limits.
@@ -120,4 +120,7 @@ For the GPU's memory controller to correctly map this expanded address space, ph
 | :------------- | :---------------- | :----------------- | :----------------------- |
 | **GPU Die**    | TU102-300-A1      | TU102-300-A1       | GB202                    |
 | **Bus Width**  | 352-bit           | 352-bit            | 512-bit                  |
-| **IC Density** | 8                 |
+| **IC Density** | 8Gb (1GB)         | 16Gb (2GB)         | 16Gb / 24Gb              |
+| **Total VRAM** | 11GB              | 22GB               | 32GB                     |
+
+By pairing high-density GDDR6 ICs with board-level bootstrap resistor adjustments, legacy hardware achieves the memory capacity required for modern local AI workloads without suffering from bandwidth degradation.

@@ -57,8 +57,8 @@ const CATEGORY_CONFIG: Record<
 
 const GAMING_CATEGORIES = ["Game News", "GPU News", "Game Revisit", "Hardware Deep-Dive"] as const;
 
-export const dynamic = "force-dynamic";
-export const revalidate = 0;
+// Enable Incremental Static Regeneration (ISR) so Vercel Edge CDN serves the page instantly
+export const revalidate = 60;
 
 export default async function BlogListing({
   searchParams,

@@ -231,8 +231,26 @@ export default function Navbar() {
         <div className="max-w-7xl mx-auto h-full px-4 sm:px-6 flex items-center justify-between relative">
           {/* Brand Logo */}
           <Link href="/" className="flex items-center gap-2 sm:gap-3 group z-10">
-            <div className="w-10 h-10 sm:w-12 sm:h-12 rounded-xl border border-neon-green/40 flex items-center justify-center bg-linear-to-br from-neon-green/20 via-neon-green/10 to-transparent group-hover:border-neon-green group-hover:shadow-[0_0_25px_rgba(118,185,0,0.6)] shadow-[0_0_12px_rgba(118,185,0,0.25)] transition-all duration-300 overflow-hidden p-1.5 shrink-0">
-              <img src="/logo.png" alt="Mission Control" className="w-full h-full object-contain" />
+            <div className="w-10 h-10 sm:w-12 sm:h-12 rounded-xl border border-neon-green/40 flex items-center justify-center bg-linear-to-br from-neon-green/20 via-neon-green/10 to-transparent group-hover:border-neon-green group-hover:shadow-[0_0_25px_rgba(118,185,0,0.6)] shadow-[0_0_12px_rgba(118,185,0,0.25)] transition-all duration-300 overflow-hidden p-1.5 shrink-0 relative">
+              <img
+                src="/logo.png"
+                alt="Mission Control"
+                className="w-full h-full object-contain relative z-10"
+                onError={(e) => {
+                  (e.currentTarget as HTMLElement).style.display = "none";
+                  const fallback = e.currentTarget.parentElement?.querySelector(".logo-fallback");
+                  if (fallback) (fallback as HTMLElement).classList.remove("hidden");
+                }}
+              />
+              <div
+                className="logo-fallback hidden absolute inset-0 flex items-center justify-center text-neon-green drop-shadow-[0_0_8px_rgba(118,185,0,0.8)]"
+                aria-hidden="true"
+              >
+                <svg viewBox="0 0 24 24" className="w-6 h-6 fill-none stroke-current stroke-2">
+                  <path strokeLinecap="round" strokeLinejoin="round" d="M12 2L3 7v6c0 5.55 3.84 10.74 9 12 5.16-1.26 9-6.45 9-12V7l-9-5z" />
+                  <path strokeLinecap="round" strokeLinejoin="round" d="M12 8v8m-4-4h8" />
+                </svg>
+              </div>
             </div>
             <span className="text-sm min-[375px]:text-base sm:text-xl font-black font-display tracking-wider text-white group-hover:text-neon-green transition-colors duration-300 whitespace-nowrap">
               MISSION{" "}

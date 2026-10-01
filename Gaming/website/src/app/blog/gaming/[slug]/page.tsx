@@ -7,7 +7,7 @@ import { MDXRemote } from "next-mdx-remote/rsc";
 import connectDB from "@/lib/mongodb";
 import GamingPost from "@/models/GamingPost";
 import { ArrowLeft, Calendar, Share2, Tag, Bot } from "lucide-react";
-import { headers } from "next/headers";
+
 import ShareButtons from "@/components/blog/ShareButtons";
 import SafeBlogImage from "@/components/blog/SafeBlogImage";
 import { formatDateToIST, getPostData } from "@/lib/blog";
@@ -20,6 +20,8 @@ import remarkMath from "remark-math";
 import rehypeKatex from "rehype-katex";
 import "katex/dist/katex.min.css";
 import { BASE_SITE_URL, getBaseUrl } from "@/lib/siteUrl";
+
+export const revalidate = 300; // ISR cache for 5 minutes
 
 export async function generateMetadata({
   params,
@@ -420,11 +422,7 @@ export default async function GamingBlogPost({ params }: { params: Promise<{ slu
     border: "border-neon-green/20",
   };
 
-  const headersList = await headers();
-  const host = headersList.get("host") || "mission-control-roan-seven.vercel.app";
-  const isLocal = host.includes("localhost") || host.includes("127.0.0.1");
-  const shareHost = isLocal ? "mission-control-roan-seven.vercel.app" : host;
-  const postUrl = `https://${shareHost}/blog/gaming/${slug}`;
+  const postUrl = `${BASE_SITE_URL}/blog/gaming/${slug}`;
 
   return (
     <div className="min-h-screen pt-32 pb-24 px-4 sm:px-6 max-w-6xl mx-auto w-full relative z-10">

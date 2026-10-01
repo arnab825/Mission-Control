@@ -1,6 +1,12 @@
 import type { NextConfig } from "next";
 import fs from "fs";
 import path from "path";
+import events from "events";
+
+// Increase defaultMaxListeners to prevent false-positive warnings during concurrent asset pipelining / HMR
+if (events.EventEmitter && typeof events.EventEmitter.defaultMaxListeners === "number") {
+  events.EventEmitter.defaultMaxListeners = 50;
+}
 
 // Load public env variables if env-public.json exists
 let publicEnv = {};
@@ -14,8 +20,8 @@ try {
 }
 
 const rootDir = process.cwd();
-
 const isVercel = Boolean(process.env.VERCEL);
+const isDev = process.env.NODE_ENV === "development";
 
 const nextConfig: NextConfig = {
   ...(isVercel ? {} : { output: "standalone" as const }),
@@ -35,7 +41,8 @@ const nextConfig: NextConfig = {
       "*.tsbuildinfo",
     ],
   },
-  compress: true,
+  // Disable compression in local dev to eliminate Gzip stream listener exhaustion; Vercel CDN handles edge compression in production
+  compress: !isDev,
   reactStrictMode: true,
   turbopack: {
     root: rootDir,

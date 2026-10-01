@@ -4,6 +4,7 @@ interface MongooseCache {
   conn: typeof mongoose | null;
   promise: Promise<typeof mongoose> | null;
   failed?: boolean;
+  failedAt?: number;
 }
 
 declare global {
@@ -11,9 +12,22 @@ declare global {
 }
 
 if (!global.mongoose) {
-  global.mongoose = { conn: null, promise: null, failed: false };
+  global.mongoose = { conn: null, promise: null, failed: false, failedAt: 0 };
 }
 const cached = global.mongoose;
+
+export function isDbConnected(): boolean {
+  return Boolean(cached.conn && cached.conn.connection?.readyState === 1);
+}
+
+export function isDbFailed(): boolean {
+  if (!cached.failed) return false;
+  if (Date.now() - (cached.failedAt || 0) < 30000) {
+    return true;
+  }
+  cached.failed = false;
+  return false;
+}
 
 async function connectDB(): Promise<typeof mongoose> {
   const MONGODB_URI = process.env.MONGODB_URI;
@@ -26,9 +40,12 @@ async function connectDB(): Promise<typeof mongoose> {
   }
 
   if (cached.failed) {
-    throw new Error(
-      "MongoDB connection previously failed. Skipping to prevent blocking local development rendering."
-    );
+    if (Date.now() - (cached.failedAt || 0) < 30000) {
+      throw new Error(
+        "MongoDB connection previously failed. Skipping to prevent blocking local development rendering."
+      );
+    }
+    cached.failed = false;
   }
 
   if (!cached.promise) {
@@ -48,6 +65,7 @@ async function connectDB(): Promise<typeof mongoose> {
   } catch (e) {
     cached.promise = null;
     cached.failed = true;
+    cached.failedAt = Date.now();
     throw e;
   }
 

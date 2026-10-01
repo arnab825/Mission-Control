@@ -11,8 +11,7 @@ import Mermaid from "@/components/docs/Mermaid";
 import remarkGfm from "remark-gfm";
 import remarkMath from "remark-math";
 import rehypeKatex from "rehype-katex";
-import "katex/dist/katex.min.css";
-import { headers } from "next/headers";
+import { BASE_SITE_URL } from "@/lib/siteUrl";
 import ShareButtons from "@/components/blog/ShareButtons";
 
 import { convertAsciiToMermaid, isAsciiBoxDiagram } from "@/lib/mermaidUtils";
@@ -54,19 +53,26 @@ const mdxComponents = {
 
 function cleanMarkdown(content: string): string {
   if (!content) return "";
-  let clean = content
-    .replace(/```(?:markdown|md)\r?\n([\s\S]*?)\r?\n```/gi, "$1")
-    .replace(/```table\r?\n([\s\S]*?)\r?\n```/gi, "$1");
+  let clean = content;
+  // Remove frontmatter if present in markdown body string
+  clean = clean.replace(/^---[\s\S]*?---\s*/i, "");
 
-  // Auto-convert and fence ASCII diagrams
-  clean = clean.replace(/(?:^\s*\+[-=]{2,}\+[\s\S]*?\+[-=]{2,}\+)/gm, (match) => {
-    if (match.includes("```")) return match;
-    const converted = convertAsciiToMermaid(match.trim());
-    return `\n\`\`\`mermaid\n${converted}\n\`\`\`\n`;
-  });
+  // Remove outer markdown code fences wrapping whole post
+  clean = clean.replace(/^```(?:markdown|md)\r?\n([\s\S]*?)\r?\n```$/gi, "$1");
+
+  // Convert code-fenced ASCII diagrams into clean ```mermaid
+  clean = clean.replace(
+    /```(?:[a-z0-9_-]*\r?\n)?([ \t]*\+[-=]{2,}\+[\s\S]*?\+[-=]{2,}\+[\s\S]*?)```/gi,
+    (_match, inner) => {
+      const converted = convertAsciiToMermaid(inner.trim());
+      return `\n\n\`\`\`mermaid\n${converted}\n\`\`\`\n\n`;
+    }
+  );
 
   return clean;
 }
+
+export const revalidate = 300; // ISR cache for 5 minutes
 
 export async function generateStaticParams() {
   const versionFile = path.join(process.cwd(), "../backend/version.json");
@@ -92,11 +98,7 @@ export default async function BlogPost({ params }: { params: Promise<{ slug: str
   const { slug } = await params;
   const versionFile = path.join(process.cwd(), "../backend/version.json");
 
-  const headersList = await headers();
-  const host = headersList.get("host") || "mission-control-roan-seven.vercel.app";
-  const isLocal = host.includes("localhost") || host.includes("127.0.0.1");
-  const shareHost = isLocal ? "mission-control-roan-seven.vercel.app" : host;
-  const postUrl = `https://${shareHost}/blog/${slug}`;
+  const postUrl = `${BASE_SITE_URL}/blog/${slug}`;
 
   let postLog: any = null;
   let prevLog: any = null;
