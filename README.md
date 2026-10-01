@@ -308,8 +308,8 @@ npm run dev
 We welcome contributions from developers, gamers, and open-source enthusiasts!
 
 * **[Contributing Guide](CONTRIBUTING.md)**: Detailed steps on setting up local dev environments, submitting PRs, and testing telemetry modules.
-* **[Good First Issues](https://github.com/arnab825/Mission-Control/issues?q=is%3Aissue+is%3Aopen+label%3A%22good+first+issue%22)**: Tagged tasks perfect for getting started with the repository.
-* **[System Roadmap](Gaming/docs/ProductRoadmap.md)**: Check upcoming features including multi-vendor AMD RX & Intel Arc telemetry support.
+* **[Good First Issues](GOOD_FIRST_ISSUES.md)**: Curated starter tasks and architectural walkthroughs perfect for getting started with the repository (also see [GitHub Issues](https://github.com/arnab825/Mission-Control/issues?q=is%3Aissue+is%3Aopen+label%3A%22good+first+issue%22)).
+* **[System Roadmap](ROADMAP.md)**: Strategic milestones including multi-vendor AMD RX & Intel Arc telemetry support and on-device AI vision co-pilot.
 
 ---
 
