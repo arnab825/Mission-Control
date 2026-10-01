@@ -2,7 +2,7 @@ import { dark } from '@clerk/themes';
 
 /**
  * Custom Mission Control Cyberpunk / Tactical HUD theme for all Clerk modals and components
- * (UserButton, UserProfile / Security Portal, SignIn, and Reverification modals).
+ * (UserButton, SignIn, and Reverification modals).
  */
 export const missionControlClerkTheme = {
   baseTheme: dark,

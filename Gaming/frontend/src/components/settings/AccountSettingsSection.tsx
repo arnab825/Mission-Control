@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useRef } from 'react';
-import { useUser, useAuth, useClerk, useReverification, UserButton } from '@clerk/clerk-react';
+import { useUser, useAuth, useReverification, UserButton } from '@clerk/clerk-react';
 import { KeyRound, Fingerprint, Calendar, Shield, Copy, Check, Link, Trash2, AlertTriangle, X, LogOut } from 'lucide-react';
 import { SettingsSection } from './common/SettingsSection';
 import { OAUTH_PROVIDERS } from '../../data/settingsConstants';
@@ -88,7 +88,6 @@ export const AccountSettingsSection: React.FC<AccountSettingsSectionProps> = ({
     );
   }
 
-  const clerk = useClerk();
   const reverifiedDestroy = useReverification(async (account: any) => {
     return await account.destroy();
   });
@@ -414,16 +413,6 @@ export const AccountSettingsSection: React.FC<AccountSettingsSectionProps> = ({
           </div>
           <div className="flex items-center gap-2 flex-wrap">
             <button
-              aria-label="Security Portal"
-              type="button"
-              onClick={() => clerk.openUserProfile({ appearance: missionControlClerkTheme })}
-              className="px-3.5 py-2 bg-neon-green/10 hover:bg-neon-green/20 border border-neon-green/30 text-neon-green font-black text-[9px] uppercase tracking-widest rounded-xl transition-all whitespace-nowrap shrink-0 flex items-center gap-1.5 cursor-pointer"
-              title="Open Clerk Security & Accounts"
-            >
-              <Shield className="w-3.5 h-3.5" />
-              Security Portal
-            </button>
-            <button
               aria-label="Switch Account"
               type="button"
               onClick={handleSwitchAccount}
@@ -451,14 +440,6 @@ export const AccountSettingsSection: React.FC<AccountSettingsSectionProps> = ({
               </div>
               {needsReauth && (
                 <div className="flex items-center gap-2 pt-1 flex-wrap">
-                  <button
-                    type="button"
-                    onClick={() => clerk.openUserProfile({ appearance: missionControlClerkTheme })}
-                    className="flex items-center gap-1.5 px-3 py-1.5 bg-neon-green/20 hover:bg-neon-green/30 border border-neon-green/40 text-neon-green hover:text-white font-black text-[9px] uppercase tracking-widest rounded-lg transition-all cursor-pointer shadow-sm"
-                  >
-                    <Shield className="w-3 h-3" />
-                    Open Security Portal
-                  </button>
                   <button
                     type="button"
                     onClick={handleReauthenticate}
