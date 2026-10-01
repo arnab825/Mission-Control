@@ -97,8 +97,6 @@ If you're new to the codebase, check out issues tagged with:
 
 ---
 
----
-
 ## 🎁 Milestone Developer Benefits & Contributor Rewards
 
 To recognize developers and contributors who help achieve project milestones, Mission Control offers the following milestone benefits:

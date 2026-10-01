@@ -18,6 +18,7 @@
 [![Code of Conduct](https://img.shields.io/badge/Contributor%20Covenant-2.1-4baaaa.svg?style=for-the-badge)](CODE_OF_CONDUCT.md)
 [![Security Policy](https://img.shields.io/badge/Security-Policy-blueviolet.svg?style=for-the-badge)](SECURITY.md)
 [![PRs Welcome](https://img.shields.io/badge/PRs-Welcome-brightgreen.svg?style=for-the-badge)](CONTRIBUTING.md)
+[![Milestone Rewards](https://img.shields.io/badge/Milestones%20&%20Perks-Earn%20Rewards-FFD700.svg?style=for-the-badge&logo=githubsponsors&logoColor=black)](#-milestone-developer-benefits--contributor-rewards)
 
 ```bash
 # ⚡ Install with 1 command via Windows Package Manager (Windows 10 / 11)
@@ -25,6 +26,8 @@ winget install arnab825.MissionControl
 ```
 
 </div>
+
+> 🎁 **Developer Milestone Rewards Program:** Merge 1 PR or conquer a milestone objective to unlock release notes recognition, Website Bot contributor showcase, and GitHub Collaborator status! Jump straight to [**Milestone Developer Benefits & Contributor Rewards**](#-milestone-developer-benefits--contributor-rewards).
 
 > **The Future of PC Gaming Stations:** Move beyond archaic overlays like MSI Afterburner & RTSS. Mission Control combines **autonomous AI co-pilot reasoning (NVIDIA NIM)**, **sub-15ms TensorRT vision**, DXGI zero-copy game screen capture, and dynamic live patch search into an ultra-sleek cyberpunk HUD that operates with **zero PyTorch VRAM overhead**.
 
@@ -303,13 +306,31 @@ npm run dev
 
 ---
 
-## 🤝 Community & Contributing
+## 🤝 Community, Contributing & Developer Perks
 
-We welcome contributions from developers, gamers, and open-source enthusiasts!
+We actively welcome contributions from developers, gamers, and open-source enthusiasts! Whether you are optimizing a Direct3D swapchain, adding AMD/Intel telemetry drivers, writing Python sensor daemons, or building Next.js web benchmarks, your work is recognized and rewarded.
 
-* **[Contributing Guide](CONTRIBUTING.md)**: Detailed steps on setting up local dev environments, submitting PRs, and testing telemetry modules.
-* **[Good First Issues](GOOD_FIRST_ISSUES.md)**: Curated starter tasks and architectural walkthroughs perfect for getting started with the repository (also see [GitHub Issues](https://github.com/arnab825/Mission-Control/issues?q=is%3Aissue+is%3Aopen+label%3A%22good+first+issue%22)).
-* **[System Roadmap](ROADMAP.md)**: Strategic milestones including multi-vendor AMD RX & Intel Arc telemetry support and on-device AI vision co-pilot.
+### 🎁 Milestone Developer Benefits & Contributor Rewards
+
+To recognize developers and contributors who help achieve project milestones, Mission Control offers the following milestone benefits:
+
+| Tier | Requirement | Milestone Benefits & Perks |
+| :--- | :--- | :--- |
+| 🥉 **First-Time Contributor** | 1 merged PR on any `good-first-issue` | • Listed in the official GitHub Release Notes.<br>• Featured in the [Website Support Bot](https://mission-control-taupe-mu.vercel.app) Contributor Registry.<br>• `@Contributor` role in community discussions. |
+| 🥈 **Milestone Builder** | 2+ merged PRs tied to an active **GitHub Milestone** | • Co-author credits (`Co-authored-by:`) on the major version tag.<br>• Permanent shoutout in [`docs/changes_summary.md`](docs/changes_summary.md).<br>• Fast-track review on future Pull Requests. |
+| 🥇 **Core Subsystem Maintainer** | Lead author on a core milestone objective (e.g. AMD ADLX telemetry, DirectStorage hook, or AI model integration) | • GitHub **Triage / Collaborator** invitation.<br>• Core Team badge on your GitHub profile.<br>• Direct influence on the upcoming [System Roadmap](ROADMAP.md).<br>• Professional technical recommendation on LinkedIn / GitHub. |
+
+---
+
+### 🚀 Get Involved & Claim Your Perks
+
+Ready to contribute and build your developer portfolio? Here is how to dive in right away:
+
+* 🎯 **[Browse Active GitHub Milestones](https://github.com/arnab825/Mission-Control/milestones)** — Track upcoming sprint objectives and claim issues tagged to current targets.
+* 🏷️ **[Good First Issues Guide](GOOD_FIRST_ISSUES.md)** — Curated bite-sized tasks across Web, Desktop, and Backend (also browse [Open Good-First-Issues on GitHub](https://github.com/arnab825/Mission-Control/issues?q=is%3Aissue+is%3Aopen+label%3A%22good+first+issue%22)).
+* 🗺️ **[System Architecture Roadmap](ROADMAP.md)** — Explore strategic milestones including AMD RDNA telemetry, DirectStorage I/O hooks, and local AI vision co-pilot.
+* 🛠️ **[Full Contributing Guide & Rewards Policy](CONTRIBUTING.md#milestone-developer-benefits--contributor-rewards)** — Complete step-by-step local environment setup (`npm run setup`), coding standards, and PR submission checklist.
+* 💬 **[Community Discussions & Ideas](https://github.com/arnab825/Mission-Control/discussions)** — Connect with the team, pitch new game benchmark profiles, and propose architectural RFCs.
 
 ---
 
