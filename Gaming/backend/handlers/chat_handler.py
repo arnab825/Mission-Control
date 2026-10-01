@@ -18,7 +18,7 @@ def handle_execute(payload: dict, pipeline, bridge, config) -> None:
     if pipeline:
         pipeline.active_chat_session_id = session_id
         if is_agentic is not None:
-            pipeline.set_agentic_mode(bool(is_agentic))
+            pipeline.agentic_mode_active = bool(is_agentic)
             bridge.update_state({"agent_intent": "autonomous" if is_agentic else "observing"})
         bridge.update_state({"active_chat_session_id": session_id})
         

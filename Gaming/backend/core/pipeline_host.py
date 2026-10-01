@@ -2501,6 +2501,8 @@ class GamingAssistantPipeline:
 
     def set_agentic_mode(self, active):
         """Enable or disable autonomous co-pilot actions and device hooks."""
+        if getattr(self, "agentic_mode_active", None) == active:
+            return
         self.agentic_mode_active = active
         with self._state_lock:
             self._game_state["agent_intent"] = "autonomous" if active else "observing"
