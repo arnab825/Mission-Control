@@ -6,6 +6,14 @@ export function getBaseUrl(): string {
   if (process.env.NEXT_PUBLIC_SITE_URL) {
     return process.env.NEXT_PUBLIC_SITE_URL.replace(/\/$/, "");
   }
+  // Azure App Service / Azure Functions standard hostname
+  if (process.env.WEBSITE_HOSTNAME) {
+    return `https://${process.env.WEBSITE_HOSTNAME.replace(/\/$/, "")}`;
+  }
+  // Azure Static Web Apps hostname
+  if (process.env.AZURE_STATIC_WEB_APPS_HOSTNAME) {
+    return `https://${process.env.AZURE_STATIC_WEB_APPS_HOSTNAME.replace(/\/$/, "")}`;
+  }
   if (process.env.RENDER_EXTERNAL_URL) {
     return process.env.RENDER_EXTERNAL_URL.replace(/\/$/, "");
   }
