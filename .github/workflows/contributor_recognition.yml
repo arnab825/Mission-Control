@@ -11,7 +11,7 @@ permissions:
 
 jobs:
   recognize-contributor:
-    if: github.event.pull_request.merged == true
+    if: github.event.pull_request.merged
     runs-on: ubuntu-latest
 
     steps:
@@ -23,47 +23,80 @@ jobs:
             const pr = context.payload.pull_request;
             const author = pr.user.login;
 
-            // Exclude project founders, existing core team, and automated bots.
+            // 1. Exclude project founders, core maintainers, and automated bots.
             // Milestone perks and rewards are exclusively reserved to engage external/community developers!
-            const EXCLUDED_ACCOUNTS = ['arnab825', 'ani0811'];
+            const EXCLUDED_ACCOUNTS = [
+              context.repo.owner.toLowerCase(),
+              'arnab825',
+              'ani0811'
+            ];
 
             if (
-              pr.user.type === 'Bot' || 
-              author.endsWith('[bot]') || 
+              pr.user.type === 'Bot' ||
+              author.endsWith('[bot]') ||
               EXCLUDED_ACCOUNTS.includes(author.toLowerCase())
             ) {
               console.log(`Skipping core team maintainer or bot contributor: ${author}`);
               return;
             }
 
-            // 1. Fetch user's public GitHub profile details (Full Name, Avatar, etc.)
+            // 2. Fetch user's public GitHub profile details (Full Name, Avatar, etc.)
             let fullName = author;
             let avatarUrl = pr.user.avatar_url;
             try {
               const userProfile = await github.rest.users.getByUsername({ username: author });
-              if (userProfile.data && userProfile.data.name) {
-                fullName = userProfile.data.name;
+              if (userProfile.data && userProfile.data.name && userProfile.data.name.trim()) {
+                fullName = userProfile.data.name.trim();
               }
               if (userProfile.data && userProfile.data.avatar_url) {
                 avatarUrl = userProfile.data.avatar_url;
               }
             } catch (err) {
-              console.warn('Could not fetch user profile details:', err);
+              console.warn('Could not fetch user profile details:', err.message);
             }
 
-            // 2. Query merged PR count by this author in the repository
-            let mergedPrCount = 1;
+            // 3. Resiliently count merged PRs by this author via pulls API (avoids search API rate-limits)
+            let authorMergedCount = 1;
             try {
-              const searchResp = await github.rest.search.issuesAndPullRequests({
-                q: `repo:${context.repo.owner}/${context.repo.repo} is:pr is:merged author:${author}`
+              const pullsResp = await github.rest.pulls.list({
+                owner: context.repo.owner,
+                repo: context.repo.repo,
+                state: 'closed',
+                per_page: 100
               });
-              mergedPrCount = searchResp.data.total_count || 1;
+              const userMerged = pullsResp.data.filter(p => 
+                p.merged_at && 
+                p.user && 
+                p.user.login.toLowerCase() === author.toLowerCase()
+              );
+              authorMergedCount = Math.max(1, userMerged.length);
             } catch (err) {
-              console.warn('Could not query search API for PR count:', err);
+              console.warn('Could not retrieve closed pull requests:', err.message);
             }
 
-            // 3. Determine Milestone & Labels
-            const milestoneTitle = pr.milestone ? pr.milestone.title : 'Active Sprint Milestone';
+            // 4. Milestone Detection (Checks PR milestone or linked issue milestone)
+            let milestoneTitle = pr.milestone ? pr.milestone.title : null;
+
+            if (!milestoneTitle && pr.body) {
+              const linkedMatches = [...pr.body.matchAll(/(?:fixes|closes|resolves)\s+#(\d+)/gi)].map(m => parseInt(m[1]));
+              for (const issueNum of linkedMatches) {
+                try {
+                  const issueResp = await github.rest.issues.get({
+                    owner: context.repo.owner,
+                    repo: context.repo.repo,
+                    issue_number: issueNum
+                  });
+                  if (issueResp.data && issueResp.data.milestone) {
+                    milestoneTitle = issueResp.data.milestone.title;
+                    break;
+                  }
+                } catch (e) {
+                  // Ignore issue lookup error
+                }
+              }
+            }
+
+            const milestoneDisplay = milestoneTitle || 'Active Project Milestone';
             const labels = (pr.labels || []).map(l => (typeof l === 'string' ? l : l.name).toLowerCase());
 
             const isCoreSubsystem = labels.some(l => 
@@ -76,10 +109,12 @@ jobs:
               l.includes('subsystem')
             );
 
-            // 4. Calculate Milestone Reward Tier
+            // 5. Calculate Milestone Reward Tier based on strict project policy:
+            // - Gold 🥇: Core Subsystem / architecture lead
+            // - Silver 🥈: 2+ merged PRs tied to an active milestone
+            // - Bronze 🥉: First-time merged PR / good-first-issue
             let tierName = 'First-Time Contributor';
             let tierEmoji = '🥉';
-            let tierBadgeText = 'First--Time Contributor';
             let tierBadgeColor = 'cd7f32';
             let tierLogo = 'github';
             let tierLogoColor = 'white';
@@ -87,23 +122,21 @@ jobs:
             if (isCoreSubsystem) {
               tierName = 'Core Subsystem Maintainer';
               tierEmoji = '🥇';
-              tierBadgeText = 'Core Maintainer';
               tierBadgeColor = 'FFD700';
               tierLogo = 'nvidia';
               tierLogoColor = 'black';
-            } else if (mergedPrCount >= 2 || pr.milestone) {
+            } else if (authorMergedCount >= 2 && milestoneTitle) {
               tierName = 'Milestone Builder';
               tierEmoji = '🥈';
-              tierBadgeText = 'Milestone Builder';
               tierBadgeColor = 'C0C0C0';
               tierLogo = 'target';
               tierLogoColor = 'black';
             }
 
-            const badgeUrl = `https://img.shields.io/badge/Mission%20Control-${encodeURIComponent(tierBadgeText)}-${tierBadgeColor}?style=for-the-badge&logo=${tierLogo}&logoColor=${tierLogoColor}`;
-            const badgeMarkdown = `[![Mission Control ${tierName}](${badgeUrl})](https://github.com/arnab825/Mission-Control)`;
+            const badgeUrl = `https://img.shields.io/static/v1?label=Mission%20Control&message=${encodeURIComponent(tierName)}&color=${tierBadgeColor}&style=for-the-badge&logo=${tierLogo}&logoColor=${tierLogoColor}`;
+            const badgeMarkdown = `[![Mission Control ${tierName}](${badgeUrl})](https://github.com/${context.repo.owner}/${context.repo.repo})`;
 
-            // 5. Construct celebratory PR comment
+            // 6. Construct celebratory PR comment
             const commentBody = `## 🎉 Congratulations, ${fullName}! (@${author})
 
 Thank you for contributing to **Mission Control**! Your pull request **#${pr.number}** has been successfully merged into \`main\`.
@@ -118,13 +151,13 @@ ${badgeMarkdown}
 
 | Contributor | GitHub Handle | Earned Tier | Milestone / Scope |
 | :--- | :--- | :--- | :--- |
-| **${fullName}** | [@${author}](https://github.com/${author}) | ${tierEmoji} **${tierName}** | ${milestoneTitle} |
+| **${fullName}** | [@${author}](https://github.com/${author}) | ${tierEmoji} **${tierName}** | ${milestoneDisplay} |
 
 ---
 
 ### 📋 Add Your Badge to Your GitHub Profile
 
-Proudly showcase your milestone achievement on your personal GitHub profile \`README.md\` or personal website by copying this snippet:
+Proudly showcase your contribution on your personal GitHub profile \`README.md\` or personal website by copying this snippet:
 
 \`\`\`markdown
 ${badgeMarkdown}
@@ -140,7 +173,7 @@ ${badgeMarkdown}
 
 Keep building with us! Check out active [Milestones](https://github.com/${context.repo.owner}/${context.repo.repo}/milestones) and [Good First Issues](https://github.com/${context.repo.owner}/${context.repo.repo}/blob/main/GOOD_FIRST_ISSUES.md) for future perks! 🚀`;
 
-            // 6. Post comment to the PR
+            // 7. Post comment to the PR
             try {
               await github.rest.issues.createComment({
                 owner: context.repo.owner,
@@ -150,10 +183,10 @@ Keep building with us! Check out active [Milestones](https://github.com/${contex
               });
               console.log('Successfully posted milestone recognition comment on PR #' + pr.number);
             } catch (err) {
-              console.error('Failed to post PR comment:', err);
+              console.error('Failed to post PR comment:', err.message);
             }
 
-            // 7. Update CONTRIBUTORS.json via GitHub Contents API
+            // 8. Safely update CONTRIBUTORS.json via GitHub Contents API
             try {
               const filePath = 'CONTRIBUTORS.json';
               let currentSha = null;
@@ -166,10 +199,11 @@ Keep building with us! Check out active [Milestones](https://github.com/${contex
                   path: filePath
                 });
                 currentSha = fileData.data.sha;
-                const contentStr = Buffer.from(fileData.data.content, 'base64').toString('utf-8');
-                contributorsList = JSON.parse(contentStr);
+                const cleanBase64 = fileData.data.content.replace(/\r?\n/g, '');
+                const contentStr = Buffer.from(cleanBase64, 'base64').toString('utf-8');
+                contributorsList = JSON.parse(contentStr || '[]');
               } catch (e) {
-                console.log('CONTRIBUTORS.json not found or empty, creating new list.');
+                console.log('CONTRIBUTORS.json empty or needs initial commit.');
               }
 
               const existingIndex = contributorsList.findIndex(c => c.username.toLowerCase() === author.toLowerCase());
@@ -181,8 +215,8 @@ Keep building with us! Check out active [Milestones](https://github.com/${contex
                 badge_url: badgeUrl,
                 avatar_url: avatarUrl,
                 profile_url: `https://github.com/${author}`,
-                merged_prs: mergedPrCount,
-                last_milestone: milestoneTitle,
+                merged_prs: authorMergedCount,
+                last_milestone: milestoneDisplay,
                 last_updated: new Date().toISOString()
               };
 
@@ -206,5 +240,5 @@ Keep building with us! Check out active [Milestones](https://github.com/${contex
 
               console.log(`Successfully updated CONTRIBUTORS.json with ${fullName} (@${author})`);
             } catch (err) {
-              console.error('Failed updating CONTRIBUTORS.json:', err);
+              console.warn('CONTRIBUTORS.json update note (may be skipped if branch protection applies):', err.message);
             }
