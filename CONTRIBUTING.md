@@ -97,6 +97,20 @@ If you're new to the codebase, check out issues tagged with:
 
 ---
 
+---
+
+## 🎁 Milestone Developer Benefits & Contributor Rewards
+
+To recognize developers and contributors who help achieve project milestones, Mission Control offers the following milestone benefits:
+
+| Tier | Requirement | Milestone Benefits & Perks |
+| :--- | :--- | :--- |
+| 🥉 **First-Time Contributor** | 1 merged PR on any `good-first-issue` | • Listed in the official GitHub Release Notes.<br>• Featured in the [Website Support Bot](https://mission-control-taupe-mu.vercel.app) Contributor Registry.<br>• `@Contributor` role in community discussions. |
+| 🥈 **Milestone Builder** | 2+ merged PRs tied to an active **GitHub Milestone** | • Co-author credits (`Co-authored-by:`) on the major version tag.<br>• Permanent shoutout in [`docs/changes_summary.md`](docs/changes_summary.md).<br>• Fast-track review on future Pull Requests. |
+| 🥇 **Core Subsystem Maintainer** | Lead author on a core milestone objective (e.g. AMD ADLX telemetry, DirectStorage hook, or AI model integration) | • GitHub **Triage / Collaborator** invitation.<br>• Core Team badge on your GitHub profile.<br>• Direct influence on the upcoming [System Roadmap](ROADMAP.md).<br>• Professional technical recommendation on LinkedIn / GitHub. |
+
+---
+
 ## 📄 License & Attribution
 
 By submitting a Pull Request or contribution to **Mission Control**, you agree that your contributions will be licensed under the project's [LICENSE](LICENSE) and [EULA](Gaming/frontend/electron/license.txt).

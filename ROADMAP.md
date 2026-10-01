@@ -68,8 +68,9 @@ timeline
 
 ---
 
-## 📚 Related Documentation
+## 📚 Related Documentation & Contributor Perks
 
+- 🎁 [Developer Milestone Benefits & Recognition Program](CONTRIBUTING.md#milestone-developer-benefits--contributor-rewards)
 - 📖 [Detailed NVIDIA Hardware Strategy](Gaming/docs/ProductRoadmap.md)
 - 🖥️ [Desktop Electron Architecture & Window Lifecycle](Gaming/docs/ElectronRoadmap.md)
 - 🤝 [Contributing Guidelines](CONTRIBUTING.md)
