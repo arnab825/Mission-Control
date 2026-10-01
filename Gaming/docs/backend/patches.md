@@ -2,6 +2,15 @@
 
 This document contains a detailed history of all patches and updates for the AI Gaming Assistant.
 
+### Patch: 2026-10-01 — v3.8.0: Fix Agentic AI command processing, session persistence, and system optimization
+
+- Fix raw [SYSTEM_COMMAND:...] bracket tags displaying in chat responses
+- Resolve NoneType AttributeError in optimize_system when no game is active
+- Fix session reset bug causing user messages to disappear during agentic queries
+- Integrate AgentCommandProcessor into typed chat streaming pipeline
+- Add strict Pydantic schemas for agent mode, personality, and retry commands
+- Synchronize real-time optimization status and cooling profile to Electron bridge
+
 ### Patch: 2026-09-30 — v3.7.9: Comprehensive Setup Wizard Enhancements & Complete Release History
 
 - Enriched In-App Setup Wizard with multi-stage deployment descriptions for installation and rollback

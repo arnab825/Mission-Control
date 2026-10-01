@@ -82,7 +82,8 @@ graph TD
 
 | Version | Key Feature / Change Description |
 | :--- | :--- |
-| **v3.7.9 (Latest)** | **Comprehensive Setup Wizard Enhancements & Complete Release History** — Mission Control v3.7.9 introduces a revamped setup wizard with enhanced deployment descriptions, branded installer, and improved session management. |
+| **v3.8.0 (Latest)** | **Fix Agentic AI command processing, session persistence, and system optimization** — Mission Control v3.8.0 enhances agentic AI command processing, session persistence, and system optimization with key bug fixes and performance improvements. |
+| **v3.7.9** | **Comprehensive Setup Wizard Enhancements & Complete Release History** — Mission Control v3.7.9 introduces a revamped setup wizard with enhanced deployment descriptions, branded installer, and improved session management. |
 | **v3.7.8** | **Responsive Setup Screen, Custom Windows Setup Wizard & Winget Setup Pipeline** — Mission Control v3.7.8 enhances the setup experience with a responsive setup screen, customized Windows setup wizard, and streamlined Winget installation pipeline. |
 | **v3.7.3** | **Responsive Setup Screen, Custom Windows Setup Wizard & Winget Setup Pipeline** — Mission Control v3.7.3 enhances the setup experience with a responsive setup screen, customized Windows setup wizard, and streamlined Winget installation pipeline. |
 | **v3.7.7** | **Custom Cyberpunk Security Portal & Authentication Gateway Enhancements** — Custom Mission Control dark cyberpunk theme for Clerk Security Portal and UserButton. |
@@ -188,5 +189,5 @@ graph TD
 
 ---
 
-*Last Updated: 30/09/2026*
+*Last Updated: 01/10/2026*
 

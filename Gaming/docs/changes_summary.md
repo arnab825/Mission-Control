@@ -22,7 +22,20 @@ Comprehensive breakdown of major milestone releases, architectural upgrades, and
 
 ---
 
-## 🌟 Version v3.7.9 (Latest) — Comprehensive Setup Wizard Enhancements & Complete Release History
+## 🌟 Version v3.8.0 (Latest) — Fix Agentic AI command processing, session persistence, and system optimization
+
+### 🛠️ Key Highlights
+1. **Fixes raw [SYSTEM_COMMAND:...] bracket tags displaying in chat responses**
+2. **Resolves NoneType AttributeError in optimize_system when no game is active**
+3. **Integrates AgentCommandProcessor into typed chat streaming pipeline**
+
+### 📦 Distribution Artifacts
+- **Linux**: `.deb` (Debian/Ubuntu), `.AppImage` (Universal), `.rpm` (Fedora/RHEL), `.tar.gz` (Portable)
+- **Windows**: `.exe` (Setup Installer), `.msi` (Enterprise), `.zip` (Portable)
+
+---
+
+## 📦 Version v3.7.9 — Comprehensive Setup Wizard Enhancements & Complete Release History
 
 ### 🛠️ Key Highlights
 1. **Enriched In-App Setup Wizard with multi-stage deployment descriptions for installation and rollback**
