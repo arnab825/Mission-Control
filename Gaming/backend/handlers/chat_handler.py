@@ -14,8 +14,12 @@ def handle_execute(payload: dict, pipeline, bridge, config) -> None:
     directive = payload.get("input", "")
     session_id = payload.get("sessionId") or "default"
     user_id = payload.get("userId", "guest")
+    is_agentic = payload.get("isAgentic")
     if pipeline:
         pipeline.active_chat_session_id = session_id
+        if is_agentic is not None:
+            pipeline.set_agentic_mode(bool(is_agentic))
+            bridge.update_state({"agent_intent": "autonomous" if is_agentic else "observing"})
         bridge.update_state({"active_chat_session_id": session_id})
         
         # Register user activity / cancellation of welcome message for this session
@@ -34,6 +38,7 @@ def handle_execute(payload: dict, pipeline, bridge, config) -> None:
     # user bubble + thinking bubble immediately on submit) has time to render before the
     # agent_response state update triggers the thinking-bubble logic in the frontend effect.
     import time as _time
+    import re
     _time.sleep(0.05)
     bridge.update_state({"agent_response": f"Processing: {directive}..."})
 
@@ -56,12 +61,42 @@ def handle_execute(payload: dict, pipeline, bridge, config) -> None:
                 full_response += chunk
                 now = _time.monotonic()
                 if (now - last_flush) * 1000 >= BATCH_MS:
-                    bridge.update_state({"agent_response": full_response})
+                    clean_preview = re.sub(
+                        r'\[\s*(?:SYSTEM_COMMAND|LAUNCH_COMMAND|WebSearchTrigger|[A-Z_]{3,}):[^\]]*\]?',
+                        '',
+                        full_response,
+                        flags=re.IGNORECASE
+                    ).strip()
+                    if clean_preview:
+                        bridge.update_state({"agent_response": clean_preview})
                     last_flush = now
         except Exception as err:
             logger.error("Error during agent stream execution: %s", err)
             if not full_response:
                 full_response = f"Neural link stream error: {err}"
+
+        # Route through AgentCommandProcessor for action execution and tag stripping
+        try:
+            from control.agent_commands import AgentCommandProcessor
+            agentic_active = getattr(pipeline, "agentic_mode_active", False)
+            processed_response = AgentCommandProcessor.process_launch_command(
+                response=full_response,
+                agentic_mode_active=agentic_active,
+                config=config,
+                is_launch_request=True,
+                prompt=directive,
+                bridge=bridge
+            )
+            processed_response = AgentCommandProcessor.process_system_command(
+                response=processed_response,
+                agentic_mode_active=agentic_active,
+                bridge=bridge,
+                pipeline=pipeline,
+                config=config
+            )
+            full_response = processed_response
+        except Exception as ex_proc:
+            logger.error("Failed to process agent commands in chat execute: %s", ex_proc)
 
         # Final flush — ensure the complete response is always sent
         bridge.update_state({"agent_response": full_response})

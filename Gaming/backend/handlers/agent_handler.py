@@ -14,6 +14,8 @@ def handle_toggle_agent_mode(payload: dict, pipeline, bridge, config) -> None:
         user_id = payload.get("userId", "guest")
         pipeline.active_user_id = user_id
         pipeline.set_agentic_mode(active)
+    if bridge:
+        bridge.update_state({"agent_intent": "autonomous" if active else "observing"})
 
 
 def handle_set_personality(payload: dict, pipeline, bridge, config) -> None:

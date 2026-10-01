@@ -124,6 +124,47 @@ class TestVoiceAgentCommands(unittest.TestCase):
         self.assertNotIn("perf_score", custom_telemetry)
         self.assertIn("custom_stat", custom_telemetry)
 
+    def test_agent_commands_system_optimization_and_tag_stripping(self):
+        """Verify that process_system_command properly strips bracket tags and updates bridge state."""
+        from control.agent_commands import AgentCommandProcessor
+        from core.command_schemas import validate_bridge_command
+
+        mock_bridge = MagicMock()
+        raw_response = "Optimizing system resources now.\n[SYSTEM_COMMAND:optimize_system]"
+        
+        # 1. With Agentic Mode Active
+        with patch("system.optimizer.Optimizer.optimize_game", return_value=(True, ["RAM freed.", "VRAM flushed."])):
+            processed = AgentCommandProcessor.process_system_command(
+                raw_response,
+                agentic_mode_active=True,
+                bridge=mock_bridge
+            )
+            self.assertNotIn("[SYSTEM_COMMAND", processed)
+            self.assertIn("⚡ **Neural Pulse**", processed)
+            self.assertIn("Optimizing system resources now.", processed)
+            mock_bridge.update_state.assert_called_once()
+            call_arg = mock_bridge.update_state.call_args[0][0]
+            self.assertTrue(call_arg.get("optimization_status", {}).get("success"))
+
+        # 2. Schema validation with isAgentic
+        valid, val_data, err = validate_bridge_command("execute", {
+            "input": "optimize the resources",
+            "isAgentic": True,
+            "sessionId": "test_session",
+            "userId": "arnab"
+        })
+        self.assertTrue(valid)
+        self.assertIsNone(err)
+        self.assertTrue(val_data.isAgentic)
+
+        # 3. Schema validation for toggle_agent_mode
+        valid2, val_data2, err2 = validate_bridge_command("toggle_agent_mode", {
+            "active": True,
+            "userId": "arnab"
+        })
+        self.assertTrue(valid2)
+        self.assertIsNone(err2)
+
 
 if __name__ == "__main__":
     unittest.main()

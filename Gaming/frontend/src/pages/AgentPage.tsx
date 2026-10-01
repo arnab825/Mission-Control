@@ -173,9 +173,12 @@ const ChatBubble: React.FC<{
   const renderFormattedText = (rawText: string) => {
     if (!rawText) return null;
     const cleanText = rawText.split('\u200b')[0];
+    const sanitizedText = cleanText
+      .replace(/\[\s*(?:SYSTEM_COMMAND|LAUNCH_COMMAND|WebSearchTrigger|[A-Z_]{3,}):[^\]]*\]?/gi, '')
+      .trim();
 
     // Split text into lines
-    const lines = cleanText.split('\n');
+    const lines = sanitizedText.split('\n');
     const elements: React.ReactNode[] = [];
 
     let inCodeBlock = false;
@@ -1030,7 +1033,7 @@ const AgentPage: React.FC<{
               // Replace existing thinking bubble in-place if it exists
               const lastMsgIndex = newChat.length - 1;
               const lastMsg = newChat[lastMsgIndex];
-              if (lastMsgIndex >= 0 && lastMsg.role === 'agent' && (lastMsg.isThinking || lastMsg.isTyping || cleanAr.startsWith(lastMsg.text) || lastMsg.text.startsWith(cleanAr))) {
+              if (lastMsgIndex >= 0 && lastMsg.role === 'agent') {
                 newChat[lastMsgIndex] = {
                   ...lastMsg,
                   role: 'agent',
@@ -1087,7 +1090,7 @@ const AgentPage: React.FC<{
           // Replace existing thinking bubble in-place if it exists
           const lastMsgIndex = newChat.length - 1;
           const lastMsg = newChat[lastMsgIndex];
-          if (lastMsgIndex >= 0 && lastMsg.role === 'agent' && (lastMsg.isThinking || lastMsg.isTyping || cleanAr.startsWith(lastMsg.text) || lastMsg.text.startsWith(cleanAr))) {
+          if (lastMsgIndex >= 0 && lastMsg.role === 'agent') {
             newChat[lastMsgIndex] = {
               ...lastMsg,
               role: 'agent',
@@ -1302,7 +1305,7 @@ const AgentPage: React.FC<{
           { role: 'agent', text: '', time, isThinking: true, id: `msg_${Date.now()}_thinking` }
         ]
       }));
-      onCommand('execute', { input, sessionId, userId });
+      onCommand('execute', { input, sessionId, userId, isAgentic });
       setInput('');
     };
 

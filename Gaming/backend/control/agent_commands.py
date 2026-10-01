@@ -6,7 +6,7 @@ import logging
 import os
 import re
 import sys
-from typing import Dict, List, Optional
+from typing import Any, Dict, List, Optional
 
 logger = logging.getLogger(__name__)
 
@@ -232,15 +232,37 @@ class AgentCommandProcessor:
     @classmethod
     def process_launch_command(
         cls,
-        config: dict,
-        response: str,
-        agentic_mode_active: bool = False,
-        is_launch_request: bool = False,
-        prompt: Optional[str] = None
+        *args,
+        **kwargs
     ) -> str:
         """Parse the generated response for launch directives and execute them natively."""
-        if not response:
-            return response
+        config = kwargs.get("config")
+        response = kwargs.get("response")
+        agentic_mode_active = kwargs.get("agentic_mode_active", False)
+        is_launch_request = kwargs.get("is_launch_request", False)
+        prompt = kwargs.get("prompt")
+        bridge = kwargs.get("bridge")
+
+        if args:
+            if isinstance(args[0], dict):
+                config = args[0]
+                if len(args) > 1:
+                    response = args[1]
+                if len(args) > 2:
+                    agentic_mode_active = args[2]
+                if len(args) > 3:
+                    is_launch_request = args[3]
+                if len(args) > 4:
+                    prompt = args[4]
+            elif isinstance(args[0], str):
+                response = args[0]
+                if len(args) > 1:
+                    agentic_mode_active = args[1]
+
+        if not response or not isinstance(response, str):
+            return response or ""
+
+        import re
         response = response.strip()
         if "[LAUNCH_COMMAND:" in response:
             try:
@@ -249,6 +271,12 @@ class AgentCommandProcessor:
                 if start_idx != -1 and end_idx != -1:
                     target = response[start_idx + 16:end_idx].strip().lower()
                     actual_reply = (response[:start_idx] + " " + response[end_idx + 1:]).strip()
+                    actual_reply = re.sub(
+                        r'\[\s*(?:SYSTEM_COMMAND|LAUNCH_COMMAND|WebSearchTrigger|[A-Z_]{3,}):[^\]]*\]',
+                        '',
+                        actual_reply,
+                        flags=re.IGNORECASE
+                    ).strip()
                     
                     from system.game_scanner import GameScanner
                     scanner = GameScanner(config=config)
@@ -274,7 +302,8 @@ class AgentCommandProcessor:
                         # 2. Check if Agentic Mode is active first
                         if not agentic_mode_active:
                             logger.info(f"[Agentic Launcher] Blocked launching {best_match.get('name')} because Agentic Mode is disabled.")
-                            return f"🎮 **Agentic Action Blocked**: I detected a request to launch **{best_match.get('name')}**, but **Agentic Mode** is currently disabled. Please toggle **Agentic Mode** ON in the sidebar to enable direct system control!\n\n{actual_reply}"
+                            blocked_msg = f"🎮 **Agentic Action Blocked**: I detected a request to launch **{best_match.get('name')}**, but **Agentic Mode** is currently disabled. Please toggle **Agentic Mode** ON in the top right to enable direct system control!"
+                            return f"{blocked_msg}\n\n{actual_reply}".strip() if actual_reply else blocked_msg
                         
                         exe_path = best_match.get("exe_path")
                         if exe_path and (exe_path.endswith(":") or exe_path.startswith("shell:") or os.path.exists(exe_path)):
@@ -286,20 +315,32 @@ class AgentCommandProcessor:
                                 subprocess.Popen(
                                     ["open"] if sys.platform == "darwin" else ["xdg-open", exe_path]
                                 )
-                            return f"🎮 **Agentic Launcher**: I've successfully accessed your system and launched **{best_match.get('name')}** directly!\n\n{actual_reply}"
+                            if bridge:
+                                bridge.update_state({"launch_status": {"success": True, "game_name": best_match.get("name", "Application"), "trigger": "agent"}})
+                            success_msg = f"🎮 **Agentic Launcher**: I've successfully accessed your system and launched **{best_match.get('name')}** directly!"
+                            return f"{success_msg}\n\n{actual_reply}".strip() if actual_reply else success_msg
                         else:
                             # Fallback if the path was not found or is missing
                             logger.info(f"[Agentic Launcher] Executing fallback redirect: {best_match.get('name')} path not found")
-                            return f"🎮 **Agentic Launcher**: I identified your request to open **{best_match.get('name')}**, but I couldn't locate its installation path in the default directories. I have redirected you to the **Library** page so you can scan or select it manually!\n\n{actual_reply}"
+                            if bridge:
+                                bridge.update_state({"navigate_to": "library"})
+                            fallback_msg = f"🎮 **Agentic Launcher**: I identified your request to open **{best_match.get('name')}**, but I couldn't locate its installation path in the default directories. I have redirected you to the **Library** page so you can scan or select it manually!"
+                            return f"{fallback_msg}\n\n{actual_reply}".strip() if actual_reply else fallback_msg
             except Exception as ex_launch:
                 logger.error(f"Failed in LLM launch handler: {ex_launch}")
         return response
 
     @staticmethod
-    def process_system_command(response: str, agentic_mode_active: bool = False) -> str:
+    def process_system_command(
+        response: str,
+        agentic_mode_active: bool = False,
+        bridge: Any = None,
+        pipeline: Any = None,
+        config: Optional[dict] = None
+    ) -> str:
         """Parse the response for [SYSTEM_COMMAND:...] and execute app-level configurations."""
-        if not response:
-            return response
+        if not response or not isinstance(response, str):
+            return response or ""
             
         import re
         match = re.search(r'\[\s*SYSTEM_COMMAND:([^\]]+)\]', response)
@@ -309,6 +350,12 @@ class AgentCommandProcessor:
                 start_idx = match.start()
                 end_idx = match.end()
                 actual_reply = (response[:start_idx] + " " + response[end_idx:]).strip()
+                actual_reply = re.sub(
+                    r'\[\s*(?:SYSTEM_COMMAND|LAUNCH_COMMAND|WebSearchTrigger|[A-Z_]{3,}):[^\]]*\]',
+                    '',
+                    actual_reply,
+                    flags=re.IGNORECASE
+                ).strip()
                 
                 parts = cmd_raw.split(":")
                 cmd_type = parts[0].strip()
@@ -319,7 +366,8 @@ class AgentCommandProcessor:
                 
                 if not is_navigation and not agentic_mode_active:
                     logger.info(f"[Agentic System] Blocked system command '{cmd_type}' because Agentic Mode is disabled.")
-                    return f"🛡️ **Agentic Action Blocked**: I detected a request to modify system settings (cooling/optimization), but **Agentic Mode** is currently disabled. Please toggle **Agentic Mode** ON in the sidebar to enable system control!\n\n{actual_reply}"
+                    blocked_msg = f"🛡️ **Agentic Action Blocked**: I detected a request to modify system settings (cooling/optimization), but **Agentic Mode** is currently disabled. Please toggle **Agentic Mode** ON in the top right to enable system control!"
+                    return f"{blocked_msg}\n\n{actual_reply}".strip() if actual_reply else blocked_msg
                 
                 status_msg = ""
                 if cmd_type == "set_cooling_mode":
@@ -328,29 +376,89 @@ class AgentCommandProcessor:
                         success, msg = Optimizer.set_power_plan(value)
                         status_msg = f"🛡️ **Stability Mode**: {msg}"
                     except Exception:
-                        status_msg = f"🛡️ **Stability Mode**: Cooling profile set to **{value.upper()}**."
+                        status_msg = f"🛡️ **Stability Mode**: Cooling profile set to **{value.upper() if value else 'BALANCED'}**."
+                    if pipeline and hasattr(pipeline, "_game_state") and isinstance(pipeline._game_state, dict):
+                        if hasattr(pipeline, "_state_lock"):
+                            with pipeline._state_lock:
+                                pipeline._game_state["cooling_mode"] = value
+                                pipeline._game_state["cooling_applied"] = True
+                        else:
+                            pipeline._game_state["cooling_mode"] = value
+                            pipeline._game_state["cooling_applied"] = True
+                    if bridge:
+                        bridge.update_state({"cooling_mode": value, "cooling_applied": True})
+
                 elif cmd_type == "toggle_vision":
-                    status_msg = f"👁️ **Vision Control**: Tactical vision overlay turned **{value.upper()}**."
+                    is_on = (value or "").lower() in ("on", "true", "1", "enable", "enabled")
+                    if pipeline and hasattr(pipeline, "toggle_vision"):
+                        try:
+                            pipeline.toggle_vision(is_on)
+                        except Exception as vis_e:
+                            logger.error(f"toggle_vision error: {vis_e}")
+                    if bridge:
+                        bridge.update_state({"vision_active": is_on})
+                    status_msg = f"👁️ **Vision Control**: Tactical vision overlay turned **{value.upper() if value else 'ON'}**."
+
                 elif cmd_type == "optimize_system":
                     try:
                         from system.optimizer import Optimizer
-                        success, results = Optimizer.optimize_game({})
-                        status_msg = "⚡ **Neural Pulse**: " + " ".join(results)
-                    except Exception:
+                        active_game = getattr(pipeline, "current_game", None) if pipeline else None
+                        if not active_game and pipeline and hasattr(pipeline, "_game_state") and isinstance(pipeline._game_state, dict):
+                            game_info = pipeline._game_state.get("game_info")
+                            if isinstance(game_info, dict):
+                                active_game = game_info.get("name", "")
+                        game_data = {"name": active_game, "exe_path": active_game} if isinstance(active_game, str) else (active_game if isinstance(active_game, dict) else {})
+                        cfg = config or (getattr(pipeline, "config", {}) if pipeline else {})
+                        success, results = Optimizer.optimize_game(game_data, cfg)
+                        if pipeline and hasattr(pipeline, "_game_state") and isinstance(pipeline._game_state, dict):
+                            if hasattr(pipeline, "_state_lock"):
+                                with pipeline._state_lock:
+                                    pipeline._game_state["game_mode_manual"] = True
+                                    pipeline._game_state["cooling_mode"] = "max"
+                                    pipeline._game_state["cooling_applied"] = True
+                            else:
+                                pipeline._game_state["game_mode_manual"] = True
+                                pipeline._game_state["cooling_mode"] = "max"
+                                pipeline._game_state["cooling_applied"] = True
+                        if bridge:
+                            bridge.update_state({
+                                "optimization_status": {"success": success, "results": results, "active": True},
+                                "cooling_mode": "max",
+                                "cooling_applied": True,
+                            })
+                        status_msg = "⚡ **Neural Pulse**: " + (" ".join(results) if results else "System optimized! VRAM cleared and background processes suspended.")
+                    except Exception as opt_e:
+                        logger.error(f"optimize_system error: {opt_e}")
                         status_msg = "⚡ **Neural Pulse**: System optimized! VRAM cleared and background processes suspended."
+
                 elif cmd_type == "open_page":
-                    status_msg = f"🖥️ **Agentic Navigation**: Redirecting you to the **{value.capitalize()}** panel..."
+                    target = (value or "dashboard").lower()
+                    if bridge:
+                        bridge.update_state({"navigate_to": target})
+                    status_msg = f"🖥️ **Agentic Navigation**: Redirecting you to the **{target.capitalize()}** panel..."
+
                 elif cmd_type == "check_updates":
+                    if bridge:
+                        bridge.update_state({"trigger_action": "check_updates"})
                     status_msg = f"🔄 **Update Check**: Initiating update check..."
+
                 elif cmd_type == "rollback_release":
+                    if bridge:
+                        bridge.update_state({"trigger_action": "rollback_release"})
                     status_msg = f"⚠️ **Emergency Rollback**: Initiating rollback to the previous stable release..."
+
                 elif cmd_type == "scan_library":
+                    if bridge:
+                        bridge.update_state({"trigger_action": "scan_library"})
                     status_msg = f"🔍 **Library Scan**: Scanning system for installed games..."
+
                 elif cmd_type == "system_status":
+                    if bridge:
+                        bridge.update_state({"trigger_action": "system_status"})
                     status_msg = f"📊 **System Status**: Triggering system diagnostics..."
 
                 if status_msg:
-                    return f"{status_msg}\n\n{actual_reply}"
+                    return f"{status_msg}\n\n{actual_reply}".strip() if actual_reply else status_msg
                 return actual_reply
             except Exception as e:
                 logger.error(f"Failed to process system command: {e}")

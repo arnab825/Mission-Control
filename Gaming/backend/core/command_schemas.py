@@ -18,6 +18,28 @@ class ExecutePayload(BaseCommandPayload):
     input: str = Field(min_length=1, max_length=5000)
     sessionId: Optional[str] = Field(default="default", max_length=128)
     userId: Optional[str] = Field(default="guest", max_length=128)
+    isAgentic: Optional[bool] = Field(default=None)
+
+
+class ToggleAgentModePayload(BaseCommandPayload):
+    active: bool = Field(default=False)
+    userId: Optional[str] = Field(default="guest", max_length=128)
+
+
+class SetPersonalityPayload(BaseCommandPayload):
+    personality: str = Field(min_length=1, max_length=64)
+
+
+class ToggleVoicePayload(BaseCommandPayload):
+    active: bool = Field(default=False)
+
+
+class RetryMessagePayload(BaseCommandPayload):
+    text: str = Field(min_length=1, max_length=5000)
+    oldText: Optional[str] = Field(default="", max_length=5000)
+    messageId: Optional[Any] = None
+    sessionId: Optional[str] = Field(default="default", max_length=128)
+    userId: Optional[str] = Field(default="guest", max_length=128)
 
 
 class LaunchGamePayload(BaseCommandPayload):
@@ -147,6 +169,11 @@ COMMAND_SCHEMA_MAP = {
     "uninstall_ai_model": ModelActionPayload,
     "scan_preset_optimizer": ScanPresetOptimizerPayload,
     "request_state": BaseCommandPayload,
+    "toggle_agent_mode": ToggleAgentModePayload,
+    "set_personality": SetPersonalityPayload,
+    "toggle_voice": ToggleVoicePayload,
+    "stop_voice": EmptyPayload,
+    "retry_message": RetryMessagePayload,
 }
 
 

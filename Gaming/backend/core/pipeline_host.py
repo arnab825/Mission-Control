@@ -2254,15 +2254,19 @@ class GamingAssistantPipeline:
                     try:
                         from control.agent_commands import AgentCommandProcessor
                         processed_response = AgentCommandProcessor.process_launch_command(
-                            final_response,
+                            response=final_response,
                             agentic_mode_active=self.agentic_mode_active,
                             config=self.config,
                             is_launch_request=True,
-                            prompt=text
+                            prompt=text,
+                            bridge=bridge
                         )
                         processed_response = AgentCommandProcessor.process_system_command(
                             processed_response,
-                            agentic_mode_active=self.agentic_mode_active
+                            agentic_mode_active=self.agentic_mode_active,
+                            bridge=bridge,
+                            pipeline=self,
+                            config=self.config
                         )
                         final_response = processed_response
                     except Exception as ex_proc:
