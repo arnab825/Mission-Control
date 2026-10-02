@@ -1,10 +1,10 @@
 {
   "nodeId": "NODE-0F6642",
   "name": "My-Gaming-Rig",
-  "serverUrl": "https://mission-control-service-g7hfgye5hcamc9f2.centralindia-01.azurewebsites.net",
+  "serverUrl": "https://mission-control-server-okj7.onrender.com",
   "azureServerUrl": "https://mission-control-service-g7hfgye5hcamc9f2.centralindia-01.azurewebsites.net",
   "backupServerUrl": "https://mission-control-server-okj7.onrender.com",
-  "token": "fstpIXNCcLS4sCKZ77Fh6MZRQsTst873z3bthl5UTaI",
+  "token": "gfRh-avdovtsnItCi8laJ31Q8qiC66eahhNecyzY60I",
   "clerkId": "user_3ElomWyS7UUUQxHLvkDod330GTz",
   "authProvider": "",
   "scanPaths": [

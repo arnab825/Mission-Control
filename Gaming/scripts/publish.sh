@@ -36,9 +36,10 @@ fi
 
 # 2. Stage version release files for commit (if in a git repository)
 VERSION=$(python3 -c "import json; print(json.load(open('backend/version.json'))['version'])")
-if git rev-parse --is-inside-work-tree >/dev/null 2>&1; then
-    git add -A backend/version.json website/version.json frontend/package.json frontend/package-lock.json website/package.json backend/pyproject.toml backend/uv.lock docs website/docs readme.md README.md 2>/dev/null || true
+    git add -A backend/version.json website/version.json frontend/package.json frontend/package-lock.json website/package.json backend/pyproject.toml backend/uv.lock docs website/docs winget distributed_node readme.md README.md 2>/dev/null || true
     git add "*.md" "docs/**/*.md" "website/docs/**/*.md" 2>/dev/null || true
+    git add -u 2>/dev/null || true
+    git add -A winget distributed_node 2>/dev/null || true
     echo -e "\033[0;36m[COMMIT] Creating release v${VERSION}\033[0m"
     git commit -m "Release v${VERSION}: $TITLE" || true
     git tag -a "v${VERSION}" -m "Release v${VERSION}: $TITLE" || true

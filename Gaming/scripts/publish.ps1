@@ -100,7 +100,7 @@ try {
             }
         }
 
-        # Helper script block to stage all release manifests, lockfiles, and markdown documentation
+        # Helper script block to stage all release manifests, lockfiles, winget manifests, and documentation
         $stageReleaseFiles = {
             $pathsToStage = @(
                 "backend/version.json",
@@ -112,6 +112,9 @@ try {
                 "website/package.json",
                 "docs",
                 "website/docs",
+                "winget",
+                "../Gaming/winget",
+                "distributed_node",
                 "readme.md",
                 "README.md",
                 "../readme.md",
@@ -124,6 +127,12 @@ try {
             }
             # Automatically stage any modified documentation files across the tree
             git add "*.md" "docs/**/*.md" "website/docs/**/*.md" 2>$null
+            # Automatically stage all modified tracked files across the repository
+            git add -u 2>$null
+            # Explicitly stage newly generated winget manifests and distributed configs
+            if (Test-Path "winget") { git add -A "winget" 2>$null }
+            if (Test-Path "../Gaming/winget") { git add -A "../Gaming/winget" 2>$null }
+            if (Test-Path "distributed_node") { git add -A "distributed_node" 2>$null }
         }
 
         # 3. Stage version release files
