@@ -13,6 +13,7 @@
     "scripts": {
         "setup": "node ../scripts/setup_env.mjs",
         "prebuild": "python ../scripts/sync_version.py",
+        "predev": "node ./scripts/clean-electron.mjs",
         "dev": "vite",
         "build": "tsc -b && vite build",
         "lint": "eslint .",

@@ -135,6 +135,22 @@ if (process.platform === 'win32' && handleSquirrelEvent()) {
   process.exit(0);
 }
 
+function configureElectronStoragePaths() {
+  const localAppData = process.env.LOCALAPPDATA || app.getPath('appData')
+  const userDataPath = path.join(localAppData, 'MissionControl', 'Electron')
+
+  try {
+    fs.mkdirSync(userDataPath, { recursive: true })
+    app.setPath('userData', userDataPath)
+    console.log(`[Electron] Using userData path: ${userDataPath}`)
+  } catch (err) {
+    console.warn('[Electron] Failed to set custom userData path, continuing with default:', err)
+  }
+}
+
+// Configure storage paths BEFORE single instance lock so lock file is placed in dedicated userData
+configureElectronStoragePaths()
+
 // Enforce single-instance lock to prevent port and backend process collisions
 const gotTheLock = app.requestSingleInstanceLock()
 if (!gotTheLock) {
@@ -143,8 +159,9 @@ if (!gotTheLock) {
   process.exit(0)
 } else {
   app.on('second-instance', () => {
-    // Focus the main window if a second instance is launched
+    // Focus and restore the main window if a second instance is launched
     if (win) {
+      if (!win.isVisible()) win.show()
       if (win.isMinimized()) win.restore()
       win.focus()
     }
@@ -498,20 +515,6 @@ function createTray() {
   }
 }
 
-function configureElectronStoragePaths() {
-  const localAppData = process.env.LOCALAPPDATA || app.getPath('appData')
-  const userDataPath = path.join(localAppData, 'MissionControl', 'Electron')
-
-  try {
-    fs.mkdirSync(userDataPath, { recursive: true })
-    app.setPath('userData', userDataPath)
-    console.log(`[Electron] Using userData path: ${userDataPath}`)
-  } catch (err) {
-    console.warn('[Electron] Failed to set custom userData path, continuing with default:', err)
-  }
-}
-
-configureElectronStoragePaths()
 
 function startPythonBackend(forceRestart = false) {
   if (isAppQuitting) return;
