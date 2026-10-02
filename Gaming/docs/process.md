@@ -149,6 +149,9 @@ winget install arnab825.MissionControl
 # Upgrade an existing installation
 winget upgrade arnab825.MissionControl
 
+# Uninstall Mission Control cleanly
+winget uninstall arnab825.MissionControl
+
 # Upgrade all system packages including Mission Control
 winget upgrade --all
 ```

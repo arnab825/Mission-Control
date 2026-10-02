@@ -1,8 +1,8 @@
 param (
-    [ValidateSet('Validate', 'Install', 'UpdateHash', 'Help')]
+    [ValidateSet('Validate', 'Install', 'Uninstall', 'UpdateHash', 'Help')]
     [string]$Action = 'Validate',
 
-    [string]$Version = '3.7.9'
+    [string]$Version = '3.8.1'
 )
 
 $ErrorActionPreference = 'Stop'
@@ -59,6 +59,13 @@ function Install-App {
     & winget install --manifest $target --accept-package-agreements --accept-source-agreements --force
 }
 
+function Uninstall-App {
+    Check-Winget
+    Write-Host ""
+    Write-Host "=== Uninstalling Mission Control via Winget ===" -ForegroundColor Cyan
+    & winget uninstall --id arnab825.MissionControl --force
+}
+
 function Update-Hash {
     if (-not (Test-Path $SetupExe)) {
         Write-Error "Setup executable not found at: $SetupExe. Please build with npm run make:win first."
@@ -91,11 +98,13 @@ function Update-Hash {
 switch ($Action) {
     'Validate'   { Test-Manifests }
     'Install'    { Install-App }
+    'Uninstall'  { Uninstall-App }
     'UpdateHash' { Update-Hash }
     'Help'       {
         Write-Host "Mission Control Winget Setup Utilities:"
         Write-Host "  .\install.ps1 -Action Validate    - Validates Winget manifests using Microsoft Winget schema validator"
         Write-Host "  .\install.ps1 -Action Install     - Installs Mission Control locally using winget install --manifest"
+        Write-Host "  .\install.ps1 -Action Uninstall   - Uninstalls Mission Control using winget uninstall"
         Write-Host "  .\install.ps1 -Action UpdateHash  - Re-computes SHA256 of frontend/out/dist/MissionControl-Setup.exe and writes to manifests"
         Write-Host ""
         Write-Host "To submit to the official Windows Package Manager Community Repository (microsoft/winget-pkgs):"

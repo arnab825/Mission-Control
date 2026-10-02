@@ -13,12 +13,20 @@ Installer Type: `nullsoft` (NSIS)
 
 ### 1. From Official Repository (Once Published)
 ```powershell
+# Install
 winget install arnab825.MissionControl
+
+# Upgrade
+winget upgrade arnab825.MissionControl
+
+# Uninstall
+winget uninstall arnab825.MissionControl
 ```
 
 Or by moniker:
 ```powershell
 winget install --moniker mission-control
+winget uninstall --moniker mission-control
 ```
 
 ### 2. Local Direct Installation (From This Repository)
