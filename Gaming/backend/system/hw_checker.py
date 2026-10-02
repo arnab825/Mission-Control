@@ -531,12 +531,12 @@ class HardwareChecker:
             import subprocess
             
             ps_cmd = (
-                'powershell -Command "'
+                'powershell -NoProfile -Command "'
                 '$disks = Get-Disk | Select-Object Number, FriendlyName, MediaType, BusType, Size, SerialNumber, IsSystem, IsBoot; '
                 '$partitions = Get-Partition | Where-Object { $_.DriveLetter } | Select-Object DiskNumber, DriveLetter, IsSystem, IsBoot; '
-                '$pagefiles = Get-CimInstance Win32_PageFileUsage | Select-Object Name; '
-                '$ram = Get-CimInstance Win32_PhysicalMemory | Select-Object DeviceLocator, Capacity, Speed, Manufacturer, PartNumber, ConfiguredVoltage, SMBIOSMemoryType; '
-                '$usb = Get-PnpDevice -PresentOnly | Where-Object { $_.Class -match \'Mouse|Keyboard|USB|HIDClass\' -and $_.FriendlyName -notmatch \'Hub|Controller|Root|Generic|Enumerator|Host\' } | Select-Object FriendlyName, Status; '
+                '$pagefiles = Get-CimInstance Win32_PageFileUsage -ErrorAction SilentlyContinue | Select-Object Name; '
+                '$ram = Get-CimInstance Win32_PhysicalMemory -ErrorAction SilentlyContinue | Select-Object DeviceLocator, Capacity, Speed, Manufacturer, PartNumber, ConfiguredVoltage, SMBIOSMemoryType; '
+                '$usb = Get-PnpDevice -PresentOnly -ErrorAction SilentlyContinue | Where-Object { $_.Class -match \'Mouse|Keyboard|USB|HIDClass\' -and $_.FriendlyName -notmatch \'Hub|Controller|Root|Generic|Enumerator|Host\' } | Select-Object FriendlyName, Status; '
                 '@{disks=$disks; partitions=$partitions; pagefiles=$pagefiles; ram=$ram; usb=$usb} | ConvertTo-Json -Compress"'
             )
             si = subprocess.STARTUPINFO()

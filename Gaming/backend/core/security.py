@@ -96,7 +96,7 @@ def get_motherboard_uuid() -> str:
         if not uuid_str:
             import subprocess
             try:
-                cmd = "powershell -Command \"(Get-CimInstance Win32_ComputerSystemProduct).UUID\""
+                cmd = "powershell -NoProfile -Command \"(Get-CimInstance Win32_ComputerSystemProduct -ErrorAction SilentlyContinue).UUID\""
                 # Hide the console window on Windows
                 si = None
                 creationflags = 0
@@ -108,6 +108,7 @@ def get_motherboard_uuid() -> str:
                 uuid_str = subprocess.check_output(
                     cmd, 
                     shell=True,
+                    stderr=subprocess.DEVNULL,
                     startupinfo=si,
                     creationflags=creationflags
                 ).decode().strip()

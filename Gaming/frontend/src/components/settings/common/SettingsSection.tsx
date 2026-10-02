@@ -86,11 +86,11 @@ export const SettingsSection: React.FC<{
           </div>
         )}
         <div className="flex items-center gap-3 flex-1 min-w-0">
-          <h3 className="text-xs font-black text-neon-green uppercase tracking-[0.2em] whitespace-nowrap">{title}</h3>
-          <div className="flex-1 h-px bg-gradient-to-r from-neon-green/30 via-white/5 to-transparent" />
+          <h3 className="text-xs font-black text-neon-green uppercase tracking-[0.2em] truncate">{title}</h3>
+          <div className="flex-1 h-px bg-gradient-to-r from-neon-green/30 via-white/5 to-transparent min-w-[20px]" />
         </div>
       </div>
-      <div className="bg-[#0c0c10]/60 border border-white/15 rounded-3xl p-8 space-y-8 backdrop-blur-md shadow-[0_0_20px_rgba(118,185,0,0.05)]">
+      <div className="bg-[#0c0c10]/60 border border-white/15 rounded-2xl sm:rounded-3xl p-3.5 sm:p-6 lg:p-8 space-y-5 sm:space-y-8 backdrop-blur-md shadow-[0_0_20px_rgba(118,185,0,0.05)]">
         {children}
       </div>
     </div>

@@ -12,11 +12,11 @@ export const AZURE_LIBRARY_SERVER_URL = (window as any).__AZURE_LIBRARY_SERVER_U
   || (import.meta as any).env?.VITE_AZURE_SERVER_URL
   || 'https://mission-control-service-g7hfgye5hcamc9f2.centralindia-01.azurewebsites.net';
 
-// Candidate endpoints ordered by priority: Primary Render -> Azure High Availability -> Secondary Render
+// Candidate endpoints ordered by priority: Primary Render -> Secondary Render -> Azure High Availability
 export const CANDIDATE_LIBRARY_SERVER_URLS = [
   PRIMARY_LIBRARY_SERVER_URL,
-  AZURE_LIBRARY_SERVER_URL,
   BACKUP_LIBRARY_SERVER_URL,
+  AZURE_LIBRARY_SERVER_URL,
 ].filter(Boolean);
 
 let _activeServerUrl = CANDIDATE_LIBRARY_SERVER_URLS[0] || '';
@@ -72,7 +72,7 @@ export async function fetchWithFailover(path: string, options: RequestInit = {})
       console.warn(`[Failover] Endpoint ${cleanBase} returned ${res.status}. Trying next backup server...`);
       lastError = new Error(`Server returned status ${res.status}`);
     } catch (err: any) {
-      console.warn(`[Failover] Failed to connect to ${cleanBase}:`, err?.message || err);
+      console.info(`[Failover] Server ${cleanBase} unreachable (${err?.message || err}). Trying next candidate server...`);
       lastError = err;
     }
   }
@@ -90,7 +90,7 @@ export interface DistributedStats {
   nodes: Array<{ node_id: string; name: string; status: string; storage_total: number; storage_used: number; game_count?: number }>;
 }
 
-export function useDistributedStats(userId?: string | null): { stats: DistributedStats | null; serverOnline: boolean; activeUrl: string } {
+export function useDistributedStats(userId?: string | null): { stats: DistributedStats | null; serverOnline: boolean; activeUrl: string; refreshStats: () => Promise<void> } {
   const [stats, setStats] = useState<DistributedStats | null>(null);
   const [serverOnline, setServerOnline] = useState(false);
   const [activeUrl, setActiveUrl] = useState<string>(_activeServerUrl);
@@ -125,6 +125,15 @@ export function useDistributedStats(userId?: string | null): { stats: Distribute
             }
           }
         }
+        if (data) {
+          // If total_storage_bytes is 0 (or undefined) but nodes contain storage_total, compute the sum
+          if ((!data.total_storage_bytes || data.total_storage_bytes === 0) && Array.isArray(data.nodes) && data.nodes.length > 0) {
+            data.total_storage_bytes = data.nodes.reduce((acc: number, n: any) => acc + (Number(n.storage_total) || 0), 0);
+          }
+          if ((!data.used_storage_bytes || data.used_storage_bytes === 0) && Array.isArray(data.nodes) && data.nodes.length > 0) {
+            data.used_storage_bytes = data.nodes.reduce((acc: number, n: any) => acc + (Number(n.storage_used) || 0), 0);
+          }
+        }
         setStats(data);
         setServerOnline(true);
         setActiveUrl(_activeServerUrl);
@@ -142,5 +151,6 @@ export function useDistributedStats(userId?: string | null): { stats: Distribute
     return () => clearInterval(t);
   }, [fetchStats]);
 
-  return { stats, serverOnline, activeUrl };
+  return { stats, serverOnline, activeUrl, refreshStats: fetchStats };
 }
+

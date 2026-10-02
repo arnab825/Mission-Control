@@ -207,28 +207,28 @@ export const ControllerMapping: React.FC<ControllerMappingProps> = ({ state, sen
   return (
     <div className="space-y-6">
       {/* Header Banner */}
-      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 p-5 bg-white/[0.03] border border-white/10 rounded-3xl">
-        <div className="flex items-center gap-3">
-          <div className="p-3 rounded-2xl bg-neon-green/10 border border-neon-green/30 text-neon-green">
-            <Gamepad2 className="w-6 h-6" />
+      <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 p-4 sm:p-5 bg-white/[0.03] border border-white/10 rounded-2xl sm:rounded-3xl">
+        <div className="flex items-center gap-3 min-w-0">
+          <div className="p-2.5 sm:p-3 rounded-2xl bg-neon-green/10 border border-neon-green/30 text-neon-green shrink-0">
+            <Gamepad2 className="w-5 h-5 sm:w-6 sm:h-6" />
           </div>
-          <div>
-            <h3 className="text-sm font-black text-white uppercase tracking-wider">Controller & Gamepad Configuration</h3>
-            <p className="text-[10px] font-bold text-zinc-500 uppercase tracking-widest mt-0.5">
+          <div className="min-w-0">
+            <h3 className="text-xs sm:text-sm font-black text-white uppercase tracking-wider truncate">Controller & Gamepad Configuration</h3>
+            <p className="text-[9px] sm:text-[10px] font-bold text-zinc-500 uppercase tracking-widest mt-0.5 truncate">
               Xbox · PlayStation · XInput · DirectInput Support
             </p>
           </div>
         </div>
 
-        <div className="flex items-center gap-3">
+        <div className="flex flex-col xs:flex-row items-stretch xs:items-center gap-2 sm:gap-3 w-full md:w-auto">
           {gamepads.length > 0 ? (
-            <div className="flex items-center gap-2 px-3 py-1.5 rounded-xl bg-neon-green/10 border border-neon-green/30 text-neon-green font-mono text-[10px] font-black uppercase">
+            <div className="flex items-center justify-center gap-2 px-3 py-1.5 rounded-xl bg-neon-green/10 border border-neon-green/30 text-neon-green font-mono text-[10px] font-black uppercase">
               <span className="w-2 h-2 rounded-full bg-neon-green animate-pulse" />
-              <span>{gamepads.length} Device(s) Connected</span>
+              <span>{gamepads.length} Connected</span>
             </div>
           ) : (
-            <div className="flex items-center gap-2 px-3 py-1.5 rounded-xl bg-white/5 border border-white/10 text-zinc-400 font-mono text-[10px] font-black uppercase">
-              <AlertCircle className="w-3.5 h-3.5 text-amber-400" />
+            <div className="flex items-center justify-center gap-2 px-3 py-1.5 rounded-xl bg-white/5 border border-white/10 text-zinc-400 font-mono text-[9px] sm:text-[10px] font-black uppercase whitespace-nowrap">
+              <AlertCircle className="w-3.5 h-3.5 text-amber-400 shrink-0" />
               <span>No Controller Detected</span>
             </div>
           )}
@@ -236,7 +236,7 @@ export const ControllerMapping: React.FC<ControllerMappingProps> = ({ state, sen
           <button
             type="button"
             onClick={handleSave}
-            className="flex items-center gap-2 px-4 py-2 bg-neon-green hover:bg-[#8aff00] text-black font-black uppercase text-[10px] tracking-widest rounded-xl transition-all shadow-[0_0_15px_rgba(118,185,0,0.25)] cursor-pointer"
+            className="flex items-center justify-center gap-2 px-4 py-2 bg-neon-green hover:bg-[#8aff00] text-black font-black uppercase text-[10px] tracking-widest rounded-xl transition-all shadow-[0_0_15px_rgba(118,185,0,0.25)] cursor-pointer whitespace-nowrap active:scale-95"
           >
             {savedSuccess ? <Check className="w-4 h-4" /> : <Zap className="w-4 h-4" />}
             <span>{savedSuccess ? 'Saved!' : 'Save Mappings'}</span>
@@ -248,7 +248,7 @@ export const ControllerMapping: React.FC<ControllerMappingProps> = ({ state, sen
       <div className="grid grid-cols-1 lg:grid-cols-12 gap-6">
         
         {/* Left Column: Interactive Gamepad Diagram */}
-        <div className="lg:col-span-6 bg-black/40 border border-white/10 rounded-3xl p-6 flex flex-col justify-between items-center relative overflow-hidden">
+        <div className="lg:col-span-6 bg-black/40 border border-white/10 rounded-2xl sm:rounded-3xl p-4 sm:p-6 flex flex-col justify-between items-center relative overflow-hidden">
           <div className="w-full flex items-center justify-between mb-4">
             <span className="text-[10px] font-black text-zinc-500 uppercase tracking-widest font-mono">
               Live Input Tester
@@ -337,18 +337,18 @@ export const ControllerMapping: React.FC<ControllerMappingProps> = ({ state, sen
           </div>
 
           {/* Test Rumble & Deadzone Quick Controls */}
-          <div className="w-full grid grid-cols-2 gap-3 pt-4 border-t border-white/5">
+          <div className="w-full grid grid-cols-1 sm:grid-cols-2 gap-2 sm:gap-3 pt-3 sm:pt-4 border-t border-white/5">
             <button
               type="button"
               onClick={handleTestRumble}
-              className={`py-2 px-3 rounded-xl border flex items-center justify-center gap-2 text-[10px] font-black uppercase tracking-wider transition-all cursor-pointer ${
+              className={`py-2 px-3 rounded-xl border flex items-center justify-center gap-2 text-[9px] sm:text-[10px] font-black uppercase tracking-wider transition-all cursor-pointer ${
                 isRumblerActive
                   ? 'bg-neon-green text-black border-neon-green animate-bounce'
                   : 'bg-white/5 border-white/10 text-zinc-300 hover:border-white/20'
               }`}
             >
-              <Volume2 className="w-3.5 h-3.5" />
-              <span>Test Haptics / Vibration</span>
+              <Volume2 className="w-3.5 h-3.5 shrink-0" />
+              <span>Test Vibration</span>
             </button>
 
             <div className="flex items-center justify-between px-3 py-1.5 bg-white/5 border border-white/10 rounded-xl font-mono text-[9px]">
@@ -362,7 +362,7 @@ export const ControllerMapping: React.FC<ControllerMappingProps> = ({ state, sen
         <div className="lg:col-span-6 space-y-5">
           
           {/* Action Mapping Table */}
-          <div className="bg-white/[0.04] border border-white/10 rounded-3xl p-5 space-y-4 shadow-[0_0_15px_rgba(118,185,0,0.02)]">
+          <div className="bg-white/[0.04] border border-white/10 rounded-2xl sm:rounded-3xl p-4 sm:p-5 space-y-4 shadow-[0_0_15px_rgba(118,185,0,0.02)]">
             <div className="flex items-center justify-between">
               <span className="text-[10px] font-black text-zinc-400 uppercase tracking-widest font-mono">
                 Mission Control Feature Bindings

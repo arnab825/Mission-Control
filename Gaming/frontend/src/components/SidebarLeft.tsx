@@ -81,37 +81,39 @@ const Sidebar: React.FC<SidebarProps> = ({
       {/* Mobile Overlay */}
       {isOpen && (
         <div role="button" tabIndex={0} onKeyDown={(e) => e.key === 'Enter' && e.currentTarget.click()}
-          className="fixed inset-0 bg-black/60 backdrop-blur-sm z-60 lg:hidden"
+          className="fixed top-10 inset-x-0 bottom-0 bg-black/60 backdrop-blur-sm z-60 lg:hidden"
           onClick={onClose}
         />
       )}
 
       <div className={`
-        fixed inset-y-0 left-0 z-70 w-72 bg-zinc-950/70 backdrop-blur-md border-r border-white/5 flex flex-col p-4 pb-6 overflow-y-auto no-scrollbar
-        transition-transform duration-500 ease-in-out lg:relative lg:translate-x-0
-        ${isOpen ? 'translate-x-0' : '-translate-x-full'}
+        fixed top-10 bottom-0 left-0 z-70 w-full max-w-75 sm:w-72 bg-zinc-950/95 backdrop-blur-xl border-r border-white/5 flex flex-col p-4 pb-6 overflow-y-auto no-scrollbar
+        transition-transform duration-300 ease-in-out lg:relative lg:top-0 lg:h-full lg:max-w-none lg:w-72 lg:translate-x-0
+        ${isOpen ? 'translate-x-0 shadow-2xl' : '-translate-x-full'}
       `}>
         
         {/* Brand Logo Header */}
-        <div className="flex items-center gap-2.5 px-2 mb-4 border-b border-white/5 pb-4">
-          <div className="w-7 h-7 rounded-lg border border-neon-green/45 flex items-center justify-center bg-neon-green/5 overflow-hidden p-0.5 shadow-[0_0_12px_rgba(118, 185, 0,0.15)]">
-            <img src="/logo.png" className="w-full h-full object-contain" alt="Logo" />
+        <div className="flex items-center justify-between px-2 mb-4 border-b border-white/5 pb-4">
+          <div className="flex items-center gap-2.5">
+            <div className="w-7 h-7 rounded-lg border border-neon-green/45 flex items-center justify-center bg-neon-green/5 overflow-hidden p-0.5 shadow-[0_0_12px_rgba(118, 185, 0,0.15)]">
+              <img src="/logo.png" className="w-full h-full object-contain" alt="Logo" />
+            </div>
+            <span className="text-[13px] font-black tracking-widest text-white uppercase font-display">
+              Mission <span className="text-neon-green">Control</span>
+            </span>
           </div>
-          <span className="text-[13px] font-black tracking-widest text-white uppercase font-display">
-            Mission <span className="text-neon-green">Control</span>
-          </span>
+          <button aria-label="button" type="button"
+            onClick={onClose}
+            className="p-1.5 hover:bg-white/10 rounded-lg text-zinc-400 hover:text-white lg:hidden transition-colors cursor-pointer"
+          >
+            <X className="w-4 h-4" />
+          </button>
         </div>
 
         {/* ── TOP SECTION: Navigation ────────────────────────────── */}
         <div className="mb-4 space-y-0.5">
-          <div className="flex items-center justify-between px-2 mb-3">
+          <div className="px-2 mb-3">
             <span className="text-[11px] font-black text-zinc-500 uppercase tracking-[0.2em]">Navigation</span>
-            <button aria-label="button" type="button"
-              onClick={onClose}
-              className="p-1.5 hover:bg-white/5 rounded-lg text-zinc-600 lg:hidden"
-            >
-              <X className="w-4 h-4" />
-            </button>
           </div>
           
           {navItems.map((item) => {

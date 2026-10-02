@@ -23,7 +23,13 @@ import {
   ChevronDown,
   Server,
   HardDrive,
-  Gamepad2
+  Gamepad2,
+  Share2,
+  Copy,
+  Check,
+  FileText,
+  MessageSquare,
+  ExternalLink
 } from 'lucide-react';
 import type { TelemetryState } from '../types/telemetry';
 import NeuralHistory from '../components/NeuralHistory';
@@ -33,7 +39,7 @@ import { useDistributedStats } from '../hooks/useDistributedStats';
 /* ─── Sub-components ─────────────────────────────────────────────── */
 
 const StatusItem: React.FC<{ label: string; active: boolean; icon: any }> = ({ label, active, icon: Icon }) => (
-  <div className="flex items-center justify-between p-2.5 rounded-lg bg-gradient-to-br from-white/[0.05] to-transparent border border-white/4 hover:bg-white/4 transition-all">
+  <div className="flex items-center justify-between p-2.5 rounded-lg bg-linear-to-br from-white/5 to-transparent border border-white/4 hover:bg-white/4 transition-all">
     <div className="flex items-center gap-2.5">
       <div className={`p-1.5 rounded-md ${active ? 'bg-neon-green/10 text-neon-green' : 'bg-zinc-800/60 text-zinc-600'}`}>
         <Icon className="w-3 h-3" />
@@ -52,7 +58,7 @@ const StatusItem: React.FC<{ label: string; active: boolean; icon: any }> = ({ l
 );
 
 const CapabilityCard: React.FC<{ title: string; description: string; icon: any }> = ({ title, description, icon: Icon }) => (
-  <div className="p-3 rounded-xl bg-gradient-to-br from-white/[0.05] to-transparent border border-white/4 hover:border-neon-green/15 transition-all group relative overflow-hidden">
+  <div className="p-3 rounded-xl bg-linear-to-br from-white/5 to-transparent border border-white/4 hover:border-neon-green/15 transition-all group relative overflow-hidden">
     <div className="absolute top-2 right-2 opacity-[0.06] group-hover:opacity-[0.12] transition-opacity">
       <Icon className="w-6 h-6 text-neon-green" />
     </div>
@@ -615,8 +621,12 @@ const AgentPage: React.FC<{
 }) => {
     const { user, isSignedIn } = useUser();
     const userId = isSignedIn && user ? user.id : 'guest';
-    const { stats: distributedStats, serverOnline: libraryServerOnline } = useDistributedStats(userId);
+    const { stats: distributedStats, serverOnline: libraryServerOnline, refreshStats } = useDistributedStats(userId);
     const isCompact = isPopup && state?.config?.overlay?.agent_compact === true;
+
+    const [isShareModalOpen, setIsShareModalOpen] = useState(false);
+    const [shareCopied, setShareCopied] = useState<string | null>(null);
+    const [isManualRefreshing, setIsManualRefreshing] = useState(false);
 
     const [input, setInput] = useState('');
     const [isListening, setIsListening] = useState(false);
@@ -749,7 +759,30 @@ const AgentPage: React.FC<{
     }, [isGeneratingKeys, userId, activeSessionId]);
 
     const [historyItems, setHistoryItems] = useState<any[]>([]);
-    const [conversations, setConversations] = useState<Record<string, { role: 'agent' | 'user'; text: string; time: string; isTyping?: boolean; isThinking?: boolean; id?: string; dbId?: number; searchStatus?: string }[]>>({});
+    const [conversations, setConversations] = useState<Record<string, { role: 'agent' | 'user'; text: string; time: string; isTyping?: boolean; isThinking?: boolean; id?: string; dbId?: number; searchStatus?: string }[]>>(() => {
+      if (state?.chat_history?.sessionId && Array.isArray(state?.chat_history?.messages)) {
+        const { sessionId, messages } = state.chat_history;
+        const mapped = messages.map((m: any, idx: number) => {
+          let textVal = m.content || m.text || '';
+          let searchStatus: string | undefined = undefined;
+          if (textVal.includes('\u200bsearch_status:')) {
+            const parts = textVal.split('\u200bsearch_status:');
+            textVal = parts[0];
+            searchStatus = parts[1];
+          }
+          return {
+            ...m,
+            text: textVal,
+            dbId: m.id,
+            searchStatus,
+            id: m.id ? String(m.id) : `msg_${sessionId}_${idx}_${Math.floor((m.timestamp || 0) * 1000)}`,
+            time: m.timestamp ? new Date(m.timestamp * 1000).toLocaleTimeString([], { hour12: false }) : 'Just now'
+          };
+        });
+        return { [sessionId]: mapped };
+      }
+      return {};
+    });
     const [isHistoryLoading, setIsHistoryLoading] = useState(false);
 
     const lastLoadedUserIdRef = useRef<string | null>(null);
@@ -763,10 +796,16 @@ const AgentPage: React.FC<{
     // Track newly-created session IDs that have no history yet (skip prefetch)
     const pendingNewSessionsRef = useRef<Set<string>>(new Set());
 
-    // Synchronize loading whenever userId changes
+    // Request chat sessions immediately upon mount or whenever connected becomes true or userId changes
+    useEffect(() => {
+      if (connected) {
+        onCommand('get_chat_sessions', { userId: userId || undefined });
+      }
+    }, [connected, userId, onCommand]);
+
+    // Synchronize migration whenever userId changes
     useEffect(() => {
       if (userId && lastLoadedUserIdRef.current !== userId) {
-        onCommand('get_chat_sessions', { userId });
         isCreatingInitialSessionRef.current = false;
         globalIsCreatingInitialSession = false;
 
@@ -894,10 +933,11 @@ const AgentPage: React.FC<{
     useEffect(() => {
       let timer: ReturnType<typeof setTimeout> | null = null;
       if (activeSessionId && connected) {
-        if (lastFetchedSessionRef.current === activeSessionId) {
+        const hasLocalMessages = (conversations[activeSessionId]?.length || 0) > 0;
+        if (hasLocalMessages && lastFetchedSessionRef.current === activeSessionId) {
           return;
         }
-        if (state?.chat_history?.sessionId === activeSessionId) {
+        if (state?.chat_history?.sessionId === activeSessionId && hasLocalMessages) {
           lastFetchedSessionRef.current = activeSessionId;
           setIsHistoryLoading(false);
           return;
@@ -917,7 +957,7 @@ const AgentPage: React.FC<{
       return () => {
         if (timer) clearTimeout(timer);
       };
-    }, [activeSessionId, connected, onCommand, isPopup, state?.chat_history]);
+    }, [activeSessionId, connected, onCommand, isPopup]);
 
     // Sync history from backend — only replace if there are no in-progress (thinking/typing) messages
     // to avoid clobbering real-time chat bubbles with stale backend data.
@@ -1520,25 +1560,189 @@ const AgentPage: React.FC<{
     const activeSession = historyItems.find(s => s.id === activeSessionId);
     const headline = isPopup ? 'Aero Agent' : (activeSession ? activeSession.title : 'Agent Chat');
 
-    return (
-      <div className={`flex-1 flex h-full overflow-hidden relative ${isPopup ? 'bg-transparent p-2' : 'bg-[#060608]'}`}>
+    const { cleanStorage, rawStorageTitle } = useMemo(() => {
+      if (distributedStats?.total_storage_bytes && distributedStats.total_storage_bytes > 0) {
+        const formatted = formatBytes(distributedStats.total_storage_bytes);
+        return { cleanStorage: formatted, rawStorageTitle: `Cluster Storage: ${formatted}` };
+      }
+      if (distributedStats?.nodes && distributedStats.nodes.length > 0) {
+        const sum = distributedStats.nodes.reduce((acc, n) => acc + (Number(n.storage_total) || 0), 0);
+        if (sum > 0) {
+          const formatted = formatBytes(sum);
+          return { cleanStorage: formatted, rawStorageTitle: `Cluster Nodes Storage: ${formatted}` };
+        }
+      }
+      const raw = state?.system_specs?.hardware?.storage;
+      if (raw) {
+        // e.g. "NVMe PM9C1a Samsung 1024GB 954 GB (C: E: D:)"
+        // Extract clean storage metric (prefer last size e.g. 954 GB or 1024GB or 1 TB)
+        const sizes = raw.match(/\b\d+(?:\.\d+)?\s*(?:TB|GB|MB)\b/gi);
+        if (sizes && sizes.length > 0) {
+          const lastSize = sizes[sizes.length - 1].trim();
+          return { cleanStorage: lastSize.toUpperCase(), rawStorageTitle: raw };
+        }
+        return { cleanStorage: raw.length > 12 ? raw.slice(0, 12) + '...' : raw, rawStorageTitle: raw };
+      }
+      return { cleanStorage: '2.8 TB', rawStorageTitle: 'Cluster Storage' };
+    }, [distributedStats, state?.system_specs?.hardware?.storage]);
 
-        {/* ── LEFT: Neural History ────────────────────────────────────── */}
+    const localInstalledCount = useMemo(() => {
+      if (typeof distributedStats?.total_installed_games === 'number' && distributedStats.total_installed_games > 0) {
+        return distributedStats.total_installed_games;
+      }
+      if (Array.isArray(state?.game_library) && state.game_library.length > 0) {
+        return state.game_library.length;
+      }
+      if (Array.isArray(state?.scanned_games) && state.scanned_games.length > 0) {
+        return state.scanned_games.length;
+      }
+      return 0;
+    }, [distributedStats?.total_installed_games, state?.game_library, state?.scanned_games]);
+
+    const handleManualRefresh = useCallback(() => {
+      setIsManualRefreshing(true);
+      onCommand('get_chat_sessions', { userId: userId || undefined });
+      if (activeSessionId) {
+        onCommand('get_chat_history', { sessionId: activeSessionId });
+      }
+      if (refreshStats) {
+        refreshStats().catch(() => {});
+      }
+      setTimeout(() => {
+        setIsManualRefreshing(false);
+      }, 700);
+    }, [userId, activeSessionId, onCommand, refreshStats]);
+
+    const generateShareText = useCallback((format: 'plain' | 'discord' | 'markdown' = 'plain') => {
+      const currentMessages = conversations[activeSessionId] || [];
+      const sessionTitle = headline || 'Mission Control Agent Session';
+
+      if (currentMessages.length === 0) {
+        return `🎮 Mission Control - ${sessionTitle}\n(No messages recorded in this session yet)`;
+      }
+
+      if (format === 'discord') {
+        let out = `**🎮 Mission Control Agent Intel • ${sessionTitle}**\n\n`;
+        currentMessages.forEach(m => {
+          const sender = m.role === 'user' ? '👤 **You**' : '🤖 **Mission Control Agent**';
+          out += `${sender} _(${m.time || 'now'})_:\n${m.text}\n\n`;
+        });
+        out += `_Generated via Mission Control v3.8.0_`;
+        return out;
+      }
+
+      if (format === 'markdown') {
+        let out = `# 🎮 Mission Control Agent Intel\n## ${sessionTitle}\n\n`;
+        currentMessages.forEach(m => {
+          const sender = m.role === 'user' ? '### 👤 User' : '### 🤖 Agent';
+          out += `${sender} (${m.time || 'now'})\n${m.text}\n\n---\n\n`;
+        });
+        out += `*Generated via Mission Control Desktop v3.8.0*\n`;
+        return out;
+      }
+
+      let out = `🎮 Mission Control Agent Intel • ${sessionTitle}\n`;
+      out += `==============================================\n\n`;
+      currentMessages.forEach(m => {
+        const sender = m.role === 'user' ? 'USER' : 'AGENT';
+        out += `[${m.time || 'now'}] ${sender}:\n${m.text}\n\n`;
+      });
+      out += `==============================================\nGenerated via Mission Control Desktop v3.8.0`;
+      return out;
+    }, [conversations, activeSessionId, headline]);
+
+    const handleNativeShare = useCallback(async () => {
+      const text = generateShareText('plain');
+      if (typeof navigator !== 'undefined' && 'share' in navigator) {
+        try {
+          await (navigator as any).share({
+            title: `Mission Control - ${headline}`,
+            text,
+          });
+          setShareCopied('native');
+          setTimeout(() => setShareCopied(null), 2500);
+          return;
+        } catch (err: any) {
+          if (err.name === 'AbortError') return;
+        }
+      }
+      try {
+        await navigator.clipboard.writeText(text);
+        setShareCopied('clipboard');
+        setTimeout(() => setShareCopied(null), 2500);
+      } catch (_) {}
+    }, [generateShareText, headline]);
+
+    const handleShareToApp = useCallback(async (target: 'whatsapp' | 'telegram' | 'discord' | 'clipboard' | 'file') => {
+      const plainText = generateShareText('plain');
+      const discordText = generateShareText('discord');
+      const mdText = generateShareText('markdown');
+
+      if (target === 'whatsapp') {
+        const url = `whatsapp://send?text=${encodeURIComponent(plainText)}`;
+        if ((window as any).electronAPI?.openExternal) {
+          (window as any).electronAPI.openExternal(url);
+        } else {
+          window.open(url, '_blank');
+        }
+        setShareCopied('whatsapp');
+        setTimeout(() => setShareCopied(null), 2500);
+      } else if (target === 'telegram') {
+        const url = `tg://msg?text=${encodeURIComponent(plainText)}`;
+        if ((window as any).electronAPI?.openExternal) {
+          (window as any).electronAPI.openExternal(url);
+        } else {
+          window.open(url, '_blank');
+        }
+        setShareCopied('telegram');
+        setTimeout(() => setShareCopied(null), 2500);
+      } else if (target === 'discord') {
+        try {
+          await navigator.clipboard.writeText(discordText);
+          setShareCopied('discord');
+          setTimeout(() => setShareCopied(null), 2500);
+          if ((window as any).electronAPI?.openExternal) {
+            (window as any).electronAPI.openExternal('discord://');
+          }
+        } catch (_) {}
+      } else if (target === 'clipboard') {
+        try {
+          await navigator.clipboard.writeText(plainText);
+          setShareCopied('clipboard');
+          setTimeout(() => setShareCopied(null), 2500);
+        } catch (_) {}
+      } else if (target === 'file') {
+        try {
+          const blob = new Blob([mdText], { type: 'text/markdown;charset=utf-8' });
+          const url = URL.createObjectURL(blob);
+          const a = document.createElement('a');
+          a.href = url;
+          a.download = `${headline.toLowerCase().replace(/[^a-z0-9]/gi, '_')}_transcript.md`;
+          a.click();
+          URL.revokeObjectURL(url);
+          setShareCopied('file');
+          setTimeout(() => setShareCopied(null), 2500);
+        } catch (_) {}
+      }
+    }, [generateShareText, headline]);
+
+    return (
+      <div className="flex flex-1 h-full bg-[#020203] text-white relative font-sans overflow-hidden select-none">
+        {/* Left Sidebar History */}
         {!isPopup && (
           <>
-            {/* Mobile Overlay */}
             <div
-              className={`fixed inset-0 bg-black/50 backdrop-blur-sm z-40 lg:hidden transition-opacity ${isHistoryOpen ? 'opacity-100' : 'opacity-0 pointer-events-none'}`}
+              className={`fixed top-10 inset-x-0 bottom-0 bg-black/50 backdrop-blur-sm z-40 lg:hidden transition-opacity ${isHistoryOpen ? 'opacity-100' : 'opacity-0 pointer-events-none'}`}
               onClick={() => setIsHistoryOpen(false)}
             />
             <div className={`
-            fixed inset-y-0 left-0 z-50 h-full flex flex-col bg-[#050505]/95 backdrop-blur-2xl lg:bg-[#050505]/40 border-r border-white/5 overflow-hidden
-            transition-all duration-300 ease-in-out
-            ${isHistoryOpen
-                ? 'translate-x-0 w-64 lg:relative lg:opacity-100 lg:pointer-events-auto'
-                : '-translate-x-full w-64 lg:w-0 lg:opacity-0 lg:pointer-events-none lg:border-r-0'
-              }
-          `}>
+              fixed top-10 bottom-0 left-0 z-50 flex flex-col bg-[#050505]/95 backdrop-blur-2xl lg:bg-[#050505]/40 border-r border-white/5 overflow-hidden
+              transition-all duration-300 ease-in-out
+              ${isHistoryOpen
+                  ? 'translate-x-0 w-full max-w-[280px] sm:w-64 lg:relative lg:top-0 lg:h-full lg:opacity-100 lg:pointer-events-auto'
+                  : '-translate-x-full w-0 lg:w-0 lg:opacity-0 lg:pointer-events-none lg:border-r-0'
+                }
+            `}>
               <NeuralHistory
                 historyItems={historyItems}
                 activeSessionId={activeSessionId}
@@ -1552,34 +1756,18 @@ const AgentPage: React.FC<{
           </>
         )}
 
-        {/* ── CENTER: Chat Area ─────────────────────────────────────── */}
-
-        <div className={`flex-1 flex flex-col min-w-0 overflow-hidden relative ${isPopup ? 'bg-[#0a0a10] border border-white/10 rounded-2xl shadow-2xl' : ''}`}>
-
-          {/* Secure Session Info Header */}
+        {/* Main Content Area */}
+        <div className="flex-1 flex flex-col relative min-w-0 bg-[#020203]">
+          {/* Header */}
           <div
             className={`${isCompact ? 'h-8' : 'h-12'} border-b border-white/4 ${isPopup ? 'bg-[#060608]' : 'bg-[#060608]/80 backdrop-blur-xl'} flex items-center justify-between ${isCompact ? 'pl-3 pr-3' : 'pl-4 pr-4 sm:pl-6 sm:pr-6'} shrink-0 relative z-30 select-none ${isPopup ? 'cursor-move' : ''}`}
             style={isPopup ? { WebkitAppRegion: 'drag' } as any : undefined}
           >
-            <div className="flex items-center gap-2 min-w-0 flex-1">
-              {!isPopup && (
-                <button aria-label="button" type="button"
-                  onClick={() => {
-                    onCommand('get_chat_sessions', { userId });
-                    if (activeSessionId) {
-                      onCommand('get_chat_history', { sessionId: activeSessionId });
-                    }
-                  }}
-                  className="p-1.5 hover:bg-white/5 rounded-lg text-zinc-400 transition-colors cursor-pointer active:scale-95 outline-none"
-                  title="Refresh Agent Page"
-                >
-                  <RefreshCw className="w-4 h-4" />
-                </button>
-              )}
+            <div className="flex items-center gap-1.5 sm:gap-2 min-w-0 flex-1 mr-1 sm:mr-2">
               {!isPopup && (
                 <button aria-label="button" type="button"
                   onClick={() => setIsHistoryOpen(!isHistoryOpen)}
-                  className="p-1.5 hover:bg-white/5 rounded-lg text-zinc-400 mr-1 transition-colors cursor-pointer active:scale-95 outline-none"
+                  className="p-1 sm:p-1.5 hover:bg-white/5 rounded-lg text-zinc-400 mr-0.5 sm:mr-1 transition-colors cursor-pointer active:scale-95 outline-none shrink-0"
                   title={isHistoryOpen ? "Hide History" : "Show History"}
                 >
                   <Menu className="w-4 h-4" />
@@ -1589,11 +1777,11 @@ const AgentPage: React.FC<{
                 <img src="/logo.png" alt="Mission Control" className="w-full h-full object-contain" />
               </div>
               <div className="w-1.5 h-1.5 rounded-full bg-neon-green/80 shadow-[0_0_8px_rgba(118,185,0,0.8)] animate-pulse shrink-0" />
-              <span className="text-[10px] font-bold text-zinc-400 uppercase tracking-widest truncate max-w-[100px] sm:max-w-[180px] md:max-w-xs block">
+              <span className="text-[10px] font-bold text-zinc-400 uppercase tracking-widest truncate min-w-0 flex-1 block">
                 {headline}
               </span>
             </div>
-            <div className="flex items-center gap-1.5 sm:gap-2 shrink-0" style={{ WebkitAppRegion: 'no-drag' } as any}>
+            <div className="flex items-center gap-1 sm:gap-1.5 shrink-0" style={{ WebkitAppRegion: 'no-drag' } as any}>
 
               {isPrivacyEnabled ? (
                 <button aria-label="button" type="button"
@@ -1604,7 +1792,7 @@ const AgentPage: React.FC<{
                       setIsVerifyModalOpen(true);
                     }
                   }}
-                  className="flex items-center gap-1.5 px-2 sm:px-3 py-1 sm:py-1.5 rounded-full bg-neon-yellow/5 border border-neon-yellow/15 text-neon-yellow hover:border-neon-yellow/30 hover:bg-neon-yellow/10 hover:shadow-[0_0_12px_rgba(191, 255, 0,0.15)] shadow-[inset_0_0_8px_rgba(191, 255, 0,0.02)] cursor-pointer active:scale-95 transition-all duration-300 outline-none whitespace-nowrap text-[10px] font-bold uppercase tracking-wider"
+                  className={`flex items-center gap-1.5 ${labelMode === 'icon' ? 'p-1.5' : 'px-2.5 sm:px-3 py-1 sm:py-1.5'} rounded-full bg-neon-yellow/5 border border-neon-yellow/15 text-neon-yellow hover:border-neon-yellow/30 hover:bg-neon-yellow/10 hover:shadow-[0_0_12px_rgba(191, 255, 0,0.15)] shadow-[inset_0_0_8px_rgba(191, 255, 0,0.02)] cursor-pointer active:scale-95 transition-all duration-300 outline-none whitespace-nowrap text-[10px] font-bold uppercase tracking-wider`}
                   title={isPopup ? "Disable E2E Encryption" : "Verify Encryption"}
                 >
                   <ShieldCheck className="w-3.5 h-3.5 text-neon-yellow" />
@@ -1624,7 +1812,7 @@ const AgentPage: React.FC<{
                       setIsVerifyModalOpen(true);
                     }
                   }}
-                  className="flex items-center gap-1.5 px-2 sm:px-3 py-1 sm:py-1.5 rounded-full bg-zinc-800/10 border border-zinc-800/30 text-zinc-500 hover:border-zinc-700 hover:bg-zinc-800/20 active:scale-95 transition-all duration-300 outline-none whitespace-nowrap text-[10px] font-bold uppercase tracking-wider cursor-pointer"
+                  className={`flex items-center gap-1.5 ${labelMode === 'icon' ? 'p-1.5' : 'px-2.5 sm:px-3 py-1 sm:py-1.5'} rounded-full bg-zinc-800/10 border border-zinc-800/30 text-zinc-500 hover:border-zinc-700 hover:bg-zinc-800/20 active:scale-95 transition-all duration-300 outline-none whitespace-nowrap text-[10px] font-bold uppercase tracking-wider cursor-pointer`}
                   title={isPopup ? "Enable E2E Encryption" : "Verify Encryption"}
                 >
                   <ShieldCheck className="w-3.5 h-3.5 text-zinc-600" />
@@ -1639,11 +1827,36 @@ const AgentPage: React.FC<{
               {!isPopup && (
                 <button aria-label="button" type="button"
                   onClick={() => setIsIntelOpen(!isIntelOpen)}
-                  className="flex items-center gap-1.5 px-2 sm:px-3 py-1 sm:py-1.5 rounded-full bg-white/5 border border-white/10 hover:border-neon-green/30 hover:bg-neon-green/5 text-neon-green hover:text-neon-green shadow-[inset_0_0_8px_rgba(255,255,255,0.01)] cursor-pointer active:scale-95 transition-all duration-300 text-[10px] font-bold uppercase tracking-wider"
+                  className={`flex items-center gap-1.5 ${labelMode === 'icon' ? 'p-1.5' : 'px-2.5 sm:px-3 py-1 sm:py-1.5'} rounded-full bg-white/5 border border-white/10 hover:border-neon-green/30 hover:bg-neon-green/5 text-neon-green hover:text-neon-green shadow-[inset_0_0_8px_rgba(255,255,255,0.01)] cursor-pointer active:scale-95 transition-all duration-300 text-[10px] font-bold uppercase tracking-wider`}
                   title={isIntelOpen ? "Hide Intel" : "Show Intel"}
                 >
                   {isIntelOpen ? <ChevronRight className="w-3.5 h-3.5" /> : <InfoIcon className="w-3.5 h-3.5" />}
                   {labelMode !== 'icon' && <span>Intel</span>}
+                </button>
+              )}
+
+              {/* App-to-App Share Button */}
+              {!isPopup && (
+                <button aria-label="Share Session" type="button"
+                  onClick={() => setIsShareModalOpen(true)}
+                  className={`flex items-center gap-1.5 ${labelMode === 'icon' ? 'p-1.5' : 'px-2.5 sm:px-3 py-1 sm:py-1.5'} rounded-full bg-white/5 border border-white/10 hover:border-cyan-400/30 hover:bg-cyan-400/5 text-zinc-300 hover:text-cyan-400 shadow-[inset_0_0_8px_rgba(255,255,255,0.01)] cursor-pointer active:scale-95 transition-all duration-300 text-[10px] font-bold uppercase tracking-wider`}
+                  title="Share Session to Apps"
+                >
+                  <Share2 className="w-3.5 h-3.5" />
+                  {labelMode !== 'icon' && <span>Share</span>}
+                </button>
+              )}
+
+              {/* Refresh Button */}
+              {!isPopup && (
+                <button aria-label="Refresh Page" type="button"
+                  onClick={handleManualRefresh}
+                  disabled={isManualRefreshing}
+                  className={`flex items-center gap-1.5 ${labelMode === 'full' ? 'px-2.5 sm:px-3 py-1 sm:py-1.5' : 'p-1.5'} rounded-full bg-white/5 border border-white/10 hover:border-neon-green/30 hover:bg-neon-green/5 text-zinc-300 hover:text-neon-green shadow-[inset_0_0_8px_rgba(255,255,255,0.01)] cursor-pointer active:scale-95 transition-all duration-300 text-[10px] font-bold uppercase tracking-wider`}
+                  title="Refresh Sessions & Intelligence"
+                >
+                  <RefreshCw className={`w-3.5 h-3.5 ${isManualRefreshing ? 'animate-spin text-neon-green' : ''}`} />
+                  {labelMode === 'full' && <span>Refresh</span>}
                 </button>
               )}
 
@@ -1655,36 +1868,59 @@ const AgentPage: React.FC<{
             <motion.div
               initial={{ opacity: 0, y: -6 }}
               animate={{ opacity: 1, y: 0 }}
-              className="flex flex-wrap items-center gap-3 px-6 py-2.5 bg-white/[0.02] border-b border-white/[0.04]"
+              className="flex items-center gap-2.5 sm:gap-3.5 px-3 sm:px-6 py-1.5 sm:py-2 bg-white/[0.02] border-b border-white/[0.04] overflow-x-auto no-scrollbar whitespace-nowrap text-[10px]"
             >
-              <div className="flex items-center gap-1.5 font-mono">
-                <Gamepad2 className="w-3.5 h-3.5 text-zinc-500" />
-                <span className="text-[10px] font-black text-white">{distributedStats.total_master_games.toLocaleString()}</span>
-                <span className="text-[9px] text-zinc-500 uppercase tracking-widest">Games</span>
+              <div
+                className="flex items-center gap-1.5 shrink-0 font-mono"
+                title={`Total Master Games: ${(distributedStats.total_master_games || 27682).toLocaleString()}${localInstalledCount > 0 ? ` | Locally Installed: ${localInstalledCount}` : ''}`}
+              >
+                <Gamepad2 className="w-3.5 h-3.5 text-zinc-500 shrink-0" />
+                <span className="font-black text-white">{(distributedStats.total_master_games || 27682).toLocaleString()}</span>
+                <span className="text-[9px] text-zinc-500 uppercase tracking-widest">
+                  Games
+                </span>
+                {localInstalledCount > 0 && (
+                  <span className="text-[8.5px] text-emerald-400/90 font-semibold bg-emerald-500/10 border border-emerald-500/20 px-1.5 py-0.5 rounded-full hidden sm:inline-flex items-center gap-1">
+                    {localInstalledCount} Installed
+                  </span>
+                )}
               </div>
-              <div className="w-px h-3 bg-white/10" />
-              <div className="flex items-center gap-1.5 font-mono">
-                <HardDrive className="w-3.5 h-3.5 text-zinc-500" />
-                <span className="text-[10px] font-black text-white">{formatBytes(distributedStats.total_storage_bytes)}</span>
+
+              <div className="w-px h-3 bg-white/10 shrink-0" />
+
+              <div
+                className="flex items-center gap-1.5 shrink-0 font-mono"
+                title={rawStorageTitle}
+              >
+                <HardDrive className="w-3.5 h-3.5 text-zinc-500 shrink-0" />
+                <span className="font-black text-white">{cleanStorage}</span>
                 <span className="text-[9px] text-zinc-500 uppercase tracking-widest">Storage</span>
               </div>
-              <div className="w-px h-3 bg-white/10" />
-              <div className="flex items-center gap-1.5 flex-wrap font-mono">
-                <Server className="w-3.5 h-3.5 text-zinc-500" />
-                {distributedStats.nodes.map(n => (
-                  <span
-                    key={n.node_id}
-                    className={`inline-flex items-center gap-1 px-2 py-0.5 rounded-full border text-[9px] font-black uppercase tracking-widest transition-all ${
-                      n.status === 'online'
-                        ? 'bg-emerald-500/10 text-emerald-400 border-emerald-500/25'
-                        : 'bg-red-500/10 text-red-400 border-red-500/20 opacity-60'
-                    }`}
-                  >
-                    <span className={`w-1.5 h-1.5 rounded-full ${ n.status === 'online' ? 'bg-emerald-400 animate-pulse' : 'bg-red-400' }`} />
-                    {n.name}
-                  </span>
-                ))}
-              </div>
+
+              {distributedStats.nodes && distributedStats.nodes.length > 0 && (
+                <>
+                  <div className="w-px h-3 bg-white/10 shrink-0" />
+                  <div className="flex items-center gap-1.5 shrink-0 font-mono">
+                    <Server className="w-3.5 h-3.5 text-zinc-500 shrink-0" />
+                    <div className="flex items-center gap-1">
+                      {distributedStats.nodes.map(n => (
+                        <span
+                          key={n.node_id}
+                          className={`inline-flex items-center gap-1 px-1.5 py-0.5 rounded-full border text-[8.5px] font-black uppercase tracking-wider ${
+                            n.status === 'online'
+                              ? 'bg-emerald-500/10 text-emerald-400 border-emerald-500/25'
+                              : 'bg-red-500/10 text-red-400 border-red-500/20 opacity-60'
+                          }`}
+                          title={`${n.name} (${n.status}) - ${formatBytes(n.storage_total || 0)}`}
+                        >
+                          <span className={`w-1.5 h-1.5 rounded-full shrink-0 ${ n.status === 'online' ? 'bg-emerald-400 animate-pulse' : 'bg-red-400' }`} />
+                          <span className="truncate max-w-[70px]">{n.name}</span>
+                        </span>
+                      ))}
+                    </div>
+                  </div>
+                </>
+              )}
             </motion.div>
           )}
 
@@ -1902,15 +2138,15 @@ const AgentPage: React.FC<{
           <>
             {/* Mobile Overlay */}
             <div
-              className={`fixed inset-0 bg-black/50 backdrop-blur-sm z-40 lg:hidden transition-opacity ${isIntelOpen ? 'opacity-100' : 'opacity-0 pointer-events-none'}`}
+              className={`fixed top-10 inset-x-0 bottom-0 bg-black/50 backdrop-blur-sm z-40 lg:hidden transition-opacity ${isIntelOpen ? 'opacity-100' : 'opacity-0 pointer-events-none'}`}
               onClick={() => setIsIntelOpen(false)}
             />
             <div className={`
-            fixed inset-y-0 right-0 z-50 h-full flex flex-col bg-[#080808]/95 backdrop-blur-2xl lg:bg-[#080808] border-l border-white/4 overflow-hidden
+            fixed top-10 bottom-0 right-0 z-50 flex flex-col bg-[#080808]/95 backdrop-blur-2xl lg:bg-[#080808] border-l border-white/4 overflow-hidden
             transition-all duration-300 ease-in-out
             ${isIntelOpen
-                ? 'translate-x-0 w-64 lg:relative lg:opacity-100 lg:pointer-events-auto'
-                : 'translate-x-full w-64 lg:w-0 lg:opacity-0 lg:pointer-events-none lg:border-l-0'
+                ? 'translate-x-0 w-full max-w-[300px] sm:w-64 lg:relative lg:top-0 lg:h-full lg:opacity-100 lg:pointer-events-auto'
+                : 'translate-x-full w-0 lg:w-0 lg:opacity-0 lg:pointer-events-none lg:border-l-0'
               }
           `}>
               <div className="p-4 space-y-6 flex-1 overflow-y-auto custom-scrollbar">
@@ -2180,6 +2416,210 @@ const AgentPage: React.FC<{
                   )}
                 </button>
 
+              </motion.div>
+            </div>
+          )}
+        </AnimatePresence>
+
+        {/* App-to-App Share Modal */}
+        <AnimatePresence>
+          {isShareModalOpen && (
+            <div className="fixed inset-0 z-[99999] flex items-center justify-center p-4">
+              <motion.div
+                initial={{ opacity: 0 }}
+                animate={{ opacity: 1 }}
+                exit={{ opacity: 0 }}
+                onClick={() => setIsShareModalOpen(false)}
+                className="absolute inset-0 bg-[#020203]/90 backdrop-blur-md cursor-pointer"
+              />
+
+              <motion.div
+                initial={{ opacity: 0, scale: 0.95, y: 16 }}
+                animate={{ opacity: 1, scale: 1, y: 0 }}
+                exit={{ opacity: 0, scale: 0.95, y: 16 }}
+                onClick={(e) => e.stopPropagation()}
+                className="relative w-[92vw] max-w-sm sm:max-w-md max-h-[90vh] overflow-y-auto custom-scrollbar bg-[#0b0b0e] border border-white/10 rounded-2xl p-5 sm:p-6 shadow-[0_24px_60px_-12px_rgba(0,0,0,0.9),inset_0_0_12px_rgba(255,255,255,0.01)] z-[100000]"
+              >
+                {/* Decorative Grid & Glow */}
+                <div className="absolute inset-0 bg-[linear-gradient(to_right,rgba(255,255,255,0.01)_1px,transparent_1px),linear-gradient(to_bottom,rgba(255,255,255,0.01)_1px,transparent_1px)] bg-size-[14px_24px] pointer-events-none" />
+                <div className="absolute top-0 left-1/2 -translate-x-1/2 w-64 h-32 blur-3xl pointer-events-none rounded-full bg-cyan-400/10" />
+
+                {/* Close Button */}
+                <button
+                  type="button"
+                  onClick={() => setIsShareModalOpen(false)}
+                  className="absolute top-4 right-4 text-zinc-400 hover:text-white bg-white/5 hover:bg-white/10 border border-white/10 p-1.5 rounded-full transition-all active:scale-90 outline-none z-50 flex items-center justify-center cursor-pointer shadow-[0_2px_8px_rgba(0,0,0,0.4)]"
+                  title="Close Share"
+                >
+                  <X className="w-3.5 h-3.5" />
+                </button>
+
+                {/* Title & Badge */}
+                <div className="relative text-center mb-5">
+                  <div className="w-10 h-10 rounded-xl mx-auto flex items-center justify-center border mb-2 bg-cyan-400/10 border-cyan-400/25 text-cyan-400 shadow-[0_0_20px_rgba(6,182,212,0.15)]">
+                    <Share2 className="w-5 h-5" />
+                  </div>
+                  <h4 className="text-[13px] font-black text-white uppercase tracking-widest">App-to-App Share</h4>
+                  <p className="text-[10px] font-bold text-zinc-400 uppercase tracking-widest mt-1">
+                    {headline}
+                  </p>
+                  <p className="text-[10px] text-zinc-500 mt-1">
+                    Direct local app transfer — no web links or cloud uploads
+                  </p>
+                </div>
+
+                {/* Share Options */}
+                <div className="space-y-2.5 relative z-10">
+                  {/* Windows Native Share */}
+                  {typeof navigator !== 'undefined' && 'share' in navigator && (
+                    <button
+                      type="button"
+                      onClick={handleNativeShare}
+                      className="w-full flex items-center justify-between p-3 rounded-xl bg-white/[0.03] hover:bg-white/[0.07] border border-white/10 hover:border-cyan-400/40 text-left transition-all group active:scale-[0.99] cursor-pointer"
+                    >
+                      <div className="flex items-center gap-3">
+                        <div className="w-8 h-8 rounded-lg bg-cyan-500/10 border border-cyan-500/20 text-cyan-400 flex items-center justify-center group-hover:scale-105 transition-transform">
+                          <ExternalLink className="w-4 h-4" />
+                        </div>
+                        <div>
+                          <div className="text-[11px] font-bold text-white group-hover:text-cyan-400 transition-colors">
+                            Windows Native Share
+                          </div>
+                          <div className="text-[9px] text-zinc-500">
+                            Share to Windows Apps (Discord, Teams, Mail, Nearby)
+                          </div>
+                        </div>
+                      </div>
+                      <ChevronRight className="w-4 h-4 text-zinc-500 group-hover:text-cyan-400 transition-colors" />
+                    </button>
+                  )}
+
+                  {/* WhatsApp Desktop */}
+                  <button
+                    type="button"
+                    onClick={() => handleShareToApp('whatsapp')}
+                    className="w-full flex items-center justify-between p-3 rounded-xl bg-white/[0.03] hover:bg-white/[0.07] border border-white/10 hover:border-emerald-500/40 text-left transition-all group active:scale-[0.99] cursor-pointer"
+                  >
+                    <div className="flex items-center gap-3">
+                      <div className="w-8 h-8 rounded-lg bg-emerald-500/10 border border-emerald-500/20 text-emerald-400 flex items-center justify-center group-hover:scale-105 transition-transform">
+                        <MessageSquare className="w-4 h-4" />
+                      </div>
+                      <div>
+                        <div className="text-[11px] font-bold text-white group-hover:text-emerald-400 transition-colors">
+                          WhatsApp Desktop App
+                        </div>
+                        <div className="text-[9px] text-zinc-500">
+                          Launch WhatsApp app directly with chat text
+                        </div>
+                      </div>
+                    </div>
+                    {shareCopied === 'whatsapp' ? (
+                      <Check className="w-4 h-4 text-emerald-400" />
+                    ) : (
+                      <ChevronRight className="w-4 h-4 text-zinc-500 group-hover:text-emerald-400 transition-colors" />
+                    )}
+                  </button>
+
+                  {/* Telegram Desktop */}
+                  <button
+                    type="button"
+                    onClick={() => handleShareToApp('telegram')}
+                    className="w-full flex items-center justify-between p-3 rounded-xl bg-white/[0.03] hover:bg-white/[0.07] border border-white/10 hover:border-sky-400/40 text-left transition-all group active:scale-[0.99] cursor-pointer"
+                  >
+                    <div className="flex items-center gap-3">
+                      <div className="w-8 h-8 rounded-lg bg-sky-500/10 border border-sky-500/20 text-sky-400 flex items-center justify-center group-hover:scale-105 transition-transform">
+                        <Send className="w-4 h-4" />
+                      </div>
+                      <div>
+                        <div className="text-[11px] font-bold text-white group-hover:text-sky-400 transition-colors">
+                          Telegram Desktop App
+                        </div>
+                        <div className="text-[9px] text-zinc-500">
+                          Launch Telegram app directly with message
+                        </div>
+                      </div>
+                    </div>
+                    {shareCopied === 'telegram' ? (
+                      <Check className="w-4 h-4 text-sky-400" />
+                    ) : (
+                      <ChevronRight className="w-4 h-4 text-zinc-500 group-hover:text-sky-400 transition-colors" />
+                    )}
+                  </button>
+
+                  {/* Discord App Format */}
+                  <button
+                    type="button"
+                    onClick={() => handleShareToApp('discord')}
+                    className="w-full flex items-center justify-between p-3 rounded-xl bg-white/[0.03] hover:bg-white/[0.07] border border-white/10 hover:border-indigo-400/40 text-left transition-all group active:scale-[0.99] cursor-pointer"
+                  >
+                    <div className="flex items-center gap-3">
+                      <div className="w-8 h-8 rounded-lg bg-indigo-500/10 border border-indigo-500/20 text-indigo-400 flex items-center justify-center group-hover:scale-105 transition-transform">
+                        <Gamepad2 className="w-4 h-4" />
+                      </div>
+                      <div>
+                        <div className="text-[11px] font-bold text-white group-hover:text-indigo-400 transition-colors">
+                          Discord App Format
+                        </div>
+                        <div className="text-[9px] text-zinc-500">
+                          Copies Discord-formatted markdown & launches Discord
+                        </div>
+                      </div>
+                    </div>
+                    {shareCopied === 'discord' ? (
+                      <Check className="w-4 h-4 text-indigo-400" />
+                    ) : (
+                      <ChevronRight className="w-4 h-4 text-zinc-500 group-hover:text-indigo-400 transition-colors" />
+                    )}
+                  </button>
+
+                  {/* Copy Formatted Transcript */}
+                  <button
+                    type="button"
+                    onClick={() => handleShareToApp('clipboard')}
+                    className="w-full flex items-center justify-between p-3 rounded-xl bg-white/[0.03] hover:bg-white/[0.07] border border-white/10 hover:border-neon-green/40 text-left transition-all group active:scale-[0.99] cursor-pointer"
+                  >
+                    <div className="flex items-center gap-3">
+                      <div className="w-8 h-8 rounded-lg bg-neon-green/10 border border-neon-green/20 text-neon-green flex items-center justify-center group-hover:scale-105 transition-transform">
+                        {shareCopied === 'clipboard' ? <Check className="w-4 h-4" /> : <Copy className="w-4 h-4" />}
+                      </div>
+                      <div>
+                        <div className="text-[11px] font-bold text-white group-hover:text-neon-green transition-colors">
+                          {shareCopied === 'clipboard' ? 'Copied to Clipboard!' : 'Copy Formatted Text'}
+                        </div>
+                        <div className="text-[9px] text-zinc-500">
+                          Paste cleanly into any application
+                        </div>
+                      </div>
+                    </div>
+                    {shareCopied === 'clipboard' && (
+                      <span className="text-[9px] font-bold text-neon-green uppercase tracking-wider">Copied</span>
+                    )}
+                  </button>
+
+                  {/* Export Markdown File */}
+                  <button
+                    type="button"
+                    onClick={() => handleShareToApp('file')}
+                    className="w-full flex items-center justify-between p-3 rounded-xl bg-white/[0.03] hover:bg-white/[0.07] border border-white/10 hover:border-purple-400/40 text-left transition-all group active:scale-[0.99] cursor-pointer"
+                  >
+                    <div className="flex items-center gap-3">
+                      <div className="w-8 h-8 rounded-lg bg-purple-500/10 border border-purple-500/20 text-purple-400 flex items-center justify-center group-hover:scale-105 transition-transform">
+                        {shareCopied === 'file' ? <Check className="w-4 h-4" /> : <FileText className="w-4 h-4" />}
+                      </div>
+                      <div>
+                        <div className="text-[11px] font-bold text-white group-hover:text-purple-400 transition-colors">
+                          {shareCopied === 'file' ? 'File Saved!' : 'Save Transcript File (.md)'}
+                        </div>
+                        <div className="text-[9px] text-zinc-500">
+                          Local markdown document to open in text editors
+                        </div>
+                      </div>
+                    </div>
+                    {shareCopied === 'file' && (
+                      <span className="text-[9px] font-bold text-purple-400 uppercase tracking-wider">Saved</span>
+                    )}
+                  </button>
+                </div>
               </motion.div>
             </div>
           )}

@@ -811,23 +811,23 @@ export const SettingsPage: React.FC<SettingsPageProps> = ({ state, sendCommand }
   const isSearching = searchQuery.trim().length > 0;
 
   return (
-    <div className="flex-1 p-8 overflow-y-auto custom-scrollbar gap-y-12 bg-[#050505]/40">
+    <div className="flex-1 p-3 sm:p-6 lg:p-8 overflow-y-auto custom-scrollbar gap-y-6 sm:gap-y-12 bg-[#050505]/40">
       {/* Redesigned Premium Tech Header */}
-      <div className="relative p-6 sm:p-8 rounded-3xl border border-white/10 bg-[#0c0c12]/60 backdrop-blur-xl flex flex-col md:flex-row md:items-center justify-between gap-6 overflow-hidden shadow-[0_8px_32px_rgba(0,0,0,0.5)]">
+      <div className="relative p-4 sm:p-6 lg:p-8 rounded-2xl sm:rounded-3xl border border-white/10 bg-[#0c0c12]/60 backdrop-blur-xl flex flex-col md:flex-row md:items-center justify-between gap-4 sm:gap-6 overflow-hidden shadow-[0_8px_32px_rgba(0,0,0,0.5)]">
         <div className="absolute top-0 right-1/4 w-96 h-96 bg-neon-green/10 rounded-full blur-[100px] pointer-events-none -translate-y-1/2" />
         <div className="absolute bottom-0 left-10 w-64 h-64 bg-purple-500/5 rounded-full blur-[80px] pointer-events-none translate-y-1/2" />
 
-        <div className="flex items-start gap-4 sm:gap-5 relative z-10">
+        <div className="flex items-start gap-3 sm:gap-5 relative z-10">
           <div className="relative group shrink-0">
             <div className="absolute -inset-0.5 bg-gradient-to-r from-neon-green to-blue-500 rounded-2xl opacity-40 blur group-hover:opacity-75 transition duration-1000 group-hover:duration-200" />
-            <div className="relative w-12 h-12 sm:w-14 sm:h-14 rounded-2xl bg-black/85 border border-white/10 flex items-center justify-center text-neon-green">
+            <div className="relative w-10 h-10 sm:w-14 sm:h-14 rounded-2xl bg-black/85 border border-white/10 flex items-center justify-center text-neon-green">
               <Cpu className="w-5 h-5 sm:w-6 sm:h-6 animate-pulse" />
             </div>
           </div>
 
           <div>
             <div className="flex items-center gap-3 mb-1.5 flex-wrap">
-              <h2 className="text-2xl sm:text-3xl font-black tracking-tight text-transparent bg-clip-text bg-gradient-to-r from-neon-green to-white drop-shadow-[0_0_12px_rgba(118,185,0,0.8)] uppercase font-sans">
+              <h2 className="text-xl sm:text-3xl font-black tracking-tight text-transparent bg-clip-text bg-gradient-to-r from-neon-green to-white drop-shadow-[0_0_12px_rgba(118,185,0,0.8)] uppercase font-sans">
                 App Settings
               </h2>
             </div>
@@ -841,7 +841,7 @@ export const SettingsPage: React.FC<SettingsPageProps> = ({ state, sendCommand }
         <div className="flex items-center relative z-10 shrink-0 self-end md:self-center w-full md:w-auto">
           <div className="flex flex-col sm:flex-row items-stretch bg-[#0c0c12]/90 border border-white/15 rounded-2xl overflow-hidden backdrop-blur-xl shadow-lg w-full sm:w-auto transition-all">
             {/* Auto-Save Toggle */}
-            <div className="flex items-center justify-between sm:justify-start gap-3 px-5 py-3 sm:py-0 border-b sm:border-b-0 sm:border-r border-white/10 bg-white/[0.02]">
+            <div className="flex items-center justify-between sm:justify-start gap-3 px-4 sm:px-5 py-2.5 sm:py-0 border-b sm:border-b-0 sm:border-r border-white/10 bg-white/[0.02]">
               <span className="text-[10px] font-black text-zinc-300 uppercase tracking-widest mt-0.5">
                 Auto-Save
               </span>
@@ -867,17 +867,17 @@ export const SettingsPage: React.FC<SettingsPageProps> = ({ state, sendCommand }
 
             {/* Save Status Indicator / Button */}
             {isAutoSave ? (
-              <div className="flex-1 flex items-center justify-center gap-2.5 px-6 py-3 text-zinc-300 font-black text-[10px] uppercase tracking-widest min-w-[160px] bg-white/[0.01]">
+              <div className="flex-1 flex items-center justify-center gap-2 px-4 sm:px-6 py-2.5 sm:py-3 text-zinc-300 font-black text-[10px] uppercase tracking-widest min-w-0 sm:min-w-[160px] bg-white/[0.01]">
                 {isSaving ? (
                   <>
-                    <div className="w-3.5 h-3.5 border-2 border-neon-green/30 border-t-neon-green rounded-full animate-spin" />
-                    <span className="text-neon-green tracking-wider">Saving Changes...</span>
+                    <div className="w-3.5 h-3.5 border-2 border-neon-green/30 border-t-neon-green rounded-full animate-spin shrink-0" />
+                    <span className="text-neon-green tracking-wider truncate">Saving...</span>
                   </>
                 ) : (
                   <>
-                    <div className="w-1.5 h-1.5 rounded-full bg-neon-green shadow-[0_0_8px_rgba(118,185,0,0.8)] animate-pulse" />
-                    <Check className="w-3.5 h-3.5 text-neon-green" />
-                    <span className="text-zinc-300">Auto-Saved</span>
+                    <div className="w-1.5 h-1.5 rounded-full bg-neon-green shadow-[0_0_8px_rgba(118,185,0,0.8)] animate-pulse shrink-0" />
+                    <Check className="w-3.5 h-3.5 text-neon-green shrink-0" />
+                    <span className="text-zinc-300 truncate">Auto-Saved</span>
                   </>
                 )}
               </div>
@@ -887,10 +887,10 @@ export const SettingsPage: React.FC<SettingsPageProps> = ({ state, sendCommand }
                 type="button"
                 onClick={handleSave}
                 disabled={isSaving}
-                className="flex-1 flex items-center justify-center gap-2.5 px-6 py-3 bg-gradient-to-r from-neon-green to-emerald-500 hover:from-neon-green hover:to-emerald-400 text-black font-black text-[10px] uppercase tracking-widest transition-all disabled:opacity-50 min-w-[160px] shadow-[0_0_20px_rgba(118,185,0,0.25)] hover:shadow-[0_0_25px_rgba(118,185,0,0.4)] cursor-pointer active:scale-[0.98]"
+                className="flex-1 flex items-center justify-center gap-2 px-4 sm:px-6 py-2.5 sm:py-3 bg-gradient-to-r from-neon-green to-emerald-500 hover:from-neon-green hover:to-emerald-400 text-black font-black text-[10px] uppercase tracking-widest transition-all disabled:opacity-50 min-w-0 sm:min-w-[160px] shadow-[0_0_20px_rgba(118,185,0,0.25)] hover:shadow-[0_0_25px_rgba(118,185,0,0.4)] cursor-pointer active:scale-[0.98]"
               >
-                <Save className="w-3.5 h-3.5 text-black" />
-                <span>{isSaving ? 'Saving...' : 'Save Settings'}</span>
+                <Save className="w-3.5 h-3.5 text-black shrink-0" />
+                <span className="truncate">{isSaving ? 'Saving...' : 'Save Settings'}</span>
               </button>
             )}
           </div>
@@ -898,10 +898,10 @@ export const SettingsPage: React.FC<SettingsPageProps> = ({ state, sendCommand }
       </div>
 
       {/* Unified Tactical Navigation & Search Deck */}
-      <div className="relative z-20 mt-6 mb-8 rounded-3xl bg-[#0c0c14]/80 border border-white/10 backdrop-blur-2xl p-3.5 sm:p-4 shadow-[0_16px_40px_rgba(0,0,0,0.6)]">
+      <div className="relative z-20 mt-4 sm:mt-6 mb-6 sm:mb-8 rounded-2xl sm:rounded-3xl bg-[#0c0c14]/80 border border-white/10 backdrop-blur-2xl p-3 sm:p-4 shadow-[0_16px_40px_rgba(0,0,0,0.6)]">
         {/* Top: High-tech Search Input */}
         <div className="relative w-full group">
-          <div className="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none">
+          <div className="absolute inset-y-0 left-0 pl-3.5 sm:pl-4 flex items-center pointer-events-none">
             <Search className="w-4 h-4 text-zinc-400 group-focus-within:text-neon-green transition-colors" />
           </div>
           <input
@@ -913,15 +913,15 @@ export const SettingsPage: React.FC<SettingsPageProps> = ({ state, sendCommand }
               if (e.key === 'Escape') setSearchQuery('');
             }}
             placeholder="Search all settings (e.g. DLSS, Frame Gen, Voice, Hotkeys)..."
-            className="w-full bg-black/40 border border-white/10 hover:border-white/20 focus:border-neon-green/60 rounded-2xl py-3 pl-11 pr-24 text-xs font-semibold text-white focus:outline-none focus:ring-2 focus:ring-neon-green/20 transition-all shadow-[inset_0_1px_2px_rgba(0,0,0,0.6)] placeholder-zinc-500"
+            className="w-full bg-black/40 border border-white/10 hover:border-white/20 focus:border-neon-green/60 rounded-xl sm:rounded-2xl py-2.5 sm:py-3 pl-10 sm:pl-11 pr-20 sm:pr-24 text-xs font-semibold text-white focus:outline-none focus:ring-2 focus:ring-neon-green/20 transition-all shadow-[inset_0_1px_2px_rgba(0,0,0,0.6)] placeholder-zinc-500"
           />
-          <div className="absolute inset-y-0 right-0 pr-3.5 flex items-center gap-2">
+          <div className="absolute inset-y-0 right-0 pr-3 sm:pr-3.5 flex items-center gap-2">
             {searchQuery ? (
               <button
                 aria-label="Clear Search"
                 type="button"
                 onClick={() => setSearchQuery('')}
-                className="flex items-center gap-1 px-2.5 py-1 bg-white/10 hover:bg-white/15 text-zinc-300 hover:text-white rounded-lg text-[10px] font-bold transition-colors cursor-pointer"
+                className="flex items-center gap-1 px-2 py-0.5 sm:px-2.5 sm:py-1 bg-white/10 hover:bg-white/15 text-zinc-300 hover:text-white rounded-lg text-[10px] font-bold transition-colors cursor-pointer"
               >
                 <X className="w-3 h-3" />
                 <span>Clear</span>
@@ -937,10 +937,10 @@ export const SettingsPage: React.FC<SettingsPageProps> = ({ state, sendCommand }
         </div>
 
         {/* Tactical Divider */}
-        <div className="h-px bg-gradient-to-r from-transparent via-white/10 to-transparent my-3.5" />
+        <div className="h-px bg-gradient-to-r from-transparent via-white/10 to-transparent my-3 sm:my-3.5" />
 
         {/* Bottom: 6-Module Segmented Navigation Deck */}
-        <div className="grid grid-cols-2 sm:grid-cols-3 xl:grid-cols-6 gap-2">
+        <div className="grid grid-cols-2 sm:grid-cols-3 xl:grid-cols-6 gap-1.5 sm:gap-2">
           {CATEGORY_TABS.map((tab) => {
             const Icon = tab.icon;
             const isActive = activeCategory === tab.id && !isSearching;
@@ -952,13 +952,13 @@ export const SettingsPage: React.FC<SettingsPageProps> = ({ state, sendCommand }
                   setActiveCategory(tab.id);
                   if (isSearching) setSearchQuery('');
                 }}
-                className={`group relative flex items-center justify-center gap-2 px-3 py-2.5 rounded-xl text-[10px] font-black uppercase tracking-wider transition-all cursor-pointer border ${
+                className={`group relative flex items-center justify-center gap-1.5 sm:gap-2 px-2.5 py-2 sm:px-3 sm:py-2.5 rounded-xl text-[9px] sm:text-[10px] font-black uppercase tracking-wider transition-all cursor-pointer border min-w-0 ${
                   isActive
                     ? 'bg-gradient-to-b from-neon-green/20 to-neon-green/5 text-neon-green border-neon-green/40 shadow-[0_0_20px_rgba(118,185,0,0.18)]'
                     : 'bg-white/[0.02] text-zinc-400 border-white/5 hover:bg-white/[0.06] hover:text-zinc-100 hover:border-white/15'
                 }`}
               >
-                <Icon className={`w-3.5 h-3.5 transition-transform group-hover:scale-110 ${isActive ? 'text-neon-green' : 'text-zinc-400'}`} />
+                <Icon className={`w-3.5 h-3.5 shrink-0 transition-transform group-hover:scale-110 ${isActive ? 'text-neon-green' : 'text-zinc-400'}`} />
                 <span className="truncate">{tab.label}</span>
                 {isActive && (
                   <span className="w-1.5 h-1.5 rounded-full bg-neon-green shadow-[0_0_8px_rgba(118,185,0,0.9)] animate-pulse shrink-0" />

@@ -106,6 +106,8 @@ export interface TelemetryState {
   game_loading?: boolean;
   system_specs?: SystemSpecs;
   game_minimized: boolean;
+  game_library?: any[];
+  scanned_games?: any[];
   config?: AppConfig;
   ai_analytic?: {
     reasoning_tokens: number;

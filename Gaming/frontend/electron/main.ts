@@ -1317,6 +1317,25 @@ async function createWindow() {
   const micaSupported = false; // Disable Mica to resolve black client area composition bugs
   console.log(`[Electron] OS build ${osBuild} — Mica ${micaSupported ? 'ENABLED' : 'DISABLED (fallback to solid bg)'}`);
 
+  // Configure transparent CORS handling for local dev server requests to multi-cloud APIs
+  const enableCORS = (targetSession: any) => {
+    try {
+      targetSession.webRequest.onHeadersReceived((details: any, callback: any) => {
+        const responseHeaders = details.responseHeaders || {};
+        responseHeaders['access-control-allow-origin'] = ['*'];
+        responseHeaders['access-control-allow-headers'] = ['*'];
+        responseHeaders['access-control-allow-methods'] = ['GET, POST, PUT, DELETE, OPTIONS, PATCH'];
+        callback({ responseHeaders });
+      });
+    } catch (_) {}
+  };
+
+  const persistSession = session.fromPartition('persist:mission-control');
+  enableCORS(persistSession);
+  if (session.defaultSession) {
+    enableCORS(session.defaultSession);
+  }
+
   win = new BrowserWindow({
     width: 1200,
     height: 800,
@@ -2266,6 +2285,10 @@ ipcMain.handle('open-external', async (_event, url: string) => {
   return { success: false, error: 'Invalid URL scheme or format' };
 });
 
+ipcMain.handle('get-app-version', () => {
+  return app.getVersion();
+});
+
 let hudWin: BrowserWindow | null = null;
 let isHUDVisible = false;
 let currentHotkey: string = '';
@@ -2822,6 +2845,7 @@ ipcMain.on('game-focus-changed', (_event, isActive: boolean, isFocused: boolean,
 
 // === electron-updater Configuration (NSIS / GitHub Releases & Direct Fallback) ===
 function setupAutoUpdater() {
+  registerLiveContentHandlers();
   const isSupported = (process.platform === 'win32' || process.platform === 'darwin' || process.platform === 'linux') && app.isPackaged;
   const UPDATE_STATE_PATH = path.join(app.getPath('userData'), 'update_download_state.json');
 
@@ -3238,6 +3262,18 @@ function setupAutoUpdater() {
         });
       }, 1000);
     });
+    ipcMain.on('download-electron-update', () => {
+      sendToAllWindows('electron-update-status', {
+        status: 'not-supported',
+        message: 'Auto-update is only supported in packaged Windows/macOS/Linux builds.'
+      });
+    });
+    ipcMain.on('quit-and-install-update', () => {});
+    ipcMain.on('pause-electron-update', () => {});
+    ipcMain.on('cancel-electron-update', () => {});
+    ipcMain.handle('get-electron-update-state', () => ({ status: 'idle', percent: 0 }));
+    ipcMain.handle('check-rollback-backup', () => ({ exists: false, hasFiles: false }));
+    ipcMain.handle('rollback-electron-update', () => ({ success: false, error: 'Rollback not supported in development mode.' }));
     return;
   }
 
@@ -3876,13 +3912,9 @@ function setupAutoUpdater() {
     sendToAllWindows('electron-update-status', state);
   });
 
-  ipcMain.handle('get-app-version', () => {
-    return app.getVersion();
-  });
-
-
-  // Dedicated in-memory cache for live dynamic multi-launcher trending (Steam, Epic Games, GOG)
-  let cachedLauncherGames: any[] = [];
+  function registerLiveContentHandlers() {
+    // Dedicated in-memory cache for live dynamic multi-launcher trending (Steam, Epic Games, GOG)
+    let cachedLauncherGames: any[] = [];
   let lastLauncherFetchTime = 0;
   const LAUNCHER_CACHE_TTL_MS = 15 * 60 * 1000;
 
@@ -4768,12 +4800,13 @@ function setupAutoUpdater() {
     searchRenownedLaunchers();
     searchOtherLaunchers();
 
-    if (mapped.length > 0) {
-      liveSearchCache.set(cleanQuery, { timestamp: now, data: mapped });
-      return { success: true, games: mapped };
-    }
-    return { success: false, games: [] };
-  });
+      if (mapped.length > 0) {
+        liveSearchCache.set(cleanQuery, { timestamp: now, data: mapped });
+        return { success: true, games: mapped };
+      }
+      return { success: false, games: [] };
+    });
+  }
 
   ipcMain.handle('get-electron-update-state', () => {
     const state = loadUpdateState();
