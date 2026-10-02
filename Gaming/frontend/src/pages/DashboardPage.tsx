@@ -101,20 +101,20 @@ const StatCard = React.memo<StatCardProps>(({ label, value, percent, subtext, ic
   return (
     <div role="button" tabIndex={0} onKeyDown={(e) => e.key === 'Enter' && e.currentTarget.click()}
       onClick={onClick}
-      className={`bg-white/3 border border-white/5 rounded-3xl p-5 flex-1 relative overflow-hidden group hover:bg-white/4 transition-all duration-500 min-w-0 ${onClick ? 'cursor-pointer hover:border-neon-green/30' : ''}`}
+      className={`bg-white/3 border border-white/5 rounded-2xl sm:rounded-3xl p-3.5 sm:p-5 flex-1 relative overflow-hidden group hover:bg-white/4 transition-all duration-500 min-w-0 ${onClick ? 'cursor-pointer hover:border-neon-green/30' : ''}`}
     >
       <div className="relative z-10">
-        <div className="flex items-center justify-between mb-4">
-          <div className="flex items-center gap-2 min-w-0">
-            <div className={`p-1.5 rounded-lg ${styles.bgMuted} border ${styles.borderMuted} shrink-0`}>
-              <Icon className={`w-3.5 h-3.5 ${styles.text}`} />
+        <div className="flex items-center justify-between mb-2.5 sm:mb-4 gap-2">
+          <div className="flex items-center gap-1.5 sm:gap-2 min-w-0">
+            <div className={`p-1 sm:p-1.5 rounded-lg ${styles.bgMuted} border ${styles.borderMuted} shrink-0`}>
+              <Icon className={`w-3 h-3 sm:w-3.5 sm:h-3.5 ${styles.text}`} />
             </div>
-            <span className="text-[10px] font-black text-zinc-500 uppercase tracking-widest truncate">{label}</span>
+            <span className="text-[9px] sm:text-[10px] font-black text-zinc-500 uppercase tracking-widest truncate">{label}</span>
           </div>
-          {(value !== undefined && value !== null && value !== '') && <span className="text-xl lg:text-2xl font-black text-white tracking-tighter shrink-0">{value}%</span>}
+          {(value !== undefined && value !== null && value !== '') && <span className="text-base sm:text-xl lg:text-2xl font-black text-white tracking-tighter shrink-0">{value}%</span>}
         </div>
 
-        <div className="w-full h-1 bg-white/5 rounded-full overflow-hidden mb-4">
+        <div className="w-full h-1 bg-white/5 rounded-full overflow-hidden mb-2.5 sm:mb-4">
           <motion.div
             initial={{ width: 0 }}
             animate={{ width: `${percent}%` }}
@@ -123,7 +123,7 @@ const StatCard = React.memo<StatCardProps>(({ label, value, percent, subtext, ic
           />
         </div>
 
-        <p title={subtext} className="text-[10px] font-bold text-zinc-500 uppercase tracking-tight truncate">{subtext}</p>
+        <p title={subtext} className="text-[8.5px] sm:text-[10px] font-bold text-zinc-500 uppercase tracking-tight truncate">{subtext}</p>
       </div>
 
       {/* Sparkline Background */}
@@ -306,29 +306,29 @@ const DashboardPage: React.FC<DashboardPageProps> = ({ state, onCommand, onNavig
   };
 
   return (
-    <div className="flex-1 p-4 md:p-8 flex flex-col h-full overflow-y-auto lg:overflow-hidden gap-y-6 bg-transparent select-none min-h-0">
+    <div className="flex-1 p-3.5 sm:p-6 lg:p-8 flex flex-col h-full overflow-y-auto lg:overflow-hidden gap-y-4 sm:gap-y-6 bg-transparent select-none min-h-0">
       
       {/* Header section (shrink-0) */}
-      <div className="flex justify-between items-center gap-4 shrink-0">
-        <div className="flex items-center gap-3.5">
-          <div className="w-11 h-11 rounded-xl border border-neon-green/45 flex items-center justify-center bg-neon-green/5 overflow-hidden p-1 shadow-[0_0_18px_rgba(118, 185, 0,0.2)] shrink-0">
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 sm:gap-4 shrink-0">
+        <div className="flex items-center gap-3 sm:gap-3.5 min-w-0">
+          <div className="w-10 h-10 sm:w-11 sm:h-11 rounded-xl border border-neon-green/45 flex items-center justify-center bg-neon-green/5 overflow-hidden p-1 shadow-[0_0_18px_rgba(118,185,0,0.2)] shrink-0">
             <img src="/logo.png" className="w-full h-full object-contain" alt="Logo" />
           </div>
-          <div>
-            <h2 className="text-3xl lg:text-4xl font-black text-transparent bg-clip-text bg-linear-to-r from-neon-green to-purple-500 tracking-tighter leading-tight uppercase drop-shadow-[0_0_15px_rgba(118, 185, 0,0.8)]">Mission Control</h2>
-            <p className="text-[10px] font-black text-neon-green uppercase tracking-[0.3em] mt-1">Status: System Nominal</p>
+          <div className="min-w-0">
+            <h2 className="text-2xl sm:text-3xl lg:text-4xl font-black text-transparent bg-clip-text bg-linear-to-r from-neon-green to-purple-500 tracking-tighter leading-tight uppercase drop-shadow-[0_0_15px_rgba(118,185,0,0.8)] truncate">Mission Control</h2>
+            <p className="text-[9px] sm:text-[10px] font-black text-neon-green uppercase tracking-[0.25em] sm:tracking-[0.3em] mt-0.5 sm:mt-1 truncate">Status: System Nominal</p>
           </div>
         </div>
-        <div className="flex gap-2 shrink-0">
-          <div className="px-3 py-1 bg-white/5 border border-white/10 rounded-full flex items-center gap-2">
-            <div className="w-1.5 h-1.5 rounded-full bg-neon-yellow animate-pulse" />
-            <span className="text-[9px] font-black text-zinc-400 uppercase tracking-widest">Neural Link Active</span>
+        <div className="flex items-center gap-2 shrink-0 self-start sm:self-auto">
+          <div className="px-2.5 sm:px-3 py-1 bg-white/5 border border-white/10 rounded-full flex items-center gap-2">
+            <div className="w-1.5 h-1.5 rounded-full bg-neon-yellow animate-pulse shrink-0" />
+            <span className="text-[8px] sm:text-[9px] font-black text-zinc-400 uppercase tracking-widest whitespace-nowrap">Neural Link Active</span>
           </div>
         </div>
       </div>
 
-      {/* Top Stat Cards Grid - Responsive layout (2x2 on medium screen, 1x4 on large) */}
-      <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-4 gap-4 xl:gap-6 shrink-0">
+      {/* Top Stat Cards Grid - Responsive layout (2x2 on compact/mobile screens, 1x4 on large) */}
+      <div className="grid grid-cols-2 lg:grid-cols-4 gap-2.5 sm:gap-4 xl:gap-6 shrink-0">
         <StatCard
           label="CPU"
           value={state?.cpu_pct != null ? state.cpu_pct.toFixed(1) : '0.0'}
@@ -372,55 +372,78 @@ const DashboardPage: React.FC<DashboardPageProps> = ({ state, onCommand, onNavig
       </div>
 
       {/* Main Bottom Grid - Responsive stack (vertical on tablet/mobile, side-by-side on desktop) */}
-      <div className="flex flex-col lg:flex-row gap-6 lg:gap-8 items-stretch lg:flex-1 min-h-0 overflow-visible lg:overflow-hidden pb-4 lg:pb-0">
+      <div className="flex flex-col lg:flex-row gap-4 sm:gap-6 lg:gap-8 items-stretch lg:flex-1 min-h-0 overflow-visible lg:overflow-hidden pb-4 lg:pb-0">
         
         {/* === BRANDED AI ASSISTANT PORTION (Left/Center) === */}
-        <div className="flex-1 flex flex-col min-h-87.5 lg:min-h-0 min-w-0 bg-white/6 border border-white/15 rounded-3xl p-5 relative overflow-hidden shadow-[0_0_20px_rgba(118, 185, 0,0.05)]">
+        <div className="flex-1 flex flex-col min-h-60 sm:min-h-80 lg:min-h-0 min-w-0 bg-white/6 border border-white/15 rounded-2xl sm:rounded-3xl p-3.5 sm:p-5 relative overflow-hidden shadow-[0_0_20px_rgba(118,185,0,0.05)]">
           
           {/* Header block with fully responsive layout to protect against squishing/truncation */}
-          <div className="flex flex-col sm:flex-row lg:flex-col xl:flex-row justify-between lg:items-start xl:items-center gap-3 border-b border-white/5 pb-3 shrink-0">
-            <div className="flex items-center gap-2 min-w-0">
-              <div className="p-1.5 rounded-lg bg-neon-green/10 border border-neon-green/20 shrink-0">
-                <BrainCircuit className="w-3.5 h-3.5 text-neon-green" />
+          <div className="flex flex-col sm:flex-row lg:flex-col xl:flex-row justify-between items-stretch sm:items-center lg:items-stretch xl:items-center gap-2.5 sm:gap-3 border-b border-white/5 pb-3 shrink-0">
+            <div className="flex items-center justify-between gap-2 min-w-0">
+              <div className="flex items-center gap-2 min-w-0">
+                <div className="p-1.5 rounded-lg bg-neon-green/10 border border-neon-green/20 shrink-0">
+                  <BrainCircuit className="w-3.5 h-3.5 text-neon-green" />
+                </div>
+                <span className="text-xs font-black text-transparent bg-clip-text bg-linear-to-r from-neon-green to-white uppercase tracking-widest truncate drop-shadow-[0_0_10px_rgba(118,185,0,0.8)]">Mission Control</span>
+                <div className="px-1.5 py-0.5 rounded bg-neon-green/10 border border-neon-green/20 flex items-center gap-1 shrink-0">
+                  <span className="w-1 h-1 rounded-full bg-neon-green animate-pulse shadow-[0_0_5px_#76b900]" />
+                  <span className="text-[7px] font-black text-neon-green uppercase tracking-widest leading-none">Core Sync</span>
+                </div>
               </div>
-              <span className="text-xs font-black text-transparent bg-clip-text bg-linear-to-r from-neon-green to-white uppercase tracking-widest truncate drop-shadow-[0_0_10px_rgba(118, 185, 0,0.8)]">Mission Control </span>
-              <div className="px-1.5 py-0.5 rounded bg-neon-green/10 border border-neon-green/20 flex items-center gap-1 shrink-0">
-                <span className="w-1 h-1 rounded-full bg-neon-green animate-pulse shadow-[0_0_5px_#76b900]" />
-                <span className="text-[7px] font-black text-neon-green uppercase tracking-widest leading-none">Core Sync</span>
+              <div className="flex items-center gap-1.5 sm:hidden shrink-0">
+                <button
+                  aria-label="Copy logs"
+                  type="button"
+                  onClick={handleCopyAll}
+                  className="px-2 py-1 bg-white/5 hover:bg-white/10 border border-white/10 rounded-lg text-[8px] font-black uppercase tracking-wider text-zinc-400 hover:text-white transition-all cursor-pointer"
+                >Copy</button>
+                <button
+                  aria-label="Clear logs"
+                  type="button"
+                  onClick={handleClear}
+                  className="px-2 py-1 bg-red-500/10 hover:bg-red-500/20 border border-red-500/20 rounded-lg text-[8px] font-black uppercase tracking-wider text-red-400 hover:text-red-300 transition-all cursor-pointer"
+                >Clear</button>
               </div>
             </div>
 
             {/* Filter and action buttons */}
-            <div className="flex items-center gap-2 flex-wrap sm:flex-nowrap lg:flex-wrap xl:flex-nowrap">
+            <div className="flex items-center justify-between sm:justify-end gap-2 shrink-0">
               <div className="flex bg-white/5 p-0.5 rounded-xl border border-white/5 gap-0.5 overflow-x-auto no-scrollbar shrink-0">
                 {(['ALL', 'INFO', 'WARN', 'ERROR', 'AGENT'] as const).map(lvl => {
                   const activeStyles: Record<string, string> = {
-                    ALL: 'bg-white/10 text-white',
+                    ALL: 'bg-white/10 text-white shadow-xs',
                     INFO: 'bg-neon-yellow/20 text-neon-yellow',
                     WARN: 'bg-amber-500/20 text-amber-400',
                     ERROR: 'bg-red-500/20 text-red-400',
                     AGENT: 'bg-neon-green/20 text-neon-green',
                   };
                   return (
-                    <button aria-label="button" type="button"
+                    <button
+                      aria-label={lvl}
+                      type="button"
                       key={lvl}
                       onClick={() => setFilter(lvl)}
-                      className={`px-2 py-1 rounded-lg text-[8px] font-black uppercase tracking-wider transition-all shrink-0 ${filter === lvl ? activeStyles[lvl] : 'text-zinc-600 hover:text-zinc-300'
-                        }`}
+                      className={`px-2 py-1 rounded-lg text-[8px] font-black uppercase tracking-wider transition-all shrink-0 cursor-pointer ${
+                        filter === lvl ? activeStyles[lvl] : 'text-zinc-500 hover:text-zinc-300'
+                      }`}
                     >
                       {lvl}
                     </button>
                   );
                 })}
               </div>
-              <div className="flex items-center gap-2 shrink-0">
-                <button aria-label="button" type="button"
+              <div className="hidden sm:flex items-center gap-1.5 shrink-0">
+                <button
+                  aria-label="Copy logs"
+                  type="button"
                   onClick={handleCopyAll}
-                  className="px-2.5 py-1 bg-white/5 hover:bg-white/10 border border-white/8 rounded-xl text-[8px] font-black uppercase tracking-wider text-zinc-400 hover:text-white transition-all shrink-0"
+                  className="px-2.5 py-1 bg-white/5 hover:bg-white/10 border border-white/8 rounded-xl text-[8px] font-black uppercase tracking-wider text-zinc-400 hover:text-white transition-all cursor-pointer shrink-0"
                 >Copy</button>
-                <button aria-label="button" type="button"
+                <button
+                  aria-label="Clear logs"
+                  type="button"
                   onClick={handleClear}
-                  className="px-2.5 py-1 bg-red-500/10 hover:bg-red-500/20 border border-red-500/15 rounded-xl text-[8px] font-black uppercase tracking-wider text-red-400 hover:text-red-300 transition-all shrink-0"
+                  className="px-2.5 py-1 bg-red-500/10 hover:bg-red-500/20 border border-red-500/15 rounded-xl text-[8px] font-black uppercase tracking-wider text-red-400 hover:text-red-300 transition-all cursor-pointer shrink-0"
                 >Clear</button>
               </div>
             </div>
@@ -472,7 +495,7 @@ const DashboardPage: React.FC<DashboardPageProps> = ({ state, onCommand, onNavig
                       initial={{ opacity: 0, y: -6 }}
                       animate={{ opacity: 1, y: 0 }}
                       transition={{ duration: 0.2 }}
-                      className="flex items-start gap-3 bg-white/3 hover:bg-white/4 border border-white/5 rounded-2xl px-4 py-3 group transition-colors relative overflow-hidden"
+                      className="flex items-start gap-2.5 sm:gap-3 bg-white/3 hover:bg-white/4 border border-white/5 rounded-xl sm:rounded-2xl p-2.5 sm:p-3.5 group transition-colors relative overflow-hidden"
                     >
                       {/* Left accent bar */}
                       <div className={`absolute left-0 top-3 bottom-3 w-0.5 rounded-full ${bar}`} />
@@ -485,10 +508,10 @@ const DashboardPage: React.FC<DashboardPageProps> = ({ state, onCommand, onNavig
                       {/* Content */}
                       <div className="flex-1 min-w-0">
                         <div className="flex items-center gap-2 mb-0.5">
-                          <span className={`text-[9px] font-black uppercase tracking-widest border px-1.5 py-0.5 rounded-md ${pill}`}>{label}</span>
-                          <span className="text-[9px] text-zinc-600 font-mono">{log.time}</span>
+                          <span className={`text-[8.5px] sm:text-[9px] font-black uppercase tracking-widest border px-1.5 py-0.5 rounded-md ${pill}`}>{label}</span>
+                          <span className="text-[8.5px] sm:text-[9px] text-zinc-600 font-mono">{log.time}</span>
                         </div>
-                        <p className={`text-[11px] font-semibold leading-snug break-all ${text}`}>{friendlyMsg(log.msg)}</p>
+                        <p className={`text-[10px] sm:text-[11px] font-semibold leading-relaxed break-words [overflow-wrap:anywhere] ${text}`}>{friendlyMsg(log.msg)}</p>
                       </div>
 
                       {/* Copy Specific Log Button */}
@@ -517,7 +540,7 @@ const DashboardPage: React.FC<DashboardPageProps> = ({ state, onCommand, onNavig
         </div>
 
         {/* === TACTICAL CONTROLS & DIAGNOSTICS (Right) === */}
-        <div className="w-full lg:w-85 shrink-0 flex flex-col gap-4 min-h-95 lg:min-h-0 lg:overflow-hidden pr-1">
+        <div className="w-full lg:w-85 shrink-0 flex flex-col gap-3.5 sm:gap-4 min-h-75 sm:min-h-95 lg:min-h-0 lg:overflow-hidden pr-0 sm:pr-1">
           <div className="flex items-center shrink-0">
             <span className="text-[11px] font-black text-transparent bg-clip-text bg-linear-to-r from-neon-green to-fuchsia-400 uppercase tracking-[0.25em] filter drop-shadow-[0_0_12px_rgba(118, 185, 0,0.8)]">Tactical Diagnostics</span>
           </div>

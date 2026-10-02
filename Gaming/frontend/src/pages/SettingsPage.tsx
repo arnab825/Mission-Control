@@ -38,17 +38,17 @@ type CategoryId = 'gpu' | 'ai' | 'overlay' | 'library' | 'account' | 'controller
 interface CategoryTab {
   id: CategoryId;
   label: string;
-  shortLabel: string;
+  fullLabel: string;
   icon: React.ElementType;
 }
 
 const CATEGORY_TABS: CategoryTab[] = [
-  { id: 'gpu', label: 'GPU & Hardware', shortLabel: 'Hardware', icon: Cpu },
-  { id: 'ai', label: 'AI Brain & Prompts', shortLabel: 'AI Brain', icon: Brain },
-  { id: 'overlay', label: 'Tactical Overlay', shortLabel: 'Overlay', icon: Target },
-  { id: 'library', label: 'Library & Vision', shortLabel: 'Library', icon: Folder },
-  { id: 'account', label: 'Account', shortLabel: 'Account', icon: KeyRound },
-  { id: 'controller', label: 'Controller', shortLabel: 'Controller', icon: Gamepad2 },
+  { id: 'gpu', label: 'Hardware', fullLabel: 'GPU & Hardware Pipeline', icon: Cpu },
+  { id: 'ai', label: 'AI Brain', fullLabel: 'AI Brain & Custom Prompts', icon: Brain },
+  { id: 'overlay', label: 'Tactical HUD', fullLabel: 'Tactical Overlay HUD', icon: Target },
+  { id: 'library', label: 'Library', fullLabel: 'Library & Vision Engine', icon: Folder },
+  { id: 'account', label: 'Account', fullLabel: 'Linked Account & Gateways', icon: KeyRound },
+  { id: 'controller', label: 'Controller', fullLabel: 'Controller & Gamepad Mapping', icon: Gamepad2 },
 ];
 
 export const SettingsPage: React.FC<SettingsPageProps> = ({ state, sendCommand }) => {
@@ -116,7 +116,7 @@ export const SettingsPage: React.FC<SettingsPageProps> = ({ state, sendCommand }
           }
         }
       }
-    } catch (_) {}
+    } catch (_) { }
     return [];
   }, [userId]);
 
@@ -136,7 +136,7 @@ export const SettingsPage: React.FC<SettingsPageProps> = ({ state, sendCommand }
       try {
         localStorage.setItem(`mc_cached_library_${userId || 'guest'}`, JSON.stringify(live));
         localStorage.setItem('mc_cached_library_guest', JSON.stringify(live));
-      } catch (_) {}
+      } catch (_) { }
     }
   }, [state, userId]);
 
@@ -697,9 +697,9 @@ export const SettingsPage: React.FC<SettingsPageProps> = ({ state, sendCommand }
       gaming_features: updatedFeatures,
       ...(preset !== 'custom'
         ? {
-            power_limit_percent: updatedPowerLimit,
-            power_management_mode: updatedPowerMode,
-          }
+          power_limit_percent: updatedPowerLimit,
+          power_management_mode: updatedPowerMode,
+        }
         : {}),
     };
 
@@ -851,17 +851,15 @@ export const SettingsPage: React.FC<SettingsPageProps> = ({ state, sendCommand }
                 tabIndex={0}
                 onKeyDown={(e) => e.key === 'Enter' && handleAutoSaveToggle()}
                 onClick={handleAutoSaveToggle}
-                className={`w-10 h-5 rounded-full relative p-0.5 cursor-pointer transition-colors shrink-0 ${
-                  isAutoSave
+                className={`w-10 h-5 rounded-full relative p-0.5 cursor-pointer transition-colors shrink-0 ${isAutoSave
                     ? 'bg-neon-green shadow-[0_0_12px_rgba(118,185,0,0.4)]'
                     : 'bg-zinc-800 hover:bg-zinc-700'
-                }`}
+                  }`}
                 title={isAutoSave ? 'Auto-Save enabled: changes save automatically' : 'Auto-Save disabled: manual save required'}
               >
                 <div
-                  className={`w-4 h-4 rounded-full absolute transition-all bg-black top-0.5 shadow-sm ${
-                    isAutoSave ? 'right-0.5' : 'left-0.5'
-                  }`}
+                  className={`w-4 h-4 rounded-full absolute transition-all bg-black top-0.5 shadow-sm ${isAutoSave ? 'right-0.5' : 'left-0.5'
+                    }`}
                 />
               </div>
             </div>
@@ -949,19 +947,18 @@ export const SettingsPage: React.FC<SettingsPageProps> = ({ state, sendCommand }
               <button
                 key={tab.id}
                 type="button"
+                title={tab.fullLabel}
                 onClick={() => {
                   setActiveCategory(tab.id);
                   if (isSearching) setSearchQuery('');
                 }}
-                className={`group relative flex items-center justify-center gap-1.5 sm:gap-2 px-2.5 py-2 sm:px-3 sm:py-2.5 rounded-xl text-[9px] sm:text-[10px] font-black uppercase tracking-wider transition-all cursor-pointer border min-w-0 ${
-                  isActive
-                    ? 'bg-gradient-to-b from-neon-green/20 to-neon-green/5 text-neon-green border-neon-green/40 shadow-[0_0_20px_rgba(118,185,0,0.18)]'
-                    : 'bg-white/[0.02] text-zinc-400 border-white/5 hover:bg-white/[0.06] hover:text-zinc-100 hover:border-white/15'
-                }`}
+                className={`group relative flex items-center justify-center gap-1.5 sm:gap-2 px-3 py-2 sm:py-2.5 rounded-xl text-[10px] sm:text-[11px] font-black uppercase tracking-wider transition-all duration-200 cursor-pointer border min-w-0 select-none ${isActive
+                    ? 'bg-linear-to-r from-neon-green/20 via-neon-green/10 to-emerald-500/15 text-neon-green border-neon-green/50 shadow-[0_0_20px_rgba(118,185,0,0.2)]'
+                    : 'bg-white/2 text-zinc-400 border-white/5 hover:bg-white/6 hover:text-white hover:border-white/20'
+                  }`}
               >
-                <Icon className={`w-3.5 h-3.5 shrink-0 transition-transform group-hover:scale-110 ${isActive ? 'text-neon-green' : 'text-zinc-400'}`} />
-                <span className="truncate hidden sm:inline">{tab.label}</span>
-                <span className="truncate sm:hidden">{tab.shortLabel}</span>
+                <Icon className={`w-3.5 h-3.5 shrink-0 transition-transform duration-200 group-hover:scale-110 ${isActive ? 'text-neon-green' : 'text-zinc-400 group-hover:text-white'}`} />
+                <span className="truncate">{tab.label}</span>
                 {isActive && (
                   <span className="w-1.5 h-1.5 rounded-full bg-neon-green shadow-[0_0_8px_rgba(118,185,0,0.9)] animate-pulse shrink-0" />
                 )}
