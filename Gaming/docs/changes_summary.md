@@ -22,7 +22,20 @@ Comprehensive breakdown of major milestone releases, architectural upgrades, and
 
 ---
 
-## 🌟 Version v3.8.0 (Latest) — Fix Agentic AI command processing, session persistence, and system optimization
+## 🌟 Version v3.8.1 (Latest) — Responsive Settings & Dashboard Overhaul, Clerk CORS Auth Fix & Distributed Telemetry
+
+### 🛠️ Key Highlights
+1. **Streamline Settings command bar with unclipped category pills and compact search**
+2. **Redesign Dashboard stats into a 2x2 responsive grid and fix AI log word severing**
+3. **Fix Electron Clerk authentication and sign-out by exempting auth domains from CORS wildcard**
+
+### 📦 Distribution Artifacts
+- **Linux**: `.deb` (Debian/Ubuntu), `.AppImage` (Universal), `.rpm` (Fedora/RHEL), `.tar.gz` (Portable)
+- **Windows**: `.exe` (Setup Installer), `.msi` (Enterprise), `.zip` (Portable)
+
+---
+
+## 📦 Version v3.8.0 — Fix Agentic AI command processing, session persistence, and system optimization
 
 ### 🛠️ Key Highlights
 1. **Fixes raw [SYSTEM_COMMAND:...] bracket tags displaying in chat responses**

@@ -1,8 +1,23 @@
 {
-  "version": "3.8.0",
+  "version": "3.8.1",
   "release_date": "2026-09-25",
   "update_check_url": "https://raw.githubusercontent.com/arnab825/Mission-Control/main/Gaming/backend/version.json",
   "changelog": [
+    {
+      "version": "3.8.1",
+      "date": "2026-10-02",
+      "title": "Responsive Settings & Dashboard Overhaul, Clerk CORS Auth Fix & Distributed Telemetry",
+      "highlights": [
+        "Responsive Settings & Dashboard Overhaul, Clerk CORS Auth Fix & Distributed Telemetry",
+        "Streamline Settings command bar with unclipped category pills and compact search",
+        "Redesign Dashboard stats into 2x2 responsive grid and fix AI log word severing",
+        "Fix Electron Clerk authentication and sign-out by exempting auth domains from CORS wildcard",
+        "Fix AccountSettingsSection and SidebarLeft sign-out try-catch syntax and token flushing",
+        "Add distributed telemetry Azure fetch failover and patch hardware checker CIM permissions",
+        "Add clean-electron script to purge orphaned background Electron and worker processes",
+        "Upgrade Agent page real-time dialogue handlers and multi-tier model failover cascades"
+      ]
+    },
     {
       "version": "3.8.0",
       "date": "2026-10-01",
@@ -541,14 +556,6 @@
       "title": "Fix Supabase password URL decode for pooler connection",
       "highlights": [
         "Fix Supabase password URL decode for pooler connection"
-      ]
-    },
-    {
-      "version": "3.3.3",
-      "date": "2026-08-30",
-      "title": "Fixes some issue and bug of server",
-      "highlights": [
-        "Fixes some issue and bug of server"
       ]
     }
   ]

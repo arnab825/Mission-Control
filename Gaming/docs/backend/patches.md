@@ -2,6 +2,17 @@
 
 This document contains a detailed history of all patches and updates for the AI Gaming Assistant.
 
+### Patch: 2026-10-02 — v3.8.1: Responsive Settings & Dashboard Overhaul, Clerk CORS Auth Fix & Distributed Telemetry
+
+- Responsive Settings & Dashboard Overhaul, Clerk CORS Auth Fix & Distributed Telemetry
+- Streamline Settings command bar with unclipped category pills and compact search
+- Redesign Dashboard stats into 2x2 responsive grid and fix AI log word severing
+- Fix Electron Clerk authentication and sign-out by exempting auth domains from CORS wildcard
+- Fix AccountSettingsSection and SidebarLeft sign-out try-catch syntax and token flushing
+- Add distributed telemetry Azure fetch failover and patch hardware checker CIM permissions
+- Add clean-electron script to purge orphaned background Electron and worker processes
+- Upgrade Agent page real-time dialogue handlers and multi-tier model failover cascades
+
 ### Patch: 2026-10-01 — v3.8.0: Fix Agentic AI command processing, session persistence, and system optimization
 
 - Fix raw [SYSTEM_COMMAND:...] bracket tags displaying in chat responses

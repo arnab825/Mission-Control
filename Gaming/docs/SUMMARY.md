@@ -82,7 +82,8 @@ graph TD
 
 | Version | Key Feature / Change Description |
 | :--- | :--- |
-| **v3.8.0 (Latest)** | **Fix Agentic AI command processing, session persistence, and system optimization** — Mission Control v3.8.0 enhances agentic AI command processing, session persistence, and system optimization with key bug fixes and performance improvements. |
+| **v3.8.1 (Latest)** | **Responsive Settings & Dashboard Overhaul, Clerk CORS Auth Fix & Distributed Telemetry** — Mission Control v3.8.1 enhances user experience with a responsive settings dashboard, improved authentication, and distributed telemetry updates. |
+| **v3.8.0** | **Fix Agentic AI command processing, session persistence, and system optimization** — Mission Control v3.8.0 enhances agentic AI command processing, session persistence, and system optimization with key bug fixes and performance improvements. |
 | **v3.7.9** | **Comprehensive Setup Wizard Enhancements & Complete Release History** — Mission Control v3.7.9 introduces a revamped setup wizard with enhanced deployment descriptions, branded installer, and improved session management. |
 | **v3.7.8** | **Responsive Setup Screen, Custom Windows Setup Wizard & Winget Setup Pipeline** — Mission Control v3.7.8 enhances the setup experience with a responsive setup screen, customized Windows setup wizard, and streamlined Winget installation pipeline. |
 | **v3.7.3** | **Responsive Setup Screen, Custom Windows Setup Wizard & Winget Setup Pipeline** — Mission Control v3.7.3 enhances the setup experience with a responsive setup screen, customized Windows setup wizard, and streamlined Winget installation pipeline. |
@@ -189,5 +190,5 @@ graph TD
 
 ---
 
-*Last Updated: 01/10/2026*
+*Last Updated: 02/10/2026*
 
