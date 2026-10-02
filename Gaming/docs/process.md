@@ -117,6 +117,49 @@ To execute the automated release workflow on Linux machines, run:
 
 ---
 
+## 🪟 Automated Windows Package Manager (WinGet) Deployment
+
+Whenever you publish a release via `.\Gaming\scripts\publish.ps1 "..."`, the following automated WinGet workflow executes:
+
+### 1. Local Manifest Sync & SHA-256 Checksums
+- `publish.ps1` runs `sync_version.py` which creates the version directory in [`Gaming/winget/manifests/a/arnab825/MissionControl/<version>/`](../winget/manifests) and updates the singleton manifest [`Gaming/winget/arnab825.MissionControl.singleton.yaml`](../winget/arnab825.MissionControl.singleton.yaml).
+- The script automatically stages and commits these manifests into the release commit.
+
+### 2. Cloud Submission to `microsoft/winget-pkgs` (GitHub Action)
+- As soon as `publish.ps1` pushes the git release tag `v<version>`, the GitHub Action [`.github/workflows/deploy_app.yml`](../../.github/workflows/deploy_app.yml) triggers automatically.
+- The `publish-to-winget` job extracts the clean version number, resolves the release installer URL, computes the SHA-256 hash, and opens a Pull Request to [microsoft/winget-pkgs](https://github.com/microsoft/winget-pkgs) automatically using `winget-releaser`.
+- **Required Repository Secret**: Set `WINGET_GH_TOKEN` (or `GH_TOKEN`) in **GitHub Repository Settings → Secrets and variables → Actions** with a Personal Access Token having `public_repo` scope.
+
+### 3. User Installation & Upgrade Commands
+Once approved on Microsoft's repository, users worldwide can install and upgrade with single commands:
+
+```powershell
+# Install latest release
+winget install arnab825.MissionControl
+
+# Upgrade an existing installation
+winget upgrade arnab825.MissionControl
+
+# Upgrade all system packages including Mission Control
+winget upgrade --all
+```
+
+### 4. Local Testing & Manual CLI Fallbacks
+- **Local Manifest Install** (Instant install without waiting for Microsoft review):
+  ```powershell
+  winget install --manifest .\Gaming\winget\arnab825.MissionControl.singleton.yaml --accept-package-agreements --accept-source-agreements --force
+  ```
+- **Manual CLI Submission** (Submits local validated manifests):
+  ```powershell
+  wingetcreate submit .\Gaming\winget\manifests\a\arnab825\MissionControl\<version>
+  ```
+- **Manual Version Update via CLI**:
+  ```powershell
+  wingetcreate update arnab825.MissionControl --version <version> --urls https://github.com/arnab825/Mission-Control/releases/download/v<version>/MissionControl-Setup.exe
+  ```
+
+---
+
 ## ⚙️ C# Telemetry Helper (`HardwareMonitor`)
 
 The application queries hardware telemetries (temperature, frequency, power) on Windows via a native C# sub-process located at [Gaming/backend/system/hardware_monitor](file:///c:/GitHub/Mission-Control/Gaming/backend/system/hardware_monitor).
