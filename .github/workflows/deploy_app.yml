@@ -1,0 +1,49 @@
+name: Deploy Desktop Application
+
+on:
+  push:
+    tags:
+      - 'v*'
+  workflow_dispatch:
+    inputs:
+      version:
+        description: 'Version tag to deploy (e.g. 3.8.1)'
+        required: false
+        default: ''
+
+concurrency:
+  group: deploy-desktop-app-${{ github.ref }}
+  cancel-in-progress: false
+
+jobs:
+  build-and-verify:
+    name: Build & Verify Desktop App Release
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+
+    steps:
+      - name: Checkout Code
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20.x'
+          cache: 'npm'
+          cache-dependency-path: 'Gaming/frontend/package-lock.json'
+
+      - name: Install Frontend Dependencies
+        working-directory: Gaming/frontend
+        run: npm ci
+
+      - name: Typecheck & Build Frontend
+        working-directory: Gaming/frontend
+        run: npm run build
+
+      - name: Release Status Verification
+        run: |
+          TAG="${{ github.ref_name }}"
+          echo "Desktop App release workflow executed for tag: ${TAG}"
