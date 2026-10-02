@@ -119,6 +119,15 @@ To execute the automated release workflow on Linux machines, run:
 
 ## 🪟 Automated Windows Package Manager (WinGet) Deployment
 
+```mermaid
+graph LR
+    A["Woodpecker CI / publish.ps1"] -->|"1. Builds & Uploads Binaries"| B["GitHub Release Assets"]
+    A -->|"2. Pushes Tag (e.g. v3.8.2)"| C["GitHub Tags"]
+    C -->|"3. Automatically Triggers"| D["deploy_app.yml (GitHub Action)"]
+    D -->|"4. Automatically Opens PR"| E["microsoft/winget-pkgs"]
+    E -->|"5. CLA Already Signed -> Auto-Merged"| F["Live on WinGet for Everyone"]
+```
+
 Whenever you publish a release via `.\Gaming\scripts\publish.ps1 "..."`, the following automated WinGet workflow executes:
 
 ### 1. Local Manifest Sync & SHA-256 Checksums

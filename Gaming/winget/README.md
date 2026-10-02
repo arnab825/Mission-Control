@@ -68,15 +68,36 @@ The included [`install.ps1`](./install.ps1) script provides complete automation:
 
 ## 🌐 Publishing to `microsoft/winget-pkgs`
 
-To make `winget install arnab825.MissionControl` available globally to all Windows users:
+### Automated Release Pipeline (Recommended)
+
+Every new release tag (`v*`) triggers an automated GitHub Actions workflow to publish directly to Microsoft's official community repository:
+
+```mermaid
+graph LR
+    A["Woodpecker CI / publish.ps1"] -->|"1. Builds & Uploads Binaries"| B["GitHub Release Assets"]
+    A -->|"2. Pushes Tag (e.g. v3.8.2)"| C["GitHub Tags"]
+    C -->|"3. Automatically Triggers"| D["deploy_app.yml (GitHub Action)"]
+    D -->|"4. Automatically Opens PR"| E["microsoft/winget-pkgs"]
+    E -->|"5. CLA Already Signed -> Auto-Merged"| F["Live on WinGet for Everyone"]
+```
+
+### Manual CLI Submission (Fallback)
+
+To manually submit or update without CI/CD:
 
 1. **Install WingetCreate**:
    ```powershell
    winget install Microsoft.WingetCreate
    ```
 
-2. **Submit Release**:
+2. **Submit Pre-Validated Manifests**:
    ```powershell
-   wingetcreate submit https://github.com/arnab825/Mission-Control/releases/download/v3.7.7/MissionControl-Setup.exe
+   wingetcreate submit .\Gaming\winget\manifests\a\arnab825\MissionControl\<version>
    ```
-   *(Requires a GitHub Personal Access Token with `public_repo` scope or authenticated `gh` CLI session)*
+
+3. **Or Update from Release URL**:
+   ```powershell
+   wingetcreate update arnab825.MissionControl --version <version> --urls https://github.com/arnab825/Mission-Control/releases/download/v<version>/MissionControl-Setup.exe
+   ```
+   *(Requires a GitHub Personal Access Token with `public_repo` scope stored as `WINGET_GH_TOKEN`)*
+
