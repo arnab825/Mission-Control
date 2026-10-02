@@ -38,16 +38,17 @@ type CategoryId = 'gpu' | 'ai' | 'overlay' | 'library' | 'account' | 'controller
 interface CategoryTab {
   id: CategoryId;
   label: string;
+  shortLabel: string;
   icon: React.ElementType;
 }
 
 const CATEGORY_TABS: CategoryTab[] = [
-  { id: 'gpu', label: 'GPU & Hardware', icon: Cpu },
-  { id: 'ai', label: 'AI Brain & Prompts', icon: Brain },
-  { id: 'overlay', label: 'Tactical Overlay', icon: Target },
-  { id: 'library', label: 'Library & Vision', icon: Folder },
-  { id: 'account', label: 'Account', icon: KeyRound },
-  { id: 'controller', label: 'Controller', icon: Gamepad2 },
+  { id: 'gpu', label: 'GPU & Hardware', shortLabel: 'Hardware', icon: Cpu },
+  { id: 'ai', label: 'AI Brain & Prompts', shortLabel: 'AI Brain', icon: Brain },
+  { id: 'overlay', label: 'Tactical Overlay', shortLabel: 'Overlay', icon: Target },
+  { id: 'library', label: 'Library & Vision', shortLabel: 'Library', icon: Folder },
+  { id: 'account', label: 'Account', shortLabel: 'Account', icon: KeyRound },
+  { id: 'controller', label: 'Controller', shortLabel: 'Controller', icon: Gamepad2 },
 ];
 
 export const SettingsPage: React.FC<SettingsPageProps> = ({ state, sendCommand }) => {
@@ -959,7 +960,8 @@ export const SettingsPage: React.FC<SettingsPageProps> = ({ state, sendCommand }
                 }`}
               >
                 <Icon className={`w-3.5 h-3.5 shrink-0 transition-transform group-hover:scale-110 ${isActive ? 'text-neon-green' : 'text-zinc-400'}`} />
-                <span className="truncate">{tab.label}</span>
+                <span className="truncate hidden sm:inline">{tab.label}</span>
+                <span className="truncate sm:hidden">{tab.shortLabel}</span>
                 {isActive && (
                   <span className="w-1.5 h-1.5 rounded-full bg-neon-green shadow-[0_0_8px_rgba(118,185,0,0.9)] animate-pulse shrink-0" />
                 )}

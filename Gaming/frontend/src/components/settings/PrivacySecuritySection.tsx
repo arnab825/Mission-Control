@@ -95,7 +95,7 @@ export const PrivacySecuritySection: React.FC<PrivacySecuritySectionProps> = ({
           </div>
         </div>
 
-        <div className="flex gap-4 overflow-x-auto pb-2 no-scrollbar">
+        <div className="grid grid-cols-2 md:grid-cols-4 gap-2.5 sm:gap-4">
           <AssistantModeCard
             mode="competitive"
             title="Competitive"

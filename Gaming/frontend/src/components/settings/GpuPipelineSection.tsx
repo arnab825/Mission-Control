@@ -197,7 +197,7 @@ export const GpuPipelineSection: React.FC<GpuPipelineSectionProps> = ({
         const active = presetMap[activePreset] ?? presetMap.custom;
 
         return (
-          <div className="bg-black/30 border border-white/8 rounded-2xl p-4 flex flex-col sm:flex-row sm:items-center gap-4">
+          <div className="bg-black/30 border border-white/8 rounded-2xl p-3.5 sm:p-4 flex flex-col sm:flex-row sm:items-center gap-3.5 sm:gap-4">
             <div className="flex items-center gap-2.5 shrink-0">
               <div className="w-2 h-2 rounded-full bg-neon-yellow shadow-[0_0_8px_rgba(191,255,0,0.7)] animate-pulse" />
               <span className="text-[9px] font-black text-zinc-400 uppercase tracking-[0.2em]">Live Hardware Status</span>
@@ -205,7 +205,7 @@ export const GpuPipelineSection: React.FC<GpuPipelineSectionProps> = ({
 
             <div className="hidden sm:block w-px h-8 bg-white/8 shrink-0" />
 
-            <div className="flex flex-wrap gap-x-6 gap-y-2 flex-1">
+            <div className="flex flex-wrap gap-x-6 gap-y-2 flex-1 min-w-0">
               <div className="flex flex-col gap-0.5">
                 <span className="text-[8px] font-black text-zinc-600 uppercase tracking-widest">Active Preset</span>
                 <span className={`text-[10px] font-black uppercase tracking-wide ${active.color}`}>{active.label}</span>
@@ -233,7 +233,7 @@ export const GpuPipelineSection: React.FC<GpuPipelineSectionProps> = ({
               </div>
 
               {limitPct !== null && (
-                <div className="flex flex-col gap-1 min-w-[140px]">
+                <div className="flex flex-col gap-1 min-w-[120px] max-w-full">
                   <div className="flex justify-between items-center">
                     <span className="text-[8px] font-black text-zinc-600 uppercase tracking-widest">Power Usage</span>
                     <span className="text-[8px] font-black text-zinc-400">{limitPct}%</span>
@@ -259,7 +259,7 @@ export const GpuPipelineSection: React.FC<GpuPipelineSectionProps> = ({
                 setTimeout(() => setIsApplying(false), 1500);
               }}
               disabled={isApplying}
-              className="shrink-0 flex items-center gap-2 px-4 py-2 bg-neon-yellow/10 border border-neon-yellow/30 hover:bg-neon-yellow/20 hover:border-neon-yellow/50 text-neon-yellow font-black text-[9px] uppercase tracking-widest rounded-xl transition-all disabled:opacity-40"
+              className="w-full sm:w-auto shrink-0 flex items-center justify-center gap-2 px-4 py-2 bg-neon-yellow/10 border border-neon-yellow/30 hover:bg-neon-yellow/20 hover:border-neon-yellow/50 text-neon-yellow font-black text-[9px] uppercase tracking-widest rounded-xl transition-all disabled:opacity-40"
             >
               {isApplying ? (
                 <>

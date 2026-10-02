@@ -244,7 +244,11 @@ const Sidebar: React.FC<SidebarProps> = ({
                         window.localStorage.removeItem('mission_control_active_provider');
                       }
                     } catch (_) {}
-                    await signOut();
+                    try {
+                      await signOut();
+                    } catch (err) {
+                      console.error('[SidebarLeft] Sign-out error:', err);
+                    }
                   }}
                   className="p-1.5 hover:bg-red-500/10 border border-transparent hover:border-red-500/20 text-zinc-400 hover:text-red-400 rounded-lg transition-all cursor-pointer"
                   title="Sign Out"

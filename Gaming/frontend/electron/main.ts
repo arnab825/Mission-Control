@@ -1317,14 +1317,34 @@ async function createWindow() {
   const micaSupported = false; // Disable Mica to resolve black client area composition bugs
   console.log(`[Electron] OS build ${osBuild} — Mica ${micaSupported ? 'ENABLED' : 'DISABLED (fallback to solid bg)'}`);
 
-  // Configure transparent CORS handling for local dev server requests to multi-cloud APIs
+  // Configure transparent CORS handling for local dev server requests to multi-cloud telemetry APIs
   const enableCORS = (targetSession: any) => {
     try {
       targetSession.webRequest.onHeadersReceived((details: any, callback: any) => {
         const responseHeaders = details.responseHeaders || {};
-        responseHeaders['access-control-allow-origin'] = ['*'];
-        responseHeaders['access-control-allow-headers'] = ['*'];
-        responseHeaders['access-control-allow-methods'] = ['GET, POST, PUT, DELETE, OPTIONS, PATCH'];
+        const url = details.url || '';
+
+        // Never modify auth domains (Clerk, OAuth providers, etc.) - they manage their own strict credentials
+        if (
+          url.includes('clerk.accounts.dev') ||
+          url.includes('clerk.com') ||
+          url.includes('accounts.google.com') ||
+          url.includes('discord.com')
+        ) {
+          return callback({ responseHeaders });
+        }
+
+        // Only inject CORS for our backend service endpoints if needed
+        if (url.includes('azurewebsites.net') || url.includes('onrender.com') || url.includes('/api/library/stats')) {
+          const originHeader = details.requestHeaders?.['Origin'] || details.requestHeaders?.['origin'];
+          const allowedOrigin = Array.isArray(originHeader) ? originHeader[0] : (originHeader || 'http://localhost:5173');
+          responseHeaders['access-control-allow-origin'] = [allowedOrigin];
+          responseHeaders['access-control-allow-credentials'] = ['true'];
+          responseHeaders['access-control-allow-headers'] = ['*'];
+          responseHeaders['access-control-allow-methods'] = ['GET, POST, PUT, DELETE, OPTIONS, PATCH'];
+          return callback({ responseHeaders });
+        }
+
         callback({ responseHeaders });
       });
     } catch (_) {}

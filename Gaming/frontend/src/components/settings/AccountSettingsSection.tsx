@@ -271,28 +271,30 @@ export const AccountSettingsSection: React.FC<AccountSettingsSectionProps> = ({
       searchTerms="account clerk user id profile oauth google discord signout delete danger registry gateway"
     >
       {/* Identity block */}
-      <div className="flex items-center justify-between gap-4 bg-white/5 border border-white/15 rounded-2xl p-4 shadow-[0_0_15px_rgba(118,185,0,0.03)]">
-        <div className="flex items-center gap-4">
-          <UserButton
-            userProfileMode="modal"
-            userProfileProps={{ appearance: missionControlClerkTheme }}
-            appearance={missionControlClerkTheme}
-          />
-          <div>
-            <div className="flex items-center gap-2">
-              <p className="text-xs font-black text-white uppercase tracking-wider">
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3.5 sm:gap-4 bg-white/5 border border-white/15 rounded-2xl p-3.5 sm:p-4 shadow-[0_0_15px_rgba(118,185,0,0.03)] overflow-hidden">
+        <div className="flex items-center gap-3 sm:gap-4 min-w-0 flex-1">
+          <div className="shrink-0">
+            <UserButton
+              userProfileMode="modal"
+              userProfileProps={{ appearance: missionControlClerkTheme }}
+              appearance={missionControlClerkTheme}
+            />
+          </div>
+          <div className="min-w-0 flex-1">
+            <div className="flex items-center gap-2 min-w-0">
+              <p className="text-xs font-black text-white uppercase tracking-wider truncate">
                 {user.fullName || user.firstName || 'Anonymous'}
               </p>
-              <span className="h-1.5 w-1.5 rounded-full bg-neon-yellow shadow-[0_0_8px_rgba(52,211,153,0.6)]" />
+              <span className="h-1.5 w-1.5 rounded-full bg-neon-yellow shadow-[0_0_8px_rgba(52,211,153,0.6)] shrink-0" />
             </div>
-            <p className="text-[10px] font-mono text-zinc-500">
+            <p className="text-[10px] font-mono text-zinc-500 truncate" title={user.primaryEmailAddress?.emailAddress || userId}>
               {user.primaryEmailAddress?.emailAddress || userId}
             </p>
           </div>
         </div>
-        <div className="flex items-center gap-2.5">
+        <div className="flex items-center justify-between sm:justify-end gap-2.5 pt-2.5 sm:pt-0 border-t border-white/5 sm:border-0 w-full sm:w-auto shrink-0">
           <div className="px-3 py-1.5 rounded-xl bg-neon-yellow/10 border border-neon-yellow/20 shadow-[0_0_15px_rgba(191,255,0,0.1)]">
-            <span className="text-[8px] font-black uppercase text-neon-yellow tracking-widest">
+            <span className="text-[8px] font-black uppercase text-neon-yellow tracking-widest whitespace-nowrap">
               Active Node
             </span>
           </div>
@@ -308,9 +310,13 @@ export const AccountSettingsSection: React.FC<AccountSettingsSectionProps> = ({
                   window.localStorage.removeItem('mission_control_active_provider');
                 }
               } catch (_) {}
-              await signOut();
+              try {
+                await signOut();
+              } catch (err) {
+                console.error('[AccountSettings] signOut error:', err);
+              }
             }}
-            className="px-3 py-1.5 bg-red-500/10 border border-red-500/20 text-red-400 hover:bg-red-500/20 hover:border-red-500/40 text-[8px] font-black uppercase tracking-widest rounded-xl transition-all cursor-pointer"
+            className="px-3 py-1.5 bg-red-500/10 border border-red-500/20 text-red-400 hover:bg-red-500/20 hover:border-red-500/40 text-[8px] font-black uppercase tracking-widest rounded-xl transition-all cursor-pointer whitespace-nowrap"
           >
             Sign Out
           </button>
@@ -318,17 +324,17 @@ export const AccountSettingsSection: React.FC<AccountSettingsSectionProps> = ({
       </div>
 
       {/* Interactive Grid */}
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-4 pt-4">
+      <div className="grid grid-cols-1 md:grid-cols-3 gap-3 sm:gap-4 pt-4">
         {/* Node Registration ID */}
-        <div className="bg-black/30 border border-white/5 rounded-2xl p-4 flex flex-col justify-between h-full relative overflow-hidden group hover:border-white/10 transition-all">
+        <div className="bg-black/30 border border-white/5 rounded-2xl p-3.5 sm:p-4 flex flex-col justify-between h-full relative overflow-hidden group hover:border-white/10 transition-all">
           <div className="flex items-center justify-between mb-2">
             <span className="text-[9px] font-black text-zinc-500 uppercase tracking-widest">
               Node Registry ID
             </span>
-            <Fingerprint className="w-3.5 h-3.5 text-neon-green/70" />
+            <Fingerprint className="w-3.5 h-3.5 text-neon-green/70 shrink-0" />
           </div>
-          <div className="flex items-center justify-between gap-2 bg-black/40 border border-white/10 rounded-xl px-3 py-2 mt-2">
-            <span className="text-[10px] font-mono text-neon-green truncate max-w-30" title={user.id}>
+          <div className="flex items-center justify-between gap-2 bg-black/40 border border-white/10 rounded-xl px-3 py-2 mt-2 min-w-0">
+            <span className="text-[10px] font-mono text-neon-green truncate flex-1 min-w-0" title={user.id}>
               {user.id}
             </span>
             <button
@@ -352,7 +358,7 @@ export const AccountSettingsSection: React.FC<AccountSettingsSectionProps> = ({
         </div>
 
         {/* Registration Timestamp */}
-        <div className="bg-black/30 border border-white/5 rounded-2xl p-4 flex flex-col justify-between h-full hover:border-white/10 transition-all">
+        <div className="bg-black/30 border border-white/5 rounded-2xl p-3.5 sm:p-4 flex flex-col justify-between h-full hover:border-white/10 transition-all">
           <div className="flex items-center justify-between mb-2">
             <span className="text-[9px] font-black text-zinc-500 uppercase tracking-widest">
               Activation Date
