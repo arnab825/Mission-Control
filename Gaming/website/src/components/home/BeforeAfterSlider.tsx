@@ -4,7 +4,7 @@ import { useState, useRef } from "react";
 import { MoveHorizontal, Zap, Cpu, Sparkles, CheckCircle2, ArrowRight } from "lucide-react";
 
 const BEFORE_IMG_SRC = "/screenshots/before.png";
-const AFTER_IMG_SRC = "/screenshots/after.png";
+const AFTER_IMG_SRC = "/screenshots/after.webp";
 
 export function BeforeAfterSlider() {
   const [sliderPosition, setSliderPosition] = useState(50);
@@ -129,6 +129,8 @@ export function BeforeAfterSlider() {
             <img
               src={AFTER_IMG_SRC}
               alt="After: Next.js + Electron"
+              loading="lazy"
+              decoding="async"
               className="w-full h-full object-contain max-h-full max-w-full rounded-xl"
             />
           </div>
@@ -143,6 +145,8 @@ export function BeforeAfterSlider() {
             <img
               src={BEFORE_IMG_SRC}
               alt="Before: Python GUI"
+              loading="lazy"
+              decoding="async"
               className="w-full h-full object-contain max-h-full max-w-full rounded-xl grayscale-[15%]"
             />
           </div>

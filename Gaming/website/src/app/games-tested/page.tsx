@@ -539,6 +539,8 @@ export default function GamesTestedPage() {
                     <img
                       src={screenshots[0].src}
                       alt={screenshots[0].title}
+                      loading="eager"
+                      decoding="async"
                       className="w-full h-full object-cover group-hover/img:scale-105 transition-transform duration-500"
                     />
                     <div className="absolute inset-0 bg-linear-to-t from-black/80 via-transparent to-transparent flex items-end p-3 sm:p-4">
@@ -571,6 +573,8 @@ export default function GamesTestedPage() {
                       <img
                         src={ss.src}
                         alt={ss.title}
+                        loading="lazy"
+                        decoding="async"
                         className="w-full h-full object-cover group-hover/img:scale-105 transition-transform duration-500"
                       />
                       <div className="absolute inset-0 bg-linear-to-t from-black/80 via-transparent to-transparent flex items-end p-2 sm:p-3">
@@ -611,6 +615,8 @@ export default function GamesTestedPage() {
                         <img
                           src={screenshots[0].src}
                           alt={featuredGame.name}
+                          loading="lazy"
+                          decoding="async"
                           className="w-full h-full object-cover group-hover/banner:scale-105 transition-transform duration-700 ease-out"
                         />
                         <div className="absolute inset-0 bg-linear-to-t from-black/80 via-transparent to-transparent flex flex-col sm:flex-row items-start sm:items-end justify-between p-3 sm:p-6 gap-2">
@@ -650,6 +656,8 @@ export default function GamesTestedPage() {
                         <img
                           src={screenshots[1].src}
                           alt={featuredGame.name}
+                          loading="lazy"
+                          decoding="async"
                           className="w-full h-full object-cover group-hover/banner:scale-105 transition-transform duration-700 ease-out"
                         />
                         <div className="absolute inset-0 bg-linear-to-t from-black/80 via-transparent to-transparent flex flex-col sm:flex-row items-start sm:items-end justify-between p-3 sm:p-6 gap-2">
@@ -959,6 +967,8 @@ export default function GamesTestedPage() {
                                           <img
                                             src={m.url}
                                             alt={m.name || "Media attachment"}
+                                            loading="lazy"
+                                            decoding="async"
                                             className="w-full h-full object-cover group-hover/media:scale-105 transition-transform duration-300 cursor-pointer"
                                             onClick={() => window.open(m.url, "_blank")}
                                           />
@@ -1280,6 +1290,8 @@ export default function GamesTestedPage() {
                       <img
                         src={game.coverImage}
                         alt={game.name}
+                        loading="lazy"
+                        decoding="async"
                         onError={(e) => {
                           const target = e.target as HTMLImageElement;
                           if (target.src !== "/images/game-placeholder.png") {
@@ -1526,6 +1538,8 @@ export default function GamesTestedPage() {
                   <img
                     src={currentSlide.src}
                     alt={currentSlide.title}
+                    loading="lazy"
+                    decoding="async"
                     onError={(e) => {
                       const target = e.target as HTMLImageElement;
                       if (target.src !== "/images/game-placeholder.png") {
@@ -1597,7 +1611,7 @@ export default function GamesTestedPage() {
                         }`}
                         title={`Jump to slide ${idx + 1}: ${ss.title}`}
                       >
-                        <img src={ss.src} alt={ss.title} className="w-full h-full object-cover" />
+                        <img src={ss.src} alt={ss.title} loading="lazy" decoding="async" className="w-full h-full object-cover" />
                         {isActive && (
                           <div className="absolute inset-0 bg-neon-green/10 border-2 border-neon-green pointer-events-none rounded-lg sm:rounded-xl" />
                         )}

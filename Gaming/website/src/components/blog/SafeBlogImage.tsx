@@ -30,6 +30,8 @@ export default function SafeBlogImage({
     <img
       src={imgSrc}
       alt={alt}
+      loading="lazy"
+      decoding="async"
       className={className}
       onError={() => {
         if (imgSrc !== fallbackSrc) {

@@ -118,6 +118,8 @@ export function InteractiveHudSection() {
                         <img
                           src="/screenshots/hud_horizontal.webp"
                           alt="Horizontal HUD Overlay Layout"
+                          loading="lazy"
+                          decoding="async"
                           className="w-full h-auto object-contain rounded-lg filter drop-shadow-[0_0_10px_rgba(118,185,0,0.4)]"
                         />
                       </div>
@@ -144,6 +146,8 @@ export function InteractiveHudSection() {
                         <img
                           src="/screenshots/hud_compact.webp"
                           alt="Compact HUD Overlay Layout"
+                          loading="lazy"
+                          decoding="async"
                           className="w-full h-auto object-contain rounded-lg filter drop-shadow-[0_0_10px_rgba(118,185,0,0.4)]"
                         />
                       </div>
@@ -170,6 +174,8 @@ export function InteractiveHudSection() {
                         <img
                           src="/screenshots/hud_standard.webp"
                           alt="Standard HUD Overlay Layout"
+                          loading="lazy"
+                          decoding="async"
                           className="w-full h-auto object-contain rounded-lg filter drop-shadow-[0_0_10px_rgba(118,185,0,0.4)]"
                         />
                       </div>

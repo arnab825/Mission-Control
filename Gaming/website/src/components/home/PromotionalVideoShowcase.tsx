@@ -94,6 +94,8 @@ export function PromotionalVideoShowcase() {
             <img
               src={activeVideo.thumbnail}
               alt={activeVideo.title}
+              loading="lazy"
+              decoding="async"
               className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-700 opacity-90"
             />
             <div className="absolute inset-0 bg-gradient-to-t from-obsidian via-obsidian/40 to-transparent" />
@@ -145,7 +147,7 @@ export function PromotionalVideoShowcase() {
                 }`}
               >
                 <div className="relative w-24 aspect-video rounded-xl overflow-hidden shrink-0 border border-white/10">
-                  <img src={vid.thumbnail} alt={vid.title} className="w-full h-full object-cover" />
+                  <img src={vid.thumbnail} alt={vid.title} loading="lazy" decoding="async" className="w-full h-full object-cover" />
                   <div className="absolute inset-0 bg-black/40 flex items-center justify-center">
                     <Play className="w-4 h-4 text-white fill-white" />
                   </div>

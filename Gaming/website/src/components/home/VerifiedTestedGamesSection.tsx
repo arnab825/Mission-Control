@@ -48,6 +48,8 @@ export function VerifiedTestedGamesSection({ testedGames }: VerifiedTestedGamesS
               <img
                 src={game.coverImage}
                 alt={game.name}
+                loading="lazy"
+                decoding="async"
                 onError={(e) => {
                   const target = e.target as HTMLImageElement;
                   if (target.src !== "/images/game-placeholder.png") {

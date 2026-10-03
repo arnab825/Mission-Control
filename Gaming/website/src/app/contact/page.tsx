@@ -117,6 +117,8 @@ export default function ContactPage() {
         <img
           src="/contact_hero.png"
           alt="Support Dispatch Terminal"
+          loading="lazy"
+          decoding="async"
           className="w-full h-full object-cover"
         />
         <div className="absolute inset-0 bg-gradient-to-b from-[#070709]/20 via-[#070709]/80 to-[#0a0a0c]" />

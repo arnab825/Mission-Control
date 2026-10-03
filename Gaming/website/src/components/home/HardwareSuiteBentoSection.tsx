@@ -281,6 +281,8 @@ export function HardwareSuiteBentoSection() {
             <img
               src="/screenshots/deepscanner.png"
               alt="Deep Game Scanner Interface"
+              loading="lazy"
+              decoding="async"
               className="w-full h-full object-cover transition-all duration-500 group-hover/scan-preview:scale-105 group-hover/scan-preview:border-neon-green/30"
             />
             <div className="absolute inset-0 bg-linear-to-t from-obsidian/85 via-obsidian/10 to-transparent pointer-events-none" />

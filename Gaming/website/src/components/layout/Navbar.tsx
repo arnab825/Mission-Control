@@ -235,6 +235,10 @@ export default function Navbar() {
               <img
                 src="/logo.png"
                 alt="Mission Control"
+                width={48}
+                height={48}
+                loading="eager"
+                decoding="async"
                 className="w-full h-full object-contain relative z-10"
                 onError={(e) => {
                   (e.currentTarget as HTMLElement).style.display = "none";

@@ -332,6 +332,8 @@ export function ScreenshotGallery() {
               <img
                 src={activeTabData.src}
                 alt={activeTabData.label}
+                loading={activeTab === tabs[0].id ? "eager" : "lazy"}
+                decoding="async"
                 onLoad={() => setImageStatus("loaded")}
                 onError={() => setImageStatus("error")}
                 className={`w-full h-full object-cover upscale-crisp transition-all duration-700 ${imageStatus === "loaded" ? "opacity-100 scale-100" : "opacity-0 scale-105"}`}
@@ -392,6 +394,8 @@ export function ScreenshotGallery() {
               <img
                 src={activeTabData.src}
                 alt={activeTabData.label}
+                loading="lazy"
+                decoding="async"
                 className="max-w-[95vw] max-h-[85vh] w-auto h-auto object-contain rounded-xl border border-white/15 shadow-[0_0_50px_rgba(0,0,0,0.8)]"
               />
               <div className="mt-3 flex items-center justify-between w-full px-2 text-xs font-mono text-gray-400">

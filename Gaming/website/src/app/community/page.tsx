@@ -806,6 +806,8 @@ export default function CommunityPage() {
                                   <img
                                     src={m.url}
                                     alt={m.name || "Media attachment"}
+                                    loading="lazy"
+                                    decoding="async"
                                     className="w-full h-full object-cover group-hover/media:scale-105 transition-transform duration-300 cursor-pointer"
                                     onClick={() => window.open(m.url, "_blank")}
                                   />

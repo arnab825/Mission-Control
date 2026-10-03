@@ -69,7 +69,7 @@ export function HeroSection({ os, appVersion }: HeroSectionProps) {
 
       {/* Hero Section Container */}
       <section className="w-full max-w-7xl px-4 sm:px-6 mt-4 sm:mt-10 mb-16 sm:mb-28 relative z-10 mx-auto">
-        <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 lg:gap-12 items-center">
+        <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 lg:gap-12 items-center lg:items-start">
           {/* LEFT COLUMN: Details, Title, Description, CTAs, and Telemetry Stats */}
           <motion.div
             initial={{ opacity: 0, x: -30 }}
@@ -194,7 +194,7 @@ export function HeroSection({ os, appVersion }: HeroSectionProps) {
                 >
                   {copied ? (
                     <>
-                      <Sparkles className="w-3 h-3 text-neon-yellow" />
+                      <Sparkles className="w-3 text-neon-yellow" />
                       <span>COPIED!</span>
                     </>
                   ) : (
@@ -204,46 +204,6 @@ export function HeroSection({ os, appVersion }: HeroSectionProps) {
                     </>
                   )}
                 </button>
-              </div>
-
-              {/* High-Tech Telemetry Stats Counter Grid */}
-              <div className="w-full grid grid-cols-2 gap-2.5 font-mono text-[11px]">
-                <div className="p-3 rounded-xl bg-white/3 border border-white/10 backdrop-blur-md flex flex-col items-center justify-center text-center shadow-md hover:border-neon-green/50 hover:shadow-[0_0_20px_rgba(118,185,0,0.2)] transition-all h-full min-h-18 group">
-                  <div className="w-7 h-7 rounded-lg icon-badge-yellow mb-1 shrink-0">
-                    <Zap className="w-3.5 h-3.5 text-neon-yellow" />
-                  </div>
-                  <span className="text-neon-green font-black text-xs">&lt;15ms</span>
-                  <span className="text-gray-400 text-[10px] uppercase tracking-wider font-semibold mt-0.5 text-center">
-                    Local CUDA Latency
-                  </span>
-                </div>
-                <div className="p-3 rounded-xl bg-white/3 border border-white/10 backdrop-blur-md flex flex-col items-center justify-center text-center shadow-md hover:border-neon-green/50 hover:shadow-[0_0_20px_rgba(118,185,0,0.2)] transition-all h-full min-h-18 group">
-                  <div className="w-7 h-7 rounded-lg icon-badge-premium mb-1 shrink-0">
-                    <Shield className="w-3.5 h-3.5 text-neon-green" />
-                  </div>
-                  <span className="text-neon-green font-black text-xs">100% SAFE</span>
-                  <span className="text-gray-400 text-[10px] uppercase tracking-wider font-semibold mt-0.5 text-center">
-                    Overlay Hooking
-                  </span>
-                </div>
-                <div className="p-3 rounded-xl bg-white/3 border border-white/10 backdrop-blur-md flex flex-col items-center justify-center text-center shadow-md hover:border-purple-500/50 hover:shadow-[0_0_20px_rgba(168,85,247,0.2)] transition-all h-full min-h-18 group">
-                  <div className="w-7 h-7 rounded-lg icon-badge-purple mb-1 shrink-0">
-                    <Cpu className="w-3.5 h-3.5 text-purple-400" />
-                  </div>
-                  <span className="text-purple-400 font-black text-xs">TENSORRT</span>
-                  <span className="text-gray-400 text-[10px] uppercase tracking-wider font-semibold mt-0.5 text-center">
-                    NVIDIA Engine
-                  </span>
-                </div>
-                <div className="p-3 rounded-xl bg-white/3 border border-white/10 backdrop-blur-md flex flex-col items-center justify-center text-center shadow-md hover:border-cyan-400/50 hover:shadow-[0_0_20px_rgba(6,182,212,0.2)] transition-all h-full min-h-18 group">
-                  <div className="w-7 h-7 rounded-lg icon-badge-cyan mb-1 shrink-0">
-                    <Globe className="w-3.5 h-3.5 text-cyan-400" />
-                  </div>
-                  <span className="text-cyan-400 font-black text-xs">100% FREE</span>
-                  <span className="text-gray-400 text-[10px] uppercase tracking-wider font-semibold mt-0.5 text-center">
-                    Open Source GitHub
-                  </span>
-                </div>
               </div>
             </div>
           </motion.div>
@@ -264,6 +224,10 @@ export function HeroSection({ os, appVersion }: HeroSectionProps) {
                       <img
                         src="/logo.png"
                         alt="Mission Control Logo"
+                        width={24}
+                        height={24}
+                        loading="eager"
+                        decoding="async"
                         className="w-full h-full object-contain"
                       />
                     </div>
@@ -301,6 +265,51 @@ export function HeroSection({ os, appVersion }: HeroSectionProps) {
             </div>
           </motion.div>
         </div>
+
+        {/* High-Tech Telemetry Stats Counter Grid (Full-Width 4-Column Strip on Desktop) */}
+        <motion.div
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.7, delay: 0.35, ease: "easeOut" }}
+          className="w-full grid grid-cols-2 lg:grid-cols-4 gap-2.5 sm:gap-4 font-mono text-[11px] mt-6 sm:mt-8"
+        >
+          <div className="p-3.5 rounded-xl bg-white/3 border border-white/10 backdrop-blur-md flex flex-col items-center justify-center text-center shadow-md hover:border-neon-green/50 hover:shadow-[0_0_20px_rgba(118,185,0,0.2)] transition-all h-full min-h-18 group">
+            <div className="w-7 h-7 rounded-lg icon-badge-yellow mb-1.5 shrink-0">
+              <Zap className="w-3.5 h-3.5 text-neon-yellow" />
+            </div>
+            <span className="text-neon-green font-black text-xs sm:text-sm">&lt;15ms</span>
+            <span className="text-gray-400 text-[10px] uppercase tracking-wider font-semibold mt-0.5 text-center">
+              Local CUDA Latency
+            </span>
+          </div>
+          <div className="p-3.5 rounded-xl bg-white/3 border border-white/10 backdrop-blur-md flex flex-col items-center justify-center text-center shadow-md hover:border-neon-green/50 hover:shadow-[0_0_20px_rgba(118,185,0,0.2)] transition-all h-full min-h-18 group">
+            <div className="w-7 h-7 rounded-lg icon-badge-premium mb-1.5 shrink-0">
+              <Shield className="w-3.5 h-3.5 text-neon-green" />
+            </div>
+            <span className="text-neon-green font-black text-xs sm:text-sm">100% SAFE</span>
+            <span className="text-gray-400 text-[10px] uppercase tracking-wider font-semibold mt-0.5 text-center">
+              Overlay Hooking
+            </span>
+          </div>
+          <div className="p-3.5 rounded-xl bg-white/3 border border-white/10 backdrop-blur-md flex flex-col items-center justify-center text-center shadow-md hover:border-purple-500/50 hover:shadow-[0_0_20px_rgba(168,85,247,0.2)] transition-all h-full min-h-18 group">
+            <div className="w-7 h-7 rounded-lg icon-badge-purple mb-1.5 shrink-0">
+              <Cpu className="w-3.5 h-3.5 text-purple-400" />
+            </div>
+            <span className="text-purple-400 font-black text-xs sm:text-sm">TENSORRT</span>
+            <span className="text-gray-400 text-[10px] uppercase tracking-wider font-semibold mt-0.5 text-center">
+              NVIDIA Engine
+            </span>
+          </div>
+          <div className="p-3.5 rounded-xl bg-white/3 border border-white/10 backdrop-blur-md flex flex-col items-center justify-center text-center shadow-md hover:border-cyan-400/50 hover:shadow-[0_0_20px_rgba(6,182,212,0.2)] transition-all h-full min-h-18 group">
+            <div className="w-7 h-7 rounded-lg icon-badge-cyan mb-1.5 shrink-0">
+              <Globe className="w-3.5 h-3.5 text-cyan-400" />
+            </div>
+            <span className="text-cyan-400 font-black text-xs sm:text-sm">100% FREE</span>
+            <span className="text-gray-400 text-[10px] uppercase tracking-wider font-semibold mt-0.5 text-center">
+              Open Source GitHub
+            </span>
+          </div>
+        </motion.div>
       </section>
 
       {/* Full-Resolution 3K HD Screenshot Lightbox Modal */}
@@ -323,6 +332,8 @@ export function HeroSection({ os, appVersion }: HeroSectionProps) {
               <img
                 src="/screenshots/dashboard.webp"
                 alt="Mission Control Full 3K HD Interface"
+                loading="lazy"
+                decoding="async"
                 className="w-full h-auto rounded-lg object-contain"
               />
             </div>
