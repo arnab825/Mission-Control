@@ -1,5 +1,6 @@
 "use client";
 
+import { useState, useEffect } from "react";
 import dynamic from "next/dynamic";
 import { usePathname } from "next/navigation";
 import Navbar from "./Navbar";
@@ -18,12 +19,29 @@ const SupportChatbot = dynamic(() => import("@/components/support/SupportChatbot
 
 export default function ClientLayout({ children }: { children: React.ReactNode }) {
   const pathname = usePathname();
+  const [canLoadExtras, setCanLoadExtras] = useState(false);
+
+  useEffect(() => {
+    // Defer heavy canvas background and support chatbot until initial page paint & hydration are complete
+    if (typeof window !== "undefined" && "requestIdleCallback" in window) {
+      const id = (window as any).requestIdleCallback(
+        () => setCanLoadExtras(true),
+        { timeout: 1500 }
+      );
+      return () => (window as any).cancelIdleCallback(id);
+    } else {
+      const timer = setTimeout(() => setCanLoadExtras(true), 600);
+      return () => clearTimeout(timer);
+    }
+  }, []);
 
   return (
     <QueryProvider>
-      <div className="fixed inset-0 pointer-events-none z-0">
-        <InteractiveNetwork />
-      </div>
+      {canLoadExtras && (
+        <div className="fixed inset-0 pointer-events-none z-0">
+          <InteractiveNetwork />
+        </div>
+      )}
       <Navbar />
       <AnimatePresence initial={false}>
         <motion.main
@@ -38,7 +56,7 @@ export default function ClientLayout({ children }: { children: React.ReactNode }
         </motion.main>
       </AnimatePresence>
       <Footer />
-      <SupportChatbot />
+      {canLoadExtras && <SupportChatbot />}
       <ScrollToTop />
     </QueryProvider>
   );

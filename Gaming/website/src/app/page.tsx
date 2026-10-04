@@ -5,31 +5,57 @@ import Script from "next/script";
 import { TestedGameSummary, getLiveTestedGames, fetchBenchmarks } from "@/data/benchmarks";
 import { APP_VERSION } from "@/lib/version";
 import dynamic from "next/dynamic";
-import { HeroSection, TechPartnersTicker, OS } from "@/components/home";
+import { HeroSection, OS } from "@/components/home/HeroSection";
+import { TechPartnersTicker } from "@/components/home/TechPartnersTicker";
 
+// Direct file dynamic imports enable genuine Next.js code-splitting and eliminate initial bundle bloat
 const VerifiedTestedGamesSection = dynamic(
-  () => import("@/components/home").then((m) => m.VerifiedTestedGamesSection)
+  () =>
+    import("@/components/home/VerifiedTestedGamesSection").then(
+      (m) => m.VerifiedTestedGamesSection
+    )
 );
 const HardwareSuiteBentoSection = dynamic(
-  () => import("@/components/home").then((m) => m.HardwareSuiteBentoSection)
+  () =>
+    import("@/components/home/HardwareSuiteBentoSection").then(
+      (m) => m.HardwareSuiteBentoSection
+    )
 );
 const ScreenshotGallerySection = dynamic(
-  () => import("@/components/home").then((m) => m.ScreenshotGallerySection)
+  () =>
+    import("@/components/home/ScreenshotGallerySection").then(
+      (m) => m.ScreenshotGallerySection
+    )
 );
 const BeforeAfterSection = dynamic(
-  () => import("@/components/home").then((m) => m.BeforeAfterSection)
+  () =>
+    import("@/components/home/BeforeAfterSection").then(
+      (m) => m.BeforeAfterSection
+    )
 );
 const InteractiveHudSection = dynamic(
-  () => import("@/components/home").then((m) => m.InteractiveHudSection)
+  () =>
+    import("@/components/home/InteractiveHudSection").then(
+      (m) => m.InteractiveHudSection
+    )
 );
 const PerformanceComparisonSection = dynamic(
-  () => import("@/components/home").then((m) => m.PerformanceComparisonSection)
+  () =>
+    import("@/components/home/PerformanceComparisonSection").then(
+      (m) => m.PerformanceComparisonSection
+    )
 );
 const DownloadSection = dynamic(
-  () => import("@/components/home").then((m) => m.DownloadSection)
+  () =>
+    import("@/components/home/DownloadSection").then(
+      (m) => m.DownloadSection
+    )
 );
 const FaqSection = dynamic(
-  () => import("@/components/home").then((m) => m.FaqSection)
+  () =>
+    import("@/components/home/FaqSection").then(
+      (m) => m.FaqSection
+    )
 );
 
 const faqSchema = {
@@ -83,29 +109,43 @@ export default function Home() {
         (window.navigator.userAgent || window.navigator.platform)) ||
       ""
     ).toLowerCase();
+    // Detect OS immediately for responsive installer buttons
     if (ua.includes("win")) setOs("windows");
     else if (ua.includes("linux") || ua.includes("x11")) setOs("linux");
     else if (ua.includes("mac")) setOs("mac");
     else setOs("other");
 
-    fetch("/api/version")
-      .then((res) => res.json())
-      .then((data) => {
-        if (isMounted && data?.version) setAppVersion(data.version);
-      })
-      .catch(() => {});
+    // Defer non-critical background data sync so it never competes with initial render or hero assets
+    const scheduleFetch = () => {
+      fetch("/api/version")
+        .then((res) => res.json())
+        .then((data) => {
+          if (isMounted && data?.version) setAppVersion(data.version);
+        })
+        .catch(() => {});
 
-    fetchBenchmarks()
-      .then((data) => {
-        if (isMounted && data.testedGames && data.testedGames.length > 0) {
-          setTestedGames(data.testedGames);
-        }
-      })
-      .catch(() => {});
-
-    return () => {
-      isMounted = false;
+      fetchBenchmarks()
+        .then((data) => {
+          if (isMounted && data.testedGames && data.testedGames.length > 0) {
+            setTestedGames(data.testedGames);
+          }
+        })
+        .catch(() => {});
     };
+
+    if (typeof window !== "undefined" && "requestIdleCallback" in window) {
+      const idleId = (window as any).requestIdleCallback(scheduleFetch, { timeout: 2000 });
+      return () => {
+        isMounted = false;
+        (window as any).cancelIdleCallback(idleId);
+      };
+    } else {
+      const timer = setTimeout(scheduleFetch, 800);
+      return () => {
+        isMounted = false;
+        clearTimeout(timer);
+      };
+    }
   }, []);
 
   return (

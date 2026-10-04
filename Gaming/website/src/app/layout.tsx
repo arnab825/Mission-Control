@@ -125,8 +125,6 @@ export default function RootLayout({
       className={`${inter.variable} ${jetbrainsMono.variable} ${outfit.variable} antialiased dark`}
     >
       <head>
-        <link rel="preconnect" href="https://fonts.googleapis.com" />
-        <link rel="preconnect" href="https://fonts.gstatic.com" crossOrigin="anonymous" />
         <link rel="preconnect" href="https://blob.vercel-storage.com" />
         <link rel="dns-prefetch" href="https://pagead2.googlesyndication.com" />
       </head>
