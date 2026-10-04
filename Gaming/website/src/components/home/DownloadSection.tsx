@@ -90,14 +90,19 @@ export function DownloadSection() {
           </div>
 
           {/* Winget CLI Fast-Install */}
-          <div className="mt-4 pt-3 border-t border-white/10 flex flex-col gap-1.5">
+          <div className="mt-4 pt-3 border-t border-white/10 flex flex-col gap-2">
             <div className="flex items-center justify-between text-[10px] font-mono text-gray-400">
               <span className="flex items-center gap-1.5 text-zinc-300 font-semibold">
                 <Terminal className="w-3 h-3 text-neon-green" /> Windows Package Manager
               </span>
-              <span className="text-[9px] uppercase tracking-wider text-neon-green/90 bg-neon-green/10 px-1.5 py-0.5 rounded border border-neon-green/20">
-                winget
-              </span>
+              <div className="flex items-center gap-1.5">
+                <span className="text-[9px] uppercase tracking-wider text-amber-400 bg-amber-400/10 px-1.5 py-0.5 rounded border border-amber-400/20 font-mono">
+                  Review Pending
+                </span>
+                <span className="text-[9px] uppercase tracking-wider text-neon-green/90 bg-neon-green/10 px-1.5 py-0.5 rounded border border-neon-green/20">
+                  winget
+                </span>
+              </div>
             </div>
             <div className="relative group/copy flex items-center justify-between bg-black/50 border border-white/10 hover:border-neon-green/40 transition-colors rounded-lg px-2.5 py-2 font-mono text-[11px] text-gray-300">
               <code className="text-neon-green truncate select-all">
@@ -106,7 +111,7 @@ export function DownloadSection() {
               <button
                 type="button"
                 onClick={handleCopyWinget}
-                title="Copy winget command"
+                title="Copy winget command (Note: Package undergoing Microsoft verification. Download Setup.exe above for immediate install)"
                 className="ml-2 text-gray-400 hover:text-neon-green transition-colors shrink-0 p-1 rounded"
               >
                 {copiedWinget ? (
@@ -116,6 +121,9 @@ export function DownloadSection() {
                 )}
               </button>
             </div>
+            <p className="text-[10px] text-gray-400 font-mono leading-relaxed">
+              ⏳ <span className="text-amber-300/90 font-medium">Microsoft verification in progress</span>. For immediate install, use the <span className="text-neon-green font-semibold">Setup (.exe)</span> above or local manifest.
+            </p>
           </div>
         </div>
 

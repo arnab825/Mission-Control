@@ -177,33 +177,38 @@ export function HeroSection({ os, appVersion }: HeroSectionProps) {
               <div className="w-full flex items-center justify-between bg-black/60 border border-neon-green/30 hover:border-neon-green/60 transition-all rounded-xl px-3.5 py-2 font-mono text-[11px] shadow-[0_0_20px_rgba(118,185,0,0.15)] group/cli">
                 <div className="flex items-center gap-2 overflow-hidden text-left">
                   <span className="text-neon-green font-bold shrink-0">$</span>
-                  <span className="text-gray-400 shrink-0 hidden sm:inline">fast install:</span>
+                  <span className="text-gray-400 shrink-0 hidden sm:inline">winget:</span>
                   <code className="text-gray-200 group-hover/cli:text-neon-green transition-colors select-all truncate font-semibold">
                     winget install arnab825.MissionControl
                   </code>
                 </div>
-                <button
-                  type="button"
-                  onClick={() => {
-                    navigator.clipboard.writeText("winget install arnab825.MissionControl");
-                    setCopied(true);
-                    setTimeout(() => setCopied(false), 2000);
-                  }}
-                  className="ml-2 px-2.5 py-1 rounded-lg bg-neon-green/10 border border-neon-green/30 hover:bg-neon-green hover:text-obsidian text-neon-green transition-all shrink-0 flex items-center gap-1.5 text-[10px] font-bold cursor-pointer"
-                  title="Copy winget command"
-                >
-                  {copied ? (
-                    <>
-                      <Sparkles className="w-3 text-neon-yellow" />
-                      <span>COPIED!</span>
-                    </>
-                  ) : (
-                    <>
-                      <Zap className="w-3 h-3" />
-                      <span>COPY</span>
-                    </>
-                  )}
-                </button>
+                <div className="flex items-center gap-1.5 shrink-0">
+                  <span className="hidden lg:inline-flex text-[9px] uppercase tracking-wider text-amber-400 bg-amber-400/10 border border-amber-400/25 px-1.5 py-0.5 rounded font-mono font-medium">
+                    MS Review In Progress
+                  </span>
+                  <button
+                    type="button"
+                    onClick={() => {
+                      navigator.clipboard.writeText("winget install arnab825.MissionControl");
+                      setCopied(true);
+                      setTimeout(() => setCopied(false), 2000);
+                    }}
+                    className="px-2.5 py-1 rounded-lg bg-neon-green/10 border border-neon-green/30 hover:bg-neon-green hover:text-obsidian text-neon-green transition-all shrink-0 flex items-center gap-1.5 text-[10px] font-bold cursor-pointer"
+                    title="Copy winget command (Note: Microsoft review is currently in progress. Use direct download button above for instant install)"
+                  >
+                    {copied ? (
+                      <>
+                        <Sparkles className="w-3 text-neon-yellow" />
+                        <span>COPIED!</span>
+                      </>
+                    ) : (
+                      <>
+                        <Zap className="w-3 h-3" />
+                        <span>COPY</span>
+                      </>
+                    )}
+                  </button>
+                </div>
               </div>
             </div>
           </motion.div>

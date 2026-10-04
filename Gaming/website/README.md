@@ -14,10 +14,12 @@ The official high-performance web platform for **Mission Control**, built with N
   - Automatically fetches real-time updates from 5 major RSS feeds: IGN, Kotaku, Eurogamer, AnandTech, and Tom's Hardware.
   - Generates technical gaming articles daily across 4 core categories: `GPU News`, `Game News`, `Hardware Deep-Dive`, and `Game Revisit`.
   - **3-Tier Failover LLM Pipeline**: Google Gemini (`gemini-3.8-flash`) ➔ Hugging Face (`Llama-3.1-8B-Instruct`) ➔ NVIDIA NIM (`meta/llama-3.2-11b-vision-instruct` / `nvidia/nemotron-3-super-120b-a12b`).
-  - **4-Tier Image Failover Pipeline**: Imagen 3 via Gemini ➔ Hugging Face (`FLUX.1-schnell`) ➔ Pollinations AI ➔ Fallback 3D PNG artwork assets.
+  - **4-Tier Image Failover Pipeline & Vercel Blob CDN**: Imagen 3 via Gemini ➔ Hugging Face (`FLUX.1-schnell`) ➔ Pollinations AI ➔ Fallback 3D PNG artwork assets. All generated media is persistently stored on Vercel Blob CDN (`BLOB_READ_WRITE_TOKEN`) to prevent serverless 404 errors.
   - **MongoDB Atlas Persistence**: Saves posts directly into MongoDB Atlas to guarantee zero content loss across serverless Vercel function lifecycles.
 - **🎮 Interactive Game Benchmark Library**: Dynamic rendering of GPU performance profiles, CPU bottleneck metrics, story overviews, and gameplay mechanics across top titles.
 - **📥 Dynamic OS-Dependent Download Router (`/api/download`)**: Automated HTTP User-Agent inspection serving native Windows installers (`.exe`, `.msi`, `.zip`) to Windows users and Linux packages (`.AppImage`, `.deb`, `.rpm`, `.tar.gz`) to Linux users.
+- **🤖 Support Bot & AI Assistant (`/api/support/chat`)**: Real-time tactical assistant delivering hardware recommendations, system specifications, and troubleshooting guidance.
+- **📚 Interactive Documentation Station (`/docs`)**: In-depth architecture guides, telemetry hooks, hotkeys, and API specifications.
 - **📊 System Telemetry & Glitch Tracker**: Community bug tracking hub and live WebGL GPU hardware specs auto-detection.
 - **🔍 Automated SEO & Schema**: Full JSON-LD structured schema metadata generation for gaming news articles and benchmarks.
 
@@ -29,6 +31,7 @@ The official high-performance web platform for **Mission Control**, built with N
 - **Language**: TypeScript
 - **Styling**: Tailwind CSS + Custom Design Tokens
 - **Database**: MongoDB Atlas (via Mongoose)
+- **Object Storage / CDN**: Vercel Blob Storage
 - **AI Integrations**: Google Gemini API, Hugging Face Inference, NVIDIA NIM API
 - **Deployment & Crons**: Vercel Serverless Functions + Vercel Cron Jobs
 
@@ -36,7 +39,7 @@ The official high-performance web platform for **Mission Control**, built with N
 
 ## 🚀 Getting Started
 
-### 1. Installation
+### 1. Installation & Environment Scaffolding
 
 ```bash
 # Navigate to website directory
@@ -44,11 +47,14 @@ cd Gaming/website
 
 # Install dependencies
 npm install
+
+# Initialize local environment templates (Zero-Secrets policy)
+npm run setup
 ```
 
 ### 2. Environment Configuration (`.env`)
 
-Create a `.env` file in `Gaming/website/` with the following variables:
+Configure your `.env` or `.env.local` file with the following variables:
 
 ```env
 # MongoDB Connection String
@@ -61,6 +67,9 @@ CRON_SECRET=your_secure_cron_secret_token
 GEMINI_API_KEY=your_google_gemini_api_key
 HF_TOKEN=your_hugging_face_token
 NVIDIA_API_KEY=nvapi-your_nvidia_nim_api_key
+
+# Vercel Blob CDN for Persistent Image Hosting
+BLOB_READ_WRITE_TOKEN=vercel_blob_rw_...
 ```
 
 ### 3. Local Development Server
@@ -70,6 +79,32 @@ npm run dev
 ```
 
 Open [http://localhost:3000](http://localhost:3000) in your browser.
+
+---
+
+## 📦 Downloads & Windows Package Manager (Winget) Status
+
+The website distributes native builds for Windows and Linux through direct download endpoints and automated mirrors:
+
+- **Primary Direct Installers (Windows)**:
+  - **Setup Executable (`.exe`)**: Standard NSIS wizard installer with desktop shortcut and uninstaller.
+  - **MSI Installer (`.msi`)**: Windows Installer package for managed deployments.
+  - **Portable Archive (`.zip`)**: Zero-install standalone executable folder.
+- **Linux Packages**: `.AppImage`, `.deb`, `.rpm`, `.tar.gz` for Debian, Ubuntu, Fedora, and Arch.
+
+### ⏳ Winget Package Status (Microsoft Verification In Progress)
+
+The official package identifier `arnab825.MissionControl` manifest has been prepared and submitted to the official [microsoft/winget-pkgs](https://github.com/microsoft/winget-pkgs) community repository.
+
+> **Status Notice:** While Microsoft's verification and pull request review are actively in progress, running `winget install arnab825.MissionControl` directly from the public source is not yet live. 
+> 
+> **Immediate Installation Alternatives:**
+> 1. **Direct Download**: Use the 1-click installer from the website or [GitHub Releases](https://github.com/arnab825/Mission-Control/releases/latest).
+> 2. **Local Winget Manifest**: Advanced users can test and install locally using the verified manifest without waiting for Microsoft's CDN sync:
+>    ```powershell
+>    # Run from repository root:
+>    winget install --manifest .\Gaming\winget\arnab825.MissionControl.singleton.yaml --accept-package-agreements --accept-source-agreements --force
+>    ```
 
 ---
 
