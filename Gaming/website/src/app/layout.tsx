@@ -32,7 +32,7 @@ export const viewport: Viewport = {
   themeColor: "#0a0a0c",
 };
 // Add this line at the top of your dynamic page or route files:
-export const runtime = 'edge';
+export const runtime = 'nodejs';
 export const metadata: Metadata = {
   metadataBase: new URL(BASE_SITE_URL),
   title: {
