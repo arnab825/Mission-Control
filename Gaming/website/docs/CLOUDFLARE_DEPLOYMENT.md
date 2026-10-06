@@ -202,3 +202,9 @@ The worker script located at [`Gaming/scripts/cf-worker-release-proxy.js`](../sc
 ### Issue 3: Stale "Hello World" or Blank Responses
 - **Cause**: If the Cloudflare deploy command is set to `exit 0`, the build completes but the worker bundle is not pushed.
 - **Fix**: Ensure the deploy command is set to `npx wrangler deploy` or run `npm run deploy:cf`.
+
+### Issue 4: "▲ [WARNING] Using direct eval with a bundler is not recommended [direct-eval]"
+- **Symptom**: Build logs show esbuild warning in `.open-next/server-functions/default/handler.mjs: eval(str)||{}}`.
+- **Cause**: Markdown / frontmatter parsing libraries (such as `gray-matter` or template engines) include an optional fallback evaluation pathway for custom JavaScript engines.
+- **Impact**: **Zero impact / Non-fatal.** esbuild outputs this informational warning because direct `eval()` prevents static variable name mangling in that specific inner function scope. The bundle compiles normally, the version ID is generated (`Current Version ID: ...`), and the worker runs smoothly.
+
