@@ -6,6 +6,10 @@ export function getBaseUrl(): string {
   if (process.env.NEXT_PUBLIC_SITE_URL) {
     return process.env.NEXT_PUBLIC_SITE_URL.replace(/\/$/, "");
   }
+  // Cloudflare Workers / Pages standard hostname
+  if (process.env.CF_PAGES_URL) {
+    return process.env.CF_PAGES_URL.replace(/\/$/, "");
+  }
   // Azure App Service / Azure Functions standard hostname
   if (process.env.WEBSITE_HOSTNAME) {
     return `https://${process.env.WEBSITE_HOSTNAME.replace(/\/$/, "")}`;
@@ -23,7 +27,7 @@ export function getBaseUrl(): string {
   if (process.env.VERCEL_URL) {
     return `https://${process.env.VERCEL_URL}`;
   }
-  return "https://mission-control-taupe-mu.vercel.app";
+  return "https://mission-control.rarnab225.workers.dev";
 }
 
 export const BASE_SITE_URL = getBaseUrl();

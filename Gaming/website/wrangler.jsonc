@@ -11,4 +11,12 @@
   "observability": {
     "enabled": true
   }
+  // To bind custom domains or subdomains in Cloudflare, either add them via
+  // Cloudflare Dashboard -> Workers & Pages -> mission-control -> Settings -> Domains & Routes,
+  // or define them here:
+  // "routes": [
+  //   { "pattern": "mission-control.rarnab225.workers.dev/*", "zone_name": "" },
+  //   { "pattern": "missioncontrol.yourdomain.com/*", "custom_domain": true },
+  //   { "pattern": "*.missioncontrol.yourdomain.com/*", "custom_domain": true }
+  // ]
 }

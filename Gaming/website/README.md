@@ -31,9 +31,10 @@ The official high-performance web platform for **Mission Control**, built with N
 - **Language**: TypeScript
 - **Styling**: Tailwind CSS + Custom Design Tokens
 - **Database**: MongoDB Atlas (via Mongoose)
-- **Object Storage / CDN**: Vercel Blob Storage
+- **Object Storage / CDN**: Cloudflare Global Edge Network + Vercel Blob Storage
 - **AI Integrations**: Google Gemini API, Hugging Face Inference, NVIDIA NIM API
-- **Deployment & Crons**: Vercel Serverless Functions + Vercel Cron Jobs
+- **Deployment & Hosting**: Cloudflare Workers (via `@opennextjs/cloudflare` & Wrangler) with Vercel Serverless standby
+- **Edge Cron & Scheduling**: Vercel Cron Jobs & Cloudflare Cron Triggers
 
 ---
 
@@ -79,6 +80,55 @@ npm run dev
 ```
 
 Open [http://localhost:3000](http://localhost:3000) in your browser.
+
+### 4. Cloudflare Workers Edge Deployment (OpenNext)
+
+The website is packaged and deployed directly to Cloudflare Workers using OpenNext for full Next.js 16 App Router edge execution and ultra-low edge latency:
+
+```bash
+# 1. Build Next.js & package OpenNext Cloudflare bundle (.open-next/)
+npm run build:cf
+
+# 2. Deploy to Cloudflare Workers via Wrangler
+npm run deploy:cf
+
+# Or deploy directly using wrangler CLI:
+npx wrangler deploy
+
+# 3. Preview locally using Cloudflare workerd runtime
+npm run preview:cf
+```
+
+---
+
+## 🌐 Subdomains & Cloudflare Edge Routing
+
+The production website and edge microservices operate across primary Cloudflare Workers routes and custom subdomains:
+
+| Subdomain / Route | Target Service | Purpose / Features |
+| :--- | :--- | :--- |
+| `https://mission-control.rarnab225.workers.dev` | Primary Cloudflare Worker (`mission-control`) | Live web application, SSR pages, App Router RSC, and API routes. |
+| `missioncontrol.<domain>` *(Custom Domain)* | Cloudflare Worker Custom Domain | Main brand landing hub and interactive hardware benchmark portal. |
+| `api.<domain>` *(Custom Subdomain)* | Workers API Gateway / OpenNext Router | Handles `/api/blogs`, `/api/download`, `/api/support/chat`, and telemetry endpoints. |
+| `docs.<domain>` *(Subdomain Route)* | Next.js Interactive Documentation Hub | Architecture manuals, telemetry specifications, and controller mapping documentation. |
+| `release.<domain>` *(Cloudflare Edge Proxy)* | `scripts/cf-worker-release-proxy.js` | Zero-redirect binary streaming edge proxy for Microsoft Store certification. |
+
+### Configuring Custom Subdomains in Cloudflare
+
+1. **Via Cloudflare Dashboard**:
+   - Go to **Workers & Pages** ➔ Select **`mission-control`**.
+   - Navigate to **Settings** ➔ **Domains & Routes**.
+   - Click **Add Custom Domain** and enter your desired subdomain (e.g., `missioncontrol.yourdomain.com`).
+   - Cloudflare will automatically provision SSL certificates and configure the edge DNS routing.
+
+2. **Via `wrangler.jsonc`**:
+   - Define custom domain routes directly in [`wrangler.jsonc`](wrangler.jsonc):
+     ```jsonc
+     "routes": [
+       { "pattern": "missioncontrol.yourdomain.com/*", "custom_domain": true },
+       { "pattern": "*.missioncontrol.yourdomain.com/*", "custom_domain": true }
+     ]
+     ```
 
 ---
 
@@ -159,6 +209,8 @@ Gaming/website/
 │       └── Blog.ts                       # Mongoose Blog schema model
 ├── public/                               # Static images, fonts, & fallbacks
 ├── next.config.ts                        # Next.js configuration
+├── open-next.config.ts                   # OpenNext Cloudflare adapter configuration
+├── wrangler.jsonc                        # Cloudflare Workers deployment & routing config
 └── vercel.json                           # Vercel deployment & cron config
 ```
 

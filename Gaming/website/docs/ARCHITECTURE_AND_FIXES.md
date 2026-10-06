@@ -244,3 +244,29 @@ flowchart TD
 | **AI Metadata Enricher**            |      **`:8831`**      | Dedicated LLM feature & summary generator.                  |
 | **Multi-Launcher Store Healer**     |      **`:8841`**      | Cross-store exclusivity & multi-store aggregation.          |
 | **Infinite Crawler & AI Harvester** |      **`:8851`**      | 24/7 6-thread quad-store ingestion & classifier daemon.     |
+
+---
+
+## 5. Cloudflare Workers Edge Deployment & Subdomain Architecture
+
+The web platform is deployed on **Cloudflare Workers** utilizing **OpenNext (`@opennextjs/cloudflare`)** for high-concurrency, low-latency edge serving.
+
+### Edge Domains & Subdomain Routing
+
+```mermaid
+flowchart LR
+    EdgeDNS["Cloudflare Edge Anycast DNS"] --> Worker["mission-control Cloudflare Worker\n(.open-next/worker.js)"]
+    EdgeDNS --> ReleaseProxy["Edge Release Proxy\n(cf-worker-release-proxy.js)"]
+
+    Worker --> Route1["mission-control.rarnab225.workers.dev (Default Worker URL)"]
+    Worker --> Route2["missioncontrol.<domain>.com (Primary Hub)"]
+    Worker --> Route3["api.<domain>.com (Edge REST & Telemetry APIs)"]
+    Worker --> Route4["docs.<domain>.com (Interactive Docs Station)"]
+    ReleaseProxy --> Route5["release.<domain>.com (MS Store Zero-Redirect Direct Download)"]
+```
+
+- **OpenNext Runtime**: Compiles Next.js 16 App Router into an edge worker bundle with `nodejs_compat` enabled and static assets routed through Cloudflare's `.open-next/assets` KV/Asset Handler binding.
+- **Subdomain Routing**: Supports unified multi-subdomain routing where the edge worker inspects host headers and routes to corresponding Next.js routes (`/api/*`, `/docs/*`, `/benchmarks/*`).
+- **Edge Binary Streaming**: Custom worker edge proxy ensures Microsoft Store binary streaming without 302 redirects.
+- **Documentation Guide**: Full operational details are available in [`docs/CLOUDFLARE_DEPLOYMENT.md`](file:///e:/AiAssistant/Gaming/website/docs/CLOUDFLARE_DEPLOYMENT.md).
+
