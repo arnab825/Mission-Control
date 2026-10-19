@@ -141,8 +141,7 @@ Mission Control bridges local high-speed processing with powerful cloud inferenc
       "Deep dive into Mission Control's near-zero overhead architecture: TensorRT FP16 auto-upgrade, CPU P-core affinity isolation, cyclic RAM reclamation, and NVML thermal gating.",
     badge: "Hardware Engine",
     badgeColor: "text-neon-cyan",
-    content: `# ⚡ Hardware Optimization Blueprint & Execution Status
-> **Objective**: Optimize Mission Control across GPU (VRAM/Compute), CPU (Cycles/Affinity), and RAM (Working Set/Allocation) to achieve **near-zero overhead** on host AAA gaming performance.
+    content: `> **Objective**: Optimize Mission Control across GPU (VRAM/Compute), CPU (Cycles/Affinity), and RAM (Working Set/Allocation) to achieve **near-zero overhead** on host AAA gaming performance.
 
 ---
 

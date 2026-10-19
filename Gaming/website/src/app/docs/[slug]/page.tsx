@@ -6,6 +6,9 @@ import React from "react";
 import { ChevronLeft, ChevronRight, BookOpen, Clock, Tag, Share2, Sparkles } from "lucide-react";
 import ReactMarkdown from "react-markdown";
 import remarkGfm from "remark-gfm";
+import remarkMath from "remark-math";
+import rehypeKatex from "rehype-katex";
+import "katex/dist/katex.min.css";
 import { TableOfContents, CodeBlock } from "@/components/docs";
 import { AdSenseAdSlot } from "@/components/integrations";
 
@@ -153,7 +156,8 @@ export default async function DocPage({ params }: { params: Promise<{ slug: stri
         {/* Article Body Content with Enhanced Typography */}
         <div className="glass-card p-6 sm:p-10 border border-white/10 rounded-3xl backdrop-blur-2xl shadow-2xl prose prose-invert prose-headings:font-display prose-headings:text-white prose-a:text-neon-green prose-a:no-underline hover:prose-a:underline prose-code:font-mono prose-code:text-neon-yellow max-w-none">
           <ReactMarkdown
-            remarkPlugins={[remarkGfm]}
+            remarkPlugins={[remarkGfm, remarkMath]}
+            rehypePlugins={[rehypeKatex]}
             components={{
               p: ({ children }: any) => (
                 <p className="my-4 text-gray-300 leading-relaxed font-sans text-sm sm:text-base">
