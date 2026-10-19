@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server";
 import { APP_VERSION } from "@/lib/version";
 
+export const dynamic = "force-dynamic";
 export const revalidate = 300;
 
 export async function GET() {

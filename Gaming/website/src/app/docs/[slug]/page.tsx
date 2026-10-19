@@ -94,7 +94,7 @@ export default async function DocPage({ params }: { params: Promise<{ slug: stri
   };
 
   return (
-    <div className="flex items-start gap-8 lg:gap-12 w-full relative font-sans pt-20 sm:pt-28">
+    <div className="flex items-start gap-8 lg:gap-12 w-full relative font-sans pt-4 sm:pt-6">
       <div className="flex-1 min-w-0 max-w-4xl">
         <Script
           id="docs-schema"
@@ -233,6 +233,24 @@ export default async function DocPage({ params }: { params: Promise<{ slug: stri
                   {children}
                 </td>
               ),
+              h1: ({ children }: any) => {
+                // If markdown body starts with an H1 that duplicates the doc title, suppress it or render it cleanly
+                const text = getChildrenText(children).trim();
+                const cleanDocTitle = doc.title.toLowerCase().replace(/[^a-z0-9]/g, "");
+                const cleanH1Text = text.toLowerCase().replace(/[^a-z0-9]/g, "");
+                if (cleanDocTitle.includes(cleanH1Text) || cleanH1Text.includes(cleanDocTitle)) {
+                  return null;
+                }
+                const id = slugify(text);
+                return (
+                  <h2
+                    id={id}
+                    className="scroll-mt-28 text-2xl sm:text-3xl font-bold font-display text-white mt-10 mb-4 pb-3 border-b border-white/10 border-l-4 border-l-neon-green pl-3 flex items-center gap-2 flex-wrap"
+                  >
+                    {children}
+                  </h2>
+                );
+              },
               h2: ({ children, ...props }) => {
                 const text = getChildrenText(children);
                 const id = slugify(text);
@@ -409,7 +427,7 @@ export default async function DocPage({ params }: { params: Promise<{ slug: stri
 
       {/* Right Sidebar - Index / Table of Contents */}
       {headings.length > 0 && (
-        <aside className="hidden xl:block w-64 shrink-0 sticky top-28 h-[calc(100vh-8rem)] overflow-y-auto p-5 glass-card border border-white/10 rounded-2xl shadow-xl scrollbar-none backdrop-blur-xl self-start z-20">
+        <aside className="hidden xl:block w-64 shrink-0 sticky top-24 h-[calc(100vh-7rem)] overflow-y-auto p-5 glass-card border border-white/10 rounded-2xl shadow-xl scrollbar-none backdrop-blur-xl self-start z-20">
           <div className="flex items-center justify-between gap-2 text-[10px] font-mono font-bold text-neon-green uppercase tracking-widest mb-4 pb-3 border-b border-white/10">
             <div className="flex items-center gap-2">
               <Sparkles className="w-3.5 h-3.5 text-neon-green animate-pulse" />

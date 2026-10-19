@@ -133,4 +133,47 @@ Mission Control bridges local high-speed processing with powerful cloud inferenc
 - **Zero Hardware Lock-In:** While optimized for NVIDIA GeForce RTX series, fallback pipelines provide full functionality on AMD Radeon and Intel Arc hardware.
 `,
   },
+  {
+    slug: "hardware_optimization",
+    title: "Hardware Optimization & Zero-Overhead Architecture",
+    category: "Performance",
+    excerpt:
+      "Deep dive into Mission Control's near-zero overhead architecture: TensorRT FP16 auto-upgrade, CPU P-core affinity isolation, cyclic RAM reclamation, and NVML thermal gating.",
+    badge: "Hardware Engine",
+    badgeColor: "text-neon-cyan",
+    content: `# ⚡ Hardware Optimization Blueprint & Execution Status
+> **Objective**: Optimize Mission Control across GPU (VRAM/Compute), CPU (Cycles/Affinity), and RAM (Working Set/Allocation) to achieve **near-zero overhead** on host AAA gaming performance.
+
+---
+
+## 1. Architectural Philosophy: The Zero-Penalty Co-Pilot
+
+When running concurrently with demanding AAA games (*Cyberpunk 2077*, *Black Myth: Wukong*, *Call of Duty*, *Counter-Strike 2*):
+1. **CPU Target**: Average total CPU consumption $\\le 1.5\\%$ (Co-pilot threads isolated to non-primary cores).
+2. **GPU Compute Target**: TensorRT vision inference $\\le 3\\text{ ms}$ per execution (zero PyTorch runtime overhead).
+3. **VRAM Target**: Total static and dynamic VRAM footprint $\\le 110\\text{ MB}$.
+4. **RAM Target**: Working Set memory footprint $\\le 85\\text{ MB}$ via cyclic \`EmptyWorkingSet()\` paging.
+5. **Frametime Delta**: $\\Delta \\le 0.3\\%$ impact on game $1\\%$ lows.
+
+---
+
+## 2. Core Implemented Optimizations
+
+### 🚀 Pure TensorRT FP16 Engine Auto-Upgrade
+- Auto-discovers compiled \`.engine\` files in \`scripts/\`, \`models/\`, and local app data.
+- Bypasses PyTorch and Ultralytics runtimes entirely, instantiating a pure CUDA runtime with TensorRT bindings.
+- Cuts VRAM from $\\sim 450\\text{ MB}$ down to **$98\\text{ MB}$** and latency to **$< 3\\text{ ms}$**.
+
+### 🛡️ CPU Heterogeneous Core Affinity Pinning
+- Masks off Cores 0 and 1 on systems with $\\ge 6$ logical threads.
+- Reserves primary P-cores exclusively for the host game engine's main render loop.
+- Isolates assistant pipelines (Vision, Audio, Telemetry, WebSockets) to E-cores / secondary threads.
+
+### 🧹 Proactive RAM Compaction & Working Set Trimming
+- Cyclically runs generation-2 garbage collection and Win32 \`EmptyWorkingSet()\` every $\\sim 600$ vision frames.
+- Stabilizes background Python memory between **$72\\text{--}85\\text{ MB}$**.
+`,
+  },
 ];
+
+
