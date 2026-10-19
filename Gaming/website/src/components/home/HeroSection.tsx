@@ -58,7 +58,7 @@ export function HeroSection({ os, appVersion }: HeroSectionProps) {
             href="https://developer.nvidia.com/tensorrt"
             target="_blank"
             rel="noopener noreferrer"
-            className="hidden md:inline-flex items-center gap-1.5 text-neon-yellow font-bold bg-neon-yellow/10 border border-neon-yellow/30 hover:bg-neon-yellow hover:text-obsidian hover:shadow-[0_0_15px_rgba(255,255,0,0.5)] transition-all px-2.5 py-0.5 rounded-full text-[10px] uppercase cursor-pointer"
+            className="hidden lg:inline-flex items-center gap-1.5 text-neon-yellow font-bold bg-neon-yellow/10 border border-neon-yellow/30 hover:bg-neon-yellow hover:text-obsidian hover:shadow-[0_0_15px_rgba(255,255,0,0.5)] transition-all px-2.5 py-0.5 rounded-full text-[10px] uppercase cursor-pointer"
           >
             <span>NVIDIA AI SITE</span>
             <ExternalLink className="w-2.5 h-2.5" />
@@ -123,11 +123,11 @@ export function HeroSection({ os, appVersion }: HeroSectionProps) {
             </p>
 
             {/* Unified Action Buttons & Telemetry Grid Container */}
-            <div className="w-full max-w-md lg:max-w-xl mx-auto lg:mx-0 flex flex-col gap-3 sm:gap-4 mb-6">
+            <div className="w-full max-w-xl mx-auto lg:mx-0 flex flex-col gap-3 sm:gap-4 mb-6">
               {/* Action Buttons */}
-              <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-2.5 sm:gap-3 w-full font-mono text-xs">
+              <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-2.5 sm:gap-3 w-full font-mono text-[11px] sm:text-xs">
                 {os === "mac" || os === "other" ? (
-                  <div className="w-full sm:flex-1 inline-flex items-center justify-center gap-2 bg-white/5 border border-white/20 text-gray-400 px-6 h-12.5 rounded-xl font-bold uppercase tracking-wider text-center cursor-not-allowed">
+                  <div className="w-full sm:flex-1 inline-flex items-center justify-center gap-2 bg-white/5 border border-white/20 text-gray-400 px-4 sm:px-6 h-12.5 rounded-xl font-bold uppercase tracking-wider text-center cursor-not-allowed">
                     <span>Windows & Linux Only</span>
                   </div>
                 ) : (
@@ -140,19 +140,19 @@ export function HeroSection({ os, appVersion }: HeroSectionProps) {
                           : AUTO_DOWNLOAD_URL
                     }
                     suppressHydrationWarning
-                    className="w-full sm:flex-1 inline-flex items-center justify-center gap-2.5 btn-premium-primary px-6 h-12.5 rounded-xl font-black uppercase tracking-wider text-center shadow-[0_0_35px_rgba(118,185,0,0.5)] whitespace-nowrap group cursor-pointer"
+                    className="w-full sm:flex-1 inline-flex items-center justify-center gap-2 sm:gap-2.5 btn-premium-primary px-4 sm:px-5 lg:px-6 h-12.5 rounded-xl font-black uppercase tracking-wide sm:tracking-wider text-center shadow-[0_0_35px_rgba(118,185,0,0.5)] whitespace-nowrap group cursor-pointer min-w-0"
                   >
                     <Download className="w-4 h-4 shrink-0 transition-transform duration-300 group-hover:translate-y-0.5" />
-                    <span suppressHydrationWarning>
+                    <span suppressHydrationWarning className="truncate sm:overflow-visible">
                       DOWNLOAD NOW ({os === "linux" ? "LINUX" : "WINDOWS"})
                     </span>
                   </a>
                 )}
 
-                <div className="flex items-center gap-2.5 w-full sm:w-auto">
+                <div className="flex items-center gap-2.5 w-full sm:w-auto shrink-0">
                   <Link
                     href="/docs"
-                    className="flex-1 sm:flex-none inline-flex items-center justify-center gap-2 btn-premium-glass px-5 h-12.5 font-bold transition-all text-center rounded-xl whitespace-nowrap group"
+                    className="flex-1 sm:flex-none inline-flex items-center justify-center gap-2 btn-premium-glass px-4 sm:px-5 h-12.5 font-bold transition-all text-center rounded-xl whitespace-nowrap group shrink-0"
                   >
                     <div className="w-5 h-5 rounded-md icon-badge-premium shrink-0">
                       <FileText className="w-3 h-3 text-neon-green" />

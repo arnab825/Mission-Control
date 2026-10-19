@@ -339,12 +339,12 @@ export default function Navbar() {
           </div>
 
           {/* Search Bar - Desktop Layout */}
-          <div className="hidden md:block relative max-w-52.5 xl:max-w-65 w-full mx-4 z-10">
+          <div className="hidden md:block relative md:max-w-xs lg:max-w-48 xl:max-w-64 w-full mx-3 lg:mx-4 z-10">
             <div className="relative flex items-center">
               <input
                 ref={desktopSearchRef}
                 type="text"
-                placeholder="Search documentation..."
+                placeholder="Search docs..."
                 value={searchQuery}
                 onChange={(e) => handleSearch(e.target.value)}
                 onKeyDown={handleSearchKeyDown}
