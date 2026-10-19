@@ -110,7 +110,7 @@ jobs:
             --url "https://mission-control-service.scm.azurewebsites.net/api/deployments" \
             --skip-authorization-header 2>/dev/null || true
 
-      - name: Configure App Settings
+      - name: Configure App Settings and Startup
         env:
           MONGODB_URI: ${{ secrets.MONGODB_URI }}
         run: |
@@ -123,34 +123,27 @@ jobs:
               PORT=8080 \
               WEBSITES_PORT=8080 \
               SCM_DO_BUILD_DURING_DEPLOYMENT=false \
+              WEBSITE_RUN_FROM_PACKAGE=1 \
               MONGODB_URI="$MONGODB_URI" \
+            --output none
+
+          az webapp config set \
+            --resource-group "mission-control-rg" \
+            --name mission-control-service \
+            --startup-file "node server.js" \
             --output none
 
       - name: Deploy ZIP to App Service
         run: |
-          echo "Deploying ZIP package with fast non-blocking upload..."
+          echo "Deploying ZIP package synchronously with status tracking..."
           az webapp deploy \
             --resource-group "mission-control-rg" \
             --name mission-control-service \
             --src-path node-app.zip \
             --type zip \
             --clean true \
-            --restart false \
-            --async true \
-            --track-status false
-
-      - name: Set startup command and start app
-        run: |
-          az webapp config set \
-            --resource-group "mission-control-rg" \
-            --name mission-control-service \
-            --startup-file "node server.js"
-          
-          echo "Starting web app..."
-          az webapp start --resource-group "mission-control-rg" --name mission-control-service
-          
-          echo "Restarting app to boot container..."
-          az webapp restart --resource-group "mission-control-rg" --name mission-control-service
+            --restart true \
+            --track-status true
 
       - name: Warmup and Health Check
         run: |
