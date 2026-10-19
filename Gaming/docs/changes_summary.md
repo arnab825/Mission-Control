@@ -22,7 +22,20 @@ Comprehensive breakdown of major milestone releases, architectural upgrades, and
 
 ---
 
-## 🌟 Version v3.8.2 (Latest) — Hardware Optimization Architecture: CPU P-Core Affinity Isolation & Proactive RAM Reclamation
+## 🌟 Version v3.8.3 (Latest) — TensorRT FP16 Engine Auto-Upgrade Architecture
+
+### 🛠️ Key Highlights
+1. **Zero PyTorch VRAM overhead for TensorRT FP16 engine auto-upgrade**
+2. **Enhanced website showcase for Bento Suite**
+3. **Improved TensorRT FP16 engine auto-upgrade architecture**
+
+### 📦 Distribution Artifacts
+- **Linux**: `.deb` (Debian/Ubuntu), `.AppImage` (Universal), `.rpm` (Fedora/RHEL), `.tar.gz` (Portable)
+- **Windows**: `.exe` (Setup Installer), `.msi` (Enterprise), `.zip` (Portable)
+
+---
+
+## 📦 Version v3.8.2 — Hardware Optimization Architecture: CPU P-Core Affinity Isolation & Proactive RAM Reclamation
 
 ### 🛠️ Key Highlights
 1. **Improved CPU utilization through P-Core affinity isolation, reducing context switching overhead.**

@@ -1,8 +1,18 @@
 {
-  "version": "3.8.2",
+  "version": "3.8.3",
   "release_date": "2026-09-25",
   "update_check_url": "https://raw.githubusercontent.com/arnab825/Mission-Control/main/Gaming/backend/version.json",
   "changelog": [
+    {
+      "version": "3.8.3",
+      "date": "2026-10-19",
+      "title": "TensorRT FP16 Engine Auto-Upgrade Architecture",
+      "highlights": [
+        "TensorRT FP16 Engine Auto-Upgrade Architecture",
+        "Zero PyTorch VRAM Overhead",
+        "Website Bento Suite Showcase"
+      ]
+    },
     {
       "version": "3.8.2",
       "date": "2026-10-19",
@@ -547,14 +557,6 @@
       "title": "Fix Supabase password URL decode for pooler connection",
       "highlights": [
         "Fix Supabase password URL decode for pooler connection"
-      ]
-    },
-    {
-      "version": "3.3.5",
-      "date": "2026-08-31",
-      "title": "Fix update installer: kill running processes before file extraction to prevent app freeze and OpenCV errors",
-      "highlights": [
-        "Fix update installer: kill running processes before file extraction to prevent app freeze and OpenCV errors"
       ]
     }
   ]
