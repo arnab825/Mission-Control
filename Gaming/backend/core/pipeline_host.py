@@ -1435,6 +1435,10 @@ class GamingAssistantPipeline:
                 
                 if is_active or is_manual_vision:
                     self._last_game_active_time = time.time()
+                    # Periodic RAM reclamation (every ~600 vision frames / ~60-90s) to keep working set small
+                    if self._vision_frame_count % 600 == 0:
+                        self._optimize_own_memory()
+
                     # If system is hot or overloaded, skip processing on every other frame
                     if throttle_needed and self._vision_frame_count % 2 != 0:
                         self._optimize_own_memory()
@@ -2853,14 +2857,20 @@ class GamingAssistantPipeline:
             pass
 
     def _optimize_own_memory(self):
-        """Aggressively flushes working set memory (RAM reclamation)."""
+        """Aggressively flushes working set memory (RAM reclamation) via gc.collect and Win32 EmptyWorkingSet."""
         import sys
+        import gc
+        try:
+            gc.collect(generation=2)
+        except Exception:
+            pass
+
         if sys.platform == "win32":
             try:
                 import ctypes
                 import psutil
                 process = psutil.Process()
-                # 0xFFFFFFFF means we're asking the OS to empty the working set 
+                # Empty working set unmaps clean pages and trims working set memory
                 ctypes.windll.psapi.EmptyWorkingSet(process.pid)
                 logger.info(f"RAM Reclaimed: Triggered EmptyWorkingSet for PID {process.pid}")
             except Exception as e:

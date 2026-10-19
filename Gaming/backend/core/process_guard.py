@@ -40,6 +40,26 @@ def lower_process_priority() -> None:
         logger.debug("[Perf] Could not lower process priority: %s", prio_err)
 
 
+def tune_cpu_affinity() -> None:
+    """
+    Intelligently assigns backend process CPU affinity away from Core 0 / Primary P-cores
+    on systems with >= 6 logical cores. Protects the game's main render loop from interruptions.
+    """
+    if not _PSUTIL_AVAILABLE:
+        return
+    try:
+        proc = psutil.Process(os.getpid())
+        total_cores = psutil.cpu_count(logical=True) or 0
+        if total_cores >= 6:
+            # Reserve cores 0 and 1 for the game's primary render & audio threads;
+            # bind the assistant backend to the remaining cores (E-cores / secondary threads).
+            target_affinity = list(range(2, total_cores))
+            proc.cpu_affinity(target_affinity)
+            logger.info("[Perf] Backend CPU affinity pinned to cores %s (reserving Cores 0-1 for Game)", target_affinity)
+    except Exception as aff_err:
+        logger.debug("[Perf] CPU affinity tuning skipped: %s", aff_err)
+
+
 def start_orphan_monitor(parent_pid: int) -> None:
     """Start background monitor thread to terminate gracefully if the parent UI process dies."""
     if parent_pid <= 1:

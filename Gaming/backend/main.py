@@ -95,6 +95,7 @@ from core.process_guard import (
     acquire_instance_lock,
     release_instance_lock,
     lower_process_priority,
+    tune_cpu_affinity,
     start_orphan_monitor,
     request_admin_elevation,
 )
@@ -150,8 +151,9 @@ def main():
     base_dir = os.path.dirname(os.path.abspath(__file__))
     enforce_neural_security(config)
 
-    # Lower process priority so game FPS is protected
+    # Lower process priority and isolate CPU affinity away from gaming P-cores
     lower_process_priority()
+    tune_cpu_affinity()
 
     # Clean temporary audio cache
     try:
