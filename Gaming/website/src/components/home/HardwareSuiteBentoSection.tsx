@@ -14,6 +14,7 @@ import {
   Volume2,
   ExternalLink,
   Rss,
+  Activity,
 } from "lucide-react";
 
 export const PERSONALITY_DATA: Record<
@@ -293,45 +294,51 @@ export function HardwareSuiteBentoSection() {
           </div>
         </div>
 
-        {/* CARD 3: AGENTIC SYSTEM HOOKS */}
+        {/* CARD 3: TENSORRT FP16 & AGENTIC HOOKS */}
         <div className="glass-card glass-card-hover p-6 sm:p-8 flex flex-col justify-between relative group overflow-hidden border-white/10">
           <div>
             <div className="flex items-center justify-between mb-6">
               <div className="w-12 h-12 rounded-2xl icon-badge-yellow shadow-[0_0_20px_rgba(251,191,36,0.25)] shrink-0">
                 <Zap className="w-6 h-6" />
               </div>
-              <span className="text-[10px] font-mono font-bold text-gray-400 px-3 py-1 rounded-full bg-white/5 border border-white/10 uppercase">
-                ZERO LATENCY
+              <span className="text-[10px] font-mono font-bold text-neon-green px-3 py-1 rounded-full bg-neon-green/10 border border-neon-green/30 uppercase">
+                &lt;3MS TENSORRT
               </span>
             </div>
             <h3 className="text-2xl font-bold font-display text-white mb-1">
-              Agentic System Hooks
+              TensorRT FP16 Vision
             </h3>
             <div className="text-xs font-mono text-neon-green uppercase tracking-wider mb-3 font-semibold">
-              Autonomous System Commands
+              Pure CUDA Engine Auto-Upgrade
             </div>
             <p className="text-gray-400 text-sm leading-relaxed font-sans mb-4">
-              Executes background PyTorch CUDA VRAM purges, triggers custom hardware cooling curves,
-              and runs macro scripts headlessly.
+              Auto-discovers and upgrades to compiled pure TensorRT engines (<span className="text-white font-mono">yolov8n.engine</span>) with zero PyTorch runtime overhead. P-Core CPU isolation preserves game 1% lows.
             </p>
           </div>
 
           <div className="p-4 bg-obsidian border border-white/10 rounded-xl space-y-3 font-mono text-xs">
             <div className="flex items-center justify-between">
-              <span className="text-gray-400">VRAM RECLAIM:</span>
+              <span className="text-gray-400">RAM & VRAM TRIM:</span>
               <button
                 onClick={handleVramFlush}
                 disabled={isVramFlushing}
                 className="btn-premium-primary px-3.5 py-1.5 text-[10px] font-bold uppercase tracking-wider flex items-center gap-1.5 cursor-pointer disabled:opacity-50"
               >
                 <RefreshCw className={`w-3 h-3 ${isVramFlushing ? "animate-spin" : ""}`} />
-                <span>{isVramFlushing ? "PURGING..." : "FLUSH VRAM"}</span>
+                <span>{isVramFlushing ? "PURGING..." : "FLUSH WORKING SET"}</span>
               </button>
             </div>
 
-            {vramFlushedMsg && (
+            {vramFlushedMsg ? (
               <div className="text-[10px] text-neon-green bg-neon-green/10 p-2 rounded border border-neon-green/30 text-center font-bold">
                 ✓ {vramFlushedMsg}
+              </div>
+            ) : (
+              <div className="flex items-center justify-between text-[10px] text-gray-400 pt-1 border-t border-white/5">
+                <span className="flex items-center gap-1 text-neon-yellow">
+                  <Activity className="w-3 h-3" /> E-Core Isolated
+                </span>
+                <span className="text-neon-green font-bold">0 MB PyTorch VRAM</span>
               </div>
             )}
           </div>

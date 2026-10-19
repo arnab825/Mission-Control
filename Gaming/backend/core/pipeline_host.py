@@ -165,12 +165,15 @@ class GamingAssistantPipeline:
             yolo_model = vision_cfg.get("yolo_model", "yolov8n.pt")
             import os
             
-            # Prioritize writable user AppData models path in production
+            # Prioritize writable user AppData models path in production, then scripts / local models
             models_dirs = []
             local_appdata = os.environ.get("LOCALAPPDATA")
             if local_appdata:
                 models_dirs.append(os.path.join(local_appdata, "MissionControl", "models"))
+            models_dirs.append(os.path.join(os.path.dirname(os.path.abspath(__file__)), "..", "scripts"))
+            models_dirs.append(os.path.join(os.path.dirname(os.path.abspath(__file__)), "..", "models"))
             models_dirs.append("models")
+            models_dirs.append("scripts")
             
             engine_path = None
             pt_path = None
@@ -185,7 +188,7 @@ class GamingAssistantPipeline:
             if yolo_model == "yolov8n.pt":
                 if engine_path and os.path.exists(engine_path):
                     yolo_model = engine_path
-                    logger.info("Auto-upgraded YOLO model to TensorRT engine")
+                    logger.info("Auto-upgraded YOLO model to TensorRT engine (%s)", engine_path)
                 elif pt_path and os.path.exists(pt_path):
                     yolo_model = pt_path
             self.yolo_detector = YOLODetector(
@@ -515,12 +518,15 @@ class GamingAssistantPipeline:
             new_model = vision_cfg.get("yolo_model", "yolov8n.pt")
             import os
             
-            # Prioritize writable user AppData models path in production
+            # Prioritize writable user AppData models path in production, then scripts / local models
             models_dirs = []
             local_appdata = os.environ.get("LOCALAPPDATA")
             if local_appdata:
                 models_dirs.append(os.path.join(local_appdata, "MissionControl", "models"))
+            models_dirs.append(os.path.join(os.path.dirname(os.path.abspath(__file__)), "..", "scripts"))
+            models_dirs.append(os.path.join(os.path.dirname(os.path.abspath(__file__)), "..", "models"))
             models_dirs.append("models")
+            models_dirs.append("scripts")
             
             engine_path = None
             pt_path = None
