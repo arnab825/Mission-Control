@@ -2,6 +2,11 @@
 
 This document contains a detailed history of all patches and updates for the AI Gaming Assistant.
 
+### Patch: 2026-10-19 — v3.8.2: Hardware Optimization Architecture: CPU P-Core Affinity Isolation & Proactive RAM Reclamation
+
+- Hardware Optimization Architecture: CPU P-Core Affinity Isolation & Proactive RAM Reclamation
+- Responsive UI Overhaul
+
 ### Patch: 2026-10-02 — v3.8.1: Responsive Settings & Dashboard Overhaul, Clerk CORS Auth Fix & Distributed Telemetry
 
 - Responsive Settings & Dashboard Overhaul, Clerk CORS Auth Fix & Distributed Telemetry

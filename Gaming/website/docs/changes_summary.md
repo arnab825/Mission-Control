@@ -22,7 +22,20 @@ Comprehensive breakdown of major milestone releases, architectural upgrades, and
 
 ---
 
-## 🌟 Version v3.8.1 (Latest) — Responsive Settings & Dashboard Overhaul, Clerk CORS Auth Fix & Distributed Telemetry
+## 🌟 Version v3.8.2 (Latest) — Hardware Optimization Architecture: CPU P-Core Affinity Isolation & Proactive RAM Reclamation
+
+### 🛠️ Key Highlights
+1. **Improved CPU utilization through P-Core affinity isolation, reducing context switching overhead.**
+2. **Enhanced RAM reclamation, minimizing memory fragmentation and increasing overall system responsiveness.**
+3. **Streamlined UI for faster navigation and reduced latency, improving user experience.**
+
+### 📦 Distribution Artifacts
+- **Linux**: `.deb` (Debian/Ubuntu), `.AppImage` (Universal), `.rpm` (Fedora/RHEL), `.tar.gz` (Portable)
+- **Windows**: `.exe` (Setup Installer), `.msi` (Enterprise), `.zip` (Portable)
+
+---
+
+## 📦 Version v3.8.1 — Responsive Settings & Dashboard Overhaul, Clerk CORS Auth Fix & Distributed Telemetry
 
 ### 🛠️ Key Highlights
 1. **Streamline Settings command bar with unclipped category pills and compact search**

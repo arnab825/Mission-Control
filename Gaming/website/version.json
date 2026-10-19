@@ -1,8 +1,17 @@
 {
-  "version": "3.8.1",
+  "version": "3.8.2",
   "release_date": "2026-09-25",
   "update_check_url": "https://raw.githubusercontent.com/arnab825/Mission-Control/main/Gaming/backend/version.json",
   "changelog": [
+    {
+      "version": "3.8.2",
+      "date": "2026-10-19",
+      "title": "Hardware Optimization Architecture: CPU P-Core Affinity Isolation & Proactive RAM Reclamation",
+      "highlights": [
+        "Hardware Optimization Architecture: CPU P-Core Affinity Isolation & Proactive RAM Reclamation",
+        "Responsive UI Overhaul"
+      ]
+    },
     {
       "version": "3.8.1",
       "date": "2026-10-02",
@@ -546,14 +555,6 @@
       "title": "Fix update installer: kill running processes before file extraction to prevent app freeze and OpenCV errors",
       "highlights": [
         "Fix update installer: kill running processes before file extraction to prevent app freeze and OpenCV errors"
-      ]
-    },
-    {
-      "version": "3.3.4",
-      "date": "2026-08-31",
-      "title": "Fix Supabase password URL decode for pooler connection",
-      "highlights": [
-        "Fix Supabase password URL decode for pooler connection"
       ]
     }
   ]
