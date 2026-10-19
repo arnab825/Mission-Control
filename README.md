@@ -17,21 +17,12 @@
 [![Contributors](https://img.shields.io/github/contributors/arnab825/Mission-Control?style=for-the-badge&color=76B900&label=CONTRIBUTORS&logo=github)](https://github.com/arnab825/Mission-Control/graphs/contributors)
 [![NVIDIA TensorRT](https://img.shields.io/badge/NVIDIA-TensorRT%2010.x-76B900.svg?style=for-the-badge&logo=nvidia&logoColor=white)](https://developer.nvidia.com/tensorrt)
 [![Direct Download](https://img.shields.io/badge/Direct_Download-Setup_.exe-76B900.svg?style=for-the-badge&logo=windows&logoColor=white)](https://github.com/arnab825/Mission-Control/releases/latest)
-[![Winget Status](https://img.shields.io/badge/winget-review_pending-blueviolet.svg?style=for-the-badge&logo=windows&logoColor=white)](Gaming/winget/README.md)
 [![Code of Conduct](https://img.shields.io/badge/Contributor%20Covenant-2.1-4baaaa.svg?style=for-the-badge)](CODE_OF_CONDUCT.md)
 [![Security Policy](https://img.shields.io/badge/Security-Policy-blueviolet.svg?style=for-the-badge)](SECURITY.md)
 [![PRs Welcome](https://img.shields.io/badge/PRs-Welcome-brightgreen.svg?style=for-the-badge)](CONTRIBUTING.md)
 [![Milestone Rewards](https://img.shields.io/badge/Milestones%20&%20Perks-Earn%20Rewards-FFD700.svg?style=for-the-badge&logo=githubsponsors&logoColor=black)](#-milestone-developer-benefits--contributor-rewards)
 
 <br/>
-
-> ⏳ **Windows Package Manager (Winget) Notice:** Our official package (`arnab825.MissionControl`) is currently undergoing Microsoft review in [microsoft/winget-pkgs](https://github.com/microsoft/winget-pkgs).  
-> **Immediate 1-Click Install:** Download [`MissionControl-Setup.exe`](https://github.com/arnab825/Mission-Control/releases/latest) or install via local manifest:
-
-```powershell
-# ⚡ Local Manifest Install (Windows 10 / 11 — zero waiting for CDN sync)
-winget install --manifest .\Gaming\winget\arnab825.MissionControl.singleton.yaml --accept-package-agreements --accept-source-agreements --force
-```
 
 </div>
 

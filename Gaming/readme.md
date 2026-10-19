@@ -14,15 +14,9 @@
 [![Latest Release](https://img.shields.io/github/v/release/arnab825/Mission-Control?style=for-the-badge&color=76B900&label=RELEASE&logo=github)](https://github.com/arnab825/Mission-Control/releases/latest)
 [![Stars](https://img.shields.io/github/stars/arnab825/Mission-Control?style=for-the-badge&color=76B900&logo=github)](https://github.com/arnab825/Mission-Control/stargazers)
 [![NVIDIA TensorRT](https://img.shields.io/badge/NVIDIA-TensorRT%2010.x-76B900.svg?style=for-the-badge&logo=nvidia&logoColor=white)](https://developer.nvidia.com/tensorrt)
-[![Winget](https://img.shields.io/badge/winget-install-0078D4.svg?style=for-the-badge&logo=windows&logoColor=white)](https://learn.microsoft.com/en-us/windows/package-manager/winget/)
 [![Code of Conduct](https://img.shields.io/badge/Contributor%20Covenant-2.1-4baaaa.svg?style=for-the-badge)](../CODE_OF_CONDUCT.md)
 [![Security Policy](https://img.shields.io/badge/Security-Policy-blueviolet.svg?style=for-the-badge)](../SECURITY.md)
 [![License](https://img.shields.io/badge/License-MIT-blue.svg?style=for-the-badge)](../LICENSE)
-
-```bash
-# ⚡ Install with 1 command via Windows Package Manager (Windows 10 / 11)
-winget install arnab825.MissionControl
-```
 
 </div>
 

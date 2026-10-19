@@ -61,14 +61,12 @@ Comprehensive breakdown of major milestone releases, architectural upgrades, and
 
 ---
 
-## 📦 Version v3.7.8 — Responsive Setup Screen, Custom Windows Setup Wizard & Winget Setup Pipeline
+## 📦 Version v3.7.8 — Responsive Setup Screen & Custom Windows Setup Wizard
 
 ### 🛠️ Key Highlights
 1. **Responsive In-App Setup Wizard**: Redesigned `UpdateSetupModal` with responsive viewport scaling, custom scrollbars, and detailed multi-stage telemetry progress for application upgrades and instant rollbacks. It clearly informs users of state flushing, process lock releases, binary extraction, and system reboot handshakes.
 2. **Branded Windows NSIS Setup Wizard**: Customized the Windows installer with branded Mission Control directives across Welcome, License, Directory Selection, File Extraction, Finish, and Uninstaller screens. Clarified 64-bit hardware requirements and assured users that all benchmarks, configurations, and neural models in `%APPDATA%\MissionControl` remain untouched.
 3. **Automated Session & Cache Flushing**: Implemented pre-flight session caching prior to installer handoff, guaranteeing that Clerk authentication tokens, discovered game library indices, and custom graphics preferences survive binary replacements without requiring re-authentication.
-4. **Official Winget Installation Pipeline**: Engineered automated Microsoft Windows Package Manager manifests (singleton and multi-manifest v1.6.0) under `Gaming/winget/` with automated PowerShell installation and SHA-256 verification scripting (`install.ps1`).
-5. **Website Download Matrix Integration**: Added a prominent 1-click Winget CLI copy-to-clipboard installation block (`winget install arnab825.MissionControl`) directly within the official website download matrix for instantaneous terminal-driven setup.
 
 ### 📊 Setup & Deployment Architecture Flow
 ```mermaid
@@ -84,7 +82,6 @@ graph TD
 ### 📦 Distribution Artifacts
 - **Linux**: `.deb` (Debian/Ubuntu), `.AppImage` (Universal), `.rpm` (Fedora/RHEL), `.tar.gz` (Portable)
 - **Windows**: `.exe` (Setup Installer), `.msi` (Enterprise), `.zip` (Portable)
-- **Package Managers**: `winget install arnab825.MissionControl`
 
 ---
 

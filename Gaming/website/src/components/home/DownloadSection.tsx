@@ -1,6 +1,5 @@
 "use client";
 
-import { useState } from "react";
 import {
   Download,
   Sliders,
@@ -10,9 +9,6 @@ import {
   HardDrive,
   Zap,
   Sparkles,
-  Terminal,
-  Copy,
-  Check,
 } from "lucide-react";
 import {
   WINDOWS_INSTALLER_URL,
@@ -25,14 +21,6 @@ import {
 } from "@/lib/download";
 
 export function DownloadSection() {
-  const [copiedWinget, setCopiedWinget] = useState(false);
-
-  const handleCopyWinget = () => {
-    navigator.clipboard.writeText("winget install arnab825.MissionControl");
-    setCopiedWinget(true);
-    setTimeout(() => setCopiedWinget(false), 2000);
-  };
-
   return (
     <section
       id="download"
@@ -87,43 +75,6 @@ export function DownloadSection() {
             >
               <Download className="w-3 h-3 sm:w-3.5 sm:h-3.5 text-neon-green" /> Portable ZIP
             </a>
-          </div>
-
-          {/* Winget CLI Fast-Install */}
-          <div className="mt-4 pt-3 border-t border-white/10 flex flex-col gap-2">
-            <div className="flex items-center justify-between text-[10px] font-mono text-gray-400">
-              <span className="flex items-center gap-1.5 text-zinc-300 font-semibold">
-                <Terminal className="w-3 h-3 text-neon-green" /> Windows Package Manager
-              </span>
-              <div className="flex items-center gap-1.5">
-                <span className="text-[9px] uppercase tracking-wider text-amber-400 bg-amber-400/10 px-1.5 py-0.5 rounded border border-amber-400/20 font-mono">
-                  Review Pending
-                </span>
-                <span className="text-[9px] uppercase tracking-wider text-neon-green/90 bg-neon-green/10 px-1.5 py-0.5 rounded border border-neon-green/20">
-                  winget
-                </span>
-              </div>
-            </div>
-            <div className="relative group/copy flex items-center justify-between bg-black/50 border border-white/10 hover:border-neon-green/40 transition-colors rounded-lg px-2.5 py-2 font-mono text-[11px] text-gray-300">
-              <code className="text-neon-green truncate select-all">
-                winget install arnab825.MissionControl
-              </code>
-              <button
-                type="button"
-                onClick={handleCopyWinget}
-                title="Copy winget command (Note: Package undergoing Microsoft verification. Download Setup.exe above for immediate install)"
-                className="ml-2 text-gray-400 hover:text-neon-green transition-colors shrink-0 p-1 rounded"
-              >
-                {copiedWinget ? (
-                  <Check className="w-3.5 h-3.5 text-neon-green" />
-                ) : (
-                  <Copy className="w-3.5 h-3.5" />
-                )}
-              </button>
-            </div>
-            <p className="text-[10px] text-gray-400 font-mono leading-relaxed">
-              ⏳ <span className="text-amber-300/90 font-medium">Microsoft verification in progress</span>. For immediate install, use the <span className="text-neon-green font-semibold">Setup (.exe)</span> above or local manifest.
-            </p>
           </div>
         </div>
 

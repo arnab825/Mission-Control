@@ -2,14 +2,12 @@
 
 This document contains a detailed history of all patches and updates for the AI Gaming Assistant.
 
-### Patch: 2026-09-29 — v3.7.8: Responsive Setup Screen, Custom Windows Setup Wizard & Winget Setup Pipeline
+### Patch: 2026-09-29 — v3.7.8: Responsive Setup Screen & Custom Windows Setup Wizard
 
 - Responsive In-App Setup Wizard: Enhanced `UpdateSetupModal` with responsive viewport scaling, custom scrollbars, and detailed step-by-step progress tracking for upgrades and emergency rollbacks
 - Branded Windows Setup Wizard: Customized NSIS installer with branded Welcome, License, Directory Selection, File Extraction, and Uninstaller dialogs detailing 64-bit hardware requirements and data preservation
 - Safe Cache & Session Flushing: Automatically persist Clerk authentication tokens, game library states, and custom presets in `%APPDATA%\MissionControl` prior to binary extraction
 - Graceful Subprocess Shutdown: Releasing active file locks on core C++ DLLs, Python telemetry worker, and WebSocket bridges before updater file replacement
-- Winget Installation Pipeline: Added verified Microsoft Windows Package Manager manifests (singleton and multi-manifest v1.6.0) with automated installation scripting (`install.ps1`)
-- Download Matrix CLI Integration: Added 1-click copy-to-clipboard Winget install snippet (`winget install arnab825.MissionControl`) to the official website download section
 
 ### Patch: 2026-09-28 — v3.7.7: Custom Cyberpunk Security Portal & Authentication Gateway Enhancements
 
@@ -776,9 +774,9 @@ This document contains a detailed history of all patches and updates for the AI 
 
 - Fix Agent page infinite re-render loop and black screen issue
 
-### Patch: 2026-07-22 — v2.1.5: Fix Mermaid render errors, add dynamic portable ZIP resolver, AI weights docs, and Winget Python installer
+### Patch: 2026-07-22 — v2.1.5: Fix Mermaid render errors, add dynamic portable ZIP resolver, AI weights docs, and Python installer
 
-- Fix Mermaid render errors, add dynamic portable ZIP resolver, AI weights docs, and Winget Python installer
+- Fix Mermaid render errors, add dynamic portable ZIP resolver, AI weights docs, and Python installer
 
 ### Patch: 2026-07-22 — v2.1.4: Fixed automatic loading of Release Highlights on Updates page mount
 

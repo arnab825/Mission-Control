@@ -46,13 +46,11 @@
     {
       "version": "3.7.8",
       "date": "2026-09-29",
-      "title": "Responsive Setup Screen, Custom Windows Setup Wizard & Winget Setup Pipeline",
+      "title": "Responsive Setup Screen & Custom Windows Setup Wizard",
       "highlights": [
         "Responsive In-App Setup Wizard: Enhanced UpdateSetupModal with responsive viewport scaling, custom scrollbars, and comprehensive multi-stage deployment descriptions for install and rollback operations",
         "Branded Windows Setup Wizard: Customized NSIS installer with branded Welcome, License, Directory Selection, File Extraction, and Uninstaller dialogs detailing system requirements and data preservation",
-        "Safety & State Preservation: Documented automated session token flushing, neural profile preservation in %APPDATA%\\MissionControl, and graceful backend process shutdown prior to binary updates",
-        "Official Winget Installation Pipeline: Added verified Microsoft Windows Package Manager manifests (singleton and multi-manifest v1.6.0) with automated installation scripting",
-        "Website Download Matrix Integration: Added copy-to-clipboard 1-click Winget CLI installation command block to the official website download section"
+        "Safety & State Preservation: Documented automated session token flushing, neural profile preservation in %APPDATA%\\MissionControl, and graceful backend process shutdown prior to binary updates"
       ]
     },
     {

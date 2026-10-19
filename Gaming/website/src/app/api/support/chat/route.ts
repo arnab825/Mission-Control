@@ -99,7 +99,6 @@ You have deep, authoritative knowledge of the entire Mission Control platform ac
 - **Recent Production Patches**:
 ${patchBullets}
 - **Windows Formats**:
-  • **1-Line CLI**: \`winget install arnab825.MissionControl\`
   • **.EXE Setup**: \`MissionControl-Setup.exe\` (NSIS with autoUpdater)
   • **.MSI Enterprise**: \`MissionControl-Setup.msi\` (Silent domain deployments)
   • **.ZIP Portable**: Standalone zero-install archive

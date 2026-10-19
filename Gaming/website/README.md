@@ -132,7 +132,7 @@ The production website and edge microservices operate across primary Cloudflare 
 
 ---
 
-## 📦 Downloads & Windows Package Manager (Winget) Status
+## 📦 Downloads
 
 The website distributes native builds for Windows and Linux through direct download endpoints and automated mirrors:
 
@@ -141,20 +141,6 @@ The website distributes native builds for Windows and Linux through direct downl
   - **MSI Installer (`.msi`)**: Windows Installer package for managed deployments.
   - **Portable Archive (`.zip`)**: Zero-install standalone executable folder.
 - **Linux Packages**: `.AppImage`, `.deb`, `.rpm`, `.tar.gz` for Debian, Ubuntu, Fedora, and Arch.
-
-### ⏳ Winget Package Status (Microsoft Verification In Progress)
-
-The official package identifier `arnab825.MissionControl` manifest has been prepared and submitted to the official [microsoft/winget-pkgs](https://github.com/microsoft/winget-pkgs) community repository.
-
-> **Status Notice:** While Microsoft's verification and pull request review are actively in progress, running `winget install arnab825.MissionControl` directly from the public source is not yet live. 
-> 
-> **Immediate Installation Alternatives:**
-> 1. **Direct Download**: Use the 1-click installer from the website or [GitHub Releases](https://github.com/arnab825/Mission-Control/releases/latest).
-> 2. **Local Winget Manifest**: Advanced users can test and install locally using the verified manifest without waiting for Microsoft's CDN sync:
->    ```powershell
->    # Run from repository root:
->    winget install --manifest .\Gaming\winget\arnab825.MissionControl.singleton.yaml --accept-package-agreements --accept-source-agreements --force
->    ```
 
 ---
 
