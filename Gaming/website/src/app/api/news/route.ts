@@ -48,7 +48,6 @@ async function fetchRSSFeed(feedUrl: string, label: string, type: string) {
           ?.replace(/<[^>]*>/g, "")
           ?.trim()
           ?.slice(0, 300) ?? "";
-      const pubDate = /<pubDate>(.*?)<\/pubDate>/.exec(block)?.[1]?.trim() ?? "";
       if (title) items.push({ title, link, description: desc, source: label, type });
     }
     return { items, label, type };

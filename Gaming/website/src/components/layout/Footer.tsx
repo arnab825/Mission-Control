@@ -157,15 +157,6 @@ export default function Footer() {
             <ul className="space-y-3">
               <li>
                 <Link
-                  href="/blog"
-                  className="text-gray-400 hover:text-white hover:translate-x-1 transition-all duration-300 text-sm cursor-pointer text-left flex items-center gap-2 group"
-                >
-                  <span className="w-1.5 h-1.5 rounded-full bg-neon-green/40 group-hover:bg-neon-green group-hover:shadow-[0_0_8px_rgba(118,185,0,0.8)] transition-all duration-300"></span>{" "}
-                  Gaming Intel Blogs
-                </Link>
-              </li>
-              <li>
-                <Link
                   href="/games-tested"
                   className="text-gray-400 hover:text-white hover:translate-x-1 transition-all duration-300 text-sm cursor-pointer text-left flex items-center gap-2 group"
                 >
@@ -230,7 +221,7 @@ export default function Footer() {
               </span>
             </h4>
             <p className="text-gray-400 text-xs mb-3 leading-relaxed">
-              Subscribe for weekly gaming intel blogs, firmware updates, and AI patch notes.
+              Subscribe for weekly system updates, firmware releases, and AI patch notes.
             </p>
 
             {subStatus === "success" && subscribedEmail ? (
@@ -245,11 +236,11 @@ export default function Footer() {
                 </p>
                 <div className="flex flex-wrap items-center justify-between gap-2 pt-1 border-t border-neon-green/20">
                   <Link
-                    href="/blog"
+                    href="/docs"
                     className="inline-flex items-center gap-1 text-[11px] font-mono font-bold text-neon-green hover:underline hover:text-white transition-colors"
                   >
                     <Sparkles className="w-3 h-3" />
-                    <span>View Latest Blogs</span>
+                    <span>View Documentation</span>
                   </Link>
                   <button
                     type="button"
@@ -296,8 +287,8 @@ export default function Footer() {
                 </button>
                 <div className="flex items-center justify-between text-[10px] text-gray-400 pt-0.5 px-0.5 font-mono">
                   <span>Zero spam • 1 email/week</span>
-                  <Link href="/blog" className="text-neon-green hover:underline">
-                    Explore Blogs ➔
+                  <Link href="/docs" className="text-neon-green hover:underline">
+                    Explore Docs ➔
                   </Link>
                 </div>
               </form>

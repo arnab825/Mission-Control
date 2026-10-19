@@ -147,7 +147,7 @@ export default function RootLayout({
                   url: BASE_SITE_URL,
                   potentialAction: {
                     "@type": "SearchAction",
-                    target: `${BASE_SITE_URL}/blog?search={search_term_string}`,
+                    target: `${BASE_SITE_URL}/docs?search={search_term_string}`,
                     "query-input": "required name=search_term_string",
                   },
                 },

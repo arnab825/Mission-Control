@@ -7,7 +7,6 @@ import {
   Home,
   Cpu,
   BookOpen,
-  Newspaper,
   Mail,
   Download,
   Shield,
@@ -154,7 +153,7 @@ export default function Navbar() {
 
   const handleSearchKeyDown = (e: React.KeyboardEvent<HTMLInputElement>) => {
     if (e.key === "Enter" && searchQuery.trim()) {
-      router.push(`/blog?search=${encodeURIComponent(searchQuery.trim())}`);
+      router.push(`/docs?search=${encodeURIComponent(searchQuery.trim())}`);
       closeSearch();
     } else if (e.key === "Escape") {
       closeSearch();
@@ -210,7 +209,6 @@ export default function Navbar() {
 
   const moreLinks = [
     { name: "Games Tested", href: "/games-tested", icon: Gamepad2 },
-    { name: "Blog Intelligence", href: "/blog", icon: Newspaper },
     { name: "Contact Support", href: "/contact", icon: Mail },
   ];
 
@@ -346,7 +344,7 @@ export default function Navbar() {
               <input
                 ref={desktopSearchRef}
                 type="text"
-                placeholder="Search docs/blog..."
+                placeholder="Search documentation..."
                 value={searchQuery}
                 onChange={(e) => handleSearch(e.target.value)}
                 onKeyDown={handleSearchKeyDown}
@@ -404,7 +402,7 @@ export default function Navbar() {
                               : c.includes("game") || c.includes("benchmark")
                                 ? Gamepad2
                                 : c.includes("blog") || c.includes("news") || c.includes("intel")
-                                  ? Newspaper
+                                  ? FileText
                                   : c.includes("comm") ||
                                       c.includes("review") ||
                                       c.includes("operator")
@@ -499,10 +497,10 @@ export default function Navbar() {
                           href: "/games-tested",
                         },
                         {
-                          title: "AI Intelligence Dispatch",
-                          category: "News",
-                          icon: Newspaper,
-                          href: "/blog",
+                          title: "Kernel Glitch Tracker",
+                          category: "Community",
+                          icon: AlertTriangle,
+                          href: "/community?tab=glitches",
                         },
                       ].map((s, idx) => {
                         const Icon = s.icon;
@@ -643,7 +641,7 @@ export default function Navbar() {
                             : c.includes("game") || c.includes("benchmark")
                               ? Gamepad2
                               : c.includes("blog") || c.includes("news") || c.includes("intel")
-                                ? Newspaper
+                                ? FileText
                                 : c.includes("comm") ||
                                     c.includes("review") ||
                                     c.includes("operator")

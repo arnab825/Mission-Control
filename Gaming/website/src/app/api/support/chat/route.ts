@@ -2,7 +2,6 @@ import { NextResponse } from "next/server";
 import connectDB from "@/lib/mongodb";
 import Subscriber from "@/models/Subscriber";
 import SupportSession from "@/models/SupportSession";
-import GamingPost from "@/models/GamingPost";
 import fs from "fs";
 import path from "path";
 import { APP_VERSION } from "@/lib/version";
@@ -56,8 +55,7 @@ function getDynamicVersionData() {
 
 // Function to generate the dynamic 24/7 Support AI System Prompt
 function buildSupportSystemPrompt(
-  versionData: ReturnType<typeof getDynamicVersionData>,
-  recentPosts: any[] = []
+  versionData: ReturnType<typeof getDynamicVersionData>
 ) {
   const latestChangelogs = versionData.changelog.slice(0, 4);
   const patchBullets = latestChangelogs
@@ -69,16 +67,6 @@ function buildSupportSystemPrompt(
           .join("\n  ")}`
     )
     .join("\n");
-
-  const blogBullets =
-    recentPosts.length > 0
-      ? recentPosts
-          .map(
-            (p: any) =>
-              `• [${p.title}](/blog/gaming/${p.slug}) — *${p.category}* (${new Date(p.publishedAt || p.createdAt).toLocaleDateString()})`
-          )
-          .join("\n")
-      : "• [GPU & Hardware Intel Articles](/blog/gaming)";
 
   return `You are "Mission Control 24/7 Support AI", the official intelligent technical assistant, architectural guide, policy advisor & developer ambassador for the Mission Control ecosystem.
 
@@ -123,9 +111,8 @@ ${patchBullets}
   • Heartbeat & cloud sync features multi-tier failover: Primary Render -> Azure High Availability -> Secondary Render.
 - **Web Platform & Server APIs**:
   • Next.js 16 App Router hosted with Vercel Serverless Functions and MongoDB Atlas.
-  • Automated daily 5:30 AM IST cron blogs ingested across IGN, Kotaku, Eurogamer, Tom's Hardware, and AnandTech.
-  • 3-tier LLM failover (Google Gemini Flash -> Hugging Face LLM -> NVIDIA NIM Cloud).
-  • 4-tier image generation pipeline (Gemini Imagen 3 -> FLUX.1 -> Pollinations AI -> High-Res 3D Artwork) with persistent Vercel Blob CDN upload.
+  • Live gaming news RSS ingestion across IGN, Kotaku, Eurogamer, and Tom's Hardware.
+  • Zero unnecessary external data purchase overhead or redundant blog cron generation.
 
 ===================================================================
 5. 🛡️ POLICIES, RULES & SECURITY STANDARDS:
@@ -162,13 +149,13 @@ ${patchBullets}
   • Always direct them to our **[Community Glitch Tracker](/community)** to view driver fixes or submit hardware logs.
   • Direct them to our **[Contact Support](/contact)** form to reach Arnab Roy and Anirudha Basu Thakur directly.
   • Direct them to the **[Documentation Hub](/docs)** for in-depth technical guides, APIs, and architecture manuals.
-  • Direct them to the **[Gaming Intel Blog](/blog)** for technical hardware retrospectives and benchmark guides.
+  • Direct them to the **[Tested Games & Benchmarks](/games-tested)** for game performance profiles and frame-time measurements.
 
 ===================================================================
 RESPONSE GUIDELINES:
 ===================================================================
 - **Direct, Structured & Authoritative**: Answer questions immediately using clear markdown headers, bold text, and bullet points.
-- **Include Helpful Links**: Seamlessly provide relevant links to [Docs](/docs), [Community](/community), [Contact](/contact), [Downloads](/#download), [Gaming Intel Blogs](/blog), or [Benchmarks](/games-tested).
+- **Include Helpful Links**: Seamlessly provide relevant links to [Docs](/docs), [Community](/community), [Contact](/contact), [Downloads](/#download), or [Benchmarks](/games-tested).
 - **If Off-Topic / Unrelated**: Politely guide the user back to Mission Control's features, server architecture, policies, or future roadmap.`;
 }
 
@@ -328,20 +315,7 @@ How can I assist you with our **Documentation**, **System Architecture**, **App 
     // Load live version metadata and patch changelogs dynamically
     const versionData = getDynamicVersionData();
 
-    // Fetch recent live gaming intel blogs from MongoDB if connected
-    let recentPosts: any[] = [];
-    try {
-      await connectDB();
-      recentPosts = await GamingPost.find({})
-        .sort({ publishedAt: -1 })
-        .limit(4)
-        .select("title slug category publishedAt createdAt")
-        .lean();
-    } catch (postErr) {
-      console.warn("Recent posts fetch notice:", postErr);
-    }
-
-    const dynamicSystemPrompt = buildSupportSystemPrompt(versionData, recentPosts);
+    const dynamicSystemPrompt = buildSupportSystemPrompt(versionData);
 
     // Build multi-turn context for Gemini if history exists
     const recentHistory = Array.isArray(fullHistory)
@@ -526,38 +500,24 @@ ${patchList}
 
 📥 Download the latest build on our **[Downloads Section](/#download)** or explore full release notes in the **[Docs Hub](/docs)**!`;
 
-        // 5. Gaming Intel & Technical Blogs
+        // 5. Documentation & Technical Guides
       } else if (
         q.includes("blog") ||
         q.includes("article") ||
         q.includes("news") ||
-        q.includes("gaming intel") ||
-        q.includes("gpu news") ||
-        q.includes("deep dive") ||
-        q.includes("revisit")
+        q.includes("guide") ||
+        q.includes("doc") ||
+        q.includes("deep dive")
       ) {
-        const blogList =
-          recentPosts.length > 0
-            ? recentPosts
-                .map(
-                  (p: any) =>
-                    `• **[${p.title}](/blog/gaming/${p.slug})**\n  *Category: ${p.category}* • Published: ${new Date(p.publishedAt || p.createdAt).toLocaleDateString()}`
-                )
-                .join("\n\n")
-            : "• **[Explore Weekly Gaming Intel Articles](/blog)**";
+        replyText = `### 📚 Documentation & Technical Architecture
 
-        replyText = `### 📰 Weekly Gaming Intel & Technical Dispatches
+Mission Control's technical guides and architecture manuals are maintained in our **[Documentation Hub](/docs)**:
+- **⚡ System Architecture**: [Architecture Overview](/architecture)
+- **🎮 Tested Games & Telemetry**: [Games Tested & Benchmarks](/games-tested)
+- **🔬 Distributed Server Mesh**: [Server Mesh Status](/server)
+- **🕹️ In-Game Overlay & DirectX Hooks**: [DirectX Presentation Manual](/architecture#directx-presentation)
 
-Mission Control automatically posts technical gaming insights across **4 weekly categories**:
-- **⚡ GPU News**: Next-gen GPU architectures, VRAM optimizations, and driver benchmarks.
-- **🎮 Game News**: Launch performance, DLSS/FSR integration notes, and game updates.
-- **🔬 Hardware Deep-Dive**: Silicon architecture, thermals, and overclocking analysis.
-- **🕹️ Game Revisit**: Technical retrospectives and modern optimization mod guides.
-
-**Latest Published Dispatches:**
-${blogList}
-
-📖 Browse all weekly articles on the **[Gaming Intel Blog](/blog)**!`;
+Explore all technical guides in our **[Documentation Hub](/docs)**!`;
 
         // 6. App Downloads / Option 1
       } else if (
@@ -648,14 +608,14 @@ Have questions, doubts, or custom setup inquiries?
 
         // 10. Intelligent Handling for Off-Topic / Unrelated / Random / Gibberish Messages
       } else {
-        replyText = `Hello **${cleanName}**! I specialize in **Mission Control** technical support, documentation, hardware compatibility, app downloads, and gaming intel blogs.
+        replyText = `Hello **${cleanName}**! I specialize in **Mission Control** technical support, documentation, hardware compatibility, app downloads, and benchmarks.
 
 Your message doesn't appear related to Mission Control. Here are the core topics I can assist you with:
 
 1. **⚡ GPU & Hardware Compatibility** (Discrete NVIDIA supported; iGPUs not supported yet)
 2. **🎮 Controller Support Status** (Active BETA for Xbox & DualSense)
 3. **🚀 App Versions & Live Patches** (Active **v${versionData.version}** with changelogs)
-4. **📰 Weekly Gaming Intel & Technical Blogs** ([Gaming Blogs](/blog/gaming))
+4. **📊 Benchmarks & Tested Games** ([Games Tested](/games-tested))
 5. **📚 Feature Docs & In-Game Overlay** ([Documentation](/docs))
 6. **🛠️ Bug Reporting & Community** ([Community Glitch Tracker](/community) • [Contact Support](/contact))`;
       }

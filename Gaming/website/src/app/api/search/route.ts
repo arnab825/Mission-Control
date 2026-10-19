@@ -1,11 +1,8 @@
 import { NextResponse } from "next/server";
-import { getSortedPostsData } from "@/lib/blog";
 import { getAllDocs } from "@/lib/docs";
-import connectDB from "@/lib/mongodb";
-import GamingPost from "@/models/GamingPost";
 import fs from "fs";
 import path from "path";
-import { handleApiError, escapeRegex } from "@/lib/api-validation";
+import { handleApiError } from "@/lib/api-validation";
 
 export async function GET(request: Request) {
   try {
@@ -18,7 +15,7 @@ export async function GET(request: Request) {
 
     interface SearchResult {
       title: string;
-      type: "docs" | "blog" | "changelog" | "architecture";
+      type: "docs" | "changelog" | "architecture";
       url: string;
       category: string;
       description: string;
@@ -54,65 +51,7 @@ export async function GET(request: Request) {
       console.warn("Docs search fetch fallback error:", docErr);
     }
 
-    // 2. Search MongoDB Gaming Intel Posts
-    try {
-      await connectDB();
-      const safeRegex = escapeRegex(query);
-      const dbPosts = await GamingPost.find({
-        $or: [
-          { title: { $regex: safeRegex, $options: "i" } },
-          { excerpt: { $regex: safeRegex, $options: "i" } },
-          { tags: { $regex: safeRegex, $options: "i" } },
-          { category: { $regex: safeRegex, $options: "i" } },
-        ],
-      })
-        .limit(8)
-        .lean();
-
-      dbPosts.forEach((post: any) => {
-        const postUrl = `/blog/gaming/${post.slug}`;
-        if (!addedUrls.has(postUrl)) {
-          results.push({
-            title: post.title,
-            type: "blog",
-            url: postUrl,
-            category: post.category || "Gaming Intel",
-            description: post.excerpt || "Read full gaming intel dispatch...",
-          });
-          addedUrls.add(postUrl);
-        }
-      });
-    } catch (mongoErr) {
-      console.warn("MongoDB search connection warning: falling back to local posts.");
-    }
-
-    // 3. Search Local Blog Posts (MDX Gaming Intel)
-    try {
-      const blogPosts = getSortedPostsData();
-      blogPosts.forEach((post) => {
-        const postUrl = `/blog/gaming/${post.id}`;
-        if (addedUrls.has(postUrl)) return;
-
-        if (
-          post.title.toLowerCase().includes(query) ||
-          post.excerpt?.toLowerCase().includes(query) ||
-          post.category?.toLowerCase().includes(query)
-        ) {
-          results.push({
-            title: post.title,
-            type: "blog",
-            url: postUrl,
-            category: post.category || "Gaming Intel",
-            description: post.excerpt || "Read full gaming intel dispatch...",
-          });
-          addedUrls.add(postUrl);
-        }
-      });
-    } catch (blogErr) {
-      console.warn("Local blog search fallback error:", blogErr);
-    }
-
-    // 4. Search Changelogs / Transmission Logs
+    // 2. Search Changelogs / Transmission Logs
     const versionFile = path.join(process.cwd(), "..", "backend", "version.json");
     if (fs.existsSync(versionFile)) {
       try {
@@ -148,3 +87,4 @@ export async function GET(request: Request) {
     return handleApiError("GET /api/search", error, 500, "Failed to perform search.");
   }
 }
+

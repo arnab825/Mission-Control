@@ -80,7 +80,7 @@ export function HardwareSuiteBentoSection() {
   const fetchExternalSiteData = async () => {
     setIsFetchingExternal(true);
     try {
-      const res = await fetch("/api/blogs/news");
+      const res = await fetch("/api/news");
       if (res.ok) {
         const data = await res.json();
         if (data.items && data.items.length > 0) {

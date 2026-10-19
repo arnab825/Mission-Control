@@ -1,7 +1,6 @@
 import { MetadataRoute } from "next";
-import connectDB from "@/lib/mongodb";
-import GamingPost from "@/models/GamingPost";
 import { getBaseUrl } from "@/lib/siteUrl";
+import { getAllDocs } from "@/lib/docs";
 
 export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
   const baseUrl = getBaseUrl();
@@ -14,22 +13,16 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
       priority: 1.0,
     },
     {
-      url: `${baseUrl}/blog`,
-      lastModified: new Date(),
-      changeFrequency: "daily",
-      priority: 0.9,
-    },
-    {
       url: `${baseUrl}/docs`,
       lastModified: new Date(),
       changeFrequency: "weekly",
-      priority: 0.8,
+      priority: 0.9,
     },
     {
       url: `${baseUrl}/architecture`,
       lastModified: new Date(),
       changeFrequency: "monthly",
-      priority: 0.7,
+      priority: 0.8,
     },
     {
       url: `${baseUrl}/server`,
@@ -60,17 +53,17 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
   let dynamicRoutes: MetadataRoute.Sitemap = [];
 
   try {
-    await connectDB();
-    const posts = await GamingPost.find({}, "slug updatedAt").lean();
-    dynamicRoutes = posts.map((post: any) => ({
-      url: `${baseUrl}/blog/gaming/${post.slug}`,
-      lastModified: post.updatedAt ? new Date(post.updatedAt) : new Date(),
+    const docs = await getAllDocs();
+    dynamicRoutes = docs.map((doc) => ({
+      url: `${baseUrl}/docs/${doc.slug}`,
+      lastModified: new Date(),
       changeFrequency: "weekly",
       priority: 0.8,
     }));
   } catch (e) {
-    console.error("Sitemap dynamic route fetch warning:", e);
+    console.error("Sitemap dynamic doc route fetch warning:", e);
   }
 
   return [...staticRoutes, ...dynamicRoutes];
 }
+

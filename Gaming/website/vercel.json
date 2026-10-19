@@ -4,22 +4,6 @@
   "buildCommand": "npm run build",
   "crons": [
     {
-      "path": "/api/blogs/generate/gpu-news",
-      "schedule": "0 0 * * 0"
-    },
-    {
-      "path": "/api/blogs/generate/game-news",
-      "schedule": "5 0 * * 0"
-    },
-    {
-      "path": "/api/blogs/generate/hw-deep-dive",
-      "schedule": "10 0 * * 0"
-    },
-    {
-      "path": "/api/blogs/generate/game-revisit",
-      "schedule": "15 0 * * 0"
-    },
-    {
       "path": "/api/cron/keepalive",
       "schedule": "30 0 * * 0"
     }

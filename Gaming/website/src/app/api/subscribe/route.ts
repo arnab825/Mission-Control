@@ -1,7 +1,6 @@
 import { NextResponse } from "next/server";
 import connectDB from "@/lib/mongodb";
 import Subscriber from "@/models/Subscriber";
-import GamingPost from "@/models/GamingPost";
 import nodemailer from "nodemailer";
 import { BASE_SITE_URL } from "@/lib/siteUrl";
 import {
@@ -38,7 +37,6 @@ export async function POST(request: Request) {
     }
 
     let isNewSubscriber = false;
-    let recentBlogs: any[] = [];
 
     try {
       await connectDB();
@@ -53,12 +51,6 @@ export async function POST(request: Request) {
         await existing.save();
         isNewSubscriber = true;
       }
-
-      // Fetch 2 latest gaming blogs to include in welcome/confirm email
-      recentBlogs = await GamingPost.find({ publishedAt: { $lte: new Date() } })
-        .sort({ publishedAt: -1 })
-        .limit(2)
-        .lean();
     } catch (dbErr: any) {
       console.warn("MongoDB Subscriber connection notice:", dbErr.message);
     }
@@ -93,117 +85,11 @@ export async function POST(request: Request) {
     const safeEmail = escapeHtml(cleanEmail);
     const baseUrl = BASE_SITE_URL;
 
-    // Category colors
-    const categoryColors: Record<string, { color: string; bg: string; border: string }> = {
-      "Game News": {
-        color: "#76b900",
-        bg: "rgba(118, 185, 0, 0.12)",
-        border: "rgba(118, 185, 0, 0.3)",
-      },
-      "GPU News": {
-        color: "#c084fc",
-        bg: "rgba(192, 132, 252, 0.12)",
-        border: "rgba(192, 132, 252, 0.3)",
-      },
-      "Hardware Deep-Dive": {
-        color: "#38bdf8",
-        bg: "rgba(56, 189, 248, 0.12)",
-        border: "rgba(56, 189, 248, 0.3)",
-      },
-      "Game Revisit": {
-        color: "#fbbf24",
-        bg: "rgba(251, 191, 36, 0.12)",
-        border: "rgba(251, 191, 36, 0.3)",
-      },
-    };
-
-    // Render blogs section
-    let blogsHtml = "";
-    if (recentBlogs && recentBlogs.length > 0) {
-      const cards = recentBlogs
-        .map((post: any) => {
-          const catCfg = categoryColors[post.category] || {
-            color: "#76b900",
-            bg: "rgba(118, 185, 0, 0.12)",
-            border: "rgba(118, 185, 0, 0.3)",
-          };
-
-          let coverImgUrl = post.coverImage || "";
-          if (coverImgUrl.startsWith("/")) {
-            coverImgUrl = `${baseUrl}${coverImgUrl}`;
-          } else if (!coverImgUrl || coverImgUrl.includes("placeholder")) {
-            coverImgUrl = `${baseUrl}/api/blob?pathname=images%2Fblog%2F${encodeURIComponent(post.slug)}.png`;
-          }
-
-          const safeTitle = escapeHtml(post.title || "Gaming Intel Dispatch");
-          const safeExcerpt = escapeHtml(
-            post.excerpt
-              ? post.excerpt.length > 130
-                ? `${post.excerpt.substring(0, 130)}...`
-                : post.excerpt
-              : "Read our in-depth technical analysis and benchmarks."
-          );
-          const postLink = `${baseUrl}/blog/gaming/${encodeURIComponent(post.slug)}`;
-
-          return `
-          <table role="presentation" width="100%" cellspacing="0" cellpadding="0" border="0" style="margin-bottom: 18px; background-color: #0c0f17; border: 1px solid rgba(255,255,255,0.09); border-radius: 12px; overflow: hidden; box-shadow: 0 4px 20px rgba(0,0,0,0.4);">
-            ${
-              coverImgUrl
-                ? `
-            <tr>
-              <td style="padding: 0; line-height: 0;">
-                <a href="${postLink}" target="_blank" style="display: block; text-decoration: none;">
-                  <img src="${coverImgUrl}" alt="${safeTitle}" width="100%" style="width: 100%; max-height: 200px; object-fit: cover; display: block; border-bottom: 1px solid rgba(255,255,255,0.08);" />
-                </a>
-              </td>
-            </tr>
-            `
-                : ""
-            }
-            <tr>
-              <td style="padding: 18px 22px;">
-                <table role="presentation" width="100%" cellspacing="0" cellpadding="0" border="0">
-                  <tr>
-                    <td>
-                      <span style="display: inline-block; padding: 3px 10px; border-radius: 6px; font-family: monospace; font-size: 10px; font-weight: 700; color: ${catCfg.color}; background-color: ${catCfg.bg}; border: 1px solid ${catCfg.border}; text-transform: uppercase; margin-bottom: 10px;">
-                        ${escapeHtml(post.category || "INTEL")}
-                      </span>
-                      <h3 style="margin: 0 0 8px 0; font-size: 16px; font-weight: 700; color: #ffffff; line-height: 1.4; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;">
-                        <a href="${postLink}" target="_blank" style="color: #ffffff; text-decoration: none;">
-                          ${safeTitle}
-                        </a>
-                      </h3>
-                      <p style="margin: 0 0 16px 0; font-size: 12px; color: #94a3b8; line-height: 1.6; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;">
-                        ${safeExcerpt}
-                      </p>
-                      <a href="${postLink}" target="_blank" style="display: inline-block; background-color: rgba(118, 185, 0, 0.12); color: #76b900; border: 1px solid rgba(118, 185, 0, 0.35); padding: 7px 16px; border-radius: 8px; font-weight: 700; font-size: 11px; text-decoration: none; font-family: monospace; text-transform: uppercase; letter-spacing: 0.5px;">
-                        Read Intel Dispatch &rarr;
-                      </a>
-                    </td>
-                  </tr>
-                </table>
-              </td>
-            </tr>
-          </table>
-        `;
-        })
-        .join("");
-
-      blogsHtml = `
-        <div style="margin-top: 26px;">
-          <p style="margin: 0 0 14px 0; font-family: monospace; font-size: 11px; font-weight: 700; color: #76b900; letter-spacing: 1.5px; text-transform: uppercase; display: flex; align-items: center;">
-            FEATURED GAMING INTEL DISPATCHES:
-          </p>
-          ${cards}
-        </div>
-      `;
-    }
-
     const mailOptions = {
       from: `"Mission Control Telemetry" <noreply@missioncontrol.gg>`,
       to: cleanEmail,
-      subject: "⚡ [Telemetry Activated] Welcome to Mission Control Weekly Intel Feed",
-      text: `Operator registered: ${cleanEmail}. You are now subscribed to Mission Control weekly telemetry updates, model patches, and gaming intel blogs.\n\nExplore our latest articles at ${baseUrl}/blog`,
+      subject: "⚡ [Telemetry Activated] Welcome to Mission Control Weekly Dispatch",
+      text: `Operator registered: ${cleanEmail}. You are now subscribed to Mission Control weekly telemetry updates, architecture guides, and driver patch notes.\n\nExplore our docs at ${baseUrl}/docs`,
       html: `
         <!DOCTYPE html>
         <html>
@@ -258,7 +144,7 @@ export async function POST(request: Request) {
                               OPERATOR ENROLLED
                             </div>
                             <p style="margin: 0; color: #cbd5e1; font-size: 13px; line-height: 1.6; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;">
-                              Terminal key <strong style="color: #ffffff; font-family: monospace;">${safeEmail}</strong> is now authenticated. You will receive weekly technical summaries, GPU architecture deep-dives, and AI-assisted game telemetry patches.
+                              Terminal key <strong style="color: #ffffff; font-family: monospace;">${safeEmail}</strong> is now authenticated. You will receive weekly technical summaries, GPU architecture updates, and system telemetry patches.
                             </p>
                           </td>
                         </tr>
@@ -273,33 +159,33 @@ export async function POST(request: Request) {
                             </p>
                             <table width="100%" cellspacing="0" cellpadding="0" border="0" style="font-size: 12px; color: #94a3b8; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;">
                               <tr>
-                                <td style="padding: 6px 0; width: 115px; vertical-align: middle;">
+                                <td style="padding: 6px 0; width: 140px; vertical-align: middle;">
                                   <span style="display: inline-block; padding: 3px 8px; border-radius: 5px; font-family: monospace; font-size: 10px; font-weight: 700; color: #c084fc; background-color: rgba(192, 132, 252, 0.12); border: 1px solid rgba(192, 132, 252, 0.35); text-transform: uppercase;">
-                                    GPU NEWS
+                                    GPU ARCHITECTURE
                                   </span>
                                 </td>
                                 <td style="padding: 6px 0; vertical-align: middle; line-height: 1.4; color: #cbd5e1;">
-                                  Architecture breakdowns, driver changelogs & Tensor metrics
+                                  TensorRT optimizations, driver changelogs &amp; low-overhead hooks
                                 </td>
                               </tr>
                               <tr>
-                                <td style="padding: 6px 0; width: 115px; vertical-align: middle;">
+                                <td style="padding: 6px 0; width: 140px; vertical-align: middle;">
                                   <span style="display: inline-block; padding: 3px 8px; border-radius: 5px; font-family: monospace; font-size: 10px; font-weight: 700; color: #76b900; background-color: rgba(118, 185, 0, 0.12); border: 1px solid rgba(118, 185, 0, 0.35); text-transform: uppercase;">
-                                    GAME NEWS
+                                    SYSTEM TELEMETRY
                                   </span>
                                 </td>
                                 <td style="padding: 6px 0; vertical-align: middle; line-height: 1.4; color: #cbd5e1;">
-                                  Launch performance analysis, DLSS 3.7 vs FSR frame pacing
+                                  In-game HUD overlay pacing, DirectX presentations &amp; frame-time graphs
                                 </td>
                               </tr>
                               <tr>
-                                <td style="padding: 6px 0; width: 115px; vertical-align: middle;">
+                                <td style="padding: 6px 0; width: 140px; vertical-align: middle;">
                                   <span style="display: inline-block; padding: 3px 8px; border-radius: 5px; font-family: monospace; font-size: 10px; font-weight: 700; color: #38bdf8; background-color: rgba(56, 189, 248, 0.12); border: 1px solid rgba(56, 189, 248, 0.35); text-transform: uppercase;">
-                                    HARDWARE
+                                    DISTRIBUTED NODE
                                   </span>
                                 </td>
                                 <td style="padding: 6px 0; vertical-align: middle; line-height: 1.4; color: #cbd5e1;">
-                                  Silicon thermals, undervolt telemetry & engine deep-dives
+                                  Distributed cluster health, cloud synchronizations &amp; cross-node library indexing
                                 </td>
                               </tr>
                             </table>
@@ -307,13 +193,10 @@ export async function POST(request: Request) {
                         </tr>
                       </table>
 
-                      <!-- Featured Blogs -->
-                      ${blogsHtml}
-
                       <!-- Portal Primary CTA Button -->
                       <div style="text-align: center; margin: 30px 0 10px 0;">
-                        <a href="${baseUrl}/blog" target="_blank" style="display: inline-block; background: linear-gradient(135deg, #76b900 0%, #5d9300 100%); color: #07090e; padding: 12px 28px; border-radius: 10px; font-weight: 900; font-size: 12px; text-decoration: none; font-family: monospace; text-transform: uppercase; letter-spacing: 0.8px; box-shadow: 0 4px 20px rgba(118,185,0,0.35);">
-                          Browse Full Blog Intelligence &rarr;
+                        <a href="${baseUrl}/docs" target="_blank" style="display: inline-block; background: linear-gradient(135deg, #76b900 0%, #5d9300 100%); color: #07090e; padding: 12px 28px; border-radius: 10px; font-weight: 900; font-size: 12px; text-decoration: none; font-family: monospace; text-transform: uppercase; letter-spacing: 0.8px; box-shadow: 0 4px 20px rgba(118,185,0,0.35);">
+                          Explore Documentation &amp; Roadmap &rarr;
                         </a>
                       </div>
 

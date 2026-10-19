@@ -3,7 +3,6 @@ export * from "./layout";
 export * from "./home";
 export * from "./docs";
 export * from "./modals";
-export * from "./blog";
 export * from "./ui";
 export * from "./integrations";
 export * from "./support";

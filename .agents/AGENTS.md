@@ -13,29 +13,10 @@ This repository, **Mission Control**, is split into three primary components:
 
 ---
 
-## 2. Blog Generation Architecture & Rules
-
-The website features an automated AI-driven blog generation pipeline at `/api/blogs/generate`:
-- **Feeds**: It fetches from IGN, Kotaku, Eurogamer, AnandTech, and Tom's Hardware RSS feeds.
-- **Categories**: It generates and posts for **four** categories daily: `GPU News`, `Game News`, `Hardware Deep-Dive`, and `Game Revisit`.
-- **Scheduling**: The blog generation runs automatically every day at **5:30 AM IST** via Vercel cron jobs.
-- **Tone**: Technical, authoritative, and analytical. Avoid generic AI catchphrases.
-- **LLM Text Generation (3-Tier Failover)**: Uses a 3-tier LLM cascade for 100% uptime:
-  1. **Google Gemini Flash** (`gemini-3.8-flash`, `gemini-3.7-flash`, `gemini-3.6-flash`, `gemini-3.5-flash` via `GEMINI_API_KEY`)
-  2. **Hugging Face LLM** (`Llama-3.1-8B-Instruct`, `Mistral-7B-Instruct`, `Qwen2.5-72B-Instruct` via `HF_TOKEN`)
-  3. **NVIDIA NIM** (`meta/llama-3.2-11b-vision-instruct`, `nvidia/nemotron-3-super-120b-a12b`, `nvidia/nemotron-3.5-lightning-30b-a3b` via `NVIDIA_API_KEY`)
-- **Image Generation (4-Tier Failover & Vercel Blob CDN)**: Uses the parsed `image_prompt` from frontmatter via a 4-tier pipeline: **Google Gemini (Imagen 3)** (`GEMINI_API_KEY`), **Hugging Face (`FLUX.1-schnell`)** (`HF_TOKEN`), **Pollinations AI**, or **High-Resolution Photorealistic 3D PNG Artwork** category fallbacks. All generated images are stored persistently on **Vercel Blob CDN** via `BLOB_READ_WRITE_TOKEN` to prevent serverless 404 errors.
-
-
-
----
-
-## 3. General Code Standards
+## 2. General Code Standards
 
 * **TypeScript**: Use strict types where possible. Always verify typing with `tsc --noEmit` before proposing changes.
 * **Styles**: Ensure that styling modifications remain clean and align with the design system.
 * **Paths**: Ensure all paths are relative within the workspace. Never hardcode absolute user paths.
 * **Game Benchmark Profiles**: Whenever a game is added to `BENCHMARK_PROFILES` in `Gaming/website/src/data/benchmarks.ts`, you MUST include a complete `detailedOverview` object (with `story`, `gameplayLoop`, and 4 `keyMechanics` items `{ name, desc }`). Use Llama/NVIDIA NIM to generate the structured game overviews automatically.
 
-For the full detailed rules on generating gaming news blog posts and SEO/formatting details, see the skill file:
-→ [`.agents/skills/gaming-intel-generation/SKILL.md`](file:///e:/AiAssistant/.agents/skills/gaming-intel-generation/SKILL.md)
