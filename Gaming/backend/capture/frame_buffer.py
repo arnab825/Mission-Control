@@ -15,13 +15,15 @@ except Exception:
 
 class FrameBuffer:
     """
-    Lock-free-ish double-buffered frame exchange.
-    
-    The capture thread writes to the 'back' buffer, then swaps.
-    The vision thread reads from the 'front' buffer without blocking capture.
+    Lock-free-ish double-buffered zero-allocation frame exchange.
+    Pre-allocates static double-buffer memory pool and performs in-place np.copyto
+    to prevent memory reallocation and garbage collection thrashing during 60-120 FPS capture.
     """
 
-    def __init__(self):
+    def __init__(self, default_shape=(1080, 1920, 3)):
+        self._shape = default_shape
+        self._pool_front = np.zeros(default_shape, dtype=np.uint8)
+        self._pool_back = np.zeros(default_shape, dtype=np.uint8)
         self._front = None        # Consumer reads from here
         self._back = None         # Producer writes here
         self._lock = threading.Lock()
@@ -34,11 +36,21 @@ class FrameBuffer:
     def push(self, frame: np.ndarray):
         """
         Called by the capture thread to submit a new frame.
-        Non-blocking for the consumer — just swaps the buffer pointer.
+        Uses in-place np.copyto into the pre-allocated back buffer to eliminate heap allocations.
         """
+        if frame is None or not isinstance(frame, np.ndarray):
+            return
+
         with self._lock:
-            self._back = frame
-            self._front, self._back = self._back, self._front
+            # Dynamically adapt pre-allocated pool if capture resolution changes
+            if frame.shape != self._shape:
+                self._shape = frame.shape
+                self._pool_front = np.zeros(self._shape, dtype=np.uint8)
+                self._pool_back = np.zeros(self._shape, dtype=np.uint8)
+
+            np.copyto(self._pool_back, frame)
+            self._front = self._pool_back
+            self._pool_front, self._pool_back = self._pool_back, self._pool_front
             self._frame_id += 1
             self._timestamp = time.perf_counter()
         self._new_frame.set()

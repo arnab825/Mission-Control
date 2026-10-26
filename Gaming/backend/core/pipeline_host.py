@@ -18,12 +18,8 @@ import numpy as np
 from pynput import keyboard  # type: ignore[reportMissingModuleSource]
 import ctypes
 
-if sys.platform == "win32":
-    try:
-        ctypes.windll.winmm.timeBeginPeriod(1)
-        logging.info("Windows timer resolution set to 1ms.")
-    except Exception as e:
-        logging.warning(f"Could not set timer resolution: {e}")
+# Win32 multimedia timer resolution is dynamically hooked on pipeline.start() and unhooked on pipeline.stop()
+_TIMER_RESOLUTION_HOOKED = False
 
 try:
     import psutil  # type: ignore[reportMissingImports]
@@ -775,6 +771,16 @@ class GamingAssistantPipeline:
     def start(self):
         """Start the assistant pipeline."""
         self.running = True
+        # Dynamically clamp Win32 timer resolution to 1ms for sub-millisecond game capture timing
+        global _TIMER_RESOLUTION_HOOKED
+        if sys.platform == "win32" and not _TIMER_RESOLUTION_HOOKED:
+            try:
+                ctypes.windll.winmm.timeBeginPeriod(1)
+                _TIMER_RESOLUTION_HOOKED = True
+                logger.info("[Perf] Win32 multimedia timer resolution clamped to 1ms for active game hook.")
+            except Exception as e:
+                logger.debug(f"[Perf] Could not clamp timer resolution: {e}")
+
         logger.info(f"Starting Mission Control")
         logger.info(f"  Mode: {self.game_mode}")
         logger.info(f"  Capture: {self.capture.backend_name} @ {self.capture_hz}hz")
@@ -2903,6 +2909,16 @@ class GamingAssistantPipeline:
             self.memory.save()
             logger.info("Game memory saved.")
         cv2.destroyAllWindows()
+
+        # Unhook Win32 timer resolution (restore CPU to deepest C6/C7 low-power sleep states)
+        global _TIMER_RESOLUTION_HOOKED
+        if sys.platform == "win32" and _TIMER_RESOLUTION_HOOKED:
+            try:
+                ctypes.windll.winmm.timeEndPeriod(1)
+                _TIMER_RESOLUTION_HOOKED = False
+                logger.info("[Perf] Win32 multimedia timer resolution unhooked (restored deep C-states).")
+            except Exception as e:
+                logger.debug(f"[Perf] Could not unhook timer resolution: {e}")
 
         # Aggressively unload vision models on stop to release RAM/VRAM if configured
         if self.unload_models_on_stop:

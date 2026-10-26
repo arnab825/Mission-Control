@@ -358,6 +358,8 @@ let updateFrames: any[] = [];
 let updateAnimationInterval: NodeJS.Timeout | null = null;
 let currentFrameIndex = 0;
 
+let updateAnimationTimeout: NodeJS.Timeout | null = null;
+
 function startUpdateAnimation() {
   if (updateAnimationInterval) return;
   currentFrameIndex = 0;
@@ -369,13 +371,23 @@ function startUpdateAnimation() {
         try { updateTrayMenuRef(); } catch (_) {}
       }
     }
-  }, 150);
+  }, 250);
+
+  // Safety auto-stop after 15 seconds so animation never leaks in background
+  if (updateAnimationTimeout) clearTimeout(updateAnimationTimeout);
+  updateAnimationTimeout = setTimeout(() => {
+    stopUpdateAnimation();
+  }, 15000);
 }
 
 function stopUpdateAnimation() {
   if (updateAnimationInterval) {
     clearInterval(updateAnimationInterval);
     updateAnimationInterval = null;
+  }
+  if (updateAnimationTimeout) {
+    clearTimeout(updateAnimationTimeout);
+    updateAnimationTimeout = null;
   }
   const publicDir = process.env.VITE_PUBLIC || '';
   currentUpdateIcon = nativeImage.createFromPath(path.join(publicDir, 'tray', 'update.png')).resize({ width: 16, height: 16 });
@@ -1495,6 +1507,20 @@ async function createWindow() {
   })
 
   registerContextMenu(win)
+
+  // Notify renderer of window visibility state to pause unneeded timers & animations in background
+  win.on('hide', () => {
+    try { win?.webContents.send('app-window-visibility', false); } catch (_) {}
+  });
+  win.on('minimize', () => {
+    try { win?.webContents.send('app-window-visibility', false); } catch (_) {}
+  });
+  win.on('show', () => {
+    try { win?.webContents.send('app-window-visibility', true); } catch (_) {}
+  });
+  win.on('restore', () => {
+    try { win?.webContents.send('app-window-visibility', true); } catch (_) {}
+  });
 
   // Ensure CSS transparency allows Mica to show through.
   // We'll stick to CSS transparency combined with a frameless transparent window for now.
@@ -2750,10 +2776,14 @@ ipcMain.on('update-hud-config', (_event, config) => {
   updateHUDConfig(config);
 });
 
-// Live tray tooltip: update with FPS/GPU metrics so users can check performance
-// by hovering the system tray icon without alt-tabbing out of fullscreen.
+// Live tray tooltip: throttled to 1Hz max to prevent Win32 shell notify icon stutter
+let lastTrayTooltipUpdate = 0;
 ipcMain.on('update-tray-telemetry', (_event, data: { fps?: number; gpuLoad?: number; gpuTemp?: number; isActive?: boolean }) => {
   if (!tray || tray.isDestroyed()) return;
+  const now = Date.now();
+  if (now - lastTrayTooltipUpdate < 1000 && data.isActive) return;
+  lastTrayTooltipUpdate = now;
+
   if (!data.isActive) {
     tray.setToolTip('Mission Control Gaming Assistant');
     return;

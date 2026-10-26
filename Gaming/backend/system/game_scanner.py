@@ -31,6 +31,13 @@ class GameScanner:
     """
     Scans and detects installed games from various platforms.
     """
+    _active_scan_lock = threading.Lock()
+    _is_scanning_now = False
+
+    @classmethod
+    def is_scanning(cls) -> bool:
+        return cls._is_scanning_now
+
     def __init__(self, config=None, user_id=None):
         self.config = config or {}
         self.games = []
@@ -324,7 +331,9 @@ class GameScanner:
         skip_folder_names.update({
             "node_modules", ".git", ".vscode", "temp", "tmp", "logs", 
             "shadercache", "directx", "vcredist", "_commonredist", "support", 
-            "installers", "$recycle.bin", "system volume information"
+            "installers", "$recycle.bin", "system volume information",
+            "assets", "content", "sound", "sounds", "audio", "music", "textures", "texture",
+            "media", "data", "movies", "videos", "localization", "loc", "maps", "levels", "dlc"
         })
 
         def walk(curr_dir: Path, depth: int):
@@ -852,11 +861,11 @@ class GameScanner:
                 except Exception:
                     pass
 
-                for exe_path in exes_to_scan[:3]: # Scan up to 3 largest executables
+                # Fast pass: only scan the single largest primary executable and cap read to 1MB
+                for exe_path in exes_to_scan[:1]:
                     try:
                         with open(exe_path, "rb") as f:
-                            # Read first 15MB (modern EXEs like Frostbite can be 100MB+ with imports deeper in the file)
-                            data = f.read(15 * 1024 * 1024)
+                            data = f.read(1024 * 1024)
                             if any(sig in data for sig in byte_signatures):
                                 hdr_supported = True
                                 break
@@ -967,7 +976,28 @@ class GameScanner:
         return sorted(list(discovered))
 
     def scan_all(self, progress_callback: Optional[Callable[[int, str], None]] = None):
-        """Perform a full scan of all supported platforms."""
+        """Perform a full scan of all supported platforms with singleton lock protection."""
+        if not GameScanner._active_scan_lock.acquire(blocking=False):
+            logger.info("[GameScanner] Scan already in progress. Reusing active scan result.")
+            if callable(progress_callback):
+                progress_callback(50, "Syncing with active scan...")
+            for _ in range(40):
+                if not GameScanner._is_scanning_now:
+                    break
+                time.sleep(0.5)
+            return self.load_cached_games()
+
+        GameScanner._is_scanning_now = True
+        try:
+            return self._execute_scan(progress_callback)
+        finally:
+            GameScanner._is_scanning_now = False
+            try:
+                GameScanner._active_scan_lock.release()
+            except RuntimeError:
+                pass
+
+    def _execute_scan(self, progress_callback: Optional[Callable[[int, str], None]] = None):
         self.games = []
         scan_steps = [
             ("Steam", self._scan_steam),
@@ -989,14 +1019,18 @@ class GameScanner:
             ("Common game folders", self._scan_common_paths),
             ("Drive libraries", self._scan_drives),
             ("Custom directories", self._scan_custom_paths),
-            ("Deep recursive scan", lambda: self._scan_deep_recursive(max_depth=5)),
+            ("Deep recursive scan", lambda: self._scan_deep_recursive(max_depth=3)),
         ]
 
         total_steps = len(scan_steps) + 1
         for index, (label, step) in enumerate(scan_steps):
             if callable(progress_callback):
-                progress_callback(int((index / total_steps) * 100), f"Scanning {label}...")
-            step()
+                pct = max(5, int(((index + 1) / (total_steps + 1)) * 90))
+                progress_callback(pct, f"Scanning {label}...")
+            try:
+                step()
+            except Exception as step_err:
+                logger.warning("[GameScanner] Error scanning %s: %s", label, step_err)
 
         # Post-process: Detect features & Filter Junk
         if callable(progress_callback):
@@ -1992,23 +2026,18 @@ class GameScanner:
                             if not install_path.exists():
                                 continue
                             
-                            # Try to find the primary .exe for icon extraction
+                            # Try to find the primary .exe for icon extraction (fast bounded scan)
                             resolved_exe = None
                             try:
-                                exes = list(install_path.glob("*.exe"))
+                                exes = [Path(e.path) for e in os.scandir(install_path) if e.is_file() and e.name.lower().endswith(".exe")]
                                 if not exes:
-                                    # Recursive glob but exclude known crack/nodvd subdirs
-                                    all_exes = list(install_path.glob("**/*.exe"))
-                                    exes = [
-                                        e for e in all_exes
-                                        if not any(part.lower() in self.crack_groups for part in e.relative_to(install_path).parts[:-1])
-                                    ] or all_exes
+                                    exes = self._collect_game_executables(install_path, max_depth=2)
                                 if exes:
                                     resolved_exe = self._select_best_exe(exes, game_name)
                             except Exception: pass
 
                             # If no executable exists in install folder, it's an uninstalled remnant
-                            if not resolved_exe and not list(install_path.glob("*.exe")) and not list(install_path.glob("*/*.exe")):
+                            if not resolved_exe and not [e for e in os.scandir(install_path) if e.is_file() and e.name.lower().endswith(".exe")]:
                                 continue
 
                             self.games.append({
@@ -3009,7 +3038,7 @@ class GameScanner:
         # Aggregate executables by resolved canonical game root
         scanned_game_roots: dict[Path, list[Path]] = {}
         self._deep_scan_folder_count = 0
-        self._deep_scan_max_folders = 5000
+        self._deep_scan_max_folders = 600
 
         for root_path in root_scan_targets:
             if not root_path.exists():

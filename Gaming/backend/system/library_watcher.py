@@ -166,18 +166,25 @@ class LibraryWatcher:
 
     def _watch_loop(self):
         # Initial stagger delay to let the server startup stabilize
-        time.sleep(5)
+        time.sleep(10)
         self._last_state = self._get_library_state()
         
         while self._running:
-            time.sleep(10)
+            # Poll every 30 seconds to minimize background disk I/O
+            time.sleep(30)
             if not self._running:
                 break
             try:
+                from system.game_scanner import GameScanner
+                if GameScanner.is_scanning():
+                    continue
+
                 current_state = self._get_library_state()
                 if current_state != self._last_state:
-                    logger.info("[LibraryWatcher] Library/settings changes detected! Auto-scanning...")
-                    self._last_state = current_state
+                    logger.info("[LibraryWatcher] Library/settings changes detected! Debouncing auto-scan...")
+                    # 3-second debounce to ensure files are fully written
+                    time.sleep(3)
+                    self._last_state = self._get_library_state()
                     self._trigger_sync()
             except Exception as e:
                 logger.error(f"[LibraryWatcher] Error in watch loop: {e}", exc_info=True)
@@ -193,6 +200,10 @@ class LibraryWatcher:
     def _run_background_scan(self):
         try:
             from system.game_scanner import GameScanner
+            if GameScanner.is_scanning():
+                logger.debug("[LibraryWatcher] Scan already in progress, skipping background sync.")
+                return
+
             user_id = getattr(self.pipeline, "active_user_id", None)
             user_id_str = str(user_id) if user_id else None
             

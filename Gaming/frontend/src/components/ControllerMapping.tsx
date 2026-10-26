@@ -162,11 +162,21 @@ export const ControllerMapping: React.FC<ControllerMappingProps> = ({ state, sen
           }
         }
       }
-      animFrame = requestAnimationFrame(pollInputs);
+      if (document.visibilityState !== 'hidden') {
+        animFrame = requestAnimationFrame(pollInputs);
+      } else {
+        animTimeout = setTimeout(() => {
+          animFrame = requestAnimationFrame(pollInputs);
+        }, 1500);
+      }
     };
 
+    let animTimeout: ReturnType<typeof setTimeout> | null = null;
     animFrame = requestAnimationFrame(pollInputs);
-    return () => cancelAnimationFrame(animFrame);
+    return () => {
+      cancelAnimationFrame(animFrame);
+      if (animTimeout) clearTimeout(animTimeout);
+    };
   }, [activeGamepadIndex, deadzone, recordingAction]);
 
   const handleTestRumble = () => {

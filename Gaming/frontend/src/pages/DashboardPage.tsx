@@ -250,8 +250,8 @@ const DashboardPage: React.FC<DashboardPageProps> = ({ state, onCommand, onNavig
   const HISTORY_UPDATE_INTERVAL = 200; // Update history every 200ms max
 
   useEffect(() => {
-    if (state) {
-      // Debounce history updates - only update if enough time has passed
+    if (state && document.visibilityState !== 'hidden') {
+      // Debounce history updates - only update if enough time has passed and window is visible
       const now = Date.now();
       if (now - lastHistoryUpdateRef.current < HISTORY_UPDATE_INTERVAL) {
         return; // Skip update if too soon

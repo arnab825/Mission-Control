@@ -68,7 +68,12 @@ class ProcessWatcher:
         "galaxyclient.exe", "galaxyclient service.exe", "gog galaxy.exe",
         "upc.exe", "eabackgroundservice.exe", "eadesktop.exe", "eaconnect_microsoft.exe",
         "vlc.exe", "mpc-hc.exe", "mpc-hc64.exe", "potplayer.exe", "potplayermini64.exe", 
-        "wmplayer.exe", "movies.television.exe"
+        "wmplayer.exe", "movies.television.exe",
+        # Productivity, Editing & Chat apps that use GPU hardware acceleration
+        "cursor.exe", "slack.exe", "teams.exe", "zoom.exe", "figma.exe", "photoshop.exe",
+        "illustrator.exe", "lightroom.exe", "premiere.exe", "afterfx.exe", "obs64.exe",
+        "acrobat.exe", "word.exe", "excel.exe", "powerpnt.exe", "outlook.exe",
+        "notion.exe", "canva.exe", "postman.exe", "blender.exe", "davinci resolve.exe", "resolve.exe"
     }
 
     # Window titles that are NEVER games
@@ -88,7 +93,7 @@ class ProcessWatcher:
         "mpc-hc", "potplayer", "quicktime", "movies & tv", "movies and tv"
     ]
     
-    def __init__(self, poll_interval: float = 2.0, game_registry: Optional[List[Dict]] = None):
+    def __init__(self, poll_interval: float = 3.5, game_registry: Optional[List[Dict]] = None):
         self.poll_interval = poll_interval
         self.game_registry = game_registry or []  # List of known games from scanner
         self._running = False
@@ -383,33 +388,50 @@ class ProcessWatcher:
                             continue
 
             # --- GPU Monitoring for auto-detection ---
+            # Strict safety: Only recognize GPU processes that match verified registry titles
+            # OR are the active foreground window using substantial graphics memory (> 1000MB).
+            # This prevents normal hardware-accelerated desktop apps from triggering DXCam capture.
             if self._gpu_monitor and self._gpu_monitor.is_available:
                 gpu_procs = self._gpu_monitor.get_active_graphics_processes()
+                fg_hwnd = win32gui.GetForegroundWindow() if hasattr(win32gui, "GetForegroundWindow") else None
+
                 for gp in gpu_procs:
                     exe_name = gp["name"].lower()
                     if exe_name in self.BROWSER_PROCESSES or exe_name in self.LAUNCHER_PROCESSES or exe_name in self.EXCLUDED_PROCESSES:
                         continue
-                    if gp["memory_mb"] > 200: # Increased threshold for less noise
-                        pid = gp["pid"]
-                        hwnd = self._get_hwnd_for_pid(pid)
-                        
-                        # Verify it has a window or is newly launched
-                        if hwnd is None:
-                            try:
-                                proc = psutil.Process(pid)
-                                elapsed = time.time() - proc.create_time()
-                                if elapsed > 30.0:
-                                    continue
-                            except Exception:
-                                pass
-                                
+                    
+                    pid = gp["pid"]
+                    hwnd = self._get_hwnd_for_pid(pid)
+                    
+                    # 1. Check if matches any game in registry
+                    matched_in_registry = None
+                    if self.game_registry:
+                        for reg_game in self.game_registry:
+                            reg_exe = Path(reg_game.get("exe_path", "")).name.lower()
+                            if reg_exe and reg_exe == exe_name:
+                                matched_in_registry = reg_game
+                                break
+                    
+                    if matched_in_registry:
+                        return {
+                            **matched_in_registry,
+                            "name": matched_in_registry.get("name", exe_name.replace(".exe", "").title()),
+                            "exe_name": exe_name,
+                            "pid": pid,
+                            "hwnd": hwnd,
+                            "is_minimized": self._is_window_minimized(pid),
+                            "source": "nvidia_neural_verified",
+                        }
+
+                    # 2. Strict heuristic fallback: must be foreground window and > 1000MB VRAM
+                    if gp["memory_mb"] >= 1000 and hwnd and fg_hwnd and hwnd == fg_hwnd:
                         return {
                             "name": exe_name.replace(".exe", "").title(),
                             "exe_name": exe_name,
                             "pid": pid,
                             "hwnd": hwnd,
-                            "is_minimized": self._is_window_minimized(pid),
-                            "source": "nvidia_neural",
+                            "is_minimized": False,
+                            "source": "nvidia_neural_foreground",
                         }
 
             # --- Foreground Window Heuristic Fallback ---
