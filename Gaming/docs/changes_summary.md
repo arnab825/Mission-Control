@@ -22,7 +22,34 @@ Comprehensive breakdown of major milestone releases, architectural upgrades, and
 
 ---
 
-## 🌟 Version v3.8.3 (Latest) — TensorRT FP16 Engine Auto-Upgrade Architecture
+## 🌟 Version v3.8.4 (Latest) — Hardware Optimization & Library Scanner Performance Update
+
+### 🛠️ Key Highlights
+1. **Hardware Optimization & Library Scanner Performance Update**
+2. **Resolved Game Scanner 0% hang with atomic scan locking**
+3. **Optimized library directory traversal with max depth bounding**
+4. **Eliminated system tray cursor lag and machine stutter by hardening process watcher**
+5. **Added Electron window visibility lifecycle bridge to pause telemetry when minimized**
+6. **Implemented zero-allocation double buffer memory pool in frame buffer**
+7. **Hooked dynamic Win32 timer resolution to unhook on idle and restore CPU C6/C7 states**
+8. **Fixed NodeJS namespace TypeScript error in ControllerMapping**
+9. **Fully completed hardware optimization blueprint**
+
+### 📊 Architecture & Data Flow
+```mermaid
+graph TD
+    A[Developer Push / Publish Pipeline] --> B[Version Stamping & AI Changelog Enforcer]
+    B --> C[Mission Control System Core]
+    C --> D[Website Documentation & Real-Time Sync]
+```
+
+### 📦 Distribution Artifacts
+- **Linux**: `.deb` (Debian/Ubuntu), `.AppImage` (Universal), `.rpm` (Fedora/RHEL), `.tar.gz` (Portable)
+- **Windows**: `.exe` (Setup Installer), `.msi` (Enterprise), `.zip` (Portable)
+
+---
+
+## 📦 Version v3.8.3 — TensorRT FP16 Engine Auto-Upgrade Architecture
 
 ### 🛠️ Key Highlights
 1. **Zero PyTorch VRAM overhead for TensorRT FP16 engine auto-upgrade**

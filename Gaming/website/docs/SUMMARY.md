@@ -82,7 +82,8 @@ graph TD
 
 | Version | Key Feature / Change Description |
 | :--- | :--- |
-| **v3.8.3 (Latest)** | **TensorRT FP16 Engine Auto-Upgrade Architecture** — TensorRT FP16 engine auto-upgrade architecture has been optimized for improved performance and reduced overhead. |
+| **v3.8.4 (Latest)** | **Hardware Optimization & Library Scanner Performance Update** — Hardware Optimization & Library Scanner Performance Update. |
+| **v3.8.3** | **TensorRT FP16 Engine Auto-Upgrade Architecture** — TensorRT FP16 engine auto-upgrade architecture has been optimized for improved performance and reduced overhead. |
 | **v3.8.2** | **Hardware Optimization Architecture: CPU P-Core Affinity Isolation & Proactive RAM Reclamation** — Mission Control v3.8.2 enhances system performance with CPU P-Core affinity isolation and proactive RAM reclamation, ensuring seamless operations. |
 | **v3.8.1** | **Responsive Settings & Dashboard Overhaul, Clerk CORS Auth Fix & Distributed Telemetry** — Mission Control v3.8.1 enhances user experience with a responsive settings dashboard, improved authentication, and distributed telemetry updates. |
 | **v3.8.0** | **Fix Agentic AI command processing, session persistence, and system optimization** — Mission Control v3.8.0 enhances agentic AI command processing, session persistence, and system optimization with key bug fixes and performance improvements. |
@@ -192,5 +193,5 @@ graph TD
 
 ---
 
-*Last Updated: 19/10/2026*
+*Last Updated: 26/10/2026*
 

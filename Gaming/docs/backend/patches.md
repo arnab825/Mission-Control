@@ -2,6 +2,18 @@
 
 This document contains a detailed history of all patches and updates for the AI Gaming Assistant.
 
+### Patch: 2026-10-26 — v3.8.4: Hardware Optimization & Library Scanner Performance Update
+
+- Hardware Optimization & Library Scanner Performance Update
+- Resolved Game Scanner 0% hang with atomic scan locking
+- Optimized library directory traversal with max depth bounding
+- Eliminated system tray cursor lag and machine stutter by hardening process watcher
+- Added Electron window visibility lifecycle bridge to pause telemetry when minimized
+- Implemented zero-allocation double buffer memory pool in frame buffer
+- Hooked dynamic Win32 timer resolution to unhook on idle and restore CPU C6/C7 states
+- Fixed NodeJS namespace TypeScript error in ControllerMapping
+- Fully completed hardware optimization blueprint
+
 ### Patch: 2026-10-19 — v3.8.3: TensorRT FP16 Engine Auto-Upgrade Architecture
 
 - TensorRT FP16 Engine Auto-Upgrade Architecture

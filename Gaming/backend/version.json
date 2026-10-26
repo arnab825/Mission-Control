@@ -1,8 +1,24 @@
 {
-  "version": "3.8.3",
+  "version": "3.8.4",
   "release_date": "2026-09-25",
   "update_check_url": "https://raw.githubusercontent.com/arnab825/Mission-Control/main/Gaming/backend/version.json",
   "changelog": [
+    {
+      "version": "3.8.4",
+      "date": "2026-10-26",
+      "title": "Hardware Optimization & Library Scanner Performance Update",
+      "highlights": [
+        "Hardware Optimization & Library Scanner Performance Update",
+        "Resolved Game Scanner 0% hang with atomic scan locking",
+        "Optimized library directory traversal with max depth bounding",
+        "Eliminated system tray cursor lag and machine stutter by hardening process watcher",
+        "Added Electron window visibility lifecycle bridge to pause telemetry when minimized",
+        "Implemented zero-allocation double buffer memory pool in frame buffer",
+        "Hooked dynamic Win32 timer resolution to unhook on idle and restore CPU C6/C7 states",
+        "Fixed NodeJS namespace TypeScript error in ControllerMapping",
+        "Fully completed hardware optimization blueprint"
+      ]
+    },
     {
       "version": "3.8.3",
       "date": "2026-10-19",
@@ -549,14 +565,6 @@
       "title": "Fixes some issue and bug of server",
       "highlights": [
         "Fixes some issue and bug of server"
-      ]
-    },
-    {
-      "version": "3.3.6",
-      "date": "2026-08-31",
-      "title": "Fix Supabase password URL decode for pooler connection",
-      "highlights": [
-        "Fix Supabase password URL decode for pooler connection"
       ]
     }
   ]
