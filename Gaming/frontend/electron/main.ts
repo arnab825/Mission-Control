@@ -953,6 +953,9 @@ function openAuthPopupWindow(targetUrl: string): Promise<{ success: boolean; err
           preload: path.join(_dirname, 'preload.cjs'),
           nodeIntegration: false,
           contextIsolation: true,
+          sandbox: true,
+          webSecurity: true,
+          allowRunningInsecureContent: false,
           partition: 'persist:mission-control', // Crucial: shares cookies and Clerk tokens with main window
           additionalArguments: ['--is-auth-popup'],
         },
@@ -1305,6 +1308,9 @@ async function createWindow() {
     webPreferences: {
       nodeIntegration: false,
       contextIsolation: true,
+      sandbox: true,
+      webSecurity: true,
+      allowRunningInsecureContent: false,
     },
   });
   
@@ -1381,6 +1387,9 @@ async function createWindow() {
       preload: path.join(_dirname, 'preload.cjs'),
       nodeIntegration: false,
       contextIsolation: true,
+      sandbox: true,
+      webSecurity: true,
+      allowRunningInsecureContent: false,
       backgroundThrottling: false, // Keep timers alive when app is behind the game window
       partition: 'persist:mission-control',
     },
@@ -1394,6 +1403,18 @@ async function createWindow() {
       });
     }
     return { action: 'deny' };
+  });
+
+  // Guard top-level navigation: prevent untrusted navigation away from the local app and redirect external links to OS default browser
+  win.webContents.on('will-navigate', (event, navigationUrl) => {
+    if (!isAppUrl(navigationUrl)) {
+      event.preventDefault();
+      if (navigationUrl && (navigationUrl.startsWith('https:') || navigationUrl.startsWith('http:') || navigationUrl.startsWith('steam:'))) {
+        shell.openExternal(navigationUrl).catch((err) => {
+          console.error('[Electron] Failed to open external URL on will-navigate:', err);
+        });
+      }
+    }
   });
 
   win.webContents.on('console-message', (_event, _level, message, line, sourceId) => {
@@ -2488,9 +2509,29 @@ async function createHUDWindow(showOnReady: boolean = false) {
       preload: path.join(_dirname, 'preload.cjs'),
       nodeIntegration: false,
       contextIsolation: true,
+      sandbox: true,
+      webSecurity: true,
+      allowRunningInsecureContent: false,
       backgroundThrottling: false, // Never throttle timers — keep HUD refresh alive behind the game
       partition: 'persist:mission-control',
     },
+  });
+
+  // Block popups and external navigation from HUD overlay
+  hudWin.webContents.setWindowOpenHandler(({ url }) => {
+    if (url && (url.startsWith('https:') || url.startsWith('http:') || url.startsWith('steam:'))) {
+      shell.openExternal(url).catch(() => {});
+    }
+    return { action: 'deny' };
+  });
+
+  hudWin.webContents.on('will-navigate', (event, navigationUrl) => {
+    if (!isAppUrl(navigationUrl)) {
+      event.preventDefault();
+      if (navigationUrl && (navigationUrl.startsWith('https:') || navigationUrl.startsWith('http:') || navigationUrl.startsWith('steam:'))) {
+        shell.openExternal(navigationUrl).catch(() => {});
+      }
+    }
   });
 
   hudWin.once('ready-to-show', () => {
@@ -5203,6 +5244,9 @@ async function createOffscreenOverlay() {
       preload: path.join(_dirname, 'preload.mjs'),
       nodeIntegration: false,
       contextIsolation: true,
+      sandbox: true,
+      webSecurity: true,
+      allowRunningInsecureContent: false,
       backgroundThrottling: false,
     }
   });
