@@ -73,6 +73,13 @@ export async function ensureBenchmarksSeeded(): Promise<void> {
             recommendationRate: 100,
             avgReportedFps: parseInt(profile.testedSpecs.avgFps) || 60,
           },
+          $set: {
+            dlssVersion: profile.dlssVersion,
+            preset: profile.preset,
+            presets: profile.presets,
+            features: profile.features,
+            ...(summary?.keyTech ? { keyTech: summary.keyTech } : {}),
+          },
         },
         { upsert: true, returnDocument: "after" }
       );
@@ -194,6 +201,14 @@ export async function getBenchmarksFromDB(): Promise<{
           storeRating: formattedRating,
           dlssVersion: doc.dlssVersion,
         });
+      });
+
+      // Sort testedGames according to the canonical order of TESTED_GAMES_LIST
+      const orderMap = new Map(TESTED_GAMES_LIST.map((g, idx) => [g.id, idx]));
+      testedGames.sort((a, b) => {
+        const orderA = orderMap.has(a.id) ? orderMap.get(a.id)! : 999;
+        const orderB = orderMap.has(b.id) ? orderMap.get(b.id)! : 999;
+        return orderA - orderB;
       });
 
       return { profiles, testedGames };

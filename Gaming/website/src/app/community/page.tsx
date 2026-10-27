@@ -1219,7 +1219,7 @@ export default function CommunityPage() {
         isOpen={isRateModalOpen}
         onClose={() => setIsRateModalOpen(false)}
         onSuccess={fetchRatings}
-        initialGameId={testedGames[0]?.id || "firstlight"}
+        initialGameId={testedGames[0]?.id || "codmw4"}
         availableGames={testedGames}
       />
     </main>

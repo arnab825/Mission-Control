@@ -83,6 +83,97 @@ export interface TestedGameSummary {
  * the first priority. These definitions serve strictly as initial seed data and offline fallbacks.
  */
 export const FALLBACK_BENCHMARK_PROFILES: Record<string, BenchmarkProfile> = {
+  codmw4: {
+    id: "codmw4",
+    name: "Call of Duty: Modern Warfare 4",
+    publisher: "Activision / Infinity Ward",
+    releaseYear: "2024 Edition",
+    genre: "Tactical Shooter / Military FPS",
+    api: "DirectX 12 Ultimate",
+    score: 98,
+    status: "VERIFIED BENCHMARK",
+    preset: "Ultra / DLSS 4.5",
+    overview:
+      "Call of Duty: Modern Warfare 4 delivers high-stakes tactical combat across dynamic global battlegrounds, featuring Task Force 141 in a relentless international conflict. Powered by the DirectX 12 Ultimate engine, operatives execute open combat missions, deploy tactical recon drones, and conduct precision thermal sniping with sub-12ms response times.",
+    detailedOverview: {
+      story:
+        "The game takes place in an escalating global conflict where Task Force 141 stands as the vanguard against rogue ultranationalist factions. Led by Captain Price, the elite strike team infiltrates fortified enemy territory across unforgiving sub-zero mountainous terrain to prevent catastrophic multi-theater warfare. As covert operations reveal deep-state conspiracies and advanced weapons proliferation, the squad must balance high-stakes diplomacy with lethal kinetic force. Delivering a gripping cinematic narrative, Modern Warfare 4 immerses players in tense military storytelling where every tactical decision shapes the geopolitical outcome.",
+      gameplayLoop:
+        "Deploy into dynamic open-combat operational sectors, utilizing real-time tactical recon drone surveillance to mark hostiles, executing long-range suppressed sniper takedowns, and engaging in high-intensity CQB fire-fights before exfiltrating hostile zones.",
+      keyMechanics: [
+        {
+          name: "Tactical Recon Drones",
+          desc: "Deploy portable aerial drones equipped with thermal tracking, acoustic sensors, and optical tagging to scout enemy fortifications and coordinate squad strikes in real time.",
+        },
+        {
+          name: "Thermal & Optical Sniping",
+          desc: "Equip precision ballistics rifles such as the K6-7 Vulcan, utilizing variable zoom optics, windage calibration, and multi-spectral thermal sensors to eliminate distant guards through foliage and weather obscuration.",
+        },
+        {
+          name: "Open Combat Mission Protocol",
+          desc: "Tackle expansive objectives with total tactical freedom — choose between covert ghost infiltration, silenced vehicle assaults, or full-scale aerial strike bombardment.",
+        },
+        {
+          name: "Adaptive Enemy Combat AI",
+          desc: "Engage hostiles that flank dynamically, deploy smoke screens, coordinate suppressive fire, and call in tactical reinforcements based on player noise and visual profiles.",
+        },
+      ],
+    },
+    testedSpecs: {
+      gpu: "NVIDIA GeForce RTX Series / GTX Series",
+      resolution: "1080p FHD (1920 x 1080)",
+      avgFps: "70 FPS",
+      vramUsed: "4.3 GB / 8.0 GB",
+      latency: "11.5 ms",
+      gpuLoad: "75%",
+    },
+    presets: {
+      rtx40: "Ultra Settings + DLSS 4.5 Quality + Frame Generation",
+      rtx30: "Ultra Settings + DLSS Quality + Reflex Low Latency",
+      gtx: "High Settings + FSR 3 / XeSS (4.3 GB VRAM Opt)",
+    },
+    features: [
+      {
+        name: "NVIDIA DLSS 4.5 & Reflex",
+        desc: "AI Super Resolution and Reflex Low Latency for sub-12ms input pass-through",
+        active: true,
+      },
+      {
+        name: "DirectX 12 Ultimate",
+        desc: "Advanced Geometry Pipeline, Variable Rate Shading, and Volumetric Snow Shaders",
+        active: true,
+      },
+      {
+        name: "Thermal & Optical Ballistics",
+        desc: "High-fidelity ballistic projectile simulation with thermal imaging optics",
+        active: true,
+      },
+      {
+        name: "Memory Optimization",
+        desc: "Optimized 4.3 GB VRAM footprint under Ultra texture loads",
+        active: true,
+      },
+    ],
+    screenshots: [
+      {
+        src: "/games/COD_MW4_SS1.webp",
+        title: "Cold Weather Traversal & Hardware Telemetry",
+        desc: "Mountain patrol vehicle exploration captured at 70 FPS (41 FPS 1% Low) with 4.3 GB VRAM allocation (65% GPU load, 73°C GPU temp, 65% Fair system rating).",
+      },
+      {
+        src: "/games/COD_MW4_SS2.webp",
+        title: "Aerial Recon Drone Surveillance & Outpost Tagging",
+        desc: "Recon drone overhead surveillance over fortified bridge compound captured at 70 FPS (38 FPS 1% Low) under 75% GPU load (55W GPU power draw, 17.8 GB RAM).",
+      },
+      {
+        src: "/games/COD_MW4_SS3.webp",
+        title: "Precision K6-7 Vulcan Sniper Scope Marksmanship",
+        desc: "Watchtower guard elimination through dense brush captured at 70 FPS (48 FPS 1% Low) with 59% GPU load (51W power draw, 4.3 GB VRAM, 93% CPU load).",
+      },
+    ],
+    storeRating: "4.8 ★★★★★",
+    dlssVersion: "DLSS 4.5",
+  },
   spiderman2: {
     id: "spiderman2",
     name: "Marvel's Spider-Man 2",
@@ -654,102 +745,29 @@ export const FALLBACK_BENCHMARK_PROFILES: Record<string, BenchmarkProfile> = {
     storeRating: "4.9 ★★★★★",
     dlssVersion: "DLSS 4.5",
   },
-  codmw4: {
-    id: "codmw4",
-    name: "Call of Duty: Modern Warfare 4",
-    publisher: "Activision / Infinity Ward",
-    releaseYear: "2024 Edition",
-    genre: "Tactical Shooter / Military FPS",
-    api: "DirectX 12 Ultimate",
-    score: 98,
-    status: "VERIFIED BENCHMARK",
-    preset: "Ultra / DLSS Quality",
-    overview:
-      "Call of Duty: Modern Warfare 4 delivers high-stakes tactical combat across dynamic global battlegrounds, featuring Task Force 141 in a relentless international conflict. Powered by the DirectX 12 Ultimate engine, operatives execute open combat missions, deploy tactical recon drones, and conduct precision thermal sniping with sub-12ms response times.",
-    detailedOverview: {
-      story:
-        "The game takes place in an escalating global conflict where Task Force 141 stands as the vanguard against rogue ultranationalist factions. Led by Captain Price, the elite strike team infiltrates fortified enemy territory across unforgiving sub-zero mountainous terrain to prevent catastrophic multi-theater warfare. As covert operations reveal deep-state conspiracies and advanced weapons proliferation, the squad must balance high-stakes diplomacy with lethal kinetic force. Delivering a gripping cinematic narrative, Modern Warfare 4 immerses players in tense military storytelling where every tactical decision shapes the geopolitical outcome.",
-      gameplayLoop:
-        "Deploy into dynamic open-combat operational sectors, utilizing real-time tactical recon drone surveillance to mark hostiles, executing long-range suppressed sniper takedowns, and engaging in high-intensity CQB fire-fights before exfiltrating hostile zones.",
-      keyMechanics: [
-        {
-          name: "Tactical Recon Drones",
-          desc: "Deploy portable aerial drones equipped with thermal tracking, acoustic sensors, and optical tagging to scout enemy fortifications and coordinate squad strikes in real time.",
-        },
-        {
-          name: "Thermal & Optical Sniping",
-          desc: "Equip precision ballistics rifles such as the K6-7 Vulcan, utilizing variable zoom optics, windage calibration, and multi-spectral thermal sensors to eliminate distant guards through foliage and weather obscuration.",
-        },
-        {
-          name: "Open Combat Mission Protocol",
-          desc: "Tackle expansive objectives with total tactical freedom — choose between covert ghost infiltration, silenced vehicle assaults, or full-scale aerial strike bombardment.",
-        },
-        {
-          name: "Adaptive Enemy Combat AI",
-          desc: "Engage hostiles that flank dynamically, deploy smoke screens, coordinate suppressive fire, and call in tactical reinforcements based on player noise and visual profiles.",
-        },
-      ],
-    },
-    testedSpecs: {
-      gpu: "NVIDIA GeForce RTX Series / GTX Series",
-      resolution: "1080p FHD (1920 x 1080)",
-      avgFps: "70 FPS",
-      vramUsed: "4.3 GB / 8.0 GB",
-      latency: "11.5 ms",
-      gpuLoad: "75%",
-    },
-    presets: {
-      rtx40: "Ultra Settings + DLSS 3.5 Quality + Frame Generation",
-      rtx30: "Ultra Settings + DLSS Quality + Reflex Low Latency",
-      gtx: "High Settings + FSR 3 / XeSS (4.3 GB VRAM Opt)",
-    },
-    features: [
-      {
-        name: "NVIDIA DLSS 3.5 & Reflex",
-        desc: "AI Super Resolution and Reflex Low Latency for sub-12ms input pass-through",
-        active: true,
-      },
-      {
-        name: "DirectX 12 Ultimate",
-        desc: "Advanced Geometry Pipeline, Variable Rate Shading, and Volumetric Snow Shaders",
-        active: true,
-      },
-      {
-        name: "Thermal & Optical Ballistics",
-        desc: "High-fidelity ballistic projectile simulation with thermal imaging optics",
-        active: true,
-      },
-      {
-        name: "Memory Optimization",
-        desc: "Optimized 4.3 GB VRAM footprint under Ultra texture loads",
-        active: true,
-      },
-    ],
-    screenshots: [
-      {
-        src: "/games/COD_MW4_SS1.webp",
-        title: "Cold Weather Traversal & Hardware Telemetry",
-        desc: "Mountain patrol vehicle exploration captured at 70 FPS (41 FPS 1% Low) with 4.3 GB VRAM allocation (65% GPU load, 73°C GPU temp, 65% Fair system rating).",
-      },
-      {
-        src: "/games/COD_MW4_SS2.webp",
-        title: "Aerial Recon Drone Surveillance & Outpost Tagging",
-        desc: "Recon drone overhead surveillance over fortified bridge compound captured at 70 FPS (38 FPS 1% Low) under 75% GPU load (55W GPU power draw, 17.8 GB RAM).",
-      },
-      {
-        src: "/games/COD_MW4_SS3.webp",
-        title: "Precision K6-7 Vulcan Sniper Scope Marksmanship",
-        desc: "Watchtower guard elimination through dense brush captured at 70 FPS (48 FPS 1% Low) with 59% GPU load (51W power draw, 4.3 GB VRAM, 93% CPU load).",
-      },
-    ],
-    storeRating: "4.8 ★★★★★",
-    dlssVersion: "DLSS 3.5",
-  },
 };
 
 export const BENCHMARK_PROFILES: Record<string, BenchmarkProfile> = FALLBACK_BENCHMARK_PROFILES;
 
 export const FALLBACK_TESTED_GAMES_LIST: TestedGameSummary[] = [
+  {
+    id: "codmw4",
+    name: "Call of Duty: Modern Warfare 4",
+    publisher: "Activision / Infinity Ward",
+    genre: "Tactical Shooter / Military FPS",
+    preset: "Ultra / DLSS 4.5",
+    keyTech: ["DirectX 12", "DLSS 4.5", "Reflex", "Recon Vision"],
+    status: "VERIFIED BENCHMARK",
+    fps: "70 FPS",
+    vram: "4.3 GB / 8.0 GB",
+    gpuLoad: "75%",
+    latency: "11.5 ms",
+    api: "DirectX 12 Ultimate",
+    coverImage: "/games/COD_MW4_SS1.webp",
+    gameplayGif: "/games/COD_MW4_SS1.webp",
+    storeRating: "4.8 ★★★★★",
+    dlssVersion: "DLSS 4.5",
+  },
   {
     id: "firstlight",
     name: "007 First Light",
@@ -876,24 +894,6 @@ export const FALLBACK_TESTED_GAMES_LIST: TestedGameSummary[] = [
     storeRating: "4.6 ★★★★☆",
     dlssVersion: "TAA",
   },
-  {
-    id: "codmw4",
-    name: "Call of Duty: Modern Warfare 4",
-    publisher: "Activision / Infinity Ward",
-    genre: "Tactical Shooter / Military FPS",
-    preset: "Ultra / DLSS Quality",
-    keyTech: ["DirectX 12", "DLSS 3.5", "Reflex", "Recon Vision"],
-    status: "VERIFIED BENCHMARK",
-    fps: "70 FPS",
-    vram: "4.3 GB / 8.0 GB",
-    gpuLoad: "75%",
-    latency: "11.5 ms",
-    api: "DirectX 12 Ultimate",
-    coverImage: "/games/COD_MW4_SS1.webp",
-    gameplayGif: "/games/COD_MW4_SS1.webp",
-    storeRating: "4.8 ★★★★★",
-    dlssVersion: "DLSS 3.5",
-  },
 ];
 
 export const TESTED_GAMES_LIST: TestedGameSummary[] = FALLBACK_TESTED_GAMES_LIST;
@@ -1008,6 +1008,7 @@ export function getBenchmarkProfileById(id: string): BenchmarkProfile {
     BENCHMARK_PROFILES[id] ||
     (liveProfilesCache ? Object.values(liveProfilesCache)[0] : null) ||
     Object.values(BENCHMARK_PROFILES)[0] ||
+    BENCHMARK_PROFILES.codmw4 ||
     BENCHMARK_PROFILES.firstlight
   );
 }

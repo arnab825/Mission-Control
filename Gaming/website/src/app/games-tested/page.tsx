@@ -52,7 +52,7 @@ import RateGameModal from "@/components/modals/RateGameModal";
 
 export default function GamesTestedPage() {
   const [selectedGameId, setSelectedGameId] = useState<string>(
-    TESTED_GAMES_LIST[0]?.id || "firstlight"
+    TESTED_GAMES_LIST[0]?.id || "codmw4"
   );
   const [slideshowIndex, setSlideshowIndex] = useState<number | null>(null);
   const [isPlaying, setIsPlaying] = useState<boolean>(false);
