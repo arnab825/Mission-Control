@@ -22,7 +22,30 @@ Comprehensive breakdown of major milestone releases, architectural upgrades, and
 
 ---
 
-## 🌟 Version v3.8.4 (Latest) — Hardware Optimization & Library Scanner Performance Update
+## 🌟 Version v3.8.5 (Latest) — Media Extras Filtering, Window Detection & HUD Focus Alignment
+
+### 🛠️ Key Highlights
+1. **Bonus Content Filtering**: Ignored companion digital artwork and soundtrack executables across all scanner modes (`junk_keywords`, `generic_subfolders`, `skip_folder_names`, deep scan skips, and `_is_game_valid_and_installed`).
+2. **Window Detection & Game Focus**: Resolved active game detection for short window titles and title variations (e.g. `Sekiro: Shadows Die Twice` window titled `Sekiro`) and added direct process executable matching (`active_proc_name == g_exe`).
+3. **Arkham Knight Recognition**: Expanded process watcher keyword recognition to include `batman` and `arkham` franchises.
+4. **HUD Focus Alignment**: Eliminated HUD overlay failure in 60 FPS locked titles with custom HUDs by aligning window focus state with the active running process.
+5. **Unit Test Coverage**: Added comprehensive dynamic unit tests for digital artwork and soundtrack filtering, and window title/executable match resolution.
+
+### 📊 Architecture & Data Flow
+```mermaid
+graph TD
+    A[Library Scanner & Process Watcher] --> B[Bonus Media Filter & Title Splitter]
+    B --> C[Active Executable Match & Focus Sync]
+    C --> D[HUD Overlay & Telemetry Alignment]
+```
+
+### 📦 Distribution Artifacts
+- **Linux**: `.deb` (Debian/Ubuntu), `.AppImage` (Universal), `.rpm` (Fedora/RHEL), `.tar.gz` (Portable)
+- **Windows**: `.exe` (Setup Installer), `.msi` (Enterprise), `.zip` (Portable)
+
+---
+
+## 📦 Version v3.8.4 — Hardware Optimization & Library Scanner Performance Update
 
 ### 🛠️ Key Highlights
 1. **Hardware Optimization & Library Scanner Performance Update**

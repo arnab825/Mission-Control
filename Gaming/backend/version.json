@@ -1,8 +1,20 @@
 {
-  "version": "3.8.4",
-  "release_date": "2026-09-25",
+  "version": "3.8.5",
+  "release_date": "2026-10-28",
   "update_check_url": "https://raw.githubusercontent.com/arnab825/Mission-Control/main/Gaming/backend/version.json",
   "changelog": [
+    {
+      "version": "3.8.5",
+      "date": "2026-10-28",
+      "title": "Media Extras Filtering, Window Detection & HUD Focus Alignment",
+      "highlights": [
+        "Ignored companion digital artwork and soundtrack executables across all scanner modes",
+        "Resolved Sekiro & Arkham Knight active game detection for short window titles and executable paths",
+        "Added direct process executable matching to eliminate focus mismatch in fullscreen games",
+        "Expanded process watcher keyword recognition for Batman and Arkham franchises",
+        "Added comprehensive unit test suites for media filtering and game focus resolution"
+      ]
+    },
     {
       "version": "3.8.4",
       "date": "2026-10-26",

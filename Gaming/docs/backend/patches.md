@@ -2,6 +2,14 @@
 
 This document contains a detailed history of all patches and updates for the AI Gaming Assistant.
 
+### Patch: 2026-10-28 — v3.8.5: Media Extras Filtering, Window Detection & HUD Focus Alignment
+
+- Ignored companion digital artwork and soundtrack executables across all scanner modes
+- Resolved Sekiro & Arkham Knight active game detection for short window titles and executable paths
+- Added direct process executable matching to eliminate focus mismatch in fullscreen games
+- Expanded process watcher keyword recognition for Batman and Arkham franchises
+- Added comprehensive unit test suites for media filtering and game focus resolution
+
 ### Patch: 2026-10-26 — v3.8.4: Hardware Optimization & Library Scanner Performance Update
 
 - Hardware Optimization & Library Scanner Performance Update
