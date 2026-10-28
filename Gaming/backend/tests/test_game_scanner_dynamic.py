@@ -142,6 +142,35 @@ class TestGameScannerDynamic(unittest.TestCase):
         # All valid exes gathered
         self.assertEqual(len(scanned_roots[root_key]), 2)
 
+    def test_sekiro_digital_artwork_and_soundtrack_ignored(self):
+        """Verify that 'Digital Artwork & Mini Soundtrack' is not added as a separate game entry."""
+        library_dir = Path(self.temp_dir) / "Games"
+        sekiro_root = library_dir / "Sekiro Shadows Die Twice"
+        sekiro_exe = sekiro_root / "sekiro.exe"
+        artwork_dir = sekiro_root / "Digital Artwork & Mini Soundtrack"
+        artwork_exe = artwork_dir / "Digital Artwork and Mini Soundtrack.exe"
+
+        self._create_dummy_exe(sekiro_exe, size_mb=60.0)
+        self._create_dummy_exe(artwork_exe, size_mb=15.0)
+
+        scanner = GameScanner(config={"scanner": {"custom_scan_dirs": [str(library_dir)]}})
+        scanner._scan_custom_paths()
+
+        # Check that only Sekiro is scanned, never the digital artwork/soundtrack
+        self.assertEqual(len(scanner.games), 1, f"Expected 1 game, found: {[g['name'] for g in scanner.games]}")
+        self.assertEqual(scanner.games[0]["name"], "Sekiro Shadows Die Twice")
+        self.assertEqual(Path(scanner.games[0]["exe_path"]).resolve(), sekiro_exe.resolve())
+
+    def test_digital_artwork_standalone_entry_rejected_by_validator(self):
+        """Verify that an entry named or located in Digital Artwork / Soundtrack is rejected by validator."""
+        entry = {
+            "name": "DIGITAL ARTWORK & MINI SOUNDTRACK",
+            "platform": "Local",
+            "install_path": str(Path(self.temp_dir) / "Games" / "Digital Artwork & Mini Soundtrack"),
+            "exe_path": str(Path(self.temp_dir) / "Games" / "Digital Artwork & Mini Soundtrack" / "viewer.exe")
+        }
+        self.assertFalse(self.scanner._is_game_valid_and_installed(entry))
+
 
 if __name__ == "__main__":
     unittest.main()

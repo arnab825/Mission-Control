@@ -75,7 +75,10 @@ class GameScanner:
             "build", "plugins", "mods", "support", "redist", "commonredist",
             "installers", "_installer", "_commonredist", "thirdparty", "directx",
             "easyanticheat", "battleye", "crashreporter", "crashpad", "dotnet",
-            "vcredist", "dxredist", "prerequisites", "temp", "tmp", "x64_dx12"
+            "vcredist", "dxredist", "prerequisites", "temp", "tmp", "x64_dx12",
+            "bonus", "bonus content", "extras", "soundtrack", "soundtracks", "mini soundtrack", "ost",
+            "artwork", "artbook", "digital artwork", "digital artwork & mini soundtrack",
+            "digital artwork and mini soundtrack"
         }
 
         # Parent directory names that represent top-level library / system folders (boundaries for game root detection)
@@ -99,7 +102,8 @@ class GameScanner:
             "modorganizer", "editor", "sdk", "support", "redist", "vcredist", "dxsetup", 
             "oalinst", "physx", "easyanticheat", "battleye", "crashpad", "werfault", 
             "unitycrashhandler", "crashreportclient", "redcrashreporter", "cleanup", 
-            "diagnostics", "launcher_helper", "register", "repair", "eula"
+            "diagnostics", "launcher_helper", "register", "repair", "eula",
+            "soundtrack", "artbook", "artwork"
         ]
         
         # Extended list of keywords to filter out non-game applications
@@ -128,7 +132,10 @@ class GameScanner:
             "microsoft edge", "brave", "blender", "unity hub", "unreal engine",
             # Hardware & Tuning utilities
             "msi afterburner", "rivatuner", "geforce experience", "nvidia app",
-            "armoury crate", "alienware command center", "awcc", "logitech g hub", "razer synapse"
+            "armoury crate", "alienware command center", "awcc", "logitech g hub", "razer synapse",
+            # Bonus Content, Soundtracks, Artbooks, and Extras
+            "soundtrack", "mini soundtrack", "digital artwork", "artbook",
+            "bonus content", "bonus app", "original soundtrack", "interactive artwork"
         ]
         
         self.launcher_whitelist = [
@@ -177,6 +184,11 @@ class GameScanner:
             return False
 
         # 2. Check Universal Non-Game & Junk Filter
+        path_lower = str(install_path or exe_path or "").lower()
+        bonus_markers = ["soundtrack", "mini soundtrack", "digital artwork", "artbook", "bonus content"]
+        if any(marker in path_lower for marker in bonus_markers):
+            if hasattr(self, '_validation_cache'): self._validation_cache[cache_key] = False
+            return False
         if any(junk in name_lower for junk in self.junk_keywords):
             if hasattr(self, '_validation_cache'): self._validation_cache[cache_key] = False
             return False
@@ -333,7 +345,10 @@ class GameScanner:
             "shadercache", "directx", "vcredist", "_commonredist", "support", 
             "installers", "$recycle.bin", "system volume information",
             "assets", "content", "sound", "sounds", "audio", "music", "textures", "texture",
-            "media", "data", "movies", "videos", "localization", "loc", "maps", "levels", "dlc"
+            "media", "data", "movies", "videos", "localization", "loc", "maps", "levels", "dlc",
+            "soundtrack", "soundtracks", "mini soundtrack", "ost", "artwork", "artbook",
+            "digital artwork", "digital artwork & mini soundtrack", "digital artwork and mini soundtrack",
+            "bonus", "bonus content", "extras"
         })
 
         def walk(curr_dir: Path, depth: int):
@@ -1889,7 +1904,7 @@ class GameScanner:
                     # Library container containing subdirectories
                     for game_dir in root_path.iterdir():
                         if game_dir.is_dir():
-                            if game_dir.name.startswith(("$", ".")) or game_dir.name.lower() in self.crack_groups:
+                            if game_dir.name.startswith(("$", ".")) or game_dir.name.lower() in self.crack_groups or any(junk in game_dir.name.lower() for junk in self.junk_keywords):
                                 continue
                             sub_exes = self._collect_game_executables(game_dir, max_depth=3)
                             if sub_exes:
@@ -1922,14 +1937,14 @@ class GameScanner:
                 if path.exists() and path.is_dir():
                     for sub in path.iterdir():
                         if sub.is_dir():
-                            if sub.name.startswith(("$", ".")) or sub.name.lower() in self.crack_groups:
+                            if sub.name.startswith(("$", ".")) or sub.name.lower() in self.crack_groups or any(junk in sub.name.lower() for junk in self.junk_keywords):
                                 continue
                             # If sub is "steamapps", drill down into "steamapps/common" to find actual games
                             if sub.name.lower() == "steamapps":
                                 common_sub = sub / "common"
                                 if common_sub.exists() and common_sub.is_dir():
                                     for steam_game_dir in common_sub.iterdir():
-                                        if steam_game_dir.is_dir() and not steam_game_dir.name.startswith(("$", ".")) and steam_game_dir.name.lower() not in self.library_root_names:
+                                        if steam_game_dir.is_dir() and not steam_game_dir.name.startswith(("$", ".")) and steam_game_dir.name.lower() not in self.library_root_names and not any(junk in steam_game_dir.name.lower() for junk in self.junk_keywords):
                                             exes = self._collect_game_executables(steam_game_dir, max_depth=3)
                                             if exes:
                                                 game_root = self._resolve_game_root(steam_game_dir)
@@ -2017,6 +2032,9 @@ class GameScanner:
                                 game_name = "Call of Duty: Modern Warfare II"
                             elif game_name.lower() in ["sp24", "cod24", "cod 2024"]:
                                 game_name = "Call of Duty: Black Ops 6"
+
+                            if any(junk in game_name.lower() for junk in self.junk_keywords):
+                                continue
 
                             app_id = id_match.group(1)
                             install_dir = install_dir_match.group(1)
@@ -2897,7 +2915,7 @@ class GameScanner:
                 try:
                     for game_dir in root_path.iterdir():
                         if game_dir.is_dir():
-                            if game_dir.name.startswith(("$", ".")) or game_dir.name.lower() in self.crack_groups:
+                            if game_dir.name.startswith(("$", ".")) or game_dir.name.lower() in self.crack_groups or any(junk in game_dir.name.lower() for junk in self.junk_keywords):
                                 continue
                             
                             # If game_dir is "steamapps", drill down into "steamapps/common"
@@ -2905,7 +2923,7 @@ class GameScanner:
                                 common_dir = game_dir / "common"
                                 if common_dir.exists() and common_dir.is_dir():
                                     for actual_game_dir in common_dir.iterdir():
-                                        if actual_game_dir.is_dir() and not actual_game_dir.name.startswith(("$", ".")) and actual_game_dir.name.lower() not in self.library_root_names:
+                                        if actual_game_dir.is_dir() and not actual_game_dir.name.startswith(("$", ".")) and actual_game_dir.name.lower() not in self.library_root_names and not any(junk in actual_game_dir.name.lower() for junk in self.junk_keywords):
                                             exes = self._collect_game_executables(actual_game_dir, max_depth=3)
                                             if exes:
                                                 game_root = self._resolve_game_root(actual_game_dir)
@@ -2972,7 +2990,10 @@ class GameScanner:
             "common files", "internet explorer", "windowsapps",
             "microsoft", "intel", "nvidia", "amd", "appdata",
             "documents and settings", "recovery", "msocache",
-            "onlinefix", "online fix", "nodvd", "crack", "update", "updates", "skidrow"
+            "onlinefix", "online fix", "nodvd", "crack", "update", "updates", "skidrow",
+            "soundtrack", "soundtracks", "mini soundtrack", "ost", "artwork", "artbook",
+            "digital artwork", "digital artwork & mini soundtrack", "digital artwork and mini soundtrack",
+            "bonus", "bonus content", "extras"
         }
         skip_folders.update(self.crack_groups)
         

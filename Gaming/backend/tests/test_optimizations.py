@@ -181,6 +181,31 @@ class TestOptimizations(unittest.TestCase):
             # Title should still be original game name (not Edge)
             self.assertEqual(title, "Elden Ring")
 
+    @patch("core.pipeline_host.ScreenCapture")
+    @patch("core.pipeline_host.GameBrain")
+    def test_is_game_active_sekiro_short_title_and_exe_match(self, mock_brain, mock_capture):
+        pipeline = GamingAssistantPipeline(self.config)
+        pipeline._game_state = {"game_info": None, "game_minimized": False}
+        pipeline._cached_library_games = [
+            {"name": "Sekiro: Shadows Die Twice", "exe_path": "C:\\Games\\Sekiro\\sekiro.exe", "id": "sekiro"}
+        ]
+        
+        # Test Sekiro window title ("Sekiro") matching library title ("Sekiro: Shadows Die Twice")
+        with patch("sys.platform", "win32"), \
+             patch("win32gui.GetForegroundWindow", return_value=22222), \
+             patch("win32gui.GetWindowText", return_value="Sekiro") as mock_text, \
+             patch("win32process.GetWindowThreadProcessId", return_value=(0, 9999)) as mock_pid, \
+             patch("psutil.Process") as mock_proc:
+             
+            mock_proc_instance = MagicMock()
+            mock_proc_instance.name.return_value = "sekiro.exe"
+            mock_proc.return_value = mock_proc_instance
+            
+            is_active, is_focused, title = pipeline._is_game_active()
+            self.assertTrue(is_active)
+            self.assertTrue(is_focused)
+            self.assertEqual(title, "Sekiro")
+
     def test_estimate_cpu_max_freq(self):
         from core.runtime_helpers import estimate_cpu_max_freq
         

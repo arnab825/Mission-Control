@@ -454,7 +454,7 @@ class ProcessWatcher:
                                     # Rockstar
                                     "grand theft auto", "gta", "red dead", "rdr", "playgtav",
                                     # Open world / action-adventure
-                                    "cyberpunk", "far cry", "farcry", "witcher", "assassin's creed",
+                                    "cyberpunk", "far cry", "farcry", "witcher", "assassin's creed", "batman", "arkham",
                                     "ghost of tsushima", "ghosts of tsushima", "horizon", "spider-man",
                                     "spiderman", "god of war", "uncharted", "last of us", "death stranding",
                                     "days gone", "returnal", "ratchet", "clank", "demon's souls",

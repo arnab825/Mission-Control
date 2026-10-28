@@ -1048,10 +1048,19 @@ class GamingAssistantPipeline:
             except Exception:
                 pass
 
-        # 4. Fallback to title matching from our monitored game process info
-        game_name = _gi.get("name", "").lower()
-        if game_name and game_name in title_lower:
+        # 4. Fallback to title matching or process matching from our monitored game process info
+        target_exe = _gi.get("exe_name", "").lower()
+        if not target_exe and _gi.get("exe_path"):
+            target_exe = Path(_gi["exe_path"]).name.lower()
+        if target_exe and active_proc_name and active_proc_name == target_exe:
             return True, True, active_title
+
+        game_name = _gi.get("name", "").lower()
+        if game_name:
+            import re as _re
+            primary_name = _re.split(r'[:\-\u2013\u2014]', game_name)[0].strip()
+            if game_name in title_lower or (len(primary_name) >= 4 and primary_name in title_lower):
+                return True, True, active_title
 
         # 4.5 Fallback to Library cache matching (ONLY if not already tracking a game)
         if not is_running:
@@ -1080,10 +1089,17 @@ class GamingAssistantPipeline:
                     continue
                 g_name = g.get("name", "")
                 _g_lower = g_name.lower()
-                # Whole-word match — prevents music player titles containing game-name words
-                # (e.g. "Spider-Man OST", "Grand Audio Player") from activating vision scanning.
+                primary_name = _re.split(r'[:\-\u2013\u2014]', _g_lower)[0].strip()
                 _pattern = r'\b' + _re.escape(_g_lower) + r'\b'
-                if g_name and _re.search(_pattern, title_lower):
+                title_match = bool(g_name and _re.search(_pattern, title_lower))
+                if not title_match and len(primary_name) >= 4:
+                    _prim_pattern = r'\b' + _re.escape(primary_name) + r'\b'
+                    title_match = bool(_re.search(_prim_pattern, title_lower))
+
+                g_exe = Path(g.get("exe_path", "")).name.lower() if g.get("exe_path") else ""
+                exe_match = bool(active_proc_name and g_exe and active_proc_name == g_exe)
+
+                if title_match or exe_match:
                     if "id" not in g:
                         g["id"] = g_name.lower().replace(" ", "-")
                     
