@@ -530,15 +530,35 @@ $utf8NoBom = New-Object System.Text.UTF8Encoding($false)
 [System.IO.File]::WriteAllText($latestYmlPath, ($latestYmlLines -join "`r`n"), $utf8NoBom)
 
 $githubToken = $env:GITHUB_TOKEN
+if (-not $githubToken -and $env:GH_TOKEN) {
+  $githubToken = $env:GH_TOKEN
+}
 if (-not $githubToken) {
-  Write-Warning "GITHUB_TOKEN not found in environment, skipping release creation."
+  try {
+    $credInput = @"
+protocol=https
+host=github.com
+username=Ani0811
+
+"@
+    $credOut = $credInput | git credential fill 2>$null
+    foreach ($line in ($credOut -split "`r?`n")) {
+      if ($line -like "password=*") {
+        $githubToken = $line.Substring(9).Trim()
+        Write-Host "Obtained GitHub token from Git Credential Manager."
+        break
+      }
+    }
+  } catch {}
+}
+if (-not $githubToken) {
+  Write-Warning "GITHUB_TOKEN not found in environment or git credentials, skipping release creation."
   exit 0
 }
 
 $repo = $env:CI_REPO
 if (-not $repo) {
-  Write-Warning "CI_REPO not found, cannot determine which repository to publish to."
-  exit 0
+  $repo = "arnab825/Mission-Control"
 }
 
 $headers = @{
