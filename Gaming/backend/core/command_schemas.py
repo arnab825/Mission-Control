@@ -83,6 +83,7 @@ class ConfigPayload(BaseCommandPayload):
     overlay: Optional[Dict[str, Any]] = None
     nvidia: Optional[Dict[str, Any]] = None
     gpu_tuning: Optional[Dict[str, Any]] = None
+    theme: Optional[Dict[str, Any]] = None
 
 
 class ToggleVisionPipelinePayload(BaseCommandPayload):

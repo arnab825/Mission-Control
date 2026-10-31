@@ -1,10 +1,22 @@
 @import "tailwindcss";
 
+:root {
+  --theme-neon-green: #76b900;
+  --theme-neon-yellow: #bfff00;
+  --theme-neon-rgb: 118, 185, 0;
+  --theme-neon-yellow-rgb: 191, 255, 0;
+  --theme-bg-obsidian: #0a0a0a;
+  --theme-bg-graphite: #1a1a1a;
+  --theme-bg-app: #09090b;
+  --theme-bg-surface: #0a0a0f;
+  --theme-glow-opacity: 0.15;
+}
+
 @theme {
-  --color-neon-yellow: #bfff00;
-  --color-neon-green: #76b900;
-  --color-obsidian: #0a0a0a;
-  --color-graphite: #1a1a1a;
+  --color-neon-yellow: var(--theme-neon-yellow, #bfff00);
+  --color-neon-green: var(--theme-neon-green, #76b900);
+  --color-obsidian: var(--theme-bg-obsidian, #0a0a0a);
+  --color-graphite: var(--theme-bg-graphite, #1a1a1a);
   --font-inter: "Inter", sans-serif;
   --font-mono: "JetBrains Mono", monospace;
 }
@@ -33,18 +45,18 @@
 }
 
 .glass-accent {
-  background: rgba(118, 185, 0, 0.03);
+  background: rgba(var(--theme-neon-rgb, 118, 185, 0), 0.03);
   backdrop-filter: blur(12px);
-  border: 1px solid rgba(118, 185, 0, 0.15);
+  border: 1px solid rgba(var(--theme-neon-rgb, 118, 185, 0), 0.15);
 }
 
 /* Futuristic Glows */
 .glow-green {
-  box-shadow: 0 0 25px rgba(118, 185, 0, 0.1);
+  box-shadow: 0 0 25px rgba(var(--theme-neon-rgb, 118, 185, 0), var(--theme-glow-opacity, 0.1));
 }
 
 .glow-text-teal {
-  text-shadow: 0 0 8px rgba(118, 185, 0, 0.5);
+  text-shadow: 0 0 8px rgba(var(--theme-neon-rgb, 118, 185, 0), 0.5);
 }
 
 /* Animations */
@@ -62,7 +74,7 @@
   content: "";
   position: absolute;
   top: 0; left: 0; right: 0; bottom: 0;
-  background: linear-gradient(to bottom, transparent, rgba(118, 185, 0, 0.05), transparent);
+  background: linear-gradient(to bottom, transparent, rgba(var(--theme-neon-rgb, 118, 185, 0), 0.05), transparent);
   height: 2px;
   animation: scanline 4s linear infinite;
   pointer-events: none;
@@ -92,7 +104,7 @@
   border-radius: 10px;
 }
 ::-webkit-scrollbar-thumb:hover {
-  background: rgba(118, 185, 0, 0.35);
+  background: rgba(var(--theme-neon-rgb, 118, 185, 0), 0.35);
 }
 
 @utility mask-fade-right {
@@ -116,6 +128,40 @@
 @keyframes fadeIn {
   from { opacity: 0; transform: translateY(-4px); }
   to { opacity: 1; transform: translateY(0); }
+}
+
+/* Personalized Canvas Textures */
+.canvas-texture-mesh {
+  background-image: radial-gradient(rgba(var(--theme-neon-rgb, 118, 185, 0), 0.08) 1px, transparent 1px);
+  background-size: 20px 20px;
+}
+
+.canvas-texture-circuits {
+  background-image: 
+    linear-gradient(to right, rgba(var(--theme-neon-rgb, 118, 185, 0), 0.04) 1px, transparent 1px),
+    linear-gradient(to bottom, rgba(var(--theme-neon-rgb, 118, 185, 0), 0.04) 1px, transparent 1px);
+  background-size: 28px 28px;
+}
+
+.canvas-texture-scanlines {
+  background-image: repeating-linear-gradient(
+    0deg,
+    rgba(0, 0, 0, 0.25),
+    rgba(0, 0, 0, 0.25) 1px,
+    transparent 1px,
+    transparent 3px
+  );
+}
+
+.canvas-texture-stardust {
+  background-image: 
+    radial-gradient(circle at 30% 20%, rgba(var(--theme-neon-rgb, 118, 185, 0), 0.08) 0%, transparent 50%),
+    radial-gradient(circle at 80% 80%, rgba(var(--theme-neon-yellow-rgb, 191, 255, 0), 0.05) 0%, transparent 40%);
+}
+
+/* Holographic Gamer Aura */
+.gamer-aura-glow {
+  box-shadow: 0 0 16px rgba(var(--theme-neon-rgb, 118, 185, 0), 0.5), 0 0 28px rgba(var(--theme-neon-yellow-rgb, 191, 255, 0), 0.25);
 }
 
 /* Clerk development mode badge & footer watermark suppression */

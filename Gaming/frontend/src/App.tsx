@@ -16,6 +16,9 @@ import HUD from './components/HUD';
 import { useBridge } from './hooks/useBridge';
 import type { TelemetryState } from './types/telemetry';
 import { UpdatesPage } from './pages/UpdatesPage';
+import { ThemeQuickMenu } from './components/ThemeQuickMenu';
+import { useTheme } from './context/ThemeContext';
+import type { CategoryId } from './pages/SettingsPage';
 import { Sparkles, ChevronDown, ToggleRight, ToggleLeft, Menu, AlertTriangle } from 'lucide-react';
 import { useAuth, useSignIn, useSignUp, useClerk, useUser } from '@clerk/clerk-react';
 import { motion, AnimatePresence, MotionConfig } from 'framer-motion';
@@ -61,6 +64,7 @@ const App: React.FC = () => {
     (wasAuthCancelled || showAuthParam) ? 'auth' : 'library'
   );
   const [systemCategory, setSystemCategory] = useState('CPU');
+  const [settingsCategory, setSettingsCategory] = useState<CategoryId | undefined>(undefined);
   const [showHUD, setShowHUD] = useState(false);
   const { state, connected, sendCommand } = useBridge() as { state: AppTelemetryState | null; connected: boolean; sendCommand: (type: string, payload?: any) => void };
   const { isLoaded: isAuthLoaded, isSignedIn, userId } = useAuth();
@@ -73,6 +77,11 @@ const App: React.FC = () => {
   const [isAgentic, setIsAgentic] = useState(false);
   const [personality, setPersonality] = useState('Tactical');
   const [globalToast, setGlobalToast] = useState<{message: string; type?: 'info'|'warning'} | null>(null);
+  const { preferences, activeGameTheme, triggerGameAdaptiveCheck, triggerPersonalitySync } = useTheme();
+
+  useEffect(() => {
+    triggerGameAdaptiveCheck(state?.current_game);
+  }, [state?.current_game, triggerGameAdaptiveCheck]);
 
   const isAuthPopup =
     Boolean((window as any).electronAPI?.isAuthPopup) ||
@@ -314,6 +323,11 @@ const App: React.FC = () => {
     }
     if (extra?.category) {
       setSystemCategory(extra.category);
+    }
+    if (extra?.settingsCategory) {
+      setSettingsCategory(extra.settingsCategory);
+    } else if (page !== 'settings') {
+      setSettingsCategory(undefined);
     }
   };
 
@@ -669,6 +683,7 @@ const App: React.FC = () => {
 
   const handlePersonalityChange = (val: string) => {
     setPersonality(val);
+    triggerPersonalitySync(val);
     sendCommand('set_personality', { personality: val.toLowerCase() });
   };
 
@@ -676,7 +691,7 @@ const App: React.FC = () => {
 
   return (
     <MotionConfig reducedMotion="user">
-      <div className="flex flex-col h-screen bg-zinc-950 text-zinc-100 selection:bg-zinc-500/30 selection:text-zinc-200 overflow-hidden font-['Inter',system-ui,sans-serif] relative">
+      <div className={`flex flex-col h-screen bg-[var(--theme-bg-app,#09090b)] text-zinc-100 selection:bg-zinc-500/30 selection:text-zinc-200 overflow-hidden font-['Inter',system-ui,sans-serif] relative ${preferences.canvasTexture ? `canvas-texture-${preferences.canvasTexture}` : ''}`}>
         {/* Native App Titlebar (Electron) */}
         <Titlebar showHUD={showHUD} onToggleHUD={() => (window as any).electronAPI?.toggleHUD?.()} />
 
@@ -704,12 +719,12 @@ const App: React.FC = () => {
           {/* HUD is now loaded in a dedicated transparent overlay window */}
 
           {/* COLUMN 2 & 3 CONTAINER */}
-          <main className="flex-1 min-h-0 min-w-0 flex flex-col lg:flex-row relative overflow-hidden bg-zinc-950 lg:border-l border-white/5">
+          <main className="flex-1 min-h-0 min-w-0 flex flex-col lg:flex-row relative overflow-hidden bg-[var(--theme-bg-app,#09090b)] lg:border-l border-white/5">
 
             {/* CENTER CONTENT CONTAINER */}
             <div className="flex-1 min-h-0 min-w-0 flex flex-col relative overflow-hidden">
               {/* Header / Top Bar */}
-              <header className="h-14 shrink-0 border-b border-white/5 flex items-center justify-between px-4 lg:px-6 bg-[#0a0a0f] z-55">
+              <header className="h-14 shrink-0 border-b border-white/5 flex items-center justify-between px-4 lg:px-6 bg-[var(--theme-bg-surface,#0a0a0f)] z-55">
                 <div className="flex items-center gap-3">
                   {/* Mobile Menu Toggle */}
                   <button aria-label="button" type="button" onClick={() => setIsSidebarOpen(true)} className="p-1.5 hover:bg-white/5 rounded-lg lg:hidden text-zinc-400">
@@ -717,16 +732,38 @@ const App: React.FC = () => {
                   </button>
 
                   <div className="flex items-center gap-2">
-                    <div className="w-6 h-6 bg-white/5 rounded flex items-center justify-center border border-white/10 overflow-hidden p-0.5">
+                    <div className={`w-6 h-6 rounded flex items-center justify-center border border-white/10 overflow-hidden p-0.5 ${preferences.gamerProfile?.avatarAura ? 'gamer-aura-glow bg-neon-green/20' : 'bg-white/5'}`}>
                       <img src="/logo.png" className="w-full h-full object-contain" alt="Logo" />
                     </div>
-                    <h1 className="text-xs font-black tracking-tighter text-white uppercase">Mission Control</h1>
+                    <div className="flex items-center gap-1.5">
+                      <h1 className="text-xs font-black tracking-tighter text-white uppercase">Mission Control</h1>
+                      {preferences.gamerProfile?.callsign && (
+                        <span className="hidden sm:inline-flex items-center gap-1 text-[8px] font-mono font-black uppercase text-neon-green bg-neon-green/10 border border-neon-green/25 px-1.5 py-0.5 rounded-md">
+                          <span className="w-1 h-1 rounded-full bg-neon-green animate-pulse" />
+                          {preferences.gamerProfile.callsign}
+                        </span>
+                      )}
+                    </div>
+                    {activeGameTheme && (
+                      <span className="hidden xl:inline-flex items-center gap-1 text-[8px] font-black uppercase text-neon-yellow bg-neon-yellow/15 border border-neon-yellow/30 px-2 py-0.5 rounded-full animate-pulse ml-1">
+                        🎮 {state?.current_game || 'Game'} Sync
+                      </span>
+                    )}
                   </div>
                 </div>
 
                 {/* Agent Controls & Sync */}
                 <div className="flex items-center gap-3 shrink-0">
                   <div className="hidden md:flex items-center gap-2 pr-3 border-r border-white/5">
+                    {/* Theme Quick Switcher */}
+                    <ThemeQuickMenu
+                      currentGame={state?.current_game}
+                      gpuName={(state as any)?.gpu_metrics?.gpu_name}
+                      onOpenAppearanceSettings={() =>
+                        handleNavigate('settings', { settingsCategory: 'appearance' })
+                      }
+                    />
+
                     {/* Personality Dropdown */}
                     <div className="relative group">
                       <button aria-label="button" type="button" className="h-7 px-2.5 bg-white/5 border border-white/10 rounded-lg flex items-center gap-1.5 hover:bg-white/8 hover:border-white/20 transition-all shadow-sm">
@@ -811,7 +848,11 @@ const App: React.FC = () => {
                 )}
                 {visitedPages['settings'] && (
                   <div className={`flex-1 min-h-0 min-w-0 flex flex-col relative ${activePage === 'settings' ? '' : 'hidden'}`}>
-                    <SettingsPage state={activePage === 'settings' ? state : null} sendCommand={sendCommand} />
+                    <SettingsPage
+                      state={activePage === 'settings' ? state : null}
+                      sendCommand={sendCommand}
+                      defaultCategory={settingsCategory}
+                    />
                   </div>
                 )}
                 {visitedPages['lab'] && (

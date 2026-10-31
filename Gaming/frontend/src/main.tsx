@@ -4,6 +4,7 @@ import { ClerkProvider, useClerk } from '@clerk/clerk-react'
 import App from './App.tsx'
 import './index.css'
 import { missionControlClerkTheme } from './styles/clerkTheme'
+import { ThemeProvider } from './context/ThemeContext'
 
 // Catch global window errors and unhandled promise rejections so they are printed to the console.
 // Electron captures web console messages and writes them to the main app log.
@@ -394,7 +395,9 @@ if (!PUBLISHABLE_KEY) {
         signInFallbackRedirectUrl="/"
         signUpFallbackRedirectUrl="/"
       >
-        <MainRouter />
+        <ThemeProvider>
+          <MainRouter />
+        </ThemeProvider>
       </ClerkProvider>
     </React.StrictMode>,
   )

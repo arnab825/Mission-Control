@@ -1,8 +1,22 @@
 {
-  "version": "3.8.5",
-  "release_date": "2026-10-28",
+  "version": "3.8.6",
+  "release_date": "2026-10-31",
   "update_check_url": "https://raw.githubusercontent.com/arnab825/Mission-Control/main/Gaming/backend/version.json",
   "changelog": [
+    {
+      "version": "3.8.6",
+      "date": "2026-10-31",
+      "title": "App Themes, Gamer Identity & Adaptive Personalization Studio",
+      "highlights": [
+        "Introduced 8 curated engineering theme schemes: Emerald Protocol, Cyberpunk 2077, Crimson Fury, Quantum Cobalt, Void Amethyst, Solar Flare, Toxic Hazard, and Stealth Carbon",
+        "Added Custom Palette Studio with dual primary & secondary hex color pickers and quick presets",
+        "Implemented Game-Adaptive Theming for real-time automatic color morphing when launching supported games",
+        "Added GPU Hardware Brand Alignment to automatically match telemetry accents to physical graphics hardware",
+        "Added Gamer Identity Studio with custom Call-Sign handles, 5 unique gamer factions, specialization titles, and holographic avatar auras",
+        "Added responsive canvas textures (Cyber Matrix Dots, Silicon Circuits, CRT Scanlines, Celestial Nebula)",
+        "Implemented custom theme presets management and shareable theme code export and import"
+      ]
+    },
     {
       "version": "3.8.5",
       "date": "2026-10-28",

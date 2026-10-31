@@ -8,6 +8,43 @@
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;700&display=swap" rel="stylesheet">
+    <script>
+      (function() {
+        try {
+          var raw = localStorage.getItem('mc_theme_preferences');
+          if (raw) {
+            var prefs = JSON.parse(raw);
+            var themes = {
+              emerald: { p: '#76b900', s: '#bfff00', rgb: '118, 185, 0' },
+              cyberpunk: { p: '#00f0ff', s: '#fee715', rgb: '0, 240, 255' },
+              crimson: { p: '#ff2a4b', s: '#ff758c', rgb: '255, 42, 75' },
+              cobalt: { p: '#00a8ff', s: '#38bdf8', rgb: '0, 168, 255' },
+              amethyst: { p: '#a855f7', s: '#f472b6', rgb: '168, 85, 247' },
+              solar: { p: '#f59e0b', s: '#fde047', rgb: '245, 158, 11' },
+              toxic: { p: '#10b981', s: '#6ee7b7', rgb: '16, 185, 129' },
+              stealth: { p: '#e2e8f0', s: '#94a3b8', rgb: '226, 232, 240' }
+            };
+            var t = themes[prefs.themeId] || (prefs.themeId === 'custom' ? { p: prefs.customPrimary, s: prefs.customSecondary, rgb: '118, 185, 0' } : null);
+            if (t) {
+              if (t.p) document.documentElement.style.setProperty('--theme-neon-green', t.p);
+              if (t.s) document.documentElement.style.setProperty('--theme-neon-yellow', t.s);
+              if (t.rgb) document.documentElement.style.setProperty('--theme-neon-rgb', t.rgb);
+            }
+            if (prefs.backgroundMode === 'carbon') {
+              document.documentElement.style.setProperty('--theme-bg-app', '#111216');
+              document.documentElement.style.setProperty('--theme-bg-surface', '#15171d');
+            } else if (prefs.backgroundMode === 'void') {
+              document.documentElement.style.setProperty('--theme-bg-app', '#090812');
+              document.documentElement.style.setProperty('--theme-bg-surface', '#0d0c1b');
+            } else {
+              document.documentElement.style.setProperty('--theme-bg-app', '#040406');
+              document.documentElement.style.setProperty('--theme-bg-surface', '#060609');
+            }
+            document.documentElement.setAttribute('data-theme', prefs.themeId || 'emerald');
+          }
+        } catch (_) {}
+      })();
+    </script>
   </head>
   <body>
     <div id="root"></div>

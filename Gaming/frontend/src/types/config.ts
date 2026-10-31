@@ -5,6 +5,17 @@
 export interface AppConfig {
   game_mode?: string;
 
+  theme?: {
+    id?: string;
+    background_mode?: string;
+    canvas_texture?: string;
+    glow_intensity?: string;
+    custom_primary?: string;
+    custom_secondary?: string;
+    gamer_profile?: any;
+    adaptive?: any;
+  };
+
   privacy?: {
     enabled?: boolean;
     uuid_lock?: boolean;

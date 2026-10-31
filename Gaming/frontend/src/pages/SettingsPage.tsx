@@ -10,6 +10,7 @@ import {
   Check,
   Save,
   X,
+  Palette,
 } from 'lucide-react';
 import { useAuth } from '@clerk/clerk-react';
 import { GpuPipelineSection } from '../components/settings/GpuPipelineSection';
@@ -22,18 +23,20 @@ import { LibraryGameDiscoverySection } from '../components/settings/LibraryGameD
 import { ScreenCaptureSection } from '../components/settings/ScreenCaptureSection';
 import { VisionIntelligenceSection } from '../components/settings/VisionIntelligenceSection';
 import { AccountSettingsSection } from '../components/settings/AccountSettingsSection';
+import { AppearanceSection } from '../components/settings/AppearanceSection';
 import { ControllerMapping } from '../components/ControllerMapping';
 import { DlssGuideModal } from '../components/settings/DlssGuideModal';
 import { SettingsSection } from '../components/settings/common/SettingsSection';
 import { AI_NEURAL_BACKBONE_OPTIONS } from '../data/settingsConstants';
 import { getRecommendedPreset } from '../utils/gpuPresetEngine';
 
+export type CategoryId = 'gpu' | 'ai' | 'overlay' | 'library' | 'appearance' | 'account' | 'controller';
+
 export interface SettingsPageProps {
   state: any;
   sendCommand: (type: string, payload?: any) => void;
+  defaultCategory?: CategoryId;
 }
-
-type CategoryId = 'gpu' | 'ai' | 'overlay' | 'library' | 'account' | 'controller';
 
 interface CategoryTab {
   id: CategoryId;
@@ -47,14 +50,21 @@ const CATEGORY_TABS: CategoryTab[] = [
   { id: 'ai', label: 'AI Brain', fullLabel: 'AI Brain & Custom Prompts', icon: Brain },
   { id: 'overlay', label: 'Tactical HUD', fullLabel: 'Tactical Overlay HUD', icon: Target },
   { id: 'library', label: 'Library', fullLabel: 'Library & Vision Engine', icon: Folder },
+  { id: 'appearance', label: 'Appearance', fullLabel: 'App Themes & Visuals', icon: Palette },
   { id: 'account', label: 'Account', fullLabel: 'Linked Account & Gateways', icon: KeyRound },
   { id: 'controller', label: 'Controller', fullLabel: 'Controller & Gamepad Mapping', icon: Gamepad2 },
 ];
 
-export const SettingsPage: React.FC<SettingsPageProps> = ({ state, sendCommand }) => {
+export const SettingsPage: React.FC<SettingsPageProps> = ({ state, sendCommand, defaultCategory }) => {
   const { userId } = useAuth();
 
-  const [activeCategory, setActiveCategory] = useState<CategoryId>('gpu');
+  const [activeCategory, setActiveCategory] = useState<CategoryId>(defaultCategory || 'gpu');
+
+  useEffect(() => {
+    if (defaultCategory) {
+      setActiveCategory(defaultCategory);
+    }
+  }, [defaultCategory]);
   const [searchQuery, setSearchQuery] = useState('');
   const [localConfig, setLocalConfig] = useState<any>(null);
   const [isSaving, setIsSaving] = useState(false);
@@ -938,8 +948,8 @@ export const SettingsPage: React.FC<SettingsPageProps> = ({ state, sendCommand }
         {/* Tactical Divider */}
         <div className="h-px bg-gradient-to-r from-transparent via-white/10 to-transparent my-3 sm:my-3.5" />
 
-        {/* Bottom: 6-Module Segmented Navigation Deck */}
-        <div className="grid grid-cols-2 sm:grid-cols-3 xl:grid-cols-6 gap-1.5 sm:gap-2">
+        {/* Bottom: 7-Module Segmented Navigation Deck */}
+        <div className="grid grid-cols-2 sm:grid-cols-3 xl:grid-cols-7 gap-1.5 sm:gap-2">
           {CATEGORY_TABS.map((tab) => {
             const Icon = tab.icon;
             const isActive = activeCategory === tab.id && !isSearching;
@@ -1076,7 +1086,16 @@ export const SettingsPage: React.FC<SettingsPageProps> = ({ state, sendCommand }
           </>
         )}
 
-        {/* 5. Linked Account */}
+        {/* 5. App Themes & Appearance */}
+        {(isSearching || activeCategory === 'appearance') && (
+          <AppearanceSection
+            searchQuery={searchQuery}
+            localConfig={localConfig}
+            setLocalConfig={setLocalConfig}
+          />
+        )}
+
+        {/* 6. Linked Account */}
         {(isSearching || activeCategory === 'account') && (
           <AccountSettingsSection
             searchQuery={searchQuery}
@@ -1087,7 +1106,7 @@ export const SettingsPage: React.FC<SettingsPageProps> = ({ state, sendCommand }
           />
         )}
 
-        {/* 6. Controller & Input Mapping */}
+        {/* 7. Controller & Input Mapping */}
         {(isSearching || activeCategory === 'controller') && (
           <SettingsSection
             searchQuery={searchQuery}
