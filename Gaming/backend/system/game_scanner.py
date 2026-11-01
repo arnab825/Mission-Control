@@ -1,4 +1,5 @@
 import os
+import time
 import winreg
 import json
 import logging

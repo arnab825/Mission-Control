@@ -113,11 +113,11 @@ export const AccountSwitcherModal: React.FC<AccountSwitcherModalProps> = ({
         sendCommand('logout_user', { userId: user.id });
       }
 
-      // 1. Electron popup flow in 'switch' mode
+      // 1. Electron popup flow
       if (window.electronAPI?.openAuthPopup) {
         const res = await window.electronAPI.openAuthPopup({
           strategy,
-          mode: 'switch',
+          mode: isSignedIn ? 'switch' : 'login',
         });
         setLoadingStrategy(null);
         if (!res?.success && res?.error && res.error !== 'cancelled') {
@@ -399,7 +399,7 @@ export const AccountSwitcherModal: React.FC<AccountSwitcherModalProps> = ({
               {/* SECTION 3: Connect Another Account / Switch Account */}
               <div>
                 <span className="text-[9px] font-black uppercase tracking-widest text-zinc-500 mb-2 block">
-                  Switch to Another Account
+                  {isSignedIn ? 'Switch to Another Account' : 'Sign In with Provider'}
                 </span>
 
                 <div className="grid grid-cols-2 gap-2.5">

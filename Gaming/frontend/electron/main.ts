@@ -965,21 +965,23 @@ function openAuthPopupWindow(targetUrl: string): Promise<{ success: boolean; err
       authWindow.webContents.setUserAgent(CHROME_OAUTH_USER_AGENT);
 
       // Ensure any outgoing request from the auth window to Google, Discord, or Clerk uses standard Chrome UA
-      authWindow.webContents.session.webRequest.onBeforeSendHeaders(
-        {
-          urls: [
-            'https://accounts.google.com/*',
-            'https://*.google.com/*',
-            'https://*.clerk.accounts.dev/*',
-            'https://discord.com/*',
-            'https://*.discord.com/*',
-          ],
-        },
-        (details, callback) => {
-          details.requestHeaders['User-Agent'] = CHROME_OAUTH_USER_AGENT;
-          callback({ cancel: false, requestHeaders: details.requestHeaders });
-        }
-      );
+      try {
+        authWindow.webContents.session.webRequest.onBeforeSendHeaders(
+          {
+            urls: [
+              'https://accounts.google.com/*',
+              'https://*.google.com/*',
+              'https://*.clerk.accounts.dev/*',
+              'https://discord.com/*',
+              'https://*.discord.com/*',
+            ],
+          },
+          (details, callback) => {
+            details.requestHeaders['User-Agent'] = CHROME_OAUTH_USER_AGENT;
+            callback({ cancel: false, requestHeaders: details.requestHeaders });
+          }
+        );
+      } catch (_) {}
 
       // Pipe auth window console logs to main console for diagnostics
       authWindow.webContents.on('console-message', (_event, level, message, line, sourceId) => {
@@ -1011,12 +1013,16 @@ function openAuthPopupWindow(targetUrl: string): Promise<{ success: boolean; err
           return;
         }
 
+        // Never close while on sso-callback; SSOCallback component handles the handshake
+        if (navUrl.includes('sso-callback')) {
+          return false;
+        }
+
         // If returned to app origin from external OAuth, or contains completion marker
         if (
-          hasLeftAppOrigin ||
           navUrl.includes('auth_completed=1') ||
           navUrl.includes('auth_completed') ||
-          (!navUrl.includes('auth_popup=1') && !navUrl.includes('sso-callback'))
+          (hasLeftAppOrigin && !navUrl.includes('auth_popup=1'))
         ) {
           console.log('[Electron] authWindow reached completion or returned to app origin — closing popup.');
           closeAuthWindow();
