@@ -1,8 +1,19 @@
 {
-  "version": "3.8.6",
-  "release_date": "2026-10-31",
+  "version": "3.8.7",
+  "release_date": "2026-11-01",
   "update_check_url": "https://raw.githubusercontent.com/arnab825/Mission-Control/main/Gaming/backend/version.json",
   "changelog": [
+    {
+      "version": "3.8.7",
+      "date": "2026-11-01",
+      "title": "Game Scanner Singleton Lock Fix & OAuth Handshake Resilience",
+      "highlights": [
+        "Fixed NameError: name 'time' is not defined in GameScanner singleton lock retry loop during background library scans",
+        "Resolved premature authentication popup closure in Electron to ensure complete Clerk OAuth handshake execution on /sso-callback",
+        "Added safe multi-invocation guard for onBeforeSendHeaders in Electron auth window",
+        "Configured Account Gateway identity switcher to distinguish between first-time provider sign-in and session switching"
+      ]
+    },
     {
       "version": "3.8.6",
       "date": "2026-10-31",
