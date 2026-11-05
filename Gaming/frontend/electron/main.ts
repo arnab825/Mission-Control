@@ -158,15 +158,39 @@ if (!gotTheLock) {
   app.quit()
   process.exit(0)
 } else {
-  app.on('second-instance', () => {
+  app.on('second-instance', (_event, commandLine) => {
     // Focus and restore the main window if a second instance is launched
     if (win) {
       if (!win.isVisible()) win.show()
       if (win.isMinimized()) win.restore()
       win.focus()
     }
+    // Deep link detection from Windows protocol invocation (e.g. mission-control://auth-completed)
+    if (Array.isArray(commandLine)) {
+      const urlArg = commandLine.find(arg => typeof arg === 'string' && (arg.startsWith('mission-control://') || arg.startsWith('missioncontrol://')));
+      if (urlArg) {
+        handleDeepLink(urlArg);
+      }
+    }
   })
 }
+
+// Register custom protocol for desktop redirection & deep linking
+if (process.defaultApp) {
+  if (process.argv.length >= 2) {
+    app.setAsDefaultProtocolClient('mission-control', process.execPath, [path.resolve(process.argv[1])]);
+    app.setAsDefaultProtocolClient('missioncontrol', process.execPath, [path.resolve(process.argv[1])]);
+  }
+} else {
+  app.setAsDefaultProtocolClient('mission-control');
+  app.setAsDefaultProtocolClient('missioncontrol');
+}
+
+// macOS / Linux protocol handler
+app.on('open-url', (event, url) => {
+  event.preventDefault();
+  handleDeepLink(url);
+});
 
 // Set Windows App User Model ID so:
 // (1) The taskbar always resolves to the correct pinned shortcut identity.
@@ -792,6 +816,65 @@ function startLocalServer(distPath: string, port = FIXED_UI_PORT, retries = 15):
   return new Promise((resolve) => {
     try {
       const server = http.createServer((req, res) => {
+        const reqUrl = req.url || '/'
+        const parsedUrl = new URL(reqUrl, `http://127.0.0.1:${port}`)
+        const pathname = parsedUrl.pathname
+
+        // Handle CORS preflight options for browser-based auth callbacks
+        if (req.method === 'OPTIONS') {
+          res.writeHead(204, {
+            'Access-Control-Allow-Origin': '*',
+            'Access-Control-Allow-Methods': 'GET, POST, OPTIONS',
+            'Access-Control-Allow-Headers': 'Content-Type, Authorization, x-requested-with',
+          })
+          res.end()
+          return
+        }
+
+        // Handle browser authentication completion endpoint
+        if (pathname === '/api/browser-auth/complete' || pathname === '/api/browser-auth-callback') {
+          if (req.method === 'POST') {
+            let body = ''
+            req.on('data', (chunk) => { body += chunk })
+            req.on('end', async () => {
+              try {
+                const data = JSON.parse(body || '{}')
+                console.log('[Electron Server] Browser auth completion payload received:', {
+                  sessionId: data.sessionId,
+                  userId: data.userId
+                })
+                await handleBrowserAuthCompletion(data)
+                res.writeHead(200, {
+                  'Content-Type': 'application/json',
+                  'Access-Control-Allow-Origin': '*',
+                })
+                res.end(JSON.stringify({ success: true, message: 'Browser authentication synced to Mission Control' }))
+              } catch (err: any) {
+                console.error('[Electron Server] Browser auth completion error:', err)
+                res.writeHead(400, {
+                  'Content-Type': 'application/json',
+                  'Access-Control-Allow-Origin': '*',
+                })
+                res.end(JSON.stringify({ success: false, error: err?.message || 'Invalid payload' }))
+              }
+            })
+            return
+          }
+
+          if (req.method === 'GET') {
+            const sessionId = parsedUrl.searchParams.get('session_id') || undefined
+            const userId = parsedUrl.searchParams.get('user_id') || undefined
+            const token = parsedUrl.searchParams.get('token') || undefined
+            handleBrowserAuthCompletion({ sessionId, userId, token }).catch(() => {})
+            res.writeHead(200, {
+              'Content-Type': 'application/json',
+              'Access-Control-Allow-Origin': '*',
+            })
+            res.end(JSON.stringify({ success: true, message: 'Browser auth synced' }))
+            return
+          }
+        }
+
         let safeUrl = req.url?.split('?')[0] || '/'
         if (safeUrl === '/') safeUrl = '/index.html'
 
@@ -909,7 +992,149 @@ function closeAuthWindow() {
 
 const CHROME_OAUTH_USER_AGENT = 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/131.0.0.0 Safari/537.36';
 
-function openAuthPopupWindow(targetUrl: string): Promise<{ success: boolean; error?: string }> {
+/**
+ * Handles deep links arriving from the system browser or custom protocol
+ * e.g. mission-control://auth-completed?session_id=...
+ */
+async function handleDeepLink(urlStr: string) {
+  if (!urlStr) return;
+  console.log('[Electron DeepLink] Received URL:', urlStr);
+  try {
+    const parsed = new URL(urlStr);
+    const hostAndPath = (parsed.hostname + parsed.pathname).toLowerCase();
+    if (
+      hostAndPath.includes('auth-completed') ||
+      hostAndPath.includes('auth_completed') ||
+      hostAndPath.includes('auth-success') ||
+      parsed.searchParams.get('auth_completed') === '1'
+    ) {
+      const sessionId = parsed.searchParams.get('session_id') || undefined;
+      const userId = parsed.searchParams.get('user_id') || undefined;
+      const token = parsed.searchParams.get('token') || undefined;
+      await handleBrowserAuthCompletion({ sessionId, userId, token });
+    }
+  } catch (err) {
+    console.error('[Electron DeepLink] Failed to process URL:', err);
+  }
+}
+
+/**
+ * Browser-based Authentication Failsafe.
+ * Launches the user's default system browser when in-app auth fails or is requested.
+ */
+async function openBrowserAuth(params?: {
+  strategy?: string;
+  mode?: 'login' | 'signup' | 'switch' | 'link';
+  reason?: string;
+}): Promise<{ success: boolean; error?: string; url?: string }> {
+  const { strategy = 'oauth_google', mode = 'login', reason } = params || {};
+  console.log(`[BrowserAuth] Activating browser-based authentication failsafe (reason: ${reason || 'direct_request'})`);
+
+  // Close any stalled in-app auth popup window
+  closeAuthWindow();
+
+  const origin = getAppOrigin();
+  const targetUrl = `${origin}/?browser_auth=1&strategy=${encodeURIComponent(strategy)}&mode=${encodeURIComponent(mode)}`;
+
+  try {
+    await shell.openExternal(targetUrl);
+    if (win && !win.isDestroyed()) {
+      win.webContents.send('browser-auth-started', { strategy, mode, reason, targetUrl });
+    }
+    return { success: true, url: targetUrl };
+  } catch (err: any) {
+    console.error('[BrowserAuth] Failed to open external browser:', err);
+    return { success: false, error: err?.message || 'Failed to open system browser' };
+  }
+}
+
+/**
+ * Handles browser authentication completion by synchronizing session cookies,
+ * localStorage tokens, and activating the session in the main window.
+ */
+async function handleBrowserAuthCompletion(data: {
+  sessionId?: string;
+  token?: string;
+  userId?: string;
+  userEmail?: string;
+  cookies?: string;
+  storage?: Record<string, string>;
+}) {
+  console.log('[BrowserAuth] Synchronizing browser auth completion:', {
+    sessionId: data.sessionId,
+    userId: data.userId,
+    userEmail: data.userEmail,
+    hasCookies: Boolean(data.cookies),
+    hasStorage: Boolean(data.storage),
+  });
+
+  // 1. Close any in-app auth window
+  closeAuthWindow();
+
+  // 2. Synchronize cookies to Electron's partition session
+  if (data.cookies && typeof data.cookies === 'string') {
+    const origin = getAppOrigin();
+    const persistSession = session.fromPartition('persist:mission-control');
+    const pairs = data.cookies.split(';').map((c) => c.trim().split('='));
+    for (const [k, ...vParts] of pairs) {
+      const v = vParts.join('=');
+      if (k && v) {
+        try {
+          await persistSession.cookies.set({
+            url: origin,
+            name: k,
+            value: v,
+            path: '/',
+          });
+        } catch (_) {}
+      }
+    }
+  }
+
+  // 3. Inject localStorage items into the main window webContents
+  if (win && !win.isDestroyed() && data.storage && typeof data.storage === 'object') {
+    try {
+      const serialized = JSON.stringify(data.storage);
+      await win.webContents.executeJavaScript(`
+        try {
+          const items = ${serialized};
+          for (const [k, v] of Object.entries(items)) {
+            if (typeof v === 'string' && (k.startsWith('__clerk') || k.startsWith('clerk') || k.startsWith('mission_control') || k.includes('session'))) {
+              try {
+                localStorage.setItem(k, v);
+              } catch (_) {}
+            }
+          }
+        } catch (e) {
+          console.warn('[BrowserAuth] executeJavaScript error:', e);
+        }
+      `);
+    } catch (err) {
+      console.warn('[BrowserAuth] localStorage injection error:', err);
+    }
+  }
+
+  // 4. Restore, show, and focus the main window
+  if (win && !win.isDestroyed()) {
+    if (win.isMinimized()) win.restore();
+    win.show();
+    win.focus();
+
+    // 5. Notify the React app of completion
+    win.webContents.send('auth-completed', {
+      method: 'browser',
+      sessionId: data.sessionId,
+      userId: data.userId,
+      token: data.token,
+    });
+  }
+}
+
+function openAuthPopupWindow(
+  targetUrl: string,
+  strategy = 'oauth_google',
+  mode: 'login' | 'signup' | 'switch' | 'link' = 'login'
+): Promise<{ success: boolean; error?: string; redirectedToBrowser?: boolean }> {
   return new Promise((resolve) => {
     let hasResolved = false;
     const safeResolve = (val: { success: boolean; error?: string }) => {
@@ -991,6 +1216,13 @@ function openAuthPopupWindow(targetUrl: string): Promise<{ success: boolean; err
       authWindow.webContents.on('did-fail-load', (_event, errorCode, errorDescription, validatedURL) => {
         if (errorCode === -3) return; // Ignore aborted navigations
         console.error(`[AuthPopup] did-fail-load: ${errorCode} ${errorDescription} — URL: ${validatedURL}`);
+        // FAILSAFE: When in-app auth fails to load, seamlessly trigger browser-based auth redirection!
+        console.log('[AuthPopup] did-fail-load detected — activating browser-based auth failsafe redirection.');
+        openBrowserAuth({
+          strategy,
+          mode,
+          reason: `Auth popup failed to load: ${errorDescription} (${errorCode})`,
+        });
       });
 
       // Keep auth redirects and OAuth dialogs inside the auth popup window
@@ -1041,6 +1273,19 @@ function openAuthPopupWindow(targetUrl: string): Promise<{ success: boolean; err
       };
 
       authWindow.webContents.on('did-navigate', (_event, url) => {
+        if (url && (
+          url.includes('disallowed_useragent') ||
+          url.includes('accounts.google.com/signin/rejected') ||
+          url.includes('error=access_denied')
+        )) {
+          console.warn('[AuthPopup] Embedded OAuth blocked by provider — redirecting to browser auth failsafe...');
+          openBrowserAuth({
+            strategy,
+            mode,
+            reason: 'OAuth provider blocked embedded browser (disallowed_useragent)',
+          });
+          return;
+        }
         handlePotentialCompletion(url);
       });
 
@@ -1066,6 +1311,12 @@ function openAuthPopupWindow(targetUrl: string): Promise<{ success: boolean; err
 
       authWindow.loadURL(targetUrl).catch((err) => {
         console.error('[Electron] Failed to load auth popup URL:', err);
+        // FAILSAFE: Trigger browser authentication if initial popup load rejects
+        openBrowserAuth({
+          strategy,
+          mode,
+          reason: `Failed to load URL: ${err.message}`,
+        });
         closeAuthWindow();
         safeResolve({ success: false, error: err.message });
       });
@@ -1564,6 +1815,12 @@ async function createWindow() {
 
   if (VITE_DEV_SERVER_URL) {
     win.loadURL(VITE_DEV_SERVER_URL)
+    // Start local server in background in dev mode as well so browser auth callbacks can always reach port 43221
+    if (!localServerPort) {
+      startLocalServer(process.env.DIST || '').then((p) => {
+        localServerPort = p;
+      }).catch(() => {});
+    }
     // Open devtools by default for development
     // win.webContents.openDevTools()
   } else {
@@ -1872,15 +2129,19 @@ ipcMain.on('exit-auth-to-app', () => {
   }
 })
 
-ipcMain.handle('open-auth-popup', async (_event, params: { strategy: string; mode?: 'login' | 'signup' }) => {
+ipcMain.handle('open-auth-popup', async (_event, params: { strategy: string; mode?: 'login' | 'signup' | 'switch' | 'link' }) => {
   const { strategy, mode = 'login' } = params || {};
   const origin = getAppOrigin();
   const targetUrl = `${origin}/?auth_popup=1&strategy=${encodeURIComponent(strategy)}&mode=${encodeURIComponent(mode)}`;
-  return openAuthPopupWindow(targetUrl);
+  return openAuthPopupWindow(targetUrl, strategy, mode);
 });
 
 ipcMain.handle('open-auth-popup-url', async (_event, targetUrl: string) => {
   return openAuthPopupWindow(targetUrl);
+});
+
+ipcMain.handle('open-browser-auth', async (_event, params?: { strategy?: string; mode?: 'login' | 'signup' | 'switch' | 'link'; reason?: string }) => {
+  return openBrowserAuth(params);
 });
 
 ipcMain.on('notify-auth-success', () => {

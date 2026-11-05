@@ -44,9 +44,11 @@ interface Window {
     isAuthPopup?: boolean;
     openAuthPopup?: (params: { strategy: string; mode?: 'login' | 'signup' | 'switch' | 'link' }) => Promise<{ success: boolean; error?: string }>;
     openAuthPopupUrl?: (url: string) => Promise<{ success: boolean; error?: string }>;
+    openBrowserAuth?: (params?: { strategy?: string; mode?: 'login' | 'signup' | 'switch' | 'link'; reason?: string }) => Promise<{ success: boolean; error?: string; url?: string }>;
+    onBrowserAuthStarted?: (callback: (data: any) => void) => () => void;
     notifyAuthSuccess?: () => void;
     closeAuthPopup?: () => void;
-    onAuthCompleted?: (callback: () => void) => () => void;
+    onAuthCompleted?: (callback: (payload?: any) => void) => () => void;
     onAuthPopupClosed?: (callback: () => void) => () => void;
   };
 }

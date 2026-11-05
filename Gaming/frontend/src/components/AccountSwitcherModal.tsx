@@ -113,7 +113,7 @@ export const AccountSwitcherModal: React.FC<AccountSwitcherModalProps> = ({
         sendCommand('logout_user', { userId: user.id });
       }
 
-      // 1. Electron popup flow
+      // 1. Electron popup flow with browser fallback failsafe
       if (window.electronAPI?.openAuthPopup) {
         const res = await window.electronAPI.openAuthPopup({
           strategy,
@@ -122,6 +122,13 @@ export const AccountSwitcherModal: React.FC<AccountSwitcherModalProps> = ({
         setLoadingStrategy(null);
         if (!res?.success && res?.error && res.error !== 'cancelled') {
           setActionError(res.error);
+          if (window.electronAPI?.openBrowserAuth) {
+            window.electronAPI.openBrowserAuth({
+              strategy,
+              mode: isSignedIn ? 'switch' : 'login',
+              reason: `Account switch popup failed: ${res.error}`,
+            });
+          }
         }
         return;
       }

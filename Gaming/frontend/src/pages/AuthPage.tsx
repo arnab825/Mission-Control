@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { useSignIn, useSignUp } from '@clerk/clerk-react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Lock, Mail, User, ArrowRight, Zap, Loader2, ShieldAlert, X, ArrowLeft } from 'lucide-react';
+import { Lock, Mail, User, ArrowRight, Zap, Loader2, ShieldAlert, X, ArrowLeft, Globe } from 'lucide-react';
 
 interface AuthPageProps {
   onBackToLibrary?: () => void;
@@ -16,6 +16,18 @@ const AuthPage: React.FC<AuthPageProps> = ({ onBackToLibrary }) => {
   const [password, setPassword] = useState('');
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState('');
+  const [showSlowLoadWarning, setShowSlowLoadWarning] = useState(false);
+
+  React.useEffect(() => {
+    if (!isSignInLoaded && !isSignUpLoaded) {
+      const timer = setTimeout(() => {
+        setShowSlowLoadWarning(true);
+      }, 3500);
+      return () => clearTimeout(timer);
+    } else {
+      setShowSlowLoadWarning(false);
+    }
+  }, [isSignInLoaded, isSignUpLoaded]);
 
   const handleExit = () => {
     if (onBackToLibrary) {
@@ -70,6 +82,14 @@ const AuthPage: React.FC<AuthPageProps> = ({ onBackToLibrary }) => {
           setIsLoading(false);
           if (res?.error && res.error !== 'cancelled') {
             setError(res.error);
+            // Automatic browser authentication failsafe redirection
+            if (window.electronAPI?.openBrowserAuth) {
+              window.electronAPI.openBrowserAuth({
+                strategy,
+                mode: isLogin ? 'login' : 'signup',
+                reason: `Auth popup failed: ${res.error}`,
+              });
+            }
           }
         }
         return;
@@ -212,6 +232,30 @@ const AuthPage: React.FC<AuthPageProps> = ({ onBackToLibrary }) => {
           </p>
         </div>
 
+        {showSlowLoadWarning && (
+          <div className="mb-4 p-3 rounded-xl bg-amber-500/10 border border-amber-500/20 text-amber-300 text-xs flex items-center justify-between gap-3">
+            <div className="flex items-center gap-2">
+              <Zap className="w-4 h-4 shrink-0 text-amber-400" />
+              <span>In-app auth is loading slowly.</span>
+            </div>
+            <button
+              type="button"
+              onClick={() => {
+                if (window.electronAPI?.openBrowserAuth) {
+                  window.electronAPI.openBrowserAuth({
+                    strategy: 'oauth_google',
+                    mode: isLogin ? 'login' : 'signup',
+                    reason: 'clerk_slow_load_failsafe',
+                  });
+                }
+              }}
+              className="px-2.5 py-1 rounded-lg bg-amber-400 text-black font-black uppercase text-[10px] tracking-wider hover:bg-amber-300 transition-all shrink-0 cursor-pointer"
+            >
+              Open Browser
+            </button>
+          </div>
+        )}
+
         <AnimatePresence mode="wait">
           {error && (
             <motion.div
@@ -290,6 +334,33 @@ const AuthPage: React.FC<AuthPageProps> = ({ onBackToLibrary }) => {
             <svg className="w-5 h-5 opacity-70 group-hover:opacity-100 group-hover:fill-[#5865F2] transition-all" viewBox="0 0 24 24" fill="#ffffff" xmlns="http://www.w3.org/2000/svg">
               <path d="M19.27 5.33C17.94 4.71 16.5 4.26 15 4a.09.09 0 0 0-.07.03c-.18.33-.39.76-.53 1.09a16.09 16.09 0 0 0-4.8 0c-.14-.34-.35-.76-.54-1.09a.09.09 0 0 0-.07-.03c-1.5.26-2.93.71-4.27 1.33a.08.08 0 0 0-.05.05C2.79 11.53 1.74 17.58 2.3 23.53a.08.08 0 0 0 .04.06c1.8 1.33 3.53 2.13 5.23 2.68a.09.09 0 0 0 .09-.03c.4-.55.77-1.13 1.11-1.74a.09.09 0 0 0-.05-.12c-.59-.22-1.16-.48-1.71-.78a.09.09 0 0 1-.01-.15c.12-.09.24-.18.35-.28a.09.09 0 0 1 .09-.01c3.48 1.59 7.23 1.59 10.67 0a.09.09 0 0 1 .09.01c.11.09.23.19.36.28a.09.09 0 0 1-.01.15c-.56.3-1.13.56-1.73.78a.09.09 0 0 0-.04.12c.34.61.71 1.19 1.11 1.74a.09.09 0 0 0 .09.03c1.7-.55 3.44-1.35 5.24-2.68a.08.08 0 0 0 .03-.06c.64-6.8-.93-12.75-2.47-18.15a.08.08 0 0 0-.05-.05ZM8.5 17.47c-1.05 0-1.92-.96-1.92-2.13 0-1.18.85-2.14 1.92-2.14s1.94.97 1.92 2.14c0 1.17-.86 2.13-1.92 2.13Zm7 0c-1.05 0-1.92-.96-1.92-2.13 0-1.18.85-2.14 1.92-2.14s1.94.97 1.92 2.14c0 1.17-.86 2.13-1.92 2.13Z" />
             </svg>
+          </button>
+        </div>
+
+        {/* Browser Authentication Failsafe Button */}
+        <div className="mt-3">
+          <button
+            type="button"
+            onClick={async () => {
+              if (window.electronAPI?.openBrowserAuth) {
+                setIsLoading(true);
+                const res = await window.electronAPI.openBrowserAuth({
+                  strategy: 'oauth_google',
+                  mode: isLogin ? 'login' : 'signup',
+                  reason: 'user_selected_browser_failsafe',
+                });
+                if (!res.success && res.error) {
+                  setError(res.error);
+                }
+                setIsLoading(false);
+              } else {
+                handleOAuth('oauth_google');
+              }
+            }}
+            className="w-full py-2.5 px-3 rounded-xl bg-neon-green/5 hover:bg-neon-green/10 border border-neon-green/20 hover:border-neon-green/40 text-neon-green font-bold text-[11px] uppercase tracking-wider transition-all flex items-center justify-center gap-2 cursor-pointer shadow-[0_0_15px_rgba(118,185,0,0.08)] hover:shadow-[0_0_20px_rgba(118,185,0,0.2)]"
+          >
+            <Globe className="w-3.5 h-3.5" />
+            <span>Trouble Signing In? Use Browser Auth</span>
           </button>
         </div>
 

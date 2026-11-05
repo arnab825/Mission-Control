@@ -106,13 +106,21 @@ contextBridge.exposeInMainWorld('electronAPI', {
     }
   },
   exitAuthToApp: () => ipcRenderer.send('exit-auth-to-app'),
-  openAuthPopup: (params: { strategy: string; mode?: 'login' | 'signup' }) => ipcRenderer.invoke('open-auth-popup', params),
+  openAuthPopup: (params: { strategy: string; mode?: 'login' | 'signup' | 'switch' | 'link' }) => ipcRenderer.invoke('open-auth-popup', params),
+  openBrowserAuth: (params?: { strategy?: string; mode?: 'login' | 'signup' | 'switch' | 'link'; reason?: string }) => ipcRenderer.invoke('open-browser-auth', params),
   isAuthPopup: process.argv.includes('--is-auth-popup'),
   openAuthPopupUrl: (url: string) => ipcRenderer.invoke('open-auth-popup-url', url),
   notifyAuthSuccess: () => ipcRenderer.send('notify-auth-success'),
   closeAuthPopup: () => ipcRenderer.send('close-auth-popup'),
-  onAuthCompleted: (callback: () => void) => {
-    const subscription = () => callback();
+  onBrowserAuthStarted: (callback: (data: any) => void) => {
+    const subscription = (_event: any, data: any) => callback(data);
+    ipcRenderer.on('browser-auth-started', subscription);
+    return () => {
+      ipcRenderer.off('browser-auth-started', subscription);
+    };
+  },
+  onAuthCompleted: (callback: (payload?: any) => void) => {
+    const subscription = (_event: any, payload?: any) => callback(payload);
     ipcRenderer.on('auth-completed', subscription);
     return () => {
       ipcRenderer.off('auth-completed', subscription);
@@ -141,4 +149,3 @@ try {
     });
   }
 } catch (_) {}
-

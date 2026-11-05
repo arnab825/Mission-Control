@@ -54,6 +54,32 @@ const SSOCallback: React.FC = () => {
       return;
     }
 
+    const syncToDesktop = async () => {
+      try {
+        const token = await clerk.session?.getToken();
+        const payload = {
+          sessionId: clerk.session?.id || clerk.client?.lastActiveSessionId,
+          token,
+          userId: clerk.user?.id,
+          userEmail: clerk.user?.primaryEmailAddress?.emailAddress,
+          storage: { ...window.localStorage },
+          cookies: document.cookie,
+        };
+        fetch('/api/browser-auth/complete', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(payload),
+        }).catch(() => {});
+        if (typeof window !== 'undefined' && window.location.port !== '43221') {
+          fetch('http://127.0.0.1:43221/api/browser-auth/complete', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(payload),
+          }).catch(() => {});
+        }
+      } catch (_) {}
+    };
+
     const processHandshake = async () => {
       try {
         console.log('[SSOCallback] Finalizing OAuth redirect handshake...');
@@ -78,7 +104,12 @@ const SSOCallback: React.FC = () => {
             window.close();
           } catch (_) { }
         } else {
-          window.location.replace('/?auth_completed=1');
+          await syncToDesktop();
+          try {
+            const sessId = clerk.session?.id || clerk.client?.lastActiveSessionId || '';
+            window.location.href = `mission-control://auth-completed?session_id=${encodeURIComponent(sessId)}`;
+          } catch (_) {}
+          window.location.replace('/?browser_auth=1&auth_completed=1');
         }
       } catch (err: any) {
         console.warn('[SSOCallback] handleRedirectCallback returned exception:', err);
@@ -99,7 +130,12 @@ const SSOCallback: React.FC = () => {
               window.close();
             } catch (_) { }
           } else {
-            window.location.replace('/');
+            await syncToDesktop();
+            try {
+              const sessId = clerk.session?.id || clerk.client?.lastActiveSessionId || '';
+              window.location.href = `mission-control://auth-completed?session_id=${encodeURIComponent(sessId)}`;
+            } catch (_) {}
+            window.location.replace('/?browser_auth=1&auth_completed=1');
           }
           return;
         }
