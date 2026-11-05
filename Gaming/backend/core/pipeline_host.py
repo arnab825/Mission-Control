@@ -1510,12 +1510,25 @@ class GamingAssistantPipeline:
                     
                     # Check for game inactivity timeout (> 30 seconds) to unload heavy models
                     if time.time() - self._last_game_active_time > 30.0:
+                        unloaded = False
                         if self.yolo_detector and getattr(self.yolo_detector, '_initialized', False):
                             logger.info("Game inactive for > 30 seconds. Dynamically unloading YOLO detector model to free RAM/VRAM.")
                             self.yolo_detector.unload_model()
+                            unloaded = True
                         if self.ocr_reader and getattr(self.ocr_reader, '_reader', None) is not None:
                             logger.info("Game inactive for > 30 seconds. Dynamically unloading RapidOCR reader model to free RAM/VRAM.")
                             self.ocr_reader.unload_model()
+                            unloaded = True
+                        if unloaded:
+                            self._optimize_own_memory()
+
+                    # Periodic idle RAM reclamation every 60 seconds when no game is running
+                    now_time = time.time()
+                    if not hasattr(self, "_last_idle_ram_trim"):
+                        self._last_idle_ram_trim = now_time
+                    elif now_time - self._last_idle_ram_trim > 60.0:
+                        self._last_idle_ram_trim = now_time
+                        self._optimize_own_memory()
                 
                 v_hz_active = v_hz
             except Exception as e:

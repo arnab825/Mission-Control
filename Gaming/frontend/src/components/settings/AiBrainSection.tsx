@@ -1,13 +1,20 @@
 import React from 'react';
-import { Brain } from 'lucide-react';
+import { Brain, Zap, Sparkles } from 'lucide-react';
 import { SettingsSection } from './common/SettingsSection';
 import { SettingsField } from './common/SettingsField';
 import { CustomSelect } from './common/CustomSelect';
 import {
-  AI_PROVIDER_OPTIONS,
   MEMORY_MODE_OPTIONS,
 } from '../../data/settingsConstants';
 import type { OptionItem } from '../../data/settingsConstants';
+
+const PROVIDER_PILLS = [
+  { id: 'auto', name: 'Auto', badge: 'Smart', isAuto: true },
+  { id: 'groq', name: 'Groq', badge: 'Ultra Fast' },
+  { id: 'nvidia', name: 'NVIDIA', badge: 'NIM' },
+  { id: 'gemini', name: 'Gemini', badge: 'Free' },
+  { id: 'openrouter', name: 'Router', badge: 'Multi' },
+];
 
 interface AiBrainSectionProps {
   localConfig: any;
@@ -24,6 +31,20 @@ export const AiBrainSection: React.FC<AiBrainSectionProps> = ({
   desktopPath,
   searchQuery
 }) => {
+  const activeProvider = localConfig.ai_agent?.provider || 'nvidia';
+
+  const handleProviderChange = (val: string) => {
+    let defaultModel = 'meta/llama-3.2-11b-vision-instruct';
+    if (val === 'gemini') defaultModel = 'gemini-3.8-flash';
+    else if (val === 'groq') defaultModel = 'gpt-oss-120b';
+    else if (val === 'openrouter') defaultModel = 'openrouter/free';
+    else if (val === 'auto') defaultModel = 'auto';
+    setLocalConfig((prev: any) => ({
+      ...prev,
+      ai_agent: { ...(prev?.ai_agent || {}), provider: val, model_id: defaultModel }
+    }));
+  };
+
   return (
     <SettingsSection
       searchQuery={searchQuery}
@@ -35,28 +56,81 @@ export const AiBrainSection: React.FC<AiBrainSectionProps> = ({
       <SettingsField
         label="AI Neural Backbone"
         description="Select the AI provider and model for conversational AI. All models run on cloud APIs. Set your API keys securely in the backend .env file. Note: Performance depends on the provider's network traffic. You may experience slow responses or hangs during provider outages or if you hit API rate limits."
+        childWidth="w-full lg:w-[28rem] xl:w-[32rem]"
       >
-        <div className="space-y-3">
-          <div className="flex flex-col sm:flex-row gap-2 sm:items-center">
-            <div className="w-full sm:w-1/3 shrink-0">
-              <CustomSelect
-                value={localConfig.ai_agent?.provider || 'nvidia'}
-                onChange={(val) => {
-                  let defaultModel = 'meta/llama-3.2-11b-vision-instruct';
-                  if (val === 'gemini') defaultModel = 'gemini-3.8-flash';
-                  else if (val === 'groq') defaultModel = 'gpt-oss-120b';
-                  else if (val === 'openrouter') defaultModel = 'openrouter/free';
-                  else if (val === 'auto') defaultModel = 'auto';
-                  setLocalConfig({
-                    ...localConfig,
-                    ai_agent: { ...localConfig.ai_agent, provider: val, model_id: defaultModel }
-                  });
-                }}
-                options={AI_PROVIDER_OPTIONS}
-                isMono={false}
-              />
+        <div className="flex flex-col gap-3 w-full">
+          {/* Provider Pill Switcher */}
+          <div className="flex flex-col gap-1.5">
+            <div className="flex items-center justify-between">
+              <span className="text-[9px] font-black text-zinc-400 uppercase tracking-widest flex items-center gap-1.5">
+                <Zap className="w-3 h-3 text-neon-green" />
+                AI Gateway Provider
+              </span>
+              <span className="text-[8px] font-mono text-neon-green font-bold uppercase tracking-wider">
+                {activeProvider === 'auto' ? '⚡ Dynamic Smart Load Balance' : 'Dedicated Gateway'}
+              </span>
             </div>
-            <div className="flex-1 min-w-0 w-full">
+
+            <div className="grid grid-cols-5 gap-1.5 p-1 bg-black/40 border border-white/10 rounded-xl">
+              {PROVIDER_PILLS.map((p) => {
+                const isActive = activeProvider === p.id;
+                return (
+                  <button
+                    key={p.id}
+                    type="button"
+                    onClick={() => handleProviderChange(p.id)}
+                    className={`py-1.5 px-2 rounded-lg text-center transition-all flex flex-col items-center justify-center cursor-pointer select-none ${
+                      isActive
+                        ? 'bg-neon-green/20 border border-neon-green/50 text-neon-green shadow-[0_0_12px_rgba(118,185,0,0.25)] font-black'
+                        : 'text-zinc-400 hover:text-zinc-200 hover:bg-white/5 border border-transparent font-medium'
+                    }`}
+                  >
+                    <span className="text-[10px] leading-tight flex items-center gap-1">
+                      {p.isAuto && <Zap className="w-2.5 h-2.5 text-neon-green shrink-0" />}
+                      {p.name}
+                    </span>
+                    <span
+                      className={`text-[7px] uppercase tracking-wider leading-none mt-0.5 ${
+                        isActive ? 'text-neon-green/90 font-bold' : 'text-zinc-500'
+                      }`}
+                    >
+                      {p.badge}
+                    </span>
+                  </button>
+                );
+              })}
+            </div>
+          </div>
+
+          {/* Model Selector or Dynamic Routing Banner */}
+          <div className="flex flex-col gap-1.5">
+            <div className="flex items-center justify-between">
+              <span className="text-[9px] font-black text-zinc-400 uppercase tracking-widest flex items-center gap-1.5">
+                <Brain className="w-3 h-3 text-neon-green" />
+                {activeProvider === 'auto' ? 'Routing Strategy' : 'Active Model'}
+              </span>
+              {activeProvider !== 'auto' && (
+                <span className="text-[8px] font-mono text-zinc-500 font-bold uppercase tracking-wider">
+                  {dynamicNeuralOptions.length} available
+                </span>
+              )}
+            </div>
+
+            {activeProvider === 'auto' ? (
+              <div className="p-3 rounded-xl bg-neon-green/5 border border-neon-green/20 flex items-center gap-3">
+                <div className="w-7 h-7 rounded-lg bg-neon-green/10 border border-neon-green/20 flex items-center justify-center text-neon-green shrink-0">
+                  <Sparkles className="w-3.5 h-3.5" />
+                </div>
+                <div className="min-w-0 flex-1">
+                  <p className="text-[10px] font-black text-zinc-200 tracking-wide uppercase">
+                    ⚡ Smart Multi-Cloud Failover
+                  </p>
+                  <p className="text-[9px] text-zinc-400 font-medium leading-relaxed">
+                    Auto-balances across NVIDIA NIM, Groq, and Google Gemini. If any provider experiences rate limits or high latency, requests instantly switch.
+                  </p>
+                </div>
+              </div>
+            ) : (
               <CustomSelect
                 value={
                   dynamicNeuralOptions.some((opt) => opt.value === localConfig.ai_agent?.model_id)
@@ -64,15 +138,16 @@ export const AiBrainSection: React.FC<AiBrainSectionProps> = ({
                     : dynamicNeuralOptions[0]?.value || 'meta/llama-3.2-11b-vision-instruct'
                 }
                 onChange={(val) =>
-                  setLocalConfig({
-                    ...localConfig,
-                    ai_agent: { ...localConfig.ai_agent, model_id: val }
-                  })
+                  setLocalConfig((prev: any) => ({
+                    ...prev,
+                    ai_agent: { ...(prev?.ai_agent || {}), model_id: val }
+                  }))
                 }
                 options={dynamicNeuralOptions}
                 isMono={true}
+                className="w-full"
               />
-            </div>
+            )}
           </div>
         </div>
       </SettingsField>

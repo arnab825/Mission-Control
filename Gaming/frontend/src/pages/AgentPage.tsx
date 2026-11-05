@@ -610,6 +610,7 @@ const AgentPage: React.FC<{
   isPopup?: boolean;
   isIntelOpen?: boolean;
   setIsIntelOpen?: (open: boolean) => void;
+  userId?: string;
 }> = ({
   state,
   onCommand,
@@ -617,10 +618,45 @@ const AgentPage: React.FC<{
   connected,
   isPopup,
   isIntelOpen: propIsIntelOpen,
-  setIsIntelOpen: propSetIsIntelOpen
+  setIsIntelOpen: propSetIsIntelOpen,
+  userId: propUserId,
 }) => {
     const { user, isSignedIn } = useUser();
-    const userId = isSignedIn && user ? user.id : 'guest';
+
+    const cachedUser = React.useMemo(() => {
+      try {
+        const raw = typeof window !== 'undefined' ? localStorage.getItem('mc_authenticated_user') : null;
+        return raw ? JSON.parse(raw) : null;
+      } catch (_) {
+        return null;
+      }
+    }, []);
+
+    const activeAccountUser = useMemo(() => {
+      if (user) return user;
+      if (cachedUser) {
+        return {
+          id: cachedUser.id,
+          username: cachedUser.username || cachedUser.name,
+          fullName: cachedUser.name || cachedUser.username,
+          primaryEmailAddress: { emailAddress: cachedUser.email },
+          imageUrl: cachedUser.avatar,
+        };
+      }
+      return null;
+    }, [user, cachedUser]);
+
+    const userId = useMemo(() => {
+      if (propUserId && propUserId !== 'guest') return propUserId;
+      if (isSignedIn && user?.id) return user.id;
+      if ((state as any)?.active_user_id && (state as any).active_user_id !== 'guest') return (state as any).active_user_id;
+      if ((state as any)?.account_sync?.userId && (state as any).account_sync.userId !== 'guest') return (state as any).account_sync.userId;
+      if (cachedUser?.id && cachedUser.id !== 'guest') return cachedUser.id;
+      const storedUid = typeof window !== 'undefined' ? localStorage.getItem('mission_control_user_id') : null;
+      if (storedUid && storedUid !== 'guest') return storedUid;
+      return 'guest';
+    }, [propUserId, isSignedIn, user?.id, (state as any)?.active_user_id, (state as any)?.account_sync?.userId, cachedUser?.id]);
+
     const { stats: distributedStats, serverOnline: libraryServerOnline, refreshStats } = useDistributedStats(userId);
     const isCompact = isPopup && state?.config?.overlay?.agent_compact === true;
 
@@ -658,10 +694,10 @@ const AgentPage: React.FC<{
       : (state?.config?.privacy?.enabled ?? false);
 
     useEffect(() => {
-      if (state?.config?.privacy?.enabled !== undefined && localPrivacyEnabled === null) {
+      if (state?.config?.privacy?.enabled !== undefined) {
         setLocalPrivacyEnabled(state.config.privacy.enabled);
       }
-    }, [state?.config?.privacy?.enabled, localPrivacyEnabled]);
+    }, [state?.config?.privacy?.enabled]);
 
     const [configLoaded, setConfigLoaded] = useState(false);
     const configRequestTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
@@ -1464,6 +1500,7 @@ const AgentPage: React.FC<{
       setLocalPrivacyEnabled(newState);
       setIsGeneratingKeys(true);
       onCommand('update_config', {
+        userId: userId !== 'guest' ? userId : undefined,
         privacy: {
           enabled: newState,
           uuid_lock: true,
@@ -2253,7 +2290,7 @@ const AgentPage: React.FC<{
                 </button>
 
                 {/* Title & Badge */}
-                <div className="relative text-center mb-4">
+                <div className="relative text-center mb-3">
                   <div className={`w-10 h-10 rounded-xl mx-auto flex items-center justify-center border mb-2 transition-all duration-500 ${isGeneratingKeys
                       ? 'bg-neon-green/5 border-neon-green/20 text-neon-green animate-pulse'
                       : isPrivacyEnabled
@@ -2263,7 +2300,32 @@ const AgentPage: React.FC<{
                     <ShieldCheck className="w-5 h-5" />
                   </div>
                   <h4 className="text-[12px] font-black text-white uppercase tracking-widest">Verify Encryption</h4>
-                  <p className="text-[9px] font-bold text-zinc-500 uppercase tracking-widest mt-1">E2EE Handshake Signature</p>
+                  <p className="text-[9px] font-bold text-zinc-500 uppercase tracking-widest mt-0.5">E2EE Handshake Signature</p>
+                </div>
+
+                {/* Synced Operative Node Badge */}
+                <div className="flex items-center justify-between p-2 rounded-xl bg-white/[0.04] border border-white/8 mb-3">
+                  <div className="flex items-center gap-2 min-w-0">
+                    <div className="w-6 h-6 rounded-lg bg-neon-yellow/15 border border-neon-yellow/30 flex items-center justify-center text-[10px] font-black text-neon-yellow shrink-0">
+                      {(activeAccountUser?.fullName || activeAccountUser?.username || 'A')[0].toUpperCase()}
+                    </div>
+                    <div className="min-w-0 text-left">
+                      <p className="text-[10px] font-black text-zinc-200 truncate uppercase tracking-wider">
+                        {activeAccountUser?.fullName || activeAccountUser?.username || (userId !== 'guest' ? 'Authenticated Operative' : 'Guest Operative')}
+                      </p>
+                      <p className="text-[8px] font-mono text-zinc-500 truncate">
+                        {activeAccountUser?.primaryEmailAddress?.emailAddress || (userId !== 'guest' ? userId : 'local-guest-node')}
+                      </p>
+                    </div>
+                  </div>
+                  <div className={`shrink-0 flex items-center gap-1.5 px-2 py-0.5 rounded-full border text-[8px] font-black uppercase tracking-wider ${
+                    userId !== 'guest'
+                      ? 'bg-neon-yellow/10 border-neon-yellow/30 text-neon-yellow shadow-[0_0_8px_rgba(191,255,0,0.15)]'
+                      : 'bg-zinc-800 border-zinc-700 text-zinc-500'
+                  }`}>
+                    <span className={`w-1.5 h-1.5 rounded-full ${userId !== 'guest' ? 'bg-neon-yellow animate-pulse' : 'bg-zinc-600'}`} />
+                    <span>{userId !== 'guest' ? 'Account Synced' : 'Unlinked'}</span>
+                  </div>
                 </div>
 
                 {/* Holographic QR Code Area / Scanner */}
@@ -2344,8 +2406,8 @@ const AgentPage: React.FC<{
                   {/* Real-time Status overlay */}
                   <div className="absolute inset-0 bg-linear-to-t from-black/80 via-transparent to-black/30 flex flex-col justify-end p-2.5 select-none">
                     <div className="flex items-center justify-between text-[8px] font-mono">
-                      <span className="text-zinc-500">SYS UUID:</span>
-                      <span className="text-zinc-300 font-semibold">{userId.slice(0, 8).toUpperCase()}</span>
+                      <span className="text-zinc-500">SYS UUID / NODE:</span>
+                      <span className="text-zinc-300 font-semibold">{userId !== 'guest' ? userId.slice(0, 14).toUpperCase() : 'LOCAL GUEST'}</span>
                     </div>
                     <div className="flex items-center justify-between text-[8px] font-mono">
                       <span className="text-zinc-500">STATE:</span>
@@ -2387,8 +2449,8 @@ const AgentPage: React.FC<{
                 </div>
 
                 {/* Description Context */}
-                <div className="p-2.5 bg-white/2 border border-white/4 rounded-xl text-[9px] text-zinc-500 leading-relaxed text-center font-medium mb-3">
-                  To confirm that end-to-end encryption is operating securely, verify that these dynamically calculated keys match the local motherboard UUID signature `{userId.slice(0, 12)}`. All chat memory is secured by a hardware-bound private key stream.
+                <div className="p-2.5 bg-white/2 border border-white/4 rounded-xl text-[9px] text-zinc-400 leading-relaxed text-center font-medium mb-3">
+                  To confirm that end-to-end encryption is operating securely, verify that these dynamically calculated keys match your active operative node signature <span className="font-mono text-neon-yellow font-bold">{userId !== 'guest' ? userId.slice(0, 16) : 'local-node'}</span>. All chat memory is secured by a hardware-bound private key stream.
                 </div>
 
                 {/* Encryption Toggle Button */}

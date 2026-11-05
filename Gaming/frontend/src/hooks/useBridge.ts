@@ -11,16 +11,14 @@ const defaultBridgeUrl = import.meta.env.VITE_BRIDGE_URL ?? `ws://${bridgeHost}:
 const IDLE_THROTTLE_MS = 100;
 const GAME_THROTTLE_MS = 150;
 
-// Critical keys bypass throttle and trigger an immediate flush
+// Critical event keys bypass throttle and trigger an immediate flush
 const CRITICAL_KEYS = new Set([
   'config', 'connected', 'version',
   'agent_response', 'voice_prompt',
   'chat_history', 'chat_sessions', 'suggested_session_title',
   'launch_status', 'account_deleted',
-  'annotated_frame', 'detections', 'detections_count', 'health',
-  'is_low_health', 'vision_fps', 'capture_fps', 'vision_profiling',
-  'scene_type', 'scene_confidence', 'fps', 'game_fps', 'gpu_metrics',
-  'cpu_pct', 'cpu_temp', 'cpu_power_w', 'mem_pct', 'gaming_readiness'
+  'active_user_id', 'account_sync',
+  'is_low_health'
 ]);
 
 export const useBridge = (url: string = defaultBridgeUrl) => {

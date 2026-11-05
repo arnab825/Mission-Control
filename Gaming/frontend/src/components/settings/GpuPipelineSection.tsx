@@ -13,9 +13,28 @@ import {
 } from 'lucide-react';
 import { SettingsSection } from './common/SettingsSection';
 import { SettingsField } from './common/SettingsField';
+import { CustomSelect } from './common/CustomSelect';
 import { HardwareFeatureMatrix } from './HardwareFeatureMatrix';
 import { PRESET_DETAILS } from '../../data/settingsConstants';
 import type { TelemetryState } from '../../types/telemetry';
+
+const DLSS_OPTIONS = [
+  { value: 'DLSS 1', label: 'DLSS 1 (Legacy)' },
+  { value: 'DLSS 2', label: 'DLSS 2 (Super Resolution)' },
+  { value: 'DLSS 3', label: 'DLSS 3 (Frame Generation)' },
+  { value: 'DLSS 3.5', label: 'DLSS 3.5 (Ray Reconstruction)' },
+  { value: 'DLSS 4', label: 'DLSS 4 (Multi-Frame Neural)' },
+  { value: 'DLSS 4.5', label: 'DLSS 4.5 (Neural Texture)' },
+  { value: 'DLSS 5', label: 'DLSS 5 (Neural World Model)' },
+];
+
+const FRAME_GEN_OPTIONS = [
+  { value: '2x', label: '2x Multiplier' },
+  { value: '3x', label: '3x Multiplier' },
+  { value: '4x', label: '4x Multiplier' },
+  { value: '6x', label: '6x Extreme Multiplier' },
+  { value: 'Dynamic', label: 'Dynamic Adaptive' },
+];
 
 interface GpuPipelineSectionProps {
   localConfig: any;
@@ -525,7 +544,7 @@ export const GpuPipelineSection: React.FC<GpuPipelineSectionProps> = ({
       {/* DLSS Advisory */}
       <SettingsField
         label={
-          <div className="flex items-center gap-2">
+          <div className="flex items-center gap-2 flex-wrap">
             <span>NVIDIA Deep Learning Super Sampling (DLSS)</span>
             {activeFeatures && !activeFeatures.includes('DLSS') && (
               <span className="px-1.5 py-0.5 rounded text-[7px] font-black uppercase border bg-red-500/10 border-red-500/20 text-red-400">
@@ -541,6 +560,15 @@ export const GpuPipelineSection: React.FC<GpuPipelineSectionProps> = ({
             >
               {libraryStats.dlssGamesCount > 0 ? `Used by ${libraryStats.dlssGamesCount} game${libraryStats.dlssGamesCount === 1 ? '' : 's'} in library` : '0 games in library support this'}
             </span>
+            <button
+              type="button"
+              onClick={onShowDlssGuide}
+              className="inline-flex items-center gap-1.5 px-2 py-0.5 rounded-lg bg-neon-green/10 border border-neon-green/30 hover:bg-neon-green/20 text-neon-green text-[8px] font-black uppercase tracking-wider transition-all cursor-pointer shadow-[0_0_10px_rgba(118,185,0,0.15)]"
+              title="View the evolution and architecture breakdown of NVIDIA DLSS"
+            >
+              <BookOpen className="w-2.5 h-2.5" />
+              <span>Evolution Guide</span>
+            </button>
           </div>
         }
         description={
@@ -549,7 +577,7 @@ export const GpuPipelineSection: React.FC<GpuPipelineSectionProps> = ({
             : "Advisory preference — enable this in your game's own graphics settings. The AI uses your selection to give in-game guidance."
         }
       >
-        <div className={`flex flex-col gap-4 ${!isAdvancedGpu || (activeFeatures && !activeFeatures.includes('DLSS')) ? 'pointer-events-none opacity-40 select-none' : ''}`}>
+        <div className={`flex items-center justify-start lg:justify-end gap-3 min-w-0 ${!isAdvancedGpu || (activeFeatures && !activeFeatures.includes('DLSS')) ? 'pointer-events-none opacity-40 select-none' : ''}`}>
           <div
             role="button"
             tabIndex={0}
@@ -560,47 +588,30 @@ export const GpuPipelineSection: React.FC<GpuPipelineSectionProps> = ({
                 gaming_features: {
                   ...(t.gaming_features || {}),
                   dlss: nextVal,
-                  dlss_version: nextVal ? t.gaming_features?.dlss_version || 'DLSS 1' : undefined
+                  dlss_version: nextVal ? t.gaming_features?.dlss_version || 'DLSS 3.5' : undefined
                 }
               }));
             }}
-            className={`w-12 h-6 rounded-full relative p-1 cursor-pointer transition-colors ${
-              currentTuning.gaming_features?.dlss ? 'bg-neon-green' : 'bg-zinc-800'
+            className={`w-11 h-6 rounded-full relative p-0.5 cursor-pointer transition-all duration-200 shrink-0 ${
+              currentTuning.gaming_features?.dlss ? 'bg-neon-green/30 border border-neon-green/50 shadow-[0_0_12px_rgba(118,185,0,0.3)]' : 'bg-white/5 border border-white/10'
             }`}
+            title={currentTuning.gaming_features?.dlss ? 'DLSS Enabled' : 'DLSS Disabled'}
           >
             <div
-              className={`w-4 h-4 rounded-full absolute transition-all ${
-                currentTuning.gaming_features?.dlss ? 'bg-black right-1' : 'bg-zinc-600 left-1'
+              className={`w-4 h-4 rounded-full transition-all duration-200 mt-0.5 ${
+                currentTuning.gaming_features?.dlss ? 'bg-neon-green translate-x-5 shadow-[0_0_8px_rgba(118,185,0,0.8)]' : 'bg-zinc-500 translate-x-0.5'
               }`}
             />
           </div>
-          <div className="flex flex-wrap gap-2">
-            {['DLSS 1', 'DLSS 2', 'DLSS 3', 'DLSS 3.5', 'DLSS 4', 'DLSS 4.5', 'DLSS 5'].map((v) => (
-              <button
-                aria-label="button"
-                type="button"
-                key={v}
-                onClick={() => updateGpuTuning((t: any) => ({ gaming_features: { ...(t.gaming_features || {}), dlss_version: v } }))}
-                className={`px-3 py-1.5 rounded-lg text-[8px] font-black uppercase border transition-all ${
-                  currentTuning.gaming_features?.dlss_version === v && currentTuning.gaming_features?.dlss
-                    ? 'bg-neon-green text-black border-neon-green shadow-[0_0_10px_rgba(118,185,0,0.3)]'
-                    : 'bg-white/5 border-white/10 text-zinc-500 hover:border-white/20'
-                }`}
-              >
-                {v}
-              </button>
-            ))}
-          </div>
 
-          <div className="mt-6 border-t border-white/10 pt-6">
-            <button
-              type="button"
-              onClick={onShowDlssGuide}
-              className="flex items-center gap-2 px-4 py-2 bg-neon-green/10 border border-neon-green/20 hover:bg-neon-green/20 hover:border-neon-green/40 text-neon-green font-black text-[10px] uppercase tracking-widest rounded-xl transition-all cursor-pointer"
-            >
-              <BookOpen className="w-4 h-4" />
-              View NVIDIA DLSS Evolution Guide
-            </button>
+          <div className={`w-52 sm:w-60 min-w-0 transition-opacity duration-200 ${currentTuning.gaming_features?.dlss ? 'opacity-100' : 'opacity-40 pointer-events-none'}`}>
+            <CustomSelect
+              size="sm"
+              value={currentTuning.gaming_features?.dlss_version || 'DLSS 3.5'}
+              onChange={(val) => updateGpuTuning((t: any) => ({ gaming_features: { ...(t.gaming_features || {}), dlss: true, dlss_version: val } }))}
+              options={DLSS_OPTIONS}
+              className="text-[10px] font-black uppercase tracking-wider"
+            />
           </div>
         </div>
       </SettingsField>
@@ -608,7 +619,7 @@ export const GpuPipelineSection: React.FC<GpuPipelineSectionProps> = ({
       {/* Frame Generation Advisory */}
       <SettingsField
         label={
-          <div className="flex items-center gap-2">
+          <div className="flex items-center gap-2 flex-wrap">
             <span>Frame Generation (FG)</span>
             {activeFeatures && !activeFeatures.includes('FRAME_GEN') && (
               <span className="px-1.5 py-0.5 rounded text-[7px] font-black uppercase border bg-red-500/10 border-red-500/20 text-red-400">
@@ -632,7 +643,7 @@ export const GpuPipelineSection: React.FC<GpuPipelineSectionProps> = ({
             : "Advisory preference — enable Frame Gen inside your game's graphics menu. The AI will advise based on this setting."
         }
       >
-        <div className={`flex flex-col gap-4 ${!isAdvancedGpu || (activeFeatures && !activeFeatures.includes('FRAME_GEN')) ? 'pointer-events-none opacity-40 select-none' : ''}`}>
+        <div className={`flex items-center justify-start lg:justify-end gap-3 min-w-0 ${!isAdvancedGpu || (activeFeatures && !activeFeatures.includes('FRAME_GEN')) ? 'pointer-events-none opacity-40 select-none' : ''}`}>
           <div
             role="button"
             tabIndex={0}
@@ -647,44 +658,26 @@ export const GpuPipelineSection: React.FC<GpuPipelineSectionProps> = ({
                 }
               }));
             }}
-            className={`w-12 h-6 rounded-full relative p-1 cursor-pointer transition-colors ${
-              currentTuning.gaming_features?.frame_gen ? 'bg-blue-500' : 'bg-zinc-800'
+            className={`w-11 h-6 rounded-full relative p-0.5 cursor-pointer transition-all duration-200 shrink-0 ${
+              currentTuning.gaming_features?.frame_gen ? 'bg-blue-500/30 border border-blue-500/50 shadow-[0_0_12px_rgba(59,130,246,0.3)]' : 'bg-white/5 border border-white/10'
             }`}
+            title={currentTuning.gaming_features?.frame_gen ? 'Frame Generation Enabled' : 'Frame Generation Disabled'}
           >
             <div
-              className={`w-4 h-4 rounded-full absolute transition-all ${
-                currentTuning.gaming_features?.frame_gen ? 'bg-black right-1' : 'bg-zinc-600 left-1'
+              className={`w-4 h-4 rounded-full transition-all duration-200 mt-0.5 ${
+                currentTuning.gaming_features?.frame_gen ? 'bg-blue-400 translate-x-5 shadow-[0_0_8px_rgba(59,130,246,0.8)]' : 'bg-zinc-500 translate-x-0.5'
               }`}
             />
           </div>
-          <div className="flex flex-wrap gap-2">
-            {['2x', '3x', '4x', '6x'].map((mult) => {
-              const isSelected =
-                currentTuning.gaming_features?.frame_gen_multiplier === mult ||
-                (!currentTuning.gaming_features?.frame_gen_multiplier && mult === '2x');
-              return (
-                <button
-                  aria-label="button"
-                  type="button"
-                  key={mult}
-                  onClick={() =>
-                    updateGpuTuning((t: any) => ({
-                      gaming_features: {
-                        ...(t.gaming_features || {}),
-                        frame_gen_multiplier: mult
-                      }
-                    }))
-                  }
-                  className={`px-3 py-1.5 rounded-lg text-[8px] font-black uppercase border transition-all ${
-                    isSelected && currentTuning.gaming_features?.frame_gen
-                      ? 'bg-blue-500 text-black border-blue-500 shadow-[0_0_10px_rgba(59,130,246,0.3)]'
-                      : 'bg-white/5 border-white/10 text-zinc-500 hover:border-white/20'
-                  }`}
-                >
-                  {mult}
-                </button>
-              );
-            })}
+
+          <div className={`w-52 sm:w-60 min-w-0 transition-opacity duration-200 ${currentTuning.gaming_features?.frame_gen ? 'opacity-100' : 'opacity-40 pointer-events-none'}`}>
+            <CustomSelect
+              size="sm"
+              value={currentTuning.gaming_features?.frame_gen_multiplier || '2x'}
+              onChange={(val) => updateGpuTuning((t: any) => ({ gaming_features: { ...(t.gaming_features || {}), frame_gen: true, frame_gen_multiplier: val } }))}
+              options={FRAME_GEN_OPTIONS}
+              className="text-[10px] font-black uppercase tracking-wider"
+            />
           </div>
         </div>
       </SettingsField>

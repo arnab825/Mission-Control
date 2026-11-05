@@ -82,8 +82,8 @@ if (process.platform === 'win32') {
   console.log('[Electron] Windows platform detected — applied GPU resilience flags.');
 }
 
-// Enable GC exposure for memory management
-app.commandLine.appendSwitch('js-flags', '--expose-gc');
+// Enable GC exposure and limit maximum heap growth for memory management
+app.commandLine.appendSwitch('js-flags', '--expose-gc --max-old-space-size=512');
 
 function handleSquirrelEvent(): boolean {
   if (process.argv.length === 1) {
@@ -2034,9 +2034,21 @@ async function createWindow() {
   // Notify renderer of window visibility state to pause unneeded timers & animations in background
   win.on('hide', () => {
     try { win?.webContents.send('app-window-visibility', false); } catch (_) {}
+    setTimeout(() => {
+      try {
+        if (typeof (global as any).gc === 'function') (global as any).gc();
+        session.defaultSession.clearCache();
+      } catch (_) {}
+    }, 500);
   });
   win.on('minimize', () => {
     try { win?.webContents.send('app-window-visibility', false); } catch (_) {}
+    setTimeout(() => {
+      try {
+        if (typeof (global as any).gc === 'function') (global as any).gc();
+        session.defaultSession.clearCache();
+      } catch (_) {}
+    }, 500);
   });
   win.on('show', () => {
     try { win?.webContents.send('app-window-visibility', true); } catch (_) {}

@@ -1551,6 +1551,7 @@ const App: React.FC = () => {
                         connected={connected}
                         isIntelOpen={isIntelOpen}
                         setIsIntelOpen={setIsIntelOpen}
+                        userId={effectiveActiveUserId}
                       />
                     )}
                   </div>

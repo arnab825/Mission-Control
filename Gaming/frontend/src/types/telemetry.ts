@@ -176,6 +176,14 @@ export interface TelemetryState {
   // AI Performance Advisor
   advisor_recommendations?: AdvisorRecommendation[];
   yolo_supported?: boolean;
+  active_user_id?: string;
+  account_sync?: {
+    userId?: string;
+    email?: string;
+    provider?: string;
+    username?: string;
+    synced?: boolean;
+  };
 }
 
 
