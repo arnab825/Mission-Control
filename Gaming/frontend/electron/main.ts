@@ -1272,25 +1272,76 @@ function openAuthPopupWindow(
         return false;
       };
 
+      const triggerGoogleFailsafe = (triggerReason: string) => {
+        console.warn(`[AuthPopup] Google OAuth block detected (${triggerReason}) — auto-closing popup and switching to browser auth...`);
+        closeAuthWindow();
+        openBrowserAuth({
+          strategy,
+          mode,
+          reason: triggerReason,
+        });
+        safeResolve({ success: true });
+      };
+
+      const isGoogleBlockedUrl = (testUrl: string) => {
+        if (!testUrl) return false;
+        return (
+          testUrl.includes('disallowed_useragent') ||
+          testUrl.includes('/rejected') ||
+          testUrl.includes('deniedsigninrejected') ||
+          testUrl.includes('error=access_denied')
+        );
+      };
+
       authWindow.webContents.on('did-navigate', (_event, url) => {
-        if (url && (
-          url.includes('disallowed_useragent') ||
-          url.includes('accounts.google.com/signin/rejected') ||
-          url.includes('error=access_denied')
-        )) {
-          console.warn('[AuthPopup] Embedded OAuth blocked by provider — redirecting to browser auth failsafe...');
-          openBrowserAuth({
-            strategy,
-            mode,
-            reason: 'OAuth provider blocked embedded browser (disallowed_useragent)',
-          });
+        if (isGoogleBlockedUrl(url)) {
+          triggerGoogleFailsafe(`Blocked navigation URL: ${url}`);
           return;
         }
         handlePotentialCompletion(url);
       });
 
       authWindow.webContents.on('did-navigate-in-page', (_event, url) => {
+        if (isGoogleBlockedUrl(url)) {
+          triggerGoogleFailsafe(`In-page blocked URL: ${url}`);
+          return;
+        }
         handlePotentialCompletion(url);
+      });
+
+      authWindow.on('page-title-updated', (_event, title) => {
+        if (title && (
+          title.includes("Couldn't sign you in") ||
+          title.includes('may not be secure')
+        )) {
+          triggerGoogleFailsafe(`Blocked page title: "${title}"`);
+        }
+      });
+
+      authWindow.webContents.on('did-finish-load', async () => {
+        if (!authWindow || authWindow.isDestroyed()) return;
+        const currentUrl = authWindow.webContents.getURL() || '';
+        const currentTitle = authWindow.webContents.getTitle() || '';
+
+        if (isGoogleBlockedUrl(currentUrl) || currentTitle.includes("Couldn't sign you in") || currentTitle.includes('may not be secure')) {
+          triggerGoogleFailsafe(`Blocked on did-finish-load: title="${currentTitle}", url="${currentUrl}"`);
+          return;
+        }
+
+        if (currentUrl.includes('accounts.google.com')) {
+          try {
+            const isGoogleBlocked = await authWindow.webContents.executeJavaScript(`
+              Boolean(
+                document.title?.includes("Couldn't sign you in") ||
+                document.body?.innerText?.includes('This browser or app may not be secure') ||
+                document.body?.innerText?.includes("Couldn't sign you in")
+              )
+            `);
+            if (isGoogleBlocked) {
+              triggerGoogleFailsafe('Google security block detected in page body');
+            }
+          } catch (_) {}
+        }
       });
 
       authWindow.once('ready-to-show', () => {
@@ -2131,6 +2182,13 @@ ipcMain.on('exit-auth-to-app', () => {
 
 ipcMain.handle('open-auth-popup', async (_event, params: { strategy: string; mode?: 'login' | 'signup' | 'switch' | 'link' }) => {
   const { strategy, mode = 'login' } = params || {};
+  // Google OAuth strictly disallows embedded webviews across desktop apps with 'This browser or app may not be secure'.
+  // Directly delegate Google OAuth to default system browser for 100% reliable login without the Google block screen.
+  if (strategy === 'oauth_google') {
+    console.log('[Electron] Google OAuth requested — delegating directly to system browser to prevent disallowed_useragent block.');
+    return openBrowserAuth({ strategy: 'oauth_google', mode, reason: 'google_oauth_disallowed_embedded' });
+  }
+
   const origin = getAppOrigin();
   const targetUrl = `${origin}/?auth_popup=1&strategy=${encodeURIComponent(strategy)}&mode=${encodeURIComponent(mode)}`;
   return openAuthPopupWindow(targetUrl, strategy, mode);

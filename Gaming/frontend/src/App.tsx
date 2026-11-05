@@ -266,6 +266,25 @@ const App: React.FC = () => {
     return () => clearTimeout(t);
   }, [failsafeCountdown, isAuthPopup]);
 
+  // Auto-initiate OAuth redirect when landing on browser auth portal with specified strategy
+  useEffect(() => {
+    if (!isBrowserAuth || isSignedIn || !isSignInLoaded || !signIn) return;
+    const params = new URLSearchParams(window.location.search);
+    const strategy = params.get('strategy');
+    if (strategy === 'oauth_google' || strategy === 'oauth_discord') {
+      const origin = window.location.origin;
+      const options = {
+        strategy,
+        redirectUrl: `${origin}/sso-callback?browser_auth=1`,
+        redirectUrlComplete: `${origin}/?browser_auth=1&auth_completed=1`,
+        additionalData: strategy === 'oauth_google' ? { prompt: 'select_account' } : { prompt: 'consent' },
+      };
+      signIn.authenticateWithRedirect(options as any).catch((err) => {
+        console.warn('[BrowserAuth] Auto-redirect failed, falling back to manual click:', err);
+      });
+    }
+  }, [isBrowserAuth, isSignedIn, isSignInLoaded, signIn]);
+
   // Synchronize browser authentication session to desktop application
   useEffect(() => {
     if (isBrowserAuth && isSignedIn && user) {
