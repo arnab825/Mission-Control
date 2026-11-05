@@ -21,6 +21,12 @@ const HardwareSuiteBentoSection = dynamic(
       (m) => m.HardwareSuiteBentoSection
     )
 );
+const ThemePersonalizationSection = dynamic(
+  () =>
+    import("@/components/home/ThemePersonalizationSection").then(
+      (m) => m.ThemePersonalizationSection
+    )
+);
 const ScreenshotGallerySection = dynamic(
   () =>
     import("@/components/home/ScreenshotGallerySection").then(
@@ -176,6 +182,7 @@ export default function Home() {
       <TechPartnersTicker />
       <VerifiedTestedGamesSection testedGames={testedGames} />
       <HardwareSuiteBentoSection />
+      <ThemePersonalizationSection />
       <ScreenshotGallerySection />
       <BeforeAfterSection />
       <InteractiveHudSection />

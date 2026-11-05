@@ -15,11 +15,13 @@ import {
   ShieldCheck,
   Bot,
   Settings,
+  Palette,
 } from "lucide-react";
 
 export function ScreenshotGallery() {
   const tabs = [
     { id: "dashboard", label: "Dashboard", icon: Activity, src: "/screenshots/dashboard.webp" },
+    { id: "themes", label: "Themes Studio", icon: Palette, src: "/screenshots/theme_showcase.gif" },
     { id: "library", label: "Library", icon: Gamepad2, src: "/screenshots/library.webp" },
     { id: "system", label: "System", icon: Server, src: "/screenshots/system.webp" },
     { id: "readiness", label: "Readiness", icon: ShieldCheck, src: "/screenshots/readiness.webp" },
@@ -63,6 +65,16 @@ export function ScreenshotGallery() {
   // Fallback Mockup Generator
   const renderMockup = (tabId: string) => {
     switch (tabId) {
+      case "themes":
+        return (
+          <div className="w-full h-full relative overflow-hidden bg-black flex items-center justify-center">
+            <img
+              src="/screenshots/theme_showcase.gif"
+              alt="Mission Control Themes Studio"
+              className="w-full h-full object-cover upscale-crisp"
+            />
+          </div>
+        );
       case "agent":
         return (
           <div className="w-full h-full relative overflow-hidden bg-black flex items-center justify-center">

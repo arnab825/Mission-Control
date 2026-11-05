@@ -8,3 +8,4 @@ export * from "./InteractiveHudSection";
 export * from "./PerformanceComparisonSection";
 export * from "./DownloadSection";
 export * from "./FaqSection";
+export * from "./ThemePersonalizationSection";
