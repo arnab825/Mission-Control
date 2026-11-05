@@ -955,10 +955,10 @@ const GamesLibraryContent: React.FC<GamesPageProps> = ({ state, sendCommand, set
             id="discover-games-btn"
             type="button"
             onClick={() => setShowDiscoverModal(true)}
-            className="flex items-center gap-2 px-4 py-2.5 bg-neon-green/10 hover:bg-neon-green/20 border border-neon-green/30 hover:border-neon-green/50 text-neon-green font-black text-[10px] uppercase tracking-widest rounded-2xl transition-all shadow-[0_0_15px_rgba(118,185,0,0.15)] cursor-pointer shrink-0"
+            className="group flex items-center gap-2 px-4 py-2.5 bg-neon-green/10 hover:bg-neon-green/20 active:scale-95 border border-neon-green/30 hover:border-neon-green/50 text-neon-green font-black text-[10px] uppercase tracking-widest rounded-2xl transition-all duration-150 transform-gpu will-change-transform shadow-[0_0_15px_rgba(118,185,0,0.15)] hover:shadow-[0_0_22px_rgba(118,185,0,0.3)] cursor-pointer shrink-0"
             title="Search and add games from Steam, Epic, GOG, and RAWG"
           >
-            <Globe className="w-3.5 h-3.5" />
+            <Globe className="w-3.5 h-3.5 transition-transform duration-200 group-hover:rotate-12" />
             <span className="whitespace-nowrap">Discover from Web</span>
           </button>
 
@@ -967,10 +967,10 @@ const GamesLibraryContent: React.FC<GamesPageProps> = ({ state, sendCommand, set
             id="manage-nodes-btn"
             type="button"
             onClick={() => setShowNodeManager(true)}
-            className="flex items-center gap-2 px-4 py-2.5 bg-white/5 hover:bg-white/10 border border-white/10 hover:border-white/20 text-zinc-300 hover:text-white font-black text-[10px] uppercase tracking-widest rounded-2xl transition-all cursor-pointer shrink-0"
+            className="group flex items-center gap-2 px-4 py-2.5 bg-white/5 hover:bg-white/10 active:scale-95 border border-white/10 hover:border-white/20 text-zinc-300 hover:text-white font-black text-[10px] uppercase tracking-widest rounded-2xl transition-all duration-150 transform-gpu will-change-transform hover:shadow-[0_0_18px_rgba(255,255,255,0.06)] cursor-pointer shrink-0"
             title="Manage Local & Remote Cluster Nodes"
           >
-            <Server className="w-3.5 h-3.5" />
+            <Server className="w-3.5 h-3.5 transition-transform duration-200 group-hover:scale-110" />
             <span className="whitespace-nowrap">Manage Nodes</span>
           </button>
 

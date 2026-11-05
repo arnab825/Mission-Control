@@ -48,7 +48,13 @@ const DiscoverGamesModal: React.FC<DiscoverGamesModalProps> = ({ onClose, instal
   const [activeTab, setActiveTab] = useState<TabType>('trending');
   const [query, setQuery] = useState('');
   const [loading, setLoading] = useState(false);
-  const [results, setResults] = useState<DiscoverItem[]>([]);
+  const [results, setResults] = useState<DiscoverItem[]>(() => {
+    try {
+      const cached = getCachedSearchResults('trending_initial');
+      if (cached && cached.length > 0) return cached;
+    } catch (_) {}
+    return CURATED_FEATURED_GAMES.slice(0, 16);
+  });
   const [hasSearched, setHasSearched] = useState(false);
   const [seeding, setSeeding] = useState(false);
   const [seedStatus, setSeedStatus] = useState<string | null>(null);
@@ -142,13 +148,16 @@ const DiscoverGamesModal: React.FC<DiscoverGamesModalProps> = ({ onClose, instal
     } catch (_) {}
   }, [newsItems, weekInfo.week, weekInfo.year, currentWeekTheme]);
 
-  // Initial load
+  // Initial load deferred slightly to keep initial mount & entrance animation 100% butter-smooth
   useEffect(() => {
-    if (activeTab === 'news') {
-      loadGamingNews();
-    } else {
-      loadPopularCatalog();
-    }
+    const timer = setTimeout(() => {
+      if (activeTab === 'news') {
+        loadGamingNews();
+      } else {
+        loadPopularCatalog();
+      }
+    }, 100);
+    return () => clearTimeout(timer);
   }, [activeTab]);
 
   const getGameActiveLauncher = (game: DiscoverItem): string => {
@@ -660,17 +669,18 @@ const DiscoverGamesModal: React.FC<DiscoverGamesModalProps> = ({ onClose, instal
       initial={{ opacity: 0 }}
       animate={{ opacity: 1 }}
       exit={{ opacity: 0 }}
+      transition={{ duration: 0.18, ease: 'easeOut' }}
     >
       {/* Backdrop */}
-      <div className="absolute inset-0 bg-black/85 backdrop-blur-md" onClick={onClose} />
+      <div className="absolute inset-0 bg-black/80 backdrop-blur-sm transform-gpu will-change-opacity" onClick={onClose} />
 
       {/* Modal Container with Glowing Top Accent */}
       <motion.div
-        className="relative z-10 w-full max-w-5xl h-[90vh] bg-zinc-950/98 border border-white/10 rounded-3xl flex flex-col overflow-hidden shadow-[0_25px_60px_rgba(0,0,0,0.9),0_0_35px_rgba(118,185,0,0.1)] transform-gpu will-change-transform"
-        initial={{ scale: 0.96, opacity: 0, y: 12 }}
+        className="relative z-10 w-full max-w-5xl h-[90vh] bg-zinc-950/98 border border-white/10 rounded-3xl flex flex-col overflow-hidden shadow-[0_25px_60px_rgba(0,0,0,0.9),0_0_35px_rgba(118,185,0,0.1)] transform-gpu will-change-transform will-change-opacity"
+        initial={{ scale: 0.97, opacity: 0, y: 10 }}
         animate={{ scale: 1, opacity: 1, y: 0 }}
-        exit={{ scale: 0.96, opacity: 0 }}
-        transition={{ type: 'spring', damping: 25, stiffness: 280 }}
+        exit={{ scale: 0.97, opacity: 0, y: 8 }}
+        transition={{ duration: 0.22, ease: [0.16, 1, 0.3, 1] }}
       >
         {/* Top Accent Gradient Bar */}
         <div className="h-1 w-full bg-linear-to-r from-neon-green/80 via-emerald-400 to-cyan-400 shrink-0 shadow-[0_0_12px_rgba(118,185,0,0.6)]" />

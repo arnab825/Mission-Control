@@ -30,7 +30,26 @@ def dispatch_bridge_command(
         return
 
     # ── Chat / Conversation commands ──────────────────────────────
-    if cmd_type == "execute":
+    if cmd_type == "set_active_user":
+        uid = payload.get("userId") if payload else None
+        email = payload.get("email") or payload.get("userEmail") if payload else None
+        provider = payload.get("provider") if payload else None
+        username = payload.get("username") if payload else None
+        if pipeline:
+            pipeline.active_user_id = uid
+            logger.info("Active operative synchronized to pipeline: %s (provider: %s, email: %s)", uid, provider or "default", email or "none")
+        if bridge:
+            bridge.update_state({
+                "active_user_id": uid,
+                "account_sync": {
+                    "userId": uid,
+                    "email": email,
+                    "provider": provider,
+                    "username": username,
+                    "synced": True,
+                }
+            })
+    elif cmd_type == "execute":
         chat_handler.handle_execute(payload, pipeline, bridge, config)
     elif cmd_type == "stop_tts":
         if pipeline and hasattr(pipeline, "voice_manager") and pipeline.voice_manager:

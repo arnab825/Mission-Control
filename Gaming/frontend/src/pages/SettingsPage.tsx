@@ -1101,6 +1101,7 @@ export const SettingsPage: React.FC<SettingsPageProps> = ({ state, sendCommand, 
             searchQuery={searchQuery}
             localConfig={localConfig}
             sendCommand={sendCommand}
+            state={state}
             accountDeleted={(state as any)?.account_deleted}
             accountDeleteError={(state as any)?.account_delete_error}
           />

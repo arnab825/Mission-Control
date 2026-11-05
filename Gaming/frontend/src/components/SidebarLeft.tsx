@@ -40,9 +40,8 @@ const Sidebar: React.FC<SidebarProps> = ({
   const { user, isSignedIn } = useUser();
   const { signOut } = useClerk();
   const [isAccountSwitcherOpen, setIsAccountSwitcherOpen] = React.useState(false);
-  
-  // Fallback to locally synchronized authentication node if Clerk client hydration is pending
-  const cachedUser = React.useMemo(() => {
+
+  const readCachedUser = React.useCallback(() => {
     if (typeof window === 'undefined' || !window.localStorage) return null;
     try {
       const raw = window.localStorage.getItem('mc_authenticated_user');
@@ -50,7 +49,55 @@ const Sidebar: React.FC<SidebarProps> = ({
     } catch (_) {
       return null;
     }
-  }, [isSignedIn, user]);
+  }, []);
+
+  const [cachedUser, setCachedUser] = React.useState<any>(readCachedUser);
+
+  React.useEffect(() => {
+    const handleUpdate = () => {
+      setCachedUser(readCachedUser());
+    };
+
+    window.addEventListener('storage', handleUpdate);
+    window.addEventListener('mc-auth-state-changed', handleUpdate);
+
+    const unsub = window.electronAPI?.onAuthCompleted?.((payload?: any) => {
+      if (payload?.userEmail || payload?.userId || payload?.sessionId) {
+        setCachedUser((prev: any) => {
+          const isPrevReal = prev?.email && !prev.email.includes('missioncontrol.app');
+          const isIncomingReal = payload.userEmail && !payload.userEmail.includes('missioncontrol.app');
+          if (isPrevReal && !isIncomingReal) {
+            return {
+              ...prev,
+              sessionId: payload.sessionId || prev.sessionId,
+            };
+          }
+          return {
+            id: payload.userId || (payload.sessionId ? `node_${payload.sessionId.slice(-8)}` : 'node_active'),
+            email: payload.userEmail || (payload.sessionId ? 'node.active@missioncontrol.app' : 'node.active@missioncontrol.app'),
+            username: payload.username || (payload.userEmail ? payload.userEmail.split('@')[0] : 'Operative'),
+            firstName: payload.firstName || 'Operative',
+            lastName: payload.lastName || '',
+            imageUrl: payload.imageUrl || '',
+            sessionId: payload.sessionId || '',
+          };
+        });
+      } else {
+        handleUpdate();
+      }
+    });
+
+    const unsubCleared = (window as any).electronAPI?.onAuthCleared?.(() => {
+      setCachedUser(null);
+    });
+
+    return () => {
+      window.removeEventListener('storage', handleUpdate);
+      window.removeEventListener('mc-auth-state-changed', handleUpdate);
+      unsub?.();
+      unsubCleared?.();
+    };
+  }, [readCachedUser]);
 
   const effectiveIsSignedIn = Boolean(isSignedIn || cachedUser);
   const effectiveUser = user || (cachedUser ? {
@@ -58,24 +105,47 @@ const Sidebar: React.FC<SidebarProps> = ({
     username: cachedUser.username || (cachedUser.email ? cachedUser.email.split('@')[0] : 'operative'),
     firstName: cachedUser.firstName || (cachedUser.email ? cachedUser.email.split('@')[0] : 'Operative'),
     lastName: cachedUser.lastName || '',
+    fullName: `${cachedUser.firstName || ''} ${cachedUser.lastName || ''}`.trim() || cachedUser.username || 'Operative',
     imageUrl: cachedUser.imageUrl || '',
     primaryEmailAddress: cachedUser.email ? { emailAddress: cachedUser.email } : undefined,
     externalAccounts: cachedUser.externalAccounts || [],
   } as any : null);
 
   // Find the exact external account the user just logged in with (saved in localStorage during sign in)
-  const activeProvider = typeof window !== 'undefined' && typeof window.localStorage?.getItem === 'function' ? window.localStorage.getItem('mission_control_active_provider') : null;
-  const normalizedActiveProvider = activeProvider?.replace('oauth_', '');
-  let activeExternalAccount = effectiveUser?.externalAccounts?.find((a: any) => a.provider?.replace('oauth_', '') === normalizedActiveProvider);
-  
-  // Fallback to the most recently updated if not found
-  if (!activeExternalAccount && effectiveUser?.externalAccounts) {
-    activeExternalAccount = [...effectiveUser.externalAccounts].sort((a: any, b: any) => {
-      const bTime = (b as any).updatedAt ? new Date((b as any).updatedAt).getTime() : 0;
-      const aTime = (a as any).updatedAt ? new Date((a as any).updatedAt).getTime() : 0;
-      return bTime - aTime;
-    })[0];
-  }
+  const rawStoredProvider = typeof window !== 'undefined' && typeof window.localStorage?.getItem === 'function' ? window.localStorage.getItem('mission_control_active_provider') : null;
+  const normalizedActiveProvider = (() => {
+    if (rawStoredProvider) return rawStoredProvider.replace('oauth_', '');
+    if (cachedUser?.provider) return cachedUser.provider.replace('oauth_', '');
+    if (effectiveUser?.provider) return effectiveUser.provider.replace('oauth_', '');
+    return 'google';
+  })();
+
+  const activeExternalAccount = effectiveUser?.externalAccounts?.find(
+    (a: any) =>
+      (a.provider || '').toLowerCase().includes(normalizedActiveProvider) ||
+      (a.verification?.strategy || '').toLowerCase().includes(normalizedActiveProvider) ||
+      (a.verificationStrategy || '').toLowerCase().includes(normalizedActiveProvider)
+  );
+
+  const sidebarAvatarUrl = (() => {
+    if (activeExternalAccount?.imageUrl) return activeExternalAccount.imageUrl;
+    if (cachedUser?.imageUrl && !cachedUser.imageUrl.includes('placeholder')) {
+      if (normalizedActiveProvider === 'google' && cachedUser.imageUrl.includes('discordapp.com')) {
+        // Skip discord avatar for google
+      } else if (normalizedActiveProvider === 'discord' && !cachedUser.imageUrl.includes('discordapp.com')) {
+        // Skip non-discord avatar for discord
+      } else {
+        return cachedUser.imageUrl;
+      }
+    }
+    if (effectiveUser?.imageUrl) {
+      if (normalizedActiveProvider === 'google' && effectiveUser.imageUrl.includes('discordapp.com')) {
+        return '';
+      }
+      return effectiveUser.imageUrl;
+    }
+    return '';
+  })();
   
   const [electronVer, setElectronVer] = React.useState<string>('');
   React.useEffect(() => {
@@ -195,35 +265,34 @@ const Sidebar: React.FC<SidebarProps> = ({
               className="flex items-center justify-between p-2.5 rounded-xl bg-white/2 hover:bg-white/5 border border-white/4 hover:border-white/10 backdrop-blur-sm cursor-pointer transition-all group"
             >
               <div className="flex items-center gap-2.5 min-w-0">
-                {(() => {
-                  const avatarUrl = activeExternalAccount?.imageUrl || effectiveUser.imageUrl;
-                  return avatarUrl ? (
-                    <img
-                      src={avatarUrl}
-                      className="w-8 h-8 rounded-lg border border-white/10 object-cover"
-                      alt="Avatar"
-                      onError={(e) => {
-                        const target = e.currentTarget as HTMLImageElement;
-                        target.style.display = 'none';
-                        const fallback = target.nextElementSibling as HTMLElement;
-                        if (fallback) fallback.style.display = 'flex';
-                      }}
-                    />
-                  ) : null;
-                })()}
+                {sidebarAvatarUrl ? (
+                  <img
+                    src={sidebarAvatarUrl}
+                    className="w-8 h-8 rounded-lg border border-white/10 object-cover"
+                    alt="Avatar"
+                    onError={(e) => {
+                      const target = e.currentTarget as HTMLImageElement;
+                      target.style.display = 'none';
+                      const fallback = target.nextElementSibling as HTMLElement;
+                      if (fallback) fallback.style.display = 'flex';
+                    }}
+                  />
+                ) : null}
                 <div
-                  className="w-8 h-8 rounded-lg bg-neon-green/10 border border-neon-green/20 flex items-center justify-center font-black text-xs text-neon-green"
-                  style={{ display: (activeExternalAccount?.imageUrl || effectiveUser.imageUrl || effectiveUser.externalAccounts?.[0]?.imageUrl) ? 'none' : 'flex' }}
+                  className="w-8 h-8 rounded-lg bg-neon-green/10 border border-neon-green/20 flex items-center justify-center font-black text-xs text-neon-green uppercase"
+                  style={{ display: sidebarAvatarUrl ? 'none' : 'flex' }}
                 >
-                  {activeExternalAccount?.username?.[0] || activeExternalAccount?.firstName?.[0] || effectiveUser.firstName?.[0] || effectiveUser.username?.[0] || effectiveUser.externalAccounts?.[0]?.username?.[0] || 'U'}
+                  {effectiveUser.firstName?.[0] || effectiveUser.username?.[0] || effectiveUser.email?.[0] || 'U'}
                 </div>
                 <div className="min-w-0 flex flex-col">
-                  <span className="text-[10px] font-black text-white truncate uppercase tracking-tight">
+                  <span className="text-[10px] font-black text-white truncate uppercase tracking-tight" title={effectiveUser?.fullName || effectiveUser?.firstName || effectiveUser?.username || 'Node Connected'}>
                     {(() => {
-                      if (activeExternalAccount?.username) return activeExternalAccount.username;
+                      const fullName = effectiveUser?.fullName || (effectiveUser?.firstName ? `${effectiveUser.firstName} ${effectiveUser.lastName || ''}`.trim() : '');
+                      if (fullName) return fullName;
                       if (activeExternalAccount?.firstName) return `${activeExternalAccount.firstName} ${activeExternalAccount.lastName || ''}`.trim();
-                      if (effectiveUser.username) return effectiveUser.username;
-                      if (effectiveUser.firstName) return `${effectiveUser.firstName} ${effectiveUser.lastName || ''}`.trim();
+                      if (effectiveUser?.firstName) return effectiveUser.firstName;
+                      if (activeExternalAccount?.username) return activeExternalAccount.username;
+                      if (effectiveUser?.username) return effectiveUser.username;
                       return 'Node Connected';
                     })()}
                   </span>
@@ -261,14 +330,21 @@ const Sidebar: React.FC<SidebarProps> = ({
                     if (effectiveUser?.id && sendCommand) {
                       sendCommand('logout_user', { userId: effectiveUser.id });
                     }
+                    setCachedUser(null);
                     try {
-                      if (typeof window !== 'undefined' && typeof window.localStorage?.removeItem === 'function') {
+                      if (typeof window !== 'undefined') {
                         window.localStorage.removeItem('mission_control_active_provider');
                         window.localStorage.removeItem('mc_authenticated_user');
-                        document.cookie = '__session=; path=/; max-age=0';
-                        document.cookie = '__client_uat=0; path=/; max-age=0';
+                        document.cookie = '__session=; path=/; max-age=0; expires=Thu, 01 Jan 1970 00:00:00 GMT';
+                        document.cookie = '__client_uat=0; path=/; max-age=0; expires=Thu, 01 Jan 1970 00:00:00 GMT';
+                        window.dispatchEvent(new Event('mc-auth-state-changed'));
                       }
                     } catch (_) {}
+                    if ((window as any).electronAPI?.clearAuth) {
+                      try {
+                        await (window as any).electronAPI.clearAuth();
+                      } catch (_) {}
+                    }
                     try {
                       await signOut();
                     } catch (err) {

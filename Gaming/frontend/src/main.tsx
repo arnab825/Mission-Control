@@ -18,6 +18,80 @@ window.addEventListener('unhandledrejection', (event) => {
 const PUBLISHABLE_KEY = import.meta.env.VITE_CLERK_PUBLISHABLE_KEY;
 
 /**
+ * Robustly extracts user profile data across all camelCase (Clerk SDK) and snake_case (raw JSON) properties.
+ */
+function extractClerkUserData(clerkInstance: any, directUser?: any) {
+  const client = clerkInstance?.client;
+  const activeSession =
+    clerkInstance?.session ||
+    client?.sessions?.[0] ||
+    (client as any)?.signedInSessions?.[0];
+
+  const sessId = activeSession?.id || client?.lastActiveSessionId || '';
+  const rawUser =
+    directUser ||
+    clerkInstance?.user ||
+    activeSession?.user ||
+    (client as any)?.users?.[0] ||
+    client?.sessions?.[0]?.user;
+
+  const email =
+    rawUser?.primaryEmailAddress?.emailAddress ||
+    rawUser?.emailAddresses?.[0]?.emailAddress ||
+    rawUser?.email_addresses?.[0]?.email_address ||
+    rawUser?.primary_email_address?.email_address ||
+    rawUser?.email ||
+    rawUser?.emailAddress ||
+    '';
+
+  const username =
+    rawUser?.username ||
+    rawUser?.user_name ||
+    rawUser?.name ||
+    (email ? email.split('@')[0] : 'Operative');
+
+  const firstName =
+    rawUser?.firstName ||
+    rawUser?.first_name ||
+    (username ? username.split(' ')[0] : 'Operative');
+
+  const lastName =
+    rawUser?.lastName ||
+    rawUser?.last_name ||
+    '';
+
+  const imageUrl =
+    rawUser?.imageUrl ||
+    rawUser?.image_url ||
+    rawUser?.profileImageUrl ||
+    rawUser?.profile_image_url ||
+    rawUser?.avatarUrl ||
+    '';
+
+  const userId =
+    rawUser?.id ||
+    rawUser?.userId ||
+    rawUser?.user_id ||
+    '';
+
+  const externalAccounts =
+    rawUser?.externalAccounts ||
+    rawUser?.external_accounts ||
+    [];
+
+  return {
+    sessionId: sessId,
+    userId,
+    userEmail: email,
+    username,
+    firstName,
+    lastName,
+    imageUrl,
+    externalAccounts,
+  };
+}
+
+/**
  * Handles the OAuth callback route (/sso-callback).
  * Explicitly resolves the Clerk handshake promise, provides instant visual feedback,
  * and notifies Electron to close the popup seamlessly.
@@ -54,29 +128,9 @@ const SSOCallback: React.FC = () => {
       return;
     }
 
-    const syncToDesktop = async () => {
+    const syncToDesktop = async (payload: any) => {
+      if (!payload) return;
       try {
-        const activeSession = clerk.session || clerk.client?.sessions?.[0] || clerk.client?.signedInSessions?.[0];
-        const sessId = activeSession?.id || clerk.client?.lastActiveSessionId || '';
-        if (activeSession && !clerk.session && clerk.setActive) {
-          try {
-            await clerk.setActive({ session: activeSession.id });
-          } catch (_) {}
-        }
-        const token = await (activeSession?.getToken?.() || clerk.session?.getToken?.());
-        const currentUser = activeSession?.user || clerk.user;
-        const payload = {
-          sessionId: sessId,
-          token,
-          userId: currentUser?.id,
-          userEmail: currentUser?.primaryEmailAddress?.emailAddress,
-          username: currentUser?.username,
-          firstName: currentUser?.firstName,
-          lastName: currentUser?.lastName,
-          imageUrl: currentUser?.imageUrl,
-          storage: { ...window.localStorage },
-          cookies: document.cookie,
-        };
         const endpoints = [
           'http://127.0.0.1:43221/api/browser-auth/complete',
           'http://localhost:43221/api/browser-auth/complete',
@@ -99,37 +153,63 @@ const SSOCallback: React.FC = () => {
       try {
         console.log('[SSOCallback] Finalizing OAuth redirect handshake...');
         await (clerk as any).handleRedirectCallback({
-          fallbackRedirectUrl: isPopup ? '/?auth_completed=1' : '/',
-          signInFallbackRedirectUrl: isPopup ? '/?auth_completed=1' : '/',
-          signUpFallbackRedirectUrl: isPopup ? '/?auth_completed=1' : '/',
+          customNavigate: () => {},
+          fallbackRedirectUrl: '/?browser_auth=1&auth_completed=1',
+          signInFallbackRedirectUrl: '/?browser_auth=1&auth_completed=1',
+          signUpFallbackRedirectUrl: '/?browser_auth=1&auth_completed=1',
+          afterSignInUrl: '/?browser_auth=1&auth_completed=1',
+          afterSignUpUrl: '/?browser_auth=1&auth_completed=1',
         });
 
         if (isCancelled) return;
         console.log('[SSOCallback] OAuth handshake succeeded!');
         setAuthStatus('success');
 
-        if (isPopup) {
-          const activeSession = clerk.session || clerk.client?.sessions?.[0] || clerk.client?.signedInSessions?.[0];
-          const sessId = activeSession?.id || clerk.client?.lastActiveSessionId || '';
-          if (activeSession && !clerk.session && clerk.setActive) {
-            try {
-              await clerk.setActive({ session: activeSession.id });
-            } catch (_) {}
+        // Reload Clerk client to pull freshly created session and user records from Clerk API
+        let client = clerk.client;
+        try {
+          if (clerk.client?.reload) {
+            client = await clerk.client.reload();
           }
-          const token = await (activeSession?.getToken?.() || clerk.session?.getToken?.());
-          const currentUser = activeSession?.user || clerk.user;
-          const payload = {
-            sessionId: sessId,
-            token,
-            userId: currentUser?.id,
-            userEmail: currentUser?.primaryEmailAddress?.emailAddress,
-            username: currentUser?.username,
-            firstName: currentUser?.firstName,
-            lastName: currentUser?.lastName,
-            imageUrl: currentUser?.imageUrl,
-            storage: { ...window.localStorage },
-            cookies: document.cookie,
-          };
+        } catch (e) {
+          console.warn('[SSOCallback] client.reload warning:', e);
+        }
+
+        const activeSession =
+          clerk.session ||
+          client?.sessions?.[0] ||
+          (client as any)?.signedInSessions?.[0];
+
+        // Activate session in current browser context
+        if (activeSession && clerk.setActive) {
+          try {
+            await clerk.setActive({ session: activeSession.id });
+          } catch (_) {}
+        }
+
+        // Wait up to 3 seconds for user profile data (email, name, avatar) to hydrate
+        let userFields = extractClerkUserData(clerk);
+        for (let i = 0; i < 10; i++) {
+          if (userFields.userEmail || userFields.userId) break;
+          await new Promise((r) => setTimeout(r, 250));
+          try {
+            if (clerk.client?.reload) {
+              client = await clerk.client.reload();
+            }
+          } catch (_) {}
+          userFields = extractClerkUserData(clerk);
+        }
+
+        const token = await (activeSession?.getToken?.() || clerk.session?.getToken?.());
+
+        const payload = {
+          ...userFields,
+          token,
+          storage: { ...window.localStorage },
+          cookies: document.cookie,
+        };
+
+        if (isPopup) {
           if (window.electronAPI?.notifyAuthSuccess) {
             window.electronAPI.notifyAuthSuccess(payload);
           }
@@ -140,11 +220,11 @@ const SSOCallback: React.FC = () => {
             window.close();
           } catch (_) { }
         } else {
-          await syncToDesktop();
+          await syncToDesktop(payload);
           try {
-            const activeSession = clerk.session || clerk.client?.sessions?.[0] || clerk.client?.signedInSessions?.[0];
-            const sessId = activeSession?.id || clerk.client?.lastActiveSessionId || '';
-            window.location.href = `mission-control://auth-completed?session_id=${encodeURIComponent(sessId)}`;
+            const fullName = `${userFields.firstName} ${userFields.lastName}`.trim() || userFields.username;
+            const deepLinkUrl = `mission-control://auth-completed?session_id=${encodeURIComponent(userFields.sessionId)}&user_id=${encodeURIComponent(userFields.userId)}&email=${encodeURIComponent(userFields.userEmail)}&username=${encodeURIComponent(userFields.username)}&name=${encodeURIComponent(fullName)}&image_url=${encodeURIComponent(userFields.imageUrl)}${token ? `&token=${encodeURIComponent(token)}` : ''}`;
+            window.location.href = deepLinkUrl;
           } catch (_) {}
           window.location.replace('/?browser_auth=1&auth_completed=1');
         }
@@ -156,9 +236,29 @@ const SSOCallback: React.FC = () => {
         if (clerk.session || clerk.client?.lastActiveSessionId) {
           console.log('[SSOCallback] Active session confirmed, proceeding as success.');
           setAuthStatus('success');
+          try {
+            if (clerk.client?.reload) {
+              await clerk.client.reload();
+            }
+          } catch (_) {}
+
+          const userFields = extractClerkUserData(clerk);
+          const activeSession =
+            clerk.session ||
+            clerk.client?.sessions?.[0] ||
+            (clerk.client as any)?.signedInSessions?.[0];
+          const token = await (activeSession?.getToken?.() || clerk.session?.getToken?.());
+
+          const payload = {
+            ...userFields,
+            token,
+            storage: { ...window.localStorage },
+            cookies: document.cookie,
+          };
+
           if (isPopup) {
             if (window.electronAPI?.notifyAuthSuccess) {
-              window.electronAPI.notifyAuthSuccess();
+              window.electronAPI.notifyAuthSuccess(payload);
             }
             if (window.electronAPI?.closeAuthPopup) {
               window.electronAPI.closeAuthPopup();
@@ -167,10 +267,11 @@ const SSOCallback: React.FC = () => {
               window.close();
             } catch (_) { }
           } else {
-            await syncToDesktop();
+            await syncToDesktop(payload);
             try {
-              const sessId = clerk.session?.id || clerk.client?.lastActiveSessionId || '';
-              window.location.href = `mission-control://auth-completed?session_id=${encodeURIComponent(sessId)}`;
+              const fullName = `${userFields.firstName} ${userFields.lastName}`.trim() || userFields.username;
+              const deepLinkUrl = `mission-control://auth-completed?session_id=${encodeURIComponent(userFields.sessionId)}&user_id=${encodeURIComponent(userFields.userId)}&email=${encodeURIComponent(userFields.userEmail)}&username=${encodeURIComponent(userFields.username)}&name=${encodeURIComponent(fullName)}&image_url=${encodeURIComponent(userFields.imageUrl)}${token ? `&token=${encodeURIComponent(token)}` : ''}`;
+              window.location.href = deepLinkUrl;
             } catch (_) {}
             window.location.replace('/?browser_auth=1&auth_completed=1');
           }
@@ -180,6 +281,7 @@ const SSOCallback: React.FC = () => {
         setAuthStatus('error');
         setErrorMessage(
           err?.errors?.[0]?.longMessage ||
+          err?.errors?.[0]?.message ||
           err?.message ||
           'Authentication verification failed. Please try again.'
         );

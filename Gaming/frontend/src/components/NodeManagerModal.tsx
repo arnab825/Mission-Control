@@ -420,8 +420,41 @@ const NodeCard: React.FC<{
 
 const NodeManagerModal: React.FC<NodeManagerModalProps> = ({ onClose, sendCommand }) => {
   const { userId } = useAuth();
-  const [nodes, setNodes] = useState<LibraryNode[]>([]);
-  const [loading, setLoading] = useState(true);
+  const [nodes, setNodes] = useState<LibraryNode[]>(() => {
+    try {
+      if (typeof window !== 'undefined') {
+        const cached = localStorage.getItem('mc_cached_nodes_fleet');
+        if (cached) {
+          const parsed = JSON.parse(cached);
+          if (Array.isArray(parsed) && parsed.length > 0) return parsed;
+        }
+      }
+    } catch (_) {}
+    return [
+      {
+        node_id: 'LOCAL-HOST',
+        name: 'This PC (Host Node)',
+        hostname: 'Localhost',
+        ip: '127.0.0.1',
+        platform: 'Windows',
+        status: 'online',
+        storage_total: 1000 * 1024 * 1024 * 1024,
+        storage_used: 420 * 1024 * 1024 * 1024,
+        storage_free: 580 * 1024 * 1024 * 1024,
+        scan_paths: [
+          'C:\\Program Files (x86)\\Steam\\steamapps\\common',
+          'C:\\Program Files\\Epic Games',
+          'C:\\GOG Games',
+        ],
+        last_heartbeat: new Date().toISOString(),
+        last_sync: new Date().toISOString(),
+        version: '3.8.9',
+        game_count: 5,
+        is_local: true,
+      },
+    ];
+  });
+  const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [registering, setRegistering] = useState(false);
 
@@ -505,6 +538,11 @@ const NodeManagerModal: React.FC<NodeManagerModalProps> = ({ onClose, sendComman
       }
 
       setNodes(combined);
+      try {
+        if (typeof window !== 'undefined') {
+          localStorage.setItem('mc_cached_nodes_fleet', JSON.stringify(combined));
+        }
+      } catch (_) {}
       setError(null);
     } catch (e: any) {
       setError(e.message || 'Cannot reach library server.');
@@ -514,11 +552,16 @@ const NodeManagerModal: React.FC<NodeManagerModalProps> = ({ onClose, sendComman
   }, [userId, sendCommand]);
 
   useEffect(() => {
-    fetchNodes(true);
+    const tInit = setTimeout(() => {
+      fetchNodes(false);
+    }, 100);
     const t = setInterval(() => {
       fetchNodes(false);
     }, 15000);
-    return () => clearInterval(t);
+    return () => {
+      clearTimeout(tInit);
+      clearInterval(t);
+    };
   }, [fetchNodes]);
 
   const handleRegisterThisPC = useCallback(async () => {
@@ -611,20 +654,21 @@ const NodeManagerModal: React.FC<NodeManagerModalProps> = ({ onClose, sendComman
     <div className="fixed inset-0 z-200 flex items-center justify-center p-3 sm:p-5 md:p-8 overflow-hidden">
       {/* Cinematic backdrop */}
       <motion.div
-        className="absolute inset-0 bg-black/80 backdrop-blur-xl transform-gpu"
+        className="absolute inset-0 bg-black/80 backdrop-blur-sm transform-gpu will-change-opacity"
         initial={{ opacity: 0 }}
         animate={{ opacity: 1 }}
         exit={{ opacity: 0 }}
+        transition={{ duration: 0.18, ease: 'easeOut' }}
         onClick={onClose}
       />
 
       {/* Main Glassmorphic Modal */}
       <motion.div
-        className="relative z-10 w-full max-w-4xl max-h-[90vh] bg-zinc-950/90 border border-white/10 rounded-3xl shadow-[0_25px_80px_rgba(0,0,0,0.95)] flex flex-col overflow-hidden backdrop-blur-2xl transform-gpu will-change-transform"
-        initial={{ opacity: 0, scale: 0.95, y: 15 }}
+        className="relative z-10 w-full max-w-4xl max-h-[90vh] bg-zinc-950/98 border border-white/10 rounded-3xl shadow-[0_25px_80px_rgba(0,0,0,0.95)] flex flex-col overflow-hidden transform-gpu will-change-transform will-change-opacity"
+        initial={{ opacity: 0, scale: 0.97, y: 10 }}
         animate={{ opacity: 1, scale: 1, y: 0 }}
-        exit={{ opacity: 0, scale: 0.95, y: 15 }}
-        transition={{ type: 'spring', damping: 25, stiffness: 300 }}
+        exit={{ opacity: 0, scale: 0.97, y: 8 }}
+        transition={{ duration: 0.22, ease: [0.16, 1, 0.3, 1] }}
       >
         {/* Soft atmospheric glow accents */}
         <div className="absolute -top-32 -left-32 w-80 h-80 bg-neon-green/10 rounded-full blur-[100px] pointer-events-none" />

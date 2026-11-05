@@ -545,7 +545,15 @@ const SystemPage: React.FC<SystemPageProps> = ({
   // Fetch session history when entering Intel tab
   useEffect(() => {
     if (viewMode === 'intel' && sendCommand) {
-      sendCommand('get_session_history', { userId: 'guest' });
+      let activeUid = 'guest';
+      try {
+        const raw = localStorage.getItem('mc_authenticated_user');
+        if (raw) {
+          const u = JSON.parse(raw);
+          if (u.id) activeUid = u.id;
+        }
+      } catch (_) {}
+      sendCommand('get_session_history', { userId: activeUid });
     }
   }, [viewMode, sendCommand]);
 

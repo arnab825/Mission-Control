@@ -89,7 +89,9 @@ const App: React.FC = () => {
   const isBrowserAuth =
     typeof window !== 'undefined' &&
     (new URLSearchParams(window.location.search).get('browser_auth') === '1' ||
-      new URLSearchParams(window.location.search).get('auth_mode') === 'browser');
+      new URLSearchParams(window.location.search).get('auth_mode') === 'browser' ||
+      new URLSearchParams(window.location.search).get('auth_completed') === '1' ||
+      !(window as any).electronAPI);
   const isAuthCompleted = typeof window !== 'undefined' && new URLSearchParams(window.location.search).get('auth_completed') === '1';
   const [authPopupError, setAuthPopupError] = useState<string | null>(null);
   const [authPopupRetryCount, setAuthPopupRetryCount] = useState<number>(0);
@@ -212,13 +214,6 @@ const App: React.FC = () => {
           redirectUrl: `${origin}/sso-callback?popup=1`,
           redirectUrlComplete: `${origin}/?auth_completed=1`,
         };
-        if (strategy === 'oauth_google') {
-          options.additionalData = { prompt: 'select_account' };
-          options.customOAuthOptions = { prompt: 'select_account' };
-        } else if (strategy === 'oauth_discord') {
-          options.additionalData = { prompt: 'consent' };
-          options.customOAuthOptions = { prompt: 'consent' };
-        }
 
         console.log(`[AuthPopup] Triggering ${mode} OAuth redirect for ${strategy}...`);
         try {
@@ -302,22 +297,35 @@ const App: React.FC = () => {
       const params = new URLSearchParams(window.location.search);
       const mode = params.get('mode') || 'login';
 
+      // If linking secondary provider to existing signed-in user
+      if (mode === 'link' && user) {
+        try {
+          const ext = await user.createExternalAccount({
+            strategy,
+            redirectUrl: `${origin}/sso-callback`,
+          });
+          const verification = (ext as any)?.verification;
+          const redirectUrl =
+            verification?.externalVerificationRedirectURL?.toString() ||
+            verification?.externalVerificationRedirectUrl?.toString();
+          if (redirectUrl) {
+            window.location.href = redirectUrl;
+            return;
+          }
+        } catch (linkErr: any) {
+          console.error('[BrowserAuth] External account link failed:', linkErr);
+          throw linkErr;
+        }
+      }
+
       // CRITICAL: redirectUrl must be clean (${origin}/sso-callback) with NO dynamic query parameters.
       // Dynamic query parameters in redirectUrl cause OAuth provider redirect_uri_mismatch errors.
       // Dynamic parameters belong in redirectUrlComplete, where Clerk navigates after success.
-      const options: any = {
+      const options = {
         strategy,
         redirectUrl: `${origin}/sso-callback`,
         redirectUrlComplete: `${origin}/?browser_auth=1&auth_completed=1`,
       };
-
-      if (strategy === 'oauth_google') {
-        options.additionalData = { prompt: 'select_account' };
-        options.customOAuthOptions = { prompt: 'select_account' };
-      } else if (strategy === 'oauth_discord') {
-        options.additionalData = { prompt: 'consent' };
-        options.customOAuthOptions = { prompt: 'consent' };
-      }
 
       if (mode === 'signup' && signUp) {
         await signUp.authenticateWithRedirect(options);
@@ -325,9 +333,14 @@ const App: React.FC = () => {
         try {
           await signIn.authenticateWithRedirect(options);
         } catch (signInErr: any) {
-          console.warn('[BrowserAuth] signIn redirect failed, trying signUp fallback:', signInErr);
+          console.warn('[BrowserAuth] signIn redirect failed, trying signOut retry or signUp:', signInErr);
+          try {
+            await clerk.signOut();
+          } catch (_) {}
           if (signUp) {
             await signUp.authenticateWithRedirect(options);
+          } else if (signIn) {
+            await signIn.authenticateWithRedirect(options);
           } else {
             throw signInErr;
           }
@@ -344,6 +357,7 @@ const App: React.FC = () => {
       setBrowserAuthLoading(null);
       setBrowserAuthError(
         err?.errors?.[0]?.longMessage ||
+        err?.errors?.[0]?.message ||
         err?.message ||
         'Failed to connect to authentication provider. Please try again.'
       );
@@ -352,16 +366,72 @@ const App: React.FC = () => {
 
   // Auto-initiate OAuth redirect when landing on browser auth portal with specified strategy.
   useEffect(() => {
-    if (!isBrowserAuth || isSignedIn || !clerk.loaded || (!isSignInLoaded && !isSignUpLoaded)) return;
+    if (!isBrowserAuth || !clerk.loaded) return;
     const params = new URLSearchParams(window.location.search);
     const strategy = params.get('strategy') as 'oauth_google' | 'oauth_discord' | null;
-    if (!strategy) return;
+    const mode = params.get('mode') || 'login';
+    const isAuthCompleted = params.get('auth_completed') === '1';
+    if (!strategy || isAuthCompleted) return;
 
+    // Check if the currently signed in user matches the requested strategy
+    if (isSignedIn && user) {
+      if (mode === 'link') {
+        const initiateLink = async () => {
+          try {
+            setBrowserAuthLoading(strategy);
+            const ext = await user.createExternalAccount({
+              strategy,
+              redirectUrl: `${window.location.origin}/sso-callback`,
+            });
+            const verification = (ext as any)?.verification;
+            const redirectUrl =
+              verification?.externalVerificationRedirectURL?.toString() ||
+              verification?.externalVerificationRedirectUrl?.toString();
+            if (redirectUrl) {
+              window.location.href = redirectUrl;
+            }
+          } catch (err: any) {
+            console.error('[BrowserAuth] Failed to link external account:', err);
+            setBrowserAuthError(err?.errors?.[0]?.longMessage || err?.message || 'Failed to link account.');
+            setBrowserAuthLoading(null);
+          }
+        };
+        const t = setTimeout(initiateLink, 350);
+        return () => clearTimeout(t);
+      }
+
+      const activeProvider = localStorage.getItem('mission_control_active_provider') || '';
+      const providerKey = strategy.replace('oauth_', '');
+      const hasGoogleExt = user.externalAccounts?.some((a) => (a.provider || '').replace('oauth_', '') === 'google');
+      const hasDiscordExt = user.externalAccounts?.some((a) => (a.provider || '').replace('oauth_', '') === 'discord');
+
+      const isAlreadyOnThisStrategy =
+        (providerKey === 'google' && activeProvider.includes('google') && hasGoogleExt) ||
+        (providerKey === 'discord' && activeProvider.includes('discord') && hasDiscordExt);
+
+      if (isAlreadyOnThisStrategy && mode !== 'switch') {
+        // Already on this provider, let syncToDesktop handle it
+        return;
+      }
+
+      // If user requested a DIFFERENT provider (e.g. was on Google, clicked Discord) or mode === 'switch':
+      // We must sign out first so the new provider OAuth flow can start cleanly
+      const initiateSwitch = async () => {
+        try {
+          await clerk.signOut();
+        } catch (_) {}
+        handleBrowserOAuth(strategy);
+      };
+      const t = setTimeout(initiateSwitch, 350);
+      return () => clearTimeout(t);
+    }
+
+    if (!isSignInLoaded && !isSignUpLoaded) return;
     const t = setTimeout(() => {
       handleBrowserOAuth(strategy);
     }, 350);
     return () => clearTimeout(t);
-  }, [isBrowserAuth, isSignedIn, clerk.loaded, isSignInLoaded, isSignUpLoaded]);
+  }, [isBrowserAuth, isSignedIn, user, clerk.loaded, isSignInLoaded, isSignUpLoaded]);
 
   // Synchronize browser authentication session to desktop application.
   //
@@ -380,20 +450,91 @@ const App: React.FC = () => {
 
     const syncToDesktop = async () => {
       try {
-        const activeSession = clerk.session || clerk.client?.sessions?.[0] || (clerk.client as any)?.signedInSessions?.[0];
-        const sessId = activeSession?.id || clerk.client?.lastActiveSessionId || '';
+        let client = clerk.client;
+        try {
+          if (clerk.client?.reload) {
+            client = await clerk.client.reload();
+          }
+        } catch (_) {}
+
+        const activeSession =
+          clerk.session ||
+          client?.sessions?.[0] ||
+          (client as any)?.signedInSessions?.[0];
+
+        const sessId = activeSession?.id || client?.lastActiveSessionId || '';
         if (activeSession && !clerk.session && clerk.setActive) {
           try {
             await clerk.setActive({ session: activeSession.id });
           } catch (_) {}
         }
         const token = await (activeSession?.getToken?.() || clerk.session?.getToken?.());
-        const currentUser = user || activeSession?.user || clerk.user;
+        const currentUser: any = user || clerk.user || activeSession?.user || (client as any)?.users?.[0] || client?.sessions?.[0]?.user;
+
+        const email =
+          currentUser?.primaryEmailAddress?.emailAddress ||
+          currentUser?.emailAddresses?.[0]?.emailAddress ||
+          currentUser?.email_addresses?.[0]?.email_address ||
+          currentUser?.primary_email_address?.email_address ||
+          currentUser?.email ||
+          currentUser?.emailAddress ||
+          '';
+
+        const username =
+          currentUser?.username ||
+          currentUser?.user_name ||
+          currentUser?.name ||
+          (email ? email.split('@')[0] : 'Operative');
+
+        const firstName =
+          currentUser?.firstName ||
+          currentUser?.first_name ||
+          (username ? username.split(' ')[0] : 'Operative');
+
+        const lastName =
+          currentUser?.lastName ||
+          currentUser?.last_name ||
+          '';
+
+        const imageUrl =
+          currentUser?.imageUrl ||
+          currentUser?.image_url ||
+          currentUser?.profileImageUrl ||
+          currentUser?.profile_image_url ||
+          currentUser?.avatarUrl ||
+          '';
+
+        const userId =
+          currentUser?.id ||
+          currentUser?.userId ||
+          currentUser?.user_id ||
+          '';
+
+        const externalAccounts =
+          currentUser?.externalAccounts ||
+          currentUser?.external_accounts ||
+          [];
+
+        const urlStrategy = new URLSearchParams(window.location.search).get('strategy');
+        const storedProvider = localStorage.getItem('mission_control_active_provider');
+        const candidateProvider = (urlStrategy || storedProvider || '').toLowerCase();
+        const activeProvider = candidateProvider.includes('google')
+          ? 'oauth_google'
+          : (candidateProvider.includes('discord')
+              ? 'oauth_discord'
+              : (externalAccounts?.some((a: any) => (a.provider || '').includes('google')) ? 'oauth_google' : 'oauth_discord'));
+
         const payload = {
           sessionId: sessId,
           token,
-          userId: currentUser?.id,
-          userEmail: currentUser?.primaryEmailAddress?.emailAddress,
+          userId,
+          userEmail: email,
+          username,
+          firstName,
+          lastName,
+          imageUrl,
+          provider: activeProvider,
+          externalAccounts,
           storage: { ...window.localStorage },
           cookies: document.cookie,
         };
@@ -416,9 +557,11 @@ const App: React.FC = () => {
           } catch (_) {}
         }
 
-        // Now navigate via the deep link — Electron already processed the POST
+        // Now navigate via the deep link with full profile payload
         try {
-          window.location.href = `mission-control://auth-completed?session_id=${encodeURIComponent(sessId)}`;
+          const fullName = `${firstName} ${lastName}`.trim() || username;
+          const deepLinkUrl = `mission-control://auth-completed?session_id=${encodeURIComponent(sessId)}&user_id=${encodeURIComponent(userId)}&email=${encodeURIComponent(email)}&username=${encodeURIComponent(username)}&name=${encodeURIComponent(fullName)}&image_url=${encodeURIComponent(imageUrl)}&provider=${encodeURIComponent(activeProvider)}${token ? `&token=${encodeURIComponent(token)}` : ''}`;
+          window.location.href = deepLinkUrl;
         } catch (_) {}
       } catch (_) {}
     };
@@ -437,6 +580,21 @@ const App: React.FC = () => {
     }
   }, []);
 
+  // Listen for auth cleared event from Electron main process
+  useEffect(() => {
+    if (window.electronAPI?.onAuthCleared) {
+      return window.electronAPI.onAuthCleared(() => {
+        try {
+          localStorage.removeItem('mc_authenticated_user');
+          localStorage.removeItem('mission_control_active_provider');
+          document.cookie = '__session=; path=/; max-age=0; expires=Thu, 01 Jan 1970 00:00:00 GMT';
+          document.cookie = '__client_uat=0; path=/; max-age=0; expires=Thu, 01 Jan 1970 00:00:00 GMT';
+          window.dispatchEvent(new Event('mc-auth-state-changed'));
+        } catch (_) {}
+      });
+    }
+  }, []);
+
   // Listen for auth completion from popup or browser in the main window
   useEffect(() => {
     if (window.electronAPI?.onAuthCompleted) {
@@ -447,6 +605,12 @@ const App: React.FC = () => {
         // Immediately persist cached user information for instant offline/online UI responsiveness
         try {
           if (payload?.userEmail || payload?.userId || payload?.sessionId) {
+            const rawPayloadProvider = (payload.provider || localStorage.getItem('mission_control_active_provider') || '').toLowerCase();
+            const provider = rawPayloadProvider.includes('google')
+              ? 'oauth_google'
+              : (rawPayloadProvider.includes('discord')
+                  ? 'oauth_discord'
+                  : (payload.externalAccounts?.some((a: any) => (a.provider || '').includes('google')) ? 'oauth_google' : 'oauth_discord'));
             const cached = {
               id: payload.userId || '',
               email: payload.userEmail || '',
@@ -455,8 +619,22 @@ const App: React.FC = () => {
               firstName: payload.firstName || '',
               lastName: payload.lastName || '',
               imageUrl: payload.imageUrl || '',
+              provider,
+              externalAccounts: payload.externalAccounts || (provider.includes('discord') ? [{ provider: 'discord', emailAddress: payload.userEmail }] : [{ provider: 'google', emailAddress: payload.userEmail }]),
             };
             localStorage.setItem('mc_authenticated_user', JSON.stringify(cached));
+            localStorage.setItem('mission_control_active_provider', provider);
+
+            // Maintain saved accounts list for multi-account switching
+            try {
+              const rawList = localStorage.getItem('mc_saved_accounts');
+              let list = rawList ? JSON.parse(rawList) : [];
+              list = list.filter((a: any) => a.id !== cached.id && a.email !== cached.email);
+              list.unshift({ ...cached, token: payload.token, lastActive: Date.now() });
+              localStorage.setItem('mc_saved_accounts', JSON.stringify(list.slice(0, 5)));
+            } catch (_) {}
+
+            window.dispatchEvent(new Event('mc-auth-state-changed'));
           }
           if (payload?.token) {
             const uat = Math.floor(Date.now() / 1000).toString();
@@ -655,12 +833,42 @@ const App: React.FC = () => {
     }
   }, [state?.launch_status]);
 
+  const cachedUser = React.useMemo(() => {
+    try {
+      const raw = localStorage.getItem('mc_authenticated_user');
+      return raw ? JSON.parse(raw) : null;
+    } catch (_) {
+      return null;
+    }
+  }, [userId]);
+
+  // Resolve effective active user ID immediately from either Clerk or cached session
+  const effectiveActiveUserId = React.useMemo(() => {
+    if (userId) return userId;
+    return cachedUser?.id || undefined;
+  }, [userId, cachedUser]);
+
+  // Sync active user to Python backend pipeline on connection or account switch
+  useEffect(() => {
+    if (connected && effectiveActiveUserId) {
+      const email = (cachedUser?.email || user?.primaryEmailAddress?.emailAddress || '').toLowerCase();
+      const rawStored = typeof window !== 'undefined' ? localStorage.getItem('mission_control_active_provider') : null;
+      const activeProvider = cachedUser?.provider || (email.includes('@gmail.') ? 'google' : (rawStored || 'guest'));
+      sendCommand('set_active_user', {
+        userId: effectiveActiveUserId,
+        email,
+        provider: activeProvider,
+        username: cachedUser?.username || user?.username || '',
+      });
+    }
+  }, [connected, effectiveActiveUserId, sendCommand, cachedUser, user]);
+
   // Auto-trigger library scan and auto-enable E2E encryption for authenticated users on first login
   useEffect(() => {
-    if (!isHUDWindow && isSignedIn && userId && connected && state?.config) {
-      const initKey = `has_initialized_v2_${userId}`;
+    if (!isHUDWindow && (isSignedIn || effectiveActiveUserId) && effectiveActiveUserId && connected && state?.config) {
+      const initKey = `has_initialized_v2_${effectiveActiveUserId}`;
       if (!localStorage.getItem(initKey)) {
-        sendCommand('scan_games', { userId });
+        sendCommand('scan_games', { userId: effectiveActiveUserId });
 
         // Auto-enable E2E encryption
         const updatedPrivacy = { ...state.config.privacy, enabled: true };
@@ -669,7 +877,7 @@ const App: React.FC = () => {
         localStorage.setItem(initKey, 'true');
       }
     }
-  }, [isSignedIn, userId, connected, sendCommand, state?.config]);
+  }, [isSignedIn, effectiveActiveUserId, connected, sendCommand, state?.config, isHUDWindow]);
 
   // Reset scan overlay dismissal when scanning finishes
   useEffect(() => {
@@ -680,18 +888,15 @@ const App: React.FC = () => {
   }, [state?.scan_state?.is_running]);
 
   // Synchronize game library cached games with the backend.
-  // Fires when: (1) connected first time, (2) userId changes (login/logout), (3) isSignedIn resolves after async auth.
-  // We include isSignedIn in the dep array specifically to handle the case where the component mounts
-  // before Clerk has resolved auth — this ensures we re-request once auth state settles.
+  // Fires when: (1) connected first time, (2) userId changes (login/logout/switch), (3) isSignedIn resolves after async auth.
   const lastLibraryRequestRef = React.useRef<string>('');
   useEffect(() => {
     if (!connected || isHUDWindow) return;
-    // Build a stable key so we don't spam the same request
-    const reqKey = `${isSignedIn ? '1' : '0'}_${userId || 'guest'}`;
+    const reqKey = `${effectiveActiveUserId || 'guest'}`;
     if (lastLibraryRequestRef.current === reqKey) return;
     lastLibraryRequestRef.current = reqKey;
-    sendCommand('get_cached_games', { userId: userId || undefined, forceRefresh: false });
-  }, [userId, isSignedIn, connected, sendCommand, isHUDWindow]);
+    sendCommand('get_cached_games', { userId: effectiveActiveUserId, forceRefresh: false });
+  }, [effectiveActiveUserId, connected, sendCommand, isHUDWindow]);
 
   // Synchronize game active focus shifts to Electron for automatic z-order assertion & HUD auto-spawn
   useEffect(() => {
@@ -808,45 +1013,120 @@ const App: React.FC = () => {
     );
   }
 
-  // Dedicated Browser Authentication Completion View
-  if (isBrowserAuth && (isAuthCompleted || (isSignedIn && user))) {
-    return (
-      <div className="w-screen h-screen flex flex-col items-center justify-center bg-zinc-950 text-white font-['Inter',system-ui,sans-serif] p-6 select-none relative overflow-hidden">
-        <div className="absolute w-96 h-96 rounded-full blur-[140px] pointer-events-none opacity-20 bg-neon-green" />
-        <div className="relative z-10 flex flex-col items-center max-w-md text-center bg-zinc-900/80 backdrop-blur-2xl border border-white/10 rounded-3xl p-8 shadow-2xl">
-          <div className="w-16 h-16 rounded-2xl bg-neon-green/10 border border-neon-green/30 flex items-center justify-center text-neon-green shadow-[0_0_30px_rgba(118,185,0,0.3)] mb-5">
-            <svg className="w-8 h-8" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M5 13l4 4L19 7" />
-            </svg>
+  // DEDICATED BROWSER AUTHENTICATION VIEWS (External System Browser)
+  // When running in an external browser for authentication, NEVER render the desktop dashboard.
+  if (isBrowserAuth) {
+    if (!clerk.loaded) {
+      return (
+        <div className="w-screen h-screen flex flex-col items-center justify-center bg-zinc-950 text-white font-['Inter',system-ui,sans-serif] p-6 select-none relative overflow-hidden">
+          <div className="absolute w-96 h-96 rounded-full blur-[140px] pointer-events-none opacity-20 bg-neon-green" />
+          <div className="relative z-10 flex flex-col items-center max-w-md text-center bg-zinc-900/80 backdrop-blur-2xl border border-white/10 rounded-3xl p-8 shadow-2xl">
+            <Loader2 className="w-8 h-8 animate-spin text-neon-green mb-3" />
+            <h2 className="text-sm font-black uppercase tracking-widest text-zinc-200 mb-1">
+              Mission Control Gateway
+            </h2>
+            <p className="text-xs text-zinc-500 font-medium">
+              Connecting to authentication services…
+            </p>
           </div>
-          <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-neon-green/10 border border-neon-green/20 text-neon-green text-[10px] font-black uppercase tracking-widest mb-3">
-            <span>Failsafe Handshake Complete</span>
-          </div>
-          <h2 className="text-xl font-black uppercase tracking-tight text-white mb-2">
-            Authentication Successful
-          </h2>
-          <p className="text-xs text-zinc-400 font-medium mb-6 leading-relaxed">
-            Connected to Mission Control as <span className="text-zinc-200 font-bold">{user?.primaryEmailAddress?.emailAddress || user?.username || 'Authenticated Node'}</span>. Your session has been synchronized to the desktop application.
-          </p>
-
-          <a
-            href={`mission-control://auth-completed?session_id=${encodeURIComponent(clerk.session?.id || clerk.client?.lastActiveSessionId || '')}`}
-            className="w-full py-3.5 px-6 rounded-xl bg-neon-green text-black font-black uppercase tracking-widest text-xs hover:bg-neon-green/90 transition-all shadow-[0_0_25px_rgba(118,185,0,0.3)] hover:scale-105 active:scale-95 flex items-center justify-center gap-2 cursor-pointer mb-3"
-          >
-            <Sparkles className="w-4 h-4 fill-black text-black" />
-            <span>Return to Mission Control</span>
-          </a>
-
-          <p className="text-[11px] text-zinc-500">
-            You can safely close this browser window or tab.
-          </p>
         </div>
-      </div>
-    );
-  }
+      );
+    }
 
-  // Dedicated Browser Authentication Portal View (External Browser Landing)
-  if (isBrowserAuth && !isSignedIn) {
+    if (isAuthCompleted || (isSignedIn && user)) {
+      const displayName =
+        user?.fullName ||
+        `${user?.firstName || ''} ${user?.lastName || ''}`.trim() ||
+        user?.primaryEmailAddress?.emailAddress ||
+        user?.username ||
+        'Authenticated Operative';
+      const displayEmail =
+        user?.primaryEmailAddress?.emailAddress ||
+        user?.emailAddresses?.[0]?.emailAddress ||
+        '';
+
+      return (
+        <div className="w-screen h-screen flex flex-col items-center justify-center bg-zinc-950 text-white font-['Inter',system-ui,sans-serif] p-6 select-none relative overflow-hidden">
+          <div className="absolute w-96 h-96 rounded-full blur-[140px] pointer-events-none opacity-20 bg-neon-green" />
+          <div className="relative z-10 flex flex-col items-center max-w-md text-center bg-zinc-900/80 backdrop-blur-2xl border border-white/10 rounded-3xl p-8 shadow-2xl">
+            <div className="w-16 h-16 rounded-2xl bg-neon-green/10 border border-neon-green/30 flex items-center justify-center text-neon-green shadow-[0_0_30px_rgba(118,185,0,0.3)] mb-5">
+              <svg className="w-8 h-8" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M5 13l4 4L19 7" />
+              </svg>
+            </div>
+            <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-neon-green/10 border border-neon-green/20 text-neon-green text-[10px] font-black uppercase tracking-widest mb-3">
+              <span>Authentication Gateway</span>
+            </div>
+            <h2 className="text-xl font-black uppercase tracking-tight text-white mb-2">
+              Authentication Successful
+            </h2>
+            <p className="text-xs text-zinc-400 font-medium mb-6 leading-relaxed">
+              Connected to Mission Control as{' '}
+              <span className="text-zinc-200 font-bold">{displayName}</span>
+              {displayEmail && displayEmail !== displayName ? ` (${displayEmail})` : ''}.
+              Your session has been synchronized to the desktop application.
+            </p>
+
+            {(() => {
+              const client = clerk.client;
+              const activeSession = clerk.session || client?.sessions?.[0] || (client as any)?.signedInSessions?.[0];
+              const sessId = activeSession?.id || client?.lastActiveSessionId || '';
+              const u: any = user || clerk.user || activeSession?.user || (client as any)?.users?.[0] || client?.sessions?.[0]?.user;
+              const email =
+                u?.primaryEmailAddress?.emailAddress ||
+                u?.emailAddresses?.[0]?.emailAddress ||
+                u?.email_addresses?.[0]?.email_address ||
+                u?.primary_email_address?.email_address ||
+                u?.email ||
+                u?.emailAddress ||
+                '';
+              const username =
+                u?.username ||
+                u?.user_name ||
+                u?.name ||
+                (email ? email.split('@')[0] : 'Operative');
+              const firstName =
+                u?.firstName ||
+                u?.first_name ||
+                (username ? username.split(' ')[0] : 'Operative');
+              const lastName = u?.lastName || u?.last_name || '';
+              const fullName = `${firstName} ${lastName}`.trim() || username;
+              const avatar =
+                u?.imageUrl ||
+                u?.image_url ||
+                u?.profileImageUrl ||
+                u?.profile_image_url ||
+                u?.avatarUrl ||
+                '';
+              const deepLinkUrl = `mission-control://auth-completed?session_id=${encodeURIComponent(sessId)}&user_id=${encodeURIComponent(u?.id || '')}&email=${encodeURIComponent(email)}&username=${encodeURIComponent(username)}&name=${encodeURIComponent(fullName)}&image_url=${encodeURIComponent(avatar)}`;
+              return (
+                <a
+                  href={deepLinkUrl}
+                  onClick={async () => {
+                    try {
+                      const token = await (activeSession?.getToken?.() || clerk.session?.getToken?.());
+                      if (token) {
+                        window.location.href = `${deepLinkUrl}&token=${encodeURIComponent(token)}`;
+                      }
+                    } catch (_) {}
+                  }}
+                  className="w-full py-3.5 px-6 rounded-xl bg-neon-green text-black font-black uppercase tracking-widest text-xs hover:bg-neon-green/90 transition-all shadow-[0_0_25px_rgba(118,185,0,0.3)] hover:scale-105 active:scale-95 flex items-center justify-center gap-2 cursor-pointer mb-3"
+                >
+                  <Sparkles className="w-4 h-4 fill-black text-black" />
+                  <span>Return to Mission Control</span>
+                </a>
+              );
+            })()}
+
+            <p className="text-[11px] text-zinc-500">
+              You can safely close this browser window or tab.
+            </p>
+          </div>
+        </div>
+      );
+    }
+
+    // Dedicated Browser Authentication Portal View (External Browser Landing)
     return (
       <div className="w-screen h-screen flex flex-col items-center justify-center bg-zinc-950 text-white font-['Inter',system-ui,sans-serif] p-6 select-none relative overflow-hidden">
         <div className="absolute w-96 h-96 rounded-full blur-[140px] pointer-events-none opacity-20 bg-neon-green" />
@@ -857,7 +1137,7 @@ const App: React.FC = () => {
             </div>
             <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-neon-green/10 border border-neon-green/20 text-neon-green text-[10px] font-black uppercase tracking-widest mb-2">
               <Globe className="w-3.5 h-3.5" />
-              <span>Browser Auth Failsafe</span>
+              <span>Browser Auth Gateway</span>
             </div>
             <h1 className="text-2xl font-black text-white tracking-tight uppercase">
               Mission Control

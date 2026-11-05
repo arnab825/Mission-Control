@@ -12,6 +12,7 @@ import {
   LogIn,
   KeyRound,
   ArrowLeftRight,
+  Trash2,
 } from 'lucide-react';
 
 interface AccountSwitcherModalProps {
@@ -31,6 +32,78 @@ export const AccountSwitcherModal: React.FC<AccountSwitcherModalProps> = ({
   const clerk = useClerk();
   const { isLoaded: isSignInLoaded, signIn } = useSignIn();
 
+  const readCachedUser = React.useCallback(() => {
+    if (typeof window === 'undefined' || !window.localStorage) return null;
+    try {
+      const raw = window.localStorage.getItem('mc_authenticated_user');
+      return raw ? JSON.parse(raw) : null;
+    } catch (_) {
+      return null;
+    }
+  }, []);
+
+  const readSavedAccounts = React.useCallback((): any[] => {
+    if (typeof window === 'undefined' || !window.localStorage) return [];
+    try {
+      const raw = window.localStorage.getItem('mc_saved_accounts');
+      return raw ? JSON.parse(raw) : [];
+    } catch (_) {
+      return [];
+    }
+  }, []);
+
+  const [cachedUser, setCachedUser] = useState<any>(readCachedUser);
+  const [savedAccounts, setSavedAccounts] = useState<any[]>(readSavedAccounts);
+
+  React.useEffect(() => {
+    const handleUpdate = () => {
+      setCachedUser(readCachedUser());
+      setSavedAccounts(readSavedAccounts());
+    };
+    window.addEventListener('storage', handleUpdate);
+    window.addEventListener('mc-auth-state-changed', handleUpdate);
+    const unsub = (window as any).electronAPI?.onAuthCompleted?.((payload?: any) => {
+      if (payload?.userEmail || payload?.userId || payload?.sessionId) {
+        setCachedUser({
+          id: payload.userId || '',
+          email: payload.userEmail || '',
+          username: payload.username || (payload.userEmail ? payload.userEmail.split('@')[0] : 'Operative'),
+          firstName: payload.firstName || 'Operative',
+          lastName: payload.lastName || '',
+          imageUrl: payload.imageUrl || '',
+          sessionId: payload.sessionId || '',
+          externalAccounts: payload.externalAccounts || (payload.userEmail?.includes('@gmail.') ? [{ provider: 'google', emailAddress: payload.userEmail }] : []),
+        });
+        setSavedAccounts(readSavedAccounts());
+      } else {
+        handleUpdate();
+      }
+    });
+    const unsubCleared = (window as any).electronAPI?.onAuthCleared?.(() => {
+      setCachedUser(null);
+      setSavedAccounts(readSavedAccounts());
+    });
+    return () => {
+      window.removeEventListener('storage', handleUpdate);
+      window.removeEventListener('mc-auth-state-changed', handleUpdate);
+      unsub?.();
+      unsubCleared?.();
+    };
+  }, [readCachedUser, readSavedAccounts]);
+
+  const effectiveIsSignedIn = Boolean(isSignedIn || cachedUser);
+  const effectiveUser = user || (cachedUser ? {
+    id: cachedUser.id || 'node-user',
+    username: cachedUser.username || (cachedUser.email ? cachedUser.email.split('@')[0] : 'Operative'),
+    firstName: cachedUser.firstName || (cachedUser.email ? cachedUser.email.split('@')[0] : 'Operative'),
+    lastName: cachedUser.lastName || '',
+    fullName: `${cachedUser.firstName || ''} ${cachedUser.lastName || ''}`.trim() || cachedUser.username || 'Operative',
+    imageUrl: cachedUser.imageUrl || '',
+    primaryEmailAddress: cachedUser.email ? { emailAddress: cachedUser.email } : undefined,
+    emailAddresses: cachedUser.email ? [{ emailAddress: cachedUser.email }] : [],
+    externalAccounts: cachedUser.externalAccounts || (cachedUser.email?.includes('@gmail.') ? [{ provider: 'google', emailAddress: cachedUser.email }] : []),
+  } as any : null);
+
   const [switchingSessionId, setSwitchingSessionId] = useState<string | null>(null);
   const [isAddingEmailAccount, setIsAddingEmailAccount] = useState(false);
   const [emailIdentifier, setEmailIdentifier] = useState('');
@@ -45,12 +118,65 @@ export const AccountSwitcherModal: React.FC<AccountSwitcherModalProps> = ({
   const currentSessionId = clerk.session?.id;
   const otherSessions = sessions.filter((s) => s.id !== currentSessionId);
 
-  // Listen for auth events from Electron popup so modal closes seamlessly
+  // Unified available accounts combining Clerk multi-sessions and saved accounts in localStorage
+  const availableAccounts = React.useMemo(() => {
+    const list: any[] = [];
+    const seen = new Set<string>();
+
+    const activeId = effectiveUser?.id;
+    const activeEmail = (effectiveUser?.primaryEmailAddress?.emailAddress || effectiveUser?.email || '').toLowerCase();
+
+    if (activeId) seen.add(activeId);
+    if (activeEmail) seen.add(activeEmail);
+
+    // 1. Clerk multi-sessions
+    for (const s of otherSessions) {
+      const u = s.user;
+      const uid = u?.id;
+      const uemail = u?.primaryEmailAddress?.emailAddress?.toLowerCase();
+      if (uid && seen.has(uid)) continue;
+      if (uemail && seen.has(uemail)) continue;
+      if (uid) seen.add(uid);
+      if (uemail) seen.add(uemail);
+
+      list.push({
+        id: uid || s.id,
+        sessionId: s.id,
+        email: u?.primaryEmailAddress?.emailAddress || '',
+        username: u?.username || u?.firstName || 'Operative',
+        fullName: u?.fullName || `${u?.firstName || ''} ${u?.lastName || ''}`.trim() || u?.username || 'Operative',
+        imageUrl: u?.imageUrl || '',
+        provider: u?.primaryEmailAddress?.emailAddress?.toLowerCase().includes('@gmail.') ? 'oauth_google' : 'oauth_discord',
+        isClerkSession: true,
+      });
+    }
+
+    // 2. Saved accounts from localStorage
+    for (const acc of savedAccounts) {
+      if (!acc) continue;
+      const uid = acc.id;
+      const uemail = acc.email ? acc.email.toLowerCase() : '';
+      if (uid && seen.has(uid)) continue;
+      if (uemail && seen.has(uemail)) continue;
+      if (uid) seen.add(uid);
+      if (uemail) seen.add(uemail);
+
+      list.push({
+        ...acc,
+        isClerkSession: Boolean(acc.sessionId && clerk.client?.signedInSessions?.some((s) => s.id === acc.sessionId)),
+      });
+    }
+
+    return list;
+  }, [otherSessions, savedAccounts, effectiveUser, clerk.client?.signedInSessions]);
+
+  // Listen for auth events from Electron popup or browser so modal closes seamlessly
   React.useEffect(() => {
     if (!isOpen) return;
 
     const unsubCompleted = window.electronAPI?.onAuthCompleted?.(() => {
       setLoadingStrategy(null);
+      setSavedAccounts(readSavedAccounts());
       onClose();
     });
 
@@ -62,42 +188,85 @@ export const AccountSwitcherModal: React.FC<AccountSwitcherModalProps> = ({
       unsubCompleted?.();
       unsubClosed?.();
     };
-  }, [isOpen, onClose]);
+  }, [isOpen, onClose, readSavedAccounts]);
 
   // Extract active provider for display
-  const activeProvider =
+  const rawStoredProvider =
     typeof window !== 'undefined' && typeof window.localStorage?.getItem === 'function'
       ? window.localStorage.getItem('mission_control_active_provider')
       : null;
-  const normalizedActiveProvider = activeProvider?.replace('oauth_', '') || null;
+  const userEmail = (effectiveUser?.primaryEmailAddress?.emailAddress || effectiveUser?.email || '').toLowerCase();
+  const normalizedActiveProvider = (() => {
+    if (cachedUser?.provider) return cachedUser.provider.replace('oauth_', '');
+    if (effectiveUser?.provider) return effectiveUser.provider.replace('oauth_', '');
+    if (userEmail.includes('@gmail.')) return 'google';
+    if (rawStoredProvider) return rawStoredProvider.replace('oauth_', '');
+    return 'google';
+  })();
   const activeExternalAccount =
-    user?.externalAccounts?.find(
-      (a) => a.provider?.replace('oauth_', '') === normalizedActiveProvider
-    ) || user?.externalAccounts?.[0];
+    effectiveUser?.externalAccounts?.find(
+      (a: any) => a.provider?.replace('oauth_', '') === normalizedActiveProvider
+    ) || effectiveUser?.externalAccounts?.[0];
 
-  // 1-Click Switch to an existing session
-  const handleSwitchSession = async (sessionId: string, targetUserId: string) => {
-    if (switchingSessionId || !clerk.setActive) return;
-    setSwitchingSessionId(sessionId);
+  // 1-Click Switch to an existing session or saved account
+  const handleSwitchAccount = async (target: any) => {
+    const targetSessionId = target.sessionId || target.id;
+    if (switchingSessionId) return;
+    setSwitchingSessionId(targetSessionId);
     setActionError(null);
     try {
       if (user?.id && sendCommand) {
         sendCommand('logout_user', { userId: user.id });
       }
-      await clerk.setActive({ session: sessionId });
-      if (sendCommand && targetUserId) {
-        sendCommand('get_cached_games', { userId: targetUserId });
+
+      // If target has a matching Clerk session, set it as active
+      const matchingSession = clerk.client?.signedInSessions?.find(
+        (s: any) => s.id === target.sessionId || s.user?.id === target.id || s.user?.primaryEmailAddress?.emailAddress === target.email
+      );
+      if (matchingSession && clerk.setActive) {
+        try {
+          await clerk.setActive({ session: matchingSession.id });
+        } catch (_) {}
+      }
+
+      // Activate target in localStorage
+      localStorage.setItem('mc_authenticated_user', JSON.stringify(target));
+      if (target.provider) {
+        localStorage.setItem('mission_control_active_provider', target.provider);
+      }
+      if (target.token) {
+        document.cookie = `__session=${target.token}; path=/; max-age=31536000`;
+      }
+      setCachedUser(target);
+      window.dispatchEvent(new Event('mc-auth-state-changed'));
+
+      if (sendCommand && target.id) {
+        sendCommand('set_active_user', {
+          userId: target.id,
+          email: target.email,
+          provider: target.provider || (target.email?.includes('@gmail.') ? 'google' : 'discord'),
+          username: target.username || target.firstName,
+        });
+        sendCommand('get_cached_games', { userId: target.id });
       }
       onClose();
     } catch (err: any) {
-      console.error('[AccountSwitcher] Failed to switch session:', err);
-      setActionError(err.errors?.[0]?.longMessage || 'Failed to switch to selected session.');
+      console.error('[AccountSwitcher] Failed to switch account:', err);
+      setActionError('Failed to switch to selected account.');
     } finally {
       setSwitchingSessionId(null);
     }
   };
 
-  // Sign in with OAuth (Google or Discord) to add / switch account
+  const handleRemoveSavedAccount = (targetId: string, targetEmail: string) => {
+    try {
+      const updated = savedAccounts.filter((a) => a.id !== targetId && a.email !== targetEmail);
+      localStorage.setItem('mc_saved_accounts', JSON.stringify(updated));
+      setSavedAccounts(updated);
+    } catch (_) {}
+  };
+
+  // Sign in with OAuth (Google or Discord) to add / switch account using system browser
   const handleOAuthSwitch = async (strategy: 'oauth_google' | 'oauth_discord') => {
     setLoadingStrategy(strategy);
     setActionError(null);
@@ -108,27 +277,16 @@ export const AccountSwitcherModal: React.FC<AccountSwitcherModalProps> = ({
         }
       } catch (_) {}
 
-      // Tell backend to log out current user's active session state if needed
-      if (user?.id && sendCommand) {
-        sendCommand('logout_user', { userId: user.id });
-      }
-
-      // 1. Electron popup flow with browser fallback failsafe
-      if (window.electronAPI?.openAuthPopup) {
-        const res = await window.electronAPI.openAuthPopup({
+      // Always launch system browser directly as requested
+      if (window.electronAPI?.openBrowserAuth) {
+        const res = await window.electronAPI.openBrowserAuth({
           strategy,
-          mode: isSignedIn ? 'switch' : 'login',
+          mode: 'switch',
+          reason: `account_switcher_${strategy}`,
         });
         setLoadingStrategy(null);
-        if (!res?.success && res?.error && res.error !== 'cancelled') {
+        if (!res?.success && res?.error) {
           setActionError(res.error);
-          if (window.electronAPI?.openBrowserAuth) {
-            window.electronAPI.openBrowserAuth({
-              strategy,
-              mode: isSignedIn ? 'switch' : 'login',
-              reason: `Account switch popup failed: ${res.error}`,
-            });
-          }
         }
         return;
       }
@@ -139,15 +297,8 @@ export const AccountSwitcherModal: React.FC<AccountSwitcherModalProps> = ({
         const options: any = {
           strategy,
           redirectUrl: `${origin}/sso-callback`,
-          redirectUrlComplete: `${origin}/`,
+          redirectUrlComplete: `${origin}/?browser_auth=1&auth_completed=1`,
         };
-        if (strategy === 'oauth_google') {
-          options.additionalData = { prompt: 'select_account' };
-          options.customOAuthOptions = { prompt: 'select_account' };
-        } else if (strategy === 'oauth_discord') {
-          options.additionalData = { prompt: 'consent' };
-          options.customOAuthOptions = { prompt: 'consent' };
-        }
         if (typeof window !== 'undefined') {
           sessionStorage.setItem('mc_restore_page', 'settings');
         }
@@ -199,15 +350,27 @@ export const AccountSwitcherModal: React.FC<AccountSwitcherModalProps> = ({
     setIsSigningOut(true);
     setActionError(null);
     try {
-      if (user?.id && sendCommand) {
-        sendCommand('logout_user', { userId: user.id });
+      if ((effectiveUser?.id || user?.id) && sendCommand) {
+        sendCommand('logout_user', { userId: effectiveUser?.id || user?.id });
       }
+      setCachedUser(null);
       try {
-        if (typeof window !== 'undefined' && typeof window.localStorage?.removeItem === 'function') {
+        if (typeof window !== 'undefined') {
           window.localStorage.removeItem('mission_control_active_provider');
+          window.localStorage.removeItem('mc_authenticated_user');
+          document.cookie = '__session=; path=/; max-age=0; expires=Thu, 01 Jan 1970 00:00:00 GMT';
+          document.cookie = '__client_uat=0; path=/; max-age=0; expires=Thu, 01 Jan 1970 00:00:00 GMT';
+          window.dispatchEvent(new Event('mc-auth-state-changed'));
         }
       } catch (_) {}
-      await clerk.signOut();
+      if ((window as any).electronAPI?.clearAuth) {
+        try {
+          await (window as any).electronAPI.clearAuth();
+        } catch (_) {}
+      }
+      try {
+        await clerk.signOut();
+      } catch (_) {}
       onClose();
     } catch (err: any) {
       console.error('[AccountSwitcher] Sign-out failed:', err);
@@ -281,26 +444,27 @@ export const AccountSwitcherModal: React.FC<AccountSwitcherModalProps> = ({
                 <span className="text-[9px] font-black uppercase tracking-widest text-zinc-500 mb-2 block">
                   Active Identity
                 </span>
-                {isSignedIn && user ? (
+                {effectiveIsSignedIn && effectiveUser ? (
                   <div className="p-4 rounded-2xl bg-black/40 border border-neon-green/30 shadow-[0_0_20px_rgba(118,185,0,0.06)] flex items-center justify-between gap-3">
                     <div className="flex items-center gap-3 min-w-0">
-                      {activeExternalAccount?.imageUrl || user.imageUrl ? (
+                      {activeExternalAccount?.imageUrl || effectiveUser.imageUrl ? (
                         <img
-                          src={activeExternalAccount?.imageUrl || user.imageUrl}
+                          src={activeExternalAccount?.imageUrl || effectiveUser.imageUrl}
                           alt="Active Avatar"
                           className="w-10 h-10 rounded-xl border border-neon-green/40 object-cover shrink-0"
                         />
                       ) : (
                         <div className="w-10 h-10 rounded-xl bg-neon-green/20 border border-neon-green/40 flex items-center justify-center font-black text-neon-green text-sm shrink-0">
-                          {user.firstName?.[0] || user.username?.[0] || 'U'}
+                          {effectiveUser.firstName?.[0] || effectiveUser.username?.[0] || 'U'}
                         </div>
                       )}
                       <div className="min-w-0 flex flex-col">
                         <div className="flex items-center gap-2">
                           <span className="text-xs font-black text-white truncate">
-                            {activeExternalAccount?.username ||
-                              user.username ||
-                              (user.firstName ? `${user.firstName} ${user.lastName || ''}`.trim() : 'Node Connected')}
+                            {effectiveUser.fullName ||
+                              activeExternalAccount?.username ||
+                              effectiveUser.username ||
+                              (effectiveUser.firstName ? `${effectiveUser.firstName} ${effectiveUser.lastName || ''}`.trim() : 'Node Connected')}
                           </span>
                           <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full bg-neon-green/15 border border-neon-green/30 text-[8px] font-black uppercase text-neon-green tracking-widest shrink-0">
                             <span className="w-1.5 h-1.5 rounded-full bg-neon-green animate-pulse" />
@@ -308,16 +472,17 @@ export const AccountSwitcherModal: React.FC<AccountSwitcherModalProps> = ({
                           </span>
                         </div>
                         <span className="text-[10px] text-zinc-400 truncate mt-0.5">
-                          {activeExternalAccount?.emailAddress ||
-                            user.primaryEmailAddress?.emailAddress ||
-                            `via ${activeExternalAccount?.provider?.replace('oauth_', '') || 'sso'}`}
+                          {effectiveUser.primaryEmailAddress?.emailAddress ||
+                            effectiveUser.email ||
+                            activeExternalAccount?.emailAddress ||
+                            `via ${activeExternalAccount?.provider?.replace('oauth_', '') || (effectiveUser.email?.includes('@gmail.') ? 'google' : 'sso')}`}
                         </span>
                       </div>
                     </div>
 
                     <div className="text-right shrink-0">
                       <span className="text-[8px] font-mono uppercase px-2 py-1 rounded-lg bg-white/5 border border-white/10 text-zinc-400 block">
-                        {activeExternalAccount?.provider?.replace('oauth_', '').toUpperCase() || 'PRIMARY'}
+                        {activeExternalAccount?.provider?.replace('oauth_', '').toUpperCase() || (effectiveUser.email?.includes('@gmail.') ? 'GOOGLE' : 'PRIMARY')}
                       </span>
                     </div>
                   </div>
@@ -338,64 +503,79 @@ export const AccountSwitcherModal: React.FC<AccountSwitcherModalProps> = ({
                 )}
               </div>
 
-              {/* SECTION 2: Other Signed-in Profiles (Multi-Session) */}
-              {otherSessions.length > 0 && (
+              {/* SECTION 2: Other Signed-in Profiles & Saved Accounts (Multi-Account) */}
+              {availableAccounts.length > 0 && (
                 <div>
                   <span className="text-[9px] font-black uppercase tracking-widest text-zinc-500 mb-2 block">
-                    Available Sessions ({otherSessions.length})
+                    Available Accounts ({availableAccounts.length})
                   </span>
                   <div className="space-y-2">
-                    {otherSessions.map((s) => {
-                      const sessionUser = s.user;
-                      const isSwitching = switchingSessionId === s.id;
+                    {availableAccounts.map((acc) => {
+                      const isSwitching = switchingSessionId === (acc.sessionId || acc.id);
+                      const providerLabel = acc.provider?.replace('oauth_', '').toUpperCase() || (acc.email?.includes('@gmail.') ? 'GOOGLE' : 'OPERATIVE');
                       return (
                         <div
-                          key={s.id}
-                          className="p-3.5 rounded-2xl bg-black/30 border border-white/5 hover:border-white/15 transition-all flex items-center justify-between gap-3"
+                          key={acc.id || acc.sessionId || acc.email}
+                          className="p-3.5 rounded-2xl bg-black/30 border border-white/5 hover:border-white/15 transition-all flex items-center justify-between gap-3 group"
                         >
                           <div className="flex items-center gap-3 min-w-0">
-                            {sessionUser?.imageUrl ? (
+                            {acc.imageUrl ? (
                               <img
-                                src={sessionUser.imageUrl}
-                                alt="Session Avatar"
+                                src={acc.imageUrl}
+                                alt="Account Avatar"
                                 className="w-8 h-8 rounded-lg border border-white/10 object-cover shrink-0"
                               />
                             ) : (
                               <div className="w-8 h-8 rounded-lg bg-white/5 border border-white/10 flex items-center justify-center text-zinc-400 font-bold text-xs shrink-0">
-                                {sessionUser?.firstName?.[0] || sessionUser?.username?.[0] || 'U'}
+                                {acc.firstName?.[0] || acc.username?.[0] || 'U'}
                               </div>
                             )}
                             <div className="min-w-0 flex flex-col">
-                              <span className="text-[11px] font-black text-white truncate">
-                                {sessionUser?.username ||
-                                  (sessionUser?.firstName
-                                    ? `${sessionUser.firstName} ${sessionUser.lastName || ''}`.trim()
-                                    : 'Saved Account')}
-                              </span>
+                              <div className="flex items-center gap-1.5">
+                                <span className="text-[11px] font-black text-white truncate">
+                                  {acc.fullName || acc.username || 'Saved Operative'}
+                                </span>
+                                <span className="text-[8px] font-mono px-1.5 py-0.2 rounded bg-white/5 border border-white/10 text-zinc-400 shrink-0">
+                                  {providerLabel}
+                                </span>
+                              </div>
                               <span className="text-[9px] text-zinc-500 truncate">
-                                {sessionUser?.primaryEmailAddress?.emailAddress || 'Authenticated'}
+                                {acc.email || (acc.provider === 'oauth_discord' ? 'Discord Connected' : 'Authenticated')}
                               </span>
                             </div>
                           </div>
 
-                          <button
-                            type="button"
-                            disabled={isSwitching}
-                            onClick={() => handleSwitchSession(s.id, sessionUser?.id || '')}
-                            className="px-3 py-1.5 rounded-xl bg-neon-green/10 hover:bg-neon-green/20 border border-neon-green/30 text-neon-green font-black text-[9px] uppercase tracking-wider transition-all flex items-center gap-1.5 cursor-pointer disabled:opacity-50"
-                          >
-                            {isSwitching ? (
-                              <>
-                                <Loader2 className="w-3 h-3 animate-spin" />
-                                <span>Switching...</span>
-                              </>
-                            ) : (
-                              <>
-                                <Check className="w-3 h-3" />
-                                <span>Switch</span>
-                              </>
+                          <div className="flex items-center gap-1.5 shrink-0">
+                            <button
+                              type="button"
+                              disabled={isSwitching}
+                              onClick={() => handleSwitchAccount(acc)}
+                              className="px-3 py-1.5 rounded-xl bg-neon-green/10 hover:bg-neon-green/20 border border-neon-green/30 text-neon-green font-black text-[9px] uppercase tracking-wider transition-all flex items-center gap-1.5 cursor-pointer disabled:opacity-50"
+                            >
+                              {isSwitching ? (
+                                <>
+                                  <Loader2 className="w-3 h-3 animate-spin" />
+                                  <span>Switching...</span>
+                                </>
+                              ) : (
+                                <>
+                                  <Check className="w-3 h-3" />
+                                  <span>Switch</span>
+                                </>
+                              )}
+                            </button>
+
+                            {!acc.isClerkSession && (
+                              <button
+                                type="button"
+                                title="Remove saved account"
+                                onClick={() => handleRemoveSavedAccount(acc.id, acc.email)}
+                                className="p-1.5 rounded-lg opacity-40 hover:opacity-100 hover:bg-red-500/20 text-zinc-400 hover:text-red-400 transition-all cursor-pointer"
+                              >
+                                <Trash2 className="w-3 h-3" />
+                              </button>
                             )}
-                          </button>
+                          </div>
                         </div>
                       );
                     })}
@@ -538,7 +718,7 @@ export const AccountSwitcherModal: React.FC<AccountSwitcherModalProps> = ({
             </div>
 
             {/* Footer / Clean Sign Out Option */}
-            {isSignedIn && (
+            {effectiveIsSignedIn && (
               <div className="pt-3 mt-2 border-t border-white/5 flex items-center justify-between gap-3 relative z-10">
                 <button
                   type="button"

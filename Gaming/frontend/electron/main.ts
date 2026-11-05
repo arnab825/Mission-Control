@@ -724,13 +724,18 @@ function startPythonBackend(forceRestart = false) {
     pythonProcess.stdout?.on('data', (data: Buffer) => {
       const text = data.toString().trimEnd();
       if (text) {
-        console.log(`[Backend stdout] ${text}`);
+        console.log(`[Backend] ${text}`);
       }
     });
     pythonProcess.stderr?.on('data', (data: Buffer) => {
       const text = data.toString().trimEnd();
-      if (text) {
-        console.error(`[Backend stderr] ${text}`);
+      if (!text) return;
+      // Differentiate real Python exceptions from normal standard library output
+      const isActualError = /(?:ERROR|CRITICAL|Traceback \(most recent call last\)|Exception:|Error:)/i.test(text) && !/(?:0 errors|errors:\s*0)/i.test(text);
+      if (isActualError) {
+        console.error(`[Backend error] ${text}`);
+      } else {
+        console.log(`[Backend] ${text}`);
       }
     });
 
@@ -1035,7 +1040,24 @@ async function handleDeepLink(urlStr: string) {
       const sessionId = parsed.searchParams.get('session_id') || undefined;
       const userId = parsed.searchParams.get('user_id') || undefined;
       const token = parsed.searchParams.get('token') || undefined;
-      await handleBrowserAuthCompletion({ sessionId, userId, token });
+      const userEmail = parsed.searchParams.get('email') || parsed.searchParams.get('user_email') || parsed.searchParams.get('userEmail') || undefined;
+      const username = parsed.searchParams.get('username') || undefined;
+      const firstName = parsed.searchParams.get('name') || parsed.searchParams.get('firstName') || parsed.searchParams.get('first_name') || undefined;
+      const lastName = parsed.searchParams.get('lastName') || parsed.searchParams.get('last_name') || undefined;
+      const imageUrl = parsed.searchParams.get('image_url') || parsed.searchParams.get('imageUrl') || undefined;
+      const provider = parsed.searchParams.get('provider') || undefined;
+
+      await handleBrowserAuthCompletion({
+        sessionId,
+        userId,
+        token,
+        userEmail,
+        username,
+        firstName,
+        lastName,
+        imageUrl,
+        provider,
+      });
     }
   } catch (err) {
     console.error('[Electron DeepLink] Failed to process URL:', err);
@@ -1085,15 +1107,25 @@ async function handleBrowserAuthCompletion(data: {
   firstName?: string;
   lastName?: string;
   imageUrl?: string;
+  provider?: string;
+  externalAccounts?: any[];
   cookies?: string;
   storage?: Record<string, string>;
 }) {
+  const rawProvider = (data.provider || '').toLowerCase();
+  const provider = rawProvider.includes('google')
+    ? 'oauth_google'
+    : (rawProvider.includes('discord')
+        ? 'oauth_discord'
+        : (data.externalAccounts?.some((a: any) => (a.provider || '').includes('google')) ? 'oauth_google' : 'oauth_discord'));
+
   const hasFullData = Boolean(data.cookies || data.storage || data.token);
   console.log('[BrowserAuth] Synchronizing browser auth completion:', {
     sessionId: data.sessionId,
     userId: data.userId,
     userEmail: data.userEmail,
     username: data.username,
+    provider,
     hasFullData,
     hasCookies: Boolean(data.cookies),
     hasStorage: Boolean(data.storage),
@@ -1113,6 +1145,27 @@ async function handleBrowserAuthCompletion(data: {
   const origin = getAppOrigin();
   const uat = Math.floor(Date.now() / 1000).toString();
 
+  let clerkKey = process.env.VITE_CLERK_PUBLISHABLE_KEY || '';
+  if (!clerkKey) {
+    try {
+      const envPath = path.join(_dirname, '../.env');
+      if (fs.existsSync(envPath)) {
+        const match = fs.readFileSync(envPath, 'utf-8').match(/VITE_CLERK_PUBLISHABLE_KEY\s*=\s*(\S+)/);
+        if (match?.[1]) clerkKey = match[1].trim();
+      }
+    } catch (_) {}
+  }
+  let clerkDomainUrl = '';
+  if (clerkKey) {
+    try {
+      const b64 = clerkKey.replace(/^pk_(test|live)_/, '');
+      const decoded = Buffer.from(b64, 'base64').toString('utf-8').replace(/\$$/, '');
+      if (decoded && !decoded.includes(' ')) {
+        clerkDomainUrl = `https://${decoded}`;
+      }
+    } catch (_) {}
+  }
+
   const targetOrigins = [
     origin,
     'http://localhost:5173',
@@ -1120,6 +1173,8 @@ async function handleBrowserAuthCompletion(data: {
     'http://localhost:43221',
     'http://127.0.0.1:43221',
     'https://evident-midge-66.clerk.accounts.dev',
+    'https://mission-control.rarnab225.workers.dev',
+    ...(clerkDomainUrl ? [clerkDomainUrl] : []),
   ];
 
   const sessionsToUpdate = [persistSession];
@@ -1176,13 +1231,15 @@ async function handleBrowserAuthCompletion(data: {
     try {
       const storageItems = data.storage && typeof data.storage === 'object' ? data.storage : {};
       const userData = {
-        id: data.userId || '',
-        email: data.userEmail || '',
+        id: data.userId || (data.sessionId ? `node_${data.sessionId.slice(-8)}` : 'node_active'),
+        email: data.userEmail || (data.sessionId ? 'node.active@missioncontrol.app' : 'node.active@missioncontrol.app'),
         username: data.username || (data.userEmail ? data.userEmail.split('@')[0] : 'Operative'),
-        firstName: data.firstName || '',
+        firstName: data.firstName || 'Operative',
         lastName: data.lastName || '',
         imageUrl: data.imageUrl || '',
         sessionId: data.sessionId || '',
+        provider,
+        externalAccounts: data.externalAccounts || (provider.includes('discord') ? [{ provider: 'discord', emailAddress: data.userEmail }] : [{ provider: 'google', emailAddress: data.userEmail }]),
       };
       const serializedStorage = JSON.stringify(storageItems);
       const serializedUser = JSON.stringify(userData);
@@ -1199,9 +1256,28 @@ async function handleBrowserAuthCompletion(data: {
             }
           }
           const user = ${serializedUser};
-          if (user.id || user.email) {
+          const existingRaw = localStorage.getItem('mc_authenticated_user');
+          let existing = null;
+          try { existing = existingRaw ? JSON.parse(existingRaw) : null; } catch(_) {}
+          const isIncomingDemo = !user.email || user.email.includes('missioncontrol.app') || user.email === 'node.active@missioncontrol.app';
+          const isExistingReal = existing && existing.email && !existing.email.includes('missioncontrol.app');
+          if (isExistingReal && isIncomingDemo) {
+            existing.sessionId = user.sessionId || existing.sessionId;
+            localStorage.setItem('mc_authenticated_user', JSON.stringify(existing));
+          } else if (user.id || user.email || user.sessionId) {
             localStorage.setItem('mc_authenticated_user', JSON.stringify(user));
           }
+          localStorage.setItem('mission_control_active_provider', ${JSON.stringify(provider)});
+
+          try {
+            const rawList = localStorage.getItem('mc_saved_accounts');
+            let list = rawList ? JSON.parse(rawList) : [];
+            list = list.filter((a) => a.id !== user.id && a.email !== user.email);
+            list.unshift({ ...user, token: ${tokenStr}, lastActive: Date.now() });
+            localStorage.setItem('mc_saved_accounts', JSON.stringify(list.slice(0, 5)));
+          } catch (_) {}
+
+          window.dispatchEvent(new Event('mc-auth-state-changed'));
           const token = ${tokenStr};
           const uat = "${uat}";
           if (token) {
@@ -1242,6 +1318,8 @@ async function handleBrowserAuthCompletion(data: {
       lastName: data.lastName,
       imageUrl: data.imageUrl,
       token: data.token,
+      provider,
+      externalAccounts: (data as any).externalAccounts,
     });
   }
 }
@@ -2298,11 +2376,11 @@ ipcMain.on('exit-auth-to-app', () => {
 
 ipcMain.handle('open-auth-popup', async (_event, params: { strategy: string; mode?: 'login' | 'signup' | 'switch' | 'link' }) => {
   const { strategy, mode = 'login' } = params || {};
-  // Google OAuth strictly disallows embedded webviews across desktop apps with 'This browser or app may not be secure'.
-  // Directly delegate Google OAuth to default system browser for 100% reliable login without the Google block screen.
-  if (strategy === 'oauth_google') {
-    console.log('[Electron] Google OAuth requested — delegating directly to system browser to prevent disallowed_useragent block.');
-    return openBrowserAuth({ strategy: 'oauth_google', mode, reason: 'google_oauth_disallowed_embedded' });
+  // Google and Discord OAuth are heavily gated against embedded WebViews by bot challenges and OAuth security policies.
+  // Delegating both directly to the user's default system browser provides a 100% reliable login and account-link flow.
+  if (strategy === 'oauth_google' || strategy === 'oauth_discord') {
+    console.log(`[Electron] ${strategy} OAuth requested — delegating directly to system browser.`);
+    return openBrowserAuth({ strategy, mode, reason: `${strategy}_direct_browser` });
   }
 
   const origin = getAppOrigin();
@@ -2316,6 +2394,39 @@ ipcMain.handle('open-auth-popup-url', async (_event, targetUrl: string) => {
 
 ipcMain.handle('open-browser-auth', async (_event, params?: { strategy?: string; mode?: 'login' | 'signup' | 'switch' | 'link'; reason?: string }) => {
   return openBrowserAuth(params);
+});
+
+ipcMain.handle('clear-auth', async () => {
+  console.log('[Electron] Clearing auth session cookies and tokens across partitions...');
+  try {
+    const persistSession = session.fromPartition('persist:mission-control');
+    const sessions = [session.defaultSession, persistSession].filter(Boolean);
+    for (const s of sessions) {
+      try {
+        const cookies = await s.cookies.get({});
+        for (const c of cookies) {
+          if (
+            c.name.includes('session') ||
+            c.name.includes('client_uat') ||
+            c.name.includes('clerk')
+          ) {
+            const protocol = c.secure ? 'https://' : 'http://';
+            const domain = c.domain?.startsWith('.') ? c.domain.slice(1) : (c.domain || '127.0.0.1');
+            const url = `${protocol}${domain}${c.path || '/'}`;
+            await s.cookies.remove(url, c.name).catch(() => {});
+          }
+        }
+        await s.cookies.flushStore().catch(() => {});
+      } catch (_) {}
+    }
+  } catch (err) {
+    console.warn('[Electron] Error clearing auth cookies:', err);
+  }
+
+  if (win && !win.isDestroyed()) {
+    win.webContents.send('auth-cleared');
+  }
+  return { success: true };
 });
 
 ipcMain.on('notify-auth-success', async (_event, payload?: any) => {
@@ -3360,11 +3471,13 @@ ipcMain.on('game-focus-changed', (_event, isActive: boolean, isFocused: boolean,
       // triggers HUD re-spawn on transient glitches/disconnects), we wait 5 seconds.
       if (!inactiveTimeout) {
         inactiveTimeout = setTimeout(() => {
+          if (lastActiveGame !== null) {
+            console.log(`[Electron] Game session ended: ${lastActiveGame} inactive for 5s. Resetting HUD state tracking.`);
+          }
           lastActiveGame = null;
           lastActiveGamePid = null;
           wasHUDExplicitlyClosed = false;
           inactiveTimeout = null;
-          console.log('[Electron] Game has been inactive for 5 seconds. Resetting HUD state tracking.');
         }, 5000);
       }
 

@@ -203,9 +203,16 @@ class GameRAGEngine:
                         ))
 
                     if remote_docs:
+                        ingested_count = 0
                         for doc in remote_docs:
-                            self.add_documents([doc], game_id=doc.metadata.get("game_id", "general"))
-                        logger.info(f"Successfully ingested {len(remote_docs)} games from Distributed Server ({base_url}) into local RAG.")
+                            gid = str(doc.metadata.get("game_id", "")).lower()
+                            title_lower = str(doc.metadata.get("title", "")).lower()
+                            if gid in ["steam", "epic_games", "battle_net", "gog_galaxy", "ubisoft_connect"] or title_lower in ["steam", "epic games", "battle.net"]:
+                                continue
+                            self.add_documents([doc], game_id=doc.metadata.get("game_id", "general"), rebuild_index=False)
+                            ingested_count += 1
+                        self._build_bm25_index()
+                        logger.info(f"Successfully ingested {ingested_count} games from Distributed Server ({base_url}) into local RAG.")
                         return
             except Exception as e:
                 logger.debug(f"Could not sync from distributed server ({base_url}): {e}")
@@ -232,7 +239,7 @@ class GameRAGEngine:
             logger.error(f"BM25 search failed: {e}")
             return ""
 
-    def add_documents(self, documents: List[Document], game_id: str = "general"):
+    def add_documents(self, documents: List[Document], game_id: str = "general", rebuild_index: bool = True):
         splitter = RecursiveCharacterTextSplitter(chunk_size=1000, chunk_overlap=200)
         chunks = splitter.split_documents(documents)
 
@@ -258,7 +265,8 @@ class GameRAGEngine:
             conn.close()
             
         logger.info(f"Upserted {inserted} chunks into SQLite RAG (game_id='{game_id}')")
-        self._build_bm25_index()
+        if rebuild_index:
+            self._build_bm25_index()
 
     def add_text(self, text: str, source: str = "dynamic", game_id: str = "general"):
         doc = Document(page_content=text, metadata={"source": source})

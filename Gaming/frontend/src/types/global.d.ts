@@ -51,6 +51,8 @@ declare global {
       closeAuthPopup?: () => void;
       onAuthCompleted?: (callback: (payload?: any) => void) => () => void;
       onAuthPopupClosed?: (callback: () => void) => () => void;
+      clearAuth?: () => Promise<{ success: boolean }>;
+      onAuthCleared?: (callback: () => void) => () => void;
     };
   }
 }

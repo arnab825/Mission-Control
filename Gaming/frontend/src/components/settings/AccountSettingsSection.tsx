@@ -1,10 +1,9 @@
 import React, { useState, useEffect, useRef } from 'react';
-import { useUser, useAuth, useReverification, UserButton } from '@clerk/clerk-react';
+import { useUser, useAuth, useReverification } from '@clerk/clerk-react';
 import { KeyRound, Fingerprint, Calendar, Shield, Copy, Check, Link, Trash2, AlertTriangle, X, LogOut } from 'lucide-react';
 import { SettingsSection } from './common/SettingsSection';
 import { OAUTH_PROVIDERS } from '../../data/settingsConstants';
 import { AccountSwitcherModal } from '../AccountSwitcherModal';
-import { missionControlClerkTheme } from '../../styles/clerkTheme';
 
 interface AccountSettingsSectionProps {
   searchQuery?: string;
@@ -12,6 +11,7 @@ interface AccountSettingsSectionProps {
   sendCommand: (command: string, data?: any) => void;
   accountDeleted?: boolean;
   accountDeleteError?: string | null;
+  state?: any;
 }
 
 export const AccountSettingsSection: React.FC<AccountSettingsSectionProps> = ({
@@ -20,9 +20,231 @@ export const AccountSettingsSection: React.FC<AccountSettingsSectionProps> = ({
   sendCommand,
   accountDeleted,
   accountDeleteError,
+  state,
 }) => {
   const { user } = useUser();
   const { userId, signOut, isSignedIn, getToken } = useAuth();
+
+  const readCachedUser = React.useCallback(() => {
+    if (typeof window === 'undefined' || !window.localStorage) return null;
+    try {
+      const raw = window.localStorage.getItem('mc_authenticated_user');
+      return raw ? JSON.parse(raw) : null;
+    } catch (_) {
+      return null;
+    }
+  }, []);
+
+  const [cachedUser, setCachedUser] = useState<any>(readCachedUser);
+
+  useEffect(() => {
+    const handleUpdate = () => setCachedUser(readCachedUser());
+    window.addEventListener('storage', handleUpdate);
+    window.addEventListener('mc-auth-state-changed', handleUpdate);
+    const unsub = (window as any).electronAPI?.onAuthCompleted?.((payload?: any) => {
+      if (payload?.userEmail || payload?.userId || payload?.sessionId) {
+        setCachedUser((prev: any) => {
+          const isPrevReal = prev?.email && !prev.email.includes('missioncontrol.app');
+          const isIncomingReal = payload.userEmail && !payload.userEmail.includes('missioncontrol.app');
+          if (isPrevReal && !isIncomingReal) {
+            return { ...prev, sessionId: payload.sessionId || prev.sessionId };
+          }
+          return {
+            id: payload.userId || '',
+            email: payload.userEmail || '',
+            username: payload.username || (payload.userEmail ? payload.userEmail.split('@')[0] : 'Operative'),
+            firstName: payload.firstName || 'Operative',
+            lastName: payload.lastName || '',
+            imageUrl: payload.imageUrl || '',
+            sessionId: payload.sessionId || '',
+            externalAccounts: payload.externalAccounts || [],
+          };
+        });
+      } else {
+        handleUpdate();
+      }
+    });
+    const unsubCleared = (window as any).electronAPI?.onAuthCleared?.(() => {
+      setCachedUser(null);
+    });
+    return () => {
+      window.removeEventListener('storage', handleUpdate);
+      window.removeEventListener('mc-auth-state-changed', handleUpdate);
+      unsub?.();
+      unsubCleared?.();
+    };
+  }, [readCachedUser]);
+
+  const effectiveIsSignedIn = Boolean(isSignedIn || cachedUser);
+  const effectiveUser = user || (cachedUser ? {
+    id: cachedUser.id || 'node-user',
+    username: cachedUser.username || (cachedUser.email ? cachedUser.email.split('@')[0] : 'Operative'),
+    firstName: cachedUser.firstName || (cachedUser.email ? cachedUser.email.split('@')[0] : 'Operative'),
+    fullName: `${cachedUser.firstName || ''} ${cachedUser.lastName || ''}`.trim() || cachedUser.username || 'Operative',
+    lastName: cachedUser.lastName || '',
+    imageUrl: cachedUser.imageUrl || '',
+    createdAt: cachedUser.createdAt || cachedUser.lastActive,
+    primaryEmailAddress: cachedUser.email ? { emailAddress: cachedUser.email } : undefined,
+    emailAddresses: cachedUser.email ? [{ emailAddress: cachedUser.email }] : [],
+    externalAccounts: cachedUser.externalAccounts || (cachedUser.email?.includes('@gmail.') ? [{ provider: 'google', emailAddress: cachedUser.email }] : []),
+    provider: cachedUser.provider || (cachedUser.email?.includes('@gmail.') ? 'google' : undefined),
+  } as any : null);
+
+  const [activeProviderState, setActiveProviderState] = useState<string>(() => {
+    if (typeof window !== 'undefined') {
+      const stored = window.localStorage.getItem('mission_control_active_provider');
+      if (stored) return stored.replace('oauth_', '');
+    }
+    return (cachedUser?.email?.toLowerCase().includes('@gmail.') ? 'google' : 'google');
+  });
+
+  const rawActiveProvider = typeof window !== 'undefined' ? window.localStorage?.getItem('mission_control_active_provider') : null;
+
+  // Resolve the single true active provider cleanly with local state taking immediate precedence
+  const resolvedActiveProvider = React.useMemo(() => {
+    if (activeProviderState) return activeProviderState.replace('oauth_', '');
+    if (rawActiveProvider) return rawActiveProvider.replace('oauth_', '');
+    if (cachedUser?.provider) return cachedUser.provider.replace('oauth_', '');
+    if (effectiveUser?.provider) return effectiveUser.provider.replace('oauth_', '');
+    return 'google';
+  }, [activeProviderState, rawActiveProvider, cachedUser?.provider, effectiveUser?.provider]);
+
+  // Sync active external account for identical avatar rendering with Sidebar
+  const normalizedActiveProvider = resolvedActiveProvider;
+  const activeExternalAccount = effectiveUser?.externalAccounts?.find(
+    (a: any) =>
+      (a.provider || '').toLowerCase().includes(normalizedActiveProvider) ||
+      (a.verification?.strategy || '').toLowerCase().includes(normalizedActiveProvider) ||
+      (a.verificationStrategy || '').toLowerCase().includes(normalizedActiveProvider)
+  );
+
+  const avatarUrl = (() => {
+    if (activeExternalAccount?.imageUrl) return activeExternalAccount.imageUrl;
+    if (cachedUser?.imageUrl && !cachedUser.imageUrl.includes('placeholder')) {
+      if (normalizedActiveProvider === 'google' && cachedUser.imageUrl.includes('discordapp.com')) {
+        // Do not use Discord avatar for Google!
+      } else if (normalizedActiveProvider === 'discord' && !cachedUser.imageUrl.includes('discordapp.com')) {
+        // Do not use non-discord avatar for Discord
+      } else {
+        return cachedUser.imageUrl;
+      }
+    }
+    if (effectiveUser?.imageUrl) {
+      if (normalizedActiveProvider === 'google' && effectiveUser.imageUrl.includes('discordapp.com')) {
+        return '';
+      }
+      return effectiveUser.imageUrl;
+    }
+    return '';
+  })();
+
+  const handleSwitchToProvider = async (strategy: string) => {
+    const providerKey = strategy.replace('oauth_', '');
+    const strategyFull = `oauth_${providerKey}`;
+
+    // Update local state immediately for instant responsive UI feedback
+    setActiveProviderState(providerKey);
+
+    // 1. Check if we have a saved account in mc_saved_accounts specifically for this provider
+    let matchingSavedAccount: any = null;
+    try {
+      const raw = localStorage.getItem('mc_saved_accounts');
+      const list = raw ? JSON.parse(raw) : [];
+      matchingSavedAccount = list.find(
+        (a: any) => (a.provider || '').toLowerCase().replace('oauth_', '') === providerKey
+      );
+    } catch (_) {}
+
+    // 2. Check if current user has an external account for this provider
+    const targetExtAcc = effectiveUser?.externalAccounts?.find(
+      (a: any) =>
+        (a.provider || '').toLowerCase().includes(providerKey) ||
+        (a.verification?.strategy || '').toLowerCase().includes(providerKey) ||
+        (a.verificationStrategy || '').toLowerCase().includes(providerKey)
+    );
+
+    if (matchingSavedAccount) {
+      try {
+        const target = {
+          ...matchingSavedAccount,
+          provider: providerKey,
+        };
+        localStorage.setItem('mc_authenticated_user', JSON.stringify(target));
+        localStorage.setItem('mission_control_active_provider', strategyFull);
+        if (target.token) {
+          document.cookie = `__session=${target.token}; path=/; max-age=31536000`;
+        }
+        setCachedUser(target);
+        window.dispatchEvent(new Event('mc-auth-state-changed'));
+
+        if (sendCommand && target.id) {
+          sendCommand('set_active_user', {
+            userId: target.id,
+            email: target.email,
+            provider: providerKey,
+            username: target.username || target.firstName,
+          });
+          sendCommand('get_cached_games', { userId: target.id });
+        }
+        return;
+      } catch (err) {
+        console.error('Failed to switch to saved account:', err);
+      }
+    }
+
+    if (targetExtAcc || effectiveUser?.id) {
+      try {
+        const providerAvatar =
+          targetExtAcc?.imageUrl ||
+          targetExtAcc?.avatarUrl ||
+          (providerKey === 'google' && !effectiveUser?.imageUrl?.includes('discordapp.com') ? effectiveUser?.imageUrl : '') ||
+          (providerKey === 'discord' && effectiveUser?.imageUrl?.includes('discordapp.com') ? effectiveUser?.imageUrl : '') ||
+          '';
+
+        const updatedUser = {
+          ...(cachedUser || {}),
+          id: effectiveUser.id,
+          email: targetExtAcc?.emailAddress || effectiveUser.primaryEmailAddress?.emailAddress || effectiveUser.email,
+          username: targetExtAcc?.username || effectiveUser.username,
+          firstName: targetExtAcc?.firstName || effectiveUser.firstName,
+          lastName: targetExtAcc?.lastName || effectiveUser.lastName,
+          imageUrl: providerAvatar,
+          provider: providerKey,
+        };
+        localStorage.setItem('mc_authenticated_user', JSON.stringify(updatedUser));
+        localStorage.setItem('mission_control_active_provider', strategyFull);
+        setCachedUser(updatedUser);
+        window.dispatchEvent(new Event('mc-auth-state-changed'));
+
+        if (sendCommand && effectiveUser.id) {
+          sendCommand('set_active_user', {
+            userId: effectiveUser.id,
+            email: updatedUser.email,
+            provider: providerKey,
+            username: updatedUser.username,
+          });
+        }
+        return;
+      } catch (err) {
+        console.error('Failed to switch provider on active user:', err);
+      }
+    }
+
+    // 3. Otherwise, trigger browser auth to link or authenticate this provider
+    await handleLinkProvider(strategyFull);
+  };
+
+  // Proactively synchronize active user to Python backend pipeline if not synced
+  useEffect(() => {
+    if (effectiveUser?.id && sendCommand && (!state?.active_user_id || state?.active_user_id !== effectiveUser.id)) {
+      sendCommand('set_active_user', {
+        userId: effectiveUser.id,
+        email: effectiveUser.primaryEmailAddress?.emailAddress || effectiveUser.email || '',
+        provider: resolvedActiveProvider,
+        username: effectiveUser.username || effectiveUser.firstName || '',
+      });
+    }
+  }, [effectiveUser?.id, state?.active_user_id, sendCommand, resolvedActiveProvider]);
 
   const [copiedId, setCopiedId] = useState(false);
   const [linkingProvider, setLinkingProvider] = useState<string | null>(null);
@@ -57,7 +279,7 @@ export const AccountSettingsSection: React.FC<AccountSettingsSectionProps> = ({
     }
   }, [accountDeleted, accountDeleteError, signOut]);
 
-  if (!isSignedIn || !user) {
+  if (!effectiveIsSignedIn || !effectiveUser) {
     return (
       <>
         <SettingsSection
@@ -112,21 +334,36 @@ export const AccountSettingsSection: React.FC<AccountSettingsSectionProps> = ({
   };
 
   const handleLinkProvider = async (strategy: string) => {
-    if (!user) return;
     setLinkingProvider(strategy);
     setAccountError(null);
     setNeedsReauth(false);
 
     try {
+      if ((window as any).electronAPI?.openBrowserAuth) {
+        try {
+          localStorage.setItem('mission_control_active_provider', strategy);
+        } catch (_) {}
+        const res = await (window as any).electronAPI.openBrowserAuth({
+          strategy,
+          mode: 'link',
+          reason: 'settings_connect_provider',
+        });
+        setLinkingProvider(null);
+        if (!res?.success && res?.error) {
+          setAccountError(res.error);
+        }
+        return;
+      }
+
+      if (!user) {
+        setLinkingProvider(null);
+        return;
+      }
+
       const options: any = {
         strategy: strategy as any,
         redirectUrl: `${window.location.origin}/sso-callback?popup=1`,
       };
-      if (strategy === 'oauth_google') {
-        options.additionalData = { prompt: 'select_account' };
-      } else if (strategy === 'oauth_discord') {
-        options.additionalData = { prompt: 'consent' };
-      }
 
       // Attempt creation wrapped with Clerk step-up reverification
       let extAccount: any;
@@ -273,26 +510,51 @@ export const AccountSettingsSection: React.FC<AccountSettingsSectionProps> = ({
       {/* Identity block */}
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3.5 sm:gap-4 bg-white/5 border border-white/15 rounded-2xl p-3.5 sm:p-4 shadow-[0_0_15px_rgba(118,185,0,0.03)] overflow-hidden">
         <div className="flex items-center gap-3 sm:gap-4 min-w-0 flex-1">
-          <div className="shrink-0">
-            <UserButton
-              userProfileMode="modal"
-              userProfileProps={{ appearance: missionControlClerkTheme }}
-              appearance={missionControlClerkTheme}
-            />
+          <div
+            className="shrink-0 cursor-pointer group/avatar relative"
+            onClick={() => setIsAccountSwitcherOpen(true)}
+            title="Switch or Manage Account"
+          >
+            {avatarUrl ? (
+              <img
+                src={avatarUrl}
+                className="w-10 h-10 rounded-xl border border-neon-green/30 object-cover shadow-[0_0_12px_rgba(118,185,0,0.15)] group-hover/avatar:border-neon-green/60 transition-all"
+                alt="Avatar"
+                onError={(e) => {
+                  const target = e.currentTarget as HTMLImageElement;
+                  target.style.display = 'none';
+                  const fallback = target.nextElementSibling as HTMLElement;
+                  if (fallback) fallback.style.display = 'flex';
+                }}
+              />
+            ) : null}
+            <div
+              className="w-10 h-10 rounded-xl bg-neon-green/10 border border-neon-green/30 flex items-center justify-center font-black text-xs text-neon-green shadow-[0_0_12px_rgba(118,185,0,0.15)]"
+              style={{ display: avatarUrl ? 'none' : 'flex' }}
+            >
+              {(effectiveUser?.firstName?.[0] || effectiveUser?.username?.[0] || 'U').toUpperCase()}
+            </div>
           </div>
           <div className="min-w-0 flex-1">
             <div className="flex items-center gap-2 min-w-0">
               <p className="text-xs font-black text-white uppercase tracking-wider truncate">
-                {user.fullName || user.firstName || 'Anonymous'}
+                {effectiveUser?.fullName || effectiveUser?.firstName || effectiveUser?.username || 'Anonymous'}
               </p>
               <span className="h-1.5 w-1.5 rounded-full bg-neon-yellow shadow-[0_0_8px_rgba(52,211,153,0.6)] shrink-0" />
             </div>
-            <p className="text-[10px] font-mono text-zinc-500 truncate" title={user.primaryEmailAddress?.emailAddress || userId}>
-              {user.primaryEmailAddress?.emailAddress || userId}
+            <p className="text-[10px] font-mono text-zinc-500 truncate" title={effectiveUser?.primaryEmailAddress?.emailAddress || effectiveUser?.emailAddresses?.[0]?.emailAddress || effectiveUser?.id}>
+              {effectiveUser?.primaryEmailAddress?.emailAddress || effectiveUser?.emailAddresses?.[0]?.emailAddress || effectiveUser?.id}
             </p>
           </div>
         </div>
-        <div className="flex items-center justify-between sm:justify-end gap-2.5 pt-2.5 sm:pt-0 border-t border-white/5 sm:border-0 w-full sm:w-auto shrink-0">
+        <div className="flex items-center justify-between sm:justify-end gap-2 pt-2.5 sm:pt-0 border-t border-white/5 sm:border-0 w-full sm:w-auto shrink-0 flex-wrap">
+          <div className="px-2.5 py-1 rounded-xl bg-white/5 border border-white/10 flex items-center gap-1.5 shadow-xs">
+            <span className="w-1.5 h-1.5 rounded-full bg-neon-green" />
+            <span className="text-[8px] font-black uppercase text-zinc-300 tracking-wider">
+              {resolvedActiveProvider.toUpperCase()} GATEWAY
+            </span>
+          </div>
+
           <div className="px-3 py-1.5 rounded-xl bg-neon-yellow/10 border border-neon-yellow/20 shadow-[0_0_15px_rgba(191,255,0,0.1)]">
             <span className="text-[8px] font-black uppercase text-neon-yellow tracking-widest whitespace-nowrap">
               Active Node
@@ -302,19 +564,25 @@ export const AccountSettingsSection: React.FC<AccountSettingsSectionProps> = ({
             aria-label="Sign Out"
             type="button"
             onClick={async () => {
-              if (userId && sendCommand) {
-                sendCommand('logout_user', { userId });
+              if (effectiveUser?.id && sendCommand) {
+                sendCommand('logout_user', { userId: effectiveUser.id });
               }
+              setCachedUser(null);
               try {
-                if (typeof window !== 'undefined' && typeof window.localStorage?.removeItem === 'function') {
-                  window.localStorage.removeItem('mission_control_active_provider');
-                }
+                localStorage.removeItem('mc_authenticated_user');
+                localStorage.removeItem('mission_control_active_provider');
+                document.cookie = '__session=; path=/; max-age=0; expires=Thu, 01 Jan 1970 00:00:00 GMT';
+                document.cookie = '__client_uat=0; path=/; max-age=0; expires=Thu, 01 Jan 1970 00:00:00 GMT';
+                window.dispatchEvent(new Event('mc-auth-state-changed'));
               } catch (_) {}
+              if ((window as any).electronAPI?.clearAuth) {
+                try {
+                  await (window as any).electronAPI.clearAuth();
+                } catch (_) {}
+              }
               try {
                 await signOut();
-              } catch (err) {
-                console.error('[AccountSettings] signOut error:', err);
-              }
+              } catch (_) {}
             }}
             className="px-3 py-1.5 bg-red-500/10 border border-red-500/20 text-red-400 hover:bg-red-500/20 hover:border-red-500/40 text-[8px] font-black uppercase tracking-widest rounded-xl transition-all cursor-pointer whitespace-nowrap"
           >
@@ -334,14 +602,14 @@ export const AccountSettingsSection: React.FC<AccountSettingsSectionProps> = ({
             <Fingerprint className="w-3.5 h-3.5 text-neon-green/70 shrink-0" />
           </div>
           <div className="flex items-center justify-between gap-2 bg-black/40 border border-white/10 rounded-xl px-3 py-2 mt-2 min-w-0">
-            <span className="text-[10px] font-mono text-neon-green truncate flex-1 min-w-0" title={user.id}>
-              {user.id}
+            <span className="text-[10px] font-mono text-neon-green truncate flex-1 min-w-0" title={effectiveUser.id}>
+              {effectiveUser.id}
             </span>
             <button
               aria-label="Copy ID"
               type="button"
               onClick={() => {
-                navigator.clipboard.writeText(user.id);
+                navigator.clipboard.writeText(effectiveUser.id);
                 setCopiedId(true);
                 setTimeout(() => setCopiedId(false), 2000);
               }}
@@ -367,13 +635,13 @@ export const AccountSettingsSection: React.FC<AccountSettingsSectionProps> = ({
           </div>
           <div className="mt-2">
             <span className="text-[11px] font-mono font-bold text-white">
-              {user.createdAt
-                ? new Date(user.createdAt).toLocaleDateString('en-US', {
+              {effectiveUser.createdAt
+                ? new Date(effectiveUser.createdAt).toLocaleDateString('en-US', {
                     year: 'numeric',
                     month: 'short',
                     day: 'numeric',
                   })
-                : 'N/A'}
+                : 'Active Telemetry'}
             </span>
             <p className="text-[9px] text-zinc-500 font-medium mt-1">Telemetry initialized</p>
           </div>
@@ -494,25 +762,60 @@ export const AccountSettingsSection: React.FC<AccountSettingsSectionProps> = ({
         <div className="grid grid-cols-1 gap-3">
           {OAUTH_PROVIDERS.map((provider) => {
             const providerKey = provider.id.replace('oauth_', '');
-            const extAcc = user.externalAccounts.find((acc: any) => acc.provider === providerKey);
-            const isConnected = !!extAcc;
+            const isGoogle = providerKey === 'google';
+            const isDiscord = providerKey === 'discord';
+
+            const hasSavedAccount = (typeof window !== 'undefined')
+              ? (() => {
+                  try {
+                    const raw = localStorage.getItem('mc_saved_accounts');
+                    const list = raw ? JSON.parse(raw) : [];
+                    return list.some((a: any) => (a.provider || '').toLowerCase().replace('oauth_', '') === providerKey);
+                  } catch (_) { return false; }
+                })()
+              : false;
+
+            const extAcc = effectiveUser?.externalAccounts?.find(
+              (acc: any) =>
+                (acc.provider || '').toLowerCase().includes(providerKey) ||
+                (acc.verification?.strategy || '').toLowerCase().includes(providerKey) ||
+                (acc.verificationStrategy || '').toLowerCase().includes(providerKey)
+            );
+
+            const isCurrentlyActive = (providerKey === resolvedActiveProvider);
+            const isConnected = Boolean(
+              extAcc ||
+              hasSavedAccount ||
+              isCurrentlyActive ||
+              (isGoogle && (effectiveUser?.provider === 'google' || effectiveUser?.provider === 'oauth_google')) ||
+              (isDiscord && (effectiveUser?.provider === 'discord' || effectiveUser?.provider === 'oauth_discord'))
+            );
             const isUnlinking = unlinkingProvider === provider.id;
             const isLinking = linkingProvider === provider.id;
+            const canUnlink = Boolean(
+              extAcc &&
+                user &&
+                ((user.externalAccounts?.length || 0) > 1 || (user as any).passwordEnabled)
+            );
 
             return (
               <div
                 key={provider.id}
                 className={`flex flex-col sm:flex-row sm:items-center justify-between gap-4 p-4 rounded-2xl bg-black/40 border transition-all ${
-                  isConnected
-                    ? 'border-neon-yellow/20 hover:border-neon-yellow/30 shadow-[0_0_15px_rgba(191,255,0,0.02)]'
+                  isCurrentlyActive
+                    ? 'border-neon-yellow/30 shadow-[0_0_15px_rgba(191,255,0,0.05)]'
+                    : isConnected
+                    ? 'border-white/10 hover:border-white/20'
                     : 'border-white/5 hover:border-white/10'
                 }`}
               >
                 <div className="flex items-center gap-3">
                   <div
                     className={`w-8 h-8 rounded-xl flex items-center justify-center border shrink-0 bg-white/5 ${
-                      isConnected
-                        ? 'text-neon-yellow border-neon-yellow/30'
+                      isCurrentlyActive
+                        ? 'text-neon-yellow border-neon-yellow/40'
+                        : isConnected
+                        ? 'text-white border-white/20'
                         : 'text-zinc-400 border-white/10'
                     }`}
                   >
@@ -522,36 +825,62 @@ export const AccountSettingsSection: React.FC<AccountSettingsSectionProps> = ({
                     <div className="flex items-center gap-2">
                       <span className="text-xs font-black text-white">{provider.name}</span>
                       {isConnected && (
-                        <span className="text-[8px] font-black px-1.5 py-0.5 rounded bg-neon-yellow/10 border border-neon-yellow/20 text-neon-yellow tracking-wider uppercase">
-                          Connected
+                        <span className={`text-[8px] font-black px-1.5 py-0.5 rounded tracking-wider uppercase border ${
+                          isCurrentlyActive
+                            ? 'bg-neon-yellow/10 border-neon-yellow/30 text-neon-yellow'
+                            : 'bg-white/5 border-white/10 text-zinc-400'
+                        }`}>
+                          {isCurrentlyActive ? 'Active' : 'Connected'}
                         </span>
                       )}
                     </div>
                     <p className="text-[10px] font-mono text-zinc-500 mt-0.5">
-                      {isConnected
-                        ? extAcc.emailAddress || extAcc.username || 'Authorized Gateway'
+                      {isCurrentlyActive
+                        ? extAcc?.emailAddress ||
+                          extAcc?.username ||
+                          effectiveUser?.primaryEmailAddress?.emailAddress ||
+                          effectiveUser?.email ||
+                          'Active Primary Gateway'
+                        : isConnected
+                        ? `Connected profile — click to switch`
                         : `Connect your secure ${provider.name} profile`}
                     </p>
                   </div>
                 </div>
 
                 <div>
-                  {isConnected ? (
+                  {isCurrentlyActive ? (
+                    canUnlink ? (
+                      <button
+                        aria-label="Unlink Account"
+                        type="button"
+                        onClick={() => handleUnlinkProvider(provider.id)}
+                        disabled={isUnlinking || isLinking}
+                        className="w-full sm:w-auto px-4 py-2 bg-red-500/10 border border-red-500/30 text-red-400 hover:bg-red-500/20 hover:border-red-500/50 font-black text-[9px] uppercase tracking-widest rounded-xl transition-all disabled:opacity-40 disabled:cursor-not-allowed cursor-pointer"
+                      >
+                        {isUnlinking ? (
+                          <span className="flex items-center gap-1.5">
+                            <div className="w-2.5 h-2.5 border border-red-400/30 border-t-red-400 rounded-full animate-spin" />
+                            Unlinking...
+                          </span>
+                        ) : (
+                          'Unlink Account'
+                        )}
+                      </button>
+                    ) : (
+                      <div className="w-full sm:w-auto px-4 py-2 bg-neon-yellow/10 border border-neon-yellow/30 text-neon-yellow font-black text-[9px] uppercase tracking-widest rounded-xl flex items-center justify-center gap-1.5 shadow-[0_0_12px_rgba(191,255,0,0.1)]">
+                        <Check className="w-3.5 h-3.5 text-neon-yellow" />
+                        <span>Active Gateway</span>
+                      </div>
+                    )
+                  ) : isConnected ? (
                     <button
-                      aria-label="Unlink Account"
+                      aria-label="Switch to Provider"
                       type="button"
-                      onClick={() => handleUnlinkProvider(provider.id)}
-                      disabled={isUnlinking || isLinking}
-                      className="w-full sm:w-auto px-4 py-2 bg-red-500/10 border border-red-500/30 text-red-400 hover:bg-red-500/20 hover:border-red-500/50 font-black text-[9px] uppercase tracking-widest rounded-xl transition-all disabled:opacity-40 disabled:cursor-not-allowed"
+                      onClick={() => handleSwitchToProvider(provider.id)}
+                      className="w-full sm:w-auto px-4 py-2 bg-white/5 hover:bg-white/10 border border-white/15 text-zinc-300 hover:text-white font-black text-[9px] uppercase tracking-widest rounded-xl transition-all cursor-pointer"
                     >
-                      {isUnlinking ? (
-                        <span className="flex items-center gap-1.5">
-                          <div className="w-2.5 h-2.5 border border-red-400/30 border-t-red-400 rounded-full animate-spin" />
-                          Unlinking...
-                        </span>
-                      ) : (
-                        'Unlink Account'
-                      )}
+                      Use as Active
                     </button>
                   ) : (
                     <button
@@ -559,7 +888,7 @@ export const AccountSettingsSection: React.FC<AccountSettingsSectionProps> = ({
                       type="button"
                       onClick={() => handleLinkProvider(provider.id)}
                       disabled={isUnlinking || isLinking}
-                      className={`w-full sm:w-auto flex items-center justify-center gap-2 px-4 py-2 bg-linear-to-r ${provider.color} font-black text-[9px] uppercase tracking-widest rounded-xl transition-all border disabled:opacity-40 disabled:cursor-not-allowed`}
+                      className={`w-full sm:w-auto flex items-center justify-center gap-2 px-4 py-2 bg-gradient-to-r ${provider.color} font-black text-[9px] uppercase tracking-widest rounded-xl transition-all border disabled:opacity-40 disabled:cursor-not-allowed cursor-pointer`}
                     >
                       {isLinking ? (
                         <span className="flex items-center gap-1.5">
@@ -654,10 +983,11 @@ export const AccountSettingsSection: React.FC<AccountSettingsSectionProps> = ({
                 aria-label="Confirm Delete"
                 type="button"
                 onClick={() => {
-                  if (deleteInput !== 'DELETE' || !userId) return;
+                  const targetUserId = userId || effectiveUser?.id;
+                  if (deleteInput !== 'DELETE' || !targetUserId) return;
                   setIsDeleting(true);
                   setDeleteError(null);
-                  sendCommand('delete_account', { userId });
+                  sendCommand('delete_account', { userId: targetUserId });
                 }}
                 disabled={deleteInput !== 'DELETE' || isDeleting}
                 className="flex-1 flex items-center justify-center gap-2 py-2 bg-red-600 hover:bg-red-500 text-white font-black text-[9px] uppercase tracking-widest rounded-xl transition-all disabled:opacity-40 disabled:cursor-not-allowed shadow-[0_0_20px_rgba(239,68,68,0.2)]"

@@ -101,29 +101,15 @@ const AuthPage: React.FC<AuthPageProps> = ({ onBackToLibrary }) => {
         const options: any = {
           strategy,
           redirectUrl: `${origin}/sso-callback`,
-          redirectUrlComplete: `${origin}/`,
+          redirectUrlComplete: `${origin}/?browser_auth=1&auth_completed=1`,
         };
-        if (strategy === 'oauth_google') {
-          options.additionalData = { prompt: 'select_account' };
-          options.customOAuthOptions = { prompt: 'select_account' };
-        } else if (strategy === 'oauth_discord') {
-          options.additionalData = { prompt: 'consent' };
-          options.customOAuthOptions = { prompt: 'consent' };
-        }
         await signIn.authenticateWithRedirect(options);
       } else {
         const options: any = {
           strategy,
           redirectUrl: `${origin}/sso-callback`,
-          redirectUrlComplete: `${origin}/`,
+          redirectUrlComplete: `${origin}/?browser_auth=1&auth_completed=1`,
         };
-        if (strategy === 'oauth_google') {
-          options.additionalData = { prompt: 'select_account' };
-          options.customOAuthOptions = { prompt: 'select_account' };
-        } else if (strategy === 'oauth_discord') {
-          options.additionalData = { prompt: 'consent' };
-          options.customOAuthOptions = { prompt: 'consent' };
-        }
         await signUp.authenticateWithRedirect(options);
       }
     } catch (err: any) {

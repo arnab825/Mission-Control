@@ -133,6 +133,14 @@ contextBridge.exposeInMainWorld('electronAPI', {
       ipcRenderer.off('auth-popup-closed', subscription);
     };
   },
+  clearAuth: () => ipcRenderer.invoke('clear-auth'),
+  onAuthCleared: (callback: () => void) => {
+    const subscription = () => callback();
+    ipcRenderer.on('auth-cleared', subscription);
+    return () => {
+      ipcRenderer.off('auth-cleared', subscription);
+    };
+  },
 })
 
 // Listen for custom window control events dispatched by injected auth exit bars on external pages

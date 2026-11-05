@@ -725,13 +725,8 @@ class GameScanner:
         try:
             from ai_brain.memory import GameMemory
             mem = GameMemory(config=self.config)
-            mem.save_local_games(self.user_id, games)
-            # Also save a copy for 'guest' / machine default so unauthenticated state finds it
-            if self.user_id and self.user_id != "guest":
-                try:
-                    mem.save_local_games("guest", games)
-                except Exception:
-                    pass
+            target_user = self.user_id or "guest"
+            mem.save_local_games(target_user, games)
         except Exception as exc:
             logger.warning("Local SQLite save failed: %s", exc)
 
