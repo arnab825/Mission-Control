@@ -110,7 +110,8 @@ def _try_win_cpu_temp_native() -> float:
                 )
                 diag_out = subprocess.check_output(
                     ["powershell", "-NoProfile", "-Command", diag_script],
-                    startupinfo=si, creationflags=0x08000000, timeout=3.0
+                    startupinfo=si, creationflags=0x08000000, timeout=2.5,
+                    stderr=subprocess.DEVNULL
                 ).decode().strip()
 
                 if diag_out:
@@ -141,7 +142,8 @@ def _try_win_cpu_temp_native() -> float:
             )
             out = subprocess.check_output(
                 ["powershell", "-NoProfile", "-Command", awcc_script],
-                startupinfo=si, creationflags=0x08000000, timeout=2.5
+                startupinfo=si, creationflags=0x08000000, timeout=2.0,
+                stderr=subprocess.DEVNULL
             ).decode().strip()
 
             if out.isdigit():
@@ -149,8 +151,9 @@ def _try_win_cpu_temp_native() -> float:
                 if 0 < t < 120:
                     return float(t)
         except Exception as awcc_err:
-            logger.debug(f"[Telemetry] AWCC query temporary cooldown (15s): {awcc_err}")
-            _AWCC_COOLDOWN_UNTIL = now_ts + 15.0
+            # WMI root/WMI requires Administrator elevation on modern Windows; suppress recurring freezes
+            logger.debug(f"[Telemetry] AWCC WMI query unavailable ({awcc_err}) - disabling for current session.")
+            _AWCC_COOLDOWN_UNTIL = now_ts + 86400.0
 
 
     # --- Approach 2: PowerShell enumerate all thermal zone instances ---
@@ -170,7 +173,8 @@ def _try_win_cpu_temp_native() -> float:
                 '  } catch {} '
                 '}'  
                 '"',
-                shell=True, startupinfo=si, creationflags=0x08000000, timeout=2.0
+                shell=True, startupinfo=si, creationflags=0x08000000, timeout=2.0,
+                stderr=subprocess.DEVNULL
             ).decode().strip().splitlines()
             
             valid_found = False
@@ -931,6 +935,17 @@ class TelemetryThread(threading.Thread):
                         last_temp = getattr(self, "_last_cpu_temp", 0)
                         if last_temp > 0:
                             cpu_temp = last_temp
+
+                    # --- Thermal model fallback when hardware registers are restricted (non-elevated VBS) ---
+                    if cpu_temp <= 0:
+                        gpu_t = (gpu_metrics.get("temperature") or gpu_metrics.get("temp") or 0.0) if gpu_metrics else 0.0
+                        if gpu_t > 0:
+                            # Unified laptop cooling estimation: CPU runs slightly warmer than shared heatsink GPU
+                            load_offset = (cpu_pct / 100.0) * 16.0
+                            est_t = round(float(gpu_t) + 3.0 + load_offset, 1)
+                            cpu_temp = min(max(est_t, 42.0), 98.0)
+                        elif cpu_pct > 0:
+                            cpu_temp = round(48.0 + ((cpu_pct / 100.0) * 32.0), 1)
 
                 # --- Source-aware temperature post-processing ---
                 lhm_provided_temp = lhm and lhm.get("cpu_temp", 0) > 0

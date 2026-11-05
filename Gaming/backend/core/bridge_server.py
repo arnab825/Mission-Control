@@ -73,7 +73,14 @@ class BridgeServer:
 
     async def _start_server(self):
         try:
-            async with websockets.serve(self._handler, self.host, self.port):
+            async with websockets.serve(
+                self._handler,
+                self.host,
+                self.port,
+                ping_interval=30,
+                ping_timeout=30,
+                close_timeout=10,
+            ):
                 logger.info("Bridge Server started at ws://%s:%s", self.host, self.port)
                 await asyncio.Future()
         except OSError as e:
@@ -321,15 +328,17 @@ class BridgeServer:
         async def safe_send(client):
             try:
                 # Use a generous timeout so large payloads (like frames) don't drop on busy systems
-                await asyncio.wait_for(client.send(message), timeout=3.0)
+                await asyncio.wait_for(client.send(message), timeout=10.0)
                 return None
             except Exception as e:
                 err_str = str(e)
                 code = getattr(e, "code", None)
                 is_graceful = (
-                    code in (1000, 1001)
+                    code in (1000, 1001, 1011)
                     or "1000" in err_str
                     or "1001" in err_str
+                    or "1011" in err_str
+                    or "ping timeout" in err_str.lower()
                     or "going away" in err_str.lower()
                     or "ok" in err_str.lower()
                     or (hasattr(websockets.exceptions, "ConnectionClosedOK") and isinstance(e, websockets.exceptions.ConnectionClosedOK))
@@ -337,7 +346,7 @@ class BridgeServer:
                 if is_graceful:
                     logger.debug("Client disconnected gracefully: %s", e)
                 elif isinstance(e, asyncio.TimeoutError):
-                    logger.warning("Dropping client due to send timeout (>3.0s)")
+                    logger.warning("Dropping client due to send timeout (>10.0s)")
                 else:
                     logger.warning("Dropping client due to send failure: %s", e)
                 try:

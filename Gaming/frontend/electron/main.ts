@@ -812,6 +812,12 @@ let localServerPort = 0
 const FIXED_UI_PORT = 43221;
 let localHttpServer: http.Server | null = null;
 
+// Track whether the POST-based browser auth completion has already been processed.
+// When the POST arrives first (which is guaranteed by the App.tsx fix that awaits
+// the POST before firing the deep link), the deep link handler should skip re-running
+// handleBrowserAuthCompletion so we don't send a duplicate auth-completed with stale data.
+let browserAuthCompletedAt = 0;
+
 function startLocalServer(distPath: string, port = FIXED_UI_PORT, retries = 15): Promise<number> {
   return new Promise((resolve) => {
     try {
@@ -843,6 +849,9 @@ function startLocalServer(distPath: string, port = FIXED_UI_PORT, retries = 15):
                   sessionId: data.sessionId,
                   userId: data.userId
                 })
+                // Mark that POST-based completion has been handled so the deep link
+                // handler (which arrives shortly after) knows not to overwrite the data.
+                browserAuthCompletedAt = Date.now();
                 await handleBrowserAuthCompletion(data)
                 res.writeHead(200, {
                   'Content-Type': 'application/json',
@@ -1008,6 +1017,21 @@ async function handleDeepLink(urlStr: string) {
       hostAndPath.includes('auth-success') ||
       parsed.searchParams.get('auth_completed') === '1'
     ) {
+      // If the POST-based completion already ran within the last 5 seconds, the app
+      // has already received auth-completed with full session data. Just restore and
+      // focus the main window — no need to call handleBrowserAuthCompletion again
+      // which would overwrite the injected data with the sparse deep-link payload.
+      const msSincePost = Date.now() - browserAuthCompletedAt;
+      if (browserAuthCompletedAt > 0 && msSincePost < 5000) {
+        console.log(`[Electron DeepLink] POST already processed ${msSincePost}ms ago — restoring window only.`);
+        if (win && !win.isDestroyed()) {
+          if (win.isMinimized()) win.restore();
+          win.show();
+          win.focus();
+        }
+        return;
+      }
+
       const sessionId = parsed.searchParams.get('session_id') || undefined;
       const userId = parsed.searchParams.get('user_id') || undefined;
       const token = parsed.searchParams.get('token') || undefined;
@@ -1057,54 +1081,133 @@ async function handleBrowserAuthCompletion(data: {
   token?: string;
   userId?: string;
   userEmail?: string;
+  username?: string;
+  firstName?: string;
+  lastName?: string;
+  imageUrl?: string;
   cookies?: string;
   storage?: Record<string, string>;
 }) {
+  const hasFullData = Boolean(data.cookies || data.storage || data.token);
   console.log('[BrowserAuth] Synchronizing browser auth completion:', {
     sessionId: data.sessionId,
     userId: data.userId,
     userEmail: data.userEmail,
+    username: data.username,
+    hasFullData,
     hasCookies: Boolean(data.cookies),
     hasStorage: Boolean(data.storage),
   });
 
+  // Track when a full-data completion is processed so the subsequent deep link
+  // handler can skip a redundant (data-less) call.
+  if (hasFullData) {
+    browserAuthCompletedAt = Date.now();
+  }
+
   // 1. Close any in-app auth window
   closeAuthWindow();
 
-  // 2. Synchronize cookies to Electron's partition session
-  if (data.cookies && typeof data.cookies === 'string') {
-    const origin = getAppOrigin();
-    const persistSession = session.fromPartition('persist:mission-control');
-    const pairs = data.cookies.split(';').map((c) => c.trim().split('='));
-    for (const [k, ...vParts] of pairs) {
-      const v = vParts.join('=');
-      if (k && v) {
+  // 2. Synchronize cookies to Electron's partition session and default session
+  const persistSession = session.fromPartition('persist:mission-control');
+  const origin = getAppOrigin();
+  const uat = Math.floor(Date.now() / 1000).toString();
+
+  const targetOrigins = [
+    origin,
+    'http://localhost:5173',
+    'http://127.0.0.1:5173',
+    'http://localhost:43221',
+    'http://127.0.0.1:43221',
+    'https://evident-midge-66.clerk.accounts.dev',
+  ];
+
+  const sessionsToUpdate = [persistSession];
+  if (session.defaultSession) sessionsToUpdate.push(session.defaultSession);
+
+  for (const s of sessionsToUpdate) {
+    for (const url of targetOrigins) {
+      if (data.token && typeof data.token === 'string') {
         try {
-          await persistSession.cookies.set({
-            url: origin,
-            name: k,
-            value: v,
+          await s.cookies.set({
+            url,
+            name: '__session',
+            value: data.token,
             path: '/',
+            secure: url.startsWith('https:'),
+            sameSite: url.startsWith('https:') ? 'no_restriction' : 'lax',
           });
         } catch (_) {}
+      }
+      try {
+        await s.cookies.set({
+          url,
+          name: '__client_uat',
+          value: uat,
+          path: '/',
+          secure: url.startsWith('https:'),
+          sameSite: url.startsWith('https:') ? 'no_restriction' : 'lax',
+        });
+      } catch (_) {}
+    }
+
+    if (data.cookies && typeof data.cookies === 'string') {
+      const pairs = data.cookies.split(';').map((c) => c.trim().split('='));
+      for (const [k, ...vParts] of pairs) {
+        const v = vParts.join('=');
+        if (k && v) {
+          for (const url of [origin, 'http://localhost:5173', 'http://127.0.0.1:5173']) {
+            try {
+              await s.cookies.set({
+                url,
+                name: k,
+                value: v,
+                path: '/',
+              });
+            } catch (_) {}
+          }
+        }
       }
     }
   }
 
-  // 3. Inject localStorage items into the main window webContents
-  if (win && !win.isDestroyed() && data.storage && typeof data.storage === 'object') {
+  // 3. Inject all localStorage items and cached user into the main window webContents
+  if (win && !win.isDestroyed()) {
     try {
-      const serialized = JSON.stringify(data.storage);
+      const storageItems = data.storage && typeof data.storage === 'object' ? data.storage : {};
+      const userData = {
+        id: data.userId || '',
+        email: data.userEmail || '',
+        username: data.username || (data.userEmail ? data.userEmail.split('@')[0] : 'Operative'),
+        firstName: data.firstName || '',
+        lastName: data.lastName || '',
+        imageUrl: data.imageUrl || '',
+        sessionId: data.sessionId || '',
+      };
+      const serializedStorage = JSON.stringify(storageItems);
+      const serializedUser = JSON.stringify(userData);
+      const tokenStr = data.token ? JSON.stringify(data.token) : '""';
+
       await win.webContents.executeJavaScript(`
         try {
-          const items = ${serialized};
+          const items = ${serializedStorage};
           for (const [k, v] of Object.entries(items)) {
-            if (typeof v === 'string' && (k.startsWith('__clerk') || k.startsWith('clerk') || k.startsWith('mission_control') || k.includes('session'))) {
+            if (typeof v === 'string') {
               try {
                 localStorage.setItem(k, v);
               } catch (_) {}
             }
           }
+          const user = ${serializedUser};
+          if (user.id || user.email) {
+            localStorage.setItem('mc_authenticated_user', JSON.stringify(user));
+          }
+          const token = ${tokenStr};
+          const uat = "${uat}";
+          if (token) {
+            document.cookie = "__session=" + token + "; path=/; max-age=31536000";
+          }
+          document.cookie = "__client_uat=" + uat + "; path=/; max-age=31536000";
         } catch (e) {
           console.warn('[BrowserAuth] executeJavaScript error:', e);
         }
@@ -1120,11 +1223,24 @@ async function handleBrowserAuthCompletion(data: {
     win.show();
     win.focus();
 
-    // 5. Notify the React app of completion
+    // 5. Flush cookie store so Clerk JWT cookies are committed to Electron's session
+    try {
+      await session.defaultSession.cookies.flushStore();
+      await session.fromPartition('persist:mission-control').cookies.flushStore();
+    } catch (_) {}
+    // Brief settle delay so Chromium's cookie jar is fully readable
+    await new Promise<void>((r) => setTimeout(r, 200));
+
+    // 6. Notify the React app of completion
     win.webContents.send('auth-completed', {
       method: 'browser',
       sessionId: data.sessionId,
       userId: data.userId,
+      userEmail: data.userEmail,
+      username: data.username,
+      firstName: data.firstName,
+      lastName: data.lastName,
+      imageUrl: data.imageUrl,
       token: data.token,
     });
   }
@@ -2202,11 +2318,15 @@ ipcMain.handle('open-browser-auth', async (_event, params?: { strategy?: string;
   return openBrowserAuth(params);
 });
 
-ipcMain.on('notify-auth-success', () => {
-  console.log('[Electron] notify-auth-success received — closing auth popup and notifying main window.');
-  closeAuthWindow();
-  if (win && !win.isDestroyed()) {
-    win.webContents.send('auth-completed');
+ipcMain.on('notify-auth-success', async (_event, payload?: any) => {
+  console.log('[Electron] notify-auth-success received with payload:', payload ? { sessionId: payload.sessionId, userId: payload.userId } : 'none');
+  if (payload && (payload.storage || payload.sessionId || payload.token)) {
+    await handleBrowserAuthCompletion(payload);
+  } else {
+    closeAuthWindow();
+    if (win && !win.isDestroyed()) {
+      win.webContents.send('auth-completed');
+    }
   }
 });
 

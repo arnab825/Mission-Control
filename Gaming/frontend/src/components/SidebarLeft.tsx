@@ -41,14 +41,36 @@ const Sidebar: React.FC<SidebarProps> = ({
   const { signOut } = useClerk();
   const [isAccountSwitcherOpen, setIsAccountSwitcherOpen] = React.useState(false);
   
+  // Fallback to locally synchronized authentication node if Clerk client hydration is pending
+  const cachedUser = React.useMemo(() => {
+    if (typeof window === 'undefined' || !window.localStorage) return null;
+    try {
+      const raw = window.localStorage.getItem('mc_authenticated_user');
+      return raw ? JSON.parse(raw) : null;
+    } catch (_) {
+      return null;
+    }
+  }, [isSignedIn, user]);
+
+  const effectiveIsSignedIn = Boolean(isSignedIn || cachedUser);
+  const effectiveUser = user || (cachedUser ? {
+    id: cachedUser.id || 'node-user',
+    username: cachedUser.username || (cachedUser.email ? cachedUser.email.split('@')[0] : 'operative'),
+    firstName: cachedUser.firstName || (cachedUser.email ? cachedUser.email.split('@')[0] : 'Operative'),
+    lastName: cachedUser.lastName || '',
+    imageUrl: cachedUser.imageUrl || '',
+    primaryEmailAddress: cachedUser.email ? { emailAddress: cachedUser.email } : undefined,
+    externalAccounts: cachedUser.externalAccounts || [],
+  } as any : null);
+
   // Find the exact external account the user just logged in with (saved in localStorage during sign in)
   const activeProvider = typeof window !== 'undefined' && typeof window.localStorage?.getItem === 'function' ? window.localStorage.getItem('mission_control_active_provider') : null;
   const normalizedActiveProvider = activeProvider?.replace('oauth_', '');
-  let activeExternalAccount = user?.externalAccounts?.find(a => a.provider?.replace('oauth_', '') === normalizedActiveProvider);
+  let activeExternalAccount = effectiveUser?.externalAccounts?.find((a: any) => a.provider?.replace('oauth_', '') === normalizedActiveProvider);
   
   // Fallback to the most recently updated if not found
-  if (!activeExternalAccount && user?.externalAccounts) {
-    activeExternalAccount = [...user.externalAccounts].sort((a, b) => {
+  if (!activeExternalAccount && effectiveUser?.externalAccounts) {
+    activeExternalAccount = [...effectiveUser.externalAccounts].sort((a: any, b: any) => {
       const bTime = (b as any).updatedAt ? new Date((b as any).updatedAt).getTime() : 0;
       const aTime = (a as any).updatedAt ? new Date((a as any).updatedAt).getTime() : 0;
       return bTime - aTime;
@@ -150,7 +172,7 @@ const Sidebar: React.FC<SidebarProps> = ({
         <div className="mb-4 pt-3 border-t border-white/5 space-y-2">
           <div className="flex items-center justify-between px-2">
             <span className="text-[10px] font-bold text-zinc-500 uppercase tracking-widest">Authentication</span>
-            {isSignedIn ? (
+            {effectiveIsSignedIn ? (
               <span className="flex items-center gap-1 text-[8px] font-black text-neon-yellow uppercase bg-neon-yellow/10 border border-neon-yellow/20 px-2 py-0.5 rounded-full font-mono">
                 <span className="w-1 h-1 rounded-full bg-neon-yellow animate-pulse" />
                 Active
@@ -162,7 +184,7 @@ const Sidebar: React.FC<SidebarProps> = ({
             )}
           </div>
 
-            {isSignedIn && user ? (
+          {effectiveIsSignedIn && effectiveUser ? (
             <div role="button" tabIndex={0} onKeyDown={(e) => e.key === 'Enter' && e.currentTarget.click()} 
               onClick={(e) => {
                 const target = e.target as HTMLElement;
@@ -174,7 +196,7 @@ const Sidebar: React.FC<SidebarProps> = ({
             >
               <div className="flex items-center gap-2.5 min-w-0">
                 {(() => {
-                  const avatarUrl = activeExternalAccount?.imageUrl || user.imageUrl;
+                  const avatarUrl = activeExternalAccount?.imageUrl || effectiveUser.imageUrl;
                   return avatarUrl ? (
                     <img
                       src={avatarUrl}
@@ -191,26 +213,26 @@ const Sidebar: React.FC<SidebarProps> = ({
                 })()}
                 <div
                   className="w-8 h-8 rounded-lg bg-neon-green/10 border border-neon-green/20 flex items-center justify-center font-black text-xs text-neon-green"
-                  style={{ display: (activeExternalAccount?.imageUrl || user.imageUrl || user.externalAccounts?.[0]?.imageUrl) ? 'none' : 'flex' }}
+                  style={{ display: (activeExternalAccount?.imageUrl || effectiveUser.imageUrl || effectiveUser.externalAccounts?.[0]?.imageUrl) ? 'none' : 'flex' }}
                 >
-                  {activeExternalAccount?.username?.[0] || activeExternalAccount?.firstName?.[0] || user.firstName?.[0] || user.username?.[0] || user.externalAccounts?.[0]?.username?.[0] || 'U'}
+                  {activeExternalAccount?.username?.[0] || activeExternalAccount?.firstName?.[0] || effectiveUser.firstName?.[0] || effectiveUser.username?.[0] || effectiveUser.externalAccounts?.[0]?.username?.[0] || 'U'}
                 </div>
                 <div className="min-w-0 flex flex-col">
                   <span className="text-[10px] font-black text-white truncate uppercase tracking-tight">
                     {(() => {
                       if (activeExternalAccount?.username) return activeExternalAccount.username;
                       if (activeExternalAccount?.firstName) return `${activeExternalAccount.firstName} ${activeExternalAccount.lastName || ''}`.trim();
-                      if (user.username) return user.username;
-                      if (user.firstName) return `${user.firstName} ${user.lastName || ''}`.trim();
+                      if (effectiveUser.username) return effectiveUser.username;
+                      if (effectiveUser.firstName) return `${effectiveUser.firstName} ${effectiveUser.lastName || ''}`.trim();
                       return 'Node Connected';
                     })()}
                   </span>
                   <span className="text-[8px] text-zinc-500 truncate lowercase font-medium mt-0.5">
                     {(() => {
-                      if (activeExternalAccount && !user.primaryEmailAddress) {
+                      if (activeExternalAccount && !effectiveUser.primaryEmailAddress) {
                         return `via ${activeExternalAccount.provider?.replace('oauth_', '') || 'sso'}`;
                       }
-                      return activeExternalAccount?.emailAddress || user.primaryEmailAddress?.emailAddress || 'clerk.user';
+                      return activeExternalAccount?.emailAddress || effectiveUser.primaryEmailAddress?.emailAddress || 'clerk.user';
                     })()}
                   </span>
                 </div>
@@ -236,12 +258,15 @@ const Sidebar: React.FC<SidebarProps> = ({
                   onClick={async (e) => {
                     e.preventDefault();
                     e.stopPropagation();
-                    if (user?.id && sendCommand) {
-                      sendCommand('logout_user', { userId: user.id });
+                    if (effectiveUser?.id && sendCommand) {
+                      sendCommand('logout_user', { userId: effectiveUser.id });
                     }
                     try {
                       if (typeof window !== 'undefined' && typeof window.localStorage?.removeItem === 'function') {
                         window.localStorage.removeItem('mission_control_active_provider');
+                        window.localStorage.removeItem('mc_authenticated_user');
+                        document.cookie = '__session=; path=/; max-age=0';
+                        document.cookie = '__client_uat=0; path=/; max-age=0';
                       }
                     } catch (_) {}
                     try {

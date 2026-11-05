@@ -110,7 +110,7 @@ contextBridge.exposeInMainWorld('electronAPI', {
   openBrowserAuth: (params?: { strategy?: string; mode?: 'login' | 'signup' | 'switch' | 'link'; reason?: string }) => ipcRenderer.invoke('open-browser-auth', params),
   isAuthPopup: process.argv.includes('--is-auth-popup'),
   openAuthPopupUrl: (url: string) => ipcRenderer.invoke('open-auth-popup-url', url),
-  notifyAuthSuccess: () => ipcRenderer.send('notify-auth-success'),
+  notifyAuthSuccess: (data?: any) => ipcRenderer.send('notify-auth-success', data),
   closeAuthPopup: () => ipcRenderer.send('close-auth-popup'),
   onBrowserAuthStarted: (callback: (data: any) => void) => {
     const subscription = (_event: any, data: any) => callback(data);

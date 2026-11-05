@@ -56,26 +56,41 @@ const SSOCallback: React.FC = () => {
 
     const syncToDesktop = async () => {
       try {
-        const token = await clerk.session?.getToken();
+        const activeSession = clerk.session || clerk.client?.sessions?.[0] || clerk.client?.signedInSessions?.[0];
+        const sessId = activeSession?.id || clerk.client?.lastActiveSessionId || '';
+        if (activeSession && !clerk.session && clerk.setActive) {
+          try {
+            await clerk.setActive({ session: activeSession.id });
+          } catch (_) {}
+        }
+        const token = await (activeSession?.getToken?.() || clerk.session?.getToken?.());
+        const currentUser = activeSession?.user || clerk.user;
         const payload = {
-          sessionId: clerk.session?.id || clerk.client?.lastActiveSessionId,
+          sessionId: sessId,
           token,
-          userId: clerk.user?.id,
-          userEmail: clerk.user?.primaryEmailAddress?.emailAddress,
+          userId: currentUser?.id,
+          userEmail: currentUser?.primaryEmailAddress?.emailAddress,
+          username: currentUser?.username,
+          firstName: currentUser?.firstName,
+          lastName: currentUser?.lastName,
+          imageUrl: currentUser?.imageUrl,
           storage: { ...window.localStorage },
           cookies: document.cookie,
         };
-        fetch('/api/browser-auth/complete', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify(payload),
-        }).catch(() => {});
-        if (typeof window !== 'undefined' && window.location.port !== '43221') {
-          fetch('http://127.0.0.1:43221/api/browser-auth/complete', {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify(payload),
-          }).catch(() => {});
+        const endpoints = [
+          'http://127.0.0.1:43221/api/browser-auth/complete',
+          'http://localhost:43221/api/browser-auth/complete',
+          '/api/browser-auth/complete',
+        ];
+        for (const ep of endpoints) {
+          try {
+            await fetch(ep, {
+              method: 'POST',
+              headers: { 'Content-Type': 'application/json' },
+              body: JSON.stringify(payload),
+            });
+            break;
+          } catch (_) {}
         }
       } catch (_) {}
     };
@@ -94,8 +109,29 @@ const SSOCallback: React.FC = () => {
         setAuthStatus('success');
 
         if (isPopup) {
+          const activeSession = clerk.session || clerk.client?.sessions?.[0] || clerk.client?.signedInSessions?.[0];
+          const sessId = activeSession?.id || clerk.client?.lastActiveSessionId || '';
+          if (activeSession && !clerk.session && clerk.setActive) {
+            try {
+              await clerk.setActive({ session: activeSession.id });
+            } catch (_) {}
+          }
+          const token = await (activeSession?.getToken?.() || clerk.session?.getToken?.());
+          const currentUser = activeSession?.user || clerk.user;
+          const payload = {
+            sessionId: sessId,
+            token,
+            userId: currentUser?.id,
+            userEmail: currentUser?.primaryEmailAddress?.emailAddress,
+            username: currentUser?.username,
+            firstName: currentUser?.firstName,
+            lastName: currentUser?.lastName,
+            imageUrl: currentUser?.imageUrl,
+            storage: { ...window.localStorage },
+            cookies: document.cookie,
+          };
           if (window.electronAPI?.notifyAuthSuccess) {
-            window.electronAPI.notifyAuthSuccess();
+            window.electronAPI.notifyAuthSuccess(payload);
           }
           if (window.electronAPI?.closeAuthPopup) {
             window.electronAPI.closeAuthPopup();
@@ -106,7 +142,8 @@ const SSOCallback: React.FC = () => {
         } else {
           await syncToDesktop();
           try {
-            const sessId = clerk.session?.id || clerk.client?.lastActiveSessionId || '';
+            const activeSession = clerk.session || clerk.client?.sessions?.[0] || clerk.client?.signedInSessions?.[0];
+            const sessId = activeSession?.id || clerk.client?.lastActiveSessionId || '';
             window.location.href = `mission-control://auth-completed?session_id=${encodeURIComponent(sessId)}`;
           } catch (_) {}
           window.location.replace('/?browser_auth=1&auth_completed=1');

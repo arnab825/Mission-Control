@@ -19,7 +19,7 @@ import { UpdatesPage } from './pages/UpdatesPage';
 import { ThemeQuickMenu } from './components/ThemeQuickMenu';
 import { useTheme } from './context/ThemeContext';
 import type { CategoryId } from './pages/SettingsPage';
-import { Sparkles, ChevronDown, ToggleRight, ToggleLeft, Menu, AlertTriangle, Globe, ExternalLink } from 'lucide-react';
+import { Sparkles, ChevronDown, ToggleRight, ToggleLeft, Menu, AlertTriangle, Globe, ExternalLink, Loader2 } from 'lucide-react';
 import { useAuth, useSignIn, useSignUp, useClerk, useUser } from '@clerk/clerk-react';
 import { motion, AnimatePresence, MotionConfig } from 'framer-motion';
 
@@ -94,6 +94,8 @@ const App: React.FC = () => {
   const [authPopupError, setAuthPopupError] = useState<string | null>(null);
   const [authPopupRetryCount, setAuthPopupRetryCount] = useState<number>(0);
   const [failsafeCountdown, setFailsafeCountdown] = useState<number | null>(null);
+  const [browserAuthLoading, setBrowserAuthLoading] = useState<'oauth_google' | 'oauth_discord' | null>(null);
+  const [browserAuthError, setBrowserAuthError] = useState<string | null>(null);
 
   // Strip ?auth_cancelled and ?show_auth params from the URL immediately so they don't
   // persist across refreshes or confuse any other logic.
@@ -113,18 +115,44 @@ const App: React.FC = () => {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
-  // Handle auth popup completion or auto-redirect trigger inside popup window
+  // Handle auth popup completion inside popup window:
+  // Extract and transfer full authentication state (session, token, storage, cookies)
+  // to the main window via notifyAuthSuccess so the desktop app can immediately log in.
   useEffect(() => {
     if (isAuthCompleted || (isAuthPopup && isSignedIn && user)) {
-      if (window.electronAPI?.notifyAuthSuccess) {
-        window.electronAPI.notifyAuthSuccess();
-      }
-      if (window.electronAPI?.closeAuthPopup) {
-        window.electronAPI.closeAuthPopup();
-      }
-      try {
-        window.close();
-      } catch (_) {}
+      const finishAuthPopup = async () => {
+        try {
+          const activeSession = clerk.session || clerk.client?.sessions?.[0] || (clerk.client as any)?.signedInSessions?.[0];
+          const sessId = activeSession?.id || clerk.client?.lastActiveSessionId || '';
+          if (activeSession && !clerk.session && clerk.setActive) {
+            try {
+              await clerk.setActive({ session: activeSession.id });
+            } catch (_) {}
+          }
+          const token = await (activeSession?.getToken?.() || clerk.session?.getToken?.());
+          const currentUser = user || activeSession?.user || clerk.user;
+          const payload = {
+            sessionId: sessId,
+            token,
+            userId: currentUser?.id,
+            userEmail: currentUser?.primaryEmailAddress?.emailAddress,
+            storage: { ...window.localStorage },
+            cookies: document.cookie,
+          };
+          if (window.electronAPI?.notifyAuthSuccess) {
+            window.electronAPI.notifyAuthSuccess(payload);
+          }
+        } catch (_) {
+          window.electronAPI?.notifyAuthSuccess?.();
+        }
+        if (window.electronAPI?.closeAuthPopup) {
+          window.electronAPI.closeAuthPopup();
+        }
+        try {
+          window.close();
+        } catch (_) {}
+      };
+      finishAuthPopup();
       return;
     }
 
@@ -266,84 +294,137 @@ const App: React.FC = () => {
     return () => clearTimeout(t);
   }, [failsafeCountdown, isAuthPopup]);
 
-  // Auto-initiate OAuth redirect when landing on browser auth portal with specified strategy
-  useEffect(() => {
-    if (!isBrowserAuth || isSignedIn || !isSignInLoaded || !signIn) return;
-    const params = new URLSearchParams(window.location.search);
-    const strategy = params.get('strategy');
-    if (strategy === 'oauth_google' || strategy === 'oauth_discord') {
+  const handleBrowserOAuth = async (strategy: 'oauth_google' | 'oauth_discord') => {
+    setBrowserAuthLoading(strategy);
+    setBrowserAuthError(null);
+    try {
       const origin = window.location.origin;
-      const options = {
-        strategy,
-        redirectUrl: `${origin}/sso-callback?browser_auth=1`,
-        redirectUrlComplete: `${origin}/?browser_auth=1&auth_completed=1`,
-        additionalData: strategy === 'oauth_google' ? { prompt: 'select_account' } : { prompt: 'consent' },
-      };
-      signIn.authenticateWithRedirect(options as any).catch((err) => {
-        console.warn('[BrowserAuth] Auto-redirect failed, falling back to manual click:', err);
-      });
-    }
-  }, [isBrowserAuth, isSignedIn, isSignInLoaded, signIn]);
+      const params = new URLSearchParams(window.location.search);
+      const mode = params.get('mode') || 'login';
 
-  // Synchronize browser authentication session to desktop application
-  useEffect(() => {
-    if (isBrowserAuth && isSignedIn && user) {
-      const syncToDesktop = async () => {
+      // CRITICAL: redirectUrl must be clean (${origin}/sso-callback) with NO dynamic query parameters.
+      // Dynamic query parameters in redirectUrl cause OAuth provider redirect_uri_mismatch errors.
+      // Dynamic parameters belong in redirectUrlComplete, where Clerk navigates after success.
+      const options: any = {
+        strategy,
+        redirectUrl: `${origin}/sso-callback`,
+        redirectUrlComplete: `${origin}/?browser_auth=1&auth_completed=1`,
+      };
+
+      if (strategy === 'oauth_google') {
+        options.additionalData = { prompt: 'select_account' };
+        options.customOAuthOptions = { prompt: 'select_account' };
+      } else if (strategy === 'oauth_discord') {
+        options.additionalData = { prompt: 'consent' };
+        options.customOAuthOptions = { prompt: 'consent' };
+      }
+
+      if (mode === 'signup' && signUp) {
+        await signUp.authenticateWithRedirect(options);
+      } else if (signIn) {
         try {
-          const token = await clerk.session?.getToken();
-          const payload = {
-            sessionId: clerk.session?.id || clerk.client?.lastActiveSessionId,
-            token,
-            userId: user.id,
-            userEmail: user.primaryEmailAddress?.emailAddress,
-            storage: { ...window.localStorage },
-            cookies: document.cookie,
-          };
-          fetch('/api/browser-auth/complete', {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify(payload),
-          }).catch(() => {});
-          if (typeof window !== 'undefined' && window.location.port !== '43221') {
-            fetch('http://127.0.0.1:43221/api/browser-auth/complete', {
+          await signIn.authenticateWithRedirect(options);
+        } catch (signInErr: any) {
+          console.warn('[BrowserAuth] signIn redirect failed, trying signUp fallback:', signInErr);
+          if (signUp) {
+            await signUp.authenticateWithRedirect(options);
+          } else {
+            throw signInErr;
+          }
+        }
+      } else if (signUp) {
+        await signUp.authenticateWithRedirect(options);
+      } else if (clerk.client?.signIn) {
+        await clerk.client.signIn.authenticateWithRedirect(options);
+      } else {
+        throw new Error('Authentication client initializing. Please try again.');
+      }
+    } catch (err: any) {
+      console.error('[BrowserAuth] OAuth initiation error:', err);
+      setBrowserAuthLoading(null);
+      setBrowserAuthError(
+        err?.errors?.[0]?.longMessage ||
+        err?.message ||
+        'Failed to connect to authentication provider. Please try again.'
+      );
+    }
+  };
+
+  // Auto-initiate OAuth redirect when landing on browser auth portal with specified strategy.
+  useEffect(() => {
+    if (!isBrowserAuth || isSignedIn || !clerk.loaded || (!isSignInLoaded && !isSignUpLoaded)) return;
+    const params = new URLSearchParams(window.location.search);
+    const strategy = params.get('strategy') as 'oauth_google' | 'oauth_discord' | null;
+    if (!strategy) return;
+
+    const t = setTimeout(() => {
+      handleBrowserOAuth(strategy);
+    }, 350);
+    return () => clearTimeout(t);
+  }, [isBrowserAuth, isSignedIn, clerk.loaded, isSignInLoaded, isSignUpLoaded]);
+
+  // Synchronize browser authentication session to desktop application.
+  //
+  // CRITICAL: The POST to the local Electron server MUST complete before the deep-link
+  // navigation fires. Previously the POSTs were fire-and-forget and the deep link fired
+  // immediately — Electron received the deep link before it had any session data, so
+  // clerk.client.reload() saw an empty session → app stayed Offline.
+  //
+  // Fix: await the POST inside syncToDesktop(), then fire the deep link from within that
+  // same async function so the order is guaranteed:
+  //   1. getToken()
+  //   2. POST with full payload (cookies + localStorage + sessionId + JWT)
+  //   3. navigate mission-control:// deep link (Electron now has the data)
+  useEffect(() => {
+    if (!isBrowserAuth || !isSignedIn || !user) return;
+
+    const syncToDesktop = async () => {
+      try {
+        const activeSession = clerk.session || clerk.client?.sessions?.[0] || (clerk.client as any)?.signedInSessions?.[0];
+        const sessId = activeSession?.id || clerk.client?.lastActiveSessionId || '';
+        if (activeSession && !clerk.session && clerk.setActive) {
+          try {
+            await clerk.setActive({ session: activeSession.id });
+          } catch (_) {}
+        }
+        const token = await (activeSession?.getToken?.() || clerk.session?.getToken?.());
+        const currentUser = user || activeSession?.user || clerk.user;
+        const payload = {
+          sessionId: sessId,
+          token,
+          userId: currentUser?.id,
+          userEmail: currentUser?.primaryEmailAddress?.emailAddress,
+          storage: { ...window.localStorage },
+          cookies: document.cookie,
+        };
+
+        // Try multiple local endpoints so the POST reaches Electron's server on port 43221
+        const endpoints = [
+          'http://127.0.0.1:43221/api/browser-auth/complete',
+          'http://localhost:43221/api/browser-auth/complete',
+          '/api/browser-auth/complete',
+        ];
+
+        for (const ep of endpoints) {
+          try {
+            await fetch(ep, {
               method: 'POST',
               headers: { 'Content-Type': 'application/json' },
               body: JSON.stringify(payload),
-            }).catch(() => {});
-          }
-        } catch (_) {}
-      };
-      syncToDesktop();
-      try {
-        const sessId = clerk.session?.id || clerk.client?.lastActiveSessionId || '';
-        window.location.href = `mission-control://auth-completed?session_id=${encodeURIComponent(sessId)}`;
-      } catch (_) {}
-    }
-  }, [isBrowserAuth, isSignedIn, user, clerk]);
-
-  // Auto-redirect to OAuth provider in browser auth mode if strategy requested
-  useEffect(() => {
-    if (isBrowserAuth && !isSignedIn && clerk.loaded && isSignInLoaded) {
-      const params = new URLSearchParams(window.location.search);
-      const strategy = params.get('strategy') as 'oauth_google' | 'oauth_discord' | null;
-      if (strategy && !params.get('no_auto')) {
-        const origin = window.location.origin;
-        const options: any = {
-          strategy,
-          redirectUrl: `${origin}/sso-callback?browser_auth=1`,
-          redirectUrlComplete: `${origin}/?browser_auth=1&auth_completed=1`,
-        };
-        if (strategy === 'oauth_google') {
-          options.additionalData = { prompt: 'select_account' };
-        } else if (strategy === 'oauth_discord') {
-          options.additionalData = { prompt: 'consent' };
+            });
+            break;
+          } catch (_) {}
         }
-        signIn?.authenticateWithRedirect(options).catch((e) => {
-          console.warn('[BrowserAuth] Auto-redirect failed:', e);
-        });
-      }
-    }
-  }, [isBrowserAuth, isSignedIn, clerk.loaded, isSignInLoaded, signIn]);
+
+        // Now navigate via the deep link — Electron already processed the POST
+        try {
+          window.location.href = `mission-control://auth-completed?session_id=${encodeURIComponent(sessId)}`;
+        } catch (_) {}
+      } catch (_) {}
+    };
+
+    syncToDesktop();
+  }, [isBrowserAuth, isSignedIn, user, clerk]);
 
   // Listen for browser auth started signal to update UI toast
   useEffect(() => {
@@ -363,36 +444,65 @@ const App: React.FC = () => {
         setGamesPageMode('library');
         setGlobalToast({ message: 'Authentication successful! Synchronizing session...' });
 
-        // If a specific sessionId was passed, try activating directly
-        if (payload?.sessionId && clerk.setActive) {
-          try {
-            await clerk.setActive({ session: payload.sessionId });
-            setGlobalToast({ message: 'Welcome to Mission Control!' });
-            return;
-          } catch (_) {}
-        }
-
-        // Attempt in-memory session synchronization first with zero window reload
+        // Immediately persist cached user information for instant offline/online UI responsiveness
         try {
-          if (clerk?.client) {
-            const updatedClient = await clerk.client.reload();
-            if (updatedClient?.lastActiveSessionId) {
-              await clerk.setActive({ session: updatedClient.lastActiveSessionId });
-              setGlobalToast({ message: 'Welcome to Mission Control!' });
-              return; // Seamless in-memory session update! Zero flash or flicker!
-            }
+          if (payload?.userEmail || payload?.userId || payload?.sessionId) {
+            const cached = {
+              id: payload.userId || '',
+              email: payload.userEmail || '',
+              sessionId: payload.sessionId || '',
+              username: payload.username || (payload.userEmail ? payload.userEmail.split('@')[0] : 'Operative'),
+              firstName: payload.firstName || '',
+              lastName: payload.lastName || '',
+              imageUrl: payload.imageUrl || '',
+            };
+            localStorage.setItem('mc_authenticated_user', JSON.stringify(cached));
           }
-        } catch (err) {
-          console.warn('[Auth] In-memory session sync failed, falling back to soft reload:', err);
-        }
-
-        // Safe fallback preserving current view:
-        try {
-          sessionStorage.setItem('mc_restore_page', activePage);
+          if (payload?.token) {
+            const uat = Math.floor(Date.now() / 1000).toString();
+            document.cookie = `__session=${payload.token}; path=/; max-age=31536000`;
+            document.cookie = `__client_uat=${uat}; path=/; max-age=31536000`;
+          }
         } catch (_) {}
-        setTimeout(() => {
-          window.location.reload();
-        }, 150);
+
+        let attempts = 0;
+        const trySync = async (): Promise<void> => {
+          try {
+            if (clerk?.client) {
+              const updatedClient = await clerk.client.reload();
+              const targetSessionId =
+                payload?.sessionId ||
+                updatedClient?.lastActiveSessionId ||
+                (updatedClient as any)?.signedInSessions?.[0]?.id ||
+                (updatedClient as any)?.sessions?.[0]?.id;
+
+              if (targetSessionId && clerk.setActive) {
+                await clerk.setActive({ session: targetSessionId });
+                setGlobalToast({ message: 'Welcome to Mission Control!' });
+                return;
+              }
+            }
+          } catch (err) {
+            console.warn(`[Auth] Session sync attempt ${attempts + 1} failed:`, err);
+          }
+
+          attempts++;
+          if (attempts < 3) {
+            await new Promise<void>((r) => setTimeout(r, 350 * attempts));
+            return trySync();
+          }
+
+          // Force soft reload: Clerk will mount and detect the freshly injected session & cookies
+          console.log('[Auth] Reloading window to settle active session...');
+          try {
+            sessionStorage.setItem('mc_restore_page', activePage);
+          } catch (_) {}
+          setTimeout(() => {
+            window.location.reload();
+          }, 150);
+        };
+
+        await trySync();
       });
       return unsub;
     }
@@ -757,48 +867,57 @@ const App: React.FC = () => {
             </p>
           </div>
 
+          {browserAuthError && (
+            <div className="mb-4 p-3 rounded-xl bg-red-500/10 border border-red-500/20 text-red-400 text-xs font-medium flex items-start gap-2.5">
+              <AlertTriangle className="w-4 h-4 shrink-0 mt-0.5" />
+              <p className="text-left leading-relaxed">{browserAuthError}</p>
+            </div>
+          )}
+
           <div className="space-y-3">
             <button
               type="button"
-              onClick={async () => {
-                const origin = window.location.origin;
-                const options = {
-                  strategy: 'oauth_google',
-                  redirectUrl: `${origin}/sso-callback?browser_auth=1`,
-                  redirectUrlComplete: `${origin}/?browser_auth=1&auth_completed=1`,
-                  additionalData: { prompt: 'select_account' },
-                };
-                if (signIn) await signIn.authenticateWithRedirect(options as any);
-              }}
-              className="w-full flex items-center justify-center gap-3 py-3 px-4 bg-white/5 hover:bg-white/10 border border-white/10 hover:border-white/20 rounded-xl text-xs font-black uppercase tracking-wider text-white transition-all cursor-pointer shadow-lg"
+              disabled={Boolean(browserAuthLoading)}
+              onClick={() => handleBrowserOAuth('oauth_google')}
+              className="w-full flex items-center justify-center gap-3 py-3 px-4 bg-white/5 hover:bg-white/10 border border-white/10 hover:border-white/20 rounded-xl text-xs font-black uppercase tracking-wider text-white transition-all cursor-pointer shadow-lg disabled:opacity-60 disabled:cursor-not-allowed"
             >
-              <svg className="w-4 h-4" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
-                <path fill="#ffffff" d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z" />
-                <path fill="#ffffff" d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z" />
-                <path fill="#ffffff" d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l2.85-2.22.81-.62z" />
-                <path fill="#ffffff" d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z" />
-              </svg>
-              <span>Continue with Google</span>
+              {browserAuthLoading === 'oauth_google' ? (
+                <>
+                  <Loader2 className="w-4 h-4 animate-spin text-neon-green" />
+                  <span>Connecting to Google…</span>
+                </>
+              ) : (
+                <>
+                  <svg className="w-4 h-4" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                    <path fill="#ffffff" d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z" />
+                    <path fill="#ffffff" d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z" />
+                    <path fill="#ffffff" d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l2.85-2.22.81-.62z" />
+                    <path fill="#ffffff" d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z" />
+                  </svg>
+                  <span>Continue with Google</span>
+                </>
+              )}
             </button>
 
             <button
               type="button"
-              onClick={async () => {
-                const origin = window.location.origin;
-                const options = {
-                  strategy: 'oauth_discord',
-                  redirectUrl: `${origin}/sso-callback?browser_auth=1`,
-                  redirectUrlComplete: `${origin}/?browser_auth=1&auth_completed=1`,
-                  additionalData: { prompt: 'consent' },
-                };
-                if (signIn) await signIn.authenticateWithRedirect(options as any);
-              }}
-              className="w-full flex items-center justify-center gap-3 py-3 px-4 bg-white/5 hover:bg-[#5865F2]/20 border border-white/10 hover:border-[#5865F2]/50 rounded-xl text-xs font-black uppercase tracking-wider text-white transition-all cursor-pointer shadow-lg"
+              disabled={Boolean(browserAuthLoading)}
+              onClick={() => handleBrowserOAuth('oauth_discord')}
+              className="w-full flex items-center justify-center gap-3 py-3 px-4 bg-white/5 hover:bg-[#5865F2]/20 border border-white/10 hover:border-[#5865F2]/50 rounded-xl text-xs font-black uppercase tracking-wider text-white transition-all cursor-pointer shadow-lg disabled:opacity-60 disabled:cursor-not-allowed"
             >
-              <svg className="w-4 h-4 fill-[#5865F2]" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
-                <path d="M19.27 5.33C17.94 4.71 16.5 4.26 15 4a.09.09 0 0 0-.07.03c-.18.33-.39.76-.53 1.09a16.09 16.09 0 0 0-4.8 0c-.14-.34-.35-.76-.54-1.09a.09.09 0 0 0-.07-.03c-1.5.26-2.93.71-4.27 1.33a.08.08 0 0 0-.05.05C2.79 11.53 1.74 17.58 2.3 23.53a.08.08 0 0 0 .04.06c1.8 1.33 3.53 2.13 5.23 2.68a.09.09 0 0 0 .09-.03c.4-.55.77-1.13 1.11-1.74a.09.09 0 0 0-.05-.12c-.59-.22-1.16-.48-1.71-.78a.09.09 0 0 1-.01-.15c.12-.09.24-.18.35-.28a.09.09 0 0 1 .09-.01c3.48 1.59 7.23 1.59 10.67 0a.09.09 0 0 1 .09.01c.11.09.23.19.36.28a.09.09 0 0 1-.01.15c-.56.3-1.13.56-1.73.78a.09.09 0 0 0-.04.12c.34.61.71 1.19 1.11 1.74a.09.09 0 0 0 .09.03c1.7-.55 3.44-1.35 5.24-2.68a.08.08 0 0 0 .03-.06c.64-6.8-.93-12.75-2.47-18.15a.08.08 0 0 0-.05-.05ZM8.5 17.47c-1.05 0-1.92-.96-1.92-2.13 0-1.18.85-2.14 1.92-2.14s1.94.97 1.92 2.14c0 1.17-.86 2.13-1.92 2.13Zm7 0c-1.05 0-1.92-.96-1.92-2.13 0-1.18.85-2.14 1.92-2.14s1.94.97 1.92 2.14c0 1.17-.86 2.13-1.92 2.13Z" />
-              </svg>
-              <span>Continue with Discord</span>
+              {browserAuthLoading === 'oauth_discord' ? (
+                <>
+                  <Loader2 className="w-4 h-4 animate-spin text-[#5865F2]" />
+                  <span>Connecting to Discord…</span>
+                </>
+              ) : (
+                <>
+                  <svg className="w-4 h-4 fill-[#5865F2]" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                    <path d="M19.27 5.33C17.94 4.71 16.5 4.26 15 4a.09.09 0 0 0-.07.03c-.18.33-.39.76-.53 1.09a16.09 16.09 0 0 0-4.8 0c-.14-.34-.35-.76-.54-1.09a.09.09 0 0 0-.07-.03c-1.5.26-2.93.71-4.27 1.33a.08.08 0 0 0-.05.05C2.79 11.53 1.74 17.58 2.3 23.53a.08.08 0 0 0 .04.06c1.8 1.33 3.53 2.13 5.23 2.68a.09.09 0 0 0 .09-.03c.4-.55.77-1.13 1.11-1.74a.09.09 0 0 0-.05-.12c-.59-.22-1.16-.48-1.71-.78a.09.09 0 0 1-.01-.15c.12-.09.24-.18.35-.28a.09.09 0 0 1 .09-.01c3.48 1.59 7.23 1.59 10.67 0a.09.09 0 0 1 .09.01c.11.09.23.19.36.28a.09.09 0 0 1-.01.15c-.56.3-1.13.56-1.73.78a.09.09 0 0 0-.04.12c.34.61.71 1.19 1.11 1.74a.09.09 0 0 0 .09.03c1.7-.55 3.44-1.35 5.24-2.68a.08.08 0 0 0 .03-.06c.64-6.8-.93-12.75-2.47-18.15a.08.08 0 0 0-.05-.05ZM8.5 17.47c-1.05 0-1.92-.96-1.92-2.13 0-1.18.85-2.14 1.92-2.14s1.94.97 1.92 2.14c0 1.17-.86 2.13-1.92 2.13Zm7 0c-1.05 0-1.92-.96-1.92-2.13 0-1.18.85-2.14 1.92-2.14s1.94.97 1.92 2.14c0 1.17-.86 2.13-1.92 2.13Z" />
+                  </svg>
+                  <span>Continue with Discord</span>
+                </>
+              )}
             </button>
           </div>
 

@@ -47,7 +47,7 @@ declare global {
       openAuthPopupUrl?: (url: string) => Promise<{ success: boolean; error?: string }>;
       openBrowserAuth?: (params?: { strategy?: string; mode?: 'login' | 'signup' | 'switch' | 'link'; reason?: string }) => Promise<{ success: boolean; error?: string; url?: string }>;
       onBrowserAuthStarted?: (callback: (data: any) => void) => () => void;
-      notifyAuthSuccess?: () => void;
+      notifyAuthSuccess?: (payload?: any) => void;
       closeAuthPopup?: () => void;
       onAuthCompleted?: (callback: (payload?: any) => void) => () => void;
       onAuthPopupClosed?: (callback: () => void) => () => void;
