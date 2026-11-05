@@ -1,8 +1,20 @@
 {
-  "version": "3.8.8",
+  "version": "3.8.9",
   "release_date": "2026-11-05",
   "update_check_url": "https://raw.githubusercontent.com/arnab825/Mission-Control/main/Gaming/backend/version.json",
   "changelog": [
+    {
+      "version": "3.8.9",
+      "date": "2026-11-05",
+      "title": "Google OAuth Direct Browser Delegation & Website Theme Studio",
+      "highlights": [
+        "Delegated Google OAuth directly to default system browser in desktop app to completely prevent disallowed_useragent security blocks",
+        "Added multi-layered embedded OAuth block failover with automatic popup termination on Google disallowed useragent detection",
+        "Implemented auto-initiating OAuth redirects upon landing on browser authentication portal",
+        "Added interactive App Themes & Personalization Studio to website featuring all 8 curated engineering color schemes",
+        "Generated clean, high-fidelity animated GIFs showcasing desktop dashboard and HUD game-adaptive theme morphing"
+      ]
+    },
     {
       "version": "3.8.8",
       "date": "2026-11-05",
@@ -235,11 +247,11 @@
       "highlights": [
         "Purged leaked NVIDIA API key from entire git history using git filter-repo",
         "settings.yaml removed from all 1011 commits",
-        "Fixed inverted semver guard in autoUpdater — isNewerSemver args were swapped causing same-version installer to re-run without upgrading",
-        "Fixed post-install first boot not emitting installed event — app now notifies UI of successful upgrade on next launch",
+        "Fixed inverted semver guard in autoUpdater \u2014 isNewerSemver args were swapped causing same-version installer to re-run without upgrading",
+        "Fixed post-install first boot not emitting installed event \u2014 app now notifies UI of successful upgrade on next launch",
         "Added installed status handler in UpdatesPage to refresh version badge and show success toast after upgrade",
-        "Fixed NSIS two-pass build failure — removed CenterInstallerWindow functions incompatible with BUILD_UNINSTALLER pass",
-        "Fixed missing StartApp function — replaced MUI_FINISHPAGE_RUN_FUNCTION with direct executable path to avoid dead-code warning"
+        "Fixed NSIS two-pass build failure \u2014 removed CenterInstallerWindow functions incompatible with BUILD_UNINSTALLER pass",
+        "Fixed missing StartApp function \u2014 replaced MUI_FINISHPAGE_RUN_FUNCTION with direct executable path to avoid dead-code warning"
       ]
     },
     {
@@ -257,7 +269,7 @@
       "title": "Fixed Version Not Updating After Install",
       "highlights": [
         "Fixed inverted semver guard that allowed same-version or older installers to run without upgrading",
-        "Fixed post-install first boot not emitting version change to UI — app now fires installed event on startup",
+        "Fixed post-install first boot not emitting version change to UI \u2014 app now fires installed event on startup",
         "Added installed status handler in UpdatesPage to refresh version badge and show success toast on upgrade",
         "Fixed NSIS build failure caused by unreferenced un.CenterInstallerWindow warning treated as error"
       ]
@@ -268,7 +280,7 @@
       "title": "Fixed Version Not Updating After Install",
       "highlights": [
         "Fixed inverted semver guard that allowed same-version or older installers to run without upgrading",
-        "Fixed post-install first boot not emitting version change to UI — app now fires installed event on startup",
+        "Fixed post-install first boot not emitting version change to UI \u2014 app now fires installed event on startup",
         "Added installed status handler in UpdatesPage to refresh version badge and show success toast on upgrade"
       ]
     },
