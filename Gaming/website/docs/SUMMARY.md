@@ -82,7 +82,8 @@ graph TD
 
 | Version | Key Feature / Change Description |
 | :--- | :--- |
-| **v3.8.7 (Latest)** | **Game Scanner Singleton Lock Fix & OAuth Handshake Resilience** — Fixed NameError: name 'time' is not defined in GameScanner singleton lock retry loop during background library scans |
+| **v3.8.8 (Latest)** | **Browser-Based Authentication Failsafe & Seamless Redirection** — Added automated browser-based authentication failsafe when in-app auth popups fail to load, stall, or get blocked |
+| **v3.8.7** | **Game Scanner Singleton Lock Fix & OAuth Handshake Resilience** — Fixed NameError: name 'time' is not defined in GameScanner singleton lock retry loop during background library scans |
 | **v3.8.6** | **App Themes, Gamer Identity & Adaptive Personalization Studio** — Introduced 8 curated engineering theme schemes: Emerald Protocol, Cyberpunk 2077, Crimson Fury, Quantum Cobalt, Void Amethyst, Solar Flare, Toxic Hazard, and Stealth Carbon |
 | **v3.8.5** | **Media Extras Filtering, Window Detection & HUD Focus Alignment** — Ignored companion digital artwork and soundtrack executables across all scanner modes |
 | **v3.8.4** | **Hardware Optimization & Library Scanner Performance Update** — Hardware Optimization & Library Scanner Performance Update. |

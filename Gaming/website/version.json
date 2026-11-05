@@ -1,8 +1,19 @@
 {
-  "version": "3.8.7",
-  "release_date": "2026-11-01",
+  "version": "3.8.8",
+  "release_date": "2026-11-05",
   "update_check_url": "https://raw.githubusercontent.com/arnab825/Mission-Control/main/Gaming/backend/version.json",
   "changelog": [
+    {
+      "version": "3.8.8",
+      "date": "2026-11-05",
+      "title": "Browser-Based Authentication Failsafe & Seamless Redirection",
+      "highlights": [
+        "Added automated browser-based authentication failsafe when in-app auth popups fail to load, stall, or get blocked",
+        "Implemented dual-channel session synchronization bridging system browser authentication back to Electron via loopback API and mission-control:// deep linking",
+        "Configured automatic embedded OAuth block detection and redirection for disallowed user agents",
+        "Added dedicated browser authentication portal and failsafe triggers across Auth Page, In-App Popup, and Account Switcher"
+      ]
+    },
     {
       "version": "3.8.7",
       "date": "2026-11-01",
