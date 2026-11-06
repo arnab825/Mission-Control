@@ -137,7 +137,13 @@ const App: React.FC = () => {
             sessionId: sessId,
             token,
             userId: currentUser?.id,
-            userEmail: currentUser?.primaryEmailAddress?.emailAddress,
+            userEmail: currentUser?.primaryEmailAddress?.emailAddress || (currentUser as any)?.emailAddresses?.[0]?.emailAddress,
+            username: currentUser?.username || (currentUser as any)?.firstName || '',
+            firstName: (currentUser as any)?.firstName || '',
+            lastName: (currentUser as any)?.lastName || '',
+            fullName: (currentUser as any)?.fullName || (`${(currentUser as any)?.firstName || ''} ${(currentUser as any)?.lastName || ''}`.trim()) || '',
+            imageUrl: (currentUser as any)?.imageUrl || '',
+            externalAccounts: (currentUser as any)?.externalAccounts || [],
             storage: { ...window.localStorage },
             cookies: document.cookie,
           };
@@ -611,6 +617,20 @@ const App: React.FC = () => {
               : (rawPayloadProvider.includes('discord')
                   ? 'oauth_discord'
                   : (payload.externalAccounts?.some((a: any) => (a.provider || '').includes('google')) ? 'oauth_google' : 'oauth_discord'));
+            const isDisc = provider.includes('discord');
+            let cleanAvatar = payload.imageUrl || '';
+            if (isDisc && (cleanAvatar.includes('googleusercontent.com') || cleanAvatar.includes('accounts.google.com'))) {
+              cleanAvatar = '';
+            } else if (!isDisc && (cleanAvatar.includes('discordapp.com') || cleanAvatar.includes('discord.com'))) {
+              cleanAvatar = '';
+            }
+            if (!cleanAvatar && payload.externalAccounts?.length) {
+              const ext = payload.externalAccounts.find((a: any) =>
+                (a.provider || '').toLowerCase().includes(isDisc ? 'discord' : 'google')
+              );
+              cleanAvatar = ext?.imageUrl || ext?.avatarUrl || '';
+            }
+
             const cached = {
               id: payload.userId || '',
               email: payload.userEmail || '',
@@ -618,18 +638,26 @@ const App: React.FC = () => {
               username: payload.username || (payload.userEmail ? payload.userEmail.split('@')[0] : 'Operative'),
               firstName: payload.firstName || '',
               lastName: payload.lastName || '',
-              imageUrl: payload.imageUrl || '',
+              fullName: payload.fullName || (payload.firstName ? `${payload.firstName} ${payload.lastName || ''}`.trim() : '') || payload.username || 'Operative',
+              imageUrl: cleanAvatar,
               provider,
-              externalAccounts: payload.externalAccounts || (provider.includes('discord') ? [{ provider: 'discord', emailAddress: payload.userEmail }] : [{ provider: 'google', emailAddress: payload.userEmail }]),
+              externalAccounts: payload.externalAccounts || (isDisc ? [{ provider: 'discord', emailAddress: payload.userEmail }] : [{ provider: 'google', emailAddress: payload.userEmail }]),
             };
             localStorage.setItem('mc_authenticated_user', JSON.stringify(cached));
             localStorage.setItem('mission_control_active_provider', provider);
 
             // Maintain saved accounts list for multi-account switching
+            // Key by ${provider}:${email || id} so Google and Discord accounts with the same email don't overwrite each other
             try {
               const rawList = localStorage.getItem('mc_saved_accounts');
               let list = rawList ? JSON.parse(rawList) : [];
-              list = list.filter((a: any) => a.id !== cached.id && a.email !== cached.email);
+              const cachedProv = isDisc ? 'discord' : 'google';
+              const cachedKey = `${cachedProv}:${(cached.email || cached.id).toLowerCase()}`;
+              list = list.filter((a: any) => {
+                const aProv = (a.provider || (a.email?.includes('@gmail.') ? 'google' : 'discord')).toLowerCase().includes('discord') ? 'discord' : 'google';
+                const aKey = `${aProv}:${(a.email || a.id).toLowerCase()}`;
+                return aKey !== cachedKey;
+              });
               list.unshift({ ...cached, token: payload.token, lastActive: Date.now() });
               localStorage.setItem('mc_saved_accounts', JSON.stringify(list.slice(0, 5)));
             } catch (_) {}

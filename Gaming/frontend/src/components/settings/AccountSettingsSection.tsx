@@ -111,31 +111,34 @@ export const AccountSettingsSection: React.FC<AccountSettingsSectionProps> = ({
 
   // Sync active external account for identical avatar rendering with Sidebar
   const normalizedActiveProvider = resolvedActiveProvider;
-  const activeExternalAccount = effectiveUser?.externalAccounts?.find(
-    (a: any) =>
-      (a.provider || '').toLowerCase().includes(normalizedActiveProvider) ||
-      (a.verification?.strategy || '').toLowerCase().includes(normalizedActiveProvider) ||
-      (a.verificationStrategy || '').toLowerCase().includes(normalizedActiveProvider)
+  const allExtAccounts = [
+    ...(user?.externalAccounts || []),
+    ...(cachedUser?.externalAccounts || []),
+    ...(effectiveUser?.externalAccounts || [])
+  ];
+
+  const googleExt = allExtAccounts.find((a: any) =>
+    (a.provider || '').toLowerCase().includes('google') ||
+    (a.verification?.strategy || '').toLowerCase().includes('google') ||
+    (a.verificationStrategy || '').toLowerCase().includes('google')
+  );
+
+  const discordExt = allExtAccounts.find((a: any) =>
+    (a.provider || '').toLowerCase().includes('discord') ||
+    (a.verification?.strategy || '').toLowerCase().includes('discord') ||
+    (a.verificationStrategy || '').toLowerCase().includes('discord')
   );
 
   const avatarUrl = (() => {
-    if (activeExternalAccount?.imageUrl) return activeExternalAccount.imageUrl;
-    if (cachedUser?.imageUrl && !cachedUser.imageUrl.includes('placeholder')) {
-      if (normalizedActiveProvider === 'google' && cachedUser.imageUrl.includes('discordapp.com')) {
-        // Do not use Discord avatar for Google!
-      } else if (normalizedActiveProvider === 'discord' && !cachedUser.imageUrl.includes('discordapp.com')) {
-        // Do not use non-discord avatar for Discord
-      } else {
-        return cachedUser.imageUrl;
-      }
+    const isDisc = normalizedActiveProvider.includes('discord');
+
+    if (isDisc) {
+      // For Discord: call Discord avatar from external account, NEVER Google's effectiveUser.imageUrl
+      return discordExt?.imageUrl || (discordExt as any)?.avatarUrl || (cachedUser?.provider?.includes('discord') ? cachedUser?.imageUrl : '') || '';
+    } else {
+      // For Google: call Google avatar from external account or primary image
+      return googleExt?.imageUrl || (googleExt as any)?.avatarUrl || effectiveUser?.imageUrl || cachedUser?.imageUrl || '';
     }
-    if (effectiveUser?.imageUrl) {
-      if (normalizedActiveProvider === 'google' && effectiveUser.imageUrl.includes('discordapp.com')) {
-        return '';
-      }
-      return effectiveUser.imageUrl;
-    }
-    return '';
   })();
 
   const handleSwitchToProvider = async (strategy: string) => {

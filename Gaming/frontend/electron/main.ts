@@ -1106,6 +1106,7 @@ async function handleBrowserAuthCompletion(data: {
   username?: string;
   firstName?: string;
   lastName?: string;
+  fullName?: string;
   imageUrl?: string;
   provider?: string;
   externalAccounts?: any[];
@@ -1230,16 +1231,29 @@ async function handleBrowserAuthCompletion(data: {
   if (win && !win.isDestroyed()) {
     try {
       const storageItems = data.storage && typeof data.storage === 'object' ? data.storage : {};
+      const isDisc = provider.includes('discord');
+      let cleanImage = data.imageUrl || '';
+      if (isDisc && (cleanImage.includes('googleusercontent.com') || cleanImage.includes('accounts.google.com'))) {
+        cleanImage = '';
+      } else if (!isDisc && (cleanImage.includes('discordapp.com') || cleanImage.includes('discord.com'))) {
+        cleanImage = '';
+      }
+      if (!cleanImage && Array.isArray(data.externalAccounts)) {
+        const ext = data.externalAccounts.find((a: any) => (a.provider || '').toLowerCase().includes(isDisc ? 'discord' : 'google'));
+        cleanImage = ext?.imageUrl || ext?.avatarUrl || '';
+      }
+
       const userData = {
         id: data.userId || (data.sessionId ? `node_${data.sessionId.slice(-8)}` : 'node_active'),
         email: data.userEmail || (data.sessionId ? 'node.active@missioncontrol.app' : 'node.active@missioncontrol.app'),
         username: data.username || (data.userEmail ? data.userEmail.split('@')[0] : 'Operative'),
-        firstName: data.firstName || 'Operative',
+        firstName: data.firstName || '',
         lastName: data.lastName || '',
-        imageUrl: data.imageUrl || '',
+        fullName: data.fullName || (data.firstName ? `${data.firstName} ${data.lastName || ''}`.trim() : '') || data.username || 'Operative',
+        imageUrl: cleanImage,
         sessionId: data.sessionId || '',
         provider,
-        externalAccounts: data.externalAccounts || (provider.includes('discord') ? [{ provider: 'discord', emailAddress: data.userEmail }] : [{ provider: 'google', emailAddress: data.userEmail }]),
+        externalAccounts: data.externalAccounts || (isDisc ? [{ provider: 'discord', emailAddress: data.userEmail }] : [{ provider: 'google', emailAddress: data.userEmail }]),
       };
       const serializedStorage = JSON.stringify(storageItems);
       const serializedUser = JSON.stringify(userData);
@@ -1272,7 +1286,13 @@ async function handleBrowserAuthCompletion(data: {
           try {
             const rawList = localStorage.getItem('mc_saved_accounts');
             let list = rawList ? JSON.parse(rawList) : [];
-            list = list.filter((a) => a.id !== user.id && a.email !== user.email);
+            const userProv = (user.provider || '').toLowerCase().includes('discord') ? 'discord' : 'google';
+            const userKey = userProv + ':' + ((user.email || user.id || '').toLowerCase());
+            list = list.filter((a) => {
+              const aProv = ((a.provider || (a.email && a.email.includes('@gmail.') ? 'google' : 'discord'))).toLowerCase().includes('discord') ? 'discord' : 'google';
+              const aKey = aProv + ':' + ((a.email || a.id || '').toLowerCase());
+              return aKey !== userKey;
+            });
             list.unshift({ ...user, token: ${tokenStr}, lastActive: Date.now() });
             localStorage.setItem('mc_saved_accounts', JSON.stringify(list.slice(0, 5)));
           } catch (_) {}

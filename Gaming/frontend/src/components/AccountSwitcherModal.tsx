@@ -113,40 +113,93 @@ export const AccountSwitcherModal: React.FC<AccountSwitcherModalProps> = ({
   const [actionError, setActionError] = useState<string | null>(null);
   const [loadingStrategy, setLoadingStrategy] = useState<string | null>(null);
 
+  // Isolate Google vs Discord avatar URLs to prevent cross-pollination
+  const getCleanAvatarUrl = React.useCallback((acc: any, provider: string): string => {
+    if (!acc) return '';
+    const isDisc = (provider || '').toLowerCase().includes('discord');
+    const extAccounts = [
+      ...(acc.externalAccounts || []),
+      ...(effectiveUser?.externalAccounts || []),
+      ...(user?.externalAccounts || [])
+    ];
+    const googleExt = extAccounts.find((a: any) =>
+      (a.provider || '').toLowerCase().includes('google') ||
+      (a.verification?.strategy || '').toLowerCase().includes('google') ||
+      (a.verificationStrategy || '').toLowerCase().includes('google')
+    );
+    const discordExt = extAccounts.find((a: any) =>
+      (a.provider || '').toLowerCase().includes('discord') ||
+      (a.verification?.strategy || '').toLowerCase().includes('discord') ||
+      (a.verificationStrategy || '').toLowerCase().includes('discord')
+    );
+
+    if (isDisc) {
+      // For Discord: call Discord avatar from external account, NEVER Google's effectiveUser.imageUrl
+      return discordExt?.imageUrl || discordExt?.avatarUrl || (acc?.provider?.includes('discord') && acc?.imageUrl && !acc.imageUrl.includes('googleusercontent.com') ? acc.imageUrl : '') || '';
+    } else {
+      // For Google: call Google avatar from external account or primary image
+      return googleExt?.imageUrl || googleExt?.avatarUrl || acc?.imageUrl || effectiveUser?.imageUrl || cachedUser?.imageUrl || '';
+    }
+  }, [effectiveUser, user, cachedUser]);
+
   // Retrieve signed-in sessions from Clerk client
   const sessions = clerk.client?.signedInSessions || [];
   const currentSessionId = clerk.session?.id;
   const otherSessions = sessions.filter((s) => s.id !== currentSessionId);
+
+  // Extract active provider for display
+  const rawStoredProvider =
+    typeof window !== 'undefined' && typeof window.localStorage?.getItem === 'function'
+      ? window.localStorage.getItem('mission_control_active_provider')
+      : null;
+  const normalizedActiveProvider = (() => {
+    if (rawStoredProvider) return rawStoredProvider.replace('oauth_', '');
+    if (cachedUser?.provider) return cachedUser.provider.replace('oauth_', '');
+    if (effectiveUser?.provider) return effectiveUser.provider.replace('oauth_', '');
+    return 'google';
+  })();
+  const activeExternalAccount =
+    effectiveUser?.externalAccounts?.find(
+      (a: any) => a.provider?.replace('oauth_', '') === normalizedActiveProvider
+    ) || effectiveUser?.externalAccounts?.[0];
 
   // Unified available accounts combining Clerk multi-sessions and saved accounts in localStorage
   const availableAccounts = React.useMemo(() => {
     const list: any[] = [];
     const seen = new Set<string>();
 
-    const activeId = effectiveUser?.id;
+    const activeProvider = normalizedActiveProvider;
     const activeEmail = (effectiveUser?.primaryEmailAddress?.emailAddress || effectiveUser?.email || '').toLowerCase();
+    const activeId = effectiveUser?.id;
 
-    if (activeId) seen.add(activeId);
-    if (activeEmail) seen.add(activeEmail);
+    // Mark current active identity as seen so it's not duplicated in "Available Accounts"
+    if (effectiveIsSignedIn) {
+      if (activeEmail) seen.add(`${activeProvider}:${activeEmail}`);
+      if (activeId) seen.add(`${activeProvider}:${activeId}`);
+    }
 
     // 1. Clerk multi-sessions
     for (const s of otherSessions) {
       const u = s.user;
-      const uid = u?.id;
-      const uemail = u?.primaryEmailAddress?.emailAddress?.toLowerCase();
-      if (uid && seen.has(uid)) continue;
-      if (uemail && seen.has(uemail)) continue;
-      if (uid) seen.add(uid);
-      if (uemail) seen.add(uemail);
+      if (!u) continue;
+      const uProvider = u.externalAccounts?.some((a: any) => (a.provider || '').includes('discord'))
+        ? 'discord'
+        : 'google';
+      const uemail = u.primaryEmailAddress?.emailAddress?.toLowerCase() || '';
+      const uid = u.id || s.id;
+      const key = `${uProvider}:${uemail || uid}`;
+      if (seen.has(key)) continue;
+      seen.add(key);
 
       list.push({
-        id: uid || s.id,
+        id: uid,
         sessionId: s.id,
-        email: u?.primaryEmailAddress?.emailAddress || '',
-        username: u?.username || u?.firstName || 'Operative',
-        fullName: u?.fullName || `${u?.firstName || ''} ${u?.lastName || ''}`.trim() || u?.username || 'Operative',
-        imageUrl: u?.imageUrl || '',
-        provider: u?.primaryEmailAddress?.emailAddress?.toLowerCase().includes('@gmail.') ? 'oauth_google' : 'oauth_discord',
+        email: u.primaryEmailAddress?.emailAddress || '',
+        username: u.username || u.firstName || 'Operative',
+        fullName: u.fullName || `${u.firstName || ''} ${u.lastName || ''}`.trim() || u.username || 'Operative',
+        imageUrl: getCleanAvatarUrl(u, uProvider),
+        provider: uProvider === 'discord' ? 'oauth_discord' : 'oauth_google',
+        externalAccounts: u.externalAccounts || [],
         isClerkSession: true,
       });
     }
@@ -154,59 +207,24 @@ export const AccountSwitcherModal: React.FC<AccountSwitcherModalProps> = ({
     // 2. Saved accounts from localStorage
     for (const acc of savedAccounts) {
       if (!acc) continue;
-      const uid = acc.id;
+      const accProvider = (acc.provider || '').toLowerCase().includes('discord') ? 'discord' : 'google';
       const uemail = acc.email ? acc.email.toLowerCase() : '';
-      if (uid && seen.has(uid)) continue;
-      if (uemail && seen.has(uemail)) continue;
-      if (uid) seen.add(uid);
-      if (uemail) seen.add(uemail);
+      const uid = acc.id || '';
+      const key = `${accProvider}:${uemail || uid}`;
+      if (seen.has(key)) continue;
+      seen.add(key);
 
+      const cleanImage = getCleanAvatarUrl(acc, accProvider);
       list.push({
         ...acc,
+        provider: accProvider === 'discord' ? 'oauth_discord' : 'oauth_google',
+        imageUrl: cleanImage,
         isClerkSession: Boolean(acc.sessionId && clerk.client?.signedInSessions?.some((s) => s.id === acc.sessionId)),
       });
     }
 
     return list;
-  }, [otherSessions, savedAccounts, effectiveUser, clerk.client?.signedInSessions]);
-
-  // Listen for auth events from Electron popup or browser so modal closes seamlessly
-  React.useEffect(() => {
-    if (!isOpen) return;
-
-    const unsubCompleted = window.electronAPI?.onAuthCompleted?.(() => {
-      setLoadingStrategy(null);
-      setSavedAccounts(readSavedAccounts());
-      onClose();
-    });
-
-    const unsubClosed = window.electronAPI?.onAuthPopupClosed?.(() => {
-      setLoadingStrategy(null);
-    });
-
-    return () => {
-      unsubCompleted?.();
-      unsubClosed?.();
-    };
-  }, [isOpen, onClose, readSavedAccounts]);
-
-  // Extract active provider for display
-  const rawStoredProvider =
-    typeof window !== 'undefined' && typeof window.localStorage?.getItem === 'function'
-      ? window.localStorage.getItem('mission_control_active_provider')
-      : null;
-  const userEmail = (effectiveUser?.primaryEmailAddress?.emailAddress || effectiveUser?.email || '').toLowerCase();
-  const normalizedActiveProvider = (() => {
-    if (cachedUser?.provider) return cachedUser.provider.replace('oauth_', '');
-    if (effectiveUser?.provider) return effectiveUser.provider.replace('oauth_', '');
-    if (userEmail.includes('@gmail.')) return 'google';
-    if (rawStoredProvider) return rawStoredProvider.replace('oauth_', '');
-    return 'google';
-  })();
-  const activeExternalAccount =
-    effectiveUser?.externalAccounts?.find(
-      (a: any) => a.provider?.replace('oauth_', '') === normalizedActiveProvider
-    ) || effectiveUser?.externalAccounts?.[0];
+  }, [otherSessions, savedAccounts, effectiveUser, effectiveIsSignedIn, normalizedActiveProvider, clerk.client?.signedInSessions, getCleanAvatarUrl]);
 
   // 1-Click Switch to an existing session or saved account
   const handleSwitchAccount = async (target: any) => {
@@ -258,9 +276,15 @@ export const AccountSwitcherModal: React.FC<AccountSwitcherModalProps> = ({
     }
   };
 
-  const handleRemoveSavedAccount = (targetId: string, targetEmail: string) => {
+  const handleRemoveSavedAccount = (targetId: string, targetEmail: string, targetProvider?: string) => {
     try {
-      const updated = savedAccounts.filter((a) => a.id !== targetId && a.email !== targetEmail);
+      const targetProv = (targetProvider || '').toLowerCase().includes('discord') ? 'discord' : 'google';
+      const targetKey = `${targetProv}:${(targetEmail || targetId).toLowerCase()}`;
+      const updated = savedAccounts.filter((a) => {
+        const aProv = (a.provider || (a.email?.includes('@gmail.') ? 'google' : 'discord')).toLowerCase().includes('discord') ? 'discord' : 'google';
+        const aKey = `${aProv}:${(a.email || a.id).toLowerCase()}`;
+        return aKey !== targetKey;
+      });
       localStorage.setItem('mc_saved_accounts', JSON.stringify(updated));
       setSavedAccounts(updated);
     } catch (_) {}
@@ -447,17 +471,35 @@ export const AccountSwitcherModal: React.FC<AccountSwitcherModalProps> = ({
                 {effectiveIsSignedIn && effectiveUser ? (
                   <div className="p-4 rounded-2xl bg-black/40 border border-neon-green/30 shadow-[0_0_20px_rgba(118,185,0,0.06)] flex items-center justify-between gap-3">
                     <div className="flex items-center gap-3 min-w-0">
-                      {activeExternalAccount?.imageUrl || effectiveUser.imageUrl ? (
-                        <img
-                          src={activeExternalAccount?.imageUrl || effectiveUser.imageUrl}
-                          alt="Active Avatar"
-                          className="w-10 h-10 rounded-xl border border-neon-green/40 object-cover shrink-0"
-                        />
-                      ) : (
-                        <div className="w-10 h-10 rounded-xl bg-neon-green/20 border border-neon-green/40 flex items-center justify-center font-black text-neon-green text-sm shrink-0">
-                          {effectiveUser.firstName?.[0] || effectiveUser.username?.[0] || 'U'}
-                        </div>
-                      )}
+                      {(() => {
+                        const activeCleanAvatar = getCleanAvatarUrl(
+                          { ...effectiveUser, externalAccounts: effectiveUser.externalAccounts || (activeExternalAccount ? [activeExternalAccount] : []) },
+                          normalizedActiveProvider
+                        );
+                        if (activeCleanAvatar) {
+                          return (
+                            <img
+                              src={activeCleanAvatar}
+                              alt="Active Avatar"
+                              className="w-10 h-10 rounded-xl border border-neon-green/40 object-cover shrink-0"
+                            />
+                          );
+                        }
+                        if (normalizedActiveProvider === 'discord') {
+                          return (
+                            <div className="w-10 h-10 rounded-xl bg-[#5865F2]/20 border border-[#5865F2]/40 flex items-center justify-center text-[#5865F2] shrink-0">
+                              <svg className="w-5 h-5" fill="currentColor" viewBox="0 0 24 24">
+                                <path d="M20.317 4.37a19.791 19.791 0 0 0-4.885-1.515.074.074 0 0 0-.079.037c-.21.375-.444.864-.608 1.25a18.27 18.27 0 0 0-5.487 0 12.64 12.64 0 0 0-.617-1.25.077.077 0 0 0-.079-.037A19.736 19.736 0 0 0 3.677 4.37a.07.07 0 0 0-.032.027C.533 9.046-.32 13.58.099 18.057a.082.082 0 0 0 .031.057 19.9 19.9 0 0 0 5.993 3.03.078.078 0 0 0 .084-.028 14.09 14.09 0 0 0 1.226-1.994.076.076 0 0 0-.041-.106 13.107 13.107 0 0 1-1.872-.892.077.077 0 0 1-.008-.128 10.2 10.2 0 0 0 .372-.292.074.074 0 0 1 .077-.01c3.929 1.793 8.18 1.793 12.061 0a.074.074 0 0 1 .078.01c.12.098.246.198.373.292a.077.077 0 0 1-.006.127 12.299 12.299 0 0 1-1.873.893.077.077 0 0 0-.041.107c.36.698.772 1.362 1.225 1.993a.076.076 0 0 0 .084.028 19.839 19.839 0 0 0 6.002-3.03.077.077 0 0 0 .032-.054c.5-5.177-.838-9.674-3.549-13.66a.061.061 0 0 0-.031-.028zM8.02 15.33c-1.183 0-2.157-1.085-2.157-2.419 0-1.333.956-2.419 2.157-2.419 1.21 0 2.176 1.096 2.157 2.42 0 1.333-.956 2.418-2.157 2.418zm7.975 0c-1.183 0-2.157-1.085-2.157-2.419 0-1.333.955-2.419 2.157-2.419 1.21 0 2.176 1.096 2.157 2.42 0 1.333-.946 2.418-2.157 2.418z" />
+                              </svg>
+                            </div>
+                          );
+                        }
+                        return (
+                          <div className="w-10 h-10 rounded-xl bg-neon-green/20 border border-neon-green/40 flex items-center justify-center font-black text-neon-green text-sm shrink-0">
+                            {effectiveUser.firstName?.[0] || effectiveUser.username?.[0] || 'U'}
+                          </div>
+                        );
+                      })()}
                       <div className="min-w-0 flex flex-col">
                         <div className="flex items-center gap-2">
                           <span className="text-xs font-black text-white truncate">
@@ -475,14 +517,18 @@ export const AccountSwitcherModal: React.FC<AccountSwitcherModalProps> = ({
                           {effectiveUser.primaryEmailAddress?.emailAddress ||
                             effectiveUser.email ||
                             activeExternalAccount?.emailAddress ||
-                            `via ${activeExternalAccount?.provider?.replace('oauth_', '') || (effectiveUser.email?.includes('@gmail.') ? 'google' : 'sso')}`}
+                            `via ${normalizedActiveProvider}`}
                         </span>
                       </div>
                     </div>
 
                     <div className="text-right shrink-0">
-                      <span className="text-[8px] font-mono uppercase px-2 py-1 rounded-lg bg-white/5 border border-white/10 text-zinc-400 block">
-                        {activeExternalAccount?.provider?.replace('oauth_', '').toUpperCase() || (effectiveUser.email?.includes('@gmail.') ? 'GOOGLE' : 'PRIMARY')}
+                      <span className={`text-[8px] font-mono uppercase px-2 py-1 rounded-lg border block ${
+                        normalizedActiveProvider === 'discord'
+                          ? 'bg-[#5865F2]/15 border-[#5865F2]/30 text-[#5865F2]'
+                          : 'bg-white/5 border-white/10 text-zinc-400'
+                      }`}>
+                        {normalizedActiveProvider.toUpperCase()}
                       </span>
                     </div>
                   </div>
@@ -512,35 +558,72 @@ export const AccountSwitcherModal: React.FC<AccountSwitcherModalProps> = ({
                   <div className="space-y-2">
                     {availableAccounts.map((acc) => {
                       const isSwitching = switchingSessionId === (acc.sessionId || acc.id);
-                      const providerLabel = acc.provider?.replace('oauth_', '').toUpperCase() || (acc.email?.includes('@gmail.') ? 'GOOGLE' : 'OPERATIVE');
+                      const isDiscord = (acc.provider || '').toLowerCase().includes('discord');
+                      const providerLabel = isDiscord ? 'DISCORD' : 'GOOGLE';
+                      const accAvatarUrl = getCleanAvatarUrl(acc, acc.provider || (isDiscord ? 'discord' : 'google'));
+
+                      // Match name across saved profiles or effective user
+                      const matchedName = savedAccounts.find(
+                        (s) => (s.fullName && s.fullName !== 'Operative') && ((s.email && s.email === acc.email) || (s.id && s.id === acc.id))
+                      )?.fullName || (effectiveUser?.fullName !== 'Operative' ? effectiveUser?.fullName : null);
+
+                      const displayName = (acc.fullName && acc.fullName !== 'Operative')
+                        ? acc.fullName
+                        : (acc.firstName && acc.firstName !== 'Operative'
+                            ? `${acc.firstName} ${acc.lastName || ''}`.trim()
+                            : (matchedName || acc.username || 'Operative'));
+
+                      const displaySub = isDiscord && acc.username && acc.email && acc.username !== acc.email
+                        ? `@${acc.username} · ${acc.email}`
+                        : (acc.email || (isDiscord ? 'Discord Account' : 'Authenticated Operative'));
+
                       return (
                         <div
-                          key={acc.id || acc.sessionId || acc.email}
+                          key={`${acc.provider || 'acc'}:${acc.id || acc.sessionId || acc.email}`}
                           className="p-3.5 rounded-2xl bg-black/30 border border-white/5 hover:border-white/15 transition-all flex items-center justify-between gap-3 group"
                         >
                           <div className="flex items-center gap-3 min-w-0">
-                            {acc.imageUrl ? (
+                            {accAvatarUrl ? (
                               <img
-                                src={acc.imageUrl}
+                                src={accAvatarUrl}
                                 alt="Account Avatar"
                                 className="w-8 h-8 rounded-lg border border-white/10 object-cover shrink-0"
+                                onError={(e) => {
+                                  (e.currentTarget as HTMLImageElement).style.display = 'none';
+                                  const fallback = e.currentTarget.nextElementSibling as HTMLElement;
+                                  if (fallback) fallback.style.display = 'flex';
+                                }}
                               />
-                            ) : (
-                              <div className="w-8 h-8 rounded-lg bg-white/5 border border-white/10 flex items-center justify-center text-zinc-400 font-bold text-xs shrink-0">
-                                {acc.firstName?.[0] || acc.username?.[0] || 'U'}
-                              </div>
-                            )}
+                            ) : null}
+                            <div
+                              className={`w-8 h-8 rounded-lg border flex items-center justify-center shrink-0 ${
+                                isDiscord
+                                  ? 'bg-[#5865F2]/20 border-[#5865F2]/40 text-[#5865F2]'
+                                  : 'bg-white/5 border-white/10 text-zinc-400 font-bold text-xs'
+                              }`}
+                              style={{ display: accAvatarUrl ? 'none' : 'flex' }}
+                            >
+                              {isDiscord ? (
+                                <svg className="w-4 h-4" fill="currentColor" viewBox="0 0 24 24">
+                                  <path d="M20.317 4.37a19.791 19.791 0 0 0-4.885-1.515.074.074 0 0 0-.079.037c-.21.375-.444.864-.608 1.25a18.27 18.27 0 0 0-5.487 0 12.64 12.64 0 0 0-.617-1.25.077.077 0 0 0-.079-.037A19.736 19.736 0 0 0 3.677 4.37a.07.07 0 0 0-.032.027C.533 9.046-.32 13.58.099 18.057a.082.082 0 0 0 .031.057 19.9 19.9 0 0 0 5.993 3.03.078.078 0 0 0 .084-.028 14.09 14.09 0 0 0 1.226-1.994.076.076 0 0 0-.041-.106 13.107 13.107 0 0 1-1.872-.892.077.077 0 0 1-.008-.128 10.2 10.2 0 0 0 .372-.292.074.074 0 0 1 .077-.01c3.929 1.793 8.18 1.793 12.061 0a.074.074 0 0 1 .078.01c.12.098.246.198.373.292a.077.077 0 0 1-.006.127 12.299 12.299 0 0 1-1.873.893.077.077 0 0 0-.041.107c.36.698.772 1.362 1.225 1.993a.076.076 0 0 0 .084.028 19.839 19.839 0 0 0 6.002-3.03.077.077 0 0 0 .032-.054c.5-5.177-.838-9.674-3.549-13.66a.061.061 0 0 0-.031-.028zM8.02 15.33c-1.183 0-2.157-1.085-2.157-2.419 0-1.333.956-2.419 2.157-2.419 1.21 0 2.176 1.096 2.157 2.42 0 1.333-.956 2.418-2.157 2.418zm7.975 0c-1.183 0-2.157-1.085-2.157-2.419 0-1.333.955-2.419 2.157-2.419 1.21 0 2.176 1.096 2.157 2.42 0 1.333-.946 2.418-2.157 2.418z" />
+                                </svg>
+                              ) : (
+                                acc.firstName?.[0] || acc.username?.[0] || 'U'
+                              )}
+                            </div>
                             <div className="min-w-0 flex flex-col">
                               <div className="flex items-center gap-1.5">
                                 <span className="text-[11px] font-black text-white truncate">
-                                  {acc.fullName || acc.username || 'Saved Operative'}
+                                  {displayName}
                                 </span>
-                                <span className="text-[8px] font-mono px-1.5 py-0.2 rounded bg-white/5 border border-white/10 text-zinc-400 shrink-0">
+                                <span className={`text-[8px] font-mono px-1.5 py-0.5 rounded border shrink-0 ${
+                                  isDiscord ? 'bg-[#5865F2]/15 border-[#5865F2]/30 text-[#5865F2]' : 'bg-white/5 border-white/10 text-zinc-400'
+                                }`}>
                                   {providerLabel}
                                 </span>
                               </div>
                               <span className="text-[9px] text-zinc-500 truncate">
-                                {acc.email || (acc.provider === 'oauth_discord' ? 'Discord Connected' : 'Authenticated')}
+                                {displaySub}
                               </span>
                             </div>
                           </div>
@@ -569,7 +652,7 @@ export const AccountSwitcherModal: React.FC<AccountSwitcherModalProps> = ({
                               <button
                                 type="button"
                                 title="Remove saved account"
-                                onClick={() => handleRemoveSavedAccount(acc.id, acc.email)}
+                                onClick={() => handleRemoveSavedAccount(acc.id, acc.email, acc.provider)}
                                 className="p-1.5 rounded-lg opacity-40 hover:opacity-100 hover:bg-red-500/20 text-zinc-400 hover:text-red-400 transition-all cursor-pointer"
                               >
                                 <Trash2 className="w-3 h-3" />
