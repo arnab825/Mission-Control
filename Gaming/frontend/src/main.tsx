@@ -60,24 +60,53 @@ function extractClerkUserData(clerkInstance: any, directUser?: any) {
     rawUser?.last_name ||
     '';
 
-  const imageUrl =
-    rawUser?.imageUrl ||
-    rawUser?.image_url ||
-    rawUser?.profileImageUrl ||
-    rawUser?.profile_image_url ||
-    rawUser?.avatarUrl ||
-    '';
+  const externalAccounts =
+    rawUser?.externalAccounts ||
+    rawUser?.external_accounts ||
+    [];
+
+  const urlParams = typeof window !== 'undefined' ? new URLSearchParams(window.location.search) : null;
+  const hashParams = typeof window !== 'undefined' ? new URLSearchParams(window.location.hash.substring(1)) : null;
+  const storedProvider = typeof window !== 'undefined' ? window.localStorage?.getItem('mission_control_active_provider') : null;
+  const strategyParam = urlParams?.get('strategy') || hashParams?.get('strategy') || storedProvider || '';
+  const isDisc = strategyParam.toLowerCase().includes('discord');
+
+  const discordExt = externalAccounts.find((a: any) =>
+    (a.provider || '').toLowerCase().includes('discord') ||
+    (a.verification?.strategy || '').toLowerCase().includes('discord')
+  );
+  const googleExt = externalAccounts.find((a: any) =>
+    (a.provider || '').toLowerCase().includes('google') ||
+    (a.verification?.strategy || '').toLowerCase().includes('google')
+  );
+
+  let avatarUrl = '';
+  if (isDisc) {
+    avatarUrl =
+      (discordExt as any)?.avatarUrl ||
+      (discordExt as any)?.avatar_url ||
+      (discordExt?.imageUrl && !discordExt.imageUrl.includes('googleusercontent.com') ? discordExt.imageUrl : '') ||
+      '';
+    if (avatarUrl && typeof window !== 'undefined') {
+      try { localStorage.setItem('mc_discord_avatar', avatarUrl); } catch (_) {}
+    }
+  } else {
+    avatarUrl =
+      googleExt?.imageUrl ||
+      googleExt?.image_url ||
+      (googleExt as any)?.avatarUrl ||
+      (rawUser?.imageUrl && !rawUser.imageUrl.includes('discord') ? rawUser.imageUrl : '') ||
+      '';
+    if (avatarUrl && typeof window !== 'undefined') {
+      try { localStorage.setItem('mc_google_avatar', avatarUrl); } catch (_) {}
+    }
+  }
 
   const userId =
     rawUser?.id ||
     rawUser?.userId ||
     rawUser?.user_id ||
     '';
-
-  const externalAccounts =
-    rawUser?.externalAccounts ||
-    rawUser?.external_accounts ||
-    [];
 
   return {
     sessionId: sessId,
@@ -86,7 +115,9 @@ function extractClerkUserData(clerkInstance: any, directUser?: any) {
     username,
     firstName,
     lastName,
-    imageUrl,
+    imageUrl: avatarUrl || (isDisc ? '' : (rawUser?.imageUrl || '')),
+    avatarUrl,
+    provider: isDisc ? 'oauth_discord' : 'oauth_google',
     externalAccounts,
   };
 }
@@ -223,7 +254,8 @@ const SSOCallback: React.FC = () => {
           await syncToDesktop(payload);
           try {
             const fullName = `${userFields.firstName} ${userFields.lastName}`.trim() || userFields.username;
-            const deepLinkUrl = `mission-control://auth-completed?session_id=${encodeURIComponent(userFields.sessionId)}&user_id=${encodeURIComponent(userFields.userId)}&email=${encodeURIComponent(userFields.userEmail)}&username=${encodeURIComponent(userFields.username)}&name=${encodeURIComponent(fullName)}&image_url=${encodeURIComponent(userFields.imageUrl)}${token ? `&token=${encodeURIComponent(token)}` : ''}`;
+            const extAccountsParam = userFields.externalAccounts ? `&external_accounts=${encodeURIComponent(JSON.stringify(userFields.externalAccounts))}` : '';
+            const deepLinkUrl = `mission-control://auth-completed?session_id=${encodeURIComponent(userFields.sessionId)}&user_id=${encodeURIComponent(userFields.userId)}&email=${encodeURIComponent(userFields.userEmail)}&username=${encodeURIComponent(userFields.username)}&name=${encodeURIComponent(fullName)}&image_url=${encodeURIComponent(userFields.imageUrl)}&provider=${encodeURIComponent(userFields.provider || 'oauth_google')}${extAccountsParam}${token ? `&token=${encodeURIComponent(token)}` : ''}`;
             window.location.href = deepLinkUrl;
           } catch (_) {}
           window.location.replace('/?browser_auth=1&auth_completed=1');
@@ -270,7 +302,8 @@ const SSOCallback: React.FC = () => {
             await syncToDesktop(payload);
             try {
               const fullName = `${userFields.firstName} ${userFields.lastName}`.trim() || userFields.username;
-              const deepLinkUrl = `mission-control://auth-completed?session_id=${encodeURIComponent(userFields.sessionId)}&user_id=${encodeURIComponent(userFields.userId)}&email=${encodeURIComponent(userFields.userEmail)}&username=${encodeURIComponent(userFields.username)}&name=${encodeURIComponent(fullName)}&image_url=${encodeURIComponent(userFields.imageUrl)}${token ? `&token=${encodeURIComponent(token)}` : ''}`;
+              const extAccountsParam = userFields.externalAccounts ? `&external_accounts=${encodeURIComponent(JSON.stringify(userFields.externalAccounts))}` : '';
+              const deepLinkUrl = `mission-control://auth-completed?session_id=${encodeURIComponent(userFields.sessionId)}&user_id=${encodeURIComponent(userFields.userId)}&email=${encodeURIComponent(userFields.userEmail)}&username=${encodeURIComponent(userFields.username)}&name=${encodeURIComponent(fullName)}&image_url=${encodeURIComponent(userFields.imageUrl)}&provider=${encodeURIComponent(userFields.provider || 'oauth_google')}${extAccountsParam}${token ? `&token=${encodeURIComponent(token)}` : ''}`;
               window.location.href = deepLinkUrl;
             } catch (_) {}
             window.location.replace('/?browser_auth=1&auth_completed=1');

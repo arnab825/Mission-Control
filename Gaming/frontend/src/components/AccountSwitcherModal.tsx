@@ -15,18 +15,22 @@ import {
   Trash2,
 } from 'lucide-react';
 
+import type { TelemetryState } from '../types/telemetry';
+
 interface AccountSwitcherModalProps {
   isOpen: boolean;
   onClose: () => void;
   sendCommand?: (type: string, payload?: any) => void;
   onNavigate?: (page: string, options?: any) => void;
+  state?: TelemetryState;
 }
 
 export const AccountSwitcherModal: React.FC<AccountSwitcherModalProps> = ({
   isOpen,
   onClose,
   sendCommand,
-  onNavigate
+  onNavigate,
+  state
 }) => {
   const { user, isSignedIn } = useUser();
   const clerk = useClerk();
@@ -91,6 +95,38 @@ export const AccountSwitcherModal: React.FC<AccountSwitcherModalProps> = ({
     };
   }, [readCachedUser, readSavedAccounts]);
 
+  // Request fresh SQLite accounts from backend on open
+  React.useEffect(() => {
+    if (isOpen && sendCommand) {
+      sendCommand('get_user_accounts');
+    }
+  }, [isOpen, sendCommand]);
+
+  // Synchronize backend SQLite accounts seamlessly into savedAccounts
+  React.useEffect(() => {
+    if (Array.isArray(state?.user_accounts) && state.user_accounts.length > 0) {
+      setSavedAccounts((prev) => {
+        const merged = [...state.user_accounts!];
+        const seen = new Set(
+          merged.map((a: any) =>
+            `${(a.provider || '').toLowerCase().includes('discord') ? 'discord' : 'google'}:${(a.email || a.id || '').toLowerCase()}`
+          )
+        );
+        for (const localAcc of prev) {
+          const lKey = `${(localAcc.provider || '').toLowerCase().includes('discord') ? 'discord' : 'google'}:${(localAcc.email || localAcc.id || '').toLowerCase()}`;
+          if (!seen.has(lKey)) {
+            seen.add(lKey);
+            merged.push(localAcc);
+          }
+        }
+        try {
+          localStorage.setItem('mc_saved_accounts', JSON.stringify(merged));
+        } catch (_) {}
+        return merged;
+      });
+    }
+  }, [state?.user_accounts]);
+
   const effectiveIsSignedIn = Boolean(isSignedIn || cachedUser);
   const effectiveUser = user || (cachedUser ? {
     id: cachedUser.id || 'node-user',
@@ -134,11 +170,36 @@ export const AccountSwitcherModal: React.FC<AccountSwitcherModalProps> = ({
     );
 
     if (isDisc) {
-      // For Discord: call Discord avatar from external account, NEVER Google's effectiveUser.imageUrl
-      return discordExt?.imageUrl || discordExt?.avatarUrl || (acc?.provider?.includes('discord') && acc?.imageUrl && !acc.imageUrl.includes('googleusercontent.com') ? acc.imageUrl : '') || '';
+      // For Discord: prioritize Discord avatar from external account or cached Discord avatar, NEVER Google's imageUrl
+      const candidate =
+        (discordExt as any)?.avatarUrl ||
+        (discordExt as any)?.avatar_url ||
+        (discordExt?.imageUrl && !discordExt.imageUrl.includes('googleusercontent.com') ? discordExt.imageUrl : '') ||
+        (acc?.avatarUrl && !acc.avatarUrl.includes('googleusercontent.com') ? acc.avatarUrl : '') ||
+        (acc?.imageUrl && !acc.imageUrl.includes('googleusercontent.com') && ((acc?.provider || '').includes('discord') || acc.imageUrl.includes('discord')) ? acc.imageUrl : '') ||
+        (typeof window !== 'undefined' ? localStorage.getItem('mc_discord_avatar') || '' : '');
+
+      if (candidate && !candidate.includes('googleusercontent.com')) {
+        try { localStorage.setItem('mc_discord_avatar', candidate); } catch (_) {}
+        return candidate;
+      }
+      return '';
     } else {
-      // For Google: call Google avatar from external account or primary image
-      return googleExt?.imageUrl || googleExt?.avatarUrl || acc?.imageUrl || effectiveUser?.imageUrl || cachedUser?.imageUrl || '';
+      // For Google: call Google avatar from external account or primary image, NEVER Discord
+      const candidate =
+        googleExt?.imageUrl ||
+        googleExt?.image_url ||
+        (googleExt as any)?.avatarUrl ||
+        (acc?.imageUrl && !acc.imageUrl.includes('discord') ? acc.imageUrl : '') ||
+        (effectiveUser?.imageUrl && !effectiveUser.imageUrl.includes('discord') ? effectiveUser.imageUrl : '') ||
+        (cachedUser?.imageUrl && !cachedUser.imageUrl.includes('discord') ? cachedUser.imageUrl : '') ||
+        (typeof window !== 'undefined' ? localStorage.getItem('mc_google_avatar') || '' : '') ||
+        '';
+      if (candidate && !candidate.includes('discord')) {
+        try { localStorage.setItem('mc_google_avatar', candidate); } catch (_) {}
+        return candidate;
+      }
+      return '';
     }
   }, [effectiveUser, user, cachedUser]);
 
@@ -259,6 +320,7 @@ export const AccountSwitcherModal: React.FC<AccountSwitcherModalProps> = ({
       window.dispatchEvent(new Event('mc-auth-state-changed'));
 
       if (sendCommand && target.id) {
+        sendCommand('save_user_account', { account: target, isActive: true });
         sendCommand('set_active_user', {
           userId: target.id,
           email: target.email,
@@ -287,6 +349,9 @@ export const AccountSwitcherModal: React.FC<AccountSwitcherModalProps> = ({
       });
       localStorage.setItem('mc_saved_accounts', JSON.stringify(updated));
       setSavedAccounts(updated);
+      if (sendCommand) {
+        sendCommand('remove_user_account', { key: targetKey, userId: targetId, email: targetEmail });
+      }
     } catch (_) {}
   };
 

@@ -624,11 +624,33 @@ const App: React.FC = () => {
             } else if (!isDisc && (cleanAvatar.includes('discordapp.com') || cleanAvatar.includes('discord.com'))) {
               cleanAvatar = '';
             }
-            if (!cleanAvatar && payload.externalAccounts?.length) {
+            if (payload.externalAccounts?.length) {
               const ext = payload.externalAccounts.find((a: any) =>
                 (a.provider || '').toLowerCase().includes(isDisc ? 'discord' : 'google')
               );
-              cleanAvatar = ext?.imageUrl || ext?.avatarUrl || '';
+              if (isDisc) {
+                const discUrl = ext?.avatarUrl || (ext?.imageUrl && !ext.imageUrl.includes('googleusercontent.com') ? ext.imageUrl : '');
+                if (discUrl && !discUrl.includes('googleusercontent.com')) {
+                  cleanAvatar = discUrl;
+                }
+              } else {
+                const googUrl = ext?.imageUrl || ext?.avatarUrl || '';
+                if (googUrl && !googUrl.includes('discord')) {
+                  cleanAvatar = googUrl;
+                }
+              }
+            }
+            if (isDisc && !cleanAvatar) {
+              const cachedDisc = typeof window !== 'undefined' ? localStorage.getItem('mc_discord_avatar') : null;
+              if (cachedDisc && !cachedDisc.includes('googleusercontent.com')) cleanAvatar = cachedDisc;
+            } else if (!isDisc && !cleanAvatar) {
+              const cachedGoog = typeof window !== 'undefined' ? localStorage.getItem('mc_google_avatar') : null;
+              if (cachedGoog && !cachedGoog.includes('discord')) cleanAvatar = cachedGoog;
+            }
+            if (isDisc && cleanAvatar && !cleanAvatar.includes('googleusercontent.com')) {
+              try { localStorage.setItem('mc_discord_avatar', cleanAvatar); } catch (_) {}
+            } else if (!isDisc && cleanAvatar && !cleanAvatar.includes('discord')) {
+              try { localStorage.setItem('mc_google_avatar', cleanAvatar); } catch (_) {}
             }
 
             const cached = {
@@ -660,6 +682,9 @@ const App: React.FC = () => {
               });
               list.unshift({ ...cached, token: payload.token, lastActive: Date.now() });
               localStorage.setItem('mc_saved_accounts', JSON.stringify(list.slice(0, 5)));
+              try {
+                sendCommand?.('save_user_account', { account: { ...cached, token: payload.token }, isActive: true });
+              } catch (_) {}
             } catch (_) {}
 
             window.dispatchEvent(new Event('mc-auth-state-changed'));

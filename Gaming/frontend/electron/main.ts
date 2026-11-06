@@ -1046,6 +1046,11 @@ async function handleDeepLink(urlStr: string) {
       const lastName = parsed.searchParams.get('lastName') || parsed.searchParams.get('last_name') || undefined;
       const imageUrl = parsed.searchParams.get('image_url') || parsed.searchParams.get('imageUrl') || undefined;
       const provider = parsed.searchParams.get('provider') || undefined;
+      const externalAccountsRaw = parsed.searchParams.get('external_accounts') || undefined;
+      let externalAccounts: any[] | undefined = undefined;
+      if (externalAccountsRaw) {
+        try { externalAccounts = JSON.parse(externalAccountsRaw); } catch (_) {}
+      }
 
       await handleBrowserAuthCompletion({
         sessionId,
@@ -1057,6 +1062,7 @@ async function handleDeepLink(urlStr: string) {
         lastName,
         imageUrl,
         provider,
+        externalAccounts,
       });
     }
   } catch (err) {
@@ -1238,9 +1244,19 @@ async function handleBrowserAuthCompletion(data: {
       } else if (!isDisc && (cleanImage.includes('discordapp.com') || cleanImage.includes('discord.com'))) {
         cleanImage = '';
       }
-      if (!cleanImage && Array.isArray(data.externalAccounts)) {
+      if (Array.isArray(data.externalAccounts)) {
         const ext = data.externalAccounts.find((a: any) => (a.provider || '').toLowerCase().includes(isDisc ? 'discord' : 'google'));
-        cleanImage = ext?.imageUrl || ext?.avatarUrl || '';
+        if (isDisc) {
+          const discAvatar = ext?.avatarUrl || (ext?.imageUrl && !ext.imageUrl.includes('googleusercontent.com') ? ext.imageUrl : '');
+          if (discAvatar && !discAvatar.includes('googleusercontent.com')) {
+            cleanImage = discAvatar;
+          }
+        } else {
+          const googAvatar = ext?.imageUrl || ext?.avatarUrl || '';
+          if (googAvatar && !googAvatar.includes('discord')) {
+            cleanImage = googAvatar;
+          }
+        }
       }
 
       const userData = {

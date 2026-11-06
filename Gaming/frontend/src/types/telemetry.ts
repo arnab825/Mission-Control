@@ -184,6 +184,7 @@ export interface TelemetryState {
     username?: string;
     synced?: boolean;
   };
+  user_accounts?: any[];
 }
 
 

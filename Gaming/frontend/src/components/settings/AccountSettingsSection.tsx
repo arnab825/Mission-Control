@@ -133,11 +133,35 @@ export const AccountSettingsSection: React.FC<AccountSettingsSectionProps> = ({
     const isDisc = normalizedActiveProvider.includes('discord');
 
     if (isDisc) {
-      // For Discord: call Discord avatar from external account, NEVER Google's effectiveUser.imageUrl
-      return discordExt?.imageUrl || (discordExt as any)?.avatarUrl || (cachedUser?.provider?.includes('discord') ? cachedUser?.imageUrl : '') || '';
+      // For Discord: call Discord avatar from external account or cached Discord avatar, NEVER Google's effectiveUser.imageUrl
+      const candidate =
+        (discordExt as any)?.avatarUrl ||
+        (discordExt as any)?.avatar_url ||
+        (discordExt?.imageUrl && !discordExt.imageUrl.includes('googleusercontent.com') ? discordExt.imageUrl : '') ||
+        (cachedUser?.avatarUrl && !cachedUser.avatarUrl.includes('googleusercontent.com') ? cachedUser.avatarUrl : '') ||
+        (cachedUser?.provider?.includes('discord') && cachedUser?.imageUrl && !cachedUser.imageUrl.includes('googleusercontent.com') ? cachedUser.imageUrl : '') ||
+        (typeof window !== 'undefined' ? localStorage.getItem('mc_discord_avatar') || '' : '');
+
+      if (candidate && !candidate.includes('googleusercontent.com')) {
+        try { localStorage.setItem('mc_discord_avatar', candidate); } catch (_) {}
+        return candidate;
+      }
+      return '';
     } else {
-      // For Google: call Google avatar from external account or primary image
-      return googleExt?.imageUrl || (googleExt as any)?.avatarUrl || effectiveUser?.imageUrl || cachedUser?.imageUrl || '';
+      // For Google: call Google avatar from external account or primary image, NEVER Discord
+      const candidate =
+        googleExt?.imageUrl ||
+        googleExt?.image_url ||
+        (googleExt as any)?.avatarUrl ||
+        (effectiveUser?.imageUrl && !effectiveUser.imageUrl.includes('discord') ? effectiveUser.imageUrl : '') ||
+        (cachedUser?.imageUrl && !cachedUser.imageUrl.includes('discord') ? cachedUser.imageUrl : '') ||
+        (typeof window !== 'undefined' ? localStorage.getItem('mc_google_avatar') || '' : '') ||
+        '';
+      if (candidate && !candidate.includes('discord')) {
+        try { localStorage.setItem('mc_google_avatar', candidate); } catch (_) {}
+        return candidate;
+      }
+      return '';
     }
   })();
 
@@ -181,6 +205,7 @@ export const AccountSettingsSection: React.FC<AccountSettingsSectionProps> = ({
         window.dispatchEvent(new Event('mc-auth-state-changed'));
 
         if (sendCommand && target.id) {
+          sendCommand('save_user_account', { account: target, isActive: true });
           sendCommand('set_active_user', {
             userId: target.id,
             email: target.email,
@@ -197,12 +222,37 @@ export const AccountSettingsSection: React.FC<AccountSettingsSectionProps> = ({
 
     if (targetExtAcc || effectiveUser?.id) {
       try {
-        const providerAvatar =
-          targetExtAcc?.imageUrl ||
-          targetExtAcc?.avatarUrl ||
-          (providerKey === 'google' && !effectiveUser?.imageUrl?.includes('discordapp.com') ? effectiveUser?.imageUrl : '') ||
-          (providerKey === 'discord' && effectiveUser?.imageUrl?.includes('discordapp.com') ? effectiveUser?.imageUrl : '') ||
-          '';
+        const isDisc = providerKey === 'discord';
+        const providerAvatar = (() => {
+          if (isDisc) {
+            const candidate =
+              (targetExtAcc as any)?.avatarUrl ||
+              (targetExtAcc as any)?.avatar_url ||
+              (targetExtAcc?.imageUrl && !targetExtAcc.imageUrl.includes('googleusercontent.com') ? targetExtAcc.imageUrl : '') ||
+              (matchingSavedAccount?.avatarUrl && !matchingSavedAccount.avatarUrl.includes('googleusercontent.com') ? matchingSavedAccount.avatarUrl : '') ||
+              (matchingSavedAccount?.imageUrl && !matchingSavedAccount.imageUrl.includes('googleusercontent.com') ? matchingSavedAccount.imageUrl : '') ||
+              (typeof window !== 'undefined' ? localStorage.getItem('mc_discord_avatar') || '' : '');
+            if (candidate && !candidate.includes('googleusercontent.com')) {
+              try { localStorage.setItem('mc_discord_avatar', candidate); } catch (_) {}
+              return candidate;
+            }
+            return '';
+          } else {
+            const candidate =
+              (targetExtAcc as any)?.imageUrl ||
+              (targetExtAcc as any)?.image_url ||
+              (targetExtAcc as any)?.avatarUrl ||
+              (effectiveUser?.imageUrl && !effectiveUser.imageUrl.includes('discord') ? effectiveUser.imageUrl : '') ||
+              (matchingSavedAccount?.imageUrl && !matchingSavedAccount.imageUrl.includes('discord') ? matchingSavedAccount.imageUrl : '') ||
+              (typeof window !== 'undefined' ? localStorage.getItem('mc_google_avatar') || '' : '') ||
+              '';
+            if (candidate && !candidate.includes('discord')) {
+              try { localStorage.setItem('mc_google_avatar', candidate); } catch (_) {}
+              return candidate;
+            }
+            return '';
+          }
+        })();
 
         const updatedUser = {
           ...(cachedUser || {}),
@@ -213,6 +263,7 @@ export const AccountSettingsSection: React.FC<AccountSettingsSectionProps> = ({
           lastName: targetExtAcc?.lastName || effectiveUser.lastName,
           imageUrl: providerAvatar,
           provider: providerKey,
+          externalAccounts: effectiveUser?.externalAccounts || cachedUser?.externalAccounts || [],
         };
         localStorage.setItem('mc_authenticated_user', JSON.stringify(updatedUser));
         localStorage.setItem('mission_control_active_provider', strategyFull);
@@ -220,6 +271,7 @@ export const AccountSettingsSection: React.FC<AccountSettingsSectionProps> = ({
         window.dispatchEvent(new Event('mc-auth-state-changed'));
 
         if (sendCommand && effectiveUser.id) {
+          sendCommand('save_user_account', { account: updatedUser, isActive: true });
           sendCommand('set_active_user', {
             userId: effectiveUser.id,
             email: updatedUser.email,

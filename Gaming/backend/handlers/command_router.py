@@ -38,8 +38,36 @@ def dispatch_bridge_command(
         if pipeline:
             pipeline.active_user_id = uid
             logger.info("Active operative synchronized to pipeline: %s (provider: %s, email: %s)", uid, provider or "default", email or "none")
+        
+        # Persist active operative directly into SQLite database for lag-free fetch
+        saved_accounts_list = []
+        try:
+            from ai_brain.memory import GameMemory
+            mem = GameMemory(config=config)
+            if uid or email:
+                acc_payload = {
+                    "id": uid,
+                    "email": email,
+                    "provider": provider,
+                    "username": username,
+                }
+                mem.save_user_account(acc_payload, is_active=True)
+                
+                # Asynchronously mirror active account to Supabase Cloud PostgreSQL
+                def _sync_supa_active(a):
+                    try:
+                        from system.db_manager import get_db
+                        get_db().save_user_account(a, is_active=True)
+                    except Exception as exc:
+                        logger.debug("Supabase active account sync note: %s", exc)
+                threading.Thread(target=_sync_supa_active, args=(acc_payload,), daemon=True).start()
+
+            saved_accounts_list = mem.get_user_accounts()
+        except Exception as e:
+            logger.debug("SQLite active user note: %s", e)
+
         if bridge:
-            bridge.update_state({
+            update_data = {
                 "active_user_id": uid,
                 "account_sync": {
                     "userId": uid,
@@ -48,7 +76,73 @@ def dispatch_bridge_command(
                     "username": username,
                     "synced": True,
                 }
-            })
+            }
+            if saved_accounts_list:
+                update_data["user_accounts"] = saved_accounts_list
+            bridge.update_state(update_data)
+    elif cmd_type == "save_user_account":
+        try:
+            from ai_brain.memory import GameMemory
+            mem = GameMemory(config=config)
+            acc = payload.get("account") if payload else None
+            is_active = payload.get("isActive", False) if payload else False
+            if acc:
+                mem.save_user_account(acc, is_active=is_active)
+                accounts = mem.get_user_accounts()
+                if bridge:
+                    bridge.update_state({"user_accounts": accounts})
+                
+                # Asynchronously persist account to Supabase Cloud PostgreSQL
+                def _sync_supa_account(a, act):
+                    try:
+                        from system.db_manager import get_db
+                        get_db().save_user_account(a, is_active=act)
+                    except Exception as exc:
+                        logger.debug("Supabase save account note: %s", exc)
+                threading.Thread(target=_sync_supa_account, args=(acc, is_active), daemon=True).start()
+        except Exception as e:
+            logger.error("Failed to save user account to SQLite: %s", e)
+    elif cmd_type == "get_user_accounts":
+        try:
+            from ai_brain.memory import GameMemory
+            mem = GameMemory(config=config)
+            accounts = mem.get_user_accounts()
+            # If local SQLite has no accounts yet, pull cloud accounts from Supabase to seed local cache
+            if not accounts:
+                try:
+                    from system.db_manager import get_db
+                    remote_accounts = get_db().load_user_accounts()
+                    if remote_accounts:
+                        for r_acc in remote_accounts:
+                            mem.save_user_account(r_acc, is_active=r_acc.get("isActive", False))
+                        accounts = mem.get_user_accounts()
+                except Exception as exc:
+                    logger.debug("Supabase remote accounts load note: %s", exc)
+            if bridge:
+                bridge.update_state({"user_accounts": accounts})
+        except Exception as e:
+            logger.error("Failed to fetch user accounts: %s", e)
+    elif cmd_type == "remove_user_account":
+        try:
+            from ai_brain.memory import GameMemory
+            mem = GameMemory(config=config)
+            key = payload.get("key") or payload.get("userId") or payload.get("email") if payload else None
+            if key:
+                mem.remove_user_account(key)
+                accounts = mem.get_user_accounts()
+                if bridge:
+                    bridge.update_state({"user_accounts": accounts})
+                
+                # Asynchronously remove account from Supabase Cloud PostgreSQL
+                def _remove_supa_account(k):
+                    try:
+                        from system.db_manager import get_db
+                        get_db().remove_user_account(k)
+                    except Exception as exc:
+                        logger.debug("Supabase remove account note: %s", exc)
+                threading.Thread(target=_remove_supa_account, args=(key,), daemon=True).start()
+        except Exception as e:
+            logger.error("Failed to remove user account: %s", e)
     elif cmd_type == "execute":
         chat_handler.handle_execute(payload, pipeline, bridge, config)
     elif cmd_type == "stop_tts":

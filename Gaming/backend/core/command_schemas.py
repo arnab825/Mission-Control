@@ -133,7 +133,21 @@ class ScanPresetOptimizerPayload(BaseCommandPayload):
     userId: Optional[str] = Field(default="guest", max_length=128)
 
 
+class SaveUserAccountPayload(BaseCommandPayload):
+    account: Optional[dict] = None
+    isActive: Optional[bool] = False
+
+
+class RemoveUserAccountPayload(BaseCommandPayload):
+    key: Optional[str] = None
+    userId: Optional[str] = None
+    email: Optional[str] = None
+
+
 COMMAND_SCHEMA_MAP = {
+    "save_user_account": SaveUserAccountPayload,
+    "get_user_accounts": EmptyPayload,
+    "remove_user_account": RemoveUserAccountPayload,
     "execute": ExecutePayload,
     "launch_game": LaunchGamePayload,
     "delete_account": DeleteAccountPayload,

@@ -233,10 +233,30 @@ class GameMemory:
                         timestamp REAL
                     )
                 ''')
+                self._conn.execute('''
+                    CREATE TABLE IF NOT EXISTS user_accounts (
+                        account_key TEXT PRIMARY KEY,
+                        user_id TEXT,
+                        email TEXT,
+                        username TEXT,
+                        first_name TEXT,
+                        last_name TEXT,
+                        full_name TEXT,
+                        image_url TEXT,
+                        provider TEXT,
+                        is_active INTEGER DEFAULT 0,
+                        session_id TEXT,
+                        token TEXT,
+                        external_accounts_json TEXT,
+                        updated_at REAL
+                    )
+                ''')
                 
                 # Create indexes for optimized retrieval of sessions and messages
                 self._conn.execute('CREATE INDEX IF NOT EXISTS idx_chat_messages_session_id ON chat_messages(session_id)')
                 self._conn.execute('CREATE INDEX IF NOT EXISTS idx_chat_sessions_user_id ON chat_sessions(user_id)')
+                self._conn.execute('CREATE INDEX IF NOT EXISTS idx_user_accounts_email ON user_accounts(email)')
+                self._conn.execute('CREATE INDEX IF NOT EXISTS idx_user_accounts_active ON user_accounts(is_active)')
                 
             self._load_cache_from_db(retrying=retrying)
         except Exception as e:
@@ -739,6 +759,114 @@ class GameMemory:
         except Exception as e:
             logger.error(f"Failed to load local games cache from SQLite: {e}")
         return []
+
+    @db_thread_safe
+    def save_user_account(self, account: dict, is_active: bool = False) -> None:
+        if not self._conn or not account:
+            return
+        try:
+            prov = (account.get("provider") or "").lower()
+            prov_clean = "discord" if "discord" in prov else "google"
+            email = (account.get("email") or "").strip().lower()
+            uid = str(account.get("id") or account.get("userId") or "").strip()
+            key = f"{prov_clean}:{email or uid}"
+            if not key or key == f"{prov_clean}:":
+                return
+
+            ext_json = json.dumps(account.get("externalAccounts") or [])
+            with self._conn:
+                if is_active:
+                    self._conn.execute("UPDATE user_accounts SET is_active = 0")
+                self._conn.execute(
+                    """
+                    INSERT INTO user_accounts (
+                        account_key, user_id, email, username, first_name,
+                        last_name, full_name, image_url, provider, is_active,
+                        session_id, token, external_accounts_json, updated_at
+                    ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+                    ON CONFLICT(account_key) DO UPDATE SET
+                        user_id = excluded.user_id,
+                        email = excluded.email,
+                        username = excluded.username,
+                        first_name = excluded.first_name,
+                        last_name = excluded.last_name,
+                        full_name = excluded.full_name,
+                        image_url = excluded.image_url,
+                        provider = excluded.provider,
+                        is_active = CASE WHEN ? = 1 THEN 1 ELSE is_active END,
+                        session_id = excluded.session_id,
+                        token = excluded.token,
+                        external_accounts_json = excluded.external_accounts_json,
+                        updated_at = excluded.updated_at
+                    """,
+                    (
+                        key,
+                        uid,
+                        email,
+                        account.get("username") or "",
+                        account.get("firstName") or "",
+                        account.get("lastName") or "",
+                        account.get("fullName") or "",
+                        account.get("imageUrl") or "",
+                        account.get("provider") or prov_clean,
+                        1 if is_active else 0,
+                        account.get("sessionId") or "",
+                        account.get("token") or "",
+                        ext_json,
+                        time.time(),
+                        1 if is_active else 0,
+                    )
+                )
+            logger.info("Saved user account to SQLite: %s (active: %s)", key, is_active)
+        except Exception as e:
+            logger.error("Failed to save user account to SQLite: %s", e)
+
+    @db_thread_safe
+    def get_user_accounts(self) -> list:
+        if not self._conn:
+            return []
+        try:
+            cur = self._conn.cursor()
+            cur.execute("SELECT * FROM user_accounts ORDER BY updated_at DESC LIMIT 10")
+            rows = cur.fetchall()
+            accounts = []
+            for r in rows:
+                ext_list = []
+                try:
+                    if r["external_accounts_json"]:
+                        ext_list = json.loads(r["external_accounts_json"])
+                except Exception:
+                    pass
+                accounts.append({
+                    "id": r["user_id"],
+                    "email": r["email"],
+                    "username": r["username"],
+                    "firstName": r["first_name"],
+                    "lastName": r["last_name"],
+                    "fullName": r["full_name"],
+                    "imageUrl": r["image_url"],
+                    "provider": r["provider"],
+                    "isActive": bool(r["is_active"]),
+                    "sessionId": r["session_id"],
+                    "token": r["token"],
+                    "externalAccounts": ext_list,
+                    "updatedAt": r["updated_at"],
+                })
+            return accounts
+        except Exception as e:
+            logger.error("Failed to fetch user accounts from SQLite: %s", e)
+            return []
+
+    @db_thread_safe
+    def remove_user_account(self, account_key: str) -> None:
+        if not self._conn or not account_key:
+            return
+        try:
+            with self._conn:
+                self._conn.execute("DELETE FROM user_accounts WHERE account_key = ? OR user_id = ? OR email = ?", (account_key, account_key, account_key))
+            logger.info("Removed user account from SQLite: %s", account_key)
+        except Exception as e:
+            logger.error("Failed to remove user account from SQLite: %s", e)
 
     @db_thread_safe
     def search_chat(self, query: str):

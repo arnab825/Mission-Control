@@ -56,7 +56,7 @@ export const AiBrainSection: React.FC<AiBrainSectionProps> = ({
       <SettingsField
         label="AI Neural Backbone"
         description="Select the AI provider and model for conversational AI. All models run on cloud APIs. Set your API keys securely in the backend .env file. Note: Performance depends on the provider's network traffic. You may experience slow responses or hangs during provider outages or if you hit API rate limits."
-        childWidth="w-full lg:w-[28rem] xl:w-[32rem]"
+        childWidth="w-full lg:w-[34rem] xl:w-[40rem]"
       >
         <div className="flex flex-col gap-3 w-full">
           {/* Provider Pill Switcher */}

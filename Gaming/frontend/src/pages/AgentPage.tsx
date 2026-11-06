@@ -623,24 +623,49 @@ const AgentPage: React.FC<{
 }) => {
     const { user, isSignedIn } = useUser();
 
-    const cachedUser = React.useMemo(() => {
+    const [cachedUserState, setCachedUserState] = useState<any>(() => {
       try {
         const raw = typeof window !== 'undefined' ? localStorage.getItem('mc_authenticated_user') : null;
         return raw ? JSON.parse(raw) : null;
       } catch (_) {
         return null;
       }
+    });
+
+    useEffect(() => {
+      const handleAuthChange = () => {
+        try {
+          const raw = typeof window !== 'undefined' ? localStorage.getItem('mc_authenticated_user') : null;
+          setCachedUserState(raw ? JSON.parse(raw) : null);
+        } catch (_) {}
+      };
+      window.addEventListener('storage', handleAuthChange);
+      window.addEventListener('mc-auth-state-changed', handleAuthChange);
+      return () => {
+        window.removeEventListener('storage', handleAuthChange);
+        window.removeEventListener('mc-auth-state-changed', handleAuthChange);
+      };
     }, []);
 
+    const cachedUser = cachedUserState;
+
     const activeAccountUser = useMemo(() => {
-      if (user) return user;
+      if (user) {
+        return {
+          id: user.id,
+          username: user.username || user.firstName,
+          fullName: user.fullName || `${user.firstName || ''} ${user.lastName || ''}`.trim() || user.username,
+          primaryEmailAddress: { emailAddress: user.primaryEmailAddress?.emailAddress || user.emailAddresses?.[0]?.emailAddress },
+          imageUrl: cachedUser?.imageUrl || user.imageUrl,
+        };
+      }
       if (cachedUser) {
         return {
           id: cachedUser.id,
           username: cachedUser.username || cachedUser.name,
-          fullName: cachedUser.name || cachedUser.username,
-          primaryEmailAddress: { emailAddress: cachedUser.email },
-          imageUrl: cachedUser.avatar,
+          fullName: cachedUser.fullName || cachedUser.name || cachedUser.username,
+          primaryEmailAddress: { emailAddress: cachedUser.email || cachedUser.userEmail },
+          imageUrl: cachedUser.imageUrl || cachedUser.avatar,
         };
       }
       return null;
@@ -649,9 +674,9 @@ const AgentPage: React.FC<{
     const userId = useMemo(() => {
       if (propUserId && propUserId !== 'guest') return propUserId;
       if (isSignedIn && user?.id) return user.id;
+      if (cachedUser?.id && cachedUser.id !== 'guest') return cachedUser.id;
       if ((state as any)?.active_user_id && (state as any).active_user_id !== 'guest') return (state as any).active_user_id;
       if ((state as any)?.account_sync?.userId && (state as any).account_sync.userId !== 'guest') return (state as any).account_sync.userId;
-      if (cachedUser?.id && cachedUser.id !== 'guest') return cachedUser.id;
       const storedUid = typeof window !== 'undefined' ? localStorage.getItem('mission_control_user_id') : null;
       if (storedUid && storedUid !== 'guest') return storedUid;
       return 'guest';

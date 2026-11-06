@@ -124,15 +124,35 @@ class SupabaseDB:
             raise
 
     def _ensure_schema(self):
-        """Create the games table if it does not already exist."""
+        """Create the games and user_accounts tables in Supabase if they do not already exist."""
         try:
             query = self._load_query("create_games_table")
             with self._conn.cursor() as cur:
                 cur.execute(query)
+                cur.execute("""
+                    CREATE TABLE IF NOT EXISTS user_accounts (
+                        account_key VARCHAR(255) PRIMARY KEY,
+                        user_id VARCHAR(255),
+                        email VARCHAR(255),
+                        username VARCHAR(255),
+                        first_name VARCHAR(255),
+                        last_name VARCHAR(255),
+                        full_name VARCHAR(255),
+                        image_url TEXT,
+                        provider VARCHAR(100),
+                        is_active BOOLEAN DEFAULT FALSE,
+                        session_id VARCHAR(255),
+                        token TEXT,
+                        external_accounts_json TEXT,
+                        updated_at TIMESTAMPTZ DEFAULT NOW()
+                    );
+                    CREATE INDEX IF NOT EXISTS idx_supabase_user_accounts_email ON user_accounts(email);
+                    CREATE INDEX IF NOT EXISTS idx_supabase_user_accounts_active ON user_accounts(is_active);
+                """)
             self._conn.commit()
         except Exception as exc:
             self._conn.rollback()
-            logger.error("Failed to create games schema: %s", exc)
+            logger.error("Failed to create schema: %s", exc)
             raise
 
     def _reconnect_if_needed(self) -> bool:
@@ -337,6 +357,126 @@ class SupabaseDB:
             except Exception:
                 pass
             logger.error("Failed to delete games from Supabase: %s", exc)
+            return False
+
+    def save_user_account(self, account: dict, is_active: bool = False) -> bool:
+        """Upsert a user account into Supabase cloud PostgreSQL."""
+        if not self.available or not self._reconnect_if_needed():
+            return False
+        try:
+            prov = (account.get("provider") or "").lower()
+            prov_clean = "discord" if "discord" in prov else "google"
+            email = (account.get("email") or "").strip().lower()
+            uid = str(account.get("id") or account.get("userId") or "").strip()
+            key = f"{prov_clean}:{email or uid}"
+            if not key or key == f"{prov_clean}:":
+                return False
+
+            ext_json = json.dumps(account.get("externalAccounts") or [])
+            with self._conn.cursor() as cur:
+                if is_active:
+                    cur.execute("UPDATE user_accounts SET is_active = FALSE")
+                cur.execute(
+                    """
+                    INSERT INTO user_accounts (
+                        account_key, user_id, email, username, first_name,
+                        last_name, full_name, image_url, provider, is_active,
+                        session_id, token, external_accounts_json, updated_at
+                    ) VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, NOW())
+                    ON CONFLICT (account_key) DO UPDATE SET
+                        user_id = EXCLUDED.user_id,
+                        email = EXCLUDED.email,
+                        username = EXCLUDED.username,
+                        first_name = EXCLUDED.first_name,
+                        last_name = EXCLUDED.last_name,
+                        full_name = EXCLUDED.full_name,
+                        image_url = EXCLUDED.image_url,
+                        provider = EXCLUDED.provider,
+                        is_active = CASE WHEN %s THEN TRUE ELSE user_accounts.is_active END,
+                        session_id = EXCLUDED.session_id,
+                        token = EXCLUDED.token,
+                        external_accounts_json = EXCLUDED.external_accounts_json,
+                        updated_at = NOW()
+                    """,
+                    (
+                        key,
+                        uid,
+                        email,
+                        account.get("username") or "",
+                        account.get("firstName") or "",
+                        account.get("lastName") or "",
+                        account.get("fullName") or "",
+                        account.get("imageUrl") or "",
+                        account.get("provider") or prov_clean,
+                        bool(is_active),
+                        account.get("sessionId") or "",
+                        account.get("token") or "",
+                        ext_json,
+                        bool(is_active),
+                    )
+                )
+            self._conn.commit()
+            logger.info("Saved user account to Supabase: %s (active: %s)", key, is_active)
+            return True
+        except Exception as exc:
+            try:
+                self._conn.rollback()
+            except Exception:
+                pass
+            logger.error("Failed to save user account to Supabase: %s", exc)
+            return False
+
+    def load_user_accounts(self) -> List[Dict[str, Any]]:
+        """Load user accounts from Supabase cloud PostgreSQL."""
+        if not self.available or not self._reconnect_if_needed():
+            return []
+        try:
+            with self._conn.cursor(cursor_factory=psycopg2.extras.DictCursor) as cur:
+                cur.execute("SELECT * FROM user_accounts ORDER BY updated_at DESC LIMIT 10")
+                rows = cur.fetchall()
+            accounts = []
+            for r in rows:
+                ext_list = []
+                try:
+                    if r["external_accounts_json"]:
+                        ext_list = json.loads(r["external_accounts_json"])
+                except Exception:
+                    pass
+                accounts.append({
+                    "id": r["user_id"],
+                    "email": r["email"],
+                    "username": r["username"],
+                    "firstName": r["first_name"],
+                    "lastName": r["last_name"],
+                    "fullName": r["full_name"],
+                    "imageUrl": r["image_url"],
+                    "provider": r["provider"],
+                    "isActive": bool(r["is_active"]),
+                    "sessionId": r["session_id"],
+                    "token": r["token"],
+                    "externalAccounts": ext_list,
+                })
+            return accounts
+        except Exception as exc:
+            logger.error("Failed to load user accounts from Supabase: %s", exc)
+            return []
+
+    def remove_user_account(self, account_key: str) -> bool:
+        """Remove a user account from Supabase cloud PostgreSQL."""
+        if not self.available or not self._reconnect_if_needed():
+            return False
+        try:
+            with self._conn.cursor() as cur:
+                cur.execute("DELETE FROM user_accounts WHERE account_key = %s OR user_id = %s OR email = %s", (account_key, account_key, account_key))
+            self._conn.commit()
+            logger.info("Removed user account from Supabase: %s", account_key)
+            return True
+        except Exception as exc:
+            try:
+                self._conn.rollback()
+            except Exception:
+                pass
+            logger.error("Failed to remove user account from Supabase: %s", exc)
             return False
 
     def close(self):
