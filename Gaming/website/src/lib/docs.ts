@@ -27,6 +27,7 @@ const DOCS_ORDER = [
   "summary",
   "changes_summary",
   "architecture_and_fixes",
+  "emulation_and_roms",
   "major_changes",
   "distributed_library",
   "design",
@@ -64,6 +65,12 @@ const METADATA_FALLBACKS: Record<
     title: "Distributed Architecture & Fixes",
     badge: "Microservices",
     badgeColor: "text-neon-green",
+  },
+  emulation_and_roms: {
+    category: "Architecture",
+    title: "Emulation & ROM Library Orchestration",
+    badge: "Emulation Hub",
+    badgeColor: "text-purple-400",
   },
   major_changes: {
     category: "Architecture",

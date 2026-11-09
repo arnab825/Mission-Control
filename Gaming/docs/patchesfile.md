@@ -2,6 +2,89 @@
 
 This document contains a detailed history of all patches and updates for the AI Gaming Assistant.
 
+### Patch: 2026-11-09 — v3.8.10: Cross-Platform Emulation Engine & ROM Library Orchestration
+
+- Emulator Auto-Discovery Scanner: Automatic detection of 17+ standalone emulators and RetroArch cores across Windows and Linux
+- Intelligent ROM Scanner: Console directory mapping (`ps3`, `ps2`, `switch`, `gamecube`, `wii`, `3ds`, `gba`, `snes`, `n64`, etc.) with extension filtering and local cover artwork resolution
+- Multi-Disc Game Merging: Automatic grouping of multi-disc titles into unified cards with interactive disc picker dropdowns
+- Emulators & ROMs Hub: Cyberpunk glassmorphic modal with Installed Emulators, Supported Catalog, and ROM Folders management
+- Process Launcher Upgrade: Enhanced `handle_launch_game` with CLI argument assembly and direct ROM parameter forwarding
+
+### Patch: 2026-11-05 — v3.8.9: Google OAuth Direct Browser Delegation & Website Theme Studio
+
+- Google OAuth Browser Delegation: Delegated Google OAuth directly to system browser in desktop app to prevent `disallowed_useragent` blocks
+- Embedded OAuth Block Failover: Automatic popup termination upon Google disallowed useragent detection
+- Loopback & Deep Linking Synchronization: Bidirectional session synchronization bridging browser authentication back to Electron
+- Website Theme Studio: Interactive App Themes & Personalization Studio added to website featuring all 8 curated engineering color schemes
+- High-Fidelity UI Demos: Generated clean animated showcases of desktop dashboard and HUD game-adaptive theme morphing
+
+### Patch: 2026-11-05 — v3.8.8: Browser-Based Authentication Failsafe & Seamless Redirection
+
+- Automated browser-based authentication fallback when in-app auth popups fail to load, stall, or get blocked
+- Dual-channel session synchronization bridging system browser authentication back to Electron via loopback API and `mission-control://` deep linking
+- Automatic embedded OAuth block detection and redirection for disallowed user agents
+- Dedicated browser authentication portal and failsafe triggers across Auth Page, In-App Popup, and Account Switcher
+
+### Patch: 2026-11-01 — v3.8.7: Game Scanner Singleton Lock Fix & OAuth Handshake Resilience
+
+- Fixed `NameError: name 'time' is not defined` in GameScanner singleton lock retry loop during background library scans
+- Resolved premature authentication popup closure in Electron to ensure complete Clerk OAuth handshake execution on `/sso-callback`
+- Added safe multi-invocation guard for `onBeforeSendHeaders` in Electron auth window
+- Configured Account Gateway identity switcher to distinguish between first-time provider sign-in and session switching
+
+### Patch: 2026-10-31 — v3.8.6: App Themes, Gamer Identity & Adaptive Personalization Studio
+
+- Introduced 8 curated engineering theme schemes: Emerald Protocol, Cyberpunk 2077, Crimson Fury, Quantum Cobalt, Void Amethyst, Solar Flare, Toxic Hazard, and Stealth Carbon
+- Added Custom Palette Studio with dual primary & secondary hex color pickers and quick presets
+- Implemented Game-Adaptive Theming for real-time automatic color morphing when launching supported games
+- Added GPU Hardware Brand Alignment to automatically match telemetry accents to physical graphics hardware
+- Added Gamer Identity Studio with custom Call-Sign handles, 5 unique gamer factions, specialization titles, and holographic avatar auras
+
+### Patch: 2026-10-28 — v3.8.5: Media Extras Filtering, Window Detection & HUD Focus Alignment
+
+- Ignored companion digital artwork and soundtrack executables across all scanner modes
+- Resolved Sekiro & Arkham Knight active game detection for short window titles and executable paths
+- HUD Focus Alignment: Eliminated HUD overlay failure in 60 FPS locked titles with custom HUDs by aligning window focus state with the active running process
+- Unit Test Coverage: Added comprehensive dynamic unit tests for digital artwork and soundtrack filtering, and window title/executable match resolution
+
+### Patch: 2026-10-25 — v3.8.4: Hardware Optimization & Library Scanner Performance Update
+
+- Resolved Game Scanner 0% hang with atomic scan locking
+- Optimized library directory traversal with max depth bounding
+- Eliminated system tray cursor lag and machine stutter by hardening process watcher
+- Added Electron window visibility lifecycle bridge to pause telemetry when minimized
+- Implemented zero-allocation double buffer memory pool in frame buffer
+
+### Patch: 2026-10-20 — v3.8.3: TensorRT FP16 Engine Auto-Upgrade Architecture
+
+- Pure TensorRT FP16 engine auto-upgrade architecture reducing VRAM overhead to 98 MB
+- Sub-3ms CUDA vision perception inference bypassing PyTorch runtime completely
+- Website Bento Suite Showcase and live hardware benchmark integration
+
+### Patch: 2026-10-15 — v3.8.2: Hardware Optimization Architecture
+
+- CPU P-Core Affinity Isolation: Masked off Cores 0 and 1, pinning assistant threads to secondary cores
+- Cyclic RAM Reclamation: Automated `EmptyWorkingSet()` paging every 600 vision frames stabilizing background memory at 72-85 MB
+- NVML thermal gating and dynamic fan curve profiling
+
+### Patch: 2026-10-10 — v3.8.1: Responsive Settings & Dashboard Overhaul
+
+- Responsive 6-module settings command deck with illuminated icon badges
+- Clerk CORS authentication fixes and distributed cluster telemetry synchronization
+- Real-time distributed node latency and storage telemetry
+
+### Patch: 2026-10-05 — v3.8.0: Agentic AI Command Processing & Session Persistence
+
+- Enhanced agentic AI command processing loop with safety interlocks
+- Persistent session storage across app relaunches
+- Multi-launcher catalog discovery integration
+
+### Patch: 2026-10-01 — v3.7.9: Comprehensive Setup Wizard Enhancements & Complete Release History
+
+- Revamped setup wizard with enhanced deployment descriptions and branded installer
+- Centered installer window coordinates via Windows API
+- Complete historical patch documentation and multi-platform packaging verification
+
 ### Patch: 2026-09-29 — v3.7.8: Responsive Setup Screen & Custom Windows Setup Wizard
 
 - Responsive In-App Setup Wizard: Enhanced `UpdateSetupModal` with responsive viewport scaling, custom scrollbars, and detailed step-by-step progress tracking for upgrades and emergency rollbacks

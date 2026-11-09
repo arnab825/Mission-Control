@@ -75,6 +75,24 @@ If remote cloud endpoints or specific API models become unreachable:
 `,
   },
   {
+    slug: "emulation_and_roms",
+    title: "Emulation & ROM Library Orchestration Engine",
+    category: "Architecture",
+    excerpt:
+      "Cross-platform emulator discovery for 17+ emulators, intelligent ROM folder scanning, automatic multi-disc grouping, and seamless 1-click execution.",
+    badge: "Emulation Hub",
+    badgeColor: "text-purple-400",
+    content: `# 🕹️ Emulation & ROM Library Orchestration
+
+## 🎮 Unified Game Emulation & Discovery
+Mission Control unifies retro and console games directly alongside PC titles:
+- **17+ Emulators Auto-Discovery:** Seamlessly scans for RPCS3, PCSX2, DuckStation, Dolphin, Cemu, Ryujinx, Citra/Lime3DS, PPSSPP, Xenia, Xemu, RetroArch, and more across Windows and Linux.
+- **Multi-Disc Merging:** Aggregates multi-disc games into single library cards with interactive disc selection.
+- **Direct CLI Argument Forwarding:** Automatically builds emulator-specific CLI parameters and passes ROM paths upon launch.
+- **Emulators Hub Modal:** Manage binary overrides, configure custom ROM directories, and test-launch emulators directly from the UI.
+`,
+  },
+  {
     slug: "agentic_logic",
     title: "Agentic AI Controller & Automation",
     category: "Core Logic",

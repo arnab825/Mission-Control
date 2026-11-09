@@ -10,19 +10,76 @@ excerpt: "Curated breakdown of major version releases, architectural milestones,
 
 Comprehensive breakdown of major milestone releases, architectural upgrades, and core engine enhancements in **Mission Control**.
 
-## 📦 Version v3.6.1 — Rockstar Games Launcher HUD Exclusion & Voice Agent DLSS Sanitization
+## 🌟 Version v3.8.10 (Latest) — Cross-Platform Emulation Engine & ROM Library Orchestration
 
 ### 🛠️ Key Highlights
-1. **Rockstar Games Launcher HUD Exclusion**: Added Rockstar executables (`launcher.exe`, `rockstargameslauncher.exe`, `rockstarservice.exe`, `launcherentry.exe`, `socialclubhelper.exe`) and titles to exclusion lists, eliminating false HUD activations and FPS readings on the launcher.
-2. **Library Scanner Launcher Filtering**: Filtered out launcher-type apps (`game.get("type") == "LAUNCHER"` and `game.get("genre") == "PLATFORM"`) from library caches, background process checks, and foreground heuristics.
-3. **Legacy Voice Mock Removal**: Removed the legacy `optimize\s+(.+)` regex and `_optimize_game` mock method that intercepted voice inputs with hardcoded `"Display: Borderless, DLSS: on, Reflex: on..."` voice readings.
-4. **AI Decision Brain Telemetry Sanitization**: Centralized `STANDARD_KEYS` in `GameBrain` to exclude internal telemetry (`nvidia_tip`, `perf_advisor_analysis`, `perf_score`, etc.) from leaking into `custom_telemetry` and prompt context.
-5. **Agentic Voice Command Processing**: Routed streaming voice replies through `AgentCommandProcessor.process_launch_command` and `process_system_command` to execute system directives and update UI bridge state.
-6. **TTS Speech Sanitization**: Upgraded `VoiceManager.speak()` to strip bracket tags (`[SYSTEM_COMMAND:...]`, `[LAUNCH_COMMAND:...]`, `[WebSearchTrigger:...]`), pronounce markdown link labels (`[Label](url)` $\to$ `Label`), strip raw URLs, normalize punctuation spacing, and ignore empty/tag-only utterances.
+1. **Cross-Platform Emulator Discovery**: Auto-detects 17+ standalone emulators (RPCS3, PCSX2, DuckStation, Dolphin, Cemu, Ryujinx, Lime3DS, melonDS, mGBA, Snes9x, Mupen64Plus, Xenia, Xemu, Flycast, Vita3K) and RetroArch libretro cores across standard Windows and Linux directories.
+2. **Intelligent ROM Scanner**: Automatic console subfolder mapping (`ps3`, `ps2`, `switch`, `gamecube`, `wii`, `3ds`, `gba`, `snes`, `n64`, etc.) with extension filtering and local cover artwork resolution.
+3. **Multi-Disc ROM Merging**: Consolidates multi-disc games into single unified library cards with dynamic interactive disc picker dropdowns (`Disc 1`, `Disc 2`, etc.) to eliminate library clutter.
+4. **Direct Process Launcher with CLI Argument Assembly**: Upgraded `handle_launch_game` to assemble emulator-specific CLI flags and pass target ROM paths via `subprocess.Popen` while preserving native PC game launching.
+5. **Emulators & ROMs Hub**: Cyberpunk glassmorphic modal with tabs for Installed Emulators, 17+ Supported Catalog, and ROM Folders Manager with manual binary overrides and instant ROM scanning.
+
+### 📊 Architecture & Data Flow
+```mermaid
+graph TD
+    A["ROM Storage Folders"] --> B["ROM Library Scanner"]
+    C["System Paths / Registry"] --> D["Emulator Auto-Discovery Scanner"]
+    B --> E["Multi-Disc Aggregation Engine"]
+    D --> F["17+ Supported Emulators Matrix"]
+    E --> G["Unified Game Intelligence Dashboard"]
+    F --> G
+    G --> H["1-Click Launcher (CLI Flags + ROM Path)"]
+```
+
+### 📦 Distribution Artifacts
+- **Linux**: `.deb` (Debian/Ubuntu), `.AppImage` (Universal), `.tar.gz` (Standalone Archive)
+- **Windows**: `.exe` (Setup Installer), `.msi` (Enterprise MSI), `.zip` (Portable Archive)
 
 ---
 
-## 🌟 Version v3.8.5 (Latest) — Media Extras Filtering, Window Detection & HUD Focus Alignment
+## 📦 Version v3.8.9 — Google OAuth Direct Browser Delegation & Website Theme Studio
+
+### 🛠️ Key Highlights
+1. **Google OAuth Browser Delegation**: Delegated Google OAuth directly to the default system browser in the desktop app to completely prevent `disallowed_useragent` security blocks.
+2. **Embedded OAuth Block Failover**: Multi-layered failover with automatic popup termination upon Google disallowed useragent detection.
+3. **Loopback & Deep Linking Synchronization**: Bidirectional session synchronization bridging browser authentication back to Electron via loopback API and `mission-control://` deep linking.
+4. **Website Theme Studio**: Interactive App Themes & Personalization Studio added to the website featuring all 8 curated engineering color schemes.
+5. **High-Fidelity UI Demos**: Generated clean animated showcase of desktop dashboard and HUD game-adaptive theme morphing.
+
+---
+
+## 📦 Version v3.8.8 — Browser-Based Authentication Failsafe & Seamless Redirection
+
+### 🛠️ Key Highlights
+1. **Browser Auth Failsafe**: Automated browser-based authentication fallback when in-app auth popups fail to load, stall, or get blocked.
+2. **Dual-Channel Session Sync**: Seamlessly completes OAuth authentication in external browser and syncs credentials into desktop runtime.
+3. **Disallowed User Agent Guard**: Embedded OAuth block detection with automatic redirect to external browser.
+4. **Dedicated Auth Portal**: Added browser authentication portal triggers across Auth Page, In-App Popup, and Account Switcher.
+
+---
+
+## 📦 Version v3.8.7 — Game Scanner Singleton Lock Fix & OAuth Handshake Resilience
+
+### 🛠️ Key Highlights
+1. **Scanner Singleton Lock Fix**: Resolved `NameError: name 'time' is not defined` in `GameScanner` singleton lock retry loop during background scans.
+2. **Clerk Handshake Resilience**: Resolved premature authentication popup closure in Electron to ensure complete Clerk OAuth handshake execution on `/sso-callback`.
+3. **Header Guard**: Safe multi-invocation guard for `onBeforeSendHeaders` in Electron auth window.
+4. **Account Switcher**: Configured Account Gateway identity switcher to distinguish between first-time provider sign-in and session switching.
+
+---
+
+## 📦 Version v3.8.6 — App Themes, Gamer Identity & Adaptive Personalization Studio
+
+### 🛠️ Key Highlights
+1. **8 Curated Engineering Schemes**: Emerald Protocol, Cyberpunk 2077, Crimson Fury, Quantum Cobalt, Void Amethyst, Solar Flare, Toxic Hazard, and Stealth Carbon.
+2. **Custom Palette Studio**: Dual primary and secondary hex color pickers with quick presets.
+3. **Game-Adaptive Theming**: Real-time automatic color morphing when launching supported games.
+4. **GPU Hardware Brand Alignment**: Automatically match telemetry accents to physical graphics hardware (NVIDIA green, AMD red, Intel blue).
+5. **Gamer Identity Studio**: Custom Call-Sign handles, 5 unique gamer factions, specialization titles, and holographic avatar auras.
+
+---
+
+## 📦 Version v3.8.5 — Media Extras Filtering, Window Detection & HUD Focus Alignment
 
 ### 🛠️ Key Highlights
 1. **Bonus Content Filtering**: Ignored companion digital artwork and soundtrack executables across all scanner modes (`junk_keywords`, `generic_subfolders`, `skip_folder_names`, deep scan skips, and `_is_game_valid_and_installed`).

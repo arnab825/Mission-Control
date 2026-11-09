@@ -76,6 +76,13 @@ graph TD
 - **Display:** Clean `Ctrl + Alt + O` format (no angle brackets).
 - **Configurable:** All 4 hotkeys (HUD toggle, Agentic toggle, Font +/-) editable in Settings.
 
+### 8. 🕹️ Emulation & ROM Library Orchestration
+- **Emulator Discovery:** Native auto-detection of 17+ standalone emulators (RPCS3, PCSX2, DuckStation, Dolphin, Cemu, Ryujinx, Citra, PPSSPP, Xenia, Xemu, etc.) and RetroArch libretro cores across Windows and Linux.
+- **ROM Scanner:** Structured folder detection (`ps3/`, `ps2/`, `switch/`, `gamecube/`, `n64/`, etc.) with extension filtering and local cover art resolution.
+- **Multi-Disc Merging:** Automatically groups multi-disc games into single unified library cards with dynamic disc switcher dropdowns.
+- **Process Launcher:** Assembles emulator-specific CLI flags and launches titles directly with targeted ROM paths via argument-aware subprocess dispatch.
+- **Emulators Hub:** Interactive management modal for configuring binary path overrides, adding custom ROM folders, and test-launching emulators.
+
 ---
 
 ## 🔄 Recent Changes
