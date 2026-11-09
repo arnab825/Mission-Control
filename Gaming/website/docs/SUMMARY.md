@@ -82,7 +82,8 @@ graph TD
 
 | Version | Key Feature / Change Description |
 | :--- | :--- |
-| **v3.8.9 (Latest)** | **Google OAuth Direct Browser Delegation & Website Theme Studio** — Delegated Google OAuth directly to default system browser in desktop app to completely prevent disallowed_useragent security blocks |
+| **v3.8.10 (Latest)** | **Cross-Platform Emulation Engine & ROM Library Orchestration** — Added cross-platform emulator discovery scanning for 17+ standalone emulators and RetroArch cores across Windows and Linux |
+| **v3.8.9** | **Google OAuth Direct Browser Delegation & Website Theme Studio** — Delegated Google OAuth directly to default system browser in desktop app to completely prevent disallowed_useragent security blocks |
 | **v3.8.8** | **Browser-Based Authentication Failsafe & Seamless Redirection** — Added automated browser-based authentication failsafe when in-app auth popups fail to load, stall, or get blocked |
 | **v3.8.7** | **Game Scanner Singleton Lock Fix & OAuth Handshake Resilience** — Fixed NameError: name 'time' is not defined in GameScanner singleton lock retry loop during background library scans |
 | **v3.8.6** | **App Themes, Gamer Identity & Adaptive Personalization Studio** — Introduced 8 curated engineering theme schemes: Emerald Protocol, Cyberpunk 2077, Crimson Fury, Quantum Cobalt, Void Amethyst, Solar Flare, Toxic Hazard, and Stealth Carbon |

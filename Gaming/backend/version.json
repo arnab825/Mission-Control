@@ -1,8 +1,20 @@
 {
-  "version": "3.8.9",
-  "release_date": "2026-11-05",
+  "version": "3.8.10",
+  "release_date": "2026-11-09",
   "update_check_url": "https://raw.githubusercontent.com/arnab825/Mission-Control/main/Gaming/backend/version.json",
   "changelog": [
+    {
+      "version": "3.8.10",
+      "date": "2026-11-09",
+      "title": "Cross-Platform Emulation Engine & ROM Library Orchestration",
+      "highlights": [
+        "Added cross-platform emulator discovery scanning for 17+ standalone emulators and RetroArch cores across Windows and Linux",
+        "Introduced intelligent ROM library scanner with automatic console directory detection, extension filtering, and adjacent cover art resolution",
+        "Implemented multi-disc ROM merging to consolidate multi-disc games into single library cards with interactive disc selection",
+        "Added Emulators & ROMs Hub modal with installed status, binary path overrides, test launching, and custom ROM directory management",
+        "Enhanced process launcher with CLI argument dispatch for direct ROM execution into configured emulators"
+      ]
+    },
     {
       "version": "3.8.9",
       "date": "2026-11-05",
