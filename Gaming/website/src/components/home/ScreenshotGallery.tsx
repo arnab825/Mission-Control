@@ -23,6 +23,7 @@ export function ScreenshotGallery() {
     { id: "dashboard", label: "Dashboard", icon: Activity, src: "/screenshots/dashboard.webp" },
     { id: "themes", label: "Themes Studio", icon: Palette, src: "/screenshots/theme_showcase.gif" },
     { id: "library", label: "Library", icon: Gamepad2, src: "/screenshots/library.webp" },
+    { id: "emulation", label: "Emulation & Wine", icon: Gamepad2, src: "/screenshots/emulation_wine_showcase.webp" },
     { id: "system", label: "System", icon: Server, src: "/screenshots/system.webp" },
     { id: "readiness", label: "Readiness", icon: ShieldCheck, src: "/screenshots/readiness.webp" },
     { id: "agent", label: "Agent Co-Pilot", icon: Bot, src: "/screenshots/agent.webp" },

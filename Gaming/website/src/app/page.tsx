@@ -27,6 +27,12 @@ const ThemePersonalizationSection = dynamic(
       (m) => m.ThemePersonalizationSection
     )
 );
+const EmulationWineSection = dynamic(
+  () =>
+    import("@/components/home/EmulationWineSection").then(
+      (m) => m.EmulationWineSection
+    )
+);
 const ScreenshotGallerySection = dynamic(
   () =>
     import("@/components/home/ScreenshotGallerySection").then(
@@ -183,6 +189,7 @@ export default function Home() {
       <VerifiedTestedGamesSection testedGames={testedGames} />
       <HardwareSuiteBentoSection />
       <ThemePersonalizationSection />
+      <EmulationWineSection />
       <ScreenshotGallerySection />
       <BeforeAfterSection />
       <InteractiveHudSection />
