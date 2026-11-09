@@ -2328,7 +2328,7 @@ const AgentPage: React.FC<{
                   <p className="text-[9px] font-bold text-zinc-500 uppercase tracking-widest mt-0.5">E2EE Handshake Signature</p>
                 </div>
 
-                {/* Synced Operative Node Badge */}
+                {/* Synced User Node Badge */}
                 <div className="flex items-center justify-between p-2 rounded-xl bg-white/[0.04] border border-white/8 mb-3">
                   <div className="flex items-center gap-2 min-w-0">
                     <div className="w-6 h-6 rounded-lg bg-neon-yellow/15 border border-neon-yellow/30 flex items-center justify-center text-[10px] font-black text-neon-yellow shrink-0">
@@ -2336,7 +2336,7 @@ const AgentPage: React.FC<{
                     </div>
                     <div className="min-w-0 text-left">
                       <p className="text-[10px] font-black text-zinc-200 truncate uppercase tracking-wider">
-                        {activeAccountUser?.fullName || activeAccountUser?.username || (userId !== 'guest' ? 'Authenticated Operative' : 'Guest Operative')}
+                        {activeAccountUser?.fullName || activeAccountUser?.username || (userId !== 'guest' ? 'Authenticated User' : 'Guest')}
                       </p>
                       <p className="text-[8px] font-mono text-zinc-500 truncate">
                         {activeAccountUser?.primaryEmailAddress?.emailAddress || (userId !== 'guest' ? userId : 'local-guest-node')}

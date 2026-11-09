@@ -189,6 +189,14 @@ def dispatch_bridge_command(
         game_handler.handle_get_discover_games(payload, pipeline, bridge, config, library_session)
     elif cmd_type == "scan_games":
         game_handler.handle_scan_games(payload, pipeline, bridge, config, library_session)
+    elif cmd_type == "get_emulation_state":
+        game_handler.handle_get_emulation_state(payload, pipeline, bridge, config)
+    elif cmd_type == "configure_emulator":
+        game_handler.handle_configure_emulator(payload, pipeline, bridge, config)
+    elif cmd_type == "set_rom_paths":
+        game_handler.handle_set_rom_paths(payload, pipeline, bridge, config, library_session)
+    elif cmd_type == "scan_roms":
+        game_handler.handle_scan_roms(payload, pipeline, bridge, config, library_session)
     elif cmd_type == "launch_game":
         game_handler.handle_launch_game(payload, pipeline, bridge, config, library_session)
     elif cmd_type == "logout_user":

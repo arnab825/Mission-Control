@@ -5,6 +5,7 @@ import AuthPage from './AuthPage';
 import NodeManagerModal from '../components/NodeManagerModal';
 import GameInstallationsModal, { type GameInstallation } from '../components/GameInstallationsModal';
 import DiscoverGamesModal from '../components/DiscoverGamesModal';
+import { EmulatorsHubModal } from '../components/EmulatorsHubModal';
 import {
   Search,
   Play,
@@ -26,7 +27,8 @@ import {
   Terminal,
   Shield,
   Server,
-  Globe
+  Globe,
+  Disc3,
 } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import type { TelemetryState } from '../types/telemetry';
@@ -48,6 +50,16 @@ interface BackendGame {
   tags?: string[];
   source?: string;
   installations?: GameInstallation[];
+  is_emulated?: boolean;
+  rom_path?: string;
+  discs?: { disc: number; label: string; path: string }[];
+  active_disc?: number;
+  total_discs?: number;
+  launch_args?: string[];
+  emulator_id?: string;
+  emulator_name?: string;
+  emulator_installed?: boolean;
+  cover_url?: string;
 }
 
 export interface GamesPageProps {
@@ -74,6 +86,26 @@ const PLATFORM_STYLES: Record<string, { bg: string; text: string; border: string
   'Amazon Games': { bg: 'bg-[#2e2a1a]/80', text: 'text-[#f59e0b]', border: 'border-[#f59e0b]/40' },
   'Itch.io': { bg: 'bg-[#2e1a1a]/80', text: 'text-[#fa5c5c]', border: 'border-[#fa5c5c]/40' },
   'Humble Bundle': { bg: 'bg-[#2e2a1a]/80', text: 'text-[#fbbf24]', border: 'border-[#fbbf24]/40' },
+  'PlayStation 3': { bg: 'bg-[#003791]/70', text: 'text-[#66c0f4]', border: 'border-[#003791]/50' },
+  'PlayStation 2': { bg: 'bg-[#002060]/70', text: 'text-[#60a5fa]', border: 'border-[#002060]/50' },
+  'PlayStation': { bg: 'bg-[#b33939]/70', text: 'text-[#f87171]', border: 'border-[#b33939]/50' },
+  'Nintendo Switch': { bg: 'bg-[#e84118]/70', text: 'text-[#f87171]', border: 'border-[#e84118]/50' },
+  'Nintendo GameCube': { bg: 'bg-[#0084ff]/70', text: 'text-[#38bdf8]', border: 'border-[#0084ff]/50' },
+  'GameCube & Wii': { bg: 'bg-[#0084ff]/70', text: 'text-[#38bdf8]', border: 'border-[#0084ff]/50' },
+  'Nintendo Wii': { bg: 'bg-[#00a8ff]/70', text: 'text-[#38bdf8]', border: 'border-[#00a8ff]/50' },
+  'Nintendo Wii U': { bg: 'bg-[#00a8ff]/70', text: 'text-[#38bdf8]', border: 'border-[#00a8ff]/50' },
+  'Nintendo 3DS': { bg: 'bg-[#e15f41]/70', text: 'text-[#fb923c]', border: 'border-[#e15f41]/50' },
+  'Nintendo DS': { bg: 'bg-[#303952]/70', text: 'text-[#94a3b8]', border: 'border-[#303952]/50' },
+  'PlayStation Portable': { bg: 'bg-[#218c74]/70', text: 'text-[#34d399]', border: 'border-[#218c74]/50' },
+  'PlayStation Vita': { bg: 'bg-[#3dc1d3]/70', text: 'text-[#22d3ee]', border: 'border-[#3dc1d3]/50' },
+  'Xbox 360': { bg: 'bg-[#107c10]/70', text: 'text-[#4ade80]', border: 'border-[#107c10]/50' },
+  'RetroArch': { bg: 'bg-[#333333]/70', text: 'text-zinc-300', border: 'border-zinc-500/50' },
+  'Game Boy Advance': { bg: 'bg-[#574b90]/70', text: 'text-[#a78bfa]', border: 'border-[#574b90]/50' },
+  'Super Nintendo': { bg: 'bg-[#596275]/70', text: 'text-[#cbd5e1]', border: 'border-[#596275]/50' },
+  'Nintendo 64': { bg: 'bg-[#cf6a87]/70', text: 'text-[#f472b6]', border: 'border-[#cf6a87]/50' },
+  'Sega Dreamcast': { bg: 'bg-[#ea8685]/70', text: 'text-[#fca5a5]', border: 'border-[#ea8685]/50' },
+  'Sega Genesis': { bg: 'bg-[#2c3e50]/70', text: 'text-[#94a3b8]', border: 'border-[#2c3e50]/50' },
+  'Emulated': { bg: 'bg-purple-900/60', text: 'text-purple-300', border: 'border-purple-500/40' },
   'Local': { bg: 'bg-white/[0.04]', text: 'text-zinc-400', border: 'border-white/10' },
 };
 
@@ -95,6 +127,25 @@ function getPlatformLabel(platform: string): string {
     'Itch.io': 'ITCH',
     'Riot Games': 'RIOT',
     'Xbox App': 'XBOX',
+    'PlayStation 3': 'PS3',
+    'PlayStation 2': 'PS2',
+    'PlayStation': 'PS1',
+    'Nintendo Switch': 'SWITCH',
+    'Nintendo GameCube': 'GAMECUBE',
+    'GameCube & Wii': 'GC/WII',
+    'Nintendo Wii': 'WII',
+    'Nintendo Wii U': 'WII U',
+    'Nintendo 3DS': '3DS',
+    'Nintendo DS': 'NDS',
+    'PlayStation Portable': 'PSP',
+    'PlayStation Vita': 'PS VITA',
+    'Xbox 360': 'X360',
+    'Game Boy Advance': 'GBA',
+    'Super Nintendo': 'SNES',
+    'Nintendo 64': 'N64',
+    'Sega Dreamcast': 'DC',
+    'Sega Genesis': 'GENESIS',
+    'RetroArch': 'RETRO',
   };
   return labels[platform] || platform.toUpperCase();
 }
@@ -106,8 +157,15 @@ const GameCard: React.FC<{
   isRtxGpu?: boolean;
   isNvidiaGpu?: boolean;
   onOpenInstallations?: (data: { title: string; coverUrl?: string; primaryGenre?: string; installations: GameInstallation[] }) => void;
-}> = React.memo(({ game, sendCommand, onOpenInstallations }) => {
+  onOpenEmulators?: () => void;
+}> = React.memo(({ game, sendCommand, onOpenInstallations, onOpenEmulators }) => {
   const seed = encodeURIComponent(game.name);
+  const [selectedDisc, setSelectedDisc] = useState<string>(() => {
+    if (game.discs && game.discs.length > 0) {
+      return game.discs[0].path;
+    }
+    return game.rom_path || '';
+  });
 
   // High-fidelity cover art strategy: Local Banner > Steam Header > Local Icon > Generative Placeholder
   let coverUrl = `https://api.dicebear.com/7.x/shapes/svg?seed=${seed}&backgroundColor=0a0a0a&shape1Color=1a1a2e&shape2Color=16213e&shape3Color=0f3460`;
@@ -197,6 +255,10 @@ const GameCard: React.FC<{
   }
 
   const getLaunchUri = () => {
+    if (game.is_emulated) {
+      return game.exe_path || 'configure_emulator';
+    }
+
     if (game.platform === 'Steam' && game.id && !isLauncher) return `steam://rungameid/${game.id}`;
     if ((game.platform === 'Epic Games' || game.platform === 'Epic') && game.id && !isLauncher) return `com.epicgames.launcher://apps/${game.id}?action=launch&silent=true`;
     if ((game.platform === 'EA Desktop' || game.platform === 'EA App' || game.platform === 'Origin' || game.platform === 'EA') && game.id && !isLauncher) return `origin://launchgame/${game.id}`;
@@ -219,6 +281,19 @@ const GameCard: React.FC<{
   const launchUri = getLaunchUri();
 
   const handleLaunch = () => {
+    if (game.is_emulated) {
+      if (game.exe_path) {
+        sendCommand('launch_game', {
+          exe_path: game.exe_path,
+          args: game.launch_args || (selectedDisc ? [selectedDisc] : [game.rom_path]),
+          rom_path: selectedDisc || game.rom_path,
+          emulator_id: game.emulator_id,
+        });
+      } else {
+        onOpenEmulators?.();
+      }
+      return;
+    }
     if (launchUri) {
       if ((window as any).electronAPI?.launchGame) {
         (window as any).electronAPI.launchGame(launchUri);
@@ -365,6 +440,27 @@ const GameCard: React.FC<{
           )}
         </div>
 
+        {/* Multi-Disc Switcher */}
+        {game.discs && game.discs.length > 1 && (
+          <div className="flex items-center justify-between gap-2 px-2.5 py-1.5 rounded-xl bg-purple-500/10 border border-purple-500/20 text-[9px] my-1">
+            <span className="text-purple-300 font-bold flex items-center gap-1.5 shrink-0">
+              <Disc3 className="w-3 h-3 text-purple-400 shrink-0" />
+              <span>Multi-Disc:</span>
+            </span>
+            <select
+              value={selectedDisc}
+              onChange={(e) => setSelectedDisc(e.target.value)}
+              className="px-2 py-0.5 rounded bg-black/60 border border-white/10 text-[9px] font-mono text-zinc-200 focus:outline-none focus:border-purple-400 cursor-pointer"
+            >
+              {game.discs.map((d) => (
+                <option key={d.path} value={d.path} className="bg-zinc-950 text-white">
+                  {d.label}
+                </option>
+              ))}
+            </select>
+          </div>
+        )}
+
         {/* Action Button */}
         <div className="flex items-center gap-2 pt-2 border-t border-white/5">
           <button
@@ -378,8 +474,24 @@ const GameCard: React.FC<{
                 : 'bg-white/5 text-zinc-600 border border-white/5 cursor-not-allowed'
             }`}
           >
-            <Play className="w-3.5 h-3.5 fill-current" />
-            <span>{launchUri ? (isLauncher ? 'Launch Platform' : 'Execute') : 'Unavailable'}</span>
+            {game.is_emulated ? (
+              game.exe_path ? (
+                <>
+                  <Play className="w-3.5 h-3.5 fill-current" />
+                  <span>Play ROM</span>
+                </>
+              ) : (
+                <>
+                  <Gamepad2 className="w-3.5 h-3.5 text-purple-400" />
+                  <span>Setup {game.emulator_name || 'Emulator'}</span>
+                </>
+              )
+            ) : (
+              <>
+                <Play className="w-3.5 h-3.5 fill-current" />
+                <span>{launchUri ? (isLauncher ? 'Launch Platform' : 'Execute') : 'Unavailable'}</span>
+              </>
+            )}
           </button>
 
           {game.installations && game.installations.length > 1 && (
@@ -550,6 +662,7 @@ const GamesLibraryContent: React.FC<GamesPageProps> = ({ state, sendCommand, set
   const [showAdvanced, setShowAdvanced] = useState(false);
   const [showNodeManager, setShowNodeManager] = useState(false);
   const [showDiscoverModal, setShowDiscoverModal] = useState(false);
+  const [showEmulatorsModal, setShowEmulatorsModal] = useState(false);
   const [installationsModal, setInstallationsModal] = useState<{ title: string; coverUrl?: string; primaryGenre?: string; installations: GameInstallation[] } | null>(null);
   const { stats: distributedStats, serverOnline: libraryServerOnline } = useDistributedStats(userId);
 
@@ -759,6 +872,7 @@ const GamesLibraryContent: React.FC<GamesPageProps> = ({ state, sendCommand, set
 
         // Query local backend immediately
         sendCommand('get_cached_games', { userId: userId || undefined });
+        sendCommand('get_emulation_state');
 
         // If distributed server is online, fetch with strict 1.5s timeout
         if (libraryServerOnline && userId) {
@@ -860,7 +974,11 @@ const GamesLibraryContent: React.FC<GamesPageProps> = ({ state, sendCommand, set
     ).length,
     [games]
   );
-  const gamesOnlyCount = games.length - launchersCount;
+  const emulatedCount = useMemo(
+    () => games.filter(g => g.is_emulated || g.type?.toUpperCase() === 'EMULATED' || g.type?.toUpperCase() === 'EMULATION').length,
+    [games]
+  );
+  const gamesOnlyCount = Math.max(0, games.length - launchersCount - emulatedCount);
 
   // Memoized Fuse instance
   const fuse = useMemo(() => {
@@ -902,6 +1020,9 @@ const GamesLibraryContent: React.FC<GamesPageProps> = ({ state, sendCommand, set
     if (selectedType !== 'All') {
       if (selectedType === 'GAME') {
         result = result.filter(g =>
+          !g.is_emulated &&
+          g.type?.toUpperCase() !== 'EMULATED' &&
+          g.type?.toUpperCase() !== 'EMULATION' &&
           g.type?.toUpperCase() !== 'LAUNCHER' &&
           !(g.genre?.toUpperCase() === 'PLATFORM' && !g.id?.match(/^\d+$/)) &&
           !(g.name.toLowerCase() === g.platform?.toLowerCase() && !g.id?.match(/^\d+$/))
@@ -911,6 +1032,12 @@ const GamesLibraryContent: React.FC<GamesPageProps> = ({ state, sendCommand, set
           g.type?.toUpperCase() === 'LAUNCHER' ||
           (g.genre?.toUpperCase() === 'PLATFORM' && !g.id?.match(/^\d+$/)) ||
           (g.name.toLowerCase() === g.platform?.toLowerCase() && !g.id?.match(/^\d+$/))
+        );
+      } else if (selectedType === 'EMULATION') {
+        result = result.filter(g =>
+          Boolean(g.is_emulated) ||
+          g.type?.toUpperCase() === 'EMULATED' ||
+          g.type?.toUpperCase() === 'EMULATION'
         );
       }
     }
@@ -921,6 +1048,9 @@ const GamesLibraryContent: React.FC<GamesPageProps> = ({ state, sendCommand, set
       if (filter !== 'All') result = result.filter(g => g.platform === filter);
       if (selectedType === 'GAME') {
         result = result.filter(g =>
+          !g.is_emulated &&
+          g.type?.toUpperCase() !== 'EMULATED' &&
+          g.type?.toUpperCase() !== 'EMULATION' &&
           g.type?.toUpperCase() !== 'LAUNCHER' &&
           !(g.genre?.toUpperCase() === 'PLATFORM' && !g.id?.match(/^\d+$/)) &&
           !(g.name.toLowerCase() === g.platform?.toLowerCase() && !g.id?.match(/^\d+$/))
@@ -930,6 +1060,12 @@ const GamesLibraryContent: React.FC<GamesPageProps> = ({ state, sendCommand, set
           g.type?.toUpperCase() === 'LAUNCHER' ||
           (g.genre?.toUpperCase() === 'PLATFORM' && !g.id?.match(/^\d+$/)) ||
           (g.name.toLowerCase() === g.platform?.toLowerCase() && !g.id?.match(/^\d+$/))
+        );
+      } else if (selectedType === 'EMULATION') {
+        result = result.filter(g =>
+          Boolean(g.is_emulated) ||
+          g.type?.toUpperCase() === 'EMULATED' ||
+          g.type?.toUpperCase() === 'EMULATION'
         );
       }
     }
@@ -972,6 +1108,23 @@ const GamesLibraryContent: React.FC<GamesPageProps> = ({ state, sendCommand, set
           >
             <Server className="w-3.5 h-3.5 transition-transform duration-200 group-hover:scale-110" />
             <span className="whitespace-nowrap">Manage Nodes</span>
+          </button>
+
+          {/* Emulators & ROMs button — always accessible */}
+          <button
+            id="emulators-roms-btn"
+            type="button"
+            onClick={() => setShowEmulatorsModal(true)}
+            className="group flex items-center gap-2 px-4 py-2.5 bg-purple-500/10 hover:bg-purple-500/20 active:scale-95 border border-purple-500/30 hover:border-purple-500/50 text-purple-300 hover:text-purple-100 font-black text-[10px] uppercase tracking-widest rounded-2xl transition-all duration-150 transform-gpu will-change-transform shadow-[0_0_15px_rgba(168,85,247,0.15)] hover:shadow-[0_0_22px_rgba(168,85,247,0.3)] cursor-pointer shrink-0"
+            title="Configure Emulators and Scan ROM Folders"
+          >
+            <Gamepad2 className="w-3.5 h-3.5 text-purple-400 transition-transform duration-200 group-hover:scale-110" />
+            <span className="whitespace-nowrap">Emulators & ROMs</span>
+            {state?.emulation_state && (
+              <span className="px-1.5 py-0.5 bg-purple-500/20 text-purple-300 text-[8px] rounded-md font-mono font-bold">
+                {state.emulation_state.installed_count ?? (state.emulation_state.emulators || []).filter(e => e.is_installed).length}
+              </span>
+            )}
           </button>
 
           {/* Scan progress indicator */}
@@ -1057,6 +1210,7 @@ const GamesLibraryContent: React.FC<GamesPageProps> = ({ state, sendCommand, set
                   {[
                     { id: 'All', label: 'All', count: games.length },
                     { id: 'GAME', label: 'Games', count: gamesOnlyCount },
+                    { id: 'EMULATION', label: 'Emulation', count: emulatedCount },
                     { id: 'LAUNCHER', label: 'Launchers', count: launchersCount },
                   ].map(t => (
                     <button
@@ -1225,6 +1379,7 @@ const GamesLibraryContent: React.FC<GamesPageProps> = ({ state, sendCommand, set
                     isRtxGpu={isRtxGpu}
                     isNvidiaGpu={isNvidiaGpu}
                     onOpenInstallations={setInstallationsModal}
+                    onOpenEmulators={() => setShowEmulatorsModal(true)}
                   />
                 ))}
               </AnimatePresence>
@@ -1253,6 +1408,17 @@ const GamesLibraryContent: React.FC<GamesPageProps> = ({ state, sendCommand, set
       {/* Node Manager Modal */}
       <AnimatePresence>
         {showNodeManager && <NodeManagerModal onClose={() => setShowNodeManager(false)} sendCommand={sendCommand} />}
+      </AnimatePresence>
+
+      {/* Emulators & ROMs Hub Modal */}
+      <AnimatePresence>
+        {showEmulatorsModal && (
+          <EmulatorsHubModal
+            onClose={() => setShowEmulatorsModal(false)}
+            emulationState={state?.emulation_state}
+            sendCommand={sendCommand}
+          />
+        )}
       </AnimatePresence>
 
       {/* Discover Games Modal */}

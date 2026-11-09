@@ -179,6 +179,19 @@ class GameScanner:
             if hasattr(self, '_validation_cache'): self._validation_cache[cache_key] = True
             return True
 
+        # Emulated / ROM game validation (validate ROM path exists on disk)
+        if g.get("is_emulated"):
+            rom = g.get("rom_path")
+            if rom and os.path.exists(rom):
+                if hasattr(self, '_validation_cache'): self._validation_cache[cache_key] = True
+                return True
+            discs = g.get("discs") or []
+            if any(d.get("path") and os.path.exists(d["path"]) for d in discs):
+                if hasattr(self, '_validation_cache'): self._validation_cache[cache_key] = True
+                return True
+            if hasattr(self, '_validation_cache'): self._validation_cache[cache_key] = False
+            return False
+
         # Check against library root folder names (e.g. "epic games", "ubisoft games", "program files")
         if name_lower in self.library_root_names:
             if hasattr(self, '_validation_cache'): self._validation_cache[cache_key] = False
@@ -1030,6 +1043,7 @@ class GameScanner:
             ("Common game folders", self._scan_common_paths),
             ("Drive libraries", self._scan_drives),
             ("Custom directories", self._scan_custom_paths),
+            ("Emulators & ROMs", self._scan_emulation),
             ("Deep recursive scan", lambda: self._scan_deep_recursive(max_depth=3)),
         ]
 
@@ -1917,6 +1931,19 @@ class GameScanner:
                                 })
             except Exception as e:
                 logger.error(f"Error scanning custom path {dir_str}: {e}")
+
+    def _scan_emulation(self):
+        """Scans configured ROM directories for emulated games and pairs with emulators."""
+        try:
+            from system.rom_scanner import ROMScanner
+            scanner = ROMScanner()
+            roms = scanner.scan_all_roms()
+            for r in roms:
+                self.games.append(r)
+            if roms:
+                logger.info("[GameScanner] Scanned %d emulated games across ROM directories", len(roms))
+        except Exception as e:
+            logger.debug("[GameScanner] Emulation scan note: %s", e)
 
     def _scan_drives(self):
         """Scan all local fixed drives for 'Games' or 'SteamLibrary' folders."""
@@ -3123,6 +3150,25 @@ class GameScanner:
                         )
         except (PermissionError, OSError):
             return
+
+    def _scan_emulation(self):
+        """Scans configured ROM folders and merges emulated titles into library."""
+        try:
+            try:
+                from system.rom_scanner import RomScanner
+            except ImportError:
+                try:
+                    from .rom_scanner import RomScanner
+                except ImportError:
+                    from rom_scanner import RomScanner
+
+            scanner = RomScanner()
+            rom_games = scanner.scan_all_roms()
+            if rom_games:
+                logger.info("[GameScanner] Discovered %d emulated ROM games", len(rom_games))
+                self.games.extend(rom_games)
+        except Exception as e:
+            logger.warning("[GameScanner] Failed to scan emulation library: %s", e)
 
 
 if __name__ == "__main__":

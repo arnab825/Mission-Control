@@ -108,6 +108,8 @@ export interface TelemetryState {
   game_minimized: boolean;
   game_library?: any[];
   scanned_games?: any[];
+  emulation_state?: EmulationState;
+  emulated_games?: any[];
   config?: AppConfig;
   ai_analytic?: {
     reasoning_tokens: number;
@@ -316,4 +318,28 @@ export interface SystemSpecs {
     status: string;
   }[];
   vram_gb?: number;
+}
+
+export interface EmulatorInfo {
+  id: string;
+  name: string;
+  console: string;
+  console_slug: string;
+  color: string;
+  is_installed: boolean;
+  exe_path: string;
+  custom_exe_path?: string;
+  enabled: boolean;
+  extensions: string[];
+  launch_args_template: string[];
+  website?: string;
+  cores?: string[];
+}
+
+export interface EmulationState {
+  emulators: EmulatorInfo[];
+  installed_count: number;
+  total_supported: number;
+  rom_paths: string[];
+  emulated_games_count: number;
 }

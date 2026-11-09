@@ -44,6 +44,19 @@ class RetryMessagePayload(BaseCommandPayload):
 
 class LaunchGamePayload(BaseCommandPayload):
     exe_path: str = Field(min_length=1, max_length=500)
+    args: Optional[List[str]] = None
+    rom_path: Optional[str] = None
+    emulator_id: Optional[str] = None
+
+
+class ConfigureEmulatorPayload(BaseCommandPayload):
+    emulator_id: str = Field(min_length=1, max_length=64)
+    exe_path: Optional[str] = None
+    enabled: Optional[bool] = None
+
+
+class SetRomPathsPayload(BaseCommandPayload):
+    paths: List[str] = Field(default_factory=list)
 
 
 class DeleteAccountPayload(BaseCommandPayload):
@@ -145,6 +158,10 @@ class RemoveUserAccountPayload(BaseCommandPayload):
 
 
 COMMAND_SCHEMA_MAP = {
+    "get_emulation_state": EmptyPayload,
+    "configure_emulator": ConfigureEmulatorPayload,
+    "set_rom_paths": SetRomPathsPayload,
+    "scan_roms": EmptyPayload,
     "save_user_account": SaveUserAccountPayload,
     "get_user_accounts": EmptyPayload,
     "remove_user_account": RemoveUserAccountPayload,

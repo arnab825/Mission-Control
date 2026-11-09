@@ -406,12 +406,17 @@ def handle_launch_game(payload: dict, pipeline, bridge, config, library_session:
             bridge.update_state({"launch_status": {"success": False, "error": "The specified executable was not found on this system."}})
             return
 
-    logger.info("Launching game/launcher via Python backend: %s", exe_str)
+    args = payload.get("args") or []
+    logger.info("Launching game/launcher via Python backend: %s (args: %s)", exe_str, args)
     try:
-        if sys.platform == "win32":
+        import subprocess
+        if args and isinstance(args, list):
+            cmd = [exe_str] + [str(a) for a in args]
+            logger.info("Spawning process with arguments: %s", cmd)
+            subprocess.Popen(cmd)
+        elif sys.platform == "win32":
             os.startfile(exe_str)  # type: ignore[attr-defined]
         else:
-            import subprocess
             subprocess.Popen(["open"] if sys.platform == "darwin" else ["xdg-open", exe_str])
         
         # Flush working set RAM to give maximum system memory to the launched game
@@ -508,3 +513,111 @@ def handle_delete_account(payload: dict, pipeline, bridge, config, library_sessi
     except Exception as e:
         logger.error("Failed to delete account data for user %s: %s", user_id_str, e, exc_info=True)
         bridge.update_state({"account_deleted": False, "account_delete_error": "Account deletion could not be completed. Please contact support."})
+
+
+# ── Emulation & ROM Management Handlers ────────────────────────────────────────
+
+def handle_get_emulation_state(payload: dict, pipeline, bridge, config) -> None:
+    """Dispatches full emulation engine status, detected emulators, and ROM paths to bridge."""
+    try:
+        from system.emulator_scanner import EmulatorScanner
+        from system.rom_scanner import ROMScanner
+
+        emu_scanner = EmulatorScanner()
+        emulators = emu_scanner.scan_emulators()
+
+        rom_scanner = ROMScanner()
+        rom_paths = rom_scanner.rom_paths
+        emulated_games = rom_scanner.scan_all_roms()
+
+        installed_count = sum(1 for e in emulators if e.get("is_installed"))
+
+        state_payload = {
+            "emulation_state": {
+                "emulators": emulators,
+                "installed_count": installed_count,
+                "total_supported": len(emulators),
+                "rom_paths": rom_paths,
+                "emulated_games_count": len(emulated_games),
+            },
+            "emulated_games": emulated_games,
+        }
+        bridge.update_state(state_payload)
+        logger.info("Emulation state pushed: %d emulators installed, %d ROMs found", installed_count, len(emulated_games))
+    except Exception as e:
+        logger.error("Failed to load emulation state: %s", e, exc_info=True)
+
+
+def handle_configure_emulator(payload: dict, pipeline, bridge, config) -> None:
+    """Saves user overrides for a specific emulator (custom exe path or enabled toggle)."""
+    try:
+        from system.emulator_scanner import EmulatorScanner
+        emu_id = payload.get("emulator_id")
+        if not emu_id:
+            return
+        custom_exe = payload.get("exe_path")
+        enabled = payload.get("enabled")
+
+        emu_scanner = EmulatorScanner()
+        emu_scanner.save_override(emu_id, exe_path=custom_exe, enabled=enabled)
+
+        # Refresh emulation state
+        handle_get_emulation_state({}, pipeline, bridge, config)
+    except Exception as e:
+        logger.error("Failed to configure emulator: %s", e, exc_info=True)
+
+
+def handle_set_rom_paths(payload: dict, pipeline, bridge, config, library_session: dict) -> None:
+    """Updates configured ROM paths and immediately triggers a ROM discovery pass."""
+    try:
+        from system.rom_scanner import ROMScanner
+        paths = payload.get("paths", [])
+        rom_scanner = ROMScanner()
+        saved = rom_scanner.save_rom_paths(paths)
+
+        # Re-scan ROMs and merge into game library
+        handle_scan_roms(payload, pipeline, bridge, config, library_session)
+    except Exception as e:
+        logger.error("Failed to set ROM paths: %s", e, exc_info=True)
+
+
+def handle_scan_roms(payload: dict, pipeline, bridge, config, library_session: dict) -> None:
+    """Performs a scan of all ROM directories and merges emulated titles into game_library."""
+    try:
+        from system.emulator_scanner import EmulatorScanner
+        from system.rom_scanner import ROMScanner
+
+        rom_scanner = ROMScanner()
+        emulated_games = rom_scanner.scan_all_roms()
+
+        # Update bridge with emulated games list
+        emu_scanner = EmulatorScanner()
+        emulators = emu_scanner.scan_emulators()
+        installed_count = sum(1 for e in emulators if e.get("is_installed"))
+
+        bridge.update_state({
+            "emulation_state": {
+                "emulators": emulators,
+                "installed_count": installed_count,
+                "total_supported": len(emulators),
+                "rom_paths": rom_scanner.rom_paths,
+                "emulated_games_count": len(emulated_games),
+            },
+            "emulated_games": emulated_games,
+        })
+
+        # Merge emulated games into current game_library
+        user_id = payload.get("userId") if payload else "guest"
+        user_id_str = str(user_id) if user_id else "guest"
+
+        with _lib_lock:
+            existing = list(library_session.get(user_id_str, []))
+            # Remove existing emulated games from library to prevent duplicates
+            cleaned = [g for g in existing if not g.get("is_emulated")]
+            merged = cleaned + emulated_games
+            library_session[user_id_str] = merged
+
+        bridge.update_state({"game_library": merged})
+        logger.info("ROM scan complete: merged %d emulated games into library", len(emulated_games))
+    except Exception as e:
+        logger.error("Failed to scan ROMs: %s", e, exc_info=True)

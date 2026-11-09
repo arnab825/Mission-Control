@@ -31,30 +31,30 @@ interface GameInstallationsModalProps {
 }
 
 const STORE_LABELS: Record<string, string> = {
-  steam:    'Steam',
-  epic:     'Epic Games',
-  gog:      'GOG Galaxy',
-  ubisoft:  'Ubisoft Connect',
-  ea:       'EA Desktop',
+  steam: 'Steam',
+  epic: 'Epic Games',
+  gog: 'GOG Galaxy',
+  ubisoft: 'Ubisoft Connect',
+  ea: 'EA Desktop',
   rockstar: 'Rockstar Games',
-  xbox:     'Xbox',
-  battlenet:'Battle.net',
-  manual:   'Manual Install',
-  amazon:   'Amazon Games',
-  itch:     'Itch.io',
-  humble:   'Humble Bundle',
+  xbox: 'Xbox',
+  battlenet: 'Battle.net',
+  manual: 'Manual Install',
+  amazon: 'Amazon Games',
+  itch: 'Itch.io',
+  humble: 'Humble Bundle',
 };
 
 const STORE_COLORS: Record<string, string> = {
-  steam:    'text-[#66c0f4] border-[#66c0f4]/30 bg-[#1b2838]/60',
-  epic:     'text-purple-400 border-purple-400/30 bg-purple-900/20',
-  gog:      'text-violet-400 border-violet-400/30 bg-violet-900/20',
-  ubisoft:  'text-sky-400 border-sky-400/30 bg-sky-900/20',
-  ea:       'text-orange-400 border-orange-400/30 bg-orange-900/20',
+  steam: 'text-[#66c0f4] border-[#66c0f4]/30 bg-[#1b2838]/60',
+  epic: 'text-purple-400 border-purple-400/30 bg-purple-900/20',
+  gog: 'text-violet-400 border-violet-400/30 bg-violet-900/20',
+  ubisoft: 'text-sky-400 border-sky-400/30 bg-sky-900/20',
+  ea: 'text-orange-400 border-orange-400/30 bg-orange-900/20',
   rockstar: 'text-red-400 border-red-400/30 bg-red-900/20',
-  xbox:     'text-green-400 border-green-400/30 bg-green-900/20',
-  battlenet:'text-cyan-400 border-cyan-400/30 bg-cyan-900/20',
-  manual:   'text-zinc-400 border-zinc-400/20 bg-zinc-800/20',
+  xbox: 'text-green-400 border-green-400/30 bg-green-900/20',
+  battlenet: 'text-cyan-400 border-cyan-400/30 bg-cyan-900/20',
+  manual: 'text-zinc-400 border-zinc-400/20 bg-zinc-800/20',
 };
 
 function formatBytes(bytes: number): string {

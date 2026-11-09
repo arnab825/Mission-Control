@@ -490,12 +490,12 @@ const App: React.FC = () => {
           currentUser?.username ||
           currentUser?.user_name ||
           currentUser?.name ||
-          (email ? email.split('@')[0] : 'Operative');
+          (email ? email.split('@')[0] : 'Guest');
 
         const firstName =
           currentUser?.firstName ||
           currentUser?.first_name ||
-          (username ? username.split(' ')[0] : 'Operative');
+          (username ? username.split(' ')[0] : 'Guest');
 
         const lastName =
           currentUser?.lastName ||
@@ -657,10 +657,10 @@ const App: React.FC = () => {
               id: payload.userId || '',
               email: payload.userEmail || '',
               sessionId: payload.sessionId || '',
-              username: payload.username || (payload.userEmail ? payload.userEmail.split('@')[0] : 'Operative'),
+              username: payload.username || (payload.userEmail ? payload.userEmail.split('@')[0] : 'Guest'),
               firstName: payload.firstName || '',
               lastName: payload.lastName || '',
-              fullName: payload.fullName || (payload.firstName ? `${payload.firstName} ${payload.lastName || ''}`.trim() : '') || payload.username || 'Operative',
+              fullName: payload.fullName || (payload.firstName ? `${payload.firstName} ${payload.lastName || ''}`.trim() : '') || payload.username || 'Guest',
               imageUrl: cleanAvatar,
               provider,
               externalAccounts: payload.externalAccounts || (isDisc ? [{ provider: 'discord', emailAddress: payload.userEmail }] : [{ provider: 'google', emailAddress: payload.userEmail }]),
@@ -1092,7 +1092,7 @@ const App: React.FC = () => {
         `${user?.firstName || ''} ${user?.lastName || ''}`.trim() ||
         user?.primaryEmailAddress?.emailAddress ||
         user?.username ||
-        'Authenticated Operative';
+        'Authenticated User';
       const displayEmail =
         user?.primaryEmailAddress?.emailAddress ||
         user?.emailAddresses?.[0]?.emailAddress ||
@@ -1137,11 +1137,11 @@ const App: React.FC = () => {
                 u?.username ||
                 u?.user_name ||
                 u?.name ||
-                (email ? email.split('@')[0] : 'Operative');
+                (email ? email.split('@')[0] : 'Guest');
               const firstName =
                 u?.firstName ||
                 u?.first_name ||
-                (username ? username.split(' ')[0] : 'Operative');
+                (username ? username.split(' ')[0] : 'Guest');
               const lastName = u?.lastName || u?.last_name || '';
               const fullName = `${firstName} ${lastName}`.trim() || username;
               const avatar =

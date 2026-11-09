@@ -71,8 +71,8 @@ export const AccountSwitcherModal: React.FC<AccountSwitcherModalProps> = ({
         setCachedUser({
           id: payload.userId || '',
           email: payload.userEmail || '',
-          username: payload.username || (payload.userEmail ? payload.userEmail.split('@')[0] : 'Operative'),
-          firstName: payload.firstName || 'Operative',
+          username: payload.username || (payload.userEmail ? payload.userEmail.split('@')[0] : 'Guest'),
+          firstName: payload.firstName || 'Guest',
           lastName: payload.lastName || '',
           imageUrl: payload.imageUrl || '',
           sessionId: payload.sessionId || '',
@@ -129,11 +129,11 @@ export const AccountSwitcherModal: React.FC<AccountSwitcherModalProps> = ({
 
   const effectiveIsSignedIn = Boolean(isSignedIn || cachedUser);
   const effectiveUser = user || (cachedUser ? {
-    id: cachedUser.id || 'node-user',
-    username: cachedUser.username || (cachedUser.email ? cachedUser.email.split('@')[0] : 'Operative'),
-    firstName: cachedUser.firstName || (cachedUser.email ? cachedUser.email.split('@')[0] : 'Operative'),
+    id: cachedUser.id || 'guest-node',
+    username: cachedUser.username || (cachedUser.email ? cachedUser.email.split('@')[0] : 'Guest'),
+    firstName: cachedUser.firstName || (cachedUser.email ? cachedUser.email.split('@')[0] : 'Guest'),
     lastName: cachedUser.lastName || '',
-    fullName: `${cachedUser.firstName || ''} ${cachedUser.lastName || ''}`.trim() || cachedUser.username || 'Operative',
+    fullName: `${cachedUser.firstName || ''} ${cachedUser.lastName || ''}`.trim() || cachedUser.username || 'Guest',
     imageUrl: cachedUser.imageUrl || '',
     primaryEmailAddress: cachedUser.email ? { emailAddress: cachedUser.email } : undefined,
     emailAddresses: cachedUser.email ? [{ emailAddress: cachedUser.email }] : [],
@@ -256,8 +256,8 @@ export const AccountSwitcherModal: React.FC<AccountSwitcherModalProps> = ({
         id: uid,
         sessionId: s.id,
         email: u.primaryEmailAddress?.emailAddress || '',
-        username: u.username || u.firstName || 'Operative',
-        fullName: u.fullName || `${u.firstName || ''} ${u.lastName || ''}`.trim() || u.username || 'Operative',
+        username: u.username || u.firstName || 'Guest',
+        fullName: u.fullName || `${u.firstName || ''} ${u.lastName || ''}`.trim() || u.username || 'Guest',
         imageUrl: getCleanAvatarUrl(u, uProvider),
         provider: uProvider === 'discord' ? 'oauth_discord' : 'oauth_google',
         externalAccounts: u.externalAccounts || [],
@@ -571,7 +571,7 @@ export const AccountSwitcherModal: React.FC<AccountSwitcherModalProps> = ({
                             {effectiveUser.fullName ||
                               activeExternalAccount?.username ||
                               effectiveUser.username ||
-                              (effectiveUser.firstName ? `${effectiveUser.firstName} ${effectiveUser.lastName || ''}`.trim() : 'Node Connected')}
+                              (effectiveUser.firstName ? `${effectiveUser.firstName} ${effectiveUser.lastName || ''}`.trim() : 'Guest User')}
                           </span>
                           <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full bg-neon-green/15 border border-neon-green/30 text-[8px] font-black uppercase text-neon-green tracking-widest shrink-0">
                             <span className="w-1.5 h-1.5 rounded-full bg-neon-green animate-pulse" />
@@ -629,18 +629,18 @@ export const AccountSwitcherModal: React.FC<AccountSwitcherModalProps> = ({
 
                       // Match name across saved profiles or effective user
                       const matchedName = savedAccounts.find(
-                        (s) => (s.fullName && s.fullName !== 'Operative') && ((s.email && s.email === acc.email) || (s.id && s.id === acc.id))
-                      )?.fullName || (effectiveUser?.fullName !== 'Operative' ? effectiveUser?.fullName : null);
+                        (s) => (s.fullName && s.fullName !== 'Guest') && ((s.email && s.email === acc.email) || (s.id && s.id === acc.id))
+                      )?.fullName || (effectiveUser?.fullName !== 'Guest' ? effectiveUser?.fullName : null);
 
-                      const displayName = (acc.fullName && acc.fullName !== 'Operative')
+                      const displayName = (acc.fullName && acc.fullName !== 'Guest')
                         ? acc.fullName
-                        : (acc.firstName && acc.firstName !== 'Operative'
+                        : (acc.firstName && acc.firstName !== 'Guest'
                             ? `${acc.firstName} ${acc.lastName || ''}`.trim()
-                            : (matchedName || acc.username || 'Operative'));
+                            : (matchedName || acc.username || 'Guest'));
 
                       const displaySub = isDiscord && acc.username && acc.email && acc.username !== acc.email
                         ? `@${acc.username} · ${acc.email}`
-                        : (acc.email || (isDiscord ? 'Discord Account' : 'Authenticated Operative'));
+                        : (acc.email || (isDiscord ? 'Discord Account' : 'Authenticated User'));
 
                       return (
                         <div

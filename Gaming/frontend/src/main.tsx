@@ -48,12 +48,12 @@ function extractClerkUserData(clerkInstance: any, directUser?: any) {
     rawUser?.username ||
     rawUser?.user_name ||
     rawUser?.name ||
-    (email ? email.split('@')[0] : 'Operative');
+    (email ? email.split('@')[0] : 'Guest');
 
   const firstName =
     rawUser?.firstName ||
     rawUser?.first_name ||
-    (username ? username.split(' ')[0] : 'Operative');
+    (username ? username.split(' ')[0] : 'Guest');
 
   const lastName =
     rawUser?.lastName ||

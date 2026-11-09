@@ -52,8 +52,8 @@ export const AccountSettingsSection: React.FC<AccountSettingsSectionProps> = ({
           return {
             id: payload.userId || '',
             email: payload.userEmail || '',
-            username: payload.username || (payload.userEmail ? payload.userEmail.split('@')[0] : 'Operative'),
-            firstName: payload.firstName || 'Operative',
+            username: payload.username || (payload.userEmail ? payload.userEmail.split('@')[0] : 'Guest'),
+            firstName: payload.firstName || 'Guest',
             lastName: payload.lastName || '',
             imageUrl: payload.imageUrl || '',
             sessionId: payload.sessionId || '',
@@ -77,10 +77,10 @@ export const AccountSettingsSection: React.FC<AccountSettingsSectionProps> = ({
 
   const effectiveIsSignedIn = Boolean(isSignedIn || cachedUser);
   const effectiveUser = user || (cachedUser ? {
-    id: cachedUser.id || 'node-user',
-    username: cachedUser.username || (cachedUser.email ? cachedUser.email.split('@')[0] : 'Operative'),
-    firstName: cachedUser.firstName || (cachedUser.email ? cachedUser.email.split('@')[0] : 'Operative'),
-    fullName: `${cachedUser.firstName || ''} ${cachedUser.lastName || ''}`.trim() || cachedUser.username || 'Operative',
+    id: cachedUser.id || 'guest-node',
+    username: cachedUser.username || (cachedUser.email ? cachedUser.email.split('@')[0] : 'Guest'),
+    firstName: cachedUser.firstName || (cachedUser.email ? cachedUser.email.split('@')[0] : 'Guest'),
+    fullName: `${cachedUser.firstName || ''} ${cachedUser.lastName || ''}`.trim() || cachedUser.username || 'Guest',
     lastName: cachedUser.lastName || '',
     imageUrl: cachedUser.imageUrl || '',
     createdAt: cachedUser.createdAt || cachedUser.lastActive,
@@ -143,7 +143,7 @@ export const AccountSettingsSection: React.FC<AccountSettingsSectionProps> = ({
         (typeof window !== 'undefined' ? localStorage.getItem('mc_discord_avatar') || '' : '');
 
       if (candidate && !candidate.includes('googleusercontent.com')) {
-        try { localStorage.setItem('mc_discord_avatar', candidate); } catch (_) {}
+        try { localStorage.setItem('mc_discord_avatar', candidate); } catch (_) { }
         return candidate;
       }
       return '';
@@ -158,7 +158,7 @@ export const AccountSettingsSection: React.FC<AccountSettingsSectionProps> = ({
         (typeof window !== 'undefined' ? localStorage.getItem('mc_google_avatar') || '' : '') ||
         '';
       if (candidate && !candidate.includes('discord')) {
-        try { localStorage.setItem('mc_google_avatar', candidate); } catch (_) {}
+        try { localStorage.setItem('mc_google_avatar', candidate); } catch (_) { }
         return candidate;
       }
       return '';
@@ -180,7 +180,7 @@ export const AccountSettingsSection: React.FC<AccountSettingsSectionProps> = ({
       matchingSavedAccount = list.find(
         (a: any) => (a.provider || '').toLowerCase().replace('oauth_', '') === providerKey
       );
-    } catch (_) {}
+    } catch (_) { }
 
     // 2. Check if current user has an external account for this provider
     const targetExtAcc = effectiveUser?.externalAccounts?.find(
@@ -233,7 +233,7 @@ export const AccountSettingsSection: React.FC<AccountSettingsSectionProps> = ({
               (matchingSavedAccount?.imageUrl && !matchingSavedAccount.imageUrl.includes('googleusercontent.com') ? matchingSavedAccount.imageUrl : '') ||
               (typeof window !== 'undefined' ? localStorage.getItem('mc_discord_avatar') || '' : '');
             if (candidate && !candidate.includes('googleusercontent.com')) {
-              try { localStorage.setItem('mc_discord_avatar', candidate); } catch (_) {}
+              try { localStorage.setItem('mc_discord_avatar', candidate); } catch (_) { }
               return candidate;
             }
             return '';
@@ -247,7 +247,7 @@ export const AccountSettingsSection: React.FC<AccountSettingsSectionProps> = ({
               (typeof window !== 'undefined' ? localStorage.getItem('mc_google_avatar') || '' : '') ||
               '';
             if (candidate && !candidate.includes('discord')) {
-              try { localStorage.setItem('mc_google_avatar', candidate); } catch (_) {}
+              try { localStorage.setItem('mc_google_avatar', candidate); } catch (_) { }
               return candidate;
             }
             return '';
@@ -397,7 +397,7 @@ export const AccountSettingsSection: React.FC<AccountSettingsSectionProps> = ({
       if ((window as any).electronAPI?.openBrowserAuth) {
         try {
           localStorage.setItem('mission_control_active_provider', strategy);
-        } catch (_) {}
+        } catch (_) { }
         const res = await (window as any).electronAPI.openBrowserAuth({
           strategy,
           mode: 'link',
@@ -460,7 +460,7 @@ export const AccountSettingsSection: React.FC<AccountSettingsSectionProps> = ({
             cleanupListeners();
             try {
               await user.reload();
-            } catch (_) {}
+            } catch (_) { }
             setLinkingProvider(null);
           });
 
@@ -468,7 +468,7 @@ export const AccountSettingsSection: React.FC<AccountSettingsSectionProps> = ({
             cleanupListeners();
             try {
               await user.reload();
-            } catch (_) {}
+            } catch (_) { }
             setLinkingProvider(null);
           });
 
@@ -557,519 +557,514 @@ export const AccountSettingsSection: React.FC<AccountSettingsSectionProps> = ({
   return (
     <>
       <SettingsSection
-      searchQuery={searchQuery}
-      title="Linked Account"
-      icon={KeyRound}
-      searchTerms="account clerk user id profile oauth google discord signout delete danger registry gateway"
-    >
-      {/* Identity block */}
-      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3.5 sm:gap-4 bg-white/5 border border-white/15 rounded-2xl p-3.5 sm:p-4 shadow-[0_0_15px_rgba(118,185,0,0.03)] overflow-hidden">
-        <div className="flex items-center gap-3 sm:gap-4 min-w-0 flex-1">
-          <div
-            className="shrink-0 cursor-pointer group/avatar relative"
-            onClick={() => setIsAccountSwitcherOpen(true)}
-            title="Switch or Manage Account"
-          >
-            {avatarUrl ? (
-              <img
-                src={avatarUrl}
-                className="w-10 h-10 rounded-xl border border-neon-green/30 object-cover shadow-[0_0_12px_rgba(118,185,0,0.15)] group-hover/avatar:border-neon-green/60 transition-all"
-                alt="Avatar"
-                onError={(e) => {
-                  const target = e.currentTarget as HTMLImageElement;
-                  target.style.display = 'none';
-                  const fallback = target.nextElementSibling as HTMLElement;
-                  if (fallback) fallback.style.display = 'flex';
-                }}
-              />
-            ) : null}
+        searchQuery={searchQuery}
+        title="Linked Account"
+        icon={KeyRound}
+        searchTerms="account clerk user id profile oauth google discord signout delete danger registry gateway"
+      >
+        {/* Identity block */}
+        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3.5 sm:gap-4 bg-white/5 border border-white/15 rounded-2xl p-3.5 sm:p-4 shadow-[0_0_15px_rgba(118,185,0,0.03)] overflow-hidden">
+          <div className="flex items-center gap-3 sm:gap-4 min-w-0 flex-1">
             <div
-              className="w-10 h-10 rounded-xl bg-neon-green/10 border border-neon-green/30 flex items-center justify-center font-black text-xs text-neon-green shadow-[0_0_12px_rgba(118,185,0,0.15)]"
-              style={{ display: avatarUrl ? 'none' : 'flex' }}
+              className="shrink-0 cursor-pointer group/avatar relative"
+              onClick={() => setIsAccountSwitcherOpen(true)}
+              title="Switch or Manage Account"
             >
-              {(effectiveUser?.firstName?.[0] || effectiveUser?.username?.[0] || 'U').toUpperCase()}
+              {avatarUrl ? (
+                <img
+                  src={avatarUrl}
+                  className="w-10 h-10 rounded-xl border border-neon-green/30 object-cover shadow-[0_0_12px_rgba(118,185,0,0.15)] group-hover/avatar:border-neon-green/60 transition-all"
+                  alt="Avatar"
+                  onError={(e) => {
+                    const target = e.currentTarget as HTMLImageElement;
+                    target.style.display = 'none';
+                    const fallback = target.nextElementSibling as HTMLElement;
+                    if (fallback) fallback.style.display = 'flex';
+                  }}
+                />
+              ) : null}
+              <div
+                className="w-10 h-10 rounded-xl bg-neon-green/10 border border-neon-green/30 flex items-center justify-center font-black text-xs text-neon-green shadow-[0_0_12px_rgba(118,185,0,0.15)]"
+                style={{ display: avatarUrl ? 'none' : 'flex' }}
+              >
+                {(effectiveUser?.firstName?.[0] || effectiveUser?.username?.[0] || 'U').toUpperCase()}
+              </div>
             </div>
-          </div>
-          <div className="min-w-0 flex-1">
-            <div className="flex items-center gap-2 min-w-0">
-              <p className="text-xs font-black text-white uppercase tracking-wider truncate">
-                {effectiveUser?.fullName || effectiveUser?.firstName || effectiveUser?.username || 'Anonymous'}
+            <div className="min-w-0 flex-1">
+              <div className="flex items-center gap-2 min-w-0">
+                <p className="text-xs font-black text-white uppercase tracking-wider truncate">
+                  {effectiveUser?.fullName || effectiveUser?.firstName || effectiveUser?.username || 'Anonymous'}
+                </p>
+                <span className="h-1.5 w-1.5 rounded-full bg-neon-yellow shadow-[0_0_8px_rgba(52,211,153,0.6)] shrink-0" />
+              </div>
+              <p className="text-[10px] font-mono text-zinc-500 truncate" title={effectiveUser?.primaryEmailAddress?.emailAddress || effectiveUser?.emailAddresses?.[0]?.emailAddress || effectiveUser?.id}>
+                {effectiveUser?.primaryEmailAddress?.emailAddress || effectiveUser?.emailAddresses?.[0]?.emailAddress || effectiveUser?.id}
               </p>
-              <span className="h-1.5 w-1.5 rounded-full bg-neon-yellow shadow-[0_0_8px_rgba(52,211,153,0.6)] shrink-0" />
             </div>
-            <p className="text-[10px] font-mono text-zinc-500 truncate" title={effectiveUser?.primaryEmailAddress?.emailAddress || effectiveUser?.emailAddresses?.[0]?.emailAddress || effectiveUser?.id}>
-              {effectiveUser?.primaryEmailAddress?.emailAddress || effectiveUser?.emailAddresses?.[0]?.emailAddress || effectiveUser?.id}
-            </p>
           </div>
-        </div>
-        <div className="flex items-center justify-between sm:justify-end gap-2 pt-2.5 sm:pt-0 border-t border-white/5 sm:border-0 w-full sm:w-auto shrink-0 flex-wrap">
-          <div className="px-2.5 py-1 rounded-xl bg-white/5 border border-white/10 flex items-center gap-1.5 shadow-xs">
-            <span className="w-1.5 h-1.5 rounded-full bg-neon-green" />
-            <span className="text-[8px] font-black uppercase text-zinc-300 tracking-wider">
-              {resolvedActiveProvider.toUpperCase()} GATEWAY
-            </span>
-          </div>
+          <div className="flex items-center justify-between sm:justify-end gap-2 pt-2.5 sm:pt-0 border-t border-white/5 sm:border-0 w-full sm:w-auto shrink-0 flex-wrap">
+            <div className="px-2.5 py-1 rounded-xl bg-white/5 border border-white/10 flex items-center gap-1.5 shadow-xs">
+              <span className="w-1.5 h-1.5 rounded-full bg-neon-green" />
+              <span className="text-[8px] font-black uppercase text-zinc-300 tracking-wider">
+                {resolvedActiveProvider.toUpperCase()} GATEWAY
+              </span>
+            </div>
 
-          <div className="px-3 py-1.5 rounded-xl bg-neon-yellow/10 border border-neon-yellow/20 shadow-[0_0_15px_rgba(191,255,0,0.1)]">
-            <span className="text-[8px] font-black uppercase text-neon-yellow tracking-widest whitespace-nowrap">
-              Active Node
-            </span>
-          </div>
-          <button
-            aria-label="Sign Out"
-            type="button"
-            onClick={async () => {
-              if (effectiveUser?.id && sendCommand) {
-                sendCommand('logout_user', { userId: effectiveUser.id });
-              }
-              setCachedUser(null);
-              try {
-                localStorage.removeItem('mc_authenticated_user');
-                localStorage.removeItem('mission_control_active_provider');
-                document.cookie = '__session=; path=/; max-age=0; expires=Thu, 01 Jan 1970 00:00:00 GMT';
-                document.cookie = '__client_uat=0; path=/; max-age=0; expires=Thu, 01 Jan 1970 00:00:00 GMT';
-                window.dispatchEvent(new Event('mc-auth-state-changed'));
-              } catch (_) {}
-              if ((window as any).electronAPI?.clearAuth) {
-                try {
-                  await (window as any).electronAPI.clearAuth();
-                } catch (_) {}
-              }
-              try {
-                await signOut();
-              } catch (_) {}
-            }}
-            className="px-3 py-1.5 bg-red-500/10 border border-red-500/20 text-red-400 hover:bg-red-500/20 hover:border-red-500/40 text-[8px] font-black uppercase tracking-widest rounded-xl transition-all cursor-pointer whitespace-nowrap"
-          >
-            Sign Out
-          </button>
-        </div>
-      </div>
-
-      {/* Interactive Grid */}
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-3 sm:gap-4 pt-4">
-        {/* Node Registration ID */}
-        <div className="bg-black/30 border border-white/5 rounded-2xl p-3.5 sm:p-4 flex flex-col justify-between h-full relative overflow-hidden group hover:border-white/10 transition-all">
-          <div className="flex items-center justify-between mb-2">
-            <span className="text-[9px] font-black text-zinc-500 uppercase tracking-widest">
-              Node Registry ID
-            </span>
-            <Fingerprint className="w-3.5 h-3.5 text-neon-green/70 shrink-0" />
-          </div>
-          <div className="flex items-center justify-between gap-2 bg-black/40 border border-white/10 rounded-xl px-3 py-2 mt-2 min-w-0">
-            <span className="text-[10px] font-mono text-neon-green truncate flex-1 min-w-0" title={effectiveUser.id}>
-              {effectiveUser.id}
-            </span>
+            <div className="px-3 py-1.5 rounded-xl bg-neon-yellow/10 border border-neon-yellow/20 shadow-[0_0_15px_rgba(191,255,0,0.1)]">
+              <span className="text-[8px] font-black uppercase text-neon-yellow tracking-widest whitespace-nowrap">
+                Active Node
+              </span>
+            </div>
             <button
-              aria-label="Copy ID"
+              aria-label="Sign Out"
               type="button"
-              onClick={() => {
-                navigator.clipboard.writeText(effectiveUser.id);
-                setCopiedId(true);
-                setTimeout(() => setCopiedId(false), 2000);
+              onClick={async () => {
+                if (effectiveUser?.id && sendCommand) {
+                  sendCommand('logout_user', { userId: effectiveUser.id });
+                }
+                setCachedUser(null);
+                try {
+                  localStorage.removeItem('mc_authenticated_user');
+                  localStorage.removeItem('mission_control_active_provider');
+                  document.cookie = '__session=; path=/; max-age=0; expires=Thu, 01 Jan 1970 00:00:00 GMT';
+                  document.cookie = '__client_uat=0; path=/; max-age=0; expires=Thu, 01 Jan 1970 00:00:00 GMT';
+                  window.dispatchEvent(new Event('mc-auth-state-changed'));
+                } catch (_) { }
+                if ((window as any).electronAPI?.clearAuth) {
+                  try {
+                    await (window as any).electronAPI.clearAuth();
+                  } catch (_) { }
+                }
+                try {
+                  await signOut();
+                } catch (_) { }
               }}
-              className="p-1 hover:bg-white/5 rounded-lg transition-all text-zinc-400 hover:text-white shrink-0"
-              title="Copy ID"
+              className="px-3 py-1.5 bg-red-500/10 border border-red-500/20 text-red-400 hover:bg-red-500/20 hover:border-red-500/40 text-[8px] font-black uppercase tracking-widest rounded-xl transition-all cursor-pointer whitespace-nowrap"
             >
-              {copiedId ? (
-                <Check className="w-3.5 h-3.5 text-neon-yellow animate-bounce" />
-              ) : (
-                <Copy className="w-3.5 h-3.5" />
-              )}
+              Sign Out
             </button>
           </div>
         </div>
 
-        {/* Registration Timestamp */}
-        <div className="bg-black/30 border border-white/5 rounded-2xl p-3.5 sm:p-4 flex flex-col justify-between h-full hover:border-white/10 transition-all">
-          <div className="flex items-center justify-between mb-2">
-            <span className="text-[9px] font-black text-zinc-500 uppercase tracking-widest">
-              Activation Date
-            </span>
-            <Calendar className="w-3.5 h-3.5 text-neon-yellow/70" />
+        {/* Interactive Grid */}
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-3 sm:gap-4 pt-4">
+          {/* Node Registration ID */}
+          <div className="bg-black/30 border border-white/5 rounded-2xl p-3.5 sm:p-4 flex flex-col justify-between h-full relative overflow-hidden group hover:border-white/10 transition-all">
+            <div className="flex items-center justify-between mb-2">
+              <span className="text-[9px] font-black text-zinc-500 uppercase tracking-widest">
+                Node Registry ID
+              </span>
+              <Fingerprint className="w-3.5 h-3.5 text-neon-green/70 shrink-0" />
+            </div>
+            <div className="flex items-center justify-between gap-2 bg-black/40 border border-white/10 rounded-xl px-3 py-2 mt-2 min-w-0">
+              <span className="text-[10px] font-mono text-neon-green truncate flex-1 min-w-0" title={effectiveUser.id}>
+                {effectiveUser.id}
+              </span>
+              <button
+                aria-label="Copy ID"
+                type="button"
+                onClick={() => {
+                  navigator.clipboard.writeText(effectiveUser.id);
+                  setCopiedId(true);
+                  setTimeout(() => setCopiedId(false), 2000);
+                }}
+                className="p-1 hover:bg-white/5 rounded-lg transition-all text-zinc-400 hover:text-white shrink-0"
+                title="Copy ID"
+              >
+                {copiedId ? (
+                  <Check className="w-3.5 h-3.5 text-neon-yellow animate-bounce" />
+                ) : (
+                  <Copy className="w-3.5 h-3.5" />
+                )}
+              </button>
+            </div>
           </div>
-          <div className="mt-2">
-            <span className="text-[11px] font-mono font-bold text-white">
-              {effectiveUser.createdAt
-                ? new Date(effectiveUser.createdAt).toLocaleDateString('en-US', {
+
+          {/* Registration Timestamp */}
+          <div className="bg-black/30 border border-white/5 rounded-2xl p-3.5 sm:p-4 flex flex-col justify-between h-full hover:border-white/10 transition-all">
+            <div className="flex items-center justify-between mb-2">
+              <span className="text-[9px] font-black text-zinc-500 uppercase tracking-widest">
+                Activation Date
+              </span>
+              <Calendar className="w-3.5 h-3.5 text-neon-yellow/70" />
+            </div>
+            <div className="mt-2">
+              <span className="text-[11px] font-mono font-bold text-white">
+                {effectiveUser.createdAt
+                  ? new Date(effectiveUser.createdAt).toLocaleDateString('en-US', {
                     year: 'numeric',
                     month: 'short',
                     day: 'numeric',
                   })
-                : 'Active Telemetry'}
-            </span>
-            <p className="text-[9px] text-zinc-500 font-medium mt-1">Telemetry initialized</p>
-          </div>
-        </div>
-
-        {/* Security Shield */}
-        <div className="bg-black/30 border border-white/5 rounded-2xl p-4 flex flex-col justify-between h-full hover:border-white/10 transition-all">
-          <div className="flex items-center justify-between mb-2">
-            <span className="text-[9px] font-black text-zinc-500 uppercase tracking-widest">
-              Gateway Integrity
-            </span>
-            <Shield
-              className={`w-3.5 h-3.5 ${
-                localConfig?.privacy?.enabled ? 'text-neon-yellow/70' : 'text-zinc-500/70'
-              }`}
-            />
-          </div>
-          <div className="mt-2">
-            <span
-              className={`text-[11px] font-mono font-bold uppercase tracking-widest ${
-                localConfig?.privacy?.enabled ? 'text-neon-yellow' : 'text-zinc-500'
-              }`}
-            >
-              {localConfig?.privacy?.enabled ? 'AES-256 E2EE' : 'STANDARD SECURE'}
-            </span>
-            <p className="text-[9px] text-zinc-500 font-medium mt-1">
-              {localConfig?.privacy?.enabled ? 'Neural gateway encrypted' : 'Encryption bypassed'}
-            </p>
-          </div>
-        </div>
-      </div>
-
-      {/* Linked Identity Gateways */}
-      <div className="border-t border-white/4 pt-6 space-y-4">
-        <div className="flex items-start justify-between gap-4 flex-wrap">
-          <div>
-            <p className="text-[10px] font-black text-neon-green uppercase tracking-widest mb-1">
-              Identity & Authentication Gateways
-            </p>
-            <p className="text-[10px] font-medium text-zinc-500 leading-relaxed">
-              Link secondary multi-factor authentication providers to authenticate on other systems or sign in securely.
-            </p>
-          </div>
-          <div className="flex items-center gap-2 flex-wrap">
-            <button
-              aria-label="Switch Account"
-              type="button"
-              onClick={handleSwitchAccount}
-              className="px-4 py-2 bg-white/5 border border-white/10 hover:bg-white/10 text-white font-black text-[9px] uppercase tracking-widest rounded-xl transition-all whitespace-nowrap shrink-0"
-            >
-              Switch Account
-            </button>
-          </div>
-        </div>
-
-        {/* Inline account error banner */}
-        {accountError && (
-          <div className="flex items-start gap-3 p-4 rounded-xl bg-red-950/40 border border-red-500/25 shadow-[0_0_20px_rgba(239,68,68,0.1)] animate-[fadeIn_0.2s_ease-out]">
-            <div className="w-8 h-8 rounded-lg bg-red-500/15 border border-red-500/30 flex items-center justify-center shrink-0 mt-0.5">
-              <AlertTriangle className="w-4 h-4 text-red-400" />
+                  : 'Active Telemetry'}
+              </span>
+              <p className="text-[9px] text-zinc-500 font-medium mt-1">Telemetry initialized</p>
             </div>
-            <div className="flex-1 pt-0.5 space-y-2.5">
-              <div>
-                <p className="text-[10px] font-black uppercase tracking-wider text-red-400 mb-0.5">
-                  Security Gateway Notice
-                </p>
-                <p className="text-[11px] font-medium text-red-200/90 leading-relaxed">
-                  {accountError}
-                </p>
+          </div>
+
+          {/* Security Shield */}
+          <div className="bg-black/30 border border-white/5 rounded-2xl p-4 flex flex-col justify-between h-full hover:border-white/10 transition-all">
+            <div className="flex items-center justify-between mb-2">
+              <span className="text-[9px] font-black text-zinc-500 uppercase tracking-widest">
+                Gateway Integrity
+              </span>
+              <Shield
+                className={`w-3.5 h-3.5 ${localConfig?.privacy?.enabled ? 'text-neon-yellow/70' : 'text-zinc-500/70'
+                  }`}
+              />
+            </div>
+            <div className="mt-2">
+              <span
+                className={`text-[11px] font-mono font-bold uppercase tracking-widest ${localConfig?.privacy?.enabled ? 'text-neon-yellow' : 'text-zinc-500'
+                  }`}
+              >
+                {localConfig?.privacy?.enabled ? 'AES-256 E2EE' : 'STANDARD SECURE'}
+              </span>
+              <p className="text-[9px] text-zinc-500 font-medium mt-1">
+                {localConfig?.privacy?.enabled ? 'Neural gateway encrypted' : 'Encryption bypassed'}
+              </p>
+            </div>
+          </div>
+        </div>
+
+        {/* Linked Identity Gateways */}
+        <div className="border-t border-white/4 pt-6 space-y-4">
+          <div className="flex items-start justify-between gap-4 flex-wrap">
+            <div>
+              <p className="text-[10px] font-black text-neon-green uppercase tracking-widest mb-1">
+                Identity & Authentication Gateways
+              </p>
+              <p className="text-[10px] font-medium text-zinc-500 leading-relaxed">
+                Link secondary multi-factor authentication providers to authenticate on other systems or sign in securely.
+              </p>
+            </div>
+            <div className="flex items-center gap-2 flex-wrap">
+              <button
+                aria-label="Switch Account"
+                type="button"
+                onClick={handleSwitchAccount}
+                className="px-4 py-2 bg-white/5 border border-white/10 hover:bg-white/10 text-white font-black text-[9px] uppercase tracking-widest rounded-xl transition-all whitespace-nowrap shrink-0"
+              >
+                Switch Account
+              </button>
+            </div>
+          </div>
+
+          {/* Inline account error banner */}
+          {accountError && (
+            <div className="flex items-start gap-3 p-4 rounded-xl bg-red-950/40 border border-red-500/25 shadow-[0_0_20px_rgba(239,68,68,0.1)] animate-[fadeIn_0.2s_ease-out]">
+              <div className="w-8 h-8 rounded-lg bg-red-500/15 border border-red-500/30 flex items-center justify-center shrink-0 mt-0.5">
+                <AlertTriangle className="w-4 h-4 text-red-400" />
               </div>
-              {needsReauth && (
-                <div className="flex items-center gap-2 pt-1 flex-wrap">
-                  <button
-                    type="button"
-                    onClick={handleReauthenticate}
-                    className="flex items-center gap-1.5 px-3 py-1.5 bg-white/10 hover:bg-white/15 border border-white/20 text-white font-black text-[9px] uppercase tracking-widest rounded-lg transition-all cursor-pointer shadow-sm"
-                  >
-                    <KeyRound className="w-3 h-3" />
-                    Re-verify Session
-                  </button>
-                  <button
-                    type="button"
-                    onClick={() => {
-                      setAccountError(null);
-                      setNeedsReauth(false);
-                      handleSwitchAccount();
-                    }}
-                    className="px-3 py-1.5 bg-white/5 hover:bg-white/10 border border-white/10 text-zinc-300 hover:text-white font-black text-[9px] uppercase tracking-widest rounded-lg transition-all cursor-pointer"
-                  >
-                    Switch Account
-                  </button>
-                  <button
-                    type="button"
-                    onClick={async () => {
-                      setAccountError(null);
-                      setNeedsReauth(false);
-                      await signOut();
-                    }}
-                    className="flex items-center gap-1.5 px-3 py-1.5 bg-red-500/10 hover:bg-red-500/20 border border-red-500/30 text-red-300 hover:text-white font-black text-[9px] uppercase tracking-widest rounded-lg transition-all cursor-pointer"
-                  >
-                    <LogOut className="w-3 h-3" />
-                    Sign Out
-                  </button>
+              <div className="flex-1 pt-0.5 space-y-2.5">
+                <div>
+                  <p className="text-[10px] font-black uppercase tracking-wider text-red-400 mb-0.5">
+                    Security Gateway Notice
+                  </p>
+                  <p className="text-[11px] font-medium text-red-200/90 leading-relaxed">
+                    {accountError}
+                  </p>
                 </div>
-              )}
+                {needsReauth && (
+                  <div className="flex items-center gap-2 pt-1 flex-wrap">
+                    <button
+                      type="button"
+                      onClick={handleReauthenticate}
+                      className="flex items-center gap-1.5 px-3 py-1.5 bg-white/10 hover:bg-white/15 border border-white/20 text-white font-black text-[9px] uppercase tracking-widest rounded-lg transition-all cursor-pointer shadow-sm"
+                    >
+                      <KeyRound className="w-3 h-3" />
+                      Re-verify Session
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => {
+                        setAccountError(null);
+                        setNeedsReauth(false);
+                        handleSwitchAccount();
+                      }}
+                      className="px-3 py-1.5 bg-white/5 hover:bg-white/10 border border-white/10 text-zinc-300 hover:text-white font-black text-[9px] uppercase tracking-widest rounded-lg transition-all cursor-pointer"
+                    >
+                      Switch Account
+                    </button>
+                    <button
+                      type="button"
+                      onClick={async () => {
+                        setAccountError(null);
+                        setNeedsReauth(false);
+                        await signOut();
+                      }}
+                      className="flex items-center gap-1.5 px-3 py-1.5 bg-red-500/10 hover:bg-red-500/20 border border-red-500/30 text-red-300 hover:text-white font-black text-[9px] uppercase tracking-widest rounded-lg transition-all cursor-pointer"
+                    >
+                      <LogOut className="w-3 h-3" />
+                      Sign Out
+                    </button>
+                  </div>
+                )}
+              </div>
+              <button
+                type="button"
+                aria-label="Dismiss error"
+                onClick={() => { setAccountError(null); setNeedsReauth(false); }}
+                className="p-1 rounded-lg hover:bg-red-500/15 text-red-400/60 hover:text-red-300 transition-colors shrink-0"
+              >
+                <X className="w-3.5 h-3.5" />
+              </button>
             </div>
-            <button
-              type="button"
-              aria-label="Dismiss error"
-              onClick={() => { setAccountError(null); setNeedsReauth(false); }}
-              className="p-1 rounded-lg hover:bg-red-500/15 text-red-400/60 hover:text-red-300 transition-colors shrink-0"
-            >
-              <X className="w-3.5 h-3.5" />
-            </button>
-          </div>
-        )}
+          )}
 
-        <div className="grid grid-cols-1 gap-3">
-          {OAUTH_PROVIDERS.map((provider) => {
-            const providerKey = provider.id.replace('oauth_', '');
-            const isGoogle = providerKey === 'google';
-            const isDiscord = providerKey === 'discord';
+          <div className="grid grid-cols-1 gap-3">
+            {OAUTH_PROVIDERS.map((provider) => {
+              const providerKey = provider.id.replace('oauth_', '');
+              const isGoogle = providerKey === 'google';
+              const isDiscord = providerKey === 'discord';
 
-            const hasSavedAccount = (typeof window !== 'undefined')
-              ? (() => {
+              const hasSavedAccount = (typeof window !== 'undefined')
+                ? (() => {
                   try {
                     const raw = localStorage.getItem('mc_saved_accounts');
                     const list = raw ? JSON.parse(raw) : [];
                     return list.some((a: any) => (a.provider || '').toLowerCase().replace('oauth_', '') === providerKey);
                   } catch (_) { return false; }
                 })()
-              : false;
+                : false;
 
-            const extAcc = effectiveUser?.externalAccounts?.find(
-              (acc: any) =>
-                (acc.provider || '').toLowerCase().includes(providerKey) ||
-                (acc.verification?.strategy || '').toLowerCase().includes(providerKey) ||
-                (acc.verificationStrategy || '').toLowerCase().includes(providerKey)
-            );
+              const extAcc = effectiveUser?.externalAccounts?.find(
+                (acc: any) =>
+                  (acc.provider || '').toLowerCase().includes(providerKey) ||
+                  (acc.verification?.strategy || '').toLowerCase().includes(providerKey) ||
+                  (acc.verificationStrategy || '').toLowerCase().includes(providerKey)
+              );
 
-            const isCurrentlyActive = (providerKey === resolvedActiveProvider);
-            const isConnected = Boolean(
-              extAcc ||
-              hasSavedAccount ||
-              isCurrentlyActive ||
-              (isGoogle && (effectiveUser?.provider === 'google' || effectiveUser?.provider === 'oauth_google')) ||
-              (isDiscord && (effectiveUser?.provider === 'discord' || effectiveUser?.provider === 'oauth_discord'))
-            );
-            const isUnlinking = unlinkingProvider === provider.id;
-            const isLinking = linkingProvider === provider.id;
-            const canUnlink = Boolean(
-              extAcc &&
+              const isCurrentlyActive = (providerKey === resolvedActiveProvider);
+              const isConnected = Boolean(
+                extAcc ||
+                hasSavedAccount ||
+                isCurrentlyActive ||
+                (isGoogle && (effectiveUser?.provider === 'google' || effectiveUser?.provider === 'oauth_google')) ||
+                (isDiscord && (effectiveUser?.provider === 'discord' || effectiveUser?.provider === 'oauth_discord'))
+              );
+              const isUnlinking = unlinkingProvider === provider.id;
+              const isLinking = linkingProvider === provider.id;
+              const canUnlink = Boolean(
+                extAcc &&
                 user &&
                 ((user.externalAccounts?.length || 0) > 1 || (user as any).passwordEnabled)
-            );
+              );
 
-            return (
-              <div
-                key={provider.id}
-                className={`flex flex-col sm:flex-row sm:items-center justify-between gap-4 p-4 rounded-2xl bg-black/40 border transition-all ${
-                  isCurrentlyActive
-                    ? 'border-neon-yellow/30 shadow-[0_0_15px_rgba(191,255,0,0.05)]'
-                    : isConnected
-                    ? 'border-white/10 hover:border-white/20'
-                    : 'border-white/5 hover:border-white/10'
-                }`}
-              >
-                <div className="flex items-center gap-3">
-                  <div
-                    className={`w-8 h-8 rounded-xl flex items-center justify-center border shrink-0 bg-white/5 ${
-                      isCurrentlyActive
-                        ? 'text-neon-yellow border-neon-yellow/40'
-                        : isConnected
-                        ? 'text-white border-white/20'
-                        : 'text-zinc-400 border-white/10'
+              return (
+                <div
+                  key={provider.id}
+                  className={`flex flex-col sm:flex-row sm:items-center justify-between gap-4 p-4 rounded-2xl bg-black/40 border transition-all ${isCurrentlyActive
+                      ? 'border-neon-yellow/30 shadow-[0_0_15px_rgba(191,255,0,0.05)]'
+                      : isConnected
+                        ? 'border-white/10 hover:border-white/20'
+                        : 'border-white/5 hover:border-white/10'
                     }`}
-                  >
-                    {provider.icon}
-                  </div>
-                  <div>
-                    <div className="flex items-center gap-2">
-                      <span className="text-xs font-black text-white">{provider.name}</span>
-                      {isConnected && (
-                        <span className={`text-[8px] font-black px-1.5 py-0.5 rounded tracking-wider uppercase border ${
-                          isCurrentlyActive
-                            ? 'bg-neon-yellow/10 border-neon-yellow/30 text-neon-yellow'
-                            : 'bg-white/5 border-white/10 text-zinc-400'
-                        }`}>
-                          {isCurrentlyActive ? 'Active' : 'Connected'}
-                        </span>
-                      )}
+                >
+                  <div className="flex items-center gap-3">
+                    <div
+                      className={`w-8 h-8 rounded-xl flex items-center justify-center border shrink-0 bg-white/5 ${isCurrentlyActive
+                          ? 'text-neon-yellow border-neon-yellow/40'
+                          : isConnected
+                            ? 'text-white border-white/20'
+                            : 'text-zinc-400 border-white/10'
+                        }`}
+                    >
+                      {provider.icon}
                     </div>
-                    <p className="text-[10px] font-mono text-zinc-500 mt-0.5">
-                      {isCurrentlyActive
-                        ? extAcc?.emailAddress ||
+                    <div>
+                      <div className="flex items-center gap-2">
+                        <span className="text-xs font-black text-white">{provider.name}</span>
+                        {isConnected && (
+                          <span className={`text-[8px] font-black px-1.5 py-0.5 rounded tracking-wider uppercase border ${isCurrentlyActive
+                              ? 'bg-neon-yellow/10 border-neon-yellow/30 text-neon-yellow'
+                              : 'bg-white/5 border-white/10 text-zinc-400'
+                            }`}>
+                            {isCurrentlyActive ? 'Active' : 'Connected'}
+                          </span>
+                        )}
+                      </div>
+                      <p className="text-[10px] font-mono text-zinc-500 mt-0.5">
+                        {isCurrentlyActive
+                          ? extAcc?.emailAddress ||
                           extAcc?.username ||
                           effectiveUser?.primaryEmailAddress?.emailAddress ||
                           effectiveUser?.email ||
                           'Active Primary Gateway'
-                        : isConnected
-                        ? `Connected profile — click to switch`
-                        : `Connect your secure ${provider.name} profile`}
-                    </p>
+                          : isConnected
+                            ? `Connected profile — click to switch`
+                            : `Connect your secure ${provider.name} profile`}
+                      </p>
+                    </div>
                   </div>
-                </div>
 
-                <div>
-                  {isCurrentlyActive ? (
-                    canUnlink ? (
+                  <div>
+                    {isCurrentlyActive ? (
+                      canUnlink ? (
+                        <button
+                          aria-label="Unlink Account"
+                          type="button"
+                          onClick={() => handleUnlinkProvider(provider.id)}
+                          disabled={isUnlinking || isLinking}
+                          className="w-full sm:w-auto px-4 py-2 bg-red-500/10 border border-red-500/30 text-red-400 hover:bg-red-500/20 hover:border-red-500/50 font-black text-[9px] uppercase tracking-widest rounded-xl transition-all disabled:opacity-40 disabled:cursor-not-allowed cursor-pointer"
+                        >
+                          {isUnlinking ? (
+                            <span className="flex items-center gap-1.5">
+                              <div className="w-2.5 h-2.5 border border-red-400/30 border-t-red-400 rounded-full animate-spin" />
+                              Unlinking...
+                            </span>
+                          ) : (
+                            'Unlink Account'
+                          )}
+                        </button>
+                      ) : (
+                        <div className="w-full sm:w-auto px-4 py-2 bg-neon-yellow/10 border border-neon-yellow/30 text-neon-yellow font-black text-[9px] uppercase tracking-widest rounded-xl flex items-center justify-center gap-1.5 shadow-[0_0_12px_rgba(191,255,0,0.1)]">
+                          <Check className="w-3.5 h-3.5 text-neon-yellow" />
+                          <span>Active Gateway</span>
+                        </div>
+                      )
+                    ) : isConnected ? (
                       <button
-                        aria-label="Unlink Account"
+                        aria-label="Switch to Provider"
                         type="button"
-                        onClick={() => handleUnlinkProvider(provider.id)}
-                        disabled={isUnlinking || isLinking}
-                        className="w-full sm:w-auto px-4 py-2 bg-red-500/10 border border-red-500/30 text-red-400 hover:bg-red-500/20 hover:border-red-500/50 font-black text-[9px] uppercase tracking-widest rounded-xl transition-all disabled:opacity-40 disabled:cursor-not-allowed cursor-pointer"
+                        onClick={() => handleSwitchToProvider(provider.id)}
+                        className="w-full sm:w-auto px-4 py-2 bg-white/5 hover:bg-white/10 border border-white/15 text-zinc-300 hover:text-white font-black text-[9px] uppercase tracking-widest rounded-xl transition-all cursor-pointer"
                       >
-                        {isUnlinking ? (
-                          <span className="flex items-center gap-1.5">
-                            <div className="w-2.5 h-2.5 border border-red-400/30 border-t-red-400 rounded-full animate-spin" />
-                            Unlinking...
-                          </span>
-                        ) : (
-                          'Unlink Account'
-                        )}
+                        Use as Active
                       </button>
                     ) : (
-                      <div className="w-full sm:w-auto px-4 py-2 bg-neon-yellow/10 border border-neon-yellow/30 text-neon-yellow font-black text-[9px] uppercase tracking-widest rounded-xl flex items-center justify-center gap-1.5 shadow-[0_0_12px_rgba(191,255,0,0.1)]">
-                        <Check className="w-3.5 h-3.5 text-neon-yellow" />
-                        <span>Active Gateway</span>
-                      </div>
-                    )
-                  ) : isConnected ? (
-                    <button
-                      aria-label="Switch to Provider"
-                      type="button"
-                      onClick={() => handleSwitchToProvider(provider.id)}
-                      className="w-full sm:w-auto px-4 py-2 bg-white/5 hover:bg-white/10 border border-white/15 text-zinc-300 hover:text-white font-black text-[9px] uppercase tracking-widest rounded-xl transition-all cursor-pointer"
-                    >
-                      Use as Active
-                    </button>
-                  ) : (
-                    <button
-                      aria-label="Connect Provider"
-                      type="button"
-                      onClick={() => handleLinkProvider(provider.id)}
-                      disabled={isUnlinking || isLinking}
-                      className={`w-full sm:w-auto flex items-center justify-center gap-2 px-4 py-2 bg-gradient-to-r ${provider.color} font-black text-[9px] uppercase tracking-widest rounded-xl transition-all border disabled:opacity-40 disabled:cursor-not-allowed cursor-pointer`}
-                    >
-                      {isLinking ? (
-                        <span className="flex items-center gap-1.5">
-                          <div className="w-2.5 h-2.5 border border-current/30 border-t-current rounded-full animate-spin" />
-                          Connecting...
-                        </span>
-                      ) : (
-                        <>
-                          <Link className="w-3 h-3" />
-                          Connect
-                        </>
-                      )}
-                    </button>
-                  )}
+                      <button
+                        aria-label="Connect Provider"
+                        type="button"
+                        onClick={() => handleLinkProvider(provider.id)}
+                        disabled={isUnlinking || isLinking}
+                        className={`w-full sm:w-auto flex items-center justify-center gap-2 px-4 py-2 bg-gradient-to-r ${provider.color} font-black text-[9px] uppercase tracking-widest rounded-xl transition-all border disabled:opacity-40 disabled:cursor-not-allowed cursor-pointer`}
+                      >
+                        {isLinking ? (
+                          <span className="flex items-center gap-1.5">
+                            <div className="w-2.5 h-2.5 border border-current/30 border-t-current rounded-full animate-spin" />
+                            Connecting...
+                          </span>
+                        ) : (
+                          <>
+                            <Link className="w-3 h-3" />
+                            Connect
+                          </>
+                        )}
+                      </button>
+                    )}
+                  </div>
+                </div>
+              );
+            })}
+          </div>
+        </div>
+
+        {/* Danger zone */}
+        <div className="border-t border-white/4 pt-6 space-y-4">
+          <div>
+            <p className="text-[10px] font-black text-red-400 uppercase tracking-widest mb-1">Danger Zone</p>
+            <p className="text-[10px] font-medium text-zinc-500 leading-relaxed">
+              Permanently delete your account and all associated game library data from our servers. This action cannot be undone.
+            </p>
+          </div>
+
+          {!showDeleteConfirm ? (
+            <button
+              aria-label="Delete My Account"
+              type="button"
+              onClick={() => {
+                setShowDeleteConfirm(true);
+                setDeleteInput('');
+                setDeleteError(null);
+              }}
+              className="flex items-center gap-2 px-5 py-2.5 bg-red-500/10 border border-red-500/30 text-red-400 hover:bg-red-500/20 hover:border-red-500/50 font-black text-[9px] uppercase tracking-widest rounded-xl transition-all"
+            >
+              <Trash2 className="w-3.5 h-3.5" />
+              Delete My Account
+            </button>
+          ) : (
+            <div className="bg-red-950/30 border border-red-500/20 rounded-2xl p-5 space-y-4">
+              <div className="flex items-start gap-3">
+                <div className="w-8 h-8 rounded-xl bg-red-500/20 border border-red-500/30 flex items-center justify-center shrink-0">
+                  <Trash2 className="w-4 h-4 text-red-400" />
+                </div>
+                <div>
+                  <p className="text-[10px] font-black text-red-300 uppercase tracking-widest mb-1">
+                    Confirm Deletion
+                  </p>
+                  <p className="text-[10px] font-medium text-zinc-400 leading-relaxed">
+                    This will permanently erase your game library from Supabase and delete your Clerk account. Type{' '}
+                    <span className="font-mono font-black text-red-400">DELETE</span> to confirm.
+                  </p>
                 </div>
               </div>
-            );
-          })}
-        </div>
-      </div>
 
-      {/* Danger zone */}
-      <div className="border-t border-white/4 pt-6 space-y-4">
-        <div>
-          <p className="text-[10px] font-black text-red-400 uppercase tracking-widest mb-1">Danger Zone</p>
-          <p className="text-[10px] font-medium text-zinc-500 leading-relaxed">
-            Permanently delete your account and all associated game library data from our servers. This action cannot be undone.
-          </p>
-        </div>
+              <input
+                type="text"
+                value={deleteInput}
+                onChange={(e) => setDeleteInput(e.target.value)}
+                placeholder="Type DELETE to confirm"
+                className="w-full bg-black/50 border border-red-500/30 focus:border-red-500/60 rounded-xl py-2.5 px-4 text-xs font-mono text-red-300 placeholder-red-900 focus:outline-none transition-colors"
+                autoFocus
+              />
 
-        {!showDeleteConfirm ? (
-          <button
-            aria-label="Delete My Account"
-            type="button"
-            onClick={() => {
-              setShowDeleteConfirm(true);
-              setDeleteInput('');
-              setDeleteError(null);
-            }}
-            className="flex items-center gap-2 px-5 py-2.5 bg-red-500/10 border border-red-500/30 text-red-400 hover:bg-red-500/20 hover:border-red-500/50 font-black text-[9px] uppercase tracking-widest rounded-xl transition-all"
-          >
-            <Trash2 className="w-3.5 h-3.5" />
-            Delete My Account
-          </button>
-        ) : (
-          <div className="bg-red-950/30 border border-red-500/20 rounded-2xl p-5 space-y-4">
-            <div className="flex items-start gap-3">
-              <div className="w-8 h-8 rounded-xl bg-red-500/20 border border-red-500/30 flex items-center justify-center shrink-0">
-                <Trash2 className="w-4 h-4 text-red-400" />
-              </div>
-              <div>
-                <p className="text-[10px] font-black text-red-300 uppercase tracking-widest mb-1">
-                  Confirm Deletion
+              {deleteError && (
+                <p className="text-[10px] font-medium text-red-400 bg-red-500/10 border border-red-500/20 rounded-lg px-3 py-2">
+                  {deleteError}
                 </p>
-                <p className="text-[10px] font-medium text-zinc-400 leading-relaxed">
-                  This will permanently erase your game library from Supabase and delete your Clerk account. Type{' '}
-                  <span className="font-mono font-black text-red-400">DELETE</span> to confirm.
-                </p>
+              )}
+
+              <div className="flex gap-3">
+                <button
+                  aria-label="Cancel"
+                  type="button"
+                  onClick={() => {
+                    setShowDeleteConfirm(false);
+                    setDeleteInput('');
+                    setDeleteError(null);
+                  }}
+                  disabled={isDeleting}
+                  className="flex-1 py-2 bg-white/5 border border-white/10 text-zinc-400 hover:text-white hover:border-white/20 font-black text-[9px] uppercase tracking-widest rounded-xl transition-all disabled:opacity-40"
+                >
+                  Cancel
+                </button>
+                <button
+                  aria-label="Confirm Delete"
+                  type="button"
+                  onClick={() => {
+                    const targetUserId = userId || effectiveUser?.id;
+                    if (deleteInput !== 'DELETE' || !targetUserId) return;
+                    setIsDeleting(true);
+                    setDeleteError(null);
+                    sendCommand('delete_account', { userId: targetUserId });
+                  }}
+                  disabled={deleteInput !== 'DELETE' || isDeleting}
+                  className="flex-1 flex items-center justify-center gap-2 py-2 bg-red-600 hover:bg-red-500 text-white font-black text-[9px] uppercase tracking-widest rounded-xl transition-all disabled:opacity-40 disabled:cursor-not-allowed shadow-[0_0_20px_rgba(239,68,68,0.2)]"
+                >
+                  {isDeleting ? (
+                    <>
+                      <div className="w-3 h-3 border border-white/30 border-t-white rounded-full animate-spin" />
+                      Deleting...
+                    </>
+                  ) : (
+                    <>
+                      <Trash2 className="w-3.5 h-3.5" />
+                      Confirm Delete
+                    </>
+                  )}
+                </button>
               </div>
             </div>
+          )}
+        </div>
+      </SettingsSection>
 
-            <input
-              type="text"
-              value={deleteInput}
-              onChange={(e) => setDeleteInput(e.target.value)}
-              placeholder="Type DELETE to confirm"
-              className="w-full bg-black/50 border border-red-500/30 focus:border-red-500/60 rounded-xl py-2.5 px-4 text-xs font-mono text-red-300 placeholder-red-900 focus:outline-none transition-colors"
-              autoFocus
-            />
-
-            {deleteError && (
-              <p className="text-[10px] font-medium text-red-400 bg-red-500/10 border border-red-500/20 rounded-lg px-3 py-2">
-                {deleteError}
-              </p>
-            )}
-
-            <div className="flex gap-3">
-              <button
-                aria-label="Cancel"
-                type="button"
-                onClick={() => {
-                  setShowDeleteConfirm(false);
-                  setDeleteInput('');
-                  setDeleteError(null);
-                }}
-                disabled={isDeleting}
-                className="flex-1 py-2 bg-white/5 border border-white/10 text-zinc-400 hover:text-white hover:border-white/20 font-black text-[9px] uppercase tracking-widest rounded-xl transition-all disabled:opacity-40"
-              >
-                Cancel
-              </button>
-              <button
-                aria-label="Confirm Delete"
-                type="button"
-                onClick={() => {
-                  const targetUserId = userId || effectiveUser?.id;
-                  if (deleteInput !== 'DELETE' || !targetUserId) return;
-                  setIsDeleting(true);
-                  setDeleteError(null);
-                  sendCommand('delete_account', { userId: targetUserId });
-                }}
-                disabled={deleteInput !== 'DELETE' || isDeleting}
-                className="flex-1 flex items-center justify-center gap-2 py-2 bg-red-600 hover:bg-red-500 text-white font-black text-[9px] uppercase tracking-widest rounded-xl transition-all disabled:opacity-40 disabled:cursor-not-allowed shadow-[0_0_20px_rgba(239,68,68,0.2)]"
-              >
-                {isDeleting ? (
-                  <>
-                    <div className="w-3 h-3 border border-white/30 border-t-white rounded-full animate-spin" />
-                    Deleting...
-                  </>
-                ) : (
-                  <>
-                    <Trash2 className="w-3.5 h-3.5" />
-                    Confirm Delete
-                  </>
-                )}
-              </button>
-            </div>
-          </div>
-        )}
-      </div>
-    </SettingsSection>
-
-    <AccountSwitcherModal
-      isOpen={isAccountSwitcherOpen}
-      onClose={() => setIsAccountSwitcherOpen(false)}
-      sendCommand={sendCommand}
-    />
+      <AccountSwitcherModal
+        isOpen={isAccountSwitcherOpen}
+        onClose={() => setIsAccountSwitcherOpen(false)}
+        sendCommand={sendCommand}
+      />
     </>
   );
 };

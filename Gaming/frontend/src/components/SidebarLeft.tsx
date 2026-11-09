@@ -75,8 +75,8 @@ const Sidebar: React.FC<SidebarProps> = ({
           return {
             id: payload.userId || (payload.sessionId ? `node_${payload.sessionId.slice(-8)}` : 'node_active'),
             email: payload.userEmail || (payload.sessionId ? 'node.active@missioncontrol.app' : 'node.active@missioncontrol.app'),
-            username: payload.username || (payload.userEmail ? payload.userEmail.split('@')[0] : 'Operative'),
-            firstName: payload.firstName || 'Operative',
+            username: payload.username || (payload.userEmail ? payload.userEmail.split('@')[0] : 'Guest'),
+            firstName: payload.firstName || 'Guest',
             lastName: payload.lastName || '',
             imageUrl: payload.imageUrl || '',
             sessionId: payload.sessionId || '',
@@ -101,11 +101,11 @@ const Sidebar: React.FC<SidebarProps> = ({
 
   const effectiveIsSignedIn = Boolean(isSignedIn || cachedUser);
   const effectiveUser = user || (cachedUser ? {
-    id: cachedUser.id || 'node-user',
-    username: cachedUser.username || (cachedUser.email ? cachedUser.email.split('@')[0] : 'operative'),
-    firstName: cachedUser.firstName || (cachedUser.email ? cachedUser.email.split('@')[0] : 'Operative'),
+    id: cachedUser.id || 'guest-node',
+    username: cachedUser.username || (cachedUser.email ? cachedUser.email.split('@')[0] : 'guest'),
+    firstName: cachedUser.firstName || (cachedUser.email ? cachedUser.email.split('@')[0] : 'Guest'),
     lastName: cachedUser.lastName || '',
-    fullName: `${cachedUser.firstName || ''} ${cachedUser.lastName || ''}`.trim() || cachedUser.username || 'Operative',
+    fullName: `${cachedUser.firstName || ''} ${cachedUser.lastName || ''}`.trim() || cachedUser.username || 'Guest',
     imageUrl: cachedUser.imageUrl || '',
     primaryEmailAddress: cachedUser.email ? { emailAddress: cachedUser.email } : undefined,
     externalAccounts: cachedUser.externalAccounts || [],
@@ -329,7 +329,7 @@ const Sidebar: React.FC<SidebarProps> = ({
                   )}
                 </div>
                 <div className="min-w-0 flex flex-col">
-                  <span className="text-[10px] font-black text-white truncate uppercase tracking-tight" title={effectiveUser?.fullName || effectiveUser?.firstName || effectiveUser?.username || 'Node Connected'}>
+                  <span className="text-[10px] font-black text-white truncate uppercase tracking-tight" title={effectiveUser?.fullName || effectiveUser?.firstName || effectiveUser?.username || 'Guest User'}>
                     {(() => {
                       const fullName = effectiveUser?.fullName || (effectiveUser?.firstName ? `${effectiveUser.firstName} ${effectiveUser.lastName || ''}`.trim() : '');
                       if (fullName) return fullName;
@@ -337,7 +337,7 @@ const Sidebar: React.FC<SidebarProps> = ({
                       if (effectiveUser?.firstName) return effectiveUser.firstName;
                       if (activeExternalAccount?.username) return activeExternalAccount.username;
                       if (effectiveUser?.username) return effectiveUser.username;
-                      return 'Node Connected';
+                      return 'Guest User';
                     })()}
                   </span>
                   <span className="text-[8px] text-zinc-500 truncate lowercase font-medium mt-0.5">
