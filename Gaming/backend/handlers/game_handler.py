@@ -607,7 +607,9 @@ def handle_scan_roms(payload: dict, pipeline, bridge, config, library_session: d
         })
 
         # Merge emulated games into current game_library
-        user_id = payload.get("userId") if payload else "guest"
+        user_id = payload.get("userId") if payload else None
+        if not user_id and pipeline and getattr(pipeline, "active_user_id", None):
+            user_id = pipeline.active_user_id
         user_id_str = str(user_id) if user_id else "guest"
 
         with _lib_lock:
@@ -616,6 +618,10 @@ def handle_scan_roms(payload: dict, pipeline, bridge, config, library_session: d
             cleaned = [g for g in existing if not g.get("is_emulated")]
             merged = cleaned + emulated_games
             library_session[user_id_str] = merged
+            if user_id_str != "guest":
+                guest_existing = list(library_session.get("guest", []))
+                guest_cleaned = [g for g in guest_existing if not g.get("is_emulated")]
+                library_session["guest"] = guest_cleaned + emulated_games
 
         bridge.update_state({"game_library": merged})
         logger.info("ROM scan complete: merged %d emulated games into library", len(emulated_games))

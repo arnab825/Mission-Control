@@ -914,14 +914,20 @@ export const AppearanceSection: React.FC<AppearanceSectionProps> = ({
         searchTerms="preview sandbox live demo test hud telemetry appearance"
       >
         <div className="p-5 rounded-2xl bg-white/2 border border-white/10 space-y-4">
-          <div className="flex items-center justify-between pb-3 border-b border-white/5">
-            <div className="flex items-center gap-2">
-              <Activity className="w-4 h-4 text-neon-green animate-pulse" />
-              <span className="text-[10px] font-black uppercase tracking-widest text-zinc-300">
-                Active Tactical Layout: {preferences.gamerProfile.callsign} &mdash; {activeFaction.name}
-              </span>
+          {/* Subtitle / Explanatory Header */}
+          <div className="flex flex-col sm:flex-row sm:items-center justify-between pb-3 border-b border-white/5 gap-2">
+            <div>
+              <div className="flex items-center gap-2">
+                <Activity className="w-4 h-4 text-neon-green animate-pulse" />
+                <span className="text-[10px] font-black uppercase tracking-widest text-zinc-300">
+                  Active Tactical Layout: {preferences.gamerProfile.callsign} &mdash; {activeFaction.name}
+                </span>
+              </div>
+              <p className="text-[9px] text-zinc-500 font-medium mt-0.5">
+                Real-time interactive sandbox previewing your selected theme colors, tactical faction accents, and telemetry HUD styling before launching games.
+              </p>
             </div>
-            <span className="text-[8px] font-mono text-neon-yellow uppercase bg-neon-yellow/10 border border-neon-yellow/20 px-2.5 py-0.5 rounded-full">
+            <span className="text-[8px] font-mono text-neon-yellow uppercase bg-neon-yellow/10 border border-neon-yellow/20 px-2.5 py-0.5 rounded-full shrink-0 self-start sm:self-auto">
               {currentTheme.name} · {preferences.backgroundMode.toUpperCase()} · {preferences.canvasTexture}
             </span>
           </div>
@@ -954,7 +960,7 @@ export const AppearanceSection: React.FC<AppearanceSectionProps> = ({
             {/* Mock Action Widget */}
             <div className="p-3.5 rounded-xl bg-black/40 border border-white/5 flex flex-col justify-between">
               <div className="flex items-center justify-between">
-                <span className="text-[9px] font-black uppercase tracking-wider text-white">DLSS 4.0</span>
+                <span className="text-[9px] font-black uppercase tracking-wider text-white">DLSS 5.0 Neural Engine</span>
                 <span className="w-2 h-2 rounded-full bg-neon-green shadow-[0_0_8px_rgba(var(--theme-neon-rgb),0.8)] animate-pulse" />
               </div>
               <button

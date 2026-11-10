@@ -649,28 +649,6 @@ const AgentPage: React.FC<{
 
     const cachedUser = cachedUserState;
 
-    const activeAccountUser = useMemo(() => {
-      if (user) {
-        return {
-          id: user.id,
-          username: user.username || user.firstName,
-          fullName: user.fullName || `${user.firstName || ''} ${user.lastName || ''}`.trim() || user.username,
-          primaryEmailAddress: { emailAddress: user.primaryEmailAddress?.emailAddress || user.emailAddresses?.[0]?.emailAddress },
-          imageUrl: cachedUser?.imageUrl || user.imageUrl,
-        };
-      }
-      if (cachedUser) {
-        return {
-          id: cachedUser.id,
-          username: cachedUser.username || cachedUser.name,
-          fullName: cachedUser.fullName || cachedUser.name || cachedUser.username,
-          primaryEmailAddress: { emailAddress: cachedUser.email || cachedUser.userEmail },
-          imageUrl: cachedUser.imageUrl || cachedUser.avatar,
-        };
-      }
-      return null;
-    }, [user, cachedUser]);
-
     const userId = useMemo(() => {
       if (propUserId && propUserId !== 'guest') return propUserId;
       if (isSignedIn && user?.id) return user.id;
@@ -2328,33 +2306,8 @@ const AgentPage: React.FC<{
                   <p className="text-[9px] font-bold text-zinc-500 uppercase tracking-widest mt-0.5">E2EE Handshake Signature</p>
                 </div>
 
-                {/* Synced User Node Badge */}
-                <div className="flex items-center justify-between p-2 rounded-xl bg-white/[0.04] border border-white/8 mb-3">
-                  <div className="flex items-center gap-2 min-w-0">
-                    <div className="w-6 h-6 rounded-lg bg-neon-yellow/15 border border-neon-yellow/30 flex items-center justify-center text-[10px] font-black text-neon-yellow shrink-0">
-                      {(activeAccountUser?.fullName || activeAccountUser?.username || 'A')[0].toUpperCase()}
-                    </div>
-                    <div className="min-w-0 text-left">
-                      <p className="text-[10px] font-black text-zinc-200 truncate uppercase tracking-wider">
-                        {activeAccountUser?.fullName || activeAccountUser?.username || (userId !== 'guest' ? 'Authenticated User' : 'Guest')}
-                      </p>
-                      <p className="text-[8px] font-mono text-zinc-500 truncate">
-                        {activeAccountUser?.primaryEmailAddress?.emailAddress || (userId !== 'guest' ? userId : 'local-guest-node')}
-                      </p>
-                    </div>
-                  </div>
-                  <div className={`shrink-0 flex items-center gap-1.5 px-2 py-0.5 rounded-full border text-[8px] font-black uppercase tracking-wider ${
-                    userId !== 'guest'
-                      ? 'bg-neon-yellow/10 border-neon-yellow/30 text-neon-yellow shadow-[0_0_8px_rgba(191,255,0,0.15)]'
-                      : 'bg-zinc-800 border-zinc-700 text-zinc-500'
-                  }`}>
-                    <span className={`w-1.5 h-1.5 rounded-full ${userId !== 'guest' ? 'bg-neon-yellow animate-pulse' : 'bg-zinc-600'}`} />
-                    <span>{userId !== 'guest' ? 'Account Synced' : 'Unlinked'}</span>
-                  </div>
-                </div>
-
                 {/* Holographic QR Code Area / Scanner */}
-                <div className={`relative w-28 h-28 mx-auto mb-4 bg-black/40 border rounded-xl flex items-center justify-center overflow-hidden transition-all duration-500 ${isPrivacyEnabled ? 'border-neon-yellow/15' : 'border-red-500/20'
+                <div className={`relative w-28 h-28 mx-auto mb-2.5 bg-black/40 border rounded-xl flex items-center justify-center overflow-hidden transition-all duration-500 ${isPrivacyEnabled ? 'border-neon-yellow/15' : 'border-red-500/20'
                   }`}>
                   {/* Dots Matrix */}
                   <div className="grid grid-cols-12 gap-1 opacity-25">
@@ -2389,7 +2342,7 @@ const AgentPage: React.FC<{
                     <motion.div
                       initial={{ opacity: 0, scale: 0.7 }}
                       animate={{ opacity: 1, scale: 1 }}
-                      className="absolute inset-0 flex flex-col items-center justify-center pb-7 bg-black/50 backdrop-blur-[1px]"
+                      className="absolute inset-0 flex flex-col items-center justify-center bg-black/50 backdrop-blur-[1px]"
                     >
                       <motion.div
                         initial={{ scale: 0, rotate: -30 }}
@@ -2410,7 +2363,7 @@ const AgentPage: React.FC<{
                     <motion.div
                       initial={{ opacity: 0, scale: 0.7 }}
                       animate={{ opacity: 1, scale: 1 }}
-                      className="absolute inset-0 flex flex-col items-center justify-center pb-7 bg-black/55 backdrop-blur-[1px]"
+                      className="absolute inset-0 flex flex-col items-center justify-center bg-black/55 backdrop-blur-[1px]"
                     >
                       <motion.div
                         initial={{ scale: 0 }}
@@ -2427,19 +2380,19 @@ const AgentPage: React.FC<{
                       <span className="text-[7px] font-bold text-red-500/60 uppercase tracking-wider text-center mt-0.5">Unprotected</span>
                     </motion.div>
                   )}
+                </div>
 
-                  {/* Real-time Status overlay */}
-                  <div className="absolute inset-0 bg-linear-to-t from-black/80 via-transparent to-black/30 flex flex-col justify-end p-2.5 select-none">
-                    <div className="flex items-center justify-between text-[8px] font-mono">
-                      <span className="text-zinc-500">SYS UUID / NODE:</span>
-                      <span className="text-zinc-300 font-semibold">{userId !== 'guest' ? userId.slice(0, 14).toUpperCase() : 'LOCAL GUEST'}</span>
-                    </div>
-                    <div className="flex items-center justify-between text-[8px] font-mono">
-                      <span className="text-zinc-500">STATE:</span>
-                      <span className={isGeneratingKeys ? 'text-neon-green animate-pulse' : isPrivacyEnabled ? 'text-neon-yellow' : 'text-red-400 animate-pulse'}>
-                        {isGeneratingKeys ? 'SYNCHRONIZING...' : isPrivacyEnabled ? 'SECURE LINK' : 'UNPROTECTED'}
-                      </span>
-                    </div>
+                {/* Node & Telemetry Status Bar */}
+                <div className="flex items-center justify-between px-3 py-1.5 rounded-xl bg-black/40 border border-white/8 mb-3 text-[8px] font-mono select-none">
+                  <div className="flex items-center gap-1.5 truncate">
+                    <span className="text-zinc-500">NODE:</span>
+                    <span className="text-zinc-300 font-semibold truncate">{userId !== 'guest' ? userId.slice(0, 16).toUpperCase() : 'LOCAL GUEST'}</span>
+                  </div>
+                  <div className="flex items-center gap-1.5 shrink-0 ml-2">
+                    <span className="text-zinc-500">LINK:</span>
+                    <span className={isGeneratingKeys ? 'text-neon-green animate-pulse font-bold' : isPrivacyEnabled ? 'text-neon-yellow font-bold' : 'text-red-400 font-bold'}>
+                      {isGeneratingKeys ? 'SYNCING...' : isPrivacyEnabled ? 'SECURE' : 'UNPROTECTED'}
+                    </span>
                   </div>
                 </div>
 

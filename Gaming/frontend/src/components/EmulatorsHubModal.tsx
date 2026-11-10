@@ -17,6 +17,7 @@ import {
   ExternalLink,
   CheckCircle2,
   AlertCircle,
+  AlertTriangle,
   Play,
   Settings2,
   Disc3,
@@ -31,6 +32,7 @@ interface EmulatorsHubModalProps {
   onClose: () => void;
   emulationState?: EmulationState;
   sendCommand: (type: string, payload?: any) => void;
+  userId?: string;
 }
 
 type TabType = 'installed' | 'all' | 'roms';
@@ -40,6 +42,7 @@ export const EmulatorsHubModal: React.FC<EmulatorsHubModalProps> = ({
   onClose,
   emulationState,
   sendCommand,
+  userId,
 }) => {
   const [activeTab, setActiveTab] = useState<TabType>('installed');
   const [newPathInput, setNewPathInput] = useState('');
@@ -48,6 +51,7 @@ export const EmulatorsHubModal: React.FC<EmulatorsHubModalProps> = ({
   const [customExeInput, setCustomExeInput] = useState('');
   const [searchQuery, setSearchQuery] = useState('');
   const [consoleFilter, setConsoleFilter] = useState<ConsoleFilter>('all');
+  const [noFoldersWarning, setNoFoldersWarning] = useState(false);
 
   // Fetch initial emulation state on open
   useEffect(() => {
@@ -99,18 +103,25 @@ export const EmulatorsHubModal: React.FC<EmulatorsHubModalProps> = ({
     const trimmed = newPathInput.trim();
     if (!trimmed) return;
     const updated = Array.from(new Set([...romPaths, trimmed]));
-    sendCommand('set_rom_paths', { paths: updated });
+    sendCommand('set_rom_paths', { paths: updated, userId });
     setNewPathInput('');
+    setNoFoldersWarning(false);
   };
 
   const handleRemoveRomPath = (pathToRemove: string) => {
     const updated = romPaths.filter((p) => p !== pathToRemove);
-    sendCommand('set_rom_paths', { paths: updated });
+    sendCommand('set_rom_paths', { paths: updated, userId });
   };
 
   const handleScanRoms = () => {
+    if (romPaths.length === 0) {
+      setActiveTab('roms');
+      setNoFoldersWarning(true);
+      return;
+    }
+    setNoFoldersWarning(false);
     setIsScanning(true);
-    sendCommand('scan_roms');
+    sendCommand('scan_roms', { userId });
     setTimeout(() => setIsScanning(false), 2000);
   };
 
@@ -248,12 +259,20 @@ export const EmulatorsHubModal: React.FC<EmulatorsHubModalProps> = ({
                   <p className="text-[11px] sm:text-xs text-zinc-400 max-w-md mt-1 mb-4 sm:mb-5 leading-relaxed">
                     Mission Control checks standard directories and system PATH for RPCS3, PCSX2, DuckStation, Dolphin, Cemu, and more.
                   </p>
-                  <button
-                    onClick={() => setActiveTab('all')}
-                    className="px-4 py-2 sm:py-2.5 rounded-xl bg-neon-green/10 border border-neon-green/30 text-neon-green font-black uppercase text-[10px] sm:text-xs tracking-wider hover:bg-neon-green/20 transition-all cursor-pointer shadow-[0_0_15px_rgba(118,185,0,0.15)] text-center max-w-full"
-                  >
-                    View All Supported Emulators & Configure Paths
-                  </button>
+                  <div className="flex flex-wrap items-center justify-center gap-2.5">
+                    <button
+                      onClick={() => setActiveTab('all')}
+                      className="px-4 py-2 sm:py-2.5 rounded-xl bg-neon-green/10 border border-neon-green/30 text-neon-green font-black uppercase text-[10px] sm:text-xs tracking-wider hover:bg-neon-green/20 transition-all cursor-pointer shadow-[0_0_15px_rgba(118,185,0,0.15)] text-center"
+                    >
+                      View All Supported Emulators (17)
+                    </button>
+                    <button
+                      onClick={() => setActiveTab('roms')}
+                      className="px-4 py-2 sm:py-2.5 rounded-xl bg-purple-500/10 border border-purple-500/30 text-purple-300 font-black uppercase text-[10px] sm:text-xs tracking-wider hover:bg-purple-500/20 transition-all cursor-pointer shadow-[0_0_15px_rgba(168,85,247,0.15)] text-center"
+                    >
+                      Configure ROM Folders ({romPaths.length})
+                    </button>
+                  </div>
                 </div>
               ) : (
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-3 sm:gap-3.5">
@@ -362,6 +381,25 @@ export const EmulatorsHubModal: React.FC<EmulatorsHubModalProps> = ({
           {/* TAB 3: ROM FOLDERS */}
           {activeTab === 'roms' && (
             <div className="space-y-4 sm:space-y-5">
+              {/* No Folders Warning Banner */}
+              {noFoldersWarning && (
+                <div className="p-3.5 sm:p-4 rounded-2xl bg-amber-500/10 border border-amber-500/30 flex items-start justify-between gap-3 text-amber-200">
+                  <div className="flex items-start gap-2.5">
+                    <AlertTriangle className="w-4 h-4 sm:w-5 sm:h-5 text-amber-400 shrink-0 mt-0.5" />
+                    <div className="text-xs">
+                      <span className="font-bold text-amber-300 block mb-0.5">No ROM Directories Configured</span>
+                      Please add at least one folder path below where your console ROMs or disc images (.iso, .chd, .pkg, etc.) are stored before scanning.
+                    </div>
+                  </div>
+                  <button
+                    onClick={() => setNoFoldersWarning(false)}
+                    className="p-1 hover:text-white rounded text-amber-400/70 hover:bg-amber-500/20 transition-colors cursor-pointer shrink-0"
+                  >
+                    <X className="w-3.5 h-3.5" />
+                  </button>
+                </div>
+              )}
+
               {/* Add Path Card */}
               <div className="p-3.5 sm:p-4 rounded-2xl bg-white/[0.03] border border-white/10 space-y-3">
                 <label className="text-xs font-black uppercase tracking-wider text-white flex items-center gap-2">

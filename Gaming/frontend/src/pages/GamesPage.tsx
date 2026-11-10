@@ -1384,6 +1384,23 @@ const GamesLibraryContent: React.FC<GamesPageProps> = ({ state, sendCommand, set
                 ))}
               </AnimatePresence>
             </div>
+          ) : selectedType === 'EMULATION' ? (
+            <div className="py-20 flex flex-col items-center justify-center text-zinc-500 border border-purple-500/20 border-dashed rounded-3xl bg-purple-950/5 p-6 text-center">
+              <Gamepad2 className="w-12 h-12 mb-3 text-purple-400/40" />
+              <h4 className="text-xs font-black text-white uppercase tracking-widest mb-1">
+                No Emulated Games or ROMs Found
+              </h4>
+              <p className="text-[11px] text-zinc-400 max-w-md mb-4 leading-relaxed">
+                Configure your ROM folders or standalone emulators (RPCS3, PCSX2, Dolphin, DuckStation, Ryujinx, etc.) to merge console titles directly into your library.
+              </p>
+              <button
+                type="button"
+                onClick={() => setShowEmulatorsModal(true)}
+                className="px-5 py-2.5 bg-purple-500/15 border border-purple-500/35 hover:bg-purple-500/25 text-purple-300 hover:text-white rounded-xl text-[10px] font-black uppercase tracking-widest transition-all cursor-pointer shadow-[0_0_20px_rgba(168,85,247,0.2)]"
+              >
+                Configure Emulators & Scan ROMs
+              </button>
+            </div>
           ) : (
             <div className="py-24 flex flex-col items-center justify-center text-zinc-600 border border-white/5 border-dashed rounded-3xl bg-white/1">
               <Gamepad2 className="w-10 h-10 mb-4 opacity-30" />
@@ -1391,14 +1408,23 @@ const GamesLibraryContent: React.FC<GamesPageProps> = ({ state, sendCommand, set
                 {games.length === 0 ? 'Run a Full Scan to Discover Games' : 'No Results Found'}
               </p>
               {games.length === 0 && (
-                <button
-                  aria-label="button"
-                  type="button"
-                  onClick={triggerFullScan}
-                  className="mt-4 px-5 py-2 bg-white/5 border border-white/10 rounded-xl text-[10px] font-black text-zinc-400 hover:text-white hover:border-white/20 transition-all uppercase tracking-widest cursor-pointer"
-                >
-                  Start Scan
-                </button>
+                <div className="flex flex-wrap items-center justify-center gap-3 mt-4">
+                  <button
+                    aria-label="button"
+                    type="button"
+                    onClick={triggerFullScan}
+                    className="px-5 py-2 bg-neon-green/10 border border-neon-green/30 rounded-xl text-[10px] font-black text-neon-green hover:bg-neon-green/20 transition-all uppercase tracking-widest cursor-pointer shadow-[0_0_15px_rgba(118,185,0,0.15)]"
+                  >
+                    Start Scan
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => setShowEmulatorsModal(true)}
+                    className="px-5 py-2 bg-purple-500/10 border border-purple-500/30 rounded-xl text-[10px] font-black text-purple-300 hover:bg-purple-500/20 transition-all uppercase tracking-widest cursor-pointer shadow-[0_0_15px_rgba(168,85,247,0.15)]"
+                  >
+                    Emulators & ROMs Hub
+                  </button>
+                </div>
               )}
             </div>
           )}
@@ -1417,6 +1443,7 @@ const GamesLibraryContent: React.FC<GamesPageProps> = ({ state, sendCommand, set
             onClose={() => setShowEmulatorsModal(false)}
             emulationState={state?.emulation_state}
             sendCommand={sendCommand}
+            userId={userId || undefined}
           />
         )}
       </AnimatePresence>

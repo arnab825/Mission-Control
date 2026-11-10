@@ -129,9 +129,46 @@ export const AccountSettingsSection: React.FC<AccountSettingsSectionProps> = ({
     (a.verificationStrategy || '').toLowerCase().includes('discord')
   );
 
-  const avatarUrl = (() => {
-    const isDisc = normalizedActiveProvider.includes('discord');
+  const isDisc = normalizedActiveProvider.includes('discord');
 
+  const activeProfile = React.useMemo(() => {
+    if (isDisc) {
+      const discUsername =
+        discordExt?.username ||
+        (discordExt as any)?.label ||
+        (cachedUser?.provider?.includes('discord') ? cachedUser?.username : null) ||
+        (effectiveUser?.username && effectiveUser.username !== effectiveUser.fullName ? effectiveUser.username : null) ||
+        'Discord User';
+      const discEmail =
+        discordExt?.emailAddress ||
+        (cachedUser?.provider?.includes('discord') ? cachedUser?.email : null) ||
+        (discUsername ? `@${discUsername}` : 'via discord');
+      return {
+        displayName: discUsername,
+        displaySub: discEmail,
+        isDiscord: true,
+      };
+    } else {
+      const googleName =
+        (googleExt?.firstName ? `${googleExt.firstName} ${googleExt.lastName || ''}`.trim() : null) ||
+        (effectiveUser?.fullName && !effectiveUser.fullName.toLowerCase().includes('discord') ? effectiveUser.fullName : null) ||
+        (cachedUser?.provider?.includes('google') ? cachedUser?.fullName || cachedUser?.username : null) ||
+        effectiveUser?.firstName ||
+        'Google User';
+      const googleEmail =
+        googleExt?.emailAddress ||
+        effectiveUser?.primaryEmailAddress?.emailAddress ||
+        cachedUser?.email ||
+        'clerk.user';
+      return {
+        displayName: googleName,
+        displaySub: googleEmail,
+        isDiscord: false,
+      };
+    }
+  }, [isDisc, discordExt, googleExt, cachedUser, effectiveUser]);
+
+  const avatarUrl = (() => {
     if (isDisc) {
       // For Discord: call Discord avatar from external account or cached Discord avatar, NEVER Google's effectiveUser.imageUrl
       const candidate =
@@ -254,13 +291,22 @@ export const AccountSettingsSection: React.FC<AccountSettingsSectionProps> = ({
           }
         })();
 
+        const resolvedUsername = isDisc
+          ? (targetExtAcc?.username || (targetExtAcc as any)?.label || (targetExtAcc as any)?.data?.username || cachedUser?.username || 'Discord User')
+          : (googleExt?.firstName ? `${googleExt.firstName} ${googleExt.lastName || ''}`.trim() : (effectiveUser.fullName || effectiveUser.firstName || effectiveUser.username || 'Google User'));
+
+        const resolvedEmail = isDisc
+          ? (targetExtAcc?.emailAddress || (cachedUser?.provider?.includes('discord') ? cachedUser?.email : null) || effectiveUser.primaryEmailAddress?.emailAddress || effectiveUser.email)
+          : (googleExt?.emailAddress || effectiveUser.primaryEmailAddress?.emailAddress || effectiveUser.email);
+
         const updatedUser = {
           ...(cachedUser || {}),
           id: effectiveUser.id,
-          email: targetExtAcc?.emailAddress || effectiveUser.primaryEmailAddress?.emailAddress || effectiveUser.email,
-          username: targetExtAcc?.username || effectiveUser.username,
-          firstName: targetExtAcc?.firstName || effectiveUser.firstName,
-          lastName: targetExtAcc?.lastName || effectiveUser.lastName,
+          email: resolvedEmail,
+          username: resolvedUsername,
+          fullName: resolvedUsername,
+          firstName: isDisc ? resolvedUsername : (googleExt?.firstName || effectiveUser.firstName),
+          lastName: isDisc ? '' : (googleExt?.lastName || effectiveUser.lastName || ''),
           imageUrl: providerAvatar,
           provider: providerKey,
           externalAccounts: effectiveUser?.externalAccounts || cachedUser?.externalAccounts || [],
@@ -276,7 +322,7 @@ export const AccountSettingsSection: React.FC<AccountSettingsSectionProps> = ({
             userId: effectiveUser.id,
             email: updatedUser.email,
             provider: providerKey,
-            username: updatedUser.username,
+            username: resolvedUsername,
           });
         }
         return;
@@ -294,12 +340,12 @@ export const AccountSettingsSection: React.FC<AccountSettingsSectionProps> = ({
     if (effectiveUser?.id && sendCommand && (!state?.active_user_id || state?.active_user_id !== effectiveUser.id)) {
       sendCommand('set_active_user', {
         userId: effectiveUser.id,
-        email: effectiveUser.primaryEmailAddress?.emailAddress || effectiveUser.email || '',
+        email: activeProfile.displaySub,
         provider: resolvedActiveProvider,
-        username: effectiveUser.username || effectiveUser.firstName || '',
+        username: activeProfile.displayName,
       });
     }
-  }, [effectiveUser?.id, state?.active_user_id, sendCommand, resolvedActiveProvider]);
+  }, [effectiveUser?.id, state?.active_user_id, sendCommand, resolvedActiveProvider, activeProfile]);
 
   const [copiedId, setCopiedId] = useState(false);
   const [linkingProvider, setLinkingProvider] = useState<string | null>(null);
@@ -587,18 +633,24 @@ export const AccountSettingsSection: React.FC<AccountSettingsSectionProps> = ({
                 className="w-10 h-10 rounded-xl bg-neon-green/10 border border-neon-green/30 flex items-center justify-center font-black text-xs text-neon-green shadow-[0_0_12px_rgba(118,185,0,0.15)]"
                 style={{ display: avatarUrl ? 'none' : 'flex' }}
               >
-                {(effectiveUser?.firstName?.[0] || effectiveUser?.username?.[0] || 'U').toUpperCase()}
+                {activeProfile.isDiscord ? (
+                  <svg className="w-5 h-5 text-neon-green" fill="currentColor" viewBox="0 0 24 24">
+                    <path d="M20.317 4.37a19.791 19.791 0 0 0-4.885-1.515.074.074 0 0 0-.079.037c-.21.375-.444.864-.608 1.25a18.27 18.27 0 0 0-5.487 0 12.64 12.64 0 0 0-.617-1.25.077.077 0 0 0-.079-.037A19.736 19.736 0 0 0 3.677 4.37a.07.07 0 0 0-.032.027C.533 9.046-.32 13.58.099 18.057a.082.082 0 0 0 .031.057 19.9 19.9 0 0 0 5.993 3.03.078.078 0 0 0 .084-.028 14.09 14.09 0 0 0 1.226-1.994.076.076 0 0 0-.041-.106 13.107 13.107 0 0 1-1.872-.892.077.077 0 0 1-.008-.128 10.2 10.2 0 0 0 .372-.292.074.074 0 0 1 .077-.01c3.929 1.793 8.18 1.793 12.061 0a.074.074 0 0 1 .078.01c.12.098.246.198.373.292a.077.077 0 0 1-.006.127 12.299 12.299 0 0 1-1.873.893.077.077 0 0 0-.041.107c.36.698.772 1.362 1.225 1.993a.076.076 0 0 0 .084.028 19.839 19.839 0 0 0 6.002-3.03.077.077 0 0 0 .032-.054c.5-5.177-.838-9.674-3.549-13.66a.061.061 0 0 0-.031-.028zM8.02 15.33c-1.183 0-2.157-1.085-2.157-2.419 0-1.333.956-2.419 2.157-2.419 1.21 0 2.176 1.096 2.157 2.42 0 1.333-.956 2.418-2.157 2.418zm7.975 0c-1.183 0-2.157-1.085-2.157-2.419 0-1.333.955-2.419 2.157-2.419 1.21 0 2.176 1.096 2.157 2.42 0 1.333-.946 2.418-2.157 2.418z" />
+                  </svg>
+                ) : (
+                  (activeProfile.displayName?.[0] || 'U').toUpperCase()
+                )}
               </div>
             </div>
             <div className="min-w-0 flex-1">
               <div className="flex items-center gap-2 min-w-0">
                 <p className="text-xs font-black text-white uppercase tracking-wider truncate">
-                  {effectiveUser?.fullName || effectiveUser?.firstName || effectiveUser?.username || 'Anonymous'}
+                  {activeProfile.displayName}
                 </p>
                 <span className="h-1.5 w-1.5 rounded-full bg-neon-yellow shadow-[0_0_8px_rgba(52,211,153,0.6)] shrink-0" />
               </div>
-              <p className="text-[10px] font-mono text-zinc-500 truncate" title={effectiveUser?.primaryEmailAddress?.emailAddress || effectiveUser?.emailAddresses?.[0]?.emailAddress || effectiveUser?.id}>
-                {effectiveUser?.primaryEmailAddress?.emailAddress || effectiveUser?.emailAddresses?.[0]?.emailAddress || effectiveUser?.id}
+              <p className="text-[10px] font-mono text-zinc-500 truncate" title={activeProfile.displaySub}>
+                {activeProfile.displaySub}
               </p>
             </div>
           </div>
