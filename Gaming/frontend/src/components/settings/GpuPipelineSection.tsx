@@ -15,6 +15,7 @@ import { SettingsSection } from './common/SettingsSection';
 import { SettingsField } from './common/SettingsField';
 import { CustomSelect } from './common/CustomSelect';
 import { HardwareFeatureMatrix } from './HardwareFeatureMatrix';
+import { Dlss5NeuralStudio } from './Dlss5NeuralStudio';
 import { PRESET_DETAILS } from '../../data/settingsConstants';
 import type { TelemetryState } from '../../types/telemetry';
 
@@ -25,7 +26,7 @@ const DLSS_OPTIONS = [
   { value: 'DLSS 3.5', label: 'DLSS 3.5 (Ray Reconstruction)' },
   { value: 'DLSS 4', label: 'DLSS 4 (Multi-Frame Neural)' },
   { value: 'DLSS 4.5', label: 'DLSS 4.5 (Neural Texture)' },
-  { value: 'DLSS 5', label: 'DLSS 5 (Neural World Model)' },
+  { value: 'DLSS 5', label: 'DLSS 5 (Neural Rendering & World Model)' },
 ];
 
 const FRAME_GEN_OPTIONS = [
@@ -86,7 +87,7 @@ export const GpuPipelineSection: React.FC<GpuPipelineSectionProps> = ({
       searchQuery={searchQuery}
       title="Processing Pipeline"
       icon={Cpu}
-      searchTerms="nvidia dlss rtx ray tracing frame generation reflex hdr gpu tuning power limit nvml preset optimizer"
+      searchTerms="nvidia dlss dlss5 dlss 5 rtx neural rendering aesthetic styles intensity sliders dynamic multi frame generation prepare nr input target resolution ray tracing reflex hdr gpu tuning power limit nvml preset optimizer"
     >
       {!isCapableGpu ? (
         <div className="p-4 rounded-2xl bg-red-500/10 border border-red-500/20 flex items-start gap-3 select-none">
@@ -681,6 +682,14 @@ export const GpuPipelineSection: React.FC<GpuPipelineSectionProps> = ({
           </div>
         </div>
       </SettingsField>
+
+      {/* DLSS 5 Neural Rendering Studio */}
+      <Dlss5NeuralStudio
+        currentTuning={currentTuning}
+        updateGpuTuning={updateGpuTuning}
+        isAdvancedGpu={isAdvancedGpu}
+        onShowDlssGuide={onShowDlssGuide}
+      />
 
       {/* Ray Tracing & Path Tracing */}
       <SettingsField

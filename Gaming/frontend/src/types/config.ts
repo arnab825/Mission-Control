@@ -101,9 +101,29 @@ export interface AppConfig {
     power_management_mode?: string;
     gaming_features?: {
       dlss?: boolean;
+      dlss_version?: string;
       frame_generation?: boolean;
+      frame_gen?: boolean;
+      frame_gen_multiplier?: string;
+      dynamic_mfg_mode?: string;
       ray_tracing?: boolean;
+      path_tracing?: boolean;
       reflex?: boolean;
+      hdr?: boolean;
+      // DLSS 5 Neural Rendering Extensions
+      dlss5_neural_rendering?: boolean;
+      dlss5_aesthetic_style?: string;
+      dlss5_style_intensity?: number;
+      dlss5_detail_reconstruction?: number;
+      dlss5_temporal_denoising?: number;
+      dlss5_neural_polish?: number;
+      dlss5_target_resolution?: string;
+      dlss5_nr_input_scale?: string;
+      dlss5_prepare_nr_input?: boolean;
+      dlss5_motion_vectors_conditioning?: boolean;
+      dlss5_geometry_normal_buffer?: boolean;
+      dlss5_specular_albedo_separation?: boolean;
+      [key: string]: any;
     };
     gpu_monitoring?: {
       enabled?: boolean;

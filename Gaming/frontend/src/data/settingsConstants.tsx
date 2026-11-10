@@ -95,7 +95,166 @@ export const DLSS_GUIDE: DlssGuideItem[] = [
   { version: "3.5", name: "Ray Reconstruction", tech: "Deep-learning model trained to reconstruct ray-traced images.", impact: "More detailed lighting, reflections and global illumination with temporal stability." },
   { version: "4", name: "Multi Frame Generation", tech: "Transformer models + 5th-gen Tensor Cores + Multi Frame Generation.", impact: "Up to 3 AI-generated frames per traditionally rendered frame on RTX 50 Series." },
   { version: "4.5", name: "Dynamic Multi Frame Gen", tech: "2nd-gen Transformer Super Resolution + Dynamic MFG.", impact: "Up to 5 AI-generated frames per rendered frame, enabling up to 6X frame generation." },
-  { version: "5", name: "Neural Rendering", tech: "Neural rendering model integrated into the real-time graphics pipeline.", impact: "Aims to push real-time graphics closer to cinematic-level visual fidelity. Coming Fall 2026." },
+  {
+    version: "5",
+    name: "Neural Rendering & World Synthesis",
+    tech: "Neural Rendering Engine (NRE) + Real-time Diffusion Transformer + Native Tensor Core Geometry Reconstruction + Dynamic Multi Frame Gen (DMFG).",
+    impact: "Replaces classical rasterization and pixel shaders with continuous neural representation synthesis. Delivers cinematic lighting, zero-aliasing materials, customizable aesthetic styles, and up to 6X-8X frame generation with temporal coherence.",
+  },
+];
+
+export interface DlssAestheticStyleItem {
+  id: string;
+  name: string;
+  subtitle: string;
+  description: string;
+  accentColor: string;
+  badge: string;
+}
+
+export const DLSS5_AESTHETIC_STYLES: DlssAestheticStyleItem[] = [
+  {
+    id: 'cinematic',
+    name: 'Cinematic Photorealism',
+    subtitle: 'Ground-Truth Lighting & Subsurface Scatters',
+    description: 'Physically grounded neural tone-mapping, filmic lens bloom, natural subsurface scattering, and studio color curves.',
+    accentColor: 'text-amber-400 border-amber-500/30 bg-amber-500/10',
+    badge: 'Reference Standard',
+  },
+  {
+    id: 'cyberpunk_neon',
+    name: 'Cyberpunk Neon',
+    subtitle: 'High Dynamic Color & Specular Lustre',
+    description: 'Amplified chromatic bloom, vivid neon spectral reflections, high-contrast darks, and wet surface specular flare.',
+    accentColor: 'text-cyan-400 border-cyan-500/30 bg-cyan-500/10',
+    badge: 'High Dynamic',
+  },
+  {
+    id: 'gritty_noir',
+    name: 'Gritty Noir',
+    subtitle: 'Hard Shadows & Cinematic Grain',
+    description: 'Deep black floor, high-contrast chiaroscuro lighting, desaturated shadows, and subtle 35mm neural film grain.',
+    accentColor: 'text-zinc-300 border-zinc-500/30 bg-zinc-500/10',
+    badge: 'Atmospheric',
+  },
+  {
+    id: 'vibrant_fantasy',
+    name: 'Vibrant Fantasy',
+    subtitle: 'Luminescent Flora & Volumetric Magic',
+    description: 'Warm ambient radiance, saturated environmental palettes, shimmering particle trails, and soft ethereal glows.',
+    accentColor: 'text-purple-400 border-purple-500/30 bg-purple-500/10',
+    badge: 'Luminous',
+  },
+  {
+    id: 'hyper_crisp',
+    name: 'Hyper-Crisp Studio',
+    subtitle: 'eSports Sharpness & Clinical Geometry',
+    description: 'Zero motion blur, clinical edge definition, maximized high-frequency texture clarity, and zero ghosting.',
+    accentColor: 'text-neon-green border-neon-green/30 bg-neon-green/10',
+    badge: 'Competitive Clarity',
+  },
+  {
+    id: 'painterly_anime',
+    name: 'Painterly Cel-Shaded',
+    subtitle: 'Toon Contour & Hand-Drawn Nuance',
+    description: 'Neural edge-preserving contour lines, smooth step-gradient shading, and rich primary color expression.',
+    accentColor: 'text-rose-400 border-rose-500/30 bg-rose-500/10',
+    badge: 'Stylized Art',
+  },
+];
+
+export interface DynamicMfgModeItem {
+  id: string;
+  name: string;
+  multiplier: string;
+  description: string;
+  latencyNote: string;
+}
+
+export const DYNAMIC_MFG_MODES: DynamicMfgModeItem[] = [
+  {
+    id: 'dynamic_adaptive',
+    name: 'Dynamic Adaptive (Refresh Rate Lock)',
+    multiplier: '1X - 6X Auto',
+    description: 'Dynamically scales AI frame generation up or down to strictly lock your display refresh rate without wasting GPU headroom.',
+    latencyNote: 'Optimized Frame Pacing · ~12ms latency',
+  },
+  {
+    id: 'dynamic_latency',
+    name: 'Dynamic Latency-First (Paced MFG)',
+    multiplier: '2X - 4X Paced',
+    description: 'Synchronizes frame generation with NVIDIA Reflex input sampling to guarantee minimal click-to-photon latency.',
+    latencyNote: 'Lowest Latency Mode · ~6ms - 9ms latency',
+  },
+  {
+    id: 'dynamic_extreme',
+    name: 'Dynamic Extreme Throughput (Max FPS)',
+    multiplier: 'Up to 6X Max',
+    description: 'Uncapped multi-frame synthesis pushing extreme FPS throughput for high-refresh 240Hz/360Hz monitors and flight simulators.',
+    latencyNote: 'Maximum AI Throughput · ~14ms latency',
+  },
+  {
+    id: 'fixed_2x',
+    name: 'Fixed 2X Multiplier',
+    multiplier: '2X Fixed',
+    description: 'Generates 1 AI frame for every 1 traditionally rendered frame. Baseline standard frame generation.',
+    latencyNote: 'Predictable Pacing · ~8ms latency',
+  },
+  {
+    id: 'fixed_3x',
+    name: 'Fixed 3X Multiplier',
+    multiplier: '3X Fixed',
+    description: 'Generates 2 AI frames per rendered frame. Ideal balance for RTX 50 Series GPUs.',
+    latencyNote: 'Smooth Fluidity · ~10ms latency',
+  },
+  {
+    id: 'fixed_4x',
+    name: 'Fixed 4X Multiplier',
+    multiplier: '4X Fixed',
+    description: 'Generates 3 AI frames per rendered frame. Quadruples visual motion smoothness.',
+    latencyNote: 'High Fluidity · ~12ms latency',
+  },
+  {
+    id: 'fixed_6x',
+    name: 'Fixed 6X Extreme Multiplier',
+    multiplier: '6X Fixed',
+    description: 'Generates 5 AI frames per rendered frame for unparalleled hyper-fluid motion on 360Hz+ displays.',
+    latencyNote: 'Extreme Multiplier · ~16ms latency',
+  },
+];
+
+export interface ResolutionPresetItem {
+  id: string;
+  name: string;
+  width: number;
+  height: number;
+  aspect: string;
+}
+
+export const TARGET_RESOLUTIONS: ResolutionPresetItem[] = [
+  { id: 'native', name: 'Match Display Native (Auto)', width: 0, height: 0, aspect: 'Auto' },
+  { id: '3840x2160', name: '3840 × 2160 (4K UHD)', width: 3840, height: 2160, aspect: '16:9' },
+  { id: '2560x1440', name: '2560 × 1440 (1440p QHD)', width: 2560, height: 1440, aspect: '16:9' },
+  { id: '1920x1080', name: '1920 × 1080 (1080p FHD)', width: 1920, height: 1080, aspect: '16:9' },
+  { id: '3440x1440', name: '3440 × 1440 (Ultrawide UWQHD)', width: 3440, height: 1440, aspect: '21:9' },
+  { id: '5120x1440', name: '5120 × 1440 (Dual QHD 32:9)', width: 5120, height: 1440, aspect: '32:9' },
+  { id: '7680x4320', name: '7680 × 4320 (8K Ultra HD)', width: 7680, height: 4320, aspect: '16:9' },
+];
+
+export interface NrInputScaleItem {
+  id: string;
+  name: string;
+  scalePercent: number;
+  scaleFraction: string;
+  description: string;
+}
+
+export const NR_INPUT_SCALE_OPTIONS: NrInputScaleItem[] = [
+  { id: 'ultra_performance', name: 'Ultra Performance', scalePercent: 33.33, scaleFraction: '1/3 Scale (1/9th Pixels)', description: 'Maximum speed. Best for 4K and 8K displays with ultra-fast neural synthesis.' },
+  { id: 'performance', name: 'Performance', scalePercent: 50.0, scaleFraction: '1/2 Scale (1/4th Pixels)', description: 'High framerates with clean micro-detail reconstruction.' },
+  { id: 'balanced', name: 'Balanced', scalePercent: 58.0, scaleFraction: '58% Scale (~1/3rd Pixels)', description: 'The golden ratio of rendering performance and reconstructed fidelity.' },
+  { id: 'quality', name: 'Quality', scalePercent: 66.67, scaleFraction: '2/3 Scale (~4/9ths Pixels)', description: 'Flawless native-like sharpness, rich texture resolution, and minimal reconstruction artifacts.' },
+  { id: 'dlaa', name: 'DLAA / Native NR', scalePercent: 100.0, scaleFraction: '100% Native Render Scale', description: 'Full resolution input buffer fed into the neural rendering model for unmatched visual perfection.' },
 ];
 
 export interface PresetDetail {
