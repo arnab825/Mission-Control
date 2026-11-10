@@ -3,6 +3,7 @@ Mission Control — Command Router Dispatcher
 Dispatches incoming WebSocket bridge commands to their respective domain handlers.
 """
 import logging
+import threading
 from core.config_loader import save_config
 from core.updater_bridge import handle_bridge_update_commands
 from handlers import chat_handler, game_handler, system_handler, agent_handler
