@@ -404,8 +404,8 @@ const ChatBubble: React.FC<{
               type="button"
               onClick={onToggleTTS}
               className={`absolute -right-9 top-2 p-1.5 rounded-lg opacity-0 group-hover:opacity-100 transition-all duration-200 border cursor-pointer ${isTTSEnabled
-                  ? 'bg-neon-green/10 border-neon-green/20 text-neon-green hover:bg-red-500/10 hover:border-red-500/30 hover:text-red-400'
-                  : 'bg-white/5 border-white/10 text-zinc-500 hover:bg-neon-green/10 hover:border-neon-green/30 hover:text-neon-green'
+                ? 'bg-neon-green/10 border-neon-green/20 text-neon-green hover:bg-red-500/10 hover:border-red-500/30 hover:text-red-400'
+                : 'bg-white/5 border-white/10 text-zinc-500 hover:bg-neon-green/10 hover:border-neon-green/30 hover:text-neon-green'
                 }`}
               title={isTTSEnabled ? 'Mute Text-to-Speech' : 'Enable Text-to-Speech'}
             >
@@ -637,7 +637,7 @@ const AgentPage: React.FC<{
         try {
           const raw = typeof window !== 'undefined' ? localStorage.getItem('mc_authenticated_user') : null;
           setCachedUserState(raw ? JSON.parse(raw) : null);
-        } catch (_) {}
+        } catch (_) { }
       };
       window.addEventListener('storage', handleAuthChange);
       window.addEventListener('mc-auth-state-changed', handleAuthChange);
@@ -1646,7 +1646,7 @@ const AgentPage: React.FC<{
         onCommand('get_chat_history', { sessionId: activeSessionId });
       }
       if (refreshStats) {
-        refreshStats().catch(() => {});
+        refreshStats().catch(() => { });
       }
       setTimeout(() => {
         setIsManualRefreshing(false);
@@ -1710,7 +1710,7 @@ const AgentPage: React.FC<{
         await navigator.clipboard.writeText(text);
         setShareCopied('clipboard');
         setTimeout(() => setShareCopied(null), 2500);
-      } catch (_) {}
+      } catch (_) { }
     }, [generateShareText, headline]);
 
     const handleShareToApp = useCallback(async (target: 'whatsapp' | 'telegram' | 'discord' | 'clipboard' | 'file') => {
@@ -1744,13 +1744,13 @@ const AgentPage: React.FC<{
           if ((window as any).electronAPI?.openExternal) {
             (window as any).electronAPI.openExternal('discord://');
           }
-        } catch (_) {}
+        } catch (_) { }
       } else if (target === 'clipboard') {
         try {
           await navigator.clipboard.writeText(plainText);
           setShareCopied('clipboard');
           setTimeout(() => setShareCopied(null), 2500);
-        } catch (_) {}
+        } catch (_) { }
       } else if (target === 'file') {
         try {
           const blob = new Blob([mdText], { type: 'text/markdown;charset=utf-8' });
@@ -1762,7 +1762,7 @@ const AgentPage: React.FC<{
           URL.revokeObjectURL(url);
           setShareCopied('file');
           setTimeout(() => setShareCopied(null), 2500);
-        } catch (_) {}
+        } catch (_) { }
       }
     }, [generateShareText, headline]);
 
@@ -1779,9 +1779,9 @@ const AgentPage: React.FC<{
               fixed top-10 bottom-0 left-0 z-50 flex flex-col bg-[#050505]/95 backdrop-blur-2xl lg:bg-[#050505]/40 border-r border-white/5 overflow-hidden
               transition-all duration-300 ease-in-out
               ${isHistoryOpen
-                  ? 'translate-x-0 w-full max-w-[280px] sm:w-64 lg:relative lg:top-0 lg:h-full lg:opacity-100 lg:pointer-events-auto'
-                  : '-translate-x-full w-0 lg:w-0 lg:opacity-0 lg:pointer-events-none lg:border-r-0'
-                }
+                ? 'translate-x-0 w-full max-w-[280px] sm:w-64 lg:relative lg:top-0 lg:h-full lg:opacity-100 lg:pointer-events-auto'
+                : '-translate-x-full w-0 lg:w-0 lg:opacity-0 lg:pointer-events-none lg:border-r-0'
+              }
             `}>
               <NeuralHistory
                 historyItems={historyItems}
@@ -1946,14 +1946,13 @@ const AgentPage: React.FC<{
                       {distributedStats.nodes.map(n => (
                         <span
                           key={n.node_id}
-                          className={`inline-flex items-center gap-1 px-1.5 py-0.5 rounded-full border text-[8.5px] font-black uppercase tracking-wider ${
-                            n.status === 'online'
+                          className={`inline-flex items-center gap-1 px-1.5 py-0.5 rounded-full border text-[8.5px] font-black uppercase tracking-wider ${n.status === 'online'
                               ? 'bg-emerald-500/10 text-emerald-400 border-emerald-500/25'
                               : 'bg-red-500/10 text-red-400 border-red-500/20 opacity-60'
-                          }`}
+                            }`}
                           title={`${n.name} (${n.status}) - ${formatBytes(n.storage_total || 0)}`}
                         >
-                          <span className={`w-1.5 h-1.5 rounded-full shrink-0 ${ n.status === 'online' ? 'bg-emerald-400 animate-pulse' : 'bg-red-400' }`} />
+                          <span className={`w-1.5 h-1.5 rounded-full shrink-0 ${n.status === 'online' ? 'bg-emerald-400 animate-pulse' : 'bg-red-400'}`} />
                           <span className="truncate max-w-[70px]">{n.name}</span>
                         </span>
                       ))}
@@ -2114,10 +2113,10 @@ const AgentPage: React.FC<{
           >
             <form onSubmit={handleSubmit} className="max-w-2xl mx-auto">
               <div className={`flex items-center gap-2 sm:gap-3 bg-white/3 border rounded-2xl ${isCompact ? 'p-0.5 pl-2' : 'p-1 pl-3 sm:p-1.5 sm:pl-5'} transition-all ${isDragOver
-                  ? 'border-neon-green/60 shadow-[0_0_24px_rgba(118, 185, 0,0.15)] bg-cyan-950/10'
-                  : isListening
-                    ? 'border-neon-green/30 shadow-[0_0_20px_rgba(118, 185, 0,0.06)]'
-                    : 'border-white/7 focus-within:border-neon-green/30'
+                ? 'border-neon-green/60 shadow-[0_0_24px_rgba(118, 185, 0,0.15)] bg-cyan-950/10'
+                : isListening
+                  ? 'border-neon-green/30 shadow-[0_0_20px_rgba(118, 185, 0,0.06)]'
+                  : 'border-white/7 focus-within:border-neon-green/30'
                 }`}>
                 <Terminal className={`${isCompact ? 'hidden' : 'hidden sm:block'} w-4 h-4 text-zinc-600 shrink-0`} />
                 {isDragOver ? (
@@ -2295,10 +2294,10 @@ const AgentPage: React.FC<{
                 {/* Title & Badge */}
                 <div className="relative text-center mb-3">
                   <div className={`w-10 h-10 rounded-xl mx-auto flex items-center justify-center border mb-2 transition-all duration-500 ${isGeneratingKeys
-                      ? 'bg-neon-green/5 border-neon-green/20 text-neon-green animate-pulse'
-                      : isPrivacyEnabled
-                        ? 'bg-neon-yellow/5 border-neon-yellow/20 text-neon-yellow shadow-[0_0_20px_rgba(191, 255, 0,0.15)] animate-bounce'
-                        : 'bg-red-500/5 border-red-500/25 text-red-400 shadow-[0_0_16px_rgba(239,68,68,0.12)]'
+                    ? 'bg-neon-green/5 border-neon-green/20 text-neon-green animate-pulse'
+                    : isPrivacyEnabled
+                      ? 'bg-neon-yellow/5 border-neon-yellow/20 text-neon-yellow shadow-[0_0_20px_rgba(191, 255, 0,0.15)] animate-bounce'
+                      : 'bg-red-500/5 border-red-500/25 text-red-400 shadow-[0_0_16px_rgba(239,68,68,0.12)]'
                     }`}>
                     <ShieldCheck className="w-5 h-5" />
                   </div>
@@ -2317,10 +2316,10 @@ const AgentPage: React.FC<{
                         <div
                           key={i}
                           className={`w-1 h-1 rounded-sm transition-all duration-300 ${isGeneratingKeys
-                              ? isFilled ? 'bg-neon-green' : 'bg-zinc-800'
-                              : isPrivacyEnabled
-                                ? isFilled ? 'bg-neon-yellow' : 'bg-zinc-800'
-                                : isFilled ? 'bg-red-500/60' : 'bg-zinc-800'
+                            ? isFilled ? 'bg-neon-green' : 'bg-zinc-800'
+                            : isPrivacyEnabled
+                              ? isFilled ? 'bg-neon-yellow' : 'bg-zinc-800'
+                              : isFilled ? 'bg-red-500/60' : 'bg-zinc-800'
                             }`}
                         />
                       );
@@ -2402,8 +2401,8 @@ const AgentPage: React.FC<{
                     <span className="text-[8px] font-black text-zinc-500 uppercase tracking-wider">Motherboard & Session Bindings</span>
                     {!isGeneratingKeys && (
                       <span className={`text-[7px] font-bold uppercase tracking-wider px-1.5 py-0.5 rounded-full border ${isPrivacyEnabled
-                          ? 'text-neon-yellow border-neon-yellow/20 bg-neon-yellow/5'
-                          : 'text-red-400 border-red-500/20 bg-red-500/5'
+                        ? 'text-neon-yellow border-neon-yellow/20 bg-neon-yellow/5'
+                        : 'text-red-400 border-red-500/20 bg-red-500/5'
                         }`}>
                         {isPrivacyEnabled ? '● Active' : '● Redacted'}
                       </span>
@@ -2414,10 +2413,10 @@ const AgentPage: React.FC<{
                       <div
                         key={i}
                         className={`py-1.5 px-0.5 text-center rounded-lg font-mono text-[9px] font-bold border transition-all duration-300 ${isGeneratingKeys
-                            ? 'bg-neon-green/2 border-neon-green/10 text-neon-green/70 scale-95 opacity-50'
-                            : isPrivacyEnabled
-                              ? 'bg-neon-yellow/2 border-neon-yellow/10 text-neon-yellow shadow-[inset_0_0_8px_rgba(191, 255, 0,0.02)] scale-100 opacity-100'
-                              : 'bg-red-500/2 border-red-500/10 text-red-500/40 scale-100 opacity-70 tracking-[0.3em]'
+                          ? 'bg-neon-green/2 border-neon-green/10 text-neon-green/70 scale-95 opacity-50'
+                          : isPrivacyEnabled
+                            ? 'bg-neon-yellow/2 border-neon-yellow/10 text-neon-yellow shadow-[inset_0_0_8px_rgba(191, 255, 0,0.02)] scale-100 opacity-100'
+                            : 'bg-red-500/2 border-red-500/10 text-red-500/40 scale-100 opacity-70 tracking-[0.3em]'
                           }`}
                       >
                         {isPrivacyEnabled ? key : '--'}
@@ -2435,8 +2434,8 @@ const AgentPage: React.FC<{
                 <button aria-label="button" type="button"
                   onClick={handleToggleEncryption}
                   className={`w-full py-2 px-3 rounded-xl border font-bold text-[10px] uppercase tracking-widest transition-all active:scale-95 flex items-center justify-center gap-2 cursor-pointer ${isPrivacyEnabled
-                      ? 'bg-neon-yellow/10 border-neon-yellow/20 text-neon-yellow hover:bg-neon-yellow/15 hover:border-neon-yellow/30 shadow-[0_0_12px_rgba(191, 255, 0,0.1)]'
-                      : 'bg-red-500/10 border-red-500/25 text-red-400 hover:bg-red-500/15 hover:border-red-500/35 shadow-[0_0_14px_rgba(239,68,68,0.12)]'
+                    ? 'bg-neon-yellow/10 border-neon-yellow/20 text-neon-yellow hover:bg-neon-yellow/15 hover:border-neon-yellow/30 shadow-[0_0_12px_rgba(191, 255, 0,0.1)]'
+                    : 'bg-red-500/10 border-red-500/25 text-red-400 hover:bg-red-500/15 hover:border-red-500/35 shadow-[0_0_14px_rgba(239,68,68,0.12)]'
                     }`}
                 >
                   {isPrivacyEnabled ? (

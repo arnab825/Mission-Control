@@ -1,8 +1,21 @@
 {
-  "version": "3.8.10",
-  "release_date": "2026-11-09",
+  "version": "3.9.0",
+  "release_date": "2026-11-10",
   "update_check_url": "https://raw.githubusercontent.com/arnab825/Mission-Control/main/Gaming/backend/version.json",
   "changelog": [
+    {
+      "version": "3.9.0",
+      "date": "2026-11-10",
+      "title": "DLSS 5.0 Neural Studio, ROM Scanner Guidance & E2EE Verification UX",
+      "highlights": [
+        "Added NVIDIA DLSS 5.0 Neural Studio with neural rendering aesthetic styles, intensity fine-tuning, and dynamic multi-frame generation modes",
+        "Enhanced Emulators & ROMs Hub with smart empty-state redirection and missing ROM directory configuration guidance",
+        "Fixed session-bound game library synchronization ensuring emulated titles merge cleanly into authenticated user profiles",
+        "Redesigned Verify Encryption (E2EE) modal layout: removed redundant account sync card and eliminated scanner text collision bugs",
+        "Fixed Identity & Authentication Gateway switching to properly sync provider-specific handles and avatars across the sidebar and settings",
+        "Resolved backend threading import exception in command router during async user account synchronization"
+      ]
+    },
     {
       "version": "3.8.10",
       "date": "2026-11-09",
