@@ -85,14 +85,15 @@ def sync():
         shutil.copy2(VERSION_FILE, website_ver_json)
         print(" -> website/version.json synchronized")
 
+    docs_dir = os.path.join(BASE_DIR, "docs")
     website_docs_dir = os.path.join(BASE_DIR, "website", "docs")
-    if os.path.exists(website_docs_dir):
-        for doc in ["SUMMARY.md", "changes_summary.md", "patchesfile.md", "emulation_and_roms.md"]:
-            src = os.path.join(BASE_DIR, "docs", doc)
-            dst = os.path.join(website_docs_dir, doc)
-            if os.path.exists(src):
+    if os.path.exists(website_docs_dir) and os.path.exists(docs_dir):
+        for fname in os.listdir(docs_dir):
+            if fname.endswith(".md"):
+                src = os.path.join(docs_dir, fname)
+                dst = os.path.join(website_docs_dir, fname)
                 shutil.copy2(src, dst)
-        print(" -> website/docs synchronized")
+        print(" -> website/docs synchronized (all markdown files)")
 
     # 6. Winget Manifests
     winget_dir = os.path.join(BASE_DIR, "winget")

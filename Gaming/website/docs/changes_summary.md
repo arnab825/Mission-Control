@@ -10,7 +10,37 @@ excerpt: "Curated breakdown of major version releases, architectural milestones,
 
 Comprehensive breakdown of major milestone releases, architectural upgrades, and core engine enhancements in **Mission Control**.
 
-## 🌟 Version v3.8.10 (Latest) — Cross-Platform Emulation Engine & ROM Library Orchestration
+## 🌟 Version v3.9.0 (Latest) — DLSS 5.0 Neural Studio, ROM Scanner Guidance & E2EE Verification UX
+
+### 🛠️ Key Highlights
+1. **NVIDIA DLSS 5.0 Neural Studio**: Introduced an in-depth Settings panel featuring real-time neural rendering controls, target resolution input preparation, and neural shader parameter orchestration.
+2. **Neural Rendering Aesthetic Styles**: 5 switchable neural lighting and aesthetic presets (Cinematic Photoreal, Cyberpunk Hyper-Neon, Ethereal Atmospheric, Gritty Tactical High-Contrast, and Anime Cell-Shaded) with live HUD feedback.
+3. **Fine-Tuning Intensity Sliders**: Added precision sliders for Global Style Weight (0–100%), Neural Denoiser Aggressiveness, Material Specular Sharpness, and Temporal Coherence Bias.
+4. **Dynamic Multi Frame Generation (Dynamic MFG)**: 5 frame pacing modes: Adaptive Dynamic (AI-governed pacing), 2x Balanced, 3x Performance, 4x Ultra Performance, and 6x Hyper Scaling.
+5. **ROM Scanner Guidance & Smart Redirection**: When clicking "Scan ROMs" with zero configured directories, Mission Control automatically navigates to the ROM Folders tab with an actionable warning banner instead of failing silently.
+6. **Authenticated Session Library Merging**: Fixed session propagation so that emulated console titles persist across authenticated user accounts (`userId`) rather than defaulting to local guest sessions.
+7. **E2EE Handshake Verification Overhaul**: Eliminated text smearing collisions in the holographic matrix scanner, relocated node identity and state link into a dedicated hardware telemetry pill, and removed out-of-place account sync cards.
+8. **Identity Gateway Switching Fix**: Fixed provider account switching so that Discord handles and Google display names accurately propagate across Sidebar, Settings, and Account Switcher.
+9. **Backend Asynchronous Threading Fix**: Resolved `NameError: name 'threading' is not defined` in `command_router.py` during async account replication.
+
+### 📊 Architecture & Data Flow
+```mermaid
+graph TD
+    A["DLSS 5 Neural Studio (Settings)"] --> B["Neural Style & MFG Mode Selector"]
+    B --> C["Parameter Normalizer (Weight / Denoiser / Sharpness)"]
+    C --> D["DirectX 12 Neural Shader Pipeline Hook"]
+    D --> E["Real-Time Live Pilot HUD Simulation"]
+    F["ROM Scanner & Emulator Matrix"] --> G["User Session Resolver (Auth UID / Guest)"]
+    G --> H["Persistent Library Cache & Game Intelligence"]
+```
+
+### 📦 Distribution Artifacts
+- **Linux**: `.deb` (Debian/Ubuntu), `.AppImage` (Universal), `.tar.gz` (Standalone Archive)
+- **Windows**: `.exe` (Setup Installer), `.msi` (Enterprise MSI), `.zip` (Portable Archive)
+
+---
+
+## 📦 Version v3.8.10 — Cross-Platform Emulation Engine & ROM Library Orchestration
 
 ### 🛠️ Key Highlights
 1. **Cross-Platform Emulator Discovery**: Auto-detects 17+ standalone emulators (RPCS3, PCSX2, DuckStation, Dolphin, Cemu, Ryujinx, Lime3DS, melonDS, mGBA, Snes9x, Mupen64Plus, Xenia, Xemu, Flycast, Vita3K) and RetroArch libretro cores across standard Windows and Linux directories.

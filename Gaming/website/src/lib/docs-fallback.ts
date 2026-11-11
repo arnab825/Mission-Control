@@ -90,6 +90,45 @@ Mission Control unifies retro and console games directly alongside PC titles:
 - **Multi-Disc Merging:** Aggregates multi-disc games into single library cards with interactive disc selection.
 - **Direct CLI Argument Forwarding:** Automatically builds emulator-specific CLI parameters and passes ROM paths upon launch.
 - **Emulators Hub Modal:** Manage binary overrides, configure custom ROM directories, and test-launch emulators directly from the UI.
+- **Smart Directory Validation (v3.9.0):** Automatic tab redirection with actionable warnings when zero directories are configured.
+- **Multi-User Library Isolation (v3.9.0):** Persists discovered ROMs directly to the active authenticated profile session.
+`,
+  },
+  {
+    slug: "dlss_guide",
+    title: "The Evolution of NVIDIA DLSS & DLSS 5.0 Neural Studio",
+    category: "Integrations",
+    excerpt:
+      "Comprehensive breakdown of NVIDIA Deep Learning Super Sampling evolution — from DLSS 1 upscaling to DLSS 5.0 Neural Studio with aesthetic styling and dynamic MFG.",
+    badge: "NVIDIA Architecture",
+    badgeColor: "text-neon-green",
+    content: `# ⚡ The Evolution of NVIDIA DLSS & DLSS 5.0 Neural Studio
+
+NVIDIA Deep Learning Super Sampling (DLSS) is a revolutionary suite of neural rendering technologies powered by dedicated hardware Tensor Cores on GeForce RTX GPUs.
+
+## 🌟 DLSS 5.0 Neural Studio (v3.9.0)
+- **Neural Rendering Aesthetic Styles:** 5 switchable neural style models (Cinematic Photoreal, Cyberpunk Hyper-Neon, Ethereal Atmospheric, Gritty Tactical High-Contrast, and Anime Cell-Shaded).
+- **Fine-Tuning Intensity Controls:** Precision sliders for Global Style Weight (0–100%), Neural Denoiser Aggressiveness, Material Specular Sharpness, and Temporal Coherence Bias.
+- **Dynamic Multi Frame Generation (Dynamic MFG):** 5 frame pacing modes: Adaptive Dynamic (AI-governed), 2x Balanced, 3x Performance, 4x Ultra Performance, and 6x Hyper Scaling.
+- **Target Resolution Input Preparation:** Pre-scales frame inputs to 1080p, 1440p, 4K UHD, 8K Ultra, or custom resolutions.
+`,
+  },
+  {
+    slug: "changes_summary",
+    title: "Recent Updates & Major Releases",
+    category: "Overview",
+    excerpt:
+      "Curated breakdown of major version releases, architectural milestones, and core engine enhancements in Mission Control.",
+    badge: "Changelog",
+    badgeColor: "text-neon-green",
+    content: `# 🚀 Major Updates & Release History
+
+## 🌟 Version v3.9.0 (Latest) — DLSS 5.0 Neural Studio, ROM Scanner Guidance & E2EE Verification UX
+- **DLSS 5.0 Neural Studio:** Real-time neural rendering controls, aesthetic style presets, intensity fine-tuning sliders, and dynamic MFG modes.
+- **ROM Scanner Guidance:** Proactive tab redirection with actionable warning banners when zero folders are configured.
+- **Multi-User Library Isolation:** Authenticated user session persistence ensuring emulated titles merge cleanly.
+- **E2EE Handshake Verification Overhaul:** Removed redundant account card, fixed scanner box overlay text collision, and relocated telemetry into dedicated pill.
+- **Identity Gateway Switching Fix:** Correct provider handle and avatar propagation across sidebar, settings, and switcher.
 `,
   },
   {

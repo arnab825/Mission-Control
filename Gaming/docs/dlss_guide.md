@@ -85,9 +85,48 @@ excerpt: "A comprehensive technical breakdown of NVIDIA Deep Learning Super Samp
 
 ---
 
-## 6. DLSS 5.0 — Neural Rendering (Fall 2026)
+## 6. DLSS 5.0 — Neural Rendering & Neural Studio (v3.9.0)
 
-**What Changed**: Moves beyond frame upscaling and reconstruction to full real-time **Neural Material & Light Rendering**.
-* **Core Technology**: Neural graphics pipeline integrated directly into ray tracing shaders.
-* **Target Milestone**: Synthesizes photorealistic lighting, reflections, atmospheric scattering, and complex surface materials directly in real-time at cinematic quality.
-* **Mission Control Integration**: Includes preliminary telemetry support and profile tracking for early DLSS 5 neural shaders.
+**What Changed**: Moves beyond frame upscaling and reconstruction to full real-time **Neural Material & Light Rendering**, paired with the interactive **DLSS 5.0 Neural Studio** in Mission Control.
+* **Core Technology**: Neural graphics pipeline integrated directly into ray tracing shaders and hardware Tensor Cores.
+* **Photorealistic Synthesis**: Replaces traditional texture filtering and raster micro-detail pipelines with deep neural material models, synthesizing surface micro-geometry, volumetric scattering, subsurface subsurface scattering, and specular bounce paths in a single neural pass.
+
+---
+
+### 🎨 DLSS 5.0 Neural Rendering Aesthetic Styles
+Mission Control provides 5 tailored neural style grades that bias the shader reconstruction models in real-time:
+
+1. **Cinematic Photoreal**: Natural color temperature, physically accurate indirect diffuse bounces, and high dynamic range tonemapping.
+2. **Cyberpunk Hyper-Neon**: Vibrant specular emission, heightened chromatic dispersion, and high-contrast ambient bloom.
+3. **Ethereal Atmospheric**: Soft volumetric haze, diffused godrays, and subtle bloom across high-luminance surfaces.
+4. **Gritty Tactical High-Contrast**: Deep shadows, sharpened ambient occlusion crevices, and desaturated midtones optimized for competitive target acquisition.
+5. **Anime Cell-Shaded**: Sharp neural edge delineation, quantized color banding, and stylized specular highlights.
+
+---
+
+### 🎛️ Fine-Tuning Intensity Sliders
+Fine-tune the neural reconstruction pipeline with precision controls in **Settings → DLSS 5.0 Neural Studio**:
+- **Global Style Weight (0–100%)**: Scales the influence of the selected aesthetic style model against standard baseline rendering.
+- **Neural Denoiser Aggressiveness**: Controls spatial-temporal filtering strength across ray-traced noisy regions.
+- **Material Specular Sharpness**: Modulates microfacet normal variance for specular reflections and glossy highlights.
+- **Temporal Coherence Bias**: Balances between temporal stability (zero shimmering) and sub-pixel motion responsiveness.
+
+---
+
+### ⚡ Dynamic Multi Frame Generation (Dynamic MFG)
+DLSS 5.0 in Mission Control features 5 dynamic frame generation modes:
+- **Adaptive Dynamic (AI-Governed)**: Dynamically scales multiplier between 2x and 6x based on motion complexity and display refresh rate.
+- **2x Balanced**: 1 generated frame per rendered frame with standard latency profile.
+- **3x Performance**: 2 generated frames per rendered frame.
+- **4x Ultra Performance**: 3 generated frames per rendered frame.
+- **6x Hyper Scaling**: 5 generated frames per rendered frame, designed for ultra-high refresh rate displays (240Hz–540Hz).
+
+---
+
+### 🖥️ Target Resolution & Input Preparation (`prepare_nr_input`)
+Pre-processes frame buffers prior to neural reconstruction to maximize tensor throughput:
+- **Available Targets**: 1080p, 1440p, 4K UHD, 8K Ultra, and Custom aspect ratio constraints.
+- **Advanced Engine Toggles**:
+  - *Neural Texture Streaming*: Streams compressed neural weight slices to VRAM on demand.
+  - *Hardware Telemetry Hook*: Direct NVML/TensorRT sampling for real-time inference latency reporting.
+  - *Asynchronous Optical Flow Queue*: Dispatches vector generation to dedicated hardware queues to prevent compute pipeline stalls.

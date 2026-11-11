@@ -59,14 +59,12 @@ flowchart TD
 ## 2. Complete Chronological Changelog & Key Fixes
 
 ### Fix 1: Supabase MCP Configuration Clean-Up
-
 - **Issue:** Unauthorized MCP server definitions in `mcp_config.json` were throwing authentication popups and permission errors.
 - **Resolution:** Removed conflicting MCP keys from both global `C:\Users\DELL\.gemini\config\mcp_config.json` and workspace `.agents/mcp_config.json`, restoring normal CLI and IDE operation.
 
 ---
 
 ### Fix 2: Autonomous Server Watchdog & Self-Healing Agent
-
 - **File:** [`Gaming/distributed_server/server_watchdog_agent.py`](file:///e:/AiAssistant/Gaming/distributed_server/server_watchdog_agent.py)
 - **Features Added:**
   - Standalone monitoring daemon that checks all cluster microservice ports (`:8800`, `:8811`, `:8821`, `:8831`, `:8841`, `:8851`).
@@ -75,7 +73,6 @@ flowchart TD
 ---
 
 ### Fix 3: Differentiated Portrait Box Art vs. Landscape Hero Banners
-
 - **Issue:** Previously, vertical card covers and wide horizontal hero banners were identical 460x215 header thumbnails.
 - **Resolution:**
   - **Cover URL (`cover_url`):** Upgraded to vertical High-Definition Portrait Box Art (`library_600x900_2x.jpg`).
@@ -85,7 +82,6 @@ flowchart TD
 ---
 
 ### Fix 4: Linux & Steam Deck Platform Support
-
 - **Issue:** Platform arrays were defaulting strictly to `["Windows"]`, missing Linux and Steam Deck compatibility.
 - **Resolution:**
   - Updated all schema builders, database models, and harvesters to default to `["Windows", "Linux"]` (and `["Windows", "Linux", "Xbox"]` for cross-play titles).
@@ -94,7 +90,6 @@ flowchart TD
 ---
 
 ### Fix 5: Quad-Storefront Harvester & Dynamic Store Aggregation
-
 - **Integrated Stores:**
   1. **Valve Steam Store:** Akamai CDN assets, top charts, genre categories, and featured promotions.
   2. **GOG Galaxy:** DRM-free store catalog, bestselling pages, and classic PC games.
@@ -104,17 +99,15 @@ flowchart TD
 ---
 
 ### Fix 6: Storefront Exclusivity & Multi-Store Detection Engine
-
 - **Logic:** Implemented in `_detect_exclusivity()` within [`game_harvester.py`](file:///e:/AiAssistant/Gaming/distributed_server/game_harvester.py):
-  - **Epic Exclusive:** E.g. _Alan Wake 2_, _Fortnite_ $\rightarrow$ `['Epic Games']`
-  - **Steam Exclusive:** E.g. _Half-Life: Alyx_, _Portal 2_ $\rightarrow$ `['Steam']`
-  - **Xbox & PC Game Pass:** E.g. _Halo Infinite_, _Forza Horizon 5_, _Avowed_ $\rightarrow$ `['Steam', 'Xbox', 'PC Game Pass']`
-  - **Multi-Store PC Releases:** E.g. _Cyberpunk 2077_, _The Witcher 3_, _Control_ $\rightarrow$ `['Steam', 'Epic Games', 'GOG Galaxy']`
+  - **Epic Exclusive:** E.g. *Alan Wake 2*, *Fortnite* $\rightarrow$ `['Epic Games']`
+  - **Steam Exclusive:** E.g. *Half-Life: Alyx*, *Portal 2* $\rightarrow$ `['Steam']`
+  - **Xbox & PC Game Pass:** E.g. *Halo Infinite*, *Forza Horizon 5*, *Avowed* $\rightarrow$ `['Steam', 'Xbox', 'PC Game Pass']`
+  - **Multi-Store PC Releases:** E.g. *Cyberpunk 2077*, *The Witcher 3*, *Control* $\rightarrow$ `['Steam', 'Epic Games', 'GOG Galaxy']`
 
 ---
 
 ### Fix 7: Dedicated `launchers TEXT[]` Column & Schema Migration
-
 - **Issue:** Store availability was previously buried in JSON metadata or unstructured raw tags.
 - **Resolution:**
   - Added dedicated `launchers TEXT[]` column to `canonical_games` in Supabase.
@@ -123,7 +116,6 @@ flowchart TD
 ---
 
 ### Fix 8: Automated Release Date Healer
-
 - **File:** [`Gaming/distributed_server/heal_release_dates.py`](file:///e:/AiAssistant/Gaming/distributed_server/heal_release_dates.py)
 - **Resolution:**
   - Discovered that initial chart indexing feeds did not populate release dates.
@@ -133,7 +125,6 @@ flowchart TD
 ---
 
 ### Fix 9: Non-Blocking Sub-100ms Search Optimization
-
 - **Issue:** Synchronous AI LLM calls during live search queries caused 5–10 second latency and gateway timeouts.
 - **Resolution:**
   - Decoupled synchronous LLM calls from user-facing search endpoints.
@@ -142,7 +133,6 @@ flowchart TD
 ---
 
 ### Fix 10: 24/7 Multi-Threaded Infinite Crawler & Lifespan Auto-Boot
-
 - **Files:** [`Gaming/distributed_server/crawler_service.py`](file:///e:/AiAssistant/Gaming/distributed_server/crawler_service.py) & [`server.py`](file:///e:/AiAssistant/Gaming/distributed_server/server.py)
 - **Architecture (6 Concurrent Threads & Dual Watchdog):**
   1. `SteamCrawlerThread`: Unlimited page-by-page streaming across all 100,000+ Steam titles.
@@ -157,7 +147,6 @@ flowchart TD
 ---
 
 ### Fix 11: End-to-End User Load Balancing & Reverse Proxy Routing
-
 - **File:** [`Gaming/distributed_server/load_balancer.py`](file:///e:/AiAssistant/Gaming/distributed_server/load_balancer.py) on Port **`:8800`**
 - **Architecture:**
   - Acts as the single entry gateway for all user clients (Website & Electron Desktop App).
@@ -167,7 +156,6 @@ flowchart TD
 ---
 
 ### Fix 12: High-Availability Multi-Tier Database Architecture & Zero-Downtime Local Fallback
-
 - **File:** [`Gaming/distributed_server/db.py`](file:///e:/AiAssistant/Gaming/distributed_server/db.py)
 - **Architecture (3-Tier Auto-Failover Cascade):**
   1. **Tier 1 (Primary Cloud Postgres):** Connects to primary Supabase instance (`DATABASE_URL`).
@@ -179,7 +167,6 @@ flowchart TD
 ---
 
 ### Fix 13: UptimeRobot Keep-Alive & Root Endpoint Welcome Support
-
 - **Files:** [`Gaming/distributed_server/server.py`](file:///e:/AiAssistant/Gaming/distributed_server/server.py) & [`load_balancer.py`](file:///e:/AiAssistant/Gaming/distributed_server/load_balancer.py)
 - **Features Implemented:**
   - Registered `@app.get("/")` and `@app.head("/")` welcome endpoints so opening root domains displays active service discovery rather than `404 Not Found`.
@@ -189,7 +176,6 @@ flowchart TD
 ---
 
 ### Fix 14: Real-Time Node Presence & Differential Library Sync Engine
-
 - **Files:** [`Gaming/backend/handlers/game_handler.py`](file:///e:/AiAssistant/Gaming/backend/handlers/game_handler.py) & [`Gaming/distributed_node/node_service.py`](file:///e:/AiAssistant/Gaming/distributed_node/node_service.py)
 - **Problem:** Opening the desktop app left node status as `offline` in Supabase, and game changes (installations, title updates, uninstalls) were not reflected in real-time.
 - **Resolution:**
@@ -200,7 +186,6 @@ flowchart TD
 ---
 
 ### Fix 15: Zero-NULL Database Ingestion & Multi-CDN Image Fallbacks
-
 - **File:** [`Gaming/backend/system/db_manager.py`](file:///e:/AiAssistant/Gaming/backend/system/db_manager.py)
 - **Problem:** Scanned games lacking explicit store metadata produced `NULL` values in the `source` and `local_banner` columns in Supabase.
 - **Resolution:**
@@ -210,7 +195,6 @@ flowchart TD
 ---
 
 ### Fix 16: Automated Store Hint Classification for Node Scan Paths
-
 - **Files:** [`Gaming/distributed_server/db.py`](file:///e:/AiAssistant/Gaming/distributed_server/db.py) & [`Gaming/distributed_node/node_service.py`](file:///e:/AiAssistant/Gaming/distributed_node/node_service.py)
 - **Problem:** When scan paths were registered in Supabase `node_scan_paths`, the `store_hint` column remained `NULL`.
 - **Resolution:**
@@ -221,52 +205,27 @@ flowchart TD
 
 ## 3. Real-Time Production Database Statistics
 
-| Metric                               |      Initial State      |                   Current Live Production State                    |
-| :----------------------------------- | :---------------------: | :----------------------------------------------------------------: |
-| **Total Games in `canonical_games`** |         `2,066`         |                        **`13,500+` Titles**                        |
-| **Total AI Classified Games**        |         `1,497`         |          **`10,500+` Titles (and actively classifying)**           |
-| **Active Storefronts**               |       Steam only        |       **Steam, Epic Games, GOG Galaxy, Xbox / PC Game Pass**       |
-| **Platform Compatibility**           |      Windows only       |                **Windows, Linux, Steam Deck, Xbox**                |
-| **Search Response Latency**          |   ~5,000ms (blocking)   |                **< 100ms (instant load-balanced)**                 |
-| **Crawler Resilience**               | Manual Restart Required |      **Embedded Lifespan Auto-Boot + 5s Supervisor Watchdog**      |
-| **Database Uptime & Failover**       |  Single Postgres Host   | **3-Tier Cascade (Supabase + Hot Standby + Local SQLite Replica)** |
-| **Service Availability**             |     Single Process      |       **5-Tier High-Availability Cluster with Auto-Healer**        |
+| Metric | Initial State | Current Live Production State |
+| :--- | :---: | :---: |
+| **Total Games in `canonical_games`** | `2,066` | **`13,500+` Titles** |
+| **Total AI Classified Games** | `1,497` | **`10,500+` Titles (and actively classifying)** |
+| **Active Storefronts** | Steam only | **Steam, Epic Games, GOG Galaxy, Xbox / PC Game Pass** |
+| **Platform Compatibility** | Windows only | **Windows, Linux, Steam Deck, Xbox** |
+| **Search Response Latency** | ~5,000ms (blocking) | **< 100ms (instant load-balanced)** |
+| **Crawler Resilience** | Manual Restart Required | **Embedded Lifespan Auto-Boot + 5s Supervisor Watchdog** |
+| **Database Uptime & Failover** | Single Postgres Host | **3-Tier Cascade (Supabase + Hot Standby + Local SQLite Replica)** |
+| **Service Availability** | Single Process | **5-Tier High-Availability Cluster with Auto-Healer** |
 
 ---
 
 ## 4. Microservice Port Matrix
 
-| Service Name                        |         Port          | Description                                                 |
-| :---------------------------------- | :-------------------: | :---------------------------------------------------------- |
-| **Load Balancer Gateway**           |      **`:8800`**      | Unified user gateway & reverse proxy with instant failover. |
-| **Catalog Discovery Service**       | **`:8811` / `:8812`** | Fast game discovery, search, and seeding pool.              |
-| **User Library / Node Sync**        | **`:8821` / `:8822`** | Node detection, storage stats, and game installations pool. |
-| **AI Metadata Enricher**            |      **`:8831`**      | Dedicated LLM feature & summary generator.                  |
-| **Multi-Launcher Store Healer**     |      **`:8841`**      | Cross-store exclusivity & multi-store aggregation.          |
-| **Infinite Crawler & AI Harvester** |      **`:8851`**      | 24/7 6-thread quad-store ingestion & classifier daemon.     |
-
----
-
-## 5. Cloudflare Workers Edge Deployment & Subdomain Architecture
-
-The web platform is deployed on **Cloudflare Workers** utilizing **OpenNext (`@opennextjs/cloudflare`)** for high-concurrency, low-latency edge serving.
-
-### Edge Domains & Subdomain Routing
-
-```mermaid
-flowchart LR
-    EdgeDNS["Cloudflare Edge Anycast DNS"] --> Worker["mission-control Cloudflare Worker\n(.open-next/worker.js)"]
-    EdgeDNS --> ReleaseProxy["Edge Release Proxy\n(cf-worker-release-proxy.js)"]
-
-    Worker --> Route1["mission-control.rarnab225.workers.dev (Default Worker URL)"]
-    Worker --> Route2["missioncontrol.<domain>.com (Primary Hub)"]
-    Worker --> Route3["api.<domain>.com (Edge REST & Telemetry APIs)"]
-    Worker --> Route4["docs.<domain>.com (Interactive Docs Station)"]
-    ReleaseProxy --> Route5["release.<domain>.com (MS Store Zero-Redirect Direct Download)"]
-```
-
-- **OpenNext Runtime**: Compiles Next.js 16 App Router into an edge worker bundle with `nodejs_compat` enabled and static assets routed through Cloudflare's `.open-next/assets` KV/Asset Handler binding.
-- **Subdomain Routing**: Supports unified multi-subdomain routing where the edge worker inspects host headers and routes to corresponding Next.js routes (`/api/*`, `/docs/*`, `/benchmarks/*`).
-- **Edge Binary Streaming**: Custom worker edge proxy ensures Microsoft Store binary streaming without 302 redirects.
-- **Documentation Guide**: Full operational details are available in [`docs/CLOUDFLARE_DEPLOYMENT.md`](file:///e:/AiAssistant/Gaming/website/docs/CLOUDFLARE_DEPLOYMENT.md).
+| Service Name | Port | Description |
+| :--- | :---: | :--- |
+| **Load Balancer Gateway** | **`:8800`** | Unified user gateway & reverse proxy with instant failover. |
+| **Catalog Discovery Service** | **`:8811` / `:8812`** | Fast game discovery, search, and seeding pool. |
+| **User Library / Node Sync** | **`:8821` / `:8822`** | Node detection, storage stats, and game installations pool. |
+| **AI Metadata Enricher** | **`:8831`** | Dedicated LLM feature & summary generator. |
+| **Multi-Launcher Store Healer** | **`:8841`** | Cross-store exclusivity & multi-store aggregation. |
+| **Infinite Crawler & AI Harvester**| **`:8851`** | 24/7 6-thread quad-store ingestion & classifier daemon. |
 

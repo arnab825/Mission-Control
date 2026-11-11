@@ -8,10 +8,10 @@ excerpt: "A comprehensive technical breakdown of NVIDIA Deep Learning Super Samp
 
 # The Evolution of NVIDIA DLSS
 
-_From AI-Powered Upscaling to Full-Pipeline Neural Rendering_
+*From AI-Powered Upscaling to Full-Pipeline Neural Rendering*
 
-|          🔬 **Performance Tuning Lab**           |            ⚡ **AI Hardware Readiness Matrix**            |
-| :----------------------------------------------: | :-------------------------------------------------------: |
+| 🔬 **Performance Tuning Lab** | ⚡ **AI Hardware Readiness Matrix** |
+| :---: | :---: |
 | ![Performance Tuning Lab](/screenshots/lab.webp) | ![Hardware Readiness Matrix](/screenshots/readiness.webp) |
 
 > [!NOTE]
@@ -21,34 +21,32 @@ _From AI-Powered Upscaling to Full-Pipeline Neural Rendering_
 
 ## DLSS Architectural Matrix
 
-| Generation   | Introduced Tech                | Primary Tensor Hardware       | Max Frame Multiplier | Ray Tracing AI Denoiser        | Target GPUs              |
-| :----------- | :----------------------------- | :---------------------------- | :------------------- | :----------------------------- | :----------------------- |
-| **DLSS 1.0** | Per-Game Super Sampling        | 1st-Gen Tensor Cores          | 1.0x (Standard)      | Hand-tuned Denoisers           | RTX 20 Series            |
-| **DLSS 2.0** | Universal Super Resolution     | 2nd/3rd-Gen Tensor Cores      | 1.0x (Standard)      | Hand-tuned Denoisers           | RTX 20 / 30 Series       |
-| **DLSS 3.0** | AI Frame Generation            | Optical Flow + 4th-Gen Tensor | **2.0x**             | Hand-tuned Denoisers           | RTX 40 Series            |
-| **DLSS 3.5** | Ray Reconstruction (RR)        | 4th-Gen Tensor Cores          | 2.0x                 | **AI Ray Reconstruction**      | RTX 20 / 30 / 40 Series  |
-| **DLSS 4.0** | Multi Frame Generation (MFG)   | Transformer + 5th-Gen Tensor  | **4.0x**             | AI Ray Reconstruction          | RTX 50 Series            |
-| **DLSS 4.5** | Dynamic Multi Frame Gen        | 2nd-Gen Transformer Super Res | **6.0x**             | AI Ray Reconstruction          | RTX 50 Series            |
-| **DLSS 5.0** | Full Neural Rendering Pipeline | Neural Rendering Engine       | **Native Neural**    | Full Neural Material Synthesis | Next-Gen RTX (Fall 2026) |
+| Generation | Introduced Tech | Primary Tensor Hardware | Max Frame Multiplier | Ray Tracing AI Denoiser | Target GPUs |
+| :--- | :--- | :--- | :--- | :--- | :--- |
+| **DLSS 1.0** | Per-Game Super Sampling | 1st-Gen Tensor Cores | 1.0x (Standard) | Hand-tuned Denoisers | RTX 20 Series |
+| **DLSS 2.0** | Universal Super Resolution | 2nd/3rd-Gen Tensor Cores | 1.0x (Standard) | Hand-tuned Denoisers | RTX 20 / 30 Series |
+| **DLSS 3.0** | AI Frame Generation | Optical Flow + 4th-Gen Tensor | **2.0x** | Hand-tuned Denoisers | RTX 40 Series |
+| **DLSS 3.5** | Ray Reconstruction (RR) | 4th-Gen Tensor Cores | 2.0x | **AI Ray Reconstruction** | RTX 20 / 30 / 40 Series |
+| **DLSS 4.0** | Multi Frame Generation (MFG) | Transformer + 5th-Gen Tensor | **4.0x** | AI Ray Reconstruction | RTX 50 Series |
+| **DLSS 4.5** | Dynamic Multi Frame Gen | 2nd-Gen Transformer Super Res | **6.0x** | AI Ray Reconstruction | RTX 50 Series |
+| **DLSS 5.0** | Full Neural Rendering Pipeline | Neural Rendering Engine | **Native Neural** | Full Neural Material Synthesis | Next-Gen RTX (Fall 2026) |
 
 ---
 
 ## 1. DLSS 1.0 — AI Super Sampling (2018)
 
 **What Changed**: Introduced deep-learning frame reconstruction using game-specific AI supercomputer training.
-
-- **Core Technology**: 1st-Gen Tensor Cores on Turing architecture (`RTX 2080 Ti`, `RTX 2080`, `RTX 2070`).
-- **Architectural Flow**: Lower-resolution frames (e.g. 1080p) were processed through a trained neural network running on Tensor Cores to reconstruct a 1440p or 4K output frame.
-- **Impact**: Proved that AI hardware acceleration could increase rendering performance without degrading image fidelity.
+* **Core Technology**: 1st-Gen Tensor Cores on Turing architecture (`RTX 2080 Ti`, `RTX 2080`, `RTX 2070`).
+* **Architectural Flow**: Lower-resolution frames (e.g. 1080p) were processed through a trained neural network running on Tensor Cores to reconstruct a 1440p or 4K output frame.
+* **Impact**: Proved that AI hardware acceleration could increase rendering performance without degrading image fidelity.
 
 ---
 
 ## 2. DLSS 2.0 — AI Super Resolution (2020)
 
 **What Changed**: Replaced game-specific AI models with a single, universal deep-learning network utilizing temporal motion vectors.
-
-- **Core Technology**: Temporal feedback, motion vectors, and 2nd/3rd-Gen Tensor Cores (`Ampere / Turing`).
-- **Key Advancements**:
+* **Core Technology**: Temporal feedback, motion vectors, and 2nd/3rd-Gen Tensor Cores (`Ampere / Turing`).
+* **Key Advancements**:
   1. **Universal Model**: Trained on offline supercomputers with thousands of 16K images across diverse game engines.
   2. **Multi-Quality Modes**: Introduced `Quality`, `Balanced`, `Performance`, and `Ultra Performance` modes.
   3. **Temporal Reconstruction**: Combined frame-to-frame pixel history with motion vectors to resolve sharp edges and fine geometric detail.
@@ -58,9 +56,8 @@ _From AI-Powered Upscaling to Full-Pipeline Neural Rendering_
 ## 3. DLSS 3.0 — AI Frame Generation (2022)
 
 **What Changed**: Introduced **Frame Generation**, constructing entirely new intermediate frames between traditionally rendered raster frames using AI.
-
-- **Core Technology**: Optical Flow Accelerator (OFA) + 4th-Gen Tensor Cores (`Ada Lovelace`) + **NVIDIA Reflex**.
-- **How It Works**:
+* **Core Technology**: Optical Flow Accelerator (OFA) + 4th-Gen Tensor Cores (`Ada Lovelace`) + **NVIDIA Reflex**.
+* **How It Works**:
   1. The Optical Flow Accelerator analyzes sequential frames to track pixel direction, velocity, and sub-pixel particle movement.
   2. The DLSS Frame Generation neural network synthesizes an intermediate 60 FPS -> 120 FPS AI frame in real-time.
   3. **NVIDIA Reflex** synchronizes CPU and GPU queues to eliminate input latency penalty.
@@ -73,9 +70,8 @@ _From AI-Powered Upscaling to Full-Pipeline Neural Rendering_
 ## 4. DLSS 3.5 — Ray Reconstruction (2023)
 
 **What Changed**: Replaced multiple hand-tuned ray-tracing denoisers with an AI-powered **Ray Reconstruction** neural model trained on 5x more supercomputer data than DLSS 3.
-
-- **Core Technology**: Deep-learning spatial-temporal denoiser model trained on offline path-traced rendering data.
-- **Key Benefits**:
+* **Core Technology**: Deep-learning spatial-temporal denoiser model trained on offline path-traced rendering data.
+* **Key Benefits**:
   - **Color & Detail Preservation**: Replaces hand-crafted denoisers that caused ghosting or blurry ray-traced reflections.
   - **Full RT Coverage**: Enhances Path Tracing, Global Illumination, Specular Reflections, and Ambient Occlusion simultaneously.
 
@@ -84,16 +80,53 @@ _From AI-Powered Upscaling to Full-Pipeline Neural Rendering_
 ## 5. DLSS 4.0 & 4.5 — Multi Frame Generation (2025)
 
 **What Changed**: Introduced **Multi Frame Generation (MFG)** powered by 5th-Gen Tensor Cores and Transformer-based super-resolution models.
-
-- **DLSS 4.0**: Generates up to **3 AI frames** per traditionally rendered frame (4x total frame rate multiplier).
-- **DLSS 4.5**: Introduced **Dynamic Multi Frame Generation** utilizing 2nd-gen Transformer networks to dynamically adjust frame generation based on motion complexity, delivering up to **5 AI frames** per rendered frame (6X frame rate scaling).
+* **DLSS 4.0**: Generates up to **3 AI frames** per traditionally rendered frame (4x total frame rate multiplier).
+* **DLSS 4.5**: Introduced **Dynamic Multi Frame Generation** utilizing 2nd-gen Transformer networks to dynamically adjust frame generation based on motion complexity, delivering up to **5 AI frames** per rendered frame (6X frame rate scaling).
 
 ---
 
-## 6. DLSS 5.0 — Neural Rendering (Fall 2026)
+## 6. DLSS 5.0 — Neural Rendering & Neural Studio (v3.9.0)
 
-**What Changed**: Moves beyond frame upscaling and reconstruction to full real-time **Neural Material & Light Rendering**.
+**What Changed**: Moves beyond frame upscaling and reconstruction to full real-time **Neural Material & Light Rendering**, paired with the interactive **DLSS 5.0 Neural Studio** in Mission Control.
+* **Core Technology**: Neural graphics pipeline integrated directly into ray tracing shaders and hardware Tensor Cores.
+* **Photorealistic Synthesis**: Replaces traditional texture filtering and raster micro-detail pipelines with deep neural material models, synthesizing surface micro-geometry, volumetric scattering, subsurface subsurface scattering, and specular bounce paths in a single neural pass.
 
-- **Core Technology**: Neural graphics pipeline integrated directly into ray tracing shaders.
-- **Target Milestone**: Synthesizes photorealistic lighting, reflections, atmospheric scattering, and complex surface materials directly in real-time at cinematic quality.
-- **Mission Control Integration**: Includes preliminary telemetry support and profile tracking for early DLSS 5 neural shaders.
+---
+
+### 🎨 DLSS 5.0 Neural Rendering Aesthetic Styles
+Mission Control provides 5 tailored neural style grades that bias the shader reconstruction models in real-time:
+
+1. **Cinematic Photoreal**: Natural color temperature, physically accurate indirect diffuse bounces, and high dynamic range tonemapping.
+2. **Cyberpunk Hyper-Neon**: Vibrant specular emission, heightened chromatic dispersion, and high-contrast ambient bloom.
+3. **Ethereal Atmospheric**: Soft volumetric haze, diffused godrays, and subtle bloom across high-luminance surfaces.
+4. **Gritty Tactical High-Contrast**: Deep shadows, sharpened ambient occlusion crevices, and desaturated midtones optimized for competitive target acquisition.
+5. **Anime Cell-Shaded**: Sharp neural edge delineation, quantized color banding, and stylized specular highlights.
+
+---
+
+### 🎛️ Fine-Tuning Intensity Sliders
+Fine-tune the neural reconstruction pipeline with precision controls in **Settings → DLSS 5.0 Neural Studio**:
+- **Global Style Weight (0–100%)**: Scales the influence of the selected aesthetic style model against standard baseline rendering.
+- **Neural Denoiser Aggressiveness**: Controls spatial-temporal filtering strength across ray-traced noisy regions.
+- **Material Specular Sharpness**: Modulates microfacet normal variance for specular reflections and glossy highlights.
+- **Temporal Coherence Bias**: Balances between temporal stability (zero shimmering) and sub-pixel motion responsiveness.
+
+---
+
+### ⚡ Dynamic Multi Frame Generation (Dynamic MFG)
+DLSS 5.0 in Mission Control features 5 dynamic frame generation modes:
+- **Adaptive Dynamic (AI-Governed)**: Dynamically scales multiplier between 2x and 6x based on motion complexity and display refresh rate.
+- **2x Balanced**: 1 generated frame per rendered frame with standard latency profile.
+- **3x Performance**: 2 generated frames per rendered frame.
+- **4x Ultra Performance**: 3 generated frames per rendered frame.
+- **6x Hyper Scaling**: 5 generated frames per rendered frame, designed for ultra-high refresh rate displays (240Hz–540Hz).
+
+---
+
+### 🖥️ Target Resolution & Input Preparation (`prepare_nr_input`)
+Pre-processes frame buffers prior to neural reconstruction to maximize tensor throughput:
+- **Available Targets**: 1080p, 1440p, 4K UHD, 8K Ultra, and Custom aspect ratio constraints.
+- **Advanced Engine Toggles**:
+  - *Neural Texture Streaming*: Streams compressed neural weight slices to VRAM on demand.
+  - *Hardware Telemetry Hook*: Direct NVML/TensorRT sampling for real-time inference latency reporting.
+  - *Asynchronous Optical Flow Queue*: Dispatches vector generation to dedicated hardware queues to prevent compute pipeline stalls.

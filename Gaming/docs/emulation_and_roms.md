@@ -121,7 +121,20 @@ if game.get("is_emulated"):
 ## 🎛️ Emulators & ROMs Hub Interface
 
 Access the hub at any time from the **Game Intelligence** toolbar:
-- **Installed Tab:** Quick status of detected local emulators, paths, and instant test-launch buttons.
+- **Installed Tab:** Quick status of detected local emulators, paths, and instant test-launch buttons. In zero-emulator states, provides direct navigation buttons to explore the supported matrix or configure ROM folders.
 - **All Emulators Tab:** Comprehensive matrix of all 17 supported emulators, supported consoles, official websites, and binary path override fields.
 - **ROM Folders Tab:** Add and remove custom scan paths (e.g. `D:\Emulation\Roms` or `/mnt/games/roms`) and trigger immediate re-indexing with the **Scan ROMs Now** button.
+
+---
+
+## 🛡️ Smart Empty-State Redirection & Multi-User Session Isolation (v3.9.0)
+
+### 1. Smart Scanner Redirection & Directory Validation
+- When initiating a ROM scan with zero configured directories, Mission Control proactively transitions to the **ROM Folders** tab and surfaces a high-visibility warning banner:
+  > *"No ROM Directories Configured — Please add at least one folder path below where your console ROMs or disc images (.iso, .chd, .pkg, etc.) are stored before scanning."*
+- If the user filters the Game Intelligence library by `EMULATION` when no console titles are detected, a specialized empty-state card appears offering a 1-click shortcut to launch the **Emulators & ROMs Hub**.
+
+### 2. Multi-Tenant Authenticated Session Library Merging
+- Previous releases defaulted unauthenticated ROM scan operations to local `guest` session storage.
+- In v3.9.0, scan requests pass the authenticated `userId` directly through Electron IPC to `handle_scan_roms`, ensuring discovered games are seamlessly merged into the active user's cloud-synchronized library session (`library_session[user_id]`) alongside local guest fallbacks.
 

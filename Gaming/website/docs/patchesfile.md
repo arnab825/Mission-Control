@@ -2,6 +2,18 @@
 
 This document contains a detailed history of all patches and updates for the AI Gaming Assistant.
 
+### Patch: 2026-11-10 — v3.9.0: DLSS 5.0 Neural Studio, ROM Scanner Guidance & E2EE Verification UX
+
+- NVIDIA DLSS 5.0 Neural Studio: Dedicated configuration panel in Settings with neural rendering aesthetic styles, intensity sliders, and dynamic MFG controls
+- Neural Rendering Aesthetic Styles: 5 presets (Cinematic Photoreal, Cyberpunk Hyper-Neon, Ethereal Atmospheric, Gritty Tactical High-Contrast, Anime Cell-Shaded)
+- Dynamic Multi Frame Generation (Dynamic MFG): Adaptive Dynamic, 2x Balanced, 3x Performance, 4x Ultra Performance, and 6x Hyper Scaling modes
+- Target Resolution & Input Preparation: Added 1080p, 1440p, 4K UHD, 8K Ultra, and custom input resolution preparation toggles
+- ROM Scanner Smart Redirection: Automatic redirect to ROM Folders with an actionable warning banner when scanning with 0 configured directories
+- Authenticated Library Persistence: Fixed `handle_scan_roms` and modal props to ensure emulated titles merge into the authenticated user's session
+- E2EE Verification Layout Overhaul: Removed redundant user account badge and fixed scanner box overlay collision by moving node telemetry to a dedicated pill
+- Identity Gateway Synchronization: Resolved display priority so switching between Discord and Google immediately updates username and avatar across sidebar, settings, and switcher
+- Command Router Threading Fix: Added missing `import threading` to resolve `NameError` during async account persistence
+
 ### Patch: 2026-11-09 — v3.8.10: Cross-Platform Emulation Engine & ROM Library Orchestration
 
 - Emulator Auto-Discovery Scanner: Automatic detection of 17+ standalone emulators and RetroArch cores across Windows and Linux
