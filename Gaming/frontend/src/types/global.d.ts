@@ -13,6 +13,7 @@ declare global {
       updateHUDConfig: (config: any) => void;
       toggleHUD: () => void;
       selectDirectory: () => Promise<string | null>;
+      selectFile?: (options?: { title?: string; extensions?: string[] }) => Promise<string | null>;
       getDesktopPath: () => Promise<string | null>;
       onGameFocusChanged?: (isActive: boolean, isFocused: boolean, gameTitle?: string, gamePid?: number) => void;
       updateTrayTelemetry?: (data: { fps?: number; gpuLoad?: number; gpuTemp?: number; isActive?: boolean }) => void;
@@ -22,7 +23,7 @@ declare global {
       checkElectronUpdates?: () => void;
       downloadElectronUpdate?: () => void;
       quitAndInstallElectronUpdate?: () => void;
-      fetchGamingNews?: () => Promise<{ success: boolean; items: any[]; totalItems: number }>;
+      fetchGamingNews?: (forceRefresh?: boolean) => Promise<{ success: boolean; items: any[]; totalItems: number }>;
       fetchSteamTrending?: () => Promise<{ success: boolean; games: any[] }>;
       fetchLauncherTrending?: () => Promise<{ success: boolean; games: any[] }>;
       fetchLocalNode?: () => Promise<{ success: boolean; node?: any; error?: string }>;

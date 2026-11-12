@@ -1,4 +1,5 @@
-import type { DiscoverItem, SearchRecommendation } from '../types/discover';
+import type { DiscoverItem, NewsItem, SearchRecommendation } from '../types/discover';
+import { CANDIDATE_ENTITIES } from './discoverNewsSchedule';
 
 // Map colloquial abbreviations and franchise shortcuts to canonical titles
 export const GAME_ALIASES: Record<string, string[]> = {
@@ -1992,24 +1993,115 @@ export function setCachedSearchResults(key: string, data: DiscoverItem[]) {
 }
 
 /**
- * Intelligent recommendation engine that analyzes the user's installed library,
- * recent search patterns, and trending hardware categories to return contextual suggestions.
+ * Intelligent recommendation engine that dynamically analyzes:
+ * 1. Live breaking news dispatches (real-time RSS articles & topics)
+ * 2. Real-time Steam trending releases (fetched live from Steam store API)
+ * 3. 52-week calendar thematic schedule for the active week
+ * 4. User's installed library genres and franchises
+ * 5. Modern high-fidelity hardware benchmarks
  */
 export function getSmartSearchRecommendations(
   installedGames?: Array<{ name: string; genre?: string; platform?: string }>,
-  recentSearches: string[] = []
+  recentSearches: string[] = [],
+  liveTrendingGames: DiscoverItem[] = [],
+  liveNewsItems: NewsItem[] = [],
+  currentWeekTheme?: { week?: number; theme?: string; topics?: string[] }
 ): SearchRecommendation[] {
   const recommendations: SearchRecommendation[] = [];
   const seenQueries = new Set<string>();
 
-  const addRec = (rec: SearchRecommendation) => {
+  const addRec = (rec: SearchRecommendation, prepend: boolean = false) => {
     const qLower = rec.query.toLowerCase().trim();
     if (seenQueries.has(qLower)) return;
     seenQueries.add(qLower);
-    recommendations.push(rec);
+    if (prepend) {
+      recommendations.unshift(rec);
+    } else {
+      recommendations.push(rec);
+    }
   };
 
-  // 1. Contextual Recommendations Based on Installed Games
+  const installedLower = (installedGames || []).map(g => g.name.toLowerCase());
+  const hasInstalled = (name: string) =>
+    installedLower.some(inst => inst.includes(name.toLowerCase()) || name.toLowerCase().includes(inst));
+
+  // 1. Live Breaking Intel (Dynamic RSS news headlines & hot industry entities)
+  if (Array.isArray(liveNewsItems) && liveNewsItems.length > 0) {
+    let intelCount = 0;
+    for (const news of liveNewsItems) {
+      if (intelCount >= 2) break;
+      const title = news.title ? news.title.trim() : '';
+      if (!title) continue;
+
+      // Check if title mentions a recognized gaming entity
+      const matchedEntity = CANDIDATE_ENTITIES.find(entity => {
+        const escaped = entity.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+        return new RegExp(`\\b${escaped}\\b`, 'i').test(title);
+      });
+
+      let recQuery = matchedEntity || '';
+      let recLabel = matchedEntity || '';
+
+      if (!matchedEntity) {
+        // Extract a clean 3-5 word concise headline topic
+        const cleanHeadline = title
+          .replace(/^(review|guide|opinion|news|update|rumor|report|preview):\s*/i, '')
+          .replace(/[–—:|].*$/, '')
+          .trim();
+        const words = cleanHeadline.split(/\s+/).slice(0, 4).join(' ');
+        if (words.length > 3 && words.length < 35) {
+          recQuery = words;
+          recLabel = words;
+        }
+      }
+
+      if (recQuery) {
+        const snippet = title.length > 45 ? title.slice(0, 45) + '…' : title;
+        addRec({
+          id: `rec-intel-${intelCount}-${recQuery.toLowerCase().replace(/[^a-z0-9]/g, '-')}`,
+          label: recLabel,
+          query: recQuery,
+          reason: `Live Dispatch: ${snippet}`,
+          category: 'intel',
+        });
+        intelCount++;
+      }
+    }
+  }
+
+  // 2. Real-Time Steam Trending Releases (Live Store API feed)
+  if (Array.isArray(liveTrendingGames) && liveTrendingGames.length > 0) {
+    let trendingCount = 0;
+    for (const game of liveTrendingGames) {
+      if (trendingCount >= 3) break;
+      if (!game.title || hasInstalled(game.title)) continue;
+
+      addRec({
+        id: `rec-trending-${game.title.toLowerCase().replace(/[^a-z0-9]/g, '-')}`,
+        label: game.title,
+        query: game.title,
+        reason: game.rating ? `Steam Trending · ${game.rating}% positive rating` : 'Live trending on Steam store',
+        category: 'trending',
+      });
+      trendingCount++;
+    }
+  }
+
+  // 3. Weekly Thematic Spotlight (Current Calendar Week Schedule)
+  if (currentWeekTheme && Array.isArray(currentWeekTheme.topics) && currentWeekTheme.topics.length > 0) {
+    const primaryTopic = currentWeekTheme.topics[0];
+    if (primaryTopic) {
+      addRec({
+        id: `rec-weekly-${primaryTopic.toLowerCase().replace(/[^a-z0-9]/g, '-')}`,
+        label: primaryTopic,
+        query: primaryTopic,
+        reason: `Week #${currentWeekTheme.week || 46} Focus · ${currentWeekTheme.theme || 'Trending Intel'}`,
+        category: 'weekly',
+      });
+    }
+  }
+
+  // 4. Contextual Recommendations Based on User's Installed Games
   if (Array.isArray(installedGames) && installedGames.length > 0) {
     const libraryText = installedGames.map(g => `${g.name} ${g.genre || ''}`).join(' ').toLowerCase();
 
@@ -2017,61 +2109,71 @@ export function getSmartSearchRecommendations(
     if (/souls|elden|sekiro|bloodborne|wukong|lies of p|nioh/i.test(libraryText)) {
       addRec({
         id: 'rec-soulslike',
-        label: 'Soulslikes & Action RPGs',
+        label: 'Elden Ring: Shadow of the Erdtree',
         query: 'Elden Ring',
-        reason: 'Because you play challenging Action RPGs',
+        reason: 'Expansive dark fantasy matching your Action RPG taste',
         category: 'library',
       });
       addRec({
         id: 'rec-wukong',
         label: 'Black Myth: Wukong',
         query: 'Black Myth Wukong',
-        reason: 'Recommended for Souls & mythic action fans',
+        reason: 'Acclaimed Souls & mythic action benchmark',
         category: 'library',
       });
     }
 
     // Shooters, Tactical & Co-op
     if (/cod|warzone|counter-strike|cs2|apex|valorant|helldivers|doom|space marine|battlefield|r6|siege/i.test(libraryText)) {
-      addRec({
-        id: 'rec-helldivers',
-        label: 'Helldivers 2',
-        query: 'Helldivers 2',
-        reason: 'Popular co-op PvE tactical action',
-        category: 'library',
-      });
-      addRec({
-        id: 'rec-doom',
-        label: 'DOOM: The Dark Ages',
-        query: 'DOOM The Dark Ages',
-        reason: 'High-adrenaline combat matching your shooters',
-        category: 'library',
-      });
-      addRec({
-        id: 'rec-spacemarine',
-        label: 'Space Marine 2',
-        query: 'Space Marine 2',
-        reason: 'Intense co-op sci-fi action',
-        category: 'library',
-      });
+      if (!hasInstalled('Helldivers 2')) {
+        addRec({
+          id: 'rec-helldivers',
+          label: 'Helldivers 2',
+          query: 'Helldivers 2',
+          reason: 'Popular co-op PvE galactic warfare',
+          category: 'library',
+        });
+      }
+      if (!hasInstalled('Space Marine 2')) {
+        addRec({
+          id: 'rec-spacemarine',
+          label: 'Space Marine 2',
+          query: 'Space Marine 2',
+          reason: 'Intense co-op sci-fi action matching your shooters',
+          category: 'library',
+        });
+      }
+      if (!hasInstalled('DOOM')) {
+        addRec({
+          id: 'rec-doom',
+          label: 'DOOM: The Dark Ages',
+          query: 'DOOM The Dark Ages',
+          reason: 'High-adrenaline combat matching your library',
+          category: 'library',
+        });
+      }
     }
 
-    // Open World & Blockbusters
+    // Open World & Narrative Blockbusters
     if (/gta|cyberpunk|witcher|red dead|rdr|fallout|skyrim|starfield|horizon|ghost of tsushima|spider-man|god of war/i.test(libraryText)) {
-      addRec({
-        id: 'rec-cyberpunk',
-        label: 'Cyberpunk 2077',
-        query: 'Cyberpunk 2077',
-        reason: 'Deep open-world narrative experience',
-        category: 'library',
-      });
-      addRec({
-        id: 'rec-rdr2',
-        label: 'Red Dead Redemption 2',
-        query: 'Red Dead Redemption 2',
-        reason: 'Critically acclaimed open world like your library',
-        category: 'library',
-      });
+      if (!hasInstalled('Cyberpunk 2077')) {
+        addRec({
+          id: 'rec-cyberpunk',
+          label: 'Cyberpunk 2077: Phantom Liberty',
+          query: 'Cyberpunk 2077',
+          reason: 'Deep open-world narrative experience',
+          category: 'library',
+        });
+      }
+      if (!hasInstalled('Red Dead Redemption 2')) {
+        addRec({
+          id: 'rec-rdr2',
+          label: 'Red Dead Redemption 2',
+          query: 'Red Dead Redemption 2',
+          reason: 'Critically acclaimed open world like your library',
+          category: 'library',
+        });
+      }
       addRec({
         id: 'rec-gta6',
         label: 'Grand Theft Auto VI',
@@ -2083,76 +2185,73 @@ export function getSmartSearchRecommendations(
 
     // Racing & Simulators
     if (/forza|horizon|f1|assetto|nfs|need for speed|gran turismo/i.test(libraryText)) {
-      addRec({
-        id: 'rec-forza',
-        label: 'Forza Horizon 5',
-        query: 'Forza Horizon 5',
-        reason: 'Premier open-world racing for your library',
-        category: 'library',
-      });
+      if (!hasInstalled('Forza Horizon 5')) {
+        addRec({
+          id: 'rec-forza',
+          label: 'Forza Horizon 5',
+          query: 'Forza Horizon 5',
+          reason: 'Premier open-world racing for your library',
+          category: 'library',
+        });
+      } else {
+        addRec({
+          id: 'rec-assetto',
+          label: 'Assetto Corsa Competizione',
+          query: 'Assetto Corsa Competizione',
+          reason: 'Precision GT racing simulation for your wheel/rig',
+          category: 'library',
+        });
+      }
     }
 
     // CRPGs & Masterpiece Story-Rich
     if (/baldur|bg3|divinity|dragon age|mass effect|persona|witcher/i.test(libraryText)) {
-      addRec({
-        id: 'rec-bg3',
-        label: "Baldur's Gate 3",
-        query: "Baldur's Gate 3",
-        reason: 'GOTY RPG masterpiece matching your taste',
-        category: 'library',
-      });
+      if (!hasInstalled("Baldur's Gate 3")) {
+        addRec({
+          id: 'rec-bg3',
+          label: "Baldur's Gate 3",
+          query: "Baldur's Gate 3",
+          reason: 'GOTY RPG masterpiece matching your taste',
+          category: 'library',
+        });
+      }
     }
   }
 
-  // 2. Hardware / RTX Showcases
+  // 5. Hardware Benchmark Showcase (Modern RTX, DLSS 3.5 & Frame Gen)
   addRec({
     id: 'rec-rtx-cp',
-    label: 'Ray Tracing & Path Tracing',
+    label: 'Cyberpunk 2077 (Path Tracing)',
     query: 'Cyberpunk 2077',
     reason: 'Hardware showcase with full DLSS 3.5 & Path Tracing',
     category: 'hardware',
   });
   addRec({
-    id: 'rec-rtx-aw2',
-    label: 'Alan Wake 2',
-    query: 'Alan Wake 2',
-    reason: 'Next-generation visual fidelity and volumetric lighting',
+    id: 'rec-rtx-wukong',
+    label: 'Black Myth: Wukong (Full RT)',
+    query: 'Black Myth Wukong',
+    reason: 'Unreal Engine 5 with full ray tracing benchmark',
     category: 'hardware',
   });
 
-  // 3. Trending Steam & Anticipated Releases
-  addRec({
-    id: 'rec-mhwilds',
-    label: 'Monster Hunter Wilds',
-    query: 'Monster Hunter Wilds',
-    reason: 'Top anticipated global release on Steam',
-    category: 'trending',
-  });
-  addRec({
-    id: 'rec-civ7',
-    label: 'Civilization VII',
-    query: 'Sid Meier Civilization VII',
-    reason: 'Trending strategic milestone',
-    category: 'trending',
-  });
-  addRec({
-    id: 'rec-stalker2',
-    label: 'S.T.A.L.K.E.R. 2',
-    query: 'S.T.A.L.K.E.R. 2',
-    reason: 'Atmospheric survival shooter trending on Steam',
-    category: 'trending',
-  });
-  addRec({
-    id: 'rec-got',
-    label: 'Ghost of Tsushima',
-    query: 'Ghost of Tsushima',
-    reason: 'Top-rated PlayStation PC release',
-    category: 'trending',
-  });
+  // 6. Fallback Trending (When live store data is offline or initializing)
+  const defaultTrending = [
+    { id: 'rec-mhwilds', label: 'Monster Hunter Wilds', query: 'Monster Hunter Wilds', reason: 'Anticipated global release on Steam' },
+    { id: 'rec-poe2', label: 'Path of Exile 2', query: 'Path of Exile 2', reason: 'Next-gen action RPG sensation' },
+    { id: 'rec-civ7', label: 'Civilization VII', query: 'Sid Meier Civilization VII', reason: 'Trending 4X strategic milestone' },
+    { id: 'rec-stalker2', label: 'S.T.A.L.K.E.R. 2: Heart of Chornobyl', query: 'S.T.A.L.K.E.R. 2', reason: 'Atmospheric survival shooter on Steam' },
+  ];
+  for (const dt of defaultTrending) {
+    if (recommendations.length >= 8) break;
+    addRec({
+      ...dt,
+      category: 'trending',
+    });
+  }
 
-  // 4. Follow-up suggestions from recent searches
+  // 7. Recent searches follow-up
   if (Array.isArray(recentSearches)) {
-    for (const rs of recentSearches.slice(0, 3)) {
+    for (const rs of recentSearches.slice(0, 2)) {
       const rsLower = rs.toLowerCase();
       if (rsLower.includes('witcher') && !seenQueries.has('cyberpunk 2077')) {
         addRec({
@@ -2168,14 +2267,6 @@ export function getSmartSearchRecommendations(
           label: 'Dark Souls III',
           query: 'Dark Souls III',
           reason: `From FromSoftware (related to "${rs}")`,
-          category: 'recent',
-        });
-      } else if (rsLower.includes('gta') && !seenQueries.has('red dead redemption 2')) {
-        addRec({
-          id: `rec-rs-${rsLower}`,
-          label: 'Red Dead Redemption 2',
-          query: 'Red Dead Redemption 2',
-          reason: `From Rockstar Games (related to "${rs}")`,
           category: 'recent',
         });
       }

@@ -18,7 +18,7 @@ const CRITICAL_KEYS = new Set([
   'chat_history', 'chat_sessions', 'suggested_session_title',
   'launch_status', 'account_deleted',
   'active_user_id', 'account_sync',
-  'is_low_health'
+  'is_low_health', 'gaming_news'
 ]);
 
 export const useBridge = (url: string = defaultBridgeUrl) => {

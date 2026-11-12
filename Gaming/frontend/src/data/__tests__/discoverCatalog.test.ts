@@ -113,6 +113,67 @@ describe('Smart Search Recommendations & Canonical Search Engine', () => {
     expect(trendRec).toBeDefined();
   });
 
+  it('dynamically integrates live breaking news and live Steam trending items', () => {
+    const liveNews = [
+      {
+        id: 'news-1',
+        title: 'Space Marine 2 reveals massive new campaign update and patch',
+        link: 'https://pcgamer.com/news1',
+        description: 'New update details',
+        source: 'PC Gamer',
+        category: 'Updates',
+        pubDate: new Date().toISOString(),
+      },
+      {
+        id: 'news-2',
+        title: 'Monster Hunter Wilds PC system requirements and benchmark breakdown',
+        link: 'https://eurogamer.net/news2',
+        description: 'Hardware requirements',
+        source: 'Eurogamer',
+        category: 'Hardware',
+        pubDate: new Date().toISOString(),
+      }
+    ];
+
+    const liveTrending = [
+      {
+        id: 'trend-1',
+        title: 'Helldivers 2',
+        developer: 'Arrowhead Game Studios',
+        publisher: 'PlayStation Publishing',
+        genre: 'Action Shooter',
+        rating: 88,
+        release_year: 2024,
+        description: 'Galactic war action',
+        is_installed: false,
+        store_app_id: '553850',
+      }
+    ];
+
+    const weekTheme = {
+      week: 46,
+      theme: 'Esports & Global Competitions',
+      topics: ['Major Championships', 'Valorant', 'CS2']
+    };
+
+    const recs = getSmartSearchRecommendations([], [], liveTrending, liveNews, weekTheme);
+
+    // Verify dynamic live news intel is extracted
+    const intelRecs = recs.filter(r => r.category === 'intel');
+    expect(intelRecs.length).toBeGreaterThan(0);
+    expect(intelRecs[0].reason).toContain('Live Dispatch');
+
+    // Verify live Steam trending game is present
+    const trendingRec = recs.find(r => r.category === 'trending' && r.label === 'Helldivers 2');
+    expect(trendingRec).toBeDefined();
+    expect(trendingRec?.reason).toContain('Steam Trending');
+
+    // Verify weekly theme spotlight is present
+    const weeklyRec = recs.find(r => r.category === 'weekly');
+    expect(weeklyRec).toBeDefined();
+    expect(weeklyRec?.reason).toContain('Week #46');
+  });
+
   it('searches across both curated and all 250+ canonical titles instantly', () => {
     // 1. Curated game
     const wukongResults = searchCanonicalCatalog('wukong');

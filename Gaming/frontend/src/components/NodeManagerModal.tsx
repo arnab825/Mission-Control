@@ -7,6 +7,7 @@
  */
 
 import React, { useState, useEffect, useCallback, useMemo } from 'react';
+import { createPortal } from 'react-dom';
 import { motion, AnimatePresence } from 'framer-motion';
 import {
   X, Server, WifiOff, RefreshCw, Trash2,
@@ -660,8 +661,8 @@ const NodeManagerModal: React.FC<NodeManagerModalProps> = ({ onClose, sendComman
     return { onlineNodes: online, totalUsedStorage: used, totalCapacity: cap, totalGames: games };
   }, [nodes]);
 
-  return (
-    <div className="fixed inset-0 z-200 flex items-center justify-center p-2 sm:p-4 md:p-6 overflow-hidden">
+  const modalContent = (
+    <div className="fixed inset-0 z-[9999] flex items-center justify-center p-2 sm:p-4 md:p-6 overflow-hidden">
       {/* Cinematic backdrop */}
       <motion.div
         className="absolute inset-0 bg-black/80 backdrop-blur-sm transform-gpu will-change-opacity"
@@ -854,6 +855,8 @@ const NodeManagerModal: React.FC<NodeManagerModalProps> = ({ onClose, sendComman
       </motion.div>
     </div>
   );
+
+  return typeof document !== 'undefined' ? createPortal(modalContent, document.body) : modalContent;
 };
 
 export default NodeManagerModal;

@@ -495,11 +495,34 @@ class EmulatorScanner:
             enabled = override.get("enabled", True)
 
             found_path = None
-            if custom_exe and os.path.isfile(custom_exe):
-                found_path = custom_exe
-            else:
+            if custom_exe:
+                cleaned_custom = custom_exe.strip('\'" \t')
+                if os.path.isfile(cleaned_custom):
+                    found_path = str(Path(cleaned_custom).resolve())
+                elif os.path.isdir(cleaned_custom):
+                    binaries = defn.get("binaries_win", []) if is_windows else defn.get("binaries_linux", [])
+                    for b in binaries:
+                        cand = Path(cleaned_custom) / b
+                        if cand.is_file():
+                            found_path = str(cand.resolve())
+                            break
+
+            if not found_path:
                 # 1. Check common standard directories
-                candidate_paths = defn.get("common_paths_win", []) if is_windows else defn.get("common_paths_linux", [])
+                candidate_paths = list(defn.get("common_paths_win", []) if is_windows else defn.get("common_paths_linux", []))
+                
+                # Expand search across drives C:, D:, E: for Emulators / Games
+                if is_windows:
+                    for drive in ["C:", "D:", "E:", "F:", "G:"]:
+                        for bin_name in defn.get("binaries_win", []):
+                            candidate_paths.extend([
+                                rf"{drive}\Emulators\{defn['name']}\{bin_name}",
+                                rf"{drive}\Emulation\{defn['name']}\{bin_name}",
+                                rf"{drive}\Games\Emulators\{defn['name']}\{bin_name}",
+                                rf"{drive}\Games\Emulation\{defn['name']}\{bin_name}",
+                                rf"{drive}\{defn['name']}\{bin_name}",
+                            ])
+
                 for raw_path in candidate_paths:
                     expanded = raw_path
                     for var, val in env_map.items():

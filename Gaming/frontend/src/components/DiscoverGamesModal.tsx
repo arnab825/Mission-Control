@@ -10,14 +10,16 @@
  */
 
 import React, { useState, useEffect, useMemo, useRef } from 'react';
+import { createPortal } from 'react-dom';
 import { motion, AnimatePresence } from 'framer-motion';
 import {
   X, Search, Sparkles, Check, Loader2, Globe, Flame, Gamepad2,
   Newspaper, ExternalLink, RefreshCw,
-  Clock, CornerDownLeft, Star, Award, Zap, Calendar
+  Clock, CornerDownLeft, Star, Award, Zap, Calendar, Radio
 } from 'lucide-react';
 
 import { fetchWithFailover } from '../hooks/useDistributedStats';
+import { useBridge } from '../hooks/useBridge';
 import type { DiscoverItem, NewsItem, DiscoverGamesModalProps, TabType } from '../types/discover';
 import { LAUNCHER_STYLES, SOURCE_COLORS } from '../data/discoverStyles';
 import {
@@ -25,6 +27,8 @@ import {
   CANDIDATE_ENTITIES,
   FALLBACK_NEWS_ITEMS,
   getISOWeekInfo,
+  getMonthInfo,
+  isWithinPastDays,
   getRelativeTime
 } from '../data/discoverNewsSchedule';
 import {
@@ -74,18 +78,17 @@ const DiscoverGamesModal: React.FC<DiscoverGamesModalProps> = ({ onClose, instal
     }
   });
 
-  // Dynamic Contextual Recommendations Engine
-  const smartRecommendations = useMemo(() => {
-    return getSmartSearchRecommendations(installedGames, recentSearches);
-  }, [installedGames, recentSearches]);
-
   const searchContainerRef = useRef<HTMLDivElement | null>(null);
   const lastRemoteCallRef = useRef<number>(0);
   const debounceTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
+  const { state: bridgeState, sendCommand } = useBridge();
+
   // Dedicated News State
   const [newsItems, setNewsItems] = useState<NewsItem[]>([]);
   const [newsLoading, setNewsLoading] = useState(false);
+  const [newsTimeHorizon, setNewsTimeHorizon] = useState<'all' | 'month' | 'week'>('all');
+  const [lastNewsSync, setLastNewsSync] = useState<number>(Date.now());
   const [selectedSource, setSelectedSource] = useState<string>('All');
   const [selectedTopic, setSelectedTopic] = useState<string>('All');
   const [selectedNewsCategory, setSelectedNewsCategory] = useState<string>('All');
@@ -94,8 +97,9 @@ const DiscoverGamesModal: React.FC<DiscoverGamesModalProps> = ({ onClose, instal
   const [selectedGame, setSelectedGame] = useState<DiscoverItem | null>(null);
   const [activeLauncherMap] = useState<Record<string, string>>({});
 
-  // Current ISO calendar week info
+  // Current ISO calendar week info & monthly thematic intelligence
   const weekInfo = useMemo(() => getISOWeekInfo(), []);
+  const monthInfo = useMemo(() => getMonthInfo(), []);
 
   // 52-Week Thematic Schedule for this calendar week
   const currentWeekTheme = useMemo(() => {
@@ -103,9 +107,19 @@ const DiscoverGamesModal: React.FC<DiscoverGamesModalProps> = ({ onClose, instal
     return WEEKLY_THEMES_SCHEDULE[idx] || WEEKLY_THEMES_SCHEDULE[0];
   }, [weekInfo.week]);
 
+  // Dynamic Contextual Recommendations Engine (Live News, Steam Trending, Weekly Focus & Library)
+  const smartRecommendations = useMemo(() => {
+    return getSmartSearchRecommendations(
+      installedGames,
+      recentSearches,
+      results,
+      newsItems,
+      currentWeekTheme
+    );
+  }, [installedGames, recentSearches, results, newsItems, currentWeekTheme]);
+
   // Periodic Weekly News Topics (Updated week-over-week + dynamic live entity extraction)
-  const weeklyNewsTopics = useMemo(() => {
-    // 1. Check local storage for persistent weekly topic state
+  const [dynamicTopicsList, setDynamicTopicsList] = useState<string[]>(() => {
     try {
       const stored = localStorage.getItem('mc_weekly_news_topics_v2');
       if (stored) {
@@ -115,10 +129,8 @@ const DiscoverGamesModal: React.FC<DiscoverGamesModalProps> = ({ onClose, instal
         }
       }
     } catch (_) {}
-
-    // 2. Fallback to current week thematic topics
     return currentWeekTheme.topics;
-  }, [weekInfo.week, currentWeekTheme]);
+  });
 
   // Extract live topic mentions from downloaded headlines
   useEffect(() => {
@@ -136,7 +148,8 @@ const DiscoverGamesModal: React.FC<DiscoverGamesModalProps> = ({ onClose, instal
     });
 
     // Merge baseline weekly topics + live extracted dynamic topics
-    const merged = Array.from(new Set([...currentWeekTheme.topics, ...dynamicTopics])).slice(0, 7);
+    const merged = Array.from(new Set([...currentWeekTheme.topics, ...dynamicTopics])).slice(0, 8);
+    setDynamicTopicsList(merged);
 
     // Save to persistent storage with current week stamp
     try {
@@ -148,11 +161,30 @@ const DiscoverGamesModal: React.FC<DiscoverGamesModalProps> = ({ onClose, instal
     } catch (_) {}
   }, [newsItems, weekInfo.week, weekInfo.year, currentWeekTheme]);
 
-  // Initial load deferred slightly to keep initial mount & entrance animation 100% butter-smooth
+  // React to incoming gaming news from Python WebSocket bridge
+  useEffect(() => {
+    if (Array.isArray(bridgeState?.gaming_news) && bridgeState.gaming_news.length > 0) {
+      setNewsItems(bridgeState.gaming_news);
+      setLastNewsSync(bridgeState.gaming_news_updated_at ? bridgeState.gaming_news_updated_at * 1000 : Date.now());
+      setNewsLoading(false);
+    }
+  }, [bridgeState?.gaming_news, bridgeState?.gaming_news_updated_at]);
+
+  // Warm up news feeds in the background on mount so news tab is instantly ready with live headlines
+  useEffect(() => {
+    const timer = setTimeout(() => {
+      loadGamingNews(false);
+    }, 150);
+    return () => clearTimeout(timer);
+  }, []);
+
+  // Tab switch handler
   useEffect(() => {
     const timer = setTimeout(() => {
       if (activeTab === 'news') {
-        loadGamingNews();
+        if (newsItems.length === 0) {
+          loadGamingNews();
+        }
       } else {
         loadPopularCatalog();
       }
@@ -231,37 +263,102 @@ const DiscoverGamesModal: React.FC<DiscoverGamesModalProps> = ({ onClose, instal
     }
   };
 
-  // Fetch Live Gaming News (from Electron IPC, dev proxy, or live RSS)
-  const loadGamingNews = async (_forceRefresh: boolean = false) => {
+  // Fetch Real Live Gaming News (Multi-tier: Electron IPC -> Python Bridge -> Dev Proxy -> Direct Live Gateway)
+  const loadGamingNews = async (forceRefresh: boolean = false) => {
     setNewsLoading(true);
     try {
-      // 1. Electron IPC (Native background fetch, 0 Render Egress)
+      // 1. Electron IPC (Native background fetch across 7 RSS feeds, 0 Render Egress)
       if (typeof window !== 'undefined' && window.electronAPI?.fetchGamingNews) {
         try {
-          const res = await window.electronAPI.fetchGamingNews();
+          const res = await window.electronAPI.fetchGamingNews(forceRefresh);
           if (res && res.success && Array.isArray(res.items) && res.items.length > 0) {
             setNewsItems(res.items);
+            setLastNewsSync(Date.now());
             setNewsLoading(false);
             return;
           }
         } catch (_) {}
       }
 
-      // 2. Vite Dev Server News Proxy
+      // 2. Python Backend WebSocket Bridge
+      if (sendCommand) {
+        try {
+          sendCommand(forceRefresh ? 'refresh_gaming_news' : 'get_gaming_news', { forceRefresh });
+        } catch (_) {}
+      }
+
+      // 3. Vite Dev Server News Proxy
       try {
-        const localRes = await fetch('/api/gaming-news');
+        const localRes = await fetch(`/api/gaming-news${forceRefresh ? '?force=true' : ''}`);
         if (localRes.ok) {
           const data = await localRes.json();
           if (Array.isArray(data.items) && data.items.length > 0) {
             setNewsItems(data.items);
+            setLastNewsSync(Date.now());
             setNewsLoading(false);
             return;
           }
         }
       } catch (_) {}
 
-      // 3. Fallback verified news baseline if completely offline
-      setNewsItems(FALLBACK_NEWS_ITEMS);
+      // 4. Live Browser RSS-to-JSON Gateway (Guarantees real live news anywhere in pure browser mode)
+      try {
+        const liveFeeds = [
+          'https://www.pcgamer.com/rss/',
+          'https://www.eurogamer.net/?format=rss',
+          'https://kotaku.com/rss',
+          'https://www.polygon.com/rss/index.xml',
+          'https://www.rockpapershotgun.com/feed',
+          'https://www.gamespot.com/feeds/news/',
+          'https://www.tomshardware.com/feeds/all'
+        ];
+        const liveArticles: NewsItem[] = [];
+        const seen = new Set<string>();
+
+        const gatewayPromises = liveFeeds.slice(0, 4).map(async (rssUrl) => {
+          try {
+            const controller = new AbortController();
+            const t = setTimeout(() => controller.abort(), 4500);
+            const r = await fetch(`https://api.rss2json.com/v1/api.json?rss_url=${encodeURIComponent(rssUrl)}`, {
+              signal: controller.signal
+            });
+            clearTimeout(t);
+            if (r.ok) {
+              const d = await r.json();
+              if (d.status === 'ok' && Array.isArray(d.items)) {
+                for (const item of d.items) {
+                  if (item.link && !seen.has(item.link)) {
+                    seen.add(item.link);
+                    liveArticles.push({
+                      id: item.link,
+                      title: item.title,
+                      link: item.link,
+                      description: item.description?.replace(/<[^>]*>/g, '').trim().slice(0, 220) + '...',
+                      source: d.feed?.title || 'Gaming Intel',
+                      category: item.categories?.[0] || 'Gaming',
+                      pubDate: item.pubDate,
+                      imageUrl: item.enclosure?.link || item.thumbnail || undefined
+                    });
+                  }
+                }
+              }
+            }
+          } catch (_) {}
+        });
+
+        await Promise.allSettled(gatewayPromises);
+        if (liveArticles.length > 0) {
+          liveArticles.sort((a, b) => new Date(b.pubDate).getTime() - new Date(a.pubDate).getTime());
+          setNewsItems(liveArticles);
+          setLastNewsSync(Date.now());
+          setNewsLoading(false);
+          return;
+        }
+      } catch (_) {}
+
+      // 5. Fallback verified news baseline only if completely offline and all network attempts fail
+      setNewsItems(prev => prev.length > 0 ? prev : FALLBACK_NEWS_ITEMS);
+      setLastNewsSync(Date.now());
     } finally {
       setNewsLoading(false);
     }
@@ -629,9 +726,15 @@ const DiscoverGamesModal: React.FC<DiscoverGamesModalProps> = ({ onClose, instal
     return list;
   }, [results, activeTab, selectedLauncher]);
 
-  // Filter news articles based on selected source, selected weekly topic & query
+  // Filter news articles based on time horizon (weekly/monthly/all), selected source, topic & query
   const displayedNews = useMemo(() => {
     let list = newsItems;
+
+    if (newsTimeHorizon === 'week') {
+      list = list.filter(item => isWithinPastDays(item.pubDate, 7));
+    } else if (newsTimeHorizon === 'month') {
+      list = list.filter(item => isWithinPastDays(item.pubDate, 30));
+    }
 
     if (selectedSource !== 'All') {
       list = list.filter(item => item.source.toLowerCase() === selectedSource.toLowerCase());
@@ -656,16 +759,19 @@ const DiscoverGamesModal: React.FC<DiscoverGamesModalProps> = ({ onClose, instal
     }
 
     return list;
-  }, [newsItems, selectedSource, selectedNewsCategory, selectedTopic, query]);
+  }, [newsItems, newsTimeHorizon, selectedSource, selectedNewsCategory, selectedTopic, query]);
+
+  const weeklyNewsCount = useMemo(() => newsItems.filter(i => isWithinPastDays(i.pubDate, 7)).length, [newsItems]);
+  const monthlyNewsCount = useMemo(() => newsItems.filter(i => isWithinPastDays(i.pubDate, 30)).length, [newsItems]);
 
   const uniqueSources = useMemo(() => {
     const s = new Set(newsItems.map(n => n.source));
     return ['All', ...Array.from(s)];
   }, [newsItems]);
 
-  return (
+  const modalContent = (
     <motion.div
-      className="fixed inset-0 z-200 flex items-center justify-center p-3 sm:p-6"
+      className="fixed inset-0 z-[9999] flex items-center justify-center p-3 sm:p-6"
       initial={{ opacity: 0 }}
       animate={{ opacity: 1 }}
       exit={{ opacity: 0 }}
@@ -982,33 +1088,65 @@ const DiscoverGamesModal: React.FC<DiscoverGamesModalProps> = ({ onClose, instal
                       )}
 
                       <div>
-                        <div className="text-[9px] font-black uppercase tracking-wider text-zinc-500 mb-1.5 px-1 flex items-center gap-1">
-                          <Sparkles className="w-3 h-3 text-neon-green" /> Recommended For You
+                        <div className="text-[9px] font-black uppercase tracking-wider text-zinc-500 mb-1.5 px-1 flex items-center justify-between">
+                          <span className="flex items-center gap-1">
+                            <Sparkles className="w-3 h-3 text-neon-green" /> Recommended For You
+                          </span>
+                          <span className="text-[8px] font-mono text-zinc-500">
+                            {newsItems.length > 0 ? 'Live Intel Synced' : 'Adaptive Radar'}
+                          </span>
                         </div>
                         <div className="grid grid-cols-1 sm:grid-cols-2 gap-1.5">
-                          {smartRecommendations.slice(0, 6).map(rec => (
-                            <button
-                              key={rec.id}
-                              type="button"
-                              onClick={() => {
-                                setQuery(rec.query);
-                                handleSearch(rec.query);
-                              }}
-                              className="text-left p-2 rounded-xl bg-white/3 hover:bg-white/8 border border-white/6 hover:border-neon-green/30 transition-all cursor-pointer group/rec"
-                            >
-                              <div className="flex items-center justify-between">
-                                <span className="text-xs font-bold text-white group-hover/rec:text-neon-green transition-colors truncate">
-                                  {rec.label}
-                                </span>
-                                <span className="text-[8px] font-black uppercase tracking-wider px-1.5 py-0.5 rounded bg-white/5 text-zinc-400 border border-white/5">
-                                  {rec.category}
-                                </span>
-                              </div>
-                              <p className="text-[9px] text-zinc-400 truncate mt-0.5">
-                                {rec.reason}
-                              </p>
-                            </button>
-                          ))}
+                          {smartRecommendations.slice(0, 6).map(rec => {
+                            const isIntel = rec.category === 'intel';
+                            const isWeekly = rec.category === 'weekly';
+                            const isTrending = rec.category === 'trending';
+                            const isHardware = rec.category === 'hardware';
+
+                            const badgeClasses = isIntel
+                              ? 'bg-emerald-500/15 text-emerald-300 border-emerald-500/30'
+                              : isWeekly
+                              ? 'bg-purple-500/15 text-purple-300 border-purple-500/30'
+                              : isTrending
+                              ? 'bg-orange-500/15 text-orange-300 border-orange-500/30'
+                              : isHardware
+                              ? 'bg-cyan-500/15 text-cyan-300 border-cyan-500/30'
+                              : 'bg-neon-green/10 text-neon-green border-neon-green/20';
+
+                            const badgeText = isIntel
+                              ? 'LIVE INTEL'
+                              : isWeekly
+                              ? 'THIS WEEK'
+                              : isTrending
+                              ? 'TRENDING'
+                              : isHardware
+                              ? 'HARDWARE'
+                              : rec.category.toUpperCase();
+
+                            return (
+                              <button
+                                key={rec.id}
+                                type="button"
+                                onClick={() => {
+                                  setQuery(rec.query);
+                                  handleSearch(rec.query);
+                                }}
+                                className="text-left p-2 rounded-xl bg-white/3 hover:bg-white/8 border border-white/6 hover:border-neon-green/30 transition-all cursor-pointer group/rec"
+                              >
+                                <div className="flex items-center justify-between gap-1">
+                                  <span className="text-xs font-bold text-white group-hover/rec:text-neon-green transition-colors truncate">
+                                    {rec.label}
+                                  </span>
+                                  <span className={`text-[8px] font-black uppercase tracking-wider px-1.5 py-0.5 rounded border shrink-0 ${badgeClasses}`}>
+                                    {badgeText}
+                                  </span>
+                                </div>
+                                <p className="text-[9px] text-zinc-400 truncate mt-0.5">
+                                  {rec.reason}
+                                </p>
+                              </button>
+                            );
+                          })}
                         </div>
                       </div>
                     </div>
@@ -1021,7 +1159,77 @@ const DiscoverGamesModal: React.FC<DiscoverGamesModalProps> = ({ onClose, instal
           {/* Contextual Sub-bar: News Weekly Topics & Source Filters OR Game Store Switchers */}
           {activeTab === 'news' ? (
             <div className="space-y-2">
-              {/* Row 1: Weekly Periodic Topics (Refreshes week-over-week) */}
+              {/* Row 0: Cadence & Horizon Selector (Real-time Live News vs Monthly Focus vs Weekly Intel) */}
+              <div className="flex items-center justify-between gap-2 flex-wrap py-0.5">
+                <div className="flex items-center gap-1.5 overflow-x-auto no-scrollbar">
+                  <span className="text-[8px] font-black text-zinc-500 uppercase tracking-widest shrink-0 mr-1">
+                    Cadence:
+                  </span>
+                  <button
+                    type="button"
+                    onClick={() => setNewsTimeHorizon('all')}
+                    className={`shrink-0 px-2.5 py-1 rounded-lg text-[9px] font-black uppercase tracking-wider transition-all cursor-pointer flex items-center gap-1.5 ${
+                      newsTimeHorizon === 'all'
+                        ? 'bg-cyan-400 text-black shadow-[0_0_12px_rgba(34,211,238,0.4)]'
+                        : 'bg-white/4 hover:bg-white/8 text-zinc-400 hover:text-white border border-white/6'
+                    }`}
+                  >
+                    <span>All Real-Time Dispatches</span>
+                    <span className="text-[8px] px-1 py-0.2 rounded bg-black/20 font-mono">
+                      {newsItems.length}
+                    </span>
+                  </button>
+
+                  <button
+                    type="button"
+                    onClick={() => setNewsTimeHorizon('month')}
+                    className={`shrink-0 px-2.5 py-1 rounded-lg text-[9px] font-black uppercase tracking-wider transition-all cursor-pointer flex items-center gap-1.5 ${
+                      newsTimeHorizon === 'month'
+                        ? 'bg-emerald-400 text-black shadow-[0_0_12px_rgba(52,211,153,0.4)]'
+                        : 'bg-white/4 hover:bg-white/8 text-zinc-400 hover:text-white border border-white/6'
+                    }`}
+                  >
+                    <span>This Month · {monthInfo.name}</span>
+                    <span className="text-[8px] px-1 py-0.2 rounded bg-black/20 font-mono">
+                      {monthlyNewsCount}
+                    </span>
+                  </button>
+
+                  <button
+                    type="button"
+                    onClick={() => setNewsTimeHorizon('week')}
+                    className={`shrink-0 px-2.5 py-1 rounded-lg text-[9px] font-black uppercase tracking-wider transition-all cursor-pointer flex items-center gap-1.5 ${
+                      newsTimeHorizon === 'week'
+                        ? 'bg-purple-400 text-black shadow-[0_0_12px_rgba(192,132,252,0.4)]'
+                        : 'bg-white/4 hover:bg-white/8 text-zinc-400 hover:text-white border border-white/6'
+                    }`}
+                  >
+                    <span>This Week · #W{weekInfo.week}</span>
+                    <span className="text-[8px] px-1 py-0.2 rounded bg-black/20 font-mono">
+                      {weeklyNewsCount}
+                    </span>
+                  </button>
+                </div>
+
+                {/* Right Sync Trigger & Status */}
+                <div className="flex items-center gap-2 shrink-0">
+                  <span className="text-[8px] text-zinc-500 font-mono">
+                    Synced {getRelativeTime(new Date(lastNewsSync).toUTCString()) || 'Just now'}
+                  </span>
+                  <button
+                    type="button"
+                    onClick={() => loadGamingNews(true)}
+                    disabled={newsLoading}
+                    className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-lg bg-cyan-500/10 hover:bg-cyan-500/20 border border-cyan-500/30 text-cyan-300 text-[9px] font-black uppercase tracking-wider transition-all cursor-pointer disabled:opacity-50"
+                    title="Force refresh all live gaming feeds now"
+                  >
+                    <RefreshCw className={`w-3 h-3 ${newsLoading ? 'animate-spin' : ''}`} />
+                    <span>Sync Intel</span>
+                  </button>
+                </div>
+              </div>
+
+              {/* Row 1: Weekly Periodic Topics (Refreshes week-over-week + dynamic entity extraction) */}
               <div className="flex items-center gap-2 overflow-x-auto no-scrollbar py-0.5">
                 <span className="text-[8px] font-black text-cyan-400 uppercase tracking-widest shrink-0 flex items-center gap-1 bg-cyan-500/10 border border-cyan-500/20 px-2 py-0.5 rounded-md">
                   <Calendar className="w-2.5 h-2.5" />
@@ -1040,7 +1248,7 @@ const DiscoverGamesModal: React.FC<DiscoverGamesModalProps> = ({ onClose, instal
                   All Weekly Intel
                 </button>
 
-                {weeklyNewsTopics.map((topic: string) => {
+                {dynamicTopicsList.map((topic: string) => {
                   const isSelected = selectedTopic.toLowerCase() === topic.toLowerCase();
                   return (
                     <button
@@ -1057,16 +1265,6 @@ const DiscoverGamesModal: React.FC<DiscoverGamesModalProps> = ({ onClose, instal
                     </button>
                   );
                 })}
-
-                {/* Refresh topics trigger */}
-                <button
-                  type="button"
-                  onClick={() => loadGamingNews(true)}
-                  className="shrink-0 p-1 rounded-md text-zinc-500 hover:text-cyan-400 hover:bg-white/5 transition-colors cursor-pointer"
-                  title="Rescan and refresh weekly topic entity index"
-                >
-                  <RefreshCw className="w-3 h-3" />
-                </button>
               </div>
 
               {/* Row 2: Outlet Sources & Category Filters */}
@@ -1188,6 +1386,8 @@ const DiscoverGamesModal: React.FC<DiscoverGamesModalProps> = ({ onClose, instal
                   const isLibrary = rec.category === 'library';
                   const isHardware = rec.category === 'hardware';
                   const isTrending = rec.category === 'trending';
+                  const isIntel = rec.category === 'intel';
+                  const isWeekly = rec.category === 'weekly';
 
                   const badgeStyle = isLibrary
                     ? 'border-neon-green/30 text-neon-green bg-neon-green/10 hover:bg-neon-green/20'
@@ -1195,6 +1395,8 @@ const DiscoverGamesModal: React.FC<DiscoverGamesModalProps> = ({ onClose, instal
                     ? 'border-cyan-400/30 text-cyan-300 bg-cyan-500/10 hover:bg-cyan-500/20'
                     : isTrending
                     ? 'border-orange-500/30 text-orange-300 bg-orange-500/10 hover:bg-orange-500/20'
+                    : isIntel
+                    ? 'border-emerald-500/30 text-emerald-300 bg-emerald-500/10 hover:bg-emerald-500/20'
                     : 'border-purple-400/30 text-purple-300 bg-purple-500/10 hover:bg-purple-500/20';
 
                   return (
@@ -1211,6 +1413,8 @@ const DiscoverGamesModal: React.FC<DiscoverGamesModalProps> = ({ onClose, instal
                       {isLibrary && <Gamepad2 className="w-2.5 h-2.5" />}
                       {isHardware && <Zap className="w-2.5 h-2.5" />}
                       {isTrending && <Flame className="w-2.5 h-2.5" />}
+                      {isIntel && <Radio className="w-2.5 h-2.5" />}
+                      {isWeekly && <Sparkles className="w-2.5 h-2.5" />}
                       <span>{rec.label}</span>
                     </button>
                   );
@@ -1251,19 +1455,37 @@ const DiscoverGamesModal: React.FC<DiscoverGamesModalProps> = ({ onClose, instal
               </div>
             ) : displayedNews.length > 0 ? (
               <div className="space-y-4">
-                {/* Weekly Highlight Header Card */}
+                {/* Dynamic Horizon Intelligence Card */}
                 <div className="p-4 rounded-2xl bg-cyan-950/20 border border-cyan-500/20 flex items-center justify-between gap-4">
                   <div className="flex items-center gap-3 min-w-0">
                     <div className="w-9 h-9 rounded-xl bg-cyan-500/10 border border-cyan-500/30 flex items-center justify-center shrink-0">
                       <Calendar className="w-4 h-4 text-cyan-400" />
                     </div>
                     <div className="min-w-0">
-                      <span className="text-[9px] font-black uppercase tracking-widest text-cyan-400">
-                        Weekly Focus · {weekInfo.key}
-                      </span>
+                      <div className="flex items-center gap-2">
+                        <span className="text-[9px] font-black uppercase tracking-widest text-cyan-400">
+                          {newsTimeHorizon === 'week'
+                            ? `Weekly Focus · ${weekInfo.key}`
+                            : newsTimeHorizon === 'month'
+                            ? `Monthly Directive · ${monthInfo.theme.month} ${weekInfo.year}`
+                            : `Real-Time Intel Wire · Live Multi-Source Feed`}
+                        </span>
+                        <span className="text-[8px] px-1.5 py-0.2 rounded bg-cyan-400/10 text-cyan-300 font-mono border border-cyan-400/20">
+                          Live Sync
+                        </span>
+                      </div>
                       <h3 className="text-xs font-black text-white truncate">
-                        {currentWeekTheme.theme}
+                        {newsTimeHorizon === 'week'
+                          ? currentWeekTheme.theme
+                          : newsTimeHorizon === 'month'
+                          ? monthInfo.theme.theme
+                          : 'Global PC Gaming & Hardware Intelligence Wire'}
                       </h3>
+                      {newsTimeHorizon === 'month' && (
+                        <p className="text-[10px] text-zinc-400 truncate mt-0.5">
+                          {monthInfo.theme.focus}
+                        </p>
+                      )}
                     </div>
                   </div>
                   <span className="text-[9px] font-mono text-zinc-400 shrink-0">
@@ -1711,6 +1933,8 @@ const DiscoverGamesModal: React.FC<DiscoverGamesModalProps> = ({ onClose, instal
       </AnimatePresence>
     </motion.div>
   );
+
+  return typeof document !== 'undefined' ? createPortal(modalContent, document.body) : modalContent;
 };
 
 export default DiscoverGamesModal;

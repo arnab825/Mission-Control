@@ -1468,7 +1468,11 @@ const App: React.FC = () => {
             />
             {/* Ambient Neon Bloom Layer */}
             <div
-              className="ambient-neon-bloom pointer-events-none absolute -top-40 left-1/4 right-1/4 h-96 blur-3xl z-0 transition-opacity duration-300"
+              className={`ambient-neon-bloom pointer-events-none absolute -top-40 left-1/4 right-1/4 h-96 blur-3xl z-0 transition-opacity duration-300 ${
+                preferences.adaptive?.thermalReactiveGlow && ((state?.gpu_metrics?.temp ?? state?.gpu_metrics?.temperature ?? 0) >= 83)
+                  ? '!bg-red-600/40 animate-pulse'
+                  : ''
+              }`}
               aria-hidden="true"
             />
 

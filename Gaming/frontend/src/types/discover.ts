@@ -35,7 +35,7 @@ export interface SearchRecommendation {
   label: string;
   query: string;
   reason: string;
-  category: 'library' | 'trending' | 'hardware' | 'recent';
+  category: 'library' | 'trending' | 'hardware' | 'recent' | 'intel' | 'weekly';
 }
 
 export interface DiscoverGamesModalProps {

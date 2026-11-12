@@ -214,6 +214,8 @@ def dispatch_bridge_command(
         game_handler.handle_rename_node(payload, pipeline, bridge, config)
     elif cmd_type == "trigger_node_scan":
         game_handler.handle_trigger_node_scan(payload, pipeline, bridge, config, library_session)
+    elif cmd_type in ("get_gaming_news", "refresh_gaming_news"):
+        game_handler.handle_get_gaming_news(payload, pipeline, bridge, config)
 
     # ── System / hardware / config commands ───────────────────────
     elif cmd_type == "optimize_system":

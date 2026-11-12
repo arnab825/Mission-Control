@@ -75,7 +75,7 @@ const gamingNewsDevPlugin = () => ({
             const timeout = setTimeout(() => controller.abort(), 6000);
             const r = await fetch(feed.url, {
               signal: controller.signal,
-              headers: { 'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) MissionControl/3.3' }
+              headers: { 'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36' }
             });
             clearTimeout(timeout);
             if (!r.ok) return;

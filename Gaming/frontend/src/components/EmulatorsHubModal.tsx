@@ -6,6 +6,7 @@
  */
 
 import React, { useState, useEffect, useMemo } from 'react';
+import { createPortal } from 'react-dom';
 import { motion, AnimatePresence } from 'framer-motion';
 import {
   X,
@@ -26,6 +27,7 @@ import {
   Sparkles,
   Search,
 } from 'lucide-react';
+import { EmulatorLogo } from './EmulatorLogo';
 import type { EmulationState, EmulatorInfo } from '../types/telemetry';
 
 interface EmulatorsHubModalProps {
@@ -125,10 +127,39 @@ export const EmulatorsHubModal: React.FC<EmulatorsHubModalProps> = ({
     setTimeout(() => setIsScanning(false), 2000);
   };
 
+  const handleBrowseRomDirectory = async () => {
+    if (typeof window !== 'undefined' && (window as any).electronAPI?.selectDirectory) {
+      const dir = await (window as any).electronAPI.selectDirectory();
+      if (dir) {
+        setNewPathInput(dir);
+      }
+    }
+  };
+
+  const handleBrowseCustomExe = async () => {
+    if (typeof window !== 'undefined' && (window as any).electronAPI?.selectFile) {
+      const file = await (window as any).electronAPI.selectFile({
+        title: `Select ${selectedEmulator?.name || 'Emulator'} Binary`,
+        extensions: ['exe', 'bat', 'cmd', 'AppImage', 'bin']
+      });
+      if (file) {
+        setCustomExeInput(file);
+        return;
+      }
+    }
+    if (typeof window !== 'undefined' && (window as any).electronAPI?.selectDirectory) {
+      const dir = await (window as any).electronAPI.selectDirectory();
+      if (dir) {
+        setCustomExeInput(dir);
+      }
+    }
+  };
+
   const handleSaveCustomExe = (emuId: string) => {
+    const cleaned = customExeInput.trim().replace(/^["']|["']$/g, '');
     sendCommand('configure_emulator', {
       emulator_id: emuId,
-      exe_path: customExeInput.trim(),
+      exe_path: cleaned,
     });
     setSelectedEmulator(null);
     setCustomExeInput('');
@@ -140,8 +171,8 @@ export const EmulatorsHubModal: React.FC<EmulatorsHubModalProps> = ({
     }
   };
 
-  return (
-    <div className="fixed inset-0 z-[200] flex items-center justify-center p-2 sm:p-4 md:p-6 select-none overflow-y-auto">
+  const modalContent = (
+    <div className="fixed inset-0 z-[9999] flex items-center justify-center p-2 sm:p-4 md:p-6 select-none overflow-y-auto">
       {/* Backdrop — Lightweight blur & GPU acceleration for zero opening lag */}
       <motion.div
         initial={{ opacity: 0 }}
@@ -416,6 +447,15 @@ export const EmulatorsHubModal: React.FC<EmulatorsHubModalProps> = ({
                     className="flex-1 px-3.5 xl:px-4 py-2 xl:py-2.5 rounded-xl bg-zinc-900 border border-white/10 text-xs xl:text-sm font-mono text-white placeholder-zinc-500 focus:outline-none focus:border-neon-green/50 min-w-0"
                   />
                   <button
+                    type="button"
+                    onClick={handleBrowseRomDirectory}
+                    className="px-3.5 xl:px-4 py-2 xl:py-2.5 rounded-xl bg-white/5 hover:bg-white/10 border border-white/10 text-zinc-200 text-xs xl:text-sm font-bold uppercase tracking-wider transition-all cursor-pointer flex items-center justify-center gap-1.5 shrink-0"
+                    title="Browse local folders"
+                  >
+                    <FolderOpen className="w-3.5 h-3.5 text-neon-green" />
+                    <span>Browse</span>
+                  </button>
+                  <button
                     onClick={handleAddRomPath}
                     disabled={!newPathInput.trim()}
                     className="px-4 xl:px-5 py-2 xl:py-2.5 rounded-xl bg-neon-green text-black font-black uppercase text-xs xl:text-sm tracking-wider hover:bg-neon-green/90 transition-all cursor-pointer disabled:opacity-40 flex items-center justify-center gap-1.5 shrink-0"
@@ -493,9 +533,12 @@ export const EmulatorsHubModal: React.FC<EmulatorsHubModalProps> = ({
             >
               <div className="w-full max-w-md p-4 sm:p-6 rounded-2xl sm:rounded-3xl bg-zinc-900 border border-white/15 space-y-4 shadow-2xl">
                 <div className="flex items-center justify-between gap-2">
-                  <h4 className="text-xs sm:text-sm font-black uppercase text-white truncate">
-                    Configure {selectedEmulator.name} Path
-                  </h4>
+                  <div className="flex items-center gap-2.5 min-w-0">
+                    <EmulatorLogo emuId={selectedEmulator.id} size={24} className="w-6 h-6 shrink-0" />
+                    <h4 className="text-xs sm:text-sm font-black uppercase text-white truncate">
+                      Configure {selectedEmulator.name} Path
+                    </h4>
+                  </div>
                   <button
                     onClick={() => setSelectedEmulator(null)}
                     className="p-1 text-zinc-400 hover:text-white rounded-lg transition-colors shrink-0"
@@ -505,18 +548,37 @@ export const EmulatorsHubModal: React.FC<EmulatorsHubModalProps> = ({
                 </div>
 
                 <div className="space-y-1.5">
-                  <label className="text-[10px] font-bold uppercase tracking-wider text-zinc-400">
-                    Custom Executable Binary
-                  </label>
-                  <input
-                    type="text"
-                    value={customExeInput}
-                    onChange={(e) => setCustomExeInput(e.target.value)}
-                    placeholder="e.g. C:\Emulation\rpcs3\rpcs3.exe"
-                    className="w-full px-3.5 py-2 rounded-xl bg-black border border-white/10 text-xs font-mono text-white placeholder-zinc-600 focus:outline-none focus:border-neon-green"
-                  />
+                  <div className="flex items-center justify-between">
+                    <label className="text-[10px] font-bold uppercase tracking-wider text-zinc-400">
+                      Executable Binary (.exe) or Folder
+                    </label>
+                    <button
+                      type="button"
+                      onClick={handleBrowseCustomExe}
+                      className="text-[9px] font-black uppercase tracking-wider text-neon-green hover:underline flex items-center gap-1 cursor-pointer"
+                    >
+                      <FolderOpen className="w-3 h-3" />
+                      <span>Browse Files</span>
+                    </button>
+                  </div>
+                  <div className="flex gap-2">
+                    <input
+                      type="text"
+                      value={customExeInput}
+                      onChange={(e) => setCustomExeInput(e.target.value)}
+                      placeholder="e.g. C:\RPCS3\rpcs3.exe or C:\RPCS3"
+                      className="flex-1 px-3.5 py-2 rounded-xl bg-black border border-white/10 text-xs font-mono text-white placeholder-zinc-600 focus:outline-none focus:border-neon-green min-w-0"
+                    />
+                    <button
+                      type="button"
+                      onClick={handleBrowseCustomExe}
+                      className="px-3 py-2 rounded-xl bg-white/5 hover:bg-white/10 border border-white/10 text-zinc-200 text-xs font-bold uppercase tracking-wider shrink-0 transition-colors cursor-pointer"
+                    >
+                      Browse
+                    </button>
+                  </div>
                   <p className="text-[9px] text-zinc-500">
-                    Provide the absolute path to the emulator binary on this machine.
+                    Provide the executable path (.exe) or directory containing the emulator on this PC.
                   </p>
                 </div>
 
@@ -541,6 +603,8 @@ export const EmulatorsHubModal: React.FC<EmulatorsHubModalProps> = ({
       </motion.div>
     </div>
   );
+
+  return typeof document !== 'undefined' ? createPortal(modalContent, document.body) : modalContent;
 };
 
 const EmulatorCard = React.memo<{
@@ -559,14 +623,13 @@ const EmulatorCard = React.memo<{
       <div className="flex items-start justify-between gap-2.5 sm:gap-3">
         <div className="flex items-center gap-2.5 sm:gap-3 min-w-0 flex-1">
           <div
-            className="w-9 h-9 sm:w-10 sm:h-10 xl:w-11 xl:h-11 rounded-xl border flex items-center justify-center font-black text-xs xl:text-sm shrink-0 shadow-inner"
+            className="w-9 h-9 sm:w-10 sm:h-10 xl:w-11 xl:h-11 rounded-xl border flex items-center justify-center shrink-0 shadow-inner overflow-hidden"
             style={{
               backgroundColor: `${emu.color}15`,
               borderColor: `${emu.color}40`,
-              color: emu.color,
             }}
           >
-            {emu.name.slice(0, 2).toUpperCase()}
+            <EmulatorLogo emuId={emu.id} className="w-6 h-6 sm:w-7 sm:h-7 xl:w-8 xl:h-8" />
           </div>
           <div className="min-w-0 flex-1">
             <div className="flex items-center gap-1.5 sm:gap-2 flex-wrap">
@@ -621,6 +684,19 @@ const EmulatorCard = React.memo<{
         </div>
 
         <div className="flex items-center gap-1.5 shrink-0">
+          {!emu.is_installed && emu.website && (
+            <a
+              href={emu.website}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="px-2 xl:px-2.5 py-1 xl:py-1.5 rounded-lg bg-cyan-500/10 hover:bg-cyan-500/20 text-cyan-300 hover:text-cyan-200 border border-cyan-500/20 text-[9px] sm:text-[10px] xl:text-[11px] font-bold uppercase transition-all flex items-center gap-1"
+              title={`Download official ${emu.name}`}
+            >
+              <ExternalLink className="w-2.5 h-2.5 xl:w-3 xl:h-3" />
+              <span>Get</span>
+            </a>
+          )}
+
           <button
             onClick={onConfigure}
             className="px-2.5 xl:px-3 py-1 xl:py-1.5 rounded-lg bg-white/5 hover:bg-white/10 text-zinc-300 hover:text-white text-[9px] sm:text-[10px] xl:text-[11px] font-bold uppercase transition-all cursor-pointer flex items-center gap-1"

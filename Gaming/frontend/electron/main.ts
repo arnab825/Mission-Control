@@ -2593,6 +2593,25 @@ ipcMain.handle('select-directory', async () => {
   return result.filePaths[0];
 });
 
+ipcMain.handle('select-file', async (_event, options?: { title?: string; extensions?: string[] }) => {
+  if (!win) return null;
+  const isWindows = process.platform === 'win32';
+  const defaultExts = isWindows ? ['exe', 'bat', 'cmd'] : ['AppImage', 'bin', 'sh', '*'];
+  const extensions = options?.extensions && options.extensions.length > 0 ? options.extensions : defaultExts;
+  const result = await dialog.showOpenDialog(win, {
+    title: options?.title || 'Select Binary or Executable',
+    properties: ['openFile'],
+    filters: [
+      { name: 'Executable Binaries', extensions },
+      { name: 'All Files (*.*)', extensions: ['*'] }
+    ]
+  });
+  if (result.canceled || result.filePaths.length === 0) {
+    return null;
+  }
+  return result.filePaths[0];
+});
+
 ipcMain.handle('fetch-local-node', async () => {
   try {
     const os = require('os');
@@ -5011,9 +5030,9 @@ function setupAutoUpdater() {
   const newsCache = { timestamp: 0, items: [] as any[] };
   const NEWS_CACHE_TTL = 15 * 60 * 1000; // 15 minutes
 
-  ipcMain.handle('fetch-gaming-news', async () => {
+  const fetchGamingNewsDirect = async (forceRefresh: boolean = false) => {
     const now = Date.now();
-    if (newsCache.items.length > 0 && now - newsCache.timestamp < NEWS_CACHE_TTL) {
+    if (!forceRefresh && newsCache.items.length > 0 && now - newsCache.timestamp < NEWS_CACHE_TTL) {
       return { success: true, items: newsCache.items, totalItems: newsCache.items.length };
     }
 
@@ -5036,7 +5055,7 @@ function setupAutoUpdater() {
         const timeout = setTimeout(() => controller.abort(), 6500);
         const res = await fetch(feed.url, {
           signal: controller.signal,
-          headers: { 'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) MissionControl/3.3' }
+          headers: { 'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36 MissionControl/3.4' }
         });
         clearTimeout(timeout);
         if (!res.ok) return;
@@ -5109,8 +5128,17 @@ function setupAutoUpdater() {
       newsCache.timestamp = now;
     }
 
-    return { success: true, items: allArticles, totalItems: allArticles.length };
+    return { success: true, items: allArticles.length > 0 ? allArticles : newsCache.items, totalItems: allArticles.length > 0 ? allArticles.length : newsCache.items.length };
+  };
+
+  ipcMain.handle('fetch-gaming-news', async (_event, forceRefresh?: boolean) => {
+    return fetchGamingNewsDirect(Boolean(forceRefresh));
   });
+
+  // Background automated periodic news refresher (keeps cache warm every 30 minutes)
+  setInterval(() => {
+    fetchGamingNewsDirect(true).catch(() => {});
+  }, 30 * 60 * 1000);
 
 
   const liveSearchCache = new Map<string, { timestamp: number; data: any[] }>();

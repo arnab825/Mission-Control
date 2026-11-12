@@ -627,3 +627,24 @@ def handle_scan_roms(payload: dict, pipeline, bridge, config, library_session: d
         logger.info("ROM scan complete: merged %d emulated games into library", len(emulated_games))
     except Exception as e:
         logger.error("Failed to scan ROMs: %s", e, exc_info=True)
+
+
+def handle_get_gaming_news(payload: dict, pipeline, bridge, config) -> None:
+    """Fetches real-time live gaming news dispatches from top RSS feeds and synchronizes with bridge."""
+    import time
+    force_refresh = bool(payload.get("forceRefresh", False)) if payload else False
+
+    def _fetch():
+        try:
+            from system.gaming_news import get_gaming_news
+            items = get_gaming_news(force_refresh=force_refresh)
+            if bridge:
+                bridge.update_state({
+                    "gaming_news": items,
+                    "gaming_news_updated_at": time.time(),
+                })
+        except Exception as exc:
+            logger.warning("[GamingNews] Failed to fetch news in handler: %s", exc)
+
+    threading.Thread(target=_fetch, name="FetchGamingNewsThread", daemon=True).start()
+

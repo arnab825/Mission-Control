@@ -117,6 +117,8 @@ export interface TelemetryState {
     search_active: boolean;
     mode: string;
   };
+  gaming_news?: any[];
+  gaming_news_updated_at?: number;
   gpu_tip?: string;
   nvidia_tip?: string;
   perf_score?: number;

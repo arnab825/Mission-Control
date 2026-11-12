@@ -62,6 +62,18 @@ class BridgeServer:
         self.thread = threading.Thread(target=self._run_event_loop, daemon=True)
         self.thread.start()
 
+        def _warm_news():
+            try:
+                import time
+                from system.gaming_news import get_gaming_news
+                items = get_gaming_news(force_refresh=False)
+                if items:
+                    self.update_state({"gaming_news": items, "gaming_news_updated_at": time.time()})
+            except Exception as exc:
+                logger.debug("Initial gaming news warm-up note: %s", exc)
+
+        threading.Thread(target=_warm_news, name="WarmGamingNews", daemon=True).start()
+
     def _run_event_loop(self):
         try:
             self.loop = asyncio.new_event_loop()

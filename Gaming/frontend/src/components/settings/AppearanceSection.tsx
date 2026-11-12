@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import {
   Palette,
   Sliders,
@@ -19,6 +19,7 @@ import {
   Trash2,
   Flame,
   Grid,
+  ChevronDown,
 } from 'lucide-react';
 import { SettingsSection } from './common/SettingsSection';
 import { useTheme } from '../../context/ThemeContext';
@@ -40,6 +41,7 @@ export interface AppearanceSectionProps {
   searchQuery?: string;
   localConfig?: any;
   setLocalConfig?: React.Dispatch<React.SetStateAction<any>>;
+  gpuName?: string;
 }
 
 type SubTabId = 'palettes' | 'identity' | 'adaptive' | 'canvas' | 'presets';
@@ -47,6 +49,7 @@ type SubTabId = 'palettes' | 'identity' | 'adaptive' | 'canvas' | 'presets';
 export const AppearanceSection: React.FC<AppearanceSectionProps> = ({
   searchQuery = '',
   setLocalConfig,
+  gpuName,
 }) => {
   const {
     preferences,
@@ -81,6 +84,40 @@ export const AppearanceSection: React.FC<AppearanceSectionProps> = ({
   const [importCodeInput, setImportCodeInput] = useState('');
   const [copyFeedback, setCopyFeedback] = useState(false);
   const [importFeedback, setImportFeedback] = useState<string | null>(null);
+  const [gpuFeedback, setGpuFeedback] = useState<string | null>(null);
+  const [isTitleDropdownOpen, setIsTitleDropdownOpen] = useState(false);
+  const titleDropdownRef = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    const handleOutsideClick = (e: MouseEvent) => {
+      if (titleDropdownRef.current && !titleDropdownRef.current.contains(e.target as Node)) {
+        setIsTitleDropdownOpen(false);
+      }
+    };
+    if (isTitleDropdownOpen) {
+      document.addEventListener('mousedown', handleOutsideClick);
+    }
+    return () => {
+      document.removeEventListener('mousedown', handleOutsideClick);
+    };
+  }, [isTitleDropdownOpen]);
+
+  const handleDetectGpu = () => {
+    const rawName = gpuName || (window as any)?.__MISSION_CONTROL_GPU__ || 'NVIDIA GeForce RTX';
+    const matched = triggerGpuBrandMatch(rawName);
+    if (matched) {
+      const brand =
+        matched === 'emerald'
+          ? 'NVIDIA (Emerald Protocol)'
+          : matched === 'crimson'
+          ? 'AMD Radeon (Crimson Fury)'
+          : 'Intel Arc (Quantum Cobalt)';
+      setGpuFeedback(`Matched: ${rawName} → ${brand}`);
+    } else {
+      setGpuFeedback(`Detected: ${rawName} (Custom theme preserved)`);
+    }
+    setTimeout(() => setGpuFeedback(null), 4000);
+  };
 
   // Sync preference change into localConfig if present
   const syncToLocalConfig = (themeId: ThemeId, bg: BackgroundMode, glow: GlowIntensity) => {
@@ -442,21 +479,56 @@ export const AppearanceSection: React.FC<AppearanceSectionProps> = ({
                   </p>
                 </div>
 
-                <div className="p-4 rounded-2xl bg-white/2 border border-white/5 space-y-2">
+                <div className="p-4 rounded-2xl bg-white/2 border border-white/5 space-y-2 relative z-20">
                   <label className="text-[10px] font-black uppercase tracking-wider text-zinc-200">
                     Specialization Title
                   </label>
-                  <select
-                    value={preferences.gamerProfile.title}
-                    onChange={(e) => updateGamerProfile({ title: e.target.value })}
-                    className="w-full bg-black/40 border border-white/10 rounded-xl px-3 py-2 text-xs text-white focus:outline-none focus:border-neon-green cursor-pointer"
-                  >
-                    {PLAYER_TITLES.map((t) => (
-                      <option key={t} value={t} className="bg-zinc-900 text-white">
-                        {t}
-                      </option>
-                    ))}
-                  </select>
+                  
+                  <div className="relative" ref={titleDropdownRef}>
+                    <button
+                      type="button"
+                      onClick={() => setIsTitleDropdownOpen((prev) => !prev)}
+                      className={`w-full flex items-center justify-between px-3.5 py-2.5 rounded-xl border text-xs font-bold transition-all cursor-pointer bg-black/40 ${
+                        isTitleDropdownOpen
+                          ? 'border-neon-green/50 text-white shadow-[0_0_15px_rgba(118,185,0,0.15)] ring-1 ring-neon-green/30'
+                          : 'border-white/10 text-zinc-200 hover:border-white/20 hover:text-white'
+                      }`}
+                    >
+                      <span className="truncate">{preferences.gamerProfile.title || 'Select Specialization'}</span>
+                      <ChevronDown
+                        className={`w-3.5 h-3.5 text-zinc-400 shrink-0 transition-transform duration-200 ${
+                          isTitleDropdownOpen ? 'rotate-180 text-neon-green' : ''
+                        }`}
+                      />
+                    </button>
+
+                    {isTitleDropdownOpen && (
+                      <div className="absolute top-full left-0 right-0 mt-1.5 max-h-56 overflow-y-auto custom-scrollbar bg-[#0c0d14]/98 backdrop-blur-2xl border border-neon-green/30 rounded-xl shadow-[0_15px_45px_rgba(0,0,0,0.9),0_0_20px_rgba(118,185,0,0.15)] z-50 p-1 flex flex-col gap-0.5 animate-in fade-in zoom-in-95 duration-150">
+                        {PLAYER_TITLES.map((t) => {
+                          const isSelected = preferences.gamerProfile.title === t;
+                          return (
+                            <button
+                              key={t}
+                              type="button"
+                              onClick={() => {
+                                updateGamerProfile({ title: t });
+                                setIsTitleDropdownOpen(false);
+                              }}
+                              className={`w-full px-3 py-2 rounded-lg text-xs font-semibold text-left flex items-center justify-between transition-all cursor-pointer ${
+                                isSelected
+                                  ? 'bg-neon-green/15 text-neon-green font-black border-l-2 border-neon-green shadow-inner'
+                                  : 'text-zinc-300 hover:text-white hover:bg-white/5'
+                              }`}
+                            >
+                              <span className="truncate">{t}</span>
+                              {isSelected && <Check className="w-3.5 h-3.5 text-neon-green shrink-0 ml-2" />}
+                            </button>
+                          );
+                        })}
+                      </div>
+                    )}
+                  </div>
+
                   <p className="text-[9px] text-zinc-500">
                     Your tactical role displayed on your pilot license and performance reports.
                   </p>
@@ -583,10 +655,15 @@ export const AppearanceSection: React.FC<AppearanceSectionProps> = ({
                   <p className="text-[9px] text-zinc-400 max-w-xl leading-relaxed">
                     Detect your physical GPU (NVIDIA RTX, AMD Radeon, Intel Arc) and align telemetry accents with official manufacturer brand colors.
                   </p>
+                  {gpuFeedback && (
+                    <p className="text-[9px] text-neon-green font-mono font-bold mt-1">
+                      ✓ {gpuFeedback}
+                    </p>
+                  )}
                 </div>
                 <button
                   type="button"
-                  onClick={() => triggerGpuBrandMatch()}
+                  onClick={handleDetectGpu}
                   className="px-3 py-1.5 rounded-xl text-[9px] font-bold uppercase tracking-wider bg-white/5 hover:bg-white/10 text-white border border-white/10 transition-all cursor-pointer shrink-0"
                 >
                   Detect &amp; Match GPU

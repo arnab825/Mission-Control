@@ -1092,6 +1092,7 @@ export const SettingsPage: React.FC<SettingsPageProps> = ({ state, sendCommand, 
             searchQuery={searchQuery}
             localConfig={localConfig}
             setLocalConfig={setLocalConfig}
+            gpuName={state?.system_specs?.hardware?.gpu || state?.gpu_metrics?.gpu_name}
           />
         )}
 

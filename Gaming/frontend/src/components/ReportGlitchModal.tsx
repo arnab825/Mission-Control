@@ -1,4 +1,5 @@
 import React, { useState, useEffect, useRef } from 'react';
+import { createPortal } from 'react-dom';
 import { motion, AnimatePresence } from 'framer-motion';
 import {
   X, AlertTriangle, Cpu, CheckCircle2, Send,
@@ -337,9 +338,9 @@ export const ReportGlitchModal: React.FC<ReportGlitchModalProps> = ({
     onClose();
   };
 
-  return (
+  const modalContent = (
     <AnimatePresence>
-      <div className="fixed inset-0 z-200 flex items-center justify-center p-4">
+      <div className="fixed inset-0 z-[9999] flex items-center justify-center p-4">
         {/* Backdrop */}
         <motion.div
           className="absolute inset-0 bg-black/80 backdrop-blur-md"
@@ -746,4 +747,6 @@ export const ReportGlitchModal: React.FC<ReportGlitchModalProps> = ({
       </div>
     </AnimatePresence>
   );
+
+  return typeof document !== 'undefined' ? createPortal(modalContent, document.body) : modalContent;
 };

@@ -217,7 +217,8 @@ const DashboardPage: React.FC<DashboardPageProps> = ({ state, onCommand, onNavig
   });
 
   const [filter, setFilter] = useState<'ALL' | 'INFO' | 'WARN' | 'ERROR' | 'AGENT'>('ALL');
-  const logEndRef = React.useRef<HTMLDivElement>(null);
+  const pageContainerRef = React.useRef<HTMLDivElement>(null);
+  const logContainerRef = React.useRef<HTMLDivElement>(null);
   const [copiedIndex, setCopiedIndex] = useState<number | null>(null);
 
   const handleCopySpecific = (text: string, index: number) => {
@@ -292,11 +293,19 @@ const DashboardPage: React.FC<DashboardPageProps> = ({ state, onCommand, onNavig
     return rawLogs.filter((log: any) => log.type === filter);
   }, [rawLogs, filter]);
 
+  // Scroll only the internal log container to latest log without scrolling the outer page
   useEffect(() => {
-    if (logEndRef.current) {
-      logEndRef.current.scrollIntoView({ behavior: 'smooth' });
+    if (logContainerRef.current) {
+      logContainerRef.current.scrollTop = logContainerRef.current.scrollHeight;
     }
   }, [filteredLogs]);
+
+  // Ensure dashboard page always initializes at the top
+  useEffect(() => {
+    if (pageContainerRef.current) {
+      pageContainerRef.current.scrollTop = 0;
+    }
+  }, []);
 
   const handleCopyAll = () => {
     const logText = filteredLogs.map((log: any) => `${log.time} [${log.type}] ${log.msg}`).join('\n');
@@ -308,7 +317,7 @@ const DashboardPage: React.FC<DashboardPageProps> = ({ state, onCommand, onNavig
   };
 
   return (
-    <div className="flex-1 p-3.5 sm:p-6 lg:p-8 flex flex-col h-full overflow-y-auto xl:overflow-hidden gap-y-4 sm:gap-y-6 bg-transparent select-none min-h-0">
+    <div ref={pageContainerRef} className="flex-1 p-3.5 sm:p-6 lg:p-8 flex flex-col h-full overflow-y-auto xl:overflow-hidden gap-y-4 sm:gap-y-6 bg-transparent select-none min-h-0">
       
       {/* Header section (shrink-0) */}
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 sm:gap-4 shrink-0">
@@ -438,7 +447,7 @@ const DashboardPage: React.FC<DashboardPageProps> = ({ state, onCommand, onNavig
           </div>
 
           {/* AI strategy chat-like logs feed (deduplicated) */}
-          <div className="flex-1 overflow-y-auto custom-scrollbar space-y-2 pr-1 min-h-0 mt-3">
+          <div ref={logContainerRef} className="flex-1 overflow-y-auto custom-scrollbar space-y-2 pr-1 min-h-0 mt-3">
             {filteredLogs.length === 0 ? (
               <div className="h-full flex flex-col items-center justify-center gap-3 text-zinc-600">
                 <BrainCircuit className="w-8 h-8 opacity-20 animate-pulse" />
@@ -523,7 +532,6 @@ const DashboardPage: React.FC<DashboardPageProps> = ({ state, onCommand, onNavig
                 })}
               </AnimatePresence>
             )}
-            <div ref={logEndRef} />
           </div>
         </div>
 

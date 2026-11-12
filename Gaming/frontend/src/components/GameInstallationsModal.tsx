@@ -5,6 +5,7 @@
  */
 
 import React from 'react';
+import { createPortal } from 'react-dom';
 import { motion, AnimatePresence } from 'framer-motion';
 import { X, HardDrive, Server, Wifi, WifiOff, Copy, CheckCircle2 } from 'lucide-react';
 import { useState } from 'react';
@@ -141,10 +142,10 @@ const GameInstallationsModal: React.FC<GameInstallationsModalProps> = ({
   const available = installations.filter(i => i.status === 'available').length;
   const unavailable = installations.length - available;
 
-  return (
+  const modalContent = (
     <AnimatePresence>
       <motion.div
-        className="fixed inset-0 z-[200] flex items-center justify-center p-4"
+        className="fixed inset-0 z-[9999] flex items-center justify-center p-4"
         initial={{ opacity: 0 }}
         animate={{ opacity: 1 }}
         exit={{ opacity: 0 }}
@@ -212,6 +213,8 @@ const GameInstallationsModal: React.FC<GameInstallationsModalProps> = ({
       </motion.div>
     </AnimatePresence>
   );
+
+  return typeof document !== 'undefined' ? createPortal(modalContent, document.body) : modalContent;
 };
 
 export default GameInstallationsModal;
