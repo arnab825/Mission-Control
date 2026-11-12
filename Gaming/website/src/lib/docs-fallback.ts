@@ -123,7 +123,25 @@ NVIDIA Deep Learning Super Sampling (DLSS) is a revolutionary suite of neural re
     badgeColor: "text-neon-green",
     content: `# 🚀 Major Updates & Release History
 
-## 🌟 Version v3.9.1 (Latest) — 1440p/1600p QHD+ Display Optimization & ROM Scanning Schema Validation Fix
+## 🌟 Version v3.9.3 (Latest) — Fixed Agent Neural History persistence across page tabs
+- **Agent Neural History Persistence:** In-memory module cache and sessionStorage backing ensures active chat and session history remain persistent when navigating between Dashboard, Settings, and Agent tabs.
+- **Dynamic Sidebar Panel Toggle Icons:** Upgraded the static hamburger button to a dynamic stateful panel toggle (\`PanelLeftClose\` with emerald glow when open, \`PanelLeftOpen\` when closed).
+- **Desktop Sidebar Drawer Persistence:** Neural History drawer remembers user open/close preference via localStorage and no longer auto-collapses on desktop widescreen.
+- **Removed Stability Lab Horizontal Scrollbar:** Converted headroom cards to a responsive 3-column grid (\`grid-cols-1 sm:grid-cols-3\`) to prevent horizontal overflow.
+- **Glassmorphic Game Filters & Badge Stacking Fix:** Replaced native select elements with custom CyberFilterDropdown and isolated CSS stacking context to prevent card badges from bleeding over dropdown popovers.
+- **React Lazy-Loading 80% Initial Bundle Optimization:** Converted secondary page routes to React.lazy() code-splitting, slashing initial frontend JS bundle by 80.4% (from 967KB to 189KB).
+
+## 🌟 Version v3.9.2 — Performance Optimization, Zero-Hang Architecture & Emulators Hub Alignment
+- **Fixed Emulators & ROMs Hub z-index layering and resolution cutoff on scaled displays.**
+- **Eliminated modal opening lag with GPU acceleration, reduced backdrop blur, and memoized lists.**
+- **Redesigned Game Intelligence header action toolbar preventing button wrapping on compact displays.**
+- **Replaced native OS select dropdowns with custom glassmorphic CyberFilterDropdown components.**
+- **Resolved CSS stacking context badge overlap with isolated grid boundaries.**
+- **Slashed initial frontend JS bundle size by 80.4% (from 967KB to 189KB) via route code-splitting.**
+- **Enabled GPU hardware rasterization, zero-copy compositing, and tight 256MB V8 heap ceilings.**
+- **Implemented 5MB auto-rotating logs to protect disk storage and eliminate app freezes.**
+
+## 🌟 Version v3.9.1 — 1440p/1600p QHD+ Display Optimization & ROM Scanning Schema Validation Fix
 - **ROM Scanning Schema Validation Fix:** Strict Pydantic schema validation for scan_roms and set_rom_paths commands with authenticated session context.
 - **1440p & 1600p QHD+ Display Scaling:** Dynamic modal expansion up to max-w-7xl, multi-column emulator grids (3–4 columns), and side-by-side ROM folder cards.
 - **Ultra-Responsive Game Intelligence Grid:** Scaled 1–6 column card grid for high-DPI viewports with proportional aspect ratios and widescreen empty state UX.

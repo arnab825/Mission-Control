@@ -175,13 +175,11 @@ def _sanitize(field_name: str, value: str) -> str:
 
 
 def update_patches_md(entry):
-    PATCHES_FILE = os.path.join(os.path.dirname(__file__), "..", "docs", "backend", "patches.md")
-    if not os.path.exists(PATCHES_FILE):
-        return
-
-    with open(PATCHES_FILE, "r", encoding="utf-8") as f:
-        content = f.read()
-
+    target_files = [
+        os.path.join(os.path.dirname(__file__), "..", "docs", "patchesfile.md"),
+        os.path.join(os.path.dirname(__file__), "..", "website", "docs", "patchesfile.md"),
+        os.path.join(os.path.dirname(__file__), "..", "docs", "backend", "patches.md"),
+    ]
     new_entry = f"### Patch: {entry['date']} — v{entry['version']}: {entry['title']}\n\n"
     
     if "image_url" in entry:
@@ -191,16 +189,23 @@ def update_patches_md(entry):
         new_entry += f"- {highlight}\n"
     new_entry += "\n"
 
-    marker = "### Patch:"
-    index = content.find(marker)
-    if index != -1:
-        updated_content = content[:index] + new_entry + content[index:]
-    else:
-        updated_content = content + "\n" + new_entry
+    for target in target_files:
+        if not os.path.exists(target):
+            continue
 
-    with open(PATCHES_FILE, "w", encoding="utf-8") as f:
-        f.write(updated_content)
-    print(f"patches.md updated with v{entry['version']}")
+        with open(target, "r", encoding="utf-8") as f:
+            content = f.read()
+
+        marker = "### Patch:"
+        index = content.find(marker)
+        if index != -1:
+            updated_content = content[:index] + new_entry + content[index:]
+        else:
+            updated_content = content + "\n" + new_entry
+
+        with open(target, "w", encoding="utf-8") as f:
+            f.write(updated_content)
+        print(f"{os.path.basename(target)} updated with v{entry['version']}")
 
 
 def update_summary_md(entry, short_desc: str):
@@ -365,54 +370,49 @@ Respond ONLY with valid JSON:
 
 
 def update_changes_summary_md(entry, enriched: dict):
-    changes_file = os.path.join(os.path.dirname(__file__), "..", "docs", "changes_summary.md")
-    if not os.path.exists(changes_file):
-        return
+    target_files = [
+        os.path.join(os.path.dirname(__file__), "..", "docs", "changes_summary.md"),
+        os.path.join(os.path.dirname(__file__), "..", "website", "docs", "changes_summary.md"),
+    ]
 
-    with open(changes_file, "r", encoding="utf-8") as f:
-        content = f.read()
+    for changes_file in target_files:
+        if not os.path.exists(changes_file):
+            continue
 
-    # Change previous latest release indicator to standard version heading
-    content = content.replace("## 🌟 Version v", "## 📦 Version v")
-    content = content.replace(" (Latest)", "")
+        with open(changes_file, "r", encoding="utf-8") as f:
+            content = f.read()
 
-    # Build curated new release block
-    new_entry = f"\n---\n\n## 🌟 Version v{entry['version']} (Latest) — {entry['title']}\n\n"
-    new_entry += "### 🛠️ Key Highlights\n"
-    for idx, highlight in enumerate(enriched.get("highlights", entry.get("highlights", [])), 1):
-        new_entry += f"{idx}. **{highlight}**\n"
+        # Change previous latest release indicator to standard version heading
+        content = content.replace("## 🌟 Version v", "## 📦 Version v")
+        content = content.replace(" (Latest)", "")
 
-    if enriched.get("mermaid_diagram"):
-        diag = enriched["mermaid_diagram"].strip()
-        if not diag.startswith("```"):
-            diag = f"```mermaid\n{diag}\n```"
-        new_entry += f"\n### 📊 Architecture & Data Flow\n{diag}\n"
+        # Build curated new release block
+        new_entry = f"## 🌟 Version v{entry['version']} (Latest) — {entry['title']}\n\n"
+        new_entry += "### 🛠️ Key Highlights\n"
+        for idx, highlight in enumerate(enriched.get("highlights", entry.get("highlights", [])), 1):
+            new_entry += f"{idx}. **{highlight}**\n"
 
-    new_entry += f"\n### 📦 Distribution Artifacts\n"
-    new_entry += f"- **Linux**: `.deb` (Debian/Ubuntu), `.AppImage` (Universal), `.rpm` (Fedora/RHEL), `.tar.gz` (Portable)\n"
-    new_entry += f"- **Windows**: `.exe` (Setup Installer), `.msi` (Enterprise), `.zip` (Portable)\n"
+        if enriched.get("mermaid_diagram"):
+            diag = enriched["mermaid_diagram"].strip()
+            if not diag.startswith("```"):
+                diag = f"```mermaid\n{diag}\n```"
+            new_entry += f"\n### 📊 Architecture & Data Flow\n{diag}\n"
 
-    # Insert after top title header section (find the first '---')
-    first_divider = content.find("\n---")
-    if first_divider != -1:
-        # Check if there is frontmatter
-        if content.startswith("---"):
-            second_divider = content.find("\n---", 4)
-            if second_divider != -1:
-                third_divider = content.find("\n---", second_divider + 4)
-                split_point = third_divider if third_divider != -1 else second_divider
-            else:
-                split_point = first_divider
+        new_entry += f"\n### 📦 Distribution Artifacts\n"
+        new_entry += f"- **Linux**: `.deb` (Debian/Ubuntu), `.AppImage` (Universal), `.rpm` (Fedora/RHEL), `.tar.gz` (Portable)\n"
+        new_entry += f"- **Windows**: `.exe` (Setup Installer), `.msi` (Enterprise), `.zip` (Portable)\n\n---\n\n"
+
+        # Insert directly before the first version header
+        marker = re.search(r'\n##\s+(?:🌟|📦)\s+Version\s+v', content)
+        if marker:
+            split_point = marker.start() + 1
+            updated_content = content[:split_point] + new_entry + content[split_point:]
         else:
-            split_point = first_divider
+            updated_content = content + "\n\n" + new_entry
 
-        updated_content = content[:split_point] + new_entry + content[split_point:]
-    else:
-        updated_content = content + new_entry
-
-    with open(changes_file, "w", encoding="utf-8") as f:
-        f.write(updated_content)
-    print(f"changes_summary.md updated -> v{entry['version']} (Latest) prepended to Major Releases")
+        with open(changes_file, "w", encoding="utf-8") as f:
+            f.write(updated_content)
+        print(f"{os.path.basename(changes_file)} updated -> v{entry['version']} (Latest) prepended to Major Releases")
 
 
 if __name__ == "__main__":

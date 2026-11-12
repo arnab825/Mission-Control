@@ -10,54 +10,14 @@ excerpt: "Curated breakdown of major version releases, architectural milestones,
 
 Comprehensive breakdown of major milestone releases, architectural upgrades, and core engine enhancements in **Mission Control**.
 
-## 📦 Version v3.9.1 — 1440p/1600p QHD+ Display Optimization & ROM Scanning Schema Validation Fix
-
-### 🛠️ Key Highlights
-1. **ROM Scanning Schema Validation Fix**: Resolved Pydantic schema validation failures where `scan_roms`, `set_rom_paths`, and `configure_emulator` commands were rejected by `extra="forbid"` when dispatched with authenticated session parameters (`userId`).
-2. **1440p & 1600p QHD+ Responsive Modal Sizing**: Redesigned the Emulators & ROMs Hub dialog container to scale dynamically across `max-w-4xl`, `xl:max-w-5xl`, `2xl:max-w-6xl`, and `3xl:max-w-7xl` with capped heights (`max-h-[85vh]`), eliminating narrow smartphone-like letterboxing on 2560px displays.
-3. **Multi-Column Emulator Grid**: Upgraded installed and catalog emulator views to render 3 to 4 columns on large monitors (`xl:grid-cols-3 3xl:grid-cols-4`), significantly reducing unnecessary vertical scrolling.
-4. **Side-by-Side ROM Folders**: Configured ROM directories now arrange in a balanced 2-column grid (`xl:grid-cols-2`) on widescreen setups.
-5. **Ultra-Responsive Game Intelligence Grid**: Library game cards now fluidly adapt across 1 to 6 columns (`sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 2xl:grid-cols-5 min-[2200px]:grid-cols-6`) with proportional poster banner dimensions (`h-44 xl:h-48 2xl:h-52`).
-6. **Widescreen Empty State UX**: Emulation and general library empty states feature responsive vertical centering (`min-h-[380px] xl:min-h-[460px]`), refined icons, and 1-click action triggers (`Start Full Scan`, `Emulators & ROMs Hub`, `Discover from Web`).
-
-## 📦 Version v3.9.0 — DLSS 5.0 Neural Studio, ROM Scanner Guidance & E2EE Verification UX
-
-### 🛠️ Key Highlights
-1. **NVIDIA DLSS 5.0 Neural Studio**: Introduced an in-depth Settings panel featuring real-time neural rendering controls, target resolution input preparation, and neural shader parameter orchestration.
-2. **Neural Rendering Aesthetic Styles**: 5 switchable neural lighting and aesthetic presets (Cinematic Photoreal, Cyberpunk Hyper-Neon, Ethereal Atmospheric, Gritty Tactical High-Contrast, and Anime Cell-Shaded) with live HUD feedback.
-3. **Fine-Tuning Intensity Sliders**: Added precision sliders for Global Style Weight (0–100%), Neural Denoiser Aggressiveness, Material Specular Sharpness, and Temporal Coherence Bias.
-4. **Dynamic Multi Frame Generation (Dynamic MFG)**: 5 frame pacing modes: Adaptive Dynamic (AI-governed pacing), 2x Balanced, 3x Performance, 4x Ultra Performance, and 6x Hyper Scaling.
-5. **ROM Scanner Guidance & Smart Redirection**: When clicking "Scan ROMs" with zero configured directories, Mission Control automatically navigates to the ROM Folders tab with an actionable warning banner instead of failing silently.
-6. **Authenticated Session Library Merging**: Fixed session propagation so that emulated console titles persist across authenticated user accounts (`userId`) rather than defaulting to local guest sessions.
-7. **E2EE Handshake Verification Overhaul**: Eliminated text smearing collisions in the holographic matrix scanner, relocated node identity and state link into a dedicated hardware telemetry pill, and removed out-of-place account sync cards.
-8. **Identity Gateway Switching Fix**: Fixed provider account switching so that Discord handles and Google display names accurately propagate across Sidebar, Settings, and Account Switcher.
-9. **Backend Asynchronous Threading Fix**: Resolved `NameError: name 'threading' is not defined` in `command_router.py` during async account replication.
-
-### 📊 Architecture & Data Flow
-```mermaid
-graph TD
-    A["DLSS 5 Neural Studio (Settings)"] --> B["Neural Style & MFG Mode Selector"]
-    B --> C["Parameter Normalizer (Weight / Denoiser / Sharpness)"]
-    C --> D["DirectX 12 Neural Shader Pipeline Hook"]
-    D --> E["Real-Time Live Pilot HUD Simulation"]
-    F["ROM Scanner & Emulator Matrix"] --> G["User Session Resolver (Auth UID / Guest)"]
-    G --> H["Persistent Library Cache & Game Intelligence"]
-```
-
-### 📦 Distribution Artifacts
-- **Linux**: `.deb` (Debian/Ubuntu), `.AppImage` (Universal), `.tar.gz` (Standalone Archive)
-- **Windows**: `.exe` (Setup Installer), `.msi` (Enterprise MSI), `.zip` (Portable Archive)
-
----
-
 ## 🌟 Version v3.9.3 (Latest) — Fixed Agent Neural History persistence across page tabs
 
 ### 🛠️ Key Highlights
-1. **Fixed Agent Neural History persistence across page tabs**
-2. **Dynamic sidebar panel toggle icons**
-3. **Removed Stability Lab horizontal scrollbar**
-4. **Glassmorphic game filters & badge stacking fix**
-5. **React lazy-loading 80% initial bundle optimization**
+1. **Fixed Agent Neural History persistence across page tabs**: In-memory module cache and sessionStorage backing ensures active chat and session history remain persistent when navigating between Dashboard, Settings, and Agent tabs.
+2. **Dynamic sidebar panel toggle icons**: Upgraded the static hamburger button to a dynamic stateful panel toggle (`PanelLeftClose` with emerald glow when open, `PanelLeftOpen` when closed).
+3. **Removed Stability Lab horizontal scrollbar**: Converted headroom cards to a responsive 3-column grid (`grid-cols-1 sm:grid-cols-3`) to prevent horizontal overflow.
+4. **Glassmorphic game filters & badge stacking fix**: Replaced native select elements with custom CyberFilterDropdown and isolated CSS stacking context to prevent card badges from bleeding over dropdown popovers.
+5. **React lazy-loading 80% initial bundle optimization**: Converted secondary page routes to React.lazy() code-splitting, slashing initial frontend JS bundle by 80.4% (from 967KB to 189KB).
 
 ### 📊 Architecture & Data Flow
 ```mermaid
@@ -100,7 +60,19 @@ graph TD
 
 ---
 
-## 📦 Version v3.8.10 — Cross-Platform Emulation Engine & ROM Library Orchestration
+## 📦 Version v3.9.1 — 1440p/1600p QHD+ Display Optimization & ROM Scanning Schema Validation Fix
+
+### 🛠️ Key Highlights
+1. **ROM Scanning Schema Validation Fix**: Resolved Pydantic schema validation failures where `scan_roms`, `set_rom_paths`, and `configure_emulator` commands were rejected by `extra="forbid"` when dispatched with authenticated session parameters (`userId`).
+2. **1440p & 1600p QHD+ Responsive Modal Sizing**: Redesigned the Emulators & ROMs Hub dialog container to scale dynamically across `max-w-4xl`, `xl:max-w-5xl`, `2xl:max-w-6xl`, and `3xl:max-w-7xl` with capped heights (`max-h-[85vh]`), eliminating narrow smartphone-like letterboxing on 2560px displays.
+3. **Multi-Column Emulator Grid**: Upgraded installed and catalog emulator views to render 3 to 4 columns on large monitors (`xl:grid-cols-3 3xl:grid-cols-4`), significantly reducing unnecessary vertical scrolling.
+4. **Side-by-Side ROM Folders**: Configured ROM directories now arrange in a balanced 2-column grid (`xl:grid-cols-2`) on widescreen setups.
+5. **Ultra-Responsive Game Intelligence Grid**: Library game cards now fluidly adapt across 1 to 6 columns (`sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 2xl:grid-cols-5 min-[2200px]:grid-cols-6`) with proportional poster banner dimensions (`h-44 xl:h-48 2xl:h-52`).
+6. **Widescreen Empty State UX**: Emulation and general library empty states feature responsive vertical centering (`min-h-[380px] xl:min-h-[460px]`), refined icons, and 1-click action triggers (`Start Full Scan`, `Emulators & ROMs Hub`, `Discover from Web`).
+
+---
+
+## 📦 Version v3.9.0 — DLSS 5.0 Neural Studio, ROM Scanner Guidance & E2EE Verification UX
 
 ### 🛠️ Key Highlights
 1. **Cross-Platform Emulator Discovery**: Auto-detects 17+ standalone emulators (RPCS3, PCSX2, DuckStation, Dolphin, Cemu, Ryujinx, Lime3DS, melonDS, mGBA, Snes9x, Mupen64Plus, Xenia, Xemu, Flycast, Vita3K) and RetroArch libretro cores across standard Windows and Linux directories.
