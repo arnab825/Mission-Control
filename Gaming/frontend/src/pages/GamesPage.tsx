@@ -13,6 +13,7 @@ import {
   Gamepad2,
   Loader2,
   CheckCircle2,
+  Check,
   X,
   Cpu,
   Layers,
@@ -637,6 +638,116 @@ const CacheLoadingScreen: React.FC = () => (
   </div>
 );
 
+// ── Cyber Filter Dropdown Component ───────────────────────────────────────────
+interface CyberFilterDropdownOption {
+  value: string;
+  label: string;
+}
+
+interface CyberFilterDropdownProps {
+  label: string;
+  icon: React.ReactNode;
+  value: string;
+  options: CyberFilterDropdownOption[];
+  onChange: (val: string) => void;
+  accent?: 'green' | 'yellow';
+}
+
+const CyberFilterDropdown: React.FC<CyberFilterDropdownProps> = ({
+  label,
+  icon,
+  value,
+  options,
+  onChange,
+  accent = 'green',
+}) => {
+  const [isOpen, setIsOpen] = useState(false);
+  const dropdownRef = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    const handleOutsideClick = (e: MouseEvent) => {
+      if (dropdownRef.current && !dropdownRef.current.contains(e.target as Node)) {
+        setIsOpen(false);
+      }
+    };
+    if (isOpen) {
+      document.addEventListener('mousedown', handleOutsideClick);
+    }
+    return () => {
+      document.removeEventListener('mousedown', handleOutsideClick);
+    };
+  }, [isOpen]);
+
+  const selectedOption = options.find((o) => o.value === value) || options[0];
+  const isCustomActive = value !== 'All';
+
+  const accentStyles = accent === 'yellow' ? {
+    btnBorder: isCustomActive ? 'border-neon-yellow/40 bg-neon-yellow/10' : 'border-white/10 hover:border-white/20 bg-black/40',
+    btnText: isCustomActive ? 'text-neon-yellow' : 'text-zinc-300 hover:text-white',
+    chevron: isCustomActive ? 'text-neon-yellow' : 'text-zinc-500',
+    itemActive: 'bg-neon-yellow/15 text-neon-yellow font-black border-l-2 border-neon-yellow',
+    itemCheck: 'text-neon-yellow',
+    popoverBorder: 'border-neon-yellow/30 shadow-[0_0_25px_rgba(250,204,21,0.15)]',
+  } : {
+    btnBorder: isCustomActive ? 'border-neon-green/40 bg-neon-green/10' : 'border-white/10 hover:border-white/20 bg-black/40',
+    btnText: isCustomActive ? 'text-neon-green' : 'text-zinc-300 hover:text-white',
+    chevron: isCustomActive ? 'text-neon-green' : 'text-zinc-500',
+    itemActive: 'bg-neon-green/15 text-neon-green font-black border-l-2 border-neon-green',
+    itemCheck: 'text-neon-green',
+    popoverBorder: 'border-neon-green/30 shadow-[0_0_25px_rgba(118,185,0,0.15)]',
+  };
+
+  return (
+    <div className="relative inline-flex items-center gap-2 z-40" ref={dropdownRef}>
+      <div className="flex items-center gap-1.5 shrink-0 select-none">
+        {icon}
+        <span className="text-[9px] font-black text-zinc-500 uppercase tracking-widest">{label}</span>
+      </div>
+
+      <div className="relative">
+        <button
+          type="button"
+          onClick={() => setIsOpen((prev) => !prev)}
+          className={`flex items-center justify-between gap-2.5 px-3 py-1.5 rounded-xl border text-[9px] font-black uppercase tracking-widest transition-all cursor-pointer min-w-32 sm:min-w-36 ${accentStyles.btnBorder} ${accentStyles.btnText}`}
+        >
+          <span className="truncate">{selectedOption?.label || value}</span>
+          <ChevronDown
+            className={`w-3 h-3 shrink-0 transition-transform duration-200 ${accentStyles.chevron} ${isOpen ? 'rotate-180' : ''}`}
+          />
+        </button>
+
+        {isOpen && (
+          <div
+            className={`absolute top-full left-0 mt-1.5 min-w-[180px] max-h-56 overflow-y-auto custom-scrollbar bg-[#0d0e15] border ${accentStyles.popoverBorder} rounded-xl shadow-[0_12px_40px_rgba(0,0,0,0.9)] z-50 p-1 flex flex-col gap-0.5 animate-in fade-in zoom-in-95 duration-150`}
+          >
+            {options.map((opt) => {
+              const isSelected = opt.value === value;
+              return (
+                <button
+                  key={opt.value}
+                  type="button"
+                  onClick={() => {
+                    onChange(opt.value);
+                    setIsOpen(false);
+                  }}
+                  className={`w-full px-2.5 py-1.5 rounded-lg text-[9px] uppercase tracking-wider text-left flex items-center justify-between transition-all cursor-pointer ${
+                    isSelected
+                      ? accentStyles.itemActive
+                      : 'text-zinc-400 hover:text-white hover:bg-white/5 font-semibold'
+                  }`}
+                >
+                  <span className="truncate">{opt.label}</span>
+                  {isSelected && <Check className={`w-3 h-3 shrink-0 ml-2 ${accentStyles.itemCheck}`} />}
+                </button>
+              );
+            })}
+          </div>
+        )}
+      </div>
+    </div>
+  );
+};
+
 // ── Main Library Content ───────────────────────────────────────────────────────
 const GamesLibraryContent: React.FC<GamesPageProps> = ({ state, sendCommand, setMode: _setMode }) => {
   const { isSignedIn, userId } = useAuth();
@@ -961,9 +1072,22 @@ const GamesLibraryContent: React.FC<GamesPageProps> = ({ state, sendCommand, set
 
   // Genre dynamic options
   const genres = useMemo(() => {
-    const unique = [...new Set(games.map(g => g.genre))].filter(Boolean);
+    const unique = [...new Set(games.map(g => g.genre))].filter((g): g is string => Boolean(g));
     return unique.sort();
   }, [games]);
+
+  const genreOptions = useMemo(() => [
+    { value: 'All', label: 'All Genres' },
+    ...genres.map(g => ({ value: g, label: g }))
+  ], [genres]);
+
+  const techOptions = useMemo(() => [
+    { value: 'All', label: 'All Tech' },
+    { value: 'DLSS', label: 'Nvidia DLSS' },
+    { value: 'RTX', label: 'Nvidia RTX' },
+    { value: 'REFLEX', label: 'Nvidia Reflex' },
+    { value: 'LEGACY', label: 'Nvidia Legacy (GTX)' },
+  ], []);
 
   // Quick type counts
   const launchersCount = useMemo(
@@ -1077,21 +1201,21 @@ const GamesLibraryContent: React.FC<GamesPageProps> = ({ state, sendCommand, set
     <div className="flex-1 p-4 sm:p-6 xl:p-8 2xl:p-10 flex flex-col overflow-y-auto custom-scrollbar gap-y-4 sm:gap-y-6 xl:gap-y-8">
 
       {/* Header */}
-      <div className="flex flex-col md:flex-row md:items-end justify-between gap-4">
-        <div>
+      <div className="flex flex-col xl:flex-row xl:items-center justify-between gap-3 sm:gap-4">
+        <div className="shrink-0">
           <h2 className="text-2xl sm:text-3xl xl:text-4xl font-black text-white tracking-tighter">GAME INTELLIGENCE</h2>
           <p className="text-[10px] sm:text-xs xl:text-sm font-bold text-zinc-500 uppercase tracking-[0.3em] mt-0.5">
             Neural Library Orchestration
           </p>
         </div>
 
-        <div className="flex flex-wrap gap-2.5 xl:gap-3 items-center md:justify-end">
+        <div className="flex flex-wrap items-center gap-2 sm:gap-2.5 xl:justify-end">
           {/* Web Discovery button — always accessible */}
           <button
             id="discover-games-btn"
             type="button"
             onClick={() => setShowDiscoverModal(true)}
-            className="group flex items-center gap-2 px-4 xl:px-5 py-2.5 xl:py-3 bg-neon-green/10 hover:bg-neon-green/20 active:scale-95 border border-neon-green/30 hover:border-neon-green/50 text-neon-green font-black text-[10px] xl:text-xs uppercase tracking-widest rounded-2xl transition-all duration-150 transform-gpu will-change-transform shadow-[0_0_15px_rgba(118,185,0,0.15)] hover:shadow-[0_0_22px_rgba(118,185,0,0.3)] cursor-pointer shrink-0"
+            className="group flex items-center gap-1.5 sm:gap-2 px-3 sm:px-3.5 xl:px-4 py-2 sm:py-2.5 bg-neon-green/10 hover:bg-neon-green/20 active:scale-95 border border-neon-green/30 hover:border-neon-green/50 text-neon-green font-black text-[10px] xl:text-xs uppercase tracking-wider rounded-xl transition-all duration-150 transform-gpu will-change-transform shadow-[0_0_15px_rgba(118,185,0,0.15)] hover:shadow-[0_0_22px_rgba(118,185,0,0.3)] cursor-pointer shrink-0"
             title="Search and add games from Steam, Epic, GOG, and RAWG"
           >
             <Globe className="w-3.5 h-3.5 xl:w-4 xl:h-4 transition-transform duration-200 group-hover:rotate-12" />
@@ -1103,7 +1227,7 @@ const GamesLibraryContent: React.FC<GamesPageProps> = ({ state, sendCommand, set
             id="manage-nodes-btn"
             type="button"
             onClick={() => setShowNodeManager(true)}
-            className="group flex items-center gap-2 px-4 xl:px-5 py-2.5 xl:py-3 bg-white/5 hover:bg-white/10 active:scale-95 border border-white/10 hover:border-white/20 text-zinc-300 hover:text-white font-black text-[10px] xl:text-xs uppercase tracking-widest rounded-2xl transition-all duration-150 transform-gpu will-change-transform hover:shadow-[0_0_18px_rgba(255,255,255,0.06)] cursor-pointer shrink-0"
+            className="group flex items-center gap-1.5 sm:gap-2 px-3 sm:px-3.5 xl:px-4 py-2 sm:py-2.5 bg-white/5 hover:bg-white/10 active:scale-95 border border-white/10 hover:border-white/20 text-zinc-300 hover:text-white font-black text-[10px] xl:text-xs uppercase tracking-wider rounded-xl transition-all duration-150 transform-gpu will-change-transform hover:shadow-[0_0_18px_rgba(255,255,255,0.06)] cursor-pointer shrink-0"
             title="Manage Local & Remote Cluster Nodes"
           >
             <Server className="w-3.5 h-3.5 xl:w-4 xl:h-4 transition-transform duration-200 group-hover:scale-110" />
@@ -1115,7 +1239,7 @@ const GamesLibraryContent: React.FC<GamesPageProps> = ({ state, sendCommand, set
             id="emulators-roms-btn"
             type="button"
             onClick={() => setShowEmulatorsModal(true)}
-            className="group flex items-center gap-2 px-4 xl:px-5 py-2.5 xl:py-3 bg-purple-500/10 hover:bg-purple-500/20 active:scale-95 border border-purple-500/30 hover:border-purple-500/50 text-purple-300 hover:text-purple-100 font-black text-[10px] xl:text-xs uppercase tracking-widest rounded-2xl transition-all duration-150 transform-gpu will-change-transform shadow-[0_0_15px_rgba(168,85,247,0.15)] hover:shadow-[0_0_22px_rgba(168,85,247,0.3)] cursor-pointer shrink-0"
+            className="group flex items-center gap-1.5 sm:gap-2 px-3 sm:px-3.5 xl:px-4 py-2 sm:py-2.5 bg-purple-500/10 hover:bg-purple-500/20 active:scale-95 border border-purple-500/30 hover:border-purple-500/50 text-purple-300 hover:text-purple-100 font-black text-[10px] xl:text-xs uppercase tracking-wider rounded-xl transition-all duration-150 transform-gpu will-change-transform shadow-[0_0_15px_rgba(168,85,247,0.15)] hover:shadow-[0_0_22px_rgba(168,85,247,0.3)] cursor-pointer shrink-0"
             title="Configure Emulators and Scan ROM Folders"
           >
             <Gamepad2 className="w-3.5 h-3.5 xl:w-4 xl:h-4 text-purple-400 transition-transform duration-200 group-hover:scale-110" />
@@ -1129,17 +1253,17 @@ const GamesLibraryContent: React.FC<GamesPageProps> = ({ state, sendCommand, set
 
           {/* Scan progress indicator */}
           {isScanning && (
-            <div className="flex items-center gap-2 px-3.5 xl:px-4 py-2.5 xl:py-3 bg-neon-green/10 border border-neon-green/20 rounded-2xl max-w-full shrink-0">
+            <div className="flex items-center gap-1.5 sm:gap-2 px-3 sm:px-3.5 py-2 sm:py-2.5 bg-neon-green/10 border border-neon-green/20 rounded-xl max-w-full shrink-0">
               <Loader2 className="w-3.5 h-3.5 xl:w-4 xl:h-4 text-neon-green animate-spin shrink-0" />
-              <span className="text-[10px] xl:text-xs font-black text-neon-green uppercase tracking-widest truncate">
+              <span className="text-[10px] xl:text-xs font-black text-neon-green uppercase tracking-wider truncate">
                 {scanProgress}% — {scanStatus}
               </span>
             </div>
           )}
           {scanStatus === 'done' && (
-            <div className="flex items-center gap-2 px-3.5 xl:px-4 py-2.5 xl:py-3 bg-neon-yellow/10 border border-neon-yellow/20 rounded-2xl max-w-full shrink-0">
+            <div className="flex items-center gap-1.5 sm:gap-2 px-3 sm:px-3.5 py-2 sm:py-2.5 bg-neon-yellow/10 border border-neon-yellow/20 rounded-xl max-w-full shrink-0">
               <CheckCircle2 className="w-3.5 h-3.5 xl:w-4 xl:h-4 text-neon-yellow shrink-0" />
-              <span className="text-[10px] xl:text-xs font-black text-neon-yellow uppercase tracking-widest truncate">
+              <span className="text-[10px] xl:text-xs font-black text-neon-yellow uppercase tracking-wider truncate">
                 {games.length} Games Found
               </span>
             </div>
@@ -1148,7 +1272,7 @@ const GamesLibraryContent: React.FC<GamesPageProps> = ({ state, sendCommand, set
           <button aria-label="button" type="button"
             onClick={triggerFullScan}
             disabled={isScanning}
-            className="flex items-center gap-2 px-5 xl:px-6 py-2.5 xl:py-3 bg-neon-green text-black font-black text-[10px] xl:text-xs uppercase tracking-widest rounded-2xl shadow-[0_0_20px_rgba(118,185,0,0.3)] hover:shadow-[0_0_30px_rgba(118,185,0,0.5)] transition-all disabled:opacity-60 disabled:cursor-not-allowed shrink-0 cursor-pointer"
+            className="flex items-center gap-1.5 sm:gap-2 px-4 xl:px-5 py-2 sm:py-2.5 bg-neon-green text-black font-black text-[10px] xl:text-xs uppercase tracking-wider rounded-xl shadow-[0_0_20px_rgba(118,185,0,0.3)] hover:shadow-[0_0_30px_rgba(118,185,0,0.5)] transition-all disabled:opacity-60 disabled:cursor-not-allowed shrink-0 cursor-pointer"
           >
             <RefreshCw className={`w-3.5 h-3.5 xl:w-4 xl:h-4 shrink-0 ${isScanning ? 'animate-spin' : ''}`} />
             <span className="whitespace-nowrap">{isScanning ? 'Scanning...' : 'Full Scan'}</span>
@@ -1196,7 +1320,7 @@ const GamesLibraryContent: React.FC<GamesPageProps> = ({ state, sendCommand, set
       ) : (
         <>
           {/* HUD Tactical Filters Console */}
-          <div className="bg-white/3 backdrop-blur-xl border border-white/5 rounded-2xl p-3 space-y-3">
+          <div className="relative z-30 bg-white/3 backdrop-blur-xl border border-white/5 rounded-2xl p-3 space-y-3">
             {/* Tier 1: Quick Type Toggle, Platform Pills & Search */}
             <div className="flex flex-col gap-3">
               {/* Type Switcher & Platform Pills */}
@@ -1309,47 +1433,24 @@ const GamesLibraryContent: React.FC<GamesPageProps> = ({ state, sendCommand, set
               <div className="pt-3 border-t border-white/5 flex flex-wrap items-center justify-between gap-4">
                 <div className="flex flex-wrap items-center gap-3 w-full sm:w-auto">
                   {/* Genre Filter */}
-                  <div className="flex items-center justify-between sm:justify-start gap-2 w-full sm:w-auto">
-                    <div className="flex items-center gap-2">
-                      <Tag className="w-3.5 h-3.5 text-zinc-500" />
-                      <span className="text-[9px] font-black text-zinc-500 uppercase tracking-widest">Genre:</span>
-                    </div>
-                    <div className="relative">
-                      <select
-                        value={selectedGenre}
-                        onChange={(e) => handleGenreChange(e.target.value)}
-                        className="appearance-none bg-black/40 border border-white/10 hover:border-white/20 text-zinc-300 focus:text-white rounded-xl pl-3 pr-8 py-1.5 text-[9px] font-black uppercase tracking-widest focus:outline-none transition-all cursor-pointer min-w-30"
-                      >
-                        <option value="All" className="bg-obsidian text-zinc-400">All Genres</option>
-                        {genres.map((g) => (
-                          <option key={g} value={g} className="bg-obsidian text-white">{g}</option>
-                        ))}
-                      </select>
-                      <ChevronDown className="w-3 h-3 text-zinc-500 absolute right-2.5 top-1/2 -translate-y-1/2 pointer-events-none" />
-                    </div>
-                  </div>
+                  <CyberFilterDropdown
+                    label="Genre:"
+                    icon={<Tag className="w-3.5 h-3.5 text-zinc-500" />}
+                    value={selectedGenre}
+                    options={genreOptions}
+                    onChange={handleGenreChange}
+                    accent="green"
+                  />
 
                   {/* Hardware Feature / Tech Filter */}
-                  <div className="flex items-center justify-between sm:justify-start gap-2 w-full sm:w-auto">
-                    <div className="flex items-center gap-2">
-                      <Cpu className="w-3.5 h-3.5 text-neon-yellow" />
-                      <span className="text-[9px] font-black text-zinc-500 uppercase tracking-widest">Tech:</span>
-                    </div>
-                    <div className="relative">
-                      <select
-                        value={selectedFeature}
-                        onChange={(e) => handleFeatureChange(e.target.value)}
-                        className="appearance-none bg-black/40 border border-neon-yellow/10 hover:border-neon-yellow/30 text-neon-yellow focus:text-white rounded-xl pl-3 pr-8 py-1.5 text-[9px] font-black uppercase tracking-widest focus:outline-none transition-all cursor-pointer min-w-30"
-                      >
-                        <option value="All" className="bg-obsidian text-zinc-400">All Tech</option>
-                        <option value="DLSS" className="bg-obsidian text-neon-yellow font-bold">Nvidia DLSS</option>
-                        <option value="RTX" className="bg-obsidian text-neon-yellow font-bold">Nvidia RTX</option>
-                        <option value="REFLEX" className="bg-obsidian text-neon-yellow font-bold">Nvidia Reflex</option>
-                        <option value="LEGACY" className="bg-obsidian text-neon-yellow font-bold">Nvidia Legacy (GTX)</option>
-                      </select>
-                      <ChevronDown className="w-3 h-3 text-neon-yellow absolute right-2.5 top-1/2 -translate-y-1/2 pointer-events-none" />
-                    </div>
-                  </div>
+                  <CyberFilterDropdown
+                    label="Tech:"
+                    icon={<Cpu className="w-3.5 h-3.5 text-neon-yellow" />}
+                    value={selectedFeature}
+                    options={techOptions}
+                    onChange={handleFeatureChange}
+                    accent="yellow"
+                  />
                 </div>
 
                 {/* Reset Filters */}
@@ -1369,7 +1470,7 @@ const GamesLibraryContent: React.FC<GamesPageProps> = ({ state, sendCommand, set
 
           {/* Games Grid — Ultra-responsive multi-column layout for 1080p, 1440p, and 1600p */}
           {filteredGames.length > 0 ? (
-            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 2xl:grid-cols-5 min-[2200px]:grid-cols-6 gap-5 xl:gap-6">
+            <div className="relative z-0 isolate grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 2xl:grid-cols-5 min-[2200px]:grid-cols-6 gap-5 xl:gap-6">
               <AnimatePresence mode="popLayout">
                 {filteredGames.map((game, i) => (
                   <GameCard

@@ -115,7 +115,7 @@ describe('SidebarLeft Component', () => {
     expect(screen.getByText('Active')).toBeInTheDocument();
 
     // Verify user information is rendered
-    expect(screen.getByText('arnab825')).toBeInTheDocument();
+    expect(screen.getByText('Arnab')).toBeInTheDocument();
     expect(screen.getByText('arnab@gmail.com')).toBeInTheDocument();
     const avatar = screen.getByAltText('Avatar');
     expect(avatar).toBeInTheDocument();

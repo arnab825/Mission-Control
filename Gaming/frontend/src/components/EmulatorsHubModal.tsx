@@ -53,14 +53,14 @@ export const EmulatorsHubModal: React.FC<EmulatorsHubModalProps> = ({
   const [consoleFilter, setConsoleFilter] = useState<ConsoleFilter>('all');
   const [noFoldersWarning, setNoFoldersWarning] = useState(false);
 
-  // Fetch initial emulation state on open
+  // Fetch initial emulation state on open once
   useEffect(() => {
     sendCommand('get_emulation_state');
-  }, [sendCommand]);
+  }, []);
 
-  const emulators = emulationState?.emulators || [];
-  const installedEmulators = emulators.filter((e) => e.is_installed);
-  const romPaths = emulationState?.rom_paths || [];
+  const emulators = useMemo(() => emulationState?.emulators || [], [emulationState?.emulators]);
+  const installedEmulators = useMemo(() => emulators.filter((e) => e.is_installed), [emulators]);
+  const romPaths = useMemo(() => emulationState?.rom_paths || [], [emulationState?.rom_paths]);
   const emulatedCount = emulationState?.emulated_games_count || 0;
 
   // Filter emulators for Tab 2
@@ -141,39 +141,40 @@ export const EmulatorsHubModal: React.FC<EmulatorsHubModalProps> = ({
   };
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center p-2.5 sm:p-4 md:p-6 lg:p-8 select-none overflow-hidden">
-      {/* Backdrop */}
+    <div className="fixed inset-0 z-[200] flex items-center justify-center p-2 sm:p-4 md:p-6 select-none overflow-y-auto">
+      {/* Backdrop — Lightweight blur & GPU acceleration for zero opening lag */}
       <motion.div
         initial={{ opacity: 0 }}
         animate={{ opacity: 1 }}
         exit={{ opacity: 0 }}
+        transition={{ duration: 0.15, ease: 'easeOut' }}
         onClick={onClose}
-        className="absolute inset-0 bg-black/80 backdrop-blur-xl"
+        className="fixed inset-0 bg-black/80 backdrop-blur-sm transform-gpu will-change-opacity"
       />
 
-      {/* Modal Dialog — Highly responsive scaling from compact laptop up to 1440p / 1600p widescreen */}
+      {/* Modal Dialog — Snappy GPU transform animation with zero frame drops */}
       <motion.div
-        initial={{ opacity: 0, scale: 0.96, y: 10 }}
+        initial={{ opacity: 0, scale: 0.98, y: 8 }}
         animate={{ opacity: 1, scale: 1, y: 0 }}
-        exit={{ opacity: 0, scale: 0.96, y: 10 }}
-        transition={{ duration: 0.2, ease: [0.16, 1, 0.3, 1] }}
-        className="relative z-10 w-full max-w-4xl xl:max-w-5xl 2xl:max-w-6xl 3xl:max-w-7xl max-h-[92vh] sm:max-h-[88vh] xl:max-h-[85vh] 2xl:max-h-[82vh] flex flex-col rounded-2xl sm:rounded-3xl bg-zinc-950 border border-white/10 shadow-[0_0_60px_rgba(0,0,0,0.9)] overflow-hidden font-['Inter',system-ui,sans-serif]"
+        exit={{ opacity: 0, scale: 0.98, y: 6 }}
+        transition={{ duration: 0.16, ease: 'easeOut' }}
+        className="relative z-10 w-full max-w-4xl xl:max-w-5xl 2xl:max-w-6xl max-h-[92vh] sm:max-h-[88vh] md:max-h-[86vh] flex flex-col rounded-2xl sm:rounded-3xl bg-zinc-950/98 border border-white/10 shadow-[0_20px_60px_rgba(0,0,0,0.9)] overflow-hidden font-['Inter',system-ui,sans-serif] my-auto transform-gpu will-change-transform will-change-opacity"
       >
-        {/* Ambient Top Glow */}
-        <div className="absolute top-0 left-1/2 -translate-x-1/2 w-3/4 h-24 xl:h-32 bg-neon-green/10 blur-3xl pointer-events-none rounded-full" />
+        {/* Soft Ambient Accent Glow */}
+        <div className="absolute top-0 left-1/2 -translate-x-1/2 w-2/3 h-16 bg-neon-green/10 blur-xl pointer-events-none rounded-full" />
 
         {/* Modal Header */}
-        <div className="flex items-center justify-between px-4 sm:px-6 xl:px-8 py-3.5 sm:py-5 xl:py-6 border-b border-white/10 shrink-0 gap-3">
+        <div className="flex items-center justify-between px-4 sm:px-6 py-3 sm:py-4 xl:py-5 border-b border-white/10 shrink-0 gap-3">
           <div className="flex items-center gap-3 xl:gap-4 min-w-0">
-            <div className="w-8 h-8 sm:w-10 sm:h-10 xl:w-12 xl:h-12 rounded-xl sm:rounded-2xl bg-neon-green/10 border border-neon-green/30 flex items-center justify-center text-neon-green shadow-[0_0_20px_rgba(118,185,0,0.25)] shrink-0">
-              <Gamepad2 className="w-4 h-4 sm:w-5 sm:h-5 xl:w-6 xl:h-6" />
+            <div className="w-8 h-8 sm:w-10 sm:h-10 xl:w-11 xl:h-11 rounded-xl sm:rounded-2xl bg-neon-green/10 border border-neon-green/30 flex items-center justify-center text-neon-green shadow-[0_0_20px_rgba(118,185,0,0.25)] shrink-0">
+              <Gamepad2 className="w-4 h-4 sm:w-5 sm:h-5 xl:w-5.5 xl:h-5.5" />
             </div>
             <div className="min-w-0">
               <div className="flex items-center gap-2 xl:gap-3 flex-wrap">
                 <h3 className="text-sm sm:text-base xl:text-lg font-black uppercase tracking-tight text-white truncate">
                   Emulators & ROM Library
                 </h3>
-                <span className="inline-flex items-center gap-1.5 px-2 sm:px-2.5 xl:px-3 py-0.5 xl:py-1 rounded-full bg-neon-green/15 border border-neon-green/30 text-[8px] sm:text-[9px] xl:text-[10px] font-black uppercase text-neon-green tracking-wider shrink-0">
+                <span className="inline-flex items-center gap-1.5 px-2 sm:px-2.5 py-0.5 rounded-full bg-neon-green/15 border border-neon-green/30 text-[8px] sm:text-[9px] xl:text-[10px] font-black uppercase text-neon-green tracking-wider shrink-0">
                   <span className="w-1.5 h-1.5 rounded-full bg-neon-green animate-pulse" />
                   {installedEmulators.length} / {emulators.length || 17} Ready
                 </span>
@@ -186,10 +187,10 @@ export const EmulatorsHubModal: React.FC<EmulatorsHubModalProps> = ({
 
           <button
             onClick={onClose}
-            className="p-1.5 sm:p-2 xl:p-2.5 rounded-xl text-zinc-400 hover:text-white hover:bg-white/5 border border-transparent hover:border-white/10 transition-all cursor-pointer shrink-0"
+            className="p-1.5 sm:p-2 rounded-xl text-zinc-400 hover:text-white hover:bg-white/5 border border-transparent hover:border-white/10 transition-all cursor-pointer shrink-0"
             title="Close"
           >
-            <X className="w-4 h-4 sm:w-5 sm:h-5 xl:w-6 xl:h-6" />
+            <X className="w-4 h-4 sm:w-5 sm:h-5 xl:w-5.5 xl:h-5.5" />
           </button>
         </div>
 
@@ -249,26 +250,26 @@ export const EmulatorsHubModal: React.FC<EmulatorsHubModalProps> = ({
           {activeTab === 'installed' && (
             <div>
               {installedEmulators.length === 0 ? (
-                <div className="flex flex-col items-center justify-center py-10 sm:py-16 xl:py-24 px-4 text-center min-h-[300px] xl:min-h-[420px]">
-                  <div className="w-12 h-12 sm:w-14 sm:h-14 xl:w-16 xl:h-16 rounded-2xl bg-zinc-900 border border-white/10 flex items-center justify-center text-zinc-500 mb-3 sm:mb-4 xl:mb-5">
-                    <AlertCircle className="w-6 h-6 sm:w-7 sm:h-7 xl:w-8 xl:h-8" />
+                <div className="flex flex-col items-center justify-center py-6 sm:py-10 md:py-14 px-4 text-center min-h-[220px] sm:min-h-[280px]">
+                  <div className="w-11 h-11 sm:w-13 sm:h-13 rounded-2xl bg-zinc-900 border border-white/10 flex items-center justify-center text-zinc-500 mb-3 sm:mb-4">
+                    <AlertCircle className="w-5 h-5 sm:w-6 sm:h-6" />
                   </div>
                   <h4 className="text-xs sm:text-sm xl:text-base font-black uppercase tracking-wider text-zinc-200">
                     No Emulators Detected Automatically
                   </h4>
-                  <p className="text-[11px] sm:text-xs xl:text-sm text-zinc-400 max-w-lg mt-1.5 mb-4 sm:mb-6 leading-relaxed">
+                  <p className="text-[11px] sm:text-xs text-zinc-400 max-w-lg mt-1.5 mb-4 sm:mb-5 leading-relaxed">
                     Mission Control checks standard directories and system PATH for RPCS3, PCSX2, DuckStation, Dolphin, Cemu, and more.
                   </p>
-                  <div className="flex flex-wrap items-center justify-center gap-2.5 xl:gap-3">
+                  <div className="flex flex-wrap items-center justify-center gap-2 sm:gap-2.5">
                     <button
                       onClick={() => setActiveTab('all')}
-                      className="px-4 xl:px-5 py-2 sm:py-2.5 xl:py-3 rounded-xl bg-neon-green/10 border border-neon-green/30 text-neon-green font-black uppercase text-[10px] sm:text-xs xl:text-sm tracking-wider hover:bg-neon-green/20 transition-all cursor-pointer shadow-[0_0_15px_rgba(118,185,0,0.15)] text-center"
+                      className="px-3.5 sm:px-4 py-2 sm:py-2.5 rounded-xl bg-neon-green/10 border border-neon-green/30 text-neon-green font-black uppercase text-[10px] sm:text-xs tracking-wider hover:bg-neon-green/20 transition-all cursor-pointer shadow-[0_0_15px_rgba(118,185,0,0.15)] text-center"
                     >
                       View All Supported Emulators (17)
                     </button>
                     <button
                       onClick={() => setActiveTab('roms')}
-                      className="px-4 xl:px-5 py-2 sm:py-2.5 xl:py-3 rounded-xl bg-purple-500/10 border border-purple-500/30 text-purple-300 font-black uppercase text-[10px] sm:text-xs xl:text-sm tracking-wider hover:bg-purple-500/20 transition-all cursor-pointer shadow-[0_0_15px_rgba(168,85,247,0.15)] text-center"
+                      className="px-3.5 sm:px-4 py-2 sm:py-2.5 rounded-xl bg-purple-500/10 border border-purple-500/30 text-purple-300 font-black uppercase text-[10px] sm:text-xs tracking-wider hover:bg-purple-500/20 transition-all cursor-pointer shadow-[0_0_15px_rgba(168,85,247,0.15)] text-center"
                     >
                       Configure ROM Folders ({romPaths.length})
                     </button>
@@ -542,11 +543,11 @@ export const EmulatorsHubModal: React.FC<EmulatorsHubModalProps> = ({
   );
 };
 
-const EmulatorCard: React.FC<{
+const EmulatorCard = React.memo<{
   emu: EmulatorInfo;
   onLaunch: () => void;
   onConfigure: () => void;
-}> = ({ emu, onLaunch, onConfigure }) => {
+}>(({ emu, onLaunch, onConfigure }) => {
   return (
     <div
       className={`p-3.5 sm:p-4 xl:p-4.5 rounded-2xl border transition-all flex flex-col justify-between gap-2.5 sm:gap-3 xl:gap-3.5 ${
@@ -642,4 +643,4 @@ const EmulatorCard: React.FC<{
       </div>
     </div>
   );
-};
+});
