@@ -2,6 +2,14 @@
 
 This document contains a detailed history of all patches and updates for the AI Gaming Assistant.
 
+### Patch: 2026-11-13 — v3.9.4: v3.9.4: Games Grid Responsiveness, 16:9 Aspect Ratio, Dashboard & Modal Layout Fixes
+
+- Balanced 4-column game library grid for maximized 1080p/1440p displays
+- Cinematic 16:9 banner aspect ratio and launcher emblem padding
+- Dashboard MISSION CONTROL truncation and telemetry stat collapsing fixes
+- Discover Games and Fleet Command modals internal scroll and text overflow fixes
+- Settings Appearance sub-navigation tabs, CSS canvas textures and neon bloom engine
+
 ### Patch: 2026-11-12 — v3.9.3: Fixed Agent Neural History persistence across page tabs
 
 - Fixed Agent Neural History persistence across page tabs

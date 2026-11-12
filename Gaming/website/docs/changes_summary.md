@@ -10,7 +10,31 @@ excerpt: "Curated breakdown of major version releases, architectural milestones,
 
 Comprehensive breakdown of major milestone releases, architectural upgrades, and core engine enhancements in **Mission Control**.
 
-## 🌟 Version v3.9.3 (Latest) — Fixed Agent Neural History persistence across page tabs
+## 🌟 Version v3.9.4 (Latest) — v3.9.4: Games Grid Responsiveness, 16:9 Aspect Ratio, Dashboard & Modal Layout Fixes
+
+### 🛠️ Key Highlights
+1. **Balanced 4-column game library grid for maximized 1080p/1440p displays**
+2. **Cinematic 16:9 banner aspect ratio and launcher emblem padding**
+3. **Dashboard MISSION CONTROL truncation and telemetry stat collapsing fixes**
+4. **Discover Games and Fleet Command modals internal scroll and text overflow fixes**
+5. **Settings Appearance sub-navigation tabs, CSS canvas textures and neon bloom engine**
+
+### 📊 Architecture & Data Flow
+```mermaid
+graph TD
+    A["Mobile Client / DevTools (320px+)"] --> B[Responsive CSS & Layout Container]
+    B --> C[DocsClient Component & Cards]
+    C --> D[MobileDocsSidebar Drawer & Header Bar]
+    D --> E[Real-Time Mongo Telemetry & Render]
+```
+
+### 📦 Distribution Artifacts
+- **Linux**: `.deb` (Debian/Ubuntu), `.AppImage` (Universal), `.rpm` (Fedora/RHEL), `.tar.gz` (Portable)
+- **Windows**: `.exe` (Setup Installer), `.msi` (Enterprise), `.zip` (Portable)
+
+---
+
+## 📦 Version v3.9.3 — Fixed Agent Neural History persistence across page tabs
 
 ### 🛠️ Key Highlights
 1. **Fixed Agent Neural History persistence across page tabs**: In-memory module cache and sessionStorage backing ensures active chat and session history remain persistent when navigating between Dashboard, Settings, and Agent tabs.
