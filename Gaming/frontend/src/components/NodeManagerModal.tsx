@@ -160,7 +160,8 @@ const NodeCard: React.FC<{
   onDelete: (id: string) => void;
   onRename: (id: string, name: string) => void;
   onAddFolder: (node: LibraryNode) => void;
-}> = ({ node, onScan, onDelete, onRename, onAddFolder }) => {
+  appVersion?: string;
+}> = ({ node, onScan, onDelete, onRename, onAddFolder, appVersion = '3.9.3' }) => {
   const [editingName, setEditingName] = useState(false);
   const [nameInput, setNameInput] = useState(node.name);
   const [loading, setLoading] = useState(false);
@@ -297,7 +298,7 @@ const NodeCard: React.FC<{
         <div className="flex items-center gap-2 px-3.5 py-2.5 rounded-xl bg-black/30 border border-white/5">
           <ShieldCheck className="w-3.5 h-3.5 text-emerald-400 shrink-0" />
           <span className="text-[11px] text-zinc-300 font-bold truncate">
-            {node.version ? `Daemon v${node.version}` : 'Native Peer v3.4'}
+            {node.version ? `Daemon v${node.version}` : `Native Peer v${appVersion}`}
           </span>
         </div>
       </div>
@@ -420,6 +421,15 @@ const NodeCard: React.FC<{
 
 const NodeManagerModal: React.FC<NodeManagerModalProps> = ({ onClose, sendCommand }) => {
   const { userId } = useAuth();
+  const [appVersion, setAppVersion] = useState('3.9.3');
+
+  useEffect(() => {
+    if ((window as any).electronAPI?.getAppVersion) {
+      (window as any).electronAPI.getAppVersion().then((v: string) => {
+        if (v) setAppVersion(v.replace(/^v/i, ''));
+      }).catch(() => {});
+    }
+  }, []);
   const [nodes, setNodes] = useState<LibraryNode[]>(() => {
     try {
       if (typeof window !== 'undefined') {
@@ -532,7 +542,7 @@ const NodeManagerModal: React.FC<NodeManagerModalProps> = ({ onClose, sendComman
           ],
           last_heartbeat: new Date().toISOString(),
           last_sync: new Date().toISOString(),
-          version: '3.4.4',
+          version: appVersion,
           game_count: 0,
         });
       }
@@ -686,11 +696,11 @@ const NodeManagerModal: React.FC<NodeManagerModalProps> = ({ onClose, sendComman
                   Distributed Fleet Command
                 </h2>
                 <span className="px-2 py-0.5 rounded-full bg-white/5 border border-white/10 text-[9px] font-mono text-neon-green shrink-0">
-                  v3.4
+                  v{appVersion}
                 </span>
               </div>
-              <p className="text-[10px] sm:text-[11px] text-zinc-400 mt-0.5 truncate">
-                Decentralized Library Nodes · Multi-PC Game Indexing & Storage Pools
+              <p className="text-[10px] sm:text-[11px] text-zinc-400 mt-0.5 whitespace-nowrap">
+                <span className="hidden md:inline">Decentralized Library Nodes · </span>Multi-PC Game Indexing & Storage
               </p>
             </div>
           </div>
@@ -836,6 +846,7 @@ const NodeManagerModal: React.FC<NodeManagerModalProps> = ({ onClose, sendComman
                 onDelete={handleDelete}
                 onRename={handleRename}
                 onAddFolder={handleAddFolder}
+                appVersion={appVersion}
               />
             ))}
           </AnimatePresence>

@@ -315,13 +315,13 @@ const GameCard: React.FC<{
       className="group relative bg-white/2 hover:bg-white/4 border border-white/5 hover:border-white/20 rounded-2xl overflow-hidden transition-colors flex flex-col justify-between"
     >
       {/* Banner / Poster */}
-      <div className="relative h-44 xl:h-48 2xl:h-52 w-full bg-black/40 overflow-hidden flex items-center justify-center">
+      <div className="relative aspect-[16/9] w-full bg-black/40 overflow-hidden flex items-center justify-center">
         <img
           src={coverUrl}
           alt={game.name}
           loading="lazy"
           decoding="async"
-          className={`w-full h-full ${isLauncher ? 'object-contain p-8 group-hover:scale-105' : 'object-cover object-[center_25%] group-hover:scale-105'} transition-transform duration-500`}
+          className={`w-full h-full ${isLauncher ? 'object-contain p-6 sm:p-7 xl:p-8 group-hover:scale-105' : 'object-cover object-[center_25%] group-hover:scale-105'} transition-transform duration-500`}
           onError={(e) => {
             const target = e.target as HTMLImageElement;
             if (launcherBanner && target.src !== launcherBanner) {
@@ -1470,9 +1470,9 @@ const GamesLibraryContent: React.FC<GamesPageProps> = ({ state, sendCommand, set
             )}
           </div>
 
-          {/* Games Grid — Ultra-responsive multi-column layout for 1080p, 1440p, and 1600p */}
+          {/* Games Grid — Ultra-responsive multi-column layout for 1080p, 1440p, and wide screens */}
           {filteredGames.length > 0 ? (
-            <div className="relative z-0 isolate grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 2xl:grid-cols-5 min-[2200px]:grid-cols-6 gap-5 xl:gap-6">
+            <div className="relative z-0 isolate grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-3 2xl:grid-cols-4 min-[2000px]:grid-cols-5 min-[2500px]:grid-cols-6 gap-5 xl:gap-6">
               <AnimatePresence mode="popLayout">
                 {filteredGames.map((game, i) => (
                   <GameCard
