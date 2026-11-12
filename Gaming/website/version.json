@@ -1,8 +1,23 @@
 {
-  "version": "3.9.1",
+  "version": "3.9.2",
   "release_date": "2026-11-12",
   "update_check_url": "https://raw.githubusercontent.com/arnab825/Mission-Control/main/Gaming/backend/version.json",
   "changelog": [
+    {
+      "version": "3.9.2",
+      "date": "2026-11-12",
+      "title": "Performance Optimization, Zero-Hang Architecture & Emulators Hub Alignment",
+      "highlights": [
+        "Fixed Emulators & ROMs Hub z-index layering and resolution cutoff on scaled displays",
+        "Eliminated modal opening lag with GPU acceleration, reduced backdrop blur, and memoized lists",
+        "Redesigned Game Intelligence header action toolbar preventing button wrapping on compact displays",
+        "Replaced native OS select dropdowns with custom glassmorphic CyberFilterDropdown components",
+        "Resolved CSS stacking context badge overlap with isolated grid boundaries",
+        "Slashed initial frontend JS bundle size by 80.4% (from 967KB to 189KB) via route code-splitting",
+        "Enabled GPU hardware rasterization, zero-copy compositing, and tight 256MB V8 heap ceilings",
+        "Implemented 5MB auto-rotating logs to protect disk storage and eliminate app freezes"
+      ]
+    },
     {
       "version": "3.9.1",
       "date": "2026-11-12",
@@ -284,11 +299,11 @@
       "highlights": [
         "Purged leaked NVIDIA API key from entire git history using git filter-repo",
         "settings.yaml removed from all 1011 commits",
-        "Fixed inverted semver guard in autoUpdater \u2014 isNewerSemver args were swapped causing same-version installer to re-run without upgrading",
-        "Fixed post-install first boot not emitting installed event \u2014 app now notifies UI of successful upgrade on next launch",
+        "Fixed inverted semver guard in autoUpdater — isNewerSemver args were swapped causing same-version installer to re-run without upgrading",
+        "Fixed post-install first boot not emitting installed event — app now notifies UI of successful upgrade on next launch",
         "Added installed status handler in UpdatesPage to refresh version badge and show success toast after upgrade",
-        "Fixed NSIS two-pass build failure \u2014 removed CenterInstallerWindow functions incompatible with BUILD_UNINSTALLER pass",
-        "Fixed missing StartApp function \u2014 replaced MUI_FINISHPAGE_RUN_FUNCTION with direct executable path to avoid dead-code warning"
+        "Fixed NSIS two-pass build failure — removed CenterInstallerWindow functions incompatible with BUILD_UNINSTALLER pass",
+        "Fixed missing StartApp function — replaced MUI_FINISHPAGE_RUN_FUNCTION with direct executable path to avoid dead-code warning"
       ]
     },
     {
@@ -306,7 +321,7 @@
       "title": "Fixed Version Not Updating After Install",
       "highlights": [
         "Fixed inverted semver guard that allowed same-version or older installers to run without upgrading",
-        "Fixed post-install first boot not emitting version change to UI \u2014 app now fires installed event on startup",
+        "Fixed post-install first boot not emitting version change to UI — app now fires installed event on startup",
         "Added installed status handler in UpdatesPage to refresh version badge and show success toast on upgrade",
         "Fixed NSIS build failure caused by unreferenced un.CenterInstallerWindow warning treated as error"
       ]
@@ -317,7 +332,7 @@
       "title": "Fixed Version Not Updating After Install",
       "highlights": [
         "Fixed inverted semver guard that allowed same-version or older installers to run without upgrading",
-        "Fixed post-install first boot not emitting version change to UI \u2014 app now fires installed event on startup",
+        "Fixed post-install first boot not emitting version change to UI — app now fires installed event on startup",
         "Added installed status handler in UpdatesPage to refresh version badge and show success toast on upgrade"
       ]
     },
@@ -573,95 +588,6 @@
         "Integrated hardware feature badges (DLSS, Frame Gen, RTX, Reflex, HDR, FSR) and node installation viewer on GameCard",
         "Hardened game scanner with atomic cache writing and corrupt cache auto-recovery",
         "Normalized en-dashes and added 64-bit Steam paths in local common discovery"
-      ]
-    },
-    {
-      "version": "3.4.5",
-      "date": "2026-09-02",
-      "title": "Distributed Fleet Scan Fixes, Real Host Telemetry & Catalog Asset Resilience",
-      "highlights": [
-        "Fixed 0 Games 0 B Storage issue with smart cache fallback to master database for Clerk users",
-        "Fixed Manage Nodes scan issue by replacing static mocks with real storage and detected game telemetry",
-        "Added resilient candidate server failover and auto-recovery in LibraryNodeService daemon",
-        "Replaced broken EA App and Ubisoft Connect image URLs with guaranteed high-resolution Steam CDN assets",
-        "Added title-based Steam CDN failover mapping and styled fallback cards in Discover Games",
-        "Aligned distributed server SQLite get_stats schema with PostgreSQL stats query"
-      ]
-    },
-    {
-      "version": "3.4.4",
-      "date": "2026-09-02",
-      "title": "NodeSync Lock Fix, Post-Update Clerk Auth Stability & Image Fallbacks",
-      "highlights": [
-        "Resolved NodeSync background daemon _reg_lock AttributeError in LibraryNodeService",
-        "Enforced strict port 43221 retry mechanism to prevent post-update Clerk authentication breaks",
-        "Cleaned up local UI HTTP server and connections on updater launch and app exit",
-        "Upgraded Steam cover and banner endpoints to 100% guaranteed header assets",
-        "Implemented multi-tier image error fallbacks across desktop games library and website"
-      ]
-    },
-    {
-      "version": "3.4.3",
-      "date": "2026-09-01",
-      "title": "Distributed Fleet Command & Node Management",
-      "highlights": [
-        "Enabled full local host node discovery and real-time disk storage metrics",
-        "Added interactive scan directory management and native folder selection",
-        "Integrated backend bridge commands for node scanning, renaming, and path synchronization",
-        "Enhanced Discover Games and Intel Hub multi-launcher support"
-      ]
-    },
-    {
-      "version": "3.4.2",
-      "date": "2026-09-01",
-      "title": "Multi-Launcher Support, Omni-Search & Dynamic AI Resolver",
-      "highlights": [
-        "Added EA App, Ubisoft Connect, PlayStation PC, Rockstar Games, and Battle.net launcher support",
-        "Engineered dynamic GameModeResolver with keyword & Jaccard token matching",
-        "Added with_game_context decorator & auto_switch_mode universal wrapper function",
-        "Implemented curated multi-launcher catalog for instant Discover Games & Intel Hub visibility"
-      ]
-    },
-    {
-      "version": "3.4.1",
-      "date": "2026-09-01",
-      "title": "Fix OpenCV in-memory loader and enable Gaming Readiness assessment system",
-      "highlights": [
-        "Implement zero-disk in-memory fallback loader for OpenCV to prevent missing config crashes on read-only installations",
-        "Integrate AI-driven Gaming Readiness assessment engine and IPC bridge with real-time hardware telemetry",
-        "Enhance PyInstaller spec to guarantee recursive collection of OpenCV runtime configurations"
-      ]
-    },
-    {
-      "version": "3.4.0",
-      "date": "2026-08-31",
-      "title": "Upgrade Discover with Live Steam, Epic, GOG, Xbox Game Pass & Breaking News Intelligence",
-      "highlights": [
-        "Upgrade Discover with Live Steam, Epic, GOG, Xbox Game Pass & Breaking News Intelligence"
-      ]
-    },
-    {
-      "version": "3.3.9",
-      "date": "2026-08-31",
-      "title": "Fix telemetry scanner bridge state and enable native 1-click node registration",
-      "highlights": [
-        "Fix telemetry scanner bridge state and enable native 1-click node registration"
-      ]
-    },
-    {
-      "version": "3.3.8",
-      "date": "2026-08-31",
-      "title": "Fixes some issue and bug of server update .Also fix the setup app",
-      "highlights": [
-        "Fixes some issue and bug of server update .Also fix the setup app"
-      ]
-    },
-    {
-      "version": "3.3.7",
-      "date": "2026-08-31",
-      "title": "Fixes some issue and bug of server",
-      "highlights": [
-        "Fixes some issue and bug of server"
       ]
     }
   ]

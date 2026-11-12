@@ -10,7 +10,7 @@ excerpt: "Curated breakdown of major version releases, architectural milestones,
 
 Comprehensive breakdown of major milestone releases, architectural upgrades, and core engine enhancements in **Mission Control**.
 
-## 🌟 Version v3.9.1 (Latest) — 1440p/1600p QHD+ Display Optimization & ROM Scanning Schema Validation Fix
+## 📦 Version v3.9.1 — 1440p/1600p QHD+ Display Optimization & ROM Scanning Schema Validation Fix
 
 ### 🛠️ Key Highlights
 1. **ROM Scanning Schema Validation Fix**: Resolved Pydantic schema validation failures where `scan_roms`, `set_rom_paths`, and `configure_emulator` commands were rejected by `extra="forbid"` when dispatched with authenticated session parameters (`userId`).
@@ -20,7 +20,7 @@ Comprehensive breakdown of major milestone releases, architectural upgrades, and
 5. **Ultra-Responsive Game Intelligence Grid**: Library game cards now fluidly adapt across 1 to 6 columns (`sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 2xl:grid-cols-5 min-[2200px]:grid-cols-6`) with proportional poster banner dimensions (`h-44 xl:h-48 2xl:h-52`).
 6. **Widescreen Empty State UX**: Emulation and general library empty states feature responsive vertical centering (`min-h-[380px] xl:min-h-[460px]`), refined icons, and 1-click action triggers (`Start Full Scan`, `Emulators & ROMs Hub`, `Discover from Web`).
 
-## 🌟 Version v3.9.0 — DLSS 5.0 Neural Studio, ROM Scanner Guidance & E2EE Verification UX
+## 📦 Version v3.9.0 — DLSS 5.0 Neural Studio, ROM Scanner Guidance & E2EE Verification UX
 
 ### 🛠️ Key Highlights
 1. **NVIDIA DLSS 5.0 Neural Studio**: Introduced an in-depth Settings panel featuring real-time neural rendering controls, target resolution input preparation, and neural shader parameter orchestration.
@@ -47,6 +47,33 @@ graph TD
 ### 📦 Distribution Artifacts
 - **Linux**: `.deb` (Debian/Ubuntu), `.AppImage` (Universal), `.tar.gz` (Standalone Archive)
 - **Windows**: `.exe` (Setup Installer), `.msi` (Enterprise MSI), `.zip` (Portable Archive)
+
+---
+
+## 🌟 Version v3.9.2 (Latest) — Performance Optimization, Zero-Hang Architecture & Emulators Hub Alignment
+
+### 🛠️ Key Highlights
+1. **Fixed Emulators & ROMs Hub z-index layering and resolution cutoff on scaled displays**
+2. **Eliminated modal opening lag with GPU acceleration, reduced backdrop blur, and memoized lists**
+3. **Redesigned Game Intelligence header action toolbar preventing button wrapping on compact displays**
+4. **Replaced native OS select dropdowns with custom glassmorphic CyberFilterDropdown components**
+5. **Resolved CSS stacking context badge overlap with isolated grid boundaries**
+6. **Slashed initial frontend JS bundle size by 80.4% (from 967KB to 189KB) via route code-splitting**
+7. **Enabled GPU hardware rasterization, zero-copy compositing, and tight 256MB V8 heap ceilings**
+8. **Implemented 5MB auto-rotating logs to protect disk storage and eliminate app freezes**
+
+### 📊 Architecture & Data Flow
+```mermaid
+graph TD
+    A["Mobile Client / DevTools (320px+)"] --> B[Responsive CSS & Layout Container]
+    B --> C[DocsClient Component & Cards]
+    C --> D[MobileDocsSidebar Drawer & Header Bar]
+    D --> E[Real-Time Mongo Telemetry & Render]
+```
+
+### 📦 Distribution Artifacts
+- **Linux**: `.deb` (Debian/Ubuntu), `.AppImage` (Universal), `.rpm` (Fedora/RHEL), `.tar.gz` (Portable)
+- **Windows**: `.exe` (Setup Installer), `.msi` (Enterprise), `.zip` (Portable)
 
 ---
 

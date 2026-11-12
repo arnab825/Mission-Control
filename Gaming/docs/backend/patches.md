@@ -2,6 +2,17 @@
 
 This document contains a detailed history of all patches and updates for the AI Gaming Assistant.
 
+### Patch: 2026-11-12 — v3.9.2: Performance Optimization, Zero-Hang Architecture & Emulators Hub Alignment
+
+- Fixed Emulators & ROMs Hub z-index layering and resolution cutoff on scaled displays
+- Eliminated modal opening lag with GPU acceleration, reduced backdrop blur, and memoized lists
+- Redesigned Game Intelligence header action toolbar preventing button wrapping on compact displays
+- Replaced native OS select dropdowns with custom glassmorphic CyberFilterDropdown components
+- Resolved CSS stacking context badge overlap with isolated grid boundaries
+- Slashed initial frontend JS bundle size by 80.4% (from 967KB to 189KB) via route code-splitting
+- Enabled GPU hardware rasterization, zero-copy compositing, and tight 256MB V8 heap ceilings
+- Implemented 5MB auto-rotating logs to protect disk storage and eliminate app freezes
+
 ### Patch: 2026-10-28 — v3.8.5: Media Extras Filtering, Window Detection & HUD Focus Alignment
 
 - Ignored companion digital artwork and soundtrack executables across all scanner modes
