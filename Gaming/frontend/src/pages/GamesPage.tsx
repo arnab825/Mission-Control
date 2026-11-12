@@ -314,7 +314,7 @@ const GameCard: React.FC<{
       className="group relative bg-white/2 hover:bg-white/4 border border-white/5 hover:border-white/20 rounded-2xl overflow-hidden transition-colors flex flex-col justify-between"
     >
       {/* Banner / Poster */}
-      <div className="relative h-44 w-full bg-black/40 overflow-hidden flex items-center justify-center">
+      <div className="relative h-44 xl:h-48 2xl:h-52 w-full bg-black/40 overflow-hidden flex items-center justify-center">
         <img
           src={coverUrl}
           alt={game.name}
@@ -391,13 +391,13 @@ const GameCard: React.FC<{
       </div>
 
       {/* Info */}
-      <div className="p-4 space-y-3 flex-1 flex flex-col justify-between">
+      <div className="p-4 xl:p-5 space-y-3 xl:space-y-3.5 flex-1 flex flex-col justify-between">
         <div className="space-y-2">
           <div onClick={handleLaunch} className="min-h-10 cursor-pointer">
-            <h4 className="text-sm font-black text-white tracking-tight group-hover:text-neon-green transition-colors truncate leading-tight">
+            <h4 className="text-sm xl:text-base font-black text-white tracking-tight group-hover:text-neon-green transition-colors truncate leading-tight">
               {game.name}
             </h4>
-            <p className="text-[9px] font-bold text-zinc-500 uppercase tracking-widest mt-0.5">
+            <p className="text-[9px] xl:text-[10px] font-bold text-zinc-500 uppercase tracking-widest mt-0.5">
               {game.genre === 'N/A' || !game.genre ? (isLauncher ? 'GAMING PLATFORM' : 'GAME') : game.genre}
             </p>
           </div>
@@ -468,7 +468,7 @@ const GameCard: React.FC<{
             type="button"
             onClick={handleLaunch}
             disabled={!launchUri}
-            className={`flex-1 flex items-center justify-center gap-2 py-2 px-3 rounded-xl font-black text-[10px] uppercase tracking-widest transition-all cursor-pointer ${
+            className={`flex-1 flex items-center justify-center gap-2 py-2 xl:py-2.5 px-3 xl:px-4 rounded-xl font-black text-[10px] xl:text-[11px] uppercase tracking-widest transition-all cursor-pointer ${
               launchUri
                 ? 'bg-white/10 hover:bg-neon-green text-white hover:text-black shadow-lg hover:shadow-[0_0_20px_rgba(118,185,0,0.4)]'
                 : 'bg-white/5 text-zinc-600 border border-white/5 cursor-not-allowed'
@@ -1074,27 +1074,27 @@ const GamesLibraryContent: React.FC<GamesPageProps> = ({ state, sendCommand, set
   }, [games, filter, selectedGenre, selectedFeature, selectedType, searchQuery, fuse]);
 
   return (
-    <div className="flex-1 p-4 sm:p-6 flex flex-col overflow-y-auto custom-scrollbar gap-y-4 sm:gap-y-6">
+    <div className="flex-1 p-4 sm:p-6 xl:p-8 2xl:p-10 flex flex-col overflow-y-auto custom-scrollbar gap-y-4 sm:gap-y-6 xl:gap-y-8">
 
       {/* Header */}
       <div className="flex flex-col md:flex-row md:items-end justify-between gap-4">
         <div>
-          <h2 className="text-2xl sm:text-3xl font-black text-white tracking-tighter">GAME INTELLIGENCE</h2>
-          <p className="text-[10px] sm:text-xs font-bold text-zinc-500 uppercase tracking-[0.3em] mt-0.5">
+          <h2 className="text-2xl sm:text-3xl xl:text-4xl font-black text-white tracking-tighter">GAME INTELLIGENCE</h2>
+          <p className="text-[10px] sm:text-xs xl:text-sm font-bold text-zinc-500 uppercase tracking-[0.3em] mt-0.5">
             Neural Library Orchestration
           </p>
         </div>
 
-        <div className="flex flex-wrap gap-2.5 items-center md:justify-end">
+        <div className="flex flex-wrap gap-2.5 xl:gap-3 items-center md:justify-end">
           {/* Web Discovery button — always accessible */}
           <button
             id="discover-games-btn"
             type="button"
             onClick={() => setShowDiscoverModal(true)}
-            className="group flex items-center gap-2 px-4 py-2.5 bg-neon-green/10 hover:bg-neon-green/20 active:scale-95 border border-neon-green/30 hover:border-neon-green/50 text-neon-green font-black text-[10px] uppercase tracking-widest rounded-2xl transition-all duration-150 transform-gpu will-change-transform shadow-[0_0_15px_rgba(118,185,0,0.15)] hover:shadow-[0_0_22px_rgba(118,185,0,0.3)] cursor-pointer shrink-0"
+            className="group flex items-center gap-2 px-4 xl:px-5 py-2.5 xl:py-3 bg-neon-green/10 hover:bg-neon-green/20 active:scale-95 border border-neon-green/30 hover:border-neon-green/50 text-neon-green font-black text-[10px] xl:text-xs uppercase tracking-widest rounded-2xl transition-all duration-150 transform-gpu will-change-transform shadow-[0_0_15px_rgba(118,185,0,0.15)] hover:shadow-[0_0_22px_rgba(118,185,0,0.3)] cursor-pointer shrink-0"
             title="Search and add games from Steam, Epic, GOG, and RAWG"
           >
-            <Globe className="w-3.5 h-3.5 transition-transform duration-200 group-hover:rotate-12" />
+            <Globe className="w-3.5 h-3.5 xl:w-4 xl:h-4 transition-transform duration-200 group-hover:rotate-12" />
             <span className="whitespace-nowrap">Discover from Web</span>
           </button>
 
@@ -1103,10 +1103,10 @@ const GamesLibraryContent: React.FC<GamesPageProps> = ({ state, sendCommand, set
             id="manage-nodes-btn"
             type="button"
             onClick={() => setShowNodeManager(true)}
-            className="group flex items-center gap-2 px-4 py-2.5 bg-white/5 hover:bg-white/10 active:scale-95 border border-white/10 hover:border-white/20 text-zinc-300 hover:text-white font-black text-[10px] uppercase tracking-widest rounded-2xl transition-all duration-150 transform-gpu will-change-transform hover:shadow-[0_0_18px_rgba(255,255,255,0.06)] cursor-pointer shrink-0"
+            className="group flex items-center gap-2 px-4 xl:px-5 py-2.5 xl:py-3 bg-white/5 hover:bg-white/10 active:scale-95 border border-white/10 hover:border-white/20 text-zinc-300 hover:text-white font-black text-[10px] xl:text-xs uppercase tracking-widest rounded-2xl transition-all duration-150 transform-gpu will-change-transform hover:shadow-[0_0_18px_rgba(255,255,255,0.06)] cursor-pointer shrink-0"
             title="Manage Local & Remote Cluster Nodes"
           >
-            <Server className="w-3.5 h-3.5 transition-transform duration-200 group-hover:scale-110" />
+            <Server className="w-3.5 h-3.5 xl:w-4 xl:h-4 transition-transform duration-200 group-hover:scale-110" />
             <span className="whitespace-nowrap">Manage Nodes</span>
           </button>
 
@@ -1115,13 +1115,13 @@ const GamesLibraryContent: React.FC<GamesPageProps> = ({ state, sendCommand, set
             id="emulators-roms-btn"
             type="button"
             onClick={() => setShowEmulatorsModal(true)}
-            className="group flex items-center gap-2 px-4 py-2.5 bg-purple-500/10 hover:bg-purple-500/20 active:scale-95 border border-purple-500/30 hover:border-purple-500/50 text-purple-300 hover:text-purple-100 font-black text-[10px] uppercase tracking-widest rounded-2xl transition-all duration-150 transform-gpu will-change-transform shadow-[0_0_15px_rgba(168,85,247,0.15)] hover:shadow-[0_0_22px_rgba(168,85,247,0.3)] cursor-pointer shrink-0"
+            className="group flex items-center gap-2 px-4 xl:px-5 py-2.5 xl:py-3 bg-purple-500/10 hover:bg-purple-500/20 active:scale-95 border border-purple-500/30 hover:border-purple-500/50 text-purple-300 hover:text-purple-100 font-black text-[10px] xl:text-xs uppercase tracking-widest rounded-2xl transition-all duration-150 transform-gpu will-change-transform shadow-[0_0_15px_rgba(168,85,247,0.15)] hover:shadow-[0_0_22px_rgba(168,85,247,0.3)] cursor-pointer shrink-0"
             title="Configure Emulators and Scan ROM Folders"
           >
-            <Gamepad2 className="w-3.5 h-3.5 text-purple-400 transition-transform duration-200 group-hover:scale-110" />
+            <Gamepad2 className="w-3.5 h-3.5 xl:w-4 xl:h-4 text-purple-400 transition-transform duration-200 group-hover:scale-110" />
             <span className="whitespace-nowrap">Emulators & ROMs</span>
             {state?.emulation_state && (
-              <span className="px-1.5 py-0.5 bg-purple-500/20 text-purple-300 text-[8px] rounded-md font-mono font-bold">
+              <span className="px-1.5 py-0.5 bg-purple-500/20 text-purple-300 text-[8px] xl:text-[9px] rounded-md font-mono font-bold">
                 {state.emulation_state.installed_count ?? (state.emulation_state.emulators || []).filter(e => e.is_installed).length}
               </span>
             )}
@@ -1129,17 +1129,17 @@ const GamesLibraryContent: React.FC<GamesPageProps> = ({ state, sendCommand, set
 
           {/* Scan progress indicator */}
           {isScanning && (
-            <div className="flex items-center gap-2 px-3.5 py-2.5 bg-neon-green/10 border border-neon-green/20 rounded-2xl max-w-full shrink-0">
-              <Loader2 className="w-3.5 h-3.5 text-neon-green animate-spin shrink-0" />
-              <span className="text-[10px] font-black text-neon-green uppercase tracking-widest truncate">
+            <div className="flex items-center gap-2 px-3.5 xl:px-4 py-2.5 xl:py-3 bg-neon-green/10 border border-neon-green/20 rounded-2xl max-w-full shrink-0">
+              <Loader2 className="w-3.5 h-3.5 xl:w-4 xl:h-4 text-neon-green animate-spin shrink-0" />
+              <span className="text-[10px] xl:text-xs font-black text-neon-green uppercase tracking-widest truncate">
                 {scanProgress}% — {scanStatus}
               </span>
             </div>
           )}
           {scanStatus === 'done' && (
-            <div className="flex items-center gap-2 px-3.5 py-2.5 bg-neon-yellow/10 border border-neon-yellow/20 rounded-2xl max-w-full shrink-0">
-              <CheckCircle2 className="w-3.5 h-3.5 text-neon-yellow shrink-0" />
-              <span className="text-[10px] font-black text-neon-yellow uppercase tracking-widest truncate">
+            <div className="flex items-center gap-2 px-3.5 xl:px-4 py-2.5 xl:py-3 bg-neon-yellow/10 border border-neon-yellow/20 rounded-2xl max-w-full shrink-0">
+              <CheckCircle2 className="w-3.5 h-3.5 xl:w-4 xl:h-4 text-neon-yellow shrink-0" />
+              <span className="text-[10px] xl:text-xs font-black text-neon-yellow uppercase tracking-widest truncate">
                 {games.length} Games Found
               </span>
             </div>
@@ -1148,9 +1148,9 @@ const GamesLibraryContent: React.FC<GamesPageProps> = ({ state, sendCommand, set
           <button aria-label="button" type="button"
             onClick={triggerFullScan}
             disabled={isScanning}
-            className="flex items-center gap-2 px-5 py-2.5 bg-neon-green text-black font-black text-[10px] uppercase tracking-widest rounded-2xl shadow-[0_0_20px_rgba(118,185,0,0.3)] hover:shadow-[0_0_30px_rgba(118,185,0,0.5)] transition-all disabled:opacity-60 disabled:cursor-not-allowed shrink-0 cursor-pointer"
+            className="flex items-center gap-2 px-5 xl:px-6 py-2.5 xl:py-3 bg-neon-green text-black font-black text-[10px] xl:text-xs uppercase tracking-widest rounded-2xl shadow-[0_0_20px_rgba(118,185,0,0.3)] hover:shadow-[0_0_30px_rgba(118,185,0,0.5)] transition-all disabled:opacity-60 disabled:cursor-not-allowed shrink-0 cursor-pointer"
           >
-            <RefreshCw className={`w-3.5 h-3.5 shrink-0 ${isScanning ? 'animate-spin' : ''}`} />
+            <RefreshCw className={`w-3.5 h-3.5 xl:w-4 xl:h-4 shrink-0 ${isScanning ? 'animate-spin' : ''}`} />
             <span className="whitespace-nowrap">{isScanning ? 'Scanning...' : 'Full Scan'}</span>
           </button>
         </div>
@@ -1367,9 +1367,9 @@ const GamesLibraryContent: React.FC<GamesPageProps> = ({ state, sendCommand, set
             )}
           </div>
 
-          {/* Games Grid */}
+          {/* Games Grid — Ultra-responsive multi-column layout for 1080p, 1440p, and 1600p */}
           {filteredGames.length > 0 ? (
-            <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 2xl:grid-cols-4 gap-5">
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 2xl:grid-cols-5 min-[2200px]:grid-cols-6 gap-5 xl:gap-6">
               <AnimatePresence mode="popLayout">
                 {filteredGames.map((game, i) => (
                   <GameCard
@@ -1385,44 +1385,60 @@ const GamesLibraryContent: React.FC<GamesPageProps> = ({ state, sendCommand, set
               </AnimatePresence>
             </div>
           ) : selectedType === 'EMULATION' ? (
-            <div className="py-20 flex flex-col items-center justify-center text-zinc-500 border border-purple-500/20 border-dashed rounded-3xl bg-purple-950/5 p-6 text-center">
-              <Gamepad2 className="w-12 h-12 mb-3 text-purple-400/40" />
-              <h4 className="text-xs font-black text-white uppercase tracking-widest mb-1">
+            <div className="py-20 xl:py-28 min-h-[380px] xl:min-h-[460px] flex flex-col items-center justify-center text-zinc-500 border border-purple-500/20 border-dashed rounded-3xl bg-purple-950/5 p-6 xl:p-10 text-center">
+              <Gamepad2 className="w-12 h-12 xl:w-16 xl:h-16 mb-4 text-purple-400/50" />
+              <h4 className="text-xs sm:text-sm xl:text-base font-black text-white uppercase tracking-widest mb-1.5">
                 No Emulated Games or ROMs Found
               </h4>
-              <p className="text-[11px] text-zinc-400 max-w-md mb-4 leading-relaxed">
-                Configure your ROM folders or standalone emulators (RPCS3, PCSX2, Dolphin, DuckStation, Ryujinx, etc.) to merge console titles directly into your library.
+              <p className="text-[11px] sm:text-xs xl:text-sm text-zinc-400 max-w-lg mb-5 xl:mb-6 leading-relaxed">
+                Configure your ROM folders or standalone emulators (RPCS3, PCSX2, Dolphin, DuckStation, Ryujinx, Cemu, RetroArch) to merge console titles directly into your unified library.
               </p>
               <button
                 type="button"
                 onClick={() => setShowEmulatorsModal(true)}
-                className="px-5 py-2.5 bg-purple-500/15 border border-purple-500/35 hover:bg-purple-500/25 text-purple-300 hover:text-white rounded-xl text-[10px] font-black uppercase tracking-widest transition-all cursor-pointer shadow-[0_0_20px_rgba(168,85,247,0.2)]"
+                className="px-5 xl:px-6 py-2.5 xl:py-3 bg-purple-500/15 border border-purple-500/35 hover:bg-purple-500/25 text-purple-300 hover:text-white rounded-xl text-[10px] xl:text-xs font-black uppercase tracking-widest transition-all cursor-pointer shadow-[0_0_20px_rgba(168,85,247,0.2)] flex items-center gap-2"
               >
-                Configure Emulators & Scan ROMs
+                <Gamepad2 className="w-4 h-4" />
+                <span>Configure Emulators & Scan ROMs</span>
               </button>
             </div>
           ) : (
-            <div className="py-24 flex flex-col items-center justify-center text-zinc-600 border border-white/5 border-dashed rounded-3xl bg-white/1">
-              <Gamepad2 className="w-10 h-10 mb-4 opacity-30" />
-              <p className="text-xs font-bold tracking-widest uppercase">
+            <div className="py-24 xl:py-32 min-h-[380px] xl:min-h-[480px] flex flex-col items-center justify-center text-zinc-600 border border-white/5 border-dashed rounded-3xl bg-white/1 p-6 xl:p-10 text-center">
+              <Gamepad2 className="w-10 h-10 xl:w-14 xl:h-14 mb-4 opacity-30 text-white" />
+              <p className="text-xs sm:text-sm xl:text-base font-bold tracking-widest uppercase text-zinc-300 mb-2">
                 {games.length === 0 ? 'Run a Full Scan to Discover Games' : 'No Results Found'}
               </p>
+              <p className="text-[10px] sm:text-xs xl:text-sm text-zinc-500 max-w-md mb-6 leading-relaxed">
+                {games.length === 0
+                  ? 'Search across local launchers, Steam, Epic Games, EA, Ubisoft, Xbox, or connect your console ROM folders and emulators.'
+                  : 'Try adjusting your search criteria, platform filters, or genre selection.'}
+              </p>
               {games.length === 0 && (
-                <div className="flex flex-wrap items-center justify-center gap-3 mt-4">
+                <div className="flex flex-wrap items-center justify-center gap-3 xl:gap-4">
                   <button
                     aria-label="button"
                     type="button"
                     onClick={triggerFullScan}
-                    className="px-5 py-2 bg-neon-green/10 border border-neon-green/30 rounded-xl text-[10px] font-black text-neon-green hover:bg-neon-green/20 transition-all uppercase tracking-widest cursor-pointer shadow-[0_0_15px_rgba(118,185,0,0.15)]"
+                    className="px-5 xl:px-6 py-2.5 xl:py-3 bg-neon-green/10 border border-neon-green/30 rounded-xl text-[10px] xl:text-xs font-black text-neon-green hover:bg-neon-green/20 transition-all uppercase tracking-widest cursor-pointer shadow-[0_0_15px_rgba(118,185,0,0.15)] flex items-center gap-2"
                   >
-                    Start Scan
+                    <RefreshCw className="w-3.5 h-3.5 xl:w-4 xl:h-4" />
+                    <span>Start Full Scan</span>
                   </button>
                   <button
                     type="button"
                     onClick={() => setShowEmulatorsModal(true)}
-                    className="px-5 py-2 bg-purple-500/10 border border-purple-500/30 rounded-xl text-[10px] font-black text-purple-300 hover:bg-purple-500/20 transition-all uppercase tracking-widest cursor-pointer shadow-[0_0_15px_rgba(168,85,247,0.15)]"
+                    className="px-5 xl:px-6 py-2.5 xl:py-3 bg-purple-500/10 border border-purple-500/30 rounded-xl text-[10px] xl:text-xs font-black text-purple-300 hover:bg-purple-500/20 transition-all uppercase tracking-widest cursor-pointer shadow-[0_0_15px_rgba(168,85,247,0.15)] flex items-center gap-2"
                   >
-                    Emulators & ROMs Hub
+                    <Gamepad2 className="w-3.5 h-3.5 xl:w-4 xl:h-4" />
+                    <span>Emulators & ROMs Hub</span>
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => setShowDiscoverModal(true)}
+                    className="px-5 xl:px-6 py-2.5 xl:py-3 bg-cyan-500/10 border border-cyan-500/30 rounded-xl text-[10px] xl:text-xs font-black text-cyan-300 hover:bg-cyan-500/20 transition-all uppercase tracking-widest cursor-pointer shadow-[0_0_15px_rgba(6,182,212,0.15)] flex items-center gap-2"
+                  >
+                    <Globe className="w-3.5 h-3.5 xl:w-4 xl:h-4" />
+                    <span>Discover from Web</span>
                   </button>
                 </div>
               )}

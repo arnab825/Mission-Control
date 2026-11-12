@@ -141,7 +141,7 @@ export const EmulatorsHubModal: React.FC<EmulatorsHubModalProps> = ({
   };
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center p-2.5 sm:p-4 md:p-6 select-none overflow-hidden">
+    <div className="fixed inset-0 z-50 flex items-center justify-center p-2.5 sm:p-4 md:p-6 lg:p-8 select-none overflow-hidden">
       {/* Backdrop */}
       <motion.div
         initial={{ opacity: 0 }}
@@ -151,34 +151,34 @@ export const EmulatorsHubModal: React.FC<EmulatorsHubModalProps> = ({
         className="absolute inset-0 bg-black/80 backdrop-blur-xl"
       />
 
-      {/* Modal Dialog */}
+      {/* Modal Dialog — Highly responsive scaling from compact laptop up to 1440p / 1600p widescreen */}
       <motion.div
         initial={{ opacity: 0, scale: 0.96, y: 10 }}
         animate={{ opacity: 1, scale: 1, y: 0 }}
         exit={{ opacity: 0, scale: 0.96, y: 10 }}
         transition={{ duration: 0.2, ease: [0.16, 1, 0.3, 1] }}
-        className="relative z-10 w-full max-w-4xl max-h-[92vh] sm:max-h-[88vh] flex flex-col rounded-2xl sm:rounded-3xl bg-zinc-950 border border-white/10 shadow-[0_0_50px_rgba(0,0,0,0.85)] overflow-hidden font-['Inter',system-ui,sans-serif]"
+        className="relative z-10 w-full max-w-4xl xl:max-w-5xl 2xl:max-w-6xl 3xl:max-w-7xl max-h-[92vh] sm:max-h-[88vh] xl:max-h-[85vh] 2xl:max-h-[82vh] flex flex-col rounded-2xl sm:rounded-3xl bg-zinc-950 border border-white/10 shadow-[0_0_60px_rgba(0,0,0,0.9)] overflow-hidden font-['Inter',system-ui,sans-serif]"
       >
         {/* Ambient Top Glow */}
-        <div className="absolute top-0 left-1/2 -translate-x-1/2 w-3/4 h-24 bg-neon-green/10 blur-3xl pointer-events-none rounded-full" />
+        <div className="absolute top-0 left-1/2 -translate-x-1/2 w-3/4 h-24 xl:h-32 bg-neon-green/10 blur-3xl pointer-events-none rounded-full" />
 
         {/* Modal Header */}
-        <div className="flex items-center justify-between px-4 sm:px-6 py-3.5 sm:py-5 border-b border-white/10 shrink-0 gap-3">
-          <div className="flex items-center gap-3 min-w-0">
-            <div className="w-8 h-8 sm:w-10 sm:h-10 rounded-xl sm:rounded-2xl bg-neon-green/10 border border-neon-green/30 flex items-center justify-center text-neon-green shadow-[0_0_20px_rgba(118,185,0,0.25)] shrink-0">
-              <Gamepad2 className="w-4 h-4 sm:w-5 sm:h-5" />
+        <div className="flex items-center justify-between px-4 sm:px-6 xl:px-8 py-3.5 sm:py-5 xl:py-6 border-b border-white/10 shrink-0 gap-3">
+          <div className="flex items-center gap-3 xl:gap-4 min-w-0">
+            <div className="w-8 h-8 sm:w-10 sm:h-10 xl:w-12 xl:h-12 rounded-xl sm:rounded-2xl bg-neon-green/10 border border-neon-green/30 flex items-center justify-center text-neon-green shadow-[0_0_20px_rgba(118,185,0,0.25)] shrink-0">
+              <Gamepad2 className="w-4 h-4 sm:w-5 sm:h-5 xl:w-6 xl:h-6" />
             </div>
             <div className="min-w-0">
-              <div className="flex items-center gap-2 flex-wrap">
-                <h3 className="text-sm sm:text-base font-black uppercase tracking-tight text-white truncate">
+              <div className="flex items-center gap-2 xl:gap-3 flex-wrap">
+                <h3 className="text-sm sm:text-base xl:text-lg font-black uppercase tracking-tight text-white truncate">
                   Emulators & ROM Library
                 </h3>
-                <span className="inline-flex items-center gap-1 px-2 sm:px-2.5 py-0.5 rounded-full bg-neon-green/15 border border-neon-green/30 text-[8px] sm:text-[9px] font-black uppercase text-neon-green tracking-wider shrink-0">
+                <span className="inline-flex items-center gap-1.5 px-2 sm:px-2.5 xl:px-3 py-0.5 xl:py-1 rounded-full bg-neon-green/15 border border-neon-green/30 text-[8px] sm:text-[9px] xl:text-[10px] font-black uppercase text-neon-green tracking-wider shrink-0">
                   <span className="w-1.5 h-1.5 rounded-full bg-neon-green animate-pulse" />
                   {installedEmulators.length} / {emulators.length || 17} Ready
                 </span>
               </div>
-              <p className="text-[10px] sm:text-[11px] text-zinc-400 font-medium mt-0.5 line-clamp-1 sm:line-clamp-none">
+              <p className="text-[10px] sm:text-[11px] xl:text-xs text-zinc-400 font-medium mt-0.5 line-clamp-1 sm:line-clamp-none">
                 Auto-detects standalone emulators, RetroArch cores, and groups multi-disc titles.
               </p>
             </div>
@@ -186,49 +186,49 @@ export const EmulatorsHubModal: React.FC<EmulatorsHubModalProps> = ({
 
           <button
             onClick={onClose}
-            className="p-1.5 sm:p-2 rounded-xl text-zinc-400 hover:text-white hover:bg-white/5 border border-transparent hover:border-white/10 transition-all cursor-pointer shrink-0"
+            className="p-1.5 sm:p-2 xl:p-2.5 rounded-xl text-zinc-400 hover:text-white hover:bg-white/5 border border-transparent hover:border-white/10 transition-all cursor-pointer shrink-0"
             title="Close"
           >
-            <X className="w-4 h-4 sm:w-5 sm:h-5" />
+            <X className="w-4 h-4 sm:w-5 sm:h-5 xl:w-6 xl:h-6" />
           </button>
         </div>
 
         {/* Navigation Tabs Bar */}
-        <div className="flex flex-col sm:flex-row sm:items-center justify-between px-3.5 sm:px-6 py-2 sm:py-3 border-b border-white/5 bg-zinc-900/40 gap-2 shrink-0">
-          <div className="flex items-center gap-1 sm:gap-1.5 overflow-x-auto no-scrollbar w-full sm:w-auto py-0.5">
+        <div className="flex flex-col sm:flex-row sm:items-center justify-between px-3.5 sm:px-6 xl:px-8 py-2 sm:py-3 xl:py-3.5 border-b border-white/5 bg-zinc-900/40 gap-2 shrink-0">
+          <div className="flex items-center gap-1 sm:gap-1.5 xl:gap-2 overflow-x-auto no-scrollbar w-full sm:w-auto py-0.5">
             <button
               onClick={() => setActiveTab('installed')}
-              className={`px-3 py-1.5 rounded-xl text-[11px] sm:text-xs font-black uppercase tracking-wider transition-all cursor-pointer flex items-center gap-1.5 shrink-0 ${
+              className={`px-3 xl:px-4 py-1.5 xl:py-2 rounded-xl text-[11px] sm:text-xs xl:text-sm font-black uppercase tracking-wider transition-all cursor-pointer flex items-center gap-1.5 xl:gap-2 shrink-0 ${
                 activeTab === 'installed'
                   ? 'bg-neon-green text-black shadow-[0_0_15px_rgba(118,185,0,0.3)]'
                   : 'text-zinc-400 hover:text-white hover:bg-white/5'
               }`}
             >
-              <Cpu className="w-3.5 h-3.5 shrink-0" />
+              <Cpu className="w-3.5 h-3.5 xl:w-4 xl:h-4 shrink-0" />
               <span>Installed ({installedEmulators.length})</span>
             </button>
 
             <button
               onClick={() => setActiveTab('all')}
-              className={`px-3 py-1.5 rounded-xl text-[11px] sm:text-xs font-black uppercase tracking-wider transition-all cursor-pointer flex items-center gap-1.5 shrink-0 ${
+              className={`px-3 xl:px-4 py-1.5 xl:py-2 rounded-xl text-[11px] sm:text-xs xl:text-sm font-black uppercase tracking-wider transition-all cursor-pointer flex items-center gap-1.5 xl:gap-2 shrink-0 ${
                 activeTab === 'all'
                   ? 'bg-neon-green text-black shadow-[0_0_15px_rgba(118,185,0,0.3)]'
                   : 'text-zinc-400 hover:text-white hover:bg-white/5'
               }`}
             >
-              <Layers className="w-3.5 h-3.5 shrink-0" />
+              <Layers className="w-3.5 h-3.5 xl:w-4 xl:h-4 shrink-0" />
               <span>All Emulators ({emulators.length || 17})</span>
             </button>
 
             <button
               onClick={() => setActiveTab('roms')}
-              className={`px-3 py-1.5 rounded-xl text-[11px] sm:text-xs font-black uppercase tracking-wider transition-all cursor-pointer flex items-center gap-1.5 shrink-0 ${
+              className={`px-3 xl:px-4 py-1.5 xl:py-2 rounded-xl text-[11px] sm:text-xs xl:text-sm font-black uppercase tracking-wider transition-all cursor-pointer flex items-center gap-1.5 xl:gap-2 shrink-0 ${
                 activeTab === 'roms'
                   ? 'bg-neon-green text-black shadow-[0_0_15px_rgba(118,185,0,0.3)]'
                   : 'text-zinc-400 hover:text-white hover:bg-white/5'
               }`}
             >
-              <FolderOpen className="w-3.5 h-3.5 shrink-0" />
+              <FolderOpen className="w-3.5 h-3.5 xl:w-4 xl:h-4 shrink-0" />
               <span>ROM Folders ({romPaths.length})</span>
             </button>
           </div>
@@ -236,46 +236,46 @@ export const EmulatorsHubModal: React.FC<EmulatorsHubModalProps> = ({
           <button
             onClick={handleScanRoms}
             disabled={isScanning}
-            className="flex items-center justify-center gap-1.5 px-3 py-1.5 rounded-xl bg-white/5 hover:bg-white/10 border border-white/10 text-[11px] sm:text-xs font-black uppercase tracking-wider text-zinc-200 transition-all cursor-pointer disabled:opacity-50 shrink-0 w-full sm:w-auto"
+            className="flex items-center justify-center gap-1.5 xl:gap-2 px-3 xl:px-4 py-1.5 xl:py-2 rounded-xl bg-white/5 hover:bg-white/10 border border-white/10 text-[11px] sm:text-xs xl:text-sm font-black uppercase tracking-wider text-zinc-200 transition-all cursor-pointer disabled:opacity-50 shrink-0 w-full sm:w-auto"
           >
-            <RefreshCw className={`w-3.5 h-3.5 ${isScanning ? 'animate-spin text-neon-green' : ''}`} />
+            <RefreshCw className={`w-3.5 h-3.5 xl:w-4 xl:h-4 ${isScanning ? 'animate-spin text-neon-green' : ''}`} />
             <span>{isScanning ? 'Scanning...' : 'Scan ROMs'}</span>
           </button>
         </div>
 
         {/* Content Body */}
-        <div className="flex-1 overflow-y-auto p-4 sm:p-6 space-y-4 custom-scrollbar">
+        <div className="flex-1 overflow-y-auto p-4 sm:p-6 xl:p-8 space-y-4 xl:space-y-6 custom-scrollbar">
           {/* TAB 1: INSTALLED EMULATORS */}
           {activeTab === 'installed' && (
             <div>
               {installedEmulators.length === 0 ? (
-                <div className="flex flex-col items-center justify-center py-10 sm:py-16 px-4 text-center">
-                  <div className="w-12 h-12 sm:w-14 sm:h-14 rounded-2xl bg-zinc-900 border border-white/10 flex items-center justify-center text-zinc-500 mb-3 sm:mb-4">
-                    <AlertCircle className="w-6 h-6 sm:w-7 sm:h-7" />
+                <div className="flex flex-col items-center justify-center py-10 sm:py-16 xl:py-24 px-4 text-center min-h-[300px] xl:min-h-[420px]">
+                  <div className="w-12 h-12 sm:w-14 sm:h-14 xl:w-16 xl:h-16 rounded-2xl bg-zinc-900 border border-white/10 flex items-center justify-center text-zinc-500 mb-3 sm:mb-4 xl:mb-5">
+                    <AlertCircle className="w-6 h-6 sm:w-7 sm:h-7 xl:w-8 xl:h-8" />
                   </div>
-                  <h4 className="text-xs sm:text-sm font-black uppercase tracking-wider text-zinc-200">
+                  <h4 className="text-xs sm:text-sm xl:text-base font-black uppercase tracking-wider text-zinc-200">
                     No Emulators Detected Automatically
                   </h4>
-                  <p className="text-[11px] sm:text-xs text-zinc-400 max-w-md mt-1 mb-4 sm:mb-5 leading-relaxed">
+                  <p className="text-[11px] sm:text-xs xl:text-sm text-zinc-400 max-w-lg mt-1.5 mb-4 sm:mb-6 leading-relaxed">
                     Mission Control checks standard directories and system PATH for RPCS3, PCSX2, DuckStation, Dolphin, Cemu, and more.
                   </p>
-                  <div className="flex flex-wrap items-center justify-center gap-2.5">
+                  <div className="flex flex-wrap items-center justify-center gap-2.5 xl:gap-3">
                     <button
                       onClick={() => setActiveTab('all')}
-                      className="px-4 py-2 sm:py-2.5 rounded-xl bg-neon-green/10 border border-neon-green/30 text-neon-green font-black uppercase text-[10px] sm:text-xs tracking-wider hover:bg-neon-green/20 transition-all cursor-pointer shadow-[0_0_15px_rgba(118,185,0,0.15)] text-center"
+                      className="px-4 xl:px-5 py-2 sm:py-2.5 xl:py-3 rounded-xl bg-neon-green/10 border border-neon-green/30 text-neon-green font-black uppercase text-[10px] sm:text-xs xl:text-sm tracking-wider hover:bg-neon-green/20 transition-all cursor-pointer shadow-[0_0_15px_rgba(118,185,0,0.15)] text-center"
                     >
                       View All Supported Emulators (17)
                     </button>
                     <button
                       onClick={() => setActiveTab('roms')}
-                      className="px-4 py-2 sm:py-2.5 rounded-xl bg-purple-500/10 border border-purple-500/30 text-purple-300 font-black uppercase text-[10px] sm:text-xs tracking-wider hover:bg-purple-500/20 transition-all cursor-pointer shadow-[0_0_15px_rgba(168,85,247,0.15)] text-center"
+                      className="px-4 xl:px-5 py-2 sm:py-2.5 xl:py-3 rounded-xl bg-purple-500/10 border border-purple-500/30 text-purple-300 font-black uppercase text-[10px] sm:text-xs xl:text-sm tracking-wider hover:bg-purple-500/20 transition-all cursor-pointer shadow-[0_0_15px_rgba(168,85,247,0.15)] text-center"
                     >
                       Configure ROM Folders ({romPaths.length})
                     </button>
                   </div>
                 </div>
               ) : (
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-3 sm:gap-3.5">
+                <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 3xl:grid-cols-4 gap-3 sm:gap-3.5 xl:gap-4.5">
                   {installedEmulators.map((emu) => (
                     <EmulatorCard
                       key={emu.id}
@@ -294,23 +294,23 @@ export const EmulatorsHubModal: React.FC<EmulatorsHubModalProps> = ({
 
           {/* TAB 2: ALL SUPPORTED EMULATORS */}
           {activeTab === 'all' && (
-            <div className="space-y-4">
+            <div className="space-y-4 xl:space-y-5">
               {/* Responsive Search & Console Filters */}
-              <div className="flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-2.5 p-3 rounded-2xl bg-white/[0.02] border border-white/5">
+              <div className="flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-2.5 xl:gap-3 p-3 xl:p-4 rounded-2xl bg-white/[0.02] border border-white/5">
                 <div className="relative flex-1 min-w-0">
-                  <Search className="w-3.5 h-3.5 text-zinc-500 absolute left-3 top-1/2 -translate-y-1/2 pointer-events-none" />
+                  <Search className="w-3.5 h-3.5 xl:w-4 xl:h-4 text-zinc-500 absolute left-3 top-1/2 -translate-y-1/2 pointer-events-none" />
                   <input
                     type="text"
                     value={searchQuery}
                     onChange={(e) => setSearchQuery(e.target.value)}
                     placeholder="Filter by name, console, or extension..."
-                    className="w-full pl-8 pr-3 py-1.5 rounded-xl bg-black/40 border border-white/10 text-xs text-white placeholder-zinc-500 focus:outline-none focus:border-neon-green/50"
+                    className="w-full pl-8 xl:pl-9 pr-3 py-1.5 xl:py-2 rounded-xl bg-black/40 border border-white/10 text-xs xl:text-sm text-white placeholder-zinc-500 focus:outline-none focus:border-neon-green/50"
                   />
                   {searchQuery && (
                     <button
                       type="button"
                       onClick={() => setSearchQuery('')}
-                      className="absolute right-2.5 top-1/2 -translate-y-1/2 text-zinc-500 hover:text-zinc-300 text-xs"
+                      className="absolute right-2.5 top-1/2 -translate-y-1/2 text-zinc-500 hover:text-zinc-300 text-xs xl:text-sm"
                     >
                       ✕
                     </button>
@@ -318,7 +318,7 @@ export const EmulatorsHubModal: React.FC<EmulatorsHubModalProps> = ({
                 </div>
 
                 {/* Console Pills */}
-                <div className="flex items-center gap-1 overflow-x-auto no-scrollbar shrink-0 py-0.5">
+                <div className="flex items-center gap-1 xl:gap-1.5 overflow-x-auto no-scrollbar shrink-0 py-0.5">
                   {(['all', 'playstation', 'nintendo', 'xbox', 'retroarch'] as ConsoleFilter[]).map((cf) => {
                     const isSelected = consoleFilter === cf;
                     const labelMap: Record<ConsoleFilter, string> = {
@@ -333,7 +333,7 @@ export const EmulatorsHubModal: React.FC<EmulatorsHubModalProps> = ({
                         key={cf}
                         type="button"
                         onClick={() => setConsoleFilter(cf)}
-                        className={`px-2.5 py-1 rounded-lg text-[10px] font-bold uppercase transition-all shrink-0 cursor-pointer ${
+                        className={`px-2.5 xl:px-3 py-1 xl:py-1.5 rounded-lg text-[10px] xl:text-[11px] font-bold uppercase transition-all shrink-0 cursor-pointer ${
                           isSelected
                             ? 'bg-neon-green/20 border border-neon-green/40 text-neon-green font-black'
                             : 'bg-white/5 border border-white/5 text-zinc-400 hover:text-zinc-200'
@@ -347,21 +347,21 @@ export const EmulatorsHubModal: React.FC<EmulatorsHubModalProps> = ({
               </div>
 
               {/* Status summary banner */}
-              <div className="px-3.5 py-2.5 rounded-xl bg-black/30 border border-white/5 flex items-center justify-between text-xs text-zinc-400 flex-wrap gap-2">
-                <span className="text-[11px]">
+              <div className="px-3.5 xl:px-4 py-2.5 xl:py-3 rounded-xl bg-black/30 border border-white/5 flex items-center justify-between text-xs xl:text-sm text-zinc-400 flex-wrap gap-2">
+                <span className="text-[11px] xl:text-xs">
                   Showing {filteredEmulators.length} of {emulators.length || 17} emulators
                 </span>
-                <span className="font-mono text-neon-green text-[11px] shrink-0">
+                <span className="font-mono text-neon-green text-[11px] xl:text-xs shrink-0">
                   {installedEmulators.length} Detected Ready
                 </span>
               </div>
 
               {filteredEmulators.length === 0 ? (
-                <div className="p-8 text-center text-xs text-zinc-500 rounded-2xl bg-black/20 border border-white/5">
+                <div className="p-8 xl:p-12 text-center text-xs xl:text-sm text-zinc-500 rounded-2xl bg-black/20 border border-white/5">
                   No emulators match your filter criteria. Try clearing search or selecting 'All'.
                 </div>
               ) : (
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-3 sm:gap-3.5">
+                <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 3xl:grid-cols-4 gap-3 sm:gap-3.5 xl:gap-4.5">
                   {filteredEmulators.map((emu) => (
                     <EmulatorCard
                       key={emu.id}
@@ -380,13 +380,13 @@ export const EmulatorsHubModal: React.FC<EmulatorsHubModalProps> = ({
 
           {/* TAB 3: ROM FOLDERS */}
           {activeTab === 'roms' && (
-            <div className="space-y-4 sm:space-y-5">
+            <div className="space-y-4 sm:space-y-5 xl:space-y-6">
               {/* No Folders Warning Banner */}
               {noFoldersWarning && (
-                <div className="p-3.5 sm:p-4 rounded-2xl bg-amber-500/10 border border-amber-500/30 flex items-start justify-between gap-3 text-amber-200">
-                  <div className="flex items-start gap-2.5">
-                    <AlertTriangle className="w-4 h-4 sm:w-5 sm:h-5 text-amber-400 shrink-0 mt-0.5" />
-                    <div className="text-xs">
+                <div className="p-3.5 sm:p-4 xl:p-5 rounded-2xl bg-amber-500/10 border border-amber-500/30 flex items-start justify-between gap-3 text-amber-200">
+                  <div className="flex items-start gap-2.5 xl:gap-3">
+                    <AlertTriangle className="w-4 h-4 sm:w-5 sm:h-5 xl:w-6 xl:h-6 text-amber-400 shrink-0 mt-0.5" />
+                    <div className="text-xs xl:text-sm">
                       <span className="font-bold text-amber-300 block mb-0.5">No ROM Directories Configured</span>
                       Please add at least one folder path below where your console ROMs or disc images (.iso, .chd, .pkg, etc.) are stored before scanning.
                     </div>
@@ -395,71 +395,71 @@ export const EmulatorsHubModal: React.FC<EmulatorsHubModalProps> = ({
                     onClick={() => setNoFoldersWarning(false)}
                     className="p-1 hover:text-white rounded text-amber-400/70 hover:bg-amber-500/20 transition-colors cursor-pointer shrink-0"
                   >
-                    <X className="w-3.5 h-3.5" />
+                    <X className="w-3.5 h-3.5 xl:w-4 xl:h-4" />
                   </button>
                 </div>
               )}
 
               {/* Add Path Card */}
-              <div className="p-3.5 sm:p-4 rounded-2xl bg-white/[0.03] border border-white/10 space-y-3">
-                <label className="text-xs font-black uppercase tracking-wider text-white flex items-center gap-2">
-                  <FolderOpen className="w-4 h-4 text-neon-green shrink-0" />
+              <div className="p-3.5 sm:p-4 xl:p-5 rounded-2xl bg-white/[0.03] border border-white/10 space-y-3 xl:space-y-4">
+                <label className="text-xs xl:text-sm font-black uppercase tracking-wider text-white flex items-center gap-2">
+                  <FolderOpen className="w-4 h-4 xl:w-5 xl:h-5 text-neon-green shrink-0" />
                   <span>Add ROM Search Directory</span>
                 </label>
-                <div className="flex flex-col sm:flex-row gap-2">
+                <div className="flex flex-col sm:flex-row gap-2 xl:gap-3">
                   <input
                     type="text"
                     value={newPathInput}
                     onChange={(e) => setNewPathInput(e.target.value)}
                     placeholder="e.g. D:\Emulation\roms or ~/Games/ROMs"
-                    className="flex-1 px-3.5 py-2 rounded-xl bg-zinc-900 border border-white/10 text-xs font-mono text-white placeholder-zinc-500 focus:outline-none focus:border-neon-green/50 min-w-0"
+                    className="flex-1 px-3.5 xl:px-4 py-2 xl:py-2.5 rounded-xl bg-zinc-900 border border-white/10 text-xs xl:text-sm font-mono text-white placeholder-zinc-500 focus:outline-none focus:border-neon-green/50 min-w-0"
                   />
                   <button
                     onClick={handleAddRomPath}
                     disabled={!newPathInput.trim()}
-                    className="px-4 py-2 rounded-xl bg-neon-green text-black font-black uppercase text-xs tracking-wider hover:bg-neon-green/90 transition-all cursor-pointer disabled:opacity-40 flex items-center justify-center gap-1.5 shrink-0"
+                    className="px-4 xl:px-5 py-2 xl:py-2.5 rounded-xl bg-neon-green text-black font-black uppercase text-xs xl:text-sm tracking-wider hover:bg-neon-green/90 transition-all cursor-pointer disabled:opacity-40 flex items-center justify-center gap-1.5 shrink-0"
                   >
-                    <Plus className="w-4 h-4" />
+                    <Plus className="w-4 h-4 xl:w-5 xl:h-5" />
                     <span>Add Directory</span>
                   </button>
                 </div>
-                <p className="text-[10px] text-zinc-400 leading-relaxed">
+                <p className="text-[10px] xl:text-xs text-zinc-400 leading-relaxed">
                   Tip: Organize ROMs into console subfolders (e.g. <span className="font-mono text-zinc-300">ps2/</span>, <span className="font-mono text-zinc-300">switch/</span>, <span className="font-mono text-zinc-300">psx/</span>) for automatic console pairing.
                 </p>
               </div>
 
               {/* Configured Paths List */}
               <div>
-                <div className="flex items-center justify-between mb-2 flex-wrap gap-1">
-                  <span className="text-[10px] font-black uppercase tracking-widest text-zinc-400">
+                <div className="flex items-center justify-between mb-2 xl:mb-3 flex-wrap gap-1">
+                  <span className="text-[10px] xl:text-xs font-black uppercase tracking-widest text-zinc-400">
                     Configured ROM Folders ({romPaths.length})
                   </span>
-                  <span className="text-[10px] font-mono text-neon-green">
+                  <span className="text-[10px] xl:text-xs font-mono text-neon-green">
                     {emulatedCount} ROMs in Library
                   </span>
                 </div>
 
                 {romPaths.length === 0 ? (
-                  <div className="p-6 sm:p-8 rounded-2xl bg-black/20 border border-white/5 text-center text-xs text-zinc-500">
+                  <div className="p-6 sm:p-8 xl:p-10 rounded-2xl bg-black/20 border border-white/5 text-center text-xs xl:text-sm text-zinc-500">
                     No custom ROM directories added. Add your emulation folder above to scan games.
                   </div>
                 ) : (
-                  <div className="space-y-2">
+                  <div className="grid grid-cols-1 xl:grid-cols-2 gap-2.5 xl:gap-3">
                     {romPaths.map((p) => (
                       <div
                         key={p}
-                        className="flex items-center justify-between p-2.5 sm:p-3 rounded-xl bg-white/[0.02] border border-white/5 hover:border-white/10 transition-all gap-2"
+                        className="flex items-center justify-between p-2.5 sm:p-3 xl:p-3.5 rounded-xl bg-white/[0.02] border border-white/5 hover:border-white/10 transition-all gap-2"
                       >
                         <div className="flex items-center gap-2 sm:gap-2.5 min-w-0 flex-1">
-                          <FolderOpen className="w-4 h-4 text-neon-green shrink-0" />
-                          <span className="text-xs font-mono text-zinc-200 truncate">{p}</span>
+                          <FolderOpen className="w-4 h-4 xl:w-4.5 xl:h-4.5 text-neon-green shrink-0" />
+                          <span className="text-xs xl:text-sm font-mono text-zinc-200 truncate">{p}</span>
                         </div>
                         <button
                           onClick={() => handleRemoveRomPath(p)}
-                          className="p-1.5 text-zinc-500 hover:text-red-400 hover:bg-red-500/10 rounded-lg transition-all cursor-pointer shrink-0"
+                          className="p-1.5 xl:p-2 text-zinc-500 hover:text-red-400 hover:bg-red-500/10 rounded-lg transition-all cursor-pointer shrink-0"
                           title="Remove Directory"
                         >
-                          <Trash2 className="w-3.5 h-3.5" />
+                          <Trash2 className="w-3.5 h-3.5 xl:w-4 xl:h-4" />
                         </button>
                       </div>
                     ))}
@@ -468,9 +468,9 @@ export const EmulatorsHubModal: React.FC<EmulatorsHubModalProps> = ({
               </div>
 
               {/* Multi-Disc Info Banner */}
-              <div className="p-3.5 sm:p-4 rounded-2xl bg-blue-500/10 border border-blue-500/20 flex items-start gap-2.5 sm:gap-3">
-                <Disc3 className="w-4 h-4 sm:w-5 sm:h-5 text-blue-400 shrink-0 mt-0.5" />
-                <div className="text-[11px] sm:text-xs text-blue-200 leading-relaxed">
+              <div className="p-3.5 sm:p-4 xl:p-5 rounded-2xl bg-blue-500/10 border border-blue-500/20 flex items-start gap-2.5 sm:gap-3 xl:gap-3.5">
+                <Disc3 className="w-4 h-4 sm:w-5 sm:h-5 xl:w-6 xl:h-6 text-blue-400 shrink-0 mt-0.5" />
+                <div className="text-[11px] sm:text-xs xl:text-sm text-blue-200 leading-relaxed">
                   <span className="font-bold text-white block mb-0.5">
                     Automatic Multi-Disc Merging
                   </span>
@@ -549,16 +549,16 @@ const EmulatorCard: React.FC<{
 }> = ({ emu, onLaunch, onConfigure }) => {
   return (
     <div
-      className={`p-3.5 sm:p-4 rounded-2xl border transition-all flex flex-col justify-between gap-2.5 sm:gap-3 ${
+      className={`p-3.5 sm:p-4 xl:p-4.5 rounded-2xl border transition-all flex flex-col justify-between gap-2.5 sm:gap-3 xl:gap-3.5 ${
         emu.is_installed
-          ? 'bg-white/[0.03] border-white/10 hover:border-white/20'
-          : 'bg-black/30 border-white/5 opacity-70'
+          ? 'bg-white/[0.03] border-white/10 hover:border-white/20 hover:bg-white/[0.05]'
+          : 'bg-black/30 border-white/5 opacity-70 hover:opacity-90'
       }`}
     >
       <div className="flex items-start justify-between gap-2.5 sm:gap-3">
         <div className="flex items-center gap-2.5 sm:gap-3 min-w-0 flex-1">
           <div
-            className="w-9 h-9 sm:w-10 sm:h-10 rounded-xl border flex items-center justify-center font-black text-xs shrink-0"
+            className="w-9 h-9 sm:w-10 sm:h-10 xl:w-11 xl:h-11 rounded-xl border flex items-center justify-center font-black text-xs xl:text-sm shrink-0 shadow-inner"
             style={{
               backgroundColor: `${emu.color}15`,
               borderColor: `${emu.color}40`,
@@ -569,19 +569,19 @@ const EmulatorCard: React.FC<{
           </div>
           <div className="min-w-0 flex-1">
             <div className="flex items-center gap-1.5 sm:gap-2 flex-wrap">
-              <span className="text-xs font-black text-white truncate">{emu.name}</span>
+              <span className="text-xs sm:text-sm xl:text-base font-black text-white truncate">{emu.name}</span>
               {emu.is_installed ? (
-                <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full bg-emerald-500/15 border border-emerald-500/30 text-[8px] font-black uppercase text-emerald-400 tracking-wider shrink-0">
+                <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full bg-emerald-500/15 border border-emerald-500/30 text-[8px] sm:text-[8.5px] xl:text-[9px] font-black uppercase text-emerald-400 tracking-wider shrink-0">
                   <CheckCircle2 className="w-2.5 h-2.5" />
                   Ready
                 </span>
               ) : (
-                <span className="px-2 py-0.5 rounded-full bg-white/5 border border-white/10 text-[8px] font-black uppercase text-zinc-500 tracking-wider shrink-0">
+                <span className="px-2 py-0.5 rounded-full bg-white/5 border border-white/10 text-[8px] sm:text-[8.5px] xl:text-[9px] font-black uppercase text-zinc-500 tracking-wider shrink-0">
                   Not Installed
                 </span>
               )}
             </div>
-            <p className="text-[10px] text-zinc-400 font-medium truncate mt-0.5">
+            <p className="text-[10px] sm:text-[11px] xl:text-xs text-zinc-400 font-medium truncate mt-0.5">
               {emu.console}
             </p>
           </div>
@@ -592,22 +592,22 @@ const EmulatorCard: React.FC<{
             href={emu.website}
             target="_blank"
             rel="noopener noreferrer"
-            className="p-1.5 text-zinc-500 hover:text-white rounded-lg hover:bg-white/5 transition-colors shrink-0"
+            className="p-1.5 xl:p-2 text-zinc-500 hover:text-white rounded-lg hover:bg-white/5 transition-colors shrink-0"
             title="Official Website"
           >
-            <ExternalLink className="w-3.5 h-3.5" />
+            <ExternalLink className="w-3.5 h-3.5 xl:w-4 xl:h-4" />
           </a>
         )}
       </div>
 
       {emu.exe_path && (
-        <div className="text-[8.5px] sm:text-[9px] font-mono text-zinc-500 truncate bg-black/40 px-2 py-1 rounded-lg border border-white/5">
+        <div className="text-[8.5px] sm:text-[9px] xl:text-[9.5px] font-mono text-zinc-400 truncate bg-black/40 px-2 py-1 xl:py-1.5 rounded-lg border border-white/5" title={emu.exe_path}>
           {emu.exe_path}
         </div>
       )}
 
       {emu.cores && emu.cores.length > 0 && (
-        <div className="text-[8.5px] sm:text-[9px] font-mono text-neon-green flex items-center gap-1">
+        <div className="text-[8.5px] sm:text-[9px] xl:text-[10px] font-mono text-neon-green flex items-center gap-1">
           <Sparkles className="w-3 h-3 shrink-0" />
           <span className="truncate">{emu.cores.length} Libretro Cores Detected</span>
         </div>
@@ -615,26 +615,26 @@ const EmulatorCard: React.FC<{
 
       {/* Action Row */}
       <div className="flex items-center justify-between pt-1 border-t border-white/5 gap-2">
-        <div className="text-[7.5px] sm:text-[8px] font-mono text-zinc-500 uppercase tracking-wider truncate max-w-[130px] sm:max-w-none">
+        <div className="text-[7.5px] sm:text-[8px] xl:text-[9px] font-mono text-zinc-500 uppercase tracking-wider truncate max-w-[130px] sm:max-w-none">
           {emu.extensions.slice(0, 3).join(' ')}
         </div>
 
         <div className="flex items-center gap-1.5 shrink-0">
           <button
             onClick={onConfigure}
-            className="px-2.5 py-1 rounded-lg bg-white/5 hover:bg-white/10 text-zinc-300 hover:text-white text-[9px] sm:text-[10px] font-bold uppercase transition-all cursor-pointer flex items-center gap-1"
+            className="px-2.5 xl:px-3 py-1 xl:py-1.5 rounded-lg bg-white/5 hover:bg-white/10 text-zinc-300 hover:text-white text-[9px] sm:text-[10px] xl:text-[11px] font-bold uppercase transition-all cursor-pointer flex items-center gap-1"
             title="Configure Binary Path"
           >
-            <Settings2 className="w-3 h-3" />
+            <Settings2 className="w-3 h-3 xl:w-3.5 xl:h-3.5" />
             <span>Path</span>
           </button>
 
           {emu.is_installed && (
             <button
               onClick={onLaunch}
-              className="px-3 py-1 rounded-lg bg-neon-green/15 hover:bg-neon-green text-neon-green hover:text-black border border-neon-green/30 text-[9px] sm:text-[10px] font-black uppercase transition-all cursor-pointer flex items-center gap-1"
+              className="px-3 xl:px-3.5 py-1 xl:py-1.5 rounded-lg bg-neon-green/15 hover:bg-neon-green text-neon-green hover:text-black border border-neon-green/30 text-[9px] sm:text-[10px] xl:text-[11px] font-black uppercase transition-all cursor-pointer flex items-center gap-1"
             >
-              <Play className="w-3 h-3 fill-current" />
+              <Play className="w-3 h-3 xl:w-3.5 xl:h-3.5 fill-current" />
               <span>Launch</span>
             </button>
           )}

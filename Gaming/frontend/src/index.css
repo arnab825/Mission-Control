@@ -19,6 +19,8 @@
   --color-graphite: var(--theme-bg-graphite, #1a1a1a);
   --font-inter: "Inter", sans-serif;
   --font-mono: "JetBrains Mono", monospace;
+  --breakpoint-3xl: 120rem;
+  --breakpoint-4xl: 160rem;
 }
 
 @layer base {

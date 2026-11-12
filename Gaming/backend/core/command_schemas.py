@@ -53,10 +53,16 @@ class ConfigureEmulatorPayload(BaseCommandPayload):
     emulator_id: str = Field(min_length=1, max_length=64)
     exe_path: Optional[str] = None
     enabled: Optional[bool] = None
+    userId: Optional[str] = Field(default="guest", max_length=128)
 
 
 class SetRomPathsPayload(BaseCommandPayload):
     paths: List[str] = Field(default_factory=list)
+    userId: Optional[str] = Field(default="guest", max_length=128)
+
+
+class ScanRomsPayload(BaseCommandPayload):
+    userId: Optional[str] = Field(default="guest", max_length=128)
 
 
 class DeleteAccountPayload(BaseCommandPayload):
@@ -158,10 +164,10 @@ class RemoveUserAccountPayload(BaseCommandPayload):
 
 
 COMMAND_SCHEMA_MAP = {
-    "get_emulation_state": EmptyPayload,
+    "get_emulation_state": UserIdPayload,
     "configure_emulator": ConfigureEmulatorPayload,
     "set_rom_paths": SetRomPathsPayload,
-    "scan_roms": EmptyPayload,
+    "scan_roms": ScanRomsPayload,
     "save_user_account": SaveUserAccountPayload,
     "get_user_accounts": EmptyPayload,
     "remove_user_account": RemoveUserAccountPayload,
