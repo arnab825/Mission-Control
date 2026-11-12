@@ -1,8 +1,10 @@
 import * as electron from 'electron'
 const { app, BrowserWindow, ipcMain, protocol, net, globalShortcut, shell, screen, dialog, Tray, Menu, nativeImage, Notification, session } = electron
 
-// Prevent black screen bugs on hybrid GPU laptops without dropping UI framerates
-app.commandLine.appendSwitch('disable-gpu-compositing')
+// Enable high-performance GPU hardware acceleration and zero-copy rasterization
+app.commandLine.appendSwitch('enable-gpu-rasterization');
+app.commandLine.appendSwitch('enable-zero-copy');
+app.commandLine.appendSwitch('ignore-gpu-blocklist');
 
 type BrowserWindow = electron.BrowserWindow
 type Tray = electron.Tray
@@ -28,9 +30,23 @@ function getLogFilePath(): string {
   return path.join(userDataPath, 'app.log');
 }
 
+// Strict 5 MB ceiling on log file to prevent runaway disk usage and memory bloat
+const MAX_LOG_SIZE_BYTES = 5 * 1024 * 1024;
+
 function logToFile(level: string, ...args: any[]) {
   try {
     const logFile = getLogFilePath();
+    try {
+      if (fs.existsSync(logFile)) {
+        const stats = fs.statSync(logFile);
+        if (stats.size > MAX_LOG_SIZE_BYTES) {
+          const oldFile = `${logFile}.old`;
+          try { if (fs.existsSync(oldFile)) fs.unlinkSync(oldFile); } catch (_) {}
+          fs.renameSync(logFile, oldFile);
+        }
+      }
+    } catch (_) {}
+
     const msg = args.map(arg => {
       if (arg instanceof Error) return arg.stack || arg.message;
       if (typeof arg === 'object') {
@@ -82,8 +98,8 @@ if (process.platform === 'win32') {
   console.log('[Electron] Windows platform detected — applied GPU resilience flags.');
 }
 
-// Enable GC exposure and limit maximum heap growth for memory management
-app.commandLine.appendSwitch('js-flags', '--expose-gc --max-old-space-size=512');
+// Enable GC exposure, enforce tight 256MB memory ceiling, and optimize V8 heap for size
+app.commandLine.appendSwitch('js-flags', '--expose-gc --max-old-space-size=256 --optimize-for-size');
 
 function handleSquirrelEvent(): boolean {
   if (process.argv.length === 1) {

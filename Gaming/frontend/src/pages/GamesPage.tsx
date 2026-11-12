@@ -319,6 +319,8 @@ const GameCard: React.FC<{
         <img
           src={coverUrl}
           alt={game.name}
+          loading="lazy"
+          decoding="async"
           className={`w-full h-full ${isLauncher ? 'object-contain p-8 group-hover:scale-105' : 'object-cover object-[center_25%] group-hover:scale-105'} transition-transform duration-500`}
           onError={(e) => {
             const target = e.target as HTMLImageElement;

@@ -1,21 +1,35 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, Suspense } from 'react';
 import SidebarLeft from './components/SidebarLeft';
 import Titlebar from './components/Titlebar';
-import {
-  SystemPage,
-  SettingsPage,
-  LabPage,
-  DashboardPage,
-  VisionPage,
-  AgentPage,
-  ReadinessPage
-} from './pages';
-import GamesPage from './pages/GamesPage';
-import AuthPage from './pages/AuthPage';
+import DashboardPage from './pages/DashboardPage';
+
+// Route-level Code Splitting: Lazy-load non-initial pages to minimize initial bundle size and speed up cold boot
+const SystemPage = React.lazy(() => import('./pages/SystemPage'));
+const SettingsPage = React.lazy(() => import('./pages/SettingsPage'));
+const LabPage = React.lazy(() => import('./pages/LabPage'));
+const VisionPage = React.lazy(() => import('./pages/VisionPage'));
+const AgentPage = React.lazy(() => import('./pages/AgentPage'));
+const ReadinessPage = React.lazy(() => import('./pages/ReadinessPage'));
+const GamesPage = React.lazy(() => import('./pages/GamesPage'));
+const AuthPage = React.lazy(() => import('./pages/AuthPage'));
+const UpdatesPage = React.lazy(() => import('./pages/UpdatesPage').then(m => ({ default: m.UpdatesPage })));
+
+// Sleek, zero-layout-shift loading skeleton for asynchronous page transitions
+const PageSkeleton: React.FC = () => (
+  <div className="flex-1 flex flex-col p-6 gap-6 animate-pulse">
+    <div className="h-10 w-56 bg-white/5 rounded-2xl border border-white/5" />
+    <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+      <div className="h-28 bg-white/3 rounded-2xl border border-white/5" />
+      <div className="h-28 bg-white/3 rounded-2xl border border-white/5" />
+      <div className="h-28 bg-white/3 rounded-2xl border border-white/5" />
+      <div className="h-28 bg-white/3 rounded-2xl border border-white/5" />
+    </div>
+    <div className="flex-1 bg-white/2 rounded-2xl border border-white/5 min-h-[300px]" />
+  </div>
+);
 import HUD from './components/HUD';
 import { useBridge } from './hooks/useBridge';
 import type { TelemetryState } from './types/telemetry';
-import { UpdatesPage } from './pages/UpdatesPage';
 import { ThemeQuickMenu } from './components/ThemeQuickMenu';
 import { useTheme } from './context/ThemeContext';
 import type { CategoryId } from './pages/SettingsPage';
@@ -1543,81 +1557,83 @@ const App: React.FC = () => {
 
               {/* Dynamic Page Rendering (Lazy-loaded / Keep-alive toggling) */}
               <div className="flex-1 min-h-0 min-w-0 flex flex-col relative overflow-hidden">
-                {visitedPages['dashboard'] && (
-                  <div className={`flex-1 min-h-0 min-w-0 flex flex-col relative ${activePage === 'dashboard' ? '' : 'hidden'}`}>
-                    <DashboardPage state={activePage === 'dashboard' ? state : null} onCommand={sendCommand} onNavigate={handleNavigate} />
-                  </div>
-                )}
-                {visitedPages['vision'] && (
-                  <div className={`flex-1 min-h-0 min-w-0 flex flex-col relative ${activePage === 'vision' ? '' : 'hidden'}`}>
-                    <VisionPage state={activePage === 'vision' ? state : null} sendCommand={sendCommand} />
-                  </div>
-                )}
-                {visitedPages['system'] && (
-                  <div className={`flex-1 min-h-0 min-w-0 flex flex-col relative ${activePage === 'system' ? '' : 'hidden'}`}>
-                    <SystemPage
-                      state={activePage === 'system' ? state : null}
-                      selectedCategory={systemCategory}
-                      setSelectedCategory={setSystemCategory}
-                      sendCommand={sendCommand}
-                    />
-                  </div>
-                )}
-                {visitedPages['games'] && (
-                  <div className={`flex-1 min-h-0 min-w-0 flex flex-col relative ${activePage === 'games' ? '' : 'hidden'}`}>
-                    <GamesPage
-                      state={activePage === 'games' ? state : null}
-                      sendCommand={sendCommand}
-                      mode={gamesPageMode}
-                      setMode={setGamesPageMode}
-                    />
-                  </div>
-                )}
-                {visitedPages['settings'] && (
-                  <div className={`flex-1 min-h-0 min-w-0 flex flex-col relative ${activePage === 'settings' ? '' : 'hidden'}`}>
-                    <SettingsPage
-                      state={activePage === 'settings' ? state : null}
-                      sendCommand={sendCommand}
-                      defaultCategory={settingsCategory}
-                    />
-                  </div>
-                )}
-                {visitedPages['lab'] && (
-                  <div className={`flex-1 min-h-0 min-w-0 flex flex-col relative ${activePage === 'lab' ? '' : 'hidden'}`}>
-                    <LabPage state={activePage === 'lab' ? state : null} sendCommand={sendCommand} />
-                  </div>
-                )}
-                {visitedPages['readiness'] && (
-                  <div className={`flex-1 min-h-0 min-w-0 flex flex-col relative ${activePage === 'readiness' ? '' : 'hidden'}`}>
-                    <ReadinessPage state={activePage === 'readiness' ? state : null} connected={connected} sendCommand={sendCommand} />
-                  </div>
-                )}
-                {visitedPages['agent'] && (
-                  <div className={`flex-1 min-h-0 min-w-0 flex flex-col relative ${activePage === 'agent' ? '' : 'hidden'}`}>
-                    {!isSignedIn && gamesPageMode === 'auth' ? (
-                      <AuthPage onBackToLibrary={() => setGamesPageMode('library')} />
-                    ) : (
-                      <AgentPage
-                        state={activePage === 'agent' ? state : null}
-                        onCommand={sendCommand}
-                        isAgentic={isAgentic}
-                        connected={connected}
-                        isIntelOpen={isIntelOpen}
-                        setIsIntelOpen={setIsIntelOpen}
-                        userId={effectiveActiveUserId}
+                <Suspense fallback={<PageSkeleton />}>
+                  {visitedPages['dashboard'] && (
+                    <div className={`flex-1 min-h-0 min-w-0 flex flex-col relative ${activePage === 'dashboard' ? '' : 'hidden'}`}>
+                      <DashboardPage state={activePage === 'dashboard' ? state : null} onCommand={sendCommand} onNavigate={handleNavigate} />
+                    </div>
+                  )}
+                  {visitedPages['vision'] && (
+                    <div className={`flex-1 min-h-0 min-w-0 flex flex-col relative ${activePage === 'vision' ? '' : 'hidden'}`}>
+                      <VisionPage state={activePage === 'vision' ? state : null} sendCommand={sendCommand} />
+                    </div>
+                  )}
+                  {visitedPages['system'] && (
+                    <div className={`flex-1 min-h-0 min-w-0 flex flex-col relative ${activePage === 'system' ? '' : 'hidden'}`}>
+                      <SystemPage
+                        state={activePage === 'system' ? state : null}
+                        selectedCategory={systemCategory}
+                        setSelectedCategory={setSystemCategory}
+                        sendCommand={sendCommand}
                       />
-                    )}
-                  </div>
-                )}
-                {visitedPages['updates'] && (
-                  <div className={`flex-1 min-h-0 min-w-0 flex flex-col relative ${activePage === 'updates' ? '' : 'hidden'}`}>
-                    <UpdatesPage
-                      state={activePage === 'updates' ? state : null}
-                      sendCommand={sendCommand}
-                      defaultTab={updaterTab}
-                    />
-                  </div>
-                )}
+                    </div>
+                  )}
+                  {visitedPages['games'] && (
+                    <div className={`flex-1 min-h-0 min-w-0 flex flex-col relative ${activePage === 'games' ? '' : 'hidden'}`}>
+                      <GamesPage
+                        state={activePage === 'games' ? state : null}
+                        sendCommand={sendCommand}
+                        mode={gamesPageMode}
+                        setMode={setGamesPageMode}
+                      />
+                    </div>
+                  )}
+                  {visitedPages['settings'] && (
+                    <div className={`flex-1 min-h-0 min-w-0 flex flex-col relative ${activePage === 'settings' ? '' : 'hidden'}`}>
+                      <SettingsPage
+                        state={activePage === 'settings' ? state : null}
+                        sendCommand={sendCommand}
+                        defaultCategory={settingsCategory}
+                      />
+                    </div>
+                  )}
+                  {visitedPages['lab'] && (
+                    <div className={`flex-1 min-h-0 min-w-0 flex flex-col relative ${activePage === 'lab' ? '' : 'hidden'}`}>
+                      <LabPage state={activePage === 'lab' ? state : null} sendCommand={sendCommand} />
+                    </div>
+                  )}
+                  {visitedPages['readiness'] && (
+                    <div className={`flex-1 min-h-0 min-w-0 flex flex-col relative ${activePage === 'readiness' ? '' : 'hidden'}`}>
+                      <ReadinessPage state={activePage === 'readiness' ? state : null} connected={connected} sendCommand={sendCommand} />
+                    </div>
+                  )}
+                  {visitedPages['agent'] && (
+                    <div className={`flex-1 min-h-0 min-w-0 flex flex-col relative ${activePage === 'agent' ? '' : 'hidden'}`}>
+                      {!isSignedIn && gamesPageMode === 'auth' ? (
+                        <AuthPage onBackToLibrary={() => setGamesPageMode('library')} />
+                      ) : (
+                        <AgentPage
+                          state={activePage === 'agent' ? state : null}
+                          onCommand={sendCommand}
+                          isAgentic={isAgentic}
+                          connected={connected}
+                          isIntelOpen={isIntelOpen}
+                          setIsIntelOpen={setIsIntelOpen}
+                          userId={effectiveActiveUserId}
+                        />
+                      )}
+                    </div>
+                  )}
+                  {visitedPages['updates'] && (
+                    <div className={`flex-1 min-h-0 min-w-0 flex flex-col relative ${activePage === 'updates' ? '' : 'hidden'}`}>
+                      <UpdatesPage
+                        state={activePage === 'updates' ? state : null}
+                        sendCommand={sendCommand}
+                        defaultTab={updaterTab}
+                      />
+                    </div>
+                  )}
+                </Suspense>
               </div>
 
             </div>
