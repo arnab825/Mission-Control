@@ -46,7 +46,7 @@ const InfoTooltip: React.FC<{
 
   return (
     <div className="relative group/tooltip inline-block shrink-0">
-      <span className="p-0.5 hover:bg-white/5 rounded-full cursor-help text-zinc-600 hover:text-neon-green transition-colors block">
+      <span className="p-0.5 hover:bg-white/5 rounded-full cursor-pointer text-zinc-600 hover:text-neon-green transition-colors block">
         <Info className="w-3.5 h-3.5" />
       </span>
       <div className={`absolute ${posClass} ${alignClasses[align]} w-60 p-3 bg-[#0a0a0f] border border-white/10 text-[10px] text-zinc-400 rounded-xl shadow-2xl opacity-0 invisible group-hover/tooltip:opacity-100 group-hover/tooltip:visible transition-all duration-200 z-50 pointer-events-none normal-case leading-relaxed font-medium`}>
@@ -342,7 +342,7 @@ const LabPage: React.FC<{
               sendCommand("optimize_system", { userId });
             }
           }}
-          className={`flex items-center justify-center gap-2 px-5 py-2.5 border rounded-2xl font-black text-xs uppercase tracking-widest transition-all shrink-0 ${isGameActive
+          className={`flex items-center justify-center gap-2 px-5 py-2.5 border rounded-2xl font-black text-xs uppercase tracking-widest transition-all shrink-0 cursor-pointer ${isGameActive
             ? "bg-orange-500 text-black border-orange-400"
             : "bg-orange-500/10 border-orange-500/30 text-orange-400 hover:bg-orange-500/20"
             }`}
@@ -525,7 +525,7 @@ const LabPage: React.FC<{
           <div className="grid grid-cols-3 gap-2">
             <button aria-label="button" type="button"
               onClick={() => handleCoolingMode("silent")}
-              className={`py-2.5 rounded-xl border text-[9px] font-black uppercase tracking-widest transition-all flex flex-col items-center justify-center gap-1 ${coolingMode === "silent"
+              className={`py-2.5 rounded-xl border text-[9px] font-black uppercase tracking-widest transition-all flex flex-col items-center justify-center gap-1 cursor-pointer ${coolingMode === "silent"
                 ? "bg-blue-500/15 border-blue-500/40 text-blue-400 shadow-[0_0_10px_rgba(59,130,246,0.15)]"
                 : "border-white/5 text-zinc-500 hover:text-white hover:border-white/10"
                 }`}
@@ -535,7 +535,7 @@ const LabPage: React.FC<{
             </button>
             <button aria-label="button" type="button"
               onClick={() => handleCoolingMode("balanced")}
-              className={`py-2.5 rounded-xl border text-[9px] font-black uppercase tracking-widest transition-all flex flex-col items-center justify-center gap-1 ${coolingMode === "balanced"
+              className={`py-2.5 rounded-xl border text-[9px] font-black uppercase tracking-widest transition-all flex flex-col items-center justify-center gap-1 cursor-pointer ${coolingMode === "balanced"
                 ? "bg-white/8 border-white/20 text-white"
                 : "border-white/5 text-zinc-500 hover:text-white hover:border-white/10"
                 }`}
@@ -545,7 +545,7 @@ const LabPage: React.FC<{
             </button>
             <button aria-label="button" type="button"
               onClick={() => handleCoolingMode("max")}
-              className={`py-2.5 rounded-xl border text-[9px] font-black uppercase tracking-widest transition-all flex flex-col items-center justify-center gap-1 ${coolingMode === "max"
+              className={`py-2.5 rounded-xl border text-[9px] font-black uppercase tracking-widest transition-all flex flex-col items-center justify-center gap-1 cursor-pointer ${coolingMode === "max"
                 ? "bg-orange-500/15 border-orange-500/40 text-orange-400 shadow-[0_0_10px_rgba(249,115,22,0.15)]"
                 : "border-white/5 text-zinc-500 hover:text-white hover:border-white/10"
                 }`}

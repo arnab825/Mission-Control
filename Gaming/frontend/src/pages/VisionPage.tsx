@@ -169,21 +169,26 @@ const VisionPage: React.FC<VisionPageProps> = ({ state, sendCommand }) => {
       `}} />
 
       {/* Header */}
-      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+      <div className="flex flex-wrap items-center justify-between gap-3 sm:gap-4">
         <div className="min-w-0">
-          <h2 className="text-2xl sm:text-3xl font-black text-transparent bg-clip-text bg-gradient-to-r from-neon-green to-white tracking-tighter uppercase drop-shadow-[0_0_12px_rgba(118, 185, 0,0.8)] truncate">Vision Command Center</h2>
-          <p className="text-[10px] text-zinc-500 font-bold uppercase tracking-widest mt-0.5">
+          <h2 className="text-xl sm:text-2xl lg:text-3xl font-black text-transparent bg-clip-text bg-gradient-to-r from-neon-green via-white to-zinc-400 tracking-tighter uppercase drop-shadow-[0_0_12px_rgba(118, 185, 0,0.6)]">
+            Vision Command Center
+          </h2>
+          <p className="text-[10px] text-zinc-500 font-bold uppercase tracking-widest mt-0.5 whitespace-normal sm:whitespace-nowrap">
             Real-time AI game vision · YOLOv8n · TensorRT inference
           </p>
         </div>
-        <div className="flex flex-wrap items-center gap-2 sm:gap-4">
-          <PipelineBadge active={libraryServerOnline} label="Library Server" />
-          <PipelineBadge active={pipelineRunning} label={pipelineLabel} />
+        <div className="flex flex-wrap items-center gap-2 sm:gap-3">
+          <div className="flex items-center gap-2 sm:gap-3 px-3 py-1.5 bg-white/[0.03] border border-white/10 rounded-xl">
+            <PipelineBadge active={libraryServerOnline} label="Library Server" />
+            <div className="w-px h-3 bg-white/10" />
+            <PipelineBadge active={pipelineRunning} label={pipelineLabel} />
+          </div>
           <motion.button
             whileHover={{ scale: 1.03 }} whileTap={{ scale: 0.97 }}
             onClick={handleForceActivate}
             disabled={forceActivating}
-            className={`flex items-center gap-2 px-3.5 sm:px-4 py-2 rounded-xl text-[10px] font-black uppercase tracking-widest border transition-all duration-300 disabled:opacity-50 disabled:cursor-not-allowed shrink-0 ${manualActive
+            className={`flex items-center gap-2 px-3.5 sm:px-4 py-1.5 rounded-xl text-[10px] font-black uppercase tracking-widest border transition-all duration-300 cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed whitespace-nowrap ${manualActive
                 ? 'bg-red-500/15 border-red-500/30 text-red-400 hover:bg-red-500/25 shadow-[0_0_12px_rgba(239,68,68,0.1)]'
                 : 'bg-neon-green/10 border-neon-green/25 text-neon-green hover:bg-neon-green/20 shadow-[0_0_12px_rgba(118, 185, 0,0.1)]'
               }`}
@@ -352,7 +357,7 @@ const VisionPage: React.FC<VisionPageProps> = ({ state, sendCommand }) => {
                   <motion.button
                     whileHover={{ scale: 1.04 }} whileTap={{ scale: 0.97 }}
                     onClick={handleForceActivate}
-                    className="mt-1 flex items-center gap-2 px-5 py-2 bg-neon-green/10 hover:bg-neon-green/20 border border-neon-green/25 rounded-xl text-[10px] font-black text-neon-green uppercase tracking-widest transition-all"
+                    className="mt-1 flex items-center gap-2 px-5 py-2 bg-neon-green/10 hover:bg-neon-green/20 border border-neon-green/25 rounded-xl text-[10px] font-black text-neon-green uppercase tracking-widest transition-all cursor-pointer"
                   >
                     <Play className="w-3 h-3" /> Force Activate Pipeline
                   </motion.button>
@@ -367,7 +372,7 @@ const VisionPage: React.FC<VisionPageProps> = ({ state, sendCommand }) => {
               <div className="flex flex-wrap items-center gap-2 sm:gap-3">
                 <button
                   onClick={() => setNightVision(!nightVision)}
-                  className={`px-3 py-1.5 rounded-lg border text-[8px] font-black uppercase tracking-wider transition-all duration-200 ${nightVision
+                  className={`px-3 py-1.5 rounded-lg border text-[8px] font-black uppercase tracking-wider transition-all duration-200 cursor-pointer ${nightVision
                       ? 'bg-neon-yellow/15 border-neon-yellow/40 text-neon-yellow shadow-[0_0_8px_rgba(191, 255, 0,0.15)]'
                       : 'bg-white/5 border-white/10 text-zinc-400 hover:text-white'
                     }`}
@@ -376,7 +381,7 @@ const VisionPage: React.FC<VisionPageProps> = ({ state, sendCommand }) => {
                 </button>
                 <button
                   onClick={() => setScanlines(!scanlines)}
-                  className={`px-3 py-1.5 rounded-lg border text-[8px] font-black uppercase tracking-wider transition-all duration-200 ${scanlines
+                  className={`px-3 py-1.5 rounded-lg border text-[8px] font-black uppercase tracking-wider transition-all duration-200 cursor-pointer ${scanlines
                       ? 'bg-neon-green/15 border-neon-green/40 text-neon-green shadow-[0_0_8px_rgba(118, 185, 0,0.15)]'
                       : 'bg-white/5 border-white/10 text-zinc-400 hover:text-white'
                     }`}
@@ -385,7 +390,7 @@ const VisionPage: React.FC<VisionPageProps> = ({ state, sendCommand }) => {
                 </button>
                 <button
                   onClick={() => setCrtCurve(!crtCurve)}
-                  className={`px-3 py-1.5 rounded-lg border text-[8px] font-black uppercase tracking-wider transition-all duration-200 ${crtCurve
+                  className={`px-3 py-1.5 rounded-lg border text-[8px] font-black uppercase tracking-wider transition-all duration-200 cursor-pointer ${crtCurve
                       ? 'bg-purple-500/15 border-purple-500/40 text-purple-400 shadow-[0_0_8px_rgba(168,85,247,0.15)]'
                       : 'bg-white/5 border-white/10 text-zinc-400 hover:text-white'
                     }`}

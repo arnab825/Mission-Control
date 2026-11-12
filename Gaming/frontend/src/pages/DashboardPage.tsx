@@ -549,7 +549,7 @@ const DashboardPage: React.FC<DashboardPageProps> = ({ state, onCommand, onNavig
           <div className="flex gap-2.5 shrink-0">
             <button aria-label="button" type="button"
               onClick={() => onCommand('scan_games', { userId: userId || undefined })}
-              className="group relative flex-1 py-3 bg-neon-green hover:bg-neon-green text-black font-black text-[9px] uppercase tracking-widest rounded-2xl transition-all shadow-[0_0_20px_rgba(118, 185, 0,0.2)] flex items-center justify-center gap-1.5 overflow-hidden"
+              className="group relative flex-1 py-3 bg-neon-green hover:bg-neon-green text-black font-black text-[9px] uppercase tracking-widest rounded-2xl transition-all shadow-[0_0_20px_rgba(118, 185, 0,0.2)] flex items-center justify-center gap-1.5 overflow-hidden cursor-pointer"
             >
               <div className="absolute inset-0 bg-white/20 translate-y-full group-hover:translate-y-0 transition-transform duration-300" />
               <Search className="w-3.5 h-3.5 relative z-10" />
@@ -559,7 +559,7 @@ const DashboardPage: React.FC<DashboardPageProps> = ({ state, onCommand, onNavig
             {(state as any)?.optimization_status?.active ? (
               <button aria-label="button" type="button"
                 onClick={() => onCommand('revert_optimization', {})}
-                className="group relative flex-1 py-3 bg-fuchsia-500/20 hover:bg-fuchsia-500/30 text-fuchsia-400 border border-fuchsia-500/40 font-black text-[9px] uppercase tracking-widest rounded-2xl transition-all flex items-center justify-center gap-1.5 overflow-hidden shadow-[0_0_20px_rgba(232,121,249,0.15)] animate-pulse"
+                className="group relative flex-1 py-3 bg-fuchsia-500/20 hover:bg-fuchsia-500/30 text-fuchsia-400 border border-fuchsia-500/40 font-black text-[9px] uppercase tracking-widest rounded-2xl transition-all flex items-center justify-center gap-1.5 overflow-hidden shadow-[0_0_20px_rgba(232,121,249,0.15)] animate-pulse cursor-pointer"
               >
                 <div className="absolute inset-0 bg-fuchsia-500/10 translate-y-full group-hover:translate-y-0 transition-transform duration-300" />
                 <Zap className="w-3.5 h-3.5 relative z-10 text-fuchsia-400" />
@@ -568,7 +568,7 @@ const DashboardPage: React.FC<DashboardPageProps> = ({ state, onCommand, onNavig
             ) : (
               <button aria-label="button" type="button"
                 onClick={() => onCommand('optimize_system', {})}
-                className="group relative flex-1 py-3 bg-white/5 hover:bg-white/10 text-white border border-white/10 font-black text-[9px] uppercase tracking-widest rounded-2xl transition-all flex items-center justify-center gap-1.5 overflow-hidden"
+                className="group relative flex-1 py-3 bg-white/5 hover:bg-white/10 text-white border border-white/10 font-black text-[9px] uppercase tracking-widest rounded-2xl transition-all flex items-center justify-center gap-1.5 overflow-hidden cursor-pointer"
               >
                 <div className="absolute inset-0 bg-white/5 translate-y-full group-hover:translate-y-0 transition-transform duration-300" />
                 <Settings className="w-3.5 h-3.5 relative z-10" />

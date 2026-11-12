@@ -55,13 +55,13 @@ export const AiBrainSection: React.FC<AiBrainSectionProps> = ({
       {/* AI Neural Backbone */}
       <SettingsField
         label="AI Neural Backbone"
-        description="Select the AI provider and model for conversational AI. All models run on cloud APIs. Set your API keys securely in the backend .env file. Note: Performance depends on the provider's network traffic. You may experience slow responses or hangs during provider outages or if you hit API rate limits."
-        childWidth="w-full lg:w-[34rem] xl:w-[40rem]"
+        description="Select the AI provider and model for tactical intelligence. Cloud API keys are managed in the backend .env."
+        stacked={true}
       >
-        <div className="flex flex-col gap-3 w-full">
+        <div className="flex flex-col gap-3.5 w-full">
           {/* Provider Pill Switcher */}
-          <div className="flex flex-col gap-1.5">
-            <div className="flex items-center justify-between">
+          <div className="flex flex-col gap-2">
+            <div className="flex items-center justify-between flex-wrap gap-2">
               <span className="text-[9px] font-black text-zinc-400 uppercase tracking-widest flex items-center gap-1.5">
                 <Zap className="w-3 h-3 text-neon-green" />
                 AI Gateway Provider
@@ -71,7 +71,7 @@ export const AiBrainSection: React.FC<AiBrainSectionProps> = ({
               </span>
             </div>
 
-            <div className="grid grid-cols-5 gap-1.5 p-1 bg-black/40 border border-white/10 rounded-xl">
+            <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-5 gap-2 p-1.5 bg-black/40 border border-white/10 rounded-xl">
               {PROVIDER_PILLS.map((p) => {
                 const isActive = activeProvider === p.id;
                 return (
@@ -79,7 +79,7 @@ export const AiBrainSection: React.FC<AiBrainSectionProps> = ({
                     key={p.id}
                     type="button"
                     onClick={() => handleProviderChange(p.id)}
-                    className={`py-1.5 px-2 rounded-lg text-center transition-all flex flex-col items-center justify-center cursor-pointer select-none ${
+                    className={`py-2 px-2.5 rounded-lg text-center transition-all flex flex-col items-center justify-center cursor-pointer select-none ${
                       isActive
                         ? 'bg-neon-green/20 border border-neon-green/50 text-neon-green shadow-[0_0_12px_rgba(118,185,0,0.25)] font-black'
                         : 'text-zinc-400 hover:text-zinc-200 hover:bg-white/5 border border-transparent font-medium'
@@ -90,7 +90,7 @@ export const AiBrainSection: React.FC<AiBrainSectionProps> = ({
                       {p.name}
                     </span>
                     <span
-                      className={`text-[7px] uppercase tracking-wider leading-none mt-0.5 ${
+                      className={`text-[7px] uppercase tracking-wider leading-none mt-1 ${
                         isActive ? 'text-neon-green/90 font-bold' : 'text-zinc-500'
                       }`}
                     >
@@ -103,8 +103,8 @@ export const AiBrainSection: React.FC<AiBrainSectionProps> = ({
           </div>
 
           {/* Model Selector or Dynamic Routing Banner */}
-          <div className="flex flex-col gap-1.5">
-            <div className="flex items-center justify-between">
+          <div className="flex flex-col gap-2">
+            <div className="flex items-center justify-between flex-wrap gap-2">
               <span className="text-[9px] font-black text-zinc-400 uppercase tracking-widest flex items-center gap-1.5">
                 <Brain className="w-3 h-3 text-neon-green" />
                 {activeProvider === 'auto' ? 'Routing Strategy' : 'Active Model'}
@@ -117,15 +117,15 @@ export const AiBrainSection: React.FC<AiBrainSectionProps> = ({
             </div>
 
             {activeProvider === 'auto' ? (
-              <div className="p-3 rounded-xl bg-neon-green/5 border border-neon-green/20 flex items-center gap-3">
-                <div className="w-7 h-7 rounded-lg bg-neon-green/10 border border-neon-green/20 flex items-center justify-center text-neon-green shrink-0">
-                  <Sparkles className="w-3.5 h-3.5" />
+              <div className="p-3.5 rounded-xl bg-neon-green/5 border border-neon-green/20 flex items-start sm:items-center gap-3">
+                <div className="w-8 h-8 rounded-lg bg-neon-green/10 border border-neon-green/20 flex items-center justify-center text-neon-green shrink-0">
+                  <Sparkles className="w-4 h-4" />
                 </div>
                 <div className="min-w-0 flex-1">
                   <p className="text-[10px] font-black text-zinc-200 tracking-wide uppercase">
                     ⚡ Smart Multi-Cloud Failover
                   </p>
-                  <p className="text-[9px] text-zinc-400 font-medium leading-relaxed">
+                  <p className="text-[9px] text-zinc-400 font-medium leading-relaxed mt-0.5">
                     Auto-balances across NVIDIA NIM, Groq, and Google Gemini. If any provider experiences rate limits or high latency, requests instantly switch.
                   </p>
                 </div>
