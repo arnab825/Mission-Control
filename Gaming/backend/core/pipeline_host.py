@@ -8,6 +8,7 @@ import sys
 import threading
 import time
 from typing import Any, Dict, List, Optional
+from pathlib import Path
 
 try:
     import cv2  # type: ignore[reportMissingImports]

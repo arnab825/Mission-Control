@@ -17,7 +17,8 @@ import {
   RefreshCw,
   VolumeX,
   Volume2,
-  Menu,
+  PanelLeftClose,
+  PanelLeftOpen,
   ThumbsUp,
   ThumbsDown,
   ChevronDown,
@@ -594,11 +595,12 @@ const ChatBubble: React.FC<{
 //   ]
 // };
 
-// Module-level cache to persist the last processed agent response across mounts/unmounts
+// Module-level caches to persist agent session state and history across tab navigations and remounts
 let globalLastProcessedResponse: string | null = null;
-
-// Module-level flag to prevent auto-creating multiple initial sessions during strict-mode remounts
 let globalIsCreatingInitialSession = false;
+const globalHistoryItemsByUserId: Record<string, any[]> = {};
+const globalConversations: Record<string, any[]> = {};
+const globalActiveSessionIdByUserId: Record<string, string> = {};
 
 /* ─── Main Page ──────────────────────────────────────────────────── */
 
@@ -611,6 +613,7 @@ const AgentPage: React.FC<{
   isIntelOpen?: boolean;
   setIsIntelOpen?: (open: boolean) => void;
   userId?: string;
+  activePage?: string;
 }> = ({
   state,
   onCommand,
@@ -620,6 +623,7 @@ const AgentPage: React.FC<{
   isIntelOpen: propIsIntelOpen,
   setIsIntelOpen: propSetIsIntelOpen,
   userId: propUserId,
+  activePage,
 }) => {
     const { user, isSignedIn } = useUser();
 
@@ -684,9 +688,40 @@ const AgentPage: React.FC<{
     const [localIsIntelOpen, setLocalIsIntelOpen] = useState(typeof window !== 'undefined' ? window.innerWidth >= 1280 : true);
     const isIntelOpen = propIsIntelOpen !== undefined ? propIsIntelOpen : localIsIntelOpen;
     const setIsIntelOpen = propSetIsIntelOpen !== undefined ? propSetIsIntelOpen : setLocalIsIntelOpen;
-    const [isHistoryOpen, setIsHistoryOpen] = useState(typeof window !== 'undefined' ? window.innerWidth >= 1280 : false);
+    const [isHistoryOpen, setIsHistoryOpen] = useState(() => {
+      if (typeof window === 'undefined') return false;
+      const stored = localStorage.getItem('mc_agent_history_open');
+      if (stored !== null) return stored === 'true';
+      return window.innerWidth >= 1024;
+    });
+
+    useEffect(() => {
+      try {
+        localStorage.setItem('mc_agent_history_open', String(isHistoryOpen));
+      } catch (_) {}
+    }, [isHistoryOpen]);
+
     const [isThinking, setIsThinking] = useState(false);
-    const [activeSessionId, setActiveSessionId] = useState<string>('default');
+    const [activeSessionId, setActiveSessionId] = useState<string>(() => {
+      const initialUid = propUserId || 'guest';
+      if (globalActiveSessionIdByUserId[initialUid]) {
+        return globalActiveSessionIdByUserId[initialUid];
+      }
+      try {
+        const raw = sessionStorage.getItem(`mc_agent_active_session_${initialUid}`);
+        if (raw) return raw;
+      } catch (_) {}
+      return 'default';
+    });
+
+    useEffect(() => {
+      if (activeSessionId && activeSessionId !== 'default') {
+        globalActiveSessionIdByUserId[userId] = activeSessionId;
+        try {
+          sessionStorage.setItem(`mc_agent_active_session_${userId}`, activeSessionId);
+        } catch (_) {}
+      }
+    }, [activeSessionId, userId]);
     const [isVerifyModalOpen, setIsVerifyModalOpen] = useState(false);
     const [isGeneratingKeys, setIsGeneratingKeys] = useState(false);
     const [secKeys, setSecKeys] = useState<string[]>([]);
@@ -797,8 +832,36 @@ const AgentPage: React.FC<{
       return () => clearInterval(intervalId);
     }, [isGeneratingKeys, userId, activeSessionId]);
 
-    const [historyItems, setHistoryItems] = useState<any[]>([]);
+    const [historyItems, setHistoryItems] = useState<any[]>(() => {
+      const initialUid = propUserId || 'guest';
+      if (globalHistoryItemsByUserId[initialUid]?.length) {
+        return globalHistoryItemsByUserId[initialUid];
+      }
+      try {
+        const raw = sessionStorage.getItem(`mc_agent_history_${initialUid}`);
+        if (raw) return JSON.parse(raw);
+      } catch (_) {}
+      return [];
+    });
+
+    useEffect(() => {
+      if (historyItems.length > 0) {
+        globalHistoryItemsByUserId[userId] = historyItems;
+        try {
+          sessionStorage.setItem(`mc_agent_history_${userId}`, JSON.stringify(historyItems));
+        } catch (_) {}
+      }
+    }, [historyItems, userId]);
+
     const [conversations, setConversations] = useState<Record<string, { role: 'agent' | 'user'; text: string; time: string; isTyping?: boolean; isThinking?: boolean; id?: string; dbId?: number; searchStatus?: string }[]>>(() => {
+      if (Object.keys(globalConversations).length > 0) {
+        return { ...globalConversations };
+      }
+      try {
+        const initialUid = propUserId || 'guest';
+        const raw = sessionStorage.getItem(`mc_agent_conversations_${initialUid}`);
+        if (raw) return JSON.parse(raw);
+      } catch (_) {}
       if (state?.chat_history?.sessionId && Array.isArray(state?.chat_history?.messages)) {
         const { sessionId, messages } = state.chat_history;
         const mapped = messages.map((m: any, idx: number) => {
@@ -822,6 +885,16 @@ const AgentPage: React.FC<{
       }
       return {};
     });
+
+    useEffect(() => {
+      if (Object.keys(conversations).length > 0) {
+        Object.assign(globalConversations, conversations);
+        try {
+          sessionStorage.setItem(`mc_agent_conversations_${userId}`, JSON.stringify(conversations));
+        } catch (_) {}
+      }
+    }, [conversations, userId]);
+
     const [isHistoryLoading, setIsHistoryLoading] = useState(false);
 
     const lastLoadedUserIdRef = useRef<string | null>(null);
@@ -835,12 +908,12 @@ const AgentPage: React.FC<{
     // Track newly-created session IDs that have no history yet (skip prefetch)
     const pendingNewSessionsRef = useRef<Set<string>>(new Set());
 
-    // Request chat sessions immediately upon mount or whenever connected becomes true or userId changes
+    // Request chat sessions immediately upon mount or whenever connected becomes true, userId changes, or activePage returns to agent
     useEffect(() => {
-      if (connected) {
+      if (connected && (!activePage || activePage === 'agent')) {
         onCommand('get_chat_sessions', { userId: userId || undefined });
       }
-    }, [connected, userId, onCommand]);
+    }, [connected, userId, onCommand, activePage]);
 
     // Synchronize migration whenever userId changes
     useEffect(() => {
@@ -936,7 +1009,7 @@ const AgentPage: React.FC<{
             timeoutIds.push(id);
           });
         }
-      } else if (state.chat_sessions.length === 0 && !isCreatingInitialSessionRef.current && !globalIsCreatingInitialSession && !isPopup) {
+      } else if (state.chat_sessions.length === 0 && historyItems.length === 0 && !isCreatingInitialSessionRef.current && !globalIsCreatingInitialSession && !isPopup) {
         isCreatingInitialSessionRef.current = true;
         globalIsCreatingInitialSession = true;
         const newId = `session_${Date.now()}`;
@@ -1446,6 +1519,15 @@ const AgentPage: React.FC<{
 
     const handleClearHistory = useCallback(() => {
       onCommand('clear_chat_sessions', { userId });
+      // Clear in-memory and storage caches
+      setHistoryItems([]);
+      delete globalHistoryItemsByUserId[userId];
+      delete globalActiveSessionIdByUserId[userId];
+      try {
+        sessionStorage.removeItem(`mc_agent_history_${userId}`);
+        sessionStorage.removeItem(`mc_agent_conversations_${userId}`);
+        sessionStorage.removeItem(`mc_agent_active_session_${userId}`);
+      } catch (_) {}
       // Reset fetch-deduplication so a new auto-created session can load its history
       lastFetchedSessionRef.current = null;
       prefetchedSessionsRef.current.clear();
@@ -1464,12 +1546,16 @@ const AgentPage: React.FC<{
 
     const handleSelectSession = useCallback((id: string) => {
       setActiveSessionId(id);
-      setIsHistoryOpen(false);
+      if (typeof window !== 'undefined' && window.innerWidth < 1024) {
+        setIsHistoryOpen(false);
+      }
     }, []);
 
     const handleNewSessionClick = useCallback(() => {
       handleCreateSession();
-      setIsHistoryOpen(false);
+      if (typeof window !== 'undefined' && window.innerWidth < 1024) {
+        setIsHistoryOpen(false);
+      }
     }, [handleCreateSession]);
 
     const handleFeedback = useCallback((msgText: string, isHelpful: boolean, reason: string) => {
@@ -1805,12 +1891,20 @@ const AgentPage: React.FC<{
           >
             <div className="flex items-center gap-1.5 sm:gap-2 min-w-0 flex-1 mr-1 sm:mr-2">
               {!isPopup && (
-                <button aria-label="button" type="button"
+                <button aria-label={isHistoryOpen ? "Hide History" : "Show History"} type="button"
                   onClick={() => setIsHistoryOpen(!isHistoryOpen)}
-                  className="p-1 sm:p-1.5 hover:bg-white/5 rounded-lg text-zinc-400 mr-0.5 sm:mr-1 transition-colors cursor-pointer active:scale-95 outline-none shrink-0"
+                  className={`p-1 sm:p-1.5 rounded-lg mr-0.5 sm:mr-1 transition-all duration-200 cursor-pointer active:scale-95 outline-none shrink-0 ${
+                    isHistoryOpen
+                      ? 'bg-neon-green/10 text-neon-green border border-neon-green/30 hover:bg-neon-green/20 shadow-[0_0_10px_rgba(118,185,0,0.15)]'
+                      : 'hover:bg-white/5 text-zinc-400 hover:text-white border border-transparent'
+                  }`}
                   title={isHistoryOpen ? "Hide History" : "Show History"}
                 >
-                  <Menu className="w-4 h-4" />
+                  {isHistoryOpen ? (
+                    <PanelLeftClose className="w-4 h-4" />
+                  ) : (
+                    <PanelLeftOpen className="w-4 h-4" />
+                  )}
                 </button>
               )}
               <div className="w-5 h-5 rounded-md bg-neon-green/10 border border-neon-green/30 p-0.5 overflow-hidden shrink-0 flex items-center justify-center shadow-[0_0_8px_rgba(118,185,0,0.25)]">

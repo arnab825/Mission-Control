@@ -64,12 +64,14 @@ const HeadroomCard: React.FC<{
   explanationKey: string;
   tooltipAlign?: "left" | "right" | "center";
 }> = ({ label, value, color, explanationKey, tooltipAlign = "left" }) => (
-  <div className="bg-gradient-to-br from-white/[0.08] to-transparent border border-white/15 rounded-2xl p-4 sm:p-6 flex-1 min-w-[160px] shrink-0 shadow-[0_0_15px_rgba(118, 185, 0,0.03)]">
-    <div className="flex items-center gap-2 mb-3">
-      <Cpu className="w-3 h-3 text-zinc-500 shrink-0" />
-      <span className="text-[9px] font-black text-zinc-500 uppercase tracking-widest truncate">
-        {label}
-      </span>
+  <div className="bg-gradient-to-br from-white/[0.08] to-transparent border border-white/15 rounded-2xl p-4 sm:p-6 shadow-[0_0_15px_rgba(118,185,0,0.03)] flex flex-col justify-between min-w-0">
+    <div className="flex items-center justify-between gap-2 mb-3">
+      <div className="flex items-center gap-2 min-w-0">
+        <Cpu className="w-3 h-3 text-zinc-500 shrink-0" />
+        <span className="text-[9px] font-black text-zinc-500 uppercase tracking-widest truncate">
+          {label}
+        </span>
+      </div>
       <InfoTooltip explanation={metricExplanations[explanationKey]} align={tooltipAlign} position="bottom" />
     </div>
     <div className="mb-2">
@@ -310,7 +312,7 @@ const LabPage: React.FC<{
 
 
   return (
-    <div className="flex flex-col flex-1 p-4 sm:p-6 lg:p-8 gap-y-5 sm:gap-y-7 overflow-y-auto custom-scrollbar">
+    <div className="flex-1 min-w-0 p-4 sm:p-6 lg:p-8 flex flex-col gap-y-5 sm:gap-y-7 overflow-y-auto overflow-x-hidden custom-scrollbar">
 
       {/* ── Header ── */}
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
@@ -352,7 +354,7 @@ const LabPage: React.FC<{
       </div>
 
       {/* ── Headroom Row ── */}
-      <div className="flex gap-3 overflow-x-auto pb-2 no-scrollbar shrink-0">
+      <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 sm:gap-4 shrink-0">
         <HeadroomCard label="CPU Headroom" value={cpuHeadroom} color="blue" explanationKey="cpuHeadroom" tooltipAlign="left" />
         <HeadroomCard label="GPU Headroom" value={gpuHeadroom} color="emerald" explanationKey="gpuHeadroom" tooltipAlign="center" />
         <HeadroomCard label="VRAM Load" value={Math.round(vramLoad)} color="orange" explanationKey="vramLoad" tooltipAlign="right" />

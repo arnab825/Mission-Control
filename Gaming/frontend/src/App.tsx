@@ -1613,7 +1613,8 @@ const App: React.FC = () => {
                         <AuthPage onBackToLibrary={() => setGamesPageMode('library')} />
                       ) : (
                         <AgentPage
-                          state={activePage === 'agent' ? state : null}
+                          state={state}
+                          activePage={activePage}
                           onCommand={sendCommand}
                           isAgentic={isAgentic}
                           connected={connected}

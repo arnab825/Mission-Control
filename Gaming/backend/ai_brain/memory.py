@@ -515,6 +515,17 @@ class GameMemory:
         if not self._conn: return []
         try:
             cur = self._conn.cursor()
+            effective_user = user_id or "guest"
+            if effective_user != "guest":
+                try:
+                    with self._conn:
+                        self._conn.execute(
+                            "UPDATE chat_sessions SET user_id = ? WHERE user_id IS NULL OR user_id = '' OR user_id = 'guest'",
+                            (effective_user,)
+                        )
+                except Exception as mig_err:
+                    logger.debug("Guest session auto-migration note: %s", mig_err)
+
             query = """
                 SELECT 
                     s.id, 
@@ -530,10 +541,10 @@ class GameMemory:
                     ORDER BY timestamp DESC 
                     LIMIT 1
                 )
-                WHERE s.user_id = ?
+                WHERE s.user_id = ? OR (? = 'guest' AND (s.user_id IS NULL OR s.user_id = ''))
                 ORDER BY s.start_time DESC
             """
-            cur.execute(query, (user_id,))
+            cur.execute(query, (effective_user, effective_user))
             sessions = []
             for row in cur.fetchall():
                 preview = "New session started..."
