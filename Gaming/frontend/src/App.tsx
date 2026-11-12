@@ -1461,9 +1461,19 @@ const App: React.FC = () => {
 
           {/* COLUMN 2 & 3 CONTAINER */}
           <main className="flex-1 min-h-0 min-w-0 flex flex-col lg:flex-row relative overflow-hidden bg-[var(--theme-bg-app,#09090b)] lg:border-l border-white/5">
+            {/* Ambient Canvas Texture Overlay */}
+            <div
+              className={`canvas-texture-overlay canvas-texture-${preferences.canvasTexture || 'mesh-grid'} pointer-events-none absolute inset-0 z-0 transition-opacity duration-300`}
+              aria-hidden="true"
+            />
+            {/* Ambient Neon Bloom Layer */}
+            <div
+              className="ambient-neon-bloom pointer-events-none absolute -top-40 left-1/4 right-1/4 h-96 blur-3xl z-0 transition-opacity duration-300"
+              aria-hidden="true"
+            />
 
             {/* CENTER CONTENT CONTAINER */}
-            <div className="flex-1 min-h-0 min-w-0 flex flex-col relative overflow-hidden">
+            <div className="flex-1 min-h-0 min-w-0 flex flex-col relative overflow-hidden z-1">
               {/* Header / Top Bar */}
               <header className="h-14 shrink-0 border-b border-white/5 flex items-center justify-between px-4 lg:px-6 bg-[var(--theme-bg-surface,#0a0a0f)] z-55">
                 <div className="flex items-center gap-3">

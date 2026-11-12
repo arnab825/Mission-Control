@@ -164,32 +164,77 @@ button:not(:disabled),
 }
 
 /* Personalized Canvas Textures */
-.canvas-texture-mesh {
-  background-image: radial-gradient(rgba(var(--theme-neon-rgb, 118, 185, 0), 0.08) 1px, transparent 1px);
-  background-size: 20px 20px;
+.canvas-texture-mesh,
+.canvas-texture-mesh-grid,
+[data-texture="mesh-grid"] .canvas-texture-overlay {
+  background-image: radial-gradient(rgba(var(--theme-neon-rgb, 118, 185, 0), 0.22) 1.5px, transparent 1.5px);
+  background-size: 24px 24px;
 }
 
-.canvas-texture-circuits {
+.canvas-texture-circuits,
+[data-texture="circuits"] .canvas-texture-overlay {
   background-image: 
-    linear-gradient(to right, rgba(var(--theme-neon-rgb, 118, 185, 0), 0.04) 1px, transparent 1px),
-    linear-gradient(to bottom, rgba(var(--theme-neon-rgb, 118, 185, 0), 0.04) 1px, transparent 1px);
-  background-size: 28px 28px;
+    linear-gradient(to right, rgba(var(--theme-neon-rgb, 118, 185, 0), 0.14) 1px, transparent 1px),
+    linear-gradient(to bottom, rgba(var(--theme-neon-rgb, 118, 185, 0), 0.14) 1px, transparent 1px),
+    radial-gradient(circle at 16px 16px, rgba(var(--theme-neon-rgb, 118, 185, 0), 0.3) 2px, transparent 2px);
+  background-size: 32px 32px, 32px 32px, 32px 32px;
 }
 
-.canvas-texture-scanlines {
+.canvas-texture-scanlines,
+[data-texture="scanlines"] .canvas-texture-overlay {
   background-image: repeating-linear-gradient(
     0deg,
-    rgba(0, 0, 0, 0.25),
-    rgba(0, 0, 0, 0.25) 1px,
+    rgba(0, 0, 0, 0.45) 0px,
+    rgba(0, 0, 0, 0.45) 1px,
     transparent 1px,
     transparent 3px
   );
 }
 
-.canvas-texture-stardust {
+.canvas-texture-stardust,
+[data-texture="stardust"] .canvas-texture-overlay {
   background-image: 
-    radial-gradient(circle at 30% 20%, rgba(var(--theme-neon-rgb, 118, 185, 0), 0.08) 0%, transparent 50%),
-    radial-gradient(circle at 80% 80%, rgba(var(--theme-neon-yellow-rgb, 191, 255, 0), 0.05) 0%, transparent 40%);
+    radial-gradient(circle at 20% 25%, rgba(var(--theme-neon-rgb, 118, 185, 0), 0.22) 0%, transparent 50%),
+    radial-gradient(circle at 80% 75%, rgba(var(--theme-neon-yellow-rgb, 191, 255, 0), 0.18) 0%, transparent 45%),
+    radial-gradient(circle at 50% 90%, rgba(168, 85, 247, 0.15) 0%, transparent 55%);
+}
+
+.canvas-texture-none,
+[data-texture="none"] .canvas-texture-overlay {
+  background-image: none !important;
+}
+
+/* Ambient Neon Bloom Header Layer */
+.ambient-neon-bloom {
+  opacity: var(--theme-glow-opacity, 0.15);
+  background: radial-gradient(circle at 50% 0%, rgba(var(--theme-neon-rgb, 118, 185, 0), 0.7) 0%, transparent 70%);
+}
+
+/* Dynamic Glow Intensity Overrides */
+[data-glow="high"] {
+  --theme-glow-multiplier: 1.8;
+}
+[data-glow="balanced"] {
+  --theme-glow-multiplier: 1.0;
+}
+[data-glow="subtle"] {
+  --theme-glow-multiplier: 0.4;
+}
+[data-glow="off"] {
+  --theme-glow-multiplier: 0;
+}
+
+[data-glow="high"] .gamer-aura-glow {
+  box-shadow: 0 0 32px rgba(var(--theme-neon-rgb, 118, 185, 0), 0.9), 0 0 54px rgba(var(--theme-neon-yellow-rgb, 191, 255, 0), 0.5) !important;
+}
+[data-glow="subtle"] .gamer-aura-glow {
+  box-shadow: 0 0 8px rgba(var(--theme-neon-rgb, 118, 185, 0), 0.3) !important;
+}
+[data-glow="off"] .gamer-aura-glow {
+  box-shadow: none !important;
+}
+[data-glow="off"] .ambient-neon-bloom {
+  display: none !important;
 }
 
 /* Holographic Gamer Aura */

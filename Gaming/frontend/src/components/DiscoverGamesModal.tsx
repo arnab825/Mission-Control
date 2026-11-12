@@ -676,7 +676,7 @@ const DiscoverGamesModal: React.FC<DiscoverGamesModalProps> = ({ onClose, instal
 
       {/* Modal Container with Glowing Top Accent */}
       <motion.div
-        className="relative z-10 w-full max-w-5xl h-[90vh] bg-zinc-950/98 border border-white/10 rounded-3xl flex flex-col overflow-hidden shadow-[0_25px_60px_rgba(0,0,0,0.9),0_0_35px_rgba(118,185,0,0.1)] transform-gpu will-change-transform will-change-opacity"
+        className="relative z-10 w-full max-w-5xl h-[92vh] sm:h-[90vh] bg-zinc-950/98 border border-white/10 rounded-2xl sm:rounded-3xl flex flex-col overflow-hidden shadow-[0_25px_60px_rgba(0,0,0,0.9),0_0_35px_rgba(118,185,0,0.1)] transform-gpu will-change-transform will-change-opacity"
         initial={{ scale: 0.97, opacity: 0, y: 10 }}
         animate={{ scale: 1, opacity: 1, y: 0 }}
         exit={{ scale: 0.97, opacity: 0, y: 8 }}
@@ -686,23 +686,23 @@ const DiscoverGamesModal: React.FC<DiscoverGamesModalProps> = ({ onClose, instal
         <div className="h-1 w-full bg-linear-to-r from-neon-green/80 via-emerald-400 to-cyan-400 shrink-0 shadow-[0_0_12px_rgba(118,185,0,0.6)]" />
 
         {/* Modal Header */}
-        <div className="px-6 py-4 border-b border-white/8 flex items-center justify-between gap-4 shrink-0 bg-zinc-900/40">
-          <div className="flex items-center gap-3 min-w-0">
-            <div className="w-10 h-10 rounded-2xl bg-neon-green/10 border border-neon-green/30 flex items-center justify-center shrink-0 shadow-[0_0_16px_rgba(118,185,0,0.2)]">
-              <Globe className="w-5 h-5 text-neon-green" />
+        <div className="px-4 sm:px-6 py-3 sm:py-4 border-b border-white/8 flex items-center justify-between gap-3 sm:gap-4 shrink-0 bg-zinc-900/40">
+          <div className="flex items-center gap-2.5 sm:gap-3 min-w-0">
+            <div className="w-9 h-9 sm:w-10 sm:h-10 rounded-xl sm:rounded-2xl bg-neon-green/10 border border-neon-green/30 flex items-center justify-center shrink-0 shadow-[0_0_16px_rgba(118,185,0,0.2)]">
+              <Globe className="w-4 h-4 sm:w-5 sm:h-5 text-neon-green" />
             </div>
             <div className="min-w-0">
               <div className="flex items-center gap-2">
-                <h2 className="text-sm font-black text-white uppercase tracking-widest truncate">
-                  DISCOVER GAMES & LIVE INTEL HUB
+                <h2 className="text-xs sm:text-sm font-black text-white uppercase tracking-wider sm:tracking-widest whitespace-nowrap">
+                  Discover Games & Intel
                 </h2>
-                <span className="px-2 py-0.5 rounded-full text-[8px] font-black uppercase tracking-wider bg-emerald-500/10 text-emerald-400 border border-emerald-500/20 hidden sm:inline-flex items-center gap-1">
+                <span className="px-2 py-0.5 rounded-full text-[8px] font-black uppercase tracking-wider bg-emerald-500/10 text-emerald-400 border border-emerald-500/20 hidden md:inline-flex items-center gap-1 shrink-0">
                   <Zap className="w-2.5 h-2.5 text-emerald-400" />
                   Zero-Credit Cache
                 </span>
               </div>
-              <p className="text-[10px] text-zinc-400 truncate mt-0.5">
-                Launcher cross-discovery, Metascore ratings, and verified live industry news feeds
+              <p className="text-[9.5px] sm:text-[10px] text-zinc-400 truncate mt-0.5">
+                Launcher cross-discovery, Metascore ratings, and verified live news
               </p>
             </div>
           </div>
@@ -713,7 +713,7 @@ const DiscoverGamesModal: React.FC<DiscoverGamesModalProps> = ({ onClose, instal
               type="button"
               onClick={handleSeedLaunchers}
               disabled={seeding}
-              className="px-3 py-1.5 rounded-xl bg-white/5 hover:bg-white/10 text-zinc-300 hover:text-white border border-white/10 text-[9px] font-black uppercase tracking-wider transition-all disabled:opacity-50 flex items-center gap-1.5 cursor-pointer"
+              className="px-2.5 sm:px-3 py-1.5 rounded-xl bg-white/5 hover:bg-white/10 text-zinc-300 hover:text-white border border-white/10 text-[9px] font-black uppercase tracking-wider transition-all disabled:opacity-50 flex items-center gap-1.5 cursor-pointer shrink-0"
               title="Harvest latest releases from Steam, Epic, GOG"
             >
               {seeding ? <Loader2 className="w-3 h-3 animate-spin text-neon-green" /> : <RefreshCw className="w-3 h-3 text-neon-green" />}
@@ -724,7 +724,7 @@ const DiscoverGamesModal: React.FC<DiscoverGamesModalProps> = ({ onClose, instal
             <button
               type="button"
               onClick={onClose}
-              className="p-2 rounded-xl bg-white/5 hover:bg-white/10 text-zinc-400 hover:text-white border border-white/10 transition-colors cursor-pointer"
+              className="p-1.5 sm:p-2 rounded-xl bg-white/5 hover:bg-white/10 text-zinc-400 hover:text-white border border-white/10 transition-colors cursor-pointer shrink-0"
             >
               <X className="w-4 h-4" />
             </button>
@@ -732,7 +732,7 @@ const DiscoverGamesModal: React.FC<DiscoverGamesModalProps> = ({ onClose, instal
         </div>
 
         {/* Primary Glassmorphic Tab Bar */}
-        <div className="px-6 py-2.5 border-b border-white/6 flex items-center gap-2 overflow-x-auto no-scrollbar bg-black/30 shrink-0">
+        <div className="px-4 sm:px-6 py-2 sm:py-2.5 border-b border-white/6 flex items-center gap-2 overflow-x-auto no-scrollbar bg-black/30 shrink-0">
           <button
             type="button"
             onClick={() => setActiveTab('trending')}
@@ -777,7 +777,7 @@ const DiscoverGamesModal: React.FC<DiscoverGamesModalProps> = ({ onClose, instal
         </div>
 
         {/* Search Bar & Contextual Filter Bars */}
-        <div className="p-6 pb-4 border-b border-white/6 space-y-3 shrink-0 bg-zinc-950/60">
+        <div className="p-4 sm:p-6 sm:pb-4 border-b border-white/6 space-y-2.5 sm:space-y-3 shrink-0 bg-zinc-950/60">
           <div ref={searchContainerRef} className="relative">
             <form
               onSubmit={(e) => {
@@ -799,10 +799,10 @@ const DiscoverGamesModal: React.FC<DiscoverGamesModalProps> = ({ onClose, instal
                 onKeyDown={handleKeyDown}
                 placeholder={
                   activeTab === 'news'
-                    ? "Filter live news articles by keyword (e.g. 'RTX', 'Unreal', 'Patch', 'Steam Deck')..."
-                    : "Search 250+ games across Steam, GOG, Epic & Game Pass (e.g. 'Cyberpunk', 'GTA', 'Elden Ring', 'Wukong')..."
+                    ? "Filter news articles by keyword (e.g. 'RTX', 'Unreal', 'Patch')..."
+                    : "Search 250+ games across Steam, Epic, GOG & Game Pass..."
                 }
-                className="w-full bg-zinc-900/60 border border-white/10 focus:border-neon-green/50 focus:shadow-[0_0_24px_rgba(118,185,0,0.18)] rounded-2xl pl-11 pr-36 py-3 text-xs font-semibold text-white placeholder-zinc-500 outline-none transition-all"
+                className="w-full bg-zinc-900/60 border border-white/10 focus:border-neon-green/50 focus:shadow-[0_0_24px_rgba(118,185,0,0.18)] rounded-2xl pl-11 pr-28 sm:pr-36 py-2.5 sm:py-3 text-xs font-semibold text-white placeholder-zinc-500 outline-none transition-all"
                 autoFocus
               />
 
@@ -857,7 +857,7 @@ const DiscoverGamesModal: React.FC<DiscoverGamesModalProps> = ({ onClose, instal
                 >
                   {query.trim().length >= 2 ? (
                     suggestions.length > 0 ? (
-                      <div className="p-2 space-y-1 max-h-80 overflow-y-auto custom-scrollbar">
+                      <div className="p-2 space-y-1 max-h-60 sm:max-h-80 overflow-y-auto custom-scrollbar">
                         {suggestions.map((game, idx) => {
                           const isFocused = idx === focusedIndex;
                           const artwork = getGameArtwork(game.title, game.banner_url, game.cover_url, game.store_app_id);
@@ -948,7 +948,7 @@ const DiscoverGamesModal: React.FC<DiscoverGamesModalProps> = ({ onClose, instal
                     )
                   ) : (
                     /* Focused state with empty query: Instant Smart Discovery & Recents */
-                    <div className="p-3 space-y-3 max-h-80 overflow-y-auto custom-scrollbar">
+                    <div className="p-2.5 sm:p-3 space-y-2.5 sm:space-y-3 max-h-60 sm:max-h-80 overflow-y-auto custom-scrollbar">
                       {recentSearches.length > 0 && (
                         <div>
                           <div className="flex items-center justify-between text-[9px] font-black uppercase tracking-wider text-zinc-500 mb-1.5 px-1">
@@ -1236,7 +1236,7 @@ const DiscoverGamesModal: React.FC<DiscoverGamesModalProps> = ({ onClose, instal
         </div>
 
         {/* Content Area */}
-        <div className="flex-1 overflow-y-auto p-6 custom-scrollbar bg-black/40">
+        <div className="flex-1 min-h-0 overflow-y-auto p-3.5 sm:p-6 custom-scrollbar bg-black/40">
           {activeTab === 'news' ? (
             /* NEWS SECTION: Live Gaming News Dispatches with Weekly Intelligence */
             newsLoading ? (

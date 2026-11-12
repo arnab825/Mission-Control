@@ -163,40 +163,40 @@ export const AppearanceSection: React.FC<AppearanceSectionProps> = ({
     <div className="space-y-8">
       {/* Top Banner: Gamer Identity Header & Sub-Navigation */}
       <div className="p-4 sm:p-5 rounded-3xl bg-linear-to-r from-neon-green/10 via-neon-green/5 to-transparent border border-neon-green/30 shadow-[0_0_30px_rgba(var(--theme-neon-rgb),0.1)] relative overflow-hidden">
-        <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
-          <div className="flex items-center gap-3.5">
+        <div className="flex flex-wrap items-center justify-between gap-3 sm:gap-4">
+          <div className="flex items-center gap-3 sm:gap-3.5 min-w-0">
             <div
-              className={`w-12 h-12 rounded-2xl flex items-center justify-center text-xl shrink-0 border border-white/20 transition-all ${
+              className={`w-11 h-11 sm:w-12 sm:h-12 rounded-2xl flex items-center justify-center text-xl shrink-0 border border-white/20 transition-all ${
                 preferences.gamerProfile.avatarAura ? 'gamer-aura-glow bg-neon-green/20 text-neon-green' : 'bg-white/5 text-white'
               }`}
             >
               {activeFaction.symbol}
             </div>
-            <div>
-              <div className="flex items-center gap-2">
-                <h3 className="text-base font-black uppercase tracking-wider text-white">
+            <div className="min-w-0">
+              <div className="flex items-center gap-2 flex-wrap">
+                <h3 className="text-sm sm:text-base font-black uppercase tracking-wider text-white whitespace-nowrap">
                   {preferences.gamerProfile.callsign || 'OPERATIVE-01'}
                 </h3>
-                <span className="text-[9px] font-mono font-black uppercase text-neon-green bg-neon-green/15 border border-neon-green/30 px-2 py-0.5 rounded-md">
+                <span className="text-[9px] font-mono font-black uppercase text-neon-green bg-neon-green/15 border border-neon-green/30 px-2 py-0.5 rounded-md shrink-0">
                   {activeFaction.badge}
                 </span>
                 {activeGameTheme && (
-                  <span className="text-[8px] font-black uppercase text-neon-yellow bg-neon-yellow/15 border border-neon-yellow/30 px-2 py-0.5 rounded-full animate-pulse">
+                  <span className="text-[8px] font-black uppercase text-neon-yellow bg-neon-yellow/15 border border-neon-yellow/30 px-2 py-0.5 rounded-full animate-pulse shrink-0">
                     🎮 Game Sync Active
                   </span>
                 )}
               </div>
-              <p className="text-[10px] text-zinc-400 font-medium mt-0.5">
+              <p className="text-[10px] text-zinc-400 font-medium mt-0.5 truncate">
                 {preferences.gamerProfile.title} &mdash; <span className="italic">{activeFaction.motto}</span>
               </p>
             </div>
           </div>
 
-          <div className="flex items-center gap-2 self-start md:self-auto">
+          <div className="flex items-center gap-2 shrink-0">
             <button
               type="button"
               onClick={handleReset}
-              className="inline-flex items-center gap-1.5 px-3 py-2 rounded-xl text-[9px] font-bold uppercase tracking-wider bg-white/5 hover:bg-white/10 text-zinc-400 hover:text-white border border-white/10 transition-all cursor-pointer"
+              className="inline-flex items-center gap-1.5 px-3 py-2 rounded-xl text-[9px] font-bold uppercase tracking-wider bg-white/5 hover:bg-white/10 text-zinc-400 hover:text-white border border-white/10 transition-all cursor-pointer shrink-0"
             >
               <RotateCcw className="w-3 h-3 text-neon-green" />
               <span>Reset Factory Defaults</span>
@@ -205,7 +205,7 @@ export const AppearanceSection: React.FC<AppearanceSectionProps> = ({
         </div>
 
         {/* 5-Segmented Sub-Tab Switcher */}
-        <div className="mt-5 grid grid-cols-2 sm:grid-cols-5 gap-1.5 bg-black/40 p-1.5 rounded-2xl border border-white/5">
+        <div className="mt-4 sm:mt-5 flex flex-wrap gap-1.5 bg-black/40 p-1.5 rounded-2xl border border-white/5">
           {[
             { id: 'palettes' as SubTabId, label: 'Theme Palettes', icon: Palette },
             { id: 'identity' as SubTabId, label: 'Gamer Identity', icon: User },
@@ -220,14 +220,14 @@ export const AppearanceSection: React.FC<AppearanceSectionProps> = ({
                 key={tab.id}
                 type="button"
                 onClick={() => setActiveSubTab(tab.id)}
-                className={`flex items-center justify-center gap-1.5 py-2 px-2.5 rounded-xl text-[10px] font-black uppercase tracking-wider transition-all cursor-pointer ${
+                className={`flex items-center gap-1.5 py-2 px-3 rounded-xl text-[10px] font-black uppercase tracking-wider transition-all whitespace-nowrap cursor-pointer shrink-0 ${
                   isActive
                     ? 'bg-neon-green/20 text-neon-green border border-neon-green/40 shadow-sm'
                     : 'text-zinc-400 hover:text-white hover:bg-white/5'
                 }`}
               >
-                <Icon className="w-3 h-3 shrink-0" />
-                <span className="truncate">{tab.label}</span>
+                <Icon className="w-3.5 h-3.5 shrink-0" />
+                <span className="whitespace-nowrap">{tab.label}</span>
               </button>
             );
           })}
@@ -711,14 +711,22 @@ export const AppearanceSection: React.FC<AppearanceSectionProps> = ({
                   <button
                     key={tex.id}
                     type="button"
-                    onClick={() => setCanvasTexture(tex.id as CanvasTexture)}
-                    className={`text-left p-4 rounded-2xl border transition-all cursor-pointer flex flex-col justify-between ${
+                    onClick={() => {
+                      setCanvasTexture(tex.id as CanvasTexture);
+                      syncToLocalConfig(preferences.themeId, preferences.backgroundMode, preferences.glowIntensity);
+                    }}
+                    className={`text-left p-4 rounded-2xl border transition-all cursor-pointer flex flex-col justify-between relative overflow-hidden group ${
                       isSelected
-                        ? 'bg-neon-green/10 border-neon-green/50 shadow-[0_0_20px_rgba(var(--theme-neon-rgb),0.15)]'
+                        ? 'bg-neon-green/10 border-neon-green/50 shadow-[0_0_20px_rgba(var(--theme-neon-rgb),0.2)]'
                         : 'bg-white/2 border-white/5 hover:bg-white/5 hover:border-white/15'
                     }`}
                   >
-                    <div className="space-y-1.5">
+                    {/* Live Preview Texture Backdrop */}
+                    <div
+                      className={`canvas-texture-${tex.id} absolute inset-0 opacity-40 group-hover:opacity-60 pointer-events-none transition-opacity`}
+                      aria-hidden="true"
+                    />
+                    <div className="space-y-1.5 relative z-10">
                       <div className="flex items-center justify-between">
                         <span className="text-[11px] font-black uppercase tracking-wider text-white">
                           {tex.name}
@@ -748,13 +756,18 @@ export const AppearanceSection: React.FC<AppearanceSectionProps> = ({
                     key={glow.id}
                     type="button"
                     onClick={() => handleSelectGlow(glow.id)}
-                    className={`text-left p-3.5 rounded-2xl border transition-all cursor-pointer flex flex-col justify-between ${
+                    className={`text-left p-3.5 rounded-2xl border transition-all cursor-pointer flex flex-col justify-between relative overflow-hidden group ${
                       isSelected
-                        ? 'bg-neon-green/10 border-neon-green/50 shadow-[0_0_20px_rgba(var(--theme-neon-rgb),0.15)]'
+                        ? 'bg-neon-green/10 border-neon-green/50 shadow-[0_0_20px_rgba(var(--theme-neon-rgb),0.25)]'
                         : 'bg-white/2 border-white/5 hover:bg-white/5 hover:border-white/15'
                     }`}
+                    style={
+                      isSelected
+                        ? { boxShadow: `0 0 25px rgba(var(--theme-neon-rgb, 118, 185, 0), ${glow.opacity})` }
+                        : undefined
+                    }
                   >
-                    <div className="space-y-1">
+                    <div className="space-y-1 relative z-10">
                       <div className="flex items-center justify-between">
                         <span className="text-[10px] font-black uppercase tracking-wider text-white">
                           {glow.name}

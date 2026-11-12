@@ -651,7 +651,7 @@ const NodeManagerModal: React.FC<NodeManagerModalProps> = ({ onClose, sendComman
   }, [nodes]);
 
   return (
-    <div className="fixed inset-0 z-200 flex items-center justify-center p-3 sm:p-5 md:p-8 overflow-hidden">
+    <div className="fixed inset-0 z-200 flex items-center justify-center p-2 sm:p-4 md:p-6 overflow-hidden">
       {/* Cinematic backdrop */}
       <motion.div
         className="absolute inset-0 bg-black/80 backdrop-blur-sm transform-gpu will-change-opacity"
@@ -664,7 +664,7 @@ const NodeManagerModal: React.FC<NodeManagerModalProps> = ({ onClose, sendComman
 
       {/* Main Glassmorphic Modal */}
       <motion.div
-        className="relative z-10 w-full max-w-4xl max-h-[90vh] bg-zinc-950/98 border border-white/10 rounded-3xl shadow-[0_25px_80px_rgba(0,0,0,0.95)] flex flex-col overflow-hidden transform-gpu will-change-transform will-change-opacity"
+        className="relative z-10 w-full max-w-4xl max-h-[92vh] sm:max-h-[90vh] bg-zinc-950/98 border border-white/10 rounded-2xl sm:rounded-3xl shadow-[0_25px_80px_rgba(0,0,0,0.95)] flex flex-col overflow-hidden transform-gpu will-change-transform will-change-opacity"
         initial={{ opacity: 0, scale: 0.97, y: 10 }}
         animate={{ opacity: 1, scale: 1, y: 0 }}
         exit={{ opacity: 0, scale: 0.97, y: 8 }}
@@ -675,51 +675,51 @@ const NodeManagerModal: React.FC<NodeManagerModalProps> = ({ onClose, sendComman
         <div className="absolute -bottom-32 -right-32 w-80 h-80 bg-cyan-500/10 rounded-full blur-[100px] pointer-events-none" />
 
         {/* Modal Top Header */}
-        <div className="relative z-10 bg-black/40 border-b border-white/6 px-6 py-5 flex items-center justify-between gap-4 shrink-0">
-          <div className="flex items-center gap-3.5">
-            <div className="w-10 h-10 rounded-xl bg-neon-green/10 border border-neon-green/30 flex items-center justify-center text-neon-green shadow-[0_0_15px_rgba(118,185,0,0.2)]">
-              <Radio className="w-5 h-5 animate-pulse" />
+        <div className="relative z-10 bg-black/40 border-b border-white/6 px-4 sm:px-6 py-3.5 sm:py-5 flex items-center justify-between gap-3 sm:gap-4 shrink-0">
+          <div className="flex items-center gap-2.5 sm:gap-3.5 min-w-0">
+            <div className="w-9 h-9 sm:w-10 sm:h-10 rounded-xl bg-neon-green/10 border border-neon-green/30 flex items-center justify-center text-neon-green shadow-[0_0_15px_rgba(118,185,0,0.2)] shrink-0">
+              <Radio className="w-4 h-4 sm:w-5 sm:h-5 animate-pulse" />
             </div>
-            <div>
-              <div className="flex items-center gap-2">
-                <h2 className="text-base font-black text-white uppercase tracking-wider">
+            <div className="min-w-0">
+              <div className="flex items-center gap-2 flex-wrap">
+                <h2 className="text-sm sm:text-base font-black text-white uppercase tracking-wider whitespace-nowrap">
                   Distributed Fleet Command
                 </h2>
-                <span className="px-2 py-0.5 rounded-full bg-white/5 border border-white/10 text-[9px] font-mono text-neon-green">
+                <span className="px-2 py-0.5 rounded-full bg-white/5 border border-white/10 text-[9px] font-mono text-neon-green shrink-0">
                   v3.4
                 </span>
               </div>
-              <p className="text-[11px] text-zinc-400 mt-0.5">
+              <p className="text-[10px] sm:text-[11px] text-zinc-400 mt-0.5 truncate">
                 Decentralized Library Nodes · Multi-PC Game Indexing & Storage Pools
               </p>
             </div>
           </div>
 
-          <div className="flex items-center gap-2.5">
+          <div className="flex items-center gap-1.5 sm:gap-2.5 shrink-0">
             <button
               type="button"
               onClick={() => fetchNodes(true)}
-              className="p-2 rounded-xl bg-white/5 hover:bg-white/10 text-zinc-400 hover:text-white border border-white/10 transition-colors cursor-pointer"
+              className="p-1.5 sm:p-2 rounded-xl bg-white/5 hover:bg-white/10 text-zinc-400 hover:text-white border border-white/10 transition-colors cursor-pointer shrink-0"
               title="Refresh Fleet Status"
             >
-              <RefreshCw className={`w-4 h-4 ${loading ? 'animate-spin' : ''}`} />
+              <RefreshCw className={`w-3.5 h-3.5 sm:w-4 sm:h-4 ${loading ? 'animate-spin' : ''}`} />
             </button>
 
             <button
               type="button"
               onClick={handleRegisterThisPC}
               disabled={registering}
-              className="flex items-center gap-2 px-3.5 py-2 rounded-xl bg-neon-green/15 border border-neon-green/30 hover:bg-neon-green/25 text-neon-green text-[10px] font-black uppercase tracking-widest transition-all shadow-[0_0_15px_rgba(118,185,0,0.15)] disabled:opacity-50 cursor-pointer"
+              className="flex items-center gap-1.5 sm:gap-2 px-2.5 sm:px-3.5 py-1.5 sm:py-2 rounded-xl bg-neon-green/15 border border-neon-green/30 hover:bg-neon-green/25 text-neon-green text-[9px] sm:text-[10px] font-black uppercase tracking-wider sm:tracking-widest transition-all shadow-[0_0_15px_rgba(118,185,0,0.15)] disabled:opacity-50 cursor-pointer shrink-0"
               title="Synchronize this machine into the distributed library network"
             >
               {registering ? <RefreshCw className="w-3.5 h-3.5 animate-spin" /> : <HardDrive className="w-3.5 h-3.5" />}
-              <span>{registering ? 'Connecting...' : 'Sync This PC'}</span>
+              <span className="hidden xs:inline sm:inline">{registering ? 'Connecting...' : 'Sync This PC'}</span>
             </button>
 
             <button
               type="button"
               onClick={onClose}
-              className="p-2 rounded-xl bg-white/5 hover:bg-white/10 text-zinc-400 hover:text-white border border-white/10 transition-colors cursor-pointer"
+              className="p-1.5 sm:p-2 rounded-xl bg-white/5 hover:bg-white/10 text-zinc-400 hover:text-white border border-white/10 transition-colors cursor-pointer shrink-0"
             >
               <X className="w-4 h-4" />
             </button>
@@ -727,7 +727,7 @@ const NodeManagerModal: React.FC<NodeManagerModalProps> = ({ onClose, sendComman
         </div>
 
         {/* Fleet Status HUD Overview Bar */}
-        <div className="relative z-10 bg-black/20 border-b border-white/5 px-6 py-4 grid grid-cols-2 md:grid-cols-4 gap-3 shrink-0">
+        <div className="relative z-10 bg-black/20 border-b border-white/5 px-4 sm:px-6 py-3 sm:py-4 grid grid-cols-2 md:grid-cols-4 gap-2.5 sm:gap-3 shrink-0">
           <div className="flex items-center gap-3 p-3 rounded-2xl bg-white/2 border border-white/5">
             <div className="w-8 h-8 rounded-xl bg-emerald-500/10 text-emerald-400 flex items-center justify-center shrink-0">
               <Activity className="w-4 h-4" />
@@ -778,7 +778,7 @@ const NodeManagerModal: React.FC<NodeManagerModalProps> = ({ onClose, sendComman
         </div>
 
         {/* Scrollable Node Cards Body */}
-        <div className="p-6 overflow-y-auto space-y-4 flex-1">
+        <div className="p-3.5 sm:p-6 overflow-y-auto space-y-4 flex-1 min-h-0 custom-scrollbar">
           {loading && nodes.length === 0 && (
             <div className="py-20 flex flex-col items-center justify-center text-zinc-500">
               <RefreshCw className="w-8 h-8 animate-spin text-neon-green mb-3" />
