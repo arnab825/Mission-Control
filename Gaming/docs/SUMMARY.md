@@ -89,7 +89,8 @@ graph TD
 
 | Version | Key Feature / Change Description |
 | :--- | :--- |
-| **v3.9.2 (Latest)** | **Performance Optimization, Zero-Hang Architecture & Emulators Hub Alignment** — Fixed Emulators & ROMs Hub z-index layering and resolution cutoff on scaled displays. |
+| **v3.9.3 (Latest)** | **Fixed Agent Neural History persistence across page tabs** — Fixed Agent Neural History persistence across page tabs. |
+| **v3.9.2** | **Performance Optimization, Zero-Hang Architecture & Emulators Hub Alignment** — Fixed Emulators & ROMs Hub z-index layering and resolution cutoff on scaled displays. |
 | **v3.9.1** | **1440p/1600p QHD+ Display Optimization & ROM Scanning Schema Validation Fix** — Resolved Pydantic schema validation rejection on scan_roms and set_rom_paths commands when dispatched with authenticated user session context |
 | **v3.9.0** | **DLSS 5.0 Neural Studio, ROM Scanner Guidance & E2EE Verification UX** — Added NVIDIA DLSS 5.0 Neural Studio with neural rendering aesthetic styles, intensity fine-tuning, and dynamic multi-frame generation modes |
 | **v3.8.10** | **Cross-Platform Emulation Engine & ROM Library Orchestration** — Added cross-platform emulator discovery scanning for 17+ standalone emulators and RetroArch cores across Windows and Linux |

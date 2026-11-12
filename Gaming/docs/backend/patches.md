@@ -2,6 +2,14 @@
 
 This document contains a detailed history of all patches and updates for the AI Gaming Assistant.
 
+### Patch: 2026-11-12 — v3.9.3: Fixed Agent Neural History persistence across page tabs
+
+- Fixed Agent Neural History persistence across page tabs
+- Dynamic sidebar panel toggle icons
+- Removed Stability Lab horizontal scrollbar
+- Glassmorphic game filters & badge stacking fix
+- React lazy-loading 80% initial bundle optimization
+
 ### Patch: 2026-11-12 — v3.9.2: Performance Optimization, Zero-Hang Architecture & Emulators Hub Alignment
 
 - Fixed Emulators & ROMs Hub z-index layering and resolution cutoff on scaled displays
