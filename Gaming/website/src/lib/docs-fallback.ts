@@ -123,7 +123,12 @@ NVIDIA Deep Learning Super Sampling (DLSS) is a revolutionary suite of neural re
     badgeColor: "text-neon-green",
     content: `# 🚀 Major Updates & Release History
 
-## 🌟 Version v3.9.0 (Latest) — DLSS 5.0 Neural Studio, ROM Scanner Guidance & E2EE Verification UX
+## 🌟 Version v3.9.1 (Latest) — 1440p/1600p QHD+ Display Optimization & ROM Scanning Schema Validation Fix
+- **ROM Scanning Schema Validation Fix:** Strict Pydantic schema validation for scan_roms and set_rom_paths commands with authenticated session context.
+- **1440p & 1600p QHD+ Display Scaling:** Dynamic modal expansion up to max-w-7xl, multi-column emulator grids (3–4 columns), and side-by-side ROM folder cards.
+- **Ultra-Responsive Game Intelligence Grid:** Scaled 1–6 column card grid for high-DPI viewports with proportional aspect ratios and widescreen empty state UX.
+
+## 🌟 Version v3.9.0 — DLSS 5.0 Neural Studio, ROM Scanner Guidance & E2EE Verification UX
 - **DLSS 5.0 Neural Studio:** Real-time neural rendering controls, aesthetic style presets, intensity fine-tuning sliders, and dynamic MFG modes.
 - **ROM Scanner Guidance:** Proactive tab redirection with actionable warning banners when zero folders are configured.
 - **Multi-User Library Isolation:** Authenticated user session persistence ensuring emulated titles merge cleanly.

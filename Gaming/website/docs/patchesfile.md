@@ -2,6 +2,15 @@
 
 This document contains a detailed history of all patches and updates for the AI Gaming Assistant.
 
+### Patch: 2026-11-12 — v3.9.1: 1440p/1600p QHD+ Display Optimization & ROM Scanning Schema Validation Fix
+
+- ROM Scanning Schema Validation Fix: Resolved Pydantic schema validation rejection on `scan_roms`, `set_rom_paths`, and `configure_emulator` commands when dispatched with authenticated user session context
+- 1440p & 1600p QHD+ Display Scaling: Redesigned the Emulators & ROMs Hub dialog geometry to scale dynamically across `max-w-4xl`, `xl:max-w-5xl`, `2xl:max-w-6xl`, and `3xl:max-w-7xl` with capped heights (`max-h-[85vh]`)
+- Multi-Column Emulator Grid: Expanded installed and all-emulators grids to 3–4 columns on large monitors (`xl:grid-cols-3 3xl:grid-cols-4`)
+- Side-by-Side ROM Folders: Configured ROM directories now arrange in a balanced 2-column grid (`xl:grid-cols-2`) on widescreen setups
+- Ultra-Responsive Game Intelligence Grid: Library game cards adapt across 1 to 6 columns (`sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 2xl:grid-cols-5 min-[2200px]:grid-cols-6`) with proportional poster banner dimensions (`h-44 xl:h-48 2xl:h-52`)
+- Widescreen Empty State UX: Redesigned emulation and library empty states with responsive min-heights (`min-h-[380px] xl:min-h-[460px]`), refined icons, and 1-click action triggers (`Start Full Scan`, `Emulators & ROMs Hub`, `Discover from Web`)
+
 ### Patch: 2026-11-10 — v3.9.0: DLSS 5.0 Neural Studio, ROM Scanner Guidance & E2EE Verification UX
 
 - NVIDIA DLSS 5.0 Neural Studio: Dedicated configuration panel in Settings with neural rendering aesthetic styles, intensity sliders, and dynamic MFG controls

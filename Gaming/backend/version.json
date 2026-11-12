@@ -1,8 +1,20 @@
 {
-  "version": "3.9.0",
-  "release_date": "2026-11-10",
+  "version": "3.9.1",
+  "release_date": "2026-11-12",
   "update_check_url": "https://raw.githubusercontent.com/arnab825/Mission-Control/main/Gaming/backend/version.json",
   "changelog": [
+    {
+      "version": "3.9.1",
+      "date": "2026-11-12",
+      "title": "1440p/1600p QHD+ Display Optimization & ROM Scanning Schema Validation Fix",
+      "highlights": [
+        "Resolved Pydantic schema validation rejection on scan_roms and set_rom_paths commands when dispatched with authenticated user session context",
+        "Engineered ultra-responsive layouts for 1440p (2560×1440) and 1600p (2560×1600 QHD+) displays across the Emulators & ROMs Hub and Game Intelligence Library",
+        "Expanded Emulators & ROMs Hub modal geometry with dynamic widescreen scaling up to max-w-7xl, multi-column emulator grids (3–4 columns), and side-by-side ROM directory cards",
+        "Upgraded Game Intelligence grid scaling seamlessly across 1 to 6 columns for ultrawide and high-DPI displays with proportional card aspect ratios",
+        "Redesigned widescreen empty states with responsive vertical centering, refined typography, and instant action triggers for Full Scan, Emulators & ROMs Hub, and Web Discovery"
+      ]
+    },
     {
       "version": "3.9.0",
       "date": "2026-11-10",

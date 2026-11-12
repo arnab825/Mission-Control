@@ -89,7 +89,8 @@ graph TD
 
 | Version | Key Feature / Change Description |
 | :--- | :--- |
-| **v3.9.0 (Latest)** | **DLSS 5.0 Neural Studio, ROM Scanner Guidance & E2EE Verification UX** — Added NVIDIA DLSS 5.0 Neural Studio with neural rendering aesthetic styles, intensity fine-tuning, and dynamic multi-frame generation modes |
+| **v3.9.1 (Latest)** | **1440p/1600p QHD+ Display Optimization & ROM Scanning Schema Validation Fix** — Resolved Pydantic schema validation rejection on scan_roms and set_rom_paths commands when dispatched with authenticated user session context |
+| **v3.9.0** | **DLSS 5.0 Neural Studio, ROM Scanner Guidance & E2EE Verification UX** — Added NVIDIA DLSS 5.0 Neural Studio with neural rendering aesthetic styles, intensity fine-tuning, and dynamic multi-frame generation modes |
 | **v3.8.10** | **Cross-Platform Emulation Engine & ROM Library Orchestration** — Added cross-platform emulator discovery scanning for 17+ standalone emulators and RetroArch cores across Windows and Linux |
 | **v3.8.9** | **Google OAuth Direct Browser Delegation & Website Theme Studio** — Delegated Google OAuth directly to default system browser in desktop app to completely prevent disallowed_useragent security blocks |
 | **v3.8.8** | **Browser-Based Authentication Failsafe & Seamless Redirection** — Added automated browser-based authentication failsafe when in-app auth popups fail to load, stall, or get blocked |

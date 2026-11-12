@@ -10,7 +10,17 @@ excerpt: "Curated breakdown of major version releases, architectural milestones,
 
 Comprehensive breakdown of major milestone releases, architectural upgrades, and core engine enhancements in **Mission Control**.
 
-## 🌟 Version v3.9.0 (Latest) — DLSS 5.0 Neural Studio, ROM Scanner Guidance & E2EE Verification UX
+## 🌟 Version v3.9.1 (Latest) — 1440p/1600p QHD+ Display Optimization & ROM Scanning Schema Validation Fix
+
+### 🛠️ Key Highlights
+1. **ROM Scanning Schema Validation Fix**: Resolved Pydantic schema validation failures where `scan_roms`, `set_rom_paths`, and `configure_emulator` commands were rejected by `extra="forbid"` when dispatched with authenticated session parameters (`userId`).
+2. **1440p & 1600p QHD+ Responsive Modal Sizing**: Redesigned the Emulators & ROMs Hub dialog container to scale dynamically across `max-w-4xl`, `xl:max-w-5xl`, `2xl:max-w-6xl`, and `3xl:max-w-7xl` with capped heights (`max-h-[85vh]`), eliminating narrow smartphone-like letterboxing on 2560px displays.
+3. **Multi-Column Emulator Grid**: Upgraded installed and catalog emulator views to render 3 to 4 columns on large monitors (`xl:grid-cols-3 3xl:grid-cols-4`), significantly reducing unnecessary vertical scrolling.
+4. **Side-by-Side ROM Folders**: Configured ROM directories now arrange in a balanced 2-column grid (`xl:grid-cols-2`) on widescreen setups.
+5. **Ultra-Responsive Game Intelligence Grid**: Library game cards now fluidly adapt across 1 to 6 columns (`sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 2xl:grid-cols-5 min-[2200px]:grid-cols-6`) with proportional poster banner dimensions (`h-44 xl:h-48 2xl:h-52`).
+6. **Widescreen Empty State UX**: Emulation and general library empty states feature responsive vertical centering (`min-h-[380px] xl:min-h-[460px]`), refined icons, and 1-click action triggers (`Start Full Scan`, `Emulators & ROMs Hub`, `Discover from Web`).
+
+## 🌟 Version v3.9.0 — DLSS 5.0 Neural Studio, ROM Scanner Guidance & E2EE Verification UX
 
 ### 🛠️ Key Highlights
 1. **NVIDIA DLSS 5.0 Neural Studio**: Introduced an in-depth Settings panel featuring real-time neural rendering controls, target resolution input preparation, and neural shader parameter orchestration.

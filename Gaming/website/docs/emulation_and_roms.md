@@ -136,5 +136,10 @@ Access the hub at any time from the **Game Intelligence** toolbar:
 
 ### 2. Multi-Tenant Authenticated Session Library Merging
 - Previous releases defaulted unauthenticated ROM scan operations to local `guest` session storage.
-- In v3.9.0, scan requests pass the authenticated `userId` directly through Electron IPC to `handle_scan_roms`, ensuring discovered games are seamlessly merged into the active user's cloud-synchronized library session (`library_session[user_id]`) alongside local guest fallbacks.
+- In v3.9.0 and v3.9.1, scan requests pass the authenticated `userId` directly through Electron IPC to `handle_scan_roms`, ensuring discovered games are seamlessly merged into the active user's cloud-synchronized library session (`library_session[user_id]`) alongside local guest fallbacks.
+
+### 3. High-DPI & 1440p/1600p QHD+ Responsive Scaling (v3.9.1)
+- The Emulators & ROMs Hub and Game Intelligence Library are fully responsive on 1440p (`2560×1440`) and 1600p (`2560×1600 QHD+`) displays.
+- Modal sizing expands up to `3xl:max-w-7xl` with 3 to 4 column emulator grids, side-by-side ROM folder cards, and fluid 1–6 column library grids without horizontal stretching or letterboxing.
+- Strict Pydantic command schemas validate `scan_roms` and `set_rom_paths` payloads with authenticated session context (`userId`).
 
