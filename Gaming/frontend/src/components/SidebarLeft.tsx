@@ -15,6 +15,7 @@ import {
 } from 'lucide-react';
 import { useUser, useClerk } from '@clerk/clerk-react';
 import { AccountSwitcherModal } from './AccountSwitcherModal';
+import { isDiscordAvatarUrl, isGoogleAvatarUrl } from '../utils/avatarUtils';
 
 interface SidebarProps {
   isOpen?: boolean;
@@ -206,33 +207,43 @@ const Sidebar: React.FC<SidebarProps> = ({
 
   const sidebarAvatarUrl = (() => {
     if (isDisc) {
-      // For Discord: call Discord avatar from external account or cached Discord avatar, NEVER Google's effectiveUser.imageUrl
-      const candidate =
-        (discordExt as any)?.avatarUrl ||
-        (discordExt as any)?.avatar_url ||
-        (discordExt?.imageUrl && !discordExt.imageUrl.includes('googleusercontent.com') ? discordExt.imageUrl : '') ||
-        (cachedUser?.avatarUrl && !cachedUser.avatarUrl.includes('googleusercontent.com') ? cachedUser.avatarUrl : '') ||
-        (cachedUser?.provider?.includes('discord') && cachedUser?.imageUrl && !cachedUser.imageUrl.includes('googleusercontent.com') ? cachedUser.imageUrl : '') ||
-        (typeof window !== 'undefined' ? localStorage.getItem('mc_discord_avatar') || '' : '');
-
-      if (candidate && !candidate.includes('googleusercontent.com')) {
-        try { localStorage.setItem('mc_discord_avatar', candidate); } catch (_) {}
-        return candidate;
+      // Prioritize authentic Discord avatar, never Google image or Google Clerk proxy
+      const candidates = [
+        (discordExt as any)?.avatarUrl,
+        (discordExt as any)?.avatar_url,
+        discordExt?.imageUrl,
+        cachedUser?.avatarUrl,
+        cachedUser?.imageUrl,
+        typeof window !== 'undefined' ? localStorage.getItem('mc_discord_avatar') : null,
+      ];
+      for (const cand of candidates) {
+        if (cand && isDiscordAvatarUrl(cand)) {
+          try { localStorage.setItem('mc_discord_avatar', cand); } catch (_) {}
+          return cand;
+        }
+      }
+      if (typeof window !== 'undefined') {
+        const stored = localStorage.getItem('mc_discord_avatar');
+        if (stored && !isDiscordAvatarUrl(stored)) {
+          try { localStorage.removeItem('mc_discord_avatar'); } catch (_) {}
+        }
       }
       return '';
     } else {
       // For Google: call Google avatar from external account or primary image, NEVER Discord
-      const candidate =
-        googleExt?.imageUrl ||
-        googleExt?.image_url ||
-        (googleExt as any)?.avatarUrl ||
-        (effectiveUser?.imageUrl && !effectiveUser.imageUrl.includes('discord') ? effectiveUser.imageUrl : '') ||
-        (cachedUser?.imageUrl && !cachedUser.imageUrl.includes('discord') ? cachedUser.imageUrl : '') ||
-        (typeof window !== 'undefined' ? localStorage.getItem('mc_google_avatar') || '' : '') ||
-        '';
-      if (candidate && !candidate.includes('discord')) {
-        try { localStorage.setItem('mc_google_avatar', candidate); } catch (_) {}
-        return candidate;
+      const candidates = [
+        googleExt?.imageUrl,
+        googleExt?.image_url,
+        (googleExt as any)?.avatarUrl,
+        effectiveUser?.imageUrl,
+        cachedUser?.imageUrl,
+        typeof window !== 'undefined' ? localStorage.getItem('mc_google_avatar') : null,
+      ];
+      for (const cand of candidates) {
+        if (cand && isGoogleAvatarUrl(cand)) {
+          try { localStorage.setItem('mc_google_avatar', cand); } catch (_) {}
+          return cand;
+        }
       }
       return '';
     }

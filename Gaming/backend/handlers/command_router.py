@@ -51,6 +51,11 @@ def dispatch_bridge_command(
                     "email": email,
                     "provider": provider,
                     "username": username,
+                    "firstName": payload.get("firstName") or "",
+                    "lastName": payload.get("lastName") or "",
+                    "fullName": payload.get("fullName") or "",
+                    "imageUrl": payload.get("imageUrl") or "",
+                    "externalAccounts": payload.get("externalAccounts") or [],
                 }
                 mem.save_user_account(acc_payload, is_active=True)
                 

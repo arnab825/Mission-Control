@@ -1254,38 +1254,85 @@ async function handleBrowserAuthCompletion(data: {
     try {
       const storageItems = data.storage && typeof data.storage === 'object' ? data.storage : {};
       const isDisc = provider.includes('discord');
-      let cleanImage = data.imageUrl || '';
-      if (isDisc && (cleanImage.includes('googleusercontent.com') || cleanImage.includes('accounts.google.com'))) {
-        cleanImage = '';
-      } else if (!isDisc && (cleanImage.includes('discordapp.com') || cleanImage.includes('discord.com'))) {
-        cleanImage = '';
-      }
+
+      const isDiscordAvatar = (url?: string): boolean => {
+        if (!url || typeof url !== 'string') return false;
+        if (url.includes('googleusercontent.com') || url.includes('accounts.google.com')) return false;
+        if (url.includes('cdn.discordapp.com') || url.includes('discordapp.com') || url.includes('discord.com')) return true;
+        if (url.includes('img.clerk.com/')) {
+          try {
+            const b64 = url.split('img.clerk.com/')[1].split('/')[0].split('?')[0];
+            const decoded = Buffer.from(b64, 'base64').toString('utf-8');
+            return decoded.includes('discord') && !decoded.includes('googleusercontent');
+          } catch (_) {
+            return false;
+          }
+        }
+        return false;
+      };
+
+      const isGoogleAvatar = (url?: string): boolean => {
+        if (!url || typeof url !== 'string') return false;
+        if (url.includes('cdn.discordapp.com') || url.includes('discordapp.com') || url.includes('discord.com')) return false;
+        if (url.includes('googleusercontent.com') || url.includes('accounts.google.com')) return true;
+        if (url.includes('img.clerk.com/')) {
+          try {
+            const b64 = url.split('img.clerk.com/')[1].split('/')[0].split('?')[0];
+            const decoded = Buffer.from(b64, 'base64').toString('utf-8');
+            return decoded.includes('google') && !decoded.includes('discord');
+          } catch (_) {
+            return false;
+          }
+        }
+        return false;
+      };
+
+      let cleanImage = '';
       if (Array.isArray(data.externalAccounts)) {
         const ext = data.externalAccounts.find((a: any) => (a.provider || '').toLowerCase().includes(isDisc ? 'discord' : 'google'));
         if (isDisc) {
-          const discAvatar = ext?.avatarUrl || (ext?.imageUrl && !ext.imageUrl.includes('googleusercontent.com') ? ext.imageUrl : '');
-          if (discAvatar && !discAvatar.includes('googleusercontent.com')) {
+          const discAvatar = ext?.avatarUrl || ext?.imageUrl || '';
+          if (isDiscordAvatar(discAvatar)) {
             cleanImage = discAvatar;
           }
         } else {
           const googAvatar = ext?.imageUrl || ext?.avatarUrl || '';
-          if (googAvatar && !googAvatar.includes('discord')) {
+          if (isGoogleAvatar(googAvatar)) {
             cleanImage = googAvatar;
           }
         }
       }
+      if (!cleanImage && data.imageUrl) {
+        if (isDisc && isDiscordAvatar(data.imageUrl)) {
+          cleanImage = data.imageUrl;
+        } else if (!isDisc && isGoogleAvatar(data.imageUrl)) {
+          cleanImage = data.imageUrl;
+        }
+      }
+
+      const discExtAcc = isDisc && Array.isArray(data.externalAccounts)
+        ? data.externalAccounts.find((a: any) => (a.provider || '').toLowerCase().includes('discord'))
+        : null;
+
+      const resolvedUsername = isDisc
+        ? (discExtAcc?.username || (discExtAcc as any)?.label || (data.username && data.username !== (data.userEmail ? data.userEmail.split('@')[0] : '') ? data.username : null) || 'anni7880')
+        : (data.username || (data.userEmail ? data.userEmail.split('@')[0] : 'Operative'));
+
+      const resolvedFullName = isDisc
+        ? resolvedUsername
+        : (data.fullName || (data.firstName ? `${data.firstName} ${data.lastName || ''}`.trim() : '') || data.username || 'Operative');
 
       const userData = {
         id: data.userId || (data.sessionId ? `node_${data.sessionId.slice(-8)}` : 'node_active'),
         email: data.userEmail || (data.sessionId ? 'node.active@missioncontrol.app' : 'node.active@missioncontrol.app'),
-        username: data.username || (data.userEmail ? data.userEmail.split('@')[0] : 'Operative'),
-        firstName: data.firstName || '',
-        lastName: data.lastName || '',
-        fullName: data.fullName || (data.firstName ? `${data.firstName} ${data.lastName || ''}`.trim() : '') || data.username || 'Operative',
+        username: resolvedUsername,
+        firstName: isDisc ? resolvedUsername : (data.firstName || ''),
+        lastName: isDisc ? '' : (data.lastName || ''),
+        fullName: resolvedFullName,
         imageUrl: cleanImage,
         sessionId: data.sessionId || '',
         provider,
-        externalAccounts: data.externalAccounts || (isDisc ? [{ provider: 'discord', emailAddress: data.userEmail }] : [{ provider: 'google', emailAddress: data.userEmail }]),
+        externalAccounts: data.externalAccounts || (isDisc ? [{ provider: 'discord', emailAddress: data.userEmail, username: resolvedUsername, imageUrl: cleanImage }] : [{ provider: 'google', emailAddress: data.userEmail, imageUrl: cleanImage }]),
       };
       const serializedStorage = JSON.stringify(storageItems);
       const serializedUser = JSON.stringify(userData);

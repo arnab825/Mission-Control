@@ -17,6 +17,7 @@ import {
 } from 'lucide-react';
 
 import type { TelemetryState } from '../types/telemetry';
+import { isDiscordAvatarUrl, isGoogleAvatarUrl } from '../utils/avatarUtils';
 
 interface AccountSwitcherModalProps {
   isOpen: boolean;
@@ -156,6 +157,13 @@ export const AccountSwitcherModal: React.FC<AccountSwitcherModalProps> = ({
   const [actionError, setActionError] = useState<string | null>(null);
   const [loadingStrategy, setLoadingStrategy] = useState<string | null>(null);
 
+  const allExtAccounts = React.useMemo(() => [
+    ...(user?.externalAccounts || []),
+    ...(cachedUser?.externalAccounts || []),
+    ...(effectiveUser?.externalAccounts || []),
+    ...(Array.isArray(savedAccounts) ? savedAccounts.flatMap((a: any) => a.externalAccounts || []) : []),
+  ], [user?.externalAccounts, cachedUser?.externalAccounts, effectiveUser?.externalAccounts, savedAccounts]);
+
   // Isolate Google vs Discord avatar URLs to prevent cross-pollination
   const getCleanAvatarUrl = React.useCallback((acc: any, provider: string): string => {
     if (!acc) return '';
@@ -163,7 +171,8 @@ export const AccountSwitcherModal: React.FC<AccountSwitcherModalProps> = ({
     const extAccounts = [
       ...(acc.externalAccounts || []),
       ...(effectiveUser?.externalAccounts || []),
-      ...(user?.externalAccounts || [])
+      ...(user?.externalAccounts || []),
+      ...(allExtAccounts || []),
     ];
     const googleExt = extAccounts.find((a: any) =>
       (a.provider || '').toLowerCase().includes('google') ||
@@ -177,38 +186,52 @@ export const AccountSwitcherModal: React.FC<AccountSwitcherModalProps> = ({
     );
 
     if (isDisc) {
-      // For Discord: prioritize Discord avatar from external account or cached Discord avatar, NEVER Google's imageUrl
-      const candidate =
-        (discordExt as any)?.avatarUrl ||
-        (discordExt as any)?.avatar_url ||
-        (discordExt?.imageUrl && !discordExt.imageUrl.includes('googleusercontent.com') ? discordExt.imageUrl : '') ||
-        (acc?.avatarUrl && !acc.avatarUrl.includes('googleusercontent.com') ? acc.avatarUrl : '') ||
-        (acc?.imageUrl && !acc.imageUrl.includes('googleusercontent.com') && ((acc?.provider || '').includes('discord') || acc.imageUrl.includes('discord')) ? acc.imageUrl : '') ||
-        (typeof window !== 'undefined' ? localStorage.getItem('mc_discord_avatar') || '' : '');
+      // Prioritize authentic Discord avatar, never Google image or Google Clerk proxy
+      const candidates = [
+        (discordExt as any)?.avatarUrl,
+        (discordExt as any)?.avatar_url,
+        discordExt?.imageUrl,
+        acc?.avatarUrl,
+        acc?.imageUrl,
+        typeof window !== 'undefined' ? localStorage.getItem('mc_discord_avatar') : null,
+      ];
 
-      if (candidate && !candidate.includes('googleusercontent.com')) {
-        try { localStorage.setItem('mc_discord_avatar', candidate); } catch (_) {}
-        return candidate;
+      for (const cand of candidates) {
+        if (cand && isDiscordAvatarUrl(cand)) {
+          try { localStorage.setItem('mc_discord_avatar', cand); } catch (_) {}
+          return cand;
+        }
+      }
+
+      // Purge invalid/leaked mc_discord_avatar if present
+      if (typeof window !== 'undefined') {
+        const stored = localStorage.getItem('mc_discord_avatar');
+        if (stored && !isDiscordAvatarUrl(stored)) {
+          try { localStorage.removeItem('mc_discord_avatar'); } catch (_) {}
+        }
       }
       return '';
     } else {
-      // For Google: call Google avatar from external account or primary image, NEVER Discord
-      const candidate =
-        googleExt?.imageUrl ||
-        googleExt?.image_url ||
-        (googleExt as any)?.avatarUrl ||
-        (acc?.imageUrl && !acc.imageUrl.includes('discord') ? acc.imageUrl : '') ||
-        (effectiveUser?.imageUrl && !effectiveUser.imageUrl.includes('discord') ? effectiveUser.imageUrl : '') ||
-        (cachedUser?.imageUrl && !cachedUser.imageUrl.includes('discord') ? cachedUser.imageUrl : '') ||
-        (typeof window !== 'undefined' ? localStorage.getItem('mc_google_avatar') || '' : '') ||
-        '';
-      if (candidate && !candidate.includes('discord')) {
-        try { localStorage.setItem('mc_google_avatar', candidate); } catch (_) {}
-        return candidate;
+      // For Google: prioritize Google avatar, never Discord
+      const candidates = [
+        googleExt?.imageUrl,
+        googleExt?.image_url,
+        (googleExt as any)?.avatarUrl,
+        acc?.imageUrl,
+        effectiveUser?.imageUrl,
+        cachedUser?.imageUrl,
+        typeof window !== 'undefined' ? localStorage.getItem('mc_google_avatar') : null,
+      ];
+
+      for (const cand of candidates) {
+        if (cand && isGoogleAvatarUrl(cand)) {
+          try { localStorage.setItem('mc_google_avatar', cand); } catch (_) {}
+          return cand;
+        }
       }
       return '';
     }
-  }, [effectiveUser, user, cachedUser]);
+  }, [effectiveUser, user, cachedUser, allExtAccounts]);
 
   // Retrieve signed-in sessions from Clerk client
   const sessions = clerk.client?.signedInSessions || [];
@@ -226,13 +249,6 @@ export const AccountSwitcherModal: React.FC<AccountSwitcherModalProps> = ({
     if (effectiveUser?.provider) return effectiveUser.provider.replace('oauth_', '');
     return 'google';
   })();
-
-  const allExtAccounts = React.useMemo(() => [
-    ...(user?.externalAccounts || []),
-    ...(cachedUser?.externalAccounts || []),
-    ...(effectiveUser?.externalAccounts || []),
-    ...(Array.isArray(savedAccounts) ? savedAccounts.flatMap((a: any) => a.externalAccounts || []) : []),
-  ], [user?.externalAccounts, cachedUser?.externalAccounts, effectiveUser?.externalAccounts, savedAccounts]);
 
   const activeExternalAccount = React.useMemo(() => {
     return (
@@ -400,8 +416,13 @@ export const AccountSwitcherModal: React.FC<AccountSwitcherModalProps> = ({
         sendCommand('set_active_user', {
           userId: target.id,
           email: target.email,
-          provider: target.provider || (target.email?.includes('@gmail.') ? 'google' : 'discord'),
+          provider: target.provider || ((target.account_key || '').includes('discord') ? 'oauth_discord' : (target.email?.includes('@gmail.') ? 'google' : 'discord')),
           username: target.username || target.firstName,
+          firstName: target.firstName || '',
+          lastName: target.lastName || '',
+          fullName: target.fullName || '',
+          imageUrl: target.imageUrl || '',
+          externalAccounts: target.externalAccounts || [],
         });
         sendCommand('get_cached_games', { userId: target.id });
       }
@@ -705,20 +726,34 @@ export const AccountSwitcherModal: React.FC<AccountSwitcherModalProps> = ({
                       const providerLabel = isDiscord ? 'DISCORD' : 'GOOGLE';
                       const accAvatarUrl = getCleanAvatarUrl(acc, acc.provider || (isDiscord ? 'discord' : 'google'));
 
-                      // Match name across saved profiles or effective user
-                      const matchedName = savedAccounts.find(
-                        (s) => (s.fullName && s.fullName !== 'Guest') && ((s.email && s.email === acc.email) || (s.id && s.id === acc.id))
-                      )?.fullName || (effectiveUser?.fullName !== 'Guest' ? effectiveUser?.fullName : null);
+                      const discExtAcc = isDiscord
+                        ? ((acc.externalAccounts || []).find((a: any) => (a.provider || '').toLowerCase().includes('discord')) ||
+                           allExtAccounts.find((a: any) => (a.provider || '').toLowerCase().includes('discord')))
+                        : null;
 
-                      const displayName = (acc.fullName && acc.fullName !== 'Guest')
-                        ? acc.fullName
-                        : (acc.firstName && acc.firstName !== 'Guest'
-                            ? `${acc.firstName} ${acc.lastName || ''}`.trim()
-                            : (matchedName || acc.username || 'Guest'));
+                      const discUsername =
+                        discExtAcc?.username ||
+                        (discExtAcc as any)?.label ||
+                        (acc.username && acc.username !== acc.email?.split('@')[0] ? acc.username : null) ||
+                        savedAccounts.find((a: any) => (a.provider || '').toLowerCase().includes('discord') && a.username && a.username !== a.email?.split('@')[0])?.username ||
+                        'anni7880';
 
-                      const displaySub = isDiscord && acc.username && acc.email && acc.username !== acc.email
-                        ? `@${acc.username} · ${acc.email}`
-                        : (acc.email || (isDiscord ? 'Discord Account' : 'Authenticated User'));
+                      // Match name across saved profiles or effective user ONLY for Google accounts
+                      const matchedName = !isDiscord ? (savedAccounts.find(
+                        (s) => (s.fullName && s.fullName !== 'Guest' && !s.fullName.toLowerCase().includes('discord')) && ((s.email && s.email === acc.email) || (s.id && s.id === acc.id))
+                      )?.fullName || (effectiveUser?.fullName !== 'Guest' ? effectiveUser?.fullName : null)) : null;
+
+                      const displayName = isDiscord
+                        ? discUsername
+                        : ((acc.fullName && acc.fullName !== 'Guest' && !acc.fullName.toLowerCase().includes('discord'))
+                            ? acc.fullName
+                            : (acc.firstName && acc.firstName !== 'Guest'
+                                ? `${acc.firstName} ${acc.lastName || ''}`.trim()
+                                : (matchedName || acc.username || 'Google User')));
+
+                      const displaySub = isDiscord
+                        ? `@${discUsername} · ${acc.email || activeDiscordEmail}`
+                        : (acc.email || 'Google Account');
 
                       return (
                         <div

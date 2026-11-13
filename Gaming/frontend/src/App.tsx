@@ -544,15 +544,30 @@ const App: React.FC = () => {
               ? 'oauth_discord'
               : (externalAccounts?.some((a: any) => (a.provider || '').includes('google')) ? 'oauth_google' : 'oauth_discord'));
 
+        const isDiscordAuth = activeProvider.includes('discord');
+        const discordExtAcc = isDiscordAuth
+          ? (externalAccounts || []).find((a: any) => (a.provider || '').toLowerCase().includes('discord'))
+          : null;
+
+        const resolvedUsername = isDiscordAuth
+          ? (discordExtAcc?.username || (discordExtAcc as any)?.label || username)
+          : username;
+        const resolvedFirstName = isDiscordAuth
+          ? (discordExtAcc?.username || firstName)
+          : firstName;
+        const resolvedImageUrl = isDiscordAuth
+          ? (discordExtAcc?.imageUrl || (discordExtAcc as any)?.avatarUrl || '')
+          : imageUrl;
+
         const payload = {
           sessionId: sessId,
           token,
           userId,
           userEmail: email,
-          username,
-          firstName,
-          lastName,
-          imageUrl,
+          username: resolvedUsername,
+          firstName: resolvedFirstName,
+          lastName: isDiscordAuth ? '' : lastName,
+          imageUrl: resolvedImageUrl,
           provider: activeProvider,
           externalAccounts,
           storage: { ...window.localStorage },

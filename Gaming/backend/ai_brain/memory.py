@@ -796,18 +796,18 @@ class GameMemory:
                         session_id, token, external_accounts_json, updated_at
                     ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
                     ON CONFLICT(account_key) DO UPDATE SET
-                        user_id = excluded.user_id,
-                        email = excluded.email,
-                        username = excluded.username,
-                        first_name = excluded.first_name,
-                        last_name = excluded.last_name,
-                        full_name = excluded.full_name,
-                        image_url = excluded.image_url,
-                        provider = excluded.provider,
+                        user_id = CASE WHEN excluded.user_id != '' THEN excluded.user_id ELSE user_accounts.user_id END,
+                        email = CASE WHEN excluded.email != '' THEN excluded.email ELSE user_accounts.email END,
+                        username = CASE WHEN excluded.username != '' THEN excluded.username ELSE user_accounts.username END,
+                        first_name = CASE WHEN excluded.first_name != '' THEN excluded.first_name ELSE user_accounts.first_name END,
+                        last_name = CASE WHEN excluded.last_name != '' THEN excluded.last_name ELSE user_accounts.last_name END,
+                        full_name = CASE WHEN excluded.full_name != '' THEN excluded.full_name ELSE user_accounts.full_name END,
+                        image_url = CASE WHEN excluded.image_url != '' THEN excluded.image_url ELSE user_accounts.image_url END,
+                        provider = CASE WHEN excluded.provider != '' THEN excluded.provider ELSE user_accounts.provider END,
                         is_active = CASE WHEN ? = 1 THEN 1 ELSE is_active END,
-                        session_id = excluded.session_id,
-                        token = excluded.token,
-                        external_accounts_json = excluded.external_accounts_json,
+                        session_id = CASE WHEN excluded.session_id != '' THEN excluded.session_id ELSE user_accounts.session_id END,
+                        token = CASE WHEN excluded.token != '' THEN excluded.token ELSE user_accounts.token END,
+                        external_accounts_json = CASE WHEN excluded.external_accounts_json != '[]' THEN excluded.external_accounts_json ELSE user_accounts.external_accounts_json END,
                         updated_at = excluded.updated_at
                     """,
                     (
