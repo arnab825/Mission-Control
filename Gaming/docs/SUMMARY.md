@@ -89,7 +89,8 @@ graph TD
 
 | Version | Key Feature / Change Description |
 | :--- | :--- |
-| **v3.9.5 (Latest)** | **Live Gaming News Engine, Emulators Hub Vector Logos & Discover UI Redesign** — Replaced emulator text placeholders with 17 custom vector SVG brand logos. |
+| **v3.9.6 (Latest)** | **Discord & Google OAuth Profile Isolation, Avatar Proxy Validation & Handle Resolution** — Isolated Discord identity display from Google full name. |
+| **v3.9.5** | **Live Gaming News Engine, Emulators Hub Vector Logos & Discover UI Redesign** — Replaced emulator text placeholders with 17 custom vector SVG brand logos. |
 | **v3.9.4** | **v3.9.4: Games Grid Responsiveness, 16:9 Aspect Ratio, Dashboard & Modal Layout Fixes** — Balanced 4-column game library grid for maximized 1080p/1440p displays. |
 | **v3.9.3** | **Fixed Agent Neural History persistence across page tabs** — Fixed Agent Neural History persistence across page tabs. |
 | **v3.9.2** | **Performance Optimization, Zero-Hang Architecture & Emulators Hub Alignment** — Fixed Emulators & ROMs Hub z-index layering and resolution cutoff on scaled displays. |

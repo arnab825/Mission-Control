@@ -1,8 +1,18 @@
 {
-  "version": "3.9.5",
+  "version": "3.9.6",
   "release_date": "2026-11-12",
   "update_check_url": "https://raw.githubusercontent.com/arnab825/Mission-Control/main/Gaming/backend/version.json",
   "changelog": [
+    {
+      "version": "3.9.6",
+      "date": "2026-11-13",
+      "title": "Discord & Google OAuth Profile Isolation, Avatar Proxy Validation & Handle Resolution",
+      "highlights": [
+        "Isolated Discord identity display from Google full name",
+        "Added Clerk proxy avatar decoder to prevent cross-contamination",
+        "Hardened SQLite user account persistence against empty field overwrites"
+      ]
+    },
     {
       "version": "3.9.5",
       "date": "2026-11-13",
@@ -584,17 +594,6 @@
         "Filtered pre-releases and sorted by semver descending in GitHub release resolver",
         "Always re-fetch latest GitHub release URL before download to prevent stale version hijacking",
         "Prevented native up-to-date status from overriding backend-confirmed available updates in React UI"
-      ]
-    },
-    {
-      "version": "3.4.9",
-      "date": "2026-09-03",
-      "title": "Restored Discover from Web, Manage Nodes, and Fixed Library Unresponsiveness",
-      "highlights": [
-        "Restored persistent Discover from Web and Manage Nodes actions on Library header",
-        "Resolved UI unresponsiveness and telemetry re-render thrashing on Library page",
-        "Restored multi-node Game Installations viewer, hardware tech badges, and quick type switcher",
-        "Optimized fuzzy search indexing and safe local storage serialization"
       ]
     }
   ]

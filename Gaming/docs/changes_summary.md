@@ -10,7 +10,28 @@ excerpt: "Curated breakdown of major version releases, architectural milestones,
 
 Comprehensive breakdown of major milestone releases, architectural upgrades, and core engine enhancements in **Mission Control**.
 
-## 🌟 Version v3.9.5 (Latest) — Live Gaming News Engine, Emulators Hub Vector Logos & Discover UI Redesign
+## 🌟 Version v3.9.6 (Latest) — Discord & Google OAuth Profile Isolation, Avatar Proxy Validation & Handle Resolution
+
+### 🛠️ Key Highlights
+1. **Isolated Discord identity display from Google full name**
+2. **Added Clerk proxy avatar decoder to prevent cross-contamination**
+3. **Hardened SQLite user account persistence against empty field overwrites**
+
+### 📊 Architecture & Data Flow
+```mermaid
+graph TD
+    A[Developer Push / Publish Pipeline] --> B[Version Stamping & AI Changelog Enforcer]
+    B --> C[Mission Control System Core]
+    C --> D[Website Documentation & Real-Time Sync]
+```
+
+### 📦 Distribution Artifacts
+- **Linux**: `.deb` (Debian/Ubuntu), `.AppImage` (Universal), `.rpm` (Fedora/RHEL), `.tar.gz` (Portable)
+- **Windows**: `.exe` (Setup Installer), `.msi` (Enterprise), `.zip` (Portable)
+
+---
+
+## 📦 Version v3.9.5 — Live Gaming News Engine, Emulators Hub Vector Logos & Discover UI Redesign
 
 ### 🛠️ Key Highlights
 1. **Replaced emulator text placeholders with 17 custom vector SVG brand logos**

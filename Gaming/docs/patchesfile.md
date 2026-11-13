@@ -2,6 +2,12 @@
 
 This document contains a detailed history of all patches and updates for the AI Gaming Assistant.
 
+### Patch: 2026-11-13 — v3.9.6: Discord & Google OAuth Profile Isolation, Avatar Proxy Validation & Handle Resolution
+
+- Isolated Discord identity display from Google full name
+- Added Clerk proxy avatar decoder to prevent cross-contamination
+- Hardened SQLite user account persistence against empty field overwrites
+
 ### Patch: 2026-11-13 — v3.9.5: Live Gaming News Engine, Emulators Hub Vector Logos & Discover UI Redesign
 
 - Replaced emulator text placeholders with 17 custom vector SVG brand logos
