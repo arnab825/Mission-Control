@@ -1,8 +1,20 @@
 {
-  "version": "3.9.4",
+  "version": "3.9.5",
   "release_date": "2026-11-12",
   "update_check_url": "https://raw.githubusercontent.com/arnab825/Mission-Control/main/Gaming/backend/version.json",
   "changelog": [
+    {
+      "version": "3.9.5",
+      "date": "2026-11-13",
+      "title": "Live Gaming News Engine, Emulators Hub Vector Logos & Discover UI Redesign",
+      "highlights": [
+        "Replaced emulator text placeholders with 17 custom vector SVG brand logos",
+        "Added live 7-outlet RSS news aggregator and 52-week thematic editorial schedule",
+        "Redesigned Discover Games & Intel modal into sleek responsive 2-tier control panel",
+        "Strictly filtered game search recommendations to verified games (zero comic clutter)",
+        "Added native file/folder browser and multi-drive scanning for emulator binaries"
+      ]
+    },
     {
       "version": "3.9.4",
       "date": "2026-11-13",
@@ -583,14 +595,6 @@
         "Resolved UI unresponsiveness and telemetry re-render thrashing on Library page",
         "Restored multi-node Game Installations viewer, hardware tech badges, and quick type switcher",
         "Optimized fuzzy search indexing and safe local storage serialization"
-      ]
-    },
-    {
-      "version": "3.4.8",
-      "date": "2026-09-03",
-      "title": "Fixed launcher icons and cleaned CSS warnings",
-      "highlights": [
-        "Fixed launcher icons and cleaned CSS warnings"
       ]
     }
   ]

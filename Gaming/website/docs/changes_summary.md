@@ -10,7 +10,31 @@ excerpt: "Curated breakdown of major version releases, architectural milestones,
 
 Comprehensive breakdown of major milestone releases, architectural upgrades, and core engine enhancements in **Mission Control**.
 
-## 🌟 Version v3.9.4 (Latest) — v3.9.4: Games Grid Responsiveness, 16:9 Aspect Ratio, Dashboard & Modal Layout Fixes
+## 🌟 Version v3.9.5 (Latest) — Live Gaming News Engine, Emulators Hub Vector Logos & Discover UI Redesign
+
+### 🛠️ Key Highlights
+1. **Replaced emulator text placeholders with 17 custom vector SVG brand logos**
+2. **Added live 7-outlet RSS news aggregator and 52-week thematic editorial schedule**
+3. **Redesigned Discover Games & Intel modal into sleek responsive 2-tier control panel**
+4. **Strictly filtered game search recommendations to verified games (zero comic clutter)**
+5. **Added native file/folder browser and multi-drive scanning for emulator binaries**
+
+### 📊 Architecture & Data Flow
+```mermaid
+graph TD
+    A["Mobile Client / DevTools (320px+)"] --> B[Responsive CSS & Layout Container]
+    B --> C[DocsClient Component & Cards]
+    C --> D[MobileDocsSidebar Drawer & Header Bar]
+    D --> E[Real-Time Mongo Telemetry & Render]
+```
+
+### 📦 Distribution Artifacts
+- **Linux**: `.deb` (Debian/Ubuntu), `.AppImage` (Universal), `.rpm` (Fedora/RHEL), `.tar.gz` (Portable)
+- **Windows**: `.exe` (Setup Installer), `.msi` (Enterprise), `.zip` (Portable)
+
+---
+
+## 📦 Version v3.9.4 — v3.9.4: Games Grid Responsiveness, 16:9 Aspect Ratio, Dashboard & Modal Layout Fixes
 
 ### 🛠️ Key Highlights
 1. **Balanced 4-column game library grid for maximized 1080p/1440p displays**

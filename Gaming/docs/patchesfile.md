@@ -2,6 +2,14 @@
 
 This document contains a detailed history of all patches and updates for the AI Gaming Assistant.
 
+### Patch: 2026-11-13 — v3.9.5: Live Gaming News Engine, Emulators Hub Vector Logos & Discover UI Redesign
+
+- Replaced emulator text placeholders with 17 custom vector SVG brand logos
+- Added live 7-outlet RSS news aggregator and 52-week thematic editorial schedule
+- Redesigned Discover Games & Intel modal into sleek responsive 2-tier control panel
+- Strictly filtered game search recommendations to verified games (zero comic clutter)
+- Added native file/folder browser and multi-drive scanning for emulator binaries
+
 ### Patch: 2026-11-13 — v3.9.4: v3.9.4: Games Grid Responsiveness, 16:9 Aspect Ratio, Dashboard & Modal Layout Fixes
 
 - Balanced 4-column game library grid for maximized 1080p/1440p displays
