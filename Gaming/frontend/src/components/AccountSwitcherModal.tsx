@@ -69,6 +69,7 @@ export const AccountSwitcherModal: React.FC<AccountSwitcherModalProps> = ({
     window.addEventListener('mc-auth-state-changed', handleUpdate);
     const unsub = (window as any).electronAPI?.onAuthCompleted?.((payload?: any) => {
       if (payload?.userEmail || payload?.userId || payload?.sessionId) {
+        const prov = (payload.provider || '').toLowerCase().includes('discord') ? 'discord' : 'google';
         setCachedUser({
           id: payload.userId || '',
           email: payload.userEmail || '',
@@ -77,7 +78,8 @@ export const AccountSwitcherModal: React.FC<AccountSwitcherModalProps> = ({
           lastName: payload.lastName || '',
           imageUrl: payload.imageUrl || '',
           sessionId: payload.sessionId || '',
-          externalAccounts: payload.externalAccounts || (payload.userEmail?.includes('@gmail.') ? [{ provider: 'google', emailAddress: payload.userEmail }] : []),
+          provider: payload.provider || (prov === 'discord' ? 'oauth_discord' : 'oauth_google'),
+          externalAccounts: payload.externalAccounts || [{ provider: prov, emailAddress: payload.userEmail }],
         });
         setSavedAccounts(readSavedAccounts());
       } else {
@@ -138,7 +140,11 @@ export const AccountSwitcherModal: React.FC<AccountSwitcherModalProps> = ({
     imageUrl: cachedUser.imageUrl || '',
     primaryEmailAddress: cachedUser.email ? { emailAddress: cachedUser.email } : undefined,
     emailAddresses: cachedUser.email ? [{ emailAddress: cachedUser.email }] : [],
-    externalAccounts: cachedUser.externalAccounts || (cachedUser.email?.includes('@gmail.') ? [{ provider: 'google', emailAddress: cachedUser.email }] : []),
+    externalAccounts: cachedUser.externalAccounts || (
+      (cachedUser.provider?.includes('discord'))
+        ? [{ provider: 'discord', emailAddress: cachedUser.email, username: cachedUser.username }]
+        : [{ provider: 'google', emailAddress: cachedUser.email }]
+    ),
   } as any : null);
 
   const [switchingSessionId, setSwitchingSessionId] = useState<string | null>(null);
@@ -220,10 +226,73 @@ export const AccountSwitcherModal: React.FC<AccountSwitcherModalProps> = ({
     if (effectiveUser?.provider) return effectiveUser.provider.replace('oauth_', '');
     return 'google';
   })();
-  const activeExternalAccount =
-    effectiveUser?.externalAccounts?.find(
-      (a: any) => a.provider?.replace('oauth_', '') === normalizedActiveProvider
-    ) || effectiveUser?.externalAccounts?.[0];
+
+  const allExtAccounts = React.useMemo(() => [
+    ...(user?.externalAccounts || []),
+    ...(cachedUser?.externalAccounts || []),
+    ...(effectiveUser?.externalAccounts || []),
+    ...(Array.isArray(savedAccounts) ? savedAccounts.flatMap((a: any) => a.externalAccounts || []) : []),
+  ], [user?.externalAccounts, cachedUser?.externalAccounts, effectiveUser?.externalAccounts, savedAccounts]);
+
+  const activeExternalAccount = React.useMemo(() => {
+    return (
+      allExtAccounts.find(
+        (a: any) =>
+          (a.provider || '').toLowerCase().replace('oauth_', '').includes(normalizedActiveProvider) ||
+          (a.verification?.strategy || '').toLowerCase().includes(normalizedActiveProvider) ||
+          (a.verificationStrategy || '').toLowerCase().includes(normalizedActiveProvider)
+      ) ||
+      effectiveUser?.externalAccounts?.find(
+        (a: any) => (a.provider || '').toLowerCase().replace('oauth_', '').includes(normalizedActiveProvider)
+      ) ||
+      effectiveUser?.externalAccounts?.[0]
+    );
+  }, [allExtAccounts, normalizedActiveProvider, effectiveUser?.externalAccounts]);
+
+  // Robust email resolution for active Discord identity
+  const activeDiscordEmail = React.useMemo(() => {
+    const extEmail =
+      activeExternalAccount?.emailAddress ||
+      (activeExternalAccount as any)?.email_address ||
+      (activeExternalAccount as any)?.email;
+    if (extEmail) return extEmail;
+
+    if (cachedUser?.email) return cachedUser.email;
+
+    const savedDiscord = savedAccounts.find((a: any) =>
+      (a.provider || '').toLowerCase().includes('discord')
+    );
+    if (savedDiscord?.email) return savedDiscord.email;
+
+    if (effectiveUser?.primaryEmailAddress?.emailAddress) return effectiveUser.primaryEmailAddress.emailAddress;
+    if (effectiveUser?.email) return effectiveUser.email;
+    if (user?.primaryEmailAddress?.emailAddress) return user.primaryEmailAddress.emailAddress;
+
+    const handle =
+      activeExternalAccount?.username ||
+      (activeExternalAccount as any)?.label ||
+      cachedUser?.username ||
+      savedDiscord?.username;
+    if (handle) return `@${handle}`;
+    return 'Discord Linked';
+  }, [activeExternalAccount, cachedUser, savedAccounts, effectiveUser, user]);
+
+  // Robust email resolution for active Google identity
+  const activeGoogleEmail = React.useMemo(() => {
+    const extEmail =
+      activeExternalAccount?.emailAddress ||
+      (activeExternalAccount as any)?.email_address ||
+      (activeExternalAccount as any)?.email;
+    if (extEmail) return extEmail;
+    if (effectiveUser?.primaryEmailAddress?.emailAddress) return effectiveUser.primaryEmailAddress.emailAddress;
+    if (effectiveUser?.email) return effectiveUser.email;
+    if (cachedUser?.email) return cachedUser.email;
+    const savedGoogle = savedAccounts.find((a: any) =>
+      (a.provider || '').toLowerCase().includes('google')
+    );
+    if (savedGoogle?.email) return savedGoogle.email;
+    return 'Google Account';
+  }, [activeExternalAccount, effectiveUser, cachedUser, savedAccounts]);
 
   // Unified available accounts combining Clerk multi-sessions and saved accounts in localStorage
   const availableAccounts = React.useMemo(() => {
@@ -231,8 +300,14 @@ export const AccountSwitcherModal: React.FC<AccountSwitcherModalProps> = ({
     const seen = new Set<string>();
 
     const activeProvider = normalizedActiveProvider;
-    const activeEmail = (effectiveUser?.primaryEmailAddress?.emailAddress || effectiveUser?.email || '').toLowerCase();
-    const activeId = effectiveUser?.id;
+    const resolvedActiveEmail =
+      (normalizedActiveProvider === 'discord' ? activeDiscordEmail : activeGoogleEmail) ||
+      effectiveUser?.primaryEmailAddress?.emailAddress ||
+      effectiveUser?.email ||
+      cachedUser?.email ||
+      '';
+    const activeEmail = (resolvedActiveEmail.includes('@') ? resolvedActiveEmail : '').toLowerCase();
+    const activeId = cachedUser?.id || effectiveUser?.id;
 
     // Mark current active identity as seen so it's not duplicated in "Available Accounts"
     if (effectiveIsSignedIn) {
@@ -576,7 +651,7 @@ export const AccountSwitcherModal: React.FC<AccountSwitcherModalProps> = ({
                         <div className="flex items-center gap-2">
                           <span className="text-xs font-black text-white truncate">
                             {normalizedActiveProvider === 'discord'
-                              ? (activeExternalAccount?.username || (activeExternalAccount as any)?.label || cachedUser?.username || 'Discord User')
+                              ? (activeExternalAccount?.username || (activeExternalAccount as any)?.label || cachedUser?.username || savedAccounts.find((a: any) => (a.provider || '').toLowerCase().includes('discord'))?.username || 'Discord User')
                               : (effectiveUser.fullName || (effectiveUser.firstName ? `${effectiveUser.firstName} ${effectiveUser.lastName || ''}`.trim() : 'Google User'))}
                           </span>
                           <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full bg-neon-green/15 border border-neon-green/30 text-[8px] font-black uppercase text-neon-green tracking-widest shrink-0">
@@ -585,9 +660,7 @@ export const AccountSwitcherModal: React.FC<AccountSwitcherModalProps> = ({
                           </span>
                         </div>
                         <span className="text-[10px] text-zinc-400 truncate mt-0.5">
-                          {normalizedActiveProvider === 'discord'
-                            ? (activeExternalAccount?.emailAddress || (activeExternalAccount?.username ? `@${activeExternalAccount.username}` : 'via discord'))
-                            : (effectiveUser.primaryEmailAddress?.emailAddress || effectiveUser.email || activeExternalAccount?.emailAddress || `via ${normalizedActiveProvider}`)}
+                          {normalizedActiveProvider === 'discord' ? activeDiscordEmail : activeGoogleEmail}
                         </span>
                       </div>
                     </div>

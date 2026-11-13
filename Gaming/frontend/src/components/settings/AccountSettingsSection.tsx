@@ -86,8 +86,12 @@ export const AccountSettingsSection: React.FC<AccountSettingsSectionProps> = ({
     createdAt: cachedUser.createdAt || cachedUser.lastActive,
     primaryEmailAddress: cachedUser.email ? { emailAddress: cachedUser.email } : undefined,
     emailAddresses: cachedUser.email ? [{ emailAddress: cachedUser.email }] : [],
-    externalAccounts: cachedUser.externalAccounts || (cachedUser.email?.includes('@gmail.') ? [{ provider: 'google', emailAddress: cachedUser.email }] : []),
-    provider: cachedUser.provider || (cachedUser.email?.includes('@gmail.') ? 'google' : undefined),
+    externalAccounts: cachedUser.externalAccounts || (
+      cachedUser.provider?.includes('discord')
+        ? [{ provider: 'discord', emailAddress: cachedUser.email, username: cachedUser.username }]
+        : (cachedUser.email ? [{ provider: 'google', emailAddress: cachedUser.email }] : [])
+    ),
+    provider: cachedUser.provider || (cachedUser.provider?.includes('discord') ? 'oauth_discord' : 'oauth_google'),
   } as any : null);
 
   const [activeProviderState, setActiveProviderState] = useState<string>(() => {
@@ -111,10 +115,22 @@ export const AccountSettingsSection: React.FC<AccountSettingsSectionProps> = ({
 
   // Sync active external account for identical avatar rendering with Sidebar
   const normalizedActiveProvider = resolvedActiveProvider;
+
+  const readSavedAccounts = React.useCallback((): any[] => {
+    try {
+      if (typeof window === 'undefined' || typeof window.localStorage?.getItem !== 'function') return [];
+      const raw = window.localStorage.getItem('mc_saved_accounts');
+      return raw ? JSON.parse(raw) : [];
+    } catch (_) {
+      return [];
+    }
+  }, []);
+
   const allExtAccounts = [
     ...(user?.externalAccounts || []),
     ...(cachedUser?.externalAccounts || []),
-    ...(effectiveUser?.externalAccounts || [])
+    ...(effectiveUser?.externalAccounts || []),
+    ...(readSavedAccounts().flatMap((a: any) => a.externalAccounts || [])),
   ];
 
   const googleExt = allExtAccounts.find((a: any) =>
@@ -132,41 +148,59 @@ export const AccountSettingsSection: React.FC<AccountSettingsSectionProps> = ({
   const isDisc = normalizedActiveProvider.includes('discord');
 
   const activeProfile = React.useMemo(() => {
+    const savedAccs = readSavedAccounts();
     if (isDisc) {
+      const savedDiscord = savedAccs.find((a: any) =>
+        (a.provider || '').toLowerCase().includes('discord')
+      );
       const discUsername =
         discordExt?.username ||
         (discordExt as any)?.label ||
         (cachedUser?.provider?.includes('discord') ? cachedUser?.username : null) ||
+        savedDiscord?.username ||
         (effectiveUser?.username && effectiveUser.username !== effectiveUser.fullName ? effectiveUser.username : null) ||
         'Discord User';
       const discEmail =
         discordExt?.emailAddress ||
-        (cachedUser?.provider?.includes('discord') ? cachedUser?.email : null) ||
-        (discUsername ? `@${discUsername}` : 'via discord');
+        (discordExt as any)?.email_address ||
+        (discordExt as any)?.email ||
+        cachedUser?.email ||
+        savedDiscord?.email ||
+        effectiveUser?.primaryEmailAddress?.emailAddress ||
+        effectiveUser?.email ||
+        (discUsername && discUsername !== 'Discord User' ? `@${discUsername}` : 'Discord Linked');
       return {
         displayName: discUsername,
         displaySub: discEmail,
         isDiscord: true,
       };
     } else {
+      const savedGoogle = savedAccs.find((a: any) =>
+        (a.provider || '').toLowerCase().includes('google')
+      );
       const googleName =
         (googleExt?.firstName ? `${googleExt.firstName} ${googleExt.lastName || ''}`.trim() : null) ||
         (effectiveUser?.fullName && !effectiveUser.fullName.toLowerCase().includes('discord') ? effectiveUser.fullName : null) ||
         (cachedUser?.provider?.includes('google') ? cachedUser?.fullName || cachedUser?.username : null) ||
+        savedGoogle?.fullName ||
         effectiveUser?.firstName ||
         'Google User';
       const googleEmail =
         googleExt?.emailAddress ||
+        (googleExt as any)?.email_address ||
+        (googleExt as any)?.email ||
         effectiveUser?.primaryEmailAddress?.emailAddress ||
+        effectiveUser?.email ||
         cachedUser?.email ||
-        'clerk.user';
+        savedGoogle?.email ||
+        'Google Account';
       return {
         displayName: googleName,
         displaySub: googleEmail,
         isDiscord: false,
       };
     }
-  }, [isDisc, discordExt, googleExt, cachedUser, effectiveUser]);
+  }, [isDisc, discordExt, googleExt, cachedUser, effectiveUser, readSavedAccounts]);
 
   const avatarUrl = (() => {
     if (isDisc) {
@@ -295,9 +329,13 @@ export const AccountSettingsSection: React.FC<AccountSettingsSectionProps> = ({
           ? (targetExtAcc?.username || (targetExtAcc as any)?.label || (targetExtAcc as any)?.data?.username || cachedUser?.username || 'Discord User')
           : (googleExt?.firstName ? `${googleExt.firstName} ${googleExt.lastName || ''}`.trim() : (effectiveUser.fullName || effectiveUser.firstName || effectiveUser.username || 'Google User'));
 
+        const savedAccs = readSavedAccounts();
+        const savedDiscord = savedAccs.find((a: any) =>
+          (a.provider || '').toLowerCase().includes('discord')
+        );
         const resolvedEmail = isDisc
-          ? (targetExtAcc?.emailAddress || (cachedUser?.provider?.includes('discord') ? cachedUser?.email : null) || effectiveUser.primaryEmailAddress?.emailAddress || effectiveUser.email)
-          : (googleExt?.emailAddress || effectiveUser.primaryEmailAddress?.emailAddress || effectiveUser.email);
+          ? (targetExtAcc?.emailAddress || (targetExtAcc as any)?.email_address || (targetExtAcc as any)?.email || (cachedUser?.provider?.includes('discord') ? cachedUser?.email : null) || cachedUser?.email || savedDiscord?.email || effectiveUser.primaryEmailAddress?.emailAddress || effectiveUser.email)
+          : (googleExt?.emailAddress || (googleExt as any)?.email_address || (googleExt as any)?.email || effectiveUser.primaryEmailAddress?.emailAddress || effectiveUser.email || cachedUser?.email);
 
         const updatedUser = {
           ...(cachedUser || {}),
