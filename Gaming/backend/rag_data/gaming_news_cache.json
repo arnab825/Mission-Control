@@ -1,6 +1,216 @@
 {
-  "timestamp": 1794517473.0538967,
+  "timestamp": 1794548551.225041,
   "items": [
+    {
+      "id": "https://www.polygon.com/peanuts-best-comics-food/",
+      "title": "5 Funniest 'Peanuts' Comics About Food Only Charles Schulz Could Come Up With",
+      "link": "https://www.polygon.com/peanuts-best-comics-food/",
+      "description": "Here's the World Famous Gastronomer reading 50 years of food gags",
+      "source": "Polygon",
+      "category": "Gaming",
+      "pubDate": "Fri, 13 Nov 2026 05:00:17 GMT",
+      "imageUrl": "https://static0.polygonimages.com/wordpress/wp-content/uploads/2026/10/peanuts-welcome-home-franklin.jpg"
+    },
+    {
+      "id": "https://www.polygon.com/xbox-360-forgotten-masterpieces/",
+      "title": "8 Near-Perfect Xbox 360 Games That Are Forgotten Masterpieces",
+      "link": "https://www.polygon.com/xbox-360-forgotten-masterpieces/",
+      "description": "From Viva Pi\u00f1ata to The Saboteur, these forgotten Xbox 360 masterpieces deserve another shot today.",
+      "source": "Polygon",
+      "category": "Gaming",
+      "pubDate": "Fri, 13 Nov 2026 04:00:17 GMT",
+      "imageUrl": "https://static0.polygonimages.com/wordpress/wp-content/uploads/chorus/uploads/chorus_asset/file/629968/sleeping-dogs-definitive-edition-world_1920.0.jpg"
+    },
+    {
+      "id": "https://www.polygon.com/star-trek-wrath-of-khan-best-quote-grief/",
+      "title": "44 Years Later, Star Trek\u2019s Best Quote About Grief Is Still a Near-Perfect Sci-Fi Moment",
+      "link": "https://www.polygon.com/star-trek-wrath-of-khan-best-quote-grief/",
+      "description": "Star Trek has some of the best moments in science fiction. And its best quote about grief is part of that.",
+      "source": "Polygon",
+      "category": "Gaming",
+      "pubDate": "Fri, 13 Nov 2026 02:45:17 GMT",
+      "imageUrl": "https://static0.polygonimages.com/wordpress/wp-content/uploads/2026/11/spock-kirk-star-trek.jpeg"
+    },
+    {
+      "id": "https://www.pcgamer.com/games/fps/wolfenstein-3-is-in-production-at-machinegames/",
+      "title": "Wolfenstein 3 is in production at MachineGames",
+      "link": "https://www.pcgamer.com/games/fps/wolfenstein-3-is-in-production-at-machinegames/",
+      "description": "",
+      "source": "PC Gamer",
+      "category": "PC Gaming",
+      "pubDate": "Fri, 13 Nov 2026 01:35:32 +0000",
+      "imageUrl": "https://cdn.mos.cms.futurecdn.net/kLcpoTPbNywZi79u2Nox5C-1920-80.jpg"
+    },
+    {
+      "id": "https://www.polygon.com/best-nintendo-switch-2-games/",
+      "title": "The 25 Best Nintendo Switch 2 Games in 2026",
+      "link": "https://www.polygon.com/best-nintendo-switch-2-games/",
+      "description": "What are the best Nintendo Switch 2 games? From Zelda: Ocarina of Time to Mario Kart World, here are our favorites",
+      "source": "Polygon",
+      "category": "Gaming",
+      "pubDate": "Fri, 13 Nov 2026 00:25:53 GMT",
+      "imageUrl": "https://static0.polygonimages.com/wordpress/wp-content/uploads/2026/11/zelda-ocarina-of-time-great-deku-tree-and-link.jpg"
+    },
+    {
+      "id": "https://kotaku.com/slay-the-spire-2s-latest-update-adds-a-new-character-two-new-modes-and-a-byrdpip-evolution-2000756380",
+      "title": "Slay The Spire 2\u2032s Latest Update Adds A New Character, Two New Modes, And A Byrdpip Evolution!",
+      "link": "https://kotaku.com/slay-the-spire-2s-latest-update-adds-a-new-character-two-new-modes-and-a-byrdpip-evolution-2000756380",
+      "description": "Oh, and a not-so-subtle hint that either the Hermit or the Watcher will be the next new characters",
+      "source": "Kotaku",
+      "category": "Gaming",
+      "pubDate": "Thu, 12 Nov 2026 23:00:31 +0000",
+      "imageUrl": "https://kotaku.com/app/uploads/2026/11/Slay-the-Spire-2s-new-character-The-Fool-in-the-new-Blitz-Mode.jpg"
+    },
+    {
+      "id": "https://www.rockpapershotgun.com/slay-the-spire-2s-biggest-beta-patch-yet-adds-its-first-new-early-access-and-foolish-character-two-game-modes-and-more-tweaks-than-you-can-shake-a-stick-at",
+      "title": "Slay the Spire 2's \"biggest\" beta patch yet adds its first new early access and foolish character, two game modes, and more tweaks than you can shake a stick at",
+      "link": "https://www.rockpapershotgun.com/slay-the-spire-2s-biggest-beta-patch-yet-adds-its-first-new-early-access-and-foolish-character-two-game-modes-and-more-tweaks-than-you-can-shake-a-stick-at",
+      "description": "Hark! A new Slay the Spire 2 patch is here! Or, well, it is if you're someone who's trying out the beta branches of the game. If you're not, it might be worth trying out, as Mega Crit say this is their biggest patch f...",
+      "source": "Rock Paper Shotgun",
+      "category": "PC Gaming",
+      "pubDate": "Thu, 12 Nov 2026 22:53:40 +0000",
+      "imageUrl": "https://assetsio.gnwcdn.com/slay-the-spire-2-the-fool.jpg?width=690&amp;quality=85&amp;format=jpg&amp;auto=webp"
+    },
+    {
+      "id": "https://www.pcgamer.com/games/rpg/new-4-minute-fable-gameplay-trailer-shows-a-game-that-doesnt-look-much-like-fable/",
+      "title": "New 4-minute Fable gameplay trailer shows a game that doesn't look much like Fable",
+      "link": "https://www.pcgamer.com/games/rpg/new-4-minute-fable-gameplay-trailer-shows-a-game-that-doesnt-look-much-like-fable/",
+      "description": "",
+      "source": "PC Gamer",
+      "category": "PC Gaming",
+      "pubDate": "Thu, 12 Nov 2026 22:43:21 +0000",
+      "imageUrl": "https://cdn.mos.cms.futurecdn.net/vQV33tgAikCCCHGpnBucEo-1920-80.jpg"
+    },
+    {
+      "id": "https://www.polygon.com/company-of-heroes-3-free-steam-weekend-sale-november-2026/",
+      "title": "Steam Makes Popular World War II Strategy Game Free to Play This Weekend",
+      "link": "https://www.polygon.com/company-of-heroes-3-free-steam-weekend-sale-november-2026/",
+      "description": "Steam players can try Company of Heroes 3 for free this weekend before picking up the World War II strategy game at a discount.",
+      "source": "Polygon",
+      "category": "Gaming",
+      "pubDate": "Thu, 12 Nov 2026 22:33:32 GMT",
+      "imageUrl": "https://static0.polygonimages.com/wordpress/wp-content/uploads/chorus/uploads/chorus_asset/file/24446280/COH3_NorthAfrica_Gazala_Trenches.jpg"
+    },
+    {
+      "id": "https://www.polygon.com/spider-man-brand-new-day-rerelease-extended-new-footage-cameos/",
+      "title": "Sony's Bringing Back Spider-Man $2.5 Billion Hit With New Footage",
+      "link": "https://www.polygon.com/spider-man-brand-new-day-rerelease-extended-new-footage-cameos/",
+      "description": "Spider-Man: Brand New Day isn't done dominating movie theaters, with Sony planning an extended rerelease of 2026's Spider-Man cinematic feat.",
+      "source": "Polygon",
+      "category": "Gaming",
+      "pubDate": "Thu, 12 Nov 2026 22:31:22 GMT",
+      "imageUrl": "https://static0.polygonimages.com/wordpress/wp-content/uploads/2026/09/mcdspma_sp146.jpg"
+    },
+    {
+      "id": "https://www.polygon.com/avatar-seven-havens-season-2-release-date-announcement-season-3/",
+      "title": "'Avatar: Seven Havens\u2019 Season 2 Release Date Announcement Includes Some Shocking Good News",
+      "link": "https://www.polygon.com/avatar-seven-havens-season-2-release-date-announcement-season-3/",
+      "description": "Avatar: Seven Havens seasons 2 and 3 will arrive next year, and Paramount has already revealed what Pavi and Nisha's journey will look like.",
+      "source": "Polygon",
+      "category": "Gaming",
+      "pubDate": "Thu, 12 Nov 2026 22:15:32 GMT",
+      "imageUrl": "https://static0.polygonimages.com/wordpress/wp-content/uploads/2026/11/avatar-seven-havens-pavi-nisha.webp"
+    },
+    {
+      "id": "https://www.polygon.com/james-bond-quantum-of-solace-leaving-paramount-plus/",
+      "title": "Daniel Craig's Most Disappointing Bond Film Quietly Exits Streaming This Month",
+      "link": "https://www.polygon.com/james-bond-quantum-of-solace-leaving-paramount-plus/",
+      "description": "James Bond fans have limited time to watch Quantum of Solace on Paramount+, as Daniel Craig\u2019s 2008 action thriller prepares to leave.",
+      "source": "Polygon",
+      "category": "Gaming",
+      "pubDate": "Thu, 12 Nov 2026 22:09:54 GMT",
+      "imageUrl": "https://static0.polygonimages.com/wordpress/wp-content/uploads/2026/11/quantum-of-solace-daniel-craig.jpg"
+    },
+    {
+      "id": "https://www.pcgamer.com/games/grand-theft-auto/palworld-developer-pocketpair-gives-employees-time-off-for-a-5-day-business-trip-in-vice-city-when-gta-6-launches/",
+      "title": "Palworld developer Pocketpair gives employees time off for 'a 5-day business trip in Vice City when GTA 6 launches'",
+      "link": "https://www.pcgamer.com/games/grand-theft-auto/palworld-developer-pocketpair-gives-employees-time-off-for-a-5-day-business-trip-in-vice-city-when-gta-6-launches/",
+      "description": "",
+      "source": "PC Gamer",
+      "category": "PC Gaming",
+      "pubDate": "Thu, 12 Nov 2026 22:08:48 +0000",
+      "imageUrl": "https://cdn.mos.cms.futurecdn.net/qssUN2VdpiBrvmcfvqWGdK-1920-80.jpg"
+    },
+    {
+      "id": "https://www.polygon.com/ghost-rider-ryan-reynolds-gabriel-luna-marvel-movie/",
+      "title": "Ghost Rider Star Says He's Down to Return for Marvel's 2028 Reboot",
+      "link": "https://www.polygon.com/ghost-rider-ryan-reynolds-gabriel-luna-marvel-movie/",
+      "description": "Agents of SHIELD's Gabriel Luna is open to reprising his role as Ghost Rider Robbie Reyes if Marvel Studios calls.",
+      "source": "Polygon",
+      "category": "Gaming",
+      "pubDate": "Thu, 12 Nov 2026 22:05:59 GMT",
+      "imageUrl": "https://static0.polygonimages.com/wordpress/wp-content/uploads/2026/11/ghost-rider-agents-of-shield.jpg"
+    },
+    {
+      "id": "https://kotaku.com/xbox-releases-21-more-original-xbox-games-on-pc-and-over-half-of-them-are-star-wars-2000756360",
+      "title": "Xbox Adds 21 More Original Xbox Games To Backwards Compatibility Program And Over Half Of Them Are Star Wars And Over Half Of Them Are Star Wars",
+      "link": "https://kotaku.com/xbox-releases-21-more-original-xbox-games-on-pc-and-over-half-of-them-are-star-wars-2000756360",
+      "description": "And some of them are getting achievements",
+      "source": "Kotaku",
+      "category": "Gaming",
+      "pubDate": "Thu, 12 Nov 2026 22:00:34 +0000",
+      "imageUrl": "https://kotaku.com/app/uploads/2026/11/111226_XBOX-Wire_PCBackCompat-JPG-6d6dbed266e723ed4c62-1280x720.jpg"
+    },
+    {
+      "id": "https://www.gamespot.com/articles/candy-crush-is-celebrating-xboxs-25th-anniversary-with-halo-fallout-and-doom-crossovers-including-remixed-music/",
+      "title": "Candy Crush Is Celebrating Xbox\u2019s 25th Anniversary With Halo, Fallout, And Doom Crossovers, Including Remixed Music",
+      "link": "https://www.gamespot.com/articles/candy-crush-is-celebrating-xboxs-25th-anniversary-with-halo-fallout-and-doom-crossovers-including-remixed-music/",
+      "description": "2026 is the 25th anniversary of Xbox, and it's been a tough year for the brand with mass layoffs, studio closures/divestitures, and game cancellations. But the celebrations are still going ahead, including an event fr...",
+      "source": "GameSpot",
+      "category": "Gaming",
+      "pubDate": "Thu, 12 Nov 2026 22:00:00 +0000",
+      "imageUrl": "https://www.gamespot.com/wp-content/uploads/2026/11/doom.png?w=300"
+    },
+    {
+      "id": "https://www.polygon.com/zelda-ocarina-of-time-remake-oot-rupee-farming-methods/",
+      "title": "How to farm rupees in Zelda Ocarina of Time",
+      "link": "https://www.polygon.com/zelda-ocarina-of-time-remake-oot-rupee-farming-methods/",
+      "description": "You have a few rupee farming methods in Zelda Ocarina of Time depending on which timeline you're in. These are the best ways to get rupees in OoT.",
+      "source": "Polygon",
+      "category": "Gaming",
+      "pubDate": "Thu, 12 Nov 2026 21:43:44 GMT",
+      "imageUrl": "https://static0.polygonimages.com/wordpress/wp-content/uploads/2026/11/ocarina-of-time-rupee-farm.jpg"
+    },
+    {
+      "id": "https://kotaku.com/id-software-says-its-working-on-its-next-game-directed-by-dooms-hugo-martin-2000756358",
+      "title": "Id Software Says It\u2019s Working On Its Next Game, Directed By Doom\u2019s Hugo Martin",
+      "link": "https://kotaku.com/id-software-says-its-working-on-its-next-game-directed-by-dooms-hugo-martin-2000756358",
+      "description": "Don't expect to see it soon, though",
+      "source": "Kotaku",
+      "category": "Gaming",
+      "pubDate": "Thu, 12 Nov 2026 21:33:06 +0000",
+      "imageUrl": "https://kotaku.com/app/uploads/2025/05/250cc967076310c00db170e16f5039a1-1280x720.jpg"
+    },
+    {
+      "id": "https://www.rockpapershotgun.com/cover-your-robot-body-in-magical-fungus-aplenty-and-galavant-across-a-mystical-soulslike-world-in-mycorelic-now-out-in-10",
+      "title": "Cover your robot body in magical fungus aplenty and galavant across a mystical, Soulslike world in MycoRelic, now out in 1.0",
+      "link": "https://www.rockpapershotgun.com/cover-your-robot-body-in-magical-fungus-aplenty-and-galavant-across-a-mystical-soulslike-world-in-mycorelic-now-out-in-10",
+      "description": "I often find it quite dull that the main takeaway far too many people have taken from Dark Souls, aside from thinking that the most interesting thing is its combat, is that it's all so bloomin' grimdark. I'm not sayin...",
+      "source": "Rock Paper Shotgun",
+      "category": "PC Gaming",
+      "pubDate": "Thu, 12 Nov 2026 21:31:00 +0000",
+      "imageUrl": "https://assetsio.gnwcdn.com/mycorelic.jpg?width=690&amp;quality=85&amp;format=jpg&amp;auto=webp"
+    },
+    {
+      "id": "https://www.pcgamer.com/games/fps/doom-studio-id-software-confirms-its-working-on-a-new-game/",
+      "title": "Doom studio id Software confirms it's working on a new game",
+      "link": "https://www.pcgamer.com/games/fps/doom-studio-id-software-confirms-its-working-on-a-new-game/",
+      "description": "",
+      "source": "PC Gamer",
+      "category": "PC Gaming",
+      "pubDate": "Thu, 12 Nov 2026 21:10:04 +0000",
+      "imageUrl": "https://cdn.mos.cms.futurecdn.net/SV4EqmWFf4gJaw5ie5QeYJ-1920-80.jpg"
+    },
+    {
+      "id": "https://www.gamespot.com/articles/new-doom-game-seemingly-announced-in-the-weirdest-way-after-half-the-studio-was-laid-off/",
+      "title": "New Doom Game Seemingly Announced In The Weirdest Way After Half The Studio Was Laid Off",
+      "link": "https://www.gamespot.com/articles/new-doom-game-seemingly-announced-in-the-weirdest-way-after-half-the-studio-was-laid-off/",
+      "description": "Xbox CEO Asha Sharma has announced that id Software is officially working on a new game, believed to be another Doom title. This is happening after Sharma oversaw id Software losing half of its staff to layoffs that w...",
+      "source": "GameSpot",
+      "category": "Gaming",
+      "pubDate": "Thu, 12 Nov 2026 21:07:28 +0000",
+      "imageUrl": "https://www.gamespot.com/wp-content/uploads/2026/11/DoomGame.jpg?w=300"
+    },
     {
       "id": "https://www.tomshardware.com/tech-industry/data-centers/russias-google-says-nearly-3-percent-of-its-data-was-lost-after-crippling-ukraine-drone-strikes-opens-secret-availability-zones-yandex-cloud-blames-lack-of-user-backups-for-lost-data-now-forcibly-applies-backup-rules-by-default",
       "title": "Russia\u2019s Google says nearly 3% of its data was lost after crippling Ukraine drone strikes, opens secret availability zones",
@@ -62,16 +272,6 @@
       "imageUrl": "https://cdn.mos.cms.futurecdn.net/cDgAxkrVVPG3amZjs53R5N-1920-80.jpg"
     },
     {
-      "id": "https://www.polygon.com/avengers-doomsday-doctor-doom-tony-start-variant-theory/",
-      "title": "Marvel\u2019s Kevin Feige Breaks Silence on MCU Doctor Doom Being a Tony Stark Variant",
-      "link": "https://www.polygon.com/avengers-doomsday-doctor-doom-tony-start-variant-theory/",
-      "description": "Marvel Studios Kevin Feige has shot down the idea that Avengers Doomsday's Doctor Doom is a variant of Tony Stark.",
-      "source": "Polygon",
-      "category": "Gaming",
-      "pubDate": "Thu, 12 Nov 2026 19:50:53 GMT",
-      "imageUrl": "https://static0.polygonimages.com/wordpress/wp-content/uploads/2026/08/avengers_-doomsday-_-special-look-_-in-theaters-december-18-1-40-screenshot.jpg"
-    },
-    {
       "id": "https://kotaku.com/long-lost-sonic-stage-play-shows-dr-robotnik-try-to-hook-up-with-princess-sally-2000756308",
       "title": "Long-Lost Sonic Stage Play Shows Dr. Robotnik Try To Hook Up With Princess Sally",
       "link": "https://kotaku.com/long-lost-sonic-stage-play-shows-dr-robotnik-try-to-hook-up-with-princess-sally-2000756308",
@@ -80,16 +280,6 @@
       "category": "Gaming",
       "pubDate": "Thu, 12 Nov 2026 19:48:56 +0000",
       "imageUrl": "https://kotaku.com/app/uploads/2026/11/soniclivesydney-1280x719.jpg"
-    },
-    {
-      "id": "https://www.polygon.com/fornite-treasure-hours-chapter-7-mini-season-c7ms/",
-      "title": "Cursed treasure hours schedule in the Fortnite Chapter 7 mini season",
-      "link": "https://www.polygon.com/fornite-treasure-hours-chapter-7-mini-season-c7ms/",
-      "description": "Here's what time you can expect the next batch of Fortnite treasure hours, as well as what bonuses are coming with them.",
-      "source": "Polygon",
-      "category": "Gaming",
-      "pubDate": "Thu, 12 Nov 2026 19:21:18 GMT",
-      "imageUrl": "https://static0.polygonimages.com/wordpress/wp-content/uploads/2026/11/jlee_261112_1001_fn_cursed.jpg"
     },
     {
       "id": "https://www.gamespot.com/articles/this-happy-ending-for-two-games-with-identical-names-was-a-headache-for-nintendo/",
@@ -122,16 +312,6 @@
       "imageUrl": "https://cdn.mos.cms.futurecdn.net/BngP9Kz6o4g3nurmmSzKYf-1920-80.jpg"
     },
     {
-      "id": "https://www.polygon.com/xbox-ceo-asha-sharma-ai-use-games/",
-      "title": "Xbox CEO Hints Its Studios Will Heavily Use AI to Make Future Games",
-      "link": "https://www.polygon.com/xbox-ceo-asha-sharma-ai-use-games/",
-      "description": "Xbox CEO Asha Sharma wrote a post implying the company will lean into using AI to develop its games.",
-      "source": "Polygon",
-      "category": "Gaming",
-      "pubDate": "Thu, 12 Nov 2026 19:02:53 GMT",
-      "imageUrl": "https://static0.polygonimages.com/wordpress/wp-content/uploads/2026/10/xbox-new-logo.png"
-    },
-    {
       "id": "https://kotaku.com/the-legend-of-zelda-ocarina-of-time-bosses-ranked-from-worst-to-best-2000756332",
       "title": "The Legend Of Zelda: Ocarina Of Time Bosses, Ranked From Worst To Best",
       "link": "https://kotaku.com/the-legend-of-zelda-ocarina-of-time-bosses-ranked-from-worst-to-best-2000756332",
@@ -140,36 +320,6 @@
       "category": "Gaming",
       "pubDate": "Thu, 12 Nov 2026 19:00:58 +0000",
       "imageUrl": "https://kotaku.com/app/uploads/2026/11/ganondorfoot-1280x720.jpg"
-    },
-    {
-      "id": "https://www.polygon.com/call-of-duty-campaigns-ranked/",
-      "title": "All 22 Call of Duty Campaigns, Ranked From Worst to Best",
-      "link": "https://www.polygon.com/call-of-duty-campaigns-ranked/",
-      "description": "Every campaign in the Call of Duty series ranked from worst to best, including Modern Warfare, Black Ops, and every other game.",
-      "source": "Polygon",
-      "category": "Gaming",
-      "pubDate": "Thu, 12 Nov 2026 19:00:17 GMT",
-      "imageUrl": "https://static0.polygonimages.com/wordpress/wp-content/uploads/2026/11/call-of-duty-campaigns-ranked-header.jpg"
-    },
-    {
-      "id": "https://www.polygon.com/game-awards-2026-disney-plus-streaming-announced-geoff-keighley-goty/",
-      "title": "Disney Plus Is Officially the New Streaming Home of the Game Awards",
-      "link": "https://www.polygon.com/game-awards-2026-disney-plus-streaming-announced-geoff-keighley-goty/",
-      "description": "Disney Plus has announced it will stream the 2026 Game Awards, hosted by Geoff Keighley",
-      "source": "Polygon",
-      "category": "Gaming",
-      "pubDate": "Thu, 12 Nov 2026 18:41:41 GMT",
-      "imageUrl": "https://static0.polygonimages.com/wordpress/wp-content/uploads/2025/12/geoffies.jpg"
-    },
-    {
-      "id": "https://www.polygon.com/overwatch-jeff-kaplan-announcement-blizzcon-2019-diablo-4-development/",
-      "title": "Ex-Overwatch 2 Lead: Blizzard Execs Pushing Overwatch 2\u2019s Reveal Were \u2018Fucking Idiots\u2019",
-      "link": "https://www.polygon.com/overwatch-jeff-kaplan-announcement-blizzcon-2019-diablo-4-development/",
-      "description": "The hero shooter's former Game Director Jeff Kaplan dishes on Blizzard's decision to announce Overwatch 2 alongside Diablo 4 back in 2019",
-      "source": "Polygon",
-      "category": "Gaming",
-      "pubDate": "Thu, 12 Nov 2026 18:36:44 GMT",
-      "imageUrl": "https://static0.polygonimages.com/wordpress/wp-content/uploads/2026/04/overwatch-season-2-mercy-changes.jpg"
     },
     {
       "id": "https://www.gamespot.com/articles/xbox-has-spent-25-years-tracking-your-gaming-habits-now-you-can-see-the-damage/",
@@ -232,36 +382,6 @@
       "imageUrl": "https://cdn.mos.cms.futurecdn.net/6edxdR34bYAShChef7AUa8-1920-80.jpg"
     },
     {
-      "id": "https://www.polygon.com/forza-horizon-6-fh6-daikoku-location/",
-      "title": "Where to find the Daikoku area in Forza Horizon 6",
-      "link": "https://www.polygon.com/forza-horizon-6-fh6-daikoku-location/",
-      "description": "Here's where to find the Daikoku area in Forza Horizon 6, so you can complete the Series 7 \"City Life\" collectible Smashapon weekly challenge.",
-      "source": "Polygon",
-      "category": "Gaming",
-      "pubDate": "Thu, 12 Nov 2026 17:57:19 GMT",
-      "imageUrl": "https://static0.polygonimages.com/wordpress/wp-content/uploads/2026/11/fh6_guide_series7_daikoku_lead.jpg"
-    },
-    {
-      "id": "https://www.polygon.com/star-wars-50th-anniversary-release-new-john-williams-music/",
-      "title": "Star Wars 50th Anniversary Release Will Include New Music from John Williams",
-      "link": "https://www.polygon.com/star-wars-50th-anniversary-release-new-john-williams-music/",
-      "description": "The original version of Star Wars is heading to theaters next year, and it will briefly include new music from Star Wars composer John Williams.",
-      "source": "Polygon",
-      "category": "Gaming",
-      "pubDate": "Thu, 12 Nov 2026 17:53:01 GMT",
-      "imageUrl": "https://static0.polygonimages.com/wordpress/wp-content/uploads/chorus/uploads/chorus_asset/file/24039577/636486225664269079_Star_Wars_Episode_IV___A_New_Hope.jpg"
-    },
-    {
-      "id": "https://www.polygon.com/fortnite-chapter-7-mini-season-pirate-battle-pass-skins-outfits/",
-      "title": "All battle pass skins in the Fortnite Chapter 7 mini season",
-      "link": "https://www.polygon.com/fortnite-chapter-7-mini-season-pirate-battle-pass-skins-outfits/",
-      "description": "Here's a look at all of the Fortnite Chapter 7 mini season's battle pass skins, and the various styles they come in.",
-      "source": "Polygon",
-      "category": "Gaming",
-      "pubDate": "Thu, 12 Nov 2026 17:52:33 GMT",
-      "imageUrl": "https://static0.polygonimages.com/wordpress/wp-content/uploads/2026/10/hvuc5u1amaatzos.jpg"
-    },
-    {
       "id": "https://www.pcgamer.com/hardware/now-jensens-gone-intels-trouble-finding-a-steady-ceo-should-serve-as-cautionary-tale-to-nvidias-board/",
       "title": "Now Jensen's gone, Intel\u2019s trouble finding a steady CEO should serve as cautionary tale to Nvidia\u2019s board",
       "link": "https://www.pcgamer.com/hardware/now-jensens-gone-intels-trouble-finding-a-steady-ceo-should-serve-as-cautionary-tale-to-nvidias-board/",
@@ -292,16 +412,6 @@
       "imageUrl": "https://assetsio.gnwcdn.com/conan-the-black-pyramid.jpg?width=690&amp;quality=85&amp;format=jpg&amp;auto=webp"
     },
     {
-      "id": "https://www.pcgamer.com/hardware/after-jensen-huangs-resignation-from-nvidia-its-all-praise-or-political-finger-wagging-about-the-ex-ceo-with-little-in-between/",
-      "title": "After Jensen Huang's resignation from Nvidia, it's all praise or political finger-wagging about the ex-CEO, with little in between",
-      "link": "https://www.pcgamer.com/hardware/after-jensen-huangs-resignation-from-nvidia-its-all-praise-or-political-finger-wagging-about-the-ex-ceo-with-little-in-between/",
-      "description": "",
-      "source": "PC Gamer",
-      "category": "PC Gaming",
-      "pubDate": "Thu, 12 Nov 2026 17:35:37 +0000",
-      "imageUrl": "https://cdn.mos.cms.futurecdn.net/rHxkg3Pp7WErRnCTGsVow8-1920-80.jpg"
-    },
-    {
       "id": "https://www.tomshardware.com/pc-components/save-usd119-on-ddr5-ram-with-this-high-end-am5-gaming-combo-from-newegg-3-item-gaming-pc-combo-includes-9800x3d-32gb-corsair-vengeance-ddr5-ram-and-premium-msi-x870e-carbon-wifi-motherboard-for-only-usd1-250",
       "title": "Save $119 on DDR5 RAM with this high-end AM5 gaming combo from Newegg",
       "link": "https://www.tomshardware.com/pc-components/save-usd119-on-ddr5-ram-with-this-high-end-am5-gaming-combo-from-newegg-3-item-gaming-pc-combo-includes-9800x3d-32gb-corsair-vengeance-ddr5-ram-and-premium-msi-x870e-carbon-wifi-motherboard-for-only-usd1-250",
@@ -312,16 +422,6 @@
       "imageUrl": "https://cdn.mos.cms.futurecdn.net/UTVYgAgrmiW4oPuuxDS6r4-1920-80.png"
     },
     {
-      "id": "https://www.pcgamer.com/hardware/nvidia-stocks-jump-back-up-after-ex-ceo-jensen-huangs-ousting/",
-      "title": "Nvidia stocks jump back up after ex-CEO Jensen Huang's ousting",
-      "link": "https://www.pcgamer.com/hardware/nvidia-stocks-jump-back-up-after-ex-ceo-jensen-huangs-ousting/",
-      "description": "",
-      "source": "PC Gamer",
-      "category": "PC Gaming",
-      "pubDate": "Thu, 12 Nov 2026 17:34:31 +0000",
-      "imageUrl": "https://cdn.mos.cms.futurecdn.net/kHuY4jFFVYqZxzAx2bbAdn-1920-80.jpg"
-    },
-    {
       "id": "https://www.eurogamer.net/microsoft-xbox-gen-ai-asha-sharma-memo",
       "title": "Xbox boss seemingly champions gen-AI development as she celebrates 25 years of Xbox: \"A small team will be able to build worlds that today demand hundreds of developers\"",
       "link": "https://www.eurogamer.net/microsoft-xbox-gen-ai-asha-sharma-memo",
@@ -330,36 +430,6 @@
       "category": "Gaming",
       "pubDate": "Thu, 12 Nov 2026 17:32:20 +0000",
       "imageUrl": "https://assetsio.gnwcdn.com/asha-sharma-xbox-showcase-2026.jpg?width=690&amp;quality=85&amp;format=jpg&amp;auto=webp"
-    },
-    {
-      "id": "https://www.polygon.com/witcher-multiplayer-project-sirius-baldurs-gate-3-writer-joins-cdprojekt-red/",
-      "title": "Witcher Multiplayer Game Adds Key Writer From Baldur\u2019s Gate 3",
-      "link": "https://www.polygon.com/witcher-multiplayer-project-sirius-baldurs-gate-3-writer-joins-cdprojekt-red/",
-      "description": "CD Projekt Red\u2019s multiplayer Witcher game adds Baldur\u2019s Gate 3 writer responsible for Dark Urge and more",
-      "source": "Polygon",
-      "category": "Gaming",
-      "pubDate": "Thu, 12 Nov 2026 17:28:33 GMT",
-      "imageUrl": "https://static0.polygonimages.com/wordpress/wp-content/uploads/chorus/uploads/chorus_asset/file/25032936/WwG8Mh6.png"
-    },
-    {
-      "id": "https://www.pcgamer.com/hardware/graphics-cards/next-nvidia-ceo-has-to-have-national-security-as-a-top-priority-says-chairman-of-us-gov-committee-on-china-claims-huang-departure-could-have-been-avoided/",
-      "title": "Next Nvidia CEO has to have national security as a 'top priority' says chairman of US Gov committee on China \u2013 claims Huang departure 'could have been avoided'",
-      "link": "https://www.pcgamer.com/hardware/graphics-cards/next-nvidia-ceo-has-to-have-national-security-as-a-top-priority-says-chairman-of-us-gov-committee-on-china-claims-huang-departure-could-have-been-avoided/",
-      "description": "",
-      "source": "PC Gamer",
-      "category": "PC Gaming",
-      "pubDate": "Thu, 12 Nov 2026 17:27:15 +0000",
-      "imageUrl": "https://cdn.mos.cms.futurecdn.net/MzTzZq7AuVhTzmWxrusWDb-1920-80.jpg"
-    },
-    {
-      "id": "https://www.pcgamer.com/games/resident-evil/im-a-big-zach-cregger-fan-angela-santalbano-gushes-about-the-resident-evil-movie-and-likens-bryan-to-her-own-grace-ashcroft/",
-      "title": "'I'm a big Zach Cregger fan': Angela Sant'Albano gushes about the Resident Evil movie and likens Bryan to her own Grace Ashcroft",
-      "link": "https://www.pcgamer.com/games/resident-evil/im-a-big-zach-cregger-fan-angela-santalbano-gushes-about-the-resident-evil-movie-and-likens-bryan-to-her-own-grace-ashcroft/",
-      "description": "",
-      "source": "PC Gamer",
-      "category": "PC Gaming",
-      "pubDate": "Thu, 12 Nov 2026 17:23:11 +0000",
-      "imageUrl": "https://cdn.mos.cms.futurecdn.net/WrFTkezfETAALqfzraVdfc-1920-80.png"
     },
     {
       "id": "https://www.gamespot.com/articles/xbox-ceos-25th-anniversary-message-is-about-ai-even-if-she-wont-say-it/",
@@ -442,16 +512,6 @@
       "imageUrl": "https://assetsio.gnwcdn.com/australia-did-it-keyart-1.jpeg?width=690&amp;quality=85&amp;format=jpg&amp;auto=webp"
     },
     {
-      "id": "https://kotaku.com/the-internet-reacts-to-nvidia-ceos-resignation-jensen-huang-2000756273",
-      "title": "The Internet Reacts To Nvidia CEO Massive Bag Fumble",
-      "link": "https://kotaku.com/the-internet-reacts-to-nvidia-ceos-resignation-jensen-huang-2000756273",
-      "description": "So long and thanks for all the fits",
-      "source": "Kotaku",
-      "category": "Gaming",
-      "pubDate": "Thu, 12 Nov 2026 16:00:27 +0000",
-      "imageUrl": "https://kotaku.com/app/uploads/2026/11/jensenhuang-1280x720.jpg"
-    },
-    {
       "id": "https://www.tomshardware.com/tech-industry/semiconductors/elon-musk-says-it-would-be-an-honor-to-hire-ousted-nvidia-ceo-jensen-huang-possible-projects-could-include-terafab-spacexs-planned-gpu-manufacturing-or-teslas-ai-accelerators",
       "title": "Elon Musk says it \u2018would be an honor\u2019 to hire ousted Nvidia CEO Jensen Huang",
       "link": "https://www.tomshardware.com/tech-industry/semiconductors/elon-musk-says-it-would-be-an-honor-to-hire-ousted-nvidia-ceo-jensen-huang-possible-projects-could-include-terafab-spacexs-planned-gpu-manufacturing-or-teslas-ai-accelerators",
@@ -472,26 +532,6 @@
       "imageUrl": "https://assetsio.gnwcdn.com/The-Sound-of-Fury-reveal.jpg?width=690&amp;quality=85&amp;format=jpg&amp;auto=webp"
     },
     {
-      "id": "https://kotaku.com/gta-6-south-korea-for-featuring-too-many-out-of-context-penises-rockstar-2000756253",
-      "title": "GTA 6 Was Almost Refused Classification In South Korea For Featuring Too Many \u2018Out-Of-Context\u2019 Penises",
-      "link": "https://kotaku.com/gta-6-south-korea-for-featuring-too-many-out-of-context-penises-rockstar-2000756253",
-      "description": "Unfortunately, South Korea's GCRB may have just indirectly confirmed that GTA 6's protagonists cannot get naked in the retail version of the game",
-      "source": "Kotaku",
-      "category": "Gaming",
-      "pubDate": "Thu, 12 Nov 2026 15:30:38 +0000",
-      "imageUrl": "https://kotaku.com/app/uploads/2026/10/GTA-launch-trailer_0008_Hue_Saturation-3-1280x720.jpg"
-    },
-    {
-      "id": "https://kotaku.com/nintendo-black-friday-sale-first-party-games-donkey-kong-metroid-prime-2000756243",
-      "title": "Nintendo Reveals Its Black Friday Sale Plans, With Its Own Games Getting Rare $20 Discounts",
-      "link": "https://kotaku.com/nintendo-black-friday-sale-first-party-games-donkey-kong-metroid-prime-2000756243",
-      "description": "Donkey Kong Bananza and Metroid Prime 4 will be be lots cheaper via retailers",
-      "source": "Kotaku",
-      "category": "Gaming",
-      "pubDate": "Thu, 12 Nov 2026 15:15:03 +0000",
-      "imageUrl": "https://kotaku.com/app/uploads/2026/11/nintendo-black-friday-1280x720.jpg"
-    },
-    {
       "id": "https://www.eurogamer.net/nvidia-ceo-jensen-huang-resigns",
       "title": "After days of controversy, Nvidia CEO Jensen Huang has resigned",
       "link": "https://www.eurogamer.net/nvidia-ceo-jensen-huang-resigns",
@@ -500,16 +540,6 @@
       "category": "Gaming",
       "pubDate": "Thu, 12 Nov 2026 15:07:20 +0000",
       "imageUrl": "https://assetsio.gnwcdn.com/jensen-huang-speaking.jpg?width=690&amp;quality=85&amp;format=jpg&amp;auto=webp"
-    },
-    {
-      "id": "https://www.gamespot.com/articles/mario-kart-world-switch-2-bundle-black-friday-deal-brings-the-price-back-to-2025-levels/",
-      "title": "Mario Kart World Switch 2 Bundle Black Friday Deal Brings The Price Back To 2025 Levels",
-      "link": "https://www.gamespot.com/articles/mario-kart-world-switch-2-bundle-black-friday-deal-brings-the-price-back-to-2025-levels/",
-      "description": "Nintendo has announced its 2026 Black Friday deals, with a Mario Kart World Switch 2 hardware bundle as the centerpiece for $500. The Switch 2 launched in 2025 with a similar bundle for the same price, but it was disc...",
-      "source": "GameSpot",
-      "category": "Gaming",
-      "pubDate": "Thu, 12 Nov 2026 14:55:06 +0000",
-      "imageUrl": "https://www.gamespot.com/wp-content/uploads/2026/11/Switch-2-Mario-Kart-bundle.jpg?w=300"
     },
     {
       "id": "https://www.rockpapershotgun.com/nvidia-boss-jensen-huang-resigns-amid-scandal-surrounding-two-alleged-affairs-interim-ceo-appointed-as-search-for-sexy-leather-jacket-mans-successor-begins",
@@ -540,16 +570,6 @@
       "category": "Gaming",
       "pubDate": "Thu, 12 Nov 2026 14:24:50 +0000",
       "imageUrl": "https://assetsio.gnwcdn.com/DS2-Scholar_main.jpg?width=690&amp;quality=85&amp;format=jpg&amp;auto=webp"
-    },
-    {
-      "id": "https://www.gamespot.com/articles/gta-6s-jason-can-live-his-best-life-by-drinking-a-beer-and-eating-a-donut-simultaneously/",
-      "title": "GTA 6\u2019s Jason Can Live His Best Life By Drinking A Beer And Eating A Donut Simultaneously",
-      "link": "https://www.gamespot.com/articles/gta-6s-jason-can-live-his-best-life-by-drinking-a-beer-and-eating-a-donut-simultaneously/",
-      "description": "Rockstar's Grand Theft Auto 6 looks like it will have an impressive attention to detail, and that includes how one of the main characters, Jason, can drink a beer and eat a donut at the same time. Now that's living. R...",
-      "source": "GameSpot",
-      "category": "Gaming",
-      "pubDate": "Thu, 12 Nov 2026 14:20:40 +0000",
-      "imageUrl": "https://www.gamespot.com/wp-content/uploads/2026/11/Jason_Duval_06.jpg?w=300"
     },
     {
       "id": "https://www.tomshardware.com/pc-components/power-supplies/corsair-hx1000i-shift-crystal-power-supply-review",
@@ -670,26 +690,6 @@
       "category": "Hardware",
       "pubDate": "Thu, 12 Nov 2026 11:00:00 +0000",
       "imageUrl": "https://cdn.mos.cms.futurecdn.net/Ut57hXr6UTF3v4LJmkuGSi-1920-80.jpg"
-    },
-    {
-      "id": "https://www.rockpapershotgun.com/one-of-those-ways-where-you-can-use-ai-ethically-cdpr-have-modified-geralts-polish-voice-in-the-witcher-3-songs-of-the-past-with-genai-due-to-actors-stroke",
-      "title": "\"One of those ways where you can use AI ethically\": CDPR have modified Geralt's Polish voice in The Witcher 3: Songs of the Past with genAI, due to actor's stroke",
-      "link": "https://www.rockpapershotgun.com/one-of-those-ways-where-you-can-use-ai-ethically-cdpr-have-modified-geralts-polish-voice-in-the-witcher-3-songs-of-the-past-with-genai-due-to-actors-stroke",
-      "description": "CD Projekt Red have reportedly enlisted Ukrainian AI firm Respeecher to modify voice lines recorded for the Polish version of Geralt of Rivia in The Witcher 3's upcoming Songs of the Past expansion. The move's been ma...",
-      "source": "Rock Paper Shotgun",
-      "category": "PC Gaming",
-      "pubDate": "Thu, 12 Nov 2026 10:40:10 +0000",
-      "imageUrl": "https://assetsio.gnwcdn.com/the-witcher-3-songs-of-the-past-polish-geralt-voice-ai-01.jpg?width=690&amp;quality=85&amp;format=jpg&amp;auto=webp"
-    },
-    {
-      "id": "https://www.rockpapershotgun.com/after-being-laid-off-by-microsoft-former-doom-devs-found-new-smash-tv-influenced-fps-studio-that-isnt-subject-to-investor-demands",
-      "title": "After being laid off by Microsoft, former Doom devs found new Smash TV-influenced FPS studio that isn't \"subject to investor demands\"",
-      "link": "https://www.rockpapershotgun.com/after-being-laid-off-by-microsoft-former-doom-devs-found-new-smash-tv-influenced-fps-studio-that-isnt-subject-to-investor-demands",
-      "description": "Back in July, Doom developers id Software laid off around a hundred people as part of wider Microsoft blood-letting. Now, a few of those devs have founded a new employee-owned studio, Hidden Horses. Their first projec...",
-      "source": "Rock Paper Shotgun",
-      "category": "PC Gaming",
-      "pubDate": "Wed, 11 Nov 2026 18:08:40 +0000",
-      "imageUrl": "https://assetsio.gnwcdn.com/Smash-TV_PvR31M4.jpg?width=690&amp;quality=85&amp;format=jpg&amp;auto=webp"
     },
     {
       "id": "https://www.gamespot.com/articles/free-games-epic-games-store/1100-6476419/",

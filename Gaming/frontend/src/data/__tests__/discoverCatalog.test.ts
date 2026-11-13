@@ -156,22 +156,24 @@ describe('Smart Search Recommendations & Canonical Search Engine', () => {
       topics: ['Major Championships', 'Valorant', 'CS2']
     };
 
-    const recs = getSmartSearchRecommendations([], [], liveTrending, liveNews, weekTheme);
+    const recs = getSmartSearchRecommendations([], [], liveTrending, liveNews, weekTheme, 'news');
 
     // Verify dynamic live news intel is extracted
     const intelRecs = recs.filter(r => r.category === 'intel');
     expect(intelRecs.length).toBeGreaterThan(0);
     expect(intelRecs[0].reason).toContain('Live Dispatch');
 
-    // Verify live Steam trending game is present
-    const trendingRec = recs.find(r => r.category === 'trending' && r.label === 'Helldivers 2');
-    expect(trendingRec).toBeDefined();
-    expect(trendingRec?.reason).toContain('Steam Trending');
-
-    // Verify weekly theme spotlight is present
+    // Verify weekly theme spotlight is present in news mode
     const weeklyRec = recs.find(r => r.category === 'weekly');
     expect(weeklyRec).toBeDefined();
     expect(weeklyRec?.reason).toContain('Week #46');
+
+    // Verify games mode strictly recommends games without non-game topics
+    const gameRecs = getSmartSearchRecommendations([], [], liveTrending, liveNews, weekTheme, 'games');
+    const trendingGame = gameRecs.find(r => r.category === 'trending' && r.label === 'Helldivers 2');
+    expect(trendingGame).toBeDefined();
+    expect(trendingGame?.reason).toContain('Steam Trending');
+    expect(gameRecs.every(r => r.category !== 'weekly')).toBe(true);
   });
 
   it('searches across both curated and all 250+ canonical titles instantly', () => {

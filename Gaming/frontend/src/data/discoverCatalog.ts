@@ -2005,7 +2005,8 @@ export function getSmartSearchRecommendations(
   recentSearches: string[] = [],
   liveTrendingGames: DiscoverItem[] = [],
   liveNewsItems: NewsItem[] = [],
-  currentWeekTheme?: { week?: number; theme?: string; topics?: string[] }
+  currentWeekTheme?: { week?: number; theme?: string; topics?: string[] },
+  mode: 'games' | 'news' = 'games'
 ): SearchRecommendation[] {
   const recommendations: SearchRecommendation[] = [];
   const seenQueries = new Set<string>();
@@ -2025,46 +2026,92 @@ export function getSmartSearchRecommendations(
   const hasInstalled = (name: string) =>
     installedLower.some(inst => inst.includes(name.toLowerCase()) || name.toLowerCase().includes(inst));
 
-  // 1. Live Breaking Intel (Dynamic RSS news headlines & hot industry entities)
+  // In NEWS mode: Surface breaking dispatches and weekly editorial topics
+  if (mode === 'news') {
+    if (Array.isArray(liveNewsItems) && liveNewsItems.length > 0) {
+      let intelCount = 0;
+      for (const news of liveNewsItems) {
+        if (intelCount >= 3) break;
+        const title = news.title ? news.title.trim() : '';
+        if (!title) continue;
+
+        // Check if title mentions a recognized gaming entity
+        const matchedEntity = CANDIDATE_ENTITIES.find(entity => {
+          const escaped = entity.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+          return new RegExp(`\\b${escaped}\\b`, 'i').test(title);
+        });
+
+        let recQuery = matchedEntity || '';
+        let recLabel = matchedEntity || '';
+
+        if (!matchedEntity) {
+          const cleanHeadline = title
+            .replace(/^(review|guide|opinion|news|update|rumor|report|preview):\s*/i, '')
+            .replace(/[–—:|].*$/, '')
+            .trim();
+          const words = cleanHeadline.split(/\s+/).slice(0, 4).join(' ');
+          if (words.length > 3 && words.length < 35) {
+            recQuery = words;
+            recLabel = words;
+          }
+        }
+
+        if (recQuery) {
+          const snippet = title.length > 45 ? title.slice(0, 45) + '…' : title;
+          addRec({
+            id: `rec-intel-${intelCount}-${recQuery.toLowerCase().replace(/[^a-z0-9]/g, '-')}`,
+            label: recLabel,
+            query: recQuery,
+            reason: `Live Dispatch: ${snippet}`,
+            category: 'intel',
+          });
+          intelCount++;
+        }
+      }
+    }
+
+    // Weekly thematic topics in news mode
+    if (currentWeekTheme && Array.isArray(currentWeekTheme.topics) && currentWeekTheme.topics.length > 0) {
+      for (const topic of currentWeekTheme.topics.slice(0, 3)) {
+        addRec({
+          id: `rec-weekly-${topic.toLowerCase().replace(/[^a-z0-9]/g, '-')}`,
+          label: topic,
+          query: topic,
+          reason: `Week #${currentWeekTheme.week || 46} Focus · ${currentWeekTheme.theme || 'Trending Intel'}`,
+          category: 'weekly',
+        });
+      }
+    }
+
+    return recommendations;
+  }
+
+  // In GAMES mode: ONLY recommend actual playable video games!
+  // 1. If live news mentions a verified game title, surface that verified game
   if (Array.isArray(liveNewsItems) && liveNewsItems.length > 0) {
-    let intelCount = 0;
     for (const news of liveNewsItems) {
-      if (intelCount >= 2) break;
+      if (recommendations.length >= 2) break;
       const title = news.title ? news.title.trim() : '';
       if (!title) continue;
 
-      // Check if title mentions a recognized gaming entity
-      const matchedEntity = CANDIDATE_ENTITIES.find(entity => {
+      // Only match against verified game entities (games that exist in the canonical library)
+      const matchedGame = CANDIDATE_ENTITIES.find(entity => {
+        const norm = normalizeGameTitle(entity);
+        const hasVerifiedAppId = Boolean(TITLE_TO_STEAM_APPID[norm] || GAME_ALIASES[norm]);
+        if (!hasVerifiedAppId) return false;
         const escaped = entity.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
         return new RegExp(`\\b${escaped}\\b`, 'i').test(title);
       });
 
-      let recQuery = matchedEntity || '';
-      let recLabel = matchedEntity || '';
-
-      if (!matchedEntity) {
-        // Extract a clean 3-5 word concise headline topic
-        const cleanHeadline = title
-          .replace(/^(review|guide|opinion|news|update|rumor|report|preview):\s*/i, '')
-          .replace(/[–—:|].*$/, '')
-          .trim();
-        const words = cleanHeadline.split(/\s+/).slice(0, 4).join(' ');
-        if (words.length > 3 && words.length < 35) {
-          recQuery = words;
-          recLabel = words;
-        }
-      }
-
-      if (recQuery) {
-        const snippet = title.length > 45 ? title.slice(0, 45) + '…' : title;
+      if (matchedGame && !hasInstalled(matchedGame)) {
+        const snippet = title.length > 42 ? title.slice(0, 42) + '…' : title;
         addRec({
-          id: `rec-intel-${intelCount}-${recQuery.toLowerCase().replace(/[^a-z0-9]/g, '-')}`,
-          label: recLabel,
-          query: recQuery,
-          reason: `Live Dispatch: ${snippet}`,
-          category: 'intel',
+          id: `rec-intel-game-${matchedGame.toLowerCase().replace(/[^a-z0-9]/g, '-')}`,
+          label: matchedGame,
+          query: matchedGame,
+          reason: `Trending News: ${snippet}`,
+          category: 'trending',
         });
-        intelCount++;
       }
     }
   }
@@ -2084,20 +2131,6 @@ export function getSmartSearchRecommendations(
         category: 'trending',
       });
       trendingCount++;
-    }
-  }
-
-  // 3. Weekly Thematic Spotlight (Current Calendar Week Schedule)
-  if (currentWeekTheme && Array.isArray(currentWeekTheme.topics) && currentWeekTheme.topics.length > 0) {
-    const primaryTopic = currentWeekTheme.topics[0];
-    if (primaryTopic) {
-      addRec({
-        id: `rec-weekly-${primaryTopic.toLowerCase().replace(/[^a-z0-9]/g, '-')}`,
-        label: primaryTopic,
-        query: primaryTopic,
-        reason: `Week #${currentWeekTheme.week || 46} Focus · ${currentWeekTheme.theme || 'Trending Intel'}`,
-        category: 'weekly',
-      });
     }
   }
 

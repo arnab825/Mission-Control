@@ -15,7 +15,7 @@ import { motion, AnimatePresence } from 'framer-motion';
 import {
   X, Search, Sparkles, Check, Loader2, Globe, Flame, Gamepad2,
   Newspaper, ExternalLink, RefreshCw,
-  Clock, CornerDownLeft, Star, Award, Zap, Calendar, Radio
+  Clock, CornerDownLeft, Star, Award, Zap, Calendar
 } from 'lucide-react';
 
 import { fetchWithFailover } from '../hooks/useDistributedStats';
@@ -114,9 +114,18 @@ const DiscoverGamesModal: React.FC<DiscoverGamesModalProps> = ({ onClose, instal
       recentSearches,
       results,
       newsItems,
-      currentWeekTheme
+      currentWeekTheme,
+      activeTab === 'news' ? 'news' : 'games'
     );
-  }, [installedGames, recentSearches, results, newsItems, currentWeekTheme]);
+  }, [installedGames, recentSearches, results, newsItems, currentWeekTheme, activeTab]);
+
+  const hasActiveNewsFilter = selectedSource !== 'All' || selectedTopic !== 'All' || selectedNewsCategory !== 'All' || newsTimeHorizon !== 'all';
+  const resetNewsFilters = () => {
+    setSelectedSource('All');
+    setSelectedTopic('All');
+    setSelectedNewsCategory('All');
+    setNewsTimeHorizon('all');
+  };
 
   // Periodic Weekly News Topics (Updated week-over-week + dynamic live entity extraction)
   const [dynamicTopicsList, setDynamicTopicsList] = useState<string[]>(() => {
@@ -1159,245 +1168,244 @@ const DiscoverGamesModal: React.FC<DiscoverGamesModalProps> = ({ onClose, instal
           {/* Contextual Sub-bar: News Weekly Topics & Source Filters OR Game Store Switchers */}
           {activeTab === 'news' ? (
             <div className="space-y-2">
-              {/* Row 0: Cadence & Horizon Selector (Real-time Live News vs Monthly Focus vs Weekly Intel) */}
-              <div className="flex items-center justify-between gap-2 flex-wrap py-0.5">
-                <div className="flex items-center gap-1.5 overflow-x-auto no-scrollbar">
-                  <span className="text-[8px] font-black text-zinc-500 uppercase tracking-widest shrink-0 mr-1">
-                    Cadence:
-                  </span>
+              {/* Row 1: Time Horizon Cadence, Category & Sync Control Bar */}
+              <div className="flex flex-wrap items-center justify-between gap-2.5">
+                {/* Left: Connected Segmented Cadence Switcher */}
+                <div className="inline-flex items-center p-0.5 rounded-xl bg-zinc-900/90 border border-white/10 text-[9px] font-bold">
                   <button
                     type="button"
                     onClick={() => setNewsTimeHorizon('all')}
-                    className={`shrink-0 px-2.5 py-1 rounded-lg text-[9px] font-black uppercase tracking-wider transition-all cursor-pointer flex items-center gap-1.5 ${
+                    className={`px-3 py-1 rounded-lg transition-all flex items-center gap-1.5 cursor-pointer ${
                       newsTimeHorizon === 'all'
-                        ? 'bg-cyan-400 text-black shadow-[0_0_12px_rgba(34,211,238,0.4)]'
-                        : 'bg-white/4 hover:bg-white/8 text-zinc-400 hover:text-white border border-white/6'
+                        ? 'bg-cyan-400 text-black shadow-[0_0_12px_rgba(34,211,238,0.4)] font-black'
+                        : 'text-zinc-400 hover:text-white'
                     }`}
                   >
-                    <span>All Real-Time Dispatches</span>
-                    <span className="text-[8px] px-1 py-0.2 rounded bg-black/20 font-mono">
+                    <span>All Dispatches</span>
+                    <span className={`text-[8px] px-1.5 py-0.2 rounded font-mono ${newsTimeHorizon === 'all' ? 'bg-black/25 text-black' : 'bg-white/6 text-zinc-400'}`}>
                       {newsItems.length}
                     </span>
                   </button>
 
                   <button
                     type="button"
-                    onClick={() => setNewsTimeHorizon('month')}
-                    className={`shrink-0 px-2.5 py-1 rounded-lg text-[9px] font-black uppercase tracking-wider transition-all cursor-pointer flex items-center gap-1.5 ${
-                      newsTimeHorizon === 'month'
-                        ? 'bg-emerald-400 text-black shadow-[0_0_12px_rgba(52,211,153,0.4)]'
-                        : 'bg-white/4 hover:bg-white/8 text-zinc-400 hover:text-white border border-white/6'
-                    }`}
-                  >
-                    <span>This Month · {monthInfo.name}</span>
-                    <span className="text-[8px] px-1 py-0.2 rounded bg-black/20 font-mono">
-                      {monthlyNewsCount}
-                    </span>
-                  </button>
-
-                  <button
-                    type="button"
                     onClick={() => setNewsTimeHorizon('week')}
-                    className={`shrink-0 px-2.5 py-1 rounded-lg text-[9px] font-black uppercase tracking-wider transition-all cursor-pointer flex items-center gap-1.5 ${
+                    className={`px-3 py-1 rounded-lg transition-all flex items-center gap-1.5 cursor-pointer ${
                       newsTimeHorizon === 'week'
-                        ? 'bg-purple-400 text-black shadow-[0_0_12px_rgba(192,132,252,0.4)]'
-                        : 'bg-white/4 hover:bg-white/8 text-zinc-400 hover:text-white border border-white/6'
+                        ? 'bg-purple-400 text-black shadow-[0_0_12px_rgba(192,132,252,0.4)] font-black'
+                        : 'text-zinc-400 hover:text-white'
                     }`}
                   >
-                    <span>This Week · #W{weekInfo.week}</span>
-                    <span className="text-[8px] px-1 py-0.2 rounded bg-black/20 font-mono">
+                    <span>Week #{weekInfo.week}</span>
+                    <span className={`text-[8px] px-1.5 py-0.2 rounded font-mono ${newsTimeHorizon === 'week' ? 'bg-black/25 text-black' : 'bg-white/6 text-zinc-400'}`}>
                       {weeklyNewsCount}
                     </span>
                   </button>
-                </div>
 
-                {/* Right Sync Trigger & Status */}
-                <div className="flex items-center gap-2 shrink-0">
-                  <span className="text-[8px] text-zinc-500 font-mono">
-                    Synced {getRelativeTime(new Date(lastNewsSync).toUTCString()) || 'Just now'}
-                  </span>
                   <button
                     type="button"
-                    onClick={() => loadGamingNews(true)}
-                    disabled={newsLoading}
-                    className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-lg bg-cyan-500/10 hover:bg-cyan-500/20 border border-cyan-500/30 text-cyan-300 text-[9px] font-black uppercase tracking-wider transition-all cursor-pointer disabled:opacity-50"
-                    title="Force refresh all live gaming feeds now"
+                    onClick={() => setNewsTimeHorizon('month')}
+                    className={`px-3 py-1 rounded-lg transition-all flex items-center gap-1.5 cursor-pointer ${
+                      newsTimeHorizon === 'month'
+                        ? 'bg-emerald-400 text-black shadow-[0_0_12px_rgba(52,211,153,0.4)] font-black'
+                        : 'text-zinc-400 hover:text-white'
+                    }`}
                   >
-                    <RefreshCw className={`w-3 h-3 ${newsLoading ? 'animate-spin' : ''}`} />
-                    <span>Sync Intel</span>
+                    <span>{monthInfo.name}</span>
+                    <span className={`text-[8px] px-1.5 py-0.2 rounded font-mono ${newsTimeHorizon === 'month' ? 'bg-black/25 text-black' : 'bg-white/6 text-zinc-400'}`}>
+                      {monthlyNewsCount}
+                    </span>
                   </button>
+                </div>
+
+                {/* Center / Right: Category Filter & Sync Trigger */}
+                <div className="flex items-center gap-2 flex-wrap">
+                  {/* Category Filter */}
+                  <div className="inline-flex items-center p-0.5 rounded-xl bg-zinc-900/90 border border-white/10 text-[9px] font-bold">
+                    {['All', 'Gaming', 'Hardware'].map((cat) => (
+                      <button
+                        key={cat}
+                        type="button"
+                        onClick={() => setSelectedNewsCategory(cat)}
+                        className={`px-2.5 py-1 rounded-lg transition-all cursor-pointer ${
+                          selectedNewsCategory === cat
+                            ? 'bg-white/20 text-white font-black shadow-xs'
+                            : 'text-zinc-400 hover:text-zinc-200'
+                        }`}
+                      >
+                        {cat}
+                      </button>
+                    ))}
+                  </div>
+
+                  {/* Sync Trigger & Time */}
+                  <div className="flex items-center gap-2 shrink-0">
+                    <span className="text-[8px] text-zinc-500 font-mono hidden md:inline">
+                      {getRelativeTime(new Date(lastNewsSync).toUTCString()) || 'Just now'}
+                    </span>
+                    <button
+                      type="button"
+                      onClick={() => loadGamingNews(true)}
+                      disabled={newsLoading}
+                      className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-xl bg-cyan-500/10 hover:bg-cyan-500/20 border border-cyan-500/30 text-cyan-300 text-[9px] font-black uppercase tracking-wider transition-all cursor-pointer disabled:opacity-50"
+                      title="Force refresh all live gaming feeds now"
+                    >
+                      <RefreshCw className={`w-3 h-3 ${newsLoading ? 'animate-spin' : ''}`} />
+                      <span>Sync Intel</span>
+                    </button>
+                  </div>
                 </div>
               </div>
 
-              {/* Row 1: Weekly Periodic Topics (Refreshes week-over-week + dynamic entity extraction) */}
+              {/* Row 2: Streamlined Outlet Sources & Weekly Topics Strip */}
               <div className="flex items-center gap-2 overflow-x-auto no-scrollbar py-0.5">
-                <span className="text-[8px] font-black text-cyan-400 uppercase tracking-widest shrink-0 flex items-center gap-1 bg-cyan-500/10 border border-cyan-500/20 px-2 py-0.5 rounded-md">
-                  <Calendar className="w-2.5 h-2.5" />
-                  Week {weekInfo.week} Topics:
-                </span>
+                {/* Outlets List */}
+                <div className="flex items-center gap-1 shrink-0">
+                  <span className="text-[8px] font-black text-zinc-500 uppercase tracking-widest mr-1">
+                    Outlets:
+                  </span>
+                  {uniqueSources.map((src) => {
+                    const isSelected = selectedSource === src;
+                    return (
+                      <button
+                        key={src}
+                        type="button"
+                        onClick={() => setSelectedSource(src)}
+                        className={`shrink-0 px-2.5 py-0.5 rounded-lg text-[8px] font-black uppercase tracking-wider transition-all cursor-pointer ${
+                          isSelected
+                            ? 'bg-white text-black font-bold shadow-xs'
+                            : 'bg-white/3 hover:bg-white/8 text-zinc-400 hover:text-white border border-white/6'
+                        }`}
+                      >
+                        {src}
+                      </button>
+                    );
+                  })}
+                </div>
 
-                <button
-                  type="button"
-                  onClick={() => setSelectedTopic('All')}
-                  className={`shrink-0 px-2.5 py-0.5 rounded-md text-[9px] font-bold uppercase tracking-wider transition-all cursor-pointer ${
-                    selectedTopic === 'All'
-                      ? 'bg-cyan-400 text-black shadow-[0_0_10px_rgba(34,211,238,0.4)]'
-                      : 'bg-white/4 hover:bg-white/8 text-zinc-400 hover:text-white border border-white/6'
-                  }`}
-                >
-                  All Weekly Intel
-                </button>
+                <div className="h-4 w-px bg-white/10 shrink-0 mx-1" />
 
-                {dynamicTopicsList.map((topic: string) => {
-                  const isSelected = selectedTopic.toLowerCase() === topic.toLowerCase();
-                  return (
-                    <button
-                      key={topic}
-                      type="button"
-                      onClick={() => setSelectedTopic(isSelected ? 'All' : topic)}
-                      className={`shrink-0 px-2.5 py-0.5 rounded-md text-[9px] font-bold uppercase tracking-wider transition-all cursor-pointer ${
-                        isSelected
-                          ? 'bg-cyan-400 text-black shadow-[0_0_10px_rgba(34,211,238,0.4)]'
-                          : 'bg-white/4 hover:bg-white/8 text-zinc-400 hover:text-white border border-white/6'
-                      }`}
-                    >
-                      {topic}
-                    </button>
-                  );
-                })}
-              </div>
+                {/* Topics Tag Rail */}
+                <div className="flex items-center gap-1.5 shrink-0">
+                  <span className="text-[8px] font-black text-purple-400 bg-purple-500/10 border border-purple-500/20 px-2 py-0.5 rounded-md flex items-center gap-1 shrink-0">
+                    <Calendar className="w-2.5 h-2.5" />
+                    W{weekInfo.week} Topics:
+                  </span>
+                  {dynamicTopicsList.map((topic: string) => {
+                    const isSelected = selectedTopic.toLowerCase() === topic.toLowerCase();
+                    return (
+                      <button
+                        key={topic}
+                        type="button"
+                        onClick={() => setSelectedTopic(isSelected ? 'All' : topic)}
+                        className={`shrink-0 px-2 py-0.5 rounded-md text-[8px] font-bold tracking-wider transition-all cursor-pointer ${
+                          isSelected
+                            ? 'bg-purple-400 text-black font-black shadow-[0_0_8px_rgba(192,132,252,0.4)]'
+                            : 'bg-white/3 hover:bg-white/8 text-zinc-400 hover:text-white border border-white/6'
+                        }`}
+                      >
+                        #{topic}
+                      </button>
+                    );
+                  })}
+                </div>
 
-              {/* Row 2: Outlet Sources & Category Filters */}
-              <div className="flex items-center gap-2 overflow-x-auto no-scrollbar">
-                <span className="text-[8px] font-black text-zinc-500 uppercase tracking-widest shrink-0">
-                  Outlets:
-                </span>
-                {uniqueSources.map((src) => {
-                  const isSelected = selectedSource === src;
-                  return (
-                    <button
-                      key={src}
-                      type="button"
-                      onClick={() => setSelectedSource(src)}
-                      className={`shrink-0 px-2.5 py-0.5 rounded-md text-[8px] font-black uppercase tracking-wider transition-all cursor-pointer ${
-                        isSelected
-                          ? 'bg-white text-black font-bold'
-                          : 'bg-white/3 hover:bg-white/6 text-zinc-400 hover:text-white border border-white/5'
-                      }`}
-                    >
-                      {src}
-                    </button>
-                  );
-                })}
-
-                <span className="text-zinc-600">|</span>
-                <span className="text-[8px] font-black text-zinc-500 uppercase tracking-widest shrink-0">
-                  Category:
-                </span>
-                {['All', 'Hardware', 'Gaming'].map((cat) => {
-                  const isSelected = selectedNewsCategory === cat;
-                  return (
-                    <button
-                      key={cat}
-                      type="button"
-                      onClick={() => setSelectedNewsCategory(cat)}
-                      className={`shrink-0 px-2 py-0.5 rounded-md text-[8px] font-bold uppercase tracking-wider transition-all cursor-pointer ${
-                        isSelected
-                          ? 'bg-white/20 text-white border border-white/30'
-                          : 'bg-white/3 hover:bg-white/6 text-zinc-400 hover:text-white border border-white/5'
-                      }`}
-                    >
-                      {cat}
-                    </button>
-                  );
-                })}
+                {/* Reset Filters Pill when any filter is active */}
+                {hasActiveNewsFilter && (
+                  <button
+                    type="button"
+                    onClick={resetNewsFilters}
+                    className="shrink-0 ml-auto inline-flex items-center gap-1 px-2 py-0.5 rounded-md bg-white/5 hover:bg-red-500/20 text-zinc-400 hover:text-red-300 border border-white/10 hover:border-red-500/30 text-[8px] font-bold uppercase tracking-wider transition-all cursor-pointer"
+                    title="Reset all filters"
+                  >
+                    <X className="w-2.5 h-2.5" />
+                    <span>Reset</span>
+                  </button>
+                )}
               </div>
             </div>
           ) : (
             <div className="space-y-2">
-              {/* Row 1: Launcher Filter Pills */}
-              <div className="flex items-center gap-2 overflow-x-auto no-scrollbar">
-                <span className="text-[8px] font-black text-zinc-500 uppercase tracking-widest shrink-0">
-                  Launcher Store:
-                </span>
-                {['All', 'Steam', 'Epic Games', 'GOG Galaxy', 'Xbox Game Pass'].map((launcher) => {
-                  const isSelected = selectedLauncher === launcher;
-                  const style = LAUNCHER_STYLES[launcher] || LAUNCHER_STYLES.Web;
-                  return (
+              {/* Row 1: Launcher Store Segmented Control & Recent Searches */}
+              <div className="flex flex-wrap items-center justify-between gap-2.5">
+                {/* Launcher Store Segmented Bar */}
+                <div className="inline-flex items-center p-0.5 rounded-xl bg-zinc-900/90 border border-white/10 text-[9px] font-bold overflow-x-auto no-scrollbar max-w-full">
+                  {['All', 'Steam', 'Epic Games', 'GOG Galaxy', 'Xbox Game Pass'].map((launcher) => {
+                    const isSelected = selectedLauncher === launcher;
+                    const style = LAUNCHER_STYLES[launcher] || LAUNCHER_STYLES.Web;
+                    return (
+                      <button
+                        key={launcher}
+                        type="button"
+                        onClick={() => setSelectedLauncher(launcher)}
+                        className={`shrink-0 px-3 py-1 rounded-lg transition-all cursor-pointer font-bold ${
+                          isSelected
+                            ? `${style.bg} ${style.text} ${style.border} border shadow-xs font-black`
+                            : 'text-zinc-400 hover:text-white'
+                        }`}
+                      >
+                        {launcher === 'All' ? 'All Launchers' : launcher}
+                      </button>
+                    );
+                  })}
+                </div>
+
+                {/* Recent Searches Chips or Verified Count */}
+                {recentSearches.length > 0 ? (
+                  <div className="flex items-center gap-1.5 overflow-x-auto no-scrollbar py-0.5">
+                    <span className="text-[8px] font-black text-zinc-500 uppercase tracking-widest shrink-0">
+                      Recent:
+                    </span>
+                    {recentSearches.slice(0, 3).map((term) => (
+                      <div
+                        key={term}
+                        onClick={() => {
+                          setQuery(term);
+                          handleSearch(term);
+                        }}
+                        className="group/chip shrink-0 inline-flex items-center gap-1 px-2 py-0.5 rounded-md bg-white/4 hover:bg-neon-green/15 border border-white/8 hover:border-neon-green/30 text-[9px] font-medium text-zinc-400 hover:text-neon-green transition-all cursor-pointer"
+                      >
+                        <span>{term}</span>
+                        <button
+                          type="button"
+                          onClick={(e) => removeRecentSearch(e, term)}
+                          className="opacity-40 hover:opacity-100 hover:text-red-400 transition-opacity"
+                          title="Remove"
+                        >
+                          <X className="w-2.5 h-2.5" />
+                        </button>
+                      </div>
+                    ))}
                     <button
-                      key={launcher}
                       type="button"
-                      onClick={() => setSelectedLauncher(launcher)}
-                      className={`shrink-0 px-2.5 py-0.5 rounded-md text-[8px] font-black uppercase tracking-wider border transition-all cursor-pointer ${
-                        isSelected
-                          ? `${style.bg} ${style.text} ${style.border} ring-1 ring-white/60 shadow-[0_0_10px_rgba(255,255,255,0.2)]`
-                          : 'bg-white/3 hover:bg-white/6 text-zinc-400 hover:text-white border-white/5'
-                      }`}
+                      onClick={clearAllRecent}
+                      className="shrink-0 text-[8px] text-zinc-600 hover:text-zinc-400 underline font-mono ml-0.5 cursor-pointer"
                     >
-                      {launcher}
+                      Clear
                     </button>
-                  );
-                })}
+                  </div>
+                ) : (
+                  <span className="text-[9px] font-mono text-zinc-500 hidden sm:inline">
+                    250+ Verified AAA & Indie Titles
+                  </span>
+                )}
               </div>
 
-              {/* Row 2: Recent Searches Chips */}
-              {recentSearches.length > 0 && (
-                <div className="flex items-center gap-1.5 overflow-x-auto no-scrollbar">
-                  <span className="text-[8px] font-black text-zinc-500 uppercase tracking-widest shrink-0">
-                    Recent:
-                  </span>
-                  {recentSearches.map((term) => (
-                    <div
-                      key={term}
-                      onClick={() => {
-                        setQuery(term);
-                        handleSearch(term);
-                      }}
-                      className="group/chip shrink-0 inline-flex items-center gap-1 px-2 py-0.5 rounded-md bg-white/4 hover:bg-neon-green/15 border border-white/8 hover:border-neon-green/30 text-[9px] font-medium text-zinc-400 hover:text-neon-green transition-all cursor-pointer"
-                    >
-                      <span>{term}</span>
-                      <button
-                        type="button"
-                        onClick={(e) => removeRecentSearch(e, term)}
-                        className="opacity-40 hover:opacity-100 hover:text-red-400 transition-opacity"
-                        title="Remove"
-                      >
-                        <X className="w-2.5 h-2.5" />
-                      </button>
-                    </div>
-                  ))}
-                  <button
-                    type="button"
-                    onClick={clearAllRecent}
-                    className="shrink-0 text-[8px] text-zinc-600 hover:text-zinc-400 underline font-mono ml-1 cursor-pointer"
-                  >
-                    Clear
-                  </button>
-                </div>
-              )}
-
-              {/* Row 3: Dynamic Contextual Recommendations */}
+              {/* Row 2: Curated Game Recommendations (Only real games) */}
               <div className="flex items-center gap-1.5 overflow-x-auto no-scrollbar py-0.5">
                 <span className="text-[8px] font-black text-zinc-500 uppercase tracking-widest shrink-0 flex items-center gap-1">
                   <Sparkles className="w-2.5 h-2.5 text-neon-green" />
-                  Recommended:
+                  Trending Picks:
                 </span>
-                {smartRecommendations.slice(0, 8).map((rec) => {
+                {smartRecommendations.slice(0, 6).map((rec) => {
                   const isLibrary = rec.category === 'library';
                   const isHardware = rec.category === 'hardware';
-                  const isTrending = rec.category === 'trending';
-                  const isIntel = rec.category === 'intel';
-                  const isWeekly = rec.category === 'weekly';
 
                   const badgeStyle = isLibrary
                     ? 'border-neon-green/30 text-neon-green bg-neon-green/10 hover:bg-neon-green/20'
                     : isHardware
                     ? 'border-cyan-400/30 text-cyan-300 bg-cyan-500/10 hover:bg-cyan-500/20'
-                    : isTrending
-                    ? 'border-orange-500/30 text-orange-300 bg-orange-500/10 hover:bg-orange-500/20'
-                    : isIntel
-                    ? 'border-emerald-500/30 text-emerald-300 bg-emerald-500/10 hover:bg-emerald-500/20'
-                    : 'border-purple-400/30 text-purple-300 bg-purple-500/10 hover:bg-purple-500/20';
+                    : 'border-orange-500/30 text-orange-300 bg-orange-500/10 hover:bg-orange-500/20';
 
                   return (
                     <button
@@ -1408,13 +1416,11 @@ const DiscoverGamesModal: React.FC<DiscoverGamesModalProps> = ({ onClose, instal
                         setQuery(rec.query);
                         handleSearch(rec.query);
                       }}
-                      className={`shrink-0 inline-flex items-center gap-1.5 px-2.5 py-1 rounded-lg border text-[9px] font-bold transition-all cursor-pointer ${badgeStyle}`}
+                      className={`shrink-0 inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-lg border text-[9px] font-bold transition-all cursor-pointer ${badgeStyle}`}
                     >
                       {isLibrary && <Gamepad2 className="w-2.5 h-2.5" />}
                       {isHardware && <Zap className="w-2.5 h-2.5" />}
-                      {isTrending && <Flame className="w-2.5 h-2.5" />}
-                      {isIntel && <Radio className="w-2.5 h-2.5" />}
-                      {isWeekly && <Sparkles className="w-2.5 h-2.5" />}
+                      {!isLibrary && !isHardware && <Flame className="w-2.5 h-2.5" />}
                       <span>{rec.label}</span>
                     </button>
                   );
