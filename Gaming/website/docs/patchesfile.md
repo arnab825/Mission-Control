@@ -2,6 +2,15 @@
 
 This document contains a detailed history of all patches and updates for the AI Gaming Assistant.
 
+### Patch: 2026-11-14 — v3.9.8: Multi-GPU Discovery, Hardware MUX Switch Controls & Universal OEM Ecosystem Synchronization
+
+- High-fidelity discrete (dGPU) and integrated (iGPU) multi-GPU hardware architecture and active display attachment detection
+- Hardware MUX Switch and dynamic Optimus routing engine with 4-way working mode switching (Hybrid, dGPU Direct, iGPU Only, Auto)
+- Live visual display pipeline diagram adapting dynamically across Laptops (MUX link), Desktop PCs (Direct PCIe video bus), and Handheld APUs (Unified UMA)
+- Universal OEM Gaming Ecosystem synchronization detecting HP OMEN, ASUS Armoury Crate / G-Helper, Lenovo Vantage / Legion Toolkit, Alienware AWCC, MSI Center, Acer PredatorSense, Razer Synapse, Gigabyte GCC, NVIDIA App, AMD Adrenalin, and Intel GCC
+- Brand-specific native mode aliases mapping (e.g. ASUS Ultimate/Standard/Eco, Lenovo dGPU/Hybrid, HP Discrete/Hybrid, MSI Discrete/MSHybrid)
+- One-click native launchers for detected OEM software, Windows Display Switcher (displayswitch.exe), and Windows Advanced Graphics Settings
+
 ### Patch: 2026-11-14 — v3.9.7: Telemetry Stress Map Responsiveness, Device Specs Panel & Deep Account Deletion Purge
 
 - Redesigned Hardware Stress Map with stacked dual-row layout and responsive 10-segment track

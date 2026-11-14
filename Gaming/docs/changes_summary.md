@@ -10,7 +10,33 @@ excerpt: "Curated breakdown of major version releases, architectural milestones,
 
 Comprehensive breakdown of major milestone releases, architectural upgrades, and core engine enhancements in **Mission Control**.
 
-## 🌟 Version v3.9.7 (Latest) — Telemetry Stress Map Responsiveness, Device Specs Panel & Deep Account Deletion Purge
+## 🌟 Version v3.9.8 (Latest) — Multi-GPU Discovery, Hardware MUX Switch Controls & Universal OEM Ecosystem Synchronization
+
+### 🛠️ Key Highlights
+1. **High-fidelity discrete (dGPU) and integrated (iGPU) multi-GPU hardware architecture and active display attachment detection**
+2. **Hardware MUX Switch and dynamic Optimus routing engine with 4-way working mode switching (Hybrid, dGPU Direct, iGPU Only, Auto)**
+3. **Live visual display pipeline diagram adapting dynamically across Laptops (MUX link), Desktop PCs (Direct PCIe video bus), and Handheld APUs (Unified UMA)**
+4. **Universal OEM Gaming Ecosystem synchronization detecting HP OMEN, ASUS Armoury Crate / G-Helper, Lenovo Vantage / Legion Toolkit, Alienware AWCC, MSI Center, Acer PredatorSense, Razer Synapse, Gigabyte GCC, NVIDIA App, AMD Adrenalin, and Intel GCC**
+5. **Brand-specific native mode aliases mapping (e.g. ASUS Ultimate/Standard/Eco, Lenovo dGPU/Hybrid, HP Discrete/Hybrid, MSI Discrete/MSHybrid)**
+6. **One-click native launchers for detected OEM software, Windows Display Switcher (displayswitch.exe), and Windows Advanced Graphics Settings**
+
+### 📊 Architecture & Data Flow
+```mermaid
+graph TD
+    A["System Hardware & Video Controllers"] --> B["Registry & Win32 Display Enumeration"]
+    B --> C["HardwareChecker Engine (_get_gpu_architecture_and_mux)"]
+    C --> D["OEM Software & Brand Vocabulary Catalog"]
+    D --> E["Live Bridge State & WebSocket Dispatch"]
+    E --> F["SystemPage UI (Pipeline Diagram, MUX Controls, OEM Hub)"]
+```
+
+### 📦 Distribution Artifacts
+- **Linux**: `.deb` (Debian/Ubuntu), `.AppImage` (Universal), `.rpm` (Fedora/RHEL), `.tar.gz` (Portable)
+- **Windows**: `.exe` (Setup Installer), `.msi` (Enterprise), `.zip` (Portable)
+
+---
+
+## 📦 Version v3.9.7 — Telemetry Stress Map Responsiveness, Device Specs Panel & Deep Account Deletion Purge
 
 ### 🛠️ Key Highlights
 1. **Redesigned Hardware Stress Map with stacked dual-row layout and responsive 10-segment track**
