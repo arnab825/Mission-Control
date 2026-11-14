@@ -137,4 +137,115 @@ describe('SystemPage Component', () => {
     // Modal should close
     expect(screen.queryByText('Cyberpunk 2077 Summary')).toBeNull();
   });
+
+  it('renders dual GPU detection and MUX switch controls in Details view', () => {
+    const dualGpuState = {
+      ...mockState,
+      system_specs: {
+        hardware: {
+          cpu: '13th Gen Intel Core i7-13620H',
+          gpu: 'NVIDIA GeForce RTX 5050 Laptop GPU',
+          ram: '16GB',
+          storage: '512GB NVMe SSD',
+          gpus: [
+            {
+              index: '0000',
+              name: 'Intel(R) UHD Graphics',
+              vendor: 'Intel',
+              type: 'integrated',
+              driver_version: '32.0.101.7088',
+              vram_mb: 2048,
+              vram_gb: 2.0,
+              is_primary: true,
+              is_display_active: true,
+              active_displays: ['\\\\.\\DISPLAY1']
+            },
+            {
+              index: '0001',
+              name: 'NVIDIA GeForce RTX 5050 Laptop GPU',
+              vendor: 'NVIDIA',
+              type: 'discrete',
+              driver_version: '32.0.16.2124',
+              vram_mb: 8151,
+              vram_gb: 8.0,
+              is_primary: false,
+              is_display_active: false,
+              active_displays: []
+            }
+          ],
+          mux_switch: {
+            has_mux: true,
+            current_mode: 'hybrid',
+            user_preferred_mode: 'hybrid',
+            display_routing: 'Internal Panel -> Intel(R) UHD Graphics (Optimus PCIe pass-through buffer)',
+            latency_mode: 'standard_hybrid',
+            active_display_gpu: 'Intel(R) UHD Graphics',
+            dgpu_name: 'NVIDIA GeForce RTX 5050 Laptop GPU',
+            igpu_name: 'Intel(R) UHD Graphics',
+            supports_advanced_optimus: true,
+            form_factor: 'laptop',
+            architecture_type: 'hybrid_mux',
+            primary_oem: {
+              id: 'hp_omen',
+              name: 'HP OMEN Gaming Hub',
+              brand: 'HP',
+              category: 'oem_suite',
+              protocol: 'omencommandcenter:'
+            },
+            installed_oem_suites: [
+              {
+                id: 'hp_omen',
+                name: 'HP OMEN Gaming Hub',
+                brand: 'HP',
+                category: 'oem_suite',
+                protocol: 'omencommandcenter:'
+              }
+            ],
+            brand_vocabulary: {
+              discrete: 'OMEN Discrete Mode',
+              hybrid: 'OMEN Hybrid Mode',
+              igpu_only: 'OMEN Eco Mode',
+              auto: 'OMEN Auto Switch'
+            }
+          }
+        },
+        displays: [{ resolution: '1920x1080', refresh: '144Hz' }]
+      }
+    } as unknown as TelemetryState;
+
+    render(<SystemPage state={dualGpuState} sendCommand={mockSendCommand} />);
+
+    // Header MUX chip should be present
+    expect(screen.getByText('MUX ROUTING')).toBeInTheDocument();
+    expect(screen.getByText('HYBRID (OPTIMUS)')).toBeInTheDocument();
+
+    // Switch to Details view
+    const detailsBtn = screen.getByText('Details');
+    fireEvent.click(detailsBtn);
+
+    // MUX Switch card should be rendered
+    expect(screen.getByText('GPU Architecture & MUX Switch')).toBeInTheDocument();
+    expect(screen.getByText('Hybrid MUX Capable')).toBeInTheDocument();
+    expect(screen.getByText('Live Display Pipeline')).toBeInTheDocument();
+
+    // Both dGPU and iGPU cards should be rendered
+    expect(screen.getByText('Discrete Graphics (dGPU)')).toBeInTheDocument();
+    expect(screen.getByText('Integrated Graphics (iGPU)')).toBeInTheDocument();
+    expect(screen.getAllByText('Intel(R) UHD Graphics').length).toBeGreaterThan(0);
+
+    // Clicking a MUX switch mode should trigger set_gpu_working_mode command
+    const dgpuDirectBtn = screen.getByText('dGPU Direct');
+    fireEvent.click(dgpuDirectBtn);
+    expect(mockSendCommand).toHaveBeenCalledWith('set_gpu_working_mode', { mode: 'discrete' });
+
+    // OEM Companion buttons and Display Switcher should trigger bridge commands
+    const oemBtn = screen.getByTitle('Launch HP OMEN Gaming Hub');
+    expect(oemBtn).toBeInTheDocument();
+    fireEvent.click(oemBtn);
+    expect(mockSendCommand).toHaveBeenCalledWith('open_oem_software', { protocol: 'omencommandcenter:', suite_id: 'hp_omen' });
+
+    const switcherBtn = screen.getByText('Display Switcher');
+    fireEvent.click(switcherBtn);
+    expect(mockSendCommand).toHaveBeenCalledWith('open_display_switcher', {});
+  });
 });

@@ -266,6 +266,14 @@ def dispatch_bridge_command(
         system_handler.handle_save_controller_mappings(payload, pipeline, bridge, config, save_config, enforce_security_fn)
     elif cmd_type == "trigger_controller_rumble":
         system_handler.handle_trigger_controller_rumble(payload, pipeline, bridge, config)
+    elif cmd_type == "set_gpu_working_mode":
+        system_handler.handle_set_gpu_working_mode(payload, pipeline, bridge, config, save_config)
+    elif cmd_type == "open_graphics_settings":
+        system_handler.handle_open_graphics_settings(payload, pipeline, bridge, config)
+    elif cmd_type == "open_oem_software":
+        system_handler.handle_open_oem_software(payload, pipeline, bridge, config)
+    elif cmd_type == "open_display_switcher":
+        system_handler.handle_open_display_switcher(payload, pipeline, bridge, config)
 
     # ── Agent mode / voice commands ───────────────────────────────
     elif cmd_type == "toggle_agent_mode":

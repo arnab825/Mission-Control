@@ -95,4 +95,5 @@ class TelemetryState(BaseModel):
     awcc_status: Optional[Dict[str, Any]] = None
     yolo_supported: bool = False
     vision_manual_override: bool = False
+    gpu_working_mode: Optional[str] = None
 

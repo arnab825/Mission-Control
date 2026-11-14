@@ -247,12 +247,62 @@ export interface LogItem {
   source?: string;
 }
 
+export interface GpuDeviceInfo {
+  index: string;
+  name: string;
+  vendor: 'NVIDIA' | 'Intel' | 'AMD' | 'Other';
+  type: 'discrete' | 'integrated';
+  driver_version: string;
+  vram_mb: number;
+  vram_gb: number;
+  is_primary: boolean;
+  is_display_active: boolean;
+  active_displays: string[];
+  clock_core?: number;
+  clock_mem?: number;
+  power_draw?: number;
+  temperature?: number;
+}
+
+export interface OemSoftwareSuite {
+  id: string;
+  name: string;
+  brand: string;
+  category: 'oem_suite' | 'gpu_vendor' | 'system_utility';
+  protocol: string;
+  modes?: Record<string, string>;
+}
+
+export interface MuxSwitchInfo {
+  has_mux: boolean;
+  current_mode: 'hybrid' | 'discrete' | 'igpu_only' | 'auto';
+  user_preferred_mode: 'hybrid' | 'discrete' | 'igpu_only' | 'auto';
+  display_routing: string;
+  latency_mode: 'standard_hybrid' | 'zero_latency_direct';
+  active_display_gpu: string;
+  dgpu_name: string;
+  igpu_name: string;
+  supports_advanced_optimus?: boolean;
+  form_factor?: 'laptop' | 'desktop' | 'handheld_apu';
+  architecture_type?: 'hybrid_mux' | 'hybrid_optimus' | 'desktop_direct' | 'apu_unified' | 'integrated_only';
+  primary_oem?: OemSoftwareSuite | null;
+  installed_oem_suites?: OemSoftwareSuite[];
+  brand_vocabulary?: {
+    discrete?: string;
+    hybrid?: string;
+    igpu_only?: string;
+    auto?: string;
+  };
+}
+
 export interface SystemSpecs {
   hardware: {
     cpu: string;
     cores?: number;
     threads?: number;
     gpu: string;
+    gpus?: GpuDeviceInfo[];
+    mux_switch?: MuxSwitchInfo;
     gpu_capabilities?: {
       brand: 'NVIDIA' | 'AMD' | 'Intel' | 'Other';
       architecture: string;
@@ -328,6 +378,8 @@ export interface SystemSpecs {
     status: string;
   }[];
   vram_gb?: number;
+  gpus?: GpuDeviceInfo[];
+  mux_switch?: MuxSwitchInfo;
 }
 
 export interface EmulatorInfo {

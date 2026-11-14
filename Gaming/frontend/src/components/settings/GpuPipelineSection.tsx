@@ -64,6 +64,7 @@ interface GpuPipelineSectionProps {
 
 export const GpuPipelineSection: React.FC<GpuPipelineSectionProps> = ({
   localConfig,
+  setLocalConfig,
   updateGpuTuning,
   activePreset,
   handlePresetChange,
@@ -956,6 +957,103 @@ export const GpuPipelineSection: React.FC<GpuPipelineSectionProps> = ({
               <span>10 GB (Default)</span>
               <span>100 GB</span>
             </div>
+          </div>
+        </div>
+
+        {/* MUX Switch & GPU Working Mode */}
+        <div className="flex flex-col lg:flex-row lg:items-start justify-between gap-4 lg:gap-12 border-t border-white/5 pt-6">
+          <div className="flex-1">
+            <div className="flex items-center gap-2 mb-1">
+              <Zap className="w-4 h-4 text-neon-yellow" />
+              <p className="text-[10px] font-black text-zinc-200 uppercase tracking-widest">MUX Switch & Display Routing</p>
+              <span className="px-2 py-0.5 rounded-full bg-neon-yellow/10 border border-neon-yellow/20 text-[8px] font-black uppercase text-neon-yellow tracking-widest">
+                {state?.system_specs?.hardware?.mux_switch?.current_mode ? state.system_specs.hardware.mux_switch.current_mode.toUpperCase() : 'OPTIMUS'}
+              </span>
+            </div>
+            <p className="text-[10px] font-medium text-zinc-500 leading-relaxed">
+              Configures the display output path on hybrid laptops (Intel UHD / AMD iGPU + NVIDIA RTX). Switch between Hybrid (Optimus) battery efficiency and Direct dGPU zero-latency presentation.
+            </p>
+            {state?.system_specs?.hardware?.mux_switch?.display_routing && (
+              <p className="text-[9px] font-mono font-bold text-zinc-400 mt-2 flex items-center gap-1.5">
+                <span className="text-zinc-600 uppercase tracking-widest">Current Path:</span>
+                <span className="text-neon-green">{state.system_specs.hardware.mux_switch.display_routing}</span>
+              </p>
+            )}
+          </div>
+          <div className="w-full lg:w-96 shrink-0 space-y-3">
+            <div className="grid grid-cols-2 gap-2">
+              {[
+                { key: 'hybrid', label: 'Hybrid (Optimus)', desc: 'Balanced battery + games' },
+                { key: 'discrete', label: 'dGPU Direct', desc: '0ms lowest latency' },
+                { key: 'igpu_only', label: 'iGPU Only (Eco)', desc: 'Maximum battery' },
+                { key: 'auto', label: 'Auto (Advanced)', desc: 'Dynamic Optimus' }
+              ].map(opt => {
+                const currentMode = localConfig.gpu_working_mode || state?.system_specs?.hardware?.mux_switch?.user_preferred_mode || state?.system_specs?.hardware?.mux_switch?.current_mode || 'hybrid';
+                const isSelected = currentMode === opt.key;
+                const brandAlias = state?.system_specs?.hardware?.mux_switch?.brand_vocabulary?.[opt.key as keyof NonNullable<typeof state.system_specs.hardware.mux_switch.brand_vocabulary>];
+                return (
+                  <button
+                    key={opt.key}
+                    type="button"
+                    onClick={() => {
+                      setLocalConfig((prev: any) => ({ ...prev, gpu_working_mode: opt.key }));
+                      sendCommand('set_gpu_working_mode', { mode: opt.key });
+                    }}
+                    className={`p-2.5 rounded-xl border text-left transition-all cursor-pointer ${
+                      isSelected
+                        ? 'bg-neon-yellow/10 border-neon-yellow/40 text-white shadow-[0_0_12px_rgba(191,255,0,0.15)]'
+                        : 'bg-white/[0.02] border-white/5 text-zinc-400 hover:text-white hover:border-white/10'
+                    }`}
+                  >
+                    <div className="flex items-center justify-between">
+                      <span className={`text-[10px] font-black uppercase tracking-wider ${isSelected ? 'text-neon-yellow' : 'text-zinc-200'}`}>
+                        {opt.label}
+                      </span>
+                      {isSelected && <Check className="w-3 h-3 text-neon-yellow" />}
+                    </div>
+                    {brandAlias && brandAlias !== opt.label && (
+                      <span className="text-[7.5px] font-bold text-neon-yellow/80 block mt-0.5 tracking-tight truncate">
+                        {brandAlias}
+                      </span>
+                    )}
+                    <span className="text-[8px] text-zinc-500 block mt-0.5">{opt.desc}</span>
+                  </button>
+                );
+              })}
+            </div>
+
+            {state?.system_specs?.hardware?.mux_switch?.primary_oem && (
+              <button
+                type="button"
+                onClick={() => {
+                  const oem = state?.system_specs?.hardware?.mux_switch?.primary_oem;
+                  if (oem) {
+                    sendCommand('open_oem_software', { protocol: oem.protocol, suite_id: oem.id });
+                    if (oem.protocol && (window as any).electronAPI?.openExternal) {
+                      (window as any).electronAPI.openExternal(oem.protocol).catch(() => {});
+                    }
+                  }
+                }}
+                className="w-full py-2 px-3 rounded-xl bg-neon-yellow/10 hover:bg-neon-yellow/20 border border-neon-yellow/30 text-neon-yellow text-[9px] font-black uppercase tracking-wider flex items-center justify-center gap-2 transition-all cursor-pointer"
+              >
+                <span>Launch {state.system_specs.hardware.mux_switch.primary_oem.name}</span>
+                <ArrowRight className="w-3 h-3 text-neon-yellow" />
+              </button>
+            )}
+
+            <button
+              type="button"
+              onClick={() => {
+                sendCommand('open_graphics_settings');
+                if ((window as any).electronAPI?.openExternal) {
+                  (window as any).electronAPI.openExternal('ms-settings:display-advanced-graphics').catch(() => {});
+                }
+              }}
+              className="w-full py-2 px-3 rounded-xl bg-white/5 hover:bg-white/10 border border-white/10 text-white text-[9px] font-black uppercase tracking-wider flex items-center justify-center gap-2 transition-all cursor-pointer"
+            >
+              <span>Open Windows Graphics Settings</span>
+              <ArrowRight className="w-3 h-3 text-zinc-400" />
+            </button>
           </div>
         </div>
       </div>

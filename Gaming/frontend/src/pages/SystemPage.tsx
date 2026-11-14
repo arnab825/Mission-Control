@@ -22,6 +22,7 @@ import {
   HelpCircle,
   Sparkles,
   ChevronRight,
+  ExternalLink,
   X
 } from 'lucide-react';
 import type { TelemetryState, SystemSpecs } from '../types/telemetry';
@@ -82,6 +83,10 @@ const metricExplanations: Record<string, string> = {
   
   // GPU
   'Graphics Card': 'The Graphics Processing Unit (GPU) - handles rendering all frames, complex 3D meshes, shaders, and real-time lighting.',
+  'Display Routing': 'How video frames travel from your graphics processor to the physical screen panel. In Hybrid mode, frames travel via the iGPU; with direct MUX switch, the dGPU connects straight to the screen for lower latency.',
+  'Working Mode': 'The active GPU operation mode: Hybrid (Optimus) balances battery life with gaming, Discrete engages direct dGPU rendering with lowest latency, and iGPU Only maximises battery efficiency.',
+  'Hardware MUX': 'A physical multiplexer chip on the laptop motherboard that switches the internal display panel connection between the integrated and discrete GPU.',
+  'Latency Mode': 'Optimus adds a 1-3ms PCIe frame buffer copy overhead. Direct MUX switch eliminates this buffer overhead for immediate zero-latency presentation.',
   'VRAM Total': 'Total Video RAM on the GPU. Higher VRAM allows running games at higher resolutions (like 1440p or 4K) and Ultra textures.',
   'VRAM Used': 'Active Video RAM footprint. Exceeding your VRAM capacity causes severe lag spikes as assets load from slower system RAM.',
   'Dedicated VRAM': 'Ultra-fast memory built directly on your graphics card layout, dedicated purely to rendering.',
@@ -186,6 +191,14 @@ const mergeSpecs = (prev: SystemSpecs | null, incoming: SystemSpecs | undefined 
   if (!prev) return incoming || null;
   if (!incoming) return prev;
 
+  const mergedGpus = (incoming.hardware?.gpus && incoming.hardware.gpus.length > 0)
+    ? incoming.hardware.gpus
+    : (incoming.gpus && incoming.gpus.length > 0
+        ? incoming.gpus
+        : (prev.hardware?.gpus || prev.gpus));
+
+  const mergedMux = incoming.hardware?.mux_switch || incoming.mux_switch || prev.hardware?.mux_switch || prev.mux_switch;
+
   return {
     ...prev,
     hardware: {
@@ -194,6 +207,8 @@ const mergeSpecs = (prev: SystemSpecs | null, incoming: SystemSpecs | undefined 
       cores: incoming.hardware?.cores || prev.hardware?.cores,
       threads: incoming.hardware?.threads || prev.hardware?.threads,
       gpu: incoming.hardware?.gpu && incoming.hardware.gpu !== 'Gathering...' ? incoming.hardware.gpu : prev.hardware?.gpu,
+      gpus: mergedGpus,
+      mux_switch: mergedMux,
       ram: incoming.hardware?.ram || prev.hardware?.ram,
       storage: incoming.hardware?.storage && incoming.hardware.storage !== 'Gathering...' ? incoming.hardware.storage : prev.hardware?.storage,
       ram_details: (incoming.hardware?.ram_details && incoming.hardware.ram_details.length > 0)
@@ -203,6 +218,8 @@ const mergeSpecs = (prev: SystemSpecs | null, incoming: SystemSpecs | undefined 
         ? incoming.hardware.storage_details
         : prev.hardware?.storage_details,
     },
+    gpus: mergedGpus,
+    mux_switch: mergedMux,
     network: incoming.network || prev.network,
     wifi: incoming.wifi || prev.wifi,
     os_details: incoming.os_details || prev.os_details,
@@ -490,6 +507,50 @@ const SystemPage: React.FC<SystemPageProps> = ({
   const [selectedDiskIndex, setSelectedDiskIndex] = useState(0);
   const [selectedMachineId, setSelectedMachineId] = useState<string>('');
   const [selectedSessionIndex, setSelectedSessionIndex] = useState<number>(0);
+  const [activeGpuIndex, setActiveGpuIndex] = useState<number>(0);
+
+  const handleSetMuxMode = (mode: 'hybrid' | 'discrete' | 'igpu_only' | 'auto') => {
+    if (sendCommand) {
+      sendCommand('set_gpu_working_mode', { mode });
+    }
+    setSpecs(prev => {
+      if (!prev) return prev;
+      const currentMux = prev.mux_switch || prev.hardware?.mux_switch;
+      const updatedMux = currentMux ? { ...currentMux, user_preferred_mode: mode } : undefined;
+      return {
+        ...prev,
+        mux_switch: updatedMux,
+        hardware: {
+          ...prev.hardware,
+          mux_switch: updatedMux,
+        }
+      };
+    });
+  };
+
+  const handleOpenGraphicsSettings = () => {
+    if (sendCommand) {
+      sendCommand('open_graphics_settings');
+    }
+    if ((window as any).electronAPI?.openExternal) {
+      (window as any).electronAPI.openExternal('ms-settings:display-advanced-graphics').catch(() => {});
+    }
+  };
+
+  const handleOpenOemSoftware = (protocol?: string, suiteId?: string) => {
+    if (sendCommand) {
+      sendCommand('open_oem_software', { protocol, suite_id: suiteId });
+    }
+    if (protocol && (window as any).electronAPI?.openExternal) {
+      (window as any).electronAPI.openExternal(protocol).catch(() => {});
+    }
+  };
+
+  const handleOpenDisplaySwitcher = () => {
+    if (sendCommand) {
+      sendCommand('open_display_switcher', {});
+    }
+  };
   const mainScrollRef = useRef<HTMLDivElement>(null);
 
   // Always reset scroll to top when changing telemetry view modes or categories
@@ -667,17 +728,34 @@ const SystemPage: React.FC<SystemPageProps> = ({
       }
 
       case 'GPU': {
+        const gpusList = specs.hardware.gpus || specs.gpus || [];
+        const targetGpu = (gpusList && gpusList.length > activeGpuIndex)
+          ? gpusList[activeGpuIndex]
+          : null;
         const vramTot = state?.gpu_metrics?.vram_total ?? state?.gpu_metrics?.vram_total_mb;
         const vramUsed = state?.gpu_metrics?.vram_used ?? state?.gpu_metrics?.vram_used_mb;
         const powerDraw = state?.gpu_metrics?.power_draw ?? state?.gpu_metrics?.power_draw_w;
         const temp = state?.gpu_metrics?.temp ?? state?.gpu_metrics?.temperature;
+
+        if (targetGpu && targetGpu.type === 'integrated') {
+          return [
+            { label: 'Graphics Card', value: targetGpu.name },
+            { label: 'Architecture', value: 'Integrated Display Controller (iGPU)' },
+            { label: 'Display Output', value: targetGpu.is_display_active ? `Active (${targetGpu.active_displays.join(', ') || 'Internal Panel'})` : 'Standby / Internal' },
+            { label: 'Shared Memory', value: targetGpu.vram_gb ? `${targetGpu.vram_gb} GB Dynamic Shared RAM` : 'Shared System RAM' },
+            { label: 'Driver Version', value: targetGpu.driver_version || '---' },
+            { label: 'Provider', value: targetGpu.vendor || 'Intel' },
+          ];
+        }
+
         return [
-          { label: 'Graphics Card', value: specs.hardware.gpu },
-          { label: 'VRAM Total', value: vramTot != null ? `${(vramTot / 1024).toFixed(1)} GB` : '---' },
+          { label: 'Graphics Card', value: targetGpu ? targetGpu.name : specs.hardware.gpu },
+          { label: 'Architecture', value: targetGpu ? `${targetGpu.vendor} Discrete Gaming GPU (dGPU)` : 'Discrete GPU' },
+          { label: 'VRAM Total', value: vramTot != null ? `${(vramTot / 1024).toFixed(1)} GB` : (specs.vram_gb ? `${specs.vram_gb} GB` : '---') },
           { label: 'VRAM Used', value: vramUsed != null ? `${vramUsed} MB (${state?.gpu_metrics?.vram_percent ?? 0}%)` : '---' },
-          { label: 'Dedicated VRAM', value: specs.vram_gb ? `${specs.vram_gb} GB` : '---' },
+          { label: 'Dedicated VRAM', value: (targetGpu?.vram_gb || specs.vram_gb) ? `${targetGpu?.vram_gb || specs.vram_gb} GB GDDR` : '---' },
           { label: 'Power Draw', value: powerDraw !== undefined && powerDraw !== null ? `${Math.round(powerDraw)} W` : '---' },
-          { label: 'Driver Version', value: state?.gpu_metrics?.driver_version || '---' },
+          { label: 'Driver Version', value: targetGpu?.driver_version || state?.gpu_metrics?.driver_version || '---' },
           { label: 'Temperature', value: temp ? `${Math.round(temp)}°C` : '---' },
         ];
       }
@@ -715,7 +793,7 @@ const SystemPage: React.FC<SystemPageProps> = ({
       default:
         return [];
     }
-  }, [specs, selectedCategory, state, selectedDiskIndex]);
+  }, [specs, selectedCategory, state, selectedDiskIndex, activeGpuIndex]);
 
   const getActiveMetric = useMemo(() => {
     if (!state) return { value: '0.0%', percent: 0 };
@@ -746,7 +824,11 @@ const SystemPage: React.FC<SystemPageProps> = ({
         const ddr = getMemoryDDRType;
         return ddr ? `${ddr} ${specs.hardware.ram}` : specs.hardware.ram;
       }
-      case 'GPU': return specs.hardware.gpu;
+      case 'GPU': {
+        const gpusList = specs.hardware.gpus || specs.gpus || [];
+        const targetGpu = (gpusList && gpusList.length > activeGpuIndex) ? gpusList[activeGpuIndex] : null;
+        return targetGpu ? targetGpu.name : specs.hardware.gpu;
+      }
       case 'Disk': {
         const details = specs.hardware.storage_details && specs.hardware.storage_details.length > selectedDiskIndex
           ? specs.hardware.storage_details[selectedDiskIndex]
@@ -756,7 +838,7 @@ const SystemPage: React.FC<SystemPageProps> = ({
       case 'Network': return specs.network?.name || 'Local Network';
       default: return specs.hardware.cpu;
     }
-  }, [specs, selectedCategory, selectedDiskIndex, getMemoryDDRType]);
+  }, [specs, selectedCategory, selectedDiskIndex, getMemoryDDRType, activeGpuIndex]);
 
   const getCategoryIcon = useMemo(() => {
     switch (selectedCategory) {
@@ -792,6 +874,11 @@ const SystemPage: React.FC<SystemPageProps> = ({
     }));
   }, [currentPoints]);
 
+  const gpusList = specs?.hardware?.gpus || specs?.gpus || [];
+  const muxInfo = specs?.hardware?.mux_switch || specs?.mux_switch;
+  const dgpu = gpusList.find(g => g.type === 'discrete') || (gpusList.length > 0 ? gpusList[0] : null);
+  const igpu = gpusList.find(g => g.type === 'integrated');
+
   return (
     <div className="flex-1 p-4 md:p-8 overflow-hidden flex flex-col h-full min-h-0 bg-transparent select-none gap-y-5 md:gap-y-6">
       
@@ -814,15 +901,57 @@ const SystemPage: React.FC<SystemPageProps> = ({
         </div>
 
         <div className="flex items-center gap-3 justify-between sm:justify-end w-full sm:w-auto">
-          {/* Dynamic GPU Telemetry Status chip */}
-          <div className="hidden md:flex items-center gap-3 bg-white/[0.03] border border-white/5 rounded-2xl px-3.5 py-1.5">
-            <div className="relative w-8 h-8 rounded-xl bg-black/45 border border-white/10 flex items-center justify-center text-blue-400">
-              <Gauge className="w-4 h-4 animate-pulse" />
+          {/* Dynamic GPU Telemetry Status chip & MUX Switch Badge */}
+          <div className="hidden md:flex items-center gap-2.5">
+            <div className="flex items-center gap-3 bg-white/[0.03] border border-white/5 rounded-2xl px-3.5 py-1.5">
+              <div className="relative w-8 h-8 rounded-xl bg-black/45 border border-white/10 flex items-center justify-center text-blue-400">
+                <Gauge className="w-4 h-4 animate-pulse" />
+              </div>
+              <div className="text-right">
+                <span className="text-[7px] font-black text-zinc-500 uppercase tracking-widest block">Primary GPU</span>
+                <span className="text-[9px] font-mono font-black text-zinc-300 block whitespace-nowrap">{specs?.hardware.gpu || 'Gathering...'}</span>
+              </div>
             </div>
-            <div className="text-right">
-              <span className="text-[7px] font-black text-zinc-500 uppercase tracking-widest block">Primary GPU</span>
-              <span className="text-[9px] font-mono font-black text-zinc-300 block whitespace-nowrap">{specs?.hardware.gpu || 'Gathering...'}</span>
-            </div>
+
+            {((specs?.hardware?.mux_switch || specs?.mux_switch)) && (
+              <div
+                role="button"
+                tabIndex={0}
+                onClick={() => setViewMode('details')}
+                onKeyDown={(e) => e.key === 'Enter' && setViewMode('details')}
+                title={`Display Routing: ${(specs?.hardware?.mux_switch || specs?.mux_switch)?.display_routing}`}
+                className="flex items-center gap-2.5 bg-white/[0.03] border border-white/5 hover:border-neon-yellow/30 rounded-2xl px-3.5 py-1.5 cursor-pointer transition-all"
+              >
+                <div className="relative w-8 h-8 rounded-xl bg-neon-yellow/10 border border-neon-yellow/20 flex items-center justify-center text-neon-yellow">
+                  <Zap className="w-4 h-4 animate-pulse" />
+                </div>
+                <div className="text-left">
+                  <div className="flex items-center gap-1.5">
+                    <span className="text-[7px] font-black text-zinc-500 uppercase tracking-widest">
+                      {(specs?.hardware?.mux_switch || specs?.mux_switch)?.form_factor === 'desktop' ? 'VIDEO ROUTING' : 'MUX ROUTING'}
+                    </span>
+                    <span className={`text-[8px] font-black px-1.5 py-0.5 rounded uppercase tracking-wider ${
+                      (specs?.hardware?.mux_switch || specs?.mux_switch)?.latency_mode === 'zero_latency_direct' || (specs?.hardware?.mux_switch || specs?.mux_switch)?.current_mode === 'discrete'
+                        ? 'bg-cyan-500/10 text-cyan-400 border border-cyan-500/20'
+                        : (specs?.hardware?.mux_switch || specs?.mux_switch)?.current_mode === 'hybrid'
+                        ? 'bg-neon-yellow/10 text-neon-yellow border border-neon-yellow/20'
+                        : 'bg-emerald-500/10 text-emerald-400 border border-emerald-500/20'
+                    }`}>
+                      {(specs?.hardware?.mux_switch || specs?.mux_switch)?.form_factor === 'desktop'
+                        ? 'DESKTOP DIRECT'
+                        : (specs?.hardware?.mux_switch || specs?.mux_switch)?.current_mode === 'discrete'
+                        ? 'DISCRETE DIRECT'
+                        : (specs?.hardware?.mux_switch || specs?.mux_switch)?.current_mode === 'hybrid'
+                        ? 'HYBRID (OPTIMUS)'
+                        : ((specs?.hardware?.mux_switch || specs?.mux_switch)?.current_mode || 'AUTO').toUpperCase()}
+                    </span>
+                  </div>
+                  <span className="text-[9px] font-mono font-bold text-zinc-300 block whitespace-nowrap truncate max-w-40">
+                    {(specs?.hardware?.mux_switch || specs?.mux_switch)?.primary_oem?.name || (specs?.hardware?.mux_switch || specs?.mux_switch)?.active_display_gpu || 'Direct Display'}
+                  </span>
+                </div>
+              </div>
+            )}
           </div>
 
           {/* View Switcher (Details vs Graph vs Performance Intel) */}
@@ -995,9 +1124,34 @@ const SystemPage: React.FC<SystemPageProps> = ({
 
               {/* Dynamic Specifications Area */}
               <div className="space-y-4">
-                <div className="flex items-center gap-2">
-                  <Info className="w-3.5 h-3.5 text-zinc-500" />
-                  <span className="text-[10px] font-black text-zinc-500 uppercase tracking-widest">Specifications</span>
+                <div className="flex items-center justify-between gap-3 flex-wrap">
+                  <div className="flex items-center gap-2">
+                    <Info className="w-3.5 h-3.5 text-zinc-500" />
+                    <span className="text-[10px] font-black text-zinc-500 uppercase tracking-widest">Specifications</span>
+                  </div>
+
+                  {selectedCategory === 'GPU' && (specs?.hardware?.gpus || specs?.gpus || []).length > 1 && (
+                    <div className="flex items-center gap-1.5 p-1 bg-white/[0.02] border border-white/5 rounded-xl">
+                      {(specs?.hardware?.gpus || specs?.gpus || []).map((gpu, idx) => (
+                        <button
+                          key={idx}
+                          type="button"
+                          onClick={() => setActiveGpuIndex(idx)}
+                          className={`px-2.5 py-1 rounded-lg text-[9px] font-black uppercase tracking-wider transition-all cursor-pointer flex items-center gap-1.5 ${
+                            activeGpuIndex === idx
+                              ? 'bg-neon-yellow/15 border border-neon-yellow/30 text-neon-yellow'
+                              : 'text-zinc-500 hover:text-zinc-300 border border-transparent'
+                          }`}
+                        >
+                          <Zap className="w-2.5 h-2.5" />
+                          <span>{gpu.type === 'discrete' ? 'dGPU' : 'iGPU'}: {gpu.name}</span>
+                          {gpu.is_display_active && (
+                            <span className="w-1.5 h-1.5 rounded-full bg-neon-green" title="Active Display Output" />
+                          )}
+                        </button>
+                      ))}
+                    </div>
+                  )}
                 </div>
                 <div className="grid grid-cols-1 gap-y-1">
                   {getCategorySpecifications.map((spec: any, i: number) => (
@@ -1162,38 +1316,463 @@ const SystemPage: React.FC<SystemPageProps> = ({
                 </div>
               </motion.div>
 
-              {/* ─── GRAPHICS CARD ─── */}
-              <motion.div 
-                initial={{ opacity: 0, y: 20 }}
-                animate={{ opacity: 1, y: 0 }}
-                transition={{ delay: 0.05 }}
-                className="p-6 bg-white/[0.03] border border-white/10 rounded-3xl"
-              >
-                <div className="flex items-center gap-3 mb-6">
-                  <Zap className="w-4 h-4 text-neon-yellow" />
-                  <span className="text-[10px] font-black text-zinc-500 uppercase tracking-widest">Graphics</span>
-                </div>
-                <div className="grid grid-cols-1 gap-y-1">
-                  <SpecRow label="GPU Model" value={specs?.hardware?.gpu || '---'} explanationKey="Graphics Card" />
-                  <SpecRow label="VRAM" value={(state?.gpu_metrics?.vram_total ?? state?.gpu_metrics?.vram_total_mb) != null ? `${((state?.gpu_metrics?.vram_total ?? state?.gpu_metrics?.vram_total_mb ?? 0) / 1024).toFixed(1)} GB` : (specs?.vram_gb ? `${specs.vram_gb} GB` : '---')} explanationKey="VRAM Total" />
-                  <SpecRow label="VRAM Used" value={(state?.gpu_metrics?.vram_used ?? state?.gpu_metrics?.vram_used_mb) != null ? `${state?.gpu_metrics?.vram_used ?? state?.gpu_metrics?.vram_used_mb} MB (${state?.gpu_metrics?.vram_percent ?? 0}%)` : '---'} />
-                  <SpecRow label="Dedicated VRAM" value={specs?.vram_gb ? `${specs.vram_gb} GB` : '---'} />
-                  <SpecRow label="Driver Version" value={state?.gpu_metrics?.driver_version || '---'} />
-                  <SpecRow label="Clock Speed" value={(state?.gpu_metrics?.clock_core ?? state?.gpu_metrics?.clock_gpu_mhz) != null ? `${state?.gpu_metrics?.clock_core ?? state?.gpu_metrics?.clock_gpu_mhz} MHz (Core) / ${(state?.gpu_metrics?.clock_mem ?? state?.gpu_metrics?.clock_mem_mhz) != null ? `${state?.gpu_metrics?.clock_mem ?? state?.gpu_metrics?.clock_mem_mhz} MHz (Mem)` : '--- MHz (Mem)'}` : '---'} />
-                   <SpecRow 
-                    label="Power Draw" 
-                    value={(() => {
-                      const draw = state?.gpu_metrics?.power_draw ?? state?.gpu_metrics?.power_draw_w;
-                      const limit = state?.gpu_metrics?.power_limit ?? state?.gpu_metrics?.power_limit_w;
-                      if (draw === undefined || draw === null) return '---';
-                      const formattedDraw = Math.round(draw);
-                      const formattedLimit = limit ? ` / ${Math.round(limit)} W limit` : '';
-                      return `${formattedDraw} W${formattedLimit}`;
-                    })()} 
-                  />
-                  <SpecRow label="Temperature" value={(state?.gpu_metrics?.temp ?? state?.gpu_metrics?.temperature) ? `${Math.round(state?.gpu_metrics?.temp ?? state?.gpu_metrics?.temperature ?? 0)}°C` : '---'} />
-                </div>
-              </motion.div>
+              {/* ─── GPU ARCHITECTURE & MUX SWITCH CARD ─── */}
+              {muxInfo && (
+                <motion.div 
+                  initial={{ opacity: 0, y: 20 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  transition={{ delay: 0.04 }}
+                  className="p-6 bg-white/[0.03] border border-white/10 rounded-3xl relative overflow-hidden"
+                >
+                  <div className="flex flex-col xl:flex-row xl:items-center justify-between gap-4 mb-6">
+                    <div className="flex items-center gap-3">
+                      <div className="p-2.5 rounded-2xl bg-neon-yellow/10 border border-neon-yellow/20 text-neon-yellow shrink-0">
+                        <Zap className="w-5 h-5" />
+                      </div>
+                      <div>
+                        <div className="flex flex-wrap items-center gap-2">
+                          <span className="text-xs font-black text-white uppercase tracking-wider">
+                            {muxInfo.form_factor === 'desktop' ? 'Display Pipeline & OEM Ecosystem' : 'GPU Architecture & MUX Switch'}
+                          </span>
+                          <span className={`px-2 py-0.5 rounded-full text-[8px] font-black uppercase tracking-widest border ${
+                            muxInfo.form_factor === 'desktop'
+                              ? 'bg-cyan-500/10 border-cyan-500/20 text-cyan-400'
+                              : muxInfo.form_factor === 'handheld_apu'
+                              ? 'bg-purple-500/10 border-purple-500/20 text-purple-400'
+                              : muxInfo.has_mux
+                              ? 'bg-neon-yellow/10 border-neon-yellow/20 text-neon-yellow'
+                              : 'bg-emerald-500/10 border-emerald-500/20 text-emerald-400'
+                          }`}>
+                            {muxInfo.form_factor === 'desktop'
+                              ? 'Desktop PC Direct Link (0ms)'
+                              : muxInfo.form_factor === 'handheld_apu'
+                              ? 'Handheld APU Architecture'
+                              : muxInfo.has_mux
+                              ? 'Hybrid MUX Capable'
+                              : 'Dynamic Optimus Routing'}
+                          </span>
+                        </div>
+                        <p className="text-[10px] font-medium text-zinc-500 mt-0.5">
+                          Multi-GPU display routing, PCIe render pass-through, and OEM software synchronization.
+                        </p>
+                      </div>
+                    </div>
+
+                    {/* Quick Companion & Display Tools */}
+                    <div className="flex flex-wrap items-center gap-2 self-start xl:self-auto shrink-0">
+                      {muxInfo.primary_oem && (
+                        <button
+                          type="button"
+                          onClick={() => handleOpenOemSoftware(muxInfo.primary_oem?.protocol, muxInfo.primary_oem?.id)}
+                          className="px-3 py-1.5 rounded-xl bg-neon-yellow/10 hover:bg-neon-yellow/20 border border-neon-yellow/30 text-neon-yellow text-[9px] font-black uppercase tracking-wider flex items-center gap-1.5 transition-all cursor-pointer"
+                          title={`Launch ${muxInfo.primary_oem.name}`}
+                        >
+                          <ExternalLink className="w-3 h-3 text-neon-yellow" />
+                          <span>{muxInfo.primary_oem.name}</span>
+                        </button>
+                      )}
+
+                      <button
+                        type="button"
+                        onClick={handleOpenDisplaySwitcher}
+                        className="px-3 py-1.5 rounded-xl bg-white/5 hover:bg-white/10 border border-white/10 text-zinc-300 hover:text-white text-[9px] font-black uppercase tracking-wider flex items-center gap-1.5 transition-all cursor-pointer"
+                        title="Open Windows Display Switcher (displayswitch.exe)"
+                      >
+                        <Monitor className="w-3 h-3 text-zinc-400" />
+                        <span>Display Switcher</span>
+                      </button>
+
+                      <button
+                        type="button"
+                        onClick={handleOpenGraphicsSettings}
+                        className="px-3 py-1.5 rounded-xl bg-white/5 hover:bg-white/10 border border-white/10 text-zinc-300 hover:text-white text-[9px] font-black uppercase tracking-wider flex items-center gap-1.5 transition-all cursor-pointer"
+                        title="Open Windows Graphics Settings"
+                      >
+                        <span>Graphics Settings</span>
+                        <ChevronRight className="w-3 h-3 text-zinc-400" />
+                      </button>
+                    </div>
+                  </div>
+
+                  {/* Visual Display Routing Pipeline */}
+                  <div className="p-4 rounded-2xl bg-black/40 border border-white/5 mb-6">
+                    <div className="flex items-center justify-between gap-2 mb-3">
+                      <span className="text-[9px] font-black text-zinc-500 uppercase tracking-widest">Live Display Pipeline</span>
+                      <span className={`text-[8px] font-black uppercase tracking-widest px-2 py-0.5 rounded border ${
+                        muxInfo.latency_mode === 'zero_latency_direct'
+                          ? 'text-cyan-400 bg-cyan-500/10 border-cyan-500/20'
+                          : 'text-neon-yellow bg-neon-yellow/10 border-neon-yellow/20'
+                      }`}>
+                        {muxInfo.latency_mode === 'zero_latency_direct' ? '0ms Hardware Link' : '+1-3ms Optimus Buffer'}
+                      </span>
+                    </div>
+
+                    {muxInfo.form_factor === 'desktop' ? (
+                      <div className="flex flex-col md:flex-row items-center justify-between gap-3 text-center md:text-left">
+                        {/* Discrete GPU Node */}
+                        <div className="p-3 rounded-xl bg-white/[0.03] border border-cyan-500/20 flex-1 w-full">
+                          <div className="flex items-center gap-2 mb-1 justify-center md:justify-start">
+                            <span className="w-1.5 h-1.5 rounded-full bg-cyan-400" />
+                            <span className="text-[8px] font-black text-cyan-400 uppercase tracking-widest">Discrete 3D Render (PCIe)</span>
+                          </div>
+                          <p className="text-xs font-black text-white truncate">{muxInfo.dgpu_name || specs?.hardware.gpu}</p>
+                          <p className="text-[9px] font-medium text-zinc-500">Zero-Latency Direct Video Bus</p>
+                        </div>
+
+                        {/* Connection Cable */}
+                        <div className="flex md:flex-col items-center justify-center gap-1 text-zinc-600 shrink-0">
+                          <span className="text-[8px] font-mono font-bold uppercase tracking-wider text-cyan-400">
+                            DP / HDMI (0ms Direct)
+                          </span>
+                          <ChevronRight className="w-4 h-4 text-cyan-400 hidden md:block" />
+                        </div>
+
+                        {/* Desktop Monitor Node */}
+                        <div className="p-3 rounded-xl bg-white/[0.03] border border-white/10 flex-1 w-full">
+                          <div className="flex items-center gap-2 mb-1 justify-center md:justify-start">
+                            <span className="w-1.5 h-1.5 rounded-full bg-neon-green" />
+                            <span className="text-[8px] font-black text-neon-green uppercase tracking-widest">Physical Monitor</span>
+                          </div>
+                          <p className="text-xs font-black text-white truncate">{specs?.displays?.[0]?.resolution || '1920x1080'} @ {specs?.displays?.[0]?.refresh || '144Hz'}</p>
+                          <p className="text-[9px] font-medium text-zinc-500">{muxInfo.active_display_gpu || 'Direct Monitor Port'}</p>
+                        </div>
+                      </div>
+                    ) : muxInfo.form_factor === 'handheld_apu' ? (
+                      <div className="flex flex-col md:flex-row items-center justify-between gap-3 text-center md:text-left">
+                        {/* Handheld APU Node */}
+                        <div className="p-3 rounded-xl bg-white/[0.03] border border-purple-500/20 flex-1 w-full">
+                          <div className="flex items-center gap-2 mb-1 justify-center md:justify-start">
+                            <span className="w-1.5 h-1.5 rounded-full bg-purple-400" />
+                            <span className="text-[8px] font-black text-purple-400 uppercase tracking-widest">Handheld SoC APU</span>
+                          </div>
+                          <p className="text-xs font-black text-white truncate">{specs?.hardware?.cpu}</p>
+                          <p className="text-[9px] font-medium text-zinc-500">Unified UMA Memory Architecture</p>
+                        </div>
+
+                        {/* Connection Pipe */}
+                        <div className="flex md:flex-col items-center justify-center gap-1 text-zinc-600 shrink-0">
+                          <span className="text-[8px] font-mono font-bold uppercase tracking-wider text-purple-400">
+                            Direct MIPI / eDP
+                          </span>
+                          <ChevronRight className="w-4 h-4 text-purple-400 hidden md:block" />
+                        </div>
+
+                        {/* Touchscreen Panel */}
+                        <div className="p-3 rounded-xl bg-white/[0.03] border border-white/10 flex-1 w-full">
+                          <div className="flex items-center gap-2 mb-1 justify-center md:justify-start">
+                            <span className="w-1.5 h-1.5 rounded-full bg-neon-green" />
+                            <span className="text-[8px] font-black text-neon-green uppercase tracking-widest">Console Touch Display</span>
+                          </div>
+                          <p className="text-xs font-black text-white truncate">{specs?.displays?.[0]?.resolution || '1920x1080'} @ {specs?.displays?.[0]?.refresh || '120Hz'}</p>
+                          <p className="text-[9px] font-medium text-zinc-500">{muxInfo.active_display_gpu || 'Integrated Panel'}</p>
+                        </div>
+                      </div>
+                    ) : (
+                      <div className="flex flex-col md:flex-row items-center justify-between gap-3 text-center md:text-left">
+                        {/* Discrete GPU Node */}
+                        <div className="p-3 rounded-xl bg-white/[0.03] border border-neon-yellow/20 flex-1 w-full">
+                          <div className="flex items-center gap-2 mb-1 justify-center md:justify-start">
+                            <span className="w-1.5 h-1.5 rounded-full bg-neon-yellow" />
+                            <span className="text-[8px] font-black text-neon-yellow uppercase tracking-widest">Discrete 3D Render</span>
+                          </div>
+                          <p className="text-xs font-black text-white truncate">{muxInfo.dgpu_name || specs?.hardware.gpu}</p>
+                          <p className="text-[9px] font-medium text-zinc-500">Dedicated Gaming GPU</p>
+                        </div>
+
+                        {/* Connection Pipe */}
+                        <div className="flex md:flex-col items-center justify-center gap-1 text-zinc-600 shrink-0">
+                          <span className="text-[8px] font-mono font-bold uppercase tracking-wider text-zinc-500">
+                            {muxInfo.current_mode === 'discrete' ? 'Direct MUX' : 'PCIe Copy'}
+                          </span>
+                          <ChevronRight className="w-4 h-4 text-neon-yellow hidden md:block" />
+                        </div>
+
+                        {/* iGPU or Direct Display Node */}
+                        {muxInfo.igpu_name && (
+                          <>
+                            <div className={`p-3 rounded-xl border flex-1 w-full ${
+                              muxInfo.current_mode === 'discrete'
+                                ? 'bg-white/[0.01] border-white/5 opacity-50'
+                                : 'bg-white/[0.03] border-blue-500/20'
+                            }`}>
+                              <div className="flex items-center gap-2 mb-1 justify-center md:justify-start">
+                                <span className={`w-1.5 h-1.5 rounded-full ${muxInfo.current_mode === 'discrete' ? 'bg-zinc-600' : 'bg-blue-400'}`} />
+                                <span className="text-[8px] font-black text-blue-400 uppercase tracking-widest">Display Controller</span>
+                              </div>
+                              <p className="text-xs font-black text-white truncate">{muxInfo.igpu_name}</p>
+                              <p className="text-[9px] font-medium text-zinc-500">Desktop eDP Output</p>
+                            </div>
+
+                            <div className="flex md:flex-col items-center justify-center gap-1 text-zinc-600 shrink-0">
+                              <span className="text-[8px] font-mono font-bold uppercase tracking-wider text-zinc-500">eDP</span>
+                              <ChevronRight className="w-4 h-4 text-blue-400 hidden md:block" />
+                            </div>
+                          </>
+                        )}
+
+                        {/* Display Panel Node */}
+                        <div className="p-3 rounded-xl bg-white/[0.03] border border-white/10 flex-1 w-full">
+                          <div className="flex items-center gap-2 mb-1 justify-center md:justify-start">
+                            <span className="w-1.5 h-1.5 rounded-full bg-neon-green" />
+                            <span className="text-[8px] font-black text-neon-green uppercase tracking-widest">Physical Display</span>
+                          </div>
+                          <p className="text-xs font-black text-white truncate">{specs?.displays?.[0]?.resolution || '1920x1080'} @ {specs?.displays?.[0]?.refresh || '144Hz'}</p>
+                          <p className="text-[9px] font-medium text-zinc-500">{muxInfo.active_display_gpu || 'Primary Monitor'}</p>
+                        </div>
+                      </div>
+                    )}
+                  </div>
+
+                  {/* Working Mode Selector */}
+                  <div className="mb-6">
+                    <span className="text-[9px] font-black text-zinc-500 uppercase tracking-widest block mb-3">
+                      GPU Working Mode & OEM Mapping
+                    </span>
+                    <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3">
+                      {[
+                        {
+                          key: 'hybrid',
+                          label: 'Hybrid (Optimus)',
+                          desc: 'Balanced. iGPU powers desktop display; dGPU awakens for 3D games.',
+                          active: (muxInfo.user_preferred_mode || muxInfo.current_mode) === 'hybrid',
+                          alias: muxInfo.brand_vocabulary?.hybrid
+                        },
+                        {
+                          key: 'discrete',
+                          label: 'dGPU Direct',
+                          desc: 'Lowest latency. Dedicated RTX direct rendering for games.',
+                          active: (muxInfo.user_preferred_mode || muxInfo.current_mode) === 'discrete',
+                          alias: muxInfo.brand_vocabulary?.discrete
+                        },
+                        {
+                          key: 'igpu_only',
+                          label: 'iGPU Only (Eco)',
+                          desc: 'Max battery life. Discrete GPU suspended in ultra-low power.',
+                          active: (muxInfo.user_preferred_mode || muxInfo.current_mode) === 'igpu_only',
+                          alias: muxInfo.brand_vocabulary?.igpu_only
+                        },
+                        {
+                          key: 'auto',
+                          label: 'Auto (Advanced)',
+                          desc: 'Dynamic Advanced Optimus / Windows DirectX automatic routing.',
+                          active: (muxInfo.user_preferred_mode || muxInfo.current_mode) === 'auto',
+                          alias: muxInfo.brand_vocabulary?.auto
+                        }
+                      ].map((item) => (
+                        <button
+                          key={item.key}
+                          type="button"
+                          onClick={() => handleSetMuxMode(item.key as any)}
+                          className={`p-3.5 rounded-2xl border text-left transition-all cursor-pointer relative overflow-hidden flex flex-col justify-between gap-2 ${
+                            item.active
+                              ? 'bg-neon-yellow/10 border-neon-yellow/40 shadow-[0_0_15px_rgba(191,255,0,0.15)] text-white'
+                              : 'bg-white/[0.02] border-white/5 hover:border-white/10 text-zinc-400 hover:text-white'
+                          }`}
+                        >
+                          <div>
+                            <div className="flex items-center justify-between mb-1">
+                              <span className={`text-[10px] font-black uppercase tracking-wider ${item.active ? 'text-neon-yellow' : 'text-white'}`}>
+                                {item.label}
+                              </span>
+                              {item.active && (
+                                <span className="w-1.5 h-1.5 rounded-full bg-neon-yellow" />
+                              )}
+                            </div>
+                            {item.alias && item.alias !== item.label && (
+                              <span className="text-[8px] font-bold text-neon-yellow/80 block mb-1 tracking-tight">
+                                {item.alias}
+                              </span>
+                            )}
+                            <p className="text-[9px] font-medium text-zinc-500 leading-snug">
+                              {item.desc}
+                            </p>
+                          </div>
+                        </button>
+                      ))}
+                    </div>
+                  </div>
+
+                  {/* Detected OEM Software Ecosystem Strip */}
+                  {muxInfo.installed_oem_suites && muxInfo.installed_oem_suites.length > 0 && (
+                    <div className="p-3.5 rounded-2xl bg-white/[0.02] border border-white/5 mb-6">
+                      <div className="flex items-center justify-between gap-2 mb-2.5">
+                        <span className="text-[9px] font-black text-zinc-500 uppercase tracking-widest">
+                          Detected OEM & GPU Control Suites ({muxInfo.installed_oem_suites.length})
+                        </span>
+                        <span className="text-[8px] font-black text-neon-yellow uppercase tracking-widest">
+                          System Synchronized
+                        </span>
+                      </div>
+                      <div className="flex flex-wrap items-center gap-2">
+                        {muxInfo.installed_oem_suites.map((suite) => (
+                          <button
+                            key={suite.id}
+                            type="button"
+                            onClick={() => handleOpenOemSoftware(suite.protocol, suite.id)}
+                            className="px-3 py-1.5 rounded-xl bg-white/[0.03] hover:bg-white/[0.08] border border-white/10 hover:border-neon-yellow/30 text-white text-[9px] font-bold flex items-center gap-2 transition-all cursor-pointer group"
+                            title={`Open ${suite.name} (${suite.protocol})`}
+                          >
+                            <span className="w-1.5 h-1.5 rounded-full bg-neon-yellow group-hover:scale-125 transition-transform" />
+                            <span>{suite.name}</span>
+                            <ExternalLink className="w-2.5 h-2.5 text-zinc-500 group-hover:text-neon-yellow transition-colors" />
+                          </button>
+                        ))}
+                      </div>
+                    </div>
+                  )}
+
+                  {/* MUX Spec Rows */}
+                  <div className="grid grid-cols-1 gap-y-1">
+                    <SpecRow 
+                      label="Form Factor Architecture" 
+                      value={
+                        muxInfo.form_factor === 'desktop' 
+                          ? 'Desktop PC Rig (Direct PCIe Output)' 
+                          : muxInfo.form_factor === 'handheld_apu' 
+                          ? 'Handheld Console / APU (Unified UMA)' 
+                          : muxInfo.has_mux 
+                          ? 'Gaming Laptop (Hardware MUX Switch)' 
+                          : 'Gaming Laptop (Optimus Hybrid)'
+                      } 
+                    />
+                    <SpecRow 
+                      label="Active Working Mode" 
+                      value={
+                        muxInfo.brand_vocabulary?.[muxInfo.current_mode as keyof typeof muxInfo.brand_vocabulary] 
+                          || (muxInfo.current_mode === 'hybrid' ? 'Hybrid (NVIDIA Optimus)' : muxInfo.current_mode === 'discrete' ? 'Discrete Direct (Hardware MUX)' : muxInfo.current_mode.toUpperCase())
+                      } 
+                      explanationKey="Working Mode" 
+                    />
+                    <SpecRow label="Display Routing" value={muxInfo.display_routing} explanationKey="Display Routing" />
+                    <SpecRow 
+                      label="Hardware MUX Support" 
+                      value={
+                        muxInfo.form_factor === 'desktop' 
+                          ? 'Not Applicable (Direct PCIe Video Output)' 
+                          : muxInfo.has_mux 
+                          ? 'Supported (Hybrid Multiplexer)' 
+                          : 'Standard Optimus'
+                      } 
+                      explanationKey="Hardware MUX" 
+                    />
+                    <SpecRow label="Latency Mode" value={muxInfo.latency_mode === 'zero_latency_direct' ? 'Zero Latency (0ms direct hardware link)' : 'Standard Optimus (+1-3ms PCIe frame buffer copy)'} explanationKey="Latency Mode" />
+                    <SpecRow label="Active Display Controller" value={muxInfo.active_display_gpu || '---'} />
+                    <SpecRow 
+                      label="OEM Companion Hub" 
+                      value={muxInfo.primary_oem ? `${muxInfo.primary_oem.name} (${muxInfo.primary_oem.brand})` : 'Universal Windows / GPU Driver'} 
+                    />
+                  </div>
+                </motion.div>
+              )}
+
+              {/* ─── DISCRETE GPU (dGPU) CARD ─── */}
+              {dgpu && (
+                <motion.div 
+                  initial={{ opacity: 0, y: 20 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  transition={{ delay: 0.06 }}
+                  className="p-6 bg-white/[0.03] border border-white/10 rounded-3xl"
+                >
+                  <div className="flex items-center justify-between gap-3 mb-6">
+                    <div className="flex items-center gap-3">
+                      <Zap className="w-4 h-4 text-neon-yellow" />
+                      <div>
+                        <span className="text-[10px] font-black text-zinc-500 uppercase tracking-widest block">Discrete Graphics (dGPU)</span>
+                        <h4 className="text-sm font-black text-white">{dgpu.name}</h4>
+                      </div>
+                    </div>
+                    <span className="px-2 py-0.5 rounded-md bg-neon-yellow/10 border border-neon-yellow/20 text-[8px] font-black uppercase text-neon-yellow tracking-widest">
+                      High Performance
+                    </span>
+                  </div>
+                  <div className="grid grid-cols-1 gap-y-1">
+                    <SpecRow label="GPU Model" value={dgpu.name} explanationKey="Graphics Card" />
+                    <SpecRow label="Dedicated VRAM" value={`${dgpu.vram_gb || specs?.vram_gb || 8.0} GB GDDR6`} explanationKey="Dedicated VRAM" />
+                    <SpecRow label="VRAM Used" value={(state?.gpu_metrics?.vram_used ?? state?.gpu_metrics?.vram_used_mb) != null ? `${state?.gpu_metrics?.vram_used ?? state?.gpu_metrics?.vram_used_mb} MB (${state?.gpu_metrics?.vram_percent ?? 0}%)` : '---'} />
+                    <SpecRow label="Driver Version" value={dgpu.driver_version || state?.gpu_metrics?.driver_version || '---'} />
+                    <SpecRow label="Clock Speed" value={(state?.gpu_metrics?.clock_core ?? state?.gpu_metrics?.clock_gpu_mhz) != null ? `${state?.gpu_metrics?.clock_core ?? state?.gpu_metrics?.clock_gpu_mhz} MHz (Core) / ${(state?.gpu_metrics?.clock_mem ?? state?.gpu_metrics?.clock_mem_mhz) != null ? `${state?.gpu_metrics?.clock_mem ?? state?.gpu_metrics?.clock_mem_mhz} MHz (Mem)` : '--- MHz (Mem)'}` : '---'} />
+                    <SpecRow 
+                      label="Power Draw" 
+                      value={(() => {
+                        const draw = state?.gpu_metrics?.power_draw ?? state?.gpu_metrics?.power_draw_w;
+                        const limit = state?.gpu_metrics?.power_limit ?? state?.gpu_metrics?.power_limit_w;
+                        if (draw === undefined || draw === null) return '---';
+                        const formattedDraw = Math.round(draw);
+                        const formattedLimit = limit ? ` / ${Math.round(limit)} W limit` : '';
+                        return `${formattedDraw} W${formattedLimit}`;
+                      })()} 
+                    />
+                    <SpecRow label="Temperature" value={(state?.gpu_metrics?.temp ?? state?.gpu_metrics?.temperature) ? `${Math.round(state?.gpu_metrics?.temp ?? state?.gpu_metrics?.temperature ?? 0)}°C` : '---'} />
+                    <SpecRow label="Display Attachment" value={dgpu.is_display_active ? `Active (${dgpu.active_displays.join(', ') || 'Connected'})` : 'Optimus Pass-Through (Render Only)'} />
+                  </div>
+                </motion.div>
+              )}
+
+              {/* ─── INTEGRATED GPU (iGPU) CARD ─── */}
+              {igpu && (
+                <motion.div 
+                  initial={{ opacity: 0, y: 20 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  transition={{ delay: 0.08 }}
+                  className="p-6 bg-white/[0.03] border border-white/10 rounded-3xl"
+                >
+                  <div className="flex items-center justify-between gap-3 mb-6">
+                    <div className="flex items-center gap-3">
+                      <Cpu className="w-4 h-4 text-blue-400" />
+                      <div>
+                        <span className="text-[10px] font-black text-zinc-500 uppercase tracking-widest block">Integrated Graphics (iGPU)</span>
+                        <h4 className="text-sm font-black text-white">{igpu.name}</h4>
+                      </div>
+                    </div>
+                    <span className="px-2 py-0.5 rounded-md bg-blue-500/10 border border-blue-500/20 text-[8px] font-black uppercase text-blue-400 tracking-widest">
+                      Power Efficient
+                    </span>
+                  </div>
+                  <div className="grid grid-cols-1 gap-y-1">
+                    <SpecRow label="GPU Model" value={igpu.name} explanationKey="Graphics Card" />
+                    <SpecRow label="Provider / Architecture" value={`${igpu.vendor} Processor Graphics`} />
+                    <SpecRow label="Shared Memory" value={igpu.vram_gb ? `${igpu.vram_gb} GB Dynamic Shared RAM` : 'Shared System RAM'} />
+                    <SpecRow label="Driver Version" value={igpu.driver_version || '---'} />
+                    <SpecRow label="Display Status" value={igpu.is_display_active ? `Active (${igpu.active_displays.join(', ') || 'Internal Display'})` : 'Inactive'} />
+                    <SpecRow label="Display Role" value="Primary Desktop Presentation & Media Decoding" />
+                  </div>
+                </motion.div>
+              )}
+
+              {/* ─── FALLBACK SINGLE GRAPHICS CARD ─── */}
+              {!dgpu && !igpu && (
+                <motion.div 
+                  initial={{ opacity: 0, y: 20 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  transition={{ delay: 0.05 }}
+                  className="p-6 bg-white/[0.03] border border-white/10 rounded-3xl"
+                >
+                  <div className="flex items-center gap-3 mb-6">
+                    <Zap className="w-4 h-4 text-neon-yellow" />
+                    <span className="text-[10px] font-black text-zinc-500 uppercase tracking-widest">Graphics</span>
+                  </div>
+                  <div className="grid grid-cols-1 gap-y-1">
+                    <SpecRow label="GPU Model" value={specs?.hardware?.gpu || '---'} explanationKey="Graphics Card" />
+                    <SpecRow label="VRAM" value={(state?.gpu_metrics?.vram_total ?? state?.gpu_metrics?.vram_total_mb) != null ? `${((state?.gpu_metrics?.vram_total ?? state?.gpu_metrics?.vram_total_mb ?? 0) / 1024).toFixed(1)} GB` : (specs?.vram_gb ? `${specs.vram_gb} GB` : '---')} explanationKey="VRAM Total" />
+                    <SpecRow label="VRAM Used" value={(state?.gpu_metrics?.vram_used ?? state?.gpu_metrics?.vram_used_mb) != null ? `${state?.gpu_metrics?.vram_used ?? state?.gpu_metrics?.vram_used_mb} MB (${state?.gpu_metrics?.vram_percent ?? 0}%)` : '---'} />
+                    <SpecRow label="Dedicated VRAM" value={specs?.vram_gb ? `${specs.vram_gb} GB` : '---'} />
+                    <SpecRow label="Driver Version" value={state?.gpu_metrics?.driver_version || '---'} />
+                    <SpecRow label="Clock Speed" value={(state?.gpu_metrics?.clock_core ?? state?.gpu_metrics?.clock_gpu_mhz) != null ? `${state?.gpu_metrics?.clock_core ?? state?.gpu_metrics?.clock_gpu_mhz} MHz (Core) / ${(state?.gpu_metrics?.clock_mem ?? state?.gpu_metrics?.clock_mem_mhz) != null ? `${state?.gpu_metrics?.clock_mem ?? state?.gpu_metrics?.clock_mem_mhz} MHz (Mem)` : '--- MHz (Mem)'}` : '---'} />
+                    <SpecRow 
+                      label="Power Draw" 
+                      value={(() => {
+                        const draw = state?.gpu_metrics?.power_draw ?? state?.gpu_metrics?.power_draw_w;
+                        const limit = state?.gpu_metrics?.power_limit ?? state?.gpu_metrics?.power_limit_w;
+                        if (draw === undefined || draw === null) return '---';
+                        const formattedDraw = Math.round(draw);
+                        const formattedLimit = limit ? ` / ${Math.round(limit)} W limit` : '';
+                        return `${formattedDraw} W${formattedLimit}`;
+                      })()} 
+                    />
+                    <SpecRow label="Temperature" value={(state?.gpu_metrics?.temp ?? state?.gpu_metrics?.temperature) ? `${Math.round(state?.gpu_metrics?.temp ?? state?.gpu_metrics?.temperature ?? 0)}°C` : '---'} />
+                  </div>
+                </motion.div>
+              )}
 
               {/* ─── MEMORY CARD ─── */}
               <motion.div 

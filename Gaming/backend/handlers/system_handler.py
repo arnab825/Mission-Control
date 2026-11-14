@@ -960,3 +960,126 @@ def handle_trigger_controller_rumble(payload: dict, pipeline, bridge, config) ->
     except Exception as e:
         logger.error(f"Failed to trigger controller rumble: {e}")
 
+
+def handle_set_gpu_working_mode(payload: dict, pipeline, bridge, config, save_config_fn) -> None:
+    """Sets user preferred GPU working mode (hybrid, discrete, igpu_only, auto) and updates bridge state."""
+    try:
+        mode = str((payload or {}).get("mode", "hybrid")).lower()
+        if mode not in ("hybrid", "discrete", "igpu_only", "auto"):
+            mode = "hybrid"
+
+        config["gpu_working_mode"] = mode
+        if save_config_fn:
+            save_config_fn(config)
+
+        # Update active pipeline specs state if present
+        if pipeline and hasattr(pipeline, "_game_state"):
+            try:
+                with pipeline._state_lock:
+                    specs = pipeline._game_state.get("system_specs")
+                    if specs and isinstance(specs, dict):
+                        if "mux_switch" in specs and isinstance(specs["mux_switch"], dict):
+                            specs["mux_switch"]["user_preferred_mode"] = mode
+                        hw = specs.get("hardware")
+                        if hw and isinstance(hw, dict) and "mux_switch" in hw and isinstance(hw["mux_switch"], dict):
+                            hw["mux_switch"]["user_preferred_mode"] = mode
+            except Exception:
+                pass
+
+        if bridge:
+            bridge.update_state({
+                "config": config,
+                "gpu_working_mode": mode
+            })
+
+        logger.info(f"GPU working mode preference set to '{mode}'.")
+
+        if payload and payload.get("open_settings"):
+            handle_open_graphics_settings(payload, pipeline, bridge, config)
+    except Exception as e:
+        logger.error(f"Failed to set GPU working mode: {e}")
+
+
+def handle_open_graphics_settings(payload: dict, pipeline, bridge, config) -> None:
+    """Launches Windows Graphics Settings directly."""
+    try:
+        import platform
+        import subprocess
+        if platform.system() == "Windows":
+            si = subprocess.STARTUPINFO()
+            si.dwFlags |= subprocess.STARTF_USESHOWWINDOW
+            si.wShowWindow = 0
+            subprocess.Popen(["cmd", "/c", "start", "ms-settings:display-advanced-graphics"], shell=True, startupinfo=si, creationflags=0x08000000)
+            logger.info("Launched Windows Display Advanced Graphics Settings.")
+    except Exception as e:
+        logger.error(f"Failed to open graphics settings: {e}")
+
+
+def handle_open_oem_software(payload: dict, pipeline, bridge, config) -> None:
+    """Launches the detected OEM gaming control suite (OMEN, Armoury Crate, Lenovo Vantage, AWCC, etc.)."""
+    try:
+        import platform
+        import re
+        import subprocess
+
+        if platform.system() != "Windows":
+            return
+
+        payload = payload or {}
+        protocol = str(payload.get("protocol", "")).strip()
+        suite_id = str(payload.get("suite_id", "")).strip().lower()
+
+        # Protocol mapping fallback for known OEM suite IDs
+        suite_proto_map = {
+            "hp_omen": "omencommandcenter:",
+            "asus_armoury_crate": "armoury-crate:",
+            "asus_ghelper": "ghelper:",
+            "lenovo_vantage": "lenovovantage:",
+            "lenovo_legion_toolkit": "legiontoolkit:",
+            "alienware_awcc": "awcc:",
+            "msi_center": "msi-center:",
+            "acer_predator_sense": "predatorsense:",
+            "razer_synapse": "razer:",
+            "gigabyte_gcc": "gcc:",
+            "nvidia_app": "nvidiaapp:",
+            "amd_adrenalin": "amd:",
+            "intel_gcc": "igcc:"
+        }
+
+        if not protocol and suite_id:
+            protocol = suite_proto_map.get(suite_id, "")
+
+        if not protocol:
+            protocol = "omencommandcenter:"
+
+        if not protocol.endswith(":"):
+            protocol += ":"
+
+        # Security check: ensure protocol is strictly an alphanumeric/hyphen scheme
+        if not re.match(r"^[a-zA-Z0-9_\-\.]+:$", protocol):
+            logger.warning(f"Rejected potentially unsafe OEM protocol scheme: {protocol}")
+            return
+
+        si = subprocess.STARTUPINFO()
+        si.dwFlags |= subprocess.STARTF_USESHOWWINDOW
+        si.wShowWindow = 0
+        subprocess.Popen(["cmd", "/c", "start", "", protocol], shell=True, startupinfo=si, creationflags=0x08000000)
+        logger.info(f"Launched OEM companion software with protocol '{protocol}'.")
+    except Exception as e:
+        logger.error(f"Failed to launch OEM companion software: {e}")
+
+
+def handle_open_display_switcher(payload: dict, pipeline, bridge, config) -> None:
+    """Launches the native Windows Display Projector / Switcher panel (displayswitch.exe)."""
+    try:
+        import platform
+        import subprocess
+
+        if platform.system() == "Windows":
+            subprocess.Popen(["displayswitch.exe"], shell=False)
+            logger.info("Launched Windows Display Switcher (displayswitch.exe).")
+    except Exception as e:
+        logger.error(f"Failed to open display switcher: {e}")
+
+
+

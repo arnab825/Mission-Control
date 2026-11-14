@@ -606,6 +606,620 @@ class HardwareChecker:
             logger.warning(f"Consolidated Windows spec query failed: {e}. Falling back.")
         return None
 
+    def _detect_oem_software(self, manufacturer="", model="", gpus=None):
+        """Detects OEM gaming software suites (OMEN, Armoury Crate, Lenovo Vantage, AWCC, MSI, etc.) and GPU vendor tools."""
+        if gpus is None:
+            gpus = []
+
+        protocols = set()
+        if platform.system() == "Windows":
+            try:
+                import winreg
+                for root in [winreg.HKEY_CURRENT_USER, winreg.HKEY_LOCAL_MACHINE]:
+                    try:
+                        with winreg.OpenKey(root, r"Software\Classes") as k:
+                            n_sub, _, _ = winreg.QueryInfoKey(k)
+                            for i in range(n_sub):
+                                sub = winreg.EnumKey(k, i)
+                                try:
+                                    with winreg.OpenKey(k, sub) as sk:
+                                        winreg.QueryValueEx(sk, "URL Protocol")
+                                        protocols.add(sub.lower())
+                                except Exception:
+                                    pass
+                    except Exception:
+                        pass
+            except Exception as e:
+                logger.debug(f"Protocol enumeration error: {e}")
+
+        known_suites = [
+            {
+                "id": "hp_omen",
+                "name": "HP OMEN Gaming Hub",
+                "brand": "HP",
+                "category": "oem_suite",
+                "protocol": "omencommandcenter:",
+                "protocols": ["omencommandcenter", "omenapplication", "omen"],
+                "reg_keys": [r"Software\HP\OMEN Gaming Hub"],
+                "modes": {
+                    "discrete": "OMEN Discrete Mode",
+                    "hybrid": "OMEN Hybrid Mode",
+                    "igpu_only": "OMEN Eco Mode",
+                    "auto": "OMEN Auto Switch"
+                }
+            },
+            {
+                "id": "asus_armoury_crate",
+                "name": "ASUS Armoury Crate",
+                "brand": "ASUS",
+                "category": "oem_suite",
+                "protocol": "armoury-crate:",
+                "protocols": ["armoury-crate", "asus-armourycrate", "armourycrate"],
+                "reg_keys": [r"Software\ASUS\Armoury Crate"],
+                "modes": {
+                    "discrete": "Ultimate Mode (Direct MUX)",
+                    "hybrid": "Standard Mode (Optimus)",
+                    "igpu_only": "Eco Mode (dGPU Off)",
+                    "auto": "Optimized Mode"
+                }
+            },
+            {
+                "id": "asus_ghelper",
+                "name": "G-Helper",
+                "brand": "ASUS",
+                "category": "oem_suite",
+                "protocol": "ghelper:",
+                "protocols": ["ghelper"],
+                "reg_keys": [],
+                "modes": {
+                    "discrete": "Ultimate (dGPU Direct)",
+                    "hybrid": "Standard (Hybrid)",
+                    "igpu_only": "Eco (iGPU Only)",
+                    "auto": "Optimized (Auto)"
+                }
+            },
+            {
+                "id": "lenovo_vantage",
+                "name": "Lenovo Vantage / Legion Zone",
+                "brand": "Lenovo",
+                "category": "oem_suite",
+                "protocol": "lenovovantage:",
+                "protocols": ["lenovovantage", "vantage", "lenovolegion"],
+                "reg_keys": [r"Software\Lenovo\Vantage"],
+                "modes": {
+                    "discrete": "dGPU Mode (Discrete Only)",
+                    "hybrid": "Hybrid Mode (Dynamic)",
+                    "igpu_only": "Hybrid-iGPU Mode (Eco)",
+                    "auto": "Hybrid-Auto Mode"
+                }
+            },
+            {
+                "id": "lenovo_legion_toolkit",
+                "name": "Lenovo Legion Toolkit",
+                "brand": "Lenovo",
+                "category": "oem_suite",
+                "protocol": "legiontoolkit:",
+                "protocols": ["legiontoolkit"],
+                "reg_keys": [],
+                "modes": {
+                    "discrete": "dGPU Mode",
+                    "hybrid": "Hybrid Mode",
+                    "igpu_only": "Hybrid-iGPU Mode",
+                    "auto": "Hybrid-Auto Mode"
+                }
+            },
+            {
+                "id": "alienware_awcc",
+                "name": "Alienware Command Center",
+                "brand": "Alienware",
+                "category": "oem_suite",
+                "protocol": "awcc:",
+                "protocols": ["awcc", "alienware-command-center"],
+                "reg_keys": [r"Software\Alienware\Alienware Command Center"],
+                "modes": {
+                    "discrete": "Direct dGPU Display Mode",
+                    "hybrid": "NVIDIA Advanced Optimus",
+                    "igpu_only": "Integrated Graphics Only",
+                    "auto": "Dynamic Display Switching (DDS)"
+                }
+            },
+            {
+                "id": "msi_center",
+                "name": "MSI Center",
+                "brand": "MSI",
+                "category": "oem_suite",
+                "protocol": "msi-center:",
+                "protocols": ["msi-center", "dragon-center", "msicenter"],
+                "reg_keys": [r"Software\MSI\MSI Center"],
+                "modes": {
+                    "discrete": "Discrete Graphics Mode",
+                    "hybrid": "MSHybrid Graphics Mode",
+                    "igpu_only": "Integrated Graphics Mode",
+                    "auto": "Auto MSHybrid"
+                }
+            },
+            {
+                "id": "acer_predator_sense",
+                "name": "Acer PredatorSense",
+                "brand": "Acer",
+                "category": "oem_suite",
+                "protocol": "predatorsense:",
+                "protocols": ["predatorsense", "nitrosense"],
+                "reg_keys": [r"Software\Acer\PredatorSense", r"Software\Acer\NitroSense"],
+                "modes": {
+                    "discrete": "Discrete GPU Only",
+                    "hybrid": "Optimus Mode",
+                    "igpu_only": "Integrated Only",
+                    "auto": "Dynamic Switching"
+                }
+            },
+            {
+                "id": "razer_synapse",
+                "name": "Razer Synapse",
+                "brand": "Razer",
+                "category": "oem_suite",
+                "protocol": "razer:",
+                "protocols": ["razer", "synapse"],
+                "reg_keys": [r"Software\Razer\Synapse3"],
+                "modes": {
+                    "discrete": "Dedicated GPU Only",
+                    "hybrid": "NVIDIA Optimus",
+                    "igpu_only": "Integrated Only",
+                    "auto": "Dynamic Display"
+                }
+            },
+            {
+                "id": "gigabyte_gcc",
+                "name": "Gigabyte Control Center",
+                "brand": "Gigabyte",
+                "category": "oem_suite",
+                "protocol": "gcc:",
+                "protocols": ["gcc", "gigabytecontrolcenter", "aorus"],
+                "reg_keys": [r"Software\GIGABYTE\GigabyteControlCenter"],
+                "modes": {
+                    "discrete": "dGPU Direct Mode",
+                    "hybrid": "Dynamic Switch (Optimus)",
+                    "igpu_only": "iGPU Only Mode",
+                    "auto": "Smart Switch"
+                }
+            },
+            {
+                "id": "nvidia_app",
+                "name": "NVIDIA App",
+                "brand": "NVIDIA",
+                "category": "gpu_vendor",
+                "protocol": "nvidiaapp:",
+                "protocols": ["nvidiaapp", "nvidia"],
+                "reg_keys": [r"Software\NVIDIA Corporation\Global\NVTweak"],
+                "modes": {
+                    "discrete": "NVIDIA GPU Only (Direct MUX)",
+                    "hybrid": "Optimus (Standard Display)",
+                    "igpu_only": "Integrated Graphics",
+                    "auto": "Automatic Select (Advanced Optimus)"
+                }
+            },
+            {
+                "id": "amd_adrenalin",
+                "name": "AMD Software: Adrenalin Edition",
+                "brand": "AMD",
+                "category": "gpu_vendor",
+                "protocol": "amd:",
+                "protocols": ["amd", "amdradeon"],
+                "reg_keys": [r"Software\AMD\CN"],
+                "modes": {
+                    "discrete": "Discrete GPU Direct",
+                    "hybrid": "AMD SmartAccess Graphics",
+                    "igpu_only": "Power Saving iGPU",
+                    "auto": "Dynamic Switchable Graphics"
+                }
+            },
+            {
+                "id": "intel_gcc",
+                "name": "Intel Graphics Command Center",
+                "brand": "Intel",
+                "category": "gpu_vendor",
+                "protocol": "igcc:",
+                "protocols": ["igcc", "arc-control"],
+                "reg_keys": [r"Software\Intel\IGCC"],
+                "modes": {
+                    "discrete": "Direct Arc Display Link",
+                    "hybrid": "Hybrid Display Buffer",
+                    "igpu_only": "Intel UHD / Iris Xe Only",
+                    "auto": "Dynamic Switch"
+                }
+            }
+        ]
+
+        installed_suites = []
+        if platform.system() == "Windows":
+            try:
+                import winreg
+                for suite in known_suites:
+                    is_installed = False
+                    active_protocol = suite["protocol"]
+                    for p in suite["protocols"]:
+                        if p in protocols:
+                            is_installed = True
+                            active_protocol = f"{p}:"
+                            break
+
+                    if not is_installed:
+                        for rk in suite["reg_keys"]:
+                            for root in [winreg.HKEY_LOCAL_MACHINE, winreg.HKEY_CURRENT_USER]:
+                                try:
+                                    with winreg.OpenKey(root, rk):
+                                        is_installed = True
+                                        break
+                                except Exception:
+                                    pass
+                            if is_installed:
+                                break
+
+                    if is_installed:
+                        suite_copy = {
+                            "id": suite["id"],
+                            "name": suite["name"],
+                            "brand": suite["brand"],
+                            "category": suite["category"],
+                            "protocol": active_protocol,
+                            "modes": suite.get("modes", {})
+                        }
+                        installed_suites.append(suite_copy)
+            except Exception as e:
+                logger.debug(f"OEM suite inspection error: {e}")
+
+        # Pick primary OEM suite matching PC manufacturer
+        mfg_upper = (manufacturer or "").upper()
+        primary_oem = None
+
+        # 1. Match hardware manufacturer
+        for s in installed_suites:
+            if s["category"] == "oem_suite" and s["brand"].upper() in mfg_upper:
+                primary_oem = s
+                break
+
+        # 2. If no suite matched the manufacturer, but manufacturer is a known laptop brand,
+        # do not let a different OEM brand's suite hijack this laptop's profile
+        known_laptop_brands = ["ASUS", "ASUSTEK", "LENOVO", "HP", "HEWLETT-PACKARD", "DELL", "ALIENWARE", "MSI", "MICRO-STAR", "ACER", "RAZER", "GIGABYTE"]
+        has_known_mfg = any(b in mfg_upper for b in known_laptop_brands)
+
+        # 3. Only fallback to another installed OEM suite if manufacturer is generic (e.g. custom desktop)
+        if not primary_oem and not has_known_mfg:
+            for s in installed_suites:
+                if s["category"] == "oem_suite":
+                    primary_oem = s
+                    break
+
+        # 4. Fallback to GPU vendor suite (NVIDIA App, AMD Adrenalin, Intel GCC)
+        if not primary_oem:
+            for s in installed_suites:
+                if s["category"] == "gpu_vendor":
+                    primary_oem = s
+                    break
+
+        # Brand vocabulary for GPU working modes
+        brand_vocabulary = {
+            "discrete": "Discrete Direct (Direct MUX Link)",
+            "hybrid": "Hybrid Optimus (PCIe Buffer)",
+            "igpu_only": "iGPU Eco Mode (Power Saving)",
+            "auto": "Dynamic Auto Switching"
+        }
+
+        if primary_oem and primary_oem.get("modes") and primary_oem.get("brand", "").upper() in mfg_upper:
+            brand_vocabulary = primary_oem["modes"]
+        elif "ASUS" in mfg_upper:
+            brand_vocabulary = {
+                "discrete": "Ultimate Mode (Direct MUX Link)",
+                "hybrid": "Standard Mode (Optimus PCIe Buffer)",
+                "igpu_only": "Eco Mode (dGPU Powered Down)",
+                "auto": "Optimized Mode (Smart Dynamic)"
+            }
+        elif "LENOVO" in mfg_upper:
+            brand_vocabulary = {
+                "discrete": "dGPU Mode (Discrete Only)",
+                "hybrid": "Hybrid Mode (Dynamic Optimus)",
+                "igpu_only": "Hybrid-iGPU Mode (Eco)",
+                "auto": "Hybrid-Auto Mode"
+            }
+        elif "HP" in mfg_upper:
+            brand_vocabulary = {
+                "discrete": "OMEN Discrete Mode",
+                "hybrid": "OMEN Hybrid Mode",
+                "igpu_only": "OMEN Eco Mode",
+                "auto": "OMEN Auto Switch"
+            }
+        elif "MSI" in mfg_upper or "MICRO-STAR" in mfg_upper:
+            brand_vocabulary = {
+                "discrete": "Discrete Graphics Mode (MUX Direct)",
+                "hybrid": "MSHybrid Graphics Mode (Optimus)",
+                "igpu_only": "Integrated Graphics Mode",
+                "auto": "Auto MSHybrid"
+            }
+        elif "DELL" in mfg_upper or "ALIENWARE" in mfg_upper:
+            brand_vocabulary = {
+                "discrete": "Direct dGPU Display Mode",
+                "hybrid": "NVIDIA Advanced Optimus",
+                "igpu_only": "Integrated Graphics Only",
+                "auto": "Dynamic Display Switching (DDS)"
+            }
+        elif "ACER" in mfg_upper:
+            brand_vocabulary = {
+                "discrete": "Discrete GPU Only",
+                "hybrid": "Optimus Mode",
+                "igpu_only": "Integrated Only",
+                "auto": "Dynamic Switching"
+            }
+        elif "RAZER" in mfg_upper:
+            brand_vocabulary = {
+                "discrete": "Dedicated GPU Only",
+                "hybrid": "NVIDIA Optimus",
+                "igpu_only": "Integrated Only",
+                "auto": "Dynamic Display"
+            }
+        elif "GIGABYTE" in mfg_upper:
+            brand_vocabulary = {
+                "discrete": "dGPU Direct Mode",
+                "hybrid": "Dynamic Switch (Optimus)",
+                "igpu_only": "iGPU Only Mode",
+                "auto": "Smart Switch"
+            }
+        elif primary_oem and primary_oem.get("modes"):
+            brand_vocabulary = primary_oem["modes"]
+
+        return primary_oem, installed_suites, brand_vocabulary
+
+    def _get_gpu_architecture_and_mux(self, manufacturer="", model=""):
+        """Discovers discrete and integrated GPUs, active display routing, and MUX switch capability."""
+        if platform.system() != "Windows":
+            return [], {
+                "has_mux": False,
+                "current_mode": "auto",
+                "user_preferred_mode": self.config.get("gpu_working_mode", "auto"),
+                "display_routing": "Standard Display Pipeline",
+                "latency_mode": "standard_hybrid",
+                "active_display_gpu": "Default Display",
+                "dgpu_name": "",
+                "igpu_name": "",
+                "supports_advanced_optimus": False,
+                "form_factor": "desktop",
+                "architecture_type": "desktop_direct",
+                "primary_oem": None,
+                "installed_oem_suites": [],
+                "brand_vocabulary": {}
+            }
+
+        # 1. Enumerate active display attachments via EnumDisplayDevicesW
+        active_displays_by_gpu = {}
+        primary_display_gpu = ""
+        try:
+            import ctypes
+            from ctypes import wintypes
+
+            class DISPLAY_DEVICEW(ctypes.Structure):
+                _fields_ = [
+                    ('cb', wintypes.DWORD),
+                    ('DeviceName', ctypes.c_wchar * 32),
+                    ('DeviceString', ctypes.c_wchar * 128),
+                    ('StateFlags', wintypes.DWORD),
+                    ('DeviceID', ctypes.c_wchar * 128),
+                    ('DeviceKey', ctypes.c_wchar * 128),
+                ]
+
+            DISPLAY_DEVICE_ATTACHED_TO_DESKTOP = 0x00000001
+            DISPLAY_DEVICE_PRIMARY_DEVICE      = 0x00000004
+
+            idx = 0
+            while True:
+                dev = DISPLAY_DEVICEW()
+                dev.cb = ctypes.sizeof(DISPLAY_DEVICEW)
+                if not ctypes.windll.user32.EnumDisplayDevicesW(None, idx, ctypes.byref(dev), 0):
+                    break
+                attached = bool(dev.StateFlags & DISPLAY_DEVICE_ATTACHED_TO_DESKTOP)
+                primary = bool(dev.StateFlags & DISPLAY_DEVICE_PRIMARY_DEVICE)
+                gpu_str = dev.DeviceString.strip()
+                if attached and gpu_str:
+                    active_displays_by_gpu.setdefault(gpu_str, []).append({
+                        "display": dev.DeviceName,
+                        "primary": primary
+                    })
+                    if primary:
+                        primary_display_gpu = gpu_str
+                idx += 1
+        except Exception as e:
+            logger.debug(f"EnumDisplayDevicesW error: {e}")
+
+        # 2. Enumerate installed video controllers via Windows Registry
+        def parse_vram(val):
+            if isinstance(val, bytes):
+                return int.from_bytes(val, 'little')
+            elif isinstance(val, int):
+                return val
+            return 0
+
+        gpus = []
+        key_path = r"SYSTEM\CurrentControlSet\Control\Class\{4d36e968-e325-11ce-bfc1-08002be10318}"
+        try:
+            import winreg
+            with winreg.OpenKey(winreg.HKEY_LOCAL_MACHINE, key_path) as base_key:
+                i = 0
+                while True:
+                    try:
+                        sub_name = winreg.EnumKey(base_key, i)
+                        i += 1
+                        if not sub_name.isdigit():
+                            continue
+                        with winreg.OpenKey(base_key, sub_name) as sub_key:
+                            try:
+                                desc, _ = winreg.QueryValueEx(sub_key, "DriverDesc")
+                                mfg = "Unknown"
+                                ver = "---"
+                                try:
+                                    mfg, _ = winreg.QueryValueEx(sub_key, "ProviderName")
+                                except Exception:
+                                    pass
+                                try:
+                                    ver, _ = winreg.QueryValueEx(sub_key, "DriverVersion")
+                                except Exception:
+                                    pass
+
+                                vram = 0
+                                for vk in ["HardwareInformation.qwMemorySize", "HardwareInformation.MemorySize"]:
+                                    try:
+                                        vram_raw, _ = winreg.QueryValueEx(sub_key, vk)
+                                        vram = parse_vram(vram_raw)
+                                        if vram > 0:
+                                            break
+                                    except Exception:
+                                        pass
+
+                                desc_lower = desc.lower()
+                                mfg_lower = mfg.lower()
+
+                                # Categorize vendor
+                                if "nvidia" in desc_lower or "nvidia" in mfg_lower:
+                                    vendor = "NVIDIA"
+                                elif "intel" in desc_lower or "intel" in mfg_lower:
+                                    vendor = "Intel"
+                                elif "amd" in desc_lower or "ati" in desc_lower or "advanced micro devices" in mfg_lower or "amd" in mfg_lower:
+                                    vendor = "AMD"
+                                else:
+                                    vendor = "Other"
+
+                                # Categorize discrete vs integrated
+                                is_integrated = (
+                                    "uhd" in desc_lower or "iris" in desc_lower or "hd graphics" in desc_lower or
+                                    "vega" in desc_lower or ("radeon(tm) graphics" in desc_lower and vram < 4 * (1024**3)) or
+                                    (vendor == "Intel" and "arc" not in desc_lower)
+                                )
+                                gpu_type = "integrated" if is_integrated else "discrete"
+
+                                # Check active display attachment
+                                attached_list = active_displays_by_gpu.get(desc, [])
+                                is_display_active = len(attached_list) > 0
+                                is_primary = any(d.get("primary") for d in attached_list) or (desc == primary_display_gpu)
+
+                                gpus.append({
+                                    "index": sub_name,
+                                    "name": desc,
+                                    "vendor": vendor,
+                                    "type": gpu_type,
+                                    "driver_version": ver,
+                                    "vram_mb": round(vram / (1024**2)),
+                                    "vram_gb": round(vram / (1024**3), 1),
+                                    "is_primary": is_primary,
+                                    "is_display_active": is_display_active,
+                                    "active_displays": [d["display"] for d in attached_list]
+                                })
+                            except Exception:
+                                pass
+                    except OSError:
+                        break
+        except Exception as e:
+            logger.debug(f"Registry GPU query error: {e}")
+
+        # 3. Compute MUX Switch and Display Routing
+        dgpus = [g for g in gpus if g.get("type") == "discrete"]
+        igpus = [g for g in gpus if g.get("type") == "integrated"]
+
+        dgpu_name = dgpus[0]["name"] if dgpus else ""
+        igpu_name = igpus[0]["name"] if igpus else ""
+        has_mux = (len(dgpus) > 0 and len(igpus) > 0)
+
+        # 3. Determine form factor and architecture topology
+        is_battery = False
+        if _PSUTIL_AVAILABLE:
+            try:
+                is_battery = (psutil.sensors_battery() is not None)
+            except Exception:
+                pass
+
+        model_lower = (model or "").lower()
+        is_handheld = any(kw in model_lower for kw in ["ally", "legion go", "steam deck", "claw", "ayaneo", "gpd", "onexplayer", "aokzoe"])
+
+        current_mode = "auto"
+        display_routing = "Internal Display"
+        latency_mode = "standard_hybrid"
+        active_display_gpu = primary_display_gpu or (igpus[0]["name"] if igpus else (dgpus[0]["name"] if dgpus else "Default"))
+
+        if is_handheld:
+            form_factor = "handheld_apu"
+            architecture_type = "apu_unified"
+            latency_mode = "zero_latency_direct"
+            display_routing = f"Internal Display -> {igpu_name or (dgpus[0]['name'] if dgpus else 'SoC APU')} (Unified UMA Architecture)"
+            current_mode = "auto"
+        elif not is_battery:
+            form_factor = "desktop"
+            if dgpus:
+                architecture_type = "desktop_direct"
+                latency_mode = "zero_latency_direct"
+                display_routing = f"Dedicated DisplayPort / HDMI -> {dgpu_name} (Direct PCIe Video Bus)"
+                current_mode = "discrete"
+            else:
+                architecture_type = "integrated_only"
+                display_routing = f"Motherboard Video Output -> {igpu_name or 'Integrated GPU'}"
+                current_mode = "igpu_only"
+        else:
+            form_factor = "laptop"
+            if has_mux:
+                architecture_type = "hybrid_mux"
+                dgpu_active = any(g.get("is_display_active") for g in dgpus)
+                igpu_active = any(g.get("is_display_active") for g in igpus)
+
+                if dgpu_active and not igpu_active:
+                    current_mode = "discrete"
+                    display_routing = f"Internal Panel -> {dgpu_name} (Direct MUX Link)"
+                    latency_mode = "zero_latency_direct"
+                elif igpu_active:
+                    current_mode = "hybrid"
+                    display_routing = f"Internal Panel -> {igpu_name} (Optimus PCIe pass-through buffer)"
+                    latency_mode = "standard_hybrid"
+                else:
+                    current_mode = "hybrid"
+                    display_routing = f"Internal Panel -> {igpu_name} (Hybrid Route)"
+            elif dgpus and igpus:
+                architecture_type = "hybrid_optimus"
+                current_mode = "hybrid"
+                display_routing = f"Internal Panel -> {igpu_name} (Optimus PCIe pass-through buffer)"
+                latency_mode = "standard_hybrid"
+            elif dgpus:
+                architecture_type = "desktop_direct"
+                current_mode = "discrete"
+                display_routing = f"Display -> {dgpu_name} (Direct Video Bus)"
+                latency_mode = "zero_latency_direct"
+            else:
+                architecture_type = "integrated_only"
+                current_mode = "igpu_only"
+                fallback_name = igpu_name or "Integrated GPU"
+                display_routing = f"Display -> {fallback_name} (Direct Video Bus)"
+
+        user_pref = self.config.get("gpu_working_mode") or current_mode
+
+        # 4. Detect OEM gaming software suites & brand vocabulary
+        primary_oem, installed_suites, brand_vocabulary = self._detect_oem_software(
+            manufacturer=manufacturer,
+            model=model,
+            gpus=gpus
+        )
+
+        mux_switch = {
+            "has_mux": has_mux,
+            "current_mode": current_mode,
+            "user_preferred_mode": user_pref,
+            "display_routing": display_routing,
+            "latency_mode": latency_mode,
+            "active_display_gpu": active_display_gpu,
+            "dgpu_name": dgpu_name,
+            "igpu_name": igpu_name,
+            "supports_advanced_optimus": has_mux,
+            "form_factor": form_factor,
+            "architecture_type": architecture_type,
+            "primary_oem": primary_oem,
+            "installed_oem_suites": installed_suites,
+            "brand_vocabulary": brand_vocabulary
+        }
+
+        return gpus, mux_switch
+
     def get_basic_specs(self):
         """Fetches basic hardware specs synchronously and instantly (under 10ms)."""
         ram_gb = 0
@@ -628,6 +1242,13 @@ class HardwareChecker:
 
         os_edition = platform.system() + " " + platform.release()
         device_specs = self._get_device_specs()
+        mfg = (device_specs or {}).get("manufacturer", "")
+        model_name = (device_specs or {}).get("model", "")
+        gpus, mux_switch = self._get_gpu_architecture_and_mux(manufacturer=mfg, model=model_name)
+        primary_gpu = "Detecting..."
+        if gpus:
+            dgpus = [g for g in gpus if g.get("type") == "discrete"]
+            primary_gpu = dgpus[0]["name"] if dgpus else gpus[0]["name"]
         
         return {
             "device_specs": device_specs,
@@ -635,12 +1256,16 @@ class HardwareChecker:
                 "cpu": cpu_name,
                 "cores": psutil.cpu_count(logical=False) if _PSUTIL_AVAILABLE else 0,
                 "threads": psutil.cpu_count(logical=True) if _PSUTIL_AVAILABLE else 0,
-                "gpu": "Detecting...",
+                "gpu": primary_gpu,
+                "gpus": gpus,
+                "mux_switch": mux_switch,
                 "ram": f"{int(ram_gb)}GB" if ram_gb else "---",
                 "storage": "Detecting...",
                 "ram_details": [],
                 "storage_details": []
             },
+            "gpus": gpus,
+            "mux_switch": mux_switch,
             "network": None,
             "wifi": None,
             "os_details": {
@@ -720,6 +1345,20 @@ class HardwareChecker:
                             vram_gb = round(vram_bytes / (1024 ** 3), 1)
             except Exception:
                 pass
+
+        # High-fidelity multi-GPU & MUX switch discovery
+        current_device_specs = (self._cached_specs.get("device_specs") if self._cached_specs else None) or self._get_device_specs()
+        mfg = (current_device_specs or {}).get("manufacturer", "")
+        model_name = (current_device_specs or {}).get("model", "")
+        gpus, mux_switch = self._get_gpu_architecture_and_mux(manufacturer=mfg, model=model_name)
+        if gpus:
+            dgpus = [g for g in gpus if g.get("type") == "discrete"]
+            if not gpu_name or gpu_name == "Unknown":
+                gpu_name = dgpus[0]["name"] if dgpus else gpus[0]["name"]
+                if dgpus and dgpus[0].get("vram_gb"):
+                    vram_gb = dgpus[0]["vram_gb"]
+                elif gpus[0].get("vram_gb"):
+                    vram_gb = gpus[0]["vram_gb"]
         
         wifi = self._get_wifi_details()  # Dynamic — always refresh (signal changes)
 
@@ -824,12 +1463,16 @@ class HardwareChecker:
                 "cores": cores,
                 "threads": threads,
                 "gpu": gpu_name,
+                "gpus": gpus,
+                "mux_switch": mux_switch,
                 "gpu_capabilities": gpu_caps_profile,
                 "ram": f"{int(ram_gb)}GB",
                 "storage": storage_info,
                 "ram_details": ram_details,
                 "storage_details": storage_details
             },
+            "gpus": gpus,
+            "mux_switch": mux_switch,
             "network": network_info,
             "wifi": wifi,
             "os_details": os_details,
