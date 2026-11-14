@@ -10,7 +10,30 @@ excerpt: "Curated breakdown of major version releases, architectural milestones,
 
 Comprehensive breakdown of major milestone releases, architectural upgrades, and core engine enhancements in **Mission Control**.
 
-## 🌟 Version v3.9.6 (Latest) — Discord & Google OAuth Profile Isolation, Avatar Proxy Validation & Handle Resolution
+## 🌟 Version v3.9.7 (Latest) — Telemetry Stress Map Responsiveness, Device Specs Panel & Deep Account Deletion Purge
+
+### 🛠️ Key Highlights
+1. **Redesigned Hardware Stress Map with stacked dual-row layout and responsive 10-segment track**
+2. **Added Device Specifications panel with native hardware, motherboard, and BIOS metrics**
+3. **Fixed scroll retention bug in System Telemetry details view**
+4. **Hardened account deletion with deep SQLite and Supabase user account purges and state cleanup**
+
+### 📊 Architecture & Data Flow
+```mermaid
+graph TD
+    A["Mobile Client / DevTools (320px+)"] --> B[Responsive CSS & Layout Container]
+    B --> C[DocsClient Component & Cards]
+    C --> D[MobileDocsSidebar Drawer & Header Bar]
+    D --> E[Real-Time Mongo Telemetry & Render]
+```
+
+### 📦 Distribution Artifacts
+- **Linux**: `.deb` (Debian/Ubuntu), `.AppImage` (Universal), `.rpm` (Fedora/RHEL), `.tar.gz` (Portable)
+- **Windows**: `.exe` (Setup Installer), `.msi` (Enterprise), `.zip` (Portable)
+
+---
+
+## 📦 Version v3.9.6 — Discord & Google OAuth Profile Isolation, Avatar Proxy Validation & Handle Resolution
 
 ### 🛠️ Key Highlights
 1. **Isolated Discord identity display from Google full name**

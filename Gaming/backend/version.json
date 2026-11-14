@@ -1,8 +1,19 @@
 {
-  "version": "3.9.6",
+  "version": "3.9.7",
   "release_date": "2026-11-12",
   "update_check_url": "https://raw.githubusercontent.com/arnab825/Mission-Control/main/Gaming/backend/version.json",
   "changelog": [
+    {
+      "version": "3.9.7",
+      "date": "2026-11-14",
+      "title": "Telemetry Stress Map Responsiveness, Device Specs Panel & Deep Account Deletion Purge",
+      "highlights": [
+        "Redesigned Hardware Stress Map with stacked dual-row layout and responsive 10-segment track",
+        "Added Device Specifications panel with native hardware, motherboard, and BIOS metrics",
+        "Fixed scroll retention bug in System Telemetry details view",
+        "Hardened account deletion with deep SQLite and Supabase user account purges and state cleanup"
+      ]
+    },
     {
       "version": "3.9.6",
       "date": "2026-11-13",
@@ -580,20 +591,6 @@
         "Upgraded Google Gemini models to 3.7 and 3.8 Flash across website and app",
         "Removed deprecated model dropdown injection and added auto-synchronization in Settings",
         "Cleaned up Games Library header: removed storage/count pills and aligned buttons"
-      ]
-    },
-    {
-      "version": "3.5.0",
-      "date": "2026-09-03",
-      "title": "Fixed Auto-Updater Stale Version Downloads, False Up-to-Date, and Upgrade Now UI Flash",
-      "highlights": [
-        "Fixed stale directUpdateInfo cache causing old version downloads when skipping multiple releases",
-        "Fixed Upgrade Now button triggering a UI refresh flash by removing intermediate checking status",
-        "Fixed Check Again falsely showing up to date due to electron-updater internal session cache",
-        "Added GitHub Releases API cross-check fallback on manual update-not-available events",
-        "Filtered pre-releases and sorted by semver descending in GitHub release resolver",
-        "Always re-fetch latest GitHub release URL before download to prevent stale version hijacking",
-        "Prevented native up-to-date status from overriding backend-confirmed available updates in React UI"
       ]
     }
   ]

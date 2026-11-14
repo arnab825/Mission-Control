@@ -2,6 +2,13 @@
 
 This document contains a detailed history of all patches and updates for the AI Gaming Assistant.
 
+### Patch: 2026-11-14 — v3.9.7: Telemetry Stress Map Responsiveness, Device Specs Panel & Deep Account Deletion Purge
+
+- Redesigned Hardware Stress Map with stacked dual-row layout and responsive 10-segment track
+- Added Device Specifications panel with native hardware, motherboard, and BIOS metrics
+- Fixed scroll retention bug in System Telemetry details view
+- Hardened account deletion with deep SQLite and Supabase user account purges and state cleanup
+
 ### Patch: 2026-11-13 — v3.9.6: Discord & Google OAuth Profile Isolation, Avatar Proxy Validation & Handle Resolution
 
 - Isolated Discord identity display from Google full name
