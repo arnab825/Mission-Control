@@ -427,12 +427,34 @@ export const AccountSettingsSection: React.FC<AccountSettingsSectionProps> = ({
   useEffect(() => {
     if (accountDeleted === true) {
       setIsDeleting(false);
+      try {
+        const targetUserId = userId || effectiveUser?.id;
+        const targetEmail = effectiveUser?.primaryEmailAddress?.emailAddress || effectiveUser?.email;
+        const rawSaved = localStorage.getItem('mc_saved_accounts');
+        if (rawSaved) {
+          const parsed = JSON.parse(rawSaved);
+          if (Array.isArray(parsed)) {
+            const pruned = parsed.filter((a: any) => {
+              const matchId = targetUserId && (a.id === targetUserId || a.userId === targetUserId);
+              const matchEmail = targetEmail && a.email && a.email.toLowerCase() === targetEmail.toLowerCase();
+              return !matchId && !matchEmail;
+            });
+            localStorage.setItem('mc_saved_accounts', JSON.stringify(pruned));
+          }
+        }
+        localStorage.removeItem('mc_authenticated_user');
+        localStorage.removeItem('mission_control_active_provider');
+        localStorage.removeItem('mc_discord_avatar');
+        localStorage.removeItem('mc_google_avatar');
+        (window as any).electronAPI?.clearAuth?.();
+        window.dispatchEvent(new Event('mc-auth-state-changed'));
+      } catch (_) {}
       signOut();
     } else if (accountDeleted === false && accountDeleteError) {
       setIsDeleting(false);
       setDeleteError(accountDeleteError);
     }
-  }, [accountDeleted, accountDeleteError, signOut]);
+  }, [accountDeleted, accountDeleteError, signOut, userId, effectiveUser]);
 
   if (!effectiveIsSignedIn || !effectiveUser) {
     return (
@@ -1140,10 +1162,11 @@ export const AccountSettingsSection: React.FC<AccountSettingsSectionProps> = ({
                   type="button"
                   onClick={() => {
                     const targetUserId = userId || effectiveUser?.id;
+                    const targetEmail = effectiveUser?.primaryEmailAddress?.emailAddress || effectiveUser?.email || '';
                     if (deleteInput !== 'DELETE' || !targetUserId) return;
                     setIsDeleting(true);
                     setDeleteError(null);
-                    sendCommand('delete_account', { userId: targetUserId });
+                    sendCommand('delete_account', { userId: targetUserId, email: targetEmail });
                   }}
                   disabled={deleteInput !== 'DELETE' || isDeleting}
                   className="flex-1 flex items-center justify-center gap-2 py-2 bg-red-600 hover:bg-red-500 text-white font-black text-[9px] uppercase tracking-widest rounded-xl transition-all disabled:opacity-40 disabled:cursor-not-allowed shadow-[0_0_20px_rgba(239,68,68,0.2)]"

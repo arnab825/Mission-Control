@@ -206,6 +206,7 @@ const mergeSpecs = (prev: SystemSpecs | null, incoming: SystemSpecs | undefined 
     network: incoming.network || prev.network,
     wifi: incoming.wifi || prev.wifi,
     os_details: incoming.os_details || prev.os_details,
+    device_specs: incoming.device_specs || prev.device_specs,
     displays: (incoming.displays && incoming.displays.length > 0) ? incoming.displays : prev.displays,
     peripherals: (incoming.peripherals && incoming.peripherals.length > 0) ? incoming.peripherals : prev.peripherals,
     vram_gb: incoming.vram_gb || prev.vram_gb,
@@ -221,43 +222,64 @@ const Heatbar: React.FC<{
   const percentage = Math.min(100, Math.max(0, (value / max) * 100));
   
   let status: 'Safe' | 'Warm' | 'Limit' = 'Safe';
-  let textClass = 'text-neon-yellow';
+  let badgeClass = 'text-neon-green bg-neon-green/10 border-neon-green/20';
+  let barFilledClass = 'bg-neon-green shadow-[0_0_6px_rgba(118,185,0,0.4)]';
   
   if (label.includes('CPU') || label.includes('GPU')) {
     if (value >= 88) {
       status = 'Limit';
-      textClass = 'text-red-400';
+      badgeClass = 'text-red-400 bg-red-500/10 border-red-500/20';
+      barFilledClass = 'bg-red-500 shadow-[0_0_6px_rgba(239,68,68,0.5)]';
     } else if (value >= 80) {
       status = 'Warm';
-      textClass = 'text-orange-400';
+      badgeClass = 'text-orange-400 bg-orange-500/10 border-orange-500/20';
+      barFilledClass = 'bg-orange-400 shadow-[0_0_6px_rgba(251,146,60,0.5)]';
     }
   } else {
     if (percentage >= 90) {
       status = 'Limit';
-      textClass = 'text-red-400';
+      badgeClass = 'text-red-400 bg-red-500/10 border-red-500/20';
+      barFilledClass = 'bg-red-500 shadow-[0_0_6px_rgba(239,68,68,0.5)]';
     } else if (percentage >= 75) {
       status = 'Warm';
-      textClass = 'text-orange-400';
+      badgeClass = 'text-orange-400 bg-orange-500/10 border-orange-500/20';
+      barFilledClass = 'bg-orange-400 shadow-[0_0_6px_rgba(251,146,60,0.5)]';
     }
   }
 
-  const blockCount = 14;
-  const filledBlocks = Math.round((percentage / 100) * blockCount);
-  const blocksVisual = '█'.repeat(filledBlocks);
-  const emptyVisual = '░'.repeat(Math.max(0, blockCount - filledBlocks));
+  const segmentCount = 10;
+  const filledSegments = Math.round((percentage / 100) * segmentCount);
 
   return (
-    <div className="p-4 rounded-2xl bg-white/[0.02] border border-white/5 flex items-center justify-between gap-4">
-      <div className="min-w-0">
-        <span className="text-[10px] font-black text-zinc-500 uppercase tracking-widest block">{label}</span>
-        <span className="text-xs font-black text-white block mt-0.5">{value.toFixed(0)}{unit}</span>
+    <div className="p-3.5 sm:p-4 rounded-2xl bg-white/[0.02] border border-white/5 flex flex-col justify-between gap-3 min-w-0 transition-all hover:border-white/10">
+      {/* Top row: Label & Status Badge */}
+      <div className="flex items-center justify-between gap-2 min-w-0">
+        <span className="text-[10px] font-black text-zinc-400 uppercase tracking-wider truncate" title={label}>
+          {label}
+        </span>
+        <span className={`text-[8px] font-black uppercase tracking-widest px-1.5 py-0.5 rounded border shrink-0 ${badgeClass}`}>
+          {status}
+        </span>
       </div>
-      <div className="flex flex-col items-end gap-1 select-none">
-        <div className="font-mono text-xs tracking-wider flex items-center gap-0.5">
-          <span className={textClass}>{blocksVisual}</span>
-          <span className="text-zinc-800">{emptyVisual}</span>
+
+      {/* Bottom row: Value & Proportional Segmented Track */}
+      <div className="flex items-center justify-between gap-3 select-none">
+        <span className="text-sm font-black font-mono text-white tracking-tight shrink-0">
+          {value.toFixed(0)}{unit}
+        </span>
+        <div className="flex items-center gap-1 shrink-0">
+          {Array.from({ length: segmentCount }).map((_, idx) => {
+            const isFilled = idx < filledSegments;
+            return (
+              <div
+                key={idx}
+                className={`w-1.5 sm:w-2 h-3 sm:h-3.5 rounded-xs transition-all ${
+                  isFilled ? barFilledClass : 'bg-white/5'
+                }`}
+              />
+            );
+          })}
         </div>
-        <span className={`text-[8px] font-black uppercase tracking-widest ${textClass}`}>{status}</span>
       </div>
     </div>
   );
@@ -468,6 +490,18 @@ const SystemPage: React.FC<SystemPageProps> = ({
   const [selectedDiskIndex, setSelectedDiskIndex] = useState(0);
   const [selectedMachineId, setSelectedMachineId] = useState<string>('');
   const [selectedSessionIndex, setSelectedSessionIndex] = useState<number>(0);
+  const mainScrollRef = useRef<HTMLDivElement>(null);
+
+  // Always reset scroll to top when changing telemetry view modes or categories
+  useEffect(() => {
+    if (mainScrollRef.current) {
+      if (typeof mainScrollRef.current.scrollTo === 'function') {
+        mainScrollRef.current.scrollTo({ top: 0, behavior: 'instant' });
+      } else {
+        mainScrollRef.current.scrollTop = 0;
+      }
+    }
+  }, [viewMode, selectedCategory]);
 
   // Get unique machines from session history
   const machines = useMemo(() => {
@@ -910,7 +944,7 @@ const SystemPage: React.FC<SystemPageProps> = ({
       </div>
 
       {/* Main Details Area */}
-      <div className="flex-1 bg-white/[0.03] border border-white/5 rounded-[2rem] lg:rounded-[2.5rem] p-5 md:p-8 flex flex-col overflow-y-auto custom-scrollbar shadow-2xl relative min-h-0">
+      <div ref={mainScrollRef} className="flex-1 bg-white/[0.03] border border-white/5 rounded-[2rem] lg:rounded-[2.5rem] p-5 md:p-8 flex flex-col overflow-y-auto custom-scrollbar shadow-2xl relative min-h-0">
         <div className="flex justify-between items-start mb-6 md:mb-10 shrink-0 gap-4">
           <div className="min-w-0">
             <h2 className="text-xl md:text-2xl font-black text-white tracking-tighter uppercase mb-1 leading-none truncate">
@@ -1085,6 +1119,28 @@ const SystemPage: React.FC<SystemPageProps> = ({
             </>
           ) : viewMode === 'details' ? (
             <div className="grid grid-cols-1 gap-6 pb-8">
+
+              {/* ─── DEVICE SPECIFICATIONS ─── */}
+              <motion.div 
+                initial={{ opacity: 0, y: 20 }}
+                animate={{ opacity: 1, y: 0 }}
+                className="p-6 bg-white/[0.03] border border-white/10 rounded-3xl"
+              >
+                <div className="flex items-center gap-3 mb-6">
+                  <Monitor className="w-4 h-4 text-neon-green" />
+                  <span className="text-[10px] font-black text-zinc-500 uppercase tracking-widest">Device Specifications</span>
+                </div>
+                <div className="grid grid-cols-1 gap-y-1">
+                  <SpecRow label="Device Name" value={specs?.device_specs?.device_name || '---'} explanationKey="Device Name" />
+                  <SpecRow label="System Model" value={specs?.device_specs?.model || '---'} explanationKey="System Model" />
+                  <SpecRow label="Manufacturer" value={specs?.device_specs?.manufacturer || '---'} />
+                  <SpecRow label="Motherboard" value={specs?.device_specs?.motherboard || '---'} explanationKey="Motherboard" />
+                  <SpecRow label="Processor" value={specs?.hardware?.cpu || '---'} explanationKey="Processor" />
+                  <SpecRow label="Installed RAM" value={specs?.hardware?.ram || '---'} explanationKey="Total Capacity" />
+                  <SpecRow label="System Type" value={specs?.os_details?.architecture ? `${specs.os_details.architecture} Operating System, x64-based processor` : '64-bit Operating System, x64-based processor'} />
+                  <SpecRow label="BIOS Version" value={specs?.device_specs?.bios_version ? `${specs.device_specs.bios_version}${specs.device_specs.bios_date ? ` (${specs.device_specs.bios_date})` : ''}` : '---'} />
+                </div>
+              </motion.div>
 
               {/* ─── PROCESSOR CARD ─── */}
               <motion.div 
@@ -1311,17 +1367,29 @@ const SystemPage: React.FC<SystemPageProps> = ({
                 className="p-6 bg-white/3 border border-white/10 rounded-3xl"
               >
                 <div className="flex items-center gap-3 mb-6">
-                  <Wifi className="w-4 h-4 text-zinc-500" />
+                  {specs?.wifi?.ssid ? (
+                    <Wifi className="w-4 h-4 text-neon-green" />
+                  ) : (
+                    <Network className="w-4 h-4 text-blue-400" />
+                  )}
                   <span className="text-[10px] font-black text-zinc-500 uppercase tracking-widest">Network Connectivity</span>
                 </div>
                 <div className="grid grid-cols-1 gap-y-1">
-                  <SpecRow label="SSID" value={specs?.wifi?.ssid || '---'} />
-                  <SpecRow label="Signal Strength" value={specs?.wifi?.signal ? `${specs.wifi.signal}%` : '---'} />
+                  <SpecRow label="Connection Type" value={specs?.wifi?.ssid ? 'Wi-Fi (Wireless)' : (specs?.network?.name ? 'Ethernet (Wired LAN)' : 'Local Network')} />
+                  <SpecRow label="Adapter Name" value={specs?.wifi?.adapter || specs?.network?.name || '---'} />
                   <SpecRow label="Link Speed (R/T)" value={state?.net_speed || specs?.network?.speed || '---'} explanationKey="Current Throughput" />
-                  <SpecRow label="Authentication" value={specs?.wifi?.auth || '---'} />
-                  <SpecRow label="Channel" value={specs?.wifi?.channel || '---'} />
-                  <SpecRow label="Protocol" value={specs?.wifi?.protocol || '---'} />
-                  <SpecRow label="WiFi Version" value={(specs?.wifi as any)?.version || '---'} />
+                  {specs?.wifi?.ssid ? (
+                    <>
+                      <SpecRow label="SSID" value={specs?.wifi?.ssid} />
+                      <SpecRow label="Signal Strength" value={specs?.wifi?.signal ? `${specs.wifi.signal}%` : '---'} />
+                      <SpecRow label="Authentication" value={specs?.wifi?.auth || '---'} />
+                      <SpecRow label="Channel" value={specs?.wifi?.channel || '---'} />
+                      <SpecRow label="Protocol" value={specs?.wifi?.protocol || '---'} />
+                      <SpecRow label="WiFi Version" value={(specs?.wifi as any)?.version || '---'} />
+                    </>
+                  ) : (
+                    <SpecRow label="Status" value={specs?.network?.name ? 'Connected & Active' : 'Active Connection'} />
+                  )}
                 </div>
               </motion.div>
 

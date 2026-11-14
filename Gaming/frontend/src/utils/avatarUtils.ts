@@ -53,11 +53,12 @@ export function isGoogleAvatarUrl(url?: string | null): boolean {
     try {
       const b64 = trimmed.split('img.clerk.com/')[1].split('/')[0].split('?')[0];
       const decoded = typeof atob === 'function' ? atob(b64) : '';
-      return decoded.includes('google') && !decoded.includes('discord');
+      return !decoded.includes('discord');
     } catch (_) {
       return false;
     }
   }
 
-  return false;
+  // Any other valid HTTP/HTTPS image URL (e.g. custom, Supabase, or test mock) that is not Discord
+  return (trimmed.startsWith('http://') || trimmed.startsWith('https://')) && !isDiscordAvatarUrl(trimmed);
 }

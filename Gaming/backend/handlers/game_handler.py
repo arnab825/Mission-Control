@@ -447,6 +447,7 @@ def handle_delete_account(payload: dict, pipeline, bridge, config, library_sessi
     import urllib.error
 
     user_id = payload.get("userId") if payload else None
+    email = str(payload.get("email") or "").strip().lower() if payload else ""
     if not user_id:
         logger.warning("delete_account called with no userId — ignoring")
         return
@@ -457,7 +458,7 @@ def handle_delete_account(payload: dict, pipeline, bridge, config, library_sessi
         bridge.update_state({"account_delete_error": "Invalid account identifier provided."})
         return
 
-    logger.info("Account deletion requested for user %s", user_id_str)
+    logger.info("Account deletion requested for user %s (email: %s)", user_id_str, email)
     try:
         from system.db_manager import get_db
         from pathlib import Path
@@ -466,6 +467,26 @@ def handle_delete_account(payload: dict, pipeline, bridge, config, library_sessi
         if db.available:
             db.delete_games(user_id_str)
             logger.info("Supabase games deleted for user %s", user_id_str)
+
+        # Purge SQLite user accounts
+        remaining_accounts = []
+        try:
+            from ai_brain.memory import GameMemory
+            mem = GameMemory(config=config)
+            mem.delete_user_accounts_for_user(user_id_str, email)
+            remaining_accounts = mem.get_user_accounts()
+            logger.info("Purged user accounts from SQLite for %s, remaining: %d", user_id_str, len(remaining_accounts))
+        except Exception as me:
+            logger.warning("Note during SQLite user account purge: %s", me)
+
+        # Purge Supabase user accounts
+        try:
+            if db.available:
+                db.remove_user_account(user_id_str)
+                if email:
+                    db.remove_user_account(email)
+        except Exception as de:
+            logger.warning("Note during Supabase user account purge: %s", de)
 
         safe_user_id = "".join(c for c in user_id_str if c.isalnum() or c in ("-", "_"))
         json_cache = Path(__file__).parent.parent / "config" / f"games_db_{safe_user_id}.json"
@@ -508,7 +529,12 @@ def handle_delete_account(payload: dict, pipeline, bridge, config, library_sessi
             logger.warning("CLERK_SECRET_KEY not configured in environment.")
 
         logger.info("Account data fully purged for user %s", user_id_str)
-        bridge.update_state({"game_library": [], "account_deleted": True})
+        bridge.update_state({
+            "game_library": [],
+            "account_deleted": True,
+            "user_accounts": remaining_accounts,
+            "active_user_id": None
+        })
 
     except Exception as e:
         logger.error("Failed to delete account data for user %s: %s", user_id_str, e, exc_info=True)

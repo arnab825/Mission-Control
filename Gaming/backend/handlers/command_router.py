@@ -132,21 +132,26 @@ def dispatch_bridge_command(
         try:
             from ai_brain.memory import GameMemory
             mem = GameMemory(config=config)
-            key = payload.get("key") or payload.get("userId") or payload.get("email") if payload else None
-            if key:
-                mem.remove_user_account(key)
-                accounts = mem.get_user_accounts()
-                if bridge:
-                    bridge.update_state({"user_accounts": accounts})
-                
-                # Asynchronously remove account from Supabase Cloud PostgreSQL
-                def _remove_supa_account(k):
-                    try:
-                        from system.db_manager import get_db
-                        get_db().remove_user_account(k)
-                    except Exception as exc:
-                        logger.debug("Supabase remove account note: %s", exc)
-                threading.Thread(target=_remove_supa_account, args=(key,), daemon=True).start()
+            key = payload.get("key") if payload else None
+            uid = payload.get("userId") if payload else None
+            email = payload.get("email") if payload else None
+            targets = [t for t in [key, uid, email] if t]
+            for t in targets:
+                mem.remove_user_account(t)
+            accounts = mem.get_user_accounts()
+            if bridge:
+                bridge.update_state({"user_accounts": accounts})
+            
+            # Asynchronously remove account from Supabase Cloud PostgreSQL
+            def _remove_supa_account(tgt_list):
+                try:
+                    from system.db_manager import get_db
+                    supa_db = get_db()
+                    for t in tgt_list:
+                        supa_db.remove_user_account(t)
+                except Exception as exc:
+                    logger.debug("Supabase remove account note: %s", exc)
+            threading.Thread(target=_remove_supa_account, args=(targets,), daemon=True).start()
         except Exception as e:
             logger.error("Failed to remove user account: %s", e)
     elif cmd_type == "execute":

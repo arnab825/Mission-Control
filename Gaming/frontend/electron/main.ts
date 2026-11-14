@@ -2584,6 +2584,14 @@ const initializeSystemStats = () => {
     }
 
     cachedSystemStats = {
+      device_specs: {
+        device_name: os.hostname(),
+        manufacturer: 'PC System',
+        model: 'Desktop / Laptop',
+        motherboard: 'Motherboard',
+        bios_version: 'UEFI BIOS',
+        bios_date: ''
+      },
       hardware: {
         cpu: cpuModel,
         cores: cpus.length,

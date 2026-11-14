@@ -309,6 +309,14 @@ export interface SystemSpecs {
     version: string;
     architecture: string;
   };
+  device_specs?: {
+    device_name?: string;
+    manufacturer?: string;
+    model?: string;
+    motherboard?: string;
+    bios_version?: string;
+    bios_date?: string;
+  };
   displays: {
     resolution: string;
     refresh: string;

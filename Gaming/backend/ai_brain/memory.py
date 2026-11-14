@@ -6,7 +6,10 @@ import sqlite3
 import threading
 from collections import deque
 from typing import Optional
-from mem0 import MemoryClient
+try:
+    from mem0 import MemoryClient
+except ImportError:
+    MemoryClient = None
 
 logger = logging.getLogger(__name__)
 
@@ -70,7 +73,7 @@ class GameMemory:
             except ImportError:
                 pass
 
-        if self.mem0_api_key:
+        if self.mem0_api_key and MemoryClient is not None:
             self.mem0_client = MemoryClient(api_key=self.mem0_api_key)
         else:
             self.mem0_client = None
@@ -878,6 +881,28 @@ class GameMemory:
             logger.info("Removed user account from SQLite: %s", account_key)
         except Exception as e:
             logger.error("Failed to remove user account from SQLite: %s", e)
+
+    @db_thread_safe
+    def delete_user_accounts_for_user(self, user_id: str, email: str = "") -> None:
+        """Purges all user account records matching a user ID, email, or account key."""
+        if not self._conn:
+            return
+        try:
+            targets = set()
+            if user_id and str(user_id).strip():
+                targets.add(str(user_id).strip())
+            if email and str(email).strip():
+                targets.add(str(email).strip().lower())
+
+            with self._conn:
+                for t in list(targets):
+                    self._conn.execute(
+                        "DELETE FROM user_accounts WHERE account_key = ? OR user_id = ? OR email = ? OR account_key LIKE ?",
+                        (t, t, t, f"%:{t}")
+                    )
+            logger.info("Purged user accounts from SQLite for user_id=%s, email=%s", user_id, email)
+        except Exception as e:
+            logger.error("Failed to purge user accounts from SQLite: %s", e)
 
     @db_thread_safe
     def search_chat(self, query: str):

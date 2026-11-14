@@ -160,6 +160,64 @@ class HardwareChecker:
                 pass
             
         return os_info
+
+    def _get_device_specs(self):
+        """Get PC device name, manufacturer, model, motherboard, and BIOS version."""
+        device_name = platform.node() or "Local-PC"
+        manufacturer = "PC System"
+        model = "Desktop / Laptop"
+        motherboard = "OEM Motherboard"
+        bios_version = "UEFI BIOS"
+        bios_date = ""
+
+        if platform.system() == "Windows":
+            try:
+                import winreg
+                key = winreg.OpenKey(winreg.HKEY_LOCAL_MACHINE, r"HARDWARE\DESCRIPTION\System\BIOS")
+                try:
+                    mfg, _ = winreg.QueryValueEx(key, "SystemManufacturer")
+                    if mfg and mfg.strip():
+                        manufacturer = mfg.strip()
+                except Exception:
+                    pass
+                try:
+                    prod, _ = winreg.QueryValueEx(key, "SystemProductName")
+                    if prod and prod.strip():
+                        model = prod.strip()
+                except Exception:
+                    pass
+                try:
+                    bb_mfg, _ = winreg.QueryValueEx(key, "BaseBoardManufacturer")
+                    bb_prod, _ = winreg.QueryValueEx(key, "BaseBoardProduct")
+                    combined_bb = f"{bb_mfg or ''} {bb_prod or ''}".strip()
+                    if combined_bb:
+                        motherboard = combined_bb
+                except Exception:
+                    pass
+                try:
+                    bv, _ = winreg.QueryValueEx(key, "BIOSVersion")
+                    if bv and bv.strip():
+                        bios_version = bv.strip()
+                except Exception:
+                    pass
+                try:
+                    bd, _ = winreg.QueryValueEx(key, "BIOSReleaseDate")
+                    if bd and bd.strip():
+                        bios_date = bd.strip()
+                except Exception:
+                    pass
+                winreg.CloseKey(key)
+            except Exception:
+                pass
+
+        return {
+            "device_name": device_name,
+            "manufacturer": manufacturer,
+            "model": model,
+            "motherboard": motherboard,
+            "bios_version": bios_version,
+            "bios_date": bios_date
+        }
     
     def _get_display_info(self):
         """Get display resolution from the active video controller (non-null resolution)."""
@@ -569,8 +627,10 @@ class HardwareChecker:
             cpu_name = platform.processor() or "Unknown CPU"
 
         os_edition = platform.system() + " " + platform.release()
+        device_specs = self._get_device_specs()
         
         return {
+            "device_specs": device_specs,
             "hardware": {
                 "cpu": cpu_name,
                 "cores": psutil.cpu_count(logical=False) if _PSUTIL_AVAILABLE else 0,
@@ -713,8 +773,11 @@ class HardwareChecker:
                     ram_details     = self._get_ram_details()
                     storage_details = self._get_storage_details()
 
+            device_specs = self._get_device_specs()
+
             self._cached_specs = {
                 "os_details":      os_details,
+                "device_specs":    device_specs,
                 "peripherals":     peripherals,
                 "displays":        displays,
                 "ram_details":     ram_details,
@@ -723,6 +786,7 @@ class HardwareChecker:
             logger.info("Static hardware specs cached successfully.")
         else:
             os_details      = self._cached_specs["os_details"]
+            device_specs    = self._cached_specs.get("device_specs") or self._get_device_specs()
             peripherals     = self._cached_specs["peripherals"]
             displays        = self._cached_specs["displays"]
             ram_details     = self._cached_specs["ram_details"]
@@ -754,6 +818,7 @@ class HardwareChecker:
         gpu_caps_profile = self.gpu_profiler.profile_gpu(gpu_name, self.config)
 
         return {
+            "device_specs": device_specs,
             "hardware": {
                 "cpu": cpu_name,
                 "cores": cores,

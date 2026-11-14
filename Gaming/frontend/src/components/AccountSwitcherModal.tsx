@@ -165,15 +165,18 @@ export const AccountSwitcherModal: React.FC<AccountSwitcherModalProps> = ({
   ], [user?.externalAccounts, cachedUser?.externalAccounts, effectiveUser?.externalAccounts, savedAccounts]);
 
   // Isolate Google vs Discord avatar URLs to prevent cross-pollination
-  const getCleanAvatarUrl = React.useCallback((acc: any, provider: string): string => {
+  const getCleanAvatarUrl = React.useCallback((acc: any, provider: string, isCurrentActive: boolean = false): string => {
     if (!acc) return '';
     const isDisc = (provider || '').toLowerCase().includes('discord');
-    const extAccounts = [
-      ...(acc.externalAccounts || []),
-      ...(effectiveUser?.externalAccounts || []),
-      ...(user?.externalAccounts || []),
-      ...(allExtAccounts || []),
-    ];
+    const extAccounts = isCurrentActive
+      ? [
+          ...(acc.externalAccounts || []),
+          ...(effectiveUser?.externalAccounts || []),
+          ...(user?.externalAccounts || []),
+          ...(allExtAccounts || []),
+        ]
+      : (acc.externalAccounts || []);
+
     const googleExt = extAccounts.find((a: any) =>
       (a.provider || '').toLowerCase().includes('google') ||
       (a.verification?.strategy || '').toLowerCase().includes('google') ||
@@ -193,18 +196,20 @@ export const AccountSwitcherModal: React.FC<AccountSwitcherModalProps> = ({
         discordExt?.imageUrl,
         acc?.avatarUrl,
         acc?.imageUrl,
-        typeof window !== 'undefined' ? localStorage.getItem('mc_discord_avatar') : null,
+        ...(isCurrentActive && typeof window !== 'undefined' ? [localStorage.getItem('mc_discord_avatar')] : []),
       ];
 
       for (const cand of candidates) {
         if (cand && isDiscordAvatarUrl(cand)) {
-          try { localStorage.setItem('mc_discord_avatar', cand); } catch (_) {}
+          if (isCurrentActive && typeof window !== 'undefined') {
+            try { localStorage.setItem('mc_discord_avatar', cand); } catch (_) {}
+          }
           return cand;
         }
       }
 
       // Purge invalid/leaked mc_discord_avatar if present
-      if (typeof window !== 'undefined') {
+      if (isCurrentActive && typeof window !== 'undefined') {
         const stored = localStorage.getItem('mc_discord_avatar');
         if (stored && !isDiscordAvatarUrl(stored)) {
           try { localStorage.removeItem('mc_discord_avatar'); } catch (_) {}
@@ -218,14 +223,18 @@ export const AccountSwitcherModal: React.FC<AccountSwitcherModalProps> = ({
         googleExt?.image_url,
         (googleExt as any)?.avatarUrl,
         acc?.imageUrl,
-        effectiveUser?.imageUrl,
-        cachedUser?.imageUrl,
-        typeof window !== 'undefined' ? localStorage.getItem('mc_google_avatar') : null,
+        ...(isCurrentActive ? [
+          effectiveUser?.imageUrl,
+          cachedUser?.imageUrl,
+          typeof window !== 'undefined' ? localStorage.getItem('mc_google_avatar') : null,
+        ] : []),
       ];
 
       for (const cand of candidates) {
         if (cand && isGoogleAvatarUrl(cand)) {
-          try { localStorage.setItem('mc_google_avatar', cand); } catch (_) {}
+          if (isCurrentActive && typeof window !== 'undefined') {
+            try { localStorage.setItem('mc_google_avatar', cand); } catch (_) {}
+          }
           return cand;
         }
       }
@@ -350,7 +359,7 @@ export const AccountSwitcherModal: React.FC<AccountSwitcherModalProps> = ({
         email: u.primaryEmailAddress?.emailAddress || '',
         username: u.username || u.firstName || 'Guest',
         fullName: u.fullName || `${u.firstName || ''} ${u.lastName || ''}`.trim() || u.username || 'Guest',
-        imageUrl: getCleanAvatarUrl(u, uProvider),
+        imageUrl: getCleanAvatarUrl(u, uProvider, false),
         provider: uProvider === 'discord' ? 'oauth_discord' : 'oauth_google',
         externalAccounts: u.externalAccounts || [],
         isClerkSession: true,
@@ -367,7 +376,7 @@ export const AccountSwitcherModal: React.FC<AccountSwitcherModalProps> = ({
       if (seen.has(key)) continue;
       seen.add(key);
 
-      const cleanImage = getCleanAvatarUrl(acc, accProvider);
+      const cleanImage = getCleanAvatarUrl(acc, accProvider, false);
       list.push({
         ...acc,
         provider: accProvider === 'discord' ? 'oauth_discord' : 'oauth_google',
@@ -636,7 +645,8 @@ export const AccountSwitcherModal: React.FC<AccountSwitcherModalProps> = ({
                       {(() => {
                         const activeCleanAvatar = getCleanAvatarUrl(
                           { ...effectiveUser, externalAccounts: effectiveUser.externalAccounts || (activeExternalAccount ? [activeExternalAccount] : []) },
-                          normalizedActiveProvider
+                          normalizedActiveProvider,
+                          true
                         );
                         if (activeCleanAvatar) {
                           return (
@@ -724,24 +734,23 @@ export const AccountSwitcherModal: React.FC<AccountSwitcherModalProps> = ({
                       const isSwitching = switchingSessionId === (acc.sessionId || acc.id);
                       const isDiscord = (acc.provider || '').toLowerCase().includes('discord');
                       const providerLabel = isDiscord ? 'DISCORD' : 'GOOGLE';
-                      const accAvatarUrl = getCleanAvatarUrl(acc, acc.provider || (isDiscord ? 'discord' : 'google'));
+                      const accAvatarUrl = getCleanAvatarUrl(acc, acc.provider || (isDiscord ? 'discord' : 'google'), false);
 
                       const discExtAcc = isDiscord
-                        ? ((acc.externalAccounts || []).find((a: any) => (a.provider || '').toLowerCase().includes('discord')) ||
-                           allExtAccounts.find((a: any) => (a.provider || '').toLowerCase().includes('discord')))
+                        ? (acc.externalAccounts || []).find((a: any) => (a.provider || '').toLowerCase().includes('discord'))
                         : null;
 
                       const discUsername =
                         discExtAcc?.username ||
                         (discExtAcc as any)?.label ||
                         (acc.username && acc.username !== acc.email?.split('@')[0] ? acc.username : null) ||
-                        savedAccounts.find((a: any) => (a.provider || '').toLowerCase().includes('discord') && a.username && a.username !== a.email?.split('@')[0])?.username ||
-                        'anni7880';
+                        savedAccounts.find((a: any) => (a.provider || '').toLowerCase().includes('discord') && a.username && a.username !== a.email?.split('@')[0] && (a.email === acc.email || a.id === acc.id))?.username ||
+                        (acc.email ? acc.email.split('@')[0] : 'Discord User');
 
-                      // Match name across saved profiles or effective user ONLY for Google accounts
+                      // Match name across saved profiles ONLY for this specific Google account
                       const matchedName = !isDiscord ? (savedAccounts.find(
-                        (s) => (s.fullName && s.fullName !== 'Guest' && !s.fullName.toLowerCase().includes('discord')) && ((s.email && s.email === acc.email) || (s.id && s.id === acc.id))
-                      )?.fullName || (effectiveUser?.fullName !== 'Guest' ? effectiveUser?.fullName : null)) : null;
+                        (s) => (s.fullName && s.fullName !== 'Guest' && !s.fullName.toLowerCase().includes('discord')) && ((s.email && acc.email && s.email.toLowerCase() === acc.email.toLowerCase()) || (s.id && acc.id && s.id === acc.id))
+                      )?.fullName || null) : null;
 
                       const displayName = isDiscord
                         ? discUsername
@@ -749,10 +758,10 @@ export const AccountSwitcherModal: React.FC<AccountSwitcherModalProps> = ({
                             ? acc.fullName
                             : (acc.firstName && acc.firstName !== 'Guest'
                                 ? `${acc.firstName} ${acc.lastName || ''}`.trim()
-                                : (matchedName || acc.username || 'Google User')));
+                                : (matchedName || acc.username || (acc.email ? acc.email.split('@')[0] : 'Google User'))));
 
                       const displaySub = isDiscord
-                        ? `@${discUsername} · ${acc.email || activeDiscordEmail}`
+                        ? `@${discUsername} · ${acc.email || 'Discord Linked'}`
                         : (acc.email || 'Google Account');
 
                       return (
