@@ -10,7 +10,32 @@ excerpt: "Curated breakdown of major version releases, architectural milestones,
 
 Comprehensive breakdown of major milestone releases, architectural upgrades, and core engine enhancements in **Mission Control**.
 
-## 🌟 Version v4.0.0 (Latest) — Added Heronite launcher & library detection
+## 🌟 Version v4.0.1 (Latest) — Fixed Alienware CPU thermals, Heronite platform classification, launcher HDR cleanup & website SEO repartitioning
+
+### 🛠️ Key Highlights
+1. **Fixed Alienware CPU thermals, Heronite platform classification, launcher HDR cleanup & website SEO repartitioning**
+2. **Added Heronite launcher and library detection**
+3. **Standardized launcher platform category label to PLATFORM**
+4. **Removed HDR false-positive badge from platforms**
+5. **Implemented full SSR SEO metadata across public website pages**
+6. **Partitioned architecture clients into modular visualizers**
+7. **Refactored modals and consolidated redundant component wrappers**
+
+### 📊 Architecture & Data Flow
+```mermaid
+graph TD
+    A[Developer Push / Publish Pipeline] --> B[Version Stamping & AI Changelog Enforcer]
+    B --> C[Mission Control System Core]
+    C --> D[Website Documentation & Real-Time Sync]
+```
+
+### 📦 Distribution Artifacts
+- **Linux**: `.deb` (Debian/Ubuntu), `.AppImage` (Universal), `.rpm` (Fedora/RHEL), `.tar.gz` (Portable)
+- **Windows**: `.exe` (Setup Installer), `.msi` (Enterprise), `.zip` (Portable)
+
+---
+
+## 📦 Version v4.0.0 — Added Heronite launcher & library detection
 
 ### 🛠️ Key Highlights
 1. **Added Heronite launcher & library detection**

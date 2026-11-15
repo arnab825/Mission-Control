@@ -2,6 +2,16 @@
 
 This document contains a detailed history of all patches and updates for the AI Gaming Assistant.
 
+### Patch: 2026-11-15 — v4.0.1: Fixed Alienware CPU thermals, Heronite platform classification, launcher HDR cleanup & website SEO repartitioning
+
+- Fixed Alienware CPU thermals, Heronite platform classification, launcher HDR cleanup & website SEO repartitioning
+- Added Heronite launcher and library detection
+- Standardized launcher platform category label to PLATFORM
+- Removed HDR false-positive badge from platforms
+- Implemented full SSR SEO metadata across public website pages
+- Partitioned architecture clients into modular visualizers
+- Refactored modals and consolidated redundant component wrappers
+
 ### Patch: 2026-11-15 — v4.0.0: Added Heronite launcher & library detection
 
 - Added Heronite launcher & library detection
