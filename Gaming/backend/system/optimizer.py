@@ -364,7 +364,7 @@ class Optimizer:
             # Fallback to a simple powershell command that collects system-wide GC or does some basic collection
             try:
                 ps_cmd = "[System.GC]::Collect();"
-                subprocess.run(["powershell", "-Command", ps_cmd], capture_output=True, creationflags=0x08000000)
+                subprocess.run(["powershell", "-NoProfile", "-NonInteractive", "-WindowStyle", "Hidden", "-Command", ps_cmd], capture_output=True, creationflags=0x08000000)
                 return True
             except Exception:
                 return False
@@ -415,7 +415,7 @@ class Optimizer:
             # Fallback to powershell/Get-Process
             try:
                 cmd = f'Get-Process -Name "{process_name.replace(".exe", "")}" | ForEach-Object {{ $_.PriorityClass = "{level}" }}'
-                subprocess.run(["powershell", "-Command", cmd], capture_output=True, creationflags=0x08000000)
+                subprocess.run(["powershell", "-NoProfile", "-NonInteractive", "-WindowStyle", "Hidden", "-Command", cmd], capture_output=True, creationflags=0x08000000)
                 return True
             except Exception:
                 pass
@@ -453,7 +453,7 @@ class Optimizer:
                     cmd = f'reg add "{reg_path}" /v "{exe_path}" /t REG_SZ /d "GpuPreference=2;" /f'
                 else:
                     cmd = f'reg delete "{reg_path}" /v "{exe_path}" /f'
-                subprocess.run(["powershell", "-Command", cmd], capture_output=True, creationflags=0x08000000)
+                subprocess.run(["powershell", "-NoProfile", "-NonInteractive", "-WindowStyle", "Hidden", "-Command", cmd], capture_output=True, creationflags=0x08000000)
                 return True
             except Exception as ex:
                 logger.error(f"Fallback GPU preference failed: {ex}")
@@ -466,7 +466,7 @@ class Optimizer:
             return None
         try:
             cmd = "(Get-WmiObject -Namespace root/WMI -Class WmiMonitorBrightness).CurrentBrightness"
-            res = subprocess.run(["powershell", "-Command", cmd], capture_output=True, text=True, check=False, creationflags=0x08000000)
+            res = subprocess.run(["powershell", "-NoProfile", "-NonInteractive", "-WindowStyle", "Hidden", "-Command", cmd], capture_output=True, text=True, check=False, creationflags=0x08000000)
             if res.returncode == 0 and res.stdout.strip():
                 return int(res.stdout.strip())
         except Exception as e:
@@ -480,7 +480,7 @@ class Optimizer:
             return False
         try:
             cmd = f"(Get-WmiObject -Namespace root/WMI -Class WmiMonitorBrightnessMethods).WmiSetBrightness(1, {val})"
-            res = subprocess.run(["powershell", "-Command", cmd], capture_output=True, check=False, creationflags=0x08000000)
+            res = subprocess.run(["powershell", "-NoProfile", "-NonInteractive", "-WindowStyle", "Hidden", "-Command", cmd], capture_output=True, check=False, creationflags=0x08000000)
             return res.returncode == 0
         except Exception as e:
             logger.debug(f"Failed to set screen brightness to {val}: {e}")

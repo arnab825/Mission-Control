@@ -274,7 +274,7 @@ function fireUpdateToast(version: string) {
 function isAdmin(): boolean {
   if (process.platform !== 'win32') return true;
   try {
-    execSync('net session', { stdio: 'ignore' });
+    execSync('net session', { stdio: 'ignore', windowsHide: true });
     return true;
   } catch {
     return false;
@@ -292,6 +292,8 @@ function restartAsAdmin() {
   const args = process.argv.slice(1);
   const psArgs = [
     '-NoProfile',
+    '-NonInteractive',
+    '-WindowStyle', 'Hidden',
     '-Command',
     `Start-Process -FilePath "${process.execPath}" ${isDev ? '-ArgumentList "."' : (args.length > 0 ? `-ArgumentList ${args.map(a => '\'' + a.replace(/'/g, "''") + '\'').join(', ')}` : '')} -Verb RunAs`
   ];
@@ -658,12 +660,21 @@ function startPythonBackend(forceRestart = false) {
     let cwdDir: string;
 
     if (isDev) {
-      // Dev: prefer venv python
+      // Dev: prefer venv pythonw (GUI subsystem - never creates a console window) or python
       const isWin = process.platform === 'win32';
+      const venvPythonW = isWin
+        ? path.join(_dirname, '..', '..', 'backend', '.venv', 'Scripts', 'pythonw.exe')
+        : '';
       const venvPython = isWin
         ? path.join(_dirname, '..', '..', 'backend', '.venv', 'Scripts', 'python.exe')
         : path.join(_dirname, '..', '..', 'backend', '.venv', 'bin', 'python');
-      executablePath = fs.existsSync(venvPython) ? venvPython : (isWin ? 'python' : 'python3');
+      if (isWin && fs.existsSync(venvPythonW)) {
+        executablePath = venvPythonW;
+      } else if (fs.existsSync(venvPython)) {
+        executablePath = venvPython;
+      } else {
+        executablePath = isWin ? 'python' : 'python3';
+      }
       args = [scriptPath, '--dev', '--no-admin'];
       cwdDir = path.dirname(scriptPath);
       console.log(`[Electron] Dev mode — python: ${executablePath}, cwd: ${cwdDir}`);
@@ -686,10 +697,13 @@ function startPythonBackend(forceRestart = false) {
       } else {
         // Fallback: raw python (developer machine without compiled binary)
         const isWin = process.platform === 'win32';
+        const localVenvW = isWin
+          ? path.join(__dirname, '..', '..', 'backend', '.venv', 'Scripts', 'pythonw.exe')
+          : '';
         const localVenv = isWin
           ? path.join(__dirname, '..', '..', 'backend', '.venv', 'Scripts', 'python.exe')
           : path.join(__dirname, '..', '..', 'backend', '.venv', 'bin', 'python');
-        executablePath = fs.existsSync(localVenv) ? localVenv : (isWin ? 'python' : 'python3');
+        executablePath = (isWin && fs.existsSync(localVenvW)) ? localVenvW : (fs.existsSync(localVenv) ? localVenv : (isWin ? 'python' : 'python3'));
         args = [scriptPath, '--no-admin'];
         cwdDir = path.dirname(scriptPath);
         console.log(`[Electron] Fallback — python: ${executablePath}`);
@@ -2902,7 +2916,7 @@ ipcMain.handle('audit-preflight-risks', async () => {
 
   if (process.platform === 'win32') {
     try {
-      const tasklist = execSync('tasklist /FO CSV /NH', { encoding: 'utf8' });
+      const tasklist = execSync('tasklist /FO CSV /NH', { encoding: 'utf8', windowsHide: true });
       const processCounts: Record<string, number> = {};
       const lines = tasklist.split('\n');
       for (const line of lines) {

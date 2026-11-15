@@ -34,6 +34,30 @@ def check_internet(host="8.8.8.8", port=53, timeout=3):
     except socket.error:
         return False
 
+def _run_hidden_powershell(ps_command: str, timeout: float = 6.0) -> str:
+    """Execute PowerShell command completely hidden without flashing any console window on Windows."""
+    if platform.system() != "Windows":
+        return ""
+    try:
+        si = subprocess.STARTUPINFO()
+        si.dwFlags |= subprocess.STARTF_USESHOWWINDOW
+        si.wShowWindow = 0  # SW_HIDE
+        args = ["powershell", "-NoProfile", "-NonInteractive", "-WindowStyle", "Hidden", "-Command", ps_command]
+        res = subprocess.run(
+            args,
+            capture_output=True,
+            text=True,
+            timeout=timeout,
+            startupinfo=si,
+            creationflags=0x08000000,  # CREATE_NO_WINDOW
+            shell=False
+        )
+        if res.returncode == 0:
+            return res.stdout.strip()
+    except Exception as e:
+        logger.debug(f"[HardwareChecker] Hidden PowerShell query failed: {e}")
+    return ""
+
 class HardwareChecker:
     def __init__(self, config=None):
         self.config = config or {}
@@ -135,13 +159,10 @@ class HardwareChecker:
             except Exception:
                 pass
             
-            # Fallback to slow PowerShell (1.5s)
+            # Fallback to PowerShell
             try:
                 import json
-                ps_cmd = 'powershell -Command "Get-CimInstance Win32_OperatingSystem | Select-Object Caption, Version, OSArchitecture | ConvertTo-Json -Compress"'
-                si = subprocess.STARTUPINFO()
-                si.dwFlags |= subprocess.STARTF_USESHOWWINDOW
-                raw_out = subprocess.check_output(ps_cmd, shell=True, stderr=subprocess.DEVNULL, startupinfo=si, creationflags=0x08000000).decode(errors="ignore").strip()
+                raw_out = _run_hidden_powershell('Get-CimInstance Win32_OperatingSystem | Select-Object Caption, Version, OSArchitecture | ConvertTo-Json -Compress', timeout=3.0)
                 
                 if raw_out:
                     data = json.loads(raw_out)
@@ -275,13 +296,10 @@ class HardwareChecker:
         except Exception as e:
             logger.debug(f"Failed to get display info natively: {e}")
             
-        # Fallback to slow PowerShell (1.2s)
+        # Fallback to PowerShell
         try:
             import json
-            ps_cmd = 'powershell -Command "Get-CimInstance Win32_VideoController | Select-Object CurrentHorizontalResolution, CurrentVerticalResolution, CurrentRefreshRate, Name | ConvertTo-Json -Compress"'
-            si = subprocess.STARTUPINFO()
-            si.dwFlags |= subprocess.STARTF_USESHOWWINDOW
-            raw_out = subprocess.check_output(ps_cmd, shell=True, stderr=subprocess.DEVNULL, startupinfo=si, creationflags=0x08000000).decode(errors="ignore").strip()
+            raw_out = _run_hidden_powershell('Get-CimInstance Win32_VideoController | Select-Object CurrentHorizontalResolution, CurrentVerticalResolution, CurrentRefreshRate, Name | ConvertTo-Json -Compress', timeout=3.0)
             
             if raw_out:
                 data = json.loads(raw_out)
@@ -334,10 +352,7 @@ class HardwareChecker:
             
         try:
             # Filter out hubs and controllers, keep actual peripherals
-            ps_cmd = "powershell -Command \"Get-PnpDevice -PresentOnly | Where-Object { $_.Class -match 'Mouse|Keyboard|USB|HIDClass' -and $_.FriendlyName -notmatch 'Hub|Controller|Root|Generic|Enumerator|Host' } | Select-Object FriendlyName, Status | ConvertTo-Json -Compress\""
-            si = subprocess.STARTUPINFO()
-            si.dwFlags |= subprocess.STARTF_USESHOWWINDOW
-            raw_out = subprocess.check_output(ps_cmd, shell=True, stderr=subprocess.DEVNULL, startupinfo=si, creationflags=0x08000000).decode(errors="ignore").strip()
+            raw_out = _run_hidden_powershell("Get-PnpDevice -PresentOnly | Where-Object { $_.Class -match 'Mouse|Keyboard|USB|HIDClass' -and $_.FriendlyName -notmatch 'Hub|Controller|Root|Generic|Enumerator|Host' } | Select-Object FriendlyName, Status | ConvertTo-Json -Compress", timeout=4.0)
             
             if not raw_out:
                 return []
@@ -410,10 +425,7 @@ class HardwareChecker:
             return []
         try:
             import json
-            ps_cmd = 'powershell -Command "Get-CimInstance Win32_PhysicalMemory | Select-Object DeviceLocator, Capacity, Speed, Manufacturer, PartNumber, ConfiguredVoltage, SMBIOSMemoryType | ConvertTo-Json -Compress"'
-            si = subprocess.STARTUPINFO()
-            si.dwFlags |= subprocess.STARTF_USESHOWWINDOW
-            raw_out = subprocess.check_output(ps_cmd, shell=True, stderr=subprocess.DEVNULL, startupinfo=si, creationflags=0x08000000).decode(errors="ignore").strip()
+            raw_out = _run_hidden_powershell('Get-CimInstance Win32_PhysicalMemory | Select-Object DeviceLocator, Capacity, Speed, Manufacturer, PartNumber, ConfiguredVoltage, SMBIOSMemoryType | ConvertTo-Json -Compress', timeout=3.0)
             
             if not raw_out:
                 return []
@@ -551,10 +563,7 @@ class HardwareChecker:
         try:
             import json
             # Get physical disks from Get-Disk (has Number, FriendlyName, SerialNumber, MediaType, BusType, Size, IsSystem, IsBoot)
-            ps_cmd = 'powershell -Command "Get-Disk | Select-Object Number, FriendlyName, MediaType, BusType, Size, SerialNumber, IsSystem, IsBoot | ConvertTo-Json -Compress"'
-            si = subprocess.STARTUPINFO()
-            si.dwFlags |= subprocess.STARTF_USESHOWWINDOW
-            raw_out = subprocess.check_output(ps_cmd, shell=True, stderr=subprocess.DEVNULL, startupinfo=si, creationflags=0x08000000).decode(errors="ignore").strip()
+            raw_out = _run_hidden_powershell('Get-Disk | Select-Object Number, FriendlyName, MediaType, BusType, Size, SerialNumber, IsSystem, IsBoot | ConvertTo-Json -Compress', timeout=4.0)
             
             if not raw_out:
                 return []
@@ -562,15 +571,13 @@ class HardwareChecker:
             disk_data = json.loads(raw_out)
             
             # Get partition drive letter mapping
-            part_cmd = 'powershell -Command "Get-Partition | Where-Object { $_.DriveLetter } | Select-Object DiskNumber, DriveLetter, IsSystem, IsBoot | ConvertTo-Json -Compress"'
-            part_raw = subprocess.check_output(part_cmd, shell=True, stderr=subprocess.DEVNULL, startupinfo=si, creationflags=0x08000000).decode(errors="ignore").strip()
+            part_raw = _run_hidden_powershell('Get-Partition | Where-Object { $_.DriveLetter } | Select-Object DiskNumber, DriveLetter, IsSystem, IsBoot | ConvertTo-Json -Compress', timeout=4.0)
             partitions = []
             if part_raw:
                 partitions = json.loads(part_raw)
                     
             # Get Pagefile locations to map paging file drives
-            pf_cmd = 'powershell -Command "Get-CimInstance Win32_PageFileUsage | Select-Object Name | ConvertTo-Json -Compress"'
-            pf_raw = subprocess.check_output(pf_cmd, shell=True, stderr=subprocess.DEVNULL, startupinfo=si, creationflags=0x08000000).decode(errors="ignore").strip()
+            pf_raw = _run_hidden_powershell('Get-CimInstance Win32_PageFileUsage | Select-Object Name | ConvertTo-Json -Compress', timeout=3.0)
             pagefiles = []
             if pf_raw:
                 pagefiles = json.loads(pf_raw)
@@ -589,17 +596,14 @@ class HardwareChecker:
             import subprocess
             
             ps_cmd = (
-                'powershell -NoProfile -Command "'
                 '$disks = Get-Disk | Select-Object Number, FriendlyName, MediaType, BusType, Size, SerialNumber, IsSystem, IsBoot; '
                 '$partitions = Get-Partition | Where-Object { $_.DriveLetter } | Select-Object DiskNumber, DriveLetter, IsSystem, IsBoot; '
                 '$pagefiles = Get-CimInstance Win32_PageFileUsage -ErrorAction SilentlyContinue | Select-Object Name; '
                 '$ram = Get-CimInstance Win32_PhysicalMemory -ErrorAction SilentlyContinue | Select-Object DeviceLocator, Capacity, Speed, Manufacturer, PartNumber, ConfiguredVoltage, SMBIOSMemoryType; '
                 '$usb = Get-PnpDevice -PresentOnly -ErrorAction SilentlyContinue | Where-Object { $_.Class -match \'Mouse|Keyboard|USB|HIDClass\' -and $_.FriendlyName -notmatch \'Hub|Controller|Root|Generic|Enumerator|Host\' } | Select-Object FriendlyName, Status; '
-                '@{disks=$disks; partitions=$partitions; pagefiles=$pagefiles; ram=$ram; usb=$usb} | ConvertTo-Json -Compress"'
+                '@{disks=$disks; partitions=$partitions; pagefiles=$pagefiles; ram=$ram; usb=$usb} | ConvertTo-Json -Compress'
             )
-            si = subprocess.STARTUPINFO()
-            si.dwFlags |= subprocess.STARTF_USESHOWWINDOW
-            raw_out = subprocess.check_output(ps_cmd, shell=True, stderr=subprocess.DEVNULL, startupinfo=si, creationflags=0x08000000).decode(errors="ignore").strip()
+            raw_out = _run_hidden_powershell(ps_cmd, timeout=6.0)
             if raw_out:
                 return json.loads(raw_out)
         except Exception as e:
@@ -1444,10 +1448,7 @@ class HardwareChecker:
         if (not gpu_name or gpu_name == "Unknown") and platform.system() == "Windows":
             try:
                 import json
-                ps_cmd = 'powershell -Command "Get-CimInstance Win32_VideoController | Select-Object Name, AdapterRAM | ConvertTo-Json -Compress"'
-                si = subprocess.STARTUPINFO()
-                si.dwFlags |= subprocess.STARTF_USESHOWWINDOW
-                raw_out = subprocess.check_output(ps_cmd, shell=True, stderr=subprocess.DEVNULL, startupinfo=si, creationflags=0x08000000).decode(errors="ignore").strip()
+                raw_out = _run_hidden_powershell('Get-CimInstance Win32_VideoController | Select-Object Name, AdapterRAM | ConvertTo-Json -Compress', timeout=3.0)
                 if raw_out:
                     data = json.loads(raw_out)
                     if isinstance(data, dict):

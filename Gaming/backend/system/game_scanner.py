@@ -8,6 +8,26 @@ import threading
 from pathlib import Path
 from typing import Callable, Optional
 
+def _run_hidden_powershell(ps_command: str, timeout: float = 15.0) -> subprocess.CompletedProcess:
+    """Execute PowerShell command without flashing any terminal or console window on Windows."""
+    creationflags = 0
+    si = None
+    if sys.platform == "win32":
+        creationflags = 0x08000000  # CREATE_NO_WINDOW
+        si = subprocess.STARTUPINFO()
+        si.dwFlags |= subprocess.STARTF_USESHOWWINDOW
+        si.wShowWindow = 0  # SW_HIDE
+    args = ["powershell", "-NoProfile", "-NonInteractive", "-WindowStyle", "Hidden", "-Command", ps_command]
+    return subprocess.run(
+        args,
+        capture_output=True,
+        text=True,
+        timeout=timeout,
+        startupinfo=si,
+        creationflags=creationflags,
+        shell=False
+    )
+
 logger = logging.getLogger(__name__)
 
 try:
@@ -1591,16 +1611,7 @@ class GameScanner:
             }}
             '''
             
-            si = subprocess.STARTUPINFO()
-            si.dwFlags |= subprocess.STARTF_USESHOWWINDOW
-            
-            res = subprocess.run(
-                ["powershell", "-Command", ps_cmd],
-                capture_output=True,
-                text=True,
-                startupinfo=si,
-                close_fds=True
-            )
+            res = _run_hidden_powershell(ps_cmd, timeout=10.0)
             
             if res.returncode == 0 and "SUCCESS" in res.stdout:
                 return str(icon_file)
@@ -1711,17 +1722,7 @@ class GameScanner:
             }}
             '''
             
-            si = subprocess.STARTUPINFO()
-            si.dwFlags |= subprocess.STARTF_USESHOWWINDOW
-            
-            res = subprocess.run(
-                ["powershell", "-Command", ps_cmd],
-                capture_output=True,
-                text=True,
-                startupinfo=si,
-                close_fds=True,
-                timeout=30
-            )
+            res = _run_hidden_powershell(ps_cmd, timeout=30.0)
             
             successful_paths = set()
             if res.returncode == 0:
@@ -2361,17 +2362,7 @@ class GameScanner:
             # Use PowerShell to get AppxPackages that are actually games or the Xbox app
             cmd = 'Get-AppxPackage | Where-Object {($_.SignatureKind -eq "Store") -and ($_.Name -match "Xbox|Game|GamingApp") -and ($_.Name -notmatch "Zune|Media|Music|Video|Calculator|Camera|Maps|Weather|Cortana|Phone|Feedback|GetHelp|Paint|Terminal|Speech|TCUI|Provider|Overlay|CallableUI")} | Select-Object Name, PackageFamilyName, InstallLocation | ConvertTo-Json'
             
-            # Hide the powershell window
-            si = subprocess.STARTUPINFO()
-            si.dwFlags |= subprocess.STARTF_USESHOWWINDOW
-            
-            result = subprocess.run(
-                ["powershell", "-Command", cmd], 
-                capture_output=True, 
-                text=True,
-                startupinfo=si,
-                close_fds=True
-            )
+            result = _run_hidden_powershell(cmd, timeout=15.0)
             if result.returncode == 0:
                 data = json.loads(result.stdout)
                 if not data: return
@@ -2742,10 +2733,7 @@ class GameScanner:
                 lnk = dt / "Heronite.lnk"
                 if lnk.exists():
                     try:
-                        res = subprocess.run(
-                            ["powershell", "-NoProfile", "-Command", f'(New-Object -ComObject WScript.Shell).CreateShortcut("{lnk}").TargetPath'],
-                            capture_output=True, text=True, timeout=5
-                        )
+                        res = _run_hidden_powershell(f'(New-Object -ComObject WScript.Shell).CreateShortcut("{lnk}").TargetPath', timeout=5.0)
                         target = res.stdout.strip()
                         if target and os.path.exists(target) and target not in heronite_candidates:
                             heronite_candidates.insert(0, target)
@@ -2938,16 +2926,7 @@ class GameScanner:
             $results | ConvertTo-Json
             '''
             
-            si = subprocess.STARTUPINFO()
-            si.dwFlags |= subprocess.STARTF_USESHOWWINDOW
-            
-            res = subprocess.run(
-                ["powershell", "-Command", ps_script], 
-                capture_output=True, 
-                text=True,
-                startupinfo=si,
-                close_fds=True
-            )
+            res = _run_hidden_powershell(ps_script, timeout=15.0)
             if res.returncode == 0 and res.stdout.strip():
                 data = json.loads(res.stdout)
                 if isinstance(data, dict): data = [data]
@@ -3054,17 +3033,8 @@ class GameScanner:
                         if any(junk in name_lower for junk in self.junk_keywords):
                             continue
 
-                        si = subprocess.STARTUPINFO()
-                        si.dwFlags |= subprocess.STARTF_USESHOWWINDOW
-                        
                         cmd = f'$s = (New-Object -ComObject WScript.Shell).CreateShortcut("{lnk}"); $s.TargetPath; $s.IconLocation'
-                        res = subprocess.run(
-                            ["powershell", "-Command", cmd], 
-                            capture_output=True, 
-                            text=True,
-                            startupinfo=si,
-                            close_fds=True
-                        )
+                        res = _run_hidden_powershell(cmd, timeout=5.0)
                         lines = res.stdout.strip().split("\n")
                         target = lines[0] if len(lines) > 0 else ""
                         icon_loc = lines[1] if len(lines) > 1 else ""

@@ -201,7 +201,7 @@ def request_admin_elevation(argv: list[str] | None = None) -> bool:
         if not ctypes.windll.shell32.IsUserAnAdmin():
             params = " ".join([f'"{arg}"' for arg in argv[1:]])
             logger.info("Requesting Administrator privileges for native ETW hooks...")
-            ctypes.windll.shell32.ShellExecuteW(None, "runas", sys.executable, f'"{argv[0]}" {params}'.strip(), os.getcwd(), 1)
+            ctypes.windll.shell32.ShellExecuteW(None, "runas", sys.executable, f'"{argv[0]}" {params}'.strip(), os.getcwd(), 0)
             sys.exit(0)
     except Exception as e:
         logger.warning("Failed to elevate to Administrator: %s", e)

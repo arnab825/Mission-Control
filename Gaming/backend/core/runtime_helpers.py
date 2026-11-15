@@ -94,6 +94,7 @@ def _try_win_cpu_temp_native() -> float:
         try:
             si = subprocess.STARTUPINFO()
             si.dwFlags |= subprocess.STARTF_USESHOWWINDOW
+            si.wShowWindow = 0  # SW_HIDE
             
             # If we don't have a cached AWCC sensor ID yet, run a fast query to detect it
             if _CACHED_AWCC_SENSOR_ID is None:
@@ -109,7 +110,7 @@ def _try_win_cpu_temp_native() -> float:
                     'Write-Host ($res -join ",")'
                 )
                 diag_out = subprocess.check_output(
-                    ["powershell", "-NoProfile", "-Command", diag_script],
+                    ["powershell", "-NoProfile", "-NonInteractive", "-WindowStyle", "Hidden", "-Command", diag_script],
                     startupinfo=si, creationflags=0x08000000, timeout=2.5,
                     stderr=subprocess.DEVNULL
                 ).decode().strip()
@@ -141,7 +142,7 @@ def _try_win_cpu_temp_native() -> float:
                 'Write-Host $r.argr'
             )
             out = subprocess.check_output(
-                ["powershell", "-NoProfile", "-Command", awcc_script],
+                ["powershell", "-NoProfile", "-NonInteractive", "-WindowStyle", "Hidden", "-Command", awcc_script],
                 startupinfo=si, creationflags=0x08000000, timeout=2.0,
                 stderr=subprocess.DEVNULL
             ).decode().strip()
@@ -161,8 +162,8 @@ def _try_win_cpu_temp_native() -> float:
         try:
             si = subprocess.STARTUPINFO()
             si.dwFlags |= subprocess.STARTF_USESHOWWINDOW
-            out = subprocess.check_output(
-                'powershell -NoProfile -Command "'
+            si.wShowWindow = 0  # SW_HIDE
+            ps_script = (
                 'try { '
                 '  $zones = Get-CimInstance -ClassName Win32_PerfRawData_Counters_ThermalZoneInformation -ErrorAction Stop; '
                 '  if ($zones) { $zones | Where-Object { $_.Name -notmatch \'PCH|BAT|SEN\' } | ForEach-Object { Write-Output ($_.Temperature) } } '
@@ -171,9 +172,11 @@ def _try_win_cpu_temp_native() -> float:
                 '    $c = Get-Counter -Counter (Get-Counter -ListSet \"Thermal Zone Information\" -ErrorAction Stop).PathsWithInstances[0] -ErrorAction Stop; '
                 '    Write-Output ($c.CounterSamples[0].CookedValue) '
                 '  } catch {} '
-                '}'  
-                '"',
-                shell=True, startupinfo=si, creationflags=0x08000000, timeout=2.0,
+                '}'
+            )
+            out = subprocess.check_output(
+                ["powershell", "-NoProfile", "-NonInteractive", "-WindowStyle", "Hidden", "-Command", ps_script],
+                shell=False, startupinfo=si, creationflags=0x08000000, timeout=2.0,
                 stderr=subprocess.DEVNULL
             ).decode().strip().splitlines()
             
@@ -502,10 +505,12 @@ class TelemetryThread(threading.Thread):
 
                 logger.info(f"[Telemetry] Launching Hardware Monitor: {lhm_path}")
                 startupinfo = None
+                creationflags = 0
                 if sys.platform == "win32":
                     startupinfo = subprocess.STARTUPINFO()
                     startupinfo.dwFlags |= subprocess.STARTF_USESHOWWINDOW
                     startupinfo.wShowWindow = 0 # SW_HIDE
+                    creationflags = 0x08000000
 
                 cmd = [lhm_path] if lhm_path.endswith(".exe") else ["dotnet", lhm_path]
                 
@@ -515,7 +520,8 @@ class TelemetryThread(threading.Thread):
                     stderr=subprocess.DEVNULL,
                     text=True,
                     bufsize=1,
-                    startupinfo=startupinfo
+                    startupinfo=startupinfo,
+                    creationflags=creationflags
                 )
                 
                 def reader_thread():
@@ -643,9 +649,10 @@ class TelemetryThread(threading.Thread):
                                 import subprocess
                                 si = subprocess.STARTUPINFO()
                                 si.dwFlags |= subprocess.STARTF_USESHOWWINDOW
+                                si.wShowWindow = 0 # SW_HIDE
                                 out = subprocess.check_output(
-                                    'powershell -NoProfile -Command "Get-CimInstance -ClassName Win32_Processor | Select-Object -ExpandProperty MaxClockSpeed"',
-                                    shell=True, startupinfo=si, creationflags=0x08000000, timeout=2.0
+                                    ["powershell", "-NoProfile", "-NonInteractive", "-WindowStyle", "Hidden", "-Command", "Get-CimInstance -ClassName Win32_Processor | Select-Object -ExpandProperty MaxClockSpeed"],
+                                    shell=False, startupinfo=si, creationflags=0x08000000, timeout=2.0
                                 ).decode().strip()
                                 if out.isdigit():
                                     max_f = int(out)
@@ -855,11 +862,13 @@ class TelemetryThread(threading.Thread):
                                 import subprocess
                                 si = subprocess.STARTUPINFO()
                                 si.dwFlags |= subprocess.STARTF_USESHOWWINDOW
+                                si.wShowWindow = 0 # SW_HIDE
                                 try:
                                     # Query both ACPI temperature and max actual core frequency in one fast call, prefixing to prevent parsing confusion
+                                    ps_script = "$t = Get-CimInstance -Namespace root/wmi -ClassName MSAcpi_ThermalZoneTemperature -ErrorAction SilentlyContinue | Where-Object { $_.InstanceName -notmatch 'PCH|BAT|SEN' } | Select-Object -ExpandProperty CurrentTemperature -ErrorAction SilentlyContinue; $f = Get-CimInstance -ClassName Win32_PerfFormattedData_Counters_ProcessorInformation -ErrorAction SilentlyContinue | Measure-Object -Property ActualFrequency -Maximum | Select-Object -ExpandProperty Maximum -ErrorAction SilentlyContinue; Write-Output \"TEMP:$t\"; Write-Output \"FREQ:$f\""
                                     out = subprocess.check_output(
-                                        'powershell -NoProfile -Command "$t = Get-CimInstance -Namespace root/wmi -ClassName MSAcpi_ThermalZoneTemperature -ErrorAction SilentlyContinue | Where-Object { $_.InstanceName -notmatch \'PCH|BAT|SEN\' } | Select-Object -ExpandProperty CurrentTemperature -ErrorAction SilentlyContinue; $f = Get-CimInstance -ClassName Win32_PerfFormattedData_Counters_ProcessorInformation -ErrorAction SilentlyContinue | Measure-Object -Property ActualFrequency -Maximum | Select-Object -ExpandProperty Maximum -ErrorAction SilentlyContinue; Write-Output \\"TEMP:$t\\"; Write-Output \\"FREQ:$f\\""',
-                                        shell=True, startupinfo=si, creationflags=0x08000000, timeout=2.0
+                                        ["powershell", "-NoProfile", "-NonInteractive", "-WindowStyle", "Hidden", "-Command", ps_script],
+                                        shell=False, startupinfo=si, creationflags=0x08000000, timeout=2.0
                                     ).decode().strip().splitlines()
                                     wmi_temps = []
                                     for line in out:
@@ -884,8 +893,8 @@ class TelemetryThread(threading.Thread):
                                     # Fallback to legacy wmic for temperature only if powershell fails
                                     try:
                                         out = subprocess.check_output(
-                                            'wmic /namespace:\\\\root\\wmi PATH MSAcpi_ThermalZoneTemperature get InstanceName,CurrentTemperature /value 2>NUL',
-                                            shell=True, startupinfo=si, creationflags=0x08000000, timeout=2.0
+                                            ["wmic", "/namespace:\\\\root\\wmi", "PATH", "MSAcpi_ThermalZoneTemperature", "get", "InstanceName,CurrentTemperature", "/value"],
+                                            shell=False, startupinfo=si, creationflags=0x08000000, timeout=2.0
                                         ).decode().strip()
                                         lines = [line.strip() for line in out.splitlines() if line.strip()]
                                         current_inst = ""
@@ -1229,5 +1238,6 @@ class HotReloader:
         args = [python] + sys.argv
         if "--dev" not in args:
             args.append("--dev")
-        subprocess.Popen(args)
+        creationflags = 0x08000000 if sys.platform == "win32" else 0
+        subprocess.Popen(args, creationflags=creationflags)
         os._exit(0)
