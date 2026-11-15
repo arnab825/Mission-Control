@@ -28,6 +28,14 @@ except ImportError:
         except Exception:
             _DB_MANAGER_AVAILABLE = False
 
+try:
+    from system.manifest_parsers import parse_steam_acf, parse_steam_vdf_libraries, parse_epic_item, parse_gog_info
+except ImportError:
+    try:
+        from .manifest_parsers import parse_steam_acf, parse_steam_vdf_libraries, parse_epic_item, parse_gog_info
+    except ImportError:
+        parse_steam_acf = parse_steam_vdf_libraries = parse_epic_item = parse_gog_info = None
+
 class GameScanner:
     """
     Scans and detects installed games from various platforms.
@@ -143,7 +151,8 @@ class GameScanner:
             "steam", "epic games launcher", "epic games", "ea", "ea app", 
             "origin", "ubisoft connect", "ubisoft", "connect", 
             "battle.net", "riot games", "rockstar games", "rockstar", 
-            "xbox", "xbox app", "gog galaxy", "amazon games", "itch.io", "humble"
+            "xbox", "xbox app", "gog galaxy", "amazon games", "itch.io", "humble",
+            "heronite", "heroic"
         ]
         
         self._validation_cache = {}
@@ -715,6 +724,19 @@ class GameScanner:
                             g["icon"] = str(cand)
                             break
 
+                # Enforce platform launcher typing and genre for whitelisted ecosystem launchers
+                name_clean = g.get("name", "").strip().lower()
+                if (
+                    any(wl == name_clean for wl in self.launcher_whitelist)
+                    or name_clean in ["heronite", "heroic"]
+                    or g.get("id") == "heronite_launcher"
+                    or (g.get("platform", "").lower() in ["heronite", "heroic"] and (name_clean in ["heronite", "heroic"] or g.get("type") == "LAUNCHER"))
+                ):
+                    g["type"] = "LAUNCHER"
+                    g["genre"] = "PLATFORM"
+                    if not g.get("tags"):
+                        g["tags"] = ["SYSTEM"]
+
                 # Validate whether game is still installed and is not software junk
                 if self._is_game_valid_and_installed(g):
                     cleaned_games.append(g)
@@ -1036,6 +1058,7 @@ class GameScanner:
             ("Amazon", self._scan_amazon),
             ("Itch.io", self._scan_itch),
             ("Humble Bundle", self._scan_humble),
+            ("Heronite", self._scan_heronite),
             ("Start Menu", self._scan_start_menu),
             ("Launcher Fallbacks", self._scan_launchers_fallback),
             ("Uninstall Registry", self._scan_uninstall_registry),
@@ -1270,7 +1293,7 @@ class GameScanner:
         self.games = [g for g in self.games if g.get("type") != "SOFTWARE"]
 
         # Final pass: Ensure strictly ONE launcher entry per platform
-        launcher_platforms = ["Steam", "Epic Games", "EA Desktop", "Origin", "Ubisoft Connect", "Battle.net", "GOG Galaxy", "Rockstar Games", "Xbox"]
+        launcher_platforms = ["Steam", "Epic Games", "EA Desktop", "Origin", "Ubisoft Connect", "Battle.net", "GOG Galaxy", "Rockstar Games", "Xbox", "Heronite", "Heroic", "Amazon Games", "Itch.io", "Humble Bundle"]
         seen_launchers = set()
         final_games = []
         
@@ -1738,6 +1761,19 @@ class GameScanner:
             uncategorized_games = []
             for game in self.games:
                 name_lower = game["name"].strip().lower()
+                is_whitelisted_launcher = (
+                    any(wl == name_lower for wl in self.launcher_whitelist)
+                    or name_lower in ["heronite", "heroic"]
+                    or game.get("id") == "heronite_launcher"
+                    or game.get("type") == "LAUNCHER"
+                    or game.get("genre") == "PLATFORM"
+                )
+                if is_whitelisted_launcher:
+                    game["type"] = "LAUNCHER"
+                    game["genre"] = "PLATFORM"
+                    game["tags"] = ["SYSTEM"]
+                    continue
+
                 if name_lower in cache_lookup:
                     game["type"] = cache_lookup[name_lower]["type"]
                     game["genre"] = cache_lookup[name_lower]["genre"]
@@ -2017,16 +2053,17 @@ class GameScanner:
             if not library_vdf.exists():
                 return
 
-            # Simple VDF parser for library folders
-            with open(library_vdf, "r", encoding="utf-8") as f:
-                content = f.read()
-            
-            # Find all "path" entries
-            import re
-            paths = re.findall(r'"path"\s+"([^"]+)"', content)
-            
-            for lib_path in paths:
-                lib_path = Path(lib_path.replace("\\\\", "\\"))
+            if parse_steam_vdf_libraries:
+                libraries = parse_steam_vdf_libraries(library_vdf)
+            else:
+                libraries = []
+                with open(library_vdf, "r", encoding="utf-8") as f:
+                    content = f.read()
+                import re
+                for p in re.findall(r'"path"\s+"([^"]+)"', content):
+                    libraries.append(Path(p.replace("\\\\", "\\")))
+
+            for lib_path in libraries:
                 apps_path = lib_path / "steamapps"
                 if not apps_path.exists():
                     continue
@@ -2034,38 +2071,30 @@ class GameScanner:
                 # Scan .acf files
                 for acf in apps_path.glob("appmanifest_*.acf"):
                     try:
-                        with open(acf, "r", encoding="utf-8", errors="ignore") as f:
-                            acf_content = f.read()
+                        parsed = parse_steam_acf(acf) if parse_steam_acf else None
+                        if not parsed:
+                            continue
                         
-                        name_match = re.search(r'"name"\s+"([^"]+)"', acf_content)
-                        id_match = re.search(r'"appid"\s+"([^"]+)"', acf_content)
-                        install_dir_match = re.search(r'"installdir"\s+"([^"]+)"', acf_content)
-                        flags_match = re.search(r'"StateFlags"\s+"([^"]+)"', acf_content)
-                        
-                        if name_match and id_match and install_dir_match:
-                            game_name = name_match.group(1)
-                            for symbol in ["™", "®", "\u2122", "\u00ae", "\x99"]:
-                                game_name = game_name.replace(symbol, "")
-                            game_name = " ".join(game_name.split())
+                        game_name = parsed["name"]
 
-                            # Normalize internal project codenames
-                            if game_name.lower() in ["sp23", "cod23", "cod 2023"]:
-                                game_name = "Call of Duty: Modern Warfare III"
-                            elif game_name.lower() in ["sp22", "cod22", "cod 2022"]:
-                                game_name = "Call of Duty: Modern Warfare II"
-                            elif game_name.lower() in ["sp24", "cod24", "cod 2024"]:
-                                game_name = "Call of Duty: Black Ops 6"
+                        # Normalize internal project codenames
+                        if game_name.lower() in ["sp23", "cod23", "cod 2023"]:
+                            game_name = "Call of Duty: Modern Warfare III"
+                        elif game_name.lower() in ["sp22", "cod22", "cod 2022"]:
+                            game_name = "Call of Duty: Modern Warfare II"
+                        elif game_name.lower() in ["sp24", "cod24", "cod 2024"]:
+                            game_name = "Call of Duty: Black Ops 6"
 
-                            if any(junk in game_name.lower() for junk in self.junk_keywords):
-                                continue
+                        if any(junk in game_name.lower() for junk in self.junk_keywords):
+                            continue
 
-                            app_id = id_match.group(1)
-                            install_dir = install_dir_match.group(1)
-                            install_path = apps_path / "common" / install_dir
+                        app_id = parsed["appid"]
+                        install_dir = parsed["installdir"]
+                        install_path = apps_path / "common" / install_dir
 
-                            # VERIFICATION: If directory does not exist on disk, game is uninstalled!
-                            if not install_path.exists():
-                                continue
+                        # VERIFICATION: If directory does not exist on disk, game is uninstalled!
+                        if not install_path.exists():
+                            continue
                             
                             # Try to find the primary .exe for icon extraction (fast bounded scan)
                             resolved_exe = None
@@ -2119,16 +2148,26 @@ class GameScanner:
 
         for item in manifest_path.glob("*.item"):
             try:
-                with open(item, "r", encoding="utf-8") as f:
-                    data = json.load(f)
-                
-                self.games.append({
-                    "name": data.get("DisplayName"),
-                    "platform": "Epic Games",
-                    "id": data.get("AppName"),
-                    "install_path": data.get("InstallLocation"),
-                    "exe_path": data.get("LaunchExecutable"),
-                })
+                parsed = parse_epic_item(item) if parse_epic_item else None
+                if parsed:
+                    self.games.append({
+                        "name": parsed.get("display_name"),
+                        "platform": "Epic Games",
+                        "id": parsed.get("app_name"),
+                        "install_path": parsed.get("install_location"),
+                        "exe_path": parsed.get("launch_executable"),
+                    })
+                else:
+                    with open(item, "r", encoding="utf-8") as f:
+                        data = json.load(f)
+                    
+                    self.games.append({
+                        "name": data.get("DisplayName"),
+                        "platform": "Epic Games",
+                        "id": data.get("AppName"),
+                        "install_path": data.get("InstallLocation"),
+                        "exe_path": data.get("LaunchExecutable"),
+                    })
             except Exception as e:
                 logger.error(f"Error parsing Epic manifest {item}: {e}")
         
@@ -2652,6 +2691,188 @@ class GameScanner:
         except Exception:
             pass
 
+    def _scan_heronite(self):
+        """Scan for Heronite launcher and games managed by Heronite."""
+        try:
+            logger.info("[GameScanner] Scanning Heronite launcher and managed libraries...")
+            heronite_candidates = [
+                os.path.expandvars(r"%LOCALAPPDATA%\Programs\Heronite\heronite-rs.exe"),
+                os.path.expandvars(r"%LOCALAPPDATA%\Heronite\heronite-rs.exe"),
+                os.path.expandvars(r"%PROGRAMFILES%\Heronite\heronite-rs.exe"),
+                os.path.expandvars(r"%PROGRAMFILES(X86)%\Heronite\heronite-rs.exe"),
+                r"D:\Users\DELL\AppData\Local\Programs\Heronite\heronite-rs.exe",
+            ]
+            user_profile = os.environ.get("USERPROFILE", "")
+            if user_profile and len(user_profile) > 2:
+                tail = user_profile[2:]
+                for drive in ["C:", "D:", "E:"]:
+                    cand = Path(f"{drive}{tail}\\AppData\\Local\\Programs\\Heronite\\heronite-rs.exe")
+                    if str(cand) not in heronite_candidates:
+                        heronite_candidates.append(str(cand))
+
+            # Inspect Desktop shortcut target if present
+            desktop = Path(user_profile) / "Desktop" if user_profile else None
+            desktop_dirs = [d for d in [desktop, Path("C:\\Users\\Public\\Desktop")] if d and d.exists()]
+            for dt in desktop_dirs:
+                lnk = dt / "Heronite.lnk"
+                if lnk.exists():
+                    try:
+                        res = subprocess.run(
+                            ["powershell", "-NoProfile", "-Command", f'(New-Object -ComObject WScript.Shell).CreateShortcut("{lnk}").TargetPath'],
+                            capture_output=True, text=True, timeout=5
+                        )
+                        target = res.stdout.strip()
+                        if target and os.path.exists(target) and target not in heronite_candidates:
+                            heronite_candidates.insert(0, target)
+                    except Exception:
+                        pass
+
+            heronite_exe = None
+            for cand_path in heronite_candidates:
+                if cand_path and os.path.exists(cand_path):
+                    heronite_exe = Path(cand_path)
+                    break
+
+            if heronite_exe:
+                if not any(g.get("name") == "Heronite" or g.get("exe_path") == str(heronite_exe) for g in self.games):
+                    self.games.append({
+                        "name": "Heronite",
+                        "platform": "Heronite",
+                        "id": "heronite_launcher",
+                        "install_path": str(heronite_exe.parent),
+                        "exe_path": str(heronite_exe),
+                        "type": "LAUNCHER",
+                        "genre": "PLATFORM",
+                        "tags": ["SYSTEM"],
+                        "icon": "/launchers/heronite.png"
+                    })
+                    logger.info(f"[GameScanner] Discovered Heronite launcher at: {heronite_exe}")
+
+            # Scan Heronite game libraries (sideload_apps, legendary, gog, nile)
+            appdata_paths = []
+            if os.environ.get("APPDATA"):
+                appdata_paths.append(Path(os.environ["APPDATA"]))
+            if user_profile and len(user_profile) > 2:
+                tail = user_profile[2:]
+                for drive in ["C:", "D:", "E:"]:
+                    c_appdata = Path(f"{drive}{tail}\\AppData\\Roaming")
+                    if c_appdata not in appdata_paths and c_appdata.exists():
+                        appdata_paths.append(c_appdata)
+
+            for appdata in appdata_paths:
+                heronite_data = appdata / "heronite" / "data"
+                if not heronite_data.exists():
+                    continue
+
+                # Sideload apps
+                sideload_lib = heronite_data / "sideload_apps" / "library.json"
+                if sideload_lib.exists():
+                    try:
+                        with open(sideload_lib, "r", encoding="utf-8") as f:
+                            data = json.load(f)
+                        games_list = data.get("games", []) if isinstance(data, dict) else (data if isinstance(data, list) else [])
+                        for g in games_list:
+                            if not isinstance(g, dict):
+                                continue
+                            if g.get("is_installed"):
+                                title = g.get("title") or g.get("app_name") or "Unknown"
+                                install_info = g.get("install", {}) if isinstance(g.get("install"), dict) else {}
+                                exe_path = install_info.get("executable") or ""
+                                if exe_path and os.path.exists(exe_path):
+                                    entry = {
+                                        "name": title,
+                                        "platform": "Heronite",
+                                        "id": f"heronite_sideload_{g.get('app_name', title)}",
+                                        "install_path": str(Path(exe_path).parent),
+                                        "exe_path": exe_path,
+                                        "type": "GAME",
+                                        "cover": g.get("art_cover") or g.get("art_square") or None
+                                    }
+                                    if self._is_game_valid_and_installed(entry):
+                                        self.games.append(entry)
+                    except Exception as e:
+                        logger.debug(f"[GameScanner] Error reading Heronite sideload library: {e}")
+
+                # Nile (Amazon Games via Heronite)
+                nile_installed = heronite_data / "nile_config" / "nile" / "installed.json"
+                if nile_installed.exists():
+                    try:
+                        with open(nile_installed, "r", encoding="utf-8") as f:
+                            nile_data = json.load(f)
+                        items = nile_data if isinstance(nile_data, list) else (nile_data.values() if isinstance(nile_data, dict) else [])
+                        for item in items:
+                            if isinstance(item, dict):
+                                title = item.get("title") or item.get("name")
+                                install_path = item.get("install_path") or item.get("path")
+                                exe = item.get("executable") or ""
+                                if title and install_path and os.path.exists(install_path):
+                                    entry = {
+                                        "name": title,
+                                        "platform": "Heronite",
+                                        "id": f"heronite_nile_{item.get('id', title)}",
+                                        "install_path": str(install_path),
+                                        "exe_path": str(Path(install_path) / exe) if exe else str(install_path),
+                                        "type": "GAME"
+                                    }
+                                    if self._is_game_valid_and_installed(entry):
+                                        self.games.append(entry)
+                    except Exception as e:
+                        logger.debug(f"[GameScanner] Error reading Heronite Nile games: {e}")
+
+                # Legendary (Epic Games via Heronite)
+                legendary_installed = heronite_data / "legendaryConfig" / "legendary" / "installed.json"
+                if legendary_installed.exists():
+                    try:
+                        with open(legendary_installed, "r", encoding="utf-8") as f:
+                            leg_data = json.load(f)
+                        if isinstance(leg_data, dict):
+                            for app_name, app_info in leg_data.items():
+                                if isinstance(app_info, dict):
+                                    title = app_info.get("title", app_name)
+                                    install_path = app_info.get("install_path")
+                                    exe = app_info.get("executable")
+                                    if install_path and os.path.exists(install_path):
+                                        exe_path = str(Path(install_path) / exe) if exe else ""
+                                        entry = {
+                                            "name": title,
+                                            "platform": "Heronite",
+                                            "id": f"heronite_epic_{app_name}",
+                                            "install_path": install_path,
+                                            "exe_path": exe_path or install_path,
+                                            "type": "GAME"
+                                        }
+                                        if self._is_game_valid_and_installed(entry):
+                                            self.games.append(entry)
+                    except Exception as e:
+                        logger.debug(f"[GameScanner] Error reading Heronite Legendary games: {e}")
+
+                # GOG store via Heronite
+                gog_installed = heronite_data / "gog_store" / "installed.json"
+                if gog_installed.exists():
+                    try:
+                        with open(gog_installed, "r", encoding="utf-8") as f:
+                            gog_data = json.load(f)
+                        items = gog_data if isinstance(gog_data, list) else (gog_data.values() if isinstance(gog_data, dict) else [])
+                        for item in items:
+                            if isinstance(item, dict):
+                                title = item.get("title") or item.get("name")
+                                install_path = item.get("install_path") or item.get("path")
+                                if title and install_path and os.path.exists(install_path):
+                                    entry = {
+                                        "name": title,
+                                        "platform": "Heronite",
+                                        "id": f"heronite_gog_{item.get('id', title)}",
+                                        "install_path": str(install_path),
+                                        "exe_path": str(item.get("executable", install_path)),
+                                        "type": "GAME"
+                                    }
+                                    if self._is_game_valid_and_installed(entry):
+                                        self.games.append(entry)
+                    except Exception as e:
+                        logger.debug(f"[GameScanner] Error reading Heronite GOG games: {e}")
+        except Exception as exc:
+            logger.error(f"[GameScanner] Heronite scan failed: {exc}")
+
     def _scan_start_menu(self):
         """Scan Start Menu for games and launchers using a high-performance batched PowerShell query."""
         try:
@@ -2828,15 +3049,38 @@ class GameScanner:
                             if any(junk in target_lower for junk in self.junk_keywords):
                                 continue
                                 
+                            name_lower = lnk.stem.lower()
+                            is_launcher = (
+                                name_lower in [w.lower() for w in self.launcher_whitelist]
+                                or "heronite" in name_lower
+                                or "heroic" in name_lower
+                            )
+                            platform = "Local"
+                            display_name = lnk.stem
+                            if "heronite" in name_lower:
+                                platform = "Heronite"
+                                display_name = "Heronite"
+                            elif "heroic" in name_lower:
+                                platform = "Heroic"
+                                display_name = "Heroic"
+                            elif is_launcher:
+                                platform = lnk.stem
+
                             game_entry = {
-                                "name": lnk.stem,
-                                "platform": "Local",
-                                "id": lnk.stem,
+                                "name": display_name,
+                                "platform": platform,
+                                "id": f"heronite_launcher" if platform == "Heronite" else lnk.stem,
                                 "install_path": str(Path(target).parent),
                                 "exe_path": target
                             }
+                            if is_launcher:
+                                game_entry["type"] = "LAUNCHER"
+                                game_entry["genre"] = "PLATFORM"
+                                game_entry["tags"] = ["SYSTEM"]
+                                if platform == "Heronite":
+                                    game_entry["icon"] = "/launchers/heronite.png"
                             
-                            if icon_loc and "," in icon_loc:
+                            if icon_loc and "," in icon_loc and "icon" not in game_entry:
                                 icon_path = icon_loc.split(",")[0].strip()
                                 if os.path.exists(icon_path):
                                     game_entry["icon"] = icon_path
@@ -2893,7 +3137,10 @@ class GameScanner:
             ("Epic Games", r"C:\Program Files\Epic Games\Launcher\Portal\Binaries\Win64\EpicGamesLauncher.exe"),
             ("Battle.net", r"C:\Program Files (x86)\Battle.net\Battle.net.exe"),
             ("GOG Galaxy", r"C:\Program Files (x86)\GOG Galaxy\GalaxyClient.exe"),
-            ("Rockstar Games", r"C:\Program Files\Rockstar Games\Launcher\Launcher.exe")
+            ("Rockstar Games", r"C:\Program Files\Rockstar Games\Launcher\Launcher.exe"),
+            ("Heronite", r"D:\Users\DELL\AppData\Local\Programs\Heronite\heronite-rs.exe"),
+            ("Heronite", os.path.expandvars(r"%LOCALAPPDATA%\Programs\Heronite\heronite-rs.exe")),
+            ("Heroic", os.path.expandvars(r"%LOCALAPPDATA%\Programs\heroic\Heroic.exe")),
         ]
         
         for name, path_str in fallbacks:

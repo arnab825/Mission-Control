@@ -1030,21 +1030,40 @@ def handle_open_oem_software(payload: dict, pipeline, bridge, config) -> None:
         protocol = str(payload.get("protocol", "")).strip()
         suite_id = str(payload.get("suite_id", "")).strip().lower()
 
-        # Specific known Windows executable binary paths for OEM desktop suites
+        def _launch_target(target_path: str) -> bool:
+            try:
+                if hasattr(os, "startfile"):
+                    os.startfile(target_path)
+                    return True
+                cwd = os.path.dirname(target_path) if os.path.isfile(target_path) else None
+                subprocess.Popen([target_path], cwd=cwd, shell=False)
+                return True
+            except Exception as launch_err:
+                logger.warning(f"Failed to launch '{target_path}': {launch_err}")
+                return False
+
+        # Specific known Windows executable binary paths and Start Menu shortcuts for OEM desktop suites
         oem_executable_candidates = {
             "alienware_awcc": [
+                os.path.expandvars(r"%ProgramData%\Microsoft\Windows\Start Menu\Alienware Command Center.lnk"),
                 r"C:\Program Files\Alienware\Alienware Command Center\AWCC\AWCC.exe",
                 r"C:\Program Files\Alienware\Alienware Command Center\AWCC.exe",
                 r"C:\Program Files\Alienware\Alienware Command Center\AWCC.Application.exe",
+                os.path.expandvars(r"%ProgramData%\Microsoft\Windows\Start Menu\Programs\Alienware\Alienware Command Center.lnk"),
+                os.path.expandvars(r"%ProgramData%\Microsoft\Windows\Start Menu\Programs\Alienware Command Center.lnk"),
+                os.path.expandvars(r"%APPDATA%\Microsoft\Windows\Start Menu\Programs\Alienware\Alienware Command Center.lnk"),
+                r"shell:AppsFolder\{6D809377-6AF0-444B-8957-A3773F02200E}\Alienware\Alienware Command Center\AWCC\AWCC.exe",
             ],
             "hp_omen": [
                 r"C:\Program Files\HP\OMEN Gaming Hub\OMEN Gaming Hub.exe",
                 r"C:\Program Files\HP\OMEN Command Center\OMEN Command Center.exe",
                 r"C:\Program Files (x86)\HP\OMEN Gaming Hub\OMEN Gaming Hub.exe",
+                os.path.expandvars(r"%ProgramData%\Microsoft\Windows\Start Menu\Programs\OMEN Gaming Hub.lnk"),
             ],
             "asus_armoury_crate": [
                 r"C:\Program Files\ASUS\ARMOURY CRATE Lite Service\ArmouryCrate.exe",
                 r"C:\Program Files (x86)\ASUS\ArmouryDevice\dll\ArmouryCrate.exe",
+                os.path.expandvars(r"%ProgramData%\Microsoft\Windows\Start Menu\Programs\ASUS\ARMOURY CRATE.lnk"),
             ],
             "asus_ghelper": [
                 r"C:\Program Files\G-Helper\GHelper.exe",
@@ -1052,6 +1071,7 @@ def handle_open_oem_software(payload: dict, pipeline, bridge, config) -> None:
             ],
             "lenovo_vantage": [
                 r"C:\Program Files\Lenovo\VantageService\LenovoVantageService.exe",
+                os.path.expandvars(r"%ProgramData%\Microsoft\Windows\Start Menu\Programs\Lenovo Vantage.lnk"),
             ],
             "lenovo_legion_toolkit": [
                 r"C:\Program Files\LenovoLegionToolkit\LenovoLegionToolkit.exe",
@@ -1060,40 +1080,53 @@ def handle_open_oem_software(payload: dict, pipeline, bridge, config) -> None:
             "msi_center": [
                 r"C:\Program Files (x86)\MSI\MSI Center\MSI Center.exe",
                 r"C:\Program Files\MSI\MSI Center\MSI Center.exe",
+                os.path.expandvars(r"%ProgramData%\Microsoft\Windows\Start Menu\Programs\MSI Center.lnk"),
             ],
             "razer_synapse": [
                 r"C:\Program Files (x86)\Razer\Synapse3\WPFUI\Framework\Razer Synapse 3 Host.exe",
                 r"C:\Program Files\Razer\Synapse3\WPFUI\Framework\Razer Synapse 3 Host.exe",
+                os.path.expandvars(r"%ProgramData%\Microsoft\Windows\Start Menu\Programs\Razer\Razer Synapse.lnk"),
             ],
             "nvidia_app": [
                 r"C:\Program Files\NVIDIA Corporation\NVIDIA App\NVIDIA App.exe",
                 r"C:\Program Files\NVIDIA Corporation\NVIDIA GeForce Experience\NVIDIA GeForce Experience.exe",
+                os.path.expandvars(r"%ProgramData%\Microsoft\Windows\Start Menu\Programs\NVIDIA Corporation\NVIDIA App.lnk"),
             ],
             "amd_adrenalin": [
                 r"C:\Program Files\AMD\CNext\CNext\RadeonSoftware.exe",
                 r"C:\Program Files\AMD\CNext\CNext\CNEXT.exe",
                 r"C:\Program Files\AMD\CNext\CNext\AMDRSServ.exe",
+                os.path.expandvars(r"%ProgramData%\Microsoft\Windows\Start Menu\Programs\AMD Software.lnk"),
             ],
             "intel_gcc": [
                 r"C:\Program Files\Intel\Graphics Command Center\IGCC.exe",
+                os.path.expandvars(r"%ProgramData%\Microsoft\Windows\Start Menu\Programs\Intel Graphics Command Center.lnk"),
             ],
         }
 
-        # 1. First, check if an executable binary exists directly on disk
+        # 1. First, check if an executable binary or shortcut exists directly on disk from protocol/path argument
         if protocol and os.path.isfile(protocol):
-            subprocess.Popen([protocol], shell=False)
-            logger.info(f"Launched OEM companion software directly via path: '{protocol}'.")
-            return
-
-        candidates = oem_executable_candidates.get(suite_id, [])
-        for candidate in candidates:
-            expanded = os.path.expandvars(candidate)
-            if os.path.isfile(expanded):
-                subprocess.Popen([expanded], shell=False)
-                logger.info(f"Launched OEM companion software directly via binary '{expanded}'.")
+            if _launch_target(protocol):
+                logger.info(f"Launched OEM companion software directly via path: '{protocol}'.")
                 return
 
-        # 2. Protocol mapping fallback for known OEM suite IDs
+        # 2. Check candidate binaries and shortcuts
+        candidates = oem_executable_candidates.get(suite_id, [])
+        for candidate in candidates:
+            if candidate.startswith("shell:AppsFolder"):
+                try:
+                    subprocess.Popen(["cmd.exe", "/c", "start", "", candidate], shell=True)
+                    logger.info(f"Launched OEM companion software via shell AppID '{candidate}'.")
+                    return
+                except Exception:
+                    pass
+            expanded = os.path.expandvars(candidate)
+            if os.path.isfile(expanded):
+                if _launch_target(expanded):
+                    logger.info(f"Launched OEM companion software directly via binary/shortcut '{expanded}'.")
+                    return
+
+        # 3. Protocol mapping fallback for known OEM suite IDs
         suite_proto_map = {
             "hp_omen": "omencommandcenter:",
             "asus_armoury_crate": "armoury-crate:",
@@ -1119,16 +1152,56 @@ def handle_open_oem_software(payload: dict, pipeline, bridge, config) -> None:
         if not protocol.endswith(":"):
             protocol += ":"
 
-        # Security check: ensure protocol is strictly an alphanumeric/hyphen scheme
-        if not re.match(r"^[a-zA-Z0-9_\-\.]+:$", protocol):
-            logger.warning(f"Rejected potentially unsafe OEM protocol scheme: {protocol}")
-            return
+        # Security & registration check: ensure protocol is strictly an alphanumeric/hyphen scheme
+        # AND verify whether it is actually registered in Windows Registry before attempting start
+        if re.match(r"^[a-zA-Z0-9_\-\.]+:$", protocol):
+            proto_name = protocol.rstrip(":")
+            is_proto_registered = False
+            try:
+                import winreg
+                with winreg.OpenKey(winreg.HKEY_CLASSES_ROOT, proto_name):
+                    is_proto_registered = True
+            except Exception:
+                is_proto_registered = False
 
-        si = subprocess.STARTUPINFO()
-        si.dwFlags |= subprocess.STARTF_USESHOWWINDOW
-        si.wShowWindow = 0
-        subprocess.Popen(["cmd", "/c", "start", "", protocol], shell=True, startupinfo=si, creationflags=0x08000000)
-        logger.info(f"Launched OEM companion software with protocol '{protocol}'.")
+            if is_proto_registered:
+                si = subprocess.STARTUPINFO()
+                si.dwFlags |= subprocess.STARTF_USESHOWWINDOW
+                si.wShowWindow = 0
+                subprocess.Popen(["cmd", "/c", "start", "", protocol], shell=True, startupinfo=si, creationflags=0x08000000)
+                logger.info(f"Launched OEM companion software with registered protocol '{protocol}'.")
+                return
+            else:
+                logger.info(f"Protocol '{protocol}' is not registered in Windows Classes Root; searching Start Menu shortcuts.")
+
+        # 4. Final dynamic fallback: search Windows Start Menu for matching OEM shortcut
+        try:
+            start_menu_dirs = [
+                os.path.expandvars(r"%ProgramData%\Microsoft\Windows\Start Menu\Programs"),
+                os.path.expandvars(r"%ProgramData%\Microsoft\Windows\Start Menu"),
+                os.path.expandvars(r"%APPDATA%\Microsoft\Windows\Start Menu\Programs"),
+            ]
+            search_terms = {
+                "alienware_awcc": ["alienware", "awcc"],
+                "hp_omen": ["omen"],
+                "asus_armoury_crate": ["armoury crate"],
+                "lenovo_vantage": ["vantage"],
+                "msi_center": ["msi center", "dragon center"],
+            }.get(suite_id, [suite_id.replace("_", " ")])
+
+            for sm_dir in start_menu_dirs:
+                if not os.path.exists(sm_dir):
+                    continue
+                for root, _, files in os.walk(sm_dir):
+                    for f in files:
+                        if f.lower().endswith(".lnk") and any(term in f.lower() for term in search_terms):
+                            found_lnk = os.path.join(root, f)
+                            if _launch_target(found_lnk):
+                                logger.info(f"Dynamically discovered and launched OEM shortcut: '{found_lnk}'.")
+                                return
+        except Exception as scan_err:
+            logger.warning(f"Error scanning Start Menu for OEM suite: {scan_err}")
+
     except Exception as e:
         logger.error(f"Failed to launch OEM companion software: {e}")
 

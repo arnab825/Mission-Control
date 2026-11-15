@@ -85,6 +85,8 @@ const PLATFORM_STYLES: Record<string, { bg: string; text: string; border: string
   'Xbox App': { bg: 'bg-[#1a2e1a]/80', text: 'text-[#4ade80]', border: 'border-[#4ade80]/40' },
   'Rockstar Games': { bg: 'bg-[#2e1a1a]/80', text: 'text-[#f87171]', border: 'border-[#f87171]/40' },
   'Amazon Games': { bg: 'bg-[#2e2a1a]/80', text: 'text-[#f59e0b]', border: 'border-[#f59e0b]/40' },
+  'Heronite': { bg: 'bg-[#181825]/90', text: 'text-[#89b4fa]', border: 'border-[#89b4fa]/40' },
+  'Heroic': { bg: 'bg-[#1e1e2e]/90', text: 'text-[#cdd6f4]', border: 'border-[#cdd6f4]/40' },
   'Itch.io': { bg: 'bg-[#2e1a1a]/80', text: 'text-[#fa5c5c]', border: 'border-[#fa5c5c]/40' },
   'Humble Bundle': { bg: 'bg-[#2e2a1a]/80', text: 'text-[#fbbf24]', border: 'border-[#fbbf24]/40' },
   'PlayStation 3': { bg: 'bg-[#003791]/70', text: 'text-[#66c0f4]', border: 'border-[#003791]/50' },
@@ -124,6 +126,8 @@ function getPlatformLabel(platform: string): string {
     'Battle.net': 'BNET',
     'Rockstar Games': 'ROCKSTAR',
     'Amazon Games': 'AMAZON',
+    'Heronite': 'HERONITE',
+    'Heroic': 'HEROIC',
     'Humble Bundle': 'HUMBLE',
     'Itch.io': 'ITCH',
     'Riot Games': 'RIOT',
@@ -188,19 +192,24 @@ const GameCard: React.FC<{
     'GOG Galaxy': '/launchers/gog.svg',
     'Riot Games': '/launchers/riot.svg',
     'Rockstar Games': '/launchers/rockstar.png',
-    'Rockstar': '/launchers/rockstar.png'
+    'Rockstar': '/launchers/rockstar.png',
+    'Heronite': '/launchers/heronite.png',
+    'Heroic': '/launchers/heronite.png'
   };
 
   // Explicit launcher detection
   const isLauncher =
     game.type?.toUpperCase() === 'LAUNCHER' ||
     (game.genre?.toUpperCase() === 'PLATFORM' && !game.id?.match(/^\d+$/)) ||
-    (game.name.toLowerCase() === game.platform?.toLowerCase() && !game.id?.match(/^\d+$/));
+    (game.name.toLowerCase() === game.platform?.toLowerCase() && !game.id?.match(/^\d+$/)) ||
+    (game.platform?.toLowerCase() === 'heronite' && (game.name.toLowerCase() === 'heronite' || !game.exe_path || game.exe_path.toLowerCase().includes('heronite-rs') || game.exe_path.toLowerCase().includes('heronite.exe'))) ||
+    (game.platform?.toLowerCase() === 'heroic' && (game.name.toLowerCase() === 'heroic' || !game.exe_path || game.exe_path.toLowerCase().includes('heroic.exe')));
 
   const normPlatform = game.platform?.trim();
   const launcherBanner = isLauncher ? (
     LAUNCHER_BANNERS[game.platform] ||
     LAUNCHER_BANNERS[normPlatform] ||
+    (normPlatform?.toLowerCase().includes('heronite') || normPlatform?.toLowerCase().includes('hero') ? LAUNCHER_BANNERS['Heronite'] : null) ||
     (normPlatform?.toLowerCase().includes('epic') ? LAUNCHER_BANNERS['Epic Games'] : null) ||
     (normPlatform?.toLowerCase().includes('ea') || normPlatform?.toLowerCase().includes('origin') ? LAUNCHER_BANNERS['EA Desktop'] : null) ||
     (normPlatform?.toLowerCase().includes('ubisoft') || normPlatform?.toLowerCase().includes('uplay') ? LAUNCHER_BANNERS['Ubisoft Connect'] : null) ||
@@ -401,12 +410,12 @@ const GameCard: React.FC<{
               {game.name}
             </h4>
             <p className="text-[9px] xl:text-[10px] font-bold text-zinc-500 uppercase tracking-widest mt-0.5">
-              {game.genre === 'N/A' || !game.genre ? (isLauncher ? 'GAMING PLATFORM' : 'GAME') : game.genre}
+              {isLauncher ? 'PLATFORM' : (game.genre === 'N/A' || !game.genre ? 'GAME' : game.genre)}
             </p>
           </div>
 
           {/* Hardware Feature Badges (NVIDIA DLSS, Frame Gen, RTX, Reflex, HDR, FSR) */}
-          {game.features && game.features.length > 0 && (
+          {!isLauncher && game.features && game.features.length > 0 && (
             <div className="flex gap-1 flex-wrap pt-0.5">
               {game.features.map((feat) => {
                 const f = feat.toUpperCase();
@@ -836,6 +845,15 @@ const GamesLibraryContent: React.FC<GamesPageProps> = ({ state, sendCommand, set
                   changed = true;
                 }
               }
+
+              const isLauncherEntry = item.type?.toUpperCase() === 'LAUNCHER' || item.genre?.toUpperCase() === 'PLATFORM' || nameLower === 'heronite' || nameLower === 'heroic' || (item.platform?.toLowerCase() === 'heronite' && (nameLower === 'heronite' || item.id === 'heronite_launcher'));
+              if (isLauncherEntry) {
+                if (item.genre !== 'PLATFORM' || item.type !== 'LAUNCHER') {
+                  item = { ...item, genre: 'PLATFORM', type: 'LAUNCHER' };
+                  changed = true;
+                }
+              }
+
               return item;
             });
             if (changed) {
@@ -899,7 +917,14 @@ const GamesLibraryContent: React.FC<GamesPageProps> = ({ state, sendCommand, set
     const s = state as any;
     if (s.game_library !== undefined && s.game_library !== prevLibraryRef.current) {
       prevLibraryRef.current = s.game_library;
-      const newGames = s.game_library || [];
+      const newGames = (s.game_library || []).map((g: any) => {
+        const nameLower = (g.name || '').toLowerCase();
+        const isLauncherEntry = g.type?.toUpperCase() === 'LAUNCHER' || g.genre?.toUpperCase() === 'PLATFORM' || nameLower === 'heronite' || nameLower === 'heroic' || (g.platform?.toLowerCase() === 'heronite' && (nameLower === 'heronite' || g.id === 'heronite_launcher'));
+        if (isLauncherEntry) {
+          return { ...g, genre: 'PLATFORM', type: 'LAUNCHER' };
+        }
+        return g;
+      });
       setGames(newGames);
       setGamesLoaded(true);
     }
@@ -1096,7 +1121,9 @@ const GamesLibraryContent: React.FC<GamesPageProps> = ({ state, sendCommand, set
     () => games.filter(g =>
       g.type?.toUpperCase() === 'LAUNCHER' ||
       (g.genre?.toUpperCase() === 'PLATFORM' && !g.id?.match(/^\d+$/)) ||
-      (g.name.toLowerCase() === g.platform?.toLowerCase() && !g.id?.match(/^\d+$/))
+      (g.name.toLowerCase() === g.platform?.toLowerCase() && !g.id?.match(/^\d+$/)) ||
+      (g.platform?.toLowerCase() === 'heronite' && (g.name.toLowerCase() === 'heronite' || g.type?.toUpperCase() === 'LAUNCHER')) ||
+      (g.platform?.toLowerCase() === 'heroic' && (g.name.toLowerCase() === 'heroic' || g.type?.toUpperCase() === 'LAUNCHER'))
     ).length,
     [games]
   );
@@ -1151,13 +1178,17 @@ const GamesLibraryContent: React.FC<GamesPageProps> = ({ state, sendCommand, set
           g.type?.toUpperCase() !== 'EMULATION' &&
           g.type?.toUpperCase() !== 'LAUNCHER' &&
           !(g.genre?.toUpperCase() === 'PLATFORM' && !g.id?.match(/^\d+$/)) &&
-          !(g.name.toLowerCase() === g.platform?.toLowerCase() && !g.id?.match(/^\d+$/))
+          !(g.name.toLowerCase() === g.platform?.toLowerCase() && !g.id?.match(/^\d+$/)) &&
+          !(g.platform?.toLowerCase() === 'heronite' && g.name.toLowerCase() === 'heronite') &&
+          !(g.platform?.toLowerCase() === 'heroic' && g.name.toLowerCase() === 'heroic')
         );
       } else if (selectedType === 'LAUNCHER') {
         result = result.filter(g =>
           g.type?.toUpperCase() === 'LAUNCHER' ||
           (g.genre?.toUpperCase() === 'PLATFORM' && !g.id?.match(/^\d+$/)) ||
-          (g.name.toLowerCase() === g.platform?.toLowerCase() && !g.id?.match(/^\d+$/))
+          (g.name.toLowerCase() === g.platform?.toLowerCase() && !g.id?.match(/^\d+$/)) ||
+          (g.platform?.toLowerCase() === 'heronite' && (g.name.toLowerCase() === 'heronite' || g.type?.toUpperCase() === 'LAUNCHER')) ||
+          (g.platform?.toLowerCase() === 'heroic' && (g.name.toLowerCase() === 'heroic' || g.type?.toUpperCase() === 'LAUNCHER'))
         );
       } else if (selectedType === 'EMULATION') {
         result = result.filter(g =>
@@ -1179,13 +1210,17 @@ const GamesLibraryContent: React.FC<GamesPageProps> = ({ state, sendCommand, set
           g.type?.toUpperCase() !== 'EMULATION' &&
           g.type?.toUpperCase() !== 'LAUNCHER' &&
           !(g.genre?.toUpperCase() === 'PLATFORM' && !g.id?.match(/^\d+$/)) &&
-          !(g.name.toLowerCase() === g.platform?.toLowerCase() && !g.id?.match(/^\d+$/))
+          !(g.name.toLowerCase() === g.platform?.toLowerCase() && !g.id?.match(/^\d+$/)) &&
+          !(g.platform?.toLowerCase() === 'heronite' && g.name.toLowerCase() === 'heronite') &&
+          !(g.platform?.toLowerCase() === 'heroic' && g.name.toLowerCase() === 'heroic')
         );
       } else if (selectedType === 'LAUNCHER') {
         result = result.filter(g =>
           g.type?.toUpperCase() === 'LAUNCHER' ||
           (g.genre?.toUpperCase() === 'PLATFORM' && !g.id?.match(/^\d+$/)) ||
-          (g.name.toLowerCase() === g.platform?.toLowerCase() && !g.id?.match(/^\d+$/))
+          (g.name.toLowerCase() === g.platform?.toLowerCase() && !g.id?.match(/^\d+$/)) ||
+          (g.platform?.toLowerCase() === 'heronite' && (g.name.toLowerCase() === 'heronite' || g.type?.toUpperCase() === 'LAUNCHER')) ||
+          (g.platform?.toLowerCase() === 'heroic' && (g.name.toLowerCase() === 'heroic' || g.type?.toUpperCase() === 'LAUNCHER'))
         );
       } else if (selectedType === 'EMULATION') {
         result = result.filter(g =>

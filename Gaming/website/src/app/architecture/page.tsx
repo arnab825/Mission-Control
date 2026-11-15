@@ -1,5 +1,46 @@
 import React from "react";
+import type { Metadata } from "next";
 import ArchitectureClient from "./ArchitectureClient";
+import { BASE_SITE_URL } from "@/lib/siteUrl";
+
+export const metadata: Metadata = {
+  title: "Parallel Hardware Architecture & DirectX 12 Pipeline | Mission Control",
+  description:
+    "Explore the technical architecture of Mission Control: 60Hz WMI/NVML hardware telemetry daemon, local TensorRT inference engine, and zero-drop DirectX 12/Vulkan swapchain composition.",
+  keywords: [
+    "Mission Control architecture",
+    "DirectX 12 telemetry pipeline",
+    "NVIDIA TensorRT local inference",
+    "WMI telemetry daemon",
+    "GPU overlay swapchain composition",
+    "PC gaming architecture",
+  ],
+  alternates: {
+    canonical: `${BASE_SITE_URL}/architecture`,
+  },
+  openGraph: {
+    title: "Parallel Hardware Architecture & DirectX 12 Pipeline | Mission Control",
+    description:
+      "Explore the technical architecture: 60Hz WMI/NVML hardware telemetry daemon, local TensorRT inference, and zero-drop DirectX 12/Vulkan overlay.",
+    url: `${BASE_SITE_URL}/architecture`,
+    siteName: "Mission Control",
+    type: "website",
+    images: [
+      {
+        url: `${BASE_SITE_URL}/logo.png`,
+        width: 1024,
+        height: 1024,
+        alt: "Mission Control Technical Architecture Diagram",
+      },
+    ],
+  },
+  twitter: {
+    card: "summary_large_image",
+    title: "Parallel Hardware Architecture & DirectX 12 Pipeline",
+    description: "60Hz low-level HAL telemetry, local TensorRT AI inference, and DirectX 12 present overlay.",
+    images: [`${BASE_SITE_URL}/logo.png`],
+  },
+};
 
 const DEFAULT_COMPONENTS = [
   {

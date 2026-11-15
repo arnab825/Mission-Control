@@ -92,11 +92,20 @@ export const metadata: Metadata = {
     siteName: "Mission Control",
     locale: "en_US",
     type: "website",
+    images: [
+      {
+        url: `${BASE_SITE_URL}/logo.png`,
+        width: 1024,
+        height: 1024,
+        alt: "Mission Control Gaming AI Logo & Telemetry Overlay",
+      },
+    ],
   },
   twitter: {
     card: "summary_large_image",
     title: "Mission Control - Autonomous Gaming Assistant",
     description: "Real-time AI overlay, telemetry logs, and community hotfixes.",
+    images: [`${BASE_SITE_URL}/logo.png`],
   },
   robots: {
     index: true,

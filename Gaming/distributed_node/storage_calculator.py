@@ -18,10 +18,17 @@ import os
 import re
 import shutil
 import struct
+import sys
 from pathlib import Path
 from typing import Dict, List, Optional, Tuple
 
 logger = logging.getLogger(__name__)
+
+try:
+    from system.manifest_parsers import parse_steam_acf, parse_epic_item, parse_gog_info
+except ImportError:
+    sys.path.append(str(Path(__file__).parent.parent / "backend"))
+    from system.manifest_parsers import parse_steam_acf, parse_epic_item, parse_gog_info
 
 
 # ── Drive Storage ─────────────────────────────────────────────────────────────
@@ -79,22 +86,7 @@ def get_default_storage() -> Dict[str, int]:
         return {"total": 0, "used": 0, "free": 0}
 
 
-# ── Steam Manifest Parser ─────────────────────────────────────────────────────
-
-def _parse_vdf_size(acf_path: Path) -> Optional[int]:
-    """
-    Parse SizeOnDisk from a Steam appmanifest_*.acf file (Valve Data Format).
-    Returns bytes or None.
-    """
-    try:
-        content = acf_path.read_text(encoding="utf-8", errors="ignore")
-        match = re.search(r'"SizeOnDisk"\s+"(\d+)"', content)
-        if match:
-            return int(match.group(1))
-    except Exception:
-        pass
-    return None
-
+# ── Unified Manifest Parsers ──────────────────────────────────────────────────
 
 def get_steam_game_size(install_path: str) -> Optional[int]:
     """
@@ -112,47 +104,32 @@ def get_steam_game_size(install_path: str) -> Optional[int]:
 
     if steamapps.exists():
         for acf in steamapps.glob("appmanifest_*.acf"):
-            # Check if this manifest refers to this install path
             try:
-                content = acf.read_text(encoding="utf-8", errors="ignore")
-                install_dir_match = re.search(r'"installdir"\s+"([^"]+)"', content, re.IGNORECASE)
-                if install_dir_match:
-                    install_dir = install_dir_match.group(1)
-                    expected = steamapps / "common" / install_dir
+                parsed = parse_steam_acf(acf)
+                if parsed and parsed.get("installdir"):
+                    expected = steamapps / "common" / parsed["installdir"]
                     if expected.resolve() == p.resolve():
-                        size = _parse_vdf_size(acf)
-                        if size:
-                            return size
+                        if parsed.get("size_bytes"):
+                            return parsed["size_bytes"]
             except Exception:
                 pass
     return None
 
 
-# ── GOG Manifest Parser ───────────────────────────────────────────────────────
-
 def get_gog_game_size(install_path: str) -> Optional[int]:
     """
-    Parse installedSize from GOG's goggame-*.info JSON files.
+    Parse installed size from GOG's goggame-*.info JSON files.
     Returns bytes or None.
     """
-    p = Path(install_path)
-    try:
-        for info_file in p.glob("goggame-*.info"):
-            data = json.loads(info_file.read_text(encoding="utf-8"))
-            size_str = data.get("installedSize", data.get("sizeOnDisk"))
-            if size_str:
-                return int(size_str)
-    except Exception:
-        pass
+    parsed = parse_gog_info(install_path)
+    if parsed and parsed.get("size_bytes"):
+        return parsed["size_bytes"]
     return None
 
-
-# ── Epic Games Manifest Parser ────────────────────────────────────────────────
 
 def get_epic_game_size(install_path: str) -> Optional[int]:
     """
     Parse InstallSize from Epic Games .item manifest files.
-    Epic stores these in %ProgramData%\\Epic\\EpicGamesLauncher\\Data\\Manifests\\.
     """
     manifests_dir = Path(os.path.expandvars(
         r"%ProgramData%\Epic\EpicGamesLauncher\Data\Manifests"
@@ -163,12 +140,11 @@ def get_epic_game_size(install_path: str) -> Optional[int]:
     p = Path(install_path).resolve()
     try:
         for item_file in manifests_dir.glob("*.item"):
-            data = json.loads(item_file.read_text(encoding="utf-8"))
-            location = Path(data.get("InstallLocation", "")).resolve()
-            if location == p:
-                size = data.get("InstallSize", 0)
-                if size:
-                    return int(size)
+            parsed = parse_epic_item(item_file)
+            if parsed and parsed.get("install_location"):
+                if Path(parsed["install_location"]).resolve() == p:
+                    if parsed.get("size_bytes"):
+                        return parsed["size_bytes"]
     except Exception:
         pass
     return None

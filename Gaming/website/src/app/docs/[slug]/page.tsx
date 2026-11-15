@@ -1,3 +1,4 @@
+import type { Metadata } from "next";
 import { getDocBySlug, getAllDocs } from "@/lib/docs";
 import { notFound } from "next/navigation";
 import Script from "next/script";
@@ -11,12 +12,59 @@ import rehypeKatex from "rehype-katex";
 import "katex/dist/katex.min.css";
 import { TableOfContents, CodeBlock } from "@/components/docs";
 import { AdSenseAdSlot } from "@/components/integrations";
+import { BASE_SITE_URL } from "@/lib/siteUrl";
 
 export async function generateStaticParams() {
   const docs = await getAllDocs();
   return docs.map((doc) => ({
     slug: doc.slug,
   }));
+}
+
+export async function generateMetadata({
+  params,
+}: {
+  params: Promise<{ slug: string }>;
+}): Promise<Metadata> {
+  const resolvedParams = await params;
+  const doc = await getDocBySlug(resolvedParams.slug);
+  if (!doc) {
+    return {
+      title: "Documentation Not Found | Mission Control",
+    };
+  }
+
+  const title = `${doc.title} | Mission Control Documentation`;
+  const description = doc.excerpt || `Technical guide and documentation for ${doc.title} in Mission Control Gaming AI.`;
+  const url = `${BASE_SITE_URL}/docs/${doc.slug}`;
+
+  return {
+    title,
+    description,
+    alternates: {
+      canonical: url,
+    },
+    openGraph: {
+      title,
+      description,
+      url,
+      type: "article",
+      images: [
+        {
+          url: `${BASE_SITE_URL}/logo.png`,
+          width: 1024,
+          height: 1024,
+          alt: doc.title,
+        },
+      ],
+    },
+    twitter: {
+      card: "summary_large_image",
+      title,
+      description,
+      images: [`${BASE_SITE_URL}/logo.png`],
+    },
+  };
 }
 
 function getChildrenText(children: any): string {

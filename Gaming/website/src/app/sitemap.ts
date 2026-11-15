@@ -1,6 +1,7 @@
 import { MetadataRoute } from "next";
 import { getBaseUrl } from "@/lib/siteUrl";
 import { getAllDocs } from "@/lib/docs";
+import { FALLBACK_BENCHMARK_PROFILES } from "@/data/benchmarks";
 
 export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
   const baseUrl = getBaseUrl();
@@ -22,7 +23,7 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
       url: `${baseUrl}/architecture`,
       lastModified: new Date(),
       changeFrequency: "monthly",
-      priority: 0.8,
+      priority: 0.85,
     },
     {
       url: `${baseUrl}/server`,
@@ -34,13 +35,19 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
       url: `${baseUrl}/games-tested`,
       lastModified: new Date(),
       changeFrequency: "weekly",
-      priority: 0.8,
+      priority: 0.85,
     },
     {
       url: `${baseUrl}/community`,
       lastModified: new Date(),
+      changeFrequency: "daily",
+      priority: 0.8,
+    },
+    {
+      url: `${baseUrl}/downloads`,
+      lastModified: new Date(),
       changeFrequency: "weekly",
-      priority: 0.7,
+      priority: 0.8,
     },
     {
       url: `${baseUrl}/contact`,
@@ -48,13 +55,24 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
       changeFrequency: "monthly",
       priority: 0.6,
     },
+    {
+      url: `${baseUrl}/privacy`,
+      lastModified: new Date(),
+      changeFrequency: "yearly",
+      priority: 0.3,
+    },
+    {
+      url: `${baseUrl}/terms`,
+      lastModified: new Date(),
+      changeFrequency: "yearly",
+      priority: 0.3,
+    },
   ];
 
-  let dynamicRoutes: MetadataRoute.Sitemap = [];
-
+  let dynamicDocRoutes: MetadataRoute.Sitemap = [];
   try {
     const docs = await getAllDocs();
-    dynamicRoutes = docs.map((doc) => ({
+    dynamicDocRoutes = docs.map((doc) => ({
       url: `${baseUrl}/docs/${doc.slug}`,
       lastModified: new Date(),
       changeFrequency: "weekly",
@@ -64,6 +82,14 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
     console.error("Sitemap dynamic doc route fetch warning:", e);
   }
 
-  return [...staticRoutes, ...dynamicRoutes];
+  // Dynamic game benchmark links to allow search engines to discover and index AAA benchmark telemetry profiles
+  const dynamicGameRoutes: MetadataRoute.Sitemap = Object.keys(FALLBACK_BENCHMARK_PROFILES).map((gameId) => ({
+    url: `${baseUrl}/games-tested?game=${encodeURIComponent(gameId)}`,
+    lastModified: new Date(),
+    changeFrequency: "weekly",
+    priority: 0.75,
+  }));
+
+  return [...staticRoutes, ...dynamicDocRoutes, ...dynamicGameRoutes];
 }
 

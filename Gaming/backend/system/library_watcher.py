@@ -4,6 +4,7 @@ import logging
 import threading
 from pathlib import Path
 from typing import Optional, List, Dict, Tuple
+from system.manifest_parsers import parse_steam_vdf_libraries
 
 logger = logging.getLogger(__name__)
 
@@ -61,12 +62,7 @@ class LibraryWatcher:
             if library_vdf.exists():
                 manifests.append((str(library_vdf), os.path.getmtime(library_vdf)))
                 try:
-                    with open(library_vdf, "r", encoding="utf-8") as f:
-                        content = f.read()
-                    import re
-                    paths = re.findall(r'"path"\s+"([^"]+)"', content)
-                    for lib_path in paths:
-                        lib_path = Path(lib_path.replace("\\\\", "\\"))
+                    for lib_path in parse_steam_vdf_libraries(library_vdf):
                         apps_path = lib_path / "steamapps"
                         if apps_path.exists():
                             for acf in apps_path.glob("appmanifest_*.acf"):

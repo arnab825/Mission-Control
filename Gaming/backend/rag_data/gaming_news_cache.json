@@ -1,45 +1,335 @@
 {
-  "timestamp": 1794739796.493573,
+  "timestamp": 1794764580.125166,
   "items": [
     {
-      "id": "https://www.polygon.com/12-angry-men-free-youtube/",
-      "title": "7 Decades Later, the Most Satisfying Movie of All Time Is Free on YouTube",
-      "link": "https://www.polygon.com/12-angry-men-free-youtube/",
-      "description": "Sidney Lumet\u2019s 12 Angry Men is one of the best, simplest films ever made and its free to stream on YouTube",
+      "id": "https://www.eurogamer.net/cyberpunk-2077-torrent-rain-weather-mod",
+      "title": "Cyberpunk 2077 mod Torrent adds 3D rain, lightning storms, and tyre spray to Night City",
+      "link": "https://www.eurogamer.net/cyberpunk-2077-torrent-rain-weather-mod",
+      "description": "A new Cyberpunk 2077 mod has overhauled Night City's rain, swapping the game's flat wet weather effects for individual 3D drops and adding lightning storms. Read more",
+      "source": "Eurogamer",
+      "category": "Gaming",
+      "pubDate": "Sun, 15 Nov 2026 17:39:20 +0000",
+      "imageUrl": "https://assetsio.gnwcdn.com/37031-1794263579-549918053.webp?width=690&amp;quality=85&amp;format=jpg&amp;auto=webp"
+    },
+    {
+      "id": "https://www.tomshardware.com/peripherals/controllers-gamepads/cockpit-simulator-737x-cdu-v2-review-an-essential-component-for-flight-sim-enthusiasts",
+      "title": "Cockpit-Simulator 737X CDU (v2) Review: An Essential Component for Flight Sim Enthusiasts",
+      "link": "https://www.tomshardware.com/peripherals/controllers-gamepads/cockpit-simulator-737x-cdu-v2-review-an-essential-component-for-flight-sim-enthusiasts",
+      "description": "",
+      "source": "Tom's Hardware",
+      "category": "Hardware",
+      "pubDate": "Sun, 15 Nov 2026 17:30:00 +0000",
+      "imageUrl": "https://cdn.mos.cms.futurecdn.net/jRejPtkqej7rnRWfn2XWgH-1920-80.jpg"
+    },
+    {
+      "id": "https://www.polygon.com/goty-2026-game-awards-indie-big-walk-ai/",
+      "title": "The 2026 GOTY Race Could Be a Disaster for Indie Games",
+      "link": "https://www.polygon.com/goty-2026-game-awards-indie-big-walk-ai/",
+      "description": "Big Walk's AI controversy might result in a step back after gains made at The Game Awards by Clair Obscur and Silksong",
       "source": "Polygon",
       "category": "Gaming",
-      "pubDate": "Sun, 15 Nov 2026 10:00:17 GMT",
-      "imageUrl": "https://static0.polygonimages.com/wordpress/wp-content/uploads/chorus/uploads/chorus_asset/file/25480296/613g0zgd.png"
+      "pubDate": "Sun, 15 Nov 2026 17:00:19 GMT",
+      "imageUrl": "https://static0.polygonimages.com/wordpress/wp-content/uploads/2026/07/big_walk_ho2uyexilo.jpg"
+    },
+    {
+      "id": "https://www.pcgamer.com/gaming-industry/youtuber-and-comedian-ashens-has-1-000-hours-in-baldurs-gate-3-and-reveals-the-worst-retro-game-hes-ever-played-by-the-time-youve-hacked-it-to-work-its-just-no-fun-whatsoever/",
+      "title": "YouTuber and comedian Ashens has 1,000 hours in Baldur's Gate 3 and reveals the worst retro game he's ever played: 'By the time you've hacked it to work, it's just no fun whatsoever'",
+      "link": "https://www.pcgamer.com/gaming-industry/youtuber-and-comedian-ashens-has-1-000-hours-in-baldurs-gate-3-and-reveals-the-worst-retro-game-hes-ever-played-by-the-time-youve-hacked-it-to-work-its-just-no-fun-whatsoever/",
+      "description": "",
+      "source": "PC Gamer",
+      "category": "PC Gaming",
+      "pubDate": "Sun, 15 Nov 2026 17:00:00 +0000",
+      "imageUrl": "https://cdn.mos.cms.futurecdn.net/ZL99unBNACpzEBF2YsvoM6-1920-80.png"
+    },
+    {
+      "id": "https://www.tomshardware.com/pc-components/gpus/nvidia-rtx-5090-stock-returns-to-newegg-with-21-models-but-scarcity-pricing-keeps-the-cheapest-air-cooled-cards-at-least-three-times-msrp",
+      "title": "Nvidia RTX 5090 stock returns to Newegg with 21 models",
+      "link": "https://www.tomshardware.com/pc-components/gpus/nvidia-rtx-5090-stock-returns-to-newegg-with-21-models-but-scarcity-pricing-keeps-the-cheapest-air-cooled-cards-at-least-three-times-msrp",
+      "description": "",
+      "source": "Tom's Hardware",
+      "category": "Hardware",
+      "pubDate": "Sun, 15 Nov 2026 17:00:00 +0000",
+      "imageUrl": "https://cdn.mos.cms.futurecdn.net/jzKCnT5TDpoxxFHV85FXgk-1920-80.jpg"
+    },
+    {
+      "id": "https://kotaku.com/wrestler-austin-creed-unleashes-the-nintendo-power-glove-during-aew-full-gear-2000757095",
+      "title": "Wrestler Austin Creed Unleashes The Nintendo Power Glove During AEW Full Gear",
+      "link": "https://kotaku.com/wrestler-austin-creed-unleashes-the-nintendo-power-glove-during-aew-full-gear-2000757095",
+      "description": "One of the most memorable moments from last night\u2019s card involved an uncanny, and so bad, foreign object delivering an iconic Shoryuken",
+      "source": "Kotaku",
+      "category": "Gaming",
+      "pubDate": "Sun, 15 Nov 2026 16:33:14 +0000",
+      "imageUrl": "https://kotaku.com/app/uploads/2026/11/austincreedpowerglove-1280x863.jpg"
+    },
+    {
+      "id": "https://www.tomshardware.com/tech-industry/cyber-security/fbi-disrupts-north-korean-facestealer-campaign-behind-usd5-billion-binance-hack-doj-seizes-facestealer-cloud-infrastructure-containing-900-videos-of-tech-workers-hackers-used-ai-deepfakes-to-steal-usd400-million-and-compromise-open-source-software",
+      "title": "FBI disrupts North Korean FaceStealer campaign behind $5 billion Binance hack",
+      "link": "https://www.tomshardware.com/tech-industry/cyber-security/fbi-disrupts-north-korean-facestealer-campaign-behind-usd5-billion-binance-hack-doj-seizes-facestealer-cloud-infrastructure-containing-900-videos-of-tech-workers-hackers-used-ai-deepfakes-to-steal-usd400-million-and-compromise-open-source-software",
+      "description": "",
+      "source": "Tom's Hardware",
+      "category": "Hardware",
+      "pubDate": "Sun, 15 Nov 2026 16:30:00 +0000",
+      "imageUrl": "https://cdn.mos.cms.futurecdn.net/eRmC2ngDGJBX3pdq9XNxjX-1920-80.jpg"
+    },
+    {
+      "id": "https://www.polygon.com/super-meat-boy-again-announcement/",
+      "title": "Super Meat Boy Is Officially Getting Remade Without Edmund McMillen's Involvement",
+      "link": "https://www.polygon.com/super-meat-boy-again-announcement/",
+      "description": "The announcement of Super Meat Boy Again+ served as a reminder that Edmund McMillen is no longer part of Team Meat",
+      "source": "Polygon",
+      "category": "Gaming",
+      "pubDate": "Sun, 15 Nov 2026 16:19:05 GMT",
+      "imageUrl": "https://static0.polygonimages.com/wordpress/wp-content/uploads/2026/11/super-meat-boy-again-gameplay.jpg"
+    },
+    {
+      "id": "https://www.polygon.com/rings-of-power-season-3-deaths-interview/",
+      "title": "\u2018Rings of Power\u2019 Stars Break Down 2 Major Deaths in Prime Video\u2019s Lord of the Rings Series",
+      "link": "https://www.polygon.com/rings-of-power-season-3-deaths-interview/",
+      "description": "The Rings of Power stars Ema Horvath and Ismael Cruz C\u00f3rdova discuss season 3\u2019s shocking deaths and their final moments as E\u00e4rien and Arondir.",
+      "source": "Polygon",
+      "category": "Gaming",
+      "pubDate": "Sun, 15 Nov 2026 16:00:17 GMT",
+      "imageUrl": "https://static0.polygonimages.com/wordpress/wp-content/uploads/2026/09/rings-of-power-elrond.jpg"
+    },
+    {
+      "id": "https://www.pcgamer.com/games/roguelike/slay-the-spire-2-has-a-new-character-in-testing-and-shes-really-quite-busted/",
+      "title": "Slay the Spire 2 has a new character in testing, and she's really quite busted",
+      "link": "https://www.pcgamer.com/games/roguelike/slay-the-spire-2-has-a-new-character-in-testing-and-shes-really-quite-busted/",
+      "description": "",
+      "source": "PC Gamer",
+      "category": "PC Gaming",
+      "pubDate": "Sun, 15 Nov 2026 16:00:00 +0000",
+      "imageUrl": "https://cdn.mos.cms.futurecdn.net/u8CE4nwC7yPfoUuGx45ytR-1920-80.png"
+    },
+    {
+      "id": "https://www.tomshardware.com/pc-components/cpus/357-detailed-cpu-die-shots-spanning-1971-to-2024-crammed-into-a-new-gallery-motorola-68000-intel-486dx2-amd-athlon-xp-apple-m1-and-many-more-in-beautiful-detail",
+      "title": "357 detailed CPU die shots spanning 1971 to 2024 crammed into a new gallery",
+      "link": "https://www.tomshardware.com/pc-components/cpus/357-detailed-cpu-die-shots-spanning-1971-to-2024-crammed-into-a-new-gallery-motorola-68000-intel-486dx2-amd-athlon-xp-apple-m1-and-many-more-in-beautiful-detail",
+      "description": "",
+      "source": "Tom's Hardware",
+      "category": "Hardware",
+      "pubDate": "Sun, 15 Nov 2026 16:00:00 +0000",
+      "imageUrl": "https://cdn.mos.cms.futurecdn.net/HPnMtb7oLbF3AwF8u3rXDU-1920-80.jpg"
+    },
+    {
+      "id": "https://www.polygon.com/playstation-black-friday-hardware-deals/",
+      "title": "PlayStation Announces New Black Friday Deals On Hardware",
+      "link": "https://www.polygon.com/playstation-black-friday-hardware-deals/",
+      "description": "The PlayStation VR2 is discounted, but the PlayStation 5 is not",
+      "source": "Polygon",
+      "category": "Gaming",
+      "pubDate": "Sun, 15 Nov 2026 15:56:06 GMT",
+      "imageUrl": "https://static0.polygonimages.com/wordpress/wp-content/uploads/chorus/uploads/chorus_asset/file/24018308/PSVR2_front.jpg"
+    },
+    {
+      "id": "https://www.tomshardware.com/tech-industry/data-centers/microsoft-365-outage-leads-to-chlorine-gas-poisoning-of-15-hotel-guests-email-warning-system-fails-40-first-responders-deployed-for-triage-four-hospitalized",
+      "title": "Microsoft 365 outage leads to chlorine gas poisoning of 15 hotel guests",
+      "link": "https://www.tomshardware.com/tech-industry/data-centers/microsoft-365-outage-leads-to-chlorine-gas-poisoning-of-15-hotel-guests-email-warning-system-fails-40-first-responders-deployed-for-triage-four-hospitalized",
+      "description": "",
+      "source": "Tom's Hardware",
+      "category": "Hardware",
+      "pubDate": "Sun, 15 Nov 2026 15:41:13 +0000",
+      "imageUrl": "https://cdn.mos.cms.futurecdn.net/LVU3kxMU42xw93Lbc2p2Wc-1920-80.jpg"
+    },
+    {
+      "id": "https://www.eurogamer.net/craig-houston-layoff-treyarch-call-of-duty-layoffs",
+      "title": "Treyarch lays off lead Call of Duty writer and Zombies veteran after \"approximately 20 years\" of service",
+      "link": "https://www.eurogamer.net/craig-houston-layoff-treyarch-call-of-duty-layoffs",
+      "description": "Treyarch's former Senior lead writer, Craig Houston, has been laid off after approximately 20 years of service with the developer. In a post made to both his Twitter/X account and LinkedIn, the developer thanked fans ...",
+      "source": "Eurogamer",
+      "category": "Gaming",
+      "pubDate": "Sun, 15 Nov 2026 15:14:10 +0000",
+      "imageUrl": "https://assetsio.gnwcdn.com/CoD-WoW_header.jpg?width=690&amp;quality=85&amp;format=jpg&amp;auto=webp"
+    },
+    {
+      "id": "https://www.tomshardware.com/tech-industry/big-tech/judge-denies-motion-to-dismiss-dram-price-fixing-lawsuit-against-micron-samsung-and-sk-hynix-says-chipmakers-acted-like-hawks-flying-in-formation-finds-evidence-of-dram-collusion-plausible-after-500-percent-price-surge",
+      "title": "Judge denies motion to dismiss DRAM price-fixing lawsuit against Micron, Samsung, and SK hynix, finds evidence of DRAM collusion plausible after 500% price surge",
+      "link": "https://www.tomshardware.com/tech-industry/big-tech/judge-denies-motion-to-dismiss-dram-price-fixing-lawsuit-against-micron-samsung-and-sk-hynix-says-chipmakers-acted-like-hawks-flying-in-formation-finds-evidence-of-dram-collusion-plausible-after-500-percent-price-surge",
+      "description": "",
+      "source": "Tom's Hardware",
+      "category": "Hardware",
+      "pubDate": "Sun, 15 Nov 2026 15:09:50 +0000",
+      "imageUrl": "https://cdn.mos.cms.futurecdn.net/vnqdtRupVqWHAik43ZWctH-1920-80.jpg"
+    },
+    {
+      "id": "https://www.polygon.com/fool-night-netflix-review/",
+      "title": "Netflix's New 12-Part Sci-Fi Mystery Already Feels Like a Masterpiece Just 3 Episodes In",
+      "link": "https://www.polygon.com/fool-night-netflix-review/",
+      "description": "Fool Night turns a bleak sci-fi premise into an visually stunning mystery that rewards patience.",
+      "source": "Polygon",
+      "category": "Gaming",
+      "pubDate": "Sun, 15 Nov 2026 15:00:17 GMT",
+      "imageUrl": "https://static0.polygonimages.com/wordpress/wp-content/uploads/2026/11/fool-night-2.jpg"
+    },
+    {
+      "id": "https://www.pcgamer.com/games/rpg/queens-domain-is-the-best-dark-souls-1-since-dark-souls-1/",
+      "title": "Queen's Domain is the best Dark Souls 1 since Dark Souls 1",
+      "link": "https://www.pcgamer.com/games/rpg/queens-domain-is-the-best-dark-souls-1-since-dark-souls-1/",
+      "description": "",
+      "source": "PC Gamer",
+      "category": "PC Gaming",
+      "pubDate": "Sun, 15 Nov 2026 15:00:00 +0000",
+      "imageUrl": "https://cdn.mos.cms.futurecdn.net/4VT5ApRCBpRhSw3ke8HCqm-1920-80.jpg"
+    },
+    {
+      "id": "https://www.tomshardware.com/3d-printing/3d-printing-developer-creates-self-hostable-non-planar-printing-slicer-pancakeslicer-makes-non-planar-3d-printing-accessible-potentially-leading-to-rapid-community-development",
+      "title": "3D printing dev\u2019s free tool unlocks curved printing along all three axes",
+      "link": "https://www.tomshardware.com/3d-printing/3d-printing-developer-creates-self-hostable-non-planar-printing-slicer-pancakeslicer-makes-non-planar-3d-printing-accessible-potentially-leading-to-rapid-community-development",
+      "description": "",
+      "source": "Tom's Hardware",
+      "category": "Hardware",
+      "pubDate": "Sun, 15 Nov 2026 15:00:00 +0000",
+      "imageUrl": "https://cdn.mos.cms.futurecdn.net/SD4QE3FpnQwctLP45wf3y5-1920-80.jpg"
+    },
+    {
+      "id": "https://www.polygon.com/inxile-entertainment-shooting-xbox/",
+      "title": "No One Injured After Gunman Opens Fire On Xbox Studio",
+      "link": "https://www.polygon.com/inxile-entertainment-shooting-xbox/",
+      "description": "The Xbox-owned studio inXile Entertainment confirmed that no developers were hurt",
+      "source": "Polygon",
+      "category": "Gaming",
+      "pubDate": "Sun, 15 Nov 2026 14:49:51 GMT",
+      "imageUrl": "https://static0.polygonimages.com/wordpress/wp-content/uploads/2026/06/ss_6f5cdefeaa1a4bb9644314b522c11bc8de325832-1920x1080.jpg"
+    },
+    {
+      "id": "https://www.eurogamer.net/blade-runner-2099-triple-a-talks",
+      "title": "Blade Runner 2099 bosses hint at a possible \"triple-A\" Blade Runner game in the future - just don't expect it any time soon",
+      "link": "https://www.eurogamer.net/blade-runner-2099-triple-a-talks",
+      "description": "Blade Runner 2099 - an upcoming TV miniseries coming to Amazon Prime Video, acting as a sequel to Blade Runner (1982) and Blade Runner 2049 (2017) - might be getting a video game. And a 'triple-A' video game, at that....",
+      "source": "Eurogamer",
+      "category": "Gaming",
+      "pubDate": "Sun, 15 Nov 2026 14:43:00 +0000",
+      "imageUrl": "https://assetsio.gnwcdn.com/blade-runner-header.jpg?width=690&amp;quality=85&amp;format=jpg&amp;auto=webp"
+    },
+    {
+      "id": "https://www.pcgamer.com/games/rts/this-rts-inspired-by-star-wars-empire-at-war-promises-colossal-space-encounters-and-planetary-battles-with-hundreds-of-thousands-of-units/",
+      "title": "This RTS inspired by Star Wars: Empire at War promises colossal space encounters and planetary battles with 'hundreds of thousands of units'",
+      "link": "https://www.pcgamer.com/games/rts/this-rts-inspired-by-star-wars-empire-at-war-promises-colossal-space-encounters-and-planetary-battles-with-hundreds-of-thousands-of-units/",
+      "description": "",
+      "source": "PC Gamer",
+      "category": "PC Gaming",
+      "pubDate": "Sun, 15 Nov 2026 14:30:16 +0000",
+      "imageUrl": "https://cdn.mos.cms.futurecdn.net/hhLWdaiVBvMyPsbkoeiiuW-1920-80.jpg"
+    },
+    {
+      "id": "https://www.tomshardware.com/video-games/retro-gaming/enthusiast-builds-a-working-486-dx2-retro-pc-on-a-breadboard-in-just-16-days-immediately-runs-doom-build-includes-a-66-mhz-intel-chip-and-custom-five-inch-3d-printed-display",
+      "title": "Enthusiast builds a working 486 DX2 retro PC on a breadboard in just 16 days, immediately runs Doom",
+      "link": "https://www.tomshardware.com/video-games/retro-gaming/enthusiast-builds-a-working-486-dx2-retro-pc-on-a-breadboard-in-just-16-days-immediately-runs-doom-build-includes-a-66-mhz-intel-chip-and-custom-five-inch-3d-printed-display",
+      "description": "",
+      "source": "Tom's Hardware",
+      "category": "Hardware",
+      "pubDate": "Sun, 15 Nov 2026 14:30:00 +0000",
+      "imageUrl": "https://cdn.mos.cms.futurecdn.net/tzXTFwaP4RT6zsmkXgmXkg-1920-80.jpg"
+    },
+    {
+      "id": "https://www.tomshardware.com/tech-industry/drones/pentagon-tests-pack-hunting-with-autonomous-war-robots-darpa-experimented-with-four-drone-ground-vehicles-that-detected-tracked-and-engaged-simulated-threats",
+      "title": "Pentagon tests pack hunting with autonomous war robots",
+      "link": "https://www.tomshardware.com/tech-industry/drones/pentagon-tests-pack-hunting-with-autonomous-war-robots-darpa-experimented-with-four-drone-ground-vehicles-that-detected-tracked-and-engaged-simulated-threats",
+      "description": "",
+      "source": "Tom's Hardware",
+      "category": "Hardware",
+      "pubDate": "Sun, 15 Nov 2026 14:19:24 +0000",
+      "imageUrl": "https://cdn.mos.cms.futurecdn.net/aLBJMibNLNdwySjZPXCJmB-1920-80.jpg"
+    },
+    {
+      "id": "https://www.eurogamer.net/gta-6-tracklist-leak",
+      "title": "The latest GTA 6 leak comes in the form of a 34-song tracklist for GTA 6: The Album, featuring Dua Lipa, Lana Del Rey, Rina Sawayama, and more",
+      "link": "https://www.eurogamer.net/gta-6-tracklist-leak",
+      "description": "We are now just four days away from the release of GTA 6 on Xbox Series X/S and PS5, but the proximity to the much-anticipated launch date isn't stemming the tide of leaks that has been plaguing the game for much of t...",
+      "source": "Eurogamer",
+      "category": "Gaming",
+      "pubDate": "Sun, 15 Nov 2026 14:03:50 +0000",
+      "imageUrl": "https://assetsio.gnwcdn.com/dua-lipa-gta-6-the-album.jpg?width=690&amp;quality=85&amp;format=jpg&amp;auto=webp"
+    },
+    {
+      "id": "https://www.polygon.com/fortnite-chapter-7-mini-season-all-sprites-list-abilities/",
+      "title": "All sprites in the Fortnite Chapter 7 mini season",
+      "link": "https://www.polygon.com/fortnite-chapter-7-mini-season-all-sprites-list-abilities/",
+      "description": "Here's a list of the currently available sprite in Fortnite's Chapter 7 \"Treasure Hunters\" mini season, along with what they do.",
+      "source": "Polygon",
+      "category": "Gaming",
+      "pubDate": "Sun, 15 Nov 2026 14:01:18 GMT",
+      "imageUrl": "https://static0.polygonimages.com/wordpress/wp-content/uploads/2026/11/jlee_261101_1001_fn_sprites.jpg"
+    },
+    {
+      "id": "https://www.polygon.com/patch-notes-xbox-25th-anniversary/",
+      "title": "Xbox\u2019s 25th Birthday Was All Over the Place",
+      "link": "https://www.polygon.com/patch-notes-xbox-25th-anniversary/",
+      "description": "Asha Sharma and Microsoft used Xbox's 25th anniversary to say more about Doom, Wolfenstein, Halo, AI, and its heroic past",
+      "source": "Polygon",
+      "category": "Gaming",
+      "pubDate": "Sun, 15 Nov 2026 14:00:17 GMT",
+      "imageUrl": "https://static0.polygonimages.com/wordpress/wp-content/uploads/2026/11/xbox_pcbackcompat.png"
+    },
+    {
+      "id": "https://www.tomshardware.com/tech-industry/nvidia-board-director-cashed-out-usd1-billion-in-stock-before-jensen-huang-scandal-mark-stevens-sold-4-2-million-shares-without-a-trading-plan",
+      "title": "Nvidia board director cashed out $1 billion in stock before Jensen Huang scandal",
+      "link": "https://www.tomshardware.com/tech-industry/nvidia-board-director-cashed-out-usd1-billion-in-stock-before-jensen-huang-scandal-mark-stevens-sold-4-2-million-shares-without-a-trading-plan",
+      "description": "",
+      "source": "Tom's Hardware",
+      "category": "Hardware",
+      "pubDate": "Sun, 15 Nov 2026 14:00:00 +0000",
+      "imageUrl": "https://cdn.mos.cms.futurecdn.net/pkzE4EjeCU56CZy4WdNR93-1920-80.png"
+    },
+    {
+      "id": "https://www.polygon.com/xbox-retrospective-best-things-besides-halo/",
+      "title": "7 Best Things About the Original Xbox That Aren't Halo, Ranked",
+      "link": "https://www.polygon.com/xbox-retrospective-best-things-besides-halo/",
+      "description": "We celebrate the original Xbox for introducing Halo, but the hardware and its software library offered plenty of other attractions worth remembering.",
+      "source": "Polygon",
+      "category": "Gaming",
+      "pubDate": "Sun, 15 Nov 2026 13:00:18 GMT",
+      "imageUrl": "https://static0.polygonimages.com/wordpress/wp-content/uploads/2026/11/screenshot-2026-11-10-at-3-51-36-pm.jpg"
+    },
+    {
+      "id": "https://www.rockpapershotgun.com/the-sunday-papers-836",
+      "title": "The Sunday Papers",
+      "link": "https://www.rockpapershotgun.com/the-sunday-papers-836",
+      "description": "While following a peculiar trail of silver and saffron leaves around the largest roots of the Treehouse, you come across a hexagonal wooden door lying half-hidden among ivy and moss. Scraping away the dirt, you discov...",
+      "source": "Rock Paper Shotgun",
+      "category": "PC Gaming",
+      "pubDate": "Sun, 15 Nov 2026 13:00:00 +0000",
+      "imageUrl": "https://assetsio.gnwcdn.com/the-sunday-papers-big.jpg?width=690&amp;quality=85&amp;format=jpg&amp;auto=webp"
+    },
+    {
+      "id": "https://www.pcgamer.com/games/survival-crafting/former-survival-mmo-dune-awakening-can-now-be-played-without-requiring-an-internet-connection-at-any-point-as-its-much-requested-offline-mode-arrives/",
+      "title": "Former survival MMO Dune: Awakening can now be played 'without requiring an Internet connection at any point' as its much requested offline mode arrives",
+      "link": "https://www.pcgamer.com/games/survival-crafting/former-survival-mmo-dune-awakening-can-now-be-played-without-requiring-an-internet-connection-at-any-point-as-its-much-requested-offline-mode-arrives/",
+      "description": "",
+      "source": "PC Gamer",
+      "category": "PC Gaming",
+      "pubDate": "Sun, 15 Nov 2026 12:33:46 +0000",
+      "imageUrl": "https://cdn.mos.cms.futurecdn.net/BZPSyzyi8PwUy6nwAn4z6Y-1920-80.jpg"
+    },
+    {
+      "id": "https://www.polygon.com/village-in-the-shade-new-farm-sim-horror-game/",
+      "title": "Stardew Valley Meets Night in the Woods in One of 2026's Scariest New Games",
+      "link": "https://www.polygon.com/village-in-the-shade-new-farm-sim-horror-game/",
+      "description": "Village in the Shade is a horror farm sim that digs deep into the horrors of community life",
+      "source": "Polygon",
+      "category": "Gaming",
+      "pubDate": "Sun, 15 Nov 2026 12:00:17 GMT",
+      "imageUrl": "https://static0.polygonimages.com/wordpress/wp-content/uploads/2026/09/village-in-the-shade-preview-4.jpg"
+    },
+    {
+      "id": "https://www.pcgamer.com/games/strategy/chronicles-medieval-developer-declared-bankruptcy-on-the-day-it-announced-it-was-in-trouble-but-development-will-continue-after-a-usd5-million-reprieve-from-coffee-stain/",
+      "title": "Chronicles: Medieval developer declared bankruptcy on the day it announced it was in trouble, but development will continue after a $5 million reprieve from Coffee Stain",
+      "link": "https://www.pcgamer.com/games/strategy/chronicles-medieval-developer-declared-bankruptcy-on-the-day-it-announced-it-was-in-trouble-but-development-will-continue-after-a-usd5-million-reprieve-from-coffee-stain/",
+      "description": "",
+      "source": "PC Gamer",
+      "category": "PC Gaming",
+      "pubDate": "Sun, 15 Nov 2026 11:27:41 +0000",
+      "imageUrl": "https://cdn.mos.cms.futurecdn.net/XKegTpWNWNwSysdkzRKN3o-1920-80.jpg"
     },
     {
       "id": "https://www.eurogamer.net/the-big-question-whats-the-best-gta",
-      "title": "The Big Question: What's the best GTA?",
+      "title": "What's the best GTA?",
       "link": "https://www.eurogamer.net/the-big-question-whats-the-best-gta",
       "description": "As we teeter on the brink of gaming's biggest launch of 2026 - perhaps even decade - so many questions swirl: which GTA 6 cars will make the best vrrrrm? Is it possible for me to be any more obsessed with that Justice...",
       "source": "Eurogamer",
       "category": "Gaming",
       "pubDate": "Sun, 15 Nov 2026 10:00:00 +0000",
       "imageUrl": "https://assetsio.gnwcdn.com/gta-best-header-logo.jpg?width=690&amp;quality=85&amp;format=jpg&amp;auto=webp"
-    },
-    {
-      "id": "https://www.polygon.com/funniest-peanuts-comics-1960s/",
-      "title": "25 Funniest 'Peanuts' Comics from the 1960s That Prove Charles M. Schulz Is Unbeatable",
-      "link": "https://www.polygon.com/funniest-peanuts-comics-1960s/",
-      "description": "In 1964, Charles Schulz told a 25-part story that was some of his best work",
-      "source": "Polygon",
-      "category": "Gaming",
-      "pubDate": "Sun, 15 Nov 2026 09:00:17 GMT",
-      "imageUrl": "https://static0.polygonimages.com/wordpress/wp-content/uploads/2026/08/lucy-van-pelt-peanuts.jpg"
-    },
-    {
-      "id": "https://www.polygon.com/gta-6-main-story-side-activities/",
-      "title": "I Can't Wait to Ignore the Main Story of GTA 6",
-      "link": "https://www.polygon.com/gta-6-main-story-side-activities/",
-      "description": "GTA 6's side activities like mini-golf, parachuting, and working out sound more fun than stealing cars and getting chased by the cops",
-      "source": "Polygon",
-      "category": "Gaming",
-      "pubDate": "Sun, 15 Nov 2026 08:00:17 GMT",
-      "imageUrl": "https://static0.polygonimages.com/wordpress/wp-content/uploads/2026/05/screenshot-2026-05-18-at-10-16-01-am.jpg"
     },
     {
       "id": "https://www.pcgamer.com/games/the-most-annoying-questgivers-in-pc-games/",
@@ -52,16 +342,6 @@
       "imageUrl": "https://cdn.mos.cms.futurecdn.net/AYyTypwYVPussabQGzn9TJ-1920-80.jpg"
     },
     {
-      "id": "https://www.polygon.com/sci-fi-miniseries-perfect-hook-first-episode/",
-      "title": "8 Near-Perfect Sci-Fi Miniseries that Hook You in the First Episode",
-      "link": "https://www.polygon.com/sci-fi-miniseries-perfect-hook-first-episode/",
-      "description": "These sci-fi miniseries accomplish so much within 12 or less episodes.",
-      "source": "Polygon",
-      "category": "Gaming",
-      "pubDate": "Sun, 15 Nov 2026 05:00:18 GMT",
-      "imageUrl": "https://static0.polygonimages.com/wordpress/wp-content/uploads/2026/11/mv5bnwyzmda5mjqtzmnlns00nwrllwexmtqtogexowmwnjq2ntexxkeyxkfqcgc-_v1_.jpg"
-    },
-    {
       "id": "https://www.pcgamer.com/games/grand-theft-auto/gta-6-soundtrack-leak-confirmed-accurate-with-new-songs-from-lana-del-rey-playboi-carti-and-keith-richards/",
       "title": "GTA 6 soundtrack leak confirmed accurate with new songs from Lana Del Rey, Playboi Carti, and Keith Richards",
       "link": "https://www.pcgamer.com/games/grand-theft-auto/gta-6-soundtrack-leak-confirmed-accurate-with-new-songs-from-lana-del-rey-playboi-carti-and-keith-richards/",
@@ -72,26 +352,6 @@
       "imageUrl": "https://cdn.mos.cms.futurecdn.net/AkvZgaawSvDoiAwX5qbvvY-1920-80.jpg"
     },
     {
-      "id": "https://www.polygon.com/tomb-raider-remake-changes-legacy-of-atlantis/",
-      "title": "Tomb Raider Remake Gameplay Changes Are Dividing Fans",
-      "link": "https://www.polygon.com/tomb-raider-remake-changes-legacy-of-atlantis/",
-      "description": "The latest Tomb Raider remake gameplay deep dive gives a look at controversial RPG elements in Legacy of Atlantis",
-      "source": "Polygon",
-      "category": "Gaming",
-      "pubDate": "Sun, 15 Nov 2026 03:14:17 GMT",
-      "imageUrl": "https://static0.polygonimages.com/wordpress/wp-content/uploads/2026/07/tomb-raider-legacy-of-atlantis-lara-croft.jpg"
-    },
-    {
-      "id": "https://www.polygon.com/zelda-ocarina-of-time-remake-twinrova/",
-      "title": "Forget Ganon, Zelda: Ocarina of Time\u2019s Most Overlooked Boss Finally Gets Its Due",
-      "link": "https://www.polygon.com/zelda-ocarina-of-time-remake-twinrova/",
-      "description": "The Legend of Zelda: Ocarina of Time is a good reminder that the Zelda universe has more great villains than Ganon.",
-      "source": "Polygon",
-      "category": "Gaming",
-      "pubDate": "Sun, 15 Nov 2026 03:00:27 GMT",
-      "imageUrl": "https://static0.polygonimages.com/wordpress/wp-content/uploads/2026/11/zelda-ocarina-of-time-twinrova-fire.jpg"
-    },
-    {
       "id": "https://www.gamespot.com/articles/gta-6-is-like-the-olympics-a-rare-cultural-moment-with-massive-ripple-effects/",
       "title": "GTA 6 Is Like The Olympics \u2013 \u201cA Rare Cultural Moment\u201d With Massive Ripple Effects",
       "link": "https://www.gamespot.com/articles/gta-6-is-like-the-olympics-a-rare-cultural-moment-with-massive-ripple-effects/",
@@ -100,46 +360,6 @@
       "category": "Gaming",
       "pubDate": "Sun, 15 Nov 2026 03:00:00 +0000",
       "imageUrl": "https://www.gamespot.com/wp-content/uploads/2026/11/Jason_and_Lucia_17_338c4e.jpg?w=300"
-    },
-    {
-      "id": "https://www.polygon.com/edgar-wright-ant-man-script-differences/",
-      "title": "9 Giant-Sized Changes Marvel Made to Ant-Man After Edgar Wright Left",
-      "link": "https://www.polygon.com/edgar-wright-ant-man-script-differences/",
-      "description": "Wright left Ant-Man in 2015, citing differences with Marvel. Here\u2019s how his film would have been different",
-      "source": "Polygon",
-      "category": "Gaming",
-      "pubDate": "Sun, 15 Nov 2026 02:00:17 GMT",
-      "imageUrl": "https://static0.polygonimages.com/wordpress/wp-content/uploads/chorus/uploads/chorus_asset/file/24465365/AntManWaspAnts.jpeg"
-    },
-    {
-      "id": "https://www.polygon.com/stephen-king-prime-video-crouch-end-tv-show/",
-      "title": "Stephen King\u2019s Underrated 1980 Horror Thriller Gets New Prime Video Adaptation",
-      "link": "https://www.polygon.com/stephen-king-prime-video-crouch-end-tv-show/",
-      "description": "Stephen King fans rejoice: a Lovecraftian crime-thriller epic is on the way with Crouch End, a new miniseries from Prime Video.",
-      "source": "Polygon",
-      "category": "Gaming",
-      "pubDate": "Sun, 15 Nov 2026 01:36:17 GMT",
-      "imageUrl": "https://static0.polygonimages.com/wordpress/wp-content/uploads/2026/10/img_1600.jpeg"
-    },
-    {
-      "id": "https://www.polygon.com/co-op-games-real-life-schedules/",
-      "title": "10 Must-Play Co-Op Games for People With Real-Life Schedules",
-      "link": "https://www.polygon.com/co-op-games-real-life-schedules/",
-      "description": "Short on time but ready to game? These 10 co-op games range from one-level sessions to month-long campaigns, from Overcooked! to Gears of War: E-Day.",
-      "source": "Polygon",
-      "category": "Gaming",
-      "pubDate": "Sun, 15 Nov 2026 01:00:17 GMT",
-      "imageUrl": "https://static0.polygonimages.com/wordpress/wp-content/uploads/chorus/uploads/chorus_asset/file/22389863/snow__2_.png"
-    },
-    {
-      "id": "https://www.polygon.com/kirby-world-beyond-nintendo-switch-2-2027/",
-      "title": "Nintendo Officially Reveals New Kirby Game for Switch 2",
-      "link": "https://www.polygon.com/kirby-world-beyond-nintendo-switch-2-2027/",
-      "description": "Kirby and the World Beyond is coming to Nintendo Switch 2 in 2027",
-      "source": "Polygon",
-      "category": "Gaming",
-      "pubDate": "Sun, 15 Nov 2026 00:19:17 GMT",
-      "imageUrl": "https://static0.polygonimages.com/wordpress/wp-content/uploads/2026/09/ns2_kirbyandtheworldbeyond_scrn_19.jpeg"
     },
     {
       "id": "https://www.pcgamer.com/movies-tv/planeswalker-netflixs-magic-the-gathering-animated-series-will-have-a-different-art-style-for-each-plane/",
@@ -202,26 +422,6 @@
       "imageUrl": "https://assetsio.gnwcdn.com/rasen.jpg?width=690&amp;quality=85&amp;format=jpg&amp;auto=webp"
     },
     {
-      "id": "https://www.tomshardware.com/gift-guides-seasonal-sales/wacky-pc-and-gadget-gift-guide-surprise-tech-lovers-with-10-different-options-like-wireless-power-buttons-dvd-burner-usb-hubs-and-clamp-on-pegboards",
-      "title": "Wacky PC and gadget gift guide",
-      "link": "https://www.tomshardware.com/gift-guides-seasonal-sales/wacky-pc-and-gadget-gift-guide-surprise-tech-lovers-with-10-different-options-like-wireless-power-buttons-dvd-burner-usb-hubs-and-clamp-on-pegboards",
-      "description": "",
-      "source": "Tom's Hardware",
-      "category": "Hardware",
-      "pubDate": "Sat, 14 Nov 2026 21:00:00 +0000",
-      "imageUrl": "https://cdn.mos.cms.futurecdn.net/DtH6A4rUzysucGnkAEFLeS-1920-80.jpg"
-    },
-    {
-      "id": "https://www.pcgamer.com/games/is-the-game-funny-or-just-the-players-jackbox-ceo-says-they-get-a-lot-of-false-positives-with-a-staff-of-comedy-writers/",
-      "title": "Is the game funny, or just the players? Jackbox CEO says they get 'a lot of false positives' with a staff of comedy writers",
-      "link": "https://www.pcgamer.com/games/is-the-game-funny-or-just-the-players-jackbox-ceo-says-they-get-a-lot-of-false-positives-with-a-staff-of-comedy-writers/",
-      "description": "",
-      "source": "PC Gamer",
-      "category": "PC Gaming",
-      "pubDate": "Sat, 14 Nov 2026 20:45:44 +0000",
-      "imageUrl": "https://cdn.mos.cms.futurecdn.net/n4HBHbWrPLcQxSeZHb37v4-1920-80.jpg"
-    },
-    {
       "id": "https://kotaku.com/team-meat-whips-out-remake-of-classic-brutal-platformersuper-meat-boy-2000756869",
       "title": "Team Meat Whips Out Remake Of Classic Brutal Platformer Super Meat Boy",
       "link": "https://kotaku.com/team-meat-whips-out-remake-of-classic-brutal-platformersuper-meat-boy-2000756869",
@@ -282,16 +482,6 @@
       "imageUrl": "https://kotaku.com/app/uploads/2026/06/ClockworkRevolution-1280x720.jpg"
     },
     {
-      "id": "https://www.pcgamer.com/games/world-of-warcraft/do-you-like-mob-tagging-in-oldschool-mmos-or-are-you-done-with-fighting-for-quest-credit/",
-      "title": "Do you like mob tagging in oldschool MMOs, or are you done with fighting for quest credit?",
-      "link": "https://www.pcgamer.com/games/world-of-warcraft/do-you-like-mob-tagging-in-oldschool-mmos-or-are-you-done-with-fighting-for-quest-credit/",
-      "description": "",
-      "source": "PC Gamer",
-      "category": "PC Gaming",
-      "pubDate": "Sat, 14 Nov 2026 17:00:00 +0000",
-      "imageUrl": "https://cdn.mos.cms.futurecdn.net/62i4nj9Tn742qyQoYR62T5-1920-80.png"
-    },
-    {
       "id": "https://www.rockpapershotgun.com/missed-something-on-your-first-go-around-the-blood-of-dawnwalker-ive-got-good-news-as-next-weeks-update-adds-in-new-game-plus",
       "title": "Missed something on your first go around The Blood of Dawnwalker? I've got good news, as next week's update adds in new game plus",
       "link": "https://www.rockpapershotgun.com/missed-something-on-your-first-go-around-the-blood-of-dawnwalker-ive-got-good-news-as-next-weeks-update-adds-in-new-game-plus",
@@ -300,136 +490,6 @@
       "category": "PC Gaming",
       "pubDate": "Sat, 14 Nov 2026 16:53:00 +0000",
       "imageUrl": "https://assetsio.gnwcdn.com/blood-of-dawnwalker-time-mechanics-not-lock-future-entries-01.jpg?width=690&amp;quality=85&amp;format=jpg&amp;auto=webp"
-    },
-    {
-      "id": "https://www.tomshardware.com/pc-components/samsungs-1tb-990-ssd-drops-to-19-cents-per-gb-amid-the-memory-crisis-grab-it-for-usd40-off",
-      "title": "Samsung's 1TB 990 SSD drops to 19 cents per GB amid the memory crisis \u2014 grab it for $40 off",
-      "link": "https://www.tomshardware.com/pc-components/samsungs-1tb-990-ssd-drops-to-19-cents-per-gb-amid-the-memory-crisis-grab-it-for-usd40-off",
-      "description": "",
-      "source": "Tom's Hardware",
-      "category": "Hardware",
-      "pubDate": "Sat, 14 Nov 2026 16:32:48 +0000",
-      "imageUrl": "https://cdn.mos.cms.futurecdn.net/z9Tr9cwLtbapB8rpe8ZWCk-1920-80.jpg"
-    },
-    {
-      "id": "https://www.pcgamer.com/games/sim/i-summoned-1-blood-demon-stitched-2-of-my-disciples-together-and-seduced-3-snails-in-this-excellent-cult-simulator-in-the-spirit-of-dwarf-fortress/",
-      "title": "I summoned 1 blood demon, stitched 2 of my disciples together, and seduced 3 snails in this excellent cult simulator in the spirit of Dwarf Fortress",
-      "link": "https://www.pcgamer.com/games/sim/i-summoned-1-blood-demon-stitched-2-of-my-disciples-together-and-seduced-3-snails-in-this-excellent-cult-simulator-in-the-spirit-of-dwarf-fortress/",
-      "description": "",
-      "source": "PC Gamer",
-      "category": "PC Gaming",
-      "pubDate": "Sat, 14 Nov 2026 16:00:00 +0000",
-      "imageUrl": "https://cdn.mos.cms.futurecdn.net/MSFzyaZrES2B8h2Unkt4aA-1920-80.jpg"
-    },
-    {
-      "id": "https://www.tomshardware.com/tech-industry/this-week-in-toms-hardware-premium-november-14-2026-mac-studio-versus-dgx-spark-amds-mext-cuts-dram-requirements-in-half-and-the-huang-saga-reaches-critical-mass",
-      "title": "This week in Tom's Hardware Premium: November 14, 2026 \u2014 Mac Studio versus DGX Spark, AMD's MEXT cuts DRAM requirements in half, and the Huang saga reaches critical mass",
-      "link": "https://www.tomshardware.com/tech-industry/this-week-in-toms-hardware-premium-november-14-2026-mac-studio-versus-dgx-spark-amds-mext-cuts-dram-requirements-in-half-and-the-huang-saga-reaches-critical-mass",
-      "description": "",
-      "source": "Tom's Hardware",
-      "category": "Hardware",
-      "pubDate": "Sat, 14 Nov 2026 16:00:00 +0000",
-      "imageUrl": "https://cdn.mos.cms.futurecdn.net/pf5brSWLeHYxEan3spiqvT-1920-80.jpg"
-    },
-    {
-      "id": "https://www.tomshardware.com/tech-industry/artificial-intelligence/u-s-treasury-secretary-questions-whether-nvidia-knowingly-sold-ai-gpus-to-shell-companies-says-company-itself-is-responsible-i-think-it-is-important-that-anyone-at-the-company-there-be-held-accountable-for-that",
-      "title": "U.S. Treasury Secretary questions whether Nvidia knowingly sold AI GPUs to shell companies, says company itself is responsible",
-      "link": "https://www.tomshardware.com/tech-industry/artificial-intelligence/u-s-treasury-secretary-questions-whether-nvidia-knowingly-sold-ai-gpus-to-shell-companies-says-company-itself-is-responsible-i-think-it-is-important-that-anyone-at-the-company-there-be-held-accountable-for-that",
-      "description": "",
-      "source": "Tom's Hardware",
-      "category": "Hardware",
-      "pubDate": "Sat, 14 Nov 2026 15:35:48 +0000",
-      "imageUrl": "https://cdn.mos.cms.futurecdn.net/jakBnPpBNjF9ncTK4KKtGG-1920-80.jpg"
-    },
-    {
-      "id": "https://www.tomshardware.com/pc-components/ssds/we-tested-the-ram-saving-storage-tech-in-gears-of-war-e-day-up-to-3-7-gb-s-of-ssd-streaming-speed-saves-several-gigabytes-of-system-ram-usage",
-      "title": "We tested the RAM-saving storage tech in Gears of War: E-Day",
-      "link": "https://www.tomshardware.com/pc-components/ssds/we-tested-the-ram-saving-storage-tech-in-gears-of-war-e-day-up-to-3-7-gb-s-of-ssd-streaming-speed-saves-several-gigabytes-of-system-ram-usage",
-      "description": "",
-      "source": "Tom's Hardware",
-      "category": "Hardware",
-      "pubDate": "Sat, 14 Nov 2026 15:30:00 +0000",
-      "imageUrl": "https://cdn.mos.cms.futurecdn.net/yn667374DegfCJkCaiBeUC-1920-80.png"
-    },
-    {
-      "id": "https://www.tomshardware.com/tech-industry/artificial-intelligence/malaysia-plans-new-law-using-data-center-power-consumption-to-catch-ai-gpu-smugglers-but-real-world-tdp-variance-and-lack-of-physical-audits-could-undermine-it-new-law-also-forces-operators-to-pay-for-unused-electricity-capacity",
-      "title": "Malaysia plans new law using data center power consumption to catch AI GPU smugglers",
-      "link": "https://www.tomshardware.com/tech-industry/artificial-intelligence/malaysia-plans-new-law-using-data-center-power-consumption-to-catch-ai-gpu-smugglers-but-real-world-tdp-variance-and-lack-of-physical-audits-could-undermine-it-new-law-also-forces-operators-to-pay-for-unused-electricity-capacity",
-      "description": "",
-      "source": "Tom's Hardware",
-      "category": "Hardware",
-      "pubDate": "Sat, 14 Nov 2026 15:10:00 +0000",
-      "imageUrl": "https://cdn.mos.cms.futurecdn.net/XC7BztBiYaLzNEMYPXdhWc-1920-80.jpg"
-    },
-    {
-      "id": "https://www.pcgamer.com/games/sim/dishonored-2-director-harvey-smith-wants-to-honour-sacred-imsim-texts-while-finding-news-ways-to-surprise-fans-thats-the-two-wolves-inside-me/",
-      "title": "Dishonored 2 director Harvey Smith wants to honour sacred imsim texts while finding news ways to surprise fans: 'That's the two wolves inside me'",
-      "link": "https://www.pcgamer.com/games/sim/dishonored-2-director-harvey-smith-wants-to-honour-sacred-imsim-texts-while-finding-news-ways-to-surprise-fans-thats-the-two-wolves-inside-me/",
-      "description": "",
-      "source": "PC Gamer",
-      "category": "PC Gaming",
-      "pubDate": "Sat, 14 Nov 2026 15:00:00 +0000",
-      "imageUrl": "https://cdn.mos.cms.futurecdn.net/NmxHVsZUHJXf4j7Vvmod63-1920-80.jpg"
-    },
-    {
-      "id": "https://www.tomshardware.com/desktops/gaming-pcs/amds-fastest-gaming-cpu-and-the-radeon-rx-9070-just-hit-a-massive-usd550-discount-32gb-ddr5-ram-and-1tb-ssd-round-off-usd1-749-99-gaming-rig",
-      "title": "AMD's fastest gaming CPU and the Radeon RX 9070 just hit a massive $550 discount",
-      "link": "https://www.tomshardware.com/desktops/gaming-pcs/amds-fastest-gaming-cpu-and-the-radeon-rx-9070-just-hit-a-massive-usd550-discount-32gb-ddr5-ram-and-1tb-ssd-round-off-usd1-749-99-gaming-rig",
-      "description": "",
-      "source": "Tom's Hardware",
-      "category": "Hardware",
-      "pubDate": "Sat, 14 Nov 2026 15:00:00 +0000",
-      "imageUrl": "https://cdn.mos.cms.futurecdn.net/gXVr5e46qSaMd9JE7fJdb7-1920-80.jpg"
-    },
-    {
-      "id": "https://www.tomshardware.com/tech-industry/artificial-intelligence/researchers-allege-deepseek-kimi-and-other-chinese-ai-models-were-trained-on-export-controlled-nvidia-blackwell-chips-statistical-analysis-on-model-weights-reveals-high-correlation-to-nvidia-hardware",
-      "title": "Researchers allege DeepSeek, Kimi, and other Chinese AI models were trained using banned Nvidia Blackwell GPUs",
-      "link": "https://www.tomshardware.com/tech-industry/artificial-intelligence/researchers-allege-deepseek-kimi-and-other-chinese-ai-models-were-trained-on-export-controlled-nvidia-blackwell-chips-statistical-analysis-on-model-weights-reveals-high-correlation-to-nvidia-hardware",
-      "description": "",
-      "source": "Tom's Hardware",
-      "category": "Hardware",
-      "pubDate": "Sat, 14 Nov 2026 14:50:00 +0000",
-      "imageUrl": "https://cdn.mos.cms.futurecdn.net/5aWG7kU6H464LoRvSKtru3-1920-80.jpg"
-    },
-    {
-      "id": "https://www.pcgamer.com/games/halo/halo-campaign-evolved-is-getting-firefight-as-a-free-update-though-im-not-sure-itll-do-much-to-change-the-remakes-fortunes/",
-      "title": "Halo: Campaign Evolved is getting Firefight as a free update, though I'm not sure it'll do much to change the remake's fortunes",
-      "link": "https://www.pcgamer.com/games/halo/halo-campaign-evolved-is-getting-firefight-as-a-free-update-though-im-not-sure-itll-do-much-to-change-the-remakes-fortunes/",
-      "description": "",
-      "source": "PC Gamer",
-      "category": "PC Gaming",
-      "pubDate": "Sat, 14 Nov 2026 14:49:43 +0000",
-      "imageUrl": "https://cdn.mos.cms.futurecdn.net/Pcbhgnm7v6JSwpbWkkXMaP-1920-80.jpg"
-    },
-    {
-      "id": "https://www.tomshardware.com/maker-stem/contractor-builds-ethernet-cable-untwisting-machine-after-facing-100-000-cat6-termination-job-modified-milwaukee-hackzall-straightens-cables-in-under-two-seconds",
-      "title": "Contractor turns a Milwaukee Hackzall into a portable Ethernet untwister after facing job requiring 50,000 custom Cat6 cables",
-      "link": "https://www.tomshardware.com/maker-stem/contractor-builds-ethernet-cable-untwisting-machine-after-facing-100-000-cat6-termination-job-modified-milwaukee-hackzall-straightens-cables-in-under-two-seconds",
-      "description": "",
-      "source": "Tom's Hardware",
-      "category": "Hardware",
-      "pubDate": "Sat, 14 Nov 2026 14:20:00 +0000",
-      "imageUrl": "https://cdn.mos.cms.futurecdn.net/79nz5SP7fipRKcomFbiLQ6-1920-80.png"
-    },
-    {
-      "id": "https://www.pcgamer.com/games/sports/formula-1-just-found-a-bizarre-financial-supporter-in-horse-girl-gacha-umamusume-pretty-derby/",
-      "title": "Formula 1 just found a bizarre financial supporter in horse girl gacha Umamusume: Pretty Derby",
-      "link": "https://www.pcgamer.com/games/sports/formula-1-just-found-a-bizarre-financial-supporter-in-horse-girl-gacha-umamusume-pretty-derby/",
-      "description": "",
-      "source": "PC Gamer",
-      "category": "PC Gaming",
-      "pubDate": "Sat, 14 Nov 2026 14:00:00 +0000",
-      "imageUrl": "https://cdn.mos.cms.futurecdn.net/BpFYxubRLYPconHSVaEtbF-1920-80.jpg"
-    },
-    {
-      "id": "https://www.tomshardware.com/tech-industry/pentagon-struggles-to-account-for-usd31-billion-in-missing-f-35-aircraft-parts-weeks-after-shipment-was-swiped-by-china-tracking-of-estimated-26-million-parts-is-outdated-inaccurate-and-incomplete-says-watchdog",
-      "title": "Weeks after shipment was swiped by China, Pentagon \u2018struggles to account for\u2019 $31 billion in missing F-35 aircraft parts",
-      "link": "https://www.tomshardware.com/tech-industry/pentagon-struggles-to-account-for-usd31-billion-in-missing-f-35-aircraft-parts-weeks-after-shipment-was-swiped-by-china-tracking-of-estimated-26-million-parts-is-outdated-inaccurate-and-incomplete-says-watchdog",
-      "description": "",
-      "source": "Tom's Hardware",
-      "category": "Hardware",
-      "pubDate": "Sat, 14 Nov 2026 14:00:00 +0000",
-      "imageUrl": "https://cdn.mos.cms.futurecdn.net/EekQz3qCtB2JkSggFCv4aK-1920-80.jpg"
     },
     {
       "id": "https://www.eurogamer.net/rainbow-six-vegas-new-game-ubisoft-spades-report",
@@ -522,16 +582,6 @@
       "imageUrl": "https://kotaku.com/app/uploads/2026/11/freaks-17-1280x720.jpg"
     },
     {
-      "id": "https://kotaku.com/warhammer-survivors-puts-your-brain-in-a-blender-with-non-stop-action-but-precious-little-engagement-2000756655",
-      "title": "Warhammer Survivors Puts Your Brain In A Mindless Blender Of Non-Stop Action",
-      "link": "https://kotaku.com/warhammer-survivors-puts-your-brain-in-a-blender-with-non-stop-action-but-precious-little-engagement-2000756655",
-      "description": "Tryannids, heretics, and orks, oh my.",
-      "source": "Kotaku",
-      "category": "Gaming",
-      "pubDate": "Fri, 13 Nov 2026 21:30:56 +0000",
-      "imageUrl": "https://kotaku.com/app/uploads/2026/11/warhammersurvivors-1280x720.jpg"
-    },
-    {
       "id": "https://www.gamespot.com/articles/physical-gta-6-copies-might-be-vulnerable-to-a-very-stupid-but-serious-trick/",
       "title": "\u201cPhysical\u201d GTA 6 Copies Might Be Vulnerable To A Very Stupid But Serious Trick",
       "link": "https://www.gamespot.com/articles/physical-gta-6-copies-might-be-vulnerable-to-a-very-stupid-but-serious-trick/",
@@ -552,26 +602,6 @@
       "imageUrl": "https://www.gamespot.com/wp-content/uploads/2026/11/Jason_and_Lucia_09-2-1.jpg?w=300"
     },
     {
-      "id": "https://www.eurogamer.net/blood-of-dawnwalker-new-game-plus",
-      "title": "The Blood of Dawnwalker is getting a New Game Plus mode in next week's update",
-      "link": "https://www.eurogamer.net/blood-of-dawnwalker-new-game-plus",
-      "description": "A New Game Plus mode is coming to vampiric RPG The Blood of Dawnwalker next week. Read more",
-      "source": "Eurogamer",
-      "category": "Gaming",
-      "pubDate": "Fri, 13 Nov 2026 20:49:20 +0000",
-      "imageUrl": "https://assetsio.gnwcdn.com/blood_of_dawnwalker_rescue_family_header.jpg?width=690&amp;quality=85&amp;format=jpg&amp;auto=webp"
-    },
-    {
-      "id": "https://www.eurogamer.net/legend-of-zelda-smaller-before-breath-of-the-wild",
-      "title": "Interest in The Legend of Zelda was \"getting smaller and smaller\" before Breath of the Wild, according to former Nintendo marketing leads",
-      "link": "https://www.eurogamer.net/legend-of-zelda-smaller-before-breath-of-the-wild",
-      "description": "The Legend of Zelda was in \"dire straits\" before Breath of the Wild gave the beloved series a massive second wind, according to two former Nintendo marketing leads. Read more",
-      "source": "Eurogamer",
-      "category": "Gaming",
-      "pubDate": "Fri, 13 Nov 2026 19:52:50 +0000",
-      "imageUrl": "https://assetsio.gnwcdn.com/Close-up-of-Princess-Zelda-in-Breath-of-the-Wild.jpg?width=690&amp;quality=85&amp;format=jpg&amp;auto=webp"
-    },
-    {
       "id": "https://www.gamespot.com/articles/gta-6-could-sell-55-million-copies-by-early-next-year-report-says-and-average-selling-price-could-be-90/",
       "title": "GTA 6 Could Sell 55 Million Copies By Early Next Year, Report Says, And Average Selling Price Could Be $90",
       "link": "https://www.gamespot.com/articles/gta-6-could-sell-55-million-copies-by-early-next-year-report-says-and-average-selling-price-could-be-90/",
@@ -590,16 +620,6 @@
       "category": "Gaming",
       "pubDate": "Fri, 13 Nov 2026 19:15:27 +0000",
       "imageUrl": "https://www.gamespot.com/wp-content/uploads/2026/11/WoW-Forever-Launch-Stats-Undead-Paladin.jpg?w=300"
-    },
-    {
-      "id": "https://www.eurogamer.net/crimson-desert-ai-pipeline-dokev-2028",
-      "title": "Crimson Desert studio is implementing AI \"throughout our entire development pipeline,\" and expects DokeV to launch in 2028",
-      "link": "https://www.eurogamer.net/crimson-desert-ai-pipeline-dokev-2028",
-      "description": "Crimson Desert and DokeV developer Pearl Abyss is planning to further integrate generative AI into its workflow. Read more",
-      "source": "Eurogamer",
-      "category": "Gaming",
-      "pubDate": "Fri, 13 Nov 2026 18:29:00 +0000",
-      "imageUrl": "https://assetsio.gnwcdn.com/crimson-deser-kliff.jpg?width=690&amp;quality=85&amp;format=jpg&amp;auto=webp"
     },
     {
       "id": "https://www.rockpapershotgun.com/cyberpunk-trading-sim-probably-stolen-is-getting-three-big-updates-with-new-starting-scenarios-organ-trading-junk-empires-and-fine-dining",
@@ -650,26 +670,6 @@
       "category": "PC Gaming",
       "pubDate": "Fri, 13 Nov 2026 16:34:50 +0000",
       "imageUrl": "https://assetsio.gnwcdn.com/worst-class-ever.jpg?width=690&amp;quality=85&amp;format=jpg&amp;auto=webp"
-    },
-    {
-      "id": "https://www.eurogamer.net/grand-theft-auto-gaming-memory-competition-gta-6-win",
-      "title": "Tell us your favourite Grand Theft Auto gaming memory and win a copy of GTA 6",
-      "link": "https://www.eurogamer.net/grand-theft-auto-gaming-memory-competition-gta-6-win",
-      "description": "Hello! This piece is part of our GTA Week coverage here on Eurogamer, as we explore all things Grand Theft Auto across the launch period of the wildly anticipated Grand Theft Auto 6. For more like this, see our GTA We...",
-      "source": "Eurogamer",
-      "category": "Gaming",
-      "pubDate": "Fri, 13 Nov 2026 15:54:30 +0000",
-      "imageUrl": "https://assetsio.gnwcdn.com/lucia-dreams-about-gta-6-(1).jpg?width=690&amp;quality=85&amp;format=jpg&amp;auto=webp"
-    },
-    {
-      "id": "https://www.rockpapershotgun.com/crusader-kings-publishers-paradox-announce-ceo-swap-say-theyre-in-a-strong-position-at-a-time-when-much-of-the-industry-is-facing-major-challenges",
-      "title": "Crusader Kings publishers Paradox announce CEO swap, say they're \"in a strong position at a time when much of the industry is facing major challenges\"",
-      "link": "https://www.rockpapershotgun.com/crusader-kings-publishers-paradox-announce-ceo-swap-say-theyre-in-a-strong-position-at-a-time-when-much-of-the-industry-is-facing-major-challenges",
-      "description": "Paradox Interactive, publishers of umpteen strategy genre stalwarts including Crusader Kings, Europa Universalis, and Hearts of Iron, have announced plans to switch overlords early next year. Fredrik Wester will make ...",
-      "source": "Rock Paper Shotgun",
-      "category": "PC Gaming",
-      "pubDate": "Fri, 13 Nov 2026 15:47:00 +0000",
-      "imageUrl": "https://assetsio.gnwcdn.com/crusader-kings-3-ledger-mystery-modder-01.jpg?width=690&amp;quality=85&amp;format=jpg&amp;auto=webp"
     },
     {
       "id": "https://www.gamespot.com/articles/gta-6-in-game-tv-show-macca-friends-looks-ridiculous-in-the-best-way/",

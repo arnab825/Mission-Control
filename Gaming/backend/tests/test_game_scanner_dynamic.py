@@ -171,6 +171,58 @@ class TestGameScannerDynamic(unittest.TestCase):
         }
         self.assertFalse(self.scanner._is_game_valid_and_installed(entry))
 
+    def test_scan_heronite_discovery(self):
+        """Verify that Heronite launcher and its sideloaded library are discovered correctly."""
+        import json
+        appdata_dir = Path(self.temp_dir) / "AppData" / "Roaming"
+        localappdata_dir = Path(self.temp_dir) / "AppData" / "Local"
+        
+        heronite_exe = localappdata_dir / "Programs" / "Heronite" / "heronite-rs.exe"
+        self._create_dummy_exe(heronite_exe, size_mb=10.0)
+
+        # Sideload game
+        game_exe = Path(self.temp_dir) / "Games" / "NFS" / "nfs.exe"
+        self._create_dummy_exe(game_exe, size_mb=50.0)
+
+        sideload_dir = appdata_dir / "heronite" / "data" / "sideload_apps"
+        sideload_dir.mkdir(parents=True, exist_ok=True)
+        sideload_json = {
+            "games": [
+                {
+                    "runner": "sideload",
+                    "app_name": "steam_1222680",
+                    "title": "Need for Speed Heat",
+                    "is_installed": True,
+                    "install": {
+                        "executable": str(game_exe),
+                        "platform": "Windows"
+                    }
+                }
+            ]
+        }
+        (sideload_dir / "library.json").write_text(json.dumps(sideload_json), encoding="utf-8")
+
+        scanner = GameScanner()
+        with patch.dict(os.environ, {
+            "APPDATA": str(appdata_dir),
+            "LOCALAPPDATA": str(localappdata_dir),
+            "USERPROFILE": str(self.temp_dir)
+        }):
+            scanner._scan_heronite()
+
+        names = [g["name"] for g in scanner.games]
+        self.assertIn("Heronite", names)
+        self.assertIn("Need for Speed Heat", names)
+        
+        launcher_entry = next(g for g in scanner.games if g["name"] == "Heronite")
+        self.assertEqual(launcher_entry["type"], "LAUNCHER")
+        self.assertEqual(launcher_entry["platform"], "Heronite")
+
+        game_entry = next(g for g in scanner.games if g["name"] == "Need for Speed Heat")
+        self.assertEqual(game_entry["type"], "GAME")
+        self.assertEqual(game_entry["platform"], "Heronite")
+        self.assertEqual(Path(game_entry["exe_path"]).resolve(), game_exe.resolve())
+
 
 if __name__ == "__main__":
     unittest.main()
