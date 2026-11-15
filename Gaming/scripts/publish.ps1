@@ -47,8 +47,16 @@ Push-Location "$PSScriptRoot/.."
 try {
     # If no specific changes provided, or if Title contains semicolons/newlines/pipes, split into bullet items
     if ($Changes.Count -eq 0) {
-        $Changes = $Title -split '[;\n\|]' | ForEach-Object { $_.Trim() } | Where-Object { $_ -ne "" }
+        $parts = $Title -split '[;\n\|]' | ForEach-Object { $_.Trim() } | Where-Object { $_ -ne "" }
+        if ($parts.Count -gt 1) {
+            $cleanTitle = $parts[0]
+            $Changes = $parts[1..($parts.Count - 1)]
+        } else {
+            $cleanTitle = $parts[0]
+            $Changes = @($cleanTitle)
+        }
     } else {
+        $cleanTitle = ($Title -split '[;\n\|]')[0].Trim()
         $expanded = @()
         foreach ($c in $Changes) {
             $parts = $c -split '[;\n\|]' | ForEach-Object { $_.Trim() } | Where-Object { $_ -ne "" }
@@ -56,9 +64,6 @@ try {
         }
         $Changes = $expanded
     }
-
-    # Extract clean single-line title for Git commit/tag if Title has semicolons
-    $cleanTitle = ($Title -split '[;\n\|]')[0].Trim()
 
     # 1. Bump version and update local logs
     $bumpArgs = @()
@@ -256,62 +261,33 @@ $changesFormatted
             if ($token) {
                 git push "https://x-access-token:${token}@github.com/arnab825/Mission-Control.git" main --tags --force
                 
-                # Upload .deb asset if present and un-draft the release on GitHub
+                # Upload extra assets (Linux .deb, .AppImage, .tar.gz, .blockmap) and update release title
                 try {
-                    Write-Host "[PUBLISH] Publishing draft release v${version} live on GitHub and uploading extra assets..." -ForegroundColor Cyan
-                    $headers = @{ Authorization = "token ${token}"; Accept = "application/vnd.github.v3+json"; "User-Agent" = "MissionControlPublisher" }
-                    $releases = Invoke-RestMethod -Uri "https://api.github.com/repos/arnab825/Mission-Control/releases" -Headers $headers
-                    $target = $releases | Where-Object { $_.tag_name -eq "v${version}" -or $_.name -like "*${version}*" }
-                    if ($target) {
-                        # Upload .deb if not already on release
-                        $debFile = Resolve-Path "frontend/out/dist/MissionControl-Linux-${version}.deb" -ErrorAction SilentlyContinue
-                        if ($debFile -and (Test-Path $debFile)) {
-                            $debName = "MissionControl-Linux-${version}.deb"
-                            $existingAssets = Invoke-RestMethod -Uri "https://api.github.com/repos/arnab825/Mission-Control/releases/$($target.id)/assets" -Headers $headers
-                            $debAsset = $existingAssets | Where-Object { $_.name -eq $debName }
-                            if (-not $debAsset) {
-                                Write-Host "[UPLOAD] Uploading $debName to GitHub Release..." -ForegroundColor Cyan
-                                $uploadUrl = "https://uploads.github.com/repos/arnab825/Mission-Control/releases/$($target.id)/assets?name=$debName"
-                                $uploadHeaders = @{ Authorization = "token ${token}"; "Content-Type" = "application/vnd.debian.binary-package"; Accept = "application/vnd.github.v3+json"; "User-Agent" = "MissionControlPublisher" }
-                                Invoke-RestMethod -Uri $uploadUrl -Method Post -Headers $uploadHeaders -InFile $debFile.Path | Out-Null
-                                Write-Host "[SUCCESS] $debName uploaded to GitHub Release!" -ForegroundColor Green
-                            }
+                    Write-Host "[PUBLISH] Publishing release v${version} live on GitHub and uploading extra assets..." -ForegroundColor Cyan
+                    
+                    if (Get-Command gh -ErrorAction SilentlyContinue) {
+                        $extraAssets = @(
+                            "frontend/out/dist/MissionControl-Linux-${version}.deb",
+                            "frontend/out/dist/MissionControl-Linux-${version}.AppImage",
+                            "frontend/out/dist/MissionControl-Linux-${version}.tar.gz",
+                            "frontend/out/dist/MissionControl-Setup.exe.blockmap"
+                        ) | Where-Object { Test-Path $_ }
+                        
+                        if ($extraAssets.Count -gt 0) {
+                            Write-Host "[UPLOAD] Uploading Linux & blockmap assets to GitHub Release via gh CLI..." -ForegroundColor Cyan
+                            gh release upload "v${version}" $extraAssets --clobber
                         }
-
-                        # Upload .blockmap if not already on release
-                        $blockmapFile = Resolve-Path "frontend/out/dist/MissionControl-Setup.exe.blockmap" -ErrorAction SilentlyContinue
-                        if ($blockmapFile -and (Test-Path $blockmapFile)) {
-                            $blockmapName = "MissionControl-Setup.exe.blockmap"
-                            $existingAssets = Invoke-RestMethod -Uri "https://api.github.com/repos/arnab825/Mission-Control/releases/$($target.id)/assets" -Headers $headers
-                            $blockmapAsset = $existingAssets | Where-Object { $_.name -eq $blockmapName }
-                            if (-not $blockmapAsset) {
-                                Write-Host "[UPLOAD] Uploading $blockmapName to GitHub Release..." -ForegroundColor Cyan
-                                $uploadUrl = "https://uploads.github.com/repos/arnab825/Mission-Control/releases/$($target.id)/assets?name=$blockmapName"
-                                $uploadHeaders = @{ Authorization = "token ${token}"; "Content-Type" = "application/octet-stream"; Accept = "application/vnd.github.v3+json"; "User-Agent" = "MissionControlPublisher" }
-                                Invoke-RestMethod -Uri $uploadUrl -Method Post -Headers $uploadHeaders -InFile $blockmapFile.Path | Out-Null
-                                Write-Host "[SUCCESS] $blockmapName uploaded to GitHub Release!" -ForegroundColor Green
-                            }
+                        gh release edit "v${version}" --title $releaseTitle --draft=false
+                        Write-Host "[SUCCESS] Release v${version} title updated to '$releaseTitle' and published live on GitHub!" -ForegroundColor Green
+                    } else {
+                        $headers = @{ Authorization = "token ${token}"; Accept = "application/vnd.github.v3+json"; "User-Agent" = "MissionControlPublisher" }
+                        $target = Invoke-RestMethod -Uri "https://api.github.com/repos/arnab825/Mission-Control/releases/tags/v${version}" -Headers $headers -ErrorAction SilentlyContinue
+                        if ($target) {
+                            # Always ensure the full release title is set on GitHub
+                            $body = @{ draft = $false; name = $releaseTitle } | ConvertTo-Json
+                            Invoke-RestMethod -Uri "https://api.github.com/repos/arnab825/Mission-Control/releases/$($target.id)" -Method Patch -Headers $headers -Body $body -ContentType "application/json" | Out-Null
+                            Write-Host "[SUCCESS] Release v${version} title updated to '$releaseTitle' and marked as Latest on GitHub!" -ForegroundColor Green
                         }
-
-                        # Upload .AppImage if not already on release
-                        $appImageFile = Resolve-Path "frontend/out/dist/MissionControl-Linux-${version}.AppImage" -ErrorAction SilentlyContinue
-                        if ($appImageFile -and (Test-Path $appImageFile)) {
-                            $appImageName = "MissionControl-Linux-${version}.AppImage"
-                            $existingAssets = Invoke-RestMethod -Uri "https://api.github.com/repos/arnab825/Mission-Control/releases/$($target.id)/assets" -Headers $headers
-                            $appImageAsset = $existingAssets | Where-Object { $_.name -eq $appImageName }
-                            if (-not $appImageAsset) {
-                                Write-Host "[UPLOAD] Uploading $appImageName to GitHub Release..." -ForegroundColor Cyan
-                                $uploadUrl = "https://uploads.github.com/repos/arnab825/Mission-Control/releases/$($target.id)/assets?name=$appImageName"
-                                $uploadHeaders = @{ Authorization = "token ${token}"; "Content-Type" = "application/x-executable"; Accept = "application/vnd.github.v3+json"; "User-Agent" = "MissionControlPublisher" }
-                                Invoke-RestMethod -Uri $uploadUrl -Method Post -Headers $uploadHeaders -InFile $appImageFile.Path | Out-Null
-                                Write-Host "[SUCCESS] $appImageName uploaded to GitHub Release!" -ForegroundColor Green
-                            }
-                        }
-
-                        # Always ensure the full release title is set on GitHub
-                        $body = @{ draft = $false; name = $releaseTitle } | ConvertTo-Json
-                        Invoke-RestMethod -Uri "https://api.github.com/repos/arnab825/Mission-Control/releases/$($target.id)" -Method Patch -Headers $headers -Body $body -ContentType "application/json" | Out-Null
-                        Write-Host "[SUCCESS] Release v${version} title updated to '$releaseTitle' and marked as Latest on GitHub!" -ForegroundColor Green
                     }
                 } catch {
                     Write-Host "[WARNING] Release post-processing: $_" -ForegroundColor Yellow
