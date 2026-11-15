@@ -1,6 +1,6 @@
 {
   "name": "mission-control-website",
-  "version": "3.9.10",
+  "version": "4.0.0",
   "license": "Apache-2.0",
   "private": true,
   "scripts": {
@@ -8,6 +8,7 @@
     "prebuild": "node -e \"if(require('fs').existsSync('../scripts/sync_version.py')) try{require('child_process').execSync('python ../scripts/sync_version.py', {stdio:'inherit'})}catch(e){}\"",
     "dev": "next dev",
     "build": "next build",
+    "typecheck": "tsc --noEmit",
     "build:cf": "opennextjs-cloudflare build",
     "deploy:cf": "opennextjs-cloudflare deploy",
     "preview:cf": "opennextjs-cloudflare preview",

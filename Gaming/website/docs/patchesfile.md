@@ -2,6 +2,14 @@
 
 This document contains a detailed history of all patches and updates for the AI Gaming Assistant.
 
+### Patch: 2026-11-15 — v4.0.0: Added Heronite launcher & library detection
+
+- Added Heronite launcher & library detection
+- Standardized launcher platform category label
+- Removed HDR false-positive badge from launchers
+- Refined Alienware MUX Switch telemetry UX & responsive layout
+- Partitioned monolithic App views & unified manifest parsing engine
+
 ### Patch: 2026-11-15 — v3.9.10: Universal AMD APU & Intel Core Ultra iGPU Architecture, SmartAccess Graphics & OEM Resiliency
 
 - Comprehensive AMD APU & iGPU detection engine classifying RDNA 2/3/3.5 (610M-890M), Vega, and generic Ryzen Radeon Graphics

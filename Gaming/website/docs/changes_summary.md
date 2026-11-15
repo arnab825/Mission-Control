@@ -10,7 +10,31 @@ excerpt: "Curated breakdown of major version releases, architectural milestones,
 
 Comprehensive breakdown of major milestone releases, architectural upgrades, and core engine enhancements in **Mission Control**.
 
-## 🌟 Version v3.9.10 (Latest) — Universal AMD APU & Intel Core Ultra iGPU Architecture, SmartAccess Graphics & OEM Resiliency
+## 🌟 Version v4.0.0 (Latest) — Added Heronite launcher & library detection
+
+### 🛠️ Key Highlights
+1. **Added Heronite launcher & library detection**
+2. **Standardized launcher platform category label**
+3. **Removed HDR false-positive badge from launchers**
+4. **Refined Alienware MUX Switch telemetry UX & responsive layout**
+5. **Partitioned monolithic App views & unified manifest parsing engine**
+
+### 📊 Architecture & Data Flow
+```mermaid
+graph TD
+    A["Mobile Client / DevTools (320px+)"] --> B[Responsive CSS & Layout Container]
+    B --> C[DocsClient Component & Cards]
+    C --> D[MobileDocsSidebar Drawer & Header Bar]
+    D --> E[Real-Time Mongo Telemetry & Render]
+```
+
+### 📦 Distribution Artifacts
+- **Linux**: `.deb` (Debian/Ubuntu), `.AppImage` (Universal), `.rpm` (Fedora/RHEL), `.tar.gz` (Portable)
+- **Windows**: `.exe` (Setup Installer), `.msi` (Enterprise), `.zip` (Portable)
+
+---
+
+## 📦 Version v3.9.10 — Universal AMD APU & Intel Core Ultra iGPU Architecture, SmartAccess Graphics & OEM Resiliency
 
 ### 🛠️ Key Highlights
 1. **Comprehensive AMD APU & iGPU detection engine classifying RDNA 2/3/3.5 (610M-890M), Vega, and generic Ryzen Radeon Graphics**

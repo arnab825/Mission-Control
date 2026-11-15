@@ -1,7 +1,7 @@
 "use client";
 
 import { motion } from "framer-motion";
-import { BeforeAfterSlider } from "@/components/BeforeAfterSlider";
+import { BeforeAfterSlider } from "./BeforeAfterSlider";
 
 export function BeforeAfterSection() {
   return (

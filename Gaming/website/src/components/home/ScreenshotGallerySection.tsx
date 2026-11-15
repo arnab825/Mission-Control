@@ -1,7 +1,7 @@
 "use client";
 
 import { motion } from "framer-motion";
-import { ScreenshotGallery } from "@/components/ScreenshotGallery";
+import { ScreenshotGallery } from "./ScreenshotGallery";
 
 export function ScreenshotGallerySection() {
   return (

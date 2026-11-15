@@ -1,85 +1,25 @@
 "use client";
 
-import { useEffect, useState, useRef, useMemo } from "react";
-import {
-  ChevronDown,
-  ChevronUp,
-  Filter,
-  Cpu,
-  Radio,
-  Plus,
-  Star,
-  ThumbsUp,
-  Clock,
-  Sparkles,
-  Search,
-  X,
-  ArrowUpDown,
-  Check,
-  ChevronLeft,
-  ChevronRight,
-  Zap,
-  AlertTriangle,
-  Tv,
-  CheckCircle2,
-} from "lucide-react";
-import { motion, AnimatePresence } from "framer-motion";
+import { useEffect, useState, useMemo } from "react";
+import { Radio, Star, AlertTriangle } from "lucide-react";
+import { motion } from "framer-motion";
 import ReportModal from "@/components/modals/ReportModal";
 import RateGameModal from "@/components/modals/RateGameModal";
 import {
-  TESTED_GAMES_LIST,
   TestedGameSummary,
   getLiveTestedGames,
   fetchBenchmarks,
 } from "@/data/benchmarks";
-
-interface Issue {
-  id: string;
-  title: string;
-  description: string;
-  category: "hardware" | "glitch" | "performance" | "other";
-  game?: string;
-  author?: string;
-  votes: number;
-  createdAt: string;
-  specs: {
-    os: string;
-    osVersion: string;
-    cpu: string;
-    gpu: string;
-    gpuDriver?: string;
-    ramGB: number;
-    appVersion: string;
-  };
-}
-
-interface GameRatingItem {
-  id: string;
-  gameId: string;
-  gameName: string;
-  userName: string;
-  userAvatar?: string;
-  rating: number;
-  title: string;
-  review: string;
-  specs: {
-    gpu: string;
-    cpu: string;
-    ramGB: number;
-    resolution: string;
-    fpsReported: number;
-    os: string;
-    presetUsed?: string;
-  };
-  media?: Array<{
-    url: string;
-    type: "image" | "gif" | "video";
-    name?: string;
-  }>;
-  recommend: boolean;
-  upvotes: number;
-  createdAt: string;
-}
+import {
+  Issue,
+  GameRatingItem,
+  RatingSortOption,
+  IssueSortOption,
+  CommunityRatingCard,
+  CommunityIssueCard,
+  RatingsFilterBar,
+  GlitchesFilterBar,
+} from "@/components/community";
 
 export default function CommunityPage() {
   // Main Tab: "ratings" | "glitches"
@@ -89,10 +29,9 @@ export default function CommunityPage() {
   const [reviews, setReviews] = useState<GameRatingItem[]>([]);
   const [loadingRatings, setLoadingRatings] = useState(true);
   const [ratingGenreFilter, setRatingGenreFilter] = useState<string>("ALL");
-  const [ratingSortBy, setRatingSortBy] = useState<"top" | "latest" | "rating">("top");
+  const [ratingSortBy, setRatingSortBy] = useState<RatingSortOption>("top");
   const [ratingSearchQuery, setRatingSearchQuery] = useState<string>("");
   const [isRateModalOpen, setIsRateModalOpen] = useState(false);
-  const [isRatingSortOpen, setIsRatingSortOpen] = useState(false);
   const [votedReviewIds, setVotedReviewIds] = useState<string[]>([]);
   const [ratingStats, setRatingStats] = useState({
     totalRatings: 0,
@@ -107,9 +46,8 @@ export default function CommunityPage() {
   const [loadingIssues, setLoadingIssues] = useState(true);
   const [votedIssueIds, setVotedIssueIds] = useState<string[]>([]);
   const [isIssueModalOpen, setIsIssueModalOpen] = useState(false);
-  const [isIssueSortOpen, setIsIssueSortOpen] = useState(false);
   const [categoryFilter, setCategoryFilter] = useState<string>("all");
-  const [issueSortBy, setIssueSortBy] = useState<"votes" | "latest">("votes");
+  const [issueSortBy, setIssueSortBy] = useState<IssueSortOption>("votes");
   const [expandedIssueId, setExpandedIssueId] = useState<string | null>(null);
   const [issueStats, setIssueStats] = useState({
     total: 0,
@@ -117,10 +55,6 @@ export default function CommunityPage() {
     hardware: 0,
     performance: 0,
   });
-
-  const genreScrollRef = useRef<HTMLDivElement>(null);
-  const ratingSortRef = useRef<HTMLDivElement>(null);
-  const issueSortRef = useRef<HTMLDivElement>(null);
 
   // Dynamic Genre Aggregation from tested games library
   const availableGenres = useMemo(() => {
@@ -147,26 +81,6 @@ export default function CommunityPage() {
         }
       })
       .catch(() => {});
-  }, []);
-
-  const scrollGenres = (dir: "left" | "right") => {
-    if (!genreScrollRef.current) return;
-    const amount = dir === "left" ? -240 : 240;
-    genreScrollRef.current.scrollBy({ left: amount, behavior: "smooth" });
-  };
-
-  // Close dropdowns on outside click
-  useEffect(() => {
-    const handleClickOutside = (e: MouseEvent) => {
-      if (ratingSortRef.current && !ratingSortRef.current.contains(e.target as Node)) {
-        setIsRatingSortOpen(false);
-      }
-      if (issueSortRef.current && !issueSortRef.current.contains(e.target as Node)) {
-        setIsIssueSortOpen(false);
-      }
-    };
-    document.addEventListener("mousedown", handleClickOutside);
-    return () => document.removeEventListener("mousedown", handleClickOutside);
   }, []);
 
   // Fetch Community Game Ratings
@@ -243,7 +157,6 @@ export default function CommunityPage() {
       } catch {}
     }
 
-    // Synchronize active tab & modal states with URL query params
     const handleUrlSync = () => {
       if (typeof window === "undefined") return;
       const searchParams = new URLSearchParams(window.location.search);
@@ -327,7 +240,6 @@ export default function CommunityPage() {
   const processedReviews = useMemo(() => {
     let list = [...reviews];
 
-    // Filter by Genre
     if (ratingGenreFilter !== "ALL") {
       const gNorm = ratingGenreFilter.toLowerCase();
       list = list.filter((r) => {
@@ -341,7 +253,6 @@ export default function CommunityPage() {
       });
     }
 
-    // Filter by Search Query
     const q = ratingSearchQuery.trim().toLowerCase();
     if (q) {
       list = list.filter(
@@ -355,7 +266,6 @@ export default function CommunityPage() {
       );
     }
 
-    // Sort
     if (ratingSortBy === "top") {
       list.sort((a, b) => (b.upvotes || 0) - (a.upvotes || 0));
     } else if (ratingSortBy === "latest") {
@@ -381,19 +291,6 @@ export default function CommunityPage() {
         }
       });
   }, [issues, categoryFilter, issueSortBy]);
-
-  const getCategoryColor = (cat: string) => {
-    switch (cat) {
-      case "hardware":
-        return "text-[#76b900] bg-[#76b900]/10 border-[#76b900]/30";
-      case "glitch":
-        return "text-neon-green bg-neon-green/10 border-neon-green/30 shadow-[0_0_10px_rgba(118, 185, 0,0.15)]";
-      case "performance":
-        return "text-amber-400 bg-amber-400/10 border-amber-400/30";
-      default:
-        return "text-gray-300 bg-white/5 border-white/10";
-    }
-  };
 
   return (
     <main className="flex-1 min-h-screen pt-24 sm:pt-28 pb-20 sm:pb-24 px-3 sm:px-6 lg:px-8 bg-obsidian relative overflow-x-hidden w-full max-w-full">
@@ -426,6 +323,7 @@ export default function CommunityPage() {
         <div className="flex justify-center w-full px-2">
           <div className="inline-flex p-1 rounded-xl bg-[#111217] border border-white/15 backdrop-blur-xl gap-1 shadow-lg w-full max-w-[320px] sm:max-w-sm">
             <button
+              type="button"
               onClick={() => setActiveTab("ratings")}
               className={`flex-1 min-w-0 py-2 px-2.5 rounded-lg text-xs font-mono font-bold uppercase tracking-wider transition-all duration-200 cursor-pointer flex items-center justify-center gap-1.5 ${
                 activeTab === "ratings"
@@ -438,6 +336,7 @@ export default function CommunityPage() {
             </button>
 
             <button
+              type="button"
               onClick={() => setActiveTab("glitches")}
               className={`flex-1 min-w-0 py-2 px-2.5 rounded-lg text-xs font-mono font-bold uppercase tracking-wider transition-all duration-200 cursor-pointer flex items-center justify-center gap-1.5 ${
                 activeTab === "glitches"
@@ -496,217 +395,19 @@ export default function CommunityPage() {
                 </div>
               ))}
             </div>
-            {/* Scalable Dynamic Genre Filter Bar & Search/Actions Hub */}
-            <div className="space-y-3 sm:space-y-4 p-3.5 sm:p-5 rounded-2xl bg-[#0e0f14]/90 border border-white/15 shadow-[0_10px_30px_rgba(0,0,0,0.5)] backdrop-blur-xl">
-              {/* Scalable Horizontal-Scrolling Dynamic Genre Bar */}
-              <div className="flex items-center gap-1.5 sm:gap-2 w-full">
-                <button
-                  type="button"
-                  onClick={() => scrollGenres("left")}
-                  className="w-8 h-8 rounded-xl bg-black/80 hover:bg-black border border-white/15 hover:border-neon-green/50 flex items-center justify-center text-gray-300 hover:text-white transition-all shadow-md cursor-pointer shrink-0"
-                  title="Scroll left"
-                >
-                  <ChevronLeft className="w-4 h-4" />
-                </button>
 
-                <div
-                  ref={genreScrollRef}
-                  className="flex-1 flex items-center gap-1.5 sm:gap-2 overflow-x-auto no-scrollbar scroll-smooth py-1"
-                  style={{ scrollbarWidth: "none" }}
-                >
-                  {/* 'ALL GENRES' Pill */}
-                  <button
-                    onClick={() => setRatingGenreFilter("ALL")}
-                    className={`px-3.5 py-2 rounded-xl font-mono text-[11px] sm:text-xs font-bold uppercase tracking-wider shrink-0 transition-all duration-200 cursor-pointer flex items-center gap-2 ${
-                      ratingGenreFilter === "ALL"
-                        ? "bg-neon-green text-obsidian shadow-[0_0_15px_rgba(118,185,0,0.5)] scale-[1.02]"
-                        : "bg-white/4 text-gray-400 hover:text-white hover:bg-white/10 border border-white/5"
-                    }`}
-                  >
-                    <span>All Genres</span>
-                    <span
-                      className={`text-[10px] px-1.5 py-0.5 rounded-md font-mono ${ratingGenreFilter === "ALL" ? "bg-black/30 text-obsidian font-black" : "bg-white/10 text-gray-400"}`}
-                    >
-                      {reviews.length}
-                    </span>
-                  </button>
-
-                  {/* Dynamic Genre Pills */}
-                  {availableGenres.map(([genre, count]) => {
-                    const isSelected = ratingGenreFilter === genre;
-                    return (
-                      <button
-                        key={genre}
-                        onClick={() => setRatingGenreFilter(isSelected ? "ALL" : genre)}
-                        className={`px-3.5 py-2 rounded-xl font-mono text-[11px] sm:text-xs font-bold uppercase tracking-wider shrink-0 transition-all duration-200 cursor-pointer flex items-center gap-2 ${
-                          isSelected
-                            ? "bg-neon-green text-obsidian shadow-[0_0_15px_rgba(118,185,0,0.5)] scale-[1.02]"
-                            : "bg-white/4 text-gray-400 hover:text-white hover:bg-white/10 border border-white/5"
-                        }`}
-                      >
-                        <span>{genre}</span>
-                        <span
-                          className={`text-[10px] px-1.5 py-0.5 rounded-md font-mono ${isSelected ? "bg-black/30 text-obsidian font-black" : "bg-white/10 text-gray-400"}`}
-                        >
-                          {count}
-                        </span>
-                      </button>
-                    );
-                  })}
-                </div>
-
-                <button
-                  type="button"
-                  onClick={() => scrollGenres("right")}
-                  className="w-8 h-8 rounded-xl bg-black/80 hover:bg-black border border-white/15 hover:border-neon-green/50 flex items-center justify-center text-gray-300 hover:text-white transition-all shadow-md cursor-pointer shrink-0"
-                  title="Scroll right"
-                >
-                  <ChevronRight className="w-4 h-4" />
-                </button>
-              </div>
-
-              {/* Premium Search, Glassmorphic Sort Dropdown & Action Controls */}
-              <div className="flex flex-col lg:flex-row items-stretch lg:items-center justify-between gap-2.5 sm:gap-3 pt-3 border-t border-white/10">
-                {/* Premium Cybernetic Search Bar */}
-                <div className="relative flex-1 group">
-                  <div className="absolute inset-y-0 left-0 pl-3.5 sm:pl-4 flex items-center pointer-events-none text-gray-400 group-focus-within:text-neon-green transition-colors">
-                    <Search className="w-4 h-4 text-neon-green/70 group-focus-within:text-neon-green group-focus-within:drop-shadow-[0_0_8px_rgba(118,185,0,0.8)] transition-all shrink-0" />
-                  </div>
-                  <input
-                    type="text"
-                    value={ratingSearchQuery}
-                    onChange={(e) => setRatingSearchQuery(e.target.value)}
-                    placeholder="Search reviews by GPU (e.g. RTX 4090), CPU, player, or keyword..."
-                    className="w-full h-12 pl-10 sm:pl-11 pr-10 sm:pr-24 bg-black/75 hover:bg-black/95 focus:bg-black border border-white/15 focus:border-neon-green rounded-xl sm:rounded-2xl text-xs sm:text-sm font-mono text-white placeholder-gray-500 focus:outline-none focus:ring-1 focus:ring-neon-green/50 focus:shadow-[0_0_25px_rgba(118,185,0,0.25)] transition-all shadow-inner"
-                  />
-                  <div className="absolute inset-y-0 right-0 pr-3 flex items-center gap-1.5">
-                    {ratingSearchQuery ? (
-                      <button
-                        onClick={() => setRatingSearchQuery("")}
-                        className="p-1 rounded-lg bg-white/10 hover:bg-white/20 text-gray-400 hover:text-white transition-all cursor-pointer"
-                        title="Clear search"
-                      >
-                        <X className="w-3.5 h-3.5" />
-                      </button>
-                    ) : (
-                      <span className="hidden sm:inline-flex items-center px-2 py-0.5 rounded-md bg-white/5 border border-white/10 text-[10px] font-mono text-gray-400 select-none">
-                        Live Filter
-                      </span>
-                    )}
-                  </div>
-                </div>
-
-                {/* Right side controls: Premium Dropdown + Share Review CTA */}
-                <div className="grid grid-cols-1 sm:grid-cols-2 lg:flex items-center gap-2.5 sm:gap-3 w-full lg:w-auto">
-                  {/* Premium Glassmorphic Sort Dropdown */}
-                  <div className="relative w-full lg:w-56" ref={ratingSortRef}>
-                    <button
-                      type="button"
-                      onClick={() => setIsRatingSortOpen(!isRatingSortOpen)}
-                      className="w-full h-12 bg-black/75 hover:bg-black/95 border border-white/15 hover:border-neon-green/50 rounded-xl sm:rounded-2xl px-3.5 sm:px-4 text-xs font-mono font-bold text-gray-200 uppercase tracking-wider flex items-center justify-between gap-2 transition-all shadow-lg hover:shadow-[0_0_20px_rgba(118,185,0,0.15)] cursor-pointer select-none"
-                    >
-                      <div className="flex items-center gap-2 truncate">
-                        <div className="p-1 rounded-md bg-neon-green/10 border border-neon-green/30 text-neon-green shrink-0">
-                          <ArrowUpDown className="w-3 h-3 text-neon-green" />
-                        </div>
-                        <span className="truncate">
-                          {ratingSortBy === "top"
-                            ? "Most Helpful"
-                            : ratingSortBy === "latest"
-                              ? "Latest Logged"
-                              : "Highest Rating"}
-                        </span>
-                      </div>
-                      <ChevronDown
-                        className={`w-3.5 h-3.5 text-gray-400 transition-transform duration-300 shrink-0 ${isRatingSortOpen ? "rotate-180 text-neon-green" : ""}`}
-                      />
-                    </button>
-
-                    <AnimatePresence>
-                      {isRatingSortOpen && (
-                        <motion.div
-                          initial={{ opacity: 0, y: -8, scale: 0.98 }}
-                          animate={{ opacity: 1, y: 0, scale: 1 }}
-                          exit={{ opacity: 0, y: -8, scale: 0.98 }}
-                          transition={{ duration: 0.15 }}
-                          className="absolute right-0 left-0 lg:left-auto top-full mt-2 lg:w-60 bg-[#0c0d12]/95 backdrop-blur-2xl border border-neon-green/30 rounded-2xl shadow-[0_15px_40px_rgba(0,0,0,0.9),0_0_25px_rgba(118,185,0,0.15)] overflow-hidden z-40 p-1.5 font-mono text-xs space-y-1"
-                        >
-                          <div className="px-3 py-1.5 text-[9px] uppercase font-bold text-gray-500 tracking-widest border-b border-white/10 flex items-center justify-between">
-                            <span>Sort Telemetry Feed</span>
-                            <span className="text-neon-green">Active</span>
-                          </div>
-
-                          {[
-                            {
-                              id: "top",
-                              label: "Most Helpful",
-                              desc: "Ranked by player upvotes",
-                              icon: ThumbsUp,
-                            },
-                            {
-                              id: "latest",
-                              label: "Latest Logged",
-                              desc: "Most recent community posts",
-                              icon: Clock,
-                            },
-                            {
-                              id: "rating",
-                              label: "Highest Rating",
-                              desc: "Top score benchmarks (5.0★)",
-                              icon: Star,
-                            },
-                          ].map((opt) => {
-                            const isSelected = ratingSortBy === opt.id;
-                            const Icon = opt.icon;
-                            return (
-                              <button
-                                key={opt.id}
-                                type="button"
-                                onClick={() => {
-                                  setRatingSortBy(opt.id as any);
-                                  setIsRatingSortOpen(false);
-                                }}
-                                className={`w-full px-3 py-2.5 rounded-xl text-left transition-all duration-200 flex items-center justify-between gap-2 cursor-pointer ${
-                                  isSelected
-                                    ? "bg-neon-green text-obsidian font-bold shadow-[0_0_15px_rgba(118,185,0,0.4)]"
-                                    : "text-gray-300 hover:bg-white/10 hover:text-white"
-                                }`}
-                              >
-                                <div className="flex items-center gap-2.5 min-w-0">
-                                  <Icon
-                                    className={`w-3.5 h-3.5 shrink-0 ${isSelected ? "text-obsidian" : "text-neon-green"}`}
-                                  />
-                                  <div className="min-w-0">
-                                    <div className="truncate font-bold">{opt.label}</div>
-                                    <div
-                                      className={`text-[9px] truncate ${isSelected ? "text-obsidian/70" : "text-gray-500"}`}
-                                    >
-                                      {opt.desc}
-                                    </div>
-                                  </div>
-                                </div>
-                                {isSelected && (
-                                  <Check className="w-3.5 h-3.5 text-obsidian shrink-0 font-bold" />
-                                )}
-                              </button>
-                            );
-                          })}
-                        </motion.div>
-                      )}
-                    </AnimatePresence>
-                  </div>
-
-                  {/* Share Review CTA Button */}
-                  <button
-                    onClick={() => setIsRateModalOpen(true)}
-                    className="w-full lg:w-auto h-12 px-6 rounded-xl sm:rounded-2xl bg-neon-green text-obsidian hover:bg-white hover:shadow-[0_0_30px_rgba(118,185,0,0.6)] text-xs font-mono font-black uppercase tracking-wider transition-all duration-300 cursor-pointer flex items-center justify-center gap-2 shadow-[0_0_20px_rgba(118,185,0,0.4)] shrink-0"
-                  >
-                    <Plus className="w-4 h-4 shrink-0" />
-                    <span className="whitespace-nowrap">Share Review</span>
-                  </button>
-                </div>
-              </div>
-            </div>
+            {/* Dynamic Genre Filter & Search Controls */}
+            <RatingsFilterBar
+              genreFilter={ratingGenreFilter}
+              onGenreFilterChange={setRatingGenreFilter}
+              availableGenres={availableGenres}
+              totalReviewsCount={reviews.length}
+              searchQuery={ratingSearchQuery}
+              onSearchQueryChange={setRatingSearchQuery}
+              sortBy={ratingSortBy}
+              onSortByChange={setRatingSortBy}
+              onOpenRateModal={() => setIsRateModalOpen(true)}
+            />
 
             {/* Ratings Feed */}
             {loadingRatings ? (
@@ -730,6 +431,7 @@ export default function CommunityPage() {
                     : "Be the first community member to share your gameplay impressions and rig setup."}
                 </p>
                 <button
+                  type="button"
                   onClick={() => setIsRateModalOpen(true)}
                   className="mt-1.5 px-4 py-2 rounded-xl bg-neon-green text-obsidian font-bold text-xs uppercase tracking-wider font-mono hover:bg-white transition-all shadow-md cursor-pointer"
                 >
@@ -738,143 +440,14 @@ export default function CommunityPage() {
               </div>
             ) : (
               <div className="grid grid-cols-1 md:grid-cols-2 gap-3 sm:gap-4">
-                {processedReviews.map((rev) => {
-                  const hasVoted = votedReviewIds.includes(rev.id);
-                  return (
-                    <div
-                      key={rev.id}
-                      className="rounded-xl sm:rounded-2xl bg-[#0f1015] border border-white/10 hover:border-neon-green/40 p-4 sm:p-5 flex flex-col justify-between space-y-3 transition-all duration-300 font-mono shadow-lg"
-                    >
-                      <div className="space-y-2.5">
-                        {/* Header with user tag, game name, star rating */}
-                        <div className="flex items-center justify-between gap-2 border-b border-white/5 pb-2.5">
-                          <div className="flex items-center gap-2 min-w-0">
-                            <div className="w-7 h-7 rounded-full bg-neon-green/20 border border-neon-green/40 flex items-center justify-center text-neon-green text-xs font-bold uppercase shrink-0">
-                              {rev.userName ? rev.userName[0] : "A"}
-                            </div>
-                            <div className="min-w-0">
-                              <div className="text-xs font-bold text-white truncate max-w-30 sm:max-w-45">
-                                {rev.userName}
-                              </div>
-                              <span className="text-[9px] text-gray-400 bg-white/5 px-1.5 py-0.5 rounded truncate inline-block max-w-30 sm:max-w-45">
-                                {rev.gameName}
-                              </span>
-                            </div>
-                          </div>
-
-                          <div className="text-right shrink-0">
-                            <div className="flex items-center gap-0.5 text-amber-400 text-[11px]">
-                              {"★".repeat(rev.rating)}
-                              {"☆".repeat(5 - rev.rating)}
-                              <span className="text-[10px] font-bold text-white ml-1">
-                                {rev.rating}.0
-                              </span>
-                            </div>
-                            <span className="text-[9px] text-gray-500">
-                              {new Date(rev.createdAt).toLocaleDateString()}
-                            </span>
-                          </div>
-                        </div>
-
-                        {/* Title & Review Content */}
-                        <div>
-                          <h4 className="text-xs sm:text-sm font-bold text-white font-display uppercase tracking-wide leading-snug wrap-break-word">
-                            {rev.title}
-                          </h4>
-                          <p className="text-[11px] sm:text-xs text-gray-300 font-sans leading-relaxed mt-1 wrap-break-word">
-                            {rev.review}
-                          </p>
-                        </div>
-
-                        {/* Attached Media Gallery (Images, GIFs, Videos) */}
-                        {rev.media && rev.media.length > 0 && (
-                          <div className="grid grid-cols-2 gap-2 pt-1">
-                            {rev.media.map((m, mIdx) => (
-                              <div
-                                key={mIdx}
-                                className="relative aspect-video rounded-xl overflow-hidden bg-black/80 border border-white/15 group/media"
-                              >
-                                {m.type === "video" ? (
-                                  <video
-                                    src={m.url}
-                                    controls
-                                    playsInline
-                                    preload="metadata"
-                                    className="w-full h-full object-cover"
-                                  />
-                                ) : (
-                                  <img
-                                    src={m.url}
-                                    alt={m.name || "Media attachment"}
-                                    loading="lazy"
-                                    decoding="async"
-                                    className="w-full h-full object-cover group-hover/media:scale-105 transition-transform duration-300 cursor-pointer"
-                                    onClick={() => window.open(m.url, "_blank")}
-                                  />
-                                )}
-                                <span className="absolute top-1.5 left-1.5 px-1.5 py-0.5 rounded bg-black/80 border border-white/20 text-[9px] font-mono font-bold uppercase text-white shadow pointer-events-none">
-                                  {m.type}
-                                </span>
-                              </div>
-                            ))}
-                          </div>
-                        )}
-
-                        {/* Hardware Rig Specs Badge Strip */}
-                        <div className="flex flex-wrap gap-1.5 pt-1 text-[9px] sm:text-[10px]">
-                          {rev.specs?.gpu && (
-                            <span className="px-2 py-0.5 rounded-md bg-black/60 border border-white/10 text-gray-300 flex items-center gap-1 truncate max-w-50">
-                              <Tv className="w-3 h-3 text-neon-green shrink-0" />
-                              <span className="truncate">{rev.specs.gpu}</span>
-                            </span>
-                          )}
-                          {rev.specs?.cpu && (
-                            <span className="px-2 py-0.5 rounded-md bg-black/60 border border-white/10 text-gray-300 flex items-center gap-1 truncate max-w-50">
-                              <Cpu className="w-3 h-3 text-neon-green shrink-0" />
-                              <span className="truncate">{rev.specs.cpu}</span>
-                            </span>
-                          )}
-                          {rev.specs?.fpsReported && (
-                            <span className="px-2 py-0.5 rounded-md bg-neon-green/10 border border-neon-green/30 text-neon-green font-bold flex items-center gap-1 shrink-0">
-                              <Zap className="w-3 h-3 shrink-0" />
-                              {rev.specs.fpsReported} FPS{" "}
-                              {rev.specs.resolution
-                                ? `@ ${rev.specs.resolution.split(" ")[0]}`
-                                : ""}
-                            </span>
-                          )}
-                        </div>
-                      </div>
-
-                      {/* Footer Actions */}
-                      <div className="pt-2.5 border-t border-white/5 flex items-center justify-between">
-                        <span className="text-[9px] sm:text-[10px] text-gray-500">
-                          {rev.recommend ? (
-                            <span className="text-emerald-400 font-bold">✓ Recommended</span>
-                          ) : (
-                            <span>Review Log</span>
-                          )}
-                        </span>
-
-                        <button
-                          type="button"
-                          onClick={() => handleVoteReview(rev.id)}
-                          disabled={hasVoted}
-                          className={`px-2.5 py-1 rounded-lg text-[11px] font-bold flex items-center gap-1 transition-all cursor-pointer ${
-                            hasVoted
-                              ? "bg-neon-green/20 text-neon-green border border-neon-green/40 cursor-default"
-                              : "bg-white/5 hover:bg-white/10 text-gray-300 hover:text-white border border-white/10"
-                          }`}
-                        >
-                          <ThumbsUp
-                            className={`w-3 h-3 ${hasVoted ? "fill-neon-green text-neon-green" : ""}`}
-                          />
-                          <span>Helpful ({rev.upvotes || 0})</span>
-                        </button>
-                      </div>
-                    </div>
-                  );
-                })}
+                {processedReviews.map((rev) => (
+                  <CommunityRatingCard
+                    key={rev.id}
+                    review={rev}
+                    hasVoted={votedReviewIds.includes(rev.id)}
+                    onVote={handleVoteReview}
+                  />
+                ))}
               </div>
             )}
           </div>
@@ -920,101 +493,13 @@ export default function CommunityPage() {
             </div>
 
             {/* Filters and Actions Header */}
-            <div className="space-y-2.5 sm:space-y-3 p-2.5 sm:p-4 rounded-xl sm:rounded-2xl bg-[#111217]/80 border border-white/10">
-              {/* Categories Tab */}
-              <div className="flex items-center gap-1.5 overflow-x-auto pb-1 no-scrollbar touch-pan-x">
-                {[
-                  { id: "all", label: "All Logs" },
-                  { id: "glitch", label: "Glitches" },
-                  { id: "hardware", label: "Hardware" },
-                  { id: "performance", label: "Performance" },
-                ].map((tab) => (
-                  <button
-                    key={tab.id}
-                    onClick={() => setCategoryFilter(tab.id)}
-                    className={`px-3 py-1.5 rounded-lg text-[11px] sm:text-xs font-mono font-bold uppercase tracking-wider transition-all duration-200 border cursor-pointer shrink-0 ${
-                      categoryFilter === tab.id
-                        ? "bg-neon-green text-obsidian border-neon-green shadow-[0_0_12px_rgba(118,185,0,0.4)]"
-                        : "bg-white/3 text-gray-400 border-white/5 hover:bg-white/10 hover:text-white"
-                    }`}
-                  >
-                    {tab.label}
-                  </button>
-                ))}
-              </div>
-
-              {/* Side-by-side action controls */}
-              <div className="flex items-center gap-2 pt-1 border-t border-white/5">
-                {/* Custom Glassmorphic Sort Dropdown */}
-                <div className="relative flex-1" ref={issueSortRef}>
-                  <button
-                    type="button"
-                    onClick={() => setIsIssueSortOpen(!isIssueSortOpen)}
-                    className="w-full bg-black/70 hover:bg-black/90 border border-white/15 hover:border-neon-green/50 rounded-xl px-3 py-2 text-[11px] sm:text-xs font-mono font-bold text-gray-200 uppercase tracking-wider flex items-center justify-between gap-1.5 transition-all shadow cursor-pointer select-none"
-                  >
-                    <div className="flex items-center gap-1.5 truncate">
-                      <Filter className="w-3 h-3 text-neon-green shrink-0" />
-                      <span className="truncate">
-                        {issueSortBy === "votes" ? "Most Voted" : "Latest"}
-                      </span>
-                    </div>
-                    <ChevronDown
-                      className={`w-3 h-3 text-gray-400 transition-transform duration-200 shrink-0 ${isIssueSortOpen ? "rotate-180 text-neon-green" : ""}`}
-                    />
-                  </button>
-
-                  <AnimatePresence>
-                    {isIssueSortOpen && (
-                      <motion.div
-                        initial={{ opacity: 0, y: -6 }}
-                        animate={{ opacity: 1, y: 0 }}
-                        exit={{ opacity: 0, y: -6 }}
-                        className="absolute right-0 left-0 top-full mt-1.5 bg-[#0b0c10] border border-white/15 rounded-xl shadow-2xl overflow-hidden z-30 p-1 font-mono text-xs"
-                      >
-                        <button
-                          type="button"
-                          onClick={() => {
-                            setIssueSortBy("votes");
-                            setIsIssueSortOpen(false);
-                          }}
-                          className={`w-full px-3 py-2 rounded-lg text-left transition-colors flex items-center justify-between cursor-pointer ${
-                            issueSortBy === "votes"
-                              ? "bg-neon-green text-obsidian font-bold"
-                              : "text-gray-300 hover:bg-white/5 hover:text-white"
-                          }`}
-                        >
-                          <span>Most Voted</span>
-                          {issueSortBy === "votes" && <Check className="w-3.5 h-3.5" />}
-                        </button>
-                        <button
-                          type="button"
-                          onClick={() => {
-                            setIssueSortBy("latest");
-                            setIsIssueSortOpen(false);
-                          }}
-                          className={`w-full px-3 py-2 rounded-lg text-left transition-colors flex items-center justify-between cursor-pointer ${
-                            issueSortBy === "latest"
-                              ? "bg-neon-green text-obsidian font-bold"
-                              : "text-gray-300 hover:bg-white/5 hover:text-white"
-                          }`}
-                        >
-                          <span>Latest Logged</span>
-                          {issueSortBy === "latest" && <Check className="w-3.5 h-3.5" />}
-                        </button>
-                      </motion.div>
-                    )}
-                  </AnimatePresence>
-                </div>
-
-                <button
-                  onClick={() => setIsIssueModalOpen(true)}
-                  className="flex-1 px-3 py-2 text-[11px] sm:text-xs font-black uppercase tracking-wider rounded-xl bg-neon-green text-obsidian hover:bg-white hover:shadow-[0_0_15px_rgba(118,185,0,0.4)] transition-all duration-300 cursor-pointer font-mono flex items-center justify-center gap-1.5 shadow shrink-0"
-                >
-                  <Plus className="w-3.5 h-3.5 shrink-0" />{" "}
-                  <span className="truncate">Log Glitch</span>
-                </button>
-              </div>
-            </div>
+            <GlitchesFilterBar
+              categoryFilter={categoryFilter}
+              onCategoryFilterChange={setCategoryFilter}
+              sortBy={issueSortBy}
+              onSortByChange={setIssueSortBy}
+              onOpenReportModal={() => setIsIssueModalOpen(true)}
+            />
 
             {/* Glitches List */}
             {loadingIssues ? (
@@ -1036,171 +521,16 @@ export default function CommunityPage() {
               </div>
             ) : (
               <div className="space-y-3 sm:space-y-4">
-                {processedIssues.map((issue) => {
-                  const hasVoted = votedIssueIds.includes(issue.id);
-                  const isExpanded = expandedIssueId === issue.id;
-
-                  return (
-                    <div
-                      key={issue.id}
-                      className={`bg-[#0f1015] rounded-xl sm:rounded-2xl border transition-all duration-300 overflow-hidden shadow-lg ${
-                        isExpanded
-                          ? "border-neon-green/50 bg-neon-green/2 shadow-[0_0_25px_rgba(118,185,0,0.15)]"
-                          : "border-white/10 hover:border-white/20"
-                      }`}
-                    >
-                      <div className="p-4 sm:p-5 flex flex-col sm:flex-row sm:items-start justify-between gap-3.5 sm:gap-5">
-                        {/* Content Section */}
-                        <div className="space-y-2.5 flex-1 min-w-0">
-                          <div className="flex flex-wrap items-center gap-2">
-                            <span
-                              className={`px-2.5 py-0.5 rounded-md text-[10px] font-mono uppercase font-bold tracking-wider border ${getCategoryColor(issue.category)}`}
-                            >
-                              {issue.category}
-                            </span>
-                            {issue.game && (
-                              <span className="text-[10px] sm:text-xs font-mono text-gray-400 bg-white/5 px-2 py-0.5 rounded border border-white/5 truncate max-w-40">
-                                Context: <strong className="text-white">{issue.game}</strong>
-                              </span>
-                            )}
-                            <span className="text-[9px] sm:text-[10px] text-gray-500 font-mono">
-                              LOGGED: {new Date(issue.createdAt).toLocaleDateString()}
-                            </span>
-                            {issue.author && (
-                              <span className="text-[9px] sm:text-[10px] font-mono text-neon-green/90 bg-neon-green/10 px-2 py-0.5 rounded border border-neon-green/20">
-                                PILOT: <strong>@{issue.author}</strong>
-                              </span>
-                            )}
-                          </div>
-
-                          <h3 className="text-sm sm:text-lg font-bold text-white tracking-wide font-display wrap-break-word leading-snug">
-                            {issue.title}
-                          </h3>
-
-                          <p className="text-xs sm:text-sm text-gray-300 leading-relaxed max-w-4xl font-sans wrap-break-word">
-                            {issue.description}
-                          </p>
-
-                          {/* Primary specs tags */}
-                          <div className="flex flex-wrap gap-1.5 text-[9px] sm:text-[10px] font-mono text-gray-300 pt-1">
-                            <span className="flex items-center gap-1 px-2 py-0.5 rounded-md bg-obsidian border border-white/10 truncate max-w-50">
-                              <Cpu className="w-3 h-3 text-neon-green shrink-0" />{" "}
-                              <span className="truncate">{issue.specs.cpu}</span>
-                            </span>
-                            <span className="flex items-center gap-1 px-2 py-0.5 rounded-md bg-obsidian border border-white/10 truncate max-w-50">
-                              <Tv className="w-3 h-3 text-neon-green shrink-0" />{" "}
-                              <span className="truncate">{issue.specs.gpu}</span>
-                            </span>
-                          </div>
-                        </div>
-
-                        {/* Voting Action Section */}
-                        <div className="flex sm:flex-col items-center justify-between sm:justify-start gap-3 sm:w-32 self-stretch sm:self-auto sm:border-l sm:border-white/10 sm:pl-5 pt-2.5 sm:pt-0 border-t sm:border-t-0 border-white/5 shrink-0">
-                          <div className="text-left sm:text-center sm:w-full">
-                            <div className="text-[9px] uppercase font-mono font-bold text-gray-400 tracking-wider">
-                              Affected Rigs
-                            </div>
-                            <div className="text-xl sm:text-2xl font-black font-mono text-white tracking-tight">
-                              {issue.votes}
-                            </div>
-                          </div>
-
-                          <div className="flex items-center gap-1.5">
-                            <button
-                              onClick={() => handleVoteIssue(issue.id)}
-                              disabled={hasVoted}
-                              className={`py-1.5 px-3 rounded-xl text-[11px] font-mono font-bold uppercase tracking-wider transition-all duration-200 border flex items-center justify-center gap-1 shrink-0 ${
-                                hasVoted
-                                  ? "bg-neon-green/20 text-neon-green border-neon-green/40 cursor-default"
-                                  : "bg-neon-green text-obsidian border-neon-green hover:bg-white cursor-pointer"
-                              }`}
-                            >
-                              {hasVoted ? (
-                                <>
-                                  <CheckCircle2 className="w-3 h-3 text-neon-green shrink-0" />{" "}
-                                  Verified
-                                </>
-                              ) : (
-                                "Confirm Fault"
-                              )}
-                            </button>
-
-                            <button
-                              onClick={() => toggleExpandIssue(issue.id)}
-                              className="p-1.5 rounded-xl bg-white/5 hover:bg-white/10 text-gray-400 hover:text-white transition sm:hidden shrink-0"
-                              aria-label="Toggle details"
-                            >
-                              {isExpanded ? (
-                                <ChevronUp className="w-3.5 h-3.5" />
-                              ) : (
-                                <ChevronDown className="w-3.5 h-3.5" />
-                              )}
-                            </button>
-                          </div>
-                        </div>
-                      </div>
-
-                      {/* Expand Specs button for desktop */}
-                      <div className="hidden sm:block border-t border-white/5 px-5 py-2.5 bg-white/1">
-                        <button
-                          onClick={() => toggleExpandIssue(issue.id)}
-                          className="flex items-center gap-1.5 text-[10px] font-mono font-bold uppercase tracking-wider text-neon-green hover:text-white transition cursor-pointer"
-                        >
-                          {isExpanded ? (
-                            <>
-                              <ChevronUp className="w-3 h-3" /> Collapse Hardware Telemetry Stack
-                            </>
-                          ) : (
-                            <>
-                              <ChevronDown className="w-3 h-3" /> Inspect Rig Context (
-                              {issue.specs.os} / {issue.specs.ramGB}GB RAM)
-                            </>
-                          )}
-                        </button>
-                      </div>
-
-                      {/* Collapsible Details */}
-                      {isExpanded && (
-                        <div className="px-4 sm:px-5 pb-4 sm:pb-5 pt-2.5 border-t border-white/5 bg-obsidian/90 font-mono text-xs text-gray-300">
-                          <div className="grid grid-cols-2 lg:grid-cols-4 gap-2 sm:gap-3">
-                            <div className="space-y-1 bg-white/2 p-2 sm:p-2.5 rounded-xl border border-white/5">
-                              <span className="block text-[8px] sm:text-[9px] uppercase font-bold text-gray-400 tracking-wider">
-                                Operating System
-                              </span>
-                              <span className="text-white font-bold truncate block text-[11px]">
-                                {issue.specs.os} ({issue.specs.osVersion})
-                              </span>
-                            </div>
-                            <div className="space-y-1 bg-white/2 p-2 sm:p-2.5 rounded-xl border border-white/5">
-                              <span className="block text-[8px] sm:text-[9px] uppercase font-bold text-gray-400 tracking-wider">
-                                System Memory
-                              </span>
-                              <span className="text-white font-bold truncate block text-[11px]">
-                                {issue.specs.ramGB} GB RAM
-                              </span>
-                            </div>
-                            <div className="space-y-1 bg-white/2 p-2 sm:p-2.5 rounded-xl border border-white/5">
-                              <span className="block text-[8px] sm:text-[9px] uppercase font-bold text-gray-400 tracking-wider">
-                                GPU Driver Package
-                              </span>
-                              <span className="text-neon-green font-bold truncate block text-[11px]">
-                                {issue.specs.gpuDriver || "GeForce Game Ready"}
-                              </span>
-                            </div>
-                            <div className="space-y-1 bg-white/2 p-2 sm:p-2.5 rounded-xl border border-white/5">
-                              <span className="block text-[8px] sm:text-[9px] uppercase font-bold text-gray-400 tracking-wider">
-                                Build Executable
-                              </span>
-                              <span className="text-white font-bold truncate block text-[11px]">
-                                v{issue.specs.appVersion} Stealth
-                              </span>
-                            </div>
-                          </div>
-                        </div>
-                      )}
-                    </div>
-                  );
-                })}
+                {processedIssues.map((issue) => (
+                  <CommunityIssueCard
+                    key={issue.id}
+                    issue={issue}
+                    hasVoted={votedIssueIds.includes(issue.id)}
+                    isExpanded={expandedIssueId === issue.id}
+                    onVote={handleVoteIssue}
+                    onToggleExpand={toggleExpandIssue}
+                  />
+                ))}
               </div>
             )}
           </div>

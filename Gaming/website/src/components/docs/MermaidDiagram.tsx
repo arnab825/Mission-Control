@@ -114,3 +114,5 @@ export function MermaidDiagram({ chart }: MermaidDiagramProps) {
     </div>
   );
 }
+
+export default MermaidDiagram;

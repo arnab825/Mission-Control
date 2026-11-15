@@ -1,8 +1,20 @@
 {
-  "version": "3.9.10",
+  "version": "4.0.0",
   "release_date": "2026-11-15",
   "update_check_url": "https://raw.githubusercontent.com/arnab825/Mission-Control/main/Gaming/backend/version.json",
   "changelog": [
+    {
+      "version": "4.0.0",
+      "date": "2026-11-15",
+      "title": "Added Heronite launcher & library detection",
+      "highlights": [
+        "Added Heronite launcher & library detection",
+        "Standardized launcher platform category label",
+        "Removed HDR false-positive badge from launchers",
+        "Refined Alienware MUX Switch telemetry UX & responsive layout",
+        "Partitioned monolithic App views & unified manifest parsing engine"
+      ]
+    },
     {
       "version": "3.9.10",
       "date": "2026-11-15",
@@ -582,17 +594,6 @@
         "Expanded canonical game catalog to 250+ titles with high-res Steam CDN artwork resolution, alias expansion, and rich autocomplete preview",
         "Expanded offline curated baseline from 24 to 100+ AAA and indie benchmark titles",
         "Refined Clerk persistent session state, vision model uninstall states, and crossbar authentication UI"
-      ]
-    },
-    {
-      "version": "3.5.4",
-      "date": "2026-09-04",
-      "title": "Injected External OAuth Exit Bar, ESC Key Handler & Clerk Redirect Escape Hatches",
-      "highlights": [
-        "Injected top-level Mission Control Exit Bar on external OAuth pages (Google, Discord, Clerk) with drag region and window controls",
-        "Added global ESC and Alt+Left keyboard shortcuts in Electron to instantly return to Mission Control from external auth screens",
-        "Added DOM MutationObserver ensuring exit bar permanence during third-party single-page app DOM re-renders",
-        "Wired IPC and CustomEvents between preload and main process for seamless authentication cancellation"
       ]
     }
   ]

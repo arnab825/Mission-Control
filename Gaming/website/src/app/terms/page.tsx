@@ -2,11 +2,28 @@ import React from "react";
 import Link from "next/link";
 import { FileText, Shield, AlertTriangle, Scale, ChevronLeft } from "lucide-react";
 import { Metadata } from "next";
+import { BASE_SITE_URL } from "@/lib/siteUrl";
 
 export const metadata: Metadata = {
   title: "Terms of Service — Mission Control Gaming AI",
   description:
     "Mission Control Labs terms of service, open-source usage rights, and software license agreement.",
+  alternates: {
+    canonical: `${BASE_SITE_URL}/terms`,
+  },
+  openGraph: {
+    title: "Terms of Service — Mission Control Gaming AI",
+    description:
+      "Mission Control Labs terms of service, open-source usage rights, and software license agreement.",
+    url: `${BASE_SITE_URL}/terms`,
+    siteName: "Mission Control",
+    type: "website",
+  },
+  twitter: {
+    card: "summary",
+    title: "Terms of Service — Mission Control Gaming AI",
+    description: "Mission Control Labs terms of service and license agreement.",
+  },
 };
 
 export default function TermsOfServicePage() {

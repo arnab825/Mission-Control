@@ -2,11 +2,28 @@ import React from "react";
 import Link from "next/link";
 import { ShieldCheck, Lock, EyeOff, Cpu, Server, Mail, ChevronLeft } from "lucide-react";
 import { Metadata } from "next";
+import { BASE_SITE_URL } from "@/lib/siteUrl";
 
 export const metadata: Metadata = {
   title: "Privacy Policy — Mission Control Gaming AI",
   description:
     "Mission Control Labs privacy policy, data practices, local-first telemetry, and user privacy commitment.",
+  alternates: {
+    canonical: `${BASE_SITE_URL}/privacy`,
+  },
+  openGraph: {
+    title: "Privacy Policy — Mission Control Gaming AI",
+    description:
+      "Mission Control Labs privacy policy, data practices, local-first telemetry, and user privacy commitment.",
+    url: `${BASE_SITE_URL}/privacy`,
+    siteName: "Mission Control",
+    type: "website",
+  },
+  twitter: {
+    card: "summary",
+    title: "Privacy Policy — Mission Control Gaming AI",
+    description: "Mission Control Labs privacy policy and user privacy commitment.",
+  },
 };
 
 export default function PrivacyPolicyPage() {

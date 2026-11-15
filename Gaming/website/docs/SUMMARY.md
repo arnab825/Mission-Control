@@ -89,7 +89,8 @@ graph TD
 
 | Version | Key Feature / Change Description |
 | :--- | :--- |
-| **v3.9.10 (Latest)** | **Universal AMD APU & Intel Core Ultra iGPU Architecture, SmartAccess Graphics & OEM Resiliency** — Comprehensive AMD APU & iGPU detection engine classifying RDNA 2/3/3.5 (610M-890M), Vega, and generic Ryzen Radeon Graphics. |
+| **v4.0.0 (Latest)** | **Added Heronite launcher & library detection** — Added Heronite launcher & library detection. |
+| **v3.9.10** | **Universal AMD APU & Intel Core Ultra iGPU Architecture, SmartAccess Graphics & OEM Resiliency** — Comprehensive AMD APU & iGPU detection engine classifying RDNA 2/3/3.5 (610M-890M), Vega, and generic Ryzen Radeon Graphics. |
 | **v3.9.9** | **Native OEM Launch Engine, Intel Refresh & Emulation Hub Polish** — Added direct executable and Windows Shell AppID (UWP) launch targets for major OEM gaming suites (Alienware, OMEN, Armoury Crate, G-Helper, Lenovo Vantage/Legion Toolkit, MSI Center, Razer Synapse, NVIDIA App, AMD Adrenalin, Intel GCC). |
 | **v3.9.8** | **Multi-GPU Discovery, Hardware MUX Switch Controls & Universal OEM Ecosystem Synchronization** — High-fidelity discrete (dGPU) and integrated (iGPU) multi-GPU hardware architecture and active display attachment detection |
 | **v3.9.7** | **Telemetry Stress Map Responsiveness, Device Specs Panel & Deep Account Deletion Purge** — Redesigned Hardware Stress Map with stacked dual-row layout and responsive 10-segment track. |
