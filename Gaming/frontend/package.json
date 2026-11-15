@@ -25,10 +25,10 @@
         "make:win": "electron-builder --win nsis --x64",
         "make:store": "electron-builder --win appx --x64",
         "make:win:all": "electron-builder --win nsis msi zip --x64",
-        "make:linux": "electron-builder --linux tar.gz --x64",
-        "make:all": "electron-builder --win nsis msi zip --linux tar.gz --x64",
+        "make:linux": "electron-builder --linux dir --x64 && python ../scripts/pack_tar_gz.py",
+        "make:all": "electron-builder --win nsis msi zip --linux dir --x64 && python ../scripts/pack_tar_gz.py",
         "publish:win": "electron-builder --win nsis msi zip --publish always",
-        "publish:all": "electron-builder --win nsis msi zip --linux tar.gz --publish always",
+        "publish:all": "electron-builder --win nsis msi zip --linux dir --publish always && python ../scripts/pack_tar_gz.py",
         "doctor": "react-doctor",
         "postinstall": "node patch-nsis.mjs"
     },

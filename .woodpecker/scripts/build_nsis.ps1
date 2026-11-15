@@ -26,9 +26,10 @@ Set-Location Gaming/frontend
 Write-Host "[BUILD] Packaging Windows installers (NSIS, MSI, ZIP)..." -ForegroundColor Cyan
 npx electron-builder --prepackaged "$($prepackaged.FullName)" --win nsis msi zip --publish never
 
-# 2. Build Linux Standalone Archive (.tar.gz)
-Write-Host "[BUILD] Packaging Linux standalone archive (.tar.gz)..." -ForegroundColor Yellow
-npx electron-builder --linux tar.gz --publish never
+# 2. Build Linux Distribution Files (.tar.gz)
+Write-Host "[BUILD] Packaging Linux distribution files..." -ForegroundColor Yellow
+npx electron-builder --linux dir --publish never
+python ../scripts/pack_tar_gz.py
 
 # 3. Build Linux Debian Package (.deb)
 Write-Host "[BUILD] Packaging Linux Debian package (.deb)..." -ForegroundColor Cyan
