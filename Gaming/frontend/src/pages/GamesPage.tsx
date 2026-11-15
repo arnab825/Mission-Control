@@ -155,6 +155,29 @@ function getPlatformLabel(platform: string): string {
   return labels[platform] || platform.toUpperCase();
 }
 
+const KNOWN_LAUNCHER_NAMES = new Set([
+  'steam', 'epic games', 'epic games launcher', 'epic', 'ubisoft connect', 'ubisoft', 'uplay',
+  'ea desktop', 'ea app', 'origin', 'ea', 'battle.net', 'battlenet', 'gog galaxy', 'gog',
+  'rockstar games', 'rockstar games launcher', 'rockstar', 'xbox', 'xbox app',
+  'heronite', 'heroic', 'amazon games', 'itch.io', 'itch', 'humble bundle', 'humble', 'riot games', 'riot'
+]);
+
+export function isLauncherOrPlatform(game?: { name?: string; platform?: string; type?: string; genre?: string; id?: string; exe_path?: string } | null): boolean {
+  if (!game) return false;
+  if (game.type?.toUpperCase() === 'LAUNCHER') return true;
+  if (game.genre?.toUpperCase() === 'PLATFORM' && !game.id?.match(/^\d+$/)) return true;
+  if (game.id && (game.id.endsWith('_launcher') || game.id.startsWith('fallback_'))) return true;
+  const nameLower = (game.name || '').toLowerCase().trim();
+  const platformLower = (game.platform || '').toLowerCase().trim();
+  if (KNOWN_LAUNCHER_NAMES.has(nameLower) || KNOWN_LAUNCHER_NAMES.has(platformLower)) return true;
+  if (nameLower && nameLower === platformLower && !game.id?.match(/^\d+$/)) return true;
+  if (nameLower.includes('heronite') || platformLower.includes('heronite') || nameLower.includes('heroic') || platformLower.includes('heroic')) return true;
+  if (nameLower.includes('epic games') || platformLower.includes('epic')) return true;
+  if (nameLower.includes('ubisoft') || platformLower.includes('ubisoft')) return true;
+  if (nameLower.includes('steam') && !game.id?.match(/^\d+$/)) return true;
+  return false;
+}
+
 // ── Game Card ──────────────────────────────────────────────────────────────────
 const GameCard: React.FC<{
   game: BackendGame;
@@ -198,27 +221,23 @@ const GameCard: React.FC<{
   };
 
   // Explicit launcher detection
-  const isLauncher =
-    game.type?.toUpperCase() === 'LAUNCHER' ||
-    (game.genre?.toUpperCase() === 'PLATFORM' && !game.id?.match(/^\d+$/)) ||
-    (game.name.toLowerCase() === game.platform?.toLowerCase() && !game.id?.match(/^\d+$/)) ||
-    (game.platform?.toLowerCase() === 'heronite' && (game.name.toLowerCase() === 'heronite' || !game.exe_path || game.exe_path.toLowerCase().includes('heronite-rs') || game.exe_path.toLowerCase().includes('heronite.exe'))) ||
-    (game.platform?.toLowerCase() === 'heroic' && (game.name.toLowerCase() === 'heroic' || !game.exe_path || game.exe_path.toLowerCase().includes('heroic.exe')));
+  const isLauncher = isLauncherOrPlatform(game);
 
-  const normPlatform = game.platform?.trim();
+  const normPlatform = (game.platform || game.name || '').trim();
   const launcherBanner = isLauncher ? (
     LAUNCHER_BANNERS[game.platform] ||
     LAUNCHER_BANNERS[normPlatform] ||
-    (normPlatform?.toLowerCase().includes('heronite') || normPlatform?.toLowerCase().includes('hero') ? LAUNCHER_BANNERS['Heronite'] : null) ||
-    (normPlatform?.toLowerCase().includes('epic') ? LAUNCHER_BANNERS['Epic Games'] : null) ||
-    (normPlatform?.toLowerCase().includes('ea') || normPlatform?.toLowerCase().includes('origin') ? LAUNCHER_BANNERS['EA Desktop'] : null) ||
-    (normPlatform?.toLowerCase().includes('ubisoft') || normPlatform?.toLowerCase().includes('uplay') ? LAUNCHER_BANNERS['Ubisoft Connect'] : null) ||
-    (normPlatform?.toLowerCase().includes('steam') ? LAUNCHER_BANNERS['Steam'] : null) ||
-    (normPlatform?.toLowerCase().includes('xbox') ? LAUNCHER_BANNERS['Xbox'] : null) ||
-    (normPlatform?.toLowerCase().includes('rockstar') ? LAUNCHER_BANNERS['Rockstar Games'] : null) ||
-    (normPlatform?.toLowerCase().includes('battle') ? LAUNCHER_BANNERS['Battle.net'] : null) ||
-    (normPlatform?.toLowerCase().includes('gog') ? LAUNCHER_BANNERS['GOG Galaxy'] : null) ||
-    (normPlatform?.toLowerCase().includes('riot') ? LAUNCHER_BANNERS['Riot Games'] : null)
+    (normPlatform.toLowerCase().includes('heronite') || normPlatform.toLowerCase().includes('hero') ? LAUNCHER_BANNERS['Heronite'] : null) ||
+    (normPlatform.toLowerCase().includes('epic') ? LAUNCHER_BANNERS['Epic Games'] : null) ||
+    (normPlatform.toLowerCase().includes('ea') || normPlatform.toLowerCase().includes('origin') ? LAUNCHER_BANNERS['EA Desktop'] : null) ||
+    (normPlatform.toLowerCase().includes('ubisoft') || normPlatform.toLowerCase().includes('uplay') ? LAUNCHER_BANNERS['Ubisoft Connect'] : null) ||
+    (normPlatform.toLowerCase().includes('steam') ? LAUNCHER_BANNERS['Steam'] : null) ||
+    (normPlatform.toLowerCase().includes('steam') ? LAUNCHER_BANNERS['Steam'] : null) ||
+    (normPlatform.toLowerCase().includes('xbox') ? LAUNCHER_BANNERS['Xbox'] : null) ||
+    (normPlatform.toLowerCase().includes('rockstar') ? LAUNCHER_BANNERS['Rockstar Games'] : null) ||
+    (normPlatform.toLowerCase().includes('battle') ? LAUNCHER_BANNERS['Battle.net'] : null) ||
+    (normPlatform.toLowerCase().includes('gog') ? LAUNCHER_BANNERS['GOG Galaxy'] : null) ||
+    (normPlatform.toLowerCase().includes('riot') ? LAUNCHER_BANNERS['Riot Games'] : null)
   ) : null;
 
   const nameLower = (game.name || '').toLowerCase();
@@ -846,7 +865,7 @@ const GamesLibraryContent: React.FC<GamesPageProps> = ({ state, sendCommand, set
                 }
               }
 
-              const isLauncherEntry = item.type?.toUpperCase() === 'LAUNCHER' || item.genre?.toUpperCase() === 'PLATFORM' || nameLower === 'heronite' || nameLower === 'heroic' || nameLower === 'steam' || (item.platform?.toLowerCase() === 'heronite' && (nameLower === 'heronite' || item.id === 'heronite_launcher'));
+              const isLauncherEntry = isLauncherOrPlatform(item);
               if (isLauncherEntry) {
                 if (item.genre !== 'PLATFORM' || item.type !== 'LAUNCHER' || (item.features && item.features.length > 0)) {
                   item = { ...item, genre: 'PLATFORM', type: 'LAUNCHER', features: [] };
@@ -918,9 +937,7 @@ const GamesLibraryContent: React.FC<GamesPageProps> = ({ state, sendCommand, set
     if (s.game_library !== undefined && s.game_library !== prevLibraryRef.current) {
       prevLibraryRef.current = s.game_library;
       const newGames = (s.game_library || []).map((g: any) => {
-        const nameLower = (g.name || '').toLowerCase();
-        const isLauncherEntry = g.type?.toUpperCase() === 'LAUNCHER' || g.genre?.toUpperCase() === 'PLATFORM' || nameLower === 'heronite' || nameLower === 'heroic' || nameLower === 'steam' || (g.platform?.toLowerCase() === 'heronite' && (nameLower === 'heronite' || g.id === 'heronite_launcher'));
-        if (isLauncherEntry) {
+        if (isLauncherOrPlatform(g)) {
           return { ...g, genre: 'PLATFORM', type: 'LAUNCHER', features: [] };
         }
         return g;
@@ -1118,13 +1135,7 @@ const GamesLibraryContent: React.FC<GamesPageProps> = ({ state, sendCommand, set
 
   // Quick type counts
   const launchersCount = useMemo(
-    () => games.filter(g =>
-      g.type?.toUpperCase() === 'LAUNCHER' ||
-      (g.genre?.toUpperCase() === 'PLATFORM' && !g.id?.match(/^\d+$/)) ||
-      (g.name.toLowerCase() === g.platform?.toLowerCase() && !g.id?.match(/^\d+$/)) ||
-      (g.platform?.toLowerCase() === 'heronite' && (g.name.toLowerCase() === 'heronite' || g.type?.toUpperCase() === 'LAUNCHER')) ||
-      (g.platform?.toLowerCase() === 'heroic' && (g.name.toLowerCase() === 'heroic' || g.type?.toUpperCase() === 'LAUNCHER'))
-    ).length,
+    () => games.filter(g => isLauncherOrPlatform(g)).length,
     [games]
   );
   const emulatedCount = useMemo(
@@ -1176,20 +1187,10 @@ const GamesLibraryContent: React.FC<GamesPageProps> = ({ state, sendCommand, set
           !g.is_emulated &&
           g.type?.toUpperCase() !== 'EMULATED' &&
           g.type?.toUpperCase() !== 'EMULATION' &&
-          g.type?.toUpperCase() !== 'LAUNCHER' &&
-          !(g.genre?.toUpperCase() === 'PLATFORM' && !g.id?.match(/^\d+$/)) &&
-          !(g.name.toLowerCase() === g.platform?.toLowerCase() && !g.id?.match(/^\d+$/)) &&
-          !(g.platform?.toLowerCase() === 'heronite' && g.name.toLowerCase() === 'heronite') &&
-          !(g.platform?.toLowerCase() === 'heroic' && g.name.toLowerCase() === 'heroic')
+          !isLauncherOrPlatform(g)
         );
       } else if (selectedType === 'LAUNCHER') {
-        result = result.filter(g =>
-          g.type?.toUpperCase() === 'LAUNCHER' ||
-          (g.genre?.toUpperCase() === 'PLATFORM' && !g.id?.match(/^\d+$/)) ||
-          (g.name.toLowerCase() === g.platform?.toLowerCase() && !g.id?.match(/^\d+$/)) ||
-          (g.platform?.toLowerCase() === 'heronite' && (g.name.toLowerCase() === 'heronite' || g.type?.toUpperCase() === 'LAUNCHER')) ||
-          (g.platform?.toLowerCase() === 'heroic' && (g.name.toLowerCase() === 'heroic' || g.type?.toUpperCase() === 'LAUNCHER'))
-        );
+        result = result.filter(g => isLauncherOrPlatform(g));
       } else if (selectedType === 'EMULATION') {
         result = result.filter(g =>
           Boolean(g.is_emulated) ||
@@ -1208,20 +1209,10 @@ const GamesLibraryContent: React.FC<GamesPageProps> = ({ state, sendCommand, set
           !g.is_emulated &&
           g.type?.toUpperCase() !== 'EMULATED' &&
           g.type?.toUpperCase() !== 'EMULATION' &&
-          g.type?.toUpperCase() !== 'LAUNCHER' &&
-          !(g.genre?.toUpperCase() === 'PLATFORM' && !g.id?.match(/^\d+$/)) &&
-          !(g.name.toLowerCase() === g.platform?.toLowerCase() && !g.id?.match(/^\d+$/)) &&
-          !(g.platform?.toLowerCase() === 'heronite' && g.name.toLowerCase() === 'heronite') &&
-          !(g.platform?.toLowerCase() === 'heroic' && g.name.toLowerCase() === 'heroic')
+          !isLauncherOrPlatform(g)
         );
       } else if (selectedType === 'LAUNCHER') {
-        result = result.filter(g =>
-          g.type?.toUpperCase() === 'LAUNCHER' ||
-          (g.genre?.toUpperCase() === 'PLATFORM' && !g.id?.match(/^\d+$/)) ||
-          (g.name.toLowerCase() === g.platform?.toLowerCase() && !g.id?.match(/^\d+$/)) ||
-          (g.platform?.toLowerCase() === 'heronite' && (g.name.toLowerCase() === 'heronite' || g.type?.toUpperCase() === 'LAUNCHER')) ||
-          (g.platform?.toLowerCase() === 'heroic' && (g.name.toLowerCase() === 'heroic' || g.type?.toUpperCase() === 'LAUNCHER'))
-        );
+        result = result.filter(g => isLauncherOrPlatform(g));
       } else if (selectedType === 'EMULATION') {
         result = result.filter(g =>
           Boolean(g.is_emulated) ||

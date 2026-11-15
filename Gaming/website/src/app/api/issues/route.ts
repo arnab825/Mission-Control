@@ -1,5 +1,5 @@
 import { NextResponse } from "next/server";
-import { getIssues, createIssue } from "@/lib/db";
+import { getIssues, createIssue } from "@/lib/issues-db";
 import { IssueCreateSchema, validateRequestBody, handleApiError } from "@/lib/api-validation";
 
 export async function GET() {

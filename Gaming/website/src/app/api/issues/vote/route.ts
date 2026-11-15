@@ -1,5 +1,5 @@
 import { NextResponse } from "next/server";
-import { voteIssue } from "@/lib/db";
+import { voteIssue } from "@/lib/issues-db";
 import { IssueVoteSchema, validateRequestBody, handleApiError } from "@/lib/api-validation";
 
 export async function POST(request: Request) {

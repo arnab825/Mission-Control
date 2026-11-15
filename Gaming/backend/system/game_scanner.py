@@ -1306,13 +1306,25 @@ class GameScanner:
         sorted_games = sorted(self.games, key=lambda g: ("Launcher" not in (g.get("name") or "") and g.get("name") != g.get("platform"), len(g.get("name") or "")))
         for g in sorted_games:
             name_lower = g.get("name", "").lower().strip()
-            is_launcher = (g.get("type") == "LAUNCHER") or any(wl == name_lower for wl in self.launcher_whitelist) or (g.get("name") == g.get("platform"))
+            is_launcher = (
+                (g.get("type") == "LAUNCHER")
+                or any(wl == name_lower for wl in self.launcher_whitelist)
+                or (g.get("name") == g.get("platform"))
+                or (g.get("id") or "").endswith("_launcher")
+            )
             
-            if is_launcher and g.get("platform") in launcher_platforms:
-                if g["platform"] not in seen_launchers:
-                    seen_launchers.add(g["platform"])
+            if is_launcher and (g.get("platform") in launcher_platforms or any(wl == name_lower for wl in self.launcher_whitelist)):
+                matched_plat = next((p for p in launcher_platforms if p.lower() == name_lower or p.lower() == g.get("platform", "").lower()), g.get("platform"))
+                if matched_plat not in seen_launchers:
+                    seen_launchers.add(matched_plat)
                     # Standardize display name to platform name
-                    g["name"] = g["platform"]
+                    g["name"] = matched_plat
+                    g["platform"] = matched_plat
+                    g["type"] = "LAUNCHER"
+                    g["genre"] = "PLATFORM"
+                    g["features"] = []
+                    if not g.get("tags"):
+                        g["tags"] = ["SYSTEM"]
                     final_games.append(g)
             else:
                 final_games.append(g)
@@ -1884,6 +1896,9 @@ class GameScanner:
         game_targets = [
             g for g in self.games
             if g.get("type", "GAME") == "GAME"
+            and g.get("genre") != "PLATFORM"
+            and g.get("name", "").lower() not in self.launcher_whitelist
+            and not (g.get("id") or "").endswith("_launcher")
         ]
 
         if not game_targets:
@@ -2142,7 +2157,11 @@ class GameScanner:
                         "platform": "Steam",
                         "id": "steam_launcher",
                         "install_path": str(Path(steam_exe).parent),
-                        "exe_path": str(steam_exe)
+                        "exe_path": str(steam_exe),
+                        "type": "LAUNCHER",
+                        "genre": "PLATFORM",
+                        "features": [],
+                        "tags": ["SYSTEM"]
                     })
             except Exception: pass
 
