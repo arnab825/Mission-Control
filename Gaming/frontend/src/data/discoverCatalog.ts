@@ -2254,14 +2254,21 @@ export function getSmartSearchRecommendations(
   // 5. Hardware Benchmark Showcase (Modern RTX, DLSS 3.5 & Frame Gen)
   addRec({
     id: 'rec-rtx-cp',
-    label: 'Cyberpunk 2077 (Path Tracing)',
+    label: 'Cyberpunk 2077',
     query: 'Cyberpunk 2077',
     reason: 'Hardware showcase with full DLSS 3.5 & Path Tracing',
     category: 'hardware',
   });
   addRec({
+    id: 'rec-rtx-aw2',
+    label: 'Alan Wake 2',
+    query: 'Alan Wake 2',
+    reason: 'Next-generation visual fidelity and volumetric lighting',
+    category: 'hardware',
+  });
+  addRec({
     id: 'rec-rtx-wukong',
-    label: 'Black Myth: Wukong (Full RT)',
+    label: 'Black Myth: Wukong',
     query: 'Black Myth Wukong',
     reason: 'Unreal Engine 5 with full ray tracing benchmark',
     category: 'hardware',

@@ -189,7 +189,7 @@ export const EmulatorsHubModal: React.FC<EmulatorsHubModalProps> = ({
         animate={{ opacity: 1, scale: 1, y: 0 }}
         exit={{ opacity: 0, scale: 0.98, y: 6 }}
         transition={{ duration: 0.16, ease: 'easeOut' }}
-        className="relative z-10 w-full max-w-4xl xl:max-w-5xl 2xl:max-w-6xl max-h-[92vh] sm:max-h-[88vh] md:max-h-[86vh] flex flex-col rounded-2xl sm:rounded-3xl bg-zinc-950/98 border border-white/10 shadow-[0_20px_60px_rgba(0,0,0,0.9)] overflow-hidden font-['Inter',system-ui,sans-serif] my-auto transform-gpu will-change-transform will-change-opacity"
+        className="relative z-10 w-full max-w-4xl xl:max-w-5xl 2xl:max-w-6xl h-[88vh] sm:h-[86vh] max-h-[860px] flex flex-col rounded-2xl sm:rounded-3xl bg-zinc-950/98 border border-white/10 shadow-[0_20px_60px_rgba(0,0,0,0.9)] overflow-hidden font-['Inter',system-ui,sans-serif] my-auto transform-gpu will-change-transform will-change-opacity"
       >
         {/* Soft Ambient Accent Glow */}
         <div className="absolute top-0 left-1/2 -translate-x-1/2 w-2/3 h-16 bg-neon-green/10 blur-xl pointer-events-none rounded-full" />
@@ -276,7 +276,7 @@ export const EmulatorsHubModal: React.FC<EmulatorsHubModalProps> = ({
         </div>
 
         {/* Content Body */}
-        <div className="flex-1 overflow-y-auto p-4 sm:p-6 xl:p-8 space-y-4 xl:space-y-6 custom-scrollbar">
+        <div className="flex-1 min-h-0 overflow-y-auto p-4 sm:p-6 xl:p-8 pb-12 sm:pb-16 xl:pb-20 space-y-4 xl:space-y-6 custom-scrollbar">
           {/* TAB 1: INSTALLED EMULATORS */}
           {activeTab === 'installed' && (
             <div>

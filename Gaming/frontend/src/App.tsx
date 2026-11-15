@@ -1585,15 +1585,15 @@ const App: React.FC = () => {
               </header>
 
               {/* Dynamic Page Rendering (Lazy-loaded / Keep-alive toggling) */}
-              <div className="flex-1 min-h-0 min-w-0 flex flex-col relative overflow-hidden">
+              <div className="flex-1 h-full min-h-0 min-w-0 flex flex-col relative overflow-hidden">
                 <Suspense fallback={<PageSkeleton />}>
                   {visitedPages['dashboard'] && (
-                    <div className={`flex-1 min-h-0 min-w-0 flex flex-col relative ${activePage === 'dashboard' ? '' : 'hidden'}`}>
+                    <div className={`flex-1 h-full min-h-0 min-w-0 flex flex-col relative ${activePage === 'dashboard' ? '' : 'hidden'}`}>
                       <DashboardPage state={activePage === 'dashboard' ? state : null} onCommand={sendCommand} onNavigate={handleNavigate} />
                     </div>
                   )}
                   {visitedPages['vision'] && (
-                    <div className={`flex-1 min-h-0 min-w-0 flex flex-col relative ${activePage === 'vision' ? '' : 'hidden'}`}>
+                    <div className={`flex-1 h-full min-h-0 min-w-0 flex flex-col relative ${activePage === 'vision' ? '' : 'hidden'}`}>
                       <VisionPage state={activePage === 'vision' ? state : null} sendCommand={sendCommand} />
                     </div>
                   )}
@@ -1608,7 +1608,7 @@ const App: React.FC = () => {
                     </div>
                   )}
                   {visitedPages['games'] && (
-                    <div className={`flex-1 min-h-0 min-w-0 flex flex-col relative ${activePage === 'games' ? '' : 'hidden'}`}>
+                    <div className={`flex-1 h-full min-h-0 min-w-0 flex flex-col relative ${activePage === 'games' ? '' : 'hidden'}`}>
                       <GamesPage
                         state={activePage === 'games' ? state : null}
                         sendCommand={sendCommand}
@@ -1618,7 +1618,7 @@ const App: React.FC = () => {
                     </div>
                   )}
                   {visitedPages['settings'] && (
-                    <div className={`flex-1 min-h-0 min-w-0 flex flex-col relative ${activePage === 'settings' ? '' : 'hidden'}`}>
+                    <div className={`flex-1 h-full min-h-0 min-w-0 flex flex-col relative ${activePage === 'settings' ? '' : 'hidden'}`}>
                       <SettingsPage
                         state={activePage === 'settings' ? state : null}
                         sendCommand={sendCommand}
@@ -1627,17 +1627,17 @@ const App: React.FC = () => {
                     </div>
                   )}
                   {visitedPages['lab'] && (
-                    <div className={`flex-1 min-h-0 min-w-0 flex flex-col relative ${activePage === 'lab' ? '' : 'hidden'}`}>
+                    <div className={`flex-1 h-full min-h-0 min-w-0 flex flex-col relative ${activePage === 'lab' ? '' : 'hidden'}`}>
                       <LabPage state={activePage === 'lab' ? state : null} sendCommand={sendCommand} />
                     </div>
                   )}
                   {visitedPages['readiness'] && (
-                    <div className={`flex-1 min-h-0 min-w-0 flex flex-col relative ${activePage === 'readiness' ? '' : 'hidden'}`}>
+                    <div className={`flex-1 h-full min-h-0 min-w-0 flex flex-col relative ${activePage === 'readiness' ? '' : 'hidden'}`}>
                       <ReadinessPage state={activePage === 'readiness' ? state : null} connected={connected} sendCommand={sendCommand} />
                     </div>
                   )}
                   {visitedPages['agent'] && (
-                    <div className={`flex-1 min-h-0 min-w-0 flex flex-col relative ${activePage === 'agent' ? '' : 'hidden'}`}>
+                    <div className={`flex-1 h-full min-h-0 min-w-0 flex flex-col relative ${activePage === 'agent' ? '' : 'hidden'}`}>
                       {!isSignedIn && gamesPageMode === 'auth' ? (
                         <AuthPage onBackToLibrary={() => setGamesPageMode('library')} />
                       ) : (

@@ -791,7 +791,7 @@ const DiscoverGamesModal: React.FC<DiscoverGamesModalProps> = ({ onClose, instal
 
       {/* Modal Container with Glowing Top Accent */}
       <motion.div
-        className="relative z-10 w-full max-w-5xl h-[92vh] sm:h-[90vh] bg-zinc-950/98 border border-white/10 rounded-2xl sm:rounded-3xl flex flex-col overflow-hidden shadow-[0_25px_60px_rgba(0,0,0,0.9),0_0_35px_rgba(118,185,0,0.1)] transform-gpu will-change-transform will-change-opacity"
+        className="relative z-10 w-full max-w-5xl h-[88vh] sm:h-[86vh] max-h-[860px] bg-zinc-950/98 border border-white/10 rounded-2xl sm:rounded-3xl flex flex-col overflow-hidden shadow-[0_25px_60px_rgba(0,0,0,0.9),0_0_35px_rgba(118,185,0,0.1)] transform-gpu will-change-transform will-change-opacity"
         initial={{ scale: 0.97, opacity: 0, y: 10 }}
         animate={{ scale: 1, opacity: 1, y: 0 }}
         exit={{ scale: 0.97, opacity: 0, y: 8 }}
@@ -1169,59 +1169,58 @@ const DiscoverGamesModal: React.FC<DiscoverGamesModalProps> = ({ onClose, instal
           {activeTab === 'news' ? (
             <div className="space-y-2">
               {/* Row 1: Time Horizon Cadence, Category & Sync Control Bar */}
-              <div className="flex flex-wrap items-center justify-between gap-2.5">
-                {/* Left: Connected Segmented Cadence Switcher */}
-                <div className="inline-flex items-center p-0.5 rounded-xl bg-zinc-900/90 border border-white/10 text-[9px] font-bold">
-                  <button
-                    type="button"
-                    onClick={() => setNewsTimeHorizon('all')}
-                    className={`px-3 py-1 rounded-lg transition-all flex items-center gap-1.5 cursor-pointer ${
-                      newsTimeHorizon === 'all'
-                        ? 'bg-cyan-400 text-black shadow-[0_0_12px_rgba(34,211,238,0.4)] font-black'
-                        : 'text-zinc-400 hover:text-white'
-                    }`}
-                  >
-                    <span>All Dispatches</span>
-                    <span className={`text-[8px] px-1.5 py-0.2 rounded font-mono ${newsTimeHorizon === 'all' ? 'bg-black/25 text-black' : 'bg-white/6 text-zinc-400'}`}>
-                      {newsItems.length}
-                    </span>
-                  </button>
+              <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2">
+                {/* Left: Connected Segmented Cadence Switcher + Category Filter */}
+                <div className="flex items-center gap-2 overflow-x-auto no-scrollbar shrink-0 py-0.5">
+                  <div className="inline-flex items-center p-0.5 rounded-xl bg-zinc-900/90 border border-white/10 text-[9px] font-bold shrink-0">
+                    <button
+                      type="button"
+                      onClick={() => setNewsTimeHorizon('all')}
+                      className={`px-2.5 sm:px-3 py-1 rounded-lg transition-all flex items-center gap-1.5 cursor-pointer shrink-0 ${
+                        newsTimeHorizon === 'all'
+                          ? 'bg-cyan-400 text-black shadow-[0_0_12px_rgba(34,211,238,0.4)] font-black'
+                          : 'text-zinc-400 hover:text-white'
+                      }`}
+                    >
+                      <span>All Dispatches</span>
+                      <span className={`text-[8px] px-1.5 py-0.2 rounded font-mono ${newsTimeHorizon === 'all' ? 'bg-black/25 text-black' : 'bg-white/6 text-zinc-400'}`}>
+                        {newsItems.length}
+                      </span>
+                    </button>
 
-                  <button
-                    type="button"
-                    onClick={() => setNewsTimeHorizon('week')}
-                    className={`px-3 py-1 rounded-lg transition-all flex items-center gap-1.5 cursor-pointer ${
-                      newsTimeHorizon === 'week'
-                        ? 'bg-purple-400 text-black shadow-[0_0_12px_rgba(192,132,252,0.4)] font-black'
-                        : 'text-zinc-400 hover:text-white'
-                    }`}
-                  >
-                    <span>Week #{weekInfo.week}</span>
-                    <span className={`text-[8px] px-1.5 py-0.2 rounded font-mono ${newsTimeHorizon === 'week' ? 'bg-black/25 text-black' : 'bg-white/6 text-zinc-400'}`}>
-                      {weeklyNewsCount}
-                    </span>
-                  </button>
+                    <button
+                      type="button"
+                      onClick={() => setNewsTimeHorizon('week')}
+                      className={`px-2.5 sm:px-3 py-1 rounded-lg transition-all flex items-center gap-1.5 cursor-pointer shrink-0 ${
+                        newsTimeHorizon === 'week'
+                          ? 'bg-purple-400 text-black shadow-[0_0_12px_rgba(192,132,252,0.4)] font-black'
+                          : 'text-zinc-400 hover:text-white'
+                      }`}
+                    >
+                      <span>Week #{weekInfo.week}</span>
+                      <span className={`text-[8px] px-1.5 py-0.2 rounded font-mono ${newsTimeHorizon === 'week' ? 'bg-black/25 text-black' : 'bg-white/6 text-zinc-400'}`}>
+                        {weeklyNewsCount}
+                      </span>
+                    </button>
 
-                  <button
-                    type="button"
-                    onClick={() => setNewsTimeHorizon('month')}
-                    className={`px-3 py-1 rounded-lg transition-all flex items-center gap-1.5 cursor-pointer ${
-                      newsTimeHorizon === 'month'
-                        ? 'bg-emerald-400 text-black shadow-[0_0_12px_rgba(52,211,153,0.4)] font-black'
-                        : 'text-zinc-400 hover:text-white'
-                    }`}
-                  >
-                    <span>{monthInfo.name}</span>
-                    <span className={`text-[8px] px-1.5 py-0.2 rounded font-mono ${newsTimeHorizon === 'month' ? 'bg-black/25 text-black' : 'bg-white/6 text-zinc-400'}`}>
-                      {monthlyNewsCount}
-                    </span>
-                  </button>
-                </div>
+                    <button
+                      type="button"
+                      onClick={() => setNewsTimeHorizon('month')}
+                      className={`px-2.5 sm:px-3 py-1 rounded-lg transition-all flex items-center gap-1.5 cursor-pointer shrink-0 ${
+                        newsTimeHorizon === 'month'
+                          ? 'bg-emerald-400 text-black shadow-[0_0_12px_rgba(52,211,153,0.4)] font-black'
+                          : 'text-zinc-400 hover:text-white'
+                      }`}
+                    >
+                      <span>{monthInfo.name}</span>
+                      <span className={`text-[8px] px-1.5 py-0.2 rounded font-mono ${newsTimeHorizon === 'month' ? 'bg-black/25 text-black' : 'bg-white/6 text-zinc-400'}`}>
+                        {monthlyNewsCount}
+                      </span>
+                    </button>
+                  </div>
 
-                {/* Center / Right: Category Filter & Sync Trigger */}
-                <div className="flex items-center gap-2 flex-wrap">
                   {/* Category Filter */}
-                  <div className="inline-flex items-center p-0.5 rounded-xl bg-zinc-900/90 border border-white/10 text-[9px] font-bold">
+                  <div className="inline-flex items-center p-0.5 rounded-xl bg-zinc-900/90 border border-white/10 text-[9px] font-bold shrink-0">
                     {['All', 'Gaming', 'Hardware'].map((cat) => (
                       <button
                         key={cat}
@@ -1237,23 +1236,23 @@ const DiscoverGamesModal: React.FC<DiscoverGamesModalProps> = ({ onClose, instal
                       </button>
                     ))}
                   </div>
+                </div>
 
-                  {/* Sync Trigger & Time */}
-                  <div className="flex items-center gap-2 shrink-0">
-                    <span className="text-[8px] text-zinc-500 font-mono hidden md:inline">
-                      {getRelativeTime(new Date(lastNewsSync).toUTCString()) || 'Just now'}
-                    </span>
-                    <button
-                      type="button"
-                      onClick={() => loadGamingNews(true)}
-                      disabled={newsLoading}
-                      className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-xl bg-cyan-500/10 hover:bg-cyan-500/20 border border-cyan-500/30 text-cyan-300 text-[9px] font-black uppercase tracking-wider transition-all cursor-pointer disabled:opacity-50"
-                      title="Force refresh all live gaming feeds now"
-                    >
-                      <RefreshCw className={`w-3 h-3 ${newsLoading ? 'animate-spin' : ''}`} />
-                      <span>Sync Intel</span>
-                    </button>
-                  </div>
+                {/* Right: Sync Trigger & Time */}
+                <div className="flex items-center gap-2 justify-end shrink-0">
+                  <span className="text-[8px] text-zinc-500 font-mono hidden md:inline">
+                    {getRelativeTime(new Date(lastNewsSync).toUTCString()) || 'Just now'}
+                  </span>
+                  <button
+                    type="button"
+                    onClick={() => loadGamingNews(true)}
+                    disabled={newsLoading}
+                    className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-xl bg-cyan-500/10 hover:bg-cyan-500/20 border border-cyan-500/30 text-cyan-300 text-[9px] font-black uppercase tracking-wider transition-all cursor-pointer disabled:opacity-50"
+                    title="Force refresh all live gaming feeds now"
+                  >
+                    <RefreshCw className={`w-3 h-3 ${newsLoading ? 'animate-spin' : ''}`} />
+                    <span>Sync Intel</span>
+                  </button>
                 </div>
               </div>
 
@@ -1261,7 +1260,7 @@ const DiscoverGamesModal: React.FC<DiscoverGamesModalProps> = ({ onClose, instal
               <div className="flex items-center gap-2 overflow-x-auto no-scrollbar py-0.5">
                 {/* Outlets List */}
                 <div className="flex items-center gap-1 shrink-0">
-                  <span className="text-[8px] font-black text-zinc-500 uppercase tracking-widest mr-1">
+                  <span className="text-[8px] font-black text-zinc-500 uppercase tracking-widest mr-1 shrink-0">
                     Outlets:
                   </span>
                   {uniqueSources.map((src) => {
@@ -1446,7 +1445,7 @@ const DiscoverGamesModal: React.FC<DiscoverGamesModalProps> = ({ onClose, instal
         </div>
 
         {/* Content Area */}
-        <div className="flex-1 min-h-0 overflow-y-auto p-3.5 sm:p-6 custom-scrollbar bg-black/40">
+        <div className="flex-1 min-h-0 overflow-y-auto p-3.5 sm:p-6 pb-12 sm:pb-16 custom-scrollbar bg-black/40">
           {activeTab === 'news' ? (
             /* NEWS SECTION: Live Gaming News Dispatches with Weekly Intelligence */
             newsLoading ? (

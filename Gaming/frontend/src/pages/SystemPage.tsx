@@ -22,6 +22,7 @@ import {
   HelpCircle,
   Sparkles,
   ChevronRight,
+  ChevronDown,
   ExternalLink,
   X
 } from 'lucide-react';
@@ -123,7 +124,7 @@ const SpecRow: React.FC<{
   return (
     <div className="flex items-center justify-between border-b border-white/5 pb-2.5 pt-1.5 gap-4 relative min-w-0 w-full">
       <div className="flex items-center gap-1.5 min-w-0 shrink-0">
-        <span className="text-xs font-bold text-zinc-500 uppercase tracking-wider truncate max-w-[120px] sm:max-w-[180px]" title={label}>
+        <span className="text-xs font-bold text-zinc-500 uppercase tracking-wider truncate max-w-[140px] sm:max-w-[240px]" title={label}>
           {label}
         </span>
         {explanation && (
@@ -159,19 +160,19 @@ const SubNavItem: React.FC<{
   return (
     <button aria-label="button" type="button"
       onClick={onClick}
-      className={`shrink-0 w-[135px] sm:w-[160px] lg:w-full min-w-0 p-2.5 lg:p-3.5 rounded-xl lg:rounded-2xl flex items-center gap-2 lg:gap-3 border transition-all ${
-        isActive ? 'bg-white/4 border-white/10 shadow-lg' : 'bg-transparent border-transparent hover:bg-white/2'
+      className={`min-w-[105px] sm:min-w-0 flex-1 lg:w-full p-2 sm:p-2.5 lg:p-3 rounded-xl lg:rounded-2xl flex items-center gap-2 lg:gap-3 border transition-all ${
+        isActive ? 'bg-white/5 border-white/15 shadow-lg' : 'bg-transparent border-transparent hover:bg-white/5'
       } ${className}`}
     >
       <div className={`p-1.5 lg:p-2 rounded-lg lg:rounded-xl ${styles.bgMuted} border ${styles.borderMuted} shrink-0`}>
         <Icon className={`w-3.5 h-3.5 lg:w-4 lg:h-4 ${styles.text}`} />
       </div>
       <div className="flex-1 text-left min-w-0">
-        <div className="flex flex-col lg:flex-row lg:justify-between lg:items-center mb-1 gap-0.5 lg:gap-1">
+        <div className="flex flex-col sm:flex-row sm:justify-between sm:items-center mb-1 gap-0.5 sm:gap-1">
           <span className={`text-[9px] lg:text-[10px] font-black uppercase tracking-widest truncate ${isActive ? 'text-white' : 'text-zinc-500'}`}>
             {label}
           </span>
-          <span className={`text-[9px] lg:text-[10px] font-black truncate ${isActive ? styles.text : 'text-zinc-600'}`}>
+          <span className={`text-[9px] lg:text-[10px] font-black truncate ${isActive ? styles.text : 'text-zinc-400'}`}>
             {value}
           </span>
         </div>
@@ -541,9 +542,6 @@ const SystemPage: React.FC<SystemPageProps> = ({
     if (sendCommand) {
       sendCommand('open_oem_software', { protocol, suite_id: suiteId });
     }
-    if (protocol && (window as any).electronAPI?.openExternal) {
-      (window as any).electronAPI.openExternal(protocol).catch(() => {});
-    }
   };
 
   const handleOpenDisplaySwitcher = () => {
@@ -880,82 +878,30 @@ const SystemPage: React.FC<SystemPageProps> = ({
   const igpu = gpusList.find(g => g.type === 'integrated');
 
   return (
-    <div className="flex-1 p-4 md:p-8 overflow-hidden flex flex-col h-full min-h-0 bg-transparent select-none gap-y-5 md:gap-y-6">
+    <div className="flex-1 p-3 sm:p-4 md:p-6 lg:p-8 overflow-hidden flex flex-col min-h-0 min-w-0 bg-transparent select-none gap-y-3 sm:gap-y-4 md:gap-y-5">
       
       {/* Sleek Low-Profile Telemetry Header */}
-      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 border-b border-white/5 pb-4 pt-1 shrink-0">
-        <div>
-          <div className="flex items-center gap-3 mb-1 flex-wrap">
-            <h2 className="text-xl md:text-2xl font-black tracking-tight text-white uppercase font-sans">
-              System Telemetry
-            </h2>
-            {/* Connected Badge */}
-            <div className="flex items-center gap-1.5 px-2 py-0.5 rounded-full bg-neon-yellow/10 border border-neon-yellow/20">
-              <span className="w-1 h-1 rounded-full bg-neon-yellow animate-ping" />
-              <span className="text-[7px] font-black uppercase text-neon-yellow tracking-wider">Monitor Active</span>
-            </div>
-          </div>
-          <p className="text-[10px] font-medium text-zinc-500">
-            Real-time hardware tracking, memory allocation, multi-threaded core diagnostics, and dynamic GPU telemetry.
-          </p>
-        </div>
-
-        <div className="flex items-center gap-3 justify-between sm:justify-end w-full sm:w-auto">
-          {/* Dynamic GPU Telemetry Status chip & MUX Switch Badge */}
-          <div className="hidden md:flex items-center gap-2.5">
-            <div className="flex items-center gap-3 bg-white/[0.03] border border-white/5 rounded-2xl px-3.5 py-1.5">
-              <div className="relative w-8 h-8 rounded-xl bg-black/45 border border-white/10 flex items-center justify-center text-blue-400">
-                <Gauge className="w-4 h-4 animate-pulse" />
-              </div>
-              <div className="text-right">
-                <span className="text-[7px] font-black text-zinc-500 uppercase tracking-widest block">Primary GPU</span>
-                <span className="text-[9px] font-mono font-black text-zinc-300 block whitespace-nowrap">{specs?.hardware.gpu || 'Gathering...'}</span>
+      <div className="flex flex-col gap-3 border-b border-white/5 pb-4 pt-1 shrink-0">
+        {/* Tier 1: Title, Live Status & View Switcher */}
+        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+          <div className="min-w-0">
+            <div className="flex items-center gap-2.5 sm:gap-3 mb-1">
+              <h2 className="text-xl md:text-2xl font-black tracking-tight text-white uppercase font-sans whitespace-nowrap">
+                System Telemetry
+              </h2>
+              {/* Connected Badge */}
+              <div className="flex items-center gap-1.5 px-2 py-0.5 rounded-full bg-neon-yellow/10 border border-neon-yellow/20 shrink-0">
+                <span className="w-1 h-1 rounded-full bg-neon-yellow animate-ping" />
+                <span className="text-[7px] font-black uppercase text-neon-yellow tracking-wider">Monitor Active</span>
               </div>
             </div>
-
-            {((specs?.hardware?.mux_switch || specs?.mux_switch)) && (
-              <div
-                role="button"
-                tabIndex={0}
-                onClick={() => setViewMode('details')}
-                onKeyDown={(e) => e.key === 'Enter' && setViewMode('details')}
-                title={`Display Routing: ${(specs?.hardware?.mux_switch || specs?.mux_switch)?.display_routing}`}
-                className="flex items-center gap-2.5 bg-white/[0.03] border border-white/5 hover:border-neon-yellow/30 rounded-2xl px-3.5 py-1.5 cursor-pointer transition-all"
-              >
-                <div className="relative w-8 h-8 rounded-xl bg-neon-yellow/10 border border-neon-yellow/20 flex items-center justify-center text-neon-yellow">
-                  <Zap className="w-4 h-4 animate-pulse" />
-                </div>
-                <div className="text-left">
-                  <div className="flex items-center gap-1.5">
-                    <span className="text-[7px] font-black text-zinc-500 uppercase tracking-widest">
-                      {(specs?.hardware?.mux_switch || specs?.mux_switch)?.form_factor === 'desktop' ? 'VIDEO ROUTING' : 'MUX ROUTING'}
-                    </span>
-                    <span className={`text-[8px] font-black px-1.5 py-0.5 rounded uppercase tracking-wider ${
-                      (specs?.hardware?.mux_switch || specs?.mux_switch)?.latency_mode === 'zero_latency_direct' || (specs?.hardware?.mux_switch || specs?.mux_switch)?.current_mode === 'discrete'
-                        ? 'bg-cyan-500/10 text-cyan-400 border border-cyan-500/20'
-                        : (specs?.hardware?.mux_switch || specs?.mux_switch)?.current_mode === 'hybrid'
-                        ? 'bg-neon-yellow/10 text-neon-yellow border border-neon-yellow/20'
-                        : 'bg-emerald-500/10 text-emerald-400 border border-emerald-500/20'
-                    }`}>
-                      {(specs?.hardware?.mux_switch || specs?.mux_switch)?.form_factor === 'desktop'
-                        ? 'DESKTOP DIRECT'
-                        : (specs?.hardware?.mux_switch || specs?.mux_switch)?.current_mode === 'discrete'
-                        ? 'DISCRETE DIRECT'
-                        : (specs?.hardware?.mux_switch || specs?.mux_switch)?.current_mode === 'hybrid'
-                        ? 'HYBRID (OPTIMUS)'
-                        : ((specs?.hardware?.mux_switch || specs?.mux_switch)?.current_mode || 'AUTO').toUpperCase()}
-                    </span>
-                  </div>
-                  <span className="text-[9px] font-mono font-bold text-zinc-300 block whitespace-nowrap truncate max-w-40">
-                    {(specs?.hardware?.mux_switch || specs?.mux_switch)?.primary_oem?.name || (specs?.hardware?.mux_switch || specs?.mux_switch)?.active_display_gpu || 'Direct Display'}
-                  </span>
-                </div>
-              </div>
-            )}
+            <p className="text-[10px] font-medium text-zinc-500">
+              Real-time hardware tracking, memory allocation, multi-threaded core diagnostics, and dynamic GPU telemetry.
+            </p>
           </div>
 
           {/* View Switcher (Details vs Graph vs Performance Intel) */}
-          <div className="flex items-center gap-1 bg-white/[0.02] border border-white/5 rounded-xl p-1">
+          <div className="flex items-center gap-1 bg-white/[0.02] border border-white/5 rounded-xl p-1 shrink-0 self-start sm:self-auto">
             <button aria-label="button" type="button"
               onClick={() => setViewMode('graph')}
               className={`px-3 py-1.5 rounded-lg text-[9px] font-black uppercase tracking-widest transition-all cursor-pointer whitespace-nowrap ${
@@ -976,7 +922,7 @@ const SystemPage: React.FC<SystemPageProps> = ({
             >
               Details
             </button>
-            <button aria-label="button" type="button"
+            <button aria-label="Performance Intel" type="button"
               onClick={() => setViewMode('intel')}
               className={`px-3 py-1.5 rounded-lg text-[9px] font-black uppercase tracking-widest transition-all cursor-pointer whitespace-nowrap ${
                 viewMode === 'intel'
@@ -988,19 +934,74 @@ const SystemPage: React.FC<SystemPageProps> = ({
             </button>
           </div>
         </div>
+
+        {/* Tier 2: Dynamic Hardware Status Badges (Primary GPU & MUX Routing Switch) */}
+        <div className="flex items-center gap-2.5 sm:gap-3 flex-wrap">
+          {/* Dynamic GPU Telemetry Status chip */}
+          <div className="flex items-center gap-2.5 bg-white/[0.03] border border-white/5 rounded-2xl px-3 py-1.5 shrink-0">
+            <div className="relative w-7 h-7 sm:w-8 sm:h-8 rounded-xl bg-black/45 border border-white/10 flex items-center justify-center text-blue-400 shrink-0">
+              <Gauge className="w-3.5 h-3.5 sm:w-4 sm:h-4 animate-pulse" />
+            </div>
+            <div className="text-right">
+              <span className="text-[7px] font-black text-zinc-500 uppercase tracking-widest block">Primary GPU</span>
+              <span className="text-[9px] font-mono font-black text-zinc-300 block whitespace-nowrap">{specs?.hardware.gpu || 'Gathering...'}</span>
+            </div>
+          </div>
+
+          {/* MUX Switch Badge */}
+          {((specs?.hardware?.mux_switch || specs?.mux_switch)) && (
+            <div
+              role="button"
+              tabIndex={0}
+              onClick={() => setViewMode('details')}
+              onKeyDown={(e) => e.key === 'Enter' && setViewMode('details')}
+              title={`Display Routing: ${(specs?.hardware?.mux_switch || specs?.mux_switch)?.display_routing}`}
+              className="flex items-center gap-2.5 bg-white/[0.03] border border-white/5 hover:border-neon-yellow/30 rounded-2xl px-3 py-1.5 cursor-pointer transition-all shrink-0"
+            >
+              <div className="relative w-7 h-7 sm:w-8 sm:h-8 rounded-xl bg-neon-yellow/10 border border-neon-yellow/20 flex items-center justify-center text-neon-yellow shrink-0">
+                <Zap className="w-3.5 h-3.5 sm:w-4 sm:h-4 animate-pulse" />
+              </div>
+              <div className="text-left">
+                <div className="flex items-center gap-1.5">
+                  <span className="text-[7px] font-black text-zinc-500 uppercase tracking-widest">
+                    {(specs?.hardware?.mux_switch || specs?.mux_switch)?.form_factor === 'desktop' ? 'VIDEO ROUTING' : 'MUX ROUTING'}
+                  </span>
+                  <span className={`text-[8px] font-black px-1.5 py-0.5 rounded uppercase tracking-wider ${
+                    (specs?.hardware?.mux_switch || specs?.mux_switch)?.latency_mode === 'zero_latency_direct' || (specs?.hardware?.mux_switch || specs?.mux_switch)?.current_mode === 'discrete'
+                      ? 'bg-cyan-500/10 text-cyan-400 border border-cyan-500/20'
+                      : (specs?.hardware?.mux_switch || specs?.mux_switch)?.current_mode === 'hybrid'
+                      ? 'bg-neon-yellow/10 text-neon-yellow border border-neon-yellow/20'
+                      : 'bg-emerald-500/10 text-emerald-400 border border-emerald-500/20'
+                  }`}>
+                    {(specs?.hardware?.mux_switch || specs?.mux_switch)?.form_factor === 'desktop'
+                      ? 'DESKTOP DIRECT'
+                      : (specs?.hardware?.mux_switch || specs?.mux_switch)?.current_mode === 'discrete'
+                      ? 'DISCRETE DIRECT'
+                      : (specs?.hardware?.mux_switch || specs?.mux_switch)?.current_mode === 'hybrid'
+                      ? 'HYBRID (OPTIMUS)'
+                      : ((specs?.hardware?.mux_switch || specs?.mux_switch)?.current_mode || 'AUTO').toUpperCase()}
+                  </span>
+                </div>
+                <span className="text-[9px] font-mono font-bold text-zinc-300 block whitespace-nowrap truncate max-w-48">
+                  {(specs?.hardware?.mux_switch || specs?.mux_switch)?.primary_oem?.name || (specs?.hardware?.mux_switch || specs?.mux_switch)?.active_display_gpu || 'Direct Display'}
+                </span>
+              </div>
+            </div>
+          )}
+        </div>
       </div>
 
-      <div className="flex-1 flex flex-col lg:flex-row gap-6 lg:gap-8 min-h-0">
+      <div className="flex-1 min-h-0 min-w-0 flex flex-col lg:flex-row gap-3 sm:gap-4 lg:gap-6 overflow-hidden">
 
         {/* Left Sub-nav */}
-      <div className="w-full lg:w-64 flex flex-row lg:flex-col gap-2 lg:gap-1.5 overflow-x-auto lg:overflow-x-visible lg:overflow-y-auto shrink-0 pb-2 lg:pb-20 sticky top-0 lg:relative z-10 bg-zinc-950/95 backdrop-blur-md lg:bg-transparent -mx-4 px-4 lg:mx-0 lg:px-0 pt-2 lg:pt-0 no-scrollbar mask-fade-right lg:mask-none">
+      <div className="w-full lg:w-60 xl:w-64 flex flex-row lg:flex-col gap-1.5 sm:gap-2 lg:gap-1.5 overflow-x-auto lg:overflow-x-visible lg:overflow-y-auto shrink-0 pb-1 lg:pb-0 z-10 bg-transparent no-scrollbar lg:h-full lg:justify-between min-w-0">
         <SubNavItem
           label="CPU"
           value={`${state?.cpu_pct != null ? state.cpu_pct.toFixed(1) : '0.0'}%`}
           percent={state?.cpu_pct || 0}
           color="blue"
           icon={Cpu}
-          isActive={selectedCategory === 'CPU'}
+          isActive={viewMode === 'graph' && selectedCategory === 'CPU'}
           onClick={() => { setSelectedCategory('CPU'); setViewMode('graph'); }}
         />
         <SubNavItem 
@@ -1014,7 +1015,7 @@ const SystemPage: React.FC<SystemPageProps> = ({
           percent={state?.mem_pct || 0}
           color="purple" 
           icon={Box} 
-          isActive={selectedCategory === 'Memory'}
+          isActive={viewMode === 'graph' && selectedCategory === 'Memory'}
           onClick={() => { setSelectedCategory('Memory'); setViewMode('graph'); }}
         />
         <SubNavItem
@@ -1023,7 +1024,7 @@ const SystemPage: React.FC<SystemPageProps> = ({
           percent={state?.gpu_metrics?.utilization || 0}
           color="emerald"
           icon={Zap}
-          isActive={selectedCategory === 'GPU'}
+          isActive={viewMode === 'graph' && selectedCategory === 'GPU'}
           onClick={() => { setSelectedCategory('GPU'); setViewMode('graph'); }}
         />
         <SubNavItem
@@ -1032,7 +1033,7 @@ const SystemPage: React.FC<SystemPageProps> = ({
           percent={state?.disk_util || 0}
           color="orange"
           icon={Database}
-          isActive={selectedCategory === 'Disk'}
+          isActive={viewMode === 'graph' && selectedCategory === 'Disk'}
           onClick={() => { setSelectedCategory('Disk'); setViewMode('graph'); }}
         />
         <SubNavItem
@@ -1041,7 +1042,7 @@ const SystemPage: React.FC<SystemPageProps> = ({
           percent={state?.net_util || 0}
           color="red"
           icon={Network}
-          isActive={selectedCategory === 'Network'}
+          isActive={viewMode === 'graph' && selectedCategory === 'Network'}
           onClick={() => { setSelectedCategory('Network'); setViewMode('graph'); }}
         />
 
@@ -1073,8 +1074,8 @@ const SystemPage: React.FC<SystemPageProps> = ({
       </div>
 
       {/* Main Details Area */}
-      <div ref={mainScrollRef} className="flex-1 bg-white/[0.03] border border-white/5 rounded-[2rem] lg:rounded-[2.5rem] p-5 md:p-8 flex flex-col overflow-y-auto custom-scrollbar shadow-2xl relative min-h-0">
-        <div className="flex justify-between items-start mb-6 md:mb-10 shrink-0 gap-4">
+      <div ref={mainScrollRef} className="flex-1 min-h-0 min-w-0 bg-white/[0.03] border border-white/5 rounded-2xl lg:rounded-[2.5rem] p-3 sm:p-5 md:p-6 lg:p-8 flex flex-col overflow-y-auto custom-scrollbar shadow-2xl relative">
+        <div className="flex justify-between items-start mb-4 sm:mb-6 md:mb-8 shrink-0 gap-4">
           <div className="min-w-0">
             <h2 className="text-xl md:text-2xl font-black text-white tracking-tighter uppercase mb-1 leading-none truncate">
               {viewMode === 'graph' ? (
@@ -1272,13 +1273,13 @@ const SystemPage: React.FC<SystemPageProps> = ({
 
             </>
           ) : viewMode === 'details' ? (
-            <div className="grid grid-cols-1 gap-6 pb-8">
+            <div className="grid grid-cols-1 gap-4 sm:gap-6 pb-8 min-w-0">
 
               {/* ─── DEVICE SPECIFICATIONS ─── */}
               <motion.div 
                 initial={{ opacity: 0, y: 20 }}
                 animate={{ opacity: 1, y: 0 }}
-                className="p-6 bg-white/[0.03] border border-white/10 rounded-3xl"
+                className="p-4 sm:p-6 bg-white/[0.03] border border-white/10 rounded-2xl sm:rounded-3xl min-w-0 overflow-hidden"
               >
                 <div className="flex items-center gap-3 mb-6">
                   <Monitor className="w-4 h-4 text-neon-green" />
@@ -1300,7 +1301,7 @@ const SystemPage: React.FC<SystemPageProps> = ({
               <motion.div 
                 initial={{ opacity: 0, y: 20 }}
                 animate={{ opacity: 1, y: 0 }}
-                className="p-6 bg-white/[0.03] border border-white/10 rounded-3xl"
+                className="p-4 sm:p-6 bg-white/[0.03] border border-white/10 rounded-2xl sm:rounded-3xl min-w-0 overflow-hidden"
               >
                 <div className="flex items-center gap-3 mb-6">
                   <Cpu className="w-4 h-4 text-blue-400" />
@@ -1322,19 +1323,20 @@ const SystemPage: React.FC<SystemPageProps> = ({
                   initial={{ opacity: 0, y: 20 }}
                   animate={{ opacity: 1, y: 0 }}
                   transition={{ delay: 0.04 }}
-                  className="p-6 bg-white/[0.03] border border-white/10 rounded-3xl relative overflow-hidden"
+                  className="p-4 sm:p-6 bg-white/[0.03] border border-white/10 rounded-2xl sm:rounded-3xl relative overflow-hidden"
                 >
-                  <div className="flex flex-col xl:flex-row xl:items-center justify-between gap-4 mb-6">
-                    <div className="flex items-center gap-3">
+                  <div className="flex flex-col gap-3.5 mb-6">
+                    {/* Top: Header Info */}
+                    <div className="flex items-start sm:items-center gap-3">
                       <div className="p-2.5 rounded-2xl bg-neon-yellow/10 border border-neon-yellow/20 text-neon-yellow shrink-0">
                         <Zap className="w-5 h-5" />
                       </div>
-                      <div>
+                      <div className="min-w-0 flex-1">
                         <div className="flex flex-wrap items-center gap-2">
-                          <span className="text-xs font-black text-white uppercase tracking-wider">
+                          <span className="text-xs sm:text-sm font-black text-white uppercase tracking-wider">
                             {muxInfo.form_factor === 'desktop' ? 'Display Pipeline & OEM Ecosystem' : 'GPU Architecture & MUX Switch'}
                           </span>
-                          <span className={`px-2 py-0.5 rounded-full text-[8px] font-black uppercase tracking-widest border ${
+                          <span className={`px-2 py-0.5 rounded-full text-[8px] font-black uppercase tracking-widest border shrink-0 ${
                             muxInfo.form_factor === 'desktop'
                               ? 'bg-cyan-500/10 border-cyan-500/20 text-cyan-400'
                               : muxInfo.form_factor === 'handheld_apu'
@@ -1358,13 +1360,13 @@ const SystemPage: React.FC<SystemPageProps> = ({
                       </div>
                     </div>
 
-                    {/* Quick Companion & Display Tools */}
-                    <div className="flex flex-wrap items-center gap-2 self-start xl:self-auto shrink-0">
+                    {/* Quick Companion & Display Tools Buttons */}
+                    <div className="flex flex-wrap items-center gap-2">
                       {muxInfo.primary_oem && (
                         <button
                           type="button"
                           onClick={() => handleOpenOemSoftware(muxInfo.primary_oem?.protocol, muxInfo.primary_oem?.id)}
-                          className="px-3 py-1.5 rounded-xl bg-neon-yellow/10 hover:bg-neon-yellow/20 border border-neon-yellow/30 text-neon-yellow text-[9px] font-black uppercase tracking-wider flex items-center gap-1.5 transition-all cursor-pointer"
+                          className="px-3 py-1.5 rounded-xl bg-neon-yellow/10 hover:bg-neon-yellow/20 border border-neon-yellow/30 text-neon-yellow text-[9px] font-black uppercase tracking-wider flex items-center gap-1.5 transition-all cursor-pointer shrink-0"
                           title={`Launch ${muxInfo.primary_oem.name}`}
                         >
                           <ExternalLink className="w-3 h-3 text-neon-yellow" />
@@ -1375,7 +1377,7 @@ const SystemPage: React.FC<SystemPageProps> = ({
                       <button
                         type="button"
                         onClick={handleOpenDisplaySwitcher}
-                        className="px-3 py-1.5 rounded-xl bg-white/5 hover:bg-white/10 border border-white/10 text-zinc-300 hover:text-white text-[9px] font-black uppercase tracking-wider flex items-center gap-1.5 transition-all cursor-pointer"
+                        className="px-3 py-1.5 rounded-xl bg-white/5 hover:bg-white/10 border border-white/10 text-zinc-300 hover:text-white text-[9px] font-black uppercase tracking-wider flex items-center gap-1.5 transition-all cursor-pointer shrink-0"
                         title="Open Windows Display Switcher (displayswitch.exe)"
                       >
                         <Monitor className="w-3 h-3 text-zinc-400" />
@@ -1385,7 +1387,7 @@ const SystemPage: React.FC<SystemPageProps> = ({
                       <button
                         type="button"
                         onClick={handleOpenGraphicsSettings}
-                        className="px-3 py-1.5 rounded-xl bg-white/5 hover:bg-white/10 border border-white/10 text-zinc-300 hover:text-white text-[9px] font-black uppercase tracking-wider flex items-center gap-1.5 transition-all cursor-pointer"
+                        className="px-3 py-1.5 rounded-xl bg-white/5 hover:bg-white/10 border border-white/10 text-zinc-300 hover:text-white text-[9px] font-black uppercase tracking-wider flex items-center gap-1.5 transition-all cursor-pointer shrink-0"
                         title="Open Windows Graphics Settings"
                       >
                         <span>Graphics Settings</span>
@@ -1408,10 +1410,10 @@ const SystemPage: React.FC<SystemPageProps> = ({
                     </div>
 
                     {muxInfo.form_factor === 'desktop' ? (
-                      <div className="flex flex-col md:flex-row items-center justify-between gap-3 text-center md:text-left">
+                      <div className="flex flex-col 2xl:flex-row items-center justify-between gap-3 text-center 2xl:text-left">
                         {/* Discrete GPU Node */}
-                        <div className="p-3 rounded-xl bg-white/[0.03] border border-cyan-500/20 flex-1 w-full">
-                          <div className="flex items-center gap-2 mb-1 justify-center md:justify-start">
+                        <div className="p-3 rounded-xl bg-white/[0.03] border border-cyan-500/20 w-full 2xl:flex-1 min-w-0">
+                          <div className="flex items-center gap-2 mb-1 justify-center 2xl:justify-start">
                             <span className="w-1.5 h-1.5 rounded-full bg-cyan-400" />
                             <span className="text-[8px] font-black text-cyan-400 uppercase tracking-widest">Discrete 3D Render (PCIe)</span>
                           </div>
@@ -1420,16 +1422,17 @@ const SystemPage: React.FC<SystemPageProps> = ({
                         </div>
 
                         {/* Connection Cable */}
-                        <div className="flex md:flex-col items-center justify-center gap-1 text-zinc-600 shrink-0">
+                        <div className="flex 2xl:flex-col items-center justify-center gap-1 text-zinc-600 shrink-0">
                           <span className="text-[8px] font-mono font-bold uppercase tracking-wider text-cyan-400">
                             DP / HDMI (0ms Direct)
                           </span>
-                          <ChevronRight className="w-4 h-4 text-cyan-400 hidden md:block" />
+                          <ChevronRight className="w-4 h-4 text-cyan-400 hidden 2xl:block" />
+                          <ChevronDown className="w-4 h-4 text-cyan-400 2xl:hidden" />
                         </div>
 
                         {/* Desktop Monitor Node */}
-                        <div className="p-3 rounded-xl bg-white/[0.03] border border-white/10 flex-1 w-full">
-                          <div className="flex items-center gap-2 mb-1 justify-center md:justify-start">
+                        <div className="p-3 rounded-xl bg-white/[0.03] border border-white/10 w-full 2xl:flex-1 min-w-0">
+                          <div className="flex items-center gap-2 mb-1 justify-center 2xl:justify-start">
                             <span className="w-1.5 h-1.5 rounded-full bg-neon-green" />
                             <span className="text-[8px] font-black text-neon-green uppercase tracking-widest">Physical Monitor</span>
                           </div>
@@ -1438,10 +1441,10 @@ const SystemPage: React.FC<SystemPageProps> = ({
                         </div>
                       </div>
                     ) : muxInfo.form_factor === 'handheld_apu' ? (
-                      <div className="flex flex-col md:flex-row items-center justify-between gap-3 text-center md:text-left">
+                      <div className="flex flex-col 2xl:flex-row items-center justify-between gap-3 text-center 2xl:text-left">
                         {/* Handheld APU Node */}
-                        <div className="p-3 rounded-xl bg-white/[0.03] border border-purple-500/20 flex-1 w-full">
-                          <div className="flex items-center gap-2 mb-1 justify-center md:justify-start">
+                        <div className="p-3 rounded-xl bg-white/[0.03] border border-purple-500/20 w-full 2xl:flex-1 min-w-0">
+                          <div className="flex items-center gap-2 mb-1 justify-center 2xl:justify-start">
                             <span className="w-1.5 h-1.5 rounded-full bg-purple-400" />
                             <span className="text-[8px] font-black text-purple-400 uppercase tracking-widest">Handheld SoC APU</span>
                           </div>
@@ -1450,16 +1453,17 @@ const SystemPage: React.FC<SystemPageProps> = ({
                         </div>
 
                         {/* Connection Pipe */}
-                        <div className="flex md:flex-col items-center justify-center gap-1 text-zinc-600 shrink-0">
+                        <div className="flex 2xl:flex-col items-center justify-center gap-1 text-zinc-600 shrink-0">
                           <span className="text-[8px] font-mono font-bold uppercase tracking-wider text-purple-400">
                             Direct MIPI / eDP
                           </span>
-                          <ChevronRight className="w-4 h-4 text-purple-400 hidden md:block" />
+                          <ChevronRight className="w-4 h-4 text-purple-400 hidden 2xl:block" />
+                          <ChevronDown className="w-4 h-4 text-purple-400 2xl:hidden" />
                         </div>
 
                         {/* Touchscreen Panel */}
-                        <div className="p-3 rounded-xl bg-white/[0.03] border border-white/10 flex-1 w-full">
-                          <div className="flex items-center gap-2 mb-1 justify-center md:justify-start">
+                        <div className="p-3 rounded-xl bg-white/[0.03] border border-white/10 w-full 2xl:flex-1 min-w-0">
+                          <div className="flex items-center gap-2 mb-1 justify-center 2xl:justify-start">
                             <span className="w-1.5 h-1.5 rounded-full bg-neon-green" />
                             <span className="text-[8px] font-black text-neon-green uppercase tracking-widest">Console Touch Display</span>
                           </div>
@@ -1468,10 +1472,10 @@ const SystemPage: React.FC<SystemPageProps> = ({
                         </div>
                       </div>
                     ) : (
-                      <div className="flex flex-col md:flex-row items-center justify-between gap-3 text-center md:text-left">
+                      <div className="flex flex-col 2xl:flex-row items-center justify-between gap-3 text-center 2xl:text-left">
                         {/* Discrete GPU Node */}
-                        <div className="p-3 rounded-xl bg-white/[0.03] border border-neon-yellow/20 flex-1 w-full">
-                          <div className="flex items-center gap-2 mb-1 justify-center md:justify-start">
+                        <div className="p-3 rounded-xl bg-white/[0.03] border border-neon-yellow/20 w-full 2xl:flex-1 min-w-0">
+                          <div className="flex items-center gap-2 mb-1 justify-center 2xl:justify-start">
                             <span className="w-1.5 h-1.5 rounded-full bg-neon-yellow" />
                             <span className="text-[8px] font-black text-neon-yellow uppercase tracking-widest">Discrete 3D Render</span>
                           </div>
@@ -1480,22 +1484,23 @@ const SystemPage: React.FC<SystemPageProps> = ({
                         </div>
 
                         {/* Connection Pipe */}
-                        <div className="flex md:flex-col items-center justify-center gap-1 text-zinc-600 shrink-0">
-                          <span className="text-[8px] font-mono font-bold uppercase tracking-wider text-zinc-500">
+                        <div className="flex 2xl:flex-col items-center justify-center gap-1 text-zinc-600 shrink-0">
+                          <span className="text-[8px] font-mono font-bold uppercase tracking-wider text-zinc-400">
                             {muxInfo.current_mode === 'discrete' ? 'Direct MUX' : 'PCIe Copy'}
                           </span>
-                          <ChevronRight className="w-4 h-4 text-neon-yellow hidden md:block" />
+                          <ChevronRight className="w-4 h-4 text-neon-yellow hidden 2xl:block" />
+                          <ChevronDown className="w-4 h-4 text-neon-yellow 2xl:hidden" />
                         </div>
 
                         {/* iGPU or Direct Display Node */}
                         {muxInfo.igpu_name && (
                           <>
-                            <div className={`p-3 rounded-xl border flex-1 w-full ${
+                            <div className={`p-3 rounded-xl border w-full 2xl:flex-1 min-w-0 ${
                               muxInfo.current_mode === 'discrete'
                                 ? 'bg-white/[0.01] border-white/5 opacity-50'
                                 : 'bg-white/[0.03] border-blue-500/20'
                             }`}>
-                              <div className="flex items-center gap-2 mb-1 justify-center md:justify-start">
+                              <div className="flex items-center gap-2 mb-1 justify-center 2xl:justify-start">
                                 <span className={`w-1.5 h-1.5 rounded-full ${muxInfo.current_mode === 'discrete' ? 'bg-zinc-600' : 'bg-blue-400'}`} />
                                 <span className="text-[8px] font-black text-blue-400 uppercase tracking-widest">Display Controller</span>
                               </div>
@@ -1503,16 +1508,17 @@ const SystemPage: React.FC<SystemPageProps> = ({
                               <p className="text-[9px] font-medium text-zinc-500">Desktop eDP Output</p>
                             </div>
 
-                            <div className="flex md:flex-col items-center justify-center gap-1 text-zinc-600 shrink-0">
-                              <span className="text-[8px] font-mono font-bold uppercase tracking-wider text-zinc-500">eDP</span>
-                              <ChevronRight className="w-4 h-4 text-blue-400 hidden md:block" />
+                            <div className="flex 2xl:flex-col items-center justify-center gap-1 text-zinc-600 shrink-0">
+                              <span className="text-[8px] font-mono font-bold uppercase tracking-wider text-zinc-400">eDP</span>
+                              <ChevronRight className="w-4 h-4 text-blue-400 hidden 2xl:block" />
+                              <ChevronDown className="w-4 h-4 text-blue-400 2xl:hidden" />
                             </div>
                           </>
                         )}
 
                         {/* Display Panel Node */}
-                        <div className="p-3 rounded-xl bg-white/[0.03] border border-white/10 flex-1 w-full">
-                          <div className="flex items-center gap-2 mb-1 justify-center md:justify-start">
+                        <div className="p-3 rounded-xl bg-white/[0.03] border border-white/10 w-full 2xl:flex-1 min-w-0">
+                          <div className="flex items-center gap-2 mb-1 justify-center 2xl:justify-start">
                             <span className="w-1.5 h-1.5 rounded-full bg-neon-green" />
                             <span className="text-[8px] font-black text-neon-green uppercase tracking-widest">Physical Display</span>
                           </div>
@@ -1528,7 +1534,7 @@ const SystemPage: React.FC<SystemPageProps> = ({
                     <span className="text-[9px] font-black text-zinc-500 uppercase tracking-widest block mb-3">
                       GPU Working Mode & OEM Mapping
                     </span>
-                    <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3">
+                    <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-2 2xl:grid-cols-4 gap-2.5 sm:gap-3">
                       {[
                         {
                           key: 'hybrid',
@@ -1671,7 +1677,7 @@ const SystemPage: React.FC<SystemPageProps> = ({
                   initial={{ opacity: 0, y: 20 }}
                   animate={{ opacity: 1, y: 0 }}
                   transition={{ delay: 0.06 }}
-                  className="p-6 bg-white/[0.03] border border-white/10 rounded-3xl"
+                  className="p-4 sm:p-6 bg-white/[0.03] border border-white/10 rounded-2xl sm:rounded-3xl min-w-0 overflow-hidden"
                 >
                   <div className="flex items-center justify-between gap-3 mb-6">
                     <div className="flex items-center gap-3">
@@ -1714,7 +1720,7 @@ const SystemPage: React.FC<SystemPageProps> = ({
                   initial={{ opacity: 0, y: 20 }}
                   animate={{ opacity: 1, y: 0 }}
                   transition={{ delay: 0.08 }}
-                  className="p-6 bg-white/[0.03] border border-white/10 rounded-3xl"
+                  className="p-4 sm:p-6 bg-white/[0.03] border border-white/10 rounded-2xl sm:rounded-3xl min-w-0 overflow-hidden"
                 >
                   <div className="flex items-center justify-between gap-3 mb-6">
                     <div className="flex items-center gap-3">
@@ -1745,7 +1751,7 @@ const SystemPage: React.FC<SystemPageProps> = ({
                   initial={{ opacity: 0, y: 20 }}
                   animate={{ opacity: 1, y: 0 }}
                   transition={{ delay: 0.05 }}
-                  className="p-6 bg-white/[0.03] border border-white/10 rounded-3xl"
+                  className="p-4 sm:p-6 bg-white/[0.03] border border-white/10 rounded-2xl sm:rounded-3xl min-w-0 overflow-hidden"
                 >
                   <div className="flex items-center gap-3 mb-6">
                     <Zap className="w-4 h-4 text-neon-yellow" />
@@ -1779,7 +1785,7 @@ const SystemPage: React.FC<SystemPageProps> = ({
                 initial={{ opacity: 0, y: 20 }}
                 animate={{ opacity: 1, y: 0 }}
                 transition={{ delay: 0.1 }}
-                className="p-6 bg-white/3 border border-white/10 rounded-3xl"
+                className="p-4 sm:p-6 bg-white/[0.03] border border-white/10 rounded-2xl sm:rounded-3xl min-w-0 overflow-hidden"
               >
                 <div className="flex items-center gap-3 mb-6">
                   <MemoryStick className="w-4 h-4 text-purple-400" />
@@ -1850,7 +1856,7 @@ const SystemPage: React.FC<SystemPageProps> = ({
                 initial={{ opacity: 0, y: 20 }}
                 animate={{ opacity: 1, y: 0 }}
                 transition={{ delay: 0.15 }}
-                className="p-6 bg-white/3 border border-white/10 rounded-3xl"
+                className="p-4 sm:p-6 bg-white/[0.03] border border-white/10 rounded-2xl sm:rounded-3xl min-w-0 overflow-hidden"
               >
                 <div className="flex items-center gap-3 mb-6">
                   <HardDrive className="w-4 h-4 text-orange-400" />
@@ -1869,17 +1875,17 @@ const SystemPage: React.FC<SystemPageProps> = ({
                     </div>
                     <div className="grid grid-cols-1 gap-3">
                       {specs.hardware.storage_details.map((disk, idx) => (
-                        <div key={idx} className="p-3.5 rounded-2xl bg-white/2 border border-white/5 hover:border-orange-500/20 transition-all flex flex-col xl:flex-row xl:items-center justify-between gap-3">
-                          <div className="flex items-center gap-2.5">
-                            <div className="p-1.5 rounded-lg bg-orange-500/10 border border-orange-500/20">
+                        <div key={idx} className="p-3.5 rounded-2xl bg-white/2 border border-white/5 hover:border-orange-500/20 transition-all flex flex-col xl:flex-row xl:items-center justify-between gap-3 min-w-0">
+                          <div className="flex items-center gap-2.5 min-w-0">
+                            <div className="p-1.5 rounded-lg bg-orange-500/10 border border-orange-500/20 shrink-0">
                               <Database className="w-3 h-3 text-orange-400" />
                             </div>
-                            <div className="max-w-50">
+                            <div className="min-w-0 flex-1">
                               <span className="text-[11px] font-black text-white block truncate" title={disk.name}>{disk.name || `Drive ${idx + 1}`}</span>
                               <span className="text-[9px] font-bold text-zinc-500 uppercase">{disk.type || 'SSD'} · {disk.interface || 'SATA'}</span>
                             </div>
                           </div>
-                          <div className="flex flex-wrap items-center gap-x-6 gap-y-3 text-[10px] flex-1 xl:justify-end justify-start">
+                          <div className="flex flex-wrap items-center gap-x-6 gap-y-3 text-[10px] flex-1 xl:justify-end justify-start min-w-0">
                             <div className="min-w-15">
                               <span className="text-zinc-600 block text-[8px] uppercase tracking-wider mb-0.5">Capacity</span>
                               <span className="text-white font-black">{disk.size || '---'}</span>
@@ -1925,7 +1931,7 @@ const SystemPage: React.FC<SystemPageProps> = ({
                 initial={{ opacity: 0, y: 20 }}
                 animate={{ opacity: 1, y: 0 }}
                 transition={{ delay: 0.2 }}
-                className="p-6 bg-white/3 border border-white/10 rounded-3xl"
+                className="p-4 sm:p-6 bg-white/[0.03] border border-white/10 rounded-2xl sm:rounded-3xl min-w-0 overflow-hidden"
               >
                 <div className="flex items-center gap-3 mb-6">
                   <Monitor className="w-4 h-4 text-zinc-500" />
@@ -1943,7 +1949,7 @@ const SystemPage: React.FC<SystemPageProps> = ({
                 initial={{ opacity: 0, y: 20 }}
                 animate={{ opacity: 1, y: 0 }}
                 transition={{ delay: 0.25 }}
-                className="p-6 bg-white/3 border border-white/10 rounded-3xl"
+                className="p-4 sm:p-6 bg-white/[0.03] border border-white/10 rounded-2xl sm:rounded-3xl min-w-0 overflow-hidden"
               >
                 <div className="flex items-center gap-3 mb-6">
                   {specs?.wifi?.ssid ? (
@@ -1977,7 +1983,7 @@ const SystemPage: React.FC<SystemPageProps> = ({
                 initial={{ opacity: 0, y: 20 }}
                 animate={{ opacity: 1, y: 0 }}
                 transition={{ delay: 0.3 }}
-                className="p-6 bg-white/3 border border-white/10 rounded-3xl"
+                className="p-4 sm:p-6 bg-white/[0.03] border border-white/10 rounded-2xl sm:rounded-3xl min-w-0 overflow-hidden"
               >
                 <div className="flex items-center gap-3 mb-6">
                   <Gauge className="w-4 h-4 text-zinc-500" />
