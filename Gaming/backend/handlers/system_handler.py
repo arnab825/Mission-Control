@@ -1030,28 +1030,28 @@ def handle_open_oem_software(payload: dict, pipeline, bridge, config) -> None:
         protocol = str(payload.get("protocol", "")).strip()
         suite_id = str(payload.get("suite_id", "")).strip().lower()
 
-        # Specific known Windows executable paths and shell AppIDs for OEM suites
+        # Specific known Windows executable binary paths for OEM desktop suites
         oem_executable_candidates = {
             "alienware_awcc": [
                 r"C:\Program Files\Alienware\Alienware Command Center\AWCC\AWCC.exe",
                 r"C:\Program Files\Alienware\Alienware Command Center\AWCC.exe",
                 r"C:\Program Files\Alienware\Alienware Command Center\AWCC.Application.exe",
-                r"shell:AppsFolder\{6D809377-6AF0-444B-8957-A3773F02200E}\Alienware\Alienware Command Center\AWCC\AWCC.exe",
-                r"shell:AppsFolder\DellInc.AlienwareCommandCenter_htgfqqcqq7pm8!App",
             ],
             "hp_omen": [
-                r"shell:AppsFolder\AD2F1837.OMENCommandCenter_v10z8vjag6ke6!App",
+                r"C:\Program Files\HP\OMEN Gaming Hub\OMEN Gaming Hub.exe",
+                r"C:\Program Files\HP\OMEN Command Center\OMEN Command Center.exe",
+                r"C:\Program Files (x86)\HP\OMEN Gaming Hub\OMEN Gaming Hub.exe",
             ],
             "asus_armoury_crate": [
                 r"C:\Program Files\ASUS\ARMOURY CRATE Lite Service\ArmouryCrate.exe",
-                r"shell:AppsFolder\B9ECED6F.ArmouryCrate_qmba6cd70vzyy!App",
+                r"C:\Program Files (x86)\ASUS\ArmouryDevice\dll\ArmouryCrate.exe",
             ],
             "asus_ghelper": [
                 r"C:\Program Files\G-Helper\GHelper.exe",
                 os.path.expandvars(r"%LOCALAPPDATA%\Programs\G-Helper\GHelper.exe"),
             ],
             "lenovo_vantage": [
-                r"shell:AppsFolder\E046963F.LenovoCompanion_k1h2ywk1493x8!App",
+                r"C:\Program Files\Lenovo\VantageService\LenovoVantageService.exe",
             ],
             "lenovo_legion_toolkit": [
                 r"C:\Program Files\LenovoLegionToolkit\LenovoLegionToolkit.exe",
@@ -1059,10 +1059,11 @@ def handle_open_oem_software(payload: dict, pipeline, bridge, config) -> None:
             ],
             "msi_center": [
                 r"C:\Program Files (x86)\MSI\MSI Center\MSI Center.exe",
-                r"shell:AppsFolder\9426MICRO-STARINTERNATION.MSICenter_k2bcn2qnhvvtw!App",
+                r"C:\Program Files\MSI\MSI Center\MSI Center.exe",
             ],
             "razer_synapse": [
                 r"C:\Program Files (x86)\Razer\Synapse3\WPFUI\Framework\Razer Synapse 3 Host.exe",
+                r"C:\Program Files\Razer\Synapse3\WPFUI\Framework\Razer Synapse 3 Host.exe",
             ],
             "nvidia_app": [
                 r"C:\Program Files\NVIDIA Corporation\NVIDIA App\NVIDIA App.exe",
@@ -1072,11 +1073,11 @@ def handle_open_oem_software(payload: dict, pipeline, bridge, config) -> None:
                 r"C:\Program Files\AMD\CNext\CNext\RadeonSoftware.exe",
             ],
             "intel_gcc": [
-                r"shell:AppsFolder\AppUp.IntelGraphicsExperience_8j3eq9eme6ctt!App",
+                r"C:\Program Files\Intel\Graphics Command Center\IGCC.exe",
             ],
         }
 
-        # 1. First, check if an executable binary or direct path was passed or matches suite_id
+        # 1. First, check if an executable binary exists directly on disk
         if protocol and os.path.isfile(protocol):
             subprocess.Popen([protocol], shell=False)
             logger.info(f"Launched OEM companion software directly via path: '{protocol}'.")
@@ -1084,14 +1085,10 @@ def handle_open_oem_software(payload: dict, pipeline, bridge, config) -> None:
 
         candidates = oem_executable_candidates.get(suite_id, [])
         for candidate in candidates:
-            if candidate.startswith("shell:AppsFolder"):
-                # UWP / Shell AppID launch
-                subprocess.Popen(["cmd.exe", "/c", "start", "", candidate], shell=True)
-                logger.info(f"Launched OEM companion software via shell AppID '{candidate}'.")
-                return
-            elif os.path.isfile(candidate):
-                subprocess.Popen([candidate], shell=False)
-                logger.info(f"Launched OEM companion software directly via binary '{candidate}'.")
+            expanded = os.path.expandvars(candidate)
+            if os.path.isfile(expanded):
+                subprocess.Popen([expanded], shell=False)
+                logger.info(f"Launched OEM companion software directly via binary '{expanded}'.")
                 return
 
         # 2. Protocol mapping fallback for known OEM suite IDs
