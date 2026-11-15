@@ -206,11 +206,13 @@ $changesFormatted
             $token = if ($env:GH_TOKEN) { $env:GH_TOKEN } else { $env:GITHUB_TOKEN }
 
             if ($token) {
-                Write-Host "[PUBLISH] GH_TOKEN detected! Publishing $releaseTitle (Windows & Linux tar.gz) to GitHub Releases..." -ForegroundColor Cyan
-                npx electron-builder --win nsis msi zip --linux tar.gz --publish always
+                Write-Host "[PUBLISH] GH_TOKEN detected! Publishing $releaseTitle to GitHub Releases..." -ForegroundColor Cyan
+                npx electron-builder --win nsis msi zip --linux dir --publish always
+                python ../scripts/pack_tar_gz.py "$version"
             } else {
                 Write-Host "[BUILD] Compiling local Windows installers (NSIS, MSI, ZIP) and Linux packages in frontend/out/dist..." -ForegroundColor Yellow
-                npx electron-builder --win nsis msi zip --linux tar.gz --publish never
+                npx electron-builder --win nsis msi zip --linux dir --publish never
+                python ../scripts/pack_tar_gz.py "$version"
             }
 
             # Build Debian package (.deb) and Universal Linux (.AppImage) directly
@@ -273,6 +275,21 @@ $changesFormatted
                                 $uploadHeaders = @{ Authorization = "token ${token}"; "Content-Type" = "application/vnd.debian.binary-package"; Accept = "application/vnd.github.v3+json"; "User-Agent" = "MissionControlPublisher" }
                                 Invoke-RestMethod -Uri $uploadUrl -Method Post -Headers $uploadHeaders -InFile $debFile.Path | Out-Null
                                 Write-Host "[SUCCESS] $debName uploaded to GitHub Release!" -ForegroundColor Green
+                            }
+                        }
+
+                        # Upload .blockmap if not already on release
+                        $blockmapFile = Resolve-Path "frontend/out/dist/MissionControl-Setup.exe.blockmap" -ErrorAction SilentlyContinue
+                        if ($blockmapFile -and (Test-Path $blockmapFile)) {
+                            $blockmapName = "MissionControl-Setup.exe.blockmap"
+                            $existingAssets = Invoke-RestMethod -Uri "https://api.github.com/repos/arnab825/Mission-Control/releases/$($target.id)/assets" -Headers $headers
+                            $blockmapAsset = $existingAssets | Where-Object { $_.name -eq $blockmapName }
+                            if (-not $blockmapAsset) {
+                                Write-Host "[UPLOAD] Uploading $blockmapName to GitHub Release..." -ForegroundColor Cyan
+                                $uploadUrl = "https://uploads.github.com/repos/arnab825/Mission-Control/releases/$($target.id)/assets?name=$blockmapName"
+                                $uploadHeaders = @{ Authorization = "token ${token}"; "Content-Type" = "application/octet-stream"; Accept = "application/vnd.github.v3+json"; "User-Agent" = "MissionControlPublisher" }
+                                Invoke-RestMethod -Uri $uploadUrl -Method Post -Headers $uploadHeaders -InFile $blockmapFile.Path | Out-Null
+                                Write-Host "[SUCCESS] $blockmapName uploaded to GitHub Release!" -ForegroundColor Green
                             }
                         }
 

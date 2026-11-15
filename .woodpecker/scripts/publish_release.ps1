@@ -294,6 +294,35 @@ if ((Resolve-Path $sourceInstaller.FullName).Path -ne (Resolve-Path $targetInsta
   Copy-Item $sourceInstaller.FullName $targetInstaller -Force
 }
 
+# Check for generated Blockmap (.exe.blockmap)
+$sourceBlockmap = $null
+$expectedBlockmap = "$($sourceInstaller.FullName).blockmap"
+if (Test-Path $expectedBlockmap) {
+  $sourceBlockmap = Get-Item $expectedBlockmap
+} else {
+  $matchBlockmap = Get-ChildItem -Path $candidatePaths -Filter "*Setup*.exe.blockmap" -Recurse -ErrorAction SilentlyContinue |
+    Where-Object { 
+      $_.FullName -notlike "*out/release*" -and 
+      $_.FullName -notlike "*out\release*" -and 
+      $_.FullName -notlike "*win-unpacked*" -and 
+      $_.FullName -notlike "*linux-unpacked*" 
+    } |
+    Sort-Object LastWriteTime -Descending |
+    Select-Object -First 1
+  if ($matchBlockmap) {
+    $sourceBlockmap = $matchBlockmap
+  }
+}
+
+$targetBlockmap = $null
+if ($sourceBlockmap) {
+  $targetBlockmap = Join-Path $releaseDir 'MissionControl-Setup.exe.blockmap'
+  if ((Resolve-Path $sourceBlockmap.FullName).Path -ne (Resolve-Path $targetBlockmap -ErrorAction SilentlyContinue).Path) {
+    Copy-Item $sourceBlockmap.FullName $targetBlockmap -Force
+  }
+  Write-Host "Prepared Windows installer blockmap at: $targetBlockmap"
+}
+
 # Check for generated MSI installer
 $sourceMsi = $null
 foreach ($path in $candidatePaths) {
@@ -515,12 +544,21 @@ $sha512 = [System.Convert]::ToBase64String($hashBytes)
 $fileSize = $sourceInstaller.Length
 $releaseDate = (Get-Date).ToUniversalTime().ToString('yyyy-MM-ddTHH:mm:ss.fffZ')
 
-$latestYmlLines = @(
-  "version: $semver",
-  "files:",
+$fileEntryLines = @(
   "  - url: MissionControl-Setup.exe",
   "    sha512: $sha512",
-  "    size: $fileSize",
+  "    size: $fileSize"
+)
+if ($targetBlockmap -and (Test-Path $targetBlockmap)) {
+  $blockmapSize = (Get-Item $targetBlockmap).Length
+  $fileEntryLines += "    blockMapSize: $blockmapSize"
+}
+$fileEntryLines += "    isAdminRightsRequired: true"
+
+$latestYmlLines = @(
+  "version: $semver",
+  "files:"
+) + $fileEntryLines + @(
   "path: MissionControl-Setup.exe",
   "sha512: $sha512",
   "releaseDate: '$releaseDate'"
@@ -655,6 +693,16 @@ try {
   $uploadResponse = Upload-AssetWithRetry -UploadBaseUrl $uploadBase -AssetName "MissionControl-Setup.exe" -FilePath $targetInstaller -Headers $uploadHeaders -ContentType "application/octet-stream" -Repo $repo -ReleaseId $releaseId -Token $githubToken
 } catch {
   Write-Error "Failed to upload NSIS installer: $($_.Exception.Message)"
+}
+
+# 1b. Windows Installer Blockmap (.exe.blockmap)
+if ($targetBlockmap -and (Test-Path $targetBlockmap)) {
+  Write-Host "Uploading $targetBlockmap via Upload-AssetWithRetry..."
+  try {
+    $uploadBlockmapResponse = Upload-AssetWithRetry -UploadBaseUrl $uploadBase -AssetName "MissionControl-Setup.exe.blockmap" -FilePath $targetBlockmap -Headers $uploadHeaders -ContentType "application/octet-stream" -Repo $repo -ReleaseId $releaseId -Token $githubToken
+  } catch {
+    Write-Warning "Failed to upload NSIS installer blockmap: $($_.Exception.Message)"
+  }
 }
 
 # 2. Windows MSI (.msi)

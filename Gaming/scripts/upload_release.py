@@ -160,6 +160,7 @@ winget install arnab825.MissionControl
 
     target_filenames = [
         "MissionControl-Setup.exe",
+        "MissionControl-Setup.exe.blockmap",
         "latest.yml",
         "version.json",
         "MissionControl-Setup.msi",
