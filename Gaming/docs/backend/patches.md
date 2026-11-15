@@ -2,6 +2,14 @@
 
 This document contains a detailed history of all patches and updates for the AI Gaming Assistant.
 
+### Patch: 2026-11-15 — v3.9.10: Universal AMD APU & Intel Core Ultra iGPU Architecture, SmartAccess Graphics & OEM Resiliency
+
+- Comprehensive AMD APU & iGPU detection engine classifying RDNA 2/3/3.5 (610M-890M), Vega, and generic Ryzen Radeon Graphics
+- Intelligent UMA shared memory tolerance ensuring handhelds (ROG Ally, Legion Go) and high-VRAM BIOS allocations remain properly recognized as integrated
+- Next-gen Intel Core Ultra Arc iGPU support (Meteor Lake Arc Graphics & Lunar Lake 140V/130V) cleanly separated from discrete Arc dGPUs
+- Dynamic hybrid display routing pipeline supporting AMD SmartAccess Graphics and NVIDIA Optimus PCIe buffer telemetry
+- Hardened OEM software launcher eliminating invalid virtual shell paths and prioritizing verified binary and URI protocol dispatch
+
 ### Patch: 2026-11-15 — v3.9.9: Native OEM Launch Engine, Intel Refresh & Emulation Hub Polish
 
 - Added direct executable and Windows Shell AppID (UWP) launch targets for major OEM gaming suites (Alienware, OMEN, Armoury Crate, G-Helper, Lenovo Vantage/Legion Toolkit, MSI Center, Razer Synapse, NVIDIA App, AMD Adrenalin, Intel GCC)

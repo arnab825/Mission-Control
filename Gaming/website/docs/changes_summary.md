@@ -10,7 +10,30 @@ excerpt: "Curated breakdown of major version releases, architectural milestones,
 
 Comprehensive breakdown of major milestone releases, architectural upgrades, and core engine enhancements in **Mission Control**.
 
-## 🌟 Version v3.9.9 (Latest) — Native OEM Launch Engine, Intel Refresh & Emulation Hub Polish
+## 🌟 Version v3.9.10 (Latest) — Universal AMD APU & Intel Core Ultra iGPU Architecture, SmartAccess Graphics & OEM Resiliency
+
+### 🛠️ Key Highlights
+1. **Comprehensive AMD APU & iGPU detection engine classifying RDNA 2/3/3.5 (610M-890M), Vega, and generic Ryzen Radeon Graphics**
+2. **Intelligent UMA shared memory tolerance ensuring handhelds (ROG Ally, Legion Go) and high-VRAM BIOS allocations remain properly recognized as integrated**
+3. **Next-gen Intel Core Ultra Arc iGPU support (Meteor Lake Arc Graphics & Lunar Lake 140V/130V) cleanly separated from discrete Arc dGPUs**
+4. **Dynamic hybrid display routing pipeline supporting AMD SmartAccess Graphics and NVIDIA Optimus PCIe buffer telemetry**
+5. **Hardened OEM software launcher eliminating invalid virtual shell paths and prioritizing verified binary and URI protocol dispatch**
+
+### 📊 Architecture & Data Flow
+```mermaid
+graph TD
+    A[Developer Push / Publish Pipeline] --> B[Version Stamping & AI Changelog Enforcer]
+    B --> C[Mission Control System Core]
+    C --> D[Website Documentation & Real-Time Sync]
+```
+
+### 📦 Distribution Artifacts
+- **Linux**: `.deb` (Debian/Ubuntu), `.AppImage` (Universal), `.rpm` (Fedora/RHEL), `.tar.gz` (Portable)
+- **Windows**: `.exe` (Setup Installer), `.msi` (Enterprise), `.zip` (Portable)
+
+---
+
+## 📦 Version v3.9.9 — Native OEM Launch Engine, Intel Refresh & Emulation Hub Polish
 
 ### 🛠️ Key Highlights
 1. **Added direct executable and Windows Shell AppID (UWP) launch targets for major OEM gaming suites (Alienware, OMEN, Armoury Crate, G-Helper, Lenovo Vantage/Legion Toolkit, MSI Center, Razer Synapse, NVIDIA App, AMD Adrenalin, Intel GCC)**
