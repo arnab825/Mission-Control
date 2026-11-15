@@ -1071,6 +1071,8 @@ def handle_open_oem_software(payload: dict, pipeline, bridge, config) -> None:
             ],
             "amd_adrenalin": [
                 r"C:\Program Files\AMD\CNext\CNext\RadeonSoftware.exe",
+                r"C:\Program Files\AMD\CNext\CNext\CNEXT.exe",
+                r"C:\Program Files\AMD\CNext\CNext\AMDRSServ.exe",
             ],
             "intel_gcc": [
                 r"C:\Program Files\Intel\Graphics Command Center\IGCC.exe",

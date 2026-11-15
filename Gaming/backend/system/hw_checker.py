@@ -804,8 +804,13 @@ class HardwareChecker:
                 "brand": "AMD",
                 "category": "gpu_vendor",
                 "protocol": "amd:",
-                "protocols": ["amd", "amdradeon"],
-                "reg_keys": [r"Software\AMD\CN"],
+                "protocols": ["amd", "amdradeon", "radeon"],
+                "reg_keys": [
+                    r"Software\AMD\CN",
+                    r"Software\AMD\RadeonSoftware",
+                    r"Software\AMD\DVR",
+                    r"Software\AMD\RadeonInstaller",
+                ],
                 "modes": {
                     "discrete": "Discrete GPU Direct",
                     "hybrid": "AMD SmartAccess Graphics",
@@ -968,6 +973,103 @@ class HardwareChecker:
 
         return primary_oem, installed_suites, brand_vocabulary
 
+    @staticmethod
+    def classify_gpu_vendor(desc: str = "", mfg: str = "") -> str:
+        """Identifies GPU vendor (NVIDIA, Intel, AMD, Qualcomm, Apple, Other) from description and provider strings."""
+        desc_l = (desc or "").lower()
+        mfg_l = (mfg or "").lower()
+        if any(k in desc_l or k in mfg_l for k in ["nvidia", "geforce", "quadro", "rtx", "gtx"]):
+            return "NVIDIA"
+        if any(k in desc_l or k in mfg_l for k in ["intel", "iris", "uhd graphics"]):
+            return "Intel"
+        if any(k in desc_l or k in mfg_l for k in ["amd", "ati", "advanced micro devices", "radeon"]):
+            return "AMD"
+        if any(k in desc_l or k in mfg_l for k in ["qualcomm", "adreno", "snapdragon"]):
+            return "Qualcomm"
+        if "apple" in desc_l or "apple" in mfg_l:
+            return "Apple"
+        return "Other"
+
+    @staticmethod
+    def classify_gpu_type(desc: str = "", mfg: str = "", vendor: str = "", vram: int = 0) -> str:
+        """Accurately classifies a GPU as 'integrated' (iGPU/APU) or 'discrete' (dGPU).
+        
+        Handles AMD RDNA APUs (610M-890M), desktop Ryzen & mobile APU Radeon Graphics,
+        Vega APUs, Intel Iris/UHD, Intel Core Ultra integrated Arc Graphics vs discrete Arc,
+        Qualcomm Adreno, and high UMA shared memory BIOS allocations.
+        """
+        import re
+        desc_l = (desc or "").lower()
+        mfg_l = (mfg or "").lower()
+        if not vendor or vendor == "Other":
+            vendor = HardwareChecker.classify_gpu_vendor(desc, mfg)
+
+        # 1. Intel classification
+        if vendor == "Intel":
+            # Discrete Arc GPUs have model designations like A770, A750, A580, A380, A370M, B580, Pro A60
+            is_discrete_arc = bool(re.search(r'\b[ab]\d{3}[m]?\b|pro\s+[ab]\d{2,3}', desc_l))
+            is_discrete_dg1 = "xe max" in desc_l or "dg1" in desc_l
+            if is_discrete_arc or is_discrete_dg1:
+                return "discrete"
+            # All other Intel GPUs (UHD, Iris, Iris Xe, HD Graphics, Core Ultra Arc iGPU 140V/130V/Graphics) are integrated
+            return "integrated"
+
+        # 2. AMD classification
+        if vendor == "AMD":
+            # RDNA 2 / 3 / 3.5 APUs: 610M, 660M, 680M, 740M, 760M, 780M, 840M, 860M, 880M, 890M
+            if re.search(r'\b[6-9]\d{2}m\b', desc_l):
+                return "integrated"
+
+            # Generic APU graphics names (desktop Ryzen 7000/9000 & mobile APUs)
+            if desc_l.strip() in ["amd radeon graphics", "amd radeon(tm) graphics", "amd radeon(tm)", "radeon graphics", "radeon(tm) graphics"]:
+                return "integrated"
+            if "radeon graphics" in desc_l and not re.search(r'\b(?:rx|pro|firepro|vii|hd)\b', desc_l):
+                return "integrated"
+            if "processor graphics" in desc_l:
+                return "integrated"
+
+            # Vega APUs (Vega 3, 6, 7, 8, 10, 11, Vega Mobile), excluding discrete Vega 56/64/Frontier
+            if "vega" in desc_l:
+                if any(k in desc_l for k in ["56", "64", "frontier", "pro vega"]):
+                    return "discrete"
+                return "integrated"
+
+            # Older A-series / E-series APUs (e.g. 'Radeon R7 Graphics', 'Radeon R5 Graphics')
+            if re.search(r'\bradeon(?:\(tm\))?\s+r[2-7]\s+graphics\b', desc_l):
+                return "integrated"
+            if re.search(r'\bhd\s+8[2-4]\d{2}\b', desc_l):
+                return "integrated"
+
+            # Discrete AMD markers
+            is_discrete_amd = (
+                "rx " in desc_l or "rx-" in desc_l or
+                bool(re.search(r'\brx\s*\d{3,4}', desc_l)) or
+                "pro " in desc_l or "firepro" in desc_l or
+                "instinct" in desc_l or "radeon vii" in desc_l or
+                bool(re.search(r'\br[79]\s+\d{3}', desc_l)) or
+                bool(re.search(r'\bhd\s+[6-9]\d{3}\b', desc_l))
+            )
+            if is_discrete_amd:
+                return "discrete"
+
+            # Shared / low VRAM heuristic fallback
+            if vram > 0 and vram < 4 * (1024**3):
+                return "integrated"
+
+            return "discrete"
+
+        # 3. Qualcomm / Apple / SoC APUs
+        if vendor in ["Qualcomm", "Apple"]:
+            return "integrated"
+        if any(k in desc_l for k in ["adreno", "snapdragon", "apple m1", "apple m2", "apple m3", "apple m4"]):
+            return "integrated"
+
+        # 4. NVIDIA and others
+        if "tegra" in desc_l or "jetson" in desc_l:
+            return "integrated"
+
+        return "discrete"
+
     def _get_gpu_architecture_and_mux(self, manufacturer="", model=""):
         """Discovers discrete and integrated GPUs, active display routing, and MUX switch capability."""
         if platform.system() != "Windows":
@@ -1075,23 +1177,9 @@ class HardwareChecker:
                                 desc_lower = desc.lower()
                                 mfg_lower = mfg.lower()
 
-                                # Categorize vendor
-                                if "nvidia" in desc_lower or "nvidia" in mfg_lower:
-                                    vendor = "NVIDIA"
-                                elif "intel" in desc_lower or "intel" in mfg_lower:
-                                    vendor = "Intel"
-                                elif "amd" in desc_lower or "ati" in desc_lower or "advanced micro devices" in mfg_lower or "amd" in mfg_lower:
-                                    vendor = "AMD"
-                                else:
-                                    vendor = "Other"
-
-                                # Categorize discrete vs integrated
-                                is_integrated = (
-                                    "uhd" in desc_lower or "iris" in desc_lower or "hd graphics" in desc_lower or
-                                    "vega" in desc_lower or ("radeon(tm) graphics" in desc_lower and vram < 4 * (1024**3)) or
-                                    (vendor == "Intel" and "arc" not in desc_lower)
-                                )
-                                gpu_type = "integrated" if is_integrated else "discrete"
+                                # Categorize vendor & discrete vs integrated using comprehensive classification
+                                vendor = self.classify_gpu_vendor(desc=desc, mfg=mfg)
+                                gpu_type = self.classify_gpu_type(desc=desc, mfg=mfg, vendor=vendor, vram=vram)
 
                                 # Check active display attachment
                                 attached_list = active_displays_by_gpu.get(desc, [])
@@ -1117,6 +1205,24 @@ class HardwareChecker:
         except Exception as e:
             logger.debug(f"Registry GPU query error: {e}")
 
+        # Fallback to active display devices if registry returned no video controllers
+        if not gpus and active_displays_by_gpu:
+            for idx, (gpu_name, attached_list) in enumerate(active_displays_by_gpu.items()):
+                v = self.classify_gpu_vendor(desc=gpu_name)
+                t = self.classify_gpu_type(desc=gpu_name, vendor=v)
+                gpus.append({
+                    "index": f"000{idx}",
+                    "name": gpu_name,
+                    "vendor": v,
+                    "type": t,
+                    "driver_version": "---",
+                    "vram_mb": 0,
+                    "vram_gb": 0.0,
+                    "is_primary": any(d.get("primary") for d in attached_list) or (idx == 0),
+                    "is_display_active": len(attached_list) > 0,
+                    "active_displays": [d["display"] for d in attached_list]
+                })
+
         # 3. Compute MUX Switch and Display Routing
         dgpus = [g for g in gpus if g.get("type") == "discrete"]
         igpus = [g for g in gpus if g.get("type") == "integrated"]
@@ -1124,6 +1230,16 @@ class HardwareChecker:
         dgpu_name = dgpus[0]["name"] if dgpus else ""
         igpu_name = igpus[0]["name"] if igpus else ""
         has_mux = (len(dgpus) > 0 and len(igpus) > 0)
+
+        # Dynamic routing buffer descriptor (Optimus for NVIDIA, SmartAccess Graphics for AMD, etc.)
+        has_nvidia_dgpu = any(g.get("vendor") == "NVIDIA" for g in dgpus)
+        has_amd_dgpu = any(g.get("vendor") == "AMD" for g in dgpus)
+        if has_nvidia_dgpu:
+            hybrid_buffer_desc = "Optimus PCIe pass-through buffer"
+        elif has_amd_dgpu:
+            hybrid_buffer_desc = "AMD SmartAccess Graphics buffer"
+        else:
+            hybrid_buffer_desc = "Dynamic Hybrid PCIe buffer"
 
         # 3. Determine form factor and architecture topology
         is_battery = False
@@ -1171,7 +1287,7 @@ class HardwareChecker:
                     latency_mode = "zero_latency_direct"
                 elif igpu_active:
                     current_mode = "hybrid"
-                    display_routing = f"Internal Panel -> {igpu_name} (Optimus PCIe pass-through buffer)"
+                    display_routing = f"Internal Panel -> {igpu_name} ({hybrid_buffer_desc})"
                     latency_mode = "standard_hybrid"
                 else:
                     current_mode = "hybrid"
@@ -1179,7 +1295,7 @@ class HardwareChecker:
             elif dgpus and igpus:
                 architecture_type = "hybrid_optimus"
                 current_mode = "hybrid"
-                display_routing = f"Internal Panel -> {igpu_name} (Optimus PCIe pass-through buffer)"
+                display_routing = f"Internal Panel -> {igpu_name} ({hybrid_buffer_desc})"
                 latency_mode = "standard_hybrid"
             elif dgpus:
                 architecture_type = "desktop_direct"
