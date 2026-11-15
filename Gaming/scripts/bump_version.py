@@ -100,6 +100,7 @@ def main():
     data["changelog"].insert(0, entry)
     data["changelog"] = data["changelog"][:_MAX_CHANGELOG_ENTRIES]
     data["version"] = new_ver
+    data["release_date"] = args.date
 
     enriched = enrich_with_ai(entry["title"], entry.get("highlights", []), entry["version"])
     short_desc = enriched.get("short_desc", entry.get("highlights", ["Stability & performance update"])[0])

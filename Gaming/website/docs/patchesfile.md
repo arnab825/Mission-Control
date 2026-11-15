@@ -2,6 +2,14 @@
 
 This document contains a detailed history of all patches and updates for the AI Gaming Assistant.
 
+### Patch: 2026-11-15 — v3.9.9: Native OEM Launch Engine, Intel Refresh & Emulation Hub Polish
+
+- Added direct executable and Windows Shell AppID (UWP) launch targets for major OEM gaming suites (Alienware, OMEN, Armoury Crate, G-Helper, Lenovo Vantage/Legion Toolkit, MSI Center, Razer Synapse, NVIDIA App, AMD Adrenalin, Intel GCC)
+- Added manual Sync Intel action button with live loading animation to force-refresh RSS gaming feeds in Discover Games & Intel modal
+- Enhanced Emulators & ROMs Hub modal viewport geometry and expanded scroll padding to prevent element clipping on compact and high-DPI displays
+- Optimized System Telemetry details view with responsive subnav metrics, flex-wrapped layout, and label truncation safeguards across hardware specs
+- Standardized full-height flex containers across all dynamic page modules in desktop client to eliminate inner scroll truncation
+
 ### Patch: 2026-11-14 — v3.9.8: Multi-GPU Discovery, Hardware MUX Switch Controls & Universal OEM Ecosystem Synchronization
 
 - High-fidelity discrete (dGPU) and integrated (iGPU) multi-GPU hardware architecture and active display attachment detection

@@ -89,7 +89,8 @@ graph TD
 
 | Version | Key Feature / Change Description |
 | :--- | :--- |
-| **v3.9.8 (Latest)** | **Multi-GPU Discovery, Hardware MUX Switch Controls & Universal OEM Ecosystem Synchronization** — High-fidelity discrete (dGPU) and integrated (iGPU) multi-GPU hardware architecture and active display attachment detection |
+| **v3.9.9 (Latest)** | **Native OEM Launch Engine, Intel Refresh & Emulation Hub Polish** — Added direct executable and Windows Shell AppID (UWP) launch targets for major OEM gaming suites (Alienware, OMEN, Armoury Crate, G-Helper, Lenovo Vantage/Legion Toolkit, MSI Center, Razer Synapse, NVIDIA App, AMD Adrenalin, Intel GCC). |
+| **v3.9.8** | **Multi-GPU Discovery, Hardware MUX Switch Controls & Universal OEM Ecosystem Synchronization** — High-fidelity discrete (dGPU) and integrated (iGPU) multi-GPU hardware architecture and active display attachment detection |
 | **v3.9.7** | **Telemetry Stress Map Responsiveness, Device Specs Panel & Deep Account Deletion Purge** — Redesigned Hardware Stress Map with stacked dual-row layout and responsive 10-segment track. |
 | **v3.9.6** | **Discord & Google OAuth Profile Isolation, Avatar Proxy Validation & Handle Resolution** — Isolated Discord identity display from Google full name. |
 | **v3.9.5** | **Live Gaming News Engine, Emulators Hub Vector Logos & Discover UI Redesign** — Replaced emulator text placeholders with 17 custom vector SVG brand logos. |
@@ -215,5 +216,5 @@ graph TD
 
 ---
 
-*Last Updated: 14/11/2026*
+*Last Updated: 15/11/2026*
 

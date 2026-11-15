@@ -10,7 +10,31 @@ excerpt: "Curated breakdown of major version releases, architectural milestones,
 
 Comprehensive breakdown of major milestone releases, architectural upgrades, and core engine enhancements in **Mission Control**.
 
-## 🌟 Version v3.9.8 (Latest) — Multi-GPU Discovery, Hardware MUX Switch Controls & Universal OEM Ecosystem Synchronization
+## 🌟 Version v3.9.9 (Latest) — Native OEM Launch Engine, Intel Refresh & Emulation Hub Polish
+
+### 🛠️ Key Highlights
+1. **Added direct executable and Windows Shell AppID (UWP) launch targets for major OEM gaming suites (Alienware, OMEN, Armoury Crate, G-Helper, Lenovo Vantage/Legion Toolkit, MSI Center, Razer Synapse, NVIDIA App, AMD Adrenalin, Intel GCC)**
+2. **Added manual Sync Intel action button with live loading animation to force-refresh RSS gaming feeds in Discover Games & Intel modal**
+3. **Enhanced Emulators & ROMs Hub modal viewport geometry and expanded scroll padding to prevent element clipping on compact and high-DPI displays**
+4. **Optimized System Telemetry details view with responsive subnav metrics, flex-wrapped layout, and label truncation safeguards across hardware specs**
+5. **Standardized full-height flex containers across all dynamic page modules in desktop client to eliminate inner scroll truncation**
+
+### 📊 Architecture & Data Flow
+```mermaid
+graph TD
+    A["Mobile Client / DevTools (320px+)"] --> B[Responsive CSS & Layout Container]
+    B --> C[DocsClient Component & Cards]
+    C --> D[MobileDocsSidebar Drawer & Header Bar]
+    D --> E[Real-Time Mongo Telemetry & Render]
+```
+
+### 📦 Distribution Artifacts
+- **Linux**: `.deb` (Debian/Ubuntu), `.AppImage` (Universal), `.rpm` (Fedora/RHEL), `.tar.gz` (Portable)
+- **Windows**: `.exe` (Setup Installer), `.msi` (Enterprise), `.zip` (Portable)
+
+---
+
+## 📦 Version v3.9.8 — Multi-GPU Discovery, Hardware MUX Switch Controls & Universal OEM Ecosystem Synchronization
 
 ### 🛠️ Key Highlights
 1. **High-fidelity discrete (dGPU) and integrated (iGPU) multi-GPU hardware architecture and active display attachment detection**
