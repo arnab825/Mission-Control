@@ -846,10 +846,10 @@ const GamesLibraryContent: React.FC<GamesPageProps> = ({ state, sendCommand, set
                 }
               }
 
-              const isLauncherEntry = item.type?.toUpperCase() === 'LAUNCHER' || item.genre?.toUpperCase() === 'PLATFORM' || nameLower === 'heronite' || nameLower === 'heroic' || (item.platform?.toLowerCase() === 'heronite' && (nameLower === 'heronite' || item.id === 'heronite_launcher'));
+              const isLauncherEntry = item.type?.toUpperCase() === 'LAUNCHER' || item.genre?.toUpperCase() === 'PLATFORM' || nameLower === 'heronite' || nameLower === 'heroic' || nameLower === 'steam' || (item.platform?.toLowerCase() === 'heronite' && (nameLower === 'heronite' || item.id === 'heronite_launcher'));
               if (isLauncherEntry) {
-                if (item.genre !== 'PLATFORM' || item.type !== 'LAUNCHER') {
-                  item = { ...item, genre: 'PLATFORM', type: 'LAUNCHER' };
+                if (item.genre !== 'PLATFORM' || item.type !== 'LAUNCHER' || (item.features && item.features.length > 0)) {
+                  item = { ...item, genre: 'PLATFORM', type: 'LAUNCHER', features: [] };
                   changed = true;
                 }
               }
@@ -919,9 +919,9 @@ const GamesLibraryContent: React.FC<GamesPageProps> = ({ state, sendCommand, set
       prevLibraryRef.current = s.game_library;
       const newGames = (s.game_library || []).map((g: any) => {
         const nameLower = (g.name || '').toLowerCase();
-        const isLauncherEntry = g.type?.toUpperCase() === 'LAUNCHER' || g.genre?.toUpperCase() === 'PLATFORM' || nameLower === 'heronite' || nameLower === 'heroic' || (g.platform?.toLowerCase() === 'heronite' && (nameLower === 'heronite' || g.id === 'heronite_launcher'));
+        const isLauncherEntry = g.type?.toUpperCase() === 'LAUNCHER' || g.genre?.toUpperCase() === 'PLATFORM' || nameLower === 'heronite' || nameLower === 'heroic' || nameLower === 'steam' || (g.platform?.toLowerCase() === 'heronite' && (nameLower === 'heronite' || g.id === 'heronite_launcher'));
         if (isLauncherEntry) {
-          return { ...g, genre: 'PLATFORM', type: 'LAUNCHER' };
+          return { ...g, genre: 'PLATFORM', type: 'LAUNCHER', features: [] };
         }
         return g;
       });

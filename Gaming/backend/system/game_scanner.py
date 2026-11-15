@@ -734,6 +734,7 @@ class GameScanner:
                 ):
                     g["type"] = "LAUNCHER"
                     g["genre"] = "PLATFORM"
+                    g["features"] = []
                     if not g.get("tags"):
                         g["tags"] = ["SYSTEM"]
 
@@ -789,6 +790,10 @@ class GameScanner:
         try:
             path = Path(game_path)
             if not path.exists(): return features
+
+            path_str = str(path).lower()
+            if any(wl in path_str for wl in self.launcher_whitelist) or any(wl in path.name.lower() for wl in self.launcher_whitelist):
+                return []
 
             dlss_found = False
             fg_found = False
@@ -1771,6 +1776,7 @@ class GameScanner:
                 if is_whitelisted_launcher:
                     game["type"] = "LAUNCHER"
                     game["genre"] = "PLATFORM"
+                    game["features"] = []
                     game["tags"] = ["SYSTEM"]
                     continue
 

@@ -5,9 +5,7 @@
     "id": "steam_launcher",
     "install_path": "c:\\program files\\steam",
     "exe_path": "c:/program files/steam/steam.exe",
-    "features": [
-      "HDR"
-    ],
+    "features": [],
     "type": "LAUNCHER",
     "genre": "PLATFORM",
     "tags": [
