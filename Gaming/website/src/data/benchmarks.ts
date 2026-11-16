@@ -745,6 +745,97 @@ export const FALLBACK_BENCHMARK_PROFILES: Record<string, BenchmarkProfile> = {
     storeRating: "4.9 ★★★★★",
     dlssVersion: "DLSS 4.5",
   },
+  re4: {
+    id: "re4",
+    name: "Resident Evil 4",
+    publisher: "Capcom",
+    releaseYear: "2023 Remake",
+    genre: "Survival Horror / Action-Adventure",
+    api: "DirectX 12",
+    score: 99,
+    status: "VERIFIED BENCHMARK",
+    preset: "Prioritize Graphics / FSR 2",
+    overview:
+      "Capcom's legendary survival horror masterpiece reimagined in the cutting-edge RE Engine. Special Agent Leon S. Kennedy infiltrates a secluded Spanish mountain village to rescue the President's abducted daughter, facing the parasitic Los Iluminados cult with visceral melee parries and precision ballistics.",
+    detailedOverview: {
+      story:
+        "Six years after surviving the biological nightmare of Raccoon City, Leon S. Kennedy is an elite government agent answering directly to the President of the United States. Dispatched on a classified solo operation to rescue the President's kidnapped daughter, Ashley Graham, Leon follows her trail to an isolated mountain village in rural Spain. There, he discovers a fanatical cult known as Los Iluminados, whose members are controlled by the parasitic Las Plagas organism. Venturing from the hostile outskirts through Ramon Salazar's gothic fortress and onto Osmund Saddler's militarized island, Leon must survive relentless bioweapons and cure the parasite before it consumes them both.",
+      gameplayLoop:
+        "Explore atmospheric European ruins and gothic castle ramparts, engage in high-intensity survival encounters balancing ammunition reserves and dynamic knife parries, manage the grid-based attaché case inventory, trade treasures with the Merchant for weapon calibrations, and protect Ashley Graham from cult abduction.",
+      keyMechanics: [
+        {
+          name: "Combat Knife Parrying & Stun Finishers",
+          desc: "Execute frame-perfect blade parries against incoming axes, arrows, and chainsaw slashes, staggering infected Ganados to unleash bone-shattering roundhouse kicks.",
+        },
+        {
+          name: "Grid Attaché Case Inventory & Crafting",
+          desc: "Strategically organize grid slots to store weapons, ammo boxes, and tactical charms, crafting specialized ammunition and mixed restorative herbs in real time.",
+        },
+        {
+          name: "The Merchant Economy & Weapon Tuning",
+          desc: "Collect spinels, pesetas, and rare inlaid treasures to purchase exclusive weapon upgrades, laser sights, high-powered rifle scopes, and body armor repairs.",
+        },
+        {
+          name: "Ashley Graham Escort & Tactical Positioning",
+          desc: "Coordinate squad movement with dynamic commands (Tight / Loose spacing), defending Ashley from carrier cultists and collaborating on dual-lever environmental puzzles.",
+        },
+      ],
+    },
+    testedSpecs: {
+      gpu: "NVIDIA GeForce RTX Series / GTX Series",
+      resolution: "1080p FHD (1920 x 1080)",
+      avgFps: "72 FPS",
+      vramUsed: "5.4 GB / 8.0 GB",
+      latency: "11.4 ms",
+      gpuLoad: "63%",
+    },
+    presets: {
+      rtx40: "Maxed Settings + FSR 2 Quality + Hair Strands + Ray Tracing",
+      rtx30: "Prioritize Graphics + FSR 2 Quality + High Textures (5.4 GB VRAM)",
+      gtx: "Balanced Settings + FSR 2 Balanced + TAA (Sub-60W Efficiency)",
+    },
+    features: [
+      {
+        name: "Capcom RE Engine",
+        desc: "Advanced Photogrammetry, Subsurface Scattering & Atmospheric Volumetric Fog",
+        active: true,
+      },
+      {
+        name: "AMD FidelityFX™ Super Resolution 2 (FSR 2)",
+        desc: "High-Fidelity Temporal Reconstruction and Anti-Aliasing (Native TAA / No DLSS)",
+        active: true,
+      },
+      {
+        name: "DirectX 12 Native Pipeline",
+        desc: "Mesh Shaders, Variable Rate Shading & Optimized Multi-Threaded Draw Calls",
+        active: true,
+      },
+      {
+        name: "VRAM Memory Management",
+        desc: "Optimized 5.4 GB - 5.7 GB VRAM Footprint with Zero Texture Streaming Hitching",
+        active: true,
+      },
+    ],
+    screenshots: [
+      {
+        src: "/games/RE4_SS1.webp",
+        title: "Salazar Castle Grand Hall Traversal & Hardware Telemetry",
+        desc: "Leon S. Kennedy traversing the ornate upper gallery of Ramon Salazar's Castle captured at 72 FPS (47 FPS 1% Low) with 5.4 GB VRAM allocation (58% GPU load, 71°C GPU temp, 100% Excellent system health).",
+      },
+      {
+        src: "/games/RE4_SS2.webp",
+        title: "SG-09 R Precision Aiming & Combat Stance Telemetry",
+        desc: "Target acquisition aiming at the castle crest mechanism captured at 75 FPS (47 FPS 1% Low) under 63% GPU load (53W GPU power draw, 5.4 GB VRAM footprint, 81% CPU load).",
+      },
+      {
+        src: "/games/RE4_SS3.webp",
+        title: "High-Powered Rifle Scope Marksmanship & Optical Zoom",
+        desc: "Precision optic lens zoom telemetry targeting distant hall mechanisms captured at 69 FPS (38 FPS 1% Low) with 71% GPU load (57W power draw, 5.7 GB VRAM allocation, 74% CPU threading).",
+      },
+    ],
+    storeRating: "4.9 ★★★★★",
+    dlssVersion: "FSR 2 / TAA",
+  },
 };
 
 export const BENCHMARK_PROFILES: Record<string, BenchmarkProfile> = FALLBACK_BENCHMARK_PROFILES;
@@ -893,6 +984,24 @@ export const FALLBACK_TESTED_GAMES_LIST: TestedGameSummary[] = [
     gameplayGif: "/games/TomClancyThe Division_SS1.webp",
     storeRating: "4.6 ★★★★☆",
     dlssVersion: "TAA",
+  },
+  {
+    id: "re4",
+    name: "Resident Evil 4",
+    publisher: "Capcom",
+    genre: "Survival Horror / Action-Adventure",
+    preset: "Prioritize Graphics / FSR 2",
+    keyTech: ["RE Engine", "DirectX 12", "FSR 2", "Reflex", "Mesh Shaders"],
+    status: "VERIFIED BENCHMARK",
+    fps: "72 FPS",
+    vram: "5.4 GB / 8.0 GB",
+    gpuLoad: "63%",
+    latency: "11.4 ms",
+    api: "DirectX 12",
+    coverImage: "/games/RE4_SS1.webp",
+    gameplayGif: "/games/RE4_SS1.webp",
+    storeRating: "4.9 ★★★★★",
+    dlssVersion: "FSR 2 / TAA",
   },
 ];
 
