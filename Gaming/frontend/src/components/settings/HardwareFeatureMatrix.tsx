@@ -22,9 +22,24 @@ export const HardwareFeatureMatrix: React.FC<HardwareFeatureMatrixProps> = memo(
   isAdvancedGpu,
   isCapableGpu
 }) => {
-  const playableGames = effectiveLibrary.filter(
-    (g: any) => g.type?.toUpperCase() !== 'LAUNCHER' && g.genre?.toUpperCase() !== 'PLATFORM'
-  );
+  const playableGames = React.useMemo(() => {
+    const rawPlayable = effectiveLibrary.filter(
+      (g: any) => g.type?.toUpperCase() !== 'LAUNCHER' && g.genre?.toUpperCase() !== 'PLATFORM'
+    );
+    const seen = new Set<string>();
+    const deduped: any[] = [];
+    for (const g of rawPlayable) {
+      const norm = (g.name || '')
+        .toLowerCase()
+        .replace(/[™®\u2122\u00ae]/g, '')
+        .replace(/[^a-z0-9]/g, '');
+      if (!seen.has(norm)) {
+        seen.add(norm);
+        deduped.push(g);
+      }
+    }
+    return deduped;
+  }, [effectiveLibrary]);
 
   return (
     <div className="border-t border-white/5 pt-6 mt-6 space-y-4">
@@ -38,9 +53,9 @@ export const HardwareFeatureMatrix: React.FC<HardwareFeatureMatrixProps> = memo(
           </p>
         </div>
         <div className="flex items-center gap-2.5 shrink-0">
-          {effectiveLibrary.length > 0 && (
+          {playableGames.length > 0 && (
             <span className="text-[9px] font-black uppercase tracking-widest px-2.5 py-1 rounded-lg bg-neon-green/10 text-neon-green border border-neon-green/20">
-              {effectiveLibrary.length} Games Cached
+              {playableGames.length} {playableGames.length === 1 ? 'Game' : 'Games'} Cached
             </span>
           )}
           <button

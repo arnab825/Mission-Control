@@ -164,17 +164,14 @@ const KNOWN_LAUNCHER_NAMES = new Set([
 
 export function isLauncherOrPlatform(game?: { name?: string; platform?: string; type?: string; genre?: string; id?: string; exe_path?: string } | null): boolean {
   if (!game) return false;
+  if (game.type?.toUpperCase() === 'GAME' || (game as any).is_emulated) return false;
   if (game.type?.toUpperCase() === 'LAUNCHER') return true;
-  if (game.genre?.toUpperCase() === 'PLATFORM' && !game.id?.match(/^\d+$/)) return true;
   if (game.id && (game.id.endsWith('_launcher') || game.id.startsWith('fallback_'))) return true;
   const nameLower = (game.name || '').toLowerCase().trim();
   const platformLower = (game.platform || '').toLowerCase().trim();
-  if (KNOWN_LAUNCHER_NAMES.has(nameLower) || KNOWN_LAUNCHER_NAMES.has(platformLower)) return true;
+  if (KNOWN_LAUNCHER_NAMES.has(nameLower)) return true;
   if (nameLower && nameLower === platformLower && !game.id?.match(/^\d+$/)) return true;
-  if (nameLower.includes('heronite') || platformLower.includes('heronite') || nameLower.includes('heroic') || platformLower.includes('heroic')) return true;
-  if (nameLower.includes('epic games') || platformLower.includes('epic')) return true;
-  if (nameLower.includes('ubisoft') || platformLower.includes('ubisoft')) return true;
-  if (nameLower.includes('steam') && !game.id?.match(/^\d+$/)) return true;
+  if (game.genre?.toUpperCase() === 'PLATFORM' && !game.id?.match(/^\d+$/)) return true;
   return false;
 }
 
@@ -946,12 +943,45 @@ const GamesLibraryContent: React.FC<GamesPageProps> = ({ state, sendCommand, set
     const s = state as any;
     if (s.game_library !== undefined && s.game_library !== prevLibraryRef.current) {
       prevLibraryRef.current = s.game_library;
-      const newGames = (s.game_library || []).map((g: any) => {
-        if (isLauncherOrPlatform(g)) {
-          return { ...g, genre: 'PLATFORM', type: 'LAUNCHER', features: [] };
+      const dedupedMap = new Map<string, any>();
+      for (const g of (s.game_library || [])) {
+        const isLauncher = isLauncherOrPlatform(g);
+        const processed = isLauncher
+          ? { ...g, genre: 'PLATFORM', type: 'LAUNCHER', features: [] }
+          : g;
+
+        const normTitle = (g.name || '')
+          .toLowerCase()
+          .replace(/[™®\u2122\u00ae]/g, '')
+          .replace(/[^a-z0-9]/g, '');
+
+        const key = isLauncher ? `launcher_${normTitle}` : `game_${normTitle}`;
+        if (!dedupedMap.has(key)) {
+          dedupedMap.set(key, processed);
+        } else {
+          const existing = dedupedMap.get(key);
+          const combinedFeatures = Array.from(new Set([...(existing.features || []), ...(processed.features || [])]));
+          const existingInst = existing.installations || (existing.platform ? [
+            { store: existing.platform, exe_path: existing.exe_path, install_path: existing.install_path }
+          ] : []);
+          const newInst = processed.installations || (processed.platform ? [
+            { store: processed.platform, exe_path: processed.exe_path, install_path: processed.install_path }
+          ] : []);
+          const preferNew = (processed.platform === 'Steam' && existing.platform !== 'Steam') ||
+            (Boolean(processed.exe_path) && !existing.exe_path);
+          const chosen = preferNew ? { ...processed } : { ...existing };
+          chosen.features = combinedFeatures;
+          const mergedInst = [...existingInst];
+          for (const ni of newInst) {
+            if (!mergedInst.some((ei: any) => ei.store === ni.store && ei.exe_path === ni.exe_path)) {
+              mergedInst.push(ni);
+            }
+          }
+          chosen.installations = mergedInst;
+          dedupedMap.set(key, chosen);
         }
-        return g;
-      });
+      }
+      const newGames = Array.from(dedupedMap.values());
       setGames(newGames);
       setGamesLoaded(true);
     }

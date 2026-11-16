@@ -1146,35 +1146,44 @@ def handle_open_oem_software(payload: dict, pipeline, bridge, config) -> None:
         if not protocol and suite_id:
             protocol = suite_proto_map.get(suite_id, "")
 
-        if not protocol:
-            protocol = "omencommandcenter:"
+        if protocol:
+            if not protocol.endswith(":"):
+                protocol += ":"
 
-        if not protocol.endswith(":"):
-            protocol += ":"
+            # Security & registration check: ensure protocol is strictly an alphanumeric/hyphen scheme
+            # AND verify whether it is actually registered with an active shell command in Windows Registry
+            if re.match(r"^[a-zA-Z0-9_\-\.]+:$", protocol):
+                proto_name = protocol.rstrip(":")
+                is_proto_valid = False
+                try:
+                    import winreg
+                    for root in [winreg.HKEY_CLASSES_ROOT, winreg.HKEY_CURRENT_USER]:
+                        try:
+                            cmd_path = rf"{proto_name}\shell\open\command" if root == winreg.HKEY_CLASSES_ROOT else rf"Software\Classes\{proto_name}\shell\open\command"
+                            with winreg.OpenKey(root, cmd_path) as ck:
+                                cmd_val, _ = winreg.QueryValueEx(ck, "")
+                                if cmd_val and len(str(cmd_val).strip()) > 0:
+                                    is_proto_valid = True
+                                    break
+                        except Exception:
+                            pass
+                except Exception:
+                    is_proto_valid = False
 
-        # Security & registration check: ensure protocol is strictly an alphanumeric/hyphen scheme
-        # AND verify whether it is actually registered in Windows Registry before attempting start
-        if re.match(r"^[a-zA-Z0-9_\-\.]+:$", protocol):
-            proto_name = protocol.rstrip(":")
-            is_proto_registered = False
-            try:
-                import winreg
-                with winreg.OpenKey(winreg.HKEY_CLASSES_ROOT, proto_name):
-                    is_proto_registered = True
-            except Exception:
-                is_proto_registered = False
+                if is_proto_valid:
+                    try:
+                        si = subprocess.STARTUPINFO()
+                        si.dwFlags |= subprocess.STARTF_USESHOWWINDOW
+                        si.wShowWindow = 0
+                        subprocess.Popen(["cmd", "/c", "start", "", protocol], shell=True, startupinfo=si, creationflags=0x08000000)
+                        logger.info(f"Launched OEM companion software with verified protocol '{protocol}'.")
+                        return
+                    except Exception as proto_err:
+                        logger.warning(f"Failed launching protocol '{protocol}': {proto_err}")
+                else:
+                    logger.info(f"Protocol '{protocol}' has no valid shell command; searching Start Menu shortcuts.")
 
-            if is_proto_registered:
-                si = subprocess.STARTUPINFO()
-                si.dwFlags |= subprocess.STARTF_USESHOWWINDOW
-                si.wShowWindow = 0
-                subprocess.Popen(["cmd", "/c", "start", "", protocol], shell=True, startupinfo=si, creationflags=0x08000000)
-                logger.info(f"Launched OEM companion software with registered protocol '{protocol}'.")
-                return
-            else:
-                logger.info(f"Protocol '{protocol}' is not registered in Windows Classes Root; searching Start Menu shortcuts.")
-
-        # 4. Final dynamic fallback: search Windows Start Menu for matching OEM shortcut
+        # 4. Dynamic fallback: search Windows Start Menu for matching OEM shortcut
         try:
             start_menu_dirs = [
                 os.path.expandvars(r"%ProgramData%\Microsoft\Windows\Start Menu\Programs"),
@@ -1183,24 +1192,30 @@ def handle_open_oem_software(payload: dict, pipeline, bridge, config) -> None:
             ]
             search_terms = {
                 "alienware_awcc": ["alienware", "awcc"],
-                "hp_omen": ["omen"],
+                "hp_omen": ["omen", "gaming hub"],
                 "asus_armoury_crate": ["armoury crate"],
-                "lenovo_vantage": ["vantage"],
+                "asus_ghelper": ["ghelper", "g-helper"],
+                "lenovo_vantage": ["vantage", "legion zone"],
                 "msi_center": ["msi center", "dragon center"],
-            }.get(suite_id, [suite_id.replace("_", " ")])
+            }.get(suite_id, [suite_id.replace("_", " ")] if suite_id else [])
 
-            for sm_dir in start_menu_dirs:
-                if not os.path.exists(sm_dir):
-                    continue
-                for root, _, files in os.walk(sm_dir):
-                    for f in files:
-                        if f.lower().endswith(".lnk") and any(term in f.lower() for term in search_terms):
-                            found_lnk = os.path.join(root, f)
-                            if _launch_target(found_lnk):
-                                logger.info(f"Dynamically discovered and launched OEM shortcut: '{found_lnk}'.")
-                                return
+            if search_terms:
+                for sm_dir in start_menu_dirs:
+                    if not os.path.exists(sm_dir):
+                        continue
+                    for root, _, files in os.walk(sm_dir):
+                        for f in files:
+                            if f.lower().endswith(".lnk") and any(term in f.lower() for term in search_terms):
+                                found_lnk = os.path.join(root, f)
+                                if _launch_target(found_lnk):
+                                    logger.info(f"Dynamically discovered and launched OEM shortcut: '{found_lnk}'.")
+                                    return
         except Exception as scan_err:
             logger.warning(f"Error scanning Start Menu for OEM suite: {scan_err}")
+
+        # 5. Final universal graceful fallback: open Windows Display & Graphics settings
+        logger.info("No native OEM companion found on disk; opening Windows Graphics Settings.")
+        subprocess.Popen(["cmd", "/c", "start", "", "ms-settings:display-advanced-graphics"], shell=True)
 
     except Exception as e:
         logger.error(f"Failed to launch OEM companion software: {e}")

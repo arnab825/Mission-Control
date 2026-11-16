@@ -1029,9 +1029,6 @@ export const GpuPipelineSection: React.FC<GpuPipelineSectionProps> = ({
                   const oem = state?.system_specs?.hardware?.mux_switch?.primary_oem;
                   if (oem) {
                     sendCommand('open_oem_software', { protocol: oem.protocol, suite_id: oem.id });
-                    if (oem.protocol && (window as any).electronAPI?.openExternal) {
-                      (window as any).electronAPI.openExternal(oem.protocol).catch(() => {});
-                    }
                   }
                 }}
                 className="w-full py-2 px-3 rounded-xl bg-neon-yellow/10 hover:bg-neon-yellow/20 border border-neon-yellow/30 text-neon-yellow text-[9px] font-black uppercase tracking-wider flex items-center justify-center gap-2 transition-all cursor-pointer"

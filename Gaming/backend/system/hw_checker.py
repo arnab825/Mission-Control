@@ -716,6 +716,7 @@ class HardwareChecker:
                 "id": "alienware_awcc",
                 "name": "Alienware Command Center",
                 "brand": "Alienware",
+                "brands": ["Alienware", "Dell"],
                 "category": "oem_suite",
                 "protocol": "awcc:",
                 "protocols": ["awcc", "alienware-command-center"],
@@ -841,34 +842,122 @@ class HardwareChecker:
 
         installed_suites = []
         if platform.system() == "Windows":
+            # Known binary and shortcut paths to verify an OEM suite actually exists on disk
+            oem_binary_candidates = {
+                "hp_omen": [
+                    r"C:\Program Files\HP\OMEN Gaming Hub\OMEN Gaming Hub.exe",
+                    r"C:\Program Files\HP\OMEN Command Center\OMEN Command Center.exe",
+                    r"C:\Program Files (x86)\HP\OMEN Gaming Hub\OMEN Gaming Hub.exe",
+                    os.path.expandvars(r"%ProgramData%\Microsoft\Windows\Start Menu\Programs\OMEN Gaming Hub.lnk"),
+                ],
+                "alienware_awcc": [
+                    os.path.expandvars(r"%ProgramData%\Microsoft\Windows\Start Menu\Alienware Command Center.lnk"),
+                    r"C:\Program Files\Alienware\Alienware Command Center\AWCC\AWCC.exe",
+                    r"C:\Program Files\Alienware\Alienware Command Center\AWCC.exe",
+                    r"C:\Program Files\Alienware\Alienware Command Center\AWCC.Application.exe",
+                    os.path.expandvars(r"%ProgramData%\Microsoft\Windows\Start Menu\Programs\Alienware\Alienware Command Center.lnk"),
+                    os.path.expandvars(r"%ProgramData%\Microsoft\Windows\Start Menu\Programs\Alienware Command Center.lnk"),
+                ],
+                "asus_armoury_crate": [
+                    r"C:\Program Files\ASUS\ARMOURY CRATE Lite Service\ArmouryCrate.exe",
+                    r"C:\Program Files (x86)\ASUS\ArmouryDevice\dll\ArmouryCrate.exe",
+                    os.path.expandvars(r"%ProgramData%\Microsoft\Windows\Start Menu\Programs\ASUS\ARMOURY CRATE.lnk"),
+                ],
+                "asus_ghelper": [
+                    r"C:\Program Files\G-Helper\GHelper.exe",
+                    os.path.expandvars(r"%LOCALAPPDATA%\Programs\G-Helper\GHelper.exe"),
+                ],
+                "lenovo_vantage": [
+                    r"C:\Program Files\Lenovo\VantageService\LenovoVantageService.exe",
+                    os.path.expandvars(r"%ProgramData%\Microsoft\Windows\Start Menu\Programs\Lenovo Vantage.lnk"),
+                ],
+                "lenovo_legion_toolkit": [
+                    r"C:\Program Files\LenovoLegionToolkit\LenovoLegionToolkit.exe",
+                    os.path.expandvars(r"%LOCALAPPDATA%\Programs\LenovoLegionToolkit\LenovoLegionToolkit.exe"),
+                ],
+                "msi_center": [
+                    r"C:\Program Files (x86)\MSI\MSI Center\MSI Center.exe",
+                    r"C:\Program Files\MSI\MSI Center\MSI Center.exe",
+                    os.path.expandvars(r"%ProgramData%\Microsoft\Windows\Start Menu\Programs\MSI Center.lnk"),
+                ],
+                "razer_synapse": [
+                    r"C:\Program Files (x86)\Razer\Synapse3\WPFUI\Framework\Razer Synapse 3 Host.exe",
+                    r"C:\Program Files\Razer\Synapse3\WPFUI\Framework\Razer Synapse 3 Host.exe",
+                    os.path.expandvars(r"%ProgramData%\Microsoft\Windows\Start Menu\Programs\Razer\Razer Synapse.lnk"),
+                ],
+                "gigabyte_gcc": [
+                    r"C:\Program Files\GIGABYTE\ControlCenter\ControlCenter.exe",
+                    os.path.expandvars(r"%ProgramData%\Microsoft\Windows\Start Menu\Programs\GIGABYTE\GIGABYTE Control Center.lnk"),
+                ],
+                "nvidia_app": [
+                    r"C:\Program Files\NVIDIA Corporation\NVIDIA App\NVIDIA App.exe",
+                    r"C:\Program Files\NVIDIA Corporation\NVIDIA GeForce Experience\NVIDIA GeForce Experience.exe",
+                    os.path.expandvars(r"%ProgramData%\Microsoft\Windows\Start Menu\Programs\NVIDIA Corporation\NVIDIA App.lnk"),
+                ],
+                "amd_adrenalin": [
+                    r"C:\Program Files\AMD\CNext\CNext\RadeonSoftware.exe",
+                    r"C:\Program Files\AMD\CNext\CNext\CNEXT.exe",
+                    r"C:\Program Files\AMD\CNext\CNext\AMDRSServ.exe",
+                    os.path.expandvars(r"%ProgramData%\Microsoft\Windows\Start Menu\Programs\AMD Software.lnk"),
+                ],
+                "intel_gcc": [
+                    r"C:\Program Files\Intel\Graphics Command Center\IGCC.exe",
+                    os.path.expandvars(r"%ProgramData%\Microsoft\Windows\Start Menu\Programs\Intel Graphics Command Center.lnk"),
+                ],
+            }
+
             try:
                 import winreg
                 for suite in known_suites:
                     is_installed = False
                     active_protocol = suite["protocol"]
-                    for p in suite["protocols"]:
-                        if p in protocols:
+
+                    # 1. First priority: Check if a physical binary or shortcut exists on disk
+                    for c_path in oem_binary_candidates.get(suite["id"], []):
+                        if os.path.exists(c_path):
                             is_installed = True
-                            active_protocol = f"{p}:"
                             break
 
+                    # 2. Check registry keys with target validation
                     if not is_installed:
                         for rk in suite["reg_keys"]:
                             for root in [winreg.HKEY_LOCAL_MACHINE, winreg.HKEY_CURRENT_USER]:
                                 try:
-                                    with winreg.OpenKey(root, rk):
-                                        is_installed = True
-                                        break
+                                    with winreg.OpenKey(root, rk) as rk_handle:
+                                        # Verify key contains valid install path or executable
+                                        n_vals, _, _ = winreg.QueryInfoKey(rk_handle)
+                                        if n_vals > 0:
+                                            is_installed = True
+                                            break
                                 except Exception:
                                     pass
                             if is_installed:
                                 break
+
+                    # 3. Protocol check: verify protocol has an active shell\open\command
+                    if not is_installed:
+                        for p in suite["protocols"]:
+                            if p in protocols:
+                                for root in [winreg.HKEY_CLASSES_ROOT, winreg.HKEY_CURRENT_USER]:
+                                    try:
+                                        cmd_path = rf"{p}\shell\open\command" if root == winreg.HKEY_CLASSES_ROOT else rf"Software\Classes\{p}\shell\open\command"
+                                        with winreg.OpenKey(root, cmd_path) as ck:
+                                            cmd_val, _ = winreg.QueryValueEx(ck, "")
+                                            if cmd_val and len(str(cmd_val).strip()) > 0:
+                                                is_installed = True
+                                                active_protocol = f"{p}:"
+                                                break
+                                    except Exception:
+                                        pass
+                                if is_installed:
+                                    break
 
                     if is_installed:
                         suite_copy = {
                             "id": suite["id"],
                             "name": suite["name"],
                             "brand": suite["brand"],
+                            "brands": suite.get("brands", [suite["brand"]]),
                             "category": suite["category"],
                             "protocol": active_protocol,
                             "modes": suite.get("modes", {})
@@ -883,7 +972,8 @@ class HardwareChecker:
 
         # 1. Match hardware manufacturer
         for s in installed_suites:
-            if s["category"] == "oem_suite" and s["brand"].upper() in mfg_upper:
+            brands = s.get("brands", [s["brand"]])
+            if s["category"] == "oem_suite" and any(b.upper() in mfg_upper for b in brands):
                 primary_oem = s
                 break
 
@@ -986,7 +1076,7 @@ class HardwareChecker:
             return "NVIDIA"
         if any(k in desc_l or k in mfg_l for k in ["intel", "iris", "uhd graphics"]):
             return "Intel"
-        if any(k in desc_l or k in mfg_l for k in ["amd", "ati", "advanced micro devices", "radeon"]):
+        if any(k in desc_l or k in mfg_l for k in ["amd", "ati", "advanced micro devices", "radeon", "ryzen"]):
             return "AMD"
         if any(k in desc_l or k in mfg_l for k in ["qualcomm", "adreno", "snapdragon"]):
             return "Qualcomm"
@@ -1020,22 +1110,27 @@ class HardwareChecker:
 
         # 2. AMD classification
         if vendor == "AMD":
-            # RDNA 2 / 3 / 3.5 APUs: 610M, 660M, 680M, 740M, 760M, 780M, 840M, 860M, 880M, 890M
-            if re.search(r'\b[6-9]\d{2}m\b', desc_l):
+            # APU and processor graphics are always integrated
+            if any(k in desc_l for k in ["ryzen", "apu", "processor graphics"]):
                 return "integrated"
 
-            # Generic APU graphics names (desktop Ryzen 7000/9000 & mobile APUs)
-            if desc_l.strip() in ["amd radeon graphics", "amd radeon(tm) graphics", "amd radeon(tm)", "radeon graphics", "radeon(tm) graphics"]:
-                return "integrated"
-            if "radeon graphics" in desc_l and not re.search(r'\b(?:rx|pro|firepro|vii|hd)\b', desc_l):
-                return "integrated"
-            if "processor graphics" in desc_l:
+            # RDNA 2 / 3 / 3.5 APUs: 610M, 660M, 680M, 740M, 760M, 780M, 840M, 860M, 880M, 890M, and series
+            if re.search(r'\b(?:[6-9]\d{2}m|[6-9]00m)\b', desc_l):
                 return "integrated"
 
             # Vega APUs (Vega 3, 6, 7, 8, 10, 11, Vega Mobile), excluding discrete Vega 56/64/Frontier
             if "vega" in desc_l:
                 if any(k in desc_l for k in ["56", "64", "frontier", "pro vega"]):
                     return "discrete"
+                return "integrated"
+
+            # Generic APU graphics names (desktop Ryzen 7000/9000 & mobile APUs)
+            # e.g. "AMD Radeon(TM) Graphics", "AMD Radeon Graphics", "Radeon(TM) Graphics", "Radeon Graphics"
+            if any(k in desc_l for k in ["radeon graphics", "radeon(tm) graphics", "radeon gfx", "radeon(tm) gfx"]):
+                if not re.search(r'\b(?:rx\s*[5-9]\d{3}|pro\s+|firepro|instinct|vii)\b', desc_l):
+                    return "integrated"
+
+            if desc_l.strip() in ["amd radeon graphics", "amd radeon(tm) graphics", "amd radeon(tm)", "radeon graphics", "radeon(tm) graphics", "amd radeon"]:
                 return "integrated"
 
             # Older A-series / E-series APUs (e.g. 'Radeon R7 Graphics', 'Radeon R5 Graphics')
@@ -1046,15 +1141,19 @@ class HardwareChecker:
 
             # Discrete AMD markers
             is_discrete_amd = (
-                "rx " in desc_l or "rx-" in desc_l or
-                bool(re.search(r'\brx\s*\d{3,4}', desc_l)) or
-                "pro " in desc_l or "firepro" in desc_l or
-                "instinct" in desc_l or "radeon vii" in desc_l or
-                bool(re.search(r'\br[79]\s+\d{3}', desc_l)) or
-                bool(re.search(r'\bhd\s+[6-9]\d{3}\b', desc_l))
+                bool(re.search(r'\brx\s*[5-9]\d{3}', desc_l)) or
+                "radeon vii" in desc_l or
+                "firepro" in desc_l or
+                "instinct" in desc_l or
+                bool(re.search(r'\bhd\s+[6-9]\d{3}\b', desc_l)) or
+                bool(re.search(r'\br[79]\s+[23]\d{2}\b', desc_l))
             )
             if is_discrete_amd:
                 return "discrete"
+
+            # If it's a mobile AMD device or contains Radeon without discrete markers, it's integrated
+            if "radeon" in desc_l and not any(k in desc_l for k in ["rx", "pro", "firepro", "instinct", "vii"]):
+                return "integrated"
 
             # Shared / low VRAM heuristic fallback
             if vram > 0 and vram < 4 * (1024**3):

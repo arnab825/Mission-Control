@@ -848,7 +848,50 @@ class GameScanner:
                 if self._is_game_valid_and_installed(g):
                     cleaned_games.append(g)
 
-            games = cleaned_games
+            # Deduplicate games across platforms (e.g. Steam + Heronite) and merge installations
+            deduped = {}
+            for g in cleaned_games:
+                is_launcher = (g.get("type") == "LAUNCHER") or (g.get("genre") == "PLATFORM") or any(wl == g.get("name", "").strip().lower() for wl in self.launcher_whitelist)
+                norm_title = "".join(c for c in (g.get("name") or "").lower() if c.isalnum())
+                key = f"launcher_{norm_title}" if is_launcher else f"game_{norm_title}"
+                if key not in deduped:
+                    deduped[key] = g
+                else:
+                    existing = deduped[key]
+                    if g.get("features"):
+                        existing_feats = set(existing.get("features") or [])
+                        new_feats = set(g.get("features") or [])
+                        existing["features"] = sorted(list(existing_feats | new_feats))
+
+                    existing_inst = existing.get("installations") or []
+                    if not existing_inst and existing.get("platform"):
+                        existing_inst = [{
+                            "store": existing.get("platform"),
+                            "exe_path": existing.get("exe_path", ""),
+                            "install_path": existing.get("install_path", "")
+                        }]
+                    new_inst = g.get("installations") or []
+                    if not new_inst and g.get("platform"):
+                        new_inst = [{
+                            "store": g.get("platform"),
+                            "exe_path": g.get("exe_path", ""),
+                            "install_path": g.get("install_path", "")
+                        }]
+                    merged_inst = list(existing_inst)
+                    for ni in new_inst:
+                        if not any(ei.get("store") == ni.get("store") and ei.get("exe_path") == ni.get("exe_path") for ei in merged_inst):
+                            merged_inst.append(ni)
+                    existing["installations"] = merged_inst
+
+                    if g.get("platform") == "Steam" and existing.get("platform") != "Steam":
+                        for k in ["name", "platform", "id", "local_banner", "icon"]:
+                            if g.get(k):
+                                existing[k] = g[k]
+                    elif g.get("exe_path") and not existing.get("exe_path"):
+                        existing["exe_path"] = g["exe_path"]
+                        existing["install_path"] = g.get("install_path") or existing.get("install_path")
+
+            games = list(deduped.values())
 
         return games
 
