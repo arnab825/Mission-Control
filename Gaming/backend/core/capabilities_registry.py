@@ -20,17 +20,21 @@ class GameCapabilitiesRegistry:
         """Loads capabilities from the game scanner's JSON cache."""
         try:
             # Locate games_db.json
+            from core.config_loader import get_persistent_config_dir
+            persistent_dir = Path(get_persistent_config_dir())
             app_data_path = self.config.get("system", {}).get("app_data_path")
             if app_data_path:
                 base_dir = Path(app_data_path)
             else:
                 base_dir = Path(__file__).parent.parent.parent / "backend"
                 
-            cache_file = base_dir / "config" / "games_db.json"
+            cache_file = persistent_dir / "games_db.json"
+            if not cache_file.exists():
+                cache_file = base_dir / "config" / "games_db.json"
+
             # In a real user env with Clerk, there might be a userId suffix. 
             # For simplicity in the registry, we'll try to find any games_db_*.json or fallback to games_db.json
-            
-            db_files = list((base_dir / "config").glob("games_db*.json"))
+            db_files = list(persistent_dir.glob("games_db*.json")) or list((base_dir / "config").glob("games_db*.json"))
             if db_files:
                 cache_file = db_files[0] # Just use the first one found
 

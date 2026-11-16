@@ -202,10 +202,14 @@ class GameModeResolver:
 
         # 3. Local JSON database fallback
         try:
+            from core.config_loader import get_persistent_config_dir
+            persistent_dir = Path(get_persistent_config_dir())
             base_dir = Path(__file__).resolve().parent.parent
             json_paths = [
-                base_dir / "config" / "games_db.json",
+                persistent_dir / f"games_db_{user_id}.json" if user_id else None,
+                persistent_dir / "games_db.json",
                 base_dir / "config" / f"games_db_{user_id}.json" if user_id else None,
+                base_dir / "config" / "games_db.json",
             ]
             for jp in json_paths:
                 if jp and jp.exists():

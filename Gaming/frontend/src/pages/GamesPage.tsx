@@ -178,6 +178,16 @@ export function isLauncherOrPlatform(game?: { name?: string; platform?: string; 
   return false;
 }
 
+export function hasRealGames(list?: BackendGame[] | null): boolean {
+  if (!Array.isArray(list) || list.length === 0) return false;
+  return list.some(g => {
+    if ((g as any).is_emulated) return true;
+    const t = (g.type || '').toUpperCase();
+    if (t === 'GAME') return true;
+    return !isLauncherOrPlatform(g);
+  });
+}
+
 // ── Game Card ──────────────────────────────────────────────────────────────────
 const GameCard: React.FC<{
   game: BackendGame;
@@ -890,7 +900,7 @@ const GamesLibraryContent: React.FC<GamesPageProps> = ({ state, sendCommand, set
 
   const persisted = useMemo(() => getPersistedGames(), [getPersistedGames]);
   const initialGames = (state as any)?.game_library || (persisted.length > 0 ? persisted : []);
-  const initialLoaded = (state as any)?.game_library !== undefined || persisted.length > 0;
+  const initialLoaded = (state as any)?.game_library !== undefined || (persisted.length > 0 && hasRealGames(persisted));
 
   const [games, setGames] = useState<BackendGame[]>(initialGames);
   const [scanStatus, setScanStatus] = useState<string>('idle');
@@ -999,7 +1009,7 @@ const GamesLibraryContent: React.FC<GamesPageProps> = ({ state, sendCommand, set
       const persistedNow = getPersistedGames();
       if (persistedNow.length > 0) {
         setGames(persistedNow);
-        setGamesLoaded(true);
+        setGamesLoaded(hasRealGames(persistedNow));
       } else if (isSignedIn) {
         setGamesLoaded(false);
       }
@@ -1014,13 +1024,15 @@ const GamesLibraryContent: React.FC<GamesPageProps> = ({ state, sendCommand, set
       lastUserIdRef.current = userId;
     }
 
-    if (s?.game_library !== undefined || games.length > 0) {
+    const hasAnyRealGames = hasRealGames(s?.game_library) || hasRealGames(games);
+
+    if (s?.game_library !== undefined && hasAnyRealGames) {
       setGamesLoaded(true);
       if (gamesRequestTimeoutRef.current) {
         clearTimeout(gamesRequestTimeoutRef.current);
         gamesRequestTimeoutRef.current = null;
       }
-    } else if (!gamesLoaded) {
+    } else if (!gamesLoaded || !hasAnyRealGames) {
       const now = Date.now();
       if (now - lastGamesRequestRef.current > 500) {
         lastGamesRequestRef.current = now;

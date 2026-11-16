@@ -1,3 +1,4 @@
+import sys
 import os
 import time
 import winreg
@@ -56,6 +57,18 @@ except ImportError:
     except ImportError:
         parse_steam_acf = parse_steam_vdf_libraries = parse_epic_item = parse_gog_info = None
 
+try:
+    from core.config_loader import get_persistent_config_dir
+except ImportError:
+    try:
+        from ..core.config_loader import get_persistent_config_dir
+    except ImportError:
+        def get_persistent_config_dir() -> str:
+            if os.name == "nt":
+                appdata = os.environ.get("APPDATA") or os.path.expanduser("~")
+                return os.path.join(appdata, "MissionControl", "config")
+            return os.path.expanduser("~/.config/missioncontrol/config")
+
 class GameScanner:
     """
     Scans and detects installed games from various platforms.
@@ -80,11 +93,23 @@ class GameScanner:
         app_data_path = self.config.get("system", {}).get("app_data_path")
         if app_data_path:
             base_dir = Path(app_data_path)
+            if base_dir.name != "config":
+                base_dir = base_dir / "config"
         else:
-            base_dir = Path(__file__).parent.parent
+            base_dir = Path(get_persistent_config_dir())
             
-        self.cache_file = base_dir / "config" / filename
-        self._ensure_cache_dir()
+        self.cache_file = base_dir / filename
+        try:
+            self._ensure_cache_dir()
+        except (PermissionError, OSError):
+            base_dir = Path(__file__).parent.parent / "config"
+            self.cache_file = base_dir / filename
+            try:
+                self._ensure_cache_dir()
+            except Exception:
+                pass
+
+        self._migrate_legacy_cache(filename)
         
         self.crack_groups = {
             "flt", "rune", "codex", "ali213", "tenoke", "goldberg", 
@@ -514,6 +539,50 @@ class GameScanner:
         """Ensure the config directory exists."""
         self.cache_file.parent.mkdir(parents=True, exist_ok=True)
 
+    def _migrate_legacy_cache(self, filename: str):
+        """Migrate cached game databases from install directory to persistent AppData.
+
+        Ensures user game libraries survive NSIS installer upgrades which wipe the
+        installation directory but leave %APPDATA% untouched.
+        """
+        try:
+            legacy_dir = Path(__file__).parent.parent / "config"
+            if not legacy_dir.exists() or legacy_dir.resolve() == self.cache_file.parent.resolve():
+                return
+
+            import shutil
+
+            # 1. Migrate target user cache if not present in persistent storage
+            legacy_file = legacy_dir / filename
+            if legacy_file.exists() and not self.cache_file.exists():
+                try:
+                    shutil.copy2(legacy_file, self.cache_file)
+                    logger.info("Migrated legacy game cache %s to persistent AppData: %s", legacy_file.name, self.cache_file)
+                except Exception as exc:
+                    logger.debug("Failed migrating %s: %s", filename, exc)
+
+            # 2. Migrate master games_db.json if not present in persistent storage
+            persistent_master = self.cache_file.parent / "games_db.json"
+            legacy_master = legacy_dir / "games_db.json"
+            if legacy_master.exists() and not persistent_master.exists():
+                try:
+                    shutil.copy2(legacy_master, persistent_master)
+                    logger.info("Migrated legacy master games_db.json to persistent AppData")
+                except Exception as exc:
+                    logger.debug("Failed migrating master games_db.json: %s", exc)
+
+            # 3. Migrate any other user caches
+            for legacy_other in legacy_dir.glob("games_db_*.json"):
+                target_dest = self.cache_file.parent / legacy_other.name
+                if not target_dest.exists():
+                    try:
+                        shutil.copy2(legacy_other, target_dest)
+                        logger.info("Migrated legacy user cache %s to persistent AppData", legacy_other.name)
+                    except Exception:
+                        pass
+        except Exception as exc:
+            logger.debug("Legacy cache migration check note: %s", exc)
+
     def load_cached_games(self):
         """Return cached results for instant startup (Local-First Architecture).
 
@@ -591,6 +660,23 @@ class GameScanner:
                         continue
             except Exception as exc:
                 logger.debug("Sibling JSON cache search note: %s", exc)
+
+        # Fallback to legacy install directory cache if persistent storage is empty
+        if not games:
+            try:
+                legacy_dir = Path(__file__).parent.parent / "config"
+                if legacy_dir.exists() and legacy_dir.resolve() != self.cache_file.parent.resolve():
+                    legacy_file = legacy_dir / self.cache_file.name
+                    if not legacy_file.exists():
+                        legacy_file = legacy_dir / "games_db.json"
+                    if legacy_file.exists():
+                        with open(legacy_file, "r", encoding="utf-8") as lf:
+                            leg_json = json.load(lf)
+                            if isinstance(leg_json, list) and len(leg_json) > 0:
+                                games = leg_json
+                                logger.info("Loaded %d games from legacy install directory for user %s", len(games), self.user_id)
+            except Exception as exc:
+                logger.debug("Legacy install cache read note: %s", exc)
 
         # --- 2. Try Local SQLite cache (if JSON was empty) ---
         if not games:
@@ -801,6 +887,18 @@ class GameScanner:
                 with open(tmp_master, "w", encoding="utf-8") as mf:
                     json.dump(games, mf, indent=2)
                 tmp_master.replace(master_cache)
+        except (PermissionError, OSError) as perm_exc:
+            logger.debug("Persistent storage write failed (%s); writing to local config directory", perm_exc)
+            try:
+                local_dir = Path(__file__).parent.parent / "config"
+                local_dir.mkdir(parents=True, exist_ok=True)
+                local_cache = local_dir / self.cache_file.name
+                tmp_local = local_cache.with_suffix(".tmp")
+                with open(tmp_local, "w", encoding="utf-8") as f:
+                    json.dump(games, f, indent=2)
+                tmp_local.replace(local_cache)
+            except Exception as exc:
+                logger.debug("Failed to write local JSON cache fallback: %s", exc)
         except Exception as exc:
             logger.debug("Failed to write JSON cache atomically: %s", exc)
 
@@ -2014,10 +2112,14 @@ class GameScanner:
         
         for drive in drives:
             for d in common_dirs:
-                path = Path(drive) / d
-                if path.exists() and path.is_dir():
+                try:
+                    path = Path(drive) / d
+                    if not (path.exists() and path.is_dir()):
+                        continue
                     for sub in path.iterdir():
-                        if sub.is_dir():
+                        try:
+                            if not sub.is_dir():
+                                continue
                             if sub.name.startswith(("$", ".")) or sub.name.lower() in self.crack_groups or any(junk in sub.name.lower() for junk in self.junk_keywords):
                                 continue
                             # If sub is "steamapps", drill down into "steamapps/common" to find actual games
@@ -2025,22 +2127,25 @@ class GameScanner:
                                 common_sub = sub / "common"
                                 if common_sub.exists() and common_sub.is_dir():
                                     for steam_game_dir in common_sub.iterdir():
-                                        if steam_game_dir.is_dir() and not steam_game_dir.name.startswith(("$", ".")) and steam_game_dir.name.lower() not in self.library_root_names and not any(junk in steam_game_dir.name.lower() for junk in self.junk_keywords):
-                                            exes = self._collect_game_executables(steam_game_dir, max_depth=3)
-                                            if exes:
-                                                game_root = self._resolve_game_root(steam_game_dir)
-                                                if game_root.name.lower() in self.library_root_names:
-                                                    continue
-                                                best_exe = self._select_best_exe(exes, game_root.name)
-                                                title = self._get_exe_product_name(best_exe) or game_root.name
-                                                self.games.append({
-                                                    "name": title,
-                                                    "platform": "Steam",
-                                                    "id": f"{drive}_{game_root.name}",
-                                                    "install_path": str(game_root),
-                                                    "exe_path": best_exe,
-                                                    "source": "drive_scan"
-                                                })
+                                        try:
+                                            if steam_game_dir.is_dir() and not steam_game_dir.name.startswith(("$", ".")) and steam_game_dir.name.lower() not in self.library_root_names and not any(junk in steam_game_dir.name.lower() for junk in self.junk_keywords):
+                                                exes = self._collect_game_executables(steam_game_dir, max_depth=3)
+                                                if exes:
+                                                    game_root = self._resolve_game_root(steam_game_dir)
+                                                    if game_root.name.lower() in self.library_root_names:
+                                                        continue
+                                                    best_exe = self._select_best_exe(exes, game_root.name)
+                                                    title = self._get_exe_product_name(best_exe) or game_root.name
+                                                    self.games.append({
+                                                        "name": title,
+                                                        "platform": "Steam",
+                                                        "id": f"{drive}_{game_root.name}",
+                                                        "install_path": str(game_root),
+                                                        "exe_path": best_exe,
+                                                        "source": "drive_scan"
+                                                    })
+                                        except (PermissionError, OSError):
+                                            continue
                                 continue
                             if sub.name.lower() in self.library_root_names:
                                 continue
@@ -2060,15 +2165,39 @@ class GameScanner:
                                     "exe_path": best_exe,
                                     "source": "drive_scan"
                                 })
+                        except (PermissionError, OSError):
+                            continue
+                except (PermissionError, OSError):
+                    continue
 
     def _scan_steam(self):
         """Scan for Steam games."""
         try:
-            # Get Steam install path from registry
-            key = winreg.OpenKey(winreg.HKEY_CURRENT_USER, r"Software\Valve\Steam")
-            steam_path, _ = winreg.QueryValueEx(key, "SteamPath")
-            winreg.CloseKey(key)
-            
+            # Get Steam install path from registry (trying HKCU, HKLM 32/64-bit, and default paths)
+            steam_path = None
+            for root, key_path, val_name in [
+                (winreg.HKEY_CURRENT_USER, r"Software\Valve\Steam", "SteamPath"),
+                (winreg.HKEY_LOCAL_MACHINE, r"SOFTWARE\WOW6432Node\Valve\Steam", "InstallPath"),
+                (winreg.HKEY_LOCAL_MACHINE, r"SOFTWARE\Valve\Steam", "InstallPath"),
+            ]:
+                try:
+                    with winreg.OpenKey(root, key_path, 0, winreg.KEY_READ) as key:
+                        val, _ = winreg.QueryValueEx(key, val_name)
+                        if val and os.path.exists(val):
+                            steam_path = str(val)
+                            break
+                except Exception:
+                    continue
+
+            if not steam_path:
+                for fallback_dir in [r"C:\Program Files (x86)\Steam", r"C:\Program Files\Steam"]:
+                    if os.path.exists(fallback_dir):
+                        steam_path = fallback_dir
+                        break
+
+            if not steam_path:
+                return
+
             steam_path = Path(steam_path.replace("/", os.sep))
             library_vdf = steam_path / "steamapps" / "libraryfolders.vdf"
             
@@ -2118,28 +2247,29 @@ class GameScanner:
                         if not install_path.exists():
                             continue
                             
-                            # Try to find the primary .exe for icon extraction (fast bounded scan)
-                            resolved_exe = None
-                            try:
-                                exes = [Path(e.path) for e in os.scandir(install_path) if e.is_file() and e.name.lower().endswith(".exe")]
-                                if not exes:
-                                    exes = self._collect_game_executables(install_path, max_depth=2)
-                                if exes:
-                                    resolved_exe = self._select_best_exe(exes, game_name)
-                            except Exception: pass
+                        # Try to find the primary .exe for icon extraction (fast bounded scan)
+                        resolved_exe = None
+                        try:
+                            exes = [Path(e.path) for e in os.scandir(install_path) if e.is_file() and e.name.lower().endswith(".exe")]
+                            if not exes:
+                                exes = self._collect_game_executables(install_path, max_depth=2)
+                            if exes:
+                                resolved_exe = self._select_best_exe(exes, game_name)
+                        except Exception:
+                            pass
 
-                            # If no executable exists in install folder, it's an uninstalled remnant
-                            if not resolved_exe and not [e for e in os.scandir(install_path) if e.is_file() and e.name.lower().endswith(".exe")]:
-                                continue
+                        # If no executable exists in install folder, it's an uninstalled remnant
+                        if not resolved_exe and not [e for e in os.scandir(install_path) if e.is_file() and e.name.lower().endswith(".exe")]:
+                            continue
 
-                            self.games.append({
-                                "name": game_name,
-                                "platform": "Steam",
-                                "id": app_id,
-                                "install_path": str(install_path),
-                                "exe_path": resolved_exe,
-                                "icon": str(steam_path / "appcache" / "librarycache" / f"{app_id}_icon.jpg")
-                            })
+                        self.games.append({
+                            "name": game_name,
+                            "platform": "Steam",
+                            "id": app_id,
+                            "install_path": str(install_path),
+                            "exe_path": resolved_exe,
+                            "icon": str(steam_path / "appcache" / "librarycache" / f"{app_id}_icon.jpg")
+                        })
                     except Exception as e:
                         logger.error(f"Error parsing Steam acf {acf}: {e}")
                         
@@ -2149,9 +2279,30 @@ class GameScanner:
         # Add Steam Launcher itself if not present
         if not any(g["name"] == "Steam" for g in self.games):
             try:
-                key = winreg.OpenKey(winreg.HKEY_CURRENT_USER, r"Software\Valve\Steam")
-                steam_exe, _ = winreg.QueryValueEx(key, "SteamExe")
-                winreg.CloseKey(key)
+                steam_exe = None
+                for root, key_path in [
+                    (winreg.HKEY_CURRENT_USER, r"Software\Valve\Steam"),
+                    (winreg.HKEY_LOCAL_MACHINE, r"SOFTWARE\WOW6432Node\Valve\Steam"),
+                    (winreg.HKEY_LOCAL_MACHINE, r"SOFTWARE\Valve\Steam"),
+                ]:
+                    try:
+                        with winreg.OpenKey(root, key_path, 0, winreg.KEY_READ) as key:
+                            val, _ = winreg.QueryValueEx(key, "SteamExe")
+                            if val and os.path.exists(val):
+                                steam_exe = str(val)
+                                break
+                    except Exception:
+                        continue
+                if not steam_exe and steam_path:
+                    cand = Path(steam_path) / "steam.exe"
+                    if cand.exists():
+                        steam_exe = str(cand)
+                if not steam_exe:
+                    for cand_str in [r"C:\Program Files (x86)\Steam\steam.exe", r"C:\Program Files\Steam\steam.exe"]:
+                        if os.path.exists(cand_str):
+                            steam_exe = cand_str
+                            break
+
                 if steam_exe and os.path.exists(steam_exe):
                     self.games.append({
                         "name": "Steam",
@@ -2164,7 +2315,8 @@ class GameScanner:
                         "features": [],
                         "tags": ["SYSTEM"]
                     })
-            except Exception: pass
+            except Exception:
+                pass
 
     def _scan_epic(self):
         """Scan for Epic Games."""
@@ -3185,8 +3337,11 @@ class GameScanner:
         
         for drive in drives:
             for sub in common_subfolders:
-                root_path = Path(drive) / sub
-                if not root_path.exists() or not root_path.is_dir():
+                try:
+                    root_path = Path(drive) / sub
+                    if not root_path.exists() or not root_path.is_dir():
+                        continue
+                except (PermissionError, OSError):
                     continue
                 
                 try:
@@ -3282,8 +3437,11 @@ class GameScanner:
         
         root_scan_targets = []
         for drive in drives:
-            drive_path = Path(drive)
-            if not drive_path.exists():
+            try:
+                drive_path = Path(drive)
+                if not drive_path.exists():
+                    continue
+            except (PermissionError, OSError):
                 continue
                 
             targets = [
@@ -3310,19 +3468,28 @@ class GameScanner:
             ]
             
             for target in targets:
-                full_path = drive_path / target
-                if full_path.exists():
-                    root_scan_targets.append(full_path)
+                try:
+                    full_path = drive_path / target
+                    if full_path.exists():
+                        root_scan_targets.append(full_path)
+                except (PermissionError, OSError):
+                    continue
             
-            public_games = Path("C:\\Users\\Public\\Games")
-            if public_games.exists() and public_games not in root_scan_targets:
-                root_scan_targets.append(public_games)
+            try:
+                public_games = Path("C:\\Users\\Public\\Games")
+                if public_games.exists() and public_games not in root_scan_targets:
+                    root_scan_targets.append(public_games)
+            except (PermissionError, OSError):
+                pass
             
             publishers = ["Sony", "PlayStation Studios", "Ubisoft", "Electronic Arts", "Activision", "Bethesda"]
             for pub in publishers:
-                pub_path = drive_path / pub
-                if pub_path.exists() and pub_path not in root_scan_targets:
-                    root_scan_targets.append(pub_path)
+                try:
+                    pub_path = drive_path / pub
+                    if pub_path.exists() and pub_path not in root_scan_targets:
+                        root_scan_targets.append(pub_path)
+                except (PermissionError, OSError):
+                    continue
         
         for drive in drives:
             try:
@@ -3339,7 +3506,10 @@ class GameScanner:
         self._deep_scan_max_folders = 600
 
         for root_path in root_scan_targets:
-            if not root_path.exists():
+            try:
+                if not root_path.exists():
+                    continue
+            except (PermissionError, OSError):
                 continue
             if self._deep_scan_folder_count >= self._deep_scan_max_folders:
                 logger.info(f"Deep scan folder cap reached ({self._deep_scan_max_folders}). Stopping.")

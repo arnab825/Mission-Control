@@ -269,11 +269,19 @@ def handle_get_cached_games(payload: dict, pipeline, bridge, config, library_ses
             threading.Thread(target=_do_force_refresh_scan, name="ForceRefreshGameScan", daemon=True).start()
             return
 
-        if not cached:
-            logger.info("No cached games found — triggering non-blocking background auto-scan for user %s", user_id_str)
+        has_real_games = bool(cached and any(
+            g.get("type") in ("GAME", "game") or g.get("is_emulated")
+            for g in cached
+        ))
+
+        if not has_real_games:
+            logger.info(
+                "No real cached games found (%d launcher fallbacks loaded) — triggering auto-scan for user %s",
+                len(cached) if cached else 0, user_id_str
+            )
             bridge.update_state({
-                "game_library": [],
-                "scan_state": {"progress": 0, "status": "Discovering games...", "is_running": False, "is_background": True},
+                "game_library": apply_filters(cached or []),
+                "scan_state": {"progress": 0, "status": "Discovering games...", "is_running": True, "is_background": False},
             })
 
             def _do_auto_scan():
@@ -281,13 +289,14 @@ def handle_get_cached_games(payload: dict, pipeline, bridge, config, library_ses
                     sc = GameScanner(config=config, user_id=user_id_str)
 
                     def on_progress(pct, label):
-                        bridge.update_state({"scan_state": {"progress": pct, "status": label, "is_running": False, "is_background": True}})
+                        bridge.update_state({"scan_state": {"progress": pct, "status": label, "is_running": True, "is_background": False}})
 
                     games = sc.scan_all(progress_callback=on_progress)
                     logger.info("Auto-scan complete: %d titles found for user %s", len(games), user_id_str)
-                    if user_id_str:
-                        with _lib_lock:
+                    with _lib_lock:
+                        if user_id_str:
                             library_session[user_id_str] = games
+                        library_session[f"{user_id_str}_scanned"] = True
                     if pipeline and hasattr(pipeline, "process_watcher") and pipeline.process_watcher:
                         pipeline.process_watcher.update_game_registry(games)
                     bridge.update_state({
@@ -297,7 +306,7 @@ def handle_get_cached_games(payload: dict, pipeline, bridge, config, library_ses
                 except Exception as e:
                     logger.error("Auto-scan failed for user %s: %s", user_id_str, e, exc_info=True)
                     bridge.update_state({
-                        "game_library": [],
+                        "game_library": apply_filters(cached or []),
                         "scan_state": {"progress": 0, "status": "Ready", "is_running": False, "is_background": False},
                     })
 
@@ -489,6 +498,14 @@ def handle_delete_account(payload: dict, pipeline, bridge, config, library_sessi
             logger.warning("Note during Supabase user account purge: %s", de)
 
         safe_user_id = "".join(c for c in user_id_str if c.isalnum() or c in ("-", "_"))
+        try:
+            from core.config_loader import get_persistent_config_dir
+            p_cache = Path(get_persistent_config_dir()) / f"games_db_{safe_user_id}.json"
+            if p_cache.exists():
+                p_cache.unlink()
+                logger.info("Persistent JSON cache deleted: %s", p_cache.name)
+        except Exception:
+            pass
         json_cache = Path(__file__).parent.parent / "config" / f"games_db_{safe_user_id}.json"
         if json_cache.exists():
             json_cache.unlink()
