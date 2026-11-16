@@ -89,7 +89,8 @@ graph TD
 
 | Version | Key Feature / Change Description |
 | :--- | :--- |
-| **v4.0.1 (Latest)** | **Fixed Alienware CPU thermals, Heronite platform classification, launcher HDR cleanup & website SEO repartitioning** — Fixed Alienware CPU thermals, Heronite platform classification, launcher HDR cleanup & website SEO repartitioning. |
+| **v4.0.2 (Latest)** | **Scanner Permission Hardening, Standardized Unit Tests & Process Guard Polish** — Added directory permission guards in GameScanner for Public Desktop preventing Access Denied crashes during shortcut discovery. |
+| **v4.0.1** | **Fixed Alienware CPU thermals, Heronite platform classification, launcher HDR cleanup & website SEO repartitioning** — Fixed Alienware CPU thermals, Heronite platform classification, launcher HDR cleanup & website SEO repartitioning. |
 | **v4.0.0** | **Added Heronite launcher & library detection** — Added Heronite launcher & library detection. |
 | **v3.9.10** | **Universal AMD APU & Intel Core Ultra iGPU Architecture, SmartAccess Graphics & OEM Resiliency** — Comprehensive AMD APU & iGPU detection engine classifying RDNA 2/3/3.5 (610M-890M), Vega, and generic Ryzen Radeon Graphics. |
 | **v3.9.9** | **Native OEM Launch Engine, Intel Refresh & Emulation Hub Polish** — Added direct executable and Windows Shell AppID (UWP) launch targets for major OEM gaming suites (Alienware, OMEN, Armoury Crate, G-Helper, Lenovo Vantage/Legion Toolkit, MSI Center, Razer Synapse, NVIDIA App, AMD Adrenalin, Intel GCC). |
@@ -219,5 +220,5 @@ graph TD
 
 ---
 
-*Last Updated: 15/11/2026*
+*Last Updated: 16/11/2026*
 

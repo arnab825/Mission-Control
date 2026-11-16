@@ -10,7 +10,30 @@ excerpt: "Curated breakdown of major version releases, architectural milestones,
 
 Comprehensive breakdown of major milestone releases, architectural upgrades, and core engine enhancements in **Mission Control**.
 
-## 🌟 Version v4.0.1 (Latest) — Fixed Alienware CPU thermals, Heronite platform classification, launcher HDR cleanup & website SEO repartitioning
+## 🌟 Version v4.0.2 (Latest) — Scanner Permission Hardening, Standardized Unit Tests & Process Guard Polish
+
+### 🛠️ Key Highlights
+1. **Added directory permission guards in GameScanner for Public Desktop preventing Access Denied crashes during shortcut discovery**
+2. **Converted manifest parser and dynamic game scanner test suites to standard unittest with robust import resolution**
+3. **Hardened Electron main process monitoring, window lifecycle guards, and background process management**
+4. **Streamlined automated multi-target release pipeline with blockmap verification and Winget manifest synchronization**
+
+### 📊 Architecture & Data Flow
+```mermaid
+graph TD
+    A["Mobile Client / DevTools (320px+)"] --> B[Responsive CSS & Layout Container]
+    B --> C[DocsClient Component & Cards]
+    C --> D[MobileDocsSidebar Drawer & Header Bar]
+    D --> E[Real-Time Mongo Telemetry & Render]
+```
+
+### 📦 Distribution Artifacts
+- **Linux**: `.deb` (Debian/Ubuntu), `.AppImage` (Universal), `.rpm` (Fedora/RHEL), `.tar.gz` (Portable)
+- **Windows**: `.exe` (Setup Installer), `.msi` (Enterprise), `.zip` (Portable)
+
+---
+
+## 📦 Version v4.0.1 — Fixed Alienware CPU thermals, Heronite platform classification, launcher HDR cleanup & website SEO repartitioning
 
 ### 🛠️ Key Highlights
 1. **Fixed Alienware CPU thermals, Heronite platform classification, launcher HDR cleanup & website SEO repartitioning**

@@ -2,6 +2,13 @@
 
 This document contains a detailed history of all patches and updates for the AI Gaming Assistant.
 
+### Patch: 2026-11-16 — v4.0.2: Scanner Permission Hardening, Standardized Unit Tests & Process Guard Polish
+
+- Added directory permission guards in GameScanner for Public Desktop preventing Access Denied crashes during shortcut discovery
+- Converted manifest parser and dynamic game scanner test suites to standard unittest with robust import resolution
+- Hardened Electron main process monitoring, window lifecycle guards, and background process management
+- Streamlined automated multi-target release pipeline with blockmap verification and Winget manifest synchronization
+
 ### Patch: 2026-11-15 — v4.0.1: Fixed Alienware CPU thermals, Heronite platform classification, launcher HDR cleanup & website SEO repartitioning
 
 - Fixed Alienware CPU thermals, Heronite platform classification, launcher HDR cleanup & website SEO repartitioning
