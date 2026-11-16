@@ -2,9 +2,11 @@ import unittest
 import tempfile
 import shutil
 import os
+import sys
 from pathlib import Path
 from unittest.mock import patch, MagicMock
 
+sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 from system.game_scanner import GameScanner
 
 

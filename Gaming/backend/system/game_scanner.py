@@ -2728,17 +2728,24 @@ class GameScanner:
 
             # Inspect Desktop shortcut target if present
             desktop = Path(user_profile) / "Desktop" if user_profile else None
-            desktop_dirs = [d for d in [desktop, Path("C:\\Users\\Public\\Desktop")] if d and d.exists()]
-            for dt in desktop_dirs:
-                lnk = dt / "Heronite.lnk"
-                if lnk.exists():
+            desktop_dirs = []
+            for d in [desktop, Path("C:\\Users\\Public\\Desktop")]:
+                if d:
                     try:
+                        if d.is_dir():
+                            desktop_dirs.append(d)
+                    except Exception:
+                        pass
+            for dt in desktop_dirs:
+                try:
+                    lnk = dt / "Heronite.lnk"
+                    if lnk.exists():
                         res = _run_hidden_powershell(f'(New-Object -ComObject WScript.Shell).CreateShortcut("{lnk}").TargetPath', timeout=5.0)
                         target = res.stdout.strip()
                         if target and os.path.exists(target) and target not in heronite_candidates:
                             heronite_candidates.insert(0, target)
-                    except Exception:
-                        pass
+                except Exception:
+                    pass
 
             heronite_exe = None
             for cand_path in heronite_candidates:
@@ -3025,9 +3032,14 @@ class GameScanner:
             public_desktop = Path(os.environ.get("PUBLIC", "C:\\Users\\Public")) / "Desktop"
             
             for dt_path in [desktop, public_desktop]:
-                if not dt_path.exists(): continue
+                try:
+                    if not dt_path.is_dir():
+                        continue
+                    lnk_files = list(dt_path.glob("*.lnk"))
+                except Exception:
+                    continue
                 # Handle .lnk files
-                for lnk in dt_path.glob("*.lnk"):
+                for lnk in lnk_files:
                     try:
                         name_lower = lnk.stem.lower()
                         if any(junk in name_lower for junk in self.junk_keywords):
