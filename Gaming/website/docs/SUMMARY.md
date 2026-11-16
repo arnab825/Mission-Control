@@ -89,7 +89,8 @@ graph TD
 
 | Version | Key Feature / Change Description |
 | :--- | :--- |
-| **v4.0.2 (Latest)** | **Scanner Permission Hardening, Standardized Unit Tests & Process Guard Polish** — Added directory permission guards in GameScanner for Public Desktop preventing Access Denied crashes during shortcut discovery. |
+| **v4.0.3 (Latest)** | **Game Platform De-classification, Multi-Source Deduplication, AMD APU Architecture & OEM Companion Hardening** — Resolved game misclassification in library where games on Steam or Heronite were classified as PLATFORM with launcher emblems and action buttons |
+| **v4.0.2** | **Scanner Permission Hardening, Standardized Unit Tests & Process Guard Polish** — Added directory permission guards in GameScanner for Public Desktop preventing Access Denied crashes during shortcut discovery. |
 | **v4.0.1** | **Fixed Alienware CPU thermals, Heronite platform classification, launcher HDR cleanup & website SEO repartitioning** — Fixed Alienware CPU thermals, Heronite platform classification, launcher HDR cleanup & website SEO repartitioning. |
 | **v4.0.0** | **Added Heronite launcher & library detection** — Added Heronite launcher & library detection. |
 | **v3.9.10** | **Universal AMD APU & Intel Core Ultra iGPU Architecture, SmartAccess Graphics & OEM Resiliency** — Comprehensive AMD APU & iGPU detection engine classifying RDNA 2/3/3.5 (610M-890M), Vega, and generic Ryzen Radeon Graphics. |

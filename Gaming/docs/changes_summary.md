@@ -10,7 +10,32 @@ excerpt: "Curated breakdown of major version releases, architectural milestones,
 
 Comprehensive breakdown of major milestone releases, architectural upgrades, and core engine enhancements in **Mission Control**.
 
-## 🌟 Version v4.0.2 (Latest) — Scanner Permission Hardening, Standardized Unit Tests & Process Guard Polish
+## 🌟 Version v4.0.3 (Latest) — Game Platform De-classification, Multi-Source Deduplication, AMD APU Architecture & OEM Companion Hardening
+
+### 🛠️ Key Highlights
+1. **Resolved game misclassification in library where games on Steam or Heronite were classified as PLATFORM with launcher emblems and action buttons**
+2. **Fixed library and hardware feature matrix duplication by normalizing titles and merging multi-source installations into unified game records**
+3. **Upgraded AMD APU and iGPU detection logic across Ryzen 6000-9000 series, Vega, and high-VRAM UMA allocations for MUX Switch and display routing**
+4. **Hardened OEM software launch pipeline against missing UWP shell protocol targets, adding direct binary verification and graceful fallback to Windows Graphics Settings**
+5. **Added multi-root Windows registry search and persistent AppData cache migration preventing library scan stalls across updates**
+
+### 📊 Architecture & Data Flow
+```mermaid
+graph TD
+    A["Game Scanner Engine"] -->|Discovered Titles| B["Canonical Normalizer & Store Deduplicator"]
+    B -->|Merged Multi-Store Records| C["Persistent AppData & Local-First Cache"]
+    C -->|Unified State Bridge| D["Library UI & Hardware Feature Matrix"]
+    E["HW Checker & MUX Detector"] -->|AMD APU + Intel iGPU + dGPU| F["Display Routing Controller"]
+    F -->|Validated Binary / Native Settings| G["OEM Companion Switcher"]
+```
+
+### 📦 Distribution Artifacts
+- **Installer**: `MissionControl-Setup-v4.0.3.exe`
+- **Integrity**: Blockmap verified with full Winget multi-manifest sync.
+
+---
+
+## 🌟 Version v4.0.2 — Scanner Permission Hardening, Standardized Unit Tests & Process Guard Polish
 
 ### 🛠️ Key Highlights
 1. **Added directory permission guards in GameScanner for Public Desktop preventing Access Denied crashes during shortcut discovery**

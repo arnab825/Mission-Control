@@ -2,6 +2,14 @@
 
 This document contains a detailed history of all patches and updates for the AI Gaming Assistant.
 
+### Patch: 2026-11-16 — v4.0.3: Game Platform De-classification, Multi-Source Deduplication, AMD APU Architecture & OEM Companion Hardening
+
+- Resolved game misclassification in library where games on Steam or Heronite were classified as PLATFORM with launcher emblems and action buttons
+- Fixed library and hardware feature matrix duplication by normalizing titles and merging multi-source installations into unified game records
+- Upgraded AMD APU and iGPU detection logic across Ryzen 6000-9000 series, Vega, and high-VRAM UMA allocations for MUX Switch and display routing
+- Hardened OEM software launch pipeline against missing UWP shell protocol targets, adding direct binary verification and graceful fallback to Windows Graphics Settings
+- Added multi-root Windows registry search and persistent AppData cache migration preventing library scan stalls across updates
+
 ### Patch: 2026-11-16 — v4.0.2: Scanner Permission Hardening, Standardized Unit Tests & Process Guard Polish
 
 - Added directory permission guards in GameScanner for Public Desktop preventing Access Denied crashes during shortcut discovery
