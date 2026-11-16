@@ -57,27 +57,27 @@ export const SubNavItem: React.FC<{
       aria-label={label}
       type="button"
       onClick={onClick}
-      className={`min-w-0 w-full p-1.5 sm:p-2 lg:p-3 rounded-xl lg:rounded-2xl flex items-center gap-1 sm:gap-2 lg:gap-3 border transition-all cursor-pointer ${
-        isActive ? 'bg-white/5 border-white/15 shadow-lg' : 'bg-transparent border-transparent hover:bg-white/5'
+      className={`group min-w-0 w-full p-2 sm:p-2.5 lg:p-3 rounded-xl lg:rounded-2xl flex items-center gap-2 sm:gap-2.5 lg:gap-3 border transition-all cursor-pointer ${
+        isActive ? 'bg-white/[0.06] border-white/20 shadow-lg' : 'bg-transparent border-transparent hover:bg-white/5'
       } ${className}`}
     >
-      <div className={`p-1 sm:p-1.5 lg:p-2 rounded-lg lg:rounded-xl ${styles.bgMuted} border ${styles.borderMuted} shrink-0`}>
-        <Icon className={`w-3 h-3 sm:w-3.5 sm:h-3.5 lg:w-4 lg:h-4 ${styles.text}`} />
+      <div className={`p-1.5 sm:p-2 rounded-lg lg:rounded-xl ${styles.bgMuted} border ${styles.borderMuted} shrink-0`}>
+        <Icon className={`w-3.5 h-3.5 sm:w-4 sm:h-4 ${styles.text}`} />
       </div>
       <div className="flex-1 text-left min-w-0">
-        <div className="flex flex-col xl:flex-row xl:justify-between xl:items-center mb-0.5 sm:mb-1 gap-0.5 min-w-0">
-          <span className={`text-[7.5px] xs:text-[8px] sm:text-[9px] lg:text-[10px] font-black uppercase tracking-wider sm:tracking-widest truncate ${isActive ? 'text-white' : 'text-zinc-500'}`}>
+        <div className="flex flex-row justify-between items-center w-full mb-1 sm:mb-1.5 gap-1.5 min-w-0">
+          <span className={`text-[8.5px] xs:text-[9.5px] sm:text-[10px] lg:text-[11px] font-black uppercase tracking-wider truncate ${isActive ? 'text-white' : 'text-zinc-400 group-hover:text-zinc-300'}`}>
             {label}
           </span>
-          <span className={`text-[7.5px] xs:text-[8px] sm:text-[9px] lg:text-[10px] font-black truncate ${isActive ? styles.text : 'text-zinc-400'}`}>
+          <span className={`text-[8.5px] xs:text-[9.5px] sm:text-[10px] lg:text-[11px] font-black tabular-nums truncate ${isActive ? styles.text : 'text-zinc-400 group-hover:text-zinc-300'}`}>
             {value}
           </span>
         </div>
-        <div className="w-full h-1 bg-white/5 rounded-full overflow-hidden">
+        <div className="w-full h-1 sm:h-1.5 bg-white/10 rounded-full overflow-hidden">
           <motion.div
             initial={{ width: 0 }}
-            animate={{ width: `${percent}%` }}
-            className={`h-full ${styles.bg}`}
+            animate={{ width: `${Math.min(100, Math.max(0, percent))}%` }}
+            className={`h-full rounded-full ${styles.bg}`}
           />
         </div>
       </div>
@@ -103,7 +103,7 @@ export const SystemSubNav: React.FC<SystemSubNavProps> = ({
   setViewMode,
 }) => {
   return (
-    <div className="w-full lg:w-56 xl:w-64 grid grid-cols-5 lg:flex lg:flex-col gap-1 sm:gap-1.5 md:gap-2 shrink-0 pb-1 lg:pb-0 z-10 bg-transparent custom-scrollbar lg:h-full lg:justify-between min-w-0 max-w-full">
+    <div className="w-full lg:w-60 xl:w-64 grid grid-cols-5 lg:flex lg:flex-col gap-1.5 sm:gap-2 shrink-0 pb-1 lg:pb-0 z-10 bg-transparent custom-scrollbar lg:h-full lg:justify-between min-w-0 max-w-full">
       <SubNavItem
         label="CPU"
         value={`${state?.cpu_pct != null ? state.cpu_pct.toFixed(1) : '0.0'}%`}

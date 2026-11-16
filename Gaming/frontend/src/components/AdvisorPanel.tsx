@@ -56,31 +56,33 @@ const AdvisorItem: React.FC<{ rec: AdvisorRecommendation }> = ({ rec }) => {
       initial={{ opacity: 0, y: 10 }}
       animate={{ opacity: 1, y: 0 }}
       exit={{ opacity: 0, scale: 0.95 }}
-      className={`relative overflow-hidden rounded-2xl border ${config.border} bg-white/[0.02] backdrop-blur-md transition-all duration-300 ${expanded ? 'bg-white/[0.04]' : 'hover:bg-white/[0.04]'} group`}
+      className={`relative overflow-hidden rounded-2xl border ${config.border} bg-white/[0.03] backdrop-blur-md transition-all duration-300 ${expanded ? 'bg-white/[0.06] shadow-lg' : 'hover:bg-white/[0.05]'} group`}
     >
       <div
-        className="p-4 cursor-pointer flex items-start gap-4 select-none"
+        className="p-3.5 sm:p-4 cursor-pointer flex items-center sm:items-start gap-3 sm:gap-4 select-none"
         onClick={() => setExpanded(!expanded)}
       >
-        <div className={`p-2 rounded-xl ${config.bg} ${config.border} border shrink-0 mt-0.5 group-hover:${config.glow} transition-shadow duration-300`}>
+        <div className={`p-2.5 rounded-xl ${config.bg} ${config.border} border shrink-0 group-hover:${config.glow} transition-shadow duration-300`}>
           <Icon className={`w-5 h-5 ${config.color}`} />
         </div>
 
         <div className="flex-1 min-w-0">
-          <div className="flex items-center justify-between gap-2 mb-1">
-            <h4 className="text-sm font-bold text-white truncate">{rec.title}</h4>
-            <span className={`text-[10px] font-black uppercase tracking-wider px-2 py-0.5 rounded-full ${config.bg} ${config.color} border ${config.border}`}>
+          <div className="flex flex-wrap sm:flex-nowrap items-center justify-between gap-2 mb-1">
+            <h4 className="text-sm sm:text-base font-bold text-white tracking-tight">
+              {rec.title}
+            </h4>
+            <span className={`text-[10px] font-black uppercase tracking-wider px-2.5 py-0.5 rounded-full ${config.bg} ${config.color} border ${config.border} shrink-0`}>
               {rec.severity}
             </span>
           </div>
-          <p className="text-xs text-zinc-400 font-medium truncate group-hover:text-zinc-300 transition-colors">
+          <p className="text-xs sm:text-sm text-zinc-300 font-medium leading-relaxed group-hover:text-zinc-200 transition-colors line-clamp-2 sm:line-clamp-none">
             {rec.description}
           </p>
         </div>
 
-        <div className="shrink-0 pt-1">
-          <motion.div animate={{ rotate: expanded ? 180 : 0 }}>
-            <ChevronDown className="w-5 h-5 text-zinc-600 group-hover:text-zinc-400 transition-colors" />
+        <div className="shrink-0 pl-1 self-center sm:self-start sm:pt-1">
+          <motion.div animate={{ rotate: expanded ? 180 : 0 }} transition={{ duration: 0.2 }}>
+            <ChevronDown className="w-5 h-5 text-zinc-500 group-hover:text-zinc-300 transition-colors" />
           </motion.div>
         </div>
       </div>
@@ -101,18 +103,22 @@ const AdvisorItem: React.FC<{ rec: AdvisorRecommendation }> = ({ rec }) => {
                   <div className="w-px h-full bg-white/5" />
                 </div>
                 <div className="flex-1 space-y-3 pb-1 pr-4">
-                  <div>
-                    <span className="block text-[10px] font-black text-zinc-500 uppercase tracking-widest mb-1">Reason</span>
-                    <p className="text-xs text-zinc-300 leading-relaxed font-medium">
-                      {rec.reason}
-                    </p>
-                  </div>
-                  <div>
-                    <span className="block text-[10px] font-black text-zinc-500 uppercase tracking-widest mb-1">Action</span>
-                    <p className="text-xs text-neon-green leading-relaxed font-bold">
-                      {rec.action}
-                    </p>
-                  </div>
+                  {rec.reason && (
+                    <div>
+                      <span className="block text-[10px] font-black text-zinc-500 uppercase tracking-widest mb-1">Reason</span>
+                      <p className="text-xs sm:text-sm text-zinc-300 leading-relaxed font-medium">
+                        {rec.reason}
+                      </p>
+                    </div>
+                  )}
+                  {rec.action && (
+                    <div>
+                      <span className="block text-[10px] font-black text-zinc-500 uppercase tracking-widest mb-1">Recommended Action</span>
+                      <p className="text-xs sm:text-sm text-neon-green leading-relaxed font-bold">
+                        {rec.action}
+                      </p>
+                    </div>
+                  )}
                 </div>
               </div>
             </div>
@@ -159,7 +165,7 @@ export const AdvisorPanel: React.FC<AdvisorPanelProps> = ({ recommendations }) =
         </div>
       </div>
 
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+      <div className={`grid gap-3.5 ${uniqueRecs.length > 1 ? 'grid-cols-1 lg:grid-cols-2' : 'grid-cols-1 w-full'}`}>
         <AnimatePresence mode="popLayout">
           {uniqueRecs.map((rec) => (
             <AdvisorItem key={rec.id} rec={rec} />

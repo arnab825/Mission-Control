@@ -1,6 +1,596 @@
 {
-  "timestamp": 1794764721.620489,
+  "timestamp": 1794846839.5943878,
   "items": [
+    {
+      "id": "https://kotaku.com/the-worlds-favorite-fanfiction-website-has-finally-returned-after-a-hack-took-it-down-for-weeks-2000757430",
+      "title": "The World\u2019s Favorite Fanfiction Website Has Finally Returned After A Hack Took It Down For Weeks",
+      "link": "https://kotaku.com/the-worlds-favorite-fanfiction-website-has-finally-returned-after-a-hack-took-it-down-for-weeks-2000757430",
+      "description": "In your rush to return to AO3, please don't crash the site",
+      "source": "Kotaku",
+      "category": "Gaming",
+      "pubDate": "Mon, 16 Nov 2026 16:30:48 +0000",
+      "imageUrl": "https://kotaku.com/app/uploads/2026/11/ao3-aragorn-1280x720.jpg"
+    },
+    {
+      "id": "https://www.polygon.com/magic-the-gathering-jadzia-dax/",
+      "title": "Magic: The Gathering Turns a Fan-Favorite Star Trek Character Into a Commander Staple",
+      "link": "https://www.polygon.com/magic-the-gathering-jadzia-dax/",
+      "description": "Jadzia Dax, Living Legacy is one of the Universes Beyond set\u2019s best cards",
+      "source": "Polygon",
+      "category": "Gaming",
+      "pubDate": "Mon, 16 Nov 2026 16:30:18 GMT",
+      "imageUrl": "https://static0.polygonimages.com/wordpress/wp-content/uploads/2026/11/jadzia-dax-terry-farrell-sits-on-the-bridge-of-deep-space-nine-in-front-of-captain-benjamin-sisko-avery-brooks.jpg"
+    },
+    {
+      "id": "https://www.pcgamer.com/games/call-of-duty/we-almost-got-a-medieval-call-of-duty-with-knights-and-swords-if-its-a-war-story-sure-it-can-be-call-of-duty/",
+      "title": "We almost got a medieval Call of Duty with knights and swords: 'If it's a war story, sure, it can be Call of Duty'",
+      "link": "https://www.pcgamer.com/games/call-of-duty/we-almost-got-a-medieval-call-of-duty-with-knights-and-swords-if-its-a-war-story-sure-it-can-be-call-of-duty/",
+      "description": "",
+      "source": "PC Gamer",
+      "category": "PC Gaming",
+      "pubDate": "Mon, 16 Nov 2026 16:28:36 +0000",
+      "imageUrl": "https://cdn.mos.cms.futurecdn.net/XfNTGDQvvJwVWuwYpnBxmL-1920-80.jpg"
+    },
+    {
+      "id": "https://www.polygon.com/black-friday-2026-amazon-gaming-deals-when-ps5-ps5-xbox-nintendo-switch/",
+      "title": "Amazon Officially Reveals Early Black Friday Gaming Deals",
+      "link": "https://www.polygon.com/black-friday-2026-amazon-gaming-deals-when-ps5-ps5-xbox-nintendo-switch/",
+      "description": "Cyberpunk 2077, Split Fiction, and even some GOTY contenders on Nintendo, PlayStation, and Xbox are all discounted on Amazon for Black Friday 2026.",
+      "source": "Polygon",
+      "category": "Gaming",
+      "pubDate": "Mon, 16 Nov 2026 16:20:16 GMT",
+      "imageUrl": "https://static0.polygonimages.com/wordpress/wp-content/uploads/2026/05/cyclops_cosmic.jpg"
+    },
+    {
+      "id": "https://www.polygon.com/star-wars-fate-of-the-old-republic-2027-announcements-director-teases/",
+      "title": "Star Wars: Fate of the Old Republic Director Teases Big Announcements",
+      "link": "https://www.polygon.com/star-wars-fate-of-the-old-republic-2027-announcements-director-teases/",
+      "description": "Mass Effect creator reveals \u2018pretty exciting things coming next year\u2019 for Star Wars: The Fate of the Old Republic",
+      "source": "Polygon",
+      "category": "Gaming",
+      "pubDate": "Mon, 16 Nov 2026 16:13:46 GMT",
+      "imageUrl": "https://static0.polygonimages.com/wordpress/wp-content/uploads/sharedimages/2025/12/star-wars-fate-of-the-old-republic-press-image-5.jpeg"
+    },
+    {
+      "id": "https://www.polygon.com/game-of-the-year-goty-game-awards-2026-frontrunners/",
+      "title": "Game Awards 2026: All Game of the Year Front-Runners and Predictions",
+      "link": "https://www.polygon.com/game-of-the-year-goty-game-awards-2026-frontrunners/",
+      "description": "We rank the contenders for GOTY 2026 at TGAs, including Resident Evil Requiem and Zelda: Ocarina of Time",
+      "source": "Polygon",
+      "category": "Gaming",
+      "pubDate": "Mon, 16 Nov 2026 16:12:20 GMT",
+      "imageUrl": "https://static0.polygonimages.com/wordpress/wp-content/uploads/2026/11/jason_duval_11-1.jpg"
+    },
+    {
+      "id": "https://www.rockpapershotgun.com/intel-are-being-sued-for-misleading-investors-about-a-massive-glut-of-unwanted-pc-inventory-thanks-to-ai-fuelled-price-hikes",
+      "title": "Intel are being sued for \"misleading\" investors about \"a massive glut of unwanted PC inventory\" thanks to AI-fuelled price hikes",
+      "link": "https://www.rockpapershotgun.com/intel-are-being-sued-for-misleading-investors-about-a-massive-glut-of-unwanted-pc-inventory-thanks-to-ai-fuelled-price-hikes",
+      "description": "Tech giant Intel are being taken to court for allegedly \"misleading\" their investors about the sheer scale of the impact of generative AI-fuelled component price hikes on PC sales. The class action lawsuit in question...",
+      "source": "Rock Paper Shotgun",
+      "category": "PC Gaming",
+      "pubDate": "Mon, 16 Nov 2026 16:10:00 +0000",
+      "imageUrl": "https://assetsio.gnwcdn.com/Intel-Core-Ultra-7-270K-installed-alt-2.JPG?width=690&amp;quality=85&amp;format=jpg&amp;auto=webp"
+    },
+    {
+      "id": "https://www.pcgamer.com/hardware/motherboards/biostar-announces-the-first-intel-panther-lake-motherboard-and-its-tiny-but-dont-get-your-hopes-up-for-cramming-it-into-a-mini-gaming-pc/",
+      "title": "Biostar announces the first Intel Panther Lake motherboard and it's tiny, but don't get your hopes up for cramming it into a mini gaming PC",
+      "link": "https://www.pcgamer.com/hardware/motherboards/biostar-announces-the-first-intel-panther-lake-motherboard-and-its-tiny-but-dont-get-your-hopes-up-for-cramming-it-into-a-mini-gaming-pc/",
+      "description": "",
+      "source": "PC Gamer",
+      "category": "PC Gaming",
+      "pubDate": "Mon, 16 Nov 2026 16:08:45 +0000",
+      "imageUrl": "https://cdn.mos.cms.futurecdn.net/5be5HLmVwPazqsCpNu9FVH-1920-80.jpg"
+    },
+    {
+      "id": "https://www.polygon.com/avengers-secret-wars-other-genre-marvel-boss-says/",
+      "title": "Avengers: Secret Wars Will Be \u2018Whole Other Genre,\u2019 Marvel Boss Says",
+      "link": "https://www.polygon.com/avengers-secret-wars-other-genre-marvel-boss-says/",
+      "description": "Marvel boss Kevin Feige says that Avengers: Secret Wars will be very different from Doomsday",
+      "source": "Polygon",
+      "category": "Gaming",
+      "pubDate": "Mon, 16 Nov 2026 16:05:41 GMT",
+      "imageUrl": "https://static0.polygonimages.com/wordpress/wp-content/uploads/2026/09/avengers-doomsday-thor.jpg"
+    },
+    {
+      "id": "https://www.polygon.com/gta-6-goty-nominations/",
+      "title": "The 2026 Game Awards Nominations Will Spoil GTA 6 Reviews",
+      "link": "https://www.polygon.com/gta-6-goty-nominations/",
+      "description": "Grand Theft Auto 6's late entry into the GOTY race is awkwardly timed for both Rockstar Games and TGA's jury",
+      "source": "Polygon",
+      "category": "Gaming",
+      "pubDate": "Mon, 16 Nov 2026 16:02:17 GMT",
+      "imageUrl": "https://static0.polygonimages.com/wordpress/wp-content/uploads/2026/10/image-18.png"
+    },
+    {
+      "id": "https://www.polygon.com/best-quote-peanuts-charlie-brown-thanksgiving-franklin/",
+      "title": "53 Years Later, the Best \u2018A Charlie Brown Thanksgiving\u2019 Quote Is Classic \u2018Peanuts\u2019 Line",
+      "link": "https://www.polygon.com/best-quote-peanuts-charlie-brown-thanksgiving-franklin/",
+      "description": "A Charlie Brown Thanksgiving is a second-tier special with an important, symbolic inclusion",
+      "source": "Polygon",
+      "category": "Gaming",
+      "pubDate": "Mon, 16 Nov 2026 16:01:19 GMT",
+      "imageUrl": "https://static0.polygonimages.com/wordpress/wp-content/uploads/2026/11/vs-acharliebrownthanksgiving1973-rcusddigitallibrary-24-35.jpg"
+    },
+    {
+      "id": "https://kotaku.com/actively-makes-the-game-worse-fans-are-furious-with-pikmin-4s-paid-nintendo-switch-2-upgrade-2000757449",
+      "title": "\u2018Actively Makes The Game Worse\u2019: Fans Are Furious With Pikmin 4\u2032s Paid Nintendo Switch 2 \u2018Upgrade\u2019",
+      "link": "https://kotaku.com/actively-makes-the-game-worse-fans-are-furious-with-pikmin-4s-paid-nintendo-switch-2-upgrade-2000757449",
+      "description": "'This is essentially a paid downgrade'",
+      "source": "Kotaku",
+      "category": "Gaming",
+      "pubDate": "Mon, 16 Nov 2026 16:00:35 +0000",
+      "imageUrl": "https://kotaku.com/app/uploads/2023/07/a6c5dbb05bd03a93773d1d76caf6f8ba-1280x720.jpg"
+    },
+    {
+      "id": "https://www.gamespot.com/articles/nba-2k27-gta-6-crossover-includes-a-whole-gta-inspired-limited-edition-of-the-game/",
+      "title": "NBA 2K27\u2019s GTA 6 Crossover Includes A Whole GTA-Inspired Limited Edition Of The Game",
+      "link": "https://www.gamespot.com/articles/nba-2k27-gta-6-crossover-includes-a-whole-gta-inspired-limited-edition-of-the-game/",
+      "description": "Ahead of the GTA 6 release this week, publisher Take-Two Interactive and 2K Sports have announced an NBA 2K27 crossover with the game. Starting November 27, Vice City will take over the digital basketball courts, and ...",
+      "source": "GameSpot",
+      "category": "Gaming",
+      "pubDate": "Mon, 16 Nov 2026 16:00:00 +0000",
+      "imageUrl": "https://www.gamespot.com/wp-content/uploads/2026/11/NBA-2K27-Bam.jpg?w=300"
+    },
+    {
+      "id": "https://www.pcgamer.com/games/final-fantasy/final-fantasy-14-really-wants-evercold-to-be-the-expansion-everyone-comes-back-to-so-much-so-its-giving-you-30-days-free-gametime-if-youve-been-gone-long-enough/",
+      "title": "Final Fantasy 14 really wants Evercold to be the expansion everyone comes back to, so much so it's giving you 30 days free gametime if you've been gone long enough",
+      "link": "https://www.pcgamer.com/games/final-fantasy/final-fantasy-14-really-wants-evercold-to-be-the-expansion-everyone-comes-back-to-so-much-so-its-giving-you-30-days-free-gametime-if-youve-been-gone-long-enough/",
+      "description": "",
+      "source": "PC Gamer",
+      "category": "PC Gaming",
+      "pubDate": "Mon, 16 Nov 2026 15:53:44 +0000",
+      "imageUrl": "https://cdn.mos.cms.futurecdn.net/byi8pPpAtL5YpqFdqnHY23-1920-80.jpg"
+    },
+    {
+      "id": "https://www.gamespot.com/articles/shooting-suspect-in-custody-after-opening-fire-near-xbox-devs-studio/",
+      "title": "Shooting Suspect In Custody After Opening Fire Near Xbox Dev\u2019s Studio",
+      "link": "https://www.gamespot.com/articles/shooting-suspect-in-custody-after-opening-fire-near-xbox-devs-studio/",
+      "description": "A drive-by shooting in Southern California ended with no injuries and an arrest after the gunman reportedly opened fire near a business and office campus that houses Xbox subsidiary InXile Entertainment. According to ...",
+      "source": "GameSpot",
+      "category": "Gaming",
+      "pubDate": "Mon, 16 Nov 2026 15:52:19 +0000",
+      "imageUrl": "https://www.gamespot.com/wp-content/uploads/2026/11/cwr-image.jpg?w=300"
+    },
+    {
+      "id": "https://www.rockpapershotgun.com/gta-6-hacker-pleads-guilty-to-2022-rockstar-games-breach-which-the-company-claim-cost-them-5-million",
+      "title": "GTA 6 hacker pleads guilty to 2022 Rockstar Games breach which the company claim cost them $5 million",
+      "link": "https://www.rockpapershotgun.com/gta-6-hacker-pleads-guilty-to-2022-rockstar-games-breach-which-the-company-claim-cost-them-5-million",
+      "description": "A hacker has pleaded guilty to a number of online crimes, including the 2022 breach of Rockstar Games which resulted in a bunch of mid-development clips of GTA 6 in action leaking onto the net. Read more",
+      "source": "Rock Paper Shotgun",
+      "category": "PC Gaming",
+      "pubDate": "Mon, 16 Nov 2026 15:36:40 +0000",
+      "imageUrl": "https://assetsio.gnwcdn.com/gta-6-headline-launch-gallery-9.jpg?width=690&amp;quality=85&amp;format=jpg&amp;auto=webp"
+    },
+    {
+      "id": "https://www.polygon.com/gta-6-nov-13-patch-102-what-is-download-size-ps5-xbox/",
+      "title": "GTA 6's Official First Updates Are Great News For Fans",
+      "link": "https://www.polygon.com/gta-6-nov-13-patch-102-what-is-download-size-ps5-xbox/",
+      "description": "Even GTA 6 fans who already preloaded the game have two updates to download on PS5 and Xbox",
+      "source": "Polygon",
+      "category": "Gaming",
+      "pubDate": "Mon, 16 Nov 2026 15:15:59 GMT",
+      "imageUrl": "https://static0.polygonimages.com/wordpress/wp-content/uploads/2026/11/vice_city_24-1.jpg"
+    },
+    {
+      "id": "https://kotaku.com/robert-pattinson-james-bond-007-announcement-casting-2000757450",
+      "title": "Robert Pattinson Is Officially The New James Bond",
+      "link": "https://kotaku.com/robert-pattinson-james-bond-007-announcement-casting-2000757450",
+      "description": "The Odyssey and Batman star steps into the role after Daniel Craig's 15-year run",
+      "source": "Kotaku",
+      "category": "Gaming",
+      "pubDate": "Mon, 16 Nov 2026 15:09:30 +0000",
+      "imageUrl": "https://kotaku.com/app/uploads/2026/11/rpat.jpg"
+    },
+    {
+      "id": "https://www.polygon.com/grammy-awards-2026-video-game-score-nominees-announced/",
+      "title": "007 First Light and Marvel\u2019s Wolverine Officially Nab Surprising Award Nominations",
+      "link": "https://www.polygon.com/grammy-awards-2026-video-game-score-nominees-announced/",
+      "description": "The 2027 Grammy nominees for best video game soundtrack have been announced, and there\u2019s some tough competition",
+      "source": "Polygon",
+      "category": "Gaming",
+      "pubDate": "Mon, 16 Nov 2026 15:06:55 GMT",
+      "imageUrl": "https://static0.polygonimages.com/wordpress/wp-content/uploads/2026/05/bowtie.png"
+    },
+    {
+      "id": "https://www.polygon.com/next-james-bond-actor-cast-denis-villeneuve/",
+      "title": "New James Bond Actor Officially Announced: Robert Pattinson is 007",
+      "link": "https://www.polygon.com/next-james-bond-actor-cast-denis-villeneuve/",
+      "description": "The next James Bond is Robert Pattinson, Amazon MGM announced after a yearslong search to replace Daniel Craig as 007.",
+      "source": "Polygon",
+      "category": "Gaming",
+      "pubDate": "Mon, 16 Nov 2026 15:06:04 GMT",
+      "imageUrl": "https://static0.polygonimages.com/wordpress/wp-content/uploads/2026/11/mcdcosm_ec008.jpg"
+    },
+    {
+      "id": "https://kotaku.com/activision-treyarch-layoffs-call-of-duty-zombies-craig-houston-2000757439",
+      "title": "Xbox Layoffs Hit 20-Year Call Of Duty Veteran Who Wrote On Every Black Ops Game",
+      "link": "https://kotaku.com/activision-treyarch-layoffs-call-of-duty-zombies-craig-houston-2000757439",
+      "description": "Craig Houston had been writing for the series since Call of Duty 3",
+      "source": "Kotaku",
+      "category": "Gaming",
+      "pubDate": "Mon, 16 Nov 2026 15:00:34 +0000",
+      "imageUrl": "https://kotaku.com/app/uploads/2025/10/cod-1280x720.jpg"
+    },
+    {
+      "id": "https://www.tomshardware.com/desktops/mini-pcs/minisforum-elite-mini-m2-air-304-review",
+      "title": "Minisforum Elite Mini M2 Air-304 review: A quiet and compact Wildcat",
+      "link": "https://www.tomshardware.com/desktops/mini-pcs/minisforum-elite-mini-m2-air-304-review",
+      "description": "",
+      "source": "Tom's Hardware",
+      "category": "Hardware",
+      "pubDate": "Mon, 16 Nov 2026 15:00:00 +0000",
+      "imageUrl": "https://cdn.mos.cms.futurecdn.net/G3ccF7itdX36LKpD7tVq9i-1920-80.jpg"
+    },
+    {
+      "id": "https://www.tomshardware.com/tech-industry/artificial-intelligence/anthropic-says-claude-mythos-slashed-software-work-to-onboard-amd-gpus-from-up-to-12-months-to-around-three-days-writing-almost-100-percent-of-kernels-autonomously-chips-away-at-nvidias-cuda-moat",
+      "title": "Anthropic says Claude Mythos Preview cut AMD MI355X onboarding from up to 12 months to around three days",
+      "link": "https://www.tomshardware.com/tech-industry/artificial-intelligence/anthropic-says-claude-mythos-slashed-software-work-to-onboard-amd-gpus-from-up-to-12-months-to-around-three-days-writing-almost-100-percent-of-kernels-autonomously-chips-away-at-nvidias-cuda-moat",
+      "description": "",
+      "source": "Tom's Hardware",
+      "category": "Hardware",
+      "pubDate": "Mon, 16 Nov 2026 15:00:00 +0000",
+      "imageUrl": "https://cdn.mos.cms.futurecdn.net/jcG9LwCNh8XUGiSJ9Pxw7Z-1920-80.jpg"
+    },
+    {
+      "id": "https://www.tomshardware.com/pc-components/cpus/overlocker-uses-vibecoded-bios-modification-to-target-intels-non-k-overclocking-restrictions-attempts-to-revive-asrocks-discontinued-skyoc-technology",
+      "title": "Overlocker uses vibecoded BIOS modification to target Intel's non-K overclocking restrictions",
+      "link": "https://www.tomshardware.com/pc-components/cpus/overlocker-uses-vibecoded-bios-modification-to-target-intels-non-k-overclocking-restrictions-attempts-to-revive-asrocks-discontinued-skyoc-technology",
+      "description": "",
+      "source": "Tom's Hardware",
+      "category": "Hardware",
+      "pubDate": "Mon, 16 Nov 2026 14:54:10 +0000",
+      "imageUrl": "https://cdn.mos.cms.futurecdn.net/upv5CLs6eZgME2q4v4v9MX-1920-80.jpg"
+    },
+    {
+      "id": "https://www.pcgamer.com/games/world-of-warcraft/world-of-warcraft-forever-player-turns-their-paladin-into-a-near-unkillable-healbot-solos-a-level-60-monster-at-level-30-and-swims-into-the-ocean/",
+      "title": "World of Warcraft: Forever player turns their paladin into a near-unkillable healbot, solos a level 60 monster at level 30, and swims into the ocean",
+      "link": "https://www.pcgamer.com/games/world-of-warcraft/world-of-warcraft-forever-player-turns-their-paladin-into-a-near-unkillable-healbot-solos-a-level-60-monster-at-level-30-and-swims-into-the-ocean/",
+      "description": "",
+      "source": "PC Gamer",
+      "category": "PC Gaming",
+      "pubDate": "Mon, 16 Nov 2026 14:34:01 +0000",
+      "imageUrl": "https://cdn.mos.cms.futurecdn.net/prYmvnyWqdJvpLnkbECqs3-1920-80.png"
+    },
+    {
+      "id": "https://www.gamespot.com/articles/xbox-game-pass-gets-even-more-games-in-november/",
+      "title": "Xbox Game Pass Gets Even More Games In November",
+      "link": "https://www.gamespot.com/articles/xbox-game-pass-gets-even-more-games-in-november/",
+      "description": "The second half of November is usually quiet for several reasons when it comes to new game releases\u2013and one other big reason\u2013but Xbox Game Pass subscribers can look forward to several new titles to close off the month...",
+      "source": "GameSpot",
+      "category": "Gaming",
+      "pubDate": "Mon, 16 Nov 2026 14:33:49 +0000",
+      "imageUrl": "https://www.gamespot.com/wp-content/uploads/2026/11/Paw-Patrol-Dino-World.jpg?w=300"
+    },
+    {
+      "id": "https://www.gamespot.com/articles/we-got-a-grand-theft-at-disney-world-before-gta-6/",
+      "title": "We Got A Grand Theft At Disney World Before GTA 6",
+      "link": "https://www.gamespot.com/articles/we-got-a-grand-theft-at-disney-world-before-gta-6/",
+      "description": "The \"We got X before GTA 6\" meme continues as a Grand Theft has been reported at Walt Disney World's Epcot theme park just days before Rockstar's open-world crime game releases, and the meme comes to an end. The Walt ...",
+      "source": "GameSpot",
+      "category": "Gaming",
+      "pubDate": "Mon, 16 Nov 2026 14:32:07 +0000",
+      "imageUrl": "https://www.gamespot.com/wp-content/uploads/2026/11/Jason_and_Lucia_11.jpg?w=300"
+    },
+    {
+      "id": "https://www.eurogamer.net/cyberpunk-2077-multiplayer-mod-open-beta",
+      "title": "Ever wanted to play a multiplayer version of Cyberpunk 2077 with your friends? Well, thanks to a mod now in beta, you can",
+      "link": "https://www.eurogamer.net/cyberpunk-2077-multiplayer-mod-open-beta",
+      "description": "You may have recently read that CD Projekt Red's in-development Cyberpunk 2 may be trying to revive the original game's online ambitions. But, if you don't want to wait the many years it'll likely be before the Cyberp...",
+      "source": "Eurogamer",
+      "category": "Gaming",
+      "pubDate": "Mon, 16 Nov 2026 14:19:10 +0000",
+      "imageUrl": "https://assetsio.gnwcdn.com/CyberMP-header.jpg?width=690&amp;quality=85&amp;format=jpg&amp;auto=webp"
+    },
+    {
+      "id": "https://kotaku.com/jesen-huang-reportedly-goes-from-calling-himself-a-piece-of-sht-to-exploring-a-return-to-nvidia-2000757422",
+      "title": "Jesen Huang Reportedly Goes From Calling Himself A \u2018Piece Of Sh*t\u2019 To Exploring A Return To Nvidia",
+      "link": "https://kotaku.com/jesen-huang-reportedly-goes-from-calling-himself-a-piece-of-sht-to-exploring-a-return-to-nvidia-2000757422",
+      "description": "Have we seen the last of the leather jacket\u2013wearing founder?",
+      "source": "Kotaku",
+      "category": "Gaming",
+      "pubDate": "Mon, 16 Nov 2026 14:11:11 +0000",
+      "imageUrl": "https://kotaku.com/app/uploads/2025/01/93ba8ed2f12378e18f51ab48cc12aba1-1280x854.jpg"
+    },
+    {
+      "id": "https://www.pcgamer.com/games/rts/ashes-of-the-singularity-2-review/",
+      "title": "Ashes of the Singularity 2 review: Some neat ideas undermined by a rubbish campaign and obtrusive generative AI",
+      "link": "https://www.pcgamer.com/games/rts/ashes-of-the-singularity-2-review/",
+      "description": "",
+      "source": "PC Gamer",
+      "category": "PC Gaming",
+      "pubDate": "Mon, 16 Nov 2026 14:01:32 +0000",
+      "imageUrl": "https://cdn.mos.cms.futurecdn.net/rYxAXFKHCxrG3NcDcXa2sj-1920-80.png"
+    },
+    {
+      "id": "https://www.tomshardware.com/tech-industry/unlock-toms-hardware-premiums-supercomputer-2026-coverage-for-free-sign-up-for-an-account-to-read-detailed-reports-from-the-show",
+      "title": "Unlock Tom's Hardware Premium's SuperComputer 2026 coverage for free \u2014 sign up for an account to read detailed reports from the show",
+      "link": "https://www.tomshardware.com/tech-industry/unlock-toms-hardware-premiums-supercomputer-2026-coverage-for-free-sign-up-for-an-account-to-read-detailed-reports-from-the-show",
+      "description": "",
+      "source": "Tom's Hardware",
+      "category": "Hardware",
+      "pubDate": "Mon, 16 Nov 2026 14:00:00 +0000",
+      "imageUrl": "https://cdn.mos.cms.futurecdn.net/mGhDAAqYZfSzkURo9H7u5k-1920-80.jpg"
+    },
+    {
+      "id": "https://www.gamespot.com/articles/gta-6-promo-at-kfc-is-a-fake-funeral-so-you-can-take-the-day-off-to-play/",
+      "title": "GTA 6 Promo At KFC Is A Fake Funeral So You Can Take The Day Off To Play",
+      "link": "https://www.gamespot.com/articles/gta-6-promo-at-kfc-is-a-fake-funeral-so-you-can-take-the-day-off-to-play/",
+      "description": "The popular fried chicken chain KFC has announced a frankly absurd GTA 6 promotion: a fake funeral so people have a \u201clegitimate\u201d excuse to take the day off to play Rockstar\u2019s latest. The fake funeral for a woman, \"Ann...",
+      "source": "GameSpot",
+      "category": "Gaming",
+      "pubDate": "Mon, 16 Nov 2026 13:42:12 +0000",
+      "imageUrl": "https://www.gamespot.com/wp-content/uploads/2026/11/GTA6KFC-Large.jpeg?w=300"
+    },
+    {
+      "id": "https://www.gamespot.com/articles/xbox-is-hoping-ai-can-stop-its-next-console-from-costing-a-fortune/",
+      "title": "Xbox Is Looking For Smarter Ways To Stop Its Next Console From Costing A Fortune",
+      "link": "https://www.gamespot.com/articles/xbox-is-hoping-ai-can-stop-its-next-console-from-costing-a-fortune/",
+      "description": "No one knows yet exactly what the next-gen Xbox console, Project Helix, will be, but most people are convinced it won't be cheap. The ongoing memory shortage has driven current-gen console prices skyward since 2024, w...",
+      "source": "GameSpot",
+      "category": "Gaming",
+      "pubDate": "Mon, 16 Nov 2026 13:40:05 +0000",
+      "imageUrl": "https://www.gamespot.com/wp-content/uploads/2026/07/original-xbox-logo.jpg?w=300"
+    },
+    {
+      "id": "https://www.pcgamer.com/games/fps/game-dev-isnt-always-straightforward-overwatchs-director-responds-to-players-upset-about-season-6s-hero-being-a-dps/",
+      "title": "'Game dev isn't always straightforward': Overwatch's director responds to players upset about season 6's hero being a DPS",
+      "link": "https://www.pcgamer.com/games/fps/game-dev-isnt-always-straightforward-overwatchs-director-responds-to-players-upset-about-season-6s-hero-being-a-dps/",
+      "description": "",
+      "source": "PC Gamer",
+      "category": "PC Gaming",
+      "pubDate": "Mon, 16 Nov 2026 13:35:19 +0000",
+      "imageUrl": "https://cdn.mos.cms.futurecdn.net/F4KjXnYKQrMwUaNZDRnVpW-1920-80.png"
+    },
+    {
+      "id": "https://www.tomshardware.com/tech-industry/space/amazons-starlink-rival-sees-major-setback-after-40-satellites-destroyed-in-rocket-failure-anomaly-occurred-10-minutes-after-the-vulcan-launch-on-sunday",
+      "title": "Amazon\u2019s Starlink rival sees major setback after 40 satellites destroyed in rocket failure",
+      "link": "https://www.tomshardware.com/tech-industry/space/amazons-starlink-rival-sees-major-setback-after-40-satellites-destroyed-in-rocket-failure-anomaly-occurred-10-minutes-after-the-vulcan-launch-on-sunday",
+      "description": "",
+      "source": "Tom's Hardware",
+      "category": "Hardware",
+      "pubDate": "Mon, 16 Nov 2026 13:30:00 +0000",
+      "imageUrl": "https://cdn.mos.cms.futurecdn.net/AuR9e4NYXwgJvyt68SCzeT-1920-80.jpg"
+    },
+    {
+      "id": "https://www.pcgamer.com/hardware/processors/intel-hit-with-class-action-alleging-it-misled-investors-companys-recent-downturn-due-in-part-to-how-darn-expensive-pcs-are-right-now/",
+      "title": "Intel hit with class action alleging it 'misled investors' \u2013 company's recent downturn due in part to how darn expensive PCs are right now",
+      "link": "https://www.pcgamer.com/hardware/processors/intel-hit-with-class-action-alleging-it-misled-investors-companys-recent-downturn-due-in-part-to-how-darn-expensive-pcs-are-right-now/",
+      "description": "",
+      "source": "PC Gamer",
+      "category": "PC Gaming",
+      "pubDate": "Mon, 16 Nov 2026 13:28:40 +0000",
+      "imageUrl": "https://cdn.mos.cms.futurecdn.net/noDe2kTV3kRZ3W7ngLXyH8-1920-80.jpg"
+    },
+    {
+      "id": "https://www.eurogamer.net/can-gta-6-make-2-billion-in-its-opening-weekend-one-industry-analyst-has-run-the-numbers-and-seems-to-think-so",
+      "title": "Can GTA 6 make $2 billion in its opening weekend? One industry analyst has run the numbers, and seems to think so",
+      "link": "https://www.eurogamer.net/can-gta-6-make-2-billion-in-its-opening-weekend-one-industry-analyst-has-run-the-numbers-and-seems-to-think-so",
+      "description": "We all know the story of GTA 5 making more than $1 billion in the first three days it was on sale, right? At the time, Take-Two believed this to be the fastest any entertainment property had achieved the impressive mi...",
+      "source": "Eurogamer",
+      "category": "Gaming",
+      "pubDate": "Mon, 16 Nov 2026 13:20:30 +0000",
+      "imageUrl": "https://assetsio.gnwcdn.com/gta-6-money.jpg?width=690&amp;quality=85&amp;format=jpg&amp;auto=webp"
+    },
+    {
+      "id": "https://www.pcgamer.com/hardware/motherboards/new-asus-beta-bios-patches-now-include-a-fresh-amd-feature-to-stop-you-thinking-your-pcs-b0rked/",
+      "title": "New Asus beta BIOS patches now include a fresh AMD feature to stop you thinking your PC's b0rked",
+      "link": "https://www.pcgamer.com/hardware/motherboards/new-asus-beta-bios-patches-now-include-a-fresh-amd-feature-to-stop-you-thinking-your-pcs-b0rked/",
+      "description": "",
+      "source": "PC Gamer",
+      "category": "PC Gaming",
+      "pubDate": "Mon, 16 Nov 2026 13:16:34 +0000",
+      "imageUrl": "https://cdn.mos.cms.futurecdn.net/ero6FCfQU2gxtBLS7u66So-1920-80.jpg"
+    },
+    {
+      "id": "https://www.pcgamer.com/software/ai/jensen-huang-reportedly-eyeing-up-return-to-nvidia-as-friendly-tech-execs-form-war-room-to-fight-for-him-and-over-175-000-people-sign-bringjensenback-petition/",
+      "title": "Jensen Huang reportedly eyeing up return to Nvidia as friendly tech execs form 'war room' to fight for him and over 175,000 people sign #bringjensenback petition",
+      "link": "https://www.pcgamer.com/software/ai/jensen-huang-reportedly-eyeing-up-return-to-nvidia-as-friendly-tech-execs-form-war-room-to-fight-for-him-and-over-175-000-people-sign-bringjensenback-petition/",
+      "description": "",
+      "source": "PC Gamer",
+      "category": "PC Gaming",
+      "pubDate": "Mon, 16 Nov 2026 13:14:40 +0000",
+      "imageUrl": "https://cdn.mos.cms.futurecdn.net/x6qT5Gqen36G7WpiNyNmKo-1920-80.jpg"
+    },
+    {
+      "id": "https://www.tomshardware.com/video-games/playstation/jailbroken-ps4-runs-9-billion-parameter-ai-model-at-up-to-43-tokens-per-second-open-source-garlic-llm-bypasses-drivers-to-talk-directly-to-the-2013-era-gpu",
+      "title": "Jailbroken PS4 runs 9-billion-parameter AI model at up to 43 tokens per second",
+      "link": "https://www.tomshardware.com/video-games/playstation/jailbroken-ps4-runs-9-billion-parameter-ai-model-at-up-to-43-tokens-per-second-open-source-garlic-llm-bypasses-drivers-to-talk-directly-to-the-2013-era-gpu",
+      "description": "",
+      "source": "Tom's Hardware",
+      "category": "Hardware",
+      "pubDate": "Mon, 16 Nov 2026 13:00:00 +0000",
+      "imageUrl": "https://cdn.mos.cms.futurecdn.net/NiEzQj4gSZE2jaQaCMEuvG-1920-80.jpg"
+    },
+    {
+      "id": "https://www.rockpapershotgun.com/this-week-in-pc-games-start-a-new-life-in-vice-city-escape-a-dying-universe-before-the-last-black-hole-evaporates-and-avenge-your-pigeon-with-a-sledgehammer",
+      "title": "This week in PC games: start a new life in Vice City, escape a dying universe before the last black hole evaporates, and avenge your pigeon with a sledgehammer",
+      "link": "https://www.rockpapershotgun.com/this-week-in-pc-games-start-a-new-life-in-vice-city-escape-a-dying-universe-before-the-last-black-hole-evaporates-and-avenge-your-pigeon-with-a-sledgehammer",
+      "description": "Happy this week, all! Please throw yourself upon the floor in consternation, clawing at your face and hair, for the release of Grand Theft Auto 6 is nigh. In just a few short days, every gaming vertical under the sun ...",
+      "source": "Rock Paper Shotgun",
+      "category": "PC Gaming",
+      "pubDate": "Mon, 16 Nov 2026 12:54:10 +0000",
+      "imageUrl": "https://assetsio.gnwcdn.com/vice-magic-city-mayhem-1ufs7.png?width=690&amp;quality=85&amp;format=jpg&amp;auto=webp"
+    },
+    {
+      "id": "https://www.tomshardware.com/pc-components/cpus/intel-sued-by-shareholders-for-misleading-investors-after-stock-plunges-29-percent-class-action-claims-the-company-downplayed-the-severity-of-pc-market-headwinds",
+      "title": "Intel sued by shareholders for misleading investors after stock plunges 29%",
+      "link": "https://www.tomshardware.com/pc-components/cpus/intel-sued-by-shareholders-for-misleading-investors-after-stock-plunges-29-percent-class-action-claims-the-company-downplayed-the-severity-of-pc-market-headwinds",
+      "description": "",
+      "source": "Tom's Hardware",
+      "category": "Hardware",
+      "pubDate": "Mon, 16 Nov 2026 12:50:08 +0000",
+      "imageUrl": "https://cdn.mos.cms.futurecdn.net/npZsVaRxf6Yq9ExTgeCwM6-1920-80.jpg"
+    },
+    {
+      "id": "https://www.tomshardware.com/tech-industry/artificial-intelligence/jensen-huang-could-be-plotting-return-as-nvidia-ceo-report-claims-allies-have-formed-a-war-room-to-drive-reinstatement-days-after-resignation-scandal",
+      "title": "Jensen Huang could be plotting return as Nvidia CEO, report claims",
+      "link": "https://www.tomshardware.com/tech-industry/artificial-intelligence/jensen-huang-could-be-plotting-return-as-nvidia-ceo-report-claims-allies-have-formed-a-war-room-to-drive-reinstatement-days-after-resignation-scandal",
+      "description": "",
+      "source": "Tom's Hardware",
+      "category": "Hardware",
+      "pubDate": "Mon, 16 Nov 2026 12:37:39 +0000",
+      "imageUrl": "https://cdn.mos.cms.futurecdn.net/tCck6nnA9N6apg5MsvEC7k-1920-80.png"
+    },
+    {
+      "id": "https://www.gamespot.com/articles/gta-6-twitch-drops/",
+      "title": "GTA 6 Twitch Drops Are Coming Soon, Here\u2019s How To Get Your Free Rewards",
+      "link": "https://www.gamespot.com/articles/gta-6-twitch-drops/",
+      "description": "While you might be tempted to take a spin through Grand Theft Auto 6 right now, you might want to hold your horses and watch some gameplay instead. Over on Twitch, the streaming platform is hosting a GTA 6 promotion t...",
+      "source": "GameSpot",
+      "category": "Gaming",
+      "pubDate": "Mon, 16 Nov 2026 12:14:18 +0000",
+      "imageUrl": "https://www.gamespot.com/wp-content/uploads/2026/11/GTA-6-launch-screens-28.jpg?w=300"
+    },
+    {
+      "id": "https://www.rockpapershotgun.com/nobody-was-hurt-in-shooting-near-clockwork-revolution-devs-inxile-entertainments-office-the-xbox-owned-studio-and-police-confirm",
+      "title": "\"Nobody was hurt\" in shooting near Clockwork Revolution devs InXile Entertainment's office, the Xbox-owned studio and police confirm",
+      "link": "https://www.rockpapershotgun.com/nobody-was-hurt-in-shooting-near-clockwork-revolution-devs-inxile-entertainments-office-the-xbox-owned-studio-and-police-confirm",
+      "description": "\"Nobody was hurt\" in a shooting last week near the California office of Clockwork Revolution developers InXile, both the studio and local police have confirmed. The incident, which took place on November 11th, is curr...",
+      "source": "Rock Paper Shotgun",
+      "category": "PC Gaming",
+      "pubDate": "Mon, 16 Nov 2026 12:10:50 +0000",
+      "imageUrl": "https://assetsio.gnwcdn.com/clockwork-revolution-inxile-office-shooting-01.jpg?width=690&amp;quality=85&amp;format=jpg&amp;auto=webp"
+    },
+    {
+      "id": "https://www.eurogamer.net/microsoft-project-helix-interview-details",
+      "title": "The next Xbox, Project Helix, is a console and \"not a PC\" says Microsoft, as it clarifies that computational power isn't sole focus this time",
+      "link": "https://www.eurogamer.net/microsoft-project-helix-interview-details",
+      "description": "Microsoft has stressed that its next-generation Xbox console, Project Helix, \"is not a PC that can also play console games\", but rather \"a console that is also capable of playing games from your PC\". The company has a...",
+      "source": "Eurogamer",
+      "category": "Gaming",
+      "pubDate": "Mon, 16 Nov 2026 12:08:40 +0000",
+      "imageUrl": "https://assetsio.gnwcdn.com/Project-Helix-logo-and-name-written-in-white-on-a-black-background.jpg?width=690&amp;quality=85&amp;format=jpg&amp;auto=webp"
+    },
+    {
+      "id": "https://www.tomshardware.com/3d-printing/grab-a-beginner-friendly-anycubic-3d-printer-for-under-usd300-back-at-its-record-low-price-17-percent-discount-for-prime-subscribers-nets-you-a-4-5-star-multi-colored-filament-printer-with-auto-bed-leveling",
+      "title": "Grab a beginner-friendly Anycubic 3D printer for under $300, back at its record-low price",
+      "link": "https://www.tomshardware.com/3d-printing/grab-a-beginner-friendly-anycubic-3d-printer-for-under-usd300-back-at-its-record-low-price-17-percent-discount-for-prime-subscribers-nets-you-a-4-5-star-multi-colored-filament-printer-with-auto-bed-leveling",
+      "description": "",
+      "source": "Tom's Hardware",
+      "category": "Hardware",
+      "pubDate": "Mon, 16 Nov 2026 12:00:00 +0000",
+      "imageUrl": "https://cdn.mos.cms.futurecdn.net/8BnPTwoePgFN6i6boxzZWa-1920-80.png"
+    },
+    {
+      "id": "https://www.pcgamer.com/games/world-of-warcraft/wow-forevers-continued-to-wrestle-with-dungeons-as-blizzard-admits-it-briefly-missed-the-mark-on-hotfixes-over-the-weekend/",
+      "title": "WoW: Forever's continued to wrestle with dungeons, as Blizzard admits it briefly 'missed the mark' on hotfixes over the weekend",
+      "link": "https://www.pcgamer.com/games/world-of-warcraft/wow-forevers-continued-to-wrestle-with-dungeons-as-blizzard-admits-it-briefly-missed-the-mark-on-hotfixes-over-the-weekend/",
+      "description": "",
+      "source": "PC Gamer",
+      "category": "PC Gaming",
+      "pubDate": "Mon, 16 Nov 2026 11:51:12 +0000",
+      "imageUrl": "https://cdn.mos.cms.futurecdn.net/EMFje4YyDtSifrnT2j8fpj-1920-80.png"
+    },
+    {
+      "id": "https://kotaku.com/project-helix-next-xbox-microsoft-pc-asha-sharma-series-s-x-2000757405",
+      "title": "Microsoft Says Of The Next Xbox: \u2018Helix Is A Console Capable Of Playing PC Games\u2019",
+      "link": "https://kotaku.com/project-helix-next-xbox-microsoft-pc-asha-sharma-series-s-x-2000757405",
+      "description": "Project Helix will also carry over progress from games played on every previous Xbox console",
+      "source": "Kotaku",
+      "category": "Gaming",
+      "pubDate": "Mon, 16 Nov 2026 11:41:48 +0000",
+      "imageUrl": "https://kotaku.com/app/uploads/2026/11/project-helix.jpg"
+    },
+    {
+      "id": "https://kotaku.com/pokemon-sword-and-shield-anniversary-marnie-character-design-2000757395",
+      "title": "Creator Of One Of Pok\u00e9mon\u2019s Most Beloved Human Characters Ignites Social Media Controversy",
+      "link": "https://kotaku.com/pokemon-sword-and-shield-anniversary-marnie-character-design-2000757395",
+      "description": "On Pok\u00e9mon Sword and Shield's anniversary, the designer of Marnie reflects on the initial reaction",
+      "source": "Kotaku",
+      "category": "Gaming",
+      "pubDate": "Mon, 16 Nov 2026 11:30:07 +0000",
+      "imageUrl": "https://kotaku.com/app/uploads/2026/11/Marnie-Pokemon-1280x720.jpeg"
+    },
+    {
+      "id": "https://www.tomshardware.com/tech-industry/artificial-intelligence/fable-5-2-creates-an-underwater-world-in-a-browser-in-only-96-kb-40-line-prompt-creates-impressive-demo-that-runs-at-180-fps",
+      "title": "Fable 5.2 creates an underwater world in a browser in only 96 KB",
+      "link": "https://www.tomshardware.com/tech-industry/artificial-intelligence/fable-5-2-creates-an-underwater-world-in-a-browser-in-only-96-kb-40-line-prompt-creates-impressive-demo-that-runs-at-180-fps",
+      "description": "",
+      "source": "Tom's Hardware",
+      "category": "Hardware",
+      "pubDate": "Mon, 16 Nov 2026 11:30:00 +0000",
+      "imageUrl": "https://cdn.mos.cms.futurecdn.net/nXAFaumdgwqSTyXixK2UK9-1920-80.png"
+    },
+    {
+      "id": "https://www.eurogamer.net/umamusume-dev-seven-new-games-2030",
+      "title": "Umamusume: Pretty Derby parent company plans to release seven new games by 2030 as it boasts an \"88 percent hit rate\" on its mobile titles",
+      "link": "https://www.eurogamer.net/umamusume-dev-seven-new-games-2030",
+      "description": "Cyberagent - the parent company of Umamusume: Pretty Derby developer Cygames - has boasted its recent successes in the mobile gaming sphere in a recent quarterly earnings presentation. Read more",
+      "source": "Eurogamer",
+      "category": "Gaming",
+      "pubDate": "Mon, 16 Nov 2026 11:20:50 +0000",
+      "imageUrl": "https://assetsio.gnwcdn.com/umamusume-pretty-derby-running.jpg?width=690&amp;quality=85&amp;format=jpg&amp;auto=webp"
+    },
+    {
+      "id": "https://kotaku.com/bandai-namco-game-engine-sol-aves-tekken-fighting-games-2000757390",
+      "title": "Bandai Namco Says Its New In-House Game Engine Has Optimizations \u2018Essential For Fighting Games\u2019",
+      "link": "https://kotaku.com/bandai-namco-game-engine-sol-aves-tekken-fighting-games-2000757390",
+      "description": "The engine was first used for Nintendo's Kirby Air Riders",
+      "source": "Kotaku",
+      "category": "Gaming",
+      "pubDate": "Mon, 16 Nov 2026 11:00:48 +0000",
+      "imageUrl": "https://kotaku.com/app/uploads/2026/11/TK8_Reina_Drama-1-1280x720.jpg"
+    },
+    {
+      "id": "https://www.gamespot.com/articles/xbox-project-helix-is-a-console-that-plays-pc-games-not-the-other-way-around/",
+      "title": "Xbox Project Helix Is A Console That Plays PC Games, Not The Other Way Around",
+      "link": "https://www.gamespot.com/articles/xbox-project-helix-is-a-console-that-plays-pc-games-not-the-other-way-around/",
+      "description": "Xbox has revealed more details about its next-gen device, Project Helix, describing it as a \"console capable of playing games from your PC.\" Prominently featured in the Xbox 25th Anniversary Magazine, VP of next-gen J...",
+      "source": "GameSpot",
+      "category": "Gaming",
+      "pubDate": "Mon, 16 Nov 2026 10:48:53 +0000",
+      "imageUrl": "https://www.gamespot.com/wp-content/uploads/2026/06/Xbox.jpg?w=300"
+    },
+    {
+      "id": "https://www.rockpapershotgun.com/weve-finally-reached-this-milestone-cyberpunk-2077-multiplayer-mod-cybermp-kicks-off-open-beta-after-around-six-years-preparing-for-cybermayhem",
+      "title": "\"We've finally reached this milestone\": Cyberpunk 2077 multiplayer mod CyberMP kicks off open beta after around six years preparing for cybermayhem",
+      "link": "https://www.rockpapershotgun.com/weve-finally-reached-this-milestone-cyberpunk-2077-multiplayer-mod-cybermp-kicks-off-open-beta-after-around-six-years-preparing-for-cybermayhem",
+      "description": "After a couple of years of regular testing behind closed doors, Cyberpunk 2077 multiplayer mod CyberMP is now out in open beta, giving anyone who fancies a bit of multi-merc action a chance to give it a go. Though, if...",
+      "source": "Rock Paper Shotgun",
+      "category": "PC Gaming",
+      "pubDate": "Mon, 16 Nov 2026 10:28:20 +0000",
+      "imageUrl": "https://assetsio.gnwcdn.com/cyberpunk-2077-multiplayer-mod-cybermp-open-beta-01.png?width=690&amp;quality=85&amp;format=jpg&amp;auto=webp"
+    },
+    {
+      "id": "https://www.eurogamer.net/battlefield-call-of-duty-sam-cooper-byron-beede-live-service",
+      "title": "EA hires another former Call of Duty boss to take the lead on all Battlefield Studios' projects",
+      "link": "https://www.eurogamer.net/battlefield-call-of-duty-sam-cooper-byron-beede-live-service",
+      "description": "EA has made some notable leadership changes within its studios group, and in who oversees the Battlefield franchise. Byron Beede, previously Battlefield's general manager, has been promoted to group general manager. R...",
+      "source": "Eurogamer",
+      "category": "Gaming",
+      "pubDate": "Mon, 16 Nov 2026 09:24:00 +0000",
+      "imageUrl": "https://assetsio.gnwcdn.com/battlefield-6-season-4-gameplay-screen-11.jpeg?width=690&amp;quality=85&amp;format=jpg&amp;auto=webp"
+    },
+    {
+      "id": "https://kotaku.com/universal-paperclips-creator-blends-scrabble-and-strategy-in-towers-of-babble-2000757126",
+      "title": "Universal Paperclips Creator Blends Scrabble And Strategy In Towers Of Babble",
+      "link": "https://kotaku.com/universal-paperclips-creator-blends-scrabble-and-strategy-in-towers-of-babble-2000757126",
+      "description": "Frank Lantz' latest indie game is perfect for the semiotician looking for a more bespoke Scribblenauts experience",
+      "source": "Kotaku",
+      "category": "Gaming",
+      "pubDate": "Sun, 15 Nov 2026 22:09:53 +0000",
+      "imageUrl": "https://kotaku.com/app/uploads/2026/11/towersofbable.jpg"
+    },
+    {
+      "id": "https://kotaku.com/halifax-parents-hoping-to-reverse-nine-year-olds-20000-roblox-bill-2000757111",
+      "title": "Halifax Parents Hoping To Reverse Nine-Year-Old\u2019s $20,000 Roblox Bill",
+      "link": "https://kotaku.com/halifax-parents-hoping-to-reverse-nine-year-olds-20000-roblox-bill-2000757111",
+      "description": "Racking up a total of $28,000 through a shared Apple Pay account, the Maritimers are frustrated that the popular gaming platform refuses to refund like the rest",
+      "source": "Kotaku",
+      "category": "Gaming",
+      "pubDate": "Sun, 15 Nov 2026 21:15:46 +0000",
+      "imageUrl": "https://kotaku.com/app/uploads/2021/04/fy9ihubagxwnsksltxtb.jpg"
+    },
+    {
+      "id": "https://www.eurogamer.net/inxile-office-shooting-tustin-suspect-arrested",
+      "title": "Police arrest suspect after drive-by shooting at office campus housing Xbox studio inXile",
+      "link": "https://www.eurogamer.net/inxile-office-shooting-tustin-suspect-arrested",
+      "description": "Police have arrested a suspect after a drive-by shooting at an office campus in Tustin, California, which is home to Xbox-owned studio inXile Entertainment. Read more",
+      "source": "Eurogamer",
+      "category": "Gaming",
+      "pubDate": "Sun, 15 Nov 2026 17:47:40 +0000",
+      "imageUrl": "https://assetsio.gnwcdn.com/Clockwork-Revolution-_-Xbox-Games-Showcase-2025-0-50-screenshot-(1).png?width=690&amp;quality=85&amp;format=jpg&amp;auto=webp"
+    },
     {
       "id": "https://www.eurogamer.net/cyberpunk-2077-torrent-rain-weather-mod",
       "title": "Cyberpunk 2077 mod Torrent adds 3D rain, lightning storms, and tyre spray to Night City",
@@ -10,126 +600,6 @@
       "category": "Gaming",
       "pubDate": "Sun, 15 Nov 2026 17:39:20 +0000",
       "imageUrl": "https://assetsio.gnwcdn.com/37031-1794263579-549918053.webp?width=690&amp;quality=85&amp;format=jpg&amp;auto=webp"
-    },
-    {
-      "id": "https://www.tomshardware.com/peripherals/controllers-gamepads/cockpit-simulator-737x-cdu-v2-review-an-essential-component-for-flight-sim-enthusiasts",
-      "title": "Cockpit-Simulator 737X CDU (v2) Review: An Essential Component for Flight Sim Enthusiasts",
-      "link": "https://www.tomshardware.com/peripherals/controllers-gamepads/cockpit-simulator-737x-cdu-v2-review-an-essential-component-for-flight-sim-enthusiasts",
-      "description": "",
-      "source": "Tom's Hardware",
-      "category": "Hardware",
-      "pubDate": "Sun, 15 Nov 2026 17:30:00 +0000",
-      "imageUrl": "https://cdn.mos.cms.futurecdn.net/jRejPtkqej7rnRWfn2XWgH-1920-80.jpg"
-    },
-    {
-      "id": "https://www.polygon.com/goty-2026-game-awards-indie-big-walk-ai/",
-      "title": "The 2026 GOTY Race Could Be a Disaster for Indie Games",
-      "link": "https://www.polygon.com/goty-2026-game-awards-indie-big-walk-ai/",
-      "description": "Big Walk's AI controversy might result in a step back after gains made at The Game Awards by Clair Obscur and Silksong",
-      "source": "Polygon",
-      "category": "Gaming",
-      "pubDate": "Sun, 15 Nov 2026 17:00:19 GMT",
-      "imageUrl": "https://static0.polygonimages.com/wordpress/wp-content/uploads/2026/07/big_walk_ho2uyexilo.jpg"
-    },
-    {
-      "id": "https://www.pcgamer.com/gaming-industry/youtuber-and-comedian-ashens-has-1-000-hours-in-baldurs-gate-3-and-reveals-the-worst-retro-game-hes-ever-played-by-the-time-youve-hacked-it-to-work-its-just-no-fun-whatsoever/",
-      "title": "YouTuber and comedian Ashens has 1,000 hours in Baldur's Gate 3 and reveals the worst retro game he's ever played: 'By the time you've hacked it to work, it's just no fun whatsoever'",
-      "link": "https://www.pcgamer.com/gaming-industry/youtuber-and-comedian-ashens-has-1-000-hours-in-baldurs-gate-3-and-reveals-the-worst-retro-game-hes-ever-played-by-the-time-youve-hacked-it-to-work-its-just-no-fun-whatsoever/",
-      "description": "",
-      "source": "PC Gamer",
-      "category": "PC Gaming",
-      "pubDate": "Sun, 15 Nov 2026 17:00:00 +0000",
-      "imageUrl": "https://cdn.mos.cms.futurecdn.net/ZL99unBNACpzEBF2YsvoM6-1920-80.png"
-    },
-    {
-      "id": "https://www.tomshardware.com/pc-components/gpus/nvidia-rtx-5090-stock-returns-to-newegg-with-21-models-but-scarcity-pricing-keeps-the-cheapest-air-cooled-cards-at-least-three-times-msrp",
-      "title": "Nvidia RTX 5090 stock returns to Newegg with 21 models",
-      "link": "https://www.tomshardware.com/pc-components/gpus/nvidia-rtx-5090-stock-returns-to-newegg-with-21-models-but-scarcity-pricing-keeps-the-cheapest-air-cooled-cards-at-least-three-times-msrp",
-      "description": "",
-      "source": "Tom's Hardware",
-      "category": "Hardware",
-      "pubDate": "Sun, 15 Nov 2026 17:00:00 +0000",
-      "imageUrl": "https://cdn.mos.cms.futurecdn.net/jzKCnT5TDpoxxFHV85FXgk-1920-80.jpg"
-    },
-    {
-      "id": "https://kotaku.com/wrestler-austin-creed-unleashes-the-nintendo-power-glove-during-aew-full-gear-2000757095",
-      "title": "Wrestler Austin Creed Unleashes The Nintendo Power Glove During AEW Full Gear",
-      "link": "https://kotaku.com/wrestler-austin-creed-unleashes-the-nintendo-power-glove-during-aew-full-gear-2000757095",
-      "description": "One of the most memorable moments from last night\u2019s card involved an uncanny, and so bad, foreign object delivering an iconic Shoryuken",
-      "source": "Kotaku",
-      "category": "Gaming",
-      "pubDate": "Sun, 15 Nov 2026 16:33:14 +0000",
-      "imageUrl": "https://kotaku.com/app/uploads/2026/11/austincreedpowerglove-1280x863.jpg"
-    },
-    {
-      "id": "https://www.tomshardware.com/tech-industry/cyber-security/fbi-disrupts-north-korean-facestealer-campaign-behind-usd5-billion-binance-hack-doj-seizes-facestealer-cloud-infrastructure-containing-900-videos-of-tech-workers-hackers-used-ai-deepfakes-to-steal-usd400-million-and-compromise-open-source-software",
-      "title": "FBI disrupts North Korean FaceStealer campaign behind $5 billion Binance hack",
-      "link": "https://www.tomshardware.com/tech-industry/cyber-security/fbi-disrupts-north-korean-facestealer-campaign-behind-usd5-billion-binance-hack-doj-seizes-facestealer-cloud-infrastructure-containing-900-videos-of-tech-workers-hackers-used-ai-deepfakes-to-steal-usd400-million-and-compromise-open-source-software",
-      "description": "",
-      "source": "Tom's Hardware",
-      "category": "Hardware",
-      "pubDate": "Sun, 15 Nov 2026 16:30:00 +0000",
-      "imageUrl": "https://cdn.mos.cms.futurecdn.net/eRmC2ngDGJBX3pdq9XNxjX-1920-80.jpg"
-    },
-    {
-      "id": "https://www.polygon.com/super-meat-boy-again-announcement/",
-      "title": "Super Meat Boy Is Officially Getting Remade Without Edmund McMillen's Involvement",
-      "link": "https://www.polygon.com/super-meat-boy-again-announcement/",
-      "description": "The announcement of Super Meat Boy Again+ served as a reminder that Edmund McMillen is no longer part of Team Meat",
-      "source": "Polygon",
-      "category": "Gaming",
-      "pubDate": "Sun, 15 Nov 2026 16:19:05 GMT",
-      "imageUrl": "https://static0.polygonimages.com/wordpress/wp-content/uploads/2026/11/super-meat-boy-again-gameplay.jpg"
-    },
-    {
-      "id": "https://www.polygon.com/rings-of-power-season-3-deaths-interview/",
-      "title": "\u2018Rings of Power\u2019 Stars Break Down 2 Major Deaths in Prime Video\u2019s Lord of the Rings Series",
-      "link": "https://www.polygon.com/rings-of-power-season-3-deaths-interview/",
-      "description": "The Rings of Power stars Ema Horvath and Ismael Cruz C\u00f3rdova discuss season 3\u2019s shocking deaths and their final moments as E\u00e4rien and Arondir.",
-      "source": "Polygon",
-      "category": "Gaming",
-      "pubDate": "Sun, 15 Nov 2026 16:00:17 GMT",
-      "imageUrl": "https://static0.polygonimages.com/wordpress/wp-content/uploads/2026/09/rings-of-power-elrond.jpg"
-    },
-    {
-      "id": "https://www.pcgamer.com/games/roguelike/slay-the-spire-2-has-a-new-character-in-testing-and-shes-really-quite-busted/",
-      "title": "Slay the Spire 2 has a new character in testing, and she's really quite busted",
-      "link": "https://www.pcgamer.com/games/roguelike/slay-the-spire-2-has-a-new-character-in-testing-and-shes-really-quite-busted/",
-      "description": "",
-      "source": "PC Gamer",
-      "category": "PC Gaming",
-      "pubDate": "Sun, 15 Nov 2026 16:00:00 +0000",
-      "imageUrl": "https://cdn.mos.cms.futurecdn.net/u8CE4nwC7yPfoUuGx45ytR-1920-80.png"
-    },
-    {
-      "id": "https://www.tomshardware.com/pc-components/cpus/357-detailed-cpu-die-shots-spanning-1971-to-2024-crammed-into-a-new-gallery-motorola-68000-intel-486dx2-amd-athlon-xp-apple-m1-and-many-more-in-beautiful-detail",
-      "title": "357 detailed CPU die shots spanning 1971 to 2024 crammed into a new gallery",
-      "link": "https://www.tomshardware.com/pc-components/cpus/357-detailed-cpu-die-shots-spanning-1971-to-2024-crammed-into-a-new-gallery-motorola-68000-intel-486dx2-amd-athlon-xp-apple-m1-and-many-more-in-beautiful-detail",
-      "description": "",
-      "source": "Tom's Hardware",
-      "category": "Hardware",
-      "pubDate": "Sun, 15 Nov 2026 16:00:00 +0000",
-      "imageUrl": "https://cdn.mos.cms.futurecdn.net/HPnMtb7oLbF3AwF8u3rXDU-1920-80.jpg"
-    },
-    {
-      "id": "https://www.polygon.com/playstation-black-friday-hardware-deals/",
-      "title": "PlayStation Announces New Black Friday Deals On Hardware",
-      "link": "https://www.polygon.com/playstation-black-friday-hardware-deals/",
-      "description": "The PlayStation VR2 is discounted, but the PlayStation 5 is not",
-      "source": "Polygon",
-      "category": "Gaming",
-      "pubDate": "Sun, 15 Nov 2026 15:56:06 GMT",
-      "imageUrl": "https://static0.polygonimages.com/wordpress/wp-content/uploads/chorus/uploads/chorus_asset/file/24018308/PSVR2_front.jpg"
-    },
-    {
-      "id": "https://www.tomshardware.com/tech-industry/data-centers/microsoft-365-outage-leads-to-chlorine-gas-poisoning-of-15-hotel-guests-email-warning-system-fails-40-first-responders-deployed-for-triage-four-hospitalized",
-      "title": "Microsoft 365 outage leads to chlorine gas poisoning of 15 hotel guests",
-      "link": "https://www.tomshardware.com/tech-industry/data-centers/microsoft-365-outage-leads-to-chlorine-gas-poisoning-of-15-hotel-guests-email-warning-system-fails-40-first-responders-deployed-for-triage-four-hospitalized",
-      "description": "",
-      "source": "Tom's Hardware",
-      "category": "Hardware",
-      "pubDate": "Sun, 15 Nov 2026 15:41:13 +0000",
-      "imageUrl": "https://cdn.mos.cms.futurecdn.net/LVU3kxMU42xw93Lbc2p2Wc-1920-80.jpg"
     },
     {
       "id": "https://www.eurogamer.net/craig-houston-layoff-treyarch-call-of-duty-layoffs",
@@ -142,56 +612,6 @@
       "imageUrl": "https://assetsio.gnwcdn.com/CoD-WoW_header.jpg?width=690&amp;quality=85&amp;format=jpg&amp;auto=webp"
     },
     {
-      "id": "https://www.tomshardware.com/tech-industry/big-tech/judge-denies-motion-to-dismiss-dram-price-fixing-lawsuit-against-micron-samsung-and-sk-hynix-says-chipmakers-acted-like-hawks-flying-in-formation-finds-evidence-of-dram-collusion-plausible-after-500-percent-price-surge",
-      "title": "Judge denies motion to dismiss DRAM price-fixing lawsuit against Micron, Samsung, and SK hynix, finds evidence of DRAM collusion plausible after 500% price surge",
-      "link": "https://www.tomshardware.com/tech-industry/big-tech/judge-denies-motion-to-dismiss-dram-price-fixing-lawsuit-against-micron-samsung-and-sk-hynix-says-chipmakers-acted-like-hawks-flying-in-formation-finds-evidence-of-dram-collusion-plausible-after-500-percent-price-surge",
-      "description": "",
-      "source": "Tom's Hardware",
-      "category": "Hardware",
-      "pubDate": "Sun, 15 Nov 2026 15:09:50 +0000",
-      "imageUrl": "https://cdn.mos.cms.futurecdn.net/vnqdtRupVqWHAik43ZWctH-1920-80.jpg"
-    },
-    {
-      "id": "https://www.polygon.com/fool-night-netflix-review/",
-      "title": "Netflix's New 12-Part Sci-Fi Mystery Already Feels Like a Masterpiece Just 3 Episodes In",
-      "link": "https://www.polygon.com/fool-night-netflix-review/",
-      "description": "Fool Night turns a bleak sci-fi premise into an visually stunning mystery that rewards patience.",
-      "source": "Polygon",
-      "category": "Gaming",
-      "pubDate": "Sun, 15 Nov 2026 15:00:17 GMT",
-      "imageUrl": "https://static0.polygonimages.com/wordpress/wp-content/uploads/2026/11/fool-night-2.jpg"
-    },
-    {
-      "id": "https://www.pcgamer.com/games/rpg/queens-domain-is-the-best-dark-souls-1-since-dark-souls-1/",
-      "title": "Queen's Domain is the best Dark Souls 1 since Dark Souls 1",
-      "link": "https://www.pcgamer.com/games/rpg/queens-domain-is-the-best-dark-souls-1-since-dark-souls-1/",
-      "description": "",
-      "source": "PC Gamer",
-      "category": "PC Gaming",
-      "pubDate": "Sun, 15 Nov 2026 15:00:00 +0000",
-      "imageUrl": "https://cdn.mos.cms.futurecdn.net/4VT5ApRCBpRhSw3ke8HCqm-1920-80.jpg"
-    },
-    {
-      "id": "https://www.tomshardware.com/3d-printing/3d-printing-developer-creates-self-hostable-non-planar-printing-slicer-pancakeslicer-makes-non-planar-3d-printing-accessible-potentially-leading-to-rapid-community-development",
-      "title": "3D printing dev\u2019s free tool unlocks curved printing along all three axes",
-      "link": "https://www.tomshardware.com/3d-printing/3d-printing-developer-creates-self-hostable-non-planar-printing-slicer-pancakeslicer-makes-non-planar-3d-printing-accessible-potentially-leading-to-rapid-community-development",
-      "description": "",
-      "source": "Tom's Hardware",
-      "category": "Hardware",
-      "pubDate": "Sun, 15 Nov 2026 15:00:00 +0000",
-      "imageUrl": "https://cdn.mos.cms.futurecdn.net/SD4QE3FpnQwctLP45wf3y5-1920-80.jpg"
-    },
-    {
-      "id": "https://www.polygon.com/inxile-entertainment-shooting-xbox/",
-      "title": "No One Injured After Gunman Opens Fire On Xbox Studio",
-      "link": "https://www.polygon.com/inxile-entertainment-shooting-xbox/",
-      "description": "The Xbox-owned studio inXile Entertainment confirmed that no developers were hurt",
-      "source": "Polygon",
-      "category": "Gaming",
-      "pubDate": "Sun, 15 Nov 2026 14:49:51 GMT",
-      "imageUrl": "https://static0.polygonimages.com/wordpress/wp-content/uploads/2026/06/ss_6f5cdefeaa1a4bb9644314b522c11bc8de325832-1920x1080.jpg"
-    },
-    {
       "id": "https://www.eurogamer.net/blade-runner-2099-triple-a-talks",
       "title": "Blade Runner 2099 bosses hint at a possible \"triple-A\" Blade Runner game in the future - just don't expect it any time soon",
       "link": "https://www.eurogamer.net/blade-runner-2099-triple-a-talks",
@@ -200,36 +620,6 @@
       "category": "Gaming",
       "pubDate": "Sun, 15 Nov 2026 14:43:00 +0000",
       "imageUrl": "https://assetsio.gnwcdn.com/blade-runner-header.jpg?width=690&amp;quality=85&amp;format=jpg&amp;auto=webp"
-    },
-    {
-      "id": "https://www.pcgamer.com/games/rts/this-rts-inspired-by-star-wars-empire-at-war-promises-colossal-space-encounters-and-planetary-battles-with-hundreds-of-thousands-of-units/",
-      "title": "This RTS inspired by Star Wars: Empire at War promises colossal space encounters and planetary battles with 'hundreds of thousands of units'",
-      "link": "https://www.pcgamer.com/games/rts/this-rts-inspired-by-star-wars-empire-at-war-promises-colossal-space-encounters-and-planetary-battles-with-hundreds-of-thousands-of-units/",
-      "description": "",
-      "source": "PC Gamer",
-      "category": "PC Gaming",
-      "pubDate": "Sun, 15 Nov 2026 14:30:16 +0000",
-      "imageUrl": "https://cdn.mos.cms.futurecdn.net/hhLWdaiVBvMyPsbkoeiiuW-1920-80.jpg"
-    },
-    {
-      "id": "https://www.tomshardware.com/video-games/retro-gaming/enthusiast-builds-a-working-486-dx2-retro-pc-on-a-breadboard-in-just-16-days-immediately-runs-doom-build-includes-a-66-mhz-intel-chip-and-custom-five-inch-3d-printed-display",
-      "title": "Enthusiast builds a working 486 DX2 retro PC on a breadboard in just 16 days, immediately runs Doom",
-      "link": "https://www.tomshardware.com/video-games/retro-gaming/enthusiast-builds-a-working-486-dx2-retro-pc-on-a-breadboard-in-just-16-days-immediately-runs-doom-build-includes-a-66-mhz-intel-chip-and-custom-five-inch-3d-printed-display",
-      "description": "",
-      "source": "Tom's Hardware",
-      "category": "Hardware",
-      "pubDate": "Sun, 15 Nov 2026 14:30:00 +0000",
-      "imageUrl": "https://cdn.mos.cms.futurecdn.net/tzXTFwaP4RT6zsmkXgmXkg-1920-80.jpg"
-    },
-    {
-      "id": "https://www.tomshardware.com/tech-industry/drones/pentagon-tests-pack-hunting-with-autonomous-war-robots-darpa-experimented-with-four-drone-ground-vehicles-that-detected-tracked-and-engaged-simulated-threats",
-      "title": "Pentagon tests pack hunting with autonomous war robots",
-      "link": "https://www.tomshardware.com/tech-industry/drones/pentagon-tests-pack-hunting-with-autonomous-war-robots-darpa-experimented-with-four-drone-ground-vehicles-that-detected-tracked-and-engaged-simulated-threats",
-      "description": "",
-      "source": "Tom's Hardware",
-      "category": "Hardware",
-      "pubDate": "Sun, 15 Nov 2026 14:19:24 +0000",
-      "imageUrl": "https://cdn.mos.cms.futurecdn.net/aLBJMibNLNdwySjZPXCJmB-1920-80.jpg"
     },
     {
       "id": "https://www.eurogamer.net/gta-6-tracklist-leak",
@@ -242,46 +632,6 @@
       "imageUrl": "https://assetsio.gnwcdn.com/dua-lipa-gta-6-the-album.jpg?width=690&amp;quality=85&amp;format=jpg&amp;auto=webp"
     },
     {
-      "id": "https://www.polygon.com/fortnite-chapter-7-mini-season-all-sprites-list-abilities/",
-      "title": "All sprites in the Fortnite Chapter 7 mini season",
-      "link": "https://www.polygon.com/fortnite-chapter-7-mini-season-all-sprites-list-abilities/",
-      "description": "Here's a list of the currently available sprite in Fortnite's Chapter 7 \"Treasure Hunters\" mini season, along with what they do.",
-      "source": "Polygon",
-      "category": "Gaming",
-      "pubDate": "Sun, 15 Nov 2026 14:01:18 GMT",
-      "imageUrl": "https://static0.polygonimages.com/wordpress/wp-content/uploads/2026/11/jlee_261101_1001_fn_sprites.jpg"
-    },
-    {
-      "id": "https://www.polygon.com/patch-notes-xbox-25th-anniversary/",
-      "title": "Xbox\u2019s 25th Birthday Was All Over the Place",
-      "link": "https://www.polygon.com/patch-notes-xbox-25th-anniversary/",
-      "description": "Asha Sharma and Microsoft used Xbox's 25th anniversary to say more about Doom, Wolfenstein, Halo, AI, and its heroic past",
-      "source": "Polygon",
-      "category": "Gaming",
-      "pubDate": "Sun, 15 Nov 2026 14:00:17 GMT",
-      "imageUrl": "https://static0.polygonimages.com/wordpress/wp-content/uploads/2026/11/xbox_pcbackcompat.png"
-    },
-    {
-      "id": "https://www.tomshardware.com/tech-industry/nvidia-board-director-cashed-out-usd1-billion-in-stock-before-jensen-huang-scandal-mark-stevens-sold-4-2-million-shares-without-a-trading-plan",
-      "title": "Nvidia board director cashed out $1 billion in stock before Jensen Huang scandal",
-      "link": "https://www.tomshardware.com/tech-industry/nvidia-board-director-cashed-out-usd1-billion-in-stock-before-jensen-huang-scandal-mark-stevens-sold-4-2-million-shares-without-a-trading-plan",
-      "description": "",
-      "source": "Tom's Hardware",
-      "category": "Hardware",
-      "pubDate": "Sun, 15 Nov 2026 14:00:00 +0000",
-      "imageUrl": "https://cdn.mos.cms.futurecdn.net/pkzE4EjeCU56CZy4WdNR93-1920-80.png"
-    },
-    {
-      "id": "https://www.polygon.com/xbox-retrospective-best-things-besides-halo/",
-      "title": "7 Best Things About the Original Xbox That Aren't Halo, Ranked",
-      "link": "https://www.polygon.com/xbox-retrospective-best-things-besides-halo/",
-      "description": "We celebrate the original Xbox for introducing Halo, but the hardware and its software library offered plenty of other attractions worth remembering.",
-      "source": "Polygon",
-      "category": "Gaming",
-      "pubDate": "Sun, 15 Nov 2026 13:00:18 GMT",
-      "imageUrl": "https://static0.polygonimages.com/wordpress/wp-content/uploads/2026/11/screenshot-2026-11-10-at-3-51-36-pm.jpg"
-    },
-    {
       "id": "https://www.rockpapershotgun.com/the-sunday-papers-836",
       "title": "The Sunday Papers",
       "link": "https://www.rockpapershotgun.com/the-sunday-papers-836",
@@ -290,66 +640,6 @@
       "category": "PC Gaming",
       "pubDate": "Sun, 15 Nov 2026 13:00:00 +0000",
       "imageUrl": "https://assetsio.gnwcdn.com/the-sunday-papers-big.jpg?width=690&amp;quality=85&amp;format=jpg&amp;auto=webp"
-    },
-    {
-      "id": "https://www.pcgamer.com/games/survival-crafting/former-survival-mmo-dune-awakening-can-now-be-played-without-requiring-an-internet-connection-at-any-point-as-its-much-requested-offline-mode-arrives/",
-      "title": "Former survival MMO Dune: Awakening can now be played 'without requiring an Internet connection at any point' as its much requested offline mode arrives",
-      "link": "https://www.pcgamer.com/games/survival-crafting/former-survival-mmo-dune-awakening-can-now-be-played-without-requiring-an-internet-connection-at-any-point-as-its-much-requested-offline-mode-arrives/",
-      "description": "",
-      "source": "PC Gamer",
-      "category": "PC Gaming",
-      "pubDate": "Sun, 15 Nov 2026 12:33:46 +0000",
-      "imageUrl": "https://cdn.mos.cms.futurecdn.net/BZPSyzyi8PwUy6nwAn4z6Y-1920-80.jpg"
-    },
-    {
-      "id": "https://www.polygon.com/village-in-the-shade-new-farm-sim-horror-game/",
-      "title": "Stardew Valley Meets Night in the Woods in One of 2026's Scariest New Games",
-      "link": "https://www.polygon.com/village-in-the-shade-new-farm-sim-horror-game/",
-      "description": "Village in the Shade is a horror farm sim that digs deep into the horrors of community life",
-      "source": "Polygon",
-      "category": "Gaming",
-      "pubDate": "Sun, 15 Nov 2026 12:00:17 GMT",
-      "imageUrl": "https://static0.polygonimages.com/wordpress/wp-content/uploads/2026/09/village-in-the-shade-preview-4.jpg"
-    },
-    {
-      "id": "https://www.pcgamer.com/games/strategy/chronicles-medieval-developer-declared-bankruptcy-on-the-day-it-announced-it-was-in-trouble-but-development-will-continue-after-a-usd5-million-reprieve-from-coffee-stain/",
-      "title": "Chronicles: Medieval developer declared bankruptcy on the day it announced it was in trouble, but development will continue after a $5 million reprieve from Coffee Stain",
-      "link": "https://www.pcgamer.com/games/strategy/chronicles-medieval-developer-declared-bankruptcy-on-the-day-it-announced-it-was-in-trouble-but-development-will-continue-after-a-usd5-million-reprieve-from-coffee-stain/",
-      "description": "",
-      "source": "PC Gamer",
-      "category": "PC Gaming",
-      "pubDate": "Sun, 15 Nov 2026 11:27:41 +0000",
-      "imageUrl": "https://cdn.mos.cms.futurecdn.net/XKegTpWNWNwSysdkzRKN3o-1920-80.jpg"
-    },
-    {
-      "id": "https://www.eurogamer.net/the-big-question-whats-the-best-gta",
-      "title": "What's the best GTA?",
-      "link": "https://www.eurogamer.net/the-big-question-whats-the-best-gta",
-      "description": "As we teeter on the brink of gaming's biggest launch of 2026 - perhaps even decade - so many questions swirl: which GTA 6 cars will make the best vrrrrm? Is it possible for me to be any more obsessed with that Justice...",
-      "source": "Eurogamer",
-      "category": "Gaming",
-      "pubDate": "Sun, 15 Nov 2026 10:00:00 +0000",
-      "imageUrl": "https://assetsio.gnwcdn.com/gta-best-header-logo.jpg?width=690&amp;quality=85&amp;format=jpg&amp;auto=webp"
-    },
-    {
-      "id": "https://www.pcgamer.com/games/the-most-annoying-questgivers-in-pc-games/",
-      "title": "The most annoying questgivers in PC games",
-      "link": "https://www.pcgamer.com/games/the-most-annoying-questgivers-in-pc-games/",
-      "description": "",
-      "source": "PC Gamer",
-      "category": "PC Gaming",
-      "pubDate": "Sun, 15 Nov 2026 07:21:40 +0000",
-      "imageUrl": "https://cdn.mos.cms.futurecdn.net/AYyTypwYVPussabQGzn9TJ-1920-80.jpg"
-    },
-    {
-      "id": "https://www.pcgamer.com/games/grand-theft-auto/gta-6-soundtrack-leak-confirmed-accurate-with-new-songs-from-lana-del-rey-playboi-carti-and-keith-richards/",
-      "title": "GTA 6 soundtrack leak confirmed accurate with new songs from Lana Del Rey, Playboi Carti, and Keith Richards",
-      "link": "https://www.pcgamer.com/games/grand-theft-auto/gta-6-soundtrack-leak-confirmed-accurate-with-new-songs-from-lana-del-rey-playboi-carti-and-keith-richards/",
-      "description": "",
-      "source": "PC Gamer",
-      "category": "PC Gaming",
-      "pubDate": "Sun, 15 Nov 2026 04:52:26 +0000",
-      "imageUrl": "https://cdn.mos.cms.futurecdn.net/AkvZgaawSvDoiAwX5qbvvY-1920-80.jpg"
     },
     {
       "id": "https://www.gamespot.com/articles/gta-6-is-like-the-olympics-a-rare-cultural-moment-with-massive-ripple-effects/",
@@ -362,26 +652,6 @@
       "imageUrl": "https://www.gamespot.com/wp-content/uploads/2026/11/Jason_and_Lucia_17_338c4e.jpg?w=300"
     },
     {
-      "id": "https://www.pcgamer.com/movies-tv/planeswalker-netflixs-magic-the-gathering-animated-series-will-have-a-different-art-style-for-each-plane/",
-      "title": "Planeswalker, Netflix's Magic: The Gathering animated series, will have a different art style for each plane",
-      "link": "https://www.pcgamer.com/movies-tv/planeswalker-netflixs-magic-the-gathering-animated-series-will-have-a-different-art-style-for-each-plane/",
-      "description": "",
-      "source": "PC Gamer",
-      "category": "PC Gaming",
-      "pubDate": "Sat, 14 Nov 2026 23:50:31 +0000",
-      "imageUrl": "https://cdn.mos.cms.futurecdn.net/Gs2wFp5NQYqEwgi23bw4PW-1920-80.jpg"
-    },
-    {
-      "id": "https://kotaku.com/some-gta-6-box-copies-reported-to-have-download-code-issues-2000756883",
-      "title": "Some GTA 6 Box Copies Reported To Have Download Code Issues With No Disc To Fall Back On",
-      "link": "https://kotaku.com/some-gta-6-box-copies-reported-to-have-download-code-issues-2000756883",
-      "description": "Shipped with no disc inside, fans who purchased a physical copy of Grand Theft Auto in advance are claiming their codes have already been used, or are missing entirely",
-      "source": "Kotaku",
-      "category": "Gaming",
-      "pubDate": "Sat, 14 Nov 2026 23:24:45 +0000",
-      "imageUrl": "https://kotaku.com/app/uploads/2026/01/gta6-1280x720.jpg"
-    },
-    {
       "id": "https://www.rockpapershotgun.com/forage-and-fight-for-ingredients-in-a-magical-1960s-italy-and-whip-up-some-tasty-meals-cooking-mama-style-in-the-snackbar-at-the-end-of-the-world",
       "title": "Forage and fight for ingredients in a magical 1960s Italy and whip up some tasty meals Cooking Mama style in The Snackbar at the End of the World",
       "link": "https://www.rockpapershotgun.com/forage-and-fight-for-ingredients-in-a-magical-1960s-italy-and-whip-up-some-tasty-meals-cooking-mama-style-in-the-snackbar-at-the-end-of-the-world",
@@ -390,26 +660,6 @@
       "category": "PC Gaming",
       "pubDate": "Sat, 14 Nov 2026 22:53:00 +0000",
       "imageUrl": "https://assetsio.gnwcdn.com/the-snackbar-at-the-end-of-the-world.jpg?width=690&amp;quality=85&amp;format=jpg&amp;auto=webp"
-    },
-    {
-      "id": "https://www.pcgamer.com/games/world-of-warcraft/wow-forever-dungeon-mobs-no-longer-give-exp-if-theyre-trivial-for-anyone-in-the-party/",
-      "title": "WoW: Forever dungeon mobs no longer give EXP if they're trivial for anyone in the party",
-      "link": "https://www.pcgamer.com/games/world-of-warcraft/wow-forever-dungeon-mobs-no-longer-give-exp-if-theyre-trivial-for-anyone-in-the-party/",
-      "description": "",
-      "source": "PC Gamer",
-      "category": "PC Gaming",
-      "pubDate": "Sat, 14 Nov 2026 22:17:19 +0000",
-      "imageUrl": "https://cdn.mos.cms.futurecdn.net/nGEgktqvFSg7YMjusbfHAb-1920-80.png"
-    },
-    {
-      "id": "https://kotaku.com/long-lost-self-deleting-pokemon-fishing-game-for-nintendo-ds-resurfaces-20-years-later-2000756876",
-      "title": "Long-Lost, Self-Deleting Pok\u00e9mon Fishing Game For Nintendo DS Resurfaces 20 Years Later",
-      "link": "https://kotaku.com/long-lost-self-deleting-pokemon-fishing-game-for-nintendo-ds-resurfaces-20-years-later-2000756876",
-      "description": "Pok\u00e9Park: Fishing Rally was only available at a Japanese theme park in 2005, with one collector now boasting what's believed to be the lone playable hard copy",
-      "source": "Kotaku",
-      "category": "Gaming",
-      "pubDate": "Sat, 14 Nov 2026 21:47:32 +0000",
-      "imageUrl": "https://kotaku.com/app/uploads/2026/11/pokemangafishing-1280x857.jpg"
     },
     {
       "id": "https://www.rockpapershotgun.com/rasen-out-in-early-access-now-is-a-pvp-focused-take-on-dark-souls-that-borrows-one-of-fighting-games-best-techy-tricks",
@@ -422,16 +672,6 @@
       "imageUrl": "https://assetsio.gnwcdn.com/rasen.jpg?width=690&amp;quality=85&amp;format=jpg&amp;auto=webp"
     },
     {
-      "id": "https://kotaku.com/team-meat-whips-out-remake-of-classic-brutal-platformersuper-meat-boy-2000756869",
-      "title": "Team Meat Whips Out Remake Of Classic Brutal Platformer Super Meat Boy",
-      "link": "https://kotaku.com/team-meat-whips-out-remake-of-classic-brutal-platformersuper-meat-boy-2000756869",
-      "description": "The seminal bone grinding indie platformer from 2010 will be getting a fresh coat of red stuff in Super Meat Boy Again+",
-      "source": "Kotaku",
-      "category": "Gaming",
-      "pubDate": "Sat, 14 Nov 2026 19:33:14 +0000",
-      "imageUrl": "https://kotaku.com/app/uploads/2026/11/supermeatboyagain-1280x816.jpg"
-    },
-    {
       "id": "https://www.rockpapershotgun.com/congratulations-to-people-who-feel-mean-shooting-random-npcs-because-gta-6-tries-to-provide-mechanisms-that-encourage-empathy",
       "title": "Congratulations to people who feel mean shooting random NPCs, because GTA 6 tries \"to provide mechanisms that encourage\" empathy",
       "link": "https://www.rockpapershotgun.com/congratulations-to-people-who-feel-mean-shooting-random-npcs-because-gta-6-tries-to-provide-mechanisms-that-encourage-empathy",
@@ -440,16 +680,6 @@
       "category": "PC Gaming",
       "pubDate": "Sat, 14 Nov 2026 19:00:00 +0000",
       "imageUrl": "https://assetsio.gnwcdn.com/grand-theft-auto-6-trailer-1-cap-o.jpg?width=690&amp;quality=85&amp;format=jpg&amp;auto=webp"
-    },
-    {
-      "id": "https://kotaku.com/ddg-apologizes-on-behalf-of-kanye-recreating-fan-who-crashed-streamer-awards-2000756857",
-      "title": "DDG Apologizes On Behalf Of Fan Who Recreated Kanye\u2019s Notorious 2009 Taylor Swift Rant At The 2026 Streamer Awards",
-      "link": "https://kotaku.com/ddg-apologizes-on-behalf-of-kanye-recreating-fan-who-crashed-streamer-awards-2000756857",
-      "description": "While the interrupted AriAtHome was a good sport about sharing the spotlight, the mystery intruder was deemed 'corny' by the crowd",
-      "source": "Kotaku",
-      "category": "Gaming",
-      "pubDate": "Sat, 14 Nov 2026 18:13:40 +0000",
-      "imageUrl": "https://kotaku.com/app/uploads/2026/11/streamerawardcrasher-1280x807.jpg"
     },
     {
       "id": "https://www.rockpapershotgun.com/from-2d-to-3d-and-back-to-2d-again-the-original-platforming-classic-super-meat-boy-returns-with-a-slick-remaster-complete-with-new-levels-and-too-many-old-saws",
@@ -462,244 +692,14 @@
       "imageUrl": "https://assetsio.gnwcdn.com/super-meat-boy-again-plus.jpg?width=690&amp;quality=85&amp;format=jpg&amp;auto=webp"
     },
     {
-      "id": "https://kotaku.com/james-gunn-speaks-out-about-rumors-of-skydance-being-unhappy-with-man-of-tomorrow-says-they-havent-even-seen-the-movie-yet-2000756855",
-      "title": "James Gunn Speaks Out About Rumors Of Skydance Being Unhappy With Man of Tomorrow, Says They Haven\u2019t Even Seen The Movie Yet",
-      "link": "https://kotaku.com/james-gunn-speaks-out-about-rumors-of-skydance-being-unhappy-with-man-of-tomorrow-says-they-havent-even-seen-the-movie-yet-2000756855",
-      "description": "Reports have claimed execs at the new parent company are unhappy with the expensive blockbuster",
-      "source": "Kotaku",
-      "category": "Gaming",
-      "pubDate": "Sat, 14 Nov 2026 17:54:40 +0000",
-      "imageUrl": "https://kotaku.com/app/uploads/2026/11/dc-comics.jpg"
-    },
-    {
-      "id": "https://kotaku.com/not-one-hurt-at-xbox-studio-inxile-entertainment-after-a-gunman-allegedly-opened-fire-on-the-building-2000756851",
-      "title": "No One Hurt At Xbox Studio InXile Entertainment After A Gunman Allegedly Opened Fire On The Building",
-      "link": "https://kotaku.com/not-one-hurt-at-xbox-studio-inxile-entertainment-after-a-gunman-allegedly-opened-fire-on-the-building-2000756851",
-      "description": "Police have since taken a suspect into custody",
-      "source": "Kotaku",
-      "category": "Gaming",
-      "pubDate": "Sat, 14 Nov 2026 17:13:06 +0000",
-      "imageUrl": "https://kotaku.com/app/uploads/2026/06/ClockworkRevolution-1280x720.jpg"
-    },
-    {
-      "id": "https://www.rockpapershotgun.com/missed-something-on-your-first-go-around-the-blood-of-dawnwalker-ive-got-good-news-as-next-weeks-update-adds-in-new-game-plus",
-      "title": "Missed something on your first go around The Blood of Dawnwalker? I've got good news, as next week's update adds in new game plus",
-      "link": "https://www.rockpapershotgun.com/missed-something-on-your-first-go-around-the-blood-of-dawnwalker-ive-got-good-news-as-next-weeks-update-adds-in-new-game-plus",
-      "description": "A big part of the point of The Blood of Dawnwalker is that you're on a fixed time limit. You've got 30 in-game days and nights to try and save your family, and if you don't manage to see everything the game has to off...",
-      "source": "Rock Paper Shotgun",
-      "category": "PC Gaming",
-      "pubDate": "Sat, 14 Nov 2026 16:53:00 +0000",
-      "imageUrl": "https://assetsio.gnwcdn.com/blood-of-dawnwalker-time-mechanics-not-lock-future-entries-01.jpg?width=690&amp;quality=85&amp;format=jpg&amp;auto=webp"
-    },
-    {
-      "id": "https://www.eurogamer.net/rainbow-six-vegas-new-game-ubisoft-spades-report",
-      "title": "Ubisoft is reportedly making a new Rainbow Six Vegas game, nearly two decades after Vegas 2",
-      "link": "https://www.eurogamer.net/rainbow-six-vegas-new-game-ubisoft-spades-report",
-      "description": "Ubisoft is reportedly working on a new Rainbow Six Vegas game 18 years after the last entry in the series. Read more",
-      "source": "Eurogamer",
-      "category": "Gaming",
-      "pubDate": "Sat, 14 Nov 2026 12:19:50 +0000",
-      "imageUrl": "https://assetsio.gnwcdn.com/0000003726.1920x1080.jpg?width=690&amp;quality=85&amp;format=jpg&amp;auto=webp"
-    },
-    {
-      "id": "https://www.eurogamer.net/call-of-duty-endowment-valor-pack-remembrance-day-veterans",
-      "title": "Call of Duty Endowment marks Remembrance Day with veterans' Valor Pack push",
-      "link": "https://www.eurogamer.net/call-of-duty-endowment-valor-pack-remembrance-day-veterans",
-      "description": "The Call of Duty Endowment is marking Remembrance Day and its 17th anniversary by encouraging Modern Warfare 4 and Warzone players to pick up its Valor Pack, with all of Activision's net proceeds going towards helping...",
-      "source": "Eurogamer",
-      "category": "Gaming",
-      "pubDate": "Sat, 14 Nov 2026 11:15:00 +0000",
-      "imageUrl": "https://assetsio.gnwcdn.com/Screenshot-2026-11-14-at-11.11.15.png?width=690&amp;quality=85&amp;format=jpg&amp;auto=webp"
-    },
-    {
-      "id": "https://www.eurogamer.net/magic-the-gathering-planeswalker-netflix-animated-series-2027",
-      "title": "Magic: The Gathering animated series Planeswalker is coming to Netflix in 2027",
-      "link": "https://www.eurogamer.net/magic-the-gathering-planeswalker-netflix-animated-series-2027",
-      "description": "Netflix's long-gestating Magic: The Gathering animated series is called Planeswalker, and it's coming in 2027. Read more",
-      "source": "Eurogamer",
-      "category": "Gaming",
-      "pubDate": "Sat, 14 Nov 2026 10:39:50 +0000",
-      "imageUrl": "https://assetsio.gnwcdn.com/Screenshot-2026-11-14-at-10.33.21.png?width=690&amp;quality=85&amp;format=jpg&amp;auto=webp"
-    },
-    {
-      "id": "https://www.eurogamer.net/gta-vice-city-retrospective",
-      "title": "Vice City was the GTA that established Rockstar's killer formula - and 24 years on, it's still one of the best games ever made",
-      "link": "https://www.eurogamer.net/gta-vice-city-retrospective",
-      "description": "\"Get the limey out of here,\" Burt Reynolds tells the producers of GTA: Vice City during a recording session for the game, as Rockstar co-founder Dan Houser enters the studio. \"I'm not going to work if this limey Brit ...",
-      "source": "Eurogamer",
-      "category": "Gaming",
-      "pubDate": "Sat, 14 Nov 2026 10:00:00 +0000",
-      "imageUrl": "https://assetsio.gnwcdn.com/GTA-week-lance.jpg?width=690&amp;quality=85&amp;format=jpg&amp;auto=webp"
-    },
-    {
-      "id": "https://www.eurogamer.net/what-weve-been-playing-sass-all-over-town-link-ocarina",
-      "title": "What we've been playing - \"Whether he means to or not, he serves sass all over town\"",
-      "link": "https://www.eurogamer.net/what-weve-been-playing-sass-all-over-town-link-ocarina",
-      "description": "Another week has climaxed and I'm so sorry you had to read that on a Saturday morning. But here we are again, with our regular feature, where we talk about what we've been playing in order that you do too. This week, ...",
-      "source": "Eurogamer",
-      "category": "Gaming",
-      "pubDate": "Sat, 14 Nov 2026 08:00:00 +0000",
-      "imageUrl": "https://assetsio.gnwcdn.com/link-ocarina-remake-adult.jpg?width=690&amp;quality=85&amp;format=jpg&amp;auto=webp"
-    },
-    {
-      "id": "https://www.rockpapershotgun.com/what-are-we-all-playing-this-weekend-408",
-      "title": "What are we all playing this weekend?",
-      "link": "https://www.rockpapershotgun.com/what-are-we-all-playing-this-weekend-408",
-      "description": "Ah, yes, Saturday. Traditionally a day for relaxing. Why is it then I'm packing, doing last-minute shopping, and going to a wedding all in the space of eight hours? Because, Julian, you are a fool who, as ever, has le...",
-      "source": "Rock Paper Shotgun",
-      "category": "PC Gaming",
-      "pubDate": "Sat, 14 Nov 2026 08:00:00 +0000",
-      "imageUrl": "https://assetsio.gnwcdn.com/weekend-baggage.jpg?width=690&amp;quality=85&amp;format=jpg&amp;auto=webp"
-    },
-    {
-      "id": "https://kotaku.com/microsoft-on-faa-ground-stop-it-wasnt-me-2000756749",
-      "title": "Microsoft On FAA Ground Stop: It Wasn\u2019t Me",
-      "link": "https://kotaku.com/microsoft-on-faa-ground-stop-it-wasnt-me-2000756749",
-      "description": "The cause is still unknown",
-      "source": "Kotaku",
-      "category": "Gaming",
-      "pubDate": "Fri, 13 Nov 2026 23:24:49 +0000",
-      "imageUrl": "https://kotaku.com/app/uploads/2026/11/microsoft-sflight-sim-1280x720.jpg"
-    },
-    {
-      "id": "https://kotaku.com/the-haters-guide-to-ocarina-of-time-2000756728",
-      "title": "The Hater\u2019s Guide To Ocarina Of Time",
-      "link": "https://kotaku.com/the-haters-guide-to-ocarina-of-time-2000756728",
-      "description": "Stay strong, fellow Ocarina antagonists, we will get through this",
-      "source": "Kotaku",
-      "category": "Gaming",
-      "pubDate": "Fri, 13 Nov 2026 22:33:50 +0000",
-      "imageUrl": "https://kotaku.com/app/uploads/2026/11/ganon-1280x720.jpg"
-    },
-    {
-      "id": "https://kotaku.com/checking-in-on-the-weird-little-guys-in-ocarina-of-time-to-see-how-they-fared-in-the-remake-2000756684",
-      "title": "Checking In On The Weird Little Guys In Ocarina Of Time To See How They Fared In The Remake",
-      "link": "https://kotaku.com/checking-in-on-the-weird-little-guys-in-ocarina-of-time-to-see-how-they-fared-in-the-remake-2000756684",
-      "description": "Time will change you",
-      "source": "Kotaku",
-      "category": "Gaming",
-      "pubDate": "Fri, 13 Nov 2026 22:00:33 +0000",
-      "imageUrl": "https://kotaku.com/app/uploads/2026/11/freaks-17-1280x720.jpg"
-    },
-    {
-      "id": "https://www.gamespot.com/articles/physical-gta-6-copies-might-be-vulnerable-to-a-very-stupid-but-serious-trick/",
-      "title": "\u201cPhysical\u201d GTA 6 Copies Might Be Vulnerable To A Very Stupid But Serious Trick",
-      "link": "https://www.gamespot.com/articles/physical-gta-6-copies-might-be-vulnerable-to-a-very-stupid-but-serious-trick/",
-      "description": "Grand Theft Auto 6 ditched traditional discs for its \"physical\" launch, with Rockstar's game being sold as a digital code-in-box at retailers beginning this week. However, it appears a packaging choice may have accide...",
+      "id": "https://www.gamespot.com/articles/gta-6-has-sold-almost-8-million-copies-so-far-and-ps5-is-dominating-the-split-of-course/",
+      "title": "GTA 6 Nearing 15 Million Copies Sold And $1.5 Billion In Revenue, And The Game Isn\u2019t Even Out Yet",
+      "link": "https://www.gamespot.com/articles/gta-6-has-sold-almost-8-million-copies-so-far-and-ps5-is-dominating-the-split-of-course/",
+      "description": "The video game research company Sensor Tower has updated its GTA 6 sales tracker to reveal the latest, albeit unofficial, sales data for the open-world crime game. According to Sensor Tower, GTA 6 has now sold 14.94 m...",
       "source": "GameSpot",
       "category": "Gaming",
-      "pubDate": "Fri, 13 Nov 2026 21:03:51 +0000",
-      "imageUrl": "https://www.gamespot.com/wp-content/uploads/2026/11/GTA6-1.webp?w=300"
-    },
-    {
-      "id": "https://www.gamespot.com/articles/gta-6-owner-take-two-is-not-interested-in-selling-itself-after-ea-goes-private-for-55-billion/",
-      "title": "GTA 6 Owner Take-Two Is Not Interested In Selling Itself After EA Goes Private For $55 Billion",
-      "link": "https://www.gamespot.com/articles/gta-6-owner-take-two-is-not-interested-in-selling-itself-after-ea-goes-private-for-55-billion/",
-      "description": "Recently, the gaming giant Electronic Arts was taken private in a $55 billion sale to an investor consortium led by Saudi Arabia's Public Investment Fund. Could GTA 6 owner Take-Two be the next big company that gets a...",
-      "source": "GameSpot",
-      "category": "Gaming",
-      "pubDate": "Fri, 13 Nov 2026 21:02:34 +0000",
-      "imageUrl": "https://www.gamespot.com/wp-content/uploads/2026/11/Jason_and_Lucia_09-2-1.jpg?w=300"
-    },
-    {
-      "id": "https://www.gamespot.com/articles/gta-6-could-sell-55-million-copies-by-early-next-year-report-says-and-average-selling-price-could-be-90/",
-      "title": "GTA 6 Could Sell 55 Million Copies By Early Next Year, Report Says, And Average Selling Price Could Be $90",
-      "link": "https://www.gamespot.com/articles/gta-6-could-sell-55-million-copies-by-early-next-year-report-says-and-average-selling-price-could-be-90/",
-      "description": "Rockstar's Grand Theft Auto 6 launches on November 19, and it's expected to be a gigantic commercial success, but just how big will the launch be? Investor's Business Daily compiled data from a series of analyst repor...",
-      "source": "GameSpot",
-      "category": "Gaming",
-      "pubDate": "Fri, 13 Nov 2026 19:36:04 +0000",
-      "imageUrl": "https://www.gamespot.com/wp-content/uploads/2026/11/Ambrosia_06_6fdec7.jpg?w=300"
-    },
-    {
-      "id": "https://www.gamespot.com/articles/you-can-probably-guess-wow-forevers-most-popular-race-class-and-faction/",
-      "title": "You Can Probably Guess WoW: Forever\u2019s Most Popular Race, Class, And Faction",
-      "link": "https://www.gamespot.com/articles/you-can-probably-guess-wow-forevers-most-popular-race-class-and-faction/",
-      "description": "World of Warcraft: Forever has been in the wild for one week, and now we have all kinds of stats to sink our teeth into as they relate to the most popular races, classes, and faction in the latest version of developer...",
-      "source": "GameSpot",
-      "category": "Gaming",
-      "pubDate": "Fri, 13 Nov 2026 19:15:27 +0000",
-      "imageUrl": "https://www.gamespot.com/wp-content/uploads/2026/11/WoW-Forever-Launch-Stats-Undead-Paladin.jpg?w=300"
-    },
-    {
-      "id": "https://www.rockpapershotgun.com/cyberpunk-trading-sim-probably-stolen-is-getting-three-big-updates-with-new-starting-scenarios-organ-trading-junk-empires-and-fine-dining",
-      "title": "Cyberpunk trading sim Probably Stolen is getting three big updates with new starting scenarios - organ trading, junk empires and fine dining",
-      "link": "https://www.rockpapershotgun.com/cyberpunk-trading-sim-probably-stolen-is-getting-three-big-updates-with-new-starting-scenarios-organ-trading-junk-empires-and-fine-dining",
-      "description": "Mucky and disreputable kiosk game Probably Stolen \u2013 Cyberpunk Shopkeeper Sim is getting three big updates over the next few months that add extra starting scenarios, building on the existing wealth of goods, materials...",
-      "source": "Rock Paper Shotgun",
-      "category": "PC Gaming",
-      "pubDate": "Fri, 13 Nov 2026 17:30:00 +0000",
-      "imageUrl": "https://assetsio.gnwcdn.com/probably-stolen-grapes.jpg?width=690&amp;quality=85&amp;format=jpg&amp;auto=webp"
-    },
-    {
-      "id": "https://www.gamespot.com/articles/official-zelda-website-raises-eyebrows-by-labeling-3ds-game-as-playable-on-switch/",
-      "title": "Official Zelda Website Raises Eyebrows By Labeling 3DS Game As Playable On Switch",
-      "link": "https://www.gamespot.com/articles/official-zelda-website-raises-eyebrows-by-labeling-3ds-game-as-playable-on-switch/",
-      "description": "Nintendo is celebrating The Legend of Zelda's 40th anniversary in many different ways, but one detail on the company's official website raised confusion--and curiosity-- about a classic 3DS Zelda game. A \"History\" pag...",
-      "source": "GameSpot",
-      "category": "Gaming",
-      "pubDate": "Fri, 13 Nov 2026 17:13:06 +0000",
-      "imageUrl": "https://www.gamespot.com/wp-content/uploads/2026/11/Nintendo-3DS-and-2DS-The-Legend-of-Zelda_-A-Link-Between-Worlds-Trailer-0-1-48.jpeg?w=300"
-    },
-    {
-      "id": "https://www.rockpapershotgun.com/have-you-played-deaths-door",
-      "title": "While soulslikes went bigger than big, Death's Door swung open the appeal of a tighter adventure",
-      "link": "https://www.rockpapershotgun.com/have-you-played-deaths-door",
-      "description": "Declaring a Best Way of Doing Things is a fool\u2019s game, though in recent years my favourite entries in the Tricky Hitting genre \u2013 inclusive of soulslikes and their hybridised disciples \u2013 have been the big, bulging ones...",
-      "source": "Rock Paper Shotgun",
-      "category": "PC Gaming",
-      "pubDate": "Fri, 13 Nov 2026 17:05:50 +0000",
-      "imageUrl": "https://assetsio.gnwcdn.com/Death"
-    },
-    {
-      "id": "https://www.gamespot.com/articles/gta-6-and-these-other-games-can-justify-an-80-price-expert-says/",
-      "title": "GTA 6 And These Other Games Can Justify An $80 Price, Expert Says",
-      "link": "https://www.gamespot.com/articles/gta-6-and-these-other-games-can-justify-an-80-price-expert-says/",
-      "description": "Rockstar's Grand Theft Auto 6 finally releases on November 19, and you'll have to pay at least $80 for it. That's a full $20 more than what GTA 5 cost in 2013 and $10 more than many other big AAA games today. Is $80 g...",
-      "source": "GameSpot",
-      "category": "Gaming",
-      "pubDate": "Fri, 13 Nov 2026 16:37:29 +0000",
-      "imageUrl": "https://www.gamespot.com/wp-content/uploads/2026/11/Vice_City_03.jpg?w=300"
-    },
-    {
-      "id": "https://www.rockpapershotgun.com/worst-class-ever-takes-asymmetrical-multiplayer-back-to-school-with-a-teacher-player-trying-to-spot-the-naughty-children-among-the-npcs",
-      "title": "Worst Class Ever takes asymmetrical multiplayer back to school, with a teacher player trying to spot the naughty children among the NPCs",
-      "link": "https://www.rockpapershotgun.com/worst-class-ever-takes-asymmetrical-multiplayer-back-to-school-with-a-teacher-player-trying-to-spot-the-naughty-children-among-the-npcs",
-      "description": "What's the best prank you ever pulled on a teacher in school, assuming you went to school? By which I mean, a genuinely funny prank that didn't cause any injuries, break any of the more important laws (legal or ethica...",
-      "source": "Rock Paper Shotgun",
-      "category": "PC Gaming",
-      "pubDate": "Fri, 13 Nov 2026 16:34:50 +0000",
-      "imageUrl": "https://assetsio.gnwcdn.com/worst-class-ever.jpg?width=690&amp;quality=85&amp;format=jpg&amp;auto=webp"
-    },
-    {
-      "id": "https://www.gamespot.com/articles/gta-6-in-game-tv-show-macca-friends-looks-ridiculous-in-the-best-way/",
-      "title": "GTA 6 In-Game TV Show Macca & Friends Looks Ridiculous In The Best Way",
-      "link": "https://www.gamespot.com/articles/gta-6-in-game-tv-show-macca-friends-looks-ridiculous-in-the-best-way/",
-      "description": "Rockstar Games has released the first footage of an in-game GTA 6 TV show called \"Macca & Friends,\" which is about a sunglass-wearing pink alligator and his wetland friends in Leonida (the stand-in for Florida). One o...",
-      "source": "GameSpot",
-      "category": "Gaming",
-      "pubDate": "Fri, 13 Nov 2026 15:13:57 +0000",
-      "imageUrl": "https://www.gamespot.com/wp-content/uploads/2026/11/GTA6NewImage.png?w=300"
-    },
-    {
-      "id": "https://www.gamespot.com/articles/the-ps5s-new-graphics-upscaling-trick-is-spreading-to-more-games/",
-      "title": "The PS5\u2019s New Graphics-Upscaling Trick Is Spreading To More Games",
-      "link": "https://www.gamespot.com/articles/the-ps5s-new-graphics-upscaling-trick-is-spreading-to-more-games/",
-      "description": "Sony has announced that several more games are getting a Quick Spectral Super Resolution (QSSR) upgrade on PS5. Introduced in September, QSSR is an AI-guided upscaling technology similar to the PS5 Pro's PlayStation S...",
-      "source": "GameSpot",
-      "category": "Gaming",
-      "pubDate": "Fri, 13 Nov 2026 14:47:08 +0000",
-      "imageUrl": "https://www.gamespot.com/wp-content/uploads/2026/09/Control-Resonant-1.jpg?w=300"
-    },
-    {
-      "id": "https://www.gamespot.com/articles/xbox-says-putting-ads-in-games-something-no-one-likes-could-help-save-gaming/",
-      "title": "Xbox Says Putting Ads In Games, Something No One Likes, Could Help Save Gaming",
-      "link": "https://www.gamespot.com/articles/xbox-says-putting-ads-in-games-something-no-one-likes-could-help-save-gaming/",
-      "description": "Xbox Cloud Gaming now has a free ad-supported version that's rolling out as part of Microsoft's bigger push to bring more ads to Xbox. Jonathan Stringfield, who worked on Activision's advertising push and is now doing...",
-      "source": "GameSpot",
-      "category": "Gaming",
-      "pubDate": "Fri, 13 Nov 2026 14:26:32 +0000",
-      "imageUrl": "https://www.gamespot.com/wp-content/uploads/2026/11/Xbox-1.png?w=300"
+      "pubDate": "Wed, 04 Nov 2026 14:15:31 +0000",
+      "imageUrl": "https://www.gamespot.com/wp-content/uploads/2026/11/Jason_and_Lucia_09-2.jpg?w=300"
     }
   ],
   "count": 70
