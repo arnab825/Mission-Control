@@ -549,7 +549,7 @@ export default function CommunityClient() {
         isOpen={isRateModalOpen}
         onClose={() => setIsRateModalOpen(false)}
         onSuccess={fetchRatings}
-        initialGameId={testedGames[0]?.id || "codmw4"}
+        initialGameId={testedGames[0]?.id || "re4"}
         availableGames={testedGames}
       />
     </main>

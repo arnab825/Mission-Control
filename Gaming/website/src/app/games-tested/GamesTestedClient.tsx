@@ -24,7 +24,7 @@ type OS = "windows" | "linux" | "mac" | "other" | null;
 
 export default function GamesTestedClient() {
   const [selectedGameId, setSelectedGameId] = useState<string>(
-    TESTED_GAMES_LIST[0]?.id || "codmw4"
+    TESTED_GAMES_LIST[0]?.id || "re4"
   );
   const [slideshowIndex, setSlideshowIndex] = useState<number | null>(null);
   const [isPlaying, setIsPlaying] = useState<boolean>(false);

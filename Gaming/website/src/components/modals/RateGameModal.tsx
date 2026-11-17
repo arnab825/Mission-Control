@@ -45,7 +45,7 @@ export default function RateGameModal({
   isOpen,
   onClose,
   onSuccess,
-  initialGameId = "codmw4",
+  initialGameId = "re4",
   availableGames,
 }: RateGameModalProps) {
   const [games, setGames] = useState<TestedGameSummary[]>(availableGames || getLiveTestedGames());
