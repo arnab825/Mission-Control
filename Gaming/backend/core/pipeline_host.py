@@ -301,7 +301,7 @@ class GamingAssistantPipeline:
             self.voice_manager.on_command_received = self._handle_voice_command
             logger.info("Voice Manager initialized (STT disabled by default — toggle in Agent UI)")
 
-        self.active_chat_session_id = "default"
+        self.active_chat_session_id = ""
         self.active_user_id = None
 
         # Agentic Mode Toggle

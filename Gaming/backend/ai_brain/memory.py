@@ -545,7 +545,7 @@ class GameMemory:
                     LIMIT 1
                 )
                 WHERE s.user_id = ? OR (? = 'guest' AND (s.user_id IS NULL OR s.user_id = ''))
-                ORDER BY s.start_time DESC
+                ORDER BY COALESCE(m.timestamp, s.start_time) DESC
             """
             cur.execute(query, (effective_user, effective_user))
             sessions = []

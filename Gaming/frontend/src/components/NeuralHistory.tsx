@@ -9,7 +9,7 @@ export interface HistoryItem {
   timestamp?: number;
 }
 
-const getRelativeTimeString = (timestampOrStr: number | string | undefined): string => {
+export const getRelativeTimeString = (timestampOrStr: number | string | undefined): string => {
   if (!timestampOrStr) return 'Just now';
   if (timestampOrStr === 'Active') return 'Active';
   
@@ -24,11 +24,16 @@ const getRelativeTimeString = (timestampOrStr: number | string | undefined): str
     ts = timestampOrStr;
   }
   
+  // Normalize milliseconds (> 1e11) to seconds
+  if (ts > 1e11) {
+    ts = Math.floor(ts / 1000);
+  }
+
   const now = Math.floor(Date.now() / 1000);
   const diff = now - ts;
 
   if (diff < 10) return 'Just now';
-  if (diff < 60) return `${Math.floor(diff)}s ago`;
+  if (diff < 60) return `${Math.max(1, Math.floor(diff))}s ago`;
   
   const mins = Math.floor(diff / 60);
   if (mins < 60) {

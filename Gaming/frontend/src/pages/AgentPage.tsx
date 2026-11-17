@@ -33,9 +33,47 @@ import {
   ExternalLink
 } from 'lucide-react';
 import type { TelemetryState } from '../types/telemetry';
-import NeuralHistory from '../components/NeuralHistory';
+import NeuralHistory, { getRelativeTimeString } from '../components/NeuralHistory';
 import { useUser } from '@clerk/clerk-react';
 import { useDistributedStats } from '../hooks/useDistributedStats';
+
+export const formatMessageTime = (timestamp?: number | string): string => {
+  if (!timestamp) return 'Just now';
+  let ts: number;
+  if (typeof timestamp === 'string') {
+    const parsed = Number(timestamp);
+    if (isNaN(parsed)) return timestamp;
+    ts = parsed;
+  } else {
+    ts = timestamp;
+  }
+  if (ts > 1e11) {
+    ts = Math.floor(ts / 1000);
+  }
+  const now = Math.floor(Date.now() / 1000);
+  const diff = now - ts;
+  if (diff < 30) return 'Just now';
+
+  const msgDate = new Date(ts * 1000);
+  const nowDate = new Date(now * 1000);
+  const timePart = msgDate.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', hour12: false });
+
+  if (msgDate.toDateString() === nowDate.toDateString()) {
+    return timePart;
+  }
+
+  const yesterday = new Date(nowDate);
+  yesterday.setDate(nowDate.getDate() - 1);
+  if (msgDate.toDateString() === yesterday.toDateString()) {
+    return `Yesterday ${timePart}`;
+  }
+
+  const isCurrentYear = msgDate.getFullYear() === nowDate.getFullYear();
+  const datePart = isCurrentYear
+    ? msgDate.toLocaleDateString([], { month: 'short', day: 'numeric' })
+    : msgDate.toLocaleDateString([], { month: 'numeric', day: 'numeric', year: '2-digit' });
+  return `${datePart} ${timePart}`;
+};
 
 /* ─── Sub-components ─────────────────────────────────────────────── */
 
@@ -703,15 +741,20 @@ const AgentPage: React.FC<{
 
     const [isThinking, setIsThinking] = useState(false);
     const [activeSessionId, setActiveSessionId] = useState<string>(() => {
-      const initialUid = propUserId || 'guest';
+      const initialUid = propUserId && propUserId !== 'guest'
+        ? propUserId
+        : (cachedUserState?.id && cachedUserState.id !== 'guest'
+            ? cachedUserState.id
+            : (typeof window !== 'undefined' ? (localStorage.getItem('mission_control_user_id') || 'guest') : 'guest'));
       if (globalActiveSessionIdByUserId[initialUid]) {
         return globalActiveSessionIdByUserId[initialUid];
       }
       try {
-        const raw = sessionStorage.getItem(`mc_agent_active_session_${initialUid}`);
-        if (raw) return raw;
+        const raw = localStorage.getItem(`mc_agent_active_session_${initialUid}`) ||
+                    sessionStorage.getItem(`mc_agent_active_session_${initialUid}`);
+        if (raw && raw !== 'default') return raw;
       } catch (_) {}
-      return 'default';
+      return '';
     });
 
     useEffect(() => {
@@ -719,9 +762,27 @@ const AgentPage: React.FC<{
         globalActiveSessionIdByUserId[userId] = activeSessionId;
         try {
           sessionStorage.setItem(`mc_agent_active_session_${userId}`, activeSessionId);
+          localStorage.setItem(`mc_agent_active_session_${userId}`, activeSessionId);
         } catch (_) {}
       }
     }, [activeSessionId, userId]);
+
+    // When userId resolves/changes (e.g. from guest to authenticated user), restore cached active session
+    useEffect(() => {
+      if (userId && userId !== 'guest') {
+        const savedSession = globalActiveSessionIdByUserId[userId] ||
+          (() => {
+            try {
+              return localStorage.getItem(`mc_agent_active_session_${userId}`) ||
+                     sessionStorage.getItem(`mc_agent_active_session_${userId}`);
+            } catch { return null; }
+          })();
+        if (savedSession && savedSession !== 'default') {
+          setActiveSessionId(savedSession);
+          activeSessionIdRef.current = savedSession;
+        }
+      }
+    }, [userId]);
     const [isVerifyModalOpen, setIsVerifyModalOpen] = useState(false);
     const [isGeneratingKeys, setIsGeneratingKeys] = useState(false);
     const [secKeys, setSecKeys] = useState<string[]>([]);
@@ -833,12 +894,17 @@ const AgentPage: React.FC<{
     }, [isGeneratingKeys, userId, activeSessionId]);
 
     const [historyItems, setHistoryItems] = useState<any[]>(() => {
-      const initialUid = propUserId || 'guest';
+      const initialUid = propUserId && propUserId !== 'guest'
+        ? propUserId
+        : (cachedUserState?.id && cachedUserState.id !== 'guest'
+            ? cachedUserState.id
+            : (typeof window !== 'undefined' ? (localStorage.getItem('mission_control_user_id') || 'guest') : 'guest'));
       if (globalHistoryItemsByUserId[initialUid]?.length) {
         return globalHistoryItemsByUserId[initialUid];
       }
       try {
-        const raw = sessionStorage.getItem(`mc_agent_history_${initialUid}`);
+        const raw = localStorage.getItem(`mc_agent_history_${initialUid}`) ||
+                    sessionStorage.getItem(`mc_agent_history_${initialUid}`);
         if (raw) return JSON.parse(raw);
       } catch (_) {}
       return [];
@@ -849,17 +915,23 @@ const AgentPage: React.FC<{
         globalHistoryItemsByUserId[userId] = historyItems;
         try {
           sessionStorage.setItem(`mc_agent_history_${userId}`, JSON.stringify(historyItems));
+          localStorage.setItem(`mc_agent_history_${userId}`, JSON.stringify(historyItems));
         } catch (_) {}
       }
     }, [historyItems, userId]);
 
-    const [conversations, setConversations] = useState<Record<string, { role: 'agent' | 'user'; text: string; time: string; isTyping?: boolean; isThinking?: boolean; id?: string; dbId?: number; searchStatus?: string }[]>>(() => {
+    const [conversations, setConversations] = useState<Record<string, { role: 'agent' | 'user'; text: string; time: string; timestamp?: number; isTyping?: boolean; isThinking?: boolean; id?: string; dbId?: number; searchStatus?: string }[]>>(() => {
       if (Object.keys(globalConversations).length > 0) {
         return { ...globalConversations };
       }
       try {
-        const initialUid = propUserId || 'guest';
-        const raw = sessionStorage.getItem(`mc_agent_conversations_${initialUid}`);
+        const initialUid = propUserId && propUserId !== 'guest'
+          ? propUserId
+          : (cachedUserState?.id && cachedUserState.id !== 'guest'
+              ? cachedUserState.id
+              : (typeof window !== 'undefined' ? (localStorage.getItem('mission_control_user_id') || 'guest') : 'guest'));
+        const raw = localStorage.getItem(`mc_agent_conversations_${initialUid}`) ||
+                    sessionStorage.getItem(`mc_agent_conversations_${initialUid}`);
         if (raw) return JSON.parse(raw);
       } catch (_) {}
       if (state?.chat_history?.sessionId && Array.isArray(state?.chat_history?.messages)) {
@@ -878,7 +950,8 @@ const AgentPage: React.FC<{
             dbId: m.id,
             searchStatus,
             id: m.id ? String(m.id) : `msg_${sessionId}_${idx}_${Math.floor((m.timestamp || 0) * 1000)}`,
-            time: m.timestamp ? new Date(m.timestamp * 1000).toLocaleTimeString([], { hour12: false }) : 'Just now'
+            time: formatMessageTime(m.timestamp),
+            timestamp: m.timestamp
           };
         });
         return { [sessionId]: mapped };
@@ -891,6 +964,7 @@ const AgentPage: React.FC<{
         Object.assign(globalConversations, conversations);
         try {
           sessionStorage.setItem(`mc_agent_conversations_${userId}`, JSON.stringify(conversations));
+          localStorage.setItem(`mc_agent_conversations_${userId}`, JSON.stringify(conversations));
         } catch (_) {}
       }
     }, [conversations, userId]);
@@ -986,10 +1060,15 @@ const AgentPage: React.FC<{
       if (state.chat_sessions.length > 0) {
         isCreatingInitialSessionRef.current = false;
         const currentId = activeSessionIdRef.current;
-        const exists = state.chat_sessions.some((s: any) => s.id === currentId) || pendingNewSessionsRef.current.has(currentId);
-        if (!currentId || !exists) {
+        const existsInServer = state.chat_sessions.some((s: any) => s.id === currentId);
+        const hasLocalMessages = (conversations[currentId]?.length || 0) > 0;
+
+        // Auto-select session: if no active session, or 'default', or session does not exist on server (and user hasn't typed in it)
+        if (!currentId || currentId === 'default' || (!existsInServer && !hasLocalMessages)) {
           if (!isPopup) {
-            setActiveSessionId(state.chat_sessions[0].id);
+            const topSessionId = state.chat_sessions[0].id;
+            setActiveSessionId(topSessionId);
+            activeSessionIdRef.current = topSessionId;
           }
         }
 
@@ -1009,7 +1088,14 @@ const AgentPage: React.FC<{
             timeoutIds.push(id);
           });
         }
-      } else if (state.chat_sessions.length === 0 && historyItems.length === 0 && !isCreatingInitialSessionRef.current && !globalIsCreatingInitialSession && !isPopup) {
+      } else if (
+        state.chat_sessions.length === 0 &&
+        historyItems.length === 0 &&
+        !isCreatingInitialSessionRef.current &&
+        !globalIsCreatingInitialSession &&
+        !isPopup &&
+        !(userId === 'guest' && cachedUserState?.id)
+      ) {
         isCreatingInitialSessionRef.current = true;
         globalIsCreatingInitialSession = true;
         const newId = `session_${Date.now()}`;
@@ -1021,6 +1107,7 @@ const AgentPage: React.FC<{
           return prev;
         });
         setActiveSessionId(newId);
+        activeSessionIdRef.current = newId;
       }
 
       return () => {
@@ -1035,9 +1122,11 @@ const AgentPage: React.FC<{
 
     // Synchronize activeSessionId with backend state (especially useful for popup overlay sync)
     useEffect(() => {
-      if (state?.active_chat_session_id && state.active_chat_session_id !== lastBackendActiveSessionIdRef.current) {
-        lastBackendActiveSessionIdRef.current = state.active_chat_session_id;
-        setActiveSessionId(state.active_chat_session_id);
+      const backendSid = state?.active_chat_session_id;
+      if (backendSid && backendSid !== 'default' && backendSid !== lastBackendActiveSessionIdRef.current) {
+        lastBackendActiveSessionIdRef.current = backendSid;
+        setActiveSessionId(backendSid);
+        activeSessionIdRef.current = backendSid;
       }
     }, [state?.active_chat_session_id]);
 
@@ -1107,7 +1196,8 @@ const AgentPage: React.FC<{
             dbId: m.id,
             searchStatus: searchStatus,
             id: m.id ? String(m.id) : `msg_${sessionId}_${idx}_${Math.floor((m.timestamp || 0) * 1000)}`,
-            time: m.timestamp ? new Date(m.timestamp * 1000).toLocaleTimeString([], { hour12: false }) : 'Just now'
+            time: formatMessageTime(m.timestamp),
+            timestamp: m.timestamp
           };
         });
         return { ...prev, [sessionId]: mapped };
@@ -1159,7 +1249,8 @@ const AgentPage: React.FC<{
           globalLastProcessedResponse = cleanAr;
         }
 
-        const time = new Date().toLocaleTimeString([], { hour12: false });
+        const nowSec = Math.floor(Date.now() / 1000);
+        const time = formatMessageTime(nowSec);
         const userText = `🎙️ ${cleanVp}`;
 
         setConversations(prev => {
@@ -1168,7 +1259,7 @@ const AgentPage: React.FC<{
 
           // 1. User bubble
           if (newChat.length === 0 || newChat[newChat.length - 1].text !== userText) {
-            newChat.push({ role: 'user', text: userText, time, id: `msg_${Date.now()}_u` });
+            newChat.push({ role: 'user', text: userText, time, timestamp: nowSec, id: `msg_${Date.now()}_u` });
           }
 
           // 2. Agent bubble or thinking state
@@ -1178,7 +1269,7 @@ const AgentPage: React.FC<{
               setIsThinking(true);
               const lastMsg = newChat[newChat.length - 1];
               if (!lastMsg || lastMsg.role !== 'agent' || !lastMsg.isThinking) {
-                newChat.push({ role: 'agent', text: '', time, isThinking: true, id: `msg_${Date.now()}_thinking` });
+                newChat.push({ role: 'agent', text: '', time, timestamp: nowSec, isThinking: true, id: `msg_${Date.now()}_thinking` });
               }
             } else {
               setIsThinking(false);
@@ -1191,13 +1282,14 @@ const AgentPage: React.FC<{
                   role: 'agent',
                   text: cleanAr,
                   time,
+                  timestamp: nowSec,
                   isTyping: true,
                   isThinking: false,
                   searchStatus
                 };
               } else {
                 if (!lastMsg || lastMsg.text !== cleanAr) {
-                  newChat.push({ role: 'agent', text: cleanAr, time, isTyping: true, id: `msg_${Date.now()}_a`, searchStatus });
+                  newChat.push({ role: 'agent', text: cleanAr, time, timestamp: nowSec, isTyping: true, id: `msg_${Date.now()}_a`, searchStatus });
                 }
               }
             }
@@ -1211,6 +1303,9 @@ const AgentPage: React.FC<{
 
       } else if (isNewAgent && cleanAr) {
         const isProcessing = cleanAr.startsWith("Processing");
+        const nowSec = Math.floor(Date.now() / 1000);
+        const time = formatMessageTime(nowSec);
+
         if (isProcessing) {
           setIsThinking(true);
           // Ensure thinking bubble exists
@@ -1223,7 +1318,7 @@ const AgentPage: React.FC<{
               ...prev,
               [activeSessionId]: [
                 ...activeChat,
-                { role: 'agent', text: '', time: new Date().toLocaleTimeString([], { hour12: false }), isThinking: true, id: `msg_${Date.now()}_thinking` }
+                { role: 'agent', text: '', time, timestamp: nowSec, isThinking: true, id: `msg_${Date.now()}_thinking` }
               ]
             };
           });
@@ -1234,7 +1329,6 @@ const AgentPage: React.FC<{
         lastProcessedResponseRef.current = ar;
         globalLastProcessedResponse = cleanAr;
 
-        const time = new Date().toLocaleTimeString([], { hour12: false });
         setConversations(prev => {
           const activeChat = prev[activeSessionId] || [];
           let newChat = [...activeChat];
@@ -1248,13 +1342,15 @@ const AgentPage: React.FC<{
               role: 'agent',
               text: cleanAr,
               time,
+              timestamp: nowSec,
               isTyping: true,
               isThinking: false,
               searchStatus
             };
           } else {
-            if (newChat.length > 0 && newChat[newChat.length - 1].text === cleanAr) return prev;
-            newChat.push({ role: 'agent', text: cleanAr, time, isTyping: true, id: `msg_${Date.now()}`, searchStatus });
+            if (!lastMsg || lastMsg.text !== cleanAr) {
+              newChat.push({ role: 'agent', text: cleanAr, time, timestamp: nowSec, isTyping: true, id: `msg_${Date.now()}_a`, searchStatus });
+            }
           }
 
           return {
@@ -1361,11 +1457,14 @@ const AgentPage: React.FC<{
 
         return prev.map(i => {
           if (i.id === activeSessionId) {
+            const msgTs = (latestMsg as any)?.timestamp
+              ? ((latestMsg as any).timestamp > 1e11 ? Math.floor((latestMsg as any).timestamp / 1000) : Math.floor((latestMsg as any).timestamp))
+              : (i.timestamp || Math.floor(Date.now() / 1000));
             return {
               ...i,
               preview: cleanPreview,
-              time: activeSessionId === 'default' ? 'Active' : 'Just now',
-              timestamp: Math.floor(Date.now() / 1000)
+              time: getRelativeTimeString(msgTs),
+              timestamp: msgTs
             };
           }
           return i;
@@ -1399,7 +1498,8 @@ const AgentPage: React.FC<{
       lastProcessedResponseRef.current = null;
       globalLastProcessedResponse = null;
 
-      const time = new Date().toLocaleTimeString([], { hour12: false });
+      const nowSec = Math.floor(Date.now() / 1000);
+      const time = formatMessageTime(nowSec);
       setIsThinking(true);
 
       let oldText = '';
@@ -1417,7 +1517,7 @@ const AgentPage: React.FC<{
         const newChat = [
           ...currentChat.slice(0, msgIndex),
           { ...targetMsg, text: newText },
-          { role: 'agent' as 'agent' | 'user', text: '', time, isThinking: true, id: `msg_${Date.now()}_thinking` }
+          { role: 'agent' as 'agent' | 'user', text: '', time, timestamp: nowSec, isThinking: true, id: `msg_${Date.now()}_thinking` }
         ];
         return { ...prev, [activeSessionId]: newChat };
       });
@@ -1434,7 +1534,8 @@ const AgentPage: React.FC<{
     const handleSubmit = (e: React.FormEvent) => {
       e.preventDefault();
       if (!input.trim()) return;
-      const time = new Date().toLocaleTimeString([], { hour12: false });
+      const nowSec = Math.floor(Date.now() / 1000);
+      const time = formatMessageTime(nowSec);
       const sessionId = activeSessionId || `session_${Date.now()}`;
 
       if (!activeSessionId) {
@@ -1453,8 +1554,8 @@ const AgentPage: React.FC<{
         ...prev,
         [sessionId]: [
           ...(prev[sessionId] || []),
-          { role: 'user', text: input, time, id: `msg_${Date.now()}_u` },
-          { role: 'agent', text: '', time, isThinking: true, id: `msg_${Date.now()}_thinking` }
+          { role: 'user', text: input, time, timestamp: nowSec, id: `msg_${Date.now()}_u` },
+          { role: 'agent', text: '', time, timestamp: nowSec, isThinking: true, id: `msg_${Date.now()}_thinking` }
         ]
       }));
       onCommand('execute', { input, sessionId, userId, isAgentic });
