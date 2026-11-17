@@ -967,7 +967,7 @@ export const GpuPipelineSection: React.FC<GpuPipelineSectionProps> = ({
               <Zap className="w-4 h-4 text-neon-yellow" />
               <p className="text-[10px] font-black text-zinc-200 uppercase tracking-widest">MUX Switch & Display Routing</p>
               <span className="px-2 py-0.5 rounded-full bg-neon-yellow/10 border border-neon-yellow/20 text-[8px] font-black uppercase text-neon-yellow tracking-widest">
-                {state?.system_specs?.hardware?.mux_switch?.current_mode ? state.system_specs.hardware.mux_switch.current_mode.toUpperCase() : 'OPTIMUS'}
+                {(localConfig.gpu_working_mode || state?.system_specs?.hardware?.mux_switch?.user_preferred_mode || state?.system_specs?.hardware?.mux_switch?.effective_mode || state?.system_specs?.hardware?.mux_switch?.current_mode || 'OPTIMUS').toUpperCase()}
               </span>
             </div>
             <p className="text-[10px] font-medium text-zinc-500 leading-relaxed">
@@ -988,9 +988,10 @@ export const GpuPipelineSection: React.FC<GpuPipelineSectionProps> = ({
                 { key: 'igpu_only', label: 'iGPU Only (Eco)', desc: 'Maximum battery' },
                 { key: 'auto', label: 'Auto (Advanced)', desc: 'Dynamic Optimus' }
               ].map(opt => {
-                const currentMode = localConfig.gpu_working_mode || state?.system_specs?.hardware?.mux_switch?.user_preferred_mode || state?.system_specs?.hardware?.mux_switch?.current_mode || 'hybrid';
-                const isSelected = currentMode === opt.key;
-                const brandAlias = state?.system_specs?.hardware?.mux_switch?.brand_vocabulary?.[opt.key as keyof NonNullable<typeof state.system_specs.hardware.mux_switch.brand_vocabulary>];
+                const currentMode = localConfig.gpu_working_mode || state?.system_specs?.hardware?.mux_switch?.user_preferred_mode || state?.system_specs?.hardware?.mux_switch?.effective_mode || state?.system_specs?.hardware?.mux_switch?.current_mode || 'hybrid';
+                const isSelected = currentMode === opt.key || (opt.key === 'igpu_only' && currentMode === 'integrated');
+                const vocab = state?.system_specs?.hardware?.mux_switch?.brand_vocabulary;
+                const brandAlias = vocab?.[opt.key as keyof typeof vocab] || (opt.key === 'igpu_only' ? (vocab as any)?.integrated : undefined);
                 return (
                   <button
                     key={opt.key}

@@ -27,20 +27,29 @@ class TestGpuMuxChecker(unittest.TestCase):
         self.assertEqual(mux_switch["user_preferred_mode"], "hybrid")
 
     def test_detect_oem_software_catalog(self):
-        # Test ASUS brand vocabulary mapping
-        asus_oem, asus_suites, asus_vocab = self.checker._detect_oem_software(manufacturer="ASUSTeK COMPUTER INC.", model="ROG Strix")
+        # Test ASUS brand vocabulary mapping (static catalog)
+        asus_oem, asus_suites, asus_vocab = self.checker._detect_oem_software(manufacturer="ASUSTeK COMPUTER INC.", model="ROG Strix", scan_installed=False)
         self.assertIn("discrete", asus_vocab)
         self.assertIn("Ultimate", asus_vocab["discrete"])
 
-        # Test Lenovo brand vocabulary mapping
-        lenovo_oem, lenovo_suites, lenovo_vocab = self.checker._detect_oem_software(manufacturer="LENOVO", model="Legion 5")
+        # Test Lenovo brand vocabulary mapping (static catalog)
+        lenovo_oem, lenovo_suites, lenovo_vocab = self.checker._detect_oem_software(manufacturer="LENOVO", model="Legion 5", scan_installed=False)
         self.assertIn("discrete", lenovo_vocab)
         self.assertIn("dGPU", lenovo_vocab["discrete"])
 
-        # Test HP brand vocabulary mapping
-        hp_oem, hp_suites, hp_vocab = self.checker._detect_oem_software(manufacturer="HP", model="Victus Gaming Laptop")
+        # Test HP OMEN brand vocabulary mapping (model-aware)
+        hp_oem, hp_suites, hp_vocab = self.checker._detect_oem_software(manufacturer="HP", model="OMEN 16 Gaming Laptop", scan_installed=False)
         self.assertIn("discrete", hp_vocab)
         self.assertIn("OMEN", hp_vocab["discrete"])
+
+        # Test HP Victus brand vocabulary mapping (model-aware)
+        victus_oem, victus_suites, victus_vocab = self.checker._detect_oem_software(manufacturer="HP", model="Victus Gaming Laptop 15", scan_installed=False)
+        self.assertIn("discrete", victus_vocab)
+        self.assertIn("Victus", victus_vocab["discrete"])
+
+        # Test vocabulary normalization has both igpu_only and integrated
+        self.assertIn("igpu_only", victus_vocab)
+        self.assertIn("integrated", victus_vocab)
 
     def test_get_basic_specs_includes_gpus_and_mux(self):
         specs = self.checker.get_basic_specs()
@@ -213,6 +222,25 @@ class TestGpuMuxChecker(unittest.TestCase):
                 HardwareChecker.classify_gpu_type(name),
                 "integrated"
             )
+
+    def test_mux_mode_switching_topologies(self):
+        # 1. Test Eco / iGPU-only mode (turning dGPU off completely)
+        eco_checker = HardwareChecker(config={"gpu_working_mode": "igpu_only"})
+        gpus, mux_switch = eco_checker._get_gpu_architecture_and_mux(manufacturer="HP", model="Victus")
+        self.assertEqual(mux_switch["user_preferred_mode"], "igpu_only")
+        self.assertEqual(mux_switch["effective_mode"], "igpu_only")
+        if mux_switch["has_dgpu"] and mux_switch["has_igpu"]:
+            self.assertIn("Suspended", mux_switch["display_routing"])
+            self.assertEqual(mux_switch["latency_mode"], "zero_latency_direct")
+
+        # 2. Test Discrete mode (Direct MUX Link)
+        discrete_checker = HardwareChecker(config={"gpu_working_mode": "discrete"})
+        gpus, mux_switch = discrete_checker._get_gpu_architecture_and_mux(manufacturer="HP", model="Victus")
+        self.assertEqual(mux_switch["user_preferred_mode"], "discrete")
+        self.assertEqual(mux_switch["effective_mode"], "discrete")
+        if mux_switch["has_mux"] and mux_switch["has_dgpu"]:
+            self.assertIn("Direct MUX Link", mux_switch["display_routing"])
+            self.assertEqual(mux_switch["latency_mode"], "zero_latency_direct")
 
 if __name__ == "__main__":
     unittest.main()

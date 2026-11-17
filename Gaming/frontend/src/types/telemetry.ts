@@ -275,10 +275,13 @@ export interface OemSoftwareSuite {
 
 export interface MuxSwitchInfo {
   has_mux: boolean;
+  has_dgpu?: boolean;
+  has_igpu?: boolean;
   current_mode: 'hybrid' | 'discrete' | 'igpu_only' | 'auto';
+  effective_mode?: 'hybrid' | 'discrete' | 'igpu_only' | 'auto';
   user_preferred_mode: 'hybrid' | 'discrete' | 'igpu_only' | 'auto';
   display_routing: string;
-  latency_mode: 'standard_hybrid' | 'zero_latency_direct';
+  latency_mode: 'standard_hybrid' | 'zero_latency_direct' | 'dynamic_switch';
   active_display_gpu: string;
   dgpu_name: string;
   igpu_name: string;
@@ -291,6 +294,7 @@ export interface MuxSwitchInfo {
     discrete?: string;
     hybrid?: string;
     igpu_only?: string;
+    integrated?: string;
     auto?: string;
   };
 }

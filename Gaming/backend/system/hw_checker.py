@@ -610,13 +610,13 @@ class HardwareChecker:
             logger.warning(f"Consolidated Windows spec query failed: {e}. Falling back.")
         return None
 
-    def _detect_oem_software(self, manufacturer="", model="", gpus=None):
+    def _detect_oem_software(self, manufacturer="", model="", gpus=None, scan_installed=True):
         """Detects OEM gaming software suites (OMEN, Armoury Crate, Lenovo Vantage, AWCC, MSI, etc.) and GPU vendor tools."""
         if gpus is None:
             gpus = []
 
         protocols = set()
-        if platform.system() == "Windows":
+        if scan_installed and platform.system() == "Windows":
             try:
                 import winreg
                 for root in [winreg.HKEY_CURRENT_USER, winreg.HKEY_LOCAL_MACHINE]:
@@ -841,7 +841,7 @@ class HardwareChecker:
         ]
 
         installed_suites = []
-        if platform.system() == "Windows":
+        if scan_installed and platform.system() == "Windows":
             # Known binary and shortcut paths to verify an OEM suite actually exists on disk
             oem_binary_candidates = {
                 "hp_omen": [
@@ -1001,16 +1001,20 @@ class HardwareChecker:
             "discrete": "Discrete Direct (Direct MUX Link)",
             "hybrid": "Hybrid Optimus (PCIe Buffer)",
             "igpu_only": "iGPU Eco Mode (Power Saving)",
+            "integrated": "iGPU Eco Mode (Power Saving)",
             "auto": "Dynamic Auto Switching"
         }
 
-        if primary_oem and primary_oem.get("modes") and primary_oem.get("brand", "").upper() in mfg_upper:
-            brand_vocabulary = primary_oem["modes"]
-        elif "ASUS" in mfg_upper:
+        # 1. First priority: if an OEM or GPU vendor suite is installed, use its verified authentic mode vocabulary
+        if primary_oem and primary_oem.get("modes"):
+            brand_vocabulary = dict(primary_oem["modes"])
+        # 2. Hardware manufacturer fallback when no companion or GPU suite is installed
+        elif "ASUS" in mfg_upper or "ASUSTEK" in mfg_upper:
             brand_vocabulary = {
                 "discrete": "Ultimate Mode (Direct MUX Link)",
                 "hybrid": "Standard Mode (Optimus PCIe Buffer)",
                 "igpu_only": "Eco Mode (dGPU Powered Down)",
+                "integrated": "Eco Mode (dGPU Powered Down)",
                 "auto": "Optimized Mode (Smart Dynamic)"
             }
         elif "LENOVO" in mfg_upper:
@@ -1018,20 +1022,41 @@ class HardwareChecker:
                 "discrete": "dGPU Mode (Discrete Only)",
                 "hybrid": "Hybrid Mode (Dynamic Optimus)",
                 "igpu_only": "Hybrid-iGPU Mode (Eco)",
+                "integrated": "Hybrid-iGPU Mode (Eco)",
                 "auto": "Hybrid-Auto Mode"
             }
-        elif "HP" in mfg_upper:
-            brand_vocabulary = {
-                "discrete": "OMEN Discrete Mode",
-                "hybrid": "OMEN Hybrid Mode",
-                "igpu_only": "OMEN Eco Mode",
-                "auto": "OMEN Auto Switch"
-            }
+        elif "HP" in mfg_upper or "HEWLETT-PACKARD" in mfg_upper:
+            model_upper = (model or "").upper()
+            if "OMEN" in model_upper:
+                brand_vocabulary = {
+                    "discrete": "OMEN Discrete Mode",
+                    "hybrid": "OMEN Hybrid Mode",
+                    "igpu_only": "OMEN Eco Mode",
+                    "integrated": "OMEN Eco Mode",
+                    "auto": "OMEN Auto Switch"
+                }
+            elif "VICTUS" in model_upper:
+                brand_vocabulary = {
+                    "discrete": "Victus Discrete Direct",
+                    "hybrid": "Victus Hybrid (Optimus)",
+                    "igpu_only": "Victus Eco Mode (iGPU Only)",
+                    "integrated": "Victus Eco Mode (iGPU Only)",
+                    "auto": "Victus Dynamic Switch"
+                }
+            else:
+                brand_vocabulary = {
+                    "discrete": "HP Direct dGPU Mode",
+                    "hybrid": "HP Hybrid (Optimus)",
+                    "igpu_only": "HP Power Saver (iGPU Only)",
+                    "integrated": "HP Power Saver (iGPU Only)",
+                    "auto": "HP Dynamic Graphics"
+                }
         elif "MSI" in mfg_upper or "MICRO-STAR" in mfg_upper:
             brand_vocabulary = {
                 "discrete": "Discrete Graphics Mode (MUX Direct)",
                 "hybrid": "MSHybrid Graphics Mode (Optimus)",
                 "igpu_only": "Integrated Graphics Mode",
+                "integrated": "Integrated Graphics Mode",
                 "auto": "Auto MSHybrid"
             }
         elif "DELL" in mfg_upper or "ALIENWARE" in mfg_upper:
@@ -1039,6 +1064,7 @@ class HardwareChecker:
                 "discrete": "Direct dGPU Display Mode",
                 "hybrid": "NVIDIA Advanced Optimus",
                 "igpu_only": "Integrated Graphics Only",
+                "integrated": "Integrated Graphics Only",
                 "auto": "Dynamic Display Switching (DDS)"
             }
         elif "ACER" in mfg_upper:
@@ -1046,6 +1072,7 @@ class HardwareChecker:
                 "discrete": "Discrete GPU Only",
                 "hybrid": "Optimus Mode",
                 "igpu_only": "Integrated Only",
+                "integrated": "Integrated Only",
                 "auto": "Dynamic Switching"
             }
         elif "RAZER" in mfg_upper:
@@ -1053,6 +1080,7 @@ class HardwareChecker:
                 "discrete": "Dedicated GPU Only",
                 "hybrid": "NVIDIA Optimus",
                 "igpu_only": "Integrated Only",
+                "integrated": "Integrated Only",
                 "auto": "Dynamic Display"
             }
         elif "GIGABYTE" in mfg_upper:
@@ -1060,10 +1088,15 @@ class HardwareChecker:
                 "discrete": "dGPU Direct Mode",
                 "hybrid": "Dynamic Switch (Optimus)",
                 "igpu_only": "iGPU Only Mode",
+                "integrated": "iGPU Only Mode",
                 "auto": "Smart Switch"
             }
-        elif primary_oem and primary_oem.get("modes"):
-            brand_vocabulary = primary_oem["modes"]
+
+        # Normalize aliases so both 'igpu_only' and 'integrated' keys are consistently available
+        if "igpu_only" in brand_vocabulary and "integrated" not in brand_vocabulary:
+            brand_vocabulary["integrated"] = brand_vocabulary["igpu_only"]
+        elif "integrated" in brand_vocabulary and "igpu_only" not in brand_vocabulary:
+            brand_vocabulary["igpu_only"] = brand_vocabulary["integrated"]
 
         return primary_oem, installed_suites, brand_vocabulary
 
@@ -1333,6 +1366,8 @@ class HardwareChecker:
         dgpu_name = dgpus[0]["name"] if dgpus else ""
         igpu_name = igpus[0]["name"] if igpus else ""
         has_mux = (len(dgpus) > 0 and len(igpus) > 0)
+        has_dgpu = len(dgpus) > 0
+        has_igpu = len(igpus) > 0
 
         # Dynamic routing buffer descriptor (Optimus for NVIDIA, SmartAccess Graphics for AMD, etc.)
         has_nvidia_dgpu = any(g.get("vendor") == "NVIDIA" for g in dgpus)
@@ -1344,7 +1379,7 @@ class HardwareChecker:
         else:
             hybrid_buffer_desc = "Dynamic Hybrid PCIe buffer"
 
-        # 3. Determine form factor and architecture topology
+        # Determine form factor and architecture topology
         is_battery = False
         if _PSUTIL_AVAILABLE:
             try:
@@ -1355,63 +1390,113 @@ class HardwareChecker:
         model_lower = (model or "").lower()
         is_handheld = any(kw in model_lower for kw in ["ally", "legion go", "steam deck", "claw", "ayaneo", "gpd", "onexplayer", "aokzoe"])
 
-        current_mode = "auto"
-        display_routing = "Internal Display"
-        latency_mode = "standard_hybrid"
-        active_display_gpu = primary_display_gpu or (igpus[0]["name"] if igpus else (dgpus[0]["name"] if dgpus else "Default"))
+        user_pref = self.config.get("gpu_working_mode")
+        if user_pref == "integrated":
+            user_pref = "igpu_only"
 
+        # Determine form factor, effective working mode, and display routing
         if is_handheld:
             form_factor = "handheld_apu"
             architecture_type = "apu_unified"
-            latency_mode = "zero_latency_direct"
-            display_routing = f"Internal Display -> {igpu_name or (dgpus[0]['name'] if dgpus else 'SoC APU')} (Unified UMA Architecture)"
             current_mode = "auto"
+            effective_mode = user_pref or "auto"
+            latency_mode = "zero_latency_direct"
+            active_display_gpu = igpu_name or (dgpu_name if dgpu_name else "SoC APU")
+            display_routing = f"Internal Display -> {active_display_gpu} (Unified UMA Architecture)"
         elif not is_battery:
             form_factor = "desktop"
-            if dgpus:
+            if has_dgpu and not has_igpu:
+                # Desktop PC with dedicated GPU (no iGPU)
                 architecture_type = "desktop_direct"
                 latency_mode = "zero_latency_direct"
-                display_routing = f"Dedicated DisplayPort / HDMI -> {dgpu_name} (Direct PCIe Video Bus)"
                 current_mode = "discrete"
+                effective_mode = "discrete"
+                active_display_gpu = dgpu_name
+                display_routing = f"Dedicated DisplayPort / HDMI -> {dgpu_name} (Direct PCIe Video Bus, 0ms Latency)"
+            elif has_dgpu and has_igpu:
+                # Desktop PC with both iGPU and dGPU
+                architecture_type = "desktop_dual_gpu"
+                effective_mode = user_pref or "discrete"
+                current_mode = effective_mode
+                if effective_mode == "igpu_only":
+                    latency_mode = "zero_latency_direct"
+                    active_display_gpu = igpu_name
+                    display_routing = f"Motherboard Video Output -> {igpu_name} (iGPU Direct Output, dGPU Suspended)"
+                else:
+                    latency_mode = "zero_latency_direct"
+                    active_display_gpu = dgpu_name
+                    display_routing = f"Dedicated DisplayPort / HDMI -> {dgpu_name} (Direct PCIe Video Bus, 0ms Latency)"
             else:
+                # Desktop PC with integrated graphics only
                 architecture_type = "integrated_only"
-                display_routing = f"Motherboard Video Output -> {igpu_name or 'Integrated GPU'}"
+                latency_mode = "zero_latency_direct"
                 current_mode = "igpu_only"
+                effective_mode = "igpu_only"
+                active_display_gpu = igpu_name or "Integrated GPU"
+                display_routing = f"Motherboard Video Output -> {active_display_gpu}"
         else:
             form_factor = "laptop"
-            if has_mux:
+            if has_dgpu and not has_igpu:
+                # Laptop with discrete GPU only (iGPU disabled in BIOS or MUX direct only)
+                architecture_type = "discrete_direct"
+                current_mode = "discrete"
+                effective_mode = "discrete"
+                latency_mode = "zero_latency_direct"
+                active_display_gpu = dgpu_name
+                display_routing = f"Internal Panel -> {dgpu_name} (Direct dGPU Output, Zero Latency)"
+            elif not has_dgpu and has_igpu:
+                # Laptop with iGPU only (dGPU turned off completely in Eco mode or not present)
+                architecture_type = "integrated_only"
+                current_mode = "igpu_only"
+                effective_mode = "igpu_only"
+                latency_mode = "zero_latency_direct"
+                active_display_gpu = igpu_name
+                display_routing = f"Internal Panel -> {igpu_name} (Native iGPU Pipeline, dGPU Offline)"
+            elif has_mux:
+                # Dual GPU laptop with hardware MUX switch
                 architecture_type = "hybrid_mux"
                 dgpu_active = any(g.get("is_display_active") for g in dgpus)
                 igpu_active = any(g.get("is_display_active") for g in igpus)
 
-                if dgpu_active and not igpu_active:
-                    current_mode = "discrete"
-                    display_routing = f"Internal Panel -> {dgpu_name} (Direct MUX Link)"
-                    latency_mode = "zero_latency_direct"
-                elif igpu_active:
-                    current_mode = "hybrid"
-                    display_routing = f"Internal Panel -> {igpu_name} ({hybrid_buffer_desc})"
-                    latency_mode = "standard_hybrid"
-                else:
-                    current_mode = "hybrid"
-                    display_routing = f"Internal Panel -> {igpu_name} (Hybrid Route)"
-            elif dgpus and igpus:
-                architecture_type = "hybrid_optimus"
-                current_mode = "hybrid"
-                display_routing = f"Internal Panel -> {igpu_name} ({hybrid_buffer_desc})"
-                latency_mode = "standard_hybrid"
-            elif dgpus:
-                architecture_type = "desktop_direct"
-                current_mode = "discrete"
-                display_routing = f"Display -> {dgpu_name} (Direct Video Bus)"
-                latency_mode = "zero_latency_direct"
-            else:
-                architecture_type = "integrated_only"
-                current_mode = "igpu_only"
-                fallback_name = igpu_name or "Integrated GPU"
-                display_routing = f"Display -> {fallback_name} (Direct Video Bus)"
+                hardware_detected_mode = "discrete" if (dgpu_active and not igpu_active) else "hybrid"
+                effective_mode = user_pref or hardware_detected_mode
+                current_mode = effective_mode
 
-        user_pref = self.config.get("gpu_working_mode") or current_mode
+                if effective_mode == "igpu_only":
+                    # dGPU turned off completely in Eco mode
+                    latency_mode = "zero_latency_direct"
+                    active_display_gpu = igpu_name
+                    display_routing = f"Internal Panel -> {igpu_name} (iGPU Eco Mode, {dgpu_name} Suspended)"
+                elif effective_mode == "discrete":
+                    # dGPU direct mode (MUX engaged)
+                    latency_mode = "zero_latency_direct"
+                    active_display_gpu = dgpu_name
+                    display_routing = f"Internal Panel -> {dgpu_name} (Direct MUX Link, 0ms Latency)"
+                elif effective_mode == "auto":
+                    # Dynamic Advanced Optimus
+                    latency_mode = "dynamic_switch"
+                    active_display_gpu = igpu_name
+                    display_routing = f"Internal Panel -> {igpu_name} (Dynamic Advanced Optimus / DDS)"
+                else:
+                    # Hybrid (Optimus)
+                    latency_mode = "standard_hybrid"
+                    active_display_gpu = igpu_name
+                    display_routing = f"Internal Panel -> {igpu_name} ({hybrid_buffer_desc})"
+            else:
+                # Dual GPU laptop without hardware MUX (software Optimus only)
+                architecture_type = "hybrid_optimus"
+                effective_mode = user_pref or "hybrid"
+                current_mode = effective_mode
+                if effective_mode == "igpu_only":
+                    latency_mode = "zero_latency_direct"
+                    active_display_gpu = igpu_name
+                    display_routing = f"Internal Panel -> {igpu_name} (iGPU Eco Mode, {dgpu_name} Suspended)"
+                else:
+                    latency_mode = "standard_hybrid"
+                    active_display_gpu = igpu_name
+                    display_routing = f"Internal Panel -> {igpu_name} ({hybrid_buffer_desc})"
+
+        user_pref = user_pref or current_mode
 
         # 4. Detect OEM gaming software suites & brand vocabulary
         primary_oem, installed_suites, brand_vocabulary = self._detect_oem_software(
@@ -1422,7 +1507,10 @@ class HardwareChecker:
 
         mux_switch = {
             "has_mux": has_mux,
+            "has_dgpu": has_dgpu,
+            "has_igpu": has_igpu,
             "current_mode": current_mode,
+            "effective_mode": effective_mode,
             "user_preferred_mode": user_pref,
             "display_routing": display_routing,
             "latency_mode": latency_mode,

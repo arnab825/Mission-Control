@@ -962,9 +962,10 @@ def handle_trigger_controller_rumble(payload: dict, pipeline, bridge, config) ->
 
 
 def handle_set_gpu_working_mode(payload: dict, pipeline, bridge, config, save_config_fn) -> None:
-    """Sets user preferred GPU working mode (hybrid, discrete, igpu_only, auto) and updates bridge state."""
+    """Sets user preferred GPU working mode (hybrid, discrete, igpu_only, auto) and dynamically updates routing."""
     try:
-        mode = str((payload or {}).get("mode", "hybrid")).lower()
+        raw_mode = str((payload or {}).get("mode", "hybrid")).lower()
+        mode = "igpu_only" if raw_mode in ("integrated", "igpu_only") else raw_mode
         if mode not in ("hybrid", "discrete", "igpu_only", "auto"):
             mode = "hybrid"
 
@@ -972,25 +973,62 @@ def handle_set_gpu_working_mode(payload: dict, pipeline, bridge, config, save_co
         if save_config_fn:
             save_config_fn(config)
 
-        # Update active pipeline specs state if present
+        # Update active pipeline specs state dynamically
+        specs = None
         if pipeline and hasattr(pipeline, "_game_state"):
             try:
                 with pipeline._state_lock:
                     specs = pipeline._game_state.get("system_specs")
                     if specs and isinstance(specs, dict):
+                        targets = []
                         if "mux_switch" in specs and isinstance(specs["mux_switch"], dict):
-                            specs["mux_switch"]["user_preferred_mode"] = mode
+                            targets.append(specs["mux_switch"])
                         hw = specs.get("hardware")
                         if hw and isinstance(hw, dict) and "mux_switch" in hw and isinstance(hw["mux_switch"], dict):
-                            hw["mux_switch"]["user_preferred_mode"] = mode
-            except Exception:
-                pass
+                            targets.append(hw["mux_switch"])
+
+                        for target in targets:
+                            target["user_preferred_mode"] = mode
+                            target["effective_mode"] = mode
+                            target["current_mode"] = mode
+                            dgpu_name = target.get("dgpu_name", "Discrete GPU")
+                            igpu_name = target.get("igpu_name", "Integrated GPU")
+                            has_dgpu = target.get("has_dgpu", bool(target.get("dgpu_name")))
+                            has_igpu = target.get("has_igpu", bool(target.get("igpu_name")))
+
+                            if not has_igpu:
+                                # Pure dGPU system (no iGPU present)
+                                target["display_routing"] = f"Display -> {dgpu_name} (Direct PCIe Video Bus)"
+                                target["latency_mode"] = "zero_latency_direct"
+                                target["active_display_gpu"] = dgpu_name
+                            elif not has_dgpu or mode == "igpu_only":
+                                # dGPU turned off completely in Eco mode, or pure iGPU
+                                target["display_routing"] = f"Internal Panel -> {igpu_name} (iGPU Eco Mode, {dgpu_name} Suspended)"
+                                target["latency_mode"] = "zero_latency_direct"
+                                target["active_display_gpu"] = igpu_name
+                            elif mode == "discrete":
+                                target["display_routing"] = f"Internal Panel -> {dgpu_name} (Direct MUX Link, 0ms Latency)"
+                                target["latency_mode"] = "zero_latency_direct"
+                                target["active_display_gpu"] = dgpu_name
+                            elif mode == "auto":
+                                target["display_routing"] = f"Internal Panel -> {igpu_name} (Dynamic Advanced Optimus / DDS)"
+                                target["latency_mode"] = "dynamic_switch"
+                                target["active_display_gpu"] = igpu_name
+                            else: # hybrid
+                                target["display_routing"] = f"Internal Panel -> {igpu_name} (Optimus PCIe pass-through buffer)"
+                                target["latency_mode"] = "standard_hybrid"
+                                target["active_display_gpu"] = igpu_name
+            except Exception as e:
+                logger.debug(f"Dynamic MUX pipeline update error: {e}")
 
         if bridge:
-            bridge.update_state({
+            bridge_update = {
                 "config": config,
                 "gpu_working_mode": mode
-            })
+            }
+            if specs:
+                bridge_update["system_specs"] = specs
+            bridge.update_state(bridge_update)
 
         logger.info(f"GPU working mode preference set to '{mode}'.")
 
@@ -1101,6 +1139,21 @@ def handle_open_oem_software(payload: dict, pipeline, bridge, config) -> None:
             "intel_gcc": [
                 r"C:\Program Files\Intel\Graphics Command Center\IGCC.exe",
                 os.path.expandvars(r"%ProgramData%\Microsoft\Windows\Start Menu\Programs\Intel Graphics Command Center.lnk"),
+            ],
+            "nvidia_control_panel": [
+                r"C:\Windows\System32\nvcplui.exe",
+                r"C:\Program Files\NVIDIA Corporation\Control Panel Client\nvcplui.exe",
+                os.path.expandvars(r"%ProgramData%\Microsoft\Windows\Start Menu\Programs\NVIDIA Control Panel.lnk"),
+            ],
+            "acer_predator_sense": [
+                r"C:\Program Files\Acer\PredatorSense Service\PredatorSense.exe",
+                r"C:\Program Files\Acer\NitroSense Service\NitroSense.exe",
+                os.path.expandvars(r"%ProgramData%\Microsoft\Windows\Start Menu\Programs\Acer\PredatorSense.lnk"),
+                os.path.expandvars(r"%ProgramData%\Microsoft\Windows\Start Menu\Programs\Acer\NitroSense.lnk"),
+            ],
+            "gigabyte_gcc": [
+                r"C:\Program Files\GIGABYTE\ControlCenter\ControlCenter.exe",
+                os.path.expandvars(r"%ProgramData%\Microsoft\Windows\Start Menu\Programs\GIGABYTE\GIGABYTE Control Center.lnk"),
             ],
         }
 
