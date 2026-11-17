@@ -386,6 +386,9 @@ export const HardwareDetailsSection: React.FC<HardwareDetailsSectionProps> = ({
           <SpecRow label="Connection Type" value={specs?.wifi?.ssid ? 'Wi-Fi (Wireless)' : (specs?.network?.name ? 'Ethernet (Wired LAN)' : 'Local Network')} />
           <SpecRow label="Adapter Name" value={specs?.wifi?.adapter || specs?.network?.name || '---'} />
           <SpecRow label="Link Speed (R/T)" value={state?.net_speed || specs?.network?.speed || '---'} explanationKey="Current Throughput" />
+          {specs?.network?.ip && (
+            <SpecRow label="IPv4 Address" value={specs.network.ip} />
+          )}
           {specs?.wifi?.ssid ? (
             <>
               <SpecRow label="SSID" value={specs?.wifi?.ssid} />

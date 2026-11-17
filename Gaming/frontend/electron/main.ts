@@ -2597,6 +2597,68 @@ const initializeSystemStats = () => {
       osEdition = 'Linux';
     }
 
+    let initialNetwork: any = null;
+    let initialWifi: any = null;
+
+    try {
+      const nets = os.networkInterfaces();
+      for (const [name, addrs] of Object.entries(nets)) {
+        if (!addrs) continue;
+        for (const a of addrs) {
+          if (a.family === 'IPv4' && !a.internal && !a.address.startsWith('169.254.')) {
+            initialNetwork = {
+              name,
+              speed: 'Active',
+              ip: a.address,
+              mac: a.mac,
+              type: name.toLowerCase().includes('wi-fi') || name.toLowerCase().includes('wireless') ? 'Wi-Fi' : 'Ethernet'
+            };
+            break;
+          }
+        }
+        if (initialNetwork) break;
+      }
+    } catch (_) {}
+
+    if (process.platform === 'win32') {
+      try {
+        const raw = execSync('netsh wlan show interfaces', { windowsHide: true, encoding: 'utf-8', timeout: 2500 });
+        const lines = raw.split('\n');
+        const details: Record<string, string> = {};
+        for (const line of lines) {
+          const idx = line.indexOf(':');
+          if (idx !== -1) {
+            const k = line.substring(0, idx).trim();
+            const v = line.substring(idx + 1).trim();
+            details[k] = v;
+          }
+        }
+        if (details['SSID']) {
+          const radio = details['Radio type'] || '';
+          let wifiVer = 'WiFi 4';
+          if (radio.includes('802.11be')) wifiVer = 'WiFi 7';
+          else if (radio.includes('802.11ax')) wifiVer = 'WiFi 6';
+          else if (radio.includes('802.11ac')) wifiVer = 'WiFi 5';
+          else if (radio.includes('802.11n')) wifiVer = 'WiFi 4';
+
+          initialWifi = {
+            ssid: details['SSID'],
+            signal: (details['Signal'] || '0%').replace('%', '').trim(),
+            channel: details['Channel'] || '---',
+            protocol: radio,
+            version: wifiVer,
+            auth: details['Authentication'] || '---',
+            adapter: details['Description'] || details['Name'] || 'Wi-Fi'
+          };
+
+          if (initialNetwork) {
+            if (details['Description']) initialNetwork.name = details['Description'];
+            if (details['Receive rate (Mbps)']) initialNetwork.speed = `${details['Receive rate (Mbps)']} Mbps`;
+          }
+        }
+      } catch (_) {}
+    }
+
     cachedSystemStats = {
       device_specs: {
         device_name: os.hostname(),
@@ -2616,7 +2678,8 @@ const initializeSystemStats = () => {
         ram_details: [],
         storage_details: []
       },
-      network: null,
+      network: initialNetwork,
+      wifi: initialWifi,
       displays: [],
       peripherals: [],
       os_details: {

@@ -344,14 +344,24 @@ const SystemPage: React.FC<SystemPageProps> = ({
         return rows;
       }
 
-      case 'Network':
+      case 'Network': {
+        const isWifi = Boolean(specs.wifi?.ssid);
         return [
-          { label: 'Network Adapter', value: specs.network?.name || '---' },
-          { label: 'Current Throughput', value: state?.net_speed || '---' },
-          { label: 'SSID', value: specs.wifi?.ssid || '---' },
-          { label: 'Protocol', value: specs.wifi?.protocol || '---' },
-          { label: 'Signal Strength', value: specs.wifi?.signal ? `${specs.wifi.signal}%` : '---' },
+          { label: 'Network Adapter', value: specs.wifi?.adapter || specs.network?.name || '---' },
+          { label: 'Connection Type', value: isWifi ? 'Wi-Fi (Wireless)' : (specs.network?.name ? 'Ethernet (Wired LAN)' : 'Local Network') },
+          { label: 'Current Throughput', value: state?.net_speed || specs.network?.speed || '---' },
+          { label: 'Link Speed', value: specs.network?.speed || (isWifi ? 'Active' : '---') },
+          { label: 'IPv4 Address', value: specs.network?.ip || '---' },
+          ...(isWifi ? [
+            { label: 'SSID', value: specs.wifi?.ssid || '---' },
+            { label: 'Protocol', value: specs.wifi?.protocol || '---' },
+            { label: 'Signal Strength', value: specs.wifi?.signal ? `${specs.wifi.signal}%` : '---' },
+            { label: 'Wi-Fi Version', value: (specs.wifi as any)?.version || '---' },
+          ] : [
+            { label: 'Status', value: specs.network?.name ? 'Connected & Active' : 'Active Connection' }
+          ])
         ];
+      }
 
       default:
         return [];
@@ -398,7 +408,7 @@ const SystemPage: React.FC<SystemPageProps> = ({
           : null;
         return details ? `${details.name} (${details.size})` : specs.hardware.storage;
       }
-      case 'Network': return specs.network?.name || 'Local Network';
+      case 'Network': return specs.wifi?.adapter || specs.network?.name || 'Local Network';
       default: return specs.hardware.cpu;
     }
   }, [specs, selectedCategory, selectedDiskIndex, getMemoryDDRType, activeGpuIndex]);

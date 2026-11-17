@@ -460,6 +460,11 @@ class TelemetryThread(threading.Thread):
                 self.p._game_state["system_specs"] = specs
                 self.p._game_state["ram_speed"] = ram_speed
 
+            try:
+                bridge.update_state({"system_specs": specs, "ram_speed": ram_speed})
+            except Exception as bridge_err:
+                logger.debug(f"Failed to push discovered specs via bridge: {bridge_err}")
+
             logger.info("System scan complete for: %s", specs["hardware"]["cpu"])
         except Exception as e:
             logger.error("Failed to discover hardware: %s", e)

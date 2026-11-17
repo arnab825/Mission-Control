@@ -14,6 +14,7 @@ import sys
 import os
 import subprocess
 import re
+import time
 
 # Add parent directory to path so we can import nvidia modules if run directly
 sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
@@ -68,8 +69,10 @@ class HardwareChecker:
         self._cached_specs: dict = {}
 
     def _get_wifi_details(self):
-        if hasattr(self, "_cached_wifi"):
-            return self._cached_wifi
+        now = time.time()
+        if hasattr(self, "_cached_wifi") and hasattr(self, "_cached_wifi_time"):
+            if self._cached_wifi is not None and (now - self._cached_wifi_time) < 5.0:
+                return self._cached_wifi
             
         if platform.system() != "Windows":
             return None
@@ -89,7 +92,8 @@ class HardwareChecker:
                 encoding="utf-8", 
                 errors="ignore",
                 startupinfo=si,
-                creationflags=creationflags
+                creationflags=creationflags,
+                timeout=2.0
             )
             details = {}
             for line in output.split("\n"):
@@ -98,7 +102,7 @@ class HardwareChecker:
                     key, val = line.split(":", 1)
                     details[key.strip()] = val.strip()
             
-            if "SSID" in details:
+            if "SSID" in details and details.get("SSID"):
                 # Map radio type to WiFi Version
                 radio = details.get("Radio type", "")
                 wifi_ver = "WiFi 4" # Default
@@ -109,18 +113,20 @@ class HardwareChecker:
 
                 self._cached_wifi = {
                     "ssid": details.get("SSID"),
-                    "signal": details.get("Signal", "0%").replace("%", ""),
-                    "channel": details.get("Channel"),
+                    "signal": details.get("Signal", "0%").replace("%", "").strip(),
+                    "channel": details.get("Channel", "---"),
                     "protocol": radio,
                     "version": wifi_ver,
-                    "auth": details.get("Authentication"),
-                    "adapter": details.get("Description")
+                    "auth": details.get("Authentication", "---"),
+                    "adapter": details.get("Description") or details.get("Name") or "Wi-Fi"
                 }
+                self._cached_wifi_time = now
                 return self._cached_wifi
         except Exception:
             pass
             
         self._cached_wifi = None
+        self._cached_wifi_time = now
         return None
 
     def _get_os_details(self):
@@ -1557,6 +1563,33 @@ class HardwareChecker:
             dgpus = [g for g in gpus if g.get("type") == "discrete"]
             primary_gpu = dgpus[0]["name"] if dgpus else gpus[0]["name"]
         
+        # Fast, non-blocking network detection for instant specs
+        quick_net = None
+        quick_wifi = self._get_wifi_details()
+        if _PSUTIL_AVAILABLE:
+            try:
+                import socket
+                stats = psutil.net_if_stats()
+                addrs = psutil.net_if_addrs()
+                for iface, iface_stats in stats.items():
+                    if iface_stats.isup and not iface.startswith('Loopback'):
+                        for a in addrs.get(iface, []):
+                            family = getattr(a, 'family', None)
+                            if family == getattr(socket, 'AF_INET', 2):
+                                if a.address and not a.address.startswith('127.') and not a.address.startswith('169.254.'):
+                                    display_name = (quick_wifi.get("adapter") if (quick_wifi and quick_wifi.get("adapter")) else iface)
+                                    quick_net = {
+                                        "name": display_name,
+                                        "speed": f"{iface_stats.speed}Mbps" if iface_stats.speed > 0 else "Active",
+                                        "ip": a.address,
+                                        "type": "Wi-Fi" if (quick_wifi or "wi-fi" in iface.lower() or "wireless" in iface.lower()) else "Ethernet"
+                                    }
+                                    break
+                    if quick_net:
+                        break
+            except Exception:
+                pass
+        
         return {
             "device_specs": device_specs,
             "hardware": {
@@ -1573,8 +1606,8 @@ class HardwareChecker:
             },
             "gpus": gpus,
             "mux_switch": mux_switch,
-            "network": None,
-            "wifi": None,
+            "network": quick_net,
+            "wifi": quick_wifi,
             "os_details": {
                 "edition": os_edition,
                 "version": platform.version(),
@@ -1586,6 +1619,9 @@ class HardwareChecker:
         }
 
     def get_system_specs(self):
+        # Dynamic Wi-Fi info (re-checked with 5s cache)
+        wifi = self._get_wifi_details()
+
         # Memory in GB
         ram_gb = 0
         if _PSUTIL_AVAILABLE:
@@ -1613,16 +1649,57 @@ class HardwareChecker:
         network_info = None
         if _PSUTIL_AVAILABLE:
             try:
+                import socket
                 addrs = psutil.net_if_addrs()
                 stats = psutil.net_if_stats()
+
+                candidates = []
                 for iface, iface_stats in stats.items():
-                    if iface_stats.isup and not iface.startswith('Loopback'):
-                        network_info = {
-                            "name": iface,
-                            "speed": f"{iface_stats.speed}Mbps" if iface_stats.speed > 0 else "Active"
-                        }
-                        break
-            except: pass
+                    if not iface_stats.isup or iface.startswith('Loopback'):
+                        continue
+                    iface_addrs = addrs.get(iface, [])
+                    ipv4_addr = None
+                    mac_addr = None
+                    for a in iface_addrs:
+                        family = getattr(a, 'family', None)
+                        if family == getattr(psutil, 'AF_LINK', -1):
+                            mac_addr = a.address
+                        elif family == getattr(socket, 'AF_INET', 2):
+                            if a.address and not a.address.startswith('127.') and not a.address.startswith('169.254.'):
+                                ipv4_addr = a.address
+                    if ipv4_addr:
+                        candidates.append((iface, iface_stats, ipv4_addr, mac_addr))
+
+                if candidates:
+                    # Prefer Wi-Fi if connected or active LAN adapter
+                    best_cand = candidates[0]
+                    for cand in candidates:
+                        c_lower = cand[0].lower()
+                        if wifi and ("wi-fi" in c_lower or "wireless" in c_lower or "wlan" in c_lower):
+                            best_cand = cand
+                            break
+                        elif "ethernet" in c_lower or "lan" in c_lower:
+                            best_cand = cand
+                    
+                    iface, iface_stats, ipv4_addr, mac_addr = best_cand
+                    display_name = (wifi.get("adapter") if (wifi and wifi.get("adapter")) else iface)
+                    network_info = {
+                        "name": display_name,
+                        "speed": f"{iface_stats.speed}Mbps" if iface_stats.speed > 0 else "Active",
+                        "ip": ipv4_addr,
+                        "mac": mac_addr or "---",
+                        "type": "Wi-Fi" if (wifi or "wi-fi" in iface.lower() or "wireless" in iface.lower()) else "Ethernet"
+                    }
+                elif stats:
+                    for iface, iface_stats in stats.items():
+                        if iface_stats.isup and not iface.startswith('Loopback'):
+                            network_info = {
+                                "name": iface,
+                                "speed": f"{iface_stats.speed}Mbps" if iface_stats.speed > 0 else "Active"
+                            }
+                            break
+            except Exception as net_err:
+                logger.debug(f"Network discovery error: {net_err}")
 
         # CPU Cores/Threads
         cores = psutil.cpu_count(logical=False) if _PSUTIL_AVAILABLE else 0
@@ -1663,8 +1740,6 @@ class HardwareChecker:
                     vram_gb = dgpus[0]["vram_gb"]
                 elif gpus[0].get("vram_gb"):
                     vram_gb = gpus[0]["vram_gb"]
-        
-        wifi = self._get_wifi_details()  # Dynamic — always refresh (signal changes)
 
         # Static sections: only gather once and re-use from cache
         if not self._cached_specs:

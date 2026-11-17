@@ -349,6 +349,9 @@ export interface SystemSpecs {
   network: {
     name: string;
     speed: string;
+    ip?: string;
+    mac?: string;
+    type?: string;
   } | null;
   wifi?: {
     ssid: string;
