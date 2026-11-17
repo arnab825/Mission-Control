@@ -2,6 +2,14 @@
 
 This document contains a detailed history of all patches and updates for the AI Gaming Assistant.
 
+### Patch: 2026-11-17 — v4.0.4: Multi-OEM Display Routing, dGPU-Off Eco Mode, Discrete-Only Pipeline & Resident Evil 4 Remake Benchmarks
+
+- Decoupled MUX mode vocabulary from hardcoded OMEN strings, prioritizing authentic detected OEM & GPU suites (NVIDIA App, Armoury Crate, Lenovo Vantage, AWCC, MSI, etc.)
+- Added dynamic Live Display Pipeline support for Eco mode when dGPU is turned off completely, rendering 0W suspended state and active native iGPU
+- Added direct 2-node PCIe display pipeline for pure dGPU systems (desktops or discrete-only laptops) with 0ms zero-latency indication
+- Published official Resident Evil 4 Remake benchmark profile with top priority, high-res telemetry, frametime metrics, and story overview
+- Synchronized working mode vocabularies and added hardware compatibility validation badges across frontend controls
+
 ### Patch: 2026-11-16 — v4.0.3: Game Platform De-classification, Multi-Source Deduplication, AMD APU Architecture & OEM Companion Hardening
 
 - Resolved game misclassification in library where games on Steam or Heronite were classified as PLATFORM with launcher emblems and action buttons

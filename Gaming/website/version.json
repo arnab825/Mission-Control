@@ -1,8 +1,20 @@
 {
-  "version": "4.0.3",
-  "release_date": "2026-11-16",
+  "version": "4.0.4",
+  "release_date": "2026-11-17",
   "update_check_url": "https://raw.githubusercontent.com/arnab825/Mission-Control/main/Gaming/backend/version.json",
   "changelog": [
+    {
+      "version": "4.0.4",
+      "date": "2026-11-17",
+      "title": "Multi-OEM Display Routing, dGPU-Off Eco Mode, Discrete-Only Pipeline & Resident Evil 4 Remake Benchmarks",
+      "highlights": [
+        "Decoupled MUX mode vocabulary from hardcoded OMEN strings, prioritizing authentic detected OEM & GPU suites (NVIDIA App, Armoury Crate, Lenovo Vantage, AWCC, MSI, etc.)",
+        "Added dynamic Live Display Pipeline support for Eco mode when dGPU is turned off completely, rendering 0W suspended state and active native iGPU",
+        "Added direct 2-node PCIe display pipeline for pure dGPU systems (desktops or discrete-only laptops) with 0ms zero-latency indication",
+        "Published official Resident Evil 4 Remake benchmark profile with top priority, high-res telemetry, frametime metrics, and story overview",
+        "Synchronized working mode vocabularies and added hardware compatibility validation badges across frontend controls"
+      ]
+    },
     {
       "version": "4.0.3",
       "date": "2026-11-16",
@@ -581,29 +593,6 @@
         "Removed developer hardcoded 007 First Light overrides from game_scanner.py",
         "Added generic dynamic game icon resolution via sanitized ID and executable stem lookup",
         "Added generic local banner validation and automatic cleanup of invalid or stale paths"
-      ]
-    },
-    {
-      "version": "3.5.8",
-      "date": "2026-09-06",
-      "title": "007 First Light Full-Bleed Artwork Resolution & Cache Sanitization",
-      "highlights": [
-        "Restored authentic 007 First Light game artwork with full-bleed widescreen aspect ratio matching standard library cards",
-        "Added automatic Frame-0 cache healing in GamesPage and SettingsPage to purge legacy stale null-icon and CLASSIC-genre cache entries",
-        "Bundled static official artwork asset in frontend public games directory for resilient offline rendering"
-      ]
-    },
-    {
-      "version": "3.5.7",
-      "date": "2026-09-06",
-      "title": "007 First Light Artwork Resolution, Hardware Matrix Icons & Post-Update Auth Persistence",
-      "highlights": [
-        "Resolved 007 First Light artwork resolution and added HTTP status verification in Steam store banner scanner to prevent 404 cache poisoning",
-        "Restored high-resolution game cover and capsule fallbacks in library GameCard and Discover catalog for non-Steam/local titles",
-        "Fixed game thumbnail resolution in Settings Library Hardware Feature Matrix for local games and added missing feature badge micro-icons",
-        "Restored Lucide micro-icons for DLSS, Frame Gen, RTX, Reflex, HDR, and FSR across library game cards and hardware feature pills",
-        "Added session cookies and storage data flushing prior to update execution ensuring Clerk authentication tokens and JWTs persist across application upgrades",
-        "Configured SO_REUSEADDR and increased local static HTTP server retries on restart to eliminate TCP TIME_WAIT port conflicts and prevent silent fallback to file:///"
       ]
     }
   ]

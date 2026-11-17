@@ -89,7 +89,8 @@ graph TD
 
 | Version | Key Feature / Change Description |
 | :--- | :--- |
-| **v4.0.3 (Latest)** | **Game Platform De-classification, Multi-Source Deduplication, AMD APU Architecture & OEM Companion Hardening** — Resolved game misclassification in library where games on Steam or Heronite were classified as PLATFORM with launcher emblems and action buttons |
+| **v4.0.4 (Latest)** | **Multi-OEM Display Routing, dGPU-Off Eco Mode, Discrete-Only Pipeline & Resident Evil 4 Remake Benchmarks** — Decoupled MUX mode vocabulary from hardcoded OMEN strings, prioritizing authentic detected OEM & GPU suites (NVIDIA App, Armoury Crate, Lenovo Vantage, AWCC, MSI, etc.). |
+| **v4.0.3** | **Game Platform De-classification, Multi-Source Deduplication, AMD APU Architecture & OEM Companion Hardening** — Resolved game misclassification in library where games on Steam or Heronite were classified as PLATFORM with launcher emblems and action buttons |
 | **v4.0.2** | **Scanner Permission Hardening, Standardized Unit Tests & Process Guard Polish** — Added directory permission guards in GameScanner for Public Desktop preventing Access Denied crashes during shortcut discovery. |
 | **v4.0.1** | **Fixed Alienware CPU thermals, Heronite platform classification, launcher HDR cleanup & website SEO repartitioning** — Fixed Alienware CPU thermals, Heronite platform classification, launcher HDR cleanup & website SEO repartitioning. |
 | **v4.0.0** | **Added Heronite launcher & library detection** — Added Heronite launcher & library detection. |
@@ -221,5 +222,5 @@ graph TD
 
 ---
 
-*Last Updated: 16/11/2026*
+*Last Updated: 17/11/2026*
 
