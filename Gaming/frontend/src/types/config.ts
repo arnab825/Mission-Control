@@ -70,6 +70,7 @@ export interface AppConfig {
 
   memory?: {
     enabled?: boolean;
+    mode?: string;
     save_path?: string;
   };
 

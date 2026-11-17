@@ -490,6 +490,23 @@ class GamingAssistantPipeline:
         # Update AI Brain
         if hasattr(self, "brain") and self.brain:
             self.brain.apply_config(new_config)
+
+        # Update Agentic runtime settings dynamically
+        agentic_cfg = new_config.get("agentic", {})
+        if "confirmation_delay" in agentic_cfg:
+            try:
+                self.agentic_confirmation_delay = int(agentic_cfg.get("confirmation_delay", 2))
+                logger.info(f"Agentic confirmation delay updated to: {self.agentic_confirmation_delay}s")
+            except Exception as e:
+                logger.warning(f"Failed to update agentic confirmation delay: {e}")
+
+        ai_agent_cfg = new_config.get("ai_agent", {})
+        if "agentic_mode" in ai_agent_cfg:
+            self.agentic_mode_active = bool(ai_agent_cfg.get("agentic_mode", False))
+            logger.info(f"Agentic mode active updated to: {self.agentic_mode_active}")
+
+        if "personality" in ai_agent_cfg:
+            self.set_agent_personality(ai_agent_cfg.get("personality"))
             
         # Update Game Mode dynamically
         new_mode = new_config.get("game_mode", self.game_mode)
@@ -576,9 +593,10 @@ class GamingAssistantPipeline:
                 logger.error(f"Error unloading OCR reader on config disable: {e}")
             self.ocr_reader = None
         
-        # Update Memory Path
+        # Update Memory Path and configuration
         mem_cfg = new_config.get("memory", {})
         if hasattr(self, "memory") and self.memory:
+            self.memory.config = new_config
             new_mem_path = mem_cfg.get("save_path")
             if new_mem_path:
                 self.memory.set_save_path(new_mem_path)
