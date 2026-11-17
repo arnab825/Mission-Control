@@ -85,7 +85,7 @@ export interface TestedGameSummary {
 export const FALLBACK_BENCHMARK_PROFILES: Record<string, BenchmarkProfile> = {
   re4: {
     id: "re4",
-    name: "Resident Evil 4",
+    name: "Resident Evil 4 Remake",
     publisher: "Capcom",
     releaseYear: "2023 Remake",
     genre: "Survival Horror / Action-Adventure",
@@ -843,7 +843,7 @@ export const BENCHMARK_PROFILES: Record<string, BenchmarkProfile> = FALLBACK_BEN
 export const FALLBACK_TESTED_GAMES_LIST: TestedGameSummary[] = [
   {
     id: "re4",
-    name: "Resident Evil 4",
+    name: "Resident Evil 4 Remake",
     publisher: "Capcom",
     genre: "Survival Horror / Action-Adventure",
     preset: "Prioritize Graphics / FSR 2",
