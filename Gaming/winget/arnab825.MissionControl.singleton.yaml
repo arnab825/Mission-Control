@@ -40,6 +40,6 @@ Commands:
 Installers:
   - Architecture: x64
     InstallerUrl: https://github.com/arnab825/Mission-Control/releases/download/v4.0.4/MissionControl-Setup.exe
-    InstallerSha256: 46AE8744D028712465F90D1C7D2E6875FED02D7D69D0C3B3860B5B6C27DBB2EB
+    InstallerSha256: 66B1E43FF7FCED2258F0CD832E9ACC5AD00371CBCD1DDC6E3D399AF17D39B218
 ManifestType: singleton
 ManifestVersion: 1.28.0
