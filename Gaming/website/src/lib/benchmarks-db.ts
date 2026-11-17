@@ -60,18 +60,26 @@ export async function ensureBenchmarksSeeded(): Promise<void> {
     // Check existing benchmarks in database to ensure we do not overwrite database-first records
     const seedOps = Object.values(BENCHMARK_PROFILES).map((profile) => {
       const summary = TESTED_GAMES_LIST.find((g) => g.id === profile.id);
+      const {
+        dlssVersion,
+        preset,
+        presets,
+        features,
+        ...insertOnlyProfile
+      } = profile;
+
       return BenchmarkModel.findOneAndUpdate(
         { id: profile.id },
         {
           $setOnInsert: {
-            ...profile,
+            ...insertOnlyProfile,
             coverImage: summary?.coverImage || `/games/${profile.id}.webp`,
             gameplayGif: summary?.gameplayGif || summary?.coverImage,
             keyTech: summary?.keyTech || ["DirectX 12", "Reflex", "DLSS"],
             averageRating: profile.score ? profile.score / 20 : 5.0,
             totalRatings: 0,
             recommendationRate: 100,
-            avgReportedFps: parseInt(profile.testedSpecs.avgFps) || 60,
+            avgReportedFps: parseInt(profile.testedSpecs?.avgFps || "60") || 60,
           },
           $set: {
             dlssVersion: profile.dlssVersion,
@@ -82,12 +90,12 @@ export async function ensureBenchmarksSeeded(): Promise<void> {
           },
         },
         { upsert: true, returnDocument: "after" }
-      );
+      ).exec();
     });
 
     await Promise.all(seedOps);
   } catch (error) {
-    // Silently fall back to static definitions when database is offline
+    console.error("[benchmarks-db.ts] Failed to seed benchmarks:", error);
   }
 }
 
@@ -203,6 +211,31 @@ export async function getBenchmarksFromDB(): Promise<{
         });
       });
 
+      // Ensure any newly added fallback benchmark profiles are merged if not yet in MongoDB
+      Object.values(BENCHMARK_PROFILES).forEach((fallbackProfile) => {
+        if (!profiles[fallbackProfile.id]) {
+          profiles[fallbackProfile.id] = fallbackProfile;
+          const summary = TESTED_GAMES_LIST.find((g) => g.id === fallbackProfile.id) || {
+            id: fallbackProfile.id,
+            name: fallbackProfile.name,
+            publisher: fallbackProfile.publisher,
+            genre: fallbackProfile.genre,
+            preset: fallbackProfile.preset,
+            keyTech: ["DirectX 12", "Reflex", "FSR 2"],
+            status: fallbackProfile.status,
+            fps: fallbackProfile.testedSpecs?.avgFps || "72 FPS",
+            vram: fallbackProfile.testedSpecs?.vramUsed || "5.4 GB / 8.0 GB",
+            gpuLoad: fallbackProfile.testedSpecs?.gpuLoad || "63%",
+            latency: fallbackProfile.testedSpecs?.latency || "11.4 ms",
+            api: fallbackProfile.api,
+            coverImage: `/games/${fallbackProfile.id}.webp`,
+            storeRating: fallbackProfile.storeRating,
+            dlssVersion: fallbackProfile.dlssVersion,
+          };
+          testedGames.push(summary);
+        }
+      });
+
       // Sort testedGames according to the canonical order of TESTED_GAMES_LIST
       const orderMap = new Map(TESTED_GAMES_LIST.map((g, idx) => [g.id, idx]));
       testedGames.sort((a, b) => {
@@ -214,7 +247,7 @@ export async function getBenchmarksFromDB(): Promise<{
       return { profiles, testedGames };
     }
   } catch (error) {
-    // Silently fall back to static benchmark definitions
+    console.error("[benchmarks-db.ts] Failed to fetch benchmarks from DB:", error);
   }
 
   // Fallback to static definitions

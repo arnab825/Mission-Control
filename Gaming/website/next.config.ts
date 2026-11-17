@@ -110,6 +110,16 @@ const nextConfig: NextConfig = {
         destination: "/#download",
         permanent: false,
       },
+      {
+        source: "/benchmarks",
+        destination: "/games-tested",
+        permanent: false,
+      },
+      {
+        source: "/benchmark",
+        destination: "/games-tested",
+        permanent: false,
+      },
     ];
   },
 };
