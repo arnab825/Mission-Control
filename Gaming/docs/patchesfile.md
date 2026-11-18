@@ -2,6 +2,14 @@
 
 This document contains a detailed history of all patches and updates for the AI Gaming Assistant.
 
+### Patch: 2026-11-18 — v4.0.5: Network Telemetry & Wi-Fi Protocol Intelligence, Agent Neural History Overhaul & Dynamic Pipeline Controls
+
+- Added comprehensive network hardware inspection detecting IPv4 address, MAC address, active connection types (Ethernet vs Wi-Fi), and link speeds
+- Implemented detailed Wi-Fi protocol classification (Wi-Fi 4 through Wi-Fi 7), signal strength, SSID, and cipher telemetry via netsh wlan integration
+- Redesigned Agent Neural History UI with real-time session switching, active conversation badges, session persistence, and normalized relative timestamps
+- Optimized GameMemory SQLite queries to order sessions by active message timestamps (COALESCE(m.timestamp, s.start_time) DESC) ensuring active chats bubble to top
+- Added dynamic pipeline host runtime re-configuration for agentic confirmation delays, agentic mode toggles, agent personality presets, and memory settings
+
 ### Patch: 2026-11-17 — v4.0.4: Multi-OEM Display Routing, dGPU-Off Eco Mode, Discrete-Only Pipeline & Resident Evil 4 Remake Benchmarks
 
 - Decoupled MUX mode vocabulary from hardcoded OMEN strings, prioritizing authentic detected OEM & GPU suites (NVIDIA App, Armoury Crate, Lenovo Vantage, AWCC, MSI, etc.)

@@ -10,7 +10,31 @@ excerpt: "Curated breakdown of major version releases, architectural milestones,
 
 Comprehensive breakdown of major milestone releases, architectural upgrades, and core engine enhancements in **Mission Control**.
 
-## 🌟 Version v4.0.4 (Latest) — Multi-OEM Display Routing, dGPU-Off Eco Mode, Discrete-Only Pipeline & Resident Evil 4 Remake Benchmarks
+## 🌟 Version v4.0.5 (Latest) — Network Telemetry & Wi-Fi Protocol Intelligence, Agent Neural History Overhaul & Dynamic Pipeline Controls
+
+### 🛠️ Key Highlights
+1. **Added comprehensive network hardware inspection detecting IPv4 address, MAC address, active connection types (Ethernet vs Wi-Fi), and link speeds**
+2. **Implemented detailed Wi-Fi protocol classification (Wi-Fi 4 through Wi-Fi 7), signal strength, SSID, and cipher telemetry via netsh wlan integration**
+3. **Redesigned Agent Neural History UI with real-time session switching, active conversation badges, session persistence, and normalized relative timestamps**
+4. **Optimized GameMemory SQLite queries to order sessions by active message timestamps (COALESCE(m.timestamp, s.start_time) DESC) ensuring active chats bubble to top**
+5. **Added dynamic pipeline host runtime re-configuration for agentic confirmation delays, agentic mode toggles, agent personality presets, and memory settings**
+
+### 📊 Architecture & Data Flow
+```mermaid
+graph TD
+    A["Mobile Client / DevTools (320px+)"] --> B[Responsive CSS & Layout Container]
+    B --> C[DocsClient Component & Cards]
+    C --> D[MobileDocsSidebar Drawer & Header Bar]
+    D --> E[Real-Time Mongo Telemetry & Render]
+```
+
+### 📦 Distribution Artifacts
+- **Linux**: `.deb` (Debian/Ubuntu), `.AppImage` (Universal), `.rpm` (Fedora/RHEL), `.tar.gz` (Portable)
+- **Windows**: `.exe` (Setup Installer), `.msi` (Enterprise), `.zip` (Portable)
+
+---
+
+## 📦 Version v4.0.4 — Multi-OEM Display Routing, dGPU-Off Eco Mode, Discrete-Only Pipeline & Resident Evil 4 Remake Benchmarks
 
 ### 🛠️ Key Highlights
 1. **Decoupled MUX mode vocabulary from hardcoded OMEN strings, prioritizing authentic detected OEM & GPU suites (NVIDIA App, Armoury Crate, Lenovo Vantage, AWCC, MSI, etc.)**

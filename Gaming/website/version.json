@@ -1,8 +1,20 @@
 {
-  "version": "4.0.4",
-  "release_date": "2026-11-17",
+  "version": "4.0.5",
+  "release_date": "2026-11-18",
   "update_check_url": "https://raw.githubusercontent.com/arnab825/Mission-Control/main/Gaming/backend/version.json",
   "changelog": [
+    {
+      "version": "4.0.5",
+      "date": "2026-11-18",
+      "title": "Network Telemetry & Wi-Fi Protocol Intelligence, Agent Neural History Overhaul & Dynamic Pipeline Controls",
+      "highlights": [
+        "Added comprehensive network hardware inspection detecting IPv4 address, MAC address, active connection types (Ethernet vs Wi-Fi), and link speeds",
+        "Implemented detailed Wi-Fi protocol classification (Wi-Fi 4 through Wi-Fi 7), signal strength, SSID, and cipher telemetry via netsh wlan integration",
+        "Redesigned Agent Neural History UI with real-time session switching, active conversation badges, session persistence, and normalized relative timestamps",
+        "Optimized GameMemory SQLite queries to order sessions by active message timestamps (COALESCE(m.timestamp, s.start_time) DESC) ensuring active chats bubble to top",
+        "Added dynamic pipeline host runtime re-configuration for agentic confirmation delays, agentic mode toggles, agent personality presets, and memory settings"
+      ]
+    },
     {
       "version": "4.0.4",
       "date": "2026-11-17",
@@ -179,8 +191,8 @@
       "title": "1440p/1600p QHD+ Display Optimization & ROM Scanning Schema Validation Fix",
       "highlights": [
         "Resolved Pydantic schema validation rejection on scan_roms and set_rom_paths commands when dispatched with authenticated user session context",
-        "Engineered ultra-responsive layouts for 1440p (2560×1440) and 1600p (2560×1600 QHD+) displays across the Emulators & ROMs Hub and Game Intelligence Library",
-        "Expanded Emulators & ROMs Hub modal geometry with dynamic widescreen scaling up to max-w-7xl, multi-column emulator grids (3–4 columns), and side-by-side ROM directory cards",
+        "Engineered ultra-responsive layouts for 1440p (2560\u00d71440) and 1600p (2560\u00d71600 QHD+) displays across the Emulators & ROMs Hub and Game Intelligence Library",
+        "Expanded Emulators & ROMs Hub modal geometry with dynamic widescreen scaling up to max-w-7xl, multi-column emulator grids (3\u20134 columns), and side-by-side ROM directory cards",
         "Upgraded Game Intelligence grid scaling seamlessly across 1 to 6 columns for ultrawide and high-DPI displays with proportional card aspect ratios",
         "Redesigned widescreen empty states with responsive vertical centering, refined typography, and instant action triggers for Full Scan, Emulators & ROMs Hub, and Web Discovery"
       ]
@@ -454,11 +466,11 @@
       "highlights": [
         "Purged leaked NVIDIA API key from entire git history using git filter-repo",
         "settings.yaml removed from all 1011 commits",
-        "Fixed inverted semver guard in autoUpdater — isNewerSemver args were swapped causing same-version installer to re-run without upgrading",
-        "Fixed post-install first boot not emitting installed event — app now notifies UI of successful upgrade on next launch",
+        "Fixed inverted semver guard in autoUpdater \u2014 isNewerSemver args were swapped causing same-version installer to re-run without upgrading",
+        "Fixed post-install first boot not emitting installed event \u2014 app now notifies UI of successful upgrade on next launch",
         "Added installed status handler in UpdatesPage to refresh version badge and show success toast after upgrade",
-        "Fixed NSIS two-pass build failure — removed CenterInstallerWindow functions incompatible with BUILD_UNINSTALLER pass",
-        "Fixed missing StartApp function — replaced MUI_FINISHPAGE_RUN_FUNCTION with direct executable path to avoid dead-code warning"
+        "Fixed NSIS two-pass build failure \u2014 removed CenterInstallerWindow functions incompatible with BUILD_UNINSTALLER pass",
+        "Fixed missing StartApp function \u2014 replaced MUI_FINISHPAGE_RUN_FUNCTION with direct executable path to avoid dead-code warning"
       ]
     },
     {
@@ -476,7 +488,7 @@
       "title": "Fixed Version Not Updating After Install",
       "highlights": [
         "Fixed inverted semver guard that allowed same-version or older installers to run without upgrading",
-        "Fixed post-install first boot not emitting version change to UI — app now fires installed event on startup",
+        "Fixed post-install first boot not emitting version change to UI \u2014 app now fires installed event on startup",
         "Added installed status handler in UpdatesPage to refresh version badge and show success toast on upgrade",
         "Fixed NSIS build failure caused by unreferenced un.CenterInstallerWindow warning treated as error"
       ]
@@ -487,7 +499,7 @@
       "title": "Fixed Version Not Updating After Install",
       "highlights": [
         "Fixed inverted semver guard that allowed same-version or older installers to run without upgrading",
-        "Fixed post-install first boot not emitting version change to UI — app now fires installed event on startup",
+        "Fixed post-install first boot not emitting version change to UI \u2014 app now fires installed event on startup",
         "Added installed status handler in UpdatesPage to refresh version badge and show success toast on upgrade"
       ]
     },
@@ -583,16 +595,6 @@
         "Introduced visual Pre-Update Bug & Advisory risk banners during electron updates",
         "Added Emergency Instant Rollback system for unstable releases via one-click or Agent prompt",
         "Optimized game scanner validation with caching to improve library load times"
-      ]
-    },
-    {
-      "version": "3.5.9",
-      "date": "2026-09-06",
-      "title": "Generic Dynamic Icon Resolution & Hardcoded Game Removal",
-      "highlights": [
-        "Removed developer hardcoded 007 First Light overrides from game_scanner.py",
-        "Added generic dynamic game icon resolution via sanitized ID and executable stem lookup",
-        "Added generic local banner validation and automatic cleanup of invalid or stale paths"
       ]
     }
   ]
