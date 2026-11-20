@@ -96,6 +96,26 @@
       <img src="Gaming/website/public/screenshots/deepscanner.png" alt="Deep Scanner & Auto-Discovery" width="100%"/>
     </td>
   </tr>
+  <tr>
+    <td width="50%" align="center">
+      <b>🕹️ Emulators & ROM Library (17 Cores & Multi-Disc)</b><br/><br/>
+      <img src="Gaming/website/public/screenshots/emulation_screen.webp" alt="Emulators & ROM Library" width="100%"/>
+    </td>
+    <td width="50%" align="center">
+      <b>🌐 Discover Games & Live Intel (Zero-Credit Multi-Source)</b><br/><br/>
+      <img src="Gaming/website/public/screenshots/discover_intel.webp" alt="Discover Games & Live Intel" width="100%"/>
+    </td>
+  </tr>
+  <tr>
+    <td width="50%" align="center">
+      <b>📁 ROM Folders & Automatic Multi-Disc Merging</b><br/><br/>
+      <img src="Gaming/website/public/screenshots/rom_folders.webp" alt="ROM Folders Configuration" width="100%"/>
+    </td>
+    <td width="50%" align="center">
+      <b>🎨 Custom Themes & Studio Personalization</b><br/><br/>
+      <img src="Gaming/website/public/screenshots/theme_showcase.gif" alt="Themes Studio" width="100%"/>
+    </td>
+  </tr>
 </table>
 
 ---
@@ -176,9 +196,11 @@ flowchart TD
 ## 🎯 Key Features
 
 - **⚡ Zero-Latency C++ DirectX FPS Tracking**: Native C++ DLL (`fps_counter.dll`) hooking into low-level presentation queues for 1% lows and instantaneous FPS telemetry without Python overhead.
-- **🟢 NVIDIA TensorRT & NIM Acceleration**: Pure TensorRT inference for YOLOv8 vision detection with **0 MB PyTorch VRAM waste**, paired with NVIDIA NIM (Llama 3.1 & 3.2 Vision) cloud reasoning.
-- **🖥️ Glassmorphic HUD Overlay**: Dynamic desktop overlay displaying real-time FPS, CPU/GPU temperatures, wattage, and active AI co-pilot tactical suggestions.
-- **📰 Automated AI Gaming Intel Blog**: Vercel cron-scheduled RSS aggregator (IGN, Kotaku, Eurogamer, AnandTech, Tom's Hardware) running a 3-tier failover LLM pipeline to generate daily technical news saved directly to MongoDB Atlas.
+- **🟢 NVIDIA TensorRT & Multi-Provider AI Gateway**: Pure TensorRT inference for YOLOv8 vision detection with **0 MB PyTorch VRAM waste**, paired with high-speed cloud reasoning across NVIDIA NIM (Llama 3.1 & 3.2 Vision), Groq, Google Gemini, and OpenRouter with automatic failover.
+- **🖥️ Glassmorphic HUD Overlay**: Dynamic desktop overlay displaying real-time FPS, CPU/GPU temperatures, wattage, network throughput, and active AI co-pilot tactical suggestions.
+- **🔀 Multi-OEM MUX & Display Routing**: Real-time display routing telemetry supporting Hybrid Optimus, Discrete dGPU-only, and dGPU-off Eco Mode with 0W suspended state across NVIDIA App, Armoury Crate, Lenovo Vantage, AWCC, and MSI Center.
+- **📶 Network Telemetry & Wi-Fi Protocol Intelligence**: Live inspection of network interfaces, link speeds, IPv4/MAC resolution, and 802.11 Wi-Fi generation classification (Wi-Fi 4 through Wi-Fi 7) with signal quality percentage and cipher telemetry.
+- **📰 Automated AI Gaming Intel Blog**: Edge cron-scheduled RSS aggregator (IGN, Kotaku, Eurogamer, AnandTech, Tom's Hardware) running a 3-tier failover LLM pipeline to generate daily technical news saved directly to MongoDB Atlas.
 - **🔒 Motherboard UUID Security & HW Telemetry**: Cryptographic Motherboard UUID locking, Win32 working set RAM flushing, and hardware telemetry via PyNVML, WMI, and PDH.
 
 ---
@@ -300,6 +322,25 @@ npm run dev
   - Automated `uv lock` synchronization right after semver bump in `backend/pyproject.toml`.
   - Comprehensive staging of all manifests, lockfiles, and markdown documentation (`docs/`, `website/docs/`, `website/version.json`).
   - Automatic commit amending and Git release tag realignment (`vX.Y.Z`) ensuring 100% of artifacts and notes are published to GitHub Releases.
+- [x] Phase 42: **Multi-OEM MUX Switch & Live Display Routing Pipeline**
+  - Decoupled MUX mode vocabulary from vendor-locked strings, dynamically resolving detected companion suites (NVIDIA App, ASUS Armoury Crate, Lenovo Vantage, Alienware Command Center, MSI Center, OMEN).
+  - Implemented 0W suspended state telemetry for dGPU-Off Eco Mode with active native iGPU rendering.
+  - Implemented 0ms direct 2-node PCIe display routing pipeline for discrete-only setups and desktop architectures.
+- [x] Phase 43: **Universal Game Scanner, Multi-Source Deduplication & Platform Hardening**
+  - Integrated Heronite launcher and game library scanning alongside Steam, Epic, GOG, Xbox, Battle.net, and Ubisoft.
+  - Resolved platform misclassification where launcher executables and installed titles overlapped, normalizing title deduplication.
+  - Added public desktop permission guards and multi-root Windows registry traversal preventing scan stalls.
+- [x] Phase 44: **Real-Time Network Telemetry & Wi-Fi Protocol Intelligence**
+  - Native hardware detection for active network interfaces, link speeds, IPv4 resolution, and MAC address decoding.
+  - Deep Wi-Fi protocol intelligence classifying 802.11 generations (Wi-Fi 4 through Wi-Fi 7), signal quality percentage, SSID, BSSID, and cipher suites via `netsh wlan`.
+- [x] Phase 45: **Agent Neural History Overhaul, Multi-Provider Brain & Dynamic Pipeline Controls**
+  - Redesigned Agent Neural History UI with real-time session switching, active conversation badges, and normalized relative timestamps.
+  - Resolved Clerk authentication race condition on cold boot, eliminating empty fallback prompt flickers and auto-selecting the active conversation.
+  - Contextual smart message timestamps (`formatMessageTime`) displaying relative dates (`Just now`, `14:30`, `Yesterday 14:30`, `Nov 14 14:30`).
+  - Added runtime dynamic pipeline host reconfiguration for agentic confirmation delays, agentic mode toggles, agent personality presets, and memory persistence modes without restarting the process.
+- [x] Phase 46: **Full-Stack SEO Repartitioning & Cloudflare Workers Edge Deployment**
+  - Transitioned Next.js 16 App Router deployment to Cloudflare Workers via OpenNext (`@opennextjs/cloudflare` + Wrangler) with multi-subdomain routing.
+  - Implemented full SSR SEO metadata across public web pages, modular visualizers for architecture pipelines, and resident benchmark profiles (Resident Evil 4 Remake).
 
 
 

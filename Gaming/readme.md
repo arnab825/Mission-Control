@@ -88,6 +88,26 @@
       <img src="website/public/screenshots/deepscanner.png" alt="Deep Scanner & Auto-Discovery" width="100%"/>
     </td>
   </tr>
+  <tr>
+    <td width="50%" align="center">
+      <b>🕹️ Emulators & ROM Library (17 Cores & Multi-Disc)</b><br/><br/>
+      <img src="website/public/screenshots/emulation_screen.webp" alt="Emulators & ROM Library" width="100%"/>
+    </td>
+    <td width="50%" align="center">
+      <b>🌐 Discover Games & Live Intel (Zero-Credit Multi-Source)</b><br/><br/>
+      <img src="website/public/screenshots/discover_intel.webp" alt="Discover Games & Live Intel" width="100%"/>
+    </td>
+  </tr>
+  <tr>
+    <td width="50%" align="center">
+      <b>📁 ROM Folders & Automatic Multi-Disc Merging</b><br/><br/>
+      <img src="website/public/screenshots/rom_folders.webp" alt="ROM Folders Configuration" width="100%"/>
+    </td>
+    <td width="50%" align="center">
+      <b>🎨 Custom Themes & Studio Personalization</b><br/><br/>
+      <img src="website/public/screenshots/theme_showcase.gif" alt="Themes Studio" width="100%"/>
+    </td>
+  </tr>
 </table>
 
 ---
@@ -420,6 +440,25 @@ Mission Control includes a fully automated release pipeline in [`Gaming/scripts/
   - Automated `uv lock` synchronization right after semver bump in `backend/pyproject.toml`.
   - Comprehensive staging of all manifests, lockfiles, and markdown documentation (`docs/`, `website/docs/`, `website/version.json`).
   - Automatic commit amending and Git release tag realignment (`vX.Y.Z`) ensuring 100% of artifacts and notes are published to GitHub Releases.
+- [x] Phase 42: **Multi-OEM MUX Switch & Live Display Routing Pipeline**
+  - Decoupled MUX mode vocabulary from vendor-locked strings, dynamically resolving detected companion suites (NVIDIA App, ASUS Armoury Crate, Lenovo Vantage, Alienware Command Center, MSI Center, OMEN).
+  - Implemented 0W suspended state telemetry for dGPU-Off Eco Mode with active native iGPU rendering.
+  - Implemented 0ms direct 2-node PCIe display routing pipeline for discrete-only setups and desktop architectures.
+- [x] Phase 43: **Universal Game Scanner, Multi-Source Deduplication & Platform Hardening**
+  - Integrated Heronite launcher and game library scanning alongside Steam, Epic, GOG, Xbox, Battle.net, and Ubisoft.
+  - Resolved platform misclassification where launcher executables and installed titles overlapped, normalizing title deduplication.
+  - Added public desktop permission guards and multi-root Windows registry traversal preventing scan stalls.
+- [x] Phase 44: **Real-Time Network Telemetry & Wi-Fi Protocol Intelligence**
+  - Native hardware detection for active network interfaces, link speeds, IPv4 resolution, and MAC address decoding.
+  - Deep Wi-Fi protocol intelligence classifying 802.11 generations (Wi-Fi 4 through Wi-Fi 7), signal quality percentage, SSID, BSSID, and cipher suites via `netsh wlan`.
+- [x] Phase 45: **Agent Neural History Overhaul, Multi-Provider Brain & Dynamic Pipeline Controls**
+  - Redesigned Agent Neural History UI with real-time session switching, active conversation badges, and normalized relative timestamps.
+  - Resolved Clerk authentication race condition on cold boot, eliminating empty fallback prompt flickers and auto-selecting the active conversation.
+  - Contextual smart message timestamps (`formatMessageTime`) displaying relative dates (`Just now`, `14:30`, `Yesterday 14:30`, `Nov 14 14:30`).
+  - Added runtime dynamic pipeline host reconfiguration for agentic confirmation delays, agentic mode toggles, agent personality presets, and memory persistence modes without restarting the process.
+- [x] Phase 46: **Full-Stack SEO Repartitioning & Cloudflare Workers Edge Deployment**
+  - Transitioned Next.js 16 App Router deployment to Cloudflare Workers via OpenNext (`@opennextjs/cloudflare` + Wrangler) with multi-subdomain routing.
+  - Implemented full SSR SEO metadata across public web pages, modular visualizers for architecture pipelines, and resident benchmark profiles (Resident Evil 4 Remake).
 
 
 

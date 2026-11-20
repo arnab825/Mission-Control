@@ -44,8 +44,8 @@ const EMULATION_WINE_FEATURES: FeatureDetail[] = [
     subtitle: "Universal Console Discovery & Multi-Disc Library",
     description:
       "Detects 17 emulators and RetroArch cores, scans ROM folders, merges multi-disc games, and auto-assembles CLI flags for direct 1-click execution.",
-    screenshot: "/screenshots/emulation_showcase.webp",
-    fallbackScreenshot: "/screenshots/emulation_showcase.png",
+    screenshot: "/screenshots/emulation_screen.webp",
+    fallbackScreenshot: "/screenshots/emulation_screen.png",
     accentColor: "text-purple-400",
     borderGlow: "border-purple-500/40 hover:border-purple-400/80 shadow-[0_0_35px_rgba(168,85,247,0.18)]",
     bgGlow: "from-purple-950/40 via-purple-900/10 to-transparent",
