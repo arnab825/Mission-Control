@@ -10,7 +10,31 @@ excerpt: "Curated breakdown of major version releases, architectural milestones,
 
 Comprehensive breakdown of major milestone releases, architectural upgrades, and core engine enhancements in **Mission Control**.
 
-## 🌟 Version v4.0.5 (Latest) — Network Telemetry & Wi-Fi Protocol Intelligence, Agent Neural History Overhaul & Dynamic Pipeline Controls
+## 🌟 Version v4.0.6 (Latest) — Exclusive Fullscreen Overlay Compatibility, Auto-Borderless Coercion & Benchmark Reporting
+
+### 🛠️ Key Highlights
+1. **Engineered out-of-process Win32 Borderless Window Coercion engine converting windowed games into seamless borderless windows for zero-latency DWM overlay compatibility**
+2. **Implemented Multi-Monitor Display Routing in Electron main process, supporting secondary display HUD pinning and automatic fullscreen display failover**
+3. **Built comprehensive Benchmark Session Recording in pipeline host with rolling ETW hardware telemetry accumulation and session finalization**
+4. **Introduced glassmorphic Benchmark Summary Modal with interactive frametime pacing distribution, bottleneck diagnostics, and one-click export**
+5. **Expanded Tactical Overlay configuration with Auto-Borderless, Display Target selection, and Auto-Route in Fullscreen toggles**
+
+### 📊 Architecture & Data Flow
+```mermaid
+graph TD
+    A["Mobile Client / DevTools (320px+)"] --> B[Responsive CSS & Layout Container]
+    B --> C[DocsClient Component & Cards]
+    C --> D[MobileDocsSidebar Drawer & Header Bar]
+    D --> E[Real-Time Mongo Telemetry & Render]
+```
+
+### 📦 Distribution Artifacts
+- **Linux**: `.deb` (Debian/Ubuntu), `.AppImage` (Universal), `.rpm` (Fedora/RHEL), `.tar.gz` (Portable)
+- **Windows**: `.exe` (Setup Installer), `.msi` (Enterprise), `.zip` (Portable)
+
+---
+
+## 📦 Version v4.0.5 — Network Telemetry & Wi-Fi Protocol Intelligence, Agent Neural History Overhaul & Dynamic Pipeline Controls
 
 ### 🛠️ Key Highlights
 1. **Added comprehensive network hardware inspection detecting IPv4 address, MAC address, active connection types (Ethernet vs Wi-Fi), and link speeds**

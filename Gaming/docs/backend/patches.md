@@ -2,6 +2,14 @@
 
 This document contains a detailed history of all patches and updates for the AI Gaming Assistant.
 
+### Patch: 2026-11-21 — v4.0.6: Exclusive Fullscreen Overlay Compatibility, Auto-Borderless Coercion & Benchmark Reporting
+
+- Engineered out-of-process Win32 Borderless Window Coercion engine converting windowed games into seamless borderless windows for zero-latency DWM overlay compatibility
+- Implemented Multi-Monitor Display Routing in Electron main process, supporting secondary display HUD pinning and automatic fullscreen display failover
+- Built comprehensive Benchmark Session Recording in pipeline host with rolling ETW hardware telemetry accumulation and session finalization
+- Introduced glassmorphic Benchmark Summary Modal with interactive frametime pacing distribution, bottleneck diagnostics, and one-click export
+- Expanded Tactical Overlay configuration with Auto-Borderless, Display Target selection, and Auto-Route in Fullscreen toggles
+
 ### Patch: 2026-11-18 — v4.0.5: Network Telemetry & Wi-Fi Protocol Intelligence, Agent Neural History Overhaul & Dynamic Pipeline Controls
 
 - Added comprehensive network hardware inspection detecting IPv4 address, MAC address, active connection types (Ethernet vs Wi-Fi), and link speeds
