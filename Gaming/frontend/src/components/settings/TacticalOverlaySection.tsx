@@ -4,7 +4,7 @@ import { Target, Lock, Unlock } from 'lucide-react';
 import { SettingsSection } from './common/SettingsSection';
 import { SettingsField } from './common/SettingsField';
 import { CustomSelect } from './common/CustomSelect';
-import { HUD_LAYOUT_OPTIONS, HUD_LAYOUT_STYLE_OPTIONS } from '../../data/settingsConstants';
+import { HUD_LAYOUT_OPTIONS, HUD_LAYOUT_STYLE_OPTIONS, HUD_TARGET_DISPLAY_OPTIONS } from '../../data/settingsConstants';
 
 interface TacticalOverlaySectionProps {
   localConfig: any;
@@ -296,6 +296,94 @@ export const TacticalOverlaySection: React.FC<TacticalOverlaySectionProps> = ({
             <div
               className={`w-4 h-4 rounded-full absolute transition-all ${
                 localConfig.overlay?.auto_spawn !== false ? 'bg-black right-1' : 'bg-black left-1'
+              }`}
+            />
+          </div>
+        </div>
+      </SettingsField>
+
+      {/* Auto-Borderless Coercion */}
+      <SettingsField
+        label="Auto-Borderless Coercion"
+        description="Automatically expand windowed games without native borderless modes (e.g. Batman: Arkham Knight, Sekiro) into seamless borderless windows."
+      >
+        <div className="flex items-center gap-3">
+          <span
+            className={`text-[9px] font-black uppercase ${
+              localConfig.overlay?.auto_borderless !== false ? 'text-neon-green' : 'text-zinc-500'
+            }`}
+          >
+            {localConfig.overlay?.auto_borderless !== false ? 'Enabled' : 'Disabled'}
+          </span>
+          <div
+            role="button"
+            tabIndex={0}
+            onKeyDown={(e) => e.key === 'Enter' && e.currentTarget.click()}
+            onClick={() => {
+              const newVal = localConfig.overlay?.auto_borderless === false;
+              const updatedOverlay = { ...localConfig.overlay, auto_borderless: newVal };
+              setLocalConfig({ ...localConfig, overlay: updatedOverlay });
+              sendCommand('update_config', { overlay: updatedOverlay });
+            }}
+            className={`w-12 h-6 rounded-full relative p-1 cursor-pointer transition-colors ${
+              localConfig.overlay?.auto_borderless !== false ? 'bg-neon-green' : 'bg-zinc-800'
+            }`}
+          >
+            <div
+              className={`w-4 h-4 rounded-full absolute transition-all ${
+                localConfig.overlay?.auto_borderless !== false ? 'bg-black right-1' : 'bg-black left-1'
+              }`}
+            />
+          </div>
+        </div>
+      </SettingsField>
+
+      {/* Multi-Monitor Display Target */}
+      <SettingsField
+        label="HUD Target Display"
+        description="Select which display the overlay attaches to in multi-monitor configurations."
+      >
+        <CustomSelect
+          value={localConfig.overlay?.target_display || 'auto'}
+          onChange={(val) => {
+            const updatedOverlay = { ...localConfig.overlay, target_display: val };
+            setLocalConfig({ ...localConfig, overlay: updatedOverlay });
+            sendCommand('update_config', { overlay: updatedOverlay });
+          }}
+          options={HUD_TARGET_DISPLAY_OPTIONS}
+        />
+      </SettingsField>
+
+      {/* Auto-Route to Secondary Display in Fullscreen */}
+      <SettingsField
+        label="Auto-Route to Secondary Display"
+        description="Automatically move overlay to your secondary monitor when a game enters fullscreen on your primary monitor."
+      >
+        <div className="flex items-center gap-3">
+          <span
+            className={`text-[9px] font-black uppercase ${
+              localConfig.overlay?.auto_route_fullscreen === true ? 'text-neon-green' : 'text-zinc-500'
+            }`}
+          >
+            {localConfig.overlay?.auto_route_fullscreen === true ? 'Enabled' : 'Disabled'}
+          </span>
+          <div
+            role="button"
+            tabIndex={0}
+            onKeyDown={(e) => e.key === 'Enter' && e.currentTarget.click()}
+            onClick={() => {
+              const newVal = localConfig.overlay?.auto_route_fullscreen !== true;
+              const updatedOverlay = { ...localConfig.overlay, auto_route_fullscreen: newVal };
+              setLocalConfig({ ...localConfig, overlay: updatedOverlay });
+              sendCommand('update_config', { overlay: updatedOverlay });
+            }}
+            className={`w-12 h-6 rounded-full relative p-1 cursor-pointer transition-colors ${
+              localConfig.overlay?.auto_route_fullscreen === true ? 'bg-neon-green' : 'bg-zinc-800'
+            }`}
+          >
+            <div
+              className={`w-4 h-4 rounded-full absolute transition-all ${
+                localConfig.overlay?.auto_route_fullscreen === true ? 'bg-black right-1' : 'bg-black left-1'
               }`}
             />
           </div>

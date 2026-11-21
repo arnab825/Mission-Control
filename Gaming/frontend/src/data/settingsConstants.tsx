@@ -75,6 +75,12 @@ export const HUD_LAYOUT_STYLE_OPTIONS: OptionItem[] = [
   { value: 'horizontal', label: 'Horizontal Banner' }
 ];
 
+export const HUD_TARGET_DISPLAY_OPTIONS: OptionItem[] = [
+  { value: 'auto', label: '⚡ Auto (Follow Active Display)' },
+  { value: 'primary', label: 'Primary Display' },
+  { value: 'secondary', label: 'Secondary Display (Multi-Monitor Mode)' }
+];
+
 export const SPEECH_PROVIDER_OPTIONS: OptionItem[] = [
   { value: 'google', label: 'Aero (Cloud - Google)' },
   { value: 'elevenlabs', label: 'ElevenLabs (High-Fidelity)' },

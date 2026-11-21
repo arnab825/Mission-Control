@@ -47,6 +47,12 @@ export interface AppConfig {
     alert_color?: [number, number, number];
     auto_spawn?: boolean;
     skip_admin_prompt?: boolean;
+    /** Automatically coerce windowed games without native borderless options into borderless fullscreen */
+    auto_borderless?: boolean;
+    /** Target display for the HUD overlay: 'auto' | 'primary' | 'secondary' */
+    target_display?: 'auto' | 'primary' | 'secondary' | string;
+    /** Auto-route HUD to secondary display when game enters fullscreen on primary */
+    auto_route_fullscreen?: boolean;
   };
 
   capture?: {

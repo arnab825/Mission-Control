@@ -274,6 +274,14 @@ def dispatch_bridge_command(
         system_handler.handle_open_oem_software(payload, pipeline, bridge, config)
     elif cmd_type == "open_display_switcher":
         system_handler.handle_open_display_switcher(payload, pipeline, bridge, config)
+    elif cmd_type == "coerce_borderless":
+        system_handler.handle_coerce_borderless(payload, pipeline, bridge, config)
+    elif cmd_type == "restore_borderless":
+        system_handler.handle_restore_borderless(payload, pipeline, bridge, config)
+    elif cmd_type == "start_benchmark_session":
+        system_handler.handle_start_benchmark(payload, pipeline, bridge, config)
+    elif cmd_type == "stop_benchmark_session":
+        system_handler.handle_stop_benchmark(payload, pipeline, bridge, config)
 
     # ── Agent mode / voice commands ───────────────────────────────
     elif cmd_type == "toggle_agent_mode":

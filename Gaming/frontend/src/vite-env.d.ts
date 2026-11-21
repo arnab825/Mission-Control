@@ -17,6 +17,7 @@ interface Window {
     onGameFocusChanged?: (isActive: boolean, isFocused: boolean, gameTitle?: string, gamePid?: number) => void;
     updateTrayTelemetry?: (data: { fps?: number; gpuLoad?: number; gpuTemp?: number; isActive?: boolean }) => void;
     moveHUDWindow?: (deltaX: number, deltaY: number) => void;
+    getConnectedDisplays?: () => Promise<Array<{ id: number; label: string; bounds: { x: number; y: number; width: number; height: number }; isPrimary: boolean }>>;
     onHUDMoved?: (callback: (coords: { x: number; y: number }) => void) => () => void;
     getAppVersion?: () => Promise<string>;
     checkElectronUpdates?: () => void;

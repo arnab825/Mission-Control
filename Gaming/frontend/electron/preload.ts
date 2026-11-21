@@ -28,6 +28,7 @@ contextBridge.exposeInMainWorld('electronAPI', {
   fetchLauncherTrending: () => ipcRenderer.invoke('fetch-launcher-trending'),
   fetchLocalNode: () => ipcRenderer.invoke('fetch-local-node'),
   searchGamesLive: (query: string) => ipcRenderer.invoke('search-games-live', query),
+  getConnectedDisplays: () => ipcRenderer.invoke('get-connected-displays'),
   setProgressBar: (value: number) => ipcRenderer.send('set-progress-bar', value),
   restartBackend: () => ipcRenderer.send('restart-backend'),
   onNetworkStatusChanged: (isOnline: boolean) => ipcRenderer.send('network-status-changed', isOnline),

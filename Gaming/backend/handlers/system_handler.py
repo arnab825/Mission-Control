@@ -1287,4 +1287,66 @@ def handle_open_display_switcher(payload: dict, pipeline, bridge, config) -> Non
         logger.error(f"Failed to open display switcher: {e}")
 
 
+def handle_coerce_borderless(payload: dict, pipeline, bridge, config) -> None:
+    """Manually coerce active game window into borderless fullscreen."""
+    try:
+        import sys
+        from capture.borderless_manager import borderless_manager
+
+        hwnd = None
+        if pipeline and hasattr(pipeline, "_game_state"):
+            gi = pipeline._game_state.get("game_info") or {}
+            hwnd = gi.get("hwnd")
+
+        if not hwnd and sys.platform == "win32":
+            import win32gui
+            hwnd = win32gui.GetForegroundWindow()
+
+        if hwnd:
+            success = borderless_manager.coerce_to_borderless(hwnd)
+            if bridge:
+                bridge.update_state({"borderless_active": success})
+            logger.info(f"Coerce borderless executed on hwnd {hwnd:#x}: {success}")
+    except Exception as e:
+        logger.error(f"Failed to coerce borderless: {e}")
+
+
+def handle_restore_borderless(payload: dict, pipeline, bridge, config) -> None:
+    """Restore previously coerced borderless window to original windowed mode."""
+    try:
+        from capture.borderless_manager import borderless_manager
+
+        hwnd = None
+        if pipeline and hasattr(pipeline, "_game_state"):
+            gi = pipeline._game_state.get("game_info") or {}
+            hwnd = gi.get("hwnd")
+
+        if hwnd:
+            success = borderless_manager.restore_window(hwnd)
+            if bridge:
+                bridge.update_state({"borderless_active": False})
+            logger.info(f"Restore borderless executed on hwnd {hwnd:#x}: {success}")
+    except Exception as e:
+        logger.error(f"Failed to restore borderless: {e}")
+
+
+def handle_start_benchmark(payload: dict, pipeline, bridge, config) -> None:
+    """Start manual benchmark recording session."""
+    if pipeline and hasattr(pipeline, "start_benchmark_session"):
+        pipeline.start_benchmark_session()
+        if bridge:
+            bridge.update_state({"benchmark_recording": True})
+        logger.info("Benchmark session manually started.")
+
+
+def handle_stop_benchmark(payload: dict, pipeline, bridge, config) -> None:
+    """Stop benchmark recording session and finalize summary."""
+    if pipeline and hasattr(pipeline, "stop_benchmark_session"):
+        summary = pipeline.stop_benchmark_session()
+        if bridge and summary:
+            bridge.update_state({"benchmark_recording": False, "benchmark_summary": summary})
+        logger.info("Benchmark session manually stopped and summary generated.")
+
+
+
 

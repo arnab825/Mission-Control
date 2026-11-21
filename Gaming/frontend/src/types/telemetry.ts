@@ -189,6 +189,27 @@ export interface TelemetryState {
     synced?: boolean;
   };
   user_accounts?: any[];
+  benchmark_summary?: BenchmarkSummary;
+}
+
+export interface BenchmarkSummary {
+  id: string;
+  game_title: string;
+  timestamp: number;
+  duration_seconds: number;
+  avg_fps: number;
+  one_percent_low: number;
+  min_fps: number;
+  max_fps: number;
+  total_frames: number;
+  frametimes: number[];
+  cpu_avg_pct?: number;
+  gpu_avg_pct?: number;
+  cpu_max_temp?: number;
+  gpu_max_temp?: number;
+  vram_max_mb?: number;
+  bottleneck?: 'balanced' | 'cpu' | 'gpu' | 'idle' | string;
+  is_fse?: boolean;
 }
 
 

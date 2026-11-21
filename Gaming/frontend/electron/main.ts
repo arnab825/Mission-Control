@@ -3175,10 +3175,25 @@ function convertHotkeyToElectron(hotkey: string): string {
 
 function getInitialHUDPosition(layout?: string): { x: number; y: number; width: number; height: number } {
   try {
+    const allDisplays = screen.getAllDisplays();
     const primaryDisplay = screen.getPrimaryDisplay();
-    const { width: scrWidth, height: scrHeight } = primaryDisplay.workAreaSize;
-
     const overlay = cachedConfig?.overlay || {};
+
+    // Multi-monitor routing: 'primary' | 'secondary' | 'auto'
+    const targetDisplayPref = overlay.target_display || 'auto';
+    let targetDisplay = primaryDisplay;
+
+    const secondaryDisplay = allDisplays.find(d => d.id !== primaryDisplay.id);
+    if (secondaryDisplay) {
+      if (targetDisplayPref === 'secondary') {
+        targetDisplay = secondaryDisplay;
+      } else if (targetDisplayPref === 'auto' && overlay.auto_route_fullscreen === true && lastGameFocusState.isActive) {
+        targetDisplay = secondaryDisplay;
+      }
+    }
+
+    const { x: dispX, y: dispY, width: scrWidth, height: scrHeight } = targetDisplay.workArea;
+
     const layoutStyle = overlay.layout_style || 'standard';
     let winWidth = 320;
     let winHeight = 620;
@@ -3202,19 +3217,19 @@ function getInitialHUDPosition(layout?: string): { x: number; y: number; width: 
       y = Math.round(overlay.y);
     } else {
       const margin = 24; // Spacing from edge
-      x = margin;
-      y = margin; // default top-left
+      x = dispX + margin;
+      y = dispY + margin; // default top-left
 
       const targetLayout = layout || overlay.layout || 'top-left';
       if (targetLayout === 'top-right') {
-        x = scrWidth - winWidth - margin;
-        y = margin;
+        x = dispX + scrWidth - winWidth - margin;
+        y = dispY + margin;
       } else if (targetLayout === 'bottom-right') {
-        x = scrWidth - winWidth - margin;
-        y = scrHeight - winHeight - margin;
+        x = dispX + scrWidth - winWidth - margin;
+        y = dispY + scrHeight - winHeight - margin;
       } else if (targetLayout === 'bottom-left') {
-        x = margin;
-        y = scrHeight - winHeight - margin;
+        x = dispX + margin;
+        y = dispY + scrHeight - winHeight - margin;
       }
     }
 
@@ -3559,7 +3574,9 @@ function updateHUDConfig(config: any) {
   const layoutChanged = !cachedConfig ||
     cachedConfig.overlay?.layout !== config.overlay?.layout ||
     cachedConfig.overlay?.layout_style !== config.overlay?.layout_style ||
-    cachedConfig.overlay?.lock_position !== config.overlay?.lock_position;
+    cachedConfig.overlay?.lock_position !== config.overlay?.lock_position ||
+    cachedConfig.overlay?.target_display !== config.overlay?.target_display ||
+    cachedConfig.overlay?.auto_route_fullscreen !== config.overlay?.auto_route_fullscreen;
 
   cachedConfig = config;
 
@@ -3586,6 +3603,21 @@ ipcMain.on('move-hud-window', (_event, deltaX: number, deltaY: number) => {
 
 ipcMain.on('update-hud-config', (_event, config) => {
   updateHUDConfig(config);
+});
+
+ipcMain.handle('get-connected-displays', () => {
+  try {
+    const primary = screen.getPrimaryDisplay();
+    return screen.getAllDisplays().map((d, idx) => ({
+      id: d.id,
+      label: d.label || `Display ${idx + 1} (${d.bounds.width}x${d.bounds.height})`,
+      bounds: d.bounds,
+      isPrimary: d.id === primary.id
+    }));
+  } catch (err) {
+    console.error('[Electron] Failed to enumerate displays:', err);
+    return [];
+  }
 });
 
 // Live tray tooltip: throttled to 1Hz max to prevent Win32 shell notify icon stutter

@@ -40,6 +40,8 @@ import { BrowserAuthPortalView } from './components/views/BrowserAuthPortalView'
 import { AuthPopupHandlerView } from './components/views/AuthPopupHandlerView';
 import { GlobalScanningOverlay } from './components/system/GlobalScanningOverlay';
 import { GlobalToastNotification } from './components/system/GlobalToastNotification';
+import { BenchmarkSummaryModal } from './components/BenchmarkSummaryModal';
+import type { BenchmarkSummary } from './types/telemetry';
 
 interface AppTelemetryState extends TelemetryState {
   scan_state?: {
@@ -95,6 +97,18 @@ const App: React.FC = () => {
   const [isAgentic, setIsAgentic] = useState(false);
   const [personality, setPersonality] = useState('Tactical');
   const [globalToast, setGlobalToast] = useState<{message: string; type?: 'info'|'warning'} | null>(null);
+  const [benchmarkSummary, setBenchmarkSummary] = useState<BenchmarkSummary | null>(null);
+  const [isBenchmarkModalOpen, setIsBenchmarkModalOpen] = useState(false);
+  const lastSeenBenchmarkId = React.useRef<string | null>(null);
+
+  useEffect(() => {
+    if (state?.benchmark_summary && state.benchmark_summary.id !== lastSeenBenchmarkId.current) {
+      lastSeenBenchmarkId.current = state.benchmark_summary.id;
+      setBenchmarkSummary(state.benchmark_summary);
+      setIsBenchmarkModalOpen(true);
+    }
+  }, [state?.benchmark_summary]);
+
   const { preferences, activeGameTheme, triggerGameAdaptiveCheck, triggerPersonalitySync } = useTheme();
 
   useEffect(() => {
@@ -1403,6 +1417,13 @@ const App: React.FC = () => {
 
         {/* Global Toast Notification */}
         <GlobalToastNotification toast={globalToast} />
+
+        {/* Benchmark Summary Modal */}
+        <BenchmarkSummaryModal
+          isOpen={isBenchmarkModalOpen}
+          onClose={() => setIsBenchmarkModalOpen(false)}
+          summary={benchmarkSummary}
+        />
       </div>
     </MotionConfig>
   );

@@ -703,6 +703,103 @@ class GamingAssistantPipeline:
             else:
                 self._game_state["game_info"] = window_info
 
+        # Auto-borderless window coercion for seamless DWM overlay compatibility
+        try:
+            overlay_cfg = self.config.get("overlay", {}) if isinstance(self.config, dict) else {}
+            if overlay_cfg.get("auto_borderless", True) is not False:
+                hwnd = window_info.get("hwnd")
+                if hwnd:
+                    from capture.borderless_manager import borderless_manager
+                    borderless_manager.coerce_to_borderless(hwnd)
+        except Exception as e:
+            logger.debug(f"[Pipeline] Auto-borderless coercion check failed: {e}")
+
+    def start_benchmark_session(self):
+        """Starts an active benchmark telemetry recording session."""
+        with self._state_lock:
+            self._benchmark_recording = True
+            self._bench_start_time = time.time()
+            self._bench_title = self._game_state.get("current_game") or "Game Benchmark"
+            self._bench_cpu_samples = []
+            self._bench_gpu_samples = []
+            self._bench_gpu_temp_samples = []
+            self._bench_cpu_temp_samples = []
+            self._bench_vram_samples = []
+            self._bench_last_sample_time = 0.0
+            if hasattr(self, "frame_buffer"):
+                self.frame_buffer.reset()
+        logger.info(f"[Benchmark] Session started for: {getattr(self, '_bench_title', 'Game')}")
+
+    def stop_benchmark_session(self):
+        """Stops the active benchmark recording session and compiles summary."""
+        return self._finalize_benchmark_session()
+
+    def _finalize_benchmark_session(self):
+        """Compiles rolling benchmark statistics into a structured BenchmarkSummary."""
+        with self._state_lock:
+            if not getattr(self, "_benchmark_recording", False):
+                return None
+            self._benchmark_recording = False
+            start_t = getattr(self, "_bench_start_time", time.time())
+            duration = max(0.1, time.time() - start_t)
+
+            f_count = self.frame_buffer.frame_count if hasattr(self, "frame_buffer") else 0
+            final_avg = self.frame_buffer.average_fps if hasattr(self, "frame_buffer") else 0.0
+            final_1pct = self.frame_buffer.one_percent_low if hasattr(self, "frame_buffer") else 0.0
+            final_min = self.frame_buffer.min_fps if hasattr(self, "frame_buffer") else 0.0
+            final_max = self.frame_buffer.max_fps if hasattr(self, "frame_buffer") else 0.0
+            frametimes = list(self.frame_buffer.frametimes or []) if hasattr(self, "frame_buffer") else []
+
+            # Minimum threshold for valid benchmark summary: duration >= 4.0s and at least 15 frames or >0 FPS
+            if duration < 4.0 and (f_count < 15 and final_avg == 0.0):
+                logger.debug(f"[Benchmark] Session was too brief ({duration:.1f}s) — skipping summary.")
+                return None
+
+            cpu_s = getattr(self, "_bench_cpu_samples", [])
+            gpu_s = getattr(self, "_bench_gpu_samples", [])
+            gpu_t_s = getattr(self, "_bench_gpu_temp_samples", [])
+            cpu_t_s = getattr(self, "_bench_cpu_temp_samples", [])
+            vram_s = getattr(self, "_bench_vram_samples", [])
+
+            avg_cpu = sum(cpu_s) / len(cpu_s) if cpu_s else float(self._game_state.get("cpu_pct", 0))
+            avg_gpu = sum(gpu_s) / len(gpu_s) if gpu_s else 0.0
+            max_cpu_t = max(cpu_t_s) if cpu_t_s else float(self._game_state.get("cpu_temp", 0))
+            max_gpu_t = max(gpu_t_s) if gpu_t_s else 0.0
+            max_vram = max(vram_s) if vram_s else 0.0
+
+            bottleneck = "balanced"
+            if avg_gpu >= 94.0:
+                bottleneck = "gpu"
+            elif avg_cpu >= 80.0 and avg_gpu < 75.0:
+                bottleneck = "cpu"
+
+            summary = {
+                "id": f"bench_{int(time.time())}",
+                "game_title": getattr(self, "_bench_title", "Game Benchmark"),
+                "timestamp": int(time.time()),
+                "duration_seconds": round(duration, 1),
+                "avg_fps": round(final_avg, 1),
+                "one_percent_low": round(final_1pct, 1),
+                "min_fps": round(final_min, 1),
+                "max_fps": round(final_max, 1),
+                "total_frames": f_count,
+                "frametimes": frametimes[-128:] if frametimes else [],
+                "cpu_avg_pct": round(avg_cpu, 1),
+                "gpu_avg_pct": round(avg_gpu, 1),
+                "cpu_max_temp": round(max_cpu_t, 1),
+                "gpu_max_temp": round(max_gpu_t, 1),
+                "vram_max_mb": round(max_vram, 1),
+                "bottleneck": bottleneck,
+                "is_fse": bool(getattr(self, "_last_was_fse", False)),
+            }
+            self._game_state["benchmark_summary"] = summary
+            logger.info(
+                f"[Benchmark] Finalized benchmark summary: {summary['game_title']} | "
+                f"{summary['avg_fps']} Avg FPS | {summary['one_percent_low']} 1% Low | "
+                f"{summary['duration_seconds']}s duration"
+            )
+            return summary
+
     def _setup_hotkeys(self):
         """Register global hotkeys for toggling and scaling HUD."""
         hotkey_cfg = self.config.get("hotkeys", {})
@@ -1411,6 +1508,27 @@ class GamingAssistantPipeline:
                     self._game_state["capture_fps"] = self.frame_buffer.capture_fps if (is_active or is_manual_vision) else 0.0
                     self._game_state["vision_fps"] = fps_counter.fps if (is_active or is_manual_vision) else 0.0
                     if is_active:
+                        if not getattr(self, "_benchmark_recording", False):
+                            self._benchmark_recording = True
+                            self._bench_start_time = time.time()
+                            self._bench_title = title or self._game_state.get("current_game") or "Game Benchmark"
+                            self._bench_cpu_samples = []
+                            self._bench_gpu_samples = []
+                            self._bench_gpu_temp_samples = []
+                            self._bench_cpu_temp_samples = []
+                            self._bench_vram_samples = []
+                            self._bench_last_sample_time = 0.0
+
+                        t_now = time.time()
+                        if t_now - getattr(self, "_bench_last_sample_time", 0.0) >= 0.5:
+                            self._bench_last_sample_time = t_now
+                            gpu_metrics = self._game_state.get("gpu_metrics") or {}
+                            self._bench_cpu_samples.append(self._game_state.get("cpu_pct", 0))
+                            self._bench_gpu_samples.append(gpu_metrics.get("utilization") or gpu_metrics.get("gpu_util", 0))
+                            self._bench_gpu_temp_samples.append(gpu_metrics.get("temp") or gpu_metrics.get("temperature", 0))
+                            self._bench_cpu_temp_samples.append(self._game_state.get("cpu_temp", 0))
+                            self._bench_vram_samples.append(gpu_metrics.get("vram_used") or gpu_metrics.get("vram_used_mb", 0))
+
                         avg_fps = self.frame_buffer.average_fps
                         self._game_state["game_fps"] = avg_fps
                         f_count = self.frame_buffer.frame_count
@@ -1427,6 +1545,8 @@ class GamingAssistantPipeline:
                         self._game_state["one_percent_low"] = self.frame_buffer.one_percent_low
                         self._game_state["frametimes"] = self.frame_buffer.frametimes
                     else:
+                        if getattr(self, "_benchmark_recording", False):
+                            self._finalize_benchmark_session()
                         self._game_state["game_fps"] = 0.0
                         self._game_state["game_loading"] = False
                         self._game_active_since = None
