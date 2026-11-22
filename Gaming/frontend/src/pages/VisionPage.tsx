@@ -1,5 +1,5 @@
-import React, { useState, useEffect } from 'react';
-import { Eye, Play, Square, Activity, Radar, AlertTriangle, CheckCircle, Clock, ArrowRight, Download, Server, HardDrive, Gamepad2, Trash2, Video, Disc, FolderOpen, Film, Scissors, Camera, Gauge, Layers } from 'lucide-react';
+import React, { useState, useEffect, useRef } from 'react';
+import { Eye, Play, Square, Activity, Radar, AlertTriangle, CheckCircle, Clock, ArrowRight, Download, Server, HardDrive, Gamepad2, Trash2, Video, Disc, FolderOpen, Film, Scissors, Camera, Gauge, Layers, Crosshair, Crop, Filter, Flame, Scan, Copy, Send, RotateCcw, Check, X } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import type { TelemetryState } from '../types/telemetry';
 import { useAuth } from '@clerk/clerk-react';
@@ -9,6 +9,16 @@ interface VisionPageProps {
   state: TelemetryState | null;
   sendCommand: (type: string, payload?: any) => void;
 }
+
+const CLASS_META: Record<string, { label: string; color: string; border: string; bg: string }> = {
+  person: { label: 'Player / Enemy', color: 'text-neon-green', border: 'border-neon-green/40', bg: 'bg-neon-green' },
+  vehicle: { label: 'Vehicles', color: 'text-cyan-400', border: 'border-cyan-400/40', bg: 'bg-cyan-400' },
+  car: { label: 'Cars', color: 'text-cyan-400', border: 'border-cyan-400/40', bg: 'bg-cyan-400' },
+  weapon: { label: 'Weapons', color: 'text-red-400', border: 'border-red-400/40', bg: 'bg-red-400' },
+  enemy: { label: 'Hostiles', color: 'text-red-400', border: 'border-red-400/40', bg: 'bg-red-400' },
+  health_bar: { label: 'Health / HUD', color: 'text-emerald-400', border: 'border-emerald-400/40', bg: 'bg-emerald-400' },
+  loot: { label: 'Loot & Items', color: 'text-purple-400', border: 'border-purple-400/40', bg: 'bg-purple-400' },
+};
 
 const PipelineBadge: React.FC<{ active: boolean; label: string }> = ({ active, label }) => (
   <div className="flex items-center gap-2">
@@ -63,6 +73,165 @@ const VisionPage: React.FC<VisionPageProps> = ({ state, sendCommand }) => {
   const [scanlines, setScanlines] = useState(true);
   const [crtCurve, setCrtCurve] = useState(false);
   const [minConfidence, setMinConfidence] = useState(0.4);
+
+  // ── Vision Enhancement: Interactive Region Selection ──
+  const [isSelectingRegion, setIsSelectingRegion] = useState(false);
+  const [selectionBox, setSelectionBox] = useState<{ x1: number; y1: number; x2: number; y2: number } | null>(null);
+  const [isDraggingRegion, setIsDraggingRegion] = useState(false);
+  const [dragStart, setDragStart] = useState<{ x: number; y: number } | null>(null);
+  const feedContainerRef = useRef<HTMLDivElement>(null);
+
+  // ── Vision Enhancement: Per-Class YOLO Filters & Matrix ──
+  const [activeSideTab, setActiveSideTab] = useState<'targets' | 'classes'>('targets');
+  const [classFilters, setClassFilters] = useState<Record<string, number>>({
+    person: 0.4,
+    vehicle: 0.45,
+    car: 0.45,
+    weapon: 0.4,
+    enemy: 0.4,
+    health_bar: 0.5,
+    loot: 0.35,
+  });
+  const [enabledClasses, setEnabledClasses] = useState<Record<string, boolean>>({
+    person: true,
+    vehicle: true,
+    car: true,
+    weapon: true,
+    enemy: true,
+    health_bar: true,
+    loot: true,
+  });
+
+  // ── Vision Enhancement: Spatial Detection Density Heatmap ──
+  const [showHeatmap, setShowHeatmap] = useState(false);
+
+  // ── Vision Enhancement: On-Demand OCR Scan ──
+  const [isScanningOCR, setIsScanningOCR] = useState(false);
+  const [ocrCopied, setOcrCopied] = useState(false);
+  const [ocrSentToAgent, setOcrSentToAgent] = useState(false);
+
+  // ── Vision Enhancement: Degradation Alert Dismissal ──
+  const [dismissedDegradation, setDismissedDegradation] = useState(false);
+
+  // Region Preset definitions
+  const regionPresets = [
+    { label: 'Fullscreen', coords: null, desc: '100% Monitor View' },
+    { label: 'Center HUD', coords: { left: 0.25, top: 0.25, width: 0.5, height: 0.5 }, desc: 'Middle Crosshair (50%)' },
+    { label: 'Minimap TR', coords: { left: 0.72, top: 0.02, width: 0.26, height: 0.28 }, desc: 'Top-Right Radar' },
+    { label: 'Minimap BL', coords: { left: 0.02, top: 0.70, width: 0.26, height: 0.28 }, desc: 'Bottom-Left Radar' },
+    { label: 'Subtitles', coords: { left: 0.15, top: 0.75, width: 0.70, height: 0.20 }, desc: 'Bottom Subtitle Area' },
+    { label: 'Top Half', coords: { left: 0.0, top: 0.0, width: 1.0, height: 0.5 }, desc: 'Upper Horizon' },
+  ];
+
+  // Mouse handlers for drag-to-select region on video feed
+  const handleFeedMouseDown = (e: React.MouseEvent<HTMLDivElement>) => {
+    if (!isSelectingRegion || !feedContainerRef.current) return;
+    const rect = feedContainerRef.current.getBoundingClientRect();
+    const x = Math.max(0, Math.min(1, (e.clientX - rect.left) / rect.width));
+    const y = Math.max(0, Math.min(1, (e.clientY - rect.top) / rect.height));
+    setDragStart({ x, y });
+    setSelectionBox({ x1: x, y1: y, x2: x, y2: y });
+    setIsDraggingRegion(true);
+  };
+
+  const handleFeedMouseMove = (e: React.MouseEvent<HTMLDivElement>) => {
+    if (!isDraggingRegion || !dragStart || !feedContainerRef.current) return;
+    const rect = feedContainerRef.current.getBoundingClientRect();
+    const curX = Math.max(0, Math.min(1, (e.clientX - rect.left) / rect.width));
+    const curY = Math.max(0, Math.min(1, (e.clientY - rect.top) / rect.height));
+    setSelectionBox({
+      x1: Math.min(dragStart.x, curX),
+      y1: Math.min(dragStart.y, curY),
+      x2: Math.max(dragStart.x, curX),
+      y2: Math.max(dragStart.y, curY),
+    });
+  };
+
+  const handleFeedMouseUp = () => {
+    if (isDraggingRegion) {
+      setIsDraggingRegion(false);
+    }
+  };
+
+  const applyCropRegion = (coords?: { left: number; top: number; width: number; height: number } | null) => {
+    let finalRegion: { left: number; top: number; width: number; height: number } | null = null;
+    if (coords) {
+      finalRegion = {
+        left: Math.round(coords.left * 1920),
+        top: Math.round(coords.top * 1080),
+        width: Math.round(coords.width * 1920),
+        height: Math.round(coords.height * 1080),
+      };
+    } else if (selectionBox) {
+      finalRegion = {
+        left: Math.round(selectionBox.x1 * 1920),
+        top: Math.round(selectionBox.y1 * 1080),
+        width: Math.round((selectionBox.x2 - selectionBox.x1) * 1920),
+        height: Math.round((selectionBox.y2 - selectionBox.y1) * 1080),
+      };
+    }
+    sendCommand('set_vision_region', { region: finalRegion });
+    setIsSelectingRegion(false);
+  };
+
+  const resetCropRegion = () => {
+    sendCommand('set_vision_region', { region: null });
+    setSelectionBox(null);
+    setIsSelectingRegion(false);
+  };
+
+  const handleToggleClass = (cls: string) => {
+    const nextEnabled = { ...enabledClasses, [cls]: !enabledClasses[cls] };
+    setEnabledClasses(nextEnabled);
+    const activeList = Object.entries(nextEnabled).filter(([_, en]) => en).map(([k]) => k);
+    sendCommand('set_vision_classes', {
+      filters: classFilters,
+      enabled_classes: activeList.length === Object.keys(CLASS_META).length ? null : activeList
+    });
+  };
+
+  const handleClassConfidenceChange = (cls: string, val: number) => {
+    const nextFilters = { ...classFilters, [cls]: val };
+    setClassFilters(nextFilters);
+    const activeList = Object.entries(enabledClasses).filter(([_, en]) => en).map(([k]) => k);
+    sendCommand('set_vision_classes', {
+      filters: nextFilters,
+      enabled_classes: activeList.length === Object.keys(CLASS_META).length ? null : activeList
+    });
+  };
+
+  const handleTriggerCustomOCR = () => {
+    setIsScanningOCR(true);
+    const roiCoords = selectionBox
+      ? [selectionBox.x1, selectionBox.y1, selectionBox.x2, selectionBox.y2]
+      : undefined;
+    sendCommand('trigger_custom_ocr', { roi_coords: roiCoords });
+    setTimeout(() => setIsScanningOCR(false), 1200);
+  };
+
+  const handleCopyOCRText = (text: string) => {
+    navigator.clipboard.writeText(text);
+    setOcrCopied(true);
+    setTimeout(() => setOcrCopied(false), 2000);
+  };
+
+  const handleSendOCRToAgent = (text: string) => {
+    sendCommand('execute', { input: `In-game text context captured: "${text}". Please analyze this.` });
+    setOcrSentToAgent(true);
+    setTimeout(() => setOcrSentToAgent(false), 2000);
+  };
+
+  const handleExportHeatmap = () => {
+    const data = state?.vision_heatmap_summary;
+    if (!data) return;
+    const blob = new Blob([JSON.stringify(data, null, 2)], { type: 'application/json' });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = `vision_detection_heatmap_${Date.now()}.json`;
+    a.click();
+    URL.revokeObjectURL(url);
+  };
 
   // Recording & Media state
   const [isClipping, setIsClipping] = useState(false);
@@ -147,8 +316,13 @@ const VisionPage: React.FC<VisionPageProps> = ({ state, sendCommand }) => {
     }
   };
 
-  // Filter detections locally in the frontend based on the user confidence threshold slider
-  const filteredDetections = detections.filter(d => (d?.conf ?? 0) >= minConfidence);
+  // Filter detections locally in the frontend based on enabled classes and per-class thresholds
+  const filteredDetections = detections.filter(d => {
+    const lbl = String(d?.label ?? 'target').toLowerCase();
+    if (enabledClasses[lbl] === false) return false;
+    const thresh = classFilters[lbl] ?? minConfidence;
+    return (d?.conf ?? 0) >= thresh;
+  });
 
 
 
@@ -290,6 +464,64 @@ const VisionPage: React.FC<VisionPageProps> = ({ state, sendCommand }) => {
         )}
       </AnimatePresence>
 
+      {/* Frame Drop & Capture Degradation Monitor Banner */}
+      <AnimatePresence>
+        {state?.vision_degradation?.active && !dismissedDegradation && (
+          <motion.div
+            initial={{ opacity: 0, y: -8 }}
+            animate={{ opacity: 1, y: 0 }}
+            exit={{ opacity: 0, y: -8 }}
+            className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 bg-amber-500/10 border border-amber-500/30 rounded-2xl px-4 sm:px-5 py-3 font-mono"
+          >
+            <div className="flex items-start sm:items-center gap-3">
+              <div className="p-2 bg-amber-500/20 border border-amber-500/40 rounded-xl text-amber-400 shrink-0 animate-pulse">
+                <AlertTriangle className="w-4 h-4" />
+              </div>
+              <div>
+                <p className="text-[10px] font-black text-amber-400 uppercase tracking-wider mb-0.5">
+                  Capture Degradation Alert: Frame Rate Depressed
+                </p>
+                <p className="text-[11px] text-zinc-300">
+                  {state.vision_degradation.message} · Capture: <span className="text-white font-bold">{state.vision_degradation.capture_fps} FPS</span> | Vision: <span className="text-neon-green font-bold">{state.vision_degradation.vision_fps} FPS</span> (Target: {state.vision_degradation.target_capture_fps} FPS)
+                </p>
+              </div>
+            </div>
+            <div className="flex flex-wrap items-center gap-2 self-end sm:self-center shrink-0">
+              <button
+                type="button"
+                onClick={() => {
+                  setIsSelectingRegion(true);
+                  setDismissedDegradation(true);
+                }}
+                className="px-3 py-1 bg-neon-green/15 hover:bg-neon-green/25 border border-neon-green/30 text-neon-green text-[9px] font-black uppercase rounded-lg transition-all cursor-pointer flex items-center gap-1.5"
+              >
+                <Crop className="w-3 h-3" />
+                Crop Region
+              </button>
+              <button
+                type="button"
+                onClick={() => {
+                  setScanlines(false);
+                  setCrtCurve(false);
+                  setDismissedDegradation(true);
+                }}
+                className="px-3 py-1 bg-white/10 hover:bg-white/20 border border-white/20 text-white text-[9px] font-black uppercase rounded-lg transition-all cursor-pointer"
+              >
+                Disable Shaders
+              </button>
+              <button
+                type="button"
+                onClick={() => setDismissedDegradation(true)}
+                className="p-1 text-zinc-500 hover:text-white rounded-lg transition-colors cursor-pointer"
+                title="Dismiss warning"
+              >
+                <X className="w-3.5 h-3.5" />
+              </button>
+            </div>
+          </motion.div>
+        )}
+      </AnimatePresence>
+
       {/* Main Grid: Feed + Radar + Controls */}
       <div className="grid grid-cols-1 xl:grid-cols-4 gap-4 sm:gap-5 min-w-0">
 
@@ -297,14 +529,21 @@ const VisionPage: React.FC<VisionPageProps> = ({ state, sendCommand }) => {
         <div className="xl:col-span-3 flex flex-col gap-4 sm:gap-5 min-w-0">
 
           {/* Feed Card */}
-          <div className="bg-zinc-950 border border-white/10 rounded-2xl sm:rounded-3xl overflow-hidden relative aspect-video shadow-[0_0_30px_rgba(118, 185, 0,0.02)] group w-full">
+          <div
+            ref={feedContainerRef}
+            onMouseDown={handleFeedMouseDown}
+            onMouseMove={handleFeedMouseMove}
+            onMouseUp={handleFeedMouseUp}
+            className={`bg-zinc-950 border border-white/10 rounded-2xl sm:rounded-3xl overflow-hidden relative aspect-video shadow-[0_0_30px_rgba(118,185,0,0.02)] group w-full select-none ${
+              isSelectingRegion ? 'cursor-crosshair' : ''
+            }`}
+          >
             {pipelineRunning && hasFrame ? (
               <div className="absolute inset-0 overflow-hidden">
                 <img
                   src={`data:image/jpeg;base64,${state!.annotated_frame}`}
                   alt="Tactical Vision Feed"
-                  className={`w-full h-full object-cover transition-all duration-300 ${crtCurve ? 'scale-102 blur-[0.2px]' : ''
-                    }`}
+                  className={`w-full h-full object-cover transition-all duration-300 pointer-events-none ${crtCurve ? 'scale-102 blur-[0.2px]' : ''}`}
                   style={{
                     filter: nightVision
                       ? 'brightness(1.2) contrast(1.2) sepia(1) hue-rotate(85deg) saturate(2.5)'
@@ -322,7 +561,7 @@ const VisionPage: React.FC<VisionPageProps> = ({ state, sendCommand }) => {
 
                 {/* Night-Vision vignettes */}
                 {nightVision && (
-                  <div className="absolute inset-0 bg-[radial-gradient(circle_at_center,transparent_40%,rgba(191, 255, 0,0.3))] pointer-events-none mix-blend-overlay" />
+                  <div className="absolute inset-0 bg-[radial-gradient(circle_at_center,transparent_40%,rgba(191,255,0,0.3))] pointer-events-none mix-blend-overlay" />
                 )}
 
                 {/* Cyberpunk HUD Frame Bracket Elements */}
@@ -340,11 +579,76 @@ const VisionPage: React.FC<VisionPageProps> = ({ state, sendCommand }) => {
                   </div>
                 </div>
 
-                <div className="absolute top-2 left-2 sm:top-4 sm:left-4 bg-black/85 backdrop-blur-md px-2.5 sm:px-3 py-1 sm:py-1.5 border border-neon-green/30 rounded-full flex items-center gap-2">
-                  <span className="w-1.5 h-1.5 rounded-full bg-red-400 animate-pulse shrink-0" />
-                  <span className="text-[8px] sm:text-[9px] font-black text-neon-green tracking-wider uppercase font-mono truncate max-w-[140px] sm:max-w-none">
-                    Live · {currentGameName || (manualActive ? 'Manual Desktop Preview' : 'Game Feed')}
-                  </span>
+                {/* Active Heatmap Overlay */}
+                {showHeatmap && state?.vision_heatmap_summary?.grid && (
+                  <div className="absolute inset-0 pointer-events-none grid grid-cols-32 grid-rows-18 z-20 opacity-80 p-0.5">
+                    {state.vision_heatmap_summary.grid.map((row, rIdx) =>
+                      row.map((val, cIdx) => {
+                        if (val === 0) return <div key={`${rIdx}-${cIdx}`} />;
+                        const maxVal = state.vision_heatmap_summary?.max_density || 10;
+                        const ratio = Math.min(1.0, val / Math.max(1, maxVal));
+                        const cellColor = ratio > 0.65
+                          ? 'bg-red-500/85 shadow-[0_0_8px_rgba(239,68,68,0.8)]'
+                          : ratio > 0.35
+                          ? 'bg-amber-400/70 shadow-[0_0_6px_rgba(251,191,36,0.6)]'
+                          : ratio > 0.15
+                          ? 'bg-neon-green/60 shadow-[0_0_4px_rgba(118,185,0,0.5)]'
+                          : 'bg-cyan-400/40';
+                        return <div key={`${rIdx}-${cIdx}`} className={`${cellColor} rounded-xs`} />;
+                      })
+                    )}
+                  </div>
+                )}
+
+                {/* Interactive Drag Selection Rectangle */}
+                {isSelectingRegion && selectionBox && (
+                  <div
+                    className="absolute border-2 border-dashed border-cyan-400 bg-cyan-500/15 pointer-events-none z-30 shadow-[0_0_15px_rgba(0,229,255,0.4)] flex items-start justify-end p-1.5 font-mono text-[9px] text-cyan-300 font-bold"
+                    style={{
+                      left: `${selectionBox.x1 * 100}%`,
+                      top: `${selectionBox.y1 * 100}%`,
+                      width: `${(selectionBox.x2 - selectionBox.x1) * 100}%`,
+                      height: `${(selectionBox.y2 - selectionBox.y1) * 100}%`,
+                    }}
+                  >
+                    <span className="bg-black/90 px-1.5 py-0.5 rounded border border-cyan-400/40 text-[8px]">
+                      {Math.round((selectionBox.x2 - selectionBox.x1) * 1920)}x{Math.round((selectionBox.y2 - selectionBox.y1) * 1080)}
+                    </span>
+                  </div>
+                )}
+
+                {/* Feed Header Badges */}
+                <div className="absolute top-2 left-2 sm:top-4 sm:left-4 flex items-center gap-2 flex-wrap z-20">
+                  <div className="bg-black/85 backdrop-blur-md px-2.5 sm:px-3 py-1 sm:py-1.5 border border-neon-green/30 rounded-full flex items-center gap-2">
+                    <span className="w-1.5 h-1.5 rounded-full bg-red-400 animate-pulse shrink-0" />
+                    <span className="text-[8px] sm:text-[9px] font-black text-neon-green tracking-wider uppercase font-mono truncate max-w-[140px] sm:max-w-none">
+                      Live · {currentGameName || (manualActive ? 'Manual Desktop Preview' : 'Game Feed')}
+                    </span>
+                  </div>
+
+                  {/* Active Crop Region Badge */}
+                  {state?.capture_region && (
+                    <div className="bg-cyan-500/20 backdrop-blur-md px-2.5 py-1 sm:py-1.5 border border-cyan-400/40 rounded-full flex items-center gap-1.5 text-cyan-300 font-mono text-[8px] sm:text-[9px] font-bold uppercase tracking-wider">
+                      <Crop className="w-3 h-3 text-cyan-400" />
+                      <span>CROPPED: {state.capture_region.width}x{state.capture_region.height}</span>
+                      <button
+                        type="button"
+                        onClick={resetCropRegion}
+                        className="hover:text-white ml-0.5 text-cyan-300 cursor-pointer"
+                        title="Reset to Fullscreen"
+                      >
+                        <X className="w-2.5 h-2.5" />
+                      </button>
+                    </div>
+                  )}
+
+                  {/* Heatmap Overlay Active Indicator */}
+                  {showHeatmap && (
+                    <div className="bg-amber-500/20 backdrop-blur-md px-2.5 py-1 sm:py-1.5 border border-amber-500/40 rounded-full flex items-center gap-1.5 text-amber-300 font-mono text-[8px] sm:text-[9px] font-bold uppercase tracking-wider animate-pulse">
+                      <Flame className="w-3 h-3 text-amber-400" />
+                      <span>HEATMAP ACTIVE</span>
+                    </div>
+                  )}
                 </div>
 
                 {/* Floating Top-Right Controls: One-Click Screenshot & Benchmark Status */}
@@ -372,12 +676,12 @@ const VisionPage: React.FC<VisionPageProps> = ({ state, sendCommand }) => {
                 <div className="absolute bottom-2 right-2 sm:bottom-4 sm:right-4 bg-black/85 backdrop-blur-md px-2.5 sm:px-3 py-1 sm:py-1.5 border border-neon-green/25 rounded-xl flex items-center gap-2 sm:gap-4 font-mono text-[8px] sm:text-[9px] text-zinc-400">
                   <div>CAP: <span className="text-white font-bold">{captureFps > 0 ? captureFps.toFixed(0) : state?.fps ?? 0}</span></div>
                   <div>VIS: <span className="text-neon-green font-bold">{visionFps.toFixed(0)}</span> fps</div>
-                  <div>TARGETS: <span className="text-neon-green font-bold">{detectionsCount}</span></div>
+                  <div>TARGETS: <span className="text-neon-green font-bold">{filteredDetections.length}</span></div>
                 </div>
               </div>
             ) : pipelineRunning ? (
               <div className="absolute inset-0 flex flex-col items-center justify-center gap-3 text-center p-4">
-                <div className="absolute inset-0 bg-[repeating-linear-gradient(0deg,transparent,transparent_2px,rgba(118, 185, 0,0.015)_2px,rgba(118, 185, 0,0.015)_4px)] pointer-events-none" />
+                <div className="absolute inset-0 bg-[repeating-linear-gradient(0deg,transparent,transparent_2px,rgba(118,185,0,0.015)_2px,rgba(118,185,0,0.015)_4px)] pointer-events-none" />
                 {privacyShieldActive ? (
                   <>
                     <div className="w-10 h-10 rounded-full bg-amber-500/10 border border-amber-500/30 flex items-center justify-center">
@@ -402,7 +706,7 @@ const VisionPage: React.FC<VisionPageProps> = ({ state, sendCommand }) => {
               </div>
             ) : (
               <div className="absolute inset-0 flex flex-col items-center justify-center gap-4 text-center p-4">
-                <div className="absolute inset-0 bg-[radial-gradient(circle_at_center,rgba(118, 185, 0,0.04),transparent)] pointer-events-none" />
+                <div className="absolute inset-0 bg-[radial-gradient(circle_at_center,rgba(118,185,0,0.04),transparent)] pointer-events-none" />
                 <div className="z-10 flex flex-col items-center gap-3">
                   <Eye className="w-8 h-8 text-neon-green/40 animate-pulse" />
                   <h3 className="text-xl sm:text-2xl font-black text-white/70 tracking-tighter uppercase">Awaiting Game Launch</h3>
@@ -422,14 +726,122 @@ const VisionPage: React.FC<VisionPageProps> = ({ state, sendCommand }) => {
             )}
           </div>
 
-          {/* HUD Filter Toggles */}
+          {/* Region Presets & Custom Selection Bar */}
+          {isSelectingRegion && (
+            <motion.div
+              initial={{ opacity: 0, height: 0 }}
+              animate={{ opacity: 1, height: 'auto' }}
+              exit={{ opacity: 0, height: 0 }}
+              className="bg-white/[0.03] border border-cyan-400/25 rounded-2xl p-3 flex flex-col gap-2.5 font-mono text-[9px]"
+            >
+              <div className="flex items-center justify-between flex-wrap gap-2 border-b border-white/5 pb-2">
+                <div className="flex items-center gap-2">
+                  <Crosshair className="w-3.5 h-3.5 text-cyan-400 animate-pulse" />
+                  <span className="font-bold text-white uppercase tracking-wider">Region Selector — Drag on Video Feed or Choose Preset</span>
+                </div>
+                <div className="flex items-center gap-2">
+                  {selectionBox && (
+                    <button
+                      type="button"
+                      onClick={() => applyCropRegion()}
+                      className="px-3 py-1 bg-cyan-500/20 hover:bg-cyan-500/30 border border-cyan-400 text-cyan-300 font-bold rounded-lg cursor-pointer flex items-center gap-1 shadow-[0_0_8px_rgba(0,229,255,0.2)]"
+                    >
+                      <Check className="w-3 h-3" />
+                      Apply Selection ({Math.round((selectionBox.x2 - selectionBox.x1) * 1920)}x{Math.round((selectionBox.y2 - selectionBox.y1) * 1080)})
+                    </button>
+                  )}
+                  <button
+                    type="button"
+                    onClick={resetCropRegion}
+                    className="px-3 py-1 bg-white/5 hover:bg-white/10 border border-white/10 text-zinc-400 hover:text-white rounded-lg cursor-pointer flex items-center gap-1"
+                  >
+                    <RotateCcw className="w-3 h-3" />
+                    Reset (Full)
+                  </button>
+                </div>
+              </div>
+              <div className="flex flex-wrap items-center gap-2">
+                {regionPresets.map((preset, pIdx) => (
+                  <button
+                    key={pIdx}
+                    type="button"
+                    onClick={() => {
+                      if (preset.coords) {
+                        setSelectionBox({
+                          x1: preset.coords.left,
+                          y1: preset.coords.top,
+                          x2: preset.coords.left + preset.coords.width,
+                          y2: preset.coords.top + preset.coords.height,
+                        });
+                        applyCropRegion(preset.coords);
+                      } else {
+                        resetCropRegion();
+                      }
+                    }}
+                    className="px-2.5 py-1 rounded-lg bg-white/5 hover:bg-cyan-500/10 border border-white/10 hover:border-cyan-400/40 text-zinc-300 hover:text-cyan-300 text-[8px] font-bold uppercase transition-all cursor-pointer"
+                    title={preset.desc}
+                  >
+                    {preset.label}
+                  </button>
+                ))}
+              </div>
+            </motion.div>
+          )}
+
+          {/* Heatmap Metrics & Action Bar */}
+          {showHeatmap && (
+            <motion.div
+              initial={{ opacity: 0, height: 0 }}
+              animate={{ opacity: 1, height: 'auto' }}
+              exit={{ opacity: 0, height: 0 }}
+              className="bg-white/[0.03] border border-amber-500/25 rounded-2xl p-3 flex flex-wrap items-center justify-between gap-2 font-mono text-[9px]"
+            >
+              <div className="flex items-center gap-2 flex-wrap">
+                <Flame className="w-3.5 h-3.5 text-amber-400 animate-pulse" />
+                <span className="text-zinc-400">Total Encounters Logged:</span>
+                <span className="text-white font-bold text-[10px]">{state?.vision_heatmap_summary?.total_detections ?? 0}</span>
+                <span className="text-zinc-600">·</span>
+                <span className="text-zinc-400">Resolution:</span>
+                <span className="text-neon-green font-bold">32 × 18 Spatial Bins</span>
+                {state?.vision_heatmap_summary?.max_density ? (
+                  <>
+                    <span className="text-zinc-600">·</span>
+                    <span className="text-zinc-400">Peak Sector Density:</span>
+                    <span className="text-amber-400 font-bold">{state.vision_heatmap_summary.max_density} targets</span>
+                  </>
+                ) : null}
+              </div>
+              <div className="flex items-center gap-2">
+                <button
+                  type="button"
+                  onClick={handleExportHeatmap}
+                  className="px-3 py-1 bg-white/5 hover:bg-white/10 border border-white/15 text-zinc-200 hover:text-white rounded-lg cursor-pointer flex items-center gap-1.5"
+                  title="Export detection density coordinates as JSON"
+                >
+                  <Download className="w-3 h-3 text-neon-green" />
+                  Export Heatmap
+                </button>
+                <button
+                  type="button"
+                  onClick={() => sendCommand('reset_detection_heatmap')}
+                  className="px-3 py-1 bg-red-500/10 hover:bg-red-500/20 border border-red-500/30 text-red-300 rounded-lg cursor-pointer flex items-center gap-1.5"
+                  title="Clear spatial encounter history"
+                >
+                  <RotateCcw className="w-3 h-3" />
+                  Reset
+                </button>
+              </div>
+            </motion.div>
+          )}
+
+          {/* HUD Filter Toggles & Tactical Tools */}
           {pipelineRunning && hasFrame && (
             <div className="flex items-center justify-between flex-wrap gap-2 px-1">
-              <div className="flex flex-wrap items-center gap-2 sm:gap-3">
+              <div className="flex flex-wrap items-center gap-2 sm:gap-2.5">
                 <button
                   onClick={() => setNightVision(!nightVision)}
                   className={`px-3 py-1.5 rounded-lg border text-[8px] font-black uppercase tracking-wider transition-all duration-200 cursor-pointer ${nightVision
-                      ? 'bg-neon-yellow/15 border-neon-yellow/40 text-neon-yellow shadow-[0_0_8px_rgba(191, 255, 0,0.15)]'
+                      ? 'bg-neon-yellow/15 border-neon-yellow/40 text-neon-yellow shadow-[0_0_8px_rgba(191,255,0,0.15)]'
                       : 'bg-white/5 border-white/10 text-zinc-400 hover:text-white'
                     }`}
                 >
@@ -438,7 +850,7 @@ const VisionPage: React.FC<VisionPageProps> = ({ state, sendCommand }) => {
                 <button
                   onClick={() => setScanlines(!scanlines)}
                   className={`px-3 py-1.5 rounded-lg border text-[8px] font-black uppercase tracking-wider transition-all duration-200 cursor-pointer ${scanlines
-                      ? 'bg-neon-green/15 border-neon-green/40 text-neon-green shadow-[0_0_8px_rgba(118, 185, 0,0.15)]'
+                      ? 'bg-neon-green/15 border-neon-green/40 text-neon-green shadow-[0_0_8px_rgba(118,185,0,0.15)]'
                       : 'bg-white/5 border-white/10 text-zinc-400 hover:text-white'
                     }`}
                 >
@@ -452,6 +864,35 @@ const VisionPage: React.FC<VisionPageProps> = ({ state, sendCommand }) => {
                     }`}
                 >
                   [CRT WARP]
+                </button>
+
+                <div className="w-px h-3.5 bg-white/10 mx-0.5" />
+
+                <button
+                  onClick={() => {
+                    setIsSelectingRegion(!isSelectingRegion);
+                    if (!isSelectingRegion) setSelectionBox(null);
+                  }}
+                  className={`px-3 py-1.5 rounded-lg border text-[8px] font-black uppercase tracking-wider transition-all duration-200 cursor-pointer flex items-center gap-1.5 ${isSelectingRegion
+                      ? 'bg-cyan-500/20 border-cyan-400/50 text-cyan-300 shadow-[0_0_10px_rgba(0,229,255,0.2)]'
+                      : 'bg-white/5 border-white/10 text-zinc-400 hover:text-white'
+                    }`}
+                  title="Toggle interactive region crop selector"
+                >
+                  <Crop className="w-3 h-3 text-cyan-400" />
+                  {isSelectingRegion ? '[REGION ACTIVE]' : '[CROP REGION]'}
+                </button>
+
+                <button
+                  onClick={() => setShowHeatmap(!showHeatmap)}
+                  className={`px-3 py-1.5 rounded-lg border text-[8px] font-black uppercase tracking-wider transition-all duration-200 cursor-pointer flex items-center gap-1.5 ${showHeatmap
+                      ? 'bg-amber-500/20 border-amber-500/50 text-amber-300 shadow-[0_0_10px_rgba(251,191,36,0.2)]'
+                      : 'bg-white/5 border-white/10 text-zinc-400 hover:text-white'
+                    }`}
+                  title="Toggle spatial detection density heatmap overlay"
+                >
+                  <Flame className="w-3 h-3 text-amber-400" />
+                  {showHeatmap ? '[HEATMAP ON]' : '[HEATMAP]'}
                 </button>
               </div>
 
@@ -473,14 +914,66 @@ const VisionPage: React.FC<VisionPageProps> = ({ state, sendCommand }) => {
             <div className="bg-white/[0.04] border border-white/10 rounded-2xl sm:rounded-3xl p-4 sm:p-5 flex flex-col gap-3 font-mono shadow-[0_0_15px_rgba(118, 185, 0,0.02)] min-w-0">
               <div className="flex items-center justify-between">
                 <span className="text-[10px] font-black text-zinc-500 uppercase tracking-widest">VLM Comms Data Stream</span>
-                <span className="text-[8px] bg-neon-green/10 text-neon-green border border-neon-green/20 px-2 py-0.5 rounded font-black uppercase tracking-wider animate-pulse">
-                  {pipelineRunning ? 'Receiving' : 'Inactive'}
-                </span>
+                <div className="flex items-center gap-2">
+                  <button
+                    type="button"
+                    onClick={handleTriggerCustomOCR}
+                    disabled={isScanningOCR}
+                    className="flex items-center gap-1 px-2.5 py-1 rounded bg-cyan-500/15 hover:bg-cyan-500/25 border border-cyan-400/30 text-cyan-300 text-[8px] font-black uppercase tracking-wider transition-all cursor-pointer disabled:opacity-50"
+                    title="Trigger on-demand OCR text extraction on active screen / region"
+                  >
+                    <Scan className={`w-2.5 h-2.5 ${isScanningOCR ? 'animate-spin' : ''}`} />
+                    {isScanningOCR ? 'Scanning…' : 'Scan OCR'}
+                  </button>
+                  <span className="text-[8px] bg-neon-green/10 text-neon-green border border-neon-green/20 px-2 py-0.5 rounded font-black uppercase tracking-wider animate-pulse">
+                    {pipelineRunning ? 'Receiving' : 'Inactive'}
+                  </span>
+                </div>
               </div>
 
-              <div className="space-y-3 min-h-[110px] max-h-[140px] overflow-y-auto custom-scrollbar text-[11px] leading-relaxed">
+              <div className="space-y-3 min-h-[110px] max-h-[160px] overflow-y-auto custom-scrollbar text-[11px] leading-relaxed">
                 {pipelineRunning ? (
                   <>
+                    {/* On-Demand Scanned OCR Result */}
+                    {state?.ocr_scan_result?.texts && state.ocr_scan_result.texts.length > 0 && (
+                      <div className="border-l-2 border-cyan-400 pl-3 py-1 bg-cyan-500/5 rounded-r-lg">
+                        <div className="flex items-center justify-between gap-1 mb-1">
+                          <span className="text-cyan-300 font-black tracking-wider uppercase block text-[9px]">
+                            [ON-DEMAND OCR SCAN]
+                          </span>
+                          <div className="flex items-center gap-1.5 text-[8px]">
+                            <button
+                              type="button"
+                              onClick={() => handleCopyOCRText(state.ocr_scan_result!.texts.map(t => t.text).join(' '))}
+                              className="text-zinc-400 hover:text-white flex items-center gap-1 cursor-pointer font-bold"
+                              title="Copy text to clipboard"
+                            >
+                              <Copy className="w-2.5 h-2.5" />
+                              {ocrCopied ? 'Copied!' : 'Copy'}
+                            </button>
+                            <span>·</span>
+                            <button
+                              type="button"
+                              onClick={() => handleSendOCRToAgent(state.ocr_scan_result!.texts.map(t => t.text).join(' '))}
+                              className="text-neon-green hover:underline flex items-center gap-1 cursor-pointer font-bold"
+                              title="Feed extracted text into AI conversation memory"
+                            >
+                              <Send className="w-2.5 h-2.5" />
+                              {ocrSentToAgent ? 'Sent!' : 'Feed Agent'}
+                            </button>
+                          </div>
+                        </div>
+                        <div className="space-y-1 text-zinc-200 text-[10px]">
+                          {state.ocr_scan_result.texts.slice(0, 3).map((item, tIdx) => (
+                            <div key={tIdx} className="flex items-center justify-between gap-2">
+                              <span className="truncate">"{item.text}"</span>
+                              <span className="text-[8px] text-cyan-400 font-bold shrink-0">{Math.round((item.confidence || 0.9) * 100)}%</span>
+                            </div>
+                          ))}
+                        </div>
+                      </div>
+                    )}
+
                     <div className="border-l-2 border-neon-green/30 pl-3 py-0.5 min-w-0">
                       <span className="text-neon-green font-black tracking-wider uppercase block text-[9px] mb-1">
                         [DIALOGUE READOUT]
@@ -878,79 +1371,170 @@ const VisionPage: React.FC<VisionPageProps> = ({ state, sendCommand }) => {
             </div>
           </div>
 
-          {/* Detections list & slider */}
+          {/* Detections List & Class Filter Matrix */}
           <div className="bg-white/[0.04] border border-white/10 rounded-2xl sm:rounded-3xl p-4 sm:p-5 flex flex-col gap-3 font-mono shadow-[0_0_15px_rgba(118, 185, 0,0.02)] min-w-0">
-            <div className="flex items-center justify-between">
-              <span className="text-[10px] font-black text-zinc-500 uppercase tracking-widest">Targets List</span>
+            {/* Header Tabs */}
+            <div className="flex items-center justify-between border-b border-white/5 pb-2">
+              <div className="flex items-center gap-2">
+                <button
+                  type="button"
+                  onClick={() => setActiveSideTab('targets')}
+                  className={`text-[9px] font-black uppercase tracking-wider pb-1 transition-all cursor-pointer ${
+                    activeSideTab === 'targets'
+                      ? 'text-white border-b-2 border-neon-green'
+                      : 'text-zinc-500 hover:text-zinc-300'
+                  }`}
+                >
+                  Targets ({filteredDetections.length})
+                </button>
+                <button
+                  type="button"
+                  onClick={() => setActiveSideTab('classes')}
+                  className={`text-[9px] font-black uppercase tracking-wider pb-1 transition-all cursor-pointer flex items-center gap-1 ${
+                    activeSideTab === 'classes'
+                      ? 'text-white border-b-2 border-neon-green'
+                      : 'text-zinc-500 hover:text-zinc-300'
+                  }`}
+                >
+                  <Filter className="w-2.5 h-2.5" />
+                  Class Matrix
+                </button>
+              </div>
               <span className="text-[8px] text-zinc-400 font-bold bg-white/5 border border-white/10 px-1.5 py-0.5 rounded">
-                {filteredDetections.length} of {detections.length}
+                {activeSideTab === 'targets' ? `${filteredDetections.length} of ${detections.length}` : `${Object.values(enabledClasses).filter(Boolean).length} Active`}
               </span>
             </div>
 
-            {/* Confidence threshold slider */}
-            <div className="space-y-1">
-              <div className="flex justify-between items-center text-[8px]">
-                <span className="text-zinc-500 font-black uppercase">CONF THRESHOLD</span>
-                <span className="text-neon-green font-bold">{(minConfidence * 100).toFixed(0)}%</span>
-              </div>
-              <input
-                type="range"
-                min="0.1"
-                max="0.9"
-                step="0.05"
-                value={minConfidence}
-                onChange={(e) => setMinConfidence(parseFloat(e.target.value))}
-                className="w-full h-1 bg-white/10 rounded-lg appearance-none cursor-pointer accent-neon-green"
-              />
-            </div>
+            {activeSideTab === 'targets' ? (
+              <>
+                {/* Global Confidence threshold slider */}
+                <div className="space-y-1">
+                  <div className="flex justify-between items-center text-[8px]">
+                    <span className="text-zinc-500 font-black uppercase">GLOBAL CONF THRESHOLD</span>
+                    <span className="text-neon-green font-bold">{(minConfidence * 100).toFixed(0)}%</span>
+                  </div>
+                  <input
+                    type="range"
+                    min="0.1"
+                    max="0.9"
+                    step="0.05"
+                    value={minConfidence}
+                    onChange={(e) => setMinConfidence(parseFloat(e.target.value))}
+                    className="w-full h-1 bg-white/10 rounded-lg appearance-none cursor-pointer accent-neon-green"
+                  />
+                </div>
 
-            <div className="space-y-2 max-h-[160px] overflow-y-auto custom-scrollbar pr-1 mt-1">
-              {pipelineRunning && filteredDetections.length > 0 ? (
-                filteredDetections.map((det, idx) => {
-                  const confPct = (det.conf ?? 0.8) * 100;
-                  const boxLabel = det.box
-                    ? `[${det.box[0]}, ${det.box[1]}, ${det.box[2]}, ${det.box[3]}]`
-                    : '[0, 0, 0, 0]';
+                <div className="space-y-2 max-h-[175px] overflow-y-auto custom-scrollbar pr-1 mt-1">
+                  {pipelineRunning && filteredDetections.length > 0 ? (
+                    filteredDetections.map((det, idx) => {
+                      const confPct = (det.conf ?? 0.8) * 100;
+                      const boxLabel = det.box
+                        ? `[${det.box[0]}, ${det.box[1]}, ${det.box[2]}, ${det.box[3]}]`
+                        : '[0, 0, 0, 0]';
+                      const meta = CLASS_META[String(det.label).toLowerCase()] || { color: 'text-white', bg: 'bg-white' };
+
+                      return (
+                        <div
+                          key={`${det.label}-${idx}`}
+                          className="p-2.5 bg-white/[0.02] border border-white/5 hover:border-neon-green/20 hover:bg-neon-green/[0.02] rounded-xl flex flex-col gap-1.5 transition-all group min-w-0"
+                        >
+                          <div className="flex justify-between items-center text-[10px] min-w-0">
+                            <div className="flex items-center gap-1.5 min-w-0">
+                              <span className={`w-1.5 h-1.5 rounded-full ${meta.bg} shadow-[0_0_6px_currentColor] shrink-0`} />
+                              <span className={`font-black uppercase truncate ${meta.color}`}>{det.label ?? 'target'}</span>
+                            </div>
+                            <span className="text-neon-green font-bold text-[9px] shrink-0">
+                              {confPct.toFixed(0)}%
+                            </span>
+                          </div>
+
+                          <div className="flex justify-between items-center text-[8px] text-zinc-500 min-w-0">
+                            <span className="truncate max-w-[130px] sm:max-w-none">BOUNDS: {boxLabel}</span>
+                            <span className="opacity-0 group-hover:opacity-100 transition-opacity text-[7px] text-neon-green uppercase tracking-widest font-black shrink-0">
+                              TRACKING
+                            </span>
+                          </div>
+
+                          <div className="w-full h-1 bg-white/5 rounded-full overflow-hidden">
+                            <div
+                              style={{ width: `${confPct}%` }}
+                              className="h-full bg-gradient-to-r from-neon-green to-blue-500"
+                            />
+                          </div>
+                        </div>
+                      );
+                    })
+                  ) : (
+                    <div className="text-[10px] text-zinc-600 text-center py-6 italic leading-relaxed">
+                      {pipelineRunning
+                        ? 'No targets detected above threshold.'
+                        : 'Tactical target scanner offline.'}
+                    </div>
+                  )}
+                </div>
+              </>
+            ) : (
+              /* Class Filter Matrix */
+              <div className="space-y-2.5 max-h-[220px] overflow-y-auto custom-scrollbar pr-1">
+                <div className="flex items-center justify-between text-[8px] text-zinc-500 pb-1 border-b border-white/5">
+                  <span>DETECTABLE CLASS</span>
+                  <span>CONF THRESHOLD</span>
+                </div>
+                {Object.entries(CLASS_META).map(([clsKey, meta]) => {
+                  const isEn = enabledClasses[clsKey] !== false;
+                  const thresh = classFilters[clsKey] ?? 0.4;
+                  const activeCount = detections.filter(d => String(d?.label).toLowerCase() === clsKey).length;
 
                   return (
                     <div
-                      key={`${det.label}-${idx}`}
-                      className="p-2.5 bg-white/[0.02] border border-white/5 hover:border-neon-green/20 hover:bg-neon-green/[0.02] rounded-xl flex flex-col gap-1.5 transition-all group min-w-0"
+                      key={clsKey}
+                      className={`p-2 rounded-xl border transition-all ${
+                        isEn ? 'bg-white/[0.02] border-white/10' : 'bg-white/[0.01] border-white/5 opacity-50'
+                      }`}
                     >
-                      <div className="flex justify-between items-center text-[10px] min-w-0">
-                        <div className="flex items-center gap-1.5 min-w-0">
-                          <span className="w-1.5 h-1.5 rounded-full bg-neon-green shadow-[0_0_6px_#76b900] shrink-0" />
-                          <span className="text-white font-black uppercase truncate">{det.label ?? 'target'}</span>
-                        </div>
-                        <span className="text-neon-green font-bold text-[9px] shrink-0">
-                          {confPct.toFixed(0)}%
+                      <div className="flex items-center justify-between gap-1.5 mb-1.5">
+                        <label className="flex items-center gap-2 cursor-pointer min-w-0">
+                          <input
+                            type="checkbox"
+                            checked={isEn}
+                            onChange={() => handleToggleClass(clsKey)}
+                            className="rounded border-white/20 text-neon-green focus:ring-0 cursor-pointer w-3 h-3 accent-neon-green"
+                          />
+                          <span className={`w-1.5 h-1.5 rounded-full ${meta.bg} shrink-0`} />
+                          <span className={`text-[9px] font-bold uppercase truncate ${isEn ? meta.color : 'text-zinc-500'}`}>
+                            {meta.label}
+                          </span>
+                        </label>
+                        <span className="text-[8px] font-mono text-zinc-400 shrink-0">
+                          {activeCount > 0 ? (
+                            <span className="text-neon-green font-bold">{activeCount} live</span>
+                          ) : (
+                            <span className="text-zinc-600">0</span>
+                          )}
                         </span>
                       </div>
 
-                      <div className="flex justify-between items-center text-[8px] text-zinc-500 min-w-0">
-                        <span className="truncate max-w-[130px] sm:max-w-none">BOUNDS: {boxLabel}</span>
-                        <span className="opacity-0 group-hover:opacity-100 transition-opacity text-[7px] text-neon-green uppercase tracking-widest font-black shrink-0">
-                          TRACKING
-                        </span>
-                      </div>
-
-                      <div className="w-full h-1 bg-white/5 rounded-full overflow-hidden">
-                        <div
-                          style={{ width: `${confPct}%` }}
-                          className="h-full bg-gradient-to-r from-neon-green to-blue-500"
+                      {/* Per-class slider */}
+                      <div className="flex items-center gap-2">
+                        <input
+                          type="range"
+                          min="0.1"
+                          max="0.95"
+                          step="0.05"
+                          value={thresh}
+                          disabled={!isEn}
+                          onChange={(e) => handleClassConfidenceChange(clsKey, parseFloat(e.target.value))}
+                          className="w-full h-1 bg-white/10 rounded-lg appearance-none cursor-pointer accent-neon-green disabled:opacity-30"
                         />
+                        <span className="text-[8px] font-mono text-zinc-400 w-7 text-right">
+                          {Math.round(thresh * 100)}%
+                        </span>
                       </div>
                     </div>
                   );
-                })
-              ) : (
-                <div className="text-[10px] text-zinc-600 text-center py-6 italic leading-relaxed">
-                  {pipelineRunning
-                    ? 'No targets detected above threshold.'
-                    : 'Tactical target scanner offline.'}
-                </div>
-              )}
-            </div>
+                })}
+              </div>
+            )}
           </div>
 
           {/* Quick Telemetry Cards in Right Sidebar */}

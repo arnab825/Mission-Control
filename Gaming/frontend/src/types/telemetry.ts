@@ -241,6 +241,39 @@ export interface TelemetryState {
     created_at: number;
     preview?: string;
   }>;
+
+  // Vision Pipeline Enhancements
+  capture_region?: {
+    left: number;
+    top: number;
+    width: number;
+    height: number;
+  } | null;
+  vision_degradation?: {
+    active: boolean;
+    capture_fps: number;
+    vision_fps: number;
+    target_capture_fps: number;
+    target_vision_fps: number;
+    message: string;
+    suggestions: string[];
+  } | null;
+  vision_class_filters?: Record<string, number>;
+  vision_enabled_classes?: string[] | null;
+  vision_heatmap_summary?: {
+    total_detections: number;
+    grid: number[][];
+    width: number;
+    height: number;
+    max_density?: number;
+    hotspots?: Array<{ x: number; y: number; density: number }>;
+  } | null;
+  ocr_scan_result?: {
+    region: string;
+    coords?: number[] | null;
+    texts: Array<{ text: string; confidence: number; bbox?: any }>;
+    timestamp: number;
+  } | null;
 }
 
 export interface BenchmarkSummary {

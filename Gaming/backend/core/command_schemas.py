@@ -103,6 +103,25 @@ class ConfigPayload(BaseCommandPayload):
     nvidia: Optional[Dict[str, Any]] = None
     gpu_tuning: Optional[Dict[str, Any]] = None
     theme: Optional[Dict[str, Any]] = None
+    capture: Optional[Dict[str, Any]] = None
+    vision: Optional[Dict[str, Any]] = None
+    privacy: Optional[Dict[str, Any]] = None
+    agentic: Optional[Dict[str, Any]] = None
+    ai_agent: Optional[Dict[str, Any]] = None
+
+
+class SetVisionRegionPayload(BaseCommandPayload):
+    region: Optional[Dict[str, int]] = None
+
+
+class SetVisionClassesPayload(BaseCommandPayload):
+    filters: Optional[Dict[str, float]] = None
+    enabled_classes: Optional[List[str]] = None
+
+
+class TriggerCustomOCRPayload(BaseCommandPayload):
+    roi_name: Optional[str] = Field(default=None, max_length=64)
+    roi_coords: Optional[List[float]] = None
 
 
 class ToggleVisionPipelinePayload(BaseCommandPayload):
@@ -224,6 +243,11 @@ COMMAND_SCHEMA_MAP = {
     "start_benchmark_session": EmptyPayload,
     "stop_benchmark_session": EmptyPayload,
     "toggle_vision_pipeline": ToggleVisionPipelinePayload,
+    "set_vision_region": SetVisionRegionPayload,
+    "set_vision_classes": SetVisionClassesPayload,
+    "trigger_custom_ocr": TriggerCustomOCRPayload,
+    "get_detection_heatmap": EmptyPayload,
+    "reset_detection_heatmap": EmptyPayload,
     "scan_games": ScanGamesPayload,
     "get_cached_games": GetCachedGamesPayload,
     "set_cooling_mode": SetCoolingModePayload,

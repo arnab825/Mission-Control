@@ -1519,5 +1519,58 @@ def handle_open_screenshots_folder(payload: dict, pipeline, bridge, config) -> N
     logger.info("Opened screenshots folder in explorer.")
 
 
+def handle_set_vision_region(payload: dict, pipeline, bridge, config) -> None:
+    """Sets or resets the active capture / vision region."""
+    region = payload.get("region") if payload else None
+    if pipeline and hasattr(pipeline, "set_capture_region"):
+        res = pipeline.set_capture_region(region)
+    else:
+        res = {"success": True, "region": region}
+        if bridge:
+            bridge.update_state({"capture_region": region})
+    logger.info("Vision capture region update executed: %s", region)
+
+
+def handle_set_vision_classes(payload: dict, pipeline, bridge, config) -> None:
+    """Updates per-class confidence thresholds and enabled classes."""
+    filters = payload.get("filters") if payload else None
+    enabled_classes = payload.get("enabled_classes") if payload else None
+    if pipeline and hasattr(pipeline, "set_vision_classes"):
+        res = pipeline.set_vision_classes(filters=filters, enabled_classes=enabled_classes)
+    else:
+        res = {"success": True, "filters": filters, "enabled_classes": enabled_classes}
+        if bridge:
+            bridge.update_state({
+                "vision_class_filters": filters or {},
+                "vision_enabled_classes": enabled_classes
+            })
+    logger.info("Vision class filters update executed: %s", res)
+
+
+def handle_trigger_custom_ocr(payload: dict, pipeline, bridge, config) -> None:
+    """Triggers an on-demand OCR extraction on a specific region or whole frame."""
+    roi_name = payload.get("roi_name") if payload else None
+    roi_coords = payload.get("roi_coords") if payload else None
+    if pipeline and hasattr(pipeline, "trigger_custom_ocr"):
+        pipeline.trigger_custom_ocr(roi_name=roi_name, roi_coords=roi_coords)
+    logger.info("Triggered on-demand OCR scan for %s", roi_name or roi_coords or "full frame")
+
+
+def handle_get_detection_heatmap(payload: dict, pipeline, bridge, config) -> None:
+    """Fetches the aggregated detection heatmap data."""
+    if pipeline and hasattr(pipeline, "get_detection_heatmap"):
+        data = pipeline.get_detection_heatmap()
+        if bridge:
+            bridge.update_state({"vision_heatmap_summary": data})
+    logger.info("Retrieved vision detection heatmap summary.")
+
+
+def handle_reset_detection_heatmap(payload: dict, pipeline, bridge, config) -> None:
+    """Resets the detection heatmap data."""
+    if pipeline and hasattr(pipeline, "reset_detection_heatmap"):
+        pipeline.reset_detection_heatmap()
+    logger.info("Reset vision detection heatmap.")
+
+
 
 

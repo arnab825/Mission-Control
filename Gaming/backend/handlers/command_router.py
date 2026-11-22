@@ -302,6 +302,16 @@ def dispatch_bridge_command(
         system_handler.handle_delete_screenshot(payload, pipeline, bridge, config)
     elif cmd_type == "open_screenshots_folder":
         system_handler.handle_open_screenshots_folder(payload, pipeline, bridge, config)
+    elif cmd_type == "set_vision_region":
+        system_handler.handle_set_vision_region(payload, pipeline, bridge, config)
+    elif cmd_type == "set_vision_classes":
+        system_handler.handle_set_vision_classes(payload, pipeline, bridge, config)
+    elif cmd_type == "trigger_custom_ocr":
+        system_handler.handle_trigger_custom_ocr(payload, pipeline, bridge, config)
+    elif cmd_type == "get_detection_heatmap":
+        system_handler.handle_get_detection_heatmap(payload, pipeline, bridge, config)
+    elif cmd_type == "reset_detection_heatmap":
+        system_handler.handle_reset_detection_heatmap(payload, pipeline, bridge, config)
 
     # ── Agent mode / voice commands ───────────────────────────────
     elif cmd_type == "toggle_agent_mode":

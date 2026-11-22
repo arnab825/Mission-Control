@@ -56,7 +56,10 @@ def _check_bettercam_available():
             _BETTERCAM_AVAILABLE = False
     return _BETTERCAM_AVAILABLE
 
-import mss  # Always available as fallback
+try:
+    import mss  # Fallback capture library
+except ImportError:
+    mss = None
 
 
 class ScreenCapture:
@@ -525,6 +528,8 @@ class _MSSBackend:
     """MSS backend — reliable CPU-based fallback."""
 
     def __init__(self, region=None, output_index=0):
+        if mss is None:
+            raise RuntimeError("mss package is not installed.")
         self.sct = mss.mss()
         self._output_index = output_index
         if region is None:

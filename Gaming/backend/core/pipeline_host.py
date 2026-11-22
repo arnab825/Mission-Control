@@ -385,6 +385,15 @@ class GamingAssistantPipeline:
         self._action_cooldown = 1.5 # seconds between autonomous actions
         self._last_game_active_time = time.time()
 
+        # Vision Pipeline Enhancement States
+        self.capture_region = capture_cfg.get("region", None)
+        self.vision_class_filters = {}
+        self.vision_enabled_classes = None
+        self._detection_heatmap_grid = [[0 for _ in range(32)] for _ in range(18)]
+        self._detection_heatmap_total = 0
+        self._fps_drop_streak = 0
+        self._last_degradation_alert = None
+
 
 
         # ── Overlay stub (Electron/React owns the in-game HUD) ────────────
@@ -618,6 +627,8 @@ class GamingAssistantPipeline:
         # "bettercam" is used as-is (no alias needed)
 
         self.capture_hz = capture_cfg.get("fps_cap_limit", 60) if capture_cfg.get("cap_fps", False) else 0
+        if "region" in capture_cfg:
+            self.set_capture_region(capture_cfg.get("region"))
         if hasattr(self, "capture") and self.capture:
             self.capture.target_fps = self.capture_hz
             # If backend changed, re-initialize capture
@@ -899,6 +910,120 @@ class GamingAssistantPipeline:
         if hasattr(self, "video_recorder") and self.video_recorder:
             return self.video_recorder.open_screenshots_folder()
         return {"success": False, "error": "Video recorder not initialized."}
+
+    def set_capture_region(self, region: Optional[Dict[str, int]] = None) -> Dict[str, Any]:
+        """
+        Updates the screen capture region.
+        region: {'left': int, 'top': int, 'width': int, 'height': int} or None for full screen.
+        """
+        self.capture_region = region
+        if hasattr(self, "capture") and self.capture:
+            try:
+                self.capture.set_region(region)
+            except Exception as e:
+                logger.warning(f"Failed to set region on capture backend: {e}")
+        with self._state_lock:
+            self._game_state["capture_region"] = region
+        bridge.update_state({"capture_region": region})
+        logger.info(f"[Vision] Capture region set to: {region}")
+        return {"success": True, "region": region}
+
+    def set_vision_classes(self, filters: Optional[Dict[str, float]] = None, enabled_classes: Optional[List[str]] = None) -> Dict[str, Any]:
+        """
+        Configure per-class confidence thresholds and enabled class filters.
+        filters: {'person': 0.35, 'vehicle': 0.50, ...}
+        enabled_classes: ['person', 'vehicle'] or None to allow all classes.
+        """
+        if filters is not None:
+            self.vision_class_filters = dict(filters)
+        if enabled_classes is not None:
+            self.vision_enabled_classes = set(enabled_classes)
+        with self._state_lock:
+            self._game_state["vision_class_filters"] = self.vision_class_filters
+            self._game_state["vision_enabled_classes"] = list(self.vision_enabled_classes) if self.vision_enabled_classes else None
+        bridge.update_state({
+            "vision_class_filters": self.vision_class_filters,
+            "vision_enabled_classes": list(self.vision_enabled_classes) if self.vision_enabled_classes else None,
+        })
+        logger.info(f"[Vision] Class filters updated: filters={self.vision_class_filters}, enabled={self.vision_enabled_classes}")
+        return {
+            "success": True,
+            "filters": self.vision_class_filters,
+            "enabled_classes": list(self.vision_enabled_classes) if self.vision_enabled_classes else None
+        }
+
+    def get_detection_heatmap(self) -> Dict[str, Any]:
+        """Retrieve aggregated spatial detection density heatmap data."""
+        grid = [list(row) for row in self._detection_heatmap_grid]
+        max_density = 0
+        hotspots = []
+        for r_idx, row in enumerate(grid):
+            for c_idx, val in enumerate(row):
+                if val > max_density:
+                    max_density = val
+                if val > 0:
+                    hotspots.append({
+                        "x": round((c_idx + 0.5) / 32.0, 3),
+                        "y": round((r_idx + 0.5) / 18.0, 3),
+                        "density": val
+                    })
+        hotspots.sort(key=lambda item: item["density"], reverse=True)
+        return {
+            "grid": grid,
+            "width": 32,
+            "height": 18,
+            "total_detections": self._detection_heatmap_total,
+            "max_density": max_density,
+            "hotspots": hotspots[:10]
+        }
+
+    def reset_detection_heatmap(self) -> Dict[str, Any]:
+        """Reset spatial detection density accumulation."""
+        self._detection_heatmap_grid = [[0 for _ in range(32)] for _ in range(18)]
+        self._detection_heatmap_total = 0
+        summary = {
+            "total_detections": 0,
+            "grid": self._detection_heatmap_grid,
+            "width": 32,
+            "height": 18,
+            "max_density": 0,
+            "hotspots": []
+        }
+        with self._state_lock:
+            self._game_state["vision_heatmap_summary"] = summary
+        bridge.update_state({"vision_heatmap_summary": summary})
+        logger.info("[Vision] Detection heatmap reset.")
+        return {"success": True}
+
+    def trigger_custom_ocr(self, roi_name: Optional[str] = None, roi_coords: Optional[List[float]] = None) -> Dict[str, Any]:
+        """Extract text from game frame in a custom or preset region on-demand."""
+        if not self.ocr_reader:
+            return {"success": False, "error": "OCR reader not active or available."}
+        
+        frame = None
+        if hasattr(self, "frame_buffer") and self.frame_buffer:
+            frame = self.frame_buffer.latest_frame
+        if frame is None and hasattr(self.capture, "grab"):
+            frame = self.capture.grab()
+        if frame is None:
+            return {"success": False, "error": "No visual frame available to scan."}
+
+        try:
+            results = self.ocr_reader.read_region(frame, roi_name=roi_name, roi_coords=roi_coords)
+            scan_payload = {
+                "region": roi_name or "custom",
+                "coords": roi_coords,
+                "texts": results or [],
+                "timestamp": time.time()
+            }
+            with self._state_lock:
+                self._game_state["ocr_scan_result"] = scan_payload
+            bridge.update_state({"ocr_scan_result": scan_payload})
+            logger.info(f"[Vision] On-demand OCR complete for {roi_name or 'custom'}: {len(results or [])} text items found.")
+            return {"success": True, "result": scan_payload}
+        except Exception as e:
+            logger.error(f"[Vision] Error performing on-demand OCR: {e}")
+            return {"success": False, "error": str(e)}
 
     def _setup_hotkeys(self):
         """Register global hotkeys for toggling and scaling HUD."""
@@ -2026,21 +2151,91 @@ class GamingAssistantPipeline:
                     
                     # Copy frame for annotation
                     annotated = frame.copy()
-                    if detections and cv2 is not None:
+                    fh, fw = annotated.shape[:2] if hasattr(annotated, "shape") else (450, 800)
+
+                    # Class color palette (BGR) for distinct tactical HUD identification
+                    CLASS_BGR_MAP = {
+                        "person": (0, 255, 118),       # Neon green
+                        "enemy": (0, 0, 255),          # Bright red
+                        "weapon": (0, 0, 255),         # Bright red
+                        "car": (255, 229, 0),          # Cyan / yellow
+                        "vehicle": (255, 229, 0),      # Cyan / yellow
+                        "truck": (255, 200, 0),        # Cyan
+                        "bus": (255, 200, 0),
+                        "motorcycle": (255, 220, 0),
+                        "health_bar": (0, 255, 128),   # Emerald
+                        "loot": (255, 0, 255),         # Purple / magenta
+                        "item": (255, 0, 255),
+                    }
+
+                    # Filter detections according to per-class confidence thresholds and enabled classes
+                    filtered_detections = []
+                    if detections:
                         for d in detections:
+                            lbl = str(d.get("label", "target")).lower()
+                            conf = float(d.get("conf", 0.0))
+                            if self.vision_enabled_classes is not None and lbl not in self.vision_enabled_classes:
+                                continue
+                            min_conf = self.vision_class_filters.get(lbl, 0.0)
+                            if conf < min_conf:
+                                continue
+                            filtered_detections.append(d)
+
+                            # Accumulate spatial detection heatmap grid (32x18 normalized bins)
+                            box = d.get("box")
+                            if box and len(box) == 4 and fw > 0 and fh > 0:
+                                cx = (box[0] + box[2]) / (2.0 * fw)
+                                cy = (box[1] + box[3]) / (2.0 * fh)
+                                gx = min(31, max(0, int(cx * 32)))
+                                gy = min(17, max(0, int(cy * 18)))
+                                self._detection_heatmap_grid[gy][gx] += 1
+                                self._detection_heatmap_total += 1
+
+                    if filtered_detections and cv2 is not None:
+                        for d in filtered_detections:
                             box = d.get("box")
                             if box and len(box) == 4:
                                 x1, y1, x2, y2 = box
                                 label = d.get("label", "target")
                                 conf = d.get("conf", 0.0)
-                                
-                                # Elegant cyan bounding box (B=255, G=255, R=0)
-                                cv2.rectangle(annotated, (x1, y1), (x2, y2), (255, 255, 0), 2)
-                                
+                                color = CLASS_BGR_MAP.get(str(label).lower(), (255, 255, 0))
+
+                                # Distinct class bounding box
+                                cv2.rectangle(annotated, (x1, y1), (x2, y2), color, 2)
+
                                 # Gorgeous high-contrast text overlay
                                 text = f"{label.upper()} {conf:.2f}"
                                 cv2.putText(annotated, text, (x1, max(15, y1 - 5)),
-                                            cv2.FONT_HERSHEY_SIMPLEX, 0.4, (255, 255, 0), 1, cv2.LINE_AA)
+                                            cv2.FONT_HERSHEY_SIMPLEX, 0.4, color, 1, cv2.LINE_AA)
+
+                    # ── Capture & Vision Frame Degradation Monitor ──
+                    curr_cap = self._game_state.get("capture_fps", 0.0)
+                    curr_vis = self._game_state.get("vision_fps", 0.0)
+                    target_cap = float(self.capture_hz if (self.capture_hz and self.capture_hz > 0) else 60.0)
+                    target_vis = float(self.vision_hz if (self.vision_hz and self.vision_hz > 0) else 30.0)
+
+                    is_dropped = (curr_cap > 5.0 and curr_cap < target_cap * 0.8) or (curr_vis > 2.0 and curr_vis < target_vis * 0.8)
+                    if is_dropped and self._vision_frame_count > 30:
+                        self._fps_drop_streak += 1
+                        if self._fps_drop_streak >= 3:
+                            self._last_degradation_alert = {
+                                "active": True,
+                                "capture_fps": round(curr_cap, 1),
+                                "vision_fps": round(curr_vis, 1),
+                                "target_capture_fps": target_cap,
+                                "target_vision_fps": target_vis,
+                                "message": f"Frame rate degradation detected ({curr_cap:.0f} cap / {curr_vis:.0f} vis fps vs {target_cap:.0f} target)",
+                                "suggestions": [
+                                    "Select a sub-region to crop capture area and reduce GPU memory bandwidth",
+                                    "Increase YOLO frame skip interval (e.g. every 4 frames)",
+                                    "Turn off CRT / Scanlines shader in HUD filter settings",
+                                    "Switch to lightweight YOLOv8n (nano) model"
+                                ]
+                            }
+                    else:
+                        self._fps_drop_streak = max(0, self._fps_drop_streak - 1)
+                        if self._fps_drop_streak == 0:
+                            self._last_degradation_alert = None
                     
                     if cv2 is not None:
                         # Resize to beautiful 800x450 (16:9) for premium high-quality visual clarity
@@ -2069,12 +2264,22 @@ class GamingAssistantPipeline:
         with self._state_lock:
             self._game_state["health"] = health_pct
             self._game_state["is_low_health"] = is_low
-            self._game_state["detections_count"] = len(detections)
-            self._game_state["detections"] = detections
+            self._game_state["detections_count"] = len(filtered_detections) if 'filtered_detections' in locals() else len(detections)
+            self._game_state["detections"] = filtered_detections if 'filtered_detections' in locals() else detections
             self._game_state["vision_profiling"] = vision_profiling
             self._game_state["scene_type"] = scene_result["scene"]
             self._game_state["scene_confidence"] = scene_result["confidence"]
             self._game_state["story_advice"] = story_advice
+            self._game_state["capture_region"] = self.capture_region
+            self._game_state["vision_degradation"] = self._last_degradation_alert
+            self._game_state["vision_class_filters"] = self.vision_class_filters
+            self._game_state["vision_enabled_classes"] = list(self.vision_enabled_classes) if self.vision_enabled_classes else None
+            self._game_state["vision_heatmap_summary"] = {
+                "total_detections": self._detection_heatmap_total,
+                "grid": self._detection_heatmap_grid,
+                "width": 32,
+                "height": 18
+            }
             if ocr_results:
                 # Extract dialogue text (include dynamic regions if enabled)
                 dialogue_parts = []
@@ -2127,6 +2332,12 @@ class GamingAssistantPipeline:
                     "frametimes": self._game_state.get("frametimes", []),
                     "cpu_power_w": self._game_state.get("cpu_power_w", 0.0),
                     "mic_active": self._game_state.get("mic_active", False),
+                    "capture_region": self._game_state.get("capture_region"),
+                    "vision_degradation": self._game_state.get("vision_degradation"),
+                    "vision_class_filters": self._game_state.get("vision_class_filters", {}),
+                    "vision_enabled_classes": self._game_state.get("vision_enabled_classes"),
+                    "vision_heatmap_summary": self._game_state.get("vision_heatmap_summary"),
+                    "ocr_scan_result": self._game_state.get("ocr_scan_result"),
                 })
         self._last_tactical_latency = (time.perf_counter() - t_start) * 1000.0
 
