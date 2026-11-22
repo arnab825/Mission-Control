@@ -1045,19 +1045,6 @@ class TelemetryThread(threading.Thread):
                         telemetry_update["system_specs"] = self.p._game_state["system_specs"]
                     if "ram_speed" in self.p._game_state:
                         telemetry_update["ram_speed"] = self.p._game_state["ram_speed"]
-
-                    if mem_pct >= 80.0:
-                        try:
-                            from system.optimizer import Optimizer
-                            telemetry_update["ram_pressure"] = {
-                                "is_high": True,
-                                "usage_pct": round(mem_pct, 1),
-                                "top_consumers": Optimizer.get_top_ram_consumers(limit=3),
-                            }
-                        except Exception:
-                            telemetry_update["ram_pressure"] = {"is_high": True, "usage_pct": round(mem_pct, 1), "top_consumers": []}
-                    else:
-                        telemetry_update["ram_pressure"] = None
                     
                     self.p._game_state.update(telemetry_update)
 

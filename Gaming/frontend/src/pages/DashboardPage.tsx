@@ -4,7 +4,7 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { 
   Cpu, Zap, Box, Database, Search, ShieldCheck, 
   AlertTriangle, XCircle, Bot, Info, TrendingUp, BrainCircuit, Copy, Check,
-  Flame, ShieldAlert, Trash2, Sparkles
+  Flame, Sparkles
 } from 'lucide-react';
 import {
   AreaChart, Area, XAxis, YAxis, CartesianGrid, Tooltip
@@ -230,13 +230,6 @@ const DashboardPage: React.FC<DashboardPageProps> = ({ state, onCommand, onNavig
 
   const isOptimized = (state as any)?.optimization_status?.active;
   const isGameModeActive = Boolean(state?.game_mode_status?.active || isOptimized);
-  const [memoryCleanedFeedback, setMemoryCleanedFeedback] = useState<string | null>(null);
-
-  const handleCleanMemory = () => {
-    onCommand('clean_standby_memory', {});
-    setMemoryCleanedFeedback('Working sets purged');
-    setTimeout(() => setMemoryCleanedFeedback(null), 3000);
-  };
 
   const handleToggleGameMode = () => {
     if (isGameModeActive) {
@@ -381,44 +374,6 @@ const DashboardPage: React.FC<DashboardPageProps> = ({ state, onCommand, onNavig
             className="px-3 py-1.5 rounded-xl bg-red-500 hover:bg-red-400 text-black font-black text-[9px] uppercase tracking-wider transition-all cursor-pointer shrink-0 self-end sm:self-auto"
           >
             Engage Max Fans
-          </button>
-        </motion.div>
-      )}
-
-      {/* RAM Pressure Watchdog Banner */}
-      {(state?.ram_pressure?.is_high || (state?.mem_pct || 0) > 80) && (
-        <motion.div
-          initial={{ opacity: 0, y: -8 }}
-          animate={{ opacity: 1, y: 0 }}
-          className="bg-amber-500/10 border border-amber-500/30 rounded-2xl p-3 sm:p-4 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 shadow-[0_0_20px_rgba(245,158,11,0.15)] shrink-0"
-        >
-          <div className="flex items-center gap-3 min-w-0">
-            <div className="p-2 rounded-xl bg-amber-500/20 border border-amber-500/40 text-amber-400 shrink-0">
-              <ShieldAlert className="w-4 h-4 animate-pulse" />
-            </div>
-            <div className="min-w-0">
-              <div className="flex items-center gap-2">
-                <span className="text-[10px] font-black uppercase tracking-wider text-amber-400">RAM Pressure High ({state?.mem_pct?.toFixed(1) || '80+'}%)</span>
-                {memoryCleanedFeedback && (
-                  <span className="px-1.5 py-0.5 rounded bg-neon-green/20 text-neon-green text-[9px] font-bold">
-                    {memoryCleanedFeedback}
-                  </span>
-                )}
-              </div>
-              <p className="text-[10px] text-zinc-300 font-medium truncate mt-0.5">
-                {state?.ram_pressure?.top_consumers?.length
-                  ? `Top consumers: ${state.ram_pressure.top_consumers.map(c => `${c.name} (${c.memory_mb} MB)`).join(', ')}`
-                  : 'High standby memory consumption detected. Purging working sets can recover critical memory.'}
-              </p>
-            </div>
-          </div>
-          <button
-            type="button"
-            onClick={handleCleanMemory}
-            className="px-3 py-1.5 rounded-xl bg-amber-500 hover:bg-amber-400 text-black font-black text-[9px] uppercase tracking-wider transition-all cursor-pointer shrink-0 self-end sm:self-auto flex items-center gap-1.5"
-          >
-            <Trash2 className="w-3 h-3" />
-            Clean Up Memory
           </button>
         </motion.div>
       )}
