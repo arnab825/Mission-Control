@@ -64,6 +64,13 @@ export interface AppConfig {
     output_index?: number;
   };
 
+  recording?: {
+    enabled?: boolean;
+    fps?: number;
+    save_directory?: string;
+    rolling_buffer_seconds?: number;
+  };
+
   vision?: {
     detector?: string;
     yolo_model?: string;

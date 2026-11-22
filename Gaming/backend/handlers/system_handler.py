@@ -1348,5 +1348,176 @@ def handle_stop_benchmark(payload: dict, pipeline, bridge, config) -> None:
         logger.info("Benchmark session manually stopped and summary generated.")
 
 
+# ── Gameplay Video Recording & Highlights ──────────────────────────
+
+def handle_start_recording(payload: dict, pipeline, bridge, config) -> None:
+    """Start manual gameplay recording session."""
+    fps = payload.get("fps") if payload else None
+    filename = payload.get("filename") if payload else None
+    if pipeline and hasattr(pipeline, "start_recording"):
+        res = pipeline.start_recording(fps=fps, filename=filename)
+        if bridge:
+            bridge.update_state({"recording_state": res})
+        logger.info("Gameplay recording started: %s", res)
+
+
+def handle_stop_recording(payload: dict, pipeline, bridge, config) -> None:
+    """Stop gameplay recording session and finalize video."""
+    if pipeline and hasattr(pipeline, "stop_recording"):
+        res = pipeline.stop_recording()
+        if bridge:
+            bridge.update_state({
+                "recording_state": res,
+                "recordings_list": pipeline.get_recordings() if hasattr(pipeline, "get_recordings") else []
+            })
+        logger.info("Gameplay recording stopped: %s", res)
+
+
+def handle_save_highlight(payload: dict, pipeline, bridge, config) -> None:
+    """Save an instant replay gameplay highlight clip from rolling buffer."""
+    duration = payload.get("duration", 30) if payload else 30
+    filename = payload.get("filename") if payload else None
+    if pipeline and hasattr(pipeline, "save_highlight"):
+        res = pipeline.save_highlight(duration_secs=duration, filename=filename)
+        if bridge:
+            bridge.update_state({
+                "highlight_saved": res,
+                "recordings_list": pipeline.get_recordings() if hasattr(pipeline, "get_recordings") else []
+            })
+        logger.info("Gameplay highlight saved: %s", res)
+
+
+def handle_get_recordings(payload: dict, pipeline, bridge, config) -> None:
+    """Fetch and synchronize the list of saved recordings."""
+    recordings = []
+    if pipeline and hasattr(pipeline, "get_recordings"):
+        recordings = pipeline.get_recordings()
+    elif hasattr(pipeline, "video_recorder") and pipeline.video_recorder:
+        recordings = pipeline.video_recorder.list_recordings()
+    else:
+        from capture.video_recorder import VideoRecorder
+        vr = VideoRecorder(config=config)
+        recordings = vr.list_recordings()
+
+    if bridge:
+        bridge.update_state({"recordings_list": recordings})
+    logger.info("Synchronized %d saved recordings.", len(recordings))
+
+
+def handle_delete_recording(payload: dict, pipeline, bridge, config) -> None:
+    """Delete a saved gameplay recording."""
+    filename = payload.get("filename", "") if payload else ""
+    if not filename:
+        return
+
+    res = {"success": False}
+    if pipeline and hasattr(pipeline, "delete_recording"):
+        res = pipeline.delete_recording(filename)
+    elif hasattr(pipeline, "video_recorder") and pipeline.video_recorder:
+        res = pipeline.video_recorder.delete_recording(filename)
+
+    recordings = pipeline.get_recordings() if pipeline and hasattr(pipeline, "get_recordings") else []
+    if bridge:
+        bridge.update_state({
+            "recordings_list": recordings,
+            "recording_action_result": res
+        })
+    logger.info("Recording delete action executed for %s: %s", filename, res)
+
+
+def handle_open_recordings_folder(payload: dict, pipeline, bridge, config) -> None:
+    """Open the recordings folder in the operating system file manager."""
+    if pipeline and hasattr(pipeline, "open_recordings_folder"):
+        pipeline.open_recordings_folder()
+    else:
+        from capture.video_recorder import VideoRecorder
+        vr = VideoRecorder(config=config)
+        vr.open_recordings_folder()
+    logger.info("Opened recordings folder in explorer.")
+
+
+# ── Screenshot Capture & Export Handlers ───────────────────────────
+
+def handle_take_screenshot(payload: dict, pipeline, bridge, config) -> None:
+    """Capture and export a high-resolution gameplay screenshot."""
+    filename = payload.get("filename") if payload else None
+    fmt = payload.get("format", "png") if payload else "png"
+
+    res = {"success": False, "error": "Pipeline not available"}
+    if pipeline and hasattr(pipeline, "take_screenshot"):
+        res = pipeline.take_screenshot(filename=filename, format=fmt)
+    else:
+        from capture.video_recorder import VideoRecorder
+        vr = VideoRecorder(config=config)
+        res = vr.take_screenshot(filename=filename, format=fmt)
+        if bridge and res.get("success"):
+            bridge.update_state({
+                "latest_screenshot": res,
+                "screenshots_list": vr.list_screenshots(),
+            })
+
+    if bridge and not (pipeline and hasattr(pipeline, "take_screenshot")):
+        bridge.update_state({"latest_screenshot": res})
+    logger.info("Screenshot capture completed: %s", res.get("file_name", res))
+
+
+def handle_get_screenshots(payload: dict, pipeline, bridge, config) -> None:
+    """Fetch and synchronize the list of saved screenshots."""
+    screenshots = []
+    if pipeline and hasattr(pipeline, "get_screenshots"):
+        screenshots = pipeline.get_screenshots()
+    elif hasattr(pipeline, "video_recorder") and pipeline.video_recorder:
+        screenshots = pipeline.video_recorder.list_screenshots()
+    else:
+        from capture.video_recorder import VideoRecorder
+        vr = VideoRecorder(config=config)
+        screenshots = vr.list_screenshots()
+
+    if bridge:
+        bridge.update_state({"screenshots_list": screenshots})
+    logger.info("Synchronized %d saved screenshots.", len(screenshots))
+
+
+def handle_delete_screenshot(payload: dict, pipeline, bridge, config) -> None:
+    """Delete a saved gameplay screenshot."""
+    filename = payload.get("filename", "") if payload else ""
+    if not filename:
+        return
+
+    res = {"success": False}
+    if pipeline and hasattr(pipeline, "delete_screenshot"):
+        res = pipeline.delete_screenshot(filename)
+    elif hasattr(pipeline, "video_recorder") and pipeline.video_recorder:
+        res = pipeline.video_recorder.delete_screenshot(filename)
+    else:
+        from capture.video_recorder import VideoRecorder
+        vr = VideoRecorder(config=config)
+        res = vr.delete_screenshot(filename)
+
+    screenshots = []
+    if pipeline and hasattr(pipeline, "get_screenshots"):
+        screenshots = pipeline.get_screenshots()
+    elif hasattr(pipeline, "video_recorder") and pipeline.video_recorder:
+        screenshots = pipeline.video_recorder.list_screenshots()
+
+    if bridge:
+        bridge.update_state({
+            "screenshots_list": screenshots,
+            "screenshot_action_result": res
+        })
+    logger.info("Screenshot delete action executed for %s: %s", filename, res)
+
+
+def handle_open_screenshots_folder(payload: dict, pipeline, bridge, config) -> None:
+    """Open the screenshots folder in the operating system file manager."""
+    if pipeline and hasattr(pipeline, "open_screenshots_folder"):
+        pipeline.open_screenshots_folder()
+    else:
+        from capture.video_recorder import VideoRecorder
+        vr = VideoRecorder(config=config)
+        vr.open_screenshots_folder()
+    logger.info("Opened screenshots folder in explorer.")
+
+
 
 

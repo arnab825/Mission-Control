@@ -1077,6 +1077,7 @@ export const SettingsPage: React.FC<SettingsPageProps> = ({ state, sendCommand, 
               searchQuery={searchQuery}
               localConfig={localConfig}
               setLocalConfig={setLocalConfig}
+              sendCommand={sendCommand}
             />
             <VisionIntelligenceSection
               searchQuery={searchQuery}

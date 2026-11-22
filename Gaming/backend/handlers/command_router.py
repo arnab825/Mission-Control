@@ -282,6 +282,26 @@ def dispatch_bridge_command(
         system_handler.handle_start_benchmark(payload, pipeline, bridge, config)
     elif cmd_type == "stop_benchmark_session":
         system_handler.handle_stop_benchmark(payload, pipeline, bridge, config)
+    elif cmd_type == "start_recording":
+        system_handler.handle_start_recording(payload, pipeline, bridge, config)
+    elif cmd_type == "stop_recording":
+        system_handler.handle_stop_recording(payload, pipeline, bridge, config)
+    elif cmd_type == "save_highlight":
+        system_handler.handle_save_highlight(payload, pipeline, bridge, config)
+    elif cmd_type == "get_recordings":
+        system_handler.handle_get_recordings(payload, pipeline, bridge, config)
+    elif cmd_type == "delete_recording":
+        system_handler.handle_delete_recording(payload, pipeline, bridge, config)
+    elif cmd_type == "open_recordings_folder":
+        system_handler.handle_open_recordings_folder(payload, pipeline, bridge, config)
+    elif cmd_type == "take_screenshot":
+        system_handler.handle_take_screenshot(payload, pipeline, bridge, config)
+    elif cmd_type == "get_screenshots":
+        system_handler.handle_get_screenshots(payload, pipeline, bridge, config)
+    elif cmd_type == "delete_screenshot":
+        system_handler.handle_delete_screenshot(payload, pipeline, bridge, config)
+    elif cmd_type == "open_screenshots_folder":
+        system_handler.handle_open_screenshots_folder(payload, pipeline, bridge, config)
 
     # ── Agent mode / voice commands ───────────────────────────────
     elif cmd_type == "toggle_agent_mode":

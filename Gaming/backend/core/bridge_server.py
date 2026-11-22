@@ -230,6 +230,9 @@ class BridgeServer:
             "frametimes", "cpu_power_w", "scene_type", "scene_confidence", "game_fps", "fps", "game_loading",
             # Gaming Readiness
             "gaming_readiness",
+            # Gameplay Recording, Screenshots & Benchmarks
+            "recording_state", "recordings_list", "screenshots_list", "latest_screenshot",
+            "benchmark_summary", "benchmark_recording",
         }
 
         # Change detection: skip keys whose values haven't changed

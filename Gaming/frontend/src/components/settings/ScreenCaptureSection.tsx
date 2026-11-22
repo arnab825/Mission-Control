@@ -1,5 +1,5 @@
 import React from 'react';
-import { Camera, AlertTriangle } from 'lucide-react';
+import { Camera, AlertTriangle, Video, FolderOpen } from 'lucide-react';
 import { SettingsSection } from './common/SettingsSection';
 import { SettingsField } from './common/SettingsField';
 import { CustomSelect } from './common/CustomSelect';
@@ -9,12 +9,14 @@ interface ScreenCaptureSectionProps {
   localConfig: any;
   setLocalConfig: React.Dispatch<React.SetStateAction<any>>;
   searchQuery?: string;
+  sendCommand?: (type: string, payload?: any) => void;
 }
 
 export const ScreenCaptureSection: React.FC<ScreenCaptureSectionProps> = ({
   localConfig,
   setLocalConfig,
-  searchQuery
+  searchQuery,
+  sendCommand
 }) => {
   return (
     <SettingsSection
@@ -114,6 +116,62 @@ export const ScreenCaptureSection: React.FC<ScreenCaptureSectionProps> = ({
           )}
         </div>
       </SettingsField>
+
+      <div className="pt-4 border-t border-white/5 space-y-4">
+        <h4 className="text-[11px] font-black text-white uppercase tracking-widest flex items-center gap-2">
+          <Video className="w-3.5 h-3.5 text-neon-green" />
+          Gameplay Video Recording & Replays
+        </h4>
+
+        <SettingsField label="Recording Frame Rate" description="Target FPS for recorded gameplay MP4 videos.">
+          <CustomSelect
+            value={String(localConfig.recording?.fps || 30)}
+            onChange={(val) =>
+              setLocalConfig({
+                ...localConfig,
+                recording: { ...localConfig.recording, fps: parseInt(val) }
+              })
+            }
+            options={[
+              { value: '30', label: '30 FPS (Efficient, Low Overhead)' },
+              { value: '60', label: '60 FPS (Ultra Smooth Gameplay)' },
+            ]}
+          />
+        </SettingsField>
+
+        <SettingsField label="Rolling Highlight Buffer" description="Duration of continuous gameplay kept in RAM for instant highlight clipping.">
+          <CustomSelect
+            value={String(localConfig.recording?.rolling_buffer_seconds || 30)}
+            onChange={(val) =>
+              setLocalConfig({
+                ...localConfig,
+                recording: { ...localConfig.recording, rolling_buffer_seconds: parseInt(val) }
+              })
+            }
+            options={[
+              { value: '15', label: '15 Seconds' },
+              { value: '30', label: '30 Seconds (Recommended)' },
+              { value: '60', label: '60 Seconds' },
+              { value: '90', label: '90 Seconds' },
+            ]}
+          />
+        </SettingsField>
+
+        <div className="flex items-center justify-between pt-2">
+          <div>
+            <span className="text-[10px] text-zinc-300 font-bold uppercase block">Recordings Folder</span>
+            <span className="text-[9px] text-zinc-500">Access saved gameplay videos and instant replay clips on disk.</span>
+          </div>
+          <button
+            type="button"
+            onClick={() => sendCommand?.('open_recordings_folder')}
+            className="flex items-center gap-1.5 px-3 py-1.5 bg-white/5 hover:bg-white/10 border border-white/10 text-white rounded-lg text-[10px] font-black uppercase tracking-wider transition-all cursor-pointer"
+          >
+            <FolderOpen className="w-3.5 h-3.5 text-neon-green" />
+            Open Folder
+          </button>
+        </div>
+      </div>
     </SettingsSection>
   );
 };

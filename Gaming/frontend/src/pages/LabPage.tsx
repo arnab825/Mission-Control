@@ -1,7 +1,7 @@
 import React, { useState, useEffect, useMemo, useCallback, useRef } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import { Zap, Activity, Thermometer, Cpu, ShieldAlert, Wind, Flame, Info } from "lucide-react";
-import type { TelemetryState } from "../types/telemetry";
+import { Zap, Activity, Thermometer, Cpu, ShieldAlert, Wind, Flame, Info, Gauge, Download, Copy, Check, Play, Square } from "lucide-react";
+import type { TelemetryState, BenchmarkSummary } from "../types/telemetry";
 import { useAuth } from "@clerk/clerk-react";
 
 const colorMap: Record<string, string> = {
@@ -104,6 +104,69 @@ const LabPage: React.FC<{
 
   // Dynamic offset state for premium micro-fluctuations
   const [fluctuationOffset, setFluctuationOffset] = useState(0);
+
+  // Benchmark suite state & callbacks
+  const [copiedReport, setCopiedReport] = useState(false);
+  const isBenchmarkRecording = Boolean(state?.benchmark_recording);
+
+  const cachedSummary: BenchmarkSummary | null = useMemo(() => {
+    if (state?.benchmark_summary) return state.benchmark_summary;
+    if (typeof window !== 'undefined') {
+      try {
+        const saved = localStorage.getItem('mc_latest_benchmark_summary');
+        if (saved) return JSON.parse(saved);
+      } catch (_) {}
+    }
+    return null;
+  }, [state?.benchmark_summary]);
+
+  const handleToggleBenchmark = useCallback(() => {
+    if (isBenchmarkRecording) {
+      sendCommand("stop_benchmark_session");
+    } else {
+      sendCommand("start_benchmark_session");
+    }
+  }, [isBenchmarkRecording, sendCommand]);
+
+  const handleOpenBenchmarkModal = useCallback(() => {
+    window.dispatchEvent(new CustomEvent("open-benchmark-modal", { detail: cachedSummary }));
+  }, [cachedSummary]);
+
+  const handleExportJson = useCallback((summary: BenchmarkSummary | null) => {
+    if (!summary) return;
+    const jsonStr = JSON.stringify(summary, null, 2);
+    const blob = new Blob([jsonStr], { type: "application/json" });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement("a");
+    a.href = url;
+    a.download = `benchmark_${(summary.game_title || "session").toLowerCase().replace(/\s+/g, "_")}_${summary.timestamp || Date.now()}.json`;
+    document.body.appendChild(a);
+    a.click();
+    document.body.removeChild(a);
+    URL.revokeObjectURL(url);
+  }, []);
+
+  const handleCopyReport = useCallback((summary: BenchmarkSummary | null) => {
+    if (!summary) return;
+    const dateStr = summary.timestamp ? new Date(summary.timestamp * 1000).toLocaleString() : new Date().toLocaleString();
+    const text = [
+      `# ⚡ Mission Control Benchmark Report`,
+      `**Game:** ${summary.game_title || "Game Benchmark"}`,
+      `**Date:** ${dateStr}`,
+      `---`,
+      `- **Average FPS:** ${summary.avg_fps} FPS`,
+      `- **1% Low:** ${summary.one_percent_low} FPS`,
+      `- **Min / Max FPS:** ${summary.min_fps} / ${summary.max_fps} FPS`,
+      `- **Total Frames:** ${summary.total_frames?.toLocaleString() ?? 0}`,
+      `- **GPU Utilization / Temp:** ${summary.gpu_avg_pct ?? 0}% @ ${summary.gpu_max_temp ?? 0}°C`,
+      `- **CPU Utilization / Temp:** ${summary.cpu_avg_pct ?? 0}% @ ${summary.cpu_max_temp ?? 0}°C`,
+      `- **Peak VRAM:** ${summary.vram_max_mb ? Math.round(summary.vram_max_mb) : 0} MB`,
+      `- **Bottleneck Assessment:** ${summary.bottleneck?.toUpperCase() ?? "BALANCED"}`
+    ].join("\n");
+    navigator.clipboard.writeText(text);
+    setCopiedReport(true);
+    setTimeout(() => setCopiedReport(false), 2000);
+  }, []);
 
   // Refs to track last update time (debounce history updates)
   const lastHistoryUpdateRef = useRef<number>(0);
@@ -350,7 +413,116 @@ const LabPage: React.FC<{
           <Zap className={`w-4 h-4 ${isGameActive ? "fill-black" : "fill-current"}`} />
           {isGameActive ? "Boost Mode: Active" : "Boost Mode"}
         </button>
+      </div>
 
+      {/* ── Benchmark Session & Export Suite ── */}
+      <div className="bg-gradient-to-r from-white/[0.08] via-white/[0.04] to-transparent border border-white/15 rounded-3xl p-5 sm:p-6 shadow-[0_0_20px_rgba(118,185,0,0.03)] flex flex-col xl:flex-row xl:items-center justify-between gap-5 min-w-0">
+        <div className="flex items-start gap-4 min-w-0">
+          <div className={`w-12 h-12 rounded-2xl border flex items-center justify-center shrink-0 shadow-lg ${
+            isBenchmarkRecording
+              ? 'bg-red-500/10 border-red-500/30 text-red-400 shadow-[0_0_15px_rgba(239,68,68,0.2)] animate-pulse'
+              : 'bg-neon-green/10 border-neon-green/30 text-neon-green shadow-[0_0_15px_rgba(118,185,0,0.15)]'
+          }`}>
+            <Gauge className="w-6 h-6" />
+          </div>
+          <div className="min-w-0">
+            <div className="flex items-center gap-2.5 flex-wrap">
+              <h3 className="text-base font-black text-white tracking-tight uppercase">
+                Benchmark Session &amp; Frametime Analysis
+              </h3>
+              {isBenchmarkRecording ? (
+                <span className="flex items-center gap-1.5 px-2.5 py-0.5 rounded-full bg-red-500/15 border border-red-500/30 text-red-400 text-[10px] font-black uppercase tracking-wider animate-pulse">
+                  <span className="w-2 h-2 rounded-full bg-red-500" />
+                  Recording Active
+                </span>
+              ) : (
+                <span className="flex items-center gap-1.5 px-2.5 py-0.5 rounded-full bg-neon-green/10 border border-neon-green/20 text-neon-green text-[10px] font-black uppercase tracking-wider">
+                  <span className="w-2 h-2 rounded-full bg-neon-green" />
+                  Ready to Benchmark
+                </span>
+              )}
+            </div>
+            <p className="text-xs text-zinc-400 font-medium mt-1 leading-relaxed">
+              Record 1% lows, frametime consistency curves, and thermal bottlenecks. Export publication-grade JSON and Markdown reports anytime.
+            </p>
+
+            {/* Quick Summary Chips if a session was recorded */}
+            {cachedSummary && (
+              <div className="flex items-center gap-2 sm:gap-3 flex-wrap mt-3 font-mono text-[11px]">
+                <span className="px-2.5 py-1 rounded-xl bg-white/5 border border-white/10 text-zinc-300 font-bold">
+                  Game: <span className="text-white font-black">{cachedSummary.game_title}</span>
+                </span>
+                <span className="px-2.5 py-1 rounded-xl bg-neon-green/10 border border-neon-green/20 text-neon-green font-bold">
+                  Avg: <span className="text-white font-black">{cachedSummary.avg_fps} FPS</span>
+                </span>
+                <span className="px-2.5 py-1 rounded-xl bg-neon-yellow/10 border border-neon-yellow/20 text-neon-yellow font-bold">
+                  1% Low: <span className="text-white font-black">{cachedSummary.one_percent_low} FPS</span>
+                </span>
+                <span className="px-2.5 py-1 rounded-xl bg-white/5 border border-white/10 text-zinc-400 font-bold">
+                  Bottleneck: <span className="text-cyan-400 font-black uppercase">{cachedSummary.bottleneck ?? 'BALANCED'}</span>
+                </span>
+              </div>
+            )}
+          </div>
+        </div>
+
+        {/* Action Buttons */}
+        <div className="flex items-center gap-2.5 flex-wrap shrink-0">
+          <button
+            type="button"
+            onClick={handleToggleBenchmark}
+            className={`flex items-center gap-2 px-4 py-2.5 rounded-2xl border text-xs font-black uppercase tracking-wider transition-all cursor-pointer ${
+              isBenchmarkRecording
+                ? 'bg-red-500/20 hover:bg-red-500/30 border-red-500/50 text-red-300 shadow-[0_0_15px_rgba(239,68,68,0.3)]'
+                : 'bg-neon-green/10 hover:bg-neon-green/20 border-neon-green/30 text-neon-green shadow-[0_0_15px_rgba(118,185,0,0.1)]'
+            }`}
+          >
+            {isBenchmarkRecording ? (
+              <>
+                <Square className="w-4 h-4 fill-current" />
+                Stop Benchmark
+              </>
+            ) : (
+              <>
+                <Play className="w-4 h-4 fill-current" />
+                Start Benchmark
+              </>
+            )}
+          </button>
+
+          <button
+            type="button"
+            disabled={!cachedSummary}
+            onClick={handleOpenBenchmarkModal}
+            className="flex items-center gap-2 px-4 py-2.5 bg-white/5 hover:bg-white/10 disabled:opacity-40 disabled:hover:bg-white/5 border border-white/10 text-white rounded-2xl text-xs font-black uppercase tracking-wider transition-all cursor-pointer"
+            title="Open comprehensive graphical benchmark summary report"
+          >
+            <Gauge className="w-4 h-4 text-neon-green" />
+            View Summary
+          </button>
+
+          <button
+            type="button"
+            disabled={!cachedSummary}
+            onClick={() => handleExportJson(cachedSummary)}
+            className="flex items-center gap-2 px-3.5 py-2.5 bg-white/5 hover:bg-white/10 disabled:opacity-40 disabled:hover:bg-white/5 border border-white/10 text-zinc-300 hover:text-white rounded-2xl text-xs font-black uppercase tracking-wider transition-all cursor-pointer"
+            title="Export raw benchmark metrics to JSON file"
+          >
+            <Download className="w-4 h-4 text-cyan-400" />
+            Export JSON
+          </button>
+
+          <button
+            type="button"
+            disabled={!cachedSummary}
+            onClick={() => handleCopyReport(cachedSummary)}
+            className="flex items-center gap-2 px-3.5 py-2.5 bg-white/5 hover:bg-white/10 disabled:opacity-40 disabled:hover:bg-white/5 border border-white/10 text-zinc-300 hover:text-white rounded-2xl text-xs font-black uppercase tracking-wider transition-all cursor-pointer"
+            title="Copy formatted Markdown benchmark report to clipboard"
+          >
+            {copiedReport ? <Check className="w-4 h-4 text-neon-green" /> : <Copy className="w-4 h-4 text-yellow-400" />}
+            {copiedReport ? 'Copied!' : 'Copy Report'}
+          </button>
+        </div>
       </div>
 
       {/* ── Headroom Row ── */}

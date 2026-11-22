@@ -11,7 +11,8 @@ import {
   LogOut,
   Link as LinkIcon,
   ShieldCheck,
-  ArrowLeftRight
+  ArrowLeftRight,
+  Gauge
 } from 'lucide-react';
 import { useUser, useClerk } from '@clerk/clerk-react';
 import { AccountSwitcherModal } from './AccountSwitcherModal';
@@ -339,6 +340,25 @@ const Sidebar: React.FC<SidebarProps> = ({
 
         {/* Subtle Bottom Fade / Footer spacer */}
         <div className="flex-1" />
+
+        {/* Quick Benchmark Report Launcher */}
+        <div className="mb-3">
+          <button
+            type="button"
+            onClick={() => {
+              window.dispatchEvent(new CustomEvent('open-benchmark-modal', {}));
+              if (window.innerWidth < 1024 && onClose) onClose();
+            }}
+            className="w-full flex items-center justify-between p-2 rounded-xl bg-neon-green/5 hover:bg-neon-green/10 border border-neon-green/20 hover:border-neon-green/40 text-neon-green transition-all cursor-pointer group"
+            title="Open latest benchmark summary report and export options"
+          >
+            <div className="flex items-center gap-2">
+              <Gauge className="w-3.5 h-3.5 text-neon-green group-hover:scale-110 transition-transform" />
+              <span className="text-[10px] font-black uppercase tracking-wider">Benchmark Report</span>
+            </div>
+            <span className="text-[9px] text-zinc-400 group-hover:text-white font-mono font-bold">View →</span>
+          </button>
+        </div>
 
         {/* User Authentication Status Node */}
         <div className="mb-4 pt-3 border-t border-white/5 space-y-2">

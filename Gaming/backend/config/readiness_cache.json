@@ -75,9 +75,9 @@
                 "reason": "Cloud-based AI requires minimal local hardware."
             },
             {
-                "name": "Future Recording Features",
-                "status": "Unsupported",
-                "reason": "Feature currently in development."
+                "name": "Recording Features",
+                "status": "Fully Supported",
+                "reason": "Hardware video encoder (NVENC / AMF / QuickSync) and rolling capture buffer are active for 60 FPS gameplay recording."
             }
         ]
     }

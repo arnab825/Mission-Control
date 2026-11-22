@@ -1,6 +1,6 @@
 import React, { useEffect, useState, useRef, useMemo, useCallback } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Settings, X, Lock, Unlock } from 'lucide-react';
+import { Settings, X, Lock, Unlock, Camera } from 'lucide-react';
 import type { TelemetryState } from '../types/telemetry';
 import { useAnalysis } from '../hooks/useAnalysis';
 import { FrameTimeGraph } from './FrameTimeGraph';
@@ -259,8 +259,26 @@ const HUD: React.FC<{ state: TelemetryState | null; sendCommand?: (cmd: string, 
                       {state?.is_game_active && state?.current_game ? state.current_game : 'MISSION CONTROL'}
                     </span>
                     <div className="flex items-center gap-2">
+                      {state?.recording_state?.is_recording && (
+                        <span className="w-2 h-2 rounded-full bg-red-500 animate-pulse shrink-0" title={`Recording: ${state.recording_state.duration_secs}s`} />
+                      )}
+                      {state?.recording_state?.is_recording && (
+                        <span className="flex items-center gap-1 text-[0.7em] font-black text-red-400 bg-red-500/10 border border-red-500/30 px-1.5 py-0.5 rounded-full font-mono">
+                          <span className="w-1.5 h-1.5 rounded-full bg-red-500 animate-pulse" />
+                          REC {Math.floor((state.recording_state.duration_secs || 0) / 60).toString().padStart(2, '0')}:{Math.floor((state.recording_state.duration_secs || 0) % 60).toString().padStart(2, '0')}
+                        </span>
+                      )}
+                      {state?.benchmark_recording && (
+                        <span className="flex items-center gap-1 text-[0.7em] font-black text-amber-400 bg-amber-500/10 border border-amber-500/30 px-1.5 py-0.5 rounded-full font-mono animate-pulse">
+                          <span className="w-1.5 h-1.5 rounded-full bg-amber-400" />
+                          BENCH
+                        </span>
+                      )}
                       {!isLocked && (
                         <>
+                          <button aria-label="screenshot" type="button" onClick={() => sendCommand?.('take_screenshot', {})} className="text-zinc-400 hover:text-neon-green transition-colors cursor-pointer pointer-events-auto" title="Take Screenshot" style={{ WebkitAppRegion: 'no-drag' } as any}>
+                            <Camera className="w-3.5 h-3.5" />
+                          </button>
                           <button aria-label="button" type="button" onClick={() => setIsSettingsOpen(true)} className="text-zinc-400 hover:text-neon-green transition-colors cursor-pointer pointer-events-auto" style={{ WebkitAppRegion: 'no-drag' } as any}>
                             <Settings className="w-3.5 h-3.5" />
                           </button>
@@ -384,6 +402,20 @@ const HUD: React.FC<{ state: TelemetryState | null; sendCommand?: (cmd: string, 
                       {state?.is_game_active && state?.current_game ? state.current_game : 'MISSION CONTROL'}
                     </span>
                   </div>
+
+                  {state?.recording_state?.is_recording && (
+                    <div className="flex items-center gap-1 px-2 py-0.5 bg-red-500/10 border border-red-500/30 rounded-full text-red-400 text-[0.7em] font-mono font-black shrink-0">
+                      <span className="w-1.5 h-1.5 rounded-full bg-red-500 animate-pulse" />
+                      REC {Math.floor((state.recording_state.duration_secs || 0) / 60).toString().padStart(2, '0')}:{Math.floor((state.recording_state.duration_secs || 0) % 60).toString().padStart(2, '0')}
+                    </div>
+                  )}
+
+                  {state?.benchmark_recording && (
+                    <div className="flex items-center gap-1 px-2 py-0.5 bg-amber-500/10 border border-amber-500/30 rounded-full text-amber-400 text-[0.7em] font-mono font-black shrink-0 animate-pulse">
+                      <span className="w-1.5 h-1.5 rounded-full bg-amber-400" />
+                      BENCH
+                    </div>
+                  )}
 
                   {state?.game_loading ? (
                     <div className="flex items-center gap-2 text-neon-green flex-1 justify-center bg-slate-900/20 border border-white/5 rounded-full py-1">
@@ -562,8 +594,23 @@ const HUD: React.FC<{ state: TelemetryState | null; sendCommand?: (cmd: string, 
                       {state?.is_game_active && state?.current_game ? state.current_game : 'Tactical Interface'}
                     </span>
                     <div className="flex items-center gap-2">
+                      {state?.recording_state?.is_recording && (
+                        <span className="flex items-center gap-1 text-[0.7em] font-black text-red-400 bg-red-500/10 border border-red-500/30 px-1.5 py-0.5 rounded-full font-mono">
+                          <span className="w-1.5 h-1.5 rounded-full bg-red-500 animate-pulse" />
+                          REC {Math.floor((state.recording_state.duration_secs || 0) / 60).toString().padStart(2, '0')}:{Math.floor((state.recording_state.duration_secs || 0) % 60).toString().padStart(2, '0')}
+                        </span>
+                      )}
+                      {state?.benchmark_recording && (
+                        <span className="flex items-center gap-1 text-[0.7em] font-black text-amber-400 bg-amber-500/10 border border-amber-500/30 px-1.5 py-0.5 rounded-full font-mono animate-pulse">
+                          <span className="w-1.5 h-1.5 rounded-full bg-amber-400" />
+                          BENCH
+                        </span>
+                      )}
                       {!isLocked && (
                         <>
+                          <button aria-label="screenshot" type="button" onClick={() => sendCommand?.('take_screenshot', {})} className="text-zinc-400 hover:text-neon-green transition-colors cursor-pointer pointer-events-auto" title="Take Screenshot" style={{ WebkitAppRegion: 'no-drag' } as any}>
+                            <Camera className="w-4 h-4" />
+                          </button>
                           <button aria-label="button" type="button" onClick={() => setIsSettingsOpen(true)} className="text-zinc-400 hover:text-neon-green transition-colors cursor-pointer pointer-events-auto" style={{ WebkitAppRegion: 'no-drag' } as any}>
                             <Settings className="w-4 h-4" />
                           </button>

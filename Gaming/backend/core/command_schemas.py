@@ -163,7 +163,41 @@ class RemoveUserAccountPayload(BaseCommandPayload):
     email: Optional[str] = None
 
 
+class StartRecordingPayload(BaseCommandPayload):
+    fps: Optional[int] = Field(default=30, ge=10, le=120)
+    quality: Optional[str] = Field(default="high", max_length=32)
+    filename: Optional[str] = Field(default=None, max_length=128)
+
+
+class SaveHighlightPayload(BaseCommandPayload):
+    duration: Optional[int] = Field(default=30, ge=5, le=120)
+    filename: Optional[str] = Field(default=None, max_length=128)
+
+
+class DeleteRecordingPayload(BaseCommandPayload):
+    filename: str = Field(min_length=1, max_length=256)
+
+
+class TakeScreenshotPayload(BaseCommandPayload):
+    filename: Optional[str] = Field(default=None, max_length=128)
+    format: Optional[str] = Field(default="png", max_length=10)
+
+
+class DeleteScreenshotPayload(BaseCommandPayload):
+    filename: str = Field(min_length=1, max_length=256)
+
+
 COMMAND_SCHEMA_MAP = {
+    "take_screenshot": TakeScreenshotPayload,
+    "get_screenshots": EmptyPayload,
+    "delete_screenshot": DeleteScreenshotPayload,
+    "open_screenshots_folder": EmptyPayload,
+    "start_recording": StartRecordingPayload,
+    "stop_recording": EmptyPayload,
+    "save_highlight": SaveHighlightPayload,
+    "get_recordings": EmptyPayload,
+    "delete_recording": DeleteRecordingPayload,
+    "open_recordings_folder": EmptyPayload,
     "get_emulation_state": UserIdPayload,
     "configure_emulator": ConfigureEmulatorPayload,
     "set_rom_paths": SetRomPathsPayload,

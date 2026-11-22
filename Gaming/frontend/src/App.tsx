@@ -97,17 +97,59 @@ const App: React.FC = () => {
   const [isAgentic, setIsAgentic] = useState(false);
   const [personality, setPersonality] = useState('Tactical');
   const [globalToast, setGlobalToast] = useState<{message: string; type?: 'info'|'warning'} | null>(null);
-  const [benchmarkSummary, setBenchmarkSummary] = useState<BenchmarkSummary | null>(null);
+  const [benchmarkSummary, setBenchmarkSummary] = useState<BenchmarkSummary | null>(() => {
+    if (typeof window !== 'undefined') {
+      try {
+        const saved = localStorage.getItem('mc_latest_benchmark_summary');
+        if (saved) return JSON.parse(saved);
+      } catch (_) {}
+    }
+    return null;
+  });
   const [isBenchmarkModalOpen, setIsBenchmarkModalOpen] = useState(false);
   const lastSeenBenchmarkId = React.useRef<string | null>(null);
+  const lastSeenScreenshotRef = React.useRef<string | null>(null);
 
   useEffect(() => {
     if (state?.benchmark_summary && state.benchmark_summary.id !== lastSeenBenchmarkId.current) {
       lastSeenBenchmarkId.current = state.benchmark_summary.id;
       setBenchmarkSummary(state.benchmark_summary);
       setIsBenchmarkModalOpen(true);
+      try {
+        localStorage.setItem('mc_latest_benchmark_summary', JSON.stringify(state.benchmark_summary));
+      } catch (_) {}
     }
   }, [state?.benchmark_summary]);
+
+  // Global event listener: Allows Stability Lab, Vision Page, or Sidebar to trigger benchmark report modal anytime
+  useEffect(() => {
+    const handleOpenBenchmark = (e: any) => {
+      if (e.detail) {
+        setBenchmarkSummary(e.detail);
+      } else {
+        try {
+          const cached = localStorage.getItem('mc_latest_benchmark_summary');
+          if (cached) setBenchmarkSummary(JSON.parse(cached));
+        } catch (_) {}
+      }
+      setIsBenchmarkModalOpen(true);
+    };
+    window.addEventListener('open-benchmark-modal', handleOpenBenchmark);
+    return () => window.removeEventListener('open-benchmark-modal', handleOpenBenchmark);
+  }, []);
+
+  // Global toast for completed screenshots
+  useEffect(() => {
+    if (state?.latest_screenshot?.success && state.latest_screenshot.file_name) {
+      if (state.latest_screenshot.file_name !== lastSeenScreenshotRef.current) {
+        lastSeenScreenshotRef.current = state.latest_screenshot.file_name;
+        setGlobalToast({
+          message: `📸 Screenshot saved: ${state.latest_screenshot.file_name} (${state.latest_screenshot.size_kb ?? 0} KB)`,
+          type: 'info'
+        });
+      }
+    }
+  }, [state?.latest_screenshot]);
 
   const { preferences, activeGameTheme, triggerGameAdaptiveCheck, triggerPersonalitySync } = useTheme();
 

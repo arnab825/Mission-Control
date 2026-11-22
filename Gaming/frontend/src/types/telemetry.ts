@@ -190,6 +190,57 @@ export interface TelemetryState {
   };
   user_accounts?: any[];
   benchmark_summary?: BenchmarkSummary;
+  benchmark_recording?: boolean;
+
+  // Gameplay Video Recording & Highlights
+  recording_state?: {
+    is_recording: boolean;
+    duration_secs: number;
+    file_path?: string;
+    file_name?: string;
+    fps?: number;
+    encoder?: string;
+    buffer_active?: boolean;
+    buffer_seconds?: number;
+    buffer_frames?: number;
+    save_dir?: string;
+  };
+  recordings_list?: Array<{
+    file_name: string;
+    file_path: string;
+    size_mb: number;
+    created_at: number;
+    is_highlight?: boolean;
+  }>;
+  highlight_saved?: {
+    success: boolean;
+    file_name?: string;
+    file_path?: string;
+    duration_secs?: number;
+    frame_count?: number;
+    status?: string;
+    error?: string;
+  };
+
+  // Screenshots
+  latest_screenshot?: {
+    success: boolean;
+    file_name?: string;
+    file_path?: string;
+    size_kb?: number;
+    created_at?: number;
+    preview?: string;
+    width?: number;
+    height?: number;
+    error?: string;
+  };
+  screenshots_list?: Array<{
+    file_name: string;
+    file_path: string;
+    size_kb: number;
+    created_at: number;
+    preview?: string;
+  }>;
 }
 
 export interface BenchmarkSummary {

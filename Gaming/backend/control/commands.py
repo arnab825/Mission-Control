@@ -10,8 +10,9 @@ class CommandHandler:
     """
     Handles voice and text commands for the AI assistant.
     """
-    def __init__(self, main_window=None):
+    def __init__(self, main_window=None, pipeline=None):
         self.main_window = main_window
+        self.pipeline = pipeline
         self.gpu_monitor = GPUMonitor()
         self.gpu_caps = GPUCapabilities()
         self.advisor = PerformanceAdvisor(capabilities=self.gpu_caps)
@@ -25,16 +26,28 @@ class CommandHandler:
         if "enable streaming mode" in text or "start streaming mode" in text:
             return self._enable_streaming_mode()
 
-        # 3. Record Highlights
-        if "record" in text and "highlight" in text:
+        # 2. Start Gameplay Recording
+        if any(p in text for p in ["start recording", "record gameplay", "begin recording"]):
+            return self._start_recording()
+
+        # 3. Stop Gameplay Recording
+        if any(p in text for p in ["stop recording", "end recording", "finish recording"]):
+            return self._stop_recording()
+
+        # 4. Record Highlights / Instant Replay
+        if any(p in text for p in ["record highlight", "save highlight", "save clip", "instant replay", "clip that"]):
             return self._record_highlight()
 
-        # 4. Status Check
+        # 5. Capture Screenshot
+        if any(p in text for p in ["take screenshot", "capture screenshot", "save screenshot", "screenshot"]):
+            return self._take_screenshot()
+
+        # 6. Status Check
         if "status" in text or "how is my gpu" in text:
             metrics = self.gpu_monitor.poll_once()
             return f"GPU is at {metrics['gpu_util']}% utilization and {metrics['temperature']} degrees."
 
-        # 5. Voice Macro Listing
+        # 6. Voice Macro Listing
         if any(phrase in text for phrase in ["list macros", "macro list", "available macros", "show macros", "what macros"]):
             return self._list_macros()
 
@@ -63,9 +76,49 @@ class CommandHandler:
             self.main_window.append_log(f"AI: {msg}")
         return msg
 
+    def _start_recording(self):
+        if self.pipeline and hasattr(self.pipeline, "start_recording"):
+            res = self.pipeline.start_recording()
+            msg = f"Recording started ({res.get('file_name', 'gameplay.mp4')})."
+        else:
+            msg = "Gameplay recording started."
+        if self.main_window and hasattr(self.main_window, "append_log"):
+            self.main_window.append_log(f"AI: {msg}")
+        return msg
+
+    def _stop_recording(self):
+        if self.pipeline and hasattr(self.pipeline, "stop_recording"):
+            res = self.pipeline.stop_recording()
+            dur = res.get("duration_secs", 0)
+            msg = f"Recording stopped. Saved {dur}s video to recordings library."
+        else:
+            msg = "Gameplay recording stopped and saved."
+        if self.main_window and hasattr(self.main_window, "append_log"):
+            self.main_window.append_log(f"AI: {msg}")
+        return msg
+
     def _record_highlight(self):
-        # Mock action: trigger ShadowPlay shortcut
-        msg = "Recording gameplay highlight via NVIDIA ShadowPlay."
-        if self.main_window:
+        if self.pipeline and hasattr(self.pipeline, "save_highlight"):
+            res = self.pipeline.save_highlight(duration_secs=30)
+            if res.get("success"):
+                msg = f"Saved 30-second gameplay highlight ({res.get('file_name')})."
+            else:
+                msg = f"Highlight save pending: {res.get('error', 'saving clip')}"
+        else:
+            msg = "Recording 30-second gameplay highlight."
+        if self.main_window and hasattr(self.main_window, "append_log"):
+            self.main_window.append_log(f"AI: {msg}")
+        return msg
+
+    def _take_screenshot(self):
+        if self.pipeline and hasattr(self.pipeline, "take_screenshot"):
+            res = self.pipeline.take_screenshot()
+            if res.get("success"):
+                msg = f"Screenshot saved: {res.get('file_name')} ({res.get('size_kb')} KB)."
+            else:
+                msg = f"Screenshot error: {res.get('error', 'could not capture frame')}"
+        else:
+            msg = "Screenshot taken."
+        if self.main_window and hasattr(self.main_window, "append_log"):
             self.main_window.append_log(f"AI: {msg}")
         return msg

@@ -16,7 +16,10 @@ except Exception as _cv2_err:
     cv2 = None
     logging.warning(f"OpenCV load warning: {_cv2_err}")
 import numpy as np
-from pynput import keyboard  # type: ignore[reportMissingModuleSource]
+try:
+    from pynput import keyboard  # type: ignore[reportMissingModuleSource]
+except ImportError:
+    keyboard = None
 import ctypes
 
 # Win32 multimedia timer resolution is dynamically hooked on pipeline.start() and unhooked on pipeline.stop()
@@ -33,6 +36,7 @@ from ai_brain.story_analyzer import StoryAnalyzer
 from core.bridge_server import bridge
 from capture.frame_buffer import FrameBuffer
 from capture.screen import ScreenCapture
+from capture.video_recorder import VideoRecorder
 from control.commands import CommandHandler
 from control.input_manager import InputManager
 from core.runtime_helpers import TelemetryThread
@@ -212,6 +216,9 @@ class GamingAssistantPipeline:
         from system.session_recorder import SessionRecorder
         self.session_recorder = SessionRecorder()
 
+        # Gameplay Video Recorder
+        self.video_recorder = VideoRecorder(config=config)
+
         # AI Brain
         self.brain = GameBrain(mode=self.game_mode, config=config, memory=self.memory)
         
@@ -292,7 +299,7 @@ class GamingAssistantPipeline:
             self.system_advisor = None
         
         # Voice Manager & Command Handler
-        self.command_handler = CommandHandler()
+        self.command_handler = CommandHandler(pipeline=self)
         self.voice_manager = None
         self._voice_command_in_progress = False
         voice_cfg = config.get("voice", {})
@@ -800,6 +807,99 @@ class GamingAssistantPipeline:
             )
             return summary
 
+    def start_recording(self, fps: Optional[int] = None, filename: Optional[str] = None) -> Dict[str, Any]:
+        """Start a manual gameplay recording session."""
+        if hasattr(self, "video_recorder") and self.video_recorder:
+            res = self.video_recorder.start_recording(filename=filename, fps=fps)
+            bridge.update_state({"recording_state": self.video_recorder.get_status()})
+            return res
+        return {"success": False, "error": "Video recorder not initialized."}
+
+    def stop_recording(self) -> Dict[str, Any]:
+        """Stop active gameplay recording session and compile metadata."""
+        if hasattr(self, "video_recorder") and self.video_recorder:
+            res = self.video_recorder.stop_recording()
+            bridge.update_state({
+                "recording_state": self.video_recorder.get_status(),
+                "recordings_list": self.video_recorder.list_recordings(),
+            })
+            return res
+        return {"success": False, "error": "Video recorder not initialized."}
+
+    def save_highlight(self, duration_secs: int = 30, filename: Optional[str] = None) -> Dict[str, Any]:
+        """Save a gameplay highlight clip from rolling buffer."""
+        if hasattr(self, "video_recorder") and self.video_recorder:
+            res = self.video_recorder.save_highlight(duration_secs=duration_secs, filename=filename)
+            bridge.update_state({
+                "recording_state": self.video_recorder.get_status(),
+                "recordings_list": self.video_recorder.list_recordings(),
+            })
+            return res
+        return {"success": False, "error": "Video recorder not initialized."}
+
+    def get_recordings(self) -> List[Dict[str, Any]]:
+        """List all saved gameplay recordings and clips."""
+        if hasattr(self, "video_recorder") and self.video_recorder:
+            return self.video_recorder.list_recordings()
+        return []
+
+    def delete_recording(self, filename: str) -> Dict[str, Any]:
+        """Delete a saved recording file."""
+        if hasattr(self, "video_recorder") and self.video_recorder:
+            res = self.video_recorder.delete_recording(filename)
+            bridge.update_state({
+                "recordings_list": self.video_recorder.list_recordings(),
+            })
+            return res
+        return {"success": False, "error": "Video recorder not initialized."}
+
+    def open_recordings_folder(self) -> Dict[str, Any]:
+        """Open the recordings directory in the OS file explorer."""
+        if hasattr(self, "video_recorder") and self.video_recorder:
+            return self.video_recorder.open_recordings_folder()
+        return {"success": False, "error": "Video recorder not initialized."}
+
+    def take_screenshot(self, filename: Optional[str] = None, format: str = "png") -> Dict[str, Any]:
+        """Capture a gameplay screenshot from the live frame buffer or desktop."""
+        frame = None
+        if hasattr(self, "frame_buffer") and self.frame_buffer:
+            try:
+                frame = self.frame_buffer.get_latest_copy()
+            except Exception:
+                frame = None
+
+        if hasattr(self, "video_recorder") and self.video_recorder:
+            res = self.video_recorder.take_screenshot(frame=frame, filename=filename, format=format)
+            if res.get("success"):
+                bridge.update_state({
+                    "latest_screenshot": res,
+                    "screenshots_list": self.video_recorder.list_screenshots(),
+                })
+            return res
+        return {"success": False, "error": "Video recorder not initialized."}
+
+    def get_screenshots(self) -> List[Dict[str, Any]]:
+        """List all saved gameplay screenshots."""
+        if hasattr(self, "video_recorder") and self.video_recorder:
+            return self.video_recorder.list_screenshots()
+        return []
+
+    def delete_screenshot(self, filename: str) -> Dict[str, Any]:
+        """Delete a saved gameplay screenshot."""
+        if hasattr(self, "video_recorder") and self.video_recorder:
+            res = self.video_recorder.delete_screenshot(filename)
+            bridge.update_state({
+                "screenshots_list": self.video_recorder.list_screenshots(),
+            })
+            return res
+        return {"success": False, "error": "Video recorder not initialized."}
+
+    def open_screenshots_folder(self) -> Dict[str, Any]:
+        """Open the screenshots folder in the OS file explorer."""
+        if hasattr(self, "video_recorder") and self.video_recorder:
+            return self.video_recorder.open_screenshots_folder()
+        return {"success": False, "error": "Video recorder not initialized."}
+
     def _setup_hotkeys(self):
         """Register global hotkeys for toggling and scaling HUD."""
         hotkey_cfg = self.config.get("hotkeys", {})
@@ -848,8 +948,12 @@ class GamingAssistantPipeline:
         clean_bindings = {k: v for k, v in bindings.items() if k}
 
         # ── Global Hotkeys (with Robust Polling Fallback) ──
-        self.hotkey_listener = keyboard.GlobalHotKeys(clean_bindings)
-        self.hotkey_listener.start()
+        if keyboard is not None:
+            try:
+                self.hotkey_listener = keyboard.GlobalHotKeys(clean_bindings)
+                self.hotkey_listener.start()
+            except Exception as e:
+                logger.debug(f"[Pipeline] pynput GlobalHotKeys error: {e}")
         
         if sys.platform == "win32":
             threading.Thread(target=self._win32_hotkey_fallback, args=(clean_bindings,), daemon=True).start()
@@ -1374,6 +1478,8 @@ class GamingAssistantPipeline:
                 # None or all-black means no new/valid frame (dxcam between vsync, window backend failed, DWM bypass, etc.)
                 if is_valid:
                     self.frame_buffer.push(frame)
+                    if hasattr(self, "video_recorder") and self.video_recorder:
+                        self.video_recorder.add_frame(frame)
                     _consecutive_none_frames = 0
                 else:
                     _consecutive_none_frames += 1
@@ -1556,6 +1662,11 @@ class GamingAssistantPipeline:
                         self._game_state["max_fps"] = 0.0
                         self._game_state["one_percent_low"] = 0.0
                         self._game_state["frametimes"] = []
+
+                    if hasattr(self, "video_recorder") and self.video_recorder:
+                        if self.video_recorder.is_recording or getattr(self, "_last_recording_state", False):
+                            self._game_state["recording_state"] = self.video_recorder.get_status()
+                            self._last_recording_state = self.video_recorder.is_recording
 
                 frame, fid, is_new = self.frame_buffer.get(timeout=0.1)
                 if frame is None or not is_new:
@@ -3059,6 +3170,11 @@ class GamingAssistantPipeline:
     def stop(self):
         """Gracefully shut down the pipeline."""
         self.running = False
+        if hasattr(self, "video_recorder") and self.video_recorder:
+            try:
+                self.video_recorder.stop_recording()
+            except Exception:
+                pass
         # Do not stop telemetry thread in headless mode, as the React Dashboard
         # needs live telemetry between game sessions. Daemon thread handles clean exit.
         if hasattr(self, "telemetry_thread") and self.telemetry_thread and not self.headless:
