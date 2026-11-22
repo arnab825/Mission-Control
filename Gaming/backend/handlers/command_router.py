@@ -312,6 +312,16 @@ def dispatch_bridge_command(
         system_handler.handle_get_detection_heatmap(payload, pipeline, bridge, config)
     elif cmd_type == "reset_detection_heatmap":
         system_handler.handle_reset_detection_heatmap(payload, pipeline, bridge, config)
+    elif cmd_type == "enable_game_mode":
+        system_handler.handle_enable_game_mode(payload, pipeline, bridge, config)
+    elif cmd_type == "disable_game_mode":
+        system_handler.handle_disable_game_mode(payload, pipeline, bridge, config)
+    elif cmd_type == "get_game_mode_status":
+        system_handler.handle_get_game_mode_status(payload, pipeline, bridge, config)
+    elif cmd_type == "clean_standby_memory":
+        system_handler.handle_clean_standby_memory(payload, pipeline, bridge, config)
+    elif cmd_type == "analyze_crash_logs":
+        system_handler.handle_analyze_crash_logs(payload, pipeline, bridge, config)
 
     # ── Agent mode / voice commands ───────────────────────────────
     elif cmd_type == "toggle_agent_mode":
@@ -322,6 +332,8 @@ def dispatch_bridge_command(
         agent_handler.handle_toggle_voice(payload, pipeline, bridge, config)
     elif cmd_type == "stop_voice":
         agent_handler.handle_stop_voice(payload, pipeline, bridge, config)
+    elif cmd_type == "confirm_agentic_action":
+        agent_handler.handle_confirm_agentic_action(payload, pipeline, bridge, config)
 
     else:
         logger.debug("Unknown bridge command: %s", cmd_type)

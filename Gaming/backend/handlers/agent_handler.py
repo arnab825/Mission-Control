@@ -43,3 +43,21 @@ def handle_toggle_voice(payload: dict, pipeline, bridge, config) -> None:
 
 def handle_stop_voice(payload: dict, pipeline, bridge, config) -> None:
     pipeline.stop_voice()
+
+
+def handle_confirm_agentic_action(payload: dict, pipeline, bridge, config) -> None:
+    """Handles user confirmation or abort of an agentic action countdown."""
+    confirmed = payload.get("confirmed", True) if isinstance(payload, dict) else True
+    action_id = payload.get("action_id") if isinstance(payload, dict) else None
+    logger.info("Agentic action confirmation received: confirmed=%s, action_id=%s", confirmed, action_id)
+
+    if pipeline and hasattr(pipeline, "handle_confirm_action"):
+        pipeline.handle_confirm_action(action_id=action_id, confirmed=confirmed)
+    elif pipeline and not confirmed:
+        pipeline._action_abort_flag = True
+        logger.info("[AGENT] Safety Interlock: Direct action abort triggered.")
+
+    if bridge:
+        # Clear confirmation toast once handled
+        bridge.update_state({"confirmation_required": None})
+

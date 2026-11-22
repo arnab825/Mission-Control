@@ -2,8 +2,9 @@ import * as React from 'react';
 import { useState, useEffect, useMemo, useRef } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { 
-  Cpu, Zap, Box, Database, Search, Settings, ShieldCheck, 
-  AlertTriangle, XCircle, Bot, Info,TrendingUp, BrainCircuit, Copy, Check
+  Cpu, Zap, Box, Database, Search, ShieldCheck, 
+  AlertTriangle, XCircle, Bot, Info, TrendingUp, BrainCircuit, Copy, Check,
+  Flame, ShieldAlert, Trash2, Sparkles
 } from 'lucide-react';
 import {
   AreaChart, Area, XAxis, YAxis, CartesianGrid, Tooltip
@@ -228,6 +229,23 @@ const DashboardPage: React.FC<DashboardPageProps> = ({ state, onCommand, onNavig
   };
 
   const isOptimized = (state as any)?.optimization_status?.active;
+  const isGameModeActive = Boolean(state?.game_mode_status?.active || isOptimized);
+  const [memoryCleanedFeedback, setMemoryCleanedFeedback] = useState<string | null>(null);
+
+  const handleCleanMemory = () => {
+    onCommand('clean_standby_memory', {});
+    setMemoryCleanedFeedback('Working sets purged');
+    setTimeout(() => setMemoryCleanedFeedback(null), 3000);
+  };
+
+  const handleToggleGameMode = () => {
+    if (isGameModeActive) {
+      onCommand('disable_game_mode', {});
+      onCommand('revert_optimization', {});
+    } else {
+      onCommand('enable_game_mode', { power_mode: 'max' });
+    }
+  };
 
   // Request full state on initial mount
   useEffect(() => {
@@ -237,11 +255,7 @@ const DashboardPage: React.FC<DashboardPageProps> = ({ state, onCommand, onNavig
   // Hotkeys:
   // 1. Toggle Game Optimization Mode (ctrl+shift+o)
   useHotkey('ctrl+shift+o', () => {
-    if (isOptimized) {
-      onCommand('revert_optimization', {});
-    } else {
-      onCommand('optimize_system', {});
-    }
+    handleToggleGameMode();
   });
 
   // 2. Scan Library (ctrl+shift+s)
@@ -337,6 +351,77 @@ const DashboardPage: React.FC<DashboardPageProps> = ({ state, onCommand, onNavig
           </div>
         </div>
       </div>
+
+      {/* Real-time Thermal Alert Watchdog Banner */}
+      {state?.thermal_alert?.active && (
+        <motion.div
+          initial={{ opacity: 0, y: -8 }}
+          animate={{ opacity: 1, y: 0 }}
+          className="bg-red-500/10 border border-red-500/30 rounded-2xl p-3 sm:p-4 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 shadow-[0_0_20px_rgba(239,68,68,0.15)] shrink-0"
+        >
+          <div className="flex items-center gap-3 min-w-0">
+            <div className="p-2 rounded-xl bg-red-500/20 border border-red-500/40 text-red-400 shrink-0">
+              <Flame className="w-4 h-4 animate-bounce" />
+            </div>
+            <div className="min-w-0">
+              <div className="flex items-center gap-2">
+                <span className="text-[10px] font-black uppercase tracking-wider text-red-400">Thermal Threshold Warning</span>
+                <span className="px-1.5 py-0.5 rounded bg-red-500/20 text-red-300 font-mono text-[9px] font-bold">
+                  {state.thermal_alert.component} @ {state.thermal_alert.current_temp}°C (Limit: {state.thermal_alert.threshold}°C)
+                </span>
+              </div>
+              <p className="text-[10px] text-zinc-300 font-medium truncate mt-0.5">
+                {state.thermal_alert.suggestion || "High thermal load detected. Engage maximum fans or cap target framerate."}
+              </p>
+            </div>
+          </div>
+          <button
+            type="button"
+            onClick={() => onCommand('set_cooling_mode', { mode: 'max' })}
+            className="px-3 py-1.5 rounded-xl bg-red-500 hover:bg-red-400 text-black font-black text-[9px] uppercase tracking-wider transition-all cursor-pointer shrink-0 self-end sm:self-auto"
+          >
+            Engage Max Fans
+          </button>
+        </motion.div>
+      )}
+
+      {/* RAM Pressure Watchdog Banner */}
+      {(state?.ram_pressure?.is_high || (state?.mem_pct || 0) > 80) && (
+        <motion.div
+          initial={{ opacity: 0, y: -8 }}
+          animate={{ opacity: 1, y: 0 }}
+          className="bg-amber-500/10 border border-amber-500/30 rounded-2xl p-3 sm:p-4 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 shadow-[0_0_20px_rgba(245,158,11,0.15)] shrink-0"
+        >
+          <div className="flex items-center gap-3 min-w-0">
+            <div className="p-2 rounded-xl bg-amber-500/20 border border-amber-500/40 text-amber-400 shrink-0">
+              <ShieldAlert className="w-4 h-4 animate-pulse" />
+            </div>
+            <div className="min-w-0">
+              <div className="flex items-center gap-2">
+                <span className="text-[10px] font-black uppercase tracking-wider text-amber-400">RAM Pressure High ({state?.mem_pct?.toFixed(1) || '80+'}%)</span>
+                {memoryCleanedFeedback && (
+                  <span className="px-1.5 py-0.5 rounded bg-neon-green/20 text-neon-green text-[9px] font-bold">
+                    {memoryCleanedFeedback}
+                  </span>
+                )}
+              </div>
+              <p className="text-[10px] text-zinc-300 font-medium truncate mt-0.5">
+                {state?.ram_pressure?.top_consumers?.length
+                  ? `Top consumers: ${state.ram_pressure.top_consumers.map(c => `${c.name} (${c.memory_mb} MB)`).join(', ')}`
+                  : 'High standby memory consumption detected. Purging working sets can recover critical memory.'}
+              </p>
+            </div>
+          </div>
+          <button
+            type="button"
+            onClick={handleCleanMemory}
+            className="px-3 py-1.5 rounded-xl bg-amber-500 hover:bg-amber-400 text-black font-black text-[9px] uppercase tracking-wider transition-all cursor-pointer shrink-0 self-end sm:self-auto flex items-center gap-1.5"
+          >
+            <Trash2 className="w-3 h-3" />
+            Clean Up Memory
+          </button>
+        </motion.div>
+      )}
 
       {/* Top Stat Cards Grid - Responsive layout (2x2 on compact/mobile screens, 1x4 on large) */}
       <div className="grid grid-cols-2 xl:grid-cols-4 gap-2.5 sm:gap-4 xl:gap-6 shrink-0">
@@ -552,23 +637,23 @@ const DashboardPage: React.FC<DashboardPageProps> = ({ state, onCommand, onNavig
               <span className="relative z-10">Scan Library</span>
             </button>
 
-            {(state as any)?.optimization_status?.active ? (
+            {isGameModeActive ? (
               <button aria-label="button" type="button"
-                onClick={() => onCommand('revert_optimization', {})}
-                className="group relative flex-1 py-3 bg-fuchsia-500/20 hover:bg-fuchsia-500/30 text-fuchsia-400 border border-fuchsia-500/40 font-black text-[9px] uppercase tracking-widest rounded-2xl transition-all flex items-center justify-center gap-1.5 overflow-hidden shadow-[0_0_20px_rgba(232,121,249,0.15)] animate-pulse cursor-pointer"
+                onClick={handleToggleGameMode}
+                className="group relative flex-1 py-3 bg-neon-green/20 hover:bg-neon-green/30 text-neon-green border border-neon-green/40 font-black text-[9px] uppercase tracking-widest rounded-2xl transition-all flex items-center justify-center gap-1.5 overflow-hidden shadow-[0_0_20px_rgba(118,185,0,0.25)] animate-pulse cursor-pointer"
               >
-                <div className="absolute inset-0 bg-fuchsia-500/10 translate-y-full group-hover:translate-y-0 transition-transform duration-300" />
-                <Zap className="w-3.5 h-3.5 relative z-10 text-fuchsia-400" />
-                <span className="relative z-10">Undo Boost Mode</span>
+                <div className="absolute inset-0 bg-neon-green/10 translate-y-full group-hover:translate-y-0 transition-transform duration-300" />
+                <Zap className="w-3.5 h-3.5 relative z-10 text-neon-green" />
+                <span className="relative z-10">Game Mode Active</span>
               </button>
             ) : (
               <button aria-label="button" type="button"
-                onClick={() => onCommand('optimize_system', {})}
+                onClick={handleToggleGameMode}
                 className="group relative flex-1 py-3 bg-white/5 hover:bg-white/10 text-white border border-white/10 font-black text-[9px] uppercase tracking-widest rounded-2xl transition-all flex items-center justify-center gap-1.5 overflow-hidden cursor-pointer"
               >
                 <div className="absolute inset-0 bg-white/5 translate-y-full group-hover:translate-y-0 transition-transform duration-300" />
-                <Settings className="w-3.5 h-3.5 relative z-10" />
-                <span className="relative z-10">Optimize</span>
+                <Sparkles className="w-3.5 h-3.5 relative z-10 text-neon-green" />
+                <span className="relative z-10">One-Click Boost</span>
               </button>
             )}
           </div>

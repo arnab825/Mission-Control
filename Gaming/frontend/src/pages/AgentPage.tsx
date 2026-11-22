@@ -30,7 +30,9 @@ import {
   Check,
   FileText,
   MessageSquare,
-  ExternalLink
+  ExternalLink,
+  Download,
+  ScrollText
 } from 'lucide-react';
 import type { TelemetryState } from '../types/telemetry';
 import NeuralHistory, { getRelativeTimeString } from '../components/NeuralHistory';
@@ -708,6 +710,8 @@ const AgentPage: React.FC<{
     const [isShareModalOpen, setIsShareModalOpen] = useState(false);
     const [shareCopied, setShareCopied] = useState<string | null>(null);
     const [isManualRefreshing, setIsManualRefreshing] = useState(false);
+    const [isActionLogModalOpen, setIsActionLogModalOpen] = useState(false);
+    const [actionLogCopied, setActionLogCopied] = useState(false);
 
     const [input, setInput] = useState('');
     const [isListening, setIsListening] = useState(false);
@@ -1787,6 +1791,39 @@ const AgentPage: React.FC<{
     const activeSession = historyItems.find(s => s.id === activeSessionId);
     const headline = isPopup ? 'Aero Agent' : (activeSession ? activeSession.title : 'Agent Chat');
 
+    const handleExportSession = useCallback(() => {
+      const sessionTitle = activeSession?.title || 'Session';
+      const dateStr = new Date().toISOString().replace(/[:.]/g, '-').slice(0, 16);
+      let md = `# Mission Control AI Session Export\n\n`;
+      md += `- **Date:** ${new Date().toLocaleString()}\n`;
+      md += `- **Session Title:** ${sessionTitle}\n`;
+      md += `- **Session ID:** \`${activeSessionId}\`\n`;
+      md += `- **Active Operative:** ${userId}\n`;
+      md += `- **Current Game:** ${state?.current_game || 'Desktop / Standby'}\n`;
+      md += `- **Session FPS:** ${state?.fps || 'N/A'}\n\n`;
+      md += `## Conversation Stream\n\n`;
+      chat.forEach(msg => {
+        const sender = msg.role === 'agent' ? '🤖 **Co-Pilot (Aero AI)**' : '👤 **Operative**';
+        md += `### ${sender} *(${msg.time || 'Timestamp unrecorded'})*\n\n${msg.text}\n\n---\n\n`;
+      });
+      const actionLogList = state?.action_log || [];
+      if (actionLogList.length > 0) {
+        md += `## Autonomous Action Audit Log\n\n`;
+        md += `| Timestamp | Action Type | Details | Status |\n`;
+        md += `| :--- | :--- | :--- | :--- |\n`;
+        actionLogList.forEach(item => {
+          md += `| ${item.timestamp} | ${item.action_type} | ${item.details} | ${item.status.toUpperCase()} |\n`;
+        });
+      }
+      const blob = new Blob([md], { type: 'text/markdown' });
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = `mc-session-${dateStr}.md`;
+      a.click();
+      URL.revokeObjectURL(url);
+    }, [activeSession, activeSessionId, userId, state, chat]);
+
     const { cleanStorage, rawStorageTitle } = useMemo(() => {
       if (distributedStats?.total_storage_bytes && distributedStats.total_storage_bytes > 0) {
         const formatted = formatBytes(distributedStats.total_storage_bytes);
@@ -2067,6 +2104,30 @@ const AgentPage: React.FC<{
                 >
                   {isIntelOpen ? <ChevronRight className="w-3.5 h-3.5" /> : <InfoIcon className="w-3.5 h-3.5" />}
                   {labelMode !== 'icon' && <span>Intel</span>}
+                </button>
+              )}
+
+              {/* Action Log Button */}
+              {!isPopup && (
+                <button aria-label="Action Log" type="button"
+                  onClick={() => setIsActionLogModalOpen(true)}
+                  className={`flex items-center gap-1.5 ${labelMode === 'icon' ? 'p-1.5' : 'px-2.5 sm:px-3 py-1 sm:py-1.5'} rounded-full bg-white/5 border border-white/10 hover:border-amber-400/30 hover:bg-amber-400/5 text-zinc-300 hover:text-amber-400 shadow-[inset_0_0_8px_rgba(255,255,255,0.01)] cursor-pointer active:scale-95 transition-all duration-300 text-[10px] font-bold uppercase tracking-wider`}
+                  title="View Autonomous Action Audit Log"
+                >
+                  <ScrollText className="w-3.5 h-3.5" />
+                  {labelMode !== 'icon' && <span>Actions</span>}
+                </button>
+              )}
+
+              {/* Export Session Button */}
+              {!isPopup && (
+                <button aria-label="Export Session" type="button"
+                  onClick={handleExportSession}
+                  className={`flex items-center gap-1.5 ${labelMode === 'icon' ? 'p-1.5' : 'px-2.5 sm:px-3 py-1 sm:py-1.5'} rounded-full bg-white/5 border border-white/10 hover:border-neon-green/30 hover:bg-neon-green/5 text-zinc-300 hover:text-neon-green shadow-[inset_0_0_8px_rgba(255,255,255,0.01)] cursor-pointer active:scale-95 transition-all duration-300 text-[10px] font-bold uppercase tracking-wider`}
+                  title="Export Session to Markdown"
+                >
+                  <Download className="w-3.5 h-3.5" />
+                  {labelMode !== 'icon' && <span>Export</span>}
                 </button>
               )}
 
@@ -2852,6 +2913,128 @@ const AgentPage: React.FC<{
                     {shareCopied === 'file' && (
                       <span className="text-[9px] font-bold text-purple-400 uppercase tracking-wider">Saved</span>
                     )}
+                  </button>
+                </div>
+              </motion.div>
+            </div>
+          )}
+        </AnimatePresence>
+
+        {/* Autonomous Action Audit Log Modal */}
+        <AnimatePresence>
+          {isActionLogModalOpen && (
+            <div className="fixed inset-0 z-[99999] flex items-center justify-center p-4">
+              <motion.div
+                initial={{ opacity: 0 }}
+                animate={{ opacity: 1 }}
+                exit={{ opacity: 0 }}
+                onClick={() => setIsActionLogModalOpen(false)}
+                className="absolute inset-0 bg-[#020203]/90 backdrop-blur-md cursor-pointer"
+              />
+
+              <motion.div
+                initial={{ opacity: 0, scale: 0.95, y: 16 }}
+                animate={{ opacity: 1, scale: 1, y: 0 }}
+                exit={{ opacity: 0, scale: 0.95, y: 16 }}
+                onClick={(e) => e.stopPropagation()}
+                className="relative w-[92vw] max-w-xl max-h-[85vh] flex flex-col bg-[#0b0b0e] border border-white/10 rounded-3xl p-6 shadow-2xl z-[100000] overflow-hidden"
+              >
+                {/* Close Button */}
+                <button
+                  type="button"
+                  onClick={() => setIsActionLogModalOpen(false)}
+                  className="absolute top-5 right-5 text-zinc-400 hover:text-white bg-white/5 hover:bg-white/10 border border-white/10 p-2 rounded-full transition-all cursor-pointer"
+                >
+                  <X className="w-4 h-4" />
+                </button>
+
+                {/* Header */}
+                <div className="flex items-center gap-3 mb-4 shrink-0">
+                  <div className="w-10 h-10 rounded-xl flex items-center justify-center bg-amber-500/10 border border-amber-500/30 text-amber-400">
+                    <ScrollText className="w-5 h-5" />
+                  </div>
+                  <div>
+                    <h3 className="text-base font-black text-white uppercase tracking-tight">
+                      Autonomous Action Audit Log
+                    </h3>
+                    <p className="text-[10px] text-zinc-500 font-bold">
+                      {state?.action_log?.length || 0} recorded interventions &amp; hardware dispatches
+                    </p>
+                  </div>
+                </div>
+
+                {/* Action Log List */}
+                <div className="flex-1 overflow-y-auto custom-scrollbar space-y-2 pr-1 min-h-0 mb-4">
+                  {(!state?.action_log || state.action_log.length === 0) ? (
+                    <div className="h-48 flex flex-col items-center justify-center gap-2 text-zinc-600">
+                      <ScrollText className="w-8 h-8 opacity-30" />
+                      <span className="text-[10px] font-black uppercase tracking-widest">No autonomous actions triggered yet</span>
+                    </div>
+                  ) : (
+                    state.action_log.map((item) => (
+                      <div
+                        key={item.id}
+                        className="p-3 rounded-2xl bg-white/3 border border-white/6 flex items-start justify-between gap-3"
+                      >
+                        <div className="min-w-0">
+                          <div className="flex items-center gap-2 mb-1">
+                            <span className="font-mono text-[9px] text-zinc-500">{item.timestamp}</span>
+                            <span className="text-[9px] font-black uppercase tracking-wider text-white truncate">
+                              {item.action_type}
+                            </span>
+                          </div>
+                          <p className="text-[11px] text-zinc-300 font-medium break-words leading-relaxed">
+                            {item.details}
+                          </p>
+                        </div>
+                        <span className={`px-2 py-0.5 rounded-full text-[8.5px] font-black uppercase tracking-wider shrink-0 ${
+                          item.status === 'executed'
+                            ? 'bg-neon-green/15 text-neon-green border border-neon-green/30'
+                            : item.status === 'cancelled'
+                              ? 'bg-red-500/15 text-red-400 border border-red-500/30'
+                              : 'bg-amber-500/15 text-amber-400 border border-amber-500/30'
+                        }`}>
+                          {item.status}
+                        </span>
+                      </div>
+                    ))
+                  )}
+                </div>
+
+                {/* Footer Controls */}
+                <div className="flex items-center justify-between gap-3 pt-3 border-t border-white/5 shrink-0">
+                  <button
+                    type="button"
+                    onClick={() => {
+                      const jsonStr = JSON.stringify(state?.action_log || [], null, 2);
+                      navigator.clipboard.writeText(jsonStr);
+                      setActionLogCopied(true);
+                      setTimeout(() => setActionLogCopied(false), 2000);
+                    }}
+                    className="px-3 py-1.5 rounded-xl bg-white/5 hover:bg-white/10 border border-white/10 text-zinc-300 font-black text-[9px] uppercase tracking-wider transition-all flex items-center gap-1.5 cursor-pointer"
+                  >
+                    {actionLogCopied ? <Check className="w-3.5 h-3.5 text-neon-green" /> : <Copy className="w-3.5 h-3.5" />}
+                    {actionLogCopied ? 'Copied JSON' : 'Copy JSON'}
+                  </button>
+
+                  <button
+                    type="button"
+                    onClick={() => {
+                      const log = state?.action_log || [];
+                      const csvHeader = 'Timestamp,Action,Details,Status\n';
+                      const csvRows = log.map(r => `"${r.timestamp}","${r.action_type}","${r.details.replace(/"/g, '""')}","${r.status}"`).join('\n');
+                      const blob = new Blob([csvHeader + csvRows], { type: 'text/csv' });
+                      const url = URL.createObjectURL(blob);
+                      const a = document.createElement('a');
+                      a.href = url;
+                      a.download = `mc-action-log-${new Date().toISOString().slice(0, 10)}.csv`;
+                      a.click();
+                      URL.revokeObjectURL(url);
+                    }}
+                    className="px-3 py-1.5 rounded-xl bg-amber-500/20 hover:bg-amber-500/30 border border-amber-500/30 text-amber-300 font-black text-[9px] uppercase tracking-wider transition-all flex items-center gap-1.5 cursor-pointer"
+                  >
+                    <Download className="w-3.5 h-3.5" />
+                    Export CSV
                   </button>
                 </div>
               </motion.div>

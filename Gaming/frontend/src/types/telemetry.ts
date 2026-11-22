@@ -274,6 +274,46 @@ export interface TelemetryState {
     texts: Array<{ text: string; confidence: number; bbox?: any }>;
     timestamp: number;
   } | null;
+
+  // Game Mode & Hardware Guard Enhancements
+  game_mode_status?: {
+    active: boolean;
+    stages?: Array<{ name: string; status: string; details?: string }>;
+    freed_ram_mb?: number;
+    power_plan?: string;
+    timestamp?: string;
+  } | null;
+  ram_pressure?: {
+    is_high: boolean;
+    usage_pct: number;
+    top_consumers: Array<{ pid: number; name: string; memory_mb: number }>;
+  } | null;
+  thermal_alert?: {
+    active: boolean;
+    component: 'GPU' | 'CPU';
+    current_temp: number;
+    threshold: number;
+    suggestion?: string;
+  } | null;
+  confirmation_required?: {
+    text: string;
+    delay: number;
+    action_id?: string;
+  } | null;
+  action_log?: Array<{
+    id: string;
+    timestamp: string;
+    action_type: string;
+    details: string;
+    status: 'executed' | 'cancelled' | 'pending' | 'failed';
+  }>;
+  crash_analysis?: {
+    detected: boolean;
+    timestamp?: string;
+    summary?: string;
+    likely_cause?: string;
+    recommendations?: string[];
+  } | null;
 }
 
 export interface BenchmarkSummary {

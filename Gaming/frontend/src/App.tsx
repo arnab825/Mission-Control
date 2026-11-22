@@ -40,6 +40,7 @@ import { BrowserAuthPortalView } from './components/views/BrowserAuthPortalView'
 import { AuthPopupHandlerView } from './components/views/AuthPopupHandlerView';
 import { GlobalScanningOverlay } from './components/system/GlobalScanningOverlay';
 import { GlobalToastNotification } from './components/system/GlobalToastNotification';
+import { AgentActionConfirmationToast } from './components/AgentActionConfirmationToast';
 import { BenchmarkSummaryModal } from './components/BenchmarkSummaryModal';
 import type { BenchmarkSummary } from './types/telemetry';
 
@@ -1459,6 +1460,14 @@ const App: React.FC = () => {
 
         {/* Global Toast Notification */}
         <GlobalToastNotification toast={globalToast} />
+
+        {/* Agentic Action Confirmation Interlock */}
+        <AgentActionConfirmationToast
+          confirmation={state?.confirmation_required}
+          onConfirm={(actionId, confirmed) => {
+            sendCommand('confirm_agentic_action', { action_id: actionId, confirmed: Boolean(confirmed) });
+          }}
+        />
 
         {/* Benchmark Summary Modal */}
         <BenchmarkSummaryModal

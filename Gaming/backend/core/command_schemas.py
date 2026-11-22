@@ -206,7 +206,30 @@ class DeleteScreenshotPayload(BaseCommandPayload):
     filename: str = Field(min_length=1, max_length=256)
 
 
+class EnableGameModePayload(BaseCommandPayload):
+    exclusions: Optional[List[str]] = None
+    power_mode: Optional[str] = Field(default="max", max_length=32)
+    userId: Optional[str] = Field(default=None, max_length=128)
+
+
+class ConfirmAgenticActionPayload(BaseCommandPayload):
+    action_id: Optional[str] = Field(default=None, max_length=128)
+    confirmed: bool = True
+    userId: Optional[str] = Field(default=None, max_length=128)
+
+
+class AnalyzeCrashLogsPayload(BaseCommandPayload):
+    userId: Optional[str] = Field(default=None, max_length=128)
+
+
 COMMAND_SCHEMA_MAP = {
+    "enable_game_mode": EnableGameModePayload,
+    "disable_game_mode": EmptyPayload,
+    "get_game_mode_status": EmptyPayload,
+    "clean_standby_memory": EmptyPayload,
+    "confirm_agentic_action": ConfirmAgenticActionPayload,
+    "analyze_crash_logs": AnalyzeCrashLogsPayload,
+    "export_agent_session": UserIdPayload,
     "take_screenshot": TakeScreenshotPayload,
     "get_screenshots": EmptyPayload,
     "delete_screenshot": DeleteScreenshotPayload,

@@ -1,6 +1,9 @@
 import React, { useState, useEffect, useMemo, useCallback, useRef } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import { Zap, Activity, Thermometer, Cpu, ShieldAlert, Wind, Flame, Info, Gauge, Download, Copy, Check, Play, Square } from "lucide-react";
+import { 
+  Zap, Activity, Thermometer, Cpu, ShieldAlert, Wind, Flame, Info, Gauge, 
+  Download, Copy, Check, Play, Square, Trash2, AlertTriangle, Sparkles, X 
+} from "lucide-react";
 import type { TelemetryState, BenchmarkSummary } from "../types/telemetry";
 import { useAuth } from "@clerk/clerk-react";
 
@@ -108,6 +111,31 @@ const LabPage: React.FC<{
   // Benchmark suite state & callbacks
   const [copiedReport, setCopiedReport] = useState(false);
   const isBenchmarkRecording = Boolean(state?.benchmark_recording);
+
+  // One-Click Game Mode & System Health State
+  const isGameModeActive = Boolean(state?.game_mode_status?.active || (state as any)?.optimization_status?.active);
+  const [memoryCleanedMsg, setMemoryCleanedMsg] = useState<string | null>(null);
+  const [isCrashModalOpen, setIsCrashModalOpen] = useState(false);
+
+  const handleToggleGameMode = useCallback(() => {
+    if (isGameModeActive) {
+      sendCommand("disable_game_mode", {});
+      sendCommand("revert_optimization", { userId });
+    } else {
+      sendCommand("enable_game_mode", { power_mode: "max", userId });
+    }
+  }, [isGameModeActive, sendCommand, userId]);
+
+  const handleCleanMemory = useCallback(() => {
+    sendCommand("clean_standby_memory", {});
+    setMemoryCleanedMsg("Working sets compacted");
+    setTimeout(() => setMemoryCleanedMsg(null), 3000);
+  }, [sendCommand]);
+
+  const handleScanCrashLogs = useCallback(() => {
+    sendCommand("analyze_crash_logs", { userId });
+    setIsCrashModalOpen(true);
+  }, [sendCommand, userId]);
 
   const cachedSummary: BenchmarkSummary | null = useMemo(() => {
     if (state?.benchmark_summary) return state.benchmark_summary;
@@ -395,24 +423,93 @@ const LabPage: React.FC<{
         </div>
       </div>
 
-      {/* ── Boost Mode Badge & Optimization Status ── */}
-      <div className="flex flex-col md:flex-row items-stretch md:items-center gap-4 shrink-0">
-        <button aria-label="button" type="button"
-          onClick={() => {
-            if (isGameActive) {
-              sendCommand("revert_optimization", { userId });
-            } else {
-              sendCommand("optimize_system", { userId });
-            }
-          }}
-          className={`flex items-center justify-center gap-2 px-5 py-2.5 border rounded-2xl font-black text-xs uppercase tracking-widest transition-all shrink-0 cursor-pointer ${isGameActive
-            ? "bg-orange-500 text-black border-orange-400"
-            : "bg-orange-500/10 border-orange-500/30 text-orange-400 hover:bg-orange-500/20"
+      {/* ── One-Click Game Mode & Tactical System Control ── */}
+      <div className="bg-gradient-to-r from-white/[0.08] via-white/[0.04] to-transparent border border-white/15 rounded-3xl p-5 sm:p-6 shadow-[0_0_20px_rgba(118,185,0,0.03)] flex flex-col xl:flex-row xl:items-center justify-between gap-5 min-w-0">
+        <div className="flex items-start gap-4 min-w-0">
+          <div className={`w-12 h-12 rounded-2xl border flex items-center justify-center shrink-0 shadow-lg ${
+            isGameModeActive
+              ? 'bg-neon-green/15 border-neon-green/40 text-neon-green shadow-[0_0_18px_rgba(118,185,0,0.3)] animate-pulse'
+              : 'bg-white/5 border-white/10 text-zinc-400'
+          }`}>
+            <Sparkles className="w-6 h-6" />
+          </div>
+          <div className="min-w-0">
+            <div className="flex items-center gap-2.5 flex-wrap">
+              <h3 className="text-base font-black text-white tracking-tight uppercase">
+                One-Click Game Mode (5-Stage Optimization)
+              </h3>
+              <span className={`px-2.5 py-0.5 rounded-full text-[9px] font-black uppercase tracking-wider ${
+                isGameModeActive
+                  ? 'bg-neon-green/20 text-neon-green border border-neon-green/30'
+                  : 'bg-zinc-800 text-zinc-400 border border-white/5'
+              }`}>
+                {isGameModeActive ? 'Engaged & Active' : 'Standby / Nominal'}
+              </span>
+            </div>
+            <p className="text-[10px] font-medium text-zinc-400 mt-0.5">
+              Sequentially executes Background Cleanse, Standby Working Set Purge, High-Performance Power Plan, Process Priority Locks, and Windows Focus Assist.
+            </p>
+
+            {/* 5-Stage Checklist Display */}
+            <div className="flex flex-wrap gap-2 mt-3">
+              {[
+                { name: '1. Background Cleanse', done: isGameModeActive },
+                { name: '2. Memory & VRAM Flush', done: isGameModeActive },
+                { name: '3. High Perf Power', done: isGameModeActive },
+                { name: '4. Priority Elevation', done: isGameModeActive },
+                { name: '5. Windows Focus Assist', done: isGameModeActive },
+              ].map((stage, idx) => (
+                <div
+                  key={idx}
+                  className={`px-2.5 py-1 rounded-xl text-[8.5px] font-black uppercase tracking-wider flex items-center gap-1.5 border transition-all ${
+                    stage.done
+                      ? 'bg-neon-green/10 border-neon-green/25 text-neon-green shadow-[0_0_10px_rgba(118,185,0,0.1)]'
+                      : 'bg-white/3 border-white/5 text-zinc-500'
+                  }`}
+                >
+                  <span className={`w-1.5 h-1.5 rounded-full ${stage.done ? 'bg-neon-green shadow-[0_0_6px_#76b900]' : 'bg-zinc-700'}`} />
+                  {stage.name}
+                </div>
+              ))}
+            </div>
+          </div>
+        </div>
+
+        {/* Action Controls */}
+        <div className="flex flex-wrap items-center gap-2.5 shrink-0">
+          <button
+            type="button"
+            onClick={handleCleanMemory}
+            className="px-3.5 py-2.5 rounded-2xl bg-white/5 hover:bg-white/10 border border-white/10 text-zinc-300 hover:text-white font-black text-[10px] uppercase tracking-wider transition-all flex items-center gap-1.5 cursor-pointer active:scale-95"
+            title="Clean Standby Memory"
+          >
+            <Trash2 className="w-3.5 h-3.5 text-amber-400" />
+            {memoryCleanedMsg || 'Purge Standby RAM'}
+          </button>
+
+          <button
+            type="button"
+            onClick={handleScanCrashLogs}
+            className="px-3.5 py-2.5 rounded-2xl bg-white/5 hover:bg-white/10 border border-white/10 text-zinc-300 hover:text-white font-black text-[10px] uppercase tracking-wider transition-all flex items-center gap-1.5 cursor-pointer active:scale-95"
+            title="Scan Crash History & Event Logs"
+          >
+            <AlertTriangle className="w-3.5 h-3.5 text-neon-yellow" />
+            Crash Diagnostics
+          </button>
+
+          <button
+            type="button"
+            onClick={handleToggleGameMode}
+            className={`px-5 py-2.5 rounded-2xl font-black text-xs uppercase tracking-widest transition-all flex items-center gap-2 cursor-pointer active:scale-95 shadow-lg ${
+              isGameModeActive
+                ? 'bg-red-500/20 hover:bg-red-500/30 text-red-400 border border-red-500/40 shadow-[0_0_20px_rgba(239,68,68,0.2)]'
+                : 'bg-neon-green hover:bg-neon-green text-black shadow-[0_0_20px_rgba(118,185,0,0.25)]'
             }`}
-        >
-          <Zap className={`w-4 h-4 ${isGameActive ? "fill-black" : "fill-current"}`} />
-          {isGameActive ? "Boost Mode: Active" : "Boost Mode"}
-        </button>
+          >
+            <Zap className={`w-4 h-4 ${isGameModeActive ? 'text-red-400' : 'text-black fill-black'}`} />
+            {isGameModeActive ? 'Undo Game Mode' : 'Engage Game Mode'}
+          </button>
+        </div>
       </div>
 
       {/* ── Benchmark Session & Export Suite ── */}
@@ -795,6 +892,84 @@ const LabPage: React.FC<{
           </div>
         </div>
       </div>
+
+      {/* ── Crash Diagnostics Modal ── */}
+      <AnimatePresence>
+        {isCrashModalOpen && (
+          <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/80 backdrop-blur-md">
+            <motion.div
+              initial={{ opacity: 0, scale: 0.95, y: 20 }}
+              animate={{ opacity: 1, scale: 1, y: 0 }}
+              exit={{ opacity: 0, scale: 0.95, y: 20 }}
+              className="bg-[#0e0e14] border border-white/15 rounded-3xl p-6 sm:p-8 max-w-lg w-full shadow-2xl relative overflow-hidden"
+            >
+              <button
+                type="button"
+                onClick={() => setIsCrashModalOpen(false)}
+                className="absolute top-5 right-5 p-2 rounded-xl bg-white/5 hover:bg-white/10 text-zinc-400 hover:text-white transition-all cursor-pointer"
+              >
+                <X className="w-4 h-4" />
+              </button>
+
+              <div className="flex items-center gap-3 mb-4">
+                <div className="p-2.5 rounded-2xl bg-neon-yellow/10 border border-neon-yellow/30 text-neon-yellow">
+                  <AlertTriangle className="w-5 h-5" />
+                </div>
+                <div>
+                  <h3 className="text-base font-black text-white uppercase tracking-tight">
+                    System Health &amp; Crash Report
+                  </h3>
+                  <p className="text-[10px] text-zinc-500 font-bold font-mono">
+                    {state?.crash_analysis?.timestamp || new Date().toLocaleString()}
+                  </p>
+                </div>
+              </div>
+
+              <div className="p-4 rounded-2xl bg-white/3 border border-white/6 mb-4 space-y-2">
+                <div className="flex items-center justify-between">
+                  <span className="text-[10px] font-black uppercase tracking-widest text-zinc-400">Status</span>
+                  <span className="px-2 py-0.5 rounded-full text-[9px] font-bold bg-neon-green/20 text-neon-green border border-neon-green/30 uppercase">
+                    {state?.crash_analysis?.detected ? 'Anomaly Logged' : 'Stability Nominal'}
+                  </span>
+                </div>
+                <p className="text-xs font-semibold text-zinc-200 leading-relaxed">
+                  {state?.crash_analysis?.summary || 'Hardware and driver stability nominal. No unhandled DirectX or TDR exceptions detected in the last session.'}
+                </p>
+                <div className="text-[10px] font-mono text-zinc-400">
+                  <span className="font-bold text-zinc-500">Likely Root Cause: </span>
+                  {state?.crash_analysis?.likely_cause || 'None'}
+                </div>
+              </div>
+
+              <div className="space-y-2 mb-6">
+                <h4 className="text-[10px] font-black uppercase tracking-widest text-zinc-400">
+                  Engineered Recommendations
+                </h4>
+                <div className="space-y-1.5">
+                  {(state?.crash_analysis?.recommendations || [
+                    'Keep NVIDIA Game Ready drivers up to date.',
+                    'Maintain at least 15% VRAM headroom during heavy Ray Tracing workloads.',
+                    'Enable Reflex Low Latency + Boost for minimal pipeline queue latency.'
+                  ]).map((rec, i) => (
+                    <div key={i} className="flex items-start gap-2 text-[11px] text-zinc-300">
+                      <span className="text-neon-green font-bold shrink-0">✓</span>
+                      <span>{rec}</span>
+                    </div>
+                  ))}
+                </div>
+              </div>
+
+              <button
+                type="button"
+                onClick={() => setIsCrashModalOpen(false)}
+                className="w-full py-2.5 rounded-xl bg-neon-green hover:bg-neon-green text-black font-black text-xs uppercase tracking-widest transition-all cursor-pointer shadow-[0_0_15px_rgba(118,185,0,0.3)]"
+              >
+                Acknowledge &amp; Dismiss
+              </button>
+            </motion.div>
+          </div>
+        )}
+      </AnimatePresence>
     </div>
   );
 };

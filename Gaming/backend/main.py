@@ -318,10 +318,14 @@ Ready and monitoring. Launch your game to initiate automatic HUD lock.
         except Exception as e:
             logger.error("Failed to instantiate Local Vision Analyzer: %s", e)
 
-        pipeline.action_confirm_callback = lambda text, delay: (
-            bridge.update_state({"confirmation_required": {"text": text, "delay": delay}}),
-            True,
-        )[1]
+        def _on_action_confirm(text, delay):
+            import uuid
+            aid = str(uuid.uuid4())[:8]
+            pipeline._pending_action = {"id": aid, "text": text, "delay": delay, "status": "pending"}
+            bridge.update_state({"confirmation_required": {"text": text, "delay": delay, "action_id": aid}})
+            return True
+
+        pipeline.action_confirm_callback = _on_action_confirm
         pipeline.thermal_alert_callback = lambda title, msg, dur: bridge.update_state(
             {"alert": {"title": title, "message": msg}}
         )

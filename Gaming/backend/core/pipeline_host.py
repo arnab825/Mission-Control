@@ -317,6 +317,9 @@ class GamingAssistantPipeline:
         self.action_confirm_callback = None
         self.thermal_alert_callback = None
         self._last_thermal_alert = {"cpu": 0.0, "gpu": 0.0}
+        self._action_abort_flag = False
+        self._action_log = []
+        self._pending_action = None
 
         # ── Config File Watcher (dynamic keybind sync) ──────────────────────
         try:
@@ -2521,6 +2524,7 @@ class GamingAssistantPipeline:
                             return
 
                         self.input_manager.execute_action(action, mode="click")
+                        self.record_agent_action(action_name, f"Executed GameAction: {action_name}", status="executed")
                         with self._state_lock:
                             self._game_state["agent_action"] = action_name
                         time.sleep(0.1) # Small gap
@@ -2557,6 +2561,7 @@ class GamingAssistantPipeline:
                                 return
 
                             self.input_manager.execute_key(key_to_press, mode="click")
+                            self.record_agent_action(action_name, f"Executed key: {key_to_press.upper()}", status="executed")
                             with self._state_lock:
                                 self._game_state["agent_action"] = action_name
                             time.sleep(0.1) # Small gap
@@ -2988,6 +2993,10 @@ class GamingAssistantPipeline:
             if not self.agentic_mode_active:
                 logger.info("[AGENT] Aborted: Agentic mode deactivated during safety window.")
                 return True
+            if getattr(self, "_action_abort_flag", False):
+                logger.info("[AGENT] Aborted: Action cancelled by user safety toast.")
+                self._action_abort_flag = False
+                return True
             if self.input_manager.is_user_active(threshold=1.5):
                 logger.warning("[AGENT] Aborted: User manual override detected.")
                 return True
@@ -3004,6 +3013,49 @@ class GamingAssistantPipeline:
                     logger.debug(f"Failed to check GetAsyncKeyState: {e}")
             time.sleep(0.05)
         return False
+
+    def handle_confirm_action(self, action_id: str = None, confirmed: bool = True):
+        """Processes manual confirmation or abort from the frontend safety countdown toast."""
+        from datetime import datetime
+        import uuid
+        now_str = datetime.now().strftime("%H:%M:%S")
+        if not confirmed:
+            self._action_abort_flag = True
+            logger.info("[AGENT] User cancelled pending action (id=%s)", action_id)
+            if self._pending_action:
+                self._pending_action["status"] = "cancelled"
+            self._action_log.append({
+                "id": action_id or str(uuid.uuid4())[:8],
+                "timestamp": now_str,
+                "action_type": "Autonomous Action",
+                "details": (self._pending_action or {}).get("text", "Safety interlock cancelled action"),
+                "status": "cancelled"
+            })
+            with self._state_lock:
+                self._game_state["confirmation_required"] = None
+                self._game_state["action_log"] = list(self._action_log[-50:])
+        else:
+            logger.info("[AGENT] User confirmed pending action (id=%s)", action_id)
+            if self._pending_action:
+                self._pending_action["status"] = "executed"
+
+    def record_agent_action(self, action_name: str, details: str = "", status: str = "executed"):
+        """Records an action into the session audit log."""
+        from datetime import datetime
+        import uuid
+        item = {
+            "id": str(uuid.uuid4())[:8],
+            "timestamp": datetime.now().strftime("%H:%M:%S"),
+            "action_type": str(action_name),
+            "details": details or f"Autonomous execution: {action_name}",
+            "status": status
+        }
+        self._action_log.append(item)
+        if len(self._action_log) > 100:
+            self._action_log = self._action_log[-100:]
+        with self._state_lock:
+            self._game_state["action_log"] = list(self._action_log[-50:])
+
 
     def set_agentic_mode(self, active):
         """Enable or disable autonomous co-pilot actions and device hooks."""
@@ -3325,6 +3377,20 @@ class GamingAssistantPipeline:
             alerts.append(("CPU Thermal Alert", f"CPU temperature is {cpu_temp:.0f}°C, above the critical limit of {cpu_crit}°C. Consider lowering load or closing background tasks.", "cpu", cpu_temp, 45))
         elif cpu_temp >= cpu_warn:
             alerts.append(("CPU Thermal Warning", f"CPU temperature is {cpu_temp:.0f}°C, above the warning limit of {cpu_warn}°C.", "cpu", cpu_temp, 30))
+
+        if alerts:
+            top_title, top_msg, top_key, top_temp, _ = alerts[0]
+            with self._state_lock:
+                self._game_state["thermal_alert"] = {
+                    "active": True,
+                    "component": "GPU" if top_key == "gpu" else "CPU",
+                    "current_temp": top_temp,
+                    "threshold": gpu_warn if top_key == "gpu" else cpu_warn,
+                    "suggestion": "Engage Max Fans or throttle workload."
+                }
+        else:
+            with self._state_lock:
+                self._game_state["thermal_alert"] = None
 
         for title, message, key, temp, duration in alerts:
             last = self._last_thermal_alert.get(key, 0.0)

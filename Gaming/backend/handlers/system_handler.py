@@ -1572,5 +1572,85 @@ def handle_reset_detection_heatmap(payload: dict, pipeline, bridge, config) -> N
     logger.info("Reset vision detection heatmap.")
 
 
+def handle_enable_game_mode(payload: dict, pipeline, bridge, config) -> None:
+    """Engages One-Click Game Mode across all 5 tactical stages."""
+    exclusions = payload.get("exclusions") if payload else None
+    power_mode = payload.get("power_mode", "max") if payload else "max"
+    logger.info("Engaging One-Click Game Mode (power_mode=%s)...", power_mode)
+
+    def _do_enable():
+        from system.optimizer import Optimizer
+        snapshot = Optimizer.enable_full_game_mode(exclusions=exclusions, power_mode=power_mode)
+        if pipeline and hasattr(pipeline, "_game_state"):
+            with pipeline._state_lock:
+                pipeline._game_state["game_mode_status"] = snapshot
+                pipeline._game_state["cooling_mode"] = "max"
+                pipeline._game_state["cooling_applied"] = True
+        if bridge:
+            bridge.update_state({
+                "game_mode_status": snapshot,
+                "cooling_mode": "max",
+                "cooling_applied": True,
+            })
+        logger.info("One-Click Game Mode engaged successfully: %s", snapshot.get("active"))
+
+    threading.Thread(target=_do_enable, name="EnableGameModeWorker", daemon=True).start()
+
+
+def handle_disable_game_mode(payload: dict, pipeline, bridge, config) -> None:
+    """Disables One-Click Game Mode and restores nominal system status."""
+    logger.info("Deactivating One-Click Game Mode...")
+
+    def _do_disable():
+        from system.optimizer import Optimizer
+        snapshot = Optimizer.disable_full_game_mode()
+        if pipeline and hasattr(pipeline, "_game_state"):
+            with pipeline._state_lock:
+                pipeline._game_state["game_mode_status"] = snapshot
+                pipeline._game_state["cooling_mode"] = "balanced"
+                pipeline._game_state["cooling_applied"] = True
+        if bridge:
+            bridge.update_state({
+                "game_mode_status": snapshot,
+                "cooling_mode": "balanced",
+                "cooling_applied": True,
+            })
+        logger.info("One-Click Game Mode deactivated successfully.")
+
+    threading.Thread(target=_do_disable, name="DisableGameModeWorker", daemon=True).start()
+
+
+def handle_get_game_mode_status(payload: dict, pipeline, bridge, config) -> None:
+    """Fetches current Game Mode status."""
+    from system.optimizer import Optimizer
+    snapshot = Optimizer.get_game_mode_state()
+    if bridge:
+        bridge.update_state({"game_mode_status": snapshot})
+
+
+def handle_clean_standby_memory(payload: dict, pipeline, bridge, config) -> None:
+    """Explicitly flushes standby working sets and releases memory."""
+    from system.optimizer import Optimizer
+    res = Optimizer.clean_standby_memory_explicit()
+    logger.info("Cleaned standby memory: %s MB freed", res.get("freed_mb", 0))
+    if bridge:
+        bridge.update_state({
+            "memory_clean_result": res,
+            "mem_pct": res.get("usage_pct"),
+            "mem_used_gb": res.get("used_gb"),
+            "mem_total_gb": res.get("total_gb"),
+        })
+
+
+def handle_analyze_crash_logs(payload: dict, pipeline, bridge, config) -> None:
+    """Analyzes system and driver logs for crashes or TDR recovery events."""
+    from system.optimizer import Optimizer
+    report = Optimizer.analyze_system_crashes()
+    logger.info("Generated crash report analysis.")
+    if bridge:
+        bridge.update_state({"crash_analysis": report})
+
+
+
 
 
