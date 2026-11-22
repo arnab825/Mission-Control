@@ -10,7 +10,33 @@ excerpt: "Curated breakdown of major version releases, architectural milestones,
 
 Comprehensive breakdown of major milestone releases, architectural upgrades, and core engine enhancements in **Mission Control**.
 
-## 🌟 Version v4.0.6 (Latest) — Exclusive Fullscreen Overlay Compatibility, Auto-Borderless Coercion & Benchmark Reporting
+## 🌟 Version v4.0.7 (Latest) — Gameplay Video Recording, Screenshot Capture Suite & Universal Benchmark Reporting
+
+### 🛠️ Key Highlights
+1. **Implemented high-performance zero-lag Gameplay Video Recorder with OpenCV background thread encoding and hardware acceleration fallback (NVENC/AVC1/H264/MP4V)**
+2. **Engineered rolling in-memory highlight clip buffer (15s–90s) enabling 30-second instant replay capture during high-action gaming moments**
+3. **Built comprehensive Screenshot Capture Engine with automatic desktop capture fallback, base64 thumbnail generation, and multi-format export (PNG/JPEG)**
+4. **Added tabbed Recent Media drawer in Vision Control Center supporting video clip playback, screenshot previews, folder navigation, and instant downloads**
+5. **Universalized Benchmark Reporting with persistent localStorage caching, global event dispatching, and dedicated Stability Lab Frametime Suite featuring one-click JSON and Markdown exports**
+
+### 📊 Architecture & Data Flow
+```mermaid
+graph TD
+    A["Game Video Stream / Frame Buffer"] --> B[VideoRecorder Background Queue]
+    B --> C[OpenCV Multi-Threaded Encoder NVENC/AVC1/MP4V]
+    A --> D[Rolling In-Memory Frame Buffer 15s-90s]
+    D --> E[Instant Replay Highlight Generator]
+    A --> F[Screenshot Capture Engine with Base64 Previews]
+    F --> G[Pictures/MissionControl & Gallery UI]
+```
+
+### 📦 Distribution Artifacts
+- **Linux**: `.deb` (Debian/Ubuntu), `.AppImage` (Universal), `.rpm` (Fedora/RHEL), `.tar.gz` (Portable)
+- **Windows**: `.exe` (Setup Installer), `.msi` (Enterprise), `.zip` (Portable)
+
+---
+
+## 📦 Version v4.0.6 — Exclusive Fullscreen Overlay Compatibility, Auto-Borderless Coercion & Benchmark Reporting
 
 ### 🛠️ Key Highlights
 1. **Engineered out-of-process Win32 Borderless Window Coercion engine converting windowed games into seamless borderless windows for zero-latency DWM overlay compatibility**

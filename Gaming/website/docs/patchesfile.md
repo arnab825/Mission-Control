@@ -2,6 +2,14 @@
 
 This document contains a detailed history of all patches and updates for the AI Gaming Assistant.
 
+### Patch: 2026-11-22 — v4.0.7: Gameplay Video Recording, Screenshot Capture Suite & Universal Benchmark Reporting
+
+- Implemented high-performance zero-lag Gameplay Video Recorder with OpenCV background thread encoding and hardware acceleration fallback (NVENC/AVC1/H264/MP4V)
+- Engineered rolling in-memory highlight clip buffer (15s–90s) enabling 30-second instant replay capture during high-action gaming moments
+- Built comprehensive Screenshot Capture Engine with automatic desktop capture fallback, base64 thumbnail generation, and multi-format export (PNG/JPEG)
+- Added tabbed Recent Media drawer in Vision Control Center supporting video clip playback, screenshot previews, folder navigation, and instant downloads
+- Universalized Benchmark Reporting with persistent localStorage caching, global event dispatching, and dedicated Stability Lab Frametime Suite featuring one-click JSON and Markdown exports
+
 ### Patch: 2026-11-21 — v4.0.6: Exclusive Fullscreen Overlay Compatibility, Auto-Borderless Coercion & Benchmark Reporting
 
 - Engineered out-of-process Win32 Borderless Window Coercion engine converting windowed games into seamless borderless windows for zero-latency DWM overlay compatibility

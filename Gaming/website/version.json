@@ -1,8 +1,20 @@
 {
-  "version": "4.0.6",
-  "release_date": "2026-11-21",
+  "version": "4.0.7",
+  "release_date": "2026-11-22",
   "update_check_url": "https://raw.githubusercontent.com/arnab825/Mission-Control/main/Gaming/backend/version.json",
   "changelog": [
+    {
+      "version": "4.0.7",
+      "date": "2026-11-22",
+      "title": "Gameplay Video Recording, Screenshot Capture Suite & Universal Benchmark Reporting",
+      "highlights": [
+        "Implemented high-performance zero-lag Gameplay Video Recorder with OpenCV background thread encoding and hardware acceleration fallback (NVENC/AVC1/H264/MP4V)",
+        "Engineered rolling in-memory highlight clip buffer (15s–90s) enabling 30-second instant replay capture during high-action gaming moments",
+        "Built comprehensive Screenshot Capture Engine with automatic desktop capture fallback, base64 thumbnail generation, and multi-format export (PNG/JPEG)",
+        "Added tabbed Recent Media drawer in Vision Control Center supporting video clip playback, screenshot previews, folder navigation, and instant downloads",
+        "Universalized Benchmark Reporting with persistent localStorage caching, global event dispatching, and dedicated Stability Lab Frametime Suite featuring one-click JSON and Markdown exports"
+      ]
+    },
     {
       "version": "4.0.6",
       "date": "2026-11-21",
