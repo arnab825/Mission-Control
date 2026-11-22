@@ -2,6 +2,16 @@
 
 This document contains a detailed history of all patches and updates for the AI Gaming Assistant.
 
+### Patch: 2026-11-22 — v4.0.8: Interactive Vision Suite, 5-Stage Game Mode & Agentic Safeguards
+
+- Interactive Canvas Region Selector: Drag-to-select marquee crop with pixel coordinates, area coverage readout, and 6 quick presets (Fullscreen, Center HUD, Minimap TR/BL, Subtitles, Top Half)
+- Per-Class YOLO Filter Matrix: Granular confidence threshold sliders (10%-100%), per-class toggles, and tactical semantic bounding box color coding
+- Capture Degradation Monitor & Thermal Watchdog: Dynamic FPS drop detection with cyberpunk alert banner, 1-click diagnostic remedies, and hardware thermal limits tracking
+- Spatial Detection Density Heatmap & OCR Integration: 32x18 normalized accumulation grid, live thermal canvas overlay, JSON export, and on-demand OCR text extraction
+- One-Click Game Mode Engine: 5-stage sequential optimization executing Background Cleanse, Standby Working Set Purge, High-Performance Power Plan, Process Priority Locks, and Windows Focus Assist
+- Agentic Action Confirmation Interlock: Animated safety countdown toast with instant Cancel/Abort and Execute Now controls
+- Autonomous Action Audit Log & Markdown Session Exporter: Complete timestamped audit trail with CSV/JSON export and 1-click full session Markdown export
+
 ### Patch: 2026-11-22 — v4.0.7: Gameplay Video Recording, Screenshot Capture Suite & Universal Benchmark Reporting
 
 - Implemented high-performance zero-lag Gameplay Video Recorder with OpenCV background thread encoding and hardware acceleration fallback (NVENC/AVC1/H264/MP4V)

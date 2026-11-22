@@ -10,7 +10,33 @@ excerpt: "Curated breakdown of major version releases, architectural milestones,
 
 Comprehensive breakdown of major milestone releases, architectural upgrades, and core engine enhancements in **Mission Control**.
 
-## 🌟 Version v4.0.7 (Latest) — Gameplay Video Recording, Screenshot Capture Suite & Universal Benchmark Reporting
+## 🌟 Version v4.0.8 (Latest) — Interactive Vision Suite, 5-Stage Game Mode & Agentic Safeguards
+
+### 🛠️ Key Highlights
+1. **Interactive Canvas Region Selector: Drag-to-select marquee crop with pixel coordinates, area coverage readout, and 6 quick presets (Fullscreen, Center HUD, Minimap TR/BL, Subtitles, Top Half)**
+2. **Per-Class YOLO Filter Matrix: Granular confidence threshold sliders (10%-100%), per-class toggles, and tactical semantic bounding box color coding**
+3. **Capture Degradation Monitor & Thermal Watchdog: Dynamic FPS drop detection with cyberpunk alert banner, 1-click diagnostic remedies, and hardware thermal limits tracking**
+4. **Spatial Detection Density Heatmap & OCR Integration: 32x18 normalized accumulation grid, live thermal canvas overlay, JSON export, and on-demand OCR text extraction**
+5. **One-Click Game Mode Engine: 5-stage sequential optimization executing Background Cleanse, Standby Working Set Purge, High-Performance Power Plan, Process Priority Locks, and Windows Focus Assist**
+6. **Agentic Action Confirmation Interlock: Animated safety countdown toast with instant Cancel/Abort and Execute Now controls**
+7. **Autonomous Action Audit Log & Markdown Session Exporter: Complete timestamped audit trail with CSV/JSON export and 1-click full session Markdown export**
+
+### 📊 Architecture & Data Flow
+```mermaid
+graph TD
+    A["Mobile Client / DevTools (320px+)"] --> B[Responsive CSS & Layout Container]
+    B --> C[DocsClient Component & Cards]
+    C --> D[MobileDocsSidebar Drawer & Header Bar]
+    D --> E[Real-Time Mongo Telemetry & Render]
+```
+
+### 📦 Distribution Artifacts
+- **Linux**: `.deb` (Debian/Ubuntu), `.AppImage` (Universal), `.rpm` (Fedora/RHEL), `.tar.gz` (Portable)
+- **Windows**: `.exe` (Setup Installer), `.msi` (Enterprise), `.zip` (Portable)
+
+---
+
+## 📦 Version v4.0.7 — Gameplay Video Recording, Screenshot Capture Suite & Universal Benchmark Reporting
 
 ### 🛠️ Key Highlights
 1. **Implemented high-performance zero-lag Gameplay Video Recorder with OpenCV background thread encoding and hardware acceleration fallback (NVENC/AVC1/H264/MP4V)**

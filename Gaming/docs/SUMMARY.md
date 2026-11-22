@@ -89,7 +89,8 @@ graph TD
 
 | Version | Key Feature / Change Description |
 | :--- | :--- |
-| **v4.0.7 (Latest)** | **Gameplay Video Recording, Screenshot Capture Suite & Universal Benchmark Reporting** — Implemented high-performance zero-lag Gameplay Video Recorder with OpenCV background thread encoding and hardware acceleration fallback (NVENC/AVC1/H264/MP4V) |
+| **v4.0.8 (Latest)** | **Interactive Vision Suite, 5-Stage Game Mode & Agentic Safeguards** — Interactive Canvas Region Selector: Drag-to-select marquee crop with pixel coordinates, area coverage readout, and 6 quick presets (Fullscreen, Center HUD, Minimap TR/BL, Subtitles, Top Half). |
+| **v4.0.7** | **Gameplay Video Recording, Screenshot Capture Suite & Universal Benchmark Reporting** — Implemented high-performance zero-lag Gameplay Video Recorder with OpenCV background thread encoding and hardware acceleration fallback (NVENC/AVC1/H264/MP4V) |
 | **v4.0.6** | **Exclusive Fullscreen Overlay Compatibility, Auto-Borderless Coercion & Benchmark Reporting** — Engineered out-of-process Win32 Borderless Window Coercion engine converting windowed games into seamless borderless windows for zero-latency DWM overlay compatibility. |
 | **v4.0.5** | **Network Telemetry & Wi-Fi Protocol Intelligence, Agent Neural History Overhaul & Dynamic Pipeline Controls** — Added comprehensive network hardware inspection detecting IPv4 address, MAC address, active connection types (Ethernet vs Wi-Fi), and link speeds |
 | **v4.0.4** | **Multi-OEM Display Routing, dGPU-Off Eco Mode, Discrete-Only Pipeline & Resident Evil 4 Remake Benchmarks** — Decoupled MUX mode vocabulary from hardcoded OMEN strings, prioritizing authentic detected OEM & GPU suites (NVIDIA App, Armoury Crate, Lenovo Vantage, AWCC, MSI, etc.). |

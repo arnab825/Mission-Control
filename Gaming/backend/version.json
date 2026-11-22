@@ -1,8 +1,22 @@
 {
-  "version": "4.0.7",
+  "version": "4.0.8",
   "release_date": "2026-11-22",
   "update_check_url": "https://raw.githubusercontent.com/arnab825/Mission-Control/main/Gaming/backend/version.json",
   "changelog": [
+    {
+      "version": "4.0.8",
+      "date": "2026-11-22",
+      "title": "Interactive Vision Suite, 5-Stage Game Mode & Agentic Safeguards",
+      "highlights": [
+        "Interactive Canvas Region Selector: Drag-to-select marquee crop with pixel coordinates, area coverage readout, and 6 quick presets (Fullscreen, Center HUD, Minimap TR/BL, Subtitles, Top Half)",
+        "Per-Class YOLO Filter Matrix: Granular confidence threshold sliders (10%-100%), per-class toggles, and tactical semantic bounding box color coding",
+        "Capture Degradation Monitor & Thermal Watchdog: Dynamic FPS drop detection with cyberpunk alert banner, 1-click diagnostic remedies, and hardware thermal limits tracking",
+        "Spatial Detection Density Heatmap & OCR Integration: 32x18 normalized accumulation grid, live thermal canvas overlay, JSON export, and on-demand OCR text extraction",
+        "One-Click Game Mode Engine: 5-stage sequential optimization executing Background Cleanse, Standby Working Set Purge, High-Performance Power Plan, Process Priority Locks, and Windows Focus Assist",
+        "Agentic Action Confirmation Interlock: Animated safety countdown toast with instant Cancel/Abort and Execute Now controls",
+        "Autonomous Action Audit Log & Markdown Session Exporter: Complete timestamped audit trail with CSV/JSON export and 1-click full session Markdown export"
+      ]
+    },
     {
       "version": "4.0.7",
       "date": "2026-11-22",
@@ -583,30 +597,6 @@
         "Normalized release stability schema across Electron IPC and React UpdatesPage",
         "Added version-targeted stability auditing to differentiate local crashes from incoming remote releases",
         "Updated type definitions in global and vite-env declarations"
-      ]
-    },
-    {
-      "version": "3.6.2",
-      "date": "2026-09-09",
-      "title": "NVIDIA NIM Decommissioning Fix & Multi-Model Cascade Failover",
-      "highlights": [
-        "Replaced decommissioned EOL model meta/llama-3.3-70b-instruct with active meta/llama-3.2-11b-vision-instruct",
-        "Implemented multi-model cascade failover in FeedbackLoop across Llama 3.2 11B Vision and Nemotron 3 Super 120B",
-        "Resolved ChatNVIDIA parameter validation error by stripping unsupported timeout kwarg",
-        "Updated Tier 3 NVIDIA NIM cascades across website blog generator, diagnostics, and desktop settings"
-      ]
-    },
-    {
-      "version": "3.6.1",
-      "date": "2026-09-08",
-      "title": "Rockstar Games Launcher HUD Exclusion & Voice Agent DLSS Sanitization",
-      "highlights": [
-        "Resolved Rockstar Games Launcher (Launcher.exe) falsely triggering the in-game HUD overlay and FPS readings",
-        "Added Rockstar executables and window titles to process watcher, window detector, and pipeline exclusions",
-        "Filtered out launcher entries and platforms from library scan caches and foreground heuristics",
-        "Removed legacy mock optimize command regex handler that intercepted voice requests with hardcoded DLSS readings",
-        "Expanded GameBrain telemetry exclusion keys to prevent internal DLSS tips and advisor diagnostics from leaking into prompt context",
-        "Integrated AgentCommandProcessor into voice pipeline and enhanced speech sanitization in VoiceManager"
       ]
     }
   ]
