@@ -1269,27 +1269,27 @@ const App: React.FC = () => {
             <div className="flex-1 min-h-0 min-w-0 flex flex-col relative overflow-hidden z-1">
               {/* Header / Top Bar */}
               <header className="h-14 shrink-0 border-b border-white/5 flex items-center justify-between px-4 lg:px-6 bg-[var(--theme-bg-surface,#0a0a0f)] z-55">
-                <div className="flex items-center gap-3">
+                <div className="flex items-center gap-3 min-w-0 shrink-0">
                   {/* Mobile Menu Toggle */}
-                  <button aria-label="button" type="button" onClick={() => setIsSidebarOpen(true)} className="p-1.5 hover:bg-white/5 rounded-lg lg:hidden text-zinc-400">
+                  <button aria-label="button" type="button" onClick={() => setIsSidebarOpen(true)} className="p-1.5 hover:bg-white/5 rounded-lg lg:hidden text-zinc-400 shrink-0">
                     <Menu className="w-4 h-4" />
                   </button>
 
-                  <div className="flex items-center gap-2">
-                    <div className={`w-6 h-6 rounded flex items-center justify-center border border-white/10 overflow-hidden p-0.5 ${preferences.gamerProfile?.avatarAura ? 'gamer-aura-glow bg-neon-green/20' : 'bg-white/5'}`}>
+                  <div className="flex items-center gap-2.5 min-w-0 shrink-0">
+                    <div className={`w-7 h-7 rounded-xl flex items-center justify-center border border-white/10 overflow-hidden p-0.5 bg-white/[0.04] backdrop-blur-md shadow-[0_0_12px_rgba(118,185,0,0.2)] shrink-0 ${preferences.gamerProfile?.avatarAura ? 'gamer-aura-glow ring-1 ring-neon-green/40' : ''}`}>
                       <img src="/logo.png" className="w-full h-full object-contain" alt="Logo" />
                     </div>
-                    <div className="flex items-center gap-1.5">
-                      <h1 className="text-xs font-black tracking-tighter text-white uppercase">Mission Control</h1>
-                      {preferences.gamerProfile?.callsign && (
-                        <span className="hidden sm:inline-flex items-center gap-1 text-[8px] font-mono font-black uppercase text-neon-green bg-neon-green/10 border border-neon-green/25 px-1.5 py-0.5 rounded-md">
-                          <span className="w-1 h-1 rounded-full bg-neon-green animate-pulse" />
-                          {preferences.gamerProfile.callsign}
-                        </span>
-                      )}
+                    <div className="flex items-center gap-2 min-w-0 shrink-0">
+                      <h1 className="text-xs font-black tracking-widest text-transparent bg-clip-text bg-gradient-to-r from-white via-zinc-200 to-zinc-400 uppercase font-sans whitespace-nowrap shrink-0">
+                        Mission Control
+                      </h1>
+                      <span className="hidden sm:inline-flex items-center gap-1.5 text-[9px] font-mono font-bold uppercase text-neon-green bg-neon-green/10 border border-neon-green/30 px-2.5 py-0.5 rounded-full shadow-[0_0_10px_rgba(118,185,0,0.15)] select-none whitespace-nowrap shrink-0">
+                        <span className="w-1.5 h-1.5 rounded-full bg-neon-green animate-pulse shadow-[0_0_6px_#76b900] shrink-0" />
+                        {preferences.gamerProfile?.callsign || 'OPERATIVE-01'}
+                      </span>
                     </div>
                     {activeGameTheme && (
-                      <span className="hidden xl:inline-flex items-center gap-1 text-[8px] font-black uppercase text-neon-yellow bg-neon-yellow/15 border border-neon-yellow/30 px-2 py-0.5 rounded-full animate-pulse ml-1">
+                      <span className="hidden 2xl:inline-flex items-center gap-1.5 text-[8.5px] font-mono font-bold uppercase text-neon-yellow bg-neon-yellow/15 border border-neon-yellow/30 px-2.5 py-0.5 rounded-full animate-pulse ml-1 shadow-[0_0_10px_rgba(191,255,0,0.2)] whitespace-nowrap shrink-0">
                         🎮 {state?.current_game || 'Game'} Sync
                       </span>
                     )}
@@ -1297,8 +1297,8 @@ const App: React.FC = () => {
                 </div>
 
                 {/* Agent Controls & Sync */}
-                <div className="flex items-center gap-3 shrink-0">
-                  <div className="hidden md:flex items-center gap-2 pr-3 border-r border-white/5">
+                <div className="flex items-center gap-2 lg:gap-2.5 shrink-0 ml-2">
+                  <div className="hidden sm:flex items-center gap-2 pr-2 lg:pr-2.5 border-r border-white/10">
                     {/* Theme Quick Switcher */}
                     <ThemeQuickMenu
                       currentGame={state?.current_game}
@@ -1310,20 +1310,27 @@ const App: React.FC = () => {
 
                     {/* Personality Dropdown */}
                     <div className="relative group">
-                      <button aria-label="button" type="button" className="h-7 px-2.5 bg-white/5 border border-white/10 rounded-lg flex items-center gap-1.5 hover:bg-white/8 hover:border-white/20 transition-all shadow-sm">
-                        <Sparkles className="w-3 h-3 text-neon-green" />
-                        <span className="text-[10px] font-black text-zinc-300 uppercase tracking-widest">{personality}</span>
-                        <ChevronDown className="w-3 h-3 text-zinc-500 group-hover:rotate-180 transition-transform duration-200" />
+                      <button
+                        aria-label="Agent Personality"
+                        type="button"
+                        title={`Agent Personality: ${personality}`}
+                        className="h-8 px-2.5 xl:px-3 bg-white/[0.04] hover:bg-white/[0.08] border border-white/10 hover:border-white/20 rounded-xl flex items-center gap-1.5 xl:gap-2 transition-all shadow-sm cursor-pointer active:scale-95 group shrink-0"
+                      >
+                        <Sparkles className="w-3.5 h-3.5 text-neon-green group-hover:scale-110 transition-transform shrink-0" />
+                        <span className="text-[10px] font-black text-zinc-200 uppercase tracking-wider hidden xl:inline whitespace-nowrap">{personality}</span>
+                        <ChevronDown className="w-3 h-3 text-zinc-400 group-hover:rotate-180 transition-transform duration-200 shrink-0" />
                       </button>
-                      <div className="absolute top-full right-0 mt-1.5 w-36 bg-[#0a0a0f]/95 backdrop-blur-xl border border-white/10 rounded-xl shadow-2xl opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all duration-200 z-100 p-1 flex flex-col gap-0.5">
+                      <div className="absolute top-full right-0 mt-2 w-40 bg-[#0a0a0f]/95 backdrop-blur-2xl border border-white/10 rounded-2xl shadow-2xl opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all duration-200 z-100 p-1.5 flex flex-col gap-1">
                         {['Tactical', 'Friendly', 'Immersive', 'Sarcastic', 'Aggressive'].map((p) => (
-                          <button aria-label="button" type="button"
+                          <button
                             key={p}
+                            type="button"
                             onClick={() => handlePersonalityChange(p)}
-                            className={`w-full text-left px-3 py-2 text-[10px] font-black uppercase tracking-widest transition-all rounded-lg ${personality === p
-                              ? 'text-neon-green bg-neon-green/10 shadow-[inset_0_0_8px_rgba(118, 185, 0,0.05)] border border-neon-green/15'
-                              : 'text-zinc-400 hover:text-neon-green hover:bg-white/5 border border-transparent'
-                              }`}
+                            className={`w-full text-left px-3 py-2 text-[10px] font-black uppercase tracking-wider transition-all rounded-xl cursor-pointer ${
+                              personality === p
+                                ? 'text-neon-green bg-neon-green/10 shadow-[inset_0_0_8px_rgba(118,185,0,0.1)] border border-neon-green/20'
+                                : 'text-zinc-400 hover:text-white hover:bg-white/5 border border-transparent'
+                            }`}
                           >
                             {p}
                           </button>
@@ -1332,28 +1339,42 @@ const App: React.FC = () => {
                     </div>
 
                     {/* Agent Toggle */}
-                    <button aria-label="button" type="button"
+                    <button
+                      aria-label="Toggle Agent Mode"
+                      type="button"
                       onClick={toggleAgentic}
-                      className={`h-7 px-2 border rounded flex items-center gap-1.5 transition-all ${isAgentic
-                        ? 'bg-neon-green/10 border-neon-green/25 text-neon-green glow-green'
-                        : 'bg-white/4 border-white/6 text-zinc-500 hover:text-zinc-300'
-                        }`}
+                      className={`h-8 px-2.5 xl:px-3 border rounded-xl flex items-center gap-1.5 xl:gap-2 transition-all cursor-pointer active:scale-95 shadow-sm shrink-0 ${
+                        isAgentic
+                          ? 'bg-neon-green/10 border-neon-green/30 text-neon-green shadow-[0_0_12px_rgba(118,185,0,0.15)]'
+                          : 'bg-white/[0.04] hover:bg-white/[0.08] border-white/10 hover:border-white/20 text-zinc-400 hover:text-zinc-200'
+                      }`}
+                      title={isAgentic ? "Autonomous Agent: Active" : "Autonomous Agent: Standby"}
                     >
-                      <span className="text-[8px] font-bold uppercase tracking-wider">Agent</span>
-                      {isAgentic ? <ToggleRight className="w-3.5 h-3.5" /> : <ToggleLeft className="w-3.5 h-3.5" />}
+                      <span className="text-[10px] font-black uppercase tracking-wider hidden xl:inline whitespace-nowrap">Agent</span>
+                      {isAgentic ? <ToggleRight className="w-4 h-4 text-neon-green shrink-0" /> : <ToggleLeft className="w-4 h-4 text-zinc-500 shrink-0" />}
                     </button>
                   </div>
 
-
-
                   {/* Connection Status */}
-                  <div className={`px-2 py-1 rounded border ${connected ? 'bg-neon-yellow/10 border-neon-yellow/20 text-neon-yellow' : 'bg-red-500/10 border-red-500/20 text-red-500'} text-[7px] font-black uppercase tracking-[0.2em]`}>
+                  <div
+                    className={`h-8 px-3 rounded-xl border flex items-center gap-2 transition-all select-none shadow-sm shrink-0 ${
+                      connected
+                        ? 'bg-neon-green/10 border-neon-green/25 text-neon-green shadow-[0_0_12px_rgba(118,185,0,0.15)]'
+                        : 'bg-red-500/10 border-red-500/25 text-red-400'
+                    } text-[9.5px] font-mono font-black uppercase tracking-widest whitespace-nowrap`}
+                    title={connected ? "Telemetry Stream: Live & Synchronized" : "Telemetry Stream: Offline"}
+                  >
                     {connected ? (
-                      <span className="flex items-center gap-1.5">
-                        <span className="w-1 h-1 rounded-full bg-neon-green shadow-[0_0_5px_#76b900] animate-pulse" />
+                      <span className="flex items-center gap-1.5 whitespace-nowrap">
+                        <span className="w-1.5 h-1.5 rounded-full bg-neon-green shadow-[0_0_8px_#76b900] animate-pulse shrink-0" />
                         <span>Sync</span>
                       </span>
-                    ) : 'Off'}
+                    ) : (
+                      <span className="flex items-center gap-1.5 whitespace-nowrap">
+                        <span className="w-1.5 h-1.5 rounded-full bg-red-400 shrink-0" />
+                        <span>Off</span>
+                      </span>
+                    )}
                   </div>
                 </div>
               </header>

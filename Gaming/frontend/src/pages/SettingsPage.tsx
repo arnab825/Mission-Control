@@ -824,11 +824,11 @@ export const SettingsPage: React.FC<SettingsPageProps> = ({ state, sendCommand, 
   return (
     <div className="flex-1 p-3 sm:p-6 lg:p-8 overflow-y-auto custom-scrollbar gap-y-6 sm:gap-y-12 bg-[#050505]/40">
       {/* Redesigned Premium Tech Header */}
-      <div className="relative p-4 sm:p-6 lg:p-8 rounded-2xl sm:rounded-3xl border border-white/10 bg-[#0c0c12]/60 backdrop-blur-xl flex flex-col md:flex-row md:items-center justify-between gap-4 sm:gap-6 overflow-hidden shadow-[0_8px_32px_rgba(0,0,0,0.5)]">
+      <div className="relative p-4 sm:p-6 lg:p-8 rounded-2xl sm:rounded-3xl border border-white/10 bg-[#0c0c12]/60 backdrop-blur-xl flex flex-col xl:flex-row xl:items-center justify-between gap-4 sm:gap-6 overflow-hidden shadow-[0_8px_32px_rgba(0,0,0,0.5)]">
         <div className="absolute top-0 right-1/4 w-96 h-96 bg-neon-green/10 rounded-full blur-[100px] pointer-events-none -translate-y-1/2" />
         <div className="absolute bottom-0 left-10 w-64 h-64 bg-purple-500/5 rounded-full blur-[80px] pointer-events-none translate-y-1/2" />
 
-        <div className="flex items-start gap-3 sm:gap-5 relative z-10">
+        <div className="flex items-start gap-3 sm:gap-5 relative z-10 min-w-0">
           <div className="relative group shrink-0">
             <div className="absolute -inset-0.5 bg-gradient-to-r from-neon-green to-blue-500 rounded-2xl opacity-40 blur group-hover:opacity-75 transition duration-1000 group-hover:duration-200" />
             <div className="relative w-10 h-10 sm:w-14 sm:h-14 rounded-2xl bg-black/85 border border-white/10 flex items-center justify-center text-neon-green">
@@ -836,9 +836,9 @@ export const SettingsPage: React.FC<SettingsPageProps> = ({ state, sendCommand, 
             </div>
           </div>
 
-          <div>
+          <div className="min-w-0">
             <div className="flex items-center gap-3 mb-1.5 flex-wrap">
-              <h2 className="text-xl sm:text-3xl font-black tracking-tight text-transparent bg-clip-text bg-gradient-to-r from-neon-green to-white drop-shadow-[0_0_12px_rgba(118,185,0,0.8)] uppercase font-sans">
+              <h2 className="text-xl sm:text-3xl font-black tracking-tight text-transparent bg-clip-text bg-gradient-to-r from-neon-green to-white drop-shadow-[0_0_12px_rgba(118,185,0,0.8)] uppercase font-sans whitespace-nowrap shrink-0">
                 App Settings
               </h2>
             </div>
@@ -849,7 +849,7 @@ export const SettingsPage: React.FC<SettingsPageProps> = ({ state, sendCommand, 
         </div>
 
         {/* Action Controls */}
-        <div className="flex items-center relative z-10 shrink-0 self-end md:self-center w-full md:w-auto">
+        <div className="flex items-center relative z-10 shrink-0 self-start xl:self-center w-full sm:w-auto">
           <div className="flex flex-col sm:flex-row items-stretch bg-[#0c0c12]/90 border border-white/15 rounded-2xl overflow-hidden backdrop-blur-xl shadow-lg w-full sm:w-auto transition-all">
             {/* Auto-Save Toggle */}
             <div className="flex items-center justify-between sm:justify-start gap-3 px-4 sm:px-5 py-2.5 sm:py-0 border-b sm:border-b-0 sm:border-r border-white/10 bg-white/[0.02]">

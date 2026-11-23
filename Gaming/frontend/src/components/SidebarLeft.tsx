@@ -289,12 +289,12 @@ const Sidebar: React.FC<SidebarProps> = ({
         
         {/* Brand Logo Header */}
         <div className="flex items-center justify-between px-2 mb-4 border-b border-white/5 pb-4">
-          <div className="flex items-center gap-2.5">
-            <div className="w-7 h-7 rounded-lg border border-neon-green/45 flex items-center justify-center bg-neon-green/5 overflow-hidden p-0.5 shadow-[0_0_12px_rgba(118, 185, 0,0.15)]">
+          <div className="flex items-center gap-2.5 min-w-0">
+            <div className="w-7 h-7 rounded-lg border border-neon-green/45 flex items-center justify-center bg-neon-green/10 overflow-hidden p-0.5 shadow-[0_0_12px_rgba(118,185,0,0.25)] shrink-0">
               <img src="/logo.png" className="w-full h-full object-contain" alt="Logo" />
             </div>
-            <span className="text-[13px] font-black tracking-widest text-white uppercase font-display">
-              Mission <span className="text-neon-green">Control</span>
+            <span className="text-[13px] font-black tracking-widest text-white uppercase font-display whitespace-nowrap drop-shadow-sm">
+              Mission <span className="text-neon-green drop-shadow-[0_0_8px_rgba(118,185,0,0.4)]">Control</span>
             </span>
           </div>
           <button aria-label="button" type="button"
@@ -306,7 +306,7 @@ const Sidebar: React.FC<SidebarProps> = ({
         </div>
 
         {/* ── TOP SECTION: Navigation ────────────────────────────── */}
-        <div className="mb-4 space-y-0.5">
+        <div className="mb-4 space-y-1">
           <div className="px-2 mb-3">
             <span className="text-[11px] font-black text-zinc-500 uppercase tracking-[0.2em]">Navigation</span>
           </div>
@@ -321,16 +321,21 @@ const Sidebar: React.FC<SidebarProps> = ({
                   onNavigate(item.id);
                   if (window.innerWidth < 1024 && onClose) onClose();
                 }}
-                className={`w-full flex items-center gap-2.5 p-2.5 rounded-xl transition-all ${
+                className={`w-full flex items-center gap-2.5 p-2.5 rounded-xl transition-all relative group cursor-pointer ${
                   isActive 
-                    ? 'bg-white/10 border border-white/10 shadow-[inset_0_1px_1px_rgba(255,255,255,0.1)]' 
-                    : 'hover:bg-white/4 border border-transparent'
+                    ? 'bg-white/10 border border-white/15 shadow-[inset_0_1px_1px_rgba(255,255,255,0.1),0_0_15px_rgba(118,185,0,0.06)]' 
+                    : 'hover:bg-white/[0.04] hover:translate-x-0.5 border border-transparent'
                 }`}
               >
-                <div className={`p-1 rounded-lg ${isActive ? 'bg-black/40' : 'bg-transparent'}`}>
-                  <Icon className={`w-4 h-4 ${isActive ? item.color : 'text-zinc-500'}`} />
+                {/* Active Indicator Accent Bar */}
+                {isActive && (
+                  <span className="absolute left-0 top-2 bottom-2 w-1 rounded-r-full bg-neon-green shadow-[0_0_8px_rgba(118,185,0,0.8)]" />
+                )}
+
+                <div className={`p-1 rounded-lg transition-colors ${isActive ? 'bg-black/50 border border-white/10 shadow-sm' : 'bg-transparent group-hover:bg-white/5'}`}>
+                  <Icon className={`w-4 h-4 transition-transform group-hover:scale-105 ${isActive ? `${item.color} drop-shadow-[0_0_6px_rgba(118,185,0,0.4)]` : 'text-zinc-500 group-hover:text-zinc-300'}`} />
                 </div>
-                <span className={`text-xs font-bold tracking-tight ${isActive ? 'text-white' : 'text-zinc-400'}`}>
+                <span className={`text-xs tracking-tight transition-colors ${isActive ? 'text-white font-extrabold' : 'text-zinc-400 group-hover:text-zinc-200 font-semibold'}`}>
                   {item.label}
                 </span>
               </button>
@@ -349,14 +354,14 @@ const Sidebar: React.FC<SidebarProps> = ({
               window.dispatchEvent(new CustomEvent('open-benchmark-modal', {}));
               if (window.innerWidth < 1024 && onClose) onClose();
             }}
-            className="w-full flex items-center justify-between p-2 rounded-xl bg-neon-green/5 hover:bg-neon-green/10 border border-neon-green/20 hover:border-neon-green/40 text-neon-green transition-all cursor-pointer group"
+            className="w-full flex items-center justify-between p-2.5 rounded-xl bg-neon-green/5 hover:bg-neon-green/10 border border-neon-green/20 hover:border-neon-green/35 text-neon-green transition-all cursor-pointer group shadow-[0_0_12px_rgba(118,185,0,0.04)]"
             title="Open latest benchmark summary report and export options"
           >
             <div className="flex items-center gap-2">
-              <Gauge className="w-3.5 h-3.5 text-neon-green group-hover:scale-110 transition-transform" />
+              <Gauge className="w-3.5 h-3.5 text-neon-green group-hover:scale-110 transition-transform drop-shadow-[0_0_6px_rgba(118,185,0,0.4)]" />
               <span className="text-[10px] font-black uppercase tracking-wider">Benchmark Report</span>
             </div>
-            <span className="text-[9px] text-zinc-400 group-hover:text-white font-mono font-bold">View →</span>
+            <span className="text-[9px] text-zinc-400 group-hover:text-white font-mono font-bold transition-colors">View →</span>
           </button>
         </div>
 
@@ -365,8 +370,8 @@ const Sidebar: React.FC<SidebarProps> = ({
           <div className="flex items-center justify-between px-2">
             <span className="text-[10px] font-bold text-zinc-500 uppercase tracking-widest">Authentication</span>
             {effectiveIsSignedIn ? (
-              <span className="flex items-center gap-1 text-[8px] font-black text-neon-yellow uppercase bg-neon-yellow/10 border border-neon-yellow/20 px-2 py-0.5 rounded-full font-mono">
-                <span className="w-1 h-1 rounded-full bg-neon-yellow animate-pulse" />
+              <span className="flex items-center gap-1 text-[8px] font-black text-neon-yellow uppercase bg-neon-yellow/10 border border-neon-yellow/20 px-2 py-0.5 rounded-full font-mono shadow-[0_0_8px_rgba(191,255,0,0.1)]">
+                <span className="w-1 h-1 rounded-full bg-neon-yellow animate-pulse shadow-[0_0_4px_#bfff00]" />
                 Active
               </span>
             ) : (
@@ -384,13 +389,13 @@ const Sidebar: React.FC<SidebarProps> = ({
                 setIsAccountSwitcherOpen(true);
                 if (window.innerWidth < 1024 && onClose) onClose();
               }}
-              className="flex items-center justify-between p-2.5 rounded-xl bg-white/2 hover:bg-white/5 border border-white/4 hover:border-white/10 backdrop-blur-sm cursor-pointer transition-all group"
+              className="flex items-center justify-between p-2.5 rounded-xl bg-white/[0.03] hover:bg-white/[0.06] border border-white/8 hover:border-white/15 backdrop-blur-md cursor-pointer transition-all group shadow-sm"
             >
               <div className="flex items-center gap-2.5 min-w-0">
                 {sidebarAvatarUrl ? (
                   <img
                     src={sidebarAvatarUrl}
-                    className="w-8 h-8 rounded-lg border border-white/10 object-cover"
+                    className="w-8 h-8 rounded-lg border border-white/15 object-cover ring-1 ring-white/10"
                     alt="Avatar"
                     onError={(e) => {
                       const target = e.currentTarget as HTMLImageElement;

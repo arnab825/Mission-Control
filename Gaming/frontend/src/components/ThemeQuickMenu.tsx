@@ -61,18 +61,18 @@ export const ThemeQuickMenu: React.FC<ThemeQuickMenuProps> = ({
         aria-label="App Themes"
         type="button"
         onClick={() => setIsOpen((prev) => !prev)}
-        className="h-7 px-2.5 bg-white/5 border border-white/10 rounded-lg flex items-center gap-1.5 hover:bg-white/8 hover:border-white/20 transition-all shadow-sm cursor-pointer group"
-        title="Change App Theme & Personalization"
+        className="h-8 px-2.5 xl:px-3 bg-white/[0.04] hover:bg-white/[0.08] border border-white/10 hover:border-white/20 rounded-xl flex items-center gap-1.5 xl:gap-2 transition-all shadow-sm cursor-pointer group active:scale-95 shrink-0"
+        title={`Theme: ${currentTheme.name} (Click to switch)`}
       >
-        <Palette className="w-3 h-3 text-neon-green transition-transform group-hover:rotate-12 duration-200" />
+        <Palette className="w-3.5 h-3.5 text-zinc-400 group-hover:text-neon-green transition-transform group-hover:rotate-12 duration-200 shrink-0" />
         <span
-          className="w-2 h-2 rounded-full shadow-[0_0_8px_currentColor]"
+          className="w-2 h-2 rounded-full shadow-[0_0_8px_currentColor] shrink-0"
           style={{
             backgroundColor: currentTheme.colors.primary,
             color: currentTheme.colors.primary,
           }}
         />
-        <span className="text-[10px] font-black text-zinc-300 uppercase tracking-widest hidden sm:inline max-w-24 truncate">
+        <span className="text-[10px] font-black text-zinc-200 uppercase tracking-wider hidden xl:inline whitespace-nowrap">
           {activeGameTheme ? `🎮 ${currentTheme.name}` : currentTheme.name}
         </span>
       </button>
