@@ -406,7 +406,7 @@ const LabPage: React.FC<{
     <div className="flex-1 min-w-0 p-4 sm:p-6 lg:p-8 flex flex-col gap-y-5 sm:gap-y-7 overflow-y-auto overflow-x-hidden custom-scrollbar">
 
       {/* ── Header ── */}
-      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 shrink-0">
         <div>
           <h2 className="text-2xl sm:text-3xl font-black text-transparent bg-clip-text bg-gradient-to-r from-neon-green to-white drop-shadow-[0_0_12px_rgba(118, 185, 0,0.8)] tracking-tighter uppercase mb-0.5 leading-none">
             Performance &amp; Stability Lab
@@ -424,51 +424,59 @@ const LabPage: React.FC<{
       </div>
 
       {/* ── One-Click Game Mode & Tactical System Control ── */}
-      <div className="bg-gradient-to-r from-white/[0.08] via-white/[0.04] to-transparent border border-white/15 rounded-3xl p-5 sm:p-6 shadow-[0_0_20px_rgba(118,185,0,0.03)] flex flex-col xl:flex-row xl:items-center justify-between gap-5 min-w-0">
-        <div className="flex items-start gap-4 min-w-0">
-          <div className={`w-12 h-12 rounded-2xl border flex items-center justify-center shrink-0 shadow-lg ${
+      <div className="relative bg-gradient-to-br from-[#0e0e14]/90 via-[#09090e]/95 to-[#050508]/98 border border-white/10 hover:border-white/20 rounded-3xl p-5 sm:p-6 shadow-[0_16px_40px_rgba(0,0,0,0.6)] flex flex-col xl:flex-row xl:items-center justify-between gap-6 min-w-0 shrink-0 overflow-hidden group transition-all duration-300">
+        {/* Subtle Ambient Radial Lighting & Top Cyber Highlight */}
+        <div className="absolute top-0 right-0 w-96 h-96 bg-neon-green/[0.04] rounded-full blur-[100px] pointer-events-none -translate-y-1/2 translate-x-1/2" />
+        <div className="absolute top-0 left-8 right-8 h-px bg-gradient-to-r from-transparent via-neon-green/25 to-transparent pointer-events-none" />
+
+        <div className="flex items-start gap-4 min-w-0 relative z-10">
+          <div className={`relative w-12 h-12 rounded-2xl border flex items-center justify-center shrink-0 shadow-lg transition-all duration-300 ${
             isGameModeActive
-              ? 'bg-neon-green/15 border-neon-green/40 text-neon-green shadow-[0_0_18px_rgba(118,185,0,0.3)] animate-pulse'
-              : 'bg-white/5 border-white/10 text-zinc-400'
+              ? 'bg-gradient-to-br from-neon-green/20 to-neon-green/5 border-neon-green/50 text-neon-green shadow-[0_0_24px_rgba(118,185,0,0.35)]'
+              : 'bg-gradient-to-br from-white/[0.06] to-white/[0.01] border-white/10 text-zinc-400 group-hover:border-neon-green/30 group-hover:text-neon-green group-hover:shadow-[0_0_15px_rgba(118,185,0,0.15)]'
           }`}>
-            <Sparkles className="w-6 h-6" />
+            <Sparkles className="w-5 h-5" />
           </div>
           <div className="min-w-0">
             <div className="flex items-center gap-2.5 flex-wrap">
-              <h3 className="text-base font-black text-white tracking-tight uppercase">
-                One-Click Game Mode (5-Stage Optimization)
+              <h3 className="text-sm sm:text-base font-black text-white tracking-wide uppercase">
+                One-Click Game Mode <span className="text-zinc-500 font-mono text-xs">(5-Stage Optimization)</span>
               </h3>
-              <span className={`px-2.5 py-0.5 rounded-full text-[9px] font-black uppercase tracking-wider ${
+              <span className={`px-2.5 py-0.5 rounded-full text-[8.5px] font-mono font-black uppercase tracking-widest flex items-center gap-1.5 transition-all ${
                 isGameModeActive
-                  ? 'bg-neon-green/20 text-neon-green border border-neon-green/30'
-                  : 'bg-zinc-800 text-zinc-400 border border-white/5'
+                  ? 'bg-neon-green/15 text-neon-green border border-neon-green/30 shadow-[0_0_12px_rgba(118,185,0,0.25)]'
+                  : 'bg-white/5 text-zinc-400 border border-white/10'
               }`}>
+                <span className={`w-1.5 h-1.5 rounded-full ${isGameModeActive ? 'bg-neon-green animate-pulse shadow-[0_0_6px_#76b900]' : 'bg-zinc-600'}`} />
                 {isGameModeActive ? 'Engaged & Active' : 'Standby / Nominal'}
               </span>
             </div>
-            <p className="text-[10px] font-medium text-zinc-400 mt-0.5">
+            <p className="text-[10px] font-medium text-zinc-400 mt-1 max-w-2xl leading-relaxed">
               Sequentially executes Background Cleanse, Standby Working Set Purge, High-Performance Power Plan, Process Priority Locks, and Windows Focus Assist.
             </p>
 
             {/* 5-Stage Checklist Display */}
-            <div className="flex flex-wrap gap-2 mt-3">
+            <div className="flex flex-wrap gap-2 mt-3.5">
               {[
-                { name: '1. Background Cleanse', done: isGameModeActive },
-                { name: '2. Memory & VRAM Flush', done: isGameModeActive },
-                { name: '3. High Perf Power', done: isGameModeActive },
-                { name: '4. Priority Elevation', done: isGameModeActive },
-                { name: '5. Windows Focus Assist', done: isGameModeActive },
+                { step: '01', name: 'Background Cleanse', done: isGameModeActive },
+                { step: '02', name: 'Memory & VRAM Flush', done: isGameModeActive },
+                { step: '03', name: 'High-Perf Power Plan', done: isGameModeActive },
+                { step: '04', name: 'Priority Elevation', done: isGameModeActive },
+                { step: '05', name: 'Focus Assist', done: isGameModeActive },
               ].map((stage, idx) => (
                 <div
                   key={idx}
-                  className={`px-2.5 py-1 rounded-xl text-[8.5px] font-black uppercase tracking-wider flex items-center gap-1.5 border transition-all ${
+                  className={`px-3 py-1.5 rounded-xl text-[9px] font-mono font-bold uppercase tracking-wider flex items-center gap-2 border transition-all duration-200 select-none ${
                     stage.done
-                      ? 'bg-neon-green/10 border-neon-green/25 text-neon-green shadow-[0_0_10px_rgba(118,185,0,0.1)]'
-                      : 'bg-white/3 border-white/5 text-zinc-500'
+                      ? 'bg-neon-green/10 border-neon-green/30 text-neon-green shadow-[0_0_12px_rgba(118,185,0,0.15)] ring-1 ring-neon-green/20'
+                      : 'bg-white/[0.02] border-white/5 hover:border-white/10 text-zinc-400 hover:text-zinc-300'
                   }`}
                 >
-                  <span className={`w-1.5 h-1.5 rounded-full ${stage.done ? 'bg-neon-green shadow-[0_0_6px_#76b900]' : 'bg-zinc-700'}`} />
-                  {stage.name}
+                  <span className={`text-[8px] font-black ${stage.done ? 'text-neon-green' : 'text-zinc-600'}`}>
+                    {stage.step}
+                  </span>
+                  <span className={`w-1 h-1 rounded-full ${stage.done ? 'bg-neon-green shadow-[0_0_6px_#76b900]' : 'bg-zinc-700'}`} />
+                  <span>{stage.name}</span>
                 </div>
               ))}
             </div>
@@ -476,86 +484,90 @@ const LabPage: React.FC<{
         </div>
 
         {/* Action Controls */}
-        <div className="flex flex-wrap items-center gap-2.5 shrink-0">
+        <div className="flex flex-wrap items-center gap-2.5 shrink-0 relative z-10">
           <button
             type="button"
             onClick={handleCleanMemory}
-            className="px-3.5 py-2.5 rounded-2xl bg-white/5 hover:bg-white/10 border border-white/10 text-zinc-300 hover:text-white font-black text-[10px] uppercase tracking-wider transition-all flex items-center gap-1.5 cursor-pointer active:scale-95"
+            className="px-3.5 py-2.5 rounded-xl bg-white/[0.04] hover:bg-white/[0.08] border border-white/10 hover:border-white/20 text-zinc-300 hover:text-white font-bold text-[10px] uppercase tracking-wider transition-all flex items-center gap-2 cursor-pointer active:scale-95 shadow-sm"
             title="Clean Standby Memory"
           >
             <Trash2 className="w-3.5 h-3.5 text-amber-400" />
-            {memoryCleanedMsg || 'Purge Standby RAM'}
+            <span>{memoryCleanedMsg || 'Purge Standby RAM'}</span>
           </button>
 
           <button
             type="button"
             onClick={handleScanCrashLogs}
-            className="px-3.5 py-2.5 rounded-2xl bg-white/5 hover:bg-white/10 border border-white/10 text-zinc-300 hover:text-white font-black text-[10px] uppercase tracking-wider transition-all flex items-center gap-1.5 cursor-pointer active:scale-95"
+            className="px-3.5 py-2.5 rounded-xl bg-white/[0.04] hover:bg-white/[0.08] border border-white/10 hover:border-white/20 text-zinc-300 hover:text-white font-bold text-[10px] uppercase tracking-wider transition-all flex items-center gap-2 cursor-pointer active:scale-95 shadow-sm"
             title="Scan Crash History & Event Logs"
           >
             <AlertTriangle className="w-3.5 h-3.5 text-neon-yellow" />
-            Crash Diagnostics
+            <span>Crash Diagnostics</span>
           </button>
 
           <button
             type="button"
             onClick={handleToggleGameMode}
-            className={`px-5 py-2.5 rounded-2xl font-black text-xs uppercase tracking-widest transition-all flex items-center gap-2 cursor-pointer active:scale-95 shadow-lg ${
+            className={`px-6 py-2.5 rounded-xl font-black text-xs uppercase tracking-widest transition-all flex items-center gap-2.5 cursor-pointer active:scale-95 shadow-lg ${
               isGameModeActive
-                ? 'bg-red-500/20 hover:bg-red-500/30 text-red-400 border border-red-500/40 shadow-[0_0_20px_rgba(239,68,68,0.2)]'
-                : 'bg-neon-green hover:bg-neon-green text-black shadow-[0_0_20px_rgba(118,185,0,0.25)]'
+                ? 'bg-gradient-to-r from-red-600 to-rose-500 hover:from-red-500 hover:to-rose-400 text-white shadow-[0_0_25px_rgba(239,68,68,0.4)] border border-red-400/40'
+                : 'bg-gradient-to-r from-neon-green via-emerald-400 to-neon-green hover:brightness-110 text-black shadow-[0_0_25px_rgba(118,185,0,0.35)] border border-neon-green/50'
             }`}
           >
-            <Zap className={`w-4 h-4 ${isGameModeActive ? 'text-red-400' : 'text-black fill-black'}`} />
-            {isGameModeActive ? 'Undo Game Mode' : 'Engage Game Mode'}
+            <Zap className={`w-4 h-4 ${isGameModeActive ? 'text-white fill-current' : 'text-black fill-current'}`} />
+            <span>{isGameModeActive ? 'Undo Game Mode' : 'Engage Game Mode'}</span>
           </button>
         </div>
       </div>
 
       {/* ── Benchmark Session & Export Suite ── */}
-      <div className="bg-gradient-to-r from-white/[0.08] via-white/[0.04] to-transparent border border-white/15 rounded-3xl p-5 sm:p-6 shadow-[0_0_20px_rgba(118,185,0,0.03)] flex flex-col xl:flex-row xl:items-center justify-between gap-5 min-w-0">
-        <div className="flex items-start gap-4 min-w-0">
-          <div className={`w-12 h-12 rounded-2xl border flex items-center justify-center shrink-0 shadow-lg ${
+      <div className="relative bg-gradient-to-br from-[#0e0e14]/90 via-[#09090e]/95 to-[#050508]/98 border border-white/10 hover:border-white/20 rounded-3xl p-5 sm:p-6 shadow-[0_16px_40px_rgba(0,0,0,0.6)] flex flex-col xl:flex-row xl:items-center justify-between gap-6 min-w-0 shrink-0 overflow-hidden group transition-all duration-300">
+        {/* Subtle Ambient Radial Lighting & Top Cyber Highlight */}
+        <div className="absolute top-0 right-0 w-96 h-96 bg-cyan-500/[0.03] rounded-full blur-[100px] pointer-events-none -translate-y-1/2 translate-x-1/2" />
+        <div className="absolute top-0 left-8 right-8 h-px bg-gradient-to-r from-transparent via-cyan-400/20 to-transparent pointer-events-none" />
+
+        <div className="flex items-start gap-4 min-w-0 relative z-10">
+          <div className={`relative w-12 h-12 rounded-2xl border flex items-center justify-center shrink-0 shadow-lg transition-all duration-300 ${
             isBenchmarkRecording
-              ? 'bg-red-500/10 border-red-500/30 text-red-400 shadow-[0_0_15px_rgba(239,68,68,0.2)] animate-pulse'
-              : 'bg-neon-green/10 border-neon-green/30 text-neon-green shadow-[0_0_15px_rgba(118,185,0,0.15)]'
+              ? 'bg-gradient-to-br from-red-500/20 to-rose-500/5 border-red-500/40 text-red-400 shadow-[0_0_20px_rgba(239,68,68,0.3)] animate-pulse'
+              : 'bg-gradient-to-br from-white/[0.06] to-white/[0.01] border-white/10 text-zinc-400 group-hover:border-neon-green/30 group-hover:text-neon-green group-hover:shadow-[0_0_15px_rgba(118,185,0,0.15)]'
           }`}>
-            <Gauge className="w-6 h-6" />
+            <Gauge className="w-5 h-5" />
           </div>
           <div className="min-w-0">
             <div className="flex items-center gap-2.5 flex-wrap">
-              <h3 className="text-base font-black text-white tracking-tight uppercase">
-                Benchmark Session &amp; Frametime Analysis
+              <h3 className="text-sm sm:text-base font-black text-white tracking-wide uppercase">
+                Benchmark Session <span className="text-zinc-500 font-mono text-xs">&amp; Frametime Analysis</span>
               </h3>
               {isBenchmarkRecording ? (
-                <span className="flex items-center gap-1.5 px-2.5 py-0.5 rounded-full bg-red-500/15 border border-red-500/30 text-red-400 text-[10px] font-black uppercase tracking-wider animate-pulse">
-                  <span className="w-2 h-2 rounded-full bg-red-500" />
+                <span className="flex items-center gap-1.5 px-2.5 py-0.5 rounded-full bg-red-500/15 border border-red-500/30 text-red-400 text-[8.5px] font-mono font-black uppercase tracking-widest animate-pulse shadow-[0_0_12px_rgba(239,68,68,0.25)]">
+                  <span className="w-1.5 h-1.5 rounded-full bg-red-500" />
                   Recording Active
                 </span>
               ) : (
-                <span className="flex items-center gap-1.5 px-2.5 py-0.5 rounded-full bg-neon-green/10 border border-neon-green/20 text-neon-green text-[10px] font-black uppercase tracking-wider">
-                  <span className="w-2 h-2 rounded-full bg-neon-green" />
+                <span className="flex items-center gap-1.5 px-2.5 py-0.5 rounded-full bg-neon-green/10 border border-neon-green/20 text-neon-green text-[8.5px] font-mono font-black uppercase tracking-widest shadow-[0_0_8px_rgba(118,185,0,0.15)]">
+                  <span className="w-1.5 h-1.5 rounded-full bg-neon-green animate-pulse" />
                   Ready to Benchmark
                 </span>
               )}
             </div>
-            <p className="text-xs text-zinc-400 font-medium mt-1 leading-relaxed">
+            <p className="text-[10px] font-medium text-zinc-400 mt-1 max-w-2xl leading-relaxed">
               Record 1% lows, frametime consistency curves, and thermal bottlenecks. Export publication-grade JSON and Markdown reports anytime.
             </p>
 
             {/* Quick Summary Chips if a session was recorded */}
             {cachedSummary && (
-              <div className="flex items-center gap-2 sm:gap-3 flex-wrap mt-3 font-mono text-[11px]">
-                <span className="px-2.5 py-1 rounded-xl bg-white/5 border border-white/10 text-zinc-300 font-bold">
+              <div className="flex items-center gap-2 sm:gap-3 flex-wrap mt-3.5 font-mono text-[10px]">
+                <span className="px-3 py-1 rounded-xl bg-white/[0.04] border border-white/10 text-zinc-300 font-bold">
                   Game: <span className="text-white font-black">{cachedSummary.game_title}</span>
                 </span>
-                <span className="px-2.5 py-1 rounded-xl bg-neon-green/10 border border-neon-green/20 text-neon-green font-bold">
+                <span className="px-3 py-1 rounded-xl bg-neon-green/10 border border-neon-green/25 text-neon-green font-bold shadow-[0_0_8px_rgba(118,185,0,0.15)]">
                   Avg: <span className="text-white font-black">{cachedSummary.avg_fps} FPS</span>
                 </span>
-                <span className="px-2.5 py-1 rounded-xl bg-neon-yellow/10 border border-neon-yellow/20 text-neon-yellow font-bold">
+                <span className="px-3 py-1 rounded-xl bg-neon-yellow/10 border border-neon-yellow/25 text-neon-yellow font-bold shadow-[0_0_8px_rgba(191,255,0,0.15)]">
                   1% Low: <span className="text-white font-black">{cachedSummary.one_percent_low} FPS</span>
                 </span>
-                <span className="px-2.5 py-1 rounded-xl bg-white/5 border border-white/10 text-zinc-400 font-bold">
+                <span className="px-3 py-1 rounded-xl bg-cyan-500/10 border border-cyan-500/25 text-cyan-300 font-bold">
                   Bottleneck: <span className="text-cyan-400 font-black uppercase">{cachedSummary.bottleneck ?? 'BALANCED'}</span>
                 </span>
               </div>
@@ -564,25 +576,25 @@ const LabPage: React.FC<{
         </div>
 
         {/* Action Buttons */}
-        <div className="flex items-center gap-2.5 flex-wrap shrink-0">
+        <div className="flex items-center gap-2.5 flex-wrap shrink-0 relative z-10">
           <button
             type="button"
             onClick={handleToggleBenchmark}
-            className={`flex items-center gap-2 px-4 py-2.5 rounded-2xl border text-xs font-black uppercase tracking-wider transition-all cursor-pointer ${
+            className={`flex items-center gap-2 px-5 py-2.5 rounded-xl border text-xs font-black uppercase tracking-wider transition-all cursor-pointer active:scale-95 ${
               isBenchmarkRecording
-                ? 'bg-red-500/20 hover:bg-red-500/30 border-red-500/50 text-red-300 shadow-[0_0_15px_rgba(239,68,68,0.3)]'
-                : 'bg-neon-green/10 hover:bg-neon-green/20 border-neon-green/30 text-neon-green shadow-[0_0_15px_rgba(118,185,0,0.1)]'
+                ? 'bg-gradient-to-r from-red-600 to-rose-500 hover:from-red-500 hover:to-rose-400 text-white border-red-400/50 shadow-[0_0_20px_rgba(239,68,68,0.35)]'
+                : 'bg-neon-green/10 hover:bg-neon-green/20 border-neon-green/30 text-neon-green hover:border-neon-green/50 shadow-[0_0_15px_rgba(118,185,0,0.15)]'
             }`}
           >
             {isBenchmarkRecording ? (
               <>
-                <Square className="w-4 h-4 fill-current" />
-                Stop Benchmark
+                <Square className="w-3.5 h-3.5 fill-current" />
+                <span>Stop Benchmark</span>
               </>
             ) : (
               <>
-                <Play className="w-4 h-4 fill-current" />
-                Start Benchmark
+                <Play className="w-3.5 h-3.5 fill-current" />
+                <span>Start Benchmark</span>
               </>
             )}
           </button>
@@ -591,33 +603,33 @@ const LabPage: React.FC<{
             type="button"
             disabled={!cachedSummary}
             onClick={handleOpenBenchmarkModal}
-            className="flex items-center gap-2 px-4 py-2.5 bg-white/5 hover:bg-white/10 disabled:opacity-40 disabled:hover:bg-white/5 border border-white/10 text-white rounded-2xl text-xs font-black uppercase tracking-wider transition-all cursor-pointer"
+            className="flex items-center gap-2 px-4 py-2.5 bg-white/[0.04] hover:bg-white/[0.08] disabled:opacity-30 disabled:hover:bg-white/[0.04] disabled:cursor-not-allowed border border-white/10 hover:border-white/20 text-white rounded-xl text-xs font-bold uppercase tracking-wider transition-all cursor-pointer active:scale-95 shadow-sm"
             title="Open comprehensive graphical benchmark summary report"
           >
-            <Gauge className="w-4 h-4 text-neon-green" />
-            View Summary
+            <Gauge className="w-3.5 h-3.5 text-neon-green" />
+            <span>View Summary</span>
           </button>
 
           <button
             type="button"
             disabled={!cachedSummary}
             onClick={() => handleExportJson(cachedSummary)}
-            className="flex items-center gap-2 px-3.5 py-2.5 bg-white/5 hover:bg-white/10 disabled:opacity-40 disabled:hover:bg-white/5 border border-white/10 text-zinc-300 hover:text-white rounded-2xl text-xs font-black uppercase tracking-wider transition-all cursor-pointer"
+            className="flex items-center gap-2 px-3.5 py-2.5 bg-white/[0.04] hover:bg-white/[0.08] disabled:opacity-30 disabled:hover:bg-white/[0.04] disabled:cursor-not-allowed border border-white/10 hover:border-white/20 text-zinc-300 hover:text-white rounded-xl text-xs font-bold uppercase tracking-wider transition-all cursor-pointer active:scale-95 shadow-sm"
             title="Export raw benchmark metrics to JSON file"
           >
-            <Download className="w-4 h-4 text-cyan-400" />
-            Export JSON
+            <Download className="w-3.5 h-3.5 text-cyan-400" />
+            <span>Export JSON</span>
           </button>
 
           <button
             type="button"
             disabled={!cachedSummary}
             onClick={() => handleCopyReport(cachedSummary)}
-            className="flex items-center gap-2 px-3.5 py-2.5 bg-white/5 hover:bg-white/10 disabled:opacity-40 disabled:hover:bg-white/5 border border-white/10 text-zinc-300 hover:text-white rounded-2xl text-xs font-black uppercase tracking-wider transition-all cursor-pointer"
+            className="flex items-center gap-2 px-3.5 py-2.5 bg-white/[0.04] hover:bg-white/[0.08] disabled:opacity-30 disabled:hover:bg-white/[0.04] disabled:cursor-not-allowed border border-white/10 hover:border-white/20 text-zinc-300 hover:text-white rounded-xl text-xs font-bold uppercase tracking-wider transition-all cursor-pointer active:scale-95 shadow-sm"
             title="Copy formatted Markdown benchmark report to clipboard"
           >
-            {copiedReport ? <Check className="w-4 h-4 text-neon-green" /> : <Copy className="w-4 h-4 text-yellow-400" />}
-            {copiedReport ? 'Copied!' : 'Copy Report'}
+            {copiedReport ? <Check className="w-3.5 h-3.5 text-neon-green" /> : <Copy className="w-3.5 h-3.5 text-amber-400" />}
+            <span>{copiedReport ? 'Copied!' : 'Copy Report'}</span>
           </button>
         </div>
       </div>

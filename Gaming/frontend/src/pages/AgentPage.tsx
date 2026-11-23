@@ -1773,19 +1773,19 @@ const AgentPage: React.FC<{
     }, []);
 
     const labelMode = (() => {
-      // Mobile / Small screens always show icons
-      if (windowWidth < 768) return 'icon';
+      // Small screens or narrow viewports always show icons
+      if (windowWidth < 900) return 'icon';
 
       // If both sidebars are open, always show icons to prevent squeeze
       if (isHistoryOpen && isIntelOpen) return 'icon';
 
       // If one sidebar is open:
       if (isHistoryOpen || isIntelOpen) {
-        return windowWidth >= 1440 ? 'full' : 'short';
+        return windowWidth >= 1550 ? 'full' : (windowWidth >= 1100 ? 'short' : 'icon');
       }
 
       // If both sidebars are closed:
-      return windowWidth >= 1150 ? 'full' : 'short';
+      return windowWidth >= 1350 ? 'full' : 'short';
     })();
 
     const activeSession = historyItems.find(s => s.id === activeSessionId);
@@ -2049,14 +2049,15 @@ const AgentPage: React.FC<{
                 <img src="/logo.png" alt="Mission Control" className="w-full h-full object-contain" />
               </div>
               <div className="w-1.5 h-1.5 rounded-full bg-neon-green/80 shadow-[0_0_8px_rgba(118,185,0,0.8)] animate-pulse shrink-0" />
-              <span className="text-[10px] font-bold text-zinc-400 uppercase tracking-widest truncate min-w-0 flex-1 block">
+              <span className="text-[11px] font-black text-white/90 uppercase tracking-wider truncate min-w-0 flex-1 block" title={headline}>
                 {headline}
               </span>
             </div>
-            <div className="flex items-center gap-1 sm:gap-1.5 shrink-0" style={{ WebkitAppRegion: 'no-drag' } as any}>
+            <div className="flex items-center gap-1.5 sm:gap-2 shrink-0" style={{ WebkitAppRegion: 'no-drag' } as any}>
 
+              {/* Primary Security / Context Controls */}
               {isPrivacyEnabled ? (
-                <button aria-label="button" type="button"
+                <button aria-label="Verify Encryption" type="button"
                   onClick={() => {
                     if (isPopup) {
                       handleToggleEncryption();
@@ -2064,19 +2065,16 @@ const AgentPage: React.FC<{
                       setIsVerifyModalOpen(true);
                     }
                   }}
-                  className={`flex items-center gap-1.5 ${labelMode === 'icon' ? 'p-1.5' : 'px-2.5 sm:px-3 py-1 sm:py-1.5'} rounded-full bg-neon-yellow/5 border border-neon-yellow/15 text-neon-yellow hover:border-neon-yellow/30 hover:bg-neon-yellow/10 hover:shadow-[0_0_12px_rgba(191, 255, 0,0.15)] shadow-[inset_0_0_8px_rgba(191, 255, 0,0.02)] cursor-pointer active:scale-95 transition-all duration-300 outline-none whitespace-nowrap text-[10px] font-bold uppercase tracking-wider`}
-                  title={isPopup ? "Disable E2E Encryption" : "Verify Encryption"}
+                  className={`flex items-center gap-1.5 ${labelMode === 'icon' ? 'p-1.5' : 'px-2.5 py-1'} rounded-full bg-neon-yellow/10 border border-neon-yellow/25 text-neon-yellow hover:border-neon-yellow/40 hover:bg-neon-yellow/15 hover:shadow-[0_0_12px_rgba(191,255,0,0.2)] shadow-[inset_0_0_8px_rgba(191,255,0,0.03)] cursor-pointer active:scale-95 transition-all duration-200 outline-none whitespace-nowrap text-[9px] font-black uppercase tracking-wider`}
+                  title={isPopup ? "Disable E2E Encryption" : "Verify Cryptographic Handshake"}
                 >
                   <ShieldCheck className="w-3.5 h-3.5 text-neon-yellow" />
-                  {!isPopup && (
-                    <>
-                      {labelMode === 'full' && <span>E2E Encrypted</span>}
-                      {labelMode === 'short' && <span>E2E</span>}
-                    </>
+                  {!isPopup && labelMode !== 'icon' && (
+                    <span>{labelMode === 'full' ? 'E2E Encrypted' : 'E2E'}</span>
                   )}
                 </button>
               ) : (
-                <button aria-label="button" type="button"
+                <button aria-label="Verify Encryption" type="button"
                   onClick={() => {
                     if (isPopup) {
                       handleToggleEncryption();
@@ -2084,76 +2082,73 @@ const AgentPage: React.FC<{
                       setIsVerifyModalOpen(true);
                     }
                   }}
-                  className={`flex items-center gap-1.5 ${labelMode === 'icon' ? 'p-1.5' : 'px-2.5 sm:px-3 py-1 sm:py-1.5'} rounded-full bg-zinc-800/10 border border-zinc-800/30 text-zinc-500 hover:border-zinc-700 hover:bg-zinc-800/20 active:scale-95 transition-all duration-300 outline-none whitespace-nowrap text-[10px] font-bold uppercase tracking-wider cursor-pointer`}
+                  className={`flex items-center gap-1.5 ${labelMode === 'icon' ? 'p-1.5' : 'px-2.5 py-1'} rounded-full bg-zinc-800/20 border border-zinc-700/40 text-zinc-400 hover:border-zinc-600 hover:text-zinc-200 hover:bg-zinc-800/40 active:scale-95 transition-all duration-200 outline-none whitespace-nowrap text-[9px] font-black uppercase tracking-wider cursor-pointer`}
                   title={isPopup ? "Enable E2E Encryption" : "Verify Encryption"}
                 >
-                  <ShieldCheck className="w-3.5 h-3.5 text-zinc-600" />
-                  {!isPopup && (
-                    <>
-                      {labelMode === 'full' && <span>Local Session</span>}
-                      {labelMode === 'short' && <span>Local</span>}
-                    </>
+                  <ShieldCheck className="w-3.5 h-3.5 text-zinc-500" />
+                  {!isPopup && labelMode !== 'icon' && (
+                    <span>{labelMode === 'full' ? 'Local Session' : 'Local'}</span>
                   )}
                 </button>
               )}
+
               {!isPopup && (
-                <button aria-label="button" type="button"
+                <button aria-label={isIntelOpen ? "Hide Intel" : "Show Intel"} type="button"
                   onClick={() => setIsIntelOpen(!isIntelOpen)}
-                  className={`flex items-center gap-1.5 ${labelMode === 'icon' ? 'p-1.5' : 'px-2.5 sm:px-3 py-1 sm:py-1.5'} rounded-full bg-white/5 border border-white/10 hover:border-neon-green/30 hover:bg-neon-green/5 text-neon-green hover:text-neon-green shadow-[inset_0_0_8px_rgba(255,255,255,0.01)] cursor-pointer active:scale-95 transition-all duration-300 text-[10px] font-bold uppercase tracking-wider`}
-                  title={isIntelOpen ? "Hide Intel" : "Show Intel"}
+                  className={`flex items-center gap-1.5 ${labelMode === 'icon' ? 'p-1.5' : 'px-2.5 py-1'} rounded-full ${
+                    isIntelOpen 
+                      ? 'bg-neon-green/15 border-neon-green/40 text-neon-green shadow-[0_0_12px_rgba(118,185,0,0.2)]' 
+                      : 'bg-white/5 border-white/10 hover:border-neon-green/30 hover:bg-neon-green/5 text-zinc-300 hover:text-neon-green'
+                  } border shadow-[inset_0_0_8px_rgba(255,255,255,0.01)] cursor-pointer active:scale-95 transition-all duration-200 text-[9px] font-black uppercase tracking-wider`}
+                  title={isIntelOpen ? "Hide Intelligence Drawer" : "Show System Intelligence & Metrics"}
                 >
                   {isIntelOpen ? <ChevronRight className="w-3.5 h-3.5" /> : <InfoIcon className="w-3.5 h-3.5" />}
                   {labelMode !== 'icon' && <span>Intel</span>}
                 </button>
               )}
 
-              {/* Action Log Button */}
+              {/* Utility Capsule Group: Actions, Export, Share, Refresh */}
               {!isPopup && (
-                <button aria-label="Action Log" type="button"
-                  onClick={() => setIsActionLogModalOpen(true)}
-                  className={`flex items-center gap-1.5 ${labelMode === 'icon' ? 'p-1.5' : 'px-2.5 sm:px-3 py-1 sm:py-1.5'} rounded-full bg-white/5 border border-white/10 hover:border-amber-400/30 hover:bg-amber-400/5 text-zinc-300 hover:text-amber-400 shadow-[inset_0_0_8px_rgba(255,255,255,0.01)] cursor-pointer active:scale-95 transition-all duration-300 text-[10px] font-bold uppercase tracking-wider`}
-                  title="View Autonomous Action Audit Log"
-                >
-                  <ScrollText className="w-3.5 h-3.5" />
-                  {labelMode !== 'icon' && <span>Actions</span>}
-                </button>
-              )}
+                <div className="flex items-center p-0.5 rounded-full bg-white/[0.04] border border-white/10 shadow-[inset_0_1px_2px_rgba(255,255,255,0.02)]">
+                  {/* Action Audit Log */}
+                  <button aria-label="Action Log" type="button"
+                    onClick={() => setIsActionLogModalOpen(true)}
+                    className="p-1.5 rounded-full text-zinc-400 hover:text-amber-400 hover:bg-amber-400/10 cursor-pointer active:scale-90 transition-all"
+                    title="View Autonomous Action Audit Log"
+                  >
+                    <ScrollText className="w-3.5 h-3.5" />
+                  </button>
 
-              {/* Export Session Button */}
-              {!isPopup && (
-                <button aria-label="Export Session" type="button"
-                  onClick={handleExportSession}
-                  className={`flex items-center gap-1.5 ${labelMode === 'icon' ? 'p-1.5' : 'px-2.5 sm:px-3 py-1 sm:py-1.5'} rounded-full bg-white/5 border border-white/10 hover:border-neon-green/30 hover:bg-neon-green/5 text-zinc-300 hover:text-neon-green shadow-[inset_0_0_8px_rgba(255,255,255,0.01)] cursor-pointer active:scale-95 transition-all duration-300 text-[10px] font-bold uppercase tracking-wider`}
-                  title="Export Session to Markdown"
-                >
-                  <Download className="w-3.5 h-3.5" />
-                  {labelMode !== 'icon' && <span>Export</span>}
-                </button>
-              )}
+                  {/* Export Markdown */}
+                  <button aria-label="Export Session" type="button"
+                    onClick={handleExportSession}
+                    className="p-1.5 rounded-full text-zinc-400 hover:text-neon-green hover:bg-neon-green/10 cursor-pointer active:scale-90 transition-all"
+                    title="Export Session to Markdown"
+                  >
+                    <Download className="w-3.5 h-3.5" />
+                  </button>
 
-              {/* App-to-App Share Button */}
-              {!isPopup && (
-                <button aria-label="Share Session" type="button"
-                  onClick={() => setIsShareModalOpen(true)}
-                  className={`flex items-center gap-1.5 ${labelMode === 'icon' ? 'p-1.5' : 'px-2.5 sm:px-3 py-1 sm:py-1.5'} rounded-full bg-white/5 border border-white/10 hover:border-cyan-400/30 hover:bg-cyan-400/5 text-zinc-300 hover:text-cyan-400 shadow-[inset_0_0_8px_rgba(255,255,255,0.01)] cursor-pointer active:scale-95 transition-all duration-300 text-[10px] font-bold uppercase tracking-wider`}
-                  title="Share Session to Apps"
-                >
-                  <Share2 className="w-3.5 h-3.5" />
-                  {labelMode !== 'icon' && <span>Share</span>}
-                </button>
-              )}
+                  {/* Share to Apps */}
+                  <button aria-label="Share Session" type="button"
+                    onClick={() => setIsShareModalOpen(true)}
+                    className="p-1.5 rounded-full text-zinc-400 hover:text-cyan-400 hover:bg-cyan-400/10 cursor-pointer active:scale-90 transition-all"
+                    title="Share Session to Apps"
+                  >
+                    <Share2 className="w-3.5 h-3.5" />
+                  </button>
 
-              {/* Refresh Button */}
-              {!isPopup && (
-                <button aria-label="Refresh Page" type="button"
-                  onClick={handleManualRefresh}
-                  disabled={isManualRefreshing}
-                  className={`flex items-center gap-1.5 ${labelMode === 'full' ? 'px-2.5 sm:px-3 py-1 sm:py-1.5' : 'p-1.5'} rounded-full bg-white/5 border border-white/10 hover:border-neon-green/30 hover:bg-neon-green/5 text-zinc-300 hover:text-neon-green shadow-[inset_0_0_8px_rgba(255,255,255,0.01)] cursor-pointer active:scale-95 transition-all duration-300 text-[10px] font-bold uppercase tracking-wider`}
-                  title="Refresh Sessions & Intelligence"
-                >
-                  <RefreshCw className={`w-3.5 h-3.5 ${isManualRefreshing ? 'animate-spin text-neon-green' : ''}`} />
-                  {labelMode === 'full' && <span>Refresh</span>}
-                </button>
+                  <div className="w-px h-3 bg-white/10 mx-0.5" />
+
+                  {/* Refresh */}
+                  <button aria-label="Refresh Page" type="button"
+                    onClick={handleManualRefresh}
+                    disabled={isManualRefreshing}
+                    className="p-1.5 rounded-full text-zinc-400 hover:text-white hover:bg-white/10 cursor-pointer active:scale-90 transition-all disabled:opacity-40"
+                    title="Refresh Sessions & Telemetry"
+                  >
+                    <RefreshCw className={`w-3.5 h-3.5 ${isManualRefreshing ? 'animate-spin text-neon-green' : ''}`} />
+                  </button>
+                </div>
               )}
 
             </div>

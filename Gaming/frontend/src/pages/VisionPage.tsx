@@ -676,7 +676,7 @@ const VisionPage: React.FC<VisionPageProps> = ({ state, sendCommand }) => {
                 <div className="absolute bottom-2 right-2 sm:bottom-4 sm:right-4 bg-black/85 backdrop-blur-md px-2.5 sm:px-3 py-1 sm:py-1.5 border border-neon-green/25 rounded-xl flex items-center gap-2 sm:gap-4 font-mono text-[8px] sm:text-[9px] text-zinc-400">
                   <div>CAP: <span className="text-white font-bold">{captureFps > 0 ? captureFps.toFixed(0) : state?.fps ?? 0}</span></div>
                   <div>VIS: <span className="text-neon-green font-bold">{visionFps.toFixed(0)}</span> fps</div>
-                  <div>TARGETS: <span className="text-neon-green font-bold">{filteredDetections.length}</span></div>
+                  <div>TARGETS: <span className="text-neon-green font-bold">{detections.length > 0 ? filteredDetections.length : detectionsCount}</span></div>
                 </div>
               </div>
             ) : pipelineRunning ? (
@@ -1053,35 +1053,36 @@ const VisionPage: React.FC<VisionPageProps> = ({ state, sendCommand }) => {
           </div>
 
           {/* ── Gameplay Video Recording & Instant Replay Highlights ── */}
-          <div className="bg-white/[0.04] border border-white/10 rounded-2xl sm:rounded-3xl p-4 sm:p-5 flex flex-col gap-4 font-mono shadow-[0_0_15px_rgba(118, 185, 0,0.02)] min-w-0">
-            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 border-b border-white/5 pb-3">
-              <div className="flex items-center gap-2.5">
-                <div className={`p-2 rounded-xl border ${isRecording ? 'bg-red-500/10 border-red-500/30 text-red-400' : 'bg-neon-green/10 border-neon-green/30 text-neon-green'}`}>
+          <div className="bg-white/[0.04] border border-white/10 rounded-2xl sm:rounded-3xl p-4 sm:p-5 flex flex-col gap-4 font-mono shadow-[0_0_15px_rgba(118,185,0,0.02)] min-w-0 shrink-0 overflow-hidden">
+            <div className="flex flex-col 2xl:flex-row 2xl:items-center justify-between gap-3.5 border-b border-white/5 pb-3.5 min-w-0">
+              <div className="flex items-start sm:items-center gap-3 min-w-0">
+                <div className={`p-2.5 rounded-xl border shrink-0 transition-colors ${isRecording ? 'bg-red-500/15 border-red-500/40 text-red-400 shadow-[0_0_12px_rgba(239,68,68,0.25)]' : 'bg-neon-green/10 border-neon-green/30 text-neon-green'}`}>
                   <Video className="w-4 h-4" />
                 </div>
-                <div>
-                  <div className="flex items-center gap-2">
-                    <h3 className="text-xs font-black text-white uppercase tracking-wider">Gameplay Recording & Replays</h3>
+                <div className="min-w-0 flex-1">
+                  <div className="flex items-center gap-2 flex-wrap">
+                    <h3 className="text-xs font-black text-white uppercase tracking-wider">Gameplay Recording &amp; Replays</h3>
                     {isRecording ? (
-                      <span className="flex items-center gap-1.5 px-2 py-0.5 rounded-full bg-red-500/15 border border-red-500/30 text-red-400 text-[9px] font-black uppercase tracking-wider">
-                        <span className="w-1.5 h-1.5 rounded-full bg-red-500 animate-pulse" />
+                      <span className="flex items-center gap-1.5 px-2.5 py-0.5 rounded-full bg-red-500/20 border border-red-500/40 text-red-300 text-[9px] font-black uppercase tracking-wider animate-pulse">
+                        <span className="w-1.5 h-1.5 rounded-full bg-red-500" />
                         REC {Math.floor(recordingDuration / 60).toString().padStart(2, '0')}:{Math.floor(recordingDuration % 60).toString().padStart(2, '0')}
                       </span>
                     ) : (
-                      <span className="flex items-center gap-1.5 px-2 py-0.5 rounded-full bg-neon-green/10 border border-neon-green/20 text-neon-green text-[9px] font-black uppercase tracking-wider">
+                      <span className="flex items-center gap-1.5 px-2.5 py-0.5 rounded-full bg-neon-green/10 border border-neon-green/20 text-neon-green text-[9px] font-black uppercase tracking-wider">
                         <span className="w-1.5 h-1.5 rounded-full bg-neon-green animate-pulse" />
                         Buffer Active ({state?.recording_state?.buffer_seconds || 30}s)
                       </span>
                     )}
                   </div>
-                  <p className="text-[10px] text-zinc-500 font-medium mt-0.5">
-                    Hardware-accelerated zero-lag background capture ({state?.recording_state?.encoder || 'NVENC/MP4V'})
+                  <p className="text-[10px] text-zinc-400 font-medium mt-0.5 truncate">
+                    Hardware-accelerated zero-lag background capture <span className="text-zinc-500">({state?.recording_state?.encoder || 'NVENC/MP4V'})</span>
                   </p>
                 </div>
               </div>
 
-              {/* Action buttons */}
-              <div className="flex flex-wrap items-center gap-2">
+              {/* Studio Action Suite: Primary Capture + Tools */}
+              <div className="flex flex-wrap items-center gap-2 min-w-0">
+                {/* Hero Capture Button: Record / Stop */}
                 <button
                   type="button"
                   onClick={() => {
@@ -1091,10 +1092,10 @@ const VisionPage: React.FC<VisionPageProps> = ({ state, sendCommand }) => {
                       sendCommand('start_recording');
                     }
                   }}
-                  className={`flex items-center gap-2 px-3.5 py-1.5 rounded-xl border text-[10px] font-black uppercase tracking-wider transition-all cursor-pointer ${
+                  className={`flex items-center gap-2 px-3 py-1.5 rounded-xl border text-[10px] font-black uppercase tracking-wider transition-all cursor-pointer active:scale-95 shrink-0 ${
                     isRecording
-                      ? 'bg-red-500/20 hover:bg-red-500/30 border-red-500/40 text-red-300 shadow-[0_0_12px_rgba(239,68,68,0.2)]'
-                      : 'bg-red-500/10 hover:bg-red-500/20 border-red-500/30 text-red-400'
+                      ? 'bg-red-500/20 hover:bg-red-500/30 border-red-500/50 text-red-300 shadow-[0_0_14px_rgba(239,68,68,0.3)] animate-pulse'
+                      : 'bg-red-500/10 hover:bg-red-500/20 border-red-500/30 text-red-400 hover:text-red-300'
                   }`}
                 >
                   {isRecording ? (
@@ -1104,12 +1105,13 @@ const VisionPage: React.FC<VisionPageProps> = ({ state, sendCommand }) => {
                     </>
                   ) : (
                     <>
-                      <Disc className="w-3.5 h-3.5" />
+                      <Disc className="w-3.5 h-3.5 text-red-400" />
                       Record Gameplay
                     </>
                   )}
                 </button>
 
+                {/* Instant Replay Highlight: Clip 30s */}
                 <button
                   type="button"
                   disabled={isClipping}
@@ -1118,67 +1120,57 @@ const VisionPage: React.FC<VisionPageProps> = ({ state, sendCommand }) => {
                     sendCommand('save_highlight', { duration: 30 });
                     setTimeout(() => setIsClipping(false), 3000);
                   }}
-                  className="flex items-center gap-2 px-3.5 py-1.5 bg-purple-500/10 hover:bg-purple-500/20 border border-purple-500/30 text-purple-300 hover:border-purple-500/50 rounded-xl text-[10px] font-black uppercase tracking-wider transition-all cursor-pointer disabled:opacity-50"
+                  className="flex items-center gap-2 px-3 py-1.5 bg-purple-500/10 hover:bg-purple-500/20 border border-purple-500/30 text-purple-300 hover:border-purple-500/50 rounded-xl text-[10px] font-black uppercase tracking-wider transition-all cursor-pointer active:scale-95 disabled:opacity-50 shrink-0"
+                  title="Save rolling 30-second shadow buffer to disk"
                 >
                   <Scissors className="w-3.5 h-3.5 text-purple-400" />
                   {isClipping ? 'Saving Clip…' : 'Clip Last 30s'}
                 </button>
 
-                {/* Screenshot Button */}
-                <button
-                  type="button"
-                  disabled={isCapturingScreenshot}
-                  onClick={handleTakeScreenshot}
-                  className="flex items-center gap-2 px-3.5 py-1.5 bg-neon-green/10 hover:bg-neon-green/20 border border-neon-green/30 text-neon-green hover:border-neon-green/50 rounded-xl text-[10px] font-black uppercase tracking-wider transition-all cursor-pointer disabled:opacity-50"
-                  title="Capture full-resolution gameplay screenshot"
-                >
-                  <Camera className="w-3.5 h-3.5" />
-                  {isCapturingScreenshot ? 'Capturing…' : 'Screenshot'}
-                </button>
+                <div className="hidden sm:block w-px h-5 bg-white/10 mx-0.5 shrink-0" />
 
-                {/* Benchmark Session Trigger */}
-                <button
-                  type="button"
-                  onClick={handleToggleBenchmark}
-                  className={`flex items-center gap-1.5 px-3 py-1.5 rounded-xl border text-[10px] font-black uppercase tracking-wider transition-all cursor-pointer ${
-                    isBenchmarkRecording
-                      ? 'bg-red-500/20 hover:bg-red-500/30 border-red-500/40 text-red-300 shadow-[0_0_12px_rgba(239,68,68,0.2)] animate-pulse'
-                      : 'bg-white/5 hover:bg-white/10 border-white/10 text-zinc-300 hover:text-white'
-                  }`}
-                  title="Toggle active benchmark session"
-                >
-                  <Gauge className="w-3.5 h-3.5 text-neon-yellow" />
-                  {isBenchmarkRecording ? 'Stop Benchmark' : 'Benchmark'}
-                </button>
-
-                {/* Benchmark Summary View */}
-                {state?.benchmark_summary && (
+                {/* Capture Tools Group */}
+                <div className="flex flex-wrap items-center gap-1.5 min-w-0">
+                  {/* Screenshot Button */}
                   <button
                     type="button"
-                    onClick={handleOpenBenchmarkModal}
-                    className="flex items-center gap-1.5 px-3 py-1.5 bg-neon-yellow/10 hover:bg-neon-yellow/20 border border-neon-yellow/30 text-neon-yellow rounded-xl text-[10px] font-black uppercase tracking-wider transition-all cursor-pointer"
-                    title="View and export latest benchmark summary report"
+                    disabled={isCapturingScreenshot}
+                    onClick={handleTakeScreenshot}
+                    className="flex items-center gap-1.5 px-2.5 sm:px-3 py-1.5 bg-white/5 hover:bg-white/10 border border-white/10 hover:border-neon-green/30 text-zinc-300 hover:text-neon-green rounded-xl text-[10px] font-black uppercase tracking-wider transition-all cursor-pointer active:scale-95 disabled:opacity-50 shrink-0"
+                    title="Capture full-resolution gameplay screenshot"
                   >
-                    <Layers className="w-3.5 h-3.5" />
-                    Summary
+                    <Camera className="w-3.5 h-3.5 text-neon-green" />
+                    <span>{isCapturingScreenshot ? 'Capturing…' : 'Screenshot'}</span>
                   </button>
-                )}
 
-                <button
-                  type="button"
-                  onClick={() => {
-                    if (mediaTab === 'screenshots') {
-                      sendCommand('open_screenshots_folder');
-                    } else {
-                      sendCommand('open_recordings_folder');
-                    }
-                  }}
-                  className="flex items-center gap-1.5 px-3 py-1.5 bg-white/5 hover:bg-white/10 border border-white/10 text-zinc-300 hover:text-white rounded-xl text-[10px] font-black uppercase tracking-wider transition-all cursor-pointer"
-                  title="Open folder on disk"
-                >
-                  <FolderOpen className="w-3.5 h-3.5" />
-                  Folder
-                </button>
+                  {/* Benchmark Session Trigger */}
+                  <button
+                    type="button"
+                    onClick={handleToggleBenchmark}
+                    className={`flex items-center gap-1.5 px-2.5 sm:px-3 py-1.5 rounded-xl border text-[10px] font-black uppercase tracking-wider transition-all cursor-pointer active:scale-95 shrink-0 ${
+                      isBenchmarkRecording
+                        ? 'bg-amber-500/20 hover:bg-amber-500/30 border-amber-500/40 text-amber-300 shadow-[0_0_12px_rgba(245,158,11,0.25)] animate-pulse'
+                        : 'bg-white/5 hover:bg-white/10 border-white/10 text-zinc-300 hover:text-white'
+                    }`}
+                    title="Toggle active frametime and FPS benchmark logging"
+                  >
+                    <Gauge className="w-3.5 h-3.5 text-neon-yellow" />
+                    <span>{isBenchmarkRecording ? 'Stop Bench' : 'Benchmark'}</span>
+                  </button>
+
+                  {/* Benchmark Summary View */}
+                  {state?.benchmark_summary && (
+                    <button
+                      type="button"
+                      onClick={handleOpenBenchmarkModal}
+                      className="flex items-center gap-1.5 px-2.5 sm:px-3 py-1.5 bg-neon-yellow/10 hover:bg-neon-yellow/20 border border-neon-yellow/30 text-neon-yellow rounded-xl text-[10px] font-black uppercase tracking-wider transition-all cursor-pointer active:scale-95 shrink-0"
+                      title="View and export latest benchmark summary report"
+                    >
+                      <Layers className="w-3.5 h-3.5" />
+                      <span>Summary</span>
+                    </button>
+                  )}
+                </div>
               </div>
             </div>
 
