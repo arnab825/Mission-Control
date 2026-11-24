@@ -1,8 +1,20 @@
 {
-  "version": "4.0.9",
+  "version": "4.0.10",
   "release_date": "2026-11-24",
   "update_check_url": "https://raw.githubusercontent.com/arnab825/Mission-Control/main/Gaming/backend/version.json",
   "changelog": [
+    {
+      "version": "4.0.10",
+      "date": "2026-11-24",
+      "title": "Library Scan Concurrency, Background Overlay Persistence & Desktop Discovery Optimization",
+      "highlights": [
+        "Engineered thread-safe multiplexed progress listeners in GameScanner, resolving the scan deadlock where concurrent calls were stuck at 50% Syncing with active scan",
+        "Implemented persistent background scan state and set_scan_background command, preventing the global scanning modal from reappearing after dismissal",
+        "Optimized desktop shortcut discovery with batched PowerShell query execution, reducing startup and scan latency by up to 100x",
+        "Updated GamesPage to smoothly render the game library alongside top-bar scan progress indicators when scans run in the background",
+        "Cleaned up redundant emulation scanning routines and fortified scan telemetry state typing across frontend and backend"
+      ]
+    },
     {
       "version": "4.0.9",
       "date": "2026-11-24",
@@ -585,19 +597,6 @@
         "Resolved GTA V icon and artwork resolution in Library and Hardware Feature Matrix",
         "Implemented smooth cyberpunk account switcher modal and non-destructive session transitions",
         "Fixed Vitest DOM matchers typing and extended test timeout to 15s"
-      ]
-    },
-    {
-      "version": "3.6.4",
-      "date": "2026-09-22",
-      "title": "Settings Architecture Modularization, Microsoft Store Certification & Edge Release Proxy",
-      "highlights": [
-        "Modularized monolithic SettingsPage (4,260 lines) into dedicated domain components under src/components/settings/",
-        "Introduced 6 categorized navigation tabs (GPU & Hardware, AI Brain, Overlay, Library, Account, Controller) with instantaneous global search",
-        "Replaced recursive virtual-DOM search inspection with O(1) keyword indexing, eliminating re-render lag",
-        "Configured Cloudflare Worker edge release proxy for direct Microsoft Store non-redirecting downloads",
-        "Added Azure standalone container deployment, system health audits, and strict schema validation",
-        "Updated desktop update setup wizard, custom game discovery, and shortcut integration"
       ]
     }
   ]

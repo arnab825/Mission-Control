@@ -2,6 +2,14 @@
 
 This document contains a detailed history of all patches and updates for the AI Gaming Assistant.
 
+### Patch: 2026-11-24 — v4.0.10: Library Scan Concurrency, Background Overlay Persistence & Desktop Discovery Optimization
+
+- Engineered thread-safe multiplexed progress listeners in GameScanner, resolving the scan deadlock where concurrent calls were stuck at 50% Syncing with active scan
+- Implemented persistent background scan state and set_scan_background command, preventing the global scanning modal from reappearing after dismissal
+- Optimized desktop shortcut discovery with batched PowerShell query execution, reducing startup and scan latency by up to 100x
+- Updated GamesPage to smoothly render the game library alongside top-bar scan progress indicators when scans run in the background
+- Cleaned up redundant emulation scanning routines and fortified scan telemetry state typing across frontend and backend
+
 ### Patch: 2026-11-24 — v4.0.9: App Shell Modernization, GPU Pipeline Suite & UI Polish
 
 - Modernized App Shell architecture in App.tsx with integrated global theme support and active tab routing
