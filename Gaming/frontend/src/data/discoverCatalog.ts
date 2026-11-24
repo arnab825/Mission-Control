@@ -32,6 +32,11 @@ export const GAME_ALIASES: Record<string, string[]> = {
   'mw3': ['Call of Duty: Modern Warfare III'],
   're4': ['Resident Evil 4'],
   're2': ['Resident Evil 2'],
+  're9': ['Resident Evil Requiem'],
+  're 9': ['Resident Evil Requiem'],
+  'resident evil 9': ['Resident Evil Requiem'],
+  'resident evil requiem': ['Resident Evil Requiem'],
+  'biohazard requiem': ['Resident Evil Requiem'],
   'ac': ["Assassin's Creed Mirage", "Assassin's Creed Valhalla", "Assassin's Creed Shadows"],
   'ac mirage': ["Assassin's Creed Mirage"],
   'ac valhalla': ["Assassin's Creed Valhalla"],
@@ -180,6 +185,11 @@ export const TITLE_TO_STEAM_APPID: Record<string, string> = {
   'resident evil 7 biohazard': '418370',
   'resident evil village': '1196590',
   'resident evil 8': '1196590',
+  'resident evil requiem': '3764200',
+  'resident evil 9': '3764200',
+  're9': '3764200',
+  're 9': '3764200',
+  'biohazard requiem': '3764200',
   'the last of us part i': '1888930',
   'the last of us': '1888930',
   'the last of us part 1': '1888930',
@@ -498,11 +508,15 @@ export function getGameArtwork(
   const resolvedAppId = canonicalAppId || numericId;
 
   if (resolvedAppId) {
-    const steamHeader = `https://cdn.cloudflare.steamstatic.com/steam/apps/${resolvedAppId}/header.jpg`;
-    // For AC Mirage (3035570) and newer titles, library_600x900_2x.jpg is the verified high-res portrait cover, while capsule_616x353 may 404
+    const steamHeader = resolvedAppId === '3764200'
+      ? 'https://shared.akamai.steamstatic.com/store_item_assets/steam/apps/3764200/ce5437442768e38eb575f205ab9397d0264017b0/header.jpg?t=1779840172'
+      : `https://cdn.cloudflare.steamstatic.com/steam/apps/${resolvedAppId}/header.jpg`;
+    // For AC Mirage (3035570), RE Requiem (3764200), and newer titles, library_600x900_2x.jpg or verified CDN URLs are used
     const steamCover = resolvedAppId === '3035570'
       ? `https://cdn.cloudflare.steamstatic.com/steam/apps/${resolvedAppId}/library_600x900_2x.jpg`
-      : `https://shared.cloudflare.steamstatic.com/store_item_assets/steam/apps/${resolvedAppId}/capsule_616x353.jpg`;
+      : (resolvedAppId === '3764200'
+          ? 'https://shared.akamai.steamstatic.com/store_item_assets/steam/apps/3764200/64f506b9b6210df6055136e7017f2082957e5b22/capsule_231x87.jpg?t=1779840172'
+          : `https://shared.cloudflare.steamstatic.com/store_item_assets/steam/apps/${resolvedAppId}/capsule_616x353.jpg`);
     return {
       bannerUrl: isValidCustomArtworkUrl(customBanner, canonicalAppId || resolvedAppId)
         ? (customBanner as string)

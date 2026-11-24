@@ -275,7 +275,9 @@ const GameCard: React.FC<{
   } else if (localBannerUrl) {
     coverUrl = localBannerUrl;
   } else if (steamAppId) {
-    coverUrl = `https://shared.cloudflare.steamstatic.com/store_item_assets/steam/apps/${steamAppId}/header.jpg`;
+    coverUrl = steamAppId === '3764200'
+      ? 'https://shared.akamai.steamstatic.com/store_item_assets/steam/apps/3764200/ce5437442768e38eb575f205ab9397d0264017b0/header.jpg?t=1779840172'
+      : `https://shared.cloudflare.steamstatic.com/store_item_assets/steam/apps/${steamAppId}/header.jpg`;
   } else if ((game as any).banner_url && typeof (game as any).banner_url === 'string' && !(game as any).banner_url.includes('2842100')) {
     coverUrl = (game as any).banner_url;
   } else if ((game as any).cover_url && typeof (game as any).cover_url === 'string' && !(game as any).cover_url.includes('2842100') && !(game as any).cover_url.includes('capsule_616x353')) {
@@ -375,8 +377,16 @@ const GameCard: React.FC<{
                 return;
               }
               const fallbackAppId = getSteamAppIdForTitle(game.name) || steamAppId;
-              const fallbackHeader = fallbackAppId ? `https://shared.cloudflare.steamstatic.com/store_item_assets/steam/apps/${fallbackAppId}/header.jpg` : null;
-              const fallbackCover = fallbackAppId ? `https://cdn.cloudflare.steamstatic.com/steam/apps/${fallbackAppId}/library_600x900_2x.jpg` : null;
+              const fallbackHeader = fallbackAppId
+                ? (fallbackAppId === '3764200'
+                    ? 'https://shared.akamai.steamstatic.com/store_item_assets/steam/apps/3764200/ce5437442768e38eb575f205ab9397d0264017b0/header.jpg?t=1779840172'
+                    : `https://shared.cloudflare.steamstatic.com/store_item_assets/steam/apps/${fallbackAppId}/header.jpg`)
+                : null;
+              const fallbackCover = fallbackAppId
+                ? (fallbackAppId === '3764200'
+                    ? 'https://shared.akamai.steamstatic.com/store_item_assets/steam/apps/3764200/64f506b9b6210df6055136e7017f2082957e5b22/capsule_231x87.jpg?t=1779840172'
+                    : `https://cdn.cloudflare.steamstatic.com/steam/apps/${fallbackAppId}/library_600x900_2x.jpg`)
+                : null;
               if (fallbackHeader && target.src !== fallbackHeader) {
                 target.src = fallbackHeader;
                 return;

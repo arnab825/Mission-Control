@@ -1,4 +1,5 @@
 import { describe, it, expect } from 'vitest';
+import type { DiscoverItem } from '../../types/discover';
 import {
   normalizeGameTitle,
   getSteamAppIdForTitle,
@@ -42,6 +43,9 @@ describe('Game Artwork & Title Normalization Engine', () => {
     expect(getSteamAppIdForTitle("Assassin's Creed Shadows")).toBe('3159330');
     expect(getSteamAppIdForTitle('DOOM: The Dark Ages')).toBe('3017860');
     expect(getSteamAppIdForTitle('Forza Motorsport')).toBe('2440510');
+    expect(getSteamAppIdForTitle('Resident Evil Requiem')).toBe('3764200');
+    expect(getSteamAppIdForTitle('Resident Evil 9')).toBe('3764200');
+    expect(getSteamAppIdForTitle('RE9')).toBe('3764200');
   });
 
   it('resolves official Steam CDN artwork when given a title', () => {
@@ -49,6 +53,10 @@ describe('Game Artwork & Title Normalization Engine', () => {
     expect(artwork.steamAppId).toBe('2358720');
     expect(artwork.bannerUrl).toContain('2358720/header.jpg');
     expect(artwork.coverUrl).toContain('2358720/capsule_616x353.jpg');
+
+    const reArtwork = getGameArtwork('Resident Evil Requiem');
+    expect(reArtwork.steamAppId).toBe('3764200');
+    expect(reArtwork.bannerUrl).toContain('3764200');
   });
 
   it('preserves verified custom banners when provided without falling back to dicebear', () => {
@@ -135,17 +143,21 @@ describe('Smart Search Recommendations & Canonical Search Engine', () => {
       }
     ];
 
-    const liveTrending = [
+    const liveTrending: DiscoverItem[] = [
       {
         id: 'trend-1',
         title: 'Helldivers 2',
         developer: 'Arrowhead Game Studios',
         publisher: 'PlayStation Publishing',
-        genre: 'Action Shooter',
+        primary_genre: 'Action Shooter',
+        genres: ['Action', 'Shooter'],
+        tags: ['Co-op', 'Action'],
         rating: 88,
-        release_year: 2024,
-        description: 'Galactic war action',
-        is_installed: false,
+        summary: 'Galactic war action',
+        launchers: ['Steam'],
+        in_catalog: true,
+        ai_classified: false,
+        installations: [],
         store_app_id: '553850',
       }
     ];

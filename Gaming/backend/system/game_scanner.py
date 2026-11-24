@@ -703,7 +703,10 @@ class GameScanner:
         # --- 2. Try Local SQLite cache (if JSON was empty) ---
         if not games:
             try:
-                from ai_brain.memory import GameMemory
+                try:
+                    from ai_brain.memory import GameMemory
+                except ImportError:
+                    from Gaming.backend.ai_brain.memory import GameMemory
                 mem = GameMemory(config=self.config)
                 res = mem.load_local_games(self.user_id)
                 if res:
@@ -930,7 +933,10 @@ class GameScanner:
 
         # --- 2. Always write to local SQLite cache (with E2EE capability) ---
         try:
-            from ai_brain.memory import GameMemory
+            try:
+                from ai_brain.memory import GameMemory
+            except ImportError:
+                from Gaming.backend.ai_brain.memory import GameMemory
             mem = GameMemory(config=self.config)
             target_user = self.user_id or "guest"
             mem.save_local_games(target_user, games)
@@ -1551,6 +1557,9 @@ class GameScanner:
         if callable(progress_callback):
             progress_callback(97, "Searching artwork and extracting icons...")
             
+        # Discover local artwork files and Steam App IDs in game folders
+        self._scan_local_assets()
+
         # 1. Concurrent Steam banner searches
         banner_targets = []
         for g in self.games:
@@ -1625,6 +1634,11 @@ class GameScanner:
                 "god of war": "1593500",
                 "god of war ragnarok": "2322010",
                 "resident evil 4": "2050650",
+                "resident evil requiem": "3764200",
+                "resident evil 9": "3764200",
+                "re 9": "3764200",
+                "re9": "3764200",
+                "biohazard requiem": "3764200",
                 "silent hill 2": "2124490",
                 "ghost of tsushima": "2215430",
                 "marvels spider man": "1817070",
@@ -1664,6 +1678,8 @@ class GameScanner:
 
             for key, aid in canonical_appids.items():
                 if key == norm_simple or norm_simple.startswith(key) or key in norm_simple:
+                    if str(aid) == "3764200":
+                        return "https://shared.akamai.steamstatic.com/store_item_assets/steam/apps/3764200/ce5437442768e38eb575f205ab9397d0264017b0/header.jpg?t=1779840172"
                     return f"https://shared.cloudflare.steamstatic.com/store_item_assets/steam/apps/{aid}/header.jpg"
 
             # Clean name for search (remove common suffixes and tags)
@@ -1720,13 +1736,25 @@ class GameScanner:
                             break
             
             if appid:
+                if str(appid) == "3764200":
+                    return "https://shared.akamai.steamstatic.com/store_item_assets/steam/apps/3764200/ce5437442768e38eb575f205ab9397d0264017b0/header.jpg?t=1779840172"
                 header_url = f"https://shared.cloudflare.steamstatic.com/store_item_assets/steam/apps/{appid}/header.jpg"
                 try:
-                    head_res = requests.head(header_url, headers=headers, timeout=3)
+                    head_res = requests.head(header_url, headers=headers, timeout=3, allow_redirects=True)
                     if head_res.status_code == 200:
                         return header_url
                 except Exception:
-                    return header_url
+                    pass
+                # Modern hashed / newly published Steam games fallback via appdetails
+                try:
+                    app_res = requests.get(f"https://store.steampowered.com/api/appdetails?appids={appid}", headers=headers, timeout=4)
+                    if app_res.status_code == 200:
+                        app_data = app_res.json().get(str(appid), {}).get("data", {})
+                        if app_data.get("header_image"):
+                            return app_data["header_image"]
+                except Exception:
+                    pass
+                return header_url
         except Exception as e:
             logger.error(f"Failed to search Steam banner for {name}: {e}")
             
@@ -1933,11 +1961,75 @@ class GameScanner:
         except Exception as e:
             logger.error(f"Batch icon extraction failed: {e}", exc_info=True)
 
+    def _scan_local_assets(self):
+        """Search local game installation folders for artwork, icons, and steam_appid.txt metadata."""
+        import re
+        banner_cands = [
+            "header.jpg", "header.png", "banner.jpg", "banner.png",
+            "background.jpg", "background.png", "cover.jpg", "cover.png",
+            "poster.jpg", "poster.png", "logo.png"
+        ]
+        for game in self.games:
+            raw_path = game.get("install_path") or (str(Path(game["exe_path"]).parent) if game.get("exe_path") else None)
+            if not raw_path:
+                continue
+            try:
+                p = Path(raw_path)
+                if not p.exists() or not p.is_dir():
+                    continue
+
+                # 1. Search for Steam App ID in steam_appid.txt or steam_settings/steam_appid.txt
+                if not game.get("steam_app_id"):
+                    appid_candidates = [
+                        p / "steam_appid.txt",
+                        p / "steam_settings" / "steam_appid.txt",
+                        p.parent / "steam_appid.txt",
+                        p.parent / "steam_settings" / "steam_appid.txt",
+                    ]
+                    for appid_file in appid_candidates:
+                        if appid_file.is_file():
+                            try:
+                                content = appid_file.read_text(encoding="utf-8", errors="ignore").strip()
+                                match = re.search(r"^\d+", content)
+                                if match:
+                                    game["steam_app_id"] = match.group(0)
+                                    break
+                            except Exception:
+                                pass
+
+                # 2. Search for direct local banner in the root installation folder
+                if not game.get("local_banner"):
+                    for cand in banner_cands:
+                        cp = p / cand
+                        if cp.is_file():
+                            game["local_banner"] = str(cp)
+                            break
+
+                # 3. Fallback: Search immediate subdirectories for cover art (e.g. soundtrack, art folders)
+                if not game.get("local_banner"):
+                    try:
+                        for sub in p.iterdir():
+                            if sub.is_dir():
+                                for cand in banner_cands:
+                                    sub_cp = sub / cand
+                                    if sub_cp.is_file():
+                                        game["local_banner"] = str(sub_cp)
+                                        break
+                                if game.get("local_banner"):
+                                    break
+                    except Exception:
+                        pass
+            except Exception:
+                pass
+
     def enrich_with_ai(self):
         """Use GameBrain to classify and tag discovered games."""
         import threading
         try:
-            from ai_brain.decision_maker import GameBrain
+            try:
+                from ai_brain.decision_maker import GameBrain
+            except ImportError:
+                from Gaming.backend.ai_brain.decision_maker import GameBrain
             # We initialize a temporary brain for classification
             brain = GameBrain(config=self.config)
             
@@ -2019,21 +2111,6 @@ class GameScanner:
                             game["type"] = "GAME"
                             game["genre"] = "CLASSIC"
                             game["tags"] = []
-
-            # Local Asset Search: Look for banners/backgrounds in install dir
-            for game in self.games:
-                if game.get("install_path"):
-                    try:
-                        p = Path(game["install_path"])
-                        if p.exists():
-                            # Common naming patterns for local game artwork
-                            banner_cands = ["banner.jpg", "banner.png", "background.jpg", "background.png", "header.jpg", "logo.png"]
-                            for cand in banner_cands:
-                                cp = p / cand
-                                if cp.exists():
-                                    game["local_banner"] = str(cp)
-                                    break
-                    except Exception: pass
                 
         except Exception as e:
             logger.error(f"AI enrichment failed: {e}. Using smart local fallback.")
