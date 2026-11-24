@@ -56,7 +56,7 @@ When you optionally sign in to Mission Control (using your Discord or Google gam
 ## 5. Data Retention & User Rights
 
 - **Local Storage Deletion**: All cached session histories, local benchmark logs, and configuration files can be permanently erased by clearing application storage in **Settings > Application > Purge Cache** or deleting `%APPDATA%\mission-control`.
-- **Account Data Deletion**: You can request full deletion of any cloud-synced profile preferences at any time by contacting support or via our online portal at [https://mission-control.rarnab225.workers.dev/privacy](https://mission-control.rarnab225.workers.dev/privacy).
+- **Account Data Deletion**: You can request full deletion of any cloud-synced profile preferences at any time by contacting support or via our online portal at [https://mission-control-service-g7hfgye5hcamc9f2.centralindia-01.azurewebsites.net/privacy](https://mission-control-service-g7hfgye5hcamc9f2.centralindia-01.azurewebsites.net/privacy).
 
 ---
 
@@ -64,4 +64,4 @@ When you optionally sign in to Mission Control (using your Discord or Google gam
 
 For privacy inquiries, audit questions, or security disclosures:
 - **Repository Issues**: [https://github.com/arnab825/Mission-Control/issues](https://github.com/arnab825/Mission-Control/issues)
-- **Official Portal**: [https://mission-control.rarnab225.workers.dev](https://mission-control.rarnab225.workers.dev)
+- **Official Portal**: [https://mission-control-service-g7hfgye5hcamc9f2.centralindia-01.azurewebsites.net](https://mission-control-service-g7hfgye5hcamc9f2.centralindia-01.azurewebsites.net)
