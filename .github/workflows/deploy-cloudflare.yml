@@ -1,0 +1,45 @@
+name: Deploy Website to Cloudflare Workers
+
+on:
+  push:
+    branches:
+      - main
+    paths:
+      - 'Gaming/website/**'
+      - '.github/workflows/deploy-cloudflare.yml'
+  workflow_dispatch:
+
+concurrency:
+  group: cloudflare-workers-deploy
+  cancel-in-progress: true
+
+jobs:
+  deploy:
+    name: Build & Deploy to Cloudflare Workers
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout Repository
+        uses: actions/checkout@v4
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: 'npm'
+          cache-dependency-path: 'Gaming/website/package-lock.json'
+
+      - name: Install Dependencies
+        working-directory: Gaming/website
+        run: npm ci
+
+      - name: Build OpenNext Cloudflare Bundle
+        working-directory: Gaming/website
+        env:
+          NEXT_PUBLIC_SITE_URL: "https://mission-control.rarnab225.workers.dev"
+        run: npm run build:cf
+
+      - name: Deploy to Cloudflare Workers
+        working-directory: Gaming/website
+        env:
+          CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+        run: npm run deploy:cf
