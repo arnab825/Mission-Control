@@ -25,10 +25,10 @@ export async function GET(request: Request) {
   // 1. Ping MongoDB Atlas to prevent cluster inactivity sleep
   try {
     const mongooseInstance = await connectDB();
-    const isReady = mongooseInstance.connection.readyState === 1;
+    const isReady = mongooseInstance?.connection?.readyState === 1;
     results.services.mongodb = {
-      status: isReady ? "active" : "connecting",
-      readyState: mongooseInstance.connection.readyState,
+      status: isReady ? "active" : "offline",
+      readyState: mongooseInstance?.connection?.readyState ?? 0,
     };
   } catch (err: unknown) {
     console.error("[Keepalive] MongoDB check failed:", err);

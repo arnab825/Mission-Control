@@ -29,10 +29,12 @@ export function isDbFailed(): boolean {
   return false;
 }
 
-async function connectDB(): Promise<typeof mongoose> {
+async function connectDB(): Promise<typeof mongoose | null> {
   const MONGODB_URI = process.env.MONGODB_URI;
   if (!MONGODB_URI) {
-    throw new Error("Please define the MONGODB_URI environment variable inside .env");
+    cached.failed = true;
+    cached.failedAt = Date.now();
+    return null;
   }
 
   if (cached.conn) {
@@ -41,9 +43,7 @@ async function connectDB(): Promise<typeof mongoose> {
 
   if (cached.failed) {
     if (Date.now() - (cached.failedAt || 0) < 30000) {
-      throw new Error(
-        "MongoDB connection previously failed. Skipping to prevent blocking local development rendering."
-      );
+      return null;
     }
     cached.failed = false;
   }
@@ -55,9 +55,18 @@ async function connectDB(): Promise<typeof mongoose> {
       connectTimeoutMS: 2500,
     };
 
-    cached.promise = mongoose.connect(MONGODB_URI!, opts).then((mongooseInstance) => {
-      return mongooseInstance;
-    });
+    cached.promise = mongoose
+      .connect(MONGODB_URI, opts)
+      .then((mongooseInstance) => {
+        return mongooseInstance;
+      })
+      .catch((err) => {
+        cached.promise = null;
+        cached.failed = true;
+        cached.failedAt = Date.now();
+        console.warn("[MongoDB] Connection failed, using static fallback:", err?.message || err);
+        return null as any;
+      });
   }
 
   try {
@@ -66,7 +75,7 @@ async function connectDB(): Promise<typeof mongoose> {
     cached.promise = null;
     cached.failed = true;
     cached.failedAt = Date.now();
-    throw e;
+    return null;
   }
 
   return cached.conn;
