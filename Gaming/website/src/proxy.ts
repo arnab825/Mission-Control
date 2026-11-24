@@ -270,6 +270,8 @@ export function proxy(request: NextRequest) {
 export default proxy;
 export const middleware = proxy;
 
+export const runtime = "edge";
+
 export const config = {
   matcher: [
     /*
