@@ -1,15 +1,445 @@
 {
-  "timestamp": 1795455518.1168928,
+  "timestamp": 1795528049.5373917,
   "items": [
     {
-      "id": "https://kotaku.com/gta-6-contains-a-very-hidden-secret-that-teleports-you-back-in-time-to-vice-city-on-the-ps2-2000759500",
-      "title": "GTA 6 Contains A Very Hidden Secret That Teleports You Back In Time To Vice City On The PS2",
-      "link": "https://kotaku.com/gta-6-contains-a-very-hidden-secret-that-teleports-you-back-in-time-to-vice-city-on-the-ps2-2000759500",
-      "description": "You are going to need some time, a helicopter, and some patience to unlock this Easter egg",
+      "id": "https://www.gamespot.com/articles/how-to-play-gta-6-on-your-pc-or-phone-via-remote-play-on-xbox/",
+      "title": "How To Play GTA 6 On Your PC Or Phone Via Remote Play On Xbox",
+      "link": "https://www.gamespot.com/articles/how-to-play-gta-6-on-your-pc-or-phone-via-remote-play-on-xbox/",
+      "description": "Rockstar's Grand Theft Auto 6 can be streamed via Xbox Cloud Gaming, and Microsoft has also now confirmed support for Remote Play on Xbox. This means you can play GTA 6 on your PC, smartphone, or a device like Xbox Ro...",
+      "source": "GameSpot",
+      "category": "Gaming",
+      "pubDate": "Tue, 24 Nov 2026 13:45:10 +0000",
+      "imageUrl": "https://www.gamespot.com/wp-content/uploads/2026/11/Grand-Theft-Auto-VI_20261103112343-2.jpg?w=300"
+    },
+    {
+      "id": "https://www.eurogamer.net/grand-theft-auto-6-project-leonida-discord-github-vanish",
+      "title": "Unofficial GTA 6 PC port effort suffers setback as Rockstar seemingly takes down Project Leonida, one of the internet's biggest recompilation projects",
+      "link": "https://www.eurogamer.net/grand-theft-auto-6-project-leonida-discord-github-vanish",
+      "description": "A lot has happened in the last 24 hours in the community working to get Grand Theft Auto 6 running on PC. And now, Rockstar has dealt a major blow to their efforts. Read more",
+      "source": "Eurogamer",
+      "category": "Gaming",
+      "pubDate": "Tue, 24 Nov 2026 13:40:00 +0000",
+      "imageUrl": "https://assetsio.gnwcdn.com/gta-6-hackers.jpg?width=690&amp;quality=85&amp;format=jpg&amp;auto=webp"
+    },
+    {
+      "id": "https://kotaku.com/where-are-the-new-kotaku-stories-2001000002",
+      "title": "Where Are The New Kotaku Stories?",
+      "link": "https://kotaku.com/where-are-the-new-kotaku-stories-2001000002",
+      "description": "A temporary network issue has put things on pause",
       "source": "Kotaku",
       "category": "Gaming",
-      "pubDate": "Mon, 23 Nov 2026 17:30:39 +0000",
-      "imageUrl": "https://kotaku.com/app/uploads/2026/11/Grand-Theft-Auto-VI_20261123101102-1280x720.jpg"
+      "pubDate": "Tue, 24 Nov 2026 13:28:05 +0000",
+      "imageUrl": "https://kotaku.com/app/uploads/2026/11/GettyImages-2298719139-e1795526213492-1280x795.jpg"
+    },
+    {
+      "id": "https://www.polygon.com/mtg-mystery-booster-commander-edition-draft-review-experience/",
+      "title": "We Played 'Magic: the Gathering\u2019s Most Unhinged Set of All Time and It Was Pure Chaos",
+      "link": "https://www.polygon.com/mtg-mystery-booster-commander-edition-draft-review-experience/",
+      "description": "We drafted Magic: The Gathering\u2019s Mystery Booster Commander Edition at MagicCon: Atlanta, and the results were even more chaotic than we expected",
+      "source": "Polygon",
+      "category": "Gaming",
+      "pubDate": "Tue, 24 Nov 2026 13:01:19 GMT",
+      "imageUrl": "https://static0.polygonimages.com/wordpress/wp-content/uploads/2026/11/igexport-db_qckrmo5s.jpg"
+    },
+    {
+      "id": "https://www.gamespot.com/articles/gta-6-how-to-go-to-hell-and-fight-satan/",
+      "title": "GTA 6: How To Go To Hell And Fight Satan",
+      "link": "https://www.gamespot.com/articles/gta-6-how-to-go-to-hell-and-fight-satan/",
+      "description": "Grand Theft Auto 6 gets downright weird when you go off the beaten track, and one secret mission will see you travel to the bowels of hell to fight Beezleboss himself, Satan. This detour is worth it because you'll get...",
+      "source": "GameSpot",
+      "category": "Gaming",
+      "pubDate": "Tue, 24 Nov 2026 12:59:41 +0000",
+      "imageUrl": "https://www.gamespot.com/wp-content/uploads/2026/11/GTA-6-launch-screens-25.jpg?w=300"
+    },
+    {
+      "id": "https://www.polygon.com/gta-6-grand-theft-auto-first-weekend-sales/",
+      "title": "GTA 6 Is Bigger Than Taylor Swift, Analysts Say",
+      "link": "https://www.polygon.com/gta-6-grand-theft-auto-first-weekend-sales/",
+      "description": "GTA 6's launch smashed the revenue record of Taylor Swift's Eras Tour, while leaving Spider-Man: Brand New Day and The Odyssey in the dust, too",
+      "source": "Polygon",
+      "category": "Gaming",
+      "pubDate": "Tue, 24 Nov 2026 12:30:50 GMT",
+      "imageUrl": "https://static0.polygonimages.com/wordpress/wp-content/uploads/2026/09/ambrosia_06.jpg"
+    },
+    {
+      "id": "https://www.rockpapershotgun.com/gdq-releases-schedule-for-awesome-games-done-quick-2027-in-january-featuring-new-runs-like-queens-domain-big-walk-galactic-racer-and-the-incongruously-not-new-yakuza-5",
+      "title": "GDQ releases schedule for Awesome Games Done Quick 2027 in January, featuring new runs like Queen's Domain, Big Walk, Galactic Racer, and the incongruously not-new Yakuza 5",
+      "link": "https://www.rockpapershotgun.com/gdq-releases-schedule-for-awesome-games-done-quick-2027-in-january-featuring-new-runs-like-queens-domain-big-walk-galactic-racer-and-the-incongruously-not-new-yakuza-5",
+      "description": "Following the full game list for Awesome Games Done Quick being released a little while ago, GDQ have now published the full schedule for the event running for a week from January 3rd through January 10th in Atlanta (...",
+      "source": "Rock Paper Shotgun",
+      "category": "PC Gaming",
+      "pubDate": "Tue, 24 Nov 2026 12:30:40 +0000",
+      "imageUrl": "https://assetsio.gnwcdn.com/Queen"
+    },
+    {
+      "id": "https://www.pcgamer.com/games/world-of-warcraft/world-of-warcraft-forevers-been-chasing-bugs-and-gold-exploits-over-the-weekend-and-now-it-turns-out-sunder-armor-might-just-not-be-working/",
+      "title": "World of Warcraft: Forever's been chasing bugs and gold exploits over the weekend\u2014and now it turns out Sunder Armor might just not be working",
+      "link": "https://www.pcgamer.com/games/world-of-warcraft/world-of-warcraft-forevers-been-chasing-bugs-and-gold-exploits-over-the-weekend-and-now-it-turns-out-sunder-armor-might-just-not-be-working/",
+      "description": "",
+      "source": "PC Gamer",
+      "category": "PC Gaming",
+      "pubDate": "Tue, 24 Nov 2026 12:20:47 +0000",
+      "imageUrl": "https://cdn.mos.cms.futurecdn.net/ziAidtFyz3aDf7yhuiejdA-1920-80.png"
+    },
+    {
+      "id": "https://www.polygon.com/star-wars-the-hunt-for-ben-soloadam-driver-steven-soderbergh-free-work/",
+      "title": "Adam Driver and Steven Soderbergh Worked for Free on Their Star Wars Movie \u2014 Until Disney Killed It",
+      "link": "https://www.polygon.com/star-wars-the-hunt-for-ben-soloadam-driver-steven-soderbergh-free-work/",
+      "description": "'The Hunt for Ben Solo' was a passion project for both Adam Driver and Steven Soderbergh, right up until Disney shut it down.",
+      "source": "Polygon",
+      "category": "Gaming",
+      "pubDate": "Tue, 24 Nov 2026 12:14:41 GMT",
+      "imageUrl": "https://static0.polygonimages.com/wordpress/wp-content/uploads/2026/10/kylo-ren-rey-star-wars.jpg"
+    },
+    {
+      "id": "https://www.gamespot.com/articles/xbox-project-helix-was-reportedly-designed-to-make-online-multiplayer-free/",
+      "title": "Xbox Project Helix Was Reportedly Designed To Make Online Multiplayer Free",
+      "link": "https://www.gamespot.com/articles/xbox-project-helix-was-reportedly-designed-to-make-online-multiplayer-free/",
+      "description": "For years, most multiplayer games on Xbox consoles required a subscription to go online. From Xbox Live to Xbox Game Pass, Microsoft paywalled multiplayer on its platforms, but the company reportedly aimed to break do...",
+      "source": "GameSpot",
+      "category": "Gaming",
+      "pubDate": "Tue, 24 Nov 2026 12:03:22 +0000",
+      "imageUrl": "https://www.gamespot.com/wp-content/uploads/2026/06/Xbox.png?w=300"
+    },
+    {
+      "id": "https://www.eurogamer.net/red-dead-redemption-movie-tv-rights-100-million-usd-no-gta",
+      "title": "Rockstar is actively shopping Read Dead Redemption movie and TV rights around, just don't expect the same for Grand Theft Auto",
+      "link": "https://www.eurogamer.net/red-dead-redemption-movie-tv-rights-100-million-usd-no-gta",
+      "description": "Rockstar Games is seemingly interested in expanding Red Dead Redemption beyond video games, after years of Hollywood knocking on its doors. According to a new report, the company is looking for someone to pick up the ...",
+      "source": "Eurogamer",
+      "category": "Gaming",
+      "pubDate": "Tue, 24 Nov 2026 11:54:00 +0000",
+      "imageUrl": "https://assetsio.gnwcdn.com/rdr-2-hollywood-header-1.jpg?width=690&amp;quality=85&amp;format=jpg&amp;auto=webp"
+    },
+    {
+      "id": "https://www.pcgamer.com/software/platforms/steam-revamps-its-marketplace-for-the-2nd-time-this-year/",
+      "title": "Steam revamps its marketplace for the 2nd time this year",
+      "link": "https://www.pcgamer.com/software/platforms/steam-revamps-its-marketplace-for-the-2nd-time-this-year/",
+      "description": "",
+      "source": "PC Gamer",
+      "category": "PC Gaming",
+      "pubDate": "Tue, 24 Nov 2026 11:49:42 +0000",
+      "imageUrl": "https://cdn.mos.cms.futurecdn.net/GGNVohdzdZcSEHAHnu9de8-1920-80.jpg"
+    },
+    {
+      "id": "https://www.eurogamer.net/gta-6-players-getting-very-good-at-heists-despite-challenges",
+      "title": "GTA 6 players are already starting to get very good at heists, despite all the new challenges Rockstar has added to the game",
+      "link": "https://www.eurogamer.net/gta-6-players-getting-very-good-at-heists-despite-challenges",
+      "description": "Grand Theft Auto 6 has been out for a little while now, and already players are showing off their skills when it comes to the game's many heists. Despite the challenges in getting away clean, some are proving it's pos...",
+      "source": "Eurogamer",
+      "category": "Gaming",
+      "pubDate": "Tue, 24 Nov 2026 11:47:40 +0000",
+      "imageUrl": "https://assetsio.gnwcdn.com/grand-theft-auto-6-lucia-jason-masks.png?width=690&amp;quality=85&amp;format=jpg&amp;auto=webp"
+    },
+    {
+      "id": "https://www.rockpapershotgun.com/the-torch-passes-to-the-open-source-recomp-and-emulation-projects-gta-6-leaker-cyberleek-claims-to-have-released-crimsims-xbox-executable-and-denies-crypto-grifting",
+      "title": "\"The torch passes to the open source recomp and emulation projects\": GTA 6 leaker Cyberleek claims to have released crimsim's Xbox executable and denies crypto grifting",
+      "link": "https://www.rockpapershotgun.com/the-torch-passes-to-the-open-source-recomp-and-emulation-projects-gta-6-leaker-cyberleek-claims-to-have-released-crimsims-xbox-executable-and-denies-crypto-grifting",
+      "description": "GTA 6 leaker or leakers Cyberleek claim to to have released the main executable file for an alleged Xbox build of the game that they asserted they'd lobbed onto the net last week. In a fresh statement, the leakers all...",
+      "source": "Rock Paper Shotgun",
+      "category": "PC Gaming",
+      "pubDate": "Tue, 24 Nov 2026 11:38:50 +0000",
+      "imageUrl": "https://assetsio.gnwcdn.com/gta-6-headline-launch-gallery-1.jpg?width=690&amp;quality=85&amp;format=jpg&amp;auto=webp"
+    },
+    {
+      "id": "https://www.eurogamer.net/warhammer-40000-boltgun-2-now-playing",
+      "title": "Warhammer 40,000: Boltgun 2 captures the franchise's bloody absurdity like nothing else",
+      "link": "https://www.eurogamer.net/warhammer-40000-boltgun-2-now-playing",
+      "description": "Warhammer 40,000 is a universe of two distinct moods. On the one hand, it's a grimdark future of serious, solemn stories where trillions die in galactic wars of attrition; of tragedies and insurmountable threats. But ...",
+      "source": "Eurogamer",
+      "category": "Gaming",
+      "pubDate": "Tue, 24 Nov 2026 11:31:10 +0000",
+      "imageUrl": "https://assetsio.gnwcdn.com/boltgun-2-header.jpg?width=690&amp;quality=85&amp;format=jpg&amp;auto=webp"
+    },
+    {
+      "id": "https://www.gamespot.com/articles/gta-6-hacker-releases-full-xbox-build-and-pc-modders-are-already-trying-to-get-it-running/",
+      "title": "GTA 6 Hacker Releases Full Xbox Build, And PC Modders Are Already Trying To Get It Running",
+      "link": "https://www.gamespot.com/articles/gta-6-hacker-releases-full-xbox-build-and-pc-modders-are-already-trying-to-get-it-running/",
+      "description": "Infamous GTA 6 Leaker Cyberleek resurfaced last week, threatening to release a crucial file for the Xbox build of GTA 6 that could be used to create an unofficial PC port of the game. The hacker originally promised to...",
+      "source": "GameSpot",
+      "category": "Gaming",
+      "pubDate": "Tue, 24 Nov 2026 11:23:42 +0000",
+      "imageUrl": "https://www.gamespot.com/wp-content/uploads/2026/11/GTA-6-launch-screens-31-1.jpg?w=300"
+    },
+    {
+      "id": "https://www.polygon.com/fortnite-scott-pilgrim-confirmed/",
+      "title": "Scott Pilgrim Is Officially Coming to Fortnite",
+      "link": "https://www.polygon.com/fortnite-scott-pilgrim-confirmed/",
+      "description": "Ramona's exes won't be the only opponents Scott Pilgrim must face as he jumps onto the Battle Royale island in Fortnite.",
+      "source": "Polygon",
+      "category": "Gaming",
+      "pubDate": "Tue, 24 Nov 2026 10:31:49 GMT",
+      "imageUrl": "https://static0.polygonimages.com/wordpress/wp-content/uploads/2026/03/mv5bnjrlnzhkntmtmmexmi00otu2lwfkyjutmdzjnzk2odk0mgezxkeyxkfqcgc-_v1_.jpg"
+    },
+    {
+      "id": "https://www.eurogamer.net/more-than-39-million-people-have-played-gta-6-on-playstation-alone-sony-says-as-the-game-breaks-all-time-player-numbers-on-the-platform",
+      "title": "More than 39 million people have played GTA 6 on PlayStation alone, Sony says, as the game breaks all-time player numbers on the platform",
+      "link": "https://www.eurogamer.net/more-than-39-million-people-have-played-gta-6-on-playstation-alone-sony-says-as-the-game-breaks-all-time-player-numbers-on-the-platform",
+      "description": "Sony's revealed staggering statistics relating to the popularity of Grand Theft Auto on PlayStation 5, not least that more than 39 million unique people have played the game there. That's more than the official GTA 6 ...",
+      "source": "Eurogamer",
+      "category": "Gaming",
+      "pubDate": "Tue, 24 Nov 2026 10:08:20 +0000",
+      "imageUrl": "https://assetsio.gnwcdn.com/jason-lucia-gta-6.jpg?width=690&amp;quality=85&amp;format=jpg&amp;auto=webp"
+    },
+    {
+      "id": "https://www.polygon.com/gta-6-biggest-launch-in-ps-history/",
+      "title": "GTA 6 is Officially the Biggest Launch in PlayStation History",
+      "link": "https://www.polygon.com/gta-6-biggest-launch-in-ps-history/",
+      "description": "Sony just shared some mind-boggling stats about GTA 6 launch, making it the most impressive in PlayStation history.",
+      "source": "Polygon",
+      "category": "Gaming",
+      "pubDate": "Tue, 24 Nov 2026 10:04:01 GMT",
+      "imageUrl": "https://static0.polygonimages.com/wordpress/wp-content/uploads/2026/10/vintage_vice_city_pack_exclusive_looks_01-1.jpg"
+    },
+    {
+      "id": "https://www.eurogamer.net/gta-6-deluxe-edition-soundtrack-23-extra-tracks",
+      "title": "Rockstar Games reveals 23 extra tracks in GTA 6's deluxe edition soundtrack, featuring Denzel Curry, HEALTH, and more",
+      "link": "https://www.eurogamer.net/gta-6-deluxe-edition-soundtrack-23-extra-tracks",
+      "description": "For those of you out there in love with Grand Theft Auto 6's soundtrack, you'll be happy to know that Rockstar Games have revealed an additional 23 tracks as part of the game's deluxe edition album. Read more",
+      "source": "Eurogamer",
+      "category": "Gaming",
+      "pubDate": "Tue, 24 Nov 2026 10:03:50 +0000",
+      "imageUrl": "https://assetsio.gnwcdn.com/grand-theft-auto-6-nightclub-scene.png?width=690&amp;quality=85&amp;format=jpg&amp;auto=webp"
+    },
+    {
+      "id": "https://www.eurogamer.net/xbox-live-helix-killing-paid-membership",
+      "title": "Microsoft reportedly looked into killing paid multiplayer for next-gen Xbox Helix consoles",
+      "link": "https://www.eurogamer.net/xbox-live-helix-killing-paid-membership",
+      "description": "A new report from Windows Central details how Xbox was reportedly looking into removing the paywall that prevents players without Xbox Live from playing online games, only to potentially renege on its decision sometim...",
+      "source": "Eurogamer",
+      "category": "Gaming",
+      "pubDate": "Tue, 24 Nov 2026 10:02:10 +0000",
+      "imageUrl": "https://assetsio.gnwcdn.com/sharma-gold.jpg?width=690&amp;quality=85&amp;format=jpg&amp;auto=webp"
+    },
+    {
+      "id": "https://www.eurogamer.net/gta-6-cyberleek-leaked-xbox-build-ported-pc",
+      "title": "Modders already have GTA 6 running on PC, after CyberLeek released a full Xbox build of the game",
+      "link": "https://www.eurogamer.net/gta-6-cyberleek-leaked-xbox-build-ported-pc",
+      "description": "A PC version of Grand Theft Auto 6 - one from unofficial sources, at least - may be closer than we thought. After suddenly returning last week with a near-full build of the Xbox version, notorious leaker CyberLeek has...",
+      "source": "Eurogamer",
+      "category": "Gaming",
+      "pubDate": "Tue, 24 Nov 2026 09:09:20 +0000",
+      "imageUrl": "https://assetsio.gnwcdn.com/GTA6_5nov-(14).jpg?width=690&amp;quality=85&amp;format=jpg&amp;auto=webp"
+    },
+    {
+      "id": "https://www.polygon.com/10-funniest-far-side-comics-parodying-disney/",
+      "title": "10 Funniest \u2018Far Side\u2019 Comics Parodying Disney Charcters",
+      "link": "https://www.polygon.com/10-funniest-far-side-comics-parodying-disney/",
+      "description": "Gary Larson\u2019s comic strip The Far Side loved to poke fun at Disney charcters. Here are the 10 best examples",
+      "source": "Polygon",
+      "category": "Gaming",
+      "pubDate": "Tue, 24 Nov 2026 09:00:17 GMT",
+      "imageUrl": "https://static0.polygonimages.com/wordpress/wp-content/uploads/2026/11/screen-shot-2026-11-21-at-5-12-42-pm.jpg"
+    },
+    {
+      "id": "https://www.polygon.com/aliens-leaving-netflix-december-2026/",
+      "title": "James Cameron\u2019s Sci-Fi Sequel Masterpiece Is Officially Being Removed from Netflix",
+      "link": "https://www.polygon.com/aliens-leaving-netflix-december-2026/",
+      "description": "James Cameron\u2019s 1986 film Aliens is about to leave Netflix. Watch is and relive the epicfinal battle with the alien queen",
+      "source": "Polygon",
+      "category": "Gaming",
+      "pubDate": "Tue, 24 Nov 2026 05:00:18 GMT",
+      "imageUrl": "https://static0.polygonimages.com/wordpress/wp-content/uploads/chorus/uploads/chorus_asset/file/24746482/1466578184.jpg"
+    },
+    {
+      "id": "https://www.polygon.com/gta-6-collateral-easter-egg-streaming-for-free/",
+      "title": "GTA 6's Best Easter Egg Is a Classic Tom Cruise Crime-Thriller You Can Stream For Free",
+      "link": "https://www.polygon.com/gta-6-collateral-easter-egg-streaming-for-free/",
+      "description": "A GTA 6 taxi encounter echoes Michael Mann\u2019s Collateral, starring Tom Cruise and Jamie Foxx. Watch it free on Pluto TV or stream it on Paramount Plus.",
+      "source": "Polygon",
+      "category": "Gaming",
+      "pubDate": "Tue, 24 Nov 2026 02:30:17 GMT",
+      "imageUrl": "https://static0.polygonimages.com/wordpress/wp-content/uploads/2026/11/collateral-tom-cruise.jpg"
+    },
+    {
+      "id": "https://www.pcgamer.com/software/ai/trump-claims-credit-for-jensen-huangs-return-to-nvidia-posts-meme-depicting-huang-holding-up-a-bra-victoriously/",
+      "title": "Trump claims credit for Jensen Huang's return to Nvidia, posts meme depicting Huang holding up a bra victoriously",
+      "link": "https://www.pcgamer.com/software/ai/trump-claims-credit-for-jensen-huangs-return-to-nvidia-posts-meme-depicting-huang-holding-up-a-bra-victoriously/",
+      "description": "",
+      "source": "PC Gamer",
+      "category": "PC Gaming",
+      "pubDate": "Tue, 24 Nov 2026 01:06:57 +0000",
+      "imageUrl": "https://cdn.mos.cms.futurecdn.net/7foqDBPfcAkwqyvMkoRz98-1920-80.jpg"
+    },
+    {
+      "id": "https://www.polygon.com/gta-3-retrospective-rockstar-games/",
+      "title": "25 Years Later, GTA 3 Is Still the Most Fascinating Open-World Experiment",
+      "link": "https://www.polygon.com/gta-3-retrospective-rockstar-games/",
+      "description": "Rockstar's 2001 GTA 3 changed the open-world game forever with its urban playground of Liberty City.",
+      "source": "Polygon",
+      "category": "Gaming",
+      "pubDate": "Tue, 24 Nov 2026 00:35:58 GMT",
+      "imageUrl": "https://static0.polygonimages.com/wordpress/wp-content/uploads/2026/10/gta-3-4.jpg"
+    },
+    {
+      "id": "https://www.pcgamer.com/games/grand-theft-auto/sony-gta-6-set-record-for-highest-number-of-concurrent-players-for-any-game-on-playstation-ever/",
+      "title": "Sony: GTA 6 set record for 'highest number of concurrent players for any game on PlayStation' ever",
+      "link": "https://www.pcgamer.com/games/grand-theft-auto/sony-gta-6-set-record-for-highest-number-of-concurrent-players-for-any-game-on-playstation-ever/",
+      "description": "",
+      "source": "PC Gamer",
+      "category": "PC Gaming",
+      "pubDate": "Tue, 24 Nov 2026 00:14:36 +0000",
+      "imageUrl": "https://cdn.mos.cms.futurecdn.net/dMuVMfRwWo2raGaXFzDHHD-1920-80.jpg"
+    },
+    {
+      "id": "https://www.polygon.com/gta-6-nickelback-cover/",
+      "title": "GTA 6 Is So Unstoppable It's Even Made Nickelback Go Viral",
+      "link": "https://www.polygon.com/gta-6-nickelback-cover/",
+      "description": "GTA 6 features a radio station with alternate-language covers of pop songs, the best of which is the Greek Nickelback \"How You Remind Me\" cover.",
+      "source": "Polygon",
+      "category": "Gaming",
+      "pubDate": "Tue, 24 Nov 2026 00:00:18 GMT",
+      "imageUrl": "https://static0.polygonimages.com/wordpress/wp-content/uploads/2026/11/nickelback-photograph-gta-6.jpg"
+    },
+    {
+      "id": "https://www.pcgamer.com/games/grand-theft-auto/gta-6-players-found-a-60-fps-glitch-but-its-too-unstable-to-stop-me-from-wishing-it-was-on-pc-already/",
+      "title": "GTA 6 players found a '60 fps glitch', but it\u2019s too unstable to stop me from wishing it was on PC already",
+      "link": "https://www.pcgamer.com/games/grand-theft-auto/gta-6-players-found-a-60-fps-glitch-but-its-too-unstable-to-stop-me-from-wishing-it-was-on-pc-already/",
+      "description": "",
+      "source": "PC Gamer",
+      "category": "PC Gaming",
+      "pubDate": "Mon, 23 Nov 2026 22:47:08 +0000",
+      "imageUrl": "https://cdn.mos.cms.futurecdn.net/AcdJAwhDDrMcgdCiMZLoN6-1920-80.jpg"
+    },
+    {
+      "id": "https://www.pcgamer.com/movies-tv/god-of-war-laufey-star-deborah-ann-woll-will-reprise-the-role-in-amazons-god-of-war-show/",
+      "title": "God of War: Laufey star Deborah Ann Woll will reprise the role in Amazon's God of War show",
+      "link": "https://www.pcgamer.com/movies-tv/god-of-war-laufey-star-deborah-ann-woll-will-reprise-the-role-in-amazons-god-of-war-show/",
+      "description": "",
+      "source": "PC Gamer",
+      "category": "PC Gaming",
+      "pubDate": "Mon, 23 Nov 2026 22:20:08 +0000",
+      "imageUrl": "https://cdn.mos.cms.futurecdn.net/eUdeRhdhXJYxwxEdUDvksn-1920-80.jpg"
+    },
+    {
+      "id": "https://www.pcgamer.com/games/grand-theft-auto/gta-6-endings/",
+      "title": "Every GTA 6 ending and how to get them",
+      "link": "https://www.pcgamer.com/games/grand-theft-auto/gta-6-endings/",
+      "description": "",
+      "source": "PC Gamer",
+      "category": "PC Gaming",
+      "pubDate": "Mon, 23 Nov 2026 21:33:58 +0000",
+      "imageUrl": "https://cdn.mos.cms.futurecdn.net/VpCnytmTy4pVTZb2NhTAY6-1920-80.jpg"
+    },
+    {
+      "id": "https://www.pcgamer.com/games/2026-steam-awards-pit-the-goty-winners-of-the-past-10-years-against-each-other-in-an-all-out-battle-for-supremacy/",
+      "title": "2026 Steam Awards pit the GOTY winners of the past 10 years against each other in an all-out battle for supremacy",
+      "link": "https://www.pcgamer.com/games/2026-steam-awards-pit-the-goty-winners-of-the-past-10-years-against-each-other-in-an-all-out-battle-for-supremacy/",
+      "description": "",
+      "source": "PC Gamer",
+      "category": "PC Gaming",
+      "pubDate": "Mon, 23 Nov 2026 21:29:46 +0000",
+      "imageUrl": "https://cdn.mos.cms.futurecdn.net/zf4d4yXSPFw7YH4F6S4zdd-1920-80.png"
+    },
+    {
+      "id": "https://www.gamespot.com/articles/this-gta-6-glitch-almost-ruined-the-games-most-iconic-scene/",
+      "title": "This GTA 6 Glitch (Almost) Ruined The Game\u2019s Most Iconic Scene",
+      "link": "https://www.gamespot.com/articles/this-gta-6-glitch-almost-ruined-the-games-most-iconic-scene/",
+      "description": "Note: This story will discuss a pivotal mission in Chapter 2 of Grand Theft Auto 6. A powerful sequence in Grand Theft Auto 6 is quickly becoming a favorite among the game's many players, but a technical mishap made m...",
+      "source": "GameSpot",
+      "category": "Gaming",
+      "pubDate": "Mon, 23 Nov 2026 21:23:41 +0000",
+      "imageUrl": "https://www.gamespot.com/wp-content/uploads/2026/11/GTA-6-glitch.jpg?w=300"
+    },
+    {
+      "id": "https://www.pcgamer.com/games/grand-theft-auto/the-grand-theft-auto-6-hacker-who-was-hospitalized-in-2023-has-been-released-on-parole-with-a-warning-not-to-do-it-again/",
+      "title": "The Grand Theft Auto 6 hacker who was hospitalized in 2023 has been released on parole with a warning not to do it again",
+      "link": "https://www.pcgamer.com/games/grand-theft-auto/the-grand-theft-auto-6-hacker-who-was-hospitalized-in-2023-has-been-released-on-parole-with-a-warning-not-to-do-it-again/",
+      "description": "",
+      "source": "PC Gamer",
+      "category": "PC Gaming",
+      "pubDate": "Mon, 23 Nov 2026 21:16:03 +0000",
+      "imageUrl": "https://cdn.mos.cms.futurecdn.net/DHupw3zsDFv4RvF7fLXLPV-1920-80.jpg"
+    },
+    {
+      "id": "https://www.pcgamer.com/games/cyberpunk-2-creative-director-says-hes-suffering-from-gta-6-induced-open-world-game-dev-depression-jokes-that-cyberpunk-2-is-cancelled/",
+      "title": "Cyberpunk 2 creative director says he's suffering from 'GTA 6-induced-open-world-game-dev-depression,' jokes that 'Cyberpunk 2 is cancelled'",
+      "link": "https://www.pcgamer.com/games/cyberpunk-2-creative-director-says-hes-suffering-from-gta-6-induced-open-world-game-dev-depression-jokes-that-cyberpunk-2-is-cancelled/",
+      "description": "",
+      "source": "PC Gamer",
+      "category": "PC Gaming",
+      "pubDate": "Mon, 23 Nov 2026 20:55:56 +0000",
+      "imageUrl": "https://cdn.mos.cms.futurecdn.net/rbG2FUURveWgVE8B7Uidqe-1920-80.jpg"
+    },
+    {
+      "id": "https://www.gamespot.com/articles/gta-6-online-could-be-bigger-than-fortnite-bank-of-america-stock-analyst-says/",
+      "title": "GTA 6 Online Could Be Bigger Than Fortnite, Bank Of America Stock Analyst Says",
+      "link": "https://www.gamespot.com/articles/gta-6-online-could-be-bigger-than-fortnite-bank-of-america-stock-analyst-says/",
+      "description": "Rockstar Games and parent company Take-Two are riding high currently from the success of Grand Theft Auto 6 with a reported 45 million copies sold and $4 billion in revenue already, but this could just the beginning o...",
+      "source": "GameSpot",
+      "category": "Gaming",
+      "pubDate": "Mon, 23 Nov 2026 20:28:38 +0000",
+      "imageUrl": "https://www.gamespot.com/wp-content/uploads/2026/11/GTA6Online.png?w=300"
+    },
+    {
+      "id": "https://www.eurogamer.net/deltarune-chapter-6-playable-toby-fox",
+      "title": "Deltarune Chapter 6 is playable \"from the beginning to the end,\" Toby Fox says, but the RPG's final part has \"only just started\"",
+      "link": "https://www.eurogamer.net/deltarune-chapter-6-playable-toby-fox",
+      "description": "Toby Fox has given eager fans an update on the development of Deltarune Chapter 6 and Chapter 7 - the Undertale follow-up's final two episodes. Read more",
+      "source": "Eurogamer",
+      "category": "Gaming",
+      "pubDate": "Mon, 23 Nov 2026 20:04:50 +0000",
+      "imageUrl": "https://assetsio.gnwcdn.com/deltarune-characters.png?width=690&amp;quality=85&amp;format=jpg&amp;auto=webp"
+    },
+    {
+      "id": "https://www.gamespot.com/articles/gta-6s-donnie-actor-underwent-brain-surgery-while-he-was-awake-and-playing-guitar/",
+      "title": "GTA 6\u2019s Donnie Actor Underwent Brain Surgery While He Was Awake And Playing Guitar",
+      "link": "https://www.gamespot.com/articles/gta-6s-donnie-actor-underwent-brain-surgery-while-he-was-awake-and-playing-guitar/",
+      "description": "Grand Theft Auto 6 features a big cast of characters with fascinating, memorable storylines, and one such character is the drug-smuggler Donnie. He's played by actor Brad Carter, and he has a captivating life story of...",
+      "source": "GameSpot",
+      "category": "Gaming",
+      "pubDate": "Mon, 23 Nov 2026 19:31:15 +0000",
+      "imageUrl": "https://www.gamespot.com/wp-content/uploads/2026/11/Vice_City_13_042520.jpg?w=300"
+    },
+    {
+      "id": "https://www.eurogamer.net/activision-banjo-kazooie-iconic-gaming-franchise",
+      "title": "Activision calls Banjo-Kazooie one of its \"iconic gaming franchises,\" raising hopes for long-awaited new game",
+      "link": "https://www.eurogamer.net/activision-banjo-kazooie-iconic-gaming-franchise",
+      "description": "Banjo-Kazooie - the iconic Rare platformer starring an absent-minded bear and the sassy red bird he carries in a backpack - has been on hiatus for years, but a new Activision job listing has raised hopes for a new gam...",
+      "source": "Eurogamer",
+      "category": "Gaming",
+      "pubDate": "Mon, 23 Nov 2026 19:22:30 +0000",
+      "imageUrl": "https://assetsio.gnwcdn.com/bj-freezeezy.jpg?width=690&amp;quality=85&amp;format=jpg&amp;auto=webp"
+    },
+    {
+      "id": "https://www.gamespot.com/articles/grand-theft-auto-6s-hdr-is-broken-but-these-tweaks-can-fix-it/",
+      "title": "Grand Theft Auto 6\u2019s HDR Is Broken, But These Tweaks Can Fix It",
+      "link": "https://www.gamespot.com/articles/grand-theft-auto-6s-hdr-is-broken-but-these-tweaks-can-fix-it/",
+      "description": "Grand Theft Auto VI is a visual and audial treat, and is easily one of the most technically impressive games on the current generation of consoles. But it isn't without issues, especially if you're trying to experienc...",
+      "source": "GameSpot",
+      "category": "Gaming",
+      "pubDate": "Mon, 23 Nov 2026 18:16:01 +0000",
+      "imageUrl": "https://www.gamespot.com/wp-content/uploads/2026/11/Grand-Theft-Auto-VI_20261101165407_-Large.jpeg?w=300"
+    },
+    {
+      "id": "https://www.rockpapershotgun.com/28-years-later-grizzled-xcom-style-ww2-tactics-game-soldiers-at-war-gets-a-fresh-tour-of-duty-on-modern-pcs",
+      "title": "28 years later, grizzled XCOM-style WW2 tactics game Soldiers at War gets a fresh tour of duty on modern PCs",
+      "link": "https://www.rockpapershotgun.com/28-years-later-grizzled-xcom-style-ww2-tactics-game-soldiers-at-war-gets-a-fresh-tour-of-duty-on-modern-pcs",
+      "description": "Prolific game license revivers SNEG have released a new version of Soldiers at War, an ancient turn-based tactics game that will remind you strongly of the X-COM/UFO series, except that it's set during World War 2. I ...",
+      "source": "Rock Paper Shotgun",
+      "category": "PC Gaming",
+      "pubDate": "Mon, 23 Nov 2026 18:10:20 +0000",
+      "imageUrl": "https://assetsio.gnwcdn.com/soldiers-at-war.jpg?width=690&amp;quality=85&amp;format=jpg&amp;auto=webp"
+    },
+    {
+      "id": "https://www.gamespot.com/articles/deborah-ann-woll-reprising-role-as-god-of-wars-faye-in-prime-videos-tv-show/",
+      "title": "Deborah Ann Woll Reprising Role As God Of War\u2019s Faye In Prime Video\u2019s TV Show",
+      "link": "https://www.gamespot.com/articles/deborah-ann-woll-reprising-role-as-god-of-wars-faye-in-prime-videos-tv-show/",
+      "description": "Deborah Ann Woll, who plays Faye in the upcoming God of War Laufey, is coming back to play the character again in Prime Video's God of War show. She will star in the show alongside Dave Bautista as Kratos. Sons of Ana...",
+      "source": "GameSpot",
+      "category": "Gaming",
+      "pubDate": "Mon, 23 Nov 2026 18:07:54 +0000",
+      "imageUrl": "https://www.gamespot.com/wp-content/uploads/2026/11/Faye.png?w=300"
+    },
+    {
+      "id": "https://www.rockpapershotgun.com/rps-advent-calendar-guessing-game-2026",
+      "title": "Think you know games? That we liked? This year? Then join the RPS Advent Calendar Guessing Game 2026",
+      "link": "https://www.rockpapershotgun.com/rps-advent-calendar-guessing-game-2026",
+      "description": "Ho ho ho, the RPS Advent Calendar 2026 is... not ready yet. We haven\u2019t written the words, and I keep forgetting to unblur that new picture of Horace (drawn by the reliably talented Amanda Flagg). But while drag our lu...",
+      "source": "Rock Paper Shotgun",
+      "category": "PC Gaming",
+      "pubDate": "Mon, 23 Nov 2026 18:01:10 +0000",
+      "imageUrl": "https://assetsio.gnwcdn.com/2026-Advent-Calendar-Guessing-Game-header.jpg?width=690&amp;quality=85&amp;format=jpg&amp;auto=webp"
     },
     {
       "id": "https://www.rockpapershotgun.com/might-and-magic-meets-er-paper-in-sunny-new-rpg-rise-of-furax-a-turn-based-island-tale-that-is-entirely-drawn-by-hand",
@@ -22,46 +452,6 @@
       "imageUrl": "https://assetsio.gnwcdn.com/rise-of-furax.jpg?width=690&amp;quality=85&amp;format=jpg&amp;auto=webp"
     },
     {
-      "id": "https://www.polygon.com/gta-6-taylor-sheridan-frisco-king-spinoff-release-date-how-to-watch/",
-      "title": "Forget GTA 6, Taylor Sheridan\u2019s New 8-Part Crime Series Officially Releases Next Month",
-      "link": "https://www.polygon.com/gta-6-taylor-sheridan-frisco-king-spinoff-release-date-how-to-watch/",
-      "description": "It's just missing a jet-skiing dog",
-      "source": "Polygon",
-      "category": "Gaming",
-      "pubDate": "Mon, 23 Nov 2026 17:29:33 GMT",
-      "imageUrl": "https://static0.polygonimages.com/wordpress/wp-content/uploads/2026/11/gta-6-jasopn-lucia-bank-robbery.jpg"
-    },
-    {
-      "id": "https://www.polygon.com/gta-6-buy-lucia-flowers-mission-jason-florists-publix-instagram/",
-      "title": "GTA 6 Is Officially Making Boyfriends and Husbands Step Up Their Game",
-      "link": "https://www.polygon.com/gta-6-buy-lucia-flowers-mission-jason-florists-publix-instagram/",
-      "description": "Jason's GTA 6 missions where he preps for Lucia's arrival are actively influencing boyfriends and husbands playing Rockstar's open-world game",
-      "source": "Polygon",
-      "category": "Gaming",
-      "pubDate": "Mon, 23 Nov 2026 17:26:55 GMT",
-      "imageUrl": "https://static0.polygonimages.com/wordpress/wp-content/uploads/2026/08/gta-6-jason-and-lucia-2.jpg"
-    },
-    {
-      "id": "https://www.polygon.com/poker-face-tv-show-reboot-dead-rian-johnson/",
-      "title": "Poker Face Fans Get Devastating Official Update",
-      "link": "https://www.polygon.com/poker-face-tv-show-reboot-dead-rian-johnson/",
-      "description": "Rian Johnson just revealed that the planned Poker Face reboot isn\u2019t happening.",
-      "source": "Polygon",
-      "category": "Gaming",
-      "pubDate": "Mon, 23 Nov 2026 17:20:21 GMT",
-      "imageUrl": "https://static0.polygonimages.com/wordpress/wp-content/uploads/2026/11/poker-face-natasha-lyonne.jpg"
-    },
-    {
-      "id": "https://kotaku.com/god-of-war-laufey-actress-to-reprise-her-role-as-faye-in-live-action-god-of-war-series-2000759506",
-      "title": "God Of War Laufey Actress To Reprise Her Role As Faye In Live Action God Of War Series",
-      "link": "https://kotaku.com/god-of-war-laufey-actress-to-reprise-her-role-as-faye-in-live-action-god-of-war-series-2000759506",
-      "description": "Gonna get a double dose of Deborah Ann Woll",
-      "source": "Kotaku",
-      "category": "Gaming",
-      "pubDate": "Mon, 23 Nov 2026 17:19:07 +0000",
-      "imageUrl": "https://kotaku.com/app/uploads/2026/06/topgod2-1280x720.jpg"
-    },
-    {
       "id": "https://www.gamespot.com/articles/gta-6-all-the-secret-controls-and-gameplay-features-you-might-have-missed/",
       "title": "GTA 6: All The Secret Controls And Gameplay Features You Might Have Missed",
       "link": "https://www.gamespot.com/articles/gta-6-all-the-secret-controls-and-gameplay-features-you-might-have-missed/",
@@ -70,66 +460,6 @@
       "category": "Gaming",
       "pubDate": "Mon, 23 Nov 2026 17:10:33 +0000",
       "imageUrl": "https://www.gamespot.com/wp-content/uploads/2026/11/GTA-6-launch-screens-28-1.jpg?w=300"
-    },
-    {
-      "id": "https://www.eurogamer.net/dawn-of-war-4-trailer-vashtorr-chaos-tease",
-      "title": "Dawn of War 4's newest trailer teases the appearance of a fan-favourite character in the game's post-launch DLC",
-      "link": "https://www.eurogamer.net/dawn-of-war-4-trailer-vashtorr-chaos-tease",
-      "description": "As Dawn of War 4's December release date inches ever closer, a new trailer appears to have teased a fan-favourite character's inclusion in the RTS's first post-launch DLC. Read more",
-      "source": "Eurogamer",
-      "category": "Gaming",
-      "pubDate": "Mon, 23 Nov 2026 17:06:40 +0000",
-      "imageUrl": "https://assetsio.gnwcdn.com/Warhammer-40%2C000_-Dawn-of-War-4---Official-Announcement-Trailer-_-gamescom-2025-0-16-screenshot.png?width=690&amp;quality=85&amp;format=jpg&amp;auto=webp"
-    },
-    {
-      "id": "https://www.gamespot.com/articles/gta-6-has-a-super-mario-bros-easter-egg-and-its-a-trip/",
-      "title": "GTA 6 Has A Super Mario Bros. Easter Egg, And It\u2019s A Trip",
-      "link": "https://www.gamespot.com/articles/gta-6-has-a-super-mario-bros-easter-egg-and-its-a-trip/",
-      "description": "Grand Theft Auto 6 has plenty of fun Easter eggs--many of which tie back to earlier games in the series--but you can also find a few nods to other megapopular game franchises hiding within the vast map of Leonida. If ...",
-      "source": "GameSpot",
-      "category": "Gaming",
-      "pubDate": "Mon, 23 Nov 2026 17:05:35 +0000",
-      "imageUrl": "https://www.gamespot.com/wp-content/uploads/2026/11/Super-Jason-Bro.jpg?w=300"
-    },
-    {
-      "id": "https://www.polygon.com/wow-forever-cozy-sleeping-bag/",
-      "title": "WoW: Forever\u2019s Secretly Best Item Changes Everything",
-      "link": "https://www.polygon.com/wow-forever-cozy-sleeping-bag/",
-      "description": "The Cozy Sleeping Bag, a quest reward in Blizzard's new version of World of Warcraft, is a game-changer",
-      "source": "Polygon",
-      "category": "Gaming",
-      "pubDate": "Mon, 23 Nov 2026 17:00:18 GMT",
-      "imageUrl": "https://static0.polygonimages.com/wordpress/wp-content/uploads/2026/11/wow_forever_campfire_launchkeyart.png"
-    },
-    {
-      "id": "https://www.polygon.com/smosh-winter-games-2026/",
-      "title": "9 Years Later, Smosh\u2019s Best Event Makes an Epic Comeback",
-      "link": "https://www.polygon.com/smosh-winter-games-2026/",
-      "description": "In an exclusive reveal with Polygon, Smosh announced its upcoming winter bonanza: the 2026 Winter Games.",
-      "source": "Polygon",
-      "category": "Gaming",
-      "pubDate": "Mon, 23 Nov 2026 17:00:18 GMT",
-      "imageUrl": "https://static0.polygonimages.com/wordpress/wp-content/uploads/2026/11/smosh-winter-games-2026.jpg"
-    },
-    {
-      "id": "https://kotaku.com/grand-theft-auto-6-bugs-gta6-clips-funny-videos-glitches-2000759481",
-      "title": "12 Of The Funniest, Most Chaotic GTA 6 Clips We\u2019ve Seen So Far",
-      "link": "https://kotaku.com/grand-theft-auto-6-bugs-gta6-clips-funny-videos-glitches-2000759481",
-      "description": "From bugs to general tomfoolery, Grand Theft Auto 6 is made for funny viral moments",
-      "source": "Kotaku",
-      "category": "Gaming",
-      "pubDate": "Mon, 23 Nov 2026 17:00:15 +0000",
-      "imageUrl": "https://kotaku.com/app/uploads/2026/11/gtainterrogation.jpg"
-    },
-    {
-      "id": "https://www.tomshardware.com/pc-components/cpus/amds-top-performing-ryzen-9800x3d-is-down-to-its-lowest-price-ever-at-usd399-get-the-fastest-gaming-cpu-and-save-usd80-off-list-price",
-      "title": "AMD's top-performing Ryzen 9850X3D is now the same price as the 9800X3D, an all-time low",
-      "link": "https://www.tomshardware.com/pc-components/cpus/amds-top-performing-ryzen-9800x3d-is-down-to-its-lowest-price-ever-at-usd399-get-the-fastest-gaming-cpu-and-save-usd80-off-list-price",
-      "description": "",
-      "source": "Tom's Hardware",
-      "category": "Hardware",
-      "pubDate": "Mon, 23 Nov 2026 17:00:00 +0000",
-      "imageUrl": "https://cdn.mos.cms.futurecdn.net/rs4t4aZAtm3YaAxSqHYj7P-1920-80.jpg"
     },
     {
       "id": "https://www.rockpapershotgun.com/dont-let-this-happen-again-gta-6-hacker-who-pleaded-guilty-to-2022-rockstar-games-breach-released-under-supervision",
@@ -142,76 +472,6 @@
       "imageUrl": "https://assetsio.gnwcdn.com/gta-6-headline-launch-gallery-30.jpg?width=690&amp;quality=85&amp;format=jpg&amp;auto=webp"
     },
     {
-      "id": "https://www.tomshardware.com/3d-printing/3d-printer-that-promises-simultaneous-printing-from-all-four-heads-gets-usd500-000-in-crowdfunding-four-printhead-co-print-quadro-msrp-set-at-just-usd899-promises-reduced-waste-and-faster-printing",
-      "title": "3D printer that promises simultaneous printing from all four heads gets $500,000 in crowdfunding",
-      "link": "https://www.tomshardware.com/3d-printing/3d-printer-that-promises-simultaneous-printing-from-all-four-heads-gets-usd500-000-in-crowdfunding-four-printhead-co-print-quadro-msrp-set-at-just-usd899-promises-reduced-waste-and-faster-printing",
-      "description": "",
-      "source": "Tom's Hardware",
-      "category": "Hardware",
-      "pubDate": "Mon, 23 Nov 2026 16:30:59 +0000",
-      "imageUrl": "https://cdn.mos.cms.futurecdn.net/NZ2oDCFTTQdt97wjDXCUTU-1920-80.jpg"
-    },
-    {
-      "id": "https://kotaku.com/gta-6s-first-post-launch-update-fixes-7-bugs-2000759480",
-      "title": "GTA 6\u2018s First Post-Launch Update Fixes 7 Bugs",
-      "link": "https://kotaku.com/gta-6s-first-post-launch-update-fixes-7-bugs-2000759480",
-      "description": "Some players have been combatting error codes and crashes",
-      "source": "Kotaku",
-      "category": "Gaming",
-      "pubDate": "Mon, 23 Nov 2026 16:30:02 +0000",
-      "imageUrl": "https://kotaku.com/app/uploads/2026/11/gta-6-preloads.jpg"
-    },
-    {
-      "id": "https://www.gamespot.com/articles/this-terrifying-gta-6-easter-egg-will-give-you-nightmares/",
-      "title": "This Terrifying GTA 6 Easter Egg Will Give You Nightmares",
-      "link": "https://www.gamespot.com/articles/this-terrifying-gta-6-easter-egg-will-give-you-nightmares/",
-      "description": "Rockstar's GTA 6 features a massive open world to explore, and people continue to make new discoveries, including a terrifying killer clown Easter egg. It's been discovered that the Haymarket building in Vice Beach Co...",
-      "source": "GameSpot",
-      "category": "Gaming",
-      "pubDate": "Mon, 23 Nov 2026 16:27:12 +0000",
-      "imageUrl": "https://www.gamespot.com/wp-content/uploads/2026/11/GTAClown.png?w=300"
-    },
-    {
-      "id": "https://www.tomshardware.com/desktops/gaming-pcs/save-usd2-000-on-this-sick-corsair-rtx-5090-prebuilt-gaming-pc-this-black-friday-week-awesome-rig-includes-9800x3d-power-64gb-of-ram-and-2tb-storage",
-      "title": "Save $2,000 on this sick Corsair RTX 5090 prebuilt gaming PC this Black Friday week",
-      "link": "https://www.tomshardware.com/desktops/gaming-pcs/save-usd2-000-on-this-sick-corsair-rtx-5090-prebuilt-gaming-pc-this-black-friday-week-awesome-rig-includes-9800x3d-power-64gb-of-ram-and-2tb-storage",
-      "description": "",
-      "source": "Tom's Hardware",
-      "category": "Hardware",
-      "pubDate": "Mon, 23 Nov 2026 16:23:32 +0000",
-      "imageUrl": "https://cdn.mos.cms.futurecdn.net/pqwff7g6BhRBzqfSbSaXXn-1920-80.jpg"
-    },
-    {
-      "id": "https://kotaku.com/some-unlucky-gta-6-players-keep-running-into-crashes-on-ps5-but-there-are-workarounds-2000758451",
-      "title": "Some Unlucky GTA 6 Players Keep Running Into Crashes On PS5, But There Are Workarounds",
-      "link": "https://kotaku.com/some-unlucky-gta-6-players-keep-running-into-crashes-on-ps5-but-there-are-workarounds-2000758451",
-      "description": "Mysteriously exiled from Vice City",
-      "source": "Kotaku",
-      "category": "Gaming",
-      "pubDate": "Mon, 23 Nov 2026 16:15:08 +0000",
-      "imageUrl": "https://kotaku.com/app/uploads/2026/11/GTA-6-lucia-shooting-drinka-1280x720.jpg"
-    },
-    {
-      "id": "https://www.polygon.com/nvidia-reinstates-ceo-jensen-huang-spy-scandal/",
-      "title": "Nvidia Board Reinstates CEO Jensen Huang Less than 2 Weeks after He Resigned",
-      "link": "https://www.polygon.com/nvidia-reinstates-ceo-jensen-huang-spy-scandal/",
-      "description": "Nvidia is reinstating Jensen Huang as CEO shortly after he stepped down once his affair with a Chinese spy came to light.",
-      "source": "Polygon",
-      "category": "Gaming",
-      "pubDate": "Mon, 23 Nov 2026 16:13:15 GMT",
-      "imageUrl": "https://static0.polygonimages.com/wordpress/wp-content/uploads/2026/11/jensen-huang-headshot-black-background.jpeg"
-    },
-    {
-      "id": "https://www.pcgamer.com/games/rpg/this-fan-made-map-shows-why-queens-domain-is-the-true-goty-and-you-can-even-upload-your-save-to-it-to-track-the-things-you-have-left-to-find/",
-      "title": "This fan-made map shows why Queen's Domain is the true GOTY, and you can even upload your save to it to track the things you have left to find",
-      "link": "https://www.pcgamer.com/games/rpg/this-fan-made-map-shows-why-queens-domain-is-the-true-goty-and-you-can-even-upload-your-save-to-it-to-track-the-things-you-have-left-to-find/",
-      "description": "",
-      "source": "PC Gamer",
-      "category": "PC Gaming",
-      "pubDate": "Mon, 23 Nov 2026 16:11:47 +0000",
-      "imageUrl": "https://cdn.mos.cms.futurecdn.net/MQ8iSphECjHieTyQxXxJAa-1920-80.jpg"
-    },
-    {
       "id": "https://www.rockpapershotgun.com/finally-some-former-valorant-and-sky-devs-have-answered-the-call-for-a-peak-style-platformer-about-throwing-a-cat-through-a-hole-in-spacetime",
       "title": "Finally, some former Valorant and Sky devs have answered the call for a Peak-style platformer about throwing a cat through a hole in spacetime",
       "link": "https://www.rockpapershotgun.com/finally-some-former-valorant-and-sky-devs-have-answered-the-call-for-a-peak-style-platformer-about-throwing-a-cat-through-a-hole-in-spacetime",
@@ -220,66 +480,6 @@
       "category": "PC Gaming",
       "pubDate": "Mon, 23 Nov 2026 16:10:00 +0000",
       "imageUrl": "https://assetsio.gnwcdn.com/Whisk.jpg?width=690&amp;quality=85&amp;format=jpg&amp;auto=webp"
-    },
-    {
-      "id": "https://www.pcgamer.com/games/grand-theft-auto/60-hours-in-gta-6-has-me-yearning-for-an-online-leonida/",
-      "title": "60 hours in GTA 6 has me yearning for an online Leonida",
-      "link": "https://www.pcgamer.com/games/grand-theft-auto/60-hours-in-gta-6-has-me-yearning-for-an-online-leonida/",
-      "description": "",
-      "source": "PC Gamer",
-      "category": "PC Gaming",
-      "pubDate": "Mon, 23 Nov 2026 16:02:42 +0000",
-      "imageUrl": "https://cdn.mos.cms.futurecdn.net/XmgQM2EHqUL9LoTv3eSBMF-1920-80.jpg"
-    },
-    {
-      "id": "https://kotaku.com/an-absurd-little-immersion-breaking-hiccup-that-reminded-me-gta-6-isnt-perfect-2000759420",
-      "title": "An Absurd Little Immersion-Breaking Hiccup That Reminded Me GTA 6 Isn\u2019t Perfect",
-      "link": "https://kotaku.com/an-absurd-little-immersion-breaking-hiccup-that-reminded-me-gta-6-isnt-perfect-2000759420",
-      "description": "I'm still not convinced it wasn't a bug",
-      "source": "Kotaku",
-      "category": "Gaming",
-      "pubDate": "Mon, 23 Nov 2026 16:00:53 +0000",
-      "imageUrl": "https://kotaku.com/app/uploads/2026/11/GTA-6-gaming-1280x720.jpg"
-    },
-    {
-      "id": "https://www.polygon.com/disney-percy-jackson-series-season-4-teased-walker-scobell/",
-      "title": "Percy Jackson Star Reveals Encouraging Season 4 News Amid Cancellation Fears",
-      "link": "https://www.polygon.com/disney-percy-jackson-series-season-4-teased-walker-scobell/",
-      "description": "Percy Jackson star Walker Scobell may have just confirmed Disney\u2019s Rick Riordan adaptation will get a season 4.",
-      "source": "Polygon",
-      "category": "Gaming",
-      "pubDate": "Mon, 23 Nov 2026 15:59:20 GMT",
-      "imageUrl": "https://static0.polygonimages.com/wordpress/wp-content/uploads/2026/10/percy-jackson-key-art-s2.jpg"
-    },
-    {
-      "id": "https://www.polygon.com/gta-6-first-patch-ps5-xbox-autosave-update-new-changes/",
-      "title": "GTA 6's First Big Patch Finally Fixes A Major Fan Complaint",
-      "link": "https://www.polygon.com/gta-6-first-patch-ps5-xbox-autosave-update-new-changes/",
-      "description": "One of GTA 6's most hated features literally left PS5 and Xbox players alike in tears, but Rockstar is on the case",
-      "source": "Polygon",
-      "category": "Gaming",
-      "pubDate": "Mon, 23 Nov 2026 15:58:03 GMT",
-      "imageUrl": "https://static0.polygonimages.com/wordpress/wp-content/uploads/2025/09/jason.JPG"
-    },
-    {
-      "id": "https://www.polygon.com/kirby-and-the-world-beyond-new-details-revealed/",
-      "title": "Nintendo Officially Reveals New Kirby and the World Beyond Gameplay Details",
-      "link": "https://www.polygon.com/kirby-and-the-world-beyond-new-details-revealed/",
-      "description": "Nintendo just revealed more details about Kirby and the World Beyond, including bomb-jumping and upgraded copy abilities.",
-      "source": "Polygon",
-      "category": "Gaming",
-      "pubDate": "Mon, 23 Nov 2026 15:56:08 GMT",
-      "imageUrl": "https://static0.polygonimages.com/wordpress/wp-content/uploads/2026/09/kirby-world-beyond.jpg"
-    },
-    {
-      "id": "https://www.gamespot.com/articles/gta-6s-preorder-dlc-is-now-available-by-itself-for-5/",
-      "title": "GTA 6\u2019s Preorder DLC Is Now Available By Itself For $5",
-      "link": "https://www.gamespot.com/articles/gta-6s-preorder-dlc-is-now-available-by-itself-for-5/",
-      "description": "Rockstar Games is now selling GTA 6's preorder DLC as a standalone purchase. The Vintage Vice City Pack is now available to buy for $5. The DLC includes '80s-inspired content, including the '55 Vapid Stanier sedan, al...",
-      "source": "GameSpot",
-      "category": "Gaming",
-      "pubDate": "Mon, 23 Nov 2026 15:53:44 +0000",
-      "imageUrl": "https://www.gamespot.com/wp-content/uploads/2026/11/GTAVintage.png?w=300"
     },
     {
       "id": "https://www.rockpapershotgun.com/this-week-in-pc-games-raise-a-psychedelic-baby-invent-terrible-new-religions-and-run-your-own-pc-hardware-business",
@@ -292,56 +492,6 @@
       "imageUrl": "https://assetsio.gnwcdn.com/Escape-the-Baby-Alarm-brain-screenshot.jpg?width=690&amp;quality=85&amp;format=jpg&amp;auto=webp"
     },
     {
-      "id": "https://www.pcgamer.com/games/world-of-warcraft/world-of-warcraft-forever-review/",
-      "title": "World of Warcraft: Forever review: The first proper MMO adventure I've been on in years",
-      "link": "https://www.pcgamer.com/games/world-of-warcraft/world-of-warcraft-forever-review/",
-      "description": "",
-      "source": "PC Gamer",
-      "category": "PC Gaming",
-      "pubDate": "Mon, 23 Nov 2026 15:36:34 +0000",
-      "imageUrl": "https://cdn.mos.cms.futurecdn.net/iF6yF3P4vNtWudWTcTwyqb-1920-80.png"
-    },
-    {
-      "id": "https://kotaku.com/telegram-ceo-says-the-least-realistic-thing-about-gta-6-is-that-nobody-uses-his-app-to-commit-crimes-2000759427",
-      "title": "Telegram CEO Says The \u2018Least Realistic\u2019 Thing About GTA 6 Is That Nobody Uses His App To Commit Crimes",
-      "link": "https://kotaku.com/telegram-ceo-says-the-least-realistic-thing-about-gta-6-is-that-nobody-uses-his-app-to-commit-crimes-2000759427",
-      "description": "He just tweeted it out",
-      "source": "Kotaku",
-      "category": "Gaming",
-      "pubDate": "Mon, 23 Nov 2026 15:30:50 +0000",
-      "imageUrl": "https://kotaku.com/app/uploads/2026/11/Lucia-Caminos-GTA6-1280x720.jpg"
-    },
-    {
-      "id": "https://www.tomshardware.com/monitors/gaming-monitors/samsung-odyssey-g8-g80sh-32-inch-4k-oled-gaming-monitor-review",
-      "title": "Samsung Odyssey G8 G80SH 32-inch 4K OLED gaming monitor review: Color, performance and style",
-      "link": "https://www.tomshardware.com/monitors/gaming-monitors/samsung-odyssey-g8-g80sh-32-inch-4k-oled-gaming-monitor-review",
-      "description": "",
-      "source": "Tom's Hardware",
-      "category": "Hardware",
-      "pubDate": "Mon, 23 Nov 2026 15:30:00 +0000",
-      "imageUrl": "https://cdn.mos.cms.futurecdn.net/DZgTGU8zU7WJiTeJFEaZD4-1920-80.jpg"
-    },
-    {
-      "id": "https://www.polygon.com/video/michelle-yeoh-as-a-replicant-is-terrifying/",
-      "title": "Michelle Yeoh as a replicant is TERRIFYING!",
-      "link": "https://www.polygon.com/video/michelle-yeoh-as-a-replicant-is-terrifying/",
-      "description": "Michelle Yeoh's replicant Olwen may just be the most unsettling part of Blade Runner 2099.#BladeRunner2099 #BladeRunner #MichelleYeoh #PrimeVideo #Replicant #SciFi",
-      "source": "Polygon",
-      "category": "Gaming",
-      "pubDate": "Mon, 23 Nov 2026 15:25:18 GMT",
-      "imageUrl": "https://static0.polygonimages.com/wordpress/wp-content/uploads/2026/11/screenshot-2026-11-23-at-4-18-45-pm.png"
-    },
-    {
-      "id": "https://www.eurogamer.net/gta-6-xbox-playstation-patch-autosave-vignette",
-      "title": "GTA 6 just got a patch that fixed a progression bug on PS5 and Xbox Series X/S",
-      "link": "https://www.eurogamer.net/gta-6-xbox-playstation-patch-autosave-vignette",
-      "description": "Rockstar just issued a new patch for GTA 6 on PlayStation 5 and Xbox Series X/S, targeting a few issues players have been reporting since the game launched last Thursday (19th November). Read more",
-      "source": "Eurogamer",
-      "category": "Gaming",
-      "pubDate": "Mon, 23 Nov 2026 15:22:30 +0000",
-      "imageUrl": "https://assetsio.gnwcdn.com/GTA-6-vignette.jpg?width=690&amp;quality=85&amp;format=jpg&amp;auto=webp"
-    },
-    {
       "id": "https://www.rockpapershotgun.com/nvidia-reinstate-jensen-huang-as-ceo-following-alleged-affairs-as-us-government-support-renders-please-give-me-my-job-back-go-usa-a-highly-persuasive-plea",
       "title": "Nvidia reinstate Jensen Huang as CEO following alleged affairs, as US government support renders 'please give me my job back, go USA' a highly persuasive plea",
       "link": "https://www.rockpapershotgun.com/nvidia-reinstate-jensen-huang-as-ceo-following-alleged-affairs-as-us-government-support-renders-please-give-me-my-job-back-go-usa-a-highly-persuasive-plea",
@@ -350,176 +500,6 @@
       "category": "PC Gaming",
       "pubDate": "Mon, 23 Nov 2026 15:10:20 +0000",
       "imageUrl": "https://assetsio.gnwcdn.com/nvidia-ceo-jensen-huang-return-declined-02.jpg?width=690&amp;quality=85&amp;format=jpg&amp;auto=webp"
-    },
-    {
-      "id": "https://www.pcgamer.com/hardware/graphics-cards/trump-praises-jensen-huangs-reinstatement-as-nvidia-ceo-calls-him-a-great-patriot-and-national-treasure-while-musk-says-the-mistake-has-been-corrected/",
-      "title": "Trump praises Jensen Huang's reinstatement as Nvidia CEO, calls him a 'great patriot and national treasure,' while Musk says 'the mistake has been corrected'",
-      "link": "https://www.pcgamer.com/hardware/graphics-cards/trump-praises-jensen-huangs-reinstatement-as-nvidia-ceo-calls-him-a-great-patriot-and-national-treasure-while-musk-says-the-mistake-has-been-corrected/",
-      "description": "",
-      "source": "PC Gamer",
-      "category": "PC Gaming",
-      "pubDate": "Mon, 23 Nov 2026 15:09:09 +0000",
-      "imageUrl": "https://cdn.mos.cms.futurecdn.net/7foqDBPfcAkwqyvMkoRz98-1920-80.jpg"
-    },
-    {
-      "id": "https://www.eurogamer.net/nvidia-jensen-huang-ceo-reinstated-affair",
-      "title": "Nvidia makes stunning decision to reinstate Jensen Huang as CEO",
-      "link": "https://www.eurogamer.net/nvidia-jensen-huang-ceo-reinstated-affair",
-      "description": "Gaming tech giant Nvidia has decided to reinstate Jensen Huang as its president and CEO, despite allegedly saying it wouldn't, and despite a string of extramarital affairs and investigations into alleged bullying, wor...",
-      "source": "Eurogamer",
-      "category": "Gaming",
-      "pubDate": "Mon, 23 Nov 2026 15:01:00 +0000",
-      "imageUrl": "https://assetsio.gnwcdn.com/NVIDIA-CEO-Jensen-Huang-Keynote-at-CES-2025-20-19-screenshot.png?width=690&amp;quality=85&amp;format=jpg&amp;auto=webp"
-    },
-    {
-      "id": "https://kotaku.com/kpop-demon-hunters-world-tour-ticket-sales-price-cancel-2000759455",
-      "title": "The KPop Demon Hunters Hype Train May Finally Have Run Out Of Steam",
-      "link": "https://kotaku.com/kpop-demon-hunters-world-tour-ticket-sales-price-cancel-2000759455",
-      "description": "\u2018Unless Rumi, Mira, and Zoey jump outta that plane and on stage in front of me in the flesh, it\u2019s not worth it\u2019",
-      "source": "Kotaku",
-      "category": "Gaming",
-      "pubDate": "Mon, 23 Nov 2026 15:00:38 +0000",
-      "imageUrl": "https://kotaku.com/app/uploads/2025/08/KpopDemonHunters_ProRes422HQ_SDR_2ch_20250424.00_47_06_06_L-1-1280x720.jpg"
-    },
-    {
-      "id": "https://www.eurogamer.net/gta-6-car-theft-gamified",
-      "title": "Has Rockstar taken the \"Grand Theft Auto\" out of GTA 6? Or has it just gamified car-jacking properly for the first time?",
-      "link": "https://www.eurogamer.net/gta-6-car-theft-gamified",
-      "description": "It's impossible to have a big game launch these days without some section of the internet, somewhere, finding grievances with the final product because it does not align with the expectations they had pre-release. Rea...",
-      "source": "Eurogamer",
-      "category": "Gaming",
-      "pubDate": "Mon, 23 Nov 2026 14:58:20 +0000",
-      "imageUrl": "https://assetsio.gnwcdn.com/car-gta-6.jpg?width=690&amp;quality=85&amp;format=jpg&amp;auto=webp"
-    },
-    {
-      "id": "https://www.pcgamer.com/games/grand-theft-auto/gta-6-cut-or-pure-dealers-choice/",
-      "title": "Should you choose the cut or pure drugs in GTA 6?",
-      "link": "https://www.pcgamer.com/games/grand-theft-auto/gta-6-cut-or-pure-dealers-choice/",
-      "description": "",
-      "source": "PC Gamer",
-      "category": "PC Gaming",
-      "pubDate": "Mon, 23 Nov 2026 14:56:37 +0000",
-      "imageUrl": "https://cdn.mos.cms.futurecdn.net/xZM6fFyFKattMxJNKXEUwZ-1920-80.jpg"
-    },
-    {
-      "id": "https://www.gamespot.com/articles/new-hunger-games-movie-blows-past-expectations-after-some-feared-gta-6-could-limit-its-reach/",
-      "title": "New Hunger Games Movie Blows Past Expectations After Some Feared GTA 6 Could Limit Its Reach",
-      "link": "https://www.gamespot.com/articles/new-hunger-games-movie-blows-past-expectations-after-some-feared-gta-6-could-limit-its-reach/",
-      "description": "The newest Hunger Games movie, Sunrise on the Reaping, had a gigantic opening weekend that exceeded expectations. Some theorized it could struggle as people stayed home to playGTA 6, which released one day prior, but ...",
-      "source": "GameSpot",
-      "category": "Gaming",
-      "pubDate": "Mon, 23 Nov 2026 14:52:04 +0000",
-      "imageUrl": "https://www.gamespot.com/wp-content/uploads/2026/11/Sunrise.png?w=300"
-    },
-    {
-      "id": "https://kotaku.com/avengers-doomsday-final-trailer-x-men-steve-rogers-son-2000759445",
-      "title": "Avengers: Doomsday\u2019s Final Trailer Shows Steve Rogers\u2019 Family Life Upended By The Fantastic Four",
-      "link": "https://kotaku.com/avengers-doomsday-final-trailer-x-men-steve-rogers-son-2000759445",
-      "description": "There's also a fun reference to Cyclops' iconic 'To me, my X-Men' line",
-      "source": "Kotaku",
-      "category": "Gaming",
-      "pubDate": "Mon, 23 Nov 2026 14:33:59 +0000",
-      "imageUrl": "https://kotaku.com/app/uploads/2026/11/image-66.jpg"
-    },
-    {
-      "id": "https://www.pcgamer.com/hardware/graphics-cards/jensen-huang-has-been-reinstated-as-nvidia-ceo-i-take-this-responsibility-with-the-greatest-humility-and-renewed-commitment/",
-      "title": "Jensen Huang has been reinstated as Nvidia CEO: 'I take this responsibility with the greatest humility and renewed commitment'",
-      "link": "https://www.pcgamer.com/hardware/graphics-cards/jensen-huang-has-been-reinstated-as-nvidia-ceo-i-take-this-responsibility-with-the-greatest-humility-and-renewed-commitment/",
-      "description": "",
-      "source": "PC Gamer",
-      "category": "PC Gaming",
-      "pubDate": "Mon, 23 Nov 2026 14:30:41 +0000",
-      "imageUrl": "https://cdn.mos.cms.futurecdn.net/hJkLN4Zb3pgAj9NTkYDL6f-1920-80.jpg"
-    },
-    {
-      "id": "https://www.pcgamer.com/gaming-industry/dragon-ages-former-boss-explains-that-poor-management-from-ea-led-to-bioware-shutting-down-because-the-options-on-the-table-were-all-terrible/",
-      "title": "Dragon Age's former boss explains that poor management from EA led to BioWare shutting down because 'the options on the table were all terrible'",
-      "link": "https://www.pcgamer.com/gaming-industry/dragon-ages-former-boss-explains-that-poor-management-from-ea-led-to-bioware-shutting-down-because-the-options-on-the-table-were-all-terrible/",
-      "description": "",
-      "source": "PC Gamer",
-      "category": "PC Gaming",
-      "pubDate": "Mon, 23 Nov 2026 14:30:08 +0000",
-      "imageUrl": "https://cdn.mos.cms.futurecdn.net/oLQDnah9YQyy4HVj6g3s6T-1920-80.jpg"
-    },
-    {
-      "id": "https://kotaku.com/my-cat-knows-more-about-video-games-than-me-2000759301",
-      "title": "My Cat Knows More About Video Games Than Me",
-      "link": "https://kotaku.com/my-cat-knows-more-about-video-games-than-me-2000759301",
-      "description": "I wish she would tell me what she thinks of them",
-      "source": "Kotaku",
-      "category": "Gaming",
-      "pubDate": "Mon, 23 Nov 2026 14:30:03 +0000",
-      "imageUrl": "https://kotaku.com/app/uploads/2026/11/robo-the-cat-1280x960.jpg"
-    },
-    {
-      "id": "https://www.gamespot.com/articles/cyberpunk-2-is-canceled-director-jokes-after-gta-6-raises-the-bar/",
-      "title": "Cyberpunk 2 Is Canceled, Director Jokes, After GTA 6 Raises The Bar",
-      "link": "https://www.gamespot.com/articles/cyberpunk-2-is-canceled-director-jokes-after-gta-6-raises-the-bar/",
-      "description": "Grand Theft Auto 6 has raised the bar for open-world games, and Cyberpunk 2 creative director Igor Sarzy\u0144ski is feeling it. Online, the developer jokingly commented about GTA 6 setting a new gold standard for the genr...",
-      "source": "GameSpot",
-      "category": "Gaming",
-      "pubDate": "Mon, 23 Nov 2026 14:19:27 +0000",
-      "imageUrl": "https://www.gamespot.com/wp-content/uploads/2026/11/GTA-6-Cyberpunk.jpg?w=300"
-    },
-    {
-      "id": "https://www.tomshardware.com/tech-industry/nvidia-reinstates-jensen-huang-as-ceo-following-unanimous-vote-by-company-board-11-day-exit-from-company-saw-stock-prices-fall-by-24-percent-after-affair-scandal",
-      "title": "Nvidia reinstates Jensen Huang as CEO following unanimous vote by company board",
-      "link": "https://www.tomshardware.com/tech-industry/nvidia-reinstates-jensen-huang-as-ceo-following-unanimous-vote-by-company-board-11-day-exit-from-company-saw-stock-prices-fall-by-24-percent-after-affair-scandal",
-      "description": "",
-      "source": "Tom's Hardware",
-      "category": "Hardware",
-      "pubDate": "Mon, 23 Nov 2026 14:14:34 +0000",
-      "imageUrl": "https://cdn.mos.cms.futurecdn.net/V7MhPpXjWasaXp84nK6Meg-1920-80.jpg"
-    },
-    {
-      "id": "https://www.eurogamer.net/grand-theft-auto-6-60-fps-glitch-xbox",
-      "title": "GTA 6 can run at 60fps on Xbox Series X if you use a glitch, but there's a catch",
-      "link": "https://www.eurogamer.net/grand-theft-auto-6-60-fps-glitch-xbox",
-      "description": "Grand Theft Auto 6 runs at 30 frames-per-second across all the consoles it's currently available on, including the more powerful PlayStation 5 Pro. The game doesn't offer a 60fps performance mode or an option to unloc...",
-      "source": "Eurogamer",
-      "category": "Gaming",
-      "pubDate": "Mon, 23 Nov 2026 14:12:00 +0000",
-      "imageUrl": "https://assetsio.gnwcdn.com/GTA6_5nov-(29).jpg?width=690&amp;quality=85&amp;format=jpg&amp;auto=webp"
-    },
-    {
-      "id": "https://www.gamespot.com/articles/somehow-jensen-huang-returned/",
-      "title": "Somehow, Jensen Huang Returned",
-      "link": "https://www.gamespot.com/articles/somehow-jensen-huang-returned/",
-      "description": "Nvidia has announced that Jensen Huang has been reinstated as president and CEO of Nvidia, while he'll also return to the Board of Directors. This is happening just hours after US President Donald Trump said Huang sho...",
-      "source": "GameSpot",
-      "category": "Gaming",
-      "pubDate": "Mon, 23 Nov 2026 14:10:47 +0000",
-      "imageUrl": "https://www.gamespot.com/wp-content/uploads/2026/11/Screenshot-2026-11-23-at-9.09.30-AM-1.png?w=300"
-    },
-    {
-      "id": "https://www.tomshardware.com/tech-industry/space/russia-readying-nuclear-armed-satellite-that-could-destroy-every-low-earth-orbit-satellite-report-claims-kremlin-blasts-sputnik-s-claims-as-unfounded-allegations-and-propaganda",
-      "title": "Russia readying nuclear-armed satellite that could destroy every low-Earth-orbit satellite, report claims",
-      "link": "https://www.tomshardware.com/tech-industry/space/russia-readying-nuclear-armed-satellite-that-could-destroy-every-low-earth-orbit-satellite-report-claims-kremlin-blasts-sputnik-s-claims-as-unfounded-allegations-and-propaganda",
-      "description": "",
-      "source": "Tom's Hardware",
-      "category": "Hardware",
-      "pubDate": "Mon, 23 Nov 2026 14:00:00 +0000",
-      "imageUrl": "https://cdn.mos.cms.futurecdn.net/weuJYZ7wRLJCvauEdrFjPP-1920-80.jpg"
-    },
-    {
-      "id": "https://www.gamespot.com/articles/gta-6-is-approaching-an-absurd-new-sales-milestone-report-says/",
-      "title": "GTA 6 Is Approaching An Absurd New Sales Milestone, Report Says",
-      "link": "https://www.gamespot.com/articles/gta-6-is-approaching-an-absurd-new-sales-milestone-report-says/",
-      "description": "Grand Theft Auto 6's success continues to come into focus, as a new report from Alinea Analytics says the game sold 44.9 million copies through its first weekend. This would be up from the 32.5 million copies that Roc...",
-      "source": "GameSpot",
-      "category": "Gaming",
-      "pubDate": "Mon, 23 Nov 2026 13:47:05 +0000",
-      "imageUrl": "https://www.gamespot.com/wp-content/uploads/2026/11/GTA-6-launch-screens-9-1.jpg?w=300"
-    },
-    {
-      "id": "https://www.gamespot.com/articles/gta-6-first-patch-is-rolling-out/",
-      "title": "GTA 6\u2019s First Patch Is Rolling Out, Here\u2019s What It Does",
-      "link": "https://www.gamespot.com/articles/gta-6-first-patch-is-rolling-out/",
-      "description": "Grand Theft Auto 6 has gotten off to a relatively smooth start, which is rare for an open-world game of this scale. It looks like the first GTA 6 patch is also rolling out, and fortunately, it won\u2019t be a mammoth downl...",
-      "source": "GameSpot",
-      "category": "Gaming",
-      "pubDate": "Mon, 23 Nov 2026 13:46:31 +0000",
-      "imageUrl": "https://www.gamespot.com/wp-content/uploads/2026/11/GTA-6-Yes-Im-This-Terrible.jpg?w=300"
     },
     {
       "id": "https://www.rockpapershotgun.com/nightdives-thief-remaster-will-make-the-most-infamous-thief-gold-level-a-little-less-maddening-by-just-kind-of-pointing-the-player-in-the-right-direction",
@@ -532,175 +512,95 @@
       "imageUrl": "https://assetsio.gnwcdn.com/thief-remaster_WT2VzYs.jpg?width=690&amp;quality=85&amp;format=jpg&amp;auto=webp"
     },
     {
-      "id": "https://www.tomshardware.com/pc-components/gpus/the-rtx-5090s-16-pin-connector-just-got-a-free-pin-by-pin-watchdog-rtx-lens-taps-asus-astral-wireview-pro-ii-and-msi-psu-sensors-to-alert-your-phone-or-shut-down-your-pc",
-      "title": "The RTX 5090\u2019s 16-pin connector just got a free pin-by-pin watchdog",
-      "link": "https://www.tomshardware.com/pc-components/gpus/the-rtx-5090s-16-pin-connector-just-got-a-free-pin-by-pin-watchdog-rtx-lens-taps-asus-astral-wireview-pro-ii-and-msi-psu-sensors-to-alert-your-phone-or-shut-down-your-pc",
-      "description": "",
-      "source": "Tom's Hardware",
-      "category": "Hardware",
-      "pubDate": "Mon, 23 Nov 2026 13:30:00 +0000",
-      "imageUrl": "https://cdn.mos.cms.futurecdn.net/rbu2h6JFJkeByAw3SJAbrg-1920-80.jpg"
-    },
-    {
-      "id": "https://www.pcgamer.com/games/grand-theft-auto/gta-6-schafter-v12/",
-      "title": "How to steal the Schafter V12 in GTA 6",
-      "link": "https://www.pcgamer.com/games/grand-theft-auto/gta-6-schafter-v12/",
-      "description": "",
-      "source": "PC Gamer",
-      "category": "PC Gaming",
-      "pubDate": "Mon, 23 Nov 2026 13:08:09 +0000",
-      "imageUrl": "https://cdn.mos.cms.futurecdn.net/2fke8foAq2WrKEEAwaMuZU-1920-80.jpg"
-    },
-    {
-      "id": "https://www.tomshardware.com/laptops/macbooks/macbook-modder-turns-apples-force-touch-trackpad-into-a-speaker-using-haptic-engine-macbook-talks-using-only-vibrations-from-the-motor-can-play-speech-tones-and-even-music",
-      "title": "MacBook modder turns Apple\u2019s Force Touch trackpad into a speaker using haptic engine",
-      "link": "https://www.tomshardware.com/laptops/macbooks/macbook-modder-turns-apples-force-touch-trackpad-into-a-speaker-using-haptic-engine-macbook-talks-using-only-vibrations-from-the-motor-can-play-speech-tones-and-even-music",
-      "description": "",
-      "source": "Tom's Hardware",
-      "category": "Hardware",
-      "pubDate": "Mon, 23 Nov 2026 13:00:00 +0000",
-      "imageUrl": "https://cdn.mos.cms.futurecdn.net/8LbPpwzJEHe4D8keozHWja-1920-80.jpg"
-    },
-    {
-      "id": "https://www.rockpapershotgun.com/nvidia-release-hotfix-for-latest-graphics-card-driver-battering-ssds-with-excessive-writes-but-it-looks-like-reverting-may-still-be-the-better-option",
-      "title": "Nvidia release hotfix for latest graphics card driver battering SSDs with excessive writes, but it looks like reverting may still be the better option",
-      "link": "https://www.rockpapershotgun.com/nvidia-release-hotfix-for-latest-graphics-card-driver-battering-ssds-with-excessive-writes-but-it-looks-like-reverting-may-still-be-the-better-option",
-      "description": "Late last week, reports emerged of some folks having Nvidia's latest GeForce driver, 621.24, needlessly write vast amounts of data to their PC's SSD, a bug that could affect the component's lifespan at a time when rep...",
-      "source": "Rock Paper Shotgun",
-      "category": "PC Gaming",
-      "pubDate": "Mon, 23 Nov 2026 12:59:50 +0000",
-      "imageUrl": "https://assetsio.gnwcdn.com/nvidia-geforce-rtx-4090-gpu.jpg?width=690&amp;quality=85&amp;format=jpg&amp;auto=webp"
-    },
-    {
-      "id": "https://www.eurogamer.net/gta-6-metacritic-review-bomb",
-      "title": "Metacritic's user review problem worsens, as GTA 6's launch prompts review-bombing for completely unrelated games like Soul Calibur and The Ocarina of Time",
-      "link": "https://www.eurogamer.net/gta-6-metacritic-review-bomb",
-      "description": "In the wake of Grand Theft Auto 6's release and the wave of glowing reviews it received, a war is raging in Metacritic's user reviews, with some of the medium's best games of all time caught in the crossfire. Read more",
-      "source": "Eurogamer",
+      "id": "https://kotaku.com/fantastic-news-sam-kinisons-brother-wants-to-revive-the-shrieking-comic-through-ai-2000759297",
+      "title": "Fantastic News, Sam Kinison\u2019s Brother Wants To Revive The Shrieking Comic Through AI",
+      "link": "https://kotaku.com/fantastic-news-sam-kinisons-brother-wants-to-revive-the-shrieking-comic-through-ai-2000759297",
+      "description": "In the latest and possibly loudest estate to sign over a dead celebrity's likeness to AI, Bill Kinison is hoping to subject a new generation to his famed brother's deafening yells",
+      "source": "Kotaku",
       "category": "Gaming",
-      "pubDate": "Mon, 23 Nov 2026 12:50:50 +0000",
-      "imageUrl": "https://assetsio.gnwcdn.com/grand-theft-auto-6-man-with-flour-on-his-nose.png?width=690&amp;quality=85&amp;format=jpg&amp;auto=webp"
+      "pubDate": "Sun, 22 Nov 2026 23:08:44 +0000",
+      "imageUrl": "https://kotaku.com/app/uploads/2026/11/SamKinisonAI-1280x772.jpg"
     },
     {
-      "id": "https://www.gamespot.com/articles/gta-6-dont-finish-chapter-2-before-doing-these-things/",
-      "title": "GTA 6: Don\u2019t Finish Chapter 2 Before Doing These Things",
-      "link": "https://www.gamespot.com/articles/gta-6-dont-finish-chapter-2-before-doing-these-things/",
-      "description": "GTA 6's first chapter is a lengthy prologue that gets you up to speed on the gameplay, the characters, and the storyline. But once you've cleared the final mission and you start Chapter 2, that's when the game really ...",
-      "source": "GameSpot",
+      "id": "https://kotaku.com/physicists-long-lost-1977-fantasy-text-adventure-discovered-on-hard-drive-2000759290",
+      "title": "Physicist\u2019s Long-Lost 1977 Fantasy Text Adventure Discovered On Hard Drive",
+      "link": "https://kotaku.com/physicists-long-lost-1977-fantasy-text-adventure-discovered-on-hard-drive-2000759290",
+      "description": "Described as a 'missing link' between early computer games like Hunt the Wumpus and Zork, John Trenholme took the time to assemble Magic Cave when he wasn't establishing laser technologies",
+      "source": "Kotaku",
       "category": "Gaming",
-      "pubDate": "Mon, 23 Nov 2026 12:32:22 +0000",
-      "imageUrl": "https://www.gamespot.com/wp-content/uploads/2026/11/GTA-6-launch-screens-7-2.jpg?w=300"
+      "pubDate": "Sun, 22 Nov 2026 22:10:12 +0000",
+      "imageUrl": "https://kotaku.com/app/uploads/2026/11/peoplescomputer.jpg"
     },
     {
-      "id": "https://www.tomshardware.com/tech-industry/big-tech/ai-server-makers-hike-prices-up-to-45-percent-months-after-contracts-are-signed-as-ram-shortage-triples-memory-heavy-cpu-node-costs-financial-firms-still-pay-up-as-the-compute-is-valuable",
-      "title": "AI server makers hike prices up to 45% months after contracts are signed as RAM shortage triples memory-heavy CPU node costs",
-      "link": "https://www.tomshardware.com/tech-industry/big-tech/ai-server-makers-hike-prices-up-to-45-percent-months-after-contracts-are-signed-as-ram-shortage-triples-memory-heavy-cpu-node-costs-financial-firms-still-pay-up-as-the-compute-is-valuable",
-      "description": "",
-      "source": "Tom's Hardware",
-      "category": "Hardware",
-      "pubDate": "Mon, 23 Nov 2026 12:30:00 +0000",
-      "imageUrl": "https://cdn.mos.cms.futurecdn.net/ZJSVRpaCtkGTUSuxavfnsC-1920-80.jpg"
-    },
-    {
-      "id": "https://www.pcgamer.com/games/grand-theft-auto/gtas-treatment-of-women-has-not-been-good-says-rockstar-vet-delighted-by-long-overdue-female-protagonist-in-gta-6/",
-      "title": "GTA's treatment of women 'has not been good', says Rockstar vet delighted by 'long overdue' female protagonist in GTA 6",
-      "link": "https://www.pcgamer.com/games/grand-theft-auto/gtas-treatment-of-women-has-not-been-good-says-rockstar-vet-delighted-by-long-overdue-female-protagonist-in-gta-6/",
-      "description": "",
-      "source": "PC Gamer",
-      "category": "PC Gaming",
-      "pubDate": "Mon, 23 Nov 2026 12:15:35 +0000",
-      "imageUrl": "https://cdn.mos.cms.futurecdn.net/yTKHqSdfMgjayUTSfEEiKF-1920-80.jpg"
-    },
-    {
-      "id": "https://www.tomshardware.com/laptops/gaming-laptops/walmart-has-slashed-usd1-090-off-this-rtx-5070-gaming-laptop-nearly-half-price-get-a-ryzen-9-powered-machine-for-just-usd1-299",
-      "title": "Walmart has slashed $1,090 off this RTX 5070 gaming laptop, nearly half price",
-      "link": "https://www.tomshardware.com/laptops/gaming-laptops/walmart-has-slashed-usd1-090-off-this-rtx-5070-gaming-laptop-nearly-half-price-get-a-ryzen-9-powered-machine-for-just-usd1-299",
-      "description": "",
-      "source": "Tom's Hardware",
-      "category": "Hardware",
-      "pubDate": "Mon, 23 Nov 2026 12:15:00 +0000",
-      "imageUrl": "https://cdn.mos.cms.futurecdn.net/gnYFKKHRHLETCN4XLrbUpi-1920-80.jpg"
-    },
-    {
-      "id": "https://www.pcgamer.com/games/grand-theft-auto/gta-6-laptop-password-aunties-place-la-perle/",
-      "title": "GTA 6 laptop password and where to find Auntie's Place in La Perle",
-      "link": "https://www.pcgamer.com/games/grand-theft-auto/gta-6-laptop-password-aunties-place-la-perle/",
-      "description": "",
-      "source": "PC Gamer",
-      "category": "PC Gaming",
-      "pubDate": "Mon, 23 Nov 2026 12:10:56 +0000",
-      "imageUrl": "https://cdn.mos.cms.futurecdn.net/QSSKmDpViuq6XPZRyc9V6g-1920-80.jpg"
-    },
-    {
-      "id": "https://www.rockpapershotgun.com/undisclosed-ai-generated-music-pulled-from-the-binding-of-isaac-repentance-update-as-attempt-to-get-satirical-on-gta-6-launch-day-goes-awry",
-      "title": "Undisclosed AI-generated music pulled from The Binding of Isaac Repentance+ update, as attempt to get satirical on GTA 6 launch day goes awry",
-      "link": "https://www.rockpapershotgun.com/undisclosed-ai-generated-music-pulled-from-the-binding-of-isaac-repentance-update-as-attempt-to-get-satirical-on-gta-6-launch-day-goes-awry",
-      "description": "An update for The Binding of Isaac packed with wink wink, nudge nudge parody of GTA 6 has backfired rather spectacularly, with publishers Nicalis having to make some hasty modifications. This free addition to the Repe...",
-      "source": "Rock Paper Shotgun",
-      "category": "PC Gaming",
-      "pubDate": "Mon, 23 Nov 2026 11:45:10 +0000",
-      "imageUrl": "https://assetsio.gnwcdn.com/binding-of-isaac-repentance-plus-update-ai-music-pulled-01.jpg?width=690&amp;quality=85&amp;format=jpg&amp;auto=webp"
-    },
-    {
-      "id": "https://www.eurogamer.net/queens-domain-review",
-      "title": "Queen's Domain review",
-      "link": "https://www.eurogamer.net/queens-domain-review",
-      "description": "Where to start with Queen's Domain? It's tempting to begin with King's Field; after all, FromSoftware's seminal first-person action-RPG is an explicit inspiration for developer Freshly Baked Games. But 40 hours later,...",
-      "source": "Eurogamer",
+      "id": "https://kotaku.com/godfather-of-cyberpunk-says-hes-never-played-a-video-game-but-finds-gta-6-intriguing-2000759281",
+      "title": "Godfather Of Cyberpunk Says He\u2019s Never Played A Video Game, But Finds GTA 6 \u2018Intriguing\u2019",
+      "link": "https://kotaku.com/godfather-of-cyberpunk-says-hes-never-played-a-video-game-but-finds-gta-6-intriguing-2000759281",
+      "description": "Arcade addicts of the 1980s inspired the cyberspace of William Gibson\u2019s influential Neuromancer, now the author is transfixed on viral footage of Rockstar\u2019s ultra-hit",
+      "source": "Kotaku",
       "category": "Gaming",
-      "pubDate": "Mon, 23 Nov 2026 10:04:50 +0000",
-      "imageUrl": "https://assetsio.gnwcdn.com/queens-domain-header_not_gta2.jpg?width=690&amp;quality=85&amp;format=jpg&amp;auto=webp"
+      "pubDate": "Sun, 22 Nov 2026 18:44:40 +0000",
+      "imageUrl": "https://kotaku.com/app/uploads/2023/08/6e09a0056e1d3bd2d72c274f795f16fc-1280x720.jpg"
     },
     {
-      "id": "https://www.eurogamer.net/grand-theft-auto-6-no-darts-didnt-have-resources",
-      "title": "Why can't you play darts in GTA 6 when you could in previous games? Because Rockstar \"didn't have the resources\" to do it to a standard it'd be happy with",
-      "link": "https://www.eurogamer.net/grand-theft-auto-6-no-darts-didnt-have-resources",
-      "description": "If you've been a fan of Grand Theft Auto for a while, you might have noticed a strange absence in GTA 6. While the game is packed full of different activities, the recurring pastime of darts is missing, having been pr...",
-      "source": "Eurogamer",
+      "id": "https://kotaku.com/creator-of-infamous-e-t-atari-game-warns-that-ai-could-trigger-another-83-style-crash-2000759257",
+      "title": "Creator Of Infamous E.T. Atari Game Warns That AI Could Trigger Another \u201983-Style Crash",
+      "link": "https://kotaku.com/creator-of-infamous-e-t-atari-game-warns-that-ai-could-trigger-another-83-style-crash-2000759257",
+      "description": "While the hastily made Spielberg tie-in is often blamed for the industry collapse of the 1980s, any crash in the 2020s would be unrelated to that same filmmaker's Artificial Intelligence",
+      "source": "Kotaku",
       "category": "Gaming",
-      "pubDate": "Mon, 23 Nov 2026 09:50:30 +0000",
-      "imageUrl": "https://assetsio.gnwcdn.com/grand-theft-auto-6-drinking.png?width=690&amp;quality=85&amp;format=jpg&amp;auto=webp"
+      "pubDate": "Sun, 22 Nov 2026 17:12:48 +0000",
+      "imageUrl": "https://kotaku.com/app/uploads/2026/11/ETatari.jpg"
     },
     {
-      "id": "https://www.eurogamer.net/activision-ai-voice-chat-npc-patent",
-      "title": "Activision patents AI voice system that learns from in-game chat and creates audio for NPCs who can even speak in place of you",
-      "link": "https://www.eurogamer.net/activision-ai-voice-chat-npc-patent",
-      "description": "Call of Duty publisher Activision has filed for a new patent allowing it to train NPCs on real-world player voice chat. The patent describes an AI-driven system that listens in on player voice chat following key gamep...",
-      "source": "Eurogamer",
+      "id": "https://kotaku.com/binding-of-isaac-update-review-bombed-over-ai-generated-music-in-gta-6-mode-woke-up-to-a-sht-show-obviously-i-had-no-idea-2000759213",
+      "title": "Binding Of Isaac Update Review-Bombed Over AI-Generated Music In GTA 6 Mode: \u2018Woke Up To A Sh*t Show, Obviously I Had No Idea\u2019",
+      "link": "https://kotaku.com/binding-of-isaac-update-review-bombed-over-ai-generated-music-in-gta-6-mode-woke-up-to-a-sht-show-obviously-i-had-no-idea-2000759213",
+      "description": "A Vice City mode was using music made by AI",
+      "source": "Kotaku",
       "category": "Gaming",
-      "pubDate": "Mon, 23 Nov 2026 09:27:50 +0000",
-      "imageUrl": "https://assetsio.gnwcdn.com/modern-warfare-4-beta-shot-crop-2.jpeg?width=690&amp;quality=85&amp;format=jpg&amp;auto=webp"
+      "pubDate": "Sun, 22 Nov 2026 00:18:14 +0000",
+      "imageUrl": "https://kotaku.com/app/uploads/2026/11/binding-of-isaac.jpg"
     },
     {
-      "id": "https://www.eurogamer.net/gta-6-jason-steve-mcqueen-army-rangers",
-      "title": "GTA 6's strong and silent Jason was inspired by Steve McQueen and former Army Rangers, says Rockstar",
-      "link": "https://www.eurogamer.net/gta-6-jason-steve-mcqueen-army-rangers",
-      "description": "If you've noticed that Grand Theft Auto 6's Jason Duval isn't much of a talker, that's by design, as his quiet nature was inspired by Steve McQueen and the studio's research into former Army Rangers. Read more",
-      "source": "Eurogamer",
+      "id": "https://kotaku.com/shanghai-police-bust-up-bootleg-tifa-lockhart-toy-operation-2000759206",
+      "title": "Final Fantasy Toy Counterfeiting Ring Ends In $300,000 Bust Of Tifa Lockhart Statues",
+      "link": "https://kotaku.com/shanghai-police-bust-up-bootleg-tifa-lockhart-toy-operation-2000759206",
+      "description": "13 individuals have reportedly been arrested in connection to $300,000 worth of counterfeit Final Fantasy figurines",
+      "source": "Kotaku",
       "category": "Gaming",
-      "pubDate": "Sun, 22 Nov 2026 16:11:00 +0000",
-      "imageUrl": "https://assetsio.gnwcdn.com/GTA_6_Mission_List_5.jpg?width=690&amp;quality=85&amp;format=jpg&amp;auto=webp"
+      "pubDate": "Sat, 21 Nov 2026 22:54:21 +0000",
+      "imageUrl": "https://kotaku.com/app/uploads/2026/11/tifaff7rebirth.jpg"
     },
     {
-      "id": "https://www.rockpapershotgun.com/the-sunday-papers-837",
-      "title": "The Sunday Papers",
-      "link": "https://www.rockpapershotgun.com/the-sunday-papers-837",
-      "description": "Sundays are for googling local purveyors of live Christmas trees, the sole upside of no longer having a cat being that you can once again enjoy the smell of chopped woodland without the risk of it poisoning a family m...",
-      "source": "Rock Paper Shotgun",
-      "category": "PC Gaming",
-      "pubDate": "Sun, 22 Nov 2026 11:00:00 +0000",
-      "imageUrl": "https://assetsio.gnwcdn.com/the-sunday-papers-big.jpg?width=690&amp;quality=85&amp;format=jpg&amp;auto=webp"
+      "id": "https://kotaku.com/radio-tower-expert-cant-believe-how-realistic-gta-6s-towers-are-oh-my-god-boys-earthed-tower-legs-with-saddles-2000759186",
+      "title": "Radio Tower Expert Can\u2019t Believe How Realistic GTA 6\u2032s Towers Are: \u2018Oh My God Boys\u2026 Earthed Tower Legs With Saddles\u201d",
+      "link": "https://kotaku.com/radio-tower-expert-cant-believe-how-realistic-gta-6s-towers-are-oh-my-god-boys-earthed-tower-legs-with-saddles-2000759186",
+      "description": "If you were curious how accurate the utility towers in Grand Theft Auto 6 the answer appears to be: Very",
+      "source": "Kotaku",
+      "category": "Gaming",
+      "pubDate": "Sat, 21 Nov 2026 22:00:32 +0000",
+      "imageUrl": "https://kotaku.com/app/uploads/2026/11/Gta-6-tower-1280x720.jpg"
     },
     {
-      "id": "https://www.rockpapershotgun.com/alt-video-is-a-digital-faux-blockbuster-video-store-that-you-can-fill-with-movies-from-your-letterboxd-watchlist-and-plex-server",
-      "title": "Alt Video is a digital, faux Blockbuster video store that you can fill with movies from your Letterboxd watchlist and Plex server",
-      "link": "https://www.rockpapershotgun.com/alt-video-is-a-digital-faux-blockbuster-video-store-that-you-can-fill-with-movies-from-your-letterboxd-watchlist-and-plex-server",
-      "description": "Since the beginning of the year, I have watched almost 150 films. I know this, because over the past few years, I've become one of those people\u2026 a Letterboxd user. Gasp! I know, I know, but I don't think I'm too insuf...",
-      "source": "Rock Paper Shotgun",
-      "category": "PC Gaming",
-      "pubDate": "Sat, 21 Nov 2026 22:50:30 +0000",
-      "imageUrl": "https://assetsio.gnwcdn.com/alt-video.jpg?width=690&amp;quality=85&amp;format=jpg&amp;auto=webp"
+      "id": "https://kotaku.com/new-report-claims-jensen-huang-regularly-threatened-nvidia-staff-with-over-the-top-violence-2000759179",
+      "title": "New Report Claims Jensen Huang Regularly Threatened Nvidia Staff With Over-The-Top Violence",
+      "link": "https://kotaku.com/new-report-claims-jensen-huang-regularly-threatened-nvidia-staff-with-over-the-top-violence-2000759179",
+      "description": "As the investigation into the exiting Nvidia CEO deepens, employees say Huang maintained a habit of outlandish threats, from dismembering limbs to brain urination",
+      "source": "Kotaku",
+      "category": "Gaming",
+      "pubDate": "Sat, 21 Nov 2026 21:30:08 +0000",
+      "imageUrl": "https://kotaku.com/app/uploads/2025/03/2f6d6fdeb135889521448163d9357355.jpg"
+    },
+    {
+      "id": "https://kotaku.com/street-fighter-ex-endless-ocean-and-tetris-99s-akira-kurabayashi-has-died-at-56-2000759170",
+      "title": "Street Fighter EX, Endless Ocean And Tetris 99\u2019s Akira Kurabayashi Has Died At 56",
+      "link": "https://kotaku.com/street-fighter-ex-endless-ocean-and-tetris-99s-akira-kurabayashi-has-died-at-56-2000759170",
+      "description": "Head of software development at ARIKA, the prolific Kurabayashi would help create some of the most cult-adored entries in gaming's biggest series",
+      "source": "Kotaku",
+      "category": "Gaming",
+      "pubDate": "Sat, 21 Nov 2026 20:30:26 +0000",
+      "imageUrl": "https://kotaku.com/app/uploads/2026/11/endlessoceanlum.jpg"
     }
   ],
-  "count": 70
+  "count": 60
 }
