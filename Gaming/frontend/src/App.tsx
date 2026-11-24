@@ -49,6 +49,7 @@ interface AppTelemetryState extends TelemetryState {
     progress: number;
     status: string;
     is_running: boolean;
+    is_background?: boolean;
   };
   navigate_to?: string;
   trigger_action?: string;
@@ -1022,13 +1023,16 @@ const App: React.FC = () => {
     }
   }, [isSignedIn, effectiveActiveUserId, connected, sendCommand, state?.config, isHUDWindow]);
 
-  // Reset scan overlay dismissal when scanning finishes
+  // Only reset scan overlay dismissal when a brand-new foreground scan starts
+  const wasScanningRef = React.useRef(false);
   useEffect(() => {
-    // Check game compatibility scanner execution status
-    if (!state?.scan_state?.is_running) {
+    const isRunning = Boolean(state?.scan_state?.is_running);
+    const isBackground = Boolean(state?.scan_state?.is_background);
+    if (!wasScanningRef.current && isRunning && !isBackground) {
       setIsScanOverlayDismissed(false);
     }
-  }, [state?.scan_state?.is_running]);
+    wasScanningRef.current = isRunning;
+  }, [state?.scan_state?.is_running, state?.scan_state?.is_background]);
 
   // Synchronize game library cached games with the backend.
   // Fires when: (1) connected first time, (2) userId changes (login/logout/switch), (3) isSignedIn resolves after async auth.
@@ -1472,9 +1476,12 @@ const App: React.FC = () => {
         {/* Global Scanning Overlay */}
         <GlobalScanningOverlay
           isRunning={state?.scan_state?.is_running}
-          isBackground={(state?.scan_state as any)?.is_background}
+          isBackground={state?.scan_state?.is_background}
           isDismissed={isScanOverlayDismissed}
-          onDismiss={() => setIsScanOverlayDismissed(true)}
+          onDismiss={() => {
+            setIsScanOverlayDismissed(true);
+            sendCommand('set_scan_background', { is_background: true });
+          }}
           status={state?.scan_state?.status}
           progress={state?.scan_state?.progress}
         />

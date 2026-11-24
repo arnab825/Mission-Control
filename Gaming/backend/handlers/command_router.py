@@ -200,6 +200,8 @@ def dispatch_bridge_command(
         game_handler.handle_get_discover_games(payload, pipeline, bridge, config, library_session)
     elif cmd_type == "scan_games":
         game_handler.handle_scan_games(payload, pipeline, bridge, config, library_session)
+    elif cmd_type == "set_scan_background":
+        game_handler.handle_set_scan_background(payload, bridge)
     elif cmd_type == "get_emulation_state":
         game_handler.handle_get_emulation_state(payload, pipeline, bridge, config)
     elif cmd_type == "configure_emulator":

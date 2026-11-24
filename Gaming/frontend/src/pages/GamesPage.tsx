@@ -562,9 +562,10 @@ interface ScanningDashboardProps {
   gpuName: string;
   isRtxGpu: boolean;
   scanLogs: { time: string; message: string }[];
+  onRunInBackground?: () => void;
 }
 
-const ScanningDashboard: React.FC<ScanningDashboardProps> = ({ scanProgress, scanStatus, gpuName, isRtxGpu, scanLogs }) => {
+const ScanningDashboard: React.FC<ScanningDashboardProps> = ({ scanProgress, scanStatus, gpuName, isRtxGpu, scanLogs, onRunInBackground }) => {
   const radius = 60;
   const circumference = 2 * Math.PI * radius;
   const strokeDashoffset = circumference - (scanProgress / 100) * circumference;
@@ -652,6 +653,18 @@ const ScanningDashboard: React.FC<ScanningDashboardProps> = ({ scanProgress, sca
             )}
           </div>
         </div>
+
+        {/* Run in background button */}
+        {onRunInBackground && (
+          <button
+            aria-label="Run in background"
+            type="button"
+            onClick={onRunInBackground}
+            className="mt-6 px-4 py-2 bg-white/5 hover:bg-white/10 border border-white/10 hover:border-white/20 text-zinc-400 hover:text-white text-[9px] font-black uppercase tracking-widest rounded-xl transition-all shadow-sm cursor-pointer"
+          >
+            Run in Background
+          </button>
+        )}
       </div>
     </motion.div>
   );
@@ -1377,13 +1390,14 @@ const GamesLibraryContent: React.FC<GamesPageProps> = ({ state, sendCommand, set
         </motion.div>
       )}
 
-      {isScanning ? (
+      {isScanning && !Boolean(state?.scan_state?.is_background) ? (
         <ScanningDashboard
           scanProgress={scanProgress}
           scanStatus={scanStatus}
           gpuName={gpuName}
           isRtxGpu={isRtxGpu}
           scanLogs={scanLogs}
+          onRunInBackground={() => sendCommand('set_scan_background', { is_background: true })}
         />
       ) : !gamesLoaded ? (
         <CacheLoadingScreen />

@@ -131,6 +131,11 @@ class ToggleVisionPipelinePayload(BaseCommandPayload):
 class ScanGamesPayload(BaseCommandPayload):
     userId: Optional[str] = Field(default=None, max_length=128)
     forceRefresh: Optional[bool] = False
+    is_background: Optional[bool] = False
+
+
+class SetScanBackgroundPayload(BaseCommandPayload):
+    is_background: Optional[bool] = True
 
 
 class GetCachedGamesPayload(BaseCommandPayload):
@@ -272,6 +277,7 @@ COMMAND_SCHEMA_MAP = {
     "get_detection_heatmap": EmptyPayload,
     "reset_detection_heatmap": EmptyPayload,
     "scan_games": ScanGamesPayload,
+    "set_scan_background": SetScanBackgroundPayload,
     "get_cached_games": GetCachedGamesPayload,
     "set_cooling_mode": SetCoolingModePayload,
     "trigger_controller_rumble": ControllerRumblePayload,

@@ -75,10 +75,32 @@ class GameScanner:
     """
     _active_scan_lock = threading.Lock()
     _is_scanning_now = False
+    _progress_listeners: list = []
+    _listeners_lock = threading.Lock()
+    _scan_completed_event = threading.Event()
+    _last_scanned_games: list = []
+    _current_progress: int = 0
+    _current_status: str = "Ready"
 
     @classmethod
     def is_scanning(cls) -> bool:
         return cls._is_scanning_now
+
+    @classmethod
+    def get_scan_progress(cls) -> tuple:
+        return cls._current_progress, cls._current_status
+
+    @classmethod
+    def _broadcast_progress(cls, pct: int, label: str):
+        cls._current_progress = pct
+        cls._current_status = label
+        with cls._listeners_lock:
+            listeners = list(cls._progress_listeners)
+        for listener in listeners:
+            try:
+                listener(pct, label)
+            except Exception as e:
+                logger.debug("Error in scan progress listener: %s", e)
 
     def __init__(self, config=None, user_id=None):
         self.config = config or {}
@@ -1188,22 +1210,52 @@ class GameScanner:
         return sorted(list(discovered))
 
     def scan_all(self, progress_callback: Optional[Callable[[int, str], None]] = None):
-        """Perform a full scan of all supported platforms with singleton lock protection."""
+        """Perform a full scan of all supported platforms with singleton lock protection and multiplexed listeners."""
+        with GameScanner._listeners_lock:
+            already_running = GameScanner._is_scanning_now
+            if progress_callback:
+                GameScanner._progress_listeners.append(progress_callback)
+                if already_running:
+                    try:
+                        progress_callback(GameScanner._current_progress, GameScanner._current_status)
+                    except Exception:
+                        pass
+
+        if already_running:
+            logger.info("[GameScanner] Scan already in progress. Multiplexing listener and awaiting active scan completion.")
+            finished = GameScanner._scan_completed_event.wait(timeout=120.0)
+            if not finished:
+                logger.warning("[GameScanner] Active scan wait timed out after 120s.")
+            return GameScanner._last_scanned_games or self.load_cached_games()
+
         if not GameScanner._active_scan_lock.acquire(blocking=False):
-            logger.info("[GameScanner] Scan already in progress. Reusing active scan result.")
-            if callable(progress_callback):
-                progress_callback(50, "Syncing with active scan...")
-            for _ in range(40):
-                if not GameScanner._is_scanning_now:
-                    break
-                time.sleep(0.5)
-            return self.load_cached_games()
+            with GameScanner._listeners_lock:
+                if progress_callback and progress_callback not in GameScanner._progress_listeners:
+                    GameScanner._progress_listeners.append(progress_callback)
+                    try:
+                        progress_callback(GameScanner._current_progress, GameScanner._current_status)
+                    except Exception:
+                        pass
+            GameScanner._scan_completed_event.wait(timeout=120.0)
+            return GameScanner._last_scanned_games or self.load_cached_games()
 
         GameScanner._is_scanning_now = True
+        GameScanner._scan_completed_event.clear()
+        GameScanner._current_progress = 0
+        GameScanner._current_status = "Starting scan..."
+        GameScanner._broadcast_progress(0, "Starting scan...")
         try:
-            return self._execute_scan(progress_callback)
+            games = self._execute_scan(GameScanner._broadcast_progress)
+            GameScanner._last_scanned_games = games
+            GameScanner._current_progress = 100
+            GameScanner._current_status = "Complete"
+            GameScanner._broadcast_progress(100, "Complete")
+            return games
         finally:
             GameScanner._is_scanning_now = False
+            GameScanner._scan_completed_event.set()
+            with GameScanner._listeners_lock:
+                GameScanner._progress_listeners.clear()
             try:
                 GameScanner._active_scan_lock.release()
             except RuntimeError:
@@ -3221,109 +3273,134 @@ class GameScanner:
                 pass
 
     def _scan_desktop(self):
-        """Scan for game shortcuts on the desktop."""
+        """Scan for game shortcuts on the desktop using batched shortcut resolution."""
         try:
             desktop = Path(os.environ["USERPROFILE"]) / "Desktop"
             public_desktop = Path(os.environ.get("PUBLIC", "C:\\Users\\Public")) / "Desktop"
             
+            all_lnk_files = []
             for dt_path in [desktop, public_desktop]:
                 try:
                     if not dt_path.is_dir():
                         continue
-                    lnk_files = list(dt_path.glob("*.lnk"))
+                    for lnk in dt_path.glob("*.lnk"):
+                        name_lower = lnk.stem.lower()
+                        if not any(junk in name_lower for junk in self.junk_keywords):
+                            all_lnk_files.append(lnk)
                 except Exception:
                     continue
-                # Handle .lnk files
-                for lnk in lnk_files:
-                    try:
-                        name_lower = lnk.stem.lower()
-                        if any(junk in name_lower for junk in self.junk_keywords):
-                            continue
 
-                        cmd = f'$s = (New-Object -ComObject WScript.Shell).CreateShortcut("{lnk}"); $s.TargetPath; $s.IconLocation'
-                        res = _run_hidden_powershell(cmd, timeout=5.0)
-                        lines = res.stdout.strip().split("\n")
-                        target = lines[0] if len(lines) > 0 else ""
-                        icon_loc = lines[1] if len(lines) > 1 else ""
-                        
-                        if target and target.lower().endswith(".exe") and os.path.exists(target):
-                            target_lower = target.lower()
-                            if any(junk in target_lower for junk in self.junk_keywords):
+            # Batch inspect .lnk targets via a single PowerShell execution
+            if all_lnk_files:
+                paths_json = json.dumps([str(p) for p in all_lnk_files])
+                ps_script = f'''
+                $shell = New-Object -ComObject WScript.Shell
+                $results = {paths_json} | ForEach-Object {{
+                    try {{
+                        $s = $shell.CreateShortcut($_)
+                        [PSCustomObject]@{{
+                            LinkPath = $_
+                            TargetPath = $s.TargetPath
+                            IconLocation = $s.IconLocation
+                            Name = [System.IO.Path]::GetFileNameWithoutExtension($_)
+                        }}
+                    }} catch {{}}
+                }}
+                $results | ConvertTo-Json
+                '''
+                try:
+                    res = _run_hidden_powershell(ps_script, timeout=15.0)
+                    if res.returncode == 0 and res.stdout.strip():
+                        data = json.loads(res.stdout)
+                        if isinstance(data, dict):
+                            data = [data]
+                        for item in data:
+                            target = item.get("TargetPath", "").strip()
+                            name = item.get("Name", "").strip()
+                            icon_loc = item.get("IconLocation", "").strip()
+                            if not target or not name:
+                                continue
+                            if target.lower().endswith(".exe") and os.path.exists(target):
+                                target_lower = target.lower()
+                                if any(junk in target_lower for junk in self.junk_keywords):
+                                    continue
+                                name_lower = name.lower()
+                                is_launcher = (
+                                    name_lower in [w.lower() for w in self.launcher_whitelist]
+                                    or "heronite" in name_lower
+                                    or "heroic" in name_lower
+                                )
+                                platform = "Local"
+                                display_name = name
+                                if "heronite" in name_lower:
+                                    platform = "Heronite"
+                                    display_name = "Heronite"
+                                elif "heroic" in name_lower:
+                                    platform = "Heroic"
+                                    display_name = "Heroic"
+                                elif is_launcher:
+                                    platform = name
+
+                                game_entry = {
+                                    "name": display_name,
+                                    "platform": platform,
+                                    "id": f"heronite_launcher" if platform == "Heronite" else name,
+                                    "install_path": str(Path(target).parent),
+                                    "exe_path": target
+                                }
+                                if is_launcher:
+                                    game_entry["type"] = "LAUNCHER"
+                                    game_entry["genre"] = "PLATFORM"
+                                    game_entry["tags"] = ["SYSTEM"]
+                                    if platform == "Heronite":
+                                        game_entry["icon"] = "/launchers/heronite.png"
+
+                                if icon_loc and "," in icon_loc and "icon" not in game_entry:
+                                    icon_path = icon_loc.split(",")[0].strip()
+                                    if os.path.exists(icon_path):
+                                        game_entry["icon"] = icon_path
+
+                                if self._is_game_valid_and_installed(game_entry):
+                                    self.games.append(game_entry)
+                except Exception as e:
+                    logger.debug("Desktop shortcut batch resolution notice: %s", e)
+
+            # Handle .url files (Steam/Epic web shortcuts)
+            for dt_path in [desktop, public_desktop]:
+                try:
+                    if not dt_path.is_dir():
+                        continue
+                    for url_file in dt_path.glob("*.url"):
+                        try:
+                            with open(url_file, "r", encoding="utf-8", errors="ignore") as f:
+                                content = f.read()
+                            
+                            raw_stem = url_file.stem
+                            for symbol in ["™", "®", "\u2122", "\u00ae", "\x99"]:
+                                raw_stem = raw_stem.replace(symbol, "")
+                            clean_stem = " ".join(raw_stem.split())
+                            
+                            if any(junk in clean_stem.lower() for junk in self.junk_keywords):
+                                continue
+
+                            import re
+                            steam_match = re.search(r"steam://rungameid/(\d+)", content)
+                            if steam_match:
+                                appid = steam_match.group(1)
+                                if any(g.get("id") == appid for g in self.games):
+                                    continue
                                 continue
                                 
-                            name_lower = lnk.stem.lower()
-                            is_launcher = (
-                                name_lower in [w.lower() for w in self.launcher_whitelist]
-                                or "heronite" in name_lower
-                                or "heroic" in name_lower
-                            )
-                            platform = "Local"
-                            display_name = lnk.stem
-                            if "heronite" in name_lower:
-                                platform = "Heronite"
-                                display_name = "Heronite"
-                            elif "heroic" in name_lower:
-                                platform = "Heroic"
-                                display_name = "Heroic"
-                            elif is_launcher:
-                                platform = lnk.stem
-
-                            game_entry = {
-                                "name": display_name,
-                                "platform": platform,
-                                "id": f"heronite_launcher" if platform == "Heronite" else lnk.stem,
-                                "install_path": str(Path(target).parent),
-                                "exe_path": target
-                            }
-                            if is_launcher:
-                                game_entry["type"] = "LAUNCHER"
-                                game_entry["genre"] = "PLATFORM"
-                                game_entry["tags"] = ["SYSTEM"]
-                                if platform == "Heronite":
-                                    game_entry["icon"] = "/launchers/heronite.png"
-                            
-                            if icon_loc and "," in icon_loc and "icon" not in game_entry:
-                                icon_path = icon_loc.split(",")[0].strip()
-                                if os.path.exists(icon_path):
-                                    game_entry["icon"] = icon_path
-                            
-                            if self._is_game_valid_and_installed(game_entry):
-                                self.games.append(game_entry)
-                    except Exception: pass
-                
-                # Handle .url files (Steam/Epic web shortcuts)
-                for url_file in dt_path.glob("*.url"):
-                    try:
-                        with open(url_file, "r", encoding="utf-8", errors="ignore") as f:
-                            content = f.read()
-                        
-                        raw_stem = url_file.stem
-                        for symbol in ["™", "®", "\u2122", "\u00ae", "\x99"]:
-                            raw_stem = raw_stem.replace(symbol, "")
-                        clean_stem = " ".join(raw_stem.split())
-                        
-                        if any(junk in clean_stem.lower() for junk in self.junk_keywords):
-                            continue
-
-                        import re
-                        steam_match = re.search(r"steam://rungameid/(\d+)", content)
-                        if steam_match:
-                            appid = steam_match.group(1)
-                            # Only add if game is already confirmed installed in Steam
-                            if any(g.get("id") == appid for g in self.games):
+                            epic_match = re.search(r"com\.epicgames\.launcher://apps/([^?]+)", content)
+                            if epic_match:
+                                appid = epic_match.group(1)
+                                if any(g.get("id") == appid for g in self.games):
+                                    continue
                                 continue
-                            continue
-                            
-                        epic_match = re.search(r"com\.epicgames\.launcher://apps/([^?]+)", content)
-                        if epic_match:
-                            appid = epic_match.group(1)
-                            if any(g.get("id") == appid for g in self.games):
-                                continue
-                            continue
-                    except Exception:
-                        pass
-        except Exception:
-            pass
+                        except Exception:
+                            pass
+                except Exception:
+                    pass
         except Exception:
             pass
 
@@ -3617,25 +3694,6 @@ class GameScanner:
                         )
         except (PermissionError, OSError):
             return
-
-    def _scan_emulation(self):
-        """Scans configured ROM folders and merges emulated titles into library."""
-        try:
-            try:
-                from system.rom_scanner import RomScanner
-            except ImportError:
-                try:
-                    from .rom_scanner import RomScanner
-                except ImportError:
-                    from rom_scanner import RomScanner
-
-            scanner = RomScanner()
-            rom_games = scanner.scan_all_roms()
-            if rom_games:
-                logger.info("[GameScanner] Discovered %d emulated ROM games", len(rom_games))
-                self.games.extend(rom_games)
-        except Exception as e:
-            logger.warning("[GameScanner] Failed to scan emulation library: %s", e)
 
 
 if __name__ == "__main__":

@@ -160,6 +160,7 @@ export interface TelemetryState {
     progress: number;
     status: string;
     is_running: boolean;
+    is_background?: boolean;
   };
   chat_sessions?: {
     id: string;
