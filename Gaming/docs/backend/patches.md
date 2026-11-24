@@ -2,6 +2,14 @@
 
 This document contains a detailed history of all patches and updates for the AI Gaming Assistant.
 
+### Patch: 2026-11-24 — v4.0.9: App Shell Modernization, GPU Pipeline Suite & UI Polish
+
+- Modernized App Shell architecture in App.tsx with integrated global theme support and active tab routing
+- Refactored SidebarLeft navigation with unified status indicators and direct links to Agent, Lab, and Vision suites
+- Enhanced GpuPipelineSection with advanced controls for DLSS, FSR, and GPU hardware acceleration profiles
+- Streamlined Agent, Lab, and Vision pages with optimized tactical layout, responsive styling, and real-time telemetry
+- Updated distributed node scan paths, configuration tokens, and news cache synchronization
+
 ### Patch: 2026-11-22 — v4.0.8: Interactive Vision Suite, 5-Stage Game Mode & Agentic Safeguards
 
 - Interactive Canvas Region Selector: Drag-to-select marquee crop with pixel coordinates, area coverage readout, and 6 quick presets (Fullscreen, Center HUD, Minimap TR/BL, Subtitles, Top Half)

@@ -1,8 +1,20 @@
 {
-  "version": "4.0.8",
-  "release_date": "2026-11-22",
+  "version": "4.0.9",
+  "release_date": "2026-11-24",
   "update_check_url": "https://raw.githubusercontent.com/arnab825/Mission-Control/main/Gaming/backend/version.json",
   "changelog": [
+    {
+      "version": "4.0.9",
+      "date": "2026-11-24",
+      "title": "App Shell Modernization, GPU Pipeline Suite & UI Polish",
+      "highlights": [
+        "Modernized App Shell architecture in App.tsx with integrated global theme support and active tab routing",
+        "Refactored SidebarLeft navigation with unified status indicators and direct links to Agent, Lab, and Vision suites",
+        "Enhanced GpuPipelineSection with advanced controls for DLSS, FSR, and GPU hardware acceleration profiles",
+        "Streamlined Agent, Lab, and Vision pages with optimized tactical layout, responsive styling, and real-time telemetry",
+        "Updated distributed node scan paths, configuration tokens, and news cache synchronization"
+      ]
+    },
     {
       "version": "4.0.8",
       "date": "2026-11-22",
@@ -586,17 +598,6 @@
         "Configured Cloudflare Worker edge release proxy for direct Microsoft Store non-redirecting downloads",
         "Added Azure standalone container deployment, system health audits, and strict schema validation",
         "Updated desktop update setup wizard, custom game discovery, and shortcut integration"
-      ]
-    },
-    {
-      "version": "3.6.3",
-      "date": "2026-09-09",
-      "title": "Release Health Schema Normalization & False-Positive Unstable Banner Fix",
-      "highlights": [
-        "Fixed false-positive Unstable Release Detected banner on clean update checks",
-        "Normalized release stability schema across Electron IPC and React UpdatesPage",
-        "Added version-targeted stability auditing to differentiate local crashes from incoming remote releases",
-        "Updated type definitions in global and vite-env declarations"
       ]
     }
   ]

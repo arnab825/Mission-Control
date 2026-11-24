@@ -10,7 +10,31 @@ excerpt: "Curated breakdown of major version releases, architectural milestones,
 
 Comprehensive breakdown of major milestone releases, architectural upgrades, and core engine enhancements in **Mission Control**.
 
-## 🌟 Version v4.0.8 (Latest) — Interactive Vision Suite, 5-Stage Game Mode & Agentic Safeguards
+## 🌟 Version v4.0.9 (Latest) — App Shell Modernization, GPU Pipeline Suite & UI Polish
+
+### 🛠️ Key Highlights
+1. **Modernized App Shell architecture in App.tsx with integrated global theme support and active tab routing**
+2. **Refactored SidebarLeft navigation with unified status indicators and direct links to Agent, Lab, and Vision suites**
+3. **Enhanced GpuPipelineSection with advanced controls for DLSS, FSR, and GPU hardware acceleration profiles**
+4. **Streamlined Agent, Lab, and Vision pages with optimized tactical layout, responsive styling, and real-time telemetry**
+5. **Updated distributed node scan paths, configuration tokens, and news cache synchronization**
+
+### 📊 Architecture & Data Flow
+```mermaid
+graph TD
+    A["Mobile Client / DevTools (320px+)"] --> B[Responsive CSS & Layout Container]
+    B --> C[DocsClient Component & Cards]
+    C --> D[MobileDocsSidebar Drawer & Header Bar]
+    D --> E[Real-Time Mongo Telemetry & Render]
+```
+
+### 📦 Distribution Artifacts
+- **Linux**: `.deb` (Debian/Ubuntu), `.AppImage` (Universal), `.rpm` (Fedora/RHEL), `.tar.gz` (Portable)
+- **Windows**: `.exe` (Setup Installer), `.msi` (Enterprise), `.zip` (Portable)
+
+---
+
+## 📦 Version v4.0.8 — Interactive Vision Suite, 5-Stage Game Mode & Agentic Safeguards
 
 ### 🛠️ Key Highlights
 1. **Interactive Canvas Region Selector: Drag-to-select marquee crop with pixel coordinates, area coverage readout, and 6 quick presets (Fullscreen, Center HUD, Minimap TR/BL, Subtitles, Top Half)**
