@@ -24,6 +24,11 @@ The **Mission Control Emulation Engine** unifies your physical console game back
 | ![Unified ROM Library Interface](/screenshots/rom_library.webp) | ![Console Emulation Showcase](/screenshots/emulation_showcase.webp) |
 | *Console titles merged seamlessly with PC games featuring in-card disc pickers* | *Interactive emulator setup, binary overrides, and RetroArch core resolution* |
 
+| 🍷 **Linux Wine & Proton Environment** | 🎛️ **Compatibility Runner Showcase** |
+| :---: | :---: |
+| ![Wine & Proton Environment](/screenshots/wine_screen.webp) | ![Compatibility Runner Showcase](/screenshots/wine_proton_showcase.webp) |
+| *Sandboxed Wine prefixes, DXVK/VKD3D translation, and GE-Proton runner management* | *Integrated runner switching, runtime error diagnostics, and per-game DLL overrides* |
+
 ---
 
 ## 🏗️ Architectural Overview & Pipeline
@@ -169,3 +174,30 @@ Access the hub at any time from the **Game Intelligence** toolbar:
 - The Emulators & ROMs Hub and Game Intelligence Library are fully responsive on 1080p, 1440p (`2560×1440`), and 1600p (`2560×1600 QHD+`) displays.
 - Modal sizing expands up to `3xl:max-w-7xl` with 3 to 4 column emulator grids, side-by-side ROM folder cards, and fluid 1–6 column library grids without horizontal stretching or letterboxing.
 - Strict Pydantic command schemas validate `scan_roms` and `set_rom_paths` payloads with authenticated session context (`userId`).
+
+---
+
+## 🍷 Linux Wine & Proton Compatibility Engine
+
+Mission Control provides a first-class compatibility layer orchestrator for running Windows titles on Linux systems (including Steam Deck, Bazzite, and desktop distributions) with zero terminal friction:
+
+```mermaid
+graph TD
+    A["Windows Executable (.exe)"] --> B["Compatibility Runner Resolver"]
+    B --> C["GE-Proton / Proton Experimental / Wine-GE"]
+    C --> D["Isolated WINEPREFIX Creation"]
+    D --> E["Graphics Translation Layer (DXVK 2.4+ / VKD3D)"]
+    E --> F["Runtime Dependencies Injection (.NET, VC++, DirectX)"]
+    F --> G["Game Execution with GameScope & MangoHud"]
+    G --> H["Real-Time Log Streamer & Crash Error Interceptor"]
+```
+
+### Key Wine & Proton Architectural Capabilities
+1. **Runner Selection & Per-Game Overrides:**
+   - Seamlessly switch between **GE-Proton**, **Proton Experimental**, **Proton-GE**, and system **Wine** on a per-game basis from the Game Details *Compatibility* drawer.
+2. **Isolated Sandboxed Prefixes:**
+   - Every Windows game receives its own dedicated `WINEPREFIX` directory (`~/.local/share/mission-control/prefixes/<game-slug>`), preventing cross-game registry bloat and conflicting DLL overrides.
+3. **Automated Vulkan Translation (DXVK & VKD3D):**
+   - Automatically injects and configures high-performance DirectX 9/10/11-to-Vulkan (DXVK) and DirectX 12-to-Vulkan (VKD3D-Proton) translation layers with asynchronous shader pipelines to eliminate shader compilation stutter.
+4. **Diagnostic Log Scanner & 1-Click Fixes:**
+   - Parses stdout/stderr logs in real time to catch missing redistributables (DirectX, Visual C++ runtimes, .NET Framework) and surfaces actionable 1-click remediation advice directly in the UI.

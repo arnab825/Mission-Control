@@ -138,7 +138,7 @@ const EMULATION_WINE_FEATURES: FeatureDetail[] = [
       {
         id: "wine_screen",
         label: "Wine Environment",
-        src: "/screenshots/wine_screen.png",
+        src: "/screenshots/wine_screen.webp",
         fallbackSrc: "/screenshots/wine_screen.png",
         caption: "Sandboxed Wine prefixes with automated DXVK & VKD3D DirectX-to-Vulkan translation",
       },
