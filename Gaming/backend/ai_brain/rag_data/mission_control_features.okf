@@ -1,0 +1,110 @@
+---
+game_id: "mission_control"
+title: "Mission Control Feature Architecture, Emulation, Wine Proton & System Diagnostics"
+category: "System"
+source: "mission_control_features.okf"
+---
+
+# 🎮 Mission Control Complete Feature Architecture & User Guide
+
+Mission Control is an advanced, AI-powered gaming OS environment and co-pilot that unifies modern PC storefronts, standalone emulators, Linux compatibility layers, hardware telemetry, and autonomous system optimizations into a single glassmorphic interface.
+
+---
+
+## 🕹️ 1. Emulation & ROM Library Orchestration Engine
+
+### Cross-Platform Auto-Discovery (17+ Emulators)
+Mission Control automatically detects installed standalone emulators and RetroArch libretro cores across standard Windows and Linux installation paths:
+- **PlayStation Ecosystem:**
+  - **RPCS3 (PS3):** Scans `%LOCALAPPDATA%\RPCS3`, `C:\RPCS3`, `~/.var/app/net.rpcs3.RPCS3`. Supports `.pkg`, `.iso`, and `EBOOT.BIN`.
+  - **PCSX2 (PS2):** Scans `%LOCALAPPDATA%\PCSX2`, `C:\PCSX2`, `~/.var/app/net.pcsx2.PCSX2`. Supports `.iso`, `.chd`, `.bin`, `.cue`, `.gz`.
+  - **DuckStation (PS1):** Scans `%LOCALAPPDATA%\DuckStation`, `~/.var/app/org.duckstation.DuckStation`. Supports `.chd`, `.cue`, `.iso`, `.pbp`.
+  - **Vita3K (PS Vita):** Scans `%APPDATA%\Vita3K`, `C:\Vita3K`. Supports `.vpk`, `.zip`, `.pkg`.
+  - **PPSSPP (PSP):** Scans `%PROGRAMFILES%\PPSSPP`, `%APPDATA%\PPSSPP`. Supports `.iso`, `.cso`, `.chd`, `.pbp`.
+- **Nintendo Ecosystem:**
+  - **Ryujinx (Switch):** Scans `%APPDATA%\Ryujinx`, `~/.config/Ryujinx`. Supports `.nsp`, `.xci`.
+  - **Dolphin (GameCube & Wii):** Scans `%APPDATA%\Dolphin Emulator`, `~/.var/app/org.DolphinEmu.dolphin-emu`. Supports `.iso`, `.rvz`, `.wbfs`, `.gcm`.
+  - **Cemu (Wii U):** Scans `%LOCALAPPDATA%\Cemu`, `~/.var/app/info.cemu.Cemu`. Supports `.wux`, `.wua`, `.rpx`.
+  - **Lime3DS / Citra (3DS):** Scans `%LOCALAPPDATA%\Lime3DS`, `%APPDATA%\Citra`. Supports `.3ds`, `.cia`, `.cxi`.
+  - **melonDS (NDS):** Scans `%APPDATA%\melonDS`, `/usr/bin/melonds`. Supports `.nds`, `.bin`.
+  - **mGBA (Game Boy Advance):** Scans `%PROGRAMFILES%\mGBA`, `/usr/bin/mgba`. Supports `.gba`, `.zip`.
+  - **Snes9x (SNES):** Scans `C:\Snes9x`, `/usr/bin/snes9x-gtk`. Supports `.sfc`, `.smc`, `.zip`.
+  - **Mupen64Plus (N64):** Scans `%PROGRAMFILES%\Mupen64Plus`, `/usr/bin/mupen64plus`. Supports `.z64`, `.n64`, `.v64`.
+- **Xbox Consoles:**
+  - **Xenia & Xenia Canary (Xbox 360):** Scans `C:\Xenia`, `%LOCALAPPDATA%\Xenia`. Supports `.iso`, `.xex`.
+  - **Xemu (Original Xbox):** Scans `%APPDATA%\xemu`, `~/.var/app/app.xemu.xemu`. Supports `.iso`, `.xbe`.
+- **Sega & Multi-System:**
+  - **Flycast (Dreamcast):** Scans `C:\Flycast`, `%APPDATA%\Flycast`. Supports `.cdi`, `.gdi`, `.chd`.
+  - **RetroArch:** Scans installed cores in `%APPDATA%\RetroArch\cores` or `~/.config/retroarch/cores`.
+
+### Automated Multi-Disc Merging Engine
+Classic multi-disc adventures (e.g. Final Fantasy VII, Metal Gear Solid) conform to pattern heuristics: `(Disc 1)`, `(Disc 2)`, `[CD1]`, `[CD2]`, `_disc1`, `-disc2`.
+Mission Control merges these into a single library card with an interactive in-card disc selector dropdown, letting the user choose which disc to boot into the emulator without cluttering the library.
+
+### Custom ROM Folders & Scanning
+- Users can add multiple custom ROM directories from different drives (e.g., `D:\Emulation\Roms`, `E:\Backups\PS2`) via the **Emulators & ROMs Hub** -> **ROM Folders** tab.
+- Clicking **Scan ROMs Now** initiates recursive directory indexing with real-time progress percentages and toast alerts.
+
+### 1-Click Argument-Aware Execution
+Mission Control bypasses launcher UIs by assembling emulator-specific CLI execution arguments:
+- RPCS3: Spawns binary with `--no-gui` and direct path to `.pkg` or `EBOOT.BIN`.
+- Ryujinx: Launches with `-g <rom_path>` in fullscreen.
+- PCSX2: Passes `-batch -fullscreen <rom_path>`.
+- Dolphin: Passes `-b -e <rom_path>`.
+- RetroArch: Dynamically resolves matching libretro `.dll`/`.so` core and passes `-L <core_path> <rom_path>`.
+
+### Adjacent Cover Art Resolution
+Scans adjacent directory structures for boxart: `<rom_stem>.png`, `<base_title>.png`, `media/boxart/`, `covers/` before falling back to cloud art or SVG placeholders.
+
+---
+
+## 🍷 2. Linux Wine & Proton Compatibility Engine
+
+### Architecture & Runner Management
+Mission Control provides first-class compatibility orchestration for running Windows games on Linux distributions (Steam Deck, Bazzite, Ubuntu, Fedora, Arch):
+- **Runner Selection:** Users can choose between **GE-Proton**, **Proton Experimental**, **Wine-GE**, and system **Wine** on a per-game basis in the Game Details *Compatibility* drawer.
+- **Isolated Sandboxed Prefixes:** Every Windows title receives an isolated `WINEPREFIX` directory (`~/.local/share/mission-control/prefixes/<game-slug>`), preventing registry pollution and cross-game DLL conflicts.
+- **DirectX-to-Vulkan Translation:** Employs **DXVK 2.4+** (Direct3D 9/10/11) and **VKD3D-Proton** (DirectX 12) with asynchronous shader pipelines for stutter-free performance.
+- **Per-Game Overrides:** Configurable DLL overrides (`d3d11`, `dxgi`, `dsound`), launch command parameters (`gamemoderun %command%`), GameScope scaling, MangoHud overlays, and FSR upscaling.
+- **Launch Error Diagnostics:** A background stdout/stderr log scanner analyzes startup crashes, detects missing runtime dependencies (.NET Framework, Visual C++ Redistributables, DirectX), and offers 1-click remediation hints.
+
+---
+
+## 🖥️ 3. Hardware Telemetry & GPU MUX Switch
+
+### GPU MUX Switch Status
+Mission Control detects and reports display routing telemetry:
+- **Discrete GPU Mode (dGPU):** Display panel is directly connected to the dedicated NVIDIA/AMD GPU, bypassing the integrated GPU. This delivers maximum framerates, lowest latency, and G-Sync/FreeSync support.
+- **Hybrid / Optimus Mode:** Frames rendered by the discrete GPU are routed through the integrated CPU graphics (iGPU) to the internal display, which introduces slight latency and framerate overhead but conserves battery.
+- The user can check MUX switch status in the **Hardware Optimization** / **System** panel.
+
+### Live Metrics & Thermal Advisor
+- Tracks real-time FPS, Frametime sparkline graphs, 1% low and 0.1% low framerate pacing.
+- Monitors VRAM allocation, CPU/GPU utilization, and temperatures.
+- Proactively surfaces thermal advisor warnings when GPU exceeds 85°C, and critical alerts at 90°C+ to recommend fan curves or undervolting.
+
+---
+
+## ⚡ 4. Agentic Mode & System Actions
+
+### Autonomous vs Observing Interlocks
+The **Agentic Mode** toggle in the sidebar navigation controls the AI co-pilot's authorization level:
+- **When Agentic Mode is ON (Autonomous):** Aero can directly modify system settings and launch games using structured command tags:
+  - `[SYSTEM_COMMAND:optimize_game_mode]` — Sets high process priority, clears standby memory, and enables high-performance power plan.
+  - `[SYSTEM_COMMAND:set_fan_profile:performance]` — Adjusts thermal fan curve profile.
+  - `[SYSTEM_COMMAND:clear_standby_list]` — Flushes Windows standby memory to free up RAM.
+  - `[LAUNCH_COMMAND:<game_name>]` — Directly executes PC games, storefront launchers, or emulated ROMs.
+- **When Agentic Mode is OFF (Observing):** Aero runs in safe advisory mode. Direct system commands are blocked or present an interactive confirmation interlock toast to the user before executing.
+
+---
+
+## 📚 5. Unified Game Intelligence Library & Storefronts
+- Merges PC games from Steam, Epic Games, GOG Galaxy, Xbox Game Pass, EA Desktop, Ubisoft Connect, and standalone setups with console emulated games into one responsive glassmorphic library.
+- Offers instant smart filters: All, PC, Emulation, VR, Installed, and Genre.
+- Synchronizes game taxonomy, play sessions, and keybindings with local SQLite cache.
+
+---
+
+## 🧪 6. Stability Lab & Benchmarks
+- Automated stress tests and crash diagnostics.
+- Post-session performance summaries: average FPS, 1% lows, GPU utilization peaks, and thermal curves after closing a game.

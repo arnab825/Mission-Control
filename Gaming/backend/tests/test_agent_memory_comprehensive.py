@@ -10,9 +10,8 @@ from unittest.mock import MagicMock, patch
 sys.path.insert(0, os.path.abspath(os.path.dirname(os.path.dirname(__file__))))
 
 from ai_brain.memory import GameMemory
-from ai_brain.rag_engine import GameRAGEngine
+from ai_brain.rag_engine import GameRAGEngine, Document
 from ai_brain.decision_maker import GameBrain
-from langchain_core.documents import Document
 
 class MockEmbeddings:
     def embed_query(self, text):

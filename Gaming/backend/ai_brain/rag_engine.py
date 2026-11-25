@@ -10,14 +10,60 @@ import os
 import sqlite3
 import threading
 from typing import List, Optional, Tuple, Dict, Any
+import re
 import warnings
 import yaml
 
 warnings.filterwarnings("ignore", category=DeprecationWarning, message=".*langchain-community.*")
 
-from langchain_text_splitters import RecursiveCharacterTextSplitter
-from langchain_core.documents import Document
-from langchain_community.retrievers import BM25Retriever
+try:
+    from langchain_text_splitters import RecursiveCharacterTextSplitter
+    from langchain_core.documents import Document
+    from langchain_community.retrievers import BM25Retriever
+except ImportError:
+    class Document:  # type: ignore
+        def __init__(self, page_content: str, metadata: Optional[Dict[str, Any]] = None):
+            self.page_content = page_content
+            self.metadata = metadata or {}
+
+    class RecursiveCharacterTextSplitter:  # type: ignore
+        def __init__(self, chunk_size: int = 1000, chunk_overlap: int = 200):
+            self.chunk_size = chunk_size
+            self.chunk_overlap = chunk_overlap
+
+        def split_documents(self, documents: List[Document]) -> List[Document]:
+            chunks = []
+            for doc in documents:
+                text = doc.page_content
+                start = 0
+                while start < len(text):
+                    end = min(start + self.chunk_size, len(text))
+                    chunk_text = text[start:end]
+                    chunks.append(Document(page_content=chunk_text, metadata=dict(doc.metadata)))
+                    if end == len(text):
+                        break
+                    start += max(1, self.chunk_size - self.chunk_overlap)
+            return chunks
+
+    class BM25Retriever:  # type: ignore
+        def __init__(self, docs: List[Document]):
+            self.docs = docs
+            self.k = 15
+
+        @classmethod
+        def from_documents(cls, documents: List[Document]):
+            return cls(documents)
+
+        def invoke(self, query: str) -> List[Document]:
+            query_terms = set(re.findall(r"\w+", query.lower()))
+            scored = []
+            for doc in self.docs:
+                doc_terms = re.findall(r"\w+", doc.page_content.lower())
+                score = sum(1 for term in doc_terms if term in query_terms)
+                if score > 0:
+                    scored.append((score, doc))
+            scored.sort(key=lambda x: x[0], reverse=True)
+            return [doc for _, doc in scored[:self.k]]
 
 logger = logging.getLogger(__name__)
 
@@ -61,8 +107,8 @@ class GameRAGEngine:
             count = c.fetchone()[0]
             conn.close()
 
-        if count == 0:
-            self._seed_from_data_dir()
+        # Seed or refresh from local data_dir so local feature documentation is always indexed
+        self._seed_from_data_dir()
             
         self._build_bm25_index()
 

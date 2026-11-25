@@ -1076,6 +1076,16 @@ class GameBrain:
                         )
                     user_prompt += f"\n{rag_context}{web_context}\nUser message: {prompt}"
                     user_prompt += system_access_instruction
+                    user_prompt += (
+                        "\n[MISSION CONTROL CORE CAPABILITIES & SYSTEM KNOWLEDGE]:\n"
+                        "You are Aero, the intelligent co-pilot and system assistant for Mission Control. You possess complete, authoritative knowledge of all features:\n"
+                        "• Emulation & ROM Library: Auto-discovers 17+ standalone emulators (RPCS3, PCSX2, DuckStation, Vita3K, PPSSPP, Ryujinx, Dolphin, Cemu, Lime3DS/Citra, melonDS, mGBA, Snes9x, Mupen64Plus, Xenia/Canary, Xemu, Flycast, RetroArch). Automatically merges multi-disc titles (Disc 1/2) with an in-card disc selector, resolves local boxart, scans user ROM directories, and generates 1-click execution flags.\n"
+                        "• Linux Wine & Proton Manager: Manages GE-Proton, Proton Experimental, Wine-GE, and system Wine runners for Windows games on Linux/Steam Deck. Features isolated ~/.local/share/mission-control/prefixes/<game> sandboxed prefixes, DXVK 2.4+ and VKD3D-Proton DirectX-to-Vulkan translation, DLL overrides, and real-time log scanning for missing runtimes (.NET, VC++, DirectX).\n"
+                        "• Hardware & GPU MUX Switch: Detects GPU MUX Switch status (Discrete dGPU direct display routing vs Hybrid/Optimus mode). Tracks live FPS, frametime sparklines, 1% and 0.1% lows, thermals, VRAM, and thermal alerts.\n"
+                        "• Agentic Mode: When toggled ON in the sidebar, you can execute direct optimizations ([SYSTEM_COMMAND:optimize_game_mode], [SYSTEM_COMMAND:set_fan_profile:performance], [SYSTEM_COMMAND:clear_standby_list]) and launch games ([LAUNCH_COMMAND:<game>]). When OFF, you operate in safe advisory mode.\n"
+                        "• Stability Lab: Automated benchmark stress runs, crash diagnostics, and session performance summaries.\n"
+                        "When the user asks about Mission Control features, explain them authoritatively, clearly, and guide them with specific interface steps.\n"
+                    )
                     messages = _build_messages_with_history(system_instr, user_prompt)
                     response = self._query_nvidia_nim(messages, model_override=model_id, temperature=0.8, stream=stream)
                     if stream:
@@ -1118,6 +1128,16 @@ class GameBrain:
                     )
                 user_prompt += f"\n{rag_context}{web_context}\nUser message: {prompt}"
                 user_prompt += system_access_instruction
+                user_prompt += (
+                    "\n[MISSION CONTROL CORE CAPABILITIES & SYSTEM KNOWLEDGE]:\n"
+                    "You are Aero, the intelligent co-pilot and system assistant for Mission Control. You possess complete, authoritative knowledge of all features:\n"
+                    "• Emulation & ROM Library: Auto-discovers 17+ standalone emulators (RPCS3, PCSX2, DuckStation, Vita3K, PPSSPP, Ryujinx, Dolphin, Cemu, Lime3DS/Citra, melonDS, mGBA, Snes9x, Mupen64Plus, Xenia/Canary, Xemu, Flycast, RetroArch). Automatically merges multi-disc titles (Disc 1/2) with an in-card disc selector, resolves local boxart, scans user ROM directories, and generates 1-click execution flags.\n"
+                    "• Linux Wine & Proton Manager: Manages GE-Proton, Proton Experimental, Wine-GE, and system Wine runners for Windows games on Linux/Steam Deck. Features isolated ~/.local/share/mission-control/prefixes/<game> sandboxed prefixes, DXVK 2.4+ and VKD3D-Proton DirectX-to-Vulkan translation, DLL overrides, and real-time log scanning for missing runtimes (.NET, VC++, DirectX).\n"
+                    "• Hardware & GPU MUX Switch: Detects GPU MUX Switch status (Discrete dGPU direct display routing vs Hybrid/Optimus mode). Tracks live FPS, frametime sparklines, 1% and 0.1% lows, thermals, VRAM, and thermal alerts.\n"
+                    "• Agentic Mode: When toggled ON in the sidebar, you can execute direct optimizations ([SYSTEM_COMMAND:optimize_game_mode], [SYSTEM_COMMAND:set_fan_profile:performance], [SYSTEM_COMMAND:clear_standby_list]) and launch games ([LAUNCH_COMMAND:<game>]). When OFF, you operate in safe advisory mode.\n"
+                    "• Stability Lab: Automated benchmark stress runs, crash diagnostics, and session performance summaries.\n"
+                    "When the user asks about Mission Control features, explain them authoritatively, clearly, and guide them with specific interface steps.\n"
+                )
                 
                 if self.memory:
                     sem_mem = self.memory.get_semantic_memory(user_id=user_id or "guest")
@@ -1150,7 +1170,17 @@ class GameBrain:
                 if provider_key != "auto":
                     return f"Neural link offline: Failed to initialize AI provider '{provider_key}'. This usually means the API key is missing or invalid in your .env file. Please check your keys and restart the backend."
 
-            # Local fallback for general chat without game active
+            # Intelligent feature-aware offline fallback for general chat without game active
+            prompt_q = prompt.lower()
+            if any(k in prompt_q for k in ["emulat", "rom", "rpcs3", "pcsx2", "ryujinx", "dolphin", "cemu", "xenia", "citra", "multi-disc", "disc"]):
+                return "🕹️ **Emulation & ROMs Hub**: Mission Control auto-discovers 17+ emulators (RPCS3, PCSX2, DuckStation, Ryujinx, Dolphin, Cemu, Xenia, Flycast, RetroArch, etc.). You can configure ROM directories in the **Emulators & ROMs Hub** -> **ROM Folders** tab. Multi-disc games (Disc 1/2) are automatically merged into a single game card with an interactive in-card disc selector, and games launch directly with 1-click execution flags."
+            if any(k in prompt_q for k in ["wine", "proton", "dxvk", "vkd3d", "prefix", "linux", "steam deck"]):
+                return "🍷 **Wine & Proton Manager**: Mission Control enables smooth Windows gaming on Linux and Steam Deck. You can switch between GE-Proton, Proton Experimental, Wine-GE, and system Wine runners per game. Every title runs in an isolated `WINEPREFIX` sandbox (~/.local/share/mission-control/prefixes/) with automated DXVK 2.4+ and VKD3D DirectX-to-Vulkan translation and real-time launch error diagnostics."
+            if any(k in prompt_q for k in ["mux", "dgpu", "optimus", "hybrid", "gpu switch"]):
+                return "🖥️ **GPU MUX Switch Telemetry**: Mission Control actively detects whether your display is routed directly to the **Discrete GPU (dGPU)** for maximum framerates and lowest latency, or running in **Hybrid/Optimus mode** through the integrated GPU. Check the Hardware Optimization panel for live status."
+            if any(k in prompt_q for k in ["agentic", "autonomous", "command"]):
+                return "⚡ **Agentic Mode**: When toggled ON in the sidebar, I can execute direct system optimizations (game mode priority, standby memory cleanup, fan profiles) and launch games on your behalf. When OFF, I operate in safe advisory mode with confirmation interlocks."
+
             fallback_general = {
                 "tactical": "I am your Tactical Gaming Assistant. General offline mode is active. I can help optimize your PC specs, check thermals, clear VRAM, or launch games from your library.",
                 "friendly": "Hi! I'm running locally right now, but I can still help you optimize your PC, check your specs, clear VRAM, or help you launch your games!",
