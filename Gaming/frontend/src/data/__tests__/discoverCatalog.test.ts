@@ -57,6 +57,7 @@ describe('Game Artwork & Title Normalization Engine', () => {
     const reArtwork = getGameArtwork('Resident Evil Requiem');
     expect(reArtwork.steamAppId).toBe('3764200');
     expect(reArtwork.bannerUrl).toContain('3764200');
+    expect(reArtwork.coverUrl).toBe('/games/re-requiem.png');
   });
 
   it('preserves verified custom banners when provided without falling back to dicebear', () => {

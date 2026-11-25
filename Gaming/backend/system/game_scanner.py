@@ -841,6 +841,11 @@ class GameScanner:
                         if gta_variant != name_clean:
                             candidates.append(icons_dir / f"{gta_variant}.png")
                             candidates.append(icons_dir / f"C_{gta_variant}.png")
+                        # Also check Resident Evil Requiem / RE9 variants
+                        name_clean_lower = name_clean.lower()
+                        if any(kw in name_clean_lower for kw in ["residentevilrequiem", "residentevil9", "biohazardrequiem", "re9", "requiem"]):
+                            candidates.append(icons_dir / "C_ResidentEvilRequiem.png")
+                            candidates.append(icons_dir / "ResidentEvilRequiem.png")
                     if g.get("exe_path"):
                         exe_stem = Path(g["exe_path"]).stem
                         candidates.append(icons_dir / f"{exe_stem}.png")
@@ -849,6 +854,8 @@ class GameScanner:
                         if exe_clean != exe_stem:
                             candidates.append(icons_dir / f"{exe_clean}.png")
                             candidates.append(icons_dir / f"C_{exe_clean}.png")
+                        if any(kw in exe_clean.lower() for kw in ["requiem", "re9", "residentevil9"]):
+                            candidates.append(icons_dir / "C_ResidentEvilRequiem.png")
 
                     for cand in candidates:
                         if cand.exists():

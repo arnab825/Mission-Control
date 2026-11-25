@@ -20,14 +20,21 @@ import {
 import Image from "next/image";
 import Link from "next/link";
 
+interface ScreenshotItem {
+  id: string;
+  label: string;
+  src: string;
+  fallbackSrc: string;
+  caption: string;
+}
+
 interface FeatureDetail {
   id: string;
   tag: string;
   title: string;
   subtitle: string;
   description: string;
-  screenshot: string;
-  fallbackScreenshot: string;
+  screenshots: ScreenshotItem[];
   accentColor: string;
   borderGlow: string;
   bgGlow: string;
@@ -44,8 +51,36 @@ const EMULATION_WINE_FEATURES: FeatureDetail[] = [
     subtitle: "Universal Console Discovery & Multi-Disc Library",
     description:
       "Detects 17 emulators and RetroArch cores, scans ROM folders, merges multi-disc games, and auto-assembles CLI flags for direct 1-click execution.",
-    screenshot: "/screenshots/emulation_screen.webp",
-    fallbackScreenshot: "/screenshots/emulation_screen.png",
+    screenshots: [
+      {
+        id: "hub",
+        label: "Emulators Hub",
+        src: "/screenshots/emulation_screen.webp",
+        fallbackSrc: "/screenshots/emulation_screen.png",
+        caption: "Auto-discovery of 17+ standalone emulators with live path detection and 1-click test launch",
+      },
+      {
+        id: "rom_folders",
+        label: "ROM Folders",
+        src: "/screenshots/rom_folders.webp",
+        fallbackSrc: "/screenshots/rom_folders.png",
+        caption: "Multi-directory ROM configuration with recursive path scanning & instant re-indexing",
+      },
+      {
+        id: "rom_library",
+        label: "Unified Library",
+        src: "/screenshots/rom_library.webp",
+        fallbackSrc: "/screenshots/rom_library.webp",
+        caption: "Console titles integrated seamlessly alongside PC titles with in-card multi-disc pickers",
+      },
+      {
+        id: "showcase",
+        label: "Console Suite",
+        src: "/screenshots/emulation_showcase.webp",
+        fallbackSrc: "/screenshots/emulation_showcase.png",
+        caption: "Integrated console emulation setup modal with real-time launch parameter verification",
+      },
+    ],
     accentColor: "text-purple-400",
     borderGlow: "border-purple-500/40 hover:border-purple-400/80 shadow-[0_0_35px_rgba(168,85,247,0.18)]",
     bgGlow: "from-purple-950/40 via-purple-900/10 to-transparent",
@@ -92,8 +127,29 @@ const EMULATION_WINE_FEATURES: FeatureDetail[] = [
     subtitle: "Built-In Wine Manager & Isolated Game Prefixes",
     description:
       "A built-in Wine Manager, per-game prefixes and options, a sandbox and launch error hints for Windows games on Linux.",
-    screenshot: "/screenshots/wine_proton_showcase.webp",
-    fallbackScreenshot: "/screenshots/wine_proton_showcase.png",
+    screenshots: [
+      {
+        id: "wine_proton",
+        label: "Wine & Proton Manager",
+        src: "/screenshots/wine_proton_showcase.webp",
+        fallbackSrc: "/screenshots/wine_proton_showcase.png",
+        caption: "Manage GE-Proton, Proton Experimental, and custom Wine runners on a per-game basis",
+      },
+      {
+        id: "wine_screen",
+        label: "Wine Environment",
+        src: "/screenshots/wine_screen.png",
+        fallbackSrc: "/screenshots/wine_screen.png",
+        caption: "Sandboxed Wine prefixes with automated DXVK & VKD3D DirectX-to-Vulkan translation",
+      },
+      {
+        id: "suite",
+        label: "Cross-Platform Suite",
+        src: "/screenshots/emulation_wine_showcase.webp",
+        fallbackSrc: "/screenshots/emulation_wine_showcase.png",
+        caption: "Unified cross-platform emulation engine and Wine runner architecture",
+      },
+    ],
     accentColor: "text-cyan-400",
     borderGlow: "border-cyan-500/40 hover:border-cyan-400/80 shadow-[0_0_35px_rgba(6,182,212,0.18)]",
     bgGlow: "from-cyan-950/40 via-cyan-900/10 to-transparent",
@@ -134,6 +190,10 @@ const EMULATION_WINE_FEATURES: FeatureDetail[] = [
 export function EmulationWineSection() {
   const [selectedLightbox, setSelectedLightbox] = useState<string | null>(null);
   const [activeConsoleTab, setActiveConsoleTab] = useState<number>(0);
+  const [activeScreenshotIdx, setActiveScreenshotIdx] = useState<Record<string, number>>({
+    emulation: 0,
+    "wine-proton": 0,
+  });
 
   const CONSOLE_CATEGORIES = [
     {
@@ -198,6 +258,9 @@ export function EmulationWineSection() {
       {/* Two Hero Feature Showcase Cards (matching the user reference design) */}
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 mb-16">
         {EMULATION_WINE_FEATURES.map((feat) => {
+          const currIdx = activeScreenshotIdx[feat.id] ?? 0;
+          const currentScreenshot = feat.screenshots[currIdx] || feat.screenshots[0];
+
           return (
             <motion.div
               key={feat.id}
@@ -210,17 +273,18 @@ export function EmulationWineSection() {
               <div>
                 {/* Visual Screenshot Display Frame */}
                 <div
-                  onClick={() => setSelectedLightbox(feat.screenshot)}
-                  className="relative w-full h-56 sm:h-72 rounded-2xl overflow-hidden bg-black/60 border border-white/10 mb-6 cursor-pointer group-hover:border-white/20 transition-all shadow-2xl flex items-center justify-center"
+                  onClick={() => setSelectedLightbox(currentScreenshot.src)}
+                  className="relative w-full h-56 sm:h-72 rounded-2xl overflow-hidden bg-black/60 border border-white/10 mb-3 cursor-pointer group-hover:border-white/20 transition-all shadow-2xl flex items-center justify-center"
                 >
                   <img
-                    src={feat.screenshot}
-                    alt={feat.title}
+                    key={currentScreenshot.src}
+                    src={currentScreenshot.src}
+                    alt={currentScreenshot.label}
                     className="w-full h-full object-cover object-top transition-transform duration-500 group-hover:scale-103"
                     onError={(e) => {
                       const target = e.target as HTMLImageElement;
-                      if (target.src !== feat.fallbackScreenshot) {
-                        target.src = feat.fallbackScreenshot;
+                      if (target.src !== currentScreenshot.fallbackSrc) {
+                        target.src = currentScreenshot.fallbackSrc;
                       }
                     }}
                   />
@@ -239,6 +303,35 @@ export function EmulationWineSection() {
 
                   <div className="absolute bottom-3 left-3 text-[10px] font-mono text-zinc-400 bg-black/70 px-2.5 py-0.5 rounded-md backdrop-blur-md border border-white/5">
                     Click to view high-res showcase
+                  </div>
+                </div>
+
+                {/* Screenshot Tab Selector & Caption */}
+                <div className="mb-6">
+                  <div className="flex items-center gap-1.5 mb-2 overflow-x-auto pb-1 scrollbar-none">
+                    {feat.screenshots.map((s, idx) => (
+                      <button
+                        key={s.id}
+                        type="button"
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          setActiveScreenshotIdx((prev) => ({ ...prev, [feat.id]: idx }));
+                        }}
+                        className={`px-2.5 py-1 rounded-lg text-[10px] font-mono font-bold uppercase tracking-wider transition-all whitespace-nowrap cursor-pointer ${
+                          currIdx === idx
+                            ? "bg-white/20 text-white border border-white/30 shadow-md"
+                            : "bg-white/5 text-zinc-400 border border-white/5 hover:text-white hover:bg-white/10"
+                        }`}
+                      >
+                        {s.label}
+                      </button>
+                    ))}
+                  </div>
+                  <div className="px-3 py-1.5 rounded-xl bg-black/40 border border-white/5 text-[11px] text-zinc-400 font-mono flex items-center justify-between gap-2">
+                    <span className="truncate">{currentScreenshot.caption}</span>
+                    <span className="text-zinc-500 text-[10px] shrink-0 font-bold">
+                      {currIdx + 1}/{feat.screenshots.length}
+                    </span>
                   </div>
                 </div>
 

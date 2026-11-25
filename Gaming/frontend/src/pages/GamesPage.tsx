@@ -258,9 +258,19 @@ const GameCard: React.FC<{
   );
   const defaultGtaVIcon = '/games/gtav.png';
 
+  const isRERequiem = !isLauncher && (
+    nameLower.includes('requiem') ||
+    nameLower.includes('resident evil 9') ||
+    nameLower.includes('biohazard requiem') ||
+    nameLower === 're9' ||
+    nameLower === 're 9' ||
+    (Boolean(game.exe_path) && (game.exe_path!.toLowerCase().includes('requiem') || game.exe_path!.toLowerCase().includes('re9')))
+  );
+  const defaultRERequiemIcon = '/games/re-requiem.png';
+
   const steamAppId = (!isLauncher && game.platform === 'Steam' && /^\d+$/.test(game.id))
     ? game.id
-    : (!isLauncher ? (getSteamAppIdForTitle(game.name) || (isGtaV ? '271590' : null)) : null);
+    : (!isLauncher ? (getSteamAppIdForTitle(game.name) || (isGtaV ? '271590' : isRERequiem ? '3764200' : null)) : null);
 
   const localBannerUrl = game.local_banner && game.local_banner !== 'null' && !game.local_banner.includes('firstlight.webp')
     ? (game.local_banner.startsWith('http') ? game.local_banner : (game.local_banner.startsWith('/') ? game.local_banner : `asset:///${game.local_banner.replace(/\\/g, '/')}`))
@@ -268,15 +278,17 @@ const GameCard: React.FC<{
 
   const localIconUrl = (game.icon && game.icon !== 'null')
     ? (game.icon.startsWith('http') ? game.icon : (game.icon.startsWith('/') ? game.icon : `asset:///${game.icon.replace(/\\/g, '/')}`))
-    : (is007 ? default007Icon : isGtaV ? defaultGtaVIcon : null);
+    : (is007 ? default007Icon : isGtaV ? defaultGtaVIcon : isRERequiem ? defaultRERequiemIcon : null);
 
   if (isLauncher && launcherBanner) {
     coverUrl = launcherBanner;
   } else if (localBannerUrl) {
     coverUrl = localBannerUrl;
+  } else if (isRERequiem && (steamAppId === '3764200' || !steamAppId || !localBannerUrl)) {
+    coverUrl = defaultRERequiemIcon;
   } else if (steamAppId) {
     coverUrl = steamAppId === '3764200'
-      ? 'https://shared.akamai.steamstatic.com/store_item_assets/steam/apps/3764200/ce5437442768e38eb575f205ab9397d0264017b0/header.jpg?t=1779840172'
+      ? defaultRERequiemIcon
       : `https://shared.cloudflare.steamstatic.com/store_item_assets/steam/apps/${steamAppId}/header.jpg`;
   } else if ((game as any).banner_url && typeof (game as any).banner_url === 'string' && !(game as any).banner_url.includes('2842100')) {
     coverUrl = (game as any).banner_url;
@@ -288,6 +300,8 @@ const GameCard: React.FC<{
     coverUrl = default007Icon;
   } else if (isGtaV) {
     coverUrl = defaultGtaVIcon;
+  } else if (isRERequiem) {
+    coverUrl = defaultRERequiemIcon;
   } else if (launcherBanner) {
     coverUrl = launcherBanner;
   }
@@ -372,6 +386,10 @@ const GameCard: React.FC<{
                 target.src = defaultGtaVIcon;
                 return;
               }
+              if (isRERequiem && !target.src.includes('re-requiem.png')) {
+                target.src = defaultRERequiemIcon;
+                return;
+              }
               if (localIconUrl && target.src !== localIconUrl) {
                 target.src = localIconUrl;
                 return;
@@ -379,12 +397,12 @@ const GameCard: React.FC<{
               const fallbackAppId = getSteamAppIdForTitle(game.name) || steamAppId;
               const fallbackHeader = fallbackAppId
                 ? (fallbackAppId === '3764200'
-                    ? 'https://shared.akamai.steamstatic.com/store_item_assets/steam/apps/3764200/ce5437442768e38eb575f205ab9397d0264017b0/header.jpg?t=1779840172'
+                    ? defaultRERequiemIcon
                     : `https://shared.cloudflare.steamstatic.com/store_item_assets/steam/apps/${fallbackAppId}/header.jpg`)
                 : null;
               const fallbackCover = fallbackAppId
                 ? (fallbackAppId === '3764200'
-                    ? 'https://shared.akamai.steamstatic.com/store_item_assets/steam/apps/3764200/64f506b9b6210df6055136e7017f2082957e5b22/capsule_231x87.jpg?t=1779840172'
+                    ? defaultRERequiemIcon
                     : `https://cdn.cloudflare.steamstatic.com/steam/apps/${fallbackAppId}/library_600x900_2x.jpg`)
                 : null;
               if (fallbackHeader && target.src !== fallbackHeader) {
@@ -393,6 +411,10 @@ const GameCard: React.FC<{
               }
               if (fallbackCover && target.src !== fallbackCover) {
                 target.src = fallbackCover;
+                return;
+              }
+              if (isRERequiem) {
+                target.src = defaultRERequiemIcon;
                 return;
               }
               if (isGtaV) {
@@ -891,6 +913,33 @@ const GamesLibraryContent: React.FC<GamesPageProps> = ({ state, sendCommand, set
                 }
                 if (item.store_app_id === '2842100' || !item.store_app_id) {
                   item = { ...item, store_app_id: '3035570' };
+                  changed = true;
+                }
+              }
+
+              const isRequiemEntry = (
+                nameLower.includes('requiem') ||
+                nameLower.includes('resident evil 9') ||
+                nameLower.includes('biohazard requiem') ||
+                nameLower === 're9' ||
+                nameLower === 're 9' ||
+                (Boolean(item.exe_path) && (item.exe_path.toLowerCase().includes('requiem') || item.exe_path.toLowerCase().includes('re9')))
+              );
+              if (isRequiemEntry) {
+                if (!item.icon || item.icon === 'null' || !item.icon.includes('re-requiem.png')) {
+                  item = { ...item, icon: '/games/re-requiem.png' };
+                  changed = true;
+                }
+                if (!item.cover_url || (typeof item.cover_url === 'string' && (item.cover_url.includes('capsule_231x87') || item.cover_url.includes('hero_bg')))) {
+                  item = { ...item, cover_url: '/games/re-requiem.png' };
+                  changed = true;
+                }
+                if (item.genre === 'CLASSIC' || !item.genre) {
+                  item = { ...item, genre: 'SURVIVAL HORROR' };
+                  changed = true;
+                }
+                if (item.type === 'LAUNCHER') {
+                  item = { ...item, type: 'GAME' };
                   changed = true;
                 }
               }

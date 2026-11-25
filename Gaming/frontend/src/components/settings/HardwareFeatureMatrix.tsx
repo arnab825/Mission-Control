@@ -116,10 +116,19 @@ export const HardwareFeatureMatrix: React.FC<HardwareFeatureMatrixProps> = memo(
                   (Boolean(game.exe_path) && (game.exe_path.toLowerCase().includes('gta5') || game.exe_path.toLowerCase().includes('gtav')));
                 const defaultGtaV = '/games/gtav.png';
 
+                const isRERequiem =
+                  nameLower.includes('requiem') ||
+                  nameLower.includes('resident evil 9') ||
+                  nameLower.includes('biohazard requiem') ||
+                  nameLower === 're9' ||
+                  nameLower === 're 9' ||
+                  (Boolean(game.exe_path) && (game.exe_path.toLowerCase().includes('requiem') || game.exe_path.toLowerCase().includes('re9')));
+                const defaultRERequiem = '/games/re-requiem.png';
+
                 const resolvedSteamId =
                   game.platform === 'Steam' && /^\d+$/.test(game.id)
                     ? game.id
-                    : (getSteamAppIdForTitle(game.name) || (isGtaV ? '271590' : null));
+                    : (getSteamAppIdForTitle(game.name) || (isGtaV ? '271590' : isRERequiem ? '3764200' : null));
 
                 const artwork = getGameArtwork(
                   game.name,
@@ -165,6 +174,7 @@ export const HardwareFeatureMatrix: React.FC<HardwareFeatureMatrixProps> = memo(
                 const iconUrl =
                   (isGtaV ? defaultGtaV : null) ||
                   (is007 ? default007 : null) ||
+                  (isRERequiem ? defaultRERequiem : null) ||
                   localIconUrl ||
                   steamBannerUrl ||
                   localBannerUrl ||
@@ -192,6 +202,10 @@ export const HardwareFeatureMatrix: React.FC<HardwareFeatureMatrixProps> = memo(
                               }
                               if (is007 && !img.src.includes('007firstlight.png')) {
                                 img.src = default007;
+                                return;
+                              }
+                              if (isRERequiem && !img.src.includes('re-requiem.png')) {
+                                img.src = defaultRERequiem;
                                 return;
                               }
                               if (steamBannerUrl && img.src !== steamBannerUrl) {

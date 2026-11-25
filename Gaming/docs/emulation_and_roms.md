@@ -8,7 +8,25 @@ excerpt: "Cross-platform emulator discovery for 17+ emulators, intelligent ROM f
 
 # 🕹️ Emulation & ROM Library Orchestration Engine
 
-The **Mission Control Emulation Engine** unifies your physical console game backups and local emulators alongside modern PC storefronts (Steam, Epic Games, GOG, Xbox, EA, Ubisoft) within a single glassmorphic library interface.
+The **Mission Control Emulation Engine** unifies your physical console game backups, standalone emulators, and RetroArch libretro cores alongside modern PC storefronts (Steam, Epic Games, GOG, Xbox, EA, Ubisoft) within a single glassmorphic library interface.
+
+---
+
+## 📸 Interface & Emulation Showcase
+
+| 🖥️ **Glassmorphic Emulators Hub** | 📁 **Custom ROM Folders & Scanning** |
+| :---: | :---: |
+| ![Glassmorphic Emulation Hub](/screenshots/emulation_screen.webp) | ![ROM Folders & Scanning](/screenshots/rom_folders.webp) |
+| *Real-time auto-discovery of 17+ standalone emulators with instant status telemetry* | *Multi-drive custom ROM directories with recursive re-indexing and path validation* |
+
+| 🎮 **Unified Library (Emulation Filter)** | 🎛️ **Console Emulation Suite Modal** |
+| :---: | :---: |
+| ![Unified ROM Library Interface](/screenshots/rom_library.webp) | ![Console Emulation Showcase](/screenshots/emulation_showcase.webp) |
+| *Console titles merged seamlessly with PC games featuring in-card disc pickers* | *Interactive emulator setup, binary overrides, and RetroArch core resolution* |
+
+---
+
+## 🏗️ Architectural Overview & Pipeline
 
 ```mermaid
 graph TD
@@ -113,21 +131,31 @@ if game.get("is_emulated"):
 
 - **RPCS3:** Spawns binary with `--no-gui` (optional) and direct boot path to `.pkg` or `EBOOT.BIN`.
 - **Ryujinx:** Launches with `-g <rom_path>` in fullscreen mode.
-- **PCSX2:** Boots target `.iso` or `.chd` with fast-boot flags.
+- **PCSX2:** Boots target `.iso` or `.chd` with fast-boot flags (`-batch`, `-fullscreen`).
+- **Dolphin:** Passes `-b -e <rom_path>` for direct, instant boot bypass.
 - **RetroArch:** Resolves the appropriate `.dll` or `.so` core dynamically and passes `-L <core_path> <rom_path>`.
 
 ---
 
-## 🎛️ Emulators & ROMs Hub Interface
+## 🎛️ Emulators & ROMs Hub Interface Breakdown
 
 Access the hub at any time from the **Game Intelligence** toolbar:
-- **Installed Tab:** Quick status of detected local emulators, paths, and instant test-launch buttons. In zero-emulator states, provides direct navigation buttons to explore the supported matrix or configure ROM folders.
-- **All Emulators Tab:** Comprehensive matrix of all 17 supported emulators, supported consoles, official websites, and binary path override fields.
-- **ROM Folders Tab:** Add and remove custom scan paths (e.g. `D:\Emulation\Roms` or `/mnt/games/roms`) and trigger immediate re-indexing with the **Scan ROMs Now** button.
+
+### 1. ⚡ Installed Tab
+- Displays detected local emulators with live path readouts, version tags, and instant test-launch triggers.
+- In zero-emulator states, surfaces intelligent 1-click recommendations to configure folders or view download guides.
+
+### 2. 🌐 All Emulators Tab
+- Comprehensive directory of all 17 supported emulators, supported consoles, official documentation links, and binary path override text fields.
+- Allows power users to point to portable zip extractions or custom fork builds.
+
+### 3. 📂 ROM Folders Tab
+- Add, edit, and remove custom scan paths (e.g. `D:\Emulation\Roms` or `/mnt/games/roms`).
+- Immediate re-indexing with the **Scan ROMs Now** button, complete with real-time progress percentages and detected count toasts.
 
 ---
 
-## 🛡️ Smart Empty-State Redirection & Multi-User Session Isolation (v3.9.0)
+## 🛡️ Smart Empty-State Redirection & Multi-User Session Isolation
 
 ### 1. Smart Scanner Redirection & Directory Validation
 - When initiating a ROM scan with zero configured directories, Mission Control proactively transitions to the **ROM Folders** tab and surfaces a high-visibility warning banner:
@@ -135,11 +163,9 @@ Access the hub at any time from the **Game Intelligence** toolbar:
 - If the user filters the Game Intelligence library by `EMULATION` when no console titles are detected, a specialized empty-state card appears offering a 1-click shortcut to launch the **Emulators & ROMs Hub**.
 
 ### 2. Multi-Tenant Authenticated Session Library Merging
-- Previous releases defaulted unauthenticated ROM scan operations to local `guest` session storage.
-- In v3.9.0 and v3.9.1, scan requests pass the authenticated `userId` directly through Electron IPC to `handle_scan_roms`, ensuring discovered games are seamlessly merged into the active user's cloud-synchronized library session (`library_session[user_id]`) alongside local guest fallbacks.
+- Scan requests pass the authenticated `userId` directly through Electron IPC to `handle_scan_roms`, ensuring discovered games are seamlessly merged into the active user's cloud-synchronized library session (`library_session[user_id]`) alongside local guest fallbacks.
 
-### 3. High-DPI & 1440p/1600p QHD+ Responsive Scaling (v3.9.1)
-- The Emulators & ROMs Hub and Game Intelligence Library are fully responsive on 1440p (`2560×1440`) and 1600p (`2560×1600 QHD+`) displays.
+### 3. High-DPI & 1440p/1600p QHD+ Responsive Scaling
+- The Emulators & ROMs Hub and Game Intelligence Library are fully responsive on 1080p, 1440p (`2560×1440`), and 1600p (`2560×1600 QHD+`) displays.
 - Modal sizing expands up to `3xl:max-w-7xl` with 3 to 4 column emulator grids, side-by-side ROM folder cards, and fluid 1–6 column library grids without horizontal stretching or letterboxing.
 - Strict Pydantic command schemas validate `scan_roms` and `set_rom_paths` payloads with authenticated session context (`userId`).
-

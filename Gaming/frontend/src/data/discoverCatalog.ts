@@ -515,7 +515,7 @@ export function getGameArtwork(
     const steamCover = resolvedAppId === '3035570'
       ? `https://cdn.cloudflare.steamstatic.com/steam/apps/${resolvedAppId}/library_600x900_2x.jpg`
       : (resolvedAppId === '3764200'
-          ? 'https://shared.akamai.steamstatic.com/store_item_assets/steam/apps/3764200/64f506b9b6210df6055136e7017f2082957e5b22/capsule_231x87.jpg?t=1779840172'
+          ? '/games/re-requiem.png'
           : `https://shared.cloudflare.steamstatic.com/store_item_assets/steam/apps/${resolvedAppId}/capsule_616x353.jpg`);
     return {
       bannerUrl: isValidCustomArtworkUrl(customBanner, canonicalAppId || resolvedAppId)
@@ -1033,6 +1033,25 @@ export const CURATED_FEATURED_GAMES: DiscoverItem[] = [
     summary: 'Survival is only the beginning. Six years have passed since the disaster in Raccoon City. Leon S. Kennedy tracks the president’s kidnapped daughter to a secluded European village.',
     store: 'Steam',
     store_app_id: '2050650',
+    launchers: ['Steam'],
+    in_catalog: true,
+    ai_classified: true,
+    installations: [],
+  },
+  {
+    id: 'resident-evil-requiem',
+    title: 'Resident Evil Requiem',
+    developer: 'CAPCOM Co., Ltd.',
+    publisher: 'CAPCOM Co., Ltd.',
+    release_date: '2026-11-20',
+    primary_genre: 'Survival Horror',
+    genres: ['Action', 'Horror', 'Survival Horror', 'Third-Person', 'Sci-Fi'],
+    tags: ['Survival Horror', 'Atmospheric', 'Zombies', 'Gore', 'Singleplayer'],
+    rating: 95,
+    banner_url: '/games/re-requiem.png',
+    summary: 'Next-generation survival horror evolution built on the upgraded RE Engine. Navigate quarantine sectors, master dynamic evasion, and eliminate mutant bioweapons.',
+    store: 'Steam',
+    store_app_id: '3764200',
     launchers: ['Steam'],
     in_catalog: true,
     ai_classified: true,

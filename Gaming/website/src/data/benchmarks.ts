@@ -83,6 +83,188 @@ export interface TestedGameSummary {
  * the first priority. These definitions serve strictly as initial seed data and offline fallbacks.
  */
 export const FALLBACK_BENCHMARK_PROFILES: Record<string, BenchmarkProfile> = {
+  rerequiem: {
+    id: "rerequiem",
+    name: "Resident Evil Requiem",
+    publisher: "Capcom",
+    releaseYear: "2026 Edition",
+    genre: "Survival Horror / Action-Adventure",
+    api: "DirectX 12 Ultimate",
+    score: 99,
+    status: "VERIFIED BENCHMARK",
+    preset: "Ultra / DLSS 4.0 + Ray Tracing",
+    overview:
+      "Capcom's next-generation survival horror evolution engineered in the cutting-edge RE Engine with DirectX 12 Ultimate. Resident Evil Requiem weaves intense psychological dread with precision tactical survival, featuring advanced photogrammetry, real-time path tracing, and high-efficiency sub-12ms frame pacing.",
+    detailedOverview: {
+      story:
+        "Following the cataclysmic events and bioweapon proliferation across global corridors, Resident Evil Requiem plunges operatives into an ominous, quarantined European metropolis engulfed in a mutagenic outbreak. Thrust into the epicenter of a shadowy conspiracy orchestrated by remnant bio-syndicates, survivors must unravel dark ancestral secrets, survive grotesque mutant abominations, and race against the clock to prevent a catastrophic planetary pathogen release.",
+      gameplayLoop:
+        "Navigate harrowing gothic ruins, metropolitan underpasses, and fortified bio-research facilities; scavenge scarce munitions, gunpowder, and chemical reagents; engage in visceral over-the-shoulder tactical combat with precision weak-point targeting and evasive counters; solve intricate multi-tier environmental puzzles; and upgrade specialized survival gear in secure safe rooms.",
+      keyMechanics: [
+        {
+          name: "Adaptive Bioweapon Weak-Point Targeting",
+          desc: "Dismember mutated appendages and exploit dynamic thermal weak-points using precision calibers, shotgun spreads, and incendiary ordnance to incapacitate fast-moving abominations.",
+        },
+        {
+          name: "Attaché Grid Inventory & Field Crafting",
+          desc: "Strategically organize grid slots to balance high-caliber weapons, medical sprays, and specialized ammunition, crafting concentrated defensive concoctions in real time.",
+        },
+        {
+          name: "Dynamic Evasion & Defensive Stagger Counters",
+          desc: "Perform agile duck-and-weave maneuvers, tactical slide dodges, and high-damage close-quarters counterstrikes using survival blades and stun batons.",
+        },
+        {
+          name: "Safe Room Sanctuary & Weapon Calibration",
+          desc: "Utilize typewriter checkpoints and high-security lockers to manage storage, customize firearm stability, suppressors, and rate-of-fire, and play nostalgic haunting themes.",
+        },
+      ],
+    },
+    testedSpecs: {
+      gpu: "NVIDIA GeForce RTX Series / GTX Series",
+      resolution: "1080p FHD (1920 x 1080)",
+      avgFps: "75 FPS",
+      vramUsed: "5.8 GB / 8.0 GB",
+      latency: "10.8 ms",
+      gpuLoad: "68%",
+    },
+    presets: {
+      rtx40: "Ultra Settings + DLSS 4.0 Quality + Path Tracing (High Frametimes)",
+      rtx30: "High Settings + DLSS Quality + Screen Space Reflections (5.8 GB VRAM)",
+      gtx: "Prioritize Performance + FSR 2 Balanced + TAA (60 FPS Target)",
+    },
+    features: [
+      {
+        name: "Capcom Next-Gen RE Engine",
+        desc: "Advanced Photogrammetry, Subsurface Scattering & Volumetric Fog",
+        active: true,
+      },
+      {
+        name: "NVIDIA DLSS 4.0 & Frame Generation",
+        desc: "Ultra-High Fidelity AI Reconstruction and Sub-11ms Reflex Latency",
+        active: true,
+      },
+      {
+        name: "DirectX 12 Ultimate Pipeline",
+        desc: "Mesh Shaders, Hardware Ray Tracing & Sampler Feedback",
+        active: true,
+      },
+      {
+        name: "Low-VRAM Texture Streaming",
+        desc: "Optimized 5.8 GB Footprint Eliminating Stutter and Asset Pop-in",
+        active: true,
+      },
+    ],
+    screenshots: [
+      {
+        src: "/games/RE_Requiem_SS1.png",
+        title: "Atmospheric Ruin Infiltration & Lighting Telemetry",
+        desc: "Infiltration into the quarantine zone with real-time volumetric fog captured at 75 FPS (52 FPS 1% Low) with 5.8 GB VRAM allocation (68% GPU load, 68°C GPU temp, 100% Excellent health).",
+      },
+      {
+        src: "/games/RE_Requiem_SS2.png",
+        title: "Tactical Combat Stance & Target Acquisition",
+        desc: "Close-quarters combat engagement against mutated bio-threats captured at 74 FPS (49 FPS 1% Low) under 70% GPU load (58W GPU power draw, 5.7 GB VRAM footprint).",
+      },
+      {
+        src: "/games/RE_Requiem_SS3.png",
+        title: "Precision Ballistics & Environmental Detail",
+        desc: "Precision ballistic aiming through industrial quarantine corridors captured at 76 FPS (54 FPS 1% Low) with 66% GPU load (56W power draw, 5.8 GB VRAM allocation).",
+      },
+    ],
+    storeRating: "4.9 ★★★★★",
+    dlssVersion: "DLSS 4.0 / Reflex",
+  },
+  re9: {
+    id: "re9",
+    name: "Resident Evil Requiem",
+    publisher: "Capcom",
+    releaseYear: "2026 Edition",
+    genre: "Survival Horror / Action-Adventure",
+    api: "DirectX 12 Ultimate",
+    score: 99,
+    status: "VERIFIED BENCHMARK",
+    preset: "Ultra / DLSS 4.0 + Ray Tracing",
+    overview:
+      "Capcom's next-generation survival horror evolution engineered in the cutting-edge RE Engine with DirectX 12 Ultimate. Resident Evil Requiem weaves intense psychological dread with precision tactical survival, featuring advanced photogrammetry, real-time path tracing, and high-efficiency sub-12ms frame pacing.",
+    detailedOverview: {
+      story:
+        "Following the cataclysmic events and bioweapon proliferation across global corridors, Resident Evil Requiem plunges operatives into an ominous, quarantined European metropolis engulfed in a mutagenic outbreak. Thrust into the epicenter of a shadowy conspiracy orchestrated by remnant bio-syndicates, survivors must unravel dark ancestral secrets, survive grotesque mutant abominations, and race against the clock to prevent a catastrophic planetary pathogen release.",
+      gameplayLoop:
+        "Navigate harrowing gothic ruins, metropolitan underpasses, and fortified bio-research facilities; scavenge scarce munitions, gunpowder, and chemical reagents; engage in visceral over-the-shoulder tactical combat with precision weak-point targeting and evasive counters; solve intricate multi-tier environmental puzzles; and upgrade specialized survival gear in secure safe rooms.",
+      keyMechanics: [
+        {
+          name: "Adaptive Bioweapon Weak-Point Targeting",
+          desc: "Dismember mutated appendages and exploit dynamic thermal weak-points using precision calibers, shotgun spreads, and incendiary ordnance to incapacitate fast-moving abominations.",
+        },
+        {
+          name: "Attaché Grid Inventory & Field Crafting",
+          desc: "Strategically organize grid slots to balance high-caliber weapons, medical sprays, and specialized ammunition, crafting concentrated defensive concoctions in real time.",
+        },
+        {
+          name: "Dynamic Evasion & Defensive Stagger Counters",
+          desc: "Perform agile duck-and-weave maneuvers, tactical slide dodges, and high-damage close-quarters counterstrikes using survival blades and stun batons.",
+        },
+        {
+          name: "Safe Room Sanctuary & Weapon Calibration",
+          desc: "Utilize typewriter checkpoints and high-security lockers to manage storage, customize firearm stability, suppressors, and rate-of-fire, and play nostalgic haunting themes.",
+        },
+      ],
+    },
+    testedSpecs: {
+      gpu: "NVIDIA GeForce RTX Series / GTX Series",
+      resolution: "1080p FHD (1920 x 1080)",
+      avgFps: "75 FPS",
+      vramUsed: "5.8 GB / 8.0 GB",
+      latency: "10.8 ms",
+      gpuLoad: "68%",
+    },
+    presets: {
+      rtx40: "Ultra Settings + DLSS 4.0 Quality + Path Tracing (High Frametimes)",
+      rtx30: "High Settings + DLSS Quality + Screen Space Reflections (5.8 GB VRAM)",
+      gtx: "Prioritize Performance + FSR 2 Balanced + TAA (60 FPS Target)",
+    },
+    features: [
+      {
+        name: "Capcom Next-Gen RE Engine",
+        desc: "Advanced Photogrammetry, Subsurface Scattering & Volumetric Fog",
+        active: true,
+      },
+      {
+        name: "NVIDIA DLSS 4.0 & Frame Generation",
+        desc: "Ultra-High Fidelity AI Reconstruction and Sub-11ms Reflex Latency",
+        active: true,
+      },
+      {
+        name: "DirectX 12 Ultimate Pipeline",
+        desc: "Mesh Shaders, Hardware Ray Tracing & Sampler Feedback",
+        active: true,
+      },
+      {
+        name: "Low-VRAM Texture Streaming",
+        desc: "Optimized 5.8 GB Footprint Eliminating Stutter and Asset Pop-in",
+        active: true,
+      },
+    ],
+    screenshots: [
+      {
+        src: "/games/RE_Requiem_SS1.png",
+        title: "Atmospheric Ruin Infiltration & Lighting Telemetry",
+        desc: "Infiltration into the quarantine zone with real-time volumetric fog captured at 75 FPS (52 FPS 1% Low) with 5.8 GB VRAM allocation (68% GPU load, 68°C GPU temp, 100% Excellent health).",
+      },
+      {
+        src: "/games/RE_Requiem_SS2.png",
+        title: "Tactical Combat Stance & Target Acquisition",
+        desc: "Close-quarters combat engagement against mutated bio-threats captured at 74 FPS (49 FPS 1% Low) under 70% GPU load (58W GPU power draw, 5.7 GB VRAM footprint).",
+      },
+      {
+        src: "/games/RE_Requiem_SS3.png",
+        title: "Precision Ballistics & Environmental Detail",
+        desc: "Precision ballistic aiming through industrial quarantine corridors captured at 76 FPS (54 FPS 1% Low) with 66% GPU load (56W power draw, 5.8 GB VRAM allocation).",
+      },
+    ],
+    storeRating: "4.9 ★★★★★",
+    dlssVersion: "DLSS 4.0 / Reflex",
+  },
   re4: {
     id: "re4",
     name: "Resident Evil 4 Remake",
@@ -842,6 +1024,42 @@ export const BENCHMARK_PROFILES: Record<string, BenchmarkProfile> = FALLBACK_BEN
 
 export const FALLBACK_TESTED_GAMES_LIST: TestedGameSummary[] = [
   {
+    id: "rerequiem",
+    name: "Resident Evil Requiem",
+    publisher: "Capcom",
+    genre: "Survival Horror / Action-Adventure",
+    preset: "Ultra / DLSS 4.0",
+    keyTech: ["RE Engine", "DirectX 12 Ultimate", "DLSS 4.0", "Reflex", "Ray Tracing"],
+    status: "VERIFIED BENCHMARK",
+    fps: "75 FPS",
+    vram: "5.8 GB / 8.0 GB",
+    gpuLoad: "68%",
+    latency: "10.8 ms",
+    api: "DirectX 12 Ultimate",
+    coverImage: "/games/re-requiem.png",
+    gameplayGif: "/games/re-requiem.png",
+    storeRating: "4.9 ★★★★★",
+    dlssVersion: "DLSS 4.0 / Reflex",
+  },
+  {
+    id: "re9",
+    name: "Resident Evil 9 (Requiem)",
+    publisher: "Capcom",
+    genre: "Survival Horror / Action-Adventure",
+    preset: "Ultra / DLSS 4.0",
+    keyTech: ["RE Engine", "DirectX 12 Ultimate", "DLSS 4.0", "Reflex", "Ray Tracing"],
+    status: "VERIFIED BENCHMARK",
+    fps: "75 FPS",
+    vram: "5.8 GB / 8.0 GB",
+    gpuLoad: "68%",
+    latency: "10.8 ms",
+    api: "DirectX 12 Ultimate",
+    coverImage: "/games/re-requiem.png",
+    gameplayGif: "/games/re-requiem.png",
+    storeRating: "4.9 ★★★★★",
+    dlssVersion: "DLSS 4.0 / Reflex",
+  },
+  {
     id: "re4",
     name: "Resident Evil 4 Remake",
     publisher: "Capcom",
@@ -1115,8 +1333,12 @@ export function getBenchmarkProfileById(id: string): BenchmarkProfile {
   }
   return (
     BENCHMARK_PROFILES[id] ||
+    (id === 're9' ? BENCHMARK_PROFILES.rerequiem : null) ||
+    (id === 'rerequiem' ? BENCHMARK_PROFILES.re9 : null) ||
     (liveProfilesCache ? Object.values(liveProfilesCache)[0] : null) ||
     Object.values(BENCHMARK_PROFILES)[0] ||
+    BENCHMARK_PROFILES.rerequiem ||
+    BENCHMARK_PROFILES.re9 ||
     BENCHMARK_PROFILES.re4 ||
     BENCHMARK_PROFILES.codmw4 ||
     BENCHMARK_PROFILES.firstlight
