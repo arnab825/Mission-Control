@@ -1,8 +1,20 @@
 {
-  "version": "4.0.10",
-  "release_date": "2026-11-24",
+  "version": "4.1.0",
+  "release_date": "2026-11-25",
   "update_check_url": "https://raw.githubusercontent.com/arnab825/Mission-Control/main/Gaming/backend/version.json",
   "changelog": [
+    {
+      "version": "4.1.0",
+      "date": "2026-11-25",
+      "title": "Emulation & ROM Orchestration, Wine & Proton Compatibility, GPU MUX Telemetry & Agent Knowledge Grounding",
+      "highlights": [
+        "Universal Emulation & ROMs Hub: Auto-discovery for 17+ emulators with custom ROM directory scanning and 1-click execution flags",
+        "Automated Multi-Disc Aggregation: Intelligent regex heuristics merge multi-disc adventures into unified cards with in-card disc pickers",
+        "Linux Wine & Proton Compatibility Layer: Per-game runner management, isolated sandboxed WINEPREFIX directories, DXVK 2.4+/VKD3D Vulkan translation, and launch error diagnostics",
+        "Hardware Telemetry & GPU MUX Switch: Dynamic detection of Discrete GPU (dGPU direct routing) vs Hybrid/Optimus mode alongside frametime sparklines and thermal advisor",
+        "Aero AI Agent Knowledge Grounding: Full system architecture and feature intelligence embedded into master persona, system prompts, resilient RAG engine, and DPO training dataset"
+      ]
+    },
     {
       "version": "4.0.10",
       "date": "2026-11-24",
@@ -587,16 +599,6 @@
         "Fixed Privacy Shield blocking manual vision testing frames when games are not focused or in background",
         "Implemented monotonic timestamp rate-limiting (~15 FPS) on base64 annotated frame WebSocket broadcasts",
         "Added automatic vision manual override teardown on page unmount to prevent resource drain"
-      ]
-    },
-    {
-      "version": "3.6.5",
-      "date": "2026-09-23",
-      "title": "GTA V Icon Fixes & Seamless Account Switching",
-      "highlights": [
-        "Resolved GTA V icon and artwork resolution in Library and Hardware Feature Matrix",
-        "Implemented smooth cyberpunk account switcher modal and non-destructive session transitions",
-        "Fixed Vitest DOM matchers typing and extended test timeout to 15s"
       ]
     }
   ]

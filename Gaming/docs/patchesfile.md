@@ -2,6 +2,14 @@
 
 This document contains a detailed history of all patches and updates for the AI Gaming Assistant.
 
+### Patch: 2026-11-25 — v4.1.0: Emulation & ROM Orchestration, Wine & Proton Compatibility, GPU MUX Telemetry & Agent Knowledge Grounding
+
+- Universal Emulation & ROMs Hub: Auto-discovery for 17+ emulators with custom ROM directory scanning and 1-click execution flags
+- Automated Multi-Disc Aggregation: Intelligent regex heuristics merge multi-disc adventures into unified cards with in-card disc pickers
+- Linux Wine & Proton Compatibility Layer: Per-game runner management, isolated sandboxed WINEPREFIX directories, DXVK 2.4+/VKD3D Vulkan translation, and launch error diagnostics
+- Hardware Telemetry & GPU MUX Switch: Dynamic detection of Discrete GPU (dGPU direct routing) vs Hybrid/Optimus mode alongside frametime sparklines and thermal advisor
+- Aero AI Agent Knowledge Grounding: Full system architecture and feature intelligence embedded into master persona, system prompts, resilient RAG engine, and DPO training dataset
+
 ### Patch: 2026-11-24 — v4.0.10: Library Scan Concurrency, Background Overlay Persistence & Desktop Discovery Optimization
 
 - Engineered thread-safe multiplexed progress listeners in GameScanner, resolving the scan deadlock where concurrent calls were stuck at 50% Syncing with active scan

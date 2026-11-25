@@ -10,7 +10,30 @@ excerpt: "Curated breakdown of major version releases, architectural milestones,
 
 Comprehensive breakdown of major milestone releases, architectural upgrades, and core engine enhancements in **Mission Control**.
 
-## 🌟 Version v4.0.10 (Latest) — Library Scan Concurrency, Background Overlay Persistence & Desktop Discovery Optimization
+## 🌟 Version v4.1.0 (Latest) — Emulation & ROM Orchestration, Wine & Proton Compatibility, GPU MUX Telemetry & Agent Knowledge Grounding
+
+### 🛠️ Key Highlights
+1. **Universal Emulation & ROMs Hub: Auto-discovery for 17+ emulators with custom ROM directory scanning and 1-click execution flags**
+2. **Automated Multi-Disc Aggregation: Intelligent regex heuristics merge multi-disc adventures into unified cards with in-card disc pickers**
+3. **Linux Wine & Proton Compatibility Layer: Per-game runner management, isolated sandboxed WINEPREFIX directories, DXVK 2.4+/VKD3D Vulkan translation, and launch error diagnostics**
+4. **Hardware Telemetry & GPU MUX Switch: Dynamic detection of Discrete GPU (dGPU direct routing) vs Hybrid/Optimus mode alongside frametime sparklines and thermal advisor**
+5. **Aero AI Agent Knowledge Grounding: Full system architecture and feature intelligence embedded into master persona, system prompts, resilient RAG engine, and DPO training dataset**
+
+### 📊 Architecture & Data Flow
+```mermaid
+graph TD
+    A[Developer Push / Publish Pipeline] --> B[Version Stamping & AI Changelog Enforcer]
+    B --> C[Mission Control System Core]
+    C --> D[Website Documentation & Real-Time Sync]
+```
+
+### 📦 Distribution Artifacts
+- **Linux**: `.deb` (Debian/Ubuntu), `.AppImage` (Universal), `.rpm` (Fedora/RHEL), `.tar.gz` (Portable)
+- **Windows**: `.exe` (Setup Installer), `.msi` (Enterprise), `.zip` (Portable)
+
+---
+
+## 📦 Version v4.0.10 — Library Scan Concurrency, Background Overlay Persistence & Desktop Discovery Optimization
 
 ### 🛠️ Key Highlights
 1. **Engineered thread-safe multiplexed progress listeners in GameScanner, resolving the scan deadlock where concurrent calls were stuck at 50% Syncing with active scan**
