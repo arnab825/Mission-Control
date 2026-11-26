@@ -2350,35 +2350,128 @@ class GameScanner:
                     continue
 
     def _scan_steam(self):
-        """Scan for Steam games."""
+        """Scan for Steam launcher and installed Steam games across all drives and registries."""
         try:
-            # Get Steam install path from registry (trying HKCU, HKLM 32/64-bit, and default paths)
             steam_path = None
-            for root, key_path, val_name in [
-                (winreg.HKEY_CURRENT_USER, r"Software\Valve\Steam", "SteamPath"),
-                (winreg.HKEY_LOCAL_MACHINE, r"SOFTWARE\WOW6432Node\Valve\Steam", "InstallPath"),
-                (winreg.HKEY_LOCAL_MACHINE, r"SOFTWARE\Valve\Steam", "InstallPath"),
-            ]:
-                try:
-                    with winreg.OpenKey(root, key_path, 0, winreg.KEY_READ) as key:
-                        val, _ = winreg.QueryValueEx(key, val_name)
-                        if val and os.path.exists(val):
-                            steam_path = str(val)
-                            break
-                except Exception:
-                    continue
+            steam_exe = None
 
-            if not steam_path:
-                for fallback_dir in [r"C:\Program Files (x86)\Steam", r"C:\Program Files\Steam"]:
-                    if os.path.exists(fallback_dir):
-                        steam_path = fallback_dir
+            # 1. Try Windows Registry (HKCU per-user, HKLM 64-bit and WOW6432Node)
+            if sys.platform == "win32":
+                for root, key_path, val_name in [
+                    (winreg.HKEY_CURRENT_USER, r"Software\Valve\Steam", "SteamPath"),
+                    (winreg.HKEY_CURRENT_USER, r"Software\Valve\Steam", "SteamExe"),
+                    (winreg.HKEY_LOCAL_MACHINE, r"SOFTWARE\WOW6432Node\Valve\Steam", "InstallPath"),
+                    (winreg.HKEY_LOCAL_MACHINE, r"SOFTWARE\Valve\Steam", "InstallPath"),
+                ]:
+                    try:
+                        with winreg.OpenKey(root, key_path, 0, winreg.KEY_READ) as key:
+                            val, _ = winreg.QueryValueEx(key, val_name)
+                            if val:
+                                p_str = str(val).replace("/", os.sep)
+                                if os.path.exists(p_str):
+                                    if p_str.lower().endswith(".exe"):
+                                        steam_exe = p_str
+                                        steam_path = str(Path(p_str).parent)
+                                    else:
+                                        steam_path = p_str
+                                        cand = Path(p_str) / "steam.exe"
+                                        if cand.exists():
+                                            steam_exe = str(cand)
+                                    if steam_exe and steam_path:
+                                        break
+                    except Exception:
+                        continue
+
+            # 2. Check running processes via psutil for live Steam instances
+            if not steam_exe:
+                try:
+                    import psutil
+                    for proc in psutil.process_iter(['name', 'exe']):
+                        try:
+                            if proc.info['name'] and proc.info['name'].lower() in ['steam.exe', 'steam']:
+                                proc_exe = proc.info.get('exe')
+                                if proc_exe and os.path.exists(proc_exe):
+                                    steam_exe = proc_exe
+                                    steam_path = str(Path(proc_exe).parent)
+                                    break
+                        except (psutil.NoSuchProcess, psutil.AccessDenied):
+                            continue
+                except Exception:
+                    pass
+
+            # 3. Check common paths on all connected drives (C:\, D:\, E:\, etc.)
+            if not steam_path or not steam_exe:
+                import psutil
+                try:
+                    drives = [p.mountpoint for p in psutil.disk_partitions() if 'fixed' in p.opts or 'cdrom' not in p.opts]
+                except Exception:
+                    drives = ["C:\\", "D:\\", "E:\\", "F:\\"]
+
+                for drive in drives:
+                    drive_p = Path(drive)
+                    for rel_candidate in [
+                        Path("Program Files (x86)") / "Steam",
+                        Path("Program Files") / "Steam",
+                        Path("Steam"),
+                        Path("Games") / "Steam",
+                        Path("SteamLibrary") / "Steam",
+                    ]:
+                        cand_dir = drive_p / rel_candidate
+                        cand_exe = cand_dir / "steam.exe"
+                        if cand_exe.exists():
+                            steam_exe = str(cand_exe)
+                            steam_path = str(cand_dir)
+                            break
+                    if steam_exe:
                         break
+
+            # 4. Check Linux / Steam Deck standard paths
+            if not steam_path and sys.platform != "win32":
+                home = Path.home()
+                linux_candidates = [
+                    home / ".local" / "share" / "Steam",
+                    home / ".steam" / "steam",
+                    home / ".steam" / "root",
+                    home / ".var" / "app" / "com.valvesoftware.Steam" / ".local" / "share" / "Steam",
+                    Path("/usr/lib/steam"),
+                ]
+                for lc in linux_candidates:
+                    if lc.exists():
+                        steam_path = str(lc)
+                        cand_sh = lc / "steam.sh"
+                        if cand_sh.exists():
+                            steam_exe = str(cand_sh)
+                        else:
+                            for bin_name in ["/usr/bin/steam", "/usr/games/steam"]:
+                                if os.path.exists(bin_name):
+                                    steam_exe = bin_name
+                                    break
+                        break
+
+            # Add Steam Launcher itself immediately if executable was resolved
+            if steam_exe and os.path.exists(steam_exe):
+                if not any(g["name"] == "Steam" for g in self.games):
+                    self.games.append({
+                        "name": "Steam",
+                        "platform": "Steam",
+                        "id": "steam_launcher",
+                        "install_path": steam_path or str(Path(steam_exe).parent),
+                        "exe_path": str(steam_exe),
+                        "type": "LAUNCHER",
+                        "genre": "PLATFORM",
+                        "features": [],
+                        "tags": ["SYSTEM"]
+                    })
 
             if not steam_path:
                 return
 
             steam_path = Path(steam_path.replace("/", os.sep))
+            
+            # Locate libraryfolders.vdf in steamapps or config directory
             library_vdf = steam_path / "steamapps" / "libraryfolders.vdf"
+            if not library_vdf.exists():
+                library_vdf = steam_path / "config" / "libraryfolders.vdf"
             
             if not library_vdf.exists():
                 return
@@ -2392,6 +2485,10 @@ class GameScanner:
                 import re
                 for p in re.findall(r'"path"\s+"([^"]+)"', content):
                     libraries.append(Path(p.replace("\\\\", "\\")))
+
+            # Also ensure the primary steam_path is included in scanned libraries
+            if steam_path not in libraries:
+                libraries.append(steam_path)
 
             for lib_path in libraries:
                 apps_path = lib_path / "steamapps"
@@ -2454,48 +2551,6 @@ class GameScanner:
                         
         except Exception as e:
             logger.error(f"Steam scan failed: {e}")
-        
-        # Add Steam Launcher itself if not present
-        if not any(g["name"] == "Steam" for g in self.games):
-            try:
-                steam_exe = None
-                for root, key_path in [
-                    (winreg.HKEY_CURRENT_USER, r"Software\Valve\Steam"),
-                    (winreg.HKEY_LOCAL_MACHINE, r"SOFTWARE\WOW6432Node\Valve\Steam"),
-                    (winreg.HKEY_LOCAL_MACHINE, r"SOFTWARE\Valve\Steam"),
-                ]:
-                    try:
-                        with winreg.OpenKey(root, key_path, 0, winreg.KEY_READ) as key:
-                            val, _ = winreg.QueryValueEx(key, "SteamExe")
-                            if val and os.path.exists(val):
-                                steam_exe = str(val)
-                                break
-                    except Exception:
-                        continue
-                if not steam_exe and steam_path:
-                    cand = Path(steam_path) / "steam.exe"
-                    if cand.exists():
-                        steam_exe = str(cand)
-                if not steam_exe:
-                    for cand_str in [r"C:\Program Files (x86)\Steam\steam.exe", r"C:\Program Files\Steam\steam.exe"]:
-                        if os.path.exists(cand_str):
-                            steam_exe = cand_str
-                            break
-
-                if steam_exe and os.path.exists(steam_exe):
-                    self.games.append({
-                        "name": "Steam",
-                        "platform": "Steam",
-                        "id": "steam_launcher",
-                        "install_path": str(Path(steam_exe).parent),
-                        "exe_path": str(steam_exe),
-                        "type": "LAUNCHER",
-                        "genre": "PLATFORM",
-                        "features": [],
-                        "tags": ["SYSTEM"]
-                    })
-            except Exception:
-                pass
 
     def _scan_epic(self):
         """Scan for Epic Games."""
@@ -3489,22 +3544,51 @@ class GameScanner:
             pass
 
     def _scan_launchers_fallback(self):
-        """Hardcoded fallback scan for primary launchers in common install locations."""
+        """Fallback scan for primary launchers across all drives, common paths, and Linux environments."""
+        import psutil
+        try:
+            drives = [p.mountpoint for p in psutil.disk_partitions() if 'fixed' in p.opts or 'cdrom' not in p.opts]
+        except Exception:
+            drives = ["C:\\", "D:\\", "E:\\", "F:\\"]
+
         fallbacks = [
             ("EA Desktop", r"C:\Program Files\Electronic Arts\EA Desktop\EA Desktop\EADesktop.exe"),
             ("EA Desktop", r"C:\Program Files\Electronic Arts\EA Desktop\EA Desktop\EA Launcher.exe"),
             ("Ubisoft Connect", r"C:\Program Files (x86)\Ubisoft\Ubisoft Game Launcher\UbisoftConnect.exe"),
-            ("Steam", r"C:\Program Files (x86)\Steam\steam.exe"),
-            ("Steam", r"C:\Program Files\Steam\steam.exe"),
             ("Epic Games", r"C:\Program Files (x86)\Epic Games\Launcher\Portal\Binaries\Win64\EpicGamesLauncher.exe"),
             ("Epic Games", r"C:\Program Files\Epic Games\Launcher\Portal\Binaries\Win64\EpicGamesLauncher.exe"),
             ("Battle.net", r"C:\Program Files (x86)\Battle.net\Battle.net.exe"),
             ("GOG Galaxy", r"C:\Program Files (x86)\GOG Galaxy\GalaxyClient.exe"),
             ("Rockstar Games", r"C:\Program Files\Rockstar Games\Launcher\Launcher.exe"),
-            ("Heronite", r"D:\Users\DELL\AppData\Local\Programs\Heronite\heronite-rs.exe"),
             ("Heronite", os.path.expandvars(r"%LOCALAPPDATA%\Programs\Heronite\heronite-rs.exe")),
             ("Heroic", os.path.expandvars(r"%LOCALAPPDATA%\Programs\heroic\Heroic.exe")),
         ]
+
+        # Multi-drive discovery for Steam and common launchers installed on secondary partitions (D:, E:, etc.)
+        for drive in drives:
+            d = Path(drive)
+            fallbacks.extend([
+                ("Steam", str(d / "Steam" / "steam.exe")),
+                ("Steam", str(d / "Games" / "Steam" / "steam.exe")),
+                ("Steam", str(d / "Program Files (x86)" / "Steam" / "steam.exe")),
+                ("Steam", str(d / "Program Files" / "Steam" / "steam.exe")),
+                ("Epic Games", str(d / "Epic Games" / "Launcher" / "Portal" / "Binaries" / "Win64" / "EpicGamesLauncher.exe")),
+                ("GOG Galaxy", str(d / "GOG Galaxy" / "GalaxyClient.exe")),
+                ("Battle.net", str(d / "Battle.net" / "Battle.net.exe")),
+            ])
+
+        # Linux / Steam Deck launchers fallback
+        if sys.platform != "win32":
+            home = Path.home()
+            fallbacks.extend([
+                ("Steam", "/usr/bin/steam"),
+                ("Steam", "/usr/games/steam"),
+                ("Steam", str(home / ".local" / "share" / "Steam" / "steam.sh")),
+                ("Steam", str(home / ".steam" / "steam" / "steam.sh")),
+                ("Heroic", str(home / ".local" / "bin" / "heroic")),
+                ("Heroic", "/usr/bin/heroic"),
+                ("Lutris", "/usr/bin/lutris"),
+            ])
         
         for name, path_str in fallbacks:
             path = Path(path_str)
