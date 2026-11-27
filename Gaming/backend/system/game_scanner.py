@@ -1497,6 +1497,13 @@ class GameScanner:
                 clean_name = "".join(filter(str.isalnum, g["name"])).lower()
 
             # Resolve canonical path key for install directory to eliminate duplicates across different scan methods
+            # Scope by launcher vs game so a sideloaded game pointing to a launcher exe (e.g. Heronite -> steam.exe)
+            # never collides with or overwrites the platform launcher entry itself.
+            is_launcher_entry = (
+                g.get("type") == "LAUNCHER"
+                or g.get("genre") == "PLATFORM"
+                or is_whitelisted
+            )
             path_key = None
             raw_p = g.get("install_path") or (str(Path(g["exe_path"]).parent) if g.get("exe_path") else None)
             if raw_p and raw_p != "Shortcut":
@@ -1505,12 +1512,12 @@ class GameScanner:
                     # Ignore root drives and library containers
                     if not any(resolved_p.endswith(f":\\{d}".lower()) or resolved_p == f"{d}:".lower() for d in "cdefghijklmnopqrstuvwxyz"):
                         if Path(resolved_p).name.lower() not in self.library_root_names:
-                            path_key = resolved_p
+                            path_key = f"{'launcher' if is_launcher_entry else 'game'}:{resolved_p}"
                 except Exception:
                     path_key = None
 
             # Check if this exact installation directory was already registered under a slightly different name
-            target_key = clean_name
+            target_key = f"{'launcher' if is_launcher_entry else 'game'}_{clean_name}"
             if path_key and path_key in path_to_name:
                 target_key = path_to_name[path_key]
 
@@ -3822,8 +3829,12 @@ class GameScanner:
         for name, path_str in fallbacks:
             path = Path(path_str)
             if path.exists():
-                # Avoid duplicates
-                if not any(g["name"] == name or g.get("exe_path") == str(path) for g in self.games):
+                # Avoid duplicates against existing launcher entries only
+                if not any(
+                    g.get("type") == "LAUNCHER"
+                    and (g.get("name") == name or g.get("exe_path") == str(path))
+                    for g in self.games
+                ):
                     self.games.append({
                         "name": name,
                         "platform": name,
