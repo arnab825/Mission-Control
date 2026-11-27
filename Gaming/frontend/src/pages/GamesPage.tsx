@@ -3,7 +3,7 @@ import { useAuth } from '@clerk/clerk-react';
 import Fuse from 'fuse.js';
 import AuthPage from './AuthPage';
 import NodeManagerModal from '../components/NodeManagerModal';
-import GameInstallationsModal, { type GameInstallation } from '../components/GameInstallationsModal';
+import GameInstallationsModal, { type GameInstallation, normalizeInstallation } from '../components/GameInstallationsModal';
 import DiscoverGamesModal from '../components/DiscoverGamesModal';
 import { EmulatorsHubModal } from '../components/EmulatorsHubModal';
 import {
@@ -1033,19 +1033,25 @@ const GamesLibraryContent: React.FC<GamesPageProps> = ({ state, sendCommand, set
         } else {
           const existing = dedupedMap.get(key);
           const combinedFeatures = Array.from(new Set([...(existing.features || []), ...(processed.features || [])]));
-          const existingInst = existing.installations || (existing.platform ? [
-            { store: existing.platform, exe_path: existing.exe_path, install_path: existing.install_path }
-          ] : []);
-          const newInst = processed.installations || (processed.platform ? [
-            { store: processed.platform, exe_path: processed.exe_path, install_path: processed.install_path }
-          ] : []);
+          const existingInst = (existing.installations && existing.installations.length > 0)
+            ? existing.installations.map(normalizeInstallation)
+            : (existing.platform ? [normalizeInstallation(existing)] : []);
+          const newInst = (processed.installations && processed.installations.length > 0)
+            ? processed.installations.map(normalizeInstallation)
+            : (processed.platform ? [normalizeInstallation(processed)] : []);
           const preferNew = (processed.platform === 'Steam' && existing.platform !== 'Steam') ||
             (Boolean(processed.exe_path) && !existing.exe_path);
           const chosen = preferNew ? { ...processed } : { ...existing };
           chosen.features = combinedFeatures;
           const mergedInst = [...existingInst];
           for (const ni of newInst) {
-            if (!mergedInst.some((ei: any) => ei.store === ni.store && ei.exe_path === ni.exe_path)) {
+            const niStore = (ni.store || '').toLowerCase();
+            const niPath = ni.installPath || ni.exePath || '';
+            if (!mergedInst.some((ei: any) => {
+              const eiStore = (ei.store || '').toLowerCase();
+              const eiPath = ei.installPath || ei.exePath || '';
+              return eiStore === niStore && (eiPath === niPath || (!eiPath && !niPath));
+            })) {
               mergedInst.push(ni);
             }
           }
@@ -1163,11 +1169,11 @@ const GamesLibraryContent: React.FC<GamesPageProps> = ({ state, sendCommand, set
                     features: g.features || [],
                     tags: g.tags || [],
                     type: g.type || 'game',
-                    install_path: firstInst?.installPath,
-                    exe_path: firstInst?.exePath,
+                    install_path: firstInst?.installPath || firstInst?.install_path,
+                    exe_path: firstInst?.exePath || firstInst?.exe_path,
                     icon: g.cover_url || g.coverUrl,
                     local_banner: g.banner_url || g.bannerUrl,
-                    installations: g.installations,
+                    installations: Array.isArray(g.installations) ? g.installations.map(normalizeInstallation) : undefined,
                   };
                 });
                 setGames(mappedGames);

@@ -765,24 +765,26 @@ class GameScanner:
                             if data and "games" in data:
                                 mapped_games = []
                                 for g in data["games"]:
-                                    primary_inst = g.get("installations", [{}])[0] if g.get("installations") else {}
+                                    inst_list = g.get("installations", [])
+                                    primary_inst = inst_list[0] if inst_list else {}
                                     mapped_games.append({
                                         "id": g["id"],
                                         "name": g.get("name") or g.get("title", ""),
                                         "title": g.get("title") or g.get("name", ""),
                                         "platform": primary_inst.get("store", "distributed"),
-                                        "exe_path": primary_inst.get("exe_path", ""),
-                                        "install_path": primary_inst.get("install_path", ""),
-                                        "install_dir": primary_inst.get("install_path", ""),
+                                        "exe_path": primary_inst.get("exe_path", "") or primary_inst.get("exePath", ""),
+                                        "install_path": primary_inst.get("install_path", "") or primary_inst.get("installPath", ""),
+                                        "install_dir": primary_inst.get("install_path", "") or primary_inst.get("installPath", ""),
                                         "source": primary_inst.get("store", "distributed"),
-                                        "size_bytes": primary_inst.get("size_bytes", 0),
+                                        "size_bytes": primary_inst.get("size_bytes", 0) or primary_inst.get("sizeBytes", 0),
                                         "version": primary_inst.get("version", ""),
                                         "last_played": 0,
                                         "play_time_mins": 0,
                                         "cover_url": g.get("cover_url", ""),
                                         "icon": g.get("cover_url", ""),
                                         "icon_url": g.get("cover_url", ""),
-                                        "node_id": primary_inst.get("node_id", "")
+                                        "node_id": primary_inst.get("node_id", "") or primary_inst.get("nodeId", ""),
+                                        "installations": inst_list
                                     })
                                 if mapped_games:
                                     logger.info("Loaded %d games from Distributed Library Server (%s) for user %s", len(mapped_games), library_server_url, self.user_id)
@@ -1158,35 +1160,76 @@ class GameScanner:
         """
         discovered = set()
         
-        # 1. Fixed drives
+        # 1. Fixed & available drives across system
         import psutil
+        import string
+        drives = set()
         try:
-            drives = [p.mountpoint for p in psutil.disk_partitions() if 'fixed' in p.opts or 'cdrom' not in p.opts]
+            for p in psutil.disk_partitions(all=True):
+                if p.mountpoint:
+                    drives.add(p.mountpoint)
         except Exception:
-            drives = [f"{d}:\\" for d in "CDEFGHIJKLMNOPQRSTUVWXYZ" if os.path.exists(f"{d}:\\")]
+            pass
+        if sys.platform == "win32":
+            for d in string.ascii_uppercase:
+                drv = f"{d}:\\"
+                if os.path.exists(drv):
+                    drives.add(drv)
+        if not drives:
+            drives = {"C:\\", "D:\\", "E:\\", "F:\\"}
 
-        # 2. Steam Library Folders (from registry and libraryfolders.vdf)
+        # 2. Steam Library Folders (from registry, HKCR protocol, shortcuts, and libraryfolders.vdf)
         try:
-            steam_path_val = None
-            try:
-                key = winreg.OpenKey(winreg.HKEY_CURRENT_USER, r"Software\Valve\Steam")
-                steam_path_val, _ = winreg.QueryValueEx(key, "SteamPath")
-                winreg.CloseKey(key)
-            except Exception:
-                steam_path_val = None
-                
-            if steam_path_val:
-                sp = Path(steam_path_val.replace("/", os.sep))
+            steam_dirs = set()
+            if sys.platform == "win32":
+                # Check HKCR steam:// protocol
+                try:
+                    for subkey in [r"steam\shell\open\command", r"Steam\shell\open\command"]:
+                        try:
+                            with winreg.OpenKey(winreg.HKEY_CLASSES_ROOT, subkey, 0, winreg.KEY_READ) as k:
+                                raw_cmd, _ = winreg.QueryValueEx(k, "")
+                                if raw_cmd:
+                                    import re
+                                    m = re.search(r'"?([^"]+steam\.exe)"?', str(raw_cmd), re.IGNORECASE)
+                                    p = m.group(1) if m else str(raw_cmd).split()[0].strip('"')
+                                    if os.path.exists(p):
+                                        steam_dirs.add(str(Path(p).parent))
+                                        break
+                        except Exception:
+                            continue
+                except Exception:
+                    pass
+
+                # Check HKCU / HKLM registry
+                for root, key_path, val_name in [
+                    (winreg.HKEY_CURRENT_USER, r"Software\Valve\Steam", "SteamPath"),
+                    (winreg.HKEY_LOCAL_MACHINE, r"SOFTWARE\WOW6432Node\Valve\Steam", "InstallPath"),
+                    (winreg.HKEY_LOCAL_MACHINE, r"SOFTWARE\Valve\Steam", "InstallPath"),
+                ]:
+                    try:
+                        with winreg.OpenKey(root, key_path, 0, winreg.KEY_READ) as key:
+                            val, _ = winreg.QueryValueEx(key, val_name)
+                            if val and os.path.exists(str(val)):
+                                steam_dirs.add(str(val).replace("/", os.sep))
+                                break
+                    except Exception:
+                        continue
+
+            for sdir in steam_dirs:
+                sp = Path(sdir)
                 if sp.exists():
                     discovered.add(str(sp / "steamapps" / "common"))
-                    vdf_file = sp / "steamapps" / "libraryfolders.vdf"
-                    if vdf_file.exists():
-                        import re
-                        with open(vdf_file, "r", encoding="utf-8", errors="ignore") as f:
-                            for match in re.finditer(r'"path"\s+"([^"]+)"', f.read()):
-                                p = Path(match.group(1).replace("\\\\", "\\")) / "steamapps" / "common"
-                                if p.exists():
-                                    discovered.add(str(p))
+                    for vdf_cand in [sp / "steamapps" / "libraryfolders.vdf", sp / "config" / "libraryfolders.vdf"]:
+                        if vdf_cand.exists():
+                            import re
+                            try:
+                                with open(vdf_cand, "r", encoding="utf-8", errors="ignore") as f:
+                                    for match in re.finditer(r'"path"\s+"([^"]+)"', f.read()):
+                                        p = Path(match.group(1).replace("\\\\", "\\")) / "steamapps" / "common"
+                                        if p.exists():
+                                            discovered.add(str(p))
+                            except Exception:
+                                pass
         except Exception:
             pass
 
@@ -2350,37 +2393,130 @@ class GameScanner:
                     continue
 
     def _scan_steam(self):
-        """Scan for Steam launcher and installed Steam games across all drives and registries."""
+        """Scan for Steam launcher and installed Steam games across all drives, registries, and shortcuts."""
         try:
+            import string
             steam_path = None
             steam_exe = None
 
-            # 1. Try Windows Registry (HKCU per-user, HKLM 64-bit and WOW6432Node)
+            # Helper to check if an exe candidate is a valid steam executable
+            def _valid_steam_exe(cand) -> bool:
+                if not cand:
+                    return False
+                try:
+                    p = Path(cand)
+                    return p.is_file() and p.name.lower() in ("steam.exe", "steam")
+                except Exception:
+                    return False
+
+            # Helper to check if a directory contains steam.exe
+            def _check_steam_dir(cand_dir) -> Optional[str]:
+                if not cand_dir:
+                    return None
+                try:
+                    d = Path(cand_dir)
+                    if d.is_dir():
+                        exe_cand = d / "steam.exe"
+                        if exe_cand.is_file():
+                            return str(exe_cand)
+                        bin_cand = d / "steam.sh"
+                        if bin_cand.is_file():
+                            return str(bin_cand)
+                except Exception:
+                    pass
+                return None
+
+            # 1. Try Windows Registry (HKCR URL protocol, HKCU, HKLM 64/32-bit, and Uninstall entries)
             if sys.platform == "win32":
-                for root, key_path, val_name in [
-                    (winreg.HKEY_CURRENT_USER, r"Software\Valve\Steam", "SteamPath"),
-                    (winreg.HKEY_CURRENT_USER, r"Software\Valve\Steam", "SteamExe"),
-                    (winreg.HKEY_LOCAL_MACHINE, r"SOFTWARE\WOW6432Node\Valve\Steam", "InstallPath"),
-                    (winreg.HKEY_LOCAL_MACHINE, r"SOFTWARE\Valve\Steam", "InstallPath"),
-                ]:
-                    try:
-                        with winreg.OpenKey(root, key_path, 0, winreg.KEY_READ) as key:
-                            val, _ = winreg.QueryValueEx(key, val_name)
-                            if val:
-                                p_str = str(val).replace("/", os.sep)
-                                if os.path.exists(p_str):
-                                    if p_str.lower().endswith(".exe"):
+                # 1a. HKCR protocol handler - virtually ALWAYS registered regardless of drive or user
+                try:
+                    for subkey in [r"steam\shell\open\command", r"Steam\shell\open\command"]:
+                        try:
+                            with winreg.OpenKey(winreg.HKEY_CLASSES_ROOT, subkey, 0, winreg.KEY_READ) as k:
+                                raw_cmd, _ = winreg.QueryValueEx(k, "")
+                                if raw_cmd:
+                                    import re
+                                    m = re.search(r'"?([^"]+steam\.exe)"?', str(raw_cmd), re.IGNORECASE)
+                                    parsed_cand = m.group(1) if m else str(raw_cmd).split()[0].strip('"')
+                                    if _valid_steam_exe(parsed_cand):
+                                        steam_exe = parsed_cand
+                                        steam_path = str(Path(parsed_cand).parent)
+                                        break
+                        except Exception:
+                            continue
+                except Exception:
+                    pass
+
+                # 1b. Registry Valve\Steam and Uninstall entries across HKCU and HKLM
+                if not steam_exe:
+                    reg_checks = [
+                        (winreg.HKEY_CURRENT_USER, r"Software\Valve\Steam", "SteamPath", 0),
+                        (winreg.HKEY_CURRENT_USER, r"Software\Valve\Steam", "SteamExe", 0),
+                        (winreg.HKEY_LOCAL_MACHINE, r"SOFTWARE\Valve\Steam", "InstallPath", winreg.KEY_WOW64_64KEY if hasattr(winreg, "KEY_WOW64_64KEY") else 0),
+                        (winreg.HKEY_LOCAL_MACHINE, r"SOFTWARE\WOW6432Node\Valve\Steam", "InstallPath", winreg.KEY_WOW64_32KEY if hasattr(winreg, "KEY_WOW64_32KEY") else 0),
+                        (winreg.HKEY_LOCAL_MACHINE, r"SOFTWARE\WOW6432Node\Valve\Steam", "InstallPath", 0),
+                        (winreg.HKEY_LOCAL_MACHINE, r"SOFTWARE\Valve\Steam", "InstallPath", 0),
+                        (winreg.HKEY_LOCAL_MACHINE, r"SOFTWARE\Microsoft\Windows\CurrentVersion\Uninstall\Steam", "InstallLocation", winreg.KEY_WOW64_32KEY if hasattr(winreg, "KEY_WOW64_32KEY") else 0),
+                        (winreg.HKEY_LOCAL_MACHINE, r"SOFTWARE\WOW6432Node\Microsoft\Windows\CurrentVersion\Uninstall\Steam", "InstallLocation", 0),
+                        (winreg.HKEY_CURRENT_USER, r"Software\Microsoft\Windows\CurrentVersion\Uninstall\Steam", "InstallLocation", 0),
+                    ]
+                    for root, key_path, val_name, flags in reg_checks:
+                        try:
+                            access = winreg.KEY_QUERY_VALUE | (flags or 0)
+                            with winreg.OpenKey(root, key_path, 0, access) as key:
+                                val, _ = winreg.QueryValueEx(key, val_name)
+                                if val:
+                                    p_str = str(val).replace("/", os.sep)
+                                    if _valid_steam_exe(p_str):
                                         steam_exe = p_str
                                         steam_path = str(Path(p_str).parent)
-                                    else:
-                                        steam_path = p_str
-                                        cand = Path(p_str) / "steam.exe"
-                                        if cand.exists():
-                                            steam_exe = str(cand)
-                                    if steam_exe and steam_path:
                                         break
-                    except Exception:
-                        continue
+                                    elif os.path.exists(p_str):
+                                        c_exe = _check_steam_dir(p_str)
+                                        if c_exe:
+                                            steam_exe = c_exe
+                                            steam_path = p_str
+                                            break
+                        except Exception:
+                            continue
+
+                # 1c. Windows Start Menu and Desktop shortcuts (.lnk target extraction)
+                if not steam_exe:
+                    shortcut_dirs = [
+                        os.path.expandvars(r"%ProgramData%\Microsoft\Windows\Start Menu\Programs"),
+                        os.path.expandvars(r"%AppData%\Microsoft\Windows\Start Menu\Programs"),
+                        os.path.expandvars(r"%Public%\Desktop"),
+                        os.path.expandvars(r"%UserProfile%\Desktop"),
+                    ]
+                    for sdir in shortcut_dirs:
+                        if not os.path.exists(sdir):
+                            continue
+                        for root, _, files in os.walk(sdir):
+                            for fname in files:
+                                if fname.lower().endswith(".lnk") and "steam" in fname.lower():
+                                    lnk_path = os.path.join(root, fname)
+                                    try:
+                                        with open(lnk_path, "rb") as lf:
+                                            raw_bytes = lf.read()
+                                        import re
+                                        for pattern in [rb'[A-Za-z]:\\[^:\*\?"<>\|\x00-\x1f]+\.exe', rb'(?:[A-Za-z]\x00:\x00\\(?:[^\x00\*\?"<>\|:]\x00)+\.exe)']:
+                                            for match in re.finditer(pattern, raw_bytes, re.IGNORECASE):
+                                                m_bytes = match.group(0)
+                                                target = m_bytes.decode('utf-16le', errors='ignore') if b'\x00' in m_bytes else m_bytes.decode('latin1', errors='ignore')
+                                                if _valid_steam_exe(target):
+                                                    steam_exe = target
+                                                    steam_path = str(Path(target).parent)
+                                                    break
+                                            if steam_exe:
+                                                break
+                                    except Exception:
+                                        pass
+                                if steam_exe:
+                                    break
+                            if steam_exe:
+                                break
+                        if steam_exe:
+                            break
 
             # 2. Check running processes via psutil for live Steam instances
             if not steam_exe:
@@ -2388,9 +2524,10 @@ class GameScanner:
                     import psutil
                     for proc in psutil.process_iter(['name', 'exe']):
                         try:
-                            if proc.info['name'] and proc.info['name'].lower() in ['steam.exe', 'steam']:
+                            p_name = (proc.info.get('name') or '').lower()
+                            if p_name in ['steam.exe', 'steam']:
                                 proc_exe = proc.info.get('exe')
-                                if proc_exe and os.path.exists(proc_exe):
+                                if _valid_steam_exe(proc_exe):
                                     steam_exe = proc_exe
                                     steam_path = str(Path(proc_exe).parent)
                                     break
@@ -2399,33 +2536,67 @@ class GameScanner:
                 except Exception:
                     pass
 
-            # 3. Check common paths on all connected drives (C:\, D:\, E:\, etc.)
-            if not steam_path or not steam_exe:
-                import psutil
-                try:
-                    drives = [p.mountpoint for p in psutil.disk_partitions() if 'fixed' in p.opts or 'cdrom' not in p.opts]
-                except Exception:
-                    drives = ["C:\\", "D:\\", "E:\\", "F:\\"]
+            # 3. Environment variables & PATH
+            if not steam_exe:
+                for env_var in ["STEAM_PATH", "STEAMDIR", "STEAM_DIR", "STEAMPATH"]:
+                    val = os.getenv(env_var)
+                    if val and os.path.exists(val):
+                        c_exe = _check_steam_dir(val) or (_valid_steam_exe(val) and val)
+                        if c_exe:
+                            steam_exe = c_exe
+                            steam_path = str(Path(c_exe).parent)
+                            break
+                if not steam_exe:
+                    import shutil
+                    which_steam = shutil.which("steam") or shutil.which("steam.exe")
+                    if which_steam and _valid_steam_exe(which_steam):
+                        steam_exe = which_steam
+                        steam_path = str(Path(which_steam).parent)
 
-                for drive in drives:
+            # 4. Comprehensive drive scan across all mounted & available drives
+            if not steam_path or not steam_exe:
+                discovered_drives = set()
+                try:
+                    import psutil
+                    for p in psutil.disk_partitions(all=True):
+                        if p.mountpoint:
+                            discovered_drives.add(p.mountpoint)
+                except Exception:
+                    pass
+
+                if sys.platform == "win32":
+                    for d in string.ascii_uppercase:
+                        drive_str = f"{d}:\\"
+                        if os.path.exists(drive_str):
+                            discovered_drives.add(drive_str)
+
+                common_subdirs = [
+                    "Steam",
+                    "SteamLibrary",
+                    "Program Files (x86)\\Steam",
+                    "Program Files\\Steam",
+                    "Games\\Steam",
+                    "Games\\SteamLibrary",
+                    "Gaming\\Steam",
+                    "Valve\\Steam",
+                    "Apps\\Steam",
+                    "Software\\Steam",
+                    "",
+                ]
+
+                for drive in sorted(list(discovered_drives)):
                     drive_p = Path(drive)
-                    for rel_candidate in [
-                        Path("Program Files (x86)") / "Steam",
-                        Path("Program Files") / "Steam",
-                        Path("Steam"),
-                        Path("Games") / "Steam",
-                        Path("SteamLibrary") / "Steam",
-                    ]:
-                        cand_dir = drive_p / rel_candidate
+                    for sub in common_subdirs:
+                        cand_dir = drive_p / sub if sub else drive_p
                         cand_exe = cand_dir / "steam.exe"
-                        if cand_exe.exists():
+                        if _valid_steam_exe(cand_exe):
                             steam_exe = str(cand_exe)
                             steam_path = str(cand_dir)
                             break
                     if steam_exe:
                         break
 
-            # 4. Check Linux / Steam Deck standard paths
+            # 5. Linux / Steam Deck standard paths
             if not steam_path and sys.platform != "win32":
                 home = Path.home()
                 linux_candidates = [
@@ -2450,7 +2621,7 @@ class GameScanner:
 
             # Add Steam Launcher itself immediately if executable was resolved
             if steam_exe and os.path.exists(steam_exe):
-                if not any(g["name"] == "Steam" for g in self.games):
+                if not any(g.get("name") == "Steam" and g.get("type") == "LAUNCHER" for g in self.games):
                     self.games.append({
                         "name": "Steam",
                         "platform": "Steam",
@@ -2463,45 +2634,92 @@ class GameScanner:
                         "tags": ["SYSTEM"]
                     })
 
-            if not steam_path:
-                return
+            # Collect all Steam library paths across all drives
+            libraries = []
 
-            steam_path = Path(steam_path.replace("/", os.sep))
-            
-            # Locate libraryfolders.vdf in steamapps or config directory
-            library_vdf = steam_path / "steamapps" / "libraryfolders.vdf"
-            if not library_vdf.exists():
-                library_vdf = steam_path / "config" / "libraryfolders.vdf"
-            
-            if not library_vdf.exists():
-                return
+            # From primary steam_path libraryfolders.vdf
+            if steam_path:
+                steam_p = Path(steam_path.replace("/", os.sep))
+                for vdf_cand in [
+                    steam_p / "steamapps" / "libraryfolders.vdf",
+                    steam_p / "config" / "libraryfolders.vdf",
+                ]:
+                    if vdf_cand.exists():
+                        if parse_steam_vdf_libraries:
+                            for p in parse_steam_vdf_libraries(vdf_cand):
+                                if p not in libraries:
+                                    libraries.append(p)
+                        else:
+                            try:
+                                with open(vdf_cand, "r", encoding="utf-8", errors="ignore") as f:
+                                    content = f.read()
+                                import re
+                                for p in re.findall(r'"path"\s+"([^"]+)"', content):
+                                    norm_p = Path(p.replace("\\\\", "\\"))
+                                    if norm_p.exists() and norm_p not in libraries:
+                                        libraries.append(norm_p)
+                            except Exception:
+                                pass
+                        break
 
-            if parse_steam_vdf_libraries:
-                libraries = parse_steam_vdf_libraries(library_vdf)
-            else:
-                libraries = []
-                with open(library_vdf, "r", encoding="utf-8") as f:
-                    content = f.read()
-                import re
-                for p in re.findall(r'"path"\s+"([^"]+)"', content):
-                    libraries.append(Path(p.replace("\\\\", "\\")))
+                if steam_p not in libraries:
+                    libraries.append(steam_p)
 
-            # Also ensure the primary steam_path is included in scanned libraries
-            if steam_path not in libraries:
-                libraries.append(steam_path)
+            # PLUS: Proactively scan all connected drives for Steam libraries
+            # This ensures games on secondary drives are discovered even if libraryfolders.vdf is missing/outdated
+            all_drives = set()
+            try:
+                import psutil
+                for p in psutil.disk_partitions(all=True):
+                    if p.mountpoint:
+                        all_drives.add(p.mountpoint)
+            except Exception:
+                pass
+            if sys.platform == "win32":
+                for d in string.ascii_uppercase:
+                    d_str = f"{d}:\\"
+                    if os.path.exists(d_str):
+                        all_drives.add(d_str)
 
+            lib_candidates = [
+                "SteamLibrary",
+                "Steam",
+                "Games\\SteamLibrary",
+                "Games\\Steam",
+                "Gaming\\Steam",
+                "Program Files (x86)\\Steam",
+                "Program Files\\Steam",
+            ]
+            for drv in all_drives:
+                drv_path = Path(drv)
+                for rel_lib in lib_candidates:
+                    cand_lib = drv_path / rel_lib
+                    if cand_lib.exists() and (cand_lib / "steamapps").is_dir():
+                        if cand_lib not in libraries:
+                            libraries.append(cand_lib)
+
+            # Also check user configured paths
+            if self.config and isinstance(self.config, dict):
+                for custom_p in self.config.get("additional_library_paths", []):
+                    try:
+                        cp = Path(custom_p)
+                        if cp.exists() and (cp / "steamapps").is_dir() and cp not in libraries:
+                            libraries.append(cp)
+                    except Exception:
+                        pass
+
+            # Now scan .acf files in all discovered libraries
             for lib_path in libraries:
                 apps_path = lib_path / "steamapps"
                 if not apps_path.exists():
                     continue
-                
-                # Scan .acf files
+
                 for acf in apps_path.glob("appmanifest_*.acf"):
                     try:
                         parsed = parse_steam_acf(acf) if parse_steam_acf else None
                         if not parsed:
                             continue
-                        
+
                         game_name = parsed["name"]
 
                         # Normalize internal project codenames
@@ -2522,7 +2740,7 @@ class GameScanner:
                         # VERIFICATION: If directory does not exist on disk, game is uninstalled!
                         if not install_path.exists():
                             continue
-                            
+
                         # Try to find the primary .exe for icon extraction (fast bounded scan)
                         resolved_exe = None
                         try:
@@ -2538,17 +2756,28 @@ class GameScanner:
                         if not resolved_exe and not [e for e in os.scandir(install_path) if e.is_file() and e.name.lower().endswith(".exe")]:
                             continue
 
-                        self.games.append({
-                            "name": game_name,
-                            "platform": "Steam",
-                            "id": app_id,
-                            "install_path": str(install_path),
-                            "exe_path": resolved_exe,
-                            "icon": str(steam_path / "appcache" / "librarycache" / f"{app_id}_icon.jpg")
-                        })
+                        icon_cand = None
+                        if steam_path:
+                            cache_icon = Path(steam_path) / "appcache" / "librarycache" / f"{app_id}_icon.jpg"
+                            if cache_icon.exists():
+                                icon_cand = str(cache_icon)
+
+                        size_bytes = parsed.get("size_bytes", 0) or 0
+
+                        # Avoid duplicate entries for the same app_id / install_path
+                        if not any(g.get("id") == app_id and g.get("platform") == "Steam" for g in self.games):
+                            self.games.append({
+                                "name": game_name,
+                                "platform": "Steam",
+                                "id": app_id,
+                                "install_path": str(install_path),
+                                "exe_path": resolved_exe,
+                                "size_bytes": size_bytes,
+                                "icon": icon_cand
+                            })
                     except Exception as e:
                         logger.error(f"Error parsing Steam acf {acf}: {e}")
-                        
+
         except Exception as e:
             logger.error(f"Steam scan failed: {e}")
 

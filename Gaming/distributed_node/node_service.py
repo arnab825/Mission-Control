@@ -77,10 +77,21 @@ def _discover_all_scan_paths(configured_paths: Optional[List[str]] = None) -> Li
         pass
 
     import psutil
+    import string
+    drives = set()
     try:
-        drives = [p.mountpoint for p in psutil.disk_partitions() if 'fixed' in p.opts or 'cdrom' not in p.opts]
+        for p in psutil.disk_partitions(all=True):
+            if p.mountpoint:
+                drives.add(p.mountpoint)
     except Exception:
-        drives = [f"{d}:\\" for d in "CDEFGHIJKLMNOPQRSTUVWXYZ" if os.path.exists(f"{d}:\\")]
+        pass
+    if sys.platform == "win32":
+        for d in string.ascii_uppercase:
+            drv = f"{d}:\\"
+            if os.path.exists(drv):
+                drives.add(drv)
+    if not drives:
+        drives = {"C:\\", "D:\\", "E:\\", "F:\\"}
 
     standard_subdirs = [
         "Games", "SteamLibrary\\steamapps\\common", "SteamLibrary",
@@ -487,9 +498,19 @@ class LibraryNodeService:
                     "store":        store,
                     "store_app_id": game.get("id") if game.get("id") != game.get("name") else None,
                     "install_path": install_path,
+                    "installPath":  install_path,
                     "exe_path":     game.get("exe_path"),
+                    "exePath":      game.get("exe_path"),
                     "version":      None,
                     "size_bytes":   size_bytes,
+                    "sizeBytes":    size_bytes,
+                    "node_id":      self.cfg.node_id,
+                    "nodeId":       self.cfg.node_id,
+                    "node_name":    self.cfg.node_name,
+                    "nodeName":     self.cfg.node_name,
+                    "node_status":  "online",
+                    "nodeStatus":   "online",
+                    "status":       "available" if (install_path or game.get("exe_path")) else "unavailable",
                     "developer":    None,
                     "publisher":    None,
                     "release_date": None,
@@ -549,7 +570,7 @@ class LibraryNodeService:
             return
 
         import hashlib
-        inst_summary = [(i.get("title"), i.get("installPath"), i.get("sizeBytes")) for i in installations]
+        inst_summary = [(i.get("title"), i.get("installPath") or i.get("install_path"), i.get("sizeBytes") or i.get("size_bytes")) for i in installations]
         current_hash = hashlib.sha256(json.dumps(inst_summary, sort_keys=True).encode()).hexdigest()
         if getattr(self, "_last_synced_hash", None) == current_hash:
             logger.info("Library installations unchanged (%d items) — skipping redundant sync upload.", len(installations))

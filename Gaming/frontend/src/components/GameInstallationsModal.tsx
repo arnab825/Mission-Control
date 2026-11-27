@@ -59,11 +59,39 @@ const STORE_COLORS: Record<string, string> = {
 };
 
 function formatBytes(bytes: number): string {
-  if (!bytes) return '—';
+  if (!bytes || bytes <= 0) return '—';
   const gb = bytes / 1e9;
   if (gb >= 1) return `${gb.toFixed(1)} GB`;
   const mb = bytes / 1e6;
   return `${mb.toFixed(0)} MB`;
+}
+
+export function normalizeInstallation(raw: any): GameInstallation {
+  const installPath = raw.installPath || raw.install_path || raw.exePath || raw.exe_path || '';
+  const exePath = raw.exePath || raw.exe_path || '';
+  const sizeBytes = Number(raw.sizeBytes ?? raw.size_bytes ?? 0);
+  const store = String(raw.store || raw.platform || 'manual').toLowerCase();
+  const nodeId = String(raw.nodeId || raw.node_id || 'local');
+  const nodeName = raw.nodeName || raw.node_name || (nodeId === 'local' ? 'Host PC' : nodeId);
+  
+  // An installation is considered online if explicit, or if on local machine / has local executable
+  const isOnline = raw.nodeStatus === 'online' || raw.node_status === 'online' || !raw.nodeStatus || raw.is_local || nodeId === 'local';
+  
+  // Available if status is explicitly available or if online with valid path
+  const isAvailable = raw.status === 'available' || raw.status === 'online' || (Boolean(installPath || exePath) && isOnline);
+
+  return {
+    nodeId,
+    nodeName,
+    nodeStatus: isOnline ? 'online' : 'offline',
+    store,
+    storeAppId: raw.storeAppId || raw.store_app_id || raw.id,
+    installPath: installPath || 'Installed on Node',
+    exePath,
+    version: raw.version,
+    sizeBytes,
+    status: isAvailable ? 'available' : 'unavailable',
+  };
 }
 
 const CopyButton: React.FC<{ text: string }> = ({ text }) => {
@@ -97,7 +125,9 @@ const InstallationCard: React.FC<{ inst: GameInstallation }> = ({ inst }) => {
           </div>
           <div className="min-w-0">
             <p className="text-xs font-bold text-white truncate">{inst.nodeName || inst.nodeId}</p>
-            {!isAvailable && (
+            {isAvailable ? (
+              <p className="text-[9px] text-emerald-400 font-bold uppercase tracking-widest">Available</p>
+            ) : (
               <p className="text-[9px] text-red-400 font-bold uppercase tracking-widest">Currently Unavailable</p>
             )}
           </div>
@@ -113,7 +143,9 @@ const InstallationCard: React.FC<{ inst: GameInstallation }> = ({ inst }) => {
           <p className="text-[9px] text-zinc-600 uppercase tracking-widest mb-0.5">Install Path</p>
           <div className="flex items-center gap-1 bg-black/20 rounded-lg px-2 py-1">
             <p className="text-[9px] font-mono text-zinc-400 truncate flex-1">{inst.installPath}</p>
-            <CopyButton text={inst.installPath} />
+            {inst.installPath && inst.installPath !== 'Installed on Node' && (
+              <CopyButton text={inst.installPath} />
+            )}
           </div>
         </div>
 
@@ -139,8 +171,9 @@ const InstallationCard: React.FC<{ inst: GameInstallation }> = ({ inst }) => {
 const GameInstallationsModal: React.FC<GameInstallationsModalProps> = ({
   gameTitle, coverUrl, primaryGenre, installations, onClose
 }) => {
-  const available = installations.filter(i => i.status === 'available').length;
-  const unavailable = installations.length - available;
+  const normalizedInstallations = (installations || []).map(normalizeInstallation);
+  const available = normalizedInstallations.filter(i => i.status === 'available').length;
+  const unavailable = normalizedInstallations.length - available;
 
   const modalContent = (
     <AnimatePresence>
@@ -175,7 +208,7 @@ const GameInstallationsModal: React.FC<GameInstallationsModalProps> = ({
                 )}
                 <div className="flex items-center gap-3 mt-2">
                   <span className="text-[10px] text-zinc-500">
-                    <span className="text-white font-bold">{installations.length}</span> installation{installations.length !== 1 ? 's' : ''}
+                    <span className="text-white font-bold">{normalizedInstallations.length}</span> installation{normalizedInstallations.length !== 1 ? 's' : ''}
                   </span>
                   {available > 0 && (
                     <span className="text-[10px] text-emerald-400">
@@ -197,14 +230,14 @@ const GameInstallationsModal: React.FC<GameInstallationsModalProps> = ({
 
           {/* Installation List */}
           <div className="px-5 pb-5 space-y-3 max-h-96 overflow-y-auto no-scrollbar">
-            {installations.length === 0 ? (
+            {normalizedInstallations.length === 0 ? (
               <div className="py-10 text-center">
                 <Server className="w-8 h-8 text-zinc-700 mx-auto mb-3" />
                 <p className="text-xs font-bold text-zinc-600 uppercase tracking-widest">Not installed on any node</p>
                 <p className="text-[10px] text-zinc-700 mt-1">Game exists in the master catalog but isn't installed.</p>
               </div>
             ) : (
-              installations.map((inst, i) => (
+              normalizedInstallations.map((inst, i) => (
                 <InstallationCard key={`${inst.nodeId}-${inst.store}-${i}`} inst={inst} />
               ))
             )}
