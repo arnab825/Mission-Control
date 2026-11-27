@@ -89,7 +89,8 @@ graph TD
 
 | Version | Key Feature / Change Description |
 | :--- | :--- |
-| **v4.1.0 (Latest)** | **Emulation & ROM Orchestration, Wine & Proton Compatibility, GPU MUX Telemetry & Agent Knowledge Grounding** — Universal Emulation & ROMs Hub: Auto-discovery for 17+ emulators with custom ROM directory scanning and 1-click execution flags. |
+| **v4.1.1 (Latest)** | **Expanded Agentic Tool Suite, Structured Function Calling & Multi-Partition Steam Discovery** — Expanded Agentic Tool Suite: 15 native OpenAI-compatible structured tools (ROM indexing, Wine runner management, thermal modes, standby memory purge, 5-stage game mode optimization, benchmark sessions, MUX switch verification, app navigation) |
+| **v4.1.0** | **Emulation & ROM Orchestration, Wine & Proton Compatibility, GPU MUX Telemetry & Agent Knowledge Grounding** — Universal Emulation & ROMs Hub: Auto-discovery for 17+ emulators with custom ROM directory scanning and 1-click execution flags. |
 | **v4.0.10** | **Library Scan Concurrency, Background Overlay Persistence & Desktop Discovery Optimization** — Engineered thread-safe multiplexed progress listeners in GameScanner, resolving the scan deadlock where concurrent calls were stuck at 50% Syncing with active scan. |
 | **v4.0.9** | **App Shell Modernization, GPU Pipeline Suite & UI Polish** — Modernized App Shell architecture in App.tsx with integrated global theme support and active tab routing. |
 | **v4.0.8** | **Interactive Vision Suite, 5-Stage Game Mode & Agentic Safeguards** — Interactive Canvas Region Selector: Drag-to-select marquee crop with pixel coordinates, area coverage readout, and 6 quick presets (Fullscreen, Center HUD, Minimap TR/BL, Subtitles, Top Half). |

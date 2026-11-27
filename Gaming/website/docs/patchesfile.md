@@ -2,6 +2,14 @@
 
 This document contains a detailed history of all patches and updates for the AI Gaming Assistant.
 
+### Patch: 2026-11-27 — v4.1.1: Expanded Agentic Tool Suite, Structured Function Calling & Multi-Partition Steam Discovery
+
+- Expanded Agentic Tool Suite: 15 native OpenAI-compatible structured tools (ROM indexing, Wine runner management, thermal modes, standby memory purge, 5-stage game mode optimization, benchmark sessions, MUX switch verification, app navigation)
+- Dual-Mode Action Cards: Autonomous direct execution vs. observing mode with interactive in-chat Action Cards featuring [Execute Now] and [Cancel] controls alongside safety countdown interlock
+- Multi-Partition Steam Discovery: Universal multi-drive scanner un-gated from libraryfolders.vdf, detecting Steam across all system drives (A: through Z:, /mnt, /media) and active processes
+- NVIDIA NIM Structured Function Calling: Integrated OpenAI tool_calls parsing from live NIM streaming/non-streaming inference with fallback token translation
+- Resilient Pure-Python RAG Architecture: Built-in pure-Python fallbacks for text splitting, document embedding, and BM25 indexing ensuring Python 3.14 compatibility
+
 ### Patch: 2026-11-25 — v4.1.0: Emulation & ROM Orchestration, Wine & Proton Compatibility, GPU MUX Telemetry & Agent Knowledge Grounding
 
 - Universal Emulation & ROMs Hub: Auto-discovery for 17+ emulators with custom ROM directory scanning and 1-click execution flags

@@ -10,7 +10,30 @@ excerpt: "Curated breakdown of major version releases, architectural milestones,
 
 Comprehensive breakdown of major milestone releases, architectural upgrades, and core engine enhancements in **Mission Control**.
 
-## 🌟 Version v4.1.0 (Latest) — Emulation & ROM Orchestration, Wine & Proton Compatibility, GPU MUX Telemetry & Agent Knowledge Grounding
+## 🌟 Version v4.1.1 (Latest) — Expanded Agentic Tool Suite, Structured Function Calling & Multi-Partition Steam Discovery
+
+### 🛠️ Key Highlights
+1. **Expanded Agentic Tool Suite: 15 native OpenAI-compatible structured tools (ROM indexing, Wine runner management, thermal modes, standby memory purge, 5-stage game mode optimization, benchmark sessions, MUX switch verification, app navigation)**
+2. **Dual-Mode Action Cards: Autonomous direct execution vs. observing mode with interactive in-chat Action Cards featuring [Execute Now] and [Cancel] controls alongside safety countdown interlock**
+3. **Multi-Partition Steam Discovery: Universal multi-drive scanner un-gated from libraryfolders.vdf, detecting Steam across all system drives (A: through Z:, /mnt, /media) and active processes**
+4. **NVIDIA NIM Structured Function Calling: Integrated OpenAI tool_calls parsing from live NIM streaming/non-streaming inference with fallback token translation**
+5. **Resilient Pure-Python RAG Architecture: Built-in pure-Python fallbacks for text splitting, document embedding, and BM25 indexing ensuring Python 3.14 compatibility**
+
+### 📊 Architecture & Data Flow
+```mermaid
+graph TD
+    A[Developer Push / Publish Pipeline] --> B[Version Stamping & AI Changelog Enforcer]
+    B --> C[Mission Control System Core]
+    C --> D[Website Documentation & Real-Time Sync]
+```
+
+### 📦 Distribution Artifacts
+- **Linux**: `.deb` (Debian/Ubuntu), `.AppImage` (Universal), `.rpm` (Fedora/RHEL), `.tar.gz` (Portable)
+- **Windows**: `.exe` (Setup Installer), `.msi` (Enterprise), `.zip` (Portable)
+
+---
+
+## 📦 Version v4.1.0 — Emulation & ROM Orchestration, Wine & Proton Compatibility, GPU MUX Telemetry & Agent Knowledge Grounding
 
 ### 🛠️ Key Highlights
 1. **Universal Emulation & ROMs Hub: Auto-discovery for 17+ emulators with custom ROM directory scanning and 1-click execution flags**
