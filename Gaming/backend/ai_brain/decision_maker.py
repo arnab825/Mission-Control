@@ -916,8 +916,24 @@ class GameBrain:
                 f"5. UNSUPPORTED STORES: You cannot fetch live deals for Xbox, Battle.net, Riot, or Rockstar. If asked, humbly explain their stores are locked, but proactively offer to launch the application for them instead (e.g. `[LAUNCH_COMMAND:xbox]`).\n"
                 f"6. Do not act like a generic chatbot. Be precise, expert, and context-aware.\n"
                 f"7. {privacy_status_msg}\n"
-                f"SYSTEM ACCESS INTEGRATION:\n"
-                f"1. APP CONTROL: Use your advanced capabilities to open, close, or configure app features via these command prefixes:\n"
+                f"SYSTEM ACCESS & STRUCTURED TOOL INTEGRATION:\n"
+                f"You have access to structured agentic tools for direct system & app control.\n"
+                f"Available tools:\n"
+                f"  - scan_roms: Trigger automated ROM library indexing (target_path, platform)\n"
+                f"  - switch_wine_runner: Configure Wine/Proton runner for Windows games on Linux (game_title, runner_id)\n"
+                f"  - set_cooling_mode / set_fan_profile: Set cooling / fan profile (mode: silent|balanced|performance|max)\n"
+                f"  - clear_standby_list: Clear standby memory cache and trim VRAM (include_vram)\n"
+                f"  - optimize_system: Full 5-stage gaming optimization (game_name, power_mode)\n"
+                f"  - launch_game: Direct argument-aware game or launcher launch (target, args)\n"
+                f"  - toggle_vision: Control tactical YOLO vision overlay (enabled: true|false)\n"
+                f"  - run_stability_benchmark: Start Stability Lab stress benchmark (duration_seconds, game_name)\n"
+                f"  - open_page: App navigation (page: dashboard|games|lab|vision|settings|updates|system|library)\n"
+                f"  - check_gpu_mux: Query GPU MUX Switch display routing (detailed)\n"
+                f"  - scan_library: Scan system for installed games\n"
+                f"  - system_status: Trigger system diagnostics and hardware status\n"
+                f"  - check_updates: Check for Mission Control updates\n"
+                f"  - rollback_release: Emergency rollback to previous stable release\n"
+                f"You can invoke tools by calling their function schema or outputting `[TOOL_CALL:{{\"name\": \"<tool>\", \"arguments\": {{...}}}}]` or legacy command prefixes:\n"
                 f"   - Change Cooling/Stability: `[SYSTEM_COMMAND:set_cooling_mode:<silent|balanced|max>]` (refer to 'Stability Mode')\n"
                 f"   - Toggle Vision: `[SYSTEM_COMMAND:toggle_vision:<on|off>]` (refer to 'Vision Panel')\n"
                 f"   - Clear VRAM/Optimize: `[SYSTEM_COMMAND:optimize_system]`\n"
@@ -926,10 +942,7 @@ class GameBrain:
                 f"   - Rollback Update: `[SYSTEM_COMMAND:rollback_release]`\n"
                 f"   - Scan Game Library: `[SYSTEM_COMMAND:scan_library]`\n"
                 f"   - App/System Status: `[SYSTEM_COMMAND:system_status]`\n"
-                f"2. LAUNCHER: If the user asks to open/launch/start a game or app (Steam, OBS, GTA V), "
-                f"you MUST prefix your response with: `[LAUNCH_COMMAND:<target>]` where `<target>` is the target name or executable. "
-                f"Example: `[LAUNCH_COMMAND:obs]`, `[LAUNCH_COMMAND:steam]`, or the exact game name from library. "
-                f"3. RELEASE & STABILITY: If asked 'Are there bugs?', 'Is this release stable?', or 'Run diagnostics', trigger `[SYSTEM_COMMAND:system_status]` and advise them based on the response. If they explicitly request a rollback due to bugs, trigger `[SYSTEM_COMMAND:rollback_release]`.\n"
+                f"   - Launch Game/App: `[LAUNCH_COMMAND:<target>]`\n"
                 f"CRITICAL: Do NOT mention these hidden system tags to the user in your conversational reply! They are invisible triggers."
             )
 
@@ -1287,19 +1300,31 @@ class GameBrain:
         """Parse the generated response for launch directives and execute them natively."""
         if not response or not isinstance(response, str):
             return response
+        pipeline = getattr(self, "pipeline", None)
+        bridge = getattr(self, "bridge", None) or getattr(pipeline, "bridge", None)
         return AgentCommandProcessor.process_launch_command(
             config=self.config,
             response=response,
             agentic_mode_active=agentic_mode_active,
             is_launch_request=is_launch_request,
-            prompt=prompt
+            prompt=prompt,
+            bridge=bridge,
+            pipeline=pipeline
         )
 
     def _process_system_command(self, response: str, agentic_mode_active: bool = False) -> str:
-        """Parse the response for [SYSTEM_COMMAND:...] and execute app-level configurations."""
+        """Parse the response for [TOOL_CALL:...] and [SYSTEM_COMMAND:...] and execute actions."""
         if not response or not isinstance(response, str):
             return response
-        return AgentCommandProcessor.process_system_command(response, agentic_mode_active)
+        pipeline = getattr(self, "pipeline", None)
+        bridge = getattr(self, "bridge", None) or getattr(pipeline, "bridge", None)
+        return AgentCommandProcessor.process_system_command(
+            response=response,
+            agentic_mode_active=agentic_mode_active,
+            bridge=bridge,
+            pipeline=pipeline,
+            config=self.config
+        )
 
     def _agentic_analyze(self, state):
         """Advanced agentic reasoning with deep game knowledge injection."""
@@ -2044,9 +2069,30 @@ class GameBrain:
                         if not choices or not isinstance(choices, (list, tuple)) or len(choices) == 0:
                             logger.warning(f"Provider '{p_key}' returned empty choices list. Trying next provider...")
                             continue
-                        advice = extract_choice_content(choices[0])
+                        choice_0 = choices[0]
+                        advice = extract_choice_content(choice_0)
                         if advice and "User Safety: Safe" in advice:
                             advice = advice.replace("User Safety: Safe", "").lstrip("\n ")
+
+                        # Check for structured tool_calls from model completion
+                        msg_obj = getattr(choice_0, "message", None) if not isinstance(choice_0, dict) else choice_0.get("message")
+                        tool_calls = getattr(msg_obj, "tool_calls", None) if not isinstance(msg_obj, dict) else msg_obj.get("tool_calls") if msg_obj else None
+                        if tool_calls and isinstance(tool_calls, (list, tuple)):
+                            tc_tags = []
+                            for tc in tool_calls:
+                                fn = getattr(tc, "function", None) if not isinstance(tc, dict) else tc.get("function")
+                                if fn:
+                                    fn_name = getattr(fn, "name", None) if not isinstance(fn, dict) else fn.get("name")
+                                    fn_args = getattr(fn, "arguments", None) if not isinstance(fn, dict) else fn.get("arguments")
+                                    if isinstance(fn_args, str):
+                                        try:
+                                            fn_args = json.loads(fn_args)
+                                        except Exception:
+                                            pass
+                                    tc_tags.append(f"[TOOL_CALL:{json.dumps({'name': fn_name, 'arguments': fn_args or {}})}]")
+                            if tc_tags:
+                                advice = (advice or "").strip() + " " + " ".join(tc_tags)
+
                         return advice
                     
                 except Exception as e:

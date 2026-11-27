@@ -57,6 +57,19 @@ def handle_confirm_agentic_action(payload: dict, pipeline, bridge, config) -> No
         pipeline._action_abort_flag = True
         logger.info("[AGENT] Safety Interlock: Direct action abort triggered.")
 
+    # Also resolve registered tool action in AgentCommandProcessor
+    try:
+        from control.agent_commands import AgentCommandProcessor
+        AgentCommandProcessor.execute_pending_action(
+            action_id=action_id,
+            confirmed=confirmed,
+            pipeline=pipeline,
+            bridge=bridge,
+            config=config
+        )
+    except Exception as e:
+        logger.error("Error executing pending action in handler: %s", e)
+
     if bridge:
         # Clear confirmation toast once handled
         bridge.update_state({"confirmation_required": None})

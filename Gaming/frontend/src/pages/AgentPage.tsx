@@ -32,7 +32,8 @@ import {
   MessageSquare,
   ExternalLink,
   Download,
-  ScrollText
+  ScrollText,
+  Play
 } from 'lucide-react';
 import type { TelemetryState } from '../types/telemetry';
 import NeuralHistory, { getRelativeTimeString } from '../components/NeuralHistory';
@@ -132,13 +133,41 @@ const ChatBubble: React.FC<{
   isTTSEnabled?: boolean;
   searchStatus?: string;
   onFeedback?: (isHelpful: boolean, reason: string) => void;
-}> = React.memo(({ role, text, time, isTyping, isThinking, id, isPopup, isCompact, onTypingComplete, onRetry, onToggleTTS, isTTSEnabled, searchStatus, onFeedback }) => {
+  onActionConfirm?: (actionId: string, confirmed: boolean) => void;
+}> = React.memo(({ role, text, time, isTyping, isThinking, id, isPopup, isCompact, onTypingComplete, onRetry, onToggleTTS, isTTSEnabled, searchStatus, onFeedback, onActionConfirm }) => {
   const { user, isSignedIn } = useUser();
   const [displayedText, setDisplayedText] = useState(isTyping ? '' : text);
   const [isEditing, setIsEditing] = useState(false);
   const [editText, setEditText] = useState(text);
   const [feedbackState, setFeedbackState] = useState<'none' | 'positive' | 'negative' | 'submitted'>('none');
   const [feedbackReason, setFeedbackReason] = useState('');
+
+  // Structured Action Card extraction & local reactive state
+  const actionCardData = useMemo<{
+    id: string;
+    tool: string;
+    title: string;
+    description: string;
+    params?: Record<string, any>;
+    status: 'executed' | 'pending' | 'cancelled';
+  } | null>(() => {
+    if (!text) return null;
+    const match = text.match(/\[ACTION_CARD:(\{[\s\S]*?\})\]/i);
+    if (!match) return null;
+    try {
+      return JSON.parse(match[1]);
+    } catch {
+      return null;
+    }
+  }, [text]);
+
+  const [cardStatus, setCardStatus] = useState<string | null>(null);
+
+  useEffect(() => {
+    if (actionCardData) {
+      setCardStatus(actionCardData.status);
+    }
+  }, [actionCardData]);
 
   // If text changes and we shouldn't be typing, reset to full text immediately
   useEffect(() => {
@@ -221,7 +250,8 @@ const ChatBubble: React.FC<{
     if (!rawText) return null;
     const cleanText = rawText.split('\u200b')[0];
     const sanitizedText = cleanText
-      .replace(/\[\s*(?:SYSTEM_COMMAND|LAUNCH_COMMAND|WebSearchTrigger|[A-Z_]{3,}):[^\]]*\]?/gi, '')
+      .replace(/\[ACTION_CARD:(\{[\s\S]*?\})\]/gi, '')
+      .replace(/\[\s*(?:SYSTEM_COMMAND|LAUNCH_COMMAND|TOOL_CALL|WebSearchTrigger|[A-Z_]{3,}):[^\]]*\]?/gi, '')
       .trim();
 
     // Split text into lines
@@ -512,6 +542,109 @@ const ChatBubble: React.FC<{
                 <>
                   {renderFormattedText(displayedText)}
                   {isTyping && <span className="inline-block w-1.5 h-3.5 ml-1 bg-neon-green animate-pulse align-middle" />}
+
+                  {/* Structured Agentic Action Card */}
+                  {actionCardData && (
+                    <div className="mt-3.5 overflow-hidden rounded-xl border border-white/10 bg-black/70 p-3.5 backdrop-blur-md shadow-[0_8px_24px_rgba(0,0,0,0.4)] transition-all">
+                      <div className="flex items-start justify-between gap-3">
+                        <div className="flex items-center gap-2.5 min-w-0">
+                          <div className={`p-2 rounded-lg border shrink-0 ${
+                            (cardStatus || actionCardData.status) === 'executed'
+                              ? 'bg-neon-green/10 border-neon-green/30 text-neon-green'
+                              : (cardStatus || actionCardData.status) === 'cancelled'
+                              ? 'bg-zinc-800/60 border-zinc-700/40 text-zinc-400'
+                              : 'bg-amber-500/10 border-amber-500/30 text-amber-400'
+                          }`}>
+                            {actionCardData.tool.toLowerCase().includes('rom') ? (
+                              <Gamepad2 className="w-4 h-4" />
+                            ) : actionCardData.tool.toLowerCase().includes('wine') || actionCardData.tool.toLowerCase().includes('runner') ? (
+                              <Layers className="w-4 h-4" />
+                            ) : actionCardData.tool.toLowerCase().includes('cool') || actionCardData.tool.toLowerCase().includes('fan') ? (
+                              <Zap className="w-4 h-4" />
+                            ) : actionCardData.tool.toLowerCase().includes('standby') || actionCardData.tool.toLowerCase().includes('ram') || actionCardData.tool.toLowerCase().includes('vram') ? (
+                              <Cpu className="w-4 h-4" />
+                            ) : actionCardData.tool.toLowerCase().includes('optimi') ? (
+                              <BrainCircuit className="w-4 h-4" />
+                            ) : actionCardData.tool.toLowerCase().includes('launch') ? (
+                              <Play className="w-4 h-4" />
+                            ) : actionCardData.tool.toLowerCase().includes('vision') ? (
+                              <Layers className="w-4 h-4" />
+                            ) : actionCardData.tool.toLowerCase().includes('bench') || actionCardData.tool.toLowerCase().includes('lab') ? (
+                              <Activity className="w-4 h-4" />
+                            ) : actionCardData.tool.toLowerCase().includes('mux') ? (
+                              <Cpu className="w-4 h-4" />
+                            ) : (
+                              <Terminal className="w-4 h-4" />
+                            )}
+                          </div>
+                          <div className="min-w-0">
+                            <div className="flex items-center gap-2 flex-wrap">
+                              <h5 className="text-[11px] font-black uppercase tracking-wider text-white truncate">
+                                {actionCardData.title}
+                              </h5>
+                              <span className={`px-2 py-0.5 rounded text-[8px] font-black uppercase tracking-widest border shrink-0 ${
+                                (cardStatus || actionCardData.status) === 'executed'
+                                  ? 'bg-neon-green/15 text-neon-green border-neon-green/30'
+                                  : (cardStatus || actionCardData.status) === 'cancelled'
+                                  ? 'bg-zinc-800/80 text-zinc-400 border-zinc-700/50'
+                                  : 'bg-amber-500/15 text-amber-400 border-amber-500/30 animate-pulse'
+                              }`}>
+                                {(cardStatus || actionCardData.status) === 'executed'
+                                  ? 'EXECUTED'
+                                  : (cardStatus || actionCardData.status) === 'cancelled'
+                                  ? 'CANCELLED'
+                                  : 'PENDING APPROVAL'}
+                              </span>
+                            </div>
+                            <p className="text-[10px] sm:text-[11px] font-medium text-zinc-400 mt-0.5 leading-snug break-words">
+                              {actionCardData.description}
+                            </p>
+                          </div>
+                        </div>
+                      </div>
+
+                      {actionCardData.params && Object.keys(actionCardData.params).length > 0 && (
+                        <div className="flex flex-wrap gap-1.5 mt-2.5 pt-2.5 border-t border-white/5">
+                          {Object.entries(actionCardData.params)
+                            .filter(([_, v]) => v !== null && v !== undefined && v !== '')
+                            .map(([k, v]) => (
+                              <span key={k} className="px-2 py-0.5 rounded bg-white/4 border border-white/8 text-[9px] font-mono text-zinc-300">
+                                <span className="text-zinc-500">{k}:</span> {typeof v === 'object' ? JSON.stringify(v) : String(v)}
+                              </span>
+                            ))}
+                        </div>
+                      )}
+
+                      {(cardStatus || actionCardData.status) === 'pending' && (
+                        <div className="flex items-center gap-2 mt-3 pt-2.5 border-t border-white/5">
+                          <button
+                            type="button"
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              setCardStatus('cancelled');
+                              onActionConfirm?.(actionCardData.id, false);
+                            }}
+                            className="flex-1 py-1.5 px-3 rounded-lg bg-red-500/10 hover:bg-red-500/20 border border-red-500/25 text-red-400 font-black text-[9px] uppercase tracking-wider transition-all flex items-center justify-center gap-1.5 cursor-pointer active:scale-95"
+                          >
+                            <X className="w-3 h-3" />
+                            Cancel
+                          </button>
+                          <button
+                            type="button"
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              setCardStatus('executed');
+                              onActionConfirm?.(actionCardData.id, true);
+                            }}
+                            className="flex-1 py-1.5 px-3 rounded-lg bg-neon-green/15 hover:bg-neon-green/25 border border-neon-green/40 text-neon-green font-black text-[9px] uppercase tracking-wider transition-all flex items-center justify-center gap-1.5 cursor-pointer shadow-[0_0_12px_rgba(118,185,0,0.2)] active:scale-95"
+                          >
+                            <Play className="w-3 h-3" />
+                            Execute Now
+                          </button>
+                        </div>
+                      )}
+                    </div>
+                  )}
                   {role === 'agent' && searchStatus && (
                     <div className="mt-3 pt-2.5 border-t border-white/5 flex items-center">
                       {searchStatus === 'success' && (
@@ -1729,9 +1862,12 @@ const AgentPage: React.FC<{
           onToggleTTS={handleToggleTTS}
           isTTSEnabled={isTTSEnabled}
           onFeedback={(isHelpful, reason) => handleFeedback(msg.text, isHelpful, reason)}
+          onActionConfirm={(actionId, confirmed) => {
+            onCommand('confirm_agentic_action', { action_id: actionId, confirmed: Boolean(confirmed) });
+          }}
         />
       ));
-    }, [conversations, activeSessionId, isCompact, isPopup, handleTypingComplete, handleRetry, handleToggleTTS, isTTSEnabled, handleFeedback]);
+    }, [conversations, activeSessionId, isCompact, isPopup, handleTypingComplete, handleRetry, handleToggleTTS, isTTSEnabled, handleFeedback, onCommand]);
 
 
     // Roadmap Item 9: Native drag-and-drop for files onto the chat input

@@ -325,6 +325,9 @@ Ready and monitoring. Launch your game to initiate automatic HUD lock.
             bridge.update_state({"confirmation_required": {"text": text, "delay": delay, "action_id": aid}})
             return True
 
+        pipeline.bridge = bridge
+        if hasattr(pipeline, "brain") and pipeline.brain:
+            pipeline.brain.bridge = bridge
         pipeline.action_confirm_callback = _on_action_confirm
         pipeline.thermal_alert_callback = lambda title, msg, dur: bridge.update_state(
             {"alert": {"title": title, "message": msg}}

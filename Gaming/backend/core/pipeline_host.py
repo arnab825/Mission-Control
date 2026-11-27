@@ -221,6 +221,7 @@ class GamingAssistantPipeline:
 
         # AI Brain
         self.brain = GameBrain(mode=self.game_mode, config=config, memory=self.memory)
+        self.brain.pipeline = self
         
         # Story analyzer (for story/hybrid modes)
         self.story_analyzer = None

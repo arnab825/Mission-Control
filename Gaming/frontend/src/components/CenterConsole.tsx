@@ -20,7 +20,10 @@ const ChatBubble: React.FC<{ role: 'agent' | 'user'; text: string; time: string 
         ? 'bg-white/3 border border-white/6 text-zinc-300 rounded-tl-sm glass-panel'
         : 'bg-neon-green/6 border border-neon-green/15 text-neon-green rounded-tr-sm glass-accent'
         }`}>
-        {text}
+        {(text || '')
+          .replace(/\[ACTION_CARD:(\{[\s\S]*?\})\]/gi, '')
+          .replace(/\[\s*(?:SYSTEM_COMMAND|LAUNCH_COMMAND|TOOL_CALL|WebSearchTrigger|[A-Z_]{3,}):[^\]]*\]?/gi, '')
+          .trim()}
       </div>
     </div>
   </motion.div>
